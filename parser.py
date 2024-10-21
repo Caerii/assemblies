@@ -651,7 +651,6 @@ def potentiate_word_in_LEX(b, word, rounds=20):
 
 # "cats": 
 
-
 # Readout types
 class ReadoutMethod(Enum):
 	FIXED_MAP_READOUT = 1

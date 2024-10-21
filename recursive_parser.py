@@ -663,10 +663,6 @@ class ReadoutMethod(Enum):
 	FIBER_READOUT = 2
 	NATURAL_READOUT = 3
 
-
-
-
-
 def parse(sentence="cats chase mice", language="English", p=0.1, LEX_k=20, 
 	project_rounds=30, verbose=True, debug=False, readout_method=ReadoutMethod.FIBER_READOUT):
 

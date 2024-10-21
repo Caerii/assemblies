@@ -86,9 +86,24 @@ def assembly_only_sim(n=100000,k=317,p=0.05,beta=0.05,project_iter=10):
 		b.project({},{"A":["A"]})
 	return b.areas["A"].saved_w
 
-
 # alpha = percentage of (random) final assembly neurons to try firing
 def pattern_com(n=100000,k=317,p=0.05,beta=0.05,project_iter=10,alpha=0.5,comp_iter=1):
+	"""
+    Simulates pattern completion by randomly reactivating a subset of neurons in an assembly and projecting multiple times.
+
+    Parameters:
+    n (int): Number of neurons in the area.
+    k (int): Number of active neurons in the stimulus.
+    p (float): Probability parameter for the brain area.
+    beta (float): Connectivity probability between neurons.
+    project_iter (int): Number of initial projection iterations to establish the assembly.
+    alpha (float): Fraction of assembly neurons randomly chosen to fire in the completion phase.
+    comp_iter (int): Number of completion iterations to project the partial pattern.
+
+    Returns:
+    tuple: Contains two elements; the first is the final weights of the neural connections,
+           and the second is the list of winners (active neurons) after completion.
+    """
 	b = brain.Brain(p,save_winners=True)
 	b.add_stimulus("stim",k)
 	b.add_area("A",n,k,beta)
@@ -105,6 +120,24 @@ def pattern_com(n=100000,k=317,p=0.05,beta=0.05,project_iter=10,alpha=0.5,comp_i
 
 def pattern_com_repeated(n=100000,k=317,p=0.05,beta=0.05,project_iter=12,alpha=0.4,
 	trials=3, max_recurrent_iter=10, resample=False):
+	"""
+    Repeatedly simulates pattern completion with potentially different subsets of neurons firing each time,
+    to assess the robustness of pattern reinstatement.
+
+    Parameters:
+    n (int): Number of neurons in the area.
+    k (int): Number of active neurons in the stimulus.
+    p (float): Probability parameter for the brain area.
+    beta (float): Connectivity probability between neurons.
+    project_iter (int): Number of initial projection iterations to establish the assembly.
+    alpha (float): Fraction of assembly neurons randomly chosen to fire.
+    trials (int): Number of times the pattern completion is attempted.
+    max_recurrent_iter (int): Maximum number of projections during a single completion trial.
+    resample (bool): If True, resample the subset of firing neurons for each trial.
+
+    Returns:
+    tuple: Contains overlaps of winners and the number of iterations to reach completion for each trial.
+    """
 	b = brain.Brain(p,save_winners=True)
 	b.add_stimulus("stim",k)
 	b.add_area("A",n,k,beta)
@@ -133,6 +166,21 @@ def pattern_com_repeated(n=100000,k=317,p=0.05,beta=0.05,project_iter=12,alpha=0
 
 def pattern_com_alphas(n=100000,k=317,p=0.01,beta=0.05,
 	alphas=[0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0],project_iter=25,comp_iter=5):
+	"""
+    Simulates pattern completion with varying percentages of active neurons in an established neural assembly.
+
+    Parameters:
+    n (int): Total number of neurons in the area.
+    k (int): Number of neurons initially activated by the stimulus.
+    p (float): Probability parameter for the brain setup.
+    beta (float): Connectivity probability within the neural area.
+    alphas (list of float): List of proportions of the assembly to reactivate in each trial.
+    project_iter (int): Number of iterations to establish the initial neural assembly.
+    comp_iter (int): Number of iterations for each completion attempt.
+
+    Returns:
+    dict: Dictionary where keys are the alpha values and values are the overlap ratios of reactivated assembly with the initial winners.
+    """
 	b = brain.Brain(p)
 	b.add_stimulus("stim",k)
 	b.add_area("A",n,k,beta)
@@ -156,6 +204,22 @@ def pattern_com_alphas(n=100000,k=317,p=0.01,beta=0.05,
 
 def pattern_com_iterations(n=100000,k=317,p=0.01,beta=0.05,alpha=0.4,comp_iter=8,
 	min_iter=20,max_iter=30):
+	"""
+    Investigates the effect of varying the number of projection iterations on the stability of pattern completion.
+
+    Parameters:
+    n (int): Total number of neurons in the neural area.
+    k (int): Number of neurons initially activated by the stimulus.
+    p (float): Probability parameter for the brain setup.
+    beta (float): Connectivity probability within the neural area.
+    alpha (float): Fraction of the assembly to reactivate.
+    comp_iter (int): Number of iterations for completion projections.
+    min_iter (int): Minimum number of projection iterations to perform.
+    max_iter (int): Maximum number of projection iterations to perform.
+
+    Returns:
+    dict: Dictionary where keys are the number of iterations, and values are the overlap ratios of reactivated assembly with the initial winners.
+    """
 	b = brain.Brain(p)
 	b.add_stimulus("stim",k)
 	b.add_area("A",n,k,beta)
@@ -177,6 +241,19 @@ def pattern_com_iterations(n=100000,k=317,p=0.01,beta=0.05,alpha=0.4,comp_iter=8
 
 # Sample command c_w,c_winners = bu.association_sim()
 def associate(n=100000,k=317,p=0.05,beta=0.1,overlap_iter=10):
+	"""
+    Simulates the association of two neural stimuli into a third neural area through sequential and concurrent projections.
+
+    Parameters:
+    n (int): Total number of neurons in each neural area.
+    k (int): Number of neurons initially activated by each stimulus.
+    p (float): Probability parameter for the brain setup.
+    beta (float): Connectivity probability within the neural areas.
+    overlap_iter (int): Number of projection iterations where both stimuli influence the third area.
+
+    Returns:
+    brain.Brain: The brain object after executing the association simulation.
+    """
 	b = brain.Brain(p,save_winners=True)
 	b.add_stimulus("stimA",k)
 	b.add_area("A",n,k,beta)
@@ -211,10 +288,37 @@ def associate(n=100000,k=317,p=0.05,beta=0.1,overlap_iter=10):
 	return b
 
 def association_sim(n=100000,k=317,p=0.05,beta=0.1,overlap_iter=10):
+	"""
+    Wrapper function to execute an association simulation and retrieve the saved weights and winner neurons of area 'C'.
+
+    Parameters:
+    n (int): Total number of neurons in each neural area.
+    k (int): Number of neurons initially activated by each stimulus.
+    p (float): Probability parameter for the brain setup.
+    beta (float): Connectivity probability within the neural areas.
+    overlap_iter (int): Number of projection iterations where both stimuli influence the third area.
+
+    Returns:
+    tuple: Tuple containing the saved weights and winner neurons from area 'C' after the simulation.
+    """
 	b = associate(n,k,p,beta,overlap_iter)
 	return b.areas["C"].saved_w,b.areas["C"].saved_winners
 
 def association_grand_sim(n=100000,k=317,p=0.01,beta=0.05,min_iter=10,max_iter=20):
+	"""
+    Conducts a comprehensive association simulation with varying numbers of iterations to examine the effects on the stability and overlap of assemblies in a third neural area.
+
+    Parameters:
+    n (int): Total number of neurons in each neural area.
+    k (int): Number of neurons initially activated by each stimulus.
+    p (float): Probability parameter for the brain setup.
+    beta (float): Connectivity probability within the neural areas.
+    min_iter (int): Minimum number of iterations for associative projections.
+    max_iter (int): Maximum number of iterations for associative projections.
+
+    Returns:
+    dict: Dictionary where keys are the number of iterations and values are the overlap ratios of assemblies in the third area as influenced by two distinct stimuli.
+    """
 	b = brain.Brain(p,save_winners=True)
 	b.add_stimulus("stimA",k)
 	b.add_area("A",n,k,beta)
@@ -259,6 +363,19 @@ def association_grand_sim(n=100000,k=317,p=0.01,beta=0.05,min_iter=10,max_iter=2
 	return results
 
 def merge_sim(n=100000,k=317,p=0.01,beta=0.05,max_t=50):
+	"""
+    Simulates the merging of neural activities from two different stimuli into a shared and separate neural areas over multiple time steps.
+
+    Parameters:
+    n (int): Number of neurons in each neural area.
+    k (int): Number of active neurons initially stimulated by each stimulus.
+    p (float): Base probability parameter for the brain's setup.
+    beta (float): Probability of connectivity within each neural area.
+    max_t (int): Maximum number of time steps to run the merge simulation.
+
+    Returns:
+    tuple: Saved weights of neural areas 'A', 'B', and 'C' after merging simulation.
+    """
 	b = brain.Brain(p)
 	b.add_stimulus("stimA",k)
 	b.add_stimulus("stimB",k)
@@ -278,6 +395,18 @@ def merge_sim(n=100000,k=317,p=0.01,beta=0.05,max_t=50):
 	return b.areas["A"].saved_w, b.areas["B"].saved_w, b.areas["C"].saved_w
 
 def merge_beta_sim(n=100000,k=317,p=0.01,t=100):
+	"""
+    Executes the merge simulation across a range of beta values to evaluate the effects of varying connectivity probabilities on neural merging.
+
+    Parameters:
+    n (int): Number of neurons in each neural area.
+    k (int): Number of active neurons initially stimulated by each stimulus.
+    p (float): Base probability parameter for the brain's setup.
+    t (int): Number of time steps each simulation will run for.
+
+    Returns:
+    dict: A dictionary where keys are beta values and values are the results of the merge simulation for those beta values.
+    """
 	results = {}
 	for beta in [0.3,0.2,0.1,0.075,0.05]:
 		print("Working on " + str(beta) + "\n")
@@ -286,8 +415,19 @@ def merge_beta_sim(n=100000,k=317,p=0.01,t=100):
 	return results
 # UTILS FOR EVAL
 
-
 def plot_project_sim(show=True, save="", show_legend=False, use_text_font=True):
+	"""
+    Plots the results of a projection simulation, displaying the development of neural weights over time with the option to customize the display.
+
+    Parameters:
+    show (bool): If True, display the plot; otherwise, do not show.
+    save (str): Path to save the plot file. If empty, the plot is not saved.
+    show_legend (bool): If True, include a legend in the plot.
+    use_text_font (bool): If True, use specific font settings for the plot.
+
+    Notes:
+    The function retrieves the simulation results using a utility method, formats them, and then plots using matplotlib.
+    """
 	results = bu.sim_load('project_results')
 	# fonts
 	if(use_text_font):
@@ -321,6 +461,18 @@ def plot_project_sim(show=True, save="", show_legend=False, use_text_font=True):
 		plt.savefig(save)
 
 def plot_merge_sim(show=True, save="", show_legend=False, use_text_font=True):
+	"""
+    Plots the results of merge simulations across different beta values, showing the neural activities over time.
+
+    Parameters:
+    show (bool): If True, displays the plot on the screen.
+    save (str): Path to save the plot image file. If empty, the plot is not saved.
+    show_legend (bool): If True, includes a legend in the plot.
+    use_text_font (bool): If True, sets the font style to be suitable for mathematical notation.
+
+    Notes:
+    Retrieves the results from a utility function, then formats and displays them using matplotlib.
+    """
 	results = bu.sim_load('merge_betas')
 	# fonts
 	if(use_text_font):
@@ -350,8 +502,18 @@ def plot_merge_sim(show=True, save="", show_legend=False, use_text_font=True):
 	if not show and save != "":
 		plt.savefig(save)
 
-
 def plot_association(show=True, save="", use_text_font=True):
+	"""
+    Plots the results of neural association simulations, highlighting the degree of overlap between neural assemblies over time.
+
+    Parameters:
+    show (bool): If True, displays the plot on the screen.
+    save (str): Path to save the plot image file. If empty, the plot is not saved.
+    use_text_font (bool): If True, sets the font style to be suitable for mathematical notation.
+
+    Notes:
+    Retrieves the results from a utility function, then formats and displays them using matplotlib. This plot helps in understanding the association dynamics in neural simulations.
+    """
 	results = bu.sim_load('association_results')
 	if(use_text_font):
 		plt.rcParams['mathtext.fontset'] = 'stix'
@@ -368,6 +530,17 @@ def plot_association(show=True, save="", use_text_font=True):
 		plt.savefig(save)
 
 def plot_pattern_com(show=True, save="", use_text_font=True):
+	"""
+    Plots the results of pattern completion simulations, showing the effectiveness of pattern completion across different iterations.
+
+    Parameters:
+    show (bool): If True, displays the plot on the screen.
+    save (str): Path to save the plot image file. If empty, the plot is not saved.
+    use_text_font (bool): If True, sets the font style to be suitable for mathematical notation.
+
+    Notes:
+    Retrieves the simulation data from a utility function and plots the degree of pattern completion, providing insights into the stability and recovery of neural patterns.
+    """
 	results = bu.sim_load('pattern_com_iterations')
 	if(use_text_font):
 		plt.rcParams['mathtext.fontset'] = 'stix'
@@ -384,6 +557,17 @@ def plot_pattern_com(show=True, save="", use_text_font=True):
 		plt.savefig(save)
 
 def plot_overlap(show=True, save="", use_text_font=True):
+	"""
+    Plots the overlap of neural assemblies and projections over simulation iterations, showcasing the relationship between assemblies.
+
+    Parameters:
+    show (bool): If True, the plot is displayed on the screen.
+    save (str): Path where the plot image is saved. If empty, the plot is not saved.
+    use_text_font (bool): If True, mathematical fonts are used for text in the plot.
+
+    Description:
+    This function loads simulation results, sets the plotting parameters for mathematical expressions, and visualizes the overlap between neural assemblies and projections.
+    """
 	results = bu.sim_load('overlap_results')
 	if(use_text_font):
 		plt.rcParams['mathtext.fontset'] = 'stix'
@@ -402,6 +586,22 @@ def plot_overlap(show=True, save="", use_text_font=True):
 		plt.savefig(save)
 
 def density(n=100000,k=317,p=0.01,beta=0.05,rounds=20):
+	"""
+    Simulates and calculates the density of connections within a neural network after several rounds of projections.
+
+    Parameters:
+    n (int): Number of neurons in the network.
+    k (int): Number of connections per neuron.
+    p (float): Initial probability of a connection.
+    beta (float): Learning rate or adjustment factor in the neural update rules.
+    rounds (int): Number of simulation rounds to execute.
+
+    Returns:
+    tuple: A tuple containing the density of connections within the final winner assembly, and a list of synaptic strengths over all rounds.
+
+    Description:
+    Executes a series of projections to develop neural assemblies, then calculates the density of connections among the final set of active neurons.
+    """
 	b = brain.Brain(p)
 	b.add_stimulus("stim",k)
 	b.add_area("A",n,k,beta)
@@ -420,6 +620,21 @@ def density(n=100000,k=317,p=0.01,beta=0.05,rounds=20):
 	return float(edges)/float(k**2), saved_w
 
 def density_sim(n=100000,k=317,p=0.01,beta_values=[0,0.025,0.05,0.075,0.1]):
+	"""
+    Runs a series of density simulations over a range of beta values to determine how learning rates affect connectivity.
+
+    Parameters:
+    n (int): Number of neurons.
+    k (int): Number of connections per neuron.
+    p (float): Probability of initial connections.
+    beta_values (list): List of beta values to simulate.
+
+    Returns:
+    dict: A dictionary with beta values as keys and density simulation results as values.
+
+    Description:
+    This function iterates over a list of beta values, runs density calculations for each, and collects the results for analysis.
+    """
 	results = {}
 	for beta in beta_values:
 		print("Working on " + str(beta) + "\n")
@@ -428,6 +643,17 @@ def density_sim(n=100000,k=317,p=0.01,beta_values=[0,0.025,0.05,0.075,0.1]):
 	return results
 
 def plot_density_ee(show=True,save="",use_text_font=True):
+	"""
+    Plots the results of density simulations, showing the effective assembly connectivity probability as a function of the learning rate beta.
+
+    Parameters:
+    show (bool): If True, displays the plot on the screen.
+    save (str): Path to save the plot image file. If empty, the plot is not saved.
+    use_text_font (bool): If True, sets the font style to be suitable for mathematical notation.
+
+    Description:
+    Loads results from density simulations and plots the effective assembly connectivity probability against varying beta values.
+    """
 	if(use_text_font):
 		plt.rcParams['mathtext.fontset'] = 'stix'
 		plt.rcParams['font.family'] = 'STIXGeneral'
@@ -446,6 +672,18 @@ def plot_density_ee(show=True,save="",use_text_font=True):
 # After subsequent recurrent firings restore up to 42% 
 # With artificially high beta, can get 100% restoration.
 def fixed_assembly_recip_proj(n=100000, k=317, p=0.01, beta=0.05):
+	"""
+    Simulates reciprocal projections between two neural assemblies A and B to test the restoration capabilities of the neural network.
+    
+    Parameters:
+    n (int): Number of neurons in each area.
+    k (int): Number of initial active neurons (winners) in the stimulation pattern.
+    p (float): Initial probability of connectivity.
+    beta (float): Synaptic modification rate.
+    
+    Description:
+    Initiates a brain model, creates two areas A and B, and applies stimulation to A. After stabilizing the response in A, it projects responses to B and then reciprocally from B to A to test if the original pattern in A can be restored. The results show how effectively the assembly in B can influence A after stabilization.
+    """
 	b = brain.Brain(p, save_winners=True)
 	b.add_stimulus("stimA",k)
 	b.add_area("A",n,k,beta)
@@ -476,6 +714,18 @@ def fixed_assembly_recip_proj(n=100000, k=317, p=0.01, beta=0.05):
 
 
 def fixed_assembly_merge(n=100000, k=317, p=0.01, beta=0.05):
+	"""
+    Prepares a setup for merging neural activities between multiple assemblies using fixed patterns to observe the effects of merging in a controlled environment.
+
+    Parameters:
+    n (int): Number of neurons in each neural area.
+    k (int): Number of initial active neurons in the stimulus.
+    p (float): Initial probability of connectivity.
+    beta (float): Synaptic modification rate.
+
+    Description:
+    Creates a neural setup with three areas, A, B, and C, and provides stimuli to A and B. The method then fixes the assemblies in A and B to observe their influence without further modifications.
+    """
 	b = brain.Brain(p)
 	b.add_stimulus("stimA",k)
 	b.add_stimulus("stimB",k)
@@ -490,6 +740,20 @@ def fixed_assembly_merge(n=100000, k=317, p=0.01, beta=0.05):
 	b.areas["B"].fix_assembly()
 
 def separate(n=10000, k=100, p=0.01, beta=0.05, rounds=10, overlap=0):
+	"""
+    Simulates the effect of projecting separate stimuli into a neural area to examine the interaction and overlap between the resulting neural assemblies.
+
+    Parameters:
+    n (int): Total number of neurons in area A.
+    k (int): Number of active neurons in each stimulus.
+    p (float): Initial probability of connectivity.
+    beta (float): Synaptic modification rate.
+    rounds (int): Number of projection rounds for each stimulus.
+    overlap (int): Number of overlapping neurons between the two stimuli.
+
+    Description:
+    Introduces two distinct stimuli into a neural area and measures the overlap between the resulting assemblies after a series of projections. It also tests the ability to restore initial assemblies after multiple rounds of stimulation.
+    """
 	b = brain.Brain(p)
 	b.add_explicit_area("EXP", 2*k, k, beta)
 	b.add_area("A",n,k,beta)
@@ -509,7 +773,6 @@ def separate(n=10000, k=100, p=0.01, beta=0.05, rounds=10, overlap=0):
 	stim1_assembly = b.areas["A"].winners
 
 	print("PROJECTION STIM_2 INTO A....")
-
 
 	b.areas["EXP"].winners = list(range(k-overlap, 2*k-overlap))
 	b.areas["EXP"].fix_assembly()
