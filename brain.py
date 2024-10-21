@@ -318,6 +318,8 @@ class Brain:
     # have to wait to replace new_winners
     rng = self._rng
     area_by_name = self.area_by_name
+    target_area_name = target_area.name
+
     if verbose >= 1:
       print(f"Projecting {', '.join(from_stimuli)} "
             f" and {', '.join(from_areas)} into {target_area.name}")
@@ -336,7 +338,8 @@ class Brain:
       num_first_winners_processed = 0
 
     else:
-	    target_area_name = target_area.name
+	    # target_area_name = target_area.name
+
 	    prev_winner_inputs = np.zeros(target_area.w, dtype=np.float32)
 	    for stim in from_stimuli:
 	      stim_inputs = self.connectomes_by_stimulus[stim][target_area_name]
