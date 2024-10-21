@@ -1,5 +1,5 @@
 import time
-from "../turing_sim" import larger_k, turing_erase
+from turing_sim import larger_k, turing_erase
 
 def run_simulations():
     print("Running Larger K Simulation...")
