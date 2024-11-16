@@ -45,7 +45,6 @@ RUSSIAN_AREAS = [LEX, NOM, VERB, ACC, DAT]
 RUSSIAN_EXPLICIT_AREAS = [LEX]
 RUSSIAN_LEX_SIZE = 7
 
-
 AreaRule = namedtuple('AreaRule', ['action', 'area', 'index'])
 FiberRule = namedtuple('FiberRule', ['action', 'area1', 'area2', 'index'])
 FiringRule = namedtuple('FiringRule', ['action'])
