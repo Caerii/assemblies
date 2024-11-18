@@ -1,0 +1,24 @@
+--- Results ---
+Accuracy: 13.80%
+Avg Time: 0.0190s/image
+              precision    recall  f1-score   support
+
+     unknown       0.00      0.00      0.00         0
+    airplane       0.09      0.10      0.10        50
+  automobile       0.11      0.25      0.16        40
+        bird       0.08      0.14      0.11        42
+         cat       0.15      0.35      0.21        52
+        deer       0.11      0.05      0.06        43
+         dog       0.28      0.29      0.29        66
+        frog       0.10      0.09      0.09        55
+       horse       0.13      0.08      0.10        53
+        ship       0.00      0.00      0.00        51
+       truck       0.00      0.00      0.00        48
+
+   micro avg       0.14      0.14      0.14       500
+   macro avg       0.10      0.12      0.10       500
+weighted avg       0.11      0.14      0.12       500
+
+---
+
+Added various modifications to the reinforcement method to see if we could change the stability of neural representations.

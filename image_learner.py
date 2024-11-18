@@ -419,7 +419,7 @@ class CIFAR10Brain:
     #     print(f"  Reinforced connections from MID_LEVEL to HIGH_LEVEL.")
     #     print(f"  Reinforced connections from LOW_LEVEL to MID_LEVEL.")
 
-    def apply_decay(self, connectome, decay_rate=0.005):
+    def apply_decay(self, connectome, decay_rate=0.0005):
         """
         Applies decay to a connectome matrix to simulate forgetting.
         """
@@ -428,17 +428,165 @@ class CIFAR10Brain:
         else:
             raise TypeError(f"Expected connectome as numpy array, got {type(connectome)}")
 
-    def normalize_connectome(self, connectome):
-        """
-        Normalizes the given connectome weights to be within a defined range or with a specific norm.
-        Args:
-            connectome (np.ndarray): The connectome matrix to normalize.
-        """
-        # Normalize the connectome weights to have a max of 1
-        max_value = np.max(connectome)
-        if max_value > 0:
-            connectome /= max_value
-        print(f"[DEBUG] Normalized connectome. Max value after normalization: {np.max(connectome)}")
+    # def normalize_connectome(self, connectome):
+    #     """
+    #     Normalizes the given connectome weights to be within a defined range or with a specific norm.
+    #     Args:
+    #         connectome (np.ndarray): The connectome matrix to normalize.
+    #     """
+    #     # Normalize the connectome weights to have a max of 1
+    #     max_value = np.max(connectome)
+    #     if max_value > 0:
+    #         connectome /= max_value
+    #     print(f"[DEBUG] Normalized connectome. Max value after normalization: {np.max(connectome)}")
+
+    # def reinforce(self, predicted_label, true_label):
+    #     """
+    #     Reinforces synaptic connections and applies decay using biologically plausible mechanisms.
+    #     Incorporates enhancements inspired by the Assembly Calculus.
+    #     """
+    #     def apply_decay(connectome, decay_rate=0.005, min_decay=0.001, activity_matrix=None):
+    #         """
+    #         Applies decay with a minimum threshold to avoid over-decaying weaker pathways.
+    #         """
+    #         activity = np.mean(connectome) if activity_matrix is None else np.mean(activity_matrix)
+    #         adjusted_decay_rate = max(min_decay, decay_rate * (1 - activity))
+    #         connectome *= (1 - adjusted_decay_rate)
+
+    #     def feedback_reinforcement(connectome, high_activity, low_activity, beta):
+    #         """
+    #         Reinforce connections based on alignment with high-level activity.
+    #         """
+    #         alignment = np.dot(high_activity, low_activity.T)  # Measure alignment
+    #         alignment_factor = alignment / np.max(alignment)
+    #         connectome[np.ix_(low_activity, high_activity)] *= (1 + beta * alignment_factor)
+
+    #     def normalize_connectome(connectome):
+    #         """
+    #         Normalizes the given connectome weights to maintain stability and coherence.
+    #         """
+    #         max_value = np.max(connectome)
+    #         if max_value > 0:
+    #             connectome /= max_value
+
+    #     def iterative_reinforcement(connectome, pre_neurons, post_neurons, beta, max_iterations=10, threshold=1e-5):
+    #         """
+    #         Iteratively reinforces connections to ensure stability.
+    #         """
+    #         for _ in range(max_iterations):
+    #             previous_weights = connectome[np.ix_(pre_neurons, post_neurons)].copy()
+    #             connectome[np.ix_(pre_neurons, post_neurons)] *= (1 + beta)
+    #             # Check for stabilization
+    #             if np.max(np.abs(connectome[np.ix_(pre_neurons, post_neurons)] - previous_weights)) < threshold:
+    #                 break
+
+    #     def penalize_incorrect_predictions(connectome, pre_neurons, wrong_assembly, beta):
+    #         """
+    #         Penalizes incorrect predictions by weakening connections to incorrect assemblies.
+    #         """
+    #         similarity_factor = np.mean(connectome[np.ix_(pre_neurons, wrong_assembly)])  # Measure similarity
+    #         penalty = beta * (1 - similarity_factor)  # Scale penalty inversely with similarity
+    #         connectome[np.ix_(pre_neurons, wrong_assembly)] *= (1 - penalty)
+
+    #     def hierarchical_reinforcement(low_to_mid, mid_to_high, high_to_class, beta_low, beta_mid, beta_high):
+    #         """
+    #         Applies reinforcement hierarchically across layers.
+    #         """
+    #         low_to_mid *= (1 + beta_low * 0.8)
+    #         mid_to_high *= (1 + beta_mid * 0.9)
+    #         high_to_class *= (1 + beta_high)
+
+    #     def detect_instability(connectome, threshold=0.1):
+    #         """
+    #         Detects instability in the connectome by monitoring unusually low or unstable connections.
+    #         """
+    #         instability = np.sum(connectome < threshold) / connectome.size
+    #         if instability > 0.5:  # If more than 50% of connections are unstable
+    #             print("[WARNING] Instability detected in connectome!")
+    #             return True
+    #         return False
+
+    #     # Main reinforcement logic
+    #     true_class_name = CIFAR10_CLASSES[true_label]
+    #     assert true_class_name in self.label_assemblies, f"[DEBUG] Missing assembly for {true_class_name}!"
+
+    #     class_index = CLASS_INDICES[true_class_name]
+    #     class_area = self.brain.area_by_name[CLASS_AREA]
+    #     high_level_area = self.brain.area_by_name[HIGH_LEVEL]
+    #     mid_level_area = self.brain.area_by_name[MID_LEVEL]
+    #     low_level_area = self.brain.area_by_name[LOW_LEVEL]
+
+    #     # Activate the correct class assembly
+    #     assembly_start = class_index * class_area.k
+    #     class_area.winners = np.arange(assembly_start, assembly_start + class_area.k)
+    #     class_area.w = class_area.k
+
+    #     # Update or initialize the label assembly
+    #     object_winners = class_area.winners.copy()
+    #     if true_class_name not in self.label_assemblies:
+    #         self.label_assemblies[true_class_name] = object_winners
+    #     else:
+    #         existing_assembly = self.label_assemblies[true_class_name]
+    #         updated_assembly = np.union1d(existing_assembly, object_winners)
+    #         self.label_assemblies[true_class_name] = updated_assembly
+
+    #     # Apply decay
+    #     apply_decay(self.brain.connectomes[HIGH_LEVEL][CLASS_AREA])
+    #     apply_decay(self.brain.connectomes[MID_LEVEL][HIGH_LEVEL])
+    #     apply_decay(self.brain.connectomes[LOW_LEVEL][MID_LEVEL])
+
+    #     # Reinforce connections from HIGH_LEVEL to CLASS_AREA
+    #     connectome_high_class = self.brain.connectomes[HIGH_LEVEL][CLASS_AREA]
+    #     beta_high_class = class_area.beta_by_area[HIGH_LEVEL]
+    #     pre_neurons_high = high_level_area.winners
+    #     post_neurons_class = class_area.winners
+    #     iterative_reinforcement(connectome_high_class, pre_neurons_high, post_neurons_class, beta_high_class)
+
+    #     # Penalize incorrect predictions
+    #     if predicted_label != true_label:
+    #         if isinstance(predicted_label, int):
+    #             predicted_class_name = CIFAR10_CLASSES[predicted_label]
+    #             wrong_assembly = self.label_assemblies[predicted_class_name]
+    #         elif isinstance(predicted_label, str):
+    #             wrong_assembly = self.label_assemblies[predicted_label]
+    #         else:
+    #             raise TypeError(f"Unsupported predicted_label type: {type(predicted_label)}")
+    #         penalize_incorrect_predictions(connectome_high_class, pre_neurons_high, wrong_assembly, beta_high_class)
+
+    #     # Reinforce between MID_LEVEL and HIGH_LEVEL
+    #     connectome_mid_high = self.brain.connectomes[MID_LEVEL][HIGH_LEVEL]
+    #     beta_mid_high = high_level_area.beta_by_area[MID_LEVEL]
+    #     pre_neurons_mid = mid_level_area.winners
+    #     post_neurons_high = high_level_area.winners
+    #     iterative_reinforcement(connectome_mid_high, pre_neurons_mid, post_neurons_high, beta_mid_high)
+
+    #     # Reinforce between LOW_LEVEL and MID_LEVEL
+    #     connectome_low_mid = self.brain.connectomes[LOW_LEVEL][MID_LEVEL]
+    #     beta_low_mid = mid_level_area.beta_by_area[LOW_LEVEL]
+    #     pre_neurons_low = low_level_area.winners
+    #     post_neurons_mid = mid_level_area.winners
+    #     iterative_reinforcement(connectome_low_mid, pre_neurons_low, post_neurons_mid, beta_low_mid)
+
+    #     # Normalize connectomes
+    #     normalize_connectome(connectome_high_class)
+    #     normalize_connectome(connectome_mid_high)
+    #     normalize_connectome(connectome_low_mid)
+
+    #     # Hierarchical reinforcement
+    #     hierarchical_reinforcement(connectome_low_mid, connectome_mid_high, connectome_high_class,
+    #                                 beta_low_mid, beta_mid_high, beta_high_class)
+
+    #     # Check for instability
+    #     if detect_instability(connectome_high_class):
+    #         print("[DEBUG] Instability detected in HIGH_LEVEL to CLASS_AREA connectome!")
+
+    #     # Debugging stats
+    #     print("[DEBUG] Reinforcement stats:")
+    #     print(f"  True label: {true_class_name}, Predicted label: {predicted_label}")
+    #     print(f"  Reinforced CLASS_AREA assembly for class {true_class_name}.")
+    #     print(f"  Reinforced connections from HIGH_LEVEL to CLASS_AREA.")
+    #     print(f"  Reinforced connections from MID_LEVEL to HIGH_LEVEL.")
+    #     print(f"  Reinforced connections from LOW_LEVEL to MID_LEVEL.")
 
     def reinforce(self, predicted_label, true_label):
         """Reinforces synaptic connections based on the true label."""
@@ -466,9 +614,9 @@ class CIFAR10Brain:
             self.label_assemblies[true_class_name] = updated_assembly
 
         # Apply decay
-        self.apply_decay(self.brain.connectomes[HIGH_LEVEL][CLASS_AREA])
-        self.apply_decay(self.brain.connectomes[MID_LEVEL][HIGH_LEVEL])
-        self.apply_decay(self.brain.connectomes[LOW_LEVEL][MID_LEVEL])
+        # self.apply_decay(self.brain.connectomes[HIGH_LEVEL][CLASS_AREA])
+        # self.apply_decay(self.brain.connectomes[MID_LEVEL][HIGH_LEVEL])
+        # self.apply_decay(self.brain.connectomes[LOW_LEVEL][MID_LEVEL])
 
         # Reinforce connections from HIGH_LEVEL to CLASS_AREA
         connectome_high_class = self.brain.connectomes[HIGH_LEVEL][CLASS_AREA]
@@ -478,17 +626,17 @@ class CIFAR10Brain:
         connectome_high_class[np.ix_(pre_neurons_high, post_neurons_class)] *= 1 + beta_high_class
 
         # Penalize incorrect predictions
-        if predicted_label != true_label:
-            # Determine the wrong assembly based on the predicted label
-            if isinstance(predicted_label, int):  # If predicted_label is an index
-                predicted_class_name = CIFAR10_CLASSES[predicted_label]
-                wrong_assembly = self.label_assemblies[predicted_class_name]
-            elif isinstance(predicted_label, str):  # If predicted_label is a class name
-                wrong_assembly = self.label_assemblies[predicted_label]
-            else:
-                raise TypeError(f"Unsupported predicted_label type: {type(predicted_label)}")
+        # if predicted_label != true_label:
+        #     # Determine the wrong assembly based on the predicted label
+        #     if isinstance(predicted_label, int):  # If predicted_label is an index
+        #         predicted_class_name = CIFAR10_CLASSES[predicted_label]
+        #         wrong_assembly = self.label_assemblies[predicted_class_name]
+        #     elif isinstance(predicted_label, str):  # If predicted_label is a class name
+        #         wrong_assembly = self.label_assemblies[predicted_label]
+        #     else:
+        #         raise TypeError(f"Unsupported predicted_label type: {type(predicted_label)}")
 
-            connectome_high_class[np.ix_(pre_neurons_high, wrong_assembly)] *= (1 - beta_high_class / 2)
+        #     connectome_high_class[np.ix_(pre_neurons_high, wrong_assembly)] *= (1 - beta_high_class / 2)
 
         # Reinforce between MID_LEVEL and HIGH_LEVEL
         connectome_mid_high = self.brain.connectomes[MID_LEVEL][HIGH_LEVEL]
@@ -505,9 +653,9 @@ class CIFAR10Brain:
         connectome_low_mid[np.ix_(pre_neurons_low, post_neurons_mid)] *= 1 + beta_low_mid
 
         # Normalize connectomes
-        self.normalize_connectome(connectome_high_class)
-        self.normalize_connectome(connectome_mid_high)
-        self.normalize_connectome(connectome_low_mid)
+        # self.normalize_connectome(connectome_high_class)
+        # self.normalize_connectome(connectome_mid_high)
+        # self.normalize_connectome(connectome_low_mid)
 
         # Debugging stats
         print("[DEBUG] Reinforcement stats:")
@@ -516,7 +664,6 @@ class CIFAR10Brain:
         print(f"  Reinforced connections from HIGH_LEVEL to CLASS_AREA.")
         print(f"  Reinforced connections from MID_LEVEL to HIGH_LEVEL.")
         print(f"  Reinforced connections from LOW_LEVEL to MID_LEVEL.")
-
 
 # Evaluator
 class CIFAR10Evaluator:
