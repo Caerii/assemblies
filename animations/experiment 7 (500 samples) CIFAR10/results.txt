@@ -1,0 +1,28 @@
+--- Results ---
+Accuracy: 14.00%
+Avg Time: 0.0193s/image
+              precision    recall  f1-score   support
+
+     unknown       0.00      0.00      0.00         0
+    airplane       0.16      0.47      0.24        15
+  automobile       0.12      0.44      0.19         9
+        bird       0.22      0.20      0.21        10
+         cat       1.00      0.10      0.18        10
+        deer       0.00      0.00      0.00         8
+         dog       0.00      0.00      0.00         5
+        frog       0.00      0.00      0.00        15
+       horse       0.00      0.00      0.00        11
+        ship       0.00      0.00      0.00         9
+       truck       0.00      0.00      0.00         8
+
+   micro avg       0.14      0.14      0.14       100
+   macro avg       0.14      0.11      0.07       100
+weighted avg       0.16      0.14      0.09       100
+
+---
+Comments:
+Mysteriously it seemed to memorize cats...
+
+Most of the classes it did not even try to form representations for, so the representations it's forming must be unstable.
+
+Perhaps there is some interference?

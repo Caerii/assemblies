@@ -18,7 +18,6 @@ import matplotlib.pyplot as plt
 
 from collections import OrderedDict
 
-
 def project_sim(n=1000000,k=1000,p=0.01,beta=0.05,t=50):
     """
     Simulates the projection of stimuli into an area over a number of iterations.
@@ -40,7 +39,6 @@ def project_sim(n=1000000,k=1000,p=0.01,beta=0.05,t=50):
     for i in range(t-1):
         b.project({"stim":["A"]},{"A":["A"]})
     return b.areas["A"].saved_w
-
 
 def project_beta_sim(n=100000,k=317,p=0.01,t=100):
     """
@@ -667,7 +665,6 @@ def plot_density_ee(show=True,save="",use_text_font=True):
     if not show and save != "":
         plt.savefig(save)
 
-
 # For default values, first B->A gets only 25% of A's original assembly
 # After subsequent recurrent firings restore up to 42% 
 # With artificially high beta, can get 100% restoration.
@@ -711,7 +708,6 @@ def fixed_assembly_recip_proj(n=100000, k=317, p=0.01, beta=0.05):
         print("A.w=" + str(b.areas["A"].w))
     overlaps = bu.get_overlaps(b.areas["A"].saved_winners[-22:],0,percentage=True)
     print(overlaps)
-
 
 def fixed_assembly_merge(n=100000, k=317, p=0.01, beta=0.05):
     """

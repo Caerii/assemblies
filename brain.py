@@ -4,7 +4,6 @@
 # - [ ] We might want to turn .winners into a
 #       numpy.ndarray(dtype=numpy.uint32) for efficiency.
 
-
 import numpy as np
 import heapq
 import collections
@@ -13,6 +12,8 @@ from scipy.stats import truncnorm
 from scipy.stats import norm
 import math
 import types
+
+import torch
 
 # Configurable assembly model for simulations
 # Author Daniel Mitropolsky, 2018
@@ -64,7 +65,8 @@ class Area:
     # Value of `w` since the last time that `.project()` was called.
     self._new_w = 0
     self.saved_w = []
-    self.winners = []
+    # self.winners = []
+    self.winners = np.array([], dtype=np.uint32)  # Initialize as empty NumPy array
     # Value of `winners` since the last time that `.project()` was called.
     # only to be used inside `.project()` method.
     self._new_winners = []
@@ -73,33 +75,75 @@ class Area:
     self.fixed_assembly = False
     self.explicit = explicit
 
+    # FOR DEBUGGING
+    if explicit:
+      self.ever_fired = np.zeros(self.n, dtype=bool)
+      self.num_ever_fired = 0
+
   def _update_winners(self):
-    self.winners = self._new_winners
+    """Updates `winners` and `w` after a projection step.
+
+    If `explicit` is `False`, the `w` attribute is updated to the value of
+    `_new_w`. The `winners` attribute is updated to the value of `_new_winners`.
+    """
+    # self.winners = self._new_winners
+    self.winners = np.array(self._new_winners, dtype=np.uint32)
+
     if not self.explicit:
       self.w = self._new_w
 
   def update_beta_by_stimulus(self, name, new_beta):
+    """Updates the synaptic plasticity parameter for synapses from a specific stimulus.
+
+    Args:
+      name: The name of the stimulus that the synapses come from.
+      new_beta: The new synaptic plasticity parameter.
+    """
     self.beta_by_stimulus[name] = new_beta
 
   def update_area_beta(self, name, new_beta):
+    """Updates the synaptic plasticity parameter for synapses from a specific area.
+
+    Args:
+      name: The name of the area that the synapses come from.
+      new_beta: The new synaptic plasticity parameter.
+    """
     self.beta_by_area[name] = new_beta
 
   def fix_assembly(self):
-    if not self.winners:
-      raise ValueError(
-        f'Area {self.name!r} does not have assembly; cannot fix.')
-      return
+    """
+    Freezes the current assembly, preventing it from changing in future simulations.
+
+    Raises:
+      ValueError: if no assembly exists in this area.
+    """
+    print(f"[DEBUG] In fix_assembly: winners size: {self.winners.size}")
+    print(f"[DEBUG] winners: {self.winners}")
+    if self.winners.size == 0:
+      raise ValueError(f'Area {self.name!r} does not have assembly; cannot fix.')
     self.fixed_assembly = True
 
   def unfix_assembly(self):
+    """
+    Allows the assembly to change in future simulations.
+
+    This is the opposite of `.fix_assembly()`.
+    """
+    
     self.fixed_assembly = False
 
   def get_num_ever_fired(self):
+    """
+    Returns the total number of neurons that have ever fired in this area.
+
+    Returns:
+      int: The number of neurons that have ever fired in this area.
+    """
+    
     if self.explicit:
       return self.num_ever_fired 
     else:
       return self.w
-
 
 class Brain:
   """A model brain.
@@ -135,6 +179,8 @@ class Brain:
     self._rng = np.random.default_rng(seed=seed)    
     # For debugging purposes in applications (eg. language)
     self._use_normal_ppf = False
+    # Initialize `w` to 0 for all areas
+    self.w = 0
 
   def add_stimulus(self, stimulus_name, size):
     """Add a stimulus to the current instance.
@@ -156,68 +202,158 @@ class Brain:
         self.area_by_name[area_name].beta)
     self.connectomes_by_stimulus[stimulus_name] = this_stimulus_connectomes
 
-  def add_area(self, area_name, n, k, beta):
-    """Add a brain area to the current instance.
+  # def add_area(self, area_name, n, k, beta):
+  #   """Add a brain area to the current instance.
 
-    Args:
-      area_name: The name of the new area.
-      n: Number of neurons.
-      k: Number of that can fire in this area, at any time step.
-      beta: default area-beta.
-    """
+  #   Args:
+  #     area_name: The name of the new area.
+  #     n: Number of neurons.
+  #     k: Number of that can fire in this area, at any time step.
+  #     beta: default area-beta.
+  #   """
+  #   self.area_by_name[area_name] = the_area = Area(area_name, n, k, beta=beta)
+  #   self.areas[area_name] = the_area
     
-    self.area_by_name[area_name] = the_area = Area(area_name, n, k, beta=beta)
+  #   for stim_name, stim_connectomes in self.connectomes_by_stimulus.items():
+  #     stim_connectomes[area_name] = np.empty(0, dtype=np.float32)
+  #     the_area.beta_by_stimulus[stim_name] = beta
 
-    self.areas[area_name] = the_area
-    
+  #   new_connectomes = {}
+  #   for other_area_name in self.area_by_name:
+  #     other_area = self.area_by_name[other_area_name]
+  #     other_area_size = other_area.n if other_area.explicit else 0
+  #     new_connectomes[other_area_name] = np.empty((0, other_area_size), dtype=np.float32)
+  #     if other_area_name != area_name:
+  #       self.connectomes[other_area_name][area_name] = np.empty(
+  #         (other_area_size, 0), dtype=np.float32)
+  #     # by default use beta for plasticity of synapses from this area
+  #     # to other areas
+  #     # by default use other area's beta for synapses from other area
+  #     # to this area
+  #     other_area.beta_by_area[area_name] = other_area.beta
+  #     the_area.beta_by_area[other_area_name] = beta
+  #   self.connectomes[area_name] = new_connectomes
+
+  # def add_area(self, area_name, n, k, beta, explicit=False):
+  #   """Add a brain area to the current instance."""
+  #   self.area_by_name[area_name] = the_area = Area(area_name, n, k, beta=beta, explicit=explicit)
+
+  #   for stim_name, stim_connectomes in self.connectomes_by_stimulus.items():
+  #       if explicit:
+  #           stim_connectomes[area_name] = np.zeros(n, dtype=np.float32)
+  #       else:
+  #           stim_connectomes[area_name] = np.empty(0, dtype=np.float32)
+  #       the_area.beta_by_stimulus[stim_name] = beta
+
+  #   new_connectomes = {}
+  #   for other_area_name in self.area_by_name:
+  #       other_area = self.area_by_name[other_area_name]
+  #       if explicit:
+  #           other_area_size = other_area.n if other_area.explicit else other_area.w
+  #           new_connectomes[other_area_name] = np.zeros((n, other_area_size), dtype=np.float32)
+  #           if other_area_name != area_name:
+  #               self.connectomes[other_area_name][area_name] = np.zeros(
+  #                   (other_area.n, n), dtype=np.float32)
+  #       else:
+  #           other_area_size = other_area.n if other_area.explicit else 0
+  #           new_connectomes[other_area_name] = np.empty((0, other_area_size), dtype=np.float32)
+  #           if other_area_name != area_name:
+  #               self.connectomes[other_area_name][area_name] = np.empty(
+  #                   (other_area_size, 0), dtype=np.float32)
+  #       other_area.beta_by_area[area_name] = other_area.beta
+  #       the_area.beta_by_area[other_area_name] = beta
+  #   self.connectomes[area_name] = new_connectomes
+
+  # def add_area(self, area_name, n, k, beta, explicit=False):
+  #   """Add a brain area to the current instance."""
+  #   self.area_by_name[area_name] = the_area = Area(area_name, n, k, beta=beta, explicit=explicit)
+
+  #   for stim_name, stim_connectomes in self.connectomes_by_stimulus.items():
+  #       if explicit:
+  #           # Initialize with small random weights
+  #           stim_connectomes[area_name] = np.random.uniform(
+  #               low=0.01, high=0.1, size=n).astype(np.float32)
+  #       else:
+  #           stim_connectomes[area_name] = np.empty(0, dtype=np.float32)
+  #       the_area.beta_by_stimulus[stim_name] = beta
+
+  #   new_connectomes = {}
+  #   for other_area_name in self.area_by_name:
+  #       other_area = self.area_by_name[other_area_name]
+  #       if explicit:
+  #           other_area_size = other_area.n if other_area.explicit else other_area.w
+  #           # Initialize with small random weights
+  #           new_connectomes[other_area_name] = np.random.uniform(
+  #               low=0.01, high=0.1, size=(n, other_area_size)).astype(np.float32)
+  #           if other_area_name != area_name:
+  #               self.connectomes[other_area_name][area_name] = np.random.uniform(
+  #                   low=0.01, high=0.1, size=(other_area.n, n)).astype(np.float32)
+  #       else:
+  #           other_area_size = other_area.n if other_area.explicit else 0
+  #           new_connectomes[other_area_name] = np.empty((0, other_area_size), dtype=np.float32)
+  #           if other_area_name != area_name:
+  #               self.connectomes[other_area_name][area_name] = np.empty(
+  #                   (other_area_size, 0), dtype=np.float32)
+  #       other_area.beta_by_area[area_name] = other_area.beta
+  #       the_area.beta_by_area[other_area_name] = beta
+  #   self.connectomes[area_name] = new_connectomes
+
+  #   # Debug: Verify initialization
+  #   print(f"[DEBUG] Initialized connectome from {other_area_name} to {area_name}:")
+  #   print(self.connectomes[other_area_name][area_name])
+
+  def add_area(self, area_name, n, k, beta, explicit=False):
+    """Add a brain area to the current instance."""
+    self.area_by_name[area_name] = the_area = Area(area_name, n, k, beta=beta, explicit=explicit)
+
     for stim_name, stim_connectomes in self.connectomes_by_stimulus.items():
-      stim_connectomes[area_name] = np.empty(0, dtype=np.float32)
-      the_area.beta_by_stimulus[stim_name] = beta
+        if explicit:
+            # Initialize with binomial weights
+            stim_connectomes[area_name] = self._rng.binomial(
+                1, self.p, size=n).astype(np.float32)
+        else:
+            stim_connectomes[area_name] = np.empty(0, dtype=np.float32)
+        the_area.beta_by_stimulus[stim_name] = beta
 
     new_connectomes = {}
     for other_area_name in self.area_by_name:
-      other_area = self.area_by_name[other_area_name]
-      other_area_size = other_area.n if other_area.explicit else 0
-      new_connectomes[other_area_name] = np.empty((0, other_area_size), dtype=np.float32)
-      if other_area_name != area_name:
-        self.connectomes[other_area_name][area_name] = np.empty(
-          (other_area_size, 0), dtype=np.float32)
-      # by default use beta for plasticity of synapses from this area
-      # to other areas
-      # by default use other area's beta for synapses from other area
-      # to this area
-      other_area.beta_by_area[area_name] = other_area.beta
-      the_area.beta_by_area[other_area_name] = beta
+        other_area = self.area_by_name[other_area_name]
+        if explicit:
+            other_area_size = other_area.n if other_area.explicit else other_area.w
+            # Initialize with binomial weights
+            new_connectomes[other_area_name] = self._rng.binomial(
+                1, self.p, size=(n, other_area_size)).astype(np.float32)
+            if other_area_name != area_name:
+                self.connectomes[other_area_name][area_name] = self._rng.binomial(
+                    1, self.p, size=(other_area.n, n)).astype(np.float32)
+        else:
+            other_area_size = other_area.n if other_area.explicit else 0
+            new_connectomes[other_area_name] = np.empty((0, other_area_size), dtype=np.float32)
+            if other_area_name != area_name:
+                self.connectomes[other_area_name][area_name] = np.empty(
+                    (other_area_size, 0), dtype=np.float32)
+        other_area.beta_by_area[area_name] = other_area.beta
+        the_area.beta_by_area[other_area_name] = beta
     self.connectomes[area_name] = new_connectomes
 
-  def add_explicit_area(self,
-                        area_name, n, k, beta, *,
-                        custom_inner_p=None,
-                        custom_out_p=None,
-                        custom_in_p=None):
-    """Add an explicit ('non-lazy') area to the instance.
+    # Debug: Verify initialization
+    print(f"[DEBUG] Initialized connectome from {other_area_name} to {area_name}:")
+    print(self.connectomes[other_area_name][area_name])
 
-    Args:
-      area_name: The name of the new area.
-      n: Number of neurons.
-      k: Number of that can fire in this area, at any time step.
-      beta: default area-beta.
-      custom_inner_p: Optional self-linking probability.
-      custom_out_p: Optional custom output-link probability.
-      custom_in_p: Optional custom input-link probability.
-    """
-    # Explicitly set w to n so that all computations involving this area
-    # are explicit.
+  def add_explicit_area(self, area_name, n, k, beta, *,
+                      custom_inner_p=None,
+                      custom_out_p=None,
+                      custom_in_p=None):
+    """Add an explicit ('non-lazy') area to the instance."""
     self.area_by_name[area_name] = the_area = Area(
         area_name, n, k, beta=beta, w=n, explicit=True)
     the_area.ever_fired = np.zeros(n, dtype=bool)
     the_area.num_ever_fired = 0
 
     for stim_name, stim_connectomes in self.connectomes_by_stimulus.items():
-      stim_connectomes[area_name] = self._rng.binomial(
-          self.stimulus_size_by_name[stim_name],
-          self.p, size=n).astype(np.float32)
-      the_area.beta_by_stimulus[stim_name] = beta
+        stim_connectomes[area_name] = self._rng.binomial(
+            1, self.p, size=n).astype(np.float32)
+        the_area.beta_by_stimulus[stim_name] = beta
 
     inner_p = custom_inner_p if custom_inner_p is not None else self.p
     in_p = custom_in_p if custom_in_p is not None else self.p
@@ -225,27 +361,88 @@ class Brain:
 
     new_connectomes = {}
     for other_area_name in self.area_by_name:
-      if other_area_name == area_name:  # create explicitly
-        new_connectomes[other_area_name] = self._rng.binomial(
-            1, inner_p, size=(n,n)).astype(np.float32)
-      else:
-        other_area = self.area_by_name[other_area_name]
-        if other_area.explicit:
-          other_n = self.area_by_name[other_area_name].n
-          new_connectomes[other_area_name] = self._rng.binomial(
-                  1, out_p, size=(n, other_n)).astype(np.float32)
-          self.connectomes[other_area_name][area_name] = self._rng.binomial(
-                  1, in_p, size=(other_n, n)).astype(np.float32)
-        else: # we will fill these in on the fly
-          # TODO: if explicit area added late, this will not work
-          # But out_p to a non-explicit area must be default p,
-          # for fast sampling to work.
-          new_connectomes[other_area_name] = np.empty((n, 0), dtype=np.float32)
-          self.connectomes[other_area_name][area_name] = np.empty((0, n), dtype=np.float32)
-      self.area_by_name[other_area_name].beta_by_area[area_name] = (
-        self.area_by_name[other_area_name].beta)
-      self.area_by_name[area_name].beta_by_area[other_area_name] = beta
+        if other_area_name == area_name:
+            new_connectomes[other_area_name] = self._rng.binomial(
+                1, inner_p, size=(n, n)).astype(np.float32)
+        else:
+            other_area = self.area_by_name[other_area_name]
+            if other_area.explicit:
+                other_n = self.area_by_name[other_area_name].n
+                new_connectomes[other_area_name] = self._rng.binomial(
+                    1, out_p, size=(n, other_n)).astype(np.float32)
+                self.connectomes[other_area_name][area_name] = self._rng.binomial(
+                    1, in_p, size=(other_n, n)).astype(np.float32)
+            else:
+                new_connectomes[other_area_name] = np.empty((n, 0), dtype=np.float32)
+                self.connectomes[other_area_name][area_name] = np.empty((0, n), dtype=np.float32)
+        self.area_by_name[other_area_name].beta_by_area[area_name] = (
+            self.area_by_name[other_area_name].beta)
+        self.area_by_name[area_name].beta_by_area[other_area_name] = beta
     self.connectomes[area_name] = new_connectomes
+
+    # Debug: Verify initialization
+    print(f"[DEBUG] Explicit connectome initialized for area {area_name}:")
+    for other_area_name, connectome in new_connectomes.items():
+        print(f"  From {other_area_name} to {area_name}:")
+        print(connectome)
+
+
+  # def add_explicit_area(self,
+  #                       area_name, n, k, beta, *,
+  #                       custom_inner_p=None,
+  #                       custom_out_p=None,
+  #                       custom_in_p=None):
+  #   """Add an explicit ('non-lazy') area to the instance.
+
+  #   Args:
+  #     area_name: The name of the new area.
+  #     n: Number of neurons.
+  #     k: Number of that can fire in this area, at any time step.
+  #     beta: default area-beta.
+  #     custom_inner_p: Optional self-linking probability.
+  #     custom_out_p: Optional custom output-link probability.
+  #     custom_in_p: Optional custom input-link probability.
+  #   """
+  #   # Explicitly set w to n so that all computations involving this area
+  #   # are explicit.
+  #   self.area_by_name[area_name] = the_area = Area(
+  #       area_name, n, k, beta=beta, w=n, explicit=True)
+  #   the_area.ever_fired = np.zeros(n, dtype=bool)
+  #   the_area.num_ever_fired = 0
+
+  #   for stim_name, stim_connectomes in self.connectomes_by_stimulus.items():
+  #     stim_connectomes[area_name] = self._rng.binomial(
+  #         self.stimulus_size_by_name[stim_name],
+  #         self.p, size=n).astype(np.float32)
+  #     the_area.beta_by_stimulus[stim_name] = beta
+
+  #   inner_p = custom_inner_p if custom_inner_p is not None else self.p
+  #   in_p = custom_in_p if custom_in_p is not None else self.p
+  #   out_p = custom_out_p if custom_out_p is not None else self.p
+
+  #   new_connectomes = {}
+  #   for other_area_name in self.area_by_name:
+  #     if other_area_name == area_name:  # create explicitly
+  #       new_connectomes[other_area_name] = self._rng.binomial(
+  #           1, inner_p, size=(n,n)).astype(np.float32)
+  #     else:
+  #       other_area = self.area_by_name[other_area_name]
+  #       if other_area.explicit:
+  #         other_n = self.area_by_name[other_area_name].n
+  #         new_connectomes[other_area_name] = self._rng.binomial(
+  #                 1, out_p, size=(n, other_n)).astype(np.float32)
+  #         self.connectomes[other_area_name][area_name] = self._rng.binomial(
+  #                 1, in_p, size=(other_n, n)).astype(np.float32)
+  #       else: # we will fill these in on the fly
+  #         # TODO: if explicit area added late, this will not work
+  #         # But out_p to a non-explicit area must be default p,
+  #         # for fast sampling to work.
+  #         new_connectomes[other_area_name] = np.empty((n, 0), dtype=np.float32)
+  #         self.connectomes[other_area_name][area_name] = np.empty((0, n), dtype=np.float32)
+  #     self.area_by_name[other_area_name].beta_by_area[area_name] = (
+  #       self.area_by_name[other_area_name].beta)
+  #     self.area_by_name[area_name].beta_by_area[other_area_name] = beta
+  #   self.connectomes[area_name] = new_connectomes
 
   def update_plasticity(self, from_area, to_area, new_beta):
     self.area_by_name[to_area].beta_by_area[from_area] = new_beta
@@ -273,11 +470,68 @@ class Brain:
     area.winners = list(range(assembly_start, assembly_start + k))
     area.fix_assembly()
 
+  def activate_with_image(self, area_name, image):
+    """
+    Activates neurons in the given area using raw image data.
+    
+    Args:
+        area_name (str): The name of the brain area to activate.
+        image (np.ndarray): The raw image data (flattened or 2D).
+    """
+    area = self.area_by_name[area_name]
+
+    # Ensure image is flattened
+    if isinstance(image, np.ndarray):
+        image_flat = image.flatten()
+        image_size = image_flat.size  # Use `.size` for NumPy arrays
+    elif isinstance(image, torch.Tensor):
+        image_flat = image.flatten().cpu().numpy()  # Convert tensor to NumPy array
+        image_size = image_flat.size
+    else:
+        raise TypeError(f"Unsupported image type: {type(image)}")
+
+    # Ensure the image matches the neuron size
+    if image_size > area.n:
+        image_flat = image_flat[:area.n]  # Crop
+    elif image_size < area.n:
+      # Pad the image if it is smaller
+      padding = np.zeros(area.n - image_size, dtype=image_flat.dtype)
+      image_flat = np.concatenate((image_flat, padding))
+
+    # Normalize the image data to [0, 1]
+    normalized_image = (image_flat - image_flat.min()) / (image_flat.ptp() + 1e-6)
+    normalized_image = normalized_image / (np.linalg.norm(normalized_image) + 1e-6)
+
+    # Select the top-k pixels with the highest values
+    top_k_indices = np.argsort(-normalized_image)[:area.k]
+
+    # Set the winners in the area
+    area.winners = np.array(top_k_indices[top_k_indices < area.n], dtype=np.uint32)
+    area.w = len(area.winners)
+    print(f"[DEBUG] Activated {area_name} with top {area.k} neurons: {area.winners[:10]}...")
+
   def project(self, areas_by_stim, dst_areas_by_src_area, verbose=0):
     # Validate stim_area, area_area well defined
     # areas_by_stim: {"stim1":["A"], "stim2":["C","A"]}
     # dst_areas_by_src_area: {"A":["A","B"],"C":["C","A"]}
     
+    """
+    Simulates neural projections from stimuli and areas into target areas.
+
+    Args:
+      areas_by_stim (Dict[str, List[str]]): Mapping from stimuli to target areas.
+      dst_areas_by_src_area (Dict[str, List[str]]): Mapping from source areas to target areas.
+      verbose (int): Verbosity level.
+
+    Raises:
+      IndexError: If a stimulus or area is not in the brain's dictionaries.
+
+    Side effects:
+
+      - Updates the winners of each target area.
+      - If `save_winners` is True, saves the new winners in each area's `saved_winners`.
+      - If `save_size` is True, saves the new size of each area in each area's `saved_w`.
+    """
     stim_in = collections.defaultdict(list)
     area_in = collections.defaultdict(list)
 
@@ -290,7 +544,7 @@ class Brain:
         stim_in[area_name].append(stim)
     for from_area_name, to_area_names in dst_areas_by_src_area.items():
       if from_area_name not in self.area_by_name:
-        raise IndexError(from_area + " not in brain.area_by_name")
+        raise IndexError(from_area_name + " not in brain.area_by_name")
       for to_area_name in to_area_names:
         if to_area_name not in self.area_by_name:
           raise IndexError(f"Not in brain.area_by_name: {to_area_name}")
@@ -313,6 +567,23 @@ class Brain:
       if self.save_size:
         area.saved_w.append(area.w)
 
+  def project_with_image(self, image, areas_by_stim, dst_areas_by_src_area, input_area, verbose=0):
+    """
+    Projects raw image data into the neural network as the initial activation.
+
+    Args:
+        image (np.ndarray): Raw input image data.
+        areas_by_stim (dict): Mapping from stimuli to target areas.
+        dst_areas_by_src_area (dict): Mapping from source areas to target areas.
+        input_area (str): The name of the input area for the image.
+        verbose (int): Verbosity level.
+    """
+    # Activate the input area using the raw image data
+    self.activate_with_image(input_area, image)
+
+    # Project activations as usual
+    self.project(areas_by_stim, dst_areas_by_src_area, verbose)
+
   def project_into(self, target_area, from_stimuli, from_areas, verbose=0):
     # projecting everything in from stim_in[area] and area_in[area]
     # calculate: inputs to self.connectomes[area] (previous winners)
@@ -330,8 +601,16 @@ class Brain:
 
     # If projecting from area with no assembly, complain.
     for from_area_name in from_areas:
+      connectome = self.connectomes[from_area_name][target_area_name]
+      from_area = self.area_by_name[from_area_name]
+      if max(from_area.winners) >= connectome.shape[0]:
+          raise IndexError(
+              f"Winner index {max(from_area.winners)} exceeds connectome source size {connectome.shape[0]} "
+              f"for connection {from_area_name} -> {target_area_name}."
+       )
+
       from_area = area_by_name[from_area_name]
-      if not from_area.winners or from_area.w == 0:
+      if from_area.winners.size == 0 or from_area.w == 0: # add not back in if not using numpy array
         raise ValueError(f"Projecting from area with no assembly: {from_area}")
 
     # For experiments with a "fixed" assembly in some area.
@@ -345,7 +624,11 @@ class Brain:
     else:
         # target_area_name = target_area.name
 
-        prev_winner_inputs = np.zeros(target_area.w, dtype=np.float32)
+        if target_area.explicit: # Since target_area.w is now equal to target_area.n for explicit areas, the shapes will align when performing prev_winner_inputs += connectome[w].
+            prev_winner_inputs = np.zeros(target_area.n, dtype=np.float32)
+        else:
+            prev_winner_inputs = np.zeros(target_area.w, dtype=np.float32)
+
         for stim in from_stimuli:
           stim_inputs = self.connectomes_by_stimulus[stim][target_area_name]
           prev_winner_inputs += stim_inputs
@@ -561,28 +844,68 @@ class Brain:
 
     # expand connectomes from other areas that did not fire into area
     # also expand connectome for area->other_area
+    # for other_area_name, other_area in self.area_by_name.items():
+    #   other_area_connectomes = self.connectomes[other_area_name]
+
+    #   if other_area_name not in from_areas:
+    #     the_other_area_connectome = other_area_connectomes[target_area_name] = (
+    #       np.pad(
+    #           other_area_connectomes[target_area_name],
+    #           ((0, 0), (0, num_first_winners_processed))))
+    #     the_other_area_connectome[:, target_area.w:] = rng.binomial(
+    #       1, self.p, size=(the_other_area_connectome.shape[0],
+    #                        target_area._new_w - target_area.w))
+        
+    #   # add num_first_winners_processed rows, all bernoulli with probability p
+    #   target_area_connectomes = self.connectomes[target_area_name]
+
+    #   the_target_area_connectome = target_area_connectomes[other_area_name] = (
+    #     np.pad(
+    #       target_area_connectomes[other_area_name],
+    #       ((0, num_first_winners_processed), (0, 0))))
+      
+    #   the_target_area_connectome[target_area.w:, :] = rng.binomial(
+    #       1, self.p,
+    #       size=(target_area._new_w - target_area.w,
+    #             the_target_area_connectome.shape[1]))
+      
+    #   if verbose >= 2:
+    #     print(f"Connectome of {target_area_name!r} to {other_area_name!r} "
+    #           "is now:", self.connectomes[target_area_name][other_area_name])
     for other_area_name, other_area in self.area_by_name.items():
       other_area_connectomes = self.connectomes[other_area_name]
       if other_area_name not in from_areas:
-        the_other_area_connectome = other_area_connectomes[target_area_name] = (
-          np.pad(
+          # Pad the connectome to add columns for new winners
+          the_other_area_connectome = other_area_connectomes[target_area_name] = np.pad(
               other_area_connectomes[target_area_name],
-              ((0, 0), (0, num_first_winners_processed))))
-        the_other_area_connectome[:, target_area.w:] = rng.binomial(
-          1, self.p, size=(the_other_area_connectome.shape[0],
-                           target_area._new_w - target_area.w))
-      # add num_first_winners_processed rows, all bernoulli with probability p
+              ((0, 0), (0, num_first_winners_processed))
+          )
+
+          # Only perform the assignment if there are new winners
+          num_new_winners = target_area._new_w - target_area.w
+          if num_new_winners > 0:
+              the_other_area_connectome[:, target_area.w:] = rng.binomial(
+                  1, self.p,
+                  size=(the_other_area_connectome.shape[0], num_new_winners)
+              )
+
+      # Add rows for new winners
       target_area_connectomes = self.connectomes[target_area_name]
-      the_target_area_connectome = target_area_connectomes[other_area_name] = (
-        np.pad(
+      the_target_area_connectome = target_area_connectomes[other_area_name] = np.pad(
           target_area_connectomes[other_area_name],
-          ((0, num_first_winners_processed), (0, 0))))
-      the_target_area_connectome[target_area.w:, :] = rng.binomial(
-          1, self.p,
-          size=(target_area._new_w - target_area.w,
-                the_target_area_connectome.shape[1]))
+          ((0, num_first_winners_processed), (0, 0))
+      )
+
+      # Only perform the assignment if there are new winners
+      num_new_winners = target_area._new_w - target_area.w
+      if num_new_winners > 0:
+          the_target_area_connectome[target_area.w:, :] = rng.binomial(
+              1, self.p,
+              size=(num_new_winners, the_target_area_connectome.shape[1])
+          )
+
       if verbose >= 2:
-        print(f"Connectome of {target_area_name!r} to {other_area_name!r} "
-              "is now:", self.connectomes[target_area_name][other_area_name])
+          print(f"Connectome of {target_area_name!r} to {other_area_name!r} "
+                "is now:", self.connectomes[target_area_name][other_area_name])
 
     return num_first_winners_processed

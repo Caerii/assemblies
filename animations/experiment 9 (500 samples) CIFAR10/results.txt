@@ -1,0 +1,31 @@
+For this one I changed up the reinforce method to normalize the weights, to understand if that's a good idea for stabilizing representations.
+
+I feel like this is pretty important, although it might lead to other issues.
+
+The learning rate is 0.01, and the forgetting rate is 0.01, so this might have forgotten all the information it was learning.
+
+--- Results ---
+Accuracy: 9.40%
+Avg Time: 0.0214s/image
+              precision    recall  f1-score   support
+
+     unknown       0.00      0.00      0.00         0
+    airplane       0.15      0.25      0.19        52
+  automobile       0.09      0.36      0.15        47
+        bird       0.04      0.03      0.04        62
+         cat       0.07      0.17      0.09        54
+        deer       0.00      0.00      0.00        48
+         dog       0.33      0.02      0.04        49
+        frog       0.11      0.02      0.04        48
+       horse       0.13      0.04      0.07        45
+        ship       0.13      0.04      0.06        50
+       truck       0.00      0.00      0.00        45
+
+   micro avg       0.09      0.09      0.09       500
+   macro avg       0.10      0.09      0.06       500
+weighted avg       0.11      0.09      0.07       500
+
+---
+It looks like for 500 samples, it was able to get 33% accuracy on the dog category.
+
+Next experiment I will try to have the decay rate at 0.5% or 0.005

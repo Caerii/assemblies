@@ -1,0 +1,26 @@
+--- Results ---
+Accuracy: 12.20%
+Avg Time: 0.0227s/image
+              precision    recall  f1-score   support
+
+     unknown       0.00      0.00      0.00         0
+    airplane       0.12      0.22      0.15        51
+  automobile       0.12      0.53      0.19        47
+        bird       0.12      0.33      0.17        46
+         cat       0.17      0.11      0.13        46
+        deer       0.00      0.00      0.00        48
+         dog       0.14      0.02      0.04        45
+        frog       0.20      0.02      0.04        48
+       horse       0.12      0.04      0.06        55
+        ship       0.00      0.00      0.00        55
+       truck       0.50      0.02      0.03        59
+
+   micro avg       0.12      0.12      0.12       500
+   macro avg       0.14      0.12      0.07       500
+weighted avg       0.15      0.12      0.08       500
+---
+Comments:
+
+It's able to cover more classes this time, which is nice, this time I evaluated it on 500 samples.
+
+The Truck is predicted correctly 50% of the time with this assembly.
