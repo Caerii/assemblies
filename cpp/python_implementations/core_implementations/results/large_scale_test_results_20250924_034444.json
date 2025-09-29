@@ -1,0 +1,271 @@
+{
+  "optimized_cuda": [
+    {
+      "test_case": {
+        "neurons": 10000000,
+        "areas": 3,
+        "active_percentage": 0.01
+      },
+      "init_time": 0.009853800000200863,
+      "single_step_time": 0.0004011999999420368,
+      "measured_step_time": 0.0004333000006226939,
+      "total_time": 0.012063000000125612,
+      "success": true,
+      "run_summary": {
+        "steps_per_sec": 6957.9738399543,
+        "neurons_per_second": 69579738399.543,
+        "memory_usage_gb": 14.6484375,
+        "cuda_kernels_used": true
+      }
+    },
+    {
+      "test_case": {
+        "neurons": 50000000,
+        "areas": 5,
+        "active_percentage": 0.01
+      },
+      "init_time": 0.011268299999755982,
+      "single_step_time": 0.001315700000304787,
+      "measured_step_time": 0.0013509999998859712,
+      "total_time": 0.02167860000008659,
+      "success": true,
+      "run_summary": {
+        "steps_per_sec": 1150.999643103438,
+        "neurons_per_second": 57549982155.171906,
+        "memory_usage_gb": 14.470703125,
+        "cuda_kernels_used": true
+      }
+    },
+    {
+      "test_case": {
+        "neurons": 100000000,
+        "areas": 10,
+        "active_percentage": 0.01
+      },
+      "init_time": 0.02158659999986412,
+      "single_step_time": 0.001828399999794783,
+      "measured_step_time": 0.0018633999998201034,
+      "total_time": 0.0400950000002922,
+      "success": true,
+      "run_summary": {
+        "steps_per_sec": 615.3240296327808,
+        "neurons_per_second": 61532402963.27808,
+        "memory_usage_gb": 14.169921875,
+        "cuda_kernels_used": true
+      }
+    },
+    {
+      "test_case": {
+        "neurons": 500000000,
+        "areas": 20,
+        "active_percentage": 0.01
+      },
+      "init_time": 0.11062219999985246,
+      "single_step_time": 0.008218199999646458,
+      "measured_step_time": 0.008304500000122061,
+      "total_time": 0.2025685999997222,
+      "success": true,
+      "run_summary": {
+        "steps_per_sec": 120.83935012436672,
+        "neurons_per_second": 60419675062.18336,
+        "memory_usage_gb": 11.537109375,
+        "cuda_kernels_used": true
+      }
+    },
+    {
+      "test_case": {
+        "neurons": 1000000000,
+        "areas": 30,
+        "active_percentage": 0.01
+      },
+      "init_time": 0.2216500000004089,
+      "single_step_time": 0.01557669999965583,
+      "measured_step_time": 0.01566330000059679,
+      "total_time": 0.3891876999996384,
+      "success": true,
+      "run_summary": {
+        "steps_per_sec": 66.5617210192015,
+        "neurons_per_second": 66561721019.2015,
+        "memory_usage_gb": 6.275390625,
+        "cuda_kernels_used": true
+      }
+    },
+    {
+      "test_case": {
+        "neurons": 2000000000,
+        "areas": 50,
+        "active_percentage": 0.01
+      },
+      "init_time": 7.361073600000054,
+      "single_step_time": 0.280445299999883,
+      "measured_step_time": 0.28056850000029954,
+      "total_time": 10.12556290000066,
+      "success": true,
+      "run_summary": {
+        "steps_per_sec": 4.029140841723062,
+        "neurons_per_second": 8058281683.446124,
+        "memory_usage_gb": 0.0,
+        "cuda_kernels_used": true
+      }
+    },
+    {
+      "test_case": {
+        "neurons": 5000000000,
+        "areas": 100,
+        "active_percentage": 0.01
+      },
+      "error": "Out of memory allocating 200,000,000 bytes (allocated so far: 23,400,000,000 bytes).",
+      "success": false
+    },
+    {
+      "test_case": {
+        "neurons": 10000000000,
+        "areas": 200,
+        "active_percentage": 0.01
+      },
+      "error": "Out of memory allocating 400,000,000 bytes (allocated so far: 26,000,000,000 bytes).",
+      "success": false
+    }
+  ],
+  "cupy_only": [
+    {
+      "test_case": {
+        "neurons": 10000000,
+        "areas": 3,
+        "active_percentage": 0.01
+      },
+      "init_time": 0.0010960999998133047,
+      "single_step_time": 0.22239470000022266,
+      "measured_step_time": 0.22247079999942798,
+      "total_time": 0.32180349999998725,
+      "success": true,
+      "run_summary": {
+        "steps_per_sec": 103.20471273906286,
+        "neurons_per_second": 1032047127.3906286,
+        "memory_usage_gb": 3.263671875,
+        "cuda_kernels_used": false
+      }
+    },
+    {
+      "test_case": {
+        "neurons": 50000000,
+        "areas": 5,
+        "active_percentage": 0.01
+      },
+      "init_time": 1.3736939000000348,
+      "single_step_time": 0.06664509999973234,
+      "measured_step_time": 0.0666838999995889,
+      "total_time": 2.2461876999996093,
+      "success": true,
+      "run_summary": {
+        "steps_per_sec": 12.425291382395782,
+        "neurons_per_second": 621264569.1197891,
+        "memory_usage_gb": 14.61328125,
+        "cuda_kernels_used": false
+      }
+    },
+    {
+      "test_case": {
+        "neurons": 100000000,
+        "areas": 10,
+        "active_percentage": 0.01
+      },
+      "init_time": 0.014244099999814352,
+      "single_step_time": 0.26250829999935377,
+      "measured_step_time": 0.2625502000000779,
+      "total_time": 2.7555023999993864,
+      "success": true,
+      "run_summary": {
+        "steps_per_sec": 4.03573074572863,
+        "neurons_per_second": 403573074.572863,
+        "memory_usage_gb": 14.5390625,
+        "cuda_kernels_used": false
+      }
+    },
+    {
+      "test_case": {
+        "neurons": 500000000,
+        "areas": 20,
+        "active_percentage": 0.01
+      },
+      "init_time": 0.031783200000063516,
+      "single_step_time": 0.06640349999997852,
+      "measured_step_time": 0.06644750000032218,
+      "total_time": 0.6529917000007117,
+      "success": true,
+      "run_summary": {
+        "steps_per_sec": 18.051587465587584,
+        "neurons_per_second": 9025793732.793793,
+        "memory_usage_gb": 13.25,
+        "cuda_kernels_used": false
+      }
+    }
+  ],
+  "original_cuda": [
+    {
+      "test_case": {
+        "neurons": 10000000,
+        "areas": 3,
+        "active_percentage": 0.01
+      },
+      "init_time": 0.0057054999997490086,
+      "single_step_time": 0.015087400000084017,
+      "measured_step_time": 0.015133699999751116,
+      "total_time": 0.03602599999976519,
+      "success": true,
+      "run_summary": {
+        "steps_per_sec": 684.2098061203745,
+        "neurons_per_second": 6842098061.203746,
+        "memory_usage_gb": 13.4609375,
+        "cuda_kernels_used": true
+      }
+    },
+    {
+      "test_case": {
+        "neurons": 50000000,
+        "areas": 5,
+        "active_percentage": 0.01
+      },
+      "error": "cudaErrorIllegalAddress: an illegal memory access was encountered",
+      "success": false
+    },
+    {
+      "test_case": {
+        "neurons": 100000000,
+        "areas": 10,
+        "active_percentage": 0.01
+      },
+      "error": "cudaErrorIllegalAddress: an illegal memory access was encountered",
+      "success": false
+    }
+  ],
+  "benchmark": [
+    {
+      "test_case": {
+        "neurons": 10000000,
+        "areas": 3,
+        "active_percentage": 0.01
+      },
+      "error": "cudaErrorIllegalAddress: an illegal memory access was encountered",
+      "success": false
+    },
+    {
+      "test_case": {
+        "neurons": 100000000,
+        "areas": 10,
+        "active_percentage": 0.01
+      },
+      "error": "cudaErrorIllegalAddress: an illegal memory access was encountered",
+      "success": false
+    },
+    {
+      "test_case": {
+        "neurons": 1000000000,
+        "areas": 30,
+        "active_percentage": 0.01
+      },
+      "error": "cudaErrorIllegalAddress: an illegal memory access was encountered",
+      "success": false
+    }
+  ]
+}

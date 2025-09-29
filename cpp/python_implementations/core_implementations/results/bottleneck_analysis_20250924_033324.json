@@ -1,0 +1,327 @@
+{
+  "memory": [
+    {
+      "neurons": 1000000,
+      "steps_per_sec": 9416.195846375384,
+      "neurons_per_sec": 9416195846.375383,
+      "initial_memory_gb": 14.685546875,
+      "final_memory_gb": 14.685546875,
+      "memory_per_neuron_bytes": 15768.485888,
+      "total_time": 0.0005309999996825354,
+      "success": true
+    },
+    {
+      "neurons": 5000000,
+      "steps_per_sec": 4935.834151262059,
+      "neurons_per_sec": 24679170756.310295,
+      "initial_memory_gb": 14.66796875,
+      "final_memory_gb": 14.66796875,
+      "memory_per_neuron_bytes": 3149.922304,
+      "total_time": 0.000877299999956449,
+      "success": true
+    },
+    {
+      "neurons": 10000000,
+      "steps_per_sec": 6659.26747134222,
+      "neurons_per_sec": 66592674713.4222,
+      "initial_memory_gb": 14.642578125,
+      "final_memory_gb": 14.642578125,
+      "memory_per_neuron_bytes": 1572.2348544,
+      "total_time": 0.0006561999998666579,
+      "success": true
+    },
+    {
+      "neurons": 25000000,
+      "steps_per_sec": 2958.5798805021013,
+      "neurons_per_sec": 73964497012.55254,
+      "initial_memory_gb": 14.572265625,
+      "final_memory_gb": 14.572265625,
+      "memory_per_neuron_bytes": 625.87404288,
+      "total_time": 0.0012911000003441586,
+      "success": true
+    },
+    {
+      "neurons": 50000000,
+      "steps_per_sec": 1762.942940342958,
+      "neurons_per_sec": 88147147017.1479,
+      "initial_memory_gb": 14.458984375,
+      "final_memory_gb": 14.458984375,
+      "memory_per_neuron_bytes": 310.50432512,
+      "total_time": 0.0019910999999410706,
+      "success": true
+    },
+    {
+      "neurons": 75000000,
+      "steps_per_sec": 1269.0355330254208,
+      "neurons_per_sec": 95177664976.90656,
+      "initial_memory_gb": 14.322265625,
+      "final_memory_gb": 14.322265625,
+      "memory_per_neuron_bytes": 205.04554154666667,
+      "total_time": 0.002752399999735644,
+      "success": true
+    },
+    {
+      "neurons": 100000000,
+      "steps_per_sec": 748.5403462908043,
+      "neurons_per_sec": 74854034629.08043,
+      "initial_memory_gb": 14.19921875,
+      "final_memory_gb": 14.19921875,
+      "memory_per_neuron_bytes": 152.4629504,
+      "total_time": 0.004342299999734678,
+      "success": true
+    },
+    {
+      "neurons": 250000000,
+      "steps_per_sec": 450.43692377388817,
+      "neurons_per_sec": 112609230943.47205,
+      "initial_memory_gb": 13.552734375,
+      "final_memory_gb": 13.552734375,
+      "memory_per_neuron_bytes": 58.208550912,
+      "total_time": 0.006937099999959173,
+      "success": true
+    },
+    {
+      "neurons": 500000000,
+      "steps_per_sec": 162.25776268270016,
+      "neurons_per_sec": 81128881341.35008,
+      "initial_memory_gb": 12.38671875,
+      "final_memory_gb": 12.38671875,
+      "memory_per_neuron_bytes": 26.600275968,
+      "total_time": 0.01898350000010396,
+      "success": true
+    },
+    {
+      "neurons": 1000000000,
+      "steps_per_sec": 106.46830438748701,
+      "neurons_per_sec": 106468304387.48701,
+      "initial_memory_gb": 10.083984375,
+      "final_memory_gb": 10.083984375,
+      "memory_per_neuron_bytes": 10.827595776,
+      "total_time": 0.0288023000002795,
+      "success": true
+    }
+  ],
+  "active_percentage": [
+    {
+      "active_percentage": 0.001,
+      "active_neurons": 100000,
+      "steps_per_sec": 891.4244966143361,
+      "neurons_per_sec": 89142449661.43361,
+      "total_time": 0.0035533000000214088,
+      "success": true
+    },
+    {
+      "active_percentage": 0.002,
+      "active_neurons": 200000,
+      "steps_per_sec": 773.4749652828607,
+      "neurons_per_sec": 77347496528.28607,
+      "total_time": 0.004597500000272703,
+      "success": true
+    },
+    {
+      "active_percentage": 0.005,
+      "active_neurons": 500000,
+      "steps_per_sec": 1068.5663401537495,
+      "neurons_per_sec": 106856634015.37495,
+      "total_time": 0.00305819999994128,
+      "success": true
+    },
+    {
+      "active_percentage": 0.01,
+      "active_neurons": 1000000,
+      "steps_per_sec": 929.3680295986203,
+      "neurons_per_sec": 92936802959.86203,
+      "total_time": 0.003471999999419495,
+      "success": true
+    },
+    {
+      "active_percentage": 0.02,
+      "active_neurons": 2000000,
+      "steps_per_sec": 1120.0298670820675,
+      "neurons_per_sec": 112002986708.20676,
+      "total_time": 0.0029898000002503977,
+      "success": true
+    },
+    {
+      "active_percentage": 0.05,
+      "active_neurons": 5000000,
+      "steps_per_sec": 823.3163181890592,
+      "neurons_per_sec": 82331631818.90591,
+      "total_time": 0.003995099999883678,
+      "success": true
+    },
+    {
+      "active_percentage": 0.1,
+      "active_neurons": 10000000,
+      "steps_per_sec": 1130.7100858623708,
+      "neurons_per_sec": 113071008586.23708,
+      "total_time": 0.0028787999999622116,
+      "success": true
+    },
+    {
+      "active_percentage": 0.2,
+      "active_neurons": 20000000,
+      "steps_per_sec": 968.0854497652033,
+      "neurons_per_sec": 96808544976.52032,
+      "total_time": 0.003493000000162283,
+      "success": true
+    }
+  ],
+  "areas": [
+    {
+      "areas": 1,
+      "neurons_per_area": 100000000,
+      "total_active": 1000000,
+      "steps_per_sec": 868.8348927634838,
+      "neurons_per_sec": 86883489276.34839,
+      "total_time": 0.0036934999998265994,
+      "success": true
+    },
+    {
+      "areas": 2,
+      "neurons_per_area": 50000000,
+      "total_active": 1000000,
+      "steps_per_sec": 1078.0896250475544,
+      "neurons_per_sec": 107808962504.75543,
+      "total_time": 0.003040999999939231,
+      "success": true
+    },
+    {
+      "areas": 3,
+      "neurons_per_area": 33333333,
+      "total_active": 1000000,
+      "steps_per_sec": 1078.4771905545763,
+      "neurons_per_sec": 107847719055.45763,
+      "total_time": 0.003181099999892467,
+      "success": true
+    },
+    {
+      "areas": 5,
+      "neurons_per_area": 20000000,
+      "total_active": 1000000,
+      "steps_per_sec": 1110.9465266823552,
+      "neurons_per_sec": 111094652668.23552,
+      "total_time": 0.0028468999998949585,
+      "success": true
+    },
+    {
+      "areas": 10,
+      "neurons_per_area": 10000000,
+      "total_active": 1000000,
+      "steps_per_sec": 861.1780917463699,
+      "neurons_per_sec": 86117809174.637,
+      "total_time": 0.00367270000060671,
+      "success": true
+    },
+    {
+      "areas": 20,
+      "neurons_per_area": 5000000,
+      "total_active": 1000000,
+      "steps_per_sec": 1140.2508546673118,
+      "neurons_per_sec": 114025085466.73119,
+      "total_time": 0.002916899999945599,
+      "success": true
+    },
+    {
+      "areas": 50,
+      "neurons_per_area": 2000000,
+      "total_active": 1000000,
+      "steps_per_sec": 1105.1759073866392,
+      "neurons_per_sec": 110517590738.66393,
+      "total_time": 0.0029511000002457877,
+      "success": true
+    },
+    {
+      "areas": 100,
+      "neurons_per_area": 1000000,
+      "total_active": 1000000,
+      "steps_per_sec": 784.0062721777974,
+      "neurons_per_sec": 78400627217.77974,
+      "total_time": 0.004399500000545231,
+      "success": true
+    }
+  ],
+  "algorithms": [
+    {
+      "name": "Optimized CUDA (O(N log K))",
+      "config": {
+        "neurons": 50000000,
+        "active_percentage": 0.01,
+        "areas": 5,
+        "use_optimized_cuda": true,
+        "use_gpu": true,
+        "memory_efficient": true,
+        "sparse_mode": true
+      },
+      "steps_per_sec": 1946.8130674347422,
+      "neurons_per_sec": 97340653371.7371,
+      "memory_gb": 13.29296875,
+      "total_time": 0.0029702000001634588,
+      "success": true
+    },
+    {
+      "name": "Original CUDA (O(N\u00b2))",
+      "config": {
+        "neurons": 50000000,
+        "active_percentage": 0.01,
+        "areas": 5,
+        "use_optimized_cuda": false,
+        "use_gpu": true,
+        "memory_efficient": true,
+        "sparse_mode": true
+      },
+      "steps_per_sec": 98.70654937930155,
+      "neurons_per_sec": 4935327468.965077,
+      "memory_gb": 14.572265625,
+      "total_time": 0.05106350000005477,
+      "success": true
+    },
+    {
+      "name": "CuPy Only",
+      "config": {
+        "neurons": 50000000,
+        "active_percentage": 0.01,
+        "areas": 5,
+        "use_optimized_cuda": false,
+        "use_gpu": true,
+        "use_cuda_kernels": false,
+        "memory_efficient": true,
+        "sparse_mode": true
+      },
+      "error": "BrainSimulator.__init__() got an unexpected keyword argument 'use_cuda_kernels'",
+      "success": false
+    }
+  ],
+  "step_time": [
+    {
+      "neurons": 1000000,
+      "error": "'BrainSimulator' object has no attribute 'simulate_step'",
+      "success": false
+    },
+    {
+      "neurons": 10000000,
+      "error": "'BrainSimulator' object has no attribute 'simulate_step'",
+      "success": false
+    },
+    {
+      "neurons": 50000000,
+      "error": "'BrainSimulator' object has no attribute 'simulate_step'",
+      "success": false
+    },
+    {
+      "neurons": 100000000,
+      "error": "'BrainSimulator' object has no attribute 'simulate_step'",
+      "success": false
+    },
+    {
+      "neurons": 500000000,
+      "error": "'BrainSimulator' object has no attribute 'simulate_step'",
+      "success": false
+    },
+    {
+      "neurons": 1000000000,
+      "error": "'BrainSimulator' object has no attribute 'simulate_step'",
+      "success": false
+    }
+  ]
+}

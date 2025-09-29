@@ -1,0 +1,53 @@
+[{
+  "scale_name": "Million Scale",
+  "n_neurons": 1000000,
+  "active_percentage": 0.01,
+  "n_areas": 5,
+  "steps_per_sec": 87.12713940667675,
+  "ms_per_step": 11.477480000030482,
+  "simulation_time": 0.05738740000015241,
+  "theoretical_memory_gb": 0.005122274160385132,
+  "bytes_per_neuron": 0.8,
+  "gpu_utilization": 0.0,
+  "memory_bandwidth": 0.0,
+  "cache_hit_rate": 0.0
+},{
+  "scale_name": "Ten Million Scale",
+  "n_neurons": 10000000,
+  "active_percentage": 0.01,
+  "n_areas": 5,
+  "steps_per_sec": 93.09357393184774,
+  "ms_per_step": 10.741880000568926,
+  "simulation_time": 0.05370940000284463,
+  "theoretical_memory_gb": 0.42002648115158087,
+  "bytes_per_neuron": 0.8,
+  "gpu_utilization": 0.0,
+  "memory_bandwidth": 0.0,
+  "cache_hit_rate": 0.0
+},{
+  "scale_name": "Hundred Million Scale",
+  "n_neurons": 100000000,
+  "active_percentage": 0.001,
+  "n_areas": 5,
+  "steps_per_sec": 85.02909695798243,
+  "ms_per_step": 11.760679999861168,
+  "simulation_time": 0.05880339999930584,
+  "theoretical_memory_gb": 0.42002648115158087,
+  "bytes_per_neuron": 0.08,
+  "gpu_utilization": 0.0,
+  "memory_bandwidth": 0.0,
+  "cache_hit_rate": 0.0
+},{
+  "scale_name": "Billion Scale",
+  "n_neurons": 1000000000,
+  "active_percentage": 0.0001,
+  "n_areas": 5,
+  "steps_per_sec": 90.5936602502796,
+  "ms_per_step": 11.038300000655,
+  "simulation_time": 0.055191500003274996,
+  "theoretical_memory_gb": 0.42002648115158087,
+  "bytes_per_neuron": 0.008,
+  "gpu_utilization": 0.0,
+  "memory_bandwidth": 0.0,
+  "cache_hit_rate": 0.0
+}]

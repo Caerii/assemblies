@@ -1,0 +1,62 @@
+[
+  {
+    "dll_name": "kernels_optimized",
+    "dll_path": "C:\\Users\\locke\\Documents\\Github\\assemblies\\cpp\\python_implementations\\core_implementations\\..\\..\\.build\\dlls\\assemblies_cuda_kernels_optimized.dll",
+    "loaded": true,
+    "functions": [],
+    "error": null
+  },
+  {
+    "test_name": "Individual Optimized Kernels",
+    "success": true,
+    "performance": {
+      "test_time_ms": 0.0,
+      "neurons_processed": 1000,
+      "active_neurons": 100,
+      "neurons_per_second": 0
+    },
+    "error": null
+  },
+  {
+    "dll_name": "memory_optimized",
+    "dll_path": "C:\\Users\\locke\\Documents\\Github\\assemblies\\cpp\\python_implementations\\core_implementations\\..\\..\\.build\\dlls\\assemblies_cuda_memory_optimized.dll",
+    "loaded": true,
+    "functions": [],
+    "error": null
+  },
+  {
+    "test_name": "GPU Memory Optimizations",
+    "success": true,
+    "performance": {
+      "memory_operations_tested": true,
+      "vectorization_available": true
+    },
+    "error": null
+  },
+  {
+    "dll_name": "brain_optimized",
+    "dll_path": "C:\\Users\\locke\\Documents\\Github\\assemblies\\cpp\\python_implementations\\core_implementations\\..\\..\\.build\\dlls\\assemblies_cuda_brain_optimized.dll",
+    "loaded": true,
+    "functions": [
+      "cuda_top_k_selection_radix",
+      "cuda_accumulate_weights_shared_memory",
+      "cuda_create_optimized_brain",
+      "cuda_simulate_step_optimized",
+      "cuda_destroy_optimized_brain"
+    ],
+    "error": null
+  },
+  {
+    "test_name": "Complete Optimized Brain Simulator",
+    "success": true,
+    "performance": {
+      "test_time_ms": 714.3054008483887,
+      "neurons": 100000,
+      "active_neurons": 1000,
+      "areas": 5,
+      "steps": 3,
+      "neurons_per_second": 2099942.1231008936
+    },
+    "error": null
+  }
+]

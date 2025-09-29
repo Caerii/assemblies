@@ -1,0 +1,297 @@
+{
+  "Deep Sleep": {
+    "performance": {
+      "total_neurons": 68000,
+      "frequency_range": {
+        "min": 2.0,
+        "max": 60.0
+      },
+      "memory_requirements_gb": 0.008106231689453125,
+      "min_sample_rate_hz": 120.0,
+      "updates_per_second": 8160000.0,
+      "estimated_performance_steps_per_sec": 5882.35294117647,
+      "quantized_performance_steps_per_sec": 705882.3529411764,
+      "real_time_capable": true
+    },
+    "oscillations": {
+      "Delta": {
+        "frequency": 2.0,
+        "amplitude": 1.0,
+        "neurons": 50000
+      },
+      "Theta": {
+        "frequency": 6.0,
+        "amplitude": 0.3,
+        "neurons": 10000
+      },
+      "Alpha": {
+        "frequency": 10.0,
+        "amplitude": 0.1,
+        "neurons": 5000
+      },
+      "Beta": {
+        "frequency": 20.0,
+        "amplitude": 0.05,
+        "neurons": 2000
+      },
+      "Gamma": {
+        "frequency": 60.0,
+        "amplitude": 0.02,
+        "neurons": 1000
+      }
+    },
+    "neurotransmitters": {
+      "GABA": {
+        "baseline": 0.8
+      },
+      "Glutamate": {
+        "baseline": 0.2
+      },
+      "Dopamine": {
+        "baseline": 0.1
+      },
+      "Acetylcholine": {
+        "baseline": 0.3
+      },
+      "Serotonin": {
+        "baseline": 0.9
+      }
+    }
+  },
+  "REM Sleep": {
+    "performance": {
+      "total_neurons": 155000,
+      "frequency_range": {
+        "min": 1.5,
+        "max": 70.0
+      },
+      "memory_requirements_gb": 0.018477439880371094,
+      "min_sample_rate_hz": 140.0,
+      "updates_per_second": 21700000.0,
+      "estimated_performance_steps_per_sec": 2580.6451612903224,
+      "quantized_performance_steps_per_sec": 309677.41935483867,
+      "real_time_capable": true
+    },
+    "oscillations": {
+      "Delta": {
+        "frequency": 1.5,
+        "amplitude": 0.2,
+        "neurons": 10000
+      },
+      "Theta": {
+        "frequency": 6.5,
+        "amplitude": 1.0,
+        "neurons": 80000
+      },
+      "Alpha": {
+        "frequency": 9.0,
+        "amplitude": 0.5,
+        "neurons": 30000
+      },
+      "Beta": {
+        "frequency": 18.0,
+        "amplitude": 0.3,
+        "neurons": 15000
+      },
+      "Gamma": {
+        "frequency": 70.0,
+        "amplitude": 0.4,
+        "neurons": 20000
+      }
+    },
+    "neurotransmitters": {
+      "GABA": {
+        "baseline": 0.6
+      },
+      "Glutamate": {
+        "baseline": 0.7
+      },
+      "Dopamine": {
+        "baseline": 0.4
+      },
+      "Acetylcholine": {
+        "baseline": 0.8
+      },
+      "Serotonin": {
+        "baseline": 0.2
+      }
+    }
+  },
+  "Wakeful Rest": {
+    "performance": {
+      "total_neurons": 195000,
+      "frequency_range": {
+        "min": 1.0,
+        "max": 40.0
+      },
+      "memory_requirements_gb": 0.023245811462402344,
+      "min_sample_rate_hz": 80.0,
+      "updates_per_second": 15600000.0,
+      "estimated_performance_steps_per_sec": 2051.2820512820513,
+      "quantized_performance_steps_per_sec": 246153.84615384616,
+      "real_time_capable": true
+    },
+    "oscillations": {
+      "Delta": {
+        "frequency": 1.0,
+        "amplitude": 0.1,
+        "neurons": 5000
+      },
+      "Theta": {
+        "frequency": 5.0,
+        "amplitude": 0.3,
+        "neurons": 20000
+      },
+      "Alpha": {
+        "frequency": 10.0,
+        "amplitude": 1.0,
+        "neurons": 100000
+      },
+      "Beta": {
+        "frequency": 15.0,
+        "amplitude": 0.4,
+        "neurons": 40000
+      },
+      "Gamma": {
+        "frequency": 40.0,
+        "amplitude": 0.2,
+        "neurons": 30000
+      }
+    },
+    "neurotransmitters": {
+      "GABA": {
+        "baseline": 0.5
+      },
+      "Glutamate": {
+        "baseline": 0.8
+      },
+      "Dopamine": {
+        "baseline": 0.6
+      },
+      "Acetylcholine": {
+        "baseline": 0.7
+      },
+      "Serotonin": {
+        "baseline": 0.4
+      }
+    }
+  },
+  "Active Concentration": {
+    "performance": {
+      "total_neurons": 292000,
+      "frequency_range": {
+        "min": 0.5,
+        "max": 80.0
+      },
+      "memory_requirements_gb": 0.034809112548828125,
+      "min_sample_rate_hz": 160.0,
+      "updates_per_second": 46720000.0,
+      "estimated_performance_steps_per_sec": 1369.86301369863,
+      "quantized_performance_steps_per_sec": 164383.56164383562,
+      "real_time_capable": true
+    },
+    "oscillations": {
+      "Delta": {
+        "frequency": 0.5,
+        "amplitude": 0.05,
+        "neurons": 2000
+      },
+      "Theta": {
+        "frequency": 4.0,
+        "amplitude": 0.2,
+        "neurons": 10000
+      },
+      "Alpha": {
+        "frequency": 8.0,
+        "amplitude": 0.3,
+        "neurons": 30000
+      },
+      "Beta": {
+        "frequency": 25.0,
+        "amplitude": 1.0,
+        "neurons": 150000
+      },
+      "Gamma": {
+        "frequency": 80.0,
+        "amplitude": 0.8,
+        "neurons": 100000
+      }
+    },
+    "neurotransmitters": {
+      "GABA": {
+        "baseline": 0.7
+      },
+      "Glutamate": {
+        "baseline": 0.9
+      },
+      "Dopamine": {
+        "baseline": 0.8
+      },
+      "Acetylcholine": {
+        "baseline": 0.6
+      },
+      "Serotonin": {
+        "baseline": 0.3
+      }
+    }
+  },
+  "Meditation": {
+    "performance": {
+      "total_neurons": 295000,
+      "frequency_range": {
+        "min": 1.5,
+        "max": 35.0
+      },
+      "memory_requirements_gb": 0.03516674041748047,
+      "min_sample_rate_hz": 70.0,
+      "updates_per_second": 20650000.0,
+      "estimated_performance_steps_per_sec": 1355.9322033898304,
+      "quantized_performance_steps_per_sec": 162711.86440677964,
+      "real_time_capable": true
+    },
+    "oscillations": {
+      "Delta": {
+        "frequency": 1.5,
+        "amplitude": 0.3,
+        "neurons": 15000
+      },
+      "Theta": {
+        "frequency": 7.0,
+        "amplitude": 0.8,
+        "neurons": 60000
+      },
+      "Alpha": {
+        "frequency": 11.0,
+        "amplitude": 1.2,
+        "neurons": 120000
+      },
+      "Beta": {
+        "frequency": 12.0,
+        "amplitude": 0.2,
+        "neurons": 20000
+      },
+      "Gamma": {
+        "frequency": 35.0,
+        "amplitude": 0.6,
+        "neurons": 80000
+      }
+    },
+    "neurotransmitters": {
+      "GABA": {
+        "baseline": 0.6
+      },
+      "Glutamate": {
+        "baseline": 0.7
+      },
+      "Dopamine": {
+        "baseline": 0.5
+      },
+      "Acetylcholine": {
+        "baseline": 0.8
+      },
+      "Serotonin": {
+        "baseline": 0.7
+      }
+    }
+  }
+}

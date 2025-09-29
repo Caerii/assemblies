@@ -1,0 +1,164 @@
+[
+  {
+    "n_neurons": 100000,
+    "k_active": 1000,
+    "n_areas": 5,
+    "n_steps": 5,
+    "theoretical_o_n2_ops": 50000000000000,
+    "theoretical_o_n_log_k_ops": 4500000,
+    "theoretical_speedup": 11111111.111111112,
+    "implementations": [
+      {
+        "name": "Original (O(N\u00b2))",
+        "success": true,
+        "init_time": 0.08733510971069336,
+        "sim_time": 0.8329942226409912,
+        "total_time": 0.9203293323516846,
+        "steps_per_second": 6.004270717675498,
+        "neurons_per_second": 600427.0717675497,
+        "memory_usage_gb": 14.689453125,
+        "timeout": false
+      },
+      {
+        "name": "Optimized (O(N log K))",
+        "success": true,
+        "init_time": 0.8648285865783691,
+        "sim_time": 0.004997730255126953,
+        "total_time": 0.8698263168334961,
+        "steps_per_second": 1000.3109945146673,
+        "neurons_per_second": 500155497.25733364,
+        "memory_usage_gb": 0.0,
+        "optimized_kernels_used": true,
+        "timeout": false
+      }
+    ],
+    "actual_speedup": 166.6745062494037,
+    "efficiency": 0.001500070556244633
+  },
+  {
+    "n_neurons": 1000000,
+    "k_active": 10000,
+    "n_areas": 5,
+    "n_steps": 3,
+    "theoretical_o_n2_ops": 50000000000000000,
+    "theoretical_o_n_log_k_ops": 65000000,
+    "theoretical_speedup": 769230769.2307693,
+    "implementations": [
+      {
+        "name": "Original (O(N\u00b2))",
+        "success": true,
+        "init_time": 0.0019991397857666016,
+        "sim_time": 0.011269569396972656,
+        "total_time": 0.013268709182739258,
+        "steps_per_second": 270.4237540210815,
+        "neurons_per_second": 270423754.0210815,
+        "memory_usage_gb": 14.689453125,
+        "timeout": false
+      },
+      {
+        "name": "Optimized (O(N log K))",
+        "success": true,
+        "init_time": 1.9259421825408936,
+        "sim_time": 0.01145172119140625,
+        "total_time": 1.9373939037322998,
+        "steps_per_second": 0,
+        "neurons_per_second": 0,
+        "memory_usage_gb": 0.0,
+        "optimized_kernels_used": true,
+        "timeout": false
+      }
+    ],
+    "actual_speedup": 0.9840939373750833,
+    "efficiency": 1.2793221185876081e-07
+  },
+  {
+    "n_neurons": 10000000,
+    "k_active": 10000,
+    "n_areas": 5,
+    "n_steps": 1,
+    "theoretical_o_n2_ops": 5000000000000000000,
+    "theoretical_o_n_log_k_ops": 650000000,
+    "theoretical_speedup": 7692307692.307693,
+    "implementations": [
+      {
+        "name": "Original (O(N\u00b2))",
+        "success": false,
+        "error": "cudaErrorIllegalAddress: an illegal memory access was encountered",
+        "timeout": false
+      },
+      {
+        "name": "Optimized (O(N log K))",
+        "success": true,
+        "init_time": 0.0030889511108398438,
+        "sim_time": 0.0010116100311279297,
+        "total_time": 0.0041005611419677734,
+        "steps_per_second": 988.5232147065756,
+        "neurons_per_second": 49426160735.32877,
+        "memory_usage_gb": 0.0,
+        "optimized_kernels_used": true,
+        "timeout": false
+      }
+    ],
+    "breakthrough": true
+  },
+  {
+    "n_neurons": 100000000,
+    "k_active": 10000,
+    "n_areas": 5,
+    "n_steps": 1,
+    "theoretical_o_n2_ops": 500000000000000000000,
+    "theoretical_o_n_log_k_ops": 6500000000,
+    "theoretical_speedup": 76923076923.07692,
+    "implementations": [
+      {
+        "name": "Original (O(N\u00b2))",
+        "success": false,
+        "error": "cudaErrorIllegalAddress: an illegal memory access was encountered",
+        "timeout": false
+      },
+      {
+        "name": "Optimized (O(N log K))",
+        "success": true,
+        "init_time": 0.002434968948364258,
+        "sim_time": 0.0,
+        "total_time": 0.002434968948364258,
+        "steps_per_second": 0,
+        "neurons_per_second": 0,
+        "memory_usage_gb": 0.0,
+        "optimized_kernels_used": true,
+        "timeout": false
+      }
+    ],
+    "breakthrough": true
+  },
+  {
+    "n_neurons": 1000000000,
+    "k_active": 10000,
+    "n_areas": 5,
+    "n_steps": 1,
+    "theoretical_o_n2_ops": 50000000000000000000000,
+    "theoretical_o_n_log_k_ops": 65000000000,
+    "theoretical_speedup": 769230769230.7693,
+    "implementations": [
+      {
+        "name": "Original (O(N\u00b2))",
+        "success": false,
+        "error": "cudaErrorIllegalAddress: an illegal memory access was encountered",
+        "timeout": false
+      },
+      {
+        "name": "Optimized (O(N log K))",
+        "success": true,
+        "init_time": 0.002002716064453125,
+        "sim_time": 0.0,
+        "total_time": 0.002002716064453125,
+        "steps_per_second": 0,
+        "neurons_per_second": 0,
+        "memory_usage_gb": 0.0,
+        "optimized_kernels_used": true,
+        "timeout": false
+      }
+    ],
+    "breakthrough": true
+  }
+]

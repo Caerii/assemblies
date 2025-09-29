@@ -1,0 +1,70 @@
+{
+  "memory_usage": {
+    "1000000": {
+      "error": "'<=' not supported between instances of 'SimulationConfig' and 'int'"
+    },
+    "5000000": {
+      "error": "'<=' not supported between instances of 'SimulationConfig' and 'int'"
+    },
+    "10000000": {
+      "error": "'<=' not supported between instances of 'SimulationConfig' and 'int'"
+    },
+    "50000000": {
+      "error": "'<=' not supported between instances of 'SimulationConfig' and 'int'"
+    },
+    "100000000": {
+      "error": "'<=' not supported between instances of 'SimulationConfig' and 'int'"
+    }
+  },
+  "performance_scaling": {
+    "1000000": {
+      "error": "'<=' not supported between instances of 'SimulationConfig' and 'int'"
+    },
+    "5000000": {
+      "error": "'<=' not supported between instances of 'SimulationConfig' and 'int'"
+    },
+    "10000000": {
+      "error": "'<=' not supported between instances of 'SimulationConfig' and 'int'"
+    },
+    "50000000": {
+      "error": "'<=' not supported between instances of 'SimulationConfig' and 'int'"
+    },
+    "100000000": {
+      "error": "'<=' not supported between instances of 'SimulationConfig' and 'int'"
+    }
+  },
+  "memory_bandwidth": {
+    "1000000": {
+      "error": "'<=' not supported between instances of 'SimulationConfig' and 'int'"
+    },
+    "5000000": {
+      "error": "'<=' not supported between instances of 'SimulationConfig' and 'int'"
+    },
+    "10000000": {
+      "error": "'<=' not supported between instances of 'SimulationConfig' and 'int'"
+    },
+    "50000000": {
+      "error": "'<=' not supported between instances of 'SimulationConfig' and 'int'"
+    },
+    "100000000": {
+      "error": "'<=' not supported between instances of 'SimulationConfig' and 'int'"
+    }
+  },
+  "cache_efficiency": {
+    "1000000": {
+      "error": "'<=' not supported between instances of 'SimulationConfig' and 'int'"
+    },
+    "5000000": {
+      "error": "'<=' not supported between instances of 'SimulationConfig' and 'int'"
+    },
+    "10000000": {
+      "error": "'<=' not supported between instances of 'SimulationConfig' and 'int'"
+    },
+    "50000000": {
+      "error": "'<=' not supported between instances of 'SimulationConfig' and 'int'"
+    },
+    "100000000": {
+      "error": "'<=' not supported between instances of 'SimulationConfig' and 'int'"
+    }
+  }
+}

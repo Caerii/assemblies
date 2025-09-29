@@ -2,7 +2,13 @@
 
 import unittest
 import numpy as np
-from area import Area
+import sys
+import os
+
+# Add the src directory to the Python path
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+
+from core.area import Area
 
 class TestArea(unittest.TestCase):
 

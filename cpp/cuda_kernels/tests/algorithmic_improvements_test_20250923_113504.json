@@ -1,0 +1,179 @@
+{
+  "warp_reduction": {
+    "test_name": "Warp Reduction",
+    "scales": [
+      {
+        "neurons": 100000,
+        "active_neurons": 1000,
+        "total_synapses": 100000,
+        "current_atomic_ops": 100000,
+        "optimized_atomic_ops": 3125,
+        "optimized_warp_ops": 15625,
+        "total_optimized_ops": 18750,
+        "theoretical_speedup": 5.333333333333333
+      },
+      {
+        "neurons": 1000000,
+        "active_neurons": 10000,
+        "total_synapses": 1000000,
+        "current_atomic_ops": 1000000,
+        "optimized_atomic_ops": 31250,
+        "optimized_warp_ops": 156250,
+        "total_optimized_ops": 187500,
+        "theoretical_speedup": 5.333333333333333
+      },
+      {
+        "neurons": 10000000,
+        "active_neurons": 100000,
+        "total_synapses": 10000000,
+        "current_atomic_ops": 10000000,
+        "optimized_atomic_ops": 312500,
+        "optimized_warp_ops": 1562500,
+        "total_optimized_ops": 1875000,
+        "theoretical_speedup": 5.333333333333333
+      },
+      {
+        "neurons": 100000000,
+        "active_neurons": 1000000,
+        "total_synapses": 100000000,
+        "current_atomic_ops": 100000000,
+        "optimized_atomic_ops": 3125000,
+        "optimized_warp_ops": 15625000,
+        "total_optimized_ops": 18750000,
+        "theoretical_speedup": 5.333333333333333
+      }
+    ],
+    "theoretical_speedups": [
+      5.333333333333333,
+      5.333333333333333,
+      5.333333333333333,
+      5.333333333333333
+    ],
+    "complexity_analysis": {
+      "current_complexity": "O(S) where S = total synapses",
+      "optimized_complexity": "O(S/32) + O(S/32 \u00d7 5) = O(S/32)",
+      "theoretical_speedup": "5.33x reduction in atomic operations",
+      "average_speedup": 5.333333333333333
+    }
+  },
+  "radix_selection": {
+    "test_name": "Radix Selection",
+    "k_values": [
+      10,
+      100,
+      1000,
+      10000
+    ],
+    "block_sizes": [
+      256,
+      512,
+      1024
+    ],
+    "complexity_analysis": {
+      "current_complexity": "O(n log\u00b2n) bitonic sort",
+      "optimized_complexity": "O(n log k) radix selection",
+      "theoretical_speedup": "19.4x for typical values (n=256, k=10)",
+      "average_speedup": 17.237550942187493,
+      "max_speedup": 30.102999566398122,
+      "min_speedup": 9.632959861247398
+    }
+  },
+  "memory_coalescing": {
+    "test_name": "Memory Coalescing",
+    "access_patterns": [
+      "random",
+      "coalesced",
+      "vectorized"
+    ],
+    "bandwidth_utilization": {
+      "random_access": "~30% bandwidth utilization",
+      "coalesced_access": "~90% bandwidth utilization",
+      "vectorized_access": "~95% bandwidth utilization",
+      "expected_speedup": "3x memory access speed"
+    },
+    "scales": [
+      {
+        "neurons": 100000,
+        "random_coalescing": 0.0,
+        "coalesced_efficiency": 99.99900000000001,
+        "vectorized_efficiency": 399.99600000000004,
+        "coalesced_speedup": 999.99,
+        "vectorized_speedup": 3999.96
+      },
+      {
+        "neurons": 1000000,
+        "random_coalescing": 0.00030000000000000003,
+        "coalesced_efficiency": 99.9999,
+        "vectorized_efficiency": 399.9996,
+        "coalesced_speedup": 999.9989999999999,
+        "vectorized_speedup": 3999.9959999999996
+      },
+      {
+        "neurons": 10000000,
+        "random_coalescing": 1.9999999999999998e-05,
+        "coalesced_efficiency": 99.99999000000001,
+        "vectorized_efficiency": 399.99996000000004,
+        "coalesced_speedup": 999.9999,
+        "vectorized_speedup": 3999.9996
+      }
+    ]
+  },
+  "consolidated_performance": {
+    "test_name": "Consolidated Kernels",
+    "scales": [
+      {
+        "neurons": 100000,
+        "active_neurons": 1000,
+        "k": 100,
+        "total_ops": 764485.6189774724,
+        "estimated_time_ms": 0.7644856189774725,
+        "optimized_time_ms": 0.0024644449784255386,
+        "combined_speedup": 310.20599999999996,
+        "steps_per_second": 405770.8769131744
+      },
+      {
+        "neurons": 1000000,
+        "active_neurons": 10000,
+        "k": 1000,
+        "total_ops": 10966784.284662087,
+        "estimated_time_ms": 10.966784284662086,
+        "optimized_time_ms": 0.03535323070689183,
+        "combined_speedup": 310.20599999999996,
+        "steps_per_second": 28285.9580299986
+      },
+      {
+        "neurons": 10000000,
+        "active_neurons": 100000,
+        "k": 1000,
+        "total_ops": 109658842.84662087,
+        "estimated_time_ms": 109.65884284662087,
+        "optimized_time_ms": 0.35350329409044595,
+        "combined_speedup": 310.20599999999996,
+        "steps_per_second": 2828.8279535639745
+      },
+      {
+        "neurons": 100000000,
+        "active_neurons": 1000000,
+        "k": 1000,
+        "total_ops": 1096579428.4662087,
+        "estimated_time_ms": 1096.5794284662088,
+        "optimized_time_ms": 3.5350039279259877,
+        "combined_speedup": 310.20599999999996,
+        "steps_per_second": 282.88511707162576
+      }
+    ],
+    "performance_predictions": {
+      "warp_reduction_speedup": 5.33,
+      "radix_selection_speedup": 19.4,
+      "memory_coalescing_speedup": 3.0,
+      "combined_speedup": 310.20599999999996,
+      "expected_improvement": "20-50x overall speedup depending on workload"
+    }
+  },
+  "summary": {
+    "total_test_time": 6.223919630050659,
+    "tests_run": 3,
+    "timestamp": "2025-09-23T11:35:04.982342",
+    "overall_assessment": "All algorithmic improvements show significant theoretical speedups"
+  }
+}

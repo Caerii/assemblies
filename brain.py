@@ -15,6 +15,32 @@ import types
 
 import torch
 
+# Import extracted math primitives
+try:
+    from src.math_primitives.explicit_projection import (
+        validate_source_winners, 
+        accumulate_prev_inputs_explicit, 
+        apply_area_to_area_plasticity
+    )
+    from src.math_primitives.image_activation import (
+        preprocess_image, 
+        normalize_and_select_topk
+    )
+except ImportError:
+    # Fallback for when running from root directory
+    import sys
+    import os
+    sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
+    from math_primitives.explicit_projection import (
+        validate_source_winners, 
+        accumulate_prev_inputs_explicit, 
+        apply_area_to_area_plasticity
+    )
+    from math_primitives.image_activation import (
+        preprocess_image, 
+        normalize_and_select_topk
+    )
+
 # Configurable assembly model for simulations
 # Author Daniel Mitropolsky, 2018
 
@@ -480,33 +506,12 @@ class Brain:
     """
     area = self.area_by_name[area_name]
 
-    # Ensure image is flattened
-    if isinstance(image, np.ndarray):
-        image_flat = image.flatten()
-        image_size = image_flat.size  # Use `.size` for NumPy arrays
-    elif isinstance(image, torch.Tensor):
-        image_flat = image.flatten().cpu().numpy()  # Convert tensor to NumPy array
-        image_size = image_flat.size
-    else:
-        raise TypeError(f"Unsupported image type: {type(image)}")
-
-    # Ensure the image matches the neuron size
-    if image_size > area.n:
-        image_flat = image_flat[:area.n]  # Crop
-    elif image_size < area.n:
-      # Pad the image if it is smaller
-      padding = np.zeros(area.n - image_size, dtype=image_flat.dtype)
-      image_flat = np.concatenate((image_flat, padding))
-
-    # Normalize the image data to [0, 1]
-    normalized_image = (image_flat - image_flat.min()) / (image_flat.ptp() + 1e-6)
-    normalized_image = normalized_image / (np.linalg.norm(normalized_image) + 1e-6)
-
-    # Select the top-k pixels with the highest values
-    top_k_indices = np.argsort(-normalized_image)[:area.k]
+    # Use extracted image activation engine
+    image_flat = preprocess_image(image, area.n)
+    winners = normalize_and_select_topk(image_flat, area.k, area.n)
 
     # Set the winners in the area
-    area.winners = np.array(top_k_indices[top_k_indices < area.n], dtype=np.uint32)
+    area.winners = winners
     area.w = len(area.winners)
     print(f"[DEBUG] Activated {area_name} with top {area.k} neurons: {area.winners[:10]}...")
 
@@ -600,15 +605,10 @@ class Brain:
             f" and {', '.join(from_areas)} into {target_area.name}")
 
     # If projecting from area with no assembly, complain.
+    # Use extracted explicit projection engine for validation
+    validate_source_winners(from_areas, self.connectomes, self.area_by_name, target_area_name)
+    
     for from_area_name in from_areas:
-      connectome = self.connectomes[from_area_name][target_area_name]
-      from_area = self.area_by_name[from_area_name]
-      if max(from_area.winners) >= connectome.shape[0]:
-          raise IndexError(
-              f"Winner index {max(from_area.winners)} exceeds connectome source size {connectome.shape[0]} "
-              f"for connection {from_area_name} -> {target_area_name}."
-       )
-
       from_area = area_by_name[from_area_name]
       if from_area.winners.size == 0 or from_area.w == 0: # add not back in if not using numpy array
         raise ValueError(f"Projecting from area with no assembly: {from_area}")
@@ -625,17 +625,27 @@ class Brain:
         # target_area_name = target_area.name
 
         if target_area.explicit: # Since target_area.w is now equal to target_area.n for explicit areas, the shapes will align when performing prev_winner_inputs += connectome[w].
-            prev_winner_inputs = np.zeros(target_area.n, dtype=np.float32)
+            # Use extracted explicit projection engine for input accumulation
+            prev_winner_inputs = accumulate_prev_inputs_explicit(
+                target_area.n, 
+                from_stimuli, 
+                from_areas, 
+                self.connectomes_by_stimulus, 
+                self.connectomes, 
+                self.area_by_name, 
+                target_area_name
+            )
         else:
             prev_winner_inputs = np.zeros(target_area.w, dtype=np.float32)
 
-        for stim in from_stimuli:
-          stim_inputs = self.connectomes_by_stimulus[stim][target_area_name]
-          prev_winner_inputs += stim_inputs
-        for from_area_name in from_areas:
-          connectome = self.connectomes[from_area_name][target_area_name]
-          for w in self.area_by_name[from_area_name].winners:
-            prev_winner_inputs += connectome[w]
+        if not target_area.explicit:
+            for stim in from_stimuli:
+              stim_inputs = self.connectomes_by_stimulus[stim][target_area_name]
+              prev_winner_inputs += stim_inputs
+            for from_area_name in from_areas:
+              connectome = self.connectomes[from_area_name][target_area_name]
+              for w in self.area_by_name[from_area_name].winners:
+                prev_winner_inputs += connectome[w]
 
         if verbose >= 2:
           print("prev_winner_inputs:", prev_winner_inputs)
@@ -749,6 +759,18 @@ class Brain:
         if verbose >= 2:
           print(f"new_winners: {target_area._new_winners}")
 
+        # Update connectomes for explicit areas
+        if target_area.explicit:
+            # Apply plasticity for explicit areas using extracted engine
+            apply_area_to_area_plasticity(
+                target_area._new_winners,
+                from_areas,
+                self.connectomes,
+                self.area_by_name,
+                target_area_name,
+                self.disable_plasticity
+            )
+
         # for i in num_first_winners
         # generate where input came from
           # 1) can sample input from array of size total_k, use ranges
@@ -831,12 +853,14 @@ class Brain:
         for j in range(from_area_w):
           if j not in from_area_winners_set:
             the_connectome[j, target_area.w + i] = rng.binomial(1, self.p)
-      area_to_area_beta = (
-        0 if self.disable_plasticity
-        else target_area.beta_by_area[from_area_name])
-      for i in target_area._new_winners:
-        for j in from_area_winners:
-          the_connectome[j, i] *= 1.0 + area_to_area_beta
+      # Skip plasticity for explicit areas (handled by extracted engine)
+      if not target_area.explicit:
+        area_to_area_beta = (
+          0 if self.disable_plasticity
+          else target_area.beta_by_area[from_area_name])
+        for i in target_area._new_winners:
+          for j in from_area_winners:
+            the_connectome[j, i] *= 1.0 + area_to_area_beta
       if verbose >= 2:
         print(f"Connectome of {from_area_name} to {target_area_name} is now:",
               the_connectome)

@@ -1,0 +1,686 @@
+{
+  "timestamp": "2025-09-23T03:37:42.813632",
+  "summary": {
+    "total_tests": 0,
+    "best_performance": {
+      "neurons": 1000000,
+      "active_percentage": 0.01,
+      "steps_per_sec": 668.1633526554822,
+      "memory_efficiency": 100.0
+    },
+    "scaling_characteristics": {
+      "active_0.0010": "Constant (scales linearly)",
+      "active_0.0100": "Negative (performance degrades with scale)",
+      "active_0.0500": "Negative (performance degrades with scale)",
+      "active_0.1000": "Negative (performance degrades with scale)",
+      "active_0.0001": "Constant (scales linearly)"
+    },
+    "key_insights": [
+      "Best performance: 668.2 steps/sec at 1,000,000 neurons, 1.0% active",
+      "Memory efficiency trend: Improving"
+    ]
+  },
+  "detailed_analysis": {
+    "scaling_laws": {
+      "active_0.0010": {
+        "scaling_exponent": 0.026418867408553925,
+        "r_squared": 0.008179430168359897,
+        "p_value": 0.8850051310110054,
+        "equation": "steps/sec = 10^2.042 * neurons^0.026",
+        "scaling_type": "Constant (scales linearly)"
+      },
+      "active_0.0100": {
+        "scaling_exponent": -0.33064427700489407,
+        "r_squared": 0.8861557016987648,
+        "p_value": 0.05864156576850876,
+        "equation": "steps/sec = 10^4.761 * neurons^-0.331",
+        "scaling_type": "Negative (performance degrades with scale)"
+      },
+      "active_0.0500": {
+        "scaling_exponent": -0.39291074576122004,
+        "r_squared": 0.7618068819814622,
+        "p_value": 0.32458350376351813,
+        "equation": "steps/sec = 10^5.083 * neurons^-0.393",
+        "scaling_type": "Negative (performance degrades with scale)"
+      },
+      "active_0.1000": {
+        "scaling_exponent": -0.47284089375627963,
+        "r_squared": 0.9216984406757226,
+        "p_value": 0.18055233537938023,
+        "equation": "steps/sec = 10^5.486 * neurons^-0.473",
+        "scaling_type": "Negative (performance degrades with scale)"
+      },
+      "active_0.0001": {
+        "scaling_exponent": 0.10951359327876231,
+        "r_squared": 0.813588909061328,
+        "p_value": 0.09800836530412993,
+        "equation": "steps/sec = 10^1.588 * neurons^0.110",
+        "scaling_type": "Constant (scales linearly)"
+      }
+    },
+    "performance_trends": {
+      "neurons_1000000": {
+        "optimal_active_percentage": 0.01,
+        "max_steps_per_sec": 668.1633526554822,
+        "performance_range": {
+          "min": 58.2413217512855,
+          "max": 668.1633526554822,
+          "std": 216.07958538173108
+        },
+        "trend": "Weak correlation"
+      },
+      "neurons_10000000": {
+        "optimal_active_percentage": 0.05,
+        "max_steps_per_sec": 385.63881063390386,
+        "performance_range": {
+          "min": 191.01248074323394,
+          "max": 385.63881063390386,
+          "std": 73.17829419446694
+        },
+        "trend": "Weak correlation"
+      },
+      "neurons_100000000": {
+        "optimal_active_percentage": 0.001,
+        "max_steps_per_sec": 365.01146135022185,
+        "performance_range": {
+          "min": 42.074969180914216,
+          "max": 365.01146135022185,
+          "std": 133.94315105428902
+        },
+        "trend": "Strong negative correlation"
+      },
+      "neurons_1000000000": {
+        "optimal_active_percentage": 0.001,
+        "max_steps_per_sec": 543.5727953189819,
+        "performance_range": {
+          "min": 51.86609005406694,
+          "max": 543.5727953189819,
+          "std": 208.86542645446335
+        },
+        "trend": "Strong negative correlation"
+      }
+    },
+    "memory_efficiency_trends": {
+      "memory_scaling": {
+        "slope": -0.3850696325483141,
+        "r_squared": 0.20127569743628854,
+        "interpretation": "Good: Memory per neuron decreases with scale",
+        "efficiency_trend": "Improving"
+      }
+    },
+    "optimal_configurations": {
+      "best_overall": {
+        "neurons": 1000000,
+        "active_percentage": 0.01,
+        "steps_per_sec": 668.1633526554822,
+        "memory_efficiency": 100.0
+      },
+      "best_memory": {
+        "neurons": 1000000,
+        "active_percentage": 0.001,
+        "steps_per_sec": 58.2413217512855,
+        "memory_efficiency": 100.0
+      },
+      "best_large_scale": {
+        "neurons": 1000000000,
+        "active_percentage": 0.001,
+        "steps_per_sec": 543.5727953189819,
+        "memory_efficiency": 100.0
+      }
+    },
+    "bottlenecks": {
+      "active_0.0010": {
+        "degradation_rate": 0.19313876388188145,
+        "bottleneck_type": "Severe bottleneck - likely memory or synchronization",
+        "recommendations": [
+          "Major optimization needed",
+          "Profile memory usage",
+          "Check for memory leaks",
+          "Consider distributed computing"
+        ]
+      },
+      "active_0.0100": {
+        "degradation_rate": 0.05329363317414467,
+        "bottleneck_type": "Severe bottleneck - likely memory or synchronization",
+        "recommendations": [
+          "Major optimization needed",
+          "Profile memory usage",
+          "Check for memory leaks",
+          "Consider distributed computing"
+        ]
+      },
+      "active_0.0500": {
+        "degradation_rate": 0.05701958245597464,
+        "bottleneck_type": "Severe bottleneck - likely memory or synchronization",
+        "recommendations": [
+          "Major optimization needed",
+          "Profile memory usage",
+          "Check for memory leaks",
+          "Consider distributed computing"
+        ]
+      },
+      "active_0.1000": {
+        "degradation_rate": 0.03887783136507482,
+        "bottleneck_type": "Severe bottleneck - likely memory or synchronization",
+        "recommendations": [
+          "Major optimization needed",
+          "Profile memory usage",
+          "Check for memory leaks",
+          "Consider distributed computing"
+        ]
+      },
+      "active_0.0001": {
+        "degradation_rate": 0.1324668168681267,
+        "bottleneck_type": "Severe bottleneck - likely memory or synchronization",
+        "recommendations": [
+          "Major optimization needed",
+          "Profile memory usage",
+          "Check for memory leaks",
+          "Consider distributed computing"
+        ]
+      }
+    },
+    "predictions": {
+      "active_0.0010": {
+        "1e+11": {
+          "predicted_steps_per_sec": 4.984915568632089,
+          "confidence": "Medium"
+        }
+      },
+      "active_0.0100": {
+        "1e+10": {
+          "predicted_steps_per_sec": 24.966657518366922,
+          "confidence": "Medium"
+        },
+        "1e+11": {
+          "predicted_steps_per_sec": 9.950574375552934,
+          "confidence": "Medium"
+        }
+      },
+      "active_0.0500": {
+        "1e+09": {
+          "predicted_steps_per_sec": 1.8976317343221334,
+          "confidence": "Medium"
+        },
+        "1e+10": {
+          "predicted_steps_per_sec": 0.009607647327216378,
+          "confidence": "Medium"
+        },
+        "1e+11": {
+          "predicted_steps_per_sec": 8.432347909711108e-06,
+          "confidence": "Medium"
+        }
+      },
+      "active_0.1000": {
+        "1e+09": {
+          "predicted_steps_per_sec": 2.723076235870586,
+          "confidence": "Medium"
+        },
+        "1e+10": {
+          "predicted_steps_per_sec": 0.05870571545925783,
+          "confidence": "Medium"
+        },
+        "1e+11": {
+          "predicted_steps_per_sec": 0.0004215853996391183,
+          "confidence": "Medium"
+        }
+      },
+      "active_0.0001": {
+        "1e+06": {
+          "predicted_steps_per_sec": 89.80366167164263,
+          "confidence": "Medium"
+        },
+        "1e+11": {
+          "predicted_steps_per_sec": 316.8560554986994,
+          "confidence": "Medium"
+        }
+      }
+    }
+  },
+  "raw_results": [
+    {
+      "scale_name": "1,000,000 neurons (0.10%)",
+      "n_neurons": 1000000,
+      "active_percentage": 0.001,
+      "active_neurons": 1000,
+      "n_areas": 5,
+      "steps_per_sec": 58.2413217512855,
+      "ms_per_step": 17.164699999557342,
+      "std_ms_per_step": 30.190605908102444,
+      "simulation_time": 0.08584970000083558,
+      "steps_completed": 5,
+      "neurons_per_sec": 58241321.75128549,
+      "active_per_sec": 291206.6087564275,
+      "memory_used_gb": 7.450580596923828e-05,
+      "theoretical_memory_gb": 0.0001434236764907837,
+      "bytes_per_neuron": 0.08,
+      "memory_efficiency": 100.0,
+      "gpu_memory_used_gb": 14.689453125,
+      "gpu_memory_available_gb": 15.99169921875,
+      "cpu_memory_used_gb": 0.20690536499023438,
+      "initial_gpu_memory_gb": 14.69140625,
+      "initial_cpu_memory_gb": 0.18309402465820312
+    },
+    {
+      "scale_name": "1,000,000 neurons (1.00%)",
+      "n_neurons": 1000000,
+      "active_percentage": 0.01,
+      "active_neurons": 10000,
+      "n_areas": 5,
+      "steps_per_sec": 668.1633526554822,
+      "ms_per_step": 1.4944000002287794,
+      "std_ms_per_step": 0.2924433957451212,
+      "simulation_time": 0.007483199999114731,
+      "steps_completed": 5,
+      "neurons_per_sec": 668163352.6554822,
+      "active_per_sec": 33408167.63277411,
+      "memory_used_gb": 0.0007450580596923828,
+      "theoretical_memory_gb": 0.005122274160385132,
+      "bytes_per_neuron": 0.8,
+      "memory_efficiency": 100.0,
+      "gpu_memory_used_gb": 14.689453125,
+      "gpu_memory_available_gb": 15.99169921875,
+      "cpu_memory_used_gb": 0.20698165893554688,
+      "initial_gpu_memory_gb": 14.689453125,
+      "initial_cpu_memory_gb": 0.20697784423828125
+    },
+    {
+      "scale_name": "1,000,000 neurons (5.00%)",
+      "n_neurons": 1000000,
+      "active_percentage": 0.05,
+      "active_neurons": 50000,
+      "n_areas": 5,
+      "steps_per_sec": 396.78445872036565,
+      "ms_per_step": 2.517200000147568,
+      "std_ms_per_step": 0.7693004279922798,
+      "simulation_time": 0.012601300000824267,
+      "steps_completed": 5,
+      "neurons_per_sec": 396784458.72036564,
+      "active_per_sec": 99196114.68009141,
+      "memory_used_gb": 0.003725290298461914,
+      "theoretical_memory_gb": 0.10756775736808778,
+      "bytes_per_neuron": 4.0,
+      "memory_efficiency": 100.0,
+      "gpu_memory_used_gb": 14.68359375,
+      "gpu_memory_available_gb": 15.99169921875,
+      "cpu_memory_used_gb": 0.20699310302734375,
+      "initial_gpu_memory_gb": 14.685546875,
+      "initial_cpu_memory_gb": 0.2069854736328125
+    },
+    {
+      "scale_name": "1,000,000 neurons (10.00%)",
+      "n_neurons": 1000000,
+      "active_percentage": 0.1,
+      "active_neurons": 100000,
+      "n_areas": 5,
+      "steps_per_sec": 371.28345266249875,
+      "ms_per_step": 2.685860000201501,
+      "std_ms_per_step": 1.2050950709211594,
+      "simulation_time": 0.01346679999915068,
+      "steps_completed": 5,
+      "neurons_per_sec": 371283452.6624988,
+      "active_per_sec": 185641726.3312494,
+      "memory_used_gb": 0.007450580596923828,
+      "theoretical_memory_gb": 0.42002648115158087,
+      "bytes_per_neuron": 8.0,
+      "memory_efficiency": 100.0,
+      "gpu_memory_used_gb": 14.671875,
+      "gpu_memory_available_gb": 15.99169921875,
+      "cpu_memory_used_gb": 0.207000732421875,
+      "initial_gpu_memory_gb": 14.6796875,
+      "initial_cpu_memory_gb": 0.20699691772460938
+    },
+    {
+      "scale_name": "10,000,000 neurons (0.01%)",
+      "n_neurons": 10000000,
+      "active_percentage": 0.0001,
+      "active_neurons": 1000,
+      "n_areas": 5,
+      "steps_per_sec": 196.43895463121768,
+      "ms_per_step": 5.083939999167342,
+      "std_ms_per_step": 1.3831733008128915,
+      "simulation_time": 0.0254531999999017,
+      "steps_completed": 5,
+      "neurons_per_sec": 1964389546.312177,
+      "active_per_sec": 982194.7731560884,
+      "memory_used_gb": 7.450580596923828e-05,
+      "theoretical_memory_gb": 0.0001434236764907837,
+      "bytes_per_neuron": 0.008,
+      "memory_efficiency": 100.0,
+      "gpu_memory_used_gb": 14.671875,
+      "gpu_memory_available_gb": 15.99169921875,
+      "cpu_memory_used_gb": 0.207000732421875,
+      "initial_gpu_memory_gb": 14.671875,
+      "initial_cpu_memory_gb": 0.207000732421875
+    },
+    {
+      "scale_name": "10,000,000 neurons (0.10%)",
+      "n_neurons": 10000000,
+      "active_percentage": 0.001,
+      "active_neurons": 10000,
+      "n_areas": 5,
+      "steps_per_sec": 281.6441257592123,
+      "ms_per_step": 3.5446800000499934,
+      "std_ms_per_step": 1.454184473752233,
+      "simulation_time": 0.017752899999322835,
+      "steps_completed": 5,
+      "neurons_per_sec": 2816441257.5921226,
+      "active_per_sec": 14082206.287960613,
+      "memory_used_gb": 0.0007450580596923828,
+      "theoretical_memory_gb": 0.005122274160385132,
+      "bytes_per_neuron": 0.08,
+      "memory_efficiency": 100.0,
+      "gpu_memory_used_gb": 14.671875,
+      "gpu_memory_available_gb": 15.99169921875,
+      "cpu_memory_used_gb": 0.207000732421875,
+      "initial_gpu_memory_gb": 14.671875,
+      "initial_cpu_memory_gb": 0.207000732421875
+    },
+    {
+      "scale_name": "10,000,000 neurons (1.00%)",
+      "n_neurons": 10000000,
+      "active_percentage": 0.01,
+      "active_neurons": 100000,
+      "n_areas": 5,
+      "steps_per_sec": 191.01248074323394,
+      "ms_per_step": 5.227839999861317,
+      "std_ms_per_step": 4.068177074328043,
+      "simulation_time": 0.02617630000167992,
+      "steps_completed": 5,
+      "neurons_per_sec": 1910124807.4323394,
+      "active_per_sec": 95506240.37161697,
+      "memory_used_gb": 0.007450580596923828,
+      "theoretical_memory_gb": 0.42002648115158087,
+      "bytes_per_neuron": 0.8,
+      "memory_efficiency": 100.0,
+      "gpu_memory_used_gb": 14.671875,
+      "gpu_memory_available_gb": 15.99169921875,
+      "cpu_memory_used_gb": 0.207000732421875,
+      "initial_gpu_memory_gb": 14.671875,
+      "initial_cpu_memory_gb": 0.207000732421875
+    },
+    {
+      "scale_name": "10,000,000 neurons (5.00%)",
+      "n_neurons": 10000000,
+      "active_percentage": 0.05,
+      "active_neurons": 500000,
+      "n_areas": 5,
+      "steps_per_sec": 385.63881063390386,
+      "ms_per_step": 2.5890599994454533,
+      "std_ms_per_step": 1.7100326746306311,
+      "simulation_time": 0.012965500001882901,
+      "steps_completed": 5,
+      "neurons_per_sec": 3856388106.3390384,
+      "active_per_sec": 964097026.5847596,
+      "memory_used_gb": 0.03725290298461914,
+      "theoretical_memory_gb": 10.295771062374115,
+      "bytes_per_neuron": 4.0,
+      "memory_efficiency": 100.0,
+      "gpu_memory_used_gb": 14.611328125,
+      "gpu_memory_available_gb": 15.99169921875,
+      "cpu_memory_used_gb": 0.20701217651367188,
+      "initial_gpu_memory_gb": 14.642578125,
+      "initial_cpu_memory_gb": 0.20700836181640625
+    },
+    {
+      "scale_name": "10,000,000 neurons (10.00%)",
+      "n_neurons": 10000000,
+      "active_percentage": 0.1,
+      "active_neurons": 1000000,
+      "n_areas": 5,
+      "steps_per_sec": 216.55708878886284,
+      "ms_per_step": 4.610880000109319,
+      "std_ms_per_step": 2.120334587005452,
+      "simulation_time": 0.023088599999027792,
+      "steps_completed": 5,
+      "neurons_per_sec": 2165570887.8886285,
+      "active_per_sec": 1082785443.9443142,
+      "memory_used_gb": 0.07450580596923828,
+      "theoretical_memory_gb": 41.08063876628876,
+      "bytes_per_neuron": 8.0,
+      "memory_efficiency": 100.0,
+      "gpu_memory_used_gb": 14.521484375,
+      "gpu_memory_available_gb": 15.99169921875,
+      "cpu_memory_used_gb": 0.2070159912109375,
+      "initial_gpu_memory_gb": 14.583984375,
+      "initial_cpu_memory_gb": 0.20701217651367188
+    },
+    {
+      "scale_name": "100,000,000 neurons (0.01%)",
+      "n_neurons": 100000000,
+      "active_percentage": 0.0001,
+      "active_neurons": 10000,
+      "n_areas": 5,
+      "steps_per_sec": 339.0405153965021,
+      "ms_per_step": 2.9445399988617282,
+      "std_ms_per_step": 1.2090426376614822,
+      "simulation_time": 0.014747499997611158,
+      "steps_completed": 5,
+      "neurons_per_sec": 33904051539.650208,
+      "active_per_sec": 16952025.769825105,
+      "memory_used_gb": 0.0007450580596923828,
+      "theoretical_memory_gb": 0.005122274160385132,
+      "bytes_per_neuron": 0.008,
+      "memory_efficiency": 100.0,
+      "gpu_memory_used_gb": 14.521484375,
+      "gpu_memory_available_gb": 15.99169921875,
+      "cpu_memory_used_gb": 0.2070159912109375,
+      "initial_gpu_memory_gb": 14.521484375,
+      "initial_cpu_memory_gb": 0.2070159912109375
+    },
+    {
+      "scale_name": "100,000,000 neurons (0.10%)",
+      "n_neurons": 100000000,
+      "active_percentage": 0.001,
+      "active_neurons": 100000,
+      "n_areas": 5,
+      "steps_per_sec": 365.01146135022185,
+      "ms_per_step": 2.7350399999704678,
+      "std_ms_per_step": 0.5348505199934469,
+      "simulation_time": 0.013698200000362704,
+      "steps_completed": 5,
+      "neurons_per_sec": 36501146135.02219,
+      "active_per_sec": 182505730.67511094,
+      "memory_used_gb": 0.007450580596923828,
+      "theoretical_memory_gb": 0.42002648115158087,
+      "bytes_per_neuron": 0.08,
+      "memory_efficiency": 100.0,
+      "gpu_memory_used_gb": 14.521484375,
+      "gpu_memory_available_gb": 15.99169921875,
+      "cpu_memory_used_gb": 0.2070159912109375,
+      "initial_gpu_memory_gb": 14.521484375,
+      "initial_cpu_memory_gb": 0.2070159912109375
+    },
+    {
+      "scale_name": "100,000,000 neurons (1.00%)",
+      "n_neurons": 100000000,
+      "active_percentage": 0.01,
+      "active_neurons": 1000000,
+      "n_areas": 5,
+      "steps_per_sec": 201.65843900035264,
+      "ms_per_step": 4.951739999523852,
+      "std_ms_per_step": 3.049417504030107,
+      "simulation_time": 0.02479440000024624,
+      "steps_completed": 5,
+      "neurons_per_sec": 20165843900.035263,
+      "active_per_sec": 1008292195.0017632,
+      "memory_used_gb": 0.07450580596923828,
+      "theoretical_memory_gb": 41.08063876628876,
+      "bytes_per_neuron": 0.8,
+      "memory_efficiency": 100.0,
+      "gpu_memory_used_gb": 14.521484375,
+      "gpu_memory_available_gb": 15.99169921875,
+      "cpu_memory_used_gb": 0.20701980590820312,
+      "initial_gpu_memory_gb": 14.521484375,
+      "initial_cpu_memory_gb": 0.2070159912109375
+    },
+    {
+      "scale_name": "100,000,000 neurons (5.00%)",
+      "n_neurons": 100000000,
+      "active_percentage": 0.05,
+      "active_neurons": 5000000,
+      "n_areas": 5,
+      "steps_per_sec": 64.97303618959882,
+      "ms_per_step": 15.379380000376841,
+      "std_ms_per_step": 7.331670333647899,
+      "simulation_time": 0.07695500000045286,
+      "steps_completed": 5,
+      "neurons_per_sec": 6497303618.959882,
+      "active_per_sec": 1624325904.7399704,
+      "memory_used_gb": 0.3725290298461914,
+      "theoretical_memory_gb": 1024.9670594930649,
+      "bytes_per_neuron": 4.0,
+      "memory_efficiency": 100.0,
+      "gpu_memory_used_gb": 13.916015625,
+      "gpu_memory_available_gb": 15.99169921875,
+      "cpu_memory_used_gb": 0.20702362060546875,
+      "initial_gpu_memory_gb": 14.228515625,
+      "initial_cpu_memory_gb": 0.20701980590820312
+    },
+    {
+      "scale_name": "100,000,000 neurons (10.00%)",
+      "n_neurons": 100000000,
+      "active_percentage": 0.1,
+      "active_neurons": 10000000,
+      "n_areas": 5,
+      "steps_per_sec": 42.074969180914216,
+      "ms_per_step": 23.759720000089146,
+      "std_ms_per_step": 5.389062491980031,
+      "simulation_time": 0.11883549999765819,
+      "steps_completed": 5,
+      "neurons_per_sec": 4207496918.0914216,
+      "active_per_sec": 2103748459.0457108,
+      "memory_used_gb": 0.7450580596923828,
+      "theoretical_memory_gb": 4098.8437831401825,
+      "bytes_per_neuron": 8.0,
+      "memory_efficiency": 100.0,
+      "gpu_memory_used_gb": 13.033203125,
+      "gpu_memory_available_gb": 15.99169921875,
+      "cpu_memory_used_gb": 0.2070770263671875,
+      "initial_gpu_memory_gb": 13.642578125,
+      "initial_cpu_memory_gb": 0.20702362060546875
+    },
+    {
+      "scale_name": "1,000,000,000 neurons (0.01%)",
+      "n_neurons": 1000000000,
+      "active_percentage": 0.0001,
+      "active_neurons": 100000,
+      "n_areas": 5,
+      "steps_per_sec": 420.1115815442278,
+      "ms_per_step": 2.37734000038472,
+      "std_ms_per_step": 1.2423645494835724,
+      "simulation_time": 0.011901600002602208,
+      "steps_completed": 5,
+      "neurons_per_sec": 420111581544.22784,
+      "active_per_sec": 210055790.77211392,
+      "memory_used_gb": 0.007450580596923828,
+      "theoretical_memory_gb": 0.42002648115158087,
+      "bytes_per_neuron": 0.008,
+      "memory_efficiency": 100.0,
+      "gpu_memory_used_gb": 13.033203125,
+      "gpu_memory_available_gb": 15.99169921875,
+      "cpu_memory_used_gb": 0.2070770263671875,
+      "initial_gpu_memory_gb": 13.033203125,
+      "initial_cpu_memory_gb": 0.2070770263671875
+    },
+    {
+      "scale_name": "1,000,000,000 neurons (0.10%)",
+      "n_neurons": 1000000000,
+      "active_percentage": 0.001,
+      "active_neurons": 1000000,
+      "n_areas": 5,
+      "steps_per_sec": 543.5727953189819,
+      "ms_per_step": 1.836899999761954,
+      "std_ms_per_step": 0.36947460998906906,
+      "simulation_time": 0.009198399999149842,
+      "steps_completed": 5,
+      "neurons_per_sec": 543572795318.9819,
+      "active_per_sec": 2717863976.5949097,
+      "memory_used_gb": 0.07450580596923828,
+      "theoretical_memory_gb": 41.08063876628876,
+      "bytes_per_neuron": 0.08,
+      "memory_efficiency": 100.0,
+      "gpu_memory_used_gb": 13.033203125,
+      "gpu_memory_available_gb": 15.99169921875,
+      "cpu_memory_used_gb": 0.2070770263671875,
+      "initial_gpu_memory_gb": 13.033203125,
+      "initial_cpu_memory_gb": 0.2070770263671875
+    },
+    {
+      "scale_name": "1,000,000,000 neurons (1.00%)",
+      "n_neurons": 1000000000,
+      "active_percentage": 0.01,
+      "active_neurons": 10000000,
+      "n_areas": 5,
+      "steps_per_sec": 51.86609005406694,
+      "ms_per_step": 19.268679999368032,
+      "std_ms_per_step": 1.4001105012377972,
+      "simulation_time": 0.09640209999997751,
+      "steps_completed": 5,
+      "neurons_per_sec": 51866090054.06694,
+      "active_per_sec": 2593304502.7033467,
+      "memory_used_gb": 0.7450580596923828,
+      "theoretical_memory_gb": 4098.8437831401825,
+      "bytes_per_neuron": 0.8,
+      "memory_efficiency": 100.0,
+      "gpu_memory_used_gb": 13.033203125,
+      "gpu_memory_available_gb": 15.99169921875,
+      "cpu_memory_used_gb": 0.20708084106445312,
+      "initial_gpu_memory_gb": 13.033203125,
+      "initial_cpu_memory_gb": 0.2070770263671875
+    },
+    {
+      "scale_name": "10,000,000,000 neurons (0.01%)",
+      "n_neurons": 10000000000,
+      "active_percentage": 0.0001,
+      "active_neurons": 1000000,
+      "n_areas": 5,
+      "steps_per_sec": 423.8724990622405,
+      "ms_per_step": 2.3568800002976786,
+      "std_ms_per_step": 1.4363344452978626,
+      "simulation_time": 0.011796000002505025,
+      "steps_completed": 5,
+      "neurons_per_sec": 4238724990622.405,
+      "active_per_sec": 2119362495.3112023,
+      "memory_used_gb": 0.07450580596923828,
+      "theoretical_memory_gb": 41.08063876628876,
+      "bytes_per_neuron": 0.008,
+      "memory_efficiency": 100.0,
+      "gpu_memory_used_gb": 13.033203125,
+      "gpu_memory_available_gb": 15.99169921875,
+      "cpu_memory_used_gb": 0.20708465576171875,
+      "initial_gpu_memory_gb": 13.033203125,
+      "initial_cpu_memory_gb": 0.20708465576171875
+    },
+    {
+      "scale_name": "10,000,000,000 neurons (0.10%)",
+      "n_neurons": 10000000000,
+      "active_percentage": 0.001,
+      "active_neurons": 10000000,
+      "n_areas": 5,
+      "steps_per_sec": 56.825995391133816,
+      "ms_per_step": 17.593380001926562,
+      "std_ms_per_step": 1.9345430491323827,
+      "simulation_time": 0.08798790000219014,
+      "steps_completed": 5,
+      "neurons_per_sec": 568259953911.3381,
+      "active_per_sec": 2841299769.5566907,
+      "memory_used_gb": 0.7450580596923828,
+      "theoretical_memory_gb": 4098.8437831401825,
+      "bytes_per_neuron": 0.08,
+      "memory_efficiency": 100.0,
+      "gpu_memory_used_gb": 13.033203125,
+      "gpu_memory_available_gb": 15.99169921875,
+      "cpu_memory_used_gb": 0.20708465576171875,
+      "initial_gpu_memory_gb": 13.033203125,
+      "initial_cpu_memory_gb": 0.20708465576171875
+    }
+  ],
+  "recommendations": [
+    "Major optimization needed",
+    "Use 1,000,000 neurons with 1.0% active for optimal performance",
+    "Profile memory usage",
+    "Consider distributed computing",
+    "Check for memory leaks"
+  ]
+}

@@ -1,0 +1,72 @@
+[
+  {
+    "n_neurons": 100000,
+    "k_active": 1000,
+    "n_areas": 5,
+    "n_steps": 5,
+    "theoretical_ops": 50000000000000,
+    "success": false,
+    "timeout": false,
+    "error": "module 'signal' has no attribute 'SIGALRM'",
+    "sim_time": 0,
+    "steps_per_second": 0,
+    "neurons_per_second": 0,
+    "memory_usage_gb": 0
+  },
+  {
+    "n_neurons": 1000000,
+    "k_active": 10000,
+    "n_areas": 5,
+    "n_steps": 3,
+    "theoretical_ops": 50000000000000000,
+    "success": false,
+    "timeout": false,
+    "error": "module 'signal' has no attribute 'SIGALRM'",
+    "sim_time": 0,
+    "steps_per_second": 0,
+    "neurons_per_second": 0,
+    "memory_usage_gb": 0
+  },
+  {
+    "n_neurons": 10000000,
+    "k_active": 10000,
+    "n_areas": 5,
+    "n_steps": 1,
+    "theoretical_ops": 5000000000000000000,
+    "success": false,
+    "timeout": false,
+    "error": "module 'signal' has no attribute 'SIGALRM'",
+    "sim_time": 0,
+    "steps_per_second": 0,
+    "neurons_per_second": 0,
+    "memory_usage_gb": 0
+  },
+  {
+    "n_neurons": 100000000,
+    "k_active": 10000,
+    "n_areas": 5,
+    "n_steps": 1,
+    "theoretical_ops": 500000000000000000000,
+    "success": false,
+    "timeout": false,
+    "error": "module 'signal' has no attribute 'SIGALRM'",
+    "sim_time": 0,
+    "steps_per_second": 0,
+    "neurons_per_second": 0,
+    "memory_usage_gb": 0
+  },
+  {
+    "n_neurons": 1000000000,
+    "k_active": 10000,
+    "n_areas": 5,
+    "n_steps": 1,
+    "theoretical_ops": 50000000000000000000000,
+    "success": false,
+    "timeout": false,
+    "error": "module 'signal' has no attribute 'SIGALRM'",
+    "sim_time": 0,
+    "steps_per_second": 0,
+    "neurons_per_second": 0,
+    "memory_usage_gb": 0
+  }
+]

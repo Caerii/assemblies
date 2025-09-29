@@ -1,0 +1,80 @@
+{
+  "configuration": {
+    "n_neurons": 200000,
+    "active_percentage": 0.005,
+    "n_areas": 5,
+    "seed": 42,
+    "use_gpu": true,
+    "use_cuda_kernels": true,
+    "use_optimized_kernels": true,
+    "memory_efficient": true,
+    "sparse_mode": true,
+    "enable_profiling": true,
+    "k_active": 1000
+  },
+  "performance": {
+    "total_steps": 10,
+    "total_time": 0.0020235000001775916,
+    "avg_step_time": 0.00020235000001775916,
+    "min_step_time": 7.77000004745787e-05,
+    "max_step_time": 0.0004887999994025449,
+    "steps_per_second": 4941.932295093825,
+    "neurons_per_second": 988386459.018765,
+    "active_neurons_per_second": 24709661.475469124,
+    "memory_usage_gb": 14.689453125,
+    "gpu_utilization": 91.85673719886415,
+    "cuda_kernels_used": true,
+    "cupy_used": false,
+    "numpy_fallback": false
+  },
+  "profile_data": {
+    "step_times": [
+      0.0004887999994025449,
+      9.920000047713984e-05,
+      8.84000000951346e-05,
+      0.00046100000054138945,
+      0.00048460000016348204,
+      8.799999977782136e-05,
+      7.869999990361976e-05,
+      7.77000004745787e-05,
+      7.889999960752903e-05,
+      7.819999973435188e-05
+    ],
+    "memory_usage": [
+      14.689453125,
+      14.689453125,
+      14.689453125,
+      14.689453125,
+      14.689453125,
+      14.689453125,
+      14.689453125,
+      14.689453125,
+      14.689453125,
+      14.689453125
+    ],
+    "gpu_utilization": [
+      91.85673719886415,
+      91.85673719886415,
+      91.85673719886415,
+      91.85673719886415,
+      91.85673719886415,
+      91.85673719886415,
+      91.85673719886415,
+      91.85673719886415,
+      91.85673719886415,
+      91.85673719886415
+    ],
+    "cuda_kernel_usage": [
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true
+    ]
+  }
+}
