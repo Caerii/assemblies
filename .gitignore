@@ -1,2 +1,6 @@
 __pycache__
 cpp/bazel-*
+*.gz
+*.gz
+image_learning_experiment/data/cifar-10-python.tar.gz
+image_learning_experiment/data/cifar-10-python.tar.gz

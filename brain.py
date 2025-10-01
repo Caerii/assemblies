@@ -269,6 +269,49 @@ class Brain:
     area.winners = list(range(assembly_start, assembly_start + k))
     area.fix_assembly()
 
+<<<<<<< Updated upstream
+=======
+  def activate_with_image(self, area_name, image):
+    """
+    Activates neurons in the given area using raw image data.
+    
+    Args:
+        area_name (str): The name of the brain area to activate.
+        image (np.ndarray): The raw image data (flattened or 2D).
+    """
+    area = self.area_by_name[area_name]
+
+    # Ensure image is flattened
+    if isinstance(image, np.ndarray):
+        image_flat = image.flatten()
+        image_size = image_flat.size  # Use `.size` for NumPy arrays
+    elif isinstance(image, torch.Tensor):
+        image_flat = image.flatten().cpu().numpy()  # Convert tensor to NumPy array
+        image_size = image_flat.size
+    else:
+        raise TypeError(f"Unsupported image type: {type(image)}")
+
+    # Ensure the image matches the neuron size
+    if image_size > area.n:
+        image_flat = image_flat[:area.n]  # Crop
+    elif image_size < area.n:
+      # Pad the image if it is smaller
+      padding = np.zeros(area.n - image_size, dtype=image_flat.dtype)
+      image_flat = np.concatenate((image_flat, padding))
+
+    # Normalize the image data to [0, 1]
+    normalized_image = (image_flat - image_flat.min()) / (np.ptp(image_flat) + 1e-6)
+    normalized_image = normalized_image / (np.linalg.norm(normalized_image) + 1e-6)
+
+    # Select the top-k pixels with the highest values
+    top_k_indices = np.argsort(-normalized_image)[:area.k]
+
+    # Set the winners in the area
+    area.winners = np.array(top_k_indices[top_k_indices < area.n], dtype=np.uint32)
+    area.w = len(area.winners)
+    print(f"[DEBUG] Activated {area_name} with top {area.k} neurons: {area.winners[:10]}...")
+
+>>>>>>> Stashed changes
   def project(self, areas_by_stim, dst_areas_by_src_area, verbose=0):
     # Validate stim_area, area_area well defined
     # areas_by_stim: {"stim1":["A"], "stim2":["C","A"]}
