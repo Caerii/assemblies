@@ -2,13 +2,8 @@
 
 import unittest
 import numpy as np
-import sys
-import os
 
-# Add the src directory to the Python path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
-
-from core.connectome import Connectome
+from ..core.connectome import Connectome
 
 class TestConnectome(unittest.TestCase):
 

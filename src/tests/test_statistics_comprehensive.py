@@ -20,17 +20,12 @@ FULL safety and completeness before using in production. It covers:
 
 import unittest
 import numpy as np
-import sys
-import os
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
 import warnings
 
-# Add src to path for imports
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
-
-from math_primitives.statistics import StatisticalEngine
+from src.math_primitives.statistics import StatisticalEngine
 
 class TestStatisticsComprehensive(unittest.TestCase):
     """

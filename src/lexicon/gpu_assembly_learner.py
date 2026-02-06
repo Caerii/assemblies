@@ -5,10 +5,6 @@ GPU-Accelerated Assembly Language Learner
 Uses custom CUDA kernels for fast learning.
 """
 
-import os
-import sys
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
-
 import numpy as np
 import ctypes
 from ctypes import c_uint32, c_float, c_void_p, POINTER

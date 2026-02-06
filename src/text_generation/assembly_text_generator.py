@@ -15,14 +15,9 @@ can perform meaningful text generation.
 """
 
 import numpy as np
-import sys
-import os
 from typing import List, Dict, Set, Optional, Tuple
 from dataclasses import dataclass
 from collections import defaultdict
-
-# Add parent path for brain import
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 
 try:
     import brain as b

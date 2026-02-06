@@ -6,14 +6,11 @@ including parser brain classes and grammar rules.
 """
 
 import unittest
-import sys
-import os
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 
-from language.parser import ParserBrain, RussianParserBrain, EnglishParserBrain
-from language.grammar_rules import LEXEME_DICT, RUSSIAN_LEXEME_DICT
-from language.language_areas import *
-from language.readout_methods import ReadoutMethod
+from src.language.parser import ParserBrain, RussianParserBrain, EnglishParserBrain
+from src.language.grammar_rules import LEXEME_DICT, RUSSIAN_LEXEME_DICT
+from src.language.language_areas import *
+from src.language.readout_methods import ReadoutMethod
 
 class TestLanguageParsing(unittest.TestCase):
     """Test language parsing functionality."""

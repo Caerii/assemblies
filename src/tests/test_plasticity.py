@@ -2,12 +2,8 @@
 
 import unittest
 import numpy as np
-import sys
-import os
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
-
-from math_primitives.plasticity import PlasticityEngine
+from ..math_primitives.plasticity import PlasticityEngine
 
 
 class TestPlasticityEngine(unittest.TestCase):

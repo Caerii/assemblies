@@ -15,15 +15,12 @@ Features:
 Based on parser.py, recursive_parser.py, learner.py, and language_brain_simulation.md
 """
 
-import sys
-import os
 from collections import namedtuple, defaultdict
 from enum import Enum
 from typing import List, Dict, Set, Optional, Tuple, Any
 import numpy as np
 import random
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 import brain
 
 # =============================================================================

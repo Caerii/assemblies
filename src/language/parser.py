@@ -5,10 +5,6 @@ This module contains the core parser classes that extend the brain
 functionality for language processing, including English and Russian parsers.
 """
 
-import sys
-import os
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
-
 import brain
 import numpy as np
 from collections import defaultdict

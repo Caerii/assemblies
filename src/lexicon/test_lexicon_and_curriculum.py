@@ -5,10 +5,6 @@ Test the Lexicon and Curriculum System
 Validates the lexicon structure and curriculum design.
 """
 
-import os
-import sys
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
-
 from src.lexicon.build_lexicon import build_lexicon, build_statistics
 from src.lexicon.curriculum.grounded_training import (
     GroundedCorpus, create_stage1_corpus, create_stage2_corpus,

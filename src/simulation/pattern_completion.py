@@ -5,16 +5,10 @@ This module contains simulation functions for studying pattern completion,
 including basic pattern completion and parameter sweeps.
 """
 
-import sys
-import os
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
-
 try:
-    from core.brain import Brain
+    from src.core.brain import Brain
     import brain_util as bu
 except ImportError:
-    # Fallback for when running from root directory
-    sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
     import brain
     import brain_util as bu
     Brain = brain.Brain

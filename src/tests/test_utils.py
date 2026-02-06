@@ -2,13 +2,8 @@
 
 import unittest
 import numpy as np
-import sys
-import os
 
-# Add the src directory to the Python path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
-
-from utils.math_utils import normalize_features, select_top_k_indices, heapq_select_top_k, binomial_ppf
+from src.utils.math_utils import normalize_features, select_top_k_indices, heapq_select_top_k, binomial_ppf
 
 class TestUtils(unittest.TestCase):
 

@@ -2,14 +2,10 @@
 
 import unittest
 import numpy as np
-import sys
-import os
 from concurrent.futures import ThreadPoolExecutor
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
-
-from math_primitives.plasticity import PlasticityEngine
-from math_primitives.sparse_simulation import SparseSimulationEngine
+from src.math_primitives.plasticity import PlasticityEngine
+from src.math_primitives.sparse_simulation import SparseSimulationEngine
 
 
 class TestPlasticityExtremes(unittest.TestCase):

@@ -16,7 +16,7 @@ Key Concepts from the Original Code:
 Architecture:
 - LEX: Lexicon area with explicit word assemblies
 - SUBJ: Subject noun phrase
-- OBJ: Object noun phrase  
+- OBJ: Object noun phrase
 - VERB: Verb phrase
 - DET: Determiner
 - ADJ: Adjective
@@ -26,14 +26,11 @@ Architecture:
 - MOOD: Sentence mood (declarative, interrogative, etc.)
 """
 
-import sys
-import os
 from collections import namedtuple, defaultdict
 from enum import Enum
 from typing import List, Dict, Set, Optional, Tuple
 import numpy as np
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 import brain
 
 # =============================================================================

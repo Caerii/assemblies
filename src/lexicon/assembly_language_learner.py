@@ -8,10 +8,6 @@ to test how the system learns language.
 Uses explicit areas with full connectivity to enable proper Hebbian learning.
 """
 
-import os
-import sys
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
-
 import numpy as np
 from typing import Dict, List, Optional, Tuple, Set
 from collections import defaultdict
