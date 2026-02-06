@@ -13,7 +13,11 @@ from scipy.stats import norm
 import math
 import types
 
-import torch
+# Optional torch import (not currently used in core functionality)
+try:
+    import torch
+except ImportError:
+    torch = None
 
 # Import extracted math primitives
 try:
@@ -331,6 +335,7 @@ class Brain:
   def add_area(self, area_name, n, k, beta, explicit=False):
     """Add a brain area to the current instance."""
     self.area_by_name[area_name] = the_area = Area(area_name, n, k, beta=beta, explicit=explicit)
+    self.areas[area_name] = the_area  # For compatibility with simulations.py
 
     for stim_name, stim_connectomes in self.connectomes_by_stimulus.items():
         if explicit:
@@ -373,6 +378,7 @@ class Brain:
     """Add an explicit ('non-lazy') area to the instance."""
     self.area_by_name[area_name] = the_area = Area(
         area_name, n, k, beta=beta, w=n, explicit=True)
+    self.areas[area_name] = the_area  # For compatibility with simulations.py
     the_area.ever_fired = np.zeros(n, dtype=bool)
     the_area.num_ever_fired = 0
 

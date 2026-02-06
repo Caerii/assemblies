@@ -5,8 +5,15 @@ Image activation utilities extracted from brain.py's activate_with_image.
 """
 
 import numpy as np
-import torch
 from typing import Tuple
+
+# Optional torch import for tensor support
+try:
+    import torch
+    HAS_TORCH = True
+except ImportError:
+    torch = None
+    HAS_TORCH = False
 
 
 class ImageActivationEngine:
@@ -42,11 +49,16 @@ def preprocess_image(image, target_n):
     if isinstance(image, np.ndarray):
         image_flat = image.flatten()
         image_size = image_flat.size
-    elif isinstance(image, torch.Tensor):
+    elif HAS_TORCH and isinstance(image, torch.Tensor):
         image_flat = image.flatten().cpu().numpy()
         image_size = image_flat.size
     else:
-        raise TypeError(f"Unsupported image type: {type(image)}")
+        # Try to convert to numpy array
+        try:
+            image_flat = np.asarray(image).flatten()
+            image_size = image_flat.size
+        except Exception:
+            raise TypeError(f"Unsupported image type: {type(image)}")
     
     if image_size > target_n:
         image_flat = image_flat[:target_n]
