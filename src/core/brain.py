@@ -52,10 +52,10 @@ except ImportError:
     from math_primitives.image_activation import ImageActivationEngine
 
 try:
-    from ..constants.default_params import DEFAULT_P, DEFAULT_BETA
+    from ..constants.default_params import DEFAULT_P, DEFAULT_BETA, DEFAULT_W_MAX
 except ImportError:
     # Fallback for when running as script
-    from constants.default_params import DEFAULT_P, DEFAULT_BETA
+    from constants.default_params import DEFAULT_P, DEFAULT_BETA, DEFAULT_W_MAX
 
 class Brain:
     """
@@ -88,7 +88,7 @@ class Brain:
       Language Organ." 2023.
     """
 
-    def __init__(self, p: float = DEFAULT_P, save_size: bool = True, save_winners: bool = False, seed: int = 0):
+    def __init__(self, p: float = DEFAULT_P, save_size: bool = True, save_winners: bool = False, seed: int = 0, w_max: float = DEFAULT_W_MAX):
         """
         Initialize a neural assembly brain simulation.
         
@@ -114,6 +114,7 @@ class Brain:
             of each connection existing.
         """
         self.p = p
+        self.w_max = w_max
         self.save_size = save_size
         self.save_winners = save_winners
         self.areas: Dict[str, Area] = {}
@@ -514,35 +515,42 @@ class Brain:
         return num_first_winners, had_inputs
 
     def _apply_plasticity_to_winners(self, target_area, from_stimuli, from_areas, winners):
-        """Apply Hebbian learning to all winners like the original brain.py."""
+        """Apply Hebbian learning to all winners, with w_max saturation.
+
+        Implements the core Hebbian rule: w *= (1 + β), clamped at w_max to
+        prevent unbounded weight growth. See Dabagia et al. (2024).
+        """
         # Apply stimulus-to-area plasticity
         for stim_name in from_stimuli:
             connectome = self.connectomes_by_stimulus[stim_name][target_area.name]
             beta = target_area.beta_by_stimulus.get(stim_name, target_area.beta)
             if not self.disable_plasticity and beta != 0:
-                # Apply learning: multiply weights by (1 + beta) for all winners
                 for winner in winners:
                     if winner < len(connectome.weights):
                         connectome.weights[winner] *= (1 + beta)
-        
+                # Clamp at w_max
+                if self.w_max is not None:
+                    np.clip(connectome.weights, 0, self.w_max, out=connectome.weights)
+
         # Apply area-to-area plasticity
         for from_area_name in from_areas:
             connectome = self.connectomes[from_area_name][target_area.name]
             beta = target_area.beta_by_area.get(from_area_name, target_area.beta)
             if not self.disable_plasticity and beta != 0:
                 from_area_winners = self.areas[from_area_name].winners
-                # Apply learning: multiply weights by (1 + beta) for active connections
                 if len(connectome.weights.shape) == 2:
-                    # 2D connectome (area-to-area)
                     for winner in winners:
                         for from_winner in from_area_winners:
                             if from_winner < connectome.weights.shape[0] and winner < connectome.weights.shape[1]:
                                 connectome.weights[from_winner, winner] *= (1 + beta)
+                                if self.w_max is not None and connectome.weights[from_winner, winner] > self.w_max:
+                                    connectome.weights[from_winner, winner] = self.w_max
                 else:
-                    # 1D connectome (stimulus-to-area)
                     for winner in winners:
                         if winner < len(connectome.weights):
                             connectome.weights[winner] *= (1 + beta)
+                    if self.w_max is not None:
+                        np.clip(connectome.weights, 0, self.w_max, out=connectome.weights)
 
     def _update_connectomes_for_new_winners(self, target_area, inputs_names, new_winners, splits_per_new):
         """Update connectomes for new winners using 1D sparse representations.
