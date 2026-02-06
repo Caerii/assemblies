@@ -34,7 +34,7 @@ try:
 except ImportError:
     GPU_AVAILABLE = False
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 __author__ = "Neural Assembly Research Team"
 
 __all__ = [
