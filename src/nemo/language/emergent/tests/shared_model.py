@@ -31,7 +31,7 @@ def get_trained_learner(epochs: int = 3, force_retrain: bool = False):
     if _cached_learner is not None and not force_retrain:
         return _cached_learner
     
-    from nemo.language.emergent import EmergentLanguageLearner, create_training_data
+    from src.nemo.language.emergent import EmergentLanguageLearner, create_training_data
     
     print("\n" + "="*60)
     print("TRAINING SHARED MODEL (will be reused for all tests)")
@@ -68,7 +68,7 @@ def get_training_data():
     global _cached_data
     
     if _cached_data is None:
-        from nemo.language.emergent import create_training_data
+        from src.nemo.language.emergent import create_training_data
         _cached_data = create_training_data()
     
     return _cached_data

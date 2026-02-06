@@ -29,7 +29,7 @@ from dataclasses import dataclass, field
 from collections import defaultdict
 
 # Import NEMO learner
-from nemo.language.nemo_learner import (
+from src.nemo.language.nemo_learner import (
     NemoLanguageLearner, NemoBrain, NemoParams,
     GroundedContext, GroundingType, SpeechAct, Area
 )

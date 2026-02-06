@@ -36,13 +36,13 @@ def main():
     start_time = time.time()
     
     # Train shared model ONCE
-    from nemo.language.emergent.tests.shared_model import get_trained_learner, get_training_time
+    from src.nemo.language.emergent.tests.shared_model import get_trained_learner, get_training_time
     learner = get_trained_learner(epochs=3)
     
     # Import and run each test module with shared learner
-    from nemo.language.emergent.tests import test_training
-    from nemo.language.emergent.tests import test_parser
-    from nemo.language.emergent.tests import test_comprehension
+    from src.nemo.language.emergent.tests import test_training
+    from src.nemo.language.emergent.tests import test_parser
+    from src.nemo.language.emergent.tests import test_comprehension
     
     test_modules = [
         ("Training Tests", test_training),

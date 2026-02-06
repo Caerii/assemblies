@@ -199,9 +199,9 @@ def test_our_implementation_with_original_params():
     print("="*70)
     
     import cupy as cp
-    from nemo.language.emergent.brain import EmergentNemoBrain
-    from nemo.language.emergent.areas import Area
-    from nemo.language.emergent.params import EmergentParams
+    from src.nemo.language.emergent.brain import EmergentNemoBrain
+    from src.nemo.language.emergent.areas import Area
+    from src.nemo.language.emergent.params import EmergentParams
     
     # Use ORIGINAL parameters
     params = EmergentParams()

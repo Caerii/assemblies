@@ -6,7 +6,7 @@ Tests the interactive learning capabilities.
 """
 
 import time
-from nemo.language.emergent.interactive import InteractiveLearner
+from src.nemo.language.emergent.interactive import InteractiveLearner
 
 
 def test_basic_interaction():

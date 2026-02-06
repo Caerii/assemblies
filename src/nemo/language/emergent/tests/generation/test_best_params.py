@@ -6,9 +6,9 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirna
 
 import cupy as cp
 import numpy as np
-from nemo.language.emergent.brain import EmergentNemoBrain
-from nemo.language.emergent.areas import Area
-from nemo.language.emergent.params import EmergentParams
+from src.nemo.language.emergent.brain import EmergentNemoBrain
+from src.nemo.language.emergent.areas import Area
+from src.nemo.language.emergent.params import EmergentParams
 
 def compute_overlap(a1, a2, k):
     s1 = set(a1.get().tolist())

@@ -5,10 +5,10 @@ Test Emergent Generation
 Tests the emergent response generation system.
 """
 
-from nemo.language.emergent.learner import EmergentLanguageLearner
-from nemo.language.emergent.curriculum import get_training_curriculum
-from nemo.language.emergent.generation import EmergentGenerator, VPDecoder, ActivationSpreader
-from nemo.language.emergent.areas import Area
+from src.nemo.language.emergent.learner import EmergentLanguageLearner
+from src.nemo.language.emergent.curriculum import get_training_curriculum
+from src.nemo.language.emergent.generation import EmergentGenerator, VPDecoder, ActivationSpreader
+from src.nemo.language.emergent.areas import Area
 
 
 def train_model():
@@ -146,7 +146,7 @@ def test_comparison(learner):
     print("TEST: Emergent vs Template Comparison")
     print("="*60)
     
-    from nemo.language.emergent.parser.comprehension import QuestionAnswerer
+    from src.nemo.language.emergent.parser.comprehension import QuestionAnswerer
     
     emergent = EmergentGenerator(learner)
     template = QuestionAnswerer(learner)

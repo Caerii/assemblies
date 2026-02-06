@@ -19,8 +19,8 @@ Key Principle:
   whether assemblies can learn linguistic structure.
 
 Usage:
-    from nemo.core import Brain, BrainParams
-    from nemo.language import LanguageLearner, SentenceGenerator
+    from src.nemo.core import Brain, BrainParams
+    from src.nemo.language import LanguageLearner, SentenceGenerator
     
     # Create learner
     learner = LanguageLearner()

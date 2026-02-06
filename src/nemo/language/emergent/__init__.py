@@ -18,7 +18,7 @@ Modules:
 - parser/: Parsing and comprehension submodule
 
 Example:
-    from nemo.language.emergent import EmergentLanguageLearner, create_training_data
+    from src.nemo.language.emergent import EmergentLanguageLearner, create_training_data
     
     learner = EmergentLanguageLearner()
     data = create_training_data()
@@ -33,7 +33,7 @@ Example:
     print(vocab)
     
     # Parsing
-    from nemo.language.emergent.parser import SentenceParser, QuestionAnswerer
+    from src.nemo.language.emergent.parser import SentenceParser, QuestionAnswerer
     parser = SentenceParser(learner)
     result = parser.parse(['the', 'dog', 'runs'])
 """

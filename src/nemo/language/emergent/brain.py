@@ -22,7 +22,7 @@ import numpy as np
 from typing import Dict, Optional, Set, Tuple, List
 from collections import defaultdict
 
-from nemo.core.kernel import projection_fp16_kernel, hebbian_kernel
+from src.nemo.core.kernel import projection_fp16_kernel, hebbian_kernel
 from .areas import Area, NUM_AREAS, MUTUAL_INHIBITION_GROUPS
 from .params import EmergentParams, GroundingModality
 

@@ -24,7 +24,7 @@ from typing import Optional
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent.parent))
 
-from nemo.language.emergent import (
+from src.nemo.language.emergent import (
     EmergentLanguageLearner,
     create_training_data,
     SentenceParser,

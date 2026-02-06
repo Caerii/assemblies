@@ -67,7 +67,7 @@ def benchmark_kernel_operations():
     print("KERNEL OPERATION BENCHMARKS")
     print("="*70)
     
-    from nemo.core.kernel import projection_fp16_kernel, hebbian_kernel
+    from src.nemo.core.kernel import projection_fp16_kernel, hebbian_kernel
     
     n, k = 10000, 100
     iterations = 500
@@ -135,9 +135,9 @@ def benchmark_brain_operations():
     print("BRAIN OPERATION BENCHMARKS")
     print("="*70)
     
-    from nemo.language.emergent.brain import EmergentNemoBrain
-    from nemo.language.emergent.params import EmergentParams
-    from nemo.language.emergent.areas import Area
+    from src.nemo.language.emergent.brain import EmergentNemoBrain
+    from src.nemo.language.emergent.params import EmergentParams
+    from src.nemo.language.emergent.areas import Area
     
     params = EmergentParams()
     brain = EmergentNemoBrain(params, verbose=False)
@@ -195,8 +195,8 @@ def benchmark_learner_operations():
     print("LEARNER OPERATION BENCHMARKS")
     print("="*70)
     
-    from nemo.language.emergent.learner import EmergentLanguageLearner
-    from nemo.language.emergent.params import EmergentParams, GroundingContext
+    from src.nemo.language.emergent.learner import EmergentLanguageLearner
+    from src.nemo.language.emergent.params import EmergentParams, GroundingContext
     
     params = EmergentParams()
     learner = EmergentLanguageLearner(params, verbose=False)
@@ -241,9 +241,9 @@ def benchmark_sentence_processing():
     print("SENTENCE PROCESSING BENCHMARKS")
     print("="*70)
     
-    from nemo.language.emergent.learner import EmergentLanguageLearner
-    from nemo.language.emergent.params import EmergentParams
-    from nemo.language.emergent.training_data import create_training_data
+    from src.nemo.language.emergent.learner import EmergentLanguageLearner
+    from src.nemo.language.emergent.params import EmergentParams
+    from src.nemo.language.emergent.training_data import create_training_data
     
     params = EmergentParams()
     learner = EmergentLanguageLearner(params, verbose=False)
@@ -287,10 +287,10 @@ def benchmark_parsing():
     print("PARSING BENCHMARKS")
     print("="*70)
     
-    from nemo.language.emergent.learner import EmergentLanguageLearner
-    from nemo.language.emergent.params import EmergentParams
-    from nemo.language.emergent.training_data import create_training_data
-    from nemo.language.emergent.parser import SentenceParser
+    from src.nemo.language.emergent.learner import EmergentLanguageLearner
+    from src.nemo.language.emergent.params import EmergentParams
+    from src.nemo.language.emergent.training_data import create_training_data
+    from src.nemo.language.emergent.parser import SentenceParser
     
     # First train a model
     params = EmergentParams()
@@ -336,9 +336,9 @@ def benchmark_memory_usage():
     
     import gc
     
-    from nemo.language.emergent.learner import EmergentLanguageLearner
-    from nemo.language.emergent.params import EmergentParams
-    from nemo.language.emergent.training_data import create_training_data
+    from src.nemo.language.emergent.learner import EmergentLanguageLearner
+    from src.nemo.language.emergent.params import EmergentParams
+    from src.nemo.language.emergent.training_data import create_training_data
     
     # Clear memory
     gc.collect()

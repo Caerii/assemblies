@@ -25,7 +25,7 @@ from typing import Optional
 # Add parent to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent.parent))
 
-from nemo.language.emergent import (
+from src.nemo.language.emergent import (
     EmergentLanguageLearner,
     create_training_data,
     create_simple_training_data,
@@ -225,7 +225,7 @@ def test_vp_assembly_storage(learner=None):
     if learner is None:
         learner = _get_learner()
     
-    from nemo.language.emergent.areas import Area
+    from src.nemo.language.emergent.areas import Area
     
     # Check VP assemblies
     vp_keys = list(learner.brain.learned_assemblies[Area.VP].keys())

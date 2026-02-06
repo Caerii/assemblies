@@ -32,7 +32,7 @@ from enum import Enum, auto
 from collections import defaultdict
 
 # Import core kernels
-from nemo.core.kernel import projection_fp16_kernel, hebbian_kernel
+from src.nemo.core.kernel import projection_fp16_kernel, hebbian_kernel
 
 
 class GroundingModality(Enum):

@@ -9,7 +9,7 @@ Comprehensive profiling infrastructure for the NEMO emergent language system.
 Identifies bottlenecks and provides optimization recommendations.
 
 Usage:
-    from nemo.language.emergent.profiler import NEMOProfiler, profile_training
+    from src.nemo.language.emergent.profiler import NEMOProfiler, profile_training
     
     # Profile a training run
     results = profile_training(num_sentences=100, epochs=1)

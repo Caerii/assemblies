@@ -15,10 +15,10 @@ def run_tests():
     print('NEMO CUDA Backend - Comprehensive Test Suite')
     print('='*70)
     
-    from nemo.language.emergent.learner import EmergentLanguageLearner
-    from nemo.language.emergent.training_data import create_training_data
-    from nemo.language.emergent.parser import SentenceParser
-    from nemo.language.emergent.parser.comprehension import QuestionAnswerer
+    from src.nemo.language.emergent.learner import EmergentLanguageLearner
+    from src.nemo.language.emergent.training_data import create_training_data
+    from src.nemo.language.emergent.parser import SentenceParser
+    from src.nemo.language.emergent.parser.comprehension import QuestionAnswerer
 
     # 1. FULL TRAINING TEST
     print('\n[1] FULL TRAINING TEST')

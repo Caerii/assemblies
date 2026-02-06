@@ -9,10 +9,10 @@ import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))))
 
-from nemo.language.emergent.learner import EmergentLanguageLearner
-from nemo.language.emergent.params import GroundingContext
-from nemo.language.emergent.areas import Area
-from nemo.language.emergent.generation.emergent_retriever import EmergentRetriever, EmergentGenerator
+from src.nemo.language.emergent.learner import EmergentLanguageLearner
+from src.nemo.language.emergent.params import GroundingContext
+from src.nemo.language.emergent.areas import Area
+from src.nemo.language.emergent.generation.emergent_retriever import EmergentRetriever, EmergentGenerator
 
 
 def create_grounding(visual=None, motor=None, social=None):

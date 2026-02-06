@@ -7,7 +7,7 @@ Quick tests to verify the modular system works correctly.
 
 import time
 from nemo import LanguageLearner, SentenceGenerator, Brain, BrainParams
-from nemo.language import CurriculumLearner, StructureType, StructureDetector
+from src.nemo.language import CurriculumLearner, StructureType, StructureDetector
 
 
 def test_core():
