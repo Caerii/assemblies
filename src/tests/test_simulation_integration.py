@@ -7,14 +7,11 @@ modules work correctly with the extracted math primitives.
 
 import unittest
 import time
-import sys
-import os
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 
-from simulation.projection_simulator import project_sim
-from simulation.association_simulator import association_sim
-from simulation.merge_simulator import merge_sim
-from simulation.pattern_completion import pattern_com
+from src.simulation.projection_simulator import project_sim
+from src.simulation.association_simulator import association_sim
+from src.simulation.merge_simulator import merge_sim
+from src.simulation.pattern_completion import pattern_com
 import brain_util as bu
 
 class TestSimulationIntegration(unittest.TestCase):

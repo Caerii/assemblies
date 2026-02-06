@@ -9,13 +9,8 @@ the same results as the original implementation in the root brain.py.
 
 import unittest
 import numpy as np
-import sys
-import os
 
-# Add src to path for imports
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
-
-from math_primitives.statistics import StatisticalEngine
+from src.math_primitives.statistics import StatisticalEngine
 
 class TestStatisticsIntegration(unittest.TestCase):
     """

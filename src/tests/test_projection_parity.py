@@ -12,14 +12,10 @@ import unittest
 import numpy as np
 import heapq
 from scipy.stats import binom, truncnorm
-import sys
-import os
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
-
-from math_primitives.statistics import StatisticalEngine
-from math_primitives.sparse_simulation import SparseSimulationEngine
-from math_primitives.plasticity import PlasticityEngine
+from src.math_primitives.statistics import StatisticalEngine
+from src.math_primitives.sparse_simulation import SparseSimulationEngine
+from src.math_primitives.plasticity import PlasticityEngine
 
 
 class TestProjectionParity(unittest.TestCase):

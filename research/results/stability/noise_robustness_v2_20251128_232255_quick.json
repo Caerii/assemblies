@@ -1,0 +1,49 @@
+{
+  "experiment_name": "noise_robustness_v2",
+  "timestamp": "2025-11-28T23:22:55.393527",
+  "parameters": {
+    "n_neurons": 5000,
+    "k_active": 100,
+    "p_connect": 0.1,
+    "beta": 0.1,
+    "n_trials": 3,
+    "seed": 42
+  },
+  "metrics": {
+    "assemblies_are_distinct": "False",
+    "mean_assembly_overlap": 0.9500000000000001,
+    "recovery_with_stimulus": 1.0,
+    "association_helps_recovery": false
+  },
+  "raw_data": {
+    "competing_attractors": [
+      {
+        "test_type": "competing_attractors",
+        "overlap_between_assemblies": 0.96,
+        "assemblies_distinct": false
+      },
+      {
+        "test_type": "competing_attractors",
+        "overlap_between_assemblies": 0.97,
+        "assemblies_distinct": false
+      },
+      {
+        "test_type": "competing_attractors",
+        "overlap_between_assemblies": 0.92,
+        "assemblies_distinct": false
+      }
+    ],
+    "noise_switching": [
+      {
+        "noise_level": 0.0,
+        "mean_final_overlap": 1.0,
+        "recovery_rate": 1.0,
+        "switch_rate": 0.0
+      }
+    ],
+    "association_recovery": []
+  },
+  "success": true,
+  "error_message": null,
+  "duration_seconds": 15.46669760000077
+}

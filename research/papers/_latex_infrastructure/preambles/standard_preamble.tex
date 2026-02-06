@@ -1,0 +1,136 @@
+% Standard Preamble for Neural Assembly Papers
+% Include this in all papers for consistent styling
+
+% ============================================================================
+% MATH PACKAGES
+% ============================================================================
+\usepackage{amsmath}        % Advanced math
+\usepackage{amssymb}        % Math symbols
+\usepackage{amsthm}         % Theorem environments
+\usepackage{mathtools}      % Extensions to amsmath
+
+% ============================================================================
+% GRAPHICS AND FIGURES
+% ============================================================================
+\usepackage{graphicx}       % Include graphics
+\usepackage{xcolor}         % Colors
+\usepackage{tikz}           % Vector graphics
+\usepackage{pgfplots}       % Plots
+\pgfplotsset{compat=1.18}
+
+% ============================================================================
+% TABLES
+% ============================================================================
+\usepackage{booktabs}       % Professional tables
+\usepackage{multirow}       % Multi-row cells
+\usepackage{array}          % Extended array/tabular
+
+% ============================================================================
+% ALGORITHMS
+% ============================================================================
+\usepackage{algorithm}      % Algorithm environment
+\usepackage{algorithmic}    % Algorithm pseudocode
+% Or use algorithmicx for more control:
+% \usepackage{algpseudocode}
+
+% ============================================================================
+% CODE LISTINGS
+% ============================================================================
+\usepackage{listings}       % Code listings
+\lstset{
+    basicstyle=\ttfamily\small,
+    breaklines=true,
+    frame=single,
+    numbers=left,
+    numberstyle=\tiny,
+    commentstyle=\color{gray},
+    keywordstyle=\color{blue}
+}
+
+% ============================================================================
+% BIBLIOGRAPHY
+% ============================================================================
+\usepackage{natbib}         % Natural bibliography
+\bibliographystyle{plainnat}
+
+% ============================================================================
+% HYPERLINKS AND REFERENCES
+% ============================================================================
+\usepackage{hyperref}       % Hyperlinks
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    citecolor=blue,
+    urlcolor=blue,
+}
+\usepackage{cleveref}       % Smart references
+
+% ============================================================================
+% UTILITY PACKAGES
+% ============================================================================
+\usepackage{xspace}         % Smart spacing
+\usepackage{enumitem}       % Better lists
+\usepackage{subcaption}     % Subfigures
+
+% ============================================================================
+% THEOREM ENVIRONMENTS
+% ============================================================================
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{proposition}[theorem]{Proposition}
+
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{note}[theorem]{Note}
+
+% ============================================================================
+% GENERAL NOTATION
+% ============================================================================
+
+% Sets
+\newcommand{\R}{\mathbb{R}}              % Real numbers
+\newcommand{\N}{\mathbb{N}}              % Natural numbers
+\newcommand{\Z}{\mathbb{Z}}              % Integers
+\newcommand{\C}{\mathbb{C}}              % Complex numbers
+
+% Probability
+\newcommand{\Prob}{\mathbb{P}}           % Probability
+\newcommand{\Expect}{\mathbb{E}}         % Expectation
+\newcommand{\Var}{\mathrm{Var}}          % Variance
+\newcommand{\Cov}{\mathrm{Cov}}          % Covariance
+
+% Complexity
+\newcommand{\bigO}{\mathcal{O}}          % Big-O notation
+\newcommand{\bigOmega}{\Omega}           % Big-Omega notation
+\newcommand{\bigTheta}{\Theta}           % Big-Theta notation
+
+% Vectors and matrices
+\newcommand{\vect}[1]{\mathbf{#1}}       % Vectors (bold)
+\newcommand{\matr}[1]{\mathbf{#1}}       % Matrices (bold capital)
+
+% Operators
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator{\rank}{rank}
+\DeclareMathOperator{\trace}{tr}
+\DeclareMathOperator{\diag}{diag}
+
+% ============================================================================
+% CUSTOM COMMANDS FOR READABILITY
+% ============================================================================
+
+% Use \eg, \ie, \etal with proper spacing
+\newcommand{\eg}{e.g.,\xspace}
+\newcommand{\ie}{i.e.,\xspace}
+\newcommand{\etal}{et al.\xspace}
+\newcommand{\vs}{vs.\xspace}
+
+% ============================================================================
+% END OF STANDARD PREAMBLE
+% ============================================================================

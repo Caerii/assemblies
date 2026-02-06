@@ -41,17 +41,13 @@ from .connectome import Connectome
 
 # Import extracted math primitives
 try:
-    from math_primitives.statistics import StatisticalEngine
-    from math_primitives.sparse_simulation import SparseSimulationEngine
-    from math_primitives.winner_selection import WinnerSelector
-    from math_primitives.plasticity import PlasticityEngine
-    from math_primitives.explicit_projection import ExplicitProjectionEngine
-    from math_primitives.image_activation import ImageActivationEngine
+    from ..math_primitives.statistics import StatisticalEngine
+    from ..math_primitives.sparse_simulation import SparseSimulationEngine
+    from ..math_primitives.winner_selection import WinnerSelector
+    from ..math_primitives.plasticity import PlasticityEngine
+    from ..math_primitives.explicit_projection import ExplicitProjectionEngine
+    from ..math_primitives.image_activation import ImageActivationEngine
 except ImportError:
-    # Fallback for when running from root directory
-    import sys
-    import os
-    sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
     from math_primitives.statistics import StatisticalEngine
     from math_primitives.sparse_simulation import SparseSimulationEngine
     from math_primitives.winner_selection import WinnerSelector

@@ -1,0 +1,170 @@
+{
+  "experiment_name": "coding_capacity",
+  "timestamp": "2025-11-28T23:11:26.789740",
+  "parameters": {
+    "n_neurons_range": [
+      1000,
+      5000
+    ],
+    "k_active_range": [
+      20,
+      50
+    ],
+    "n_assemblies_to_test": [
+      5,
+      10,
+      20
+    ],
+    "p_connect": 0.1,
+    "beta": 0.1,
+    "seed": 42
+  },
+  "metrics": {
+    "total_configurations": 4,
+    "best_efficiency": 0.28228387045976705,
+    "mean_efficiency": 0.13428380613259885
+  },
+  "raw_data": {
+    "all_results": [
+      {
+        "n_neurons": 1000,
+        "k_active": 20,
+        "sparsity": 0.02,
+        "theoretical_capacity": {
+          "n_combinations": 3.394828113025067e+41,
+          "total_bits": 137.96239042014963,
+          "bits_per_neuron": 0.13796239042014963,
+          "bits_per_active_neuron": 6.898119521007482
+        },
+        "capacity_results": [
+          {
+            "n_assemblies": 5,
+            "success_rate": 1.0,
+            "mean_overlap": 0.9099999999999999,
+            "distinguishable_rate": 0.0,
+            "practical_bits": 0.0
+          },
+          {
+            "n_assemblies": 10,
+            "success_rate": 1.0,
+            "mean_overlap": 0.8677777777777779,
+            "distinguishable_rate": 0.0,
+            "practical_bits": 0.0
+          },
+          {
+            "n_assemblies": 20,
+            "success_rate": 1.0,
+            "mean_overlap": 0.841578947368421,
+            "distinguishable_rate": 0.0,
+            "practical_bits": 0.0
+          }
+        ]
+      },
+      {
+        "n_neurons": 1000,
+        "k_active": 50,
+        "sparsity": 0.05,
+        "theoretical_capacity": {
+          "n_combinations": 9.460461017587102e+84,
+          "total_bits": 282.28387045976706,
+          "bits_per_neuron": 0.28228387045976705,
+          "bits_per_active_neuron": 5.645677409195341
+        },
+        "capacity_results": [
+          {
+            "n_assemblies": 5,
+            "success_rate": 1.0,
+            "mean_overlap": 0.9,
+            "distinguishable_rate": 0.0,
+            "practical_bits": 0.0
+          },
+          {
+            "n_assemblies": 10,
+            "success_rate": 1.0,
+            "mean_overlap": 0.8795555555555555,
+            "distinguishable_rate": 0.0,
+            "practical_bits": 0.0
+          },
+          {
+            "n_assemblies": 20,
+            "success_rate": 1.0,
+            "mean_overlap": 0.9026315789473685,
+            "distinguishable_rate": 0.0,
+            "practical_bits": 0.0
+          }
+        ]
+      },
+      {
+        "n_neurons": 5000,
+        "k_active": 20,
+        "sparsity": 0.004,
+        "theoretical_capacity": {
+          "n_combinations": 3.7735558620045934e+55,
+          "total_bits": 184.62196985017212,
+          "bits_per_neuron": 0.03692439397003443,
+          "bits_per_active_neuron": 9.231098492508606
+        },
+        "capacity_results": [
+          {
+            "n_assemblies": 5,
+            "success_rate": 1.0,
+            "mean_overlap": 0.9099999999999999,
+            "distinguishable_rate": 0.0,
+            "practical_bits": 0.0
+          },
+          {
+            "n_assemblies": 10,
+            "success_rate": 1.0,
+            "mean_overlap": 0.9111111111111111,
+            "distinguishable_rate": 0.0,
+            "practical_bits": 0.0
+          },
+          {
+            "n_assemblies": 20,
+            "success_rate": 1.0,
+            "mean_overlap": 0.8542105263157894,
+            "distinguishable_rate": 0.0,
+            "practical_bits": 0.0
+          }
+        ]
+      },
+      {
+        "n_neurons": 5000,
+        "k_active": 50,
+        "sparsity": 0.01,
+        "theoretical_capacity": {
+          "n_combinations": 2.2838644311898356e+120,
+          "total_bits": 399.8228484022215,
+          "bits_per_neuron": 0.0799645696804443,
+          "bits_per_active_neuron": 7.99645696804443
+        },
+        "capacity_results": [
+          {
+            "n_assemblies": 5,
+            "success_rate": 1.0,
+            "mean_overlap": 0.9040000000000001,
+            "distinguishable_rate": 0.0,
+            "practical_bits": 0.0
+          },
+          {
+            "n_assemblies": 10,
+            "success_rate": 1.0,
+            "mean_overlap": 0.9422222222222223,
+            "distinguishable_rate": 0.0,
+            "practical_bits": 0.0
+          },
+          {
+            "n_assemblies": 20,
+            "success_rate": 1.0,
+            "mean_overlap": 0.9503157894736843,
+            "distinguishable_rate": 0.0,
+            "practical_bits": 0.0
+          }
+        ]
+      }
+    ]
+  },
+  "success": true,
+  "error_message": null,
+  "duration_seconds": 2.06436110001232
+}

@@ -7,7 +7,7 @@ import time
 import re # regex for animation file names
 from sklearn.metrics import classification_report, accuracy_score, ConfusionMatrixDisplay
 import matplotlib.pyplot as plt
-from animator import Animator
+from scripts.animator import Animator
 
 import brain
 

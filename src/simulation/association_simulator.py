@@ -5,15 +5,10 @@ This module contains simulation functions for studying neural associations,
 including basic association simulations and parameter sweeps.
 """
 
-import sys
 import os
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
-
 try:
-    from core.brain import Brain
+    from src.core.brain import Brain
 except ImportError:
-    # Fallback for when running from root directory
-    sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
     import brain
     Brain = brain.Brain
 

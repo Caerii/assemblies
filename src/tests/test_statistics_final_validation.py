@@ -9,15 +9,10 @@ exactly matches the root brain.py implementation in every detail.
 
 import unittest
 import numpy as np
-import sys
-import os
 from scipy.stats import binom, truncnorm
 import math
 
-# Add src to path for imports
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
-
-from math_primitives.statistics import StatisticalEngine
+from src.math_primitives.statistics import StatisticalEngine
 
 class TestStatisticsFinalValidation(unittest.TestCase):
     """

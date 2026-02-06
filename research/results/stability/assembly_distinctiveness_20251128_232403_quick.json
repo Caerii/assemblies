@@ -1,0 +1,121 @@
+{
+  "experiment_name": "assembly_distinctiveness",
+  "timestamp": "2025-11-28T23:24:03.267339",
+  "parameters": {
+    "n_neurons_range": [
+      1000,
+      5000
+    ],
+    "k_active_range": [
+      10,
+      50
+    ],
+    "p_connect_range": [
+      0.01,
+      0.1
+    ],
+    "n_stimuli": 5,
+    "n_trials": 3,
+    "seed": 42
+  },
+  "metrics": {
+    "total_configurations": 8,
+    "any_distinct_separate": false,
+    "any_distinct_same": true,
+    "best_overlap_separate": 0.7799999999999999,
+    "best_params_separate": {
+      "n": 1000,
+      "k": 10,
+      "p": 0.1
+    },
+    "best_overlap_same": 0.0033333333333333335,
+    "mean_theoretical_overlap": 0.018000000000000002
+  },
+  "raw_data": {
+    "all_results": [
+      {
+        "n_neurons": 1000,
+        "k_active": 10,
+        "sparsity": 0.01,
+        "p_connect": 0.01,
+        "mean_overlap_separate_brains": 1.0,
+        "mean_overlap_same_brain": 0.11000000000000003,
+        "assemblies_distinct_separate": "False",
+        "assemblies_distinct_same": "True"
+      },
+      {
+        "n_neurons": 1000,
+        "k_active": 10,
+        "sparsity": 0.01,
+        "p_connect": 0.1,
+        "mean_overlap_separate_brains": 0.7799999999999999,
+        "mean_overlap_same_brain": 0.0033333333333333335,
+        "assemblies_distinct_separate": "False",
+        "assemblies_distinct_same": "True"
+      },
+      {
+        "n_neurons": 1000,
+        "k_active": 50,
+        "sparsity": 0.05,
+        "p_connect": 0.01,
+        "mean_overlap_separate_brains": 0.876,
+        "mean_overlap_same_brain": 0.082,
+        "assemblies_distinct_separate": "False",
+        "assemblies_distinct_same": "True"
+      },
+      {
+        "n_neurons": 1000,
+        "k_active": 50,
+        "sparsity": 0.05,
+        "p_connect": 0.1,
+        "mean_overlap_separate_brains": 0.9273333333333333,
+        "mean_overlap_same_brain": 0.04800000000000001,
+        "assemblies_distinct_separate": "False",
+        "assemblies_distinct_same": "True"
+      },
+      {
+        "n_neurons": 5000,
+        "k_active": 10,
+        "sparsity": 0.002,
+        "p_connect": 0.01,
+        "mean_overlap_separate_brains": 1.0,
+        "mean_overlap_same_brain": 0.0033333333333333335,
+        "assemblies_distinct_separate": "False",
+        "assemblies_distinct_same": "True"
+      },
+      {
+        "n_neurons": 5000,
+        "k_active": 10,
+        "sparsity": 0.002,
+        "p_connect": 0.1,
+        "mean_overlap_separate_brains": 0.8266666666666667,
+        "mean_overlap_same_brain": 0.0033333333333333335,
+        "assemblies_distinct_separate": "False",
+        "assemblies_distinct_same": "True"
+      },
+      {
+        "n_neurons": 5000,
+        "k_active": 50,
+        "sparsity": 0.01,
+        "p_connect": 0.01,
+        "mean_overlap_separate_brains": 0.9199999999999999,
+        "mean_overlap_same_brain": 0.013333333333333334,
+        "assemblies_distinct_separate": "False",
+        "assemblies_distinct_same": "True"
+      },
+      {
+        "n_neurons": 5000,
+        "k_active": 50,
+        "sparsity": 0.01,
+        "p_connect": 0.1,
+        "mean_overlap_separate_brains": 0.9346666666666666,
+        "mean_overlap_same_brain": 0.025333333333333333,
+        "assemblies_distinct_separate": "False",
+        "assemblies_distinct_same": "True"
+      }
+    ]
+  },
+  "success": true,
+  "error_message": null,
+  "duration_seconds": 2.287230099987937
+}

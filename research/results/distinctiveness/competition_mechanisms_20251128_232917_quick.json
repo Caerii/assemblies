@@ -1,0 +1,328 @@
+{
+  "experiment_name": "competition_mechanisms",
+  "timestamp": "2025-11-28T23:29:17.480394",
+  "parameters": {
+    "n_neurons": 5000,
+    "k_active": 50,
+    "p_connect": 0.1,
+    "beta": 0.1,
+    "n_trials": 3,
+    "seed": 42
+  },
+  "metrics": {
+    "interleaved_creates_more_distinct": "False",
+    "later_stimuli_more_distinct": "False",
+    "plasticity_helps_distinctiveness": "False",
+    "mean_neuron_reuse_rate": 0.05945805641573556
+  },
+  "raw_data": {
+    "sequential_vs_interleaved": [
+      {
+        "test_type": "sequential_vs_interleaved",
+        "sequential_mean_overlap": 0.013333333333333334,
+        "interleaved_mean_overlap": 0.02,
+        "interleaved_better": "False",
+        "sequential_overlaps": [
+          0.02,
+          0.0,
+          0.02
+        ],
+        "interleaved_overlaps": [
+          0.04,
+          0.02,
+          0.0
+        ]
+      },
+      {
+        "test_type": "sequential_vs_interleaved",
+        "sequential_mean_overlap": 0.013333333333333334,
+        "interleaved_mean_overlap": 0.013333333333333334,
+        "interleaved_better": "False",
+        "sequential_overlaps": [
+          0.04,
+          0.0,
+          0.0
+        ],
+        "interleaved_overlaps": [
+          0.02,
+          0.0,
+          0.02
+        ]
+      },
+      {
+        "test_type": "sequential_vs_interleaved",
+        "sequential_mean_overlap": 0.02666666666666667,
+        "interleaved_mean_overlap": 0.02,
+        "interleaved_better": "True",
+        "sequential_overlaps": [
+          0.02,
+          0.02,
+          0.04
+        ],
+        "interleaved_overlaps": [
+          0.02,
+          0.02,
+          0.02
+        ]
+      }
+    ],
+    "support_growth": [
+      {
+        "test_type": "support_growth",
+        "support_history": [
+          {
+            "stimulus": "STIM_0",
+            "support_before": 0,
+            "support_after": 60,
+            "support_growth": 60
+          },
+          {
+            "stimulus": "STIM_1",
+            "support_before": 60,
+            "support_after": 110,
+            "support_growth": 50
+          },
+          {
+            "stimulus": "STIM_2",
+            "support_before": 110,
+            "support_after": 170,
+            "support_growth": 60
+          },
+          {
+            "stimulus": "STIM_3",
+            "support_before": 170,
+            "support_after": 222,
+            "support_growth": 52
+          },
+          {
+            "stimulus": "STIM_4",
+            "support_before": 222,
+            "support_after": 273,
+            "support_growth": 51
+          }
+        ],
+        "final_support": 273,
+        "total_support_growth": 273,
+        "mean_overlap": 0.038000000000000006,
+        "overlap_vs_order_correlation": 0.23076923076923067,
+        "later_stimuli_more_distinct": "False"
+      },
+      {
+        "test_type": "support_growth",
+        "support_history": [
+          {
+            "stimulus": "STIM_0",
+            "support_before": 0,
+            "support_after": 59,
+            "support_growth": 59
+          },
+          {
+            "stimulus": "STIM_1",
+            "support_before": 59,
+            "support_after": 114,
+            "support_growth": 55
+          },
+          {
+            "stimulus": "STIM_2",
+            "support_before": 114,
+            "support_after": 169,
+            "support_growth": 55
+          },
+          {
+            "stimulus": "STIM_3",
+            "support_before": 169,
+            "support_after": 228,
+            "support_growth": 59
+          },
+          {
+            "stimulus": "STIM_4",
+            "support_before": 228,
+            "support_after": 280,
+            "support_growth": 52
+          }
+        ],
+        "final_support": 280,
+        "total_support_growth": 280,
+        "mean_overlap": 0.022,
+        "overlap_vs_order_correlation": 0.38313051408846055,
+        "later_stimuli_more_distinct": "False"
+      },
+      {
+        "test_type": "support_growth",
+        "support_history": [
+          {
+            "stimulus": "STIM_0",
+            "support_before": 0,
+            "support_after": 55,
+            "support_growth": 55
+          },
+          {
+            "stimulus": "STIM_1",
+            "support_before": 55,
+            "support_after": 112,
+            "support_growth": 57
+          },
+          {
+            "stimulus": "STIM_2",
+            "support_before": 112,
+            "support_after": 168,
+            "support_growth": 56
+          },
+          {
+            "stimulus": "STIM_3",
+            "support_before": 168,
+            "support_after": 219,
+            "support_growth": 51
+          },
+          {
+            "stimulus": "STIM_4",
+            "support_before": 219,
+            "support_after": 264,
+            "support_growth": 45
+          }
+        ],
+        "final_support": 264,
+        "total_support_growth": 264,
+        "mean_overlap": 0.033999999999999996,
+        "overlap_vs_order_correlation": 0.0,
+        "later_stimuli_more_distinct": "False"
+      }
+    ],
+    "plasticity_effect": [
+      {
+        "test_type": "plasticity_effect",
+        "results_by_beta": {
+          "0.0": {
+            "mean_overlap": 0.013333333333333334,
+            "std_overlap": 0.009428090415820633
+          },
+          "0.05": {
+            "mean_overlap": 0.013333333333333334,
+            "std_overlap": 0.009428090415820633
+          },
+          "0.1": {
+            "mean_overlap": 0.04,
+            "std_overlap": 0.01632993161855452
+          },
+          "0.2": {
+            "mean_overlap": 0.02666666666666667,
+            "std_overlap": 0.02494438257849294
+          },
+          "0.5": {
+            "mean_overlap": 0.03333333333333333,
+            "std_overlap": 0.024944382578492942
+          }
+        },
+        "best_beta": 0.0,
+        "best_overlap": 0.013333333333333334,
+        "plasticity_helps": "False"
+      },
+      {
+        "test_type": "plasticity_effect",
+        "results_by_beta": {
+          "0.0": {
+            "mean_overlap": 0.0,
+            "std_overlap": 0.0
+          },
+          "0.05": {
+            "mean_overlap": 0.02666666666666667,
+            "std_overlap": 0.024944382578492942
+          },
+          "0.1": {
+            "mean_overlap": 0.02666666666666667,
+            "std_overlap": 0.009428090415820633
+          },
+          "0.2": {
+            "mean_overlap": 0.02,
+            "std_overlap": 0.016329931618554522
+          },
+          "0.5": {
+            "mean_overlap": 0.013333333333333334,
+            "std_overlap": 0.009428090415820633
+          }
+        },
+        "best_beta": 0.0,
+        "best_overlap": 0.0,
+        "plasticity_helps": "False"
+      },
+      {
+        "test_type": "plasticity_effect",
+        "results_by_beta": {
+          "0.0": {
+            "mean_overlap": 0.0,
+            "std_overlap": 0.0
+          },
+          "0.05": {
+            "mean_overlap": 0.0,
+            "std_overlap": 0.0
+          },
+          "0.1": {
+            "mean_overlap": 0.02,
+            "std_overlap": 0.016329931618554522
+          },
+          "0.2": {
+            "mean_overlap": 0.013333333333333334,
+            "std_overlap": 0.009428090415820633
+          },
+          "0.5": {
+            "mean_overlap": 0.013333333333333334,
+            "std_overlap": 0.018856180831641266
+          }
+        },
+        "best_beta": 0.0,
+        "best_overlap": 0.0,
+        "plasticity_helps": "False"
+      }
+    ],
+    "neuron_reuse": [
+      {
+        "test_type": "neuron_reuse",
+        "total_unique_neurons": 233,
+        "neurons_in_single_assembly": 217,
+        "neurons_in_multiple": 16,
+        "hub_neurons_count": 16,
+        "count_distribution": {
+          "1": 217,
+          "2": 15,
+          "3": 1,
+          "4": 0,
+          "5": 0
+        },
+        "reuse_rate": 0.06866952789699571
+      },
+      {
+        "test_type": "neuron_reuse",
+        "total_unique_neurons": 237,
+        "neurons_in_single_assembly": 224,
+        "neurons_in_multiple": 13,
+        "hub_neurons_count": 13,
+        "count_distribution": {
+          "1": 224,
+          "2": 13,
+          "3": 0,
+          "4": 0,
+          "5": 0
+        },
+        "reuse_rate": 0.05485232067510549
+      },
+      {
+        "test_type": "neuron_reuse",
+        "total_unique_neurons": 237,
+        "neurons_in_single_assembly": 224,
+        "neurons_in_multiple": 13,
+        "hub_neurons_count": 13,
+        "count_distribution": {
+          "1": 224,
+          "2": 13,
+          "3": 0,
+          "4": 0,
+          "5": 0
+        },
+        "reuse_rate": 0.05485232067510549
+      }
+    ]
+  },
+  "success": true,
+  "error_message": null,
+  "duration_seconds": 2.5266123000037624
+}

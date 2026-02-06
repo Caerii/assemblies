@@ -1,0 +1,127 @@
+{
+  "experiment_name": "scaling_laws",
+  "timestamp": "2025-11-28T23:11:09.649597",
+  "parameters": {
+    "n_neurons_range": [
+      500,
+      1000,
+      5000,
+      10000,
+      50000
+    ],
+    "fixed_sparsity": 0.05,
+    "p_connect": 0.1,
+    "beta": 0.1,
+    "n_trials": 5,
+    "seed": 42
+  },
+  "metrics": {
+    "total_configurations": 5,
+    "scaling_analysis": {
+      "exponent_log_n": -1.4979027682197488,
+      "intercept": 9.98148232094169,
+      "r_squared": 0.9734117058681975,
+      "p_value": 0.0018549183034895092,
+      "std_err": 0.14292886696872945,
+      "scaling_type": "O(log N) - Logarithmic",
+      "fit_equation": "T = -1.50 * log10(N) + 9.98"
+    }
+  },
+  "raw_data": {
+    "all_results": [
+      {
+        "n_neurons": 500,
+        "k_active": 25,
+        "log_n": 2.6989700043360187,
+        "log_k": 1.3979400086720377,
+        "mean_convergence_time": 6.2,
+        "std_convergence_time": 1.16619037896906,
+        "min_convergence_time": "5",
+        "max_convergence_time": "8",
+        "mean_final_stability": 1.0,
+        "convergence_times": [
+          7,
+          8,
+          6,
+          5,
+          5
+        ]
+      },
+      {
+        "n_neurons": 1000,
+        "k_active": 50,
+        "log_n": 3.0,
+        "log_k": 1.6989700043360187,
+        "mean_convergence_time": 5.2,
+        "std_convergence_time": 0.39999999999999997,
+        "min_convergence_time": "5",
+        "max_convergence_time": "6",
+        "mean_final_stability": 1.0,
+        "convergence_times": [
+          5,
+          6,
+          5,
+          5,
+          5
+        ]
+      },
+      {
+        "n_neurons": 5000,
+        "k_active": 250,
+        "log_n": 3.6989700043360187,
+        "log_k": 2.3979400086720375,
+        "mean_convergence_time": 4.4,
+        "std_convergence_time": 0.48989794855663565,
+        "min_convergence_time": "4",
+        "max_convergence_time": "5",
+        "mean_final_stability": 1.0,
+        "convergence_times": [
+          4,
+          5,
+          5,
+          4,
+          4
+        ]
+      },
+      {
+        "n_neurons": 10000,
+        "k_active": 500,
+        "log_n": 4.0,
+        "log_k": 2.6989700043360187,
+        "mean_convergence_time": 4.0,
+        "std_convergence_time": 0.0,
+        "min_convergence_time": "4",
+        "max_convergence_time": "4",
+        "mean_final_stability": 1.0,
+        "convergence_times": [
+          4,
+          4,
+          4,
+          4,
+          4
+        ]
+      },
+      {
+        "n_neurons": 50000,
+        "k_active": 2500,
+        "log_n": 4.698970004336019,
+        "log_k": 3.3979400086720375,
+        "mean_convergence_time": 3.0,
+        "std_convergence_time": 0.0,
+        "min_convergence_time": "3",
+        "max_convergence_time": "3",
+        "mean_final_stability": 1.0,
+        "convergence_times": [
+          3,
+          3,
+          3,
+          3,
+          3
+        ]
+      }
+    ]
+  },
+  "success": true,
+  "error_message": null,
+  "duration_seconds": 6.607095200000913
+}

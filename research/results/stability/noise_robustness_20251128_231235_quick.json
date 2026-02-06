@@ -1,0 +1,781 @@
+{
+  "experiment_name": "noise_robustness",
+  "timestamp": "2025-11-28T23:12:35.607851",
+  "parameters": {
+    "n_neurons": 5000,
+    "k_active": 50,
+    "p_connect": 0.1,
+    "beta": 0.1,
+    "noise_levels": [
+      0.0,
+      0.2,
+      0.4,
+      0.6,
+      0.8,
+      1.0
+    ],
+    "n_trials": 5,
+    "seed": 42
+  },
+  "metrics": {
+    "total_noise_levels": 6,
+    "critical_analysis": {
+      "critical_noise": null,
+      "max_recoverable": 1.0,
+      "breakdown_noise": null,
+      "robustness_profile": [
+        {
+          "noise": 0.0,
+          "final_overlap": 1.0
+        },
+        {
+          "noise": 0.2,
+          "final_overlap": 1.0
+        },
+        {
+          "noise": 0.4,
+          "final_overlap": 1.0
+        },
+        {
+          "noise": 0.6,
+          "final_overlap": 1.0
+        },
+        {
+          "noise": 0.8,
+          "final_overlap": 1.0
+        },
+        {
+          "noise": 1.0,
+          "final_overlap": 1.0
+        }
+      ]
+    }
+  },
+  "raw_data": {
+    "all_results": [
+      {
+        "noise_level": 0.0,
+        "mean_immediate_overlap": 1.0,
+        "mean_final_overlap": 1.0,
+        "mean_recovery": 0.0,
+        "full_recovery_rate": 1.0,
+        "n_trials": 5,
+        "trial_details": [
+          {
+            "trial_id": 0,
+            "noise_level": 0.0,
+            "immediate_overlap": 1.0,
+            "final_overlap": 1.0,
+            "recovery_amount": 0.0,
+            "full_recovery": true,
+            "partial_recovery": false,
+            "recovery_history": [
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          {
+            "trial_id": 1,
+            "noise_level": 0.0,
+            "immediate_overlap": 1.0,
+            "final_overlap": 1.0,
+            "recovery_amount": 0.0,
+            "full_recovery": true,
+            "partial_recovery": false,
+            "recovery_history": [
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          {
+            "trial_id": 2,
+            "noise_level": 0.0,
+            "immediate_overlap": 1.0,
+            "final_overlap": 1.0,
+            "recovery_amount": 0.0,
+            "full_recovery": true,
+            "partial_recovery": false,
+            "recovery_history": [
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          {
+            "trial_id": 3,
+            "noise_level": 0.0,
+            "immediate_overlap": 1.0,
+            "final_overlap": 1.0,
+            "recovery_amount": 0.0,
+            "full_recovery": true,
+            "partial_recovery": false,
+            "recovery_history": [
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          {
+            "trial_id": 4,
+            "noise_level": 0.0,
+            "immediate_overlap": 1.0,
+            "final_overlap": 1.0,
+            "recovery_amount": 0.0,
+            "full_recovery": true,
+            "partial_recovery": false,
+            "recovery_history": [
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ]
+          }
+        ]
+      },
+      {
+        "noise_level": 0.2,
+        "mean_immediate_overlap": 0.8,
+        "mean_final_overlap": 1.0,
+        "mean_recovery": 0.19999999999999996,
+        "full_recovery_rate": 1.0,
+        "n_trials": 5,
+        "trial_details": [
+          {
+            "trial_id": 0,
+            "noise_level": 0.2,
+            "immediate_overlap": 0.8,
+            "final_overlap": 1.0,
+            "recovery_amount": 0.19999999999999996,
+            "full_recovery": true,
+            "partial_recovery": true,
+            "recovery_history": [
+              0.8,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          {
+            "trial_id": 1,
+            "noise_level": 0.2,
+            "immediate_overlap": 0.8,
+            "final_overlap": 1.0,
+            "recovery_amount": 0.19999999999999996,
+            "full_recovery": true,
+            "partial_recovery": true,
+            "recovery_history": [
+              0.8,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          {
+            "trial_id": 2,
+            "noise_level": 0.2,
+            "immediate_overlap": 0.8,
+            "final_overlap": 1.0,
+            "recovery_amount": 0.19999999999999996,
+            "full_recovery": true,
+            "partial_recovery": true,
+            "recovery_history": [
+              0.8,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          {
+            "trial_id": 3,
+            "noise_level": 0.2,
+            "immediate_overlap": 0.8,
+            "final_overlap": 1.0,
+            "recovery_amount": 0.19999999999999996,
+            "full_recovery": true,
+            "partial_recovery": true,
+            "recovery_history": [
+              0.8,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          {
+            "trial_id": 4,
+            "noise_level": 0.2,
+            "immediate_overlap": 0.8,
+            "final_overlap": 1.0,
+            "recovery_amount": 0.19999999999999996,
+            "full_recovery": true,
+            "partial_recovery": true,
+            "recovery_history": [
+              0.8,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ]
+          }
+        ]
+      },
+      {
+        "noise_level": 0.4,
+        "mean_immediate_overlap": 0.6,
+        "mean_final_overlap": 1.0,
+        "mean_recovery": 0.4,
+        "full_recovery_rate": 1.0,
+        "n_trials": 5,
+        "trial_details": [
+          {
+            "trial_id": 0,
+            "noise_level": 0.4,
+            "immediate_overlap": 0.6,
+            "final_overlap": 1.0,
+            "recovery_amount": 0.4,
+            "full_recovery": true,
+            "partial_recovery": true,
+            "recovery_history": [
+              0.6,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          {
+            "trial_id": 1,
+            "noise_level": 0.4,
+            "immediate_overlap": 0.6,
+            "final_overlap": 1.0,
+            "recovery_amount": 0.4,
+            "full_recovery": true,
+            "partial_recovery": true,
+            "recovery_history": [
+              0.6,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          {
+            "trial_id": 2,
+            "noise_level": 0.4,
+            "immediate_overlap": 0.6,
+            "final_overlap": 1.0,
+            "recovery_amount": 0.4,
+            "full_recovery": true,
+            "partial_recovery": true,
+            "recovery_history": [
+              0.6,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          {
+            "trial_id": 3,
+            "noise_level": 0.4,
+            "immediate_overlap": 0.6,
+            "final_overlap": 1.0,
+            "recovery_amount": 0.4,
+            "full_recovery": true,
+            "partial_recovery": true,
+            "recovery_history": [
+              0.6,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          {
+            "trial_id": 4,
+            "noise_level": 0.4,
+            "immediate_overlap": 0.6,
+            "final_overlap": 1.0,
+            "recovery_amount": 0.4,
+            "full_recovery": true,
+            "partial_recovery": true,
+            "recovery_history": [
+              0.6,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ]
+          }
+        ]
+      },
+      {
+        "noise_level": 0.6,
+        "mean_immediate_overlap": 0.4,
+        "mean_final_overlap": 1.0,
+        "mean_recovery": 0.6,
+        "full_recovery_rate": 1.0,
+        "n_trials": 5,
+        "trial_details": [
+          {
+            "trial_id": 0,
+            "noise_level": 0.6,
+            "immediate_overlap": 0.4,
+            "final_overlap": 1.0,
+            "recovery_amount": 0.6,
+            "full_recovery": true,
+            "partial_recovery": true,
+            "recovery_history": [
+              0.4,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          {
+            "trial_id": 1,
+            "noise_level": 0.6,
+            "immediate_overlap": 0.4,
+            "final_overlap": 1.0,
+            "recovery_amount": 0.6,
+            "full_recovery": true,
+            "partial_recovery": true,
+            "recovery_history": [
+              0.4,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          {
+            "trial_id": 2,
+            "noise_level": 0.6,
+            "immediate_overlap": 0.4,
+            "final_overlap": 1.0,
+            "recovery_amount": 0.6,
+            "full_recovery": true,
+            "partial_recovery": true,
+            "recovery_history": [
+              0.4,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          {
+            "trial_id": 3,
+            "noise_level": 0.6,
+            "immediate_overlap": 0.4,
+            "final_overlap": 1.0,
+            "recovery_amount": 0.6,
+            "full_recovery": true,
+            "partial_recovery": true,
+            "recovery_history": [
+              0.4,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          {
+            "trial_id": 4,
+            "noise_level": 0.6,
+            "immediate_overlap": 0.4,
+            "final_overlap": 1.0,
+            "recovery_amount": 0.6,
+            "full_recovery": true,
+            "partial_recovery": true,
+            "recovery_history": [
+              0.4,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ]
+          }
+        ]
+      },
+      {
+        "noise_level": 0.8,
+        "mean_immediate_overlap": 0.2,
+        "mean_final_overlap": 1.0,
+        "mean_recovery": 0.8,
+        "full_recovery_rate": 1.0,
+        "n_trials": 5,
+        "trial_details": [
+          {
+            "trial_id": 0,
+            "noise_level": 0.8,
+            "immediate_overlap": 0.2,
+            "final_overlap": 1.0,
+            "recovery_amount": 0.8,
+            "full_recovery": true,
+            "partial_recovery": true,
+            "recovery_history": [
+              0.2,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          {
+            "trial_id": 1,
+            "noise_level": 0.8,
+            "immediate_overlap": 0.2,
+            "final_overlap": 1.0,
+            "recovery_amount": 0.8,
+            "full_recovery": true,
+            "partial_recovery": true,
+            "recovery_history": [
+              0.2,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          {
+            "trial_id": 2,
+            "noise_level": 0.8,
+            "immediate_overlap": 0.2,
+            "final_overlap": 1.0,
+            "recovery_amount": 0.8,
+            "full_recovery": true,
+            "partial_recovery": true,
+            "recovery_history": [
+              0.2,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          {
+            "trial_id": 3,
+            "noise_level": 0.8,
+            "immediate_overlap": 0.2,
+            "final_overlap": 1.0,
+            "recovery_amount": 0.8,
+            "full_recovery": true,
+            "partial_recovery": true,
+            "recovery_history": [
+              0.2,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          {
+            "trial_id": 4,
+            "noise_level": 0.8,
+            "immediate_overlap": 0.2,
+            "final_overlap": 1.0,
+            "recovery_amount": 0.8,
+            "full_recovery": true,
+            "partial_recovery": true,
+            "recovery_history": [
+              0.2,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ]
+          }
+        ]
+      },
+      {
+        "noise_level": 1.0,
+        "mean_immediate_overlap": 0.0,
+        "mean_final_overlap": 1.0,
+        "mean_recovery": 1.0,
+        "full_recovery_rate": 1.0,
+        "n_trials": 5,
+        "trial_details": [
+          {
+            "trial_id": 0,
+            "noise_level": 1.0,
+            "immediate_overlap": 0.0,
+            "final_overlap": 1.0,
+            "recovery_amount": 1.0,
+            "full_recovery": true,
+            "partial_recovery": true,
+            "recovery_history": [
+              0.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          {
+            "trial_id": 1,
+            "noise_level": 1.0,
+            "immediate_overlap": 0.0,
+            "final_overlap": 1.0,
+            "recovery_amount": 1.0,
+            "full_recovery": true,
+            "partial_recovery": true,
+            "recovery_history": [
+              0.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          {
+            "trial_id": 2,
+            "noise_level": 1.0,
+            "immediate_overlap": 0.0,
+            "final_overlap": 1.0,
+            "recovery_amount": 1.0,
+            "full_recovery": true,
+            "partial_recovery": true,
+            "recovery_history": [
+              0.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          {
+            "trial_id": 3,
+            "noise_level": 1.0,
+            "immediate_overlap": 0.0,
+            "final_overlap": 1.0,
+            "recovery_amount": 1.0,
+            "full_recovery": true,
+            "partial_recovery": true,
+            "recovery_history": [
+              0.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          {
+            "trial_id": 4,
+            "noise_level": 1.0,
+            "immediate_overlap": 0.0,
+            "final_overlap": 1.0,
+            "recovery_amount": 1.0,
+            "full_recovery": true,
+            "partial_recovery": true,
+            "recovery_history": [
+              0.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "success": true,
+  "error_message": null,
+  "duration_seconds": 0.5727102000091691
+}

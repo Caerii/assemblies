@@ -1,0 +1,215 @@
+\documentclass[11pt]{article}
+
+% ============================================================================
+% LOAD SHARED PREAMBLES
+% ============================================================================
+
+% Standard preamble (math, figures, tables, etc.)
+\input{../../../_latex_infrastructure/preambles/standard_preamble.tex}
+
+% Neuroscience-specific notation
+\input{../../../_latex_infrastructure/preambles/neuroscience_preamble.tex}
+
+% ============================================================================
+% PAPER-SPECIFIC SETTINGS
+% ============================================================================
+
+% Page geometry
+\usepackage[margin=1in]{geometry}
+
+% Line spacing
+\usepackage{setspace}
+\onehalfspacing
+
+% Title and authors
+\title{Your Paper Title Here: \\
+       \large A Subtitle if Needed}
+
+\author{
+    Your Name\textsuperscript{1,2} \and
+    Collaborator Name\textsuperscript{2} \\[0.5em]
+    \small \textsuperscript{1}Department of Computer Science, Your University \\
+    \small \textsuperscript{2}Institute for Neuroscience, Your University \\[0.5em]
+    \small \texttt{\{your.email, collaborator.email\}@university.edu}
+}
+
+\date{\today}
+
+% ============================================================================
+% DOCUMENT
+% ============================================================================
+
+\begin{document}
+
+\maketitle
+
+% ----------------------------------------------------------------------------
+% ABSTRACT
+% ----------------------------------------------------------------------------
+
+\begin{abstract}
+Your abstract goes here. Typically 150-250 words summarizing:
+(1) The problem you're addressing,
+(2) Your approach or contribution,
+(3) Key results, and
+(4) Implications or conclusions.
+
+\medskip
+\noindent\textbf{Keywords:} neural assemblies, sparse coding, brain simulation, assembly calculus
+\end{abstract}
+
+% ----------------------------------------------------------------------------
+% MAIN CONTENT
+% ----------------------------------------------------------------------------
+
+\section{Introduction}
+\label{sec:introduction}
+
+Your introduction goes here. Use \verb|\cref{sec:methods}| to reference other sections automatically.
+
+% Example equation using custom notation
+Consider an assembly \(\assembly{i}\) in brain area \(\area{i}\) with \(\nneurons{i}\) neurons. The activation dynamics can be written as:
+\begin{equation}
+    \label{eq:assembly_dynamics}
+    \activation{i}{t+1} = \TopK\left(\sum_{j} \weights{ij} \cdot \activation{j}{t}, \kactive\right)
+\end{equation}
+where \(\TopK(\cdot, k)\) selects the top-$k$ neurons by activation.
+
+% Example citation (add references to bibliography file)
+This builds on prior work on assembly calculus \citep{papadimitriou2020brain}.
+
+\section{Methods}
+\label{sec:methods}
+
+Describe your methods here. You can include algorithms, figures, and tables.
+
+\subsection{Algorithm Description}
+
+% Example algorithm
+\begin{algorithm}
+\caption{Assembly Formation}
+\label{alg:assembly_formation}
+\begin{algorithmic}[1]
+    \STATE \textbf{Input:} Area $\area{i}$ with $\nneurons{i}$ neurons, $\kactive$ active neurons
+    \STATE \textbf{Output:} Stable assembly $\assembly{i}$
+    \STATE Initialize activations $\vect{a}^{(0)} \sim \mathcal{U}(0,1)$
+    \FOR{$t = 1$ to $T_{\max}$}
+        \STATE Compute weighted input: $\vect{u}^{(t)} \gets \weights{} \cdot \vect{a}^{(t-1)}$
+        \STATE Select top-$k$ neurons: $\vect{a}^{(t)} \gets \TopK(\vect{u}^{(t)}, \kactive)$
+        \IF{$\vect{a}^{(t)} = \vect{a}^{(t-1)}$}
+            \RETURN $\assembly{i} \gets \{n : a_n^{(t)} > 0\}$
+        \ENDIF
+    \ENDFOR
+    \RETURN Failure (did not converge)
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Experimental Setup}
+
+% Example figure
+\begin{figure}[ht]
+    \centering
+    % Placeholder - replace with actual figure
+    \fbox{\begin{minipage}{0.8\textwidth}
+        \centering
+        \vspace{2cm}
+        \textit{[Figure: Performance scaling across neuron counts]}
+        \vspace{2cm}
+    \end{minipage}}
+    \caption{Performance scaling of our algorithm from $10^3$ to $10^7$ neurons. 
+    The O($N \log K$) complexity enables real-time simulation at scale.}
+    \label{fig:performance}
+\end{figure}
+
+% Once you have the actual figure, use:
+% \includegraphics[width=0.8\textwidth]{../../../_shared_assets/figures/performance_scaling.pdf}
+
+\section{Results}
+\label{sec:results}
+
+Present your results here with tables and figures.
+
+% Example table
+\begin{table}[ht]
+\centering
+\caption{Performance comparison across implementations.}
+\label{tab:performance}
+\begin{tabular}{lrrr}
+\toprule
+\textbf{Implementation} & \textbf{Neurons} & \textbf{Time (ms)} & \textbf{Speedup} \\
+\midrule
+NumPy (CPU)    & $10^6$ & 15,432 & 1.0$\times$ \\
+CuPy (GPU)     & $10^6$ & 1,234  & 12.5$\times$ \\
+CUDA Optimized & $10^6$ & 78     & 198$\times$ \\
+\midrule
+CUDA Optimized & $10^7$ & 812    & -- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+See \cref{fig:performance} for scaling analysis and \cref{tab:performance} for detailed benchmarks.
+
+\section{Discussion}
+\label{sec:discussion}
+
+Discuss your results, their implications, limitations, and future work.
+
+\subsection{Key Contributions}
+
+We demonstrate that:
+\begin{enumerate}
+    \item Assembly dynamics can be simulated at scale with O($N \log K$) complexity
+    \item Real-time simulation enables new experimental paradigms
+    \item The framework scales from cortical columns to whole-brain models
+\end{enumerate}
+
+\subsection{Limitations and Future Work}
+
+Current limitations include...
+
+\section{Conclusion}
+\label{sec:conclusion}
+
+Summarize your main findings and their significance.
+
+% ----------------------------------------------------------------------------
+% ACKNOWLEDGMENTS
+% ----------------------------------------------------------------------------
+
+\section*{Acknowledgments}
+
+We thank... [funding sources, collaborators, etc.]
+
+% ----------------------------------------------------------------------------
+% BIBLIOGRAPHY
+% ----------------------------------------------------------------------------
+
+% Add your references to: ../../_shared_assets/bibliography/references.bib
+\bibliography{../../../_shared_assets/bibliography/references}
+
+% ----------------------------------------------------------------------------
+% APPENDIX (Optional)
+% ----------------------------------------------------------------------------
+
+\appendix
+
+\section{Mathematical Proofs}
+\label{app:proofs}
+
+\begin{theorem}[Assembly Stability]
+\label{thm:stability}
+Under conditions $(a)$ connectivity $\conn{}{} > p_c$ and $(b)$ sparsity $\sparsity < \rho_c$, 
+assemblies converge to stable attractors in O($\log N$) steps.
+\end{theorem}
+
+\begin{proof}
+The proof follows from analyzing the eigenvalue spectrum of the connectivity matrix...
+(Complete proof here)
+\end{proof}
+
+\section{Extended Results}
+\label{app:extended_results}
+
+Additional figures, tables, and detailed analyses that support the main text but are too extensive to include in the body.
+
+\end{document}

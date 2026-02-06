@@ -1,0 +1,158 @@
+% Neuroscience-Specific Preamble
+% Include this AFTER standard_preamble.tex for neuroscience papers
+
+% ============================================================================
+% NEURAL ASSEMBLY NOTATION
+% ============================================================================
+
+% Assemblies
+\newcommand{\assembly}[1]{\mathcal{A}_{#1}}              % Assembly in area i
+\newcommand{\assemblyname}[1]{\mathcal{A}_{\text{#1}}}  % Named assembly
+\newcommand{\assemblyoverlap}[2]{\mathcal{A}_{#1} \cap \mathcal{A}_{#2}}  % Overlap
+
+% Neurons
+\newcommand{\neurons}[1]{\mathcal{N}_{#1}}               % Neurons in area i
+\newcommand{\neuron}[2]{n_{#1}^{#2}}                     % Neuron i in area j
+\newcommand{\nneurons}[1]{N_{#1}}                        % Number of neurons in area i
+
+% Areas
+\newcommand{\area}[1]{\mathcal{B}_{#1}}                  % Brain area i
+\newcommand{\areaname}[1]{\text{#1}}                     % Named area (e.g., V1)
+
+% ============================================================================
+% ACTIVATION AND FIRING
+% ============================================================================
+
+% Activations
+\newcommand{\activation}[2]{a_{#1}^{(#2)}}              % Activation of neuron i at time t
+\newcommand{\activations}[1]{\vect{a}^{(#1)}}           % Activation vector at time t
+
+% Firing rates
+\newcommand{\firingrate}[2]{r_{#1}^{(#2)}}              % Firing rate of neuron i at time t
+\newcommand{\firingthreshold}{\theta}                    % Firing threshold
+
+% Sparsity
+\newcommand{\sparsity}{\rho}                             % Sparsity level
+\newcommand{\kactive}{k}                                 % Number of active neurons
+\newcommand{\kactiveratio}{\kappa}                       % k/N ratio
+
+% ============================================================================
+% SYNAPSES AND CONNECTIVITY
+% ============================================================================
+
+% Weights
+\newcommand{\weight}[3]{w_{#1 #2}^{#3}}                 % Weight from neuron i to j in fiber f
+\newcommand{\weights}[1]{\matr{W}_{#1}}                 % Weight matrix for fiber f
+
+% Connectivity
+\newcommand{\conn}[2]{p_{#1 #2}}                         % Connection probability from area i to j
+\newcommand{\connmatrix}{\matr{P}}                       % Connectivity matrix
+
+% Plasticity
+\newcommand{\plasticity}{\beta}                          % Plasticity parameter
+\newcommand{\learningrate}{\eta}                         % Learning rate
+
+% ============================================================================
+% ASSEMBLY CALCULUS OPERATIONS
+% ============================================================================
+
+% Operations
+\newcommand{\project}{\rightarrow}                       % Projection: A → B
+\newcommand{\merge}{\oplus}                              % Merge: A ⊕ B
+\newcommand{\associate}{\leftrightarrow}                 % Association: A ↔ B
+
+% Convergence
+\newcommand{\converges}[1]{\xrightarrow{#1}}            % Converges in #1 steps
+\newcommand{\stable}{\checkmark}                         % Stable assembly
+
+% ============================================================================
+% DYNAMICS AND TIME
+% ============================================================================
+
+% Time
+\newcommand{\timestep}{t}                                % Time step
+\newcommand{\timewindow}{\Delta t}                       % Time window
+\newcommand{\convergencetime}{\tau_{\text{conv}}}       % Convergence time
+
+% States
+\newcommand{\state}[1]{\vect{s}^{(#1)}}                 % State vector at time t
+\newcommand{\statespace}{\mathcal{S}}                    % State space
+
+% ============================================================================
+% INFORMATION THEORY
+% ============================================================================
+
+% Entropy and information
+\newcommand{\entropy}[1]{H(#1)}                          % Entropy
+\newcommand{\mutualinfo}[2]{I(#1;#2)}                    % Mutual information
+\newcommand{\kldiv}[2]{D_{\text{KL}}(#1 \parallel #2)}  % KL divergence
+
+% Capacity
+\newcommand{\capacity}{\mathcal{C}}                      % Channel capacity
+\newcommand{\codingeff}{\epsilon}                        % Coding efficiency
+
+% ============================================================================
+% BIOLOGICAL PARAMETERS
+% ============================================================================
+
+% Voltages
+\newcommand{\voltage}[2]{V_{#1}^{(#2)}}                 % Membrane voltage
+\newcommand{\restpotential}{V_{\text{rest}}}            % Resting potential
+\newcommand{\threshold}{V_{\text{th}}}                   % Threshold potential
+
+% Time constants
+\newcommand{\timeconstant}{\tau}                         % Time constant
+\newcommand{\refractoryperiod}{\tau_{\text{ref}}}       % Refractory period
+
+% Neurotransmitters
+\newcommand{\excitatory}{\text{E}}                       % Excitatory
+\newcommand{\inhibitory}{\text{I}}                       % Inhibitory
+
+% ============================================================================
+% BRAIN REGIONS (COMMON ABBREVIATIONS)
+% ============================================================================
+
+\newcommand{\V}[1]{V#1}                                  % Visual cortex (V1, V2, etc.)
+\newcommand{\hippo}{\text{HC}}                           % Hippocampus
+\newcommand{\pfc}{\text{PFC}}                            % Prefrontal cortex
+\newcommand{\motor}{\text{M1}}                           % Primary motor cortex
+\newcommand{\somatosens}{\text{S1}}                      % Primary somatosensory cortex
+\newcommand{\auditory}{\text{A1}}                        % Primary auditory cortex
+
+% ============================================================================
+% STATISTICS FOR NEURAL DATA
+% ============================================================================
+
+% Population statistics
+\newcommand{\popmean}{\langle \cdot \rangle}            % Population mean
+\newcommand{\popvar}{\sigma^2}                           % Population variance
+\newcommand{\popstd}{\sigma}                             % Population std dev
+
+% Correlations
+\newcommand{\corr}[2]{\rho_{#1,#2}}                     % Correlation between neurons
+\newcommand{\crosscorr}[3]{C_{#1,#2}(#3)}              % Cross-correlation at lag τ
+
+% ============================================================================
+% EXPERIMENTAL NOTATION
+% ============================================================================
+
+% Trials and sessions
+\newcommand{\trial}[1]{\text{trial}_{#1}}               % Trial number
+\newcommand{\session}[1]{\text{session}_{#1}}          % Session number
+
+% Stimuli
+\newcommand{\stimulus}[1]{S_{#1}}                        % Stimulus i
+\newcommand{\response}[1]{R_{#1}}                        % Response i
+
+% ============================================================================
+% CUSTOM OPERATORS
+% ============================================================================
+
+\DeclareMathOperator{\TopK}{TopK}                        % Top-K selection
+\DeclareMathOperator{\Softmax}{Softmax}                  % Softmax
+\DeclareMathOperator{\ReLU}{ReLU}                        % ReLU activation
+\DeclareMathOperator{\Sigmoid}{Sigmoid}                  % Sigmoid
+
+% ============================================================================
+% END OF NEUROSCIENCE PREAMBLE
+% ============================================================================

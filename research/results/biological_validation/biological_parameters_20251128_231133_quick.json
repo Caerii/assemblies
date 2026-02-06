@@ -1,0 +1,118 @@
+{
+  "experiment_name": "biological_parameters",
+  "timestamp": "2025-11-28T23:11:33.234003",
+  "parameters": {
+    "test_cortical": true,
+    "test_hippocampal": true,
+    "test_cerebellar": false,
+    "n_steps": 50,
+    "seed": 42
+  },
+  "metrics": {
+    "regions_tested": 2,
+    "parameter_checks": [
+      {
+        "param_name": "cortical_sparsity",
+        "value": 0.02,
+        "reference_min": 0.01,
+        "reference_max": 0.05,
+        "reference_typical": 0.02,
+        "in_biological_range": true,
+        "near_typical": true,
+        "source": "Barth & Bhalla (2012), various cortical recordings"
+      },
+      {
+        "param_name": "local_connection_probability",
+        "value": 0.1,
+        "reference_min": 0.05,
+        "reference_max": 0.2,
+        "reference_typical": 0.1,
+        "in_biological_range": true,
+        "near_typical": true,
+        "source": "Cortical connectivity studies"
+      },
+      {
+        "param_name": "hippocampal_sparsity",
+        "value": 0.02,
+        "reference_min": 0.01,
+        "reference_max": 0.03,
+        "reference_typical": 0.02,
+        "in_biological_range": true,
+        "near_typical": true,
+        "source": "Sparse coding in hippocampus"
+      }
+    ],
+    "valid_parameters": 3,
+    "total_parameters": 3,
+    "biological_validity_rate": 1.0
+  },
+  "raw_data": {
+    "simulation_results": [
+      {
+        "brain_region": "cortex",
+        "n_neurons": 10000,
+        "k_active": 200,
+        "actual_sparsity": 0.02,
+        "implied_firing_rate_hz": 20.0,
+        "assembly_stability": 1.0,
+        "activity_variance": 0.0
+      },
+      {
+        "brain_region": "hippocampus",
+        "n_neurons": 10000,
+        "k_active": 200,
+        "actual_sparsity": 0.02,
+        "implied_firing_rate_hz": 20.0,
+        "assembly_stability": 1.0,
+        "activity_variance": 0.0
+      }
+    ],
+    "biological_references": {
+      "cortical_sparsity": {
+        "min": 0.01,
+        "max": 0.05,
+        "typical": 0.02,
+        "source": "Barth & Bhalla (2012), various cortical recordings"
+      },
+      "hippocampal_sparsity": {
+        "min": 0.01,
+        "max": 0.03,
+        "typical": 0.02,
+        "source": "Sparse coding in hippocampus"
+      },
+      "cerebellar_sparsity": {
+        "min": 0.001,
+        "max": 0.01,
+        "typical": 0.005,
+        "source": "Cerebellar granule cell activity"
+      },
+      "cortical_firing_rate_hz": {
+        "min": 0.1,
+        "max": 10.0,
+        "typical": 1.0,
+        "source": "Various cortical recordings"
+      },
+      "assembly_size_neurons": {
+        "min": 50,
+        "max": 500,
+        "typical": 100,
+        "source": "Harris (2005), Buzsaki (2010)"
+      },
+      "local_connection_probability": {
+        "min": 0.05,
+        "max": 0.2,
+        "typical": 0.1,
+        "source": "Cortical connectivity studies"
+      },
+      "plasticity_timescale_ms": {
+        "min": 10,
+        "max": 100,
+        "typical": 20,
+        "source": "STDP window measurements"
+      }
+    }
+  },
+  "success": true,
+  "error_message": null,
+  "duration_seconds": 0.07857359999616165
+}

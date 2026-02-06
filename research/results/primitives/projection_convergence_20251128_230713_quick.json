@@ -1,0 +1,1510 @@
+{
+  "experiment_name": "projection_convergence",
+  "timestamp": "2025-11-28T23:07:13.803179",
+  "parameters": {
+    "n_neurons_range": [
+      1000,
+      10000
+    ],
+    "k_active_range": [
+      10,
+      50
+    ],
+    "p_connect_range": [
+      0.05,
+      0.1
+    ],
+    "beta_range": [
+      0.05,
+      0.1
+    ],
+    "n_trials": 3,
+    "seed": 42
+  },
+  "metrics": {
+    "total_configurations": 16,
+    "successful_configurations": 16,
+    "overall_convergence_rate": 1.0,
+    "mean_convergence_steps": 3.145833333333333,
+    "best_config": {
+      "config": {
+        "n_neurons": 1000,
+        "k_active": 10,
+        "p_connect": 0.05,
+        "beta": 0.05
+      },
+      "n_trials": 3,
+      "successful_trials": 3,
+      "convergence_rate": 1.0,
+      "mean_convergence_step": 5.333333333333333,
+      "mean_final_stability": 1.0,
+      "trial_details": [
+        {
+          "trial_id": 0,
+          "config": {
+            "n_neurons": 1000,
+            "k_active": 10,
+            "p_connect": 0.05,
+            "beta": 0.05
+          },
+          "converged": true,
+          "convergence_step": 6,
+          "final_stability": 1.0,
+          "total_rounds": 10,
+          "final_assembly_size": 10,
+          "overlap_history": [
+            1.0,
+            0.9,
+            0.8,
+            1.0,
+            0.9,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "mean_overlap": 0.9555555555555555
+        },
+        {
+          "trial_id": 1,
+          "config": {
+            "n_neurons": 1000,
+            "k_active": 10,
+            "p_connect": 0.05,
+            "beta": 0.05
+          },
+          "converged": true,
+          "convergence_step": 6,
+          "final_stability": 1.0,
+          "total_rounds": 10,
+          "final_assembly_size": 10,
+          "overlap_history": [
+            0.9,
+            0.9,
+            1.0,
+            1.0,
+            0.9,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "mean_overlap": 0.9666666666666666
+        },
+        {
+          "trial_id": 2,
+          "config": {
+            "n_neurons": 1000,
+            "k_active": 10,
+            "p_connect": 0.05,
+            "beta": 0.05
+          },
+          "converged": true,
+          "convergence_step": 4,
+          "final_stability": 1.0,
+          "total_rounds": 8,
+          "final_assembly_size": 10,
+          "overlap_history": [
+            0.9,
+            1.0,
+            0.9,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "mean_overlap": 0.9714285714285714
+        }
+      ]
+    }
+  },
+  "raw_data": {
+    "all_results": [
+      {
+        "config": {
+          "n_neurons": 1000,
+          "k_active": 10,
+          "p_connect": 0.05,
+          "beta": 0.05
+        },
+        "n_trials": 3,
+        "successful_trials": 3,
+        "convergence_rate": 1.0,
+        "mean_convergence_step": 5.333333333333333,
+        "mean_final_stability": 1.0,
+        "trial_details": [
+          {
+            "trial_id": 0,
+            "config": {
+              "n_neurons": 1000,
+              "k_active": 10,
+              "p_connect": 0.05,
+              "beta": 0.05
+            },
+            "converged": true,
+            "convergence_step": 6,
+            "final_stability": 1.0,
+            "total_rounds": 10,
+            "final_assembly_size": 10,
+            "overlap_history": [
+              1.0,
+              0.9,
+              0.8,
+              1.0,
+              0.9,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "mean_overlap": 0.9555555555555555
+          },
+          {
+            "trial_id": 1,
+            "config": {
+              "n_neurons": 1000,
+              "k_active": 10,
+              "p_connect": 0.05,
+              "beta": 0.05
+            },
+            "converged": true,
+            "convergence_step": 6,
+            "final_stability": 1.0,
+            "total_rounds": 10,
+            "final_assembly_size": 10,
+            "overlap_history": [
+              0.9,
+              0.9,
+              1.0,
+              1.0,
+              0.9,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "mean_overlap": 0.9666666666666666
+          },
+          {
+            "trial_id": 2,
+            "config": {
+              "n_neurons": 1000,
+              "k_active": 10,
+              "p_connect": 0.05,
+              "beta": 0.05
+            },
+            "converged": true,
+            "convergence_step": 4,
+            "final_stability": 1.0,
+            "total_rounds": 8,
+            "final_assembly_size": 10,
+            "overlap_history": [
+              0.9,
+              1.0,
+              0.9,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "mean_overlap": 0.9714285714285714
+          }
+        ]
+      },
+      {
+        "config": {
+          "n_neurons": 1000,
+          "k_active": 10,
+          "p_connect": 0.05,
+          "beta": 0.1
+        },
+        "n_trials": 3,
+        "successful_trials": 3,
+        "convergence_rate": 1.0,
+        "mean_convergence_step": 3.6666666666666665,
+        "mean_final_stability": 1.0,
+        "trial_details": [
+          {
+            "trial_id": 0,
+            "config": {
+              "n_neurons": 1000,
+              "k_active": 10,
+              "p_connect": 0.05,
+              "beta": 0.1
+            },
+            "converged": true,
+            "convergence_step": 4,
+            "final_stability": 1.0,
+            "total_rounds": 8,
+            "final_assembly_size": 10,
+            "overlap_history": [
+              1.0,
+              1.0,
+              0.9,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "mean_overlap": 0.9857142857142858
+          },
+          {
+            "trial_id": 1,
+            "config": {
+              "n_neurons": 1000,
+              "k_active": 10,
+              "p_connect": 0.05,
+              "beta": 0.1
+            },
+            "converged": true,
+            "convergence_step": 4,
+            "final_stability": 1.0,
+            "total_rounds": 8,
+            "final_assembly_size": 10,
+            "overlap_history": [
+              0.8,
+              0.9,
+              0.9,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "mean_overlap": 0.9428571428571428
+          },
+          {
+            "trial_id": 2,
+            "config": {
+              "n_neurons": 1000,
+              "k_active": 10,
+              "p_connect": 0.05,
+              "beta": 0.1
+            },
+            "converged": true,
+            "convergence_step": 3,
+            "final_stability": 1.0,
+            "total_rounds": 7,
+            "final_assembly_size": 10,
+            "overlap_history": [
+              0.8,
+              0.8,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "mean_overlap": 0.9333333333333332
+          }
+        ]
+      },
+      {
+        "config": {
+          "n_neurons": 1000,
+          "k_active": 10,
+          "p_connect": 0.1,
+          "beta": 0.05
+        },
+        "n_trials": 3,
+        "successful_trials": 3,
+        "convergence_rate": 1.0,
+        "mean_convergence_step": 5.0,
+        "mean_final_stability": 1.0,
+        "trial_details": [
+          {
+            "trial_id": 0,
+            "config": {
+              "n_neurons": 1000,
+              "k_active": 10,
+              "p_connect": 0.1,
+              "beta": 0.05
+            },
+            "converged": true,
+            "convergence_step": 5,
+            "final_stability": 1.0,
+            "total_rounds": 9,
+            "final_assembly_size": 10,
+            "overlap_history": [
+              0.8,
+              1.0,
+              0.8,
+              0.9,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "mean_overlap": 0.9375
+          },
+          {
+            "trial_id": 1,
+            "config": {
+              "n_neurons": 1000,
+              "k_active": 10,
+              "p_connect": 0.1,
+              "beta": 0.05
+            },
+            "converged": true,
+            "convergence_step": 5,
+            "final_stability": 1.0,
+            "total_rounds": 9,
+            "final_assembly_size": 10,
+            "overlap_history": [
+              0.7,
+              0.9,
+              0.8,
+              0.9,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "mean_overlap": 0.9125000000000001
+          },
+          {
+            "trial_id": 2,
+            "config": {
+              "n_neurons": 1000,
+              "k_active": 10,
+              "p_connect": 0.1,
+              "beta": 0.05
+            },
+            "converged": true,
+            "convergence_step": 5,
+            "final_stability": 1.0,
+            "total_rounds": 9,
+            "final_assembly_size": 10,
+            "overlap_history": [
+              0.9,
+              0.8,
+              1.0,
+              0.9,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "mean_overlap": 0.95
+          }
+        ]
+      },
+      {
+        "config": {
+          "n_neurons": 1000,
+          "k_active": 10,
+          "p_connect": 0.1,
+          "beta": 0.1
+        },
+        "n_trials": 3,
+        "successful_trials": 3,
+        "convergence_rate": 1.0,
+        "mean_convergence_step": 3.0,
+        "mean_final_stability": 1.0,
+        "trial_details": [
+          {
+            "trial_id": 0,
+            "config": {
+              "n_neurons": 1000,
+              "k_active": 10,
+              "p_connect": 0.1,
+              "beta": 0.1
+            },
+            "converged": true,
+            "convergence_step": 3,
+            "final_stability": 1.0,
+            "total_rounds": 7,
+            "final_assembly_size": 10,
+            "overlap_history": [
+              1.0,
+              0.9,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "mean_overlap": 0.9833333333333334
+          },
+          {
+            "trial_id": 1,
+            "config": {
+              "n_neurons": 1000,
+              "k_active": 10,
+              "p_connect": 0.1,
+              "beta": 0.1
+            },
+            "converged": true,
+            "convergence_step": 3,
+            "final_stability": 1.0,
+            "total_rounds": 7,
+            "final_assembly_size": 10,
+            "overlap_history": [
+              0.7,
+              0.9,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "mean_overlap": 0.9333333333333332
+          },
+          {
+            "trial_id": 2,
+            "config": {
+              "n_neurons": 1000,
+              "k_active": 10,
+              "p_connect": 0.1,
+              "beta": 0.1
+            },
+            "converged": true,
+            "convergence_step": 3,
+            "final_stability": 1.0,
+            "total_rounds": 7,
+            "final_assembly_size": 10,
+            "overlap_history": [
+              0.7,
+              0.8,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "mean_overlap": 0.9166666666666666
+          }
+        ]
+      },
+      {
+        "config": {
+          "n_neurons": 1000,
+          "k_active": 50,
+          "p_connect": 0.05,
+          "beta": 0.05
+        },
+        "n_trials": 3,
+        "successful_trials": 3,
+        "convergence_rate": 1.0,
+        "mean_convergence_step": 5.0,
+        "mean_final_stability": 1.0,
+        "trial_details": [
+          {
+            "trial_id": 0,
+            "config": {
+              "n_neurons": 1000,
+              "k_active": 50,
+              "p_connect": 0.05,
+              "beta": 0.05
+            },
+            "converged": true,
+            "convergence_step": 5,
+            "final_stability": 1.0,
+            "total_rounds": 9,
+            "final_assembly_size": 50,
+            "overlap_history": [
+              0.64,
+              0.94,
+              0.9,
+              0.94,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "mean_overlap": 0.9275
+          },
+          {
+            "trial_id": 1,
+            "config": {
+              "n_neurons": 1000,
+              "k_active": 50,
+              "p_connect": 0.05,
+              "beta": 0.05
+            },
+            "converged": true,
+            "convergence_step": 5,
+            "final_stability": 1.0,
+            "total_rounds": 9,
+            "final_assembly_size": 50,
+            "overlap_history": [
+              0.54,
+              0.88,
+              0.94,
+              0.92,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "mean_overlap": 0.9099999999999999
+          },
+          {
+            "trial_id": 2,
+            "config": {
+              "n_neurons": 1000,
+              "k_active": 50,
+              "p_connect": 0.05,
+              "beta": 0.05
+            },
+            "converged": true,
+            "convergence_step": 5,
+            "final_stability": 1.0,
+            "total_rounds": 9,
+            "final_assembly_size": 50,
+            "overlap_history": [
+              0.48,
+              0.86,
+              0.86,
+              0.94,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "mean_overlap": 0.8925
+          }
+        ]
+      },
+      {
+        "config": {
+          "n_neurons": 1000,
+          "k_active": 50,
+          "p_connect": 0.05,
+          "beta": 0.1
+        },
+        "n_trials": 3,
+        "successful_trials": 3,
+        "convergence_rate": 1.0,
+        "mean_convergence_step": 3.6666666666666665,
+        "mean_final_stability": 1.0,
+        "trial_details": [
+          {
+            "trial_id": 0,
+            "config": {
+              "n_neurons": 1000,
+              "k_active": 50,
+              "p_connect": 0.05,
+              "beta": 0.1
+            },
+            "converged": true,
+            "convergence_step": 4,
+            "final_stability": 1.0,
+            "total_rounds": 9,
+            "final_assembly_size": 50,
+            "overlap_history": [
+              0.6,
+              0.98,
+              0.94,
+              0.98,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "mean_overlap": 0.9375
+          },
+          {
+            "trial_id": 1,
+            "config": {
+              "n_neurons": 1000,
+              "k_active": 50,
+              "p_connect": 0.05,
+              "beta": 0.1
+            },
+            "converged": true,
+            "convergence_step": 3,
+            "final_stability": 1.0,
+            "total_rounds": 10,
+            "final_assembly_size": 50,
+            "overlap_history": [
+              0.6,
+              0.9,
+              1.0,
+              0.98,
+              0.98,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "mean_overlap": 0.9400000000000001
+          },
+          {
+            "trial_id": 2,
+            "config": {
+              "n_neurons": 1000,
+              "k_active": 50,
+              "p_connect": 0.05,
+              "beta": 0.1
+            },
+            "converged": true,
+            "convergence_step": 4,
+            "final_stability": 1.0,
+            "total_rounds": 9,
+            "final_assembly_size": 50,
+            "overlap_history": [
+              0.64,
+              0.94,
+              0.94,
+              0.98,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "mean_overlap": 0.9375
+          }
+        ]
+      },
+      {
+        "config": {
+          "n_neurons": 1000,
+          "k_active": 50,
+          "p_connect": 0.1,
+          "beta": 0.05
+        },
+        "n_trials": 3,
+        "successful_trials": 3,
+        "convergence_rate": 1.0,
+        "mean_convergence_step": 3.0,
+        "mean_final_stability": 1.0,
+        "trial_details": [
+          {
+            "trial_id": 0,
+            "config": {
+              "n_neurons": 1000,
+              "k_active": 50,
+              "p_connect": 0.1,
+              "beta": 0.05
+            },
+            "converged": true,
+            "convergence_step": 3,
+            "final_stability": 1.0,
+            "total_rounds": 9,
+            "final_assembly_size": 50,
+            "overlap_history": [
+              0.46,
+              0.8,
+              1.0,
+              0.96,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "mean_overlap": 0.9025
+          },
+          {
+            "trial_id": 1,
+            "config": {
+              "n_neurons": 1000,
+              "k_active": 50,
+              "p_connect": 0.1,
+              "beta": 0.05
+            },
+            "converged": true,
+            "convergence_step": 3,
+            "final_stability": 1.0,
+            "total_rounds": 9,
+            "final_assembly_size": 50,
+            "overlap_history": [
+              0.58,
+              0.9,
+              1.0,
+              0.96,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "mean_overlap": 0.9299999999999999
+          },
+          {
+            "trial_id": 2,
+            "config": {
+              "n_neurons": 1000,
+              "k_active": 50,
+              "p_connect": 0.1,
+              "beta": 0.05
+            },
+            "converged": true,
+            "convergence_step": 3,
+            "final_stability": 1.0,
+            "total_rounds": 9,
+            "final_assembly_size": 50,
+            "overlap_history": [
+              0.6,
+              0.88,
+              0.98,
+              0.96,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "mean_overlap": 0.9275
+          }
+        ]
+      },
+      {
+        "config": {
+          "n_neurons": 1000,
+          "k_active": 50,
+          "p_connect": 0.1,
+          "beta": 0.1
+        },
+        "n_trials": 3,
+        "successful_trials": 3,
+        "convergence_rate": 1.0,
+        "mean_convergence_step": 2.3333333333333335,
+        "mean_final_stability": 1.0,
+        "trial_details": [
+          {
+            "trial_id": 0,
+            "config": {
+              "n_neurons": 1000,
+              "k_active": 50,
+              "p_connect": 0.1,
+              "beta": 0.1
+            },
+            "converged": true,
+            "convergence_step": 2,
+            "final_stability": 1.0,
+            "total_rounds": 8,
+            "final_assembly_size": 50,
+            "overlap_history": [
+              0.58,
+              0.98,
+              0.98,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "mean_overlap": 0.9342857142857143
+          },
+          {
+            "trial_id": 1,
+            "config": {
+              "n_neurons": 1000,
+              "k_active": 50,
+              "p_connect": 0.1,
+              "beta": 0.1
+            },
+            "converged": true,
+            "convergence_step": 2,
+            "final_stability": 1.0,
+            "total_rounds": 7,
+            "final_assembly_size": 50,
+            "overlap_history": [
+              0.54,
+              0.96,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "mean_overlap": 0.9166666666666666
+          },
+          {
+            "trial_id": 2,
+            "config": {
+              "n_neurons": 1000,
+              "k_active": 50,
+              "p_connect": 0.1,
+              "beta": 0.1
+            },
+            "converged": true,
+            "convergence_step": 3,
+            "final_stability": 1.0,
+            "total_rounds": 8,
+            "final_assembly_size": 50,
+            "overlap_history": [
+              0.74,
+              0.9,
+              0.98,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "mean_overlap": 0.9457142857142857
+          }
+        ]
+      },
+      {
+        "config": {
+          "n_neurons": 10000,
+          "k_active": 10,
+          "p_connect": 0.05,
+          "beta": 0.05
+        },
+        "n_trials": 3,
+        "successful_trials": 3,
+        "convergence_rate": 1.0,
+        "mean_convergence_step": 1.0,
+        "mean_final_stability": 1.0,
+        "trial_details": [
+          {
+            "trial_id": 0,
+            "config": {
+              "n_neurons": 10000,
+              "k_active": 10,
+              "p_connect": 0.05,
+              "beta": 0.05
+            },
+            "converged": true,
+            "convergence_step": 1,
+            "final_stability": 1.0,
+            "total_rounds": 5,
+            "final_assembly_size": 10,
+            "overlap_history": [
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "mean_overlap": 1.0
+          },
+          {
+            "trial_id": 1,
+            "config": {
+              "n_neurons": 10000,
+              "k_active": 10,
+              "p_connect": 0.05,
+              "beta": 0.05
+            },
+            "converged": true,
+            "convergence_step": 1,
+            "final_stability": 1.0,
+            "total_rounds": 5,
+            "final_assembly_size": 10,
+            "overlap_history": [
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "mean_overlap": 1.0
+          },
+          {
+            "trial_id": 2,
+            "config": {
+              "n_neurons": 10000,
+              "k_active": 10,
+              "p_connect": 0.05,
+              "beta": 0.05
+            },
+            "converged": true,
+            "convergence_step": 1,
+            "final_stability": 1.0,
+            "total_rounds": 5,
+            "final_assembly_size": 10,
+            "overlap_history": [
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "mean_overlap": 1.0
+          }
+        ]
+      },
+      {
+        "config": {
+          "n_neurons": 10000,
+          "k_active": 10,
+          "p_connect": 0.05,
+          "beta": 0.1
+        },
+        "n_trials": 3,
+        "successful_trials": 3,
+        "convergence_rate": 1.0,
+        "mean_convergence_step": 1.6666666666666667,
+        "mean_final_stability": 1.0,
+        "trial_details": [
+          {
+            "trial_id": 0,
+            "config": {
+              "n_neurons": 10000,
+              "k_active": 10,
+              "p_connect": 0.05,
+              "beta": 0.1
+            },
+            "converged": true,
+            "convergence_step": 3,
+            "final_stability": 1.0,
+            "total_rounds": 7,
+            "final_assembly_size": 10,
+            "overlap_history": [
+              1.0,
+              0.9,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "mean_overlap": 0.9833333333333334
+          },
+          {
+            "trial_id": 1,
+            "config": {
+              "n_neurons": 10000,
+              "k_active": 10,
+              "p_connect": 0.05,
+              "beta": 0.1
+            },
+            "converged": true,
+            "convergence_step": 1,
+            "final_stability": 1.0,
+            "total_rounds": 5,
+            "final_assembly_size": 10,
+            "overlap_history": [
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "mean_overlap": 1.0
+          },
+          {
+            "trial_id": 2,
+            "config": {
+              "n_neurons": 10000,
+              "k_active": 10,
+              "p_connect": 0.05,
+              "beta": 0.1
+            },
+            "converged": true,
+            "convergence_step": 1,
+            "final_stability": 1.0,
+            "total_rounds": 5,
+            "final_assembly_size": 10,
+            "overlap_history": [
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "mean_overlap": 1.0
+          }
+        ]
+      },
+      {
+        "config": {
+          "n_neurons": 10000,
+          "k_active": 10,
+          "p_connect": 0.1,
+          "beta": 0.05
+        },
+        "n_trials": 3,
+        "successful_trials": 3,
+        "convergence_rate": 1.0,
+        "mean_convergence_step": 4.0,
+        "mean_final_stability": 1.0,
+        "trial_details": [
+          {
+            "trial_id": 0,
+            "config": {
+              "n_neurons": 10000,
+              "k_active": 10,
+              "p_connect": 0.1,
+              "beta": 0.05
+            },
+            "converged": true,
+            "convergence_step": 4,
+            "final_stability": 1.0,
+            "total_rounds": 8,
+            "final_assembly_size": 10,
+            "overlap_history": [
+              1.0,
+              1.0,
+              0.8,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "mean_overlap": 0.9714285714285714
+          },
+          {
+            "trial_id": 1,
+            "config": {
+              "n_neurons": 10000,
+              "k_active": 10,
+              "p_connect": 0.1,
+              "beta": 0.05
+            },
+            "converged": true,
+            "convergence_step": 4,
+            "final_stability": 1.0,
+            "total_rounds": 8,
+            "final_assembly_size": 10,
+            "overlap_history": [
+              1.0,
+              0.9,
+              0.9,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "mean_overlap": 0.9714285714285714
+          },
+          {
+            "trial_id": 2,
+            "config": {
+              "n_neurons": 10000,
+              "k_active": 10,
+              "p_connect": 0.1,
+              "beta": 0.05
+            },
+            "converged": true,
+            "convergence_step": 4,
+            "final_stability": 1.0,
+            "total_rounds": 8,
+            "final_assembly_size": 10,
+            "overlap_history": [
+              0.9,
+              0.9,
+              0.9,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "mean_overlap": 0.9571428571428572
+          }
+        ]
+      },
+      {
+        "config": {
+          "n_neurons": 10000,
+          "k_active": 10,
+          "p_connect": 0.1,
+          "beta": 0.1
+        },
+        "n_trials": 3,
+        "successful_trials": 3,
+        "convergence_rate": 1.0,
+        "mean_convergence_step": 2.0,
+        "mean_final_stability": 1.0,
+        "trial_details": [
+          {
+            "trial_id": 0,
+            "config": {
+              "n_neurons": 10000,
+              "k_active": 10,
+              "p_connect": 0.1,
+              "beta": 0.1
+            },
+            "converged": true,
+            "convergence_step": 2,
+            "final_stability": 1.0,
+            "total_rounds": 6,
+            "final_assembly_size": 10,
+            "overlap_history": [
+              0.9,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "mean_overlap": 0.9800000000000001
+          },
+          {
+            "trial_id": 1,
+            "config": {
+              "n_neurons": 10000,
+              "k_active": 10,
+              "p_connect": 0.1,
+              "beta": 0.1
+            },
+            "converged": true,
+            "convergence_step": 2,
+            "final_stability": 1.0,
+            "total_rounds": 6,
+            "final_assembly_size": 10,
+            "overlap_history": [
+              0.9,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "mean_overlap": 0.9800000000000001
+          },
+          {
+            "trial_id": 2,
+            "config": {
+              "n_neurons": 10000,
+              "k_active": 10,
+              "p_connect": 0.1,
+              "beta": 0.1
+            },
+            "converged": true,
+            "convergence_step": 2,
+            "final_stability": 1.0,
+            "total_rounds": 6,
+            "final_assembly_size": 10,
+            "overlap_history": [
+              0.8,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "mean_overlap": 0.96
+          }
+        ]
+      },
+      {
+        "config": {
+          "n_neurons": 10000,
+          "k_active": 50,
+          "p_connect": 0.05,
+          "beta": 0.05
+        },
+        "n_trials": 3,
+        "successful_trials": 3,
+        "convergence_rate": 1.0,
+        "mean_convergence_step": 3.6666666666666665,
+        "mean_final_stability": 1.0,
+        "trial_details": [
+          {
+            "trial_id": 0,
+            "config": {
+              "n_neurons": 10000,
+              "k_active": 50,
+              "p_connect": 0.05,
+              "beta": 0.05
+            },
+            "converged": true,
+            "convergence_step": 3,
+            "final_stability": 1.0,
+            "total_rounds": 11,
+            "final_assembly_size": 50,
+            "overlap_history": [
+              0.72,
+              0.66,
+              0.96,
+              0.96,
+              0.98,
+              0.98,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "mean_overlap": 0.9259999999999999
+          },
+          {
+            "trial_id": 1,
+            "config": {
+              "n_neurons": 10000,
+              "k_active": 50,
+              "p_connect": 0.05,
+              "beta": 0.05
+            },
+            "converged": true,
+            "convergence_step": 5,
+            "final_stability": 1.0,
+            "total_rounds": 9,
+            "final_assembly_size": 50,
+            "overlap_history": [
+              0.64,
+              0.64,
+              0.98,
+              0.94,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "mean_overlap": 0.9
+          },
+          {
+            "trial_id": 2,
+            "config": {
+              "n_neurons": 10000,
+              "k_active": 50,
+              "p_connect": 0.05,
+              "beta": 0.05
+            },
+            "converged": true,
+            "convergence_step": 3,
+            "final_stability": 1.0,
+            "total_rounds": 9,
+            "final_assembly_size": 50,
+            "overlap_history": [
+              0.62,
+              0.7,
+              0.98,
+              0.96,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "mean_overlap": 0.9075
+          }
+        ]
+      },
+      {
+        "config": {
+          "n_neurons": 10000,
+          "k_active": 50,
+          "p_connect": 0.05,
+          "beta": 0.1
+        },
+        "n_trials": 3,
+        "successful_trials": 3,
+        "convergence_rate": 1.0,
+        "mean_convergence_step": 2.3333333333333335,
+        "mean_final_stability": 1.0,
+        "trial_details": [
+          {
+            "trial_id": 0,
+            "config": {
+              "n_neurons": 10000,
+              "k_active": 50,
+              "p_connect": 0.05,
+              "beta": 0.1
+            },
+            "converged": true,
+            "convergence_step": 2,
+            "final_stability": 1.0,
+            "total_rounds": 7,
+            "final_assembly_size": 50,
+            "overlap_history": [
+              0.68,
+              0.98,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "mean_overlap": 0.9433333333333334
+          },
+          {
+            "trial_id": 1,
+            "config": {
+              "n_neurons": 10000,
+              "k_active": 50,
+              "p_connect": 0.05,
+              "beta": 0.1
+            },
+            "converged": true,
+            "convergence_step": 3,
+            "final_stability": 1.0,
+            "total_rounds": 7,
+            "final_assembly_size": 50,
+            "overlap_history": [
+              0.58,
+              0.94,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "mean_overlap": 0.9199999999999999
+          },
+          {
+            "trial_id": 2,
+            "config": {
+              "n_neurons": 10000,
+              "k_active": 50,
+              "p_connect": 0.05,
+              "beta": 0.1
+            },
+            "converged": true,
+            "convergence_step": 2,
+            "final_stability": 1.0,
+            "total_rounds": 6,
+            "final_assembly_size": 50,
+            "overlap_history": [
+              0.58,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "mean_overlap": 0.916
+          }
+        ]
+      },
+      {
+        "config": {
+          "n_neurons": 10000,
+          "k_active": 50,
+          "p_connect": 0.1,
+          "beta": 0.05
+        },
+        "n_trials": 3,
+        "successful_trials": 3,
+        "convergence_rate": 1.0,
+        "mean_convergence_step": 2.6666666666666665,
+        "mean_final_stability": 1.0,
+        "trial_details": [
+          {
+            "trial_id": 0,
+            "config": {
+              "n_neurons": 10000,
+              "k_active": 50,
+              "p_connect": 0.1,
+              "beta": 0.05
+            },
+            "converged": true,
+            "convergence_step": 3,
+            "final_stability": 1.0,
+            "total_rounds": 9,
+            "final_assembly_size": 50,
+            "overlap_history": [
+              0.52,
+              0.92,
+              1.0,
+              0.98,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "mean_overlap": 0.9275
+          },
+          {
+            "trial_id": 1,
+            "config": {
+              "n_neurons": 10000,
+              "k_active": 50,
+              "p_connect": 0.1,
+              "beta": 0.05
+            },
+            "converged": true,
+            "convergence_step": 3,
+            "final_stability": 1.0,
+            "total_rounds": 9,
+            "final_assembly_size": 50,
+            "overlap_history": [
+              0.62,
+              0.92,
+              0.96,
+              0.98,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "mean_overlap": 0.935
+          },
+          {
+            "trial_id": 2,
+            "config": {
+              "n_neurons": 10000,
+              "k_active": 50,
+              "p_connect": 0.1,
+              "beta": 0.05
+            },
+            "converged": true,
+            "convergence_step": 2,
+            "final_stability": 1.0,
+            "total_rounds": 9,
+            "final_assembly_size": 50,
+            "overlap_history": [
+              0.48,
+              0.98,
+              0.98,
+              0.98,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "mean_overlap": 0.9275
+          }
+        ]
+      },
+      {
+        "config": {
+          "n_neurons": 10000,
+          "k_active": 50,
+          "p_connect": 0.1,
+          "beta": 0.1
+        },
+        "n_trials": 3,
+        "successful_trials": 3,
+        "convergence_rate": 1.0,
+        "mean_convergence_step": 2.0,
+        "mean_final_stability": 1.0,
+        "trial_details": [
+          {
+            "trial_id": 0,
+            "config": {
+              "n_neurons": 10000,
+              "k_active": 50,
+              "p_connect": 0.1,
+              "beta": 0.1
+            },
+            "converged": true,
+            "convergence_step": 2,
+            "final_stability": 1.0,
+            "total_rounds": 6,
+            "final_assembly_size": 50,
+            "overlap_history": [
+              0.92,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "mean_overlap": 0.984
+          },
+          {
+            "trial_id": 1,
+            "config": {
+              "n_neurons": 10000,
+              "k_active": 50,
+              "p_connect": 0.1,
+              "beta": 0.1
+            },
+            "converged": true,
+            "convergence_step": 2,
+            "final_stability": 1.0,
+            "total_rounds": 8,
+            "final_assembly_size": 50,
+            "overlap_history": [
+              0.9,
+              1.0,
+              0.98,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "mean_overlap": 0.9828571428571429
+          },
+          {
+            "trial_id": 2,
+            "config": {
+              "n_neurons": 10000,
+              "k_active": 50,
+              "p_connect": 0.1,
+              "beta": 0.1
+            },
+            "converged": true,
+            "convergence_step": 2,
+            "final_stability": 1.0,
+            "total_rounds": 6,
+            "final_assembly_size": 50,
+            "overlap_history": [
+              0.92,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "mean_overlap": 0.984
+          }
+        ]
+      }
+    ]
+  },
+  "success": true,
+  "error_message": null,
+  "duration_seconds": 0.4743272999912733
+}

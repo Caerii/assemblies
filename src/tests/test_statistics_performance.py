@@ -9,8 +9,6 @@ engine can handle production workloads efficiently and reliably.
 
 import unittest
 import numpy as np
-import sys
-import os
 import time
 import gc
 import threading
@@ -23,10 +21,7 @@ try:
 except ImportError:
     PSUTIL_AVAILABLE = False
 
-# Add src to path for imports
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
-
-from math_primitives.statistics import StatisticalEngine
+from src.math_primitives.statistics import StatisticalEngine
 
 class TestStatisticsPerformance(unittest.TestCase):
     """

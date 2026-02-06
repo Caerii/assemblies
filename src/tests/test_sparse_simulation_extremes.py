@@ -16,14 +16,9 @@ Covers pathological and edge cases to ensure robustness:
 
 import unittest
 import numpy as np
-import sys
-import os
 from concurrent.futures import ThreadPoolExecutor
 
-# Add src to path for imports
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
-
-from math_primitives.sparse_simulation import SparseSimulationEngine
+from src.math_primitives.sparse_simulation import SparseSimulationEngine
 
 
 class TestSparseSimulationExtremes(unittest.TestCase):

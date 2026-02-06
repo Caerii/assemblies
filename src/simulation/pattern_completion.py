@@ -5,21 +5,16 @@ This module contains simulation functions for studying pattern completion,
 including basic pattern completion and parameter sweeps.
 """
 
-import sys
-import os
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
-
 try:
-    from core.brain import Brain
+    from src.core.brain import Brain
     import brain_util as bu
 except ImportError:
-    # Fallback for when running from root directory
-    sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
     import brain
     import brain_util as bu
     Brain = brain.Brain
 import random
 import copy
+import numpy as np
 
 def pattern_com(n=100000, k=317, p=0.05, beta=0.05, project_iter=10, alpha=0.5, comp_iter=1):
     """
@@ -47,7 +42,7 @@ def pattern_com(n=100000, k=317, p=0.05, beta=0.05, project_iter=10, alpha=0.5, 
     # pick random subset of the neurons to fire
     subsample_size = int(k*alpha)
     subsample = random.sample(list(b.areas["A"].winners), subsample_size)
-    b.areas["A"].winners = subsample
+    b.areas["A"].winners = np.array(subsample, dtype=np.uint32)
     for i in range(comp_iter):
         b.project({}, {"A": ["A"]})
     return b.areas["A"].saved_w, b.areas["A"].saved_winners
@@ -86,7 +81,7 @@ def pattern_com_repeated(n=100000, k=317, p=0.05, beta=0.05, project_iter=12, al
     for trail in range(trials):
         if resample:
             subsample = random.sample(list(b.areas["A"].winners), subsample_size)
-        b.areas["A"].winners = subsample
+        b.areas["A"].winners = np.array(subsample, dtype=np.uint32)
         rounds = 0
         while True:
             rounds += 1
@@ -128,8 +123,8 @@ def pattern_com_alphas(n=100000, k=317, p=0.01, beta=0.05,
         # pick random subset of the neurons to fire
         subsample_size = int(k*alpha)
         b_copy = copy.deepcopy(b)
-        subsample = random.sample(b_copy.areas["A"].winners, subsample_size)
-        b_copy.areas["A"].winners = subsample
+        subsample = random.sample(list(b_copy.areas["A"].winners), subsample_size)
+        b_copy.areas["A"].winners = np.array(subsample, dtype=np.uint32)
         for i in range(comp_iter):
             b_copy.project({}, {"A": ["A"]})
         final_winners = b_copy.areas["A"].winners
@@ -167,7 +162,7 @@ def pattern_com_iterations(n=100000, k=317, p=0.01, beta=0.05, alpha=0.4, comp_i
     for i in range(min_iter, max_iter+1):
         b.project({"stim": ["A"]}, {"A": ["A"]})
         b_copy = copy.deepcopy(b)
-        b_copy.areas["A"].winners = subsample
+        b_copy.areas["A"].winners = np.array(subsample, dtype=np.uint32)
         for j in range(comp_iter):
             b_copy.project({}, {"A": ["A"]})
         o = bu.overlap(b_copy.areas["A"].winners, b.areas["A"].winners)

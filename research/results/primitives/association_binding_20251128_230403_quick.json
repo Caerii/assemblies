@@ -1,0 +1,287 @@
+{
+  "experiment_name": "association_binding",
+  "timestamp": "2025-11-28T23:04:03.627505",
+  "parameters": {
+    "n_neurons_range": [
+      1000,
+      5000
+    ],
+    "k_active_range": [
+      50
+    ],
+    "p_connect_range": [
+      0.1
+    ],
+    "beta_range": [
+      0.1
+    ],
+    "n_trials": 3,
+    "seed": 42
+  },
+  "metrics": {
+    "total_configurations": 2,
+    "overall_success_rate": 1.0,
+    "mean_overlap_increase": 0.023333333333333317
+  },
+  "raw_data": {
+    "all_results": [
+      {
+        "config": {
+          "n_neurons": 1000,
+          "k_active": 50,
+          "p_connect": 0.1,
+          "beta": 0.1
+        },
+        "success_rate": 1.0,
+        "mean_overlap_increase": 0.03333333333333329,
+        "mean_final_overlap": 0.9666666666666667,
+        "trial_details": [
+          {
+            "trial_id": 0,
+            "config": {
+              "n_neurons": 1000,
+              "k_active": 50,
+              "p_connect": 0.1,
+              "beta": 0.1
+            },
+            "initial_overlap": 0.92,
+            "final_overlap": 0.96,
+            "overlap_increase": 0.039999999999999925,
+            "overlap_history": [
+              0.92,
+              0.96,
+              0.96,
+              0.96,
+              0.96,
+              0.96,
+              0.96,
+              0.96,
+              0.96,
+              0.96,
+              0.96,
+              0.96,
+              0.96,
+              0.96,
+              0.96,
+              0.96,
+              0.96,
+              0.96,
+              0.96,
+              0.96,
+              0.96
+            ],
+            "association_successful": true,
+            "assembly_a_size": 50,
+            "assembly_b_size": 50
+          },
+          {
+            "trial_id": 1,
+            "config": {
+              "n_neurons": 1000,
+              "k_active": 50,
+              "p_connect": 0.1,
+              "beta": 0.1
+            },
+            "initial_overlap": 0.92,
+            "final_overlap": 0.96,
+            "overlap_increase": 0.039999999999999925,
+            "overlap_history": [
+              0.92,
+              0.96,
+              0.96,
+              0.96,
+              0.96,
+              0.96,
+              0.96,
+              0.96,
+              0.96,
+              0.96,
+              0.96,
+              0.96,
+              0.96,
+              0.96,
+              0.96,
+              0.96,
+              0.96,
+              0.96,
+              0.96,
+              0.96,
+              0.96
+            ],
+            "association_successful": true,
+            "assembly_a_size": 50,
+            "assembly_b_size": 50
+          },
+          {
+            "trial_id": 2,
+            "config": {
+              "n_neurons": 1000,
+              "k_active": 50,
+              "p_connect": 0.1,
+              "beta": 0.1
+            },
+            "initial_overlap": 0.96,
+            "final_overlap": 0.98,
+            "overlap_increase": 0.020000000000000018,
+            "overlap_history": [
+              0.96,
+              0.98,
+              0.98,
+              0.98,
+              0.98,
+              0.98,
+              0.98,
+              0.98,
+              0.98,
+              0.98,
+              0.98,
+              0.98,
+              0.98,
+              0.98,
+              0.98,
+              0.98,
+              0.98,
+              0.98,
+              0.98,
+              0.98,
+              0.98
+            ],
+            "association_successful": true,
+            "assembly_a_size": 50,
+            "assembly_b_size": 50
+          }
+        ]
+      },
+      {
+        "config": {
+          "n_neurons": 5000,
+          "k_active": 50,
+          "p_connect": 0.1,
+          "beta": 0.1
+        },
+        "success_rate": 1.0,
+        "mean_overlap_increase": 0.013333333333333345,
+        "mean_final_overlap": 0.9866666666666667,
+        "trial_details": [
+          {
+            "trial_id": 0,
+            "config": {
+              "n_neurons": 5000,
+              "k_active": 50,
+              "p_connect": 0.1,
+              "beta": 0.1
+            },
+            "initial_overlap": 0.98,
+            "final_overlap": 0.99,
+            "overlap_increase": 0.010000000000000009,
+            "overlap_history": [
+              0.98,
+              0.99,
+              0.99,
+              0.99,
+              0.99,
+              0.99,
+              0.99,
+              0.99,
+              0.99,
+              0.99,
+              0.99,
+              0.99,
+              0.99,
+              0.99,
+              0.99,
+              0.99,
+              0.99,
+              0.99,
+              0.99,
+              0.99,
+              0.99
+            ],
+            "association_successful": true,
+            "assembly_a_size": 50,
+            "assembly_b_size": 50
+          },
+          {
+            "trial_id": 1,
+            "config": {
+              "n_neurons": 5000,
+              "k_active": 50,
+              "p_connect": 0.1,
+              "beta": 0.1
+            },
+            "initial_overlap": 1.0,
+            "final_overlap": 1.0,
+            "overlap_increase": 0.0,
+            "overlap_history": [
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "association_successful": true,
+            "assembly_a_size": 50,
+            "assembly_b_size": 50
+          },
+          {
+            "trial_id": 2,
+            "config": {
+              "n_neurons": 5000,
+              "k_active": 50,
+              "p_connect": 0.1,
+              "beta": 0.1
+            },
+            "initial_overlap": 0.94,
+            "final_overlap": 0.97,
+            "overlap_increase": 0.030000000000000027,
+            "overlap_history": [
+              0.94,
+              0.97,
+              0.97,
+              0.97,
+              0.97,
+              0.97,
+              0.97,
+              0.97,
+              0.97,
+              0.97,
+              0.97,
+              0.97,
+              0.97,
+              0.97,
+              0.97,
+              0.97,
+              0.97,
+              0.97,
+              0.97,
+              0.97,
+              0.97
+            ],
+            "association_successful": true,
+            "assembly_a_size": 50,
+            "assembly_b_size": 50
+          }
+        ]
+      }
+    ]
+  },
+  "success": true,
+  "error_message": null,
+  "duration_seconds": 0.7031081999884918
+}

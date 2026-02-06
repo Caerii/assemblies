@@ -8,9 +8,6 @@ including projection, merge, association, and pattern completion plots.
 import matplotlib.pyplot as plt
 import numpy as np
 from collections import OrderedDict
-import sys
-import os
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 
 import brain_util as bu
 
