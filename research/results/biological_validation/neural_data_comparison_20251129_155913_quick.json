@@ -1,0 +1,93 @@
+{
+  "experiment_name": "neural_data_comparison",
+  "timestamp": "2025-11-29T15:59:13.877386",
+  "parameters": {
+    "regions": [
+      "cortex",
+      "hippocampus",
+      "visual_cortex_v1"
+    ],
+    "n_trials": 3,
+    "seed": 42
+  },
+  "metrics": {
+    "regions_tested": 3,
+    "overall_sparsity_match": 1.0,
+    "overall_size_match": 1.0
+  },
+  "raw_data": {
+    "all_results": [
+      {
+        "region": "cortex",
+        "sparsity_match_rate": 1.0,
+        "size_match_rate": 1.0,
+        "mean_sparsity": 0.030002181976871045,
+        "mean_assembly_size": 275.0
+      },
+      {
+        "region": "hippocampus",
+        "sparsity_match_rate": 1.0,
+        "size_match_rate": 1.0,
+        "mean_sparsity": 0.02,
+        "mean_assembly_size": 125.0
+      },
+      {
+        "region": "visual_cortex_v1",
+        "sparsity_match_rate": 1.0,
+        "size_match_rate": 1.0,
+        "mean_sparsity": 0.060043668122270744,
+        "mean_assembly_size": 55.0
+      }
+    ],
+    "biological_data": {
+      "cortex": {
+        "sparsity_range": [
+          0.01,
+          0.05
+        ],
+        "assembly_size_range": [
+          50,
+          500
+        ],
+        "firing_rate_hz": [
+          0.1,
+          10
+        ],
+        "source": "Barth & Bhalla (2012), Harris (2005)"
+      },
+      "hippocampus": {
+        "sparsity_range": [
+          0.01,
+          0.03
+        ],
+        "assembly_size_range": [
+          50,
+          200
+        ],
+        "firing_rate_hz": [
+          0.5,
+          5
+        ],
+        "source": "Buzsaki (2010), place cell recordings"
+      },
+      "visual_cortex_v1": {
+        "sparsity_range": [
+          0.02,
+          0.1
+        ],
+        "assembly_size_range": [
+          10,
+          100
+        ],
+        "firing_rate_hz": [
+          1,
+          20
+        ],
+        "source": "Olshausen & Field (1996), sparse coding"
+      }
+    }
+  },
+  "success": true,
+  "error_message": null,
+  "duration_seconds": 1.3277312999998685
+}

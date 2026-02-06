@@ -1,0 +1,90 @@
+{
+  "experiment_name": "merge_composition",
+  "timestamp": "2025-11-28T23:05:03.476135",
+  "parameters": {
+    "n_neurons_range": [
+      1000,
+      5000
+    ],
+    "k_active_range": [
+      50
+    ],
+    "p_connect_range": [
+      0.1
+    ],
+    "beta_range": [
+      0.1
+    ],
+    "n_trials": 3,
+    "seed": 42
+  },
+  "metrics": {
+    "total_configurations": 2,
+    "overall_success_rate": 0.0,
+    "mean_merge_quality": 0.0,
+    "mean_composition_score": 0.0
+  },
+  "raw_data": {
+    "all_results": [
+      {
+        "config": {
+          "n_neurons": 1000,
+          "k_active": 50,
+          "p_connect": 0.1,
+          "beta": 0.1
+        },
+        "success_rate": 0.0,
+        "mean_merge_quality": 0.0,
+        "mean_composition_score": 0.0,
+        "trial_details": [
+          {
+            "trial_id": 0,
+            "error": "operands could not be broadcast together with shapes (0,) (70,) (0,) ",
+            "merge_successful": false
+          },
+          {
+            "trial_id": 1,
+            "error": "operands could not be broadcast together with shapes (0,) (72,) (0,) ",
+            "merge_successful": false
+          },
+          {
+            "trial_id": 2,
+            "error": "operands could not be broadcast together with shapes (0,) (81,) (0,) ",
+            "merge_successful": false
+          }
+        ]
+      },
+      {
+        "config": {
+          "n_neurons": 5000,
+          "k_active": 50,
+          "p_connect": 0.1,
+          "beta": 0.1
+        },
+        "success_rate": 0.0,
+        "mean_merge_quality": 0.0,
+        "mean_composition_score": 0.0,
+        "trial_details": [
+          {
+            "trial_id": 0,
+            "error": "operands could not be broadcast together with shapes (0,) (55,) (0,) ",
+            "merge_successful": false
+          },
+          {
+            "trial_id": 1,
+            "error": "operands could not be broadcast together with shapes (0,) (56,) (0,) ",
+            "merge_successful": false
+          },
+          {
+            "trial_id": 2,
+            "error": "operands could not be broadcast together with shapes (0,) (58,) (0,) ",
+            "merge_successful": false
+          }
+        ]
+      }
+    ]
+  },
+  "success": true,
+  "error_message": null,
+  "duration_seconds": 0.37130910000996664
+}

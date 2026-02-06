@@ -1,0 +1,37 @@
+{
+  "timestamp": "2025-11-28T23:12:37.543603",
+  "experiments": {
+    "projection": {
+      "status": "PASS",
+      "convergence_rate": 1.0,
+      "mean_steps": 2.375
+    },
+    "association": {
+      "status": "PASS",
+      "success_rate": 1.0
+    },
+    "merge": {
+      "status": "PASS",
+      "success_rate": 1.0,
+      "merge_quality": 0.8733333333333333
+    },
+    "scaling_laws": {
+      "status": "PASS",
+      "scaling_type": "O(log N) - Logarithmic",
+      "r_squared": 0.9886621919696946
+    },
+    "noise_robustness": {
+      "status": "PASS",
+      "max_recoverable_noise": 1.0
+    },
+    "coding_capacity": {
+      "status": "PASS",
+      "best_efficiency": 0.28228387045976705
+    },
+    "biological": {
+      "status": "PASS",
+      "validity_rate": 1.0
+    }
+  },
+  "overall_status": "PASS"
+}

@@ -57,6 +57,19 @@ build/
 *.swo
 *~
 
+# Virtual environments
+.venv/
+venv/
+
+# Package lock files
+uv.lock
+
+# Testing/cache
+.pytest_cache/
+
+# Windows artifacts
+nul
+
 # OS artifacts
 .DS_Store
 Thumbs.db

@@ -1,0 +1,35 @@
+{
+  "experiment_name": "language_syntax",
+  "timestamp": "2025-11-29T15:58:11.731374",
+  "parameters": {
+    "n_trials": 2,
+    "seed": 42
+  },
+  "metrics": {
+    "total_sentences": 3,
+    "overall_success_rate": 1.0,
+    "mean_word_overlap": 0.03333333333333333
+  },
+  "raw_data": {
+    "all_results": [
+      {
+        "sentence": "the dog chased the cat",
+        "success_rate": 1.0,
+        "word_overlap": 0.03333333333333333
+      },
+      {
+        "sentence": "a big bird flew",
+        "success_rate": 1.0,
+        "word_overlap": 0.026666666666666665
+      },
+      {
+        "sentence": "cats sleep",
+        "success_rate": 1.0,
+        "word_overlap": 0.04
+      }
+    ]
+  },
+  "success": true,
+  "error_message": null,
+  "duration_seconds": 1.2588770000147633
+}

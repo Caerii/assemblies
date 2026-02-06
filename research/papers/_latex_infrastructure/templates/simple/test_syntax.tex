@@ -1,0 +1,29 @@
+% Simple syntax test - minimal LaTeX document
+% This tests if the preamble files are syntactically correct
+
+\documentclass[border=2pt]{standalone}
+
+% Test standard preamble
+\input{../../../_latex_infrastructure/preambles/standard_preamble.tex}
+
+% Test neuroscience preamble  
+\input{../../../_latex_infrastructure/preambles/neuroscience_preamble.tex}
+
+\begin{document}
+
+% Test basic math
+\[
+    E = mc^2
+\]
+
+% Test neuroscience notation
+\[
+    \assembly{i} = \TopK\left(\sum_{j} w_{ij} \cdot \activation{j}{t}, \kactive\right)
+\]
+
+% Test custom commands
+\[
+    \bigO(N \log K) \quad \text{complexity}
+\]
+
+\end{document}
