@@ -27,8 +27,7 @@ from scipy import stats
 from research.experiments.base import (
     ExperimentBase, 
     ExperimentResult, 
-    measure_overlap,
-    convergence_metric
+    measure_overlap
 )
 
 import brain as brain_module
@@ -139,7 +138,7 @@ class ScalingLawsExperiment(ExperimentBase):
             # Span 3 orders of magnitude
             n_neurons_range = [100, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000]
         
-        self.log(f"Starting scaling laws experiment")
+        self.log("Starting scaling laws experiment")
         self.log(f"  n_neurons: {n_neurons_range}")
         self.log(f"  fixed_sparsity: {fixed_sparsity}")
         self.log(f"  p_connect: {p_connect}")
@@ -191,7 +190,7 @@ class ScalingLawsExperiment(ExperimentBase):
         }
         
         self.log(f"\n{'='*60}")
-        self.log(f"SCALING LAWS SUMMARY:")
+        self.log("SCALING LAWS SUMMARY:")
         self.log(f"  Scaling exponent (vs log N): {scaling_analysis.get('exponent_log_n', 'N/A'):.3f}")
         self.log(f"  R-squared: {scaling_analysis.get('r_squared', 'N/A'):.3f}")
         self.log(f"  Scaling type: {scaling_analysis.get('scaling_type', 'N/A')}")

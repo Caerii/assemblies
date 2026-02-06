@@ -21,7 +21,7 @@ project_root = Path(__file__).parent.parent.parent.parent
 sys.path.insert(0, str(project_root))
 
 import numpy as np
-from typing import Dict, List, Any, Tuple
+from typing import Dict, List, Any
 from dataclasses import dataclass
 
 from research.experiments.base import (
@@ -166,7 +166,7 @@ class ProjectionConvergenceExperiment(ExperimentBase):
         if beta_range is None:
             beta_range = [0.05, 0.1, 0.2]
         
-        self.log(f"Starting projection convergence experiment")
+        self.log("Starting projection convergence experiment")
         self.log(f"  n_neurons: {n_neurons_range}")
         self.log(f"  k_active: {k_active_range}")
         self.log(f"  p_connect: {p_connect_range}")
@@ -249,7 +249,7 @@ class ProjectionConvergenceExperiment(ExperimentBase):
         }
         
         self.log(f"\n{'='*60}")
-        self.log(f"SUMMARY:")
+        self.log("SUMMARY:")
         self.log(f"  Total configurations: {summary['total_configurations']}")
         self.log(f"  Successful configs: {summary['successful_configurations']}")
         self.log(f"  Overall convergence rate: {summary['overall_convergence_rate']:.2%}")

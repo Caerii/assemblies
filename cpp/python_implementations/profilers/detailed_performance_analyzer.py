@@ -44,9 +44,9 @@ class DetailedPerformanceAnalyzer:
         self.n_areas = n_areas
         self.seed = seed
         
-        print(f"🔍 DETAILED PERFORMANCE ANALYSIS")
+        print("🔍 DETAILED PERFORMANCE ANALYSIS")
         print("=" * 80)
-        print(f"🧠 Brain Configuration:")
+        print("🧠 Brain Configuration:")
         print(f"   Total Neurons: {n_neurons:,}")
         print(f"   Active Percentage: {active_percentage*100:.4f}%")
         print(f"   Active Neurons: {self.k_active:,}")
@@ -85,7 +85,7 @@ class DetailedPerformanceAnalyzer:
     
     def print_memory_analysis(self):
         """Print detailed memory analysis"""
-        print(f"\n💾 MEMORY ANALYSIS:")
+        print("\n💾 MEMORY ANALYSIS:")
         print(f"   Per Area Memory: {self.theoretical_memory['per_area_gb']:.6f} GB")
         print(f"   Total Core Memory: {self.theoretical_memory['total_gb']:.6f} GB")
         print(f"   Candidates Buffer: {self.theoretical_memory['candidates_gb']:.6f} GB")
@@ -100,7 +100,7 @@ class DetailedPerformanceAnalyzer:
     
     def _initialize_brain(self):
         """Initialize the brain with detailed monitoring"""
-        print(f"\n🚀 INITIALIZING BRAIN:")
+        print("\n🚀 INITIALIZING BRAIN:")
         
         # Get initial memory
         initial_cpu_memory = get_memory_usage()
@@ -192,7 +192,7 @@ class DetailedPerformanceAnalyzer:
         max_step_time = np.max(step_times)
         std_step_time = np.std(step_times)
         
-        print(f"\n📊 PERFORMANCE STATISTICS:")
+        print("\n📊 PERFORMANCE STATISTICS:")
         print(f"   Total Time: {total_time:.3f}s")
         print(f"   Average Step Time: {avg_step_time*1000:.2f}ms")
         print(f"   Min Step Time: {min_step_time*1000:.2f}ms")
@@ -202,7 +202,7 @@ class DetailedPerformanceAnalyzer:
         print(f"   Neurons per Second: {self.n_neurons / avg_step_time:,.0f}")
         print(f"   Active per Second: {self.k_active * self.n_areas / avg_step_time:,.0f}")
         
-        print(f"\n💾 MEMORY USAGE:")
+        print("\n💾 MEMORY USAGE:")
         print(f"   CPU Memory Change: {final_cpu_memory - initial_cpu_memory:.3f} GB")
         if initial_gpu_memory and final_gpu_memory:
             print(f"   GPU Memory Change: {final_gpu_memory['used_gb'] - initial_gpu_memory['used_gb']:.3f} GB")
@@ -307,7 +307,7 @@ def test_detailed_performance():
     
     # Summary
     print(f"\n{'='*80}")
-    print(f"📊 DETAILED PERFORMANCE SUMMARY")
+    print("📊 DETAILED PERFORMANCE SUMMARY")
     print(f"{'='*80}")
     print(f"{'Scale':<25} {'Neurons':<15} {'Active%':<8} {'Steps/sec':<10} {'ms/step':<10} {'Neurons/sec':<15} {'Active/sec':<15} {'Mem Eff%':<10}")
     print("-" * 80)
@@ -335,4 +335,4 @@ if __name__ == "__main__":
         print(f"   Active/sec: {best['active_neurons_per_second']:,.0f}")
         print(f"   Memory Efficiency: {best['memory_efficiency']:.1f}%")
     else:
-        print(f"\n❌ No successful tests")
+        print("\n❌ No successful tests")

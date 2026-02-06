@@ -13,7 +13,6 @@ except ImportError:
     print("Warning: C++ brain not available, falling back to Python implementation")
     from src.core.brain import Brain as BrainCPP
 
-import copy
 import time
 
 
@@ -159,7 +158,6 @@ def benchmark_comparison(n=100000, k=317, p=0.05, beta=0.1, overlap_iter=3):
     # Test Python implementation
     print("Benchmarking Python implementation...")
     try:
-        from src.core.brain import Brain
         from src.simulation.association_simulator import associate
         
         start_time = time.time()

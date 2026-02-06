@@ -11,8 +11,8 @@ This allows NEMO to learn new words from context,
 without explicit grounding being provided.
 """
 
-from typing import List, Optional, Dict, TYPE_CHECKING
-from ..params import GroundingContext, GroundingModality
+from typing import List, Optional, TYPE_CHECKING
+from ..params import GroundingContext
 
 if TYPE_CHECKING:
     from ..learner import EmergentLanguageLearner

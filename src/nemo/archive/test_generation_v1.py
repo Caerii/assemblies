@@ -3,7 +3,6 @@
 import sys
 sys.path.insert(0, '.')
 
-import numpy as np
 import time
 import torch
 from hierarchical_fast import FastHierarchicalBrain, FastParams, WordOrder

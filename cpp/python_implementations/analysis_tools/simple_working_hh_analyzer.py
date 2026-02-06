@@ -183,9 +183,9 @@ class SimpleWorkingHHAnalyzer:
         np.random.seed(seed)
         cp.random.seed(seed)
         
-        print(f"🧠 Simple Working Hodgkin-Huxley Analysis")
+        print("🧠 Simple Working Hodgkin-Huxley Analysis")
         print(f"   Neurons: {n_neurons:,}")
-        print(f"   Testing with proper stimulation currents")
+        print("   Testing with proper stimulation currents")
     
     def test_voltage_monitoring(self, dt_ms=0.01, n_steps=1000):
         """Test voltage monitoring capabilities"""

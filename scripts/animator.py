@@ -3,7 +3,7 @@ import re
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation, PillowWriter
-from sklearn.metrics import ConfusionMatrixDisplay, accuracy_score, classification_report
+from sklearn.metrics import ConfusionMatrixDisplay
 
 LOW_LEVEL = "LOW_LEVEL"
 MID_LEVEL = "MID_LEVEL"

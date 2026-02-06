@@ -9,9 +9,8 @@ neurotransmitter systems.
 """
 
 import numpy as np
-import matplotlib.pyplot as plt
 import time
-from typing import Dict, List, Tuple
+from typing import Dict, Tuple
 import json
 
 def simulate_oscillation_band(frequency: float, amplitude: float, duration: float, 
@@ -309,12 +308,12 @@ def main():
         print(f"   Real-time Capable: {'✅' if performance['real_time_capable'] else '❌'}")
         
         # Print oscillation summary
-        print(f"   Oscillation Bands:")
+        print("   Oscillation Bands:")
         for band_name, band_data in brain_data["oscillations"].items():
             print(f"     {band_name}: {band_data['frequency']:.1f} Hz, {band_data['neurons']:,} neurons")
         
         # Print neurotransmitter summary
-        print(f"   Neurotransmitter Levels:")
+        print("   Neurotransmitter Levels:")
         for transmitter, data in brain_data["neurotransmitters"].items():
             print(f"     {transmitter}: {data['baseline']:.1f}")
     
@@ -349,7 +348,7 @@ def main():
     print(f"   Real-time Capable States: {real_time_capable}/{len(brain_states)}")
     
     # Frequency band analysis
-    print(f"\n   Frequency Band Coverage:")
+    print("\n   Frequency Band Coverage:")
     all_frequencies = []
     for state in brain_states:
         for band_data in results[state]["brain_data"]["oscillations"].values():
@@ -362,7 +361,7 @@ def main():
     print(f"     Gamma (30-100 Hz): {sum(1 for f in all_frequencies if 30 < f <= 100)} bands")
     
     # Neurotransmitter analysis
-    print(f"\n   Neurotransmitter Systems:")
+    print("\n   Neurotransmitter Systems:")
     all_transmitters = set()
     for state in brain_states:
         all_transmitters.update(results[state]["brain_data"]["neurotransmitters"].keys())
@@ -370,7 +369,7 @@ def main():
     for transmitter in sorted(all_transmitters):
         print(f"     {transmitter}: ✅ Simulated")
     
-    print(f"\n🎉 CONCLUSION")
+    print("\n🎉 CONCLUSION")
     print("=" * 60)
     print("   ✅ All major frequency bands (Delta, Theta, Alpha, Beta, Gamma)")
     print("   ✅ All major neurotransmitter systems (GABA, Glutamate, Dopamine, ACh, 5-HT)")

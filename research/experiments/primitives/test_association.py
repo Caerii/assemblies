@@ -28,7 +28,6 @@ from research.experiments.base import (
     ExperimentBase, 
     ExperimentResult, 
     measure_overlap,
-    measure_jaccard,
 )
 
 import brain as brain_module
@@ -110,19 +109,19 @@ class AssociationBindingExperiment(ExperimentBase):
         b.add_area("AREA_C", config.n_neurons, config.k_active, config.beta)
         
         # Phase 1: Establish assembly in AREA_A
-        self.log(f"    Establishing assembly A...")
+        self.log("    Establishing assembly A...")
         for _ in range(config.n_projection_rounds):
             b.project(areas_by_stim={"STIM_A": ["AREA_A"]}, dst_areas_by_src_area={})
         assembly_a = np.array(b.area_by_name["AREA_A"].winners, dtype=np.uint32)
         
         # Phase 2: Establish assembly in AREA_B
-        self.log(f"    Establishing assembly B...")
+        self.log("    Establishing assembly B...")
         for _ in range(config.n_projection_rounds):
             b.project(areas_by_stim={"STIM_B": ["AREA_B"]}, dst_areas_by_src_area={})
         assembly_b = np.array(b.area_by_name["AREA_B"].winners, dtype=np.uint32)
         
         # Phase 3: Project A alone to C, record assembly
-        self.log(f"    Projecting A -> C...")
+        self.log("    Projecting A -> C...")
         for _ in range(config.n_projection_rounds):
             b.project(
                 areas_by_stim={},
@@ -216,7 +215,7 @@ class AssociationBindingExperiment(ExperimentBase):
         if beta_range is None:
             beta_range = [0.05, 0.1]
         
-        self.log(f"Starting association binding experiment")
+        self.log("Starting association binding experiment")
         self.log(f"  n_neurons: {n_neurons_range}")
         self.log(f"  k_active: {k_active_range}")
         
@@ -284,7 +283,7 @@ class AssociationBindingExperiment(ExperimentBase):
         }
         
         self.log(f"\n{'='*60}")
-        self.log(f"SUMMARY:")
+        self.log("SUMMARY:")
         self.log(f"  Overall success rate: {summary['overall_success_rate']:.2%}")
         self.log(f"  Mean overlap increase: {summary['mean_overlap_increase']:.3f}")
         self.log(f"  Duration: {duration:.1f}s")

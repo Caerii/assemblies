@@ -17,14 +17,14 @@ def test_basic_interaction():
     
     # Test statement learning (use words likely in curriculum)
     response = nemo.interact("the dog runs")
-    print(f"Input: 'the dog runs'")
+    print("Input: 'the dog runs'")
     print(f"Response: '{response}'")
     # Valid responses: learned something, ok, or asking about unknown word
     assert "learned" in response.lower() or "ok" in response.lower() or "what is" in response.lower()
     
     # Test question answering
     response = nemo.interact("who runs")
-    print(f"Input: 'who runs'")
+    print("Input: 'who runs'")
     print(f"Response: '{response}'")
     assert "dog" in response.lower()
     
@@ -40,13 +40,13 @@ def test_self_queries():
     
     # Test vocabulary count
     response = nemo.interact("how many words do you know")
-    print(f"Input: 'how many words do you know'")
+    print("Input: 'how many words do you know'")
     print(f"Response: '{response}'")
     assert "words" in response.lower()
     
     # Test knowledge report
     response = nemo.interact("what do you know")
-    print(f"Input: 'what do you know'")
+    print("Input: 'what do you know'")
     print(f"Response: '{response}'")
     assert "know" in response.lower() or "noun" in response.lower()
     
@@ -62,7 +62,7 @@ def test_unknown_word_detection():
     
     # Introduce unknown word
     response = nemo.interact("the giraffe eats leaves")
-    print(f"Input: 'the giraffe eats leaves'")
+    print("Input: 'the giraffe eats leaves'")
     print(f"Response: '{response}'")
     
     # Should ask about unknown word or acknowledge learning
@@ -91,7 +91,7 @@ def test_teaching():
     
     # Use it in a sentence
     response = nemo.interact("the elephant runs")
-    print(f"Input: 'the elephant runs'")
+    print("Input: 'the elephant runs'")
     print(f"Response: '{response}'")
     
     print("✓ Teaching works")
@@ -164,7 +164,7 @@ def test_performance():
     start = time.time()
     
     for i in range(n_interactions):
-        nemo.interact(f"the dog runs fast")
+        nemo.interact("the dog runs fast")
         nemo.interact("what does the dog do")
     
     elapsed = time.time() - start

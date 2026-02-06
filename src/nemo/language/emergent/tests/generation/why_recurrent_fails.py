@@ -18,7 +18,6 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirna
 
 from src.nemo.language.emergent.brain import EmergentNemoBrain
 from src.nemo.language.emergent.areas import Area
-from src.nemo.language.emergent.params import EmergentParams
 
 
 def compute_overlap(a1, a2, k):
@@ -59,7 +58,7 @@ def analyze_weight_structure():
         words[name] = (area, brain.current[area].copy())
     
     print("\n1. Before learning any episodes:")
-    print(f"   (Weights are implicit/hash-based + learned deltas)")
+    print("   (Weights are implicit/hash-based + learned deltas)")
     
     # Learn "dog runs"
     print("\n2. Learning 'dog runs'...")
@@ -84,7 +83,7 @@ def analyze_weight_structure():
         # Reverse
         brain._project(Area.NOUN_CORE, brain.current[CA3], learn=True)
     
-    print(f"   (Learned weights accumulated)")
+    print("   (Learned weights accumulated)")
     
     # Learn "cat sleeps"
     print("\n3. Learning 'cat sleeps'...")
@@ -107,7 +106,7 @@ def analyze_weight_structure():
         
         brain._project(Area.NOUN_CORE, brain.current[CA3], learn=True)
     
-    print(f"   (More learned weights accumulated)")
+    print("   (More learned weights accumulated)")
     
     # Check overlap of CA3 patterns
     print("\n4. CA3 pattern analysis:")
@@ -126,7 +125,7 @@ def analyze_weight_structure():
     dog_overlap = compute_overlap(retrieved_from_dog_runs, words['dog'][1], k)
     cat_overlap = compute_overlap(retrieved_from_dog_runs, words['cat'][1], k)
     
-    print(f"\n   From CA3[dog_runs]:")
+    print("\n   From CA3[dog_runs]:")
     print(f"     → dog: {dog_overlap:.3f}")
     print(f"     → cat: {cat_overlap:.3f}")
     print(f"     Correct? {dog_overlap > cat_overlap}")
@@ -139,7 +138,7 @@ def analyze_weight_structure():
     dog_overlap = compute_overlap(retrieved_from_cat_sleeps, words['dog'][1], k)
     cat_overlap = compute_overlap(retrieved_from_cat_sleeps, words['cat'][1], k)
     
-    print(f"\n   From CA3[cat_sleeps]:")
+    print("\n   From CA3[cat_sleeps]:")
     print(f"     → dog: {dog_overlap:.3f}")
     print(f"     → cat: {cat_overlap:.3f}")
     print(f"     Correct? {cat_overlap > dog_overlap}")
@@ -276,7 +275,7 @@ def test_true_hopfield():
     dog_runs = np.clip(dog + runs, 0, 1)  # OR combination
     cat_sleeps = np.clip(cat + sleeps, 0, 1)
     
-    print(f"\n1. Pattern statistics:")
+    print("\n1. Pattern statistics:")
     print(f"   dog_runs active neurons: {dog_runs.sum()}")
     print(f"   cat_sleeps active neurons: {cat_sleeps.sum()}")
     print(f"   Overlap: {(dog_runs * cat_sleeps).sum()}")
@@ -291,7 +290,7 @@ def test_true_hopfield():
     W += np.outer(cat_sleeps, cat_sleeps)
     np.fill_diagonal(W, 0)  # No self-connections
     
-    print(f"\n2. Weight matrix:")
+    print("\n2. Weight matrix:")
     print(f"   Non-zero weights: {(W != 0).sum()}")
     print(f"   Weight range: [{W.min():.2f}, {W.max():.2f}]")
     
@@ -313,10 +312,10 @@ def test_true_hopfield():
         return x
     
     # Test retrieval
-    print(f"\n3. Testing retrieval:")
+    print("\n3. Testing retrieval:")
     
     # Query with "runs" only
-    print(f"\n   Query: 'runs' pattern")
+    print("\n   Query: 'runs' pattern")
     retrieved = hopfield_retrieve(W, runs, k_active=150, steps=50)
     
     dog_overlap = (retrieved * dog).sum() / dog.sum()
@@ -324,7 +323,7 @@ def test_true_hopfield():
     runs_overlap = (retrieved * runs).sum() / runs.sum()
     sleeps_overlap = (retrieved * sleeps).sum() / sleeps.sum()
     
-    print(f"   Retrieved overlaps:")
+    print("   Retrieved overlaps:")
     print(f"     dog: {dog_overlap:.3f}")
     print(f"     cat: {cat_overlap:.3f}")
     print(f"     runs: {runs_overlap:.3f}")
@@ -332,13 +331,13 @@ def test_true_hopfield():
     print(f"   'dog' > 'cat'? {'YES ✓' if dog_overlap > cat_overlap else 'NO ✗'}")
     
     # Query with "sleeps" only
-    print(f"\n   Query: 'sleeps' pattern")
+    print("\n   Query: 'sleeps' pattern")
     retrieved = hopfield_retrieve(W, sleeps, k_active=150, steps=50)
     
     dog_overlap = (retrieved * dog).sum() / dog.sum()
     cat_overlap = (retrieved * cat).sum() / cat.sum()
     
-    print(f"   Retrieved overlaps:")
+    print("   Retrieved overlaps:")
     print(f"     dog: {dog_overlap:.3f}")
     print(f"     cat: {cat_overlap:.3f}")
     print(f"   'cat' > 'dog'? {'YES ✓' if cat_overlap > dog_overlap else 'NO ✗'}")

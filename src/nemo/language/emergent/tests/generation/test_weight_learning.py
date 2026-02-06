@@ -185,7 +185,7 @@ def test_nemo_with_recurrent():
     W = (np.random.rand(n, n) < 0.1).astype(float)
     np.fill_diagonal(W, 0)
     
-    print(f"\n   Learning with recurrent projection...")
+    print("\n   Learning with recurrent projection...")
     
     for ep in range(50):
         for i, p in enumerate(patterns):

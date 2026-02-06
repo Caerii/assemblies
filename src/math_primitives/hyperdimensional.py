@@ -8,10 +8,7 @@ strategy that preserves the count information.
 """
 
 import numpy as np
-from typing import List, Tuple, Optional, Union, Dict, Any
-from scipy.spatial.distance import cosine
-from .neural_computation import NeuralComputationEngine
-from .statistics import StatisticalEngine
+from typing import List, Dict, Any
 
 class FinalFixedHyperdimensionalAssembly:
     """

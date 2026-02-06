@@ -7,7 +7,6 @@ for speed, learning quality, and real-time capability.
 """
 
 import time
-import sys
 
 
 def run_tests():
@@ -48,7 +47,7 @@ def run_tests():
 
     vocab = learner.get_vocabulary_by_category()
     print(f'  Vocabulary: {len(learner.word_count)} words')
-    print(f'  Categories emerged:')
+    print('  Categories emerged:')
     for cat, words in sorted(vocab.items()):
         sample = list(words)[:5]
         print(f'    {cat}: {len(words)} words - {sample}...')

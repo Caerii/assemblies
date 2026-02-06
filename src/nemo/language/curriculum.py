@@ -24,7 +24,7 @@ Scientific Value:
 """
 
 import numpy as np
-from typing import List, Dict, Tuple, Optional, Callable
+from typing import List, Dict, Tuple
 from dataclasses import dataclass, field
 from enum import Enum, auto
 from collections import defaultdict

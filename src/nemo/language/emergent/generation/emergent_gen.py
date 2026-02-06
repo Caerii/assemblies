@@ -14,8 +14,7 @@ The response EMERGES from:
 This is what NEMO-style generation should look like.
 """
 
-from typing import List, Tuple, Optional, Dict, TYPE_CHECKING
-import cupy as cp
+from typing import List, Dict, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from ..learner import EmergentLanguageLearner
@@ -246,7 +245,7 @@ class TrueEmergentGenerator:
             else:
                 return f"yes {subject} {verb}"
         else:
-            return f"no i have not learned that"
+            return "no i have not learned that"
     
     def _generate_default_response(self, encoded: Dict) -> str:
         """Generate default response for statements."""

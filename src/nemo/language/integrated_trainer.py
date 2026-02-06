@@ -24,29 +24,23 @@ if _src_dir not in sys.path:
 
 import numpy as np
 import time
-from typing import Dict, List, Tuple, Optional, Set
-from dataclasses import dataclass, field
-from collections import defaultdict
+from typing import List, Set
+from dataclasses import dataclass
 
 # Import NEMO learner
 from src.nemo.language.nemo_learner import (
-    NemoLanguageLearner, NemoBrain, NemoParams,
-    GroundedContext, GroundingType, SpeechAct, Area
+    NemoLanguageLearner, NemoParams,
+    GroundedContext
 )
 
 # Import lexicon
 from lexicon.build_lexicon import build_lexicon
-from lexicon.lexicon_manager import LexiconManager, Word, WordCategory, SemanticDomain
 
 # Import curriculum
-from lexicon.curriculum.grounded_training import (
-    GroundedCorpus, GroundedUtterance, GroundedContext as LexiconContext,
-    create_stage1_corpus, create_stage2_corpus
-)
-from lexicon.curriculum.stage1_first_words import STAGE1_CORPUS, STAGE1_VOCABULARY
-from lexicon.curriculum.stage2_vocabulary_spurt import STAGE2_CORPUS, STAGE2_VOCABULARY
-from lexicon.curriculum.stage3_two_word import STAGE3_CORPUS, STAGE3_VOCABULARY
-from lexicon.curriculum.stage4_sentences import STAGE4_CORPUS, STAGE4_VOCABULARY
+from lexicon.curriculum.stage1_first_words import STAGE1_CORPUS
+from lexicon.curriculum.stage2_vocabulary_spurt import STAGE2_CORPUS
+from lexicon.curriculum.stage3_two_word import STAGE3_CORPUS
+from lexicon.curriculum.stage4_sentences import STAGE4_CORPUS
 
 
 @dataclass
@@ -316,7 +310,7 @@ class IntegratedNemoTrainer:
         stats.word_order_correct = word_order == ['SUBJ', 'VERB', 'OBJ'] or word_order == ['SUBJ', 'VERB']
         
         if self.verbose:
-            print(f"\nEvaluation:")
+            print("\nEvaluation:")
             print(f"  Sentences seen: {stats.sentences_seen}")
             print(f"  Words learned: {stats.words_learned}")
             print(f"  Noun accuracy: {stats.noun_accuracy:.1%}")

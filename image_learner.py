@@ -1,12 +1,9 @@
 import torch
 import torchvision.transforms as transforms
 import torchvision.datasets as datasets
-from torchvision.models import resnet18, ResNet18_Weights
 import numpy as np
 import time
-import re # regex for animation file names
-from sklearn.metrics import classification_report, accuracy_score, ConfusionMatrixDisplay
-import matplotlib.pyplot as plt
+from sklearn.metrics import classification_report, accuracy_score
 from scripts.animator import Animator
 
 import brain
@@ -661,9 +658,9 @@ class CIFAR10Brain:
         print("[DEBUG] Reinforcement stats:")
         print(f"  True label: {true_class_name}, Predicted label: {predicted_label}")
         print(f"  Reinforced CLASS_AREA assembly for class {true_class_name}.")
-        print(f"  Reinforced connections from HIGH_LEVEL to CLASS_AREA.")
-        print(f"  Reinforced connections from MID_LEVEL to HIGH_LEVEL.")
-        print(f"  Reinforced connections from LOW_LEVEL to MID_LEVEL.")
+        print("  Reinforced connections from HIGH_LEVEL to CLASS_AREA.")
+        print("  Reinforced connections from MID_LEVEL to HIGH_LEVEL.")
+        print("  Reinforced connections from LOW_LEVEL to MID_LEVEL.")
 
 # Evaluator
 class CIFAR10Evaluator:

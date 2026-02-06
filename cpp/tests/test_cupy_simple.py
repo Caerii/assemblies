@@ -54,14 +54,14 @@ def test_cupy_basic():
         gen_speedup = cpu_gen_time / gen_time
         sel_speedup = cpu_sel_time / sel_time
         
-        print(f"\n📊 CUPY SPEEDUP RESULTS:")
+        print("\n📊 CUPY SPEEDUP RESULTS:")
         print(f"   Random generation: {gen_speedup:.2f}x faster")
         print(f"   Top-k selection: {sel_speedup:.2f}x faster")
         
         if gen_speedup > 1.5 or sel_speedup > 1.5:
-            print(f"   🚀 CuPy is providing significant GPU acceleration!")
+            print("   🚀 CuPy is providing significant GPU acceleration!")
         else:
-            print(f"   ⚠️  CuPy speedup is minimal - may need larger arrays")
+            print("   ⚠️  CuPy speedup is minimal - may need larger arrays")
         
         return True, gen_speedup, sel_speedup
         
@@ -74,7 +74,7 @@ def test_cupy_basic():
 
 def test_cupy_large_scale():
     """Test CuPy with large-scale operations"""
-    print(f"\n🚀 TESTING CUPY LARGE SCALE")
+    print("\n🚀 TESTING CUPY LARGE SCALE")
     print("=" * 50)
     
     try:
@@ -105,11 +105,11 @@ def test_cupy_large_scale():
             print(f"   Speedup: {speedup:.2f}x")
             
             if speedup > 2.0:
-                print(f"   🚀 Excellent GPU acceleration!")
+                print("   🚀 Excellent GPU acceleration!")
             elif speedup > 1.5:
-                print(f"   ⚡ Good GPU acceleration!")
+                print("   ⚡ Good GPU acceleration!")
             else:
-                print(f"   ⚠️  Minimal GPU acceleration")
+                print("   ⚠️  Minimal GPU acceleration")
         
         return True
         
@@ -127,12 +127,12 @@ if __name__ == "__main__":
             large_success = test_cupy_large_scale()
             
             if large_success:
-                print(f"\n🎉 CUPY TESTS SUCCESSFUL!")
-                print(f"   Ready for GPU-accelerated neural simulation!")
+                print("\n🎉 CUPY TESTS SUCCESSFUL!")
+                print("   Ready for GPU-accelerated neural simulation!")
             else:
-                print(f"\n⚠️  CuPy basic test passed, but large scale failed")
+                print("\n⚠️  CuPy basic test passed, but large scale failed")
         else:
-            print(f"\n❌ CuPy tests failed")
+            print("\n❌ CuPy tests failed")
         
     except Exception as e:
         print(f"\n❌ Test suite failed: {e}")

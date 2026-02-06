@@ -4,7 +4,6 @@ Final Performance Comparison - All Brain Implementations
 """
 
 import time
-import numpy as np
 
 def compare_all_implementations():
     """Compare all brain implementations"""
@@ -141,7 +140,7 @@ def compare_all_implementations():
         results['Optimized CUDA'] = []
     
     # Print comparison table
-    print(f"\n📊 PERFORMANCE COMPARISON TABLE")
+    print("\n📊 PERFORMANCE COMPARISON TABLE")
     print("=" * 120)
     
     for test_case in test_cases:
@@ -173,7 +172,7 @@ def compare_all_implementations():
                 print(f"{impl_name:<25} {'NOT TESTED':<12} {'NOT TESTED':<15} {'NOT TESTED':<15} {'N/A':<10}")
     
     # Find best overall performance
-    print(f"\n🏆 BEST OVERALL PERFORMANCE")
+    print("\n🏆 BEST OVERALL PERFORMANCE")
     print("=" * 60)
     
     best_impl = None
@@ -203,7 +202,7 @@ def compare_all_implementations():
 
 def analyze_scaling():
     """Analyze how performance scales with problem size"""
-    print(f"\n📈 SCALING ANALYSIS")
+    print("\n📈 SCALING ANALYSIS")
     print("=" * 60)
     
     try:
@@ -248,7 +247,7 @@ if __name__ == "__main__":
     # Run scaling analysis
     analyze_scaling()
     
-    print(f"\n🎯 SUMMARY")
+    print("\n🎯 SUMMARY")
     print("=" * 60)
     print("✅ Ultra Optimized CUDA Brain v2 is the fastest implementation")
     print("✅ Achieves 323+ steps/sec for 100K neurons")

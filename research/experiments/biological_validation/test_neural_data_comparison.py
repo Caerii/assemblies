@@ -198,7 +198,7 @@ class NeuralDataComparisonExperiment(ExperimentBase):
         }
         
         self.log(f"\n{'='*60}")
-        self.log(f"BIOLOGICAL VALIDATION SUMMARY:")
+        self.log("BIOLOGICAL VALIDATION SUMMARY:")
         self.log(f"  Sparsity match: {summary['overall_sparsity_match']:.0%}")
         self.log(f"  Assembly size match: {summary['overall_size_match']:.0%}")
         self.log(f"  Duration: {duration:.1f}s")

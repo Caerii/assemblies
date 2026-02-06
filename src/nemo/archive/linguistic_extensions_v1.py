@@ -22,10 +22,9 @@ Priority extensions:
 import cupy as cp
 import torch
 import numpy as np
-from typing import Dict, List, Tuple, Set, Optional
+from typing import Dict, Tuple, Set
 from dataclasses import dataclass, field
 from enum import Enum, auto
-import time
 
 # Reuse optimized kernel
 projection_kernel = cp.RawKernel(r'''

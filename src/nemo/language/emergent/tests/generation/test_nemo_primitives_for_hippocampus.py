@@ -25,13 +25,11 @@ Let's test this systematically.
 import sys
 import os
 import cupy as cp
-import numpy as np
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))))
 
 from src.nemo.language.emergent.brain import EmergentNemoBrain
 from src.nemo.language.emergent.areas import Area
-from src.nemo.language.emergent.params import EmergentParams
 
 
 def compute_overlap(a1, a2, k):

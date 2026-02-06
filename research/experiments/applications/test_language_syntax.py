@@ -22,10 +22,10 @@ project_root = Path(__file__).parent.parent.parent.parent
 sys.path.insert(0, str(project_root))
 
 import numpy as np
-from typing import Dict, List, Set
+from typing import Dict, List
 from dataclasses import dataclass
 
-from research.experiments.base import ExperimentBase, ExperimentResult, measure_overlap
+from research.experiments.base import ExperimentBase, ExperimentResult
 import brain as brain_module
 
 
@@ -204,7 +204,7 @@ class LanguageSyntaxExperiment(ExperimentBase):
         }
         
         self.log(f"\n{'='*60}")
-        self.log(f"LANGUAGE SYNTAX SUMMARY:")
+        self.log("LANGUAGE SYNTAX SUMMARY:")
         self.log(f"  Success rate: {summary['overall_success_rate']:.0%}")
         self.log(f"  Word distinctiveness: {1 - summary['mean_word_overlap']:.1%}")
         self.log(f"  Duration: {duration:.1f}s")

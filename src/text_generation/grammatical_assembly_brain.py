@@ -27,8 +27,7 @@ Architecture:
 """
 
 from collections import namedtuple, defaultdict
-from enum import Enum
-from typing import List, Dict, Set, Optional, Tuple
+from typing import Dict, Set, Optional
 import numpy as np
 
 import brain

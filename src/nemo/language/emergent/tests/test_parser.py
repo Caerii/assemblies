@@ -28,7 +28,6 @@ from src.nemo.language.emergent import (
     EmergentLanguageLearner,
     create_training_data,
     SentenceParser,
-    ParseResult,
 )
 
 # Global shared learner
@@ -255,7 +254,7 @@ def test_parse_result_structure(learner=None):
     result = parser.parse(words)
     
     print(f"\nSentence: '{' '.join(words)}'")
-    print(f"\nParseResult fields:")
+    print("\nParseResult fields:")
     print(f"  subject: {result.subject}")
     print(f"  verb: {result.verb}")
     print(f"  object: {result.object}")

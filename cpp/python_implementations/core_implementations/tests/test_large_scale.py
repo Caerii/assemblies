@@ -17,7 +17,6 @@ Usage: python test_large_scale.py
 """
 
 import time
-import numpy as np
 import os
 import sys
 sys.path.append(os.path.dirname(__file__))
@@ -141,7 +140,7 @@ def test_large_scale_performance():
         })
     
     # Print summary
-    print(f"\n📊 LARGE SCALE PERFORMANCE SUMMARY")
+    print("\n📊 LARGE SCALE PERFORMANCE SUMMARY")
     print("=" * 100)
     print(f"{'Scale':<25} {'Neurons':<12} {'CUDA steps/s':<12} {'CuPy steps/s':<12} {'NumPy steps/s':<12} {'Best':<10}")
     print("-" * 100)

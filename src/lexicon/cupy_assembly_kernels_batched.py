@@ -13,9 +13,8 @@ At n=1M, k=50:
 
 import cupy as cp
 import torch
-import numpy as np
 import time
-from typing import List, Dict, Optional, Tuple
+from typing import List
 
 # =============================================================================
 # BATCHED PROJECTION KERNEL

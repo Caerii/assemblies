@@ -30,8 +30,6 @@ import unittest
 import numpy as np
 
 from ..core.brain import Brain
-from ..core.area import Area
-from ..core.stimulus import Stimulus
 
 class TestBrain(unittest.TestCase):
     """
@@ -72,22 +70,32 @@ class TestBrain(unittest.TestCase):
         self.assertIn("Stim1", self.brain.stimuli)
         self.assertEqual(self.brain.stimuli["Stim1"].size, 500)
 
-    def test_project(self):
+    def test_project_legacy_api(self):
         """
-        Test Assembly Calculus projection operation.
-        
-        Validates the core projection operation where assemblies in source
-        areas project to create new assemblies in target areas. This tests
-        the fundamental computation mechanism of neural assemblies.
-        
-        Assembly Calculus Context:
-        - Tests projection operation: A → B
-        - Validates assembly formation in target area
-        - Ensures proper neural activity propagation
+        Test projection using the legacy API (areas_by_stim, dst_areas_by_src_area).
+
+        This matches the original brain.py signature used by simulations.py:
+            brain.project({"stim": ["Area"]}, {"Area1": ["Area2"]})
         """
-        external_inputs = {"Area1": np.arange(100)}  # 100 active neurons in Area1
-        projections = {"Area1": ["Area2"]}  # Project from Area1 to Area2
-        self.brain.project(external_inputs, projections)
+        # First project stimulus into Area1 to create an assembly there
+        self.brain.project({"Stim1": ["Area1"]}, {})
+        self.assertTrue(len(self.brain.areas["Area1"].winners) > 0)
+
+        # Now project Area1 → Area2 (area-to-area)
+        self.brain.project({}, {"Area1": ["Area2"]})
+        self.assertTrue(len(self.brain.areas["Area2"].winners) > 0)
+
+    def test_project_new_api(self):
+        """
+        Test projection using the new API (external_inputs, projections).
+
+        The new API allows injecting arbitrary activation patterns and
+        specifying projection routes via keyword arguments.
+        """
+        # Inject external activation into Area1 (explicit area, n=1000, k=100)
+        external_inputs = {"Area1": np.arange(100, dtype=np.uint32)}
+        projections = {"Area1": ["Area2"]}
+        self.brain.project(external_inputs=external_inputs, projections=projections)
         self.assertTrue(len(self.brain.areas["Area2"].winners) > 0)
 
     def test_connectomes_initialization(self):

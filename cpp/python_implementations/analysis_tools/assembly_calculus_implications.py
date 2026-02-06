@@ -4,7 +4,6 @@ Assembly Calculus Implications Analysis
 Derives specific implications of input voltage as external stimulation in Assembly Calculus
 """
 
-import time
 import numpy as np
 import cupy as cp
 import psutil
@@ -32,7 +31,7 @@ class AssemblyCalculusImplications:
         np.random.seed(seed)
         cp.random.seed(seed)
         
-        print(f"🧠 Assembly Calculus Implications Analysis")
+        print("🧠 Assembly Calculus Implications Analysis")
         print(f"   Neurons: {n_neurons:,}")
         print(f"   Areas: {n_areas}")
         print(f"   Active per Area: {k_active:,}")
@@ -45,8 +44,8 @@ class AssemblyCalculusImplications:
         In Assembly Calculus, "input voltage" means external stimulation that
         activates specific neural assemblies, not electrical voltage.
         """
-        print(f"\n🔬 IMPLICATION 1: External Stimulation as Assembly Activation")
-        print(f"=" * 80)
+        print("\n🔬 IMPLICATION 1: External Stimulation as Assembly Activation")
+        print("=" * 80)
         
         # Simulate external stimulation
         external_stimuli = {
@@ -70,13 +69,13 @@ class AssemblyCalculusImplications:
             }
         }
         
-        print(f"📊 External Stimuli Analysis:")
+        print("📊 External Stimuli Analysis:")
         for name, stimulus in external_stimuli.items():
             print(f"   {name}: {stimulus['size']} neurons, {stimulus['strength']} μA/cm²")
             print(f"   Description: {stimulus['description']}")
         
         # Calculate assembly activation probability
-        print(f"\n🧮 Assembly Activation Analysis:")
+        print("\n🧮 Assembly Activation Analysis:")
         for name, stimulus in external_stimuli.items():
             # Assembly activation depends on stimulation strength
             activation_prob = min(stimulus['strength'] / 50.0, 1.0)  # Normalize to 50 μA/cm²
@@ -97,8 +96,8 @@ class AssemblyCalculusImplications:
         External stimulation drives assembly formation through projection operations.
         This creates hierarchical representations across brain areas.
         """
-        print(f"\n🔬 IMPLICATION 2: Assembly Projection Dynamics")
-        print(f"=" * 80)
+        print("\n🔬 IMPLICATION 2: Assembly Projection Dynamics")
+        print("=" * 80)
         
         # Simulate assembly projection
         areas = {
@@ -109,7 +108,7 @@ class AssemblyCalculusImplications:
             'HC': {'n': self.n_neurons, 'k': self.k_active, 'function': 'Hippocampus'}
         }
         
-        print(f"📊 Brain Areas for Assembly Projection:")
+        print("📊 Brain Areas for Assembly Projection:")
         for name, area in areas.items():
             print(f"   {name}: {area['n']:,} neurons, {area['k']:,} active")
             print(f"   Function: {area['function']}")
@@ -123,7 +122,7 @@ class AssemblyCalculusImplications:
             'HC': []
         }
         
-        print(f"\n🔄 Assembly Projection Hierarchy:")
+        print("\n🔄 Assembly Projection Hierarchy:")
         for source, targets in projection_hierarchy.items():
             if targets:
                 print(f"   {source} → {', '.join(targets)}")
@@ -131,7 +130,7 @@ class AssemblyCalculusImplications:
                 print(f"   {source} → (terminal)")
         
         # Calculate projection efficiency
-        print(f"\n⚡ Projection Efficiency Analysis:")
+        print("\n⚡ Projection Efficiency Analysis:")
         total_projections = sum(len(targets) for targets in projection_hierarchy.values())
         avg_projections = total_projections / len(areas)
         
@@ -148,15 +147,15 @@ class AssemblyCalculusImplications:
         External stimulation drives Hebbian learning, strengthening connections
         between co-active neurons in assemblies.
         """
-        print(f"\n🔬 IMPLICATION 3: Hebbian Plasticity and Weight Adaptation")
-        print(f"=" * 80)
+        print("\n🔬 IMPLICATION 3: Hebbian Plasticity and Weight Adaptation")
+        print("=" * 80)
         
         # Simulate Hebbian learning (memory-efficient)
         n_connections = self.n_neurons * self.n_neurons
         connection_probability = 0.01  # 1% connectivity
         n_actual_connections = int(n_connections * connection_probability)
         
-        print(f"📊 Synaptic Connectivity Analysis:")
+        print("📊 Synaptic Connectivity Analysis:")
         print(f"   Total Possible Connections: {n_connections:,}")
         print(f"   Connection Probability: {connection_probability*100:.1f}%")
         print(f"   Actual Connections: {n_actual_connections:,}")
@@ -167,7 +166,7 @@ class AssemblyCalculusImplications:
         initial_weights = cp.random.normal(0, 0.1, sample_size)
         learning_rate = 0.01
         
-        print(f"\n🧮 Hebbian Learning Simulation:")
+        print("\n🧮 Hebbian Learning Simulation:")
         print(f"   Initial Weight Mean: {cp.mean(initial_weights):.4f}")
         print(f"   Initial Weight Std: {cp.std(initial_weights):.4f}")
         print(f"   Learning Rate: {learning_rate}")
@@ -199,13 +198,13 @@ class AssemblyCalculusImplications:
         External stimulation activates only a small fraction of neurons,
         enabling efficient memory usage and computation.
         """
-        print(f"\n🔬 IMPLICATION 4: Sparse Coding and Memory Efficiency")
-        print(f"=" * 80)
+        print("\n🔬 IMPLICATION 4: Sparse Coding and Memory Efficiency")
+        print("=" * 80)
         
         # Calculate sparsity levels
         sparsity_levels = [0.001, 0.01, 0.1, 0.5, 1.0]  # Percentage of active neurons
         
-        print(f"📊 Sparsity Analysis:")
+        print("📊 Sparsity Analysis:")
         for sparsity in sparsity_levels:
             active_neurons = int(self.n_neurons * sparsity / 100)
             memory_per_neuron = 4 * 3  # 3 arrays, 4 bytes each (int32/float32)
@@ -219,14 +218,14 @@ class AssemblyCalculusImplications:
         optimal_active = int(self.n_neurons * optimal_sparsity / 100)
         optimal_memory = optimal_active * 4 * 3 / 1024**3
         
-        print(f"\n⚡ Optimal Sparsity Analysis:")
+        print("\n⚡ Optimal Sparsity Analysis:")
         print(f"   Optimal Sparsity: {optimal_sparsity}%")
         print(f"   Active Neurons: {optimal_active:,}")
         print(f"   Memory Usage: {optimal_memory:.6f} GB")
         print(f"   Memory per Neuron: {optimal_memory/self.n_neurons*1e9:.3f} bytes")
         
         # Calculate scaling implications
-        print(f"\n📈 Scaling Implications:")
+        print("\n📈 Scaling Implications:")
         for scale in [1e6, 1e9, 86e9]:  # 1M, 1B, 86B neurons
             scale_active = int(scale * optimal_sparsity / 100)
             scale_memory = scale_active * 4 * 3 / 1024**3
@@ -245,8 +244,8 @@ class AssemblyCalculusImplications:
         External stimulation drives the fundamental operations of Assembly Calculus:
         projection, association, and merge operations.
         """
-        print(f"\n🔬 IMPLICATION 5: Computational Dynamics and Assembly Calculus")
-        print(f"=" * 80)
+        print("\n🔬 IMPLICATION 5: Computational Dynamics and Assembly Calculus")
+        print("=" * 80)
         
         # Simulate Assembly Calculus operations
         operations = {
@@ -270,7 +269,7 @@ class AssemblyCalculusImplications:
             }
         }
         
-        print(f"📊 Assembly Calculus Operations:")
+        print("📊 Assembly Calculus Operations:")
         for op_name, op_info in operations.items():
             print(f"   {op_name.upper()}:")
             print(f"     Description: {op_info['description']}")
@@ -279,7 +278,7 @@ class AssemblyCalculusImplications:
             print(f"     Example: {op_info['example']}")
         
         # Calculate computational efficiency
-        print(f"\n⚡ Computational Efficiency Analysis:")
+        print("\n⚡ Computational Efficiency Analysis:")
         for op_name, op_info in operations.items():
             if 'O(k)' in op_info['complexity']:
                 complexity = self.k_active
@@ -291,7 +290,7 @@ class AssemblyCalculusImplications:
             print(f"   {op_name}: {complexity:,} operations per timestep")
         
         # Calculate memory requirements
-        print(f"\n💾 Memory Requirements Analysis:")
+        print("\n💾 Memory Requirements Analysis:")
         for op_name, op_info in operations.items():
             if 'O(k)' in op_info['memory']:
                 memory = self.k_active * 4  # 4 bytes per element
@@ -311,15 +310,15 @@ class AssemblyCalculusImplications:
         Understanding input voltage as external stimulation enables
         billion-scale brain simulation with realistic dynamics.
         """
-        print(f"\n🔬 IMPLICATION 6: Billion-Scale Implications")
-        print(f"=" * 80)
+        print("\n🔬 IMPLICATION 6: Billion-Scale Implications")
+        print("=" * 80)
         
         # Calculate billion-scale parameters
         billion_neurons = 86_000_000_000  # Human brain
         optimal_sparsity = 0.01  # 0.01% active
         active_neurons = int(billion_neurons * optimal_sparsity / 100)
         
-        print(f"📊 Billion-Scale Parameters:")
+        print("📊 Billion-Scale Parameters:")
         print(f"   Total Neurons: {billion_neurons:,}")
         print(f"   Active Neurons: {active_neurons:,}")
         print(f"   Sparsity: {optimal_sparsity}%")
@@ -329,7 +328,7 @@ class AssemblyCalculusImplications:
         total_memory = active_neurons * memory_per_neuron
         memory_gb = total_memory / 1024**3
         
-        print(f"\n💾 Memory Requirements:")
+        print("\n💾 Memory Requirements:")
         print(f"   Memory per Neuron: {memory_per_neuron} bytes")
         print(f"   Total Memory: {memory_gb:.3f} GB")
         print(f"   Memory per Billion Neurons: {memory_gb/billion_neurons*1e9:.6f} bytes")
@@ -339,14 +338,14 @@ class AssemblyCalculusImplications:
         operations_per_timestep = active_neurons * 10  # 10 operations per neuron
         operations_per_second = operations_per_timestep * timesteps_per_second
         
-        print(f"\n⚡ Computational Requirements:")
+        print("\n⚡ Computational Requirements:")
         print(f"   Timesteps per Second: {timesteps_per_second:,}")
         print(f"   Operations per Timestep: {operations_per_timestep:,}")
         print(f"   Operations per Second: {operations_per_second:,}")
         print(f"   Operations per Second (scientific): {operations_per_second:.2e}")
         
         # Calculate performance implications
-        print(f"\n🚀 Performance Implications:")
+        print("\n🚀 Performance Implications:")
         print(f"   Memory Efficiency: {memory_gb/16*100:.1f}% of RTX 4090 VRAM")
         print(f"   Computational Load: {operations_per_second/1e12:.2f} TeraOps/sec")
         print(f"   Feasibility: {'✅ FEASIBLE' if memory_gb < 16 else '❌ NOT FEASIBLE'}")
@@ -361,8 +360,8 @@ class AssemblyCalculusImplications:
     
     def run_complete_analysis(self):
         """Run complete implications analysis"""
-        print(f"🧠 COMPLETE ASSEMBLY CALCULUS IMPLICATIONS ANALYSIS")
-        print(f"=" * 100)
+        print("🧠 COMPLETE ASSEMBLY CALCULUS IMPLICATIONS ANALYSIS")
+        print("=" * 100)
         
         # Run all implications
         external_stimuli = self.derive_implication_1_external_stimulation()
@@ -373,8 +372,8 @@ class AssemblyCalculusImplications:
         billion_scale = self.derive_implication_6_billion_scale_implications()
         
         # Summary
-        print(f"\n📋 SUMMARY OF IMPLICATIONS")
-        print(f"=" * 100)
+        print("\n📋 SUMMARY OF IMPLICATIONS")
+        print("=" * 100)
         print(f"1. External Stimulation: {len(external_stimuli)} stimulus types")
         print(f"2. Assembly Projection: {len(areas)} brain areas")
         print(f"3. Hebbian Plasticity: {hebbian['n_connections']:,} connections")
@@ -397,8 +396,8 @@ if __name__ == "__main__":
     analyzer = AssemblyCalculusImplications(n_neurons=1000000, n_areas=5, k_active=1000, seed=42)
     results = analyzer.run_complete_analysis()
     
-    print(f"\n🎯 KEY INSIGHT:")
-    print(f"   Input voltage in Assembly Calculus = External stimulation")
-    print(f"   This enables billion-scale brain simulation with realistic dynamics!")
+    print("\n🎯 KEY INSIGHT:")
+    print("   Input voltage in Assembly Calculus = External stimulation")
+    print("   This enables billion-scale brain simulation with realistic dynamics!")
     print(f"   Memory: {results['billion_scale']['memory_gb']:.3f} GB for 86B neurons")
     print(f"   Performance: {results['billion_scale']['operations_per_second']:.2e} ops/sec")

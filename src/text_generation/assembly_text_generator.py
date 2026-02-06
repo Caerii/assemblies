@@ -17,7 +17,6 @@ can perform meaningful text generation.
 import numpy as np
 from typing import List, Dict, Set, Optional, Tuple
 from dataclasses import dataclass
-from collections import defaultdict
 
 try:
     import brain as b

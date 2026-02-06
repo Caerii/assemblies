@@ -15,7 +15,7 @@ import cupy as cp
 import torch
 import numpy as np
 import time
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, List
 from dataclasses import dataclass
 
 print(f"GPU: {cp.cuda.runtime.getDeviceProperties(0)['name'].decode()}")
@@ -294,7 +294,7 @@ class UltraNemoBrain:
         if verbose:
             mem = self._total_memory()
             print(f"UltraNemoBrain initialized: n={n:,}")
-            print(f"  FP16 activations, batched ops")
+            print("  FP16 activations, batched ops")
             print(f"  Memory: {mem / 1e6:.2f} MB")
     
     def _total_memory(self) -> int:

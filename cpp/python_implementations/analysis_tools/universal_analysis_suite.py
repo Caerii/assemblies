@@ -24,12 +24,9 @@ Combines features from:
 
 import time
 import numpy as np
-import os
-import sys
-from typing import Dict, List, Tuple, Optional, Any, Union
+from typing import Dict, List, Any
 from dataclasses import dataclass
 import json
-import matplotlib.pyplot as plt
 from scipy.integrate import odeint
 from scipy.signal import find_peaks
 import warnings
@@ -221,7 +218,7 @@ class UniversalAnalysisSuite:
             convergence_metrics['convergence_rate'] = (early_avg - late_avg) / early_avg
             convergence_metrics['steady_state_error'] = abs(late_avg - early_avg) / early_avg
         
-        print(f"   ✅ Dynamics analysis complete!")
+        print("   ✅ Dynamics analysis complete!")
         print(f"   Total time: {total_time:.3f}s")
         print(f"   Avg step time: {avg_step_time*1000:.2f}ms")
         print(f"   Total activity: {dynamics_metrics['total_activity']:.3f}")
@@ -328,7 +325,7 @@ class UniversalAnalysisSuite:
             'total_spikes': len(all_spike_times)
         }
         
-        print(f"   ✅ Hodgkin-Huxley analysis complete!")
+        print("   ✅ Hodgkin-Huxley analysis complete!")
         print(f"   Spike frequency: {spike_frequency:.2f} Hz")
         print(f"   Total spikes: {len(all_spike_times):,}")
         print(f"   Avg resting potential: {hh_metrics['avg_resting_potential']:.2f} mV")
@@ -435,7 +432,7 @@ class UniversalAnalysisSuite:
             'assembly_activity_variance': np.var(assembly_activities)
         }
         
-        print(f"   ✅ Assembly calculus analysis complete!")
+        print("   ✅ Assembly calculus analysis complete!")
         print(f"   Total neurons: {total_neurons:,}")
         print(f"   Assembly diversity: {assembly_diversity:.3f}")
         print(f"   Interaction strength: {interaction_strength:.3f}")
@@ -457,7 +454,7 @@ class UniversalAnalysisSuite:
         
         # Dynamics analysis
         if self.config.enable_dynamics_analysis:
-            print(f"\n🔬 DYNAMICS ANALYSIS")
+            print("\n🔬 DYNAMICS ANALYSIS")
             print("-" * 40)
             for scale in test_scales:
                 try:
@@ -467,7 +464,7 @@ class UniversalAnalysisSuite:
         
         # Hodgkin-Huxley analysis
         if self.config.enable_hodgkin_huxley:
-            print(f"\n🧬 HODGKIN-HUXLEY ANALYSIS")
+            print("\n🧬 HODGKIN-HUXLEY ANALYSIS")
             print("-" * 40)
             try:
                 self.analyze_hodgkin_huxley(1000)
@@ -476,7 +473,7 @@ class UniversalAnalysisSuite:
         
         # Timestep analysis
         if self.config.enable_timestep_analysis:
-            print(f"\n⏱️  TIMESTEP ANALYSIS")
+            print("\n⏱️  TIMESTEP ANALYSIS")
             print("-" * 40)
             try:
                 timestep_results = self.analyze_timestep_granularity(100000)
@@ -486,7 +483,7 @@ class UniversalAnalysisSuite:
         
         # Assembly calculus analysis
         if self.config.enable_assembly_calculus:
-            print(f"\n🧮 ASSEMBLY CALCULUS ANALYSIS")
+            print("\n🧮 ASSEMBLY CALCULUS ANALYSIS")
             print("-" * 40)
             try:
                 calculus_results = self.analyze_assembly_calculus(100)
@@ -502,12 +499,12 @@ class UniversalAnalysisSuite:
     
     def print_analysis_summary(self):
         """Print comprehensive analysis summary"""
-        print(f"\n📊 UNIVERSAL ANALYSIS SUITE SUMMARY")
+        print("\n📊 UNIVERSAL ANALYSIS SUITE SUMMARY")
         print("=" * 80)
         
         # Dynamics summary
         if self.dynamics_profiles:
-            print(f"\n🔬 DYNAMICS ANALYSIS RESULTS:")
+            print("\n🔬 DYNAMICS ANALYSIS RESULTS:")
             print(f"{'Scale':<20} {'Neurons':<12} {'Activity':<10} {'Sync':<10} {'Stability':<10}")
             print("-" * 70)
             for profile in self.dynamics_profiles:
@@ -515,7 +512,7 @@ class UniversalAnalysisSuite:
         
         # Hodgkin-Huxley summary
         if self.hh_profiles:
-            print(f"\n🧬 HODGKIN-HUXLEY ANALYSIS RESULTS:")
+            print("\n🧬 HODGKIN-HUXLEY ANALYSIS RESULTS:")
             print(f"{'Scale':<20} {'Neurons':<12} {'Spike Freq':<12} {'Total Spikes':<12}")
             print("-" * 70)
             for profile in self.hh_profiles:
@@ -523,7 +520,7 @@ class UniversalAnalysisSuite:
         
         # Timestep summary
         if 'timestep_results' in self.analysis_data:
-            print(f"\n⏱️  TIMESTEP ANALYSIS RESULTS:")
+            print("\n⏱️  TIMESTEP ANALYSIS RESULTS:")
             print(f"{'Timestep (ms)':<15} {'Efficiency':<12} {'Total Time':<12}")
             print("-" * 50)
             for dt, results in self.analysis_data['timestep_results'].items():
@@ -531,7 +528,7 @@ class UniversalAnalysisSuite:
         
         # Assembly calculus summary
         if 'calculus_results' in self.analysis_data:
-            print(f"\n🧮 ASSEMBLY CALCULUS RESULTS:")
+            print("\n🧮 ASSEMBLY CALCULUS RESULTS:")
             results = self.analysis_data['calculus_results']
             print(f"   Total neurons: {results['total_neurons']:,}")
             print(f"   Assembly diversity: {results['assembly_diversity']:.3f}")
@@ -597,7 +594,7 @@ def main():
         suite = UniversalAnalysisSuite(config)
         suite.run_comprehensive_analysis()
         
-        print(f"\n✅ Universal Analysis Suite completed successfully!")
+        print("\n✅ Universal Analysis Suite completed successfully!")
         
     except Exception as e:
         print(f"❌ Universal Analysis Suite failed: {e}")

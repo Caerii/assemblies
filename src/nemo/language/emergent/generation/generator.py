@@ -14,7 +14,7 @@ The VP assembly is the unit of meaning. To generate:
 3. The response EMERGES from activation patterns
 """
 
-from typing import List, Dict, Optional, Tuple, TYPE_CHECKING
+from typing import List, Dict, Optional, TYPE_CHECKING
 import cupy as cp
 
 if TYPE_CHECKING:

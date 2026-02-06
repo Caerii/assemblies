@@ -8,7 +8,7 @@ for updating synaptic weights in neural assemblies.
 """
 
 import numpy as np
-from typing import List, Tuple
+from typing import List
 from .utils import validate_finite, validate_finite_scalar, normalize_index_list
 
 class PlasticityEngine:

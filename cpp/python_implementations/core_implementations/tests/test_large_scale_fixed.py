@@ -342,7 +342,7 @@ def save_results(all_results):
 
 def print_summary(all_results):
     """Print comprehensive test summary"""
-    print(f"\n🎯 LARGE SCALE TESTING SUMMARY")
+    print("\n🎯 LARGE SCALE TESTING SUMMARY")
     print("=" * 80)
     
     for test_type, results in all_results.items():
@@ -405,8 +405,8 @@ def main():
     filename = save_results(all_results)
     print_summary(all_results)
     
-    print(f"\n🎯 Large scale testing complete!")
-    print(f"   All client errors have been fixed.")
+    print("\n🎯 Large scale testing complete!")
+    print("   All client errors have been fixed.")
     print(f"   Results saved to: {filename}")
 
 

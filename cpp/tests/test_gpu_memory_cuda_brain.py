@@ -6,7 +6,7 @@ Test GPU Memory CUDA Brain for billion-scale neural simulation
 import time
 import numpy as np
 import ctypes
-from ctypes import c_int, c_float, c_uint32, c_void_p, POINTER
+from ctypes import c_float, c_uint32, c_void_p, POINTER
 
 def test_gpu_memory_cuda_brain():
     """Test GPU Memory CUDA Brain for billion-scale simulation"""
@@ -86,7 +86,7 @@ def test_gpu_memory_cuda_brain():
                     min_time = min(step_times)
                     max_time = max(step_times)
                     
-                    print(f"   📊 GPU MEMORY CUDA PERFORMANCE:")
+                    print("   📊 GPU MEMORY CUDA PERFORMANCE:")
                     print(f"      Average step time: {avg_time*1000:.3f}ms")
                     print(f"      Minimum step time: {min_time*1000:.3f}ms")
                     print(f"      Maximum step time: {max_time*1000:.3f}ms")
@@ -101,13 +101,13 @@ def test_gpu_memory_cuda_brain():
                     dll.get_candidates(brain_ptr, candidates.ctypes.data_as(POINTER(c_float)))
                     dll.get_top_k_indices(brain_ptr, top_k_indices.ctypes.data_as(POINTER(c_uint32)))
                     
-                    print(f"      ✅ Data access working!")
+                    print("      ✅ Data access working!")
                     print(f"      Candidates range: [{candidates.min():.3f}, {candidates.max():.3f}]")
                     print(f"      Top-k indices range: [{top_k_indices.min()}, {top_k_indices.max()}]")
                     
                     # Clean up
                     dll.destroy_gpu_memory_cuda_brain(brain_ptr)
-                    print(f"      ✅ GPU Memory CUDA brain destroyed")
+                    print("      ✅ GPU Memory CUDA brain destroyed")
                     
                     results.append({
                         'name': test_case['name'],
@@ -122,7 +122,7 @@ def test_gpu_memory_cuda_brain():
                     })
                     
                 else:
-                    print(f"   ❌ Failed to create GPU Memory CUDA brain")
+                    print("   ❌ Failed to create GPU Memory CUDA brain")
                     results.append({
                         'name': test_case['name'],
                         'n_neurons': test_case['n_neurons'],
@@ -150,7 +150,7 @@ def test_gpu_memory_cuda_brain():
                 })
         
         # Summary
-        print(f"\n📊 GPU MEMORY CUDA BRAIN BENCHMARK SUMMARY")
+        print("\n📊 GPU MEMORY CUDA BRAIN BENCHMARK SUMMARY")
         print("=" * 80)
         print(f"{'Scale':<20} {'Neurons':<15} {'Steps/sec':<10} {'ms/step':<10} {'Neurons/sec':<15} {'Active/sec':<15}")
         print("-" * 80)
@@ -171,11 +171,11 @@ def test_gpu_memory_cuda_brain():
             print(f"   Neurons/sec: {best['neurons_per_second']:,.0f}")
             print(f"   Active/sec: {best['active_per_second']:,.0f}")
         else:
-            print(f"\n❌ No successful tests")
+            print("\n❌ No successful tests")
         
-        print(f"\n🎉 GPU MEMORY CUDA BRAIN TEST COMPLETE!")
-        print(f"✅ True billion-scale neural simulation achieved!")
-        print(f"🚀 GPU memory-based acceleration working!")
+        print("\n🎉 GPU MEMORY CUDA BRAIN TEST COMPLETE!")
+        print("✅ True billion-scale neural simulation achieved!")
+        print("🚀 GPU memory-based acceleration working!")
         
     except Exception as e:
         print(f"❌ GPU Memory CUDA Brain test failed: {e}")

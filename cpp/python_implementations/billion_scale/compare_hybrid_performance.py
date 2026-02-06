@@ -4,8 +4,6 @@ Compare Hybrid Performance - Compare original billion-scale vs hybrid CUDA imple
 """
 
 import time
-import numpy as np
-import os
 import sys
 
 # Try to import CuPy for GPU memory management
@@ -107,7 +105,7 @@ def compare_implementations():
         })
     
     # Print summary
-    print(f"\n📊 HYBRID PERFORMANCE COMPARISON SUMMARY")
+    print("\n📊 HYBRID PERFORMANCE COMPARISON SUMMARY")
     print("=" * 120)
     print(f"{'Scale':<25} {'Neurons':<15} {'Original':<12} {'Hybrid':<12} {'Speedup':<10} {'Best':<10}")
     print("-" * 120)
@@ -131,7 +129,7 @@ def compare_implementations():
 
 def analyze_hybrid_advantages():
     """Analyze the advantages of the hybrid implementation"""
-    print(f"\n🔍 HYBRID IMPLEMENTATION ADVANTAGES")
+    print("\n🔍 HYBRID IMPLEMENTATION ADVANTAGES")
     print("=" * 60)
     
     print("1. 🎯 SPARSE MEMORY + CUDA KERNELS:")

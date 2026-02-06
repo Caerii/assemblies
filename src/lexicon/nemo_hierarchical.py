@@ -32,8 +32,8 @@ import cupy as cp
 import torch
 import numpy as np
 import time
-from typing import Dict, List, Tuple, Optional
-from dataclasses import dataclass, field
+from typing import Dict, List, Tuple
+from dataclasses import dataclass
 from enum import Enum
 
 print(f"GPU: {cp.cuda.runtime.getDeviceProperties(0)['name'].decode()}")
@@ -673,8 +673,8 @@ def run_experiment():
     print("=" * 70)
     print(f"  Total areas: {brain_svo.NUM_AREAS}")
     print(f"  Neurons per area: {params_svo.n:,}")
-    print(f"  Word orders tested: SVO, SOV, VSO")
-    print(f"  All word orders correctly learned: ✓")
+    print("  Word orders tested: SVO, SOV, VSO")
+    print("  All word orders correctly learned: ✓")
     print(f"  Classification accuracy: {correct/(len(nouns)+len(verbs)):.1%}")
 
 

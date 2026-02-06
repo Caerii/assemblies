@@ -6,8 +6,6 @@ Uses the working approach from fixed_cupy_billion_scale.py but with memory optim
 
 import time
 import numpy as np
-import os
-import sys
 
 # Try to import CuPy for GPU memory management
 try:
@@ -47,7 +45,7 @@ class WorkingGPUBillionScaleBrain:
         # Initialize random number generator
         self._rng = np.random.default_rng(seed)
         
-        print(f"🚀 Working GPU Billion-Scale Brain initialized:")
+        print("🚀 Working GPU Billion-Scale Brain initialized:")
         print(f"   Neurons: {n_neurons:,}")
         print(f"   Active percentage: {active_percentage*100:.4f}%")
         print(f"   Active per area: {self.k_active:,}")
@@ -74,10 +72,10 @@ class WorkingGPUBillionScaleBrain:
             
             # Check if we can fit in GPU memory with buffer
             if total_memory > safe_gpu_memory:
-                print(f"   ⚠️  Memory exceeds safe GPU capacity, using CPU fallback")
+                print("   ⚠️  Memory exceeds safe GPU capacity, using CPU fallback")
                 use_gpu = False
             else:
-                print(f"   ✅ Memory fits in safe GPU capacity")
+                print("   ✅ Memory fits in safe GPU capacity")
         
         # Initialize areas with sparse memory management
         self.areas = []
@@ -113,7 +111,7 @@ class WorkingGPUBillionScaleBrain:
         self.step_count = 0
         self.total_time = 0.0
         
-        print(f"   ✅ Brain initialized successfully!")
+        print("   ✅ Brain initialized successfully!")
         print(f"   Using: {'GPU (CuPy)' if use_gpu else 'CPU (NumPy)'}")
     
     def _generate_candidates_optimized(self, area_idx):
@@ -220,7 +218,7 @@ class WorkingGPUBillionScaleBrain:
         total_time = time.perf_counter() - start_time
         
         if verbose:
-            print(f"\n📊 SIMULATION COMPLETE")
+            print("\n📊 SIMULATION COMPLETE")
             print(f"   Total time: {total_time:.3f}s")
             print(f"   Average step time: {total_time/n_steps*1000:.2f}ms")
             print(f"   Steps per second: {n_steps/total_time:.1f}")
@@ -296,7 +294,7 @@ def test_working_gpu_billion_scale():
             steps_per_second = stats['steps_per_second']
             ms_per_step = stats['avg_step_time'] * 1000
             
-            print(f"   ✅ Success!")
+            print("   ✅ Success!")
             print(f"   Time: {total_time:.3f}s")
             print(f"   Steps/sec: {steps_per_second:.1f}")
             print(f"   ms/step: {ms_per_step:.2f}ms")
@@ -332,7 +330,7 @@ def test_working_gpu_billion_scale():
             })
     
     # Summary
-    print(f"\n📊 WORKING GPU BILLION-SCALE BRAIN BENCHMARK SUMMARY")
+    print("\n📊 WORKING GPU BILLION-SCALE BRAIN BENCHMARK SUMMARY")
     print("=" * 80)
     print(f"{'Scale':<25} {'Neurons':<15} {'Active%':<8} {'Steps/sec':<10} {'ms/step':<10} {'Neurons/sec':<15} {'Active/sec':<15}")
     print("-" * 80)
@@ -359,4 +357,4 @@ if __name__ == "__main__":
         print(f"   Neurons/sec: {best['neurons_per_second']:,.0f}")
         print(f"   Active/sec: {best['active_neurons_per_second']:,.0f}")
     else:
-        print(f"\n❌ No successful tests")
+        print("\n❌ No successful tests")

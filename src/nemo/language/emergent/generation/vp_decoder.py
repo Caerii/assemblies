@@ -11,12 +11,11 @@ The assembly itself can be used for compatibility checking.
 This is the bridge between neural representations and language output.
 """
 
-from typing import List, Optional, Tuple, Dict, Set, TYPE_CHECKING
+from typing import List, Tuple, Dict, TYPE_CHECKING
 import cupy as cp
 
 if TYPE_CHECKING:
     from ..learner import EmergentLanguageLearner
-    from ..brain import EmergentNemoBrain
 
 from ..areas import Area
 

@@ -7,8 +7,6 @@ This script specifically debugs what's wrong with scipy.sparse operations.
 """
 
 import numpy as np
-import time
-import sys
 
 def test_scipy_import():
     """Test if scipy can be imported."""
@@ -28,7 +26,7 @@ def test_scipy_sparse_import():
     
     try:
         from scipy import sparse
-        print(f"   ✅ scipy.sparse imported successfully")
+        print("   ✅ scipy.sparse imported successfully")
         return True
     except ImportError as e:
         print(f"   ❌ scipy.sparse import failed: {e}")
@@ -78,7 +76,7 @@ def test_csr_matrix_creation():
     print("\n🔍 Testing CSR matrix creation...")
     
     try:
-        from scipy.sparse import coo_matrix, csr_matrix
+        from scipy.sparse import coo_matrix
         
         print("   Step 1: Creating COO matrix")
         n = 10
@@ -119,7 +117,7 @@ def test_matrix_multiplication():
     print("\n🔍 Testing matrix multiplication...")
     
     try:
-        from scipy.sparse import coo_matrix, csr_matrix
+        from scipy.sparse import coo_matrix
         
         print("   Step 1: Creating test matrix")
         n = 10
@@ -160,7 +158,7 @@ def test_larger_matrix():
     print("\n🔍 Testing larger matrix...")
     
     try:
-        from scipy.sparse import coo_matrix, csr_matrix
+        from scipy.sparse import coo_matrix
         
         # Test different sizes
         sizes = [100, 500, 1000]
@@ -180,20 +178,20 @@ def test_larger_matrix():
                 shape=(n, n),
                 dtype=np.float32
             )
-            print(f"      ✅ COO matrix created")
+            print("      ✅ COO matrix created")
             
-            print(f"      Converting to CSR...")
+            print("      Converting to CSR...")
             csr_matrix_obj = coo_matrix_obj.tocsr()
-            print(f"      ✅ CSR matrix created")
+            print("      ✅ CSR matrix created")
             
-            print(f"      Testing multiplication...")
+            print("      Testing multiplication...")
             test_vector = np.zeros(n, dtype=np.float32)
             result = csr_matrix_obj.dot(test_vector)
-            print(f"      ✅ Multiplication successful")
+            print("      ✅ Multiplication successful")
             
             # Cleanup
             del coo_matrix_obj, csr_matrix_obj, test_vector, result
-            print(f"      ✅ Cleanup completed")
+            print("      ✅ Cleanup completed")
         
         return True
         

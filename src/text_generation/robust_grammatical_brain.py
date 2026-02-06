@@ -17,7 +17,7 @@ Based on parser.py, recursive_parser.py, learner.py, and language_brain_simulati
 
 from collections import namedtuple, defaultdict
 from enum import Enum
-from typing import List, Dict, Set, Optional, Tuple, Any
+from typing import List, Dict, Optional, Tuple
 import numpy as np
 import random
 
@@ -583,7 +583,7 @@ class RobustGrammaticalBrain(brain.Brain):
         self.initialize_states()
         
         if verbose:
-            print(f"Created RobustGrammaticalBrain:")
+            print("Created RobustGrammaticalBrain:")
             print(f"  Lexicon size: {LEX_SIZE} words")
             print(f"  CORE areas: {CORE_AREAS}")
             print(f"  Syntactic areas: {SYNTACTIC_AREAS}")

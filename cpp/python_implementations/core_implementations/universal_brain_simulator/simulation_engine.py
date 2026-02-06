@@ -8,8 +8,6 @@ for the universal brain simulator system.
 """
 
 import time
-from typing import Union
-import numpy as np
 from .config import SimulationConfig
 from .cuda_manager import CUDAManager
 from .area_manager import AreaManager
@@ -19,7 +17,7 @@ from .simulation_commands import create_simulation_command, print_command_info
 
 # Import CuPy if available
 if CUPY_AVAILABLE:
-    import cupy as cp
+    pass
 
 
 class SimulationEngine:
@@ -62,7 +60,7 @@ class SimulationEngine:
         step_time = self.command.get_timing()
         
         if not success:
-            print(f"   ⚠️  Simulation step failed")
+            print("   ⚠️  Simulation step failed")
         
         # Get memory usage for metrics
         used_gb, total_gb = self.area_manager.memory_manager.get_memory_usage()

@@ -5,10 +5,9 @@ Test the Lexicon and Curriculum System
 Validates the lexicon structure and curriculum design.
 """
 
-from src.lexicon.build_lexicon import build_lexicon, build_statistics
+from src.lexicon.build_lexicon import build_lexicon
 from src.lexicon.curriculum.grounded_training import (
-    GroundedCorpus, create_stage1_corpus, create_stage2_corpus,
-    GroundedContext, SpeechAct
+    GroundedCorpus, create_stage1_corpus
 )
 
 
@@ -59,7 +58,7 @@ def test_grounded_corpus():
     corpus = create_stage1_corpus()
     stats = corpus.get_statistics()
     
-    print(f"\nStage 1 Corpus:")
+    print("\nStage 1 Corpus:")
     print(f"  Total examples: {stats['total_examples']}")
     print(f"  Unique words: {stats['unique_words']}")
     print(f"  Unique structures: {stats['unique_structures']}")

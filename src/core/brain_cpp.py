@@ -5,10 +5,7 @@ This module provides a Python interface to the C++ Brain implementation
 for much faster neural assembly simulations.
 """
 
-import sys
-import os
-import numpy as np
-from typing import Dict, List, Tuple, Optional, Union
+from typing import Dict, List
 
 # Try to import the C++ extension
 try:
@@ -19,7 +16,6 @@ except ImportError:
     print("Warning: C++ brain extension not available. Install with: pip install -e cpp/")
 
 from .area import Area
-from .connectome import Connectome
 
 
 class BrainCPP:

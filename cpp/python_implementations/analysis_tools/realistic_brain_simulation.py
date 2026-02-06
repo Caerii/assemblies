@@ -77,7 +77,7 @@ class RealisticBrainSimulation:
         self.total_active_10ms = sum(pop['n_neurons'] * pop['active_fraction_10ms'] for pop in self.populations.values())
         self.total_active_100ms = sum(pop['n_neurons'] * pop['active_fraction_100ms'] for pop in self.populations.values())
         
-        print(f"🧠 Biologically Realistic Brain Simulation")
+        print("🧠 Biologically Realistic Brain Simulation")
         print(f"   Timestep: {timestep_ms}ms")
         print(f"   Total Neurons: {self.total_neurons:,}")
         print(f"   Active per 1ms: {self.total_active_1ms:,.0f} ({self.total_active_1ms/self.total_neurons*100:.4f}%)")
@@ -89,7 +89,7 @@ class RealisticBrainSimulation:
     
     def _initialize_simulation(self):
         """Initialize the realistic simulation"""
-        print(f"\n🚀 Initializing Realistic Brain:")
+        print("\n🚀 Initializing Realistic Brain:")
         
         # Get initial memory
         initial_cpu_memory = get_memory_usage()
@@ -242,7 +242,7 @@ class RealisticBrainSimulation:
         max_step_time = np.max(step_times)
         std_step_time = np.std(step_times)
         
-        print(f"\n📊 Performance Statistics:")
+        print("\n📊 Performance Statistics:")
         print(f"   Total Time: {total_time:.3f}s")
         print(f"   Average Step Time: {avg_step_time*1000:.2f}ms")
         print(f"   Min Step Time: {min_step_time*1000:.2f}ms")
@@ -252,7 +252,7 @@ class RealisticBrainSimulation:
         print(f"   Neurons per Second: {self.total_neurons / avg_step_time:,.0f}")
         print(f"   Active per Second: {self.total_active_1ms / avg_step_time:,.0f}")
         
-        print(f"\n💾 Memory Usage:")
+        print("\n💾 Memory Usage:")
         print(f"   CPU Memory Change: {final_cpu_memory - initial_cpu_memory:.3f} GB")
         if initial_gpu_memory and final_gpu_memory:
             print(f"   GPU Memory Change: {final_gpu_memory['used_gb'] - initial_gpu_memory['used_gb']:.3f} GB")

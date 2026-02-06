@@ -13,12 +13,11 @@ Use SentenceParser and QuestionAnswerer from .parser for those features.
 """
 
 import cupy as cp
-import numpy as np
 from typing import Dict, List, Tuple, Optional
 from collections import defaultdict
 
 from .areas import Area, GROUNDING_TO_CORE
-from .params import EmergentParams, GroundingContext, GroundedSentence
+from .params import EmergentParams, GroundingContext
 from .brain import EmergentNemoBrain
 
 __all__ = ['EmergentLanguageLearner']

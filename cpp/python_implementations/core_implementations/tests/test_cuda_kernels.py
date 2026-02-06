@@ -15,7 +15,6 @@ Usage: python test_cuda_kernels.py
 """
 
 import time
-import numpy as np
 import os
 import ctypes
 
@@ -87,7 +86,7 @@ def test_cuda_kernels():
                 ctypes.c_float(1.0),  # stddev
                 ctypes.c_float(0.0)   # cutoff
             )
-            print(f"✅ cuda_generate_candidates successful")
+            print("✅ cuda_generate_candidates successful")
             print(f"   Sample values: {candidates[:10].get()}")
             print(f"   Mean: {cp.mean(candidates).get():.3f}")
             print(f"   Std: {cp.std(candidates).get():.3f}")
@@ -106,7 +105,7 @@ def test_cuda_kernels():
                 ctypes.c_uint32(n),
                 ctypes.c_uint32(k)
             )
-            print(f"✅ cuda_top_k_selection successful")
+            print("✅ cuda_top_k_selection successful")
             print(f"   Top-k indices: {top_k_indices[:10].get()}")
             print(f"   Top-k values: {candidates[top_k_indices[:10]].get()}")
         except Exception as e:

@@ -192,7 +192,7 @@ class NoiseRobustnessExperiment(ExperimentBase):
         if noise_levels is None:
             noise_levels = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
         
-        self.log(f"Starting noise robustness experiment")
+        self.log("Starting noise robustness experiment")
         self.log(f"  n_neurons: {n_neurons}")
         self.log(f"  k_active: {k_active}")
         self.log(f"  noise_levels: {noise_levels}")
@@ -246,7 +246,7 @@ class NoiseRobustnessExperiment(ExperimentBase):
         }
         
         self.log(f"\n{'='*60}")
-        self.log(f"NOISE ROBUSTNESS SUMMARY:")
+        self.log("NOISE ROBUSTNESS SUMMARY:")
         self.log(f"  Critical noise level: {critical_analysis.get('critical_noise', 'N/A')}")
         self.log(f"  Max recoverable noise: {critical_analysis.get('max_recoverable', 'N/A')}")
         self.log(f"  Duration: {duration:.1f}s")

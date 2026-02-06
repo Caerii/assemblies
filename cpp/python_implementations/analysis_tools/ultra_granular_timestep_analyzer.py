@@ -146,9 +146,9 @@ class UltraGranularTimestepAnalyzer:
         np.random.seed(seed)
         cp.random.seed(seed)
         
-        print(f"🧠 Ultra Granular Timestep Analysis")
+        print("🧠 Ultra Granular Timestep Analysis")
         print(f"   Neurons: {n_neurons:,}")
-        print(f"   Testing Hodgkin-Huxley dynamics")
+        print("   Testing Hodgkin-Huxley dynamics")
     
     def test_timestep_performance(self, dt_ms, n_steps=1000):
         """Test performance at specific timestep"""
@@ -257,7 +257,7 @@ class UltraGranularTimestepAnalyzer:
         
         # Summary
         print(f"\n{'='*80}")
-        print(f"📊 ULTRA FINE TIMESTEP SUMMARY")
+        print("📊 ULTRA FINE TIMESTEP SUMMARY")
         print(f"{'='*80}")
         print(f"{'Timestep (ms)':<15} {'Steps/sec':<10} {'ms/step':<10} {'Neurons/sec':<15} {'Firing Rate (Hz)':<15} {'Memory (GB)':<12}")
         print("-" * 80)
@@ -305,11 +305,11 @@ def test_computational_dynamics():
     for approach in approaches:
         print(f"{approach['name']:<25} {approach['description']:<40} {approach['complexity']:<12}")
     
-    print(f"\n💡 RECOMMENDATIONS:")
-    print(f"   1. Start with Hodgkin-Huxley at 0.01ms timestep")
-    print(f"   2. Add synaptic dynamics for realistic network effects")
-    print(f"   3. Implement lateral inhibition for competitive dynamics")
-    print(f"   4. Use adaptive timesteps based on activity levels")
+    print("\n💡 RECOMMENDATIONS:")
+    print("   1. Start with Hodgkin-Huxley at 0.01ms timestep")
+    print("   2. Add synaptic dynamics for realistic network effects")
+    print("   3. Implement lateral inhibition for competitive dynamics")
+    print("   4. Use adaptive timesteps based on activity levels")
 
 if __name__ == "__main__":
     # Test ultra granular timesteps
@@ -329,4 +329,4 @@ if __name__ == "__main__":
         print(f"   Neurons/sec: {best['neurons_per_second']:,.0f}")
         print(f"   Firing Rate: {best['firing_rate']:.2f} Hz")
     else:
-        print(f"\n❌ No successful tests")
+        print("\n❌ No successful tests")

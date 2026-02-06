@@ -28,7 +28,6 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent.parent))
 from src.nemo.language.emergent import (
     EmergentLanguageLearner,
     create_training_data,
-    create_simple_training_data,
 )
 
 # Global to hold shared learner

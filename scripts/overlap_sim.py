@@ -22,7 +22,6 @@
 
 import brain
 import brain_util as bu
-import numpy as np
 import copy
 
 def overlap_sim(n=100000,k=317,p=0.05,beta=0.1,project_iter=10):

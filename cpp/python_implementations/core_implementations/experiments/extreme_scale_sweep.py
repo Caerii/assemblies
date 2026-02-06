@@ -349,7 +349,7 @@ def save_extreme_results(all_results: Dict[str, List[Any]]):
 
 def print_extreme_summary(all_results: Dict[str, List[Any]]):
     """Print summary of extreme scale testing"""
-    print(f"\n🎯 EXTREME SCALE TESTING SUMMARY")
+    print("\n🎯 EXTREME SCALE TESTING SUMMARY")
     print("=" * 80)
     
     # Neuron count sweep summary
@@ -358,7 +358,7 @@ def print_extreme_summary(all_results: Dict[str, List[Any]]):
         successful = [r for r in neuron_results if r.get('success', False)]
         if successful:
             max_neurons = max(successful, key=lambda x: x['neurons'])
-            print(f"\n📊 MAXIMUM SCALE ACHIEVED:")
+            print("\n📊 MAXIMUM SCALE ACHIEVED:")
             print(f"   🏆 Largest simulation: {max_neurons['neurons']:,} neurons ({max_neurons['neurons_billions']:.1f}B)")
             print(f"   Performance: {max_neurons['steps_per_sec']:.1f} steps/sec")
             print(f"   Memory usage: {max_neurons['final_memory_gb']:.2f}GB")
@@ -379,7 +379,7 @@ def print_extreme_summary(all_results: Dict[str, List[Any]]):
         successful = [r for r in active_results if r.get('success', False)]
         if successful:
             best_active = max(successful, key=lambda x: x['steps_per_sec'])
-            print(f"\n📊 OPTIMAL ACTIVE PERCENTAGE (1B neurons):")
+            print("\n📊 OPTIMAL ACTIVE PERCENTAGE (1B neurons):")
             print(f"   🎯 Best performance: {best_active['active_percentage']*100:.2f}% active")
             print(f"   Steps/sec: {best_active['steps_per_sec']:.1f}")
             print(f"   Active neurons: {best_active['active_neurons']:,}")
@@ -390,7 +390,7 @@ def print_extreme_summary(all_results: Dict[str, List[Any]]):
         successful = [r for r in area_results if r.get('success', False)]
         if successful:
             best_areas = max(successful, key=lambda x: x['steps_per_sec'])
-            print(f"\n📊 OPTIMAL AREA COUNT (1B neurons):")
+            print("\n📊 OPTIMAL AREA COUNT (1B neurons):")
             print(f"   🎯 Best performance: {best_areas['areas']} areas")
             print(f"   Steps/sec: {best_areas['steps_per_sec']:.1f}")
             print(f"   Neurons per area: {best_areas['neurons_per_area']:,}")
@@ -401,13 +401,13 @@ def print_extreme_summary(all_results: Dict[str, List[Any]]):
         successful = [r for r in memory_results if r.get('success', False)]
         if successful:
             max_memory = max(successful, key=lambda x: x['neurons'])
-            print(f"\n📊 MEMORY LIMITS:")
+            print("\n📊 MEMORY LIMITS:")
             print(f"   🏆 Maximum neurons: {max_memory['neurons']:,} ({max_memory['neurons_billions']:.1f}B)")
             print(f"   Memory usage: {max_memory['memory_gb']:.2f}GB")
             print(f"   Step time: {max_memory['step_time_ms']:.1f}ms")
         else:
-            print(f"\n📊 MEMORY LIMITS:")
-            print(f"   ❌ No successful memory limit tests")
+            print("\n📊 MEMORY LIMITS:")
+            print("   ❌ No successful memory limit tests")
 
 
 def main():
@@ -428,9 +428,9 @@ def main():
     save_extreme_results(all_results)
     print_extreme_summary(all_results)
     
-    print(f"\n🎯 Extreme scale analysis complete!")
-    print(f"   This reveals the absolute performance limits of the system.")
-    print(f"   Use these results to understand scaling bottlenecks.")
+    print("\n🎯 Extreme scale analysis complete!")
+    print("   This reveals the absolute performance limits of the system.")
+    print("   Use these results to understand scaling bottlenecks.")
 
 
 if __name__ == "__main__":

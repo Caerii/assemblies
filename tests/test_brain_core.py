@@ -1,12 +1,5 @@
 import brain
-import brain_util as bu
-import numpy as np
-import random
-import copy
-import pickle
-import matplotlib.pyplot as plt
 
-from collections import OrderedDict
 
 def fixed_assembly_test(n=100000,k=317,p=0.01,beta=0.01):
 	"""

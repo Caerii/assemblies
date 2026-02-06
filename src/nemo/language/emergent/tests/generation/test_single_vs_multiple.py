@@ -17,7 +17,6 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))))
 
 import cupy as cp
-import numpy as np
 from src.nemo.language.emergent.brain import EmergentNemoBrain
 from src.nemo.language.emergent.areas import Area
 from src.nemo.language.emergent.params import EmergentParams

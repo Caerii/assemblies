@@ -131,15 +131,15 @@ class EmergentNemoBrain:
         
         if verbose:
             backend_str = "CUDA (8x faster)" if self.use_cuda_backend else "CuPy"
-            print(f"EmergentNemoBrain initialized:")
+            print("EmergentNemoBrain initialized:")
             print(f"  n={n:,}, k={k}")
             print(f"  Backend: {backend_str}")
             print(f"  Areas: {NUM_AREAS}")
-            print(f"    Input: 8, Lexical: 2, Core: 8")
-            print(f"    Thematic: 6, Phrase: 5, Syntactic: 3")
-            print(f"    Control: 4, Error: 1")
+            print("    Input: 8, Lexical: 2, Core: 8")
+            print("    Thematic: 6, Phrase: 5, Syntactic: 3")
+            print("    Control: 4, Error: 1")
             print(f"  Mutual inhibition groups: {len(MUTUAL_INHIBITION_GROUPS)}")
-            print(f"  NO pre-labeled categories - all emergent!")
+            print("  NO pre-labeled categories - all emergent!")
     
     # =========================================================================
     # CORE OPERATIONS

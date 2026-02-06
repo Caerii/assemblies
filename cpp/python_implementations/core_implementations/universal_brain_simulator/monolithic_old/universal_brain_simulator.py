@@ -26,9 +26,8 @@ Combines features from:
 import time
 import numpy as np
 import os
-import sys
 import ctypes
-from typing import Dict, List, Tuple, Optional, Any, Union
+from typing import Dict, Tuple, Any, Union
 from dataclasses import dataclass
 import json
 
@@ -110,7 +109,7 @@ class UniversalBrainSimulator:
         self._optimized_brain_ptr = None
         self._load_cuda_kernels()
         
-        print(f"🚀 Universal Brain Simulator initialized:")
+        print("🚀 Universal Brain Simulator initialized:")
         print(f"   Neurons: {self.n_neurons:,}")
         print(f"   Active percentage: {self.active_percentage*100:.4f}%")
         print(f"   Active per area: {self.k_active:,}")
@@ -129,7 +128,7 @@ class UniversalBrainSimulator:
         # Initialize CUDA kernel memory pools
         self._initialize_cuda_memory_pools()
         
-        print(f"   ✅ Brain initialized successfully!")
+        print("   ✅ Brain initialized successfully!")
     
     def _load_cuda_kernels(self):
         """Load CUDA kernels DLL - supports both original and optimized versions"""
@@ -329,7 +328,7 @@ class UniversalBrainSimulator:
         self._cuda_top_k = None
         self._cuda_max_k = 0
         
-        print(f"   🔧 CUDA memory pools initialized (dynamic allocation)")
+        print("   🔧 CUDA memory pools initialized (dynamic allocation)")
     
     def _ensure_cuda_memory(self, required_k):
         """Ensure CUDA memory is allocated for the required size"""
@@ -547,7 +546,7 @@ class UniversalBrainSimulator:
         total_time = time.perf_counter() - start_time
         
         if verbose:
-            print(f"\n📊 UNIVERSAL SIMULATION COMPLETE")
+            print("\n📊 UNIVERSAL SIMULATION COMPLETE")
             print(f"   Total time: {total_time:.3f}s")
             print(f"   Average step time: {total_time/n_steps*1000:.2f}ms")
             print(f"   Min step time: {self.metrics.min_step_time*1000:.2f}ms")
@@ -700,7 +699,7 @@ def test_universal_brain_simulator():
             # Get stats
             stats = simulator.get_performance_stats()
             
-            print(f"   ✅ Success!")
+            print("   ✅ Success!")
             print(f"   Time: {total_time:.3f}s")
             print(f"   Steps/sec: {stats['steps_per_second']:.1f}")
             print(f"   ms/step: {stats['avg_step_time']*1000:.2f}ms")
@@ -738,7 +737,7 @@ def test_universal_brain_simulator():
             })
     
     # Summary
-    print(f"\n📊 UNIVERSAL BRAIN SIMULATOR SUMMARY")
+    print("\n📊 UNIVERSAL BRAIN SIMULATOR SUMMARY")
     print("=" * 80)
     print(f"{'Configuration':<20} {'Steps/sec':<10} {'ms/step':<10} {'Neurons/sec':<15} {'Memory GB':<10} {'CUDA':<6} {'CuPy':<6} {'NumPy':<6}")
     print("-" * 80)
@@ -765,4 +764,4 @@ if __name__ == "__main__":
         print(f"   Neurons/sec: {best['neurons_per_second']:,.0f}")
         print(f"   Memory Usage: {best['memory_usage_gb']:.2f}GB")
     else:
-        print(f"\n❌ No successful tests")
+        print("\n❌ No successful tests")

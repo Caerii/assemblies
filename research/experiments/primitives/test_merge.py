@@ -96,19 +96,19 @@ class MergeCompositionExperiment(ExperimentBase):
         b.add_area("MERGE", config.n_neurons, config.k_active, config.beta)
         
         # Phase 1: Establish assembly A
-        self.log(f"    Establishing assembly A...")
+        self.log("    Establishing assembly A...")
         for _ in range(config.n_projection_rounds):
             b.project(areas_by_stim={"STIM_A": ["AREA_A"]}, dst_areas_by_src_area={})
         assembly_a = np.array(b.area_by_name["AREA_A"].winners, dtype=np.uint32)
         
         # Phase 2: Establish assembly B
-        self.log(f"    Establishing assembly B...")
+        self.log("    Establishing assembly B...")
         for _ in range(config.n_projection_rounds):
             b.project(areas_by_stim={"STIM_B": ["AREA_B"]}, dst_areas_by_src_area={})
         assembly_b = np.array(b.area_by_name["AREA_B"].winners, dtype=np.uint32)
         
         # Phase 3: Project A alone to MERGE -> C_A
-        self.log(f"    Projecting A -> MERGE...")
+        self.log("    Projecting A -> MERGE...")
         for _ in range(config.n_projection_rounds):
             b.project(
                 areas_by_stim={},
@@ -122,7 +122,7 @@ class MergeCompositionExperiment(ExperimentBase):
         b2.add_area("AREA_B", config.n_neurons, config.k_active, config.beta)
         b2.add_area("MERGE", config.n_neurons, config.k_active, config.beta)
         
-        self.log(f"    Projecting B -> MERGE...")
+        self.log("    Projecting B -> MERGE...")
         for _ in range(config.n_projection_rounds):
             b2.project(areas_by_stim={"STIM_B": ["AREA_B"]}, dst_areas_by_src_area={})
         
@@ -135,7 +135,7 @@ class MergeCompositionExperiment(ExperimentBase):
         
         # Phase 5: Merge - project A and B together to MERGE
         # Use a fresh brain with both assemblies established for clean merge
-        self.log(f"    Performing MERGE (A + B -> MERGE)...")
+        self.log("    Performing MERGE (A + B -> MERGE)...")
         
         b3 = brain_module.Brain(p=config.p_connect, seed=self.seed + trial_id + 2000)
         b3.add_stimulus("STIM_A", config.k_active)
@@ -241,7 +241,7 @@ class MergeCompositionExperiment(ExperimentBase):
         if beta_range is None:
             beta_range = [0.05, 0.1]
         
-        self.log(f"Starting merge composition experiment")
+        self.log("Starting merge composition experiment")
         self.log(f"  n_neurons: {n_neurons_range}")
         self.log(f"  k_active: {k_active_range}")
         
@@ -312,7 +312,7 @@ class MergeCompositionExperiment(ExperimentBase):
         }
         
         self.log(f"\n{'='*60}")
-        self.log(f"SUMMARY:")
+        self.log("SUMMARY:")
         self.log(f"  Overall success rate: {summary['overall_success_rate']:.2%}")
         self.log(f"  Mean merge quality: {summary['mean_merge_quality']:.3f}")
         self.log(f"  Mean composition score: {summary['mean_composition_score']:.3f}")

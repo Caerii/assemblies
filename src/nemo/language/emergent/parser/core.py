@@ -14,12 +14,11 @@ Key insight from parser.py:
 """
 
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Tuple, TYPE_CHECKING
+from typing import Dict, List, Optional, TYPE_CHECKING
 import cupy as cp
 
 if TYPE_CHECKING:
     from ..learner import EmergentLanguageLearner
-    from ..brain import EmergentNemoBrain
 
 from ..areas import Area
 

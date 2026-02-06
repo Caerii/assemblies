@@ -8,7 +8,6 @@ extracted from the root brain.py projection logic.
 """
 
 import numpy as np
-from typing import List, Tuple
 
 class NeuralComputationEngine:
     """

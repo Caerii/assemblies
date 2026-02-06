@@ -7,12 +7,11 @@ This example shows how performance scales with different neuron counts
 and demonstrates the benefits of optimized CUDA kernels at larger scales.
 """
 
-import time
 import sys
 import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 
-from universal_brain_simulator.client import BrainSimulator, compare_configurations
+from universal_brain_simulator.client import BrainSimulator
 
 
 def main():
@@ -69,7 +68,7 @@ def main():
         })
     
     # Print scaling results
-    print(f"\n📈 SCALING RESULTS")
+    print("\n📈 SCALING RESULTS")
     print("=" * 80)
     print(f"{'Neurons':<12} {'Optimized CUDA':<20} {'Original CUDA':<20} {'Speedup':<10}")
     print(f"{'':<12} {'Steps/sec':<10} {'Neurons/sec':<10} {'Steps/sec':<10} {'Neurons/sec':<10} {'':<10}")
@@ -91,7 +90,7 @@ def main():
             print(f"{neurons:<12,} {opt_steps:<10.1f} {opt_neurons:<10,.0f} {'N/A':<10} {'N/A':<10} {'N/A':<10}")
     
     # Test different active percentages - Large Scale
-    print(f"\n📊 Testing different active percentages (Large Scale)...")
+    print("\n📊 Testing different active percentages (Large Scale)...")
     active_percentages = [0.001, 0.005, 0.01, 0.02, 0.05]
     
     for active_pct in active_percentages:
@@ -111,7 +110,7 @@ def main():
         print(f"   Active neurons: {int(100000000 * active_pct):,}")
     
     # Test different area counts - Large Scale
-    print(f"\n📊 Testing different area counts (Large Scale)...")
+    print("\n📊 Testing different area counts (Large Scale)...")
     area_counts = [1, 3, 5, 10, 20]
     
     for areas in area_counts:
@@ -130,12 +129,12 @@ def main():
         print(f"   Neurons/sec: {results['performance']['neurons_per_second']:,.0f}")
         print(f"   Total active neurons: {int(100000000 * 0.01 * areas):,}")
     
-    print(f"\n🎯 Scaling analysis complete!")
-    print(f"   Key insights:")
-    print(f"   - Optimized CUDA shows significant speedup at larger scales")
-    print(f"   - Performance scales well with neuron count")
-    print(f"   - Active percentage affects performance linearly")
-    print(f"   - More areas = more total active neurons = higher throughput")
+    print("\n🎯 Scaling analysis complete!")
+    print("   Key insights:")
+    print("   - Optimized CUDA shows significant speedup at larger scales")
+    print("   - Performance scales well with neuron count")
+    print("   - Active percentage affects performance linearly")
+    print("   - More areas = more total active neurons = higher throughput")
 
 
 if __name__ == "__main__":

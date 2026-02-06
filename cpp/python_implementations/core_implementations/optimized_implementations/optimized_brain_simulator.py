@@ -17,9 +17,8 @@ Key Features:
 import time
 import numpy as np
 import os
-import sys
 import ctypes
-from typing import Dict, List, Tuple, Optional, Any, Union
+from typing import Dict, Any
 from dataclasses import dataclass
 import json
 
@@ -95,7 +94,7 @@ class OptimizedBrainSimulator:
         self._cuda_brain_ptr = None
         self._load_cuda_kernels()
         
-        print(f"🚀 Optimized Brain Simulator initialized:")
+        print("🚀 Optimized Brain Simulator initialized:")
         print(f"   Neurons: {self.n_neurons:,}")
         print(f"   Active percentage: {self.active_percentage*100:.4f}%")
         print(f"   Active per area: {self.k_active:,}")
@@ -108,7 +107,7 @@ class OptimizedBrainSimulator:
         # Initialize optimized CUDA brain
         self._initialize_optimized_brain()
         
-        print(f"   ✅ Optimized Brain initialized successfully!")
+        print("   ✅ Optimized Brain initialized successfully!")
     
     def _load_cuda_kernels(self):
         """Load optimized CUDA kernels DLL"""
@@ -201,10 +200,10 @@ class OptimizedBrainSimulator:
             )
             
             if self._cuda_brain_ptr:
-                print(f"   ✅ Optimized CUDA brain created successfully!")
+                print("   ✅ Optimized CUDA brain created successfully!")
                 print(f"   🧠 Brain pointer: {self._cuda_brain_ptr}")
             else:
-                print(f"   ❌ Failed to create optimized CUDA brain")
+                print("   ❌ Failed to create optimized CUDA brain")
                 self._cuda_brain_ptr = None
                 
         except Exception as e:
@@ -216,7 +215,7 @@ class OptimizedBrainSimulator:
         start_time = time.time()
         
         if verbose:
-            print(f"🔄 Simulating step with OPTIMIZED O(N log K) algorithms...")
+            print("🔄 Simulating step with OPTIMIZED O(N log K) algorithms...")
         
         if self._cuda_brain_ptr and self.metrics.optimized_kernels_used:
             try:
@@ -224,7 +223,7 @@ class OptimizedBrainSimulator:
                 self._cuda_kernels.cuda_simulate_step_optimized(self._cuda_brain_ptr)
                 
                 if verbose:
-                    print(f"   🚀 Used optimized CUDA brain simulator (O(N log K))")
+                    print("   🚀 Used optimized CUDA brain simulator (O(N log K))")
                 
             except Exception as e:
                 print(f"   ⚠️  Optimized CUDA simulation failed: {e}")
@@ -283,7 +282,7 @@ class OptimizedBrainSimulator:
             print(f"   Neurons: {self.n_neurons:,}")
             print(f"   Active: {self.k_active:,} ({self.active_percentage*100:.4f}%)")
             print(f"   Areas: {self.n_areas}")
-            print(f"   Algorithm: O(N log K) - Optimized for billion-scale!")
+            print("   Algorithm: O(N log K) - Optimized for billion-scale!")
         
         total_time = 0.0
         
@@ -295,7 +294,7 @@ class OptimizedBrainSimulator:
                 print(f"   Step {step + 1}/{n_steps}: {step_time*1000:.2f}ms")
         
         if verbose:
-            print(f"✅ OPTIMIZED simulation completed!")
+            print("✅ OPTIMIZED simulation completed!")
             print(f"   Total time: {total_time:.2f}s")
             print(f"   Average step time: {total_time/n_steps*1000:.2f}ms")
             print(f"   Steps per second: {n_steps/total_time:.1f}")
@@ -443,7 +442,7 @@ def main():
             })
     
     # Summary
-    print(f"\n📈 OPTIMIZED PERFORMANCE SUMMARY")
+    print("\n📈 OPTIMIZED PERFORMANCE SUMMARY")
     print("=" * 50)
     
     for result in results:
@@ -455,7 +454,7 @@ def main():
         else:
             print(f"{result['name']}: ❌ {result['error']}")
     
-    print(f"\n🎯 Key Insight: This uses O(N log K) algorithms optimized for billion-scale!")
+    print("\n🎯 Key Insight: This uses O(N log K) algorithms optimized for billion-scale!")
 
 if __name__ == "__main__":
     main()

@@ -9,7 +9,6 @@ universal brain simulator system.
 
 import os
 from typing import List, Dict, Any, Tuple
-import numpy as np
 
 # Try to import CuPy for GPU memory management
 try:
@@ -133,7 +132,7 @@ def print_performance_summary(results: List[Dict[str, Any]]):
     Args:
         results: List of performance result dictionaries
     """
-    print(f"\n📊 UNIVERSAL BRAIN SIMULATOR SUMMARY")
+    print("\n📊 UNIVERSAL BRAIN SIMULATOR SUMMARY")
     print("=" * 80)
     print(f"{'Configuration':<20} {'Steps/sec':<10} {'ms/step':<10} {'Neurons/sec':<15} {'Memory GB':<10} {'CUDA':<6} {'CuPy':<6} {'NumPy':<6}")
     print("-" * 80)
@@ -213,7 +212,7 @@ def print_initialization_status(config, cuda_kernels_loaded: bool, kernel_type: 
         cuda_kernels_loaded: Whether CUDA kernels were loaded
         kernel_type: Type of kernel loaded (if any)
     """
-    print(f"🚀 Universal Brain Simulator initialized:")
+    print("🚀 Universal Brain Simulator initialized:")
     print(f"   Neurons: {config.n_neurons:,}")
     print(f"   Active percentage: {config.active_percentage*100:.4f}%")
     print(f"   Active per area: {config.k_active:,}")
@@ -224,4 +223,4 @@ def print_initialization_status(config, cuda_kernels_loaded: bool, kernel_type: 
         print(f"   Kernel type: {kernel_type}")
     print(f"   Memory efficient: {'✅' if config.memory_efficient else '❌'}")
     print(f"   Sparse mode: {'✅' if config.sparse_mode else '❌'}")
-    print(f"   ✅ Brain initialized successfully!")
+    print("   ✅ Brain initialized successfully!")

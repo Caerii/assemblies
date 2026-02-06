@@ -171,9 +171,9 @@ def main():
     test_client_interface()
     test_underlying_simulator()
     
-    print(f"\n🎯 Error testing complete!")
-    print(f"   Check the results above to see which errors are fixed.")
-    print(f"   Any remaining errors need to be addressed in the code.")
+    print("\n🎯 Error testing complete!")
+    print("   Check the results above to see which errors are fixed.")
+    print("   Any remaining errors need to be addressed in the code.")
 
 
 if __name__ == "__main__":

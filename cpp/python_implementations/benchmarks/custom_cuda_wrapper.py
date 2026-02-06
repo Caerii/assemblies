@@ -9,7 +9,7 @@ Python wrapper for our custom dense assembly CUDA kernels.
 import ctypes
 import numpy as np
 import os
-from ctypes import c_uint32, c_float, c_void_p, POINTER
+from ctypes import c_uint32, c_float, c_void_p
 
 # Load the DLL
 DLL_PATH = os.path.join(os.path.dirname(__file__), '..', '..', 'dlls', 'dense_assembly_kernels.dll')

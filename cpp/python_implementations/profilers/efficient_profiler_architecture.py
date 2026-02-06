@@ -11,7 +11,7 @@ This shows how to restructure the profiler for maximum efficiency:
 
 import asyncio
 import time
-from typing import Dict, List, Any, Optional, Callable
+from typing import Dict, List, Any, Callable
 from dataclasses import dataclass
 from concurrent.futures import ThreadPoolExecutor
 import threading

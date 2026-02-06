@@ -11,9 +11,8 @@ Optimizations:
 """
 
 import cupy as cp
-import numpy as np
 import time
-from typing import List, Tuple, Optional
+from typing import List
 
 # =============================================================================
 # CUDA KERNEL: Ultra-Fast Implicit Projection (FP16 + Warp Optimized)

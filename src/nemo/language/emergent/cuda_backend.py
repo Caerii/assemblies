@@ -14,10 +14,8 @@ Key Features:
 
 import ctypes
 import numpy as np
-import os
 from pathlib import Path
-from typing import Optional, Dict, List, Set
-from collections import defaultdict
+from typing import Dict
 
 # Find the DLL directory
 DLL_DIR = Path(__file__).parent.parent.parent.parent.parent / "cpp" / "dlls"
@@ -278,7 +276,7 @@ if __name__ == "__main__":
             active = winners
         elapsed_learn = time.perf_counter() - start
         
-        print(f"\nResults (n=10000, k=100):")
+        print("\nResults (n=10000, k=100):")
         print(f"  Without learning: {elapsed_no_learn*10:.3f}ms per projection")
         print(f"  With learning:    {elapsed_learn*10:.3f}ms per projection")
         print(f"  Learned weights:  {projector.get_num_learned()}")

@@ -7,8 +7,8 @@ Based on child language acquisition research and frequency statistics.
 """
 
 from dataclasses import dataclass, field
-from enum import Enum, auto
-from typing import Dict, List, Set, Optional, Callable
+from enum import Enum
+from typing import Dict, List, Set, Optional
 import random
 
 from .lexicon_manager import Word, WordCategory, SemanticDomain, LexiconManager

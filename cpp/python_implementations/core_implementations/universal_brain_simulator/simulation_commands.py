@@ -8,7 +8,6 @@ using the Command pattern to simplify step execution logic.
 """
 
 import time
-from typing import Optional
 from .config import SimulationConfig
 from .cuda_manager import CUDAManager
 from .area_manager import AreaManager

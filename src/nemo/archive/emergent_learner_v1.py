@@ -28,7 +28,7 @@ import numpy as np
 import time
 from typing import Dict, List, Tuple, Optional, Set
 from dataclasses import dataclass, field
-from enum import Enum, auto
+from enum import Enum
 from collections import defaultdict
 
 # Import core kernels
@@ -256,14 +256,14 @@ class EmergentNemoBrain:
         self.gx = (n + self.bs - 1) // self.bs
         
         if verbose:
-            print(f"EmergentNemoBrain initialized:")
+            print("EmergentNemoBrain initialized:")
             print(f"  n={n:,}, k={k}")
             print(f"  Areas: {NUM_AREAS}")
-            print(f"    Input: 8, Lexical: 2, Core: 8")
-            print(f"    Thematic: 6, Phrase: 5, Syntactic: 3")
-            print(f"    Control: 4, Error: 1")
+            print("    Input: 8, Lexical: 2, Core: 8")
+            print("    Thematic: 6, Phrase: 5, Syntactic: 3")
+            print("    Control: 4, Error: 1")
             print(f"  Mutual inhibition groups: {len(MUTUAL_INHIBITION_GROUPS)}")
-            print(f"  NO pre-labeled categories - all emergent!")
+            print("  NO pre-labeled categories - all emergent!")
     
     def _get_or_create(self, area: Area, name: str) -> cp.ndarray:
         """Get or create assembly for a concept in an input area"""

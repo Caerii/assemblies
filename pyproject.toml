@@ -38,6 +38,21 @@ dev-dependencies = [
 [tool.ruff]
 line-length = 100
 target-version = "py310"
+exclude = ["temp/", ".venv/", "*.egg-info"]
+
+[tool.ruff.lint]
+# Start with pyflakes (F) errors that catch real bugs.
+# E rules are style — enable selectively to avoid noise.
+select = [
+    "F401",   # unused imports
+    "F541",   # f-string without placeholders
+    "F811",   # redefined unused name
+    "F841",   # unused variable
+    "E722",   # bare except
+    "E401",   # multiple imports on one line
+]
+# Ignore import-star issues in __init__.py files and notebooks
+per-file-ignores = {"__init__.py" = ["F401"], "*.ipynb" = ["F401", "E402"]}
 
 [tool.pytest.ini_options]
 testpaths = ["tests", "src/tests", "research/experiments"]

@@ -128,7 +128,7 @@ def sweep_parameters():
     # Find best
     if results:
         best = max(results, key=lambda r: r['stability'] + r['completion'])
-        print(f"\nBest configuration:")
+        print("\nBest configuration:")
         print(f"  k={best['k']}, p={best['p']}, beta={best['beta']}")
         print(f"  Stability: {best['stability']:.3f}")
         print(f"  Completion: {best['completion']:.3f}")

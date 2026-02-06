@@ -23,8 +23,7 @@ Usage:
 
 import time
 import cupy as cp
-import numpy as np
-from typing import Dict, List, Optional, Callable, Any
+from typing import Dict, List
 from dataclasses import dataclass, field
 from collections import defaultdict
 from contextlib import contextmanager

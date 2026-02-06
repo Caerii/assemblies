@@ -13,7 +13,6 @@ using artificial stimuli to influence neural assemblies and observing the outcom
 
 import brain
 import brain_util as bu
-import numpy as np
 import time
 
 def larger_k(n=10000,k=100,p=0.01,beta=0.05, bigger_factor=10):

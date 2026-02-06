@@ -21,7 +21,7 @@ This is neurally plausible:
 
 import numpy as np
 import cupy as cp
-from typing import List, Tuple, Optional, Dict
+from typing import List, Tuple, Optional
 from dataclasses import dataclass
 
 

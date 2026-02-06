@@ -17,10 +17,8 @@ This provides the foundation for measuring the impact of quantization optimizati
 """
 
 import time
-import numpy as np
 import sys
-import os
-from typing import Dict, List, Tuple
+from typing import Dict, List
 import json
 from dataclasses import dataclass
 

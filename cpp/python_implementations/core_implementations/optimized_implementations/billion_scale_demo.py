@@ -14,7 +14,6 @@ import time
 import sys
 import os
 import json
-from typing import Dict, List, Any
 
 # Add the current directory to Python path
 sys.path.append(os.path.dirname(__file__))
@@ -101,7 +100,7 @@ def main():
         {"n_neurons": 1_000_000_000, "active_percentage": 0.00001, "name": "Billion (1B)"},
     ]
     
-    print(f"\n📊 THEORETICAL COMPLEXITY ANALYSIS")
+    print("\n📊 THEORETICAL COMPLEXITY ANALYSIS")
     print("=" * 60)
     print(f"{'Scale':<20} {'Neurons':<15} {'Active':<10} {'Operations':<20} {'Time (est)':<15}")
     print("-" * 80)
@@ -126,33 +125,33 @@ def main():
         
         results.append(complexity)
     
-    print(f"\n🎯 KEY INSIGHTS:")
-    print(f"  - At 100K neurons: ~50 trillion operations (manageable)")
-    print(f"  - At 1M neurons: ~50 quadrillion operations (slow)")
-    print(f"  - At 10M neurons: ~5 quintillion operations (very slow)")
-    print(f"  - At 100M neurons: ~500 quintillion operations (impractical)")
-    print(f"  - At 1B neurons: ~50 sextillion operations (impossible)")
+    print("\n🎯 KEY INSIGHTS:")
+    print("  - At 100K neurons: ~50 trillion operations (manageable)")
+    print("  - At 1M neurons: ~50 quadrillion operations (slow)")
+    print("  - At 10M neurons: ~5 quintillion operations (very slow)")
+    print("  - At 100M neurons: ~500 quintillion operations (impractical)")
+    print("  - At 1B neurons: ~50 sextillion operations (impossible)")
     
-    print(f"\n🚀 SOLUTION: O(N log K) Optimization")
-    print(f"  - Original O(N²): k × n² operations")
-    print(f"  - Optimized O(N log K): n × log₂(k) operations")
-    print(f"  - Speedup: k × n² / (n × log₂(k)) = k × n / log₂(k)")
-    print(f"  - At 1B neurons, k=10K: 10K × 1B / log₂(10K) ≈ 3.3 × 10¹²")
-    print(f"  - Expected speedup: 3.3 trillion times faster!")
+    print("\n🚀 SOLUTION: O(N log K) Optimization")
+    print("  - Original O(N²): k × n² operations")
+    print("  - Optimized O(N log K): n × log₂(k) operations")
+    print("  - Speedup: k × n² / (n × log₂(k)) = k × n / log₂(k)")
+    print("  - At 1B neurons, k=10K: 10K × 1B / log₂(10K) ≈ 3.3 × 10¹²")
+    print("  - Expected speedup: 3.3 trillion times faster!")
     
     # Test small scale to verify algorithm works
-    print(f"\n🧪 VERIFICATION TEST")
+    print("\n🧪 VERIFICATION TEST")
     print("=" * 60)
     
     if test_small_scale():
-        print(f"   ✅ Algorithm works at small scale")
-        print(f"   ⚠️  But will fail at billion scale due to O(N²) complexity")
+        print("   ✅ Algorithm works at small scale")
+        print("   ⚠️  But will fail at billion scale due to O(N²) complexity")
     else:
-        print(f"   ❌ Algorithm failed even at small scale")
+        print("   ❌ Algorithm failed even at small scale")
     
-    print(f"\n📈 PERFORMANCE COMPARISON")
+    print("\n📈 PERFORMANCE COMPARISON")
     print("=" * 60)
-    print(f"Scale          | O(N²) Time    | O(N log K) Time | Speedup")
+    print("Scale          | O(N²) Time    | O(N log K) Time | Speedup")
     print("-" * 60)
     
     for i, result in enumerate(results):
@@ -172,11 +171,11 @@ def main():
         
         print(f"{scale_name:<15} | {o_n2_time:>10.1f}s | {o_n_log_k_time:>12.1f}s | {speedup:>8.0f}x")
     
-    print(f"\n🎯 CONCLUSION:")
-    print(f"  - O(N²) algorithms become impractical at large scales")
-    print(f"  - O(N log K) algorithms can handle billion-scale efficiently")
-    print(f"  - Speedup increases dramatically with scale")
-    print(f"  - This is why algorithmic optimization is critical!")
+    print("\n🎯 CONCLUSION:")
+    print("  - O(N²) algorithms become impractical at large scales")
+    print("  - O(N log K) algorithms can handle billion-scale efficiently")
+    print("  - Speedup increases dramatically with scale")
+    print("  - This is why algorithmic optimization is critical!")
     
     # Save results
     timestamp = time.strftime("%Y%m%d_%H%M%S")

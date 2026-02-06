@@ -31,9 +31,7 @@ Usage:
     kernels.update_connectomes(connectomes, winners, beta)
 """
 
-import numpy as np
-from typing import Dict, List, Optional, Tuple, Union, Any
-import time
+from typing import Dict, List, Any
 
 class AssemblyKernels:
     """

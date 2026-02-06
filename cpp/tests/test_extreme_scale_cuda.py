@@ -133,7 +133,7 @@ def test_extreme_scale():
     print(f"   🚀 ACTIVITY RATE: {active_neurons/total_neurons*100:.2f}%")
     
     # Run EXTREME simulation
-    print(f"\n🔥 Running EXTREME scale simulation...")
+    print("\n🔥 Running EXTREME scale simulation...")
     print("   This will push your RTX 4090 to its absolute limits!")
     
     start_time = time.time()
@@ -143,7 +143,7 @@ def test_extreme_scale():
     
     total_time = time.time() - start_time
     
-    print(f"\n📊 EXTREME SCALE PERFORMANCE RESULTS:")
+    print("\n📊 EXTREME SCALE PERFORMANCE RESULTS:")
     print("=" * 60)
     print(f"   ⏱️  Total time: {total_time:.3f}s")
     print(f"   ⚡ Time per step: {total_time/30*1000:.2f}ms")
@@ -155,13 +155,13 @@ def test_extreme_scale():
     neurons_per_ms = total_neurons / (total_time * 1000)
     real_time_factor = total_neurons / (total_time * 1000)
     
-    print(f"\n🎯 EXTREME PERFORMANCE ANALYSIS:")
+    print("\n🎯 EXTREME PERFORMANCE ANALYSIS:")
     print(f"   ⚡ Processing speed: {neurons_per_ms:.0f} neurons/ms")
     print(f"   🚀 Real-time factor: {real_time_factor:.1f}x")
-    print(f"   🔥 GPU utilization: MAXIMUM")
+    print("   🔥 GPU utilization: MAXIMUM")
     
     # Check results
-    print(f"\n🧠 Final EXTREME Activation State:")
+    print("\n🧠 Final EXTREME Activation State:")
     for area_name in sorted(brain.areas.keys()):
         activated = brain.GetActivatedNeurons(area_name)
         area_info = brain.GetAreaInfo(area_name)
@@ -170,13 +170,13 @@ def test_extreme_scale():
     # Performance verdict
     if total_time < 2.0:
         print(f"\n🏆 INCREDIBLE! EXTREME scale simulation in {total_time:.3f}s")
-        print(f"   Your RTX 4090 is absolutely CRUSHING it! 🔥")
+        print("   Your RTX 4090 is absolutely CRUSHING it! 🔥")
     elif total_time < 5.0:
         print(f"\n🚀 EXCELLENT! EXTREME scale simulation in {total_time:.3f}s")
-        print(f"   Your RTX 4090 is performing amazingly! ⚡")
+        print("   Your RTX 4090 is performing amazingly! ⚡")
     else:
         print(f"\n⚡ GOOD! EXTREME scale simulation in {total_time:.3f}s")
-        print(f"   Your RTX 4090 is handling the load well! 🧠")
+        print("   Your RTX 4090 is handling the load well! 🧠")
     
     return total_time, total_neurons, active_neurons
 
@@ -217,7 +217,7 @@ def test_ultra_extreme_scale():
     print(f"   ⚡ ULTRA ACTIVE NEURONS: {active_neurons:,}")
     
     # Run ULTRA simulation
-    print(f"\n🔥 Running ULTRA EXTREME simulation...")
+    print("\n🔥 Running ULTRA EXTREME simulation...")
     print("   This might push your RTX 4090 beyond its limits!")
     
     start_time = time.time()
@@ -228,7 +228,7 @@ def test_ultra_extreme_scale():
         
         total_time = time.time() - start_time
         
-        print(f"\n📊 ULTRA EXTREME PERFORMANCE RESULTS:")
+        print("\n📊 ULTRA EXTREME PERFORMANCE RESULTS:")
         print(f"   ⏱️  Total time: {total_time:.3f}s")
         print(f"   ⚡ Time per step: {total_time/20*1000:.2f}ms")
         print(f"   🧠 Neurons processed per second: {total_neurons*20/total_time:,.0f}")
@@ -236,10 +236,10 @@ def test_ultra_extreme_scale():
         
         if total_time < 3.0:
             print(f"\n🏆 ULTRA INCREDIBLE! {total_neurons:,} neurons in {total_time:.3f}s")
-            print(f"   Your RTX 4090 is a BEAST! 🔥🔥🔥")
+            print("   Your RTX 4090 is a BEAST! 🔥🔥🔥")
         else:
             print(f"\n🚀 ULTRA EXCELLENT! {total_neurons:,} neurons in {total_time:.3f}s")
-            print(f"   Your RTX 4090 is handling ULTRA scale! ⚡⚡⚡")
+            print("   Your RTX 4090 is handling ULTRA scale! ⚡⚡⚡")
         
         return total_time, total_neurons, active_neurons
         
@@ -274,8 +274,8 @@ if __name__ == "__main__":
             print(f"🚀 ULTRA EXTREME: {neurons2:,} neurons in {time2:.3f}s")
             print(f"   Performance: {neurons2/time2:,.0f} neurons/second")
         
-        print(f"\n🎯 Your RTX 4090 is absolutely CRUSHING neural simulation!")
-        print(f"   Ready for billion-neuron simulations! 🔥⚡🧠")
+        print("\n🎯 Your RTX 4090 is absolutely CRUSHING neural simulation!")
+        print("   Ready for billion-neuron simulations! 🔥⚡🧠")
         
     except KeyboardInterrupt:
         print("\n⏹️  Tests interrupted by user")

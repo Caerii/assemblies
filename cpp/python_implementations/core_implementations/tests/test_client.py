@@ -8,12 +8,11 @@ with the modular architecture.
 """
 
 import sys
-import os
 
 # Add the current directory to the path
 sys.path.insert(0, '.')
 
-from universal_brain_simulator.client import BrainSimulator, quick_sim, quick_benchmark
+from universal_brain_simulator.client import BrainSimulator, quick_sim
 
 
 def test_basic_client():
@@ -112,7 +111,7 @@ def test_client_with_different_configs():
             print(f"   ❌ Failed: {e}")
     
     # Print summary
-    print(f"\n📊 CONFIGURATION TEST SUMMARY")
+    print("\n📊 CONFIGURATION TEST SUMMARY")
     print("=" * 60)
     successful = [r for r in results if r['success']]
     failed = [r for r in results if not r['success']]
@@ -184,7 +183,7 @@ def main():
         advanced_success = test_client_advanced_features()
         
         # Summary
-        print(f"\n🎯 CLIENT TEST SUMMARY")
+        print("\n🎯 CLIENT TEST SUMMARY")
         print("=" * 60)
         print(f"   Basic functionality: {'✅ PASSED' if basic_success else '❌ FAILED'}")
         print(f"   Configuration tests: {'✅ PASSED' if config_success else '❌ FAILED'}")
@@ -194,11 +193,11 @@ def main():
         print(f"   Overall result: {'✅ ALL TESTS PASSED' if overall_success else '❌ SOME TESTS FAILED'}")
         
         if overall_success:
-            print(f"\n🎉 Client is working correctly!")
-            print(f"   You can now use the lightweight client for easy brain simulation.")
-            print(f"   Try running the examples in the examples/ directory.")
+            print("\n🎉 Client is working correctly!")
+            print("   You can now use the lightweight client for easy brain simulation.")
+            print("   Try running the examples in the examples/ directory.")
         else:
-            print(f"\n⚠️  Some tests failed. Check the error messages above.")
+            print("\n⚠️  Some tests failed. Check the error messages above.")
         
         return overall_success
         

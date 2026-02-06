@@ -11,7 +11,7 @@ The main interactive NEMO system that:
 This extends EmergentLanguageLearner modularly.
 """
 
-from typing import Optional, List, Tuple
+from typing import Optional, List
 import re
 
 from ..learner import EmergentLanguageLearner
@@ -378,7 +378,7 @@ def run_interactive_session():
         
         if user_input.lower() == "status":
             knowledge = nemo.query_knowledge()
-            print(f"\nNEMO Status:")
+            print("\nNEMO Status:")
             print(f"  Vocabulary: {knowledge['vocabulary_size']} words")
             print(f"  Categories: {knowledge['categories']}")
             print(f"  Interactions: {knowledge['total_interactions']}")

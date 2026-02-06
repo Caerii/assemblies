@@ -25,13 +25,9 @@ Mathematical Foundation:
 """
 
 import numpy as np
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Tuple
 from collections import defaultdict
-import sys
 import os
-import heapq
-import math
-from scipy.stats import binom, truncnorm
 
 # We implement our own modularized brain logic using our extracted primitives
 
@@ -56,11 +52,9 @@ except ImportError:
     from math_primitives.image_activation import ImageActivationEngine
 
 try:
-    from ..utils.math_utils import select_top_k_indices
     from ..constants.default_params import DEFAULT_P, DEFAULT_BETA
 except ImportError:
     # Fallback for when running as script
-    from utils.math_utils import select_top_k_indices
     from constants.default_params import DEFAULT_P, DEFAULT_BETA
 
 class Brain:
@@ -204,35 +198,40 @@ class Brain:
         verbose: int = 0,
     ):
         """
-        Execute Assembly Calculus Projection operations using our modular primitives.
-        
-        This method supports two APIs for maximum compatibility:
-        1. Legacy API (areas_by_stim, dst_areas_by_src_area) - for existing simulation functions
-        2. New API (external_inputs, projections) - for future sophisticated usage
-        
+        Execute Assembly Calculus Projection operations.
+
+        Supports two calling conventions:
+
+        1. Legacy API (matches root brain.py / simulations.py):
+           brain.project({"stim": ["AreaA"]}, {"AreaA": ["AreaB"]})
+
+        2. Direct-injection API:
+           brain.project(external_inputs={"AreaA": winners}, projections={"AreaA": ["AreaB"]})
+           Sets area winners explicitly, then projects area-to-area.
+
         Args:
-            areas_by_stim (Dict[str, List[str]], optional): Legacy API - maps stimulus names to target areas
-            dst_areas_by_src_area (Dict[str, List[str]], optional): Legacy API - maps source areas to target areas
-            external_inputs (Dict[str, np.ndarray], optional): New API - external activations to areas
-            projections (Dict[str, List[str]], optional): New API - projection mapping
-            verbose (int): Verbosity level for debugging (0=silent, 1=basic, 2=detailed)
+            areas_by_stim: Maps stimulus names to target area names.
+            dst_areas_by_src_area: Maps source area names to target area names.
+            external_inputs: Directly injects winner arrays into areas before projecting.
+            projections: Maps source area names to target area names (used with external_inputs).
+            verbose: 0=silent, 1=basic, 2=detailed.
         """
-        # Determine which API is being used
         if areas_by_stim is not None or dst_areas_by_src_area is not None:
-            # Legacy API - use the same logic as project_legacy but with our modular primitives
-            self._project_legacy_compatible(areas_by_stim or {}, dst_areas_by_src_area or {}, verbose)
+            self._project_impl(areas_by_stim or {}, dst_areas_by_src_area or {}, verbose)
         elif external_inputs is not None or projections is not None:
-            # New API - use sophisticated projection logic
-            self._project_new_api(external_inputs or {}, projections or {}, verbose)
+            # Inject external activations, then route through the same projection path
+            for area_name, input_winners in (external_inputs or {}).items():
+                self.areas[area_name].winners = np.asarray(input_winners, dtype=np.uint32)
+            self._project_impl({}, projections or {}, verbose)
         else:
             raise ValueError("Must provide either legacy API parameters or new API parameters")
 
-    def _project_legacy_compatible(self, areas_by_stim, dst_areas_by_src_area, verbose=0):
+    def _project_impl(self, areas_by_stim, dst_areas_by_src_area, verbose=0):
         """
-        Legacy-compatible projection using our modular primitives.
-        
-        This method implements the same logic as project_legacy but uses our
-        extracted engines for better maintainability and testing.
+        Core projection implementation.
+
+        Builds input mappings from stimuli and areas, then projects into each
+        target area using the appropriate engine (explicit or sparse).
         """
         # Build input mappings exactly like original brain.py
         stim_in = defaultdict(list)
@@ -294,92 +293,9 @@ class Brain:
             area.winners = area._new_winners
             area.w = area._new_w
 
-    def _project_new_api(self, external_inputs, projections, verbose=0):
-        """
-        New API projection using sophisticated modular primitives.
-        
-        This method implements the advanced projection logic for future use cases.
-        """
-        # Process external inputs
-        for area_name, input_winners in external_inputs.items():
-            area = self.areas[area_name]
-            area.winners = input_winners
-
-        # Prepare mappings for projections
-        stim_in = defaultdict(list)
-        area_in = defaultdict(list)
-
-        # Map stimuli to target areas
-        for stim_name, stim in self.stimuli.items():
-            for area_name in self.areas:
-                stim_in[area_name].append(stim_name)
-
-        # Map areas to target areas
-        for from_area_name, to_area_names in projections.items():
-            for to_area_name in to_area_names:
-                area_in[to_area_name].append(from_area_name)
-
-        # Perform projections into each target area using our modular primitives
-        for area_name in set(stim_in.keys()) | set(area_in.keys()):
-            target_area = self.areas[area_name]
-            from_stimuli = stim_in[area_name]
-            from_areas = area_in[area_name]
-            self._project_into(target_area, from_stimuli, from_areas, verbose)
-
     def project_legacy(self, areas_by_stim, dst_areas_by_src_area, verbose=0):
-        """
-        Legacy compatibility method for the original brain.py API.
-        
-        This method directly implements the original brain.py projection logic
-        to ensure 100% behavioral parity.
-        
-        Args:
-            areas_by_stim: Dict mapping stimulus names to lists of target area names
-            dst_areas_by_src_area: Dict mapping source area names to lists of target area names
-            verbose: Verbosity level
-        """
-        # Build input mappings exactly like original brain.py
-        stim_in = defaultdict(list)
-        area_in = defaultdict(list)
-
-        # Validate and build stimulus inputs
-        for stim, areas in areas_by_stim.items():
-            if stim not in self.stimuli:
-                raise IndexError(f"Not in brain.stimuli: {stim}")
-            for area_name in areas:
-                if area_name not in self.areas:
-                    raise IndexError(f"Not in brain.areas: {area_name}")
-                stim_in[area_name].append(stim)
-        
-        # Validate and build area inputs
-        for from_area_name, to_area_names in dst_areas_by_src_area.items():
-            if from_area_name not in self.areas:
-                raise IndexError(f"Not in brain.areas: {from_area_name}")
-            for to_area_name in to_area_names:
-                if to_area_name not in self.areas:
-                    raise IndexError(f"Not in brain.areas: {to_area_name}")
-                area_in[to_area_name].append(from_area_name)
-
-        # Process each target area exactly like original brain.py
-        to_update_area_names = stim_in.keys() | area_in.keys()
-        
-        for area_name in to_update_area_names:
-            area = self.areas[area_name]
-            num_first_winners, had_inputs = self._project_into_legacy(
-                area, stim_in[area_name], area_in[area_name], verbose, None)
-            area.num_first_winners = num_first_winners
-            
-            # Save winners if requested
-            if self.save_winners:
-                area.saved_winners.append(area._new_winners.copy())
-            
-            # Save size if requested  
-            if self.save_size:
-                area.saved_w.append(area._new_w)
-            
-            # Update area state
-            area.winners = area._new_winners
-            area.w = area._new_w
+        """Alias for backward compatibility with code that calls project_legacy directly."""
+        self._project_impl(areas_by_stim, dst_areas_by_src_area, verbose)
 
     def _project_into_legacy(self, target_area, from_stimuli, from_areas, verbose=0, area_rng=None):
         """
@@ -413,16 +329,21 @@ class Brain:
 
         # Initialize previous winner inputs
         if target_area.explicit:
-            # For explicit areas, use the extracted explicit projection engine
-            prev_winner_inputs = self.explicit_projection_engine.accumulate_prev_inputs_explicit(
-                target_area.n, 
-                from_stimuli, 
-                from_areas, 
-                self.connectomes_by_stimulus, 
-                self.connectomes, 
-                self.areas, 
-                target_area_name
-            )
+            # For explicit areas, accumulate inputs from all sources into a target_n vector
+            prev_winner_inputs = np.zeros(target_area.n, dtype=np.float32)
+            for stim in from_stimuli:
+                conn = self.connectomes_by_stimulus[stim][target_area_name]
+                # Stimulus connectome may be 1D (length n) or 2D (stim_size x n)
+                # All stimulus neurons fire, so sum across source neurons
+                if conn.weights.ndim == 2:
+                    prev_winner_inputs += conn.weights.sum(axis=0).astype(np.float32)
+                else:
+                    prev_winner_inputs += conn.weights.astype(np.float32, copy=False)
+            for from_area_name in from_areas:
+                conn = self.connectomes[from_area_name][target_area_name]
+                for w in self.areas[from_area_name].winners:
+                    if int(w) < conn.weights.shape[0]:
+                        prev_winner_inputs += conn.weights[int(w)]
         else:
             # For sparse areas, initialize with zeros of length w (matches original brain.py exactly)
             # This represents input strength to each of the current winners (indices 0 to w-1)
@@ -479,47 +400,22 @@ class Brain:
 
         # Simulate new winners for sparse areas using proper statistical sampling
         if not target_area.explicit:
-            # Calculate input statistics for new winner simulation
-            input_size_by_from_area_index = []
-            num_inputs = 0
-            
-            for stim in from_stimuli:
-                local_k = self.stimuli[stim].size
-                input_size_by_from_area_index.append(local_k)
-                num_inputs += 1
-            
-            for from_area_name in from_areas:
-                local_k = self.areas[from_area_name].k
-                input_size_by_from_area_index.append(local_k)
-                num_inputs += 1
-
-            # Use proper statistical sampling like original brain.py
+            # Collect input sizes from each source (stimuli + areas)
+            input_size_by_from_area_index = (
+                [self.stimuli[s].size for s in from_stimuli]
+                + [self.areas[a].k for a in from_areas]
+            )
             total_k = sum(input_size_by_from_area_index)
-            effective_n = target_area.n - target_area.w
-            
-            if effective_n <= target_area.k:
-                raise RuntimeError(
-                    f'Remaining size of area "{target_area_name}" too small to sample k new winners.')
-            
-            # Threshold for inputs that are above (n-k)/n quantile
-            quantile = (effective_n - target_area.k) / effective_n
-            alpha = binom.ppf(quantile, total_k, self.p)
-            
-            # Use normal approximation for sampling
-            mu = total_k * self.p
-            std = math.sqrt(total_k * self.p * (1.0 - self.p))
-            a = (alpha - mu) / std
-            
-            # Generate potential new winner inputs using truncated normal distribution
-            # Use scipy's truncnorm.rvs like the original brain.py
-            from scipy.stats import truncnorm
-            if area_rng is not None:
-                potential_new_winner_inputs = (mu + truncnorm.rvs(a, np.inf, scale=std, size=target_area.k, random_state=area_rng)).round(0)
-            else:
-                potential_new_winner_inputs = (mu + truncnorm.rvs(a, np.inf, scale=std, size=target_area.k, random_state=self.rng)).round(0)
-            for i in range(len(potential_new_winner_inputs)):
-                if potential_new_winner_inputs[i] > total_k:
-                    potential_new_winner_inputs[i] = total_k
+
+            # Use a per-area rng so the engine samples deterministically
+            sampling_engine = self.sparse_simulation_engine
+            old_rng = sampling_engine.rng
+            sampling_engine.rng = rng
+            potential_new_winner_inputs = sampling_engine.sample_new_winner_inputs(
+                input_size_by_from_area_index,
+                target_area.n, target_area.w, target_area.k, self.p,
+            )
+            sampling_engine.rng = old_rng
             
             # CRITICAL FIX: Concatenate previous and new winner inputs like original brain.py
             # prev_winner_inputs has length target_area.w (current winners)
@@ -530,8 +426,10 @@ class Brain:
                 # No previous winners, only consider new candidates
                 all_potential_winner_inputs = potential_new_winner_inputs
             
-            # Select top k winners from combined list
-            new_winner_indices = heapq.nlargest(target_area.k, range(len(all_potential_winner_inputs)), all_potential_winner_inputs.__getitem__)
+            # Select top k winners from combined list using the winner selector engine
+            new_winner_indices = self.winner_selector.heapq_select_top_k(
+                all_potential_winner_inputs, target_area.k
+            ).tolist()
             
             # Prepare per-input split containers (filled after selecting first winners)
             inputs_by_first_winner_index = []
@@ -603,24 +501,10 @@ class Brain:
         
         # Update connectomes if there are new winners
         if num_first_winners > 0:
-            # Build per-input split for each new winner to avoid 2D matrices
             inputs_names = list(from_stimuli) + list(from_areas)
-            # Compute splits proportional to input sizes
-            splits_per_new = []
-            for total_in in first_winner_inputs:
-                remaining = int(total_in)
-                proportions = np.array(input_size_by_from_area_index, dtype=np.float64) / float(total_k)
-                base = np.floor(proportions * remaining).astype(int)
-                base_sum = int(base.sum())
-                remainder = remaining - base_sum
-                if remainder > 0:
-                    # Distribute leftover to inputs with largest fractional part
-                    frac = (proportions * remaining) - base
-                    order = np.argsort(-frac)
-                    for j in range(remainder):
-                        base[order[j % len(base)]] += 1
-                splits_per_new.append(base.tolist())
-            # New winners are those with indices >= prior w
+            splits_per_new = self.sparse_simulation_engine.compute_input_splits(
+                input_size_by_from_area_index, first_winner_inputs,
+            )
             prior_w = target_area.w
             new_indices_for_update = [int(w) for w in winners if int(w) >= prior_w]
             self._update_connectomes_for_new_winners(target_area, inputs_names, new_indices_for_update, splits_per_new)
@@ -742,175 +626,6 @@ class Brain:
                 col_idx = win - target_area.w
                 if 0 <= col_idx < conn.weights.shape[1]:
                     conn.weights[chosen, col_idx] = 1.0
-
-    def _project_into(
-        self,
-        target_area: Area,
-        from_stimuli: List[str],
-        from_areas: List[str],
-        verbose: int = 0,
-    ):
-        """
-        Projects activations into a target area from stimuli and other areas.
-
-        Args:
-            target_area (Area): The target area.
-            from_stimuli (List[str]): List of stimuli projecting into the target area.
-            from_areas (List[str]): List of areas projecting into the target area.
-            verbose (int): Verbosity level.
-        """
-        if verbose >= 1:
-            print(f"Projecting {', '.join(from_stimuli)} and {', '.join(from_areas)} into {target_area.name}")
-
-        # If projecting from area with no assembly, raise an error
-        for from_area_name in from_areas:
-            from_area = self.areas[from_area_name]
-            if len(from_area.winners) == 0:
-                raise ValueError(f"Projecting from area with no assembly: {from_area.name}")
-
-        if target_area.fixed_assembly:
-            # If the target area has a fixed assembly, use it
-            new_winners = target_area.winners
-        else:
-            # Use sophisticated projection algorithms based on area type
-            if target_area.explicit:
-                # Use explicit projection engine for full simulation
-                new_winners = self._project_into_explicit(target_area, from_stimuli, from_areas, verbose)
-            else:
-                # Use sparse simulation engine for statistical approximation
-                new_winners = self._project_into_sparse(target_area, from_stimuli, from_areas, verbose)
-
-        # Update the target area's winners
-        target_area._update_winners(new_winners)
-
-    def _project_into_explicit(self, target_area: Area, from_stimuli: List[str], from_areas: List[str], verbose: int = 0):
-        """
-        Project into explicit area using full simulation.
-        
-        Uses the extracted explicit projection engine for sophisticated
-        explicit area handling including validation, input accumulation,
-        and specialized plasticity.
-        """
-        # Validate source winners using class method
-        for from_area_name in from_areas:
-            connectome = self.connectomes[from_area_name][target_area.name]
-            from_area = self.areas[from_area_name]
-            self.explicit_projection_engine.validate_source_winners(connectome.weights, from_area.winners)
-        
-        # Accumulate previous inputs for explicit areas using class method
-        stimuli_vectors = []
-        for stim_name in from_stimuli:
-            # Compute inputs from stimulus to target area
-            connectome = self.connectomes_by_stimulus[stim_name][target_area.name]
-            stim_inputs = connectome.compute_inputs(self.stimuli[stim_name].winners)
-            stimuli_vectors.append(stim_inputs)
-        
-        area_connectomes_and_winners = []
-        for from_area_name in from_areas:
-            connectome = self.connectomes[from_area_name][target_area.name]
-            winners = self.areas[from_area_name].winners
-            area_connectomes_and_winners.append((connectome.weights, winners))
-        
-        # Accumulate previous inputs for explicit areas
-        prev_winner_inputs = self.explicit_projection_engine.accumulate_prev_inputs_explicit(
-            target_area.n, stimuli_vectors, area_connectomes_and_winners
-        )
-        
-        # Select winners using sophisticated winner selection
-        new_winners, _, _, _ = self.winner_selector.select_combined_winners(
-            prev_winner_inputs, target_area.w, target_area.k
-        )
-        
-        # Apply explicit area plasticity using class method
-        for from_area_name in from_areas:
-            connectome = self.connectomes[from_area_name][target_area.name]
-            from_area_winners = self.areas[from_area_name].winners
-            beta = 0 if self.disable_plasticity else target_area.beta_by_area.get(from_area_name, target_area.beta)
-            self.explicit_projection_engine.apply_area_to_area_plasticity(
-                connectome.weights, from_area_winners, new_winners, beta, self.disable_plasticity
-            )
-        
-        return new_winners
-
-    def _project_into_sparse(self, target_area: Area, from_stimuli: List[str], from_areas: List[str], verbose: int = 0):
-        """
-        Project into sparse area using statistical simulation.
-        
-        Uses the extracted sparse simulation engine for efficient
-        large-scale neural simulation with statistical approximations.
-        """
-        # Compute inputs from stimuli and areas
-        inputs = np.zeros(target_area.n, dtype=np.float32)
-        for stim_name in from_stimuli:
-            connectome = self.connectomes_by_stimulus[stim_name][target_area.name]
-            inputs += connectome.compute_inputs(self.stimuli[stim_name].winners)
-
-        for from_area_name in from_areas:
-            connectome = self.connectomes[from_area_name][target_area.name]
-            inputs += connectome.compute_inputs(self.areas[from_area_name].winners)
-
-        # Use sophisticated winner selection with potential masking
-        new_winners, _, _, _ = self.winner_selector.select_combined_winners(inputs, target_area.w, target_area.k)
-        
-        # Update connectomes using plasticity engine
-        self._update_connectomes_advanced(target_area, from_stimuli, from_areas, new_winners)
-        
-        return new_winners
-
-    def _update_connectomes_advanced(self, target_area: Area, from_stimuli: List[str], from_areas: List[str], new_winners: np.ndarray):
-        """
-        Advanced connectome updates using the plasticity engine.
-        
-        Uses the extracted plasticity engine for sophisticated
-        Hebbian learning and weight updates.
-        """
-        # Update connectomes from stimuli
-        for stim_name in from_stimuli:
-            connectome = self.connectomes_by_stimulus[stim_name][target_area.name]
-            beta = target_area.beta_by_stimulus.get(stim_name, target_area.beta)
-            if not self.disable_plasticity and beta != 0:
-                self.plasticity_engine.scale_stimulus_to_area(
-                    connectome.weights, self.stimuli[stim_name].winners, new_winners, beta
-                )
-
-        # Update connectomes from areas
-        for from_area_name in from_areas:
-            connectome = self.connectomes[from_area_name][target_area.name]
-            beta = target_area.beta_by_area.get(from_area_name, target_area.beta)
-            if not self.disable_plasticity and beta != 0:
-                self.plasticity_engine.scale_area_to_area(
-                    connectome.weights, self.areas[from_area_name].winners, new_winners, beta
-                )
-
-    def _update_connectomes(
-        self,
-        target_area: Area,
-        from_stimuli: List[str],
-        from_areas: List[str],
-        new_winners: np.ndarray,
-    ):
-        """
-        Updates the synaptic weights in the connectomes due to plasticity.
-
-        Args:
-            target_area (Area): The target area.
-            from_stimuli (List[str]): List of stimuli projecting into the target area.
-            from_areas (List[str]): List of areas projecting into the target area.
-            new_winners (np.ndarray): Indices of the new winners in the target area.
-        """
-        # Update connectomes from stimuli
-        for stim_name in from_stimuli:
-            connectome = self.connectomes_by_stimulus[stim_name][target_area.name]
-            beta = target_area.beta_by_stimulus.get(stim_name, target_area.beta)
-            if beta != 0:
-                connectome.update_weights(self.stimuli[stim_name].winners, new_winners, beta)
-
-        # Update connectomes from areas
-        for from_area_name in from_areas:
-            connectome = self.connectomes[from_area_name][target_area.name]
-            beta = target_area.beta_by_area.get(from_area_name, target_area.beta)
-            if beta != 0:
-                connectome.update_weights(self.areas[from_area_name].winners, new_winners, beta)
 
     def _initialize_connectomes_for_area(self, area: Area):
         """

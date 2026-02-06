@@ -45,16 +45,11 @@ Usage:
 """
 
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
 import numpy as np
-from typing import Dict, List, Optional, Tuple, Union, Any
-from collections import defaultdict
+from typing import Dict, List, Optional
 
 from ..core.brain import Brain
 from ..core.area import Area
-from ..core.stimulus import Stimulus
-from ..core.connectome import Connectome
 from .gpu_utils import GPUUtils, MemoryManager
 from .custom_kernels import AssemblyKernels
 

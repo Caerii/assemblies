@@ -10,7 +10,6 @@ Uses PyTorch CUDA for fast iteration.
 """
 
 import torch
-import torch.nn.functional as F
 import numpy as np
 import time
 from typing import Dict, List, Optional, Tuple, Set

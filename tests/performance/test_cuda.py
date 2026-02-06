@@ -4,7 +4,6 @@ Performance test comparing C++ vs CUDA implementations
 """
 
 import sys
-import os
 import time
 import numpy as np
 
@@ -107,7 +106,7 @@ def run_cuda_benchmark(n, k, p, beta, overlap_iter):
         cuda_time = time.time() - start_time
         
         print(f"✓ CUDA completed in {cuda_time:.4f} seconds")
-        print(f"✓ Generated simulation data")
+        print("✓ Generated simulation data")
         
         return cuda_time, 1, True
         
@@ -196,21 +195,21 @@ def run_performance_comparison():
         max_speedup = max([r["speedup"] for r in successful_tests])
         min_speedup = min([r["speedup"] for r in successful_tests])
         
-        print(f"\n📈 Overall Statistics:")
+        print("\n📈 Overall Statistics:")
         print(f"  Average Speedup: {avg_speedup:.2f}x")
         print(f"  Maximum Speedup: {max_speedup:.2f}x")
         print(f"  Minimum Speedup: {min_speedup:.2f}x")
         print(f"  Successful Tests: {len(successful_tests)}/{len(results)}")
     
-    print(f"\n🎯 Conclusion:")
+    print("\n🎯 Conclusion:")
     if cuda_available and successful_tests:
         print(f"  CUDA provides {avg_speedup:.1f}x average speedup over C++!")
         print(f"  This enables simulation of {max([r['n'] for r in successful_tests]):,} neurons efficiently!")
     elif cuda_available:
-        print(f"  CUDA is available but had issues. Check CUDA installation.")
+        print("  CUDA is available but had issues. Check CUDA installation.")
     else:
-        print(f"  CUDA not available. C++ provides good performance for current tests.")
-        print(f"  Install CUDA for even better performance!")
+        print("  CUDA not available. C++ provides good performance for current tests.")
+        print("  Install CUDA for even better performance!")
 
 if __name__ == "__main__":
     run_performance_comparison()

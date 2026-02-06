@@ -16,7 +16,6 @@ Usage: python test_extreme_scales.py
 """
 
 import time
-import numpy as np
 import os
 import sys
 sys.path.append(os.path.dirname(__file__))
@@ -148,7 +147,7 @@ def test_extreme_scales():
         })
     
     # Print summary
-    print(f"\n📊 EXTREME SCALE COMPARISON SUMMARY")
+    print("\n📊 EXTREME SCALE COMPARISON SUMMARY")
     print("=" * 120)
     print(f"{'Scale':<25} {'Neurons':<15} {'CUDA':<12} {'CuPy':<12} {'Billion':<12} {'Best':<10} {'Billion vs CUDA':<15} {'Billion vs CuPy':<15}")
     print("-" * 120)
@@ -178,7 +177,7 @@ def test_extreme_scales():
 
 def analyze_billion_scale_advantages():
     """Analyze why billion-scale implementation is so much faster"""
-    print(f"\n🔍 BILLION-SCALE ADVANTAGES ANALYSIS")
+    print("\n🔍 BILLION-SCALE ADVANTAGES ANALYSIS")
     print("=" * 60)
     
     print("1. 🎯 SPARSE MEMORY ARCHITECTURE:")

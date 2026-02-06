@@ -16,7 +16,6 @@ Usage: python test_conservative_scales.py
 """
 
 import time
-import numpy as np
 import os
 import sys
 sys.path.append(os.path.dirname(__file__))
@@ -151,7 +150,7 @@ def test_conservative_scales():
         })
     
     # Print summary
-    print(f"\n📊 CONSERVATIVE SCALE PERFORMANCE SUMMARY")
+    print("\n📊 CONSERVATIVE SCALE PERFORMANCE SUMMARY")
     print("=" * 120)
     print(f"{'Test':<25} {'Neurons':<10} {'Active%':<8} {'Per Area':<10} {'CUDA':<8} {'CuPy':<8} {'NumPy':<8} {'Best':<8}")
     print("-" * 120)
@@ -179,7 +178,7 @@ def test_conservative_scales():
     cupy_working = [r for r in results if r['cupy_steps_per_sec'] > 0]
     numpy_working = [r for r in results if r['numpy_steps_per_sec'] > 0]
     
-    print(f"\n🔍 WORKING LIMITS:")
+    print("\n🔍 WORKING LIMITS:")
     print(f"   CUDA kernels: {len(cuda_working)}/{len(results)} tests passed")
     print(f"   CuPy: {len(cupy_working)}/{len(results)} tests passed")
     print(f"   NumPy: {len(numpy_working)}/{len(results)} tests passed")

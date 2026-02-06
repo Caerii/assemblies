@@ -21,9 +21,8 @@ Key Improvements:
 import time
 import numpy as np
 import os
-import sys
 import ctypes
-from typing import Dict, List, Tuple, Optional, Any, Union
+from typing import Dict, Any
 from dataclasses import dataclass
 import json
 
@@ -105,7 +104,7 @@ class UniversalBrainSimulatorOptimized:
         self._cuda_kernels = None
         self._load_cuda_kernels()
         
-        print(f"🚀 Universal Brain Simulator OPTIMIZED initialized:")
+        print("🚀 Universal Brain Simulator OPTIMIZED initialized:")
         print(f"   Neurons: {self.n_neurons:,}")
         print(f"   Active percentage: {self.active_percentage*100:.4f}%")
         print(f"   Active per area: {self.k_active:,}")
@@ -122,7 +121,7 @@ class UniversalBrainSimulatorOptimized:
         # Initialize CUDA kernel memory pools
         self._initialize_cuda_memory_pools()
         
-        print(f"   ✅ OPTIMIZED Brain initialized successfully!")
+        print("   ✅ OPTIMIZED Brain initialized successfully!")
     
     def _load_cuda_kernels(self):
         """Load optimized CUDA kernels DLL"""
@@ -385,7 +384,7 @@ class UniversalBrainSimulatorOptimized:
                             ctypes.c_uint32(len(candidates)),
                             ctypes.c_uint32(k)
                         )
-                        print(f"   🚀 Using OPTIMIZED top_k_selection_radix (O(N log K))")
+                        print("   🚀 Using OPTIMIZED top_k_selection_radix (O(N log K))")
                     else:
                         # Use original O(N²) algorithm
                         self._cuda_kernels.cuda_top_k_selection(
@@ -394,7 +393,7 @@ class UniversalBrainSimulatorOptimized:
                             ctypes.c_uint32(len(candidates)),
                             ctypes.c_uint32(k)
                         )
-                        print(f"   ⚠️  Using ORIGINAL top_k_selection (O(N²))")
+                        print("   ⚠️  Using ORIGINAL top_k_selection (O(N²))")
                     
                     return top_k_indices
                 except Exception as e:
@@ -423,7 +422,7 @@ class UniversalBrainSimulatorOptimized:
         start_time = time.time()
         
         if verbose:
-            print(f"🔄 Simulating step with OPTIMIZED algorithms...")
+            print("🔄 Simulating step with OPTIMIZED algorithms...")
         
         # Simulate each area
         for area_idx, area in enumerate(self.areas):
@@ -491,7 +490,7 @@ class UniversalBrainSimulatorOptimized:
                 print(f"   Step {step + 1}/{n_steps}: {step_time*1000:.2f}ms")
         
         if verbose:
-            print(f"✅ OPTIMIZED simulation completed!")
+            print("✅ OPTIMIZED simulation completed!")
             print(f"   Total time: {total_time:.2f}s")
             print(f"   Average step time: {total_time/n_steps*1000:.2f}ms")
             print(f"   Steps per second: {n_steps/total_time:.1f}")
@@ -643,7 +642,7 @@ def main():
             })
     
     # Summary
-    print(f"\n📈 PERFORMANCE COMPARISON SUMMARY")
+    print("\n📈 PERFORMANCE COMPARISON SUMMARY")
     print("=" * 60)
     
     for result in results:
@@ -655,8 +654,8 @@ def main():
         else:
             print(f"{result['name']}: ❌ {result['error']}")
     
-    print(f"\n🎯 Key Insight: Compare 'Optimized CUDA Kernels' vs 'Original CUDA Kernels'")
-    print(f"   Expected: Optimized should be 100-1000x faster for top-k selection!")
+    print("\n🎯 Key Insight: Compare 'Optimized CUDA Kernels' vs 'Original CUDA Kernels'")
+    print("   Expected: Optimized should be 100-1000x faster for top-k selection!")
 
 if __name__ == "__main__":
     main()

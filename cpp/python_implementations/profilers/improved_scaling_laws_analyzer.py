@@ -11,11 +11,9 @@ Enhancements based on analysis of current results:
 
 import numpy as np
 import json
-import time
-from typing import Dict, List, Any, Tuple
+from typing import Dict, List, Any
 import matplotlib.pyplot as plt
 from scipy import stats
-from scipy.optimize import curve_fit
 import pandas as pd
 from datetime import datetime
 import os

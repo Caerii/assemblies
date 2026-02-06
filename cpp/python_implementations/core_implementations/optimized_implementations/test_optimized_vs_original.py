@@ -14,7 +14,6 @@ import time
 import sys
 import os
 import json
-from typing import Dict, List, Any
 
 # Add the current directory to Python path
 sys.path.append(os.path.dirname(__file__))
@@ -149,7 +148,7 @@ class PerformanceComparison:
                 
                 scale_results['speedup'] = speedup
             else:
-                print(f"\n❌ Cannot calculate speedup - one or both implementations failed")
+                print("\n❌ Cannot calculate speedup - one or both implementations failed")
                 scale_results['speedup'] = None
         
         self.results.append(scale_results)
@@ -192,7 +191,7 @@ class PerformanceComparison:
     
     def print_summary(self):
         """Print performance summary"""
-        print(f"\n📊 PERFORMANCE SUMMARY")
+        print("\n📊 PERFORMANCE SUMMARY")
         print("=" * 60)
         
         for result in self.results:
@@ -234,11 +233,11 @@ def main():
     # Run tests
     comparison.run_billion_scale_tests()
     
-    print(f"\n🎯 Key Insights:")
-    print(f"  - At small scales (< 1M neurons): Speedup may be modest")
-    print(f"  - At large scales (> 10M neurons): Speedup should be dramatic")
-    print(f"  - At billion scale: Original may fail, Optimized should work")
-    print(f"  - Memory usage should be similar between implementations")
+    print("\n🎯 Key Insights:")
+    print("  - At small scales (< 1M neurons): Speedup may be modest")
+    print("  - At large scales (> 10M neurons): Speedup should be dramatic")
+    print("  - At billion scale: Original may fail, Optimized should work")
+    print("  - Memory usage should be similar between implementations")
 
 if __name__ == "__main__":
     main()

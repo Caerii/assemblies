@@ -26,11 +26,8 @@ Memory Management:
 """
 
 import numpy as np
-from typing import Dict, List, Optional, Tuple, Union, Any
+from typing import Dict, List, Union, Any
 from abc import ABC, abstractmethod
-import time
-import psutil
-import gc
 
 class GPUUtils(ABC):
     """

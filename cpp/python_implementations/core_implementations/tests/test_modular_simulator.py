@@ -46,7 +46,7 @@ def test_modular_simulator():
             # Get stats
             stats = simulator.get_performance_stats()
             
-            print(f"   ✅ Success!")
+            print("   ✅ Success!")
             print(f"   Time: {total_time:.3f}s")
             print(f"   Steps/sec: {stats['steps_per_second']:.1f}")
             print(f"   ms/step: {stats['avg_step_time']*1000:.2f}ms")
@@ -57,7 +57,7 @@ def test_modular_simulator():
             print(f"   NumPy fallback: {'✅' if stats['numpy_fallback'] else '❌'}")
             
             # Test additional functionality
-            print(f"   📊 Testing additional functionality...")
+            print("   📊 Testing additional functionality...")
             
             # Test benchmark
             benchmark = simulator.benchmark_step(n_warmup=2, n_measure=3)
@@ -111,18 +111,18 @@ def test_modular_simulator():
         print(f"   Neurons/sec: {best['neurons_per_second']:,.0f}")
         print(f"   Memory Usage: {best['memory_usage_gb']:.2f}GB")
     else:
-        print(f"\n❌ No successful tests")
+        print("\n❌ No successful tests")
     
     return results
 
 
 def test_individual_components():
     """Test individual components"""
-    print(f"\n🔧 TESTING INDIVIDUAL COMPONENTS")
+    print("\n🔧 TESTING INDIVIDUAL COMPONENTS")
     print("=" * 60)
     
     from universal_brain_simulator import (
-        SimulationConfig, PerformanceMonitor, CUDAManager, 
+        PerformanceMonitor, CUDAManager, 
         MemoryManager, AreaManager, SimulationEngine
     )
     
@@ -164,7 +164,7 @@ def test_individual_components():
     validation = simulation_engine.validate_simulation()
     print(f"   ✅ Simulation engine: {'Valid' if validation else 'Invalid'}")
     
-    print(f"\n🎉 All individual components tested successfully!")
+    print("\n🎉 All individual components tested successfully!")
 
 
 if __name__ == "__main__":
@@ -174,10 +174,10 @@ if __name__ == "__main__":
     # Test the full modular simulator
     results = test_modular_simulator()
     
-    print(f"\n🎯 MODULAR SIMULATOR TEST COMPLETE")
-    print(f"   Components: 8 (config, metrics, cuda, memory, areas, engine, utils, main)")
+    print("\n🎯 MODULAR SIMULATOR TEST COMPLETE")
+    print("   Components: 8 (config, metrics, cuda, memory, areas, engine, utils, main)")
     print(f"   Test configurations: {len(results)}")
     print(f"   Successful tests: {len([r for r in results if r.get('steps_per_second', 0) > 0])}")
-    print(f"   Architecture: Clean separation of concerns ✅")
-    print(f"   Maintainability: High (small, focused components) ✅")
-    print(f"   Testability: High (individual component testing) ✅")
+    print("   Architecture: Clean separation of concerns ✅")
+    print("   Maintainability: High (small, focused components) ✅")
+    print("   Testability: High (individual component testing) ✅")

@@ -16,7 +16,7 @@ import sys
 import os
 import json
 import ctypes
-from typing import Dict, List, Any
+from typing import Dict, Any
 
 # Add the current directory to Python path
 sys.path.append(os.path.dirname(__file__))
@@ -63,7 +63,7 @@ class OptimizedImplementationTester:
             # Load the DLL
             dll = ctypes.CDLL(dll_path)
             result['loaded'] = True
-            print(f"   ✅ DLL loaded successfully")
+            print("   ✅ DLL loaded successfully")
             
             # Try to identify exported functions by attempting to access them
             test_functions = [
@@ -96,7 +96,7 @@ class OptimizedImplementationTester:
     
     def test_individual_kernels(self, dll_path: str) -> Dict[str, Any]:
         """Test individual optimized kernels"""
-        print(f"\n🧪 Testing Individual Optimized Kernels:")
+        print("\n🧪 Testing Individual Optimized Kernels:")
         print("-" * 50)
         
         result = {
@@ -133,7 +133,7 @@ class OptimizedImplementationTester:
                 ]
                 dll.cuda_initialize_curand.restype = None
             
-            print(f"   ✅ Function signatures configured")
+            print("   ✅ Function signatures configured")
             
             # Test with small data
             if CUPY_AVAILABLE:
@@ -176,7 +176,7 @@ class OptimizedImplementationTester:
                 
                 test_time = time.time() - start_time
                 
-                print(f"   ✅ Kernels executed successfully")
+                print("   ✅ Kernels executed successfully")
                 print(f"   ⏱️  Test time: {test_time*1000:.2f}ms")
                 print(f"   🧠 Processed: {n:,} neurons, {k:,} active")
                 
@@ -188,7 +188,7 @@ class OptimizedImplementationTester:
                     'neurons_per_second': n / test_time if test_time > 0 else 0
                 }
             else:
-                print(f"   ⚠️  CuPy not available, skipping kernel test")
+                print("   ⚠️  CuPy not available, skipping kernel test")
                 result['success'] = True  # DLL loaded successfully
                 
         except Exception as e:
@@ -199,7 +199,7 @@ class OptimizedImplementationTester:
     
     def test_memory_optimizations(self, dll_path: str) -> Dict[str, Any]:
         """Test GPU memory optimizations"""
-        print(f"\n🧪 Testing GPU Memory Optimizations:")
+        print("\n🧪 Testing GPU Memory Optimizations:")
         print("-" * 50)
         
         result = {
@@ -223,7 +223,7 @@ class OptimizedImplementationTester:
                 ]
                 dll.cuda_initialize_memory_pool.restype = None
             
-            print(f"   ✅ Memory optimization functions found")
+            print("   ✅ Memory optimization functions found")
             
             if CUPY_AVAILABLE:
                 # Test memory operations
@@ -238,7 +238,7 @@ class OptimizedImplementationTester:
                     # Note: This would need proper function signature setup
                     test_time = time.time() - start_time
                     
-                    print(f"   ✅ Vectorized memory operations available")
+                    print("   ✅ Vectorized memory operations available")
                 
                 result['success'] = True
                 result['performance'] = {
@@ -246,7 +246,7 @@ class OptimizedImplementationTester:
                     'vectorization_available': hasattr(dll, 'cuda_vectorized_memory_copy')
                 }
             else:
-                print(f"   ⚠️  CuPy not available, skipping memory test")
+                print("   ⚠️  CuPy not available, skipping memory test")
                 result['success'] = True  # DLL loaded successfully
                 
         except Exception as e:
@@ -257,7 +257,7 @@ class OptimizedImplementationTester:
     
     def test_complete_brain_simulator(self, dll_path: str) -> Dict[str, Any]:
         """Test complete optimized brain simulator"""
-        print(f"\n🧪 Testing Complete Optimized Brain Simulator:")
+        print("\n🧪 Testing Complete Optimized Brain Simulator:")
         print("-" * 50)
         
         result = {
@@ -289,7 +289,7 @@ class OptimizedImplementationTester:
                 dll.cuda_destroy_optimized_brain.argtypes = [ctypes.c_void_p]
                 dll.cuda_destroy_optimized_brain.restype = None
             
-            print(f"   ✅ Brain simulator functions configured")
+            print("   ✅ Brain simulator functions configured")
             
             # Test brain simulator
             n_neurons = 100000
@@ -319,7 +319,7 @@ class OptimizedImplementationTester:
                 
                 test_time = time.time() - start_time
                 
-                print(f"   ✅ Brain simulation completed")
+                print("   ✅ Brain simulation completed")
                 print(f"   ⏱️  Test time: {test_time*1000:.2f}ms")
                 print(f"   🧠 Simulated: {n_neurons:,} neurons, {k_active:,} active")
                 
@@ -334,7 +334,7 @@ class OptimizedImplementationTester:
                 }
             else:
                 result['error'] = "Failed to create optimized brain"
-                print(f"   ❌ Failed to create optimized brain")
+                print("   ❌ Failed to create optimized brain")
                 
         except Exception as e:
             result['error'] = str(e)
@@ -377,14 +377,14 @@ class OptimizedImplementationTester:
     
     def print_summary(self):
         """Print test summary"""
-        print(f"\n📊 OPTIMIZED IMPLEMENTATIONS TEST SUMMARY")
+        print("\n📊 OPTIMIZED IMPLEMENTATIONS TEST SUMMARY")
         print("=" * 60)
         
         for result in self.results:
             if 'test_name' in result:
                 print(f"\n{result['test_name']}:")
                 if result['success']:
-                    print(f"   ✅ SUCCESS")
+                    print("   ✅ SUCCESS")
                     if 'performance' in result:
                         perf = result['performance']
                         if 'neurons_per_second' in perf:
@@ -396,7 +396,7 @@ class OptimizedImplementationTester:
             else:
                 print(f"\n{result['dll_name']}:")
                 if result['loaded']:
-                    print(f"   ✅ Loaded successfully")
+                    print("   ✅ Loaded successfully")
                     print(f"   📊 Functions: {len(result['functions'])}")
                 else:
                     print(f"   ❌ Failed to load: {result['error']}")
@@ -423,12 +423,12 @@ def main():
     tester = OptimizedImplementationTester()
     tester.run_all_tests()
     
-    print(f"\n🎯 CONCLUSION:")
-    print(f"  - All optimized implementations should load successfully")
-    print(f"  - Individual kernels should execute without errors")
-    print(f"  - Memory optimizations should be available")
-    print(f"  - Complete brain simulator should handle large scales")
-    print(f"  - This validates our O(N log K) algorithmic improvements!")
+    print("\n🎯 CONCLUSION:")
+    print("  - All optimized implementations should load successfully")
+    print("  - Individual kernels should execute without errors")
+    print("  - Memory optimizations should be available")
+    print("  - Complete brain simulator should handle large scales")
+    print("  - This validates our O(N log K) algorithmic improvements!")
 
 if __name__ == "__main__":
     main()

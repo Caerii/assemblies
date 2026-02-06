@@ -19,10 +19,8 @@ Usage: python test_comprehensive_cuda_kernels.py
 """
 
 import time
-import numpy as np
 import os
 import ctypes
-from typing import List, Tuple
 
 # Try to import CuPy
 try:
@@ -427,7 +425,7 @@ class ComprehensiveCudaKernelTester:
         # Summary
         passed = sum(results)
         total = len(results)
-        print(f"\n📊 COMPREHENSIVE TEST SUMMARY")
+        print("\n📊 COMPREHENSIVE TEST SUMMARY")
         print(f"   Passed: {passed}/{total} tests")
         print(f"   Success rate: {passed/total*100:.1f}%")
         

@@ -20,15 +20,13 @@ Changelog:
 """
 
 import cupy as cp
-import numpy as np
 import time
-from typing import Dict, Tuple, Optional
 import torch
 
 # Use PyTorch for fast top-k (3x faster than CuPy argpartition)
 USE_TORCH_TOPK = torch.cuda.is_available()
 if USE_TORCH_TOPK:
-    print(f"Using PyTorch top-k acceleration")
+    print("Using PyTorch top-k acceleration")
 
 # =============================================================================
 # CUDA KERNEL: Implicit Random Projection

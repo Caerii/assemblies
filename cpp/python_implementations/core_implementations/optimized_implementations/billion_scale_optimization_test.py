@@ -18,7 +18,6 @@ import sys
 import os
 import json
 import numpy as np
-from typing import Dict, List, Any, Tuple
 
 # Add the current directory to Python path
 sys.path.append(os.path.dirname(__file__))
@@ -43,7 +42,7 @@ class BillionScaleOptimizationTest:
         """Test algorithmic complexity at a specific scale"""
         k_active = int(n_neurons * active_percentage)
         
-        print(f"\n🧪 Algorithmic Complexity Test")
+        print("\n🧪 Algorithmic Complexity Test")
         print(f"   Neurons: {n_neurons:,}")
         print(f"   Active per area: {k_active:,}")
         print(f"   Total active: {k_active * n_areas:,}")
@@ -61,7 +60,7 @@ class BillionScaleOptimizationTest:
         
         speedup_theoretical = original_ops / optimized_ops if optimized_ops > 0 else float('inf')
         
-        print(f"\n📊 Theoretical Analysis:")
+        print("\n📊 Theoretical Analysis:")
         print(f"   Original O(N²): {original_ops:,.0f} operations")
         print(f"   Optimized O(N log K): {optimized_ops:,.0f} operations")
         print(f"   Theoretical speedup: {speedup_theoretical:,.0f}x")
@@ -78,7 +77,7 @@ class BillionScaleOptimizationTest:
         }
         
         # Test Original Implementation
-        print(f"\n🔬 Testing Original (O(N²)) Implementation:")
+        print("\n🔬 Testing Original (O(N²)) Implementation:")
         print("-" * 50)
         
         try:
@@ -138,7 +137,7 @@ class BillionScaleOptimizationTest:
                 signal.alarm(0)  # Cancel alarm
                 sim_time = time.time() - sim_start
                 print(f"   ⏰ TIMEOUT after {sim_time:.2f}s (>{self.max_test_time}s)")
-                print(f"   ❌ O(N²) algorithm too slow at this scale!")
+                print("   ❌ O(N²) algorithm too slow at this scale!")
                 
                 result = {
                     'name': 'Original (O(N²))',
@@ -162,7 +161,7 @@ class BillionScaleOptimizationTest:
         test_results['implementations'].append(result)
         
         # Test Optimized Implementation
-        print(f"\n🔬 Testing Optimized (O(N log K)) Implementation:")
+        print("\n🔬 Testing Optimized (O(N log K)) Implementation:")
         print("-" * 50)
         
         try:
@@ -235,11 +234,11 @@ class BillionScaleOptimizationTest:
                 test_results['actual_speedup'] = actual_speedup
                 test_results['efficiency'] = actual_speedup / speedup_theoretical * 100 if speedup_theoretical > 0 else 0
             elif not orig['success'] and opt['success']:
-                print(f"\n🚀 BREAKTHROUGH: Original failed, Optimized succeeded!")
-                print(f"   This demonstrates the critical importance of O(N log K) optimization")
+                print("\n🚀 BREAKTHROUGH: Original failed, Optimized succeeded!")
+                print("   This demonstrates the critical importance of O(N log K) optimization")
                 test_results['breakthrough'] = True
             else:
-                print(f"\n❌ Both implementations failed at this scale")
+                print("\n❌ Both implementations failed at this scale")
                 test_results['both_failed'] = True
         
         self.results.append(test_results)
@@ -274,7 +273,7 @@ class BillionScaleOptimizationTest:
             try:
                 self.test_algorithmic_complexity(**scale)
             except KeyboardInterrupt:
-                print(f"\n⏹️  Test interrupted by user")
+                print("\n⏹️  Test interrupted by user")
                 break
             except Exception as e:
                 print(f"❌ Scale {scale['n_neurons']:,} failed: {e}")
@@ -285,7 +284,7 @@ class BillionScaleOptimizationTest:
     
     def print_summary(self):
         """Print comprehensive summary"""
-        print(f"\n📊 BILLION-SCALE OPTIMIZATION SUMMARY")
+        print("\n📊 BILLION-SCALE OPTIMIZATION SUMMARY")
         print("=" * 70)
         
         for result in self.results:
@@ -297,9 +296,9 @@ class BillionScaleOptimizationTest:
                 print(f"  🚀 Actual speedup: {result['actual_speedup']:.2f}x")
                 print(f"  📈 Efficiency: {result['efficiency']:.1f}% of theoretical")
             elif 'breakthrough' in result:
-                print(f"  🎯 BREAKTHROUGH: Original failed, Optimized succeeded!")
+                print("  🎯 BREAKTHROUGH: Original failed, Optimized succeeded!")
             elif 'both_failed' in result:
-                print(f"  ❌ Both implementations failed")
+                print("  ❌ Both implementations failed")
             
             for impl in result['implementations']:
                 if impl['success']:
@@ -334,12 +333,12 @@ def main():
     # Run tests
     test.run_billion_scale_tests()
     
-    print(f"\n🎯 Key Insights:")
-    print(f"  - At small scales: Both algorithms work, modest speedup")
-    print(f"  - At medium scales: Speedup becomes significant")
-    print(f"  - At large scales: O(N²) becomes impractical")
-    print(f"  - At billion scale: Only O(N log K) can handle it")
-    print(f"  - This demonstrates why algorithmic optimization is critical!")
+    print("\n🎯 Key Insights:")
+    print("  - At small scales: Both algorithms work, modest speedup")
+    print("  - At medium scales: Speedup becomes significant")
+    print("  - At large scales: O(N²) becomes impractical")
+    print("  - At billion scale: Only O(N log K) can handle it")
+    print("  - This demonstrates why algorithmic optimization is critical!")
 
 if __name__ == "__main__":
     main()

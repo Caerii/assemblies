@@ -13,10 +13,8 @@ Key principles:
 This tests if the learned representations support generation.
 """
 
-import torch
 import numpy as np
 from typing import List, Tuple, Optional
-from collections import defaultdict
 
 from .learner import LanguageLearner
 

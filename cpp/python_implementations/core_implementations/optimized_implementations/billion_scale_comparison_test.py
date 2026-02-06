@@ -15,7 +15,6 @@ import time
 import sys
 import os
 import json
-from typing import Dict, List, Any
 
 # Add the current directory to Python path
 sys.path.append(os.path.dirname(__file__))
@@ -73,7 +72,7 @@ class BillionScaleComparisonTest:
         }
         
         # Test Original Implementation (O(N²))
-        print(f"\n🔬 Testing Original (O(N²)) Implementation:")
+        print("\n🔬 Testing Original (O(N²)) Implementation:")
         print("-" * 50)
         
         try:
@@ -128,7 +127,7 @@ class BillionScaleComparisonTest:
         scale_results['implementations'].append(result)
         
         # Test Optimized Implementation (O(N log K))
-        print(f"\n🔬 Testing Optimized (O(N log K)) Implementation:")
+        print("\n🔬 Testing Optimized (O(N log K)) Implementation:")
         print("-" * 50)
         
         try:
@@ -200,11 +199,11 @@ class BillionScaleComparisonTest:
                 scale_results['actual_speedup'] = actual_speedup
                 scale_results['efficiency'] = actual_speedup / theoretical_speedup * 100 if theoretical_speedup > 0 else 0
             elif not orig['success'] and opt['success']:
-                print(f"\n🚀 BREAKTHROUGH: Original failed, Optimized succeeded!")
-                print(f"   This demonstrates the critical importance of O(N log K) optimization")
+                print("\n🚀 BREAKTHROUGH: Original failed, Optimized succeeded!")
+                print("   This demonstrates the critical importance of O(N log K) optimization")
                 scale_results['breakthrough'] = True
             else:
-                print(f"\n❌ Both implementations failed at this scale")
+                print("\n❌ Both implementations failed at this scale")
                 scale_results['both_failed'] = True
         
         self.results.append(scale_results)
@@ -239,7 +238,7 @@ class BillionScaleComparisonTest:
             try:
                 self.test_scale(**scale)
             except KeyboardInterrupt:
-                print(f"\n⏹️  Test interrupted by user")
+                print("\n⏹️  Test interrupted by user")
                 break
             except Exception as e:
                 print(f"❌ Scale {scale['n_neurons']:,} failed: {e}")
@@ -250,7 +249,7 @@ class BillionScaleComparisonTest:
     
     def print_summary(self):
         """Print comprehensive summary"""
-        print(f"\n📊 BILLION-SCALE COMPARISON SUMMARY")
+        print("\n📊 BILLION-SCALE COMPARISON SUMMARY")
         print("=" * 70)
         
         for result in self.results:
@@ -262,9 +261,9 @@ class BillionScaleComparisonTest:
                 print(f"  🚀 Actual speedup: {result['actual_speedup']:.2f}x")
                 print(f"  📈 Efficiency: {result['efficiency']:.1f}% of theoretical")
             elif 'breakthrough' in result:
-                print(f"  🎯 BREAKTHROUGH: Original failed, Optimized succeeded!")
+                print("  🎯 BREAKTHROUGH: Original failed, Optimized succeeded!")
             elif 'both_failed' in result:
-                print(f"  ❌ Both implementations failed")
+                print("  ❌ Both implementations failed")
             
             for impl in result['implementations']:
                 if impl['success']:
@@ -273,7 +272,7 @@ class BillionScaleComparisonTest:
                     print(f"    {impl['name']}: ❌ {impl['error']}")
         
         # Calculate performance trends
-        print(f"\n📈 PERFORMANCE TRENDS")
+        print("\n📈 PERFORMANCE TRENDS")
         print("-" * 40)
         
         successful_results = [r for r in self.results if 'actual_speedup' in r]
@@ -290,11 +289,11 @@ class BillionScaleComparisonTest:
                 print(f"    Scale increase: {scale_ratio:.1f}x")
                 print(f"    Speedup increase: {speedup_ratio:.1f}x")
         
-        print(f"\n🎯 KEY INSIGHTS:")
-        print(f"  - O(N²) algorithms become impractical at large scales")
-        print(f"  - O(N log K) algorithms can handle billion-scale efficiently")
-        print(f"  - Speedup increases dramatically with scale")
-        print(f"  - This demonstrates why algorithmic optimization is critical!")
+        print("\n🎯 KEY INSIGHTS:")
+        print("  - O(N²) algorithms become impractical at large scales")
+        print("  - O(N log K) algorithms can handle billion-scale efficiently")
+        print("  - Speedup increases dramatically with scale")
+        print("  - This demonstrates why algorithmic optimization is critical!")
     
     def save_results(self):
         """Save results to JSON file"""
@@ -323,11 +322,11 @@ def main():
     # Run tests
     test.run_billion_scale_tests()
     
-    print(f"\n🎯 CONCLUSION:")
-    print(f"  - O(N²) algorithms fail at large scales")
-    print(f"  - O(N log K) algorithms enable billion-scale simulation")
-    print(f"  - Speedup increases exponentially with scale")
-    print(f"  - This is why we implemented the optimized algorithms!")
+    print("\n🎯 CONCLUSION:")
+    print("  - O(N²) algorithms fail at large scales")
+    print("  - O(N log K) algorithms enable billion-scale simulation")
+    print("  - Speedup increases exponentially with scale")
+    print("  - This is why we implemented the optimized algorithms!")
 
 if __name__ == "__main__":
     main()

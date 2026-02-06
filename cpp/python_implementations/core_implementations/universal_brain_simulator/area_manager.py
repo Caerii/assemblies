@@ -7,8 +7,7 @@ This module manages brain areas and their data structures
 for the universal brain simulator system.
 """
 
-import ctypes
-from typing import List, Union, Optional
+from typing import List, Union
 import numpy as np
 from .config import SimulationConfig
 from .memory_manager import MemoryManager

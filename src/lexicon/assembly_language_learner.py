@@ -9,17 +9,14 @@ Uses explicit areas with full connectivity to enable proper Hebbian learning.
 """
 
 import numpy as np
-from typing import Dict, List, Optional, Tuple, Set
-from collections import defaultdict
+from typing import Dict, List, Tuple
 
 # Import brain
-from brain import Brain, Area
+from brain import Brain
 
 # Import lexicon
-from src.lexicon.build_lexicon import build_lexicon
 from src.lexicon.curriculum.grounded_training import (
-    GroundedCorpus, GroundedUtterance, GroundedContext, SpeechAct,
-    create_stage1_corpus
+    GroundedCorpus, GroundedUtterance, create_stage1_corpus
 )
 
 
@@ -266,7 +263,7 @@ def test_vocabulary_learning():
     
     # Get stats
     stats = learner.get_learning_stats()
-    print(f"\nLearning stats:")
+    print("\nLearning stats:")
     print(f"  Words learned: {stats['words_learned']}")
     print(f"  Avg exposures per word: {stats['avg_exposures_per_word']:.1f}")
     

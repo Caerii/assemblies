@@ -7,7 +7,6 @@ This example shows how to run detailed performance profiling
 and save the results for analysis.
 """
 
-import time
 import sys
 import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
@@ -56,7 +55,7 @@ def main():
     print(f"\n✅ Configuration validation: {'PASSED' if sim.validate() else 'FAILED'}")
     
     # Reset and run again
-    print(f"\n🔄 Resetting simulator...")
+    print("\n🔄 Resetting simulator...")
     sim.reset()
     
     # Quick run after reset

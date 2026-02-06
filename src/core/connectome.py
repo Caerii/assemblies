@@ -1,7 +1,6 @@
 # connectome.py
 
 import numpy as np
-from typing import Optional
 
 class Connectome:
     """

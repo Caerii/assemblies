@@ -16,7 +16,6 @@ import time
 import sys
 import os
 import json
-from typing import Dict, List, Any
 
 # Add the current directory to Python path
 sys.path.append(os.path.dirname(__file__))
@@ -56,8 +55,8 @@ class BillionScaleTest:
         print(f"   Theoretical O(N²) operations: {total_ops:,.0f}")
         
         if total_ops > 1e12:  # 1 trillion operations
-            print(f"   ⚠️  WARNING: This scale requires >1 trillion operations!")
-            print(f"   ⚠️  O(N²) algorithm will be extremely slow or fail")
+            print("   ⚠️  WARNING: This scale requires >1 trillion operations!")
+            print("   ⚠️  O(N²) algorithm will be extremely slow or fail")
         
         # Test configuration
         config = SimulationConfig(
@@ -86,13 +85,13 @@ class BillionScaleTest:
         }
         
         try:
-            print(f"   🔬 Creating simulator...")
+            print("   🔬 Creating simulator...")
             start_time = time.time()
             simulator = UniversalBrainSimulator(config)
             init_time = time.time() - start_time
             print(f"   ✅ Initialization: {init_time:.2f}s")
             
-            print(f"   🚀 Running simulation...")
+            print("   🚀 Running simulation...")
             sim_start = time.time()
             
             # Use a timer to limit test time
@@ -130,7 +129,7 @@ class BillionScaleTest:
             signal.alarm(0)  # Cancel alarm
             sim_time = time.time() - sim_start
             print(f"   ⏰ TIMEOUT after {sim_time:.2f}s (>{self.max_test_time}s)")
-            print(f"   ❌ O(N²) algorithm too slow at this scale!")
+            print("   ❌ O(N²) algorithm too slow at this scale!")
             
             result.update({
                 'timeout': True,
@@ -176,7 +175,7 @@ class BillionScaleTest:
             try:
                 self.test_scale(**scale)
             except KeyboardInterrupt:
-                print(f"\n⏹️  Test interrupted by user")
+                print("\n⏹️  Test interrupted by user")
                 break
             except Exception as e:
                 print(f"❌ Scale {scale['n_neurons']:,} failed: {e}")
@@ -187,7 +186,7 @@ class BillionScaleTest:
     
     def print_summary(self):
         """Print performance summary"""
-        print(f"\n📊 BILLION-SCALE TEST SUMMARY")
+        print("\n📊 BILLION-SCALE TEST SUMMARY")
         print("=" * 60)
         
         for result in self.results:
@@ -200,12 +199,12 @@ class BillionScaleTest:
                 print(f"  Speed: {result['neurons_per_second']:,.0f} neurons/sec")
                 print(f"  Memory: {result['memory_usage_gb']:.2f}GB")
             elif result['timeout']:
-                print(f"  ⏰ TIMEOUT: O(N²) too slow")
+                print("  ⏰ TIMEOUT: O(N²) too slow")
             else:
                 print(f"  ❌ Failed: {result['error']}")
         
         # Calculate performance degradation
-        print(f"\n📈 PERFORMANCE ANALYSIS")
+        print("\n📈 PERFORMANCE ANALYSIS")
         print("-" * 40)
         
         successful_results = [r for r in self.results if r['success']]
@@ -223,11 +222,11 @@ class BillionScaleTest:
                 print(f"    Time increase: {time_ratio:.1f}x")
                 print(f"    Efficiency: {scale_ratio/time_ratio:.1f}x worse")
         
-        print(f"\n🎯 KEY INSIGHTS:")
-        print(f"  - O(N²) algorithms become impractical at large scales")
-        print(f"  - Performance degrades quadratically with neuron count")
-        print(f"  - Billion-scale requires O(N log K) optimization")
-        print(f"  - This demonstrates why algorithmic optimization is critical!")
+        print("\n🎯 KEY INSIGHTS:")
+        print("  - O(N²) algorithms become impractical at large scales")
+        print("  - Performance degrades quadratically with neuron count")
+        print("  - Billion-scale requires O(N log K) optimization")
+        print("  - This demonstrates why algorithmic optimization is critical!")
     
     def save_results(self):
         """Save results to JSON file"""
@@ -256,11 +255,11 @@ def main():
     # Run tests
     test.run_billion_scale_tests()
     
-    print(f"\n🎯 Next Steps:")
-    print(f"  - Implement O(N log K) top-k selection")
-    print(f"  - Test optimized algorithms at billion scale")
-    print(f"  - Compare performance improvements")
-    print(f"  - Demonstrate 100-1000x speedup!")
+    print("\n🎯 Next Steps:")
+    print("  - Implement O(N log K) top-k selection")
+    print("  - Test optimized algorithms at billion scale")
+    print("  - Compare performance improvements")
+    print("  - Demonstrate 100-1000x speedup!")
 
 if __name__ == "__main__":
     main()

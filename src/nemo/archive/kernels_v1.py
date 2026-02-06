@@ -23,7 +23,6 @@ Changelog:
 import cupy as cp
 import torch
 import numpy as np
-from typing import Dict, Optional
 
 # Check PyTorch CUDA availability
 USE_TORCH_TOPK = torch.cuda.is_available()

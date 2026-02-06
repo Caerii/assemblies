@@ -12,7 +12,6 @@ import numpy as np
 import time
 import ctypes
 import os
-from typing import Tuple, List, Optional
 
 class OptimizedBillionScaleCupyBrain:
     def __init__(self, n_neurons: int, n_areas: int = 5, target_memory_gb: float = 12.0):
@@ -32,7 +31,7 @@ class OptimizedBillionScaleCupyBrain:
         self.active_percent = self._calculate_optimal_active_percent()
         self.n_active_per_area = int(n_neurons * self.active_percent)
         
-        print(f"🧠 Optimized Billion-Scale CuPy Brain:")
+        print("🧠 Optimized Billion-Scale CuPy Brain:")
         print(f"   Neurons: {n_neurons:,}")
         print(f"   Areas: {n_areas}")
         print(f"   Active per area: {self.n_active_per_area:,} ({self.active_percent*100:.4f}%)")
@@ -94,7 +93,7 @@ class OptimizedBillionScaleCupyBrain:
             self.memory_per_area_gb = self.areas[0].nbytes / 1024**3
             self.total_memory_gb = self.memory_per_area_gb * self.n_areas * 4  # 4 arrays per area
             
-            print(f"   ✅ GPU arrays initialized successfully!")
+            print("   ✅ GPU arrays initialized successfully!")
             
         except Exception as e:
             print(f"   ❌ Failed to initialize GPU arrays: {e}")
@@ -191,7 +190,7 @@ def test_billion_scale_cupy():
             # Run benchmark
             benchmark_results = brain.benchmark(n_steps=5)
             
-            print(f"   ✅ Success!")
+            print("   ✅ Success!")
             print(f"   Time: {benchmark_results['avg_time']:.3f}s")
             print(f"   Steps/sec: {benchmark_results['steps_per_sec']:.1f}")
             print(f"   ms/step: {benchmark_results['ms_per_step']:.2f}ms")
@@ -221,7 +220,7 @@ def test_billion_scale_cupy():
             })
     
     # Print summary
-    print(f"\n📊 OPTIMIZED BILLION-SCALE CUPY BENCHMARK SUMMARY")
+    print("\n📊 OPTIMIZED BILLION-SCALE CUPY BENCHMARK SUMMARY")
     print("=" * 80)
     print(f"{'Scale':<20} {'Neurons':<15} {'Steps/sec':<10} {'ms/step':<10} {'Neurons/sec':<15} {'Active/sec':<12}")
     print("-" * 80)

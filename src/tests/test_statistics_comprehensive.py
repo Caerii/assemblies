@@ -20,7 +20,6 @@ FULL safety and completeness before using in production. It covers:
 
 import unittest
 import numpy as np
-import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
 import warnings

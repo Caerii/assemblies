@@ -21,7 +21,7 @@ project_root = Path(__file__).parent.parent.parent.parent
 sys.path.insert(0, str(project_root))
 
 import numpy as np
-from typing import Dict, List, Any
+from typing import Dict, Any
 from dataclasses import dataclass
 
 from research.experiments.base import (
@@ -194,7 +194,7 @@ class BiologicalParameterExperiment(ExperimentBase):
         """
         self._start_timer()
         
-        self.log(f"Starting biological parameter validation")
+        self.log("Starting biological parameter validation")
         
         all_results = []
         parameter_checks = []
@@ -286,7 +286,7 @@ class BiologicalParameterExperiment(ExperimentBase):
         }
         
         self.log(f"\n{'='*60}")
-        self.log(f"BIOLOGICAL VALIDATION SUMMARY:")
+        self.log("BIOLOGICAL VALIDATION SUMMARY:")
         self.log(f"  Regions tested: {summary['regions_tested']}")
         self.log(f"  Parameters in biological range: {valid_params}/{total_params}")
         self.log(f"  Duration: {duration:.1f}s")

@@ -285,7 +285,7 @@ class BrainSimulator:
     def _print_summary(self, results: Dict[str, Any]):
         """Print a summary of simulation results"""
         perf = results['summary']
-        print(f"\n📊 SIMULATION SUMMARY")
+        print("\n📊 SIMULATION SUMMARY")
         print(f"   Steps/sec: {perf['steps_per_second']:.1f}")
         print(f"   Neurons/sec: {perf['neurons_per_second']:,.0f}")
         print(f"   Memory: {perf['memory_usage_gb']:.2f}GB")
@@ -297,7 +297,7 @@ class BrainSimulator:
         perf = results['performance']
         config = results['configuration']
         
-        print(f"\n⚡ BENCHMARK SUMMARY")
+        print("\n⚡ BENCHMARK SUMMARY")
         print(f"   Configuration: {config['neurons']:,} neurons, {config['areas']} areas")
         print(f"   Optimized CUDA: {'✅' if config['optimized_cuda'] else '❌'}")
         print(f"   Steps/sec: {perf['steps_per_second']:.1f}")
@@ -311,7 +311,7 @@ class BrainSimulator:
         stats = results['performance_stats']
         memory = results['memory_info']
         
-        print(f"\n📊 PROFILE SUMMARY")
+        print("\n📊 PROFILE SUMMARY")
         print(f"   Steps/sec: {stats.get('steps_per_second', 0):.1f}")
         print(f"   Neurons/sec: {stats.get('neurons_per_second', 0):,.0f}")
         print(f"   Memory usage: {memory.get('used_gb', 0):.2f}GB")
@@ -393,7 +393,7 @@ def compare_configurations(configs: List[Dict[str, Any]], steps: int = 100) -> L
         })
     
     # Print comparison summary
-    print(f"\n📊 CONFIGURATION COMPARISON")
+    print("\n📊 CONFIGURATION COMPARISON")
     print("=" * 80)
     print(f"{'Config':<20} {'Steps/sec':<10} {'Neurons/sec':<15} {'Memory GB':<10} {'CUDA':<6} {'Optimized':<10}")
     print("-" * 80)

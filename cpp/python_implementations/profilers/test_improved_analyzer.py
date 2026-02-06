@@ -3,7 +3,6 @@ Test script for the improved scaling laws analyzer
 Uses the existing scaling laws results to generate a comprehensive report
 """
 
-import json
 import os
 from improved_scaling_laws_analyzer import ImprovedScalingLawsAnalyzer
 
@@ -280,7 +279,7 @@ def main():
     # Show key insights
     insights = analysis.get('key_insights', [])
     if insights:
-        print(f"\n💡 Key Insights:")
+        print("\n💡 Key Insights:")
         for insight in insights[:3]:  # Show first 3 insights
             print(f"   - {insight}")
 

@@ -24,10 +24,9 @@ Combines features from:
 import time
 import numpy as np
 import os
-import sys
 import psutil
 import gc
-from typing import Dict, List, Tuple, Optional, Any, Union
+from typing import Dict, List, Tuple, Any
 from dataclasses import dataclass
 from datetime import datetime
 import json
@@ -370,7 +369,7 @@ class UniversalProfiler:
                 bytes_per_neuron = 0.0
             
             
-            print(f"   ✅ Profile complete!")
+            print("   ✅ Profile complete!")
             print(f"   Steps completed: {len(step_times)}/{n_steps}")
             print(f"   Avg step time: {ms_per_step:.2f}ms ± {std_step_time*1000:.2f}ms")
             print(f"   Steps/sec: {steps_per_sec:.1f}")
@@ -434,7 +433,7 @@ class UniversalProfiler:
         if not self.config.enable_scaling_analysis:
             return
         
-        print(f"\n📊 SCALING LAWS ANALYSIS")
+        print("\n📊 SCALING LAWS ANALYSIS")
         print("=" * 60)
         
         # Analyze scaling relationships
@@ -583,7 +582,7 @@ class UniversalProfiler:
                     print(f"   ✅ {profile.steps_per_sec:.1f} steps/sec, {profile.memory_efficiency:.6f} bytes/neuron")
                 else:
                     failed_tests += 1
-                    print(f"   ❌ Failed")
+                    print("   ❌ Failed")
                 
                 # Force garbage collection between tests
                 gc.collect()
@@ -595,7 +594,7 @@ class UniversalProfiler:
                 print(f"   ❌ Failed: {e}")
                 continue
         
-        print(f"\n📊 SYSTEMATIC PROFILING COMPLETE")
+        print("\n📊 SYSTEMATIC PROFILING COMPLETE")
         print(f"   ✅ Successful: {successful_tests}")
         print(f"   ❌ Failed: {failed_tests}")
         print(f"   📈 Total results: {len(results)}")
@@ -652,7 +651,7 @@ class UniversalProfiler:
     
     def print_summary(self):
         """Print comprehensive profiling summary"""
-        print(f"\n📊 UNIVERSAL PROFILER SUMMARY")
+        print("\n📊 UNIVERSAL PROFILER SUMMARY")
         print("=" * 100)
         print(f"{'Scale':<25} {'Neurons':<12} {'Active%':<8} {'Steps/sec':<10} {'ms/step':<10} {'Memory GB':<10} {'Bytes/Neuron':<12} {'GPU Util%':<10} {'CPU Util%':<10}")
         print("-" * 100)
@@ -774,7 +773,7 @@ class UniversalProfiler:
             # 9. NEW: Scaling Laws Summary
             self._plot_scaling_summary(df, generated_dir)
             
-            print(f"📊 Scaling visualizations generated:")
+            print("📊 Scaling visualizations generated:")
             print(f"   - {perf_file}")
             print(f"   - {mem_file}")
             print(f"   - {active_file}")
@@ -1061,7 +1060,6 @@ class UniversalProfiler:
     def _plot_scaling_summary(self, df, generated_dir):
         """Create a comprehensive scaling summary with key insights"""
         import matplotlib.pyplot as plt
-        import numpy as np
         
         fig, axes = plt.subplots(3, 2, figsize=(20, 15))
         fig.suptitle('Comprehensive Scaling Analysis Summary', fontsize=18)
@@ -1222,8 +1220,8 @@ def main():
         profiler = UniversalProfiler(config)
         profiler.run_comprehensive_profiling()
         
-        print(f"\n✅ Universal Profiler completed successfully!")
-        print(f"📊 Generated comprehensive scaling data with complete curves!")
+        print("\n✅ Universal Profiler completed successfully!")
+        print("📊 Generated comprehensive scaling data with complete curves!")
         
     except Exception as e:
         print(f"❌ Universal Profiler failed: {e}")

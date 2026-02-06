@@ -12,8 +12,7 @@ Generates sentences using NEMO principles:
 """
 
 import numpy as np
-from typing import List, Optional
-import cupy as cp
+from typing import List
 
 from .areas import Area
 from .learner import EmergentLanguageLearner

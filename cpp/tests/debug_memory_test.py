@@ -88,7 +88,7 @@ def test_sparse_matrix_small():
     
     try:
         print("   Step 1: Creating small sparse matrix (100x100)")
-        from scipy.sparse import coo_matrix, csr_matrix
+        from scipy.sparse import coo_matrix
         
         # Create very small sparse matrix
         n = 100

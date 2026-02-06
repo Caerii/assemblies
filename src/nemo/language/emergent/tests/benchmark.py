@@ -17,8 +17,7 @@ Run:
 import time
 import cupy as cp
 import torch
-import numpy as np
-from typing import Dict, List, Tuple
+from typing import Dict, List
 from collections import defaultdict
 from contextlib import contextmanager
 
@@ -412,7 +411,7 @@ def run_all_benchmarks():
     topk_time = sum(kernel_results.get('torch_topk', [0]))
     hebb_time = sum(kernel_results.get('hebbian_kernel', [0]))
     
-    print(f"\n1. KERNEL ANALYSIS:")
+    print("\n1. KERNEL ANALYSIS:")
     print(f"   - Projection: {proj_time/500:.3f} ms/call")
     print(f"   - TopK: {topk_time/500:.3f} ms/call")
     print(f"   - Hebbian: {hebb_time/500:.3f} ms/call")

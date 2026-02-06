@@ -15,8 +15,7 @@ from .utils import get_dll_path
 from .cuda_signatures import (
     setup_optimized_brain_signatures,
     setup_individual_optimized_signatures,
-    setup_original_kernel_signatures,
-    validate_dll_interface
+    setup_original_kernel_signatures
 )
 
 

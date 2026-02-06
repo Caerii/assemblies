@@ -13,11 +13,7 @@ Expanded version with advanced features:
 
 import time
 import numpy as np
-import os
-import sys
-import threading
-import queue
-from typing import Dict, List, Tuple, Optional, Any
+from typing import Dict, List, Tuple
 from dataclasses import dataclass
 import json
 
@@ -121,7 +117,7 @@ class EnhancedGPUOnlyBillionScaleBrain:
             'cache_performance': []
         }
         
-        print(f"🚀 Enhanced GPU-Only Billion-Scale Brain initialized:")
+        print("🚀 Enhanced GPU-Only Billion-Scale Brain initialized:")
         print(f"   Neurons: {n_neurons:,}")
         print(f"   Active percentage: {active_percentage*100:.4f}%")
         print(f"   Active per area: {self.k_active:,}")
@@ -150,7 +146,7 @@ class EnhancedGPUOnlyBillionScaleBrain:
         if total_memory > safe_gpu_memory:
             raise RuntimeError(f"❌ Memory exceeds safe GPU capacity ({total_memory:.2f} GB > {safe_gpu_memory:.1f} GB)")
         
-        print(f"   ✅ Memory fits in safe GPU capacity")
+        print("   ✅ Memory fits in safe GPU capacity")
         
         # Initialize areas with GPU memory only
         self.areas = []
@@ -171,8 +167,8 @@ class EnhancedGPUOnlyBillionScaleBrain:
         if self.memory_pool:
             self._preallocate_arrays()
         
-        print(f"   ✅ Brain initialized successfully!")
-        print(f"   Using: GPU (CuPy) - ENHANCED GPU-ONLY MODE")
+        print("   ✅ Brain initialized successfully!")
+        print("   Using: GPU (CuPy) - ENHANCED GPU-ONLY MODE")
     
     def _preallocate_arrays(self):
         """Pre-allocate arrays for memory pooling"""
@@ -317,7 +313,7 @@ class EnhancedGPUOnlyBillionScaleBrain:
         total_time = time.perf_counter() - start_time
         
         if verbose:
-            print(f"\n📊 ENHANCED SIMULATION COMPLETE")
+            print("\n📊 ENHANCED SIMULATION COMPLETE")
             print(f"   Total time: {total_time:.3f}s")
             print(f"   Average step time: {total_time/n_steps*1000:.2f}ms")
             print(f"   Min step time: {self.metrics.min_step_time*1000:.2f}ms")
@@ -429,7 +425,7 @@ def test_enhanced_gpu_billion_scale():
             gpu_util = stats['gpu_utilization']
             memory_used = stats['memory_usage_gb']
             
-            print(f"   ✅ Success!")
+            print("   ✅ Success!")
             print(f"   Time: {total_time:.3f}s")
             print(f"   Steps/sec: {steps_per_second:.1f}")
             print(f"   ms/step: {ms_per_step:.2f}ms")
@@ -475,7 +471,7 @@ def test_enhanced_gpu_billion_scale():
             })
     
     # Enhanced summary
-    print(f"\n📊 ENHANCED GPU-ONLY BILLION-SCALE BRAIN BENCHMARK SUMMARY")
+    print("\n📊 ENHANCED GPU-ONLY BILLION-SCALE BRAIN BENCHMARK SUMMARY")
     print("=" * 90)
     print(f"{'Scale':<25} {'Neurons':<15} {'Active%':<8} {'Steps/sec':<10} {'ms/step':<10} {'Neurons/sec':<15} {'GPU Util%':<10} {'Memory GB':<10}")
     print("-" * 90)
@@ -506,4 +502,4 @@ if __name__ == "__main__":
         print(f"   GPU Utilization: {best['gpu_utilization']:.1f}%")
         print(f"   Memory Usage: {best['memory_usage_gb']:.2f}GB")
     else:
-        print(f"\n❌ No successful tests")
+        print("\n❌ No successful tests")

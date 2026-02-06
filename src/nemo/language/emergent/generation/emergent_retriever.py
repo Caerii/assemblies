@@ -27,7 +27,6 @@ import cupy as cp
 
 if TYPE_CHECKING:
     from ..learner import EmergentLanguageLearner
-    from ..brain import EmergentNemoBrain
 
 from ..areas import Area
 
@@ -486,7 +485,7 @@ class EmergentGenerator:
             else:
                 return f"yes {subject} {verb}"
         else:
-            return f"no i have not learned that"
+            return "no i have not learned that"
     
     def _generate_default_response(self, encoded: Dict) -> str:
         """Default response for statements."""

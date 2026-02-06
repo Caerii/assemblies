@@ -10,7 +10,7 @@ including first-time winner remapping and optional inhibition masks.
 import numpy as np
 import heapq
 from typing import List, Optional, Tuple
-from .utils import validate_finite, normalize_index_list
+from .utils import validate_finite
 
 class WinnerSelector:
     """

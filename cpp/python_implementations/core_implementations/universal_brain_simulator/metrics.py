@@ -9,7 +9,7 @@ for the universal brain simulator system.
 
 import time
 import json
-from typing import Dict, Any, List
+from typing import Dict, Any
 from .config import SimulationConfig, PerformanceMetrics
 from .utils import get_memory_usage
 
@@ -170,7 +170,7 @@ class PerformanceMonitor:
         """
         stats = self.get_stats()
         
-        print(f"\n📊 UNIVERSAL SIMULATION COMPLETE")
+        print("\n📊 UNIVERSAL SIMULATION COMPLETE")
         print(f"   Total time: {total_time:.3f}s")
         print(f"   Average step time: {total_time/n_steps*1000:.2f}ms")
         print(f"   Min step time: {self.metrics.min_step_time*1000:.2f}ms")

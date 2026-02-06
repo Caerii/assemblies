@@ -14,8 +14,7 @@ For pattern completion with k = sqrt(n)
 import numpy as np
 import time
 import os
-import sys
-from typing import Dict, Any, Tuple, Optional
+from typing import Dict, Any
 from dataclasses import dataclass
 
 # Try importing GPU libraries

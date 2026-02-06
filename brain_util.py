@@ -1,10 +1,5 @@
-import brain
-import numpy as np
-import random
-import copy
 import pickle
 
-from collections import OrderedDict
 
 # Save obj (could be Brain object, list of saved winners, etc) as file_name
 def sim_save(file_name, obj):

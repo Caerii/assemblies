@@ -9,7 +9,6 @@ import heapq
 import collections
 from scipy.stats import binom
 from scipy.stats import truncnorm
-from scipy.stats import norm
 import math
 import types
 

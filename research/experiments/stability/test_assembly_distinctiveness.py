@@ -163,7 +163,7 @@ class AssemblyDistinctivenessExperiment(ExperimentBase):
         if p_connect_range is None:
             p_connect_range = [0.01, 0.05, 0.1]
         
-        self.log(f"Starting assembly distinctiveness experiment")
+        self.log("Starting assembly distinctiveness experiment")
         self.log(f"  n_neurons: {n_neurons_range}")
         self.log(f"  k_active: {k_active_range}")
         self.log(f"  p_connect: {p_connect_range}")
@@ -252,7 +252,7 @@ class AssemblyDistinctivenessExperiment(ExperimentBase):
         }
         
         self.log(f"\n{'='*60}")
-        self.log(f"ASSEMBLY DISTINCTIVENESS SUMMARY:")
+        self.log("ASSEMBLY DISTINCTIVENESS SUMMARY:")
         self.log(f"  Any distinct (separate brains): {summary['any_distinct_separate']}")
         self.log(f"  Any distinct (same brain): {summary['any_distinct_same']}")
         self.log(f"  Best overlap (separate): {summary['best_overlap_separate']:.3f}")
@@ -262,9 +262,9 @@ class AssemblyDistinctivenessExperiment(ExperimentBase):
         
         # CRITICAL INTERPRETATION
         if not summary["any_distinct_separate"]:
-            self.log(f"\n  ** CRITICAL: No configuration produced distinct assemblies!")
-            self.log(f"      This suggests the random seed creates same 'hub' neurons")
-            self.log(f"      Competition within same brain is needed for distinctiveness")
+            self.log("\n  ** CRITICAL: No configuration produced distinct assemblies!")
+            self.log("      This suggests the random seed creates same 'hub' neurons")
+            self.log("      Competition within same brain is needed for distinctiveness")
         
         result = ExperimentResult(
             experiment_name=self.name,

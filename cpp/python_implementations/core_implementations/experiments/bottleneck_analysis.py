@@ -376,13 +376,13 @@ def save_analysis_results(all_results: Dict[str, List[Any]]):
 
 def print_bottleneck_summary(all_results: Dict[str, List[Any]]):
     """Print summary of identified bottlenecks"""
-    print(f"\n🎯 BOTTLENECK ANALYSIS SUMMARY")
+    print("\n🎯 BOTTLENECK ANALYSIS SUMMARY")
     print("=" * 80)
     
     # Memory bottleneck analysis
     memory_results = all_results.get('memory', [])
     if memory_results:
-        print(f"\n📊 MEMORY BOTTLENECKS:")
+        print("\n📊 MEMORY BOTTLENECKS:")
         successful = [r for r in memory_results if r.get('success', False)]
         if successful:
             # Find where memory usage becomes problematic
@@ -403,7 +403,7 @@ def print_bottleneck_summary(all_results: Dict[str, List[Any]]):
     # Active percentage analysis
     active_results = all_results.get('active_percentage', [])
     if active_results:
-        print(f"\n📊 ACTIVE PERCENTAGE BOTTLENECKS:")
+        print("\n📊 ACTIVE PERCENTAGE BOTTLENECKS:")
         successful = [r for r in active_results if r.get('success', False)]
         if successful:
             # Find where performance drops significantly
@@ -419,7 +419,7 @@ def print_bottleneck_summary(all_results: Dict[str, List[Any]]):
     # Area count analysis
     area_results = all_results.get('areas', [])
     if area_results:
-        print(f"\n📊 AREA COUNT BOTTLENECKS:")
+        print("\n📊 AREA COUNT BOTTLENECKS:")
         successful = [r for r in area_results if r.get('success', False)]
         if successful:
             # Find optimal area count
@@ -429,7 +429,7 @@ def print_bottleneck_summary(all_results: Dict[str, List[Any]]):
     # Algorithm comparison
     algo_results = all_results.get('algorithms', [])
     if algo_results:
-        print(f"\n📊 ALGORITHM BOTTLENECKS:")
+        print("\n📊 ALGORITHM BOTTLENECKS:")
         successful = [r for r in algo_results if r.get('success', False)]
         if successful:
             best_algo = max(successful, key=lambda x: x['steps_per_sec'])
@@ -442,7 +442,7 @@ def print_bottleneck_summary(all_results: Dict[str, List[Any]]):
     # Step time analysis
     step_results = all_results.get('step_time', [])
     if step_results:
-        print(f"\n📊 STEP TIME BOTTLENECKS:")
+        print("\n📊 STEP TIME BOTTLENECKS:")
         successful = [r for r in step_results if r.get('success', False)]
         if successful:
             # Find where step time becomes problematic
@@ -480,9 +480,9 @@ def main():
     save_analysis_results(all_results)
     print_bottleneck_summary(all_results)
     
-    print(f"\n🎯 Bottleneck analysis complete!")
-    print(f"   Check the JSON file for detailed results.")
-    print(f"   Use these insights to optimize performance.")
+    print("\n🎯 Bottleneck analysis complete!")
+    print("   Check the JSON file for detailed results.")
+    print("   Use these insights to optimize performance.")
 
 
 if __name__ == "__main__":

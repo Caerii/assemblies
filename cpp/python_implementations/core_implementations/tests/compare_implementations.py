@@ -16,7 +16,6 @@ Usage: python compare_implementations.py
 """
 
 import time
-import numpy as np
 import os
 import sys
 sys.path.append(os.path.dirname(__file__))
@@ -148,7 +147,7 @@ def compare_implementations():
         })
     
     # Print summary
-    print(f"\n📊 IMPLEMENTATION COMPARISON SUMMARY")
+    print("\n📊 IMPLEMENTATION COMPARISON SUMMARY")
     print("=" * 120)
     print(f"{'Scale':<25} {'Neurons':<12} {'CUDA':<12} {'CuPy':<12} {'Billion':<12} {'Best':<10} {'Billion vs CUDA':<15} {'Billion vs CuPy':<15}")
     print("-" * 120)
@@ -178,7 +177,7 @@ def compare_implementations():
 
 def analyze_differences():
     """Analyze the key differences between implementations"""
-    print(f"\n🔍 KEY DIFFERENCES ANALYSIS")
+    print("\n🔍 KEY DIFFERENCES ANALYSIS")
     print("=" * 60)
     
     print("1. 🧠 MEMORY MANAGEMENT:")

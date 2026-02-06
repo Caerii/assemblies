@@ -29,7 +29,6 @@ from research.experiments.base import (
     ExperimentBase, 
     ExperimentResult, 
     measure_overlap,
-    measure_jaccard,
 )
 
 import brain as brain_module
@@ -196,7 +195,7 @@ class CodingCapacityExperiment(ExperimentBase):
         if n_assemblies_to_test is None:
             n_assemblies_to_test = [5, 10, 20, 50]
         
-        self.log(f"Starting coding capacity experiment")
+        self.log("Starting coding capacity experiment")
         self.log(f"  n_neurons: {n_neurons_range}")
         self.log(f"  k_active: {k_active_range}")
         self.log(f"  n_assemblies_to_test: {n_assemblies_to_test}")
@@ -260,7 +259,7 @@ class CodingCapacityExperiment(ExperimentBase):
         summary = self._compute_summary(all_results)
         
         self.log(f"\n{'='*60}")
-        self.log(f"CODING CAPACITY SUMMARY:")
+        self.log("CODING CAPACITY SUMMARY:")
         self.log(f"  Best efficiency: {summary.get('best_efficiency', 'N/A'):.3f} bits/neuron")
         self.log(f"  Duration: {duration:.1f}s")
         

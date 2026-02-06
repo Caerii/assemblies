@@ -18,7 +18,7 @@ Target: 200+ sentences/sec at n=10K
 import cupy as cp
 import torch
 import numpy as np
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, List, Tuple
 from dataclasses import dataclass
 from enum import Enum
 

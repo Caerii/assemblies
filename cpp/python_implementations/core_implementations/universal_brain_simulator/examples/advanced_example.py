@@ -7,9 +7,8 @@ This example shows advanced usage patterns including custom callbacks,
 memory management, and integration with external systems.
 """
 
-import time
 import json
-from typing import Dict, Any, List
+from typing import Dict, Any
 import sys
 import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
@@ -146,7 +145,7 @@ def main():
     
     print("   Results saved to advanced_simulation_results.json")
     
-    print(f"\n🎯 Advanced example complete!")
+    print("\n🎯 Advanced example complete!")
     print(f"   Total steps monitored: {monitor.callback_count}")
     print(f"   Average performance: {avg_performance:.1f} steps/sec")
     print(f"   Memory efficiency: {'✅' if memory_info.get('utilization_percent', 0) < 80 else '⚠️'}")

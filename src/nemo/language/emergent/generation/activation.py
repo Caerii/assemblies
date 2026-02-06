@@ -16,7 +16,7 @@ This is the core of emergent generation:
 - The settled pattern IS the response
 """
 
-from typing import Dict, List, Set, Optional, Tuple, TYPE_CHECKING
+from typing import Dict, List, Set, TYPE_CHECKING
 import cupy as cp
 
 if TYPE_CHECKING:

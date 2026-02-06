@@ -6,9 +6,7 @@ Billion-Scale CUDA Brain - Using existing working CUDA kernels for extreme perfo
 import time
 import numpy as np
 import ctypes
-from ctypes import c_int, c_float, c_uint32, c_void_p, POINTER
 import os
-import sys
 
 class BillionScaleCUDABrain:
     """
@@ -52,7 +50,7 @@ class BillionScaleCUDABrain:
         self.step_count = 0
         self.total_time = 0.0
         
-        print(f"🌍 Billion-Scale CUDA Brain initialized:")
+        print("🌍 Billion-Scale CUDA Brain initialized:")
         print(f"   Neurons: {n_neurons:,}")
         print(f"   Active per area: {k_active:,}")
         print(f"   Areas: {n_areas}")
@@ -164,7 +162,7 @@ class BillionScaleCUDABrain:
         total_time = time.perf_counter() - start_time
         
         if verbose:
-            print(f"\n📊 SIMULATION COMPLETE")
+            print("\n📊 SIMULATION COMPLETE")
             print(f"   Total time: {total_time:.3f}s")
             print(f"   Average step time: {total_time/n_steps*1000:.2f}ms")
             print(f"   Steps per second: {n_steps/total_time:.1f}")
@@ -232,7 +230,7 @@ def test_billion_scale_cuda():
             steps_per_second = stats['steps_per_second']
             ms_per_step = stats['avg_step_time'] * 1000
             
-            print(f"   ✅ Success!")
+            print("   ✅ Success!")
             print(f"   Time: {total_time:.3f}s")
             print(f"   Steps/sec: {steps_per_second:.1f}")
             print(f"   ms/step: {ms_per_step:.2f}ms")
@@ -266,7 +264,7 @@ def test_billion_scale_cuda():
             })
     
     # Summary
-    print(f"\n📊 BILLION-SCALE CUDA BENCHMARK SUMMARY")
+    print("\n📊 BILLION-SCALE CUDA BENCHMARK SUMMARY")
     print("=" * 80)
     print(f"{'Scale':<20} {'Neurons':<15} {'Steps/sec':<10} {'ms/step':<10} {'Neurons/sec':<15} {'Active/sec':<15}")
     print("-" * 80)
@@ -293,4 +291,4 @@ if __name__ == "__main__":
         print(f"   Neurons/sec: {best['neurons_per_second']:,.0f}")
         print(f"   Active/sec: {best['active_neurons_per_second']:,.0f}")
     else:
-        print(f"\n❌ No successful tests")
+        print("\n❌ No successful tests")

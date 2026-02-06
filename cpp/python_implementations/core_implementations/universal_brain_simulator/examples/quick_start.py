@@ -34,7 +34,7 @@ def main():
     print("\n📋 Method 2: Using quick_sim convenience function (Billion Scale)")
     results2 = quick_sim(neurons=1000000000, steps=50, optimized=True)  # 1 billion neurons
     
-    print(f"\n🎯 Quick start complete!")
+    print("\n🎯 Quick start complete!")
     print(f"   Method 1: {results['summary']['steps_per_second']:.1f} steps/sec")
     print(f"   Method 2: {results2['summary']['steps_per_second']:.1f} steps/sec")
 

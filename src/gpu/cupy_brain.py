@@ -41,13 +41,10 @@ Usage:
 
 import cupy as cp
 import numpy as np
-from typing import Dict, List, Optional, Tuple, Union
-from collections import defaultdict
+from typing import Dict, List, Optional
 
 from ..core.brain import Brain
 from ..core.area import Area
-from ..core.stimulus import Stimulus
-from ..core.connectome import Connectome
 from .gpu_utils import GPUUtils, MemoryManager
 
 class CupyBrain(Brain):

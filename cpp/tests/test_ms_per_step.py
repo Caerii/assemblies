@@ -3,7 +3,6 @@
 Test ms per step metrics for Ultra Optimized CUDA Brain v2
 """
 
-import time
 from ultra_optimized_cuda_brain_v2 import UltraOptimizedCUDABrainV2
 
 def test_ms_per_step():
@@ -34,13 +33,13 @@ def test_ms_per_step():
         )
         
         # Simulate with verbose output to see ms per step
-        print(f"\n   Running simulation...")
+        print("\n   Running simulation...")
         total_time = brain.simulate(n_steps=20, verbose=True)
         
         # Get detailed stats
         stats = brain.get_performance_stats()
         
-        print(f"\n   📊 DETAILED METRICS:")
+        print("\n   📊 DETAILED METRICS:")
         print(f"      Total time: {total_time:.3f}s")
         print(f"      Steps: {stats['total_steps']}")
         print(f"      Average step time: {stats['avg_step_time']*1000:.2f}ms")
@@ -53,22 +52,22 @@ def test_ms_per_step():
         ms_per_neuron = ms_per_step / test_case['n_neurons'] * 1000  # microseconds per neuron
         ms_per_active = ms_per_step / test_case['k_active'] * 1000   # microseconds per active neuron
         
-        print(f"\n   ⏱️  MS PER STEP BREAKDOWN:")
+        print("\n   ⏱️  MS PER STEP BREAKDOWN:")
         print(f"      Total ms per step: {ms_per_step:.2f}ms")
         print(f"      μs per neuron: {ms_per_neuron:.3f}μs")
         print(f"      μs per active neuron: {ms_per_active:.3f}μs")
         
         # Area breakdown
-        print(f"\n   📈 AREA TIMING BREAKDOWN:")
+        print("\n   📈 AREA TIMING BREAKDOWN:")
         for i, area_time in enumerate(stats['area_times']):
             area_ms = area_time * 1000
             print(f"      Area {i}: {area_ms:.2f}ms")
         
-        print(f"   " + "="*50)
+        print("   " + "="*50)
 
 def test_single_step_timing():
     """Test individual step timing"""
-    print(f"\n🔬 SINGLE STEP TIMING TEST")
+    print("\n🔬 SINGLE STEP TIMING TEST")
     print("=" * 50)
     
     # Create a medium-scale brain
@@ -92,7 +91,7 @@ def test_single_step_timing():
     min_time = min(step_times)
     max_time = max(step_times)
     
-    print(f"\n📊 SINGLE STEP STATISTICS:")
+    print("\n📊 SINGLE STEP STATISTICS:")
     print(f"   Average: {avg_time*1000:.2f}ms")
     print(f"   Minimum: {min_time*1000:.2f}ms")
     print(f"   Maximum: {max_time*1000:.2f}ms")
@@ -106,7 +105,7 @@ if __name__ == "__main__":
     # Test single step timing
     test_single_step_timing()
     
-    print(f"\n🎯 SUMMARY")
+    print("\n🎯 SUMMARY")
     print("=" * 50)
     print("✅ ms per step metrics are available in the simulation output")
     print("✅ Individual step times are shown during verbose simulation")

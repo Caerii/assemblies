@@ -20,15 +20,11 @@ Combines features from:
 import time
 import numpy as np
 import os
-import sys
 import ctypes
 import psutil
-import gc
-from typing import Dict, List, Tuple, Optional, Any, Union
+from typing import List
 from dataclasses import dataclass
 import json
-import subprocess
-import platform
 
 # Try to import CuPy for GPU memory management
 try:
@@ -118,7 +114,7 @@ class UltimateOptimizationSuite:
         if not self.config.enable_dll_testing:
             return []
         
-        print(f"\n🔍 TESTING DLL PATHS AND FUNCTIONALITY")
+        print("\n🔍 TESTING DLL PATHS AND FUNCTIONALITY")
         print("=" * 60)
         
         # Define DLL paths to test
@@ -149,7 +145,7 @@ class UltimateOptimizationSuite:
             # Check if DLL exists
             if os.path.exists(dll_info['path']):
                 result.exists = True
-                print(f"   ✅ DLL exists")
+                print("   ✅ DLL exists")
                 
                 # Try to load DLL
                 try:
@@ -175,7 +171,7 @@ class UltimateOptimizationSuite:
                     result.error_message = str(e)
                     print(f"   ❌ DLL load failed: {e}")
             else:
-                print(f"   ❌ DLL not found")
+                print("   ❌ DLL not found")
             
             results.append(result)
             self.dll_test_results.append(result)
@@ -187,7 +183,7 @@ class UltimateOptimizationSuite:
         if not self.config.enable_benchmarking:
             return []
         
-        print(f"\n🏁 BENCHMARKING IMPLEMENTATIONS")
+        print("\n🏁 BENCHMARKING IMPLEMENTATIONS")
         print("=" * 60)
         
         # Define test implementations
@@ -457,7 +453,7 @@ class UltimateOptimizationSuite:
     
     def generate_optimization_recommendations(self):
         """Generate optimization recommendations based on test results"""
-        print(f"\n💡 GENERATING OPTIMIZATION RECOMMENDATIONS")
+        print("\n💡 GENERATING OPTIMIZATION RECOMMENDATIONS")
         print("=" * 60)
         
         recommendations = []
@@ -529,12 +525,12 @@ class UltimateOptimizationSuite:
     
     def print_optimization_summary(self):
         """Print comprehensive optimization summary"""
-        print(f"\n📊 ULTIMATE OPTIMIZATION SUITE SUMMARY")
+        print("\n📊 ULTIMATE OPTIMIZATION SUITE SUMMARY")
         print("=" * 80)
         
         # DLL test summary
         if self.dll_test_results:
-            print(f"\n🔍 DLL TEST RESULTS:")
+            print("\n🔍 DLL TEST RESULTS:")
             print(f"{'DLL Name':<25} {'Exists':<8} {'Loadable':<10} {'Functions':<12} {'Load Time':<12}")
             print("-" * 80)
             for result in self.dll_test_results:
@@ -543,7 +539,7 @@ class UltimateOptimizationSuite:
         
         # Performance benchmark summary
         if self.performance_benchmarks:
-            print(f"\n🏁 PERFORMANCE BENCHMARK RESULTS:")
+            print("\n🏁 PERFORMANCE BENCHMARK RESULTS:")
             print(f"{'Implementation':<15} {'Neurons':<10} {'Steps/sec':<10} {'Score':<8} {'Memory GB':<10} {'GPU Util%':<10}")
             print("-" * 80)
             for benchmark in self.performance_benchmarks:
@@ -551,7 +547,7 @@ class UltimateOptimizationSuite:
         
         # Optimization recommendations
         if self.optimization_recommendations:
-            print(f"\n💡 OPTIMIZATION RECOMMENDATIONS:")
+            print("\n💡 OPTIMIZATION RECOMMENDATIONS:")
             for i, rec in enumerate(self.optimization_recommendations, 1):
                 print(f"   {i}. {rec}")
     
@@ -614,7 +610,7 @@ def main():
         suite = UltimateOptimizationSuite(config)
         suite.run_comprehensive_optimization()
         
-        print(f"\n✅ Ultimate Optimization Suite completed successfully!")
+        print("\n✅ Ultimate Optimization Suite completed successfully!")
         
     except Exception as e:
         print(f"❌ Ultimate Optimization Suite failed: {e}")

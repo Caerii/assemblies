@@ -22,9 +22,8 @@ GPU-accelerated with proper saturating weight updates.
 import torch
 import numpy as np
 import time
-from typing import Dict, List, Tuple, Optional, Set
+from typing import Dict, List, Tuple, Optional
 from dataclasses import dataclass
-from collections import defaultdict
 
 # Check CUDA
 assert torch.cuda.is_available(), "CUDA required"

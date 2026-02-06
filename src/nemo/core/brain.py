@@ -15,7 +15,7 @@ No language-specific logic - that belongs in language modules.
 import torch
 import numpy as np
 from dataclasses import dataclass
-from typing import Dict, List, Optional
+from typing import Dict, Optional
 
 from .area import Area, AreaParams
 

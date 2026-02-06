@@ -7,8 +7,7 @@ This tool calculates memory requirements without actually allocating memory,
 so it won't get stuck on large allocations.
 """
 
-import numpy as np
-from typing import Dict, List, Tuple
+from typing import Dict, List
 
 def calculate_memory_requirements(n_neurons: int, n_areas: int = 5, 
                                  active_percent: float = 0.001, sparsity: float = 0.0001) -> Dict:
@@ -90,7 +89,7 @@ def analyze_scaling_patterns():
 
 def find_optimal_configuration(results: List[Dict], max_memory_gb: float = 12.0):
     """Find the best configuration that fits within memory constraints."""
-    print(f"\n💡 OPTIMAL CONFIGURATION ANALYSIS")
+    print("\n💡 OPTIMAL CONFIGURATION ANALYSIS")
     print("=" * 60)
     
     # Filter configurations that fit in memory
@@ -120,29 +119,29 @@ def find_optimal_configuration(results: List[Dict], max_memory_gb: float = 12.0)
 
 def generate_recommendations(best_config: Dict):
     """Generate specific recommendations for implementation."""
-    print(f"\n🎯 IMPLEMENTATION RECOMMENDATIONS")
+    print("\n🎯 IMPLEMENTATION RECOMMENDATIONS")
     print("=" * 50)
     
     if not best_config:
         print("❌ No viable configuration found")
         return
     
-    print(f"✅ Recommended configuration:")
+    print("✅ Recommended configuration:")
     print(f"   Neurons: {best_config['n_neurons']:,}")
     print(f"   Sparsity: {best_config['sparsity']*100:.4f}%")
     print(f"   Memory: {best_config['total_memory_gb']:.3f} GB")
     print(f"   Est. Performance: {best_config['estimated_steps_per_sec']:.1f} steps/sec")
     
-    print(f"\n🔧 Implementation strategy:")
-    print(f"   1. Use ultra-sparse COO matrices for weight storage")
-    print(f"   2. Convert to CSR format for efficient operations")
-    print(f"   3. Implement memory pooling for frequent allocations")
-    print(f"   4. Use gradient-based sparsity adjustment")
-    print(f"   5. Batch operations to minimize memory fragmentation")
+    print("\n🔧 Implementation strategy:")
+    print("   1. Use ultra-sparse COO matrices for weight storage")
+    print("   2. Convert to CSR format for efficient operations")
+    print("   3. Implement memory pooling for frequent allocations")
+    print("   4. Use gradient-based sparsity adjustment")
+    print("   5. Batch operations to minimize memory fragmentation")
     
     # Calculate expected performance
     ms_per_step = 1000 / best_config['estimated_steps_per_sec']
-    print(f"\n📊 Expected performance:")
+    print("\n📊 Expected performance:")
     print(f"   {ms_per_step:.3f} ms per step")
     print(f"   {best_config['estimated_steps_per_sec']:.1f} steps per second")
     print(f"   {best_config['n_neurons'] * best_config['estimated_steps_per_sec']:,.0f} neurons processed per second")
@@ -162,7 +161,7 @@ def main():
     generate_recommendations(best_config)
     
     # Additional analysis for billion scale
-    print(f"\n🔬 BILLION-SCALE SPECIFIC ANALYSIS")
+    print("\n🔬 BILLION-SCALE SPECIFIC ANALYSIS")
     print("=" * 50)
     
     billion_configs = [r for r in results if r['n_neurons'] == 1_000_000_000]

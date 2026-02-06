@@ -16,7 +16,6 @@ Usage: python test_large_active_percentages.py
 """
 
 import time
-import numpy as np
 import os
 import sys
 sys.path.append(os.path.dirname(__file__))
@@ -150,7 +149,7 @@ def test_large_active_percentages():
         })
     
     # Print summary
-    print(f"\n📊 LARGE ACTIVE PERCENTAGE PERFORMANCE SUMMARY")
+    print("\n📊 LARGE ACTIVE PERCENTAGE PERFORMANCE SUMMARY")
     print("=" * 120)
     print(f"{'Active %':<12} {'Per Area':<10} {'CUDA steps/s':<12} {'CuPy steps/s':<12} {'NumPy steps/s':<12} {'CUDA vs CuPy':<12} {'CUDA vs NumPy':<12} {'Best':<10}")
     print("-" * 120)
@@ -176,7 +175,7 @@ def test_large_active_percentages():
 
 def test_extreme_scales():
     """Test with extreme scales to really stress test the implementations"""
-    print(f"\n🔥 EXTREME SCALE STRESS TEST")
+    print("\n🔥 EXTREME SCALE STRESS TEST")
     print("=" * 70)
     
     # Test extreme scales

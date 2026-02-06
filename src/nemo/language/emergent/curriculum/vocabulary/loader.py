@@ -5,7 +5,7 @@ Vocabulary Loader
 Loads vocabulary from the lexicon module or falls back to basic vocabulary.
 """
 
-from typing import Dict, Optional
+from typing import Dict
 
 from ...params import GroundingContext
 from .types import WordInfo

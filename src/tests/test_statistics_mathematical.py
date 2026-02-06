@@ -9,7 +9,7 @@ engine produces mathematically correct results under all conditions.
 
 import unittest
 import numpy as np
-from scipy.stats import binom, truncnorm
+from scipy.stats import binom
 import math
 
 from src.math_primitives.statistics import StatisticalEngine
@@ -289,7 +289,6 @@ class TestStatisticsMathematical(unittest.TestCase):
         ppf = self.stats_engine.calculate_binomial_ppf(quantile, n, p)
         
         # Should be consistent with scipy
-        from scipy.stats import binom
         scipy_ppf = binom.ppf(quantile, n, p)
         
         self.assertAlmostEqual(ppf, scipy_ppf, places=10)

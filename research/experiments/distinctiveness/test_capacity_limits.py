@@ -284,7 +284,7 @@ class CapacityLimitsExperiment(ExperimentBase):
         if sparsity_range is None:
             sparsity_range = [0.01, 0.02, 0.05, 0.1]
         
-        self.log(f"Starting capacity limits experiment")
+        self.log("Starting capacity limits experiment")
         self.log(f"  n_neurons: {n_neurons_range}")
         self.log(f"  sparsity: {sparsity_range}")
         
@@ -294,7 +294,7 @@ class CapacityLimitsExperiment(ExperimentBase):
         }
         
         # Test 1: Capacity vs Parameters
-        self.log(f"\n--- Test 1: Capacity vs Parameters ---")
+        self.log("\n--- Test 1: Capacity vs Parameters ---")
         for trial in range(n_trials):
             try:
                 results = self.test_capacity_vs_parameters(
@@ -310,7 +310,7 @@ class CapacityLimitsExperiment(ExperimentBase):
                 self.log(f"  Trial {trial} failed: {e}")
         
         # Test 2: Catastrophic Interference
-        self.log(f"\n--- Test 2: Catastrophic Interference ---")
+        self.log("\n--- Test 2: Catastrophic Interference ---")
         for trial in range(n_trials):
             config = CapacityConfig(
                 n_neurons=10000,
@@ -347,7 +347,7 @@ class CapacityLimitsExperiment(ExperimentBase):
         }
         
         self.log(f"\n{'='*60}")
-        self.log(f"CAPACITY LIMITS SUMMARY:")
+        self.log("CAPACITY LIMITS SUMMARY:")
         self.log(f"  Mean capacity ratio (actual/theoretical): {summary['mean_capacity_ratio']:.1%}")
         self.log(f"  Catastrophic interference: {summary['catastrophic_interference_observed']}")
         self.log(f"  Mean retrieval accuracy: {summary['mean_retrieval_accuracy']:.3f}")

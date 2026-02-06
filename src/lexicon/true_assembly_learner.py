@@ -17,7 +17,7 @@ Key question: Can grammatical categories EMERGE from this?
 import torch
 import numpy as np
 import time
-from typing import Dict, List, Optional, Tuple, Set
+from typing import Dict, List, Tuple
 from collections import defaultdict
 
 # Check CUDA

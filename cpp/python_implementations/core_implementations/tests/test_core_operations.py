@@ -9,7 +9,6 @@ These are the fundamental operations that make up the brain simulation.
 
 import sys
 import time
-import numpy as np
 sys.path.insert(0, '.')
 
 from universal_brain_simulator.client import BrainSimulator
@@ -408,14 +407,14 @@ def test_cuda_kernel_correctness():
 
 def print_operations_summary(all_results):
     """Print summary of core operations testing"""
-    print(f"\n🎯 CORE OPERATIONS TESTING SUMMARY")
+    print("\n🎯 CORE OPERATIONS TESTING SUMMARY")
     print("=" * 80)
     
     # Project operation summary
     project_results = all_results.get('project', [])
     if project_results:
         successful = [r for r in project_results if r.get('success', False)]
-        print(f"\n📊 PROJECT OPERATION:")
+        print("\n📊 PROJECT OPERATION:")
         print(f"   Successful tests: {len(successful)}/{len(project_results)}")
         if successful:
             best = max(successful, key=lambda x: x['steps_per_sec'])
@@ -425,7 +424,7 @@ def print_operations_summary(all_results):
     merge_results = all_results.get('merge', [])
     if merge_results:
         successful = [r for r in merge_results if r.get('success', False)]
-        print(f"\n📊 MERGE OPERATION:")
+        print("\n📊 MERGE OPERATION:")
         print(f"   Successful tests: {len(successful)}/{len(merge_results)}")
         if successful:
             best = max(successful, key=lambda x: x['steps_per_sec'])
@@ -435,7 +434,7 @@ def print_operations_summary(all_results):
     association_results = all_results.get('association', [])
     if association_results:
         successful = [r for r in association_results if r.get('success', False)]
-        print(f"\n📊 ASSOCIATION OPERATION:")
+        print("\n📊 ASSOCIATION OPERATION:")
         print(f"   Successful tests: {len(successful)}/{len(association_results)}")
         if successful:
             best = max(successful, key=lambda x: x['steps_per_sec'])
@@ -445,7 +444,7 @@ def print_operations_summary(all_results):
     combined_results = all_results.get('combined', [])
     if combined_results:
         successful = [r for r in combined_results if r.get('success', False)]
-        print(f"\n📊 COMBINED OPERATIONS:")
+        print("\n📊 COMBINED OPERATIONS:")
         print(f"   Successful tests: {len(successful)}/{len(combined_results)}")
         if successful:
             best = max(successful, key=lambda x: x['steps_per_sec'])
@@ -457,7 +456,7 @@ def print_operations_summary(all_results):
     kernel_results = all_results.get('kernels', [])
     if kernel_results:
         successful = [r for r in kernel_results if r.get('success', False)]
-        print(f"\n📊 CUDA KERNEL CORRECTNESS:")
+        print("\n📊 CUDA KERNEL CORRECTNESS:")
         print(f"   Successful tests: {len(successful)}/{len(kernel_results)}")
         if successful:
             for result in successful:
@@ -482,9 +481,9 @@ def main():
     # Print summary
     print_operations_summary(all_results)
     
-    print(f"\n🎯 Core operations testing complete!")
-    print(f"   This tests the fundamental brain simulation operations.")
-    print(f"   Results show how well project, merge, and association work.")
+    print("\n🎯 Core operations testing complete!")
+    print("   This tests the fundamental brain simulation operations.")
+    print("   Results show how well project, merge, and association work.")
 
 
 if __name__ == "__main__":

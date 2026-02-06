@@ -7,12 +7,11 @@ This example compares different configurations to help you find the
 optimal setup for your specific hardware and use case.
 """
 
-import time
 import sys
 import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 
-from universal_brain_simulator.client import BrainSimulator, compare_configurations
+from universal_brain_simulator.client import BrainSimulator
 
 
 def main():
@@ -125,7 +124,7 @@ def main():
             })
     
     # Print detailed comparison
-    print(f"\n📊 DETAILED PERFORMANCE COMPARISON")
+    print("\n📊 DETAILED PERFORMANCE COMPARISON")
     print("=" * 100)
     print(f"{'Configuration':<25} {'Steps/sec':<10} {'Neurons/sec':<15} {'Step Time (ms)':<15} {'Memory (GB)':<12} {'CUDA':<6} {'Status':<8}")
     print("-" * 100)
@@ -155,7 +154,7 @@ def main():
         print(f"   Memory usage: {best_result['info']['memory_info'].get('used_gb', 0):.2f}GB")
         
         # Calculate speedup vs other configurations
-        print(f"\n📈 SPEEDUP COMPARISON")
+        print("\n📈 SPEEDUP COMPARISON")
         print("=" * 60)
         best_steps_per_sec = best_result['benchmark']['performance']['steps_per_second']
         
@@ -166,7 +165,7 @@ def main():
     
     # Test scaling with best configuration
     if successful_results:
-        print(f"\n📈 SCALING TEST WITH BEST CONFIGURATION")
+        print("\n📈 SCALING TEST WITH BEST CONFIGURATION")
         print("=" * 60)
         
         best_config = best_result['config']
@@ -191,7 +190,7 @@ def main():
                 print(f"   ❌ Failed: {e}")
     
     # Memory efficiency analysis
-    print(f"\n💾 MEMORY EFFICIENCY ANALYSIS")
+    print("\n💾 MEMORY EFFICIENCY ANALYSIS")
     print("=" * 60)
     
     for result in successful_results:
@@ -213,7 +212,7 @@ def main():
         print(f"     Total active neurons: {total_active:,}")
         print(f"     Memory per active neuron: {(memory_gb * 1024**3) / total_active:.1f} bytes" if total_active > 0 else "     Memory per active neuron: N/A")
     
-    print(f"\n🎯 Performance comparison complete!")
+    print("\n🎯 Performance comparison complete!")
     print(f"   Configurations tested: {len(configurations)}")
     print(f"   Successful tests: {len(successful_results)}")
     print(f"   Failed tests: {len(results) - len(successful_results)}")

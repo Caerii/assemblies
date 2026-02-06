@@ -22,7 +22,7 @@ project_root = Path(__file__).parent.parent.parent.parent
 sys.path.insert(0, str(project_root))
 
 import numpy as np
-from typing import Dict, List, Any, Tuple
+from typing import Dict, Any
 from dataclasses import dataclass
 
 from research.experiments.base import (
@@ -325,7 +325,7 @@ class CompetitionMechanismsExperiment(ExperimentBase):
         """Run all competition mechanism tests."""
         self._start_timer()
         
-        self.log(f"Starting competition mechanisms experiment")
+        self.log("Starting competition mechanisms experiment")
         self.log(f"  n_neurons: {n_neurons}, k_active: {k_active}")
         
         config = CompetitionConfig(
@@ -343,7 +343,7 @@ class CompetitionMechanismsExperiment(ExperimentBase):
         }
         
         # Test 1: Sequential vs Interleaved
-        self.log(f"\n--- Test 1: Sequential vs Interleaved ---")
+        self.log("\n--- Test 1: Sequential vs Interleaved ---")
         for trial in range(n_trials):
             try:
                 result = self.test_sequential_vs_interleaved(config, trial_id=trial)
@@ -358,7 +358,7 @@ class CompetitionMechanismsExperiment(ExperimentBase):
             self.log(f"  Interleaved overlap: {int_mean:.3f}")
         
         # Test 2: Support Growth
-        self.log(f"\n--- Test 2: Support Growth Effect ---")
+        self.log("\n--- Test 2: Support Growth Effect ---")
         for trial in range(n_trials):
             try:
                 result = self.test_support_growth_effect(config, trial_id=trial)
@@ -373,7 +373,7 @@ class CompetitionMechanismsExperiment(ExperimentBase):
             self.log(f"  Order-overlap correlation: {mean_corr:.3f}")
         
         # Test 3: Plasticity Effect
-        self.log(f"\n--- Test 3: Plasticity Effect ---")
+        self.log("\n--- Test 3: Plasticity Effect ---")
         for trial in range(n_trials):
             try:
                 result = self.test_plasticity_effect(config, trial_id=trial)
@@ -386,7 +386,7 @@ class CompetitionMechanismsExperiment(ExperimentBase):
             self.log(f"  Best beta values: {best_betas}")
         
         # Test 4: Neuron Reuse
-        self.log(f"\n--- Test 4: Neuron Reuse Tracking ---")
+        self.log("\n--- Test 4: Neuron Reuse Tracking ---")
         for trial in range(n_trials):
             try:
                 result = self.test_neuron_reuse_tracking(config, trial_id=trial)
@@ -409,7 +409,7 @@ class CompetitionMechanismsExperiment(ExperimentBase):
         }
         
         self.log(f"\n{'='*60}")
-        self.log(f"COMPETITION MECHANISMS SUMMARY:")
+        self.log("COMPETITION MECHANISMS SUMMARY:")
         self.log(f"  Interleaved better: {summary['interleaved_creates_more_distinct']}")
         self.log(f"  Later stimuli more distinct: {summary['later_stimuli_more_distinct']}")
         self.log(f"  Plasticity helps: {summary['plasticity_helps_distinctiveness']}")

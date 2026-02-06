@@ -16,8 +16,8 @@ can learn linguistic structure without being told the rules.
 
 import torch
 import numpy as np
-from typing import Dict, List, Tuple, Set, Optional
-from dataclasses import dataclass, field
+from typing import Dict, List, Tuple
+from dataclasses import dataclass
 from collections import defaultdict
 
 from ..core import Brain, BrainParams
@@ -96,7 +96,7 @@ class LanguageLearner:
         if verbose:
             print(f"LanguageLearner: n={self.params.n}, k={self.params.k}")
             print(f"  Areas: {self.AREAS}")
-            print(f"  No hardcoded grammar - everything learned from data!")
+            print("  No hardcoded grammar - everything learned from data!")
     
     def _get_word_assembly(self, word: str) -> torch.Tensor:
         """Get or create phonological assembly for word."""

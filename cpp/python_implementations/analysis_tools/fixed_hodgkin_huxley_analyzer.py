@@ -207,9 +207,9 @@ class FixedHodgkinHuxleyAnalyzer:
         np.random.seed(seed)
         cp.random.seed(seed)
         
-        print(f"🧠 Fixed Hodgkin-Huxley Analysis")
+        print("🧠 Fixed Hodgkin-Huxley Analysis")
         print(f"   Neurons: {n_neurons:,}")
-        print(f"   Testing with proper stimulation currents")
+        print("   Testing with proper stimulation currents")
     
     def test_timestep_with_proper_stimulation(self, dt_ms, n_steps=1000, stimulation_type='constant'):
         """Test timestep with proper stimulation currents"""

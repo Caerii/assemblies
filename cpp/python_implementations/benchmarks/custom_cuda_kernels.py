@@ -9,7 +9,6 @@ No need for separate nvcc compilation!
 
 import torch
 from torch.utils.cpp_extension import load_inline
-import os
 import time
 
 # CUDA source code for dense assembly operations

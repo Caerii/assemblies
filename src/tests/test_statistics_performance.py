@@ -11,8 +11,7 @@ import unittest
 import numpy as np
 import time
 import gc
-import threading
-from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
+from concurrent.futures import ThreadPoolExecutor
 
 # Try to import psutil, but don't fail if not available
 try:

@@ -33,7 +33,7 @@ def test_vs_cuda_environment():
     cuda_bin = os.path.join(cuda_home, "bin")
     cuda_lib = os.path.join(cuda_home, "lib", "x64")
     
-    print(f"✓ CUDA paths configured")
+    print("✓ CUDA paths configured")
     print()
     
     # Create a batch file to test the environment

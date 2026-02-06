@@ -65,7 +65,7 @@ def main():
     best_result = max(comparison_results, 
                      key=lambda x: x['result']['summary']['steps_per_second'])
     
-    print(f"\n🏆 BEST CONFIGURATION:")
+    print("\n🏆 BEST CONFIGURATION:")
     print(f"   Steps/sec: {best_result['result']['summary']['steps_per_second']:.1f}")
     print(f"   Neurons/sec: {best_result['result']['summary']['neurons_per_second']:,.0f}")
     print(f"   Config: {best_result['config']}")

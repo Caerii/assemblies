@@ -6,8 +6,6 @@ Uses custom CUDA kernels for fast learning.
 """
 
 import numpy as np
-import ctypes
-from ctypes import c_uint32, c_float, c_void_p, POINTER
 from typing import Dict, List, Tuple
 import time
 

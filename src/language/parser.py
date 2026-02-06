@@ -6,12 +6,10 @@ functionality for language processing, including English and Russian parsers.
 """
 
 import brain
-import numpy as np
 from collections import defaultdict
 
 from .language_areas import *
 from .grammar_rules import LEXEME_DICT, RUSSIAN_LEXEME_DICT, AreaRule, FiberRule
-from .readout_methods import ReadoutMethod, fixed_map_readout, fiber_readout
 
 class ParserBrain(brain.Brain):
     """Base parser brain class that extends the basic brain for language processing."""

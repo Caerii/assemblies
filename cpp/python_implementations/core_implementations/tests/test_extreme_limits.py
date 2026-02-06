@@ -42,7 +42,7 @@ def test_extreme_limits():
             
             results = sim.run(steps=1, verbose=False)
             
-            print(f"   ✅ SUCCESS!")
+            print("   ✅ SUCCESS!")
             print(f"   Steps/sec: {results['summary']['steps_per_sec']:.1f}")
             print(f"   Memory: {results['summary']['memory_usage_gb']:.2f}GB")
             print(f"   Neurons/sec: {results['summary']['neurons_per_second']:,.0f}")
@@ -53,7 +53,7 @@ def test_extreme_limits():
                 print(f"   🛑 Memory limit reached at {neurons:,} neurons")
                 break
             else:
-                print(f"   ⚠️  Other error, continuing...")
+                print("   ⚠️  Other error, continuing...")
 
 
 if __name__ == "__main__":

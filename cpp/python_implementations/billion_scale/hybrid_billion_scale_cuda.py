@@ -7,7 +7,6 @@ Combines the sparse memory model of billion-scale with custom CUDA kernels for m
 import time
 import numpy as np
 import os
-import sys
 import ctypes
 
 # Try to import CuPy for GPU memory management
@@ -48,7 +47,7 @@ class HybridBillionScaleCUDABrain:
         # Initialize random number generator
         self._rng = np.random.default_rng(seed)
         
-        print(f"🚀 Hybrid Billion-Scale CUDA Brain initialized:")
+        print("🚀 Hybrid Billion-Scale CUDA Brain initialized:")
         print(f"   Neurons: {n_neurons:,}")
         print(f"   Active percentage: {active_percentage*100:.4f}%")
         print(f"   Active per area: {self.k_active:,}")
@@ -78,7 +77,7 @@ class HybridBillionScaleCUDABrain:
         if total_memory > safe_gpu_memory:
             raise RuntimeError(f"❌ Memory exceeds safe GPU capacity ({total_memory:.2f} GB > {safe_gpu_memory:.1f} GB) - skipping CPU fallback")
         
-        print(f"   ✅ Memory fits in safe GPU capacity")
+        print("   ✅ Memory fits in safe GPU capacity")
         
         # Load CUDA kernels
         self._cuda_kernels = self._load_cuda_kernels()
@@ -104,8 +103,8 @@ class HybridBillionScaleCUDABrain:
         self.step_count = 0
         self.total_time = 0.0
         
-        print(f"   ✅ Brain initialized successfully!")
-        print(f"   Using: Hybrid GPU (CuPy + CUDA Kernels) - SPARSE MEMORY MODEL")
+        print("   ✅ Brain initialized successfully!")
+        print("   Using: Hybrid GPU (CuPy + CUDA Kernels) - SPARSE MEMORY MODEL")
     
     def _load_cuda_kernels(self):
         """Load CUDA kernels DLL"""
@@ -161,7 +160,7 @@ class HybridBillionScaleCUDABrain:
         self._cuda_top_k = None
         self._cuda_max_k = 0
         
-        print(f"   🔧 CUDA memory pools initialized (dynamic allocation)")
+        print("   🔧 CUDA memory pools initialized (dynamic allocation)")
     
     def _ensure_cuda_memory(self, required_k):
         """Ensure CUDA memory is allocated for the required size"""
@@ -309,7 +308,7 @@ class HybridBillionScaleCUDABrain:
         total_time = time.perf_counter() - start_time
         
         if verbose:
-            print(f"✅ Success!")
+            print("✅ Success!")
             print(f"   Time: {total_time:.3f}s")
             print(f"   Steps/sec: {n_steps / total_time:.1f}")
             print(f"   ms/step: {total_time / n_steps * 1000:.2f}")
@@ -375,7 +374,7 @@ def test_hybrid_billion_scale():
             total_time = time.perf_counter() - start_time
             
             stats = brain.get_performance_stats()
-            print(f"   ✅ Success!")
+            print("   ✅ Success!")
             print(f"   Time: {total_time:.3f}s")
             print(f"   Steps/sec: {stats['steps_per_second']:.1f}")
             print(f"   ms/step: {stats['ms_per_step']:.2f}")
@@ -407,7 +406,7 @@ def test_hybrid_billion_scale():
             })
     
     # Print summary
-    print(f"\n📊 HYBRID BILLION-SCALE CUDA BRAIN BENCHMARK SUMMARY")
+    print("\n📊 HYBRID BILLION-SCALE CUDA BRAIN BENCHMARK SUMMARY")
     print("=" * 120)
     print(f"{'Scale':<30} {'Neurons':<15} {'Active%':<10} {'Steps/sec':<12} {'ms/step':<10} {'Neurons/sec':<15} {'Active/sec':<15}")
     print("-" * 120)

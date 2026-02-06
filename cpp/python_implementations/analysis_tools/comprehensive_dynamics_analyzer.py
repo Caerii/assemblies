@@ -156,9 +156,9 @@ class ComprehensiveDynamicsAnalyzer:
         np.random.seed(seed)
         cp.random.seed(seed)
         
-        print(f"🧠 Comprehensive Dynamics Analysis")
+        print("🧠 Comprehensive Dynamics Analysis")
         print(f"   Neurons: {n_neurons:,}")
-        print(f"   Testing advanced Hodgkin-Huxley dynamics")
+        print("   Testing advanced Hodgkin-Huxley dynamics")
     
     def test_timestep_performance(self, dt_ms, n_steps=1000, stimulation_type='constant'):
         """Test performance at specific timestep with different stimulation types"""
@@ -338,12 +338,12 @@ class ComprehensiveDynamicsAnalyzer:
         for approach in approaches:
             print(f"{approach['name']:<25} {approach['description']:<40} {approach['complexity']:<12} {approach['timestep_range']:<15} {approach['neurons_per_second']:<15}")
         
-        print(f"\n💡 RECOMMENDATIONS:")
-        print(f"   1. Use 0.01ms timestep for Hodgkin-Huxley dynamics")
-        print(f"   2. Use 0.1ms timestep for synaptic dynamics")
-        print(f"   3. Use 1ms timestep for network effects")
-        print(f"   4. Use adaptive timesteps based on activity levels")
-        print(f"   5. Implement hybrid approaches for different brain regions")
+        print("\n💡 RECOMMENDATIONS:")
+        print("   1. Use 0.01ms timestep for Hodgkin-Huxley dynamics")
+        print("   2. Use 0.1ms timestep for synaptic dynamics")
+        print("   3. Use 1ms timestep for network effects")
+        print("   4. Use adaptive timesteps based on activity levels")
+        print("   5. Implement hybrid approaches for different brain regions")
 
 if __name__ == "__main__":
     # Test comprehensive dynamics

@@ -16,7 +16,6 @@ import ctypes
 import numpy as np
 import time
 import os
-import sys
 from ctypes import c_uint64, c_uint32, c_float, c_void_p
 
 # Load the sparse assembly DLLs
@@ -264,7 +263,7 @@ def run_benchmark():
         human_k = int(np.sqrt(human_n))
         human_mem = calculate_memory(human_n, human_k)
         
-        print(f"\n86 Billion neurons (Human Brain) would require:")
+        print("\n86 Billion neurons (Human Brain) would require:")
         print(f"  k = {format_neurons(human_k)} active neurons")
         print(f"  Sparse memory: {human_mem['sparse_mb']/1024:.1f} GB")
         print(f"  Dense memory: {human_mem['dense_gb']:.0f} GB (impossible!)")

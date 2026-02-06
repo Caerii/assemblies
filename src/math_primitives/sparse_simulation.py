@@ -27,8 +27,7 @@ Mathematical Foundation:
 
 import numpy as np
 import heapq
-from typing import List, Dict, Tuple, Optional, Any
-import math
+from typing import List, Dict, Tuple, Any
 
 class SparseSimulationEngine:
     """
@@ -318,6 +317,92 @@ class SparseSimulationEngine:
                 num_first_winners_processed += 1
 
         return new_winner_indices, first_winner_inputs, num_first_winners_processed
+
+    def sample_new_winner_inputs(
+        self,
+        input_sizes: List[int],
+        n: int,
+        w: int,
+        k: int,
+        p: float,
+    ) -> np.ndarray:
+        """
+        Sample potential input strengths for k new winner candidates using
+        the truncated-normal approximation from the original brain.py.
+
+        Each new candidate neuron receives a random number of inputs from the
+        total input pool (stimuli + source areas). The distribution is
+        Binomial(total_k, p) truncated to the top-(k/effective_n) quantile,
+        approximated via a truncated normal.
+
+        Args:
+            input_sizes: Size of each input source (stimulus sizes + source area k values).
+            n: Total neuron count of the target area.
+            w: Number of neurons that have ever fired in the target area.
+            k: Assembly size (number of winners to select).
+            p: Connection probability.
+
+        Returns:
+            1D array of length k with sampled input strengths for new candidates.
+        """
+        import math
+        from scipy.stats import binom, truncnorm
+
+        total_k = sum(input_sizes)
+        effective_n = n - w
+
+        if effective_n <= k:
+            raise RuntimeError(
+                f"Remaining size of area too small to sample k new winners "
+                f"(effective_n={effective_n}, k={k})."
+            )
+
+        quantile = (effective_n - k) / effective_n
+        alpha = binom.ppf(quantile, total_k, p)
+
+        mu = total_k * p
+        std = math.sqrt(total_k * p * (1.0 - p))
+        a = (alpha - mu) / std
+
+        samples = (
+            mu + truncnorm.rvs(a, np.inf, scale=std, size=k, random_state=self.rng)
+        ).round(0)
+        np.clip(samples, 0, total_k, out=samples)
+        return samples
+
+    def compute_input_splits(
+        self,
+        input_sizes: List[int],
+        first_winner_inputs: List[int],
+    ) -> List[List[int]]:
+        """
+        Distribute each new winner's total input across source areas/stimuli
+        proportional to their sizes.
+
+        Args:
+            input_sizes: Size of each input source.
+            first_winner_inputs: Total input for each first-time winner.
+
+        Returns:
+            List of per-winner split vectors (one int per input source).
+        """
+        total_k = sum(input_sizes)
+        if total_k == 0:
+            return [[] for _ in first_winner_inputs]
+
+        proportions = np.array(input_sizes, dtype=np.float64) / float(total_k)
+        splits = []
+        for total_in in first_winner_inputs:
+            remaining = int(total_in)
+            base = np.floor(proportions * remaining).astype(int)
+            remainder = remaining - int(base.sum())
+            if remainder > 0:
+                frac = (proportions * remaining) - base
+                order = np.argsort(-frac)
+                for j in range(remainder):
+                    base[order[j % len(base)]] += 1
+            splits.append(base.tolist())
+        return splits
 
     def get_simulation_method_info(self) -> Dict[str, Any]:
         """

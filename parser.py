@@ -1,10 +1,7 @@
 #! /usr/bin/python3.9
 import brain
-import brain_util as bu
-import numpy as np
 import pptree
 import json
-import copy
 
 from collections import namedtuple
 from collections import defaultdict

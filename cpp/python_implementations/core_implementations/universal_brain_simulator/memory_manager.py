@@ -63,7 +63,7 @@ class MemoryManager:
         self._cuda_max_k = 0
         
         self._memory_initialized = True
-        print(f"   🔧 CUDA memory pools initialized (dynamic allocation)")
+        print("   🔧 CUDA memory pools initialized (dynamic allocation)")
     
     def ensure_cuda_memory(self, required_k: int) -> bool:
         """

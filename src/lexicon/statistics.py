@@ -6,7 +6,7 @@ Frequency and co-occurrence statistics for vocabulary learning.
 Based on corpus linguistics research.
 """
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Dict, List, Tuple, Optional
 from collections import defaultdict
 import math

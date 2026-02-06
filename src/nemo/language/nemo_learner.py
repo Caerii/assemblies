@@ -33,7 +33,6 @@ Architecture:
 import cupy as cp
 import torch
 import numpy as np
-import time
 from typing import Dict, List, Tuple, Optional, Set
 from dataclasses import dataclass, field
 from enum import Enum, auto
@@ -204,7 +203,7 @@ class NemoBrain:
         self.words_learned: Set[str] = set()
         
         if verbose:
-            print(f"NemoBrain initialized:")
+            print("NemoBrain initialized:")
             print(f"  n={n:,}, k={k}")
             print(f"  Areas: {self.NUM_AREAS}")
             print(f"  Strong fibers: {len(STRONG_FIBERS)}")

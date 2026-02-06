@@ -70,7 +70,7 @@ def main():
     billion_results = test_billion_scale()
     
     # Summary
-    print(f"\n📊 SCALING SUMMARY")
+    print("\n📊 SCALING SUMMARY")
     print("=" * 50)
     
     if medium_results:
@@ -98,8 +98,8 @@ def main():
         efficiency = performance_ratio * scale_factor
         print(f"   Scaling efficiency (100M→1B): {efficiency:.1f}%")
     
-    print(f"\n🎯 Large scale testing complete!")
-    print(f"   All updated examples are ready for billion-scale testing.")
+    print("\n🎯 Large scale testing complete!")
+    print("   All updated examples are ready for billion-scale testing.")
 
 
 if __name__ == "__main__":

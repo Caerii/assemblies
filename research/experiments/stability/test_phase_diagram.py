@@ -20,7 +20,7 @@ project_root = Path(__file__).parent.parent.parent.parent
 sys.path.insert(0, str(project_root))
 
 import numpy as np
-from typing import Dict, List, Any, Tuple
+from typing import Dict, List, Any
 from dataclasses import dataclass
 
 from research.experiments.base import (
@@ -151,7 +151,7 @@ class PhaseDiagramExperiment(ExperimentBase):
         if beta_range is None:
             beta_range = [0.05, 0.1]
         
-        self.log(f"Starting phase diagram mapping")
+        self.log("Starting phase diagram mapping")
         self.log(f"  n_neurons: {n_neurons_range}")
         self.log(f"  sparsity (k/n): {sparsity_range}")
         self.log(f"  p_connect: {p_connect_range}")
@@ -217,7 +217,7 @@ class PhaseDiagramExperiment(ExperimentBase):
         }
         
         self.log(f"\n{'='*60}")
-        self.log(f"PHASE DIAGRAM SUMMARY:")
+        self.log("PHASE DIAGRAM SUMMARY:")
         self.log(f"  Total configurations: {summary['total_configurations']}")
         self.log(f"  Critical sparsity estimate: {phase_analysis.get('critical_sparsity', 'N/A')}")
         self.log(f"  Duration: {duration:.1f}s")

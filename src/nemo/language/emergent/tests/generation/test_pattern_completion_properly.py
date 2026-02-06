@@ -38,7 +38,6 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirna
 
 from src.nemo.language.emergent.brain import EmergentNemoBrain
 from src.nemo.language.emergent.areas import Area
-from src.nemo.language.emergent.params import EmergentParams
 
 
 def compute_overlap(a1, a2, k):
@@ -143,7 +142,7 @@ def test_intra_assembly_connections():
         if step < 5 or step % 20 == 0:
             print(f"   Step {step+1}: self-projection overlap = {overlap:.3f}")
     
-    print(f"\n   After 100 self-projections, intra-assembly connections should be strong")
+    print("\n   After 100 self-projections, intra-assembly connections should be strong")
     
     return stable_assembly
 
@@ -333,7 +332,7 @@ def analyze_what_happens():
     after_projection = brain.current[AREA]
     overlap_with_original = compute_overlap(after_projection, stable_assembly, k)
     
-    print(f"   Project assembly → same area (no learning)")
+    print("   Project assembly → same area (no learning)")
     print(f"   Overlap with original: {overlap_with_original:.3f}")
     
     # The issue: Are the SAME neurons winning?

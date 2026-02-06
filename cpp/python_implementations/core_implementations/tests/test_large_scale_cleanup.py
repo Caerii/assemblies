@@ -8,7 +8,6 @@ to verify that memory errors are resolved.
 """
 
 import sys
-import os
 sys.path.insert(0, '.')
 
 from universal_brain_simulator import BrainSimulator

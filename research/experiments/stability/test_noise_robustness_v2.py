@@ -26,7 +26,7 @@ project_root = Path(__file__).parent.parent.parent.parent
 sys.path.insert(0, str(project_root))
 
 import numpy as np
-from typing import Dict, List, Any, Optional
+from typing import Dict, List, Any
 from dataclasses import dataclass
 
 from research.experiments.base import (
@@ -299,7 +299,7 @@ class NoiseRobustnessV2Experiment(ExperimentBase):
         if noise_levels is None:
             noise_levels = [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]
         
-        self.log(f"Starting CORRECTED noise robustness experiment")
+        self.log("Starting CORRECTED noise robustness experiment")
         self.log(f"  n_neurons: {n_neurons}, k_active: {k_active}")
         self.log(f"  p_connect: {p_connect}, beta: {beta}")
         
@@ -310,7 +310,7 @@ class NoiseRobustnessV2Experiment(ExperimentBase):
         }
         
         # Test 1: Are assemblies from different stimuli distinct?
-        self.log(f"\n--- Test 1: Competing Attractors ---")
+        self.log("\n--- Test 1: Competing Attractors ---")
         config = NoiseConfigV2(
             n_neurons=n_neurons,
             k_active=k_active,
@@ -333,7 +333,7 @@ class NoiseRobustnessV2Experiment(ExperimentBase):
             self.log(f"  Distinct assemblies rate: {distinct_rate:.0%}")
         
         # Test 2: Does noise cause switching?
-        self.log(f"\n--- Test 2: Noise-Induced Switching ---")
+        self.log("\n--- Test 2: Noise-Induced Switching ---")
         for noise in noise_levels:
             config = NoiseConfigV2(
                 n_neurons=n_neurons,
@@ -366,7 +366,7 @@ class NoiseRobustnessV2Experiment(ExperimentBase):
                 self.log(f"  Noise {noise:.0%}: Final={mean_final:.3f}, Recovery={recovery_rate:.0%}, Switch={switch_rate:.0%}")
         
         # Test 3: Association-based recovery
-        self.log(f"\n--- Test 3: Association Recovery ---")
+        self.log("\n--- Test 3: Association Recovery ---")
         for noise in [0.2, 0.4, 0.6]:
             config = NoiseConfigV2(
                 n_neurons=n_neurons,
@@ -407,7 +407,7 @@ class NoiseRobustnessV2Experiment(ExperimentBase):
         }
         
         self.log(f"\n{'='*60}")
-        self.log(f"CORRECTED NOISE ROBUSTNESS SUMMARY:")
+        self.log("CORRECTED NOISE ROBUSTNESS SUMMARY:")
         self.log(f"  Assemblies distinct: {summary['assemblies_are_distinct']} (overlap={summary['mean_assembly_overlap']:.3f})")
         self.log(f"  Recovery with stimulus: {summary['recovery_with_stimulus']:.0%}")
         self.log(f"  Association helps: {summary['association_helps_recovery']}")
