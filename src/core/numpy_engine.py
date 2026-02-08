@@ -514,7 +514,9 @@ class NumpySparseEngine(ComputeEngine):
         xp = get_xp()
         st = self._areas[area]
         st.winners = xp.asarray(winners, dtype=xp.uint32)
-        st.w = len(st.winners)
+        # Don't reset st.w — it tracks ever-fired count, not current
+        # winner count.  Callers that also need to reset w should do so
+        # explicitly.
 
     def get_num_ever_fired(self, area: str) -> int:
         return self._areas[area].w
@@ -545,6 +547,30 @@ class NumpySparseEngine(ComputeEngine):
 
     def is_fixed(self, area: str) -> bool:
         return self._areas[area].fixed_assembly
+
+    # -- Connection reset ---------------------------------------------------
+
+    def reset_area_connections(self, area: str) -> None:
+        """Reset area->area connections involving *area* to initial state."""
+        xp = get_xp()
+        for src_name in list(self._area_conns.keys()):
+            if area not in self._area_conns[src_name]:
+                continue
+            conn = self._area_conns[src_name][area]
+            if conn.sparse:
+                conn.weights = xp.empty((0, 0), dtype=xp.float32)
+                # Clear amortised growth bookkeeping so expansion
+                # starts fresh after reset.
+                if hasattr(conn, '_log_rows'):
+                    del conn._log_rows
+                if hasattr(conn, '_log_cols'):
+                    del conn._log_cols
+            else:
+                rows, cols = conn.weights.shape
+                conn.weights = xp.asarray(
+                    (self._rng.random((rows, cols)) < self.p
+                     ).astype(np.float32),
+                )
 
     # -- Identity -----------------------------------------------------------
 
@@ -642,9 +668,13 @@ class NumpyExplicitEngine(ComputeEngine):
         for src_name in from_areas:
             conn = self._area_conns[src_name][target]
             src = self._areas[src_name]
-            valid = src.winners[src.winners < conn.weights.shape[0]]
-            if len(valid) > 0:
-                prev_winner_inputs += conn.weights[valid].sum(axis=0)
+            if src.winners.size > 0 and int(xp.max(src.winners)) >= conn.weights.shape[0]:
+                raise IndexError(
+                    f"Source area {src_name!r} has winner index "
+                    f"{int(xp.max(src.winners))} exceeding connectome "
+                    f"rows ({conn.weights.shape[0]})")
+            if src.winners.size > 0:
+                prev_winner_inputs += conn.weights[src.winners].sum(axis=0)
 
         # Select top-k winners
         winners, _, _, _ = self._winner_sel.select_combined_winners(
@@ -724,6 +754,19 @@ class NumpyExplicitEngine(ComputeEngine):
 
     def is_fixed(self, area: str) -> bool:
         return self._areas[area].fixed_assembly
+
+    def reset_area_connections(self, area: str) -> None:
+        """Reset area->area connections involving *area* to initial state."""
+        xp = get_xp()
+        for src_name in list(self._area_conns.keys()):
+            if area not in self._area_conns[src_name]:
+                continue
+            conn = self._area_conns[src_name][area]
+            rows, cols = conn.weights.shape
+            conn.weights = xp.asarray(
+                (np.random.default_rng().random((rows, cols)) < self.p
+                 ).astype(np.float32),
+            )
 
     @property
     def name(self) -> str:

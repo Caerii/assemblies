@@ -130,6 +130,60 @@ class ComputeEngine(ABC):
     def is_fixed(self, area: str) -> bool:
         """Return whether the area's assembly is currently fixed."""
 
+    # -- Optional overrides (concrete defaults) --
+
+    def get_neuron_id_mapping(self, area: str) -> Optional[list]:
+        """Return compact-index-to-neuron-ID mapping, or None.
+
+        Engines that use compact indexing (e.g. sparse engines where only
+        fired neurons are tracked) override this to return the mapping.
+        Default returns None (indices are neuron IDs).
+        """
+        return None
+
+    def reset_area_connections(self, area: str) -> None:
+        """Reset all area->area connections involving *area* to initial state.
+
+        Preserves stimulus->area connections.  Used by the ``separate``
+        operation to give a second stimulus a fresh recurrent landscape.
+        Default is a no-op (suitable for engines without persistent
+        area->area connectivity, e.g. implicit hash-based engines).
+        """
+
+    def project_into_batch(
+        self,
+        configs: List[tuple],
+        plasticity_enabled: bool = True,
+    ) -> Dict[str, "ProjectionResult"]:
+        """Project into multiple target areas, potentially in parallel.
+
+        Default falls back to sequential :meth:`project_into` calls.
+        Engines with batch-capable hardware may override for throughput.
+        """
+        return {
+            target: self.project_into(target, stims, areas, plasticity_enabled)
+            for target, stims, areas in configs
+        }
+
+    def project_rounds(
+        self,
+        target: str,
+        from_stimuli: List[str],
+        from_areas: List[str],
+        rounds: int,
+        plasticity_enabled: bool = True,
+    ) -> "ProjectionResult":
+        """Execute multiple projection rounds in a tight loop.
+
+        Default calls :meth:`project_into` sequentially.  GPU engines
+        override to keep state on-device between rounds.
+        """
+        result = None
+        for _ in range(rounds):
+            result = self.project_into(
+                target, from_stimuli, from_areas, plasticity_enabled)
+        return result
+
     # -- Identity --
 
     @property
