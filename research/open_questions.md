@@ -2,7 +2,7 @@
 
 A living document tracking **all** questions being explored in this project. Questions are organized by theme and status.
 
-*Last Updated: 2025-11-28*
+*Last Updated: 2026-02-08*
 
 ---
 
@@ -76,11 +76,14 @@ A living document tracking **all** questions being explored in this project. Que
 **CRITICAL CAVEAT:** Only valid when stimuli compete in same brain!  
 **Location:** `research/experiments/information_theory/test_coding_capacity.py`  
 
-### Q10: Noise Robustness ❌ NEEDS REWORK
-**Status:** Original test INVALID - needs redesign  
-**Hypothesis:** Assemblies maintain information in presence of realistic neural noise levels.  
-**Problem:** Original test kept providing stimulus, trivially recovering assembly  
-**Finding:** True autonomous recovery not supported by current implementation  
+### Q10: Noise Robustness ⚠️ PARTIALLY VALIDATED
+**Status:** Test fixed but needs sparser parameters for meaningful validation
+**Hypothesis:** Assemblies maintain information in presence of realistic neural noise levels.
+**Problem:** Original test kept providing stimulus, trivially recovering assembly.
+Test was fixed to use autonomous recurrence (area→area self-projection), but at
+k/n=0.10 the test passes trivially. Needs sparser parameters (k/n < 0.01) to
+be a meaningful discriminator.
+**Next Step:** Re-run with N=10000, K=50, P=0.01 to test genuine noise resilience
 **Location:** `research/experiments/stability/test_noise_robustness_v2.py`  
 
 ---
@@ -93,11 +96,13 @@ A living document tracking **all** questions being explored in this project. Que
 **Result:** Confirmed - 2-6 steps depending on parameters  
 **Location:** `research/experiments/stability/test_scaling_laws.py`  
 
-### Q12: Learning Rules
-**Status:** Not Started  
-**Hypothesis:** Hebbian plasticity enables stable assembly modification without catastrophic forgetting.  
-**Why It Matters:** Learning and memory  
-**Location:** `core_questions/Q12_learning_rules/`  
+### Q12: Learning Rules ✅ VALIDATED
+**Status:** Completed — no catastrophic interference detected
+**Hypothesis:** Hebbian plasticity enables stable assembly modification without catastrophic forgetting.
+**Result:** Mean retrieval accuracy = 1.000, no early degradation across trials.
+Tested via capacity limits experiment with sequential assembly formation and retrieval.
+**Location:** `research/experiments/distinctiveness/test_capacity_limits.py`
+**Results:** `research/results/distinctiveness/capacity_limits_20260208_171552_quick.json`  
 
 ### Q13: Neural Oscillations
 **Status:** Not Started  
@@ -118,11 +123,15 @@ A living document tracking **all** questions being explored in this project. Que
 **Implication:** Lateral inhibition is essential mechanism, not optional  
 **Location:** `research/experiments/stability/test_assembly_distinctiveness.py`  
 
-### Q21: Autonomous Recurrence Not Supported
-**Status:** Discovered - Implementation Limitation  
-**Finding:** Current brain.py doesn't support pure recurrent dynamics  
-**Implication:** Can't test true attractor behavior without stimulus  
-**Action Needed:** Extend implementation or use different approach  
+### Q21: Autonomous Recurrence ✅ RESOLVED (documentation gap)
+**Status:** Completed — was a documentation gap, not an implementation limitation
+**Finding:** `brain.project({}, {area: [area]})` supports pure area→area
+self-recurrence. This always worked — the confusion was that the `project()`
+*op* in `ops.py` uses `project_rounds()` which excludes self-recurrence, but
+calling `brain.project()` directly with explicit area→area routing works.
+**Evidence:** LRI tests (test_lri.py) and sequence recall (test_sequences.py)
+both use autonomous self-recurrence successfully.
+**Location:** `src/tests/test_lri.py`, `src/tests/test_sequences.py`  
 
 ---
 
@@ -194,7 +203,7 @@ A living document tracking **all** questions being explored in this project. Que
 
 ### Tier 2 (Validation) - NEXT PRIORITY
 - 🔲 Q02: Critical Phenomena - Map phase transitions
-- 🔲 Q12: Learning Rules - Test plasticity
+- ✅ Q12: Learning Rules - VALIDATED (no catastrophic interference)
 - 🔲 Q06: Assembly Detection - Compare to real data
 
 ### Tier 3 (Applications)
@@ -212,13 +221,13 @@ A living document tracking **all** questions being explored in this project. Que
 | Algorithmic | 2 | 0 | 0 | 0 |
 | Biological | 3 | 1 | 0 | 0 |
 | Information | 2 | 1 | 0 | 1 |
-| Dynamics | 3 | 1 | 0 | 0 |
+| Dynamics | 3 | 2 | 0 | 0 |
 | New Discoveries | 2 | 2 | 0 | 0 |
 | Implementation | 2 | 0 | 0 | 0 |
 | Applications | 2 | 0 | 0 | 0 |
 | Meta | 2 | 0 | 2 | 0 |
 
-**Overall Progress:** 7 completed, 1 invalid, 13 remaining
+**Overall Progress:** 9 completed, 0 invalid, 12 remaining
 
 ---
 

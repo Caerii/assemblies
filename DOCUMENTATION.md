@@ -4,6 +4,7 @@ This documentation provides an overview of the brain simulation repository, deta
 
 1. **"Brain Computation by Assemblies of Neurons"** by Papadimitriou et al., *Proceedings of the National Academy of Sciences*, 2020.
 2. **"The Architecture of a Biologically Plausible Language Organ"** by Mitropolsky et al., 2023.
+3. **"Computation with Sequences of Assemblies in a Model of the Brain"** by Dabagia, Papadimitriou, Vempala, *Neural Computation*, 2025. arXiv:2306.03812.
 
 The simulations model how assemblies of neurons can perform computational tasks, including language processing and acquisition, illustrating the computational power of neural circuits in processing complex cognitive functions.
 
@@ -22,6 +23,59 @@ Each major part of the codebase has a short README with purpose, main entry poin
 | **GPU** | [src/gpu/README.md](src/gpu/README.md) | CuPy/PyTorch acceleration (stubs and roadmap) |
 
 See also [ARCHITECTURE.md](ARCHITECTURE.md) for high-level design and [README.md](README.md) for quick start and project overview.
+
+---
+
+## Assembly Calculus Operations (`src/assembly_calculus/`)
+
+The `assembly_calculus` package provides named, first-class operations for neural assembly computation. These wrap the low-level `Brain.project()` calls into clean functional APIs.
+
+### Data Types
+
+- **`Assembly`** — Immutable snapshot of k winner neurons in a brain area. Supports `overlap()` comparison and `len()`.
+- **`Sequence`** — Frozen ordered list of `Assembly` snapshots. Supports indexing, iteration, `pairwise_overlaps()`, `overlap_matrix()`, and `mean_consecutive_overlap()`.
+
+### Core Operations (Papadimitriou et al. 2020)
+
+| Operation | Signature | Description |
+|-----------|-----------|-------------|
+| `project` | `(brain, stimulus, target, rounds=10) → Assembly` | Project stimulus into target area, forming a stable assembly |
+| `reciprocal_project` | `(brain, source, target, rounds=10) → Assembly` | Copy an assembly from one area to another |
+| `associate` | `(brain, src_a, src_b, target, ...) → Assembly` | Link two assemblies through a shared target area |
+| `merge` | `(brain, src_a, src_b, target, ...) → Assembly` | Combine two assemblies into a conjunctive representation |
+| `pattern_complete` | `(brain, area, fraction=0.5, ...) → (Assembly, float)` | Recover full assembly from partial activation |
+| `separate` | `(brain, stim_a, stim_b, target, ...) → (Assembly, Assembly, float)` | Verify two stimuli create distinct assemblies |
+
+### Sequence Operations (Dabagia et al. 2025)
+
+| Operation | Signature | Description |
+|-----------|-----------|-------------|
+| `sequence_memorize` | `(brain, stimuli, target, rounds_per_step=10, repetitions=1) → Sequence` | Memorize an ordered sequence of stimuli via Hebbian bridges between consecutive assemblies |
+| `ordered_recall` | `(brain, area, cue, max_steps=20, ...) → Sequence` | Recall a memorized sequence from a cue using Long-Range Inhibition (LRI) |
+
+### Long-Range Inhibition (LRI)
+
+LRI enables sequence recall by suppressing recently-fired neurons so the network advances to the next assembly instead of oscillating. Key APIs:
+
+```python
+# Add area with LRI (or enable later with set_lri)
+brain.add_area("A", n=10000, k=100, beta=0.1,
+               refractory_period=3, inhibition_strength=100.0)
+
+# Dynamic toggling: disable during memorization, enable for recall
+brain.set_lri("A", refractory_period=3, inhibition_strength=100.0)
+
+# Clear refractory history between phases
+brain.clear_refractory("A")
+```
+
+LRI parameters:
+- **`refractory_period`**: Number of past steps to track (0 = disabled). Recently-fired neurons receive a penalty that decays linearly over this window.
+- **`inhibition_strength`**: Penalty magnitude. Use ~5.0 for soft suppression (partial shift), ~100-1000 for hard suppression (force next assembly).
+
+### Control
+
+- **`FiberCircuit`** — Declarative inhibition/disinhibition of projection channels between areas.
 
 ---
 

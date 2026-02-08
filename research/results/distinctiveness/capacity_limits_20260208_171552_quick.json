@@ -1,0 +1,356 @@
+{
+  "experiment_name": "capacity_limits",
+  "timestamp": "2026-02-08T17:15:52.609510",
+  "parameters": {
+    "n_neurons_range": [
+      1000,
+      5000
+    ],
+    "sparsity_range": [
+      0.02,
+      0.05
+    ],
+    "p_connect": 0.1,
+    "beta": 0.1,
+    "n_trials": 2,
+    "seed": 42
+  },
+  "metrics": {
+    "mean_capacity_ratio": 0.0,
+    "catastrophic_interference_observed": "False",
+    "mean_retrieval_accuracy": 1.0
+  },
+  "raw_data": {
+    "capacity_vs_parameters": [
+      {
+        "n_neurons": 1000,
+        "k_active": 20,
+        "sparsity": 0.02,
+        "theoretical_max": 50,
+        "actual_capacity": 0,
+        "capacity_ratio": 0.0
+      },
+      {
+        "n_neurons": 1000,
+        "k_active": 50,
+        "sparsity": 0.05,
+        "theoretical_max": 20,
+        "actual_capacity": 0,
+        "capacity_ratio": 0.0
+      },
+      {
+        "n_neurons": 5000,
+        "k_active": 100,
+        "sparsity": 0.02,
+        "theoretical_max": 50,
+        "actual_capacity": 0,
+        "capacity_ratio": 0.0
+      },
+      {
+        "n_neurons": 5000,
+        "k_active": 250,
+        "sparsity": 0.05,
+        "theoretical_max": 20,
+        "actual_capacity": 0,
+        "capacity_ratio": 0.0
+      },
+      {
+        "n_neurons": 1000,
+        "k_active": 20,
+        "sparsity": 0.02,
+        "theoretical_max": 50,
+        "actual_capacity": 0,
+        "capacity_ratio": 0.0
+      },
+      {
+        "n_neurons": 1000,
+        "k_active": 50,
+        "sparsity": 0.05,
+        "theoretical_max": 20,
+        "actual_capacity": 0,
+        "capacity_ratio": 0.0
+      },
+      {
+        "n_neurons": 5000,
+        "k_active": 100,
+        "sparsity": 0.02,
+        "theoretical_max": 50,
+        "actual_capacity": 0,
+        "capacity_ratio": 0.0
+      },
+      {
+        "n_neurons": 5000,
+        "k_active": 250,
+        "sparsity": 0.05,
+        "theoretical_max": 20,
+        "actual_capacity": 0,
+        "capacity_ratio": 0.0
+      }
+    ],
+    "catastrophic_interference": [
+      {
+        "test_type": "catastrophic_interference",
+        "n_assemblies": 20,
+        "mean_retrieval_overlap": 1.0,
+        "early_mean_retrieval": 1.0,
+        "late_mean_retrieval": 1.0,
+        "early_assemblies_degraded": "False",
+        "retrieval_details": [
+          {
+            "stimulus": "STIM_0",
+            "creation_order": 0,
+            "retrieval_overlap": 1.0,
+            "successfully_retrieved": true
+          },
+          {
+            "stimulus": "STIM_1",
+            "creation_order": 1,
+            "retrieval_overlap": 1.0,
+            "successfully_retrieved": true
+          },
+          {
+            "stimulus": "STIM_2",
+            "creation_order": 2,
+            "retrieval_overlap": 1.0,
+            "successfully_retrieved": true
+          },
+          {
+            "stimulus": "STIM_3",
+            "creation_order": 3,
+            "retrieval_overlap": 1.0,
+            "successfully_retrieved": true
+          },
+          {
+            "stimulus": "STIM_4",
+            "creation_order": 4,
+            "retrieval_overlap": 1.0,
+            "successfully_retrieved": true
+          },
+          {
+            "stimulus": "STIM_5",
+            "creation_order": 5,
+            "retrieval_overlap": 1.0,
+            "successfully_retrieved": true
+          },
+          {
+            "stimulus": "STIM_6",
+            "creation_order": 6,
+            "retrieval_overlap": 1.0,
+            "successfully_retrieved": true
+          },
+          {
+            "stimulus": "STIM_7",
+            "creation_order": 7,
+            "retrieval_overlap": 1.0,
+            "successfully_retrieved": true
+          },
+          {
+            "stimulus": "STIM_8",
+            "creation_order": 8,
+            "retrieval_overlap": 1.0,
+            "successfully_retrieved": true
+          },
+          {
+            "stimulus": "STIM_9",
+            "creation_order": 9,
+            "retrieval_overlap": 1.0,
+            "successfully_retrieved": true
+          },
+          {
+            "stimulus": "STIM_10",
+            "creation_order": 10,
+            "retrieval_overlap": 1.0,
+            "successfully_retrieved": true
+          },
+          {
+            "stimulus": "STIM_11",
+            "creation_order": 11,
+            "retrieval_overlap": 1.0,
+            "successfully_retrieved": true
+          },
+          {
+            "stimulus": "STIM_12",
+            "creation_order": 12,
+            "retrieval_overlap": 1.0,
+            "successfully_retrieved": true
+          },
+          {
+            "stimulus": "STIM_13",
+            "creation_order": 13,
+            "retrieval_overlap": 1.0,
+            "successfully_retrieved": true
+          },
+          {
+            "stimulus": "STIM_14",
+            "creation_order": 14,
+            "retrieval_overlap": 1.0,
+            "successfully_retrieved": true
+          },
+          {
+            "stimulus": "STIM_15",
+            "creation_order": 15,
+            "retrieval_overlap": 1.0,
+            "successfully_retrieved": true
+          },
+          {
+            "stimulus": "STIM_16",
+            "creation_order": 16,
+            "retrieval_overlap": 1.0,
+            "successfully_retrieved": true
+          },
+          {
+            "stimulus": "STIM_17",
+            "creation_order": 17,
+            "retrieval_overlap": 1.0,
+            "successfully_retrieved": true
+          },
+          {
+            "stimulus": "STIM_18",
+            "creation_order": 18,
+            "retrieval_overlap": 1.0,
+            "successfully_retrieved": true
+          },
+          {
+            "stimulus": "STIM_19",
+            "creation_order": 19,
+            "retrieval_overlap": 1.0,
+            "successfully_retrieved": true
+          }
+        ]
+      },
+      {
+        "test_type": "catastrophic_interference",
+        "n_assemblies": 20,
+        "mean_retrieval_overlap": 1.0,
+        "early_mean_retrieval": 1.0,
+        "late_mean_retrieval": 1.0,
+        "early_assemblies_degraded": "False",
+        "retrieval_details": [
+          {
+            "stimulus": "STIM_0",
+            "creation_order": 0,
+            "retrieval_overlap": 1.0,
+            "successfully_retrieved": true
+          },
+          {
+            "stimulus": "STIM_1",
+            "creation_order": 1,
+            "retrieval_overlap": 1.0,
+            "successfully_retrieved": true
+          },
+          {
+            "stimulus": "STIM_2",
+            "creation_order": 2,
+            "retrieval_overlap": 1.0,
+            "successfully_retrieved": true
+          },
+          {
+            "stimulus": "STIM_3",
+            "creation_order": 3,
+            "retrieval_overlap": 1.0,
+            "successfully_retrieved": true
+          },
+          {
+            "stimulus": "STIM_4",
+            "creation_order": 4,
+            "retrieval_overlap": 1.0,
+            "successfully_retrieved": true
+          },
+          {
+            "stimulus": "STIM_5",
+            "creation_order": 5,
+            "retrieval_overlap": 1.0,
+            "successfully_retrieved": true
+          },
+          {
+            "stimulus": "STIM_6",
+            "creation_order": 6,
+            "retrieval_overlap": 1.0,
+            "successfully_retrieved": true
+          },
+          {
+            "stimulus": "STIM_7",
+            "creation_order": 7,
+            "retrieval_overlap": 1.0,
+            "successfully_retrieved": true
+          },
+          {
+            "stimulus": "STIM_8",
+            "creation_order": 8,
+            "retrieval_overlap": 1.0,
+            "successfully_retrieved": true
+          },
+          {
+            "stimulus": "STIM_9",
+            "creation_order": 9,
+            "retrieval_overlap": 1.0,
+            "successfully_retrieved": true
+          },
+          {
+            "stimulus": "STIM_10",
+            "creation_order": 10,
+            "retrieval_overlap": 1.0,
+            "successfully_retrieved": true
+          },
+          {
+            "stimulus": "STIM_11",
+            "creation_order": 11,
+            "retrieval_overlap": 1.0,
+            "successfully_retrieved": true
+          },
+          {
+            "stimulus": "STIM_12",
+            "creation_order": 12,
+            "retrieval_overlap": 1.0,
+            "successfully_retrieved": true
+          },
+          {
+            "stimulus": "STIM_13",
+            "creation_order": 13,
+            "retrieval_overlap": 1.0,
+            "successfully_retrieved": true
+          },
+          {
+            "stimulus": "STIM_14",
+            "creation_order": 14,
+            "retrieval_overlap": 1.0,
+            "successfully_retrieved": true
+          },
+          {
+            "stimulus": "STIM_15",
+            "creation_order": 15,
+            "retrieval_overlap": 1.0,
+            "successfully_retrieved": true
+          },
+          {
+            "stimulus": "STIM_16",
+            "creation_order": 16,
+            "retrieval_overlap": 1.0,
+            "successfully_retrieved": true
+          },
+          {
+            "stimulus": "STIM_17",
+            "creation_order": 17,
+            "retrieval_overlap": 1.0,
+            "successfully_retrieved": true
+          },
+          {
+            "stimulus": "STIM_18",
+            "creation_order": 18,
+            "retrieval_overlap": 1.0,
+            "successfully_retrieved": true
+          },
+          {
+            "stimulus": "STIM_19",
+            "creation_order": 19,
+            "retrieval_overlap": 1.0,
+            "successfully_retrieved": true
+          }
+        ]
+      }
+    ]
+  },
+  "success": true,
+  "error_message": null,
+  "duration_seconds": 18.22725129999162
+}

@@ -22,7 +22,7 @@ This is also not the only implementation of the assembly calculus, it is merely 
 
 **Who it's for:** Researchers and students in computational neuroscience, neuro-inspired ML, or alternative approaches to language and reasoning — and anyone curious about assembly calculus, NEMO-style language learning, or scaling sparse neural systems without backprop.
 
-**Where things stand:** Core operations (projection, association, merge) are implemented and validated; NEMO does learned grammar and word order; scaling and CUDA work has succeeded. We do not yet implement the full sequence-memorization, FSM-learning, or long-range-interneuron (LRI) machinery from Dabagia et al. (2023) — that paper gives the theory of sequences, FSMs, and biologically plausible Turing-completeness. Full foundation-model scale and omnimodality are goals, not yet achieved. CIFAR-10 showed feasibility in principle; stable per-category assemblies at scale are still in progress.
+**Where things stand:** Core operations (projection, association, merge) are implemented and validated; NEMO does learned grammar and word order; scaling and CUDA work has succeeded. We now implement **sequence memorization**, **ordered recall**, and **Long-Range Inhibition (LRI)** from Dabagia et al. (2023/2025) — enabling ordered sequence learning and cue-driven recall via refractory suppression. FSM-learning is the remaining piece from that paper. Full foundation-model scale and omnimodality are goals, not yet achieved. CIFAR-10 showed feasibility in principle; stable per-category assemblies at scale are still in progress.
 
 My main goal in summer *2025* was to scale the system using custom CUDA and algorithmic improvements toward a new kind of foundational model. Success was found in the optimization project.
 
@@ -92,11 +92,13 @@ print('Winners (first 10):', b.area_by_name['A'].winners[:10])
 
 ## Overview
 
-Neural assemblies are groups of neurons that fire together to represent concepts. The Assembly Calculus provides three core operations on these assemblies:
+Neural assemblies are groups of neurons that fire together to represent concepts. The Assembly Calculus provides core operations on these assemblies:
 
 - **Projection**: Copy an assembly into a downstream brain area
 - **Association**: Increase overlap between assemblies to link concepts
 - **Merge**: Combine two assemblies into a new one representing their conjunction
+- **Sequence Memorize**: Learn an ordered sequence of assemblies via Hebbian bridges
+- **Ordered Recall**: Replay a memorized sequence from a cue using Long-Range Inhibition (LRI)
 
 Brain delegates all computation to a **ComputeEngine** — swap between CPU and GPU
 backends with a single parameter:
@@ -124,6 +126,32 @@ b.project({"stim": ["A"]}, {})
 # Recurrent projection to stabilize assembly
 for _ in range(9):
     b.project({}, {"A": ["A"]})
+```
+
+### Assembly Calculus Operations
+
+```python
+from src.core.brain import Brain
+from src.assembly_calculus import (
+    project, associate, merge, pattern_complete, separate,
+    sequence_memorize, ordered_recall,
+    Assembly, Sequence, overlap,
+)
+
+b = Brain(p=0.05, save_winners=True, seed=42, engine="numpy_sparse")
+for i in range(3):
+    b.add_stimulus(f"s{i}", 100)
+b.add_area("A", n=10000, k=100, beta=0.1)
+
+# Memorize a sequence of stimuli
+seq = sequence_memorize(b, ["s0", "s1", "s2"], "A", rounds_per_step=10)
+print(f"Memorized {len(seq)} assemblies, consecutive overlap: {seq.mean_consecutive_overlap():.3f}")
+
+# Enable LRI and recall the sequence from a cue
+b.set_lri("A", refractory_period=3, inhibition_strength=100.0)
+recalled = ordered_recall(b, "A", "s0", max_steps=10, known_assemblies=list(seq))
+print(f"Recalled {len(recalled)} assemblies")
+print(f"First recalled overlaps first memorized: {overlap(recalled[0], seq[0]):.3f}")
 ```
 
 ### Classic API (backward-compatible)
@@ -195,6 +223,7 @@ assemblies/
 |-- image_learner.py        # CIFAR-10 classification via assemblies
 |
 |-- src/                    # Modular package (pip install -e .); see section READMEs
+|   |-- assembly_calculus/  # Named ops (project, merge, sequence_memorize, ordered_recall)
 |   |-- core/               # Brain, Area, Stimulus, Connectome, ComputeEngine → README
 |   |-- compute/            # Statistics, plasticity, winner selection, projections → README
 |   |-- simulation/         # Projection, merge, pattern completion, association sims → README
