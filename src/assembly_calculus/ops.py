@@ -29,8 +29,7 @@ def _snap(brain, area_name) -> Assembly:
     """
     winners = brain.areas[area_name].winners
     # Map compact indices → real neuron IDs (sparse engine uses compact indexing)
-    mapping = (brain._engine.get_neuron_id_mapping(area_name)
-               if hasattr(brain._engine, 'get_neuron_id_mapping') else None)
+    mapping = brain._engine.get_neuron_id_mapping(area_name)
     if mapping:
         mapped = np.array(
             [mapping[int(idx)] if int(idx) < len(mapping) else int(idx)
@@ -80,8 +79,13 @@ def project(brain, stimulus, target, rounds=10) -> Assembly:
         consecutive rounds.
     """
     brain.project({stimulus: [target]}, {})
-    for _ in range(rounds - 1):
-        brain.project({stimulus: [target]}, {target: [target]})
+    if rounds > 1:
+        brain.project_rounds(
+            target=target,
+            areas_by_stim={stimulus: [target]},
+            dst_areas_by_src_area={target: [target]},
+            rounds=rounds - 1,
+        )
     return _snap(brain, target)
 
 
@@ -108,8 +112,13 @@ def reciprocal_project(brain, source, target, rounds=10) -> Assembly:
         assembly can be recovered by projecting back (target → source).
     """
     brain.project({}, {source: [target]})
-    for _ in range(rounds - 1):
-        brain.project({}, {source: [target], target: [target]})
+    if rounds > 1:
+        brain.project_rounds(
+            target=target,
+            areas_by_stim={},
+            dst_areas_by_src_area={source: [target], target: [target]},
+            rounds=rounds - 1,
+        )
     return _snap(brain, target)
 
 
@@ -156,14 +165,33 @@ def associate(brain, source_a, source_b, target,
     # Phase 1: Establish source_a → target pathway
     stim_dict_a = {stim_a: [source_a]} if stim_a else {}
     brain.project(stim_dict_a, {source_a: [source_a, target]})
-    for _ in range(rounds - 1):
-        brain.project(stim_dict_a, {source_a: [source_a, target], target: [target]})
+    # Fast path: when sources are fixed, only target changes — project_rounds
+    # handles it in a tight GPU loop.  When stims drive sources, each round
+    # must also update the source area, so we fall back to brain.project().
+    if rounds > 1 and use_fix:
+        brain.project_rounds(
+            target=target,
+            areas_by_stim={},
+            dst_areas_by_src_area={source_a: [target], target: [target]},
+            rounds=rounds - 1,
+        )
+    else:
+        for _ in range(rounds - 1):
+            brain.project(stim_dict_a, {source_a: [source_a, target], target: [target]})
 
     # Phase 2: Establish source_b → target pathway
     stim_dict_b = {stim_b: [source_b]} if stim_b else {}
     brain.project(stim_dict_b, {source_b: [source_b, target]})
-    for _ in range(rounds - 1):
-        brain.project(stim_dict_b, {source_b: [source_b, target], target: [target]})
+    if rounds > 1 and use_fix:
+        brain.project_rounds(
+            target=target,
+            areas_by_stim={},
+            dst_areas_by_src_area={source_b: [target], target: [target]},
+            rounds=rounds - 1,
+        )
+    else:
+        for _ in range(rounds - 1):
+            brain.project(stim_dict_b, {source_b: [source_b, target], target: [target]})
 
     # Phase 3: Interleave both sources → target
     stim_dict_both = {}
@@ -171,11 +199,19 @@ def associate(brain, source_a, source_b, target,
         stim_dict_both[stim_a] = [source_a]
     if stim_b:
         stim_dict_both[stim_b] = [source_b]
-    for _ in range(rounds):
-        brain.project(
-            stim_dict_both,
-            {source_a: [source_a, target], source_b: [source_b, target], target: [target]},
+    if use_fix:
+        brain.project_rounds(
+            target=target,
+            areas_by_stim={},
+            dst_areas_by_src_area={source_a: [target], source_b: [target], target: [target]},
+            rounds=rounds,
         )
+    else:
+        for _ in range(rounds):
+            brain.project(
+                stim_dict_both,
+                {source_a: [source_a, target], source_b: [source_b, target], target: [target]},
+            )
 
     if use_fix:
         _unfix(brain, source_a, source_b)
@@ -278,14 +314,14 @@ def pattern_complete(brain, area, fraction=0.5, rounds=5, seed=None):
     reference = _snap(brain, area)
     k = len(reference)
 
-    # Subsample
+    # Subsample from COMPACT indices (area.winners), not mapped real IDs
+    # (reference.winners).  The engine uses compact indexing internally.
+    compact_winners = list(brain.areas[area].winners)
     rng = random.Random(seed)
     subsample_size = int(k * fraction)
-    subsample = rng.sample(list(reference.winners), subsample_size)
+    subsample = rng.sample(compact_winners, subsample_size)
     brain.areas[area].winners = np.array(subsample, dtype=np.uint32)
-
-    # Sync subsampled winners to engine
-    brain._engine.set_winners(area, np.array(subsample, dtype=np.uint32))
+    # Winner sync to engine is handled by _project_impl
 
     # Recurrent completion
     for _ in range(rounds):
@@ -336,40 +372,7 @@ def separate(brain, stim_a, stim_b, target, rounds=10):
 def _reset_recurrent(brain, area_name):
     """Reset area→area connections involving an area to their initial state.
 
-    In the Assembly Calculus, the separation theorem assumes each stimulus
-    is projected into a fresh area (no prior attractor).  This helper
-    simulates that by reverting area→area weight matrices to their
-    pre-learning state.  Stimulus→area connections are preserved since
-    they are independent per stimulus.
-
-    Neurobiological motivation:  In cortex, strong attractors from prior
-    stimuli are weakened by synaptic decay, short-term depression, and
-    inhibitory feedback.  Resetting the recurrent weights is a discrete
-    approximation of these continuous processes.
+    Delegates to the engine's ``reset_area_connections`` method, which
+    preserves stimulus→area connections while reverting area→area weights.
     """
-    engine = brain._engine
-
-    if hasattr(engine, '_area_conns'):
-        is_sparse = hasattr(engine, '_sparse_sim')
-
-        for src_name in list(engine._area_conns.keys()):
-            if area_name not in engine._area_conns[src_name]:
-                continue
-            conn = engine._area_conns[src_name][area_name]
-
-            if is_sparse and hasattr(conn, 'sparse') and conn.sparse:
-                # Sparse engine: revert to initial empty shape
-                conn.weights = np.empty((0, 0), dtype=np.float32)
-                # Clear amortised growth bookkeeping so expansion
-                # starts fresh after reset.
-                if hasattr(conn, '_log_rows'):
-                    del conn._log_rows
-                if hasattr(conn, '_log_cols'):
-                    del conn._log_cols
-            elif not is_sparse:
-                # Explicit engine: re-randomize
-                rows, cols = conn.weights.shape
-                conn.weights = np.asarray(
-                    (np.random.default_rng().random((rows, cols)) < engine.p
-                     ).astype(np.float32),
-                )
+    brain._engine.reset_area_connections(area_name)
