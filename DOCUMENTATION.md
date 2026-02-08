@@ -7,6 +7,22 @@ This documentation provides an overview of the brain simulation repository, deta
 
 The simulations model how assemblies of neurons can perform computational tasks, including language processing and acquisition, illustrating the computational power of neural circuits in processing complex cognitive functions.
 
+### Documentation by section
+
+Each major part of the codebase has a short README with purpose, main entry points, and links:
+
+| Section | Path | Description |
+|--------|------|-------------|
+| **Core** | [src/core/README.md](src/core/README.md) | Brain, Area, Stimulus, Connectome, ComputeEngine (CPU/GPU) |
+| **Compute** | [src/compute/README.md](src/compute/README.md) | Statistics, plasticity, winner selection, projection primitives |
+| **Simulation** | [src/simulation/README.md](src/simulation/README.md) | Projection, association, merge, pattern completion, Turing-style sims |
+| **Language** | [src/language/README.md](src/language/README.md) | Rule-based parsing (English/Russian), grammar, readout |
+| **Lexicon** | [src/lexicon/README.md](src/lexicon/README.md) | Word lists, curriculum, assembly/GPU learners |
+| **NEMO** | [src/nemo/README.md](src/nemo/README.md) | Learned grammar, language acquisition (GPU) |
+| **GPU** | [src/gpu/README.md](src/gpu/README.md) | CuPy/PyTorch acceleration (stubs and roadmap) |
+
+See also [ARCHITECTURE.md](ARCHITECTURE.md) for high-level design and [README.md](README.md) for quick start and project overview.
+
 ---
 
 ## Table of Contents
