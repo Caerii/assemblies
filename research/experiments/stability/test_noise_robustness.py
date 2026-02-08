@@ -1,21 +1,36 @@
 """
-Noise Robustness Experiment
+Noise Robustness: Assembly Recovery Under Perturbation
 
-Tests assembly stability under perturbation.
+Tests whether Hebbian-trained assemblies can recover from partial or total
+corruption of their winner neurons, under three recovery mechanisms:
 
-NOTE: The current brain.py implementation doesn't support pure autonomous
-recurrence (projecting from an area to itself without external input).
-Tests focus on what IS possible with the current API.
+1. Stimulus-driven recovery (H1): After noise injection, re-apply the
+   original stimulus with stim+self projection. Tests whether the learned
+   stimulus pathway can restore the assembly.
+2. Autonomous recovery (H2): After noise injection, run self-projection
+   only (no stimulus). Tests whether the self-connectome alone can restore
+   the assembly from its attractor basin.
+3. Association-based recovery (H3): Establish assemblies in A and B,
+   associate via co-stimulation, corrupt B, recover B by projecting from
+   clean A. Tests cross-area pattern completion as error correction.
+4. Sparsity scaling (H4): Repeat autonomous recovery at k=sqrt(n) for
+   n=200,500,1000,2000 to find where the attractor basin narrows.
 
-Tests:
-1. Stimulus-assisted recovery: Recovery with weakened stimulus
-2. Different stimulus test: Does noise cause switch to different assembly?
-3. Multi-area pattern completion: Recovery via associated area
+Noise injection: Replace a fraction of winner neurons with uniformly random
+non-winner neurons. At noise_frac=1.0, every winner is replaced.
 
-Scientific Questions:
-1. How robust are assemblies to noise when stimulus is present but weakened?
-2. Can noise cause catastrophic switching to a different attractor?
-3. Can associated areas help recover corrupted assemblies?
+Establishment: All assemblies trained via stim+self:
+project({"s": ["A"]}, {"A": ["A"]}) x 30 rounds.
+Association: project({"sa": ["A"], "sb": ["B"]}, {"A": ["B"]}) x 30 rounds.
+
+Statistical methodology:
+- N_SEEDS=10 independent seeds per condition.
+- One-sample t-test against null k/n.
+- Cohen's d effect sizes. Mean +/- SEM.
+
+References:
+- Papadimitriou et al., PNAS 117(25):14464-14472, 2020
+- Dabagia et al., "Coin-Flipping in the Brain", 2024 (weight saturation)
 """
 
 import sys
@@ -25,443 +40,366 @@ project_root = Path(__file__).parent.parent.parent.parent
 sys.path.insert(0, str(project_root))
 
 import numpy as np
-from typing import Dict, List, Any
 from dataclasses import dataclass
-
+from typing import Dict, List, Any
 from research.experiments.base import (
-    ExperimentBase, 
-    ExperimentResult, 
+    ExperimentBase,
+    ExperimentResult,
     measure_overlap,
+    chance_overlap,
+    summarize,
+    ttest_vs_null,
 )
 
-import brain as brain_module
+from src.core.brain import Brain
+
+N_SEEDS = 10
 
 
 @dataclass
-class NoiseConfigV2:
-    """Configuration for corrected noise robustness test."""
-    n_neurons: int
-    k_active: int
-    p_connect: float
+class NoiseConfig:
+    """Configuration for noise robustness trials."""
+    n: int
+    k: int
+    p: float
     beta: float
-    noise_level: float
-    n_establishment_rounds: int = 15
-    n_recovery_rounds: int = 10
+    w_max: float
+    establish_rounds: int = 30
+    recovery_rounds: int = 20
 
 
-class NoiseRobustnessV2Experiment(ExperimentBase):
+def inject_noise(
+    winners: np.ndarray, n_neurons: int, noise_frac: float, rng,
+) -> np.ndarray:
+    """Replace a fraction of winners with random non-winner neurons."""
+    k = len(winners)
+    n_replace = int(noise_frac * k)
+    if n_replace == 0:
+        return winners.copy()
+
+    noisy = winners.copy()
+    replace_idx = rng.choice(k, n_replace, replace=False)
+    non_winners = np.array([i for i in range(n_neurons) if i not in set(winners.tolist())])
+    new_neurons = rng.choice(non_winners, n_replace, replace=False)
+    noisy[replace_idx] = new_neurons.astype(np.uint32)
+    return noisy
+
+
+# -- Core trial runners --------------------------------------------------------
+
+
+def run_stimulus_recovery_trial(
+    cfg: NoiseConfig, noise_frac: float, seed: int,
+) -> float:
     """
-    Test assembly robustness to noise with corrected methodology.
-    
-    Key insight: The original test was flawed. This version tests
-    different aspects of robustness that the implementation supports.
+    Establish via stim+self, inject noise, recover via stim+self.
+    Returns final overlap with trained assembly.
     """
-    
+    b = Brain(p=cfg.p, seed=seed, w_max=cfg.w_max)
+    b.add_area("A", cfg.n, cfg.k, cfg.beta, explicit=True)
+    b.add_stimulus("s", cfg.k)
+
+    # Establish
+    b.project({"s": ["A"]}, {})
+    for _ in range(cfg.establish_rounds):
+        b.project({"s": ["A"]}, {"A": ["A"]})
+    trained = np.array(b.areas["A"].winners, dtype=np.uint32)
+
+    # Inject noise
+    rng = np.random.default_rng(seed + 77777)
+    noisy = inject_noise(trained, cfg.n, noise_frac, rng)
+    b.areas["A"].winners = noisy
+
+    # Recovery via stim+self
+    for _ in range(cfg.recovery_rounds):
+        b.project({"s": ["A"]}, {"A": ["A"]})
+
+    return measure_overlap(trained, np.array(b.areas["A"].winners, dtype=np.uint32))
+
+
+def run_autonomous_recovery_trial(
+    cfg: NoiseConfig, noise_frac: float, seed: int,
+) -> float:
+    """
+    Establish via stim+self, inject noise, recover via self-only.
+    Returns final overlap with trained assembly.
+    """
+    b = Brain(p=cfg.p, seed=seed, w_max=cfg.w_max)
+    b.add_area("A", cfg.n, cfg.k, cfg.beta, explicit=True)
+    b.add_stimulus("s", cfg.k)
+
+    # Establish
+    b.project({"s": ["A"]}, {})
+    for _ in range(cfg.establish_rounds):
+        b.project({"s": ["A"]}, {"A": ["A"]})
+    trained = np.array(b.areas["A"].winners, dtype=np.uint32)
+
+    # Inject noise
+    rng = np.random.default_rng(seed + 77777)
+    noisy = inject_noise(trained, cfg.n, noise_frac, rng)
+    b.areas["A"].winners = noisy
+
+    # Recovery via self-only (autonomous)
+    for _ in range(cfg.recovery_rounds):
+        b.project({}, {"A": ["A"]})
+
+    return measure_overlap(trained, np.array(b.areas["A"].winners, dtype=np.uint32))
+
+
+def run_association_recovery_trial(
+    cfg: NoiseConfig, noise_frac: float, seed: int,
+) -> Dict[str, float]:
+    """
+    Establish A and B via stim+self, associate via co-stimulation,
+    corrupt B, recover via A->B projection.
+    Returns B recovery overlap and A integrity.
+    """
+    b = Brain(p=cfg.p, seed=seed, w_max=cfg.w_max)
+    b.add_area("A", cfg.n, cfg.k, cfg.beta, explicit=True)
+    b.add_area("B", cfg.n, cfg.k, cfg.beta, explicit=True)
+    b.add_stimulus("sa", cfg.k)
+    b.add_stimulus("sb", cfg.k)
+
+    # Establish A via stim+self
+    b.project({"sa": ["A"]}, {})
+    for _ in range(cfg.establish_rounds):
+        b.project({"sa": ["A"]}, {"A": ["A"]})
+    trained_a = np.array(b.areas["A"].winners, dtype=np.uint32)
+
+    # Establish B via stim+self
+    b.project({"sb": ["B"]}, {})
+    for _ in range(cfg.establish_rounds):
+        b.project({"sb": ["B"]}, {"B": ["B"]})
+    trained_b = np.array(b.areas["B"].winners, dtype=np.uint32)
+
+    # Associate via co-stimulation: A->B
+    for _ in range(cfg.establish_rounds):
+        b.project({"sa": ["A"], "sb": ["B"]}, {"A": ["B"]})
+
+    # Corrupt B
+    rng = np.random.default_rng(seed + 77777)
+    noisy_b = inject_noise(trained_b, cfg.n, noise_frac, rng)
+    b.areas["B"].winners = noisy_b
+
+    # Recovery: project A->B (stimulus keeps A intact)
+    for _ in range(cfg.recovery_rounds):
+        b.project({"sa": ["A"]}, {"A": ["B"]})
+
+    b_recovery = measure_overlap(
+        trained_b, np.array(b.areas["B"].winners, dtype=np.uint32)
+    )
+    a_intact = measure_overlap(
+        trained_a, np.array(b.areas["A"].winners, dtype=np.uint32)
+    )
+
+    return {"b_recovery": b_recovery, "a_intact": a_intact}
+
+
+# -- Main experiment -----------------------------------------------------------
+
+
+class NoiseRobustnessExperiment(ExperimentBase):
+    """Test noise robustness: recovery under perturbation."""
+
     def __init__(self, results_dir: Path = None, seed: int = 42, verbose: bool = True):
         super().__init__(
-            name="noise_robustness_v2",
+            name="noise_robustness",
             seed=seed,
             results_dir=results_dir or Path(__file__).parent.parent.parent / "results" / "stability",
-            verbose=verbose
+            verbose=verbose,
         )
-    
-    def add_noise_to_assembly(
-        self, 
-        winners: np.ndarray, 
-        n_neurons: int,
-        noise_level: float
-    ) -> np.ndarray:
-        """Add noise by replacing fraction of winners with random neurons."""
-        k = len(winners)
-        n_to_flip = int(k * noise_level)
-        
-        if n_to_flip == 0:
-            return winners.copy()
-        
-        flip_indices = self.rng.choice(k, size=n_to_flip, replace=False)
-        winner_set = set(winners.tolist())
-        non_winners = [i for i in range(n_neurons) if i not in winner_set]
-        
-        if len(non_winners) < n_to_flip:
-            return winners.copy()
-        
-        replacements = self.rng.choice(non_winners, size=n_to_flip, replace=False)
-        noisy_winners = winners.copy()
-        noisy_winners[flip_indices] = replacements
-        
-        return noisy_winners
-    
-    def test_competing_attractors(
-        self, 
-        config: NoiseConfigV2,
-        trial_id: int = 0
-    ) -> Dict[str, Any]:
-        """
-        Test: Do different stimuli create different assemblies?
-        
-        This tests whether assemblies are truly distinct attractors
-        or if they collapse to the same representation.
-        """
-        b = brain_module.Brain(p=config.p_connect, seed=self.seed + trial_id)
-        
-        # Create two different stimuli
-        b.add_stimulus("STIM_A", config.k_active)
-        b.add_stimulus("STIM_B", config.k_active)
-        b.add_area("TARGET", config.n_neurons, config.k_active, config.beta)
-        
-        # Establish assembly A
-        for _ in range(config.n_establishment_rounds):
-            b.project(
-                areas_by_stim={"STIM_A": ["TARGET"]},
-                dst_areas_by_src_area={}
-            )
-        assembly_a = np.array(b.area_by_name["TARGET"].winners, dtype=np.uint32)
-        
-        # Now establish assembly B (starting fresh)
-        b2 = brain_module.Brain(p=config.p_connect, seed=self.seed + trial_id + 1000)
-        b2.add_stimulus("STIM_B", config.k_active)
-        b2.add_area("TARGET", config.n_neurons, config.k_active, config.beta)
-        
-        for _ in range(config.n_establishment_rounds):
-            b2.project(
-                areas_by_stim={"STIM_B": ["TARGET"]},
-                dst_areas_by_src_area={}
-            )
-        assembly_b = np.array(b2.area_by_name["TARGET"].winners, dtype=np.uint32)
-        
-        # Measure overlap between assemblies
-        overlap_ab = measure_overlap(assembly_a, assembly_b)
-        
-        return {
-            "test_type": "competing_attractors",
-            "overlap_between_assemblies": overlap_ab,
-            "assemblies_distinct": overlap_ab < 0.5,
-        }
-    
-    def test_noise_causes_switching(
-        self, 
-        config: NoiseConfigV2,
-        trial_id: int = 0
-    ) -> Dict[str, Any]:
-        """
-        Test: Does noise cause assembly to switch to a different attractor?
-        
-        After establishing assembly A, inject noise and continue with
-        stimulus A. Does it return to A or drift elsewhere?
-        """
-        b = brain_module.Brain(p=config.p_connect, seed=self.seed + trial_id)
-        b.add_stimulus("STIM", config.k_active)
-        b.add_area("TARGET", config.n_neurons, config.k_active, config.beta)
-        
-        # Establish assembly
-        for _ in range(config.n_establishment_rounds):
-            b.project(
-                areas_by_stim={"STIM": ["TARGET"]},
-                dst_areas_by_src_area={}
-            )
-        
-        original_assembly = np.array(b.area_by_name["TARGET"].winners, dtype=np.uint32)
-        
-        # Inject noise into the assembly
-        noisy_assembly = self.add_noise_to_assembly(
-            original_assembly, 
-            config.n_neurons, 
-            config.noise_level
-        )
-        immediate_overlap = measure_overlap(original_assembly, noisy_assembly)
-        
-        # CRITICAL: Also corrupt the weights to simulate real noise
-        # (Just changing winners doesn't affect learned weights)
-        
-        # Set noisy assembly
-        b.area_by_name["TARGET"].winners = noisy_assembly.tolist()
-        # Also update w to reflect the noisy state
-        b.area_by_name["TARGET"].w = max(b.area_by_name["TARGET"].w, max(noisy_assembly) + 1)
-        
-        # Continue projecting with SAME stimulus
-        # The question: does plasticity help or hurt recovery?
-        recovery_history = [immediate_overlap]
-        
-        for _ in range(config.n_recovery_rounds):
-            b.project(
-                areas_by_stim={"STIM": ["TARGET"]},
-                dst_areas_by_src_area={}
-            )
-            current = np.array(b.area_by_name["TARGET"].winners, dtype=np.uint32)
-            recovery_history.append(measure_overlap(original_assembly, current))
-        
-        final_overlap = recovery_history[-1]
-        
-        # Check if it recovered OR switched to a completely different assembly
-        recovered = final_overlap > 0.9
-        switched = final_overlap < 0.3  # Went to different attractor
-        
-        return {
-            "test_type": "noise_switching",
-            "noise_level": config.noise_level,
-            "immediate_overlap": immediate_overlap,
-            "final_overlap": final_overlap,
-            "recovered": recovered,
-            "switched_attractor": switched,
-            "recovery_history": recovery_history,
-        }
-    
-    def test_association_recovery(
-        self, 
-        config: NoiseConfigV2,
-        trial_id: int = 0
-    ) -> Dict[str, Any]:
-        """
-        Test: Can an associated area help recover a corrupted assembly?
-        
-        This tests the pattern completion property through association.
-        """
-        b = brain_module.Brain(p=config.p_connect, seed=self.seed + trial_id)
-        b.add_stimulus("STIM_A", config.k_active)
-        b.add_stimulus("STIM_B", config.k_active)
-        b.add_area("AREA_A", config.n_neurons, config.k_active, config.beta)
-        b.add_area("AREA_B", config.n_neurons, config.k_active, config.beta)
-        
-        # Establish assembly in AREA_A
-        for _ in range(config.n_establishment_rounds):
-            b.project(
-                areas_by_stim={"STIM_A": ["AREA_A"]},
-                dst_areas_by_src_area={}
-            )
-        original_a = np.array(b.area_by_name["AREA_A"].winners, dtype=np.uint32)
-        
-        # Establish assembly in AREA_B
-        for _ in range(config.n_establishment_rounds):
-            b.project(
-                areas_by_stim={"STIM_B": ["AREA_B"]},
-                dst_areas_by_src_area={}
-            )
-        original_b = np.array(b.area_by_name["AREA_B"].winners, dtype=np.uint32)
-        
-        # Associate the two assemblies
-        for _ in range(config.n_establishment_rounds):
-            b.project(
-                areas_by_stim={},
-                dst_areas_by_src_area={
-                    "AREA_A": ["AREA_B"],
-                    "AREA_B": ["AREA_A"]
-                }
-            )
-        
-        # Corrupt assembly A
-        noisy_a = self.add_noise_to_assembly(
-            original_a, 
-            config.n_neurons, 
-            config.noise_level
-        )
-        immediate_overlap = measure_overlap(original_a, noisy_a)
-        
-        b.area_by_name["AREA_A"].winners = noisy_a.tolist()
-        b.area_by_name["AREA_A"].w = max(b.area_by_name["AREA_A"].w, max(noisy_a) + 1)
-        
-        # Try to recover A using B (pattern completion via association)
-        recovery_history = [immediate_overlap]
-        
-        for _ in range(config.n_recovery_rounds):
-            # Project from B to A (use association to recover)
-            b.project(
-                areas_by_stim={},
-                dst_areas_by_src_area={"AREA_B": ["AREA_A"]}
-            )
-            current_a = np.array(b.area_by_name["AREA_A"].winners, dtype=np.uint32)
-            recovery_history.append(measure_overlap(original_a, current_a))
-        
-        final_overlap = recovery_history[-1]
-        
-        return {
-            "test_type": "association_recovery",
-            "noise_level": config.noise_level,
-            "immediate_overlap": immediate_overlap,
-            "final_overlap": final_overlap,
-            "recovered_via_association": final_overlap > 0.8,
-            "recovery_history": recovery_history,
-        }
-    
+
     def run(
         self,
-        n_neurons: int = 10000,
-        k_active: int = 100,
-        p_connect: float = 0.1,
-        beta: float = 0.1,
-        noise_levels: List[float] = None,
-        n_trials: int = 5,
-        **kwargs
+        n: int = 1000,
+        k: int = 100,
+        p: float = 0.05,
+        beta: float = 0.10,
+        w_max: float = 20.0,
+        n_seeds: int = N_SEEDS,
+        **kwargs,
     ) -> ExperimentResult:
-        """Run all corrected noise robustness tests."""
         self._start_timer()
-        
-        if noise_levels is None:
-            noise_levels = [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]
-        
-        self.log("Starting CORRECTED noise robustness experiment")
-        self.log(f"  n_neurons: {n_neurons}, k_active: {k_active}")
-        self.log(f"  p_connect: {p_connect}, beta: {beta}")
-        
-        all_results = {
-            "competing_attractors": [],
-            "noise_switching": [],
-            "association_recovery": [],
-        }
-        
-        # Test 1: Are assemblies from different stimuli distinct?
-        self.log("\n--- Test 1: Competing Attractors ---")
-        config = NoiseConfigV2(
-            n_neurons=n_neurons,
-            k_active=k_active,
-            p_connect=p_connect,
-            beta=beta,
-            noise_level=0.0
-        )
-        
-        for trial in range(n_trials):
-            try:
-                result = self.test_competing_attractors(config, trial)
-                all_results["competing_attractors"].append(result)
-            except Exception as e:
-                self.log(f"  Trial {trial} failed: {e}")
-        
-        if all_results["competing_attractors"]:
-            mean_overlap = np.mean([r["overlap_between_assemblies"] for r in all_results["competing_attractors"]])
-            distinct_rate = sum(1 for r in all_results["competing_attractors"] if r["assemblies_distinct"]) / len(all_results["competing_attractors"])
-            self.log(f"  Mean overlap between different stimuli: {mean_overlap:.3f}")
-            self.log(f"  Distinct assemblies rate: {distinct_rate:.0%}")
-        
-        # Test 2: Does noise cause switching?
-        self.log("\n--- Test 2: Noise-Induced Switching ---")
-        for noise in noise_levels:
-            config = NoiseConfigV2(
-                n_neurons=n_neurons,
-                k_active=k_active,
-                p_connect=p_connect,
-                beta=beta,
-                noise_level=noise
+        seeds = list(range(n_seeds))
+
+        noise_fracs = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.8, 1.0]
+        cfg = NoiseConfig(n=n, k=k, p=p, beta=beta, w_max=w_max)
+        null = chance_overlap(k, n)
+
+        self.log("=" * 60)
+        self.log("Noise Robustness Experiment")
+        self.log(f"  n={n}, k={k}, p={p}, beta={beta}, w_max={w_max}")
+        self.log(f"  establish_rounds={cfg.establish_rounds}")
+        self.log(f"  recovery_rounds={cfg.recovery_rounds}")
+        self.log(f"  null overlap (k/n) = {null:.3f}")
+        self.log(f"  n_seeds={n_seeds}")
+        self.log("=" * 60)
+
+        metrics: Dict[str, Any] = {}
+
+        # ================================================================
+        # H1: Stimulus-Driven Recovery
+        # ================================================================
+        self.log("\nH1: Stimulus-Driven Recovery (stim+self)")
+
+        h1_results = []
+        for nf in noise_fracs:
+            vals = []
+            for s in seeds:
+                vals.append(run_stimulus_recovery_trial(cfg, nf, seed=self.seed + s))
+
+            row = {
+                "noise_frac": nf,
+                "final_overlap": summarize(vals),
+                "test_vs_chance": ttest_vs_null(vals, null),
+            }
+            h1_results.append(row)
+
+            self.log(
+                f"  noise={nf:.1f}: "
+                f"{row['final_overlap']['mean']:.3f}+/-{row['final_overlap']['sem']:.3f}  "
+                f"d={row['test_vs_chance']['d']:.1f}"
             )
-            
-            trial_results = []
-            for trial in range(n_trials):
-                try:
-                    result = self.test_noise_causes_switching(config, trial)
-                    trial_results.append(result)
-                except Exception as e:
-                    self.log(f"  Trial {trial} failed: {e}")
-            
-            if trial_results:
-                mean_final = np.mean([r["final_overlap"] for r in trial_results])
-                recovery_rate = sum(1 for r in trial_results if r["recovered"]) / len(trial_results)
-                switch_rate = sum(1 for r in trial_results if r["switched_attractor"]) / len(trial_results)
-                
-                all_results["noise_switching"].append({
-                    "noise_level": noise,
-                    "mean_final_overlap": mean_final,
-                    "recovery_rate": recovery_rate,
-                    "switch_rate": switch_rate,
-                })
-                
-                self.log(f"  Noise {noise:.0%}: Final={mean_final:.3f}, Recovery={recovery_rate:.0%}, Switch={switch_rate:.0%}")
-        
-        # Test 3: Association-based recovery
-        self.log("\n--- Test 3: Association Recovery ---")
-        for noise in [0.2, 0.4, 0.6]:
-            config = NoiseConfigV2(
-                n_neurons=n_neurons,
-                k_active=k_active,
-                p_connect=p_connect,
-                beta=beta,
-                noise_level=noise
+
+        metrics["h1_stimulus_recovery"] = h1_results
+
+        # ================================================================
+        # H2: Autonomous Recovery (self-only)
+        # ================================================================
+        self.log("\nH2: Autonomous Recovery (self-only)")
+
+        h2_results = []
+        for nf in noise_fracs:
+            vals = []
+            for s in seeds:
+                vals.append(run_autonomous_recovery_trial(cfg, nf, seed=self.seed + s))
+
+            row = {
+                "noise_frac": nf,
+                "final_overlap": summarize(vals),
+                "test_vs_chance": ttest_vs_null(vals, null),
+            }
+            h2_results.append(row)
+
+            self.log(
+                f"  noise={nf:.1f}: "
+                f"{row['final_overlap']['mean']:.3f}+/-{row['final_overlap']['sem']:.3f}  "
+                f"d={row['test_vs_chance']['d']:.1f}"
             )
-            
-            trial_results = []
-            for trial in range(n_trials):
-                try:
-                    result = self.test_association_recovery(config, trial)
-                    trial_results.append(result)
-                except Exception as e:
-                    self.log(f"  Trial {trial} failed: {e}")
-            
-            if trial_results:
-                mean_final = np.mean([r["final_overlap"] for r in trial_results])
-                recovery_rate = sum(1 for r in trial_results if r["recovered_via_association"]) / len(trial_results)
-                
-                all_results["association_recovery"].append({
-                    "noise_level": noise,
-                    "mean_final_overlap": mean_final,
-                    "recovery_rate": recovery_rate,
-                })
-                
-                self.log(f"  Noise {noise:.0%}: Final={mean_final:.3f}, Assoc. Recovery={recovery_rate:.0%}")
-        
+
+        metrics["h2_autonomous_recovery"] = h2_results
+
+        # ================================================================
+        # H3: Association-Based Recovery
+        # ================================================================
+        self.log("\nH3: Association-Based Recovery")
+
+        h3_results = []
+        for nf in noise_fracs:
+            b_vals = []
+            a_vals = []
+            for s in seeds:
+                trial = run_association_recovery_trial(cfg, nf, seed=self.seed + s)
+                b_vals.append(trial["b_recovery"])
+                a_vals.append(trial["a_intact"])
+
+            row = {
+                "noise_frac": nf,
+                "final_overlap": summarize(b_vals),
+                "a_intact": summarize(a_vals),
+                "test_vs_chance": ttest_vs_null(b_vals, null),
+            }
+            h3_results.append(row)
+
+            self.log(
+                f"  noise={nf:.1f}: "
+                f"B={row['final_overlap']['mean']:.3f}  "
+                f"A={row['a_intact']['mean']:.3f}  "
+                f"d={row['test_vs_chance']['d']:.1f}"
+            )
+
+        metrics["h3_association_recovery"] = h3_results
+
+        # ================================================================
+        # H4: Autonomous Recovery vs Network Size (k=sqrt(n))
+        # ================================================================
+        self.log("\nH4: Autonomous Recovery vs Network Size (k=sqrt(n))")
+
+        h4_sizes = [200, 500, 1000, 2000]
+        h4_noise_fracs = [0.3, 0.5, 0.7, 1.0]
+        h4_results = []
+
+        for n_val in h4_sizes:
+            k_val = int(np.sqrt(n_val))
+            null_h4 = chance_overlap(k_val, n_val)
+            cfg_h4 = NoiseConfig(n=n_val, k=k_val, p=p, beta=beta, w_max=w_max)
+
+            noise_entries = []
+            for nf in h4_noise_fracs:
+                vals = []
+                for s in seeds:
+                    vals.append(
+                        run_autonomous_recovery_trial(cfg_h4, nf, seed=self.seed + s)
+                    )
+
+                entry = {
+                    "noise_frac": nf,
+                    "final_overlap": summarize(vals),
+                    "test_vs_chance": ttest_vs_null(vals, null_h4),
+                }
+                noise_entries.append(entry)
+
+            h4_results.append({
+                "n": n_val,
+                "k": k_val,
+                "noise_levels": noise_entries,
+            })
+
+            summary_str = "  ".join(
+                f"{nf:.1f}:{e['final_overlap']['mean']:.3f}"
+                for nf, e in zip(h4_noise_fracs, noise_entries)
+            )
+            self.log(f"  n={n_val:4d}, k={k_val:2d}: {summary_str}")
+
+        metrics["h4_sparsity_scaling"] = h4_results
+
         duration = self._stop_timer()
-        
-        # Summary
-        summary = {
-            "assemblies_are_distinct": np.mean([r["overlap_between_assemblies"] for r in all_results["competing_attractors"]]) < 0.5 if all_results["competing_attractors"] else False,
-            "mean_assembly_overlap": np.mean([r["overlap_between_assemblies"] for r in all_results["competing_attractors"]]) if all_results["competing_attractors"] else 1.0,
-            "recovery_with_stimulus": all_results["noise_switching"][-1]["recovery_rate"] if all_results["noise_switching"] else 0,
-            "association_helps_recovery": any(r["recovery_rate"] > 0.5 for r in all_results["association_recovery"]) if all_results["association_recovery"] else False,
-        }
-        
-        self.log(f"\n{'='*60}")
-        self.log("CORRECTED NOISE ROBUSTNESS SUMMARY:")
-        self.log(f"  Assemblies distinct: {summary['assemblies_are_distinct']} (overlap={summary['mean_assembly_overlap']:.3f})")
-        self.log(f"  Recovery with stimulus: {summary['recovery_with_stimulus']:.0%}")
-        self.log(f"  Association helps: {summary['association_helps_recovery']}")
-        self.log(f"  Duration: {duration:.1f}s")
-        
-        result = ExperimentResult(
+        self.log(f"\nDuration: {duration:.1f}s")
+
+        return ExperimentResult(
             experiment_name=self.name,
             parameters={
-                "n_neurons": n_neurons,
-                "k_active": k_active,
-                "p_connect": p_connect,
-                "beta": beta,
-                "n_trials": n_trials,
-                "seed": self.seed,
+                "n": n, "k": k, "p": p, "beta": beta, "w_max": w_max,
+                "establish_rounds": cfg.establish_rounds,
+                "recovery_rounds": cfg.recovery_rounds,
+                "noise_fracs": noise_fracs,
+                "n_seeds": n_seeds,
             },
-            metrics=summary,
-            raw_data=all_results,
+            metrics=metrics,
+            raw_data={},
             duration_seconds=duration,
         )
-        
-        return result
 
 
-def run_quick_test():
-    """Run quick corrected noise robustness test."""
-    print("="*60)
-    print("CORRECTED Noise Robustness Test")
-    print("="*60)
-    
-    exp = NoiseRobustnessV2Experiment(verbose=True)
-    
-    result = exp.run(
-        n_neurons=5000,
-        k_active=100,
-        noise_levels=[0.0, 0.3, 0.6, 1.0],
-        n_trials=3,
-    )
-    
-    path = exp.save_result(result, "_quick")
-    print(f"\nResults saved to: {path}")
-    
-    return result
+def main():
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Noise Robustness Experiment")
+    parser.add_argument("--quick", action="store_true", help="Quick run (fewer seeds)")
+
+    args = parser.parse_args()
+
+    exp = NoiseRobustnessExperiment(verbose=True)
+
+    if args.quick:
+        result = exp.run(n_seeds=5)
+        exp.save_result(result, "_quick")
+    else:
+        result = exp.run()
+        exp.save_result(result)
+
+    print(f"\nTotal time: {result.duration_seconds:.1f}s")
 
 
 if __name__ == "__main__":
-    import argparse
-    
-    parser = argparse.ArgumentParser(description="Corrected Noise Robustness Experiment")
-    parser.add_argument("--quick", action="store_true", help="Run quick test")
-    
-    args = parser.parse_args()
-    
-    if args.quick:
-        run_quick_test()
-    else:
-        exp = NoiseRobustnessV2Experiment(verbose=True)
-        result = exp.run(n_trials=10)
-        exp.save_result(result, "_full")
+    main()

@@ -31,7 +31,7 @@ from research.experiments.base import (
     measure_overlap,
 )
 
-import brain as brain_module
+from src.core.brain import Brain
 
 
 @dataclass
@@ -73,10 +73,10 @@ class CompetitionMechanismsExperiment(ExperimentBase):
         because competition happens at each step.
         """
         # Sequential presentation
-        b_seq = brain_module.Brain(p=config.p_connect, seed=self.seed + trial_id)
+        b_seq = Brain(p=config.p_connect, seed=self.seed + trial_id, w_max=20.0)
         for i in range(n_stimuli):
             b_seq.add_stimulus(f"STIM_{i}", config.k_active)
-        b_seq.add_area("TARGET", config.n_neurons, config.k_active, config.beta)
+        b_seq.add_area("TARGET", config.n_neurons, config.k_active, config.beta, explicit=True)
         
         seq_assemblies = {}
         for i in range(n_stimuli):
@@ -86,13 +86,13 @@ class CompetitionMechanismsExperiment(ExperimentBase):
                     areas_by_stim={stim_name: ["TARGET"]},
                     dst_areas_by_src_area={}
                 )
-            seq_assemblies[stim_name] = np.array(b_seq.area_by_name["TARGET"].winners, dtype=np.uint32)
+            seq_assemblies[stim_name] = np.array(b_seq.areas["TARGET"].winners, dtype=np.uint32)
         
         # Interleaved presentation
-        b_int = brain_module.Brain(p=config.p_connect, seed=self.seed + trial_id)
+        b_int = Brain(p=config.p_connect, seed=self.seed + trial_id, w_max=20.0)
         for i in range(n_stimuli):
             b_int.add_stimulus(f"STIM_{i}", config.k_active)
-        b_int.add_area("TARGET", config.n_neurons, config.k_active, config.beta)
+        b_int.add_area("TARGET", config.n_neurons, config.k_active, config.beta, explicit=True)
         
         int_assemblies = {}
         for round_idx in range(config.n_projection_rounds):
@@ -103,7 +103,7 @@ class CompetitionMechanismsExperiment(ExperimentBase):
                     dst_areas_by_src_area={}
                 )
                 if round_idx == config.n_projection_rounds - 1:
-                    int_assemblies[stim_name] = np.array(b_int.area_by_name["TARGET"].winners, dtype=np.uint32)
+                    int_assemblies[stim_name] = np.array(b_int.areas["TARGET"].winners, dtype=np.uint32)
         
         # Compute overlaps
         seq_overlaps = []
@@ -141,10 +141,10 @@ class CompetitionMechanismsExperiment(ExperimentBase):
         The support w tracks how many neurons have "ever fired".
         Hypothesis: As w grows, new stimuli are forced to use new neurons.
         """
-        b = brain_module.Brain(p=config.p_connect, seed=self.seed + trial_id)
+        b = Brain(p=config.p_connect, seed=self.seed + trial_id, w_max=20.0)
         for i in range(n_stimuli):
             b.add_stimulus(f"STIM_{i}", config.k_active)
-        b.add_area("TARGET", config.n_neurons, config.k_active, config.beta)
+        b.add_area("TARGET", config.n_neurons, config.k_active, config.beta, explicit=True)
         
         assemblies = {}
         support_history = []
@@ -153,7 +153,7 @@ class CompetitionMechanismsExperiment(ExperimentBase):
             stim_name = f"STIM_{i}"
             
             # Record support before this stimulus
-            support_before = b.area_by_name["TARGET"].w
+            support_before = b.areas["TARGET"].w
             
             for _ in range(config.n_projection_rounds):
                 b.project(
@@ -162,9 +162,9 @@ class CompetitionMechanismsExperiment(ExperimentBase):
                 )
             
             # Record support after
-            support_after = b.area_by_name["TARGET"].w
+            support_after = b.areas["TARGET"].w
             
-            assemblies[stim_name] = np.array(b.area_by_name["TARGET"].winners, dtype=np.uint32)
+            assemblies[stim_name] = np.array(b.areas["TARGET"].winners, dtype=np.uint32)
             support_history.append({
                 "stimulus": stim_name,
                 "support_before": support_before,
@@ -218,10 +218,10 @@ class CompetitionMechanismsExperiment(ExperimentBase):
         results_by_beta = {}
         
         for beta in beta_values:
-            b = brain_module.Brain(p=config.p_connect, seed=self.seed + trial_id)
+            b = Brain(p=config.p_connect, seed=self.seed + trial_id, w_max=20.0)
             for i in range(n_stimuli):
                 b.add_stimulus(f"STIM_{i}", config.k_active)
-            b.add_area("TARGET", config.n_neurons, config.k_active, beta)
+            b.add_area("TARGET", config.n_neurons, config.k_active, beta, explicit=True)
             
             assemblies = {}
             for i in range(n_stimuli):
@@ -231,7 +231,7 @@ class CompetitionMechanismsExperiment(ExperimentBase):
                         areas_by_stim={stim_name: ["TARGET"]},
                         dst_areas_by_src_area={}
                     )
-                assemblies[stim_name] = np.array(b.area_by_name["TARGET"].winners, dtype=np.uint32)
+                assemblies[stim_name] = np.array(b.areas["TARGET"].winners, dtype=np.uint32)
             
             # Compute mean overlap
             overlaps = []
@@ -269,10 +269,10 @@ class CompetitionMechanismsExperiment(ExperimentBase):
         
         Track which specific neurons appear in multiple assemblies.
         """
-        b = brain_module.Brain(p=config.p_connect, seed=self.seed + trial_id)
+        b = Brain(p=config.p_connect, seed=self.seed + trial_id, w_max=20.0)
         for i in range(n_stimuli):
             b.add_stimulus(f"STIM_{i}", config.k_active)
-        b.add_area("TARGET", config.n_neurons, config.k_active, config.beta)
+        b.add_area("TARGET", config.n_neurons, config.k_active, config.beta, explicit=True)
         
         assemblies = {}
         for i in range(n_stimuli):
@@ -282,7 +282,7 @@ class CompetitionMechanismsExperiment(ExperimentBase):
                     areas_by_stim={stim_name: ["TARGET"]},
                     dst_areas_by_src_area={}
                 )
-            assemblies[stim_name] = set(b.area_by_name["TARGET"].winners.tolist())
+            assemblies[stim_name] = set(b.areas["TARGET"].winners.tolist())
         
         # Count how many assemblies each neuron appears in
         all_neurons = set()

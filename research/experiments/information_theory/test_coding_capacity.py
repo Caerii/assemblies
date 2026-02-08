@@ -31,7 +31,7 @@ from research.experiments.base import (
     measure_overlap,
 )
 
-import brain as brain_module
+from src.core.brain import Brain
 
 
 @dataclass
@@ -147,12 +147,12 @@ class CodingCapacityExperiment(ExperimentBase):
         successes = []
         
         for i in range(n_assemblies):
-            b = brain_module.Brain(p=config.p_connect, seed=self.seed + i * 1000)
+            b = Brain(p=config.p_connect, seed=self.seed + i * 1000, w_max=20.0)
             
             # Each assembly gets a unique stimulus
             stim_name = f"STIM_{i}"
             b.add_stimulus(stim_name, config.k_active)
-            b.add_area("TARGET", config.n_neurons, config.k_active, config.beta)
+            b.add_area("TARGET", config.n_neurons, config.k_active, config.beta, explicit=True)
             
             # Project to establish assembly
             for _ in range(config.n_projection_rounds):
@@ -161,7 +161,7 @@ class CodingCapacityExperiment(ExperimentBase):
                     dst_areas_by_src_area={}
                 )
             
-            assembly = np.array(b.area_by_name["TARGET"].winners, dtype=np.uint32)
+            assembly = np.array(b.areas["TARGET"].winners, dtype=np.uint32)
             assemblies.append(assembly)
             successes.append(len(assembly) == config.k_active)
         

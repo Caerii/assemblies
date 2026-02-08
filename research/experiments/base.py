@@ -16,6 +16,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 import numpy as np
+from scipy import stats
 
 
 @dataclass
@@ -190,4 +191,55 @@ def convergence_metric(history: List[np.ndarray]) -> Dict[str, Any]:
         "mean_overlap": np.mean(overlaps) if overlaps else 0.0,
         "std_overlap": np.std(overlaps) if overlaps else 0.0,
     }
+
+
+# -- Statistical helpers (shared across all experiments) -----------------------
+
+
+def chance_overlap(k: int, n: int) -> float:
+    """Expected overlap between two random k-subsets of [n].
+
+    If A and B are independent uniform random k-subsets, then
+    E[|A ∩ B|] / k = k / n  (hypergeometric mean / k).
+    """
+    return k / n
+
+
+def summarize(values: List[float]) -> Dict[str, float]:
+    """Compute mean, SEM, 95% CI, and range across seeds."""
+    arr = np.array(values)
+    n = len(arr)
+    mean = float(np.mean(arr))
+    std = float(np.std(arr, ddof=1)) if n > 1 else 0.0
+    sem = std / np.sqrt(n) if n > 1 else 0.0
+    ci95 = 1.96 * sem
+    return {
+        "mean": mean, "std": std, "sem": sem,
+        "ci95_lo": mean - ci95, "ci95_hi": mean + ci95,
+        "min": float(np.min(arr)), "max": float(np.max(arr)), "n": n,
+    }
+
+
+def ttest_vs_null(values: List[float], null_mean: float) -> Dict[str, Any]:
+    """One-sample t-test against null mean. Returns t, p, Cohen's d."""
+    arr = np.array(values)
+    if len(arr) < 2 or np.std(arr, ddof=1) == 0:
+        return {"t": float("inf"), "p": 0.0, "d": float("inf"), "significant": True}
+    t_stat, p_val = stats.ttest_1samp(arr, null_mean)
+    d = (np.mean(arr) - null_mean) / np.std(arr, ddof=1)
+    return {"t": float(t_stat), "p": float(p_val), "d": float(d),
+            "significant": p_val < 0.05}
+
+
+def paired_ttest(values1: List[float], values2: List[float]) -> Dict[str, Any]:
+    """Paired t-test between two matched conditions. Returns t, p, Cohen's d."""
+    arr1 = np.array(values1)
+    arr2 = np.array(values2)
+    diff = arr1 - arr2
+    if len(diff) < 2 or np.std(diff, ddof=1) == 0:
+        return {"t": 0.0, "p": 1.0, "d": 0.0, "significant": False}
+    t_stat, p_val = stats.ttest_rel(arr1, arr2)
+    d = float(np.mean(diff) / np.std(diff, ddof=1))
+    return {"t": float(t_stat), "p": float(p_val), "d": d,
+            "significant": p_val < 0.05}
 

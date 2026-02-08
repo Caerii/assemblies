@@ -30,7 +30,7 @@ from research.experiments.base import (
     measure_overlap,
 )
 
-import brain as brain_module
+from src.core.brain import Brain
 
 
 # Biological reference values from literature
@@ -137,9 +137,9 @@ class BiologicalParameterExperiment(ExperimentBase):
         n_steps: int = 100
     ) -> Dict[str, Any]:
         """Run simulation with biologically-inspired parameters."""
-        b = brain_module.Brain(p=config.p_connect, seed=self.seed)
+        b = Brain(p=config.p_connect, seed=self.seed, w_max=20.0)
         b.add_stimulus("STIM", config.k_active)
-        b.add_area("TARGET", config.n_neurons, config.k_active, config.beta)
+        b.add_area("TARGET", config.n_neurons, config.k_active, config.beta, explicit=True)
         
         # Track activity over time
         activity_history = []
@@ -151,7 +151,7 @@ class BiologicalParameterExperiment(ExperimentBase):
                 dst_areas_by_src_area={}
             )
             
-            winners = np.array(b.area_by_name["TARGET"].winners, dtype=np.uint32)
+            winners = np.array(b.areas["TARGET"].winners, dtype=np.uint32)
             winner_history.append(winners.copy())
             
             # Calculate instantaneous sparsity

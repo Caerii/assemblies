@@ -1,338 +1,442 @@
 """
-Projection Primitive Validation
+Projection Primitive: Assembly Formation, Convergence, and Persistence
 
-Scientific Questions:
-1. Does projection reliably create assemblies in downstream areas?
-2. What are the conditions for convergence (n, k, p, beta)?
-3. How many steps does convergence take?
-4. Is the resulting assembly stable?
+Tests the fundamental projection operation: stimulus activates an area,
+Hebbian learning strengthens connections, and a stable assembly emerges.
+This is the foundational operation of Assembly Calculus.
 
-Expected Results:
-- Projection should converge to stable assembly within O(log n) steps
-- Convergence should be robust to noise
-- Assembly size should stabilize at k neurons
+Protocol:
+1. Train with convergence detection:
+   project({"s": ["A"]}, {"A": ["A"]}) x up to 100 rounds (stim+self).
+   Convergence = 3 consecutive rounds with step-to-step overlap > 0.98.
+2. Test autonomous persistence:
+   project({}, {"A": ["A"]}) x 20 rounds (self-only, no stimulus).
+   Measure overlap between current winners and the trained assembly.
+
+The stim+self protocol trains both the stimulus->A pathway and the A->A
+self-connectome. The autonomous persistence test measures whether the
+self-connectome alone can maintain the assembly as a fixed-point attractor.
+
+Hypotheses:
+
+H1: Convergence and persistence vs network size -- At k=sqrt(n),
+    convergence time and autonomous persistence should be characterized
+    across network sizes.
+    Null: persistence equals chance k/n.
+
+H2: Stim+self vs stim-only training -- Stim+self (which trains the
+    self-connectome) produces higher persistence than stim-only
+    (which only trains the stimulus pathway).
+    Null: persistence is independent of training mode.
+
+H3: Cross-area fidelity -- Train A via stim+self, then project A->B.
+    The projected assembly in B should faithfully represent A.
+    Null: recovery equals chance k/n.
+
+H4: Weight dynamics vs training rounds -- How do self-connectome
+    weights and persistence evolve with training duration?
+    Null: weight ratio equals 1.0 (no Hebbian effect).
+
+Statistical methodology:
+- N_SEEDS=10 independent random seeds per condition.
+- One-sample t-test against null k/n.
+- Paired t-test for H2.
+- Cohen's d effect sizes. Mean +/- SEM.
+- Linear regression for scaling fit.
+
+References:
+- Papadimitriou et al., PNAS 117(25):14464-14472, 2020
+- Dabagia et al., "Coin-Flipping in the Brain", 2024 (weight saturation)
 """
 
 import sys
 from pathlib import Path
 
-# Add project root to path
 project_root = Path(__file__).parent.parent.parent.parent
 sys.path.insert(0, str(project_root))
 
 import numpy as np
-from typing import Dict, List, Any
 from dataclasses import dataclass
+from typing import Dict, List, Any
+from scipy import stats
 
 from research.experiments.base import (
-    ExperimentBase, 
-    ExperimentResult, 
+    ExperimentBase,
+    ExperimentResult,
     measure_overlap,
-    convergence_metric
+    chance_overlap,
+    summarize,
+    ttest_vs_null,
+    paired_ttest,
 )
 
-# Import the brain module
-import brain as brain_module
+from src.core.brain import Brain
+
+N_SEEDS = 10
 
 
 @dataclass
-class ProjectionConfig:
-    """Configuration for a single projection test."""
-    n_neurons: int  # Total neurons per area
-    k_active: int   # Number of active neurons (assembly size)
-    p_connect: float  # Connection probability
-    beta: float     # Plasticity parameter
-    max_rounds: int = 50  # Maximum projection rounds
+class ProjConfig:
+    """Configuration for projection trials."""
+    n: int
+    k: int
+    p: float
+    beta: float
+    w_max: float
+    train_rounds: int = 30
+    test_rounds: int = 20
+    max_train_rounds: int = 100
 
 
-class ProjectionConvergenceExperiment(ExperimentBase):
+# -- Core trial runners -------------------------------------------------------
+
+
+def run_convergence_trial(
+    cfg: ProjConfig, seed: int,
+) -> Dict[str, Any]:
     """
-    Test: Does projection reliably create stable assemblies?
-    
-    Hypothesis: Given a stimulus projecting to an area, repeated projection
-    will converge to a stable assembly of size k within O(log n) steps.
+    Train stim+self with convergence detection, then test autonomous persistence.
     """
-    
+    b = Brain(p=cfg.p, seed=seed, w_max=cfg.w_max)
+    b.add_area("A", cfg.n, cfg.k, cfg.beta, explicit=True)
+    b.add_stimulus("s", cfg.k)
+
+    winner_history = []
+    converged_at = cfg.max_train_rounds
+
+    for r in range(cfg.max_train_rounds):
+        b.project({"s": ["A"]}, {"A": ["A"]})
+        winners = np.array(b.areas["A"].winners, dtype=np.uint32)
+        winner_history.append(winners.copy())
+
+        if len(winner_history) >= 4:
+            overlaps = [
+                measure_overlap(winner_history[-i - 1], winner_history[-i - 2])
+                for i in range(3)
+            ]
+            if all(o > 0.98 for o in overlaps):
+                converged_at = r + 1
+                break
+
+    trained = np.array(b.areas["A"].winners, dtype=np.uint32)
+
+    # Autonomous persistence
+    for _ in range(cfg.test_rounds):
+        b.project({}, {"A": ["A"]})
+
+    persistence = measure_overlap(trained, np.array(b.areas["A"].winners, dtype=np.uint32))
+
+    return {"convergence_time": converged_at, "persistence": persistence}
+
+
+def run_training_mode_trial(
+    cfg: ProjConfig, seed: int, mode: str,
+) -> float:
+    """Train in stim_self or stim_only mode, then test autonomous persistence."""
+    b = Brain(p=cfg.p, seed=seed, w_max=cfg.w_max)
+    b.add_area("A", cfg.n, cfg.k, cfg.beta, explicit=True)
+    b.add_stimulus("s", cfg.k)
+
+    for _ in range(cfg.train_rounds):
+        if mode == "stim_self":
+            b.project({"s": ["A"]}, {"A": ["A"]})
+        else:
+            b.project({"s": ["A"]}, {})
+
+    trained = np.array(b.areas["A"].winners, dtype=np.uint32)
+
+    for _ in range(cfg.test_rounds):
+        b.project({}, {"A": ["A"]})
+
+    return measure_overlap(trained, np.array(b.areas["A"].winners, dtype=np.uint32))
+
+
+def run_crossarea_trial(
+    cfg: ProjConfig, seed: int,
+) -> float:
+    """Train A, project A->B, corrupt B, recover, measure fidelity."""
+    b = Brain(p=cfg.p, seed=seed, w_max=cfg.w_max)
+    b.add_area("A", cfg.n, cfg.k, cfg.beta, explicit=True)
+    b.add_area("B", cfg.n, cfg.k, cfg.beta, explicit=True)
+    b.add_stimulus("s", cfg.k)
+
+    # Establish A
+    for _ in range(cfg.train_rounds):
+        b.project({"s": ["A"]}, {"A": ["A"]})
+
+    # Project A->B
+    for _ in range(cfg.train_rounds):
+        b.project({"s": ["A"]}, {"A": ["B"]})
+    trained_b = np.array(b.areas["B"].winners, dtype=np.uint32)
+
+    # Corrupt B
+    rng = np.random.default_rng(seed + 77777)
+    b.areas["B"].winners = rng.choice(cfg.n, cfg.k, replace=False).tolist()
+
+    # Recover
+    for _ in range(cfg.test_rounds):
+        b.project({"s": ["A"]}, {"A": ["B"]})
+
+    return measure_overlap(trained_b, np.array(b.areas["B"].winners, dtype=np.uint32))
+
+
+def run_weight_dynamics_trial(
+    n: int, k: int, p: float, beta: float, w_max: float,
+    train_rounds: int, test_rounds: int, seed: int,
+) -> Dict[str, float]:
+    """Measure weight ratio and persistence after T training rounds."""
+    b = Brain(p=p, seed=seed, w_max=w_max)
+    b.add_area("A", n, k, beta, explicit=True)
+    b.add_stimulus("s", k)
+
+    for _ in range(train_rounds):
+        b.project({"s": ["A"]}, {"A": ["A"]})
+
+    trained = np.array(b.areas["A"].winners, dtype=np.uint32)
+
+    # Weight ratio: mean intra-assembly weight / mean all weights
+    area = b.areas["A"]
+    if hasattr(area, 'connectomes') and "A" in area.connectomes:
+        conn = area.connectomes["A"]
+        winners_set = set(trained.tolist())
+        intra_weights = []
+        all_weights = []
+        for i in range(min(n, conn.shape[0])):
+            for j in range(min(n, conn.shape[1])):
+                w = conn[i, j]
+                all_weights.append(w)
+                if i in winners_set and j in winners_set:
+                    intra_weights.append(w)
+        weight_ratio = (np.mean(intra_weights) / np.mean(all_weights)
+                        if all_weights and intra_weights else 1.0)
+    else:
+        weight_ratio = 1.0
+
+    # Autonomous persistence
+    for _ in range(test_rounds):
+        b.project({}, {"A": ["A"]})
+
+    persistence = measure_overlap(trained, np.array(b.areas["A"].winners, dtype=np.uint32))
+
+    return {"weight_ratio": weight_ratio, "persistence": persistence}
+
+
+# -- Main experiment -----------------------------------------------------------
+
+
+class ProjectionExperiment(ExperimentBase):
+    """Test projection primitive: convergence, persistence, fidelity."""
+
     def __init__(self, results_dir: Path = None, seed: int = 42, verbose: bool = True):
         super().__init__(
-            name="projection_convergence",
+            name="projection",
             seed=seed,
             results_dir=results_dir or Path(__file__).parent.parent.parent / "results" / "primitives",
-            verbose=verbose
+            verbose=verbose,
         )
-    
-    def run_single_trial(
-        self, 
-        config: ProjectionConfig,
-        trial_id: int = 0
-    ) -> Dict[str, Any]:
-        """
-        Run a single projection trial.
-        
-        Creates a brain with:
-        - Source area A with stimulus
-        - Target area B receiving projection
-        
-        Returns metrics about convergence.
-        """
-        self.log(f"  Trial {trial_id}: n={config.n_neurons}, k={config.k_active}, p={config.p_connect}, beta={config.beta}")
-        
-        # Create brain
-        b = brain_module.Brain(p=config.p_connect, seed=self.seed + trial_id)
-        
-        # Add stimulus (source of activation)
-        stimulus_name = "STIM"
-        b.add_stimulus(stimulus_name, config.k_active)
-        
-        # Add target area
-        target_area = "TARGET"
-        b.add_area(target_area, config.n_neurons, config.k_active, config.beta)
-        
-        # Track assembly evolution
-        winner_history = []
-        
-        # Project stimulus into target area repeatedly
-        for round_idx in range(config.max_rounds):
-            b.project(
-                areas_by_stim={stimulus_name: [target_area]},
-                dst_areas_by_src_area={}
-            )
-            
-            # Record winners
-            current_winners = np.array(b.area_by_name[target_area].winners, dtype=np.uint32)
-            winner_history.append(current_winners.copy())
-            
-            # Early stopping if converged
-            if len(winner_history) >= 5:
-                recent_overlaps = [
-                    measure_overlap(winner_history[-i-1], winner_history[-i-2])
-                    for i in range(4)
-                ]
-                if all(o > 0.98 for o in recent_overlaps):
-                    self.log(f"    Converged at round {round_idx + 1}")
-                    break
-        
-        # Analyze convergence
-        conv_metrics = convergence_metric(winner_history)
-        
-        # Final assembly properties
-        final_winners = winner_history[-1] if winner_history else np.array([])
-        
-        return {
-            "trial_id": trial_id,
-            "config": {
-                "n_neurons": config.n_neurons,
-                "k_active": config.k_active,
-                "p_connect": config.p_connect,
-                "beta": config.beta,
-            },
-            "converged": conv_metrics["converged"],
-            "convergence_step": conv_metrics["convergence_step"],
-            "final_stability": conv_metrics["final_stability"],
-            "total_rounds": len(winner_history),
-            "final_assembly_size": len(final_winners),
-            "overlap_history": conv_metrics["overlap_history"],
-            "mean_overlap": conv_metrics["mean_overlap"],
-        }
-    
+
     def run(
         self,
-        n_neurons_range: List[int] = None,
-        k_active_range: List[int] = None,
-        p_connect_range: List[float] = None,
-        beta_range: List[float] = None,
-        n_trials: int = 5,
-        **kwargs
+        n: int = 1000,
+        k: int = 100,
+        p: float = 0.05,
+        beta: float = 0.10,
+        w_max: float = 20.0,
+        n_seeds: int = N_SEEDS,
+        **kwargs,
     ) -> ExperimentResult:
-        """
-        Run projection convergence experiment across parameter ranges.
-        
-        Args:
-            n_neurons_range: List of neuron counts to test
-            k_active_range: List of assembly sizes to test
-            p_connect_range: List of connection probabilities
-            beta_range: List of plasticity values
-            n_trials: Number of trials per configuration
-        """
         self._start_timer()
-        
-        # Default parameter ranges
-        if n_neurons_range is None:
-            n_neurons_range = [1000, 10000, 100000]
-        if k_active_range is None:
-            k_active_range = [10, 50, 100]
-        if p_connect_range is None:
-            p_connect_range = [0.01, 0.05, 0.1]
-        if beta_range is None:
-            beta_range = [0.05, 0.1, 0.2]
-        
-        self.log("Starting projection convergence experiment")
-        self.log(f"  n_neurons: {n_neurons_range}")
-        self.log(f"  k_active: {k_active_range}")
-        self.log(f"  p_connect: {p_connect_range}")
-        self.log(f"  beta: {beta_range}")
-        self.log(f"  n_trials: {n_trials}")
-        
-        all_results = []
-        total_configs = len(n_neurons_range) * len(k_active_range) * len(p_connect_range) * len(beta_range)
-        config_idx = 0
-        
-        for n in n_neurons_range:
-            for k in k_active_range:
-                # Skip invalid configs where k > n
-                if k >= n:
-                    continue
-                    
-                for p in p_connect_range:
-                    for beta in beta_range:
-                        config_idx += 1
-                        self.log(f"\nConfig {config_idx}/{total_configs}: n={n}, k={k}, p={p}, beta={beta}")
-                        
-                        config = ProjectionConfig(
-                            n_neurons=n,
-                            k_active=k,
-                            p_connect=p,
-                            beta=beta
-                        )
-                        
-                        trial_results = []
-                        for trial in range(n_trials):
-                            try:
-                                result = self.run_single_trial(config, trial)
-                                trial_results.append(result)
-                            except Exception as e:
-                                self.log(f"    Trial {trial} failed: {e}")
-                                trial_results.append({
-                                    "trial_id": trial,
-                                    "error": str(e),
-                                    "converged": False,
-                                })
-                        
-                        # Aggregate trial results
-                        successful_trials = [r for r in trial_results if "error" not in r]
-                        
-                        if successful_trials:
-                            convergence_rate = sum(1 for r in successful_trials if r["converged"]) / len(successful_trials)
-                            mean_convergence_step = np.mean([r["convergence_step"] for r in successful_trials])
-                            mean_final_stability = np.mean([r["final_stability"] for r in successful_trials])
-                        else:
-                            convergence_rate = 0.0
-                            mean_convergence_step = float('inf')
-                            mean_final_stability = 0.0
-                        
-                        all_results.append({
-                            "config": {
-                                "n_neurons": n,
-                                "k_active": k,
-                                "p_connect": p,
-                                "beta": beta,
-                            },
-                            "n_trials": n_trials,
-                            "successful_trials": len(successful_trials),
-                            "convergence_rate": convergence_rate,
-                            "mean_convergence_step": mean_convergence_step,
-                            "mean_final_stability": mean_final_stability,
-                            "trial_details": trial_results,
-                        })
-        
-        duration = self._stop_timer()
-        
-        # Compute summary statistics
-        successful_configs = [r for r in all_results if r["convergence_rate"] > 0]
-        
-        summary = {
-            "total_configurations": len(all_results),
-            "successful_configurations": len(successful_configs),
-            "overall_convergence_rate": np.mean([r["convergence_rate"] for r in all_results]) if all_results else 0,
-            "mean_convergence_steps": np.mean([r["mean_convergence_step"] for r in successful_configs]) if successful_configs else float('inf'),
-            "best_config": max(all_results, key=lambda x: x["convergence_rate"]) if all_results else None,
+        seeds = list(range(n_seeds))
+
+        self.log("=" * 60)
+        self.log("Projection Experiment")
+        self.log(f"  n={n}, k={k}, p={p}, beta={beta}, w_max={w_max}")
+        self.log(f"  n_seeds={n_seeds}")
+        self.log("=" * 60)
+
+        metrics: Dict[str, Any] = {}
+
+        # ================================================================
+        # H1: Convergence + persistence vs network size (k=sqrt(n))
+        # ================================================================
+        self.log("\nH1: Convergence + Persistence vs Network Size (k=sqrt(n))")
+
+        h1_sizes = [100, 200, 500, 1000, 2000, 5000]
+        h1_results = []
+
+        for n_val in h1_sizes:
+            k_val = int(np.sqrt(n_val))
+            cfg = ProjConfig(n=n_val, k=k_val, p=p, beta=beta, w_max=w_max)
+            null = chance_overlap(k_val, n_val)
+
+            conv_times = []
+            persist_vals = []
+
+            for s in seeds:
+                trial = run_convergence_trial(cfg, seed=self.seed + s)
+                conv_times.append(float(trial["convergence_time"]))
+                persist_vals.append(trial["persistence"])
+
+            row = {
+                "n": n_val, "k": k_val, "k_over_n": k_val / n_val,
+                "convergence_time": summarize(conv_times),
+                "persistence": summarize(persist_vals),
+                "test_vs_null": ttest_vs_null(persist_vals, null),
+            }
+            h1_results.append(row)
+
+            self.log(
+                f"  n={n_val:4d}, k={k_val:2d}: "
+                f"T={row['convergence_time']['mean']:.1f}  "
+                f"persist={row['persistence']['mean']:.3f}  "
+                f"d={row['test_vs_null']['d']:.1f}"
+            )
+
+        metrics["convergence_vs_size"] = h1_results
+
+        # Scaling fit
+        log_n = np.array([np.log10(r["n"]) for r in h1_results])
+        mean_t = np.array([r["convergence_time"]["mean"] for r in h1_results])
+        slope, intercept, r_value, p_value, std_err = stats.linregress(log_n, mean_t)
+
+        metrics["scaling_fit"] = {
+            "slope": float(slope),
+            "intercept": float(intercept),
+            "r_squared": float(r_value ** 2),
+            "p_value": float(p_value),
+            "equation": f"T = {slope:.2f} * log10(n) + {intercept:.2f}",
         }
-        
-        self.log(f"\n{'='*60}")
-        self.log("SUMMARY:")
-        self.log(f"  Total configurations: {summary['total_configurations']}")
-        self.log(f"  Successful configs: {summary['successful_configurations']}")
-        self.log(f"  Overall convergence rate: {summary['overall_convergence_rate']:.2%}")
-        self.log(f"  Mean convergence steps: {summary['mean_convergence_steps']:.1f}")
-        self.log(f"  Duration: {duration:.1f}s")
-        
-        result = ExperimentResult(
+
+        self.log(f"  Scaling fit: {metrics['scaling_fit']['equation']}  R2={r_value**2:.3f}")
+
+        # ================================================================
+        # H2: Stim+self vs stim-only
+        # ================================================================
+        self.log("\nH2: Stim+Self vs Stim-Only (n=1000, k=100)")
+
+        cfg_h2 = ProjConfig(n=n, k=k, p=p, beta=beta, w_max=w_max)
+        null_h2 = chance_overlap(k, n)
+
+        stim_self_vals = []
+        stim_only_vals = []
+
+        for s in seeds:
+            stim_self_vals.append(run_training_mode_trial(cfg_h2, self.seed + s, "stim_self"))
+            stim_only_vals.append(run_training_mode_trial(cfg_h2, self.seed + s, "stim_only"))
+
+        metrics["training_mode_comparison"] = {
+            "stim_self": {
+                "persistence": summarize(stim_self_vals),
+                "test_vs_null": ttest_vs_null(stim_self_vals, null_h2),
+            },
+            "stim_only": {
+                "persistence": summarize(stim_only_vals),
+                "test_vs_null": ttest_vs_null(stim_only_vals, null_h2),
+            },
+            "paired_test": paired_ttest(stim_self_vals, stim_only_vals),
+        }
+
+        self.log(f"  Stim+self: {summarize(stim_self_vals)['mean']:.3f}")
+        self.log(f"  Stim-only: {summarize(stim_only_vals)['mean']:.3f}")
+
+        # ================================================================
+        # H3: Cross-area fidelity (k=sqrt(n))
+        # ================================================================
+        self.log("\nH3: Cross-Area Fidelity (k=sqrt(n))")
+
+        h3_sizes = [500, 1000, 2000]
+        h3_results = []
+
+        for n_val in h3_sizes:
+            k_val = int(np.sqrt(n_val))
+            cfg_h3 = ProjConfig(n=n_val, k=k_val, p=p, beta=beta, w_max=w_max)
+            null_h3 = chance_overlap(k_val, n_val)
+
+            recoveries = []
+            for s in seeds:
+                recoveries.append(run_crossarea_trial(cfg_h3, self.seed + s))
+
+            row = {
+                "n": n_val, "k": k_val,
+                "recovery": summarize(recoveries),
+                "test_vs_null": ttest_vs_null(recoveries, null_h3),
+            }
+            h3_results.append(row)
+
+            self.log(f"  n={n_val:4d}: {row['recovery']['mean']:.3f}  d={row['test_vs_null']['d']:.1f}")
+
+        metrics["crossarea_fidelity"] = h3_results
+
+        # ================================================================
+        # H4: Weight dynamics vs training rounds
+        # ================================================================
+        self.log("\nH4: Weight Dynamics vs Training Rounds (n=1000, k=100)")
+
+        round_values = [1, 5, 10, 20, 30, 50]
+        h4_results = []
+
+        for t_rounds in round_values:
+            wr_vals = []
+            p_vals = []
+
+            for s in seeds:
+                trial = run_weight_dynamics_trial(
+                    n, k, p, beta, w_max, t_rounds, 20, self.seed + s
+                )
+                wr_vals.append(trial["weight_ratio"])
+                p_vals.append(trial["persistence"])
+
+            row = {
+                "train_rounds": t_rounds,
+                "weight_ratio": summarize(wr_vals),
+                "persistence": summarize(p_vals),
+                "test_ratio_vs_1": ttest_vs_null(wr_vals, 1.0),
+            }
+            h4_results.append(row)
+
+            self.log(
+                f"  rounds={t_rounds:2d}: W_ratio={row['weight_ratio']['mean']:.3f}  "
+                f"persist={row['persistence']['mean']:.3f}"
+            )
+
+        metrics["weight_dynamics"] = h4_results
+
+        duration = self._stop_timer()
+        self.log(f"\nDuration: {duration:.1f}s")
+
+        return ExperimentResult(
             experiment_name=self.name,
             parameters={
-                "n_neurons_range": n_neurons_range,
-                "k_active_range": k_active_range,
-                "p_connect_range": p_connect_range,
-                "beta_range": beta_range,
-                "n_trials": n_trials,
-                "seed": self.seed,
+                "n_seeds": n_seeds,
+                "base_n": n, "base_k": k, "base_p": p,
+                "base_beta": beta, "base_wmax": w_max,
+                "train_rounds": 30, "test_rounds": 20,
             },
-            metrics=summary,
-            raw_data={"all_results": all_results},
+            metrics=metrics,
+            raw_data={},
             duration_seconds=duration,
         )
-        
-        return result
 
 
-def run_quick_test():
-    """Run a quick test to verify the experiment works."""
-    print("="*60)
-    print("QUICK TEST: Projection Convergence")
-    print("="*60)
-    
-    exp = ProjectionConvergenceExperiment(verbose=True)
-    
-    result = exp.run(
-        n_neurons_range=[1000, 10000],
-        k_active_range=[10, 50],
-        p_connect_range=[0.05, 0.1],
-        beta_range=[0.05, 0.1],
-        n_trials=3,
-    )
-    
-    # Save results
-    path = exp.save_result(result, "_quick")
-    
-    print(f"\nResults saved to: {path}")
-    print(f"Convergence rate: {result.metrics['overall_convergence_rate']:.2%}")
-    
-    return result
+def main():
+    import argparse
 
+    parser = argparse.ArgumentParser(description="Projection Experiment")
+    parser.add_argument("--quick", action="store_true", help="Quick run (fewer seeds)")
 
-def run_full_experiment():
-    """Run the full parameter sweep experiment."""
-    print("="*60)
-    print("FULL EXPERIMENT: Projection Convergence")
-    print("="*60)
-    
-    exp = ProjectionConvergenceExperiment(verbose=True)
-    
-    result = exp.run(
-        n_neurons_range=[1000, 5000, 10000, 50000, 100000],
-        k_active_range=[10, 25, 50, 100, 200],
-        p_connect_range=[0.01, 0.02, 0.05, 0.1, 0.2],
-        beta_range=[0.01, 0.05, 0.1, 0.2],
-        n_trials=5,
-    )
-    
-    path = exp.save_result(result, "_full")
-    
-    print(f"\nResults saved to: {path}")
-    
-    return result
+    args = parser.parse_args()
+
+    exp = ProjectionExperiment(verbose=True)
+
+    if args.quick:
+        result = exp.run(n_seeds=5)
+        exp.save_result(result, "_quick")
+    else:
+        result = exp.run()
+        exp.save_result(result)
+
+    print(f"\nTotal time: {result.duration_seconds:.1f}s")
 
 
 if __name__ == "__main__":
-    import argparse
-    
-    parser = argparse.ArgumentParser(description="Projection Convergence Experiment")
-    parser.add_argument("--quick", action="store_true", help="Run quick test only")
-    parser.add_argument("--seed", type=int, default=42, help="Random seed")
-    
-    args = parser.parse_args()
-    
-    if args.quick:
-        run_quick_test()
-    else:
-        run_full_experiment()
-
+    main()

@@ -19,7 +19,7 @@ project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
 
 import numpy as np
-import brain as b
+from src.core.brain import Brain
 
 
 def test_projection_convergence():
@@ -28,14 +28,14 @@ def test_projection_convergence():
     print("TEST 1: Projection Convergence")
     print("="*60)
     
-    brain = b.Brain(p=0.1, seed=42)
+    brain = Brain(p=0.1, seed=42, w_max=20.0)
     brain.add_stimulus("STIM", 50)
-    brain.add_area("T", 5000, 50, 0.1)
+    brain.add_area("T", 5000, 50, 0.1, explicit=True)
     
     prev = None
     for round_idx in range(20):
         brain.project({"STIM": ["T"]}, {})
-        curr = set(brain.area_by_name["T"].winners.tolist())
+        curr = set(brain.areas["T"].winners.tolist())
         
         if prev is not None:
             overlap = len(prev & curr) / 50
@@ -54,16 +54,16 @@ def test_distinctiveness():
     print("TEST 2: Assembly Distinctiveness")
     print("="*60)
     
-    brain = b.Brain(p=0.1, seed=42)
+    brain = Brain(p=0.1, seed=42, w_max=20.0)
     for i in range(10):
         brain.add_stimulus(f"S{i}", 50)
-    brain.add_area("T", 5000, 50, 0.1)
+    brain.add_area("T", 5000, 50, 0.1, explicit=True)
     
     assemblies = {}
     for i in range(10):
         for _ in range(10):
             brain.project({f"S{i}": ["T"]}, {})
-        assemblies[i] = set(brain.area_by_name["T"].winners.tolist())
+        assemblies[i] = set(brain.areas["T"].winners.tolist())
     
     overlaps = []
     for i in range(10):
@@ -85,16 +85,16 @@ def test_capacity():
     print("TEST 3: Capacity (100 assemblies)")
     print("="*60)
     
-    brain = b.Brain(p=0.1, seed=42)
+    brain = Brain(p=0.1, seed=42, w_max=20.0)
     for i in range(100):
         brain.add_stimulus(f"S{i}", 50)
-    brain.add_area("T", 10000, 50, 0.1)
+    brain.add_area("T", 10000, 50, 0.1, explicit=True)
     
     assemblies = {}
     for i in range(100):
         for _ in range(10):
             brain.project({f"S{i}": ["T"]}, {})
-        assemblies[i] = set(brain.area_by_name["T"].winners.tolist())
+        assemblies[i] = set(brain.areas["T"].winners.tolist())
     
     # Sample overlaps (computing all would be slow)
     sample_overlaps = []
@@ -118,16 +118,16 @@ def test_phase_transition():
     print("="*60)
     
     def get_overlap(n, k):
-        brain = b.Brain(p=0.1, seed=42)
+        brain = Brain(p=0.1, seed=42, w_max=20.0)
         for i in range(5):
             brain.add_stimulus(f"S{i}", k)
-        brain.add_area("T", n, k, 0.1)
+        brain.add_area("T", n, k, 0.1, explicit=True)
         
         assemblies = {}
         for i in range(5):
             for _ in range(10):
                 brain.project({f"S{i}": ["T"]}, {})
-            assemblies[i] = set(brain.area_by_name["T"].winners.tolist())
+            assemblies[i] = set(brain.areas["T"].winners.tolist())
         
         overlaps = []
         for i in range(5):
@@ -159,33 +159,33 @@ def test_cross_area_fixed():
     print("TEST 5: Cross-Area Retrieval (Fixed Assemblies)")
     print("="*60)
     
-    brain = b.Brain(p=0.1, seed=42)
+    brain = Brain(p=0.1, seed=42, w_max=20.0)
     brain.add_stimulus("STIM_A", 50)
     brain.add_stimulus("STIM_B", 50)
-    brain.add_area("X", 5000, 50, 0.1)
-    brain.add_area("Y", 5000, 50, 0.1)
+    brain.add_area("X", 5000, 50, 0.1, explicit=True)
+    brain.add_area("Y", 5000, 50, 0.1, explicit=True)
     
     # Create and fix X
     for _ in range(15):
         brain.project({"STIM_A": ["X"]}, {})
-    original_x = set(brain.area_by_name["X"].winners.tolist())
-    brain.area_by_name["X"].fix_assembly()
+    original_x = set(brain.areas["X"].winners.tolist())
+    brain.areas["X"].fix_assembly()
     
     # Create and fix Y
     for _ in range(15):
         brain.project({"STIM_B": ["Y"]}, {})
-    brain.area_by_name["Y"].fix_assembly()
+    brain.areas["Y"].fix_assembly()
     
     # Associate
     for _ in range(30):
         brain.project({}, {"X": ["Y"], "Y": ["X"]})
     
     # Unfix X and retrieve via Y
-    brain.area_by_name["X"].fixed_assembly = False
+    brain.areas["X"].fixed_assembly = False
     for _ in range(5):
         brain.project({}, {"Y": ["X"]})
     
-    retrieved_x = set(brain.area_by_name["X"].winners.tolist())
+    retrieved_x = set(brain.areas["X"].winners.tolist())
     overlap = len(original_x & retrieved_x) / 50
     
     if overlap > 0.9:
@@ -202,17 +202,17 @@ def test_learning_stability():
     print("TEST 6: Learning Stability")
     print("="*60)
     
-    brain = b.Brain(p=0.1, seed=42)
+    brain = Brain(p=0.1, seed=42, w_max=20.0)
     brain.add_stimulus("STIM", 50)
-    brain.add_area("T", 5000, 50, 0.1)
+    brain.add_area("T", 5000, 50, 0.1, explicit=True)
     
     first_assembly = None
     for round_idx in range(100):
         brain.project({"STIM": ["T"]}, {})
         if first_assembly is None:
-            first_assembly = set(brain.area_by_name["T"].winners.tolist())
+            first_assembly = set(brain.areas["T"].winners.tolist())
     
-    final_assembly = set(brain.area_by_name["T"].winners.tolist())
+    final_assembly = set(brain.areas["T"].winners.tolist())
     overlap = len(first_assembly & final_assembly) / 50
     
     if overlap > 0.8:
@@ -229,7 +229,7 @@ def test_language_syntax():
     print("TEST 7: Language/Syntax")
     print("="*60)
     
-    brain = b.Brain(p=0.1, seed=42)
+    brain = Brain(p=0.1, seed=42, w_max=20.0)
     
     # Words
     for word in ["the", "dog", "runs"]:
@@ -237,14 +237,14 @@ def test_language_syntax():
     
     # Areas
     for area in ["LEX", "DET", "NOUN", "VERB", "NP", "VP", "S"]:
-        brain.add_area(area, 5000, 50, 0.1)
+        brain.add_area(area, 5000, 50, 0.1, explicit=True)
     
     # Project words to LEX
     word_assemblies = {}
     for word in ["the", "dog", "runs"]:
         for _ in range(10):
             brain.project({word: ["LEX"]}, {})
-        word_assemblies[word] = set(brain.area_by_name["LEX"].winners.tolist())
+        word_assemblies[word] = set(brain.areas["LEX"].winners.tolist())
     
     # Check distinctiveness
     overlaps = []

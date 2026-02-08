@@ -1,0 +1,2325 @@
+{
+  "experiment_name": "merge_composition",
+  "timestamp": "2026-02-07T16:20:41.434642",
+  "parameters": {
+    "n_neurons_range": [
+      1000,
+      10000
+    ],
+    "k_active_range": [
+      50,
+      100
+    ],
+    "p_connect_range": [
+      0.05,
+      0.1
+    ],
+    "beta_range": [
+      0.05,
+      0.1
+    ],
+    "n_trials": 5,
+    "seed": 42
+  },
+  "metrics": {
+    "total_configurations": 16,
+    "overall_success_rate": 1.0,
+    "mean_merge_quality": 0.8063750000000001,
+    "mean_composition_score": 0.83775
+  },
+  "raw_data": {
+    "all_results": [
+      {
+        "config": {
+          "n_neurons": 1000,
+          "k_active": 50,
+          "p_connect": 0.05,
+          "beta": 0.05
+        },
+        "success_rate": 1.0,
+        "mean_merge_quality": 0.8,
+        "mean_composition_score": 0.8480000000000001,
+        "trial_details": [
+          {
+            "trial_id": 0,
+            "config": {
+              "n_neurons": 1000,
+              "k_active": 50,
+              "p_connect": 0.05,
+              "beta": 0.05
+            },
+            "overlap_ca_cb": 0.68,
+            "overlap_cab_ca": 0.9,
+            "overlap_cab_cb": 0.76,
+            "jaccard_ca_cb": 0.5151515151515151,
+            "jaccard_cab_ca": 0.8181818181818182,
+            "jaccard_cab_cb": 0.6129032258064516,
+            "merge_quality": 0.76,
+            "composition_score": 0.8300000000000001,
+            "distinctness": 0.18181818181818177,
+            "merge_successful": true,
+            "assembly_sizes": {
+              "a": 50,
+              "b": 50,
+              "c_a": 50,
+              "c_b": 50,
+              "c_ab": 50
+            }
+          },
+          {
+            "trial_id": 1,
+            "config": {
+              "n_neurons": 1000,
+              "k_active": 50,
+              "p_connect": 0.05,
+              "beta": 0.05
+            },
+            "overlap_ca_cb": 0.84,
+            "overlap_cab_ca": 0.8,
+            "overlap_cab_cb": 0.96,
+            "jaccard_ca_cb": 0.7241379310344828,
+            "jaccard_cab_ca": 0.6666666666666666,
+            "jaccard_cab_cb": 0.9230769230769231,
+            "merge_quality": 0.8,
+            "composition_score": 0.88,
+            "distinctness": 0.07692307692307687,
+            "merge_successful": true,
+            "assembly_sizes": {
+              "a": 50,
+              "b": 50,
+              "c_a": 50,
+              "c_b": 50,
+              "c_ab": 50
+            }
+          },
+          {
+            "trial_id": 2,
+            "config": {
+              "n_neurons": 1000,
+              "k_active": 50,
+              "p_connect": 0.05,
+              "beta": 0.05
+            },
+            "overlap_ca_cb": 0.92,
+            "overlap_cab_ca": 0.84,
+            "overlap_cab_cb": 0.86,
+            "jaccard_ca_cb": 0.8518518518518519,
+            "jaccard_cab_ca": 0.7241379310344828,
+            "jaccard_cab_cb": 0.7543859649122807,
+            "merge_quality": 0.84,
+            "composition_score": 0.85,
+            "distinctness": 0.24561403508771928,
+            "merge_successful": true,
+            "assembly_sizes": {
+              "a": 50,
+              "b": 50,
+              "c_a": 50,
+              "c_b": 50,
+              "c_ab": 50
+            }
+          },
+          {
+            "trial_id": 3,
+            "config": {
+              "n_neurons": 1000,
+              "k_active": 50,
+              "p_connect": 0.05,
+              "beta": 0.05
+            },
+            "overlap_ca_cb": 0.66,
+            "overlap_cab_ca": 0.68,
+            "overlap_cab_cb": 0.84,
+            "jaccard_ca_cb": 0.4925373134328358,
+            "jaccard_cab_ca": 0.5151515151515151,
+            "jaccard_cab_cb": 0.7241379310344828,
+            "merge_quality": 0.68,
+            "composition_score": 0.76,
+            "distinctness": 0.27586206896551724,
+            "merge_successful": true,
+            "assembly_sizes": {
+              "a": 50,
+              "b": 50,
+              "c_a": 50,
+              "c_b": 50,
+              "c_ab": 50
+            }
+          },
+          {
+            "trial_id": 4,
+            "config": {
+              "n_neurons": 1000,
+              "k_active": 50,
+              "p_connect": 0.05,
+              "beta": 0.05
+            },
+            "overlap_ca_cb": 0.96,
+            "overlap_cab_ca": 0.92,
+            "overlap_cab_cb": 0.92,
+            "jaccard_ca_cb": 0.9230769230769231,
+            "jaccard_cab_ca": 0.8518518518518519,
+            "jaccard_cab_cb": 0.8518518518518519,
+            "merge_quality": 0.92,
+            "composition_score": 0.92,
+            "distinctness": 0.14814814814814814,
+            "merge_successful": true,
+            "assembly_sizes": {
+              "a": 50,
+              "b": 50,
+              "c_a": 50,
+              "c_b": 50,
+              "c_ab": 50
+            }
+          }
+        ]
+      },
+      {
+        "config": {
+          "n_neurons": 1000,
+          "k_active": 50,
+          "p_connect": 0.05,
+          "beta": 0.1
+        },
+        "success_rate": 1.0,
+        "mean_merge_quality": 0.828,
+        "mean_composition_score": 0.868,
+        "trial_details": [
+          {
+            "trial_id": 0,
+            "config": {
+              "n_neurons": 1000,
+              "k_active": 50,
+              "p_connect": 0.05,
+              "beta": 0.1
+            },
+            "overlap_ca_cb": 0.84,
+            "overlap_cab_ca": 0.9,
+            "overlap_cab_cb": 0.78,
+            "jaccard_ca_cb": 0.7241379310344828,
+            "jaccard_cab_ca": 0.8181818181818182,
+            "jaccard_cab_cb": 0.639344262295082,
+            "merge_quality": 0.78,
+            "composition_score": 0.8400000000000001,
+            "distinctness": 0.18181818181818177,
+            "merge_successful": true,
+            "assembly_sizes": {
+              "a": 50,
+              "b": 50,
+              "c_a": 50,
+              "c_b": 50,
+              "c_ab": 50
+            }
+          },
+          {
+            "trial_id": 1,
+            "config": {
+              "n_neurons": 1000,
+              "k_active": 50,
+              "p_connect": 0.05,
+              "beta": 0.1
+            },
+            "overlap_ca_cb": 0.88,
+            "overlap_cab_ca": 0.88,
+            "overlap_cab_cb": 0.94,
+            "jaccard_ca_cb": 0.7857142857142857,
+            "jaccard_cab_ca": 0.7857142857142857,
+            "jaccard_cab_cb": 0.8867924528301887,
+            "merge_quality": 0.88,
+            "composition_score": 0.9099999999999999,
+            "distinctness": 0.1132075471698113,
+            "merge_successful": true,
+            "assembly_sizes": {
+              "a": 50,
+              "b": 50,
+              "c_a": 50,
+              "c_b": 50,
+              "c_ab": 50
+            }
+          },
+          {
+            "trial_id": 2,
+            "config": {
+              "n_neurons": 1000,
+              "k_active": 50,
+              "p_connect": 0.05,
+              "beta": 0.1
+            },
+            "overlap_ca_cb": 0.92,
+            "overlap_cab_ca": 0.88,
+            "overlap_cab_cb": 0.9,
+            "jaccard_ca_cb": 0.8518518518518519,
+            "jaccard_cab_ca": 0.7857142857142857,
+            "jaccard_cab_cb": 0.8181818181818182,
+            "merge_quality": 0.88,
+            "composition_score": 0.89,
+            "distinctness": 0.18181818181818177,
+            "merge_successful": true,
+            "assembly_sizes": {
+              "a": 50,
+              "b": 50,
+              "c_a": 50,
+              "c_b": 50,
+              "c_ab": 50
+            }
+          },
+          {
+            "trial_id": 3,
+            "config": {
+              "n_neurons": 1000,
+              "k_active": 50,
+              "p_connect": 0.05,
+              "beta": 0.1
+            },
+            "overlap_ca_cb": 0.78,
+            "overlap_cab_ca": 0.82,
+            "overlap_cab_cb": 0.94,
+            "jaccard_ca_cb": 0.639344262295082,
+            "jaccard_cab_ca": 0.6949152542372882,
+            "jaccard_cab_cb": 0.8867924528301887,
+            "merge_quality": 0.82,
+            "composition_score": 0.8799999999999999,
+            "distinctness": 0.1132075471698113,
+            "merge_successful": true,
+            "assembly_sizes": {
+              "a": 50,
+              "b": 50,
+              "c_a": 50,
+              "c_b": 50,
+              "c_ab": 50
+            }
+          },
+          {
+            "trial_id": 4,
+            "config": {
+              "n_neurons": 1000,
+              "k_active": 50,
+              "p_connect": 0.05,
+              "beta": 0.1
+            },
+            "overlap_ca_cb": 0.9,
+            "overlap_cab_ca": 0.78,
+            "overlap_cab_cb": 0.86,
+            "jaccard_ca_cb": 0.8181818181818182,
+            "jaccard_cab_ca": 0.639344262295082,
+            "jaccard_cab_cb": 0.7543859649122807,
+            "merge_quality": 0.78,
+            "composition_score": 0.8200000000000001,
+            "distinctness": 0.24561403508771928,
+            "merge_successful": true,
+            "assembly_sizes": {
+              "a": 50,
+              "b": 50,
+              "c_a": 50,
+              "c_b": 50,
+              "c_ab": 50
+            }
+          }
+        ]
+      },
+      {
+        "config": {
+          "n_neurons": 1000,
+          "k_active": 50,
+          "p_connect": 0.1,
+          "beta": 0.05
+        },
+        "success_rate": 1.0,
+        "mean_merge_quality": 0.7280000000000001,
+        "mean_composition_score": 0.774,
+        "trial_details": [
+          {
+            "trial_id": 0,
+            "config": {
+              "n_neurons": 1000,
+              "k_active": 50,
+              "p_connect": 0.1,
+              "beta": 0.05
+            },
+            "overlap_ca_cb": 0.92,
+            "overlap_cab_ca": 0.82,
+            "overlap_cab_cb": 0.8,
+            "jaccard_ca_cb": 0.8518518518518519,
+            "jaccard_cab_ca": 0.6949152542372882,
+            "jaccard_cab_cb": 0.6666666666666666,
+            "merge_quality": 0.8,
+            "composition_score": 0.81,
+            "distinctness": 0.30508474576271183,
+            "merge_successful": true,
+            "assembly_sizes": {
+              "a": 50,
+              "b": 50,
+              "c_a": 50,
+              "c_b": 50,
+              "c_ab": 50
+            }
+          },
+          {
+            "trial_id": 1,
+            "config": {
+              "n_neurons": 1000,
+              "k_active": 50,
+              "p_connect": 0.1,
+              "beta": 0.05
+            },
+            "overlap_ca_cb": 0.84,
+            "overlap_cab_ca": 0.82,
+            "overlap_cab_cb": 0.68,
+            "jaccard_ca_cb": 0.7241379310344828,
+            "jaccard_cab_ca": 0.6949152542372882,
+            "jaccard_cab_cb": 0.5151515151515151,
+            "merge_quality": 0.68,
+            "composition_score": 0.75,
+            "distinctness": 0.30508474576271183,
+            "merge_successful": true,
+            "assembly_sizes": {
+              "a": 50,
+              "b": 50,
+              "c_a": 50,
+              "c_b": 50,
+              "c_ab": 50
+            }
+          },
+          {
+            "trial_id": 2,
+            "config": {
+              "n_neurons": 1000,
+              "k_active": 50,
+              "p_connect": 0.1,
+              "beta": 0.05
+            },
+            "overlap_ca_cb": 0.88,
+            "overlap_cab_ca": 0.84,
+            "overlap_cab_cb": 0.72,
+            "jaccard_ca_cb": 0.7857142857142857,
+            "jaccard_cab_ca": 0.7241379310344828,
+            "jaccard_cab_cb": 0.5625,
+            "merge_quality": 0.72,
+            "composition_score": 0.78,
+            "distinctness": 0.27586206896551724,
+            "merge_successful": true,
+            "assembly_sizes": {
+              "a": 50,
+              "b": 50,
+              "c_a": 50,
+              "c_b": 50,
+              "c_ab": 50
+            }
+          },
+          {
+            "trial_id": 3,
+            "config": {
+              "n_neurons": 1000,
+              "k_active": 50,
+              "p_connect": 0.1,
+              "beta": 0.05
+            },
+            "overlap_ca_cb": 0.84,
+            "overlap_cab_ca": 0.78,
+            "overlap_cab_cb": 0.64,
+            "jaccard_ca_cb": 0.7241379310344828,
+            "jaccard_cab_ca": 0.639344262295082,
+            "jaccard_cab_cb": 0.47058823529411764,
+            "merge_quality": 0.64,
+            "composition_score": 0.71,
+            "distinctness": 0.360655737704918,
+            "merge_successful": true,
+            "assembly_sizes": {
+              "a": 50,
+              "b": 50,
+              "c_a": 50,
+              "c_b": 50,
+              "c_ab": 50
+            }
+          },
+          {
+            "trial_id": 4,
+            "config": {
+              "n_neurons": 1000,
+              "k_active": 50,
+              "p_connect": 0.1,
+              "beta": 0.05
+            },
+            "overlap_ca_cb": 0.92,
+            "overlap_cab_ca": 0.8,
+            "overlap_cab_cb": 0.84,
+            "jaccard_ca_cb": 0.8518518518518519,
+            "jaccard_cab_ca": 0.6666666666666666,
+            "jaccard_cab_cb": 0.7241379310344828,
+            "merge_quality": 0.8,
+            "composition_score": 0.8200000000000001,
+            "distinctness": 0.27586206896551724,
+            "merge_successful": true,
+            "assembly_sizes": {
+              "a": 50,
+              "b": 50,
+              "c_a": 50,
+              "c_b": 50,
+              "c_ab": 50
+            }
+          }
+        ]
+      },
+      {
+        "config": {
+          "n_neurons": 1000,
+          "k_active": 50,
+          "p_connect": 0.1,
+          "beta": 0.1
+        },
+        "success_rate": 1.0,
+        "mean_merge_quality": 0.772,
+        "mean_composition_score": 0.836,
+        "trial_details": [
+          {
+            "trial_id": 0,
+            "config": {
+              "n_neurons": 1000,
+              "k_active": 50,
+              "p_connect": 0.1,
+              "beta": 0.1
+            },
+            "overlap_ca_cb": 0.9,
+            "overlap_cab_ca": 0.88,
+            "overlap_cab_cb": 0.78,
+            "jaccard_ca_cb": 0.8181818181818182,
+            "jaccard_cab_ca": 0.7857142857142857,
+            "jaccard_cab_cb": 0.639344262295082,
+            "merge_quality": 0.78,
+            "composition_score": 0.8300000000000001,
+            "distinctness": 0.2142857142857143,
+            "merge_successful": true,
+            "assembly_sizes": {
+              "a": 50,
+              "b": 50,
+              "c_a": 50,
+              "c_b": 50,
+              "c_ab": 50
+            }
+          },
+          {
+            "trial_id": 1,
+            "config": {
+              "n_neurons": 1000,
+              "k_active": 50,
+              "p_connect": 0.1,
+              "beta": 0.1
+            },
+            "overlap_ca_cb": 0.9,
+            "overlap_cab_ca": 0.88,
+            "overlap_cab_cb": 0.92,
+            "jaccard_ca_cb": 0.8181818181818182,
+            "jaccard_cab_ca": 0.7857142857142857,
+            "jaccard_cab_cb": 0.8518518518518519,
+            "merge_quality": 0.88,
+            "composition_score": 0.9,
+            "distinctness": 0.14814814814814814,
+            "merge_successful": true,
+            "assembly_sizes": {
+              "a": 50,
+              "b": 50,
+              "c_a": 50,
+              "c_b": 50,
+              "c_ab": 50
+            }
+          },
+          {
+            "trial_id": 2,
+            "config": {
+              "n_neurons": 1000,
+              "k_active": 50,
+              "p_connect": 0.1,
+              "beta": 0.1
+            },
+            "overlap_ca_cb": 0.58,
+            "overlap_cab_ca": 0.98,
+            "overlap_cab_cb": 0.6,
+            "jaccard_ca_cb": 0.4084507042253521,
+            "jaccard_cab_ca": 0.9607843137254902,
+            "jaccard_cab_cb": 0.42857142857142855,
+            "merge_quality": 0.6,
+            "composition_score": 0.79,
+            "distinctness": 0.039215686274509776,
+            "merge_successful": true,
+            "assembly_sizes": {
+              "a": 50,
+              "b": 50,
+              "c_a": 50,
+              "c_b": 50,
+              "c_ab": 50
+            }
+          },
+          {
+            "trial_id": 3,
+            "config": {
+              "n_neurons": 1000,
+              "k_active": 50,
+              "p_connect": 0.1,
+              "beta": 0.1
+            },
+            "overlap_ca_cb": 0.86,
+            "overlap_cab_ca": 0.86,
+            "overlap_cab_cb": 0.82,
+            "jaccard_ca_cb": 0.7543859649122807,
+            "jaccard_cab_ca": 0.7543859649122807,
+            "jaccard_cab_cb": 0.6949152542372882,
+            "merge_quality": 0.82,
+            "composition_score": 0.84,
+            "distinctness": 0.24561403508771928,
+            "merge_successful": true,
+            "assembly_sizes": {
+              "a": 50,
+              "b": 50,
+              "c_a": 50,
+              "c_b": 50,
+              "c_ab": 50
+            }
+          },
+          {
+            "trial_id": 4,
+            "config": {
+              "n_neurons": 1000,
+              "k_active": 50,
+              "p_connect": 0.1,
+              "beta": 0.1
+            },
+            "overlap_ca_cb": 0.8,
+            "overlap_cab_ca": 0.78,
+            "overlap_cab_cb": 0.86,
+            "jaccard_ca_cb": 0.6666666666666666,
+            "jaccard_cab_ca": 0.639344262295082,
+            "jaccard_cab_cb": 0.7543859649122807,
+            "merge_quality": 0.78,
+            "composition_score": 0.8200000000000001,
+            "distinctness": 0.24561403508771928,
+            "merge_successful": true,
+            "assembly_sizes": {
+              "a": 50,
+              "b": 50,
+              "c_a": 50,
+              "c_b": 50,
+              "c_ab": 50
+            }
+          }
+        ]
+      },
+      {
+        "config": {
+          "n_neurons": 1000,
+          "k_active": 100,
+          "p_connect": 0.05,
+          "beta": 0.05
+        },
+        "success_rate": 1.0,
+        "mean_merge_quality": 0.8440000000000001,
+        "mean_composition_score": 0.8770000000000001,
+        "trial_details": [
+          {
+            "trial_id": 0,
+            "config": {
+              "n_neurons": 1000,
+              "k_active": 100,
+              "p_connect": 0.05,
+              "beta": 0.05
+            },
+            "overlap_ca_cb": 0.88,
+            "overlap_cab_ca": 0.89,
+            "overlap_cab_cb": 0.91,
+            "jaccard_ca_cb": 0.7857142857142857,
+            "jaccard_cab_ca": 0.8018018018018018,
+            "jaccard_cab_cb": 0.8348623853211009,
+            "merge_quality": 0.89,
+            "composition_score": 0.9,
+            "distinctness": 0.1651376146788991,
+            "merge_successful": true,
+            "assembly_sizes": {
+              "a": 100,
+              "b": 100,
+              "c_a": 100,
+              "c_b": 100,
+              "c_ab": 100
+            }
+          },
+          {
+            "trial_id": 1,
+            "config": {
+              "n_neurons": 1000,
+              "k_active": 100,
+              "p_connect": 0.05,
+              "beta": 0.05
+            },
+            "overlap_ca_cb": 0.96,
+            "overlap_cab_ca": 0.88,
+            "overlap_cab_cb": 0.92,
+            "jaccard_ca_cb": 0.9230769230769231,
+            "jaccard_cab_ca": 0.7857142857142857,
+            "jaccard_cab_cb": 0.8518518518518519,
+            "merge_quality": 0.88,
+            "composition_score": 0.9,
+            "distinctness": 0.14814814814814814,
+            "merge_successful": true,
+            "assembly_sizes": {
+              "a": 100,
+              "b": 100,
+              "c_a": 100,
+              "c_b": 100,
+              "c_ab": 100
+            }
+          },
+          {
+            "trial_id": 2,
+            "config": {
+              "n_neurons": 1000,
+              "k_active": 100,
+              "p_connect": 0.05,
+              "beta": 0.05
+            },
+            "overlap_ca_cb": 0.89,
+            "overlap_cab_ca": 0.91,
+            "overlap_cab_cb": 0.8,
+            "jaccard_ca_cb": 0.8018018018018018,
+            "jaccard_cab_ca": 0.8348623853211009,
+            "jaccard_cab_cb": 0.6666666666666666,
+            "merge_quality": 0.8,
+            "composition_score": 0.855,
+            "distinctness": 0.1651376146788991,
+            "merge_successful": true,
+            "assembly_sizes": {
+              "a": 100,
+              "b": 100,
+              "c_a": 100,
+              "c_b": 100,
+              "c_ab": 100
+            }
+          },
+          {
+            "trial_id": 3,
+            "config": {
+              "n_neurons": 1000,
+              "k_active": 100,
+              "p_connect": 0.05,
+              "beta": 0.05
+            },
+            "overlap_ca_cb": 0.88,
+            "overlap_cab_ca": 0.89,
+            "overlap_cab_cb": 0.92,
+            "jaccard_ca_cb": 0.7857142857142857,
+            "jaccard_cab_ca": 0.8018018018018018,
+            "jaccard_cab_cb": 0.8518518518518519,
+            "merge_quality": 0.89,
+            "composition_score": 0.905,
+            "distinctness": 0.14814814814814814,
+            "merge_successful": true,
+            "assembly_sizes": {
+              "a": 100,
+              "b": 100,
+              "c_a": 100,
+              "c_b": 100,
+              "c_ab": 100
+            }
+          },
+          {
+            "trial_id": 4,
+            "config": {
+              "n_neurons": 1000,
+              "k_active": 100,
+              "p_connect": 0.05,
+              "beta": 0.05
+            },
+            "overlap_ca_cb": 0.81,
+            "overlap_cab_ca": 0.89,
+            "overlap_cab_cb": 0.76,
+            "jaccard_ca_cb": 0.680672268907563,
+            "jaccard_cab_ca": 0.8018018018018018,
+            "jaccard_cab_cb": 0.6129032258064516,
+            "merge_quality": 0.76,
+            "composition_score": 0.825,
+            "distinctness": 0.19819819819819817,
+            "merge_successful": true,
+            "assembly_sizes": {
+              "a": 100,
+              "b": 100,
+              "c_a": 100,
+              "c_b": 100,
+              "c_ab": 100
+            }
+          }
+        ]
+      },
+      {
+        "config": {
+          "n_neurons": 1000,
+          "k_active": 100,
+          "p_connect": 0.05,
+          "beta": 0.1
+        },
+        "success_rate": 1.0,
+        "mean_merge_quality": 0.8139999999999998,
+        "mean_composition_score": 0.8300000000000001,
+        "trial_details": [
+          {
+            "trial_id": 0,
+            "config": {
+              "n_neurons": 1000,
+              "k_active": 100,
+              "p_connect": 0.05,
+              "beta": 0.1
+            },
+            "overlap_ca_cb": 0.81,
+            "overlap_cab_ca": 0.93,
+            "overlap_cab_cb": 0.8,
+            "jaccard_ca_cb": 0.680672268907563,
+            "jaccard_cab_ca": 0.8691588785046729,
+            "jaccard_cab_cb": 0.6666666666666666,
+            "merge_quality": 0.8,
+            "composition_score": 0.865,
+            "distinctness": 0.13084112149532712,
+            "merge_successful": true,
+            "assembly_sizes": {
+              "a": 100,
+              "b": 100,
+              "c_a": 100,
+              "c_b": 100,
+              "c_ab": 100
+            }
+          },
+          {
+            "trial_id": 1,
+            "config": {
+              "n_neurons": 1000,
+              "k_active": 100,
+              "p_connect": 0.05,
+              "beta": 0.1
+            },
+            "overlap_ca_cb": 0.95,
+            "overlap_cab_ca": 0.89,
+            "overlap_cab_cb": 0.87,
+            "jaccard_ca_cb": 0.9047619047619048,
+            "jaccard_cab_ca": 0.8018018018018018,
+            "jaccard_cab_cb": 0.7699115044247787,
+            "merge_quality": 0.87,
+            "composition_score": 0.88,
+            "distinctness": 0.19819819819819817,
+            "merge_successful": true,
+            "assembly_sizes": {
+              "a": 100,
+              "b": 100,
+              "c_a": 100,
+              "c_b": 100,
+              "c_ab": 100
+            }
+          },
+          {
+            "trial_id": 2,
+            "config": {
+              "n_neurons": 1000,
+              "k_active": 100,
+              "p_connect": 0.05,
+              "beta": 0.1
+            },
+            "overlap_ca_cb": 0.92,
+            "overlap_cab_ca": 0.75,
+            "overlap_cab_cb": 0.75,
+            "jaccard_ca_cb": 0.8518518518518519,
+            "jaccard_cab_ca": 0.6,
+            "jaccard_cab_cb": 0.6,
+            "merge_quality": 0.75,
+            "composition_score": 0.75,
+            "distinctness": 0.4,
+            "merge_successful": true,
+            "assembly_sizes": {
+              "a": 100,
+              "b": 100,
+              "c_a": 100,
+              "c_b": 100,
+              "c_ab": 100
+            }
+          },
+          {
+            "trial_id": 3,
+            "config": {
+              "n_neurons": 1000,
+              "k_active": 100,
+              "p_connect": 0.05,
+              "beta": 0.1
+            },
+            "overlap_ca_cb": 0.87,
+            "overlap_cab_ca": 0.81,
+            "overlap_cab_cb": 0.8,
+            "jaccard_ca_cb": 0.7699115044247787,
+            "jaccard_cab_ca": 0.680672268907563,
+            "jaccard_cab_cb": 0.6666666666666666,
+            "merge_quality": 0.8,
+            "composition_score": 0.805,
+            "distinctness": 0.31932773109243695,
+            "merge_successful": true,
+            "assembly_sizes": {
+              "a": 100,
+              "b": 100,
+              "c_a": 100,
+              "c_b": 100,
+              "c_ab": 100
+            }
+          },
+          {
+            "trial_id": 4,
+            "config": {
+              "n_neurons": 1000,
+              "k_active": 100,
+              "p_connect": 0.05,
+              "beta": 0.1
+            },
+            "overlap_ca_cb": 0.85,
+            "overlap_cab_ca": 0.85,
+            "overlap_cab_cb": 0.85,
+            "jaccard_ca_cb": 0.7391304347826086,
+            "jaccard_cab_ca": 0.7391304347826086,
+            "jaccard_cab_cb": 0.7391304347826086,
+            "merge_quality": 0.85,
+            "composition_score": 0.85,
+            "distinctness": 0.26086956521739135,
+            "merge_successful": true,
+            "assembly_sizes": {
+              "a": 100,
+              "b": 100,
+              "c_a": 100,
+              "c_b": 100,
+              "c_ab": 100
+            }
+          }
+        ]
+      },
+      {
+        "config": {
+          "n_neurons": 1000,
+          "k_active": 100,
+          "p_connect": 0.1,
+          "beta": 0.05
+        },
+        "success_rate": 1.0,
+        "mean_merge_quality": 0.654,
+        "mean_composition_score": 0.6869999999999999,
+        "trial_details": [
+          {
+            "trial_id": 0,
+            "config": {
+              "n_neurons": 1000,
+              "k_active": 100,
+              "p_connect": 0.1,
+              "beta": 0.05
+            },
+            "overlap_ca_cb": 0.87,
+            "overlap_cab_ca": 0.68,
+            "overlap_cab_cb": 0.72,
+            "jaccard_ca_cb": 0.7699115044247787,
+            "jaccard_cab_ca": 0.5151515151515151,
+            "jaccard_cab_cb": 0.5625,
+            "merge_quality": 0.68,
+            "composition_score": 0.7,
+            "distinctness": 0.4375,
+            "merge_successful": true,
+            "assembly_sizes": {
+              "a": 100,
+              "b": 100,
+              "c_a": 100,
+              "c_b": 100,
+              "c_ab": 100
+            }
+          },
+          {
+            "trial_id": 1,
+            "config": {
+              "n_neurons": 1000,
+              "k_active": 100,
+              "p_connect": 0.1,
+              "beta": 0.05
+            },
+            "overlap_ca_cb": 0.87,
+            "overlap_cab_ca": 0.66,
+            "overlap_cab_cb": 0.57,
+            "jaccard_ca_cb": 0.7699115044247787,
+            "jaccard_cab_ca": 0.4925373134328358,
+            "jaccard_cab_cb": 0.3986013986013986,
+            "merge_quality": 0.57,
+            "composition_score": 0.615,
+            "distinctness": 0.5074626865671642,
+            "merge_successful": true,
+            "assembly_sizes": {
+              "a": 100,
+              "b": 100,
+              "c_a": 100,
+              "c_b": 100,
+              "c_ab": 100
+            }
+          },
+          {
+            "trial_id": 2,
+            "config": {
+              "n_neurons": 1000,
+              "k_active": 100,
+              "p_connect": 0.1,
+              "beta": 0.05
+            },
+            "overlap_ca_cb": 0.85,
+            "overlap_cab_ca": 0.84,
+            "overlap_cab_cb": 0.73,
+            "jaccard_ca_cb": 0.7391304347826086,
+            "jaccard_cab_ca": 0.7241379310344828,
+            "jaccard_cab_cb": 0.5748031496062992,
+            "merge_quality": 0.73,
+            "composition_score": 0.7849999999999999,
+            "distinctness": 0.27586206896551724,
+            "merge_successful": true,
+            "assembly_sizes": {
+              "a": 100,
+              "b": 100,
+              "c_a": 100,
+              "c_b": 100,
+              "c_ab": 100
+            }
+          },
+          {
+            "trial_id": 3,
+            "config": {
+              "n_neurons": 1000,
+              "k_active": 100,
+              "p_connect": 0.1,
+              "beta": 0.05
+            },
+            "overlap_ca_cb": 0.88,
+            "overlap_cab_ca": 0.6,
+            "overlap_cab_cb": 0.67,
+            "jaccard_ca_cb": 0.7857142857142857,
+            "jaccard_cab_ca": 0.42857142857142855,
+            "jaccard_cab_cb": 0.5037593984962406,
+            "merge_quality": 0.6,
+            "composition_score": 0.635,
+            "distinctness": 0.49624060150375937,
+            "merge_successful": true,
+            "assembly_sizes": {
+              "a": 100,
+              "b": 100,
+              "c_a": 100,
+              "c_b": 100,
+              "c_ab": 100
+            }
+          },
+          {
+            "trial_id": 4,
+            "config": {
+              "n_neurons": 1000,
+              "k_active": 100,
+              "p_connect": 0.1,
+              "beta": 0.05
+            },
+            "overlap_ca_cb": 0.93,
+            "overlap_cab_ca": 0.71,
+            "overlap_cab_cb": 0.69,
+            "jaccard_ca_cb": 0.8691588785046729,
+            "jaccard_cab_ca": 0.5503875968992248,
+            "jaccard_cab_cb": 0.5267175572519084,
+            "merge_quality": 0.69,
+            "composition_score": 0.7,
+            "distinctness": 0.4496124031007752,
+            "merge_successful": true,
+            "assembly_sizes": {
+              "a": 100,
+              "b": 100,
+              "c_a": 100,
+              "c_b": 100,
+              "c_ab": 100
+            }
+          }
+        ]
+      },
+      {
+        "config": {
+          "n_neurons": 1000,
+          "k_active": 100,
+          "p_connect": 0.1,
+          "beta": 0.1
+        },
+        "success_rate": 1.0,
+        "mean_merge_quality": 0.89,
+        "mean_composition_score": 0.9179999999999999,
+        "trial_details": [
+          {
+            "trial_id": 0,
+            "config": {
+              "n_neurons": 1000,
+              "k_active": 100,
+              "p_connect": 0.1,
+              "beta": 0.1
+            },
+            "overlap_ca_cb": 0.91,
+            "overlap_cab_ca": 0.96,
+            "overlap_cab_cb": 0.94,
+            "jaccard_ca_cb": 0.8348623853211009,
+            "jaccard_cab_ca": 0.9230769230769231,
+            "jaccard_cab_cb": 0.8867924528301887,
+            "merge_quality": 0.94,
+            "composition_score": 0.95,
+            "distinctness": 0.07692307692307687,
+            "merge_successful": true,
+            "assembly_sizes": {
+              "a": 100,
+              "b": 100,
+              "c_a": 100,
+              "c_b": 100,
+              "c_ab": 100
+            }
+          },
+          {
+            "trial_id": 1,
+            "config": {
+              "n_neurons": 1000,
+              "k_active": 100,
+              "p_connect": 0.1,
+              "beta": 0.1
+            },
+            "overlap_ca_cb": 0.89,
+            "overlap_cab_ca": 0.96,
+            "overlap_cab_cb": 0.85,
+            "jaccard_ca_cb": 0.8018018018018018,
+            "jaccard_cab_ca": 0.9230769230769231,
+            "jaccard_cab_cb": 0.7391304347826086,
+            "merge_quality": 0.85,
+            "composition_score": 0.905,
+            "distinctness": 0.07692307692307687,
+            "merge_successful": true,
+            "assembly_sizes": {
+              "a": 100,
+              "b": 100,
+              "c_a": 100,
+              "c_b": 100,
+              "c_ab": 100
+            }
+          },
+          {
+            "trial_id": 2,
+            "config": {
+              "n_neurons": 1000,
+              "k_active": 100,
+              "p_connect": 0.1,
+              "beta": 0.1
+            },
+            "overlap_ca_cb": 0.91,
+            "overlap_cab_ca": 0.86,
+            "overlap_cab_cb": 0.91,
+            "jaccard_ca_cb": 0.8348623853211009,
+            "jaccard_cab_ca": 0.7543859649122807,
+            "jaccard_cab_cb": 0.8348623853211009,
+            "merge_quality": 0.86,
+            "composition_score": 0.885,
+            "distinctness": 0.1651376146788991,
+            "merge_successful": true,
+            "assembly_sizes": {
+              "a": 100,
+              "b": 100,
+              "c_a": 100,
+              "c_b": 100,
+              "c_ab": 100
+            }
+          },
+          {
+            "trial_id": 3,
+            "config": {
+              "n_neurons": 1000,
+              "k_active": 100,
+              "p_connect": 0.1,
+              "beta": 0.1
+            },
+            "overlap_ca_cb": 0.94,
+            "overlap_cab_ca": 0.88,
+            "overlap_cab_cb": 0.94,
+            "jaccard_ca_cb": 0.8867924528301887,
+            "jaccard_cab_ca": 0.7857142857142857,
+            "jaccard_cab_cb": 0.8867924528301887,
+            "merge_quality": 0.88,
+            "composition_score": 0.9099999999999999,
+            "distinctness": 0.1132075471698113,
+            "merge_successful": true,
+            "assembly_sizes": {
+              "a": 100,
+              "b": 100,
+              "c_a": 100,
+              "c_b": 100,
+              "c_ab": 100
+            }
+          },
+          {
+            "trial_id": 4,
+            "config": {
+              "n_neurons": 1000,
+              "k_active": 100,
+              "p_connect": 0.1,
+              "beta": 0.1
+            },
+            "overlap_ca_cb": 0.93,
+            "overlap_cab_ca": 0.92,
+            "overlap_cab_cb": 0.96,
+            "jaccard_ca_cb": 0.8691588785046729,
+            "jaccard_cab_ca": 0.8518518518518519,
+            "jaccard_cab_cb": 0.9230769230769231,
+            "merge_quality": 0.92,
+            "composition_score": 0.94,
+            "distinctness": 0.07692307692307687,
+            "merge_successful": true,
+            "assembly_sizes": {
+              "a": 100,
+              "b": 100,
+              "c_a": 100,
+              "c_b": 100,
+              "c_ab": 100
+            }
+          }
+        ]
+      },
+      {
+        "config": {
+          "n_neurons": 10000,
+          "k_active": 50,
+          "p_connect": 0.05,
+          "beta": 0.05
+        },
+        "success_rate": 1.0,
+        "mean_merge_quality": 0.772,
+        "mean_composition_score": 0.82,
+        "trial_details": [
+          {
+            "trial_id": 0,
+            "config": {
+              "n_neurons": 10000,
+              "k_active": 50,
+              "p_connect": 0.05,
+              "beta": 0.05
+            },
+            "overlap_ca_cb": 0.86,
+            "overlap_cab_ca": 0.8,
+            "overlap_cab_cb": 0.7,
+            "jaccard_ca_cb": 0.7543859649122807,
+            "jaccard_cab_ca": 0.6666666666666666,
+            "jaccard_cab_cb": 0.5384615384615384,
+            "merge_quality": 0.7,
+            "composition_score": 0.75,
+            "distinctness": 0.33333333333333337,
+            "merge_successful": true,
+            "assembly_sizes": {
+              "a": 50,
+              "b": 50,
+              "c_a": 50,
+              "c_b": 50,
+              "c_ab": 50
+            }
+          },
+          {
+            "trial_id": 1,
+            "config": {
+              "n_neurons": 10000,
+              "k_active": 50,
+              "p_connect": 0.05,
+              "beta": 0.05
+            },
+            "overlap_ca_cb": 0.92,
+            "overlap_cab_ca": 0.88,
+            "overlap_cab_cb": 0.88,
+            "jaccard_ca_cb": 0.8518518518518519,
+            "jaccard_cab_ca": 0.7857142857142857,
+            "jaccard_cab_cb": 0.7857142857142857,
+            "merge_quality": 0.88,
+            "composition_score": 0.88,
+            "distinctness": 0.2142857142857143,
+            "merge_successful": true,
+            "assembly_sizes": {
+              "a": 50,
+              "b": 50,
+              "c_a": 50,
+              "c_b": 50,
+              "c_ab": 50
+            }
+          },
+          {
+            "trial_id": 2,
+            "config": {
+              "n_neurons": 10000,
+              "k_active": 50,
+              "p_connect": 0.05,
+              "beta": 0.05
+            },
+            "overlap_ca_cb": 0.92,
+            "overlap_cab_ca": 0.88,
+            "overlap_cab_cb": 0.8,
+            "jaccard_ca_cb": 0.8518518518518519,
+            "jaccard_cab_ca": 0.7857142857142857,
+            "jaccard_cab_cb": 0.6666666666666666,
+            "merge_quality": 0.8,
+            "composition_score": 0.8400000000000001,
+            "distinctness": 0.2142857142857143,
+            "merge_successful": true,
+            "assembly_sizes": {
+              "a": 50,
+              "b": 50,
+              "c_a": 50,
+              "c_b": 50,
+              "c_ab": 50
+            }
+          },
+          {
+            "trial_id": 3,
+            "config": {
+              "n_neurons": 10000,
+              "k_active": 50,
+              "p_connect": 0.05,
+              "beta": 0.05
+            },
+            "overlap_ca_cb": 0.76,
+            "overlap_cab_ca": 0.6,
+            "overlap_cab_cb": 0.84,
+            "jaccard_ca_cb": 0.6129032258064516,
+            "jaccard_cab_ca": 0.42857142857142855,
+            "jaccard_cab_cb": 0.7241379310344828,
+            "merge_quality": 0.6,
+            "composition_score": 0.72,
+            "distinctness": 0.27586206896551724,
+            "merge_successful": true,
+            "assembly_sizes": {
+              "a": 50,
+              "b": 50,
+              "c_a": 50,
+              "c_b": 50,
+              "c_ab": 50
+            }
+          },
+          {
+            "trial_id": 4,
+            "config": {
+              "n_neurons": 10000,
+              "k_active": 50,
+              "p_connect": 0.05,
+              "beta": 0.05
+            },
+            "overlap_ca_cb": 0.9,
+            "overlap_cab_ca": 0.94,
+            "overlap_cab_cb": 0.88,
+            "jaccard_ca_cb": 0.8181818181818182,
+            "jaccard_cab_ca": 0.8867924528301887,
+            "jaccard_cab_cb": 0.7857142857142857,
+            "merge_quality": 0.88,
+            "composition_score": 0.9099999999999999,
+            "distinctness": 0.1132075471698113,
+            "merge_successful": true,
+            "assembly_sizes": {
+              "a": 50,
+              "b": 50,
+              "c_a": 50,
+              "c_b": 50,
+              "c_ab": 50
+            }
+          }
+        ]
+      },
+      {
+        "config": {
+          "n_neurons": 10000,
+          "k_active": 50,
+          "p_connect": 0.05,
+          "beta": 0.1
+        },
+        "success_rate": 1.0,
+        "mean_merge_quality": 0.7,
+        "mean_composition_score": 0.736,
+        "trial_details": [
+          {
+            "trial_id": 0,
+            "config": {
+              "n_neurons": 10000,
+              "k_active": 50,
+              "p_connect": 0.05,
+              "beta": 0.1
+            },
+            "overlap_ca_cb": 0.94,
+            "overlap_cab_ca": 0.68,
+            "overlap_cab_cb": 0.74,
+            "jaccard_ca_cb": 0.8867924528301887,
+            "jaccard_cab_ca": 0.5151515151515151,
+            "jaccard_cab_cb": 0.5873015873015873,
+            "merge_quality": 0.68,
+            "composition_score": 0.71,
+            "distinctness": 0.4126984126984127,
+            "merge_successful": true,
+            "assembly_sizes": {
+              "a": 50,
+              "b": 50,
+              "c_a": 50,
+              "c_b": 50,
+              "c_ab": 50
+            }
+          },
+          {
+            "trial_id": 1,
+            "config": {
+              "n_neurons": 10000,
+              "k_active": 50,
+              "p_connect": 0.05,
+              "beta": 0.1
+            },
+            "overlap_ca_cb": 0.92,
+            "overlap_cab_ca": 0.64,
+            "overlap_cab_cb": 0.72,
+            "jaccard_ca_cb": 0.8518518518518519,
+            "jaccard_cab_ca": 0.47058823529411764,
+            "jaccard_cab_cb": 0.5625,
+            "merge_quality": 0.64,
+            "composition_score": 0.6799999999999999,
+            "distinctness": 0.4375,
+            "merge_successful": true,
+            "assembly_sizes": {
+              "a": 50,
+              "b": 50,
+              "c_a": 50,
+              "c_b": 50,
+              "c_ab": 50
+            }
+          },
+          {
+            "trial_id": 2,
+            "config": {
+              "n_neurons": 10000,
+              "k_active": 50,
+              "p_connect": 0.05,
+              "beta": 0.1
+            },
+            "overlap_ca_cb": 0.9,
+            "overlap_cab_ca": 0.74,
+            "overlap_cab_cb": 0.84,
+            "jaccard_ca_cb": 0.8181818181818182,
+            "jaccard_cab_ca": 0.5873015873015873,
+            "jaccard_cab_cb": 0.7241379310344828,
+            "merge_quality": 0.74,
+            "composition_score": 0.79,
+            "distinctness": 0.27586206896551724,
+            "merge_successful": true,
+            "assembly_sizes": {
+              "a": 50,
+              "b": 50,
+              "c_a": 50,
+              "c_b": 50,
+              "c_ab": 50
+            }
+          },
+          {
+            "trial_id": 3,
+            "config": {
+              "n_neurons": 10000,
+              "k_active": 50,
+              "p_connect": 0.05,
+              "beta": 0.1
+            },
+            "overlap_ca_cb": 0.94,
+            "overlap_cab_ca": 0.64,
+            "overlap_cab_cb": 0.7,
+            "jaccard_ca_cb": 0.8867924528301887,
+            "jaccard_cab_ca": 0.47058823529411764,
+            "jaccard_cab_cb": 0.5384615384615384,
+            "merge_quality": 0.64,
+            "composition_score": 0.6699999999999999,
+            "distinctness": 0.46153846153846156,
+            "merge_successful": true,
+            "assembly_sizes": {
+              "a": 50,
+              "b": 50,
+              "c_a": 50,
+              "c_b": 50,
+              "c_ab": 50
+            }
+          },
+          {
+            "trial_id": 4,
+            "config": {
+              "n_neurons": 10000,
+              "k_active": 50,
+              "p_connect": 0.05,
+              "beta": 0.1
+            },
+            "overlap_ca_cb": 0.94,
+            "overlap_cab_ca": 0.8,
+            "overlap_cab_cb": 0.86,
+            "jaccard_ca_cb": 0.8867924528301887,
+            "jaccard_cab_ca": 0.6666666666666666,
+            "jaccard_cab_cb": 0.7543859649122807,
+            "merge_quality": 0.8,
+            "composition_score": 0.8300000000000001,
+            "distinctness": 0.24561403508771928,
+            "merge_successful": true,
+            "assembly_sizes": {
+              "a": 50,
+              "b": 50,
+              "c_a": 50,
+              "c_b": 50,
+              "c_ab": 50
+            }
+          }
+        ]
+      },
+      {
+        "config": {
+          "n_neurons": 10000,
+          "k_active": 50,
+          "p_connect": 0.1,
+          "beta": 0.05
+        },
+        "success_rate": 1.0,
+        "mean_merge_quality": 0.7919999999999999,
+        "mean_composition_score": 0.8099999999999999,
+        "trial_details": [
+          {
+            "trial_id": 0,
+            "config": {
+              "n_neurons": 10000,
+              "k_active": 50,
+              "p_connect": 0.1,
+              "beta": 0.05
+            },
+            "overlap_ca_cb": 0.92,
+            "overlap_cab_ca": 0.72,
+            "overlap_cab_cb": 0.78,
+            "jaccard_ca_cb": 0.8518518518518519,
+            "jaccard_cab_ca": 0.5625,
+            "jaccard_cab_cb": 0.639344262295082,
+            "merge_quality": 0.72,
+            "composition_score": 0.75,
+            "distinctness": 0.360655737704918,
+            "merge_successful": true,
+            "assembly_sizes": {
+              "a": 50,
+              "b": 50,
+              "c_a": 50,
+              "c_b": 50,
+              "c_ab": 50
+            }
+          },
+          {
+            "trial_id": 1,
+            "config": {
+              "n_neurons": 10000,
+              "k_active": 50,
+              "p_connect": 0.1,
+              "beta": 0.05
+            },
+            "overlap_ca_cb": 0.88,
+            "overlap_cab_ca": 0.74,
+            "overlap_cab_cb": 0.78,
+            "jaccard_ca_cb": 0.7857142857142857,
+            "jaccard_cab_ca": 0.5873015873015873,
+            "jaccard_cab_cb": 0.639344262295082,
+            "merge_quality": 0.74,
+            "composition_score": 0.76,
+            "distinctness": 0.360655737704918,
+            "merge_successful": true,
+            "assembly_sizes": {
+              "a": 50,
+              "b": 50,
+              "c_a": 50,
+              "c_b": 50,
+              "c_ab": 50
+            }
+          },
+          {
+            "trial_id": 2,
+            "config": {
+              "n_neurons": 10000,
+              "k_active": 50,
+              "p_connect": 0.1,
+              "beta": 0.05
+            },
+            "overlap_ca_cb": 0.9,
+            "overlap_cab_ca": 0.86,
+            "overlap_cab_cb": 0.8,
+            "jaccard_ca_cb": 0.8181818181818182,
+            "jaccard_cab_ca": 0.7543859649122807,
+            "jaccard_cab_cb": 0.6666666666666666,
+            "merge_quality": 0.8,
+            "composition_score": 0.8300000000000001,
+            "distinctness": 0.24561403508771928,
+            "merge_successful": true,
+            "assembly_sizes": {
+              "a": 50,
+              "b": 50,
+              "c_a": 50,
+              "c_b": 50,
+              "c_ab": 50
+            }
+          },
+          {
+            "trial_id": 3,
+            "config": {
+              "n_neurons": 10000,
+              "k_active": 50,
+              "p_connect": 0.1,
+              "beta": 0.05
+            },
+            "overlap_ca_cb": 0.86,
+            "overlap_cab_ca": 0.84,
+            "overlap_cab_cb": 0.84,
+            "jaccard_ca_cb": 0.7543859649122807,
+            "jaccard_cab_ca": 0.7241379310344828,
+            "jaccard_cab_cb": 0.7241379310344828,
+            "merge_quality": 0.84,
+            "composition_score": 0.84,
+            "distinctness": 0.27586206896551724,
+            "merge_successful": true,
+            "assembly_sizes": {
+              "a": 50,
+              "b": 50,
+              "c_a": 50,
+              "c_b": 50,
+              "c_ab": 50
+            }
+          },
+          {
+            "trial_id": 4,
+            "config": {
+              "n_neurons": 10000,
+              "k_active": 50,
+              "p_connect": 0.1,
+              "beta": 0.05
+            },
+            "overlap_ca_cb": 0.76,
+            "overlap_cab_ca": 0.88,
+            "overlap_cab_cb": 0.86,
+            "jaccard_ca_cb": 0.6129032258064516,
+            "jaccard_cab_ca": 0.7857142857142857,
+            "jaccard_cab_cb": 0.7543859649122807,
+            "merge_quality": 0.86,
+            "composition_score": 0.87,
+            "distinctness": 0.2142857142857143,
+            "merge_successful": true,
+            "assembly_sizes": {
+              "a": 50,
+              "b": 50,
+              "c_a": 50,
+              "c_b": 50,
+              "c_ab": 50
+            }
+          }
+        ]
+      },
+      {
+        "config": {
+          "n_neurons": 10000,
+          "k_active": 50,
+          "p_connect": 0.1,
+          "beta": 0.1
+        },
+        "success_rate": 1.0,
+        "mean_merge_quality": 0.8560000000000001,
+        "mean_composition_score": 0.8799999999999999,
+        "trial_details": [
+          {
+            "trial_id": 0,
+            "config": {
+              "n_neurons": 10000,
+              "k_active": 50,
+              "p_connect": 0.1,
+              "beta": 0.1
+            },
+            "overlap_ca_cb": 0.88,
+            "overlap_cab_ca": 0.92,
+            "overlap_cab_cb": 0.96,
+            "jaccard_ca_cb": 0.7857142857142857,
+            "jaccard_cab_ca": 0.8518518518518519,
+            "jaccard_cab_cb": 0.9230769230769231,
+            "merge_quality": 0.92,
+            "composition_score": 0.94,
+            "distinctness": 0.07692307692307687,
+            "merge_successful": true,
+            "assembly_sizes": {
+              "a": 50,
+              "b": 50,
+              "c_a": 50,
+              "c_b": 50,
+              "c_ab": 50
+            }
+          },
+          {
+            "trial_id": 1,
+            "config": {
+              "n_neurons": 10000,
+              "k_active": 50,
+              "p_connect": 0.1,
+              "beta": 0.1
+            },
+            "overlap_ca_cb": 0.94,
+            "overlap_cab_ca": 0.92,
+            "overlap_cab_cb": 0.98,
+            "jaccard_ca_cb": 0.8867924528301887,
+            "jaccard_cab_ca": 0.8518518518518519,
+            "jaccard_cab_cb": 0.9607843137254902,
+            "merge_quality": 0.92,
+            "composition_score": 0.95,
+            "distinctness": 0.039215686274509776,
+            "merge_successful": true,
+            "assembly_sizes": {
+              "a": 50,
+              "b": 50,
+              "c_a": 50,
+              "c_b": 50,
+              "c_ab": 50
+            }
+          },
+          {
+            "trial_id": 2,
+            "config": {
+              "n_neurons": 10000,
+              "k_active": 50,
+              "p_connect": 0.1,
+              "beta": 0.1
+            },
+            "overlap_ca_cb": 0.92,
+            "overlap_cab_ca": 0.74,
+            "overlap_cab_cb": 0.66,
+            "jaccard_ca_cb": 0.8518518518518519,
+            "jaccard_cab_ca": 0.5873015873015873,
+            "jaccard_cab_cb": 0.4925373134328358,
+            "merge_quality": 0.66,
+            "composition_score": 0.7,
+            "distinctness": 0.4126984126984127,
+            "merge_successful": true,
+            "assembly_sizes": {
+              "a": 50,
+              "b": 50,
+              "c_a": 50,
+              "c_b": 50,
+              "c_ab": 50
+            }
+          },
+          {
+            "trial_id": 3,
+            "config": {
+              "n_neurons": 10000,
+              "k_active": 50,
+              "p_connect": 0.1,
+              "beta": 0.1
+            },
+            "overlap_ca_cb": 1.0,
+            "overlap_cab_ca": 0.92,
+            "overlap_cab_cb": 0.92,
+            "jaccard_ca_cb": 1.0,
+            "jaccard_cab_ca": 0.8518518518518519,
+            "jaccard_cab_cb": 0.8518518518518519,
+            "merge_quality": 0.92,
+            "composition_score": 0.92,
+            "distinctness": 0.14814814814814814,
+            "merge_successful": true,
+            "assembly_sizes": {
+              "a": 50,
+              "b": 50,
+              "c_a": 50,
+              "c_b": 50,
+              "c_ab": 50
+            }
+          },
+          {
+            "trial_id": 4,
+            "config": {
+              "n_neurons": 10000,
+              "k_active": 50,
+              "p_connect": 0.1,
+              "beta": 0.1
+            },
+            "overlap_ca_cb": 0.94,
+            "overlap_cab_ca": 0.86,
+            "overlap_cab_cb": 0.92,
+            "jaccard_ca_cb": 0.8867924528301887,
+            "jaccard_cab_ca": 0.7543859649122807,
+            "jaccard_cab_cb": 0.8518518518518519,
+            "merge_quality": 0.86,
+            "composition_score": 0.89,
+            "distinctness": 0.14814814814814814,
+            "merge_successful": true,
+            "assembly_sizes": {
+              "a": 50,
+              "b": 50,
+              "c_a": 50,
+              "c_b": 50,
+              "c_ab": 50
+            }
+          }
+        ]
+      },
+      {
+        "config": {
+          "n_neurons": 10000,
+          "k_active": 100,
+          "p_connect": 0.05,
+          "beta": 0.05
+        },
+        "success_rate": 1.0,
+        "mean_merge_quality": 0.774,
+        "mean_composition_score": 0.8009999999999999,
+        "trial_details": [
+          {
+            "trial_id": 0,
+            "config": {
+              "n_neurons": 10000,
+              "k_active": 100,
+              "p_connect": 0.05,
+              "beta": 0.05
+            },
+            "overlap_ca_cb": 0.87,
+            "overlap_cab_ca": 0.73,
+            "overlap_cab_cb": 0.75,
+            "jaccard_ca_cb": 0.7699115044247787,
+            "jaccard_cab_ca": 0.5748031496062992,
+            "jaccard_cab_cb": 0.6,
+            "merge_quality": 0.73,
+            "composition_score": 0.74,
+            "distinctness": 0.4,
+            "merge_successful": true,
+            "assembly_sizes": {
+              "a": 100,
+              "b": 100,
+              "c_a": 100,
+              "c_b": 100,
+              "c_ab": 100
+            }
+          },
+          {
+            "trial_id": 1,
+            "config": {
+              "n_neurons": 10000,
+              "k_active": 100,
+              "p_connect": 0.05,
+              "beta": 0.05
+            },
+            "overlap_ca_cb": 0.91,
+            "overlap_cab_ca": 0.84,
+            "overlap_cab_cb": 0.81,
+            "jaccard_ca_cb": 0.8348623853211009,
+            "jaccard_cab_ca": 0.7241379310344828,
+            "jaccard_cab_cb": 0.680672268907563,
+            "merge_quality": 0.81,
+            "composition_score": 0.825,
+            "distinctness": 0.27586206896551724,
+            "merge_successful": true,
+            "assembly_sizes": {
+              "a": 100,
+              "b": 100,
+              "c_a": 100,
+              "c_b": 100,
+              "c_ab": 100
+            }
+          },
+          {
+            "trial_id": 2,
+            "config": {
+              "n_neurons": 10000,
+              "k_active": 100,
+              "p_connect": 0.05,
+              "beta": 0.05
+            },
+            "overlap_ca_cb": 0.86,
+            "overlap_cab_ca": 0.81,
+            "overlap_cab_cb": 0.86,
+            "jaccard_ca_cb": 0.7543859649122807,
+            "jaccard_cab_ca": 0.680672268907563,
+            "jaccard_cab_cb": 0.7543859649122807,
+            "merge_quality": 0.81,
+            "composition_score": 0.835,
+            "distinctness": 0.24561403508771928,
+            "merge_successful": true,
+            "assembly_sizes": {
+              "a": 100,
+              "b": 100,
+              "c_a": 100,
+              "c_b": 100,
+              "c_ab": 100
+            }
+          },
+          {
+            "trial_id": 3,
+            "config": {
+              "n_neurons": 10000,
+              "k_active": 100,
+              "p_connect": 0.05,
+              "beta": 0.05
+            },
+            "overlap_ca_cb": 0.83,
+            "overlap_cab_ca": 0.72,
+            "overlap_cab_cb": 0.82,
+            "jaccard_ca_cb": 0.7094017094017094,
+            "jaccard_cab_ca": 0.5625,
+            "jaccard_cab_cb": 0.6949152542372882,
+            "merge_quality": 0.72,
+            "composition_score": 0.77,
+            "distinctness": 0.30508474576271183,
+            "merge_successful": true,
+            "assembly_sizes": {
+              "a": 100,
+              "b": 100,
+              "c_a": 100,
+              "c_b": 100,
+              "c_ab": 100
+            }
+          },
+          {
+            "trial_id": 4,
+            "config": {
+              "n_neurons": 10000,
+              "k_active": 100,
+              "p_connect": 0.05,
+              "beta": 0.05
+            },
+            "overlap_ca_cb": 0.93,
+            "overlap_cab_ca": 0.8,
+            "overlap_cab_cb": 0.87,
+            "jaccard_ca_cb": 0.8691588785046729,
+            "jaccard_cab_ca": 0.6666666666666666,
+            "jaccard_cab_cb": 0.7699115044247787,
+            "merge_quality": 0.8,
+            "composition_score": 0.835,
+            "distinctness": 0.23008849557522126,
+            "merge_successful": true,
+            "assembly_sizes": {
+              "a": 100,
+              "b": 100,
+              "c_a": 100,
+              "c_b": 100,
+              "c_ab": 100
+            }
+          }
+        ]
+      },
+      {
+        "config": {
+          "n_neurons": 10000,
+          "k_active": 100,
+          "p_connect": 0.05,
+          "beta": 0.1
+        },
+        "success_rate": 1.0,
+        "mean_merge_quality": 0.8459999999999999,
+        "mean_composition_score": 0.8619999999999999,
+        "trial_details": [
+          {
+            "trial_id": 0,
+            "config": {
+              "n_neurons": 10000,
+              "k_active": 100,
+              "p_connect": 0.05,
+              "beta": 0.1
+            },
+            "overlap_ca_cb": 0.95,
+            "overlap_cab_ca": 0.88,
+            "overlap_cab_cb": 0.83,
+            "jaccard_ca_cb": 0.9047619047619048,
+            "jaccard_cab_ca": 0.7857142857142857,
+            "jaccard_cab_cb": 0.7094017094017094,
+            "merge_quality": 0.83,
+            "composition_score": 0.855,
+            "distinctness": 0.2142857142857143,
+            "merge_successful": true,
+            "assembly_sizes": {
+              "a": 100,
+              "b": 100,
+              "c_a": 100,
+              "c_b": 100,
+              "c_ab": 100
+            }
+          },
+          {
+            "trial_id": 1,
+            "config": {
+              "n_neurons": 10000,
+              "k_active": 100,
+              "p_connect": 0.05,
+              "beta": 0.1
+            },
+            "overlap_ca_cb": 0.99,
+            "overlap_cab_ca": 0.87,
+            "overlap_cab_cb": 0.88,
+            "jaccard_ca_cb": 0.9801980198019802,
+            "jaccard_cab_ca": 0.7699115044247787,
+            "jaccard_cab_cb": 0.7857142857142857,
+            "merge_quality": 0.87,
+            "composition_score": 0.875,
+            "distinctness": 0.2142857142857143,
+            "merge_successful": true,
+            "assembly_sizes": {
+              "a": 100,
+              "b": 100,
+              "c_a": 100,
+              "c_b": 100,
+              "c_ab": 100
+            }
+          },
+          {
+            "trial_id": 2,
+            "config": {
+              "n_neurons": 10000,
+              "k_active": 100,
+              "p_connect": 0.05,
+              "beta": 0.1
+            },
+            "overlap_ca_cb": 0.93,
+            "overlap_cab_ca": 0.86,
+            "overlap_cab_cb": 0.93,
+            "jaccard_ca_cb": 0.8691588785046729,
+            "jaccard_cab_ca": 0.7543859649122807,
+            "jaccard_cab_cb": 0.8691588785046729,
+            "merge_quality": 0.86,
+            "composition_score": 0.895,
+            "distinctness": 0.13084112149532712,
+            "merge_successful": true,
+            "assembly_sizes": {
+              "a": 100,
+              "b": 100,
+              "c_a": 100,
+              "c_b": 100,
+              "c_ab": 100
+            }
+          },
+          {
+            "trial_id": 3,
+            "config": {
+              "n_neurons": 10000,
+              "k_active": 100,
+              "p_connect": 0.05,
+              "beta": 0.1
+            },
+            "overlap_ca_cb": 0.99,
+            "overlap_cab_ca": 0.85,
+            "overlap_cab_cb": 0.84,
+            "jaccard_ca_cb": 0.9801980198019802,
+            "jaccard_cab_ca": 0.7391304347826086,
+            "jaccard_cab_cb": 0.7241379310344828,
+            "merge_quality": 0.84,
+            "composition_score": 0.845,
+            "distinctness": 0.26086956521739135,
+            "merge_successful": true,
+            "assembly_sizes": {
+              "a": 100,
+              "b": 100,
+              "c_a": 100,
+              "c_b": 100,
+              "c_ab": 100
+            }
+          },
+          {
+            "trial_id": 4,
+            "config": {
+              "n_neurons": 10000,
+              "k_active": 100,
+              "p_connect": 0.05,
+              "beta": 0.1
+            },
+            "overlap_ca_cb": 0.98,
+            "overlap_cab_ca": 0.85,
+            "overlap_cab_cb": 0.83,
+            "jaccard_ca_cb": 0.9607843137254902,
+            "jaccard_cab_ca": 0.7391304347826086,
+            "jaccard_cab_cb": 0.7094017094017094,
+            "merge_quality": 0.83,
+            "composition_score": 0.84,
+            "distinctness": 0.26086956521739135,
+            "merge_successful": true,
+            "assembly_sizes": {
+              "a": 100,
+              "b": 100,
+              "c_a": 100,
+              "c_b": 100,
+              "c_ab": 100
+            }
+          }
+        ]
+      },
+      {
+        "config": {
+          "n_neurons": 10000,
+          "k_active": 100,
+          "p_connect": 0.1,
+          "beta": 0.05
+        },
+        "success_rate": 1.0,
+        "mean_merge_quality": 0.8779999999999999,
+        "mean_composition_score": 0.8880000000000001,
+        "trial_details": [
+          {
+            "trial_id": 0,
+            "config": {
+              "n_neurons": 10000,
+              "k_active": 100,
+              "p_connect": 0.1,
+              "beta": 0.05
+            },
+            "overlap_ca_cb": 0.99,
+            "overlap_cab_ca": 0.91,
+            "overlap_cab_cb": 0.9,
+            "jaccard_ca_cb": 0.9801980198019802,
+            "jaccard_cab_ca": 0.8348623853211009,
+            "jaccard_cab_cb": 0.8181818181818182,
+            "merge_quality": 0.9,
+            "composition_score": 0.905,
+            "distinctness": 0.1651376146788991,
+            "merge_successful": true,
+            "assembly_sizes": {
+              "a": 100,
+              "b": 100,
+              "c_a": 100,
+              "c_b": 100,
+              "c_ab": 100
+            }
+          },
+          {
+            "trial_id": 1,
+            "config": {
+              "n_neurons": 10000,
+              "k_active": 100,
+              "p_connect": 0.1,
+              "beta": 0.05
+            },
+            "overlap_ca_cb": 0.99,
+            "overlap_cab_ca": 0.84,
+            "overlap_cab_cb": 0.83,
+            "jaccard_ca_cb": 0.9801980198019802,
+            "jaccard_cab_ca": 0.7241379310344828,
+            "jaccard_cab_cb": 0.7094017094017094,
+            "merge_quality": 0.83,
+            "composition_score": 0.835,
+            "distinctness": 0.27586206896551724,
+            "merge_successful": true,
+            "assembly_sizes": {
+              "a": 100,
+              "b": 100,
+              "c_a": 100,
+              "c_b": 100,
+              "c_ab": 100
+            }
+          },
+          {
+            "trial_id": 2,
+            "config": {
+              "n_neurons": 10000,
+              "k_active": 100,
+              "p_connect": 0.1,
+              "beta": 0.05
+            },
+            "overlap_ca_cb": 0.9,
+            "overlap_cab_ca": 0.88,
+            "overlap_cab_cb": 0.96,
+            "jaccard_ca_cb": 0.8181818181818182,
+            "jaccard_cab_ca": 0.7857142857142857,
+            "jaccard_cab_cb": 0.9230769230769231,
+            "merge_quality": 0.88,
+            "composition_score": 0.9199999999999999,
+            "distinctness": 0.07692307692307687,
+            "merge_successful": true,
+            "assembly_sizes": {
+              "a": 100,
+              "b": 100,
+              "c_a": 100,
+              "c_b": 100,
+              "c_ab": 100
+            }
+          },
+          {
+            "trial_id": 3,
+            "config": {
+              "n_neurons": 10000,
+              "k_active": 100,
+              "p_connect": 0.1,
+              "beta": 0.05
+            },
+            "overlap_ca_cb": 0.96,
+            "overlap_cab_ca": 0.9,
+            "overlap_cab_cb": 0.9,
+            "jaccard_ca_cb": 0.9230769230769231,
+            "jaccard_cab_ca": 0.8181818181818182,
+            "jaccard_cab_cb": 0.8181818181818182,
+            "merge_quality": 0.9,
+            "composition_score": 0.9,
+            "distinctness": 0.18181818181818177,
+            "merge_successful": true,
+            "assembly_sizes": {
+              "a": 100,
+              "b": 100,
+              "c_a": 100,
+              "c_b": 100,
+              "c_ab": 100
+            }
+          },
+          {
+            "trial_id": 4,
+            "config": {
+              "n_neurons": 10000,
+              "k_active": 100,
+              "p_connect": 0.1,
+              "beta": 0.05
+            },
+            "overlap_ca_cb": 0.88,
+            "overlap_cab_ca": 0.88,
+            "overlap_cab_cb": 0.88,
+            "jaccard_ca_cb": 0.7857142857142857,
+            "jaccard_cab_ca": 0.7857142857142857,
+            "jaccard_cab_cb": 0.7857142857142857,
+            "merge_quality": 0.88,
+            "composition_score": 0.88,
+            "distinctness": 0.2142857142857143,
+            "merge_successful": true,
+            "assembly_sizes": {
+              "a": 100,
+              "b": 100,
+              "c_a": 100,
+              "c_b": 100,
+              "c_ab": 100
+            }
+          }
+        ]
+      },
+      {
+        "config": {
+          "n_neurons": 10000,
+          "k_active": 100,
+          "p_connect": 0.1,
+          "beta": 0.1
+        },
+        "success_rate": 1.0,
+        "mean_merge_quality": 0.954,
+        "mean_composition_score": 0.969,
+        "trial_details": [
+          {
+            "trial_id": 0,
+            "config": {
+              "n_neurons": 10000,
+              "k_active": 100,
+              "p_connect": 0.1,
+              "beta": 0.1
+            },
+            "overlap_ca_cb": 0.99,
+            "overlap_cab_ca": 0.97,
+            "overlap_cab_cb": 0.98,
+            "jaccard_ca_cb": 0.9801980198019802,
+            "jaccard_cab_ca": 0.941747572815534,
+            "jaccard_cab_cb": 0.9607843137254902,
+            "merge_quality": 0.97,
+            "composition_score": 0.975,
+            "distinctness": 0.039215686274509776,
+            "merge_successful": true,
+            "assembly_sizes": {
+              "a": 100,
+              "b": 100,
+              "c_a": 100,
+              "c_b": 100,
+              "c_ab": 100
+            }
+          },
+          {
+            "trial_id": 1,
+            "config": {
+              "n_neurons": 10000,
+              "k_active": 100,
+              "p_connect": 0.1,
+              "beta": 0.1
+            },
+            "overlap_ca_cb": 0.97,
+            "overlap_cab_ca": 0.99,
+            "overlap_cab_cb": 0.98,
+            "jaccard_ca_cb": 0.941747572815534,
+            "jaccard_cab_ca": 0.9801980198019802,
+            "jaccard_cab_cb": 0.9607843137254902,
+            "merge_quality": 0.98,
+            "composition_score": 0.985,
+            "distinctness": 0.01980198019801982,
+            "merge_successful": true,
+            "assembly_sizes": {
+              "a": 100,
+              "b": 100,
+              "c_a": 100,
+              "c_b": 100,
+              "c_ab": 100
+            }
+          },
+          {
+            "trial_id": 2,
+            "config": {
+              "n_neurons": 10000,
+              "k_active": 100,
+              "p_connect": 0.1,
+              "beta": 0.1
+            },
+            "overlap_ca_cb": 0.93,
+            "overlap_cab_ca": 0.94,
+            "overlap_cab_cb": 0.99,
+            "jaccard_ca_cb": 0.8691588785046729,
+            "jaccard_cab_ca": 0.8867924528301887,
+            "jaccard_cab_cb": 0.9801980198019802,
+            "merge_quality": 0.94,
+            "composition_score": 0.965,
+            "distinctness": 0.01980198019801982,
+            "merge_successful": true,
+            "assembly_sizes": {
+              "a": 100,
+              "b": 100,
+              "c_a": 100,
+              "c_b": 100,
+              "c_ab": 100
+            }
+          },
+          {
+            "trial_id": 3,
+            "config": {
+              "n_neurons": 10000,
+              "k_active": 100,
+              "p_connect": 0.1,
+              "beta": 0.1
+            },
+            "overlap_ca_cb": 0.94,
+            "overlap_cab_ca": 1.0,
+            "overlap_cab_cb": 0.94,
+            "jaccard_ca_cb": 0.8867924528301887,
+            "jaccard_cab_ca": 1.0,
+            "jaccard_cab_cb": 0.8867924528301887,
+            "merge_quality": 0.94,
+            "composition_score": 0.97,
+            "distinctness": 0.0,
+            "merge_successful": true,
+            "assembly_sizes": {
+              "a": 100,
+              "b": 100,
+              "c_a": 100,
+              "c_b": 100,
+              "c_ab": 100
+            }
+          },
+          {
+            "trial_id": 4,
+            "config": {
+              "n_neurons": 10000,
+              "k_active": 100,
+              "p_connect": 0.1,
+              "beta": 0.1
+            },
+            "overlap_ca_cb": 0.98,
+            "overlap_cab_ca": 0.96,
+            "overlap_cab_cb": 0.94,
+            "jaccard_ca_cb": 0.9607843137254902,
+            "jaccard_cab_ca": 0.9230769230769231,
+            "jaccard_cab_cb": 0.8867924528301887,
+            "merge_quality": 0.94,
+            "composition_score": 0.95,
+            "distinctness": 0.07692307692307687,
+            "merge_successful": true,
+            "assembly_sizes": {
+              "a": 100,
+              "b": 100,
+              "c_a": 100,
+              "c_b": 100,
+              "c_ab": 100
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "success": true,
+  "error_message": null,
+  "duration_seconds": 32.13677629999802
+}

@@ -26,7 +26,7 @@ from typing import Dict, List
 from dataclasses import dataclass
 
 from research.experiments.base import ExperimentBase, ExperimentResult
-import brain as brain_module
+from src.core.brain import Brain
 
 
 @dataclass
@@ -65,7 +65,7 @@ class LanguageSyntaxExperiment(ExperimentBase):
             sentence: List of words
             word_categories: Mapping from word to category (DET, NOUN, VERB, etc.)
         """
-        brain = brain_module.Brain(p=config.p_connect, seed=self.seed + trial_id)
+        brain = Brain(p=config.p_connect, seed=self.seed + trial_id, w_max=20.0)
         
         # Create stimuli for each unique word
         unique_words = list(set(sentence))
@@ -75,14 +75,14 @@ class LanguageSyntaxExperiment(ExperimentBase):
         # Create areas
         areas = ['LEX', 'DET', 'NOUN', 'VERB', 'ADJ', 'NP', 'VP', 'S']
         for area in areas:
-            brain.add_area(area, config.n_neurons, config.k_active, config.beta)
+            brain.add_area(area, config.n_neurons, config.k_active, config.beta, explicit=True)
         
         # Step 1: Project words to LEX
         word_assemblies = {}
         for word in unique_words:
             for _ in range(config.projection_rounds):
                 brain.project({word: ['LEX']}, {})
-            word_assemblies[word] = set(brain.area_by_name['LEX'].winners.tolist())
+            word_assemblies[word] = set(brain.areas['LEX'].winners.tolist())
         
         # Check word distinctiveness
         word_overlaps = []
@@ -94,20 +94,20 @@ class LanguageSyntaxExperiment(ExperimentBase):
         category_assemblies = {cat: [] for cat in ['DET', 'NOUN', 'VERB', 'ADJ']}
         for word in unique_words:
             cat = word_categories.get(word, 'NOUN')
-            brain.area_by_name['LEX'].winners = np.array(list(word_assemblies[word]), dtype=np.uint32)
+            brain.areas['LEX'].winners = np.array(list(word_assemblies[word]), dtype=np.uint32)
             for _ in range(config.projection_rounds):
                 brain.project({}, {'LEX': [cat]})
-            category_assemblies[cat].append(set(brain.area_by_name[cat].winners.tolist()))
+            category_assemblies[cat].append(set(brain.areas[cat].winners.tolist()))
         
         # Step 3: Build NP (simplified: just NOUN or DET+NOUN)
         # Fix relevant assemblies
         if category_assemblies['DET']:
-            brain.area_by_name['DET'].winners = np.array(list(category_assemblies['DET'][0]), dtype=np.uint32)
-            brain.area_by_name['DET'].fix_assembly()
+            brain.areas['DET'].winners = np.array(list(category_assemblies['DET'][0]), dtype=np.uint32)
+            brain.areas['DET'].fix_assembly()
         
         if category_assemblies['NOUN']:
-            brain.area_by_name['NOUN'].winners = np.array(list(category_assemblies['NOUN'][0]), dtype=np.uint32)
-            brain.area_by_name['NOUN'].fix_assembly()
+            brain.areas['NOUN'].winners = np.array(list(category_assemblies['NOUN'][0]), dtype=np.uint32)
+            brain.areas['NOUN'].fix_assembly()
         
         # Merge into NP
         merge_sources = {}
@@ -118,24 +118,24 @@ class LanguageSyntaxExperiment(ExperimentBase):
         
         for _ in range(config.merge_rounds):
             brain.project({}, merge_sources)
-        np_assembly = set(brain.area_by_name['NP'].winners.tolist())
+        np_assembly = set(brain.areas['NP'].winners.tolist())
         
         # Step 4: Build VP (VERB + NP)
         if category_assemblies['VERB']:
-            brain.area_by_name['VERB'].winners = np.array(list(category_assemblies['VERB'][0]), dtype=np.uint32)
-            brain.area_by_name['VERB'].fix_assembly()
-        brain.area_by_name['NP'].fix_assembly()
+            brain.areas['VERB'].winners = np.array(list(category_assemblies['VERB'][0]), dtype=np.uint32)
+            brain.areas['VERB'].fix_assembly()
+        brain.areas['NP'].fix_assembly()
         
         for _ in range(config.merge_rounds):
             brain.project({}, {'VERB': ['VP'], 'NP': ['VP']})
-        vp_assembly = set(brain.area_by_name['VP'].winners.tolist())
+        vp_assembly = set(brain.areas['VP'].winners.tolist())
         
         # Step 5: Build S (NP + VP)
-        brain.area_by_name['VP'].fix_assembly()
+        brain.areas['VP'].fix_assembly()
         
         for _ in range(config.merge_rounds):
             brain.project({}, {'NP': ['S'], 'VP': ['S']})
-        s_assembly = set(brain.area_by_name['S'].winners.tolist())
+        s_assembly = set(brain.areas['S'].winners.tolist())
         
         return {
             "sentence": sentence,

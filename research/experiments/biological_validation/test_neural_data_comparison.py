@@ -27,7 +27,7 @@ from typing import Dict, List, Any
 from dataclasses import dataclass
 
 from research.experiments.base import ExperimentBase, ExperimentResult
-import brain as brain_module
+from src.core.brain import Brain
 
 
 # Biological reference values from literature
@@ -80,9 +80,9 @@ class NeuralDataComparisonExperiment(ExperimentBase):
         trial_id: int = 0
     ) -> Dict[str, Any]:
         """Simulate neural activity and collect statistics."""
-        brain = brain_module.Brain(p=config.p_connect, seed=self.seed + trial_id)
+        brain = Brain(p=config.p_connect, seed=self.seed + trial_id, w_max=20.0)
         brain.add_stimulus("STIM", config.k_active)
-        brain.add_area("AREA", config.n_neurons, config.k_active, config.beta)
+        brain.add_area("AREA", config.n_neurons, config.k_active, config.beta, explicit=True)
         
         # Track activity
         activity_history = []
@@ -90,7 +90,7 @@ class NeuralDataComparisonExperiment(ExperimentBase):
         
         for t in range(config.n_timesteps):
             brain.project({"STIM": ["AREA"]}, {})
-            winners = brain.area_by_name["AREA"].winners
+            winners = brain.areas["AREA"].winners
             
             activity_history.append(len(winners))
             assembly_sizes.append(len(winners))

@@ -1,345 +1,453 @@
 """
-Association Primitive Validation
+Association Primitive: Cross-Area Binding and Pattern Completion
 
-Scientific Questions:
-1. Does association reliably increase overlap between assemblies?
-2. How many rounds are needed for significant overlap increase?
-3. Is the association symmetric (A->B same as B->A)?
-4. Does association preserve individual assembly identity?
+Tests whether co-stimulation association enables one area to recover
+another area's trained assembly after corruption. This is the core
+binding mechanism of Assembly Calculus — the neural basis of
+associative memory.
 
-Expected Results:
-- Overlap should increase monotonically with association rounds
-- Assemblies should remain distinguishable after association
-- Association should be approximately symmetric
+Protocol:
+1. Establish assemblies in areas A and B via stim+self training (30 rounds).
+2. Associate via co-stimulation: both stimuli fire simultaneously while
+   cross-area projections learn (N rounds).
+   - Bidirectional: project({"sa": ["A"], "sb": ["B"]}, {"A": ["B"], "B": ["A"]})
+   - Unidirectional: project({"sa": ["A"], "sb": ["B"]}, {"A": ["B"]})
+3. Test recovery: Corrupt B (replace winners with random neurons),
+   activate A via its stimulus, project A→B for 20 rounds, measure
+   B overlap with original trained B.
+4. Test identity: After association, re-activate stimulus A with stim+self,
+   measure overlap with original trained A.
+
+Co-stimulation is biologically realistic: association occurs when two
+signals co-occur in the environment (e.g., hearing "dog" while seeing
+a dog — both cortical representations are simultaneously active).
+
+Hypotheses:
+
+H1: Basic association — Co-stimulation A↔B for 30 rounds enables
+    near-perfect recovery of B from A after corruption.
+    Null: recovery equals chance k/n.
+
+H2: Recovery vs training rounds — Recovery increases monotonically
+    with number of association rounds, saturating around 30.
+    Null: recovery is independent of training duration.
+
+H3: Bidirectional vs unidirectional — Unidirectional (A→B only) and
+    bidirectional (A↔B) should produce equivalent A→B recovery,
+    since B→A connections are irrelevant for A→B recall.
+    Null: recovery is independent of directionality.
+
+H4: Identity preservation — After association training, re-activating
+    each stimulus recovers its original assembly with perfect fidelity.
+    Null: association degrades source assemblies.
+
+H1 Extended: Recovery vs network size — Larger networks (k=sqrt(n))
+    support better recovery because sparser representations have better
+    signal-to-noise in cross-area connections.
+    Null: recovery is independent of n.
+
+Statistical methodology:
+- N_SEEDS=10 independent random seeds per condition.
+- One-sample t-test against null k/n.
+- Paired t-test for H3.
+- Cohen's d effect sizes. Mean +/- SEM.
+
+References:
+- Papadimitriou et al., PNAS 117(25):14464-14472, 2020
+- Dabagia et al., "Coin-Flipping in the Brain", 2024 (weight saturation)
 """
 
 import sys
 from pathlib import Path
 
-# Add project root to path
 project_root = Path(__file__).parent.parent.parent.parent
 sys.path.insert(0, str(project_root))
 
 import numpy as np
-from typing import Dict, List, Any
 from dataclasses import dataclass
-
+from typing import Dict, List, Any
 from research.experiments.base import (
-    ExperimentBase, 
-    ExperimentResult, 
+    ExperimentBase,
+    ExperimentResult,
     measure_overlap,
+    chance_overlap,
+    summarize,
+    ttest_vs_null,
+    paired_ttest,
 )
 
-import brain as brain_module
+from src.core.brain import Brain
+
+N_SEEDS = 10
 
 
 @dataclass
-class AssociationConfig:
-    """Configuration for association test."""
-    n_neurons: int
-    k_active: int
-    p_connect: float
+class AssocConfig:
+    """Configuration for association trials."""
+    n: int
+    k: int
+    p: float
     beta: float
-    n_association_rounds: int = 20
-    n_projection_rounds: int = 10  # To establish assemblies first
+    w_max: float
+    establish_rounds: int = 30
+    assoc_rounds: int = 30
+    test_rounds: int = 20
 
 
-class AssociationBindingExperiment(ExperimentBase):
+# ── Core trial runner ──────────────────────────────────────────────
+
+
+def run_association_trial(
+    cfg: AssocConfig, seed: int, bidirectional: bool = True,
+    rng: np.random.Generator = None,
+) -> Dict[str, float]:
     """
-    Test: Does association increase overlap between assemblies?
-    
-    Hypothesis: Repeatedly co-activating two assemblies increases their
-    overlap through Hebbian plasticity.
+    Train association between A and B, then test recovery of B from A.
+
+    Returns recovery overlap (corrupted B recovered via A→B projection).
     """
-    
+    b = Brain(p=cfg.p, seed=seed, w_max=cfg.w_max)
+
+    b.add_area("A", cfg.n, cfg.k, cfg.beta, explicit=True)
+    b.add_area("B", cfg.n, cfg.k, cfg.beta, explicit=True)
+    b.add_stimulus("sa", cfg.k)
+    b.add_stimulus("sb", cfg.k)
+
+    # Establish assembly A (stim+self)
+    for _ in range(cfg.establish_rounds):
+        b.project({"sa": ["A"]}, {"A": ["A"]})
+    trained_a = np.array(b.areas["A"].winners, dtype=np.uint32)
+
+    # Establish assembly B (stim+self)
+    for _ in range(cfg.establish_rounds):
+        b.project({"sb": ["B"]}, {"B": ["B"]})
+    trained_b = np.array(b.areas["B"].winners, dtype=np.uint32)
+
+    # Associate via co-stimulation
+    if bidirectional:
+        for _ in range(cfg.assoc_rounds):
+            b.project({"sa": ["A"], "sb": ["B"]}, {"A": ["B"], "B": ["A"]})
+    else:
+        for _ in range(cfg.assoc_rounds):
+            b.project({"sa": ["A"], "sb": ["B"]}, {"A": ["B"]})
+
+    # Corrupt B: replace all winners with random neurons
+    if rng is None:
+        rng = np.random.default_rng(seed + 99999)
+    random_winners = rng.choice(cfg.n, cfg.k, replace=False).tolist()
+    b.areas["B"].winners = random_winners
+
+    # Recover B via A→B projection
+    for _ in range(cfg.test_rounds):
+        b.project({"sa": ["A"]}, {"A": ["B"]})
+
+    recovery = measure_overlap(trained_b, np.array(b.areas["B"].winners, dtype=np.uint32))
+
+    return {"recovery": recovery, "trained_a": trained_a, "trained_b": trained_b}
+
+
+def run_identity_trial(
+    cfg: AssocConfig, seed: int,
+) -> Dict[str, float]:
+    """After association, test whether original assemblies are preserved."""
+    b = Brain(p=cfg.p, seed=seed, w_max=cfg.w_max)
+
+    b.add_area("A", cfg.n, cfg.k, cfg.beta, explicit=True)
+    b.add_area("B", cfg.n, cfg.k, cfg.beta, explicit=True)
+    b.add_stimulus("sa", cfg.k)
+    b.add_stimulus("sb", cfg.k)
+
+    # Establish
+    for _ in range(cfg.establish_rounds):
+        b.project({"sa": ["A"]}, {"A": ["A"]})
+    trained_a = np.array(b.areas["A"].winners, dtype=np.uint32)
+
+    for _ in range(cfg.establish_rounds):
+        b.project({"sb": ["B"]}, {"B": ["B"]})
+    trained_b = np.array(b.areas["B"].winners, dtype=np.uint32)
+
+    # Associate (bidirectional)
+    for _ in range(cfg.assoc_rounds):
+        b.project({"sa": ["A"], "sb": ["B"]}, {"A": ["B"], "B": ["A"]})
+
+    # Re-activate A via stim+self
+    for _ in range(cfg.test_rounds):
+        b.project({"sa": ["A"]}, {"A": ["A"]})
+    recovery_a = measure_overlap(trained_a, np.array(b.areas["A"].winners, dtype=np.uint32))
+
+    # Re-activate B via stim+self
+    for _ in range(cfg.test_rounds):
+        b.project({"sb": ["B"]}, {"B": ["B"]})
+    recovery_b = measure_overlap(trained_b, np.array(b.areas["B"].winners, dtype=np.uint32))
+
+    return {"recovery_a": recovery_a, "recovery_b": recovery_b}
+
+
+# ── Main experiment ──────────────────────────────────────────────────
+
+
+class AssociationExperiment(ExperimentBase):
+    """Test cross-area association via co-stimulation."""
+
     def __init__(self, results_dir: Path = None, seed: int = 42, verbose: bool = True):
         super().__init__(
-            name="association_binding",
+            name="association",
             seed=seed,
             results_dir=results_dir or Path(__file__).parent.parent.parent / "results" / "primitives",
-            verbose=verbose
+            verbose=verbose,
         )
-    
-    def _establish_assembly(
-        self, 
-        brain: brain_module.Brain, 
-        stim_name: str, 
-        area_name: str,
-        n_rounds: int
-    ) -> np.ndarray:
-        """Project stimulus into area to establish stable assembly."""
-        for _ in range(n_rounds):
-            brain.project(
-                areas_by_stim={stim_name: [area_name]},
-                dst_areas_by_src_area={}
-            )
-        return np.array(brain.area_by_name[area_name].winners, dtype=np.uint32)
-    
-    def run_single_trial(
-        self, 
-        config: AssociationConfig,
-        trial_id: int = 0
-    ) -> Dict[str, Any]:
-        """
-        Run a single association trial.
-        
-        Tests association by:
-        1. Creating two assemblies in separate areas (A and B)
-        2. Projecting both to a shared area C
-        3. Measuring if repeated co-projection increases overlap
-        
-        This tests the core association mechanism: when two assemblies
-        repeatedly project to the same area, their representations should
-        become more similar (increased overlap).
-        """
-        self.log(f"  Trial {trial_id}: n={config.n_neurons}, k={config.k_active}")
-        
-        # Create brain with two source areas and one target area
-        b = brain_module.Brain(p=config.p_connect, seed=self.seed + trial_id)
-        
-        # Add two stimuli for the source areas
-        b.add_stimulus("STIM_A", config.k_active)
-        b.add_stimulus("STIM_B", config.k_active)
-        
-        # Add source areas A and B
-        b.add_area("AREA_A", config.n_neurons, config.k_active, config.beta)
-        b.add_area("AREA_B", config.n_neurons, config.k_active, config.beta)
-        
-        # Add target area C where association happens
-        b.add_area("AREA_C", config.n_neurons, config.k_active, config.beta)
-        
-        # Phase 1: Establish assembly in AREA_A
-        self.log("    Establishing assembly A...")
-        for _ in range(config.n_projection_rounds):
-            b.project(areas_by_stim={"STIM_A": ["AREA_A"]}, dst_areas_by_src_area={})
-        assembly_a = np.array(b.area_by_name["AREA_A"].winners, dtype=np.uint32)
-        
-        # Phase 2: Establish assembly in AREA_B
-        self.log("    Establishing assembly B...")
-        for _ in range(config.n_projection_rounds):
-            b.project(areas_by_stim={"STIM_B": ["AREA_B"]}, dst_areas_by_src_area={})
-        assembly_b = np.array(b.area_by_name["AREA_B"].winners, dtype=np.uint32)
-        
-        # Phase 3: Project A alone to C, record assembly
-        self.log("    Projecting A -> C...")
-        for _ in range(config.n_projection_rounds):
-            b.project(
-                areas_by_stim={},
-                dst_areas_by_src_area={"AREA_A": ["AREA_C"]}
-            )
-        assembly_c_from_a = np.array(b.area_by_name["AREA_C"].winners, dtype=np.uint32)
-        
-        # Phase 4: Project B alone to C (fresh brain for fair comparison)
-        b2 = brain_module.Brain(p=config.p_connect, seed=self.seed + trial_id + 1000)
-        b2.add_stimulus("STIM_B", config.k_active)
-        b2.add_area("AREA_B", config.n_neurons, config.k_active, config.beta)
-        b2.add_area("AREA_C", config.n_neurons, config.k_active, config.beta)
-        
-        for _ in range(config.n_projection_rounds):
-            b2.project(areas_by_stim={"STIM_B": ["AREA_B"]}, dst_areas_by_src_area={})
-        
-        for _ in range(config.n_projection_rounds):
-            b2.project(
-                areas_by_stim={},
-                dst_areas_by_src_area={"AREA_B": ["AREA_C"]}
-            )
-        assembly_c_from_b = np.array(b2.area_by_name["AREA_C"].winners, dtype=np.uint32)
-        
-        # Measure initial overlap between C assemblies from A vs B
-        initial_overlap = measure_overlap(assembly_c_from_a, assembly_c_from_b)
-        self.log(f"    Initial overlap (A->C vs B->C): {initial_overlap:.3f}")
-        
-        # Phase 5: Association - repeatedly co-project A and B to C
-        # This should strengthen connections and increase overlap
-        self.log(f"    Running {config.n_association_rounds} association rounds...")
-        
-        overlap_history = [initial_overlap]
-        
-        for round_idx in range(config.n_association_rounds):
-            # Co-project both areas to C
-            b.project(
-                areas_by_stim={},
-                dst_areas_by_src_area={"AREA_A": ["AREA_C"], "AREA_B": ["AREA_C"]}
-            )
-            
-            # Measure overlap with original assemblies
-            current_c = np.array(b.area_by_name["AREA_C"].winners, dtype=np.uint32)
-            overlap_a = measure_overlap(current_c, assembly_c_from_a)
-            overlap_b = measure_overlap(current_c, assembly_c_from_b)
-            
-            # Track combined overlap
-            combined_overlap = (overlap_a + overlap_b) / 2
-            overlap_history.append(combined_overlap)
-        
-        final_overlap = overlap_history[-1]
-        overlap_increase = final_overlap - initial_overlap
-        
-        self.log(f"    Final overlap: {final_overlap:.3f} (increase: {overlap_increase:+.3f})")
-        
-        return {
-            "trial_id": trial_id,
-            "config": {
-                "n_neurons": config.n_neurons,
-                "k_active": config.k_active,
-                "p_connect": config.p_connect,
-                "beta": config.beta,
-            },
-            "initial_overlap": initial_overlap,
-            "final_overlap": final_overlap,
-            "overlap_increase": overlap_increase,
-            "overlap_history": overlap_history,
-            "association_successful": final_overlap > 0.5,  # Assembly captures both sources
-            "assembly_a_size": len(assembly_a),
-            "assembly_b_size": len(assembly_b),
-        }
-    
+
     def run(
         self,
-        n_neurons_range: List[int] = None,
-        k_active_range: List[int] = None,
-        p_connect_range: List[float] = None,
-        beta_range: List[float] = None,
-        n_trials: int = 5,
-        **kwargs
+        n: int = 1000,
+        k: int = 100,
+        p: float = 0.05,
+        beta: float = 0.10,
+        w_max: float = 20.0,
+        n_seeds: int = N_SEEDS,
+        **kwargs,
     ) -> ExperimentResult:
-        """Run association experiment across parameter ranges."""
         self._start_timer()
-        
-        # Default parameter ranges
-        if n_neurons_range is None:
-            n_neurons_range = [1000, 10000]
-        if k_active_range is None:
-            k_active_range = [50, 100]
-        if p_connect_range is None:
-            p_connect_range = [0.05, 0.1]
-        if beta_range is None:
-            beta_range = [0.05, 0.1]
-        
-        self.log("Starting association binding experiment")
-        self.log(f"  n_neurons: {n_neurons_range}")
-        self.log(f"  k_active: {k_active_range}")
-        
-        all_results = []
-        
-        for n in n_neurons_range:
-            for k in k_active_range:
-                if k >= n:
-                    continue
-                    
-                for p in p_connect_range:
-                    for beta in beta_range:
-                        self.log(f"\nConfig: n={n}, k={k}, p={p}, beta={beta}")
-                        
-                        config = AssociationConfig(
-                            n_neurons=n,
-                            k_active=k,
-                            p_connect=p,
-                            beta=beta
-                        )
-                        
-                        trial_results = []
-                        for trial in range(n_trials):
-                            try:
-                                result = self.run_single_trial(config, trial)
-                                trial_results.append(result)
-                            except Exception as e:
-                                self.log(f"    Trial {trial} failed: {e}")
-                                trial_results.append({
-                                    "trial_id": trial,
-                                    "error": str(e),
-                                    "association_successful": False,
-                                })
-                        
-                        successful_trials = [r for r in trial_results if "error" not in r]
-                        
-                        if successful_trials:
-                            success_rate = sum(1 for r in successful_trials if r["association_successful"]) / len(successful_trials)
-                            mean_overlap_increase = np.mean([r["overlap_increase"] for r in successful_trials])
-                            mean_final_overlap = np.mean([r["final_overlap"] for r in successful_trials])
-                        else:
-                            success_rate = 0.0
-                            mean_overlap_increase = 0.0
-                            mean_final_overlap = 0.0
-                        
-                        all_results.append({
-                            "config": {
-                                "n_neurons": n,
-                                "k_active": k,
-                                "p_connect": p,
-                                "beta": beta,
-                            },
-                            "success_rate": success_rate,
-                            "mean_overlap_increase": mean_overlap_increase,
-                            "mean_final_overlap": mean_final_overlap,
-                            "trial_details": trial_results,
-                        })
-        
-        duration = self._stop_timer()
-        
-        summary = {
-            "total_configurations": len(all_results),
-            "overall_success_rate": np.mean([r["success_rate"] for r in all_results]) if all_results else 0,
-            "mean_overlap_increase": np.mean([r["mean_overlap_increase"] for r in all_results]) if all_results else 0,
+        seeds = list(range(n_seeds))
+        rng = np.random.default_rng(self.seed)
+
+        cfg = AssocConfig(n=n, k=k, p=p, beta=beta, w_max=w_max)
+        null = chance_overlap(k, n)
+
+        self.log("=" * 60)
+        self.log("Association Experiment (Co-Stimulation Protocol)")
+        self.log(f"  n={n}, k={k}, p={p}, beta={beta}, w_max={w_max}")
+        self.log(f"  establish_rounds={cfg.establish_rounds}")
+        self.log(f"  assoc_rounds={cfg.assoc_rounds}")
+        self.log(f"  test_rounds={cfg.test_rounds}")
+        self.log(f"  null overlap (k/n) = {null:.3f}")
+        self.log(f"  n_seeds={n_seeds}")
+        self.log("=" * 60)
+
+        metrics: Dict[str, Any] = {}
+
+        # ================================================================
+        # H1: Basic association (bidirectional, 30 rounds)
+        # ================================================================
+        self.log("\n" + "=" * 60)
+        self.log("H1: Basic Association (bidirectional co-stimulation)")
+        self.log("=" * 60)
+
+        h1_recoveries = []
+        for s in seeds:
+            trial = run_association_trial(cfg, seed=self.seed + s, bidirectional=True, rng=rng)
+            h1_recoveries.append(trial["recovery"])
+
+        metrics["basic_association"] = {
+            "recovery": summarize(h1_recoveries),
+            "test_vs_null": ttest_vs_null(h1_recoveries, null),
         }
-        
-        self.log(f"\n{'='*60}")
-        self.log("SUMMARY:")
-        self.log(f"  Overall success rate: {summary['overall_success_rate']:.2%}")
-        self.log(f"  Mean overlap increase: {summary['mean_overlap_increase']:.3f}")
-        self.log(f"  Duration: {duration:.1f}s")
-        
-        result = ExperimentResult(
+
+        self.log(
+            f"  Recovery: {metrics['basic_association']['recovery']['mean']:.3f}"
+            f"+/-{metrics['basic_association']['recovery']['sem']:.3f}  "
+            f"d={metrics['basic_association']['test_vs_null']['d']:.1f}"
+        )
+
+        # ================================================================
+        # H2: Recovery vs training rounds
+        # ================================================================
+        self.log("\n" + "=" * 60)
+        self.log("H2: Recovery vs Association Training Rounds")
+        self.log("=" * 60)
+
+        round_values = [1, 5, 10, 20, 30, 50]
+        h2_results = []
+
+        for n_rounds in round_values:
+            cfg_h2 = AssocConfig(n=n, k=k, p=p, beta=beta, w_max=w_max,
+                                 assoc_rounds=n_rounds)
+            recoveries = []
+            for s in seeds:
+                trial = run_association_trial(cfg_h2, seed=self.seed + s,
+                                             bidirectional=True, rng=rng)
+                recoveries.append(trial["recovery"])
+
+            row = {
+                "assoc_rounds": n_rounds,
+                "recovery": summarize(recoveries),
+                "test_vs_null": ttest_vs_null(recoveries, null),
+            }
+            h2_results.append(row)
+
+            self.log(
+                f"  rounds={n_rounds:2d}: "
+                f"{row['recovery']['mean']:.3f}+/-{row['recovery']['sem']:.3f}  "
+                f"d={row['test_vs_null']['d']:.1f}"
+            )
+
+        metrics["recovery_vs_training"] = h2_results
+
+        # ================================================================
+        # H3: Bidirectional vs unidirectional
+        # ================================================================
+        self.log("\n" + "=" * 60)
+        self.log("H3: Bidirectional vs Unidirectional Association")
+        self.log("=" * 60)
+
+        bidir_recoveries = []
+        unidir_recoveries = []
+
+        for s in seeds:
+            trial_bi = run_association_trial(cfg, seed=self.seed + s,
+                                            bidirectional=True, rng=rng)
+            bidir_recoveries.append(trial_bi["recovery"])
+
+            trial_uni = run_association_trial(cfg, seed=self.seed + s,
+                                             bidirectional=False, rng=rng)
+            unidir_recoveries.append(trial_uni["recovery"])
+
+        metrics["directionality"] = {
+            "bidirectional": {
+                "recovery": summarize(bidir_recoveries),
+                "test_vs_null": ttest_vs_null(bidir_recoveries, null),
+            },
+            "unidirectional": {
+                "recovery": summarize(unidir_recoveries),
+                "test_vs_null": ttest_vs_null(unidir_recoveries, null),
+            },
+            "paired_test": paired_ttest(bidir_recoveries, unidir_recoveries),
+        }
+
+        self.log(
+            f"  Bidirectional:  {summarize(bidir_recoveries)['mean']:.3f}"
+            f"+/-{summarize(bidir_recoveries)['sem']:.3f}"
+        )
+        self.log(
+            f"  Unidirectional: {summarize(unidir_recoveries)['mean']:.3f}"
+            f"+/-{summarize(unidir_recoveries)['sem']:.3f}"
+        )
+        paired = metrics["directionality"]["paired_test"]
+        self.log(f"  Paired t-test: t={paired['t']:.2f}, p={paired['p']:.3f}, d={paired['d']:.1f}")
+
+        # ================================================================
+        # H4: Identity preservation
+        # ================================================================
+        self.log("\n" + "=" * 60)
+        self.log("H4: Identity Preservation After Association")
+        self.log("=" * 60)
+
+        identity_a_vals = []
+        identity_b_vals = []
+
+        for s in seeds:
+            trial = run_identity_trial(cfg, seed=self.seed + s)
+            identity_a_vals.append(trial["recovery_a"])
+            identity_b_vals.append(trial["recovery_b"])
+
+        metrics["identity_preservation"] = {
+            "stimulus_recovery_A": {
+                "stats": summarize(identity_a_vals),
+                "test_vs_null": ttest_vs_null(identity_a_vals, null),
+            },
+            "stimulus_recovery_B": {
+                "stats": summarize(identity_b_vals),
+                "test_vs_null": ttest_vs_null(identity_b_vals, null),
+            },
+        }
+
+        self.log(f"  Stim→A recovery: {summarize(identity_a_vals)['mean']:.3f}")
+        self.log(f"  Stim→B recovery: {summarize(identity_b_vals)['mean']:.3f}")
+
+        # ================================================================
+        # H1 Extended: Recovery vs network size (k=sqrt(n))
+        # ================================================================
+        self.log("\n" + "=" * 60)
+        self.log("H1 Extended: Recovery vs Network Size (k=sqrt(n))")
+        self.log("=" * 60)
+
+        h1e_sizes = [200, 500, 1000, 2000]
+        h1e_results = []
+
+        for n_val in h1e_sizes:
+            k_val = int(np.sqrt(n_val))
+            cfg_h1e = AssocConfig(n=n_val, k=k_val, p=p, beta=beta, w_max=w_max)
+            null_h1e = chance_overlap(k_val, n_val)
+
+            recoveries = []
+            for s in seeds:
+                trial = run_association_trial(cfg_h1e, seed=self.seed + s,
+                                             bidirectional=True, rng=rng)
+                recoveries.append(trial["recovery"])
+
+            row = {
+                "n": n_val,
+                "k": k_val,
+                "recovery": summarize(recoveries),
+                "test_vs_null": ttest_vs_null(recoveries, null_h1e),
+            }
+            h1e_results.append(row)
+
+            self.log(
+                f"  n={n_val:4d}, k={k_val:2d}: "
+                f"{row['recovery']['mean']:.3f}+/-{row['recovery']['sem']:.3f}  "
+                f"d={row['test_vs_null']['d']:.1f}"
+            )
+
+        metrics["recovery_vs_size"] = h1e_results
+
+        duration = self._stop_timer()
+        self.log(f"\nDuration: {duration:.1f}s")
+
+        return ExperimentResult(
             experiment_name=self.name,
             parameters={
-                "n_neurons_range": n_neurons_range,
-                "k_active_range": k_active_range,
-                "p_connect_range": p_connect_range,
-                "beta_range": beta_range,
-                "n_trials": n_trials,
-                "seed": self.seed,
+                "n_seeds": n_seeds,
+                "base_n": n, "base_k": k, "base_p": p,
+                "base_beta": beta, "base_wmax": w_max,
+                "establish_rounds": cfg.establish_rounds,
+                "test_rounds": cfg.test_rounds,
             },
-            metrics=summary,
-            raw_data={"all_results": all_results},
+            metrics=metrics,
+            raw_data={},
             duration_seconds=duration,
         )
-        
-        return result
 
 
-def run_quick_test():
-    """Run a quick test."""
-    print("="*60)
-    print("QUICK TEST: Association Binding")
-    print("="*60)
-    
-    exp = AssociationBindingExperiment(verbose=True)
-    
-    result = exp.run(
-        n_neurons_range=[1000, 5000],
-        k_active_range=[50],
-        p_connect_range=[0.1],
-        beta_range=[0.1],
-        n_trials=3,
-    )
-    
-    path = exp.save_result(result, "_quick")
-    print(f"\nResults saved to: {path}")
-    
-    return result
+def main():
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Association Experiment")
+    parser.add_argument("--quick", action="store_true", help="Quick run (fewer seeds)")
+
+    args = parser.parse_args()
+
+    exp = AssociationExperiment(verbose=True)
+
+    if args.quick:
+        result = exp.run(n_seeds=5)
+        exp.save_result(result, "_quick")
+    else:
+        result = exp.run()
+        exp.save_result(result)
+
+    # ── Summary ──
+    print("\n" + "=" * 70)
+    print("ASSOCIATION EXPERIMENT SUMMARY")
+    print("=" * 70)
+
+    m = result.metrics
+    print(f"\nH1: Basic association recovery: {m['basic_association']['recovery']['mean']:.3f}")
+    print(f"\nH2: Recovery vs training rounds:")
+    for r in m["recovery_vs_training"]:
+        print(f"  {r['assoc_rounds']:2d} rounds: {r['recovery']['mean']:.3f}")
+    print(f"\nH3: Bidirectional vs unidirectional:")
+    print(f"  Bidir:  {m['directionality']['bidirectional']['recovery']['mean']:.3f}")
+    print(f"  Unidir: {m['directionality']['unidirectional']['recovery']['mean']:.3f}")
+    print(f"\nH4: Identity preservation:")
+    print(f"  Stim→A: {m['identity_preservation']['stimulus_recovery_A']['stats']['mean']:.3f}")
+    print(f"  Stim→B: {m['identity_preservation']['stimulus_recovery_B']['stats']['mean']:.3f}")
+    print(f"\nH1 Extended: Recovery vs size:")
+    for r in m["recovery_vs_size"]:
+        print(f"  n={r['n']:4d}: {r['recovery']['mean']:.3f}")
+
+    print(f"\nTotal time: {result.duration_seconds:.1f}s")
 
 
 if __name__ == "__main__":
-    import argparse
-    
-    parser = argparse.ArgumentParser(description="Association Binding Experiment")
-    parser.add_argument("--quick", action="store_true", help="Run quick test only")
-    
-    args = parser.parse_args()
-    
-    if args.quick:
-        run_quick_test()
-    else:
-        exp = AssociationBindingExperiment(verbose=True)
-        result = exp.run(n_trials=5)
-        exp.save_result(result, "_full")
-
+    main()

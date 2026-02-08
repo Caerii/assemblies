@@ -32,7 +32,7 @@ from research.experiments.base import (
     measure_overlap,
 )
 
-import brain as brain_module
+from src.core.brain import Brain
 
 
 @dataclass
@@ -65,11 +65,11 @@ class CapacityLimitsExperiment(ExperimentBase):
         trial_id: int = 0
     ) -> Dict[str, np.ndarray]:
         """Create n assemblies in the same brain."""
-        b = brain_module.Brain(p=config.p_connect, seed=self.seed + trial_id)
+        b = Brain(p=config.p_connect, seed=self.seed + trial_id, w_max=20.0)
         
         for i in range(n_assemblies):
             b.add_stimulus(f"STIM_{i}", config.k_active)
-        b.add_area("TARGET", config.n_neurons, config.k_active, config.beta)
+        b.add_area("TARGET", config.n_neurons, config.k_active, config.beta, explicit=True)
         
         assemblies = {}
         for i in range(n_assemblies):
@@ -79,7 +79,7 @@ class CapacityLimitsExperiment(ExperimentBase):
                     areas_by_stim={stim_name: ["TARGET"]},
                     dst_areas_by_src_area={}
                 )
-            assemblies[stim_name] = np.array(b.area_by_name["TARGET"].winners, dtype=np.uint32)
+            assemblies[stim_name] = np.array(b.areas["TARGET"].winners, dtype=np.uint32)
         
         return assemblies
     
@@ -214,11 +214,11 @@ class CapacityLimitsExperiment(ExperimentBase):
         Create assemblies sequentially and check if early assemblies
         are still retrievable after creating many more.
         """
-        b = brain_module.Brain(p=config.p_connect, seed=self.seed + trial_id)
+        b = Brain(p=config.p_connect, seed=self.seed + trial_id, w_max=20.0)
         
         for i in range(n_assemblies):
             b.add_stimulus(f"STIM_{i}", config.k_active)
-        b.add_area("TARGET", config.n_neurons, config.k_active, config.beta)
+        b.add_area("TARGET", config.n_neurons, config.k_active, config.beta, explicit=True)
         
         # Create assemblies and save them
         original_assemblies = {}
@@ -229,7 +229,7 @@ class CapacityLimitsExperiment(ExperimentBase):
                     areas_by_stim={stim_name: ["TARGET"]},
                     dst_areas_by_src_area={}
                 )
-            original_assemblies[stim_name] = np.array(b.area_by_name["TARGET"].winners, dtype=np.uint32)
+            original_assemblies[stim_name] = np.array(b.areas["TARGET"].winners, dtype=np.uint32)
         
         # Now re-activate each stimulus and see if we get the same assembly
         retrieval_overlaps = []
@@ -243,7 +243,7 @@ class CapacityLimitsExperiment(ExperimentBase):
                     dst_areas_by_src_area={}
                 )
             
-            retrieved = np.array(b.area_by_name["TARGET"].winners, dtype=np.uint32)
+            retrieved = np.array(b.areas["TARGET"].winners, dtype=np.uint32)
             overlap = measure_overlap(original_assemblies[stim_name], retrieved)
             
             retrieval_overlaps.append({

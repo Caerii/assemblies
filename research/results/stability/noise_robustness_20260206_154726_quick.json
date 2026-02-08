@@ -1,0 +1,300 @@
+{
+  "experiment_name": "noise_robustness",
+  "timestamp": "2026-02-06T15:47:26.925631",
+  "parameters": {
+    "n": 1000,
+    "k": 100,
+    "p": 0.05,
+    "beta": 0.1,
+    "w_max": 20.0,
+    "establish_rounds": 30,
+    "recovery_rounds": 20,
+    "noise_fracs": [
+      0.0,
+      0.3,
+      0.6,
+      1.0
+    ],
+    "n_seeds": 3
+  },
+  "metrics": {
+    "h1_stimulus_recovery": [
+      {
+        "noise_frac": 0.0,
+        "final_overlap": {
+          "mean": 1.0,
+          "std": 0.0,
+          "sem": 0.0,
+          "ci95_lo": 1.0,
+          "ci95_hi": 1.0,
+          "min": 1.0,
+          "max": 1.0,
+          "n": 3
+        },
+        "test_vs_chance": {
+          "t": Infinity,
+          "p": 0.0,
+          "d": Infinity,
+          "sig": "True"
+        }
+      },
+      {
+        "noise_frac": 0.3,
+        "final_overlap": {
+          "mean": 1.0,
+          "std": 0.0,
+          "sem": 0.0,
+          "ci95_lo": 1.0,
+          "ci95_hi": 1.0,
+          "min": 1.0,
+          "max": 1.0,
+          "n": 3
+        },
+        "test_vs_chance": {
+          "t": Infinity,
+          "p": 0.0,
+          "d": Infinity,
+          "sig": "True"
+        }
+      },
+      {
+        "noise_frac": 0.6,
+        "final_overlap": {
+          "mean": 1.0,
+          "std": 0.0,
+          "sem": 0.0,
+          "ci95_lo": 1.0,
+          "ci95_hi": 1.0,
+          "min": 1.0,
+          "max": 1.0,
+          "n": 3
+        },
+        "test_vs_chance": {
+          "t": Infinity,
+          "p": 0.0,
+          "d": Infinity,
+          "sig": "True"
+        }
+      },
+      {
+        "noise_frac": 1.0,
+        "final_overlap": {
+          "mean": 1.0,
+          "std": 0.0,
+          "sem": 0.0,
+          "ci95_lo": 1.0,
+          "ci95_hi": 1.0,
+          "min": 1.0,
+          "max": 1.0,
+          "n": 3
+        },
+        "test_vs_chance": {
+          "t": Infinity,
+          "p": 0.0,
+          "d": Infinity,
+          "sig": "True"
+        }
+      }
+    ],
+    "h2_autonomous_recovery": [
+      {
+        "noise_frac": 0.0,
+        "final_overlap": {
+          "mean": 1.0,
+          "std": 0.0,
+          "sem": 0.0,
+          "ci95_lo": 1.0,
+          "ci95_hi": 1.0,
+          "min": 1.0,
+          "max": 1.0,
+          "n": 3
+        },
+        "test_vs_chance": {
+          "t": Infinity,
+          "p": 0.0,
+          "d": Infinity,
+          "sig": "True"
+        }
+      },
+      {
+        "noise_frac": 0.3,
+        "final_overlap": {
+          "mean": 1.0,
+          "std": 0.0,
+          "sem": 0.0,
+          "ci95_lo": 1.0,
+          "ci95_hi": 1.0,
+          "min": 1.0,
+          "max": 1.0,
+          "n": 3
+        },
+        "test_vs_chance": {
+          "t": Infinity,
+          "p": 0.0,
+          "d": Infinity,
+          "sig": "True"
+        }
+      },
+      {
+        "noise_frac": 0.6,
+        "final_overlap": {
+          "mean": 1.0,
+          "std": 0.0,
+          "sem": 0.0,
+          "ci95_lo": 1.0,
+          "ci95_hi": 1.0,
+          "min": 1.0,
+          "max": 1.0,
+          "n": 3
+        },
+        "test_vs_chance": {
+          "t": Infinity,
+          "p": 0.0,
+          "d": Infinity,
+          "sig": "True"
+        }
+      },
+      {
+        "noise_frac": 1.0,
+        "final_overlap": {
+          "mean": 1.0,
+          "std": 0.0,
+          "sem": 0.0,
+          "ci95_lo": 1.0,
+          "ci95_hi": 1.0,
+          "min": 1.0,
+          "max": 1.0,
+          "n": 3
+        },
+        "test_vs_chance": {
+          "t": Infinity,
+          "p": 0.0,
+          "d": Infinity,
+          "sig": "True"
+        }
+      }
+    ],
+    "h3_association_recovery": [
+      {
+        "noise_frac": 0.0,
+        "final_overlap": {
+          "mean": 0.9966666666666667,
+          "std": 0.005773502691896262,
+          "sem": 0.003333333333333336,
+          "ci95_lo": 0.9901333333333333,
+          "ci95_hi": 1.0032,
+          "min": 0.99,
+          "max": 1.0,
+          "n": 3
+        },
+        "a_intact": {
+          "mean": 1.0,
+          "std": 0.0,
+          "sem": 0.0,
+          "ci95_lo": 1.0,
+          "ci95_hi": 1.0,
+          "min": 1.0,
+          "max": 1.0,
+          "n": 3
+        },
+        "test_vs_chance": {
+          "t": 268.9999999999998,
+          "p": 1.3819312489863468e-05,
+          "d": 155.30722241200922,
+          "sig": "True"
+        }
+      },
+      {
+        "noise_frac": 0.3,
+        "final_overlap": {
+          "mean": 0.9933333333333333,
+          "std": 0.005773502691896262,
+          "sem": 0.003333333333333336,
+          "ci95_lo": 0.9867999999999999,
+          "ci95_hi": 0.9998666666666667,
+          "min": 0.99,
+          "max": 1.0,
+          "n": 3
+        },
+        "a_intact": {
+          "mean": 1.0,
+          "std": 0.0,
+          "sem": 0.0,
+          "ci95_lo": 1.0,
+          "ci95_hi": 1.0,
+          "min": 1.0,
+          "max": 1.0,
+          "n": 3
+        },
+        "test_vs_chance": {
+          "t": 267.9999999999998,
+          "p": 1.3922631935015585e-05,
+          "d": 154.72987214281957,
+          "sig": "True"
+        }
+      },
+      {
+        "noise_frac": 0.6,
+        "final_overlap": {
+          "mean": 0.9966666666666667,
+          "std": 0.005773502691896262,
+          "sem": 0.003333333333333336,
+          "ci95_lo": 0.9901333333333333,
+          "ci95_hi": 1.0032,
+          "min": 0.99,
+          "max": 1.0,
+          "n": 3
+        },
+        "a_intact": {
+          "mean": 1.0,
+          "std": 0.0,
+          "sem": 0.0,
+          "ci95_lo": 1.0,
+          "ci95_hi": 1.0,
+          "min": 1.0,
+          "max": 1.0,
+          "n": 3
+        },
+        "test_vs_chance": {
+          "t": 268.9999999999998,
+          "p": 1.3819312489863468e-05,
+          "d": 155.30722241200922,
+          "sig": "True"
+        }
+      },
+      {
+        "noise_frac": 1.0,
+        "final_overlap": {
+          "mean": 0.9966666666666667,
+          "std": 0.005773502691896262,
+          "sem": 0.003333333333333336,
+          "ci95_lo": 0.9901333333333333,
+          "ci95_hi": 1.0032,
+          "min": 0.99,
+          "max": 1.0,
+          "n": 3
+        },
+        "a_intact": {
+          "mean": 1.0,
+          "std": 0.0,
+          "sem": 0.0,
+          "ci95_lo": 1.0,
+          "ci95_hi": 1.0,
+          "min": 1.0,
+          "max": 1.0,
+          "n": 3
+        },
+        "test_vs_chance": {
+          "t": 268.9999999999998,
+          "p": 1.3819312489863468e-05,
+          "d": 155.30722241200922,
+          "sig": "True"
+        }
+      }
+    ]
+  },
+  "raw_data": {},
+  "success": true,
+  "error_message": null,
+  "duration_seconds": 20.860404499981087
+}

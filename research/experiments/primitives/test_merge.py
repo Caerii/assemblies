@@ -1,375 +1,389 @@
 """
-Merge Primitive Validation
+Merge Primitive: Assembly Composition via Co-Projection
 
-Scientific Questions:
-1. Does merge create a new assembly representing both parent assemblies?
-2. Is the merged assembly distinguishable from both parents?
-3. Does the merged assembly maintain connections to both parents?
-4. Is merge compositional (can we decode both components)?
+Tests whether two independently established assemblies can be merged into
+a single composite representation that retains information about both parents.
 
-Expected Results:
-- Merged assembly should have significant overlap with both parents
-- Merged assembly should be a distinct entity (not just union)
-- Projecting from merged assembly should activate both parent concepts
+Protocol:
+    Merge via co-stimulation:
+    project({"sa": ["A"], "sb": ["B"]}, {"A": ["C"], "B": ["C"]})
+    This fires stimuli for A and B simultaneously, and projects both into
+    area C, where they merge.
+
+1. Establish assemblies in A and B via stim+self training (30 rounds each).
+2. A-only: project A->C via project({"sa": ["A"]}, {"A": ["C"]}). Record C_A.
+3. Reset C (random winners). B-only: project B->C. Record C_B.
+4. Reset C. Merge: co-stimulate A and B, project both to C. Record C_AB.
+5. Measure: overlap(C_AB, C_A), overlap(C_AB, C_B), overlap(C_A, C_B).
+   merge_quality = mean(overlap_AB_A, overlap_AB_B).
+   composition_score = max(overlap_AB_A, overlap_AB_B).
+
+All phases use the same brain instance. C is reset (random winners) between
+phases to prevent carryover.
+
+Hypotheses:
+
+H1: Composition -- The merged assembly C_AB overlaps significantly with
+    both parents C_A and C_B (>= 0.45). C_A and C_B overlap at chance.
+    Null: merge_quality equals chance k/n.
+
+H2: Quality vs training rounds -- Merge quality increases with the number
+    of co-stimulation rounds, saturating around 10-30.
+    Null: quality is independent of training duration.
+
+H3: Partial recovery -- After merge training, activating ONLY A's stimulus
+    and projecting A->C recovers C_AB (the full merged assembly).
+    Null: recovery equals chance k/n.
+
+H4: Quality vs network size -- Merge quality at k=sqrt(n) across sizes.
+    Null: quality equals chance.
+
+Statistical methodology:
+- N_SEEDS=10 independent random seeds per condition.
+- One-sample t-test against null k/n.
+- Cohen's d effect sizes. Mean +/- SEM.
+
+References:
+- Papadimitriou et al., PNAS 117(25):14464-14472, 2020
+- Dabagia et al., "Coin-Flipping in the Brain", 2024 (weight saturation)
 """
 
 import sys
 from pathlib import Path
 
-# Add project root to path
 project_root = Path(__file__).parent.parent.parent.parent
 sys.path.insert(0, str(project_root))
 
 import numpy as np
-from typing import Dict, List, Any
 from dataclasses import dataclass
-
+from typing import Dict, List, Any
 from research.experiments.base import (
-    ExperimentBase, 
-    ExperimentResult, 
+    ExperimentBase,
+    ExperimentResult,
     measure_overlap,
-    measure_jaccard,
+    chance_overlap,
+    summarize,
+    ttest_vs_null,
 )
 
-import brain as brain_module
+from src.core.brain import Brain
+
+N_SEEDS = 10
 
 
 @dataclass
 class MergeConfig:
-    """Configuration for merge test."""
-    n_neurons: int
-    k_active: int
-    p_connect: float
+    """Configuration for merge trials."""
+    n: int
+    k: int
+    p: float
     beta: float
-    n_projection_rounds: int = 10  # To establish assemblies
-    n_merge_rounds: int = 10       # Rounds for merge operation
+    w_max: float
+    establish_rounds: int = 30
+    merge_rounds: int = 30
 
 
-class MergeCompositionExperiment(ExperimentBase):
+# -- Core trial runners -------------------------------------------------------
+
+
+def run_merge_trial(
+    cfg: MergeConfig, seed: int,
+) -> Dict[str, float]:
     """
-    Test: Does merge create composite assemblies?
-    
-    Hypothesis: When two assemblies A and B project simultaneously to 
-    area C, the resulting assembly C should:
-    1. Have overlap with both A and B projections individually
-    2. Be distinct from either A or B alone
-    3. Preserve information about both components
+    Establish A and B, project each to C separately, then merge.
+    Returns overlaps between C_AB, C_A, C_B.
     """
-    
+    rng = np.random.default_rng(seed + 88888)
+    b = Brain(p=cfg.p, seed=seed, w_max=cfg.w_max)
+
+    b.add_area("A", cfg.n, cfg.k, cfg.beta, explicit=True)
+    b.add_area("B", cfg.n, cfg.k, cfg.beta, explicit=True)
+    b.add_area("C", cfg.n, cfg.k, cfg.beta, explicit=True)
+    b.add_stimulus("sa", cfg.k)
+    b.add_stimulus("sb", cfg.k)
+
+    # Establish A (stim+self)
+    for _ in range(cfg.establish_rounds):
+        b.project({"sa": ["A"]}, {"A": ["A"]})
+
+    # Establish B (stim+self)
+    for _ in range(cfg.establish_rounds):
+        b.project({"sb": ["B"]}, {"B": ["B"]})
+
+    # Phase 2: A-only -> C
+    for _ in range(cfg.merge_rounds):
+        b.project({"sa": ["A"]}, {"A": ["C"]})
+    c_a = np.array(b.areas["C"].winners, dtype=np.uint32)
+
+    # Reset C
+    b.areas["C"].winners = rng.choice(cfg.n, cfg.k, replace=False).tolist()
+
+    # Phase 3: B-only -> C
+    for _ in range(cfg.merge_rounds):
+        b.project({"sb": ["B"]}, {"B": ["C"]})
+    c_b = np.array(b.areas["C"].winners, dtype=np.uint32)
+
+    # Reset C
+    b.areas["C"].winners = rng.choice(cfg.n, cfg.k, replace=False).tolist()
+
+    # Phase 4: Merge (co-stimulation)
+    for _ in range(cfg.merge_rounds):
+        b.project({"sa": ["A"], "sb": ["B"]}, {"A": ["C"], "B": ["C"]})
+    c_ab = np.array(b.areas["C"].winners, dtype=np.uint32)
+
+    # Measure overlaps
+    overlap_ab_a = measure_overlap(c_ab, c_a)
+    overlap_ab_b = measure_overlap(c_ab, c_b)
+    overlap_a_b = measure_overlap(c_a, c_b)
+    merge_quality = (overlap_ab_a + overlap_ab_b) / 2
+    composition_score = max(overlap_ab_a, overlap_ab_b)
+
+    return {
+        "merge_quality": merge_quality,
+        "composition_score": composition_score,
+        "overlap_cab_ca": overlap_ab_a,
+        "overlap_cab_cb": overlap_ab_b,
+        "overlap_ca_cb": overlap_a_b,
+    }
+
+
+def run_recovery_trial(
+    cfg: MergeConfig, seed: int,
+) -> Dict[str, float]:
+    """After merge training, test recovery from A-only and B-only."""
+    b = Brain(p=cfg.p, seed=seed, w_max=cfg.w_max)
+
+    b.add_area("A", cfg.n, cfg.k, cfg.beta, explicit=True)
+    b.add_area("B", cfg.n, cfg.k, cfg.beta, explicit=True)
+    b.add_area("C", cfg.n, cfg.k, cfg.beta, explicit=True)
+    b.add_stimulus("sa", cfg.k)
+    b.add_stimulus("sb", cfg.k)
+
+    # Establish A, B
+    for _ in range(cfg.establish_rounds):
+        b.project({"sa": ["A"]}, {"A": ["A"]})
+    for _ in range(cfg.establish_rounds):
+        b.project({"sb": ["B"]}, {"B": ["B"]})
+
+    # Merge training (co-stimulation)
+    for _ in range(cfg.merge_rounds):
+        b.project({"sa": ["A"], "sb": ["B"]}, {"A": ["C"], "B": ["C"]})
+    c_merged = np.array(b.areas["C"].winners, dtype=np.uint32)
+
+    # Test: A-only recovery
+    rng = np.random.default_rng(seed + 77777)
+    b.areas["C"].winners = rng.choice(cfg.n, cfg.k, replace=False).tolist()
+    for _ in range(20):
+        b.project({"sa": ["A"]}, {"A": ["C"]})
+    recovery_a = measure_overlap(c_merged, np.array(b.areas["C"].winners, dtype=np.uint32))
+
+    # Test: B-only recovery
+    b.areas["C"].winners = rng.choice(cfg.n, cfg.k, replace=False).tolist()
+    for _ in range(20):
+        b.project({"sb": ["B"]}, {"B": ["C"]})
+    recovery_b = measure_overlap(c_merged, np.array(b.areas["C"].winners, dtype=np.uint32))
+
+    return {"recovery_from_A": recovery_a, "recovery_from_B": recovery_b}
+
+
+# -- Main experiment -----------------------------------------------------------
+
+
+class MergeExperiment(ExperimentBase):
+    """Test merge primitive: composition via co-projection."""
+
     def __init__(self, results_dir: Path = None, seed: int = 42, verbose: bool = True):
         super().__init__(
             name="merge_composition",
             seed=seed,
             results_dir=results_dir or Path(__file__).parent.parent.parent / "results" / "primitives",
-            verbose=verbose
+            verbose=verbose,
         )
-    
-    def run_single_trial(
-        self, 
-        config: MergeConfig,
-        trial_id: int = 0
-    ) -> Dict[str, Any]:
-        """
-        Run a single merge trial.
-        
-        Tests merge by:
-        1. Creating assemblies A and B in separate areas
-        2. Projecting A alone to C -> record C_A
-        3. Projecting B alone to C -> record C_B  
-        4. Projecting A and B together to C -> record C_AB (merged)
-        5. Verify C_AB has properties of both C_A and C_B
-        """
-        self.log(f"  Trial {trial_id}: n={config.n_neurons}, k={config.k_active}")
-        
-        # Create brain
-        b = brain_module.Brain(p=config.p_connect, seed=self.seed + trial_id)
-        
-        # Add stimuli
-        b.add_stimulus("STIM_A", config.k_active)
-        b.add_stimulus("STIM_B", config.k_active)
-        
-        # Add source areas
-        b.add_area("AREA_A", config.n_neurons, config.k_active, config.beta)
-        b.add_area("AREA_B", config.n_neurons, config.k_active, config.beta)
-        
-        # Add merge target area
-        b.add_area("MERGE", config.n_neurons, config.k_active, config.beta)
-        
-        # Phase 1: Establish assembly A
-        self.log("    Establishing assembly A...")
-        for _ in range(config.n_projection_rounds):
-            b.project(areas_by_stim={"STIM_A": ["AREA_A"]}, dst_areas_by_src_area={})
-        assembly_a = np.array(b.area_by_name["AREA_A"].winners, dtype=np.uint32)
-        
-        # Phase 2: Establish assembly B
-        self.log("    Establishing assembly B...")
-        for _ in range(config.n_projection_rounds):
-            b.project(areas_by_stim={"STIM_B": ["AREA_B"]}, dst_areas_by_src_area={})
-        assembly_b = np.array(b.area_by_name["AREA_B"].winners, dtype=np.uint32)
-        
-        # Phase 3: Project A alone to MERGE -> C_A
-        self.log("    Projecting A -> MERGE...")
-        for _ in range(config.n_projection_rounds):
-            b.project(
-                areas_by_stim={},
-                dst_areas_by_src_area={"AREA_A": ["MERGE"]}
-            )
-        c_a = np.array(b.area_by_name["MERGE"].winners, dtype=np.uint32)
-        
-        # Phase 4: Fresh brain for B -> MERGE projection
-        b2 = brain_module.Brain(p=config.p_connect, seed=self.seed + trial_id + 1000)
-        b2.add_stimulus("STIM_B", config.k_active)
-        b2.add_area("AREA_B", config.n_neurons, config.k_active, config.beta)
-        b2.add_area("MERGE", config.n_neurons, config.k_active, config.beta)
-        
-        self.log("    Projecting B -> MERGE...")
-        for _ in range(config.n_projection_rounds):
-            b2.project(areas_by_stim={"STIM_B": ["AREA_B"]}, dst_areas_by_src_area={})
-        
-        for _ in range(config.n_projection_rounds):
-            b2.project(
-                areas_by_stim={},
-                dst_areas_by_src_area={"AREA_B": ["MERGE"]}
-            )
-        c_b = np.array(b2.area_by_name["MERGE"].winners, dtype=np.uint32)
-        
-        # Phase 5: Merge - project A and B together to MERGE
-        # Use a fresh brain with both assemblies established for clean merge
-        self.log("    Performing MERGE (A + B -> MERGE)...")
-        
-        b3 = brain_module.Brain(p=config.p_connect, seed=self.seed + trial_id + 2000)
-        b3.add_stimulus("STIM_A", config.k_active)
-        b3.add_stimulus("STIM_B", config.k_active)
-        b3.add_area("AREA_A", config.n_neurons, config.k_active, config.beta)
-        b3.add_area("AREA_B", config.n_neurons, config.k_active, config.beta)
-        b3.add_area("MERGE", config.n_neurons, config.k_active, config.beta)
-        
-        # Establish both assemblies
-        for _ in range(config.n_projection_rounds):
-            b3.project(areas_by_stim={"STIM_A": ["AREA_A"]}, dst_areas_by_src_area={})
-        for _ in range(config.n_projection_rounds):
-            b3.project(areas_by_stim={"STIM_B": ["AREA_B"]}, dst_areas_by_src_area={})
-        
-        # Now do the merge: project both simultaneously
-        merge_history = []
-        for round_idx in range(config.n_merge_rounds):
-            b3.project(
-                areas_by_stim={},
-                dst_areas_by_src_area={"AREA_A": ["MERGE"], "AREA_B": ["MERGE"]}
-            )
-            current = np.array(b3.area_by_name["MERGE"].winners, dtype=np.uint32)
-            merge_history.append(current.copy())
-        
-        c_ab = np.array(b3.area_by_name["MERGE"].winners, dtype=np.uint32)
-        
-        # Compute metrics
-        overlap_ca_cb = measure_overlap(c_a, c_b)  # How similar are A->C and B->C?
-        overlap_cab_ca = measure_overlap(c_ab, c_a)  # How much of A is in merge?
-        overlap_cab_cb = measure_overlap(c_ab, c_b)  # How much of B is in merge?
-        
-        # Jaccard similarities
-        jaccard_ca_cb = measure_jaccard(c_a, c_b)
-        jaccard_cab_ca = measure_jaccard(c_ab, c_a)
-        jaccard_cab_cb = measure_jaccard(c_ab, c_b)
-        
-        # Merge quality: should have significant overlap with BOTH parents
-        merge_quality = min(overlap_cab_ca, overlap_cab_cb)
-        
-        # Composition score: average overlap with both parents
-        composition_score = (overlap_cab_ca + overlap_cab_cb) / 2
-        
-        # Distinctness: merged should not be identical to either parent
-        distinctness = 1.0 - max(jaccard_cab_ca, jaccard_cab_cb)
-        
-        self.log(f"    Overlap C_A vs C_B: {overlap_ca_cb:.3f}")
-        self.log(f"    Overlap C_AB vs C_A: {overlap_cab_ca:.3f}")
-        self.log(f"    Overlap C_AB vs C_B: {overlap_cab_cb:.3f}")
-        self.log(f"    Merge quality: {merge_quality:.3f}")
-        self.log(f"    Composition score: {composition_score:.3f}")
-        
-        # Success criteria:
-        # 1. Merged assembly captures both parents (min overlap > 0.3)
-        # 2. Merged assembly is compositional (composition_score > 0.5)
-        merge_successful = merge_quality > 0.3 and composition_score > 0.5
-        
-        return {
-            "trial_id": trial_id,
-            "config": {
-                "n_neurons": config.n_neurons,
-                "k_active": config.k_active,
-                "p_connect": config.p_connect,
-                "beta": config.beta,
-            },
-            "overlap_ca_cb": overlap_ca_cb,
-            "overlap_cab_ca": overlap_cab_ca,
-            "overlap_cab_cb": overlap_cab_cb,
-            "jaccard_ca_cb": jaccard_ca_cb,
-            "jaccard_cab_ca": jaccard_cab_ca,
-            "jaccard_cab_cb": jaccard_cab_cb,
-            "merge_quality": merge_quality,
-            "composition_score": composition_score,
-            "distinctness": distinctness,
-            "merge_successful": merge_successful,
-            "assembly_sizes": {
-                "a": len(assembly_a),
-                "b": len(assembly_b),
-                "c_a": len(c_a),
-                "c_b": len(c_b),
-                "c_ab": len(c_ab),
-            },
-        }
-    
+
     def run(
         self,
-        n_neurons_range: List[int] = None,
-        k_active_range: List[int] = None,
-        p_connect_range: List[float] = None,
-        beta_range: List[float] = None,
-        n_trials: int = 5,
-        **kwargs
+        n: int = 1000,
+        k: int = 100,
+        p: float = 0.05,
+        beta: float = 0.10,
+        w_max: float = 20.0,
+        n_seeds: int = N_SEEDS,
+        **kwargs,
     ) -> ExperimentResult:
-        """Run merge experiment across parameter ranges."""
         self._start_timer()
-        
-        # Default parameter ranges
-        if n_neurons_range is None:
-            n_neurons_range = [1000, 10000]
-        if k_active_range is None:
-            k_active_range = [50, 100]
-        if p_connect_range is None:
-            p_connect_range = [0.05, 0.1]
-        if beta_range is None:
-            beta_range = [0.05, 0.1]
-        
-        self.log("Starting merge composition experiment")
-        self.log(f"  n_neurons: {n_neurons_range}")
-        self.log(f"  k_active: {k_active_range}")
-        
-        all_results = []
-        
-        for n in n_neurons_range:
-            for k in k_active_range:
-                if k >= n:
-                    continue
-                    
-                for p in p_connect_range:
-                    for beta in beta_range:
-                        self.log(f"\nConfig: n={n}, k={k}, p={p}, beta={beta}")
-                        
-                        config = MergeConfig(
-                            n_neurons=n,
-                            k_active=k,
-                            p_connect=p,
-                            beta=beta
-                        )
-                        
-                        trial_results = []
-                        for trial in range(n_trials):
-                            try:
-                                result = self.run_single_trial(config, trial)
-                                trial_results.append(result)
-                            except Exception as e:
-                                self.log(f"    Trial {trial} failed: {e}")
-                                import traceback
-                                traceback.print_exc()
-                                trial_results.append({
-                                    "trial_id": trial,
-                                    "error": str(e),
-                                    "merge_successful": False,
-                                })
-                        
-                        successful_trials = [r for r in trial_results if "error" not in r]
-                        
-                        if successful_trials:
-                            success_rate = sum(1 for r in successful_trials if r["merge_successful"]) / len(successful_trials)
-                            mean_merge_quality = np.mean([r["merge_quality"] for r in successful_trials])
-                            mean_composition = np.mean([r["composition_score"] for r in successful_trials])
-                        else:
-                            success_rate = 0.0
-                            mean_merge_quality = 0.0
-                            mean_composition = 0.0
-                        
-                        all_results.append({
-                            "config": {
-                                "n_neurons": n,
-                                "k_active": k,
-                                "p_connect": p,
-                                "beta": beta,
-                            },
-                            "success_rate": success_rate,
-                            "mean_merge_quality": mean_merge_quality,
-                            "mean_composition_score": mean_composition,
-                            "trial_details": trial_results,
-                        })
-        
-        duration = self._stop_timer()
-        
-        summary = {
-            "total_configurations": len(all_results),
-            "overall_success_rate": np.mean([r["success_rate"] for r in all_results]) if all_results else 0,
-            "mean_merge_quality": np.mean([r["mean_merge_quality"] for r in all_results]) if all_results else 0,
-            "mean_composition_score": np.mean([r["mean_composition_score"] for r in all_results]) if all_results else 0,
+        seeds = list(range(n_seeds))
+
+        cfg = MergeConfig(n=n, k=k, p=p, beta=beta, w_max=w_max)
+        null = chance_overlap(k, n)
+
+        self.log("=" * 60)
+        self.log("Merge Composition Experiment")
+        self.log(f"  n={n}, k={k}, p={p}, beta={beta}, w_max={w_max}")
+        self.log(f"  establish_rounds={cfg.establish_rounds}")
+        self.log(f"  merge_rounds={cfg.merge_rounds}")
+        self.log(f"  null overlap (k/n) = {null:.3f}")
+        self.log(f"  n_seeds={n_seeds}")
+        self.log("=" * 60)
+
+        metrics: Dict[str, Any] = {}
+
+        # ================================================================
+        # H1: Composition quality
+        # ================================================================
+        self.log("\nH1: Merge Composition Quality")
+
+        mq_vals, cs_vals = [], []
+        ab_a_vals, ab_b_vals, a_b_vals = [], [], []
+
+        for s in seeds:
+            trial = run_merge_trial(cfg, seed=self.seed + s)
+            mq_vals.append(trial["merge_quality"])
+            cs_vals.append(trial["composition_score"])
+            ab_a_vals.append(trial["overlap_cab_ca"])
+            ab_b_vals.append(trial["overlap_cab_cb"])
+            a_b_vals.append(trial["overlap_ca_cb"])
+
+        metrics["h1_composition"] = {
+            "merge_quality": summarize(mq_vals),
+            "composition_score": summarize(cs_vals),
+            "overlap_cab_ca": summarize(ab_a_vals),
+            "overlap_cab_cb": summarize(ab_b_vals),
+            "overlap_ca_cb": summarize(a_b_vals),
+            "test_quality_vs_chance": ttest_vs_null(mq_vals, null),
         }
-        
-        self.log(f"\n{'='*60}")
-        self.log("SUMMARY:")
-        self.log(f"  Overall success rate: {summary['overall_success_rate']:.2%}")
-        self.log(f"  Mean merge quality: {summary['mean_merge_quality']:.3f}")
-        self.log(f"  Mean composition score: {summary['mean_composition_score']:.3f}")
-        self.log(f"  Duration: {duration:.1f}s")
-        
-        result = ExperimentResult(
+
+        self.log(f"  Merge quality: {summarize(mq_vals)['mean']:.3f}+/-{summarize(mq_vals)['sem']:.3f}")
+        self.log(f"  C_AB vs C_A:   {summarize(ab_a_vals)['mean']:.3f}")
+        self.log(f"  C_AB vs C_B:   {summarize(ab_b_vals)['mean']:.3f}")
+        self.log(f"  C_A vs C_B:    {summarize(a_b_vals)['mean']:.3f} (should be ~chance)")
+
+        # ================================================================
+        # H2: Quality vs merge rounds
+        # ================================================================
+        self.log("\nH2: Merge Quality vs Training Rounds")
+
+        round_values = [1, 5, 10, 20, 30, 50]
+        h2_results = []
+
+        for n_rounds in round_values:
+            cfg_h2 = MergeConfig(n=n, k=k, p=p, beta=beta, w_max=w_max,
+                                 merge_rounds=n_rounds)
+            vals = []
+            for s in seeds:
+                trial = run_merge_trial(cfg_h2, seed=self.seed + s)
+                vals.append(trial["merge_quality"])
+
+            row = {
+                "merge_rounds": n_rounds,
+                "merge_quality": summarize(vals),
+                "test_vs_chance": ttest_vs_null(vals, null),
+            }
+            h2_results.append(row)
+
+            self.log(
+                f"  rounds={n_rounds:2d}: "
+                f"{row['merge_quality']['mean']:.3f}+/-{row['merge_quality']['sem']:.3f}  "
+                f"d={row['test_vs_chance']['d']:.1f}"
+            )
+
+        metrics["h2_quality_vs_rounds"] = h2_results
+
+        # ================================================================
+        # H3: Partial recovery
+        # ================================================================
+        self.log("\nH3: Partial Recovery (single parent recovers merge)")
+
+        rec_a_vals = []
+        rec_b_vals = []
+
+        for s in seeds:
+            trial = run_recovery_trial(cfg, seed=self.seed + s)
+            rec_a_vals.append(trial["recovery_from_A"])
+            rec_b_vals.append(trial["recovery_from_B"])
+
+        metrics["h3_recovery"] = {
+            "recovery_from_A": {
+                "stats": summarize(rec_a_vals),
+                "test_vs_chance": ttest_vs_null(rec_a_vals, null),
+            },
+            "recovery_from_B": {
+                "stats": summarize(rec_b_vals),
+                "test_vs_chance": ttest_vs_null(rec_b_vals, null),
+            },
+        }
+
+        self.log(f"  A-only recovery: {summarize(rec_a_vals)['mean']:.3f}")
+        self.log(f"  B-only recovery: {summarize(rec_b_vals)['mean']:.3f}")
+
+        # ================================================================
+        # H4: Quality vs network size (k=sqrt(n))
+        # ================================================================
+        self.log("\nH4: Merge Quality vs Network Size (k=sqrt(n))")
+
+        h4_sizes = [200, 500, 1000, 2000]
+        h4_results = []
+
+        for n_val in h4_sizes:
+            k_val = int(np.sqrt(n_val))
+            cfg_h4 = MergeConfig(n=n_val, k=k_val, p=p, beta=beta, w_max=w_max)
+            null_h4 = chance_overlap(k_val, n_val)
+
+            vals = []
+            for s in seeds:
+                trial = run_merge_trial(cfg_h4, seed=self.seed + s)
+                vals.append(trial["merge_quality"])
+
+            row = {
+                "n": n_val, "k": k_val,
+                "merge_quality": summarize(vals),
+                "test_vs_chance": ttest_vs_null(vals, null_h4),
+            }
+            h4_results.append(row)
+
+            self.log(
+                f"  n={n_val:4d}, k={k_val:2d}: "
+                f"{row['merge_quality']['mean']:.3f}  d={row['test_vs_chance']['d']:.1f}"
+            )
+
+        metrics["h4_quality_vs_size"] = h4_results
+
+        duration = self._stop_timer()
+        self.log(f"\nDuration: {duration:.1f}s")
+
+        return ExperimentResult(
             experiment_name=self.name,
             parameters={
-                "n_neurons_range": n_neurons_range,
-                "k_active_range": k_active_range,
-                "p_connect_range": p_connect_range,
-                "beta_range": beta_range,
-                "n_trials": n_trials,
-                "seed": self.seed,
+                "n_seeds": n_seeds,
+                "base_n": n, "base_k": k, "base_p": p,
+                "base_beta": beta, "base_wmax": w_max,
+                "establish_rounds": cfg.establish_rounds,
+                "merge_rounds": cfg.merge_rounds,
             },
-            metrics=summary,
-            raw_data={"all_results": all_results},
+            metrics=metrics,
+            raw_data={},
             duration_seconds=duration,
         )
-        
-        return result
 
 
-def run_quick_test():
-    """Run a quick test."""
-    print("="*60)
-    print("QUICK TEST: Merge Composition")
-    print("="*60)
-    
-    exp = MergeCompositionExperiment(verbose=True)
-    
-    result = exp.run(
-        n_neurons_range=[1000, 5000],
-        k_active_range=[50],
-        p_connect_range=[0.1],
-        beta_range=[0.1],
-        n_trials=3,
-    )
-    
-    path = exp.save_result(result, "_quick")
-    print(f"\nResults saved to: {path}")
-    
-    return result
+def main():
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Merge Composition Experiment")
+    parser.add_argument("--quick", action="store_true", help="Quick run (fewer seeds)")
+
+    args = parser.parse_args()
+
+    exp = MergeExperiment(verbose=True)
+
+    if args.quick:
+        result = exp.run(n_seeds=5)
+        exp.save_result(result, "_quick")
+    else:
+        result = exp.run()
+        exp.save_result(result)
+
+    print(f"\nTotal time: {result.duration_seconds:.1f}s")
 
 
 if __name__ == "__main__":
-    import argparse
-    
-    parser = argparse.ArgumentParser(description="Merge Composition Experiment")
-    parser.add_argument("--quick", action="store_true", help="Run quick test only")
-    
-    args = parser.parse_args()
-    
-    if args.quick:
-        run_quick_test()
-    else:
-        exp = MergeCompositionExperiment(verbose=True)
-        result = exp.run(n_trials=5)
-        exp.save_result(result, "_full")
-
+    main()

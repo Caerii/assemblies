@@ -1,16 +1,36 @@
 """
-Scaling Laws Experiment
+Scaling Laws for Assembly Formation and Attractor Persistence
 
-Scientific Questions:
-1. How does convergence time scale with network size N?
-2. Is it O(log N) as theory predicts, or something else?
-3. How does assembly stability scale with N?
-4. Are there universal scaling exponents?
+Characterizes how convergence time and attractor persistence scale with
+network size n, at fixed sparsity k = sqrt(n).
 
-Expected Results:
-- Convergence time should scale as O(log N) or O(log k)
-- Assembly stability should be independent of N (for fixed k/n ratio)
-- Scaling exponents should be universal across parameter ranges
+Protocol:
+1. Establish: project({"s": ["A"]}, {}) -- initial stimulus activation.
+2. Train with convergence detection: project({"s": ["A"]}, {"A": ["A"]})
+   x up to 100 rounds. Convergence = 3 consecutive rounds with
+   step-to-step overlap > 0.98.
+3. Test autonomous persistence: project({}, {"A": ["A"]}) x 20 rounds.
+   Measure overlap between current winners and the trained assembly.
+
+Parameters: p=0.05, beta=0.10, w_max=20.0, max_train=100, test_rounds=20.
+
+Hypotheses:
+
+H1/H2: Convergence time and persistence vs network size at k=sqrt(n).
+    Null: persistence equals chance k/n.
+
+H3: Scaling law fit -- convergence time scales as O(log n).
+    Null: no relationship (slope=0).
+
+Statistical methodology:
+- N_SEEDS=10 independent seeds per condition.
+- One-sample t-test against null k/n.
+- Cohen's d effect sizes. Mean +/- SEM.
+- Scaling law fit via linear regression of T vs log10(n).
+
+References:
+- Papadimitriou et al., PNAS 117(25):14464-14472, 2020
+- Dabagia et al., "Coin-Flipping in the Brain", 2024 (weight saturation)
 """
 
 import sys
@@ -20,265 +40,231 @@ project_root = Path(__file__).parent.parent.parent.parent
 sys.path.insert(0, str(project_root))
 
 import numpy as np
-from typing import Dict, List, Any
 from dataclasses import dataclass
+from typing import Dict, List, Any
 from scipy import stats
 
 from research.experiments.base import (
-    ExperimentBase, 
-    ExperimentResult, 
-    measure_overlap
+    ExperimentBase,
+    ExperimentResult,
+    measure_overlap,
+    chance_overlap,
+    summarize,
+    ttest_vs_null,
 )
 
-import brain as brain_module
+from src.core.brain import Brain
+
+N_SEEDS = 10
 
 
 @dataclass
 class ScalingConfig:
-    """Configuration for scaling test."""
-    n_neurons: int
-    k_active: int
-    p_connect: float
+    """Configuration for scaling trials."""
+    n: int
+    k: int
+    p: float
     beta: float
-    max_rounds: int = 100
+    w_max: float
+    max_train_rounds: int = 100
+    test_rounds: int = 20
+
+
+# -- Core trial runner ---------------------------------------------------------
+
+
+def run_scaling_trial(
+    cfg: ScalingConfig, seed: int,
+) -> Dict[str, Any]:
+    """
+    Train stim+self with convergence detection, then test autonomous persistence.
+    Returns convergence time and persistence.
+    """
+    b = Brain(p=cfg.p, seed=seed, w_max=cfg.w_max)
+    b.add_area("A", cfg.n, cfg.k, cfg.beta, explicit=True)
+    b.add_stimulus("s", cfg.k)
+
+    # Phase 1: initial stimulus activation
+    b.project({"s": ["A"]}, {})
+
+    # Phase 2: train stim+self with convergence detection
+    winner_history = []
+    converged_at = cfg.max_train_rounds
+
+    for r in range(cfg.max_train_rounds):
+        b.project({"s": ["A"]}, {"A": ["A"]})
+        winners = np.array(b.areas["A"].winners, dtype=np.uint32)
+        winner_history.append(winners.copy())
+
+        if len(winner_history) >= 4:
+            overlaps = [
+                measure_overlap(winner_history[-i - 1], winner_history[-i - 2])
+                for i in range(3)
+            ]
+            if all(o > 0.98 for o in overlaps):
+                converged_at = r + 1
+                break
+
+    trained = np.array(b.areas["A"].winners, dtype=np.uint32)
+
+    # Phase 3: autonomous persistence test
+    for _ in range(cfg.test_rounds):
+        b.project({}, {"A": ["A"]})
+
+    persistence = measure_overlap(
+        trained, np.array(b.areas["A"].winners, dtype=np.uint32)
+    )
+
+    return {"convergence_time": float(converged_at), "persistence": persistence}
+
+
+# -- Main experiment -----------------------------------------------------------
 
 
 class ScalingLawsExperiment(ExperimentBase):
-    """
-    Measure how assembly properties scale with network size.
-    
-    Hypothesis: Convergence time scales as O(log N) or O(log k),
-    making Assembly Calculus efficient even at large scales.
-    """
-    
+    """Test scaling laws: convergence time and persistence vs network size."""
+
     def __init__(self, results_dir: Path = None, seed: int = 42, verbose: bool = True):
         super().__init__(
             name="scaling_laws",
             seed=seed,
             results_dir=results_dir or Path(__file__).parent.parent.parent / "results" / "stability",
-            verbose=verbose
+            verbose=verbose,
         )
-    
-    def measure_convergence_time(
-        self, 
-        config: ScalingConfig,
-        n_trials: int = 5
-    ) -> Dict[str, Any]:
-        """Measure convergence time for a configuration."""
-        convergence_times = []
-        final_stabilities = []
-        
-        for trial in range(n_trials):
-            b = brain_module.Brain(p=config.p_connect, seed=self.seed + trial)
-            b.add_stimulus("STIM", config.k_active)
-            b.add_area("TARGET", config.n_neurons, config.k_active, config.beta)
-            
-            winner_history = []
-            converged_at = config.max_rounds
-            
-            for round_idx in range(config.max_rounds):
-                b.project(
-                    areas_by_stim={"STIM": ["TARGET"]},
-                    dst_areas_by_src_area={}
-                )
-                winners = np.array(b.area_by_name["TARGET"].winners, dtype=np.uint32)
-                winner_history.append(winners.copy())
-                
-                # Check convergence
-                if len(winner_history) >= 3:
-                    overlaps = [
-                        measure_overlap(winner_history[-i-1], winner_history[-i-2])
-                        for i in range(2)
-                    ]
-                    if all(o > 0.98 for o in overlaps):
-                        converged_at = round_idx + 1
-                        break
-            
-            convergence_times.append(converged_at)
-            
-            # Measure final stability
-            if len(winner_history) >= 2:
-                final_stabilities.append(
-                    measure_overlap(winner_history[-1], winner_history[-2])
-                )
-            else:
-                final_stabilities.append(0.0)
-        
-        return {
-            "mean_convergence_time": np.mean(convergence_times),
-            "std_convergence_time": np.std(convergence_times),
-            "min_convergence_time": np.min(convergence_times),
-            "max_convergence_time": np.max(convergence_times),
-            "mean_final_stability": np.mean(final_stabilities),
-            "convergence_times": convergence_times,
-        }
-    
+
     def run(
         self,
-        n_neurons_range: List[int] = None,
-        fixed_sparsity: float = 0.05,  # k/n ratio
-        p_connect: float = 0.1,
-        beta: float = 0.1,
-        n_trials: int = 10,
-        **kwargs
+        p: float = 0.05,
+        beta: float = 0.10,
+        w_max: float = 20.0,
+        n_seeds: int = N_SEEDS,
+        **kwargs,
     ) -> ExperimentResult:
-        """
-        Measure scaling laws across network sizes.
-        
-        Args:
-            n_neurons_range: Network sizes to test (should span orders of magnitude)
-            fixed_sparsity: Fixed k/n ratio to maintain
-            p_connect: Connection probability
-            beta: Plasticity parameter
-            n_trials: Trials per configuration
-        """
         self._start_timer()
-        
-        if n_neurons_range is None:
-            # Span 3 orders of magnitude
-            n_neurons_range = [100, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000]
-        
-        self.log("Starting scaling laws experiment")
-        self.log(f"  n_neurons: {n_neurons_range}")
-        self.log(f"  fixed_sparsity: {fixed_sparsity}")
-        self.log(f"  p_connect: {p_connect}")
-        self.log(f"  beta: {beta}")
-        
-        all_results = []
-        
-        for n in n_neurons_range:
-            k = max(1, int(n * fixed_sparsity))
-            
-            self.log(f"\n  Testing n={n}, k={k}")
-            
-            config = ScalingConfig(
-                n_neurons=n,
-                k_active=k,
-                p_connect=p_connect,
-                beta=beta
+        seeds = list(range(n_seeds))
+
+        n_values = [100, 200, 500, 1000, 2000, 5000]
+
+        self.log("=" * 60)
+        self.log("Scaling Laws Experiment")
+        self.log(f"  n_values={n_values}")
+        self.log(f"  p={p}, beta={beta}, w_max={w_max}")
+        self.log(f"  n_seeds={n_seeds}")
+        self.log("=" * 60)
+
+        metrics: Dict[str, Any] = {}
+
+        # ================================================================
+        # H1/H2: Convergence + Persistence vs Network Size (k=sqrt(n))
+        # ================================================================
+        self.log("\nH1/H2: Convergence + Persistence vs Network Size (k=sqrt(n))")
+
+        scaling_results = []
+
+        for n_val in n_values:
+            k_val = int(np.sqrt(n_val))
+            null = chance_overlap(k_val, n_val)
+            cfg = ScalingConfig(n=n_val, k=k_val, p=p, beta=beta, w_max=w_max)
+
+            conv_times = []
+            persist_vals = []
+
+            for s in seeds:
+                trial = run_scaling_trial(cfg, seed=self.seed + s)
+                conv_times.append(trial["convergence_time"])
+                persist_vals.append(trial["persistence"])
+
+            row = {
+                "n": n_val,
+                "k": k_val,
+                "k_over_n": k_val / n_val,
+                "log10_n": float(np.log10(n_val)),
+                "null_overlap": null,
+                "convergence_time": summarize(conv_times),
+                "persistence": summarize(persist_vals),
+                "test_vs_null": ttest_vs_null(persist_vals, null),
+            }
+            scaling_results.append(row)
+
+            self.log(
+                f"  n={n_val:4d}, k={k_val:2d}: "
+                f"T={row['convergence_time']['mean']:.1f}+/-{row['convergence_time']['sem']:.1f}  "
+                f"persist={row['persistence']['mean']:.3f}+/-{row['persistence']['sem']:.3f}  "
+                f"d={row['test_vs_null']['d']:.1f}"
             )
-            
-            try:
-                metrics = self.measure_convergence_time(config, n_trials)
-                
-                all_results.append({
-                    "n_neurons": n,
-                    "k_active": k,
-                    "log_n": np.log10(n),
-                    "log_k": np.log10(k),
-                    **metrics,
-                })
-                
-                self.log(f"    Conv. time: {metrics['mean_convergence_time']:.1f} +/- {metrics['std_convergence_time']:.1f}")
-                
-            except Exception as e:
-                self.log(f"    Failed: {e}")
-                all_results.append({
-                    "n_neurons": n,
-                    "k_active": k,
-                    "error": str(e),
-                })
-        
-        duration = self._stop_timer()
-        
-        # Fit scaling law
-        scaling_analysis = self._fit_scaling_law(all_results)
-        
-        summary = {
-            "total_configurations": len(all_results),
-            "scaling_analysis": scaling_analysis,
+
+        metrics["scaling_results"] = scaling_results
+
+        # ================================================================
+        # H3: Scaling Law Fit
+        # ================================================================
+        self.log("\nH3: Scaling Law Fit")
+
+        log_n = np.array([r["log10_n"] for r in scaling_results])
+        mean_t = np.array([r["convergence_time"]["mean"] for r in scaling_results])
+        slope, intercept, r_value, p_value, std_err = stats.linregress(log_n, mean_t)
+
+        if abs(slope) < 0.5:
+            scaling_type = "O(1) - constant"
+        elif slope < 2:
+            scaling_type = "O(log n) - logarithmic"
+        elif slope < 5:
+            scaling_type = "O(log^2 n) - polylogarithmic"
+        else:
+            scaling_type = "O(n^alpha) - polynomial"
+
+        metrics["scaling_fit"] = {
+            "slope": float(slope),
+            "intercept": float(intercept),
+            "r_squared": float(r_value ** 2),
+            "p_value": float(p_value),
+            "std_err": float(std_err),
+            "scaling_type": scaling_type,
+            "equation": f"T = {slope:.2f} * log10(n) + {intercept:.2f}",
         }
-        
-        self.log(f"\n{'='*60}")
-        self.log("SCALING LAWS SUMMARY:")
-        self.log(f"  Scaling exponent (vs log N): {scaling_analysis.get('exponent_log_n', 'N/A'):.3f}")
-        self.log(f"  R-squared: {scaling_analysis.get('r_squared', 'N/A'):.3f}")
-        self.log(f"  Scaling type: {scaling_analysis.get('scaling_type', 'N/A')}")
-        self.log(f"  Duration: {duration:.1f}s")
-        
-        result = ExperimentResult(
+
+        self.log(f"  Fit: {metrics['scaling_fit']['equation']}  R²={r_value**2:.3f}")
+        self.log(f"  Scaling type: {scaling_type}")
+
+        duration = self._stop_timer()
+        self.log(f"\nDuration: {duration:.1f}s")
+
+        return ExperimentResult(
             experiment_name=self.name,
             parameters={
-                "n_neurons_range": n_neurons_range,
-                "fixed_sparsity": fixed_sparsity,
-                "p_connect": p_connect,
-                "beta": beta,
-                "n_trials": n_trials,
-                "seed": self.seed,
+                "n_seeds": n_seeds,
+                "n_values": n_values,
+                "base_p": p,
+                "base_beta": beta,
+                "base_wmax": w_max,
+                "max_train_rounds": 100,
+                "test_rounds": 20,
             },
-            metrics=summary,
-            raw_data={"all_results": all_results},
+            metrics=metrics,
+            raw_data={},
             duration_seconds=duration,
         )
-        
-        return result
-    
-    def _fit_scaling_law(self, results: List[Dict]) -> Dict[str, Any]:
-        """Fit scaling law to convergence time data."""
-        valid_results = [r for r in results if "error" not in r]
-        
-        if len(valid_results) < 3:
-            return {"error": "Not enough data points"}
-        
-        log_n = np.array([r["log_n"] for r in valid_results])
-        conv_times = np.array([r["mean_convergence_time"] for r in valid_results])
-        
-        # Fit: convergence_time = a * log(N) + b
-        slope, intercept, r_value, p_value, std_err = stats.linregress(log_n, conv_times)
-        
-        # Determine scaling type
-        if abs(slope) < 0.5:
-            scaling_type = "O(1) - Constant time"
-        elif slope < 2:
-            scaling_type = "O(log N) - Logarithmic"
-        elif slope < 5:
-            scaling_type = "O(log^2 N) - Polylogarithmic"
-        else:
-            scaling_type = "O(N^alpha) - Polynomial"
-        
-        return {
-            "exponent_log_n": slope,
-            "intercept": intercept,
-            "r_squared": r_value ** 2,
-            "p_value": p_value,
-            "std_err": std_err,
-            "scaling_type": scaling_type,
-            "fit_equation": f"T = {slope:.2f} * log10(N) + {intercept:.2f}",
-        }
 
 
-def run_quick_test():
-    """Run quick scaling test."""
-    print("="*60)
-    print("QUICK TEST: Scaling Laws")
-    print("="*60)
-    
+def main():
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Scaling Laws Experiment")
+    parser.add_argument("--quick", action="store_true", help="Quick run (fewer seeds)")
+
+    args = parser.parse_args()
+
     exp = ScalingLawsExperiment(verbose=True)
-    
-    result = exp.run(
-        n_neurons_range=[500, 1000, 5000, 10000, 50000],
-        fixed_sparsity=0.05,
-        n_trials=5,
-    )
-    
-    path = exp.save_result(result, "_quick")
-    print(f"\nResults saved to: {path}")
-    
-    return result
+
+    if args.quick:
+        result = exp.run(n_seeds=5)
+        exp.save_result(result, "_quick")
+    else:
+        result = exp.run()
+        exp.save_result(result)
+
+    print(f"\nTotal time: {result.duration_seconds:.1f}s")
 
 
 if __name__ == "__main__":
-    import argparse
-    
-    parser = argparse.ArgumentParser(description="Scaling Laws Experiment")
-    parser.add_argument("--quick", action="store_true", help="Run quick test only")
-    
-    args = parser.parse_args()
-    
-    if args.quick:
-        run_quick_test()
-    else:
-        exp = ScalingLawsExperiment(verbose=True)
-        result = exp.run(n_trials=10)
-        exp.save_result(result, "_full")
-
+    main()
