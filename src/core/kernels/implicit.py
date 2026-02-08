@@ -23,6 +23,8 @@ import cupy as cp
 import time
 import torch
 
+from ...constants.default_params import CUDA_HASH_TABLE_SIZE
+
 # Use PyTorch for fast top-k (3x faster than CuPy argpartition)
 USE_TORCH_TOPK = torch.cuda.is_available()
 if USE_TORCH_TOPK:
@@ -89,37 +91,43 @@ void apply_learned(
     const float* learned_delta,        // Weight deltas
     const unsigned int* active,        // Currently active indices
     float* result,                     // Output to modify
-    const unsigned int num_learned,    // Number of learned connections
+    const unsigned int* d_num_learned, // Device pointer: number of learned connections
     const unsigned int k,              // Number of active neurons
     const unsigned int seed,
     const float p
 ) {
+    // Read num_learned from device memory (L2-cached after first access)
+    unsigned int num_learned = *d_num_learned;
+
+    // Load active indices into shared memory for fast access
+    extern __shared__ unsigned int s_active[];
+    for (unsigned int i = threadIdx.x; i < k; i += blockDim.x) {
+        s_active[i] = active[i];
+    }
+    __syncthreads();
+
     unsigned int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if (idx >= num_learned) return;
-    
+
     unsigned int src = learned_src[idx];
     unsigned int dst = learned_dst[idx];
     float delta = learned_delta[idx];
-    
-    // Check if source is active
+
+    // Check if source is active (shared memory scan)
     bool src_active = false;
     for (unsigned int i = 0; i < k; i++) {
-        if (active[i] == src) {
+        if (s_active[i] == src) {
             src_active = true;
             break;
         }
     }
-    
+
     if (src_active) {
-        // Check if base connection exists
-        unsigned int hash = seed;
-        hash ^= src;
-        hash *= 0x01000193u;
-        hash ^= dst;
-        hash *= 0x01000193u;
-        float prob = (float)(hash & 0xFFFFFFu) / 16777216.0f;
-        
-        if (prob < p) {
+        // Check if base connection exists (same hash as implicit_projection)
+        unsigned int hash = (src * 2654435761u) ^ (dst * 2246822519u) ^ seed;
+        unsigned int threshold = (unsigned int)(p * 16777216.0f);
+
+        if ((hash & 0xFFFFFFu) < threshold) {
             atomicAdd(&result[dst], delta);
         }
     }
@@ -290,12 +298,25 @@ void fused_projection_topk(
 # =============================================================================
 
 hebbian_update_kernel = cp.RawKernel(r'''
+// Must match CUDA_HASH_TABLE_SIZE in src/constants/default_params.py
+#define HASH_TABLE_SIZE (1 << 20)
+#define HASH_MASK (HASH_TABLE_SIZE - 1)
+#define HASH_EMPTY 0xFFFFFFFFu
+#define MAX_PROBES 32
+
+__device__ __forceinline__ unsigned int pair_hash(unsigned int src, unsigned int dst) {
+    unsigned int h = src;
+    h ^= dst + 0x9e3779b9u + (h << 6) + (h >> 2);
+    return h & HASH_MASK;
+}
+
 extern "C" __global__
 void hebbian_update(
     unsigned int* learned_src,
     unsigned int* learned_dst,
     float* learned_delta,
     unsigned int* num_learned,
+    unsigned int* hash_table,
     const unsigned int* prev_active,
     const unsigned int* new_active,
     const unsigned int k,
@@ -309,43 +330,58 @@ void hebbian_update(
     unsigned int pair_idx = blockIdx.x * blockDim.x + threadIdx.x;
     unsigned int i = pair_idx / k;
     unsigned int j = pair_idx % k;
-    
+
     if (i >= k) return;
-    
+
     unsigned int src = prev_active[i];
     unsigned int dst = new_active[j];
-    
-    // Check if base connection exists
-    unsigned int hash = seed;
-    hash ^= src;
-    hash *= 0x01000193u;
-    hash ^= dst;
-    hash *= 0x01000193u;
-    float prob = (float)(hash & 0xFFFFFFu) / 16777216.0f;
-    
-    if (prob >= p) return;  // No connection to update
-    
-    // Find existing entry (simple linear search - could use hash map)
-    unsigned int current_num = *num_learned;
-    unsigned int found_idx = 0xFFFFFFFFu;
-    
-    for (unsigned int l = 0; l < current_num; l++) {
-        if (learned_src[l] == src && learned_dst[l] == dst) {
-            found_idx = l;
+
+    // Check if base connection exists (same hash as implicit_projection)
+    unsigned int hash = (src * 2654435761u) ^ (dst * 2246822519u) ^ seed;
+    unsigned int threshold = (unsigned int)(p * 16777216.0f);
+
+    if ((hash & 0xFFFFFFu) >= threshold) return;  // No connection to update
+
+    // Hash table lookup with linear probing
+    unsigned int h = pair_hash(src, dst);
+    unsigned int found_idx = HASH_EMPTY;
+
+    for (unsigned int probe = 0; probe < MAX_PROBES; probe++) {
+        unsigned int slot = (h + probe) & HASH_MASK;
+        unsigned int idx = hash_table[slot];
+
+        if (idx == HASH_EMPTY) {
+            // Empty slot - try to claim it
+            unsigned int new_idx = atomicAdd(num_learned, 1);
+            if (new_idx >= max_learned) {
+                atomicSub(num_learned, 1);
+                return;  // Table full
+            }
+
+            // Try to claim the slot
+            unsigned int old = atomicCAS(&hash_table[slot], HASH_EMPTY, new_idx);
+            if (old == HASH_EMPTY) {
+                // Successfully claimed - initialize
+                learned_src[new_idx] = src;
+                learned_dst[new_idx] = dst;
+                learned_delta[new_idx] = beta;
+                return;
+            }
+            // Someone else claimed it first - undo our counter bump
+            // and check if it's our pair
+            atomicSub(num_learned, 1);
+            idx = old;
+        }
+
+        // Check if this slot contains our pair
+        if (learned_src[idx] == src && learned_dst[idx] == dst) {
+            found_idx = idx;
             break;
         }
     }
-    
-    if (found_idx == 0xFFFFFFFFu) {
-        // New connection
-        unsigned int new_idx = atomicAdd(num_learned, 1);
-        if (new_idx < max_learned) {
-            learned_src[new_idx] = src;
-            learned_dst[new_idx] = dst;
-            learned_delta[new_idx] = beta;
-        }
-    } else {
-        // Update existing - saturating
+
+    if (found_idx != HASH_EMPTY) {
+        // Existing connection - saturating update
         float current_w = 1.0f + learned_delta[found_idx];
         float update = beta * (1.0f - current_w / w_max);
         if (update > 0) {
@@ -386,6 +422,9 @@ class ImplicitAssemblyArea:
         self.learned_dst = cp.zeros(self.max_learned, dtype=cp.uint32)
         self.learned_delta = cp.zeros(self.max_learned, dtype=cp.float32)
         self.num_learned = cp.zeros(1, dtype=cp.uint32)
+        # Hash table for O(1) Hebbian lookup
+        self._hash_table_size = CUDA_HASH_TABLE_SIZE
+        self.hash_table = cp.full(self._hash_table_size, 0xFFFFFFFF, dtype=cp.uint32)
         
         # Working memory - pre-allocate to avoid allocation overhead
         self.activations = cp.zeros(n, dtype=cp.float32)
@@ -429,17 +468,16 @@ class ImplicitAssemblyArea:
             shared_mem=shared_mem
         )
         
-        # 2. Apply learned weight modifications (skip if none)
-        num_learned = int(self.num_learned[0])
-        if num_learned > 0:
-            learn_grid = (num_learned + self.block_size - 1) // self.block_size
-            apply_learned_kernel(
-                (learn_grid,), (self.block_size,),
-                (self.learned_src, self.learned_dst, self.learned_delta,
-                 input_indices, self.activations,
-                 cp.uint32(num_learned), cp.uint32(k_in),
-                 cp.uint32(self.seed), cp.float32(self.p))
-            )
+        # 2. Apply learned weight modifications (non-blocking, device-pointer)
+        max_learn_grid = (self.max_learned + self.block_size - 1) // self.block_size
+        apply_learned_kernel(
+            (max_learn_grid,), (self.block_size,),
+            (self.learned_src, self.learned_dst, self.learned_delta,
+             input_indices, self.activations,
+             self.num_learned, cp.uint32(k_in),
+             cp.uint32(self.seed), cp.float32(self.p)),
+            shared_mem=k_in * 4,
+        )
         
         # 3. Find top-k winners - use PyTorch topk with FP16 (6x faster!)
         if USE_TORCH_TOPK:
@@ -461,7 +499,7 @@ class ImplicitAssemblyArea:
             hebbian_update_kernel(
                 (update_grid,), (self.block_size,),
                 (self.learned_src, self.learned_dst, self.learned_delta,
-                 self.num_learned, self.active, winners,
+                 self.num_learned, self.hash_table, self.active, winners,
                  cp.uint32(self.k), cp.float32(self.beta), cp.float32(self.w_max),
                  cp.uint32(self.max_learned), cp.uint32(self.seed), cp.float32(self.p))
             )

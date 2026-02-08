@@ -18,6 +18,11 @@ from dataclasses import dataclass, field
 from typing import Dict, List, Optional
 
 from .engine import ComputeEngine, ProjectionResult, register_engine
+from ..constants.default_params import (
+    CUDA_HASH_TABLE_SIZE,
+    CUDA_BLOCK_SIZE,
+    CUDA_MAX_LEARNED_PER_PAIR,
+)
 
 # Guard imports — this module is only loaded if cupy is available
 import cupy as cp
@@ -46,6 +51,8 @@ except ImportError:
 # Per-pair learned weight storage (COO sparse)
 # ---------------------------------------------------------------------------
 
+HASH_TABLE_SIZE = CUDA_HASH_TABLE_SIZE
+
 @dataclass
 class _COOWeights:
     """Sparse COO storage for learned weight deltas on one (src, tgt) pair."""
@@ -53,6 +60,7 @@ class _COOWeights:
     learned_dst: object     # cp.ndarray uint32
     learned_delta: object   # cp.ndarray float32
     num_learned: object     # cp.ndarray uint32 (scalar on GPU)
+    hash_table: object      # cp.ndarray uint32, maps pair_hash → learned index
     max_learned: int
 
     @staticmethod
@@ -62,8 +70,14 @@ class _COOWeights:
             learned_dst=cp.zeros(max_learned, dtype=cp.uint32),
             learned_delta=cp.zeros(max_learned, dtype=cp.float32),
             num_learned=cp.zeros(1, dtype=cp.uint32),
+            hash_table=cp.full(HASH_TABLE_SIZE, 0xFFFFFFFF, dtype=cp.uint32),
             max_learned=max_learned,
         )
+
+    def reset(self):
+        """Reset learned connections and hash table."""
+        self.num_learned[:] = 0
+        self.hash_table[:] = 0xFFFFFFFF
 
 
 @dataclass
@@ -78,15 +92,8 @@ class _CudaAreaState:
     activations: object = None      # cp.ndarray float32 (pre-allocated)
     fixed_assembly: bool = False
     beta_by_source: dict = field(default_factory=dict)
-    # Pre-allocated PyTorch tensor for fast top-k
-    _torch_buf: object = None
-    _use_fp16: bool = True
-
     def __post_init__(self):
         self.activations = cp.zeros(self.n, dtype=cp.float32)
-        if _USE_TORCH_TOPK:
-            dtype = torch.float16 if self._use_fp16 else torch.float32
-            self._torch_buf = torch.zeros(self.n, device="cuda", dtype=dtype)
 
 
 @dataclass
@@ -115,10 +122,11 @@ class CudaImplicitEngine(ComputeEngine):
         max_learned_per_pair: COO buffer size per (source, target) pair.
     """
 
-    BLOCK_SIZE = 512  # CUDA block size (optimised for RTX 4090)
+    BLOCK_SIZE = CUDA_BLOCK_SIZE
 
     def __init__(self, p: float, seed: int = 0, w_max: float = 10.0,
-                 use_fp16: bool = True, max_learned_per_pair: int = 500_000,
+                 use_fp16: bool = True,
+                 max_learned_per_pair: int = CUDA_MAX_LEARNED_PER_PAIR,
                  deterministic: bool = False):
         self.p = p
         self.global_seed = seed
@@ -137,10 +145,23 @@ class CudaImplicitEngine(ComputeEngine):
     # -- Helpers ------------------------------------------------------------
 
     def _pair_seed(self, source: str, target: str) -> int:
-        """Deterministic seed for a (source, target) pair."""
+        """Deterministic seed for a (source, target) pair.
+
+        Uses a fixed FNV-1a hash (not Python's randomized hash()) so that
+        pair seeds are reproducible across process invocations.
+        """
         key = (source, target)
         if key not in self._pair_seeds:
-            h = hash((self.global_seed, source, target)) & 0xFFFFFFFF
+            # FNV-1a 32-bit hash over (global_seed, source, target)
+            h = 0x811c9dc5
+            for byte in self.global_seed.to_bytes(4, 'little'):
+                h = ((h ^ byte) * 0x01000193) & 0xFFFFFFFF
+            for byte in source.encode('utf-8'):
+                h = ((h ^ byte) * 0x01000193) & 0xFFFFFFFF
+            for byte in b'\x00':  # separator
+                h = ((h ^ byte) * 0x01000193) & 0xFFFFFFFF
+            for byte in target.encode('utf-8'):
+                h = ((h ^ byte) * 0x01000193) & 0xFFFFFFFF
             self._pair_seeds[key] = h
         return self._pair_seeds[key]
 
@@ -168,8 +189,7 @@ class CudaImplicitEngine(ComputeEngine):
     # -- Registration -------------------------------------------------------
 
     def add_area(self, name: str, n: int, k: int, beta: float) -> None:
-        area = _CudaAreaState(name=name, n=n, k=k, beta=beta,
-                              _use_fp16=self._use_fp16)
+        area = _CudaAreaState(name=name, n=n, k=k, beta=beta)
         self._areas[name] = area
 
         # Create pair storage for every existing entity
@@ -259,6 +279,187 @@ class CudaImplicitEngine(ComputeEngine):
             num_ever_fired=tgt.n,
         )
 
+    # -- Multi-round fast path -----------------------------------------------
+
+    def project_rounds(
+        self,
+        target: str,
+        from_stimuli: List[str],
+        from_areas: List[str],
+        rounds: int,
+        plasticity_enabled: bool = True,
+    ) -> ProjectionResult:
+        """Execute multiple projection rounds without Brain dispatch overhead.
+
+        Every round: from_stimuli + from_areas + target→target → target
+        (self-recurrence is included whenever the target has existing winners,
+        which is always the case when callers do round 0 separately first.)
+
+        All intermediate winners stay on GPU.  Seeds, COO handles, beta
+        values, and CuPy scalars are resolved once before the loop.
+        """
+        tgt = self._areas[target]
+
+        if tgt.fixed_assembly and tgt.winners is not None:
+            return ProjectionResult(
+                winners=cp.asnumpy(tgt.winners).astype(np.uint32),
+                num_first_winners=0, num_ever_fired=tgt.n)
+
+        # -- Pre-resolve all per-source state ONCE -------------------------
+        # Each entry: (active_arr, seed_int, coo_or_None, beta_float)
+        stim_sources = []
+        for sname in from_stimuli:
+            stim = self._stimuli[sname]
+            active = cp.arange(stim.size, dtype=cp.uint32)
+            seed = self._pair_seed(sname, target)
+            coo = self._pair_learned.get((sname, target))
+            beta = tgt.beta_by_source.get(sname, tgt.beta)
+            stim_sources.append((active, seed, coo, beta))
+
+        area_sources = []
+        for aname in from_areas:
+            src = self._areas[aname]
+            if src.winners is None or len(src.winners) == 0:
+                continue
+            seed = self._pair_seed(aname, target)
+            coo = self._pair_learned.get((aname, target))
+            beta = tgt.beta_by_source.get(aname, tgt.beta)
+            area_sources.append((src, seed, coo, beta))
+
+        # Self-recurrence: target → target
+        self_seed = self._pair_seed(target, target)
+        self_coo = self._pair_learned.get((target, target))
+        self_beta = tgt.beta_by_source.get(target, tgt.beta)
+
+        # -- Pre-cache scalars (avoid per-round cp.uint32 allocations) -----
+        n_val = tgt.n
+        k_val = tgt.k
+        grid_n = self._grid(n_val)
+        p_s = cp.float32(self.p)
+        wmax_s = cp.float32(self.w_max)
+        k_s = cp.uint32(k_val)
+        n_s = cp.uint32(n_val)
+
+        # Per-source pre-cached scalars
+        stim_cached = []
+        for active, seed, coo, beta in stim_sources:
+            k_in_s = cp.uint32(len(active))
+            seed_s = cp.uint32(seed)
+            beta_s = cp.float32(beta)
+            max_grid = (coo.max_learned + self.BLOCK_SIZE - 1) // self.BLOCK_SIZE if coo else 0
+            smem = len(active) * 4
+            stim_cached.append((active, seed_s, coo, beta_s, k_in_s, max_grid, smem))
+
+        area_cached = []
+        for src, seed, coo, beta in area_sources:
+            seed_s = cp.uint32(seed)
+            beta_s = cp.float32(beta)
+            max_grid = (coo.max_learned + self.BLOCK_SIZE - 1) // self.BLOCK_SIZE if coo else 0
+            area_cached.append((src, seed_s, coo, beta_s, max_grid))
+
+        self_seed_s = cp.uint32(self_seed)
+        self_beta_s = cp.float32(self_beta)
+        self_max_grid = (self_coo.max_learned + self.BLOCK_SIZE - 1) // self.BLOCK_SIZE if self_coo else 0
+
+        hebb_grid = (k_val * k_val + self.BLOCK_SIZE - 1) // self.BLOCK_SIZE
+
+        # -- Main loop (tight, no Brain dispatch) --------------------------
+        for round_idx in range(rounds):
+            tgt.activations[:] = 0
+
+            # Accumulate from stimuli
+            for active, seed_s, coo, beta_s, k_in_s, mg, smem in stim_cached:
+                implicit_projection_kernel(
+                    (grid_n,), (self.BLOCK_SIZE,),
+                    (active, tgt.activations, k_in_s, n_s, seed_s, p_s),
+                    shared_mem=smem)
+                if coo is not None:
+                    apply_learned_kernel(
+                        (mg,), (self.BLOCK_SIZE,),
+                        (coo.learned_src, coo.learned_dst, coo.learned_delta,
+                         active, tgt.activations,
+                         coo.num_learned, k_in_s, seed_s, p_s),
+                        shared_mem=smem)
+
+            # Accumulate from source areas
+            for src, seed_s, coo, beta_s, mg in area_cached:
+                if src.winners is None or len(src.winners) == 0:
+                    continue
+                k_in_s = cp.uint32(len(src.winners))
+                smem = len(src.winners) * 4
+                implicit_projection_kernel(
+                    (grid_n,), (self.BLOCK_SIZE,),
+                    (src.winners, tgt.activations, k_in_s, n_s, seed_s, p_s),
+                    shared_mem=smem)
+                if coo is not None:
+                    apply_learned_kernel(
+                        (mg,), (self.BLOCK_SIZE,),
+                        (coo.learned_src, coo.learned_dst, coo.learned_delta,
+                         src.winners, tgt.activations,
+                         coo.num_learned, k_in_s, seed_s, p_s),
+                        shared_mem=smem)
+
+            # Self-recurrence (when target has existing winners)
+            if tgt.winners is not None:
+                k_in_s = cp.uint32(len(tgt.winners))
+                smem = len(tgt.winners) * 4
+                implicit_projection_kernel(
+                    (grid_n,), (self.BLOCK_SIZE,),
+                    (tgt.winners, tgt.activations, k_in_s, n_s, self_seed_s, p_s),
+                    shared_mem=smem)
+                if self_coo is not None:
+                    apply_learned_kernel(
+                        (self_max_grid,), (self.BLOCK_SIZE,),
+                        (self_coo.learned_src, self_coo.learned_dst,
+                         self_coo.learned_delta,
+                         tgt.winners, tgt.activations,
+                         self_coo.num_learned, k_in_s, self_seed_s, p_s),
+                        shared_mem=smem)
+
+            # Top-k (stays on GPU)
+            winners = self._select_topk(tgt, k_val)
+
+            # Hebbian update
+            if plasticity_enabled and tgt.prev_winners is not None:
+                for active, seed_s, coo, beta_s, k_in_s, mg, smem in stim_cached:
+                    if coo is not None:
+                        hebbian_update_kernel(
+                            (hebb_grid,), (self.BLOCK_SIZE,),
+                            (coo.learned_src, coo.learned_dst, coo.learned_delta,
+                             coo.num_learned, coo.hash_table, active, winners,
+                             k_s, beta_s, wmax_s,
+                             cp.uint32(coo.max_learned), seed_s, p_s))
+                for src, seed_s, coo, beta_s, mg in area_cached:
+                    if coo is not None and src.winners is not None:
+                        hebbian_update_kernel(
+                            (hebb_grid,), (self.BLOCK_SIZE,),
+                            (coo.learned_src, coo.learned_dst, coo.learned_delta,
+                             coo.num_learned, coo.hash_table, src.winners, winners,
+                             k_s, beta_s, wmax_s,
+                             cp.uint32(coo.max_learned), seed_s, p_s))
+                # Self-recurrence Hebbian: use tgt.winners (previous round's
+                # winners, matching project_into which passes src.winners
+                # where src == tgt).  Guard on prev_winners to skip the
+                # very first projection (same as project_into's guard).
+                if self_coo is not None and tgt.prev_winners is not None:
+                    hebbian_update_kernel(
+                        (hebb_grid,), (self.BLOCK_SIZE,),
+                        (self_coo.learned_src, self_coo.learned_dst,
+                         self_coo.learned_delta,
+                         self_coo.num_learned, self_coo.hash_table,
+                         tgt.winners, winners,
+                         k_s, self_beta_s, wmax_s,
+                         cp.uint32(self_coo.max_learned), self_seed_s, p_s))
+
+            tgt.prev_winners = tgt.winners
+            tgt.winners = winners
+
+        return ProjectionResult(
+            winners=cp.asnumpy(tgt.winners).astype(np.uint32),
+            num_first_winners=0,
+            num_ever_fired=tgt.n,
+        )
+
     # -- CUDA kernel wrappers -----------------------------------------------
 
     def _run_projection(self, active: "cp.ndarray", out: "cp.ndarray",
@@ -275,22 +476,22 @@ class CudaImplicitEngine(ComputeEngine):
 
     def _apply_learned(self, source: str, target: str,
                        active: "cp.ndarray", out: "cp.ndarray"):
-        """Apply learned COO weight deltas."""
+        """Apply learned COO weight deltas (non-blocking, no GPU→CPU sync)."""
         key = (source, target)
         coo = self._pair_learned.get(key)
         if coo is None:
             return
-        num = int(coo.num_learned[0])
-        if num == 0:
-            return
         seed = self._pair_seed(source, target)
-        learn_grid = (num + self.BLOCK_SIZE - 1) // self.BLOCK_SIZE
+        # Launch with max grid — kernel reads num_learned from device pointer
+        # and exits early for threads beyond num_learned.
+        max_grid = (coo.max_learned + self.BLOCK_SIZE - 1) // self.BLOCK_SIZE
         apply_learned_kernel(
-            (learn_grid,), (self.BLOCK_SIZE,),
+            (max_grid,), (self.BLOCK_SIZE,),
             (coo.learned_src, coo.learned_dst, coo.learned_delta,
              active, out,
-             cp.uint32(num), cp.uint32(len(active)),
+             coo.num_learned, cp.uint32(len(active)),
              cp.uint32(seed), cp.float32(self.p)),
+            shared_mem=len(active) * 4,
         )
 
     def _hebbian_update(self, source: str, target: str,
@@ -306,17 +507,16 @@ class CudaImplicitEngine(ComputeEngine):
         hebbian_update_kernel(
             (update_grid,), (self.BLOCK_SIZE,),
             (coo.learned_src, coo.learned_dst, coo.learned_delta,
-             coo.num_learned, prev_active, new_active,
+             coo.num_learned, coo.hash_table, prev_active, new_active,
              cp.uint32(k), cp.float32(beta), cp.float32(self.w_max),
              cp.uint32(coo.max_learned), cp.uint32(seed), cp.float32(self.p)),
         )
 
     def _select_topk(self, area: _CudaAreaState, k: int) -> "cp.ndarray":
-        """Select top-k winners using PyTorch (fast) or CuPy fallback."""
-        if _USE_TORCH_TOPK and area._torch_buf is not None:
-            area._torch_buf.copy_(torch.as_tensor(area.activations, device="cuda"))
-            _, top_idx = torch.topk(area._torch_buf, k, sorted=False)
-            return cp.asarray(top_idx).astype(cp.uint32)
+        """Select top-k winners from activation buffer.
+
+        Uses CuPy argpartition (GPU-native, O(n) partial sort).
+        """
         return cp.argpartition(area.activations, -k)[-k:].astype(cp.uint32)
 
     # -- Batched projection --------------------------------------------------
@@ -459,43 +659,9 @@ class CudaImplicitEngine(ComputeEngine):
                         self._run_projection(src.winners, self._areas[target].activations, n, seed)
                         self._apply_learned(src_name, target, src.winners, self._areas[target].activations)
 
-            # Batched top-k: one torch.topk call for all areas in this group
-            if _USE_TORCH_TOPK and batch_size > 1:
-                # Stack activations into a (batch, n) tensor for batched top-k
-                _bk_key = (n, batch_size)
-                if _bk_key not in self._batch_bufs:
-                    dtype = torch.float16 if self._use_fp16 else torch.float32
-                    self._batch_bufs[_bk_key] = torch.zeros(
-                        (batch_size, n), device="cuda", dtype=dtype)
-                topk_buf = self._batch_bufs[_bk_key]
-                for j, (target, _, _) in enumerate(group):
-                    topk_buf[j].copy_(torch.as_tensor(
-                        self._areas[target].activations, device="cuda"))
-                _, all_top_idx = torch.topk(topk_buf[:batch_size], k, dim=1, sorted=False)
-                all_top_cp = cp.asarray(all_top_idx)
-
-                for j, (target, stims, areas) in enumerate(group):
-                    tgt = self._areas[target]
-                    winners = all_top_cp[j].astype(cp.uint32)
-
-                    if plasticity_enabled and tgt.prev_winners is not None:
-                        beta = tgt.beta
-                        for s in stims:
-                            sb = tgt.beta_by_source.get(s, beta)
-                            sa = cp.arange(self._stimuli[s].size, dtype=cp.uint32)
-                            self._hebbian_update(s, target, sa, winners, k, sb)
-                        for a in areas:
-                            ab = tgt.beta_by_source.get(a, beta)
-                            self._hebbian_update(a, target, self._areas[a].winners, winners, k, ab)
-
-                    tgt.prev_winners = tgt.winners
-                    tgt.winners = winners
-                    results[target] = ProjectionResult(
-                        winners=cp.asnumpy(winners).astype(np.uint32),
-                        num_first_winners=0, num_ever_fired=tgt.n)
-            else:
-                # Sequential top-k fallback
-                for target, stims, areas in group:
+            # Top-k per area (CuPy argpartition — PyTorch topk dropped due
+            # to intermittent CuPy↔PyTorch allocator conflicts)
+            for target, stims, areas in group:
                     tgt = self._areas[target]
                     winners = self._select_topk(tgt, k)
 
@@ -550,6 +716,12 @@ class CudaImplicitEngine(ComputeEngine):
     def is_fixed(self, area: str) -> bool:
         return self._areas[area].fixed_assembly
 
+    def reset_area_connections(self, area: str) -> None:
+        """Reset learned COO weights for area->area pairs involving *area*."""
+        for (src, tgt), coo in self._pair_learned.items():
+            if tgt == area and src in self._areas:
+                coo.reset()
+
     @property
     def name(self) -> str:
         return "cuda_implicit"
@@ -562,6 +734,7 @@ class CudaImplicitEngine(ComputeEngine):
             n = int(coo.num_learned[0])
             total_learned += n
             total_bytes += n * 12  # 2 uint32 + 1 float32
+            total_bytes += HASH_TABLE_SIZE * 4  # hash table per pair
         for area in self._areas.values():
             total_bytes += area.n * 4  # activation buffer
         return {
