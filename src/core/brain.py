@@ -121,6 +121,10 @@ class Brain:
         else:
             raise TypeError(f"engine must be a string name or ComputeEngine instance, got {type(engine)}")
 
+        # Secondary engine for explicit areas (lazily created)
+        self._explicit_engine: ComputeEngine = None
+        self._seed = seed
+
         # Used by activate_with_image()
         self.image_activation_engine = ImageActivationEngine()
 
@@ -128,6 +132,11 @@ class Brain:
     def engine_name(self) -> str:
         """Return the active compute engine name."""
         return self._engine.name
+
+    @property
+    def area_by_name(self) -> Dict[str, Area]:
+        """Backward-compatible alias for self.areas."""
+        return self.areas
 
     def add_area(self, area_name: str, n: int, k: int, beta: float = DEFAULT_BETA, explicit: bool = False):
         """
@@ -172,7 +181,17 @@ class Brain:
         self.connectomes[area_name] = {}
         # Initialize connectomes for the new area
         self._initialize_connectomes_for_area(area)
+        # ALWAYS register with the main engine so cross-engine source
+        # lookups work (e.g., explicit area as source for a sparse target).
         self._engine.add_area(area_name, n, k, beta)
+        # For explicit areas, ALSO register with a dedicated explicit engine
+        # that handles full n×n weight matrices and plasticity correctly.
+        if explicit:
+            explicit_eng = self._engine_for(area)  # lazily creates it
+            explicit_eng.add_area(area_name, n, k, beta)
+        # Share engine's connectome objects so b.connectomes[x][y] is the
+        # actual object the engine reads/writes during projection.
+        self._sync_engine_connectomes()
 
     def add_stimulus(self, stimulus_name: str, size: int):
         """
@@ -188,6 +207,67 @@ class Brain:
         # Initialize connectomes for the new stimulus
         self._initialize_connectomes_for_stimulus(stimulus)
         self._engine.add_stimulus(stimulus_name, size)
+        # Also register in explicit engine if it exists
+        if self._explicit_engine is not None:
+            self._explicit_engine.add_stimulus(stimulus_name, size)
+        self._sync_engine_connectomes()
+
+    def add_explicit_area(self, area_name: str, n: int, k: int, beta: float = DEFAULT_BETA,
+                          custom_inner_p=None, custom_out_p=None, custom_in_p=None):
+        """Add an explicitly-simulated brain area.
+
+        Convenience wrapper around ``add_area(explicit=True)``.  Accepts
+        (and currently ignores) ``custom_*_p`` parameters for backward
+        compatibility with legacy callers such as the parser.
+        """
+        self.add_area(area_name, n, k, beta, explicit=True)
+
+    def _engine_for(self, area: Area) -> ComputeEngine:
+        """Return the correct engine for an area.
+
+        Explicit areas use a dedicated NumpyExplicitEngine.
+        Sparse areas use the main engine.
+        """
+        if area.explicit:
+            if self._explicit_engine is None:
+                self._explicit_engine = create_engine(
+                    "numpy_explicit", p=self.p, seed=self._seed, w_max=self.w_max,
+                )
+                # Register existing stimuli so stim→area connectomes exist
+                for stim_name, stim in self.stimuli.items():
+                    self._explicit_engine.add_stimulus(stim_name, stim.size)
+                # Register existing explicit areas (in case areas are added
+                # before the first explicit area triggers engine creation)
+                for existing_name, existing_area in self.areas.items():
+                    if existing_area.explicit and existing_name != area.name:
+                        self._explicit_engine.add_area(
+                            existing_name, existing_area.n, existing_area.k, existing_area.beta,
+                        )
+            return self._explicit_engine
+        return self._engine
+
+    def _sync_engine_connectomes(self):
+        """Replace Brain's connectome dicts with references to the engine's objects.
+
+        After this call, ``self.connectomes[src][tgt]`` and
+        ``self.connectomes_by_stimulus[stim][area]`` point to the same
+        Connectome instances the engine uses for projection and plasticity.
+        """
+        for engine in (self._engine, self._explicit_engine):
+            if engine is None:
+                continue
+            if hasattr(engine, '_area_conns'):
+                for src in engine._area_conns:
+                    if src not in self.connectomes:
+                        self.connectomes[src] = {}
+                    for tgt in engine._area_conns[src]:
+                        self.connectomes[src][tgt] = engine._area_conns[src][tgt]
+            if hasattr(engine, '_stim_conns'):
+                for stim in engine._stim_conns:
+                    if stim not in self.connectomes_by_stimulus:
+                        self.connectomes_by_stimulus[stim] = {}
+                    for area in engine._stim_conns[stim]:
+                        self.connectomes_by_stimulus[stim][area] = engine._stim_conns[stim][area]
 
     def project(
         self,
@@ -222,8 +302,10 @@ class Brain:
             # Inject external activations, then route through the same projection path
             xp = get_xp()
             for area_name, input_winners in (external_inputs or {}).items():
-                self.areas[area_name].winners = xp.asarray(input_winners, dtype=xp.uint32)
-                self._engine.set_winners(area_name, np.asarray(input_winners, dtype=np.uint32))
+                area = self.areas[area_name]
+                area.winners = xp.asarray(input_winners, dtype=xp.uint32)
+                self._engine_for(area).set_winners(
+                    area_name, np.asarray(input_winners, dtype=np.uint32))
             self._project_impl({}, projections or {}, verbose)
         else:
             raise ValueError("Must provide either legacy API parameters or new API parameters")
@@ -256,31 +338,56 @@ class Brain:
 
         to_update_area_names = stim_in.keys() | area_in.keys()
 
+        # Sync winner state from Area descriptors to ALL engines for source
+        # areas.  This is needed for two reasons:
+        # 1. External code may set area.winners directly (pattern completion)
+        # 2. Cross-engine projections: an explicit area's winners must be
+        #    visible to the sparse engine when used as a source.
+        all_source_areas = set()
+        for sources in area_in.values():
+            all_source_areas.update(sources)
+        for area_name in all_source_areas:
+            area = self.areas[area_name]
+            if len(area.winners) > 0:
+                winners_arr = np.asarray(area.winners, dtype=np.uint32)
+                self._engine.set_winners(area_name, winners_arr)
+                if self._explicit_engine is not None and area.explicit:
+                    self._explicit_engine.set_winners(area_name, winners_arr)
+
         # Sync fixed_assembly state from Area descriptors to engine
         for area_name in to_update_area_names:
             area = self.areas[area_name]
-            if area.fixed_assembly and not self._engine.is_fixed(area_name):
-                self._engine.fix_assembly(area_name)
-            elif not area.fixed_assembly and self._engine.is_fixed(area_name):
-                self._engine.unfix_assembly(area_name)
+            engine = self._engine_for(area)
+            if area.fixed_assembly and not engine.is_fixed(area_name):
+                engine.fix_assembly(area_name)
+            elif not area.fixed_assembly and engine.is_fixed(area_name):
+                engine.unfix_assembly(area_name)
 
         # Batched path: process multiple targets in one kernel launch
-        if hasattr(self._engine, 'project_into_batch') and len(to_update_area_names) > 1:
-            configs = [(name, stim_in[name], area_in[name]) for name in to_update_area_names]
+        # (only for non-explicit areas on the main engine)
+        non_explicit = [n for n in to_update_area_names
+                        if not self.areas[n].explicit]
+        if len(non_explicit) > 1:
+            configs = [(name, stim_in[name], area_in[name])
+                       for name in non_explicit]
             batch_results = self._engine.project_into_batch(
                 configs, plasticity_enabled=not self.disable_plasticity)
             for area_name, result in batch_results.items():
                 self._apply_result(area_name, result, stim_in, area_in)
-        else:
-            # Sequential path: one target at a time
-            for area_name in to_update_area_names:
-                result = self._engine.project_into(
-                    area_name,
-                    from_stimuli=stim_in[area_name],
-                    from_areas=area_in[area_name],
-                    plasticity_enabled=not self.disable_plasticity,
-                )
-                self._apply_result(area_name, result, stim_in, area_in)
+
+        # Sequential path: one target at a time
+        remaining = (to_update_area_names - set(non_explicit)
+                     if len(non_explicit) > 1
+                     else to_update_area_names)
+        for area_name in remaining:
+            engine = self._engine_for(self.areas[area_name])
+            result = engine.project_into(
+                area_name,
+                from_stimuli=stim_in[area_name],
+                from_areas=area_in[area_name],
+                plasticity_enabled=not self.disable_plasticity,
+            )
+            self._apply_result(area_name, result, stim_in, area_in)
 
     def _apply_result(self, area_name, result, stim_in, area_in):
         """Apply a ProjectionResult back to the Area descriptor and save history."""
@@ -291,8 +398,7 @@ class Brain:
         had_inputs = bool(stim_in[area_name] or area_in[area_name])
 
         if self.save_winners and had_inputs:
-            mapping = (self._engine.get_neuron_id_mapping(area_name)
-                       if hasattr(self._engine, 'get_neuron_id_mapping') else None)
+            mapping = self._engine.get_neuron_id_mapping(area_name)
             if mapping:
                 saved = np.array([mapping[idx] if idx < len(mapping) else np.uint32(idx)
                                   for idx in result.winners], dtype=np.uint32)
@@ -305,6 +411,58 @@ class Brain:
 
         area.winners = result.winners
         area.w = result.num_ever_fired
+
+        # Sync explicit-area tracking fields
+        if area.explicit:
+            area.ever_fired[result.winners] = True
+            area.num_ever_fired = result.num_ever_fired
+
+    def project_rounds(self, target, areas_by_stim, dst_areas_by_src_area, rounds):
+        """Multi-round projection with engine fast path.
+
+        Executes *rounds* projection steps into *target*.  When the engine
+        supports ``project_rounds`` (CUDA), the entire loop runs in a tight
+        GPU-side path with pre-resolved references and no per-round Brain
+        dispatch.  Otherwise falls back to sequential ``self.project()`` calls.
+        """
+        area = self.areas[target]
+        if area.explicit:
+            for _ in range(rounds):
+                self.project(areas_by_stim, dst_areas_by_src_area)
+            return
+
+        # Resolve which stimuli / areas project into target
+        from_stims = [s for s, areas in areas_by_stim.items()
+                      if target in areas]
+        from_areas_list = [a for a, tgts in dst_areas_by_src_area.items()
+                           if target in tgts and a != target]
+
+        # Sync source area winners to engine ONCE
+        for area_name in from_areas_list:
+            src_area = self.areas[area_name]
+            if len(src_area.winners) > 0:
+                self._engine.set_winners(
+                    area_name, np.asarray(src_area.winners, dtype=np.uint32))
+
+        # Sync target area winners (needed for recurrence / Hebbian prev)
+        if area.winners is not None and len(area.winners) > 0:
+            self._engine.set_winners(
+                target, np.asarray(area.winners, dtype=np.uint32))
+
+        result = self._engine.project_rounds(
+            target=target,
+            from_stimuli=from_stims,
+            from_areas=from_areas_list,
+            rounds=rounds,
+            plasticity_enabled=not self.disable_plasticity,
+        )
+
+        area.winners = result.winners
+        area.w = result.num_ever_fired
+        if self.save_winners:
+            area.saved_winners.append(result.winners.copy())
+        if self.save_size:
+            area.saved_w.append(result.num_ever_fired)
 
     def project_legacy(self, areas_by_stim, dst_areas_by_src_area, verbose=0):
         """Alias for backward compatibility."""
@@ -389,6 +547,8 @@ class Brain:
         """
         self.areas[to_area].beta_by_area[from_area] = new_beta
         self._engine.set_beta(to_area, from_area, new_beta)
+        if self._explicit_engine is not None and self.areas[to_area].explicit:
+            self._explicit_engine.set_beta(to_area, from_area, new_beta)
 
     def update_plasticities(
         self,
@@ -415,6 +575,8 @@ class Brain:
             for stim_name, new_beta in update_rules:
                 area.beta_by_stimulus[stim_name] = new_beta
                 self._engine.set_beta(area_name, stim_name, new_beta)
+                if self._explicit_engine is not None and area.explicit:
+                    self._explicit_engine.set_beta(area_name, stim_name, new_beta)
 
     def activate(self, area_name: str, index: int):
         """
