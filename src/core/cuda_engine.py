@@ -118,7 +118,8 @@ class CudaImplicitEngine(ComputeEngine):
     BLOCK_SIZE = 512  # CUDA block size (optimised for RTX 4090)
 
     def __init__(self, p: float, seed: int = 0, w_max: float = 10.0,
-                 use_fp16: bool = True, max_learned_per_pair: int = 500_000):
+                 use_fp16: bool = True, max_learned_per_pair: int = 500_000,
+                 deterministic: bool = False):
         self.p = p
         self.global_seed = seed
         self.w_max = w_max

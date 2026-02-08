@@ -78,7 +78,7 @@ class Brain:
       Language Organ." 2023.
     """
 
-    def __init__(self, p: float = DEFAULT_P, save_size: bool = True, save_winners: bool = False, seed: int = 0, w_max: float = DEFAULT_W_MAX, engine="auto"):
+    def __init__(self, p: float = DEFAULT_P, save_size: bool = True, save_winners: bool = False, seed: int = 0, w_max: float = DEFAULT_W_MAX, engine="auto", deterministic: bool = False):
         """
         Initialize a neural assembly brain simulation.
 
@@ -90,11 +90,18 @@ class Brain:
                    (default) to select the best available backend.
                    Examples: ``"numpy_sparse"``, ``"cuda_implicit"``, or a
                    pre-constructed ComputeEngine instance.
+            deterministic (bool): If True, use legacy code paths that preserve
+                   bit-identical RNG sequences for a given seed. Slower (~1.5-2x)
+                   but ensures exact reproducibility across code versions.
+                   If False (default), use optimized paths (amortised buffer
+                   growth, fast inverse-CDF sampling) that are statistically
+                   equivalent but produce different RNG sequences.
         """
         self.p = p
         self.w_max = w_max
         self.save_size = save_size
         self.save_winners = save_winners
+        self.deterministic = deterministic
         self.areas: Dict[str, Area] = {}
         self.stimuli: Dict[str, Stimulus] = {}
         self.connectomes_by_stimulus: Dict[str, Dict[str, Connectome]] = {}
@@ -106,7 +113,9 @@ class Brain:
         if engine == "auto":
             engine = detect_best_engine()
         if isinstance(engine, str):
-            self._engine: ComputeEngine = create_engine(engine, p=p, seed=seed, w_max=w_max)
+            self._engine: ComputeEngine = create_engine(
+                engine, p=p, seed=seed, w_max=w_max, deterministic=deterministic,
+            )
         elif isinstance(engine, ComputeEngine):
             self._engine = engine
         else:

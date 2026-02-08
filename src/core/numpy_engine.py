@@ -94,9 +94,11 @@ class NumpySparseEngine(ComputeEngine):
     Parameters mirror ``Brain.__init__``.
     """
 
-    def __init__(self, p: float, seed: int = 0, w_max: float = 20.0):
+    def __init__(self, p: float, seed: int = 0, w_max: float = 20.0,
+                 deterministic: bool = False):
         self.p = p
         self.w_max = w_max
+        self._deterministic = deterministic
         self._rng = np.random.default_rng(seed)
         self._plasticity_enabled_global = True
 
@@ -214,14 +216,12 @@ class NumpySparseEngine(ComputeEngine):
             if conn.weights.shape[1] == 0:
                 continue
             src = self._areas[src_name]
-            # winners are compact indices — use directly as row indices
-            internal = [int(w) for w in src.winners]
-            n_rows = conn.weights.shape[0]
-            internal = [idx for idx in internal if idx < n_rows]
-            if internal and limit > 0:
+            # winners are compact indices — filter to valid row range
+            src_w = xp.asarray(src.winners)
+            internal = src_w[src_w < conn.weights.shape[0]]
+            if len(internal) > 0 and limit > 0:
                 col_end = min(limit, conn.weights.shape[1])
-                idx_arr = xp.array(internal)
-                prev_winner_inputs[:col_end] += conn.weights[idx_arr, :col_end].sum(axis=0)
+                prev_winner_inputs[:col_end] += conn.weights[internal, :col_end].sum(axis=0)
 
         # Zero signal → preserve current assembly
         if len(prev_winner_inputs) > 0 and float(xp.sum(prev_winner_inputs)) == 0.0:
@@ -239,9 +239,14 @@ class NumpySparseEngine(ComputeEngine):
 
         old_rng = self._sparse_sim.rng
         self._sparse_sim.rng = rng
-        potential_new = self._sparse_sim.sample_new_winner_inputs(
-            input_sizes, tgt.n, tgt.w, tgt.k, self.p,
-        )
+        if self._deterministic:
+            potential_new = self._sparse_sim.sample_new_winner_inputs_legacy(
+                input_sizes, tgt.n, tgt.w, tgt.k, self.p,
+            )
+        else:
+            potential_new = self._sparse_sim.sample_new_winner_inputs(
+                input_sizes, tgt.n, tgt.w, tgt.k, self.p,
+            )
         self._sparse_sim.rng = old_rng
 
         potential_new = to_xp(potential_new)
@@ -303,6 +308,7 @@ class NumpySparseEngine(ComputeEngine):
         """Hebbian learning: w *= (1 + beta), clamped at w_max."""
         xp = get_xp()
         tgt = self._areas[target]
+        winners_arr = xp.asarray(winners, dtype=xp.int64)
 
         # Stimulus → area (1-D weights)
         for stim_name in from_stimuli:
@@ -310,7 +316,7 @@ class NumpySparseEngine(ComputeEngine):
             beta = tgt.beta_by_source.get(stim_name, tgt.beta)
             if beta == 0:
                 continue
-            valid = xp.array([int(w) for w in winners if int(w) < len(conn.weights)])
+            valid = winners_arr[winners_arr < len(conn.weights)]
             if len(valid) > 0:
                 conn.weights[valid] *= (1 + beta)
             if self.w_max is not None:
@@ -323,12 +329,10 @@ class NumpySparseEngine(ComputeEngine):
             if beta == 0:
                 continue
             src = self._areas[src_name]
-            from_winners = src.winners
-            if len(conn.weights.shape) == 2:
-                valid_rows = xp.array([int(fw) for fw in from_winners
-                                       if int(fw) < conn.weights.shape[0]])
-                valid_cols = xp.array([int(w) for w in winners
-                                       if int(w) < conn.weights.shape[1]])
+            src_w = xp.asarray(src.winners)
+            if conn.weights.ndim == 2:
+                valid_rows = src_w[src_w < conn.weights.shape[0]]
+                valid_cols = winners_arr[winners_arr < conn.weights.shape[1]]
                 if len(valid_rows) > 0 and len(valid_cols) > 0:
                     ix = xp.ix_(valid_rows, valid_cols)
                     conn.weights[ix] *= (1 + beta)
@@ -337,7 +341,7 @@ class NumpySparseEngine(ComputeEngine):
                         xp.clip(sub, 0, self.w_max, out=sub)
                         conn.weights[ix] = sub
             else:
-                valid = xp.array([int(w) for w in winners if int(w) < len(conn.weights)])
+                valid = winners_arr[winners_arr < len(conn.weights)]
                 if len(valid) > 0:
                     conn.weights[valid] *= (1 + beta)
                 if self.w_max is not None:
@@ -347,7 +351,12 @@ class NumpySparseEngine(ComputeEngine):
 
     def _expand_connectomes(self, target, from_stimuli, from_areas,
                             input_sizes, winners, first_winner_inputs, new_w):
-        """Expand connectivity for first-time winners."""
+        """Expand connectivity for first-time winners.
+
+        Uses amortised buffer growth for 2-D area→area matrices: physical
+        capacity doubles when exceeded, avoiding repeated vstack/hstack
+        reallocation on every step.
+        """
         xp = get_xp()
         tgt = self._areas[target]
         inputs_names = list(from_stimuli) + list(from_areas)
@@ -398,26 +407,84 @@ class NumpySparseEngine(ComputeEngine):
             src = self._areas[src_name]
             if conn.weights.ndim != 2:
                 conn.weights = xp.empty((0, 0), dtype=xp.float32)
-            rows, cols = conn.weights.shape
-            if rows < src.w:
-                pad_rows = src.w - rows
-                if cols == 0:
-                    conn.weights = xp.empty((src.w, 0), dtype=xp.float32)
-                else:
-                    new_rows = to_xp((self._rng.random((pad_rows, cols)) < self.p).astype(np.float32))
-                    conn.weights = xp.vstack([conn.weights, new_rows])
-                rows = src.w
-            if cols < new_w:
-                pad_cols = new_w - cols
-                if rows == 0:
-                    conn.weights = xp.empty((0, new_w), dtype=xp.float32)
-                else:
-                    new_cols = to_xp((self._rng.random((rows, pad_cols)) < self.p).astype(np.float32))
-                    conn.weights = xp.hstack([conn.weights, new_cols])
-                cols = new_w
 
+            phys_rows, phys_cols = conn.weights.shape
+            needed_rows = src.w
+            needed_cols = new_w
+
+            if self._deterministic:
+                # Legacy exact-fit: vstack/hstack on every step.
+                # Preserves the original RNG call sequence for bit-identical
+                # reproducibility with a given seed.
+                if needed_rows > phys_rows:
+                    nr = needed_rows - phys_rows
+                    new_rows = to_xp(
+                        (self._rng.random((nr, phys_cols)) < self.p).astype(np.float32)
+                    )
+                    conn.weights = xp.vstack([conn.weights, new_rows]) if phys_cols > 0 else xp.zeros((needed_rows, 0), dtype=xp.float32)
+                    phys_rows = needed_rows
+                if needed_cols > phys_cols:
+                    nc = needed_cols - phys_cols
+                    new_cols = to_xp(
+                        (self._rng.random((phys_rows, nc)) < self.p).astype(np.float32)
+                    )
+                    conn.weights = xp.hstack([conn.weights, new_cols]) if phys_rows > 0 else xp.zeros((0, needed_cols), dtype=xp.float32)
+                    phys_cols = needed_cols
+            else:
+                # Amortised buffer growth: track logical extent separately
+                # from physical capacity.  Doubles buffer on reallocation.
+                log_rows = getattr(conn, '_log_rows', phys_rows)
+                log_cols = getattr(conn, '_log_cols', phys_cols)
+                # Guard against external weight replacement (_reset_recurrent)
+                if log_rows > phys_rows or log_cols > phys_cols:
+                    log_rows = min(log_rows, phys_rows)
+                    log_cols = min(log_cols, phys_cols)
+
+                # Physical reallocation (amortised doubling)
+                new_pr, new_pc = phys_rows, phys_cols
+                need_realloc = False
+                if needed_rows > phys_rows:
+                    new_pr = max(needed_rows, phys_rows * 2, 2 * src.k)
+                    need_realloc = True
+                if needed_cols > phys_cols:
+                    new_pc = max(needed_cols, phys_cols * 2, 2 * tgt.k)
+                    need_realloc = True
+
+                if need_realloc:
+                    buf = xp.zeros((new_pr, new_pc), dtype=xp.float32)
+                    if phys_rows > 0 and phys_cols > 0:
+                        buf[:phys_rows, :phys_cols] = conn.weights
+                    conn.weights = buf
+                    phys_rows, phys_cols = new_pr, new_pc
+
+                # Initialise newly-needed cells with Bernoulli(p)
+                nr = needed_rows - log_rows
+                nc = needed_cols - log_cols
+                # Region A: new rows x old cols
+                if nr > 0 and log_cols > 0:
+                    conn.weights[log_rows:needed_rows, :log_cols] = to_xp(
+                        (self._rng.random((nr, log_cols)) < self.p).astype(np.float32)
+                    )
+                # Region B: old rows x new cols
+                if nc > 0 and log_rows > 0:
+                    conn.weights[:log_rows, log_cols:needed_cols] = to_xp(
+                        (self._rng.random((log_rows, nc)) < self.p).astype(np.float32)
+                    )
+                # Region C: new rows x new cols
+                if nr > 0 and nc > 0:
+                    conn.weights[log_rows:needed_rows, log_cols:needed_cols] = to_xp(
+                        (self._rng.random((nr, nc)) < self.p).astype(np.float32)
+                    )
+
+                conn._log_rows = needed_rows
+                conn._log_cols = needed_cols
+
+            # -- Write specific allocations for first-time winners --
             from_index = inputs_names.index(src_name)
             local_rng = np.random.default_rng(self._rng.integers(0, 2**32))
+            src_winners_cpu = np.asarray(
+                to_cpu(src.winners) if hasattr(src.winners, 'get') else src.winners
+            )
             for idx, win in enumerate(new_indices):
                 alloc = int(splits_per_new[idx][from_index]) if idx < len(splits_per_new) else 0
                 if alloc <= 0 or src.w == 0:
@@ -425,12 +492,9 @@ class NumpySparseEngine(ComputeEngine):
                 sample_size = min(alloc, len(src.winners))
                 if sample_size <= 0:
                     continue
-                chosen = local_rng.choice(
-                    np.asarray(to_cpu(src.winners) if hasattr(src.winners, 'get') else src.winners),
-                    size=sample_size, replace=False,
-                )
+                chosen = local_rng.choice(src_winners_cpu, size=sample_size, replace=False)
                 col_idx = win - prior_w
-                if 0 <= col_idx < conn.weights.shape[1]:
+                if 0 <= col_idx < phys_cols:
                     conn.weights[chosen, col_idx] = 1.0
 
     # -- State accessors ----------------------------------------------------
@@ -494,9 +558,11 @@ class NumpyExplicitEngine(ComputeEngine):
     where full fidelity is required.
     """
 
-    def __init__(self, p: float, seed: int = 0, w_max: float = 20.0):
+    def __init__(self, p: float, seed: int = 0, w_max: float = 20.0,
+                 deterministic: bool = False):
         self.p = p
         self.w_max = w_max
+        # Explicit engine is always deterministic — flag accepted for API parity.
         self._rng = np.random.default_rng(seed)
         self._plasticity_enabled_global = True
 
