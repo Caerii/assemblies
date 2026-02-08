@@ -466,6 +466,9 @@ class SparseSimulationEngine:
         Distribute each new winner's total input across source areas/stimuli
         proportional to their sizes.
 
+        Vectorized: computes all winners at once via outer product + argmax
+        remainder assignment instead of per-winner Python loops.
+
         Args:
             input_sizes: Size of each input source.
             first_winner_inputs: Total input for each first-time winner.
@@ -476,20 +479,36 @@ class SparseSimulationEngine:
         total_k = sum(input_sizes)
         if total_k == 0:
             return [[] for _ in first_winner_inputs]
+        if not first_winner_inputs:
+            return []
 
         proportions = np.array(input_sizes, dtype=np.float64) / float(total_k)
-        splits = []
-        for total_in in first_winner_inputs:
-            remaining = int(total_in)
-            base = np.floor(proportions * remaining).astype(int)
-            remainder = remaining - int(base.sum())
-            if remainder > 0:
-                frac = (proportions * remaining) - base
-                order = np.argsort(-frac)
-                for j in range(remainder):
-                    base[order[j % len(base)]] += 1
-            splits.append(base.tolist())
-        return splits
+        totals = np.array(first_winner_inputs, dtype=np.float64)
+
+        # (n_winners, n_sources) outer product
+        raw = totals[:, None] * proportions[None, :]
+        base = np.floor(raw).astype(int)
+        remainders = totals.astype(int) - base.sum(axis=1)
+
+        # Distribute remainders to sources with largest fractional parts
+        mask = remainders > 0
+        if np.any(mask):
+            frac = raw - base
+            # For each winner with remainder, give +1 to the top sources
+            n_sources = len(input_sizes)
+            if n_sources <= 2:
+                # Fast path: remainder is 0 or 1, give to argmax
+                best = np.argmax(frac, axis=1)
+                base[mask, best[mask]] += 1
+            else:
+                # General case: remainder can be > 1 with many sources
+                order = np.argsort(-frac, axis=1)
+                for i in np.where(mask)[0]:
+                    rem = int(remainders[i])
+                    for j in range(rem):
+                        base[i, order[i, j % n_sources]] += 1
+
+        return base.tolist()
 
     def get_simulation_method_info(self) -> Dict[str, Any]:
         """

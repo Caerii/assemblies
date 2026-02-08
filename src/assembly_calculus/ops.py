@@ -359,12 +359,13 @@ def _reset_recurrent(brain, area_name):
 
             if is_sparse and hasattr(conn, 'sparse') and conn.sparse:
                 # Sparse engine: revert to initial empty shape
-                if src_name == area_name:
-                    conn.weights = np.empty(
-                        (conn.weights.shape[0], 0), dtype=np.float32,
-                    )
-                else:
-                    conn.weights = np.empty((0, 0), dtype=np.float32)
+                conn.weights = np.empty((0, 0), dtype=np.float32)
+                # Clear amortised growth bookkeeping so expansion
+                # starts fresh after reset.
+                if hasattr(conn, '_log_rows'):
+                    del conn._log_rows
+                if hasattr(conn, '_log_cols'):
+                    del conn._log_cols
             elif not is_sparse:
                 # Explicit engine: re-randomize
                 rows, cols = conn.weights.shape

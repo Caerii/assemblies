@@ -134,9 +134,11 @@ class NumpySparseEngine(ComputeEngine):
         # Initialize area→area connectomes (both directions) for every existing area
         for other_name, other in self._areas.items():
             if other_name == name:
-                # Self-connection
+                # Self-connection — start at (0, 0) so expansion only
+                # generates Bernoulli(p) values for rows that have actually
+                # fired, not all n rows.  Avoids O(n·k) wasted work.
                 self_conn = Connectome(n, n, self.p, sparse=True)
-                self_conn.weights = xp.empty((n, 0), dtype=xp.float32)
+                self_conn.weights = xp.empty((0, 0), dtype=xp.float32)
                 self._area_conns[name][name] = self_conn
             else:
                 conn_fwd = Connectome(other.n, n, self.p, sparse=True)
@@ -409,7 +411,12 @@ class NumpySparseEngine(ComputeEngine):
                 conn.weights = xp.empty((0, 0), dtype=xp.float32)
 
             phys_rows, phys_cols = conn.weights.shape
-            needed_rows = src.w
+            # Rows must cover all source winner indices (used in the
+            # allocation loop below).  After _reset_recurrent, old compact
+            # indices can exceed src.w / new_w, so take the max.
+            src_w_arr = xp.asarray(src.winners)
+            max_src_idx = (int(xp.max(src_w_arr)) + 1) if src_w_arr.size > 0 else 0
+            needed_rows = max(max_src_idx, new_w if src_name == target else src.w)
             needed_cols = new_w
 
             if self._deterministic:
