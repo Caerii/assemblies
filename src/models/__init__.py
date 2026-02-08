@@ -1,14 +1,12 @@
+# STATUS: planned
 """
 Pre-built model configurations.
 
-This module contains pre-built model configurations for different
+Intended to contain pre-built model configurations for different
 types of neural assembly simulations, including NEMO models,
 language models, and vision models.
+
+Currently implemented in:
+- src.nemo (NEMO parser)
+- src.lexicon (lexicon management and language learning)
 """
-
-from .nemo_model import NEMOModel
-from .language_model import LanguageModel
-from .vision_model import VisionModel
-from .custom_models import CustomModels
-
-__all__ = ['NEMOModel', 'LanguageModel', 'VisionModel', 'CustomModels']

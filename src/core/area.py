@@ -28,6 +28,9 @@ Mathematical Foundation:
 import numpy as np
 from typing import Dict, List, Optional
 
+from .backend import get_xp, to_cpu
+
+
 class Area:
     """
     Neural Area for Assembly Simulation
@@ -83,17 +86,18 @@ class Area:
         self.beta = beta
         self.explicit = explicit
 
-        self._winners = np.array([], dtype=np.uint32)
+        xp = get_xp()
+        self._winners = xp.array([], dtype=xp.uint32)
         self.w = 0  # Number of neurons that have ever fired
         self.fixed_assembly = False
-        
+
         # Temporary state for projection updates (matches brain.py)
-        self._new_winners = np.array([], dtype=np.uint32)
+        self._new_winners = xp.array([], dtype=xp.uint32)
         self._new_w = 0
         self.num_first_winners = -1
 
         if explicit:
-            self.ever_fired = np.zeros(self.n, dtype=bool)
+            self.ever_fired = xp.zeros(self.n, dtype=bool)
             self.num_ever_fired = 0
 
         self.beta_by_stimulus: Dict[str, float] = {}
@@ -112,8 +116,9 @@ class Area:
         return self._winners
 
     @winners.setter
-    def winners(self, value: np.ndarray):
-        self._winners = np.array(value, dtype=np.uint32)
+    def winners(self, value):
+        xp = get_xp()
+        self._winners = xp.asarray(value, dtype=xp.uint32)
         self.w = len(self._winners)
 
     def fix_assembly(self):
@@ -146,17 +151,18 @@ class Area:
         else:
             return self.w
 
-    def _update_winners(self, new_winners: np.ndarray):
+    def _update_winners(self, new_winners):
         """
         Updates the winners and records the state.
 
         Args:
-            new_winners (np.ndarray): The new winners to set.
+            new_winners: The new winners to set.
         """
+        xp = get_xp()
         self.winners = new_winners
         if self.explicit:
             self.ever_fired[new_winners] = True
-            self.num_ever_fired = np.sum(self.ever_fired)
+            self.num_ever_fired = int(xp.sum(self.ever_fired))
         if self.saved_winners is not None:
             self.saved_winners.append(new_winners)
         if self.saved_w is not None:

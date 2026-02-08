@@ -20,7 +20,7 @@ try:
 except ImportError:
     PSUTIL_AVAILABLE = False
 
-from src.math_primitives.statistics import StatisticalEngine
+from src.compute.statistics import StatisticalEngine
 
 class TestStatisticsPerformance(unittest.TestCase):
     """

@@ -25,7 +25,7 @@ def project_sim(n=1000000, k=1000, p=0.01, beta=0.05, t=50):
     Returns:
     list: A list of synaptic weights saved during the projection.
     """
-    b = Brain(p)
+    b = Brain(p, engine="numpy_sparse")
     b.add_stimulus("stim", k)
     b.add_area("A", n, k, beta)
     b.project({"stim": ["A"]}, {})
@@ -67,7 +67,7 @@ def assembly_only_sim(n=100000, k=317, p=0.05, beta=0.05, project_iter=10):
     Returns:
     list: List of synaptic weights of the assembly after simulation.
     """
-    b = Brain(p)
+    b = Brain(p, engine="numpy_sparse")
     b.add_stimulus("stim", k)
     b.add_area("A", n, k, beta)
     b.project({"stim": ["A"]}, {})

@@ -27,29 +27,19 @@ Mathematical Foundation:
 import numpy as np
 from typing import Dict, List, Tuple
 from collections import defaultdict
-import os
 
-# We implement our own modularized brain logic using our extracted primitives
+from .backend import get_xp, detect_best_engine
+from .engine import ComputeEngine, create_engine
 
 from .area import Area
 from .stimulus import Stimulus
 from .connectome import Connectome
 
-# Import extracted math primitives
+# ImageActivationEngine is used by activate_with_image()
 try:
-    from ..math_primitives.statistics import StatisticalEngine
-    from ..math_primitives.sparse_simulation import SparseSimulationEngine
-    from ..math_primitives.winner_selection import WinnerSelector
-    from ..math_primitives.plasticity import PlasticityEngine
-    from ..math_primitives.explicit_projection import ExplicitProjectionEngine
-    from ..math_primitives.image_activation import ImageActivationEngine
+    from ..compute.image_activation import ImageActivationEngine
 except ImportError:
-    from math_primitives.statistics import StatisticalEngine
-    from math_primitives.sparse_simulation import SparseSimulationEngine
-    from math_primitives.winner_selection import WinnerSelector
-    from math_primitives.plasticity import PlasticityEngine
-    from math_primitives.explicit_projection import ExplicitProjectionEngine
-    from math_primitives.image_activation import ImageActivationEngine
+    from compute.image_activation import ImageActivationEngine
 
 try:
     from ..constants.default_params import DEFAULT_P, DEFAULT_BETA, DEFAULT_W_MAX
@@ -88,30 +78,18 @@ class Brain:
       Language Organ." 2023.
     """
 
-    def __init__(self, p: float = DEFAULT_P, save_size: bool = True, save_winners: bool = False, seed: int = 0, w_max: float = DEFAULT_W_MAX):
+    def __init__(self, p: float = DEFAULT_P, save_size: bool = True, save_winners: bool = False, seed: int = 0, w_max: float = DEFAULT_W_MAX, engine="auto"):
         """
         Initialize a neural assembly brain simulation.
-        
-        Creates a new brain instance with the specified connectivity parameters.
-        The connection probability p determines the sparsity of the neural network,
-        which is crucial for biological realism and computational efficiency.
 
         Args:
             p (float): Connection probability between neurons (0 < p < 1).
-                      Lower values create sparser, more biologically realistic networks.
                       Typical values: 0.01-0.1 for large networks.
             seed (int): Random seed for reproducible simulations.
-                       Essential for scientific reproducibility and debugging.
-                       
-        Biological Context:
-            The connection probability p models the sparse connectivity found in
-            biological neural networks, where each neuron connects to only a small
-            fraction of other neurons, enabling efficient computation.
-            
-        Mathematical Context:
-            The connection probability follows a binomial distribution B(n, p),
-            where n is the number of potential connections and p is the probability
-            of each connection existing.
+            engine: ComputeEngine instance, engine name string, or ``"auto"``
+                   (default) to select the best available backend.
+                   Examples: ``"numpy_sparse"``, ``"cuda_implicit"``, or a
+                   pre-constructed ComputeEngine instance.
         """
         self.p = p
         self.w_max = w_max
@@ -123,14 +101,24 @@ class Brain:
         self.connectomes: Dict[str, Dict[str, Connectome]] = {}
         self.rng = np.random.default_rng(seed)
         self.disable_plasticity = False
-        
-        # Initialize extracted math primitives engines
-        self.statistical_engine = StatisticalEngine(self.rng)
-        self.sparse_simulation_engine = SparseSimulationEngine(self.rng)
-        self.winner_selector = WinnerSelector(self.rng)
-        self.plasticity_engine = PlasticityEngine(self.rng)
-        self.explicit_projection_engine = ExplicitProjectionEngine(self.rng)
+
+        # Compute engine — required, defaults to auto-detected best backend
+        if engine == "auto":
+            engine = detect_best_engine()
+        if isinstance(engine, str):
+            self._engine: ComputeEngine = create_engine(engine, p=p, seed=seed, w_max=w_max)
+        elif isinstance(engine, ComputeEngine):
+            self._engine = engine
+        else:
+            raise TypeError(f"engine must be a string name or ComputeEngine instance, got {type(engine)}")
+
+        # Used by activate_with_image()
         self.image_activation_engine = ImageActivationEngine()
+
+    @property
+    def engine_name(self) -> str:
+        """Return the active compute engine name."""
+        return self._engine.name
 
     def add_area(self, area_name: str, n: int, k: int, beta: float = DEFAULT_BETA, explicit: bool = False):
         """
@@ -175,6 +163,7 @@ class Brain:
         self.connectomes[area_name] = {}
         # Initialize connectomes for the new area
         self._initialize_connectomes_for_area(area)
+        self._engine.add_area(area_name, n, k, beta)
 
     def add_stimulus(self, stimulus_name: str, size: int):
         """
@@ -189,6 +178,7 @@ class Brain:
         self.connectomes_by_stimulus[stimulus_name] = {}
         # Initialize connectomes for the new stimulus
         self._initialize_connectomes_for_stimulus(stimulus)
+        self._engine.add_stimulus(stimulus_name, size)
 
     def project(
         self,
@@ -221,8 +211,10 @@ class Brain:
             self._project_impl(areas_by_stim or {}, dst_areas_by_src_area or {}, verbose)
         elif external_inputs is not None or projections is not None:
             # Inject external activations, then route through the same projection path
+            xp = get_xp()
             for area_name, input_winners in (external_inputs or {}).items():
-                self.areas[area_name].winners = np.asarray(input_winners, dtype=np.uint32)
+                self.areas[area_name].winners = xp.asarray(input_winners, dtype=xp.uint32)
+                self._engine.set_winners(area_name, np.asarray(input_winners, dtype=np.uint32))
             self._project_impl({}, projections or {}, verbose)
         else:
             raise ValueError("Must provide either legacy API parameters or new API parameters")
@@ -231,14 +223,12 @@ class Brain:
         """
         Core projection implementation.
 
-        Builds input mappings from stimuli and areas, then projects into each
-        target area using the appropriate engine (explicit or sparse).
+        Builds input mappings from stimuli and areas, then delegates to the
+        compute engine for all projection, winner selection, and plasticity.
         """
-        # Build input mappings exactly like original brain.py
         stim_in = defaultdict(list)
         area_in = defaultdict(list)
 
-        # Validate and build stimulus inputs
         for stim, areas in areas_by_stim.items():
             if stim not in self.stimuli:
                 raise IndexError(f"Not in brain.stimuli: {stim}")
@@ -246,8 +236,7 @@ class Brain:
                 if area_name not in self.areas:
                     raise IndexError(f"Not in brain.areas: {area_name}")
                 stim_in[area_name].append(stim)
-        
-        # Validate and build area inputs
+
         for from_area_name, to_area_names in dst_areas_by_src_area.items():
             if from_area_name not in self.areas:
                 raise IndexError(f"Not in brain.areas: {from_area_name}")
@@ -256,384 +245,61 @@ class Brain:
                     raise IndexError(f"Not in brain.areas: {to_area_name}")
                 area_in[to_area_name].append(from_area_name)
 
-        # Process each target area using our modular primitives
         to_update_area_names = stim_in.keys() | area_in.keys()
-        
+
+        # Sync fixed_assembly state from Area descriptors to engine
         for area_name in to_update_area_names:
             area = self.areas[area_name]
-            # Ensure each area gets a different random seed for proper randomization
-            area_rng = np.random.default_rng(self.rng.integers(0, 2**32))
-            num_first_winners, had_inputs = self._project_into_legacy(
-                area, stim_in[area_name], area_in[area_name], verbose, area_rng)
-            area.num_first_winners = num_first_winners
-            
-            # Save winners if requested and area received actual inputs (not no-signal preserve)
-            if self.save_winners and had_inputs:
-                if area.explicit or not hasattr(area, 'compact_to_neuron_id'):
-                    saved = np.array(area._new_winners, dtype=np.uint32)
-                else:
-                    # Map compact indices to stable neuron ids for saving
-                    mapping = area.compact_to_neuron_id
-                    saved = np.array([mapping[idx] if idx < len(mapping) else np.uint32(idx)
-                                      for idx in area._new_winners], dtype=np.uint32)
-                area.saved_winners.append(saved)
-                if verbose >= 1 and area_name == 'C':
-                    phase = 'unknown'
-                    if 'A' in area_in[area_name] and 'B' in area_in[area_name]:
-                        phase = 'A,B->C'
-                    elif 'A' in area_in[area_name]:
-                        phase = 'A->C'
-                    elif 'B' in area_in[area_name]:
-                        phase = 'B->C' if len(area_in[area_name]) == 1 else 'Final B-only'
-            
-            # Save size if requested  
-            if self.save_size:
-                area.saved_w.append(area._new_w)
-            
-            # Update area state
-            area.winners = area._new_winners
-            area.w = area._new_w
+            if area.fixed_assembly and not self._engine.is_fixed(area_name):
+                self._engine.fix_assembly(area_name)
+            elif not area.fixed_assembly and self._engine.is_fixed(area_name):
+                self._engine.unfix_assembly(area_name)
+
+        # Batched path: process multiple targets in one kernel launch
+        if hasattr(self._engine, 'project_into_batch') and len(to_update_area_names) > 1:
+            configs = [(name, stim_in[name], area_in[name]) for name in to_update_area_names]
+            batch_results = self._engine.project_into_batch(
+                configs, plasticity_enabled=not self.disable_plasticity)
+            for area_name, result in batch_results.items():
+                self._apply_result(area_name, result, stim_in, area_in)
+        else:
+            # Sequential path: one target at a time
+            for area_name in to_update_area_names:
+                result = self._engine.project_into(
+                    area_name,
+                    from_stimuli=stim_in[area_name],
+                    from_areas=area_in[area_name],
+                    plasticity_enabled=not self.disable_plasticity,
+                )
+                self._apply_result(area_name, result, stim_in, area_in)
+
+    def _apply_result(self, area_name, result, stim_in, area_in):
+        """Apply a ProjectionResult back to the Area descriptor and save history."""
+        area = self.areas[area_name]
+        area._new_winners = result.winners
+        area._new_w = result.num_ever_fired
+        area.num_first_winners = result.num_first_winners
+        had_inputs = bool(stim_in[area_name] or area_in[area_name])
+
+        if self.save_winners and had_inputs:
+            mapping = (self._engine.get_neuron_id_mapping(area_name)
+                       if hasattr(self._engine, 'get_neuron_id_mapping') else None)
+            if mapping:
+                saved = np.array([mapping[idx] if idx < len(mapping) else np.uint32(idx)
+                                  for idx in result.winners], dtype=np.uint32)
+            else:
+                saved = result.winners.copy()
+            area.saved_winners.append(saved)
+
+        if self.save_size:
+            area.saved_w.append(result.num_ever_fired)
+
+        area.winners = result.winners
+        area.w = result.num_ever_fired
 
     def project_legacy(self, areas_by_stim, dst_areas_by_src_area, verbose=0):
-        """Alias for backward compatibility with code that calls project_legacy directly."""
+        """Alias for backward compatibility."""
         self._project_impl(areas_by_stim, dst_areas_by_src_area, verbose)
-
-    def _project_into_legacy(self, target_area, from_stimuli, from_areas, verbose=0, area_rng=None):
-        """
-        Direct implementation of the original brain.py project_into method.
-        
-        This ensures 100% behavioral parity with the original system.
-        """
-        rng = area_rng if area_rng is not None else self.rng
-        target_area_name = target_area.name
-
-        if verbose >= 1:
-            print(f"Projecting {', '.join(from_stimuli)} and {', '.join(from_areas)} into {target_area.name}")
-
-        # Validate source areas have assemblies
-        for from_area_name in from_areas:
-            from_area = self.areas[from_area_name]
-            if from_area.winners.size == 0 or from_area.w == 0:
-                raise ValueError(f"Projecting from area with no assembly: {from_area}")
-
-        # Handle fixed assembly case
-        if target_area.fixed_assembly:
-            target_area._new_winners = target_area.winners.copy()
-            target_area._new_w = target_area.w
-            return 0, False
-
-        # If sparse target receives no inputs this round, keep assembly unchanged
-        if (not target_area.explicit) and (len(from_stimuli) == 0) and (len(from_areas) == 0):
-            target_area._new_winners = target_area.winners.copy()
-            target_area._new_w = target_area.w
-            return 0, False
-
-        # Initialize previous winner inputs
-        if target_area.explicit:
-            # For explicit areas, accumulate inputs from all sources into a target_n vector
-            prev_winner_inputs = np.zeros(target_area.n, dtype=np.float32)
-            for stim in from_stimuli:
-                conn = self.connectomes_by_stimulus[stim][target_area_name]
-                # Stimulus connectome may be 1D (length n) or 2D (stim_size x n)
-                # All stimulus neurons fire, so sum across source neurons
-                if conn.weights.ndim == 2:
-                    prev_winner_inputs += conn.weights.sum(axis=0).astype(np.float32)
-                else:
-                    prev_winner_inputs += conn.weights.astype(np.float32, copy=False)
-            for from_area_name in from_areas:
-                conn = self.connectomes[from_area_name][target_area_name]
-                for w in self.areas[from_area_name].winners:
-                    if int(w) < conn.weights.shape[0]:
-                        prev_winner_inputs += conn.weights[int(w)]
-        else:
-            # For sparse areas, initialize with zeros of length w (matches original brain.py exactly)
-            # This represents input strength to each of the current winners (indices 0 to w-1)
-            prev_winner_inputs = np.zeros(target_area.w, dtype=np.float32)
-
-        # Add stimulus inputs for sparse areas (matches original brain.py exactly)
-        if not target_area.explicit:
-            # Calculate input strength specific to each current winner
-            for i in range(target_area.w):
-                # Add stimulus inputs for this specific winner
-                for stim in from_stimuli:
-                    stim_inputs = self.connectomes_by_stimulus[stim][target_area_name].weights
-                    if i < len(stim_inputs):
-                        prev_winner_inputs[i] += stim_inputs[i]
-                
-                # Add area inputs for this specific winner
-                for from_area_name in from_areas:
-                    connectome = self.connectomes[from_area_name][target_area_name]
-                    # Skip if connectome has no columns (no connections yet)
-                    if connectome.weights.shape[1] == 0:
-                        continue
-                    
-                    # Calculate total input from this source area to winner i
-                    total_contrib = 0.0
-                    for w in self.areas[from_area_name].winners:
-                        # Map absolute winner index to area's internal index
-                        if hasattr(self.areas[from_area_name], 'compact_to_neuron_id'):
-                            # Find the internal index for this absolute winner
-                            internal_idx = None
-                            for j, neuron_id in enumerate(self.areas[from_area_name].compact_to_neuron_id):
-                                if neuron_id == w:
-                                    internal_idx = j
-                                    break
-                            if internal_idx is None or internal_idx >= connectome.weights.shape[0]:
-                                continue
-                        else:
-                            # For explicit areas, winner index should directly correspond to connectome row
-                            internal_idx = w
-                            if internal_idx >= connectome.weights.shape[0]:
-                                continue
-                        
-                        # Get contribution from this source winner to target winner i
-                        if i < connectome.weights.shape[1]:
-                            contrib = connectome.weights[internal_idx, i]
-                            total_contrib += contrib
-                    
-                    prev_winner_inputs[i] += total_contrib
-
-            # If there is absolutely no input signal, keep previous winners (avoid unintended resets)
-            if len(prev_winner_inputs) > 0 and float(np.sum(prev_winner_inputs)) == 0.0:
-                target_area._new_winners = target_area.winners.copy()
-                target_area._new_w = target_area.w
-                return (0, False)
-
-        # Simulate new winners for sparse areas using proper statistical sampling
-        if not target_area.explicit:
-            # Collect input sizes from each source (stimuli + areas)
-            input_size_by_from_area_index = (
-                [self.stimuli[s].size for s in from_stimuli]
-                + [self.areas[a].k for a in from_areas]
-            )
-            total_k = sum(input_size_by_from_area_index)
-
-            # Use a per-area rng so the engine samples deterministically
-            sampling_engine = self.sparse_simulation_engine
-            old_rng = sampling_engine.rng
-            sampling_engine.rng = rng
-            potential_new_winner_inputs = sampling_engine.sample_new_winner_inputs(
-                input_size_by_from_area_index,
-                target_area.n, target_area.w, target_area.k, self.p,
-            )
-            sampling_engine.rng = old_rng
-            
-            # CRITICAL FIX: Concatenate previous and new winner inputs like original brain.py
-            # prev_winner_inputs has length target_area.w (current winners)
-            # potential_new_winner_inputs has length target_area.k (new candidates)
-            if len(prev_winner_inputs) > 0:
-                all_potential_winner_inputs = np.concatenate([prev_winner_inputs, potential_new_winner_inputs])
-            else:
-                # No previous winners, only consider new candidates
-                all_potential_winner_inputs = potential_new_winner_inputs
-            
-            # Select top k winners from combined list using the winner selector engine
-            new_winner_indices = self.winner_selector.heapq_select_top_k(
-                all_potential_winner_inputs, target_area.k
-            ).tolist()
-            
-            # Prepare per-input split containers (filled after selecting first winners)
-            inputs_by_first_winner_index = []
-        else:
-            # For explicit areas, new winners are selected from all neurons
-            new_winners = np.arange(target_area.n, dtype=np.uint32)
-
-        # Process winner indices for sparse areas
-        if not target_area.explicit:
-            # Convert indices to actual neuron indices like the original brain.py
-            # Modify new_winner_indices in place (like original brain.py)
-            num_first_winners_processed = 0
-            first_winner_inputs = []
-            for i in range(target_area.k):
-                if new_winner_indices[i] >= target_area.w:
-                    # Winner-index larger than `w` means this winner was first-activated here
-                    # Record its total input before remapping index
-                    first_winner_inputs.append(int(all_potential_winner_inputs[new_winner_indices[i]]))
-                    # Assign a stable actual neuron id from pre-shuffled pool, but keep compact index for simulation
-                    if hasattr(target_area, 'neuron_id_pool') and target_area.neuron_id_pool is not None:
-                        pid = target_area.neuron_id_pool_ptr
-                        if pid >= len(target_area.neuron_id_pool):
-                            raise RuntimeError(f"Neuron id pool exhausted for area {target_area.name}")
-                        actual_id = int(target_area.neuron_id_pool[pid])
-                        target_area.neuron_id_pool_ptr += 1
-                    else:
-                        actual_id = target_area.w + num_first_winners_processed
-                    # Append mapping for this new compact column
-                    if hasattr(target_area, 'compact_to_neuron_id'):
-                        target_area.compact_to_neuron_id.append(actual_id)
-                    # Use compact index for winner id in this simulation step
-                    new_winner_indices[i] = target_area.w + num_first_winners_processed
-                    num_first_winners_processed += 1
-                # else: new_winner_indices[i] is already the correct previous winner index
-            
-            winners = new_winner_indices
-            if verbose >= 2 or (os.environ.get("ASSEMBLIES_VERBOSE") == "1" and target_area_name == "C"):
-                # Count previous vs new winners correctly
-                # Indices 0 to target_area.w-1 are previous winners
-                # Indices target_area.w to target_area.w+target_area.k-1 are new candidates
-                prev_cnt = sum(1 for idx in winners if idx < target_area.w)
-                new_cnt = len(winners) - prev_cnt
-        else:
-            # For explicit areas, use the extracted winner selector
-            all_inputs = prev_winner_inputs
-            winners, _, _, _ = self.winner_selector.select_combined_winners(
-                all_inputs, target_area.w, target_area.k
-            )
-            num_first_winners_processed = 0
-
-        # Update area state
-        target_area._new_winners = winners
-        # For sparse areas, accumulate ever-fired count like original brain.py
-        if target_area.explicit:
-            target_area._new_w = len(winners)
-        else:
-            target_area._new_w = target_area.w + num_first_winners_processed
-        
-        # Count first-time winners
-        if target_area.explicit:
-            num_first_winners = 0
-        else:
-            # We already tracked how many first-time winners we processed
-            num_first_winners = num_first_winners_processed
-        
-        # Apply learning to all winners (like original brain.py)
-        # This is the key difference - original applies learning every time, not just for new winners
-        self._apply_plasticity_to_winners(target_area, from_stimuli, from_areas, winners)
-        
-        # Update connectomes if there are new winners
-        if num_first_winners > 0:
-            inputs_names = list(from_stimuli) + list(from_areas)
-            splits_per_new = self.sparse_simulation_engine.compute_input_splits(
-                input_size_by_from_area_index, first_winner_inputs,
-            )
-            prior_w = target_area.w
-            new_indices_for_update = [int(w) for w in winners if int(w) >= prior_w]
-            self._update_connectomes_for_new_winners(target_area, inputs_names, new_indices_for_update, splits_per_new)
-        
-        # Return both num_first_winners and whether inputs were actually processed
-        had_inputs = bool(from_stimuli or from_areas)
-        return num_first_winners, had_inputs
-
-    def _apply_plasticity_to_winners(self, target_area, from_stimuli, from_areas, winners):
-        """Apply Hebbian learning to all winners, with w_max saturation.
-
-        Implements the core Hebbian rule: w *= (1 + β), clamped at w_max to
-        prevent unbounded weight growth. See Dabagia et al. (2024).
-        """
-        # Apply stimulus-to-area plasticity
-        for stim_name in from_stimuli:
-            connectome = self.connectomes_by_stimulus[stim_name][target_area.name]
-            beta = target_area.beta_by_stimulus.get(stim_name, target_area.beta)
-            if not self.disable_plasticity and beta != 0:
-                for winner in winners:
-                    if winner < len(connectome.weights):
-                        connectome.weights[winner] *= (1 + beta)
-                # Clamp at w_max
-                if self.w_max is not None:
-                    np.clip(connectome.weights, 0, self.w_max, out=connectome.weights)
-
-        # Apply area-to-area plasticity
-        for from_area_name in from_areas:
-            connectome = self.connectomes[from_area_name][target_area.name]
-            beta = target_area.beta_by_area.get(from_area_name, target_area.beta)
-            if not self.disable_plasticity and beta != 0:
-                from_area_winners = self.areas[from_area_name].winners
-                if len(connectome.weights.shape) == 2:
-                    for winner in winners:
-                        for from_winner in from_area_winners:
-                            if from_winner < connectome.weights.shape[0] and winner < connectome.weights.shape[1]:
-                                connectome.weights[from_winner, winner] *= (1 + beta)
-                                if self.w_max is not None and connectome.weights[from_winner, winner] > self.w_max:
-                                    connectome.weights[from_winner, winner] = self.w_max
-                else:
-                    for winner in winners:
-                        if winner < len(connectome.weights):
-                            connectome.weights[winner] *= (1 + beta)
-                    if self.w_max is not None:
-                        np.clip(connectome.weights, 0, self.w_max, out=connectome.weights)
-
-    def _update_connectomes_for_new_winners(self, target_area, inputs_names, new_winners, splits_per_new):
-        """Update connectomes for new winners using 1D sparse representations.
-
-        - Stimulus→area: 1D vector per area of length w; for each new winner, set weight to its allocated stim inputs.
-        - Area→area: maintain 1D per from-area of length w (columns), storing number of synapses from that from-area into each winner column.
-        """
-        # Update stimulus vectors
-        stim_names = [name for name in inputs_names if name in self.stimuli]
-        area_names = [name for name in inputs_names if name in self.areas]
-        # Ensure all stimulus vectors have length _new_w
-        for stim_name in self.stimuli.keys():
-            conn = self.connectomes_by_stimulus[stim_name][target_area.name]
-            if conn.sparse:
-                old = len(conn.weights)
-                if target_area._new_w > old:
-                    # If this stim did NOT fire this round, populate new entries with binomial(stim.size, p)
-                    add_len = target_area._new_w - old
-                    if stim_name not in stim_names:
-                        stim_size = self.stimuli[stim_name].size
-                        add = self.rng.binomial(stim_size, self.p, size=add_len).astype(np.float32)
-                    else:
-                        # Temporary zeros; will be assigned per-winner below
-                        add = np.zeros(add_len, dtype=np.float32)
-                    conn.weights = np.concatenate([conn.weights, add])
-        # Write allocations for firing stimuli
-        for idx, win in enumerate(new_winners):
-            if win >= target_area._new_w:
-                continue
-            # find split vector for this new winner
-            split = splits_per_new[idx] if idx < len(splits_per_new) else None
-            if split is None:
-                continue
-            # Map split entries to inputs_names order
-            for j, name in enumerate(inputs_names):
-                alloc = int(split[j])
-                if name in self.stimuli:
-                    conn = self.connectomes_by_stimulus[name][target_area.name]
-                    if conn.sparse and win < len(conn.weights):
-                        conn.weights[win] = alloc
-        # Update area→area 2D sparse matrices per from-area using winner row sampling
-        for from_area_name in area_names:
-            conn = self.connectomes[from_area_name][target_area.name]
-            if not conn.sparse:
-                continue
-            from_area = self.areas[from_area_name]
-            # Ensure 2D matrix shape (from_area.w, target_area._new_w)
-            if conn.weights.ndim != 2:
-                # Initialize to 0x0
-                conn.weights = np.empty((0, 0), dtype=np.float32)
-            rows, cols = conn.weights.shape
-            if rows < from_area.w:
-                # Pad rows
-                pad_rows = from_area.w - rows
-                if cols == 0:
-                    conn.weights = np.empty((from_area.w, 0), dtype=np.float32)
-                else:
-                    conn.weights = np.vstack([conn.weights, np.zeros((pad_rows, cols), dtype=np.float32)])
-                rows = from_area.w
-            if cols < target_area._new_w:
-                # Pad columns
-                pad_cols = target_area._new_w - cols
-                if rows == 0:
-                    conn.weights = np.empty((0, target_area._new_w), dtype=np.float32)
-                else:
-                    conn.weights = np.hstack([conn.weights, np.zeros((rows, pad_cols), dtype=np.float32)])
-                cols = target_area._new_w
-            # Allocate synapses for new columns for this from_area based on splits
-            from_index = inputs_names.index(from_area_name)
-            rng = np.random.default_rng(self.rng.integers(0, 2**32))
-            for idx, win in enumerate(new_winners):
-                alloc = int(splits_per_new[idx][from_index]) if idx < len(splits_per_new) else 0
-                if alloc <= 0 or from_area.w == 0:
-                    continue
-                # Sample alloc rows from current from_area winners without replacement
-                sample_size = min(alloc, len(from_area.winners))
-                if sample_size <= 0:
-                    continue
-                chosen = rng.choice(from_area.winners, size=sample_size, replace=False)
-                # Map winner index to column index (winners are consecutive from target_area.w)
-                col_idx = win - target_area.w
-                if 0 <= col_idx < conn.weights.shape[1]:
-                    conn.weights[chosen, col_idx] = 1.0
 
     def _initialize_connectomes_for_area(self, area: Area):
         """
@@ -642,6 +308,7 @@ class Brain:
         Args:
             area (Area): The new area.
         """
+        xp = get_xp()
         # Initialize connectomes from stimuli to this area
         for stim_name, stim in self.stimuli.items():
             if area.explicit:
@@ -650,7 +317,7 @@ class Brain:
             else:
                 # For sparse areas, start with empty 1D vector of length area.w (0)
                 connectome = Connectome(stim.size, area.n, self.p, sparse=True)
-                connectome.weights = np.empty(0, dtype=np.float32)
+                connectome.weights = xp.empty(0, dtype=xp.float32)
             self.connectomes_by_stimulus[stim_name][area.name] = connectome
             area.beta_by_stimulus[stim_name] = area.beta
 
@@ -660,9 +327,9 @@ class Brain:
         else:
             self_connectome = Connectome(area.n, area.n, self.p, sparse=True)
             # For sparse, represent area-to-area as 2D with 0 columns
-            self_connectome.weights = np.empty((area.n, 0), dtype=np.float32)
+            self_connectome.weights = xp.empty((area.n, 0), dtype=xp.float32)
         self.connectomes[area.name][area.name] = self_connectome
-        
+
         # Initialize connectomes from existing areas to this area
         for other_area_name, other_area in self.areas.items():
             if other_area_name != area.name:
@@ -673,9 +340,9 @@ class Brain:
                 else:
                     # Both areas are sparse, represent compactly with 0x0 matrices initially
                     connectome = Connectome(other_area.n, area.n, self.p, sparse=True)
-                    connectome.weights = np.empty((0, 0), dtype=np.float32)
+                    connectome.weights = xp.empty((0, 0), dtype=xp.float32)
                     connectome_rev = Connectome(area.n, other_area.n, self.p, sparse=True)
-                    connectome_rev.weights = np.empty((0, 0), dtype=np.float32)
+                    connectome_rev.weights = xp.empty((0, 0), dtype=xp.float32)
                 
                 self.connectomes[other_area_name][area.name] = connectome
                 self.connectomes[area.name][other_area_name] = connectome_rev
@@ -691,9 +358,14 @@ class Brain:
         Args:
             stimulus (Stimulus): The new stimulus.
         """
+        xp = get_xp()
         # Initialize connectomes from stimulus to all areas
         for area_name, area in self.areas.items():
-            connectome = Connectome(stimulus.size, area.n, self.p)
+            if area.explicit:
+                connectome = Connectome(stimulus.size, area.n, self.p, sparse=False)
+            else:
+                connectome = Connectome(stimulus.size, area.n, self.p, sparse=True)
+                connectome.weights = xp.empty(0, dtype=xp.float32)
             self.connectomes_by_stimulus[stimulus.name][area_name] = connectome
             area.beta_by_stimulus[stimulus.name] = area.beta
             
@@ -706,7 +378,8 @@ class Brain:
             to_area (str): Name of the area that the synapses project to.
             new_beta (float): The new synaptic plasticity parameter.
         """
-        self.areas[to_area].beta_by_area[from_area] = new_beta 
+        self.areas[to_area].beta_by_area[from_area] = new_beta
+        self._engine.set_beta(to_area, from_area, new_beta)
 
     def update_plasticities(
         self,
@@ -732,6 +405,7 @@ class Brain:
             area = self.areas[area_name]
             for stim_name, new_beta in update_rules:
                 area.beta_by_stimulus[stim_name] = new_beta
+                self._engine.set_beta(area_name, stim_name, new_beta)
 
     def activate(self, area_name: str, index: int):
         """
@@ -745,10 +419,11 @@ class Brain:
             This function is a shortcut for activating a specific assembly in an area.
             It is equivalent to calling `area.fix_assembly()` after setting the winners to the desired assembly.
         """
+        xp = get_xp()
         area = self.areas[area_name]
         k = area.k
         assembly_start = k * index
-        area.winners = np.arange(assembly_start, assembly_start + k, dtype=np.uint32)
+        area.winners = xp.arange(assembly_start, assembly_start + k, dtype=xp.uint32)
         area.fix_assembly()
     
     def activate_with_image(self, area_name: str, image: np.ndarray):

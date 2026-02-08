@@ -33,7 +33,7 @@ def pattern_com(n=100000, k=317, p=0.05, beta=0.05, project_iter=10, alpha=0.5, 
     tuple: Contains two elements; the first is the final weights of the neural connections,
            and the second is the list of winners (active neurons) after completion.
     """
-    b = Brain(p, save_winners=True)
+    b = Brain(p, save_winners=True, engine="numpy_sparse")
     b.add_stimulus("stim", k)
     b.add_area("A", n, k, beta)
     b.project({"stim": ["A"]}, {})
@@ -67,7 +67,7 @@ def pattern_com_repeated(n=100000, k=317, p=0.05, beta=0.05, project_iter=12, al
     Returns:
     tuple: Contains overlaps of winners and the number of iterations to reach completion for each trial.
     """
-    b = Brain(p, save_winners=True)
+    b = Brain(p, save_winners=True, engine="numpy_sparse")
     b.add_stimulus("stim", k)
     b.add_area("A", n, k, beta)
     b.project({"stim": ["A"]}, {})
@@ -111,7 +111,7 @@ def pattern_com_alphas(n=100000, k=317, p=0.01, beta=0.05,
     Returns:
     dict: Dictionary where keys are the alpha values and values are the overlap ratios of reactivated assembly with the initial winners.
     """
-    b = Brain(p)
+    b = Brain(p, engine="numpy_sparse")
     b.add_stimulus("stim", k)
     b.add_area("A", n, k, beta)
     b.project({"stim": ["A"]}, {})
@@ -150,7 +150,7 @@ def pattern_com_iterations(n=100000, k=317, p=0.01, beta=0.05, alpha=0.4, comp_i
     Returns:
     dict: Dictionary where keys are the number of iterations, and values are the overlap ratios of reactivated assembly with the initial winners.
     """
-    b = Brain(p)
+    b = Brain(p, engine="numpy_sparse")
     b.add_stimulus("stim", k)
     b.add_area("A", n, k, beta)
     b.project({"stim": ["A"]}, {})

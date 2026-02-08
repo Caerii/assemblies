@@ -295,7 +295,7 @@ class UltraFastAssemblyArea:
         
         # Hebbian update (inline to avoid function call overhead)
         if learn and self.has_active:
-            from cupy_assembly_kernels import hebbian_update_kernel
+            from .implicit import hebbian_update_kernel
             update_grid = (self.k * self.k + self.block_size - 1) // self.block_size
             hebbian_update_kernel(
                 (update_grid,), (self.block_size,),
@@ -380,7 +380,7 @@ def benchmark_ultra():
         k = 50
         
         # Original
-        from cupy_assembly_kernels import ImplicitAssemblyArea
+        from .implicit import ImplicitAssemblyArea
         area_orig = ImplicitAssemblyArea(n, k, p=0.05)
         
         # Ultra

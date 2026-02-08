@@ -46,10 +46,10 @@ void implicit_projection(
     unsigned int dst = blockIdx.x * blockDim.x + threadIdx.x;
     if (dst >= n) return;
     
-    // Load active indices into shared memory
+    // Load active indices into shared memory (tiled for k > blockDim.x)
     extern __shared__ unsigned int s_active[];
-    if (threadIdx.x < k) {
-        s_active[threadIdx.x] = active[threadIdx.x];
+    for (unsigned int i = threadIdx.x; i < k; i += blockDim.x) {
+        s_active[i] = active[i];
     }
     __syncthreads();
     

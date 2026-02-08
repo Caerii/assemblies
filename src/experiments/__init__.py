@@ -1,13 +1,11 @@
+# STATUS: planned
 """
 Experimental frameworks.
 
-This module provides frameworks for running experiments, parameter
+Intended to provide frameworks for running experiments, parameter
 sweeps, ablation studies, and benchmarking neural assembly simulations.
+
+Currently implemented in:
+- research/experiments/ (standalone experiment scripts)
+- research/experiments/base.py (shared statistical helpers)
 """
-
-from .experiment_runner import ExperimentRunner
-from .parameter_sweep import ParameterSweep
-from .ablation_studies import AblationStudies
-from .benchmark_suite import BenchmarkSuite
-
-__all__ = ['ExperimentRunner', 'ParameterSweep', 'AblationStudies', 'BenchmarkSuite']

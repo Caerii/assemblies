@@ -1,13 +1,12 @@
+# STATUS: planned
 """
 Area lifecycle and management.
 
-This module handles the creation, management, and lifecycle of brain areas,
+Intended to handle creation, management, and lifecycle of brain areas,
 including explicit areas, sparse areas, and area state management.
+
+Currently implemented in:
+- src.core.area (Area descriptor)
+- src.core.brain (Brain.add_area orchestration)
+- src.core.numpy_engine / cuda_engine (area compute state)
 """
-
-from .area_factory import AreaFactory
-from .explicit_areas import ExplicitAreaManager
-from .sparse_areas import SparseAreaManager
-from .area_state import AreaStateManager
-
-__all__ = ['AreaFactory', 'ExplicitAreaManager', 'SparseAreaManager', 'AreaStateManager']

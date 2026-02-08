@@ -26,8 +26,12 @@ Mathematical Foundation:
 """
 
 import numpy as np
-import heapq
 from typing import List, Dict, Tuple, Any
+
+try:
+    from ..core.backend import get_xp, to_cpu, to_xp
+except ImportError:
+    from core.backend import get_xp, to_cpu, to_xp
 
 class SparseSimulationEngine:
     """
@@ -298,11 +302,15 @@ class SparseSimulationEngine:
             while accommodating dynamic expansion.
         """
         # Select top k winners using heap algorithm
-        new_winner_indices = heapq.nlargest(
-            target_area_k,
-            range(len(all_potential_winners)),
-            key=lambda i: all_potential_winners[i]
-        )
+        # Select top k winners using argpartition (O(n) average)
+        arr = np.asarray(all_potential_winners, dtype=np.float64)
+        k = min(target_area_k, len(arr))
+        if k >= len(arr):
+            part_idx = np.arange(len(arr))
+        else:
+            part_idx = np.argpartition(-arr, k)[:k]
+        sorted_order = np.argsort(-arr[part_idx])
+        new_winner_indices = list(part_idx[sorted_order])
 
         first_winner_inputs = []
         num_first_winners_processed = 0
@@ -368,7 +376,7 @@ class SparseSimulationEngine:
             mu + truncnorm.rvs(a, np.inf, scale=std, size=k, random_state=self.rng)
         ).round(0)
         np.clip(samples, 0, total_k, out=samples)
-        return samples
+        return to_xp(samples)
 
     def compute_input_splits(
         self,

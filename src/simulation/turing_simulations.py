@@ -32,7 +32,7 @@ def larger_k(n=10000, k=100, p=0.01, beta=0.05, bigger_factor=10):
     """
     start_time = time.time()
 
-    b = Brain(p, save_winners=True)
+    b = Brain(p, save_winners=True, engine="numpy_sparse")
     b.add_stimulus("stim", k)
     b.add_area("A", n, k, beta)
     b.add_area("B", n, bigger_factor * k, beta)
@@ -87,7 +87,7 @@ def turing_erase(n=50000, k=100, p=0.01, beta=0.05, r=1.0, bigger_factor=20):
     """
     start_time = time.time()
 
-    b = Brain(p, save_winners=True)
+    b = Brain(p, save_winners=True, engine="numpy_sparse")
     # Much smaller stimulus, similar to lower p from stimulus into A
     smaller_k = int(r * k)
     b.add_stimulus("stim", smaller_k)

@@ -160,7 +160,7 @@ class BatchedAssemblySystem:
     
     def _hebbian_update(self, area_idx: int, prev: cp.ndarray, new: cp.ndarray):
         """Update learned weights for one area."""
-        from cupy_assembly_kernels import hebbian_update_kernel
+        from .implicit import hebbian_update_kernel
         
         update_grid = (self.k * self.k + self.block_size - 1) // self.block_size
         hebbian_update_kernel(
@@ -189,7 +189,7 @@ def benchmark():
     print("BATCHED vs SEQUENTIAL BENCHMARK")
     print("=" * 70)
     
-    from cupy_assembly_kernels import ImplicitAssemblyArea
+    from .implicit import ImplicitAssemblyArea
     
     n = 1000000
     k = 50

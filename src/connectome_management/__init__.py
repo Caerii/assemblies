@@ -1,15 +1,12 @@
+# STATUS: planned
 """
 Connectome operations and management.
 
-This module handles synaptic connections, weight updates, connectivity
+Intended to handle synaptic connections, weight updates, connectivity
 patterns, and dynamic connectome expansion.
+
+Currently implemented in:
+- src.core.connectome (Connectome data structure)
+- src.core.numpy_engine (sparse/explicit connectome logic)
+- src.core.cuda_engine (implicit hash-based connectivity)
 """
-
-from .connectome_manager import ConnectomeManager
-from .weight_updates import WeightUpdateEngine
-from .connectivity_patterns import ConnectivityPatterns
-from .sparse_connectomes import SparseConnectomeManager
-from .connectome_expansion import ConnectomeExpansionEngine
-
-__all__ = ['ConnectomeManager', 'WeightUpdateEngine', 'ConnectivityPatterns', 
-           'SparseConnectomeManager', 'ConnectomeExpansionEngine']

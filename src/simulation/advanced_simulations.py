@@ -27,7 +27,7 @@ def fixed_assembly_recip_proj(n=100000, k=317, p=0.01, beta=0.05):
     Description:
     Initiates a brain model, creates two areas A and B, and applies stimulation to A. After stabilizing the response in A, it projects responses to B and then reciprocally from B to A to test if the original pattern in A can be restored. The results show how effectively the assembly in B can influence A after stabilization.
     """
-    b = Brain(p, save_winners=True)
+    b = Brain(p, save_winners=True, engine="numpy_sparse")
     b.add_stimulus("stimA", k)
     b.add_area("A", n, k, beta)
     # Will project fixes A into B
@@ -68,7 +68,7 @@ def fixed_assembly_merge(n=100000, k=317, p=0.01, beta=0.05):
     Description:
     Creates a neural setup with three areas, A, B, and C, and provides stimuli to A and B. The method then fixes the assemblies in A and B to observe their influence without further modifications.
     """
-    b = Brain(p)
+    b = Brain(p, engine="numpy_sparse")
     b.add_stimulus("stimA", k)
     b.add_stimulus("stimB", k)
     b.add_area("A", n, k, beta)
@@ -96,7 +96,7 @@ def separate(n=10000, k=100, p=0.01, beta=0.05, rounds=10, overlap=0):
     Description:
     Introduces two distinct stimuli into a neural area and measures the overlap between the resulting assemblies after a series of projections. It also tests the ability to restore initial assemblies after multiple rounds of stimulation.
     """
-    b = Brain(p)
+    b = Brain(p, engine="numpy_sparse")
     b.add_explicit_area("EXP", 2*k, k, beta)
     b.add_area("A", n, k, beta)
 

@@ -1,13 +1,11 @@
+# STATUS: planned
 """
 External interfaces.
 
-This module provides interfaces for external tools, serialization,
+Intended to provide interfaces for external tools, serialization,
 data export, and integration with other systems.
+
+Currently implemented in:
+- src.core.engine (ComputeEngine ABC, create_engine factory)
+- src.core.backend (backend selection, get_xp/set_backend)
 """
-
-from .api import PublicAPI
-from .serialization import SerializationManager
-from .export_utils import ExportUtils
-from .integration import IntegrationManager
-
-__all__ = ['PublicAPI', 'SerializationManager', 'ExportUtils', 'IntegrationManager']

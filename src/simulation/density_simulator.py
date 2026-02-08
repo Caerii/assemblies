@@ -28,7 +28,7 @@ def density(n=100000, k=317, p=0.01, beta=0.05, rounds=20):
     Description:
     Executes a series of projections to develop neural assemblies, then calculates the density of connections among the final set of active neurons.
     """
-    b = Brain(p)
+    b = Brain(p, engine="numpy_sparse")
     b.add_stimulus("stim", k)
     b.add_area("A", n, k, beta)
     b.project({"stim": ["A"]}, {})

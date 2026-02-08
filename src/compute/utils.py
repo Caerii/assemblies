@@ -1,7 +1,7 @@
 # utils.py
 
 """
-Shared utilities for math_primitives modules.
+Shared utilities for compute modules.
 
 Includes input validation and index normalization helpers used across
 statistics, sparse simulation, and plasticity components.

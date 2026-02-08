@@ -3,8 +3,8 @@
 import unittest
 import numpy as np
 
-from src.math_primitives.winner_selection import WinnerSelector
-from src.math_primitives.sparse_simulation import SparseSimulationEngine
+from src.compute.winner_selection import WinnerSelector
+from src.compute.sparse_simulation import SparseSimulationEngine
 
 
 class TestWinnerSelection(unittest.TestCase):

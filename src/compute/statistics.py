@@ -29,6 +29,11 @@ from scipy.stats import binom, truncnorm
 import math
 from typing import List, Tuple
 
+try:
+    from ..core.backend import to_xp
+except ImportError:
+    from core.backend import to_xp
+
 class StatisticalEngine:
     """
     Advanced statistical sampling engine for neural assembly simulations.
@@ -183,8 +188,8 @@ class StatisticalEngine:
         
         # Ensure no samples exceed total_k (theoretical maximum)
         rounded_samples = np.minimum(rounded_samples, total_k)
-        
-        return rounded_samples
+
+        return to_xp(rounded_samples)
     
     def sample_binomial_winners(self, n: int, p: float, size: int = 1) -> np.ndarray:
         """
@@ -208,7 +213,7 @@ class StatisticalEngine:
         if size <= 0:
             raise ValueError("Sample size must be positive")
             
-        return self.rng.binomial(n, p, size=size)
+        return to_xp(self.rng.binomial(n, p, size=size))
     
     def calculate_input_statistics(self, input_sizes: List[int], p: float) -> Tuple[float, float]:
         """

@@ -10,7 +10,7 @@ identical results to the original implementation in the root brain.py.
 import unittest
 import numpy as np
 
-from src.math_primitives.sparse_simulation import SparseSimulationEngine
+from src.compute.sparse_simulation import SparseSimulationEngine
 
 class TestSparseSimulationIntegration(unittest.TestCase):
     """

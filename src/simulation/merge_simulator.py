@@ -25,7 +25,7 @@ def merge_sim(n=100000, k=317, p=0.01, beta=0.05, max_t=50):
     Returns:
     tuple: Saved weights of neural areas 'A', 'B', and 'C' after merging simulation.
     """
-    b = Brain(p)
+    b = Brain(p, engine="numpy_sparse")
     b.add_stimulus("stimA", k)
     b.add_stimulus("stimB", k)
     b.add_area("A", n, k, beta)
