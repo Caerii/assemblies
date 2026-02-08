@@ -43,6 +43,20 @@ class Connectome:
             w = np.random.binomial(1, self.p, size=(self.source_size, self.target_size)).astype(np.float32)
             return to_xp(w)
 
+    # -- Array-like delegation for backward compatibility --------------------
+    # Legacy code accesses connectomes as if they were raw numpy arrays
+    # (e.g. conn[:3, :] = 1.0).  Delegate to self.weights.
+
+    def __getitem__(self, key):
+        return self.weights[key]
+
+    def __setitem__(self, key, value):
+        self.weights[key] = value
+
+    def copy(self):
+        """Return a copy of the underlying weight matrix."""
+        return self.weights.copy()
+
     def compute_inputs(self, pre_neurons):
         """
         Computes inputs to the target neurons based on active pre-synaptic neurons.
