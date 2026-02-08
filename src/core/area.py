@@ -69,6 +69,8 @@ class Area:
         k: int,
         beta: float = 0.05,
         explicit: bool = False,
+        refractory_period: int = 0,
+        inhibition_strength: float = 0.0,
     ):
         """
         Initializes the Area.
@@ -79,12 +81,18 @@ class Area:
             k (int): Number of neurons that can fire at any time step.
             beta (float): Default synaptic plasticity parameter.
             explicit (bool): Whether the area is fully simulated (explicit).
+            refractory_period (int): Number of steps of LRI suppression
+                (0 = disabled).  When > 0, recently-fired neurons receive
+                a penalty during winner selection.
+            inhibition_strength (float): Magnitude of the LRI penalty.
         """
         self.name = name
         self.n = n
         self.k = k
         self.beta = beta
         self.explicit = explicit
+        self.refractory_period = refractory_period
+        self.inhibition_strength = inhibition_strength
 
         xp = get_xp()
         self._winners = xp.array([], dtype=xp.uint32)

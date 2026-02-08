@@ -43,11 +43,19 @@ class _SparseAreaState:
     neuron_id_pool_ptr: int = 0
     fixed_assembly: bool = False
     beta_by_source: dict = field(default_factory=dict)  # source_name -> beta
+    # LRI (Long-Range Inhibition) — refractory suppression for sequences
+    refractory_period: int = 0              # 0 = LRI disabled
+    inhibition_strength: float = 0.0        # penalty magnitude
+    _refractory_history: object = None      # deque of set[int] (compact indices)
 
     def __post_init__(self):
+        from collections import deque
         if self.winners is None:
             xp = get_xp()
             self.winners = xp.array([], dtype=xp.uint32)
+        if self._refractory_history is None:
+            self._refractory_history = deque(
+                maxlen=max(self.refractory_period, 1))
 
 
 @dataclass
@@ -117,9 +125,13 @@ class NumpySparseEngine(ComputeEngine):
 
     # -- Registration -------------------------------------------------------
 
-    def add_area(self, name: str, n: int, k: int, beta: float) -> None:
+    def add_area(self, name: str, n: int, k: int, beta: float,
+                 refractory_period: int = 0,
+                 inhibition_strength: float = 0.0) -> None:
         xp = get_xp()
-        area = _SparseAreaState(name=name, n=n, k=k, beta=beta)
+        area = _SparseAreaState(name=name, n=n, k=k, beta=beta,
+                                refractory_period=refractory_period,
+                                inhibition_strength=inhibition_strength)
         area.neuron_id_pool = self._rng.permutation(np.arange(n, dtype=np.uint32))
         area.neuron_id_pool_ptr = 0
         self._areas[name] = area
@@ -257,6 +269,20 @@ class NumpySparseEngine(ComputeEngine):
         else:
             all_inputs = potential_new
 
+        # --- LRI: penalise recently-fired neurons ---
+        if (tgt.refractory_period > 0
+                and tgt.inhibition_strength > 0
+                and len(tgt._refractory_history) > 0):
+            n_inputs = len(all_inputs)
+            for steps_ago_idx, winner_set in enumerate(
+                    reversed(list(tgt._refractory_history))):
+                steps_ago = steps_ago_idx + 1
+                decay = 1.0 - (steps_ago - 1) / tgt.refractory_period
+                penalty = tgt.inhibition_strength * decay
+                for cidx in winner_set:
+                    if cidx < n_inputs:
+                        all_inputs[cidx] -= penalty
+
         # --- Select top-k winners ---
         new_winner_indices = self._winner_sel.heapq_select_top_k(
             all_inputs, tgt.k
@@ -297,6 +323,11 @@ class NumpySparseEngine(ComputeEngine):
         # --- Commit state ---
         tgt.winners = xp.asarray(new_winner_indices, dtype=xp.uint32)
         tgt.w = new_w
+
+        # --- Update LRI refractory history ---
+        if tgt.refractory_period > 0:
+            tgt._refractory_history.append(
+                set(int(i) for i in new_winner_indices))
 
         return ProjectionResult(
             winners=np.array(new_winner_indices, dtype=np.uint32),
@@ -572,6 +603,22 @@ class NumpySparseEngine(ComputeEngine):
                      ).astype(np.float32),
                 )
 
+    # -- LRI control --------------------------------------------------------
+
+    def clear_refractory(self, area: str) -> None:
+        """Clear refractory history for an area."""
+        self._areas[area]._refractory_history.clear()
+
+    def set_lri(self, area: str, refractory_period: int,
+                inhibition_strength: float) -> None:
+        """Update LRI parameters for an area at runtime."""
+        from collections import deque
+        st = self._areas[area]
+        st.refractory_period = refractory_period
+        st.inhibition_strength = inhibition_strength
+        st._refractory_history = deque(
+            maxlen=max(refractory_period, 1))
+
     # -- Identity -----------------------------------------------------------
 
     @property
@@ -605,7 +652,9 @@ class NumpyExplicitEngine(ComputeEngine):
         self._area_conns: Dict[str, Dict[str, Connectome]] = defaultdict(dict)
         self._winner_sel = WinnerSelector(self._rng)
 
-    def add_area(self, name: str, n: int, k: int, beta: float) -> None:
+    def add_area(self, name: str, n: int, k: int, beta: float,
+                 refractory_period: int = 0,
+                 inhibition_strength: float = 0.0) -> None:
         xp = get_xp()
         area = _ExplicitAreaState(name=name, n=n, k=k, beta=beta)
         self._areas[name] = area

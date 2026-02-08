@@ -188,7 +188,9 @@ class CudaImplicitEngine(ComputeEngine):
 
     # -- Registration -------------------------------------------------------
 
-    def add_area(self, name: str, n: int, k: int, beta: float) -> None:
+    def add_area(self, name: str, n: int, k: int, beta: float,
+                 refractory_period: int = 0,
+                 inhibition_strength: float = 0.0) -> None:
         area = _CudaAreaState(name=name, n=n, k=k, beta=beta)
         self._areas[name] = area
 

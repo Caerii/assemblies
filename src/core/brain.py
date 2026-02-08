@@ -138,41 +138,27 @@ class Brain:
         """Backward-compatible alias for self.areas."""
         return self.areas
 
-    def add_area(self, area_name: str, n: int, k: int, beta: float = DEFAULT_BETA, explicit: bool = False):
+    def add_area(self, area_name: str, n: int, k: int, beta: float = DEFAULT_BETA,
+                 explicit: bool = False, refractory_period: int = 0,
+                 inhibition_strength: float = 0.0):
         """
         Add a neural area to the brain simulation.
-        
-        Creates a new brain area with specified neural population and assembly parameters.
-        Each area represents a distinct brain region (e.g., visual cortex, hippocampus)
-        with its own neural population and assembly dynamics.
 
         Args:
             area_name (str): Unique identifier for the brain area.
             n (int): Total number of neurons in the area (population size).
             k (int): Assembly size - number of neurons that fire per timestep.
             beta (float): Synaptic plasticity parameter (0 < beta < 1).
-                        Controls the rate of Hebbian learning.
             explicit (bool): Whether to use explicit (full) or sparse simulation.
-                           Explicit: tracks every neuron individually.
-                           Sparse: uses statistical approximations for efficiency.
-                           
-        Biological Context:
-            - n: Models the total neural population in a brain region
-            - k: Implements sparse coding - only a small fraction of neurons fire
-            - beta: Controls synaptic plasticity strength (Hebbian learning rate)
-            - explicit: Determines simulation fidelity vs. computational efficiency
-            
-        Assembly Calculus Context:
-            Each area can contain multiple assemblies, where an assembly is a set
-            of k co-active neurons representing a specific concept or computation.
-            The k parameter determines the sparsity of neural representations.
-            
-        Mathematical Context:
-            - Assembly sparsity: k/n ratio (typically 0.01-0.1)
-            - Hebbian learning: Δw = β * pre_activity * post_activity
-            - Winner-take-all: Only top-k neurons fire per timestep
+            refractory_period (int): Number of steps of LRI suppression
+                (0 = disabled).  When > 0, recently-fired neurons receive
+                a penalty during winner selection so that sequences can
+                advance instead of oscillating.
+            inhibition_strength (float): Magnitude of the LRI penalty.
         """
-        area = Area(area_name, n, k, beta, explicit)
+        area = Area(area_name, n, k, beta, explicit,
+                    refractory_period=refractory_period,
+                    inhibition_strength=inhibition_strength)
         self.areas[area_name] = area
         # Initialize neuron id pool for sparse areas (permute 0..n-1)
         if not explicit:
@@ -183,12 +169,16 @@ class Brain:
         self._initialize_connectomes_for_area(area)
         # ALWAYS register with the main engine so cross-engine source
         # lookups work (e.g., explicit area as source for a sparse target).
-        self._engine.add_area(area_name, n, k, beta)
+        self._engine.add_area(area_name, n, k, beta,
+                              refractory_period=refractory_period,
+                              inhibition_strength=inhibition_strength)
         # For explicit areas, ALSO register with a dedicated explicit engine
         # that handles full n×n weight matrices and plasticity correctly.
         if explicit:
             explicit_eng = self._engine_for(area)  # lazily creates it
-            explicit_eng.add_area(area_name, n, k, beta)
+            explicit_eng.add_area(area_name, n, k, beta,
+                                  refractory_period=refractory_period,
+                                  inhibition_strength=inhibition_strength)
         # Share engine's connectome objects so b.connectomes[x][y] is the
         # actual object the engine reads/writes during projection.
         self._sync_engine_connectomes()
@@ -416,6 +406,27 @@ class Brain:
         if area.explicit:
             area.ever_fired[result.winners] = True
             area.num_ever_fired = result.num_ever_fired
+
+    def clear_refractory(self, area_name: str) -> None:
+        """Clear LRI refractory history for an area.
+
+        Resets the refractory buffer so the next projection applies no
+        suppression penalty.  Call between memorization and recall phases,
+        or between independent trials.
+        """
+        self._engine.clear_refractory(area_name)
+
+    def set_lri(self, area_name: str, refractory_period: int,
+                inhibition_strength: float) -> None:
+        """Update LRI parameters for an area at runtime.
+
+        Enables or disables Long-Range Inhibition after area creation.
+        Typical workflow: add area without LRI, memorize sequences,
+        then enable LRI for recall.
+        """
+        self.areas[area_name].refractory_period = refractory_period
+        self.areas[area_name].inhibition_strength = inhibition_strength
+        self._engine.set_lri(area_name, refractory_period, inhibition_strength)
 
     def project_rounds(self, target, areas_by_stim, dst_areas_by_src_area, rounds):
         """Multi-round projection with engine fast path.

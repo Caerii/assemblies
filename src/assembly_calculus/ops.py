@@ -376,3 +376,140 @@ def _reset_recurrent(brain, area_name):
     preserves stimulus→area connections while reverting area→area weights.
     """
     brain._engine.reset_area_connections(area_name)
+
+
+# ---------------------------------------------------------------------------
+# Sequence operations (Dabagia et al. 2024)
+# ---------------------------------------------------------------------------
+
+from .sequence import Sequence
+
+
+def sequence_memorize(brain, stimuli, target, rounds_per_step=10,
+                      repetitions=1) -> Sequence:
+    """Memorize an ordered sequence of stimuli in a target area.
+
+    For each repetition, each stimulus is projected into the target area
+    with recurrent stabilization.  Hebbian plasticity naturally links
+    consecutive assemblies: when stimulus s_{i+1} arrives, the recurrent
+    weights from the x_i assembly are still warm, creating an x_i -> x_{i+1}
+    bridge that enables later ordered recall.
+
+    Args:
+        brain: Brain instance with stimuli and target area already added.
+        stimuli: Ordered list of stimulus names (the sequence to memorize).
+        target: Name of the target area.
+        rounds_per_step: Projection rounds per stimulus (default 10).
+        repetitions: Number of times to replay the full sequence for
+            strengthening (default 1).
+
+    Returns:
+        Sequence of Assembly snapshots (one per stimulus, from last repetition).
+
+    Reference:
+        Dabagia, Papadimitriou, Vempala.
+        "Computation with Sequences of Assemblies in a Model of the Brain."
+        Neural Computation (2025).  arXiv:2306.03812.
+    """
+    assemblies = []
+
+    for _rep in range(repetitions):
+        assemblies = []
+        for stim_name in stimuli:
+            # Phase A: stimulus-only rounds to establish the new assembly.
+            # This anchors the winners to the stimulus input so that the
+            # recurrent attractor from the previous assembly doesn't
+            # dominate.
+            stim_rounds = max(1, rounds_per_step - 2)
+            for _ in range(stim_rounds):
+                brain.project({stim_name: [target]}, {})
+
+            # Phase B: stimulus + recurrence rounds to build the
+            # inter-assembly Hebbian bridge (x_{i-1} -> x_i).
+            # Using brain.project() directly (not project_rounds) so
+            # that the target's self-connectome gets populated.
+            recur_rounds = rounds_per_step - stim_rounds
+            for _ in range(recur_rounds):
+                brain.project({stim_name: [target]}, {target: [target]})
+
+            assemblies.append(_snap(brain, target))
+
+    return Sequence(area=target, assemblies=assemblies)
+
+
+def ordered_recall(brain, area, cue, max_steps=20,
+                   known_assemblies=None, convergence_threshold=0.9,
+                   rounds_per_step=1) -> Sequence:
+    """Recall a memorized sequence from a cue using LRI.
+
+    Activates the cue in the area, then repeatedly self-projects.
+    Long-Range Inhibition (LRI) suppresses the current assembly so the
+    next assembly in the memorized chain fires.  Recall stops when a
+    cycle is detected, a novel (unrecognised) assembly appears, or
+    *max_steps* is reached.
+
+    Requires:
+        The target area must have ``refractory_period > 0`` (LRI enabled).
+        Without LRI, self-recurrence converges back to the current
+        assembly (attractor dynamics) and the sequence cannot advance.
+
+    Args:
+        brain: Brain instance.
+        area: Name of the area containing the memorized sequence.
+        cue: Stimulus name (str) to activate as the starting cue.
+        max_steps: Maximum recall steps (default 20).
+        known_assemblies: Optional list of Assembly snapshots from
+            ``sequence_memorize``.  If provided, recall stops when a
+            novel assembly (low overlap with all known) is encountered.
+        convergence_threshold: If the new assembly overlaps > this with
+            any previously recalled assembly, it is considered a cycle
+            and recall stops.
+        rounds_per_step: Self-projection rounds per recall step (default 1).
+
+    Returns:
+        Sequence of Assembly snapshots in recall order.
+
+    Raises:
+        ValueError: If the area has ``refractory_period == 0``.
+    """
+    area_obj = brain.areas[area]
+    if area_obj.refractory_period == 0:
+        raise ValueError(
+            f"ordered_recall requires refractory_period > 0 for area {area!r}. "
+            f"Add the area with refractory_period=N to enable LRI."
+        )
+
+    # Clear refractory history from any previous operations
+    brain.clear_refractory(area)
+
+    # Activate cue
+    brain.project({cue: [area]}, {})
+
+    recalled = [_snap(brain, area)]
+
+    for _step in range(max_steps):
+        # Self-project with LRI active
+        for _ in range(rounds_per_step):
+            brain.project({}, {area: [area]})
+
+        current = _snap(brain, area)
+
+        # Check for cycle
+        is_cycle = any(
+            overlap(current, prev) > convergence_threshold
+            for prev in recalled
+        )
+        if is_cycle:
+            break
+
+        # Check for novel (unrecognised) assembly
+        if known_assemblies is not None and len(known_assemblies) > 0:
+            max_known_overlap = max(
+                overlap(current, k) for k in known_assemblies
+            )
+            if max_known_overlap < 0.3:
+                break
+
+        recalled.append(current)
+
+    return Sequence(area=area, assemblies=recalled)

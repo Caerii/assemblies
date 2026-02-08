@@ -56,8 +56,17 @@ class ComputeEngine(ABC):
     # -- Area / stimulus registration --
 
     @abstractmethod
-    def add_area(self, name: str, n: int, k: int, beta: float) -> None:
-        """Register a new area and initialise internal compute state."""
+    def add_area(self, name: str, n: int, k: int, beta: float,
+                 refractory_period: int = 0,
+                 inhibition_strength: float = 0.0) -> None:
+        """Register a new area and initialise internal compute state.
+
+        Parameters *refractory_period* and *inhibition_strength* control
+        Long-Range Inhibition (LRI) for sequence operations.  When
+        ``refractory_period > 0``, recently-fired neurons receive a penalty
+        during winner selection so that sequences advance instead of
+        oscillating between consecutive assemblies.
+        """
 
     @abstractmethod
     def add_stimulus(self, name: str, size: int) -> None:
@@ -140,6 +149,23 @@ class ComputeEngine(ABC):
         Default returns None (indices are neuron IDs).
         """
         return None
+
+    def clear_refractory(self, area: str) -> None:
+        """Clear refractory history for an area.
+
+        Used to reset LRI state between memorization and recall phases,
+        or between independent trials.  Default is a no-op (suitable for
+        engines without LRI support).
+        """
+
+    def set_lri(self, area: str, refractory_period: int,
+                inhibition_strength: float) -> None:
+        """Update LRI parameters for an area at runtime.
+
+        Enables or disables Long-Range Inhibition after area creation.
+        Useful for enabling LRI only during recall while keeping it
+        disabled during memorization.  Default is a no-op.
+        """
 
     def reset_area_connections(self, area: str) -> None:
         """Reset all area->area connections involving *area* to initial state.
