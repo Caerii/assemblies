@@ -19,7 +19,7 @@ pip install -e .
 pip install -e ".[gpu]"
 
 # Run tests
-python -m pytest tests/ src/tests/ -q
+uv run python -m pytest src/tests/ -q
 ```
 
 ## Overview
@@ -30,17 +30,24 @@ Neural assemblies are groups of neurons that fire together to represent concepts
 - **Association**: Increase overlap between assemblies to link concepts
 - **Merge**: Combine two assemblies into a new one representing their conjunction
 
-This framework provides two Brain implementations (classic and modular), simulation tools for studying assembly dynamics, and higher-level systems for language learning and image classification built on top of the assembly primitives.
+Brain delegates all computation to a **ComputeEngine** — swap between CPU and GPU
+backends with a single parameter:
+
+```
+Brain(p=0.05, engine="auto")    # auto-detect best backend
+Brain(p=0.05, engine="numpy_sparse")    # CPU, scales to large n
+Brain(p=0.05, engine="cuda_implicit")   # GPU, 40x speedup at n=100k
+```
 
 ## Usage
 
-### Classic API (root-level, matches original paper)
+### Core API
 
 ```python
-from brain import Brain
+from src.core.brain import Brain
 
-b = Brain(p=0.05)
-b.add_stimulus("stim", k=100)
+b = Brain(p=0.05, engine="numpy_sparse")
+b.add_stimulus("stim", size=100)
 b.add_area("A", n=10000, k=100, beta=0.05)
 
 # Project stimulus into area A
@@ -51,18 +58,27 @@ for _ in range(9):
     b.project({}, {"A": ["A"]})
 ```
 
-### Modular API (src package)
+### Classic API (backward-compatible)
 
 ```python
-from src.core.brain import Brain, Area
+from brain import Brain  # thin shim re-exporting src.core.brain
 
-b = Brain(p=0.01)
-b.add_area("V1", n=100000, k=317, beta=0.05)
-b.add_area("V2", n=100000, k=317, beta=0.05)
-b.add_stimulus("visual", k=317)
+b = Brain(p=0.05)
+b.add_stimulus("stim", k=100)
+b.add_area("A", n=10000, k=100, beta=0.05)
+b.project({"stim": ["A"]}, {})
+```
 
-b.project({"visual": ["V1"]}, {})
-b.project({}, {"V1": ["V2"]})
+### Engine API (direct access)
+
+```python
+from src.core.engine import create_engine
+
+engine = create_engine("numpy_sparse", p=0.05, seed=42)
+engine.add_area("A", n=10000, k=100, beta=0.05)
+engine.add_stimulus("s", size=100)
+result = engine.project_into("A", from_stimuli=["s"], from_areas=[])
+print(result.winners, result.num_ever_fired)
 ```
 
 ### NEMO Language Learning
@@ -79,28 +95,15 @@ generator = SentenceGenerator(learner)
 sentence = generator.generate_sentence()
 ```
 
-### Lexicon System
-
-```python
-from src.lexicon import LexiconManager
-
-lm = LexiconManager()
-lm.load_curriculum("basic")
-words = lm.get_words_by_category("nouns")
-```
-
 ### Running Simulations
 
 ```python
-# Projection dynamics
 from src.simulation.projection_simulator import project_sim
 weights = project_sim(n=100000, k=317, p=0.01, beta=0.05, t=50)
 
-# Pattern completion
 from src.simulation.pattern_completion import pattern_com
 weights, winners = pattern_com(alpha=0.5, comp_iter=5)
 
-# Merge simulation
 from src.simulation.merge_simulator import merge_sim
 a_w, b_w, c_w = merge_sim(n=100000, k=317, p=0.01, beta=0.05)
 ```
@@ -112,63 +115,49 @@ from parser import parse
 parse("cats chase mice", language="English")
 ```
 
-### Image Classification (CIFAR-10)
-
-```bash
-python image_learner.py
-```
-
 ## Project Structure
 
 ```
 assemblies/
-|-- brain.py                # Classic Brain/Area implementation (authoritative)
+|-- brain.py                # Backward-compatible shim (re-exports src.core.brain)
 |-- brain_util.py           # Overlap computation, save/load utilities
 |-- learner.py              # Word acquisition and syntax learning experiments
 |-- parser.py               # Sentence parsing via assembly operations
-|-- recursive_parser.py     # Recursive descent parser variant
 |-- simulations.py          # Simulation runners and experiment harness
 |-- image_learner.py        # CIFAR-10 classification via assemblies
 |
 |-- src/                    # Modular package (pip install -e .)
-|   |-- core/               # Refactored Brain, Area, Stimulus, Connectome
-|   |-- math_primitives/    # Statistics, plasticity, winner selection, projections
+|   |-- core/               # Brain, Area, Stimulus, Connectome, ComputeEngine
+|   |   |-- engine.py       # ComputeEngine ABC + registry
+|   |   |-- numpy_engine.py # NumpySparse + NumpyExplicit engines
+|   |   |-- cuda_engine.py  # CudaImplicit engine (GPU)
+|   |   |-- backend.py      # NumPy/CuPy switching layer
+|   |   `-- kernels/        # CUDA kernels (implicit, batched, v2)
+|   |-- compute/            # Statistics, plasticity, winner selection, projections
 |   |-- simulation/         # Projection, merge, pattern completion, association sims
 |   |-- language/           # Grammar rules, language areas, parser, readout
-|   |-- gpu/                # CuPy and PyTorch accelerated brain implementations
-|   |-- lexicon/            # 5000+ word lexicon, curriculum, NEMO full/hierarchical/ultra
-|   |-- nemo/               # NEMO v2: learned grammar, language generation
-|   |-- text_generation/    # Assembly-based text generation
+|   |-- lexicon/            # 5000+ word lexicon, curriculum, GPU learners
+|   |-- nemo/               # NEMO v2: learned grammar, language generation (GPU)
 |   |-- constants/          # Default parameters
 |   |-- utils/              # Math utilities
-|   `-- tests/              # Unit and integration tests
+|   `-- tests/              # 17 unit and integration test files
 |
-|-- tests/                  # Root-level test suite
-|   |-- test_brain_core.py
-|   |-- test_simulations.py
-|   `-- performance/        # GPU and CUDA performance benchmarks
-|
-|-- cpp/
-|   |-- cuda_kernels/       # Custom CUDA kernels for assembly operations
-|   |-- python_implementations/
-|   `-- build_scripts/
-|
-|-- scripts/                # Utility scripts (animator, overlap sim, turing sim)
-|-- research/               # Experiments, results, papers, open questions
+|-- research/               # Experiments, NEMO runners, results, plans
+|-- cpp/                    # Custom CUDA kernels (.cu) and build scripts
 `-- pyproject.toml          # Package configuration
 ```
 
 ## Tests
 
 ```bash
-# Core tests
-python -m pytest tests/ src/tests/ -q
+# Fast core tests
+uv run python -m pytest src/tests/test_brain.py src/tests/test_engine_parity.py -v
 
-# With coverage
-python -m pytest tests/ src/tests/ --cov=src --cov-report=term-missing
+# All unit tests (excludes slow simulation integration)
+uv run python -m pytest src/tests/ -q --ignore=src/tests/test_simulation_integration.py
 
-# Performance benchmarks (requires GPU)
-python -m pytest tests/performance/ -q
+# Full suite
+uv run python -m pytest src/tests/ -q
 ```
 
 ## Dependencies
@@ -178,11 +167,6 @@ python -m pytest tests/performance/ -q
 **Optional GPU**: cupy-cuda12x, torch
 
 **Dev**: pytest, pytest-cov, ruff
-
-```bash
-# Install all optional deps
-pip install -e ".[all]"
-```
 
 ## References
 

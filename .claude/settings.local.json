@@ -8,7 +8,19 @@
       "Bash(ls:*)",
       "Bash(git -C \"C:\\Users\\locke\\Documents\\Github\\assemblies\" log --oneline -20)",
       "Bash(git -C C:UserslockeDocumentsGithubassemblies status --short)",
-      "Bash(done)"
+      "Bash(done)",
+      "Bash(uv run python -m pytest:*)",
+      "Bash(git stash:*)",
+      "Bash(uv run python:*)",
+      "Bash(grep:*)",
+      "Bash(wc:*)",
+      "Bash(uv sync:*)",
+      "Bash(uv pip uninstall:*)",
+      "Bash(dir:*)",
+      "Bash(find:*)",
+      "WebFetch(domain:github.com)",
+      "Bash(gh api:*)",
+      "WebFetch(domain:raw.githubusercontent.com)"
     ],
     "deny": [],
     "ask": []
