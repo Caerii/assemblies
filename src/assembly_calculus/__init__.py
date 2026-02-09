@@ -31,6 +31,9 @@ Next-token prediction:
     predict_next_token      Predict next token from context via overlap
     score_corpus            Score prediction accuracy on a corpus
 
+Language parsing:
+    NemoParser             Composed parser: category + role + word order
+
 Data:
     Assembly           Immutable snapshot of a neural assembly
     Sequence           Ordered list of assembly snapshots
@@ -62,6 +65,7 @@ from .next_token import (
     build_next_token_model, train_on_corpus,
     predict_next_token, score_corpus,
 )
+from .parser import NemoParser
 
 __all__ = [
     # Data
@@ -79,4 +83,6 @@ __all__ = [
     # Next-token prediction
     "build_next_token_model", "train_on_corpus",
     "predict_next_token", "score_corpus",
+    # Language parsing
+    "NemoParser",
 ]
