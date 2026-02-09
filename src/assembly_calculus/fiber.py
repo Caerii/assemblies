@@ -125,3 +125,22 @@ class FiberCircuit:
         areas_by_stim = self.active_stim_projections()
         dst_areas_by_src_area = self.active_area_projections()
         self.brain.project(areas_by_stim, dst_areas_by_src_area)
+
+    def autonomous_step(self, n: int = 1):
+        """Execute *n* projection steps using only area-to-area fibers.
+
+        Temporarily inhibits all stimulus fibers so that only
+        area-to-area (recurrent/feedforward) projections execute.
+        Stimulus fiber states are restored afterward.
+
+        Args:
+            n: Number of autonomous steps (default 1).
+        """
+        saved_stim = {k: v for k, v in self._stim_fibers.items()}
+        for key in self._stim_fibers:
+            self._stim_fibers[key] = False
+
+        for _ in range(n):
+            self.step()
+
+        self._stim_fibers.update(saved_stim)
