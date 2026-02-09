@@ -15,9 +15,26 @@ Operations:
     sequence_memorize  Memorize an ordered sequence of stimuli
     ordered_recall     Recall a memorized sequence from a cue (requires LRI)
 
+Readout:
+    fuzzy_readout      Best-matching word above threshold, or None
+    readout_all        All words with overlaps, sorted descending
+    build_lexicon      Project each word's stimulus, snapshot the assembly
+
+Structured computation:
+    FSMNetwork         Deterministic finite state machine via assemblies
+    PFANetwork         Probabilistic finite automaton via assemblies
+    RandomChoiceArea   Neural coin-flip for stochastic selection
+
+Next-token prediction:
+    build_next_token_model  Build vocabulary lexicon for prediction
+    train_on_corpus         Train on corpus via sequence memorization
+    predict_next_token      Predict next token from context via overlap
+    score_corpus            Score prediction accuracy on a corpus
+
 Data:
     Assembly           Immutable snapshot of a neural assembly
     Sequence           Ordered list of assembly snapshots
+    Lexicon            Dict mapping word strings to Assembly snapshots
     overlap            Measure overlap between two assemblies
     chance_overlap     Expected random overlap (k/n)
 
@@ -38,14 +55,28 @@ from .ops import (
     ordered_recall,
 )
 from .fiber import FiberCircuit
+from .readout import fuzzy_readout, readout_all, build_lexicon, Lexicon
+from .fsm import FSMNetwork
+from .pfa import PFANetwork, RandomChoiceArea
+from .next_token import (
+    build_next_token_model, train_on_corpus,
+    predict_next_token, score_corpus,
+)
 
 __all__ = [
     # Data
-    "Assembly", "Sequence", "overlap", "chance_overlap",
+    "Assembly", "Sequence", "Lexicon", "overlap", "chance_overlap",
     # Operations
     "project", "reciprocal_project", "associate", "merge",
     "pattern_complete", "separate",
     "sequence_memorize", "ordered_recall",
+    # Readout
+    "fuzzy_readout", "readout_all", "build_lexicon",
+    # Structured computation
+    "FSMNetwork", "PFANetwork", "RandomChoiceArea",
     # Control
     "FiberCircuit",
+    # Next-token prediction
+    "build_next_token_model", "train_on_corpus",
+    "predict_next_token", "score_corpus",
 ]
