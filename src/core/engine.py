@@ -167,6 +167,30 @@ class ComputeEngine(ABC):
         disabled during memorization.  Default is a no-op.
         """
 
+    def set_refracted(self, area: str, enabled: bool,
+                      strength: float = 0.0) -> None:
+        """Enable or disable refracted mode for an area.
+
+        Refracted mode accumulates a permanent bias: each time a neuron
+        fires, its bias grows, making it progressively harder to fire
+        again.  This is distinct from LRI (sliding-window penalty).
+        Default is a no-op.
+        """
+
+    def clear_refracted_bias(self, area: str) -> None:
+        """Reset accumulated refracted bias to zero.
+
+        Default is a no-op.
+        """
+
+    def normalize_weights(self, target: str, source: str = None) -> None:
+        """Column-normalize weights into *target* so each neuron sums to 1.0.
+
+        If *source* is given, only that connection is normalized.
+        Otherwise all connections into *target* are normalized.
+        Default is a no-op.
+        """
+
     def reset_area_connections(self, area: str) -> None:
         """Reset all area->area connections involving *area* to initial state.
 

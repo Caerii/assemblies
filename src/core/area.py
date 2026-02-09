@@ -71,6 +71,8 @@ class Area:
         explicit: bool = False,
         refractory_period: int = 0,
         inhibition_strength: float = 0.0,
+        refracted: bool = False,
+        refracted_strength: float = 0.0,
     ):
         """
         Initializes the Area.
@@ -85,6 +87,11 @@ class Area:
                 (0 = disabled).  When > 0, recently-fired neurons receive
                 a penalty during winner selection.
             inhibition_strength (float): Magnitude of the LRI penalty.
+            refracted (bool): Whether refracted mode is enabled.
+                When True, a cumulative bias grows each time a neuron
+                fires, making repeated firing progressively harder.
+            refracted_strength (float): Magnitude of the per-firing
+                bias increment in refracted mode.
         """
         self.name = name
         self.n = n
@@ -93,6 +100,8 @@ class Area:
         self.explicit = explicit
         self.refractory_period = refractory_period
         self.inhibition_strength = inhibition_strength
+        self.refracted = refracted
+        self.refracted_strength = refracted_strength
 
         xp = get_xp()
         self._winners = xp.array([], dtype=xp.uint32)

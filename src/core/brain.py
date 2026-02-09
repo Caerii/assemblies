@@ -140,7 +140,8 @@ class Brain:
 
     def add_area(self, area_name: str, n: int, k: int, beta: float = DEFAULT_BETA,
                  explicit: bool = False, refractory_period: int = 0,
-                 inhibition_strength: float = 0.0):
+                 inhibition_strength: float = 0.0,
+                 refracted: bool = False, refracted_strength: float = 0.0):
         """
         Add a neural area to the brain simulation.
 
@@ -155,10 +156,17 @@ class Brain:
                 a penalty during winner selection so that sequences can
                 advance instead of oscillating.
             inhibition_strength (float): Magnitude of the LRI penalty.
+            refracted (bool): Whether refracted mode is enabled.  When
+                True, a cumulative bias grows each time a neuron fires,
+                making repeated firing progressively harder.
+            refracted_strength (float): Magnitude of per-firing bias
+                increment in refracted mode.
         """
         area = Area(area_name, n, k, beta, explicit,
                     refractory_period=refractory_period,
-                    inhibition_strength=inhibition_strength)
+                    inhibition_strength=inhibition_strength,
+                    refracted=refracted,
+                    refracted_strength=refracted_strength)
         self.areas[area_name] = area
         # Initialize neuron id pool for sparse areas (permute 0..n-1)
         if not explicit:
@@ -172,6 +180,8 @@ class Brain:
         self._engine.add_area(area_name, n, k, beta,
                               refractory_period=refractory_period,
                               inhibition_strength=inhibition_strength)
+        if refracted:
+            self._engine.set_refracted(area_name, True, refracted_strength)
         # For explicit areas, ALSO register with a dedicated explicit engine
         # that handles full n×n weight matrices and plasticity correctly.
         if explicit:
@@ -427,6 +437,30 @@ class Brain:
         self.areas[area_name].refractory_period = refractory_period
         self.areas[area_name].inhibition_strength = inhibition_strength
         self._engine.set_lri(area_name, refractory_period, inhibition_strength)
+
+    def set_refracted(self, area_name: str, enabled: bool,
+                      strength: float = 0.0) -> None:
+        """Enable or disable refracted mode for an area at runtime.
+
+        Refracted mode accumulates a permanent bias: each time a neuron
+        fires, its bias grows, making it progressively harder to fire
+        again.  Distinct from LRI (sliding-window penalty).
+        """
+        self.areas[area_name].refracted = enabled
+        self.areas[area_name].refracted_strength = strength
+        self._engine.set_refracted(area_name, enabled, strength)
+
+    def clear_refracted_bias(self, area_name: str) -> None:
+        """Reset accumulated refracted bias to zero for an area."""
+        self._engine.clear_refracted_bias(area_name)
+
+    def normalize_weights(self, target: str, source: str = None) -> None:
+        """Column-normalize weights into *target* so each neuron sums to 1.0.
+
+        If *source* is given, only that connection is normalized.
+        Otherwise all connections into *target* are normalized.
+        """
+        self._engine.normalize_weights(target, source)
 
     def project_rounds(self, target, areas_by_stim, dst_areas_by_src_area, rounds):
         """Multi-round projection with engine fast path.

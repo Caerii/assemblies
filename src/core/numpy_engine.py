@@ -47,6 +47,10 @@ class _SparseAreaState:
     refractory_period: int = 0              # 0 = LRI disabled
     inhibition_strength: float = 0.0        # penalty magnitude
     _refractory_history: object = None      # deque of set[int] (compact indices)
+    # Refracted mode — cumulative bias inhibition for FSM arc areas
+    refracted: bool = False
+    refracted_strength: float = 0.0
+    _cumulative_bias: object = None         # xp float32 array, length w
 
     def __post_init__(self):
         from collections import deque
@@ -56,6 +60,9 @@ class _SparseAreaState:
         if self._refractory_history is None:
             self._refractory_history = deque(
                 maxlen=max(self.refractory_period, 1))
+        if self._cumulative_bias is None:
+            xp = get_xp()
+            self._cumulative_bias = xp.zeros(0, dtype=xp.float32)
 
 
 @dataclass
@@ -283,6 +290,13 @@ class NumpySparseEngine(ComputeEngine):
                     if cidx < n_inputs:
                         all_inputs[cidx] -= penalty
 
+        # --- Refracted mode: cumulative bias penalty ---
+        if tgt.refracted and tgt._cumulative_bias is not None:
+            bias = tgt._cumulative_bias
+            end = min(len(bias), len(all_inputs))
+            if end > 0:
+                all_inputs[:end] -= bias[:end]
+
         # --- Select top-k winners ---
         new_winner_indices = self._winner_sel.heapq_select_top_k(
             all_inputs, tgt.k
@@ -328,6 +342,17 @@ class NumpySparseEngine(ComputeEngine):
         if tgt.refractory_period > 0:
             tgt._refractory_history.append(
                 set(int(i) for i in new_winner_indices))
+
+        # --- Update refracted cumulative bias ---
+        if tgt.refracted and tgt.refracted_strength > 0:
+            if len(tgt._cumulative_bias) < new_w:
+                old = tgt._cumulative_bias
+                tgt._cumulative_bias = xp.zeros(new_w, dtype=xp.float32)
+                if len(old) > 0:
+                    tgt._cumulative_bias[:len(old)] = old
+            for cidx in new_winner_indices:
+                if cidx < len(tgt._cumulative_bias):
+                    tgt._cumulative_bias[cidx] += tgt.refracted_strength
 
         return ProjectionResult(
             winners=np.array(new_winner_indices, dtype=np.uint32),
@@ -618,6 +643,60 @@ class NumpySparseEngine(ComputeEngine):
         st.inhibition_strength = inhibition_strength
         st._refractory_history = deque(
             maxlen=max(refractory_period, 1))
+
+    # -- Refracted mode control ---------------------------------------------
+
+    def set_refracted(self, area: str, enabled: bool,
+                      strength: float = 0.0) -> None:
+        """Enable or disable refracted mode for an area."""
+        st = self._areas[area]
+        st.refracted = enabled
+        st.refracted_strength = strength
+        if enabled and len(st._cumulative_bias) == 0:
+            xp = get_xp()
+            st._cumulative_bias = xp.zeros(max(st.w, 0), dtype=xp.float32)
+
+    def clear_refracted_bias(self, area: str) -> None:
+        """Reset accumulated refracted bias to zero."""
+        xp = get_xp()
+        st = self._areas[area]
+        st._cumulative_bias = xp.zeros(max(st.w, 0), dtype=xp.float32)
+
+    # -- Weight normalization -----------------------------------------------
+
+    def normalize_weights(self, target: str, source: str = None) -> None:
+        """Column-normalize weights into *target* so each neuron sums to 1.0.
+
+        If *source* is given, only that connection is normalized.
+        Otherwise, all stim→target and area→target connections are normalized.
+        """
+        xp = get_xp()
+        eps = 1e-8
+
+        def _norm_conn(conn):
+            w = conn.weights
+            if w.ndim == 2 and w.size > 0:
+                col_sums = w.sum(axis=0, keepdims=True)
+                col_sums = xp.maximum(col_sums, eps)
+                conn.weights = w / col_sums
+            elif w.ndim == 1 and w.size > 0:
+                total = float(xp.sum(w))
+                if total > eps:
+                    conn.weights = w / total
+
+        if source is not None:
+            if source in self._stim_conns and target in self._stim_conns[source]:
+                _norm_conn(self._stim_conns[source][target])
+            if source in self._area_conns and target in self._area_conns[source]:
+                _norm_conn(self._area_conns[source][target])
+            return
+
+        for stim_name in self._stim_conns:
+            if target in self._stim_conns[stim_name]:
+                _norm_conn(self._stim_conns[stim_name][target])
+        for src_name in self._area_conns:
+            if target in self._area_conns[src_name]:
+                _norm_conn(self._area_conns[src_name][target])
 
     # -- Identity -----------------------------------------------------------
 
