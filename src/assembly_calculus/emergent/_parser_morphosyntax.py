@@ -132,13 +132,12 @@ class MorphosyntaxMixin:
             tense = self.detect_tense(sent)
             tense_stim = tense_stims[tense]
 
-            # Find the verb in this sentence
+            # Find the verb in this sentence using grounding (fast path)
             for word in sent:
                 if word not in self.stim_map:
                     continue
                 grounding = self.word_grounding.get(word)
-                cat, _ = self.classify_word(word, grounding=grounding)
-                if cat == "VERB":
+                if grounding and grounding.dominant_modality == "motor":
                     phon = self.stim_map[word]
                     # Project tense + verb → TENSE area
                     self.brain.project(

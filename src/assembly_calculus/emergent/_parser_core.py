@@ -372,7 +372,7 @@ class CoreParserMixin:
                 sequence_memorize(
                     self.brain, stim_seq, SEQ,
                     rounds_per_step=self.rounds,
-                    repetitions=5,
+                    repetitions=2,
                     phase_b_ratio=0.5,
                     beta_boost=0.5,
                 )
