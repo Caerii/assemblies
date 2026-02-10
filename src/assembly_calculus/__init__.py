@@ -33,6 +33,7 @@ Next-token prediction:
 
 Language parsing:
     NemoParser             Composed parser: category + role + word order
+    EmergentParser         40-area emergent NEMO: 7+ POS from grounding
 
 Data:
     Assembly           Immutable snapshot of a neural assembly
@@ -66,6 +67,7 @@ from .next_token import (
     predict_next_token, score_corpus,
 )
 from .parser import NemoParser
+from .emergent import EmergentParser
 
 __all__ = [
     # Data
@@ -85,4 +87,5 @@ __all__ = [
     "predict_next_token", "score_corpus",
     # Language parsing
     "NemoParser",
+    "EmergentParser",
 ]

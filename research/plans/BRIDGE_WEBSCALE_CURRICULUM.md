@@ -67,6 +67,20 @@ So the *structural* parallel is: **"X is all you need"** where X is our building
 
 So: **next-token prediction is already in the design** (e.g. `predict_next_word`); the step to "web-scale" is (1) tokenization and vocab at scale, (2) mapping tokens to assembly inputs at scale, (3) a readout trained (or used) with next-token loss on huge data, (4) optional curriculum over that data.
 
+### 1b. Completion first, then instruction/chat (GPT-style trajectory)
+
+**Early GPT-2 and GPT-3** were trained only for **token completion** (next-token prediction on raw text). Chat and instruction tuning came **after** base training: supervised fine-tuning (SFT) on (instruction, response) or chat-format sequences, then (for GPT-3.5+) RLHF or similar. So the trajectory was: **base = completion-only** → **then** add chat/instruction on top.
+
+**We can follow the same trajectory.**
+
+1. **Phase 1 — Completion-only base:** Train the assembly model on **next-token prediction** only, on **completion-style** sequences (raw text, no special chat or instruction format). Same as early GPT: the model sees continuations of text; the only objective is predict the next token. Curriculum (length, frequency, domain) applies here. At the end of Phase 1 you have a **base** assembly language model that does completion.
+2. **Phase 2 — Instruction/chat tuning:** After the base works, add **instruction or chat** tuning. Options:
+   - **SFT on (instruction, response) pairs:** Train on sequences like `[Instruction] ... [Response] ...`; same assembly dynamics and readout; the model learns to continue in a "helpful" way when the context is an instruction. You can fine-tune the readout (and optionally W via STE) on these sequences.
+   - **Chat-format sequences:** Train on multi-turn dialogue (e.g. `User: ... Assistant: ...`); again, same engine, different data stream. The model learns to produce assistant-style continuations after user turns.
+   - **Optional:** RLHF or other preference-based training on top of SFT, same as in the transformer world — if we have a reward signal and a way to backprop or approximate gradients through the assembly readout.
+
+So the **trajectory** is the same as GPT: **foundation first (completion only), then instruction/chat**. We don't need to train for chat from day one; we get a completion-capable base, then adapt it to instruction/chat with a second phase of training on the right kind of sequences. The assembly calculus (projection, association, merge, Hebbian, top-k) stays the same; only the **data** and possibly the **loss schedule** change in Phase 2.
+
 ---
 
 ## 2. Bridge: Web-scale data → Assembly calculus
@@ -167,6 +181,37 @@ So: **next-token prediction is already in the design** (e.g. `predict_next_word`
 | Per-step time (your CUDA) | — | Sub-ms to few ms for n ≤ 10M | Already **100s–1000s Hz** per projection |
 
 **Bottom line:** Assembly foundation models could be **much more efficient** on **long context** (linear compute and constant context memory vs quadratic and linear), and **parameter-efficient** (sparse or implicit). The largest gains are for **large L**; for short context the gap shrinks. Exact “how much more efficient” depends on matching quality and implementation — but the **scaling** (linear vs quadratic in L, constant vs linear memory) is the structural advantage.
+
+---
+
+## 5b. Could assemblies support language models that "understand" billions of words of context?
+
+**Short answer:** Yes, in a **different sense** than transformers — not by "attending over 1B tokens at once" (no one can do that), but by **training on billions of words** so the connectome encodes that exposure, and **retrieving** relevant assemblies when given the current input. So "billions of words of context" = **implicit** (in the weights) + **retrieval-based** (current input activates the right assemblies from that huge training history).
+
+### Two meanings of "long context"
+
+- **Transformer-style:** Context = the **explicit** token sequence in the current window (e.g. last 128k or 1M tokens). The model **attends** over that sequence. "Billions of words" in this sense = literally 1B tokens in the window → **infeasible** (compute, memory). No architecture does that.
+- **Assembly-style:** Context = (1) **Training exposure** — the model has **seen** billions of words; the **connectome** (weights) has been updated (Hebbian or STE) so that co-occurring or related patterns have stronger links. (2) **Current state** — at inference, the "context" is the **current assembly state** (winners in each area) plus the connectome. When you give a **new** input (e.g. a query, or a long document processed in chunks), the dynamics **retrieve** (activate) the assemblies that are relevant to that input from the trained connectome. So the model doesn't "hold" 1B tokens in a buffer — it **compresses** that information into the connectome during training, and **retrieves** what's relevant at inference. That's **associative / retrieval-based** long context.
+
+### How assemblies could "understand" billions of words
+
+1. **Train on billions of words:** Stream a huge corpus (e.g. 1B tokens or more) through the assembly model: token → assembly input, run dynamics, Hebbian (or STE) update. The connectome **evolves** so that frequently co-occurring or related token assemblies become strongly associated. So the "context" of billions of words is **implicit** in the weights — the model has "absorbed" that statistics.
+2. **At inference, retrieve, don't attend:** Given a **current** input (e.g. a question, or a 10k-token document processed in chunks), you don't feed 1B tokens. You feed the **current** input; the dynamics **activate** the assemblies that match or associate with that input. So the "relevant context" from the training corpus is **retrieved** by association (pattern completion, propagation), not by literal attention over 1B tokens. That's similar in spirit to **retrieval-augmented** LMs (RAG): you don't put the whole corpus in the context window; you **retrieve** relevant pieces. In assemblies, "retrieval" is **built into** the dynamics — the connectome *is* the retrieval structure.
+3. **Recurrent processing of long documents:** If the **current** context is a long document (e.g. 1M tokens), you can process it **recurrently**: feed tokens (or chunks) one-by-one, run dynamics, update state. The **state** (current winners + connectome) at the end is a **compressed** representation of the document. So "understanding" the document = having a state that was shaped by processing it; then when you ask a question, you run dynamics from that state + the question and read out. No need to re-attend over 1M tokens — the state is **O(areas × k)**, constant in document length. So assemblies can "understand" **very long documents** (millions of tokens) in the sense of **compressing** them into a fixed-size state by recurrence; "billions of words" of **training** context is in the connectome; "millions of words" of **current** document context can be compressed into state by recurrent processing.
+
+### Capacity: can the connectome hold "billions" of patterns?
+
+- **Theory:** Assembly capacity (number of stable assemblies, or associations) is bounded by n, k, p, and Hebbian regime. Typical analyses give **exponential in k** or **polynomial in n** under certain scaling. So "billions" of **distinct** semantic patterns (e.g. billions of n-grams or concepts) might require very large n (and/or many areas) and a lot of Hebbian updates. Whether capacity **scales** to billions is an **open** question — we'd need to check theory (e.g. Papadimitriou, Dabagia) and/or run scaling experiments.
+- **Compression:** We may not need **billions of distinct** assemblies — we need the connectome to encode **statistics** (e.g. which token co-occurrences are strong, which concepts associate). So the "information" in billions of words might be **compressed** into a smaller number of strong associations. That's more like **dense** retrieval (many patterns share overlapping assemblies) than like a literal 1B separate assemblies.
+- **Pragmatic path:** Start with **millions** of words (or tokens) of training; measure capacity and quality. Scale up; if capacity or quality plateaus, we learn the limits. If it scales, we push toward billions.
+
+### Sequence and order
+
+- **Order matters in language.** Assemblies excel at **association** (A and B linked); for **strict order** (e.g. long-range dependency, word order) we may need **sequence** machinery (Dabagia et al.: sequence memorization, replay). So for "understanding" billions of words of **ordered** context, we might need (a) huge associative capacity (connectome trained on 1B words) and (b) sequence operations for order-sensitive tasks (e.g. "what was the 5th word in the document?"). For many **semantic** tasks (e.g. "what is this document about?", "answer from the document"), association + retrieval may suffice — we don't need to store exact order of 1B words, we need to retrieve the right content. So the answer is **task-dependent**: pure association + retrieval for semantic "understanding"; sequence machinery for strict order.
+
+### Summary
+
+- **Could neural assemblies be used to make language models that understand billions of words of context?** **Yes, in a specific sense:** (1) **Train** on billions of words so the connectome encodes that exposure (associations, statistics). (2) **At inference**, the "context" is not a 1B-token buffer — it's **retrieved** by the current input (query or document) activating the relevant assemblies from the trained connectome. (3) For **current** long documents (e.g. millions of tokens), process **recurrently** and compress into fixed-size state; then query against that state. So "billions of words of context" = **implicit in the weights** (training) + **retrieval at inference** + **recurrent compression** for the current long document. That's a **different** (and potentially more scalable) kind of long context than transformer-style "attend over L tokens." **Open:** capacity scaling to billions of patterns, and whether **quality** of understanding matches or beats transformer long-context models; **efficiency** (linear in L, constant state) is already a structural advantage for assemblies.
 
 ---
 
