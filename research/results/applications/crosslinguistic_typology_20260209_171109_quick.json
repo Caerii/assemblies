@@ -1,0 +1,295 @@
+{
+  "experiment_name": "crosslinguistic_typology",
+  "timestamp": "2026-02-09T17:11:09.803379",
+  "parameters": {
+    "n": 10000,
+    "k": 100,
+    "p": 0.05,
+    "beta": 0.1,
+    "rounds": 10,
+    "n_seeds": 3,
+    "n_training_sentences": 20,
+    "typologies": [
+      "SVO",
+      "SOV",
+      "VSO"
+    ],
+    "vocabulary_size": 20
+  },
+  "metrics": {
+    "SVO_order_accuracy": {
+      "mean": 1.0,
+      "std": 0.0,
+      "sem": 0.0,
+      "ci95_lo": 1.0,
+      "ci95_hi": 1.0,
+      "min": 1.0,
+      "max": 1.0,
+      "n": 3
+    },
+    "SVO_order_confidence": {
+      "mean": 0.6610169491525424,
+      "std": 0.0,
+      "sem": 0.0,
+      "ci95_lo": 0.6610169491525424,
+      "ci95_hi": 0.6610169491525424,
+      "min": 0.6610169491525424,
+      "max": 0.6610169491525424,
+      "n": 3
+    },
+    "SVO_role_accuracy": {
+      "mean": 1.0,
+      "std": 0.0,
+      "sem": 0.0,
+      "ci95_lo": 1.0,
+      "ci95_hi": 1.0,
+      "min": 1.0,
+      "max": 1.0,
+      "n": 3
+    },
+    "SVO_order_vs_chance": {
+      "t": Infinity,
+      "p": 0.0,
+      "d": Infinity,
+      "significant": true
+    },
+    "SVO_role_vs_chance": {
+      "t": Infinity,
+      "p": 0.0,
+      "d": Infinity,
+      "significant": true
+    },
+    "SOV_order_accuracy": {
+      "mean": 1.0,
+      "std": 0.0,
+      "sem": 0.0,
+      "ci95_lo": 1.0,
+      "ci95_hi": 1.0,
+      "min": 1.0,
+      "max": 1.0,
+      "n": 3
+    },
+    "SOV_order_confidence": {
+      "mean": 1.0,
+      "std": 0.0,
+      "sem": 0.0,
+      "ci95_lo": 1.0,
+      "ci95_hi": 1.0,
+      "min": 1.0,
+      "max": 1.0,
+      "n": 3
+    },
+    "SOV_role_accuracy": {
+      "mean": 1.0,
+      "std": 0.0,
+      "sem": 0.0,
+      "ci95_lo": 1.0,
+      "ci95_hi": 1.0,
+      "min": 1.0,
+      "max": 1.0,
+      "n": 3
+    },
+    "SOV_order_vs_chance": {
+      "t": Infinity,
+      "p": 0.0,
+      "d": Infinity,
+      "significant": true
+    },
+    "SOV_role_vs_chance": {
+      "t": Infinity,
+      "p": 0.0,
+      "d": Infinity,
+      "significant": true
+    },
+    "VSO_order_accuracy": {
+      "mean": 1.0,
+      "std": 0.0,
+      "sem": 0.0,
+      "ci95_lo": 1.0,
+      "ci95_hi": 1.0,
+      "min": 1.0,
+      "max": 1.0,
+      "n": 3
+    },
+    "VSO_order_confidence": {
+      "mean": 0.8000000000000002,
+      "std": 1.3597399555105182e-16,
+      "sem": 7.850462293418875e-17,
+      "ci95_lo": 0.8,
+      "ci95_hi": 0.8000000000000003,
+      "min": 0.8,
+      "max": 0.8,
+      "n": 3
+    },
+    "VSO_role_accuracy": {
+      "mean": 1.0,
+      "std": 0.0,
+      "sem": 0.0,
+      "ci95_lo": 1.0,
+      "ci95_hi": 1.0,
+      "min": 1.0,
+      "max": 1.0,
+      "n": 3
+    },
+    "VSO_order_vs_chance": {
+      "t": Infinity,
+      "p": 0.0,
+      "d": Infinity,
+      "significant": true
+    },
+    "VSO_role_vs_chance": {
+      "t": Infinity,
+      "p": 0.0,
+      "d": Infinity,
+      "significant": true
+    },
+    "paired_SVO_vs_SOV_order": {
+      "t": 0.0,
+      "p": 1.0,
+      "d": 0.0,
+      "significant": false
+    },
+    "paired_SVO_vs_VSO_order": {
+      "t": 0.0,
+      "p": 1.0,
+      "d": 0.0,
+      "significant": false
+    },
+    "paired_SOV_vs_VSO_order": {
+      "t": 0.0,
+      "p": 1.0,
+      "d": 0.0,
+      "significant": false
+    },
+    "paired_SVO_vs_SOV_role": {
+      "t": 0.0,
+      "p": 1.0,
+      "d": 0.0,
+      "significant": false
+    },
+    "paired_SVO_vs_VSO_role": {
+      "t": 0.0,
+      "p": 1.0,
+      "d": 0.0,
+      "significant": false
+    },
+    "paired_SOV_vs_VSO_role": {
+      "t": 0.0,
+      "p": 1.0,
+      "d": 0.0,
+      "significant": false
+    },
+    "overall_order_accuracy": {
+      "mean": 1.0,
+      "std": 0.0,
+      "sem": 0.0,
+      "ci95_lo": 1.0,
+      "ci95_hi": 1.0,
+      "min": 1.0,
+      "max": 1.0,
+      "n": 9
+    },
+    "overall_role_accuracy": {
+      "mean": 1.0,
+      "std": 0.0,
+      "sem": 0.0,
+      "ci95_lo": 1.0,
+      "ci95_hi": 1.0,
+      "min": 1.0,
+      "max": 1.0,
+      "n": 9
+    }
+  },
+  "raw_data": {
+    "SVO": [
+      {
+        "seed": 42,
+        "inferred_order": "SVO",
+        "order_confidence": 0.6610169491525424,
+        "order_correct": 1.0,
+        "role_accuracy": 1.0,
+        "n_role_correct": 20,
+        "n_role_total": 20
+      },
+      {
+        "seed": 142,
+        "inferred_order": "SVO",
+        "order_confidence": 0.6610169491525424,
+        "order_correct": 1.0,
+        "role_accuracy": 1.0,
+        "n_role_correct": 20,
+        "n_role_total": 20
+      },
+      {
+        "seed": 242,
+        "inferred_order": "SVO",
+        "order_confidence": 0.6610169491525424,
+        "order_correct": 1.0,
+        "role_accuracy": 1.0,
+        "n_role_correct": 20,
+        "n_role_total": 20
+      }
+    ],
+    "SOV": [
+      {
+        "seed": 42,
+        "inferred_order": "SOV",
+        "order_confidence": 1.0,
+        "order_correct": 1.0,
+        "role_accuracy": 1.0,
+        "n_role_correct": 20,
+        "n_role_total": 20
+      },
+      {
+        "seed": 142,
+        "inferred_order": "SOV",
+        "order_confidence": 1.0,
+        "order_correct": 1.0,
+        "role_accuracy": 1.0,
+        "n_role_correct": 20,
+        "n_role_total": 20
+      },
+      {
+        "seed": 242,
+        "inferred_order": "SOV",
+        "order_confidence": 1.0,
+        "order_correct": 1.0,
+        "role_accuracy": 1.0,
+        "n_role_correct": 20,
+        "n_role_total": 20
+      }
+    ],
+    "VSO": [
+      {
+        "seed": 42,
+        "inferred_order": "VSO",
+        "order_confidence": 0.8,
+        "order_correct": 1.0,
+        "role_accuracy": 1.0,
+        "n_role_correct": 20,
+        "n_role_total": 20
+      },
+      {
+        "seed": 142,
+        "inferred_order": "VSO",
+        "order_confidence": 0.8,
+        "order_correct": 1.0,
+        "role_accuracy": 1.0,
+        "n_role_correct": 20,
+        "n_role_total": 20
+      },
+      {
+        "seed": 242,
+        "inferred_order": "VSO",
+        "order_confidence": 0.8,
+        "order_correct": 1.0,
+        "role_accuracy": 1.0,
+        "n_role_correct": 20,
+        "n_role_total": 20
+      }
+    ]
+  },
+  "success": true,
+  "error_message": null,
+  "duration_seconds": 106.08864909998374
+}
