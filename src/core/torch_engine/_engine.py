@@ -1,8 +1,7 @@
-"""
-PyTorch-native GPU engine for assembly calculus.
+"""TorchSparseEngine: PyTorch-native GPU engine for assembly calculus.
 
-TorchSparseEngine: Uses PyTorch CUDA tensors for all state and
-computation.  Eliminates CuPy entirely from the hot path, gaining:
+Uses PyTorch CUDA tensors for all state and computation.  Eliminates
+CuPy entirely from the hot path, gaining:
 - Lower per-op dispatch overhead (~50us vs ~200us for CuPy)
 - torch.topk: single fused CUDA kernel for winner selection
 - torch advanced indexing for Hebbian updates
@@ -11,8 +10,9 @@ computation.  Eliminates CuPy entirely from the hot path, gaining:
 
 The same statistical sparse algorithm as NumpySparseEngine: truncated
 normal sampling, Hebbian w *= (1+beta), amortised buffer growth, lazy
-expansion.  Truncated normal stays on CPU (scipy dependency) with a
-single transfer per projection.
+expansion.  Truncated normal sampling defaults to GPU-native
+(torch.erfinv) but can fall back to CPU (scipy) for deterministic mode
+or via gpu_sampling=False.
 
 Requires: torch with CUDA support.
 """
@@ -20,422 +20,26 @@ Requires: torch with CUDA support.
 import math
 import numpy as np
 from collections import defaultdict, deque
-from dataclasses import dataclass, field
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 import torch
 
-from .engine import ComputeEngine, ProjectionResult, register_engine
+from ..engine import ComputeEngine, ProjectionResult
 
 try:
-    from ..compute.sparse_simulation import SparseSimulationEngine
+    from ...compute.sparse_simulation import SparseSimulationEngine
 except ImportError:
     from compute.sparse_simulation import SparseSimulationEngine
 
+from ._hash import (
+    WEIGHT_DTYPE, fnv1a_pair_seed, hash_stim_counts,
+    hash_bernoulli_coo,
+)
+from ._csr import CSRConn
+from ._state import (
+    LAZY_ID_THRESHOLD, TorchAreaState, StimulusState, TorchConn,
+)
 
-# ---------------------------------------------------------------------------
-# Hash utilities (ported from cuda_engine.py — CuPy -> torch)
-# ---------------------------------------------------------------------------
-
-# Multiplicative hash constants as signed int32
-# 2654435761 unsigned = -1640531535 signed int32
-# 2246822519 unsigned = -2048144777 signed int32
-# Weight dtype: bfloat16 halves memory and bandwidth for connectivity
-# matrices.  bfloat16 (1 sign + 8 exponent + 7 mantissa) shares the same
-# dynamic range as float32, avoiding overflow/underflow that float16 can
-# hit, while still halving memory footprint.  Weights are binary 0/1 with
-# Hebbian updates up to w_max (~20), well within bfloat16 precision.
-_WEIGHT_DTYPE = torch.bfloat16
-
-_HASH_A = torch.tensor(-1640531535, dtype=torch.int32)
-_HASH_B = torch.tensor(-2048144777, dtype=torch.int32)
-
-
-def _fnv1a_pair_seed(global_seed: int, source: str, target: str) -> int:
-    """Deterministic FNV-1a 32-bit seed for a (source, target) pair.
-
-    Same algorithm as cuda_engine._fnv1a_pair_seed.
-    """
-    h = 0x811c9dc5
-    for byte in global_seed.to_bytes(4, 'little'):
-        h = ((h ^ byte) * 0x01000193) & 0xFFFFFFFF
-    for byte in source.encode('utf-8'):
-        h = ((h ^ byte) * 0x01000193) & 0xFFFFFFFF
-    for byte in b'\x00':
-        h = ((h ^ byte) * 0x01000193) & 0xFFFFFFFF
-    for byte in target.encode('utf-8'):
-        h = ((h ^ byte) * 0x01000193) & 0xFFFFFFFF
-    return h
-
-
-def _to_signed32(val):
-    """Convert unsigned 32-bit value to signed int32 for torch."""
-    val = val & 0xFFFFFFFF
-    if val >= 0x80000000:
-        return val - 0x100000000
-    return val
-
-
-def _hash_bernoulli_2d_torch(row_start, row_end, col_start, col_end,
-                              pair_seed, p, device='cuda'):
-    """Vectorized hash-based Bernoulli(p) matrix on GPU using PyTorch.
-
-    Same hash function as cuda_engine._hash_bernoulli_2d but using
-    torch ops instead of CuPy.  Returns torch float32 tensor.
-    """
-    nr = row_end - row_start
-    nc = col_end - col_start
-    if nr == 0 or nc == 0:
-        return torch.empty((nr, nc), dtype=_WEIGHT_DTYPE, device=device)
-
-    rows = torch.arange(row_start, row_end, dtype=torch.int32, device=device)
-    cols = torch.arange(col_start, col_end, dtype=torch.int32, device=device)
-    r, c = torch.meshgrid(rows, cols, indexing='ij')
-
-    ha = _HASH_A.to(device)
-    hb = _HASH_B.to(device)
-    h = (r * ha) ^ (c * hb)
-    seed_s32 = _to_signed32(pair_seed)
-    h = h ^ torch.tensor(seed_s32, dtype=torch.int32, device=device)
-    threshold = int(p * 16777216.0)
-    return ((h & 0xFFFFFF) < threshold).to(_WEIGHT_DTYPE)
-
-
-def _hash_stim_counts_torch(stim_size, neuron_start, neuron_end,
-                             pair_seed, p, device='cuda'):
-    """Hash-based stim->area connectivity count using PyTorch on GPU.
-
-    For each target neuron j, counts how many stimulus neurons are
-    connected via hash.  Returns 1D torch float32 tensor.
-    """
-    n_neurons = neuron_end - neuron_start
-    if n_neurons == 0:
-        return torch.empty(0, dtype=_WEIGHT_DTYPE, device=device)
-
-    ha = _HASH_A.to(device)
-    hb = _HASH_B.to(device)
-    seed_t = torch.tensor(_to_signed32(pair_seed), dtype=torch.int32,
-                           device=device)
-    threshold = int(p * 16777216.0)
-
-    if stim_size <= 1024:
-        stim_ids = torch.arange(stim_size, dtype=torch.int32, device=device)
-        neuron_ids = torch.arange(neuron_start, neuron_end,
-                                  dtype=torch.int32, device=device)
-        s, n = torch.meshgrid(stim_ids, neuron_ids, indexing='ij')
-        h = (s * ha) ^ (n * hb)
-        h = h ^ seed_t
-        connected = (h & 0xFFFFFF) < threshold
-        return connected.sum(dim=0).to(_WEIGHT_DTYPE)
-    else:
-        result = torch.zeros(n_neurons, dtype=_WEIGHT_DTYPE, device=device)
-        neuron_ids = torch.arange(neuron_start, neuron_end,
-                                  dtype=torch.int32, device=device)
-        for batch_start in range(0, stim_size, 1024):
-            batch_end = min(batch_start + 1024, stim_size)
-            stim_ids = torch.arange(batch_start, batch_end,
-                                    dtype=torch.int32, device=device)
-            s, n = torch.meshgrid(stim_ids, neuron_ids, indexing='ij')
-            h = (s * ha) ^ (n * hb)
-            h = h ^ seed_t
-            connected = (h & 0xFFFFFF) < threshold
-            result += connected.sum(dim=0).to(_WEIGHT_DTYPE)
-        return result
-
-
-# ---------------------------------------------------------------------------
-# Internal state containers
-# ---------------------------------------------------------------------------
-
-# Threshold above which we use lazy ID generation instead of
-# pre-computing a full permutation of n neuron IDs.
-_LAZY_ID_THRESHOLD = 1_000_000
-
-
-@dataclass
-class _TorchAreaState:
-    """Per-area state for TorchSparseEngine."""
-    name: str
-    n: int
-    k: int
-    beta: float
-    w: int = 0
-    winners: Optional[torch.Tensor] = None  # int32 on CUDA
-    compact_to_neuron_id: list = field(default_factory=list)
-    neuron_id_pool: Optional[np.ndarray] = None  # pre-computed for small n
-    neuron_id_pool_ptr: int = 0
-    # Lazy ID generation for large n (avoids O(n) permutation)
-    _lazy_ids: bool = False
-    _used_ids: Optional[set] = None
-    _id_rng: Optional[np.random.Generator] = None
-    fixed_assembly: bool = False
-    beta_by_source: dict = field(default_factory=dict)
-    # LRI
-    refractory_period: int = 0
-    inhibition_strength: float = 0.0
-    _refractory_history: Optional[deque] = None
-    # Refracted mode
-    refracted: bool = False
-    refracted_strength: float = 0.0
-    _cumulative_bias: Optional[torch.Tensor] = None
-
-    def __post_init__(self):
-        if self.winners is None:
-            self.winners = torch.empty(0, dtype=torch.int32, device='cuda')
-        if self._refractory_history is None:
-            self._refractory_history = deque(
-                maxlen=max(self.refractory_period, 1))
-        if self._cumulative_bias is None:
-            self._cumulative_bias = torch.zeros(0, dtype=torch.float32,
-                                                device='cuda')
-
-    def next_neuron_id(self) -> int:
-        """Get next unique neuron ID, either from pool or lazy sampling."""
-        if self._lazy_ids:
-            # Sample random unique ID — for n >> w, almost never retries
-            while True:
-                candidate = int(self._id_rng.integers(0, self.n))
-                if candidate not in self._used_ids:
-                    self._used_ids.add(candidate)
-                    return candidate
-        else:
-            pid = self.neuron_id_pool_ptr
-            if pid >= len(self.neuron_id_pool):
-                raise RuntimeError(
-                    f"Neuron id pool exhausted for area {self.name}")
-            self.neuron_id_pool_ptr += 1
-            return int(self.neuron_id_pool[pid])
-
-
-@dataclass
-class _StimulusState:
-    """Stimulus descriptor."""
-    name: str
-    size: int
-
-
-class _TorchConn:
-    """Lightweight connectivity wrapper for stim→area (1-D weights)."""
-    __slots__ = ('weights', 'sparse')
-
-    def __init__(self, weights, sparse=True):
-        self.weights = weights
-        self.sparse = sparse
-
-
-# ---------------------------------------------------------------------------
-# CSR sparse connectivity for area→area connections
-# ---------------------------------------------------------------------------
-
-def _csr_flat_indices(crow, row_indices, nrows, device):
-    """Flat indices into CSR col/val arrays for selected rows.
-
-    Given CSR row-pointer array *crow* and a tensor of *row_indices*,
-    return a 1-D int64 tensor of positions into the col/val arrays
-    that belong to those rows, or ``None`` if empty.
-    """
-    valid = row_indices[row_indices < nrows].long()
-    if len(valid) == 0:
-        return None
-    starts = crow[valid]
-    ends = crow[valid + 1]
-    lengths = (ends - starts)
-    total = lengths.sum().item()
-    if total == 0:
-        return None
-    row_starts = torch.repeat_interleave(starts, lengths)
-    cum = lengths.cumsum(0)
-    bases = torch.cat([torch.zeros(1, dtype=torch.int64, device=device),
-                       cum[:-1]])
-    offsets = torch.arange(total, dtype=torch.int64, device=device)
-    offsets -= torch.repeat_interleave(bases, lengths)
-    return (row_starts + offsets).long()
-
-
-def _hash_bernoulli_coo_torch(row_start, row_end, col_start, col_end,
-                               pair_seed, p, device='cuda', tile_size=4096):
-    """Hash-based Bernoulli(p) connectivity as COO entries.
-
-    Generates tiles of up to *tile_size* × *tile_size* to bound peak
-    memory, then extracts non-zero positions.
-
-    Returns ``(rows_int32, cols_int32, vals_weight_dtype)`` on *device*.
-    """
-    nr = row_end - row_start
-    nc = col_end - col_start
-    if nr == 0 or nc == 0:
-        e = torch.empty(0, dtype=torch.int32, device=device)
-        return e, e.clone(), torch.empty(0, dtype=_WEIGHT_DTYPE, device=device)
-
-    all_r, all_c, all_v = [], [], []
-    for rb in range(row_start, row_end, tile_size):
-        re = min(rb + tile_size, row_end)
-        for cb in range(col_start, col_end, tile_size):
-            ce = min(cb + tile_size, col_end)
-            tile = _hash_bernoulli_2d_torch(rb, re, cb, ce,
-                                            pair_seed, p, device)
-            nz = tile.nonzero(as_tuple=True)
-            if len(nz[0]) > 0:
-                all_r.append((nz[0] + rb).int())
-                all_c.append((nz[1] + cb).int())
-                all_v.append(tile[nz[0], nz[1]])
-    if all_r:
-        return torch.cat(all_r), torch.cat(all_c), torch.cat(all_v)
-    e = torch.empty(0, dtype=torch.int32, device=device)
-    return e, e.clone(), torch.empty(0, dtype=_WEIGHT_DTYPE, device=device)
-
-
-class _CSRConn:
-    """CSR-format area→area connectivity on GPU.
-
-    Stores weights as Compressed Sparse Row — three arrays (crow, col,
-    val) — using O(nnz) memory instead of O(rows × cols).  At typical
-    connection probability p=0.0005 this is ~2000× smaller than dense.
-    """
-
-    def __init__(self, device='cuda'):
-        self._device = device
-        self._nrows = 0
-        self._ncols = 0
-        self._log_rows = 0   # hash-initialised row extent
-        self._log_cols = 0   # hash-initialised col extent
-        self._crow = torch.zeros(1, dtype=torch.int64, device=device)
-        self._col = torch.empty(0, dtype=torch.int32, device=device)
-        self._val = torch.empty(0, dtype=_WEIGHT_DTYPE, device=device)
-
-    @property
-    def nnz(self):
-        return len(self._col)
-
-    # -- Input accumulation (project_into hot path) -------------------------
-
-    def accumulate_rows(self, row_indices, out_size):
-        """Sum selected rows → dense float32 vector of *out_size*."""
-        result = torch.zeros(out_size, dtype=torch.float32,
-                             device=self._device)
-        if self.nnz == 0 or len(row_indices) == 0:
-            return result
-        flat_idx = _csr_flat_indices(
-            self._crow, row_indices, self._nrows, self._device)
-        if flat_idx is None:
-            return result
-        sel_cols = self._col[flat_idx].long()
-        sel_vals = self._val[flat_idx].float()
-        valid = sel_cols < out_size
-        if not valid.all():
-            sel_cols = sel_cols[valid]
-            sel_vals = sel_vals[valid]
-        result.scatter_add_(0, sel_cols, sel_vals)
-        return result
-
-    # -- Hebbian plasticity -------------------------------------------------
-
-    def hebbian_update(self, src_winners, tgt_winners, beta, w_max):
-        """Multiply entries at (src, tgt) intersections by (1+β)."""
-        if self.nnz == 0 or len(src_winners) == 0 or len(tgt_winners) == 0:
-            return
-        flat_idx = _csr_flat_indices(
-            self._crow, src_winners, self._nrows, self._device)
-        if flat_idx is None:
-            return
-        sel_cols = self._col[flat_idx]
-        col_mask = torch.isin(sel_cols.int(), tgt_winners.int())
-        update_idx = flat_idx[col_mask]
-        if len(update_idx) > 0:
-            updated = self._val[update_idx].float() * (1 + beta)
-            if w_max is not None and w_max > 0:
-                updated = updated.clamp(max=w_max)
-            self._val[update_idx] = updated.to(_WEIGHT_DTYPE)
-
-    # -- Expansion (add new rows / columns) ---------------------------------
-
-    def expand(self, needed_rows, needed_cols, new_r, new_c, new_v):
-        """Merge new COO entries into the CSR and rebuild."""
-        # Convert existing CSR → COO
-        if self.nnz > 0:
-            lengths = self._crow[1:] - self._crow[:-1]
-            old_r = torch.repeat_interleave(
-                torch.arange(self._nrows, dtype=torch.int32,
-                             device=self._device),
-                lengths.int())
-            old_c = self._col
-            old_v = self._val
-        else:
-            old_r = torch.empty(0, dtype=torch.int32, device=self._device)
-            old_c = torch.empty(0, dtype=torch.int32, device=self._device)
-            old_v = torch.empty(0, dtype=_WEIGHT_DTYPE, device=self._device)
-
-        all_r = torch.cat([old_r, new_r]) if len(new_r) > 0 else old_r
-        all_c = torch.cat([old_c, new_c]) if len(new_c) > 0 else old_c
-        all_v = torch.cat([old_v, new_v]) if len(new_v) > 0 else old_v
-
-        self._rebuild_csr(needed_rows, needed_cols, all_r, all_c, all_v)
-
-    def _rebuild_csr(self, nrows, ncols, rows, cols, vals):
-        """Build CSR from COO, deduplicating (last value wins)."""
-        self._nrows = nrows
-        self._ncols = ncols
-        if len(rows) == 0:
-            self._crow = torch.zeros(
-                nrows + 1, dtype=torch.int64, device=self._device)
-            self._col = torch.empty(0, dtype=torch.int32, device=self._device)
-            self._val = torch.empty(0, dtype=_WEIGHT_DTYPE, device=self._device)
-            return
-
-        # Sort by (row, col); stable so last duplicate wins
-        sort_key = rows.long() * ncols + cols.long()
-        order = sort_key.argsort(stable=True)
-        rows = rows[order]; cols = cols[order]; vals = vals[order]
-        sk = sort_key[order]
-
-        # Keep last occurrence of each (row, col) pair
-        unique = torch.ones(len(sk), dtype=torch.bool, device=self._device)
-        unique[:-1] = sk[:-1] != sk[1:]
-        rows = rows[unique]; cols = cols[unique]; vals = vals[unique]
-
-        # Build crow from row counts
-        self._crow = torch.zeros(
-            nrows + 1, dtype=torch.int64, device=self._device)
-        if len(rows) > 0:
-            counts = torch.zeros(
-                nrows, dtype=torch.int64, device=self._device)
-            counts.scatter_add_(
-                0, rows.long(),
-                torch.ones(len(rows), dtype=torch.int64,
-                           device=self._device))
-            self._crow[1:] = counts.cumsum(0)
-        self._col = cols.int()
-        self._val = vals
-
-    # -- Column normalisation -----------------------------------------------
-
-    def normalize_columns(self, eps=1e-8):
-        """Column-normalize so each column sums to 1.0."""
-        if len(self._val) == 0 or self._ncols == 0:
-            return
-        sums = torch.zeros(self._ncols, dtype=torch.float32,
-                           device=self._device)
-        sums.scatter_add_(0, self._col.long(), self._val.float())
-        sums = sums.clamp(min=eps)
-        factors = sums[self._col.long()]
-        self._val = (self._val.float() / factors).to(_WEIGHT_DTYPE)
-
-    # -- Reset --------------------------------------------------------------
-
-    def reset(self):
-        """Clear all entries and dimensions."""
-        self._nrows = 0
-        self._ncols = 0
-        self._log_rows = 0
-        self._log_cols = 0
-        self._crow = torch.zeros(1, dtype=torch.int64, device=self._device)
-        self._col = torch.empty(0, dtype=torch.int32, device=self._device)
-        self._val = torch.empty(0, dtype=_WEIGHT_DTYPE, device=self._device)
-
-
-# ---------------------------------------------------------------------------
-# TorchSparseEngine
-# ---------------------------------------------------------------------------
 
 class TorchSparseEngine(ComputeEngine):
     """PyTorch-native GPU engine with hash-based connectivity.
@@ -446,19 +50,25 @@ class TorchSparseEngine(ComputeEngine):
     - Lower per-op dispatch overhead than CuPy
     - No CuPy<->torch conversion for operations
     - Hash-based deterministic initialization
+    - Optional GPU-native truncated normal sampling via torch.erfinv
 
     Parameters:
         p:             Connection probability.
         seed:          Global random seed.
         w_max:         Hebbian weight ceiling.
         deterministic: If True, use legacy exact-fit expansion.
+        gpu_sampling:  If True (default), sample truncated normal on GPU
+                       using torch.erfinv instead of CPU scipy.  Falls
+                       back to CPU path when deterministic=True.
     """
 
     def __init__(self, p: float, seed: int = 0, w_max: float = 20.0,
-                 deterministic: bool = False, **kwargs):
+                 deterministic: bool = False, gpu_sampling: bool = True,
+                 **kwargs):
         self.p = p
         self.w_max = w_max
         self._deterministic = deterministic
+        self._gpu_sampling = gpu_sampling and not deterministic
         self._rng = np.random.default_rng(seed)
         self._plasticity_enabled_global = True
         self._global_seed = seed
@@ -467,13 +77,13 @@ class TorchSparseEngine(ComputeEngine):
         self._device = torch.device('cuda')
 
         # Internal state
-        self._areas: Dict[str, _TorchAreaState] = {}
-        self._stimuli: Dict[str, _StimulusState] = {}
+        self._areas: Dict[str, TorchAreaState] = {}
+        self._stimuli: Dict[str, StimulusState] = {}
 
-        # Connectivity: stim_name -> area_name -> _TorchConn (1-D weights)
-        self._stim_conns: Dict[str, Dict[str, _TorchConn]] = defaultdict(dict)
-        # Connectivity: src_area -> tgt_area -> _TorchConn (2-D weights)
-        self._area_conns: Dict[str, Dict[str, _TorchConn]] = defaultdict(dict)
+        # Connectivity: stim_name -> area_name -> TorchConn (1-D weights)
+        self._stim_conns: Dict[str, Dict[str, TorchConn]] = defaultdict(dict)
+        # Connectivity: src_area -> tgt_area -> CSRConn (2-D weights)
+        self._area_conns: Dict[str, Dict[str, CSRConn]] = defaultdict(dict)
 
         # Reusable CPU math primitives (truncated normal, input splits)
         self._sparse_sim = SparseSimulationEngine(
@@ -484,7 +94,7 @@ class TorchSparseEngine(ComputeEngine):
     def _get_pair_seed(self, source: str, target: str) -> int:
         key = (source, target)
         if key not in self._pair_seeds:
-            self._pair_seeds[key] = _fnv1a_pair_seed(
+            self._pair_seeds[key] = fnv1a_pair_seed(
                 self._global_seed, source, target)
         return self._pair_seeds[key]
 
@@ -493,12 +103,11 @@ class TorchSparseEngine(ComputeEngine):
     def add_area(self, name: str, n: int, k: int, beta: float,
                  refractory_period: int = 0,
                  inhibition_strength: float = 0.0) -> None:
-        area = _TorchAreaState(
+        area = TorchAreaState(
             name=name, n=n, k=k, beta=beta,
             refractory_period=refractory_period,
             inhibition_strength=inhibition_strength)
-        if n > _LAZY_ID_THRESHOLD:
-            # Lazy ID generation: O(1) init, O(1) per new neuron
+        if n > LAZY_ID_THRESHOLD:
             area._lazy_ids = True
             area._used_ids = set()
             area._id_rng = np.random.default_rng(
@@ -509,38 +118,96 @@ class TorchSparseEngine(ComputeEngine):
             area.neuron_id_pool_ptr = 0
         self._areas[name] = area
 
-        # stim->area for every already-registered stimulus
         for stim_name in self._stimuli:
-            conn = _TorchConn(
-                torch.empty(0, dtype=_WEIGHT_DTYPE, device=self._device),
+            conn = TorchConn(
+                torch.empty(0, dtype=WEIGHT_DTYPE, device=self._device),
                 sparse=True)
             self._stim_conns[stim_name][name] = conn
             area.beta_by_source[stim_name] = beta
 
-        # area->area for every existing area (both directions) — CSR format
         for other_name, other in self._areas.items():
             if other_name == name:
-                self._area_conns[name][name] = _CSRConn(
+                self._area_conns[name][name] = CSRConn(
                     device=self._device)
             else:
-                self._area_conns[other_name][name] = _CSRConn(
+                self._area_conns[other_name][name] = CSRConn(
                     device=self._device)
-                self._area_conns[name][other_name] = _CSRConn(
+                self._area_conns[name][other_name] = CSRConn(
                     device=self._device)
                 area.beta_by_source[other_name] = beta
                 other.beta_by_source[name] = beta
 
     def add_stimulus(self, name: str, size: int) -> None:
-        self._stimuli[name] = _StimulusState(name=name, size=size)
+        self._stimuli[name] = StimulusState(name=name, size=size)
         for area_name, area in self._areas.items():
-            conn = _TorchConn(
-                torch.empty(0, dtype=_WEIGHT_DTYPE, device=self._device),
+            conn = TorchConn(
+                torch.empty(0, dtype=WEIGHT_DTYPE, device=self._device),
                 sparse=True)
             self._stim_conns[name][area_name] = conn
             area.beta_by_source[name] = area.beta
 
     def add_connectivity(self, source: str, target: str, p: float) -> None:
         pass  # connectivity created in add_area / add_stimulus
+
+    # -- GPU truncated normal sampling --------------------------------------
+
+    def _sample_truncated_normal_gpu(
+        self,
+        input_sizes: list,
+        n: int,
+        w: int,
+        k: int,
+        p: float,
+        rng: np.random.Generator,
+    ) -> torch.Tensor:
+        """Sample new-winner input strengths entirely on GPU.
+
+        Uses torch.erfinv for the inverse-CDF transform, avoiding the
+        scipy dependency and CPU-to-GPU transfer.  The binom.ppf
+        threshold (alpha) is still computed on CPU via the cached
+        scipy call -- it's O(1) per unique parameter set.
+
+        Mathematically equivalent to SparseSimulationEngine
+        .sample_new_winner_inputs():
+            alpha = binom.ppf((effective_n - k)/effective_n, total_k, p)
+            a = (alpha - mu) / std
+            u ~ Uniform(Phi(a), 1)
+            x = mu + std * Phi_inv(u)
+
+        Where Phi_inv(u) = sqrt(2) * erfinv(2*u - 1).
+        """
+        from ...compute.sparse_simulation import _binom_ppf_cached
+
+        total_k = sum(input_sizes)
+        effective_n = n - w
+
+        if effective_n <= k:
+            raise RuntimeError(
+                f"Remaining size of area too small to sample k new winners "
+                f"(effective_n={effective_n}, k={k}).")
+
+        alpha = _binom_ppf_cached(effective_n - k, effective_n, total_k, p)
+
+        mu = total_k * p
+        std = math.sqrt(total_k * p * (1.0 - p))
+        if std == 0:
+            return torch.full((k,), mu, dtype=torch.float32,
+                              device=self._device)
+
+        a = (alpha - mu) / std
+
+        _SQRT2 = math.sqrt(2.0)
+        phi_a = 0.5 * (1.0 + math.erf(a / _SQRT2))
+
+        u = torch.rand(k, dtype=torch.float32, device=self._device)
+        u = phi_a + (1.0 - phi_a) * u
+        u.clamp_(phi_a + 1e-12, 1.0 - 1e-12)
+
+        samples = mu + std * _SQRT2 * torch.erfinv(2.0 * u - 1.0)
+        samples.round_()
+        samples.clamp_(0, total_k)
+
+        return samples
 
     # -- Projection (core operation) ----------------------------------------
 
@@ -596,28 +263,28 @@ class TorchSparseEngine(ComputeEngine):
                 num_first_winners=0,
                 num_ever_fired=tgt.w)
 
-        # --- Sample new winner candidates via truncated normal (CPU) ---
+        # --- Sample new winner candidates via truncated normal ---
         input_sizes = (
             [self._stimuli[s].size for s in from_stimuli]
             + [self._areas[a].k for a in from_areas])
 
-        old_rng = self._sparse_sim.rng
-        self._sparse_sim.rng = rng
-        if self._deterministic:
-            potential_new_np = self._sparse_sim.sample_new_winner_inputs_legacy(
-                input_sizes, tgt.n, tgt.w, tgt.k, self.p)
+        if self._gpu_sampling:
+            potential_new = self._sample_truncated_normal_gpu(
+                input_sizes, tgt.n, tgt.w, tgt.k, self.p, rng)
         else:
-            potential_new_np = self._sparse_sim.sample_new_winner_inputs(
-                input_sizes, tgt.n, tgt.w, tgt.k, self.p)
-        self._sparse_sim.rng = old_rng
-
-        # Transfer to GPU (single copy)
-        # sample_new_winner_inputs may return numpy or cupy depending on
-        # the global backend — normalize to numpy first.
-        if hasattr(potential_new_np, 'get'):
-            potential_new_np = potential_new_np.get()  # cupy -> numpy
-        potential_new_np = np.asarray(potential_new_np, dtype=np.float32)
-        potential_new = torch.from_numpy(potential_new_np).to(self._device)
+            old_rng = self._sparse_sim.rng
+            self._sparse_sim.rng = rng
+            if self._deterministic:
+                potential_new_np = self._sparse_sim.sample_new_winner_inputs_legacy(
+                    input_sizes, tgt.n, tgt.w, tgt.k, self.p)
+            else:
+                potential_new_np = self._sparse_sim.sample_new_winner_inputs(
+                    input_sizes, tgt.n, tgt.w, tgt.k, self.p)
+            self._sparse_sim.rng = old_rng
+            if hasattr(potential_new_np, 'get'):
+                potential_new_np = potential_new_np.get()
+            potential_new_np = np.asarray(potential_new_np, dtype=np.float32)
+            potential_new = torch.from_numpy(potential_new_np).to(self._device)
 
         if prev_winner_inputs.numel() > 0:
             all_inputs = torch.cat([prev_winner_inputs, potential_new])
@@ -665,16 +332,13 @@ class TorchSparseEngine(ComputeEngine):
             winners_gpu = top_idx.int()
 
         # --- Process first-time winners ---
-        # Batch-gather first-timer inputs on GPU
         first_mask = winners_gpu.long() >= tgt.w
         first_input_vals = all_inputs[winners_gpu[first_mask].long()]
 
-        # Single sync: transfer to CPU
         winners_cpu = winners_gpu.cpu().tolist()
         first_inputs_cpu = (first_input_vals.cpu().tolist()
                             if first_input_vals.numel() > 0 else [])
 
-        # Remap first-timers on CPU (k iterations, tiny)
         num_first = 0
         first_winner_inputs_cpu = []
         new_winner_indices = list(winners_cpu)
@@ -740,7 +404,6 @@ class TorchSparseEngine(ComputeEngine):
         tgt = self._areas[target]
         winners_long = winners_gpu.long()
 
-        # Stimulus -> area (1-D weights)
         for stim_name in from_stimuli:
             conn = self._stim_conns[stim_name][target]
             beta = tgt.beta_by_source.get(stim_name, tgt.beta)
@@ -752,7 +415,6 @@ class TorchSparseEngine(ComputeEngine):
             if self.w_max is not None:
                 conn.weights.clamp_(0, self.w_max)
 
-        # Area -> area (CSR weights)
         for src_name in from_areas:
             csr = self._area_conns[src_name][target]
             beta = tgt.beta_by_source.get(src_name, tgt.beta)
@@ -789,11 +451,11 @@ class TorchSparseEngine(ComputeEngine):
                     add_len = new_w - old
                     if stim_name not in stim_names:
                         pair_seed = self._get_pair_seed(stim_name, target)
-                        add = _hash_stim_counts_torch(
+                        add = hash_stim_counts(
                             self._stimuli[stim_name].size, old, new_w,
                             pair_seed, self.p, device=self._device)
                     else:
-                        add = torch.zeros(add_len, dtype=_WEIGHT_DTYPE,
+                        add = torch.zeros(add_len, dtype=WEIGHT_DTYPE,
                                           device=self._device)
                     conn.weights = torch.cat([conn.weights, add])
 
@@ -832,12 +494,11 @@ class TorchSparseEngine(ComputeEngine):
             coo_r_parts, coo_c_parts, coo_v_parts = [], [], []
 
             if needed_rows <= log_rows and needed_cols <= log_cols:
-                pass  # no hash expansion needed, but explicit entries below
+                pass  # no hash expansion needed
             else:
-                # Generate hash-based Bernoulli blocks as COO (tiled)
-                # Block A: new rows × existing cols
+                # Block A: new rows x existing cols
                 if needed_rows > log_rows and log_cols > 0:
-                    r, c, v = _hash_bernoulli_coo_torch(
+                    r, c, v = hash_bernoulli_coo(
                         log_rows, needed_rows, 0, log_cols,
                         pair_seed, self.p, device=self._device)
                     if len(r) > 0:
@@ -845,9 +506,9 @@ class TorchSparseEngine(ComputeEngine):
                         coo_c_parts.append(c)
                         coo_v_parts.append(v)
 
-                # Block B: existing rows × new cols
+                # Block B: existing rows x new cols
                 if needed_cols > log_cols and log_rows > 0:
-                    r, c, v = _hash_bernoulli_coo_torch(
+                    r, c, v = hash_bernoulli_coo(
                         0, log_rows, log_cols, needed_cols,
                         pair_seed, self.p, device=self._device)
                     if len(r) > 0:
@@ -855,9 +516,9 @@ class TorchSparseEngine(ComputeEngine):
                         coo_c_parts.append(c)
                         coo_v_parts.append(v)
 
-                # Block C: new rows × new cols
+                # Block C: new rows x new cols
                 if needed_rows > log_rows and needed_cols > log_cols:
-                    r, c, v = _hash_bernoulli_coo_torch(
+                    r, c, v = hash_bernoulli_coo(
                         log_rows, needed_rows, log_cols, needed_cols,
                         pair_seed, self.p, device=self._device)
                     if len(r) > 0:
@@ -868,7 +529,7 @@ class TorchSparseEngine(ComputeEngine):
                 csr._log_rows = needed_rows
                 csr._log_cols = needed_cols
 
-            # Collect explicit entries from first-timer allocations
+            # Explicit entries from first-timer allocations
             from_index = inputs_names.index(src_name)
             local_rng = np.random.default_rng(
                 self._rng.integers(0, 2**32))
@@ -897,7 +558,7 @@ class TorchSparseEngine(ComputeEngine):
                 coo_c_parts.append(torch.tensor(
                     exp_cols, dtype=torch.int32, device=self._device))
                 coo_v_parts.append(torch.ones(
-                    len(exp_rows), dtype=_WEIGHT_DTYPE,
+                    len(exp_rows), dtype=WEIGHT_DTYPE,
                     device=self._device))
 
             # Merge into CSR
@@ -907,11 +568,10 @@ class TorchSparseEngine(ComputeEngine):
                 new_v = torch.cat(coo_v_parts)
                 csr.expand(needed_rows, needed_cols, new_r, new_c, new_v)
             elif needed_rows > csr._nrows or needed_cols > csr._ncols:
-                # Dimensions grew but no new entries — just update dims
                 e = torch.empty(0, dtype=torch.int32, device=self._device)
                 csr.expand(needed_rows, needed_cols,
                            e, e.clone(),
-                           torch.empty(0, dtype=_WEIGHT_DTYPE,
+                           torch.empty(0, dtype=WEIGHT_DTYPE,
                                        device=self._device))
 
     # -- State accessors ----------------------------------------------------
@@ -1034,8 +694,3 @@ class TorchSparseEngine(ComputeEngine):
     @property
     def name(self) -> str:
         return "torch_sparse"
-
-
-# Register engine (only succeeds if torch+CUDA available)
-if torch.cuda.is_available():
-    register_engine("torch_sparse", TorchSparseEngine)
