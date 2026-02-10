@@ -33,9 +33,9 @@ project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
 
 # Import all experiments
-from research.experiments.primitives.test_projection import ProjectionConvergenceExperiment
-from research.experiments.primitives.test_association import AssociationBindingExperiment
-from research.experiments.primitives.test_merge import MergeCompositionExperiment
+from research.experiments.primitives.test_projection import ProjectionExperiment
+from research.experiments.primitives.test_association import AssociationExperiment
+from research.experiments.primitives.test_merge import MergeExperiment
 from research.experiments.stability.test_phase_diagram import PhaseDiagramExperiment
 from research.experiments.stability.test_scaling_laws import ScalingLawsExperiment
 from research.experiments.stability.test_noise_robustness import NoiseRobustnessExperiment
@@ -62,7 +62,7 @@ def run_quick_suite():
     
     # Projection
     print("\n--- 1.1 Projection Convergence ---")
-    exp = ProjectionConvergenceExperiment(verbose=True)
+    exp = ProjectionExperiment(verbose=True)
     all_results["projection"] = exp.run(
         n_neurons_range=[1000, 10000],
         k_active_range=[10, 50],
@@ -74,7 +74,7 @@ def run_quick_suite():
     
     # Association
     print("\n--- 1.2 Association Binding ---")
-    exp = AssociationBindingExperiment(verbose=True)
+    exp = AssociationExperiment(verbose=True)
     all_results["association"] = exp.run(
         n_neurons_range=[1000, 5000],
         k_active_range=[50],
@@ -86,7 +86,7 @@ def run_quick_suite():
     
     # Merge
     print("\n--- 1.3 Merge Composition ---")
-    exp = MergeCompositionExperiment(verbose=True)
+    exp = MergeExperiment(verbose=True)
     all_results["merge"] = exp.run(
         n_neurons_range=[1000, 5000],
         k_active_range=[50],

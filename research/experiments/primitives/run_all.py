@@ -17,9 +17,9 @@ from datetime import datetime
 project_root = Path(__file__).parent.parent.parent.parent
 sys.path.insert(0, str(project_root))
 
-from research.experiments.primitives.test_projection import ProjectionConvergenceExperiment
-from research.experiments.primitives.test_association import AssociationBindingExperiment
-from research.experiments.primitives.test_merge import MergeCompositionExperiment
+from research.experiments.primitives.test_projection import ProjectionExperiment
+from research.experiments.primitives.test_association import AssociationExperiment
+from research.experiments.primitives.test_merge import MergeExperiment
 
 
 def run_quick_suite():
@@ -36,7 +36,7 @@ def run_quick_suite():
     print("\n" + "="*70)
     print("1. PROJECTION CONVERGENCE")
     print("="*70)
-    exp = ProjectionConvergenceExperiment(verbose=True)
+    exp = ProjectionExperiment(verbose=True)
     results["projection"] = exp.run(
         n_neurons_range=[1000, 10000],
         k_active_range=[10, 50],
@@ -50,7 +50,7 @@ def run_quick_suite():
     print("\n" + "="*70)
     print("2. ASSOCIATION BINDING")
     print("="*70)
-    exp = AssociationBindingExperiment(verbose=True)
+    exp = AssociationExperiment(verbose=True)
     results["association"] = exp.run(
         n_neurons_range=[1000, 10000],
         k_active_range=[50],
@@ -64,7 +64,7 @@ def run_quick_suite():
     print("\n" + "="*70)
     print("3. MERGE COMPOSITION")
     print("="*70)
-    exp = MergeCompositionExperiment(verbose=True)
+    exp = MergeExperiment(verbose=True)
     results["merge"] = exp.run(
         n_neurons_range=[1000, 10000],
         k_active_range=[50],
@@ -122,7 +122,7 @@ def run_full_suite():
     print("\n" + "="*70)
     print("1. PROJECTION CONVERGENCE (FULL)")
     print("="*70)
-    exp = ProjectionConvergenceExperiment(verbose=True)
+    exp = ProjectionExperiment(verbose=True)
     results["projection"] = exp.run(
         n_neurons_range=[1000, 5000, 10000, 50000],
         k_active_range=[10, 25, 50, 100],
@@ -136,7 +136,7 @@ def run_full_suite():
     print("\n" + "="*70)
     print("2. ASSOCIATION BINDING (FULL)")
     print("="*70)
-    exp = AssociationBindingExperiment(verbose=True)
+    exp = AssociationExperiment(verbose=True)
     results["association"] = exp.run(
         n_neurons_range=[1000, 5000, 10000],
         k_active_range=[25, 50, 100],
@@ -150,7 +150,7 @@ def run_full_suite():
     print("\n" + "="*70)
     print("3. MERGE COMPOSITION (FULL)")
     print("="*70)
-    exp = MergeCompositionExperiment(verbose=True)
+    exp = MergeExperiment(verbose=True)
     results["merge"] = exp.run(
         n_neurons_range=[1000, 5000, 10000],
         k_active_range=[25, 50, 100],
