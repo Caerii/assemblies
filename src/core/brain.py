@@ -28,7 +28,7 @@ import numpy as np
 from typing import Dict, List, Tuple
 from collections import defaultdict
 
-from .backend import get_xp, detect_best_engine
+from .backend import get_xp, to_cpu, detect_best_engine
 from .engine import ComputeEngine, create_engine
 
 from .area import Area
@@ -78,7 +78,7 @@ class Brain:
       Language Organ." 2023.
     """
 
-    def __init__(self, p: float = DEFAULT_P, save_size: bool = True, save_winners: bool = False, seed: int = 0, w_max: float = DEFAULT_W_MAX, engine="auto", deterministic: bool = False):
+    def __init__(self, p: float = DEFAULT_P, save_size: bool = True, save_winners: bool = False, seed: int = 0, w_max: float = DEFAULT_W_MAX, engine="auto", deterministic: bool = False, n_hint: int = 0):
         """
         Initialize a neural assembly brain simulation.
 
@@ -96,6 +96,10 @@ class Brain:
                    If False (default), use optimized paths (amortised buffer
                    growth, fast inverse-CDF sampling) that are statistically
                    equivalent but produce different RNG sequences.
+            n_hint (int): Expected neuron count per area.  When
+                   ``engine="auto"``, this guides engine selection: n >= 1M
+                   with GPU available selects ``torch_sparse`` (CSR, GPU),
+                   otherwise ``numpy_sparse`` (CPU).
         """
         self.p = p
         self.w_max = w_max
@@ -111,7 +115,7 @@ class Brain:
 
         # Compute engine — required, defaults to auto-detected best backend
         if engine == "auto":
-            engine = detect_best_engine()
+            engine = detect_best_engine(n_hint)
         if isinstance(engine, str):
             self._engine: ComputeEngine = create_engine(
                 engine, p=p, seed=seed, w_max=w_max, deterministic=deterministic,
@@ -305,7 +309,7 @@ class Brain:
                 area = self.areas[area_name]
                 area.winners = xp.asarray(input_winners, dtype=xp.uint32)
                 self._engine_for(area).set_winners(
-                    area_name, np.asarray(input_winners, dtype=np.uint32))
+                    area_name, np.asarray(to_cpu(input_winners), dtype=np.uint32))
             self._project_impl({}, projections or {}, verbose)
         else:
             raise ValueError("Must provide either legacy API parameters or new API parameters")
@@ -349,7 +353,7 @@ class Brain:
         for area_name in all_source_areas:
             area = self.areas[area_name]
             if len(area.winners) > 0:
-                winners_arr = np.asarray(area.winners, dtype=np.uint32)
+                winners_arr = np.asarray(to_cpu(area.winners), dtype=np.uint32)
                 self._engine.set_winners(area_name, winners_arr)
                 if self._explicit_engine is not None and area.explicit:
                     self._explicit_engine.set_winners(area_name, winners_arr)
@@ -487,12 +491,12 @@ class Brain:
             src_area = self.areas[area_name]
             if len(src_area.winners) > 0:
                 self._engine.set_winners(
-                    area_name, np.asarray(src_area.winners, dtype=np.uint32))
+                    area_name, np.asarray(to_cpu(src_area.winners), dtype=np.uint32))
 
         # Sync target area winners (needed for recurrence / Hebbian prev)
         if area.winners is not None and len(area.winners) > 0:
             self._engine.set_winners(
-                target, np.asarray(area.winners, dtype=np.uint32))
+                target, np.asarray(to_cpu(area.winners), dtype=np.uint32))
 
         result = self._engine.project_rounds(
             target=target,

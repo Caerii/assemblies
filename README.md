@@ -50,7 +50,6 @@ My main goal in summer *2025* was to scale the system using custom CUDA and algo
 | **Language** | [src/language/README.md](src/language/README.md) | Rule-based parsing (English/Russian), grammar, readout |
 | **Lexicon** | [src/lexicon/README.md](src/lexicon/README.md) | Word lists, curriculum, assembly/GPU learners |
 | **NEMO** | [src/nemo/README.md](src/nemo/README.md) | Learned grammar, language acquisition (GPU) |
-| **GPU** | [src/gpu/README.md](src/gpu/README.md) | CuPy/PyTorch acceleration (stubs and roadmap) |
 
 **Project-wide:**
 

@@ -20,9 +20,36 @@ Each major part of the codebase has a short README with purpose, main entry poin
 | **Language** | [src/language/README.md](src/language/README.md) | Rule-based parsing (English/Russian), grammar, readout |
 | **Lexicon** | [src/lexicon/README.md](src/lexicon/README.md) | Word lists, curriculum, assembly/GPU learners |
 | **NEMO** | [src/nemo/README.md](src/nemo/README.md) | Learned grammar, language acquisition (GPU) |
-| **GPU** | [src/gpu/README.md](src/gpu/README.md) | CuPy/PyTorch acceleration (stubs and roadmap) |
 
 See also [ARCHITECTURE.md](ARCHITECTURE.md) for high-level design and [README.md](README.md) for quick start and project overview.
+
+### Engine Selection
+
+Brain uses a pluggable compute engine.  Pass `engine=` to `Brain()` or let auto-selection choose:
+
+| Engine | Backend | Best for | Registration |
+|--------|---------|----------|-------------|
+| `numpy_sparse` | CPU (NumPy) | n < 1M, fastest dispatch | Always available |
+| `torch_sparse` | GPU (PyTorch CUDA, CSR) | n >= 1M, 1.5-54x faster at scale | Requires `torch` + CUDA |
+| `cuda_implicit` | GPU (CuPy, hash-based) | Hash-deterministic connectivity | Requires `cupy` |
+| `numpy_explicit` | CPU (dense matrices) | Small n, full neuron tracking | Always available |
+| `cupy_sparse` | GPU (CuPy) | **Deprecated** -- use `torch_sparse` | Requires `cupy` |
+
+**Auto-selection** (`engine="auto"`, the default):
+- Pass `n_hint=` to `Brain()` with the expected neuron count per area
+- `n_hint >= 1_000_000` + GPU available: selects `torch_sparse`
+- Otherwise: selects `numpy_sparse`
+
+```python
+# Small scale (default)
+brain = Brain(p=0.05, seed=0)                          # -> numpy_sparse
+
+# Large scale with auto-detection
+brain = Brain(p=0.001, seed=0, n_hint=10_000_000)      # -> torch_sparse (if GPU)
+
+# Explicit override
+brain = Brain(p=0.05, seed=0, engine="torch_sparse")   # -> torch_sparse
+```
 
 ---
 

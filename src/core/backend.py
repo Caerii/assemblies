@@ -71,12 +71,43 @@ def to_xp(arr):
     return _xp.asarray(arr)
 
 
-def detect_best_engine() -> str:
+_HAS_TORCH_CUDA = None
+
+
+def _detect_torch_cuda():
+    """Check for PyTorch with CUDA support (cached)."""
+    global _HAS_TORCH_CUDA
+    if _HAS_TORCH_CUDA is None:
+        try:
+            import torch
+            _HAS_TORCH_CUDA = torch.cuda.is_available()
+        except Exception:
+            _HAS_TORCH_CUDA = False
+    return _HAS_TORCH_CUDA
+
+
+# Crossover point from benchmarking (CSR torch_sparse vs numpy_sparse):
+#   n < 1M:  numpy_sparse faster (lower dispatch overhead)
+#   n >= 1M: torch_sparse 1.5-54x faster for area->area projections
+_TORCH_SPARSE_THRESHOLD = 1_000_000
+
+
+def detect_best_engine(n_hint: int = 0) -> str:
     """Return the name of the best available compute engine.
 
-    Returns ``"cuda_implicit"`` if CuPy + GPU are available,
-    otherwise ``"numpy_sparse"``.
+    Uses *n_hint* (expected neuron count per area) to select the optimal
+    backend.  When ``n_hint >= 1_000_000`` and PyTorch+CUDA is available,
+    returns ``"torch_sparse"`` which uses CSR connectivity and GPU
+    acceleration for 1.5-54x speedup over CPU at scale.
+
+    Otherwise returns ``"numpy_sparse"`` — the fastest engine for
+    typical assembly sizes (n < 1M, k < 5000) due to lower per-op
+    dispatch overhead.
+
+    Args:
+        n_hint: Expected neuron count per area.  Pass 0 (default) to
+                always get ``"numpy_sparse"``.
     """
-    if _detect_cupy():
-        return "cuda_implicit"
+    if n_hint >= _TORCH_SPARSE_THRESHOLD and _detect_torch_cuda():
+        return "torch_sparse"
     return "numpy_sparse"
