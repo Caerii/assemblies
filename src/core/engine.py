@@ -264,6 +264,14 @@ def _ensure_engines_loaded():
         from . import cuda_engine  # noqa: F401 — registers cuda_implicit (if cupy available)
     except ImportError:
         pass
+    try:
+        from . import cupy_engine  # noqa: F401 — registers cupy_sparse (if cupy available)
+    except ImportError:
+        pass
+    try:
+        from . import torch_engine  # noqa: F401 — registers torch_sparse (if torch+CUDA available)
+    except ImportError:
+        pass
 
 
 def register_engine(engine_name: str, cls: type) -> None:
