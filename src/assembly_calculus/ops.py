@@ -386,7 +386,8 @@ from .sequence import Sequence
 
 
 def sequence_memorize(brain, stimuli, target, rounds_per_step=10,
-                      repetitions=1) -> Sequence:
+                      repetitions=1, phase_b_ratio=None,
+                      beta_boost=None) -> Sequence:
     """Memorize an ordered sequence of stimuli in a target area.
 
     For each repetition, each stimulus is projected into the target area
@@ -402,6 +403,12 @@ def sequence_memorize(brain, stimuli, target, rounds_per_step=10,
         rounds_per_step: Projection rounds per stimulus (default 10).
         repetitions: Number of times to replay the full sequence for
             strengthening (default 1).
+        phase_b_ratio: Fraction of rounds_per_step for Phase B (recurrence).
+            If None, uses legacy default (2 rounds regardless of total).
+            A value of 0.5 with rounds_per_step=10 gives 5:5 split.
+        beta_boost: Temporary plasticity boost for recurrent connections
+            during Phase B.  If None, uses the area's current beta.
+            A value of 0.5 strengthens inter-assembly bridges.
 
     Returns:
         Sequence of Assembly snapshots (one per stimulus, from last repetition).
@@ -416,21 +423,33 @@ def sequence_memorize(brain, stimuli, target, rounds_per_step=10,
     for _rep in range(repetitions):
         assemblies = []
         for stim_name in stimuli:
+            # Compute Phase A / Phase B split
+            if phase_b_ratio is not None:
+                recur_rounds = max(1, int(rounds_per_step * phase_b_ratio))
+                stim_rounds = rounds_per_step - recur_rounds
+            else:
+                # Legacy default: 2 recurrence rounds
+                stim_rounds = max(1, rounds_per_step - 2)
+                recur_rounds = rounds_per_step - stim_rounds
+
             # Phase A: stimulus-only rounds to establish the new assembly.
             # This anchors the winners to the stimulus input so that the
             # recurrent attractor from the previous assembly doesn't
             # dominate.
-            stim_rounds = max(1, rounds_per_step - 2)
             for _ in range(stim_rounds):
                 brain.project({stim_name: [target]}, {})
 
             # Phase B: stimulus + recurrence rounds to build the
             # inter-assembly Hebbian bridge (x_{i-1} -> x_i).
-            # Using brain.project() directly (not project_rounds) so
-            # that the target's self-connectome gets populated.
-            recur_rounds = rounds_per_step - stim_rounds
+            if beta_boost is not None:
+                original_beta = brain.areas[target].beta
+                brain.update_plasticity(target, target, beta_boost)
+
             for _ in range(recur_rounds):
                 brain.project({stim_name: [target]}, {target: [target]})
+
+            if beta_boost is not None:
+                brain.update_plasticity(target, target, original_beta)
 
             assemblies.append(_snap(brain, target))
 
