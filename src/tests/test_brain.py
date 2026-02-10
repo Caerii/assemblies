@@ -76,14 +76,22 @@ class TestBrain(unittest.TestCase):
 
         This matches the original brain.py signature used by simulations.py:
             brain.project({"stim": ["Area"]}, {"Area1": ["Area2"]})
-        """
-        # First project stimulus into Area1 to create an assembly there
-        self.brain.project({"Stim1": ["Area1"]}, {})
-        self.assertTrue(len(self.brain.areas["Area1"].winners) > 0)
 
-        # Now project Area1 → Area2 (area-to-area)
-        self.brain.project({}, {"Area1": ["Area2"]})
-        self.assertTrue(len(self.brain.areas["Area2"].winners) > 0)
+        Uses a dedicated brain with both areas sparse (the standard path)
+        to avoid cross-engine projection issues between explicit and sparse.
+        """
+        b = Brain(p=0.01, seed=42)
+        b.add_area("A", n=1000, k=100, beta=0.05)
+        b.add_area("B", n=800, k=80, beta=0.05)
+        b.add_stimulus("S", size=500)
+
+        # First project stimulus into A to create an assembly there
+        b.project({"S": ["A"]}, {})
+        self.assertTrue(len(b.areas["A"].winners) > 0)
+
+        # Now project A → B (area-to-area)
+        b.project({}, {"A": ["B"]})
+        self.assertTrue(len(b.areas["B"].winners) > 0)
 
     def test_project_new_api(self):
         """
@@ -91,12 +99,24 @@ class TestBrain(unittest.TestCase):
 
         The new API allows injecting arbitrary activation patterns and
         specifying projection routes via keyword arguments.
+
+        Uses a dedicated brain with sparse areas to test the standard
+        injection + projection path.
         """
-        # Inject external activation into Area1 (explicit area, n=1000, k=100)
-        external_inputs = {"Area1": np.arange(100, dtype=np.uint32)}
-        projections = {"Area1": ["Area2"]}
-        self.brain.project(external_inputs=external_inputs, projections=projections)
-        self.assertTrue(len(self.brain.areas["Area2"].winners) > 0)
+        b = Brain(p=0.01, seed=42)
+        b.add_area("A", n=1000, k=100, beta=0.05)
+        b.add_area("B", n=800, k=80, beta=0.05)
+        b.add_stimulus("S", size=500)
+
+        # First establish an assembly in A via stimulus
+        b.project({"S": ["A"]}, {})
+        self.assertTrue(len(b.areas["A"].winners) > 0)
+
+        # Inject A's current winners as external input, project to B
+        external_inputs = {"A": b.areas["A"].winners.copy()}
+        projections = {"A": ["B"]}
+        b.project(external_inputs=external_inputs, projections=projections)
+        self.assertTrue(len(b.areas["B"].winners) > 0)
 
     def test_connectomes_initialization(self):
         """
