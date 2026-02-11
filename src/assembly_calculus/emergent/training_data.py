@@ -228,6 +228,38 @@ def create_training_sentences() -> List[GroundedSentence]:
         roles=["agent", "action", None, None, "patient"],
     ))
 
+    # ---- Passive voice: DET NOUN was VERB by DET NOUN ----
+    data.append(GroundedSentence(
+        words=["the", "cat", "was", "chases", "by", "the", "dog"],
+        contexts=[_ctx("the"), _ctx("cat"), _ctx("was"), _ctx("chases"),
+                  _ctx("by"), _ctx("the"), _ctx("dog")],
+        roles=[None, "patient", None, "action", None, None, "agent"],
+    ))
+    data.append(GroundedSentence(
+        words=["the", "bird", "was", "sees", "by", "the", "cat"],
+        contexts=[_ctx("the"), _ctx("bird"), _ctx("was"), _ctx("sees"),
+                  _ctx("by"), _ctx("the"), _ctx("cat")],
+        roles=[None, "patient", None, "action", None, None, "agent"],
+    ))
+    data.append(GroundedSentence(
+        words=["the", "ball", "was", "finds", "by", "the", "boy"],
+        contexts=[_ctx("the"), _ctx("ball"), _ctx("was"), _ctx("finds"),
+                  _ctx("by"), _ctx("the"), _ctx("boy")],
+        roles=[None, "patient", None, "action", None, None, "agent"],
+    ))
+    data.append(GroundedSentence(
+        words=["the", "book", "was", "reads", "by", "the", "girl"],
+        contexts=[_ctx("the"), _ctx("book"), _ctx("was"), _ctx("reads"),
+                  _ctx("by"), _ctx("the"), _ctx("girl")],
+        roles=[None, "patient", None, "action", None, None, "agent"],
+    ))
+    data.append(GroundedSentence(
+        words=["the", "food", "was", "eats", "by", "the", "bird"],
+        contexts=[_ctx("the"), _ctx("food"), _ctx("was"), _ctx("eats"),
+                  _ctx("by"), _ctx("the"), _ctx("bird")],
+        roles=[None, "patient", None, "action", None, None, "agent"],
+    ))
+
     return data
 
 
@@ -304,6 +336,9 @@ def generate_training_sentences(
     # 6. DET NOUN VERB ADV (adverb)
     if nouns and verbs and advs:
         templates.append("adverb")
+    # 7. DET NOUN was VERB by DET NOUN (passive)
+    if len(nouns) >= 2 and verbs:
+        templates.append("passive")
 
     if not templates:
         return data
@@ -350,6 +385,17 @@ def generate_training_sentences(
             av = _pick(advs)
             _add([d, n, v, av],
                  [None, "agent", "action", None])
+
+        elif template == "passive":
+            d1, n1 = _pick(dets), _pick(nouns)
+            v = _pick(verbs)
+            d2, n2 = _pick(dets), _pick(nouns)
+            for _ in range(5):
+                if n2 != n1:
+                    break
+                n2 = _pick(nouns)
+            _add([d1, n1, "was", v, "by", d2, n2],
+                 [None, "patient", None, "action", None, None, "agent"])
 
     # Ensure every word appears at least twice
     underrepresented = [w for w, c in word_count.items() if c < 2]

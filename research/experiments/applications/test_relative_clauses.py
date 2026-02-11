@@ -230,7 +230,7 @@ def measure_role_accuracy(
 
     Returns per-word correctness and overall accuracy.
     """
-    result = parser.parse(test["words"])
+    result = parser.parse_recursive(test["words"])
     roles = result["roles"]
     expected = test["expected"]
 

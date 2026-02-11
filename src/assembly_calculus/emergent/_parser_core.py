@@ -466,8 +466,24 @@ class CoreParserMixin:
     # Parsing
     # ==================================================================
 
+    def _detect_passive(self, words: List[str],
+                        categories: Dict[str, str]) -> bool:
+        """Detect passive voice: 'was/were' before the main verb."""
+        for i, word in enumerate(words):
+            if word in ("was", "were"):
+                # Check if next content word is a verb
+                for j in range(i + 1, len(words)):
+                    if categories.get(words[j]) == "VERB":
+                        return True
+                    if categories.get(words[j]) in ("NOUN", "PRON"):
+                        break
+        return False
+
     def _assign_roles_neural(self, words: List[str],
-                             categories: Dict[str, str]) -> Dict[str, Optional[str]]:
+                             categories: Dict[str, str],
+                             filler_word: Optional[str] = None,
+                             filler_role: Optional[str] = None,
+                             ) -> Dict[str, Optional[str]]:
         """Neural role assignment via learned projections + mutual inhibition.
 
         Processes words left-to-right.  For each NOUN/PRON, projects the
@@ -475,12 +491,19 @@ class CoreParserMixin:
         then reads out against role_lexicons.  The best-scoring uninhibited
         role wins, and that role is then inhibited (mutual exclusion).
 
-        This replaces the position-based heuristic with genuine neural
-        readout against the role assemblies learned during training.
+        Handles passive voice: when 'was/were' precedes the verb, the
+        first noun is assigned PATIENT (not AGENT), and the noun after
+        'by' is assigned AGENT.
+
+        Handles filler-gap: when filler_word is provided, it is assigned
+        filler_role and the corresponding role area is pre-inhibited.
 
         Args:
             words: Sentence word list (ordered).
             categories: Pre-classified {word: category} from classify_word.
+            filler_word: Optional word displaced from canonical position
+                (e.g., antecedent of a relative clause).
+            filler_role: Role to assign to filler_word ("AGENT" or "PATIENT").
 
         Returns:
             {word: "AGENT"/"ACTION"/"PATIENT"/None} for each word.
@@ -488,8 +511,35 @@ class CoreParserMixin:
         roles: Dict[str, Optional[str]] = {}
         inhibited: set = set()
 
+        # Pre-assign filler if provided (filler-gap binding)
+        if filler_word and filler_role:
+            roles[filler_word] = filler_role
+            role_area = (ROLE_AGENT if filler_role == "AGENT"
+                         else ROLE_PATIENT)
+            inhibited.add(role_area)
+
+        # Detect passive voice
+        is_passive = self._detect_passive(words, categories)
+        after_by = False
+
+        # In passive voice, override the default role priority:
+        # first noun → PATIENT, noun after "by" → AGENT
+        if is_passive:
+            role_order_default = [ROLE_PATIENT, ROLE_AGENT]
+        else:
+            role_order_default = [ROLE_AGENT, ROLE_PATIENT]
+
         for word in words:
             cat = categories.get(word)
+
+            if word == "by" and is_passive:
+                after_by = True
+                roles[word] = None
+                continue
+
+            if word in ("was", "were", "that", "which"):
+                roles[word] = None
+                continue
 
             if cat == "VERB":
                 roles[word] = "ACTION"
@@ -504,6 +554,12 @@ class CoreParserMixin:
                 roles[word] = None
                 continue
 
+            # In passive after "by", force AGENT role
+            if is_passive and after_by:
+                role_order = [ROLE_AGENT, ROLE_PATIENT]
+            else:
+                role_order = list(role_order_default)
+
             # Activate word in its core area
             core_area = self._word_core_area(word)
             project(self.brain, phon, core_area, rounds=self.rounds)
@@ -512,7 +568,7 @@ class CoreParserMixin:
             best_role_area: Optional[str] = None
             best_score = -1.0
 
-            for role_area in [ROLE_AGENT, ROLE_PATIENT]:
+            for role_area in role_order:
                 if role_area in inhibited:
                     continue
 

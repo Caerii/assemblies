@@ -105,6 +105,12 @@ VOCABULARY = {
 
     # --- CONJUNCTIONS (no grounding) --- 1 word
     "and": GroundingContext(),
+
+    # --- AUXILIARY / FUNCTION WORDS (no grounding) ---
+    "was": GroundingContext(),
+    "were": GroundingContext(),
+    "by": GroundingContext(spatial=["BY", "AGENT_MARKER"]),
+    "that": GroundingContext(),
 }
 
-assert len(VOCABULARY) == 37, f"Expected 37 words, got {len(VOCABULARY)}"
+assert len(VOCABULARY) == 41, f"Expected 41 words, got {len(VOCABULARY)}"

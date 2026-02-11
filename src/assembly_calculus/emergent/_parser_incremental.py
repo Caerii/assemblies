@@ -359,23 +359,32 @@ class IncrementalMixin:
         main_words: List[str] = []
         prev_category: Optional[str] = None
 
+        antecedent_word: Optional[str] = None
+        inner_verb_seen = False
+
         i = 0
         while i < len(words):
             word = words[i]
 
-            # Check for clause entry
+            # --- Classify early so we can use category for clause decisions ---
+            grounding = self.word_grounding.get(word)
+            cat, _ = self.classify_word(word, grounding=grounding)
+            result["categories"][word] = cat
+
+            # --- Check for clause entry ---
             if (not in_clause
                     and self._detect_clause_boundary(word, prev_category)):
                 in_clause = True
                 clause_start_idx = i
                 outer_words = list(main_words)  # Words before "that"
+                inner_verb_seen = False
 
-                # Project antecedent noun → DEP_CLAUSE to bind reference
+                # Remember the antecedent noun for filler-gap binding
                 if main_words:
-                    antecedent = main_words[-1]
-                    ant_phon = self.stim_map.get(antecedent)
+                    antecedent_word = main_words[-1]
+                    ant_phon = self.stim_map.get(antecedent_word)
                     if ant_phon:
-                        ant_core = self._word_core_area(antecedent)
+                        ant_core = self._word_core_area(antecedent_word)
                         project(
                             self.brain, ant_phon, ant_core,
                             rounds=self.rounds,
@@ -394,13 +403,25 @@ class IncrementalMixin:
                 # Build fresh circuit for inner clause
                 circuit = self._build_circuit()
 
+                prev_category = cat
                 i += 1
                 continue
 
-            # Check for clause exit
-            if in_clause and (word == ","
-                              or (prev_category == "NOUN"
-                                  and i == len(words) - 1)):
+            # --- Check for clause exit ---
+            # Exit when: comma, or inner clause verb already seen and
+            # current word is a verb (main clause verb), or end of sentence.
+            is_clause_exit = False
+            if in_clause:
+                if word == ",":
+                    is_clause_exit = True
+                elif inner_verb_seen and cat == "VERB":
+                    # Inner clause had its verb; this verb belongs to main
+                    is_clause_exit = True
+                elif i == len(words) - 1 and inner_verb_seen:
+                    # End of sentence; last word goes to main clause
+                    is_clause_exit = True
+
+            if is_clause_exit:
                 # Snapshot DEP_CLAUSE
                 result["dep_clause_assembly"] = _snap(
                     self.brain, DEP_CLAUSE)
@@ -408,26 +429,29 @@ class IncrementalMixin:
 
                 # Replay outer words without plasticity to restore context
                 circuit = self._build_circuit()
-                self._replay_without_plasticity(
-                    outer_words, circuit)
+                self._replay_without_plasticity(outer_words, circuit)
 
                 in_clause = False
                 verb_seen = any(
                     result["categories"].get(w) == "VERB"
                     for w in outer_words
                 )
+                noun_count = sum(
+                    1 for w in outer_words
+                    if result["categories"].get(w) in ("NOUN", "PRON")
+                )
 
                 if word == ",":
+                    prev_category = cat
                     i += 1
                     continue
+                # Otherwise fall through to process this word as main clause
 
-            # Normal word processing
-            grounding = self.word_grounding.get(word)
-            cat, _ = self.classify_word(word, grounding=grounding)
-            result["categories"][word] = cat
-
+            # --- Normal word processing ---
             if in_clause:
                 inner_words.append(word)
+                if cat == "VERB":
+                    inner_verb_seen = True
             else:
                 main_words.append(word)
 
@@ -467,13 +491,42 @@ class IncrementalMixin:
                      if w in result["categories"]}
         result["roles"] = self._assign_roles_neural(main_words, main_cats)
 
-        # Also assign roles for inner clause if present
+        # Assign roles for inner clause with filler-gap binding:
+        # The antecedent noun is the "filler" — it was displaced from its
+        # canonical position in the inner clause.  For SRCs the antecedent
+        # is the agent; for ORCs it is the patient.
         if inner_words:
             inner_cats = {w: result["categories"][w]
                           for w in inner_words
                           if w in result["categories"]}
+
+            # Determine filler role from inner clause structure:
+            # - ORC active: "dog that THE CAT chased" → pre-verb noun → PATIENT
+            # - SRC active: "dog that chased THE CAT" → no pre-verb noun → AGENT
+            # - Passive RC:  "dog that was chased by ..." → passive → PATIENT
+            filler_w = antecedent_word
+            filler_r = None
+            if filler_w:
+                inner_is_passive = self._detect_passive(
+                    inner_words, inner_cats)
+                inner_has_pre_verb_noun = False
+                for w in inner_words:
+                    ic = inner_cats.get(w)
+                    if ic == "VERB":
+                        break
+                    if ic in ("NOUN", "PRON"):
+                        inner_has_pre_verb_noun = True
+                        break
+                if inner_is_passive or inner_has_pre_verb_noun:
+                    filler_r = "PATIENT"
+                else:
+                    filler_r = "AGENT"
+
             inner_roles = self._assign_roles_neural(
-                inner_words, inner_cats)
+                inner_words, inner_cats,
+                filler_word=filler_w,
+                filler_role=filler_r,
+            )
             result["roles"].update(inner_roles)
 
         result["phrases"] = self._identify_phrases(

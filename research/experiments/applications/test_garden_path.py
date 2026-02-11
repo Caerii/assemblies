@@ -116,7 +116,9 @@ def _build_gp_vocab() -> Dict[str, GroundingContext]:
         # Prepositions and function words
         "the":    GroundingContext(),
         "past":   GroundingContext(spatial=["PAST", "BEYOND"]),
-        "by":     GroundingContext(spatial=["BY", "NEAR"]),
+        "by":     GroundingContext(spatial=["BY", "AGENT_MARKER"]),
+        "that":   GroundingContext(),
+        "was":    GroundingContext(),
     }
 
 
@@ -161,6 +163,20 @@ def _build_gp_training(
             words=["the", subj, verb],
             contexts=[ctx("the"), ctx(subj), ctx(verb)],
             roles=[None, "agent", "action"],
+        ))
+
+    # Passive voice: DET NOUN was VERB by DET NOUN
+    passives = [
+        ("cat", "chased", "dog"), ("bird", "pushed", "cat"),
+        ("dog", "warned", "horse"), ("boy", "chased", "girl"),
+        ("girl", "pushed", "boy"), ("cat", "found", "bird"),
+    ]
+    for patient, verb, agent in passives:
+        sentences.append(GroundedSentence(
+            words=["the", patient, "was", verb, "by", "the", agent],
+            contexts=[ctx("the"), ctx(patient), ctx("was"), ctx(verb),
+                      ctx("by"), ctx("the"), ctx(agent)],
+            roles=[None, "patient", None, "action", None, None, "agent"],
         ))
 
     return sentences
@@ -212,7 +228,11 @@ def measure_parse_accuracy(
     expected: Dict[str, str],
 ) -> Dict[str, Any]:
     """Parse and measure noun role accuracy."""
-    result = parser.parse(words)
+    # Use recursive parser for sentences with relative clauses ("that")
+    if "that" in words:
+        result = parser.parse_recursive(words)
+    else:
+        result = parser.parse(words)
     roles = result["roles"]
 
     correct = 0

@@ -1,0 +1,113 @@
+{
+  "experiment_name": "function_word_discovery",
+  "timestamp": "2026-02-10T23:57:53.344869",
+  "parameters": {
+    "n": 10000,
+    "k": 100,
+    "p": 0.05,
+    "beta": 0.1,
+    "rounds": 10,
+    "n_seeds": 3,
+    "n_sentences": 73,
+    "n_func_words": 8,
+    "n_content_words": 20
+  },
+  "metrics": {
+    "h1_entropy": {
+      "function": {
+        "mean": 0.27727135701129074,
+        "std": 0.0,
+        "sem": 0.0,
+        "ci95_lo": 0.27727135701129074,
+        "ci95_hi": 0.27727135701129074,
+        "min": 0.27727135701129074,
+        "max": 0.27727135701129074,
+        "n": 3
+      },
+      "content": {
+        "mean": 0.5911364902414007,
+        "std": 0.0,
+        "sem": 0.0,
+        "ci95_lo": 0.5911364902414007,
+        "ci95_hi": 0.5911364902414007,
+        "min": 0.5911364902414007,
+        "max": 0.5911364902414007,
+        "n": 3
+      },
+      "test": {
+        "t": 0.0,
+        "p": 1.0,
+        "d": 0.0,
+        "significant": false
+      }
+    },
+    "h2_subcategorization": {
+      "within": {
+        "mean": 0.48104055256418143,
+        "std": 0.0,
+        "sem": 0.0,
+        "ci95_lo": 0.48104055256418143,
+        "ci95_hi": 0.48104055256418143,
+        "min": 0.48104055256418143,
+        "max": 0.48104055256418143,
+        "n": 3
+      },
+      "between": {
+        "mean": 0.15003639000034988,
+        "std": 0.0,
+        "sem": 0.0,
+        "ci95_lo": 0.15003639000034988,
+        "ci95_hi": 0.15003639000034988,
+        "min": 0.15003639000034988,
+        "max": 0.15003639000034988,
+        "n": 3
+      },
+      "test": {
+        "t": 0.0,
+        "p": 1.0,
+        "d": 0.0,
+        "significant": false
+      }
+    },
+    "h3_classification": {
+      "stats": {
+        "mean": 0.42857142857142855,
+        "std": 0.0,
+        "sem": 0.0,
+        "ci95_lo": 0.42857142857142855,
+        "ci95_hi": 0.42857142857142855,
+        "min": 0.42857142857142855,
+        "max": 0.42857142857142855,
+        "n": 3
+      },
+      "test": {
+        "t": Infinity,
+        "p": 0.0,
+        "d": Infinity,
+        "significant": true
+      }
+    },
+    "h4_frames": {
+      "stats": {
+        "mean": 1.0,
+        "std": 0.0,
+        "sem": 0.0,
+        "ci95_lo": 1.0,
+        "ci95_hi": 1.0,
+        "min": 1.0,
+        "max": 1.0,
+        "n": 3
+      },
+      "test": {
+        "t": Infinity,
+        "p": 0.0,
+        "d": Infinity,
+        "significant": true
+      }
+    }
+  },
+  "raw_data": {},
+  "success": true,
+  "error_message": null,
+  "duration_seconds": 54.4945816999998
+}
