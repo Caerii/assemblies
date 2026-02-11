@@ -45,6 +45,7 @@ from .areas import (
     SUBJ, OBJ,
     TENSE, MOOD, POLARITY,
     CONTEXT,
+    FUNC_DET, FUNC_AUX, FUNC_COMP, FUNC_CONJ, FUNC_MARKER,
 )
 from .grounding import GroundingContext, VOCABULARY
 from .training_data import GroundedSentence, create_training_sentences
@@ -135,6 +136,13 @@ class CoreParserMixin:
         # Inferred word order typology (set by train_word_order_typological)
         self.word_order_type: Optional[str] = None
 
+        # Learned gating patterns: function word sub-type → role expectations.
+        # Populated during train_roles() by observing what role the next
+        # noun receives after each function word type.
+        # Format: {func_subcat: {"role_bias": {ROLE_AGENT: float, ROLE_PATIENT: float},
+        #                        "clause_boundary": bool}}
+        self.learned_gating: Dict[str, Dict] = {}
+
         self._setup_areas()
         self._register_vocabulary(vocabulary or VOCABULARY)
 
@@ -195,13 +203,21 @@ class CoreParserMixin:
         """
         if sentences is None:
             sentences = create_training_sentences()
+
+        # Phase 0: Ingest raw sentences for distributional statistics.
+        # This enables frame-based sub-categorization of function words
+        # (Stage 1 of the two-stage ELAN→gating model), which is needed
+        # by train_roles → _learn_gating_patterns.
+        raw_sents = [s.words for s in sentences]
+        for sent in raw_sents:
+            self.ingest_raw_sentence(sent)
+
         self.train_lexicon(holdout_words=holdout_words)
         self.train_roles(sentences)
         self.train_phrases(sentences)
         self.train_word_order(sentences)
 
         # Phase 5: Tense, mood, polarity, conjunctions
-        raw_sents = [s.words for s in sentences]
         self.train_tense(raw_sents)
         self.train_mood(raw_sents)
         self.train_polarity(raw_sents)
@@ -299,6 +315,107 @@ class CoreParserMixin:
 
                 self.brain.areas[core_area].unfix_assembly()
                 self.brain._engine.reset_area_connections(role_area)
+
+        # Learn gating patterns from function word → role co-occurrences
+        self._learn_gating_patterns(sentences)
+
+    def _learn_gating_patterns(self, sentences: List[GroundedSentence]):
+        """Learn gating patterns from how role assignment ORDER changes
+        when different function word types are present in a sentence.
+
+        The key insight: function words don't just affect the next word —
+        they change the entire role assignment pattern for the sentence.
+        "was" reverses first-noun=AGENT to first-noun=PATIENT.
+        "by" after passive marks upcoming-noun=AGENT.
+
+        Method:
+        1. For each sentence, identify which ungrounded words are present
+        2. Extract the role assignment order (1st noun role, 2nd noun role)
+        3. Group by function word sub-type
+        4. The dominant role order for each sub-type becomes its gating pattern
+
+        This implements Stage 2: learning processing mode shifts triggered
+        by function words, analogous to Broca's area learning top-down
+        gating through procedural memory (basal ganglia).
+        """
+        # Collect role orders for sentences containing each function word.
+        # role_order = sequence of (ROLE_AGENT or ROLE_PATIENT) for nouns
+        # in the order they appear in the sentence.
+        #
+        # {func_word: [role_order_tuple, ...]}
+        func_role_orders: Dict[str, List[Tuple]] = defaultdict(list)
+
+        for sent in sentences:
+            # Extract the role sequence for nouns/pronouns in this sentence
+            # (in left-to-right order)
+            role_order = []
+            for word, role in zip(sent.words, sent.roles):
+                if role == "agent":
+                    role_order.append(ROLE_AGENT)
+                elif role == "patient":
+                    role_order.append(ROLE_PATIENT)
+
+            if not role_order:
+                continue
+
+            # Identify which ungrounded function words are in this sentence
+            func_words_present: Set[str] = set()
+            for word in sent.words:
+                ctx = self.word_grounding.get(word)
+                if ctx is not None and not ctx.is_grounded:
+                    func_words_present.add(word)
+
+            # Record the role order for each function word present
+            role_tuple = tuple(role_order)
+            for fw in func_words_present:
+                func_role_orders[fw].append(role_tuple)
+
+        # Aggregate by function word sub-category
+        # {subcat: {role_order_tuple: count}}
+        subcat_order_counts: Dict[str, Dict[Tuple, int]] = defaultdict(
+            lambda: defaultdict(int))
+
+        for fw, orders in func_role_orders.items():
+            # Get frame-based sub-category (if available)
+            subcat = (self.get_func_subcategory(fw)
+                      if hasattr(self, 'get_func_subcategory') else None)
+            if subcat is None:
+                ctx = self.word_grounding.get(fw, GroundingContext())
+                subcat = FUNC_MARKER if ctx.spatial else FUNC_DET
+
+            for order in orders:
+                subcat_order_counts[subcat][order] += 1
+
+        # Build the learned_gating dict from dominant role orders
+        for subcat, order_counts in subcat_order_counts.items():
+            if not order_counts:
+                continue
+
+            # Find the most common role order for this sub-type
+            dominant_order = max(order_counts, key=order_counts.get)
+            total = sum(order_counts.values())
+            confidence = order_counts[dominant_order] / total
+
+            # Determine if this sub-type reverses default role order.
+            # Default order is (AGENT, PATIENT) for SVO active sentences.
+            # If the dominant order starts with PATIENT, this sub-type
+            # triggers a role reversal (like passive voice).
+            default_order = (ROLE_AGENT, ROLE_PATIENT)
+            reverses_roles = (len(dominant_order) >= 1
+                              and dominant_order[0] == ROLE_PATIENT)
+
+            self.learned_gating[subcat] = {
+                # The dominant role assignment order when this sub-type present
+                "role_order": list(dominant_order),
+                # Whether this sub-type reverses default AGENT-first order
+                "reverses_roles": reverses_roles,
+                # How consistently this pattern appears (1.0 = always)
+                "confidence": confidence,
+                # How many training examples contributed
+                "n_examples": total,
+                # Whether this sub-type signals a clause boundary
+                "clause_boundary": subcat == FUNC_COMP,
+            }
 
     def train_phrases(self, sentences: List[GroundedSentence]):
         """Phase 3: Phrase structure via merge operations.
@@ -479,6 +596,54 @@ class CoreParserMixin:
                         break
         return False
 
+    def _determine_role_order(self, words: List[str],
+                              categories: Dict[str, str],
+                              ) -> Tuple[List[str], bool]:
+        """Determine role assignment order from learned gating or rules.
+
+        Two-stage approach mirroring brain processing:
+
+        Stage 1 (ELAN ~180ms): Check if any function word sub-type with
+        learned gating is present. If so, use the learned role order.
+
+        Stage 2 (fallback): If no learned gating, fall back to hardcoded
+        _detect_passive() check.
+
+        Args:
+            words: Sentence word list.
+            categories: Pre-classified {word: category}.
+
+        Returns:
+            (role_order_default, is_passive) where role_order_default is
+            [ROLE_AGENT, ROLE_PATIENT] or [ROLE_PATIENT, ROLE_AGENT].
+        """
+        # Stage 1: Check learned gating from function word sub-categories.
+        # Look for any AUX-type word whose learned gating reverses roles.
+        if self.learned_gating:
+            for word in words:
+                # Get sub-category (from frame analysis or cache)
+                subcat = (self.get_func_subcategory(word)
+                          if hasattr(self, 'get_func_subcategory') else None)
+                if subcat is None:
+                    continue
+
+                gating = self.learned_gating.get(subcat)
+                if gating is None:
+                    continue
+
+                # If this sub-type reverses roles with high confidence,
+                # use the learned role order
+                if (gating.get("reverses_roles", False)
+                        and gating.get("confidence", 0) > 0.5):
+                    return [ROLE_PATIENT, ROLE_AGENT], True
+
+        # Stage 2: Fall back to hardcoded passive detection
+        is_passive = self._detect_passive(words, categories)
+        if is_passive:
+            return [ROLE_PATIENT, ROLE_AGENT], True
+
+        return [ROLE_AGENT, ROLE_PATIENT], False
+
     def _assign_roles_neural(self, words: List[str],
                              categories: Dict[str, str],
                              filler_word: Optional[str] = None,
@@ -486,17 +651,15 @@ class CoreParserMixin:
                              ) -> Dict[str, Optional[str]]:
         """Neural role assignment via learned projections + mutual inhibition.
 
-        Processes words left-to-right.  For each NOUN/PRON, projects the
-        word's core assembly into each uninhibited role area with recurrence,
-        then reads out against role_lexicons.  The best-scoring uninhibited
-        role wins, and that role is then inhibited (mutual exclusion).
+        Two-stage function word processing:
+        1. ELAN-like rapid sub-categorization determines role order
+           (learned gating from training, or hardcoded passive detection)
+        2. Left-to-right role assignment with mutual inhibition
 
-        Handles passive voice: when 'was/were' precedes the verb, the
-        first noun is assigned PATIENT (not AGENT), and the noun after
-        'by' is assigned AGENT.
-
-        Handles filler-gap: when filler_word is provided, it is assigned
-        filler_role and the corresponding role area is pre-inhibited.
+        For each NOUN/PRON, projects the word's core assembly into each
+        uninhibited role area with recurrence, reads out against
+        role_lexicons. The best-scoring uninhibited role wins, then
+        that role is inhibited (mutual exclusion).
 
         Args:
             words: Sentence word list (ordered).
@@ -518,25 +681,24 @@ class CoreParserMixin:
                          else ROLE_PATIENT)
             inhibited.add(role_area)
 
-        # Detect passive voice
-        is_passive = self._detect_passive(words, categories)
-        after_by = False
+        # Determine role order: learned gating (Stage 1) or rules (Stage 2)
+        role_order_default, is_passive = self._determine_role_order(
+            words, categories)
 
-        # In passive voice, override the default role priority:
-        # first noun → PATIENT, noun after "by" → AGENT
-        if is_passive:
-            role_order_default = [ROLE_PATIENT, ROLE_AGENT]
-        else:
-            role_order_default = [ROLE_AGENT, ROLE_PATIENT]
+        # Track whether we've passed the "by" marker in passive sentences.
+        # In passives, "by" signals the upcoming noun is the AGENT.
+        after_by = False
 
         for word in words:
             cat = categories.get(word)
 
+            # "by" in passive context: mark that next noun should be AGENT
             if word == "by" and is_passive:
                 after_by = True
                 roles[word] = None
                 continue
 
+            # Skip function words that have no role
             if word in ("was", "were", "that", "which"):
                 roles[word] = None
                 continue
@@ -554,7 +716,7 @@ class CoreParserMixin:
                 roles[word] = None
                 continue
 
-            # In passive after "by", force AGENT role
+            # After "by" in passive, force AGENT (agent marker gating)
             if is_passive and after_by:
                 role_order = [ROLE_AGENT, ROLE_PATIENT]
             else:

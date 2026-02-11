@@ -11,6 +11,7 @@ from src.assembly_calculus.ops import _snap
 from .areas import (
     CORE_TO_CATEGORY, CATEGORY_TO_CORE, GROUNDING_TO_CORE,
     DET_CORE, CORE_AREAS,
+    FUNC_DET, FUNC_AUX, FUNC_COMP, FUNC_CONJ, FUNC_MARKER,
 )
 from .grounding import GroundingContext
 from .training_data import GroundedSentence
@@ -131,14 +132,121 @@ class DistributionalMixin:
             if cats[idx] and cats[idx + 1]:
                 stats.category_transitions[(cats[idx], cats[idx + 1])] += 1
 
+    def classify_by_frame(self, word: str
+                          ) -> Tuple[Optional[str], float]:
+        """Classify a word by its bigram frame (left/right context categories).
+
+        Implements Stage 1 of the two-stage function word model:
+        rapid sub-categorization from distributional frames, analogous
+        to the ELAN response (~180ms) in human language processing.
+
+        The frame is the pair (dominant_left_category, dominant_right_category).
+        Different function word sub-types occupy distinct frames:
+          DET:    (*, NOUN/ADJ)   — precedes nominal content
+          AUX:    (NOUN, VERB)    — between subject NP and main verb
+          COMP:   (NOUN, DET/NOUN) — after NP, introduces new clause
+          CONJ:   (NOUN, DET)     — between parallel NPs
+          MARKER: (VERB, DET)     — after verb, before new NP (agent marker)
+
+        Args:
+            word: Word string to classify.
+
+        Returns:
+            (sub_category_or_None, confidence) where sub_category is one of
+            FUNC_DET/FUNC_AUX/FUNC_COMP/FUNC_CONJ/FUNC_MARKER, or the
+            standard POS category if the word is not a function word.
+        """
+        stats = self.dist_stats
+        count = stats.word_count.get(word, 0)
+        if count == 0:
+            return None, 0.0
+
+        # Build left/right context category distributions
+        left_cats: Dict[str, int] = defaultdict(int)
+        right_cats: Dict[str, int] = defaultdict(int)
+        for (w1, w2), c in stats.transitions.items():
+            if w2 == word:
+                cat_left = self._quick_category(w1)
+                if cat_left:
+                    left_cats[cat_left] += c
+            if w1 == word:
+                cat_right = self._quick_category(w2)
+                if cat_right:
+                    right_cats[cat_right] += c
+
+        if not left_cats and not right_cats:
+            return None, 0.0
+
+        # Dominant left/right categories
+        dom_left = max(left_cats, key=left_cats.get) if left_cats else None
+        dom_right = max(right_cats, key=right_cats.get) if right_cats else None
+
+        left_total = sum(left_cats.values()) or 1
+        right_total = sum(right_cats.values()) or 1
+
+        # Compute frame-match scores for each function word sub-type
+        frame_scores: Dict[str, float] = {}
+
+        # DET: primarily precedes NOUN or ADJ (right context is nominal)
+        noun_adj_right = (right_cats.get("NOUN", 0)
+                          + right_cats.get("ADJ", 0)) / right_total
+        frame_scores[FUNC_DET] = noun_adj_right
+
+        # AUX: left=NOUN/PRON, right=VERB (between NP and VP)
+        np_left = (left_cats.get("NOUN", 0)
+                   + left_cats.get("PRON", 0)) / left_total
+        verb_right = right_cats.get("VERB", 0) / right_total
+        frame_scores[FUNC_AUX] = min(np_left, verb_right) * 1.5
+
+        # COMP: left=NOUN, right=DET/NOUN/PRON (new clause opener)
+        noun_left = left_cats.get("NOUN", 0) / left_total
+        clause_right = (right_cats.get("DET", 0) + right_cats.get("NOUN", 0)
+                        + right_cats.get("PRON", 0)
+                        + right_cats.get("VERB", 0)) / right_total
+        # COMP must have both left=NOUN and right=new-clause material
+        frame_scores[FUNC_COMP] = min(noun_left, clause_right) * 1.3
+
+        # CONJ: left=NOUN, right=DET (between parallel NPs)
+        det_right = right_cats.get("DET", 0) / right_total
+        frame_scores[FUNC_CONJ] = min(noun_left, det_right) * 1.2
+
+        # MARKER: left=VERB, right=DET (after verb, before agent NP)
+        verb_left = left_cats.get("VERB", 0) / left_total
+        frame_scores[FUNC_MARKER] = min(verb_left, det_right) * 1.4
+
+        # Also score content word categories from frames
+        # Content words have DISTINCTIVE frame patterns:
+        # NOUN: left=DET/ADJ, right=VERB (position after determiner)
+        det_adj_left = (left_cats.get("DET", 0)
+                        + left_cats.get("ADJ", 0)) / left_total
+        frame_scores["NOUN"] = min(det_adj_left, 0.5) + verb_right * 0.5
+
+        # VERB: left=NOUN/PRON, right=DET/NOUN/ADV
+        content_right = (right_cats.get("DET", 0)
+                         + right_cats.get("NOUN", 0)
+                         + right_cats.get("ADV", 0)) / right_total
+        frame_scores["VERB"] = min(np_left, content_right)
+
+        # ADJ: left=DET, right=NOUN
+        det_left = left_cats.get("DET", 0) / left_total
+        noun_right = right_cats.get("NOUN", 0) / right_total
+        frame_scores["ADJ"] = min(det_left, noun_right) * 1.1
+
+        best = max(frame_scores, key=frame_scores.get)
+        confidence = frame_scores[best]
+
+        return best, confidence
+
     def classify_distributional(self, word: str
                                 ) -> Tuple[str, Dict[str, float]]:
         """Infer word category from distributional statistics.
 
-        Scores each category based on:
-        1. Position profile similarity (where the word appears in sentences)
-        2. Verb-relative position (pre-verb -> NOUN, at-verb -> VERB, etc.)
-        3. Co-occurrence with known-category words
+        Uses a two-pass approach:
+        1. Frame-based classification (bigram context patterns)
+        2. Position profile and verb-relative position (fallback features)
+
+        For ungrounded words (function words), frame-based classification
+        dominates. For content words, all features contribute.
 
         Args:
             word: Word string to classify.
@@ -151,9 +259,41 @@ class DistributionalMixin:
         if count == 0:
             return "UNKNOWN", {}
 
+        # Check if word is ungrounded (potential function word)
+        ctx = self.word_grounding.get(word)
+        is_ungrounded = (ctx is None or not ctx.is_grounded)
+
+        # Stage 1: Frame-based classification (always computed)
+        frame_cat, frame_conf = self.classify_by_frame(word)
+
+        # For ungrounded words, frame classification is authoritative
+        # (analogous to ELAN rapid categorization)
+        if is_ungrounded and frame_cat is not None and frame_conf > 0.3:
+            # Map function sub-categories to standard POS for backward compat
+            pos_cat = frame_cat
+            if frame_cat in (FUNC_DET, FUNC_AUX, FUNC_COMP):
+                pos_cat = "DET"
+            elif frame_cat == FUNC_CONJ:
+                pos_cat = "CONJ"
+            elif frame_cat == FUNC_MARKER:
+                pos_cat = "PREP"
+
+            # Store the sub-category for gating purposes
+            if not hasattr(self, '_func_subcategories'):
+                self._func_subcategories: Dict[str, str] = {}
+            self._func_subcategories[word] = frame_cat
+
+            return pos_cat, {pos_cat: frame_conf}
+
         scores: Dict[str, float] = {}
 
-        # 1. Verb-relative position scores
+        # Seed from frame scores (all categories including content)
+        if frame_cat is not None:
+            # Get all frame scores by re-running frame analysis
+            # and using the confidence as a feature
+            scores[frame_cat] = frame_conf * 2.0
+
+        # 2. Verb-relative position scores
         pre = stats.word_as_pre_verb.get(word, 0)
         post = stats.word_as_post_verb.get(word, 0)
         action = stats.word_as_action.get(word, 0)
@@ -164,20 +304,19 @@ class DistributionalMixin:
             post_ratio = post / total_rel
             action_ratio = action / total_rel
 
-            scores["VERB"] = action_ratio * 3.0
-            scores["NOUN"] = max(pre_ratio, post_ratio) * 2.0
-            scores["PRON"] = pre_ratio * 1.5 if post_ratio < 0.2 else 0.0
-            scores["ADJ"] = pre_ratio * 1.0 if action_ratio < 0.1 else 0.0
-            scores["DET"] = pre_ratio * 1.0 if action_ratio < 0.1 else 0.0
-            scores["PREP"] = post_ratio * 1.0 if action_ratio < 0.1 else 0.0
-            scores["ADV"] = post_ratio * 1.0 if action_ratio < 0.1 else 0.0
+            scores["VERB"] = scores.get("VERB", 0.0) + action_ratio * 3.0
+            scores["NOUN"] = scores.get("NOUN", 0.0) + max(pre_ratio, post_ratio) * 2.0
+            scores["PRON"] = scores.get("PRON", 0.0) + (pre_ratio * 1.5 if post_ratio < 0.2 else 0.0)
+            scores["ADJ"] = scores.get("ADJ", 0.0) + (pre_ratio * 1.0 if action_ratio < 0.1 else 0.0)
+            scores["DET"] = scores.get("DET", 0.0) + (pre_ratio * 1.0 if action_ratio < 0.1 else 0.0)
+            scores["PREP"] = scores.get("PREP", 0.0) + (post_ratio * 1.0 if action_ratio < 0.1 else 0.0)
+            scores["ADV"] = scores.get("ADV", 0.0) + (post_ratio * 1.0 if action_ratio < 0.1 else 0.0)
 
-        # 2. Position profile scoring
+        # 3. Position profile scoring
         positions = stats.position_counts.get(word, {})
         if positions:
             total_pos = sum(positions.values())
             avg_pos = sum(p * c for p, c in positions.items()) / total_pos
-            # Normalize by typical sentence length
             max_pos = max(positions.keys()) + 1
             norm_pos = avg_pos / max(max_pos, 1)
 
@@ -187,43 +326,33 @@ class DistributionalMixin:
                 pos_score = max(0, 1.0 - dist * 3)
                 scores[cat] = scores.get(cat, 0.0) + pos_score * 0.5
 
-        # 3. Transition-based scoring (bigram context)
-        # Check what categories typically precede/follow this word
+        # 4. Transition-based scoring (bigram context)
         left_cats: Dict[str, int] = defaultdict(int)
         right_cats: Dict[str, int] = defaultdict(int)
-        for (w1, w2), count in stats.transitions.items():
+        for (w1, w2), c in stats.transitions.items():
             if w2 == word:
                 cat_left = self._quick_category(w1)
                 if cat_left:
-                    left_cats[cat_left] += count
+                    left_cats[cat_left] += c
             if w1 == word:
                 cat_right = self._quick_category(w2)
                 if cat_right:
-                    right_cats[cat_right] += count
+                    right_cats[cat_right] += c
 
-        # NOUN follows DET/ADJ, precedes VERB
         if left_cats.get("DET", 0) > 0 or left_cats.get("ADJ", 0) > 0:
             scores["NOUN"] = scores.get("NOUN", 0.0) + 1.0
         if right_cats.get("VERB", 0) > 0:
             scores["NOUN"] = scores.get("NOUN", 0.0) + 0.5
-
-        # VERB follows NOUN/PRON, precedes DET/NOUN
         if (left_cats.get("NOUN", 0) > 0 or left_cats.get("PRON", 0) > 0):
             if (right_cats.get("DET", 0) > 0 or right_cats.get("NOUN", 0) > 0
                     or right_cats.get("ADV", 0) > 0):
                 scores["VERB"] = scores.get("VERB", 0.0) + 2.0
             else:
                 scores["VERB"] = scores.get("VERB", 0.0) + 1.0
-
-        # ADJ follows DET, precedes NOUN
         if left_cats.get("DET", 0) > 0 and right_cats.get("NOUN", 0) > 0:
             scores["ADJ"] = scores.get("ADJ", 0.0) + 1.5
-
-        # DET precedes NOUN/ADJ
         if right_cats.get("NOUN", 0) > 0 or right_cats.get("ADJ", 0) > 0:
             scores["DET"] = scores.get("DET", 0.0) + 1.0
-
-        # PREP follows VERB/NOUN, precedes DET
         if (left_cats.get("VERB", 0) > 0 and right_cats.get("DET", 0) > 0):
             scores["PREP"] = scores.get("PREP", 0.0) + 1.5
 
@@ -232,6 +361,33 @@ class DistributionalMixin:
 
         best = max(scores, key=scores.get)
         return best, scores
+
+    def get_func_subcategory(self, word: str) -> Optional[str]:
+        """Return the function word sub-category for a word, or None.
+
+        Returns one of FUNC_DET, FUNC_AUX, FUNC_COMP, FUNC_CONJ,
+        FUNC_MARKER if the word was sub-categorized by frame analysis,
+        or None if the word is a content word or hasn't been analyzed.
+        """
+        if hasattr(self, '_func_subcategories'):
+            cached = self._func_subcategories.get(word)
+            if cached is not None:
+                return cached
+
+        # Try frame classification on the fly
+        ctx = self.word_grounding.get(word)
+        is_ungrounded = (ctx is None or not ctx.is_grounded)
+        if not is_ungrounded:
+            return None
+
+        frame_cat, frame_conf = self.classify_by_frame(word)
+        if frame_cat in (FUNC_DET, FUNC_AUX, FUNC_COMP,
+                         FUNC_CONJ, FUNC_MARKER):
+            if not hasattr(self, '_func_subcategories'):
+                self._func_subcategories = {}
+            self._func_subcategories[word] = frame_cat
+            return frame_cat
+        return None
 
     def train_distributional(self, sentences: List[List[str]],
                              repetitions: int = 3) -> None:

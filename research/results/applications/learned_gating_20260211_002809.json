@@ -1,0 +1,247 @@
+{
+  "experiment_name": "learned_gating",
+  "timestamp": "2026-02-11T00:28:09.628111",
+  "parameters": {
+    "n": 10000,
+    "k": 100,
+    "p": 0.05,
+    "beta": 0.1,
+    "rounds": 10,
+    "n_seeds": 3,
+    "n_training": 18,
+    "n_passive_training": 8
+  },
+  "metrics": {
+    "h1_passive": {
+      "learned": {
+        "mean": 1.0,
+        "std": 0.0,
+        "sem": 0.0,
+        "ci95_lo": 1.0,
+        "ci95_hi": 1.0,
+        "min": 1.0,
+        "max": 1.0,
+        "n": 3
+      },
+      "hardcoded": {
+        "mean": 1.0,
+        "std": 0.0,
+        "sem": 0.0,
+        "ci95_lo": 1.0,
+        "ci95_hi": 1.0,
+        "min": 1.0,
+        "max": 1.0,
+        "n": 3
+      },
+      "test": {
+        "t": 0.0,
+        "p": 1.0,
+        "d": 0.0,
+        "significant": false
+      },
+      "supported": true
+    },
+    "h2_active": {
+      "learned": {
+        "mean": 1.0,
+        "std": 0.0,
+        "sem": 0.0,
+        "ci95_lo": 1.0,
+        "ci95_hi": 1.0,
+        "min": 1.0,
+        "max": 1.0,
+        "n": 3
+      },
+      "hardcoded": {
+        "mean": 1.0,
+        "std": 0.0,
+        "sem": 0.0,
+        "ci95_lo": 1.0,
+        "ci95_hi": 1.0,
+        "min": 1.0,
+        "max": 1.0,
+        "n": 3
+      },
+      "test": {
+        "t": 0.0,
+        "p": 1.0,
+        "d": 0.0,
+        "significant": false
+      },
+      "supported": true
+    },
+    "h3_combined": {
+      "combined": {
+        "mean": 1.0,
+        "std": 0.0,
+        "sem": 0.0,
+        "ci95_lo": 1.0,
+        "ci95_hi": 1.0,
+        "min": 1.0,
+        "max": 1.0,
+        "n": 3
+      },
+      "vs_learned": {
+        "t": 0.0,
+        "p": 1.0,
+        "d": 0.0,
+        "significant": false
+      },
+      "vs_hardcoded": {
+        "t": 0.0,
+        "p": 1.0,
+        "d": 0.0,
+        "significant": false
+      },
+      "supported": true
+    },
+    "h4_passive_rc": {
+      "learned": {
+        "mean": 0.6666666666666666,
+        "std": 0.0,
+        "sem": 0.0,
+        "ci95_lo": 0.6666666666666666,
+        "ci95_hi": 0.6666666666666666,
+        "min": 0.6666666666666666,
+        "max": 0.6666666666666666,
+        "n": 3
+      },
+      "hardcoded": {
+        "mean": 0.6666666666666666,
+        "std": 0.0,
+        "sem": 0.0,
+        "ci95_lo": 0.6666666666666666,
+        "ci95_hi": 0.6666666666666666,
+        "min": 0.6666666666666666,
+        "max": 0.6666666666666666,
+        "n": 3
+      },
+      "combined": {
+        "mean": 0.6666666666666666,
+        "std": 0.0,
+        "sem": 0.0,
+        "ci95_lo": 0.6666666666666666,
+        "ci95_hi": 0.6666666666666666,
+        "min": 0.6666666666666666,
+        "max": 0.6666666666666666,
+        "n": 3
+      },
+      "test": {
+        "t": 0.0,
+        "p": 1.0,
+        "d": 0.0,
+        "significant": false
+      },
+      "supported": true
+    },
+    "gating_info": [
+      {
+        "seed": 0,
+        "gating": {
+          "DET": {
+            "reverses_roles": false,
+            "confidence": 0.5555555555555556,
+            "n_examples": 18,
+            "clause_boundary": false
+          },
+          "AUX": {
+            "reverses_roles": true,
+            "confidence": 1.0,
+            "n_examples": 8,
+            "clause_boundary": false
+          }
+        }
+      },
+      {
+        "seed": 1,
+        "gating": {
+          "DET": {
+            "reverses_roles": false,
+            "confidence": 0.5555555555555556,
+            "n_examples": 18,
+            "clause_boundary": false
+          },
+          "AUX": {
+            "reverses_roles": true,
+            "confidence": 1.0,
+            "n_examples": 8,
+            "clause_boundary": false
+          }
+        }
+      },
+      {
+        "seed": 2,
+        "gating": {
+          "DET": {
+            "reverses_roles": false,
+            "confidence": 0.5555555555555556,
+            "n_examples": 18,
+            "clause_boundary": false
+          },
+          "AUX": {
+            "reverses_roles": true,
+            "confidence": 1.0,
+            "n_examples": 8,
+            "clause_boundary": false
+          }
+        }
+      }
+    ]
+  },
+  "raw_data": {
+    "combined": {
+      "active": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "passive": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "passive_rc": [
+        0.6666666666666666,
+        0.6666666666666666,
+        0.6666666666666666
+      ]
+    },
+    "learned": {
+      "active": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "passive": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "passive_rc": [
+        0.6666666666666666,
+        0.6666666666666666,
+        0.6666666666666666
+      ]
+    },
+    "hardcoded": {
+      "active": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "passive": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "passive_rc": [
+        0.6666666666666666,
+        0.6666666666666666,
+        0.6666666666666666
+      ]
+    }
+  },
+  "success": true,
+  "error_message": null,
+  "duration_seconds": 20.74455820000003
+}

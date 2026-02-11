@@ -138,3 +138,30 @@ MUTUAL_INHIBITION_GROUPS = [
      ROLE_GOAL, ROLE_SOURCE, ROLE_LOCATION],
     [SUBJ, OBJ, IOBJ],
 ]
+
+# ---- Function word sub-categories ----
+# These are sub-types of DET (ungrounded words) discovered from
+# distributional frames. They route through DET_CORE neurally but
+# trigger different gating patterns during parsing.
+#
+# Matches the ELAN → gating model:
+#   1. Rapid sub-categorization from bigram frames (ELAN, ~180ms)
+#   2. Sub-category triggers learned fiber gating (Broca's top-down control)
+
+FUNC_DET = "DET"        # Determiner: precedes NOUN/ADJ ("the", "a")
+FUNC_AUX = "AUX"        # Auxiliary: between NP and VP ("was", "were")
+FUNC_COMP = "COMP"      # Complementizer: after NP, opens clause ("that", "which")
+FUNC_CONJ = "CONJ"      # Conjunction: between parallel structures ("and")
+FUNC_MARKER = "MARKER"  # Role marker: signals upcoming role ("by" in passives)
+
+FUNC_SUBCATEGORIES = [FUNC_DET, FUNC_AUX, FUNC_COMP, FUNC_CONJ, FUNC_MARKER]
+
+# Maps function sub-category to core area for neural routing
+# (all ungrounded function words route through DET_CORE)
+FUNC_SUBCAT_TO_CORE = {
+    FUNC_DET: DET_CORE,
+    FUNC_AUX: DET_CORE,
+    FUNC_COMP: DET_CORE,
+    FUNC_CONJ: CONJ_CORE,
+    FUNC_MARKER: PREP_CORE,  # "by" has spatial grounding
+}
