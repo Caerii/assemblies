@@ -344,6 +344,7 @@ class IncrementalMixin:
         result: dict = {
             "categories": {},
             "roles": {},
+            "inner_roles": {},
             "phrases": {},
             "clauses": {"main": [], "embedded": []},
             "dep_clause_assembly": None,
@@ -527,7 +528,17 @@ class IncrementalMixin:
                 filler_word=filler_w,
                 filler_role=filler_r,
             )
-            result["roles"].update(inner_roles)
+            # Store full inner clause roles (including filler) separately.
+            # The filler has DUAL roles: e.g. AGENT in the main clause
+            # ("the dog ... sees the cat") and PATIENT in the inner
+            # clause ("that the bird chases").  The flat ``roles`` dict
+            # keeps the main-clause role for the filler; consumers that
+            # need the inner-clause role can read ``inner_roles``.
+            result["inner_roles"] = dict(inner_roles)
+            for word, role in inner_roles.items():
+                if word == filler_w:
+                    continue  # keep main-clause role for filler
+                result["roles"][word] = role
 
         result["phrases"] = self._identify_phrases(
             main_words + inner_words, result["categories"])

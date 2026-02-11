@@ -228,10 +228,19 @@ def measure_role_accuracy(
 ) -> Dict[str, Any]:
     """Parse a test sentence and measure role assignment accuracy.
 
+    For sentences with relative clauses, the filler word (antecedent)
+    has dual roles: one in the main clause and one in the embedded clause.
+    The flat ``roles`` dict keeps the main-clause role; ``inner_roles``
+    keeps the embedded-clause role.  We merge both dicts (inner takes
+    priority) so the measurement reflects all clause-level roles.
+
     Returns per-word correctness and overall accuracy.
     """
     result = parser.parse_recursive(test["words"])
-    roles = result["roles"]
+    # Merge: start with main-clause roles, overlay inner-clause roles.
+    # This gives the embedded-clause role for the filler (the hard case).
+    roles = dict(result["roles"])
+    roles.update(result.get("inner_roles", {}))
     expected = test["expected"]
 
     correct = 0
