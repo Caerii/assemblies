@@ -1,108 +1,33 @@
-"""
-NumPy-based compute engines for assembly calculus.
+"""NumpySparseEngine: CPU engine using statistical sparse simulation.
 
-NumpySparseEngine:   Statistical sparse simulation (default, scales to large n).
-NumpyExplicitEngine: Dense matrix simulation (faithful, for small n).
-
-These extract the computation from brain.py's _project_into_legacy into the
-ComputeEngine interface so that Brain becomes a pure orchestrator.
+This is the extraction of brain.py's ``_project_into_legacy`` sparse path.
+Connectivity is stored as growing 1-D (stim->area) and 2-D (area->area)
+numpy arrays.  Statistical sampling (truncated normal, binomial PPF)
+generates candidate activations for new neurons.
 """
 
 import numpy as np
-from dataclasses import dataclass, field
-from typing import Dict, List, Optional
+from typing import Dict, List
 from collections import defaultdict
 
-from .backend import get_xp, to_cpu, to_xp
-from .engine import ComputeEngine, ProjectionResult, register_engine
-from .connectome import Connectome
+from ..backend import get_xp, to_cpu, to_xp
+from ..engine import ComputeEngine, ProjectionResult
+from ..connectome import Connectome
 
 try:
-    from ..compute.sparse_simulation import SparseSimulationEngine
-    from ..compute.winner_selection import WinnerSelector
+    from ...compute.sparse_simulation import SparseSimulationEngine
+    from ...compute.winner_selection import WinnerSelector
 except ImportError:
     from compute.sparse_simulation import SparseSimulationEngine
     from compute.winner_selection import WinnerSelector
 
+from ._state import SparseAreaState, StimulusState
 
-# ---------------------------------------------------------------------------
-# Internal state containers
-# ---------------------------------------------------------------------------
-
-@dataclass
-class _SparseAreaState:
-    """Internal per-area state for sparse simulation."""
-    name: str
-    n: int
-    k: int
-    beta: float
-    w: int = 0
-    winners: object = None          # xp array, compact indices
-    compact_to_neuron_id: list = field(default_factory=list)
-    neuron_id_pool: object = None   # np.ndarray of shuffled neuron IDs
-    neuron_id_pool_ptr: int = 0
-    fixed_assembly: bool = False
-    beta_by_source: dict = field(default_factory=dict)  # source_name -> beta
-    # LRI (Long-Range Inhibition) — refractory suppression for sequences
-    refractory_period: int = 0              # 0 = LRI disabled
-    inhibition_strength: float = 0.0        # penalty magnitude
-    _refractory_history: object = None      # deque of set[int] (compact indices)
-    # Refracted mode — cumulative bias inhibition for FSM arc areas
-    refracted: bool = False
-    refracted_strength: float = 0.0
-    _cumulative_bias: object = None         # xp float32 array, length w
-
-    def __post_init__(self):
-        from collections import deque
-        if self.winners is None:
-            xp = get_xp()
-            self.winners = xp.array([], dtype=xp.uint32)
-        if self._refractory_history is None:
-            self._refractory_history = deque(
-                maxlen=max(self.refractory_period, 1))
-        if self._cumulative_bias is None:
-            xp = get_xp()
-            self._cumulative_bias = xp.zeros(0, dtype=xp.float32)
-
-
-@dataclass
-class _ExplicitAreaState:
-    """Internal per-area state for explicit simulation."""
-    name: str
-    n: int
-    k: int
-    beta: float
-    w: int = 0
-    winners: object = None
-    ever_fired: object = None       # xp bool array of length n
-    num_ever_fired: int = 0
-    fixed_assembly: bool = False
-    beta_by_source: dict = field(default_factory=dict)
-
-    def __post_init__(self):
-        xp = get_xp()
-        if self.winners is None:
-            self.winners = xp.array([], dtype=xp.uint32)
-        if self.ever_fired is None:
-            self.ever_fired = xp.zeros(self.n, dtype=bool)
-
-
-@dataclass
-class _StimulusState:
-    """Internal stimulus descriptor."""
-    name: str
-    size: int
-
-
-# ---------------------------------------------------------------------------
-# NumpySparseEngine
-# ---------------------------------------------------------------------------
 
 class NumpySparseEngine(ComputeEngine):
     """CPU engine using statistical sparse simulation.
 
-    This is the extraction of brain.py's ``_project_into_legacy`` sparse path.
-    Connectivity is stored as growing 1-D (stim→area) and 2-D (area→area)
+    Connectivity is stored as growing 1-D (stim->area) and 2-D (area->area)
     numpy arrays.  Statistical sampling (truncated normal, binomial PPF)
     generates candidate activations for new neurons.
 
@@ -118,8 +43,8 @@ class NumpySparseEngine(ComputeEngine):
         self._plasticity_enabled_global = True
 
         # Internal state
-        self._areas: Dict[str, _SparseAreaState] = {}
-        self._stimuli: Dict[str, _StimulusState] = {}
+        self._areas: Dict[str, SparseAreaState] = {}
+        self._stimuli: Dict[str, StimulusState] = {}
 
         # Connectivity: stim_name -> area_name -> Connectome (1-D weights)
         self._stim_conns: Dict[str, Dict[str, Connectome]] = defaultdict(dict)
@@ -136,26 +61,23 @@ class NumpySparseEngine(ComputeEngine):
                  refractory_period: int = 0,
                  inhibition_strength: float = 0.0) -> None:
         xp = get_xp()
-        area = _SparseAreaState(name=name, n=n, k=k, beta=beta,
-                                refractory_period=refractory_period,
-                                inhibition_strength=inhibition_strength)
+        area = SparseAreaState(name=name, n=n, k=k, beta=beta,
+                               refractory_period=refractory_period,
+                               inhibition_strength=inhibition_strength)
         area.neuron_id_pool = self._rng.permutation(np.arange(n, dtype=np.uint32))
         area.neuron_id_pool_ptr = 0
         self._areas[name] = area
 
-        # Initialize stim→area connectomes for every already-registered stimulus
+        # Initialize stim->area connectomes for every already-registered stimulus
         for stim_name, stim in self._stimuli.items():
             conn = Connectome(stim.size, n, self.p, sparse=True)
             conn.weights = xp.empty(0, dtype=xp.float32)
             self._stim_conns[stim_name][name] = conn
             area.beta_by_source[stim_name] = beta
 
-        # Initialize area→area connectomes (both directions) for every existing area
+        # Initialize area->area connectomes (both directions) for every existing area
         for other_name, other in self._areas.items():
             if other_name == name:
-                # Self-connection — start at (0, 0) so expansion only
-                # generates Bernoulli(p) values for rows that have actually
-                # fired, not all n rows.  Avoids O(n·k) wasted work.
                 self_conn = Connectome(n, n, self.p, sparse=True)
                 self_conn.weights = xp.empty((0, 0), dtype=xp.float32)
                 self._area_conns[name][name] = self_conn
@@ -173,9 +95,9 @@ class NumpySparseEngine(ComputeEngine):
 
     def add_stimulus(self, name: str, size: int) -> None:
         xp = get_xp()
-        self._stimuli[name] = _StimulusState(name=name, size=size)
+        self._stimuli[name] = StimulusState(name=name, size=size)
 
-        # Initialize stim→area for every already-registered area
+        # Initialize stim->area for every already-registered area
         for area_name, area in self._areas.items():
             conn = Connectome(size, area.n, self.p, sparse=True)
             conn.weights = xp.empty(0, dtype=xp.float32)
@@ -183,8 +105,6 @@ class NumpySparseEngine(ComputeEngine):
             area.beta_by_source[name] = area.beta
 
     def add_connectivity(self, source: str, target: str, p: float) -> None:
-        # Connectivity is already created in add_area / add_stimulus.
-        # This method exists for engines that defer connectivity creation.
         pass
 
     # -- Projection ---------------------------------------------------------
@@ -212,7 +132,7 @@ class NumpySparseEngine(ComputeEngine):
                 num_ever_fired=tgt.w,
             )
 
-        # No inputs → keep assembly unchanged
+        # No inputs -> keep assembly unchanged
         if len(from_stimuli) == 0 and len(from_areas) == 0:
             return ProjectionResult(
                 winners=np.array(to_cpu(tgt.winners), dtype=np.uint32),
@@ -237,14 +157,13 @@ class NumpySparseEngine(ComputeEngine):
             if conn.weights.shape[1] == 0:
                 continue
             src = self._areas[src_name]
-            # winners are compact indices — filter to valid row range
             src_w = xp.asarray(src.winners)
             internal = src_w[src_w < conn.weights.shape[0]]
             if len(internal) > 0 and limit > 0:
                 col_end = min(limit, conn.weights.shape[1])
                 prev_winner_inputs[:col_end] += conn.weights[internal, :col_end].sum(axis=0)
 
-        # Zero signal → preserve current assembly
+        # Zero signal -> preserve current assembly
         if len(prev_winner_inputs) > 0 and float(xp.sum(prev_winner_inputs)) == 0.0:
             return ProjectionResult(
                 winners=np.array(to_cpu(tgt.winners), dtype=np.uint32),
@@ -354,10 +273,13 @@ class NumpySparseEngine(ComputeEngine):
                 if cidx < len(tgt._cumulative_bias):
                     tgt._cumulative_bias[cidx] += tgt.refracted_strength
 
+        total_act = float(xp.sum(all_inputs[new_winner_indices]))
+
         return ProjectionResult(
             winners=np.array(new_winner_indices, dtype=np.uint32),
             num_first_winners=num_first,
             num_ever_fired=new_w,
+            total_activation=total_act,
         )
 
     # -- Plasticity ---------------------------------------------------------
@@ -368,7 +290,7 @@ class NumpySparseEngine(ComputeEngine):
         tgt = self._areas[target]
         winners_arr = xp.asarray(winners, dtype=xp.int64)
 
-        # Stimulus → area (1-D weights)
+        # Stimulus -> area (1-D weights)
         for stim_name in from_stimuli:
             conn = self._stim_conns[stim_name][target]
             beta = tgt.beta_by_source.get(stim_name, tgt.beta)
@@ -380,7 +302,7 @@ class NumpySparseEngine(ComputeEngine):
             if self.w_max is not None:
                 xp.clip(conn.weights, 0, self.w_max, out=conn.weights)
 
-        # Area → area (2-D weights)
+        # Area -> area (2-D weights)
         for src_name in from_areas:
             conn = self._area_conns[src_name][target]
             beta = tgt.beta_by_source.get(src_name, tgt.beta)
@@ -411,7 +333,7 @@ class NumpySparseEngine(ComputeEngine):
                             input_sizes, winners, first_winner_inputs, new_w):
         """Expand connectivity for first-time winners.
 
-        Uses amortised buffer growth for 2-D area→area matrices: physical
+        Uses amortised buffer growth for 2-D area->area matrices: physical
         capacity doubles when exceeded, avoiding repeated vstack/hstack
         reallocation on every step.
         """
@@ -426,7 +348,7 @@ class NumpySparseEngine(ComputeEngine):
         prior_w = tgt.w
         new_indices = [int(w) for w in winners if int(w) >= prior_w]
 
-        # --- Expand stim→area 1-D vectors ---
+        # --- Expand stim->area 1-D vectors ---
         stim_names = [name for name in inputs_names if name in self._stimuli]
         area_names = [name for name in inputs_names if name in self._areas]
 
@@ -457,7 +379,7 @@ class NumpySparseEngine(ComputeEngine):
                     if conn.sparse and win < len(conn.weights):
                         conn.weights[win] = alloc
 
-        # --- Expand area→area 2-D matrices ---
+        # --- Expand area->area 2-D matrices ---
         for src_name in area_names:
             conn = self._area_conns[src_name][target]
             if not conn.sparse:
@@ -467,18 +389,12 @@ class NumpySparseEngine(ComputeEngine):
                 conn.weights = xp.empty((0, 0), dtype=xp.float32)
 
             phys_rows, phys_cols = conn.weights.shape
-            # Rows must cover all source winner indices (used in the
-            # allocation loop below).  After _reset_recurrent, old compact
-            # indices can exceed src.w / new_w, so take the max.
             src_w_arr = xp.asarray(src.winners)
             max_src_idx = (int(xp.max(src_w_arr)) + 1) if src_w_arr.size > 0 else 0
             needed_rows = max(max_src_idx, new_w if src_name == target else src.w)
             needed_cols = new_w
 
             if self._deterministic:
-                # Legacy exact-fit: vstack/hstack on every step.
-                # Preserves the original RNG call sequence for bit-identical
-                # reproducibility with a given seed.
                 if needed_rows > phys_rows:
                     nr = needed_rows - phys_rows
                     new_rows = to_xp(
@@ -494,16 +410,12 @@ class NumpySparseEngine(ComputeEngine):
                     conn.weights = xp.hstack([conn.weights, new_cols]) if phys_rows > 0 else xp.zeros((0, needed_cols), dtype=xp.float32)
                     phys_cols = needed_cols
             else:
-                # Amortised buffer growth: track logical extent separately
-                # from physical capacity.  Doubles buffer on reallocation.
                 log_rows = getattr(conn, '_log_rows', phys_rows)
                 log_cols = getattr(conn, '_log_cols', phys_cols)
-                # Guard against external weight replacement (_reset_recurrent)
                 if log_rows > phys_rows or log_cols > phys_cols:
                     log_rows = min(log_rows, phys_rows)
                     log_cols = min(log_cols, phys_cols)
 
-                # Physical reallocation (amortised doubling)
                 new_pr, new_pc = phys_rows, phys_cols
                 need_realloc = False
                 if needed_rows > phys_rows:
@@ -520,20 +432,16 @@ class NumpySparseEngine(ComputeEngine):
                     conn.weights = buf
                     phys_rows, phys_cols = new_pr, new_pc
 
-                # Initialise newly-needed cells with Bernoulli(p)
                 nr = needed_rows - log_rows
                 nc = needed_cols - log_cols
-                # Region A: new rows x old cols
                 if nr > 0 and log_cols > 0:
                     conn.weights[log_rows:needed_rows, :log_cols] = to_xp(
                         (self._rng.random((nr, log_cols)) < self.p).astype(np.float32)
                     )
-                # Region B: old rows x new cols
                 if nc > 0 and log_rows > 0:
                     conn.weights[:log_rows, log_cols:needed_cols] = to_xp(
                         (self._rng.random((log_rows, nc)) < self.p).astype(np.float32)
                     )
-                # Region C: new rows x new cols
                 if nr > 0 and nc > 0:
                     conn.weights[log_rows:needed_rows, log_cols:needed_cols] = to_xp(
                         (self._rng.random((nr, nc)) < self.p).astype(np.float32)
@@ -570,9 +478,6 @@ class NumpySparseEngine(ComputeEngine):
         xp = get_xp()
         st = self._areas[area]
         st.winners = xp.asarray(winners, dtype=xp.uint32)
-        # Don't reset st.w — it tracks ever-fired count, not current
-        # winner count.  Callers that also need to reset w should do so
-        # explicitly.
 
     def get_num_ever_fired(self, area: str) -> int:
         return self._areas[area].w
@@ -615,8 +520,6 @@ class NumpySparseEngine(ComputeEngine):
             conn = self._area_conns[src_name][area]
             if conn.sparse:
                 conn.weights = xp.empty((0, 0), dtype=xp.float32)
-                # Clear amortised growth bookkeeping so expansion
-                # starts fresh after reset.
                 if hasattr(conn, '_log_rows'):
                     del conn._log_rows
                 if hasattr(conn, '_log_cols'):
@@ -665,11 +568,7 @@ class NumpySparseEngine(ComputeEngine):
     # -- Weight normalization -----------------------------------------------
 
     def normalize_weights(self, target: str, source: str = None) -> None:
-        """Column-normalize weights into *target* so each neuron sums to 1.0.
-
-        If *source* is given, only that connection is normalized.
-        Otherwise, all stim→target and area→target connections are normalized.
-        """
+        """Column-normalize weights into *target* so each neuron sums to 1.0."""
         xp = get_xp()
         eps = 1e-8
 
@@ -703,207 +602,3 @@ class NumpySparseEngine(ComputeEngine):
     @property
     def name(self) -> str:
         return "numpy_sparse"
-
-
-# ---------------------------------------------------------------------------
-# NumpyExplicitEngine
-# ---------------------------------------------------------------------------
-
-class NumpyExplicitEngine(ComputeEngine):
-    """CPU engine using dense explicit simulation.
-
-    All n neurons are tracked.  Connectivity is stored as full
-    (source_n, target_n) float32 matrices.  Suitable for small networks
-    where full fidelity is required.
-    """
-
-    def __init__(self, p: float, seed: int = 0, w_max: float = 20.0,
-                 deterministic: bool = False):
-        self.p = p
-        self.w_max = w_max
-        # Explicit engine is always deterministic — flag accepted for API parity.
-        self._rng = np.random.default_rng(seed)
-        self._plasticity_enabled_global = True
-
-        self._areas: Dict[str, _ExplicitAreaState] = {}
-        self._stimuli: Dict[str, _StimulusState] = {}
-        self._stim_conns: Dict[str, Dict[str, Connectome]] = defaultdict(dict)
-        self._area_conns: Dict[str, Dict[str, Connectome]] = defaultdict(dict)
-        self._winner_sel = WinnerSelector(self._rng)
-
-    def add_area(self, name: str, n: int, k: int, beta: float,
-                 refractory_period: int = 0,
-                 inhibition_strength: float = 0.0) -> None:
-        xp = get_xp()
-        area = _ExplicitAreaState(name=name, n=n, k=k, beta=beta)
-        self._areas[name] = area
-
-        for stim_name, stim in self._stimuli.items():
-            conn = Connectome(stim.size, n, self.p, sparse=False)
-            self._stim_conns[stim_name][name] = conn
-            area.beta_by_source[stim_name] = beta
-
-        for other_name, other in self._areas.items():
-            if other_name == name:
-                self._area_conns[name][name] = Connectome(n, n, self.p, sparse=False)
-            else:
-                self._area_conns[other_name][name] = Connectome(other.n, n, self.p, sparse=False)
-                self._area_conns[name][other_name] = Connectome(n, other.n, self.p, sparse=False)
-                area.beta_by_source[other_name] = beta
-                other.beta_by_source[name] = beta
-
-    def add_stimulus(self, name: str, size: int) -> None:
-        self._stimuli[name] = _StimulusState(name=name, size=size)
-        for area_name, area in self._areas.items():
-            conn = Connectome(size, area.n, self.p, sparse=False)
-            self._stim_conns[name][area_name] = conn
-            area.beta_by_source[name] = area.beta
-
-    def add_connectivity(self, source: str, target: str, p: float) -> None:
-        pass
-
-    def project_into(
-        self,
-        target: str,
-        from_stimuli: List[str],
-        from_areas: List[str],
-        plasticity_enabled: bool = True,
-    ) -> ProjectionResult:
-        xp = get_xp()
-        tgt = self._areas[target]
-
-        # Filter sourceless areas
-        from_areas = [a for a in from_areas
-                      if self._areas[a].winners.size > 0]
-
-        if tgt.fixed_assembly:
-            return ProjectionResult(
-                winners=np.array(to_cpu(tgt.winners), dtype=np.uint32),
-                num_first_winners=0,
-                num_ever_fired=tgt.num_ever_fired,
-            )
-
-        # Accumulate inputs into a full n-vector
-        prev_winner_inputs = xp.zeros(tgt.n, dtype=xp.float32)
-
-        for stim in from_stimuli:
-            conn = self._stim_conns[stim][target]
-            if conn.weights.ndim == 2:
-                prev_winner_inputs += conn.weights.sum(axis=0).astype(xp.float32)
-            else:
-                prev_winner_inputs += conn.weights.astype(xp.float32, copy=False)
-
-        for src_name in from_areas:
-            conn = self._area_conns[src_name][target]
-            src = self._areas[src_name]
-            if src.winners.size > 0 and int(xp.max(src.winners)) >= conn.weights.shape[0]:
-                raise IndexError(
-                    f"Source area {src_name!r} has winner index "
-                    f"{int(xp.max(src.winners))} exceeding connectome "
-                    f"rows ({conn.weights.shape[0]})")
-            if src.winners.size > 0:
-                prev_winner_inputs += conn.weights[src.winners].sum(axis=0)
-
-        # Select top-k winners
-        winners, _, _, _ = self._winner_sel.select_combined_winners(
-            prev_winner_inputs, tgt.w, tgt.k,
-        )
-
-        # Apply plasticity
-        if plasticity_enabled and self._plasticity_enabled_global:
-            for stim_name in from_stimuli:
-                conn = self._stim_conns[stim_name][target]
-                beta = tgt.beta_by_source.get(stim_name, tgt.beta)
-                if beta != 0:
-                    valid = xp.array([int(w) for w in winners if int(w) < conn.weights.shape[1]])
-                    if len(valid) > 0:
-                        conn.weights[:, valid] *= (1 + beta)
-                    if self.w_max is not None:
-                        xp.clip(conn.weights, 0, self.w_max, out=conn.weights)
-
-            for src_name in from_areas:
-                conn = self._area_conns[src_name][target]
-                beta = tgt.beta_by_source.get(src_name, tgt.beta)
-                if beta != 0:
-                    src = self._areas[src_name]
-                    valid_rows = xp.array([int(fw) for fw in src.winners
-                                           if int(fw) < conn.weights.shape[0]])
-                    valid_cols = xp.array([int(w) for w in winners
-                                           if int(w) < conn.weights.shape[1]])
-                    if len(valid_rows) > 0 and len(valid_cols) > 0:
-                        ix = xp.ix_(valid_rows, valid_cols)
-                        conn.weights[ix] *= (1 + beta)
-                        if self.w_max is not None:
-                            sub = conn.weights[ix]
-                            xp.clip(sub, 0, self.w_max, out=sub)
-                            conn.weights[ix] = sub
-
-        # Update state
-        winners = xp.asarray(winners, dtype=xp.uint32)
-        tgt.winners = winners
-        tgt.ever_fired[winners] = True
-        tgt.num_ever_fired = int(xp.sum(tgt.ever_fired))
-        tgt.w = len(winners)
-
-        return ProjectionResult(
-            winners=np.array(to_cpu(xp.asarray(winners, dtype=xp.uint32)), dtype=np.uint32),
-            num_first_winners=0,
-            num_ever_fired=tgt.num_ever_fired,
-        )
-
-    def get_winners(self, area: str) -> np.ndarray:
-        st = self._areas[area]
-        return np.array(to_cpu(st.winners), dtype=np.uint32)
-
-    def set_winners(self, area: str, winners: np.ndarray) -> None:
-        xp = get_xp()
-        st = self._areas[area]
-        st.winners = xp.asarray(winners, dtype=xp.uint32)
-        st.w = len(st.winners)
-
-    def get_num_ever_fired(self, area: str) -> int:
-        return self._areas[area].num_ever_fired
-
-    def set_beta(self, target: str, source: str, beta: float) -> None:
-        self._areas[target].beta_by_source[source] = beta
-
-    def get_beta(self, target: str, source: str) -> float:
-        tgt = self._areas[target]
-        return tgt.beta_by_source.get(source, tgt.beta)
-
-    def fix_assembly(self, area: str) -> None:
-        st = self._areas[area]
-        if st.winners is None or (hasattr(st.winners, '__len__') and len(st.winners) == 0):
-            raise ValueError(f"Area {area} has no winners to fix.")
-        st.fixed_assembly = True
-
-    def unfix_assembly(self, area: str) -> None:
-        self._areas[area].fixed_assembly = False
-
-    def is_fixed(self, area: str) -> bool:
-        return self._areas[area].fixed_assembly
-
-    def reset_area_connections(self, area: str) -> None:
-        """Reset area->area connections involving *area* to initial state."""
-        xp = get_xp()
-        for src_name in list(self._area_conns.keys()):
-            if area not in self._area_conns[src_name]:
-                continue
-            conn = self._area_conns[src_name][area]
-            rows, cols = conn.weights.shape
-            conn.weights = xp.asarray(
-                (np.random.default_rng().random((rows, cols)) < self.p
-                 ).astype(np.float32),
-            )
-
-    @property
-    def name(self) -> str:
-        return "numpy_explicit"
-
-
-# ---------------------------------------------------------------------------
-# Register engines
-# ---------------------------------------------------------------------------
-
-register_engine("numpy_sparse", NumpySparseEngine)
-register_engine("numpy_explicit", NumpyExplicitEngine)
