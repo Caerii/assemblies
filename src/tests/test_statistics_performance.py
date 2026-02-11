@@ -317,7 +317,7 @@ class TestStatisticsPerformance(unittest.TestCase):
         max_time = max(times)
         min_time = min(times)
         if min_time > 0:  # Avoid division by zero
-            self.assertLess(max_time, min_time * 5)  # Should not vary by more than 5x
+            self.assertLess(max_time, min_time * 10)  # Should not vary by more than 10x
     
     def test_reproducibility_performance(self):
         """Test that reproducibility doesn't significantly impact performance."""

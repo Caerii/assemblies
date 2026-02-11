@@ -329,7 +329,7 @@ class LoopSwitchingExperiment(ExperimentBase):
         self.log(f"  Dual-pattern A:   {after_a_stats['mean']:.3f}")
         self.log(
             f"  Paired test: t={paired['t']:.2f}, p={paired['p']:.4f}  "
-            f"{'SIGNIFICANT DEGRADATION' if paired['sig'] else 'no significant difference'}"
+            f"{'SIGNIFICANT DEGRADATION' if paired['significant'] else 'no significant difference'}"
         )
 
         # ================================================================
@@ -495,7 +495,7 @@ class LoopSwitchingExperiment(ExperimentBase):
 
         # Comparison table
         self.log("")
-        self.log("  ── Baseline vs Trigger comparison ──")
+        self.log("  -- Baseline vs Trigger comparison --")
         for i, n_pat in enumerate(pattern_counts):
             baseline = h4_results[i]["mean_switching_quality"]["mean"]
             triggered = h6_capacity[i]["stats"]["mean"]
@@ -568,7 +568,7 @@ def main():
     h3 = result.metrics["h3_interference"]
     print(f"\nH3 Interference: single={h3['single_pattern']['mean']:.3f}  "
           f"dual={h3['dual_pattern_A']['mean']:.3f}  "
-          f"sig={h3['paired_test']['sig']}")
+          f"sig={h3['paired_test']['significant']}")
 
     print(f"\nH4 Capacity:")
     for r in result.metrics["h4_capacity"]:
