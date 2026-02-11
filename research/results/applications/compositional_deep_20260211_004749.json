@@ -1,0 +1,238 @@
+{
+  "experiment_name": "compositional_deep",
+  "timestamp": "2026-02-11T00:47:49.358209",
+  "parameters": {
+    "n": 50000,
+    "k": 100,
+    "p": 0.05,
+    "beta": 0.05,
+    "rounds": 10,
+    "n_seeds": 3,
+    "n_training": 26
+  },
+  "metrics": {
+    "L1": {
+      "stats": {
+        "mean": 1.0,
+        "std": 0.0,
+        "sem": 0.0,
+        "ci95_lo": 1.0,
+        "ci95_hi": 1.0,
+        "min": 1.0,
+        "max": 1.0,
+        "n": 3
+      },
+      "vs_chance": {
+        "t": Infinity,
+        "p": 0.0,
+        "d": Infinity,
+        "significant": true
+      },
+      "description": "Role swap (B-nouns as agents)"
+    },
+    "L2": {
+      "stats": {
+        "mean": 1.0,
+        "std": 0.0,
+        "sem": 0.0,
+        "ci95_lo": 1.0,
+        "ci95_hi": 1.0,
+        "min": 1.0,
+        "max": 1.0,
+        "n": 3
+      },
+      "vs_chance": {
+        "t": Infinity,
+        "p": 0.0,
+        "d": Infinity,
+        "significant": true
+      },
+      "description": "Novel structure (active -> passive)"
+    },
+    "L3": {
+      "stats": {
+        "mean": 1.0,
+        "std": 0.0,
+        "sem": 0.0,
+        "ci95_lo": 1.0,
+        "ci95_hi": 1.0,
+        "min": 1.0,
+        "max": 1.0,
+        "n": 3
+      },
+      "vs_chance": {
+        "t": Infinity,
+        "p": 0.0,
+        "d": Infinity,
+        "significant": true
+      },
+      "description": "Holdout words (distributional only)"
+    },
+    "L4": {
+      "stats": {
+        "mean": 1.0,
+        "std": 0.0,
+        "sem": 0.0,
+        "ci95_lo": 1.0,
+        "ci95_hi": 1.0,
+        "min": 1.0,
+        "max": 1.0,
+        "n": 3
+      },
+      "vs_chance": {
+        "t": Infinity,
+        "p": 0.0,
+        "d": Infinity,
+        "significant": true
+      },
+      "description": "Novel verb-noun combinations"
+    },
+    "L5": {
+      "stats": {
+        "mean": 0.8333333333333334,
+        "std": 1.3597399555105182e-16,
+        "sem": 7.850462293418875e-17,
+        "ci95_lo": 0.8333333333333333,
+        "ci95_hi": 0.8333333333333335,
+        "min": 0.8333333333333333,
+        "max": 0.8333333333333333,
+        "n": 3
+      },
+      "vs_chance": {
+        "t": 4246034448350515.0,
+        "p": 5.546678239835239e-32,
+        "d": 2451449131743594.5,
+        "significant": "True"
+      },
+      "description": "Recursive + novel combinations"
+    }
+  },
+  "raw_data": {
+    "L1": {
+      "per_seed_accuracy": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "details": [
+        {
+          "B-agent X-verb A-patient (1)": 1.0,
+          "B-agent X-verb A-patient (2)": 1.0,
+          "B-agent X-verb A-patient (3)": 1.0,
+          "B-agent Y-verb A-patient": 1.0
+        },
+        {
+          "B-agent X-verb A-patient (1)": 1.0,
+          "B-agent X-verb A-patient (2)": 1.0,
+          "B-agent X-verb A-patient (3)": 1.0,
+          "B-agent Y-verb A-patient": 1.0
+        },
+        {
+          "B-agent X-verb A-patient (1)": 1.0,
+          "B-agent X-verb A-patient (2)": 1.0,
+          "B-agent X-verb A-patient (3)": 1.0,
+          "B-agent Y-verb A-patient": 1.0
+        }
+      ]
+    },
+    "L2": {
+      "per_seed_accuracy": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "details": [
+        {
+          "passive of trained active (1)": 1.0,
+          "passive of trained active (2)": 1.0,
+          "novel passive combination": 1.0
+        },
+        {
+          "passive of trained active (1)": 1.0,
+          "passive of trained active (2)": 1.0,
+          "novel passive combination": 1.0
+        },
+        {
+          "passive of trained active (1)": 1.0,
+          "passive of trained active (2)": 1.0,
+          "novel passive combination": 1.0
+        }
+      ]
+    },
+    "L3": {
+      "per_seed_accuracy": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "details": [
+        {
+          "holdout noun as agent": 1.0,
+          "holdout noun as patient": 1.0,
+          "both holdout nouns": 1.0
+        },
+        {
+          "holdout noun as agent": 1.0,
+          "holdout noun as patient": 1.0,
+          "both holdout nouns": 1.0
+        },
+        {
+          "holdout noun as agent": 1.0,
+          "holdout noun as patient": 1.0,
+          "both holdout nouns": 1.0
+        }
+      ]
+    },
+    "L4": {
+      "per_seed_accuracy": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "details": [
+        {
+          "novel verb-agent (1)": 1.0,
+          "novel verb-agent (2)": 1.0,
+          "novel verb-agent (3)": 1.0,
+          "novel verb-agent (4)": 1.0
+        },
+        {
+          "novel verb-agent (1)": 1.0,
+          "novel verb-agent (2)": 1.0,
+          "novel verb-agent (3)": 1.0,
+          "novel verb-agent (4)": 1.0
+        },
+        {
+          "novel verb-agent (1)": 1.0,
+          "novel verb-agent (2)": 1.0,
+          "novel verb-agent (3)": 1.0,
+          "novel verb-agent (4)": 1.0
+        }
+      ]
+    },
+    "L5": {
+      "per_seed_accuracy": [
+        0.8333333333333333,
+        0.8333333333333333,
+        0.8333333333333333
+      ],
+      "details": [
+        {
+          "ORC with novel agent": 0.6666666666666666,
+          "SRC with novel agent": 1.0
+        },
+        {
+          "ORC with novel agent": 0.6666666666666666,
+          "SRC with novel agent": 1.0
+        },
+        {
+          "ORC with novel agent": 0.6666666666666666,
+          "SRC with novel agent": 1.0
+        }
+      ]
+    }
+  },
+  "success": true,
+  "error_message": null,
+  "duration_seconds": 16.246164899999712
+}
