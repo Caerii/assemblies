@@ -200,36 +200,66 @@ N400 amplitude?
 
 ---
 
-## Phase 4: Beyond N400
+## Phase 4: Beyond N400 — PARTIALLY COMPLETE
 
-### 4A. P600 (Syntactic Violations)
+### 4A. P600 (Syntactic Violations) ✅
 
-**Question:** Can the same framework measure the P600 (positive ERP
-component at ~600ms associated with syntactic violations)?
+**File:** `research/experiments/applications/test_p600_syntactic.py`
 
-**Design:**
-- Train parser on grammatical sentences
-- Present syntactic violations: "The dogs *chases* the cat"
-- Measure global energy in SYNTAX/role-binding areas (not core areas)
-- The P600 literature suggests it reflects syntactic re-analysis
+**Design:** Three conditions at the object position of SVO sentences:
+- Grammatical: "the dog chases the cat" (trained animal)
+- Semantic violation: "the dog chases the table" (untrained object)
+- Category violation: "the dog chases the likes" (verb in noun position)
 
-**Prediction:** Syntactic violations increase global energy in
-syntactic areas (more work to process).
+N400 measured DURING first recurrent projection step of critical word
+(captures self-recurrence facilitation from subject noun). P600 measured
+by projecting core → role areas (SUBJ, OBJ) after word settles.
 
-### 4B. N400/P600 Double Dissociation
+**Results:**
 
-**Question:** Can we show N400 (semantic) and P600 (syntactic) are
-dissociable in the AC framework?
+| Metric | Comparison | d | p | Direction |
+|--------|-----------|---|---|-----------|
+| N400 (NOUN_CORE) | sem vs gram | 6.9 | 0.007 | N400_EFFECT ✓ |
+| P600 (role areas) | sem vs gram | 17.5 | 0.001 | P600_EFFECT |
+| P600 (role areas) | cat vs gram | -230 | <0.001 | ZERO (no pathway) |
 
-**Design:**
-- Semantic violation only: "The dog chases the *table*" → N400 in
-  core areas, no P600 in syntax areas
-- Syntactic violation only: "The dogs *chases* the cat" → P600 in
-  syntax areas, no N400 in core areas
-- Both: "The dogs *chases* the *table*" → both components
+**Key findings:**
 
-This would be a strong validation that the framework captures
-distinct linguistic processes.
+1. **N400 in sentence context CONFIRMED**: Semantic violations produce
+   elevated core area energy (d=6.9, p=0.007). Extends the word-pair
+   N400 finding to sentence-level processing via self-recurrence within
+   NOUN_CORE (subject noun's assembly facilitates congruent object nouns).
+
+2. **Semantic P600 present**: Semantic violations also elevate role-binding
+   energy (d=17.5, p=0.001). Consistent with Kuperberg (2007) biphasic
+   model — semantic anomalies produce BOTH N400 and P600 when they
+   disrupt thematic role assignment.
+
+3. **Category violations expose connectivity boundary**: Verbs in noun
+   position produce ZERO role-binding energy because VERB_CORE → SUBJ/OBJ
+   connectivity doesn't exist. This captures violation DETECTION (parser
+   cannot proceed) but not REANALYSIS (the attempt to recover).
+
+4. **No clean double dissociation**: Semantic violations produce both
+   N400 and P600. Category violations can't be measured via role-binding
+   energy. A clean dissociation would require a reanalysis mechanism.
+
+**Active areas:** Only SUBJ and OBJ show non-zero role-binding energy.
+ROLE_AGENT, ROLE_PATIENT, and VP show zero for all conditions — these
+areas lack direct NOUN_CORE connectivity in the current parser.
+
+### 4B. N400/P600 Double Dissociation — PARTIAL
+
+The full double dissociation is not achieved because:
+- Semantic violations produce biphasic response (both N400 and P600)
+- Category violations produce zero (not elevated) role-binding energy
+
+**Next steps for dissociation:**
+- Implement syntactic reanalysis mechanism for category violations
+- Test agreement violations ("the dogs *chases* the cat") where the
+  noun category is correct but morphosyntactic features mismatch
+- Use different noun manipulations: trained-as-agent noun in patient
+  position may produce P600 without N400
 
 ### 4C. Mismatch Negativity (MMN)
 
@@ -241,45 +271,52 @@ for simple auditory features. If `sum(all_inputs)` works for both
 N400 (semantic) and MMN (perceptual), the framework has genuine
 generality.
 
+**Status:** Not yet implemented.
+
 ---
 
 ## Priority and Dependencies
 
 ```
-Phase 1 (strengthen core claim)
-├── 1A: Parameter sweep ─────────── no dependencies
-├── 1B: Vocabulary scaling ──────── no dependencies
-├── 1C: Control conditions ──────── no dependencies
-└── 1D: Engine parity ───────────── no dependencies
+Phase 1 (strengthen core claim) — COMPLETED
+├── 1A: Parameter sweep ──────── ✅ k≥100 AND p≥0.05 required
+├── 1B: Vocabulary scaling ───── ✅ persists at 12-46 nouns
+├── 1C: Control conditions ───── ✅ 4/4 controls pass
+└── 1D: Engine parity ────────── ✅ torch_sparse matches numpy
 
-Phase 2 (richer paradigms) ── depends on Phase 1 confirming robustness
-├── 2A: Cloze probability ──────── requires sentence-level measurement
-├── 2B: Sentence context ───────── requires sentence-level measurement
-└── 2C: Graded relatedness ─────── no new infrastructure needed
+Phase 2 (richer paradigms) — MOSTLY COMPLETE
+├── 2A: Cloze probability ───── ✅ monotonic ordering confirmed
+├── 2B: Sentence context ────── (subsumed by P600 experiment)
+└── 2C: Graded relatedness ──── ✅ identity priming massive, within-category binary
 
-Phase 3 (theory) ── can proceed in parallel with Phase 2
-├── 3A: Mathematical analysis ──── independent
-└── 3B: ERP mapping ────────────── depends on 3A
+Phase 3 (theory) — PARTIALLY COMPLETE
+├── 3A: Mathematical analysis ── ✅ derivation complete
+└── 3B: ERP mapping ─────────── ✅ documented in claims
 
-Phase 4 (beyond N400) ── depends on Phases 2-3
-├── 4A: P600 ────────────────────── needs syntax area measurement
-├── 4B: N400/P600 dissociation ──── depends on 4A
-└── 4C: MMN ─────────────────────── independent experiment
+Phase 4 (beyond N400) — PARTIALLY COMPLETE
+├── 4A: P600 ──────────────────── ✅ semantic P600 confirmed (d=17.5)
+│                                    N400 in sentence context confirmed (d=6.9)
+│                                    Category violations: zero energy (no pathway)
+├── 4B: N400/P600 dissociation ── PARTIAL — no clean dissociation yet
+└── 4C: MMN ───────────────────── not yet implemented
 ```
 
-## Immediate Next Actions
+## Remaining Work
 
-1. **Run 1A (parameter sweep)** and **1C (controls)** — these directly
-   test whether the finding is robust or fragile
-2. **Write 3A (mathematical analysis)** — understand the mechanism
-3. **Update `open_questions.md`** — add N400 finding as a validated
-   result (new question or update Q16)
+1. **P600 reanalysis mechanism:** Category violations produce zero
+   role-binding energy (no VERB_CORE → role area connectivity). Need
+   a reanalysis mechanism where the parser attempts alternative parses.
 
-## Infrastructure Needed
+2. **Agreement violations:** Test "the dogs *chases* the cat" where
+   the noun category is correct but morphosyntactic features mismatch.
+   This may produce the P600 pattern without the connectivity issue.
 
-- The `record_activation=True` API is already implemented across all
-  engines (this session's work)
-- Phase 2 needs a helper to measure global energy at arbitrary parse
-  positions during sentence processing (not just word-pair priming)
-- Phase 4 needs measurement in syntactic areas (SUBJ_ROLE, OBJ_ROLE,
-  etc.) which are already defined in the parser
+3. **Sentence context (2B):** Systematic comparison of N400 effect
+   with varying amounts of sentence context (bare word vs partial
+   vs full context).
+
+4. **MMN (4C):** Test whether global energy generalizes to perceptual
+   prediction error, not just semantic.
+
+5. **Larger vocabulary scaling:** Test with 100+ nouns to approach
+   realistic vocabulary sizes.
