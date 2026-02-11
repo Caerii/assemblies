@@ -38,6 +38,7 @@ class ProjectionResult:
     winners: np.ndarray     # uint32, shape (k,) -- new winner indices
     num_first_winners: int  # how many fired for the first time this step
     num_ever_fired: int     # total w (ever-fired count) after this step
+    total_activation: float = 0.0  # sum of input signals to winners
 
 
 class ComputeEngine(ABC):

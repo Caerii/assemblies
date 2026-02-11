@@ -129,6 +129,9 @@ class Brain:
         self._explicit_engine: ComputeEngine = None
         self._seed = seed
 
+        # Inter-area inhibition groups for winner-take-all
+        self._mutual_inhibition_groups: List[List[str]] = []
+
         # Used by activate_with_image()
         self.image_activation_engine = ImageActivationEngine()
 
@@ -367,6 +370,9 @@ class Brain:
             elif not area.fixed_assembly and engine.is_fixed(area_name):
                 engine.unfix_assembly(area_name)
 
+        # Track activation scores for mutual inhibition
+        activation_scores = {}
+
         # Batched path: process multiple targets in one kernel launch
         # (only for non-explicit areas on the main engine)
         non_explicit = [n for n in to_update_area_names
@@ -378,6 +384,7 @@ class Brain:
                 configs, plasticity_enabled=not self.disable_plasticity)
             for area_name, result in batch_results.items():
                 self._apply_result(area_name, result, stim_in, area_in)
+                activation_scores[area_name] = result.total_activation
 
         # Sequential path: one target at a time
         remaining = (to_update_area_names - set(non_explicit)
@@ -392,6 +399,35 @@ class Brain:
                 plasticity_enabled=not self.disable_plasticity,
             )
             self._apply_result(area_name, result, stim_in, area_in)
+            activation_scores[area_name] = result.total_activation
+
+        # Post-projection: apply mutual inhibition (area-level WTA)
+        if self._mutual_inhibition_groups:
+            self._apply_mutual_inhibition(activation_scores)
+
+    def _apply_mutual_inhibition(self, activation_scores):
+        """Suppress non-winning areas in mutual inhibition groups.
+
+        For each group, the area with the highest total_activation
+        retains its winners; all others are silenced.
+        """
+        for group in self._mutual_inhibition_groups:
+            active = [(name, activation_scores.get(name, 0.0))
+                      for name in group if name in activation_scores]
+            if len(active) <= 1:
+                continue
+            # Area with highest total synaptic drive wins
+            winner_name = max(active, key=lambda x: x[1])[0]
+            for name, _ in active:
+                if name != winner_name:
+                    area = self.areas[name]
+                    area.winners = np.array([], dtype=np.uint32)
+                    area.w = 0
+                    engine = self._engine_for(area)
+                    engine.set_winners(name, np.array([], dtype=np.uint32))
+                    if engine is not self._engine:
+                        self._engine.set_winners(
+                            name, np.array([], dtype=np.uint32))
 
     def _apply_result(self, area_name, result, stim_in, area_in):
         """Apply a ProjectionResult back to the Area descriptor and save history."""
@@ -457,6 +493,46 @@ class Brain:
     def clear_refracted_bias(self, area_name: str) -> None:
         """Reset accumulated refracted bias to zero for an area."""
         self._engine.clear_refracted_bias(area_name)
+
+    def inhibit_areas(self, area_names: List[str]) -> None:
+        """Suppress all activity in specified areas.
+
+        Clears winners in each named area so the next projection step
+        sees no active neurons from those areas.  Connectome weights are
+        preserved, so re-stimulation recovers the original assembly.
+
+        Typical usage: call before switching patterns in a recurrent loop
+        to clear residual activity from the previous pattern.
+        """
+        for name in area_names:
+            area = self.areas[name]
+            area.winners = np.array([], dtype=np.uint32)
+            engine = self._engine_for(area)
+            engine.set_winners(name, np.array([], dtype=np.uint32))
+            # Also sync to main engine for cross-engine visibility
+            if engine is not self._engine:
+                self._engine.set_winners(name, np.array([], dtype=np.uint32))
+
+    def add_mutual_inhibition(self, area_names: List[str]) -> None:
+        """Enable winner-take-all competition between areas.
+
+        When areas in this group receive simultaneous input via
+        ``project()``, only the area with the highest total synaptic
+        drive retains its winners; all others are silenced (winners
+        cleared to empty).
+
+        Persistent: applies to all future projections until
+        ``remove_mutual_inhibition`` is called.
+        """
+        self._mutual_inhibition_groups.append(list(area_names))
+
+    def remove_mutual_inhibition(self, area_names: List[str]) -> None:
+        """Remove a previously-added mutual inhibition group."""
+        target = set(area_names)
+        self._mutual_inhibition_groups = [
+            g for g in self._mutual_inhibition_groups
+            if set(g) != target
+        ]
 
     def normalize_weights(self, target: str, source: str = None) -> None:
         """Column-normalize weights into *target* so each neuron sums to 1.0.

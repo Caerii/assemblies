@@ -391,10 +391,13 @@ class TorchSparseEngine(ComputeEngine):
                 if cidx < len(tgt._cumulative_bias):
                     tgt._cumulative_bias[cidx] += tgt.refracted_strength
 
+        total_act = float(all_inputs[new_winner_indices].sum().item())
+
         return ProjectionResult(
             winners=np.array(new_winner_indices, dtype=np.uint32),
             num_first_winners=num_first,
-            num_ever_fired=new_w)
+            num_ever_fired=new_w,
+            total_activation=total_act)
 
     # -- Plasticity ---------------------------------------------------------
 
