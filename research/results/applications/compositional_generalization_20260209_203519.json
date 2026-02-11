@@ -1,0 +1,179 @@
+{
+  "experiment_name": "compositional_generalization",
+  "timestamp": "2026-02-09T20:35:19.941093",
+  "parameters": {
+    "n": 5000,
+    "k": 50,
+    "p": 0.05,
+    "beta": 0.1,
+    "rounds": 5,
+    "n_seeds": 2,
+    "n_training_sents": 15,
+    "n_test_sents": 8,
+    "vocab_size": 20,
+    "quick": true
+  },
+  "metrics": {
+    "train_classification": {
+      "mean": 1.0,
+      "std": 0.0,
+      "sem": 0.0,
+      "ci95_lo": 1.0,
+      "ci95_hi": 1.0,
+      "min": 1.0,
+      "max": 1.0,
+      "n": 2
+    },
+    "test_classification": {
+      "mean": 1.0,
+      "std": 0.0,
+      "sem": 0.0,
+      "ci95_lo": 1.0,
+      "ci95_hi": 1.0,
+      "min": 1.0,
+      "max": 1.0,
+      "n": 2
+    },
+    "train_role_accuracy": {
+      "mean": 1.0,
+      "std": 0.0,
+      "sem": 0.0,
+      "ci95_lo": 1.0,
+      "ci95_hi": 1.0,
+      "min": 1.0,
+      "max": 1.0,
+      "n": 2
+    },
+    "test_role_accuracy": {
+      "mean": 1.0,
+      "std": 0.0,
+      "sem": 0.0,
+      "ci95_lo": 1.0,
+      "ci95_hi": 1.0,
+      "min": 1.0,
+      "max": 1.0,
+      "n": 2
+    },
+    "generalization_gap": {
+      "mean": 0.0,
+      "std": 0.0,
+      "sem": 0.0,
+      "ci95_lo": 0.0,
+      "ci95_hi": 0.0,
+      "min": 0.0,
+      "max": 0.0,
+      "n": 2
+    },
+    "h1_classification_gap": {
+      "paired_ttest": {
+        "t": 0.0,
+        "p": 1.0,
+        "d": 0.0,
+        "significant": false
+      },
+      "within_15pct": true
+    },
+    "h2_role_vs_chance": {
+      "ttest": {
+        "t": Infinity,
+        "p": 0.0,
+        "d": Infinity,
+        "significant": true
+      },
+      "above_chance": true
+    },
+    "h3_novel_classification": {
+      "ttest": {
+        "t": Infinity,
+        "p": 0.0,
+        "d": Infinity,
+        "significant": true
+      },
+      "above_chance": true
+    },
+    "h4_generalization_gap": {
+      "ttest": {
+        "t": Infinity,
+        "p": 0.0,
+        "d": Infinity,
+        "significant": true
+      },
+      "smaller_than_memorization": true
+    }
+  },
+  "raw_data": {
+    "seed_results": [
+      {
+        "seed": 42,
+        "train": {
+          "classification_accuracy": 1.0,
+          "role_accuracy": 1.0,
+          "n_sentences": 15
+        },
+        "test": {
+          "classification_accuracy": 1.0,
+          "role_accuracy": 1.0,
+          "n_sentences": 8
+        },
+        "gap": 0.0,
+        "train_ex": [
+          "a dog plays a table",
+          "the girl chases the table",
+          "this bird reads one table"
+        ],
+        "test_ex": [
+          "one food sees one cat",
+          "this car finds one dog",
+          "this table chases this cat"
+        ]
+      },
+      {
+        "seed": 1042,
+        "train": {
+          "classification_accuracy": 1.0,
+          "role_accuracy": 1.0,
+          "n_sentences": 15
+        },
+        "test": {
+          "classification_accuracy": 1.0,
+          "role_accuracy": 1.0,
+          "n_sentences": 8
+        },
+        "gap": 0.0,
+        "train_ex": [
+          "a boy finds the ball",
+          "one bird finds the table",
+          "one bird eats the ball"
+        ],
+        "test_ex": [
+          "the table eats a cat",
+          "this book sees this bird",
+          "this car chases a boy"
+        ]
+      }
+    ],
+    "train_cls": [
+      1.0,
+      1.0
+    ],
+    "test_cls": [
+      1.0,
+      1.0
+    ],
+    "train_role": [
+      1.0,
+      1.0
+    ],
+    "test_role": [
+      1.0,
+      1.0
+    ],
+    "gaps": [
+      0.0,
+      0.0
+    ]
+  },
+  "success": true,
+  "error_message": null,
+  "duration_seconds": 3.209689800016349
+}
