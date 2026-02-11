@@ -1,0 +1,109 @@
+{
+  "experiment_name": "structural_ambiguity",
+  "timestamp": "2026-02-10T23:08:40.739365",
+  "parameters": {
+    "n": 10000,
+    "k": 100,
+    "n_seeds": 2,
+    "p": 0.05,
+    "beta": 0.1,
+    "rounds": 10,
+    "null_overlap": 0.01,
+    "ambiguous_sentence": "the boy saw the man with the telescope",
+    "n_instrument_sents": 10,
+    "n_modifier_sents": 10
+  },
+  "metrics": {
+    "h1_cross_condition": {
+      "test": {
+        "t": Infinity,
+        "p": 0.0,
+        "d": Infinity,
+        "significant": true
+      },
+      "instr_mean_delta": 0.0,
+      "mod_mean_delta": 0.0
+    },
+    "h2_instrument_bias": {
+      "vp_overlap": {
+        "mean": 1.0,
+        "std": 0.0,
+        "sem": 0.0,
+        "ci95_lo": 1.0,
+        "ci95_hi": 1.0,
+        "min": 1.0,
+        "max": 1.0,
+        "n": 2
+      },
+      "np_overlap": {
+        "mean": 1.0,
+        "std": 0.0,
+        "sem": 0.0,
+        "ci95_lo": 1.0,
+        "ci95_hi": 1.0,
+        "min": 1.0,
+        "max": 1.0,
+        "n": 2
+      },
+      "vp_preference_rate": 0.0,
+      "test": {
+        "t": Infinity,
+        "p": 0.0,
+        "d": Infinity,
+        "significant": true
+      }
+    },
+    "h3_modifier_bias": {
+      "vp_overlap": {
+        "mean": 1.0,
+        "std": 0.0,
+        "sem": 0.0,
+        "ci95_lo": 1.0,
+        "ci95_hi": 1.0,
+        "min": 1.0,
+        "max": 1.0,
+        "n": 2
+      },
+      "np_overlap": {
+        "mean": 1.0,
+        "std": 0.0,
+        "sem": 0.0,
+        "ci95_lo": 1.0,
+        "ci95_hi": 1.0,
+        "min": 1.0,
+        "max": 1.0,
+        "n": 2
+      },
+      "np_preference_rate": 1.0,
+      "test": {
+        "t": Infinity,
+        "p": 0.0,
+        "d": Infinity,
+        "significant": true
+      }
+    },
+    "h4_determinism": {
+      "convergence_rate": 1.0,
+      "stability": {
+        "mean": 1.0,
+        "std": 0.0,
+        "sem": 0.0,
+        "ci95_lo": 1.0,
+        "ci95_hi": 1.0,
+        "min": 1.0,
+        "max": 1.0,
+        "n": 2
+      },
+      "test": {
+        "t": Infinity,
+        "p": 0.0,
+        "d": Infinity,
+        "significant": true
+      }
+    }
+  },
+  "raw_data": {},
+  "success": true,
+  "error_message": null,
+  "duration_seconds": 21.570173000000068
+}

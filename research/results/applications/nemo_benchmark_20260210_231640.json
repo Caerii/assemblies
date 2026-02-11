@@ -1,0 +1,629 @@
+{
+  "experiment_name": "nemo_benchmark",
+  "timestamp": "2026-02-10T23:16:40.883110",
+  "parameters": {
+    "n": 10000,
+    "k": 100,
+    "p": 0.05,
+    "beta": 0.1,
+    "rounds": 10,
+    "n_seeds": 2,
+    "stability_test_rounds": 20,
+    "base_seed": 42
+  },
+  "metrics": {
+    "classification_accuracy": {
+      "mean": 0.9707602339181286,
+      "std": 0.0,
+      "sem": 0.0,
+      "ci95_lo": 0.9707602339181286,
+      "ci95_hi": 0.9707602339181286,
+      "min": 0.9707602339181286,
+      "max": 0.9707602339181286,
+      "n": 2
+    },
+    "role_accuracy": {
+      "mean": 1.0,
+      "std": 0.0,
+      "sem": 0.0,
+      "ci95_lo": 1.0,
+      "ci95_hi": 1.0,
+      "min": 1.0,
+      "max": 1.0,
+      "n": 2
+    },
+    "assembly_stability": {
+      "mean": 1.0,
+      "std": 0.0,
+      "sem": 0.0,
+      "ci95_lo": 1.0,
+      "ci95_hi": 1.0,
+      "min": 1.0,
+      "max": 1.0,
+      "n": 2
+    },
+    "roundtrip_accuracy": {
+      "mean": 0.8,
+      "std": 0.0,
+      "sem": 0.0,
+      "ci95_lo": 0.8,
+      "ci95_hi": 0.8,
+      "min": 0.8,
+      "max": 0.8,
+      "n": 2
+    },
+    "per_category_f1": {
+      "ADJ": {
+        "mean": 1.0,
+        "std": 0.0,
+        "sem": 0.0,
+        "ci95_lo": 1.0,
+        "ci95_hi": 1.0,
+        "min": 1.0,
+        "max": 1.0,
+        "n": 2
+      },
+      "ADV": {
+        "mean": 0.9714285714285714,
+        "std": 0.0,
+        "sem": 0.0,
+        "ci95_lo": 0.9714285714285714,
+        "ci95_hi": 0.9714285714285714,
+        "min": 0.9714285714285714,
+        "max": 0.9714285714285714,
+        "n": 2
+      },
+      "CONJ": {
+        "mean": 0.0,
+        "std": 0.0,
+        "sem": 0.0,
+        "ci95_lo": 0.0,
+        "ci95_hi": 0.0,
+        "min": 0.0,
+        "max": 0.0,
+        "n": 2
+      },
+      "DET": {
+        "mean": 0.7272727272727273,
+        "std": 0.0,
+        "sem": 0.0,
+        "ci95_lo": 0.7272727272727273,
+        "ci95_hi": 0.7272727272727273,
+        "min": 0.7272727272727273,
+        "max": 0.7272727272727273,
+        "n": 2
+      },
+      "NOUN": {
+        "mean": 1.0,
+        "std": 0.0,
+        "sem": 0.0,
+        "ci95_lo": 1.0,
+        "ci95_hi": 1.0,
+        "min": 1.0,
+        "max": 1.0,
+        "n": 2
+      },
+      "PREP": {
+        "mean": 0.9523809523809523,
+        "std": 0.0,
+        "sem": 0.0,
+        "ci95_lo": 0.9523809523809523,
+        "ci95_hi": 0.9523809523809523,
+        "min": 0.9523809523809523,
+        "max": 0.9523809523809523,
+        "n": 2
+      },
+      "PRON": {
+        "mean": 1.0,
+        "std": 0.0,
+        "sem": 0.0,
+        "ci95_lo": 1.0,
+        "ci95_hi": 1.0,
+        "min": 1.0,
+        "max": 1.0,
+        "n": 2
+      },
+      "VERB": {
+        "mean": 1.0,
+        "std": 0.0,
+        "sem": 0.0,
+        "ci95_lo": 1.0,
+        "ci95_hi": 1.0,
+        "min": 1.0,
+        "max": 1.0,
+        "n": 2
+      }
+    },
+    "convergence": {
+      "passes": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "accuracies": [
+        0.9707602339181286,
+        0.9707602339181286,
+        0.9707602339181286,
+        0.9707602339181286,
+        0.9707602339181286
+      ],
+      "converged_at": 1
+    },
+    "hypotheses": {
+      "H1_classification_ge_80pct": {
+        "passed": "True",
+        "t": Infinity,
+        "p": 0.0,
+        "d": Infinity,
+        "significant": true
+      },
+      "H2_role_ge_70pct": {
+        "passed": "True",
+        "t": Infinity,
+        "p": 0.0,
+        "d": Infinity,
+        "significant": true
+      },
+      "H3_stability_ge_090": {
+        "passed": "True",
+        "t": Infinity,
+        "p": 0.0,
+        "d": Infinity,
+        "significant": true
+      },
+      "H4_convergence_within_5": {
+        "passed": true,
+        "converged_at": 1
+      },
+      "H5_roundtrip_ge_50pct": {
+        "passed": "True",
+        "t": Infinity,
+        "p": 0.0,
+        "d": Infinity,
+        "significant": true
+      }
+    },
+    "mean_train_time_seconds": 34.248185150000154,
+    "vocab_size": 171
+  },
+  "raw_data": {
+    "seed_results": [
+      {
+        "seed": 42,
+        "train_time": 42.25251349999962,
+        "classification_accuracy": 0.9707602339181286,
+        "per_category": {
+          "ADJ": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "ADV": {
+            "precision": 0.9444444444444444,
+            "recall": 1.0,
+            "f1": 0.9714285714285714
+          },
+          "CONJ": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          },
+          "DET": {
+            "precision": 0.5714285714285714,
+            "recall": 1.0,
+            "f1": 0.7272727272727273
+          },
+          "NOUN": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "PREP": {
+            "precision": 0.9090909090909091,
+            "recall": 1.0,
+            "f1": 0.9523809523809523
+          },
+          "PRON": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "VERB": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          }
+        },
+        "role_accuracy": 1.0,
+        "role_per_role": {
+          "ACTION": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "AGENT": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "PATIENT": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          }
+        },
+        "word_order_correct": true,
+        "word_order_confidence": 0.0,
+        "roundtrip_accuracy": 0.8,
+        "content_recall": 0.8666666666666667,
+        "stability_mean": 1.0,
+        "stability_min": 1.0,
+        "stability_per_word": {
+          "thing": 1.0,
+          "be": 1.0,
+          "good": 1.0,
+          "not": 1.0,
+          "of": 1.0
+        }
+      },
+      {
+        "seed": 43,
+        "train_time": 26.243856800000685,
+        "classification_accuracy": 0.9707602339181286,
+        "per_category": {
+          "ADJ": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "ADV": {
+            "precision": 0.9444444444444444,
+            "recall": 1.0,
+            "f1": 0.9714285714285714
+          },
+          "CONJ": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          },
+          "DET": {
+            "precision": 0.5714285714285714,
+            "recall": 1.0,
+            "f1": 0.7272727272727273
+          },
+          "NOUN": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "PREP": {
+            "precision": 0.9090909090909091,
+            "recall": 1.0,
+            "f1": 0.9523809523809523
+          },
+          "PRON": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "VERB": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          }
+        },
+        "role_accuracy": 1.0,
+        "role_per_role": {
+          "ACTION": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "AGENT": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "PATIENT": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          }
+        },
+        "word_order_correct": true,
+        "word_order_confidence": 0.0,
+        "roundtrip_accuracy": 0.8,
+        "content_recall": 0.8,
+        "stability_mean": 1.0,
+        "stability_min": 1.0,
+        "stability_per_word": {
+          "thing": 1.0,
+          "be": 1.0,
+          "good": 1.0,
+          "not": 1.0,
+          "of": 1.0
+        }
+      }
+    ],
+    "convergence_trace": {
+      "passes": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "accuracies": [
+        0.9707602339181286,
+        0.9707602339181286,
+        0.9707602339181286,
+        0.9707602339181286,
+        0.9707602339181286
+      ],
+      "converged_at": 1
+    },
+    "per_category_aggregate": {
+      "ADJ": {
+        "precision": {
+          "mean": 1.0,
+          "std": 0.0,
+          "sem": 0.0,
+          "ci95_lo": 1.0,
+          "ci95_hi": 1.0,
+          "min": 1.0,
+          "max": 1.0,
+          "n": 2
+        },
+        "recall": {
+          "mean": 1.0,
+          "std": 0.0,
+          "sem": 0.0,
+          "ci95_lo": 1.0,
+          "ci95_hi": 1.0,
+          "min": 1.0,
+          "max": 1.0,
+          "n": 2
+        },
+        "f1": {
+          "mean": 1.0,
+          "std": 0.0,
+          "sem": 0.0,
+          "ci95_lo": 1.0,
+          "ci95_hi": 1.0,
+          "min": 1.0,
+          "max": 1.0,
+          "n": 2
+        }
+      },
+      "ADV": {
+        "precision": {
+          "mean": 0.9444444444444444,
+          "std": 0.0,
+          "sem": 0.0,
+          "ci95_lo": 0.9444444444444444,
+          "ci95_hi": 0.9444444444444444,
+          "min": 0.9444444444444444,
+          "max": 0.9444444444444444,
+          "n": 2
+        },
+        "recall": {
+          "mean": 1.0,
+          "std": 0.0,
+          "sem": 0.0,
+          "ci95_lo": 1.0,
+          "ci95_hi": 1.0,
+          "min": 1.0,
+          "max": 1.0,
+          "n": 2
+        },
+        "f1": {
+          "mean": 0.9714285714285714,
+          "std": 0.0,
+          "sem": 0.0,
+          "ci95_lo": 0.9714285714285714,
+          "ci95_hi": 0.9714285714285714,
+          "min": 0.9714285714285714,
+          "max": 0.9714285714285714,
+          "n": 2
+        }
+      },
+      "CONJ": {
+        "precision": {
+          "mean": 0.0,
+          "std": 0.0,
+          "sem": 0.0,
+          "ci95_lo": 0.0,
+          "ci95_hi": 0.0,
+          "min": 0.0,
+          "max": 0.0,
+          "n": 2
+        },
+        "recall": {
+          "mean": 0.0,
+          "std": 0.0,
+          "sem": 0.0,
+          "ci95_lo": 0.0,
+          "ci95_hi": 0.0,
+          "min": 0.0,
+          "max": 0.0,
+          "n": 2
+        },
+        "f1": {
+          "mean": 0.0,
+          "std": 0.0,
+          "sem": 0.0,
+          "ci95_lo": 0.0,
+          "ci95_hi": 0.0,
+          "min": 0.0,
+          "max": 0.0,
+          "n": 2
+        }
+      },
+      "DET": {
+        "precision": {
+          "mean": 0.5714285714285714,
+          "std": 0.0,
+          "sem": 0.0,
+          "ci95_lo": 0.5714285714285714,
+          "ci95_hi": 0.5714285714285714,
+          "min": 0.5714285714285714,
+          "max": 0.5714285714285714,
+          "n": 2
+        },
+        "recall": {
+          "mean": 1.0,
+          "std": 0.0,
+          "sem": 0.0,
+          "ci95_lo": 1.0,
+          "ci95_hi": 1.0,
+          "min": 1.0,
+          "max": 1.0,
+          "n": 2
+        },
+        "f1": {
+          "mean": 0.7272727272727273,
+          "std": 0.0,
+          "sem": 0.0,
+          "ci95_lo": 0.7272727272727273,
+          "ci95_hi": 0.7272727272727273,
+          "min": 0.7272727272727273,
+          "max": 0.7272727272727273,
+          "n": 2
+        }
+      },
+      "NOUN": {
+        "precision": {
+          "mean": 1.0,
+          "std": 0.0,
+          "sem": 0.0,
+          "ci95_lo": 1.0,
+          "ci95_hi": 1.0,
+          "min": 1.0,
+          "max": 1.0,
+          "n": 2
+        },
+        "recall": {
+          "mean": 1.0,
+          "std": 0.0,
+          "sem": 0.0,
+          "ci95_lo": 1.0,
+          "ci95_hi": 1.0,
+          "min": 1.0,
+          "max": 1.0,
+          "n": 2
+        },
+        "f1": {
+          "mean": 1.0,
+          "std": 0.0,
+          "sem": 0.0,
+          "ci95_lo": 1.0,
+          "ci95_hi": 1.0,
+          "min": 1.0,
+          "max": 1.0,
+          "n": 2
+        }
+      },
+      "PREP": {
+        "precision": {
+          "mean": 0.9090909090909091,
+          "std": 0.0,
+          "sem": 0.0,
+          "ci95_lo": 0.9090909090909091,
+          "ci95_hi": 0.9090909090909091,
+          "min": 0.9090909090909091,
+          "max": 0.9090909090909091,
+          "n": 2
+        },
+        "recall": {
+          "mean": 1.0,
+          "std": 0.0,
+          "sem": 0.0,
+          "ci95_lo": 1.0,
+          "ci95_hi": 1.0,
+          "min": 1.0,
+          "max": 1.0,
+          "n": 2
+        },
+        "f1": {
+          "mean": 0.9523809523809523,
+          "std": 0.0,
+          "sem": 0.0,
+          "ci95_lo": 0.9523809523809523,
+          "ci95_hi": 0.9523809523809523,
+          "min": 0.9523809523809523,
+          "max": 0.9523809523809523,
+          "n": 2
+        }
+      },
+      "PRON": {
+        "precision": {
+          "mean": 1.0,
+          "std": 0.0,
+          "sem": 0.0,
+          "ci95_lo": 1.0,
+          "ci95_hi": 1.0,
+          "min": 1.0,
+          "max": 1.0,
+          "n": 2
+        },
+        "recall": {
+          "mean": 1.0,
+          "std": 0.0,
+          "sem": 0.0,
+          "ci95_lo": 1.0,
+          "ci95_hi": 1.0,
+          "min": 1.0,
+          "max": 1.0,
+          "n": 2
+        },
+        "f1": {
+          "mean": 1.0,
+          "std": 0.0,
+          "sem": 0.0,
+          "ci95_lo": 1.0,
+          "ci95_hi": 1.0,
+          "min": 1.0,
+          "max": 1.0,
+          "n": 2
+        }
+      },
+      "VERB": {
+        "precision": {
+          "mean": 1.0,
+          "std": 0.0,
+          "sem": 0.0,
+          "ci95_lo": 1.0,
+          "ci95_hi": 1.0,
+          "min": 1.0,
+          "max": 1.0,
+          "n": 2
+        },
+        "recall": {
+          "mean": 1.0,
+          "std": 0.0,
+          "sem": 0.0,
+          "ci95_lo": 1.0,
+          "ci95_hi": 1.0,
+          "min": 1.0,
+          "max": 1.0,
+          "n": 2
+        },
+        "f1": {
+          "mean": 1.0,
+          "std": 0.0,
+          "sem": 0.0,
+          "ci95_lo": 1.0,
+          "ci95_hi": 1.0,
+          "min": 1.0,
+          "max": 1.0,
+          "n": 2
+        }
+      }
+    }
+  },
+  "success": true,
+  "error_message": null,
+  "duration_seconds": 501.6936609000004
+}

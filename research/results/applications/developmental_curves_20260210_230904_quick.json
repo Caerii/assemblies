@@ -1,0 +1,614 @@
+{
+  "experiment_name": "developmental_curves",
+  "timestamp": "2026-02-10T23:09:04.479553",
+  "parameters": {
+    "n": 5000,
+    "k": 50,
+    "n_seeds": 2,
+    "rounds": 10,
+    "p": 0.05,
+    "beta": 0.1,
+    "training_increments": [
+      1,
+      5,
+      20,
+      50
+    ],
+    "vocab_size": 171
+  },
+  "metrics": {
+    "learning_curves": {
+      "ADJ": [
+        {
+          "increment": 1,
+          "mean": 1.0,
+          "sem": 0.0
+        },
+        {
+          "increment": 5,
+          "mean": 1.0,
+          "sem": 0.0
+        },
+        {
+          "increment": 20,
+          "mean": 1.0,
+          "sem": 0.0
+        },
+        {
+          "increment": 50,
+          "mean": 1.0,
+          "sem": 0.0
+        }
+      ],
+      "DET": [
+        {
+          "increment": 1,
+          "mean": 1.0,
+          "sem": 0.0
+        },
+        {
+          "increment": 5,
+          "mean": 1.0,
+          "sem": 0.0
+        },
+        {
+          "increment": 20,
+          "mean": 1.0,
+          "sem": 0.0
+        },
+        {
+          "increment": 50,
+          "mean": 1.0,
+          "sem": 0.0
+        }
+      ],
+      "PREP": [
+        {
+          "increment": 1,
+          "mean": 1.0,
+          "sem": 0.0
+        },
+        {
+          "increment": 5,
+          "mean": 1.0,
+          "sem": 0.0
+        },
+        {
+          "increment": 20,
+          "mean": 1.0,
+          "sem": 0.0
+        },
+        {
+          "increment": 50,
+          "mean": 1.0,
+          "sem": 0.0
+        }
+      ],
+      "VERB": [
+        {
+          "increment": 1,
+          "mean": 1.0,
+          "sem": 0.0
+        },
+        {
+          "increment": 5,
+          "mean": 1.0,
+          "sem": 0.0
+        },
+        {
+          "increment": 20,
+          "mean": 1.0,
+          "sem": 0.0
+        },
+        {
+          "increment": 50,
+          "mean": 1.0,
+          "sem": 0.0
+        }
+      ],
+      "PRON": [
+        {
+          "increment": 1,
+          "mean": 1.0,
+          "sem": 0.0
+        },
+        {
+          "increment": 5,
+          "mean": 1.0,
+          "sem": 0.0
+        },
+        {
+          "increment": 20,
+          "mean": 1.0,
+          "sem": 0.0
+        },
+        {
+          "increment": 50,
+          "mean": 1.0,
+          "sem": 0.0
+        }
+      ],
+      "NOUN": [
+        {
+          "increment": 1,
+          "mean": 1.0,
+          "sem": 0.0
+        },
+        {
+          "increment": 5,
+          "mean": 1.0,
+          "sem": 0.0
+        },
+        {
+          "increment": 20,
+          "mean": 1.0,
+          "sem": 0.0
+        },
+        {
+          "increment": 50,
+          "mean": 1.0,
+          "sem": 0.0
+        }
+      ],
+      "ADV": [
+        {
+          "increment": 1,
+          "mean": 1.0,
+          "sem": 0.0
+        },
+        {
+          "increment": 5,
+          "mean": 1.0,
+          "sem": 0.0
+        },
+        {
+          "increment": 20,
+          "mean": 1.0,
+          "sem": 0.0
+        },
+        {
+          "increment": 50,
+          "mean": 1.0,
+          "sem": 0.0
+        }
+      ]
+    },
+    "h1_noun_before_verb": {
+      "per_increment": [
+        {
+          "increment": 1,
+          "advantage": {
+            "mean": 0.0,
+            "std": 0.0,
+            "sem": 0.0,
+            "ci95_lo": 0.0,
+            "ci95_hi": 0.0,
+            "min": 0.0,
+            "max": 0.0,
+            "n": 2
+          }
+        },
+        {
+          "increment": 5,
+          "advantage": {
+            "mean": 0.0,
+            "std": 0.0,
+            "sem": 0.0,
+            "ci95_lo": 0.0,
+            "ci95_hi": 0.0,
+            "min": 0.0,
+            "max": 0.0,
+            "n": 2
+          }
+        },
+        {
+          "increment": 20,
+          "advantage": {
+            "mean": 0.0,
+            "std": 0.0,
+            "sem": 0.0,
+            "ci95_lo": 0.0,
+            "ci95_hi": 0.0,
+            "min": 0.0,
+            "max": 0.0,
+            "n": 2
+          }
+        },
+        {
+          "increment": 50,
+          "advantage": {
+            "mean": 0.0,
+            "std": 0.0,
+            "sem": 0.0,
+            "ci95_lo": 0.0,
+            "ci95_hi": 0.0,
+            "min": 0.0,
+            "max": 0.0,
+            "n": 2
+          }
+        }
+      ],
+      "overall_advantage": {
+        "mean": 0.0,
+        "std": 0.0,
+        "sem": 0.0,
+        "ci95_lo": 0.0,
+        "ci95_hi": 0.0,
+        "min": 0.0,
+        "max": 0.0,
+        "n": 4
+      },
+      "noun_leads_at_all_increments": true
+    },
+    "h2_content_before_function": {
+      "per_increment": [
+        {
+          "increment": 1,
+          "content_mean": {
+            "mean": 1.0,
+            "std": 0.0,
+            "sem": 0.0,
+            "ci95_lo": 1.0,
+            "ci95_hi": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "n": 2
+          },
+          "function_mean": {
+            "mean": 1.0,
+            "std": 0.0,
+            "sem": 0.0,
+            "ci95_lo": 1.0,
+            "ci95_hi": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "n": 2
+          },
+          "advantage": {
+            "mean": 0.0,
+            "std": 0.0,
+            "sem": 0.0,
+            "ci95_lo": 0.0,
+            "ci95_hi": 0.0,
+            "min": 0.0,
+            "max": 0.0,
+            "n": 2
+          }
+        },
+        {
+          "increment": 5,
+          "content_mean": {
+            "mean": 1.0,
+            "std": 0.0,
+            "sem": 0.0,
+            "ci95_lo": 1.0,
+            "ci95_hi": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "n": 2
+          },
+          "function_mean": {
+            "mean": 1.0,
+            "std": 0.0,
+            "sem": 0.0,
+            "ci95_lo": 1.0,
+            "ci95_hi": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "n": 2
+          },
+          "advantage": {
+            "mean": 0.0,
+            "std": 0.0,
+            "sem": 0.0,
+            "ci95_lo": 0.0,
+            "ci95_hi": 0.0,
+            "min": 0.0,
+            "max": 0.0,
+            "n": 2
+          }
+        },
+        {
+          "increment": 20,
+          "content_mean": {
+            "mean": 1.0,
+            "std": 0.0,
+            "sem": 0.0,
+            "ci95_lo": 1.0,
+            "ci95_hi": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "n": 2
+          },
+          "function_mean": {
+            "mean": 1.0,
+            "std": 0.0,
+            "sem": 0.0,
+            "ci95_lo": 1.0,
+            "ci95_hi": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "n": 2
+          },
+          "advantage": {
+            "mean": 0.0,
+            "std": 0.0,
+            "sem": 0.0,
+            "ci95_lo": 0.0,
+            "ci95_hi": 0.0,
+            "min": 0.0,
+            "max": 0.0,
+            "n": 2
+          }
+        },
+        {
+          "increment": 50,
+          "content_mean": {
+            "mean": 1.0,
+            "std": 0.0,
+            "sem": 0.0,
+            "ci95_lo": 1.0,
+            "ci95_hi": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "n": 2
+          },
+          "function_mean": {
+            "mean": 1.0,
+            "std": 0.0,
+            "sem": 0.0,
+            "ci95_lo": 1.0,
+            "ci95_hi": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "n": 2
+          },
+          "advantage": {
+            "mean": 0.0,
+            "std": 0.0,
+            "sem": 0.0,
+            "ci95_lo": 0.0,
+            "ci95_hi": 0.0,
+            "min": 0.0,
+            "max": 0.0,
+            "n": 2
+          }
+        }
+      ],
+      "overall_advantage": {
+        "mean": 0.0,
+        "std": 0.0,
+        "sem": 0.0,
+        "ci95_lo": 0.0,
+        "ci95_hi": 0.0,
+        "min": 0.0,
+        "max": 0.0,
+        "n": 4
+      },
+      "content_leads_majority": false
+    },
+    "h3_vocabulary_spurt": {
+      "threshold_sentences": 5,
+      "max_gain_rate": 0.0,
+      "threshold_index": 1
+    },
+    "h3_per_category_spurts": {
+      "ADJ": {
+        "threshold_sentences": 5,
+        "max_gain_rate": 0.0,
+        "threshold_index": 1
+      },
+      "DET": {
+        "threshold_sentences": 5,
+        "max_gain_rate": 0.0,
+        "threshold_index": 1
+      },
+      "PREP": {
+        "threshold_sentences": 5,
+        "max_gain_rate": 0.0,
+        "threshold_index": 1
+      },
+      "VERB": {
+        "threshold_sentences": 5,
+        "max_gain_rate": 0.0,
+        "threshold_index": 1
+      },
+      "PRON": {
+        "threshold_sentences": 5,
+        "max_gain_rate": 0.0,
+        "threshold_index": 1
+      },
+      "NOUN": {
+        "threshold_sentences": 5,
+        "max_gain_rate": 0.0,
+        "threshold_index": 1
+      },
+      "ADV": {
+        "threshold_sentences": 5,
+        "max_gain_rate": 0.0,
+        "threshold_index": 1
+      }
+    },
+    "h4_sigmoid_fit": {
+      "per_category": {
+        "ADJ": {
+          "success": false,
+          "r_squared": 0.0,
+          "params": {}
+        },
+        "DET": {
+          "success": false,
+          "r_squared": 0.0,
+          "params": {}
+        },
+        "PREP": {
+          "success": false,
+          "r_squared": 0.0,
+          "params": {}
+        },
+        "VERB": {
+          "success": false,
+          "r_squared": 0.0,
+          "params": {}
+        },
+        "PRON": {
+          "success": false,
+          "r_squared": 0.0,
+          "params": {}
+        },
+        "NOUN": {
+          "success": false,
+          "r_squared": 0.0,
+          "params": {}
+        },
+        "ADV": {
+          "success": false,
+          "r_squared": 0.0,
+          "params": {}
+        }
+      },
+      "mean_r_squared": 0.0,
+      "all_above_0_9": false,
+      "n_successful_fits": 0
+    },
+    "acquisition_order_correlation": {
+      "spearman_rho": NaN,
+      "p_value": NaN,
+      "significant": false,
+      "expected_negative": false
+    }
+  },
+  "raw_data": {
+    "learning_curves": {
+      "ADJ": {
+        "1": [
+          1.0,
+          1.0
+        ],
+        "5": [
+          1.0,
+          1.0
+        ],
+        "20": [
+          1.0,
+          1.0
+        ],
+        "50": [
+          1.0,
+          1.0
+        ]
+      },
+      "DET": {
+        "1": [
+          1.0,
+          1.0
+        ],
+        "5": [
+          1.0,
+          1.0
+        ],
+        "20": [
+          1.0,
+          1.0
+        ],
+        "50": [
+          1.0,
+          1.0
+        ]
+      },
+      "PREP": {
+        "1": [
+          1.0,
+          1.0
+        ],
+        "5": [
+          1.0,
+          1.0
+        ],
+        "20": [
+          1.0,
+          1.0
+        ],
+        "50": [
+          1.0,
+          1.0
+        ]
+      },
+      "VERB": {
+        "1": [
+          1.0,
+          1.0
+        ],
+        "5": [
+          1.0,
+          1.0
+        ],
+        "20": [
+          1.0,
+          1.0
+        ],
+        "50": [
+          1.0,
+          1.0
+        ]
+      },
+      "PRON": {
+        "1": [
+          1.0,
+          1.0
+        ],
+        "5": [
+          1.0,
+          1.0
+        ],
+        "20": [
+          1.0,
+          1.0
+        ],
+        "50": [
+          1.0,
+          1.0
+        ]
+      },
+      "NOUN": {
+        "1": [
+          1.0,
+          1.0
+        ],
+        "5": [
+          1.0,
+          1.0
+        ],
+        "20": [
+          1.0,
+          1.0
+        ],
+        "50": [
+          1.0,
+          1.0
+        ]
+      },
+      "ADV": {
+        "1": [
+          1.0,
+          1.0
+        ],
+        "5": [
+          1.0,
+          1.0
+        ],
+        "20": [
+          1.0,
+          1.0
+        ],
+        "50": [
+          1.0,
+          1.0
+        ]
+      }
+    }
+  },
+  "success": true,
+  "error_message": null,
+  "duration_seconds": 45.165286899999955
+}

@@ -1,0 +1,130 @@
+{
+  "experiment_name": "multiclause_coordination",
+  "timestamp": "2026-02-10T23:08:49.789023",
+  "parameters": {
+    "n": 5000,
+    "k": 50,
+    "n_seeds": 2,
+    "rounds": 10,
+    "p": 0.05,
+    "beta": 0.1
+  },
+  "metrics": {
+    "h1_coordination_2clause": {
+      "accuracy": {
+        "mean": 1.0,
+        "std": 0.0,
+        "sem": 0.0,
+        "ci95_lo": 1.0,
+        "ci95_hi": 1.0,
+        "min": 1.0,
+        "max": 1.0,
+        "n": 2
+      },
+      "test_vs_null": {
+        "t": Infinity,
+        "p": 0.0,
+        "d": Infinity,
+        "significant": true
+      }
+    },
+    "h2_subordination": {
+      "subordinate_clause_accuracy": {
+        "mean": 1.0,
+        "std": 0.0,
+        "sem": 0.0,
+        "ci95_lo": 1.0,
+        "ci95_hi": 1.0,
+        "min": 1.0,
+        "max": 1.0,
+        "n": 2
+      },
+      "main_clause_accuracy": {
+        "mean": 1.0,
+        "std": 0.0,
+        "sem": 0.0,
+        "ci95_lo": 1.0,
+        "ci95_hi": 1.0,
+        "min": 1.0,
+        "max": 1.0,
+        "n": 2
+      },
+      "sub_test_vs_null": {
+        "t": Infinity,
+        "p": 0.0,
+        "d": Infinity,
+        "significant": true
+      },
+      "main_test_vs_null": {
+        "t": Infinity,
+        "p": 0.0,
+        "d": Infinity,
+        "significant": true
+      }
+    },
+    "h3_degradation_by_clause_count": [
+      {
+        "n_clauses": 2,
+        "accuracy": {
+          "mean": 1.0,
+          "std": 0.0,
+          "sem": 0.0,
+          "ci95_lo": 1.0,
+          "ci95_hi": 1.0,
+          "min": 1.0,
+          "max": 1.0,
+          "n": 2
+        },
+        "test_vs_null": {
+          "t": Infinity,
+          "p": 0.0,
+          "d": Infinity,
+          "significant": true
+        }
+      },
+      {
+        "n_clauses": 3,
+        "accuracy": {
+          "mean": 1.0,
+          "std": 0.0,
+          "sem": 0.0,
+          "ci95_lo": 1.0,
+          "ci95_hi": 1.0,
+          "min": 1.0,
+          "max": 1.0,
+          "n": 2
+        },
+        "test_vs_null": {
+          "t": Infinity,
+          "p": 0.0,
+          "d": Infinity,
+          "significant": true
+        }
+      },
+      {
+        "n_clauses": 4,
+        "accuracy": {
+          "mean": 1.0,
+          "std": 0.0,
+          "sem": 0.0,
+          "ci95_lo": 1.0,
+          "ci95_hi": 1.0,
+          "min": 1.0,
+          "max": 1.0,
+          "n": 2
+        },
+        "test_vs_null": {
+          "t": Infinity,
+          "p": 0.0,
+          "d": Infinity,
+          "significant": true
+        }
+      }
+    ],
+    "h3_graceful_degradation": true
+  },
+  "raw_data": {},
+  "success": true,
+  "error_message": null,
+  "duration_seconds": 30.5664041
+}

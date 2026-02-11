@@ -1,0 +1,478 @@
+{
+  "experiment_name": "morphological_agreement",
+  "timestamp": "2026-02-10T23:08:33.197250",
+  "parameters": {
+    "n": 10000,
+    "k": 100,
+    "n_seeds": 2,
+    "p": 0.05,
+    "beta": 0.1,
+    "rounds": 10,
+    "null_overlap": 0.01,
+    "n_training_sentences": 20
+  },
+  "metrics": {
+    "h1_violation_detection": {
+      "pairs": [
+        {
+          "label": "SG: dog",
+          "number": "singular",
+          "agree_overlap": {
+            "mean": 1.0,
+            "std": 0.0,
+            "sem": 0.0,
+            "ci95_lo": 1.0,
+            "ci95_hi": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "n": 2
+          },
+          "disagree_overlap": {
+            "mean": 1.0,
+            "std": 0.0,
+            "sem": 0.0,
+            "ci95_lo": 1.0,
+            "ci95_hi": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "n": 2
+          },
+          "delta": 0.0
+        },
+        {
+          "label": "SG: cat",
+          "number": "singular",
+          "agree_overlap": {
+            "mean": 1.0,
+            "std": 0.0,
+            "sem": 0.0,
+            "ci95_lo": 1.0,
+            "ci95_hi": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "n": 2
+          },
+          "disagree_overlap": {
+            "mean": 1.0,
+            "std": 0.0,
+            "sem": 0.0,
+            "ci95_lo": 1.0,
+            "ci95_hi": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "n": 2
+          },
+          "delta": 0.0
+        },
+        {
+          "label": "SG: bird",
+          "number": "singular",
+          "agree_overlap": {
+            "mean": 1.0,
+            "std": 0.0,
+            "sem": 0.0,
+            "ci95_lo": 1.0,
+            "ci95_hi": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "n": 2
+          },
+          "disagree_overlap": {
+            "mean": 1.0,
+            "std": 0.0,
+            "sem": 0.0,
+            "ci95_lo": 1.0,
+            "ci95_hi": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "n": 2
+          },
+          "delta": 0.0
+        },
+        {
+          "label": "SG: boy",
+          "number": "singular",
+          "agree_overlap": {
+            "mean": 1.0,
+            "std": 0.0,
+            "sem": 0.0,
+            "ci95_lo": 1.0,
+            "ci95_hi": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "n": 2
+          },
+          "disagree_overlap": {
+            "mean": 1.0,
+            "std": 0.0,
+            "sem": 0.0,
+            "ci95_lo": 1.0,
+            "ci95_hi": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "n": 2
+          },
+          "delta": 0.0
+        },
+        {
+          "label": "SG: girl",
+          "number": "singular",
+          "agree_overlap": {
+            "mean": 1.0,
+            "std": 0.0,
+            "sem": 0.0,
+            "ci95_lo": 1.0,
+            "ci95_hi": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "n": 2
+          },
+          "disagree_overlap": {
+            "mean": 1.0,
+            "std": 0.0,
+            "sem": 0.0,
+            "ci95_lo": 1.0,
+            "ci95_hi": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "n": 2
+          },
+          "delta": 0.0
+        },
+        {
+          "label": "PL: dogs",
+          "number": "plural",
+          "agree_overlap": {
+            "mean": 1.0,
+            "std": 0.0,
+            "sem": 0.0,
+            "ci95_lo": 1.0,
+            "ci95_hi": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "n": 2
+          },
+          "disagree_overlap": {
+            "mean": 1.0,
+            "std": 0.0,
+            "sem": 0.0,
+            "ci95_lo": 1.0,
+            "ci95_hi": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "n": 2
+          },
+          "delta": 0.0
+        },
+        {
+          "label": "PL: cats",
+          "number": "plural",
+          "agree_overlap": {
+            "mean": 1.0,
+            "std": 0.0,
+            "sem": 0.0,
+            "ci95_lo": 1.0,
+            "ci95_hi": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "n": 2
+          },
+          "disagree_overlap": {
+            "mean": 1.0,
+            "std": 0.0,
+            "sem": 0.0,
+            "ci95_lo": 1.0,
+            "ci95_hi": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "n": 2
+          },
+          "delta": 0.0
+        },
+        {
+          "label": "PL: birds",
+          "number": "plural",
+          "agree_overlap": {
+            "mean": 1.0,
+            "std": 0.0,
+            "sem": 0.0,
+            "ci95_lo": 1.0,
+            "ci95_hi": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "n": 2
+          },
+          "disagree_overlap": {
+            "mean": 1.0,
+            "std": 0.0,
+            "sem": 0.0,
+            "ci95_lo": 1.0,
+            "ci95_hi": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "n": 2
+          },
+          "delta": 0.0
+        },
+        {
+          "label": "PL: boys",
+          "number": "plural",
+          "agree_overlap": {
+            "mean": 1.0,
+            "std": 0.0,
+            "sem": 0.0,
+            "ci95_lo": 1.0,
+            "ci95_hi": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "n": 2
+          },
+          "disagree_overlap": {
+            "mean": 1.0,
+            "std": 0.0,
+            "sem": 0.0,
+            "ci95_lo": 1.0,
+            "ci95_hi": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "n": 2
+          },
+          "delta": 0.0
+        },
+        {
+          "label": "PL: girls",
+          "number": "plural",
+          "agree_overlap": {
+            "mean": 1.0,
+            "std": 0.0,
+            "sem": 0.0,
+            "ci95_lo": 1.0,
+            "ci95_hi": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "n": 2
+          },
+          "disagree_overlap": {
+            "mean": 1.0,
+            "std": 0.0,
+            "sem": 0.0,
+            "ci95_lo": 1.0,
+            "ci95_hi": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "n": 2
+          },
+          "delta": 0.0
+        }
+      ],
+      "overall_test": {
+        "t": Infinity,
+        "p": 0.0,
+        "d": Infinity,
+        "significant": true
+      }
+    },
+    "h2_symmetric_detection": {
+      "singular": {
+        "stats": {
+          "mean": 0.0,
+          "std": 0.0,
+          "sem": 0.0,
+          "ci95_lo": 0.0,
+          "ci95_hi": 0.0,
+          "min": 0.0,
+          "max": 0.0,
+          "n": 5
+        },
+        "test": {
+          "t": Infinity,
+          "p": 0.0,
+          "d": Infinity,
+          "significant": true
+        }
+      },
+      "plural": {
+        "stats": {
+          "mean": 0.0,
+          "std": 0.0,
+          "sem": 0.0,
+          "ci95_lo": 0.0,
+          "ci95_hi": 0.0,
+          "min": 0.0,
+          "max": 0.0,
+          "n": 5
+        },
+        "test": {
+          "t": Infinity,
+          "p": 0.0,
+          "d": Infinity,
+          "significant": true
+        }
+      }
+    },
+    "h3_generalization": {
+      "pairs": [
+        {
+          "label": "NOVEL SI: dog+sleeps",
+          "number": "singular",
+          "agree_overlap": {
+            "mean": 1.0,
+            "std": 0.0,
+            "sem": 0.0,
+            "ci95_lo": 1.0,
+            "ci95_hi": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "n": 2
+          },
+          "disagree_overlap": {
+            "mean": 1.0,
+            "std": 0.0,
+            "sem": 0.0,
+            "ci95_lo": 1.0,
+            "ci95_hi": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "n": 2
+          },
+          "delta": 0.0
+        },
+        {
+          "label": "NOVEL SI: cat+chases",
+          "number": "singular",
+          "agree_overlap": {
+            "mean": 1.0,
+            "std": 0.0,
+            "sem": 0.0,
+            "ci95_lo": 1.0,
+            "ci95_hi": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "n": 2
+          },
+          "disagree_overlap": {
+            "mean": 1.0,
+            "std": 0.0,
+            "sem": 0.0,
+            "ci95_lo": 1.0,
+            "ci95_hi": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "n": 2
+          },
+          "delta": 0.0
+        },
+        {
+          "label": "NOVEL SI: bird+eats",
+          "number": "singular",
+          "agree_overlap": {
+            "mean": 1.0,
+            "std": 0.0,
+            "sem": 0.0,
+            "ci95_lo": 1.0,
+            "ci95_hi": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "n": 2
+          },
+          "disagree_overlap": {
+            "mean": 1.0,
+            "std": 0.0,
+            "sem": 0.0,
+            "ci95_lo": 1.0,
+            "ci95_hi": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "n": 2
+          },
+          "delta": 0.0
+        },
+        {
+          "label": "NOVEL PL: dogs+chase",
+          "number": "plural",
+          "agree_overlap": {
+            "mean": 1.0,
+            "std": 0.0,
+            "sem": 0.0,
+            "ci95_lo": 1.0,
+            "ci95_hi": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "n": 2
+          },
+          "disagree_overlap": {
+            "mean": 1.0,
+            "std": 0.0,
+            "sem": 0.0,
+            "ci95_lo": 1.0,
+            "ci95_hi": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "n": 2
+          },
+          "delta": 0.0
+        },
+        {
+          "label": "NOVEL PL: cats+eat",
+          "number": "plural",
+          "agree_overlap": {
+            "mean": 1.0,
+            "std": 0.0,
+            "sem": 0.0,
+            "ci95_lo": 1.0,
+            "ci95_hi": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "n": 2
+          },
+          "disagree_overlap": {
+            "mean": 1.0,
+            "std": 0.0,
+            "sem": 0.0,
+            "ci95_lo": 1.0,
+            "ci95_hi": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "n": 2
+          },
+          "delta": 0.0
+        },
+        {
+          "label": "NOVEL PL: birds+run",
+          "number": "plural",
+          "agree_overlap": {
+            "mean": 1.0,
+            "std": 0.0,
+            "sem": 0.0,
+            "ci95_lo": 1.0,
+            "ci95_hi": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "n": 2
+          },
+          "disagree_overlap": {
+            "mean": 1.0,
+            "std": 0.0,
+            "sem": 0.0,
+            "ci95_lo": 1.0,
+            "ci95_hi": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "n": 2
+          },
+          "delta": 0.0
+        }
+      ],
+      "overall_test": {
+        "t": Infinity,
+        "p": 0.0,
+        "d": Infinity,
+        "significant": true
+      }
+    }
+  },
+  "raw_data": {},
+  "success": true,
+  "error_message": null,
+  "duration_seconds": 13.892204499999934
+}

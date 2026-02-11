@@ -1,0 +1,90 @@
+{
+  "experiment_name": "relative_clauses",
+  "timestamp": "2026-02-10T23:20:18.211282",
+  "parameters": {
+    "n": 10000,
+    "k": 100,
+    "p": 0.05,
+    "beta": 0.1,
+    "rounds": 10,
+    "n_seeds": 3,
+    "chance_role": 0.3333333333333333,
+    "n_training": 18
+  },
+  "metrics": {
+    "h1_src": {
+      "stats": {
+        "mean": 1.0,
+        "std": 0.0,
+        "sem": 0.0,
+        "ci95_lo": 1.0,
+        "ci95_hi": 1.0,
+        "min": 1.0,
+        "max": 1.0,
+        "n": 3
+      },
+      "test": {
+        "t": Infinity,
+        "p": 0.0,
+        "d": Infinity,
+        "significant": true
+      }
+    },
+    "h2_orc": {
+      "stats": {
+        "mean": 0.0,
+        "std": 0.0,
+        "sem": 0.0,
+        "ci95_lo": 0.0,
+        "ci95_hi": 0.0,
+        "min": 0.0,
+        "max": 0.0,
+        "n": 3
+      },
+      "test": {
+        "t": Infinity,
+        "p": 0.0,
+        "d": Infinity,
+        "significant": true
+      }
+    },
+    "h3_asymmetry": {
+      "t": 0.0,
+      "p": 1.0,
+      "d": 0.0,
+      "significant": false
+    },
+    "h4_depth": {
+      "depth_1": {
+        "mean": 1.0,
+        "std": 0.0,
+        "sem": 0.0,
+        "ci95_lo": 1.0,
+        "ci95_hi": 1.0,
+        "min": 1.0,
+        "max": 1.0,
+        "n": 3
+      },
+      "depth_2": {
+        "mean": 0.0,
+        "std": 0.0,
+        "sem": 0.0,
+        "ci95_lo": 0.0,
+        "ci95_hi": 0.0,
+        "min": 0.0,
+        "max": 0.0,
+        "n": 3
+      },
+      "test": {
+        "t": 0.0,
+        "p": 1.0,
+        "d": 0.0,
+        "significant": false
+      }
+    }
+  },
+  "raw_data": {},
+  "success": true,
+  "error_message": null,
+  "duration_seconds": 16.810335199999827
+}
