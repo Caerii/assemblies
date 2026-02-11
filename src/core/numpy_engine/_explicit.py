@@ -78,6 +78,7 @@ class NumpyExplicitEngine(ComputeEngine):
         from_stimuli: List[str],
         from_areas: List[str],
         plasticity_enabled: bool = True,
+        record_activation: bool = False,
     ) -> ProjectionResult:
         xp = get_xp()
         tgt = self._areas[target]

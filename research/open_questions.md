@@ -2,7 +2,7 @@
 
 A living document tracking **all** questions being explored in this project. Questions are organized by theme and status.
 
-*Last Updated: 2026-02-08*
+*Last Updated: 2026-02-11*
 
 ---
 
@@ -131,7 +131,21 @@ self-recurrence. This always worked — the confusion was that the `project()`
 calling `brain.project()` directly with explicit area→area routing works.
 **Evidence:** LRI tests (test_lri.py) and sequence recall (test_sequences.py)
 both use autonomous self-recurrence successfully.
-**Location:** `src/tests/test_lri.py`, `src/tests/test_sequences.py`  
+**Location:** `src/tests/test_lri.py`, `src/tests/test_sequences.py`
+
+### Q22: N400 = Global Pre-k-WTA Energy ✅ MAJOR FINDING
+**Status:** Completed — mechanism identified after 16 experimental conditions
+**Finding:** The N400 semantic priming effect in Assembly Calculus corresponds
+to `sum(all_inputs)` — total synaptic input before k-WTA selection — NOT to
+post-competition assembly overlap or neuron-specific activation.
+**Evidence:**
+- Global energy: d = -25 to -31, p < 0.001 (correct N400 direction)
+- Settling dynamics: d = -16 to -18, p = 0.001 (correct direction)
+- 13 prior post-k-WTA conditions all showed reversed direction
+- Neuron-specific pre-k-WTA metrics also reversed (competition effect)
+**Implication:** AC can model aggregate neural signals (ERPs), not just
+single-cell recordings. The pre-/post-k-WTA boundary is fundamental.
+**Location:** `research/experiments/applications/test_n400_pre_kwta.py`
 
 ---
 
@@ -154,10 +168,31 @@ both use autonomous self-recurrence successfully.
 ## 🎓 Applications
 
 ### Q16: Language Processing
-**Status:** Not Started  
-**Hypothesis:** Assembly calculus can model syntactic structure formation.  
-**Why It Matters:** Tests computational expressiveness  
-**Location:** `core_questions/Q16_language/`  
+**Status:** In Progress
+**Hypothesis:** Assembly calculus can model syntactic structure formation.
+**Why It Matters:** Tests computational expressiveness
+**Progress:** EmergentParser implements 44-area parser with grounded vocabulary,
+role binding, incremental processing, and curriculum learning.
+**Location:** `src/assembly_calculus/emergent/`, `research/experiments/applications/`
+
+### Q22: N400 Semantic Priming ✅ MAJOR FINDING
+**Status:** Completed — core mechanism identified
+**Hypothesis:** Assembly calculus can reproduce the N400 ERP (semantic priming facilitation).
+**Finding:** The N400 maps to **global pre-k-WTA energy** (`sum(all_inputs)` before
+winner-take-all selection), NOT to post-competition assembly overlap or neuron-specific
+activation. Related primes reduce global energy via Hebbian pre-activation of shared
+features; unrelated primes leave global energy higher.
+**Evidence:**
+- Global energy: Cohen's d = -25 to -31, p < 0.001 (CORRECT direction)
+- Settling dynamics: Cohen's d = -16 to -18, p = 0.001 (CORRECT direction)
+- Neuron-specific metrics: REVERSED (competition effect, as expected)
+- 13 post-k-WTA conditions across 3 prior experiments all showed reversed direction,
+  confirming the k-WTA boundary is the critical distinction
+**Insight:** The N400 ERP is a scalp-recorded aggregate signal reflecting total
+cortical energy, not single-neuron activity. `sum(all_inputs)` is the AC analogue.
+**Next Steps:** Parameter robustness, cloze probability, sentence context, P600.
+See `research/plans/N400_NEXT_STEPS.md`.
+**Location:** `research/experiments/applications/test_n400_pre_kwta.py`
 
 ### Q17: Memory Formation
 **Status:** Not Started  
@@ -205,9 +240,10 @@ both use autonomous self-recurrence successfully.
 - 🔲 Q02: Critical Phenomena - Map phase transitions
 - ✅ Q12: Learning Rules - VALIDATED (no catastrophic interference)
 - 🔲 Q06: Assembly Detection - Compare to real data
+- ✅ Q22: N400 Semantic Priming - MAJOR FINDING (global pre-k-WTA energy)
 
 ### Tier 3 (Applications)
-- 🔲 Q16: Language Processing
+- 🔄 Q16: Language Processing - In Progress (EmergentParser)
 - 🔲 Q17: Memory Formation
 - 🔲 Q13: Neural Oscillations
 
@@ -224,10 +260,10 @@ both use autonomous self-recurrence successfully.
 | Dynamics | 3 | 2 | 0 | 0 |
 | New Discoveries | 2 | 2 | 0 | 0 |
 | Implementation | 2 | 0 | 0 | 0 |
-| Applications | 2 | 0 | 0 | 0 |
+| Applications | 3 | 1 | 1 | 0 |
 | Meta | 2 | 0 | 2 | 0 |
 
-**Overall Progress:** 9 completed, 0 invalid, 12 remaining
+**Overall Progress:** 10 completed, 0 invalid, 12 remaining
 
 ---
 

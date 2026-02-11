@@ -365,7 +365,7 @@ class CudaImplicitEngine(NumpySparseEngine):
     # -- Override: GPU-optimized project_into --------------------------------
 
     def project_into(self, target, from_stimuli, from_areas,
-                     plasticity_enabled=True):
+                     plasticity_enabled=True, record_activation=False):
         """GPU-optimized projection with custom CUDA kernels.
 
         Same algorithm as NumpySparseEngine.project_into but with:
@@ -618,7 +618,8 @@ class CudaImplicitEngine(NumpySparseEngine):
     # -- Override: tight project_rounds loop ---------------------------------
 
     def project_rounds(self, target, from_stimuli, from_areas,
-                       rounds, plasticity_enabled=True):
+                       rounds, plasticity_enabled=True,
+                       record_activation=False):
         """Execute multiple projection rounds with minimal overhead.
 
         Pre-resolves references, runs optimized project_into per round,
@@ -627,7 +628,8 @@ class CudaImplicitEngine(NumpySparseEngine):
         result = None
         for _ in range(rounds):
             result = self.project_into(
-                target, from_stimuli, from_areas, plasticity_enabled)
+                target, from_stimuli, from_areas, plasticity_enabled,
+                record_activation=record_activation)
         return result
 
     # -- Override: hash-based connection reset ------------------------------

@@ -303,6 +303,7 @@ if _HAS_CUPY:
             from_areas: List[str],
             rounds: int,
             plasticity_enabled: bool = True,
+            record_activation: bool = False,
         ) -> ProjectionResult:
             """Multi-round projection keeping all state on GPU.
 
@@ -327,7 +328,8 @@ if _HAS_CUPY:
             result = None
             for _ in range(rounds):
                 result = self.project_into(
-                    target, from_stimuli, from_areas, plasticity_enabled)
+                    target, from_stimuli, from_areas, plasticity_enabled,
+                    record_activation=record_activation)
             return result
 
         # -----------------------------------------------------------------
@@ -338,6 +340,7 @@ if _HAS_CUPY:
             self,
             configs: List[tuple],
             plasticity_enabled: bool = True,
+            record_activation: bool = False,
         ) -> Dict[str, ProjectionResult]:
             """Project into multiple targets with shared GPU context.
 
@@ -348,7 +351,8 @@ if _HAS_CUPY:
             results = {}
             for target, stims, areas in configs:
                 results[target] = self.project_into(
-                    target, stims, areas, plasticity_enabled)
+                    target, stims, areas, plasticity_enabled,
+                    record_activation=record_activation)
             return results
 
         # -----------------------------------------------------------------

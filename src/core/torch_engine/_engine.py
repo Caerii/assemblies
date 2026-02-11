@@ -212,7 +212,7 @@ class TorchSparseEngine(ComputeEngine):
     # -- Projection (core operation) ----------------------------------------
 
     def project_into(self, target, from_stimuli, from_areas,
-                     plasticity_enabled=True):
+                     plasticity_enabled=True, record_activation=False):
         tgt = self._areas[target]
         rng = np.random.default_rng(self._rng.integers(0, 2**32))
 
@@ -291,6 +291,10 @@ class TorchSparseEngine(ComputeEngine):
         else:
             all_inputs = potential_new
 
+        # --- Snapshot raw prev_winner_inputs before penalties ---
+        if record_activation:
+            _raw_prev_t = prev_winner_inputs.clone()
+
         # --- LRI: penalise recently-fired neurons ---
         if (tgt.refractory_period > 0
                 and tgt.inhibition_strength > 0
@@ -321,6 +325,12 @@ class TorchSparseEngine(ComputeEngine):
             end = min(len(bias), len(all_inputs))
             if end > 0:
                 all_inputs[:end] -= bias[:end]
+
+        # --- Snapshot full all_inputs before top-k ---
+        if record_activation:
+            _pre_kwta_snapshot = all_inputs.detach().cpu().numpy().astype(
+                np.float32).copy()
+            _pre_kwta_total_val = float(all_inputs.sum().item())
 
         # --- Select top-k winners (torch.topk — single fused kernel) ---
         k = tgt.k
@@ -393,11 +403,17 @@ class TorchSparseEngine(ComputeEngine):
 
         total_act = float(all_inputs[new_winner_indices].sum().item())
 
-        return ProjectionResult(
+        result = ProjectionResult(
             winners=np.array(new_winner_indices, dtype=np.uint32),
             num_first_winners=num_first,
             num_ever_fired=new_w,
             total_activation=total_act)
+        if record_activation:
+            result.pre_kwta_inputs = _pre_kwta_snapshot
+            result.pre_kwta_prev_only = _raw_prev_t.cpu().numpy().astype(
+                np.float32)
+            result.pre_kwta_total = _pre_kwta_total_val
+        return result
 
     # -- Plasticity ---------------------------------------------------------
 
@@ -685,11 +701,13 @@ class TorchSparseEngine(ComputeEngine):
     # -- Tight projection loop ----------------------------------------------
 
     def project_rounds(self, target, from_stimuli, from_areas,
-                       rounds, plasticity_enabled=True):
+                       rounds, plasticity_enabled=True,
+                       record_activation=False):
         result = None
         for _ in range(rounds):
             result = self.project_into(
-                target, from_stimuli, from_areas, plasticity_enabled)
+                target, from_stimuli, from_areas, plasticity_enabled,
+                record_activation=record_activation)
         return result
 
     # -- Identity -----------------------------------------------------------

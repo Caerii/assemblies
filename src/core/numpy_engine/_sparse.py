@@ -115,6 +115,7 @@ class NumpySparseEngine(ComputeEngine):
         from_stimuli: List[str],
         from_areas: List[str],
         plasticity_enabled: bool = True,
+        record_activation: bool = False,
     ) -> ProjectionResult:
         xp = get_xp()
         tgt = self._areas[target]
@@ -195,6 +196,11 @@ class NumpySparseEngine(ComputeEngine):
         else:
             all_inputs = potential_new
 
+        # --- Snapshot raw prev_winner_inputs before penalties ---
+        if record_activation:
+            _raw_prev = np.array(to_cpu(prev_winner_inputs),
+                                 dtype=np.float32, copy=True)
+
         # --- LRI: penalise recently-fired neurons ---
         if (tgt.refractory_period > 0
                 and tgt.inhibition_strength > 0
@@ -215,6 +221,12 @@ class NumpySparseEngine(ComputeEngine):
             end = min(len(bias), len(all_inputs))
             if end > 0:
                 all_inputs[:end] -= bias[:end]
+
+        # --- Snapshot full all_inputs before top-k ---
+        if record_activation:
+            _pre_kwta_snapshot = np.array(to_cpu(all_inputs),
+                                          dtype=np.float32, copy=True)
+            _pre_kwta_total_val = float(xp.sum(all_inputs))
 
         # --- Select top-k winners ---
         new_winner_indices = self._winner_sel.heapq_select_top_k(
@@ -275,12 +287,17 @@ class NumpySparseEngine(ComputeEngine):
 
         total_act = float(xp.sum(all_inputs[new_winner_indices]))
 
-        return ProjectionResult(
+        result = ProjectionResult(
             winners=np.array(new_winner_indices, dtype=np.uint32),
             num_first_winners=num_first,
             num_ever_fired=new_w,
             total_activation=total_act,
         )
+        if record_activation:
+            result.pre_kwta_inputs = _pre_kwta_snapshot
+            result.pre_kwta_prev_only = _raw_prev
+            result.pre_kwta_total = _pre_kwta_total_val
+        return result
 
     # -- Plasticity ---------------------------------------------------------
 

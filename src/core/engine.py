@@ -40,6 +40,11 @@ class ProjectionResult:
     num_ever_fired: int     # total w (ever-fired count) after this step
     total_activation: float = 0.0  # sum of input signals to winners
 
+    # -- Pre-k-WTA activation data (only populated when record_activation=True) --
+    pre_kwta_inputs: Optional[np.ndarray] = None      # float32, full all_inputs before topk
+    pre_kwta_prev_only: Optional[np.ndarray] = None   # float32, prev_winner_inputs before penalties
+    pre_kwta_total: float = 0.0                        # sum of all_inputs (scalar)
+
 
 class ComputeEngine(ABC):
     """Abstract base for all compute backends.
@@ -90,6 +95,7 @@ class ComputeEngine(ABC):
         from_stimuli: List[str],
         from_areas: List[str],
         plasticity_enabled: bool = True,
+        record_activation: bool = False,
     ) -> ProjectionResult:
         """Execute one full projection cycle into the target area.
 
@@ -98,6 +104,10 @@ class ComputeEngine(ABC):
         2. Select top-k winners
         3. Apply Hebbian plasticity (if enabled)
         4. Expand connectivity for first-time winners
+
+        If *record_activation* is True, the result includes pre-k-WTA
+        activation snapshots (``pre_kwta_inputs``, ``pre_kwta_prev_only``,
+        ``pre_kwta_total``).
 
         Returns a :class:`ProjectionResult` with CPU numpy arrays.
         """
@@ -205,6 +215,7 @@ class ComputeEngine(ABC):
         self,
         configs: List[tuple],
         plasticity_enabled: bool = True,
+        record_activation: bool = False,
     ) -> Dict[str, "ProjectionResult"]:
         """Project into multiple target areas, potentially in parallel.
 
@@ -212,7 +223,9 @@ class ComputeEngine(ABC):
         Engines with batch-capable hardware may override for throughput.
         """
         return {
-            target: self.project_into(target, stims, areas, plasticity_enabled)
+            target: self.project_into(
+                target, stims, areas, plasticity_enabled,
+                record_activation=record_activation)
             for target, stims, areas in configs
         }
 
@@ -223,6 +236,7 @@ class ComputeEngine(ABC):
         from_areas: List[str],
         rounds: int,
         plasticity_enabled: bool = True,
+        record_activation: bool = False,
     ) -> "ProjectionResult":
         """Execute multiple projection rounds in a tight loop.
 
@@ -232,7 +246,8 @@ class ComputeEngine(ABC):
         result = None
         for _ in range(rounds):
             result = self.project_into(
-                target, from_stimuli, from_areas, plasticity_enabled)
+                target, from_stimuli, from_areas, plasticity_enabled,
+                record_activation=record_activation)
         return result
 
     # -- Identity --
