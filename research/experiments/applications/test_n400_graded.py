@@ -41,9 +41,8 @@ from typing import Dict, List, Any
 from research.experiments.base import (
     ExperimentBase, ExperimentResult, summarize, paired_ttest,
 )
-from research.experiments.applications.test_n400_pre_kwta import (
-    build_core_lexicon, measure_pre_kwta_activation,
-)
+from research.experiments.metrics import measure_pre_kwta_activation
+from research.experiments.infrastructure import build_core_lexicon
 from src.assembly_calculus.emergent import EmergentParser
 from src.assembly_calculus.emergent.grounding import GroundingContext
 from src.assembly_calculus.emergent.training_data import GroundedSentence

@@ -1,46 +1,70 @@
 """
-P600 Syntactic Violations — Global Energy in Role-Binding Areas
+P600 Syntactic Violations — Assembly Instability in Structural Areas
 
 The P600 is a positive ERP component peaking ~600ms post-stimulus,
-associated with syntactic violations and reanalysis. While the N400
-reflects semantic processing difficulty (measured in core areas), the
-P600 reflects syntactic processing difficulty (measured in role/syntactic
-areas).
+associated with syntactic violations and structural reanalysis. We model
+it as assembly INSTABILITY during structural integration: when projecting
+a word's core assembly into syntactic/role areas (SUBJ, OBJ, ROLE_AGENT,
+ROLE_PATIENT, VP), trained pathways produce stable assemblies that
+converge quickly, while untrained or weakly-trained pathways produce
+oscillating assemblies.
+
+Mechanism:
+  After a word settles in its core area, the parser attempts structural
+  integration by projecting core -> role/syntactic areas. For grammatical
+  continuations (e.g., "cat" after "the dog chases the"), NOUN_CORE ->
+  SUBJ/OBJ has Hebbian-strengthened weights from training -> assembly
+  converges quickly (low instability = small P600). For category violations
+  (e.g., "likes" [verb] in object position), VERB_CORE -> SUBJ/OBJ has
+  only random baseline weights (never trained) -> assembly oscillates
+  (high instability = large P600).
+
+P600 metrics (both measured, instability is primary after consolidation):
+  INSTABILITY: sum(1 - Jaccard(winners[r], winners[r-1])) across rounds
+  CUMULATIVE ENERGY: sum(pre_kwta_total) across settling rounds
+
+Consolidation pass:
+  After parser.train(), the parser calls reset_area_connections() on role
+  and VP areas, wiping all Hebbian-trained weights. We replay the same
+  role/phrase training WITHOUT reset, creating persistent Hebbian-strengthened
+  connections for trained pathways (NOUN_CORE→ROLE_AGENT, NOUN_CORE→VP, etc).
+  Untrained pathways (VERB_CORE→ROLE_*) retain only random baseline weights.
+  This asymmetry is what makes instability differentiate conditions.
 
 Design:
-- Train parser with role-binding on standard SVO sentences
-- Process test sentences word-by-word, measuring global pre-k-WTA
-  energy at the critical word (object position) in:
-  (a) the word's core area — N400 analogue (semantic access difficulty)
-  (b) role-binding areas — P600 analogue (syntactic integration difficulty)
+  C1 -- Grammatical: "the dog chases the cat" (trained noun as object)
+  C2 -- Semantic violation: "the dog chases the table" (untrained noun)
+  C3 -- Category violation: "the dog chases the likes" (verb as noun)
 
-Conditions:
-  C1 — Grammatical: "the dog chases the cat"
-  C2 — Semantic violation: "the dog chases the table"
-    (noun in correct position, but semantically incongruent)
-  C3 — Category violation: "the dog chases the likes"
-    (verb where noun expected — different verb from sentence verb)
-
-Measurement protocol:
-  N400: energy in core area DURING the first recurrent projection step
-  of the critical word (self-recurrence from subject noun's residual
-  assembly captures context-dependent facilitation).
-  P600: energy in ROLE_PATIENT when attempting to bind the critical
-  word to the patient role.
+N400 measurement:
+  Global pre-k-WTA energy in the core area DURING the first recurrent
+  projection step of the critical word. Self-recurrence from the subject
+  noun's residual assembly captures context-dependent facilitation.
 
 Predictions:
-  N400 (core): semviol > gram (table harder than cat in NOUN_CORE)
-               catviol: measured in VERB_CORE, not directly comparable
-  P600 (role): catviol > semviol > gram (role binding difficulty)
+  N400 (core energy): sem > gram (semantic access difficulty)
+  P600 (instability): cat > sem > gram (structural integration difficulty)
+  Double dissociation: N400 selective for semantic, P600 graded for syntactic
 
-This maps N400 to lexical access difficulty and P600 to syntactic
-integration difficulty, consistent with Kuperberg (2007).
+Bootstrap connectivity:
+  After training, some core->structural weight matrices remain empty (0x0
+  in sparse engine). We bootstrap by projecting through each pathway once
+  with plasticity OFF, materializing random binomial(p) baseline weights.
+  This models anatomical fibers that exist before learning.
 
-References:
-- Osterhout & Holcomb 1992: P600 discovery
-- Hagoort et al. 1993: P600 for syntactic violations
-- Kuperberg 2007: N400/P600 dissociation framework
-- research/claims/N400_GLOBAL_ENERGY.md: N400 claim
+Literature:
+  - Osterhout & Holcomb 1992: P600 discovery
+  - Hagoort et al. 1993, Hagoort 2005: P600 / MUC model
+  - Friederici 2002: P600 as Phase 3 reanalysis
+  - Vosse & Kempen 2000: P600 = settling time
+  - Brouwer & Crocker 2017: P600 = integration update cost
+  - Kuperberg 2007: N400/P600 biphasic model
+  - Lewis & Vasishth 2005: Cue-based retrieval interference
+  - van Herten et al. 2005: Semantic P600
+
+See also:
+  - research/plans/P600_REANALYSIS.md: design rationale and theory
+  - research/claims/N400_GLOBAL_ENERGY.md: N400 claim and evidence
 """
 
 import sys
@@ -57,13 +81,16 @@ from typing import Dict, List, Any
 from research.experiments.base import (
     ExperimentBase, ExperimentResult, summarize, paired_ttest,
 )
+from research.experiments.vocab import build_svo_vocab, build_svo_sentences
+from research.experiments.metrics import measure_p600_settling, compute_jaccard_instability
+from research.experiments.infrastructure import (
+    bootstrap_structural_connectivity,
+    consolidate_role_connections,
+    consolidate_vp_connections,
+)
 from src.assembly_calculus.emergent import EmergentParser
-from src.assembly_calculus.emergent.grounding import GroundingContext
-from src.assembly_calculus.emergent.training_data import GroundedSentence
 from src.assembly_calculus.emergent.areas import (
-    NOUN_CORE, VERB_CORE, DET_CORE, CORE_AREAS,
-    ROLE_AGENT, ROLE_PATIENT,
-    SUBJ, OBJ, VP,
+    ROLE_AGENT, ROLE_PATIENT, SUBJ, OBJ, VP,
 )
 from src.assembly_calculus.ops import project
 
@@ -76,71 +103,7 @@ class P600Config:
     beta: float = 0.05
     rounds: int = 10
     n_seeds: int = 5
-
-
-def _build_vocab():
-    """Standard vocabulary for syntactic tests."""
-    return {
-        # Animals (trained as subjects and objects)
-        "dog":    GroundingContext(visual=["DOG", "ANIMAL"]),
-        "cat":    GroundingContext(visual=["CAT", "ANIMAL"]),
-        "bird":   GroundingContext(visual=["BIRD", "ANIMAL"]),
-        "horse":  GroundingContext(visual=["HORSE", "ANIMAL"]),
-        "fish":   GroundingContext(visual=["FISH", "ANIMAL"]),
-        "mouse":  GroundingContext(visual=["MOUSE", "ANIMAL"]),
-        # Objects (never trained in sentences — semantic violations)
-        "table":  GroundingContext(visual=["TABLE", "FURNITURE"]),
-        "chair":  GroundingContext(visual=["CHAIR", "FURNITURE"]),
-        "book":   GroundingContext(visual=["BOOK", "OBJECT"]),
-        "ball":   GroundingContext(visual=["BALL", "TOY"]),
-        # Verbs (trained as actions)
-        "chases": GroundingContext(motor=["CHASING", "PURSUIT"]),
-        "sees":   GroundingContext(motor=["SEEING", "PERCEPTION"]),
-        "finds":  GroundingContext(motor=["FINDING", "PERCEPTION"]),
-        "likes":  GroundingContext(motor=["LIKING", "EMOTION"]),
-        # Function
-        "the":    GroundingContext(),
-    }
-
-
-def _build_training(vocab):
-    """Training sentences with role annotations."""
-    def ctx(w):
-        return vocab[w]
-
-    sentences = []
-    for _ in range(3):
-        for subj, verb, obj in [
-            ("dog", "chases", "cat"),
-            ("cat", "chases", "bird"),
-            ("bird", "sees", "fish"),
-            ("horse", "chases", "dog"),
-            ("dog", "sees", "bird"),
-            ("cat", "sees", "horse"),
-        ]:
-            sentences.append(GroundedSentence(
-                words=["the", subj, verb, "the", obj],
-                contexts=[ctx("the"), ctx(subj), ctx(verb),
-                          ctx("the"), ctx(obj)],
-                roles=[None, "agent", "action", None, "patient"],
-            ))
-
-    for subj, verb, obj in [
-        ("fish", "sees", "mouse"),
-        ("horse", "finds", "cat"),
-        ("dog", "finds", "mouse"),
-        ("bird", "chases", "horse"),
-        ("mouse", "sees", "dog"),
-        ("cat", "finds", "fish"),
-    ]:
-        sentences.append(GroundedSentence(
-            words=["the", subj, verb, "the", obj],
-            contexts=[ctx("the"), ctx(subj), ctx(verb),
-                      ctx("the"), ctx(obj)],
-            roles=[None, "agent", "action", None, "patient"],
-        ))
-
-    return sentences
+    p600_settling_rounds: int = 5
 
 
 # -- Energy measurement during sentence processing ----------------------------
@@ -151,21 +114,26 @@ def _measure_critical_word(
     critical_word: str,
     p600_areas: List[str],
     rounds: int,
+    p600_settling_rounds: int = 5,
 ) -> Dict[str, Any]:
-    """Process context words, then measure energy at the critical word.
+    """Process context words, then measure energy and settling at the critical word.
 
     N400 measurement: On the first recurrent projection step of the critical
     word into its core area, capture global pre-k-WTA energy. Self-recurrence
     from the subject noun's residual assembly (still active in NOUN_CORE)
     provides context-dependent facilitation.
 
-    P600 measurement: After projecting the critical word into its core area,
-    measure energy when projecting core -> role-binding area (ROLE_PATIENT).
+    P600 measurement: After the word settles in its core area, fix the core
+    assembly and run settling dynamics in structural areas. Measure assembly
+    instability (primary P600 metric) and cumulative energy (secondary).
 
     Returns dict with:
-      n400_energy: float  — global energy in core area during first recurrent step
-      p600_energies: {area: float}  — energy in each role/syntactic area
-      core_area: str  — which core area the word projected into
+      n400_energy: float  -- global energy in core area (N400 metric)
+      core_instability: float  -- Jaccard instability in core during settling
+      p600_instability: {area: float}  -- instability per structural area
+      p600_cumulative_energy: {area: float}  -- cumulative energy per area
+      p600_mean_instability: float  -- mean instability across active areas
+      core_area: str  -- which core area the word projected into
     """
     engine = parser.brain._engine
     brain = parser.brain
@@ -187,13 +155,20 @@ def _measure_critical_word(
     if crit_phon is None:
         return {
             "n400_energy": 0.0,
-            "p600_energies": {a: 0.0 for a in p600_areas},
+            "p600_instability": {a: 0.0 for a in p600_areas},
+            "p600_cumulative_energy": {a: 0.0 for a in p600_areas},
+            "p600_mean_instability": 0.0,
             "core_area": crit_core,
         }
 
-    # --- N400: measure during first projection WITH self-recurrence ---
+    # --- N400 + core instability: manual per-round projection ---
+    # Track winners at every round to compute core-area Jaccard instability
+    core_round_winners = []
+
     # Round 1: stimulus only (no recurrence), just like normal project()
     brain.project({crit_phon: [crit_core]}, {})
+    core_round_winners.append(
+        set(int(w) for w in brain.areas[crit_core].winners))
 
     # Round 2: stimulus + self-recurrence WITH record_activation
     # This is where context (residual assembly from subject noun) provides
@@ -208,41 +183,59 @@ def _measure_critical_word(
     n400_energy = n400_result.pre_kwta_total
 
     # Sync winners back to brain area
+    engine.set_winners(crit_core, n400_result.winners)
     brain.areas[crit_core].winners = n400_result.winners
     brain.areas[crit_core].w = n400_result.num_ever_fired
+    core_round_winners.append(
+        set(int(w) for w in n400_result.winners))
 
-    # Complete remaining rounds (normal processing)
-    if rounds > 2:
-        brain.project_rounds(
-            target=crit_core,
-            areas_by_stim={crit_phon: [crit_core]},
-            dst_areas_by_src_area={crit_core: [crit_core]},
-            rounds=rounds - 2,
+    # Remaining rounds: stimulus + self-recurrence, track winners each round
+    for _r in range(2, rounds):
+        rr = engine.project_into(
+            crit_core,
+            from_stimuli=[crit_phon],
+            from_areas=[crit_core],
+            plasticity_enabled=True,
+            record_activation=False,
         )
+        engine.set_winners(crit_core, rr.winners)
+        brain.areas[crit_core].winners = rr.winners
+        brain.areas[crit_core].w = rr.num_ever_fired
+        core_round_winners.append(
+            set(int(w) for w in rr.winners))
 
-    # --- P600: measure role-binding energy ---
-    # After word is settled in core area, attempt role binding
-    # and measure energy in role/syntactic areas
-    p600_energies = {}
-    for area in p600_areas:
-        if area not in brain.areas:
-            p600_energies[area] = 0.0
-            continue
-        try:
-            p600_result = engine.project_into(
-                area,
-                from_stimuli=[],
-                from_areas=[crit_core, area],
-                plasticity_enabled=False,
-                record_activation=True,
-            )
-            p600_energies[area] = p600_result.pre_kwta_total
-        except (IndexError, KeyError):
-            p600_energies[area] = 0.0
+    # Core-area instability: how much the assembly changes during settling
+    # Trained words (via self-recurrence) should converge faster
+    core_instability = compute_jaccard_instability(core_round_winners)
+
+    # --- P600: settling dynamics in structural areas ---
+    # Fix core assembly (stable lexical representation by ~600ms)
+    engine.fix_assembly(crit_core)
+
+    # Measure settling instability across structural areas
+    p600_results = measure_p600_settling(
+        engine, brain, crit_core, p600_areas, p600_settling_rounds,
+    )
+
+    # Unfix core assembly
+    engine.unfix_assembly(crit_core)
+
+    # Extract metrics
+    p600_instability = {a: p600_results[a]["instability"] for a in p600_areas}
+    p600_cum_energy = {
+        a: p600_results[a]["cumulative_energy"] for a in p600_areas
+    }
+
+    # Mean instability across areas with non-zero values
+    nonzero_inst = [v for v in p600_instability.values() if v > 0]
+    mean_instability = float(np.mean(nonzero_inst)) if nonzero_inst else 0.0
 
     return {
         "n400_energy": n400_energy,
-        "p600_energies": p600_energies,
+        "core_instability": core_instability,
+        "p600_instability": p600_instability,
+        "p600_cumulative_energy": p600_cum_energy,
+        "p600_mean_instability": mean_instability,
         "core_area": crit_core,
     }
 
@@ -257,9 +250,6 @@ def _make_test_sentences(vocab):
     - Semantic violation: untrained object-category noun
     - Category violation: verb in object position (DIFFERENT from sentence verb)
     """
-    def ctx(w):
-        return vocab[w]
-
     tests = []
 
     # Triple 1: "the dog chases the ___"
@@ -302,7 +292,12 @@ def _make_test_sentences(vocab):
 
 
 class P600SyntacticExperiment(ExperimentBase):
-    """Test P600 via global energy in role/syntactic areas."""
+    """Test P600 via assembly instability in structural areas.
+
+    Combines N400 measurement (global pre-k-WTA energy in core area) with
+    P600 measurement (assembly instability during structural integration)
+    to test for double dissociation between semantic and syntactic processing.
+    """
 
     def __init__(self, results_dir=None, seed=42, verbose=True):
         super().__init__(
@@ -320,26 +315,33 @@ class P600SyntacticExperiment(ExperimentBase):
         if quick:
             cfg.n_seeds = 3
 
-        vocab = _build_vocab()
-        training = _build_training(vocab)
+        vocab = build_svo_vocab()
+        training = build_svo_sentences(vocab)
         test_sentences = _make_test_sentences(vocab)
         seeds = list(range(cfg.n_seeds))
 
         p600_areas = [ROLE_AGENT, ROLE_PATIENT, SUBJ, OBJ, VP]
 
         # Per-seed accumulators
-        # N400: core area energy (only comparable for gram vs semviol, both NOUN_CORE)
         n400_gram_seeds = []
         n400_semviol_seeds = []
         n400_catviol_seeds = []
-        # P600: mean role-binding area energy (comparable across all conditions)
-        p600_gram_seeds = []
-        p600_semviol_seeds = []
-        p600_catviol_seeds = []
-        # Per-area P600 for detailed analysis
-        p600_per_area_gram = {a: [] for a in p600_areas}
-        p600_per_area_sem = {a: [] for a in p600_areas}
-        p600_per_area_cat = {a: [] for a in p600_areas}
+        # Core-area instability (Jaccard during word settling in core area)
+        core_inst_gram_seeds = []
+        core_inst_semviol_seeds = []
+        core_inst_catviol_seeds = []
+        # P600 structural instability (with consolidation)
+        p600_inst_gram_seeds = []
+        p600_inst_semviol_seeds = []
+        p600_inst_catviol_seeds = []
+        # P600 cumulative energy
+        p600_cum_gram_seeds = []
+        p600_cum_semviol_seeds = []
+        p600_cum_catviol_seeds = []
+        # Per-area P600 instability for detailed analysis
+        p600_per_area_inst_gram = {a: [] for a in p600_areas}
+        p600_per_area_inst_sem = {a: [] for a in p600_areas}
+        p600_per_area_inst_cat = {a: [] for a in p600_areas}
 
         for seed_idx, seed in enumerate(seeds):
             self.log(f"\n=== Seed {seed_idx + 1}/{len(seeds)} ===")
@@ -350,11 +352,28 @@ class P600SyntacticExperiment(ExperimentBase):
             )
             parser.train(sentences=training)
 
+            # Bootstrap FIRST: materialize random baseline weights for all
+            # empty core->structural pairs. Must come before consolidation
+            # because empty weights trigger the zero-signal early return,
+            # preventing consolidation projections from running.
+            bootstrap_structural_connectivity(
+                parser, p600_areas, log_fn=self.log)
+
+            # Consolidation SECOND: replay role/phrase training WITHOUT reset.
+            # Now that random baseline weights exist, Hebbian learning can
+            # strengthen the trained pathways above baseline.
+            consolidate_role_connections(
+                parser, training, log_fn=self.log)
+            consolidate_vp_connections(
+                parser, training, log_fn=self.log)
+
             n400_gram, n400_sem, n400_cat = [], [], []
-            p600_gram, p600_sem, p600_cat = [], [], []
-            area_gram = {a: [] for a in p600_areas}
-            area_sem = {a: [] for a in p600_areas}
-            area_cat = {a: [] for a in p600_areas}
+            cinst_gram, cinst_sem, cinst_cat = [], [], []  # core instability
+            inst_gram, inst_sem, inst_cat = [], [], []
+            cum_gram, cum_sem, cum_cat = [], [], []
+            area_inst_gram = {a: [] for a in p600_areas}
+            area_inst_sem = {a: [] for a in p600_areas}
+            area_inst_cat = {a: [] for a in p600_areas}
 
             for test in test_sentences:
                 for cond_label, cond_key in [
@@ -365,51 +384,75 @@ class P600SyntacticExperiment(ExperimentBase):
                     critical_word = test[cond_key]
                     result = _measure_critical_word(
                         parser, test["context_words"], critical_word,
-                        p600_areas, cfg.rounds,
+                        p600_areas, cfg.rounds, cfg.p600_settling_rounds,
                     )
 
                     n400_val = result["n400_energy"]
-                    p600_mean = float(np.mean([
-                        result["p600_energies"].get(a, 0.0)
+                    core_inst_val = result["core_instability"]
+                    mean_inst = result["p600_mean_instability"]
+                    mean_cum = float(np.mean([
+                        result["p600_cumulative_energy"].get(a, 0.0)
                         for a in p600_areas
                     ]))
 
                     if cond_label == "gram":
                         n400_gram.append(n400_val)
-                        p600_gram.append(p600_mean)
+                        cinst_gram.append(core_inst_val)
+                        inst_gram.append(mean_inst)
+                        cum_gram.append(mean_cum)
                         for a in p600_areas:
-                            area_gram[a].append(result["p600_energies"].get(a, 0.0))
+                            area_inst_gram[a].append(
+                                result["p600_instability"].get(a, 0.0))
                     elif cond_label == "semviol":
                         n400_sem.append(n400_val)
-                        p600_sem.append(p600_mean)
+                        cinst_sem.append(core_inst_val)
+                        inst_sem.append(mean_inst)
+                        cum_sem.append(mean_cum)
                         for a in p600_areas:
-                            area_sem[a].append(result["p600_energies"].get(a, 0.0))
+                            area_inst_sem[a].append(
+                                result["p600_instability"].get(a, 0.0))
                     elif cond_label == "catviol":
                         n400_cat.append(n400_val)
-                        p600_cat.append(p600_mean)
+                        cinst_cat.append(core_inst_val)
+                        inst_cat.append(mean_inst)
+                        cum_cat.append(mean_cum)
                         for a in p600_areas:
-                            area_cat[a].append(result["p600_energies"].get(a, 0.0))
+                            area_inst_cat[a].append(
+                                result["p600_instability"].get(a, 0.0))
 
             if n400_gram:
                 n400_gram_seeds.append(float(np.mean(n400_gram)))
                 n400_semviol_seeds.append(float(np.mean(n400_sem)))
                 n400_catviol_seeds.append(float(np.mean(n400_cat)))
-                p600_gram_seeds.append(float(np.mean(p600_gram)))
-                p600_semviol_seeds.append(float(np.mean(p600_sem)))
-                p600_catviol_seeds.append(float(np.mean(p600_cat)))
+                core_inst_gram_seeds.append(float(np.mean(cinst_gram)))
+                core_inst_semviol_seeds.append(float(np.mean(cinst_sem)))
+                core_inst_catviol_seeds.append(float(np.mean(cinst_cat)))
+                p600_inst_gram_seeds.append(float(np.mean(inst_gram)))
+                p600_inst_semviol_seeds.append(float(np.mean(inst_sem)))
+                p600_inst_catviol_seeds.append(float(np.mean(inst_cat)))
+                p600_cum_gram_seeds.append(float(np.mean(cum_gram)))
+                p600_cum_semviol_seeds.append(float(np.mean(cum_sem)))
+                p600_cum_catviol_seeds.append(float(np.mean(cum_cat)))
                 for a in p600_areas:
-                    p600_per_area_gram[a].append(float(np.mean(area_gram[a])))
-                    p600_per_area_sem[a].append(float(np.mean(area_sem[a])))
-                    p600_per_area_cat[a].append(float(np.mean(area_cat[a])))
+                    p600_per_area_inst_gram[a].append(
+                        float(np.mean(area_inst_gram[a])))
+                    p600_per_area_inst_sem[a].append(
+                        float(np.mean(area_inst_sem[a])))
+                    p600_per_area_inst_cat[a].append(
+                        float(np.mean(area_inst_cat[a])))
 
                 self.log(
                     f"  N400 (core): gram={np.mean(n400_gram):.1f}  "
                     f"sem={np.mean(n400_sem):.1f}  "
                     f"cat={np.mean(n400_cat):.1f}")
                 self.log(
-                    f"  P600 (role): gram={np.mean(p600_gram):.1f}  "
-                    f"sem={np.mean(p600_sem):.1f}  "
-                    f"cat={np.mean(p600_cat):.1f}")
+                    f"  Core instability: gram={np.mean(cinst_gram):.3f}  "
+                    f"sem={np.mean(cinst_sem):.3f}  "
+                    f"cat={np.mean(cinst_cat):.3f}")
+                self.log(
+                    f"  P600 (struct instability): gram={np.mean(inst_gram):.3f}  "
+                    f"sem={np.mean(inst_sem):.3f}  "
+                    f"cat={np.mean(inst_cat):.3f}")
 
         # ===== Analysis =====
         self.log(f"\n{'='*70}")
@@ -425,7 +468,8 @@ class P600SyntacticExperiment(ExperimentBase):
                 experiment_name=self.name,
                 parameters={"n": cfg.n, "k": cfg.k, "p": cfg.p,
                              "beta": cfg.beta, "rounds": cfg.rounds,
-                             "n_seeds": cfg.n_seeds},
+                             "n_seeds": cfg.n_seeds,
+                             "p600_settling_rounds": cfg.p600_settling_rounds},
                 metrics=metrics, duration_seconds=duration)
             self.save_result(result)
             return result
@@ -452,14 +496,57 @@ class P600SyntacticExperiment(ExperimentBase):
                 "test": stats, "direction": direction,
             }
 
-        # --- P600 analysis (role-binding area energy) ---
-        self.log("\nP600 (role/syntactic area energy — mean across areas)")
-        self.log("  Prediction: catviol > semviol > gram")
+        # --- Core-area instability (Jaccard in core during word settling) ---
+        self.log("\nCORE-AREA INSTABILITY (Jaccard during word settling)")
+        self.log("  Prediction: sem > gram (untrained settles slower in NOUN_CORE)")
+        self.log("  Note: catviol is in VERB_CORE (different area, not comparable)")
 
         for label, a, b in [
-            ("cat_vs_gram", p600_catviol_seeds, p600_gram_seeds),
-            ("sem_vs_gram", p600_semviol_seeds, p600_gram_seeds),
-            ("cat_vs_sem", p600_catviol_seeds, p600_semviol_seeds),
+            ("sem_vs_gram", core_inst_semviol_seeds, core_inst_gram_seeds),
+            ("cat_vs_gram", core_inst_catviol_seeds, core_inst_gram_seeds),
+        ]:
+            stats = paired_ttest(a, b)
+            a_s = summarize(a)
+            b_s = summarize(b)
+            direction = ("HIGHER_INSTAB" if a_s["mean"] > b_s["mean"]
+                         else "LOWER_INSTAB")
+            self.log(f"  {label}: viol={a_s['mean']:.4f}  "
+                     f"gram={b_s['mean']:.4f}  "
+                     f"d={stats['d']:.3f}  p={stats['p']:.4f}  {direction}")
+            metrics[f"core_inst_{label}"] = {
+                "violation": a_s, "grammatical": b_s,
+                "test": stats, "direction": direction,
+            }
+
+        # --- P600 analysis: STRUCTURAL INSTABILITY (primary P600 metric) ---
+        self.log("\nP600 STRUCTURAL INSTABILITY (primary — with consolidated connections)")
+        self.log("  Prediction: catviol > semviol > gram")
+        self.log("  Higher instability = larger P600 = harder integration")
+
+        for label, a, b in [
+            ("cat_vs_gram", p600_inst_catviol_seeds, p600_inst_gram_seeds),
+            ("sem_vs_gram", p600_inst_semviol_seeds, p600_inst_gram_seeds),
+            ("cat_vs_sem", p600_inst_catviol_seeds, p600_inst_semviol_seeds),
+        ]:
+            stats = paired_ttest(a, b)
+            a_s = summarize(a)
+            b_s = summarize(b)
+            direction = "P600_EFFECT" if a_s["mean"] > b_s["mean"] else "NO_P600"
+            self.log(f"  {label}: a={a_s['mean']:.4f}  "
+                     f"b={b_s['mean']:.4f}  "
+                     f"d={stats['d']:.3f}  p={stats['p']:.4f}  {direction}")
+            metrics[f"p600_inst_{label}"] = {
+                "a": a_s, "b": b_s,
+                "test": stats, "direction": direction,
+            }
+
+        # --- P600 analysis: CUMULATIVE ENERGY (secondary — reversed after consolidation) ---
+        self.log("\nP600 CUMULATIVE ENERGY (note: reversed after consolidation)")
+
+        for label, a, b in [
+            ("cat_vs_gram", p600_cum_catviol_seeds, p600_cum_gram_seeds),
+            ("sem_vs_gram", p600_cum_semviol_seeds, p600_cum_gram_seeds),
+            ("cat_vs_sem", p600_cum_catviol_seeds, p600_cum_semviol_seeds),
         ]:
             stats = paired_ttest(a, b)
             a_s = summarize(a)
@@ -468,24 +555,41 @@ class P600SyntacticExperiment(ExperimentBase):
             self.log(f"  {label}: a={a_s['mean']:.1f}  "
                      f"b={b_s['mean']:.1f}  "
                      f"d={stats['d']:.3f}  p={stats['p']:.4f}  {direction}")
-            metrics[f"p600_{label}"] = {
+            metrics[f"p600_cum_{label}"] = {
                 "a": a_s, "b": b_s,
                 "test": stats, "direction": direction,
             }
 
-        # --- Per-area P600 breakdown ---
-        self.log(f"\nP600 per-area breakdown (category violation vs grammatical)")
+        # --- Per-area P600 instability breakdown ---
+        self.log(f"\nP600 instability per area (category violation vs grammatical)")
         for area in p600_areas:
-            if len(p600_per_area_gram[area]) >= 2:
+            if len(p600_per_area_inst_gram[area]) >= 2:
                 stats = paired_ttest(
-                    p600_per_area_cat[area], p600_per_area_gram[area])
-                cat_s = summarize(p600_per_area_cat[area])
-                gram_s = summarize(p600_per_area_gram[area])
-                self.log(f"  {area:<15}: cat={cat_s['mean']:.1f}  "
-                         f"gram={gram_s['mean']:.1f}  "
+                    p600_per_area_inst_cat[area],
+                    p600_per_area_inst_gram[area])
+                cat_s = summarize(p600_per_area_inst_cat[area])
+                gram_s = summarize(p600_per_area_inst_gram[area])
+                self.log(f"  {area:<15}: cat={cat_s['mean']:.4f}  "
+                         f"gram={gram_s['mean']:.4f}  "
                          f"d={stats['d']:.3f}  p={stats['p']:.4f}")
                 metrics[f"p600_per_area_{area}"] = {
                     "category_violation": cat_s, "grammatical": gram_s,
+                    "test": stats,
+                }
+
+        self.log(f"\nP600 instability per area (semantic violation vs grammatical)")
+        for area in p600_areas:
+            if len(p600_per_area_inst_gram[area]) >= 2:
+                stats = paired_ttest(
+                    p600_per_area_inst_sem[area],
+                    p600_per_area_inst_gram[area])
+                sem_s = summarize(p600_per_area_inst_sem[area])
+                gram_s = summarize(p600_per_area_inst_gram[area])
+                self.log(f"  {area:<15}: sem={sem_s['mean']:.4f}  "
+                         f"gram={gram_s['mean']:.4f}  "
+                         f"d={stats['d']:.3f}  p={stats['p']:.4f}")
+                metrics[f"p600_per_area_sem_{area}"] = {
+                    "semantic_violation": sem_s, "grammatical": gram_s,
                     "test": stats,
                 }
 
@@ -495,9 +599,16 @@ class P600SyntacticExperiment(ExperimentBase):
         self.log(f"{'-'*70}")
 
         n400_sem = metrics.get("n400_sem_vs_gram", {})
-        p600_cat = metrics.get("p600_cat_vs_gram", {})
-        p600_sem = metrics.get("p600_sem_vs_gram", {})
-        p600_cat_vs_sem = metrics.get("p600_cat_vs_sem", {})
+        # P600 cumulative energy (total structural processing cost)
+        p600_cat = metrics.get("p600_cum_cat_vs_gram", {})
+        p600_sem = metrics.get("p600_cum_sem_vs_gram", {})
+        p600_cat_vs_sem = metrics.get("p600_cum_cat_vs_sem", {})
+        # P600 structural instability (with consolidation)
+        inst_cat = metrics.get("p600_inst_cat_vs_gram", {})
+        inst_sem_m = metrics.get("p600_inst_sem_vs_gram", {})
+        inst_cat_sem = metrics.get("p600_inst_cat_vs_sem", {})
+        # Core-area instability
+        core_sem = metrics.get("core_inst_sem_vs_gram", {})
 
         sem_n400_d = n400_sem.get("test", {}).get("d", 0)
         sem_n400_p = n400_sem.get("test", {}).get("p", 1)
@@ -505,28 +616,59 @@ class P600SyntacticExperiment(ExperimentBase):
         cat_p600_p = p600_cat.get("test", {}).get("p", 1)
         sem_p600_d = p600_sem.get("test", {}).get("d", 0)
         sem_p600_p = p600_sem.get("test", {}).get("p", 1)
+        cat_sem_d = p600_cat_vs_sem.get("test", {}).get("d", 0)
+        cat_sem_p = p600_cat_vs_sem.get("test", {}).get("p", 1)
 
-        self.log(f"  N400 for semantic violation: d={sem_n400_d:.3f} p={sem_n400_p:.4f}")
-        self.log(f"  P600 for category violation: d={cat_p600_d:.3f} p={cat_p600_p:.4f}")
-        self.log(f"  P600 for semantic violation: d={sem_p600_d:.3f} p={sem_p600_p:.4f}")
+        self.log(f"  N400 energy (sem vs gram):      d={sem_n400_d:.3f} p={sem_n400_p:.4f}")
 
-        # N400 selective = semantic violation produces N400
+        core_sem_d = core_sem.get("test", {}).get("d", 0)
+        core_sem_p = core_sem.get("test", {}).get("p", 1)
+        self.log(f"  Core instability (sem vs gram):  d={core_sem_d:.3f} p={core_sem_p:.4f}")
+
+        self.log(f"  P600 cum energy (cat vs gram):  d={cat_p600_d:.3f} p={cat_p600_p:.4f}")
+        self.log(f"  P600 cum energy (sem vs gram):  d={sem_p600_d:.3f} p={sem_p600_p:.4f}")
+        self.log(f"  P600 cum energy (cat vs sem):   d={cat_sem_d:.3f} p={cat_sem_p:.4f}")
+
+        inst_cat_d = inst_cat.get("test", {}).get("d", 0)
+        inst_cat_p = inst_cat.get("test", {}).get("p", 1)
+        inst_sem_d = inst_sem_m.get("test", {}).get("d", 0)
+        inst_sem_p = inst_sem_m.get("test", {}).get("p", 1)
+        inst_cs_d = inst_cat_sem.get("test", {}).get("d", 0)
+        inst_cs_p = inst_cat_sem.get("test", {}).get("p", 1)
+        self.log(f"  Struct instab (cat vs gram):    d={inst_cat_d:.3f} p={inst_cat_p:.4f}")
+        self.log(f"  Struct instab (sem vs gram):    d={inst_sem_d:.3f} p={inst_sem_p:.4f}")
+        self.log(f"  Struct instab (cat vs sem):     d={inst_cs_d:.3f} p={inst_cs_p:.4f}")
+
         n400_works = (n400_sem.get("direction") == "N400_EFFECT" and
                       sem_n400_p < 0.05)
-        # P600 selective = category violation produces larger P600 than semantic
-        p600_works = (p600_cat.get("direction") == "P600_EFFECT" and
-                      cat_p600_p < 0.05)
-        p600_graded = (p600_cat_vs_sem.get("direction") == "P600_EFFECT" and
-                       p600_cat_vs_sem.get("test", {}).get("p", 1) < 0.05)
+        p600_cum_works = (p600_cat.get("direction") == "P600_EFFECT" and
+                          cat_p600_p < 0.05)
+        p600_inst_works = (inst_cat.get("direction") == "P600_EFFECT" and
+                           inst_cat_p < 0.05)
+        p600_graded_cum = (p600_cat_vs_sem.get("direction") == "P600_EFFECT"
+                           and cat_sem_p < 0.10)
+        p600_graded_inst = (inst_cat_sem.get("direction") == "P600_EFFECT"
+                            and inst_cs_p < 0.10)
+        core_inst_works = (core_sem.get("direction") == "HIGHER_INSTAB" and
+                           core_sem_p < 0.05)
+        double_dissoc = n400_works and (p600_cum_works or p600_inst_works)
 
-        self.log(f"\n  N400 for semantic anomaly: {'YES' if n400_works else 'NO'}")
-        self.log(f"  P600 for syntactic anomaly: {'YES' if p600_works else 'NO'}")
-        self.log(f"  P600 graded (cat > sem): {'YES' if p600_graded else 'NO'}")
+        self.log(f"\n  N400 for semantic anomaly:      {'YES' if n400_works else 'NO'}")
+        self.log(f"  Core instability (sem > gram):   {'YES' if core_inst_works else 'NO'}")
+        self.log(f"  P600 cum energy (cat > gram):    {'YES' if p600_cum_works else 'NO'}")
+        self.log(f"  P600 instability (cat > gram):   {'YES' if p600_inst_works else 'NO'}")
+        self.log(f"  P600 graded cum (cat > sem):     {'YES' if p600_graded_cum else 'NO'}")
+        self.log(f"  P600 graded instab (cat > sem):  {'YES' if p600_graded_inst else 'NO'}")
+        self.log(f"  Double dissociation:             {'YES' if double_dissoc else 'NO'}")
 
         metrics["dissociation"] = {
             "n400_semantic": n400_works,
-            "p600_syntactic": p600_works,
-            "p600_graded": p600_graded,
+            "core_instability_semantic": core_inst_works,
+            "p600_cum_syntactic": p600_cum_works,
+            "p600_inst_syntactic": p600_inst_works,
+            "p600_graded_cum": p600_graded_cum,
+            "p600_graded_inst": p600_graded_inst,
+            "double_dissociation": double_dissoc,
         }
 
         duration = self._stop_timer()
@@ -536,6 +678,7 @@ class P600SyntacticExperiment(ExperimentBase):
                 "n": cfg.n, "k": cfg.k, "p": cfg.p,
                 "beta": cfg.beta, "rounds": cfg.rounds,
                 "n_seeds": cfg.n_seeds,
+                "p600_settling_rounds": cfg.p600_settling_rounds,
                 "p600_areas": p600_areas,
             },
             metrics=metrics,

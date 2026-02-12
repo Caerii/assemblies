@@ -31,11 +31,12 @@ from itertools import product
 from research.experiments.base import (
     ExperimentBase, ExperimentResult, summarize, paired_ttest,
 )
-from research.experiments.applications.test_n400_pre_kwta import (
-    _build_vocab, _build_training, PRIMING_TESTS,
-    build_core_lexicon, measure_pre_kwta_activation,
-    measure_settling_dynamics,
+from research.experiments.applications.test_n400_pre_kwta import PRIMING_TESTS
+from research.experiments.vocab import build_standard_vocab, build_priming_pairs
+from research.experiments.metrics import (
+    measure_pre_kwta_activation, measure_settling_dynamics,
 )
+from research.experiments.infrastructure import build_core_lexicon
 from src.assembly_calculus.emergent import EmergentParser
 
 
@@ -101,8 +102,8 @@ class N400ParameterSweepExperiment(ExperimentBase):
         cfg = _quick_config() if quick else _full_config()
         engine = kwargs.get("engine", "numpy_sparse")
 
-        vocab = _build_vocab()
-        training = _build_training(vocab)
+        vocab = build_standard_vocab()
+        training = build_priming_pairs(vocab)
 
         test_words = set()
         for target, rel, unrel in PRIMING_TESTS:

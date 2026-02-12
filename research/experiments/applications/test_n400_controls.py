@@ -40,10 +40,9 @@ from typing import Dict, List, Any
 from research.experiments.base import (
     ExperimentBase, ExperimentResult, summarize, paired_ttest,
 )
-from research.experiments.applications.test_n400_pre_kwta import (
-    _build_vocab, _build_training,
-    build_core_lexicon, measure_pre_kwta_activation,
-)
+from research.experiments.vocab import build_standard_vocab, build_priming_pairs
+from research.experiments.metrics import measure_pre_kwta_activation
+from research.experiments.infrastructure import build_core_lexicon
 from src.assembly_calculus.emergent import EmergentParser
 
 
@@ -150,8 +149,8 @@ class N400ControlsExperiment(ExperimentBase):
         if quick:
             cfg.n_seeds = 3
 
-        vocab = _build_vocab()
-        training = _build_training(vocab)
+        vocab = build_standard_vocab()
+        training = build_priming_pairs(vocab)
 
         test_words = set()
         for tests in [SEMANTIC_TESTS, SHUFFLED_TESTS, CROSS_CATEGORY_TESTS]:
