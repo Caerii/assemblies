@@ -129,27 +129,61 @@ co-occurrence frequency doesn't create additional Hebbian differentiation.
 References: `research/experiments/applications/test_n400_graded.py`,
 `research/results/applications/n400_graded_*.json`
 
-### Sentence-Level N400 (test_p600_syntactic.py)
+### Sentence-Level N400 and P600 Triple Dissociation (test_p600_syntactic.py)
 
 The N400 mechanism extends from word-pair priming to sentence processing.
-Measured DURING the first recurrent projection step of the critical word
-(object position in SVO sentences), where self-recurrence from the subject
-noun's residual assembly in NOUN_CORE provides context-dependent facilitation.
+Three distinct metrics capture three processing stages:
 
-| Condition | Mean energy | vs gram d | p |
-|-----------|-----------|-----------|---|
-| Grammatical ("the dog chases the cat") | 21769 | — | — |
-| Semantic violation ("the dog chases the table") | 23147 | 6.9 | 0.007 |
+| Condition | N400 (core energy) | Core instability | P600 (struct instability) |
+|-----------|-------------------|-----------------|--------------------------|
+| Grammatical ("the dog chases the cat") | 23537 (LOW) | 1.33 (LOW) | 1.14 (LOW) |
+| Semantic violation ("the dog chases the table") | 24872 (HIGH) | 3.75 (HIGH) | 1.15 (NULL) |
+| Category violation ("the dog chases the likes") | 15303 (VERB_CORE) | 2.03 (MED) | 1.59 (HIGH) |
 
-Semantic violations produce elevated core area energy (d=6.9, p=0.007),
-confirming the N400 mechanism operates in sentence context. The facilitation
-arises from within-area Hebbian weights: "dog" and "cat" share ANIMAL
-features, so dog's assembly pre-activates cat's neurons via self-recurrence.
-"table" (FURNITURE) receives no such facilitation.
+**N400 (core area energy):** Semantic violations produce elevated NOUN_CORE
+energy (d=7.9, p=0.0001), confirming the N400 mechanism operates in sentence
+context. The facilitation arises from within-area Hebbian weights: "dog" and
+"cat" share ANIMAL features, so dog's assembly pre-activates cat's neurons
+via self-recurrence. "table" (FURNITURE) receives no such facilitation.
 
-Note: Semantic violations also elevate role-binding energy in SUBJ/OBJ
-areas (d=17.5, p=0.001), consistent with the "semantic P600" literature
-(Kuperberg 2007, van Herten et al. 2005).
+**Core-area instability:** Untrained nouns ("table") show dramatically
+higher Jaccard instability within NOUN_CORE during word settling
+(d=32.7, p<0.0001). Without Hebbian-trained self-recurrence, the assembly
+wobbles across rounds (instability 3.75 vs 1.33). Trained nouns converge
+in 1-2 rounds. This captures lexical-semantic settling difficulty.
+
+**P600 (structural instability after consolidation):** After replaying
+role/phrase training without `reset_area_connections()`, the experiment
+creates Hebbian-strengthened connections for trained pathways
+(NOUN_CORE→ROLE_AGENT, NOUN_CORE→VP) while untrained pathways
+(VERB_CORE→ROLE_*) retain only random baseline weights. Category
+violations then show elevated instability during structural integration:
+
+| Comparison | d | p | Direction |
+|-----------|---|---|-----------|
+| cat vs gram | 5.7 | 0.0002 | P600_EFFECT ✓ |
+| sem vs gram | 0.11 | 0.814 | null (correct) |
+| cat vs sem | 5.6 | 0.0002 | P600_EFFECT (graded) ✓ |
+
+The P600 instability metric is correctly **selective for structural
+violations** — semantic violations show null P600. This matches the
+neurolinguistic literature: category violations (wrong word class)
+produce the largest P600, while semantic violations primarily affect
+the N400 (Friederici 2002, Kuperberg 2007).
+
+Per-area breakdown confirms the mechanism:
+- **ROLE_AGENT** (consolidated): gram=0.13, cat=1.54, d=39.1
+- **ROLE_PATIENT** (consolidated): gram=0.08, cat=1.57, d=26.2
+- **VP** (consolidated): gram=0.05, cat=0.15, d=4.4
+- **SUBJ/OBJ** (random only): Near ceiling (~2.3-2.4 for all)
+
+**Triple dissociation achieved:**
+1. **N400 (core energy)**: Selective for SEMANTIC anomalies
+2. **Core instability**: Lexical-semantic settling difficulty
+3. **P600 (structural instability)**: Selective for STRUCTURAL anomalies
+
+See `research/plans/P600_REANALYSIS.md` for theoretical background,
+consolidation rationale, and the settling time interpretation.
 
 References: `research/experiments/applications/test_p600_syntactic.py`,
 `research/results/applications/p600_syntactic_*.json`

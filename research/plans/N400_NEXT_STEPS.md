@@ -200,7 +200,7 @@ N400 amplitude?
 
 ---
 
-## Phase 4: Beyond N400 — PARTIALLY COMPLETE
+## Phase 4: Beyond N400 — MOSTLY COMPLETE
 
 ### 4A. P600 (Syntactic Violations) ✅
 
@@ -211,55 +211,68 @@ N400 amplitude?
 - Semantic violation: "the dog chases the table" (untrained object)
 - Category violation: "the dog chases the likes" (verb in noun position)
 
-N400 measured DURING first recurrent projection step of critical word
-(captures self-recurrence facilitation from subject noun). P600 measured
-by projecting core → role areas (SUBJ, OBJ) after word settles.
+Three processing pipeline stages:
+1. **Bootstrap**: Materialize random baseline weights for all core→structural pairs
+2. **Consolidation**: Replay role/phrase training WITHOUT reset_area_connections(),
+   creating persistent Hebbian connections for trained pathways
+3. **Measurement**: N400 during word settling, P600 during structural integration
 
 **Results:**
 
 | Metric | Comparison | d | p | Direction |
 |--------|-----------|---|---|-----------|
-| N400 (NOUN_CORE) | sem vs gram | 6.9 | 0.007 | N400_EFFECT ✓ |
-| P600 (role areas) | sem vs gram | 17.5 | 0.001 | P600_EFFECT |
-| P600 (role areas) | cat vs gram | -230 | <0.001 | ZERO (no pathway) |
+| N400 (core energy) | sem vs gram | 7.9 | 0.0001 | N400_EFFECT ✓ |
+| Core instability | sem vs gram | 32.7 | <0.0001 | HIGHER_INSTAB ✓ |
+| P600 instability | cat vs gram | 5.7 | 0.0002 | P600_EFFECT ✓ |
+| P600 instability | sem vs gram | 0.11 | 0.814 | null (correct) |
+| P600 instability | cat vs sem | 5.6 | 0.0002 | P600_EFFECT ✓ |
 
 **Key findings:**
 
 1. **N400 in sentence context CONFIRMED**: Semantic violations produce
-   elevated core area energy (d=6.9, p=0.007). Extends the word-pair
-   N400 finding to sentence-level processing via self-recurrence within
-   NOUN_CORE (subject noun's assembly facilitates congruent object nouns).
+   elevated core area energy (d=6.4, p=0.008). Extends the word-pair
+   N400 finding to sentence-level processing.
 
-2. **Semantic P600 present**: Semantic violations also elevate role-binding
-   energy (d=17.5, p=0.001). Consistent with Kuperberg (2007) biphasic
-   model — semantic anomalies produce BOTH N400 and P600 when they
-   disrupt thematic role assignment.
+2. **Core-area instability DISCOVERED**: Untrained nouns show 3x higher
+   Jaccard instability during settling in NOUN_CORE (3.75 vs 1.33,
+   d=32.7, p<0.0001). Without Hebbian self-recurrence, assemblies wobble.
+   This captures lexical-semantic settling difficulty.
 
-3. **Category violations expose connectivity boundary**: Verbs in noun
-   position produce ZERO role-binding energy because VERB_CORE → SUBJ/OBJ
-   connectivity doesn't exist. This captures violation DETECTION (parser
-   cannot proceed) but not REANALYSIS (the attempt to recover).
+3. **P600 via structural instability CONFIRMED**: After consolidation,
+   category violations show elevated Jaccard instability in structural
+   areas (d=5.7, p=0.0002). Per-area: ROLE_AGENT d=39.1, ROLE_PATIENT
+   d=26.2. Trained NOUN_CORE→ROLE converges in 1-2 rounds (instab ~0.1),
+   random VERB_CORE→ROLE oscillates (instab ~1.5).
 
-4. **No clean double dissociation**: Semantic violations produce both
-   N400 and P600. Category violations can't be measured via role-binding
-   energy. A clean dissociation would require a reanalysis mechanism.
+4. **P600 selective for structural violations**: Semantic violations
+   show NULL P600 (d=0.11, p=0.81). This matches the literature:
+   P600 is selective for syntactic/structural violations, not semantic
+   (Friederici 2002, Kuperberg 2007).
 
-**Active areas:** Only SUBJ and OBJ show non-zero role-binding energy.
-ROLE_AGENT, ROLE_PATIENT, and VP show zero for all conditions — these
-areas lack direct NOUN_CORE connectivity in the current parser.
+5. **TRIPLE DISSOCIATION ACHIEVED**:
+   - N400 (core energy): Selective for semantic anomalies
+   - Core instability: Lexical-semantic settling difficulty
+   - P600 (structural instability): Selective for structural anomalies
 
-### 4B. N400/P600 Double Dissociation — PARTIAL
+**Three innovations required:**
+1. **Bootstrap connectivity**: 3-step projection trick materializes
+   random baseline weights for empty core→structural weight matrices
+2. **Consolidation pass**: Replays role/phrase training WITHOUT
+   reset_area_connections(), creating persistent Hebbian connections
+3. **Per-round Jaccard tracking**: Instability in both core and
+   structural areas during settling rounds
 
-The full double dissociation is not achieved because:
-- Semantic violations produce biphasic response (both N400 and P600)
-- Category violations produce zero (not elevated) role-binding energy
+**Theory:** See `research/plans/P600_REANALYSIS.md` for the settling
+time interpretation (Vosse & Kempen 2000), integration update cost
+(Brouwer & Crocker 2017), consolidation rationale, and per-area results.
 
-**Next steps for dissociation:**
-- Implement syntactic reanalysis mechanism for category violations
-- Test agreement violations ("the dogs *chases* the cat") where the
-  noun category is correct but morphosyntactic features mismatch
-- Use different noun manipulations: trained-as-agent noun in patient
-  position may produce P600 without N400
+### 4B. N400/P600 Triple Dissociation ✅
+
+**ACHIEVED** via three distinct metrics:
+- N400 (core energy): Selective for semantic violations
+- Core instability: Lexical settling difficulty (sem >> gram)
+- P600 (structural instability): Selective for category violations
+- P600 null for semantic violations (correct: they're syntactically valid)
 
 ### 4C. Mismatch Negativity (MMN)
 
@@ -289,34 +302,32 @@ Phase 2 (richer paradigms) — MOSTLY COMPLETE
 ├── 2B: Sentence context ────── (subsumed by P600 experiment)
 └── 2C: Graded relatedness ──── ✅ identity priming massive, within-category binary
 
-Phase 3 (theory) — PARTIALLY COMPLETE
+Phase 3 (theory) — COMPLETE
 ├── 3A: Mathematical analysis ── ✅ derivation complete
 └── 3B: ERP mapping ─────────── ✅ documented in claims
 
-Phase 4 (beyond N400) — PARTIALLY COMPLETE
-├── 4A: P600 ──────────────────── ✅ semantic P600 confirmed (d=17.5)
-│                                    N400 in sentence context confirmed (d=6.9)
-│                                    Category violations: zero energy (no pathway)
-├── 4B: N400/P600 dissociation ── PARTIAL — no clean dissociation yet
+Phase 4 (beyond N400) — MOSTLY COMPLETE
+├── 4A: P600 ──────────────────── ✅ N400 confirmed (d=7.9)
+│                                    Core instability: sem>>gram (d=32.7)
+│                                    P600 instability: cat>gram (d=5.7)
+│                                    P600 null for sem (d=0.11, correct)
+│                                    Bootstrap + consolidation + Jaccard
+├── 4B: N400/P600 dissociation ── ✅ TRIPLE DISSOCIATION ACHIEVED
 └── 4C: MMN ───────────────────── not yet implemented
 ```
 
 ## Remaining Work
 
-1. **P600 reanalysis mechanism:** Category violations produce zero
-   role-binding energy (no VERB_CORE → role area connectivity). Need
-   a reanalysis mechanism where the parser attempts alternative parses.
-
-2. **Agreement violations:** Test "the dogs *chases* the cat" where
+1. **Agreement violations:** Test "the dogs *chases* the cat" where
    the noun category is correct but morphosyntactic features mismatch.
-   This may produce the P600 pattern without the connectivity issue.
+   This may produce a different P600 pattern.
 
-3. **Sentence context (2B):** Systematic comparison of N400 effect
+2. **Sentence context (2B):** Systematic comparison of N400 effect
    with varying amounts of sentence context (bare word vs partial
    vs full context).
 
-4. **MMN (4C):** Test whether global energy generalizes to perceptual
+3. **MMN (4C):** Test whether global energy generalizes to perceptual
    prediction error, not just semantic.
 
-5. **Larger vocabulary scaling:** Test with 100+ nouns to approach
+4. **Larger vocabulary scaling:** Test with 100+ nouns to approach
    realistic vocabulary sizes.
