@@ -74,35 +74,40 @@ SEMANTIC_TESTS = [
 # Use same targets as semantic tests, compare repetition vs semantic vs unrelated
 REPETITION_TARGETS = ["cat", "bird", "horse", "fish", "dog", "table", "chair", "book"]
 
-# Condition C: Shuffled — pair each target with a prime from a DIFFERENT
-# category that has NO shared features and NO co-occurrence in training.
-# This is the true null control: the prime has zero semantic relation.
-# Compare shuffled_prime vs another_unrelated_prime — both should be
-# equally unrelated, so we expect no significant difference.
+# Condition C: Shuffled — pair each target with TWO primes from different
+# categories, both unrelated to the target. Expect no significant difference
+# between the two unrelated primes.
+#
+# Design: For animal targets, both primes are objects from DIFFERENT
+# subcategories (e.g., FURNITURE vs VEHICLE) to avoid hidden feature overlap.
+# For object targets, both primes are animals (all share ANIMAL, symmetric).
 SHUFFLED_TESTS = [
     # (target, unrelated_prime_A, unrelated_prime_B)
-    # Both primes are unrelated to target — expect null difference
-    ("cat",   "table",  "book"),    # animal target, two object primes
-    ("bird",  "chair",  "ball"),    # animal target, two object primes
-    ("horse", "book",   "car"),     # animal target, two object primes
-    ("fish",  "ball",   "cup"),     # animal target, two object primes
-    ("dog",   "car",    "chair"),   # animal target, two object primes
-    ("table", "dog",    "bird"),    # object target, two animal primes
-    ("chair", "cat",    "fish"),    # object target, two animal primes
-    ("book",  "horse",  "mouse"),   # object target, two animal primes
+    ("cat",   "table",  "car"),     # FURNITURE vs VEHICLE — no shared features
+    ("bird",  "chair",  "cup"),     # FURNITURE vs CONTAINER
+    ("horse", "book",   "ball"),    # OBJECT vs TOY
+    ("fish",  "car",    "table"),   # VEHICLE vs FURNITURE
+    ("dog",   "cup",    "book"),    # CONTAINER vs OBJECT
+    ("table", "dog",    "cat"),     # both ANIMAL — symmetric
+    ("chair", "bird",   "fish"),    # both ANIMAL — symmetric
+    ("book",  "horse",  "mouse"),   # both ANIMAL — symmetric
 ]
 
 # Condition D: Cross-category association (co-occurred in training sentences)
 # Training had: "dog finds ball", "cat sees book", "bird finds car",
 # "horse sees table", "dog likes chair", "cat likes cup"
+#
+# Unrelated primes are objects from different subcategories (not animals),
+# avoiding the confound where inter-animal Hebbian connections create
+# unexpected activation for animal "unrelated" controls.
 CROSS_CATEGORY_TESTS = [
     # (target, associated_prime, unrelated_prime)
-    ("ball",  "dog",   "cat"),     # "dog finds ball" in training
-    ("book",  "cat",   "horse"),   # "cat sees book" in training
-    ("car",   "bird",  "fish"),    # "bird finds car" in training
-    ("table", "horse", "dog"),     # "horse sees table" in training
-    ("chair", "dog",   "bird"),    # "dog likes chair" in training
-    ("cup",   "cat",   "fish"),    # "cat likes cup" in training
+    ("ball",  "dog",   "table"),    # "dog finds ball" in training; table unrelated
+    ("book",  "cat",   "car"),      # "cat sees book"; car unrelated
+    ("car",   "bird",  "cup"),      # "bird finds car"; cup unrelated
+    ("table", "horse", "ball"),     # "horse sees table"; ball unrelated
+    ("chair", "dog",   "book"),     # "dog likes chair"; book unrelated
+    ("cup",   "cat",   "chair"),    # "cat likes cup"; chair never co-occurred w/ cup
 ]
 
 
