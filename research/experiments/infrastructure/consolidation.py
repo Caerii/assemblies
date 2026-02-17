@@ -41,6 +41,7 @@ _ROLE_MAP_LOCAL = {
 def consolidate_role_connections(
     parser: EmergentParser,
     training_sentences: List[GroundedSentence],
+    n_passes: int = 1,
     log_fn: Optional[Callable] = None,
 ) -> None:
     """Replay role binding without reset, creating persistent core->role weights.
@@ -52,6 +53,12 @@ def consolidate_role_connections(
     The consolidation pass replays the same role binding projections WITHOUT
     the reset, so Hebbian-strengthened connections accumulate and persist.
 
+    Args:
+        n_passes: Number of times to iterate through the full training set.
+            Default 1 preserves original behavior. Use 0 to skip consolidation
+            entirely (models L2/unconsolidated grammar). Higher values model
+            more developmental experience.
+
     After consolidation:
     - NOUN_CORE->ROLE_AGENT: Hebbian-strengthened (trained animal nouns)
     - NOUN_CORE->ROLE_PATIENT: Hebbian-strengthened (trained animal nouns)
@@ -60,49 +67,57 @@ def consolidate_role_connections(
     This creates the asymmetry needed for instability to differentiate:
     trained nouns converge faster in role areas than untrained nouns/verbs.
     """
+    if n_passes <= 0:
+        if log_fn:
+            log_fn("  Skipping role consolidation (n_passes=0)")
+        return
+
     brain = parser.brain
     consolidated = set()
 
-    for sent in training_sentences:
-        for word, ctx, role in zip(sent.words, sent.contexts, sent.roles):
-            if role is None or role == "action":
-                continue
-            role_area = _ROLE_MAP_LOCAL.get(role)
-            if role_area is None:
-                continue
-            if word not in parser.stim_map:
-                continue
+    for _pass in range(n_passes):
+        for sent in training_sentences:
+            for word, ctx, role in zip(sent.words, sent.contexts, sent.roles):
+                if role is None or role == "action":
+                    continue
+                role_area = _ROLE_MAP_LOCAL.get(role)
+                if role_area is None:
+                    continue
+                if word not in parser.stim_map:
+                    continue
 
-            core_area = GROUNDING_TO_CORE[ctx.dominant_modality]
-            phon = parser.stim_map[word]
+                core_area = GROUNDING_TO_CORE[ctx.dominant_modality]
+                phon = parser.stim_map[word]
 
-            # Activate word in core area
-            project(brain, phon, core_area, rounds=parser.rounds)
-            brain.areas[core_area].fix_assembly()
+                # Activate word in core area
+                project(brain, phon, core_area, rounds=parser.rounds)
+                brain.areas[core_area].fix_assembly()
 
-            # Project core -> role with recurrence (Hebbian learning ON)
-            for _ in range(parser.rounds):
-                brain.project(
-                    {},
-                    {core_area: [role_area], role_area: [role_area]},
-                )
+                # Project core -> role with recurrence (Hebbian learning ON)
+                for _ in range(parser.rounds):
+                    brain.project(
+                        {},
+                        {core_area: [role_area], role_area: [role_area]},
+                    )
 
-            brain.areas[core_area].unfix_assembly()
-            consolidated.add((core_area, role_area))
-            # NO reset_area_connections() — connections persist!
+                brain.areas[core_area].unfix_assembly()
+                consolidated.add((core_area, role_area))
+                # NO reset_area_connections() — connections persist!
 
     # Clear activations but keep weights
     for area_name in list(brain.areas.keys()):
         brain.inhibit_areas([area_name])
 
     if log_fn:
-        log_fn(f"  Consolidated {len(consolidated)} role pathways: "
+        passes_str = f" ({n_passes} pass{'es' if n_passes != 1 else ''})"
+        log_fn(f"  Consolidated {len(consolidated)} role pathways{passes_str}: "
                + ", ".join(f"{c}->{r}" for c, r in sorted(consolidated)))
 
 
 def consolidate_vp_connections(
     parser: EmergentParser,
     training_sentences: List[GroundedSentence],
+    n_passes: int = 1,
     log_fn: Optional[Callable] = None,
 ) -> None:
     """Replay phrase structure training without reset for VP connections.
@@ -112,70 +127,81 @@ def consolidate_vp_connections(
     connections. This consolidation pass replays the merge operations
     WITHOUT the reset.
 
+    Args:
+        n_passes: Number of times to iterate through the full training set.
+            Default 1 preserves original behavior. Use 0 to skip.
+
     After consolidation:
     - NOUN_CORE->VP: Hebbian-strengthened (subject/object nouns)
     - VERB_CORE->VP: Hebbian-strengthened (verbs)
     - VP->VP: Hebbian-strengthened (self-recurrence from merge)
     """
+    if n_passes <= 0:
+        if log_fn:
+            log_fn("  Skipping VP consolidation (n_passes=0)")
+        return
+
     brain = parser.brain
     consolidated = set()
 
-    for sent in training_sentences:
-        subj_word = None
-        verb_word = None
-        obj_word = None
-        subj_ctx = None
-        obj_ctx = None
+    for _pass in range(n_passes):
+        for sent in training_sentences:
+            subj_word = None
+            verb_word = None
+            obj_word = None
+            subj_ctx = None
+            obj_ctx = None
 
-        for word, ctx, role in zip(sent.words, sent.contexts, sent.roles):
-            if role == "agent":
-                subj_word = word
-                subj_ctx = ctx
-            elif role == "action":
-                verb_word = word
-            elif role == "patient":
-                obj_word = word
-                obj_ctx = ctx
+            for word, ctx, role in zip(sent.words, sent.contexts, sent.roles):
+                if role == "agent":
+                    subj_word = word
+                    subj_ctx = ctx
+                elif role == "action":
+                    verb_word = word
+                elif role == "patient":
+                    obj_word = word
+                    obj_ctx = ctx
 
-        if subj_word and verb_word and subj_word in parser.stim_map:
-            subj_core = GROUNDING_TO_CORE[subj_ctx.dominant_modality]
+            if subj_word and verb_word and subj_word in parser.stim_map:
+                subj_core = GROUNDING_TO_CORE[subj_ctx.dominant_modality]
 
-            # Activate both source assemblies
-            project(
-                brain, parser.stim_map[subj_word],
-                subj_core, rounds=parser.rounds,
-            )
-            project(
-                brain, parser.stim_map[verb_word],
-                VERB_CORE, rounds=parser.rounds,
-            )
-
-            # Merge subject + verb into VP (Hebbian learning ON)
-            merge(brain, subj_core, VERB_CORE, VP, rounds=parser.rounds)
-            consolidated.add((subj_core, VP))
-            consolidated.add((VERB_CORE, VP))
-
-            if obj_word and obj_word in parser.stim_map:
-                obj_core = GROUNDING_TO_CORE[obj_ctx.dominant_modality]
+                # Activate both source assemblies
                 project(
-                    brain, parser.stim_map[obj_word],
-                    obj_core, rounds=parser.rounds,
+                    brain, parser.stim_map[subj_word],
+                    subj_core, rounds=parser.rounds,
                 )
-                brain.areas[obj_core].fix_assembly()
-                for _ in range(parser.rounds):
-                    brain.project(
-                        {},
-                        {obj_core: [VP], VP: [VP]},
-                    )
-                brain.areas[obj_core].unfix_assembly()
-                consolidated.add((obj_core, VP))
+                project(
+                    brain, parser.stim_map[verb_word],
+                    VERB_CORE, rounds=parser.rounds,
+                )
 
-            # NO reset_area_connections(VP) — connections persist!
+                # Merge subject + verb into VP (Hebbian learning ON)
+                merge(brain, subj_core, VERB_CORE, VP, rounds=parser.rounds)
+                consolidated.add((subj_core, VP))
+                consolidated.add((VERB_CORE, VP))
+
+                if obj_word and obj_word in parser.stim_map:
+                    obj_core = GROUNDING_TO_CORE[obj_ctx.dominant_modality]
+                    project(
+                        brain, parser.stim_map[obj_word],
+                        obj_core, rounds=parser.rounds,
+                    )
+                    brain.areas[obj_core].fix_assembly()
+                    for _ in range(parser.rounds):
+                        brain.project(
+                            {},
+                            {obj_core: [VP], VP: [VP]},
+                        )
+                    brain.areas[obj_core].unfix_assembly()
+                    consolidated.add((obj_core, VP))
+
+                # NO reset_area_connections(VP) — connections persist!
 
     # Clear activations but keep weights
     for area_name in list(brain.areas.keys()):
         brain.inhibit_areas([area_name])
 
     if log_fn:
-        log_fn(f"  Consolidated {len(consolidated)} VP pathways: "
+        passes_str = f" ({n_passes} pass{'es' if n_passes != 1 else ''})"
+        log_fn(f"  Consolidated {len(consolidated)} VP pathways{passes_str}: "
                + ", ".join(f"{c}->{r}" for c, r in sorted(consolidated)))

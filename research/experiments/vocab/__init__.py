@@ -18,6 +18,7 @@ from research.experiments.vocab.standard import (
 from research.experiments.vocab.training import (
     build_priming_pairs,
     build_svo_sentences,
+    build_sov_sentences,
 )
 from research.experiments.vocab.scaling import (
     build_small_vocab,
@@ -32,6 +33,7 @@ __all__ = [
     "build_svo_vocab",
     "build_priming_pairs",
     "build_svo_sentences",
+    "build_sov_sentences",
     "build_small_vocab",
     "build_medium_vocab",
     "build_large_vocab",

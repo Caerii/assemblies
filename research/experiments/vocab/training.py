@@ -1,9 +1,10 @@
 """
 Training data builders for N400/P600 experiments.
 
-Two training paradigms:
+Three training paradigms:
 - build_priming_pairs(): SVO sentences for word-pair priming experiments
 - build_svo_sentences(): SVO sentences with role annotations for parser training
+- build_sov_sentences(): SOV sentences for cross-linguistic word order experiments
 """
 
 from typing import Dict, List
@@ -96,6 +97,55 @@ def build_svo_sentences(vocab: Dict[str, GroundingContext]) -> List[GroundedSent
             contexts=[ctx("the"), ctx(subj), ctx(verb),
                       ctx("the"), ctx(obj)],
             roles=[None, "agent", "action", None, "patient"],
+        ))
+
+    return sentences
+
+
+def build_sov_sentences(vocab: Dict[str, GroundingContext]) -> List[GroundedSentence]:
+    """SOV sentences with role annotations for cross-linguistic experiments.
+
+    Same sentence content as build_svo_sentences() but with SOV word order:
+    [det, subject, det, object, verb]. Role annotations are position-adjusted.
+
+    The consolidation code identifies words by role annotation (not position),
+    so existing consolidation functions work unchanged with SOV sentences.
+
+    Used by: test_cross_linguistic
+    """
+    def ctx(w):
+        return vocab[w]
+
+    sentences = []
+    for _ in range(3):
+        for subj, verb, obj in [
+            ("dog", "chases", "cat"),
+            ("cat", "chases", "bird"),
+            ("bird", "sees", "fish"),
+            ("horse", "chases", "dog"),
+            ("dog", "sees", "bird"),
+            ("cat", "sees", "horse"),
+        ]:
+            sentences.append(GroundedSentence(
+                words=["the", subj, "the", obj, verb],
+                contexts=[ctx("the"), ctx(subj),
+                          ctx("the"), ctx(obj), ctx(verb)],
+                roles=[None, "agent", None, "patient", "action"],
+            ))
+
+    for subj, verb, obj in [
+        ("fish", "sees", "mouse"),
+        ("horse", "finds", "cat"),
+        ("dog", "finds", "mouse"),
+        ("bird", "chases", "horse"),
+        ("mouse", "sees", "dog"),
+        ("cat", "finds", "fish"),
+    ]:
+        sentences.append(GroundedSentence(
+            words=["the", subj, "the", obj, verb],
+            contexts=[ctx("the"), ctx(subj),
+                      ctx("the"), ctx(obj), ctx(verb)],
+            roles=[None, "agent", None, "patient", "action"],
         ))
 
     return sentences
