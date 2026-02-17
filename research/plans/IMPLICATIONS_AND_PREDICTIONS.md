@@ -84,7 +84,7 @@ This maps to the **complementary learning systems** framework
 wrong morphological features (singular vs plural agreement).
 
 **Prediction:** P600 should be INTERMEDIATE between grammatical and category
-violation. The verb→VP pathway is Hebbian-consolidated (verbs were trained
+violation. The verb->VP pathway is Hebbian-consolidated (verbs were trained
 in VP merge), so structural integration proceeds via strengthened connections.
 But the agreement mismatch creates a secondary instability as the parser
 attempts to bind the singular verb with the plural subject's assembly.
@@ -95,6 +95,33 @@ Expected: `P600(cat_viol) > P600(agree_viol) > P600(gram)`
 feature ["DOG", "ANIMAL", "PLURAL"]) and singular/plural verb forms. The
 agreement violation uses a verb that IS Hebbian-consolidated but triggers
 feature mismatch during role binding.
+
+**Result: NEGATIVE.** The predicted ordering does NOT hold. Actual:
+`P600(cat) > P600(gram) > P600(agree)`, d=-7.1, p=0.006. Agreement
+violations produce LOWER instability than grammatical sentences.
+
+Disambiguation experiments (5 sub-experiments, Feb 2026) reveal the cause:
+
+1. **Context contamination**: The SG subject "dog" residual in NOUN_CORE
+   has more feature overlap with the SG object "cat" than the PL subject
+   "dogs" does. More overlap -> more diffuse object assembly -> higher
+   instability. The "grammatical" condition is actually penalized by
+   same-number context contamination.
+
+2. **Insufficient feature representation**: At the verb position (the
+   actual locus of agreement violation), there is NO significant P600
+   difference (d=0.18, p=0.79). SG/PL features encoded as grounding
+   features do not create different consolidation patterns in structural
+   areas. Both SG and PL nouns get identical NOUN_CORE->ROLE_AGENT
+   consolidation.
+
+3. **Architecture limitation**: Agreement checking requires either
+   (a) inter-area inhibition between number-marked assemblies,
+   (b) number-specific structural pathways, or
+   (c) an explicit mismatch detection mechanism.
+   None of these exist in the current architecture.
+
+See `test_agreement_violations.py` for the full disambiguation analysis.
 
 ### 3.2 Garden-path recovery
 
