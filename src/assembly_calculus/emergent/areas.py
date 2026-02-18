@@ -52,11 +52,12 @@ SUBJ = "SUBJ"
 OBJ = "OBJ"
 IOBJ = "IOBJ"
 
-# =========== SEQUENCE/CONTROL (4 areas) ===========
+# =========== SEQUENCE/CONTROL (5 areas) ===========
 SEQ = "SEQ"
 MOOD = "MOOD"
 TENSE = "TENSE"
 POLARITY = "POLARITY"
+NUMBER = "NUMBER"          # Morphological number (SG/PL)
 
 # =========== ERROR DETECTION (1 area) ===========
 ERROR = "ERROR"
@@ -93,7 +94,7 @@ PHRASE_AREAS = [NP, VP, PP, ADJP, SENT]
 
 SYNTACTIC_AREAS = [SUBJ, OBJ, IOBJ]
 
-CONTROL_AREAS = [SEQ, MOOD, TENSE, POLARITY, ERROR]
+CONTROL_AREAS = [SEQ, MOOD, TENSE, POLARITY, NUMBER, ERROR]
 
 VP_COMPONENT_AREAS = [VP_SUBJ, VP_VERB, VP_OBJ]
 
@@ -105,7 +106,7 @@ ALL_AREAS = (
     + ADVANCED_AREAS
 )
 
-assert len(ALL_AREAS) == 44, f"Expected 44 areas, got {len(ALL_AREAS)}"
+assert len(ALL_AREAS) == 45, f"Expected 45 areas, got {len(ALL_AREAS)}"
 
 
 # ---- Mappings ----

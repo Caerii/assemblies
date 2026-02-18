@@ -1,9 +1,12 @@
-"""Morphosyntax mixin: tense, mood, polarity detection/training and conjunction handling."""
+"""Morphosyntax mixin: tense, mood, polarity, number detection/training and conjunction handling."""
 
 from typing import Dict, List, Tuple
 
 from src.assembly_calculus.ops import _snap
-from .areas import VERB_CORE, CONJ_CORE, TENSE, MOOD, POLARITY
+from .areas import (
+    VERB_CORE, CONJ_CORE, TENSE, MOOD, POLARITY, NUMBER,
+    GROUNDING_TO_CORE,
+)
 
 
 class MorphosyntaxMixin:
@@ -245,3 +248,79 @@ class MorphosyntaxMixin:
                 self.core_lexicons[CONJ_CORE][word] = _snap(
                     self.brain, CONJ_CORE)
                 self.brain._engine.reset_area_connections(CONJ_CORE)
+
+    def detect_number(self, word: str) -> str:
+        """Detect grammatical number from word grounding features.
+
+        Checks the word's grounding context for explicit SG/PL features.
+        Falls back to "SG" (singular) as default.
+
+        Args:
+            word: A single word token.
+
+        Returns:
+            "SG" or "PL".
+        """
+        grounding = self.word_grounding.get(word)
+        if grounding:
+            for mod in ("visual", "motor", "properties", "spatial",
+                        "social", "temporal", "emotional"):
+                features = getattr(grounding, mod)
+                if "SG" in features:
+                    return "SG"
+                if "PL" in features:
+                    return "PL"
+        return "SG"
+
+    def train_number(self, sentences: List[List[str]]) -> None:
+        """Train NUMBER area from morphological number features.
+
+        For each content word (noun or verb) in each sentence, detects
+        its grammatical number and projects number_stim + phon into the
+        NUMBER area. This creates separate SG and PL assemblies in
+        NUMBER, each associated with core-area word assemblies.
+
+        Follows the same pattern as train_tense().
+
+        Args:
+            sentences: List of token lists.
+        """
+        number_stims = {}
+        for num_name in ("SG", "PL"):
+            stim_name = f"number_{num_name}"
+            if stim_name not in self.brain.stimuli:
+                self.brain.add_stimulus(stim_name, self.k)
+            number_stims[num_name] = stim_name
+
+        for sent in sentences:
+            for word in sent:
+                if word not in self.stim_map:
+                    continue
+                grounding = self.word_grounding.get(word)
+                if grounding is None:
+                    continue
+
+                # Only train number for content words (nouns and verbs)
+                mod = grounding.dominant_modality
+                if mod not in ("visual", "motor"):
+                    continue
+
+                num = self.detect_number(word)
+                num_stim = number_stims[num]
+                core_area = GROUNDING_TO_CORE[mod]
+                phon = self.stim_map[word]
+
+                # Project number_stim + word phon -> NUMBER area
+                self.brain.project(
+                    {num_stim: [NUMBER], phon: [core_area]},
+                    {core_area: [NUMBER]},
+                )
+                if self.rounds > 1:
+                    self.brain.project_rounds(
+                        target=NUMBER,
+                        areas_by_stim={num_stim: [NUMBER]},
+                        dst_areas_by_src_area={
+                            core_area: [NUMBER], NUMBER: [NUMBER],
+                        },
+                        rounds=self.rounds - 1,
+                    )

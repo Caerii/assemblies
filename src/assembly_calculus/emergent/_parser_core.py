@@ -217,10 +217,11 @@ class CoreParserMixin:
         self.train_phrases(sentences)
         self.train_word_order(sentences)
 
-        # Phase 5: Tense, mood, polarity, conjunctions
+        # Phase 5: Tense, mood, polarity, number, conjunctions
         self.train_tense(raw_sents)
         self.train_mood(raw_sents)
         self.train_polarity(raw_sents)
+        self.train_number(raw_sents)
         self.train_conjunctions(raw_sents)
 
     def train_lexicon(self, holdout_words: Optional[set] = None):

@@ -87,25 +87,26 @@ class Area(Enum):
     OBJ = 30           # Direct object
     IOBJ = 31          # Indirect object
     
-    # =========== SEQUENCE/CONTROL (4 areas) ===========
+    # =========== SEQUENCE/CONTROL (5 areas) ===========
     SEQ = 32           # Sequence memory (word order)
     MOOD = 33          # Sentence mood (declarative, interrogative)
     TENSE = 34         # Tense marking
     POLARITY = 35      # Affirmative/Negative
-    
+    NUMBER = 36        # Morphological number (SG/PL)
+
     # =========== ERROR DETECTION (1 area) ===========
-    ERROR = 36         # Parse error (wobbly = error)
+    ERROR = 37         # Parse error (wobbly = error)
     
     # =========== VP COMPONENT AREAS (3 areas) ===========
     # These are MERGE areas that preserve component information
     # Unlike VP which blends all components, these keep them separate
     # This enables emergent retrieval: VP_SUBJ can be decoded to find subjects
-    VP_SUBJ = 37       # Subject component of VP (projects from NOUN_CORE/PRON_CORE)
-    VP_VERB = 38       # Verb component of VP (projects from VERB_CORE)
-    VP_OBJ = 39        # Object component of VP (projects from NOUN_CORE)
+    VP_SUBJ = 38       # Subject component of VP (projects from NOUN_CORE/PRON_CORE)
+    VP_VERB = 39       # Verb component of VP (projects from VERB_CORE)
+    VP_OBJ = 40        # Object component of VP (projects from NOUN_CORE)
 
 
-NUM_AREAS = 40
+NUM_AREAS = 41
 
 # Mutual inhibition groups (only one area in each group can be active)
 MUTUAL_INHIBITION_GROUPS: List[List[Area]] = [
@@ -143,7 +144,7 @@ PHRASE_AREAS = [Area.NP, Area.VP, Area.PP, Area.ADJP, Area.SENT]
 
 SYNTACTIC_AREAS = [Area.SUBJ, Area.OBJ, Area.IOBJ]
 
-CONTROL_AREAS = [Area.SEQ, Area.MOOD, Area.TENSE, Area.POLARITY, Area.ERROR]
+CONTROL_AREAS = [Area.SEQ, Area.MOOD, Area.TENSE, Area.POLARITY, Area.NUMBER, Area.ERROR]
 
 # VP Component areas - these preserve component information for emergent retrieval
 VP_COMPONENT_AREAS = [Area.VP_SUBJ, Area.VP_VERB, Area.VP_OBJ]
