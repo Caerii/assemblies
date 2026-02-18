@@ -1,0 +1,191 @@
+{
+  "experiment_name": "agreement_number",
+  "timestamp": "2026-02-17T19:37:52.587933",
+  "parameters": {
+    "n": 50000,
+    "k": 100,
+    "p": 0.05,
+    "beta": 0.05,
+    "rounds": 10,
+    "n_seeds": 3,
+    "p600_settling_rounds": 5,
+    "consolidation_passes": 1
+  },
+  "metrics": {
+    "verb_gram": {
+      "mean": 0.09215039150973925,
+      "std": 0.0224170168584595,
+      "sem": 0.012942470717659972,
+      "ci95_lo": 0.0667831489031257,
+      "ci95_hi": 0.1175176341163528,
+      "min": 0.07920792079207928,
+      "max": 0.11803533294505919,
+      "n": 3
+    },
+    "verb_agree": {
+      "mean": 0.10509286222739922,
+      "std": 0.044834033716919,
+      "sem": 0.025884941435319945,
+      "ci95_lo": 0.05435837701417213,
+      "ci95_hi": 0.15582734744062632,
+      "min": 0.07920792079207928,
+      "max": 0.1568627450980391,
+      "n": 3
+    },
+    "verb_agree_vs_gram": {
+      "test": {
+        "t": 1.0,
+        "p": 0.42264973081037427,
+        "d": 0.5773502691896257,
+        "significant": "False"
+      },
+      "agree_higher": "True"
+    },
+    "verb_per_area_ROLE_AGENT": {
+      "agree": 0.07869022196337279,
+      "gram": 0.06574775124571282,
+      "test": {
+        "t": 1.0,
+        "p": 0.42264973081037427,
+        "d": 0.5773502691896257,
+        "significant": "False"
+      },
+      "direction": "agree>gram"
+    },
+    "verb_per_area_ROLE_PATIENT": {
+      "agree": 0.026402640264026427,
+      "gram": 0.026402640264026427,
+      "test": {
+        "t": 0.0,
+        "p": 1.0,
+        "d": 0.0,
+        "significant": false
+      },
+      "direction": "gram>agree"
+    },
+    "verb_per_area_VP": {
+      "agree": 0.0,
+      "gram": 0.0,
+      "test": {
+        "t": 0.0,
+        "p": 1.0,
+        "d": 0.0,
+        "significant": false
+      },
+      "direction": "gram>agree"
+    },
+    "obj_gram": {
+      "mean": 0.09053258267003177,
+      "std": 0.01961488975115206,
+      "sem": 0.011324661877952474,
+      "ci95_lo": 0.06833624538924492,
+      "ci95_hi": 0.11272891995081862,
+      "min": 0.07920792079207928,
+      "max": 0.1131819064259367,
+      "n": 3
+    },
+    "obj_agree": {
+      "mean": 0.08729696499061675,
+      "std": 0.014010635536537187,
+      "sem": 0.008089044198537482,
+      "ci95_lo": 0.07144243836148328,
+      "ci95_hi": 0.10315149161975021,
+      "min": 0.07920792079207928,
+      "max": 0.10347505338769172,
+      "n": 3
+    },
+    "obj_cat": {
+      "mean": 0.0871998964602343,
+      "std": 0.013842507910098712,
+      "sem": 0.007991975668155016,
+      "ci95_lo": 0.07153562415065046,
+      "ci95_hi": 0.10286416876981813,
+      "min": 0.07920792079207928,
+      "max": 0.10318384779654433,
+      "n": 3
+    },
+    "obj_agree_vs_gram": {
+      "test": {
+        "t": -1.0,
+        "p": 0.42264973081037427,
+        "d": -0.5773502691896257,
+        "significant": "False"
+      },
+      "direction": "LOWER"
+    },
+    "obj_cat_vs_gram": {
+      "test": {
+        "t": -1.0,
+        "p": 0.42264973081037427,
+        "d": -0.5773502691896258,
+        "significant": "False"
+      },
+      "direction": "LOWER"
+    },
+    "obj_cat_vs_agree": {
+      "test": {
+        "t": -1.0000000000000002,
+        "p": 0.42264973081037416,
+        "d": -0.5773502691896258,
+        "significant": "False"
+      },
+      "direction": "LOWER"
+    },
+    "ordering_correct": false,
+    "obj_per_area_ROLE_AGENT": {
+      "agree": 0.060894324726590336,
+      "gram": 0.06412994240600532,
+      "test": {
+        "t": -1.0,
+        "p": 0.42264973081037427,
+        "d": -0.5773502691896257,
+        "significant": "False"
+      },
+      "direction": "gram>agree"
+    },
+    "obj_per_area_ROLE_PATIENT": {
+      "agree": 0.026402640264026427,
+      "gram": 0.026402640264026427,
+      "test": {
+        "t": 0.0,
+        "p": 1.0,
+        "d": 0.0,
+        "significant": false
+      },
+      "direction": "gram>agree"
+    },
+    "obj_per_area_VP": {
+      "agree": 0.0,
+      "gram": 0.0,
+      "test": {
+        "t": 0.0,
+        "p": 1.0,
+        "d": 0.0,
+        "significant": false
+      },
+      "direction": "gram>agree"
+    },
+    "n400_verb_agree_vs_gram": {
+      "test": {
+        "t": 65.6295011440857,
+        "p": 0.00023208687567019602,
+        "d": 37.89121015231872,
+        "significant": "True"
+      }
+    },
+    "n400_obj_agree_vs_gram": {
+      "test": {
+        "t": 65.69804912092243,
+        "p": 0.0002316029872501192,
+        "d": 37.93078634519782,
+        "significant": "True"
+      }
+    },
+    "verb_position_success": true,
+    "object_ordering_success": false
+  },
+  "raw_data": {},
+  "success": true,
+  "error_message": null,
+  "duration_seconds": 31.07359800010454
+}

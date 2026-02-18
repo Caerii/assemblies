@@ -1,0 +1,93 @@
+{
+  "experiment_name": "garden_path",
+  "timestamp": "2026-02-11T01:03:45.169853",
+  "parameters": {
+    "n": 10000,
+    "k": 100,
+    "p": 0.05,
+    "beta": 0.1,
+    "rounds": 10,
+    "n_seeds": 3,
+    "n_training": 24
+  },
+  "metrics": {
+    "h1_role_assignment": {
+      "garden_path": {
+        "mean": 0.0,
+        "std": 0.0,
+        "sem": 0.0,
+        "ci95_lo": 0.0,
+        "ci95_hi": 0.0,
+        "min": 0.0,
+        "max": 0.0,
+        "n": 3
+      },
+      "control": {
+        "mean": 0.3333333333333333,
+        "std": 0.0,
+        "sem": 0.0,
+        "ci95_lo": 0.3333333333333333,
+        "ci95_hi": 0.3333333333333333,
+        "min": 0.3333333333333333,
+        "max": 0.3333333333333333,
+        "n": 3
+      }
+    },
+    "h2_disruption": {
+      "agreement": {
+        "mean": 0.5,
+        "std": 0.0,
+        "sem": 0.0,
+        "ci95_lo": 0.5,
+        "ci95_hi": 0.5,
+        "min": 0.5,
+        "max": 0.5,
+        "n": 3
+      },
+      "test": {
+        "t": Infinity,
+        "p": 0.0,
+        "d": Infinity,
+        "significant": true
+      }
+    },
+    "h3_recovery": {
+      "t": 0.0,
+      "p": 1.0,
+      "d": 0.0,
+      "significant": false
+    },
+    "h4_length": {
+      "short": {
+        "mean": 0.0,
+        "std": 0.0,
+        "sem": 0.0,
+        "ci95_lo": 0.0,
+        "ci95_hi": 0.0,
+        "min": 0.0,
+        "max": 0.0,
+        "n": 3
+      },
+      "long": {
+        "mean": 0.0,
+        "std": 0.0,
+        "sem": 0.0,
+        "ci95_lo": 0.0,
+        "ci95_hi": 0.0,
+        "min": 0.0,
+        "max": 0.0,
+        "n": 3
+      },
+      "test": {
+        "t": 0.0,
+        "p": 1.0,
+        "d": 0.0,
+        "significant": false
+      }
+    }
+  },
+  "raw_data": {},
+  "success": true,
+  "error_message": null,
+  "duration_seconds": 23.704464200000075
+}
