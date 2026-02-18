@@ -24,6 +24,7 @@ from research.experiments.metrics.measurement import (
     measure_critical_word,
     measure_agreement_word,
 )
+from research.experiments.metrics.integration_cost import compute_vp_distance
 
 __all__ = [
     "measure_pre_kwta_activation",
@@ -33,4 +34,5 @@ __all__ = [
     "compute_jaccard_instability",
     "measure_critical_word",
     "measure_agreement_word",
+    "compute_vp_distance",
 ]

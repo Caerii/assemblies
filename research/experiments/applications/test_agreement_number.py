@@ -63,6 +63,7 @@ from research.experiments.base import (
 )
 from research.experiments.infrastructure import setup_number_p600_pipeline
 from research.experiments.metrics.measurement import measure_agreement_word
+from research.experiments.metrics.integration_cost import compute_vp_distance
 from research.experiments.vocab.agreement import (
     build_agreement_vocab, build_agreement_training,
 )
@@ -202,14 +203,8 @@ class AgreementNumberExperiment(ExperimentBase):
                         result_agree["p600_instability"].get(a, 0.0))
 
                 # VP overlap: Jaccard distance between gram and agree VP
-                vp_g = result_gram["vp_winners"]
-                vp_a = result_agree["vp_winners"]
-                union = vp_g | vp_a
-                if len(union) > 0:
-                    jacc = len(vp_g & vp_a) / len(union)
-                    verb_vp_overlaps.append(1.0 - jacc)  # distance
-                else:
-                    verb_vp_overlaps.append(0.0)
+                verb_vp_overlaps.append(compute_vp_distance(
+                    result_gram["vp_winners"], result_agree["vp_winners"]))
 
             verb_gram_seeds.append(float(np.mean(verb_gram_vals)))
             verb_agree_seeds.append(float(np.mean(verb_agree_vals)))
@@ -273,20 +268,10 @@ class AgreementNumberExperiment(ExperimentBase):
 
                 # VP overlap: Jaccard distance from grammatical reference
                 vp_g = result_gram["vp_winners"]
-                vp_a = result_agree["vp_winners"]
-                vp_c = result_cat["vp_winners"]
-                union_a = vp_g | vp_a
-                union_c = vp_g | vp_c
-                if len(union_a) > 0:
-                    obj_vp_agree_overlaps.append(
-                        1.0 - len(vp_g & vp_a) / len(union_a))
-                else:
-                    obj_vp_agree_overlaps.append(0.0)
-                if len(union_c) > 0:
-                    obj_vp_cat_overlaps.append(
-                        1.0 - len(vp_g & vp_c) / len(union_c))
-                else:
-                    obj_vp_cat_overlaps.append(0.0)
+                obj_vp_agree_overlaps.append(compute_vp_distance(
+                    vp_g, result_agree["vp_winners"]))
+                obj_vp_cat_overlaps.append(compute_vp_distance(
+                    vp_g, result_cat["vp_winners"]))
 
             obj_gram_seeds.append(float(np.mean(obj_gram_vals)))
             obj_agree_seeds.append(float(np.mean(obj_agree_vals)))
