@@ -123,6 +123,68 @@ Disambiguation experiments (5 sub-experiments, Feb 2026) reveal the cause:
 
 See `test_agreement_violations.py` for the full disambiguation analysis.
 
+**Follow-up: NUMBER area approach (Feb 2026).** To address limitation (b),
+a dedicated NUMBER brain area was added (following the TENSE area pattern).
+Number-aware consolidation co-projects NUMBER alongside core areas into
+structural areas, creating number-specific Hebbian patterns:
+
+- SG nouns + NUMBER(SG) -> SG-flavored ROLE_AGENT assembly
+- PL nouns + NUMBER(PL) -> PL-flavored ROLE_AGENT assembly
+- SG_noun + SG_verb + NUMBER(SG) -> SG-agreement VP pattern
+- PL_noun + PL_verb + NUMBER(PL) -> PL-agreement VP pattern
+
+At test time, NUMBER retains the subject's number from context. Agreement
+violations (PL subject + SG verb) create a NUMBER signal that conflicts
+with consolidated VP patterns.
+
+**Key insight: Different metrics for different violation types.** The Jaccard
+instability metric captures signal quality (random vs consolidated pathways)
+and works for category violations. But agreement violations create competing
+*consolidated* signals, which k-WTA resolves deterministically — no
+oscillation, no instability. Two additional metrics were needed:
+
+1. **VP competition margin**: Gap between k-th winner and (k+1)-th loser in
+   pre-k-WTA activations. Small margin = high competition = hard integration
+   (Hagoort 2005: unification difficulty).
+
+2. **VP assembly distance**: Jaccard distance between VP assemblies from
+   grammatical vs violation conditions. Directly measures how much the
+   structural representation changes (Brouwer & Crocker 2017: integration
+   update cost).
+
+**Results (5 seeds, n=50000, k=100):**
+
+| Metric | Position | Comparison | Effect | d | p |
+|--------|----------|------------|--------|---|---|
+| VP assembly distance | Object | cat > agree | 0.016 vs 0.006 | 1.63 | **0.022** |
+| VP instability | Verb | agree > gram | 0.011 vs 0.006 | 0.82 | 0.14 |
+| VP competition margin | Verb | gram > agree | 47.9 vs 33.9 | 0.60 | 0.25 |
+| VP assembly distance | Verb | agree ≠ gram | 0.011 | — | — |
+
+The VP assembly distance at object position is statistically significant
+(p=0.022) and shows the predicted grading: category violations produce
+larger deviations from grammatical VP assemblies than agreement violations.
+All metrics show the correct direction at verb position, though individual
+comparisons do not reach significance with 5 seeds.
+
+**Assessment: PARTIALLY RESOLVED.** The NUMBER area successfully creates
+number-specific structural pathways and produces the predicted grading with
+VP assembly distance. However, the original instability metric remains
+inadequate for agreement violations because it measures oscillation (signal
+quality), not competition (signal conflict). A complete account requires
+recognizing that the P600 has multiple computational substrates:
+
+- **Category violations**: Unconsolidated pathways → assembly oscillation
+  → elevated Jaccard instability
+- **Agreement violations**: Competing consolidated patterns → reduced
+  winner margin / altered VP assembly → VP distance and competition metrics
+
+This is consistent with the ERP literature, where category and agreement
+P600s have different scalp distributions and latencies (Friederici 2002,
+Hagoort et al. 1993), suggesting partially distinct neural generators.
+
+See `test_agreement_number.py` for the full experiment.
+
 ### 3.2 Garden-path recovery
 
 **Setup:** "The horse raced past the barn fell"
