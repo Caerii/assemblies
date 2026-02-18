@@ -20,6 +20,10 @@ from research.experiments.metrics.instability import (
     measure_p600_settling,
     compute_jaccard_instability,
 )
+from research.experiments.metrics.measurement import (
+    measure_critical_word,
+    measure_agreement_word,
+)
 
 __all__ = [
     "measure_pre_kwta_activation",
@@ -27,4 +31,6 @@ __all__ = [
     "measure_prediction_error",
     "measure_p600_settling",
     "compute_jaccard_instability",
+    "measure_critical_word",
+    "measure_agreement_word",
 ]

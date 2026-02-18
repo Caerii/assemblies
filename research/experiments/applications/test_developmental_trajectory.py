@@ -44,8 +44,9 @@ from research.experiments.infrastructure import (
     consolidate_role_connections,
     consolidate_vp_connections,
 )
+from research.experiments.metrics.measurement import measure_critical_word
 from research.experiments.applications.test_p600_syntactic import (
-    _measure_critical_word, _make_test_sentences,
+    _make_test_sentences,
 )
 from src.assembly_calculus.emergent import EmergentParser
 from src.assembly_calculus.emergent.areas import (
@@ -130,7 +131,7 @@ class DevelopmentalTrajectoryExperiment(ExperimentBase):
                         ("sem", "semantic_violation", sem_vals),
                         ("cat", "category_violation", cat_vals),
                     ]:
-                        result = _measure_critical_word(
+                        result = measure_critical_word(
                             parser,
                             test["context_words"],
                             test[cond_key],

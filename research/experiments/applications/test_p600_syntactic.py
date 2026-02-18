@@ -83,6 +83,7 @@ from research.experiments.base import (
 )
 from research.experiments.vocab import build_svo_vocab, build_svo_sentences
 from research.experiments.metrics import measure_p600_settling, compute_jaccard_instability
+from research.experiments.metrics.measurement import measure_critical_word
 from research.experiments.infrastructure import (
     bootstrap_structural_connectivity,
     consolidate_role_connections,
@@ -94,6 +95,9 @@ from src.assembly_calculus.emergent.areas import (
 )
 from src.assembly_calculus.ops import project
 
+# Backward-compat alias for external importers
+_measure_critical_word = measure_critical_word
+
 
 @dataclass
 class P600Config:
@@ -104,140 +108,6 @@ class P600Config:
     rounds: int = 10
     n_seeds: int = 5
     p600_settling_rounds: int = 5
-
-
-# -- Energy measurement during sentence processing ----------------------------
-
-def _measure_critical_word(
-    parser: EmergentParser,
-    context_words: List[str],
-    critical_word: str,
-    p600_areas: List[str],
-    rounds: int,
-    p600_settling_rounds: int = 5,
-) -> Dict[str, Any]:
-    """Process context words, then measure energy and settling at the critical word.
-
-    N400 measurement: On the first recurrent projection step of the critical
-    word into its core area, capture global pre-k-WTA energy. Self-recurrence
-    from the subject noun's residual assembly (still active in NOUN_CORE)
-    provides context-dependent facilitation.
-
-    P600 measurement: After the word settles in its core area, fix the core
-    assembly and run settling dynamics in structural areas. Measure assembly
-    instability (primary P600 metric) and cumulative energy (secondary).
-
-    Returns dict with:
-      n400_energy: float  -- global energy in core area (N400 metric)
-      core_instability: float  -- Jaccard instability in core during settling
-      p600_instability: {area: float}  -- instability per structural area
-      p600_cumulative_energy: {area: float}  -- cumulative energy per area
-      p600_mean_instability: float  -- mean instability across active areas
-      core_area: str  -- which core area the word projected into
-    """
-    engine = parser.brain._engine
-    brain = parser.brain
-
-    # Clear all areas to start fresh for each sentence
-    for area_name in list(brain.areas.keys()):
-        brain.inhibit_areas([area_name])
-
-    # Process context words normally (builds sentence context)
-    for word in context_words:
-        core = parser._word_core_area(word)
-        phon = parser.stim_map.get(word)
-        if phon is not None:
-            project(brain, phon, core, rounds=rounds)
-
-    # Now measure the critical word
-    crit_core = parser._word_core_area(critical_word)
-    crit_phon = parser.stim_map.get(critical_word)
-    if crit_phon is None:
-        return {
-            "n400_energy": 0.0,
-            "p600_instability": {a: 0.0 for a in p600_areas},
-            "p600_cumulative_energy": {a: 0.0 for a in p600_areas},
-            "p600_mean_instability": 0.0,
-            "core_area": crit_core,
-        }
-
-    # --- N400 + core instability: manual per-round projection ---
-    # Track winners at every round to compute core-area Jaccard instability
-    core_round_winners = []
-
-    # Round 1: stimulus only (no recurrence), just like normal project()
-    brain.project({crit_phon: [crit_core]}, {})
-    core_round_winners.append(
-        set(int(w) for w in brain.areas[crit_core].winners))
-
-    # Round 2: stimulus + self-recurrence WITH record_activation
-    # This is where context (residual assembly from subject noun) provides
-    # facilitation via Hebbian-trained weights within the core area
-    n400_result = engine.project_into(
-        crit_core,
-        from_stimuli=[crit_phon],
-        from_areas=[crit_core],
-        plasticity_enabled=True,
-        record_activation=True,
-    )
-    n400_energy = n400_result.pre_kwta_total
-
-    # Sync winners back to brain area
-    engine.set_winners(crit_core, n400_result.winners)
-    brain.areas[crit_core].winners = n400_result.winners
-    brain.areas[crit_core].w = n400_result.num_ever_fired
-    core_round_winners.append(
-        set(int(w) for w in n400_result.winners))
-
-    # Remaining rounds: stimulus + self-recurrence, track winners each round
-    for _r in range(2, rounds):
-        rr = engine.project_into(
-            crit_core,
-            from_stimuli=[crit_phon],
-            from_areas=[crit_core],
-            plasticity_enabled=True,
-            record_activation=False,
-        )
-        engine.set_winners(crit_core, rr.winners)
-        brain.areas[crit_core].winners = rr.winners
-        brain.areas[crit_core].w = rr.num_ever_fired
-        core_round_winners.append(
-            set(int(w) for w in rr.winners))
-
-    # Core-area instability: how much the assembly changes during settling
-    # Trained words (via self-recurrence) should converge faster
-    core_instability = compute_jaccard_instability(core_round_winners)
-
-    # --- P600: settling dynamics in structural areas ---
-    # Fix core assembly (stable lexical representation by ~600ms)
-    engine.fix_assembly(crit_core)
-
-    # Measure settling instability across structural areas
-    p600_results = measure_p600_settling(
-        engine, brain, crit_core, p600_areas, p600_settling_rounds,
-    )
-
-    # Unfix core assembly
-    engine.unfix_assembly(crit_core)
-
-    # Extract metrics
-    p600_instability = {a: p600_results[a]["instability"] for a in p600_areas}
-    p600_cum_energy = {
-        a: p600_results[a]["cumulative_energy"] for a in p600_areas
-    }
-
-    # Mean instability across areas with non-zero values
-    nonzero_inst = [v for v in p600_instability.values() if v > 0]
-    mean_instability = float(np.mean(nonzero_inst)) if nonzero_inst else 0.0
-
-    return {
-        "n400_energy": n400_energy,
-        "core_instability": core_instability,
-        "p600_instability": p600_instability,
-        "p600_cumulative_energy": p600_cum_energy,
-        "p600_mean_instability": mean_instability,
-        "core_area": crit_core,
-    }
 
 
 # -- Test sentences -----------------------------------------------------------
@@ -382,7 +252,7 @@ class P600SyntacticExperiment(ExperimentBase):
                     ("catviol", "category_violation"),
                 ]:
                     critical_word = test[cond_key]
-                    result = _measure_critical_word(
+                    result = measure_critical_word(
                         parser, test["context_words"], critical_word,
                         p600_areas, cfg.rounds, cfg.p600_settling_rounds,
                     )

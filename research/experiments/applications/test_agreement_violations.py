@@ -175,9 +175,7 @@ from research.experiments.infrastructure import (
     consolidate_role_connections,
     consolidate_vp_connections,
 )
-from research.experiments.applications.test_p600_syntactic import (
-    _measure_critical_word,
-)
+from research.experiments.metrics.measurement import measure_critical_word
 from src.assembly_calculus.emergent import EmergentParser
 from src.assembly_calculus.emergent.grounding import GroundingContext
 from src.assembly_calculus.emergent.training_data import GroundedSentence
@@ -491,7 +489,7 @@ class AgreementViolationExperiment(ExperimentBase):
 
             for test in OBJECT_POSITION_TESTS:
                 # Grammatical: singular context + trained noun
-                result_gram = _measure_critical_word(
+                result_gram = measure_critical_word(
                     parser, test["sg_context"], test["grammatical_obj"],
                     p600_areas, cfg.rounds, cfg.p600_settling_rounds,
                 )
@@ -503,7 +501,7 @@ class AgreementViolationExperiment(ExperimentBase):
                         result_gram["p600_instability"].get(a, 0.0))
 
                 # Agreement violation: plural subject context + trained noun
-                result_agree = _measure_critical_word(
+                result_agree = measure_critical_word(
                     parser, test["pl_context"], test["grammatical_obj"],
                     p600_areas, cfg.rounds, cfg.p600_settling_rounds,
                 )
@@ -515,7 +513,7 @@ class AgreementViolationExperiment(ExperimentBase):
                         result_agree["p600_instability"].get(a, 0.0))
 
                 # Category violation: singular context + verb as noun
-                result_cat = _measure_critical_word(
+                result_cat = measure_critical_word(
                     parser, test["sg_context"], test["category_violation"],
                     p600_areas, cfg.rounds, cfg.p600_settling_rounds,
                 )
@@ -557,7 +555,7 @@ class AgreementViolationExperiment(ExperimentBase):
 
             for test in VERB_POSITION_TESTS:
                 # Grammatical: sg subject context + verb
-                result_vg = _measure_critical_word(
+                result_vg = measure_critical_word(
                     parser, test["sg_context"], test["verb"],
                     p600_areas, cfg.rounds, cfg.p600_settling_rounds,
                 )
@@ -569,7 +567,7 @@ class AgreementViolationExperiment(ExperimentBase):
                         result_vg["p600_instability"].get(a, 0.0))
 
                 # Agreement violation: pl subject context + sg verb
-                result_va = _measure_critical_word(
+                result_va = measure_critical_word(
                     parser, test["pl_context"], test["verb"],
                     p600_areas, cfg.rounds, cfg.p600_settling_rounds,
                 )
@@ -600,7 +598,7 @@ class AgreementViolationExperiment(ExperimentBase):
             noun_vals, verb_vals = [], []
 
             for word, wtype in CONTEXT_FREE_WORDS:
-                result_cf = _measure_critical_word(
+                result_cf = measure_critical_word(
                     parser, [], word,
                     p600_areas, cfg.rounds, cfg.p600_settling_rounds,
                 )
