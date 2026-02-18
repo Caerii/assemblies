@@ -103,10 +103,10 @@ class AgreementNumberExperiment(ExperimentBase):
             verbose=verbose,
         )
 
-    def run(self, quick=False, **kwargs):
+    def run(self, quick=False, config=None, **kwargs):
         self._start_timer()
-        cfg = AgreementNumberConfig()
-        if quick:
+        cfg = config or AgreementNumberConfig()
+        if quick and config is None:
             cfg.n_seeds = 3
 
         vocab = build_agreement_vocab()
@@ -561,7 +561,29 @@ if __name__ == "__main__":
     parser.add_argument(
         "--quick", action="store_true",
         help="Run with fewer seeds (3 instead of 5)")
+    parser.add_argument(
+        "--seeds", type=int, default=None,
+        help="Number of independent seeds (default: 5)")
+    parser.add_argument(
+        "--consolidation-passes", type=int, default=None,
+        help="Number consolidation passes (default: 1)")
+    parser.add_argument(
+        "--settling-rounds", type=int, default=None,
+        help="P600 settling rounds (default: 10)")
+    parser.add_argument(
+        "--k", type=int, default=None,
+        help="Assembly size k (default: 100)")
     args = parser.parse_args()
 
+    cfg = AgreementNumberConfig()
+    if args.seeds is not None:
+        cfg.n_seeds = args.seeds
+    if args.consolidation_passes is not None:
+        cfg.consolidation_passes = args.consolidation_passes
+    if args.settling_rounds is not None:
+        cfg.p600_settling_rounds = args.settling_rounds
+    if args.k is not None:
+        cfg.k = args.k
+
     exp = AgreementNumberExperiment()
-    exp.run(quick=args.quick)
+    exp.run(quick=args.quick, config=cfg)
