@@ -52,6 +52,7 @@ from dataclasses import dataclass
 from typing import Dict, List, Any, Optional
 
 from research.experiments.base import ExperimentBase, ExperimentResult, summarize, ttest_vs_null
+from research.experiments.vocab import build_agreement_vocab
 from src.assembly_calculus.emergent import EmergentParser
 from src.assembly_calculus.emergent.grounding import GroundingContext
 from src.assembly_calculus.emergent.training_data import GroundedSentence
@@ -66,50 +67,6 @@ class AgreementConfig:
     p: float = 0.05          # connection probability
     beta: float = 0.1        # Hebbian plasticity rate
     rounds: int = 10         # projection rounds
-
-
-# -- Vocabulary with explicit number grounding ---------------------------------
-
-def _build_agreement_vocab() -> Dict[str, GroundingContext]:
-    """Build vocabulary with singular/plural noun pairs and verb forms.
-
-    Number information is encoded as an additional grounding feature
-    (SG or PL) so that the parser can learn number-sensitive assemblies.
-    """
-    vocab = {
-        # Singular nouns — visual grounding + SG feature
-        "dog":    GroundingContext(visual=["DOG", "ANIMAL", "SG"]),
-        "cat":    GroundingContext(visual=["CAT", "ANIMAL", "SG"]),
-        "bird":   GroundingContext(visual=["BIRD", "ANIMAL", "SG"]),
-        "boy":    GroundingContext(visual=["BOY", "PERSON", "SG"]),
-        "girl":   GroundingContext(visual=["GIRL", "PERSON", "SG"]),
-
-        # Plural nouns — visual grounding + PL feature
-        "dogs":   GroundingContext(visual=["DOG", "ANIMAL", "PL"]),
-        "cats":   GroundingContext(visual=["CAT", "ANIMAL", "PL"]),
-        "birds":  GroundingContext(visual=["BIRD", "ANIMAL", "PL"]),
-        "boys":   GroundingContext(visual=["BOY", "PERSON", "PL"]),
-        "girls":  GroundingContext(visual=["GIRL", "PERSON", "PL"]),
-
-        # Singular verb forms (3sg present) — motor grounding + SG
-        "runs":   GroundingContext(motor=["RUNNING", "MOTION", "SG"]),
-        "sees":   GroundingContext(motor=["SEEING", "PERCEPTION", "SG"]),
-        "eats":   GroundingContext(motor=["EATING", "CONSUMPTION", "SG"]),
-        "chases": GroundingContext(motor=["CHASING", "PURSUIT", "SG"]),
-        "sleeps": GroundingContext(motor=["SLEEPING", "REST", "SG"]),
-
-        # Plural/bare verb forms — motor grounding + PL
-        "run":    GroundingContext(motor=["RUNNING", "MOTION", "PL"]),
-        "see":    GroundingContext(motor=["SEEING", "PERCEPTION", "PL"]),
-        "eat":    GroundingContext(motor=["EATING", "CONSUMPTION", "PL"]),
-        "chase":  GroundingContext(motor=["CHASING", "PURSUIT", "PL"]),
-        "sleep":  GroundingContext(motor=["SLEEPING", "REST", "PL"]),
-
-        # Determiners (function words — no grounding)
-        "the":    GroundingContext(),
-        "a":      GroundingContext(),
-    }
-    return vocab
 
 
 def _ctx(word: str, vocab: Dict[str, GroundingContext]) -> GroundingContext:
@@ -302,7 +259,10 @@ class MorphologicalAgreementExperiment(ExperimentBase):
             cfg.n_seeds = 2
 
         seeds = list(range(cfg.n_seeds))
-        vocab = _build_agreement_vocab()
+        vocab = build_agreement_vocab(
+            include_person_nouns=True,
+            include_intransitive_verbs=True,
+        )
         training_sentences = _build_agreeing_sentences(vocab)
         test_pairs = _build_test_pairs()
         gen_pairs = _build_generalization_pairs()

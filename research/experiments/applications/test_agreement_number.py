@@ -69,9 +69,10 @@ from research.experiments.infrastructure import (
     consolidate_number_vp_connections,
 )
 from research.experiments.metrics.measurement import measure_agreement_word
+from research.experiments.vocab.agreement import (
+    build_agreement_vocab, build_agreement_training,
+)
 from src.assembly_calculus.emergent import EmergentParser
-from src.assembly_calculus.emergent.grounding import GroundingContext
-from src.assembly_calculus.emergent.training_data import GroundedSentence
 from src.assembly_calculus.emergent.areas import (
     NOUN_CORE, VERB_CORE, ROLE_AGENT, ROLE_PATIENT, VP, NUMBER,
 )
@@ -89,65 +90,6 @@ class AgreementNumberConfig:
     consolidation_passes: int = 1
 
 
-def _build_agreement_vocab() -> Dict[str, GroundingContext]:
-    """Vocabulary with singular/plural noun and verb forms."""
-    return {
-        # Singular nouns
-        "dog":    GroundingContext(visual=["DOG", "ANIMAL", "SG"]),
-        "cat":    GroundingContext(visual=["CAT", "ANIMAL", "SG"]),
-        "bird":   GroundingContext(visual=["BIRD", "ANIMAL", "SG"]),
-        "horse":  GroundingContext(visual=["HORSE", "ANIMAL", "SG"]),
-        "fish":   GroundingContext(visual=["FISH", "ANIMAL", "SG"]),
-        "mouse":  GroundingContext(visual=["MOUSE", "ANIMAL", "SG"]),
-        # Plural nouns
-        "dogs":   GroundingContext(visual=["DOG", "ANIMAL", "PL"]),
-        "cats":   GroundingContext(visual=["CAT", "ANIMAL", "PL"]),
-        "birds":  GroundingContext(visual=["BIRD", "ANIMAL", "PL"]),
-        "horses": GroundingContext(visual=["HORSE", "ANIMAL", "PL"]),
-        # Singular verbs (3sg)
-        "chases": GroundingContext(motor=["CHASING", "PURSUIT", "SG"]),
-        "sees":   GroundingContext(motor=["SEEING", "PERCEPTION", "SG"]),
-        "finds":  GroundingContext(motor=["FINDING", "PERCEPTION", "SG"]),
-        "likes":  GroundingContext(motor=["LIKING", "EMOTION", "SG"]),
-        # Plural/bare verbs
-        "chase":  GroundingContext(motor=["CHASING", "PURSUIT", "PL"]),
-        "see":    GroundingContext(motor=["SEEING", "PERCEPTION", "PL"]),
-        "find":   GroundingContext(motor=["FINDING", "PERCEPTION", "PL"]),
-        "like":   GroundingContext(motor=["LIKING", "EMOTION", "PL"]),
-        # Function word
-        "the":    GroundingContext(),
-    }
-
-
-def _build_agreement_training(vocab):
-    """Training on ONLY agreeing sentences (sg+sg, pl+pl)."""
-    def ctx(w):
-        return vocab[w]
-
-    sentences = []
-
-    sg_triples = [
-        ("dog", "chases", "cat"), ("cat", "sees", "bird"),
-        ("bird", "chases", "fish"), ("horse", "chases", "dog"),
-        ("dog", "sees", "bird"), ("cat", "finds", "horse"),
-    ]
-    pl_triples = [
-        ("dogs", "chase", "cats"), ("cats", "see", "birds"),
-        ("birds", "chase", "dogs"), ("horses", "chase", "cats"),
-        ("dogs", "see", "birds"), ("cats", "find", "horses"),
-    ]
-
-    for triples in [sg_triples, pl_triples]:
-        for _ in range(3):
-            for subj, verb, obj in triples:
-                sentences.append(GroundedSentence(
-                    words=["the", subj, verb, "the", obj],
-                    contexts=[ctx("the"), ctx(subj), ctx(verb),
-                              ctx("the"), ctx(obj)],
-                    roles=[None, "agent", "action", None, "patient"],
-                ))
-
-    return sentences
 
 
 # -- Test sentences --------------------------------------------------------
@@ -232,8 +174,8 @@ class AgreementNumberExperiment(ExperimentBase):
         if quick:
             cfg.n_seeds = 3
 
-        vocab = _build_agreement_vocab()
-        training = _build_agreement_training(vocab)
+        vocab = build_agreement_vocab()
+        training = build_agreement_training(vocab)
         seeds = list(range(cfg.n_seeds))
 
         # Only measure areas where NUMBER was consolidated.

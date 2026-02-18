@@ -176,9 +176,10 @@ from research.experiments.infrastructure import (
     consolidate_vp_connections,
 )
 from research.experiments.metrics.measurement import measure_critical_word
+from research.experiments.vocab.agreement import (
+    build_agreement_vocab, build_agreement_training,
+)
 from src.assembly_calculus.emergent import EmergentParser
-from src.assembly_calculus.emergent.grounding import GroundingContext
-from src.assembly_calculus.emergent.training_data import GroundedSentence
 from src.assembly_calculus.emergent.areas import (
     ROLE_AGENT, ROLE_PATIENT, SUBJ, OBJ, VP,
 )
@@ -194,102 +195,6 @@ class AgreementConfig:
     n_seeds: int = 5
     p600_settling_rounds: int = 5
     consolidation_passes: int = 10
-
-
-def _build_agreement_vocab() -> Dict[str, GroundingContext]:
-    """Vocabulary with singular/plural noun and verb forms.
-
-    Number is encoded as a grounding feature (SG/PL) so that singular
-    and plural forms of the same word share most features but differ
-    in number marking.
-
-    Feature structure per word:
-      "dog"    → visual: [DOG, ANIMAL, SG]  → NOUN_CORE
-      "dogs"   → visual: [DOG, ANIMAL, PL]  → NOUN_CORE
-      "chases" → motor:  [CHASING, PURSUIT, SG] → VERB_CORE
-      "chase"  → motor:  [CHASING, PURSUIT, PL] → VERB_CORE
-
-    Each feature becomes a separate stimulus (e.g., visual_SG, visual_PL).
-    During train_lexicon(), phon + grounding features are projected
-    simultaneously, so assemblies encode both identity and number.
-
-    "dog" and "dogs" share 2/3 grounding features (DOG, ANIMAL) but differ
-    on SG vs PL. This creates overlapping but distinct assemblies in
-    NOUN_CORE. The degree of overlap is what drives the context
-    contamination effect observed in the negative result.
-    """
-    return {
-        # Singular nouns
-        "dog":    GroundingContext(visual=["DOG", "ANIMAL", "SG"]),
-        "cat":    GroundingContext(visual=["CAT", "ANIMAL", "SG"]),
-        "bird":   GroundingContext(visual=["BIRD", "ANIMAL", "SG"]),
-        "horse":  GroundingContext(visual=["HORSE", "ANIMAL", "SG"]),
-        "fish":   GroundingContext(visual=["FISH", "ANIMAL", "SG"]),
-        "mouse":  GroundingContext(visual=["MOUSE", "ANIMAL", "SG"]),
-        # Plural nouns
-        "dogs":   GroundingContext(visual=["DOG", "ANIMAL", "PL"]),
-        "cats":   GroundingContext(visual=["CAT", "ANIMAL", "PL"]),
-        "birds":  GroundingContext(visual=["BIRD", "ANIMAL", "PL"]),
-        "horses": GroundingContext(visual=["HORSE", "ANIMAL", "PL"]),
-        # Untrained objects (for category violation baseline)
-        "table":  GroundingContext(visual=["TABLE", "FURNITURE"]),
-        "chair":  GroundingContext(visual=["CHAIR", "FURNITURE"]),
-        # Singular verbs (3sg)
-        "chases": GroundingContext(motor=["CHASING", "PURSUIT", "SG"]),
-        "sees":   GroundingContext(motor=["SEEING", "PERCEPTION", "SG"]),
-        "finds":  GroundingContext(motor=["FINDING", "PERCEPTION", "SG"]),
-        "likes":  GroundingContext(motor=["LIKING", "EMOTION", "SG"]),
-        # Plural/bare verbs
-        "chase":  GroundingContext(motor=["CHASING", "PURSUIT", "PL"]),
-        "see":    GroundingContext(motor=["SEEING", "PERCEPTION", "PL"]),
-        "find":   GroundingContext(motor=["FINDING", "PERCEPTION", "PL"]),
-        "like":   GroundingContext(motor=["LIKING", "EMOTION", "PL"]),
-        # Function word
-        "the":    GroundingContext(),
-    }
-
-
-def _build_agreement_training(vocab):
-    """Training on ONLY agreeing sentences (sg+sg, pl+pl).
-
-    Establishes Hebbian connections for grammatical number agreement.
-    The parser never sees disagreeing combinations during training.
-
-    This creates the consolidation asymmetry:
-    - SG_noun → ROLE_AGENT: strengthened (trained)
-    - PL_noun → ROLE_AGENT: strengthened (trained)
-    - VERB_CORE → VP: strengthened for both SG and PL verbs
-    - But SG_noun + PL_verb combination was never seen in any role/VP path
-    """
-    def ctx(w):
-        return vocab[w]
-
-    sentences = []
-
-    # Singular subject + singular verb (3x repetition for strength)
-    sg_triples = [
-        ("dog", "chases", "cat"), ("cat", "sees", "bird"),
-        ("bird", "chases", "fish"), ("horse", "chases", "dog"),
-        ("dog", "sees", "bird"), ("cat", "finds", "horse"),
-    ]
-    # Plural subject + plural verb
-    pl_triples = [
-        ("dogs", "chase", "cats"), ("cats", "see", "birds"),
-        ("birds", "chase", "dogs"), ("horses", "chase", "cats"),
-        ("dogs", "see", "birds"), ("cats", "find", "horses"),
-    ]
-
-    for triples in [sg_triples, pl_triples]:
-        for _ in range(3):
-            for subj, verb, obj in triples:
-                sentences.append(GroundedSentence(
-                    words=["the", subj, verb, "the", obj],
-                    contexts=[ctx("the"), ctx(subj), ctx(verb),
-                              ctx("the"), ctx(obj)],
-                    roles=[None, "agent", "action", None, "patient"],
-                ))
-
-    return sentences
 
 
 # =========================================================================
@@ -416,8 +321,8 @@ class AgreementViolationExperiment(ExperimentBase):
         if quick:
             cfg.n_seeds = 3
 
-        vocab = _build_agreement_vocab()
-        training = _build_agreement_training(vocab)
+        vocab = build_agreement_vocab(include_untrained_objects=True)
+        training = build_agreement_training(vocab)
         seeds = list(range(cfg.n_seeds))
 
         p600_areas = [ROLE_AGENT, ROLE_PATIENT, SUBJ, OBJ, VP]

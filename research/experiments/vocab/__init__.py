@@ -27,6 +27,10 @@ from research.experiments.vocab.scaling import (
     build_training_for_vocab,
     make_test_pairs,
 )
+from research.experiments.vocab.agreement import (
+    build_agreement_vocab,
+    build_agreement_training,
+)
 
 __all__ = [
     "build_standard_vocab",
@@ -39,4 +43,6 @@ __all__ = [
     "build_large_vocab",
     "build_training_for_vocab",
     "make_test_pairs",
+    "build_agreement_vocab",
+    "build_agreement_training",
 ]
