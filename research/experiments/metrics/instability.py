@@ -49,6 +49,7 @@ def measure_p600_settling(
     core_area: str,
     structural_areas: List[str],
     n_rounds: int = 5,
+    additional_source_areas: List[str] = None,
 ) -> Dict[str, Dict[str, Any]]:
     """Measure assembly instability during structural integration.
 
@@ -66,10 +67,20 @@ def measure_p600_settling(
       Note: After consolidation, energy is REVERSED (trained > random),
       so this metric only works without consolidation.
 
-    The core assembly must be FIXED before calling this function
-    (stable lexical representation by ~600ms post-stimulus).
+    Args:
+        core_area: Primary source area (must be FIXED before calling).
+        structural_areas: Target areas to measure settling in.
+        n_rounds: Number of settling rounds.
+        additional_source_areas: Optional extra fixed source areas to project
+            from (e.g., NUMBER for number-aware settling). These must also
+            be fixed by the caller. Default None for backward compatibility.
+
     Plasticity is OFF (measurement probe, not learning).
     """
+    source_areas = [core_area]
+    if additional_source_areas:
+        source_areas.extend(additional_source_areas)
+
     results = {}
 
     for struct_area in structural_areas:
@@ -92,7 +103,7 @@ def measure_p600_settling(
                 result = engine.project_into(
                     struct_area,
                     from_stimuli=[],
-                    from_areas=[core_area, struct_area],
+                    from_areas=source_areas + [struct_area],
                     plasticity_enabled=False,
                     record_activation=True,
                 )

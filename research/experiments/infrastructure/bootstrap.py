@@ -20,11 +20,12 @@ from src.assembly_calculus.emergent.areas import NOUN_CORE, VERB_CORE
 def bootstrap_structural_connectivity(
     parser: EmergentParser,
     structural_areas: List[str],
+    source_areas: Optional[List[str]] = None,
     log_fn: Optional[Callable] = None,
 ) -> None:
-    """Materialize weight matrices for all core->structural area pairs.
+    """Materialize weight matrices for all source->structural area pairs.
 
-    After parser.train(), some core->structural pathways have never been
+    After parser.train(), some source->structural pathways have never been
     projected through, leaving weight matrices empty (0x0 in sparse engine).
     This forces a projection through each pathway with plasticity OFF,
     materializing random binomial(p) baseline weights.
@@ -34,11 +35,17 @@ def bootstrap_structural_connectivity(
     strengthens specific pathways; untrained pathways retain baseline
     connectivity.
 
-    The bootstrap works in 3 steps for each empty (core, struct) pair:
+    Args:
+        structural_areas: Target areas to bootstrap connectivity into.
+        source_areas: Source areas to bootstrap from. Defaults to
+            [NOUN_CORE, VERB_CORE] for backward compatibility. Pass
+            additional areas (e.g., NUMBER) for number-aware experiments.
+
+    The bootstrap works in 3 steps for each empty (source, struct) pair:
       1. Project stimulus -> struct_area (gives struct winners, w > 0)
-      2. Project stimulus -> core_area (gives core winners)
-      3. Project stimulus+core -> struct (triggers _expand_connectomes
-         for the core->struct pair; stimulus provides non-zero signal
+      2. Project stimulus -> source_area (gives source winners)
+      3. Project stimulus+source -> struct (triggers _expand_connectomes
+         for the source->struct pair; stimulus provides non-zero signal
          to avoid the zero-signal early return)
     """
     engine = parser.brain._engine
@@ -47,7 +54,7 @@ def bootstrap_structural_connectivity(
     # Use an arbitrary stimulus for bootstrapping
     arb_stim = next(iter(parser.stim_map.values()))
 
-    core_areas = [NOUN_CORE, VERB_CORE]
+    core_areas = source_areas if source_areas is not None else [NOUN_CORE, VERB_CORE]
     bootstrapped = []
 
     brain.disable_plasticity = True

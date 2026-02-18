@@ -18,6 +18,8 @@ from research.experiments.infrastructure.bootstrap import (
 from research.experiments.infrastructure.consolidation import (
     consolidate_role_connections,
     consolidate_vp_connections,
+    consolidate_number_role_connections,
+    consolidate_number_vp_connections,
 )
 
 __all__ = [
@@ -25,4 +27,6 @@ __all__ = [
     "bootstrap_structural_connectivity",
     "consolidate_role_connections",
     "consolidate_vp_connections",
+    "consolidate_number_role_connections",
+    "consolidate_number_vp_connections",
 ]
