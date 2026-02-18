@@ -39,11 +39,7 @@ from research.experiments.base import (
     ExperimentBase, ExperimentResult, summarize, paired_ttest,
 )
 from research.experiments.vocab import build_svo_vocab, build_svo_sentences
-from research.experiments.infrastructure import (
-    bootstrap_structural_connectivity,
-    consolidate_role_connections,
-    consolidate_vp_connections,
-)
+from research.experiments.infrastructure import setup_p600_pipeline
 from research.experiments.metrics.measurement import measure_critical_word
 from research.experiments.vocab import make_p600_test_sentences
 from src.assembly_calculus.emergent import EmergentParser
@@ -112,13 +108,9 @@ class DevelopmentalTrajectoryExperiment(ExperimentBase):
                 )
                 parser.train(sentences=training)
 
-                bootstrap_structural_connectivity(
-                    parser, p600_areas, log_fn=self.log)
-
-                consolidate_role_connections(
-                    parser, training, n_passes=n_passes, log_fn=self.log)
-                consolidate_vp_connections(
-                    parser, training, n_passes=n_passes, log_fn=self.log)
+                setup_p600_pipeline(
+                    parser, training, p600_areas,
+                    consolidation_passes=n_passes, log_fn=self.log)
 
                 # Measure P600 for each test sentence
                 gram_vals, sem_vals, cat_vals = [], [], []

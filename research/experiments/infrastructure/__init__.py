@@ -21,6 +21,10 @@ from research.experiments.infrastructure.consolidation import (
     consolidate_number_role_connections,
     consolidate_number_vp_connections,
 )
+from research.experiments.infrastructure.pipeline import (
+    setup_p600_pipeline,
+    setup_number_p600_pipeline,
+)
 
 __all__ = [
     "build_core_lexicon",
@@ -29,4 +33,6 @@ __all__ = [
     "consolidate_vp_connections",
     "consolidate_number_role_connections",
     "consolidate_number_vp_connections",
+    "setup_p600_pipeline",
+    "setup_number_p600_pipeline",
 ]

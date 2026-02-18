@@ -61,13 +61,7 @@ from typing import Dict, List, Any, Optional
 from research.experiments.base import (
     ExperimentBase, ExperimentResult, summarize, paired_ttest,
 )
-from research.experiments.infrastructure import (
-    bootstrap_structural_connectivity,
-    consolidate_role_connections,
-    consolidate_vp_connections,
-    consolidate_number_role_connections,
-    consolidate_number_vp_connections,
-)
+from research.experiments.infrastructure import setup_number_p600_pipeline
 from research.experiments.metrics.measurement import measure_agreement_word
 from research.experiments.vocab.agreement import (
     build_agreement_vocab, build_agreement_training,
@@ -166,28 +160,10 @@ class AgreementNumberExperiment(ExperimentBase):
             )
             parser.train(sentences=training)
 
-            # Bootstrap with NUMBER as source area
-            bootstrap_structural_connectivity(
-                parser, p600_areas,
+            setup_number_p600_pipeline(
+                parser, training, p600_areas,
                 source_areas=source_areas,
-                log_fn=self.log,
-            )
-
-            # Standard consolidation first (base structural patterns)
-            consolidate_role_connections(
-                parser, training, n_passes=1, log_fn=self.log,
-            )
-            consolidate_vp_connections(
-                parser, training, n_passes=1, log_fn=self.log,
-            )
-
-            # Number-aware consolidation (adds NUMBER-specific patterns)
-            consolidate_number_role_connections(
-                parser, training, n_passes=cfg.consolidation_passes,
-                log_fn=self.log,
-            )
-            consolidate_number_vp_connections(
-                parser, training, n_passes=cfg.consolidation_passes,
+                number_consolidation_passes=cfg.consolidation_passes,
                 log_fn=self.log,
             )
 

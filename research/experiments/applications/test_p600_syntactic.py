@@ -86,11 +86,7 @@ from research.experiments.vocab import (
 )
 from research.experiments.metrics import measure_p600_settling, compute_jaccard_instability
 from research.experiments.metrics.measurement import measure_critical_word
-from research.experiments.infrastructure import (
-    bootstrap_structural_connectivity,
-    consolidate_role_connections,
-    consolidate_vp_connections,
-)
+from research.experiments.infrastructure import setup_p600_pipeline
 from src.assembly_calculus.emergent import EmergentParser
 from src.assembly_calculus.emergent.areas import (
     ROLE_AGENT, ROLE_PATIENT, SUBJ, OBJ, VP,
@@ -174,20 +170,8 @@ class P600SyntacticExperiment(ExperimentBase):
             )
             parser.train(sentences=training)
 
-            # Bootstrap FIRST: materialize random baseline weights for all
-            # empty core->structural pairs. Must come before consolidation
-            # because empty weights trigger the zero-signal early return,
-            # preventing consolidation projections from running.
-            bootstrap_structural_connectivity(
-                parser, p600_areas, log_fn=self.log)
-
-            # Consolidation SECOND: replay role/phrase training WITHOUT reset.
-            # Now that random baseline weights exist, Hebbian learning can
-            # strengthen the trained pathways above baseline.
-            consolidate_role_connections(
-                parser, training, log_fn=self.log)
-            consolidate_vp_connections(
-                parser, training, log_fn=self.log)
+            setup_p600_pipeline(
+                parser, training, p600_areas, log_fn=self.log)
 
             n400_gram, n400_sem, n400_cat = [], [], []
             cinst_gram, cinst_sem, cinst_cat = [], [], []  # core instability

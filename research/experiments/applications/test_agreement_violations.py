@@ -170,11 +170,7 @@ from typing import Dict, List, Any
 from research.experiments.base import (
     ExperimentBase, ExperimentResult, summarize, paired_ttest,
 )
-from research.experiments.infrastructure import (
-    bootstrap_structural_connectivity,
-    consolidate_role_connections,
-    consolidate_vp_connections,
-)
+from research.experiments.infrastructure import setup_p600_pipeline
 from research.experiments.metrics.measurement import measure_critical_word
 from research.experiments.vocab.agreement import (
     build_agreement_vocab, build_agreement_training,
@@ -296,13 +292,9 @@ class AgreementViolationExperiment(ExperimentBase):
             )
             parser.train(sentences=training)
 
-            bootstrap_structural_connectivity(
-                parser, p600_areas, log_fn=self.log)
-            consolidate_role_connections(
-                parser, training, n_passes=cfg.consolidation_passes,
-                log_fn=self.log)
-            consolidate_vp_connections(
-                parser, training, n_passes=cfg.consolidation_passes,
+            setup_p600_pipeline(
+                parser, training, p600_areas,
+                consolidation_passes=cfg.consolidation_passes,
                 log_fn=self.log)
 
             # --- Exp A: Object-position measurement ---
