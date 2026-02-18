@@ -72,6 +72,10 @@ from research.experiments.metrics.measurement import measure_agreement_word
 from research.experiments.vocab.agreement import (
     build_agreement_vocab, build_agreement_training,
 )
+from research.experiments.vocab.test_sentences import (
+    VERB_AGREEMENT_TESTS as VERB_TESTS,
+    OBJECT_AGREEMENT_TESTS as OBJECT_TESTS,
+)
 from src.assembly_calculus.emergent import EmergentParser
 from src.assembly_calculus.emergent.areas import (
     NOUN_CORE, VERB_CORE, ROLE_AGENT, ROLE_PATIENT, VP, NUMBER,
@@ -89,70 +93,6 @@ class AgreementNumberConfig:
     p600_settling_rounds: int = 10
     consolidation_passes: int = 1
 
-
-
-
-# -- Test sentences --------------------------------------------------------
-
-# Exp A: Verb-position measurement (at locus of agreement violation)
-VERB_TESTS = [
-    {
-        "label": "dog_chases",
-        "sg_context": ["the", "dog"],
-        "pl_context": ["the", "dogs"],
-        "verb": "chases",
-    },
-    {
-        "label": "cat_sees",
-        "sg_context": ["the", "cat"],
-        "pl_context": ["the", "cats"],
-        "verb": "sees",
-    },
-    {
-        "label": "bird_chases",
-        "sg_context": ["the", "bird"],
-        "pl_context": ["the", "birds"],
-        "verb": "chases",
-    },
-    {
-        "label": "horse_finds",
-        "sg_context": ["the", "horse"],
-        "pl_context": ["the", "horses"],
-        "verb": "finds",
-    },
-]
-
-# Exp B: Object-position measurement (comparison with original experiment)
-OBJECT_TESTS = [
-    {
-        "label": "dog_chases_cat",
-        "sg_context": ["the", "dog", "chases", "the"],
-        "pl_context": ["the", "dogs", "chases", "the"],
-        "grammatical_obj": "cat",
-        "category_violation": "likes",
-    },
-    {
-        "label": "cat_sees_bird",
-        "sg_context": ["the", "cat", "sees", "the"],
-        "pl_context": ["the", "cats", "sees", "the"],
-        "grammatical_obj": "bird",
-        "category_violation": "finds",
-    },
-    {
-        "label": "bird_chases_fish",
-        "sg_context": ["the", "bird", "chases", "the"],
-        "pl_context": ["the", "birds", "chases", "the"],
-        "grammatical_obj": "fish",
-        "category_violation": "sees",
-    },
-    {
-        "label": "horse_finds_mouse",
-        "sg_context": ["the", "horse", "finds", "the"],
-        "pl_context": ["the", "horses", "finds", "the"],
-        "grammatical_obj": "mouse",
-        "category_violation": "chases",
-    },
-]
 
 
 class AgreementNumberExperiment(ExperimentBase):

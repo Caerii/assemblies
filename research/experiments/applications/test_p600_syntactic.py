@@ -81,7 +81,9 @@ from typing import Dict, List, Any
 from research.experiments.base import (
     ExperimentBase, ExperimentResult, summarize, paired_ttest,
 )
-from research.experiments.vocab import build_svo_vocab, build_svo_sentences
+from research.experiments.vocab import (
+    build_svo_vocab, build_svo_sentences, make_p600_test_sentences,
+)
 from research.experiments.metrics import measure_p600_settling, compute_jaccard_instability
 from research.experiments.metrics.measurement import measure_critical_word
 from research.experiments.infrastructure import (
@@ -95,8 +97,9 @@ from src.assembly_calculus.emergent.areas import (
 )
 from src.assembly_calculus.ops import project
 
-# Backward-compat alias for external importers
+# Backward-compat aliases for external importers
 _measure_critical_word = measure_critical_word
+_make_test_sentences = make_p600_test_sentences
 
 
 @dataclass
@@ -108,57 +111,6 @@ class P600Config:
     rounds: int = 10
     n_seeds: int = 5
     p600_settling_rounds: int = 5
-
-
-# -- Test sentences -----------------------------------------------------------
-
-def _make_test_sentences(vocab):
-    """Generate matched sentence triples for N400/P600 dissociation.
-
-    Each triple has the same context ("the SUBJ VERB the ___") with:
-    - Grammatical: trained animal as object
-    - Semantic violation: untrained object-category noun
-    - Category violation: verb in object position (DIFFERENT from sentence verb)
-    """
-    tests = []
-
-    # Triple 1: "the dog chases the ___"
-    tests.append({
-        "frame": "the dog chases the ___",
-        "context_words": ["the", "dog", "chases", "the"],
-        "grammatical": "cat",
-        "semantic_violation": "table",
-        "category_violation": "likes",  # different verb, avoids repetition
-    })
-
-    # Triple 2: "the cat sees the ___"
-    tests.append({
-        "frame": "the cat sees the ___",
-        "context_words": ["the", "cat", "sees", "the"],
-        "grammatical": "bird",
-        "semantic_violation": "chair",
-        "category_violation": "finds",
-    })
-
-    # Triple 3: "the bird chases the ___"
-    tests.append({
-        "frame": "the bird chases the ___",
-        "context_words": ["the", "bird", "chases", "the"],
-        "grammatical": "fish",
-        "semantic_violation": "book",
-        "category_violation": "sees",
-    })
-
-    # Triple 4: "the horse finds the ___"
-    tests.append({
-        "frame": "the horse finds the ___",
-        "context_words": ["the", "horse", "finds", "the"],
-        "grammatical": "mouse",
-        "semantic_violation": "ball",
-        "category_violation": "chases",
-    })
-
-    return tests
 
 
 class P600SyntacticExperiment(ExperimentBase):
@@ -187,7 +139,7 @@ class P600SyntacticExperiment(ExperimentBase):
 
         vocab = build_svo_vocab()
         training = build_svo_sentences(vocab)
-        test_sentences = _make_test_sentences(vocab)
+        test_sentences = make_p600_test_sentences(vocab)
         seeds = list(range(cfg.n_seeds))
 
         p600_areas = [ROLE_AGENT, ROLE_PATIENT, SUBJ, OBJ, VP]

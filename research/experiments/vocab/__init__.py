@@ -31,6 +31,11 @@ from research.experiments.vocab.agreement import (
     build_agreement_vocab,
     build_agreement_training,
 )
+from research.experiments.vocab.test_sentences import (
+    make_p600_test_sentences,
+    VERB_AGREEMENT_TESTS,
+    OBJECT_AGREEMENT_TESTS,
+)
 
 __all__ = [
     "build_standard_vocab",
@@ -45,4 +50,7 @@ __all__ = [
     "make_test_pairs",
     "build_agreement_vocab",
     "build_agreement_training",
+    "make_p600_test_sentences",
+    "VERB_AGREEMENT_TESTS",
+    "OBJECT_AGREEMENT_TESTS",
 ]

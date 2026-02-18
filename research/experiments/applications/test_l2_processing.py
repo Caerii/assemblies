@@ -46,9 +46,7 @@ from research.experiments.infrastructure import (
     consolidate_vp_connections,
 )
 from research.experiments.metrics.measurement import measure_critical_word
-from research.experiments.applications.test_p600_syntactic import (
-    _make_test_sentences,
-)
+from research.experiments.vocab import make_p600_test_sentences
 from src.assembly_calculus.emergent import EmergentParser
 from src.assembly_calculus.emergent.areas import (
     ROLE_AGENT, ROLE_PATIENT, SUBJ, OBJ, VP,
@@ -89,7 +87,7 @@ class L2ProcessingExperiment(ExperimentBase):
 
         vocab = build_svo_vocab()
         training = build_svo_sentences(vocab)
-        test_sentences = _make_test_sentences(vocab)
+        test_sentences = make_p600_test_sentences(vocab)
         seeds = list(range(cfg.n_seeds))
 
         p600_areas = [ROLE_AGENT, ROLE_PATIENT, SUBJ, OBJ, VP]
