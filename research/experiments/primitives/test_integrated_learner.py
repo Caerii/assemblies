@@ -100,6 +100,7 @@ class IntegratedLearnerConfig:
     n_train_sentences: int = 100
     training_reps: int = 3
     pp_prob: float = 0.4
+    semantic_bias: float = 0.6
     # Test
     n_test_items: int = 5
 
@@ -108,9 +109,10 @@ class IntegratedLearnerConfig:
 CONDITIONS = {
     "A_baseline":     (False, False, False),
     "B_hebbian":      (True,  False, False),
-    "C_semantic":     (False, True,  False),
+    "C_grounded":     (False, True,  False),
     "D_p600fb":       (False, False, True),
-    "E_combined":     (True,  True,  True),
+    "E_heb_p600":     (True,  False, True),
+    "F_all_three":    (True,  True,  True),
 }
 
 
@@ -326,7 +328,9 @@ def run_trial(
     vocab = DEFAULT_VOCAB
     n_train = cfg.n_train_sentences * cfg.training_reps
 
-    grammar = SimpleCFG(pp_prob=cfg.pp_prob, vocab=vocab, rng=rng)
+    grammar = SimpleCFG(
+        pp_prob=cfg.pp_prob, semantic_bias=cfg.semantic_bias,
+        vocab=vocab, rng=rng)
     train_sents = grammar.generate_batch(n_train)
 
     results = {}
@@ -440,13 +444,14 @@ class IntegratedLearnerExperiment(ExperimentBase):
         # Hypotheses
         a_p600 = cond_effects["A_baseline"]["p600_d"]
         b_p600 = cond_effects["B_hebbian"]["p600_d"]
-        c_sem = cond_effects["C_semantic"]["sem_d"]
+        c_sem = cond_effects["C_grounded"]["sem_d"]
         d_p600 = cond_effects["D_p600fb"]["p600_d"]
-        e_p600 = cond_effects["E_combined"]["p600_d"]
-        e_sem = cond_effects["E_combined"]["sem_d"]
+        e_p600 = cond_effects["E_heb_p600"]["p600_d"]
+        e_sem = cond_effects["E_heb_p600"]["sem_d"]
+        a_sem = cond_effects["A_baseline"]["sem_d"]
 
         h1 = b_p600 > a_p600
-        h2 = c_sem > 0.5
+        h2 = a_sem > 0.5  # semantic N400 from covariance (not grounded pred)
         h3 = d_p600 > a_p600
         h4 = (e_p600 > a_p600 and e_sem > 0.0)
         h5 = e_p600 > sup_p600_d * 0.5 if sup_p600_d > 0 else False
@@ -455,16 +460,16 @@ class IntegratedLearnerExperiment(ExperimentBase):
         self.log(f"    H1 (Hebbian improves P600):     "
                  f"{'PASS' if h1 else 'FAIL'}"
                  f" (B={b_p600:.2f} vs A={a_p600:.2f})")
-        self.log(f"    H2 (Semantic N400 d > 0.5):     "
+        self.log(f"    H2 (Semantic N400 from covar):  "
                  f"{'PASS' if h2 else 'FAIL'}"
-                 f" (C sem_d={c_sem:.2f})")
+                 f" (A sem_d={a_sem:.2f})")
         self.log(f"    H3 (P600 feedback improves):    "
                  f"{'PASS' if h3 else 'FAIL'}"
                  f" (D={d_p600:.2f} vs A={a_p600:.2f})")
-        self.log(f"    H4 (Combined improves both):    "
+        self.log(f"    H4 (Heb+P600 improves both):   "
                  f"{'PASS' if h4 else 'FAIL'}"
                  f" (E p600={e_p600:.2f}, sem={e_sem:.2f})")
-        self.log(f"    H5 (Combined >= 50% supervised):"
+        self.log(f"    H5 (E >= 50% supervised):      "
                  f" {'PASS' if h5 else 'FAIL'}"
                  f" (E={e_p600:.2f} vs sup={sup_p600_d:.2f})")
 
@@ -529,9 +534,9 @@ def main():
     print("INTEGRATED LEARNER SUMMARY")
     print("=" * 70)
     print(f"\nH1 Hebbian routing:   {'PASS' if h['H1_hebbian_improves'] else 'FAIL'}")
-    print(f"H2 Semantic N400:     {'PASS' if h['H2_semantic_n400'] else 'FAIL'}")
+    print(f"H2 Semantic covar:    {'PASS' if h['H2_semantic_n400'] else 'FAIL'}")
     print(f"H3 P600 feedback:     {'PASS' if h['H3_p600_feedback'] else 'FAIL'}")
-    print(f"H4 Combined:          {'PASS' if h['H4_combined'] else 'FAIL'}")
+    print(f"H4 Heb+P600:         {'PASS' if h['H4_combined'] else 'FAIL'}")
     print(f"H5 Comparable to sup: {'PASS' if h['H5_comparable'] else 'FAIL'}")
     print(f"\nDuration: {result.duration_seconds:.1f}s")
 

@@ -34,6 +34,15 @@ import numpy as np
 from research.experiments.lib.vocabulary import Vocabulary, DEFAULT_VOCAB
 
 
+# Default semantic noun groups for semantic covariance.
+# When semantic_bias > 0, the grammar prefers objects from the same group
+# as the agent, creating statistical regularities that prediction can learn.
+DEFAULT_SEMANTIC_GROUPS: Dict[str, List[str]] = {
+    "ANIMAL": ["dog", "cat", "bird"],
+    "PERSON": ["boy", "girl"],
+}
+
+
 class SimpleCFG:
     """Context-free grammar for variable-length sentence generation.
 
@@ -46,6 +55,7 @@ class SimpleCFG:
     The grammar is parameterized by:
       pp_prob:        probability of generating VP -> V NP PP
       novel_obj_prob: probability of using a novel noun in object position
+      semantic_bias:  probability of picking patient from agent's semantic group
       vocab:          vocabulary specification (word lists and categories)
     """
 
@@ -53,13 +63,35 @@ class SimpleCFG:
         self,
         pp_prob: float = 0.4,
         novel_obj_prob: float = 0.0,
+        semantic_bias: float = 0.0,
+        semantic_groups: Dict[str, List[str]] = None,
         vocab: Vocabulary = None,
         rng: np.random.Generator = None,
     ):
         self.pp_prob = pp_prob
         self.novel_obj_prob = novel_obj_prob
+        self.semantic_bias = semantic_bias
+        self.semantic_groups = semantic_groups or DEFAULT_SEMANTIC_GROUPS
         self.vocab = vocab or DEFAULT_VOCAB
         self.rng = rng or np.random.default_rng(42)
+
+        # Build reverse lookup: word -> group name
+        self._word_to_group: Dict[str, str] = {}
+        for group_name, words in self.semantic_groups.items():
+            for w in words:
+                self._word_to_group[w] = group_name
+
+    def _pick_patient(self, agent: str, nouns: List[str]) -> str:
+        """Pick patient noun, optionally biased toward agent's semantic group."""
+        if self.semantic_bias > 0 and self.rng.random() < self.semantic_bias:
+            group = self._word_to_group.get(agent)
+            if group:
+                same_group = [n for n in self.semantic_groups[group]
+                              if n != agent and n in nouns]
+                if same_group:
+                    return self.rng.choice(same_group)
+        # Default: random noun != agent
+        return self.rng.choice([n for n in nouns if n != agent])
 
     def generate(self) -> Dict[str, Any]:
         """Generate one sentence from the grammar.
@@ -81,7 +113,7 @@ class SimpleCFG:
             patient = self.rng.choice(novel)
             patient_cat = "NOUN"  # novel words are categorized as their parent
         else:
-            patient = self.rng.choice([n for n in nouns if n != agent])
+            patient = self._pick_patient(agent, nouns)
             patient_cat = "NOUN"
 
         words = [agent, verb, patient]
