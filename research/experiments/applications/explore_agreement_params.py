@@ -36,7 +36,6 @@ EXPLORATIONS = {
     "settle_5":     {"p600_settling_rounds": 5},
     "settle_20":    {"p600_settling_rounds": 20},
     "k_150":        {"k": 150},
-    "k_200":        {"k": 200},
 }
 
 QUICK_EXPLORATIONS = {
