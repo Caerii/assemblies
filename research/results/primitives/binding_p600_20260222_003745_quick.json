@@ -1,0 +1,103 @@
+{
+  "experiment_name": "binding_p600",
+  "timestamp": "2026-02-22T00:37:45.276263",
+  "parameters": {
+    "n": 5000,
+    "k": 50,
+    "p": 0.05,
+    "beta": 0.1,
+    "w_max": 20.0,
+    "lexicon_rounds": 20,
+    "binding_rounds": 10,
+    "training_reps": 3,
+    "n_train_sentences": 15,
+    "n_settling_rounds": 10,
+    "n_seeds": 5,
+    "n_nouns": 5,
+    "n_verbs": 5
+  },
+  "metrics": {
+    "p600_instability_gram": {
+      "mean": 0.2035907841901181,
+      "std": 0.22520535746326675,
+      "sem": 0.10071489763700081,
+      "ci95_lo": 0.006189584821596539,
+      "ci95_hi": 0.4009919835586397,
+      "min": 0.023529411764705865,
+      "max": 0.4888096652802532,
+      "n": 5
+    },
+    "p600_instability_catviol": {
+      "mean": 0.0,
+      "std": 0.0,
+      "sem": 0.0,
+      "ci95_lo": 0.0,
+      "ci95_hi": 0.0,
+      "min": 0.0,
+      "max": 0.0,
+      "n": 5
+    },
+    "convergence_gram": {
+      "mean": 1.6,
+      "std": 0.5477225575051661,
+      "sem": 0.24494897427831777,
+      "ci95_lo": 1.1199000104144972,
+      "ci95_hi": 2.080099989585503,
+      "min": 1.0,
+      "max": 2.0,
+      "n": 5
+    },
+    "convergence_catviol": {
+      "mean": 1.0,
+      "std": 0.0,
+      "sem": 0.0,
+      "ci95_lo": 1.0,
+      "ci95_hi": 1.0,
+      "min": 1.0,
+      "max": 1.0,
+      "n": 5
+    },
+    "binding_strength_gram": {
+      "mean": 0.32320000000000004,
+      "std": 0.05302075065481439,
+      "sem": 0.02371160053644629,
+      "ci95_lo": 0.2767252629485653,
+      "ci95_hi": 0.3696747370514348,
+      "min": 0.272,
+      "max": 0.404,
+      "n": 5
+    },
+    "binding_strength_catviol": {
+      "mean": 0.0,
+      "std": 0.0,
+      "sem": 0.0,
+      "ci95_lo": 0.0,
+      "ci95_hi": 0.0,
+      "min": 0.0,
+      "max": 0.0,
+      "n": 5
+    },
+    "h1_instability_test": {
+      "t": -2.0214564971699143,
+      "p": 0.11330957694687373,
+      "d": -0.9040228282461078,
+      "significant": "False"
+    },
+    "h2_convergence_test": {
+      "t": -2.449489742783178,
+      "p": 0.07048399691021995,
+      "d": -1.0954451150103321,
+      "significant": "False"
+    },
+    "h3_strength_test": {
+      "t": 13.630459044855295,
+      "p": 0.00016775833467887153,
+      "d": 6.095726597764659,
+      "significant": "True"
+    }
+  },
+  "raw_data": {},
+  "success": true,
+  "error_message": null,
+  "duration_seconds": 3.2716452999738976
+}
