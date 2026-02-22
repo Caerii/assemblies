@@ -1,0 +1,117 @@
+{
+  "baseline": {
+    "config": {
+      "n": 50000,
+      "k": 100,
+      "p": 0.05,
+      "beta": 0.05,
+      "rounds": 10,
+      "n_seeds": 5,
+      "p600_settling_rounds": 10,
+      "consolidation_passes": 1
+    },
+    "key_metrics": {
+      "verb_inst_d": 0.47884204116250917,
+      "verb_inst_p": 0.34460051312935247,
+      "verb_margin_d": 0.6460615324854674,
+      "verb_margin_p": 0.22206631955968106,
+      "obj_vp_dist_d": 1.1014342122899219,
+      "obj_vp_dist_p": 0.06947590026663426,
+      "verb_inst_success": true,
+      "verb_margin_success": true
+    },
+    "full_result_file": "agreement_number"
+  },
+  "seeds_8": {
+    "config": {
+      "n": 50000,
+      "k": 100,
+      "p": 0.05,
+      "beta": 0.05,
+      "rounds": 10,
+      "n_seeds": 8,
+      "p600_settling_rounds": 10,
+      "consolidation_passes": 1
+    },
+    "key_metrics": {
+      "verb_inst_d": 0.011775400306284408,
+      "verb_inst_p": 0.9743604732900749,
+      "verb_margin_d": 0.3577026469122392,
+      "verb_margin_p": 0.34535073144815537,
+      "obj_vp_dist_d": 1.1531274898335955,
+      "obj_vp_dist_p": 0.013834994278694628,
+      "verb_inst_success": true,
+      "verb_margin_success": true
+    },
+    "full_result_file": "agreement_number"
+  },
+  "consol_2": {
+    "config": {
+      "n": 50000,
+      "k": 100,
+      "p": 0.05,
+      "beta": 0.05,
+      "rounds": 10,
+      "n_seeds": 5,
+      "p600_settling_rounds": 10,
+      "consolidation_passes": 2
+    },
+    "key_metrics": {
+      "verb_inst_d": 0.30779350562554625,
+      "verb_inst_p": 0.5291333003818578,
+      "verb_margin_d": 0.6664028753835853,
+      "verb_margin_p": 0.21044202105000248,
+      "obj_vp_dist_d": 1.0039066149256384,
+      "obj_vp_dist_p": 0.08815124501265179,
+      "verb_inst_success": true,
+      "verb_margin_success": true
+    },
+    "full_result_file": "agreement_number"
+  },
+  "settle_5": {
+    "config": {
+      "n": 50000,
+      "k": 100,
+      "p": 0.05,
+      "beta": 0.05,
+      "rounds": 10,
+      "n_seeds": 5,
+      "p600_settling_rounds": 5,
+      "consolidation_passes": 1
+    },
+    "key_metrics": {
+      "verb_inst_d": 0.0014347630537410233,
+      "verb_inst_p": 0.9975938343697532,
+      "verb_margin_d": 0.6459680948413702,
+      "verb_margin_p": 0.22212118106470086,
+      "obj_vp_dist_d": 0.9341105247569802,
+      "obj_vp_dist_p": 0.10498075611718892,
+      "verb_inst_success": true,
+      "verb_margin_success": true
+    },
+    "full_result_file": "agreement_number"
+  },
+  "k_150": {
+    "config": {
+      "n": 50000,
+      "k": 150,
+      "p": 0.05,
+      "beta": 0.05,
+      "rounds": 10,
+      "n_seeds": 5,
+      "p600_settling_rounds": 10,
+      "consolidation_passes": 1
+    },
+    "key_metrics": {
+      "verb_inst_d": 0.13275491030729772,
+      "verb_inst_p": 0.781358093452508,
+      "verb_margin_d": -0.272217016595354,
+      "verb_margin_p": 0.575599140866689,
+      "obj_vp_dist_d": -0.6211086841208809,
+      "obj_vp_dist_p": 0.23720917816822107,
+      "verb_inst_success": true,
+      "verb_margin_success": false
+    },
+    "full_result_file": "agreement_number"
+  }
+}

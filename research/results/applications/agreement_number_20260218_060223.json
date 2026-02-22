@@ -1,0 +1,243 @@
+{
+  "experiment_name": "agreement_number",
+  "timestamp": "2026-02-18T06:02:23.937993",
+  "parameters": {
+    "n": 50000,
+    "k": 150,
+    "p": 0.05,
+    "beta": 0.05,
+    "rounds": 10,
+    "n_seeds": 5,
+    "p600_settling_rounds": 10,
+    "consolidation_passes": 1
+  },
+  "metrics": {
+    "verb_gram": {
+      "mean": 0.01435473503435814,
+      "std": 0.013497218990898749,
+      "sem": 0.006036139834170143,
+      "ci95_lo": 0.0025239009593846593,
+      "ci95_hi": 0.02618556910933162,
+      "min": 0.0,
+      "max": 0.032427303523223205,
+      "n": 5
+    },
+    "verb_agree": {
+      "mean": 0.016994361989543738,
+      "std": 0.013305679651113267,
+      "sem": 0.0059504808373449895,
+      "ci95_lo": 0.005331419548347559,
+      "ci95_hi": 0.028657304430739917,
+      "min": 0.0,
+      "max": 0.03255297334244703,
+      "n": 5
+    },
+    "verb_agree_vs_gram": {
+      "test": {
+        "t": 0.2968490037940052,
+        "p": 0.781358093452508,
+        "d": 0.13275491030729772,
+        "significant": "False"
+      },
+      "agree_higher": "True"
+    },
+    "verb_per_area_ROLE_AGENT": {
+      "agree": 0.016994361989543738,
+      "gram": 0.01435473503435814,
+      "test": {
+        "t": 0.2968490037940052,
+        "p": 0.781358093452508,
+        "d": 0.13275491030729772,
+        "significant": "False"
+      },
+      "direction": "agree>gram"
+    },
+    "verb_per_area_ROLE_PATIENT": {
+      "agree": 0.0,
+      "gram": 0.0,
+      "test": {
+        "t": 0.0,
+        "p": 1.0,
+        "d": 0.0,
+        "significant": false
+      },
+      "direction": "gram>agree"
+    },
+    "verb_per_area_VP": {
+      "agree": 0.0,
+      "gram": 0.0,
+      "test": {
+        "t": 0.0,
+        "p": 1.0,
+        "d": 0.0,
+        "significant": false
+      },
+      "direction": "gram>agree"
+    },
+    "obj_gram": {
+      "mean": 0.03612343729269678,
+      "std": 0.021585607707237116,
+      "sem": 0.009653377233805114,
+      "ci95_lo": 0.017202817914438756,
+      "ci95_hi": 0.0550440566709548,
+      "min": 0.013180106479677933,
+      "max": 0.06518259440909997,
+      "n": 5
+    },
+    "obj_agree": {
+      "mean": 0.027493286979782892,
+      "std": 0.01454650863094189,
+      "sem": 0.006505396426814693,
+      "ci95_lo": 0.014742709983226094,
+      "ci95_hi": 0.040243863976339694,
+      "min": 0.011567619379574734,
+      "max": 0.04473773074772325,
+      "n": 5
+    },
+    "obj_cat": {
+      "mean": 0.013089546474821101,
+      "std": 0.008315487322387847,
+      "sem": 0.0037187989837793867,
+      "ci95_lo": 0.005800700466613504,
+      "ci95_hi": 0.0203783924830287,
+      "min": 0.0,
+      "max": 0.022790934555640435,
+      "n": 5
+    },
+    "obj_agree_vs_gram": {
+      "test": {
+        "t": -2.607381764093415,
+        "p": 0.05958371712466323,
+        "d": -1.1660565735612392,
+        "significant": "False"
+      },
+      "direction": "LOWER"
+    },
+    "obj_cat_vs_gram": {
+      "test": {
+        "t": -3.0143321959284117,
+        "p": 0.03938210510334996,
+        "d": -1.3480503393724286,
+        "significant": "True"
+      },
+      "direction": "LOWER"
+    },
+    "obj_cat_vs_agree": {
+      "test": {
+        "t": -3.1009978826414444,
+        "p": 0.03618608438343144,
+        "d": -1.386808412733837,
+        "significant": "True"
+      },
+      "direction": "LOWER"
+    },
+    "ordering_correct": false,
+    "obj_per_area_ROLE_AGENT": {
+      "agree": 0.03535024580644526,
+      "gram": 0.037876028341972186,
+      "test": {
+        "t": -1.242706391744551,
+        "p": 0.2818482054270589,
+        "d": -0.55575519360286,
+        "significant": "False"
+      },
+      "direction": "gram>agree"
+    },
+    "obj_per_area_ROLE_PATIENT": {
+      "agree": 0.0,
+      "gram": 0.0,
+      "test": {
+        "t": 0.0,
+        "p": 1.0,
+        "d": 0.0,
+        "significant": false
+      },
+      "direction": "gram>agree"
+    },
+    "obj_per_area_VP": {
+      "agree": 0.01442376673462022,
+      "gram": 0.01960984935918845,
+      "test": {
+        "t": -1.7254452589809433,
+        "p": 0.1595302880280093,
+        "d": -0.7716425781072238,
+        "significant": "False"
+      },
+      "direction": "gram>agree"
+    },
+    "margin_verb_gram_vs_agree": {
+      "test": {
+        "t": -0.6086957537394,
+        "p": 0.575599140866689,
+        "d": -0.272217016595354,
+        "significant": "False"
+      },
+      "gram_mean": 79.61847705841065,
+      "agree_mean": 82.82673206329346,
+      "gram_higher": false
+    },
+    "margin_obj_ordering": false,
+    "vp_dist_verb": {
+      "mean": 0.0,
+      "std": 0.0,
+      "sem": 0.0,
+      "ci95_lo": 0.0,
+      "ci95_hi": 0.0,
+      "min": 0.0,
+      "max": 0.0,
+      "n": 5
+    },
+    "vp_dist_obj_agree": {
+      "mean": 0.018957306200247964,
+      "std": 0.010814711715917203,
+      "sem": 0.004836486110770852,
+      "ci95_lo": 0.009477793423137095,
+      "ci95_hi": 0.028436818977358835,
+      "min": 0.006622516556291369,
+      "max": 0.03259654253031735,
+      "n": 5
+    },
+    "vp_dist_obj_cat": {
+      "mean": 0.016300085148264615,
+      "std": 0.013153694218110768,
+      "sem": 0.005882510885388324,
+      "ci95_lo": 0.004770363812903499,
+      "ci95_hi": 0.02782980648362573,
+      "min": 0.0033112582781456845,
+      "max": 0.0358231594732587,
+      "n": 5
+    },
+    "vp_dist_cat_vs_agree": {
+      "test": {
+        "t": -1.388841239109734,
+        "p": 0.23720917816822107,
+        "d": -0.6211086841208809,
+        "significant": "False"
+      },
+      "cat_higher": false
+    },
+    "n400_verb_agree_vs_gram": {
+      "test": {
+        "t": 77.93464097540591,
+        "p": 1.6246228565121118e-07,
+        "d": 34.853431004609625,
+        "significant": "True"
+      }
+    },
+    "n400_obj_agree_vs_gram": {
+      "test": {
+        "t": 76.19471010254429,
+        "p": 1.7780887171719784e-07,
+        "d": 34.075310263035796,
+        "significant": "True"
+      }
+    },
+    "verb_inst_success": true,
+    "verb_margin_success": false,
+    "object_ordering_success": false
+  },
+  "raw_data": {},
+  "success": true,
+  "error_message": null,
+  "duration_seconds": 17840.57990739995
+}
