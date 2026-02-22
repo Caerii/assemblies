@@ -13,6 +13,10 @@ uv run python research/experiments/primitives/test_projection.py --quick
 uv run python research/experiments/primitives/test_association.py --quick
 uv run python research/experiments/primitives/test_merge.py --quick
 
+# Run composed ERP experiments
+uv run python research/experiments/primitives/test_composed_erp.py --quick
+uv run python research/experiments/primitives/test_incremental_erp.py --quick
+
 # Run stability tests
 uv run python research/experiments/stability/test_phase_diagram.py --quick
 ```
@@ -21,13 +25,36 @@ uv run python research/experiments/stability/test_phase_diagram.py --quick
 
 ### 1. Primitives (`primitives/`)
 
-Validates the three core Assembly Calculus operations:
+Validates core Assembly Calculus operations and derived phenomena:
+
+**Core Operations:**
 
 | Experiment | Scientific Question | Status |
 |------------|---------------------|--------|
 | **Projection** | Does projection reliably create stable assemblies? | ✅ Validated |
 | **Association** | Does co-activation increase assembly overlap? | ✅ Validated |
 | **Merge** | Does simultaneous projection create composite assemblies? | ✅ Validated |
+
+**Derived Primitives:**
+
+| Experiment | Scientific Question | Status |
+|------------|---------------------|--------|
+| **Self-Organization** | Do category areas self-organize from distributional input? | ✅ Validated |
+| **Role Discovery** | Do structural roles emerge from co-projection? | ✅ Validated |
+| **Forward Prediction** | Can Hebbian bridges support context-driven prediction? | ✅ Validated |
+| **Binding & Retrieval** | Can co-projection bind words to roles and retrieve them? | ✅ Validated |
+
+**Composed Phenomena (ERP Signals):**
+
+| Experiment | Scientific Question | Status |
+|------------|---------------------|--------|
+| **Prediction N400** | Does prediction error produce graded N400 signals? | ✅ Validated |
+| **Binding P600** | Does anchored instability produce graded P600 signals? | ✅ Validated |
+| **Composed ERP** | Do N400 and P600 show a double dissociation? | ✅ Validated |
+| **Incremental ERP** | Does online learning produce graded, developmental ERP curves? | ✅ Validated |
+| **ERP Diagnostics** | What are the representational and signal-flow dynamics? | ✅ Complete |
+
+See `research/results/primitives/RESULTS_composed_erp.md` for detailed findings.
 
 ### 2. Stability (`stability/`)
 
@@ -77,12 +104,20 @@ uv run python research/experiments/primitives/run_all.py --full
 uv run python research/experiments/stability/test_phase_diagram.py
 ```
 
-## Key Findings (Preliminary)
+## Key Findings
 
 ### Primitive Validation
 - **Projection**: 100% convergence rate across all tested configurations
 - **Association**: Overlap increases consistently with co-activation
 - **Merge**: Composite assemblies capture both parent concepts (88% quality)
+
+### Composed ERP Signals
+- **N400/P600 double dissociation** from a single prediction + binding mechanism
+- Novel nouns show N400 effect (+0.89) but not P600 (~0); category violations show both
+- **Anchored instability** (P600 metric, d=21-90) resolves the zero-signal problem
+  where untrained pathways paradoxically showed zero Jaccard instability
+- **Incremental learning** produces graded word-frequency effects (N400 decreases
+  with exposure) and immediate category-level generalization
 
 ### Stability
 - Assemblies are stable across wide range of sparsity levels (0.01 - 0.1)
