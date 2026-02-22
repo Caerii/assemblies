@@ -419,3 +419,54 @@ def generate_mixed_sentences(
     cfg = SimpleCFG(pp_prob=pp_prob, novel_obj_prob=novel_obj_prob,
                     vocab=v, rng=r)
     return cfg.generate_batch(n_sentences)
+
+
+class DetCFG:
+    """CFG that wraps SimpleCFG and inserts determiners before nouns.
+
+    Produces DET-N-V-DET-N sentences (with optional PP: DET-N-V-DET-N-P-DET-N).
+    The DET-N-V pattern creates a 3-position cycle that provides distributional
+    evidence for 3-way category discovery in the free-form learner.
+
+    Requires a vocabulary with a "DET" category (e.g. DET_VOCAB).
+    """
+
+    def __init__(
+        self,
+        pp_prob: float = 0.3,
+        vocab: Vocabulary = None,
+        rng: np.random.Generator = None,
+        **kwargs,
+    ):
+        from research.experiments.lib.vocabulary import DET_VOCAB
+        self.vocab = vocab or DET_VOCAB
+        self.rng = rng or np.random.default_rng(42)
+        self.inner = SimpleCFG(
+            pp_prob=pp_prob, vocab=self.vocab, rng=self.rng, **kwargs,
+        )
+
+    def generate(self) -> Dict[str, Any]:
+        """Generate one sentence, inserting determiners before nouns/locations."""
+        sent = self.inner.generate()
+        dets = self.vocab.words_for_category("DET")
+        new_words: List[str] = []
+        new_roles: List[str] = []
+        new_cats: List[str] = []
+        for w, r, c in zip(sent["words"], sent["roles"], sent["categories"]):
+            if c in ("NOUN", "LOCATION"):
+                new_words.append(self.rng.choice(dets))
+                new_roles.append("DET")
+                new_cats.append("DET")
+            new_words.append(w)
+            new_roles.append(r)
+            new_cats.append(c)
+        return {
+            "words": new_words,
+            "roles": new_roles,
+            "categories": new_cats,
+            "has_pp": sent["has_pp"],
+        }
+
+    def generate_batch(self, n: int) -> List[Dict[str, Any]]:
+        """Generate n sentences."""
+        return [self.generate() for _ in range(n)]

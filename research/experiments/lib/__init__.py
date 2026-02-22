@@ -13,6 +13,7 @@ experiments. Each module handles one concern:
   subgrammar  — production-rule decomposition, per-subgrammar measurement
   unsupervised — role discovery + training without role labels
   grounding   — sensory feature co-projection for semantic structure
+  freeform    — free-form learner: language from scratch, one sentence at a time
 
 Experiments compose these modules rather than duplicating infrastructure.
 The architecture supports extension to new word categories, role slots,
@@ -23,9 +24,10 @@ no changes to training or measurement logic required.
 from research.experiments.lib.vocabulary import (
     Vocabulary,
     DEFAULT_VOCAB,
+    DET_VOCAB,
     RECURSIVE_VOCAB,
 )
-from research.experiments.lib.grammar import SimpleCFG, RecursiveCFG
+from research.experiments.lib.grammar import SimpleCFG, RecursiveCFG, DetCFG
 from research.experiments.lib.brain_setup import (
     create_language_brain,
     build_lexicon,
@@ -67,6 +69,10 @@ from research.experiments.lib.unsupervised import (
     build_role_mapping,
     train_binding_with_feedback,
     train_sentence_integrated,
+)
+from research.experiments.lib.freeform import (
+    FreeFormConfig,
+    FreeFormLearner,
 )
 from research.experiments.lib.grounding import (
     SENSORY_FEATURES,
