@@ -36,6 +36,8 @@ from research.experiments.lib.measurement import (
     measure_n400,
     measure_p600,
     measure_erps_at_position,
+    forward_predict_from_context,
+    measure_role_leakage,
     generate_test_triples,
     generate_pp_test_triples,
 )

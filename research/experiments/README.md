@@ -22,6 +22,11 @@ uv run python research/experiments/primitives/test_variable_length.py --quick
 uv run python research/experiments/primitives/test_variable_incremental.py --quick
 uv run python research/experiments/primitives/test_recursive_structure.py --quick
 
+# Run psycholinguistic phenomena experiments
+uv run python research/experiments/primitives/test_garden_path_erp.py --quick
+uv run python research/experiments/primitives/test_rc_asymmetry.py --quick
+uv run python research/experiments/primitives/test_agreement_attraction.py --quick
+
 # Run stability tests
 uv run python research/experiments/stability/test_phase_diagram.py --quick
 ```
@@ -66,6 +71,9 @@ Validates core Assembly Calculus operations and derived phenomena:
 | **Variable-Length** | Does prediction+binding generalize to SVO+PP? | ✅ Validated |
 | **Variable Incremental** | Do CFG-generated sentences produce graded learning curves? | ✅ Validated |
 | **Recursive Structure** | Does AC handle recursive PP and center-embedding? | ✅ Validated |
+| **Garden-Path ERP** | Does structural ambiguity produce prediction violation + reanalysis? | ✅ Validated |
+| **RC Asymmetry** | Does the SRC > ORC processing asymmetry emerge from binding? | ✅ Validated |
+| **Agreement Attraction** | Do intervening PP nouns interfere with subject binding? | ✅ Validated |
 
 See `research/results/primitives/RESULTS_composed_erp.md` for detailed findings.
 
@@ -151,6 +159,21 @@ uv run python research/experiments/stability/test_phase_diagram.py
   clause — the prediction chain persists across embedded material
 - 11-area architecture (NOUN_CORE, VERB_CORE, PREP_CORE, COMP_CORE, PREDICTION,
   ROLE_AGENT, ROLE_PATIENT, ROLE_PP_OBJ, ROLE_PP_OBJ_1, ROLE_REL_AGENT, ROLE_REL_PATIENT)
+
+### Psycholinguistic Phenomena
+- **Garden-path effect**: Omitting the complementizer ("dog chases cat sees bird"
+  vs "dog that chases cat sees bird") produces N400 at the second verb (d=0.88) —
+  the system predicted PP or sentence-end, not another verb. Post-object predictions
+  confirm: prep N400=0.09 < verb=0.17 < noun=0.43.
+- **SRC/ORC asymmetry**: Object-relatives produce higher processing difficulty than
+  subject-relatives. The key result is dual-binding P600: SRC (same-direction
+  AGENT+REL_AGENT) = 0.043, ORC (conflicting AGENT+REL_PATIENT) = 0.181, d=0.81.
+  The asymmetry emerges from binding direction conflict, not from any built-in SRC/ORC
+  distinction.
+- **Agreement attraction**: Intervening PP nouns increase AGENT binding P600 (no PP:
+  0.119, short PP: 0.130, d=0.67). The effect plateaus rather than increasing with
+  further PP depth, suggesting a threshold interference mechanism rather than linear
+  distance scaling.
 
 ### Stability
 - Assemblies are stable across wide range of sparsity levels (0.01 - 0.1)

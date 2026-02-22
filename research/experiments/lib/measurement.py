@@ -135,6 +135,69 @@ def measure_erps_at_position(
     }
 
 
+def forward_predict_from_context(
+    brain: Brain,
+    context_words: List[str],
+    vocab: Vocabulary = None,
+    activate_rounds: int = 3,
+) -> np.ndarray:
+    """Activate a sequence of words, then forward-project into PREDICTION.
+
+    Processes each context word by activating it in its core area,
+    then projects the final word's area into PREDICTION.
+
+    Args:
+        brain: Brain instance (plasticity should be OFF).
+        context_words: Words to activate in sequence.
+        vocab: Vocabulary for area lookups.
+        activate_rounds: Rounds per word activation.
+
+    Returns:
+        PREDICTION winners array for N400 comparison.
+    """
+    v = vocab or DEFAULT_VOCAB
+    last_area = None
+    for word in context_words:
+        area = v.core_area_for(word)
+        activate_word(brain, word, area, activate_rounds)
+        last_area = area
+    brain.inhibit_areas(["PREDICTION"])
+    brain.project({}, {last_area: ["PREDICTION"]})
+    return np.array(brain.areas["PREDICTION"].winners, dtype=np.uint32)
+
+
+def measure_role_leakage(
+    brain: Brain,
+    word: str,
+    core_area: str,
+    role_area: str,
+    activate_rounds: int = 3,
+) -> np.ndarray:
+    """Activate a word and read out its footprint in a role area.
+
+    Projects word into the role area with one round (no plasticity)
+    and returns the resulting winners.  Used to measure whether
+    an unintended noun 'leaks' into a role area it was not bound to.
+
+    Args:
+        brain: Brain instance (plasticity OFF).
+        word: Word to test.
+        core_area: Core area with the word's assembly.
+        role_area: Role area to probe.
+        activate_rounds: Rounds for initial word activation.
+
+    Returns:
+        Winner array in the role area after one projection round.
+    """
+    activate_word(brain, word, core_area, activate_rounds)
+    brain.inhibit_areas([role_area])
+    brain.project(
+        {f"PHON_{word}": [core_area, role_area]},
+        {core_area: [role_area]},
+    )
+    return np.array(brain.areas[role_area].winners, dtype=np.uint32)
+
+
 # ── Test condition generators ──────────────────────────────────────
 
 def generate_test_triples(

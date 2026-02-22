@@ -136,6 +136,7 @@ class RecursiveCFG:
         pp_prob: float = 0.4,
         recursive_pp_prob: float = 0.5,
         rel_prob: float = 0.3,
+        orc_prob: float = 0.0,
         max_pp_depth: int = 2,
         max_rel_depth: int = 1,
         novel_obj_prob: float = 0.0,
@@ -145,6 +146,7 @@ class RecursiveCFG:
         self.pp_prob = pp_prob
         self.recursive_pp_prob = recursive_pp_prob
         self.rel_prob = rel_prob
+        self.orc_prob = orc_prob
         self.max_pp_depth = max_pp_depth
         self.max_rel_depth = max_rel_depth
         self.novel_obj_prob = novel_obj_prob
@@ -219,10 +221,30 @@ class RecursiveCFG:
 
         return {"words": words, "roles": roles, "categories": categories}
 
+    def _generate_orc(self, head_noun: str, used_nouns: List[str]
+                      ) -> Dict[str, List]:
+        """Generate an object-relative clause: "that" NP V.
+
+        The head noun is the patient of the embedded verb; the new NP is
+        the embedded agent.  Example: head="dog" produces
+        "that cat chases" where cat=REL_AGENT, chases=REL_VERB,
+        and the head noun "dog" gets REL_PATIENT binding (handled by caller).
+        """
+        verbs = self.vocab.words_for_category("VERB")
+        rel_verb = self.rng.choice(verbs)
+        rel_agent = self._pick_noun(exclude=used_nouns + [head_noun])
+
+        words = ["that", rel_agent, rel_verb]
+        roles = ["COMP", "REL_AGENT", "REL_VERB"]
+        categories = ["COMP", "NOUN", "VERB"]
+
+        return {"words": words, "roles": roles, "categories": categories}
+
     def generate(self) -> Dict[str, Any]:
         """Generate one sentence from the recursive grammar.
 
-        Returns dict with words, roles, categories, has_pp, has_rel, pp_depth.
+        Returns dict with words, roles, categories, has_pp, has_rel,
+        rel_type, pp_depth, length.
         """
         nouns = self.vocab.words_for_category("NOUN")
         agent = self.rng.choice(nouns)
@@ -231,29 +253,41 @@ class RecursiveCFG:
         roles = ["AGENT"]
         categories = ["NOUN"]
         has_rel = False
+        rel_type = None
         max_pp_depth_seen = 0
 
-        # Subject-relative clause: NP -> N "that" VP
+        # Relative clause: NP -> N "that" VP (SRC) or N "that" NP V (ORC)
         if (self.rel_prob > 0
                 and self.max_rel_depth > 0
                 and "COMP" in self.vocab.categories
                 and self.rng.random() < self.rel_prob):
-            comps = self.vocab.words_for_category("COMP")
-            comp = self.rng.choice(comps)
-            words.append(comp)
-            roles.append("COMP")
-            categories.append("COMP")
 
-            # The main-clause agent is also the relative-clause agent.
-            # We don't re-emit it; the binding for REL_AGENT is handled
-            # by training the agent word to REL_AGENT role.
-            roles[0] = "AGENT+REL_AGENT"  # dual binding annotation
+            is_orc = self.orc_prob > 0 and self.rng.random() < self.orc_prob
 
-            rel_vp = self._generate_vp(rel_depth=1, used_nouns=[agent])
-            words.extend(rel_vp["words"])
-            roles.extend(rel_vp["roles"])
-            categories.extend(rel_vp["categories"])
-            has_rel = True
+            if is_orc:
+                # Object-relative: head noun is patient of embedded verb
+                orc = self._generate_orc(agent, [agent])
+                words.extend(orc["words"])
+                roles.extend(orc["roles"])
+                categories.extend(orc["categories"])
+                roles[0] = "AGENT+REL_PATIENT"  # main agent + embedded patient
+                has_rel = True
+                rel_type = "ORC"
+            else:
+                # Subject-relative: head noun is agent of embedded verb
+                comps = self.vocab.words_for_category("COMP")
+                comp = self.rng.choice(comps)
+                words.append(comp)
+                roles.append("COMP")
+                categories.append("COMP")
+                roles[0] = "AGENT+REL_AGENT"  # dual binding annotation
+
+                rel_vp = self._generate_vp(rel_depth=1, used_nouns=[agent])
+                words.extend(rel_vp["words"])
+                roles.extend(rel_vp["roles"])
+                categories.extend(rel_vp["categories"])
+                has_rel = True
+                rel_type = "SRC"
 
         # Main VP
         main_vp = self._generate_vp(rel_depth=0, used_nouns=[agent])
@@ -280,6 +314,7 @@ class RecursiveCFG:
             "categories": categories,
             "has_pp": has_pp,
             "has_rel": has_rel,
+            "rel_type": rel_type,
             "pp_depth": max_pp_depth_seen,
             "length": len(words),
         }
