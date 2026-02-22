@@ -187,6 +187,7 @@ class RecursiveCFG:
         words = [prep, pp_obj]
         roles = ["PREP", role]
         categories = ["PREP", "LOCATION"]
+        productions = []
 
         # Recursive PP?
         if (pp_depth + 1 < self.max_pp_depth
@@ -195,8 +196,13 @@ class RecursiveCFG:
             words.extend(sub["words"])
             roles.extend(sub["roles"])
             categories.extend(sub["categories"])
+            productions.append("PP_P_NP_PP")
+            productions.extend(sub.get("productions", []))
+        else:
+            productions.append("PP_P_NP")
 
-        return {"words": words, "roles": roles, "categories": categories}
+        return {"words": words, "roles": roles, "categories": categories,
+                "productions": productions}
 
     def _generate_vp(self, rel_depth: int, used_nouns: List[str]
                      ) -> Dict[str, List]:
@@ -211,6 +217,7 @@ class RecursiveCFG:
         words = [verb, patient]
         roles = ["VERB" if rel_depth == 0 else "REL_VERB", patient_role]
         categories = ["VERB", "NOUN"]
+        productions = []
 
         # Optional PP
         if self.rng.random() < self.pp_prob and "PREP" in self.vocab.categories:
@@ -218,8 +225,13 @@ class RecursiveCFG:
             words.extend(pp["words"])
             roles.extend(pp["roles"])
             categories.extend(pp["categories"])
+            productions.append("VP_V_NP_PP")
+            productions.extend(pp.get("productions", []))
+        else:
+            productions.append("VP_V_NP")
 
-        return {"words": words, "roles": roles, "categories": categories}
+        return {"words": words, "roles": roles, "categories": categories,
+                "productions": productions}
 
     def _generate_orc(self, head_noun: str, used_nouns: List[str]
                       ) -> Dict[str, List]:
@@ -238,7 +250,8 @@ class RecursiveCFG:
         roles = ["COMP", "REL_AGENT", "REL_VERB"]
         categories = ["COMP", "NOUN", "VERB"]
 
-        return {"words": words, "roles": roles, "categories": categories}
+        return {"words": words, "roles": roles, "categories": categories,
+                "productions": ["NP_N_that_NP_V_ORC"]}
 
     def generate(self) -> Dict[str, Any]:
         """Generate one sentence from the recursive grammar.
@@ -252,6 +265,7 @@ class RecursiveCFG:
         words = [agent]
         roles = ["AGENT"]
         categories = ["NOUN"]
+        productions = ["S_NP_VP"]
         has_rel = False
         rel_type = None
         max_pp_depth_seen = 0
@@ -270,6 +284,7 @@ class RecursiveCFG:
                 words.extend(orc["words"])
                 roles.extend(orc["roles"])
                 categories.extend(orc["categories"])
+                productions.extend(orc.get("productions", []))
                 roles[0] = "AGENT+REL_PATIENT"  # main agent + embedded patient
                 has_rel = True
                 rel_type = "ORC"
@@ -281,19 +296,24 @@ class RecursiveCFG:
                 roles.append("COMP")
                 categories.append("COMP")
                 roles[0] = "AGENT+REL_AGENT"  # dual binding annotation
+                productions.append("NP_N_that_VP_SRC")
 
                 rel_vp = self._generate_vp(rel_depth=1, used_nouns=[agent])
                 words.extend(rel_vp["words"])
                 roles.extend(rel_vp["roles"])
                 categories.extend(rel_vp["categories"])
+                productions.extend(rel_vp.get("productions", []))
                 has_rel = True
                 rel_type = "SRC"
+        else:
+            productions.append("NP_N")
 
         # Main VP
         main_vp = self._generate_vp(rel_depth=0, used_nouns=[agent])
         words.extend(main_vp["words"])
         roles.extend(main_vp["roles"])
         categories.extend(main_vp["categories"])
+        productions.extend(main_vp.get("productions", []))
 
         # Count PP depth
         pp_roles = [r for r in roles if r.startswith("PP_OBJ")]
@@ -317,11 +337,23 @@ class RecursiveCFG:
             "rel_type": rel_type,
             "pp_depth": max_pp_depth_seen,
             "length": len(words),
+            "productions_used": productions,
         }
 
     def generate_batch(self, n: int) -> List[Dict[str, Any]]:
         """Generate n sentences."""
         return [self.generate() for _ in range(n)]
+
+    @staticmethod
+    def production_frequencies(
+        batch: List[Dict[str, Any]],
+    ) -> Dict[str, int]:
+        """Count production rule occurrences across a batch of sentences."""
+        counts: Dict[str, int] = {}
+        for sent in batch:
+            for prod in sent.get("productions_used", []):
+                counts[prod] = counts.get(prod, 0) + 1
+        return counts
 
 
 def generate_svo_sentences(
