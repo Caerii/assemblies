@@ -147,6 +147,53 @@ DEFAULT_VOCAB = Vocabulary(
     },
 )
 
+# ── Recursive vocabulary (SVO + recursive PP + relative clauses) ───
+
+RECURSIVE_VOCAB = Vocabulary(
+    categories={
+        "NOUN": CategoryDef(
+            words=["dog", "cat", "bird", "boy", "girl"],
+            core_area="NOUN_CORE",
+            role_areas={
+                "AGENT": "ROLE_AGENT",
+                "PATIENT": "ROLE_PATIENT",
+                "PP_OBJ": "ROLE_PP_OBJ",
+                "PP_OBJ_1": "ROLE_PP_OBJ_1",
+                "REL_AGENT": "ROLE_REL_AGENT",
+                "REL_PATIENT": "ROLE_REL_PATIENT",
+            },
+        ),
+        "VERB": CategoryDef(
+            words=["chases", "sees", "eats", "finds", "hits"],
+            core_area="VERB_CORE",
+            role_areas={},
+        ),
+        "PREP": CategoryDef(
+            words=["in", "on", "at"],
+            core_area="PREP_CORE",
+            role_areas={},
+        ),
+        "LOCATION": CategoryDef(
+            words=["garden", "park", "house", "field", "river"],
+            core_area="NOUN_CORE",
+            role_areas={
+                "PP_OBJ": "ROLE_PP_OBJ",
+                "PP_OBJ_1": "ROLE_PP_OBJ_1",
+            },
+        ),
+        "COMP": CategoryDef(
+            words=["that"],
+            core_area="COMP_CORE",
+            role_areas={},
+        ),
+    },
+    novel_words={
+        "table": "NOUN",
+        "chair": "NOUN",
+    },
+)
+
+
 # Convenience lists for backward compatibility with existing experiments
 NOUNS = DEFAULT_VOCAB.categories["NOUN"].words
 VERBS = DEFAULT_VOCAB.categories["VERB"].words

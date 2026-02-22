@@ -123,10 +123,19 @@ def train_sentence(
         train_prediction_pair(
             brain, context_word, context_area, target_word, prediction_rounds)
 
-    # Binding training: bind nouns/locations to their role slots
-    bindable_roles = {"AGENT", "PATIENT", "PP_OBJ"}
-    for word, role in zip(words, roles):
-        if role in bindable_roles:
+    # Binding training: bind words to any role slot defined in vocabulary.
+    # A role is bindable if role_area_for() can resolve it — the vocabulary
+    # defines which roles exist. Roles like VERB, PREP, COMP have no role
+    # areas and are silently skipped.
+    #
+    # Dual-binding annotations like "AGENT+REL_AGENT" bind the word to
+    # both role areas (the main-clause agent and the relative-clause agent).
+    for word, role_str in zip(words, roles):
+        sub_roles = role_str.split("+")
+        for role in sub_roles:
+            try:
+                role_area = v.role_area_for(role)
+            except ValueError:
+                continue  # role has no slot (verbs, preps, comps)
             core_area = v.core_area_for(word)
-            role_area = v.role_area_for(role)
             train_binding(brain, word, core_area, role_area, binding_rounds)

@@ -19,8 +19,9 @@ no changes to training or measurement logic required.
 from research.experiments.lib.vocabulary import (
     Vocabulary,
     DEFAULT_VOCAB,
+    RECURSIVE_VOCAB,
 )
-from research.experiments.lib.grammar import SimpleCFG
+from research.experiments.lib.grammar import SimpleCFG, RecursiveCFG
 from research.experiments.lib.brain_setup import (
     create_language_brain,
     build_lexicon,

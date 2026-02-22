@@ -20,6 +20,7 @@ uv run python research/experiments/primitives/test_incremental_erp.py --quick
 # Run variable-length sentence experiments
 uv run python research/experiments/primitives/test_variable_length.py --quick
 uv run python research/experiments/primitives/test_variable_incremental.py --quick
+uv run python research/experiments/primitives/test_recursive_structure.py --quick
 
 # Run stability tests
 uv run python research/experiments/stability/test_phase_diagram.py --quick
@@ -64,6 +65,7 @@ Validates core Assembly Calculus operations and derived phenomena:
 |------------|---------------------|--------|
 | **Variable-Length** | Does prediction+binding generalize to SVO+PP? | ✅ Validated |
 | **Variable Incremental** | Do CFG-generated sentences produce graded learning curves? | ✅ Validated |
+| **Recursive Structure** | Does AC handle recursive PP and center-embedding? | ✅ Validated |
 
 See `research/results/primitives/RESULTS_composed_erp.md` for detailed findings.
 
@@ -137,6 +139,18 @@ uv run python research/experiments/stability/test_phase_diagram.py
 - **CFG-generated sentences** produce the same learning curves as hand-crafted templates
 - PP bindings develop alongside SVO bindings with no special handling
 - 8-area architecture (3 lexical + 1 prediction + 3 role + 1 prep) handles variable length
+
+### Recursive Structure & Center-Embedding
+- **Recursive PP** at depth 0 (P600 d=14.39) and depth 1 (d=15.65) — same double
+  dissociation pattern at arbitrary recursive depth
+- **Center-embedding** ("dog that chases cat sees bird") separates at both clause
+  levels: main patient P600 d=12.07, relative patient P600 d=10.58
+- **Dual binding** works: agent binds to both ROLE_AGENT (instability 0.214) and
+  ROLE_REL_AGENT (0.101) simultaneously — one word, two structural roles
+- **Prediction across embedding**: main verb N400 = 0.181 after intervening relative
+  clause — the prediction chain persists across embedded material
+- 11-area architecture (NOUN_CORE, VERB_CORE, PREP_CORE, COMP_CORE, PREDICTION,
+  ROLE_AGENT, ROLE_PATIENT, ROLE_PP_OBJ, ROLE_PP_OBJ_1, ROLE_REL_AGENT, ROLE_REL_PATIENT)
 
 ### Stability
 - Assemblies are stable across wide range of sparsity levels (0.01 - 0.1)
