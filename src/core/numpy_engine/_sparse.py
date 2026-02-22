@@ -97,10 +97,23 @@ class NumpySparseEngine(ComputeEngine):
         xp = get_xp()
         self._stimuli[name] = StimulusState(name=name, size=size)
 
-        # Initialize stim->area for every already-registered area
+        # Initialize stim->area for every already-registered area.
+        # If the area already has ever-fired neurons (w > 0), create a
+        # weight vector of length w with random Bernoulli(p) connections
+        # so the stimulus can compete with existing trained connections.
+        # Without this, the empty weight vector produces zero input and
+        # the projection short-circuits, making online learning impossible.
         for area_name, area in self._areas.items():
             conn = Connectome(size, area.n, self.p, sparse=True)
-            conn.weights = xp.empty(0, dtype=xp.float32)
+            if area.w > 0:
+                rng = np.random.default_rng(
+                    hash((name, area_name, area.w)) & 0xFFFFFFFF)
+                conn.weights = to_xp(
+                    (rng.random(area.w) < self.p).astype(np.float32)
+                    * size  # scale by stimulus size for fair competition
+                )
+            else:
+                conn.weights = xp.empty(0, dtype=xp.float32)
             self._stim_conns[name][area_name] = conn
             area.beta_by_source[name] = area.beta
 
