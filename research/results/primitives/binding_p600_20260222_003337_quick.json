@@ -1,0 +1,103 @@
+{
+  "experiment_name": "binding_p600",
+  "timestamp": "2026-02-22T00:33:37.436079",
+  "parameters": {
+    "n": 5000,
+    "k": 50,
+    "p": 0.05,
+    "beta": 0.1,
+    "w_max": 20.0,
+    "lexicon_rounds": 20,
+    "binding_rounds": 10,
+    "training_reps": 3,
+    "n_train_sentences": 15,
+    "n_settling_rounds": 10,
+    "n_seeds": 5,
+    "n_nouns": 5,
+    "n_verbs": 5
+  },
+  "metrics": {
+    "p600_instability_gram": {
+      "mean": 0.0,
+      "std": 0.0,
+      "sem": 0.0,
+      "ci95_lo": 0.0,
+      "ci95_hi": 0.0,
+      "min": 0.0,
+      "max": 0.0,
+      "n": 5
+    },
+    "p600_instability_catviol": {
+      "mean": 0.0,
+      "std": 0.0,
+      "sem": 0.0,
+      "ci95_lo": 0.0,
+      "ci95_hi": 0.0,
+      "min": 0.0,
+      "max": 0.0,
+      "n": 5
+    },
+    "convergence_gram": {
+      "mean": 1.0,
+      "std": 0.0,
+      "sem": 0.0,
+      "ci95_lo": 1.0,
+      "ci95_hi": 1.0,
+      "min": 1.0,
+      "max": 1.0,
+      "n": 5
+    },
+    "convergence_catviol": {
+      "mean": 1.0,
+      "std": 0.0,
+      "sem": 0.0,
+      "ci95_lo": 1.0,
+      "ci95_hi": 1.0,
+      "min": 1.0,
+      "max": 1.0,
+      "n": 5
+    },
+    "binding_strength_gram": {
+      "mean": 0.34639999999999993,
+      "std": 0.02632109420217937,
+      "sem": 0.011771151175649733,
+      "ci95_lo": 0.32332854369572644,
+      "ci95_hi": 0.3694714563042734,
+      "min": 0.32399999999999995,
+      "max": 0.388,
+      "n": 5
+    },
+    "binding_strength_catviol": {
+      "mean": 0.0,
+      "std": 0.0,
+      "sem": 0.0,
+      "ci95_lo": 0.0,
+      "ci95_hi": 0.0,
+      "min": 0.0,
+      "max": 0.0,
+      "n": 5
+    },
+    "h1_instability_test": {
+      "t": 0.0,
+      "p": 1.0,
+      "d": 0.0,
+      "significant": false
+    },
+    "h2_convergence_test": {
+      "t": 0.0,
+      "p": 1.0,
+      "d": 0.0,
+      "significant": false
+    },
+    "h3_strength_test": {
+      "t": 29.427877939124308,
+      "p": 7.939251230875355e-06,
+      "d": 13.160547101089675,
+      "significant": "True"
+    }
+  },
+  "raw_data": {},
+  "success": true,
+  "error_message": null,
+  "duration_seconds": 3.0339292000280693
+}
