@@ -1,0 +1,353 @@
+{
+  "experiment_name": "area_self_organization",
+  "timestamp": "2026-02-21T21:55:21.347126",
+  "parameters": {
+    "n": 10000,
+    "k": 100,
+    "p": 0.05,
+    "beta": 0.1,
+    "w_max": 20.0,
+    "n_core_areas": 8,
+    "rounds_per_word": 10,
+    "training_reps": 10,
+    "n_seeds": 10
+  },
+  "metrics": {
+    "condition_A_features_only": {
+      "purity": {
+        "mean": 0.4414634146341463,
+        "std": 0.0268415837710881,
+        "sem": 0.008488054072285001,
+        "ci95_lo": 0.4248268286524677,
+        "ci95_hi": 0.4581000006158249,
+        "min": 0.4146341463414634,
+        "max": 0.4878048780487805,
+        "n": 10
+      },
+      "purity_vs_chance": {
+        "t": 5.939480794656345,
+        "p": 0.00021815313081985932,
+        "d": 1.8782287429940892,
+        "significant": "True"
+      },
+      "completeness": {
+        "mean": 0.4365853658536586,
+        "std": 0.05685246743755152,
+        "sem": 0.01797832877032194,
+        "ci95_lo": 0.40134784146382757,
+        "ci95_hi": 0.4718228902434896,
+        "min": 0.36585365853658536,
+        "max": 0.5609756097560976,
+        "n": 10
+      },
+      "n_active_areas": {
+        "mean": 7.4,
+        "std": 0.9660917830792959,
+        "sem": 0.30550504633038933,
+        "ci95_lo": 6.8012101091924375,
+        "ci95_hi": 7.998789890807563,
+        "min": 5.0,
+        "max": 8.0,
+        "n": 10
+      },
+      "within_category_overlap": {
+        "mean": 0.9488051707464805,
+        "std": 0.02648647593183631,
+        "sem": 0.00837575911358334,
+        "ci95_lo": 0.9323886828838571,
+        "ci95_hi": 0.9652216586091039,
+        "min": 0.9153846153846152,
+        "max": 0.9869696969696969,
+        "n": 10
+      },
+      "across_category_overlap": {
+        "mean": 0.3112797651492855,
+        "std": 0.018454758379467213,
+        "sem": 0.005835907014719437,
+        "ci95_lo": 0.2998413874004354,
+        "ci95_hi": 0.3227181428981356,
+        "min": 0.28575530586766545,
+        "max": 0.34663694267515927,
+        "n": 10
+      },
+      "example_contingency": {
+        "categories": [
+          "motor",
+          "none",
+          "properties",
+          "social",
+          "spatial",
+          "temporal",
+          "visual"
+        ],
+        "rows": [
+          {
+            "area": "CORE_0",
+            "motor": 1,
+            "none": 1,
+            "properties": 1,
+            "social": 0,
+            "spatial": 0,
+            "temporal": 0,
+            "visual": 0,
+            "total": 3
+          },
+          {
+            "area": "CORE_1",
+            "motor": 0,
+            "none": 0,
+            "properties": 0,
+            "social": 0,
+            "spatial": 1,
+            "temporal": 1,
+            "visual": 4,
+            "total": 6
+          },
+          {
+            "area": "CORE_2",
+            "motor": 1,
+            "none": 0,
+            "properties": 0,
+            "social": 1,
+            "spatial": 0,
+            "temporal": 0,
+            "visual": 0,
+            "total": 2
+          },
+          {
+            "area": "CORE_3",
+            "motor": 2,
+            "none": 3,
+            "properties": 1,
+            "social": 0,
+            "spatial": 1,
+            "temporal": 0,
+            "visual": 0,
+            "total": 7
+          },
+          {
+            "area": "CORE_4",
+            "motor": 2,
+            "none": 1,
+            "properties": 2,
+            "social": 1,
+            "spatial": 1,
+            "temporal": 0,
+            "visual": 4,
+            "total": 11
+          },
+          {
+            "area": "CORE_5",
+            "motor": 0,
+            "none": 0,
+            "properties": 0,
+            "social": 0,
+            "spatial": 1,
+            "temporal": 0,
+            "visual": 0,
+            "total": 1
+          },
+          {
+            "area": "CORE_6",
+            "motor": 0,
+            "none": 0,
+            "properties": 0,
+            "social": 0,
+            "spatial": 1,
+            "temporal": 0,
+            "visual": 0,
+            "total": 1
+          },
+          {
+            "area": "CORE_7",
+            "motor": 2,
+            "none": 1,
+            "properties": 1,
+            "social": 2,
+            "spatial": 0,
+            "temporal": 2,
+            "visual": 2,
+            "total": 10
+          }
+        ]
+      }
+    },
+    "condition_B_with_modality": {
+      "purity": {
+        "mean": 0.7585365853658537,
+        "std": 0.10995164753693772,
+        "sem": 0.034769763870476575,
+        "ci95_lo": 0.6903878481797195,
+        "ci95_hi": 0.8266853225519878,
+        "min": 0.5365853658536586,
+        "max": 0.9024390243902439,
+        "n": 10
+      },
+      "purity_vs_chance": {
+        "t": 10.56917746830277,
+        "p": 2.2529826540920905e-06,
+        "d": 3.342267379436884,
+        "significant": "True"
+      },
+      "completeness": {
+        "mean": 1.0,
+        "std": 0.0,
+        "sem": 0.0,
+        "ci95_lo": 1.0,
+        "ci95_hi": 1.0,
+        "min": 1.0,
+        "max": 1.0,
+        "n": 10
+      },
+      "n_active_areas": {
+        "mean": 4.8,
+        "std": 0.9189365834726815,
+        "sem": 0.29059326290271154,
+        "ci95_lo": 4.230437204710685,
+        "ci95_hi": 5.369562795289315,
+        "min": 3.0,
+        "max": 6.0,
+        "n": 10
+      },
+      "within_category_overlap": {
+        "mean": 0.9877094017094018,
+        "std": 0.007820582877646138,
+        "sem": 0.0024730854523475716,
+        "ci95_lo": 0.9828621542228005,
+        "ci95_hi": 0.9925566491960031,
+        "min": 0.9717094017094018,
+        "max": 0.995897435897436,
+        "n": 10
+      },
+      "across_category_overlap": {
+        "mean": 0.29985775248933144,
+        "std": 0.09673208441011741,
+        "sem": 0.030589370955163623,
+        "ci95_lo": 0.23990258541721074,
+        "ci95_hi": 0.3598129195614521,
+        "min": 0.21906116642958745,
+        "max": 0.5635135135135136,
+        "n": 10
+      },
+      "example_contingency": {
+        "categories": [
+          "motor",
+          "none",
+          "properties",
+          "social",
+          "spatial",
+          "temporal",
+          "visual"
+        ],
+        "rows": [
+          {
+            "area": "CORE_0",
+            "motor": 8,
+            "none": 0,
+            "properties": 0,
+            "social": 0,
+            "spatial": 0,
+            "temporal": 0,
+            "visual": 0,
+            "total": 8
+          },
+          {
+            "area": "CORE_1",
+            "motor": 0,
+            "none": 0,
+            "properties": 0,
+            "social": 0,
+            "spatial": 0,
+            "temporal": 0,
+            "visual": 0,
+            "total": 0
+          },
+          {
+            "area": "CORE_2",
+            "motor": 0,
+            "none": 0,
+            "properties": 0,
+            "social": 0,
+            "spatial": 0,
+            "temporal": 0,
+            "visual": 0,
+            "total": 0
+          },
+          {
+            "area": "CORE_3",
+            "motor": 0,
+            "none": 0,
+            "properties": 0,
+            "social": 0,
+            "spatial": 5,
+            "temporal": 0,
+            "visual": 0,
+            "total": 5
+          },
+          {
+            "area": "CORE_4",
+            "motor": 0,
+            "none": 0,
+            "properties": 0,
+            "social": 4,
+            "spatial": 0,
+            "temporal": 0,
+            "visual": 10,
+            "total": 14
+          },
+          {
+            "area": "CORE_5",
+            "motor": 0,
+            "none": 0,
+            "properties": 0,
+            "social": 0,
+            "spatial": 0,
+            "temporal": 3,
+            "visual": 0,
+            "total": 3
+          },
+          {
+            "area": "CORE_6",
+            "motor": 0,
+            "none": 6,
+            "properties": 0,
+            "social": 0,
+            "spatial": 0,
+            "temporal": 0,
+            "visual": 0,
+            "total": 6
+          },
+          {
+            "area": "CORE_7",
+            "motor": 0,
+            "none": 0,
+            "properties": 5,
+            "social": 0,
+            "spatial": 0,
+            "temporal": 0,
+            "visual": 0,
+            "total": 5
+          }
+        ]
+      }
+    },
+    "A_vs_B_purity": {
+      "t": 9.243886531229556,
+      "p": 6.857074850333373e-06,
+      "d": 2.9231735870838595,
+      "significant": "True"
+    },
+    "A_vs_B_completeness": {
+      "t": 31.33854327307712,
+      "p": 1.6824935208831818e-10,
+      "d": 9.910117529467183,
+      "significant": "True"
+    },
+    "chance_purity": 0.39104878048780495,
+    "chance_overlap": 0.01
+  },
+  "raw_data": {},
+  "success": true,
+  "error_message": null,
+  "duration_seconds": 582.74726679991
+}
