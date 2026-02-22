@@ -470,3 +470,54 @@ class DetCFG:
     def generate_batch(self, n: int) -> List[Dict[str, Any]]:
         """Generate n sentences."""
         return [self.generate() for _ in range(n)]
+
+
+class AdjCFG:
+    """CFG that wraps DetCFG and inserts adjectives between DET and NOUN.
+
+    Produces DET-ADJ-N-V-DET-ADJ-N sentences (with optional PP).
+    The DET-ADJ-N-V pattern creates a 4-position cycle that provides
+    distributional evidence for 4-way category discovery.
+
+    Requires a vocabulary with "DET" and "ADJ" categories (e.g. ADJ_VOCAB).
+    """
+
+    def __init__(
+        self,
+        pp_prob: float = 0.3,
+        vocab: Vocabulary = None,
+        rng: np.random.Generator = None,
+        **kwargs,
+    ):
+        from research.experiments.lib.vocabulary import ADJ_VOCAB
+        self.vocab = vocab or ADJ_VOCAB
+        self.rng = rng or np.random.default_rng(42)
+        self.inner = DetCFG(
+            pp_prob=pp_prob, vocab=self.vocab, rng=self.rng, **kwargs,
+        )
+
+    def generate(self) -> Dict[str, Any]:
+        """Generate one sentence, inserting adjectives after determiners."""
+        sent = self.inner.generate()
+        adjs = self.vocab.words_for_category("ADJ")
+        new_words: List[str] = []
+        new_roles: List[str] = []
+        new_cats: List[str] = []
+        for w, r, c in zip(sent["words"], sent["roles"], sent["categories"]):
+            new_words.append(w)
+            new_roles.append(r)
+            new_cats.append(c)
+            if c == "DET":
+                new_words.append(self.rng.choice(adjs))
+                new_roles.append("ADJ")
+                new_cats.append("ADJ")
+        return {
+            "words": new_words,
+            "roles": new_roles,
+            "categories": new_cats,
+            "has_pp": sent["has_pp"],
+        }
+
+    def generate_batch(self, n: int) -> List[Dict[str, Any]]:
+        """Generate n sentences."""
+        return [self.generate() for _ in range(n)]

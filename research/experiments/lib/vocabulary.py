@@ -193,6 +193,57 @@ DET_VOCAB = Vocabulary(
     },
 )
 
+# ── Adjective vocabulary (DET + ADJ + SVO + PP) ───────────────────
+#
+# Adds adjectives between determiners and nouns. The DET-ADJ-N-V pattern
+# provides distributional evidence for a 4-way category split, testing
+# whether the routing mechanism scales from 3→4 categories.
+
+ADJ_VOCAB = Vocabulary(
+    categories={
+        "DET": CategoryDef(
+            words=["the", "a"],
+            core_area="DET_CORE",
+            role_areas={},
+        ),
+        "ADJ": CategoryDef(
+            words=["big", "small", "old", "young", "fast"],
+            core_area="ADJ_CORE",
+            role_areas={},
+        ),
+        "NOUN": CategoryDef(
+            words=["dog", "cat", "bird", "boy", "girl"],
+            core_area="NOUN_CORE",
+            role_areas={
+                "AGENT": "ROLE_AGENT",
+                "PATIENT": "ROLE_PATIENT",
+                "PP_OBJ": "ROLE_PP_OBJ",
+            },
+        ),
+        "VERB": CategoryDef(
+            words=["chases", "sees", "eats", "finds", "hits"],
+            core_area="VERB_CORE",
+            role_areas={},
+        ),
+        "PREP": CategoryDef(
+            words=["in", "on", "at"],
+            core_area="PREP_CORE",
+            role_areas={},
+        ),
+        "LOCATION": CategoryDef(
+            words=["garden", "park", "house"],
+            core_area="NOUN_CORE",
+            role_areas={
+                "PP_OBJ": "ROLE_PP_OBJ",
+            },
+        ),
+    },
+    novel_words={
+        "table": "NOUN",
+        "chair": "NOUN",
+    },
+)
+
 # ── Recursive vocabulary (SVO + recursive PP + relative clauses) ───
 
 RECURSIVE_VOCAB = Vocabulary(

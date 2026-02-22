@@ -25,9 +25,10 @@ from research.experiments.lib.vocabulary import (
     Vocabulary,
     DEFAULT_VOCAB,
     DET_VOCAB,
+    ADJ_VOCAB,
     RECURSIVE_VOCAB,
 )
-from research.experiments.lib.grammar import SimpleCFG, RecursiveCFG, DetCFG
+from research.experiments.lib.grammar import SimpleCFG, RecursiveCFG, DetCFG, AdjCFG
 from research.experiments.lib.brain_setup import (
     create_language_brain,
     build_lexicon,
