@@ -17,6 +17,10 @@ uv run python research/experiments/primitives/test_merge.py --quick
 uv run python research/experiments/primitives/test_composed_erp.py --quick
 uv run python research/experiments/primitives/test_incremental_erp.py --quick
 
+# Run variable-length sentence experiments
+uv run python research/experiments/primitives/test_variable_length.py --quick
+uv run python research/experiments/primitives/test_variable_incremental.py --quick
+
 # Run stability tests
 uv run python research/experiments/stability/test_phase_diagram.py --quick
 ```
@@ -53,6 +57,13 @@ Validates core Assembly Calculus operations and derived phenomena:
 | **Composed ERP** | Do N400 and P600 show a double dissociation? | ✅ Validated |
 | **Incremental ERP** | Does online learning produce graded, developmental ERP curves? | ✅ Validated |
 | **ERP Diagnostics** | What are the representational and signal-flow dynamics? | ✅ Complete |
+
+**Variable-Length Processing:**
+
+| Experiment | Scientific Question | Status |
+|------------|---------------------|--------|
+| **Variable-Length** | Does prediction+binding generalize to SVO+PP? | ✅ Validated |
+| **Variable Incremental** | Do CFG-generated sentences produce graded learning curves? | ✅ Validated |
 
 See `research/results/primitives/RESULTS_composed_erp.md` for detailed findings.
 
@@ -118,6 +129,14 @@ uv run python research/experiments/stability/test_phase_diagram.py
   where untrained pathways paradoxically showed zero Jaccard instability
 - **Incremental learning** produces graded word-frequency effects (N400 decreases
   with exposure) and immediate category-level generalization
+
+### Variable-Length Processing
+- **Double dissociation preserved** at both object (word 3) and PP-object (word 5) positions
+- **Prediction chain works across positions**: verb->object, object->prep, prep->PP-obj
+  (N400 at preposition: expected=0.09, unexpected=0.39, d=5.60)
+- **CFG-generated sentences** produce the same learning curves as hand-crafted templates
+- PP bindings develop alongside SVO bindings with no special handling
+- 8-area architecture (3 lexical + 1 prediction + 3 role + 1 prep) handles variable length
 
 ### Stability
 - Assemblies are stable across wide range of sparsity levels (0.01 - 0.1)
