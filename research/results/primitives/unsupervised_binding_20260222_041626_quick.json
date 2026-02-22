@@ -1,0 +1,61 @@
+{
+  "experiment_name": "unsupervised_binding",
+  "timestamp": "2026-02-22T04:16:26.254830",
+  "parameters": {
+    "n": 5000,
+    "k": 50,
+    "p": 0.05,
+    "beta": 0.15,
+    "n_struct_areas": 6,
+    "n_train_sentences": 50,
+    "training_reps": 2,
+    "pp_prob": 0.4,
+    "n_seeds": 3
+  },
+  "metrics": {
+    "purity": {
+      "mean": 0.9222222222222222,
+      "std": 0.13471506281091264,
+      "sem": 0.07777777777777777,
+      "ci95_lo": 0.7697777777777778,
+      "ci95_hi": 1.0746666666666667,
+      "min": 0.7666666666666667,
+      "max": 1.0,
+      "n": 3
+    },
+    "unsupervised_n400": {
+      "t": -31.705374453407234,
+      "p": 0.0009933144762775772,
+      "d": -18.30510647543255,
+      "significant": "True"
+    },
+    "unsupervised_p600": {
+      "t": 1.775107205527348,
+      "p": 0.21787066292138388,
+      "d": 1.0248586229516587,
+      "significant": "False"
+    },
+    "supervised_n400": {
+      "t": -32.33161507461907,
+      "p": 0.0009552621190005812,
+      "d": -18.666666666666682,
+      "significant": "True"
+    },
+    "supervised_p600": {
+      "t": -12.758876217037015,
+      "p": 0.006086894214866828,
+      "d": -7.366340618463434,
+      "significant": "True"
+    },
+    "hypotheses": {
+      "H1_role_separation": true,
+      "H2_n400_works": true,
+      "H3_p600_works": true,
+      "H4_comparable": false
+    }
+  },
+  "raw_data": {},
+  "success": true,
+  "error_message": null,
+  "duration_seconds": 16.077652500011027
+}

@@ -1,0 +1,58 @@
+{
+  "experiment_name": "integrated_learner",
+  "timestamp": "2026-02-22T04:39:34.254397",
+  "parameters": {
+    "n": 5000,
+    "k": 50,
+    "p": 0.05,
+    "beta": 0.15,
+    "n_struct_areas": 6,
+    "grounding_rounds": 10,
+    "extra_binding_rounds": 5,
+    "instability_threshold": 0.3,
+    "n_train_sentences": 50,
+    "training_reps": 2,
+    "n_seeds": 3
+  },
+  "metrics": {
+    "conditions": {
+      "A_baseline": {
+        "purity": 0.8666666666666667,
+        "p600_d": 1.1559248574168293,
+        "sem_d": 2.886751345948127
+      },
+      "B_hebbian": {
+        "purity": 0.7111111111111111,
+        "p600_d": 10.04098786247319,
+        "sem_d": 0.10910894511799528
+      },
+      "C_semantic": {
+        "purity": 0.8555555555555555,
+        "p600_d": 0.07482959902275056,
+        "sem_d": -0.5773502691896257
+      },
+      "D_p600fb": {
+        "purity": 0.8888888888888888,
+        "p600_d": 0.9140552317776174,
+        "sem_d": 0.4424010108874647
+      },
+      "E_combined": {
+        "purity": 0.8444444444444444,
+        "p600_d": 0.8749402293021641,
+        "sem_d": -0.5773502691896257
+      }
+    },
+    "supervised_p600_d": 11.203155720123481,
+    "hypotheses": {
+      "H1_hebbian_improves": true,
+      "H2_semantic_n400": false,
+      "H3_p600_feedback": false,
+      "H4_combined": false,
+      "H5_comparable": false
+    }
+  },
+  "raw_data": {},
+  "success": true,
+  "error_message": null,
+  "duration_seconds": 68.46548809995875
+}

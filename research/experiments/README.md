@@ -38,6 +38,16 @@ uv run python research/experiments/primitives/test_semantic_similarity.py --quic
 uv run python research/experiments/primitives/test_developmental_curriculum.py --quick
 uv run python research/experiments/primitives/test_sentence_generation.py --quick
 
+# Run subgrammar analysis experiments (inspired by Schulz et al. 2025)
+uv run python research/experiments/primitives/test_subgrammar_decomposition.py --quick
+uv run python research/experiments/primitives/test_depth_generalization.py --quick
+uv run python research/experiments/primitives/test_curriculum_ablation.py --quick
+
+# Run free-form learning experiments
+uv run python research/experiments/primitives/test_unsupervised_binding.py --quick
+uv run python research/experiments/primitives/test_grounded_language.py --quick
+uv run python research/experiments/primitives/test_integrated_learner.py --quick
+
 # Run stability tests
 uv run python research/experiments/stability/test_phase_diagram.py --quick
 ```
@@ -102,6 +112,22 @@ Validates core Assembly Calculus operations and derived phenomena:
 |------------|---------------------|--------|
 | **Developmental Curriculum** | Do phenomena emerge in child-like developmental order? | ✅ Validated |
 | **Sentence Generation** | Can the system produce novel grammatical sequences? | ✅ Validated |
+
+**Subgrammar Analysis (inspired by Schulz et al. 2025):**
+
+| Experiment | Scientific Question | Status |
+|------------|---------------------|--------|
+| **Subgrammar Decomposition** | Do production rules learn independently with different rates? | 🔄 New |
+| **Depth Generalization** | Does prediction/binding transfer across recursion depths? | 🔄 New |
+| **Curriculum Ablation** | Does training order matter for final performance? | 🔄 New |
+
+**Free-Form Learning:**
+
+| Experiment | Scientific Question | Status |
+|------------|---------------------|--------|
+| **Unsupervised Binding** | Do dynamically discovered roles support N400/P600? | ✅ Validated |
+| **Grounded Language** | Does sensory grounding create semantic structure affecting prediction? | 🔄 Partial |
+| **Integrated Learner** | Do Hebbian routing + semantic prediction + P600 feedback close the gap? | 🔄 New |
 
 See `research/results/primitives/RESULTS_composed_erp.md` for detailed findings.
 

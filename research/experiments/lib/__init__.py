@@ -10,6 +10,9 @@ experiments. Each module handles one concern:
   training    — prediction bridge and role binding training protocols
   measurement — N400, P600, and composite ERP measurement
   generation  — reverse readout, prediction chain, grammaticality scoring
+  subgrammar  — production-rule decomposition, per-subgrammar measurement
+  unsupervised — role discovery + training without role labels
+  grounding   — sensory feature co-projection for semantic structure
 
 Experiments compose these modules rather than duplicating infrastructure.
 The architecture supports extension to new word categories, role slots,
@@ -49,4 +52,31 @@ from research.experiments.lib.generation import (
     generate_from_prediction_chain,
     score_generation,
     check_novelty,
+)
+from research.experiments.lib.subgrammar import (
+    SUBGRAMMAR_DEFS,
+    classify_sentence,
+    partition_by_subgrammar,
+    SubgrammarStats,
+)
+from research.experiments.lib.unsupervised import (
+    UnsupervisedConfig,
+    create_unsupervised_brain,
+    discover_role_area,
+    train_sentence_unsupervised,
+    build_role_mapping,
+    train_binding_with_feedback,
+    train_sentence_integrated,
+)
+from research.experiments.lib.grounding import (
+    SENSORY_FEATURES,
+    SEMANTIC_GROUPS,
+    ALL_SENSORY_STIMULI,
+    create_grounded_brain,
+    ground_word,
+    activate_sensory_only,
+    train_prediction_pair_grounded,
+    build_grounded_lexicon,
+    IntegratedConfig,
+    create_integrated_brain,
 )
