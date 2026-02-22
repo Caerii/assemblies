@@ -1,0 +1,224 @@
+{
+  "experiment_name": "role_reuse",
+  "timestamp": "2026-02-22T05:18:54.480106",
+  "parameters": {
+    "n": 5000,
+    "k": 50,
+    "p": 0.05,
+    "beta": 0.15,
+    "n_struct_values": [
+      2,
+      3,
+      4
+    ],
+    "refractory_values": [
+      1,
+      2,
+      3
+    ],
+    "n_train_sentences": 50,
+    "n_seeds": 3
+  },
+  "metrics": {
+    "configurations": {
+      "ns2_rp1": {
+        "n_struct": 2,
+        "refractory_period": 1,
+        "overall_success": {
+          "mean": 1.0,
+          "std": 0.0,
+          "sem": 0.0,
+          "ci95_lo": 1.0,
+          "ci95_hi": 1.0,
+          "min": 1.0,
+          "max": 1.0,
+          "n": 3
+        },
+        "position_success_rates": {
+          "0": 1.0,
+          "1": 1.0,
+          "2": 1.0,
+          "3": 1.0,
+          "4": 1.0
+        }
+      },
+      "ns2_rp2": {
+        "n_struct": 2,
+        "refractory_period": 2,
+        "overall_success": {
+          "mean": 1.0,
+          "std": 0.0,
+          "sem": 0.0,
+          "ci95_lo": 1.0,
+          "ci95_hi": 1.0,
+          "min": 1.0,
+          "max": 1.0,
+          "n": 3
+        },
+        "position_success_rates": {
+          "0": 1.0,
+          "1": 1.0,
+          "2": 1.0,
+          "3": 1.0,
+          "4": 1.0
+        }
+      },
+      "ns2_rp3": {
+        "n_struct": 2,
+        "refractory_period": 3,
+        "overall_success": {
+          "mean": 1.0,
+          "std": 0.0,
+          "sem": 0.0,
+          "ci95_lo": 1.0,
+          "ci95_hi": 1.0,
+          "min": 1.0,
+          "max": 1.0,
+          "n": 3
+        },
+        "position_success_rates": {
+          "0": 1.0,
+          "1": 1.0,
+          "2": 1.0,
+          "3": 1.0,
+          "4": 1.0
+        }
+      },
+      "ns3_rp1": {
+        "n_struct": 3,
+        "refractory_period": 1,
+        "overall_success": {
+          "mean": 1.0,
+          "std": 0.0,
+          "sem": 0.0,
+          "ci95_lo": 1.0,
+          "ci95_hi": 1.0,
+          "min": 1.0,
+          "max": 1.0,
+          "n": 3
+        },
+        "position_success_rates": {
+          "0": 1.0,
+          "1": 1.0,
+          "2": 1.0,
+          "3": 1.0,
+          "4": 1.0
+        }
+      },
+      "ns3_rp2": {
+        "n_struct": 3,
+        "refractory_period": 2,
+        "overall_success": {
+          "mean": 1.0,
+          "std": 0.0,
+          "sem": 0.0,
+          "ci95_lo": 1.0,
+          "ci95_hi": 1.0,
+          "min": 1.0,
+          "max": 1.0,
+          "n": 3
+        },
+        "position_success_rates": {
+          "0": 1.0,
+          "1": 1.0,
+          "2": 1.0,
+          "3": 1.0,
+          "4": 1.0
+        }
+      },
+      "ns3_rp3": {
+        "n_struct": 3,
+        "refractory_period": 3,
+        "overall_success": {
+          "mean": 1.0,
+          "std": 0.0,
+          "sem": 0.0,
+          "ci95_lo": 1.0,
+          "ci95_hi": 1.0,
+          "min": 1.0,
+          "max": 1.0,
+          "n": 3
+        },
+        "position_success_rates": {
+          "0": 1.0,
+          "1": 1.0,
+          "2": 1.0,
+          "3": 1.0,
+          "4": 1.0
+        }
+      },
+      "ns4_rp1": {
+        "n_struct": 4,
+        "refractory_period": 1,
+        "overall_success": {
+          "mean": 1.0,
+          "std": 0.0,
+          "sem": 0.0,
+          "ci95_lo": 1.0,
+          "ci95_hi": 1.0,
+          "min": 1.0,
+          "max": 1.0,
+          "n": 3
+        },
+        "position_success_rates": {
+          "0": 1.0,
+          "1": 1.0,
+          "2": 1.0,
+          "3": 1.0,
+          "4": 1.0
+        }
+      },
+      "ns4_rp2": {
+        "n_struct": 4,
+        "refractory_period": 2,
+        "overall_success": {
+          "mean": 1.0,
+          "std": 0.0,
+          "sem": 0.0,
+          "ci95_lo": 1.0,
+          "ci95_hi": 1.0,
+          "min": 1.0,
+          "max": 1.0,
+          "n": 3
+        },
+        "position_success_rates": {
+          "0": 1.0,
+          "1": 1.0,
+          "2": 1.0,
+          "3": 1.0,
+          "4": 1.0
+        }
+      },
+      "ns4_rp3": {
+        "n_struct": 4,
+        "refractory_period": 3,
+        "overall_success": {
+          "mean": 1.0,
+          "std": 0.0,
+          "sem": 0.0,
+          "ci95_lo": 1.0,
+          "ci95_hi": 1.0,
+          "min": 1.0,
+          "max": 1.0,
+          "n": 3
+        },
+        "position_success_rates": {
+          "0": 1.0,
+          "1": 1.0,
+          "2": 1.0,
+          "3": 1.0,
+          "4": 1.0
+        }
+      }
+    },
+    "hypotheses": {
+      "H1_routing_success": true,
+      "H2_lri_reuse": true,
+      "H3_quality_maintained": "True"
+    }
+  },
+  "raw_data": {},
+  "success": true,
+  "error_message": null,
+  "duration_seconds": 49.468015899998136
+}

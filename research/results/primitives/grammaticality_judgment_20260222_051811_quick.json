@@ -1,0 +1,56 @@
+{
+  "experiment_name": "grammaticality_judgment",
+  "timestamp": "2026-02-22T05:18:11.472004",
+  "parameters": {
+    "n": 5000,
+    "k": 50,
+    "p": 0.05,
+    "beta": 0.1,
+    "n_train_sentences": 100,
+    "n_test_items": 5,
+    "n_seeds": 3
+  },
+  "metrics": {
+    "grammatical_n400": {
+      "mean": 0.07266666666666667,
+      "std": 0.009018499505645771,
+      "sem": 0.005206833117271093,
+      "ci95_lo": 0.06246127375681533,
+      "ci95_hi": 0.08287205957651801,
+      "min": 0.06400000000000003,
+      "max": 0.08199999999999999,
+      "n": 3
+    },
+    "scrambled_n400": {
+      "mean": 0.24133333333333332,
+      "std": 0.036295086903509875,
+      "sem": 0.02095497819400229,
+      "ci95_lo": 0.20026157607308884,
+      "ci95_hi": 0.2824050905935778,
+      "min": 0.20800000000000002,
+      "max": 0.28,
+      "n": 3
+    },
+    "cat_violation_n400": {
+      "mean": 0.39666666666666667,
+      "std": 0.0745743476896267,
+      "sem": 0.043055519713246726,
+      "ci95_lo": 0.31227784802870306,
+      "ci95_hi": 0.48105548530463027,
+      "min": 0.328,
+      "max": 0.476,
+      "n": 3
+    },
+    "gram_vs_scram_d": 4.01891189108342,
+    "gram_vs_catv_d": 4.055072012006249,
+    "hypotheses": {
+      "H1_gram_less_than_scram": true,
+      "H2_catv_intermediate": false,
+      "H3_rank_ordering": false
+    }
+  },
+  "raw_data": {},
+  "success": true,
+  "error_message": null,
+  "duration_seconds": 6.407915499992669
+}

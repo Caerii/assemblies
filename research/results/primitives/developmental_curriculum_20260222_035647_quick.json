@@ -1,0 +1,90 @@
+{
+  "experiment_name": "developmental_curriculum",
+  "timestamp": "2026-02-22T03:56:47.295901",
+  "parameters": {
+    "n": 5000,
+    "k": 50,
+    "p": 0.05,
+    "beta": 0.1,
+    "stage_sentences": [
+      0,
+      15,
+      30,
+      30,
+      25,
+      25
+    ],
+    "training_reps": 2,
+    "n_seeds": 1
+  },
+  "metrics": {
+    "stage_effects": {
+      "1_single_words": {
+        "assembly_stability": 0.976,
+        "prediction_n400_d": 0.0,
+        "binding_p600_d": 0.0,
+        "pp_p600_d": 0.0,
+        "src_dual_binding_mean": 3.5914749892665965,
+        "garden_path_d": 0.0,
+        "src_orc_d": 0.0
+      },
+      "2_two_word": {
+        "assembly_stability": 0.968,
+        "prediction_n400_d": 0.0,
+        "binding_p600_d": 0.0,
+        "pp_p600_d": 0.0,
+        "src_dual_binding_mean": 1.6983246289614822,
+        "garden_path_d": 0.0,
+        "src_orc_d": 0.0
+      },
+      "3_svo": {
+        "assembly_stability": 0.9199999999999999,
+        "prediction_n400_d": 0.0,
+        "binding_p600_d": 0.0,
+        "pp_p600_d": 0.0,
+        "src_dual_binding_mean": 1.6109774877651788,
+        "garden_path_d": 0.0,
+        "src_orc_d": 0.0
+      },
+      "4_svo_pp": {
+        "assembly_stability": 0.8960000000000001,
+        "prediction_n400_d": 0.0,
+        "binding_p600_d": 0.0,
+        "pp_p600_d": 0.0,
+        "src_dual_binding_mean": 1.3195342717177772,
+        "garden_path_d": 0.0,
+        "src_orc_d": 0.0
+      },
+      "5_src": {
+        "assembly_stability": 0.9559999999999998,
+        "prediction_n400_d": 0.0,
+        "binding_p600_d": 0.0,
+        "pp_p600_d": 0.0,
+        "src_dual_binding_mean": 0.1387631975867269,
+        "garden_path_d": 0.0,
+        "src_orc_d": 0.0
+      },
+      "6_orc": {
+        "assembly_stability": 0.916,
+        "prediction_n400_d": 0.0,
+        "binding_p600_d": 0.0,
+        "pp_p600_d": 0.0,
+        "src_dual_binding_mean": 0.11556959503685357,
+        "garden_path_d": 0.0,
+        "src_orc_d": 0.0
+      }
+    },
+    "emergence": {},
+    "regressions": [],
+    "n_emerged_final": 2,
+    "hypotheses": {
+      "H1_ordered_emergence": false,
+      "H2_no_forgetting": true,
+      "H3_all_emerge": false
+    }
+  },
+  "raw_data": {},
+  "success": true,
+  "error_message": null,
+  "duration_seconds": 10.98335649992805
+}

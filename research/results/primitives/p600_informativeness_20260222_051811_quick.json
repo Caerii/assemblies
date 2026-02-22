@@ -1,0 +1,56 @@
+{
+  "experiment_name": "p600_informativeness",
+  "timestamp": "2026-02-22T05:18:11.534007",
+  "parameters": {
+    "n": 5000,
+    "k": 50,
+    "p": 0.05,
+    "beta": 0.1,
+    "n_train_first_half": 50,
+    "n_train_second_half": 50,
+    "n_seeds": 3
+  },
+  "metrics": {
+    "high_p600_delta": {
+      "mean": -0.16075079604491357,
+      "std": 0.09357109341409914,
+      "sem": 0.05402329597099776,
+      "ci95_lo": -0.2666364561480692,
+      "ci95_hi": -0.05486513594175797,
+      "min": -0.24786324786324768,
+      "max": -0.061840120663650036,
+      "n": 3
+    },
+    "low_p600_delta": {
+      "mean": -0.06918049270990442,
+      "std": 0.07489797783844272,
+      "sem": 0.043242367666783535,
+      "ci95_lo": -0.15393553333680016,
+      "ci95_hi": 0.01557454791699131,
+      "min": -0.1487179487179486,
+      "max": 0.0,
+      "n": 3
+    },
+    "correlation": {
+      "mean": -0.13219681581640494,
+      "std": 0.255144813911311,
+      "sem": 0.1473079269940324,
+      "ci95_lo": -0.4209203527247084,
+      "ci95_hi": 0.15652672109189855,
+      "min": -0.3531287421068433,
+      "max": 0.14706099850959475,
+      "n": 3
+    },
+    "partial_variance_mean": 0.008440070462961054,
+    "full_variance_mean": 0.028147465661439535,
+    "hypotheses": {
+      "H1_high_larger_decrease": false,
+      "H2_correlation_above_03": false,
+      "H3_variance_narrows": false
+    }
+  },
+  "raw_data": {},
+  "success": true,
+  "error_message": null,
+  "duration_seconds": 6.2737334000412375
+}

@@ -1,0 +1,50 @@
+{
+  "experiment_name": "online_word_acquisition",
+  "timestamp": "2026-02-22T05:17:50.058837",
+  "parameters": {
+    "n": 5000,
+    "k": 50,
+    "p": 0.05,
+    "beta": 0.1,
+    "n_train_sentences": 50,
+    "n_novel_train": 10,
+    "n_seeds": 3
+  },
+  "metrics": {
+    "assembly_stability": {
+      "mean": 0.968,
+      "std": 0.0486621002423858,
+      "sem": 0.028095076674273994,
+      "ci95_lo": 0.912933649718423,
+      "ci95_hi": 1.023066350281577,
+      "min": 0.9119999999999999,
+      "max": 1.0,
+      "n": 3
+    },
+    "n400_pre_mean": 0.9233333333333333,
+    "n400_post_mean": 0.9333333333333332,
+    "n400_improvement_d": -0.5773502691896258,
+    "novel_p600_mean": 1.5109846983292803,
+    "existing_p600_mean": 0.2135025659997912,
+    "min_forgetting_overlap": {
+      "mean": 0.8466666666666667,
+      "std": 0.06110100926607786,
+      "sem": 0.035276684147527874,
+      "ci95_lo": 0.777524365737512,
+      "ci95_hi": 0.9158089675958213,
+      "min": 0.78,
+      "max": 0.9,
+      "n": 3
+    },
+    "hypotheses": {
+      "H1_stable_assembly": true,
+      "H2_prediction_integration": false,
+      "H3_binding_integration": false,
+      "H4_no_forgetting": true
+    }
+  },
+  "raw_data": {},
+  "success": true,
+  "error_message": null,
+  "duration_seconds": 4.830067900009453
+}
