@@ -1,20 +1,28 @@
 """
-Assembly Instability — P600 Analogue
+Assembly Instability Metrics — P600 Analogue
 
-The P600 in Assembly Calculus maps to assembly instability during
-structural integration: sum(1 - Jaccard(winners[r], winners[r-1]))
-across settling rounds in structural areas.
+Provides metrics for measuring structural integration difficulty,
+the Assembly Calculus analogue of the P600 ERP component.
 
-Trained pathways (consolidated Hebbian connections) produce stable
-assemblies that converge quickly (low instability = small P600).
-Random pathways (bootstrapped baseline weights) produce oscillating
-assemblies (high instability = large P600).
+Core insight: P600 reflects how well a structural pathway can sustain
+an assembly pattern without continued external (stimulus) input.
+
+Two main metrics:
+
+  compute_jaccard_instability: Raw sum of (1 - Jaccard) across rounds.
+      Works when both conditions produce nonzero signal, but fails for
+      untrained pathways that have zero weights (paradoxically stable).
+
+  compute_anchored_instability: Principled P600 metric that solves the
+      zero-signal problem. Phase A primes the role area with stimulus
+      co-projection; Phase B settles with area-to-area connections only.
+      Trained pathways sustain the pattern (low instability = low P600);
+      untrained pathways cannot (high instability = high P600).
 
 References:
   - Vosse & Kempen 2000: P600 = settling time
   - Brouwer & Crocker 2017: P600 = integration update cost
   - Hagoort 2005: P600 = unification difficulty
-  - research/plans/P600_REANALYSIS.md
 """
 
 from typing import Dict, List, Any, Set
@@ -41,6 +49,78 @@ def compute_jaccard_instability(round_winners: List[Set[int]]) -> float:
             jaccard = 1.0  # both empty = stable
         instability += (1.0 - jaccard)
     return instability
+
+
+def compute_anchored_instability(
+    brain,
+    word: str,
+    core_area: str,
+    role_area: str,
+    n_settling_rounds: int = 10,
+    activate_rounds: int = 3,
+) -> Dict[str, Any]:
+    """Compute anchored instability — principled P600 metric.
+
+    Addresses the problem where untrained pathways have zero signal and thus
+    paradoxically show zero Jaccard instability. By first anchoring with a
+    stimulus-driven co-projection (Phase A), we create an initial pattern that
+    trained pathways can sustain but untrained pathways cannot.
+
+    Phase A (1 round): Co-project stimulus + core -> role to create initial
+        pattern via both stimulus and area-to-area connections.
+    Phase B (n_settling_rounds - 1 rounds): Settle with area-to-area only
+        (core <-> role bidirectional). No stimulus.
+
+    Instability is measured only over Phase B rounds, capturing how well the
+    structural pathway can sustain the initial pattern without external input.
+
+    Trained pathways: sustain pattern -> low instability -> low P600
+    Untrained pathways: can't sustain -> high instability -> high P600
+
+    Args:
+        brain: Brain instance (plasticity must be OFF before calling).
+        word: Word to bind (stimulus name will be PHON_{word}).
+        core_area: Source area with active word assembly (e.g. "NOUN_CORE").
+        role_area: Target role area (e.g. "ROLE_PATIENT").
+        n_settling_rounds: Total rounds (Phase A + Phase B).
+        activate_rounds: Rounds to activate word in core area before anchoring.
+
+    Returns:
+        Dict with:
+          - instability: float — anchored instability score
+          - round_winners: list of sets — per-round winners (all phases)
+    """
+    # Activate word in core area
+    brain.inhibit_areas([core_area])
+    for _ in range(activate_rounds):
+        brain.project({f"PHON_{word}": [core_area]}, {core_area: [core_area]})
+
+    # Phase A: one round with stimulus co-projection to create anchored pattern
+    brain.inhibit_areas([role_area])
+    brain.project(
+        {f"PHON_{word}": [core_area, role_area]},
+        {core_area: [role_area]},
+    )
+    all_round_winners = [set(brain.areas[role_area].winners.tolist())]
+
+    # Phase B: settle without stimulus (area-to-area only)
+    for _ in range(n_settling_rounds - 1):
+        brain.project(
+            {},
+            {core_area: [role_area],
+             role_area: [role_area, core_area]},
+        )
+        all_round_winners.append(
+            set(brain.areas[role_area].winners.tolist()))
+
+    # Instability over Phase B rounds only (index 1 onward includes the
+    # transition from Phase A -> first Phase B round, which is informative)
+    instability = compute_jaccard_instability(all_round_winners)
+
+    return {
+        "instability": instability,
+        "round_winners": all_round_winners,
+    }
 
 
 def measure_p600_settling(

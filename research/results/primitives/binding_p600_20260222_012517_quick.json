@@ -1,0 +1,77 @@
+{
+  "experiment_name": "binding_p600",
+  "timestamp": "2026-02-22T01:25:17.343764",
+  "parameters": {
+    "n": 5000,
+    "k": 50,
+    "p": 0.05,
+    "beta": 0.1,
+    "w_max": 20.0,
+    "lexicon_rounds": 20,
+    "binding_rounds": 10,
+    "training_reps": 3,
+    "n_train_sentences": 15,
+    "n_settling_rounds": 10,
+    "n_seeds": 3,
+    "n_nouns": 5,
+    "n_verbs": 5
+  },
+  "metrics": {
+    "p600_instability_gram": {
+      "mean": 0.0780291603821015,
+      "std": 0.10826551186161823,
+      "sem": 0.06250712241725791,
+      "ci95_lo": -0.044484799555723986,
+      "ci95_hi": 0.200543120319927,
+      "min": 0.007843137254901955,
+      "max": 0.2027149321266967,
+      "n": 3
+    },
+    "p600_instability_catviol": {
+      "mean": 4.807361301585638,
+      "std": 0.08711412130396294,
+      "sem": 0.050295361385060716,
+      "ci95_lo": 4.708782393270918,
+      "ci95_hi": 4.905940209900357,
+      "min": 4.72554504431275,
+      "max": 4.898949260183853,
+      "n": 3
+    },
+    "convergence_gram": {
+      "mean": 1.2,
+      "std": 0.3464101615137755,
+      "sem": 0.20000000000000004,
+      "ci95_lo": 0.8079999999999998,
+      "ci95_hi": 1.592,
+      "min": 1.0,
+      "max": 1.6,
+      "n": 3
+    },
+    "convergence_catviol": {
+      "mean": 10.0,
+      "std": 0.0,
+      "sem": 0.0,
+      "ci95_lo": 10.0,
+      "ci95_hi": 10.0,
+      "min": 10.0,
+      "max": 10.0,
+      "n": 3
+    },
+    "h1_instability_test": {
+      "t": 156.3248721110537,
+      "p": 4.0918262054424625e-05,
+      "d": 90.25420699435068,
+      "significant": "True"
+    },
+    "h2_convergence_test": {
+      "t": 44.00000000000002,
+      "p": 0.0005161290666397385,
+      "d": 25.403411844343548,
+      "significant": "True"
+    }
+  },
+  "raw_data": {},
+  "success": true,
+  "error_message": null,
+  "duration_seconds": 1.9087995999725536
+}

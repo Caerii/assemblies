@@ -1,0 +1,91 @@
+{
+  "experiment_name": "diagnose_erp_dynamics",
+  "timestamp": "2026-02-22T01:06:29.054302",
+  "parameters": {
+    "n": 5000,
+    "k": 50,
+    "p": 0.05,
+    "beta": 0.1,
+    "n_seeds": 3,
+    "probes": [
+      "p600_metrics"
+    ]
+  },
+  "metrics": {},
+  "raw_data": {
+    "p600_metrics": [
+      {
+        "gram": {
+          "jaccard_instability": 0.0,
+          "binding_weakness": 0.548,
+          "cumulative_energy": 141210.23429603578,
+          "anchored_instability": 0.01568627450980391,
+          "activation_deficit": 0.0
+        },
+        "catviol": {
+          "jaccard_instability": 3.518796981356998,
+          "binding_weakness": 1.0,
+          "cumulative_energy": 69280.0,
+          "anchored_instability": 5.382336158929313,
+          "activation_deficit": 71930.23429603578
+        },
+        "novel": {
+          "jaccard_instability": 0.0,
+          "binding_weakness": 0.53,
+          "cumulative_energy": 207488.3888247013,
+          "anchored_instability": 0.3588215822575306,
+          "activation_deficit": -66278.15452866553
+        }
+      },
+      {
+        "gram": {
+          "jaccard_instability": 0.0,
+          "binding_weakness": 0.5760000000000001,
+          "cumulative_energy": 109531.11876649856,
+          "anchored_instability": 0.01568627450980391,
+          "activation_deficit": 0.0
+        },
+        "catviol": {
+          "jaccard_instability": 3.604800844344689,
+          "binding_weakness": 1.0,
+          "cumulative_energy": 63010.8,
+          "anchored_instability": 5.130775023511612,
+          "activation_deficit": 46520.31876649856
+        },
+        "novel": {
+          "jaccard_instability": 0.0,
+          "binding_weakness": 0.63,
+          "cumulative_energy": 166477.76337230206,
+          "anchored_instability": 0.6384180790960452,
+          "activation_deficit": -56946.64460580349
+        }
+      },
+      {
+        "gram": {
+          "jaccard_instability": 0.33604826546002997,
+          "binding_weakness": 0.5680000000000001,
+          "cumulative_energy": 135498.99807100295,
+          "anchored_instability": 0.3351603631292863,
+          "activation_deficit": 0.0
+        },
+        "catviol": {
+          "jaccard_instability": 2.4865605156421324,
+          "binding_weakness": 1.0,
+          "cumulative_energy": 61366.2,
+          "anchored_instability": 5.220078811765161,
+          "activation_deficit": 74132.79807100295
+        },
+        "novel": {
+          "jaccard_instability": 0.07843137254901955,
+          "binding_weakness": 0.61,
+          "cumulative_energy": 191038.76534104347,
+          "anchored_instability": 0.5730629819986071,
+          "activation_deficit": -55539.767270040524
+        }
+      }
+    ]
+  },
+  "success": true,
+  "error_message": null,
+  "duration_seconds": 3.3886163000715896
+}

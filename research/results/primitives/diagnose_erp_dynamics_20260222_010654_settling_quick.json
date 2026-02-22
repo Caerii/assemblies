@@ -1,0 +1,622 @@
+{
+  "experiment_name": "diagnose_erp_dynamics",
+  "timestamp": "2026-02-22T01:06:54.064174",
+  "parameters": {
+    "n": 5000,
+    "k": 50,
+    "p": 0.05,
+    "beta": 0.1,
+    "n_seeds": 3,
+    "probes": [
+      "settling"
+    ]
+  },
+  "metrics": {},
+  "raw_data": {
+    "settling": [
+      {
+        "gram": {
+          "word": "dog",
+          "core_area": "NOUN_CORE",
+          "rounds": [
+            {
+              "round": 0,
+              "energy": 12591.328266382217,
+              "jaccard_prev": null,
+              "core_overlap": 0.5
+            },
+            {
+              "round": 1,
+              "energy": 12808.328266382217,
+              "jaccard_prev": 1.0,
+              "core_overlap": 0.5
+            },
+            {
+              "round": 2,
+              "energy": 12798.328266382217,
+              "jaccard_prev": 1.0,
+              "core_overlap": 0.5
+            },
+            {
+              "round": 3,
+              "energy": 12807.328266382217,
+              "jaccard_prev": 1.0,
+              "core_overlap": 0.5
+            },
+            {
+              "round": 4,
+              "energy": 12820.328266382217,
+              "jaccard_prev": 1.0,
+              "core_overlap": 0.5
+            },
+            {
+              "round": 5,
+              "energy": 12807.328266382217,
+              "jaccard_prev": 1.0,
+              "core_overlap": 0.5
+            },
+            {
+              "round": 6,
+              "energy": 12809.328266382217,
+              "jaccard_prev": 1.0,
+              "core_overlap": 0.5
+            },
+            {
+              "round": 7,
+              "energy": 12807.328266382217,
+              "jaccard_prev": 1.0,
+              "core_overlap": 0.5
+            },
+            {
+              "round": 8,
+              "energy": 12806.328266382217,
+              "jaccard_prev": 1.0,
+              "core_overlap": 0.5
+            },
+            {
+              "round": 9,
+              "energy": 12806.328266382217,
+              "jaccard_prev": 1.0,
+              "core_overlap": 0.5
+            }
+          ]
+        },
+        "catviol": {
+          "word": "chases",
+          "core_area": "VERB_CORE",
+          "rounds": [
+            {
+              "round": 0,
+              "energy": 0.0,
+              "jaccard_prev": null,
+              "core_overlap": 0.0
+            },
+            {
+              "round": 1,
+              "energy": 0.0,
+              "jaccard_prev": null,
+              "core_overlap": 0.0
+            },
+            {
+              "round": 2,
+              "energy": 0.0,
+              "jaccard_prev": null,
+              "core_overlap": 0.0
+            },
+            {
+              "round": 3,
+              "energy": 0.0,
+              "jaccard_prev": null,
+              "core_overlap": 0.0
+            },
+            {
+              "round": 4,
+              "energy": 0.0,
+              "jaccard_prev": null,
+              "core_overlap": 0.0
+            },
+            {
+              "round": 5,
+              "energy": 0.0,
+              "jaccard_prev": null,
+              "core_overlap": 0.0
+            },
+            {
+              "round": 6,
+              "energy": 0.0,
+              "jaccard_prev": null,
+              "core_overlap": 0.0
+            },
+            {
+              "round": 7,
+              "energy": 0.0,
+              "jaccard_prev": null,
+              "core_overlap": 0.0
+            },
+            {
+              "round": 8,
+              "energy": 0.0,
+              "jaccard_prev": null,
+              "core_overlap": 0.0
+            },
+            {
+              "round": 9,
+              "energy": 0.0,
+              "jaccard_prev": null,
+              "core_overlap": 0.0
+            }
+          ]
+        },
+        "novel": {
+          "word": "table",
+          "core_area": "NOUN_CORE",
+          "rounds": [
+            {
+              "round": 0,
+              "energy": 13531.244834661484,
+              "jaccard_prev": null,
+              "core_overlap": 0.5
+            },
+            {
+              "round": 1,
+              "energy": 13741.244834661484,
+              "jaccard_prev": 1.0,
+              "core_overlap": 0.5
+            },
+            {
+              "round": 2,
+              "energy": 13745.244834661484,
+              "jaccard_prev": 1.0,
+              "core_overlap": 0.5
+            },
+            {
+              "round": 3,
+              "energy": 13747.244834661484,
+              "jaccard_prev": 1.0,
+              "core_overlap": 0.5
+            },
+            {
+              "round": 4,
+              "energy": 13750.244834661484,
+              "jaccard_prev": 1.0,
+              "core_overlap": 0.5
+            },
+            {
+              "round": 5,
+              "energy": 13743.244834661484,
+              "jaccard_prev": 1.0,
+              "core_overlap": 0.5
+            },
+            {
+              "round": 6,
+              "energy": 13751.244834661484,
+              "jaccard_prev": 1.0,
+              "core_overlap": 0.5
+            },
+            {
+              "round": 7,
+              "energy": 13756.244834661484,
+              "jaccard_prev": 1.0,
+              "core_overlap": 0.5
+            },
+            {
+              "round": 8,
+              "energy": 13743.244834661484,
+              "jaccard_prev": 1.0,
+              "core_overlap": 0.5
+            },
+            {
+              "round": 9,
+              "energy": 13750.244834661484,
+              "jaccard_prev": 1.0,
+              "core_overlap": 0.5
+            }
+          ]
+        }
+      },
+      {
+        "gram": {
+          "word": "dog",
+          "core_area": "NOUN_CORE",
+          "rounds": [
+            {
+              "round": 0,
+              "energy": 10195.582330226898,
+              "jaccard_prev": null,
+              "core_overlap": 0.28
+            },
+            {
+              "round": 1,
+              "energy": 10406.582330226898,
+              "jaccard_prev": 1.0,
+              "core_overlap": 0.28
+            },
+            {
+              "round": 2,
+              "energy": 10410.582330226898,
+              "jaccard_prev": 1.0,
+              "core_overlap": 0.28
+            },
+            {
+              "round": 3,
+              "energy": 10412.582330226898,
+              "jaccard_prev": 1.0,
+              "core_overlap": 0.28
+            },
+            {
+              "round": 4,
+              "energy": 10417.582330226898,
+              "jaccard_prev": 1.0,
+              "core_overlap": 0.28
+            },
+            {
+              "round": 5,
+              "energy": 10400.582330226898,
+              "jaccard_prev": 1.0,
+              "core_overlap": 0.28
+            },
+            {
+              "round": 6,
+              "energy": 10415.582330226898,
+              "jaccard_prev": 1.0,
+              "core_overlap": 0.28
+            },
+            {
+              "round": 7,
+              "energy": 10402.582330226898,
+              "jaccard_prev": 1.0,
+              "core_overlap": 0.28
+            },
+            {
+              "round": 8,
+              "energy": 10402.582330226898,
+              "jaccard_prev": 1.0,
+              "core_overlap": 0.28
+            },
+            {
+              "round": 9,
+              "energy": 10413.582330226898,
+              "jaccard_prev": 1.0,
+              "core_overlap": 0.28
+            }
+          ]
+        },
+        "catviol": {
+          "word": "chases",
+          "core_area": "VERB_CORE",
+          "rounds": [
+            {
+              "round": 0,
+              "energy": 0.0,
+              "jaccard_prev": null,
+              "core_overlap": 0.0
+            },
+            {
+              "round": 1,
+              "energy": 0.0,
+              "jaccard_prev": null,
+              "core_overlap": 0.0
+            },
+            {
+              "round": 2,
+              "energy": 0.0,
+              "jaccard_prev": null,
+              "core_overlap": 0.0
+            },
+            {
+              "round": 3,
+              "energy": 0.0,
+              "jaccard_prev": null,
+              "core_overlap": 0.0
+            },
+            {
+              "round": 4,
+              "energy": 0.0,
+              "jaccard_prev": null,
+              "core_overlap": 0.0
+            },
+            {
+              "round": 5,
+              "energy": 0.0,
+              "jaccard_prev": null,
+              "core_overlap": 0.0
+            },
+            {
+              "round": 6,
+              "energy": 0.0,
+              "jaccard_prev": null,
+              "core_overlap": 0.0
+            },
+            {
+              "round": 7,
+              "energy": 0.0,
+              "jaccard_prev": null,
+              "core_overlap": 0.0
+            },
+            {
+              "round": 8,
+              "energy": 0.0,
+              "jaccard_prev": null,
+              "core_overlap": 0.0
+            },
+            {
+              "round": 9,
+              "energy": 0.0,
+              "jaccard_prev": null,
+              "core_overlap": 0.0
+            }
+          ]
+        },
+        "novel": {
+          "word": "table",
+          "core_area": "NOUN_CORE",
+          "rounds": [
+            {
+              "round": 0,
+              "energy": 10275.257350683212,
+              "jaccard_prev": null,
+              "core_overlap": 0.28
+            },
+            {
+              "round": 1,
+              "energy": 10482.257350683212,
+              "jaccard_prev": 1.0,
+              "core_overlap": 0.28
+            },
+            {
+              "round": 2,
+              "energy": 10489.257350683212,
+              "jaccard_prev": 1.0,
+              "core_overlap": 0.28
+            },
+            {
+              "round": 3,
+              "energy": 10480.257350683212,
+              "jaccard_prev": 1.0,
+              "core_overlap": 0.28
+            },
+            {
+              "round": 4,
+              "energy": 10479.257350683212,
+              "jaccard_prev": 1.0,
+              "core_overlap": 0.28
+            },
+            {
+              "round": 5,
+              "energy": 10479.257350683212,
+              "jaccard_prev": 1.0,
+              "core_overlap": 0.28
+            },
+            {
+              "round": 6,
+              "energy": 10472.257350683212,
+              "jaccard_prev": 1.0,
+              "core_overlap": 0.28
+            },
+            {
+              "round": 7,
+              "energy": 10481.257350683212,
+              "jaccard_prev": 1.0,
+              "core_overlap": 0.28
+            },
+            {
+              "round": 8,
+              "energy": 10479.257350683212,
+              "jaccard_prev": 1.0,
+              "core_overlap": 0.28
+            },
+            {
+              "round": 9,
+              "energy": 10489.257350683212,
+              "jaccard_prev": 1.0,
+              "core_overlap": 0.28
+            }
+          ]
+        }
+      },
+      {
+        "gram": {
+          "word": "dog",
+          "core_area": "NOUN_CORE",
+          "rounds": [
+            {
+              "round": 0,
+              "energy": 13722.318012237549,
+              "jaccard_prev": null,
+              "core_overlap": 0.46
+            },
+            {
+              "round": 1,
+              "energy": 13916.318012237549,
+              "jaccard_prev": 1.0,
+              "core_overlap": 0.46
+            },
+            {
+              "round": 2,
+              "energy": 13924.318012237549,
+              "jaccard_prev": 1.0,
+              "core_overlap": 0.46
+            },
+            {
+              "round": 3,
+              "energy": 13925.318012237549,
+              "jaccard_prev": 1.0,
+              "core_overlap": 0.46
+            },
+            {
+              "round": 4,
+              "energy": 13923.318012237549,
+              "jaccard_prev": 1.0,
+              "core_overlap": 0.46
+            },
+            {
+              "round": 5,
+              "energy": 13919.318012237549,
+              "jaccard_prev": 1.0,
+              "core_overlap": 0.46
+            },
+            {
+              "round": 6,
+              "energy": 13922.318012237549,
+              "jaccard_prev": 1.0,
+              "core_overlap": 0.46
+            },
+            {
+              "round": 7,
+              "energy": 13923.318012237549,
+              "jaccard_prev": 1.0,
+              "core_overlap": 0.46
+            },
+            {
+              "round": 8,
+              "energy": 13930.318012237549,
+              "jaccard_prev": 1.0,
+              "core_overlap": 0.46
+            },
+            {
+              "round": 9,
+              "energy": 13928.318012237549,
+              "jaccard_prev": 1.0,
+              "core_overlap": 0.46
+            }
+          ]
+        },
+        "catviol": {
+          "word": "chases",
+          "core_area": "VERB_CORE",
+          "rounds": [
+            {
+              "round": 0,
+              "energy": 0.0,
+              "jaccard_prev": null,
+              "core_overlap": 0.0
+            },
+            {
+              "round": 1,
+              "energy": 0.0,
+              "jaccard_prev": null,
+              "core_overlap": 0.0
+            },
+            {
+              "round": 2,
+              "energy": 0.0,
+              "jaccard_prev": null,
+              "core_overlap": 0.0
+            },
+            {
+              "round": 3,
+              "energy": 0.0,
+              "jaccard_prev": null,
+              "core_overlap": 0.0
+            },
+            {
+              "round": 4,
+              "energy": 0.0,
+              "jaccard_prev": null,
+              "core_overlap": 0.0
+            },
+            {
+              "round": 5,
+              "energy": 0.0,
+              "jaccard_prev": null,
+              "core_overlap": 0.0
+            },
+            {
+              "round": 6,
+              "energy": 0.0,
+              "jaccard_prev": null,
+              "core_overlap": 0.0
+            },
+            {
+              "round": 7,
+              "energy": 0.0,
+              "jaccard_prev": null,
+              "core_overlap": 0.0
+            },
+            {
+              "round": 8,
+              "energy": 0.0,
+              "jaccard_prev": null,
+              "core_overlap": 0.0
+            },
+            {
+              "round": 9,
+              "energy": 0.0,
+              "jaccard_prev": null,
+              "core_overlap": 0.0
+            }
+          ]
+        },
+        "novel": {
+          "word": "table",
+          "core_area": "NOUN_CORE",
+          "rounds": [
+            {
+              "round": 0,
+              "energy": 13192.03628396988,
+              "jaccard_prev": null,
+              "core_overlap": 0.5
+            },
+            {
+              "round": 1,
+              "energy": 13408.03628396988,
+              "jaccard_prev": 1.0,
+              "core_overlap": 0.5
+            },
+            {
+              "round": 2,
+              "energy": 13402.03628396988,
+              "jaccard_prev": 1.0,
+              "core_overlap": 0.5
+            },
+            {
+              "round": 3,
+              "energy": 13403.03628396988,
+              "jaccard_prev": 1.0,
+              "core_overlap": 0.5
+            },
+            {
+              "round": 4,
+              "energy": 13400.03628396988,
+              "jaccard_prev": 1.0,
+              "core_overlap": 0.5
+            },
+            {
+              "round": 5,
+              "energy": 13401.03628396988,
+              "jaccard_prev": 1.0,
+              "core_overlap": 0.5
+            },
+            {
+              "round": 6,
+              "energy": 13399.03628396988,
+              "jaccard_prev": 1.0,
+              "core_overlap": 0.5
+            },
+            {
+              "round": 7,
+              "energy": 13397.03628396988,
+              "jaccard_prev": 1.0,
+              "core_overlap": 0.5
+            },
+            {
+              "round": 8,
+              "energy": 13408.03628396988,
+              "jaccard_prev": 1.0,
+              "core_overlap": 0.5
+            },
+            {
+              "round": 9,
+              "energy": 13399.03628396988,
+              "jaccard_prev": 1.0,
+              "core_overlap": 0.5
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "success": true,
+  "error_message": null,
+  "duration_seconds": 2.353547399980016
+}

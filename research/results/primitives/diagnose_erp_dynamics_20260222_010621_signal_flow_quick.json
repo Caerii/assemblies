@@ -1,0 +1,136 @@
+{
+  "experiment_name": "diagnose_erp_dynamics",
+  "timestamp": "2026-02-22T01:06:21.129132",
+  "parameters": {
+    "n": 5000,
+    "k": 50,
+    "p": 0.05,
+    "beta": 0.1,
+    "n_seeds": 3,
+    "probes": [
+      "signal_flow"
+    ]
+  },
+  "metrics": {},
+  "raw_data": {
+    "signal_flow": [
+      {
+        "NOUN->PREDICTION": {
+          "pre_kwta_total": 12818.279042673112,
+          "weight_sum": 68993.4453125,
+          "weight_max": 20.0,
+          "weight_mean": 0.026034947484731674
+        },
+        "VERB->PREDICTION": {
+          "pre_kwta_total": 19011.072068214417,
+          "weight_sum": 68278.359375,
+          "weight_max": 20.0,
+          "weight_mean": 0.03294270113110542
+        },
+        "NOUN->ROLE_PAT": {
+          "pre_kwta_total": 14525.496431541444,
+          "weight_sum": 61129.5859375,
+          "weight_max": 20.0,
+          "weight_mean": 0.02662438340485096
+        },
+        "VERB->ROLE_PAT": {
+          "pre_kwta_total": 0.0,
+          "weight_sum": 0.0,
+          "weight_max": 0.0,
+          "weight_mean": 0.0
+        },
+        "NOUN->ROLE_AGT": {
+          "pre_kwta_total": 7570.8849160194395,
+          "weight_sum": 29523.255859375,
+          "weight_max": 20.0,
+          "weight_mean": 0.025735056027770042
+        },
+        "VERB->ROLE_AGT": {
+          "pre_kwta_total": 0.0,
+          "weight_sum": 0.0,
+          "weight_max": 0.0,
+          "weight_mean": 0.0
+        }
+      },
+      {
+        "NOUN->PREDICTION": {
+          "pre_kwta_total": 12690.15971031189,
+          "weight_sum": 68707.25,
+          "weight_max": 20.0,
+          "weight_mean": 0.025131110101938248
+        },
+        "VERB->PREDICTION": {
+          "pre_kwta_total": 13118.429953479766,
+          "weight_sum": 63064.28125,
+          "weight_max": 20.0,
+          "weight_mean": 0.0285288505256176
+        },
+        "NOUN->ROLE_PAT": {
+          "pre_kwta_total": 10251.503135871888,
+          "weight_sum": 37948.65234375,
+          "weight_max": 20.0,
+          "weight_mean": 0.0342249758541584
+        },
+        "VERB->ROLE_PAT": {
+          "pre_kwta_total": 0.0,
+          "weight_sum": 0.0,
+          "weight_max": 0.0,
+          "weight_mean": 0.0
+        },
+        "NOUN->ROLE_AGT": {
+          "pre_kwta_total": 8442.325189900399,
+          "weight_sum": 51156.75390625,
+          "weight_max": 20.0,
+          "weight_mean": 0.023185620084404945
+        },
+        "VERB->ROLE_AGT": {
+          "pre_kwta_total": 0.0,
+          "weight_sum": 0.0,
+          "weight_max": 0.0,
+          "weight_mean": 0.0
+        }
+      },
+      {
+        "NOUN->PREDICTION": {
+          "pre_kwta_total": 12109.468918037415,
+          "weight_sum": 64847.3671875,
+          "weight_max": 20.0,
+          "weight_mean": 0.026926390826702118
+        },
+        "VERB->PREDICTION": {
+          "pre_kwta_total": 19721.543110489845,
+          "weight_sum": 70992.421875,
+          "weight_max": 20.0,
+          "weight_mean": 0.0770798847079277
+        },
+        "NOUN->ROLE_PAT": {
+          "pre_kwta_total": 13566.94092578888,
+          "weight_sum": 55764.8671875,
+          "weight_max": 20.0,
+          "weight_mean": 0.024492651224136353
+        },
+        "VERB->ROLE_PAT": {
+          "pre_kwta_total": 0.0,
+          "weight_sum": 0.0,
+          "weight_max": 0.0,
+          "weight_mean": 0.0
+        },
+        "NOUN->ROLE_AGT": {
+          "pre_kwta_total": 13228.712098503112,
+          "weight_sum": 69531.7109375,
+          "weight_max": 20.0,
+          "weight_mean": 0.030603745952248573
+        },
+        "VERB->ROLE_AGT": {
+          "pre_kwta_total": 0.0,
+          "weight_sum": 0.0,
+          "weight_max": 0.0,
+          "weight_mean": 0.0
+        }
+      }
+    ]
+  },
+  "success": true,
+  "error_message": null,
+  "duration_seconds": 2.7841894000303
+}

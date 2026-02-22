@@ -1,0 +1,73 @@
+{
+  "experiment_name": "diagnose_erp_dynamics",
+  "timestamp": "2026-02-22T01:06:47.392372",
+  "parameters": {
+    "n": 5000,
+    "k": 50,
+    "p": 0.05,
+    "beta": 0.1,
+    "n_seeds": 3,
+    "probes": [
+      "exposure"
+    ]
+  },
+  "metrics": {},
+  "raw_data": {
+    "exposure": [
+      {
+        "exposure_0": {
+          "trained_n400": 0.07680000000000002,
+          "novel_n400": 0.99,
+          "catviol_n400": 0.344
+        },
+        "exposure_1": {
+          "trained_n400": 0.08080000000000002,
+          "novel_n400": 0.9339999999999999,
+          "catviol_n400": 0.33599999999999997
+        },
+        "exposure_3": {
+          "trained_n400": 0.07680000000000002,
+          "novel_n400": 0.818,
+          "catviol_n400": 0.33999999999999997
+        }
+      },
+      {
+        "exposure_0": {
+          "trained_n400": 0.07920000000000003,
+          "novel_n400": 1.0,
+          "catviol_n400": 0.396
+        },
+        "exposure_1": {
+          "trained_n400": 0.07920000000000003,
+          "novel_n400": 0.9099999999999999,
+          "catviol_n400": 0.392
+        },
+        "exposure_3": {
+          "trained_n400": 0.07920000000000003,
+          "novel_n400": 0.602,
+          "catviol_n400": 0.392
+        }
+      },
+      {
+        "exposure_0": {
+          "trained_n400": 0.08800000000000001,
+          "novel_n400": 1.0,
+          "catviol_n400": 0.332
+        },
+        "exposure_1": {
+          "trained_n400": 0.09200000000000001,
+          "novel_n400": 0.9299999999999999,
+          "catviol_n400": 0.33599999999999997
+        },
+        "exposure_3": {
+          "trained_n400": 0.09200000000000001,
+          "novel_n400": 0.73,
+          "catviol_n400": 0.332
+        }
+      }
+    ]
+  },
+  "success": true,
+  "error_message": null,
+  "duration_seconds": 9.858051899936981
+}

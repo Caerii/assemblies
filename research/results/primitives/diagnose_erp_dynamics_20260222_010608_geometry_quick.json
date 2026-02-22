@@ -1,0 +1,113 @@
+{
+  "experiment_name": "diagnose_erp_dynamics",
+  "timestamp": "2026-02-22T01:06:08.608253",
+  "parameters": {
+    "n": 5000,
+    "k": 50,
+    "p": 0.05,
+    "beta": 0.1,
+    "n_seeds": 3,
+    "probes": [
+      "geometry"
+    ]
+  },
+  "metrics": {
+    "geometry": {
+      "context_to_trained_noun": {
+        "mean": 0.9159999999999999,
+        "std": 0.010461357464497636,
+        "sem": 0.006039867548216611,
+        "ci95_lo": 0.9041618596054953,
+        "ci95_hi": 0.9278381403945045,
+        "min": 0.9039999999999999,
+        "max": 0.9232,
+        "n": 3
+      },
+      "context_to_novel_noun": {
+        "mean": 0.0033333333333333335,
+        "std": 0.005773502691896258,
+        "sem": 0.0033333333333333335,
+        "ci95_lo": -0.0032,
+        "ci95_hi": 0.009866666666666668,
+        "min": 0.0,
+        "max": 0.01,
+        "n": 3
+      },
+      "context_to_verb_stim": {
+        "mean": 0.6613333333333333,
+        "std": 0.050013331556029474,
+        "sem": 0.028875210436943622,
+        "ci95_lo": 0.6047379208769238,
+        "ci95_hi": 0.7179287457897429,
+        "min": 0.604,
+        "max": 0.696,
+        "n": 3
+      },
+      "novel_to_trained_stim": {
+        "mean": 0.0033333333333333335,
+        "std": 0.005773502691896258,
+        "sem": 0.0033333333333333335,
+        "ci95_lo": -0.0032,
+        "ci95_hi": 0.009866666666666668,
+        "min": 0.0,
+        "max": 0.01,
+        "n": 3
+      }
+    }
+  },
+  "raw_data": {
+    "geometry": [
+      {
+        "stimulus_mode": {
+          "noun_noun": 0.868,
+          "verb_verb": 0.8539999999999999,
+          "cross_category": 0.6432000000000001,
+          "novel_to_trained_noun": 0.01
+        },
+        "context_mode": {
+          "verb_verb": 0.984
+        },
+        "cross_mode": {
+          "context_to_trained_noun": 0.9232,
+          "context_to_novel_noun": 0.01,
+          "context_to_verb_stim": 0.684
+        }
+      },
+      {
+        "stimulus_mode": {
+          "noun_noun": 0.858,
+          "verb_verb": 0.8480000000000001,
+          "cross_category": 0.5616,
+          "novel_to_trained_noun": 0.0
+        },
+        "context_mode": {
+          "verb_verb": 0.992
+        },
+        "cross_mode": {
+          "context_to_trained_noun": 0.9207999999999998,
+          "context_to_novel_noun": 0.0,
+          "context_to_verb_stim": 0.604
+        }
+      },
+      {
+        "stimulus_mode": {
+          "noun_noun": 0.8099999999999999,
+          "verb_verb": 0.8779999999999999,
+          "cross_category": 0.6264,
+          "novel_to_trained_noun": 0.0
+        },
+        "context_mode": {
+          "verb_verb": 1.0
+        },
+        "cross_mode": {
+          "context_to_trained_noun": 0.9039999999999999,
+          "context_to_novel_noun": 0.0,
+          "context_to_verb_stim": 0.696
+        }
+      }
+    ]
+  },
+  "success": true,
+  "error_message": null,
+  "duration_seconds": 2.6074830000288785
+}
