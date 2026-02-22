@@ -76,6 +76,8 @@ class FreeFormConfig:
     extra_binding_rounds: int = 5
     instability_threshold: float = 0.3
     n_settling_rounds: int = 10
+    # Engine selection: "auto", "numpy_sparse", "cuda_implicit", etc.
+    engine: str = "auto"
 
 
 class FreeFormVocab:
@@ -122,7 +124,8 @@ class FreeFormLearner:
         self.vocab = FreeFormVocab()
 
         # Build brain from scratch — no pre-registered words
-        self.brain = Brain(p=self.cfg.p, seed=seed, w_max=self.cfg.w_max)
+        self.brain = Brain(p=self.cfg.p, seed=seed, w_max=self.cfg.w_max,
+                          engine=self.cfg.engine)
 
         # CORE pool: LRI + MI for category discovery
         # LRI with period=1 forces adjacent words to different areas,
@@ -163,11 +166,14 @@ class FreeFormLearner:
         self.word_exposures: Dict[str, int] = defaultdict(int)
         self.word_assemblies: Dict[str, np.ndarray] = {}
         self.total_sentences: int = 0
-        # Context-based routing cache: maps left-neighbor CORE area to the
-        # CORE area previously assigned for words in that left context.
-        # None represents sentence-initial position (no left neighbor).
-        # This ensures distributional consistency: all words following
-        # the same category route to the same area.
+        # Precise context cache: maps (left_area, right_area) to the CORE
+        # area previously assigned for words in that exact context. This
+        # distinguishes ADJ (left=DET, right=NOUN) from NOUN (left=DET,
+        # right=VERB) when adjectives are optional.
+        self._context_cache: Dict[tuple, str] = {}
+        # Fallback cache: maps left_area alone to assigned CORE area.
+        # Used when the right neighbor is unknown (e.g. first sentence,
+        # or when the next word hasn't been encountered yet).
         self._left_context_cache: Dict[Optional[str], str] = {}
 
     # -- Word routing and registration ----------------------------------------
@@ -177,19 +183,22 @@ class FreeFormLearner:
     ) -> str:
         """Route an unknown word based on distributional context.
 
-        Uses a two-level strategy:
+        Uses a three-level hierarchical strategy:
 
         1. **Neighbor exclusion**: Collect CORE-area constraints from both
            adjacent neighbors, exclude those areas.
 
-        2. **Context-cache tiebreaker**: When multiple candidates remain,
-           look up the (left_area, right_area) context signature. If a
-           previous word was assigned from the same context, reuse its area.
-           This ensures distributional consistency: "a" follows "the"
-           because both have left=VERB/None and right=NOUN.
+        2. **Precise context cache**: Look up (left_area, right_area) pair.
+           This distinguishes words in different syntactic contexts even
+           when they share a left neighbor (e.g. ADJ after DET before NOUN
+           vs NOUN after DET before VERB).
 
-        3. **LRI fallback**: For the very first encounter of a context
-           signature (typically the first sentence), use brain-level LRI.
+        3. **Left-only fallback**: When the right neighbor is unknown,
+           fall back to left-area-only cache. This handles first-sentence
+           bootstrapping and positions where the next word hasn't been seen.
+
+        4. **Bootstrap / LRI**: Position-cycling for the first sentence,
+           brain-level LRI competition thereafter.
 
         Returns the winning CORE area name.
         """
@@ -213,18 +222,32 @@ class FreeFormLearner:
         if len(candidates) == 1:
             result = candidates[0]
         elif len(candidates) > 1:
-            # Check left-context cache: has a word with the same left
-            # neighbor area been assigned before?
-            cached = self._left_context_cache.get(left_area)
+            # Level 1: Precise (left, right) cache
+            precise_key = (left_area, right_area)
+            cached = self._context_cache.get(precise_key)
             if cached is not None and cached in candidates:
                 result = cached
-            else:
-                # Deterministic bootstrap: during the first sentence,
-                # use position-based cycling (position % n_core_areas)
-                # instead of noisy LRI. This guarantees the first
-                # sentence establishes a clean N-way split:
-                # pos 0→CORE_0, pos 1→CORE_1, pos 2→CORE_2, etc.
+            elif right_area is not None:
+                # Right IS known but no precise hit — do NOT fall back to
+                # left-only cache (it might give wrong category, e.g. ADJ
+                # instead of NOUN when both follow DET).
                 if self.total_sentences == 0:
+                    target = self.core_areas[
+                        position % len(self.core_areas)]
+                    result = (target if target in candidates
+                              else candidates[0])
+                else:
+                    winner = discover_role_area(
+                        self.brain, "WORD_MARKER", candidates,
+                        stabilize_rounds=1, hebbian_stabilize=False,
+                    )
+                    result = winner if winner is not None else candidates[0]
+            else:
+                # Level 2: Left-only fallback (right unknown)
+                fallback = self._left_context_cache.get(left_area)
+                if fallback is not None and fallback in candidates:
+                    result = fallback
+                elif self.total_sentences == 0:
                     target = self.core_areas[
                         position % len(self.core_areas)]
                     result = (target if target in candidates
@@ -239,7 +262,8 @@ class FreeFormLearner:
             # All areas used by neighbors — pick first area
             result = self.core_areas[0]
 
-        # Update left-context cache
+        # Update both caches
+        self._context_cache[(left_area, right_area)] = result
         self._left_context_cache[left_area] = result
         return result
 
@@ -359,11 +383,15 @@ class FreeFormLearner:
                 else:
                     # Duplicate of newly-assigned word (no PHON yet)
                     self._set_core_lri(core_area)
-                # Update left-context cache for known words too, so the
+                # Update both context caches for known words too, so the
                 # full positional pattern is cached (e.g. left=VERB → DET)
                 left_area: Optional[str] = None
+                right_area: Optional[str] = None
                 if i > 0 and words[i - 1] in self.vocab.known_words:
                     left_area = self.vocab.core_area_for(words[i - 1])
+                if i < len(words) - 1 and words[i + 1] in self.vocab.known_words:
+                    right_area = self.vocab.core_area_for(words[i + 1])
+                self._context_cache[(left_area, right_area)] = core_area
                 self._left_context_cache[left_area] = core_area
 
         # -- Phase 2: Form assemblies for new words ---------------------------

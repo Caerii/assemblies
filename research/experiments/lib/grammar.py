@@ -521,3 +521,57 @@ class AdjCFG:
     def generate_batch(self, n: int) -> List[Dict[str, Any]]:
         """Generate n sentences."""
         return [self.generate() for _ in range(n)]
+
+
+class OptAdjCFG:
+    """CFG with optional adjectives between DET and NOUN.
+
+    Like AdjCFG but adjective insertion is probabilistic (adj_prob).
+    This creates variable-length sentences where DET is sometimes followed
+    by ADJ (DET-ADJ-N-V) and sometimes directly by NOUN (DET-N-V).
+
+    Tests whether the routing mechanism handles variable-length constituents
+    rather than rigid positional patterns.
+    """
+
+    def __init__(
+        self,
+        pp_prob: float = 0.3,
+        adj_prob: float = 0.5,
+        vocab: Vocabulary = None,
+        rng: np.random.Generator = None,
+        **kwargs,
+    ):
+        from research.experiments.lib.vocabulary import ADJ_VOCAB
+        self.adj_prob = adj_prob
+        self.vocab = vocab or ADJ_VOCAB
+        self.rng = rng or np.random.default_rng(42)
+        self.inner = DetCFG(
+            pp_prob=pp_prob, vocab=self.vocab, rng=self.rng, **kwargs,
+        )
+
+    def generate(self) -> Dict[str, Any]:
+        """Generate one sentence, optionally inserting adjectives after DETs."""
+        sent = self.inner.generate()
+        adjs = self.vocab.words_for_category("ADJ")
+        new_words: List[str] = []
+        new_roles: List[str] = []
+        new_cats: List[str] = []
+        for w, r, c in zip(sent["words"], sent["roles"], sent["categories"]):
+            new_words.append(w)
+            new_roles.append(r)
+            new_cats.append(c)
+            if c == "DET" and self.rng.random() < self.adj_prob:
+                new_words.append(self.rng.choice(adjs))
+                new_roles.append("ADJ")
+                new_cats.append("ADJ")
+        return {
+            "words": new_words,
+            "roles": new_roles,
+            "categories": new_cats,
+            "has_pp": sent["has_pp"],
+        }
+
+    def generate_batch(self, n: int) -> List[Dict[str, Any]]:
+        """Generate n sentences."""
+        return [self.generate() for _ in range(n)]
