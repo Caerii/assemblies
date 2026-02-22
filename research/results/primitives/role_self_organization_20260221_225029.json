@@ -1,0 +1,85 @@
+{
+  "experiment_name": "role_self_organization",
+  "timestamp": "2026-02-21T22:50:29.314400",
+  "parameters": {
+    "n": 10000,
+    "k": 100,
+    "p": 0.05,
+    "beta": 0.15,
+    "w_max": 20.0,
+    "n_struct_areas": 4,
+    "refractory_period": 5,
+    "inhibition_strength": 1.0,
+    "stabilize_rounds": 3,
+    "n_test_sentences": 50,
+    "n_seeds": 10
+  },
+  "metrics": {
+    "position_purity": {
+      "mean": 0.746,
+      "std": 0.1460745623911904,
+      "sem": 0.04619283253685335,
+      "ci95_lo": 0.6554620482277674,
+      "ci95_hi": 0.8365379517722326,
+      "min": 0.5,
+      "max": 0.98,
+      "n": 10
+    },
+    "purity_vs_chance": {
+      "t": 2.619454000866137,
+      "p": 0.02783584951858547,
+      "d": 0.8283440868777668,
+      "significant": "True"
+    },
+    "separation_rate": {
+      "mean": 1.0,
+      "std": 0.0,
+      "sem": 0.0,
+      "ci95_lo": 1.0,
+      "ci95_hi": 1.0,
+      "min": 1.0,
+      "max": 1.0,
+      "n": 10
+    },
+    "separation_vs_chance": {
+      "t": Infinity,
+      "p": 0.0,
+      "d": Infinity,
+      "significant": true
+    },
+    "pos1_consistency": {
+      "mean": 0.746,
+      "std": 0.1460745623911904,
+      "sem": 0.04619283253685335,
+      "ci95_lo": 0.6554620482277674,
+      "ci95_hi": 0.8365379517722326,
+      "min": 0.5,
+      "max": 0.98,
+      "n": 10
+    },
+    "pos2_consistency": {
+      "mean": 0.746,
+      "std": 0.1460745623911904,
+      "sem": 0.04619283253685335,
+      "ci95_lo": 0.6554620482277674,
+      "ci95_hi": 0.8365379517722326,
+      "min": 0.5,
+      "max": 0.98,
+      "n": 10
+    },
+    "n_active_struct": {
+      "mean": 2.0,
+      "std": 0.0,
+      "sem": 0.0,
+      "ci95_lo": 2.0,
+      "ci95_hi": 2.0,
+      "min": 2.0,
+      "max": 2.0,
+      "n": 10
+    }
+  },
+  "raw_data": {},
+  "success": true,
+  "error_message": null,
+  "duration_seconds": 34.14156020001974
+}

@@ -1,0 +1,85 @@
+{
+  "experiment_name": "role_self_organization",
+  "timestamp": "2026-02-21T22:49:33.131078",
+  "parameters": {
+    "n": 5000,
+    "k": 50,
+    "p": 0.05,
+    "beta": 0.15,
+    "w_max": 20.0,
+    "n_struct_areas": 4,
+    "refractory_period": 5,
+    "inhibition_strength": 1.0,
+    "stabilize_rounds": 3,
+    "n_test_sentences": 30,
+    "n_seeds": 5
+  },
+  "metrics": {
+    "position_purity": {
+      "mean": 0.9,
+      "std": 0.06666666666666665,
+      "sem": 0.029814239699997188,
+      "ci95_lo": 0.8415640901880055,
+      "ci95_hi": 0.9584359098119946,
+      "min": 0.8333333333333334,
+      "max": 0.9666666666666667,
+      "n": 5
+    },
+    "purity_vs_chance": {
+      "t": 9.223780407186636,
+      "p": 0.0007677649358509746,
+      "d": 4.125000000000001,
+      "significant": "True"
+    },
+    "separation_rate": {
+      "mean": 1.0,
+      "std": 0.0,
+      "sem": 0.0,
+      "ci95_lo": 1.0,
+      "ci95_hi": 1.0,
+      "min": 1.0,
+      "max": 1.0,
+      "n": 5
+    },
+    "separation_vs_chance": {
+      "t": Infinity,
+      "p": 0.0,
+      "d": Infinity,
+      "significant": true
+    },
+    "pos1_consistency": {
+      "mean": 0.8933333333333333,
+      "std": 0.059628479399994376,
+      "sem": 0.026666666666666658,
+      "ci95_lo": 0.8410666666666666,
+      "ci95_hi": 0.9456,
+      "min": 0.8333333333333334,
+      "max": 0.9666666666666667,
+      "n": 5
+    },
+    "pos2_consistency": {
+      "mean": 0.6533333333333333,
+      "std": 0.22681367781605333,
+      "sem": 0.10143416036468625,
+      "ci95_lo": 0.4545223790185483,
+      "ci95_hi": 0.8521442876481183,
+      "min": 0.4666666666666667,
+      "max": 0.9,
+      "n": 5
+    },
+    "n_active_struct": {
+      "mean": 3.4,
+      "std": 0.5477225575051661,
+      "sem": 0.24494897427831777,
+      "ci95_lo": 2.919900010414497,
+      "ci95_hi": 3.880099989585503,
+      "min": 3.0,
+      "max": 4.0,
+      "n": 5
+    }
+  },
+  "raw_data": {},
+  "success": true,
+  "error_message": null,
+  "duration_seconds": 7.636376400012523
+}
