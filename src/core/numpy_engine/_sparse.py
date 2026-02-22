@@ -153,9 +153,16 @@ class NumpySparseEngine(ComputeEngine):
                 prev_winner_inputs[:end] += stim_w[:end]
 
         # Area inputs (2-D, vectorised fancy-index)
+        # Track sources whose connectomes need deferred initialisation.
+        _deferred_init_srcs = []
         for src_name in from_areas:
             conn = self._area_conns[src_name][target]
             if conn.weights.shape[1] == 0:
+                # Mark cross-area connections for deferred init so they
+                # are available on the NEXT projection round.
+                if (conn.sparse and src_name != target
+                        and self._areas[src_name].w > 0 and tgt.w > 0):
+                    _deferred_init_srcs.append(src_name)
                 continue
             src = self._areas[src_name]
             src_w = xp.asarray(src.winners)
@@ -286,6 +293,24 @@ class NumpySparseEngine(ComputeEngine):
                     tgt._cumulative_bias[cidx] += tgt.refracted_strength
 
         total_act = float(xp.sum(all_inputs[new_winner_indices]))
+
+        # --- Deferred connectome initialisation --------------------------------
+        # Sources whose connectomes were empty this round get initialised now
+        # so they can contribute signal on the NEXT projection round.  Uses a
+        # deterministic per-pair seed to avoid disturbing the main RNG.
+        if _deferred_init_srcs:
+            for src_name in _deferred_init_srcs:
+                conn = self._area_conns[src_name][target]
+                if conn.weights.shape[1] > 0:
+                    continue  # already sized by expand_connectomes
+                src = self._areas[src_name]
+                nr, nc = src.w, new_w
+                if nr > 0 and nc > 0:
+                    lazy_seed = hash((src_name, target, nr, nc)) & 0xFFFFFFFF
+                    lazy_rng = np.random.default_rng(lazy_seed)
+                    conn.weights = to_xp(
+                        (lazy_rng.random((nr, nc)) < self.p).astype(np.float32)
+                    )
 
         result = ProjectionResult(
             winners=np.array(new_winner_indices, dtype=np.uint32),
