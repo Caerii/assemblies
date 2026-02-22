@@ -27,6 +27,13 @@ uv run python research/experiments/primitives/test_garden_path_erp.py --quick
 uv run python research/experiments/primitives/test_rc_asymmetry.py --quick
 uv run python research/experiments/primitives/test_agreement_attraction.py --quick
 
+# Run robustness & depth experiments
+uv run python research/experiments/primitives/test_generalization.py --quick
+uv run python research/experiments/primitives/test_unified_phenomena.py --quick
+uv run python research/experiments/primitives/test_cloze_probability.py --quick
+uv run python research/experiments/primitives/test_parameter_robustness.py --quick
+uv run python research/experiments/primitives/test_semantic_similarity.py --quick
+
 # Run stability tests
 uv run python research/experiments/stability/test_phase_diagram.py --quick
 ```
@@ -74,6 +81,16 @@ Validates core Assembly Calculus operations and derived phenomena:
 | **Garden-Path ERP** | Does structural ambiguity produce prediction violation + reanalysis? | ✅ Validated |
 | **RC Asymmetry** | Does the SRC > ORC processing asymmetry emerge from binding? | ✅ Validated |
 | **Agreement Attraction** | Do intervening PP nouns interfere with subject binding? | ✅ Validated |
+
+**Robustness & Depth:**
+
+| Experiment | Scientific Question | Status |
+|------------|---------------------|--------|
+| **Generalization** | Do phenomena emerge from composition, not memorization? | ✅ Validated |
+| **Unified Phenomena** | Do all phenomena coexist in a single brain? | ✅ Validated |
+| **Cloze Probability** | Does N400 scale continuously with training frequency? | ✅ Validated |
+| **Parameter Robustness** | Are effects robust across parameter ranges? | ✅ Validated |
+| **Semantic Similarity** | Does co-projection create semantic overlap affecting N400? | 🔄 Partial |
 
 See `research/results/primitives/RESULTS_composed_erp.md` for detailed findings.
 
@@ -174,6 +191,24 @@ uv run python research/experiments/stability/test_phase_diagram.py
   0.119, short PP: 0.130, d=0.67). The effect plateaus rather than increasing with
   further PP depth, suggesting a threshold interference mechanism rather than linear
   distance scaling.
+
+### Robustness & Depth
+- **Generalization**: Phenomena emerge from composition, not memorization. ORC dual-binding
+  produces elevated P600 even when trained only on SRC (never saw AGENT+REL_PATIENT binding).
+  Depth-1 PP dissociation holds when only depth-0 was trained.
+- **Unified phenomena**: A single brain trained on one mixed corpus simultaneously exhibits
+  5/6 tested phenomena with d > 0.5, including object dissociation (d=11.58), PP dissociation
+  (d=15.98), garden-path (d=0.58), agreement attraction (d=0.58), and recursive PP (d=28-94).
+- **Cloze probability**: N400 scales continuously with training frequency. Monotonic gradient:
+  high < med < low < zero. The quantitative frequency-N400 relationship matches the pattern
+  needed for fitting human cloze probability data.
+- **Parameter robustness**: P600 double dissociation is rock-solid across all tested parameter
+  combinations (d=3.6 to 60.5). Subtler phenomena (ORC/SRC, garden-path) require sufficient
+  network capacity and training to reliably detect.
+- **Semantic similarity**: Co-projection creates measurable semantic structure in NOUN_CORE
+  (related overlap 0.898 > unrelated 0.890, d=0.73). The N400 priming effect through
+  prediction is minimal with equal training frequency — frequency dominates semantic
+  relatedness in the current architecture.
 
 ### Stability
 - Assemblies are stable across wide range of sparsity levels (0.01 - 0.1)

@@ -100,6 +100,39 @@ def create_language_brain(
     return brain
 
 
+def build_semantic_structure(
+    brain: Brain,
+    clusters: list,
+    core_area: str,
+    n_rounds: int = 10,
+) -> None:
+    """Create overlapping assemblies for semantically related words.
+
+    Co-projects pairs of words into the same core area to create shared
+    neural overlap, simulating semantic similarity. Words that are co-projected
+    more will have higher assembly overlap.
+
+    Args:
+        brain: Brain instance (plasticity should be ON).
+        clusters: List of (word_a, word_b, n_rounds) tuples.
+            Each pair is co-projected n_rounds times into core_area.
+        core_area: Target area for semantic overlap.
+        n_rounds: Default rounds per pair if not specified in tuple.
+    """
+    for entry in clusters:
+        if len(entry) == 3:
+            word_a, word_b, rounds = entry
+        else:
+            word_a, word_b = entry
+            rounds = n_rounds
+
+        for _ in range(rounds):
+            brain.project(
+                {f"PHON_{word_a}": [core_area], f"PHON_{word_b}": [core_area]},
+                {core_area: [core_area]},
+            )
+
+
 def build_lexicon(
     brain: Brain,
     vocab: Vocabulary = None,

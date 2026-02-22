@@ -25,6 +25,7 @@ from research.experiments.lib.grammar import SimpleCFG, RecursiveCFG
 from research.experiments.lib.brain_setup import (
     create_language_brain,
     build_lexicon,
+    build_semantic_structure,
     activate_word,
 )
 from research.experiments.lib.training import (
