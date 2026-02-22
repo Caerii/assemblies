@@ -34,6 +34,10 @@ uv run python research/experiments/primitives/test_cloze_probability.py --quick
 uv run python research/experiments/primitives/test_parameter_robustness.py --quick
 uv run python research/experiments/primitives/test_semantic_similarity.py --quick
 
+# Run developmental and generation experiments
+uv run python research/experiments/primitives/test_developmental_curriculum.py --quick
+uv run python research/experiments/primitives/test_sentence_generation.py --quick
+
 # Run stability tests
 uv run python research/experiments/stability/test_phase_diagram.py --quick
 ```
@@ -91,6 +95,13 @@ Validates core Assembly Calculus operations and derived phenomena:
 | **Cloze Probability** | Does N400 scale continuously with training frequency? | ✅ Validated |
 | **Parameter Robustness** | Are effects robust across parameter ranges? | ✅ Validated |
 | **Semantic Similarity** | Does co-projection create semantic overlap affecting N400? | 🔄 Partial |
+
+**Development & Generation:**
+
+| Experiment | Scientific Question | Status |
+|------------|---------------------|--------|
+| **Developmental Curriculum** | Do phenomena emerge in child-like developmental order? | ✅ Validated |
+| **Sentence Generation** | Can the system produce novel grammatical sequences? | ✅ Validated |
 
 See `research/results/primitives/RESULTS_composed_erp.md` for detailed findings.
 
@@ -209,6 +220,17 @@ uv run python research/experiments/stability/test_phase_diagram.py
   (related overlap 0.898 > unrelated 0.890, d=0.73). The N400 priming effect through
   prediction is minimal with equal training frequency — frequency dominates semantic
   relatedness in the current architecture.
+
+### Development & Generation
+- **Developmental curriculum**: Phenomena emerge in the correct developmental order from a
+  single brain trained through six staged inputs. Forward prediction (N400 d=14.03) emerges
+  exactly at the SVO stage. PP binding (P600 d=10.16) emerges exactly at the SVO+PP stage.
+  Binding P600 is rock-solid once SVO training begins (d=7.34 → 64.92).
+- **Sentence generation**: The bidirectional pathways created by role binding support reverse
+  readout. Role accuracy reaches 1.0 by the SVO stage — ROLE_AGENT and ROLE_PATIENT reliably
+  recover nouns. Prediction chain generation produces novel grammatical sequences (SVO
+  rate=1.0 at stage 3). After PP training, chains follow the most-trained pathway
+  ("dog in park in park"), showing that prediction strength drives generation.
 
 ### Stability
 - Assemblies are stable across wide range of sparsity levels (0.01 - 0.1)

@@ -9,6 +9,7 @@ experiments. Each module handles one concern:
   brain_setup — brain creation, area registration, lexicon construction
   training    — prediction bridge and role binding training protocols
   measurement — N400, P600, and composite ERP measurement
+  generation  — reverse readout, prediction chain, grammaticality scoring
 
 Experiments compose these modules rather than duplicating infrastructure.
 The architecture supports extension to new word categories, role slots,
@@ -41,4 +42,11 @@ from research.experiments.lib.measurement import (
     measure_role_leakage,
     generate_test_triples,
     generate_pp_test_triples,
+)
+from research.experiments.lib.generation import (
+    build_core_lexicon,
+    readout_from_role,
+    generate_from_prediction_chain,
+    score_generation,
+    check_novelty,
 )
