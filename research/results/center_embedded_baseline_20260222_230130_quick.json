@@ -1,0 +1,170 @@
+{
+  "experiment_name": "center_embedded_baseline",
+  "timestamp": "2026-02-22T23:01:30.030654",
+  "parameters": {
+    "n": 5000,
+    "k": 50,
+    "n_core_areas": 5,
+    "n_struct_areas": 15,
+    "n_train_sentences": 200,
+    "ce_prob": 0.5,
+    "n_seeds": 3,
+    "quick": true
+  },
+  "metrics": {
+    "category_accuracy_mean": 0.9444444444444443,
+    "category_accuracy_se": 7.850462293418875e-17,
+    "ce_n400_d_mean": 2.6841891910370568,
+    "rb_n400_d_mean": 2.3607581016343975,
+    "stability_mean": 0.7588888888888888,
+    "binding_mean": 0.9814814814814815,
+    "simple_n400_mean": 0.5714444444444444,
+    "rb_n400_mean": 0.5732727272727273,
+    "ce_n400_mean": 0.5836666666666668,
+    "d2_n400_mean": 0.6128333333333333,
+    "H1_category_accuracy": true,
+    "H2_ce_n400_separation": true,
+    "H3_binding": true,
+    "H4_rb_easier_than_ce": true,
+    "H5_d1_easier_than_d2": true
+  },
+  "raw_data": {
+    "trials": [
+      {
+        "seed": 1,
+        "n_words": 18,
+        "category_accuracy": 0.9444444444444444,
+        "category_correct": 17,
+        "category_total": 18,
+        "category_misrouted": [
+          "that(COMP)->CORE_3"
+        ],
+        "stability": 0.7955555555555557,
+        "binding": 0.9888888888888889,
+        "ce_n400_d": 3.353017557036954,
+        "rb_n400_d": 3.121080385334624,
+        "ce_gram_mean": 0.5738181818181818,
+        "rb_gram_mean": 0.5792727272727272,
+        "simple_gram_mean": 0.5599999999999999,
+        "d2_gram_mean": 0.62625,
+        "word_assignments": {
+          "a": "CORE_0",
+          "big": "CORE_1",
+          "bird": "CORE_2",
+          "boy": "CORE_2",
+          "cat": "CORE_2",
+          "chases": "CORE_3",
+          "dog": "CORE_2",
+          "eats": "CORE_3",
+          "fast": "CORE_1",
+          "finds": "CORE_3",
+          "girl": "CORE_2",
+          "hits": "CORE_3",
+          "old": "CORE_1",
+          "sees": "CORE_3",
+          "small": "CORE_1",
+          "that": "CORE_3",
+          "the": "CORE_0",
+          "young": "CORE_1"
+        },
+        "words_per_core_area": {
+          "CORE_1": 5,
+          "CORE_2": 5,
+          "CORE_0": 2,
+          "CORE_3": 6
+        }
+      },
+      {
+        "seed": 2,
+        "n_words": 18,
+        "category_accuracy": 0.9444444444444444,
+        "category_correct": 17,
+        "category_total": 18,
+        "category_misrouted": [
+          "that(COMP)->CORE_3"
+        ],
+        "stability": 0.7811111111111111,
+        "binding": 0.9888888888888889,
+        "ce_n400_d": 2.9873408541666464,
+        "rb_n400_d": 2.106123599442577,
+        "ce_gram_mean": 0.5607272727272729,
+        "rb_gram_mean": 0.5702727272727273,
+        "simple_gram_mean": 0.5686666666666668,
+        "d2_gram_mean": 0.5978125,
+        "word_assignments": {
+          "a": "CORE_0",
+          "big": "CORE_1",
+          "bird": "CORE_2",
+          "boy": "CORE_2",
+          "cat": "CORE_2",
+          "chases": "CORE_3",
+          "dog": "CORE_2",
+          "eats": "CORE_3",
+          "fast": "CORE_1",
+          "finds": "CORE_3",
+          "girl": "CORE_2",
+          "hits": "CORE_3",
+          "old": "CORE_1",
+          "sees": "CORE_3",
+          "small": "CORE_1",
+          "that": "CORE_3",
+          "the": "CORE_0",
+          "young": "CORE_1"
+        },
+        "words_per_core_area": {
+          "CORE_1": 5,
+          "CORE_2": 5,
+          "CORE_0": 2,
+          "CORE_3": 6
+        }
+      },
+      {
+        "seed": 3,
+        "n_words": 18,
+        "category_accuracy": 0.9444444444444444,
+        "category_correct": 17,
+        "category_total": 18,
+        "category_misrouted": [
+          "that(COMP)->CORE_3"
+        ],
+        "stability": 0.7,
+        "binding": 0.9666666666666666,
+        "ce_n400_d": 1.71220916190757,
+        "rb_n400_d": 1.855070320125991,
+        "ce_gram_mean": 0.6164545454545455,
+        "rb_gram_mean": 0.5702727272727273,
+        "simple_gram_mean": 0.5856666666666667,
+        "d2_gram_mean": 0.6144375,
+        "word_assignments": {
+          "a": "CORE_0",
+          "big": "CORE_1",
+          "bird": "CORE_2",
+          "boy": "CORE_2",
+          "cat": "CORE_2",
+          "chases": "CORE_3",
+          "dog": "CORE_2",
+          "eats": "CORE_3",
+          "fast": "CORE_1",
+          "finds": "CORE_3",
+          "girl": "CORE_2",
+          "hits": "CORE_3",
+          "old": "CORE_1",
+          "sees": "CORE_3",
+          "small": "CORE_1",
+          "that": "CORE_3",
+          "the": "CORE_0",
+          "young": "CORE_1"
+        },
+        "words_per_core_area": {
+          "CORE_1": 5,
+          "CORE_2": 5,
+          "CORE_0": 2,
+          "CORE_3": 6
+        }
+      }
+    ]
+  },
+  "success": true,
+  "error_message": null,
+  "duration_seconds": 196.56194430000323
+}
