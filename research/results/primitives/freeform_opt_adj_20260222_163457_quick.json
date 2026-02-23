@@ -1,0 +1,83 @@
+{
+  "experiment_name": "freeform_opt_adj",
+  "timestamp": "2026-02-22T16:34:57.072382",
+  "parameters": {
+    "n": 5000,
+    "k": 50,
+    "p": 0.05,
+    "beta": 0.15,
+    "n_train_sentences": 150,
+    "n_core_areas": 4,
+    "core_refractory_period": 3,
+    "n_struct_areas": 12,
+    "struct_refractory_period": 5,
+    "adj_prob": 0.5,
+    "pp_prob": 0.3,
+    "n_seeds": 3
+  },
+  "metrics": {
+    "assembly_stability": {
+      "mean": 0.7878260869565218,
+      "std": 0.024533453877679624,
+      "sem": 0.0141643962004296,
+      "ci95_lo": 0.7600638704036797,
+      "ci95_hi": 0.8155883035093638,
+      "min": 0.7652173913043481,
+      "max": 0.8139130434782608,
+      "n": 3
+    },
+    "n400_separation_d": {
+      "mean": 0.763665880100627,
+      "std": 0.6396791569834871,
+      "sem": 0.3693189334794092,
+      "ci95_lo": 0.03980077048098496,
+      "ci95_hi": 1.4875309897202689,
+      "min": 0.032295576052581966,
+      "max": 1.2188637834319767,
+      "n": 3
+    },
+    "binding_consistency": {
+      "mean": 0.9855072463768116,
+      "std": 0.005020437123388021,
+      "sem": 0.0028985507246376647,
+      "ci95_lo": 0.9798260869565218,
+      "ci95_hi": 0.9911884057971014,
+      "min": 0.982608695652174,
+      "max": 0.991304347826087,
+      "n": 3
+    },
+    "prediction_improved_count": 2,
+    "novel_combination_d": {
+      "mean": 0.8507219989114906,
+      "std": 0.4185556961477153,
+      "sem": 0.24165324384173467,
+      "ci95_lo": 0.3770816409816906,
+      "ci95_hi": 1.3243623568412906,
+      "min": 0.5562684556353559,
+      "max": 1.3298549378872495,
+      "n": 3
+    },
+    "category_accuracy": {
+      "mean": 0.7391304347826088,
+      "std": 0.18951734537133363,
+      "sem": 0.10941789036624276,
+      "ci95_lo": 0.5246713696647729,
+      "ci95_hi": 0.9535894999004446,
+      "min": 0.6086956521739131,
+      "max": 0.9565217391304348,
+      "n": 3
+    },
+    "n_words_learned": 23.0,
+    "hypotheses": {
+      "H1_assembly_stable": false,
+      "H2_n400_separation": false,
+      "H3_binding_consistent": true,
+      "H4_prediction_improves": true,
+      "H5_novel_generalization": true
+    }
+  },
+  "raw_data": {},
+  "success": true,
+  "error_message": null,
+  "duration_seconds": 156.69776699999784
+}

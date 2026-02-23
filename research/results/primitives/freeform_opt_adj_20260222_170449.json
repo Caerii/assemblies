@@ -1,0 +1,84 @@
+{
+  "experiment_name": "freeform_opt_adj",
+  "timestamp": "2026-02-22T17:04:49.652158",
+  "parameters": {
+    "n": 10000,
+    "k": 100,
+    "p": 0.05,
+    "beta": 0.15,
+    "n_train_sentences": 400,
+    "warmup_sentences": 50,
+    "n_core_areas": 4,
+    "core_refractory_period": 3,
+    "n_struct_areas": 12,
+    "struct_refractory_period": 5,
+    "adj_prob": 0.5,
+    "pp_prob": 0.3,
+    "n_seeds": 5
+  },
+  "metrics": {
+    "assembly_stability": {
+      "mean": 0.8031304347826087,
+      "std": 0.016041062620072818,
+      "sem": 0.00717378128996274,
+      "ci95_lo": 0.7890698234542818,
+      "ci95_hi": 0.8171910461109356,
+      "min": 0.7899999999999999,
+      "max": 0.8282608695652174,
+      "n": 5
+    },
+    "n400_separation_d": {
+      "mean": 1.1522806147755753,
+      "std": 0.41351999918047216,
+      "sem": 0.18493176564463862,
+      "ci95_lo": 0.7898143541120837,
+      "ci95_hi": 1.514746875439067,
+      "min": 0.6617649699326226,
+      "max": 1.767142053863241,
+      "n": 5
+    },
+    "binding_consistency": {
+      "mean": 1.0,
+      "std": 0.0,
+      "sem": 0.0,
+      "ci95_lo": 1.0,
+      "ci95_hi": 1.0,
+      "min": 1.0,
+      "max": 1.0,
+      "n": 5
+    },
+    "prediction_improved_count": 1,
+    "novel_combination_d": {
+      "mean": 1.260256855027561,
+      "std": 0.5522365222958302,
+      "sem": 0.2469676807023109,
+      "ci95_lo": 0.7762002008510316,
+      "ci95_hi": 1.7443135092040905,
+      "min": 0.3335834665227783,
+      "max": 1.7148828403732939,
+      "n": 5
+    },
+    "category_accuracy": {
+      "mean": 0.9565217391304348,
+      "std": 0.09722034684781693,
+      "sem": 0.04347826086956521,
+      "ci95_lo": 0.871304347826087,
+      "ci95_hi": 1.0417391304347827,
+      "min": 0.782608695652174,
+      "max": 1.0,
+      "n": 5
+    },
+    "n_words_learned": 23.0,
+    "hypotheses": {
+      "H1_assembly_stable": true,
+      "H2_n400_separation": true,
+      "H3_binding_consistent": true,
+      "H4_prediction_improves": false,
+      "H5_novel_generalization": true
+    }
+  },
+  "raw_data": {},
+  "success": true,
+  "error_message": null,
+  "duration_seconds": 719.3168845999971
+}

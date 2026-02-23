@@ -1,0 +1,72 @@
+{
+  "experiment_name": "freeform_learner",
+  "timestamp": "2026-02-22T14:17:59.128401",
+  "parameters": {
+    "n": 5000,
+    "k": 50,
+    "p": 0.05,
+    "beta": 0.15,
+    "n_train_sentences": 100,
+    "n_core_areas": 2,
+    "core_refractory_period": 1,
+    "n_struct_areas": 6,
+    "struct_refractory_period": 5,
+    "use_p600_feedback": false,
+    "n_seeds": 3
+  },
+  "metrics": {
+    "assembly_stability": {
+      "mean": 0.7645833333333334,
+      "std": 0.06331139971074194,
+      "sem": 0.03655285366576886,
+      "ci95_lo": 0.6929397401484264,
+      "ci95_hi": 0.8362269265182404,
+      "min": 0.71625,
+      "max": 0.83625,
+      "n": 3
+    },
+    "n400_separation_d": {
+      "mean": 0.21784963609393715,
+      "std": 1.3768807724606589,
+      "sem": 0.7949424846221813,
+      "ci95_lo": -1.3402376337655384,
+      "ci95_hi": 1.7759369059534125,
+      "min": -0.6770032003863294,
+      "max": 1.803357537512791,
+      "n": 3
+    },
+    "binding_consistency": {
+      "mean": 1.0,
+      "std": 0.0,
+      "sem": 0.0,
+      "ci95_lo": 1.0,
+      "ci95_hi": 1.0,
+      "min": 1.0,
+      "max": 1.0,
+      "n": 3
+    },
+    "prediction_improved_count": 1,
+    "novel_combination_d": {
+      "mean": 0.2581813528190522,
+      "std": 0.6206196038472247,
+      "sem": 0.3583148953455541,
+      "ci95_lo": -0.44411584205823385,
+      "ci95_hi": 0.9604785476963382,
+      "min": -0.3677183671532105,
+      "max": 0.8733825123614775,
+      "n": 3
+    },
+    "n_words_learned": 16.0,
+    "hypotheses": {
+      "H1_assembly_stable": false,
+      "H2_n400_separation": false,
+      "H3_binding_consistent": true,
+      "H4_prediction_improves": false,
+      "H5_novel_generalization": false
+    }
+  },
+  "raw_data": {},
+  "success": true,
+  "error_message": null,
+  "duration_seconds": 23.613280000001396
+}
