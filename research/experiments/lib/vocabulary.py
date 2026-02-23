@@ -244,6 +244,62 @@ ADJ_VOCAB = Vocabulary(
     },
 )
 
+# ── RC vocabulary (DET + ADJ + SVO + COMP for relative clauses) ───
+#
+# Extends ADJ_VOCAB with a complementizer ("that") for relative clauses.
+# The COMP category provides distributional evidence for a 5-way split:
+#   DET → CORE_0, ADJ → CORE_1, NOUN → CORE_2, VERB → CORE_3, COMP → CORE_4
+
+RC_VOCAB = Vocabulary(
+    categories={
+        "DET": CategoryDef(
+            words=["the", "a"],
+            core_area="DET_CORE",
+            role_areas={},
+        ),
+        "ADJ": CategoryDef(
+            words=["big", "small", "old", "young", "fast"],
+            core_area="ADJ_CORE",
+            role_areas={},
+        ),
+        "NOUN": CategoryDef(
+            words=["dog", "cat", "bird", "boy", "girl"],
+            core_area="NOUN_CORE",
+            role_areas={
+                "AGENT": "ROLE_AGENT",
+                "PATIENT": "ROLE_PATIENT",
+                "PP_OBJ": "ROLE_PP_OBJ",
+            },
+        ),
+        "VERB": CategoryDef(
+            words=["chases", "sees", "eats", "finds", "hits"],
+            core_area="VERB_CORE",
+            role_areas={},
+        ),
+        "PREP": CategoryDef(
+            words=["in", "on", "at"],
+            core_area="PREP_CORE",
+            role_areas={},
+        ),
+        "LOCATION": CategoryDef(
+            words=["garden", "park", "house"],
+            core_area="NOUN_CORE",
+            role_areas={
+                "PP_OBJ": "ROLE_PP_OBJ",
+            },
+        ),
+        "COMP": CategoryDef(
+            words=["that"],
+            core_area="COMP_CORE",
+            role_areas={},
+        ),
+    },
+    novel_words={
+        "table": "NOUN",
+        "chair": "NOUN",
+    },
+)
+
 # ── Recursive vocabulary (SVO + recursive PP + relative clauses) ───
 
 RECURSIVE_VOCAB = Vocabulary(

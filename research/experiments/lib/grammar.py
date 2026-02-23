@@ -523,6 +523,74 @@ class AdjCFG:
         return [self.generate() for _ in range(n)]
 
 
+class RCCFG:
+    """CFG with right-branching relative clauses.
+
+    Wraps AdjCFG and optionally appends "that V DET ADJ N" to the object NP.
+    Creates 5-category sentences: DET, ADJ, NOUN, VERB, COMP.
+
+    Example outputs:
+      "the big dog chases the small cat"                          (no RC)
+      "the big dog chases the small cat that eats the old bird"   (with RC)
+
+    The RC is always right-branching (attached to the object NP at the end),
+    so no stack/buffer mechanism is needed — just clause boundary detection.
+    """
+
+    def __init__(
+        self,
+        pp_prob: float = 0.0,
+        rc_prob: float = 0.5,
+        vocab: Vocabulary = None,
+        rng: np.random.Generator = None,
+        **kwargs,
+    ):
+        from research.experiments.lib.vocabulary import RC_VOCAB
+        self.rc_prob = rc_prob
+        self.vocab = vocab or RC_VOCAB
+        self.rng = rng or np.random.default_rng(42)
+        self.inner = AdjCFG(
+            pp_prob=pp_prob, vocab=self.vocab, rng=self.rng, **kwargs,
+        )
+
+    def generate(self) -> Dict[str, Any]:
+        """Generate one sentence, optionally with right-branching RC."""
+        sent = self.inner.generate()
+        words = list(sent["words"])
+        roles = list(sent["roles"])
+        cats = list(sent["categories"])
+        has_rc = self.rng.random() < self.rc_prob
+
+        if has_rc:
+            nouns = self.vocab.words_for_category("NOUN")
+            verbs = self.vocab.words_for_category("VERB")
+            dets = self.vocab.words_for_category("DET")
+            adjs = self.vocab.words_for_category("ADJ")
+            # Embedded clause: that V DET ADJ N
+            v2 = self.rng.choice(verbs)
+            d3 = self.rng.choice(dets)
+            a3 = self.rng.choice(adjs)
+            # Pick a noun not already the object
+            obj_word = str(words[-1])
+            n3_candidates = [n for n in nouns if n != obj_word]
+            n3 = self.rng.choice(n3_candidates) if n3_candidates else nouns[0]
+            words.extend(["that", v2, d3, a3, n3])
+            roles.extend(["COMP", "REL_VERB", "DET", "ADJ", "REL_PATIENT"])
+            cats.extend(["COMP", "VERB", "DET", "ADJ", "NOUN"])
+
+        return {
+            "words": words,
+            "roles": roles,
+            "categories": cats,
+            "has_pp": sent["has_pp"],
+            "has_rc": has_rc,
+        }
+
+    def generate_batch(self, n: int) -> List[Dict[str, Any]]:
+        """Generate n sentences."""
+        return [self.generate() for _ in range(n)]
+
+
 class OptAdjCFG:
     """CFG with optional adjectives between DET and NOUN.
 

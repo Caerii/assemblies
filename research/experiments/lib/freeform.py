@@ -231,33 +231,14 @@ class FreeFormLearner:
                 # Right IS known but no precise hit — do NOT fall back to
                 # left-only cache (it might give wrong category, e.g. ADJ
                 # instead of NOUN when both follow DET).
-                if self.total_sentences == 0:
-                    target = self.core_areas[
-                        position % len(self.core_areas)]
-                    result = (target if target in candidates
-                              else candidates[0])
-                else:
-                    winner = discover_role_area(
-                        self.brain, "WORD_MARKER", candidates,
-                        stabilize_rounds=1, hebbian_stabilize=False,
-                    )
-                    result = winner if winner is not None else candidates[0]
+                result = self._bootstrap_or_lri(candidates, position)
             else:
                 # Level 2: Left-only fallback (right unknown)
                 fallback = self._left_context_cache.get(left_area)
                 if fallback is not None and fallback in candidates:
                     result = fallback
-                elif self.total_sentences == 0:
-                    target = self.core_areas[
-                        position % len(self.core_areas)]
-                    result = (target if target in candidates
-                              else candidates[0])
                 else:
-                    winner = discover_role_area(
-                        self.brain, "WORD_MARKER", candidates,
-                        stabilize_rounds=1, hebbian_stabilize=False,
-                    )
-                    result = winner if winner is not None else candidates[0]
+                    result = self._bootstrap_or_lri(candidates, position)
         else:
             # All areas used by neighbors — pick first area
             result = self.core_areas[0]
@@ -266,6 +247,41 @@ class FreeFormLearner:
         self._context_cache[(left_area, right_area)] = result
         self._left_context_cache[left_area] = result
         return result
+
+    def _bootstrap_or_lri(
+        self, candidates: List[str], position: int,
+    ) -> str:
+        """Choose among candidate areas via bootstrap or LRI.
+
+        Priority order:
+        1. First sentence: position cycling (position % n_core_areas).
+        2. Unused area preference: if exactly one candidate has no words
+           assigned yet, pick it. A word in a genuinely new distributional
+           context (e.g. complementizer "that") should claim the first
+           available unused area rather than colliding with an existing
+           category via noisy LRI.
+        3. LRI competition via discover_role_area.
+        """
+        if self.total_sentences == 0:
+            # Bootstrap cycle wraps at min(n_areas, refractory+1) so that
+            # extra areas (e.g. CORE_4 for COMP) stay unused during the
+            # first non-RC sentence and get claimed later by new categories.
+            cycle = min(len(self.core_areas),
+                        self.cfg.core_refractory_period + 1)
+            target = self.core_areas[position % cycle]
+            return target if target in candidates else candidates[0]
+        # Prefer unused areas for genuinely new distributional contexts
+        unused = [a for a in candidates
+                  if not any(self.vocab.core_area_for(w) == a
+                             for w in self.vocab.known_words)]
+        if len(unused) == 1:
+            return unused[0]
+        # Fall back to LRI competition
+        winner = discover_role_area(
+            self.brain, "WORD_MARKER", candidates,
+            stabilize_rounds=1, hebbian_stabilize=False,
+        )
+        return winner if winner is not None else candidates[0]
 
     def _form_assembly(self, word: str, core_area: str) -> None:
         """Add stimulus for a new word and form its assembly in core_area.
@@ -393,6 +409,24 @@ class FreeFormLearner:
                     right_area = self.vocab.core_area_for(words[i + 1])
                 self._context_cache[(left_area, right_area)] = core_area
                 self._left_context_cache[left_area] = core_area
+
+        # -- Phase 1b: Cache completion pass ------------------------------------
+        # During Phase 1, right neighbors are often unknown (not yet processed).
+        # Now that all words have assignments, fill in precise (left, right)
+        # cache entries. This prevents misrouting when a word first appears in
+        # a context where the right neighbor is known but no precise cache hit
+        # exists (e.g. "a" at position 0 with known ADJ to the right — without
+        # this pass, the code falls through to LRI instead of using CORE_0).
+        for i, word in enumerate(words):
+            core_area = self.vocab.core_area_for(word)
+            left_area = None
+            right_area = None
+            if i > 0:
+                left_area = self.vocab.core_area_for(words[i - 1])
+            if i < len(words) - 1:
+                right_area = self.vocab.core_area_for(words[i + 1])
+            self._context_cache[(left_area, right_area)] = core_area
+            self._left_context_cache[left_area] = core_area
 
         # -- Phase 2: Form assemblies for new words ---------------------------
         for word, core_area in new_words:
