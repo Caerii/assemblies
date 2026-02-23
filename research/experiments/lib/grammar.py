@@ -591,6 +591,133 @@ class RCCFG:
         return [self.generate() for _ in range(n)]
 
 
+class CenterEmbeddedCFG:
+    """CFG with center-embedded relative clauses.
+
+    Generates sentences where the relative clause interrupts the main clause:
+      "the big dog that the small cat chases eats the old bird"
+       DET ADJ  N   COMP DET ADJ   N    V     V   DET ADJ  N
+
+    Structure:
+      Main:     [the big dog] _______ [eats] [the old bird]
+      Embedded:               [that the small cat chases]
+
+    This tests true recursion: the main clause is interrupted, requiring
+    the system to maintain a suspended prediction (dog→VERB) across the
+    embedded material.
+
+    Supports depth control:
+      depth=1: single center-embedding (above)
+      depth=2: "the dog that the cat that the bird sees chases eats the fish"
+    """
+
+    def __init__(
+        self,
+        pp_prob: float = 0.0,
+        ce_prob: float = 0.5,
+        max_depth: int = 1,
+        vocab: Vocabulary = None,
+        rng: np.random.Generator = None,
+        **kwargs,
+    ):
+        from research.experiments.lib.vocabulary import RC_VOCAB
+        self.ce_prob = ce_prob
+        self.max_depth = max_depth
+        self.vocab = vocab or RC_VOCAB
+        self.rng = rng or np.random.default_rng(42)
+        self.inner = AdjCFG(
+            pp_prob=pp_prob, vocab=self.vocab, rng=self.rng, **kwargs,
+        )
+
+    def _generate_np(self, depth: int, used_nouns: List[str]) -> Dict[str, Any]:
+        """Generate a noun phrase, possibly with center-embedded RC."""
+        nouns = self.vocab.words_for_category("NOUN")
+        dets = self.vocab.words_for_category("DET")
+        adjs = self.vocab.words_for_category("ADJ")
+
+        candidates = [n for n in nouns if n not in used_nouns]
+        if not candidates:
+            candidates = nouns
+        noun = self.rng.choice(candidates)
+        det = self.rng.choice(dets)
+        adj = self.rng.choice(adjs)
+
+        words = [det, adj, noun]
+        roles = ["DET", "ADJ", "HEAD_NOUN"]
+        cats = ["DET", "ADJ", "NOUN"]
+        has_ce = False
+
+        if depth < self.max_depth and self.rng.random() < self.ce_prob:
+            # Center-embed: insert "that [NP] V" after the head noun
+            verbs = self.vocab.words_for_category("VERB")
+            emb_np = self._generate_np(depth + 1, used_nouns + [noun])
+            emb_verb = self.rng.choice(verbs)
+
+            words.append("that")
+            roles.append("COMP")
+            cats.append("COMP")
+            words.extend(emb_np["words"])
+            roles.extend(emb_np["roles"])
+            cats.extend(emb_np["categories"])
+            words.append(emb_verb)
+            roles.append("EMB_VERB")
+            cats.append("VERB")
+            has_ce = True
+
+        return {
+            "words": words, "roles": roles, "categories": cats,
+            "has_ce": has_ce, "head_noun": noun,
+        }
+
+    def generate(self) -> Dict[str, Any]:
+        """Generate one sentence, optionally with center-embedded RC.
+
+        Structure: [subject NP] [main verb] [object NP]
+        Where subject NP may contain center-embedded RC.
+        """
+        verbs = self.vocab.words_for_category("VERB")
+
+        # Subject NP (may have center-embedding)
+        subj = self._generate_np(0, [])
+        main_verb = self.rng.choice(verbs)
+
+        # Object NP (simple, no embedding)
+        nouns = self.vocab.words_for_category("NOUN")
+        dets = self.vocab.words_for_category("DET")
+        adjs = self.vocab.words_for_category("ADJ")
+        obj_candidates = [n for n in nouns if n != subj["head_noun"]]
+        obj_noun = self.rng.choice(obj_candidates) if obj_candidates else nouns[0]
+
+        words = list(subj["words"])
+        roles = list(subj["roles"])
+        cats = list(subj["categories"])
+
+        words.append(main_verb)
+        roles.append("MAIN_VERB")
+        cats.append("VERB")
+
+        words.extend([self.rng.choice(dets), self.rng.choice(adjs), obj_noun])
+        roles.extend(["DET", "ADJ", "PATIENT"])
+        cats.extend(["DET", "ADJ", "NOUN"])
+
+        return {
+            "words": words,
+            "roles": roles,
+            "categories": cats,
+            "has_pp": False,
+            "has_ce": subj["has_ce"],
+            "ce_depth": self._count_depth(subj),
+        }
+
+    def _count_depth(self, np_result: Dict) -> int:
+        """Count embedding depth from NP generation result."""
+        return sum(1 for r in np_result["roles"] if r == "COMP")
+
+    def generate_batch(self, n: int) -> List[Dict[str, Any]]:
+        """Generate n sentences."""
+        return [self.generate() for _ in range(n)]
+
+
 class OptAdjCFG:
     """CFG with optional adjectives between DET and NOUN.
 

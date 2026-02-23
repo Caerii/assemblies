@@ -29,7 +29,7 @@ from research.experiments.lib.vocabulary import (
     RC_VOCAB,
     RECURSIVE_VOCAB,
 )
-from research.experiments.lib.grammar import SimpleCFG, RecursiveCFG, DetCFG, AdjCFG, RCCFG, OptAdjCFG
+from research.experiments.lib.grammar import SimpleCFG, RecursiveCFG, DetCFG, AdjCFG, RCCFG, CenterEmbeddedCFG, OptAdjCFG
 from research.experiments.lib.brain_setup import (
     create_language_brain,
     build_lexicon,

@@ -443,7 +443,7 @@ class FreeFormLearner:
         for i, word in enumerate(words):
             core_area = self.vocab.core_area_for(word)
 
-            # 3a: prediction training (word[i-1] -> word[i])
+            # 3a: prediction training
             if i > 0:
                 prev_area = self.vocab.core_area_for(words[i - 1])
                 train_prediction_pair(
@@ -500,6 +500,7 @@ class FreeFormLearner:
         """Cumulative N400 across sentence positions.
 
         Lower values indicate more predictable (grammatical) sequences.
+        Uses bigram prediction: previous word's CORE area -> PREDICTION.
         """
         if not self.word_assemblies:
             self._refresh_lexicon()
@@ -509,22 +510,23 @@ class FreeFormLearner:
         n_measured = 0
 
         for i, word in enumerate(words):
-            prev = words[i - 1] if i > 0 else None
-            if (i > 0
-                    and word in self.word_assemblies
-                    and prev in self.vocab.known_words):
-                prev_area = self.vocab.core_area_for(prev)
-                activate_word(self.brain, prev, prev_area, 3)
-                self.brain.inhibit_areas(["PREDICTION"])
-                for _ in range(5):
-                    self.brain.project({}, {prev_area: ["PREDICTION"]})
-                predicted = np.array(
-                    self.brain.areas["PREDICTION"].winners, dtype=np.uint32,
-                )
-                cumulative += measure_n400(
-                    predicted, self.word_assemblies[word],
-                )
-                n_measured += 1
+            if (i > 0 and word in self.word_assemblies):
+                prev = words[i - 1]
+                if prev in self.vocab.known_words:
+                    prev_area = self.vocab.core_area_for(prev)
+                    activate_word(self.brain, prev, prev_area, 3)
+                    self.brain.inhibit_areas(["PREDICTION"])
+                    for _ in range(5):
+                        self.brain.project(
+                            {}, {prev_area: ["PREDICTION"]})
+                    predicted = np.array(
+                        self.brain.areas["PREDICTION"].winners,
+                        dtype=np.uint32,
+                    )
+                    cumulative += measure_n400(
+                        predicted, self.word_assemblies[word],
+                    )
+                    n_measured += 1
 
         self.brain.disable_plasticity = False
         return cumulative / n_measured if n_measured > 0 else 1.0
