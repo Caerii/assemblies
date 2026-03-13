@@ -53,9 +53,9 @@ from typing import Dict, List, Any, Optional
 
 from research.experiments.base import ExperimentBase, ExperimentResult, summarize, ttest_vs_null
 from research.experiments.vocab import build_agreement_vocab
-from src.assembly_calculus.emergent import EmergentParser
-from src.assembly_calculus.emergent.grounding import GroundingContext
-from src.assembly_calculus.emergent.training_data import GroundedSentence
+from neural_assemblies.assembly_calculus.emergent import EmergentParser
+from neural_assemblies.assembly_calculus.emergent.grounding import GroundingContext
+from neural_assemblies.assembly_calculus.emergent.training_data import GroundedSentence
 
 
 @dataclass
@@ -203,9 +203,9 @@ def measure_agreement_overlap(
     Returns:
         Mean overlap between the test VP assembly and training VP assemblies.
     """
-    from src.assembly_calculus.ops import project, merge, _snap
-    from src.assembly_calculus.assembly import overlap as asm_overlap
-    from src.assembly_calculus.emergent.areas import VERB_CORE, VP
+    from neural_assemblies.assembly_calculus.ops import project, merge, _snap
+    from neural_assemblies.assembly_calculus.assembly import overlap as asm_overlap
+    from neural_assemblies.assembly_calculus.emergent.areas import VERB_CORE, VP
 
     noun_word = words[1]
     verb_word = words[2]

@@ -26,7 +26,7 @@ def test_cuda_availability():
 def test_cpp_availability():
     """Test if C++ extension is available"""
     try:
-        from src.core.brain_cpp import BrainCPP
+        from neural_assemblies.core.brain_cpp import BrainCPP
         print("✓ C++ Brain extension loaded successfully!")
         return True
     except ImportError as e:
@@ -35,7 +35,7 @@ def test_cpp_availability():
 
 def run_cpp_benchmark(n, k, p, beta, overlap_iter):
     """Run C++ benchmark"""
-    from src.simulation.association_simulator_cpp import association_sim_cpp
+    from neural_assemblies.simulation.association_simulator_cpp import association_sim_cpp
     
     print(f"Running C++ benchmark: n={n}, k={k}")
     start_time = time.time()

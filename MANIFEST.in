@@ -1,0 +1,13 @@
+# Include license and readme in source distribution
+include LICENSE
+include README.md
+include pyproject.toml
+
+# Include package data (e.g. data files under assemblies/) if any
+recursive-include neural_assemblies *.json *.yaml *.yml *.csv *.txt
+# Exclude dev and build artifacts from sdist
+global-exclude __pycache__
+global-exclude *.py[cod]
+global-exclude .pytest_cache
+global-exclude .ruff_cache
+prune .venv

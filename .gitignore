@@ -47,8 +47,13 @@ __pycache__/
 *.so
 *.egg
 *.egg-info/
+.eggs/
 dist/
 build/
+*.whl
+
+# PyPI / packaging check artifacts
+.pypi-check/
 
 # IDE artifacts
 .vscode/

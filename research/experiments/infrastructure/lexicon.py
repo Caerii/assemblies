@@ -10,8 +10,8 @@ from typing import Dict, List, Any
 
 import numpy as np
 
-from src.assembly_calculus.emergent import EmergentParser
-from src.assembly_calculus.ops import project, _snap
+from neural_assemblies.assembly_calculus.emergent import EmergentParser
+from neural_assemblies.assembly_calculus.ops import project, _snap
 
 
 def build_core_lexicon(

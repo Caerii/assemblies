@@ -1,0 +1,79 @@
+# Publish neural-assemblies to PyPI using Trusted Publishers (OIDC).
+# No API token needed: PyPI trusts this workflow once you add it as a trusted publisher.
+#
+# Setup on PyPI (one-time):
+#   Publishing → Trusted Publisher Management → Add a new pending publisher
+#   - PyPI Project Name: neural-assemblies
+#   - Owner: <your-github-username-or-org>   (e.g. Caerii)
+#   - Repository name: assemblies
+#   - Workflow name: publish.yml
+#   - Environment name: pypi (optional; if you use it, create it in Settings → Environments)
+#
+# To release: create a GitHub release (or push tag v*), or push a tag like v0.0.1a1.
+
+name: Publish to PyPI
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+
+      - name: Install dependencies and run tests
+        run: |
+          uv sync
+          uv run pytest neural_assemblies/tests/ -q --tb=short
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+
+      - name: Build package
+        run: |
+          uv sync
+          uv run python -m build
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    # Optional: use environment "pypi" if you created it and set it in PyPI trusted publisher
+    # environment: pypi
+    permissions:
+      id-token: write
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+
+      - name: Publish to PyPI (Trusted Publisher)
+        uses: pypa/gh-action-pypi-publish@release/v1

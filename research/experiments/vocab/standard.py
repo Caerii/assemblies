@@ -8,7 +8,7 @@ Two vocabulary variants:
 
 from typing import Dict
 
-from src.assembly_calculus.emergent.grounding import GroundingContext
+from neural_assemblies.assembly_calculus.emergent.grounding import GroundingContext
 
 
 def build_standard_vocab() -> Dict[str, GroundingContext]:

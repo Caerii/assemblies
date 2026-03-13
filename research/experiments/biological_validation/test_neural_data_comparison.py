@@ -27,7 +27,7 @@ from typing import Dict, List, Any
 from dataclasses import dataclass
 
 from research.experiments.base import ExperimentBase, ExperimentResult
-from src.core.brain import Brain
+from neural_assemblies.core.brain import Brain
 
 
 # Biological reference values from literature

@@ -36,7 +36,7 @@ My main goal in summer *2025* was to scale the system using custom CUDA and algo
 
 ## Contents
 
-- [Documentation](#documentation) · [Requirements](#requirements) · [Quick Start](#quick-start) · [Overview](#overview) · [Usage](#usage) · [Project Structure](#project-structure) · [Tests](#tests) · [Citation](#citation)
+- [Documentation](#documentation) · [Requirements](#requirements) · [Quick Start](#quick-start) · [Overview](#overview) · [Usage](#usage) · [Project Structure](#project-structure) · [Tests](#tests) · [Publishing](#publishing-to-pypi-maintainers) · [Citation](#citation) · [License](#license)
 
 ## Documentation
 
@@ -44,17 +44,17 @@ My main goal in summer *2025* was to scale the system using custom CUDA and algo
 
 | Section | Path | Description |
 |--------|------|-------------|
-| **Core** | [src/core/README.md](src/core/README.md) | Brain, Area, Stimulus, Connectome, ComputeEngine (CPU/GPU) |
-| **Compute** | [src/compute/README.md](src/compute/README.md) | Statistics, plasticity, winner selection, projection primitives |
-| **Simulation** | [src/simulation/README.md](src/simulation/README.md) | Projection, association, merge, pattern completion, Turing-style sims |
-| **Language** | [src/language/README.md](src/language/README.md) | Rule-based parsing (English/Russian), grammar, readout |
-| **Lexicon** | [src/lexicon/README.md](src/lexicon/README.md) | Word lists, curriculum, assembly/GPU learners |
-| **NEMO** | [src/nemo/README.md](src/nemo/README.md) | Learned grammar, language acquisition (GPU) |
+| **Core** | [neural_assemblies/core/README.md](neural_assemblies/core/README.md) | Brain, Area, Stimulus, Connectome, ComputeEngine (CPU/GPU) |
+| **Compute** | [neural_assemblies/compute/README.md](neural_assemblies/compute/README.md) | Statistics, plasticity, winner selection, projection primitives |
+| **Assembly Calculus** | [neural_assemblies/assembly_calculus/](neural_assemblies/assembly_calculus/) | project, associate, merge, sequence, readout, FSM, PFA, EmergentParser |
+| **Simulation** | [neural_assemblies/simulation/README.md](neural_assemblies/simulation/README.md) | Projection, association, merge, pattern completion, Turing-style sims |
+| **Language** | [neural_assemblies/language/README.md](neural_assemblies/language/README.md) | Rule-based parsing (English/Russian), grammar, readout |
+| **Lexicon** | [neural_assemblies/lexicon/README.md](neural_assemblies/lexicon/README.md) | Word lists, curriculum, assembly/GPU learners |
+| **NEMO** | [neural_assemblies/nemo/README.md](neural_assemblies/nemo/README.md) | Learned grammar, language acquisition (GPU) |
 
 **Project-wide:**
 
-- [**DOCUMENTATION.md**](DOCUMENTATION.md) — Full API and module guide.
-- [**ARCHITECTURE.md**](ARCHITECTURE.md) — High-level design and engine layout.
+- [**docs/**](docs/README.md) — Full API ([api.md](docs/api.md)), [architecture](docs/architecture.md), and [packaging](docs/packaging.md) guides.
 - [**research/**](research/README.md) — Experiments, results, plans, open questions.
 
 ## Requirements
@@ -65,21 +65,23 @@ My main goal in summer *2025* was to scale the system using custom CUDA and algo
 ## Quick Start
 
 ```bash
-# Install with uv (recommended)
-uv sync
+# Install from PyPI (recommended)
+pip install neural-assemblies
 
-# Or with pip
-pip install -e .
+# Or install from repo (development)
+uv sync                         # CPU + dev deps (dependency-groups.dev)
+# or: pip install -e .
 
-# With GPU support (CUDA 12.x / 13.x)
-pip install -e ".[gpu]"
+# GPU extras (on supported CUDA/ROCm machines)
+# via uv:  uv sync --group gpu   # adds dependency-groups.gpu on top
+# via pip: pip install -e ".[gpu]"
 
-# Run tests
-uv run python -m pytest src/tests/ -q
+# Run tests (from repo)
+uv run python -m pytest neural_assemblies/tests/ -q
 
-# Quick check: project a stimulus into an area (from repo root)
-uv run python -c "
-from src.core.brain import Brain
+# Quick check: project a stimulus into an area
+python -c "
+from neural_assemblies.core.brain import Brain
 b = Brain(p=0.05, engine='numpy_sparse')
 b.add_stimulus('s', size=50); b.add_area('A', n=2000, k=50, beta=0.05)
 b.project({'s': ['A']}, {}); b.project({}, {'A': ['A']})
@@ -87,7 +89,7 @@ print('Winners (first 10):', b.area_by_name['A'].winners[:10])
 "
 ```
 
-**Note:** No GPU? Use `engine="numpy_sparse"` (default when CuPy is missing). Run from the repo root or after `pip install -e .` so `src` and root scripts resolve.
+**Note:** No GPU? Use `engine="numpy_sparse"` (default when CuPy is missing). After `pip install neural-assemblies`, use `from neural_assemblies....` imports.
 
 ## Overview
 
@@ -113,7 +115,7 @@ Brain(p=0.05, engine="cuda_implicit")   # GPU, 40x speedup at n=100k
 ### Core API
 
 ```python
-from src.core.brain import Brain
+from neural_assemblies.core.brain import Brain
 
 b = Brain(p=0.05, engine="numpy_sparse")
 b.add_stimulus("stim", size=100)
@@ -130,8 +132,8 @@ for _ in range(9):
 ### Assembly Calculus Operations
 
 ```python
-from src.core.brain import Brain
-from src.assembly_calculus import (
+from neural_assemblies.core.brain import Brain
+from neural_assemblies.assembly_calculus import (
     project, associate, merge, pattern_complete, separate,
     sequence_memorize, ordered_recall,
     Assembly, Sequence, overlap,
@@ -156,7 +158,7 @@ print(f"First recalled overlaps first memorized: {overlap(recalled[0], seq[0]):.
 ### Classic API (backward-compatible)
 
 ```python
-from brain import Brain  # thin shim re-exporting src.core.brain
+from brain import Brain  # thin shim re-exporting neural_assemblies.core.brain (when run from repo root)
 
 b = Brain(p=0.05)
 b.add_stimulus("stim", k=100)
@@ -167,7 +169,7 @@ b.project({"stim": ["A"]}, {})
 ### Engine API (direct access)
 
 ```python
-from src.core.engine import create_engine
+from neural_assemblies.core.engine import create_engine
 
 engine = create_engine("numpy_sparse", p=0.05, seed=42)
 engine.add_area("A", n=10000, k=100, beta=0.05)
@@ -179,8 +181,8 @@ print(result.winners, result.num_ever_fired)
 ### NEMO Language Learning
 
 ```python
-from src.nemo.core import Brain, BrainParams
-from src.nemo.language import LanguageLearner, SentenceGenerator
+from neural_assemblies.nemo.core import Brain, BrainParams
+from neural_assemblies.nemo.language import LanguageLearner, SentenceGenerator
 
 learner = LanguageLearner()
 learner.hear_sentence(["dog", "chases", "cat"])
@@ -193,36 +195,39 @@ sentence = generator.generate_sentence()
 ### Running Simulations
 
 ```python
-from src.simulation.projection_simulator import project_sim
+from neural_assemblies.simulation.projection_simulator import project_sim
 weights = project_sim(n=100000, k=317, p=0.01, beta=0.05, t=50)
 
-from src.simulation.pattern_completion import pattern_com
+from neural_assemblies.simulation.pattern_completion import pattern_com
 weights, winners = pattern_com(alpha=0.5, comp_iter=5)
 
-from src.simulation.merge_simulator import merge_sim
+from neural_assemblies.simulation.merge_simulator import merge_sim
 a_w, b_w, c_w = merge_sim(n=100000, k=317, p=0.01, beta=0.05)
 ```
 
 ### Parser (English / Russian)
 
 ```python
-from parser import parse
+# After pip install neural-assemblies:
+from neural_assemblies.language import parse
 parse("cats chase mice", language="English")
+
+# Or from repo root (uses root parser.py): from parser import parse
 ```
 
 ## Project Structure
 
 ```
-assemblies/
-|-- brain.py                # Backward-compatible shim (re-exports src.core.brain)
+neural_assemblies/
+|-- brain.py                # Backward-compatible shim (re-exports neural_assemblies.core.brain)
 |-- brain_util.py           # Overlap computation, save/load utilities
 |-- learner.py              # Word acquisition and syntax learning experiments
-|-- parser.py               # Sentence parsing via assembly operations
+|-- parser.py               # Sentence parsing via assembly operations (repo root)
 |-- simulations.py          # Simulation runners and experiment harness
 |-- image_learner.py        # CIFAR-10 classification via assemblies
 |
-|-- src/                    # Modular package (pip install -e .); see section READMEs
-|   |-- assembly_calculus/  # Named ops (project, merge, sequence_memorize, ordered_recall)
+|-- neural_assemblies/      # Installable package (pip install neural-assemblies); see section READMEs
+|   |-- assembly_calculus/  # Assembly calculus subpackage: project, merge, sequence_memorize, ordered_recall, FSM, PFA, EmergentParser
 |   |-- core/               # Brain, Area, Stimulus, Connectome, ComputeEngine → README
 |   |-- compute/            # Statistics, plasticity, winner selection, projections → README
 |   |-- simulation/         # Projection, merge, pattern completion, association sims → README
@@ -234,31 +239,54 @@ assemblies/
 |   |-- utils/               # Math utilities
 |   `-- tests/               # Unit and integration tests
 |
+|-- docs/                   # Project-wide documentation → docs/README.md
+|   |-- api.md              # Full API and module guide
+|   |-- architecture.md     # Design and engine layout
+|   `-- packaging.md        # PyPI build and release (maintainers)
+|
 |-- research/               # Experiments, results, plans → research/README.md
 |-- cpp/                    # Custom CUDA kernels (.cu) and build scripts → cpp/README.md
-`-- pyproject.toml          # Package configuration
+`-- pyproject.toml          # Package configuration (PyPI: pip install neural-assemblies)
 ```
 
 ## Tests
 
 ```bash
 # Fast core tests
-uv run python -m pytest src/tests/test_brain.py src/tests/test_engine_parity.py -v
+uv run python -m pytest neural_assemblies/tests/test_brain.py neural_assemblies/tests/test_engine_parity.py -v
 
 # All unit tests (excludes slow simulation integration)
-uv run python -m pytest src/tests/ -q --ignore=src/tests/test_simulation_integration.py
+uv run python -m pytest neural_assemblies/tests/ -q --ignore=neural_assemblies/tests/test_simulation_integration.py
 
 # Full suite
-uv run python -m pytest src/tests/ -q
+uv run python -m pytest neural_assemblies/tests/ -q
 ```
+
+## Publishing to PyPI (maintainers)
+
+The package is published under the [Superintelligent Group](https://pypi.org/organization/sig/) organization on PyPI as **neural-assemblies**. See **[docs/packaging.md](docs/packaging.md)** for the full release checklist and version/URL conventions.
+
+```bash
+# Install build and twine
+pip install build twine
+
+# Build wheel and sdist
+python -m build
+
+# Upload to PyPI (requires PyPI token with access to the assemblies project)
+twine upload dist/*
+# Or to Test PyPI first: twine upload --repository testpypi dist/*
+```
+
+Keep `version` in [pyproject.toml](pyproject.toml) and `__version__` in `neural_assemblies/__init__.py` in sync for each release.
 
 ## Dependencies
 
-**Required**: numpy, scipy, matplotlib, pptree, tqdm, pandas, seaborn
+**Required**: numpy, scipy, matplotlib, pptree, tqdm, pandas, seaborn (see [pyproject.toml](pyproject.toml)).
 
-**Optional GPU**: cupy-cuda12x or cupy-cuda13x (see [pyproject.toml](pyproject.toml)), torch
+**Optional GPU**: `pip install neural-assemblies[gpu]` or `pip install -e ".[gpu]"` — adds cupy-cuda12x/cupy-cuda13x, torch.
 
-**Dev**: pytest, pytest-cov, ruff
+**Dev** (from repo): `uv sync` installs pytest, pytest-cov, ruff, build, twine (see [docs/packaging.md](docs/packaging.md)).
 
 ## Citation
 
@@ -283,6 +311,10 @@ Full references below.
 ## Acknowledgments
 
 This project grew out of MIT's [Projects in the Science of Intelligence](https://poggio-lab.mit.edu/9-58/) (9.58). Thanks to the Poggio Lab and Daniel Mitropolsky for the collaboration on the assembly calculus and language organ.
+
+## Contributing
+
+Contributions are welcome. See [docs/contributing.md](docs/contributing.md) for how to report issues, open PRs, and run the dev setup. For packaging and release steps, see [docs/packaging.md](docs/packaging.md).
 
 ## License
 

@@ -23,11 +23,11 @@ from research.experiments.metrics.instability import (
     compute_jaccard_instability,
     measure_p600_settling,
 )
-from src.assembly_calculus.emergent import EmergentParser
-from src.assembly_calculus.emergent.areas import (
+from neural_assemblies.assembly_calculus.emergent import EmergentParser
+from neural_assemblies.assembly_calculus.emergent.areas import (
     NOUN_CORE, VERB_CORE, ROLE_AGENT, ROLE_PATIENT, VP, NUMBER,
 )
-from src.assembly_calculus.ops import project
+from neural_assemblies.assembly_calculus.ops import project
 
 
 def measure_critical_word(

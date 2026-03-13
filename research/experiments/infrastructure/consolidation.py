@@ -22,13 +22,13 @@ References:
 
 from typing import List, Optional, Callable
 
-from src.assembly_calculus.emergent import EmergentParser
-from src.assembly_calculus.emergent.training_data import GroundedSentence
-from src.assembly_calculus.emergent.areas import (
+from neural_assemblies.assembly_calculus.emergent import EmergentParser
+from neural_assemblies.assembly_calculus.emergent.training_data import GroundedSentence
+from neural_assemblies.assembly_calculus.emergent.areas import (
     ROLE_AGENT, ROLE_PATIENT, VERB_CORE, VP, NUMBER,
     GROUNDING_TO_CORE,
 )
-from src.assembly_calculus.ops import project, merge
+from neural_assemblies.assembly_calculus.ops import project, merge
 
 
 # Role annotation string -> brain area (matches _parser_core._ROLE_MAP)

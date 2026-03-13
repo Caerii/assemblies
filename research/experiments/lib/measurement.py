@@ -25,7 +25,7 @@ from typing import Dict, List, Tuple, Any
 
 import numpy as np
 
-from src.core.brain import Brain
+from neural_assemblies.core.brain import Brain
 from research.experiments.base import measure_overlap
 from research.experiments.metrics.instability import compute_anchored_instability
 from research.experiments.lib.vocabulary import (

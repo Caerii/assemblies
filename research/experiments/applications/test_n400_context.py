@@ -74,14 +74,14 @@ from typing import Dict, List, Any, Optional
 from research.experiments.base import (
     ExperimentBase, ExperimentResult, summarize, paired_ttest,
 )
-from src.assembly_calculus.emergent import EmergentParser
-from src.assembly_calculus.emergent.grounding import GroundingContext
-from src.assembly_calculus.emergent.training_data import GroundedSentence
-from src.assembly_calculus.emergent.areas import (
+from neural_assemblies.assembly_calculus.emergent import EmergentParser
+from neural_assemblies.assembly_calculus.emergent.grounding import GroundingContext
+from neural_assemblies.assembly_calculus.emergent.training_data import GroundedSentence
+from neural_assemblies.assembly_calculus.emergent.areas import (
     NOUN_CORE, VERB_CORE, CONTEXT, CORE_AREAS,
 )
-from src.assembly_calculus.ops import project, _snap
-from src.assembly_calculus.assembly import overlap as asm_overlap
+from neural_assemblies.assembly_calculus.ops import project, _snap
+from neural_assemblies.assembly_calculus.assembly import overlap as asm_overlap
 
 
 @dataclass

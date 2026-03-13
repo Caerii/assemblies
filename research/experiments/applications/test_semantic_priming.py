@@ -67,11 +67,11 @@ from typing import Dict, List, Any, Optional
 from research.experiments.base import (
     ExperimentBase, ExperimentResult, summarize, ttest_vs_null, paired_ttest,
 )
-from src.assembly_calculus.emergent import EmergentParser
-from src.assembly_calculus.emergent.grounding import GroundingContext
-from src.assembly_calculus.emergent.training_data import GroundedSentence
-from src.assembly_calculus.ops import project, _snap
-from src.assembly_calculus.assembly import overlap as asm_overlap
+from neural_assemblies.assembly_calculus.emergent import EmergentParser
+from neural_assemblies.assembly_calculus.emergent.grounding import GroundingContext
+from neural_assemblies.assembly_calculus.emergent.training_data import GroundedSentence
+from neural_assemblies.assembly_calculus.ops import project, _snap
+from neural_assemblies.assembly_calculus.assembly import overlap as asm_overlap
 
 
 @dataclass
@@ -182,7 +182,7 @@ def measure_target_overlap(
 
     Higher overlap = stronger activation = more priming.
     """
-    from src.assembly_calculus.emergent.areas import NOUN_CORE
+    from neural_assemblies.assembly_calculus.emergent.areas import NOUN_CORE
 
     # Phase 1: Activate prime context
     for w in prime_words:

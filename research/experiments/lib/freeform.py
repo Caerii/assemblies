@@ -41,7 +41,7 @@ from typing import Any, Dict, List, Optional, Set, Tuple
 
 import numpy as np
 
-from src.core.brain import Brain
+from neural_assemblies.core.brain import Brain
 from research.experiments.lib.brain_setup import activate_word
 from research.experiments.lib.training import train_prediction_pair, train_binding
 from research.experiments.lib.unsupervised import discover_role_area

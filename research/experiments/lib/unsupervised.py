@@ -21,7 +21,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from src.core.brain import Brain
+from neural_assemblies.core.brain import Brain
 from research.experiments.lib.vocabulary import Vocabulary, DEFAULT_VOCAB
 from research.experiments.lib.brain_setup import activate_word, BrainConfig
 from research.experiments.lib.training import train_prediction_pair, train_binding

@@ -32,7 +32,7 @@ from research.experiments.base import (
     measure_overlap,
 )
 
-from src.core.brain import Brain
+from neural_assemblies.core.brain import Brain
 
 
 @dataclass

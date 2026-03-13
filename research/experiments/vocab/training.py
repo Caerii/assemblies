@@ -9,8 +9,8 @@ Three training paradigms:
 
 from typing import Dict, List
 
-from src.assembly_calculus.emergent.grounding import GroundingContext
-from src.assembly_calculus.emergent.training_data import GroundedSentence
+from neural_assemblies.assembly_calculus.emergent.grounding import GroundingContext
+from neural_assemblies.assembly_calculus.emergent.training_data import GroundedSentence
 
 
 def build_priming_pairs(vocab: Dict[str, GroundingContext]) -> List[GroundedSentence]:

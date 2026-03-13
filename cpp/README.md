@@ -49,7 +49,7 @@ python setup.py install
 ### Basic Usage
 
 ```python
-from src.core.brain_cpp import BrainCPP
+from neural_assemblies.core.brain_cpp import BrainCPP
 
 # Create a high-performance brain
 brain = BrainCPP(p=0.05, beta=0.1, max_weight=10000.0, seed=7777)
@@ -68,7 +68,7 @@ brain.project({"stimA": ["A"]}, {})
 ### High-Performance Association Simulation
 
 ```python
-from src.simulation.association_simulator_cpp import association_sim_cpp
+from neural_assemblies.simulation.association_simulator_cpp import association_sim_cpp
 
 # Run high-performance association simulation
 brain, winners = association_sim_cpp(n=100000, k=317, p=0.05, beta=0.1, overlap_iter=10)
@@ -77,7 +77,7 @@ brain, winners = association_sim_cpp(n=100000, k=317, p=0.05, beta=0.1, overlap_
 ### Benchmarking
 
 ```python
-from src.simulation.association_simulator_cpp import benchmark_comparison
+from neural_assemblies.simulation.association_simulator_cpp import benchmark_comparison
 
 # Compare C++ vs Python performance
 results = benchmark_comparison(n=100000, k=317, p=0.05, beta=0.1, overlap_iter=3)
@@ -99,8 +99,8 @@ The C++ implementation maintains full API compatibility with the Python version:
 
 ```python
 # Both work identically
-from src.core.brain import Brain as BrainPython
-from src.core.brain_cpp import BrainCPP as BrainCpp
+from neural_assemblies.core.brain import Brain as BrainPython
+from neural_assemblies.core.brain_cpp import BrainCPP as BrainCpp
 
 # Same API
 brain_py = BrainPython(p=0.05, beta=0.1)

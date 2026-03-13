@@ -53,8 +53,8 @@ from research.experiments.base import (
     ttest_vs_null,
     paired_ttest,
 )
-from src.core.brain import Brain
-from src.assembly_calculus.emergent.grounding import VOCABULARY, GroundingContext
+from neural_assemblies.core.brain import Brain
+from neural_assemblies.assembly_calculus.emergent.grounding import VOCABULARY, GroundingContext
 
 
 # ── Ground truth categories by dominant modality ──────────────────────

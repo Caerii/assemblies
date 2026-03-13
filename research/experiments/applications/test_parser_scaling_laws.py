@@ -33,9 +33,9 @@ from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Tuple
 
 from research.experiments.base import ExperimentBase, ExperimentResult, summarize, ttest_vs_null
-from src.assembly_calculus.emergent import EmergentParser
-from src.assembly_calculus.emergent.grounding import GroundingContext
-from src.assembly_calculus.emergent.training_data import GroundedSentence
+from neural_assemblies.assembly_calculus.emergent import EmergentParser
+from neural_assemblies.assembly_calculus.emergent.grounding import GroundingContext
+from neural_assemblies.assembly_calculus.emergent.training_data import GroundedSentence
 
 
 @dataclass

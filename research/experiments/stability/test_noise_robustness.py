@@ -51,7 +51,7 @@ from research.experiments.base import (
     ttest_vs_null,
 )
 
-from src.core.brain import Brain
+from neural_assemblies.core.brain import Brain
 
 N_SEEDS = 10
 

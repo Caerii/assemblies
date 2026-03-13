@@ -87,11 +87,11 @@ from research.experiments.vocab import (
 from research.experiments.metrics import measure_p600_settling, compute_jaccard_instability
 from research.experiments.metrics.measurement import measure_critical_word
 from research.experiments.infrastructure import setup_p600_pipeline
-from src.assembly_calculus.emergent import EmergentParser
-from src.assembly_calculus.emergent.areas import (
+from neural_assemblies.assembly_calculus.emergent import EmergentParser
+from neural_assemblies.assembly_calculus.emergent.areas import (
     ROLE_AGENT, ROLE_PATIENT, SUBJ, OBJ, VP,
 )
-from src.assembly_calculus.ops import project
+from neural_assemblies.assembly_calculus.ops import project
 
 # Backward-compat aliases for external importers
 _measure_critical_word = measure_critical_word

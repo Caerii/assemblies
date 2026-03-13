@@ -44,14 +44,14 @@ from typing import Any, Dict, List, Optional
 import numpy as np
 
 from research.experiments.base import ExperimentBase, ExperimentResult, summarize, ttest_vs_null
-from src.assembly_calculus.emergent import EmergentParser
-from src.assembly_calculus.emergent.grounding import GroundingContext
-from src.assembly_calculus.emergent.training_data import GroundedSentence
-from src.assembly_calculus.emergent.evaluation import EvaluationSuite
-from src.assembly_calculus.emergent.vocabulary_builder import build_vocabulary
-from src.assembly_calculus.emergent.training_data import generate_training_sentences
-from src.assembly_calculus.emergent.areas import CORE_TO_CATEGORY, GROUNDING_TO_CORE
-from src.assembly_calculus.ops import project, _snap
+from neural_assemblies.assembly_calculus.emergent import EmergentParser
+from neural_assemblies.assembly_calculus.emergent.grounding import GroundingContext
+from neural_assemblies.assembly_calculus.emergent.training_data import GroundedSentence
+from neural_assemblies.assembly_calculus.emergent.evaluation import EvaluationSuite
+from neural_assemblies.assembly_calculus.emergent.vocabulary_builder import build_vocabulary
+from neural_assemblies.assembly_calculus.emergent.training_data import generate_training_sentences
+from neural_assemblies.assembly_calculus.emergent.areas import CORE_TO_CATEGORY, GROUNDING_TO_CORE
+from neural_assemblies.assembly_calculus.ops import project, _snap
 
 
 @dataclass

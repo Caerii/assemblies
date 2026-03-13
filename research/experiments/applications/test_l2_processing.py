@@ -43,8 +43,8 @@ from research.experiments.vocab import build_svo_vocab, build_svo_sentences
 from research.experiments.infrastructure import setup_p600_pipeline
 from research.experiments.metrics.measurement import measure_critical_word
 from research.experiments.vocab import make_p600_test_sentences
-from src.assembly_calculus.emergent import EmergentParser
-from src.assembly_calculus.emergent.areas import (
+from neural_assemblies.assembly_calculus.emergent import EmergentParser
+from neural_assemblies.assembly_calculus.emergent.areas import (
     ROLE_AGENT, ROLE_PATIENT, SUBJ, OBJ, VP,
 )
 

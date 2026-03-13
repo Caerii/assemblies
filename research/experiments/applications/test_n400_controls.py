@@ -43,7 +43,7 @@ from research.experiments.base import (
 from research.experiments.vocab import build_standard_vocab, build_priming_pairs
 from research.experiments.metrics import measure_pre_kwta_activation
 from research.experiments.infrastructure import build_core_lexicon
-from src.assembly_calculus.emergent import EmergentParser
+from neural_assemblies.assembly_calculus.emergent import EmergentParser
 
 
 @dataclass

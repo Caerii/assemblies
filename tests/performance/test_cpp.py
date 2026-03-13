@@ -5,7 +5,7 @@ Test script for C++ performance comparison.
 
 import sys
 sys.path.append('.')
-from src.simulation.association_simulator_cpp import benchmark_comparison
+from neural_assemblies.simulation.association_simulator_cpp import benchmark_comparison
 
 def main():
     print('Performance Benchmark: C++ vs Python')

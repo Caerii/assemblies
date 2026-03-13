@@ -13,8 +13,8 @@ References:
 
 from typing import List, Optional, Callable
 
-from src.assembly_calculus.emergent import EmergentParser
-from src.assembly_calculus.emergent.areas import NOUN_CORE, VERB_CORE
+from neural_assemblies.assembly_calculus.emergent import EmergentParser
+from neural_assemblies.assembly_calculus.emergent.areas import NOUN_CORE, VERB_CORE
 
 
 def bootstrap_structural_connectivity(

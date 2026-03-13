@@ -43,9 +43,9 @@ from research.experiments.base import (
 )
 from research.experiments.metrics import measure_pre_kwta_activation
 from research.experiments.infrastructure import build_core_lexicon
-from src.assembly_calculus.emergent import EmergentParser
-from src.assembly_calculus.emergent.grounding import GroundingContext
-from src.assembly_calculus.emergent.training_data import GroundedSentence
+from neural_assemblies.assembly_calculus.emergent import EmergentParser
+from neural_assemblies.assembly_calculus.emergent.grounding import GroundingContext
+from neural_assemblies.assembly_calculus.emergent.training_data import GroundedSentence
 
 
 @dataclass

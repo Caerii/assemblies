@@ -77,12 +77,12 @@ from typing import Dict, List, Any, Optional, Tuple
 from research.experiments.base import (
     ExperimentBase, ExperimentResult, summarize, paired_ttest,
 )
-from src.assembly_calculus.emergent import EmergentParser
-from src.assembly_calculus.emergent.grounding import GroundingContext
-from src.assembly_calculus.emergent.training_data import GroundedSentence
-from src.assembly_calculus.emergent.areas import NOUN_CORE, VERB_CORE, CORE_AREAS
-from src.assembly_calculus.ops import project, _snap
-from src.assembly_calculus.assembly import overlap as asm_overlap
+from neural_assemblies.assembly_calculus.emergent import EmergentParser
+from neural_assemblies.assembly_calculus.emergent.grounding import GroundingContext
+from neural_assemblies.assembly_calculus.emergent.training_data import GroundedSentence
+from neural_assemblies.assembly_calculus.emergent.areas import NOUN_CORE, VERB_CORE, CORE_AREAS
+from neural_assemblies.assembly_calculus.ops import project, _snap
+from neural_assemblies.assembly_calculus.assembly import overlap as asm_overlap
 
 
 @dataclass
@@ -313,7 +313,7 @@ def measure_activation_energy(
                 rounds=parser.rounds)
 
     # Project target into ALL core areas, measure readout in each
-    from src.assembly_calculus.readout import readout_all
+    from neural_assemblies.assembly_calculus.readout import readout_all
 
     scores = {}
     for core in CORE_AREAS:

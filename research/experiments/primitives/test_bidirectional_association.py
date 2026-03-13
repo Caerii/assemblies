@@ -78,7 +78,7 @@ from research.experiments.base import (
     paired_ttest,
 )
 
-from src.core.brain import Brain
+from neural_assemblies.core.brain import Brain
 
 N_SEEDS = 10
 

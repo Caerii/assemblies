@@ -55,7 +55,7 @@ from research.experiments.base import (
     ttest_vs_null,
     paired_ttest,
 )
-from src.core.brain import Brain
+from neural_assemblies.core.brain import Brain
 
 
 NOUNS = ["dog", "cat", "bird", "boy", "girl"]

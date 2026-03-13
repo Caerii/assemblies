@@ -19,7 +19,7 @@ project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
 
 import numpy as np
-from src.core.brain import Brain
+from neural_assemblies.core.brain import Brain
 
 
 def test_projection_convergence():

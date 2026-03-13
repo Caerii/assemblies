@@ -93,7 +93,7 @@ from research.experiments.metrics import (
     measure_prediction_error,
 )
 from research.experiments.infrastructure import build_core_lexicon
-from src.assembly_calculus.emergent import EmergentParser
+from neural_assemblies.assembly_calculus.emergent import EmergentParser
 
 
 @dataclass

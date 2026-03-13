@@ -179,8 +179,8 @@ from research.experiments.vocab.test_sentences import (
     OBJECT_AGREEMENT_TESTS as OBJECT_POSITION_TESTS,
     VERB_AGREEMENT_TESTS as VERB_POSITION_TESTS,
 )
-from src.assembly_calculus.emergent import EmergentParser
-from src.assembly_calculus.emergent.areas import (
+from neural_assemblies.assembly_calculus.emergent import EmergentParser
+from neural_assemblies.assembly_calculus.emergent.areas import (
     ROLE_AGENT, ROLE_PATIENT, SUBJ, OBJ, VP,
 )
 

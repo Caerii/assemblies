@@ -17,12 +17,12 @@ import numpy as np
 # Add project root to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from src.core.brain import Brain
-from src.assembly_calculus import (
+from neural_assemblies.core.brain import Brain
+from neural_assemblies.assembly_calculus import (
     project, reciprocal_project, associate, merge,
     pattern_complete, separate,
 )
-from src.assembly_calculus.ops import _snap
+from neural_assemblies.assembly_calculus.ops import _snap
 
 
 # ---------------------------------------------------------------------------
@@ -251,8 +251,8 @@ def bench_primitives_sparse():
     banner("Sparse Engine Internal Primitives (n=10000)")
     n, k, p = 10_000, 100, 0.05
 
-    from src.compute.sparse_simulation import SparseSimulationEngine
-    from src.compute.winner_selection import WinnerSelector
+    from neural_assemblies.compute.sparse_simulation import SparseSimulationEngine
+    from neural_assemblies.compute.winner_selection import WinnerSelector
 
     rng = np.random.default_rng(SEED)
     sparse_sim = SparseSimulationEngine(rng)

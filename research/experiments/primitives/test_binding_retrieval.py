@@ -63,7 +63,7 @@ from research.experiments.base import (
     summarize,
     ttest_vs_null,
 )
-from src.core.brain import Brain
+from neural_assemblies.core.brain import Brain
 
 
 WORDS = ["dog", "cat", "bird", "boy", "girl", "ball", "book", "food"]

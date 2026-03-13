@@ -23,7 +23,7 @@ this module decides HOW (co-projection rounds, bidirectional binding, etc.).
 
 from typing import Dict, Any
 
-from src.core.brain import Brain
+from neural_assemblies.core.brain import Brain
 from research.experiments.lib.vocabulary import Vocabulary, DEFAULT_VOCAB
 from research.experiments.lib.brain_setup import activate_word
 

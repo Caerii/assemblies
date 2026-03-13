@@ -15,7 +15,7 @@ from typing import Dict, List, Optional
 
 import numpy as np
 
-from src.core.brain import Brain
+from neural_assemblies.core.brain import Brain
 from research.experiments.lib.vocabulary import Vocabulary, DEFAULT_VOCAB
 
 

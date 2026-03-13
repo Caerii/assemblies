@@ -65,7 +65,7 @@ def main():
     try:
         sys.path.append('.')
         sys.path.append('src/simulation')
-        from src.simulation.association_simulator_cpp import association_sim_cpp
+        from neural_assemblies.simulation.association_simulator_cpp import association_sim_cpp
         
         # Quick test
         start_time = time.time()

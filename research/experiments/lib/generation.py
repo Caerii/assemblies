@@ -19,7 +19,7 @@ from typing import Dict, List, Tuple, Any, Optional
 
 import numpy as np
 
-from src.core.brain import Brain
+from neural_assemblies.core.brain import Brain
 from research.experiments.base import measure_overlap
 from research.experiments.lib.vocabulary import Vocabulary, RECURSIVE_VOCAB
 from research.experiments.lib.brain_setup import activate_word

@@ -38,7 +38,7 @@ from research.experiments.vocab.scaling import (
     build_small_vocab, build_medium_vocab, build_large_vocab,
     build_training_for_vocab, make_test_pairs,
 )
-from src.assembly_calculus.emergent import EmergentParser
+from neural_assemblies.assembly_calculus.emergent import EmergentParser
 
 
 @dataclass

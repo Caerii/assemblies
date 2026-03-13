@@ -60,9 +60,9 @@ from dataclasses import dataclass
 from typing import Dict, List, Any
 
 from research.experiments.base import ExperimentBase, ExperimentResult, summarize, ttest_vs_null
-from src.assembly_calculus.emergent import EmergentParser
-from src.assembly_calculus.emergent.grounding import GroundingContext
-from src.assembly_calculus.emergent.training_data import GroundedSentence
+from neural_assemblies.assembly_calculus.emergent import EmergentParser
+from neural_assemblies.assembly_calculus.emergent.grounding import GroundingContext
+from neural_assemblies.assembly_calculus.emergent.training_data import GroundedSentence
 
 
 @dataclass
@@ -235,9 +235,9 @@ def measure_pp_attachment(
     Returns:
         Dict with vp_overlap, np_overlap, and preference label.
     """
-    from src.assembly_calculus.ops import project, merge, reciprocal_project, _snap
-    from src.assembly_calculus.assembly import overlap as asm_overlap
-    from src.assembly_calculus.emergent.areas import VERB_CORE, NOUN_CORE, VP, NP, PP
+    from neural_assemblies.assembly_calculus.ops import project, merge, reciprocal_project, _snap
+    from neural_assemblies.assembly_calculus.assembly import overlap as asm_overlap
+    from neural_assemblies.assembly_calculus.emergent.areas import VERB_CORE, NOUN_CORE, VP, NP, PP
 
     subj = sentence_words[1]
     verb = sentence_words[2]
@@ -323,9 +323,9 @@ def measure_determinism(
     Returns:
         Dict with convergence metrics.
     """
-    from src.assembly_calculus.ops import project, reciprocal_project, _snap
-    from src.assembly_calculus.assembly import overlap as asm_overlap
-    from src.assembly_calculus.emergent.areas import PP
+    from neural_assemblies.assembly_calculus.ops import project, reciprocal_project, _snap
+    from neural_assemblies.assembly_calculus.assembly import overlap as asm_overlap
+    from neural_assemblies.assembly_calculus.emergent.areas import PP
 
     pp_noun = sentence_words[7]
     pp_core = parser._word_core_area(pp_noun)

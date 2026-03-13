@@ -38,7 +38,7 @@ from research.experiments.base import (
     paired_ttest,
 )
 from research.experiments.metrics.instability import compute_jaccard_instability
-from src.core.brain import Brain
+from neural_assemblies.core.brain import Brain
 
 
 NOUNS = ["dog", "cat", "bird", "boy", "girl"]

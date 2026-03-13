@@ -1,8 +1,34 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
 [project]
-name = "assemblies"
-version = "0.2.0"
+name = "neural-assemblies"
+version = "0.0.1a1"
 description = "Neural Assembly Simulation - Assembly Calculus Implementation"
+readme = "README.md"
+license = { text = "MIT" }
 requires-python = ">=3.10"
+authors = [
+    { name = "Superintelligent Group", email = "contact@superintelligent.group" },
+]
+keywords = [
+    "neural-assemblies",
+    "assembly-calculus",
+    "computational-neuroscience",
+    "nemo",
+    "brain-simulation",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering",
+]
 dependencies = [
     "numpy>=1.24.0",
     "scipy>=1.10.0",
@@ -12,6 +38,11 @@ dependencies = [
     "pandas>=2.0.0",
     "seaborn>=0.12.0",
 ]
+
+[project.urls]
+Homepage = "https://github.com/Caerii/assemblies"
+Documentation = "https://github.com/Caerii/assemblies#readme"
+Repository = "https://github.com/Caerii/assemblies"
 
 [project.optional-dependencies]
 gpu = [
@@ -24,19 +55,29 @@ dev = [
     "ruff>=0.1.0",
 ]
 all = [
-    "assemblies[gpu,dev]",
+    "neural-assemblies[gpu,dev]",
 ]
 
-[tool.uv]
-dev-dependencies = [
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["neural_assemblies*"]
+
+[dependency-groups]
+dev = [
     "pytest>=7.0.0",
     "pytest-cov>=4.0.0",
     "ruff>=0.1.0",
     "ipython>=8.0.0",
+    "build>=1.0.0",
+    "twine>=5.0.0",
+]
+
+gpu = [
     "cupy-cuda13x>=13.0.0",
     "torch>=2.0.0",
 ]
 
+[tool.uv]
 [[tool.uv.index]]
 name = "pytorch"
 url = "https://download.pytorch.org/whl"
@@ -48,7 +89,7 @@ torch = { index = "pytorch" }
 [tool.ruff]
 line-length = 100
 target-version = "py310"
-exclude = ["temp/", ".venv/", "*.egg-info"]
+exclude = ["temp/", ".venv/", "*.egg-info", "dist/", "build/"]
 
 [tool.ruff.lint]
 # Start with pyflakes (F) errors that catch real bugs.
@@ -65,5 +106,5 @@ select = [
 per-file-ignores = {"__init__.py" = ["F401"], "*.ipynb" = ["F401", "E402"]}
 
 [tool.pytest.ini_options]
-testpaths = ["tests", "src/tests", "research/experiments"]
+testpaths = ["tests", "neural_assemblies/tests", "research/experiments"]
 python_files = ["test_*.py", "*_test.py"]
