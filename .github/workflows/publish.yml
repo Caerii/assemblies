@@ -18,6 +18,10 @@ on:
     types: [published]
   workflow_dispatch:
 
+# Opt into Node.js 24 for JS actions (Node 20 deprecated; 24 becomes default June 2026)
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -35,6 +39,7 @@ jobs:
       - name: Install dependencies and run tests
         run: |
           uv sync
+          uv run ruff check neural_assemblies/
           uv run pytest neural_assemblies/tests/ -q --tb=short
 
   build:

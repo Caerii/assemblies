@@ -1,6 +1,6 @@
 # Contributing
 
-Contributions to the **assemblies** project are welcome.
+Contributions to the **neural-assemblies** project are welcome.
 
 ## How to contribute
 
