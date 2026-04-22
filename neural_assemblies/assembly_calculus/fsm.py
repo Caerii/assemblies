@@ -31,13 +31,11 @@ Reference:
     arXiv:2306.03812.
 """
 
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List
 
-import numpy as np
-
-from .assembly import Assembly, overlap
-from .readout import fuzzy_readout, build_lexicon, Lexicon
-from .ops import project, _snap, _fix, _unfix
+from .readout import Lexicon
+from .ops import project
+from .transitions import TransitionLike, TransitionMap
 
 
 class FSMNetwork:
@@ -66,7 +64,7 @@ class FSMNetwork:
         brain,
         states: List[str],
         symbols: List[str],
-        transitions: List[tuple],
+        transitions: List[TransitionLike],
         initial_state: str,
         n: int = 10000,
         k: int = 100,
@@ -77,7 +75,8 @@ class FSMNetwork:
         self.brain = brain
         self.states = list(states)
         self.symbols = list(symbols)
-        self.transitions = list(transitions)
+        self.transition_map = TransitionMap(transitions)
+        self.transitions = self.transition_map.as_tuples()
         self.initial_state = initial_state
         self.n = n
         self.k = k
@@ -90,9 +89,9 @@ class FSMNetwork:
         self.state_area = f"{prefix}_state"
 
         # Transition table: (from_state, symbol) → to_state
-        self._transition_table: Dict[Tuple[str, str], str] = {}
-        for from_st, sym, to_st in transitions:
-            self._transition_table[(from_st, sym)] = to_st
+        self._transition_table: Dict[tuple[str, str], str] = (
+            self.transition_map.deterministic_table()
+        )
 
         # Build infrastructure, train, and reset
         self._setup_areas()
@@ -158,6 +157,11 @@ class FSMNetwork:
     def current_state(self) -> str:
         """Return the name of the current FSM state."""
         return self._current_state
+
+    @property
+    def transition_table(self) -> Dict[tuple[str, str], str]:
+        """Return a copy of the normalized deterministic transition table."""
+        return dict(self._transition_table)
 
     def step(self, symbol: str) -> str:
         """Process one input symbol and return the new state name.

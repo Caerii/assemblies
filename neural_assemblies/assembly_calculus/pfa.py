@@ -15,14 +15,15 @@ Reference:
     arXiv:2306.03812.
 """
 
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Tuple
 from collections import defaultdict
 
 import numpy as np
 
-from .assembly import Assembly, overlap
-from .ops import project, _snap, _fix, _unfix
+from .assembly import overlap
+from .ops import project, _snap
 from .fsm import FSMNetwork
+from .transitions import TransitionLike, TransitionMap
 
 
 class RandomChoiceArea:
@@ -165,7 +166,7 @@ class PFANetwork:
         brain,
         states: List[str],
         symbols: List[str],
-        transitions: List[Tuple[str, str, str, float]],
+        transitions: List[TransitionLike],
         initial_state: str,
         n: int = 10000,
         k: int = 100,
@@ -177,11 +178,14 @@ class PFANetwork:
         self.initial_state = initial_state
         self.prefix = prefix
 
+        self.transition_map = TransitionMap(transitions).validate_probability_mass()
+
         # Group transitions by (from_state, symbol)
-        self._trans_map: Dict[Tuple[str, str], List[Tuple[str, float]]] = \
-            defaultdict(list)
-        for from_st, sym, to_st, prob in transitions:
-            self._trans_map[(from_st, sym)].append((to_st, prob))
+        self._trans_map: Dict[Tuple[str, str], List[Tuple[str, float]]] = defaultdict(list)
+        for transition in self.transition_map:
+            self._trans_map[transition.key].append(
+                (transition.to_state, transition.probability)
+            )
 
         # Split into deterministic and probabilistic
         det_transitions = []

@@ -62,6 +62,7 @@ from .fiber import FiberCircuit
 from .readout import fuzzy_readout, readout_all, build_lexicon, Lexicon
 from .fsm import FSMNetwork
 from .pfa import PFANetwork, RandomChoiceArea
+from .transitions import Transition, TransitionMap
 from .next_token import (
     build_next_token_model, train_on_corpus,
     predict_next_token, score_corpus,
@@ -80,6 +81,7 @@ __all__ = [
     "fuzzy_readout", "readout_all", "build_lexicon",
     # Structured computation
     "FSMNetwork", "PFANetwork", "RandomChoiceArea",
+    "Transition", "TransitionMap",
     # Control
     "FiberCircuit",
     # Next-token prediction
