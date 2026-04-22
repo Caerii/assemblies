@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "default_package_test_command": "uv run pytest -q",
+  "default_package_test_command": "uv run pytest neural_assemblies/tests -q",
   "registry_validation_command": "uv run python research/experiments/infrastructure/validate_registry.py",
   "suites": [
     {
