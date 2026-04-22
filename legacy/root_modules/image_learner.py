@@ -4,7 +4,7 @@ import torchvision.datasets as datasets
 import numpy as np
 import time
 from sklearn.metrics import classification_report, accuracy_score
-from scripts.animator import Animator
+from legacy.scripts.visualization.animator import Animator
 
 import brain
 
