@@ -15,11 +15,14 @@ def _module_available(module_name: str) -> bool:
     return importlib.util.find_spec(module_name) is not None
 
 
+CUDA_WRAPPER_MODULE = "cuda_brain_wrapper"
+
+
 def test_cuda_availability() -> None:
-    """Skip when the CUDA extension is absent; fail only on broken imports."""
-    if not _module_available("cuda_brain"):
-        pytest.skip("cuda_brain extension is not installed")
-    importlib.import_module("cuda_brain")
+    """Skip when the CUDA wrapper is absent; fail only on broken imports."""
+    if not _module_available(CUDA_WRAPPER_MODULE):
+        pytest.skip("cuda_brain_wrapper is not installed")
+    importlib.import_module(CUDA_WRAPPER_MODULE)
 
 
 def test_cpp_availability() -> None:
@@ -108,7 +111,7 @@ def run_performance_comparison():
     print("CUDA vs C++ performance comparison")
     print("=" * 60)
 
-    cuda_available = _module_available("cuda_brain")
+    cuda_available = _module_available(CUDA_WRAPPER_MODULE)
     cpp_available = _module_available("neural_assemblies.core.brain_cpp")
 
     if not cpp_available:
