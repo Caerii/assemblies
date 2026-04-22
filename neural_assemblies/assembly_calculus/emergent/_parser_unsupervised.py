@@ -1,15 +1,12 @@
 """UnsupervisedMixin -- unsupervised thematic role learning from raw exposure."""
 
-from typing import Dict, List, Optional
+from typing import List
 
 from neural_assemblies.assembly_calculus.ops import project, _snap
-from neural_assemblies.assembly_calculus.readout import readout_all
 
 from .areas import (
-    NOUN_CORE, VERB_CORE, PRON_CORE,
     ROLE_AGENT, ROLE_PATIENT,
-    CORE_TO_CATEGORY, GROUNDING_TO_CORE,
-    CORE_AREAS, THEMATIC_AREAS,
+    THEMATIC_AREAS,
 )
 
 

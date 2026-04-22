@@ -1,14 +1,12 @@
 """GenerationMixin -- language production / generation from semantic representations."""
 
-from typing import Dict, List, Optional
+from typing import List, Optional
 
 from neural_assemblies.assembly_calculus.ops import project, _snap
 from neural_assemblies.assembly_calculus.readout import readout_all
 
 from .areas import (
-    NOUN_CORE, VERB_CORE, DET_CORE,
-    ROLE_AGENT, ROLE_PATIENT,
-    CORE_TO_CATEGORY, CATEGORY_TO_CORE,
+    VERB_CORE, ROLE_AGENT, ROLE_PATIENT,
 )
 
 

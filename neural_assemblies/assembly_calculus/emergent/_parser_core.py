@@ -30,22 +30,14 @@ from typing import Dict, List, Optional, Set, Tuple
 from neural_assemblies.core.brain import Brain
 from neural_assemblies.assembly_calculus.assembly import Assembly
 from neural_assemblies.assembly_calculus.ops import (
-    project, reciprocal_project, merge, sequence_memorize, _snap,
+    project, merge, sequence_memorize, _snap,
 )
 from neural_assemblies.assembly_calculus.readout import readout_all, Lexicon
 
 from .areas import (
-    ALL_AREAS, CORE_AREAS, CORE_TO_CATEGORY, CATEGORY_TO_CORE,
-    GROUNDING_TO_CORE, THEMATIC_AREAS, PHRASE_AREAS,
-    NOUN_CORE, VERB_CORE, ADJ_CORE, ADV_CORE,
-    PREP_CORE, DET_CORE, PRON_CORE, CONJ_CORE,
-    LEX_CONTENT, LEX_FUNCTION,
-    ROLE_AGENT, ROLE_PATIENT,
-    NP, VP, PP, ADJP, SENT, SEQ,
-    SUBJ, OBJ,
-    TENSE, MOOD, POLARITY,
-    CONTEXT,
-    FUNC_DET, FUNC_AUX, FUNC_COMP, FUNC_CONJ, FUNC_MARKER,
+    ALL_AREAS, CORE_AREAS, CORE_TO_CATEGORY, GROUNDING_TO_CORE, THEMATIC_AREAS, VERB_CORE, DET_CORE, ROLE_AGENT, ROLE_PATIENT,
+    VP, SEQ,
+    FUNC_DET, FUNC_COMP, FUNC_MARKER,
 )
 from .grounding import GroundingContext, VOCABULARY
 from .training_data import GroundedSentence, create_training_sentences
@@ -401,7 +393,6 @@ class CoreParserMixin:
             # Default order is (AGENT, PATIENT) for SVO active sentences.
             # If the dominant order starts with PATIENT, this sub-type
             # triggers a role reversal (like passive voice).
-            default_order = (ROLE_AGENT, ROLE_PATIENT)
             reverses_roles = (len(dominant_order) >= 1
                               and dominant_order[0] == ROLE_PATIENT)
 

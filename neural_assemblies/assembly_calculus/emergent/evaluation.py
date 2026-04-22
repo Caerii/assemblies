@@ -367,7 +367,7 @@ class EvaluationSuite:
 
         if "generation" in results:
             gen = results["generation"]
-            lines.append(f"\nGeneration:")
+            lines.append("\nGeneration:")
             lines.append(f"  Roundtrip role accuracy: "
                          f"{gen['roundtrip_accuracy']:.1%}")
             lines.append(f"  Content recall: "
@@ -377,7 +377,7 @@ class EvaluationSuite:
 
         if "tense_mood_polarity" in results:
             tmp = results["tense_mood_polarity"]
-            lines.append(f"\nTense/Mood/Polarity:")
+            lines.append("\nTense/Mood/Polarity:")
             lines.append(f"  Tense accuracy: "
                          f"{tmp['tense_accuracy']:.1%}")
             lines.append(f"  Mood accuracy: "

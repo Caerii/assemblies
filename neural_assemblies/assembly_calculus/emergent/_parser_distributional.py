@@ -10,7 +10,6 @@ from typing import Dict, List, Optional, Tuple
 from neural_assemblies.assembly_calculus.ops import _snap
 from .areas import (
     CORE_TO_CATEGORY, CATEGORY_TO_CORE, GROUNDING_TO_CORE,
-    DET_CORE, CORE_AREAS,
     FUNC_DET, FUNC_AUX, FUNC_COMP, FUNC_CONJ, FUNC_MARKER,
 )
 from .grounding import GroundingContext
@@ -178,9 +177,6 @@ class DistributionalMixin:
             return None, 0.0
 
         # Dominant left/right categories
-        dom_left = max(left_cats, key=left_cats.get) if left_cats else None
-        dom_right = max(right_cats, key=right_cats.get) if right_cats else None
-
         left_total = sum(left_cats.values()) or 1
         right_total = sum(right_cats.values()) or 1
 
@@ -651,9 +647,6 @@ class DistributionalMixin:
                   ct.get(("PRON", "VERB"), 0))
 
         # Verb-first patterns (verb at start -> VERB->NOUN+NOUN)
-        v_first = (ct.get(("VERB", "NOUN"), 0) +
-                   ct.get(("VERB", "DET"), 0))
-
         # SVO: both NV and V->NP are present
         svo_score = min(n_to_v, v_to_np) + v_to_np * 0.5
 

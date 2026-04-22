@@ -4,10 +4,9 @@ Provides word-by-word incremental parsing with FiberCircuit gating
 and recursive clause handling for embedded relative clauses.
 """
 
-from typing import Dict, List, Optional
+from typing import List, Optional
 
 from neural_assemblies.assembly_calculus.ops import project, _snap
-from neural_assemblies.assembly_calculus.readout import readout_all
 from neural_assemblies.assembly_calculus.fiber import FiberCircuit
 
 from .areas import (
@@ -354,7 +353,6 @@ class IncrementalMixin:
         verb_seen = False
         noun_count = 0
         in_clause = False
-        clause_start_idx = None
         outer_words: List[str] = []
         inner_words: List[str] = []
         main_words: List[str] = []
@@ -376,7 +374,6 @@ class IncrementalMixin:
             if (not in_clause
                     and self._detect_clause_boundary(word, prev_category)):
                 in_clause = True
-                clause_start_idx = i
                 outer_words = list(main_words)  # Words before "that"
                 inner_verb_seen = False
 

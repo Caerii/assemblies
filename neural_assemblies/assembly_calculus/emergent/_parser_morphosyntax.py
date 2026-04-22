@@ -1,6 +1,6 @@
 """Morphosyntax mixin: tense, mood, polarity, number detection/training and conjunction handling."""
 
-from typing import Dict, List, Tuple
+from typing import List
 
 from neural_assemblies.assembly_calculus.ops import _snap
 from .areas import (

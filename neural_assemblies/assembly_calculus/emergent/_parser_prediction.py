@@ -1,12 +1,11 @@
 """PredictionMixin -- structural next-token prediction using context assemblies."""
 
-from typing import Dict, List, Optional, Tuple
+from typing import List, Tuple
 
 from neural_assemblies.assembly_calculus.ops import project, _snap
 from neural_assemblies.assembly_calculus.readout import readout_all
 
 from .areas import (
-    CORE_AREAS, CORE_TO_CATEGORY,
     PREDICTION, CONTEXT,
 )
 

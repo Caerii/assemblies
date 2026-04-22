@@ -5,11 +5,9 @@ using the lexicon's frequency and age-of-acquisition data to select
 stage-appropriate vocabulary.  Plasticity decreases at later stages.
 """
 
-from collections import defaultdict
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional
+from typing import List
 
-from .areas import CORE_TO_CATEGORY
 from .grounding import GroundingContext
 from .training_data import GroundedSentence
 
