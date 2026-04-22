@@ -106,5 +106,11 @@ select = [
 per-file-ignores = {"__init__.py" = ["F401"], "*.ipynb" = ["F401", "E402"]}
 
 [tool.pytest.ini_options]
-testpaths = ["tests", "neural_assemblies/tests", "research/experiments"]
+testpaths = ["neural_assemblies/tests"]
 python_files = ["test_*.py", "*_test.py"]
+norecursedirs = [".worktrees"]
+markers = [
+    "legacy: repo-root compatibility and historical experiment tests",
+    "gpu: optional CUDA/C++/accelerator tests",
+    "research: research experiment validation tests",
+]
