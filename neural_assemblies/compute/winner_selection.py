@@ -83,6 +83,8 @@ class WinnerSelector:
         """Select winners above a threshold, up to k winners."""
         xp = get_xp()
         inputs = xp.asarray(inputs)
+        if k <= 0:
+            return xp.asarray([], dtype=int)
         if threshold is None:
             return self._select_ordered_indices(inputs, k, tie_policy=tie_policy)
 

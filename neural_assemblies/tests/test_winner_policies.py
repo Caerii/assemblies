@@ -39,6 +39,14 @@ class TestWinnerPolicies:
         )
         np.testing.assert_array_equal(winners, np.array([1, 2]))
 
+    def test_threshold_policy_returns_empty_when_k_is_zero(self):
+        features = np.array([1.0, 0.5, 0.2])
+        winners = self.selector.select_with_policy(
+            features,
+            ThresholdPolicy(k=0, threshold=0.4),
+        )
+        np.testing.assert_array_equal(winners, np.array([], dtype=int))
+
     def test_threshold_policy_honors_tie_policy(self, monkeypatch):
         features = np.array([1.0, 1.0, 0.5])
         seen = {}
