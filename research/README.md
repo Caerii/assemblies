@@ -108,24 +108,35 @@ See `papers/README.md` for detailed paper organization.
 ## 📊 Current Status
 
 ### Questions Under Investigation
-*To be populated*
+
+The research tree is already active. The canonical suite inventory now lives in
+`research/registry.json`, which maps experiment families to code paths, result
+directories, and recommended entry points.
 
 ### Active Experiments
-*To be populated*
+
+Active suites currently include `applications`, `biological_validation`,
+`distinctiveness`, `information_theory`, `primitives`, `stability`, `vocab`,
+and `infrastructure`.
 
 ### Validated Claims
-*To be populated*
+
+Validated and partial claims are tracked in `research/claims/` and backed by
+concrete artifacts under `research/results/`.
 
 ### Papers in Progress
-*To be populated*
+
+Paper scaffolding lives under `research/papers/`, but the primary source of
+truth for experiment coverage should be the registry and results directories.
 
 ## 🎯 Next Steps
 
-1. Populate `core_questions/` with your fundamental research questions
-2. For each question, create experimental designs
-3. Run experiments and collect results
-4. Build claims from solid evidence
-5. Construct papers from validated claims
+1. Keep `research/registry.json` current as suites are added or renamed
+2. Use `research/experiments/MANIFEST_TEMPLATE.json` for new experiments
+3. Validate the suite map with `uv run python research/experiments/infrastructure/validate_registry.py`
+4. Run experiments and collect results
+5. Build claims from solid evidence
+6. Construct papers from validated claims
 
 ---
 

@@ -167,6 +167,10 @@ Results are saved to `research/results/` in JSON format with:
 - Raw trial data
 - Timestamps for reproducibility
 
+Suite-to-results mappings now live in `research/registry.json`.
+Use `research/experiments/MANIFEST_TEMPLATE.json` as the default metadata
+template for new experiment families and validator automation.
+
 ## Running Full Experiments
 
 For publication-quality results, run full parameter sweeps:

@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "experiment_name": "replace_me",
+  "suite": "replace_me",
+  "status": "draft",
+  "owner": "replace_me",
+  "question": "What scientific claim does this experiment test?",
+  "entry_point": "uv run python research/experiments/<suite>/<file>.py --quick",
+  "results_dir": "research/results/<suite>",
+  "quick_profile": true,
+  "tags": [
+    "assemblies",
+    "replace_me"
+  ],
+  "dependencies": [
+    "neural_assemblies.core"
+  ],
+  "notes": "Add parameter conventions, dataset assumptions, and expected artifacts here."
+}

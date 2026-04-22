@@ -1,0 +1,90 @@
+{
+  "schema_version": 1,
+  "default_package_test_command": "uv run pytest -q",
+  "registry_validation_command": "uv run python research/experiments/infrastructure/validate_registry.py",
+  "suites": [
+    {
+      "name": "applications",
+      "experiments_dir": "research/experiments/applications",
+      "results_dir": "research/results/applications",
+      "status": "active",
+      "entry_points": [
+        "uv run python research/experiments/applications/test_nemo_benchmark.py --quick",
+        "uv run python research/experiments/applications/test_p600_syntactic.py --quick"
+      ],
+      "focus": "Language, psycholinguistics, and application-level behaviors"
+    },
+    {
+      "name": "biological_validation",
+      "experiments_dir": "research/experiments/biological_validation",
+      "results_dir": "research/results/biological_validation",
+      "status": "active",
+      "entry_points": [
+        "uv run python research/experiments/biological_validation/test_biological_parameters.py --quick",
+        "uv run python research/experiments/biological_validation/test_neural_data_comparison.py --quick"
+      ],
+      "focus": "Comparison against biological constraints and neural measurements"
+    },
+    {
+      "name": "distinctiveness",
+      "experiments_dir": "research/experiments/distinctiveness",
+      "results_dir": "research/results/distinctiveness",
+      "status": "active",
+      "entry_points": [
+        "uv run python research/experiments/distinctiveness/test_capacity_limits.py --quick",
+        "uv run python research/experiments/distinctiveness/test_competition_mechanisms.py --quick"
+      ],
+      "focus": "Assembly separation, competition, and capacity limits"
+    },
+    {
+      "name": "information_theory",
+      "experiments_dir": "research/experiments/information_theory",
+      "results_dir": "research/results/information_theory",
+      "status": "active",
+      "entry_points": [
+        "uv run python research/experiments/information_theory/test_coding_capacity.py --quick"
+      ],
+      "focus": "Coding capacity and information-theoretic properties"
+    },
+    {
+      "name": "primitives",
+      "experiments_dir": "research/experiments/primitives",
+      "results_dir": "research/results/primitives",
+      "status": "active",
+      "entry_points": [
+        "uv run python research/experiments/primitives/run_all.py --quick",
+        "uv run python research/experiments/primitives/test_projection.py --quick"
+      ],
+      "focus": "Core AC primitives, ERP metrics, and composed mechanisms"
+    },
+    {
+      "name": "stability",
+      "experiments_dir": "research/experiments/stability",
+      "results_dir": "research/results/stability",
+      "status": "active",
+      "entry_points": [
+        "uv run python research/experiments/stability/test_phase_diagram.py --quick",
+        "uv run python research/experiments/stability/test_scaling_laws.py --quick"
+      ],
+      "focus": "Convergence, robustness, attractors, and phase transitions"
+    },
+    {
+      "name": "vocab",
+      "experiments_dir": "research/experiments/vocab",
+      "results_dir": "research/results",
+      "status": "supporting",
+      "entry_points": [],
+      "focus": "Vocabulary utilities used by higher-level experiment suites"
+    },
+    {
+      "name": "infrastructure",
+      "experiments_dir": "research/experiments/infrastructure",
+      "results_dir": "research/results",
+      "status": "supporting",
+      "entry_points": [
+        "uv run python research/experiments/infrastructure/validate_registry.py"
+      ],
+      "focus": "Research workflow utilities and validation helpers"
+    }
+  ]
+}
