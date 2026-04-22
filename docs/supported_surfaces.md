@@ -11,9 +11,9 @@ from neural_assemblies.core import Brain
 from neural_assemblies.assembly_calculus import project, merge
 ```
 
-- Distributed on PyPI as `assemblies`
+- Current package name on PyPI: `neural-assemblies`
 - Imported in code as `neural_assemblies`
-- Default quality gate: `uv run pytest -q`
+- Recommended package-focused gate: `uv run pytest neural_assemblies/tests -q`
 
 ## 2. Repo-root legacy modules
 
