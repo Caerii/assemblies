@@ -49,7 +49,7 @@ echo Environment test complete!
         # Clean up
         try:
             os.remove('test_env.bat')
-        except:
+        except OSError:
             pass
 
 if __name__ == "__main__":
