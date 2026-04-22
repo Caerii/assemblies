@@ -8,8 +8,14 @@ including first-time winner remapping and optional inhibition masks.
 """
 
 import numpy as np
-from typing import List, Optional, Tuple
+from typing import List, Tuple
 from .utils import validate_finite
+from .winner_policies import (
+    RelativeThresholdPolicy,
+    ThresholdPolicy,
+    TopKPolicy,
+    WinnerPolicy,
+)
 
 try:
     from ..core.backend import get_xp, to_cpu
@@ -24,6 +30,19 @@ class WinnerSelector:
 
     def __init__(self, rng: np.random.Generator):
         self.rng = rng
+
+    @staticmethod
+    def _ordered_candidate_indices(values, tie_policy: str = "value_then_index"):
+        """Return candidate indices ordered by score and tie policy."""
+        values_cpu = np.asarray(to_cpu(values), dtype=np.float64)
+        candidate_indices = np.arange(len(values_cpu))
+
+        if tie_policy == "value_then_index":
+            order = np.lexsort((candidate_indices, -values_cpu))
+        else:
+            order = np.argsort(-values_cpu)
+
+        return candidate_indices[order]
 
     def select_top_k_indices(self, features, k: int):
         """Select indices of top-k values using argpartition (O(n) average)."""
@@ -62,6 +81,62 @@ class WinnerSelector:
             above_threshold_inputs = inputs[above_threshold_indices]
             top_k_indices = xp.argsort(-above_threshold_inputs)[:k]
             return above_threshold_indices[top_k_indices]
+
+    def select_with_policy(self, features, policy: WinnerPolicy):
+        """Select winners using an explicit winner policy object."""
+        xp = get_xp()
+        features = xp.asarray(features)
+
+        if len(features) == 0:
+            return xp.asarray([], dtype=int)
+
+        if isinstance(policy, TopKPolicy):
+            return self.select_top_k_indices(features, policy.k)
+
+        if isinstance(policy, ThresholdPolicy):
+            return self.select_winners_with_threshold(
+                features,
+                policy.k,
+                threshold=policy.threshold,
+            )
+
+        if isinstance(policy, RelativeThresholdPolicy):
+            if not 0.0 <= policy.fraction_of_max <= 1.0:
+                raise ValueError("fraction_of_max must be between 0 and 1")
+            if policy.min_winners < 0:
+                raise ValueError("min_winners must be non-negative")
+            if policy.max_winners is not None and policy.max_winners < policy.min_winners:
+                raise ValueError("max_winners must be >= min_winners")
+
+            max_value = float(xp.max(features))
+            threshold = max_value * policy.fraction_of_max
+            above_threshold = xp.where(features >= threshold)[0]
+            above_threshold_set = {int(idx) for idx in to_cpu(above_threshold)}
+
+            ordered = self._ordered_candidate_indices(features, policy.tie_policy)
+            ordered_above = [
+                int(idx) for idx in ordered
+                if int(idx) in above_threshold_set
+            ]
+
+            target_count = max(len(ordered_above), policy.min_winners)
+            if policy.max_winners is not None:
+                target_count = min(target_count, policy.max_winners)
+            target_count = min(target_count, len(features))
+
+            chosen = ordered_above[:target_count]
+            if len(chosen) < target_count:
+                already = set(chosen)
+                for idx in ordered:
+                    idx_int = int(idx)
+                    if idx_int not in already:
+                        chosen.append(idx_int)
+                    if len(chosen) >= target_count:
+                        break
+
+            return xp.asarray(chosen, dtype=int)
+
+        raise TypeError(f"Unsupported winner policy: {type(policy)!r}")
 
     def select_combined_winners(self,
                                 all_inputs,

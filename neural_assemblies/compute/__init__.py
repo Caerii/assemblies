@@ -8,11 +8,14 @@ algorithms, and mathematical approximations.
 
 from .statistics import StatisticalEngine
 from .neural_computation import NeuralComputationEngine
+from .winner_policies import TopKPolicy, ThresholdPolicy, RelativeThresholdPolicy, WinnerPolicy
 from .winner_selection import WinnerSelector
 from .plasticity import PlasticityEngine
 from .sparse_simulation import SparseSimulationEngine
 from .explicit_projection import ExplicitProjectionEngine
 from .image_activation import ImageActivationEngine
 
-__all__ = ['StatisticalEngine', 'NeuralComputationEngine', 'WinnerSelector', 'PlasticityEngine',
-           'SparseSimulationEngine', 'ExplicitProjectionEngine', 'ImageActivationEngine']
+__all__ = ['StatisticalEngine', 'NeuralComputationEngine',
+           'TopKPolicy', 'ThresholdPolicy', 'RelativeThresholdPolicy', 'WinnerPolicy',
+           'WinnerSelector', 'PlasticityEngine', 'SparseSimulationEngine',
+           'ExplicitProjectionEngine', 'ImageActivationEngine']
