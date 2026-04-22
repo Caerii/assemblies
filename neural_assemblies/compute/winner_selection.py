@@ -44,6 +44,19 @@ class WinnerSelector:
 
         return candidate_indices[order]
 
+    def _select_ordered_indices(self, values, k: int, tie_policy: str = "value_then_index"):
+        """Select up to k ordered indices while honoring the tie policy."""
+        xp = get_xp()
+        values = xp.asarray(values)
+
+        if k <= 0:
+            return xp.asarray([], dtype=int)
+        if k >= len(values):
+            return xp.arange(len(values))
+
+        ordered = self._ordered_candidate_indices(values, tie_policy)
+        return xp.asarray(ordered[:k], dtype=int)
+
     def select_top_k_indices(self, features, k: int):
         """Select indices of top-k values using argpartition (O(n) average)."""
         xp = get_xp()
@@ -65,22 +78,33 @@ class WinnerSelector:
         return part_idx[sorted_order]
 
     def select_winners_with_threshold(self, inputs, k: int,
-                                    threshold: float = None):
+                                    threshold: float = None,
+                                    tie_policy: str = "value_then_index"):
         """Select winners above a threshold, up to k winners."""
         xp = get_xp()
         inputs = xp.asarray(inputs)
         if threshold is None:
-            return self.select_top_k_indices(inputs, k)
+            return self._select_ordered_indices(inputs, k, tie_policy=tie_policy)
 
         above_threshold = inputs >= threshold
         if int(xp.sum(above_threshold)) <= k:
-            return xp.where(above_threshold)[0]
+            ordered = self._ordered_candidate_indices(inputs, tie_policy)
+            chosen = [
+                int(idx) for idx in ordered
+                if bool(to_cpu(above_threshold[int(idx)]))
+            ]
+            return xp.asarray(chosen, dtype=int)
         else:
             # Select top k from those above threshold
-            above_threshold_indices = xp.where(above_threshold)[0]
-            above_threshold_inputs = inputs[above_threshold_indices]
-            top_k_indices = xp.argsort(-above_threshold_inputs)[:k]
-            return above_threshold_indices[top_k_indices]
+            ordered = self._ordered_candidate_indices(inputs, tie_policy)
+            chosen = []
+            for idx in ordered:
+                idx_int = int(idx)
+                if bool(to_cpu(above_threshold[idx_int])):
+                    chosen.append(idx_int)
+                if len(chosen) >= k:
+                    break
+            return xp.asarray(chosen, dtype=int)
 
     def select_with_policy(self, features, policy: WinnerPolicy):
         """Select winners using an explicit winner policy object."""
@@ -91,13 +115,18 @@ class WinnerSelector:
             return xp.asarray([], dtype=int)
 
         if isinstance(policy, TopKPolicy):
-            return self.select_top_k_indices(features, policy.k)
+            return self._select_ordered_indices(
+                features,
+                policy.k,
+                tie_policy=policy.tie_policy,
+            )
 
         if isinstance(policy, ThresholdPolicy):
             return self.select_winners_with_threshold(
                 features,
                 policy.k,
                 threshold=policy.threshold,
+                tie_policy=policy.tie_policy,
             )
 
         if isinstance(policy, RelativeThresholdPolicy):
