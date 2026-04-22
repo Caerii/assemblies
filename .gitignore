@@ -72,6 +72,8 @@ uv.lock
 # Testing/cache
 .pytest_cache/
 .ruff_cache/
+animations/
+experiment_data/
 
 # Windows artifacts
 nul

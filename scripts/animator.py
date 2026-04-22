@@ -9,9 +9,19 @@ LOW_LEVEL = "LOW_LEVEL"
 MID_LEVEL = "MID_LEVEL"
 HIGH_LEVEL = "HIGH_LEVEL"
 CLASS_AREA = "CLASS_AREA"
+DEFAULT_OUTPUT_DIR = os.path.normpath(
+    os.path.join(
+        os.path.dirname(__file__),
+        "..",
+        "legacy",
+        "artifacts",
+        "image_learning",
+        "animations",
+    )
+)
 
 class Animator:
-    def __init__(self, brain, output_dir="animations", fps=10):
+    def __init__(self, brain, output_dir=DEFAULT_OUTPUT_DIR, fps=10):
         self.output_dir = output_dir
         self.fps = fps
         self.connectome_snapshots = {

@@ -1,6 +1,7 @@
-# Experiments Directory
+# Archived Experiments
 
-This directory contains experimental investigations and research conducted with the assembly calculus framework.
+This directory contains older top-level experimental material that predates the
+current `research/` layout.
 
 ## Structure
 
@@ -35,4 +36,11 @@ python experiments/hyperdimensional_assemblies/assembly_hdc_investigation.py
 8. Biological plausibility validation
 9. Evidence-based conclusions about system capabilities
 
-This investigation provides a solid foundation for understanding what works, what doesn't, and why.
+This investigation provides a solid foundation for understanding what works,
+what doesn't, and why.
+
+## Current Practice
+
+New runnable experiments should live under `research/experiments/`.
+This directory is archival and should not be used as the default place for new
+work.
