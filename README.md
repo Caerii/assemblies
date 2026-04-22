@@ -246,7 +246,7 @@ neural_assemblies/
 |   `-- packaging.md        # PyPI build and release (maintainers)
 |
 |-- research/               # Experiments, results, plans → research/README.md
-|-- legacy/                 # Archived root modules, historical artifacts, MATLAB prototypes
+|-- legacy/                 # Archived root modules, scripts, artifacts, MATLAB prototypes
 |-- cpp/                    # Custom CUDA kernels (.cu) and build scripts → cpp/README.md
 `-- pyproject.toml          # Package configuration (PyPI: pip install neural-assemblies)
 ```

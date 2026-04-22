@@ -23,6 +23,10 @@ Each major part of the codebase has a short README with purpose, main entry poin
 
 See also [architecture.md](architecture.md) for high-level design and [README.md](../README.md) for quick start and project overview.
 
+Historical standalone scripts such as `overlap_sim.py` and `turing_sim.py` are
+archived under `legacy/scripts/`. Prefer the supported packaged APIs under
+`neural_assemblies.simulation` for active work.
+
 ### Engine Selection
 
 Brain uses a pluggable compute engine.  Pass `engine=` to `Brain()` or let auto-selection choose:
@@ -119,7 +123,7 @@ LRI parameters:
   - [Module: Brain Simulation (`brain.py`)](#module-brain-simulation-brainpy)
   - [Module: Brain Utilities (`brain_util.py`)](#module-brain-utilities-brain_utilpy)
   - [Module: Learning Experiments (`learner.py`)](#module-learning-experiments-learnerpy)
-  - [Module: Overlap Simulations (`overlap_sim.py`)](#module-overlap-simulations-overlap_simpy)
+  - [Archived Module: Overlap Simulations (`legacy/scripts/simulations/overlap_sim.py`)](#archived-module-overlap-simulations-legacyscriptssimulationsoverlap_simpy)
   - [Module: Parser Simulation (`parser.py`)](#module-parser-simulation-parserpy)
   - [Other Modules](#other-modules)
 - [Simulation Details](#simulation-details)
@@ -195,11 +199,11 @@ The repository is organized into several modules, each responsible for different
 - **`brain.py`**: Core classes for simulating brain areas and their interactions, including `Area` and `Brain`.
 - **`brain_util.py`**: Utility functions for saving/loading simulations and computing overlaps between assemblies.
 - **`learner.py`**: Implements learning experiments, including word acquisition and syntax learning.
-- **`overlap_sim.py`**: Simulations for examining overlap preservation in assemblies and the effect of assembly associations.
+- **`legacy/scripts/simulations/overlap_sim.py`**: Archived standalone overlap simulations from the pre-package layout. Prefer `neural_assemblies.simulation` for supported runs.
 - **`parser.py`**: Code for parsing sentences using the brain simulation framework, including classes for different languages.
 - **`simulations.py`**: Various simulations to test and illustrate the behavior of neural assemblies, including projection, association, and merge operations.
 - **`simulations_test.py`**: Unit tests for the simulations, ensuring the correctness and stability of the implemented algorithms and neural models.
-- **`turing_sim.py`**: Simulations related to Turing machine concepts using neural assemblies, exploring the computational limits of the model.
+- **`legacy/scripts/simulations/turing_sim.py`**: Archived Turing-style simulations from the pre-package layout. Prefer `neural_assemblies.simulation.turing_simulations` for supported runs.
 - **`tests.py`**: Additional tests for the brain model.
 - **`README.md`**: This documentation file.
 
@@ -208,11 +212,11 @@ The repository is organized into several modules, each responsible for different
 - **`brain.py`**: Contains the core implementation of the brain model, including neuron assemblies, synaptic connections, and the fundamental operations of the Assembly Calculus and the NEMO model.
 - **`brain_util.py`**: Provides utility functions for simulations, including saving and loading brain models, and computing overlaps between neuron assemblies.
 - **`learner.py`**: Implements learning experiments using the brain simulation framework. It includes classes and functions for simulating word acquisition, syntax learning, and the effects of various parameters on learning efficiency.
-- **`overlap_sim.py`**: Provides simulations for examining overlap preservation in assemblies and the effect of assembly associations.
+- **`legacy/scripts/simulations/overlap_sim.py`**: Archived overlap simulations retained for historical reference.
 - **`parser.py`**: Contains code for parsing sentences using the brain simulation framework. It includes classes for different languages (English and Russian) and demonstrates how assemblies can represent grammatical structures.
 - **`simulations.py`**: Runs various simulations to test and illustrate the behavior of neural assemblies, including projection, association, merge operations, and language-related tasks.
 - **`simulations_test.py`**: Unit tests for the simulations.
-- **`turing_sim.py`**: Explores how neural assemblies can simulate Turing machine concepts, investigating the computational limits of the neural model.
+- **`legacy/scripts/simulations/turing_sim.py`**: Archived Turing-style simulations retained for historical reference.
 - **`tests.py`**: Additional tests for the brain model.
 
 ---
@@ -521,7 +525,7 @@ print(f"Retrieved word: {retrieved_word}")
 
 ---
 
-### Module: Overlap Simulations (`overlap_sim.py`)
+### Archived Module: Overlap Simulations (`legacy/scripts/simulations/overlap_sim.py`)
 
 #### Description
 
@@ -544,7 +548,7 @@ Provides simulations for examining overlap preservation in assemblies and the ef
 #### Usage Example
 
 ```python
-import overlap_sim
+from legacy.scripts.simulations import overlap_sim
 
 # Run a simple overlap simulation
 assembly_overlap, proj_overlap = overlap_sim.overlap_sim()
@@ -630,7 +634,7 @@ parse("kot vidit sobaku", language="Russian")
 
 - **Description**: Contains unit tests for the simulations, ensuring the correctness and stability of the implemented algorithms and neural models.
 
-#### `turing_sim.py`
+#### `legacy/scripts/simulations/turing_sim.py`
 
 - **Description**: Explores how neural assemblies can simulate Turing machine concepts, investigating the computational limits of the neural model.
 - **Relation to the Papers**: Demonstrates that the enhanced NEMO model can perform arbitrary computations, supporting the claims about the model's computational capabilities.
@@ -680,7 +684,9 @@ By simulating how assemblies form and interact during language processing, the p
 
 ### Turing Machine Simulation
 
-The `turing_sim.py` script explores how neural assemblies can simulate Turing machine concepts, investigating the computational limits of the neural model.
+The archived `legacy/scripts/simulations/turing_sim.py` script explores how
+neural assemblies can simulate Turing machine concepts, investigating the
+computational limits of the neural model.
 
 #### Key Concepts
 
@@ -718,13 +724,9 @@ You can modify parameters within the script to test different scenarios, such as
 
 ### Running Overlap Simulations
 
-To run overlap simulations:
-
-```bash
-python overlap_sim.py
-```
-
-This will execute the simulations that examine overlap preservation in assemblies and print the results.
+For supported overlap experiments, prefer the packaged simulation runners under
+`neural_assemblies.simulation`. The historical standalone script is archived at
+`legacy/scripts/simulations/overlap_sim.py` for reference.
 
 ### Running Other Simulations
 
@@ -734,11 +736,10 @@ This will execute the simulations that examine overlap preservation in assemblie
   python simulations.py
   ```
 
-- **Turing Machine Simulation**: Run `turing_sim.py` to explore Turing machine concepts using neural assemblies.
-
-  ```bash
-  python turing_sim.py
-  ```
+- **Turing Machine Simulation**: Prefer
+  `neural_assemblies.simulation.turing_simulations` for supported runs. The
+  historical standalone script is archived at
+  `legacy/scripts/simulations/turing_sim.py`.
 
 ### Running Tests
 

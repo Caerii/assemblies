@@ -77,6 +77,7 @@ Root compatibility layer
 
 legacy/
   root_modules/      (historical repo-root implementations)
+  scripts/           (archived standalone scripts and helpers)
   artifacts/         (tracked image-learning GIFs and outputs)
   experiments/       (archived top-level experiment notes)
   matlab/            (MATLAB prototypes)

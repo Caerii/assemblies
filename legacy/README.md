@@ -8,6 +8,9 @@ repository root.
 - `root_modules/`
   Original repo-root experiment modules. Root-level files like `parser.py` and
   `simulations.py` now act as compatibility shims and import from here.
+- `scripts/`
+  Archived top-level scripts that predate the current packaged simulation and
+  tooling layout.
 - `artifacts/image_learning/`
   Tracked GIFs and experiment outputs from the older CIFAR-10 / animation work.
 - `experiments/`
