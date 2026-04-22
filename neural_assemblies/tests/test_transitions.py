@@ -44,6 +44,10 @@ class TestTransitionMap(unittest.TestCase):
                 ("q0", "a", "q2", 0.5),
             ]).deterministic_table()
 
+    def test_rejects_plain_string_transition_values(self):
+        with self.assertRaises(TypeError):
+            Transition.from_value("abc")
+
 
 class TestTransitionIntegration(unittest.TestCase):
     def test_fsm_accepts_transition_objects(self):

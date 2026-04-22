@@ -36,6 +36,11 @@ class Transition:
     def from_value(cls, value: "TransitionLike") -> "Transition":
         if isinstance(value, cls):
             return value
+        if isinstance(value, (str, bytes)):
+            raise TypeError(
+                "Transitions must be Transition objects or 3/4-tuples, "
+                "not plain strings or bytes."
+            )
         if len(value) == 3:
             from_state, symbol, to_state = value
             return cls(from_state, symbol, to_state)
