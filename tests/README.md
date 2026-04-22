@@ -27,7 +27,7 @@ uv run pytest research/experiments -q
 
 ## Why the split exists
 
-The package contract is `pip install assemblies` with `neural_assemblies` imports.
+The package contract is `pip install neural-assemblies` with `neural_assemblies` imports.
 The legacy repo-root modules (`brain.py`, `simulations.py`, `learner.py`, `parser.py`)
 remain useful for historical experiments, but they are not the default installable-library
 surface and should not define whether the package is shippable.
