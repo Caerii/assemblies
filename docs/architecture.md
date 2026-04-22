@@ -64,15 +64,22 @@ instead of O(n^2). At n=100,000 this means ~25 MB vs ~40 GB.
 ## Module Dependency Graph
 
 ```
-Root scripts (brain.py users)
+Root compatibility layer
   |
-  brain.py  <-- 5-line shim re-exporting assemblies.core.brain
-  brain_util.py  <-- overlap, save/load utilities
+  brain.py  <-- 5-line shim re-exporting neural_assemblies.core.brain
+  brain_util.py  <-- shim -> legacy/root_modules/brain_util.py
   |
-  +-- learner.py       (word acquisition experiments)
-  +-- parser.py        (sentence parsing)
-  +-- simulations.py   (simulation harness)
-  +-- image_learner.py (CIFAR-10 via assemblies)
+  +-- learner.py       (shim -> legacy/root_modules/learner.py)
+  +-- parser.py        (shim -> legacy/root_modules/parser.py)
+  +-- simulations.py   (shim -> legacy/root_modules/simulations.py)
+  +-- image_learner.py (shim -> legacy/root_modules/image_learner.py)
+  +-- recursive_parser.py (shim -> legacy/root_modules/recursive_parser.py)
+
+legacy/
+  root_modules/      (historical repo-root implementations)
+  artifacts/         (tracked image-learning GIFs and outputs)
+  experiments/       (archived top-level experiment notes)
+  matlab/            (MATLAB prototypes)
 
 assemblies/ package (pip install neural-assemblies or pip install -e .)
   |

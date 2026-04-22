@@ -212,7 +212,7 @@ a_w, b_w, c_w = merge_sim(n=100000, k=317, p=0.01, beta=0.05)
 from neural_assemblies.language import parse
 parse("cats chase mice", language="English")
 
-# Or from repo root (uses root parser.py): from parser import parse
+# Or from repo root (uses the root parser.py compatibility shim): from parser import parse
 ```
 
 ## Project Structure
@@ -220,11 +220,12 @@ parse("cats chase mice", language="English")
 ```
 neural_assemblies/
 |-- brain.py                # Backward-compatible shim (re-exports neural_assemblies.core.brain)
-|-- brain_util.py           # Overlap computation, save/load utilities
-|-- learner.py              # Word acquisition and syntax learning experiments
-|-- parser.py               # Sentence parsing via assembly operations (repo root)
-|-- simulations.py          # Simulation runners and experiment harness
-|-- image_learner.py        # CIFAR-10 classification via assemblies
+|-- brain_util.py           # Compatibility shim -> legacy/root_modules/brain_util.py
+|-- learner.py              # Compatibility shim -> legacy/root_modules/learner.py
+|-- parser.py               # Compatibility shim -> legacy/root_modules/parser.py
+|-- simulations.py          # Compatibility shim -> legacy/root_modules/simulations.py
+|-- image_learner.py        # Compatibility shim -> legacy/root_modules/image_learner.py
+|-- recursive_parser.py     # Compatibility shim -> legacy/root_modules/recursive_parser.py
 |
 |-- neural_assemblies/      # Installable package (pip install neural-assemblies); see section READMEs
 |   |-- assembly_calculus/  # Assembly calculus subpackage: project, merge, sequence_memorize, ordered_recall, FSM, PFA, EmergentParser
@@ -245,6 +246,7 @@ neural_assemblies/
 |   `-- packaging.md        # PyPI build and release (maintainers)
 |
 |-- research/               # Experiments, results, plans → research/README.md
+|-- legacy/                 # Archived root modules, historical artifacts, MATLAB prototypes
 |-- cpp/                    # Custom CUDA kernels (.cu) and build scripts → cpp/README.md
 `-- pyproject.toml          # Package configuration (PyPI: pip install neural-assemblies)
 ```
