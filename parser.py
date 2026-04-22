@@ -1,4 +1,11 @@
 #! /usr/bin/python3.9
+"""Legacy repo-root parser module.
+
+This file supports historical checkout-based parser experiments. The maintained
+installable parser surface lives under ``neural_assemblies.language`` and
+``neural_assemblies.assembly_calculus``.
+"""
+
 import brain
 import pptree
 import json

@@ -1,3 +1,10 @@
+"""Legacy repo-root image experiments.
+
+This module contains checkout-oriented image-learning experiments and is not
+part of the primary installable package surface. Keep new library-facing code
+under ``neural_assemblies``.
+"""
+
 import torch
 import torchvision.transforms as transforms
 import torchvision.datasets as datasets
@@ -7,6 +14,7 @@ from sklearn.metrics import classification_report, accuracy_score
 from scripts.animator import Animator
 
 import brain
+
 
 # Define Brain Areas
 LOW_LEVEL = "LOW_LEVEL"

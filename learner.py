@@ -1,3 +1,11 @@
+"""Legacy repo-root learning experiments.
+
+These scripts are useful for historical and exploratory checkout workflows, but
+they are not the default installable package interface. Prefer the packaged
+surfaces under ``neural_assemblies.lexicon`` and ``neural_assemblies.nemo`` for
+new code.
+"""
+
 import brain
 import brain_util as bu
 import numpy as np

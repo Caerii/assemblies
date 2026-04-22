@@ -1,3 +1,10 @@
+"""Legacy repo-root simulation helpers.
+
+This module is kept for historical experiment scripts that run from a checkout.
+It is not the primary installable library API. For package-first usage, prefer
+the modules under ``neural_assemblies.simulation``.
+"""
+
 # Default simulation library containing:
 # - Basic [project]ion simulations (convergence for different beta, etc)
 # - Merge simulations (different betas)
