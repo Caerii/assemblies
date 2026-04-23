@@ -1,102 +1,101 @@
-# NEMO 2.0 - Neural Assembly Language Experiments
+# NEMO
 
-Experimental language-learning systems based on Assembly Calculus.
+Experimental language-learning systems built on assembly-style computation.
 
-## Key Principle
+This package should be read as a research-oriented surface inside
+`neural_assemblies`, not as the same stability tier as the core runtime.
 
-NEMO-related modules in this repo aim to learn category structure, role
-structure, and word order from exposure rather than hardcoded sentence rules.
-Package tests cover several narrow synthetic behaviors; broader curriculum and
-generation claims belong to the research surface.
+## Scope
 
-## Architecture
+NEMO-related code in this repository aims to learn category structure, role
+structure, and word order from exposure rather than fixed sentence templates.
 
-```
+What is package-backed here:
+
+- narrow synthetic tests for category differentiation
+- role binding behavior
+- sequence and word-order related patterns in controlled settings
+
+What is not a package guarantee:
+
+- broad curriculum success
+- general language acquisition
+- cross-linguistic competence claims
+- generation quality claims beyond specific experiments
+
+For that boundary, see [../../docs/scientific_status.md](../../docs/scientific_status.md).
+
+## Layout
+
+```text
 neural_assemblies/nemo/
-├── core/           # GPU kernels
-│   └── kernel.py   # CUDA kernels (projection, Hebbian)
-├── language/       # Language learning
-│   ├── nemo_learner.py      # Neurobiologically plausible NEMO
-│   ├── integrated_trainer.py # Full curriculum training
-│   ├── learner.py           # Simple statistical learner
-│   ├── generator.py         # Sentence generation
-│   └── curriculum.py        # Curriculum stages
-└── archive/        # Old versions
+|-- core/        # NEMO-specific brain and kernels
+|-- language/    # Learners, generators, curriculum, integrated trainer
+|-- archive/     # Older experiments and historical code
+`-- README.md
 ```
 
-## Usage
+## Installation Notes
 
-### Quick Start (Simple)
+Many NEMO paths assume optional GPU-oriented dependencies.
+
+From a checkout:
+
+```bash
+uv sync --group gpu
+```
+
+From the published package:
+
+```bash
+pip install "neural-assemblies[gpu]"
+```
+
+## Quick Start
+
+### Simple Learner Surface
+
 ```python
 from neural_assemblies.nemo.language import LanguageLearner, SentenceGenerator
 
 learner = LanguageLearner()
-learner.hear_sentence(['dog', 'chases', 'cat'])
+learner.hear_sentence(["dog", "chases", "cat"])
+
 generator = SentenceGenerator(learner)
 sentence = generator.generate_sentence(length=3)
+print(sentence)
 ```
 
-### Full NEMO Training (Neurobiologically Plausible)
+### Integrated Trainer Surface
+
 ```python
 from neural_assemblies.nemo.language import IntegratedNemoTrainer
 
 trainer = IntegratedNemoTrainer()
-results = trainer.train_full_curriculum(epochs_per_stage=5)
-
-# Generate sentences
-for _ in range(5):
-    sentence = trainer.generate_sentence(3)
-    print(' '.join(sentence))
+results = trainer.train_full_curriculum(epochs_per_stage=1)
+sentence = trainer.generate_sentence(3)
+print(sentence)
 ```
 
-## NEMO Architecture (from papers)
+The second path is a research-oriented training workflow, not the default
+package contract.
 
-```
-    Phon ─────────┬──────────┐
-                  ▼          ▼
-    Visual ──→ Lex1 ──→ NP ──┬──→ Sent
-    Motor ───→ Lex2 ──→ VP ──┘
-                  │
-                  ▼
-    Role_agent ←─┼─→ Role_action ←─┼─→ Role_patient
-                  │
-                  ▼
-                 SEQ (word order)
-```
+## Conceptual Architecture
 
-Key features:
-- **Differential Lex areas**: Lex1 for nouns (→Visual), Lex2 for verbs (→Motor)
-- **Grounded learning**: Words learned with sensory context
-- **Role areas with mutual inhibition**
-- **Sequence-oriented word-order machinery**
+The NEMO code organizes around a few recurring ideas from the papers:
 
-## Curriculum Stages (Child Language Acquisition)
+- differentiated lexical pathways for nouns and verbs
+- grounding-oriented learning rather than pure text-only templates
+- role areas and inhibitory structure
+- sequence-sensitive machinery for word order
 
-| Stage | Age | Words | Features |
-|-------|-----|-------|----------|
-| 1 | 12-18mo | ~50 | Single words, naming |
-| 2 | 18-24mo | ~300 | Vocabulary spurt, two-word combos |
-| 3 | 24-30mo | ~500 | Telegraphic speech, SVO emerging |
-| 4 | 30-36mo | ~1000 | Full sentences, auxiliaries |
+This repository contains implementations and experiments inspired by those
+ideas; it should not be read as a claim that every paper-level result has been
+fully reproduced as a package guarantee.
 
-## Lexicon Integration
+## Related Surfaces
 
-Uses rich lexicon with:
-- **744 words** across 10 categories
-- **Semantic domains**: ANIMAL, PERSON, FOOD, MOTION, etc.
-- **Age of Acquisition (AoA)**: For curriculum progression
-- **Argument structure**: agent, theme, patient
-
-## Current Status
-
-- **Package-tested behaviors**: word-category differentiation, role binding,
-  and sequence / word-order learning patterns in controlled synthetic setups.
-- **Research surface**: larger curricula, broader generation quality, and
-  cross-linguistic claims live under `research/` and should be cited from
-  specific experiments rather than inferred from package install alone.
-
-## References
-
-- Mitropolsky & Papadimitriou 2025: "Simulated Language Acquisition"
-- Papadimitriou et al. 2020: "Brain Computation by Assemblies"
-
+- [../language/README.md](../language/README.md) for rule-based parsing
+- [../lexicon/README.md](../lexicon/README.md) for vocabulary and curriculum
+- [../../research/README.md](../../research/README.md) for experiment and claim
+  tracking

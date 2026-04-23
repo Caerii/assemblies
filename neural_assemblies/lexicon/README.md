@@ -1,42 +1,35 @@
-# Lexicon — Words, curriculum, learners
+# Lexicon
 
-The **lexicon** module provides a large, structured word set and curriculum for language learning: categories (nouns, verbs, etc.), frequency data, curriculum stages, and assembly-based learners (including GPU).
+The `neural_assemblies.lexicon` package provides structured vocabulary,
+curriculum data, and learner support for the language experiments.
 
-## What’s here
+## Main Components
 
-| Component | File / folder | Role |
-|-----------|----------------|------|
-| **LexiconManager** | `lexicon_manager.py` | Load and query words; `Word`, `WordCategory` |
-| **WordStatistics** | `statistics.py` | Frequency and co-occurrence stats |
-| **data/** | `data/*.py` | Word lists by category (nouns, verbs, adjectives, etc.) |
-| **curriculum/** | `curriculum/` | Stages: first words, vocabulary spurt, two-word, sentences |
-| **Assembly learners** | `assembly_language_learner.py`, `true_assembly_learner.py` | Assembly-based word/sentence learning |
-| **GPU learners** | `gpu_assembly_learner.py`, `gpu_language_learner.py` | GPU-accelerated lexicon/curriculum learning |
+| Component | File | Role |
+|-----------|------|------|
+| `LexiconManager` | `lexicon_manager.py` | Load and query words and categories. |
+| `Word`, `WordCategory` | `lexicon_manager.py` | Core lexicon data types. |
+| `WordStatistics` | `statistics.py` | Frequency and co-occurrence helpers. |
+| `data/` | `data/` | Word lists grouped by category. |
+| `curriculum/` | `curriculum/` | Staged curriculum data and helpers. |
+| assembly learners | `assembly_language_learner.py`, `true_assembly_learner.py` | Assembly-based learner variants. |
+| GPU learners | `gpu_assembly_learner.py`, `gpu_language_learner.py` | Optional GPU-oriented learner variants. |
 
-## Quick use
+## Example
 
 ```python
-from neural_assemblies.lexicon import LexiconManager, Word, WordCategory
+from neural_assemblies.lexicon import LexiconManager, WordCategory
 
 manager = LexiconManager()
-# Load lexicon, query by category, get curriculum order
-words = manager.get_words_by_category(WordCategory.NOUN)
+nouns = manager.get_words_by_category(WordCategory.NOUN)
+print(len(nouns))
 ```
 
-For full curriculum training with assemblies (often with NEMO), see the integrated trainer in [neural_assemblies/nemo](../nemo/README.md) and the curriculum modules in `lexicon/curriculum/`.
+The lexicon package is infrastructure for broader language experiments. It is
+useful on its own, but stronger curriculum or acquisition claims should still
+be tied to the research artifacts.
 
-## Curriculum stages
+## See Also
 
-Roughly aligned with child language acquisition:
-
-- **Stage 1** — First words (~50), single-word naming.
-- **Stage 2** — Vocabulary spurt (~300), two-word combinations.
-- **Stage 3** — Telegraphic (~500), simple sentences.
-- **Stage 4** — Full sentences (~1000), auxiliaries, etc.
-
-Details and data live in `curriculum/` and `data/`.
-
-## See also
-
-- [neural_assemblies/nemo](../nemo/README.md) — NEMO language learning and curriculum integration.
-- [research/](../../research/README.md) — Experiments and results using the lexicon and curriculum.
+- [../nemo/README.md](../nemo/README.md)
+- [../../research/README.md](../../research/README.md)

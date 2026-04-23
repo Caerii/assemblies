@@ -1,791 +1,275 @@
-# Assemblies — API and module guide
+# API Guide
 
-This document is the full API and module reference for the **assemblies** framework. It details each module, their functionalities, and how they interact. The project implements the neural assembly calculus and NEMO-style language learning based on the following papers:
+This document describes the current package-facing and compatibility-facing API
+for the repository as it exists today.
 
-1. **"Brain Computation by Assemblies of Neurons"** by Papadimitriou et al., *Proceedings of the National Academy of Sciences*, 2020.
-2. **"The Architecture of a Biologically Plausible Language Organ"** by Mitropolsky et al., 2023.
-3. **"Computation with Sequences of Assemblies in a Model of the Brain"** by Dabagia, Papadimitriou, Vempala, *Neural Computation*, 2025. arXiv:2306.03812.
+For statement strength, read [scientific_status.md](scientific_status.md).
+For package versus legacy boundaries, read
+[supported_surfaces.md](supported_surfaces.md).
 
-The simulations model how assemblies of neurons can perform computational tasks, including language processing and acquisition, illustrating the computational power of neural circuits in processing complex cognitive functions.
+## Primary Entry Points
 
-### Documentation by section
-
-Each major part of the codebase has a short README with purpose, main entry points, and links:
-
-| Section | Path | Description |
-|--------|------|-------------|
-| **Core** | [neural_assemblies/core/README.md](../neural_assemblies/core/README.md) | Brain, Area, Stimulus, Connectome, ComputeEngine (CPU/GPU) |
-| **Compute** | [neural_assemblies/compute/README.md](../neural_assemblies/compute/README.md) | Statistics, plasticity, winner selection, projection primitives |
-| **Simulation** | [neural_assemblies/simulation/README.md](../neural_assemblies/simulation/README.md) | Projection, association, merge, pattern completion, Turing-style sims |
-| **Language** | [neural_assemblies/language/README.md](../neural_assemblies/language/README.md) | Rule-based parsing (English/Russian), grammar, readout |
-| **Lexicon** | [neural_assemblies/lexicon/README.md](../neural_assemblies/lexicon/README.md) | Word lists, curriculum, assembly/GPU learners |
-| **NEMO** | [neural_assemblies/nemo/README.md](../neural_assemblies/nemo/README.md) | Learned grammar, language acquisition (GPU) |
-
-See also [architecture.md](architecture.md) for high-level design and [README.md](../README.md) for quick start and project overview.
-See [scientific_status.md](scientific_status.md) for the boundary between
-package-backed claims and research/aspirational work.
-
-Historical standalone scripts such as `overlap_sim.py` and `turing_sim.py` are
-archived under `legacy/scripts/`. Prefer the supported packaged APIs under
-`neural_assemblies.simulation` for active work.
-
-### Engine Selection
-
-Brain uses a pluggable compute engine.  Pass `engine=` to `Brain()` or let auto-selection choose:
-
-| Engine | Backend | Best for | Registration |
-|--------|---------|----------|-------------|
-| `numpy_sparse` | CPU (NumPy) | n < 1M, fastest dispatch | Always available |
-| `torch_sparse` | GPU (PyTorch CUDA, CSR) | Large sparse workloads; heuristic best engine at high `n` | Requires `torch` + CUDA |
-| `cuda_implicit` | GPU (CuPy, hash-based) | Hash-deterministic connectivity | Requires `cupy` |
-| `numpy_explicit` | CPU (dense matrices) | Small n, full neuron tracking | Always available |
-| `cupy_sparse` | GPU (CuPy) | **Deprecated** -- use `torch_sparse` | Requires `cupy` |
-
-**Auto-selection** (`engine="auto"`, the default):
-- Pass `n_hint=` to `Brain()` with the expected neuron count per area
-- `n_hint >= 1_000_000` + GPU available: selects `torch_sparse`
-- Otherwise: selects `numpy_sparse`
+Top-level imports exposed by `neural_assemblies` are intended as convenience
+re-exports over the package submodules:
 
 ```python
-# Small scale (default)
-brain = Brain(p=0.05, seed=0)                          # -> numpy_sparse
-
-# Large scale with auto-detection
-brain = Brain(p=0.001, seed=0, n_hint=10_000_000)      # -> torch_sparse (if GPU)
-
-# Explicit override
-brain = Brain(p=0.05, seed=0, engine="torch_sparse")   # -> torch_sparse
+from neural_assemblies import Brain, create_engine
+from neural_assemblies import project, merge, overlap
 ```
 
----
-
-## Assembly Calculus subpackage (`neural_assemblies/assembly_calculus/`)
-
-The `assembly_calculus` package provides named, first-class operations for neural assembly computation. These wrap the low-level `Brain.project()` calls into clean functional APIs.
-
-### Data Types
-
-- **`Assembly`** — Immutable snapshot of k winner neurons in a brain area. Supports `overlap()` comparison and `len()`.
-- **`Sequence`** — Frozen ordered list of `Assembly` snapshots. Supports indexing, iteration, `pairwise_overlaps()`, `overlap_matrix()`, and `mean_consecutive_overlap()`.
-
-### Core Operations (Papadimitriou et al. 2020)
-
-| Operation | Signature | Description |
-|-----------|-----------|-------------|
-| `project` | `(brain, stimulus, target, rounds=10) → Assembly` | Project stimulus into target area, forming a stable assembly |
-| `reciprocal_project` | `(brain, source, target, rounds=10) → Assembly` | Copy an assembly from one area to another |
-| `associate` | `(brain, src_a, src_b, target, ...) → Assembly` | Link two assemblies through a shared target area |
-| `merge` | `(brain, src_a, src_b, target, ...) → Assembly` | Combine two assemblies into a conjunctive representation |
-| `pattern_complete` | `(brain, area, fraction=0.5, ...) → (Assembly, float)` | Recover full assembly from partial activation |
-| `separate` | `(brain, stim_a, stim_b, target, ...) → (Assembly, Assembly, float)` | Verify two stimuli create distinct assemblies |
-
-### Sequence Operations (Dabagia et al. 2025)
-
-| Operation | Signature | Description |
-|-----------|-----------|-------------|
-| `sequence_memorize` | `(brain, stimuli, target, rounds_per_step=10, repetitions=1) → Sequence` | Memorize an ordered sequence of stimuli via Hebbian bridges between consecutive assemblies |
-| `ordered_recall` | `(brain, area, cue, max_steps=20, ...) → Sequence` | Recall a memorized sequence from a cue using Long-Range Inhibition (LRI) |
-
-### Long-Range Inhibition (LRI)
-
-LRI enables sequence recall by suppressing recently-fired neurons so the network advances to the next assembly instead of oscillating. Key APIs:
+For larger codebases, direct submodule imports are usually clearer:
 
 ```python
-# Add area with LRI (or enable later with set_lri)
-brain.add_area("A", n=10000, k=100, beta=0.1,
-               refractory_period=3, inhibition_strength=100.0)
-
-# Dynamic toggling: disable during memorization, enable for recall
-brain.set_lri("A", refractory_period=3, inhibition_strength=100.0)
-
-# Clear refractory history between phases
-brain.clear_refractory("A")
-```
-
-LRI parameters:
-- **`refractory_period`**: Number of past steps to track (0 = disabled). Recently-fired neurons receive a penalty that decays linearly over this window.
-- **`inhibition_strength`**: Penalty magnitude. Use ~5.0 for soft suppression (partial shift), ~100-1000 for hard suppression (force next assembly).
-
-### Control
-
-- **`FiberCircuit`** — Declarative inhibition/disinhibition of projection channels between areas.
-
----
-
-## Table of Contents
-
-- [Introduction](#introduction)
-  - [Neural Assemblies and the Assembly Calculus](#neural-assemblies-and-the-assembly-calculus)
-  - [The NEMO Model](#the-nemo-model)
-- [Project Overview](#project-overview)
-  - [Relation to the Papers](#relation-to-the-papers)
-- [Project Structure](#project-structure)
-  - [File Descriptions](#file-descriptions)
-- [Module Descriptions](#module-descriptions)
-  - [Module: Brain Simulation (`brain.py`)](#module-brain-simulation-brainpy)
-  - [Module: Brain Utilities (`brain_util.py`)](#module-brain-utilities-brain_utilpy)
-  - [Module: Learning Experiments (`learner.py`)](#module-learning-experiments-learnerpy)
-  - [Archived Module: Overlap Simulations (`legacy/scripts/simulations/overlap_sim.py`)](#archived-module-overlap-simulations-legacyscriptssimulationsoverlap_simpy)
-  - [Module: Parser Simulation (`parser.py`)](#module-parser-simulation-parserpy)
-  - [Other Modules](#other-modules)
-- [Simulation Details](#simulation-details)
-  - [Implementing the Assembly Calculus](#implementing-the-assembly-calculus)
-  - [Parser Simulation](#parser-simulation)
-  - [Turing Machine Simulation](#turing-machine-simulation)
-- [Usage](#usage)
-  - [Running the Parser Simulation](#running-the-parser-simulation)
-  - [Running Learning Experiments](#running-learning-experiments)
-  - [Running Overlap Simulations](#running-overlap-simulations)
-  - [Running Other Simulations](#running-other-simulations)
-  - [Running Tests](#running-tests)
-- [Dependencies](#dependencies)
-- [Contributing](#contributing)
-- [License](#license)
-
----
-
-## Introduction
-
-### Neural Assemblies and the Assembly Calculus
-
-Neural assemblies are groups of neurons that fire together and represent specific concepts or cognitive functions. According to the Assembly Calculus proposed by Papadimitriou et al., these assemblies can perform complex computations through operations like projection, association, and merge.
-
-The Assembly Calculus provides a computational framework that models how assemblies of neurons can carry out computations. It introduces operations that manipulate these assemblies, allowing for the representation and processing of hierarchical structures, such as those found in language syntax.
-
-Key concepts from the Assembly Calculus:
-
-- **Projection**: Creating a new assembly in a downstream area that represents a copy of an existing assembly.
-- **Association**: Increasing the overlap between two assemblies to represent an association between their respective concepts.
-- **Merge**: Combining two assemblies to form a new assembly that represents the combination of their respective concepts.
-
-### The NEMO Model
-
-The NEMO (NEuronal MOdels) model, introduced by Mitropolsky et al., extends the Assembly Calculus by providing a biologically plausible model of neural computation. It incorporates additional biological realism, including:
-
-- **Distinct Neuron Types**: Modeling excitatory and inhibitory neurons.
-- **Plasticity Mechanisms**: Implementing Hebbian plasticity and synaptic weight adjustments.
-- **Brain Areas and Connectivity**: Simulating multiple brain areas with specific connectivity patterns.
-
-The NEMO model aims to bridge the gap between neural activity and cognitive functions, providing a framework to simulate complex tasks like language acquisition and processing.
-
----
-
-## Project Overview
-
-This project implements simulations that demonstrate how neural assemblies can perform computational tasks, especially language-processing patterns, finite-state style control, and Turing-style exploratory simulations.
-
-### Relation to the Papers
-
-#### "Brain Computation by Assemblies of Neurons"
-
-The project embodies the concepts introduced by Papadimitriou et al. by:
-
-- **Implementing Assembly Operations**: The simulation uses projection, association, and merge operations to manipulate assemblies, as described in the paper.
-- **Modeling Syntax Processing**: It demonstrates how merge operations can represent syntactic structures in language, aligning with the paper's discussion on language processing.
-- **Simulating Neural Computation**: The brain model reflects the theoretical underpinnings of neural computation through assemblies.
-
-#### "The Architecture of a Biologically Plausible Language Organ"
-
-The project aligns with the work of Mitropolsky et al. by:
-
-- **Implementing the NEMO Model**: The simulations incorporate the NEMO model to enhance the biological realism of neural computations.
-- **Modeling Language Acquisition**: It simulates how assemblies can learn representations of nouns and verbs from grounded input, demonstrating early stages of language acquisition.
-- **Exploring Computational Power**: By enhancing the neural model with additional biological realism, the project investigates whether this yields new computational capabilities.
-
----
-
-## Project Structure
-
-The repository is organized into several modules, each responsible for different aspects of the brain simulation and experiments:
-
-- **`brain.py`**: Core classes for simulating brain areas and their interactions, including `Area` and `Brain`.
-- **`brain_util.py`**: Utility functions for saving/loading simulations and computing overlaps between assemblies.
-- **`learner.py`**: Implements learning experiments, including word acquisition and syntax learning.
-- **`legacy/scripts/simulations/overlap_sim.py`**: Archived standalone overlap simulations from the pre-package layout. Prefer `neural_assemblies.simulation` for supported runs.
-- **`parser.py`**: Code for parsing sentences using the brain simulation framework, including classes for different languages.
-- **`simulations.py`**: Various simulations to test and illustrate the behavior of neural assemblies, including projection, association, and merge operations.
-- **`simulations_test.py`**: Unit tests for the simulations, ensuring the correctness and stability of the implemented algorithms and neural models.
-- **`legacy/scripts/simulations/turing_sim.py`**: Archived Turing-style simulations from the pre-package layout. Prefer `neural_assemblies.simulation.turing_simulations` for supported runs.
-- **`tests.py`**: Additional tests for the brain model.
-- **`README.md`**: This documentation file.
-
-### File Descriptions
-
-- **`brain.py`**: Contains the core implementation of the brain model, including neuron assemblies, synaptic connections, and the fundamental operations of the Assembly Calculus and the NEMO model.
-- **`brain_util.py`**: Provides utility functions for simulations, including saving and loading brain models, and computing overlaps between neuron assemblies.
-- **`learner.py`**: Implements learning experiments using the brain simulation framework. It includes classes and functions for simulating word acquisition, syntax learning, and the effects of various parameters on learning efficiency.
-- **`legacy/scripts/simulations/overlap_sim.py`**: Archived overlap simulations retained for historical reference.
-- **`parser.py`**: Contains code for parsing sentences using the brain simulation framework. It includes classes for different languages (English and Russian) and demonstrates how assemblies can represent grammatical structures.
-- **`simulations.py`**: Runs various simulations to test and illustrate the behavior of neural assemblies, including projection, association, merge operations, and language-related tasks.
-- **`simulations_test.py`**: Unit tests for the simulations.
-- **`legacy/scripts/simulations/turing_sim.py`**: Archived Turing-style simulations retained for historical reference.
-- **`tests.py`**: Additional tests for the brain model.
-
----
-
-## Module Descriptions
-
-### Module: Brain Simulation (`brain.py`)
-
-#### Description
-
-This module provides a configurable assembly model for simulating neural activity within brain areas. It allows for the creation of brain areas (`Area` class) and the brain itself (`Brain` class), facilitating simulations of neural firing patterns, synaptic plasticity, and inter-area connectivity.
-
-#### Relation to the Papers
-
-- Implements the core concepts of the Assembly Calculus and the NEMO model, providing the foundation for simulating neural assemblies and their interactions.
-- Models the projection, association, and merge operations as per Papadimitriou et al.'s work.
-- Incorporates biologically plausible features such as Hebbian plasticity and random synaptic connectivity.
-
----
-
-#### Class: `Area`
-
-##### Description
-
-Represents a brain area containing a population of neurons. It tracks neuron firing, synaptic strengths, and supports both explicit and implicit simulations.
-
-##### Attributes
-
-- **name** (`str`): Unique identifier for the area.
-- **n** (`int`): Total number of neurons in the area.
-- **k** (`int`): Number of neurons that fire during activation (the assembly size).
-- **beta** (`float`): Default synaptic plasticity parameter for the area.
-- **beta_by_stimulus** (`dict`): Maps stimulus names to their specific `beta` values for synapses into this area.
-- **beta_by_area** (`dict`): Maps area names to their specific `beta` values for synapses into this area.
-- **w** (`int`): Number of neurons that have ever fired in this area.
-- **saved_w** (`list`): Stores the size of the active assembly after each simulation round.
-- **winners** (`list`): Indices of neurons that fired in the previous activation.
-- **saved_winners** (`list`): Stores the list of `winners` after each simulation round.
-- **num_first_winners** (`int`): Number of neurons that fired for the first time in the last activation.
-- **fixed_assembly** (`bool`): If `True`, the assembly is fixed and does not change during simulation.
-- **explicit** (`bool`): If `True`, the area is fully simulated; otherwise, a sparse simulation is used.
-
-##### Methods
-
-- `__init__(name, n, k, beta=0.05, w=0, explicit=False)`: Initializes an `Area` instance.
-- `_update_winners()`: Updates the `winners` list after a projection step.
-- `update_beta_by_stimulus(name, new_beta)`: Sets a new `beta` value for synapses from a specific stimulus.
-- `update_area_beta(name, new_beta)`: Sets a new `beta` value for synapses from a specific area.
-- `fix_assembly()`: Freezes the current assembly, preventing it from changing in future simulations.
-- `unfix_assembly()`: Allows the assembly to change in future simulations.
-- `get_num_ever_fired()`: Returns the total number of neurons that have ever fired in the area.
-
----
-
-#### Class: `Brain`
-
-##### Description
-
-Represents the entire brain model, managing multiple areas and stimuli. It handles the creation of areas, stimuli, and the simulation of neural activity and synaptic plasticity across areas.
-
-##### Attributes
-
-- **area_by_name** (`dict`): Maps area names to `Area` instances.
-- **stimulus_size_by_name** (`dict`): Maps stimulus names to their sizes (number of firing neurons).
-- **connectomes_by_stimulus** (`dict`): Stores the synaptic connections from stimuli to areas.
-- **connectomes** (`dict`): Stores the synaptic connections between areas.
-- **p** (`float`): Default probability of connection between neurons.
-- **save_size** (`bool`): If `True`, saves the assembly sizes after each simulation round.
-- **save_winners** (`bool`): If `True`, saves the `winners` after each simulation round.
-- **disable_plasticity** (`bool`): If `True`, synaptic plasticity is disabled.
-- **_rng** (`numpy.random.Generator`): Random number generator for reproducibility.
-
-##### Methods
-
-- `__init__(p, save_size=True, save_winners=False, seed=0)`: Initializes a `Brain` instance.
-- `add_stimulus(stimulus_name, size)`: Adds a stimulus to the brain model.
-- `add_area(area_name, n, k, beta)`: Adds a new area to the brain model.
-- `add_explicit_area(area_name, n, k, beta, custom_inner_p=None, custom_out_p=None, custom_in_p=None)`: Adds an explicit (fully simulated) area to the brain model.
-- `update_plasticity(from_area, to_area, new_beta)`: Updates the synaptic plasticity parameter between two areas.
-- `update_plasticities(area_update_map={}, stim_update_map={})`: Updates synaptic plasticity parameters for multiple areas and stimuli.
-- `activate(area_name, index)`: Activates a fixed assembly within an area.
-- `project(areas_by_stim, dst_areas_by_src_area, verbose=0)`: Simulates neural projections from stimuli and areas into target areas.
-- `project_into(target_area, from_stimuli, from_areas, verbose=0)`: Internal method to handle the projection into a specific target area.
-
----
-
-#### Usage Example
-
-```python
-from brain import Brain
-
-# Initialize the brain with a connection probability of 0.05
-brain_model = Brain(p=0.05)
-
-# Add stimuli
-brain_model.add_stimulus('visual_stimulus', size=100)
-brain_model.add_stimulus('auditory_stimulus', size=80)
-
-# Add areas
-brain_model.add_area('VisualCortex', n=1000, k=100, beta=0.05)
-brain_model.add_area('AuditoryCortex', n=800, k=80, beta=0.05)
-
-# Update plasticity between areas
-brain_model.update_plasticity('VisualCortex', 'AuditoryCortex', new_beta=0.1)
-
-# Activate a fixed assembly in the visual cortex
-brain_model.activate('VisualCortex', index=0)
-
-# Simulate projections
-brain_model.project(
-    areas_by_stim={'visual_stimulus': ['VisualCortex']},
-    dst_areas_by_src_area={'VisualCortex': ['AuditoryCortex']}
+from neural_assemblies.core.brain import Brain
+from neural_assemblies.assembly_calculus import (
+    Assembly,
+    Sequence,
+    project,
+    merge,
+    sequence_memorize,
+    ordered_recall,
 )
 ```
 
----
+## Supported Surfaces
 
-### Module: Brain Utilities (`brain_util.py`)
+There are three distinct surfaces:
 
-#### Description
+1. `neural_assemblies/*`
+   This is the primary supported package API.
+2. Repo-root compatibility shims such as `brain.py`, `parser.py`, and
+   `simulations.py`
+   These exist for historical checkout workflows.
+3. Archived and research-only material under `legacy/` and `research/`
+   These are important, but they are not the default package contract.
 
-Provides utility functions for simulations, including saving and loading brain models, and computing overlaps between neuron assemblies.
+## Core Runtime
 
-#### Relation to the Papers
+The `neural_assemblies.core` package provides the runtime substrate.
 
-- Supports the analysis and validation of simulation results related to assembly overlap and convergence, as discussed in the papers.
-- Assists in demonstrating the preservation of overlap during projection and association operations.
+Main components:
 
----
+| Object | Location | Role |
+|--------|----------|------|
+| `Brain` | `core/brain.py` | Orchestrates areas, stimuli, routing, and projection cycles. |
+| `Area` | `core/area.py` | Holds area parameters such as `n`, `k`, `beta`, and winner history. |
+| `Stimulus` | `core/stimulus.py` | Represents external fixed inputs. |
+| `Connectome` | `core/connectome.py` | Connectivity and learned weights between sources and targets. |
+| `ComputeEngine` | `core/engine.py` | Abstract engine interface used by `Brain`. |
+| `create_engine()` | `core/engine.py` | Engine factory and registration seam. |
 
-#### Functions
-
-- `sim_save(file_name, obj)`: Saves a Python object (e.g., a `Brain` instance) to a file using pickle.
-  - **Parameters**:
-    - `file_name` (`str`): The name of the file to save the object to.
-    - `obj` (`object`): The object to save.
-- `sim_load(file_name)`: Loads a Python object from a file.
-  - **Parameters**:
-    - `file_name` (`str`): The name of the file to load the object from.
-  - **Returns**: The loaded object.
-- `overlap(a, b, percentage=False)`: Computes the overlap between two lists, treating them as sets.
-  - **Parameters**:
-    - `a` (`list`): First list.
-    - `b` (`list`): Second list.
-    - `percentage` (`bool`): If `True`, returns the overlap as a percentage of the length of `b`.
-  - **Returns**: The number of overlapping elements or the percentage overlap.
-- `get_overlaps(winners_list, base, percentage=False)`: Computes the overlap of each list in `winners_list` with a base list.
-  - **Parameters**:
-    - `winners_list` (`list of lists`): List containing multiple winners lists.
-    - `base` (`int`): Index of the base winners list in `winners_list`.
-    - `percentage` (`bool`): If `True`, returns overlaps as percentages.
-  - **Returns**: A list of overlaps.
-
----
-
-#### Usage Example
+Common usage:
 
 ```python
-import brain_util as bu
+from neural_assemblies.core.brain import Brain
 
-# Save the brain model
-bu.sim_save('brain_model.pkl', brain_model)
-
-# Load the brain model
-brain_model = bu.sim_load('brain_model.pkl')
-
-# Compute overlap between two assemblies
-assembly_a = [1, 2, 3, 4, 5]
-assembly_b = [4, 5, 6, 7, 8]
-overlap_count = bu.overlap(assembly_a, assembly_b)
-
-# Compute overlap percentage
-overlap_percentage = bu.overlap(assembly_a, assembly_b, percentage=True)
+b = Brain(p=0.05, engine="numpy_sparse", seed=0)
+b.add_stimulus("stim", size=100)
+b.add_area("A", n=10_000, k=100, beta=0.05)
+b.project({"stim": ["A"]}, {})
 ```
 
----
+### Engine Selection
 
-### Module: Learning Experiments (`learner.py`)
+Known engine names in the current codebase:
 
-#### Description
+- `numpy_sparse`
+- `numpy_explicit`
+- `cuda_implicit`
+- `cupy_sparse`
+- `torch_sparse`
 
-Implements learning experiments using the brain simulation framework. It includes classes and functions for simulating word acquisition, syntax learning, and the effects of various parameters on learning efficiency.
+`engine="auto"` currently delegates to `detect_best_engine()` in
+`neural_assemblies.core.backend`.
 
-#### Relation to the Papers
+Current heuristic:
 
-- Demonstrates how the NEMO model can simulate early stages of language acquisition, as described in "The Architecture of a Biologically Plausible Language Organ".
-- Models the learning of nouns and verbs from grounded input without explicit supervision.
-- Explores the impact of parameters such as plasticity (`beta`) and network connectivity (`p`) on learning efficiency.
+- if `n_hint >= 1_000_000` and PyTorch CUDA is available, prefer
+  `torch_sparse`
+- otherwise prefer `numpy_sparse`
 
----
+This is a practical heuristic, not a universal optimality claim.
 
-#### Constants
+## Compute Primitives
 
-Defines constants for words, area names, and phoneme indices used in the experiments.
+The `neural_assemblies.compute` package contains reusable mathematical and
+selection primitives used by the runtime.
+
+Main exports:
+
+| Object | Role |
+|--------|------|
+| `StatisticalEngine` | Sampling and statistical helpers. |
+| `NeuralComputationEngine` | Input aggregation and activation math. |
+| `WinnerSelector` | Winner-selection logic used by engine paths. |
+| `TopKPolicy` | Fixed-size competition rule. |
+| `ThresholdPolicy` | Absolute-threshold competition rule with `k` cap. |
+| `RelativeThresholdPolicy` | Variable-size competition rule based on fraction of max input. |
+| `PlasticityEngine` | Hebbian update logic. |
+
+Example:
 
 ```python
-# Words
-DOG = "DOG"
-CAT = "CAT"
-JUMP = "JUMP"
-RUN = "RUN"
+import numpy as np
 
-# Bilingual words
-PERRO = "PERRO"
-GATO = "GATO"
-SALTAR = "SALTAR"
-CORRER = "CORRER"
+from neural_assemblies.compute import TopKPolicy, WinnerSelector
 
-# Area names
-PHON = "PHON"
-MOTOR = "MOTOR"
-VISUAL = "VISUAL"
-NOUN = "NOUN"  # Lexicon area for nouns
-VERB = "VERB"  # Lexicon area for verbs
-CORE = "CORE"  # Area for "cores" (LRI populations)
-SEQ = "SEQ"
-MOOD = "MOOD"
-
-# Phoneme indices
-PHON_INDICES = {
-    DOG: 0,
-    CAT: 1,
-    JUMP: 2,
-    RUN: 3,
-    PERRO: 4,
-    GATO: 5,
-    SALTAR: 6,
-    CORRER: 7
-}
+selector = WinnerSelector(np.random.default_rng(0))
+winners = selector.select_with_policy(
+    [0.2, 0.8, 0.5, 0.8],
+    TopKPolicy(k=2),
+)
 ```
 
----
+The policy layer exists so competition semantics can evolve without forcing the
+engines to hard-code one inhibition model forever.
+
+## Assembly Calculus
 
-#### Functions
+The `neural_assemblies.assembly_calculus` package provides first-class
+operations and structured computation built on top of `Brain.project()`.
 
-- `lexicon_sizes_experiment(...)`: Tests learning efficiency across different lexicon sizes.
-- `betas_experiment(...)`: Tests the effect of varying the `beta` parameter on learning.
-- `p_experiment(...)`: Tests the effect of varying the connection probability `p`.
-- `single_word_tutoring_exp(...)`: Simulates learning with single-word tutoring.
+### Data Types
 
----
+| Object | Role |
+|--------|------|
+| `Assembly` | Snapshot of winners in one area. |
+| `Sequence` | Ordered list of `Assembly` snapshots. |
+| `Lexicon` | Mapping from tokens to assembly snapshots. |
+| `Transition` | Typed state transition primitive for automata helpers. |
+| `TransitionMap` | Validated container for deterministic or probabilistic transitions. |
 
-#### Class: `LearnBrain`
+### Core Operations
 
-##### Description
+| Function | Purpose |
+|----------|---------|
+| `project` | Stimulus-to-area assembly formation. |
+| `reciprocal_project` | Area-to-area copying. |
+| `associate` | Link assemblies through shared activation. |
+| `merge` | Build conjunctive assemblies. |
+| `pattern_complete` | Recover from partial input. |
+| `separate` | Compare distinctiveness of formed assemblies. |
+| `sequence_memorize` | Learn ordered sequences. |
+| `ordered_recall` | Replay a sequence with LRI support. |
+| `overlap` | Measure overlap between assemblies. |
+| `chance_overlap` | Baseline random overlap expectation. |
 
-Extends the `Brain` class to simulate language acquisition experiments, including word learning and syntax.
+### Structured Computation
 
-##### Methods
+| Object | Purpose |
+|--------|---------|
+| `FSMNetwork` | Deterministic finite-state computation helper. |
+| `PFANetwork` | Probabilistic finite automaton helper. |
+| `RandomChoiceArea` | Stochastic choice primitive. |
+| `FiberCircuit` | Declarative projection gating and control. |
 
-- `__init__(...)`: Initializes the `LearnBrain` instance with specified parameters.
-- `tutor_single_word(word)`: Tutors a single word to the brain.
-- `tutor_random_word()`: Tutors a random word from the lexicon.
-- `activate_context(word)`: Activates the contextual areas associated with a word.
-- `activate_PHON(word)`: Activates the phonological representation of a word.
-- `project_star(mutual_inhibition=False)`: Simulates projections with optional mutual inhibition between areas.
-- `parse_sentence(sentence)`: Parses a sentence by activating contexts and phonemes.
-- `train_simple(rounds)`: Trains the brain with a simple set of sentences.
-- `train_random_sentence()`: Trains the brain with a random sentence.
-- `train_experiment(max_rounds=100, use_extra_context=False)`: Runs a training experiment and tests word acquisition.
-- `train_experiment_randomized(...)`: Runs a randomized training experiment.
-- `test_all_words(use_extra_context=False)`: Tests whether all words have been correctly learned.
-- `testIndexedWord(word_index, min_overlap=0.75, use_extra_context=False, no_print=False)`: Tests retrieval of a word by its index.
+### Language-Like Higher Layers
 
----
+| Object | Purpose |
+|--------|---------|
+| `NemoParser` | Composed parser surface built on assembly operations. |
+| `EmergentParser` | Larger learned/emergent parsing system. |
+| `build_next_token_model`, `train_on_corpus`, `predict_next_token`, `score_corpus` | Next-token style utilities built on assembly sequences and overlap. |
 
-#### Class: `SimpleSyntaxBrain`
+## Simulation Package
 
-##### Description
+The `neural_assemblies.simulation` package contains runnable experiment helpers
+and plotting utilities.
 
-Simulates syntax acquisition, focusing on word order and grammatical structures using sequence and core areas.
+Common exports:
 
-##### Methods
+- `project_sim`, `project_beta_sim`, `assembly_only_sim`
+- `association_sim`, `association_grand_sim`
+- `merge_sim`, `merge_beta_sim`
+- `pattern_com`, `pattern_com_repeated`
+- `density`, `density_sim`
+- `fixed_assembly_recip_proj`, `fixed_assembly_merge`, `separate`
+- `larger_k`, `turing_erase`
 
-- `__init__(...)`: Initializes the `SimpleSyntaxBrain` instance.
-- `add_cores(...)`: Adds core areas representing grammatical roles.
-- `parse(sentence, mood_state=0)`: Parses a sentence, simulating syntax processing.
-- `pre_train(proj_rounds=20)`: Pre-trains the model to establish initial synaptic strengths.
-- `train(order, train_rounds=40, train_interrogative=False)`: Trains the brain with sentences in a specified word order.
+The Turing-style simulation helpers should be read as exploratory simulation
+tools, not as a package-level proof artifact.
 
----
+## Rule-Based Language Package
 
-#### Usage Example
+The `neural_assemblies.language` package is the rule-based parsing surface.
 
-```python
-from learner import LearnBrain
+Main exports:
 
-# Initialize the brain for word acquisition
-brain = LearnBrain(p=0.05, LEX_k=100)
+- `ParserBrain`
+- `EnglishParserBrain`
+- `RussianParserBrain`
+- `LEXEME_DICT`
+- `RUSSIAN_LEXEME_DICT`
+- `ReadoutMethod`
+- `fixed_map_readout`
+- `fiber_readout`
+- `ParserDebugger`
+- `parse(...)`
 
-# Train with simple sentences
-brain.train_simple(30)
+Use this package when you want explicit grammar rules. Use
+`neural_assemblies.nemo` when you want the experimental learned-language
+surfaces instead.
 
-# Test word retrieval
-retrieved_word = brain.testIndexedWord(PHON_INDICES["RUN"])
-print(f"Retrieved word: {retrieved_word}")
-```
+## Lexicon Package
 
----
+The `neural_assemblies.lexicon` package provides structured vocabulary and
+curriculum support.
 
-#### Notes
+Main exports:
 
-- **Bilingual Support**: The `LearnBrain` class can simulate bilingual experiments by setting the `bilingual` parameter.
-- **Extra Context Areas**: Supports additional context areas for more complex simulations.
-- **Syntax Learning**: The `SimpleSyntaxBrain` class demonstrates how syntax and word order can be learned using assemblies and core areas.
+- `LexiconManager`
+- `Word`
+- `WordCategory`
+- `WordStatistics`
 
----
+The surrounding modules include curriculum data, GPU learners, and
+assembly-based learners used by the broader language experiments.
 
-### Archived Module: Overlap Simulations (`legacy/scripts/simulations/overlap_sim.py`)
+## NEMO Package
 
-#### Description
+The `neural_assemblies.nemo` package contains experimental language-learning
+systems that are distinct from the core runtime.
 
-Provides simulations for examining overlap preservation in assemblies and the effect of assembly associations. It demonstrates how assemblies preserve overlap and how associative learning impacts the overlap between projected assemblies.
+Important point: package tests cover narrow synthetic behaviors here, but broad
+curriculum and language-acquisition claims should be tied to specific research
+artifacts, not inferred from package installation alone.
 
-#### Relation to the Papers
+Main imports exposed by `neural_assemblies.nemo.language` include:
 
-- Validates the analytical and simulation results regarding the preservation of overlap during projection and association, as discussed in "Brain Computation by Assemblies of Neurons".
-- Explores the implications of overlap preservation for probabilistic computation through assemblies.
+- `LanguageLearner`
+- `SentenceGenerator`
+- `Curriculum`
+- `CurriculumLearner`
+- `NemoLanguageLearner`
+- `NemoBrain`
+- `NemoParams`
+- `IntegratedNemoTrainer`
 
----
+## Legacy Compatibility
 
-#### Functions
+Repo-root files such as `brain.py`, `parser.py`, and `simulations.py` are now
+thin compatibility shims. The historical implementations they point to live
+under `legacy/root_modules/`.
 
-- `overlap_sim(n=100000, k=317, p=0.05, beta=0.1, project_iter=10)`: Simulates the preservation of overlap between assemblies.
-- `overlap_grand_sim(n=100000, k=317, p=0.01, beta=0.05, min_iter=10, max_iter=30)`: Simulates overlap over multiple iterations.
+Archived scripts and artifacts live under:
 
----
+- `legacy/scripts/`
+- `legacy/artifacts/`
+- `legacy/experiments/`
+- `legacy/matlab/`
 
-#### Usage Example
+Use the package modules for active work. Use the archived surfaces only when
+you need to reproduce or inspect old experiments.
 
-```python
-from legacy.scripts.simulations import overlap_sim
-
-# Run a simple overlap simulation
-assembly_overlap, proj_overlap = overlap_sim.overlap_sim()
-
-print(f"Assembly Overlap: {assembly_overlap}")
-print(f"Projection Overlap: {proj_overlap}")
-
-# Run a grand simulation over multiple iterations
-results = overlap_sim.overlap_grand_sim()
-
-for assembly_overlap, proj_overlap in results.items():
-    print(f"Assembly Overlap: {assembly_overlap} -> Projection Overlap: {proj_overlap}")
-```
-
----
-
-### Module: Parser Simulation (`parser.py`)
-
-#### Description
-
-Contains code for parsing sentences using the brain simulation framework. It includes classes for different languages (English and Russian) and demonstrates how assemblies can represent grammatical structures.
-
-#### Relation to the Papers
-
-- Implements the parser as described in "A Biologically Plausible Parser" by Mitropolsky et al.
-- Demonstrates how merge operations can represent syntactic structures, aligning with the discussion in "Brain Computation by Assemblies of Neurons".
-- Models language processing using assemblies, reflecting the computational power of neural circuits in handling language.
-
----
-
-#### Classes
-
-- `ParserBrain`: Extends the `Brain` class to handle parsing-specific functionality, such as applying grammar rules and managing fiber states.
-- `EnglishParserBrain`: Extends `ParserBrain` for English grammar, implementing specific rules and areas.
-- `RussianParserBrain`: Extends `ParserBrain` for Russian grammar, accommodating cases and free word order.
-
----
-
-#### Key Components
-
-- **Areas**: Defines brain areas corresponding to grammatical roles (e.g., `SUBJ`, `VERB`, `OBJ`).
-- **Lexemes**: Dictionaries (`LEXEME_DICT` for English and `RUSSIAN_LEXEME_DICT` for Russian) mapping words to their grammatical roles and rules.
-- **Rules**: Defines pre- and post-processing rules (`PRE_RULES` and `POST_RULES`) for each lexeme to simulate grammar.
-
----
-
-#### Functions
-
-- `parse(sentence, language="English", p=0.1, LEX_k=20, project_rounds=20, verbose=True, debug=False, readout_method=ReadoutMethod.FIBER_READOUT)`: Parses a sentence using the specified language model.
-
----
-
-#### Usage Example
-
-```python
-from parser import parse
-
-# Parse an English sentence
-parse("cats chase mice", language="English")
-
-# Parse a Russian sentence
-parse("kot vidit sobaku", language="Russian")
-```
-
----
-
-#### Notes
-
-- **Grammar Rules**: The parser uses pre-defined grammar rules to simulate the parsing process, applying activation and inhibition in various brain areas.
-- **Debugging**: The `ParserDebugger` class allows step-by-step debugging of the parsing process.
-- **Readout Methods**: Supports different methods to read out the parse tree, including fixed map readout and fiber activation readout.
-
----
-
-### Other Modules
-
-#### `simulations.py`
-
-- **Description**: Runs various simulations to test and illustrate the behavior of neural assemblies, including projection, association, merge operations, and language-related tasks.
-- **Relation to the Papers**: Validates the mathematical predictions of the Assembly Calculus and NEMO model through simulations.
-
-#### `simulations_test.py`
-
-- **Description**: Contains unit tests for the simulations, ensuring the correctness and stability of the implemented algorithms and neural models.
-
-#### `legacy/scripts/simulations/turing_sim.py`
-
-- **Description**: Explores Turing-style primitives such as larger-k dynamics and tape-like erase/persistence behavior. This is exploratory simulation code, not a package-level proof of Turing completeness.
-- **Relation to the Papers**: Connects to the sequence/LRI literature on
-  computational expressiveness, but in this repo it should be read as an
-  exploratory simulation of Turing-style primitives rather than a standalone
-  proof that the package realizes arbitrary computation.
-
-#### `tests.py`
-
-- **Description**: Additional tests for the brain model, focusing on specific scenarios and edge cases to validate the neural computations.
-
----
-
-## Simulation Details
-
-### Implementing the Assembly Calculus
-
-The project implements the operations of the Assembly Calculus within the `brain.py` and `brain_util.py` modules. These operations include:
-
-- **Projection**: Implemented in the `project` method of the `Brain` class, where an assembly projects to a downstream area, forming a new assembly.
-- **Association**: Implemented in the `associate` method (if present), where two assemblies increase their overlap through simultaneous activation.
-- **Merge**: Implemented in the `merge` method (if present), combining two assemblies to form a new one with connections to both parent assemblies.
-
-The simulations validate the mathematical predictions of the Assembly Calculus, such as the convergence of assemblies during projection and the preservation of overlaps.
-
-### Parser Simulation
-
-The `parser.py` script simulates a parser based on neural assemblies, demonstrating how assemblies can represent and process language structures.
-
-#### Key Components
-
-- **Brain Areas**: Represent different linguistic components, such as `LEX` (lexicon), `SUBJ` (subject), `VERB`, and `OBJ` (object).
-- **Assemblies**: Groups of neurons representing specific words or grammatical structures.
-- **Operations**: Utilize projection and association to simulate the activation and interaction of assemblies.
-- **Rules**: Define how assemblies interact based on grammatical structures, implemented through `AreaRule` and `FiberRule` classes.
-
-#### How It Works
-
-1. **Word Activation**: As each word in a sentence is read, its corresponding assembly in the lexicon (`LEX`) is activated in the `PHON` (phonological) area.
-
-2. **Rule Application**: Predefined rules determine how this activation projects to other brain areas, simulating grammatical processing. For example, a noun projects from `PHON` to `LEX_NOUN` and then to `SUBJ` or `OBJ` based on its role.
-
-3. **Projection**: Assemblies project to other areas, forming new assemblies that represent higher-level structures, such as phrases or sentences.
-
-4. **Readout**: After processing, the assemblies can be read out to reconstruct the parsed sentence or to extract grammatical relationships.
-
-#### Relation to Language Acquisition
-
-By simulating how assemblies form and interact during language processing, the project models early stages of language acquisition as described in "The Architecture of a Biologically Plausible Language Organ". It demonstrates how neural circuits can learn representations of nouns and verbs from grounded input without explicit supervision.
-
-### Turing Machine Simulation
-
-The archived `legacy/scripts/simulations/turing_sim.py` script explores how
-neural assemblies can simulate Turing machine concepts, investigating the
-computational limits of the neural model.
-
-#### Key Concepts
-
-- **Sequence Formation**: Simulating the storage and retrieval of sequences, analogous to the tape of a Turing machine.
-- **State Transitions**: Modeling state changes using assemblies, where each state is represented by an assembly, and transitions are simulated through projections.
-- **Computational Power**: Probing ingredients that matter for computational expressiveness. These simulations should be read as exploratory tests of tape-like and state-like behavior, not as a full Turing-machine construction.
-
----
-
-## Usage
-
-### Running the Parser Simulation
-
-To run the parser simulation:
-
-1. **Ensure Dependencies Are Installed**: See [Dependencies](#dependencies) below.
-
-2. **Run the `parser.py` Script**:
-
-   ```bash
-   python parser.py
-   ```
-
-3. **Input Sentences**: Modify the `sentence` variable in the `parse()` function to test different inputs.
-
-### Running Learning Experiments
-
-To run learning experiments for word acquisition and syntax learning:
+## Recommended Commands
 
 ```bash
-python learner.py
+# Default package gate
+uv run pytest neural_assemblies/tests -q
+
+# Docs and examples smoke coverage
+uv run pytest neural_assemblies/tests/test_docs_examples_smoke.py -q
+
+# Legacy compatibility checks
+uv run pytest tests/test_legacy_root_shims.py tests/test_legacy_archived_layout.py -q
 ```
-
-You can modify parameters within the script to test different scenarios, such as varying lexicon sizes, plasticity parameters, or connection probabilities.
-
-### Running Overlap Simulations
-
-For supported overlap experiments, prefer the packaged simulation runners under
-`neural_assemblies.simulation`. The historical standalone script is archived at
-`legacy/scripts/simulations/overlap_sim.py` for reference.
-
-### Running Other Simulations
-
-- **Projection and Association Simulations**: Run `simulations.py` to execute various tests and observe the behavior of neural assemblies.
-
-  ```bash
-  python simulations.py
-  ```
-
-- **Turing Machine Simulation**: Prefer
-  `neural_assemblies.simulation.turing_simulations` for supported runs. The
-  historical standalone script is archived at
-  `legacy/scripts/simulations/turing_sim.py`.
-
-### Running Tests
-
-To run the unit tests:
-
-```bash
-python simulations_test.py
-python tests.py
-```
-
----
-
-## Dependencies
-
-- **Python 3.x**
-
-- **Required Libraries**:
-
-  - `numpy`: For numerical computations and array manipulations.
-  - `matplotlib`: For plotting and visualizations.
-  - `unittest`: For running tests.
-  - `pickle`: For saving and loading simulation states.
-
-Install dependencies using pip:
-
-```bash
-pip install numpy matplotlib
-```
-
----
-
-## Contributing
-
-Contributions are welcome! Please submit issues or pull requests to help improve the project.
-
----
-
-## License
-
-This project is licensed under the MIT License.
-
----
-
-This documentation provides an integrated and detailed overview of the brain simulation repository, combining all relevant content to aid in understanding and utilizing the simulation framework. The examples illustrate how to set up and run experiments, helping users to grasp how the classes and methods interact within the context of neural assemblies and the computational models described in the referenced papers.

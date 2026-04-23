@@ -1,47 +1,38 @@
-# Language — Parsing and grammar
+# Language
 
-The **language** module implements **rule-based** sentence parsing with the assembly calculus: predefined grammar rules, language areas (e.g. NP, VP, LEX), and readout methods. For **learned** grammar and word order (NEMO), see [neural_assemblies/nemo](../nemo/README.md).
+The `neural_assemblies.language` package is the rule-based parsing surface.
 
-## What’s here
+Use this package when you want explicit grammar rules and hand-specified
+language areas. Use `neural_assemblies.nemo` when you want the experimental
+learned-language surfaces.
+
+## Main Components
 
 | Component | File | Role |
 |-----------|------|------|
-| **ParserBrain** | `parser.py` | Base parser brain; subclasses for English/Russian |
-| **EnglishParserBrain** | `parser.py` | English areas and projection map |
-| **RussianParserBrain** | `parser.py` | Russian areas and projection map |
-| **Grammar rules** | `grammar_rules.py` | `LEXEME_DICT`, `RUSSIAN_LEXEME_DICT` (pre/post rules per word) |
-| **Language areas** | `language_areas.py` | Area names, explicit areas, readout rules |
-| **Readout** | `readout_methods.py` | `fixed_map_readout`, `fiber_readout` |
-| **parse()** | `__init__.py` | One-shot: `parse("cats chase mice", language="English")` |
+| `ParserBrain` | `parser.py` | Base parser brain. |
+| `EnglishParserBrain` | `parser.py` | English parser configuration. |
+| `RussianParserBrain` | `parser.py` | Russian parser configuration. |
+| `LEXEME_DICT` | `grammar_rules.py` | English lexical rules. |
+| `RUSSIAN_LEXEME_DICT` | `grammar_rules.py` | Russian lexical rules. |
+| `ReadoutMethod` | `readout_methods.py` | Readout mode selection. |
+| `fixed_map_readout`, `fiber_readout` | `readout_methods.py` | Readout helpers. |
+| `ParserDebugger` | `debugger.py` | Debugging support. |
+| `parse(...)` | `__init__.py` | One-shot parsing helper. |
 
-## Quick use
+## Example
 
 ```python
-from neural_assemblies.language import parse, EnglishParserBrain, ParserBrain
+from neural_assemblies.language import parse
 
-# One-liner (uses default brain and readout)
 result = parse("cats chase mice", language="English")
-
-# Or build a parser brain and run your own loop
-from neural_assemblies.language import EnglishParserBrain
-b = EnglishParserBrain(p=0.1, LEX_k=20)
-b.activateWord("LEX", "cats")
-# ... apply rules, project, readout
+print(result)
 ```
 
-Root-level convenience (same behavior):
+From a repo checkout, `from parser import parse` still works through the
+root compatibility shim.
 
-```python
-from parser import parse  # when run from repo root; else: from neural_assemblies.language import parse
-parse("cats chase mice", language="English")
-```
+## See Also
 
-## Language support
-
-- **English** — SVO; areas and lexeme dict in `grammar_rules.py` / `language_areas.py`.
-- **Russian** — SOV and case; `RussianParserBrain`, `RUSSIAN_LEXEME_DICT`, Russian areas and readout.
-
-## See also
-
-- [neural_assemblies/nemo](../nemo/README.md) — Learned grammar and word order (no hardcoded rules).
-- [docs/api.md](../../docs/api.md) — Parser simulation and Turing details.
+- [../nemo/README.md](../nemo/README.md)
+- [../../docs/api.md](../../docs/api.md)

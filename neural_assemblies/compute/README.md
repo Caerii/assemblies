@@ -1,36 +1,38 @@
-# Compute — Math and primitives
+# Compute
 
-The **compute** module holds the mathematical primitives used by the core engines: statistics (e.g. Bernoulli sampling), plasticity (Hebbian), winner selection (top-k), and projection logic (sparse and explicit).
+The `neural_assemblies.compute` package contains reusable mathematical
+primitives used by the runtime and higher-level experiments.
 
-## What’s here
+## Main Components
 
 | Component | File | Role |
 |-----------|------|------|
-| **StatisticalEngine** | `statistics.py` | Sampling (e.g. binomial), normalization |
-| **NeuralComputationEngine** | `neural_computation.py` | Input aggregation, activation |
-| **WinnerSelector** | `winner_selection.py` | Top-k selection (winners per area) |
-| **PlasticityEngine** | `plasticity.py` | Hebbian weight updates (co-activity → strengthen) |
-| **SparseSimulationEngine** | `sparse_simulation.py` | Sparse projection path (used by numpy_sparse) |
-| **ExplicitProjectionEngine** | `explicit_projection.py` | Dense matrix projection (used by numpy_explicit) |
-| **ImageActivationEngine** | `image_activation.py` | Image → assembly activation for vision experiments |
+| `StatisticalEngine` | `statistics.py` | Sampling and statistical helpers. |
+| `NeuralComputationEngine` | `neural_computation.py` | Input aggregation and activation math. |
+| `WinnerSelector` | `winner_selection.py` | Winner selection and remapping logic. |
+| `TopKPolicy` | `winner_policies.py` | Fixed-size competition rule. |
+| `ThresholdPolicy` | `winner_policies.py` | Absolute-threshold competition rule. |
+| `RelativeThresholdPolicy` | `winner_policies.py` | Variable-size competition rule based on relative input strength. |
+| `PlasticityEngine` | `plasticity.py` | Hebbian update logic. |
+| `SparseSimulationEngine` | `sparse_simulation.py` | Sparse projection helpers. |
+| `ExplicitProjectionEngine` | `explicit_projection.py` | Dense projection helpers. |
 
-You typically don’t call these directly; `Brain` and the engines in `neural_assemblies/core` use them. Use this module when you need to reuse or extend the same math (e.g. custom engine or analysis).
-
-## Quick use
+## Example
 
 ```python
-from neural_assemblies.compute import WinnerSelector, PlasticityEngine, StatisticalEngine
+import numpy as np
 
-# Example: top-k from a score vector
-selector = WinnerSelector()
-winners = selector.select(inputs, k=100)
+from neural_assemblies.compute import TopKPolicy, WinnerSelector
 
-# Hebbian update (conceptually)
-plasticity = PlasticityEngine()
-plasticity.update(connectome, pre_winners, post_winners, beta=0.05)
+selector = WinnerSelector(np.random.default_rng(0))
+winners = selector.select_with_policy([0.1, 0.9, 0.5, 0.9], TopKPolicy(k=2))
+print(winners)
 ```
 
-## See also
+The policy layer is the current extension seam for richer competition rules.
+It does not mean every engine path already uses every policy by default.
 
-- [neural_assemblies/core](../core/README.md) — Brain and engines that use these primitives.
-- [docs/architecture.md](../../docs/architecture.md) — Where compute fits in the stack.
+## See Also
+
+- [../core/README.md](../core/README.md)
+- [../../docs/api.md](../../docs/api.md)

@@ -1,323 +1,196 @@
 # Assemblies
 
-**Neural assembly calculus:** projection, association, merge — with language-learning experiments (NEMO-style), GPU-capable engines, and Turing-style simulations. Python 3.10+.
+Sparse neural assembly calculus runtime and research workspace for projection,
+association, merge, sequence memory, language experiments, and optional GPU
+execution.
 
----
+The repository currently has two roles:
 
-I'm Alif Jakir, I like to tinker! Some of my research work involves me extending the neural assemblies framework toward omnimodality, scaling, and general language learning grounded in neurobiological and neurolinguistic facts, in collaboration with Daniel Mitropolsky (MIT Poggio Lab; [dmitropolsky.github.io](https://dmitropolsky.github.io/)). As you can see I am quite excited by neural alternatives beyond deep learning... which is much in vogue today.
+- an installable Python package, published as `neural-assemblies` and imported
+  as `neural_assemblies`
+- a research workspace built around that package
 
-I started extending Daniel's PhD thesis project in *2024* in MIT's [Projects in the Science of Intelligence](https://poggio-lab.mit.edu/9-58/) class. I asked whether the neural assembly calculus and NEMO-style models could do visual discrimination — they could. I didn't get stable enough assemblies for every CIFAR-10 category consistently, but the experiments showed it works in principle. I also rewrote the codebase several times to make it easier to extend and understand; this repo is the result.
+This repo grew out of assembly-calculus and language-organ work around MIT's
+Projects in the Science of Intelligence course and later extensions of that
+line of research. The package is intentionally narrower than the full research
+agenda.
 
-This codebase is a garden I've co-built with AI, exploring assemblies as a foundational computational paradigm.
+If you care about statement strength, read
+[docs/scientific_status.md](docs/scientific_status.md).
+If you care about package versus legacy boundaries, read
+[docs/supported_surfaces.md](docs/supported_surfaces.md).
 
-**What this is:** A computational neuroscience framework that implements the **Assembly Calculus** — a model of brain computation via neural ensembles (assemblies) — with extensions for language learning, image classification, GPU acceleration, and Turing-style simulation. It is a discrete neural simulation framework with sparse competition, Hebbian plasticity, and package-tested assembly operations. Assemblies are the intermediate primitive between raw neural activity and higher-level structure. The underlying theory includes sequence/LRI constructions related to finite-state computation and Turing-completeness results in the literature, but this repo should be read as an implementation and experiment platform, not as a standalone proof artifact.
+## What This Repo Is
 
-**What this is not:** Not a deep-learning library (no backprop, no attention). Not a full biological brain model — it's a minimal calculus (projection, association, merge, Hebbian, top-k) that we scale and compose. Not claiming to beat transformers at everything; the bet is that this *alternative* — sparse, interpretable, neurobiologically grounded — can support language and reasoning in a way that's efficient and comprehensible.
+- A package-tested implementation of core assembly-calculus operations.
+- A home for experimental language surfaces, including rule-based parsing,
+  NEMO-related modules, and the emergent parser.
+- A place to run optional GPU and accelerator paths without making them the
+  default package contract.
+- A research tree that tracks experiments, claims, and curated scientific
+  questions separately from the installable API.
 
-**Also not:** Not a biophysical spiking simulator (no ion channels, no ms-level dynamics) — we use discrete rounds of projection and competition. "Neurobiologically plausible" means the *operations* are plausible (Hebbian, sparse, local), not that we're modeling a specific brain region or species in detail. Not differentiable end-to-end — you can't plug it into autograd; assemblies are the primitive, not an interpretation layer on top of a big net. Not a chatbot or API — it's a research codebase and simulation framework; no hosted service.
+## What This Repo Is Not
 
-This is also not the only implementation of the assembly calculus, it is merely one implementation with specific extensions (NEMO, lexicon, GPU). "Co-built with AI" means I direct and AI assists; the science and design are mine. We're not claiming we've solved language or AGI, or that assemblies are *the* way the brain does it — we're exploring one formalization. Turing-completeness is a theoretical result from Dabagia et al. (2023/2025), not a package-level claim that this repo has fully reconstructed every required condition.
+- Not a deep-learning framework with backprop or attention.
+- Not a full biological brain model.
+- Not a package-level proof artifact for Turing completeness.
+- Not a claim that every historical experiment at the repo root is part of the
+  primary supported API.
 
-**Why it matters (to us):** One substrate (assemblies) for perception, language, and structure; interpretable primitives (assemblies = concepts); and a path to scaling that stays close to how cortex might compute. We're exploring whether this can be a foundation for a different kind of model.
+## Current Status
 
-**Who it's for:** Researchers and students in computational neuroscience, neuro-inspired ML, or alternative approaches to language and reasoning — and anyone curious about assembly calculus, NEMO-style language learning, or scaling sparse neural systems without backprop.
+- Package-backed: projection, reciprocal projection, association, merge,
+  pattern completion, sequence memorization, ordered recall, Long-Range
+  Inhibition (LRI), FSM/PFA helpers, and core runtime behavior.
+- Research-oriented: broad language-acquisition claims, robust CIFAR-scale
+  category formation, embodied multimodal grounding, and world-model style
+  extensions.
+- Legacy: old repo-root experiments and scripts are archived under `legacy/`.
+  The root modules that remain are compatibility shims.
 
-**Where things stand:** Core operations (projection, association, merge), sequence memorization, ordered recall, LRI, and finite-state utilities are implemented and covered by package tests. NEMO-related modules support experimental language-learning behaviors, and the repo includes tests for word-category learning, role binding, and word-order inference in controlled settings. GPU backends and parity tests exist, but exact speedups are hardware- and workload-dependent. Full Turing-machine constructions, foundation-model scale, robust CIFAR category formation, and embodied multimodal learning remain research work rather than settled package claims.
+## Install
 
-My main goal in summer *2025* was to scale the system using custom CUDA and algorithmic improvements toward a new kind of foundational model. Success was found in the optimization project.
+```bash
+# Install the published package
+pip install neural-assemblies
 
-**Based on:**
-- Papadimitriou et al., "Brain Computation by Assemblies of Neurons", *PNAS* 2020
-- Mitropolsky & Papadimitriou, "The Architecture of a Biologically Plausible Language Organ", 2023
-- Mitropolsky & Papadimitriou, "Simulated Language Acquisition in a Biologically Realistic Model of the Brain", 2025
-- Hebb, "The Organization of Behavior", 1949 (Hebbian plasticity)
-- Hopfield, "Neural networks and physical systems with emergent collective computational abilities", *PNAS* 1982 (attractor dynamics)
-- Olshausen & Field, "Sparse coding with an overcomplete basis set: A strategy employed by V1?", *Vision Research* 1997 (sparse coding)
+# Development install from a checkout
+uv sync
 
-## Contents
+# Optional GPU extras
+uv sync --group gpu
+```
 
-- [Documentation](#documentation) · [Requirements](#requirements) · [Quick Start](#quick-start) · [Overview](#overview) · [Usage](#usage) · [Project Structure](#project-structure) · [Tests](#tests) · [Publishing](#publishing-to-pypi-maintainers) · [Citation](#citation) · [License](#license)
-
-## Documentation
-
-**By section (each has a README):**
-
-| Section | Path | Description |
-|--------|------|-------------|
-| **Core** | [neural_assemblies/core/README.md](neural_assemblies/core/README.md) | Brain, Area, Stimulus, Connectome, ComputeEngine (CPU/GPU) |
-| **Compute** | [neural_assemblies/compute/README.md](neural_assemblies/compute/README.md) | Statistics, plasticity, winner selection, projection primitives |
-| **Assembly Calculus** | [neural_assemblies/assembly_calculus/](neural_assemblies/assembly_calculus/) | project, associate, merge, sequence, readout, FSM, PFA, EmergentParser |
-| **Simulation** | [neural_assemblies/simulation/README.md](neural_assemblies/simulation/README.md) | Projection, association, merge, pattern completion, Turing-style sims |
-| **Language** | [neural_assemblies/language/README.md](neural_assemblies/language/README.md) | Rule-based parsing (English/Russian), grammar, readout |
-| **Lexicon** | [neural_assemblies/lexicon/README.md](neural_assemblies/lexicon/README.md) | Word lists, curriculum, assembly/GPU learners |
-| **NEMO** | [neural_assemblies/nemo/README.md](neural_assemblies/nemo/README.md) | Learned grammar, language acquisition (GPU) |
-
-**Project-wide:**
-
-- [**docs/**](docs/README.md) — Full API ([api.md](docs/api.md)), [architecture](docs/architecture.md), [scientific status](docs/scientific_status.md), and [packaging](docs/packaging.md) guides.
-- [**research/**](research/README.md) — Experiments, results, plans, open questions.
-
-## Requirements
-
-- **Python 3.10+**
-- For GPU: CUDA-capable device and [cupy-cuda13x](https://pypi.org/project/cupy-cuda13x/) (or cupy-cuda12x); see [pyproject.toml](pyproject.toml) optional deps.
+The primary import surface is always `neural_assemblies`, including after
+`pip install neural-assemblies`.
 
 ## Quick Start
 
-```bash
-# Install from PyPI (recommended)
-pip install neural-assemblies
-
-# Or install from repo (development)
-uv sync                         # CPU + dev deps (dependency-groups.dev)
-# or: pip install -e .
-
-# GPU extras (on supported CUDA/ROCm machines)
-# via uv:  uv sync --group gpu   # adds dependency-groups.gpu on top
-# via pip: pip install -e ".[gpu]"
-
-# Run tests (from repo)
-uv run python -m pytest neural_assemblies/tests/ -q
-
-# Quick check: project a stimulus into an area
-python -c "
-from neural_assemblies.core.brain import Brain
-b = Brain(p=0.05, engine='numpy_sparse')
-b.add_stimulus('s', size=50); b.add_area('A', n=2000, k=50, beta=0.05)
-b.project({'s': ['A']}, {}); b.project({}, {'A': ['A']})
-print('Winners (first 10):', b.area_by_name['A'].winners[:10])
-"
-```
-
-**Note:** No GPU? Use `engine="numpy_sparse"` (default when CuPy is missing). After `pip install neural-assemblies`, use `from neural_assemblies....` imports.
-
-## Overview
-
-Neural assemblies are groups of neurons that fire together to represent concepts. The Assembly Calculus provides core operations on these assemblies:
-
-- **Projection**: Copy an assembly into a downstream brain area
-- **Association**: Increase overlap between assemblies to link concepts
-- **Merge**: Combine two assemblies into a new one representing their conjunction
-- **Sequence Memorize**: Learn an ordered sequence of assemblies via Hebbian bridges
-- **Ordered Recall**: Replay a memorized sequence from a cue using Long-Range Inhibition (LRI)
-
-Brain delegates all computation to a **ComputeEngine** — swap between CPU and GPU
-backends with a single parameter:
-
-```
-Brain(p=0.05, engine="auto")    # auto-detect best backend
-Brain(p=0.05, engine="numpy_sparse")    # CPU, scales to large n
-Brain(p=0.05, engine="cuda_implicit")   # GPU-capable hash-based engine
-```
-
-## Usage
-
-### Core API
-
 ```python
 from neural_assemblies.core.brain import Brain
-
-b = Brain(p=0.05, engine="numpy_sparse")
-b.add_stimulus("stim", size=100)
-b.add_area("A", n=10000, k=100, beta=0.05)
-
-# Project stimulus into area A
-b.project({"stim": ["A"]}, {})
-
-# Recurrent projection to stabilize assembly
-for _ in range(9):
-    b.project({}, {"A": ["A"]})
-```
-
-### Assembly Calculus Operations
-
-```python
-from neural_assemblies.core.brain import Brain
-from neural_assemblies.assembly_calculus import (
-    project, associate, merge, pattern_complete, separate,
-    sequence_memorize, ordered_recall,
-    Assembly, Sequence, overlap,
-)
+from neural_assemblies.assembly_calculus import merge, overlap, project
 
 b = Brain(p=0.05, save_winners=True, seed=42, engine="numpy_sparse")
-for i in range(3):
-    b.add_stimulus(f"s{i}", 100)
-b.add_area("A", n=10000, k=100, beta=0.1)
+b.add_stimulus("s1", 80)
+b.add_stimulus("s2", 80)
+b.add_area("A1", n=5000, k=80, beta=0.08)
+b.add_area("A2", n=5000, k=80, beta=0.08)
+b.add_area("B", n=5000, k=80, beta=0.08)
 
-# Memorize a sequence of stimuli
-seq = sequence_memorize(b, ["s0", "s1", "s2"], "A", rounds_per_step=10)
-print(f"Memorized {len(seq)} assemblies, consecutive overlap: {seq.mean_consecutive_overlap():.3f}")
+a1 = project(b, "s1", "A1", rounds=8)
+a2 = project(b, "s2", "A2", rounds=8)
+merged = merge(b, "A1", "A2", "B", rounds=5)
 
-# Enable LRI and recall the sequence from a cue
-b.set_lri("A", refractory_period=3, inhibition_strength=100.0)
-recalled = ordered_recall(b, "A", "s0", max_steps=10, known_assemblies=list(seq))
-print(f"Recalled {len(recalled)} assemblies")
-print(f"First recalled overlaps first memorized: {overlap(recalled[0], seq[0]):.3f}")
+print("Overlap before merge:", overlap(a1, a2))
+print("Merged assembly size:", len(merged))
 ```
 
-### Classic API (backward-compatible)
+From a checkout you can also run the packaged example directly:
 
-```python
-from brain import Brain  # thin shim re-exporting neural_assemblies.core.brain (when run from repo root)
-
-b = Brain(p=0.05)
-b.add_stimulus("stim", k=100)
-b.add_area("A", n=10000, k=100, beta=0.05)
-b.project({"stim": ["A"]}, {})
+```bash
+uv run python examples/01_basic_assembly_calculus.py
 ```
 
-### Engine API (direct access)
+## Supported Surfaces
 
-```python
-from neural_assemblies.core.engine import create_engine
+The three main surfaces are:
 
-engine = create_engine("numpy_sparse", p=0.05, seed=42)
-engine.add_area("A", n=10000, k=100, beta=0.05)
-engine.add_stimulus("s", size=100)
-result = engine.project_into("A", from_stimuli=["s"], from_areas=[])
-print(result.winners, result.num_ever_fired)
-```
+1. Installable package: `neural_assemblies/*`
+2. Repo-root compatibility shims: `brain.py`, `parser.py`, `simulations.py`,
+   `learner.py`, `image_learner.py`, `recursive_parser.py`, `brain_util.py`
+3. Research and performance workflows: `research/*`, `tests/performance/*`,
+   `cpp/*`
 
-### NEMO Language Learning
+Only the first surface is the default package contract.
 
-```python
-from neural_assemblies.nemo.core import Brain, BrainParams
-from neural_assemblies.nemo.language import LanguageLearner, SentenceGenerator
+## Documentation
 
-learner = LanguageLearner()
-learner.hear_sentence(["dog", "chases", "cat"])
-learner.hear_sentence(["cat", "sees", "dog"])
+Project-wide guides:
 
-generator = SentenceGenerator(learner)
-sentence = generator.generate_sentence()
-```
+- [docs/README.md](docs/README.md)
+- [docs/api.md](docs/api.md)
+- [docs/architecture.md](docs/architecture.md)
+- [docs/scientific_status.md](docs/scientific_status.md)
+- [docs/supported_surfaces.md](docs/supported_surfaces.md)
 
-### Running Simulations
+Section READMEs:
 
-```python
-from neural_assemblies.simulation.projection_simulator import project_sim
-weights = project_sim(n=100000, k=317, p=0.01, beta=0.05, t=50)
+- [neural_assemblies/core/README.md](neural_assemblies/core/README.md)
+- [neural_assemblies/compute/README.md](neural_assemblies/compute/README.md)
+- [neural_assemblies/simulation/README.md](neural_assemblies/simulation/README.md)
+- [neural_assemblies/language/README.md](neural_assemblies/language/README.md)
+- [neural_assemblies/lexicon/README.md](neural_assemblies/lexicon/README.md)
+- [neural_assemblies/nemo/README.md](neural_assemblies/nemo/README.md)
 
-from neural_assemblies.simulation.pattern_completion import pattern_com
-weights, winners = pattern_com(alpha=0.5, comp_iter=5)
+Research workflow:
 
-from neural_assemblies.simulation.merge_simulator import merge_sim
-a_w, b_w, c_w = merge_sim(n=100000, k=317, p=0.01, beta=0.05)
-```
-
-### Parser (English / Russian)
-
-```python
-# After pip install neural-assemblies:
-from neural_assemblies.language import parse
-parse("cats chase mice", language="English")
-
-# Or from repo root (uses the root parser.py compatibility shim): from parser import parse
-```
-
-## Project Structure
-
-```
-neural_assemblies/
-|-- brain.py                # Backward-compatible shim (re-exports neural_assemblies.core.brain)
-|-- brain_util.py           # Compatibility shim -> legacy/root_modules/brain_util.py
-|-- learner.py              # Compatibility shim -> legacy/root_modules/learner.py
-|-- parser.py               # Compatibility shim -> legacy/root_modules/parser.py
-|-- simulations.py          # Compatibility shim -> legacy/root_modules/simulations.py
-|-- image_learner.py        # Compatibility shim -> legacy/root_modules/image_learner.py
-|-- recursive_parser.py     # Compatibility shim -> legacy/root_modules/recursive_parser.py
-|
-|-- neural_assemblies/      # Installable package (pip install neural-assemblies); see section READMEs
-|   |-- assembly_calculus/  # Assembly calculus subpackage: project, merge, sequence_memorize, ordered_recall, FSM, PFA, EmergentParser
-|   |-- core/               # Brain, Area, Stimulus, Connectome, ComputeEngine → README
-|   |-- compute/            # Statistics, plasticity, winner selection, projections → README
-|   |-- simulation/         # Projection, merge, pattern completion, association sims → README
-|   |-- language/           # Grammar rules, language areas, parser, readout → README
-|   |-- lexicon/            # 5000+ word lexicon, curriculum, GPU learners → README
-|   |-- nemo/               # NEMO v2: learned grammar, language generation (GPU) → README
-|   |-- gpu/                # CuPy/PyTorch acceleration (stubs, roadmap) → README
-|   |-- constants/          # Default parameters
-|   |-- utils/               # Math utilities
-|   `-- tests/               # Unit and integration tests
-|
-|-- docs/                   # Project-wide documentation → docs/README.md
-|   |-- api.md              # Full API and module guide
-|   |-- architecture.md     # Design and engine layout
-|   `-- packaging.md        # PyPI build and release (maintainers)
-|
-|-- research/               # Experiments, results, plans → research/README.md
-|-- legacy/                 # Archived root modules, scripts, artifacts, MATLAB prototypes
-|-- cpp/                    # Custom CUDA kernels (.cu) and build scripts → cpp/README.md
-`-- pyproject.toml          # Package configuration (PyPI: pip install neural-assemblies)
-```
+- [research/README.md](research/README.md)
+- [research/claims/index.json](research/claims/index.json)
+- [research/core_questions/index.json](research/core_questions/index.json)
 
 ## Tests
 
-```bash
-# Fast core tests
-uv run python -m pytest neural_assemblies/tests/test_brain.py neural_assemblies/tests/test_engine_parity.py -v
-
-# All unit tests (excludes slow simulation integration)
-uv run python -m pytest neural_assemblies/tests/ -q --ignore=neural_assemblies/tests/test_simulation_integration.py
-
-# Full suite
-uv run python -m pytest neural_assemblies/tests/ -q
-```
-
-## Publishing to PyPI (maintainers)
-
-The package is published under the [Superintelligent Group](https://pypi.org/organization/sig/) organization on PyPI as **neural-assemblies**. See **[docs/packaging.md](docs/packaging.md)** for the full release checklist and version/URL conventions.
+Recommended package gate:
 
 ```bash
-# Install build and twine
-pip install build twine
-
-# Build wheel and sdist
-python -m build
-
-# Upload to PyPI (requires PyPI token with access to the assemblies project)
-twine upload dist/*
-# Or to Test PyPI first: twine upload --repository testpypi dist/*
+uv run pytest neural_assemblies/tests -q
 ```
 
-Keep `version` in [pyproject.toml](pyproject.toml) and `__version__` in `neural_assemblies/__init__.py` in sync for each release.
+Focused checks that matter for current repo structure:
 
-## Dependencies
+```bash
+# Legacy compatibility and archive layout
+uv run pytest tests/test_legacy_root_shims.py tests/test_legacy_archived_layout.py -q
 
-**Required**: numpy, scipy, matplotlib, pptree, tqdm, pandas, seaborn (see [pyproject.toml](pyproject.toml)).
+# Optional CUDA / accelerator checks
+uv run pytest tests/performance/test_cuda_env.py -q
+uv run pytest tests/performance/test_cuda.py::test_cuda_availability tests/performance/test_cuda.py::test_cpp_availability -q
+```
 
-**Optional GPU**: `pip install neural-assemblies[gpu]` or `pip install -e ".[gpu]"` — adds cupy-cuda12x/cupy-cuda13x, torch.
+Research tree validators:
 
-**Dev** (from repo): `uv sync` installs pytest, pytest-cov, ruff, build, twine (see [docs/packaging.md](docs/packaging.md)).
+```bash
+uv run python research/experiments/infrastructure/validate_registry.py
+uv run python research/claims/validate_index.py
+uv run python research/core_questions/validate_index.py
+```
+
+## Repository Layout
+
+```text
+.
+|-- neural_assemblies/        # Installable package
+|-- docs/                     # Package and architecture docs
+|-- examples/                 # Small runnable examples
+|-- research/                 # Experiments, claims, curated questions
+|-- legacy/                   # Archived root modules, scripts, artifacts
+|-- tests/                    # Legacy compatibility and optional perf tests
+|-- cpp/                      # Accelerator kernels and build tooling
+|-- brain.py                  # Root compatibility shim
+|-- parser.py                 # Root compatibility shim
+|-- simulations.py            # Root compatibility shim
+`-- pyproject.toml            # Package metadata
+```
 
 ## Citation
 
-If you use this code or build on the assembly calculus, please cite the foundational work:
+If you build on this code or the underlying ideas, cite the foundational work:
 
-- **Assembly calculus:** Papadimitriou et al. (2020), *Brain Computation by Assemblies of Neurons*, PNAS.
-- **Sequences, FSM, Turing-completeness:** Dabagia et al. (2023), *Computation with Sequences of Assemblies in a Model of the Brain*, ALT 2024 / arXiv:2306.03812.
-- **Language organ / NEMO:** Mitropolsky & Papadimitriou (2023), *The Architecture of a Biologically Plausible Language Organ*; Mitropolsky & Papadimitriou (2025), *Simulated Language Acquisition in a Biologically Realistic Model of the Brain*.
+- Papadimitriou et al. (2020), *Brain Computation by Assemblies of Neurons*
+- Dabagia et al. (2024/2025), *Computation with Sequences of Assemblies in a
+  Model of the Brain*
+- Mitropolsky and Papadimitriou (2023, 2025) on the language organ and
+  simulated language acquisition
 
-Full references below.
-
-## References
-
-- Papadimitriou, C. H., Vempala, S. S., Mitropolsky, D., Collins, M., & Maass, W. (2020). Brain Computation by Assemblies of Neurons. *PNAS*, 117(25), 14464–14472. [doi:10.1073/pnas.2001893117](https://www.pnas.org/doi/full/10.1073/pnas.2001893117)
-- Dabagia, M., Papadimitriou, C. H., & Vempala, S. S. (2023). Computation with Sequences of Assemblies in a Model of the Brain. *Proceedings of the 35th Conference on Algorithmic Learning Theory (ALT)* 2024. [arXiv:2306.03812](https://arxiv.org/abs/2306.03812)
-- Mitropolsky, D., & Papadimitriou, C. H. (2023). The Architecture of a Biologically Plausible Language Organ. [arXiv:2306.15364](https://arxiv.org/abs/2306.15364)
-- Mitropolsky, D., & Papadimitriou, C. H. (2025). Simulated Language Acquisition in a Biologically Realistic Model of the Brain. [arXiv:2507.11788](https://arxiv.org/abs/2507.11788). [doi:10.48550/arXiv.2507.11788](https://doi.org/10.48550/arXiv.2507.11788)
-- Hebb, D. O. (1949). *The Organization of Behavior: A Neuropsychological Theory*. Wiley.
-- Hopfield, J. J. (1982). Neural networks and physical systems with emergent collective computational abilities. *PNAS*, 79(8), 2554–2558.
-- Olshausen, B. A., & Field, D. J. (1997). Sparse coding with an overcomplete basis set: A strategy employed by V1? *Vision Research*, 37(23), 3311–3325.
-
-## Acknowledgments
-
-This project grew out of MIT's [Projects in the Science of Intelligence](https://poggio-lab.mit.edu/9-58/) (9.58). Thanks to the Poggio Lab and Daniel Mitropolsky for the collaboration on the assembly calculus and language organ.
+The package is an implementation and experiment platform. Literature claims
+should still be cited to the papers, not inferred from package installation.
 
 ## Contributing
 
-Contributions are welcome. See [docs/contributing.md](docs/contributing.md) for how to report issues, open PRs, and run the dev setup. For packaging and release steps, see [docs/packaging.md](docs/packaging.md).
+See [docs/contributing.md](docs/contributing.md) for contributor workflow and
+[docs/packaging.md](docs/packaging.md) for release steps.
 
 ## License
 
-MIT License. See [LICENSE](LICENSE).
+MIT. See [LICENSE](LICENSE).

@@ -1,175 +1,199 @@
 # Architecture
 
+This document describes the current software architecture of the repository.
+
+It is about code organization and runtime boundaries, not about proving the
+underlying science. For scientific claim boundaries, see
+[scientific_status.md](scientific_status.md).
+
+## Supported Surfaces
+
+The repository has three practical surfaces:
+
+1. Installable package: `neural_assemblies/*`
+2. Repo-root compatibility shims for old checkout workflows
+3. Research, performance, and archived legacy material
+
+Only the installable package is the default release-quality contract.
+
+## Runtime Stack
+
+The main package layers look like this:
+
+```text
+Brain / package entry points
+  -> core runtime and engine registry
+  -> compute primitives
+  -> assembly_calculus operations
+  -> language / lexicon / nemo higher layers
+  -> simulation helpers
+```
+
+### 1. Core Runtime
+
+`neural_assemblies.core` owns:
+
+- `Brain`
+- `Area`
+- `Stimulus`
+- `Connectome`
+- `ComputeEngine`
+- engine registration and selection
+
+`Brain` is intentionally an orchestrator. It owns topology, routing, and high
+level projection flow, while engine implementations own the low-level math.
+
+### 2. Compute Layer
+
+`neural_assemblies.compute` provides reusable primitives such as:
+
+- statistical helpers
+- input aggregation
+- Hebbian plasticity
+- winner selection
+- explicit projection helpers
+
+This separation matters because it lets the package reuse the same mathematical
+building blocks across different engines and experiments.
+
+### 3. Assembly Calculus Layer
+
+`neural_assemblies.assembly_calculus` provides named operations and structured
+computation on top of the runtime:
+
+- `project`, `associate`, `merge`
+- sequence memorization and ordered recall
+- `FiberCircuit`
+- FSM and PFA helpers
+- typed transitions via `Transition` and `TransitionMap`
+- parser-like higher layers such as `NemoParser` and `EmergentParser`
+
+This layer is where the package moves from raw projection cycles to reusable
+computational idioms.
+
 ## Brain Implementations
 
-There are three Brain implementations, each serving a different purpose:
+### Root `brain.py`
 
-### 1. Root `brain.py` — Backward-Compatible Shim
+The repo-root `brain.py` file is now a compatibility shim that re-exports the
+package `Brain` and `Area`. Old checkout-oriented scripts can still `import
+brain`, but the maintained implementation lives in the package.
 
-A thin re-export of `neural_assemblies.core.brain.Brain` and `neural_assemblies.core.area.Area`. Old scripts
-that `import brain` continue to work. The original 804-line standalone
-implementation has been replaced by this 5-line shim.
+### `neural_assemblies.core.brain`
 
-### 2. `neural_assemblies/core/brain.py` — Production Orchestrator
+This is the primary runtime implementation.
 
-The primary Brain implementation. Brain is a pure orchestrator that delegates
-all computation to a ComputeEngine:
+Responsibilities:
 
-- `Brain`, `Area`, `Stimulus`, `Connectome` — each in its own file under `neural_assemblies/core/`
-- Engine dispatch via `create_engine()`: numpy_sparse, numpy_explicit, cuda_implicit, or torch_sparse
-- Mathematical primitives in `neural_assemblies/compute/` for statistics, plasticity, winner selection
-- ~500 lines: routing, area/stimulus management, save_winners/save_size recording
+- manage areas and stimuli
+- manage projection routing
+- delegate computation to a `ComputeEngine`
+- expose runtime controls such as LRI and inhibition-related settings
 
-### 3. `neural_assemblies/nemo/core/` — NEMO Experiments
+### `neural_assemblies.nemo.core`
 
-Experimental NEMO-related brains and learners for language-learning work:
+This is a separate experimental NEMO-oriented surface for language-learning
+work. It should be read as research-oriented package code rather than the same
+stability level as the core runtime.
 
-- Excitatory and inhibitory neuron populations
-- Learners aimed at grounded categories, role structure, and word order
-- Paired with `neural_assemblies/nemo/language/` for higher-level training and generation utilities
+## Engine Architecture
 
-## ComputeEngine Architecture
+Known engine names in the current codebase:
 
-Brain delegates all projection math to a `ComputeEngine` (ABC in `neural_assemblies/core/engine.py`):
+| Engine | Location | Role |
+|--------|----------|------|
+| `numpy_sparse` | `neural_assemblies/core/numpy_engine/` | Default CPU path for most package use. |
+| `numpy_explicit` | `neural_assemblies/core/numpy_engine/` | Dense explicit simulation for smaller areas. |
+| `cuda_implicit` | `neural_assemblies/core/cuda_engine.py` | CuPy-based hash / implicit GPU path. |
+| `cupy_sparse` | `neural_assemblies/core/cupy_engine.py` | Optional CuPy sparse path. |
+| `torch_sparse` | `neural_assemblies/core/torch_engine/` | Optional PyTorch CUDA sparse path. |
 
-```
-Brain.project()
-  |
-  v
-ComputeEngine.project_into(area, from_stimuli, from_areas)
-  |
-  +-- NumpySparseEngine   (CPU, statistical sparse simulation, scales to large n)
-  +-- NumpyExplicitEngine  (CPU, dense matrices, faithful for small n)
-  +-- CudaImplicitEngine   (GPU, hash-based implicit connectivity)
-  +-- TorchSparseEngine    (GPU, CSR sparse connectivity; heuristic best engine at large n)
-```
+### Auto Selection
 
-**Engine selection**: `Brain(p=0.05, engine="auto", n_hint=...)` uses a simple
-heuristic. With large `n_hint` and PyTorch CUDA available it prefers
-`torch_sparse`; otherwise it falls back to `numpy_sparse`. Explicit engine
-selection is still recommended for reproducible benchmarking.
+`Brain(..., engine="auto", n_hint=...)` currently uses a simple heuristic in
+`neural_assemblies.core.backend.detect_best_engine()`:
 
-## GPU Acceleration
+- if `n_hint >= 1_000_000` and PyTorch CUDA is available, choose
+  `torch_sparse`
+- otherwise choose `numpy_sparse`
 
-GPU code lives alongside the domain it accelerates — not in a single `gpu/` folder:
+That is a practical default, not a universal performance guarantee.
 
-| Component | Location | Backend | Purpose |
-|-----------|----------|---------|---------|
-| CUDA kernels | `neural_assemblies/core/kernels/` | CuPy RawKernel | Hash-based projection, Hebbian update, batched ops |
-| CUDA engine | `neural_assemblies/core/cuda_engine.py` | CuPy + PyTorch | ComputeEngine impl using implicit connectivity |
-| Backend switch | `neural_assemblies/core/backend.py` | NumPy/CuPy | Seamless array library switching |
-| NEMO brain | `neural_assemblies/nemo/core/` | CuPy + PyTorch | Experimental GPU-oriented language-learning brains |
-| NEMO CUDA FFI | `neural_assemblies/nemo/language/emergent/cuda_backend.py` | ctypes + C++ | FFI to compiled CUDA kernels |
+## Competition and Winner Policies
 
-The `CudaImplicitEngine` uses hash-based connectivity: O(learned_connections) memory
-instead of O(n^2). At n=100,000 this means ~25 MB vs ~40 GB.
+Historically the runtime centered on fixed top-k competition. The package now
+has a cleaner abstraction seam for competition rules in
+`neural_assemblies.compute`.
 
-## Module Dependency Graph
+Current winner-policy objects:
 
-```
-Root compatibility layer
-  |
-  brain.py  <-- 5-line shim re-exporting neural_assemblies.core.brain
-  brain_util.py  <-- shim -> legacy/root_modules/brain_util.py
-  |
-  +-- learner.py       (shim -> legacy/root_modules/learner.py)
-  +-- parser.py        (shim -> legacy/root_modules/parser.py)
-  +-- simulations.py   (shim -> legacy/root_modules/simulations.py)
-  +-- image_learner.py (shim -> legacy/root_modules/image_learner.py)
-  +-- recursive_parser.py (shim -> legacy/root_modules/recursive_parser.py)
+- `TopKPolicy`
+- `ThresholdPolicy`
+- `RelativeThresholdPolicy`
 
-legacy/
-  root_modules/      (historical repo-root implementations)
-  scripts/           (archived standalone scripts and helpers)
-  artifacts/         (tracked image-learning GIFs and outputs)
-  experiments/       (archived top-level experiment notes)
-  matlab/            (MATLAB prototypes)
+`WinnerSelector.select_with_policy(...)` makes these policies explicit without
+forcing the rest of the runtime to claim that a richer inhibition model is
+already fully integrated everywhere.
 
-neural_assemblies package (pip install neural-assemblies or pip install -e .)
-  |
-  neural_assemblies/__init__.py  -->  neural_assemblies.core, neural_assemblies.compute, neural_assemblies.constants, neural_assemblies.utils
-  |
-  neural_assemblies.core/
-  |   brain.py, area.py, stimulus.py, connectome.py
-  |   engine.py (ComputeEngine ABC + registry)
-  |   numpy_engine.py (NumpySparse + NumpyExplicit)
-  |   cuda_engine.py (CudaImplicit)
-  |   backend.py (NumPy/CuPy switching)
-  |   kernels/ (implicit.py, batched.py, v2.py)
-  |
-  neural_assemblies.compute/
-  |   statistics.py, plasticity.py, winner_selection.py,
-  |   neural_computation.py, explicit_projection.py,
-  |   image_activation.py, sparse_simulation.py
-  |
-  neural_assemblies.simulation/   (uses neural_assemblies.core.Brain with engine="numpy_sparse")
-  |   projection_simulator, merge_simulator, pattern_completion,
-  |   association_simulator, density_simulator, turing_simulations,
-  |   advanced_simulations
-  |
-  neural_assemblies.language/     (grammar rules, parser, language areas)
-  |
-  neural_assemblies.lexicon/      (standalone word/curriculum system)
-  |   lexicon_manager.py, curriculum/, data/, statistics/
-  |   gpu_assembly_learner.py, gpu_language_learner.py
-  |
-  neural_assemblies.nemo/         (NEMO-related experimental systems)
-  |   core/   (brain, area, kernel)
-  |   language/ (learner, generator, emergent/)
-  |
-  neural_assemblies.constants/   (DEFAULT_P, DEFAULT_BETA, DEFAULT_W_MAX)
-  neural_assemblies.utils/       (math utilities)
-  neural_assemblies.tests/       (package test suite)
+## Typed Transitions and Automata
 
-research/
-  experiments/  (stability, primitives)
-  nemo/         (standalone NEMO runner scripts)
-  results/      (experiment outputs)
-  plans/        (research plans)
+The FSM and PFA helpers are now built around typed transitions:
 
-cpp/
-  cuda_kernels/  (raw CUDA .cu files)
-  build_scripts/ (compilation scripts)
-```
+- `Transition`
+- `TransitionMap`
 
-## How the Pieces Fit Together
+This is an engineering cleanup with scientific consequences: automata-style
+experiments now have a clearer formal boundary and input validation instead of
+loosely typed tuples everywhere.
 
-**Assembly Calculus primitives** (`neural_assemblies.core.Brain` + `ComputeEngine`) provide
-the foundation: `project()` creates and reinforces assemblies via Hebbian
-plasticity. Every higher-level capability is built by composing `project()` calls.
+## Language Surfaces
 
-**Simulations** (`neural_assemblies.simulation`) study the dynamics: how assemblies stabilize,
-how patterns complete from partial activation, how two stimuli merge.
+There are two distinct language directions in the repo:
 
-**Language** (`parser.py`, `learner.py`, `neural_assemblies.language`) uses assembly operations
-to parse and learn sentences. The parser creates assemblies for words and projects
-them through syntactic areas.
+### Rule-Based Parsing
 
-**NEMO** (`neural_assemblies.nemo`) contains experimental language-learning
-systems that aim to learn word order and syntactic structure from data using
-assembly-style and GPU-accelerated components.
+`neural_assemblies.language` contains explicit grammar-rule-based parsing for
+English and Russian.
 
-**Lexicon** (`neural_assemblies.lexicon`) provides the vocabulary infrastructure — 5000+ words
-with frequency statistics, semantic features, and curriculum-based learning
-progressions.
+### Experimental Learned Language
 
-## Key Design Decisions
+`neural_assemblies.nemo` and the emergent parser code aim at learning category,
+role, and word-order structure from exposure. These surfaces are more
+experimental and should be read alongside the research docs.
 
-1. **Engine-based dispatch**: Brain is a pure orchestrator. All computation goes
-   through `ComputeEngine.project_into()`. This allows swapping CPU/GPU backends
-   without changing Brain logic.
+## Legacy and Archive Layout
 
-2. **Root brain.py is a shim**: Old scripts get `neural_assemblies.core.brain.Brain` via the
-   5-line re-export. No duplicate implementation to maintain.
+The top level of the repo is intentionally cleaner than it used to be.
 
-3. **GPU code is distributed by domain**: CUDA kernels live in `neural_assemblies/core/kernels/`
-   (next to the engine that uses them), NEMO GPU code lives in `assemblies/nemo/`.
-   No central `gpu/` folder — GPU is an implementation detail, not a domain.
+Historical material now lives under `legacy/`:
 
-4. **NEMO is semi-independent experimental code**: `neural_assemblies/nemo/`
-   contains its own brains and learners for language experiments, but should be
-   read as research-oriented package code rather than the same stability level
-   as the core engine/runtime.
+- `legacy/root_modules/` for old repo-root implementations
+- `legacy/scripts/` for historical standalone scripts
+- `legacy/artifacts/` for tracked image-learning outputs
+- `legacy/experiments/` for older notes
+- `legacy/matlab/` for MATLAB prototypes
 
-5. **GPU acceleration is optional**: All GPU code is behind try/except guards.
-   The framework works on CPU-only machines with no code changes.
+The root files that remain are compatibility shims, not full duplicate
+implementations.
+
+## Research and Performance Workflows
+
+The package is not the whole repository.
+
+- `research/` contains experiment registries, indexed claims, and curated core
+  questions.
+- `tests/performance/` contains optional environment-sensitive accelerator
+  checks.
+- `cpp/` contains lower-level accelerator and kernel work.
+
+These are important, but they are opt-in surfaces with stricter assumptions
+than the default package gate.
+
+## Design Principles
+
+1. Keep the installable package as the primary truth surface.
+2. Keep root compatibility without letting root scripts define the package.
+3. Separate package-backed claims from research claims.
+4. Add abstraction seams before adding new biological or world-model features.
+5. Prefer explicit validators and targeted tests over broad undocumented
+   assumptions.
