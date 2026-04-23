@@ -34,3 +34,7 @@ uv run jupyter notebook
 
 If Jupyter is not installed in your environment, add it explicitly because it
 is not part of the default package test surface.
+
+The repository includes a `.python-version` pin for Python 3.12 so local
+notebook metadata and the publish workflow point at the same default dev
+interpreter.

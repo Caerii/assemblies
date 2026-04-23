@@ -10,15 +10,18 @@ The repository currently has two roles:
   as `neural_assemblies`
 - a research workspace built around that package
 
-This repo grew out of assembly-calculus and language-organ work around MIT's
-Projects in the Science of Intelligence course and later extensions of that
-line of research. The package is intentionally narrower than the full research
-agenda.
+This repo is maintained by Alif Jakir. It grew out of assembly-calculus and
+language-organ work around MIT's Projects in the Science of Intelligence
+course and later extensions of that line of research, including collaboration
+with Daniel Mitropolsky. The package is intentionally narrower than the full
+research agenda.
 
 If you care about statement strength, read
 [docs/scientific_status.md](docs/scientific_status.md).
 If you care about package versus legacy boundaries, read
 [docs/supported_surfaces.md](docs/supported_surfaces.md).
+If you want the longer project story and research motivation, read
+[docs/project_context.md](docs/project_context.md).
 
 ## What This Repo Is
 
@@ -111,6 +114,7 @@ Project-wide guides:
 - [docs/README.md](docs/README.md)
 - [docs/api.md](docs/api.md)
 - [docs/architecture.md](docs/architecture.md)
+- [docs/project_context.md](docs/project_context.md)
 - [docs/scientific_status.md](docs/scientific_status.md)
 - [docs/supported_surfaces.md](docs/supported_surfaces.md)
 

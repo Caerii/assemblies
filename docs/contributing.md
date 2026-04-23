@@ -5,7 +5,11 @@ Contributions to the **neural-assemblies** project are welcome.
 ## How to contribute
 
 - **Bug reports and feature ideas**: Open an [issue](https://github.com/Caerii/assemblies/issues) on GitHub.
-- **Code or docs changes**: Open a pull request against the default branch. Ensure tests pass (`uv run pytest neural_assemblies/tests/ -q`) and, if you touch packaging, see [packaging.md](packaging.md).
+- **Code or docs changes**: Open a pull request against the default branch.
+  Ensure the package test surface passes with
+  `uv run pytest neural_assemblies/tests -q`.
+  If you touch release metadata or publishing workflow, read
+  [packaging.md](packaging.md) first.
 
 ## Development setup
 
@@ -13,7 +17,7 @@ From the repo root:
 
 ```bash
 uv sync
-uv run pytest neural_assemblies/tests/ -q
+uv run pytest neural_assemblies/tests -q
 uv run ruff check neural_assemblies/
 ```
 

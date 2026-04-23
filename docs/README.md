@@ -12,6 +12,7 @@ quick start, and test commands. The files here provide the deeper contract.
 |----------|---------|
 | [api.md](api.md) | Current package and compatibility API guide. |
 | [architecture.md](architecture.md) | Runtime layout, engine stack, and repo structure. |
+| [project_context.md](project_context.md) | Project history, motivation, and the longer context moved out of the root README. |
 | [scientific_status.md](scientific_status.md) | Boundary between package-backed claims and research work. |
 | [supported_surfaces.md](supported_surfaces.md) | Package surface versus legacy and research surfaces. |
 | [packaging.md](packaging.md) | Maintainer-oriented packaging and release workflow. |
