@@ -1,8 +1,10 @@
 """
-Turing machine simulation module.
+Turing-style simulation module.
 
-This module contains simulations that explore how neural assemblies can simulate
-Turing machine concepts, investigating the computational limits of the neural model.
+This module contains exploratory simulations for tape-like persistence,
+larger-k interaction, and erase-style behavior. It is useful for probing
+computational ingredients, but it should not be read as a complete
+Turing-machine construction.
 """
 
 try:

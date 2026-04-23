@@ -22,6 +22,8 @@ Each major part of the codebase has a short README with purpose, main entry poin
 | **NEMO** | [neural_assemblies/nemo/README.md](../neural_assemblies/nemo/README.md) | Learned grammar, language acquisition (GPU) |
 
 See also [architecture.md](architecture.md) for high-level design and [README.md](../README.md) for quick start and project overview.
+See [scientific_status.md](scientific_status.md) for the boundary between
+package-backed claims and research/aspirational work.
 
 Historical standalone scripts such as `overlap_sim.py` and `turing_sim.py` are
 archived under `legacy/scripts/`. Prefer the supported packaged APIs under
@@ -34,7 +36,7 @@ Brain uses a pluggable compute engine.  Pass `engine=` to `Brain()` or let auto-
 | Engine | Backend | Best for | Registration |
 |--------|---------|----------|-------------|
 | `numpy_sparse` | CPU (NumPy) | n < 1M, fastest dispatch | Always available |
-| `torch_sparse` | GPU (PyTorch CUDA, CSR) | n >= 1M, 1.5-54x faster at scale | Requires `torch` + CUDA |
+| `torch_sparse` | GPU (PyTorch CUDA, CSR) | Large sparse workloads; heuristic best engine at high `n` | Requires `torch` + CUDA |
 | `cuda_implicit` | GPU (CuPy, hash-based) | Hash-deterministic connectivity | Requires `cupy` |
 | `numpy_explicit` | CPU (dense matrices) | Small n, full neuron tracking | Always available |
 | `cupy_sparse` | GPU (CuPy) | **Deprecated** -- use `torch_sparse` | Requires `cupy` |
@@ -170,7 +172,7 @@ The NEMO model aims to bridge the gap between neural activity and cognitive func
 
 ## Project Overview
 
-This project implements simulations that demonstrate how neural assemblies can perform computational tasks, specifically focusing on language processing and Turing machine concepts.
+This project implements simulations that demonstrate how neural assemblies can perform computational tasks, especially language-processing patterns, finite-state style control, and Turing-style exploratory simulations.
 
 ### Relation to the Papers
 
@@ -636,8 +638,11 @@ parse("kot vidit sobaku", language="Russian")
 
 #### `legacy/scripts/simulations/turing_sim.py`
 
-- **Description**: Explores how neural assemblies can simulate Turing machine concepts, investigating the computational limits of the neural model.
-- **Relation to the Papers**: Demonstrates that the enhanced NEMO model can perform arbitrary computations, supporting the claims about the model's computational capabilities.
+- **Description**: Explores Turing-style primitives such as larger-k dynamics and tape-like erase/persistence behavior. This is exploratory simulation code, not a package-level proof of Turing completeness.
+- **Relation to the Papers**: Connects to the sequence/LRI literature on
+  computational expressiveness, but in this repo it should be read as an
+  exploratory simulation of Turing-style primitives rather than a standalone
+  proof that the package realizes arbitrary computation.
 
 #### `tests.py`
 
@@ -692,7 +697,7 @@ computational limits of the neural model.
 
 - **Sequence Formation**: Simulating the storage and retrieval of sequences, analogous to the tape of a Turing machine.
 - **State Transitions**: Modeling state changes using assemblies, where each state is represented by an assembly, and transitions are simulated through projections.
-- **Computational Power**: Demonstrating that the enhanced NEMO model can perform arbitrary computations, supporting the claims in the papers about the model's computational capabilities.
+- **Computational Power**: Probing ingredients that matter for computational expressiveness. These simulations should be read as exploratory tests of tape-like and state-like behavior, not as a full Turing-machine construction.
 
 ---
 

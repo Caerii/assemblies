@@ -8,6 +8,7 @@ Project-wide documentation for the **assemblies** neural assembly calculus frame
 |----------|-------------|
 | [**api.md**](api.md) | Full API and module guide — engine selection, assembly calculus operations, module descriptions, usage. |
 | [**architecture.md**](architecture.md) | High-level design — Brain implementations, ComputeEngine layout, GPU acceleration, module dependency graph. |
+| [**scientific_status.md**](scientific_status.md) | What is package-tested, what is heuristic, and what remains research or aspirational. |
 | [**packaging.md**](packaging.md) | Packaging and release guide for maintainers — PyPI build, upload, versioning, checklists. |
 | [**contributing.md**](contributing.md) | How to contribute — issues, PRs, dev setup, license. |
 

@@ -1,12 +1,13 @@
-# NEMO 2.0 - Neural Assembly Model
+# NEMO 2.0 - Neural Assembly Language Experiments
 
-A biologically-inspired language learning system based on Assembly Calculus.
+Experimental language-learning systems based on Assembly Calculus.
 
 ## Key Principle
 
-**Grammar is LEARNED, not hardcoded.**
-
-The same code learns SVO (English) or SOV (Japanese) depending on training data.
+NEMO-related modules in this repo aim to learn category structure, role
+structure, and word order from exposure rather than hardcoded sentence rules.
+Package tests cover several narrow synthetic behaviors; broader curriculum and
+generation claims belong to the research surface.
 
 ## Architecture
 
@@ -27,7 +28,7 @@ neural_assemblies/nemo/
 
 ### Quick Start (Simple)
 ```python
-from nemo.language import LanguageLearner, SentenceGenerator
+from neural_assemblies.nemo.language import LanguageLearner, SentenceGenerator
 
 learner = LanguageLearner()
 learner.hear_sentence(['dog', 'chases', 'cat'])
@@ -37,7 +38,7 @@ sentence = generator.generate_sentence(length=3)
 
 ### Full NEMO Training (Neurobiologically Plausible)
 ```python
-from nemo.language import IntegratedNemoTrainer
+from neural_assemblies.nemo.language import IntegratedNemoTrainer
 
 trainer = IntegratedNemoTrainer()
 results = trainer.train_full_curriculum(epochs_per_stage=5)
@@ -66,8 +67,8 @@ for _ in range(5):
 Key features:
 - **Differential Lex areas**: Lex1 for nouns (→Visual), Lex2 for verbs (→Motor)
 - **Grounded learning**: Words learned with sensory context
-- **Stability-based classification**: 96% accuracy on noun/verb
 - **Role areas with mutual inhibition**
+- **Sequence-oriented word-order machinery**
 
 ## Curriculum Stages (Child Language Acquisition)
 
@@ -86,11 +87,13 @@ Uses rich lexicon with:
 - **Age of Acquisition (AoA)**: For curriculum progression
 - **Argument structure**: agent, theme, patient
 
-## Results
+## Current Status
 
-- **Word order learning**: SVO correctly learned ✓
-- **Noun/verb classification**: 60-70% accuracy
-- **Semantic generation**: Animate subjects, action verbs
+- **Package-tested behaviors**: word-category differentiation, role binding,
+  and sequence / word-order learning patterns in controlled synthetic setups.
+- **Research surface**: larger curricula, broader generation quality, and
+  cross-linguistic claims live under `research/` and should be cited from
+  specific experiments rather than inferred from package install alone.
 
 ## References
 

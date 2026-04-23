@@ -1,6 +1,6 @@
 # Assemblies
 
-**Neural assembly calculus:** projection, association, merge — with language learning (NEMO), GPU acceleration, and Turing-style simulation. Python 3.10+.
+**Neural assembly calculus:** projection, association, merge — with language-learning experiments (NEMO-style), GPU-capable engines, and Turing-style simulations. Python 3.10+.
 
 ---
 
@@ -10,19 +10,19 @@ I started extending Daniel's PhD thesis project in *2024* in MIT's [Projects in 
 
 This codebase is a garden I've co-built with AI, exploring assemblies as a foundational computational paradigm.
 
-**What this is:** A computational neuroscience framework that implements the **Assembly Calculus** — a model of brain computation via neural ensembles (assemblies) — with extensions for language learning, image classification, GPU acceleration, and Turing-machine simulation. It is a concrete, discrete, efficiently optimized spiking-neural implementation that stays within neurobiologically plausible dynamics. Assemblies are the intermediate primitive between raw neural activity and high-level cognition. The framework is Turing-complete (Dabagia et al., 2023, via sequences of assemblies and long-range interneurons) and is treated here as a family of highly energy-efficient dynamical systems.
+**What this is:** A computational neuroscience framework that implements the **Assembly Calculus** — a model of brain computation via neural ensembles (assemblies) — with extensions for language learning, image classification, GPU acceleration, and Turing-style simulation. It is a discrete neural simulation framework with sparse competition, Hebbian plasticity, and package-tested assembly operations. Assemblies are the intermediate primitive between raw neural activity and higher-level structure. The underlying theory includes sequence/LRI constructions related to finite-state computation and Turing-completeness results in the literature, but this repo should be read as an implementation and experiment platform, not as a standalone proof artifact.
 
 **What this is not:** Not a deep-learning library (no backprop, no attention). Not a full biological brain model — it's a minimal calculus (projection, association, merge, Hebbian, top-k) that we scale and compose. Not claiming to beat transformers at everything; the bet is that this *alternative* — sparse, interpretable, neurobiologically grounded — can support language and reasoning in a way that's efficient and comprehensible.
 
 **Also not:** Not a biophysical spiking simulator (no ion channels, no ms-level dynamics) — we use discrete rounds of projection and competition. "Neurobiologically plausible" means the *operations* are plausible (Hebbian, sparse, local), not that we're modeling a specific brain region or species in detail. Not differentiable end-to-end — you can't plug it into autograd; assemblies are the primitive, not an interpretation layer on top of a big net. Not a chatbot or API — it's a research codebase and simulation framework; no hosted service.
 
-This is also not the only implementation of the assembly calculus, it is merely the most complete artifact — *just one* implementation with specific extensions (NEMO, lexicon, GPU). "Co-built with AI" means I direct and AI assists; the science and design are mine. We're not claiming we've solved language or AGI, or that assemblies are *the* way the brain does it — we're exploring one formalization. Turing-completeness is from Dabagia et al. (2023), not our result.
+This is also not the only implementation of the assembly calculus, it is merely one implementation with specific extensions (NEMO, lexicon, GPU). "Co-built with AI" means I direct and AI assists; the science and design are mine. We're not claiming we've solved language or AGI, or that assemblies are *the* way the brain does it — we're exploring one formalization. Turing-completeness is a theoretical result from Dabagia et al. (2023/2025), not a package-level claim that this repo has fully reconstructed every required condition.
 
 **Why it matters (to us):** One substrate (assemblies) for perception, language, and structure; interpretable primitives (assemblies = concepts); and a path to scaling that stays close to how cortex might compute. We're exploring whether this can be a foundation for a different kind of model.
 
 **Who it's for:** Researchers and students in computational neuroscience, neuro-inspired ML, or alternative approaches to language and reasoning — and anyone curious about assembly calculus, NEMO-style language learning, or scaling sparse neural systems without backprop.
 
-**Where things stand:** Core operations (projection, association, merge) are implemented and validated; NEMO does learned grammar and word order; scaling and CUDA work has succeeded. We now implement **sequence memorization**, **ordered recall**, and **Long-Range Inhibition (LRI)** from Dabagia et al. (2023/2025) — enabling ordered sequence learning and cue-driven recall via refractory suppression. FSM-learning is the remaining piece from that paper. Full foundation-model scale and omnimodality are goals, not yet achieved. CIFAR-10 showed feasibility in principle; stable per-category assemblies at scale are still in progress.
+**Where things stand:** Core operations (projection, association, merge), sequence memorization, ordered recall, LRI, and finite-state utilities are implemented and covered by package tests. NEMO-related modules support experimental language-learning behaviors, and the repo includes tests for word-category learning, role binding, and word-order inference in controlled settings. GPU backends and parity tests exist, but exact speedups are hardware- and workload-dependent. Full Turing-machine constructions, foundation-model scale, robust CIFAR category formation, and embodied multimodal learning remain research work rather than settled package claims.
 
 My main goal in summer *2025* was to scale the system using custom CUDA and algorithmic improvements toward a new kind of foundational model. Success was found in the optimization project.
 
@@ -54,7 +54,7 @@ My main goal in summer *2025* was to scale the system using custom CUDA and algo
 
 **Project-wide:**
 
-- [**docs/**](docs/README.md) — Full API ([api.md](docs/api.md)), [architecture](docs/architecture.md), and [packaging](docs/packaging.md) guides.
+- [**docs/**](docs/README.md) — Full API ([api.md](docs/api.md)), [architecture](docs/architecture.md), [scientific status](docs/scientific_status.md), and [packaging](docs/packaging.md) guides.
 - [**research/**](research/README.md) — Experiments, results, plans, open questions.
 
 ## Requirements
@@ -107,7 +107,7 @@ backends with a single parameter:
 ```
 Brain(p=0.05, engine="auto")    # auto-detect best backend
 Brain(p=0.05, engine="numpy_sparse")    # CPU, scales to large n
-Brain(p=0.05, engine="cuda_implicit")   # GPU, 40x speedup at n=100k
+Brain(p=0.05, engine="cuda_implicit")   # GPU-capable hash-based engine
 ```
 
 ## Usage

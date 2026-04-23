@@ -32,9 +32,11 @@ for _ in range(9):
 
 - **`numpy_sparse`** — CPU; sparse / statistical; scales to large `n`. Default when no GPU.
 - **`numpy_explicit`** — CPU; explicit matrices; faithful for small `n`.
-- **`cuda_implicit`** — GPU; hash-based connectivity; ~40× speedup at large `n` (when CuPy is available).
+- **`cuda_implicit`** — GPU; hash-based connectivity; useful for large workloads when CuPy is available.
 
-`Brain(..., engine="auto")` picks `cuda_implicit` if CuPy is present, else `numpy_sparse`.
+`Brain(..., engine="auto", n_hint=...)` uses a heuristic: large `n_hint` with
+PyTorch CUDA available prefers `torch_sparse`; otherwise it falls back to
+`numpy_sparse`.
 
 ## See also
 
