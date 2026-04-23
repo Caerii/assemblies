@@ -103,6 +103,9 @@ cd ../claims
 mkdir C01_logarithmic_convergence
 ```
 
+Then update `claims/index.json` so the repo reflects whether the result is now
+a formalized claim or still only a claim-ready evidence summary.
+
 ### Step 7: Write Papers
 
 **Only now** do you start writing papers. Copy claims into `papers/drafts/`.

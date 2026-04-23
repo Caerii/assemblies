@@ -59,11 +59,11 @@ See `_latex_infrastructure/README.md` for detailed setup.
 Before creating a paper, identify which claims from `../claims/` you're presenting.
 
 ```bash
-# List all validated claims
-ls ../claims/
+# Review the indexed claim inventory first
+cat ../claims/index.json
 
-# Review claims to include
-cat ../claims/C01_*/claim.md
+# Then open the specific formalized claim documents you want to use
+cat ../claims/N400_GLOBAL_ENERGY.md
 ```
 
 ### Step 2: Choose Template

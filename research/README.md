@@ -72,6 +72,11 @@ claims/
     └── suitable_venues.md         # Where this could be published
 ```
 
+Current repo note: the directory also contains a lightweight
+`claims/index.json` inventory so the current state of formalized claims versus
+claim-ready evidence summaries is explicit even before every claim is promoted
+to a full `CXX_*` folder.
+
 ### Papers (`papers/`)
 
 Papers are constructed from validated claims. Built last, not first.
@@ -108,21 +113,24 @@ See `papers/README.md` for detailed paper organization.
 ## 📊 Current Status
 
 ### Questions Under Investigation
-
-The research tree is already active. The canonical suite inventory now lives in
-`research/registry.json`, which maps experiment families to code paths, result
-directories, and recommended entry points.
+- See `open_questions.md` and `core_questions/README.md`. The question-driven
+  structure exists, but the per-question directories are not yet fully curated.
+- The canonical suite inventory now lives in `research/registry.json`, which
+  maps experiment families to code paths, result directories, and recommended
+  entry points.
 
 ### Active Experiments
-
-Active suites currently include `applications`, `biological_validation`,
-`distinctiveness`, `information_theory`, `primitives`, `stability`, `vocab`,
-and `infrastructure`.
+- Active suites currently include `applications`, `biological_validation`,
+  `distinctiveness`, `information_theory`, `primitives`, `stability`, `vocab`,
+  and `infrastructure`.
+- See `experiments/README.md` and the corresponding `results/` subdirectories
+  for current artifacts.
 
 ### Validated Claims
-
-Validated and partial claims are tracked in `research/claims/` and backed by
-concrete artifacts under `research/results/`.
+- See `claims/index.json` for the current inventory.
+- Current indexed status:
+  - `1` formalized claim
+  - `6` claim-ready evidence summaries
 
 ### Papers in Progress
 
@@ -134,8 +142,8 @@ truth for experiment coverage should be the registry and results directories.
 1. Keep `research/registry.json` current as suites are added or renamed
 2. Use `research/experiments/MANIFEST_TEMPLATE.json` for new experiments
 3. Validate the suite map with `uv run python research/experiments/infrastructure/validate_registry.py`
-4. Run experiments and collect results
-5. Build claims from solid evidence
+4. Populate `core_questions/` with the most important fundamental questions
+5. Promote evidence summaries into formalized claims as they become bounded and defensible
 6. Construct papers from validated claims
 
 ---
