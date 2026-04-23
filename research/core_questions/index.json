@@ -1,0 +1,101 @@
+{
+  "version": 1,
+  "entries": [
+    {
+      "id": "q01_assembly_stability",
+      "status": "curated_question",
+      "title": "Assembly stability under recurrent training",
+      "question_directory": "research/core_questions/Q01_assembly_stability",
+      "open_question_refs": [
+        "Q01"
+      ],
+      "claim_index_refs": [
+        "evidence_projection_convergence",
+        "evidence_attractor_dynamics"
+      ],
+      "experiment_scripts": [
+        "research/experiments/primitives/test_projection.py",
+        "research/experiments/stability/test_attractor_dynamics.py"
+      ],
+      "result_artifacts": [
+        "research/results/primitives/RESULTS_projection.md",
+        "research/results/primitives/projection_20260206_144109.json",
+        "research/results/stability/RESULTS_attractor_dynamics.md",
+        "research/results/stability/attractor_dynamics_20260206_121741.json"
+      ],
+      "notes": "Curated to cover the tested stim+self stability regimes. Conclusions are limited to the documented recurrent-training settings and do not constitute a general proof for arbitrary multi-attractor systems."
+    },
+    {
+      "id": "q03_scaling_laws",
+      "status": "curated_question",
+      "title": "Scaling laws for convergence and persistence",
+      "question_directory": "research/core_questions/Q03_scaling_laws",
+      "open_question_refs": [
+        "Q03"
+      ],
+      "claim_index_refs": [
+        "evidence_scaling_laws"
+      ],
+      "experiment_scripts": [
+        "research/experiments/stability/test_scaling_laws.py"
+      ],
+      "result_artifacts": [
+        "research/results/stability/RESULTS_scaling_laws.md",
+        "research/results/stability/scaling_laws_20260206_155822.json"
+      ],
+      "notes": "Curated as an empirical scaling question. The current evidence is consistent with logarithmic convergence in the tested k=sqrt(n) regime, but the fit remains noisy and theory is still pending."
+    },
+    {
+      "id": "q20_competition_distinctiveness",
+      "status": "curated_question",
+      "title": "Competition and representational distinctiveness",
+      "question_directory": "research/core_questions/Q20_competition_distinctiveness",
+      "open_question_refs": [
+        "Q20"
+      ],
+      "claim_index_refs": [],
+      "experiment_scripts": [
+        "research/experiments/stability/test_assembly_distinctiveness.py",
+        "research/experiments/distinctiveness/test_competition_mechanisms.py"
+      ],
+      "result_artifacts": [
+        "research/results/stability/RESULTS_assembly_distinctiveness.md",
+        "research/results/stability/assembly_distinctiveness_20260206_160448.json",
+        "research/results/distinctiveness/competition_mechanisms_20251128_232917_quick.json"
+      ],
+      "notes": "Curated as a question about same-brain distinctiveness under shared competition. The stronger mechanistic claim that competition is the unique causal explanation remains only partially decomposed."
+    },
+    {
+      "id": "q22_n400_global_energy",
+      "status": "curated_question",
+      "title": "N400 as global pre-k-WTA energy",
+      "question_directory": "research/core_questions/Q22_n400_global_energy",
+      "open_question_refs": [
+        "Q22"
+      ],
+      "claim_index_refs": [
+        "claim_n400_global_energy"
+      ],
+      "experiment_scripts": [
+        "research/experiments/applications/test_n400_pre_kwta.py",
+        "research/experiments/applications/test_n400_parameter_sweep.py",
+        "research/experiments/applications/test_n400_controls.py",
+        "research/experiments/applications/test_n400_vocab_scaling.py",
+        "research/experiments/applications/test_n400_cloze.py",
+        "research/experiments/applications/test_n400_graded.py",
+        "research/experiments/applications/test_p600_syntactic.py"
+      ],
+      "result_artifacts": [
+        "research/claims/N400_GLOBAL_ENERGY.md",
+        "research/results/applications/n400_pre_kwta_20260211_131944.json",
+        "research/results/applications/n400_parameter_sweep_20260212_114001.json",
+        "research/results/applications/n400_controls_20260217_180457.json",
+        "research/results/applications/n400_vocab_scaling_20260217_181140.json",
+        "research/results/applications/n400_cloze_20260211_133136.json",
+        "research/results/applications/n400_graded_20260217_180949.json",
+        "research/results/applications/p600_syntactic_20260217_195815.json"
+      ],
+      "notes": "This is the strongest application-side claim in the repo. It is already formalized in the claims inventory, so the question directory serves mainly as a question-first navigation layer back to the claim and supporting experiments."
+    }
+  ]
+}

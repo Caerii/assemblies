@@ -20,26 +20,59 @@ QXX_question_name/
 └── conclusions.md             # What can we claim?
 ```
 
-## Active Questions
+## Curated Questions
 
-*To be populated with your research questions*
+This directory is no longer only a template surface. A small set of questions
+has been curated because the repo already has enough evidence to support a
+question-level narrative without overclaiming.
 
-### Example Structure:
+Machine-readable inventory:
 
-- **Q01: Assembly Stability** - Do sparse assemblies converge to stable attractors?
-- **Q02: Critical Phenomena** - Are there phase transitions in assembly formation?
-- **Q03: Scaling Laws** - How do assembly properties scale with network size?
-- **Q04: Information Capacity** - What is the information-theoretic capacity?
-- **Q05: Biological Validation** - Do real brains exhibit these dynamics?
+- `index.json`
+- `validate_index.py`
+
+Current curated questions:
+
+- **Q01: Assembly Stability**
+  - `Q01_assembly_stability/`
+  - recurrent stim+self stability, with explicit limits on scope
+- **Q03: Scaling Laws**
+  - `Q03_scaling_laws/`
+  - empirical scaling evidence in the tested `k = sqrt(n)` regime
+- **Q20: Competition and Distinctiveness**
+  - `Q20_competition_distinctiveness/`
+  - same-brain distinctiveness with mechanism caveats
+- **Q22: N400 as Global Pre-k-WTA Energy**
+  - `Q22_n400_global_energy/`
+  - question-first wrapper around the strongest formalized claim
+
+## Evidence-Backed But Not Yet Curated
+
+Some questions have nontrivial evidence but are not yet clean enough to promote
+into full question directories.
+
+- **Q07: Sparsity Measurements**
+  - useful parameter-alignment evidence exists
+  - the writeup should stay narrow and not imply a full neural-data comparison
+- **Q12: Learning Rules**
+  - the quick retrieval result is promising
+  - the broader learning-rules claim still needs a cleaner bounded experiment
+
+## Open Tracker vs Curated Questions
+
+- `open_questions.md` remains the broad tracker of all questions and ideas.
+- `core_questions/` is intentionally narrower. A question should only be added
+  here when the repo can already tell an honest, artifact-backed story about it.
 
 ## Creating a New Question
 
-1. Create directory: `QXX_descriptive_name/`
-2. Copy `_question_template/` contents
-3. Fill out `hypothesis.md` first
-4. Design experiments to test hypothesis
-5. Run experiments and document results
-6. Draw conclusions from evidence
+1. Check `index.json` first to make sure the question is not already curated.
+2. If it is new, create directory: `QXX_descriptive_name/`
+3. Copy the standard question file layout
+4. Fill out `hypothesis.md` first
+5. Design experiments to test the hypothesis
+6. Run experiments and document results
+7. Add the question to `index.json` once it is curated enough to defend
 
 ## Status Tracking
 
