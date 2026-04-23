@@ -86,23 +86,22 @@ def _detect_torch_cuda():
     return _HAS_TORCH_CUDA
 
 
-# Crossover point from benchmarking (CSR torch_sparse vs numpy_sparse):
-#   n < 1M:  numpy_sparse faster (lower dispatch overhead)
-#   n >= 1M: torch_sparse 1.5-54x faster for area->area projections
+# Heuristic crossover from local profiling (CSR torch_sparse vs numpy_sparse):
+#   n < 1M:  numpy_sparse often wins due to lower dispatch overhead
+#   n >= 1M: torch_sparse is often the better choice when CUDA is available
 _TORCH_SPARSE_THRESHOLD = 1_000_000
 
 
 def detect_best_engine(n_hint: int = 0) -> str:
     """Return the name of the best available compute engine.
 
-    Uses *n_hint* (expected neuron count per area) to select the optimal
-    backend.  When ``n_hint >= 1_000_000`` and PyTorch+CUDA is available,
-    returns ``"torch_sparse"`` which uses CSR connectivity and GPU
-    acceleration for 1.5-54x speedup over CPU at scale.
+    Uses *n_hint* (expected neuron count per area) to choose a practical
+    default backend. When ``n_hint >= 1_000_000`` and PyTorch+CUDA is
+    available, returns ``"torch_sparse"`` which uses CSR connectivity on
+    GPU. Otherwise returns ``"numpy_sparse"``.
 
-    Otherwise returns ``"numpy_sparse"`` — the fastest engine for
-    typical assembly sizes (n < 1M, k < 5000) due to lower per-op
-    dispatch overhead.
+    This is a heuristic based on local profiling, not a universal proof that
+    one engine dominates another for every workload.
 
     Args:
         n_hint: Expected neuron count per area.  Pass 0 (default) to

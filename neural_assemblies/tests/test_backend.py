@@ -9,6 +9,7 @@ from neural_assemblies.core.backend import (
     get_backend_name,
     to_cpu,
     to_xp,
+    detect_best_engine,
 )
 
 
@@ -112,3 +113,21 @@ class TestCpuBrainSmoke:
 
         assert brain.areas["A"].winners is not None
         assert len(brain.areas["A"].winners) == 50
+
+
+class TestBestEngineHeuristic:
+    def test_detect_best_engine_defaults_to_numpy_sparse(self, monkeypatch):
+        monkeypatch.setattr(
+            "neural_assemblies.core.backend._detect_torch_cuda",
+            lambda: False,
+        )
+        assert detect_best_engine(0) == "numpy_sparse"
+        assert detect_best_engine(1_000_000) == "numpy_sparse"
+
+    def test_detect_best_engine_uses_threshold_for_torch_sparse(self, monkeypatch):
+        monkeypatch.setattr(
+            "neural_assemblies.core.backend._detect_torch_cuda",
+            lambda: True,
+        )
+        assert detect_best_engine(999_999) == "numpy_sparse"
+        assert detect_best_engine(1_000_000) == "torch_sparse"
