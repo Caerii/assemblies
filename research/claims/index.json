@@ -1,0 +1,115 @@
+{
+  "version": 1,
+  "entries": [
+    {
+      "id": "claim_n400_global_energy",
+      "status": "formalized_claim",
+      "title": "The N400 ERP maps to global pre-k-WTA energy in Assembly Calculus",
+      "category": "applications",
+      "primary_artifact": "research/claims/N400_GLOBAL_ENERGY.md",
+      "experiment_scripts": [
+        "research/experiments/applications/test_n400_pre_kwta.py",
+        "research/experiments/applications/test_n400_parameter_sweep.py",
+        "research/experiments/applications/test_n400_controls.py",
+        "research/experiments/applications/test_n400_vocab_scaling.py",
+        "research/experiments/applications/test_n400_cloze.py",
+        "research/experiments/applications/test_n400_graded.py",
+        "research/experiments/applications/test_p600_syntactic.py"
+      ],
+      "result_artifacts": [
+        "research/results/applications/n400_pre_kwta_20260211_131944.json",
+        "research/results/applications/n400_parameter_sweep_20260212_114001.json",
+        "research/results/applications/n400_controls_20260217_180457.json",
+        "research/results/applications/n400_vocab_scaling_20260217_181140.json",
+        "research/results/applications/n400_cloze_20260211_133136.json",
+        "research/results/applications/n400_graded_20260217_180949.json",
+        "research/results/applications/p600_syntactic_20260217_195815.json"
+      ],
+      "notes": "Fully written claim document with evidence, limitations, and falsification criteria."
+    },
+    {
+      "id": "evidence_projection_convergence",
+      "status": "evidence_summary",
+      "title": "Projection primitive convergence and stability",
+      "category": "primitives",
+      "primary_artifact": "research/results/primitives/RESULTS_projection.md",
+      "experiment_scripts": [
+        "research/experiments/primitives/test_projection.py"
+      ],
+      "result_artifacts": [
+        "research/results/primitives/projection_20260206_144109.json"
+      ],
+      "notes": "Strong summary of projection convergence, stim+self vs stim-only, and cross-area recovery. Not yet promoted to a formal claim document."
+    },
+    {
+      "id": "evidence_association_binding",
+      "status": "evidence_summary",
+      "title": "Association enables strong cross-area binding and recovery",
+      "category": "primitives",
+      "primary_artifact": "research/results/primitives/RESULTS_association.md",
+      "experiment_scripts": [
+        "research/experiments/primitives/test_association.py"
+      ],
+      "result_artifacts": [
+        "research/results/primitives/association_20260206_144409.json"
+      ],
+      "notes": "Evidence summary for association as a robust co-stimulation-based binding primitive."
+    },
+    {
+      "id": "evidence_merge_composition",
+      "status": "evidence_summary",
+      "title": "Merge forms compositional representations with strong partial recovery",
+      "category": "primitives",
+      "primary_artifact": "research/results/primitives/RESULTS_merge.md",
+      "experiment_scripts": [
+        "research/experiments/primitives/test_merge.py"
+      ],
+      "result_artifacts": [
+        "research/results/primitives/merge_composition_20260206_150412.json"
+      ],
+      "notes": "Evidence summary for merge as a compositional primitive. Still needs explicit formal claim and limitations file."
+    },
+    {
+      "id": "evidence_attractor_dynamics",
+      "status": "evidence_summary",
+      "title": "Autonomous recurrence exhibits strong attractor dynamics in tested regimes",
+      "category": "stability",
+      "primary_artifact": "research/results/stability/RESULTS_attractor_dynamics.md",
+      "experiment_scripts": [
+        "research/experiments/stability/test_attractor_dynamics.py"
+      ],
+      "result_artifacts": [
+        "research/results/stability/attractor_dynamics_20260206_121741.json"
+      ],
+      "notes": "Evidence summary includes explicit caveats about single-assembly conditions and null strength."
+    },
+    {
+      "id": "evidence_phase_diagram",
+      "status": "evidence_summary",
+      "title": "Assembly attractor formation exhibits a tested phase boundary in (k/n, beta)",
+      "category": "stability",
+      "primary_artifact": "research/results/stability/RESULTS_phase_diagram.md",
+      "experiment_scripts": [
+        "research/experiments/stability/test_phase_diagram.py"
+      ],
+      "result_artifacts": [
+        "research/results/stability/phase_diagram_20260206_160402.json"
+      ],
+      "notes": "Evidence summary for the tested phase boundary under the documented regime; should not be generalized beyond that regime without qualification."
+    },
+    {
+      "id": "evidence_scaling_laws",
+      "status": "evidence_summary",
+      "title": "Assembly formation shows regime-dependent scaling of convergence and persistence",
+      "category": "stability",
+      "primary_artifact": "research/results/stability/RESULTS_scaling_laws.md",
+      "experiment_scripts": [
+        "research/experiments/stability/test_scaling_laws.py"
+      ],
+      "result_artifacts": [
+        "research/results/stability/scaling_laws_20260206_155822.json"
+      ],
+      "notes": "Evidence summary focuses on the tested k=sqrt(n) regime and explicitly distinguishes recovery basins from fixed-point persistence."
+    }
+  ]
+}
