@@ -37,7 +37,13 @@ research/
 
 ### Step 1: Identify Your Questions
 
-Edit `open_questions.md` and list everything you want to investigate:
+Start by reading:
+
+- `open_questions.md` for the broad tracker
+- `core_questions/index.json` for the already curated questions
+- `claims/index.json` for the current claim/evidence inventory
+
+Then edit `open_questions.md` and list anything new you want to investigate:
 
 ```markdown
 ### Q01: My First Question
@@ -48,7 +54,10 @@ Edit `open_questions.md` and list everything you want to investigate:
 
 ### Step 2: Choose a Question to Investigate
 
-Pick one question (start with something tractable):
+First check whether the question already has a curated directory in
+`core_questions/`.
+
+If not, pick one question (start with something tractable):
 
 ```bash
 cd core_questions
@@ -257,9 +266,10 @@ Cite in papers:
 ### Update These Regularly:
 
 1. **`open_questions.md`** - Track all questions and status
-2. **Individual question READMEs** - Document progress
-3. **Git commits** - Commit experiments and analysis
-4. **Claims directory** - Add validated claims
+2. **`core_questions/index.json`** - Track which questions are curated
+3. **Individual question files** - Document progress
+4. **Git commits** - Commit experiments and analysis
+5. **Claims directory** - Add validated claims
 
 ### Status Workflow:
 
@@ -282,7 +292,7 @@ Let's say you want to investigate assembly stability:
    **Hypothesis:** Assemblies converge in O(log N) steps
    ```
 
-2. **Create question directory:**
+2. **Create question directory only if it is not already curated:**
    ```bash
    cd core_questions
    mkdir Q01_assembly_stability
@@ -366,6 +376,7 @@ Let's say you want to investigate assembly stability:
 ## 📚 Further Reading
 
 - **Research workflow:** `README.md`
+- **Curated question index:** `core_questions/index.json`
 - **LaTeX infrastructure:** `papers/_latex_infrastructure/README.md`
 - **Paper organization:** `papers/README.md`
 - **Question tracking:** `open_questions.md`

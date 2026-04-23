@@ -25,7 +25,9 @@ core_questions/
 ```
 
 **Current Questions:**
-- *To be populated as research develops*
+- See `core_questions/index.json` for the curated question inventory.
+- See `open_questions.md` for the broader tracker of all questions, including
+  ones that are not yet mature enough for full question directories.
 
 ### Experiments (`experiments/`)
 
@@ -113,11 +115,18 @@ See `papers/README.md` for detailed paper organization.
 ## 📊 Current Status
 
 ### Questions Under Investigation
-- See `open_questions.md` and `core_questions/README.md`. The question-driven
-  structure exists, but the per-question directories are not yet fully curated.
-- The canonical suite inventory now lives in `research/registry.json`, which
-  maps experiment families to code paths, result directories, and recommended
-  entry points.
+- See `open_questions.md` for the broad tracker of all questions.
+- See `core_questions/index.json` and `core_questions/README.md` for the
+  smaller curated set of question directories that already map cleanly onto
+  evidence.
+- Current curated questions:
+  - `Q01` assembly stability
+  - `Q03` scaling laws
+  - `Q20` competition and distinctiveness
+  - `Q22` N400 as global pre-k-WTA energy
+- The canonical suite inventory lives in `research/registry.json`, which maps
+  experiment families to code paths, result directories, and recommended entry
+  points.
 
 ### Active Experiments
 - Active suites currently include `applications`, `biological_validation`,
@@ -139,12 +148,16 @@ truth for experiment coverage should be the registry and results directories.
 
 ## 🎯 Next Steps
 
-1. Keep `research/registry.json` current as suites are added or renamed
-2. Use `research/experiments/MANIFEST_TEMPLATE.json` for new experiments
-3. Validate the suite map with `uv run python research/experiments/infrastructure/validate_registry.py`
-4. Populate `core_questions/` with the most important fundamental questions
-5. Promote evidence summaries into formalized claims as they become bounded and defensible
-6. Construct papers from validated claims
+1. Start from the curated question set in `core_questions/`
+2. Use `open_questions.md` to decide which unanswered or underqualified
+   question should be promoted next
+3. Keep `research/registry.json` current as suites are added or renamed
+4. Use `research/experiments/MANIFEST_TEMPLATE.json` for new experiments
+5. Validate the suite map with `uv run python research/experiments/infrastructure/validate_registry.py`
+6. Run or refine experiments and collect results
+7. Promote evidence summaries into formalized claims as they become bounded and
+   defensible
+8. Construct papers from validated claims
 
 ---
 

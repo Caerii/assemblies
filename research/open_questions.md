@@ -1,255 +1,231 @@
 # Open Research Questions
 
-A living document tracking **all** questions being explored in this project. Questions are organized by theme and status.
+A living document tracking all questions being explored in this project.
+Questions are organized by theme and status.
 
-*Last Updated: 2026-02-11*
+Last Updated: 2026-04-22
 
 ---
 
-## 🎯 Fundamental Theory
+## Fundamental Theory
 
-### Q01: Assembly Stability ✅ VALIDATED
-**Status:** Completed  
-**Hypothesis:** Sparse assemblies converge to stable attractors under specific connectivity and sparsity conditions.  
-**Result:** Confirmed - 100% convergence rate, mean 2.375 steps to stability  
-**Location:** `research/experiments/primitives/test_projection.py`  
+### Q01: Assembly Stability
+**Status:** Completed
+**Hypothesis:** Sparse assemblies converge to stable attractors under specific connectivity and sparsity conditions.
+**Result:** In the tested recurrent regimes, stim+self training produces autonomous persistence well above chance. The fixed-training projection study gives `0.709 +/- 0.032` persistence vs `0.113 +/- 0.007` for the stim-only control at `n=1000, k=100`, while heavier single-assembly training reaches `0.97 - 1.00` persistence in favorable settings.
+**Location:** `research/core_questions/Q01_assembly_stability/`
 
 ### Q02: Critical Phenomena
-**Status:** Not Started  
-**Hypothesis:** Assembly formation exhibits phase transitions at critical sparsity levels.  
-**Why It Matters:** Explains robustness and universality  
-**Location:** `core_questions/Q02_critical_phenomena/`  
+**Status:** Not Started
+**Hypothesis:** Assembly formation exhibits phase transitions at critical sparsity levels.
+**Why It Matters:** Explains robustness and universality.
+**Location:** `core_questions/Q02_critical_phenomena/`
 
-### Q03: Scaling Laws ✅ VALIDATED (needs theory)
-**Status:** Completed - needs theoretical derivation  
-**Hypothesis:** Assembly properties follow power-law scaling with network size.  
-**Result:** O(log N) scaling confirmed with R²=0.989  
-**Note:** Convergence time DECREASES with N (negative exponent) - needs explanation  
-**Location:** `research/experiments/stability/test_scaling_laws.py`  
+### Q03: Scaling Laws
+**Status:** Completed - needs theoretical derivation
+**Hypothesis:** Assembly properties follow systematic scaling trends with network size.
+**Result:** In the tested `k=sqrt(n)` regime, convergence time trends downward with network size. The current fit is `T = -17.49 * log10(n) + 78.68`, `R^2 = 0.601`, `p = 0.070`, so the evidence is consistent with logarithmic scaling but still noisy.
+**Note:** Persistence stays moderate rather than monotonic because increasing `n` also decreases `k/n`.
+**Location:** `research/core_questions/Q03_scaling_laws/`
 
 ---
 
-## 📊 Algorithmic Contributions
+## Algorithmic Contributions
 
 ### Q04: Complexity Bounds
-**Status:** Not Started  
-**Hypothesis:** Top-K selection can be performed in O(N log K) time with appropriate data structures.  
-**Why It Matters:** Enables billion-scale simulation  
-**Location:** `core_questions/Q04_complexity_bounds/`  
+**Status:** Not Started
+**Hypothesis:** Top-K selection can be performed in `O(N log K)` time with appropriate data structures.
+**Why It Matters:** Enables billion-scale simulation.
+**Location:** `core_questions/Q04_complexity_bounds/`
 
 ### Q05: Memory Efficiency
-**Status:** Not Started  
-**Hypothesis:** Sparse representations reduce memory by >80% without accuracy loss.  
-**Why It Matters:** Practical scalability  
-**Location:** `core_questions/Q05_memory_efficiency/`  
+**Status:** Not Started
+**Hypothesis:** Sparse representations reduce memory by more than 80 percent without accuracy loss.
+**Why It Matters:** Practical scalability.
+**Location:** `core_questions/Q05_memory_efficiency/`
 
 ---
 
-## 🧠 Biological Validation
+## Biological Validation
 
 ### Q06: Assembly Detection
-**Status:** Not Started  
-**Hypothesis:** Computational assemblies can be detected in biological neural recordings.  
-**Why It Matters:** Validates theoretical predictions  
-**Location:** `core_questions/Q06_assembly_detection/`  
+**Status:** Not Started
+**Hypothesis:** Computational assemblies can be detected in biological neural recordings.
+**Why It Matters:** Validates theoretical predictions.
+**Location:** `core_questions/Q06_assembly_detection/`
 
-### Q07: Sparsity Measurements ✅ VALIDATED
-**Status:** Completed  
-**Hypothesis:** Biological neural networks exhibit predicted sparsity levels (1-5%).  
-**Result:** Simulation parameters (2% sparsity) match biological ranges  
-**Location:** `research/experiments/biological_validation/test_biological_parameters.py`  
+### Q07: Sparsity Measurements
+**Status:** Completed
+**Hypothesis:** Biological neural networks exhibit predicted sparsity levels in the 1-5 percent range.
+**Result:** The repo's chosen cortical/hippocampal sparsity settings (2 percent) and local connection probability settings (10 percent) fall within the cited biological parameter ranges used by the validation script. This is parameter alignment, not a full neural-data comparison.
+**Location:** `research/experiments/biological_validation/test_biological_parameters.py`
 
 ### Q08: Cross-Species Universality
-**Status:** Not Started  
-**Hypothesis:** Assembly principles are universal across species and brain regions.  
-**Why It Matters:** Tests generality of theory  
-**Location:** `core_questions/Q08_universality/`  
+**Status:** Not Started
+**Hypothesis:** Assembly principles are universal across species and brain regions.
+**Why It Matters:** Tests generality of theory.
+**Location:** `core_questions/Q08_universality/`
 
 ---
 
-## 📈 Information Theory
+## Information Theory
 
-### Q09: Coding Capacity ✅ VALIDATED*
-**Status:** Completed (*with important caveat)  
-**Hypothesis:** Sparse assembly coding is near-optimal for biological energy/information constraints.  
-**Result:** 0.282 bits/neuron achieved  
-**CRITICAL CAVEAT:** Only valid when stimuli compete in same brain!  
-**Location:** `research/experiments/information_theory/test_coding_capacity.py`  
+### Q09: Coding Capacity
+**Status:** Completed (with important caveat)
+**Hypothesis:** Sparse assembly coding is near-optimal for biological energy/information constraints.
+**Result:** `0.282 bits/neuron` achieved.
+**Critical Caveat:** Only valid when stimuli compete in the same brain.
+**Location:** `research/experiments/information_theory/test_coding_capacity.py`
 
-### Q10: Noise Robustness ⚠️ PARTIALLY VALIDATED
+### Q10: Noise Robustness
 **Status:** Test fixed but needs sparser parameters for meaningful validation
-**Hypothesis:** Assemblies maintain information in presence of realistic neural noise levels.
-**Problem:** Original test kept providing stimulus, trivially recovering assembly.
-Test was fixed to use autonomous recurrence (area→area self-projection), but at
-k/n=0.10 the test passes trivially. Needs sparser parameters (k/n < 0.01) to
-be a meaningful discriminator.
-**Next Step:** Re-run with N=10000, K=50, P=0.01 to test genuine noise resilience
-**Location:** `research/experiments/stability/test_noise_robustness_v2.py`  
+**Hypothesis:** Assemblies maintain information in the presence of realistic neural noise levels.
+**Problem:** The original test kept providing stimulus, so recovery was trivial. The revised protocol uses autonomous recurrence, but at `k/n=0.10` it still passes too easily to be a good discriminator.
+**Next Step:** Re-run with `N=10000`, `K=50`, `P=0.01` to test genuine noise resilience.
+**Location:** `research/experiments/stability/test_noise_robustness_v2.py`
 
 ---
 
-## ⚡ Dynamics and Plasticity
+## Dynamics and Plasticity
 
-### Q11: Convergence Time ✅ VALIDATED
-**Status:** Completed  
-**Hypothesis:** Assemblies converge in O(log N) steps under typical conditions.  
-**Result:** Confirmed - 2-6 steps depending on parameters  
-**Location:** `research/experiments/stability/test_scaling_laws.py`  
+### Q11: Convergence Time
+**Status:** Completed
+**Hypothesis:** Assemblies converge in `O(log N)` steps under typical conditions.
+**Result:** Empirical convergence typically falls in the 2-6 step range in the faster tested conditions, with slower and noisier behavior in weaker regimes.
+**Location:** `research/experiments/stability/test_scaling_laws.py`
 
-### Q12: Learning Rules ✅ VALIDATED
-**Status:** Completed — no catastrophic interference detected
+### Q12: Learning Rules
+**Status:** Completed - bounded retrieval result, broader theory still open
 **Hypothesis:** Hebbian plasticity enables stable assembly modification without catastrophic forgetting.
-**Result:** Mean retrieval accuracy = 1.000, no early degradation across trials.
-Tested via capacity limits experiment with sequential assembly formation and retrieval.
+**Result:** In the current quick retrieval test, mean retrieval accuracy is `1.000` with no early-vs-late degradation across sequentially trained stimuli.
+**Caveat:** This supports a bounded "no catastrophic interference in this retrieval test" claim, but not yet a full learning-rules theory or capacity claim.
 **Location:** `research/experiments/distinctiveness/test_capacity_limits.py`
-**Results:** `research/results/distinctiveness/capacity_limits_20260208_171552_quick.json`  
+**Results:** `research/results/distinctiveness/capacity_limits_20260208_171552_quick.json`
 
 ### Q13: Neural Oscillations
-**Status:** Not Started  
-**Hypothesis:** Assembly dynamics generate emergent oscillations matching biological frequencies.  
-**Why It Matters:** Links computation to observed brain activity  
-**Location:** `core_questions/Q13_neural_oscillations/`  
+**Status:** Not Started
+**Hypothesis:** Assembly dynamics generate emergent oscillations matching biological frequencies.
+**Why It Matters:** Links computation to observed brain activity.
+**Location:** `core_questions/Q13_neural_oscillations/`
 
 ---
 
-## 🔬 NEW: Critical Discoveries
+## Critical Discoveries
 
-### Q20: Competition is Essential ✅ MAJOR FINDING
-**Status:** Completed - CRITICAL DISCOVERY  
-**Finding:** Assembly distinctiveness requires competition within same brain  
+### Q20: Competition and Distinctiveness
+**Status:** Completed - strong phenomenon, mechanism still being decomposed
+**Finding:** In the tested same-brain stim-only regime, assemblies remain near chance overlap while preserving perfect reactivation, indicating that shared-area competition can support distinct representations.
 **Evidence:**
-- Separate brains: 94% overlap (NOT distinct)
-- Same brain: 3% overlap (distinct)
-**Implication:** Lateral inhibition is essential mechanism, not optional  
-**Location:** `research/experiments/stability/test_assembly_distinctiveness.py`  
+- Same brain, `n=1000, k=100`: pairwise overlap `0.104 - 0.121` vs chance `0.100`
+- Reactivation fidelity: `1.000 +/- 0.000` across 2-8 stimuli
+- Quick mechanism follow-up: low neuron reuse (about 5-7 percent), but not every simple explanatory hypothesis is supported yet
+**Implication:** The distinctiveness phenomenon is strong; the full mechanism story still needs a sharper claim and decomposition.
+**Location:** `research/core_questions/Q20_competition_distinctiveness/`
 
-### Q21: Autonomous Recurrence ✅ RESOLVED (documentation gap)
-**Status:** Completed — was a documentation gap, not an implementation limitation
-**Finding:** `brain.project({}, {area: [area]})` supports pure area→area
-self-recurrence. This always worked — the confusion was that the `project()`
-*op* in `ops.py` uses `project_rounds()` which excludes self-recurrence, but
-calling `brain.project()` directly with explicit area→area routing works.
-**Evidence:** LRI tests (test_lri.py) and sequence recall (test_sequences.py)
-both use autonomous self-recurrence successfully.
-**Location:** `src/tests/test_lri.py`, `src/tests/test_sequences.py`
+### Q21: Autonomous Recurrence
+**Status:** Completed - resolved as a documentation gap
+**Finding:** `brain.project({}, {area: [area]})` supports pure area-to-area self-recurrence. The confusion came from some higher-level helper paths excluding self-recurrence, not from the engine lacking the capability.
+**Evidence:** LRI tests and sequence recall both use autonomous self-recurrence successfully.
+**Location:** `neural_assemblies/tests/test_lri.py`, `neural_assemblies/tests/test_sequences.py`
 
-### Q22: N400 = Global Pre-k-WTA Energy ✅ MAJOR FINDING
-**Status:** Completed — mechanism identified after 16 experimental conditions
-**Finding:** The N400 semantic priming effect in Assembly Calculus corresponds
-to `sum(all_inputs)` — total synaptic input before k-WTA selection — NOT to
-post-competition assembly overlap or neuron-specific activation.
+### Q22: N400 = Global Pre-k-WTA Energy
+**Status:** Completed - formalized claim plus supporting experiments
+**Finding:** The N400 semantic priming effect in Assembly Calculus corresponds to `sum(all_inputs)` - total synaptic input before k-WTA selection - not to post-competition assembly overlap or neuron-specific activation.
 **Evidence:**
-- Global energy: d = -25 to -31, p < 0.001 (correct N400 direction)
-- Settling dynamics: d = -16 to -18, p = 0.001 (correct direction)
-- 13 prior post-k-WTA conditions all showed reversed direction
+- Global energy: `d = -25 to -31`, `p < 0.001` (correct N400 direction)
+- Settling dynamics: `d = -16 to -18`, `p = 0.001` (correct direction)
+- Thirteen prior post-k-WTA conditions showed reversed direction
 - Neuron-specific pre-k-WTA metrics also reversed (competition effect)
-**Implication:** AC can model aggregate neural signals (ERPs), not just
-single-cell recordings. The pre-/post-k-WTA boundary is fundamental.
-**Location:** `research/experiments/applications/test_n400_pre_kwta.py`
+**Implication:** Assembly Calculus can model aggregate neural signals (ERPs), not just single-cell recordings. The pre-/post-k-WTA boundary is fundamental.
+**Location:** `research/core_questions/Q22_n400_global_energy/`, `research/claims/N400_GLOBAL_ENERGY.md`
 
 ---
 
-## 🔧 Implementation
+## Implementation
 
 ### Q14: Multi-Backend Performance
-**Status:** Not Started  
-**Hypothesis:** Unified API across CUDA/CuPy/NumPy achieves within 10% of optimal performance.  
-**Why It Matters:** Practical usability  
-**Location:** `core_questions/Q14_multi_backend/`  
+**Status:** Not Started
+**Hypothesis:** A unified API across CUDA, CuPy, and NumPy can achieve within 10 percent of optimal performance.
+**Why It Matters:** Practical usability.
+**Location:** `core_questions/Q14_multi_backend/`
 
 ### Q15: Quantization Effects
-**Status:** Not Started  
-**Hypothesis:** FP16 quantization maintains accuracy while achieving 2-4x speedup.  
-**Why It Matters:** Further scaling potential  
-**Location:** `core_questions/Q15_quantization/`  
+**Status:** Not Started
+**Hypothesis:** FP16 quantization maintains accuracy while achieving 2-4x speedup.
+**Why It Matters:** Further scaling potential.
+**Location:** `core_questions/Q15_quantization/`
 
 ---
 
-## 🎓 Applications
+## Applications
 
 ### Q16: Language Processing
 **Status:** In Progress
-**Hypothesis:** Assembly calculus can model syntactic structure formation.
-**Why It Matters:** Tests computational expressiveness
-**Progress:** EmergentParser implements 44-area parser with grounded vocabulary,
-role binding, incremental processing, and curriculum learning.
-**Location:** `src/assembly_calculus/emergent/`, `research/experiments/applications/`
+**Hypothesis:** Assembly Calculus can model syntactic structure formation.
+**Why It Matters:** Tests computational expressiveness.
+**Progress:** EmergentParser implements a 44-area parser with grounded vocabulary, role binding, incremental processing, and curriculum learning.
+**Location:** `neural_assemblies/assembly_calculus/emergent/`, `research/experiments/applications/`
 
-### Q22: N400 Semantic Priming ✅ MAJOR FINDING
-**Status:** Completed — core mechanism identified
-**Hypothesis:** Assembly calculus can reproduce the N400 ERP (semantic priming facilitation).
-**Finding:** The N400 maps to **global pre-k-WTA energy** (`sum(all_inputs)` before
-winner-take-all selection), NOT to post-competition assembly overlap or neuron-specific
-activation. Related primes reduce global energy via Hebbian pre-activation of shared
-features; unrelated primes leave global energy higher.
-**Evidence:**
-- Global energy: Cohen's d = -25 to -31, p < 0.001 (CORRECT direction)
-- Settling dynamics: Cohen's d = -16 to -18, p = 0.001 (CORRECT direction)
-- Neuron-specific metrics: REVERSED (competition effect, as expected)
-- 13 post-k-WTA conditions across 3 prior experiments all showed reversed direction,
-  confirming the k-WTA boundary is the critical distinction
-**Insight:** The N400 ERP is a scalp-recorded aggregate signal reflecting total
-cortical energy, not single-neuron activity. `sum(all_inputs)` is the AC analogue.
-**Next Steps:** Parameter robustness, cloze probability, sentence context, P600.
-See `research/plans/N400_NEXT_STEPS.md`.
-**Location:** `research/experiments/applications/test_n400_pre_kwta.py`
+### Application Track: N400 Semantic Priming
+**Status:** See Q22 above
+**Note:** The N400 application result is now tracked under the single Q22 entry so the research tree does not duplicate the same question in multiple sections. Future application work should extend that question rather than restate it here.
 
 ### Q17: Memory Formation
-**Status:** Not Started  
-**Hypothesis:** Transient assemblies can become persistent memories through plasticity.  
-**Why It Matters:** Links to real cognitive functions  
-**Location:** `core_questions/Q17_memory/`  
+**Status:** Not Started
+**Hypothesis:** Transient assemblies can become persistent memories through plasticity.
+**Why It Matters:** Links to real cognitive functions.
+**Location:** `core_questions/Q17_memory/`
 
 ---
 
-## 📝 Meta-Questions
+## Meta-Questions
 
 ### Q18: Validation Framework
-**Status:** Partially Complete  
-**Question:** What constitutes valid evidence for each type of claim?  
-**Progress:** Critical analysis revealed several methodological flaws  
-**Location:** `research/CRITICAL_ANALYSIS.md`  
+**Status:** Partially Complete
+**Question:** What constitutes valid evidence for each type of claim?
+**Progress:** Critical analysis revealed several methodological flaws.
+**Location:** `research/CRITICAL_ANALYSIS.md`
 
 ### Q19: Experimental Design
-**Status:** In Progress  
-**Question:** What experiments can falsify our hypotheses?  
-**Progress:** Identified that noise robustness test was unfalsifiable  
-**Location:** `core_questions/Q19_experimental_design/`  
+**Status:** In Progress
+**Question:** What experiments can falsify our hypotheses?
+**Progress:** Identified that the original noise-robustness test was unfalsifiable.
+**Location:** `core_questions/Q19_experimental_design/`
 
 ---
 
-## 🚧 Question Status Legend
+## Question Status Legend
 
 - **Not Started:** Question identified but not yet investigated
 - **In Progress:** Active experimentation and analysis
-- **Completed:** Validated conclusions reached
+- **Completed:** Bounded, evidence-backed conclusions reached
 - **INVALID:** Test methodology was flawed
-- **Abandoned:** Question didn't pan out (document why)
+- **Abandoned:** Question did not pan out; document why
 
 ---
 
-## 🎯 Priority Questions (Updated)
+## Priority Questions (Updated)
 
-### Tier 1 (Foundation) - MOSTLY DONE
-- ✅ Q01: Assembly Stability - VALIDATED
-- ✅ Q03: Scaling Laws - VALIDATED (needs theory)
-- ✅ Q11: Convergence Time - VALIDATED
-- ✅ Q20: Competition Essential - MAJOR FINDING
+### Tier 1 (Foundation) - Mostly Done
+- Q01: Assembly Stability
+- Q03: Scaling Laws
+- Q11: Convergence Time
+- Q20: Competition and Distinctiveness
 
-### Tier 2 (Validation) - NEXT PRIORITY
-- 🔲 Q02: Critical Phenomena - Map phase transitions
-- ✅ Q12: Learning Rules - VALIDATED (no catastrophic interference)
-- 🔲 Q06: Assembly Detection - Compare to real data
-- ✅ Q22: N400 Semantic Priming - MAJOR FINDING (global pre-k-WTA energy)
+### Tier 2 (Validation) - Next Priority
+- Q02: Critical Phenomena
+- Q12: Learning Rules
+- Q06: Assembly Detection
+- Q22: N400 = Global Pre-k-WTA Energy
 
 ### Tier 3 (Applications)
-- 🔄 Q16: Language Processing - In Progress (EmergentParser)
-- 🔲 Q17: Memory Formation
-- 🔲 Q13: Neural Oscillations
+- Q16: Language Processing
+- Q17: Memory Formation
+- Q13: Neural Oscillations
 
 ---
 
-## 📊 Summary Statistics
+## Summary Statistics
 
 | Category | Total | Completed | In Progress | Issues |
 |----------|-------|-----------|-------------|--------|
@@ -258,13 +234,14 @@ See `research/plans/N400_NEXT_STEPS.md`.
 | Biological | 3 | 1 | 0 | 0 |
 | Information | 2 | 1 | 0 | 1 |
 | Dynamics | 3 | 2 | 0 | 0 |
-| New Discoveries | 2 | 2 | 0 | 0 |
+| Critical Discoveries | 3 | 3 | 0 | 0 |
 | Implementation | 2 | 0 | 0 | 0 |
-| Applications | 3 | 1 | 1 | 0 |
+| Applications | 2 | 0 | 1 | 0 |
 | Meta | 2 | 0 | 2 | 0 |
 
-**Overall Progress:** 10 completed, 0 invalid, 12 remaining
+**Overall Progress:** 9 completed, 3 in progress, 1 issue, 9 not started
 
 ---
 
-**This list will grow as research progresses. Update frequently!**
+This list should evolve as the research matures. Update frequently, and keep the
+strongest statements aligned with specific artifacts and limitations.
