@@ -81,6 +81,18 @@ substrate in their own right:
 That is a research program, not a solved result. The package gives us machinery
 for testing it.
 
+## Audience
+
+The repo is mainly for readers who want to work close to the mechanism:
+
+- computational neuroscience students and researchers
+- neuro-inspired ML researchers
+- people comparing sparse assembly models with deep-learning systems
+- contributors who want runnable experiments rather than only paper diagrams
+
+It is less useful if you want a general ML framework, a hosted service, or a
+drop-in replacement for transformer tooling.
+
 ## AI Assistance
 
 This repository has been developed with AI assistance. That means AI helped

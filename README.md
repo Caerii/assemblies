@@ -10,11 +10,29 @@ The installable package is published as `neural-assemblies` and imported as
 accelerator work, and archived prototypes close to the code without treating
 all of them as package guarantees.
 
+The package is alpha software. The core APIs are tested, but research-facing
+modules and accelerator paths may move as experiments clarify what belongs in
+the library.
+
 This repo is maintained by Alif Jakir. It grew out of MIT's Projects in the
 Science of Intelligence course and later work extending the assembly-calculus
 and language-organ line, including collaboration with Daniel Mitropolsky
 (MIT Poggio Lab). For the longer history, read
 [docs/project_context.md](docs/project_context.md).
+
+## Core Ideas
+
+Neural assemblies are sparse sets of neurons that fire together and can be
+treated as reusable computational objects.
+
+The main operations in this package are:
+
+- `project`: form or copy an assembly into an area
+- `associate`: link two assemblies through co-activation
+- `merge`: form a conjunctive assembly from two sources
+- `sequence_memorize`: train an ordered list of assemblies
+- `ordered_recall`: inspect cue-driven recall with Long-Range Inhibition
+- `overlap`: compare assemblies against each other or against chance
 
 ## What Is Stable
 
@@ -43,6 +61,16 @@ question, experiment suite, and claim status.
 Historical root scripts, old image-learning artifacts, MATLAB prototypes, and
 checkout-era modules have been moved under `legacy/`. The root files that
 remain, such as `brain.py` and `parser.py`, are compatibility shims.
+
+## Audience And Non-Goals
+
+This repo is for computational neuroscience, neuro-inspired ML, and researchers
+or students who want to inspect assembly-calculus mechanisms in code.
+
+It is not a transformer library, a hosted chatbot, a biophysical simulator, or
+a proof artifact for every theorem in the assembly-calculus literature. It does
+not use backprop as its core learning rule, and it is not differentiable
+end-to-end.
 
 ## Install
 
@@ -103,6 +131,7 @@ Start here:
   versus legacy code
 - [docs/project_context.md](docs/project_context.md) for project history and
   motivation
+- [docs/references.md](docs/references.md) for the papers behind the project
 
 Section guides:
 
@@ -112,6 +141,14 @@ Section guides:
 - [neural_assemblies/language/README.md](neural_assemblies/language/README.md)
 - [neural_assemblies/lexicon/README.md](neural_assemblies/lexicon/README.md)
 - [neural_assemblies/nemo/README.md](neural_assemblies/nemo/README.md)
+
+Notebooks:
+
+- [examples/notebooks/README.md](examples/notebooks/README.md)
+- [examples/notebooks/volume-01-foundations/](examples/notebooks/volume-01-foundations/)
+- [examples/notebooks/volume-02-memory-and-computation/](examples/notebooks/volume-02-memory-and-computation/)
+- [examples/notebooks/volume-03-language/](examples/notebooks/volume-03-language/)
+- [examples/notebooks/volume-04-research-workflow/](examples/notebooks/volume-04-research-workflow/)
 
 Research entry points:
 
@@ -164,6 +201,9 @@ work rather than citing the package as proof of a theoretical result:
   Model of the Brain*
 - Mitropolsky and Papadimitriou (2023, 2025) on the language organ and
   simulated language acquisition
+
+For the broader reference list, including Hebb, Hopfield, and sparse-coding
+background, see [docs/references.md](docs/references.md).
 
 ## Contributing
 

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import subprocess
 import sys
 from pathlib import Path
@@ -47,3 +48,21 @@ def test_basic_example_script_runs() -> None:
     )
     assert result.returncode == 0, result.stderr
     assert "Merged assembly size:" in result.stdout
+
+
+def test_example_notebooks_are_valid_json() -> None:
+    notebook_dir = REPO_ROOT / "examples" / "notebooks"
+    notebooks = sorted(
+        path
+        for path in notebook_dir.rglob("*.ipynb")
+        if ".ipynb_checkpoints" not in path.parts
+    )
+    assert notebooks
+    assert not list(notebook_dir.glob("*.ipynb"))
+
+    for notebook in notebooks:
+        with notebook.open(encoding="utf-8") as handle:
+            data = json.load(handle)
+        assert data["nbformat"] >= 4
+        assert data["cells"]
+        assert data["cells"][0]["cell_type"] == "markdown"
