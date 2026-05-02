@@ -11,6 +11,17 @@ parameter, and ask what moved.
 
 Read the volumes in order if you are new to the package.
 
+For the full notebook environment:
+
+```bash
+uv sync --group notebooks
+uv run jupyter lab
+```
+
+The package itself does not require the richer notebook stack. Keep reusable
+visualization helpers in `neural_assemblies.viz`, and keep optional interactive
+tools in notebooks.
+
 ## Volumes
 
 - `volume-01-foundations`: Brain setup, projection, merge, lexicons, and

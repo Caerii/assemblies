@@ -4,8 +4,7 @@ Small examples live here. They use the package imports directly.
 
 ## Script
 
-`01_basic_assembly_calculus.py` covers `Brain`, `project`, `merge`, and
-`overlap`.
+`01_basic_assembly_calculus.py` covers `Brain`, `project`, and `merge`.
 
 Run it from the repo root:
 
@@ -37,10 +36,12 @@ The notebook tree is organized as a short course:
 From the repo root:
 
 ```bash
-uv run jupyter notebook
+uv sync --group notebooks
+uv run jupyter lab
 ```
 
-Jupyter is not part of the default package test environment. Install it
-explicitly if your local environment does not already provide it.
+The notebook dependency group adds JupyterLab, widgets, interactive Matplotlib,
+canvas drawing, graph widgets, Plotly, and NetworkX. The notebooks should still
+avoid making those tools required for normal package imports.
 
 The repo pins the default development interpreter in `.python-version`.

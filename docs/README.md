@@ -26,6 +26,7 @@ research artifacts.
 - [language](../neural_assemblies/language/README.md)
 - [lexicon](../neural_assemblies/lexicon/README.md)
 - [nemo](../neural_assemblies/nemo/README.md)
+- [viz](../neural_assemblies/viz/README.md)
 
 ## Research
 

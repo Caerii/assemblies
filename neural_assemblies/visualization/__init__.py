@@ -1,14 +1,27 @@
-"""
-Visualization and analysis tools.
+"""Compatibility namespace for notebook-friendly visualization helpers.
 
-This module provides visualization and analysis capabilities for
-neural assembly simulations, including assembly visualization,
-connectome visualization, and simulation plotting.
+Use ``neural_assemblies.viz`` for new code. This namespace remains so
+``import neural_assemblies.visualization`` does not point at missing modules.
 """
 
-from .assembly_visualizer import AssemblyVisualizer
-from .connectome_visualizer import ConnectomeVisualizer
-from .simulation_plots import SimulationPlots
-from .analysis_tools import AnalysisTools
+from neural_assemblies.viz import (
+    DEFAULT_COLORS,
+    assembly_coordinates,
+    assembly_overlap_matrix,
+    plot_assemblies,
+    plot_assembly,
+    plot_overlap_matrix,
+    plot_projection_flow,
+    plot_recall_trace,
+)
 
-__all__ = ['AssemblyVisualizer', 'ConnectomeVisualizer', 'SimulationPlots', 'AnalysisTools']
+__all__ = [
+    "DEFAULT_COLORS",
+    "assembly_coordinates",
+    "assembly_overlap_matrix",
+    "plot_assemblies",
+    "plot_assembly",
+    "plot_overlap_matrix",
+    "plot_projection_flow",
+    "plot_recall_trace",
+]

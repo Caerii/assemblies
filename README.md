@@ -91,6 +91,12 @@ Optional GPU dependencies:
 uv sync --group gpu
 ```
 
+Optional notebook and interactive visualization dependencies:
+
+```bash
+uv sync --group notebooks
+```
+
 The import name is always `neural_assemblies`.
 
 ## Quick Start
@@ -142,6 +148,7 @@ Section guides:
 - [neural_assemblies/language/README.md](neural_assemblies/language/README.md)
 - [neural_assemblies/lexicon/README.md](neural_assemblies/lexicon/README.md)
 - [neural_assemblies/nemo/README.md](neural_assemblies/nemo/README.md)
+- [neural_assemblies/viz/README.md](neural_assemblies/viz/README.md)
 
 Notebooks:
 

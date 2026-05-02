@@ -132,6 +132,27 @@ Structured helpers:
 | `RandomChoiceArea` | Stochastic choice primitive. |
 | `FiberCircuit` | Declarative projection gating and control. |
 
+## Visualization
+
+`neural_assemblies.viz` provides small Matplotlib-based helpers for notebooks
+and diagnostics:
+
+```python
+from neural_assemblies.viz import plot_assemblies, plot_projection_flow
+```
+
+Use these helpers to make package state inspectable:
+
+- `plot_projection_flow` draws the shape of a two-source projection/merge
+  example.
+- `plot_assembly` and `plot_assemblies` show winner sets on square neuron
+  grids.
+- `plot_overlap_matrix` shows pairwise assembly overlap.
+- `plot_recall_trace` compares recalled assemblies against known references.
+
+These helpers are teaching and debugging tools. Use `research/` artifacts for
+scientific evidence.
+
 ## Simulation Helpers
 
 `neural_assemblies.simulation` contains runnable helpers for projection,

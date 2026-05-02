@@ -52,6 +52,12 @@ Optional GPU dependencies:
 uv sync --group gpu
 ```
 
+Optional notebook dependencies:
+
+```bash
+uv sync --group notebooks
+```
+
 ## Build
 
 ```bash
