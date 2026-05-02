@@ -1,55 +1,43 @@
-# Research plans and stubs
+# Research Plans
 
-This folder holds **planning documents and stubs** — roadmaps, curriculum designs, and evidence analyses that are not yet implemented or validated. They are organized by theme.
+This directory holds planning notes, roadmaps, curriculum sketches, and
+evidence analyses that are not yet validated results.
 
-**Status:** Plans/stubs only. Nothing here is a completed experiment or a canonical result. Use them to guide implementation and to track what evidence exists (or is missing).
+Nothing here is a completed experiment. Use these files to plan implementation,
+track missing evidence, and decide what should move into `experiments/`,
+`results/`, `core_questions/`, or `claims/`.
 
----
+## Main Documents
 
-## Structure
+| Document | Focus |
+|----------|-------|
+| `THEORETICAL_THROUGHLINES.md` | Linear-algebra, dynamical-systems, and complex-systems views of assembly dynamics. |
+| `PRIORITIES_AND_GAPS.md` | Highest-value gaps: autonomous recurrence, noise robustness, theory, claims, biological comparison, and falsifiability. |
+| `VISUALS_DYNAMICAL_SYSTEMS.md` | Figures that would make stability, attractors, phase diagrams, recurrence, and learned weights visible. |
+| `BRIDGE_WEBSCALE_CURRICULUM.md` | How assembly inputs, curricula, and next-token prediction might connect to larger-scale data. |
+| `ASSEMBLIES_AS_NEURAL_COMPILER.md` | Assemblies as a possible programming substrate or compiler target. |
+| `SELF_ASSEMBLING_NEURAL_NANOTECH.md` | Speculative links between assembly dynamics and self-organizing hardware or materials. |
+| `ASSEMBLIES_MAPPED_CONNECTOMES.md` | Using mapped connectomes as graph substrates for assembly dynamics. |
 
-| Subfolder / doc | Contents |
-|------------------|----------|
-| **THEORETICAL_THROUGHLINES.md** | ML/linear algebra view (fixed points, stability, capacity) and complex systems/network physics view (phase transitions, mean-field, criticality); whether to add both to the exploratory plan. |
-| **PRIORITIES_AND_GAPS.md** | What else would add the most value: unblock Q21/Q10 (autonomous recurrence, noise robustness), one derived theory result, claims pipeline, one biological comparison, Q12 learning stability, falsifiability pass. |
-| **VISUALS_DYNAMICAL_SYSTEMS.md** | Dynamical-systems visuals: trajectories (overlap vs t, 2D overlap space), basins, phase diagram/scaling, stability (perturbation decay, Jacobian), multi-area flow, W before/after, recurrence plot; data sources and build order. |
-| **BRIDGE_WEBSCALE_CURRICULUM.md** | Bridge assembly calculus ↔ web-scale data and curricula: token → assembly input, next-token loss, curriculum ordering; implications; minimal recipe; can do next-token prediction. |
-| **ASSEMBLIES_AS_NEURAL_COMPILER.md** | Assemblies as neural programming language, target of a neural compiler, and higher-level abstraction: formal language (syntax, semantics, fixed-point), program vs data, learning as recompilation, areas as modules, control flow, abstraction hierarchy, type-like structure, compiler phases, Turing completeness. |
-| **SELF_ASSEMBLING_NEURAL_NANOTECH.md** | Exploratory link between assembly calculus and self-assembling neural nanotechnologies: self-assembly of network (topology from local binding), local implementation of assembly dynamics (projection, Hebbian, top-k), two-level self-organization (structure + function), sketch implementations (molecular, memristive, swarm, synthetic biology), implications and open questions. |
-| **ASSEMBLIES_MAPPED_CONNECTOMES.md** | Applying the assembly calculus to mapped connectomes (C. elegans, Drosophila): real graph + assembly dynamics (projection, top-k, Hebbian), area definition, challenges (scale, plasticity, validation), implementation path (load connectome, custom engine). |
-| **control/** | Control-rate and motor-control plans: CUDA benchmark → achievable control Hz, biological realism of loop rates. |
-| **robotics_embodiment/** | Isaac Lab + assembly brain: brainstorm for embodied control, embodied/social cognition, multi-robot, language at realistic rates, what could emerge. |
-| **curriculum/** | Embodied + social curriculum (stages 0–8), MHC alignment, and task-by-task evidence analysis (what we have vs what we don’t). |
+## Subdirectories
 
----
+- `control/`
+  Control-rate and motor-control planning.
+- `robotics_embodiment/`
+  Isaac Lab, embodied control, and language-grounding brainstorms.
+- `curriculum/`
+  Embodied and social curriculum sketches, including task-order analysis.
 
-## Index of documents
+## How To Use These Files
 
-### Theory (exploratory)
-- **THEORETICAL_THROUGHLINES.md** — ML/linear algebra perspective (top-k dynamics, fixed points, stability, capacity, Hopfield/sparse coding); complex systems/network physics (phase transitions, mean-field, percolation, criticality); recommendation to include both in the exploratory plan alongside statistical mechanics.
-- **PRIORITIES_AND_GAPS.md** — What else would be most valuable: fix Q21/Q10 (autonomous recurrence, noise robustness); one derived theory result (phase boundary, convergence rate, or capacity); populate claims/ for validated results; one biological comparison; Q12 learning stability; falsifiability pass (Q19).
-- **VISUALS_DYNAMICAL_SYSTEMS.md** — Visuals for the dynamical-system view: overlap vs time, 2D overlap trajectories, basins of attraction, phase diagram and scaling plots, perturbation decay and Jacobian eigenvalues, multi-area raster and flow, W before/after and spectrum, recurrence plot; data sources (existing vs new) and suggested build order.
-- **BRIDGE_WEBSCALE_CURRICULUM.md** — Bridge between assembly calculus and web-scale data + training curricula: token→assembly mapping, next-token prediction (yes), readout + optional STE, curriculum ordering (length/frequency/domain); implications; minimal recipe for next-token training.
-- **ASSEMBLIES_AS_NEURAL_COMPILER.md** — Assemblies as neural programming language and target of a neural compiler: formal language (primitives, composition, syntax, semantics, fixed-point execution), program vs data (connectome vs activity), learning as recompilation, areas as modules/functions, control flow (sequencing, loops, conditionals), higher-level language above assemblies, abstraction hierarchy (neurons → assemblies → cognitive ops → goals), type-like structure, compiler phases, Turing completeness, relation to NTM/differentiable programming.
-- **SELF_ASSEMBLING_NEURAL_NANOTECH.md** — Exploratory link between assembly calculus and self-assembling neural nanotechnologies: self-assembly of network topology (local binding), local implementation of assembly dynamics (projection, Hebbian, top-k), two-level self-organization (structure + function), sketch implementations (molecular/DNA, memristive, swarm, synthetic biology), implications (design principle, robustness, scaling) and open questions.
-- **ASSEMBLIES_MAPPED_CONNECTOMES.md** — Applying the assembly calculus to C. elegans and Drosophila: real mapped connectome as graph + assembly dynamics (projection, top-k, Hebbian), defining areas, challenges (scale, gap junctions, plasticity, validation), implementation (load connectome, run engine on real topology).
+Plans can be speculative. Claims cannot.
 
-### control/
-- **CONTROL_SPEED_FROM_CUDA.md** — Derive maximum control-loop frequency (Hz) from CUDA assembly benchmarks; biological realism of control rate; how to state it for a paper.
+When a plan becomes concrete:
 
-### robotics_embodiment/
-- **ISAAC_LAB_ASSEMBLY_BRAINSTORM.md** — Isaac Lab + assembly brain: minimal loop, parallel envs, hierarchy, association, sequences, training; embodied cognition, embodied social cognition, realistic speech/processing rates; what could emerge.
+1. create or update an experiment under `research/experiments/`
+2. store outputs under `research/results/`
+3. update `research/open_questions.md`
+4. promote bounded evidence into `research/claims/` only when the result is
+   defensible
 
-### curriculum/
-- **EMBODIED_SOCIAL_CURRICULUM.md** — Rich curriculum for embodied + social assembly cognition: stages 0–8 (sensorimotor → affordances → first words → phrases → commands → dialogue → two robots → social dialogue → open-ended); MHC mapping and implications for structure.
-- **CURRICULUM_TASK_ANALYSIS_AND_EVIDENCE.md** — Task-by-task analysis of the curriculum; what makes sense; what evidence we have (or lack); verdicts per stage; recommendations.
-
----
-
-## Relationship to the rest of research/
-
-- **experiments/** — Runnable experiments and scripts. Results live in **results/**.
-- **open_questions.md** — Living list of open questions (some validated, some not).
-- **core_questions/**, **papers/** — Core questions and paper infrastructure.
-
-Plans in this folder **reference** experiments and results (e.g. association recovery, distinctiveness, phase diagram) but are not substitutes for running experiments or publishing results.
+Do not cite a plan as evidence. Cite the experiment, result artifact, or claim.

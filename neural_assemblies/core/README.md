@@ -1,22 +1,22 @@
 # Core
 
-The `neural_assemblies.core` package implements the main runtime substrate:
-brains, areas, stimuli, connectomes, and compute-engine dispatch.
+`neural_assemblies.core` contains the runtime objects that every higher layer
+builds on: brains, areas, stimuli, connectomes, and compute engines.
 
-## Main Components
+## Objects
 
-| Component | File | Role |
-|-----------|------|------|
-| `Brain` | `brain.py` | Top-level orchestrator for areas, stimuli, routing, and projection cycles. |
-| `Area` | `area.py` | Area parameters, winner history, and activation state. |
-| `Stimulus` | `stimulus.py` | External fixed input representation. |
+| Object | File | Use it for |
+|--------|------|------------|
+| `Brain` | `brain.py` | Building areas, adding stimuli, routing projections, and choosing an engine. |
+| `Area` | `area.py` | Area size, sparsity, plasticity, winners, and history. |
+| `Stimulus` | `stimulus.py` | Fixed external inputs. |
 | `Connectome` | `connectome.py` | Connectivity and learned weights. |
-| `ComputeEngine` | `engine.py` | Abstract engine interface used by `Brain`. |
-| `backend.py` | `backend.py` | Array backend and auto-engine heuristic helpers. |
+| `ComputeEngine` | `engine.py` | Engine interface behind `Brain.project(...)`. |
+| `backend.py` | `backend.py` | Backend detection and engine selection helpers. |
 
-## Engine Names
+## Engines
 
-Known engine names in the current codebase:
+Known engine names:
 
 - `numpy_sparse`
 - `numpy_explicit`
@@ -24,8 +24,8 @@ Known engine names in the current codebase:
 - `cupy_sparse`
 - `torch_sparse`
 
-`engine="auto"` currently prefers `torch_sparse` only when `n_hint` is large
-and PyTorch CUDA is available; otherwise it falls back to `numpy_sparse`.
+`engine="auto"` chooses `torch_sparse` only when `n_hint` is large and PyTorch
+CUDA is available. Otherwise it uses `numpy_sparse`.
 
 ## Example
 
@@ -40,5 +40,5 @@ b.project({"stim": ["A"]}, {})
 
 ## See Also
 
-- [../../docs/architecture.md](../../docs/architecture.md)
-- [../../docs/api.md](../../docs/api.md)
+- [Architecture](../../docs/architecture.md)
+- [API guide](../../docs/api.md)

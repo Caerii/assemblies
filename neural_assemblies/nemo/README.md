@@ -1,43 +1,38 @@
 # NEMO
 
-Experimental language-learning systems built on assembly-style computation.
+`neural_assemblies.nemo` contains experimental language-learning code inspired
+by NEMO and the language-organ papers.
 
-This package should be read as a research-oriented surface inside
-`neural_assemblies`, not as the same stability tier as the core runtime.
+Use it for category, role, and word-order experiments. Do not treat it as the
+same maturity level as the core runtime.
 
-## Scope
+## What The Tests Cover
 
-NEMO-related code in this repository aims to learn category structure, role
-structure, and word order from exposure rather than fixed sentence templates.
-
-What is package-backed here:
-
-- narrow synthetic tests for category differentiation
+- category differentiation in narrow synthetic settings
 - role binding behavior
-- sequence and word-order related patterns in controlled settings
+- sequence and word-order patterns in controlled examples
 
-What is not a package guarantee:
+## What Still Needs Research Evidence
 
 - broad curriculum success
 - general language acquisition
-- cross-linguistic competence claims
-- generation quality claims beyond specific experiments
+- cross-linguistic competence
+- generation quality beyond named experiments
 
-For that boundary, see [../../docs/scientific_status.md](../../docs/scientific_status.md).
+For the claim boundary, read
+[Scientific status](../../docs/scientific_status.md).
 
 ## Layout
 
 ```text
 neural_assemblies/nemo/
 |-- core/        # NEMO-specific brain and kernels
-|-- language/    # Learners, generators, curriculum, integrated trainer
+|-- language/    # Learners, generators, curriculum, trainer
 |-- archive/     # Older experiments and historical code
 `-- README.md
 ```
 
-## Installation Notes
-
-Many NEMO paths assume optional GPU-oriented dependencies.
+## Install GPU Dependencies
 
 From a checkout:
 
@@ -51,9 +46,7 @@ From the published package:
 pip install "neural-assemblies[gpu]"
 ```
 
-## Quick Start
-
-### Simple Learner Surface
+## Simple Learner
 
 ```python
 from neural_assemblies.nemo.language import LanguageLearner, SentenceGenerator
@@ -66,7 +59,7 @@ sentence = generator.generate_sentence(length=3)
 print(sentence)
 ```
 
-### Integrated Trainer Surface
+## Integrated Trainer
 
 ```python
 from neural_assemblies.nemo.language import IntegratedNemoTrainer
@@ -77,25 +70,24 @@ sentence = trainer.generate_sentence(3)
 print(sentence)
 ```
 
-The second path is a research-oriented training workflow, not the default
-package contract.
+The trainer is a research workflow. Interpret its output through the relevant
+experiment or claim document.
 
-## Conceptual Architecture
+## Conceptual Roots
 
-The NEMO code organizes around a few recurring ideas from the papers:
+The implementation centers on ideas from the language-organ and simulated
+language-acquisition papers:
 
 - differentiated lexical pathways for nouns and verbs
-- grounding-oriented learning rather than pure text-only templates
-- role areas and inhibitory structure
+- grounding-oriented learning instead of pure text templates
+- role areas and inhibition
 - sequence-sensitive machinery for word order
 
-This repository contains implementations and experiments inspired by those
-ideas; it should not be read as a claim that every paper-level result has been
-fully reproduced as a package guarantee.
+The code implements and extends those ideas. It does not claim that every
+paper-level result has been reproduced as a package guarantee.
 
-## Related Surfaces
+## See Also
 
-- [../language/README.md](../language/README.md) for rule-based parsing
-- [../lexicon/README.md](../lexicon/README.md) for vocabulary and curriculum
-- [../../research/README.md](../../research/README.md) for experiment and claim
-  tracking
+- [Language](../language/README.md) for rule-based parsing
+- [Lexicon](../lexicon/README.md) for vocabulary and curriculum data
+- [Research guide](../../research/README.md) for experiment and claim tracking

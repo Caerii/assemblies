@@ -1,15 +1,14 @@
 # Language
 
-The `neural_assemblies.language` package is the rule-based parsing surface.
+`neural_assemblies.language` implements rule-based parsing with explicit
+grammar rules and hand-specified language areas.
 
-Use this package when you want explicit grammar rules and hand-specified
-language areas. Use `neural_assemblies.nemo` when you want the experimental
-learned-language surfaces.
+Use `neural_assemblies.nemo` for learned-language experiments.
 
-## Main Components
+## Objects
 
-| Component | File | Role |
-|-----------|------|------|
+| Object | File | Use it for |
+|--------|------|------------|
 | `ParserBrain` | `parser.py` | Base parser brain. |
 | `EnglishParserBrain` | `parser.py` | English parser configuration. |
 | `RussianParserBrain` | `parser.py` | Russian parser configuration. |
@@ -18,7 +17,7 @@ learned-language surfaces.
 | `ReadoutMethod` | `readout_methods.py` | Readout mode selection. |
 | `fixed_map_readout`, `fiber_readout` | `readout_methods.py` | Readout helpers. |
 | `ParserDebugger` | `debugger.py` | Debugging support. |
-| `parse(...)` | `__init__.py` | One-shot parsing helper. |
+| `parse(...)` | `__init__.py` | One-shot parser helper. |
 
 ## Example
 
@@ -29,10 +28,10 @@ result = parse("cats chase mice", language="English")
 print(result)
 ```
 
-From a repo checkout, `from parser import parse` still works through the
-root compatibility shim.
+From a checkout, `from parser import parse` still works through the root
+compatibility shim.
 
 ## See Also
 
-- [../nemo/README.md](../nemo/README.md)
-- [../../docs/api.md](../../docs/api.md)
+- [NEMO](../nemo/README.md)
+- [API guide](../../docs/api.md)

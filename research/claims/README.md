@@ -1,30 +1,20 @@
-# Claims Index
+# Claims
 
-This directory now has two layers:
+Use this directory for statements the research tree can defend.
 
-- **Formalized claims**: standalone claim documents with evidence,
-  limitations, and falsification criteria.
-- **Claim-ready evidence summaries**: result summaries that appear strong enough
-  to support future formal claims, but have not yet been promoted to full claim
-  documents.
-
-The canonical index is [index.json](index.json). It is intentionally explicit
-about status so the repo does not blur together:
-
-- evidence that exists,
-- claims that have been written down,
-- and hypotheses that are still only aspirations.
-
-## Status values
+The canonical inventory is [index.json](index.json). It separates two states:
 
 - `formalized_claim`
-  A claim document exists in `research/claims/` and is the main source of truth.
+  A claim document exists with evidence, limits, and falsification criteria.
 - `evidence_summary`
-  A results summary exists and looks claim-ready, but limitations and exact
-  claim wording still need to be formalized.
+  A result looks strong enough to support a future claim, but the exact claim
+  and limitations still need to be written.
 
-## Rule
+Do not cite an `evidence_summary` as a finished claim. Promote it only after
+the claim, evidence, and limitations are explicit.
 
-Do not cite an `evidence_summary` entry as if it were already a polished claim.
-Promote it to `formalized_claim` only after writing the claim, evidence, and
-limitations explicitly.
+Validate the inventory with:
+
+```bash
+uv run python research/claims/validate_index.py
+```

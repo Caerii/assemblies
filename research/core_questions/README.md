@@ -1,93 +1,66 @@
 # Core Research Questions
 
-This directory contains the **fundamental scientific questions** driving this research. Each question gets its own subdirectory with a complete investigation.
+Use this directory for research questions that are mature enough to have their
+own evidence-linked narrative.
 
-## Philosophy
+The broad tracker is `../open_questions.md`. This directory is narrower: a
+question belongs here only when the repo can already connect it to experiments,
+results, analysis, and caveats.
 
-**Start with questions, not papers.** Papers emerge naturally when questions are answered with validated evidence.
+## Directory Shape
 
-## Question Template
-
-Each research question should have:
-
-```
+```text
 QXX_question_name/
-├── hypothesis.md              # What exactly are we claiming?
-├── theoretical_basis.md       # Mathematical/theoretical foundation
-├── experiments.md             # How do we test this?
-├── results.md                 # What have we found?
-├── analysis.md                # Interpretation of results
-└── conclusions.md             # What can we claim?
+|-- hypothesis.md
+|-- theoretical_basis.md
+|-- experiments.md
+|-- results.md
+|-- analysis.md
+`-- conclusions.md
 ```
 
 ## Curated Questions
 
-This directory is no longer only a template surface. A small set of questions
-has been curated because the repo already has enough evidence to support a
-question-level narrative without overclaiming.
+The curated set is indexed in `index.json` and checked by
+`validate_index.py`.
 
-Machine-readable inventory:
+Current question directories:
 
-- `index.json`
-- `validate_index.py`
+- `Q01_assembly_stability/`
+  Recurrent stim+self stability, with explicit limits on scope.
+- `Q03_scaling_laws/`
+  Empirical scaling evidence in the tested `k = sqrt(n)` regime.
+- `Q20_competition_distinctiveness/`
+  Same-brain distinctiveness with mechanism caveats.
+- `Q22_n400_global_energy/`
+  Question-first wrapper around the strongest formalized claim.
 
-Current curated questions:
+## Evidence That Is Not Yet Curated
 
-- **Q01: Assembly Stability**
-  - `Q01_assembly_stability/`
-  - recurrent stim+self stability, with explicit limits on scope
-- **Q03: Scaling Laws**
-  - `Q03_scaling_laws/`
-  - empirical scaling evidence in the tested `k = sqrt(n)` regime
-- **Q20: Competition and Distinctiveness**
-  - `Q20_competition_distinctiveness/`
-  - same-brain distinctiveness with mechanism caveats
-- **Q22: N400 as Global Pre-k-WTA Energy**
-  - `Q22_n400_global_energy/`
-  - question-first wrapper around the strongest formalized claim
+Some results are useful but not ready for a full question directory.
 
-## Evidence-Backed But Not Yet Curated
+- Q07 has parameter-alignment evidence, but not a full neural-data comparison.
+- Q12 has a promising quick retrieval result, but the broader learning-rules
+  claim still needs a cleaner experiment.
 
-Some questions have nontrivial evidence but are not yet clean enough to promote
-into full question directories.
+Keep those in `open_questions.md` until the evidence can support a bounded
+question narrative.
 
-- **Q07: Sparsity Measurements**
-  - useful parameter-alignment evidence exists
-  - the writeup should stay narrow and not imply a full neural-data comparison
-- **Q12: Learning Rules**
-  - the quick retrieval result is promising
-  - the broader learning-rules claim still needs a cleaner bounded experiment
+## Adding A Question
 
-## Open Tracker vs Curated Questions
+1. Check `index.json`.
+2. Check `../open_questions.md`.
+3. Create `QXX_descriptive_name/` only if the question is mature enough.
+4. Fill out `hypothesis.md` before writing conclusions.
+5. Link experiments and result artifacts.
+6. Add caveats before promoting the question as completed.
+7. Update `index.json` and run:
 
-- `open_questions.md` remains the broad tracker of all questions and ideas.
-- `core_questions/` is intentionally narrower. A question should only be added
-  here when the repo can already tell an honest, artifact-backed story about it.
+```bash
+uv run python research/core_questions/validate_index.py
+```
 
-## Creating a New Question
+## Standard
 
-1. Check `index.json` first to make sure the question is not already curated.
-2. If it is new, create directory: `QXX_descriptive_name/`
-3. Copy the standard question file layout
-4. Fill out `hypothesis.md` first
-5. Design experiments to test the hypothesis
-6. Run experiments and document results
-7. Add the question to `index.json` once it is curated enough to defend
-
-## Status Tracking
-
-### Not Started
-*Questions identified but not yet investigated*
-
-### In Progress
-*Questions under active investigation*
-
-### Completed
-*Questions with validated conclusions*
-
-### Abandoned
-*Questions that didn't pan out (document why!)*
-
----
-
-**Remember: Good questions are more valuable than quick answers.**
+Good question docs state what was tested, what happened, what it means, and
+what remains unresolved.

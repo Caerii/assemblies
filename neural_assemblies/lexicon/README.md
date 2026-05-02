@@ -1,13 +1,13 @@
 # Lexicon
 
-The `neural_assemblies.lexicon` package provides structured vocabulary,
-curriculum data, and learner support for the language experiments.
+`neural_assemblies.lexicon` provides vocabulary data, category labels,
+curriculum helpers, and learner variants for language experiments.
 
-## Main Components
+## Objects
 
-| Component | File | Role |
-|-----------|------|------|
-| `LexiconManager` | `lexicon_manager.py` | Load and query words and categories. |
+| Object | File | Use it for |
+|--------|------|------------|
+| `LexiconManager` | `lexicon_manager.py` | Loading and querying words and categories. |
 | `Word`, `WordCategory` | `lexicon_manager.py` | Core lexicon data types. |
 | `WordStatistics` | `statistics.py` | Frequency and co-occurrence helpers. |
 | `data/` | `data/` | Word lists grouped by category. |
@@ -25,11 +25,10 @@ nouns = manager.get_words_by_category(WordCategory.NOUN)
 print(len(nouns))
 ```
 
-The lexicon package is infrastructure for broader language experiments. It is
-useful on its own, but stronger curriculum or acquisition claims should still
-be tied to the research artifacts.
+The lexicon is useful infrastructure. Claims about curriculum learning or
+language acquisition still need specific research artifacts.
 
 ## See Also
 
-- [../nemo/README.md](../nemo/README.md)
-- [../../research/README.md](../../research/README.md)
+- [NEMO](../nemo/README.md)
+- [Research guide](../../research/README.md)
