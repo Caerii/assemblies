@@ -58,6 +58,14 @@ from .ops import (
     sequence_memorize,
     ordered_recall,
 )
+from .trace import (
+    AssemblyTrace,
+    TraceStep,
+    merge_trace,
+    project_trace,
+    reciprocal_project_trace,
+    snapshot_area,
+)
 from .fiber import FiberCircuit
 from .readout import fuzzy_readout, readout_all, build_lexicon, Lexicon
 from .fsm import FSMNetwork
@@ -72,10 +80,12 @@ from .emergent import EmergentParser
 
 __all__ = [
     # Data
-    "Assembly", "Sequence", "Lexicon", "overlap", "chance_overlap",
+    "Assembly", "AssemblyTrace", "TraceStep", "Sequence", "Lexicon",
+    "overlap", "chance_overlap", "snapshot_area",
     # Operations
     "project", "reciprocal_project", "associate", "merge",
     "pattern_complete", "separate",
+    "project_trace", "reciprocal_project_trace", "merge_trace",
     "sequence_memorize", "ordered_recall",
     # Readout
     "fuzzy_readout", "readout_all", "build_lexicon",

@@ -7,21 +7,50 @@ import pytest
 matplotlib.use("Agg")
 
 import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation
 
-from neural_assemblies.assembly_calculus import Assembly
+from neural_assemblies.assembly_calculus import Assembly, AssemblyTrace, TraceStep
 from neural_assemblies.viz import (
+    animate_assembly_trace,
     assembly_coordinates,
     assembly_overlap_matrix,
+    plot_binding_story,
     plot_assemblies,
     plot_assembly,
+    plot_merge_diagnostic,
     plot_overlap_matrix,
     plot_projection_flow,
     plot_recall_trace,
+    plot_response_overlap,
+    plot_trace_metrics,
 )
 
 
 def _assembly(area: str, winners: list[int]) -> Assembly:
     return Assembly(area, np.array(winners, dtype=np.uint32))
+
+
+def _trace() -> AssemblyTrace:
+    steps = []
+    previous = None
+    for index, winners in enumerate(([0, 1, 2], [1, 2, 3], [1, 2, 4]), start=1):
+        assembly = _assembly("A", list(winners))
+        steps.append(
+            TraceStep(
+                round_index=index,
+                operation="project",
+                area="A",
+                assembly=assembly,
+                drive="stimulus" if index == 1 else "stimulus + recurrence",
+                sources=("stim",),
+                num_winners=len(assembly),
+                num_ever_fired=len(set(winners)),
+                num_first_winners=3 if previous is None else 1,
+                overlap_with_previous=None if previous is None else previous.overlap(assembly),
+            )
+        )
+        previous = assembly
+    return AssemblyTrace(operation="project", target="A", steps=tuple(steps))
 
 
 def test_assembly_coordinates_map_winners_to_square_grid():
@@ -51,14 +80,21 @@ def test_plot_helpers_create_matplotlib_artists():
     a = _assembly("A", [0, 3, 5])
     b = _assembly("B", [1, 4, 6])
 
-    fig, axes = plot_assemblies([a, b], n=16)
+    fig, axes = plot_assemblies(
+        [a, b],
+        n=16,
+        subtitles=["3 winners | 18.75% density", "3 winners | 18.75% density"],
+        marker_size=20,
+    )
     assert len(axes) == 2
+    assert axes[0].texts
     plt.close(fig)
 
     fig, ax = plt.subplots()
-    returned = plot_assembly(a, n=16, ax=ax)
+    returned = plot_assembly(a, n=16, ax=ax, subtitle="caption", annotation="sample")
     assert returned is ax
     assert ax.collections
+    assert len(ax.texts) == 2
     plt.close(fig)
 
 
@@ -67,12 +103,48 @@ def test_flow_overlap_and_recall_plots_are_headless_safe():
     b = _assembly("A", [1, 2, 3])
 
     fig = plot_projection_flow(
-        stimulus_labels=["stimulus s1", "stimulus s2"],
-        source_labels=["area A1", "area A2"],
-        target_label="merged area B",
+        stimulus_labels=["red cue", "triangle cue"],
+        source_labels=["COLOR area", "SHAPE area"],
+        target_label="OBJECT area",
     )
     assert fig.axes
     plt.close(fig)
+
+    fig = plot_binding_story(
+        stimulus_labels=["red cue", "triangle cue"],
+        source_labels=["COLOR", "SHAPE"],
+        target_label="OBJECT",
+        caption="toy binding story",
+    )
+    assert fig.axes
+    plt.close(fig)
+
+    fig = plot_merge_diagnostic(
+        _assembly("OBJECT", []),
+        _assembly("OBJECT", [0, 1, 2]),
+        _assembly("OBJECT", [0, 1, 3]),
+        n=16,
+    )
+    assert len(fig.axes) == 2
+    plt.close(fig)
+
+    fig, axes = plot_trace_metrics(_trace())
+    assert len(axes) == 2
+    plt.close(fig)
+
+    fig, animation = animate_assembly_trace(_trace(), n=16)
+    assert isinstance(animation, FuncAnimation)
+    animation._draw_was_started = True
+    plt.close(fig)
+
+    ax, values = plot_response_overlap(
+        _assembly("OBJECT", [0, 1, 2]),
+        [_assembly("OBJECT", [0, 1, 3]), _assembly("OBJECT", [4, 5, 6])],
+        n=16,
+        labels=["color alone", "shape alone"],
+    )
+    assert values.shape == (3,)
+    plt.close(ax.figure)
 
     ax, overlap_matrix = plot_overlap_matrix([a, b], labels=["a", "b"])
     assert overlap_matrix.shape == (2, 2)
@@ -95,6 +167,34 @@ def test_plot_helpers_reject_empty_inputs():
 
     with pytest.raises(ValueError, match="assemblies"):
         plot_assemblies([], n=16)
+
+    with pytest.raises(ValueError, match="subtitles"):
+        plot_assemblies([_assembly("A", [1])], n=16, subtitles=["one", "two"])
+
+    with pytest.raises(ValueError, match="same area"):
+        plot_merge_diagnostic(
+            _assembly("A", []),
+            _assembly("B", [1]),
+            _assembly("B", [1]),
+            n=16,
+        )
+
+    with pytest.raises(ValueError, match="three colors"):
+        plot_merge_diagnostic(
+            _assembly("A", []),
+            _assembly("A", [1]),
+            _assembly("A", [1]),
+            n=16,
+            colors=("#111111", "#222222"),
+        )
+
+    with pytest.raises(ValueError, match="labels"):
+        plot_response_overlap(
+            _assembly("A", [1]),
+            [_assembly("A", [1])],
+            n=16,
+            labels=["one", "two"],
+        )
 
     with pytest.raises(ValueError, match="recalled"):
         plot_recall_trace([], [_assembly("A", [1])])

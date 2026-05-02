@@ -22,9 +22,12 @@ Explicit imports are clearer in larger code:
 from neural_assemblies.core.brain import Brain
 from neural_assemblies.assembly_calculus import (
     Assembly,
+    AssemblyTrace,
     Sequence,
     project,
+    project_trace,
     merge,
+    merge_trace,
     sequence_memorize,
     ordered_recall,
 )
@@ -103,6 +106,7 @@ Data types:
 | Object | Role |
 |--------|------|
 | `Assembly` | Snapshot of winners in one area. |
+| `AssemblyTrace` | Ordered snapshots and per-round metrics from a traced operation. |
 | `Sequence` | Ordered list of assemblies. |
 | `Lexicon` | Mapping from tokens to assemblies. |
 | `Transition` | Typed state transition. |
@@ -113,11 +117,15 @@ Operations:
 | Function | Purpose |
 |----------|---------|
 | `project` | Form an assembly from a stimulus or upstream area. |
+| `project_trace` | Form an assembly while recording each projection round. |
 | `reciprocal_project` | Copy an assembly between areas with reciprocal support. |
+| `reciprocal_project_trace` | Trace source-area projection into a target area. |
 | `associate` | Link assemblies through shared activation. |
 | `merge` | Build a conjunctive assembly. |
+| `merge_trace` | Build a conjunctive assembly while recording target dynamics. |
 | `pattern_complete` | Recover from partial input. |
 | `separate` | Measure distinctiveness. |
+| `snapshot_area` | Snapshot current winners in an area using comparable neuron IDs. |
 | `sequence_memorize` | Learn an ordered sequence. |
 | `ordered_recall` | Replay a sequence with LRI support. |
 | `overlap` | Measure assembly overlap. |
@@ -138,7 +146,7 @@ Structured helpers:
 and diagnostics:
 
 ```python
-from neural_assemblies.viz import plot_assemblies, plot_projection_flow
+from neural_assemblies.viz import animate_assembly_trace, plot_assemblies
 ```
 
 Use these helpers to make package state inspectable:
@@ -147,6 +155,11 @@ Use these helpers to make package state inspectable:
   example.
 - `plot_assembly` and `plot_assemblies` show winner sets on square neuron
   grids.
+- `animate_assembly_trace` animates round-by-round winner turnover from an
+  `AssemblyTrace`.
+- `plot_trace_metrics` plots consecutive overlap and new-winner counts.
+- `plot_response_overlap` compares same-area responses with a reference
+  assembly and chance overlap.
 - `plot_overlap_matrix` shows pairwise assembly overlap.
 - `plot_recall_trace` compares recalled assemblies against known references.
 

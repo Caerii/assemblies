@@ -55,6 +55,8 @@ By the end, a reader should be able to:
   stochasticity.
 - Print overlaps, trajectories, or parse dictionaries instead of only saying
   that something "worked."
+- Prefer trace helpers such as `project_trace` and `merge_trace` when the
+  reader needs to see dynamics over rounds rather than only final snapshots.
 - State whether the notebook demonstrates a package API, an experimental
   behavior, or a literature result.
 - Use code comments to explain intent, parameters, and what to inspect. Avoid
