@@ -1,6 +1,7 @@
 # Volume 2: Memory And Computation
 
-This volume moves from individual assemblies to dynamics over time.
+This volume moves from individual assemblies to dynamics over time. The
+question changes from "what fired?" to "where does activity go next?"
 
 It covers:
 
@@ -18,3 +19,8 @@ It covers:
 
 These notebooks demonstrate package utilities. The full theoretical results
 belong to the cited assembly-calculus literature.
+
+Treat the outputs as traces from a small machine: trajectories, overlap
+matrices, and sample counts. If a sequence recall run is short or noisy, that
+is part of the lesson. The mechanism is visible enough to debug rather than
+hidden behind a single success/failure label.

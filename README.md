@@ -97,7 +97,7 @@ The import name is always `neural_assemblies`.
 
 ```python
 from neural_assemblies.core.brain import Brain
-from neural_assemblies.assembly_calculus import merge, overlap, project
+from neural_assemblies.assembly_calculus import merge, project
 
 b = Brain(p=0.05, save_winners=True, seed=42, engine="numpy_sparse")
 b.add_stimulus("s1", 80)
@@ -110,8 +110,9 @@ a1 = project(b, "s1", "A1", rounds=8)
 a2 = project(b, "s2", "A2", rounds=8)
 merged = merge(b, "A1", "A2", "B", rounds=5)
 
-print("Overlap before merge:", overlap(a1, a2))
+print("Source assembly sizes:", len(a1), len(a2))
 print("Merged assembly size:", len(merged))
+print("Merged assembly area:", merged.area)
 ```
 
 Run the packaged example:
