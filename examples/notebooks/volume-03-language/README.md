@@ -14,6 +14,8 @@ or papers.
 
 - `01_nemo_parser_toy_sentence.ipynb`: train the maintained
   `assembly_calculus.NemoParser` on one toy SVO sentence and inspect the parse.
+- `02_parser_failure_cases.ipynb`: probe swapped nouns, missing structure,
+  duplicate tokens, and unknown words so the toy parser's limits are visible.
 
 Notes:
 

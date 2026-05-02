@@ -17,6 +17,8 @@ It covers:
   parameter setting.
 - `02_fsm_and_pfa.ipynb`: parity with `FSMNetwork` and independent samples
   from a small `PFANetwork`.
+- `03_lri_parameter_lab.ipynb`: sweep refractory period and inhibition
+  strength, then inspect one detailed LRI recall trace.
 
 These notebooks demonstrate package utilities. The full theoretical results
 belong to the cited assembly-calculus literature.

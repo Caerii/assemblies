@@ -25,9 +25,15 @@ what it means: assembly size, overlap with another assembly, or readout score.
   merge traces, animations, winner turnover, and source-response diagnostics.
 - `02_lexicon_and_readout.ipynb`: build a tiny lexicon and decode a probe
   assembly by overlap, including threshold and damage checks.
+- `03_projection_parameter_lab.ipynb`: sweep projection rounds and plasticity
+  to see where sparse winner sets settle.
+- `04_operations_side_by_side.ipynb`: compare projection, reciprocal
+  projection, association, merge, and pattern completion on one scene.
+- `05_noise_and_pattern_completion.ipynb`: damage a trained assembly and trace
+  recurrent recovery from partial cues.
 
 Try changing `K`, `N`, or the number of projection rounds. The point is not to
-find magic parameters; it is to notice how sparse traces become inspectable
+find perfect parameters; it is to notice how sparse traces become inspectable
 objects.
 
 After this volume, move to `../volume-02-memory-and-computation`.

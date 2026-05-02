@@ -26,15 +26,18 @@ tools in notebooks.
 ## Volumes
 
 - `volume-01-foundations`: Brain setup, projection, merge, lexicons, and
-  readout. You learn how assemblies are formed and inspected.
+  readout, plus parameter and pattern-completion labs. You learn how
+  assemblies are formed, inspected, and stress-tested.
 - `volume-02-memory-and-computation`: sequence memory, LRI diagnostics, FSMs,
-  and PFAs. You learn how assemblies can carry state over time.
+  PFAs, and LRI parameter sweeps. You learn how assemblies can carry state
+  over time.
 - `volume-03-language`: controlled NEMO-style parsing examples that run on the
   maintained assembly-calculus stack. You learn how category, role, and order
   can be composed in a toy language setting.
 - `volume-04-research-workflow`: how to inspect claims, experiments, and
   scientific status without turning demos into evidence. You learn how to keep
-  software demonstrations separate from scientific conclusions.
+  software demonstrations separate from scientific conclusions and how to trace
+  an observation toward a claim.
 
 ## Reader Path
 
@@ -44,8 +47,10 @@ By the end, a reader should be able to:
 - form an assembly and compare it to another assembly
 - build a tiny label-to-assembly lexicon
 - inspect a memorized sequence and understand why recall is parameter-sensitive
+- run a small projection or LRI parameter sweep without hiding the regime
 - run a deterministic and probabilistic automaton helper
 - parse a toy sentence through the maintained NEMO-style parser
+- identify parser failure surfaces before making broader language claims
 - find the evidence behind a claim before repeating it
 
 ## Standards

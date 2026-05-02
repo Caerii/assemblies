@@ -17,6 +17,8 @@ The goal is to keep demos, experiments, and claims separate:
 
 - `01_claims_and_experiments.ipynb`: load the claim and experiment indexes,
   count their statuses, and point readers to the scientific status document.
+- `02_from_demo_to_claim.ipynb`: follow one evidence entry from scripts and
+  result artifacts toward a formal claim checklist.
 
 If you are writing README text, a paper note, or a project pitch, use this
 volume before making a strong statement. It tells you where the evidence lives

@@ -19,6 +19,7 @@ from neural_assemblies.viz import (
     plot_assembly,
     plot_merge_diagnostic,
     plot_overlap_matrix,
+    plot_parameter_heatmap,
     plot_projection_flow,
     plot_recall_trace,
     plot_response_overlap,
@@ -159,6 +160,14 @@ def test_flow_overlap_and_recall_plots_are_headless_safe():
     assert recall_matrix.shape == (1, 2)
     plt.close(ax.figure)
 
+    ax, heatmap = plot_parameter_heatmap(
+        [[0.1, 0.2], [0.3, 0.4]],
+        x_labels=["low", "high"],
+        y_labels=["a", "b"],
+    )
+    assert heatmap.shape == (2, 2)
+    plt.close(ax.figure)
+
 
 def test_legacy_visualization_namespace_reexports_viz_helpers():
     import neural_assemblies.visualization as visualization
@@ -206,3 +215,6 @@ def test_plot_helpers_reject_empty_inputs():
 
     with pytest.raises(ValueError, match="known"):
         plot_recall_trace([_assembly("A", [1])], [])
+
+    with pytest.raises(ValueError, match="shape"):
+        plot_parameter_heatmap([[1, 2, 3]], x_labels=["a"], y_labels=["b"])

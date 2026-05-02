@@ -8,6 +8,7 @@ from .grids import (
     plot_assembly,
 )
 from .overlap import assembly_overlap_matrix, plot_overlap_matrix, plot_recall_trace
+from .sweeps import plot_parameter_heatmap
 from .tracing import (
     animate_assembly_trace,
     plot_merge_diagnostic,
@@ -26,6 +27,7 @@ __all__ = [
     "plot_assemblies",
     "plot_merge_diagnostic",
     "plot_overlap_matrix",
+    "plot_parameter_heatmap",
     "plot_projection_flow",
     "plot_recall_trace",
     "plot_response_overlap",

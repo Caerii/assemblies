@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Iterator
 from dataclasses import dataclass
 
-from neural_assemblies.assembly_calculus.assembly import Assembly
+from neural_assemblies.assembly_calculus.assembly import Assembly, overlap
 
 
 @dataclass(frozen=True)
@@ -148,3 +148,37 @@ class ResponseDiagnostic:
     def to_records(self) -> list[dict[str, object]]:
         """Return response diagnostics as dictionaries for inspection tables."""
         return [response.to_record() for response in self.responses]
+
+
+@dataclass(frozen=True)
+class PatternCompletionDiagnostic:
+    """A partial-cue trace compared with the original assembly."""
+
+    reference: Assembly
+    partial: Assembly
+    trace: AssemblyTrace
+    kept_fraction: float
+    chance_baseline: float
+
+    @property
+    def final(self) -> Assembly:
+        """Final recovered assembly."""
+        return self.trace.final
+
+    @property
+    def recovery_overlap(self) -> float:
+        """Overlap between the final recovered assembly and the reference."""
+        return overlap(self.reference, self.final)
+
+    def to_record(self) -> dict[str, object]:
+        """Return a compact diagnostic row for notebook tables."""
+        return {
+            "area": self.reference.area,
+            "kept_fraction": self.kept_fraction,
+            "partial_winners": len(self.partial),
+            "final_winners": len(self.final),
+            "rounds": len(self.trace) - 1,
+            "recovery_overlap": self.recovery_overlap,
+            "chance_baseline": self.chance_baseline,
+            "stabilized_at": self.trace.stabilized_at(),
+        }

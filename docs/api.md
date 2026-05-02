@@ -29,7 +29,11 @@ from neural_assemblies.assembly_calculus import (
     sequence_memorize,
     ordered_recall,
 )
-from neural_assemblies.assembly_calculus.tracing import project_trace, merge_trace
+from neural_assemblies.assembly_calculus.tracing import (
+    merge_trace,
+    project_trace,
+    projection_sweep,
+)
 ```
 
 ## Core Runtime
@@ -120,10 +124,14 @@ Operations:
 | `reciprocal_project` | Copy an assembly between areas with reciprocal support. |
 | `reciprocal_project_trace` | Trace source-area projection into a target area. |
 | `associate` | Link assemblies through shared activation. |
+| `associate_trace` | Trace the three phases of association. |
 | `merge` | Build a conjunctive assembly. |
 | `merge_trace` | Build a conjunctive assembly while recording target dynamics. |
+| `pattern_complete_trace` | Damage a current assembly and trace recurrent recovery. |
 | `ordered_recall_trace` | Replay a sequence with LRI while recording accepted recall steps. |
 | `source_response_traces` | Probe a merged target from each source and compare responses. |
+| `projection_sweep` | Run small independent projection-trace parameter sweeps. |
+| `lri_recall_sweep` | Run small independent LRI recall parameter sweeps. |
 | `pattern_complete` | Recover from partial input. |
 | `separate` | Measure distinctiveness. |
 | `snapshot_area` | Snapshot current winners in an area using comparable neuron IDs. |
@@ -166,6 +174,7 @@ Use these helpers to make package state inspectable:
   assembly and chance overlap.
 - `plot_overlap_matrix` shows pairwise assembly overlap.
 - `plot_recall_trace` compares recalled assemblies against known references.
+- `plot_parameter_heatmap` labels compact sweep matrices.
 
 These helpers are teaching and debugging tools. Use `research/` artifacts for
 scientific evidence.

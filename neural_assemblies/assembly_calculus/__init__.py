@@ -60,12 +60,19 @@ from .ops import (
 )
 from .tracing import (
     AssemblyTrace,
+    PatternCompletionDiagnostic,
+    ProjectionSweepConfig,
+    RecallSweepConfig,
     ResponseDiagnostic,
     ResponseTrace,
     TraceStep,
+    associate_trace,
+    lri_recall_sweep,
     merge_trace,
     ordered_recall_trace,
+    pattern_complete_trace,
     project_trace,
+    projection_sweep,
     reciprocal_project_trace,
     snapshot_area,
     source_response_traces,
@@ -84,14 +91,16 @@ from .emergent import EmergentParser
 
 __all__ = [
     # Data
-    "Assembly", "AssemblyTrace", "ResponseDiagnostic", "ResponseTrace",
-    "TraceStep", "Sequence", "Lexicon",
+    "Assembly", "AssemblyTrace", "PatternCompletionDiagnostic",
+    "ProjectionSweepConfig", "RecallSweepConfig", "ResponseDiagnostic",
+    "ResponseTrace", "TraceStep", "Sequence", "Lexicon",
     "overlap", "chance_overlap", "snapshot_area",
     # Operations
     "project", "reciprocal_project", "associate", "merge",
     "pattern_complete", "separate",
-    "project_trace", "reciprocal_project_trace", "merge_trace",
-    "ordered_recall_trace", "source_response_traces",
+    "project_trace", "reciprocal_project_trace", "associate_trace",
+    "merge_trace", "pattern_complete_trace", "ordered_recall_trace",
+    "source_response_traces", "projection_sweep", "lri_recall_sweep",
     "sequence_memorize", "ordered_recall",
     # Readout
     "fuzzy_readout", "readout_all", "build_lexicon",
