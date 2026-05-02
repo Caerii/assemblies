@@ -25,12 +25,11 @@ from neural_assemblies.assembly_calculus import (
     AssemblyTrace,
     Sequence,
     project,
-    project_trace,
     merge,
-    merge_trace,
     sequence_memorize,
     ordered_recall,
 )
+from neural_assemblies.assembly_calculus.tracing import project_trace, merge_trace
 ```
 
 ## Core Runtime
@@ -123,6 +122,8 @@ Operations:
 | `associate` | Link assemblies through shared activation. |
 | `merge` | Build a conjunctive assembly. |
 | `merge_trace` | Build a conjunctive assembly while recording target dynamics. |
+| `ordered_recall_trace` | Replay a sequence with LRI while recording accepted recall steps. |
+| `source_response_traces` | Probe a merged target from each source and compare responses. |
 | `pattern_complete` | Recover from partial input. |
 | `separate` | Measure distinctiveness. |
 | `snapshot_area` | Snapshot current winners in an area using comparable neuron IDs. |
@@ -143,7 +144,8 @@ Structured helpers:
 ## Visualization
 
 `neural_assemblies.viz` provides small Matplotlib-based helpers for notebooks
-and diagnostics:
+and diagnostics. The implementation is split into grid, flow, overlap, and
+trace-specific modules, while these public imports remain stable:
 
 ```python
 from neural_assemblies.viz import animate_assembly_trace, plot_assemblies
@@ -158,6 +160,8 @@ Use these helpers to make package state inspectable:
 - `animate_assembly_trace` animates round-by-round winner turnover from an
   `AssemblyTrace`.
 - `plot_trace_metrics` plots consecutive overlap and new-winner counts.
+- `plot_winner_turnover` shows which winner IDs persist or rotate over a
+  trace.
 - `plot_response_overlap` compares same-area responses with a reference
   assembly and chance overlap.
 - `plot_overlap_matrix` shows pairwise assembly overlap.

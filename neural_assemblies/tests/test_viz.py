@@ -23,6 +23,7 @@ from neural_assemblies.viz import (
     plot_recall_trace,
     plot_response_overlap,
     plot_trace_metrics,
+    plot_winner_turnover,
 )
 
 
@@ -131,6 +132,10 @@ def test_flow_overlap_and_recall_plots_are_headless_safe():
     fig, axes = plot_trace_metrics(_trace())
     assert len(axes) == 2
     plt.close(fig)
+
+    ax, turnover = plot_winner_turnover(_trace())
+    assert turnover.shape == (3, 5)
+    plt.close(ax.figure)
 
     fig, animation = animate_assembly_trace(_trace(), n=16)
     assert isinstance(animation, FuncAnimation)

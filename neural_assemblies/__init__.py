@@ -30,9 +30,10 @@ from .utils import normalize_features, select_top_k_indices, heapq_select_top_k,
 
 # Assembly Calculus operations
 from .assembly_calculus import (
-    Assembly, AssemblyTrace, TraceStep, overlap, chance_overlap,
+    Assembly, AssemblyTrace, ResponseDiagnostic, ResponseTrace, TraceStep, overlap, chance_overlap,
     project, reciprocal_project, associate, merge, pattern_complete, separate,
-    project_trace, reciprocal_project_trace, merge_trace, snapshot_area,
+    project_trace, reciprocal_project_trace, merge_trace, ordered_recall_trace,
+    snapshot_area, source_response_traces,
     FiberCircuit,
 )
 
@@ -66,9 +67,11 @@ __all__ = [
     'normalize_features', 'select_top_k_indices', 'heapq_select_top_k', 'binomial_ppf',
 
     # Assembly Calculus operations
-    'Assembly', 'AssemblyTrace', 'TraceStep', 'overlap', 'chance_overlap',
+    'Assembly', 'AssemblyTrace', 'ResponseDiagnostic', 'ResponseTrace', 'TraceStep',
+    'overlap', 'chance_overlap',
     'project', 'reciprocal_project', 'associate', 'merge', 'pattern_complete', 'separate',
-    'project_trace', 'reciprocal_project_trace', 'merge_trace', 'snapshot_area',
+    'project_trace', 'reciprocal_project_trace', 'merge_trace', 'ordered_recall_trace',
+    'snapshot_area', 'source_response_traces',
     'FiberCircuit',
 
     # GPU availability flag

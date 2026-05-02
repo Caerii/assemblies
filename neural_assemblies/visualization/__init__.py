@@ -18,6 +18,7 @@ from neural_assemblies.viz import (
     plot_recall_trace,
     plot_response_overlap,
     plot_trace_metrics,
+    plot_winner_turnover,
 )
 
 __all__ = [
@@ -34,4 +35,5 @@ __all__ = [
     "plot_recall_trace",
     "plot_response_overlap",
     "plot_trace_metrics",
+    "plot_winner_turnover",
 ]

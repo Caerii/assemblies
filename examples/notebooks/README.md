@@ -19,7 +19,8 @@ uv run jupyter lab
 ```
 
 The package itself does not require the richer notebook stack. Keep reusable
-visualization helpers in `neural_assemblies.viz`, and keep optional interactive
+trace helpers in `neural_assemblies.assembly_calculus.tracing`, reusable
+visualization helpers in `neural_assemblies.viz`, and optional interactive
 tools in notebooks.
 
 ## Volumes
@@ -57,6 +58,8 @@ By the end, a reader should be able to:
   that something "worked."
 - Prefer trace helpers such as `project_trace` and `merge_trace` when the
   reader needs to see dynamics over rounds rather than only final snapshots.
+- Use animations for neurodynamical processes when a static before/after plot
+  would hide the interesting transition.
 - State whether the notebook demonstrates a package API, an experimental
   behavior, or a literature result.
 - Use code comments to explain intent, parameters, and what to inspect. Avoid

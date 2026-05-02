@@ -22,9 +22,9 @@ what it means: assembly size, overlap with another assembly, or readout score.
 ## Notebooks
 
 - `01_basic_assembly_calculus.ipynb`: projection traces, assembly size,
-  merge traces, and source-response diagnostics.
+  merge traces, animations, winner turnover, and source-response diagnostics.
 - `02_lexicon_and_readout.ipynb`: build a tiny lexicon and decode a probe
-  assembly by overlap.
+  assembly by overlap, including threshold and damage checks.
 
 Try changing `K`, `N`, or the number of projection rounds. The point is not to
 find magic parameters; it is to notice how sparse traces become inspectable

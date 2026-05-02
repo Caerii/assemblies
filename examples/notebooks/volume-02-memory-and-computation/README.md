@@ -13,7 +13,8 @@ It covers:
 ## Notebooks
 
 - `01_sequence_memory_lri.ipynb`: sequence memorization, overlap diagnostics,
-  and LRI-based recall inspection under one seeded parameter setting.
+  animated LRI recall, and winner-turnover inspection under one seeded
+  parameter setting.
 - `02_fsm_and_pfa.ipynb`: parity with `FSMNetwork` and independent samples
   from a small `PFANetwork`.
 

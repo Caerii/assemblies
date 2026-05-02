@@ -58,13 +58,17 @@ from .ops import (
     sequence_memorize,
     ordered_recall,
 )
-from .trace import (
+from .tracing import (
     AssemblyTrace,
+    ResponseDiagnostic,
+    ResponseTrace,
     TraceStep,
     merge_trace,
+    ordered_recall_trace,
     project_trace,
     reciprocal_project_trace,
     snapshot_area,
+    source_response_traces,
 )
 from .fiber import FiberCircuit
 from .readout import fuzzy_readout, readout_all, build_lexicon, Lexicon
@@ -80,12 +84,14 @@ from .emergent import EmergentParser
 
 __all__ = [
     # Data
-    "Assembly", "AssemblyTrace", "TraceStep", "Sequence", "Lexicon",
+    "Assembly", "AssemblyTrace", "ResponseDiagnostic", "ResponseTrace",
+    "TraceStep", "Sequence", "Lexicon",
     "overlap", "chance_overlap", "snapshot_area",
     # Operations
     "project", "reciprocal_project", "associate", "merge",
     "pattern_complete", "separate",
     "project_trace", "reciprocal_project_trace", "merge_trace",
+    "ordered_recall_trace", "source_response_traces",
     "sequence_memorize", "ordered_recall",
     # Readout
     "fuzzy_readout", "readout_all", "build_lexicon",
