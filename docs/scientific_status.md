@@ -1,81 +1,71 @@
 # Scientific Status
 
-This document separates **package-backed claims** from **research results,
-historical artifacts, and aspirational directions**.
+This page is the claim-strength map for the repository.
 
-It exists so the public contract of `neural-assemblies` stays scientifically
-honest: strong statements in the package docs should map either to code and
-tests in this repo, or be explicitly labeled as research hypotheses or prior
+The rule is simple: package docs may say what the package implements and tests.
+Research docs may say what an experiment measured. Literature claims belong to
+the papers that prove or argue them.
+
+## Package Claims
+
+These statements are supported by code and tests under `neural_assemblies/`.
+
+| Area | What the package can defend |
+|------|-----------------------------|
+| Core operations | Projection, reciprocal projection, association, merge, pattern completion, and separation are implemented and exercised by package tests. |
+| Sequences and inhibition | Sequence memorization, ordered recall, Long-Range Inhibition, refracted dynamics, and related recall behavior are implemented and test-covered. |
+| Automata helpers | FSM and PFA utilities exist, now backed by typed transitions and validation. They support finite-state experiments; they are not a full Turing-machine proof. |
+| Engines | CPU engines are package-tested. Optional GPU paths have parity or smoke tests where the environment supports them. |
+| Language modules | NEMO and emergent-parser tests cover narrow behaviors such as word-category separation, role binding, and word-order structure in controlled settings. |
+
+Useful test files include `test_assembly_calculus.py`, `test_brain.py`,
+`test_engine_parity.py`, `test_sequences.py`, `test_lri.py`, `test_fsm.py`,
+`test_pfa.py`, `test_nemo_patterns_core.py`, and `test_emergent_parser.py`.
+
+## Qualified Claims
+
+These statements may be true in particular runs or environments, but they need
+parameters, hardware, or result links.
+
+- GPU speedups depend on hardware, CUDA stack, problem size, and engine path.
+- `engine="auto"` is a heuristic based on `n_hint` and available backends.
+- Biological plausibility means local learning, sparse competition, and
+  assembly-style computation. It does not mean a full biological brain model.
+- Language-learning results should name the exact task, corpus, curriculum, or
+  synthetic setting being measured.
+
+## Research Claims
+
+These belong in `research/` until they are narrowed and defended:
+
+- robust CIFAR-scale category formation
+- broad language-acquisition claims
+- embodied multimodal grounding
+- world-model style action conditioning
+- neuromorphic or large-scale accelerator claims
+
+The research inventory lives in:
+
+- [../research/claims/index.json](../research/claims/index.json)
+- [../research/core_questions/index.json](../research/core_questions/index.json)
+- [../research/experiments/](../research/experiments/)
+- [../research/results/](../research/results/)
+
+## Literature Claims
+
+The assembly calculus, language-organ model, and sequence-computation results
+come from papers. Cite those papers directly when making theoretical claims.
+
+In particular, do not present this package as the proof of Turing completeness.
+The package implements related sequence, inhibition, FSM, PFA, and simulation
+utilities. The theoretical result belongs to the relevant sequence-computation
 literature.
-
-## Package-Backed Capabilities
-
-These are the main claims the installable package can currently defend with
-code and tests in `neural_assemblies/tests/`.
-
-- **Core assembly-calculus primitives**: projection, reciprocal projection,
-  association, merge, pattern completion, and separation are implemented and
-  exercised in unit/integration tests such as `test_assembly_calculus.py`,
-  `test_brain.py`, and `test_engine_parity.py`.
-- **Sequence and inhibition mechanisms**: sequence memorization, ordered recall,
-  Long-Range Inhibition (LRI), refracted dynamics, and related recall behavior
-  are implemented and test-covered in files such as `test_sequences.py`,
-  `test_lri.py`, and `test_refracted.py`.
-- **Finite-state utilities**: FSM and PFA helpers exist as assembly-based
-  computational utilities. They support finite-state computation experiments and
-  are covered by dedicated tests such as `test_fsm.py`, `test_pfa.py`, and
-  `test_computation_value.py`, but they should not be conflated with a full
-  Turing-machine construction.
-- **Engine behavior and parity**: CPU engines are package-tested; optional GPU
-  engines have parity tests and smoke tests where hardware is available (for
-  example `test_backend.py`, `test_torch_parity.py`, and `test_cuda_kernels.py`).
-- **NEMO-related package behaviors**: the package includes tests for narrow,
-  controlled language-learning behaviors such as grounded word-category
-  separation, role binding, and word-order inference / sequence structure
-  (for example `test_nemo_patterns_core.py` and `test_emergent_parser.py`).
-
-## Heuristic Or Benchmark-Dependent Claims
-
-These are claims that may be true in some environments or experiments, but
-should not be presented as universal package guarantees.
-
-- **GPU speedups** are real targets of the engine/tooling work, but exact
-  multipliers depend on hardware, CUDA stack, problem size, and the specific
-  operation being benchmarked.
-- **Auto engine selection** uses a simple heuristic (`n_hint` plus GPU
-  availability). It is a practical default, not a proof that one engine is
-  always optimal.
-- **Biological plausibility** in this repo refers to local learning rules,
-  sparse competition, inhibition motifs, and assembly-style computation. It is
-  not a claim that the package is a full biological brain model.
-
-## Research-Only Or Aspirational Areas
-
-These areas remain active research topics, historical experiments, or design
-directions rather than settled package claims.
-
-- **Full Turing-completeness as a package result**: the literature motivates
-  sequence/LRI-based computational expressiveness, and this repo implements
-  several related primitives, but the package does not currently present a full
-  Turing-machine construction as a validated software artifact. When referring
-  to Turing-completeness, cite the Dabagia et al. sequence paper rather than
-  treating the package itself as the proof.
-- **Robust CIFAR-scale category formation**: the repo contains historical image
-  learning work and tracked artifacts, but stable large-scale category
-  formation is not a finished package guarantee.
-- **Embodied multimodal grounding**: perception-to-assembly encoders,
-  cross-turn discourse memory, and richer action-conditioned world-model style
-  extensions are research directions, not package-backed features.
-- **Broad language-acquisition claims**: the repo contains NEMO and emergent
-  parser systems plus substantial research code, but large statements about
-  full language acquisition should be tied to specific experiments and results,
-  not inferred from package installation alone.
 
 ## Practical Rule
 
-If a statement is:
+Before adding a strong sentence to the docs, ask what backs it:
 
-- about **what the package can do today**, it should point to code and tests.
-- about **measured research behavior**, it should point to a specific
-  experiment/result.
-- about **future capability**, it should be labeled exploratory or aspirational.
+- code behavior: link to tests or API docs
+- measured result: link to experiment, result, or claim index entry
+- theory: cite the paper
+- future direction: mark it as research work

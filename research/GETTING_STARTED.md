@@ -14,9 +14,9 @@ Before adding anything new, read these in order:
 
 That tells you:
 
-- what the broad question surface looks like
+- what the broad question list looks like
 - which questions are already curated
-- what the repo can currently defend as claims or evidence summaries
+- what the repo can defend as claims or evidence summaries
 - which experiment suites already exist
 
 ## Research Layout
@@ -62,7 +62,7 @@ If the topic is genuinely new, start by documenting:
 If the question is mature enough for a curated directory, add a new
 `QXX_*` directory under `core_questions/`.
 
-### 3. Register the experimental surface
+### 3. Register the experiment
 
 Before adding ad hoc scripts, check `registry.json` and
 `experiments/MANIFEST_TEMPLATE.json`.
@@ -108,7 +108,7 @@ Only move into `papers/` when:
 
 - the question is already clear
 - the evidence is already collected
-- the claim surface is already bounded
+- the claim is already bounded
 
 For paper-specific structure and LaTeX workflow, see `papers/README.md`.
 

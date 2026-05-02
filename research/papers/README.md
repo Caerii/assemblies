@@ -1,6 +1,6 @@
 # Papers Organization
 
-This directory is for paper writing that emerges from validated research in
+Use this directory for paper writing that emerges from validated research in
 `../claims/`.
 
 It is not the place to decide what the science is. That should already be
@@ -93,5 +93,5 @@ Use quick builds while writing and full builds before review or submission.
 
 ## Current Status
 
-This directory is infrastructure-first right now. It should stay relatively
-light until more claims are promoted into publishable form.
+The directory is infrastructure-first for now. Keep it light until more claims
+are promoted into publishable form.

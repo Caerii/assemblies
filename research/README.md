@@ -1,10 +1,10 @@
 # Research Organization
 
-This directory is the research-first side of the repository.
+Research work lives here.
 
 The installable package lives under `neural_assemblies/`. The material here is
 for scientific questions, experiments, results, claims, and paper scaffolding
-that should not be confused with the default package contract.
+that should not be confused with released package behavior.
 
 ## Principle
 
@@ -66,7 +66,7 @@ that everything else bends around.
 
 ### Curated questions
 
-The current curated question set includes:
+The curated question set includes:
 
 - `Q01` assembly stability
 - `Q03` scaling laws
@@ -78,7 +78,7 @@ These live under `core_questions/` and are indexed in
 
 ### Active suites
 
-The suite registry currently tracks:
+The suite registry tracks:
 
 - `applications`
 - `biological_validation`
@@ -91,7 +91,7 @@ The suite registry currently tracks:
 
 ### Claims status
 
-The current claims inventory distinguishes between fully formalized claims and
+The claims inventory distinguishes between fully formalized claims and
 claim-ready evidence summaries. See `claims/index.json` for the exact status.
 
 ## Quality Rules
@@ -104,7 +104,7 @@ claim-ready evidence summaries. See `claims/index.json` for the exact status.
 
 ## Validators
 
-Use the current repo tooling to check the research indexes:
+Use the repo tooling to check the research indexes:
 
 ```bash
 uv run python research/experiments/infrastructure/validate_registry.py
@@ -121,5 +121,5 @@ If you are new to this tree:
 3. Read `claims/index.json`.
 4. Read `GETTING_STARTED.md`.
 
-That order gives you the broad tracker, the curated subset, the current claim
-surface, and the practical workflow.
+That order gives you the broad tracker, the curated subset, the claim
+inventory, and the practical workflow.

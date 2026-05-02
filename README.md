@@ -1,72 +1,69 @@
 # Assemblies
 
-Sparse neural assembly calculus runtime and research workspace for projection,
-association, merge, sequence memory, language experiments, and optional GPU
-execution.
+Assemblies is a Python package and research workspace for the neural assembly
+calculus: sparse groups of neurons, Hebbian plasticity, projection,
+association, merge, sequence memory, inhibition, and language-oriented
+experiments.
 
-The repository currently has two roles:
+The installable package is published as `neural-assemblies` and imported as
+`neural_assemblies`. The rest of the repository keeps research records,
+accelerator work, and archived prototypes close to the code without treating
+all of them as package guarantees.
 
-- an installable Python package, published as `neural-assemblies` and imported
-  as `neural_assemblies`
-- a research workspace built around that package
-
-This repo is maintained by Alif Jakir. It grew out of assembly-calculus and
-language-organ work around MIT's Projects in the Science of Intelligence
-course and later extensions of that line of research, including collaboration
-with Daniel Mitropolsky. The package is intentionally narrower than the full
-research agenda.
-
-If you care about statement strength, read
-[docs/scientific_status.md](docs/scientific_status.md).
-If you care about package versus legacy boundaries, read
-[docs/supported_surfaces.md](docs/supported_surfaces.md).
-If you want the longer project story and research motivation, read
+This repo is maintained by Alif Jakir. It grew out of MIT's Projects in the
+Science of Intelligence course and later work extending the assembly-calculus
+and language-organ line, including collaboration with Daniel Mitropolsky
+(MIT Poggio Lab). For the longer history, read
 [docs/project_context.md](docs/project_context.md).
 
-## What This Repo Is
+## What Is Stable
 
-- A package-tested implementation of core assembly-calculus operations.
-- A home for experimental language surfaces, including rule-based parsing,
-  NEMO-related modules, and the emergent parser.
-- A place to run optional GPU and accelerator paths without making them the
-  default package contract.
-- A research tree that tracks experiments, claims, and curated scientific
-  questions separately from the installable API.
+The package tests cover the core runtime and the main assembly-calculus
+operations:
 
-## What This Repo Is Not
+- projection, reciprocal projection, association, merge, separation, and
+  pattern completion
+- sequence memorization, ordered recall, Long-Range Inhibition (LRI), and
+  refracted dynamics
+- FSM and PFA helpers built on typed transitions
+- CPU engines, engine parity checks, and optional accelerator smoke tests
+- narrow NEMO and emergent-parser behaviors in controlled synthetic settings
 
-- Not a deep-learning framework with backprop or attention.
-- Not a full biological brain model.
-- Not a package-level proof artifact for Turing completeness.
-- Not a claim that every historical experiment at the repo root is part of the
-  primary supported API.
+For the exact boundary between package facts, measured research results, and
+future work, use [docs/scientific_status.md](docs/scientific_status.md).
 
-## Current Status
+## What Is Experimental
 
-- Package-backed: projection, reciprocal projection, association, merge,
-  pattern completion, sequence memorization, ordered recall, Long-Range
-  Inhibition (LRI), FSM/PFA helpers, and core runtime behavior.
-- Research-oriented: broad language-acquisition claims, robust CIFAR-scale
-  category formation, embodied multimodal grounding, and world-model style
-  extensions.
-- Legacy: old repo-root experiments and scripts are archived under `legacy/`.
-  The root modules that remain are compatibility shims.
+The repository also carries active research on language learning, vocabulary
+curricula, biological plausibility, scaling behavior, and multimodal or
+embodied extensions. Some of that work is promising; some of it is deliberately
+unfinished. Research results live under `research/` and are indexed by
+question, experiment suite, and claim status.
+
+Historical root scripts, old image-learning artifacts, MATLAB prototypes, and
+checkout-era modules have been moved under `legacy/`. The root files that
+remain, such as `brain.py` and `parser.py`, are compatibility shims.
 
 ## Install
 
 ```bash
-# Install the published package
 pip install neural-assemblies
+```
 
-# Development install from a checkout
+From a checkout:
+
+```bash
 uv sync
+uv run pytest neural_assemblies/tests -q
+```
 
-# Optional GPU extras
+Optional GPU dependencies:
+
+```bash
 uv sync --group gpu
 ```
 
-The primary import surface is always `neural_assemblies`, including after
-`pip install neural-assemblies`.
+The import name is always `neural_assemblies`.
 
 ## Quick Start
 
@@ -89,36 +86,25 @@ print("Overlap before merge:", overlap(a1, a2))
 print("Merged assembly size:", len(merged))
 ```
 
-From a checkout you can also run the packaged example directly:
+Run the packaged example:
 
 ```bash
 uv run python examples/01_basic_assembly_calculus.py
 ```
 
-## Supported Surfaces
+## Reading Path
 
-The three main surfaces are:
+Start here:
 
-1. Installable package: `neural_assemblies/*`
-2. Repo-root compatibility shims: `brain.py`, `parser.py`, `simulations.py`,
-   `learner.py`, `image_learner.py`, `recursive_parser.py`, `brain_util.py`
-3. Research and performance workflows: `research/*`, `tests/performance/*`,
-   `cpp/*`
+- [docs/api.md](docs/api.md) for imports, modules, and examples
+- [docs/architecture.md](docs/architecture.md) for the runtime layout
+- [docs/scientific_status.md](docs/scientific_status.md) for claim strength
+- [docs/supported_surfaces.md](docs/supported_surfaces.md) for maintained code
+  versus legacy code
+- [docs/project_context.md](docs/project_context.md) for project history and
+  motivation
 
-Only the first surface is the default package contract.
-
-## Documentation
-
-Project-wide guides:
-
-- [docs/README.md](docs/README.md)
-- [docs/api.md](docs/api.md)
-- [docs/architecture.md](docs/architecture.md)
-- [docs/project_context.md](docs/project_context.md)
-- [docs/scientific_status.md](docs/scientific_status.md)
-- [docs/supported_surfaces.md](docs/supported_surfaces.md)
-
-Section READMEs:
+Section guides:
 
 - [neural_assemblies/core/README.md](neural_assemblies/core/README.md)
 - [neural_assemblies/compute/README.md](neural_assemblies/compute/README.md)
@@ -127,34 +113,25 @@ Section READMEs:
 - [neural_assemblies/lexicon/README.md](neural_assemblies/lexicon/README.md)
 - [neural_assemblies/nemo/README.md](neural_assemblies/nemo/README.md)
 
-Research workflow:
+Research entry points:
 
 - [research/README.md](research/README.md)
 - [research/claims/index.json](research/claims/index.json)
 - [research/core_questions/index.json](research/core_questions/index.json)
 
-## Tests
-
-Recommended package gate:
+## Useful Commands
 
 ```bash
+# Package tests
 uv run pytest neural_assemblies/tests -q
-```
 
-Focused checks that matter for current repo structure:
+# Docs and examples smoke test
+uv run pytest neural_assemblies/tests/test_docs_examples_smoke.py -q
 
-```bash
 # Legacy compatibility and archive layout
 uv run pytest tests/test_legacy_root_shims.py tests/test_legacy_archived_layout.py -q
 
-# Optional CUDA / accelerator checks
-uv run pytest tests/performance/test_cuda_env.py -q
-uv run pytest tests/performance/test_cuda.py::test_cuda_availability tests/performance/test_cuda.py::test_cpp_availability -q
-```
-
-Research tree validators:
-
-```bash
+# Research indexes
 uv run python research/experiments/infrastructure/validate_registry.py
 uv run python research/claims/validate_index.py
 uv run python research/core_questions/validate_index.py
@@ -165,9 +142,9 @@ uv run python research/core_questions/validate_index.py
 ```text
 .
 |-- neural_assemblies/        # Installable package
-|-- docs/                     # Package and architecture docs
-|-- examples/                 # Small runnable examples
-|-- research/                 # Experiments, claims, curated questions
+|-- docs/                     # API, architecture, status, release docs
+|-- examples/                 # Runnable examples and notebooks
+|-- research/                 # Questions, experiments, results, claims
 |-- legacy/                   # Archived root modules, scripts, artifacts
 |-- tests/                    # Legacy compatibility and optional perf tests
 |-- cpp/                      # Accelerator kernels and build tooling
@@ -179,16 +156,14 @@ uv run python research/core_questions/validate_index.py
 
 ## Citation
 
-If you build on this code or the underlying ideas, cite the foundational work:
+If you build on this code or the underlying ideas, cite the relevant source
+work rather than citing the package as proof of a theoretical result:
 
 - Papadimitriou et al. (2020), *Brain Computation by Assemblies of Neurons*
 - Dabagia et al. (2024/2025), *Computation with Sequences of Assemblies in a
   Model of the Brain*
 - Mitropolsky and Papadimitriou (2023, 2025) on the language organ and
   simulated language acquisition
-
-The package is an implementation and experiment platform. Literature claims
-should still be cited to the papers, not inferred from package installation.
 
 ## Contributing
 

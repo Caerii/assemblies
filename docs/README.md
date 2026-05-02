@@ -1,33 +1,38 @@
 # Documentation
 
-This directory contains package-level and project-level documentation for the
-`neural-assemblies` repository.
+Use these docs as a map of the repository, not as a substitute for the tests or
+research artifacts.
 
-The root [README.md](../README.md) is the best starting point for installation,
-quick start, and test commands. The files here provide the deeper contract.
+## Main Guides
 
-## Guides
+| Document | Read it for |
+|----------|-------------|
+| [api.md](api.md) | Imports, public objects, compatibility shims, and common commands. |
+| [architecture.md](architecture.md) | Runtime layers, engines, automata helpers, language modules, and archive layout. |
+| [scientific_status.md](scientific_status.md) | Which claims are tested in the package, which are experimental, and which belong to the literature. |
+| [supported_surfaces.md](supported_surfaces.md) | What is maintained as package code, what is compatibility code, and what is research-only. |
+| [project_context.md](project_context.md) | Project history, authorship, collaboration context, and research motivation. |
+| [packaging.md](packaging.md) | Release workflow for the `neural-assemblies` PyPI package. |
+| [contributing.md](contributing.md) | Contributor setup and expected checks. |
+| [documentation_style.md](documentation_style.md) | Writing standards for docs in this repo. |
 
-| Document | Purpose |
-|----------|---------|
-| [api.md](api.md) | Current package and compatibility API guide. |
-| [architecture.md](architecture.md) | Runtime layout, engine stack, and repo structure. |
-| [project_context.md](project_context.md) | Project history, motivation, and the longer context moved out of the root README. |
-| [scientific_status.md](scientific_status.md) | Boundary between package-backed claims and research work. |
-| [supported_surfaces.md](supported_surfaces.md) | Package surface versus legacy and research surfaces. |
-| [packaging.md](packaging.md) | Maintainer-oriented packaging and release workflow. |
-| [contributing.md](contributing.md) | Contributor workflow and development setup. |
+## Package Sections
 
-## Related Section READMEs
-
-- [neural_assemblies/core/README.md](../neural_assemblies/core/README.md)
-- [neural_assemblies/compute/README.md](../neural_assemblies/compute/README.md)
-- [neural_assemblies/simulation/README.md](../neural_assemblies/simulation/README.md)
-- [neural_assemblies/language/README.md](../neural_assemblies/language/README.md)
-- [neural_assemblies/lexicon/README.md](../neural_assemblies/lexicon/README.md)
-- [neural_assemblies/nemo/README.md](../neural_assemblies/nemo/README.md)
+- [core](../neural_assemblies/core/README.md)
+- [compute](../neural_assemblies/compute/README.md)
+- [assembly_calculus](../neural_assemblies/assembly_calculus/)
+- [simulation](../neural_assemblies/simulation/README.md)
+- [language](../neural_assemblies/language/README.md)
+- [lexicon](../neural_assemblies/lexicon/README.md)
+- [nemo](../neural_assemblies/nemo/README.md)
 
 ## Research
 
-Scientific workflow, indexed claims, and curated questions live under
-[research/](../research/README.md).
+The research tree has its own workflow:
+
+- [research/README.md](../research/README.md)
+- [research/claims/index.json](../research/claims/index.json)
+- [research/core_questions/index.json](../research/core_questions/index.json)
+
+Package docs should not overrule those artifacts. If a scientific statement
+depends on a particular experiment, link to the experiment or the indexed claim.

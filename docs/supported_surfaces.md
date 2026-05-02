@@ -1,46 +1,64 @@
-# Supported Surfaces
+# Maintained Code Boundaries
 
-The repository currently has three different usage surfaces. They are not equal.
+The repo has package code, compatibility code, research code, and archived
+history. Treat them differently.
 
-## 1. Installable package
+## Package Code
 
-Primary supported API:
+`neural_assemblies/` is the maintained package.
+
+Use this for new reusable work:
 
 ```python
 from neural_assemblies.core import Brain
 from neural_assemblies.assembly_calculus import project, merge
 ```
 
-- Current package name on PyPI: `neural-assemblies`
-- Imported in code as `neural_assemblies`
-- Recommended package-focused gate: `uv run pytest neural_assemblies/tests -q`
+Package facts:
 
-## 2. Repo-root legacy modules
+- PyPI project name: `neural-assemblies`
+- import name: `neural_assemblies`
+- package test command: `uv run pytest neural_assemblies/tests -q`
 
-Historical checkout workflows:
+## Compatibility Shims
 
-- `brain.py`
-- `simulations.py`
-- `learner.py`
-- `parser.py`
-- `image_learner.py`
+Root files such as `brain.py`, `parser.py`, `simulations.py`, `learner.py`,
+`image_learner.py`, `recursive_parser.py`, and `brain_util.py` remain for old
+checkout workflows.
 
-These remain useful for older scripts and exploratory experiments, but they are
-not the primary library contract and should not define package release quality.
+They should stay thin. Their job is to route old imports to maintained package
+code or archived implementations, not to grow new behavior.
 
-## 3. Research and performance workflows
+## Research Code
 
-Optional and more specialized:
+`research/` holds experiments, result artifacts, plans, indexed claims, and
+curated questions. It is where unfinished science belongs.
 
-- `research/experiments/*`
-- `tests/performance/*`
-- `cpp/*`
+Research code can be rougher than package code, but it should still be
+traceable: a result should point back to an experiment, and a claim should point
+back to evidence.
 
-These are important for scientific progress and accelerator work, but they are
-opt-in workflows with stricter environment assumptions.
+## Optional Accelerator Work
 
-## Practical rule
+`tests/performance/` and `cpp/` contain hardware-sensitive checks, CUDA/C++
+work, and low-level accelerator experiments.
 
-If a new feature is intended for downstream reuse, it should land under
-`neural_assemblies/*` first. Repo-root scripts and ad hoc research harnesses
-should depend on the package, not define it.
+These paths matter, but they are not part of the default package test gate.
+
+## Archive
+
+`legacy/` stores old root modules, standalone scripts, image-learning
+artifacts, experiment notes, and MATLAB prototypes.
+
+Archived code is allowed to be historically useful. It should not quietly
+define the behavior of the maintained package.
+
+## Rule For New Work
+
+Put reusable runtime behavior in `neural_assemblies/`.
+
+Put experiments in `research/`.
+
+Put historical material in `legacy/`.
+
+Keep root-level code limited to compatibility and project metadata.

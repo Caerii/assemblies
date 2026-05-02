@@ -1,13 +1,13 @@
 # Packaging and Release Guide
 
-This document is for maintainers who build, test, and publish the current PyPI
-package `neural-assemblies`.
+Use this guide to build, test, and publish the PyPI package
+`neural-assemblies`.
 
 The import name remains `neural_assemblies`.
 
 All commands below assume the repository root unless noted otherwise.
 
-## Current Publishing Reality
+## Publishing Reality
 
 - Current PyPI project name: `neural-assemblies`
 - Current import name: `neural_assemblies`
@@ -34,7 +34,7 @@ One-time PyPI setup:
 3. If you also decide to require a GitHub environment such as `pypi`, make the
    workflow and the PyPI trusted-publisher entry match exactly.
 
-The current workflow leaves the environment optional. If you uncomment an
+The workflow leaves the environment optional. If you uncomment an
 `environment:` line in the workflow later, update the PyPI trusted-publisher
 entry to match.
 
