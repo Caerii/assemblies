@@ -57,6 +57,8 @@ By the end, a reader should be able to:
   that something "worked."
 - State whether the notebook demonstrates a package API, an experimental
   behavior, or a literature result.
+- Use code comments to explain intent, parameters, and what to inspect. Avoid
+  comments that merely repeat Python syntax.
 - End with a small "try next" prompt so readers can safely explore.
 
 Avoid notebooks that make broad claims from a single seed, hide parameters, or
