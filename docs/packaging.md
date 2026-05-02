@@ -128,6 +128,7 @@ Optional extra wheel check:
 | Path | Role |
 |------|------|
 | `pyproject.toml` | Package metadata, dependencies, version, pytest config. |
+| `uv.lock` | Reproducible local development and CI dependency resolution. |
 | `neural_assemblies/` | Importable package contents. |
 | `MANIFEST.in` | Additional source-distribution inclusion rules. |
 | `README.md` | Long description used by the package metadata. |
