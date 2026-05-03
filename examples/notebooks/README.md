@@ -10,6 +10,8 @@ a small instrument on the bench. Run it, look at the numbers, change one
 parameter, and ask what moved.
 
 Read the volumes in order if you are new to the package.
+Volumes 01-04 are the core path. Volumes 05-14 are thematic tracks for the
+larger research program.
 
 For the longer teaching and visualization roadmap, see
 `NOTEBOOK_PEDAGOGY_ROADMAP.md`.
@@ -41,6 +43,27 @@ tools in notebooks.
   scientific status without turning demos into evidence. You learn how to keep
   software demonstrations separate from scientific conclusions and how to trace
   an observation toward a claim.
+- `volume-05-dynamics-and-statistical-mechanics`: order parameters,
+  stabilization regimes, scaling, and phase-diagram thinking.
+- `volume-06-binding-composition-and-interference`: binding diagnostics,
+  source-response checks, composition reliability, and interference.
+- `volume-07-control-circuits-and-runtime`: fiber gating, operation schedules,
+  runtime protocols, and controlled information flow.
+- `volume-08-prediction-and-erp-signals`: toy next-token prediction plus the
+  research boundary around N400/P600-style signal claims.
+- `volume-09-embodiment-and-grounding`: object/action/word grounding maps,
+  missing encoders and readouts, and future embodied tasks.
+- `volume-10-biological-validation-and-connectomes`: biological parameter
+  alignment, neural-data validation levels, and mapped-connectome hypotheses.
+- `volume-11-scaling-engines-and-performance`: backend selection, winner
+  policies, sparse compute, and hardware-sensitive performance work.
+- `volume-12-systems-paper-and-theory`: paper-claim maps, theory synthesis,
+  limitation gates, and figure/evidence planning.
+- `volume-13-programming-assemblies`: transition objects, operation graphs,
+  fiber schedules, and the neural-programming-language frame.
+- `volume-14-frontiers-and-open-problems`: web-scale curricula, compiler
+  ideas, connectomes, robotics, self-assembling substrates, and open-problem
+  triage.
 
 ## Reader Path
 
@@ -55,6 +78,8 @@ By the end, a reader should be able to:
 - parse a toy sentence through the maintained NEMO-style parser
 - identify parser failure surfaces before making broader language claims
 - find the evidence behind a claim before repeating it
+- map a larger research idea to the correct evidence level before turning it
+  into a notebook, experiment, or paper claim
 
 ## Standards
 

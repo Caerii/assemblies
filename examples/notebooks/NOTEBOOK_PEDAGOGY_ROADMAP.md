@@ -67,6 +67,16 @@ The notebook curriculum should grow in carefully controlled layers.
 | 02 memory and computation | How does activity move over time? | Sequence traces, LRI, refractory effects, automata utilities, and parameter sensitivity. |
 | 03 language | What can composition look like in toy language? | Category, role, order, parser traces, and explicit failure surfaces. |
 | 04 research workflow | When does a demo become evidence? | Claim discipline, experiment artifacts, status indexes, and limitations. |
+| 05 dynamics and statistical mechanics | When is an assembly a reliable macrostate? | Order parameters, regimes, scaling, phase diagrams, drift, and stability. |
+| 06 binding and interference | What does composition cost? | Source-response diagnostics, replay, interference, and binding capacity. |
+| 07 control and runtime | Which fibers are active when? | Gating, schedules, recurrent loops, and operation protocols. |
+| 08 prediction and ERP signals | What is predicted, and what signal is measured? | Toy next-token readout, pre-/post-competition distinctions, and ERP claim boundaries. |
+| 09 embodiment and grounding | What interfaces are missing for bodies? | Observation encoders, action readouts, affordances, and social task maps. |
+| 10 biological validation and connectomes | What would biological evidence require? | Parameter alignment, neural-data comparison, mapped graphs, and falsification criteria. |
+| 11 scaling and engines | What makes the system practical at scale? | Backend selection, winner policies, sparse compute, and performance gates. |
+| 12 systems paper and theory | Which ideas can become paper claims? | Claim maps, figures, limitations, and experiment-to-paper synthesis. |
+| 13 programming assemblies | Can operations be treated as programs? | Transitions, operation graphs, fiber schedules, and runtime traces. |
+| 14 frontiers and open problems | Which ambitions need sharper tests? | Web-scale curricula, compiler ideas, robotics, nanotech, connectomes, and triage. |
 
 Future volumes should be added only when they introduce a new inspectable
 mechanism rather than merely a bigger demo.

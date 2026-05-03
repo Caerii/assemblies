@@ -66,3 +66,20 @@ def test_example_notebooks_are_valid_json() -> None:
         assert data["nbformat"] >= 4
         assert data["cells"]
         assert data["cells"][0]["cell_type"] == "markdown"
+
+
+def test_notebook_curriculum_volumes_are_indexed() -> None:
+    notebook_dir = REPO_ROOT / "examples" / "notebooks"
+    root_readme = (notebook_dir / "README.md").read_text(encoding="utf-8")
+    volume_dirs = sorted(
+        path
+        for path in notebook_dir.iterdir()
+        if path.is_dir() and path.name.startswith("volume-")
+    )
+
+    assert len(volume_dirs) >= 14
+
+    for volume in volume_dirs:
+        assert f"`{volume.name}`" in root_readme
+        assert (volume / "README.md").is_file()
+        assert sorted(volume.glob("*.ipynb"))
