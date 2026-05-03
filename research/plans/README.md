@@ -14,6 +14,7 @@ track missing evidence, and decide what should move into `experiments/`,
 | `THEORETICAL_THROUGHLINES.md` | Linear-algebra, dynamical-systems, and complex-systems views of assembly dynamics. |
 | `PRIORITIES_AND_GAPS.md` | Highest-value gaps: autonomous recurrence, noise robustness, theory, claims, biological comparison, and falsifiability. |
 | `VISUALS_DYNAMICAL_SYSTEMS.md` | Figures that would make stability, attractors, phase diagrams, recurrence, and learned weights visible. |
+| `ASSEMBLY_SYSTEMS_PAPER_VISION.md` | Long systems-paper vision: assemblies as learned macrostates, measurable regimes, operation contracts, and cognitive-computational implications. |
 | `BRIDGE_WEBSCALE_CURRICULUM.md` | How assembly inputs, curricula, and next-token prediction might connect to larger-scale data. |
 | `ASSEMBLIES_AS_NEURAL_COMPILER.md` | Assemblies as a possible programming substrate or compiler target. |
 | `SELF_ASSEMBLING_NEURAL_NANOTECH.md` | Speculative links between assembly dynamics and self-organizing hardware or materials. |
