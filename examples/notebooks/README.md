@@ -11,6 +11,9 @@ parameter, and ask what moved.
 
 Read the volumes in order if you are new to the package.
 
+For the longer teaching and visualization roadmap, see
+`NOTEBOOK_PEDAGOGY_ROADMAP.md`.
+
 For the full notebook environment:
 
 ```bash
