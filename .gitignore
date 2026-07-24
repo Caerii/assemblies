@@ -71,6 +71,9 @@ venv/
 # Testing/cache
 .pytest_cache/
 .ruff_cache/
+# Pickled parser backbones (ParserCache disk tier). Keyed by a source
+# fingerprint, so entries accumulate as code changes -- safe to delete anytime.
+.cache/
 animations/
 experiment_data/
 
@@ -80,4 +83,13 @@ nul
 # OS artifacts
 .DS_Store
 Thumbs.db
-image_learning_experiment/data/cifar-10-python.tar.gz
+# Reference upstream clones (run research/literature/sync_reference_repos.py)
+.reference/*/
+!.reference/README.md
+
+# Rust build artifacts
+crates/target/
+
+# Large downloadable datasets (MNIST / Fashion-MNIST CSV + raw idx dumps)
+data/mnist/
+data/fashion_mnist/
