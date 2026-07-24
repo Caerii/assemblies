@@ -79,6 +79,14 @@ class TorchSparseEngine(ComputeEngine):
         # Previously this kwarg was silently swallowed by **kwargs and ignored,
         # so a Brain(norm_init=True, engine="torch_sparse") got NO normalization.
         self.norm_init = bool(kwargs.get("norm_init", False))
+        # Dense-drive mode (see docs/gpu_scale_design.md, Lever A): score ALL n
+        # candidate neurons each round instead of sampling ~k order statistics.
+        # Materialized neurons keep their real CSR drive; the (n-w) unmaterialized
+        # get an i.i.d. Binomial(sum(input_sizes), p) draw (the same statistical
+        # model the sparse sampler approximates), then a single topk over n.
+        # More arithmetic than the sparse path -- deliberately, so it is
+        # GPU-parallel and, with a fixed [n] drive, batchable (Lever B).
+        self.dense_drive = bool(kwargs.get("dense_drive", False))
         self._rng = np.random.default_rng(seed)
         self._plasticity_enabled_global = True
         self._global_seed = seed
@@ -154,6 +162,33 @@ class TorchSparseEngine(ComputeEngine):
         unknown = max(int(n_pre) - rows, 0)
         d = deg + unknown * self.p
         return 1.0 / torch.clamp(d, min=1.0)
+
+    # -- dense-drive candidate sampling (Lever A) ---------------------------
+
+    def _sample_dense_candidates(self, input_sizes, n_unmat, rng):
+        """i.i.d. drive for every unmaterialized neuron (dense-drive mode).
+
+        The drive from ``M = sum(input_sizes)`` active presynaptic units onto an
+        unmaterialized neuron is ``Binomial(M, p)``; we approximate it by a
+        clamped normal with the matching mean/variance, drawn for all ``n_unmat``
+        neurons at once (O(n) GPU work, deliberately). This is the same model the
+        sparse sampler draws only the top-k order statistics of -- here we draw
+        the full population and let topk over n choose, so selection is exact.
+        """
+        if n_unmat <= 0:
+            return torch.empty(0, dtype=torch.float32, device=self._device)
+        M = float(sum(input_sizes))
+        mu = M * self.p
+        sigma = math.sqrt(max(M * self.p * (1.0 - self.p), 0.0))
+        if self._deterministic:
+            draw = rng.normal(mu, sigma or 1e-6, size=int(n_unmat))
+            cand = torch.from_numpy(
+                np.asarray(draw, dtype=np.float32)).to(self._device)
+        else:
+            cand = torch.normal(
+                mu, sigma or 1e-6, size=(int(n_unmat),),
+                device=self._device, dtype=torch.float32)
+        return cand.clamp_(min=0.0)
 
     def set_dense_area_conn(self, src: str, tgt: str, conn: Connectome) -> None:
         """Install a dense connectome for explicit→sparse cross-engine edges."""
@@ -475,7 +510,13 @@ class TorchSparseEngine(ComputeEngine):
             [self._stimuli[s].size for s in from_stimuli]
             + [self._areas[a].k for a in from_areas])
 
-        if self._gpu_sampling:
+        if self.dense_drive:
+            # Score EVERY unmaterialized neuron, not just k order statistics, so
+            # the subsequent topk over n is exact (Lever A). See
+            # _sample_dense_candidates and docs/gpu_scale_design.md.
+            potential_new = self._sample_dense_candidates(
+                input_sizes, tgt.n - tgt.w, rng)
+        elif self._gpu_sampling:
             potential_new = self._sample_truncated_normal_gpu(
                 input_sizes, tgt.n, tgt.w, tgt.k, self.p, rng)
         else:

@@ -356,3 +356,51 @@ class TestNormInitParity:
                 b.project({}, {"A": ["B"], "B": ["B"]})
             b.areas["A"].unfix_assembly()
             assert len(_snap(b, "B")) == K, f"{engine}: B size wrong"
+
+
+# ---------------------------------------------------------------------------
+# Dense-drive mode (Lever A of docs/gpu_scale_design.md)
+# ---------------------------------------------------------------------------
+
+def _torch_engine(**kw):
+    from neural_assemblies.core.torch_engine._engine import TorchSparseEngine
+    defaults = dict(p=P, seed=SEED)
+    defaults.update(kw)
+    return TorchSparseEngine(**defaults)
+
+
+class TestDenseDriveParity:
+    """dense_drive scores all n candidates (exact topk) instead of sampling k
+    order statistics; it must form stable, separable, recoverable assemblies
+    just like the sparse path."""
+
+    def test_dense_flag_wired(self):
+        assert _torch_engine(dense_drive=True).dense_drive is True
+        assert _torch_engine(dense_drive=False).dense_drive is False
+
+    @pytest.mark.parametrize("norm_init", [True, False])
+    def test_dense_assembly_forms_and_stabilizes(self, norm_init):
+        eng = _torch_engine(norm_init=norm_init, dense_drive=True)
+        b = Brain(engine=eng, save_winners=True)
+        b.add_stimulus("stim", K)
+        b.add_area("A", N, K, BETA)
+        asm = project(b, "stim", "A", rounds=ROUNDS)
+        assert len(asm) == K
+        a1 = _snap(b, "A")
+        b.project({}, {"A": ["A"]})
+        a2 = _snap(b, "A")
+        assert a1.overlap(a2) > 0.9, f"dense stability {a1.overlap(a2):.3f}"
+
+    def test_dense_separates_and_recovers(self):
+        eng = _torch_engine(norm_init=True, dense_drive=True)
+        b = Brain(engine=eng, save_winners=True)
+        b.add_stimulus("s1", K)
+        b.add_stimulus("s2", K)
+        b.add_area("A", N, K, 0.1)
+        a1 = project(b, "s1", "A", rounds=ROUNDS)
+        b.inhibit_areas(["A"])
+        a2 = project(b, "s2", "A", rounds=ROUNDS)
+        b.inhibit_areas(["A"])
+        assert a1.overlap(a2) < 0.5, f"dense separation {a1.overlap(a2):.3f}"
+        a1b = project(b, "s1", "A", rounds=ROUNDS)
+        assert a1.overlap(a1b) > 0.6, f"dense recovery {a1.overlap(a1b):.3f}"
