@@ -12,6 +12,23 @@ Architecture (from NEMO paper, Mitropolsky & Papadimitriou 2023/2025):
     Layer 2:  ROLE_AGENT    ROLE_ACTION    ROLE_PATIENT  (← LEX)
     Layer 3:  SEQ (← PHON stimuli, sequence memory)
 
+The scientific content of Layer 1 is DIFFERENTIAL GROUNDING: nouns and verbs
+are not told apart by anything phonological, but by the fact that a noun's
+PHON stimulus co-fires with a visual stimulus while a verb's co-fires with a
+motor one.  Two sensory streams, two target areas, and the category falls out
+of which area develops a stable assembly for the word.  This is the model's
+answer to how a learner could acquire lexical categories without labels.
+
+HOW MUCH OF THIS PIPELINE IS NEURAL.  Layer 1 is: ``classify_word`` decides
+by projecting and reading out.  Layer 3 is: ``train_word_order`` really does
+memorize the sequence into SEQ.  Layer 2 as consumed by :meth:`NemoParser.parse`
+is NOT -- for sentences of three or more words, roles come from a hardcoded
+SVO template, and the trained role areas and the SEQ area are not consulted at
+parse time at all.  See :meth:`NemoParser.parse` and
+:meth:`NemoParser.assign_role` for the details.  ``EmergentParser`` in
+``assembly_calculus.emergent`` is the version where structure is learned
+rather than assumed.
+
 References:
     Mitropolsky, D. & Papadimitriou, C. H. (2025).
     "Simulated Language Acquisition with Neural Assemblies."
@@ -21,11 +38,10 @@ References:
     arXiv:2306.15364.
 """
 
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
 
-from .assembly import Assembly, overlap
 from .ops import project, sequence_memorize, _snap
-from .readout import readout_all, build_lexicon, Lexicon
+from .readout import readout_all, Lexicon
 
 
 # Role names as constants
@@ -227,13 +243,40 @@ class NemoParser:
     def assign_role(self, word: str) -> Optional[str]:
         """Assign a thematic role to a word via readout against role lexicons.
 
-        Returns the role label ("AGENT", "ACTION", "PATIENT") with the
-        highest overlap, or None if no role lexicon has been trained.
+        Returns the role label ("AGENT", "ACTION", "PATIENT") of the first
+        role area this word was trained into, or None.
+
+        WHAT THIS ACTUALLY MEASURES -- and it is not overlap.  Each role area
+        has its own neuron population, and ``Assembly`` snapshots carry neuron
+        IDs that are only meaningful within one area, so the overlap between a
+        LEX assembly and a ROLE assembly is structurally ~0 regardless of how
+        well the role was learned.  There is no signal to rank on.  The code
+        therefore falls back to *membership*: it reports the role whose
+        training lexicon contains this word.
+
+        Consequences, stated plainly:
+
+        * The answer is bookkeeping, not neural readout.  Nothing about the
+          brain's current state is consulted.
+        * A word trained in more than one role (e.g. a noun seen as both
+          subject and object) resolves to whichever role area was inserted
+          into ``role_lexicons`` first -- dict insertion order, i.e. the order
+          roles appeared in the first training sentence.  There is no
+          tie-break and no error.
+        * Genuine cross-area role readout requires driving the LEX assembly
+          into the role areas and comparing the resulting activity; see
+          ``assembly_calculus.binding.input_drive``, which is the tool built
+          for exactly this "which area responds" question.
+
+        Left as-is because ``parse`` only reaches this path for sentences
+        shorter than three words, and changing it would change results.
         """
         if not self.role_lexicons:
             return None
 
-        # Get the word's lexical assembly
+        # ``word_asm`` is looked up only to reject words with no lexical
+        # assembly at all; it is not compared against anything, for the reason
+        # given above.
         category = self.word_categories.get(word)
         if category is None:
             category = self.classify_word(word)
@@ -243,28 +286,37 @@ class NemoParser:
         if word_asm is None:
             return None
 
-        best_role = None
-        best_overlap = -1.0
-
         for role_area, role_lex in self.role_lexicons.items():
-            for trained_word, role_asm in role_lex.items():
-                if trained_word == word:
-                    ov = overlap(word_asm, role_asm)
-                    # Cross-area overlap is always 0 (different areas),
-                    # so we use role training presence as the signal
-                    if role_area not in self.role_lexicons:
-                        continue
-                    if word in role_lex:
-                        return ROLE_LABELS[role_area]
+            if word in role_lex:
+                return ROLE_LABELS[role_area]
 
         # Fallback: assign by category pattern
-        # (nouns tend to be agents/patients, verbs tend to be actions)
+        # (nouns tend to be agents/patients, verbs tend to be actions).
+        # Nouns get None rather than a guess, since agent-vs-patient is
+        # genuinely undetermined without position information.
         if category == "verb":
             return "ACTION"
         return None
 
     def parse(self, words: List[str]) -> dict:
         """Parse a sentence through the full pipeline.
+
+        Step 1 (categories) is neural where it matters: an unregistered word
+        goes through ``classify_word``, which projects the word's PHON
+        stimulus into both LEX areas and compares readout overlap.  A
+        registered word short-circuits to its stored category.
+
+        Step 2 (roles) is NOT neural for sentences of three or more words.
+        It applies a hardcoded SVO template in Python -- first noun AGENT,
+        verb ACTION, subsequent nouns PATIENT -- and consults neither the
+        trained role areas nor the SEQ area that ``train_word_order``
+        populated.  Consequences: role assignment is identical whether or not
+        ``train_roles`` was ever called, it cannot be wrong about a
+        well-formed SVO sentence, and it cannot be right about a non-SVO one.
+        Do not cite ``parse`` role accuracy as evidence about role binding.
+        The genuinely emergent role machinery is in
+        ``assembly_calculus.emergent``; this class is a composition demo of
+        the three training patterns.
 
         Args:
             words: List of word strings (e.g., ["dog", "chases", "cat"]).

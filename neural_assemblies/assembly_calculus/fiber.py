@@ -9,6 +9,26 @@ which fibers are active at each parsing step.
 FiberCircuit generalizes this pattern: declare the possible connections,
 then inhibit/disinhibit them as needed. Each ``step()`` call translates
 the current fiber state into a single ``brain.project()`` call.
+
+Why gating is the whole control story.  NEMO has no program counter, no
+registers, and no way to address an assembly by name; the only thing an outer
+controller may do is open and close fibers.  So "control flow" in this model
+IS fiber state, and the biological claim is modest and specific: a small
+number of disinhibitory interneuron populations can switch cortico-cortical
+pathways on and off far faster than synaptic weights change.  Everything the
+parser does -- selecting a syntactic role, discarding a completed phrase,
+routing a word to one area rather than another -- is expressed as which
+fibers are open on that time step.
+
+Two consequences that surprise readers:
+
+* A fiber's *weights persist while it is inhibited*.  Inhibiting is muting a
+  channel for a time step, not deleting what was learned through it.  Reopen
+  it and the previously potentiated synapses are all still there.
+* An inhibited fiber also stops LEARNING, because no input flows through it,
+  so nothing is co-active to potentiate.  Gating therefore controls plasticity
+  as well as activation, which is how the parser keeps unrelated word pairs
+  from silently associating.
 """
 
 from collections import defaultdict
@@ -133,6 +153,20 @@ class FiberCircuit:
         area-to-area (recurrent/feedforward) projections execute.
         Stimulus fiber states are restored afterward.
 
+        This is how you ask what the network does ON ITS OWN.  With stimuli
+        clamped off, nothing external constrains the winners, so the areas
+        settle purely on their learned weights -- which is the setting in
+        which pattern completion, sequence recall, and prediction are read
+        out.  Any measurement that leaves a stimulus firing is measuring the
+        input as much as the network.
+
+        The restore runs in a ``finally``: a projection that raises mid-loop
+        must not leave every stimulus fiber inhibited, because the exception is
+        usually caught somewhere above and the circuit is then silently deaf to
+        all input for the rest of the session -- a failure that shows up as
+        wrong results much later, far from its cause.  Successful runs are
+        unaffected.
+
         Args:
             n: Number of autonomous steps (default 1).
         """
@@ -140,7 +174,8 @@ class FiberCircuit:
         for key in self._stim_fibers:
             self._stim_fibers[key] = False
 
-        for _ in range(n):
-            self.step()
-
-        self._stim_fibers.update(saved_stim)
+        try:
+            for _ in range(n):
+                self.step()
+        finally:
+            self._stim_fibers.update(saved_stim)

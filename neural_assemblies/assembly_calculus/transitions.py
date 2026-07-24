@@ -5,6 +5,23 @@ This module provides a typed transition contract that sits between
 learned or hand-authored transition sources and the current FSM/PFA
 implementations. The initial goal is validation and normalization, not
 to replace the existing runtime mechanics.
+
+It is deliberately PURE SYMBOLIC BOOKKEEPING -- no Brain, no assemblies, no
+projections.  That separation is the point: FSMNetwork and PFANetwork both
+need to know what transitions exist and whether they are well-formed, and
+mixing that check into code that is also running neural dynamics makes it
+impossible to tell a malformed automaton from a failed simulation.  Validation
+here fails loudly at construction, before any neurons are involved.
+
+The two validators encode the FSM/PFA distinction:
+
+    deterministic_table()       one target per (state, symbol), probability 1.
+        This is what FSMNetwork consumes; ambiguity is an error, not a
+        coin-flip.
+    validate_probability_mass() several targets per key summing to 1.  This is
+        what PFANetwork consumes, and the sum condition is what makes the
+        RandomChoiceArea selection in ``pfa.py`` a valid sample rather than an
+        arbitrary pick.
 """
 
 from __future__ import annotations

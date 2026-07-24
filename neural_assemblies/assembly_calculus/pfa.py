@@ -1,9 +1,33 @@
 """
 RandomChoiceArea and PFANetwork: probabilistic computation via assemblies.
 
-RandomChoiceArea implements a neural coin-flip: two trained attractor
-assemblies compete after mixed initialization, producing a stochastic
-binary output.
+WHERE THE RANDOMNESS COMES FROM.  NEMO's dynamics are deterministic once the
+connectome is fixed: sum inputs, take the top k, potentiate.  There is no
+noise term and no sampling step.  So a probabilistic automaton cannot simply
+"draw" a transition -- the stochasticity has to be manufactured out of the
+dynamics themselves.
+
+The construction here is the standard one: train TWO attractor assemblies into
+a single area, then start the area from a state that lies between them and let
+the winners-take-all competition run.  Which basin the trajectory falls into
+depends on the fine detail of the mixed initial condition, so seeding the mix
+differently gives a different outcome -- a coin whose bias is set by how much
+of each attractor goes into the seed.
+
+Three variants exist here and they differ in what supplies the entropy:
+
+    _flip_k_split  -- seed = ``bias``-weighted sample of the two attractors'
+                      winners.  Entropy comes entirely from the caller's RNG
+                      choosing WHICH winners to include.
+    _flip_compete  -- at bias 0.5 with no input noise, seed = a uniformly
+                      random k-subset of the whole area, so the answer is
+                      decided by which attractor happens to be better
+                      represented in the random draw.  This is the reference
+                      NEMO coin (mdabagia/nemo ``RandomChoiceArea.flip``).
+    SoftmaxContextCoin -- adds per-neuron i.i.d. input noise and E%-WTA, so
+                      entropy is injected into the dynamics rather than only
+                      the initial condition, and the probability becomes a
+                      smooth function of the trained context->outcome weights.
 
 PFANetwork extends FSMNetwork with probabilistic transitions.  When
 multiple transitions exist for the same (state, symbol), uses
@@ -15,7 +39,7 @@ Reference:
     arXiv:2306.03812.
 """
 
-from typing import Dict, List, Tuple
+from typing import Dict, List, Literal, Tuple
 from collections import defaultdict
 
 import numpy as np
@@ -24,6 +48,8 @@ from .assembly import overlap
 from .ops import project, _snap
 from .fsm import FSMNetwork
 from .transitions import TransitionLike, TransitionMap
+
+FlipMode = Literal["k_split", "compete"]
 
 
 class RandomChoiceArea:
@@ -66,7 +92,14 @@ class RandomChoiceArea:
         brain.add_stimulus(self._stim0, k)
         brain.add_stimulus(self._stim1, k)
 
-        # Train two distinct attractors
+        # Training is deliberately done in two stages.
+        #
+        # Stage 1 -- carve out two INDEPENDENT attractors.  Each stimulus is
+        # projected with the recurrent weights reset before and after, so
+        # neither assembly is formed in the shadow of the other's attractor.
+        # Without the resets the second stimulus is pulled into the first's
+        # basin and the two "attractors" end up largely overlapping, which
+        # would make the coin degenerate (always the same answer).
         self.asm0 = project(brain, self._stim0, self.area_name,
                             rounds=rounds_train)
         brain._engine.reset_area_connections(self.area_name)
@@ -74,42 +107,61 @@ class RandomChoiceArea:
                             rounds=rounds_train)
         brain._engine.reset_area_connections(self.area_name)
 
-        # Re-train both to strengthen connections in shared connectome
+        # Stage 2 -- deepen both basins in ONE shared connectome, alternating
+        # so neither gets a systematic head start.  This is what makes them
+        # competing attractors rather than two unrelated assemblies: after
+        # this loop the area has a single weight matrix with two stable
+        # fixed points, which is the precondition for a mixed initial state
+        # to fall into one or the other.
         for _ in range(3):
             project(brain, self._stim0, self.area_name, rounds=rounds_train)
             project(brain, self._stim1, self.area_name, rounds=rounds_train)
 
-        # Refresh snapshots after shared training
+        # Stage 1's snapshots were taken against connectomes that no longer
+        # exist, so re-take them.  Everything downstream compares flip results
+        # against asm0/asm1 by overlap; stale references would mis-score every
+        # flip.  Note this leaves asm1 as the most recently reinforced
+        # attractor.
         self.asm0 = project(brain, self._stim0, self.area_name,
                             rounds=rounds_train)
         self.asm1 = project(brain, self._stim1, self.area_name,
                             rounds=rounds_train)
 
-    def flip(self, bias: float = 0.5, rounds: int = 10,
-             seed: int = None) -> int:
+    def flip(
+        self,
+        bias: float = 0.5,
+        rounds: int = 10,
+        seed: int | None = None,
+        mode: FlipMode = "k_split",
+    ) -> int:
         """Flip the neural coin.
 
-        Seeds the area with a mixed activation of both attractors
-        (proportional to *bias*), then self-projects for *rounds*
-        steps.  The attractor that captures the assembly determines
-        the output.
+        ``k_split`` — proportional mix of attractor winners (package default).
+        ``compete`` — random k-init + competition (mdabagia/nemo ``RandomChoiceArea.flip``).
 
-        Args:
-            bias: Probability of outcome 0 (0.0 to 1.0).
-            rounds: Self-projection rounds for attractor competition.
-            seed: Optional random seed for the mix.
+        Both return 0 or 1 by asking which trained attractor the settled state
+        overlaps more; ties go to 0.
 
-        Returns:
-            0 or 1.
+        The two modes are NOT interchangeable as measurement instruments.
+        ``compete`` disables plasticity for the duration of the flip, so it is
+        a pure read: flipping the same coin a thousand times leaves it exactly
+        as it was.  ``k_split`` leaves plasticity ON, so every flip potentiates
+        whichever basin it landed in and successive flips are not independent
+        -- the coin drifts toward its own history.  Use ``compete`` when
+        measuring a flip distribution.  ``k_split`` remains the package default
+        because published numbers in this repo were produced with it.
         """
+        if mode == "compete":
+            return self._flip_compete(bias=bias, rounds=rounds, seed=seed)
+        return self._flip_k_split(bias=bias, rounds=rounds, seed=seed)
+
+    def _flip_k_split(self, bias: float, rounds: int, seed: int | None) -> int:
         b = self.brain
         rng = np.random.default_rng(seed)
 
-        # Create mixed activation
         w0 = self.asm0.winners.copy()
         w1 = self.asm1.winners.copy()
 
-        # Sample from each attractor proportional to bias
         n0 = int(self.k * bias)
         n1 = self.k - n0
 
@@ -122,24 +174,210 @@ class RandomChoiceArea:
         chosen1 = rng.choice(w1, size=n1, replace=False)
 
         mixed = np.unique(np.concatenate([chosen0, chosen1]))
-        # If we have more than k, subsample
         if len(mixed) > self.k:
             mixed = rng.choice(mixed, size=self.k, replace=False)
 
-        # Inject mixed activation
         b.areas[self.area_name]._winners = mixed.astype(np.uint32)
         b._engine.set_winners(self.area_name, mixed.astype(np.uint32))
 
-        # Self-project to let attractors compete
-        for _ in range(rounds):
-            b.project({}, {self.area_name: [self.area_name]})
+        # Plasticity OFF while settling, matching _flip_compete. A flip is a
+        # MEASUREMENT of the stored attractors, not training: leaving it on
+        # would potentiate whichever basin this flip happened to land in, so
+        # successive flips on one coin would not be independent draws and a
+        # measured flip distribution could drift toward its own history.
+        # (Attempts to exhibit that drift empirically here were inconclusive --
+        # see the note in the sibling method -- but a read-out that writes is
+        # wrong regardless of whether the bias is currently large enough to
+        # detect.)
+        with b.frozen():
+            for _ in range(rounds):
+                b.project({}, {self.area_name: [self.area_name]})
 
-        # Read out which attractor won
         result = _snap(b, self.area_name)
         ov0 = overlap(result, self.asm0)
         ov1 = overlap(result, self.asm1)
-
         return 0 if ov0 >= ov1 else 1
+
+    def _flip_compete(self, bias: float, rounds: int, seed: int | None) -> int:
+        """Reference NEMO coin: random/noisy seed then attractor competition."""
+        b = self.brain
+        rng = np.random.default_rng(seed)
+        area = b.areas[self.area_name]
+        noise_std = getattr(area, "input_noise_std", 0.0)
+
+        if abs(bias - 0.5) < 1e-9 and noise_std <= 0:
+            initial = rng.choice(self.n, size=self.k, replace=False)
+        else:
+            w0 = self.asm0.winners.copy()
+            w1 = self.asm1.winners.copy()
+            n0 = int(self.k * bias)
+            n1 = self.k - n0
+            n0 = min(n0, len(w0))
+            n1 = min(n1, len(w1))
+            chosen0 = rng.choice(w0, size=n0, replace=False) if n0 else np.array([], dtype=w0.dtype)
+            chosen1 = rng.choice(w1, size=n1, replace=False) if n1 else np.array([], dtype=w1.dtype)
+            if len(chosen0) + len(chosen1) == 0:
+                initial = rng.choice(self.n, size=self.k, replace=False)
+            else:
+                initial = np.unique(np.concatenate([chosen0, chosen1]))
+                if len(initial) > self.k:
+                    initial = rng.choice(initial, size=self.k, replace=False)
+
+        initial = initial.astype(np.uint32)
+        b.areas[self.area_name]._winners = initial
+        b._engine.set_winners(self.area_name, initial)
+
+        with b.frozen():
+            for _ in range(rounds):
+                b.project({}, {self.area_name: [self.area_name]})
+
+        result = _snap(b, self.area_name)
+        ov0 = overlap(result, self.asm0)
+        ov1 = overlap(result, self.asm1)
+        return 0 if ov0 >= ov1 else 1
+
+
+class SoftmaxContextCoin:
+    """Context area → outcome area coin (dabagia.org coinflipping architecture).
+
+    Trains a context assembly that projects into a two-outcome area with
+    i.i.d. input noise and compete-mode attractor dynamics (softmax-like
+    weight-dependent probabilities per site description).
+    """
+
+    def __init__(
+        self,
+        brain,
+        *,
+        n: int = 5000,
+        k: int = 50,
+        beta: float = 0.08,
+        noise_std: float = 0.02,
+        coupling_rounds: int = 12,
+        prefix: str = "_ctx_coin",
+    ):
+        from neural_assemblies.compute import EPercentPolicy
+
+        self.brain = brain
+        self.k = k
+        self.context_area = f"{prefix}_context"
+        ctx_stim = f"{prefix}_ctx"
+        self._ctx_stim = ctx_stim
+
+        brain.add_area(self.context_area, n, k, beta)
+        brain.add_stimulus(ctx_stim, k)
+        project(brain, ctx_stim, self.context_area, rounds=8)
+
+        self.coin = RandomChoiceArea(
+            brain, area_name="out", n=n, k=k, beta=beta, prefix=prefix,
+        )
+        self.outcome_area = self.coin.area_name
+
+        if noise_std > 0:
+            brain.set_input_noise(self.outcome_area, noise_std)
+            brain.set_competition_policy(
+                self.outcome_area,
+                EPercentPolicy(fraction_of_max=0.5, min_winners=1),
+            )
+
+        for _ in range(coupling_rounds):
+            brain.project(
+                {ctx_stim: [self.context_area]},
+                {self.context_area: [self.outcome_area]},
+            )
+            project(brain, self.coin._stim0, self.outcome_area, rounds=4)
+            project(brain, self.coin._stim1, self.outcome_area, rounds=4)
+
+    def flip(self, bias: float = 0.5, seed: int | None = None, rounds: int = 10) -> int:
+        from neural_assemblies.assembly_calculus.ops import _snap
+        from neural_assemblies.assembly_calculus.assembly import overlap
+
+        b = self.brain
+        area_name = self.outcome_area
+        area = b.areas[area_name]
+        area.unfix_assembly()
+        b._engine.set_winners(area_name, np.array([], dtype=np.uint32))
+
+        project(b, self._ctx_stim, self.context_area, rounds=1)
+        b.project({}, {self.context_area: [area_name]})
+
+        rng = np.random.default_rng(seed)
+        if abs(bias - 0.5) < 1e-9:
+            initial = rng.choice(self.coin.n, size=self.k, replace=False)
+        else:
+            w0 = self.coin.asm0.winners.copy()
+            w1 = self.coin.asm1.winners.copy()
+            n0 = int(self.k * bias)
+            n1 = self.k - n0
+            n0 = min(n0, len(w0))
+            n1 = min(n1, len(w1))
+            chosen0 = rng.choice(w0, size=n0, replace=False) if n0 else np.array([], dtype=w0.dtype)
+            chosen1 = rng.choice(w1, size=n1, replace=False) if n1 else np.array([], dtype=w1.dtype)
+            initial = np.unique(np.concatenate([chosen0, chosen1]))
+            if len(initial) == 0:
+                initial = rng.choice(self.coin.n, size=self.k, replace=False)
+            elif len(initial) > self.k:
+                initial = rng.choice(initial, size=self.k, replace=False)
+
+        initial = initial.astype(np.uint32)
+        b.areas[area_name]._winners = initial
+        b._engine.set_winners(area_name, initial)
+
+        with b.frozen():
+            for _ in range(rounds):
+                b.project({}, {area_name: [area_name]})
+
+        result = _snap(b, area_name)
+        ov0 = overlap(result, self.coin.asm0)
+        ov1 = overlap(result, self.coin.asm1)
+        return 0 if ov0 >= ov1 else 1
+
+    def train_bias(self, bias: float, *, rounds: int = 20) -> None:
+        """Skew outcome weights via asymmetric Hebbian coupling."""
+        stim = self.coin._stim0 if bias >= 0.5 else self.coin._stim1
+        alt = self.coin._stim1 if bias >= 0.5 else self.coin._stim0
+        major = max(int(rounds * abs(bias - 0.5) * 2 + rounds * 0.5), 1)
+        minor = max(rounds - major, 1)
+        for _ in range(major):
+            project(self.brain, self._ctx_stim, self.context_area, rounds=1)
+            self.brain.project({}, {self.context_area: [self.outcome_area]})
+            project(self.brain, stim, self.outcome_area, rounds=4)
+        for _ in range(minor):
+            project(self.brain, self._ctx_stim, self.context_area, rounds=1)
+            self.brain.project({}, {self.context_area: [self.outcome_area]})
+            project(self.brain, alt, self.outcome_area, rounds=2)
+
+    def learn_from_frequencies(
+        self,
+        freq0: float,
+        freq1: float,
+        *,
+        rounds_per_unit: int = 8,
+    ) -> None:
+        """Hebbian coupling rounds proportional to target outcome frequencies."""
+        total = max(freq0 + freq1, 1e-9)
+        p0, p1 = freq0 / total, freq1 / total
+        n0 = max(1, int(round(rounds_per_unit * 10 * p0)))
+        n1 = max(1, int(round(rounds_per_unit * 10 * p1)))
+        for _ in range(n0):
+            project(self.brain, self._ctx_stim, self.context_area, rounds=1)
+            self.brain.project({}, {self.context_area: [self.outcome_area]})
+            project(self.brain, self.coin._stim0, self.outcome_area, rounds=4)
+        for _ in range(n1):
+            project(self.brain, self._ctx_stim, self.context_area, rounds=1)
+            self.brain.project({}, {self.context_area: [self.outcome_area]})
+            project(self.brain, self.coin._stim1, self.outcome_area, rounds=4)
+
+    def empirical_flip_counts(
+        self,
+        n_flips: int,
+        bias: float = 0.5,
+        seed_base: int = 0,
+    ) -> tuple[int, int]:
+        counts = {0: 0, 1: 0}
+        for i in range(n_flips):
+            counts[self.flip(bias=bias, seed=seed_base + i * 17)] += 1
+        return counts[0], counts[1]
 
 
 class PFANetwork:
@@ -173,10 +411,12 @@ class PFANetwork:
         beta: float = 0.05,
         rounds: int = 10,
         prefix: str = "_pfa",
+        flip_mode: FlipMode = "k_split",
     ):
         self.brain = brain
         self.initial_state = initial_state
         self.prefix = prefix
+        self.flip_mode: FlipMode = flip_mode
 
         self.transition_map = TransitionMap(transitions).validate_probability_mass()
 
@@ -251,7 +491,9 @@ class PFANetwork:
             # Binary probabilistic: use coin flip
             to_st_0, prob_0 = targets[0]
             to_st_1, prob_1 = targets[1]
-            result = self._coin.flip(bias=prob_0, rounds=10, seed=seed)
+            result = self._coin.flip(
+                bias=prob_0, rounds=10, seed=seed, mode=self.flip_mode,
+            )
             new_state = to_st_0 if result == 0 else to_st_1
         else:
             # Multi-way: cascade of binary choices
@@ -268,6 +510,7 @@ class PFANetwork:
                 result = self._coin.flip(
                     bias=coin_bias, rounds=10,
                     seed=int(rng.integers(0, 2**31)),
+                    mode=self.flip_mode,
                 )
                 if result == 0:
                     new_state = to_st

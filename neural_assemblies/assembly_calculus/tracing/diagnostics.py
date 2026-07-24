@@ -21,7 +21,23 @@ def source_response_traces(
     labels: Sequence[str] | None = None,
     copy_brain: bool = True,
 ) -> ResponseDiagnostic:
-    """Trace target responses when each source assembly drives the target alone."""
+    """Trace target responses when each source assembly drives the target alone.
+
+    This is the standard test for whether an ``associate`` or ``merge``
+    actually happened.  After the operation, each source is driven into the
+    target BY ITSELF and the resulting assembly is compared to the reference.
+    A successful merge shows every source reproducing the reference well above
+    ``chance_overlap``; a failed one shows each source pulling the target to
+    its own private assembly.
+
+    ``copy_brain`` defaults True and is what makes the comparison valid.
+    Driving source A into the target applies plasticity and leaves the target
+    holding A's answer, so probing source B afterwards on the same brain
+    measures B-after-A, not B.  Deep-copying per source gives each one the
+    same starting connectome, which is the only way the responses are
+    commensurable.  Set it False only when the sequential contamination is
+    itself what you want to observe.
+    """
     if rounds <= 0:
         raise ValueError("rounds must be positive")
     if not sources:

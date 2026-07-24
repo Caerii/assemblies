@@ -25,6 +25,22 @@ The neural value is in the assembly encoding: states and symbols are
 represented as robust, noise-tolerant assemblies that compose with
 other neural components (readout, merge, pattern completion, etc.).
 
+SCOPE OF THE CLAIM -- read this before citing the module.  This is a HYBRID,
+not a demonstration that NEMO computes finite automata on its own.  Step 2 of
+the flow above is a Python dictionary lookup.  The synapses do not select the
+next state; they only store what a state and a symbol look like.  Concretely:
+if you deleted the transition table and let the areas run, the machine would
+not work.  Ablating the state area's connectome and re-running would also not
+change which state comes next, only how it is encoded.
+
+What the module does support is the composability argument: because states are
+assemblies rather than integers, downstream assembly operations
+(``pattern_complete`` on a corrupted state, ``fuzzy_readout`` to name it,
+``merge`` to bind it to something else) apply directly to FSM state.  A fully
+neural transition mechanism -- one where the (state, symbol) pair drives the
+successor through learned weights -- is what ``assembly_calculus.binding``
+provides, and is not what is used here.
+
 Reference:
     Dabagia, M., Papadimitriou, C. H., & Vempala, S. S. (2023).
     "Computation with Sequences of Assemblies in a Model of the Brain."

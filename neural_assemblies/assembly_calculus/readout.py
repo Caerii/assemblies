@@ -5,6 +5,21 @@ Implements the readout step from Mitropolsky & Papadimitriou (2023):
 given an assembly and a lexicon of known word→assembly mappings,
 find the best-matching word (or return None for an improper parse).
 
+READOUT IS AN EXPERIMENTER'S INSTRUMENT, NOT A BRAIN MECHANISM.  Nothing in
+NEMO converts an assembly back into a symbol; there is no area that holds
+"the word dog" as a label.  This module exists so that a human can ask what
+the network is representing, by comparing the live assembly against snapshots
+taken when known words were presented.  It is the equivalent of decoding from
+recorded activity, and like any decoder it can be wrong in ways the network
+itself is not.
+
+Two consequences follow.  First, the threshold in :func:`fuzzy_readout` is a
+DECODER's confidence criterion, not a neural one -- returning ``None`` means
+"I cannot tell what this is", not "the network failed".  Second, readout can
+only ever name things already in the lexicon, so a novel assembly reads out as
+its nearest known neighbour, or as nothing.  Absence of a readout is weak
+evidence about what the network computed.
+
 Functions:
     fuzzy_readout   Best-matching word above threshold, or None.
     readout_all     All words with overlaps, sorted descending.
@@ -19,7 +34,7 @@ Reference:
 from typing import Dict, List, Optional, Tuple
 
 from .assembly import Assembly, overlap
-from .ops import project, _snap
+from .ops import project
 
 
 # Type alias: word string → Assembly snapshot

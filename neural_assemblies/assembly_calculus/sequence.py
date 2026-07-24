@@ -4,6 +4,26 @@ Sequence -- ordered list of assembly snapshots.
 Represents a temporal sequence of assemblies in a single brain area,
 as produced by ``sequence_memorize`` or ``ordered_recall``.
 
+WHAT THE OVERLAP HELPERS ARE FOR.  A memorised sequence should satisfy two
+conditions that pull in opposite directions, and the two accessors here
+measure them separately:
+
+    pairwise_overlaps()  Consecutive items must be DISTINCT.  If adjacent
+        assemblies overlap heavily, the area collapsed the sequence into one
+        attractor and recall cannot step -- there is nothing to step to.
+    overlap_matrix()     Non-adjacent items must also be distinct.  The
+        diagnostic failure this catches is a sequence that wraps: item 5
+        overlapping item 1 means recall will cycle rather than terminate,
+        which is exactly the condition ``ordered_recall`` breaks on.
+
+A healthy sequence therefore shows a near-diagonal overlap matrix, with
+off-diagonal values near chance (``k/n``, see ``assembly.chance_overlap``) --
+not zero.  Elevated values anywhere off the diagonal are the interference that
+the scaffold construction in ``scaffold.py`` exists to reduce.
+
+This object is a record of a measurement, not a live handle: the assemblies it
+holds are snapshots, so it stays valid while the brain moves on.
+
 Reference:
     Dabagia, Papadimitriou, Vempala.
     "Computation with Sequences of Assemblies in a Model of the Brain."

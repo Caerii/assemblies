@@ -71,7 +71,23 @@ class AssemblyTrace:
         return [step.to_record() for step in self.steps]
 
     def stabilized_at(self, threshold: float = 0.95) -> int | None:
-        """Return the first round whose previous-overlap reaches *threshold*."""
+        """Return the first round whose previous-overlap reaches *threshold*.
+
+        This is the round count that O(log n) convergence claims are checked
+        against.  ``None`` means the operation never stabilised within the
+        rounds traced -- distinguish that from "stabilised at the last round",
+        which returns a number.
+
+        The default threshold of 0.95 is the convention used throughout this
+        repo for "the same assembly".  It is a first-crossing, not a
+        sustained-state test: a trace that touches 0.95 once and then diverges
+        still reports that round.  Read ``overlap_series`` when that matters.
+
+        Note this asks only whether the winner SET stopped moving.  It does
+        not check the stronger E%-WTA formation conditions (no first-time
+        firers, density above the host area) -- see
+        :mod:`~neural_assemblies.assembly_calculus.epwta` for those.
+        """
         if not 0.0 <= threshold <= 1.0:
             raise ValueError("threshold must be between 0 and 1")
 

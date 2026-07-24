@@ -12,6 +12,36 @@ Minimal recipe (from BRIDGE_WEBSCALE_CURRICULUM.md, Section 4):
 This is a narrow, structured demonstration on a toy corpus.
 No gradient training -- pure Hebbian + overlap readout.
 
+HOW TO READ THE NUMBERS.  Three properties of this setup make the reported
+accuracies weaker evidence than they look.  None of them are bugs -- they are
+consequences of doing prediction with the same dynamics that do learning --
+but a reader comparing against a language-model baseline needs them stated.
+
+1. Prediction is not read-only.  ``predict_next_token`` drives the area
+   through ``brain.project`` with plasticity at its default (enabled), so
+   every prediction potentiates the context it just fed in.  ``score_corpus``
+   calls it once per position, which means the model is being trained on the
+   evaluation corpus while it is being scored, and scores are order-dependent.
+   To measure a frozen model, set ``brain.disable_plasticity = True`` around
+   the call.
+
+2. The "distribution" is an overlap ranking, not a probability.  Readout
+   returns ``|context ∩ word| / min(|context|, |word|)`` per vocabulary item.
+   These do not sum to 1, are not calibrated, and cannot be compared across
+   contexts of different assembly sizes.  Rank metrics (top-1, top-3, MRR)
+   are meaningful; anything requiring a likelihood is not.
+
+3. The context has no explicit position code.  All tokens of the prefix are
+   projected into the SAME area, so what accumulates is a recency-weighted
+   blend rather than an ordered representation.  Word order affects the result
+   only through the asymmetry of Hebbian bridges, which decays quickly with
+   distance.  Expect near-bigram behaviour, and do not read long-range
+   agreement into a good score.
+
+Also note that ``predict_next_token`` does not reproduce the Phase A / Phase B
+schedule that ``sequence_memorize`` used during training (see below), so the
+inference-time dynamics are not identical to the training-time dynamics.
+
 Architecture:
     - LEX area: holds word assemblies (one per vocabulary word)
     - Context: sequence of stimulus projections into LEX builds a
@@ -82,7 +112,8 @@ def train_on_corpus(brain, area: str, corpus: List[List[str]],
 def predict_next_token(brain, area: str, context: List[str],
                        stimuli_map: Dict[str, str],
                        lexicon: Lexicon,
-                       rounds_per_token: int = 5) -> List[Tuple[str, float]]:
+                       rounds_per_token: int = 5,
+                       adapt: bool = False) -> List[Tuple[str, float]]:
     """Predict the next token given a context sequence.
 
     Feeds context tokens sequentially with recurrence, then reads
@@ -99,16 +130,52 @@ def predict_next_token(brain, area: str, context: List[str],
     Returns:
         List of (word, overlap) sorted by overlap descending.
     """
+    # Prediction is a READ-OUT and must not train. Previously this ran at the
+    # brain's default (plasticity ENABLED), so every predicted position
+    # potentiated the very bridges it was about to measure. `score_corpus`
+    # calls this once per position, which made reported accuracies
+    # order-dependent and partly a measurement of adaptation to the test set.
+    #
+    # Pass ``adapt=True`` for genuine online adaptation; it is off by default
+    # because scoring is the overwhelmingly common caller and silently
+    # training on the evaluation corpus is never what a caller wants.
+    import contextlib
+    freeze = brain.frozen() if not adapt else contextlib.nullcontext()
+    with freeze:
+        return _predict_next_token_inner(
+            brain, area, context, stimuli_map, lexicon, rounds_per_token,
+        )
+
+
+def _predict_next_token_inner(brain, area: str, context: List[str],
+                              stimuli_map: Dict[str, str],
+                              lexicon: Lexicon,
+                              rounds_per_token: int) -> List[Tuple[str, float]]:
+    """Drive the context and read out. See ``predict_next_token``."""
     for i, word in enumerate(context):
         stim = stimuli_map[word]
         if i == 0:
-            # First token: stimulus only
+            # First token gets one stimulus-only step so the context starts
+            # from the word itself rather than from whatever the area was
+            # holding.  Later tokens deliberately do NOT get this step: their
+            # job is to perturb the running context, not to replace it.
+            #
+            # Note this differs from the Phase A / Phase B split that
+            # ``sequence_memorize`` used at training time (which gives EVERY
+            # token stimulus-only rounds first).  The asymmetry is real and
+            # affects results; recorded rather than changed.
             brain.project({stim: [area]}, {})
-        # Stimulus + recurrence to build Hebbian bridges
+        # Stimulus + recurrence: the recurrent fiber is what lets the previous
+        # tokens' trace interact with this one, and is where the learned
+        # bridges are read.
         for _ in range(rounds_per_token - 1):
             brain.project({stim: [area]}, {area: [area]})
 
-    # One autonomous step to let context settle
+    # One autonomous step with the stimulus removed.  This is the actual
+    # prediction: with nothing clamping the area to the last token, the
+    # strongest remaining drive is whatever the trained bridges point at,
+    # i.e. the successor.  Skipping this step would read back the last input
+    # word instead of a prediction.
     brain.project({}, {area: [area]})
 
     context_assembly = _snap(brain, area)
