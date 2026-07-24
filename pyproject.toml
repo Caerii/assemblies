@@ -46,8 +46,8 @@ Repository = "https://github.com/Caerii/assemblies"
 
 [project.optional-dependencies]
 gpu = [
-    "cupy-cuda13x>=13.0.0",
     "torch>=2.0.0",
+    "cupy-cuda13x>=13.0.0; sys_platform == 'linux'",
 ]
 notebooks = [
     "jupyterlab>=4.0.0",
@@ -62,6 +62,7 @@ dev = [
     "pytest>=7.0.0",
     "pytest-cov>=4.0.0",
     "ruff>=0.1.0",
+    "pyyaml>=6.0.0",
 ]
 all = [
     "neural-assemblies[gpu,notebooks,dev]",
@@ -79,11 +80,12 @@ dev = [
     "ipython>=8.0.0",
     "build>=1.0.0",
     "twine>=5.0.0",
+    "pyyaml>=6.0.0",
 ]
 
 gpu = [
-    "cupy-cuda13x>=13.0.0",
     "torch>=2.0.0",
+    "cupy-cuda13x>=13.0.0; sys_platform == 'linux'",
 ]
 
 notebooks = [
@@ -97,13 +99,16 @@ notebooks = [
 ]
 
 [tool.uv]
+# CUDA builds for Linux + Windows (RTX etc.). macOS falls back to PyPI CPU torch.
 [[tool.uv.index]]
-name = "pytorch"
-url = "https://download.pytorch.org/whl"
+name = "pytorch-cu130"
+url = "https://download.pytorch.org/whl/cu130"
 explicit = true
 
 [tool.uv.sources]
-torch = { index = "pytorch" }
+torch = [
+    { index = "pytorch-cu130", marker = "sys_platform == 'linux' or sys_platform == 'win32'" },
+]
 
 [tool.ruff]
 line-length = 100
@@ -128,8 +133,22 @@ per-file-ignores = {"__init__.py" = ["F401"], "*.ipynb" = ["F401", "E402"]}
 testpaths = ["neural_assemblies/tests"]
 python_files = ["test_*.py", "*_test.py"]
 norecursedirs = [".worktrees"]
+# Parallelism is deliberately NOT in addopts. pytest-xdist is installed and the
+# full suite parallelizes cleanly, but spinning up workers costs ~29s of
+# interpreter+numpy import overhead, which dominates small runs: test_area.py is
+# 0.95s serially and 30.4s under `-n auto`. Opt in per-invocation instead.
+#
+# Full suite:   pytest -n auto --dist loadfile
+# Single file:  pytest neural_assemblies/tests/test_foo.py      (serial, fast)
+#
+# Use `--dist loadfile` rather than the default `load`: the session-scoped
+# parser fixtures in conftest.py are instantiated PER WORKER, so scattering one
+# file's tests across workers retrains its backbone once per worker. Verified
+# equivalent -- the four parser-heavy files give 166 passed both serially and
+# under `-n 4` (545s -> 424s).
 markers = [
     "legacy: repo-root compatibility and historical experiment tests",
     "gpu: optional CUDA/C++/accelerator tests",
     "research: research experiment validation tests",
+    "slow: long-running literature or curriculum tests",
 ]
