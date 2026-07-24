@@ -1,0 +1,931 @@
+{
+  "fused_accuracy": 0.7819999999999999,
+  "routes": [
+    {
+      "name": "fused",
+      "accuracy": 0.7819999999999999,
+      "per_digit": [
+        0.96,
+        0.88,
+        0.6,
+        0.7,
+        0.84,
+        0.7,
+        0.9,
+        0.78,
+        0.64,
+        0.82
+      ],
+      "confusion": [
+        [
+          48,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          1,
+          0
+        ],
+        [
+          0,
+          44,
+          0,
+          0,
+          0,
+          2,
+          1,
+          1,
+          2,
+          0
+        ],
+        [
+          3,
+          5,
+          30,
+          3,
+          1,
+          0,
+          4,
+          2,
+          1,
+          1
+        ],
+        [
+          1,
+          2,
+          0,
+          35,
+          1,
+          3,
+          1,
+          0,
+          0,
+          7
+        ],
+        [
+          0,
+          0,
+          2,
+          0,
+          42,
+          2,
+          1,
+          0,
+          0,
+          3
+        ],
+        [
+          4,
+          3,
+          0,
+          3,
+          1,
+          35,
+          0,
+          1,
+          2,
+          1
+        ],
+        [
+          1,
+          1,
+          0,
+          0,
+          1,
+          2,
+          45,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          1,
+          0,
+          1,
+          3,
+          0,
+          0,
+          39,
+          1,
+          5
+        ],
+        [
+          0,
+          3,
+          1,
+          3,
+          2,
+          4,
+          3,
+          0,
+          32,
+          2
+        ],
+        [
+          1,
+          0,
+          2,
+          0,
+          1,
+          1,
+          1,
+          3,
+          0,
+          41
+        ]
+      ],
+      "mean_margin_correct": 0.0,
+      "mean_margin_error": 0.0
+    },
+    {
+      "name": "connectome_class",
+      "accuracy": 0.786,
+      "per_digit": [
+        0.96,
+        0.86,
+        0.56,
+        0.78,
+        0.88,
+        0.62,
+        0.9,
+        0.8,
+        0.66,
+        0.84
+      ],
+      "confusion": [
+        [
+          48,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          1,
+          0
+        ],
+        [
+          0,
+          43,
+          0,
+          0,
+          0,
+          2,
+          1,
+          1,
+          3,
+          0
+        ],
+        [
+          3,
+          5,
+          28,
+          3,
+          1,
+          0,
+          5,
+          2,
+          1,
+          2
+        ],
+        [
+          1,
+          1,
+          0,
+          39,
+          1,
+          0,
+          1,
+          0,
+          0,
+          7
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          44,
+          2,
+          1,
+          0,
+          0,
+          3
+        ],
+        [
+          4,
+          3,
+          0,
+          7,
+          1,
+          31,
+          0,
+          1,
+          2,
+          1
+        ],
+        [
+          1,
+          1,
+          0,
+          0,
+          1,
+          2,
+          45,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          1,
+          0,
+          1,
+          2,
+          0,
+          0,
+          40,
+          1,
+          5
+        ],
+        [
+          0,
+          2,
+          1,
+          4,
+          2,
+          3,
+          3,
+          0,
+          33,
+          2
+        ],
+        [
+          1,
+          0,
+          2,
+          0,
+          1,
+          1,
+          1,
+          2,
+          0,
+          42
+        ]
+      ],
+      "mean_margin_correct": 36.87212193799217,
+      "mean_margin_error": 10.192660322635
+    },
+    {
+      "name": "multi_prototype",
+      "accuracy": 0.6279999999999999,
+      "per_digit": [
+        0.9,
+        0.6,
+        0.36,
+        0.36,
+        0.78,
+        0.32,
+        0.9,
+        0.74,
+        0.6,
+        0.72
+      ],
+      "confusion": [
+        [
+          45,
+          0,
+          0,
+          1,
+          0,
+          0,
+          1,
+          0,
+          3,
+          0
+        ],
+        [
+          0,
+          30,
+          0,
+          0,
+          0,
+          0,
+          5,
+          4,
+          10,
+          1
+        ],
+        [
+          2,
+          7,
+          18,
+          2,
+          1,
+          0,
+          5,
+          4,
+          9,
+          2
+        ],
+        [
+          1,
+          5,
+          0,
+          18,
+          2,
+          4,
+          2,
+          1,
+          10,
+          7
+        ],
+        [
+          0,
+          0,
+          3,
+          0,
+          39,
+          0,
+          1,
+          1,
+          0,
+          6
+        ],
+        [
+          0,
+          4,
+          0,
+          0,
+          1,
+          16,
+          4,
+          4,
+          14,
+          7
+        ],
+        [
+          2,
+          0,
+          0,
+          0,
+          0,
+          0,
+          45,
+          0,
+          3,
+          0
+        ],
+        [
+          0,
+          1,
+          0,
+          0,
+          3,
+          0,
+          0,
+          37,
+          1,
+          8
+        ],
+        [
+          0,
+          4,
+          0,
+          1,
+          1,
+          2,
+          7,
+          0,
+          30,
+          5
+        ],
+        [
+          0,
+          0,
+          1,
+          2,
+          1,
+          1,
+          0,
+          7,
+          2,
+          36
+        ]
+      ],
+      "mean_margin_correct": 0.0,
+      "mean_margin_error": 0.0
+    },
+    {
+      "name": "semantic_connectome",
+      "accuracy": 0.6,
+      "per_digit": [
+        0.92,
+        0.74,
+        0.86,
+        0.12,
+        0.92,
+        0.92,
+        0.8,
+        0.62,
+        0.1,
+        0.0
+      ],
+      "confusion": [
+        [
+          46,
+          0,
+          1,
+          0,
+          0,
+          3,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          37,
+          0,
+          0,
+          0,
+          11,
+          1,
+          1,
+          0,
+          0
+        ],
+        [
+          2,
+          1,
+          43,
+          0,
+          0,
+          3,
+          0,
+          1,
+          0,
+          0
+        ],
+        [
+          1,
+          0,
+          6,
+          6,
+          1,
+          35,
+          0,
+          1,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          46,
+          3,
+          1,
+          0,
+          0,
+          0
+        ],
+        [
+          2,
+          1,
+          0,
+          0,
+          1,
+          46,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          1,
+          0,
+          2,
+          0,
+          2,
+          5,
+          40,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          1,
+          2,
+          0,
+          7,
+          9,
+          0,
+          31,
+          0,
+          0
+        ],
+        [
+          0,
+          21,
+          7,
+          0,
+          1,
+          15,
+          1,
+          0,
+          5,
+          0
+        ],
+        [
+          1,
+          2,
+          5,
+          0,
+          12,
+          26,
+          0,
+          4,
+          0,
+          0
+        ]
+      ],
+      "mean_margin_correct": 783888545685.6042,
+      "mean_margin_error": 280729260944.4712
+    },
+    {
+      "name": "semantic_anchor_project",
+      "accuracy": 0.1,
+      "per_digit": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "confusion": [
+        [
+          50,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          50,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          50,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          50,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          50,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          50,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          50,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          50,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          50,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          50,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      ],
+      "mean_margin_correct": 0.0,
+      "mean_margin_error": 0.0
+    },
+    {
+      "name": "semantic_slot_readout",
+      "accuracy": 0.604,
+      "per_digit": [
+        0.94,
+        0.72,
+        0.88,
+        0.12,
+        0.92,
+        0.9,
+        0.8,
+        0.62,
+        0.14,
+        0.0
+      ],
+      "confusion": [
+        [
+          47,
+          0,
+          1,
+          0,
+          0,
+          2,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          36,
+          1,
+          0,
+          0,
+          11,
+          1,
+          1,
+          0,
+          0
+        ],
+        [
+          2,
+          1,
+          44,
+          0,
+          0,
+          3,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          1,
+          0,
+          7,
+          6,
+          1,
+          34,
+          0,
+          1,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          46,
+          3,
+          1,
+          0,
+          0,
+          0
+        ],
+        [
+          3,
+          1,
+          0,
+          0,
+          1,
+          45,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          1,
+          0,
+          2,
+          0,
+          2,
+          5,
+          40,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          1,
+          2,
+          0,
+          7,
+          9,
+          0,
+          31,
+          0,
+          0
+        ],
+        [
+          0,
+          20,
+          7,
+          0,
+          1,
+          14,
+          1,
+          0,
+          7,
+          0
+        ],
+        [
+          1,
+          2,
+          5,
+          0,
+          12,
+          26,
+          0,
+          4,
+          0,
+          0
+        ]
+      ],
+      "mean_margin_correct": 0.0,
+      "mean_margin_error": 0.0
+    }
+  ],
+  "ablations": [
+    {
+      "name": "connectome_only",
+      "accuracy": 0.786,
+      "delta_vs_fused": 0.004000000000000115
+    },
+    {
+      "name": "multi_proto_only",
+      "accuracy": 0.6279999999999999,
+      "delta_vs_fused": -0.15400000000000003
+    },
+    {
+      "name": "no_semantic_tiebreak",
+      "accuracy": 0.786,
+      "delta_vs_fused": 0.004000000000000115
+    }
+  ],
+  "tiebreak": {
+    "n_disagreements": 152,
+    "semantic_agrees_with_winner": 12,
+    "fusion_picks_semantic": 11,
+    "fusion_correct_when_semantic_picked": 3,
+    "fusion_correct_when_connectome_picked": 90
+  },
+  "confused_digit_accuracy": 0.7475,
+  "non_confused_digit_accuracy": 0.9199999999999999,
+  "contrastive_margin": -2.0277777777777915e-05,
+  "contrastive_diagonal": 0.0013325,
+  "semantic_anchor_overlap_true": 0.0044867,
+  "semantic_anchor_overlap_max": 0.0044867,
+  "bottlenecks": [
+    {
+      "id": "B1_fusion_ceiling_at_connectome",
+      "severity": "critical",
+      "evidence": "Fused 78.2% ~ connectome 78.6%; semantic hub does not raise visual ceiling.",
+      "recommendation": "Strengthen HIGH->SEMANTIC binding before fusion; wire semantic connectome."
+    },
+    {
+      "id": "B2_high_semantic_projection",
+      "severity": "critical",
+      "evidence": "Vision->SEMANTIC anchor readout 10.0%; true-anchor overlap 0.0045 vs max 0.0045.",
+      "recommendation": "Wire HIGH->SEMANTIC from prototypes/anchors; confused-pair contrastive curriculum."
+    },
+    {
+      "id": "B3_stroke_confusion_pairs",
+      "severity": "major",
+      "evidence": "Confused digits 74.8% vs others 92.0% (pairs [(2, 8), (3, 8), (3, 5), (4, 9), (5, 6), (7, 9)]).",
+      "recommendation": "Target associate/separate curriculum on confused pairs; LRI cascade at readout."
+    },
+    {
+      "id": "B4_weak_view_manifold",
+      "severity": "major",
+      "evidence": "Multi-prototype 62.8% << connectome 78.6%.",
+      "recommendation": "Increase prototypes_per_digit or merge-halves part structure."
+    },
+    {
+      "id": "B5_flat_cross_modal_similarity",
+      "severity": "major",
+      "evidence": "Contrastive margin (diag\u2212offdiag overlap) = -0.0000.",
+      "recommendation": "More contrastive epochs; hard negatives on confused pairs; anchor reset."
+    },
+    {
+      "id": "B7_low_error_margin",
+      "severity": "major",
+      "evidence": "Connectome margin correct=36.872 error=10.193.",
+      "recommendation": "Errors are low-confidence confusions; LRI cascade or hard-negative binding."
+    },
+    {
+      "id": "B6_tiebreak_inactive",
+      "severity": "minor",
+      "evidence": "152 conn!=mp disagreements; removing semantic tie-break delta=+0.4%.",
+      "recommendation": "Fusion logic is not the bottleneck; fix representation routes first."
+    }
+  ],
+  "narrative": "Cross-domain causal profile\n============================\n\nRoute accuracy:\n  connectome_class              78.6%\n  fused                         78.2%\n  multi_prototype               62.8%\n  semantic_slot_readout         60.4%\n  semantic_connectome           60.0%\n  semantic_anchor_project       10.0%\n\nAblations (delta vs fused):\n  connectome_only               78.6% (+0.4%)\n  multi_proto_only              62.8% (-15.4%)\n  no_semantic_tiebreak          78.6% (+0.4%)\n\nConfused digits: 74.8%  |  Others: 92.0%\nContrastive margin: -0.0000\nTie-break disagreements (conn!=mp): 152\n\nRanked bottlenecks:\n  [CRITICAL] B1_fusion_ceiling_at_connectome\n    Fused 78.2% ~ connectome 78.6%; semantic hub does not raise visual ceiling.\n    -> Strengthen HIGH->SEMANTIC binding before fusion; wire semantic connectome.\n  [CRITICAL] B2_high_semantic_projection\n    Vision->SEMANTIC anchor readout 10.0%; true-anchor overlap 0.0045 vs max 0.0045.\n    -> Wire HIGH->SEMANTIC from prototypes/anchors; confused-pair contrastive curriculum.\n  [MAJOR] B3_stroke_confusion_pairs\n    Confused digits 74.8% vs others 92.0% (pairs [(2, 8), (3, 8), (3, 5), (4, 9), (5, 6), (7, 9)]).\n    -> Target associate/separate curriculum on confused pairs; LRI cascade at readout.\n  [MAJOR] B4_weak_view_manifold\n    Multi-prototype 62.8% << connectome 78.6%.\n    -> Increase prototypes_per_digit or merge-halves part structure.\n  [MAJOR] B5_flat_cross_modal_similarity\n    Contrastive margin (diag\u2212offdiag overlap) = -0.0000.\n    -> More contrastive epochs; hard negatives on confused pairs; anchor reset.\n  [MAJOR] B7_low_error_margin\n    Connectome margin correct=36.872 error=10.193.\n    -> Errors are low-confidence confusions; LRI cascade or hard-negative binding.\n  [MINOR] B6_tiebreak_inactive\n    152 conn!=mp disagreements; removing semantic tie-break delta=+0.4%.\n    -> Fusion logic is not the bottleneck; fix representation routes first.",
+  "parameters": {
+    "seed": 42,
+    "n_examples": 50,
+    "k": 200,
+    "views_per_digit": 5,
+    "associate_rounds": 10,
+    "hard_negatives": true,
+    "contrastive_epochs": 2,
+    "confused_curriculum": true,
+    "semantic_wiring": "slots"
+  }
+}

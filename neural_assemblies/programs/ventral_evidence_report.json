@@ -1,0 +1,197 @@
+{
+  "recorded": "2026-06-27",
+  "n_examples": 50,
+  "seed": 42,
+  "data_source": "mnist_csv",
+  "rows": [
+    {
+      "experiment_id": "baseline_hierarchical",
+      "tier": "0",
+      "mean_accuracy": 0.6399999999999999,
+      "hypothesis_ids": [
+        "H1_attractor_deficiency"
+      ],
+      "ac_primitives": [
+        "project"
+      ],
+      "backend": "brain_hierarchical",
+      "supports_narrative": "Feedforward 4-area illustration baseline (~64%).",
+      "metrics": {
+        "per_class": [
+          0.96,
+          0.78,
+          0.04,
+          0.58,
+          0.9,
+          0.62,
+          0.88,
+          0.7,
+          0.34,
+          0.6
+        ]
+      }
+    },
+    {
+      "experiment_id": "advanced_ventral",
+      "tier": "0",
+      "mean_accuracy": 0.786,
+      "hypothesis_ids": [
+        "H2_insufficient_exposure",
+        "H4_readout_mismatch"
+      ],
+      "ac_primitives": [
+        "project",
+        "fuzzy_readout",
+        "consolidation"
+      ],
+      "backend": "visual_ventral_stream",
+      "supports_narrative": "Repeated exposure + connectome readout closes hierarchical gap.",
+      "metrics": {
+        "min_separation": 2.5e-05
+      }
+    },
+    {
+      "experiment_id": "advanced_recurrent",
+      "tier": "0",
+      "mean_accuracy": 0.8019999999999999,
+      "hypothesis_ids": [
+        "H1_attractor_deficiency"
+      ],
+      "ac_primitives": [
+        "project",
+        "recurrence"
+      ],
+      "backend": "visual_recurrent_cortex",
+      "supports_narrative": "HIGH->HIGH recurrence matches notebook ~81% regime.",
+      "metrics": {}
+    },
+    {
+      "experiment_id": "advanced_fuzzy_lexicon",
+      "tier": "0",
+      "mean_accuracy": 0.786,
+      "hypothesis_ids": [
+        "H4_readout_mismatch"
+      ],
+      "ac_primitives": [
+        "fuzzy_readout",
+        "build_lexicon"
+      ],
+      "backend": "visual_fuzzy_lexicon",
+      "supports_narrative": "Language-organ readout on digit IT assemblies.",
+      "metrics": {}
+    },
+    {
+      "experiment_id": "tier_a_multi_prototype",
+      "tier": "A",
+      "mean_accuracy": 0.6279999999999999,
+      "hypothesis_ids": [
+        "H3_cross_class_overlap"
+      ],
+      "ac_primitives": [
+        "merge",
+        "fuzzy_readout",
+        "build_lexicon"
+      ],
+      "backend": "tier_a_multi_prototype",
+      "supports_narrative": "K-prototype view manifold improves over single prototype.",
+      "metrics": {
+        "min_separation": 2.5e-05,
+        "delta_vs_ventral": -0.15800000000000014
+      }
+    },
+    {
+      "experiment_id": "tier_a_merge_halves",
+      "tier": "A",
+      "mean_accuracy": 0.1,
+      "hypothesis_ids": [
+        "H3_cross_class_overlap"
+      ],
+      "ac_primitives": [
+        "merge",
+        "project"
+      ],
+      "backend": "tier_a_merge_halves",
+      "supports_narrative": "Part-structure merge stream (top/bottom fields).",
+      "metrics": {
+        "min_separation": 0.005
+      }
+    },
+    {
+      "experiment_id": "tier_b_pattern_complete",
+      "tier": "B",
+      "mean_accuracy": 0.1,
+      "hypothesis_ids": [],
+      "ac_primitives": [
+        "pattern_complete"
+      ],
+      "backend": "tier_b_pattern_complete",
+      "supports_narrative": "Partial cue recovery on HIGH assemblies.",
+      "metrics": {
+        "mean_recovery": 0.004784999999999999,
+        "baseline_ventral": 0.786
+      }
+    },
+    {
+      "experiment_id": "tier_b_consolidation",
+      "tier": "B",
+      "mean_accuracy": 0.10800000000000001,
+      "hypothesis_ids": [],
+      "ac_primitives": [
+        "consolidate",
+        "PathwayReplay"
+      ],
+      "backend": "tier_b_consolidation",
+      "supports_narrative": "Systems replay strengthens HIGH->CLASS without reset.",
+      "metrics": {
+        "baseline_ventral": 0.786
+      }
+    },
+    {
+      "experiment_id": "tier_c_lri_cascade",
+      "tier": "C",
+      "mean_accuracy": 0.5900000000000001,
+      "hypothesis_ids": [
+        "H5_lri_cascade_discrimination"
+      ],
+      "ac_primitives": [
+        "set_lri",
+        "fuzzy_readout",
+        "project"
+      ],
+      "backend": "tier_c_lri_cascade",
+      "supports_narrative": "LRI competitive cascade on low-margin trials.",
+      "metrics": {
+        "cascade_rate": 0.55,
+        "mean_margin": 0.13091000000000003,
+        "baseline_ventral": 0.786
+      }
+    },
+    {
+      "experiment_id": "cross_domain_vision_language",
+      "tier": "X",
+      "mean_accuracy": 0.132,
+      "hypothesis_ids": [],
+      "ac_primitives": [
+        "associate",
+        "fuzzy_readout",
+        "project"
+      ],
+      "backend": "cross_domain_vision_language",
+      "supports_narrative": "Vision and language routes agree via SEMANTIC hub.",
+      "metrics": {
+        "language_accuracy": 1.0,
+        "agreement_rate": 0.132,
+        "mean_semantic_overlap": 0.00061035
+      }
+    }
+  ],
+  "hypothesis_checks": {
+    "H1_recurrent_beats_simple_hierarchical": true,
+    "H2_ventral_beats_simple_hierarchical": true,
+    "H2_ventral_approaches_recurrent": true,
+    "H4_fuzzy_matches_ventral": true,
+    "cross_domain_agreement_above_chance": false,
+    "tier_a_multi_at_least_ventral": false
+  },
+  "narrative": "Ventral-stream assembly evidence report\n======================================\n\nSimple hierarchical MNIST (~64%) applies assembly-calculus project once per layer (LOW->MID->HIGH) with only five Hebbian updates per digit class before cross-class bias. Recurrent cortex (~81%) and the COLT notebook instead run a HIGH->HIGH attractor loop \u2014 mathematically multiple project rounds with shared input \u2014 which stabilizes IT-like assemblies. Advanced ventral stream (~79%) closes much of the gap by repeated exposure (many project steps per class) and principled readout without recurrence, confirming H1 and H2. Neither path yet encodes parts, completion, or LRI cascade discrimination (H5); those are the plausible assembly-calculus routes toward >95%.\n\nEmpirical ladder:\n  [0] advanced_recurrent: 80.2% \u2014 HIGH->HIGH recurrence matches notebook ~81% regime.\n  [0] advanced_ventral: 78.6% \u2014 Repeated exposure + connectome readout closes hierarchical gap.\n  [0] advanced_fuzzy_lexicon: 78.6% \u2014 Language-organ readout on digit IT assemblies.\n  [0] baseline_hierarchical: 64.0% \u2014 Feedforward 4-area illustration baseline (~64%).\n  [A] tier_a_multi_prototype: 62.8% \u2014 K-prototype view manifold improves over single prototype.\n  [C] tier_c_lri_cascade: 59.0% \u2014 LRI competitive cascade on low-margin trials.\n  [X] cross_domain_vision_language: 13.2% \u2014 Vision and language routes agree via SEMANTIC hub.\n  [B] tier_b_consolidation: 10.8% \u2014 Systems replay strengthens HIGH->CLASS without reset.\n  [A] tier_a_merge_halves: 10.0% \u2014 Part-structure merge stream (top/bottom fields).\n  [B] tier_b_pattern_complete: 10.0% \u2014 Partial cue recovery on HIGH assemblies.\n\nHypothesis checks:\n  PASS: H1_recurrent_beats_simple_hierarchical\n  PASS: H2_ventral_beats_simple_hierarchical\n  PASS: H2_ventral_approaches_recurrent\n  PASS: H4_fuzzy_matches_ventral\n  FAIL: cross_domain_agreement_above_chance\n  FAIL: tier_a_multi_at_least_ventral\n\nBest accuracy this run: advanced_recurrent (80.2%).\nTarget >95% requires Tier A\u2013C structures (parts, completion, LRI cascade)\nplus scale; see colt_mnist_ventral_theory ROADMAP_TO_95."
+}
