@@ -1,0 +1,3 @@
+[workspace]
+members = ["assembly-ir"]
+resolver = "2"

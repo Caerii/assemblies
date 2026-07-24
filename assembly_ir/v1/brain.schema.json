@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Caerii/assemblies/assembly_ir/v1/brain.schema.json",
+  "title": "AssemblyBrain",
+  "description": "Serialized brain topology for cross-language replay",
+  "type": "object",
+  "required": ["ir_version", "p", "areas"],
+  "properties": {
+    "ir_version": { "type": "string", "const": "1" },
+    "p": { "type": "number", "minimum": 0, "exclusiveMaximum": 1 },
+    "seed": { "type": "integer" },
+    "w_max": { "type": "number" },
+    "areas": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "n", "k", "beta"],
+        "properties": {
+          "name": { "type": "string" },
+          "n": { "type": "integer", "minimum": 1 },
+          "k": { "type": "integer", "minimum": 1 },
+          "beta": { "type": "number" },
+          "explicit": { "type": "boolean", "default": false }
+        }
+      }
+    },
+    "stimuli": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "size"],
+        "properties": {
+          "name": { "type": "string" },
+          "size": { "type": "integer", "minimum": 1 }
+        }
+      }
+    },
+    "connectomes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["src", "dst"],
+        "properties": {
+          "src": { "type": "string" },
+          "dst": { "type": "string" },
+          "weights": {
+            "type": "array",
+            "description": "Row-major dense weights or CSR payload"
+          },
+          "sparse": { "type": "boolean" }
+        }
+      }
+    }
+  }
+}

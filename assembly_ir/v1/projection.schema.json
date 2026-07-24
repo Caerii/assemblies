@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Caerii/assemblies/assembly_ir/v1/projection.schema.json",
+  "title": "AssemblyProjectionStep",
+  "description": "Single projection round (possibly fused multi-source)",
+  "type": "object",
+  "required": ["ir_version", "target"],
+  "properties": {
+    "ir_version": { "type": "string", "const": "1" },
+    "target": { "type": "string" },
+    "from_stimuli": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "from_areas": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "external_drive": {
+      "type": "array",
+      "items": { "type": "number" },
+      "description": "Per-neuron additive bias on target (explicit areas)"
+    },
+    "plasticity": { "type": "boolean", "default": true },
+    "column_renorm": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Connectome src names to column-renormalize after step"
+    },
+    "supervised_slots": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["src", "slot_index", "k"],
+        "properties": {
+          "src": { "type": "string" },
+          "slot_index": { "type": "integer", "minimum": 0 },
+          "k": { "type": "integer", "minimum": 1 },
+          "beta": { "type": "number" }
+        }
+      },
+      "description": "Post-step Hebbian reinforcement to fixed slots (CLASS readout)"
+    }
+  }
+}

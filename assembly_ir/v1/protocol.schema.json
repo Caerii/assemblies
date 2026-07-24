@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Caerii/assemblies/assembly_ir/v1/protocol.schema.json",
+  "title": "AssemblyParityProtocol",
+  "description": "Literature parity protocol golden (cross-language)",
+  "type": "object",
+  "required": ["ir_version", "protocol", "metrics"],
+  "properties": {
+    "ir_version": {
+      "type": "string",
+      "const": "1"
+    },
+    "protocol": {
+      "type": "string",
+      "description": "Registry protocol_id"
+    },
+    "source": { "type": "string" },
+    "recorded": { "type": "string", "format": "date" },
+    "backend": {
+      "type": "string",
+      "description": "Implementing backend (python, julia, rust)"
+    },
+    "parameters": { "type": "object" },
+    "metrics": { "type": "object" },
+    "regimes": { "type": "object" },
+    "thresholds": { "type": "object" },
+    "expected": { "type": "object" },
+    "notes": { "type": ["string", "object"] }
+  },
+  "additionalProperties": true
+}
