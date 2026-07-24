@@ -56,6 +56,10 @@ The research inventory lives in:
 The assembly calculus, language-organ model, and sequence-computation results
 come from papers. Cite those papers directly when making theoretical claims.
 
+The full field bibliography and per-paper implementation status live in
+[literature.md](literature.md) and
+[../research/literature/index.json](../research/literature/index.json).
+
 In particular, do not present this package as the proof of Turing completeness.
 The package implements related sequence, inhibition, FSM, PFA, and simulation
 utilities. The theoretical result belongs to the relevant sequence-computation

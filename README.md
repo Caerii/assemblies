@@ -138,6 +138,8 @@ Start here:
   versus legacy code
 - [docs/project_context.md](docs/project_context.md) for project history and
   motivation
+- [docs/literature.md](docs/literature.md) for the full AC field map and
+  implementation parity status
 - [docs/references.md](docs/references.md) for the papers behind the project
 
 Section guides:
@@ -161,6 +163,7 @@ Notebooks:
 Research entry points:
 
 - [research/README.md](research/README.md)
+- [research/literature/index.json](research/literature/index.json)
 - [research/claims/index.json](research/claims/index.json)
 - [research/core_questions/index.json](research/core_questions/index.json)
 
@@ -177,6 +180,7 @@ uv run pytest neural_assemblies/tests/test_docs_examples_smoke.py -q
 uv run pytest tests/test_legacy_root_shims.py tests/test_legacy_archived_layout.py -q
 
 # Research indexes
+uv run python research/literature/validate_index.py
 uv run python research/experiments/infrastructure/validate_registry.py
 uv run python research/claims/validate_index.py
 uv run python research/core_questions/validate_index.py
@@ -202,7 +206,9 @@ uv run python research/core_questions/validate_index.py
 ## Citation
 
 If you build on this code or the underlying ideas, cite the relevant source
-work rather than citing the package as proof of a theoretical result:
+work rather than citing the package as proof of a theoretical result.
+
+Core citations:
 
 - Papadimitriou et al. (2020), *Brain Computation by Assemblies of Neurons*
 - Dabagia et al. (2024/2025), *Computation with Sequences of Assemblies in a
@@ -210,8 +216,9 @@ work rather than citing the package as proof of a theoretical result:
 - Mitropolsky and Papadimitriou (2023, 2025) on the language organ and
   simulated language acquisition
 
-For the broader reference list, including Hebb, Hopfield, and sparse-coding
-background, see [docs/references.md](docs/references.md).
+For the **complete Assembly Calculus bibliography** (18 papers, 2025–2026
+extensions, implementation status), see [docs/literature.md](docs/literature.md)
+and [docs/references.md](docs/references.md).
 
 ## Contributing
 

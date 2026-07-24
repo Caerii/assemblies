@@ -13,6 +13,7 @@ research artifacts.
 | [supported_surfaces.md](supported_surfaces.md) | What is maintained as package code, what is compatibility code, and what is research-only. |
 | [project_context.md](project_context.md) | Project history, authorship, collaboration context, and research motivation. |
 | [references.md](references.md) | Papers and background literature behind the package and research program. |
+| [literature.md](literature.md) | Full AC field map, implementation parity matrix, and gap priorities. |
 | [packaging.md](packaging.md) | Release workflow for the `neural-assemblies` PyPI package. |
 | [contributing.md](contributing.md) | Contributor setup and expected checks. |
 | [documentation_style.md](documentation_style.md) | Writing standards for docs in this repo. |
@@ -33,6 +34,7 @@ research artifacts.
 The research tree has its own workflow:
 
 - [research/README.md](../research/README.md)
+- [research/literature/index.json](../research/literature/index.json)
 - [research/claims/index.json](../research/claims/index.json)
 - [research/core_questions/index.json](../research/core_questions/index.json)
 
