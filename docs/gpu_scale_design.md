@@ -211,16 +211,48 @@ Targets the production `norm_init=True` substrate. Use case: fast corpus scoring
 candidates. Tests: `test_batched_next_token.py` (agreement, score-corpus parity,
 readonly-prevents-materialization).
 
+## 5c. Batched training — the curriculum win (landed)
+
+`BatchedSeqTrainer` (`assembly_calculus/batched_trainer.py`) turns the batched
+forward pass into a *training* speedup. It processes B sentences' forward passes
+in parallel as `[B, n]` tensors, records the Hebbian bridge each transition would
+form, accumulates them across the batch with one `SRC.T @ TGT` edge-count matmul,
+and applies the update once per batch (`batch_size=1` is online).
+
+Measured (RTX 3080, n=6000, 240-sentence Markov corpus, 2 epochs):
+
+| batch | test acc | train time | weights vs online |
+|---|---|---|---|
+| 1 (online) | 0.356 | 5.49 s | — |
+| 8 | 0.356 | 0.82 s | 0.000% |
+| 32 | 0.356 | 0.20 s | 0.000% |
+| 64 | 0.356 | 0.11 s | **0.000% (bit-identical)** |
+
+**~50× faster training at zero quality loss** — the weights are *bit-identical* to
+online, exactly as the mini-batch equivalence result predicts (stable regime →
+order-independent bridges). Combined with the 91× inference win, an
+assembly-calculus language model can now be **trained and run at GPU scale with no
+change to what it learns**. Tests: `test_batched_trainer.py` (learns above chance,
+mini-batch == online bit-identical, batched predict).
+
 ## 5b. What's productionized vs. what remains
 
-Landed and tested (43 + 12 GPU tests): the Phase-0 engine fixes, dense-drive mode
-(`dense_drive`), and the batched primitives in `_batched.py` (shared and
-independent, projection and training). These are **primitives** — correct,
-measured, and callable. The remaining integration work is to drive a real
-curriculum through `batched_project_independent` (corpus → B sentences/brains →
-batched train), and to feed trained connectomes back into `Brain` for batched
-inference. That plumbing, plus the Phase-4 static-buffer/CUDA-graph pass, is the
-path from "validated primitives" to "default fast training backend."
+Landed and tested (~60 GPU tests): the Phase-0 engine fixes, `dense_drive` and
+`readonly` engine modes, the batched primitives in `_batched.py` (shared and
+independent projection + training), `BatchedLM` (91× corpus scoring), and
+`BatchedSeqTrainer` (~50× training, bit-identical to online). The full
+train→infer loop now runs at GPU scale with no change to what the model learns.
+
+What remains to make this the *default* language path rather than a parallel one:
+- **Sparse connectome at larger n.** `BatchedSeqTrainer` uses a dense `[n,n]` W
+  (clear + fast to n≈1e4 on 10 GB). Beyond that, move the batched `SRC.T @ TGT`
+  accumulation onto a sparse/growing connectome (the block-diagonal machinery
+  already handles per-item sparse; a shared-connectome sparse accumulate is the
+  remaining piece).
+- **Feed trained connectomes back into `Brain`** so a `BatchedSeqTrainer`-trained
+  model is a first-class `Brain`/`EmergentParser` (today they share the
+  fixed-assembly + bridge model, not the full parser's areas).
+- **Phase-4 static-buffer/CUDA-graph pass** to shave residual launch overhead.
 
 **Measured so far (RTX 3080):**
 - Phase 1 dense-drive is behaviorally correct and, among GPU modes, *faster* than
