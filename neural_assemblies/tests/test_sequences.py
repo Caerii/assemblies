@@ -17,6 +17,7 @@ from neural_assemblies.assembly_calculus.sequence import Sequence
 from neural_assemblies.assembly_calculus.ops import (
     project, sequence_memorize, ordered_recall, _snap,
 )
+from neural_assemblies.assembly_calculus.scaffold import ScaffoldNetwork
 
 N = 10000
 K = 100
@@ -244,6 +245,27 @@ class TestOrderedRecall(unittest.TestCase):
             self.assertLess(
                 overlap(recalled[0], recalled[1]), 0.9,
                 "Consecutive recalled assemblies should be different.")
+
+
+class TestScaffoldNetwork(unittest.TestCase):
+    """Brain-native ScaffoldNetwork API."""
+
+    def test_memorize_returns_sequence(self):
+        b = _make_brain()
+        for i in range(4):
+            b.add_stimulus(f"s{i}", K)
+        net = ScaffoldNetwork(b, "MAIN", "AUX", n=N, k=K, beta=BETA)
+        seq = net.memorize(["s0", "s1", "s2", "s3"], rounds_per_step=ROUNDS)
+        self.assertEqual(len(seq), 4)
+        self.assertEqual(seq.area, "MAIN")
+
+    def test_train_snapshots_main_area(self):
+        b = _make_brain()
+        b.add_stimulus("s0", K)
+        net = ScaffoldNetwork(b, "MAIN", "AUX", n=N, k=K, beta=BETA)
+        asm = net.train("s0", rounds_per_step=ROUNDS)
+        self.assertEqual(asm.area, "MAIN")
+        self.assertEqual(len(asm), K)
 
 
 if __name__ == '__main__':

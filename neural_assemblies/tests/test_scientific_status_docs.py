@@ -9,6 +9,10 @@ def test_scientific_status_doc_exists_and_marks_boundaries():
     assert doc.exists(), "docs/scientific_status.md should exist"
 
     text = doc.read_text(encoding="utf-8")
-    assert "Package-Backed Capabilities" in text
-    assert "Heuristic Or Benchmark-Dependent Claims" in text
-    assert "Research-Only Or Aspirational Areas" in text
+    # The doc marks claim-strength boundaries under these section headings
+    # (renamed from the older verbose forms in "docs: tighten public writing
+    # style"): Package Claims (package-backed), Qualified Claims (heuristic /
+    # benchmark-dependent), Research Claims (research-only / aspirational).
+    assert "Package Claims" in text
+    assert "Qualified Claims" in text
+    assert "Research Claims" in text

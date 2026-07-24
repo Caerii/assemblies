@@ -69,6 +69,14 @@ class TestRandomChoiceArea(unittest.TestCase):
         self.assertGreater(counts[0], counts[1],
                            f"Biased coin should favor 0: got {dict(counts)}.")
 
+    def test_compete_mode_binary_output(self):
+        """compete mode matches reference RandomChoiceArea.flip (random k init)."""
+        b = _make_brain()
+        coin = RandomChoiceArea(b, n=N, k=K, beta=BETA)
+        for mode in ("k_split", "compete"):
+            result = coin.flip(bias=0.5, rounds=10, seed=0, mode=mode)
+            self.assertIn(result, [0, 1])
+
 
 class TestPFANetwork(unittest.TestCase):
     """Test PFANetwork with probabilistic transitions."""

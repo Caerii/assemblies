@@ -16,7 +16,13 @@ N = 10000
 K = 100
 P = 0.05
 BETA = 0.1
-ROUNDS = 10
+# 30, not 10: on the norm_init substrate (now the Brain default) a single-
+# assembly attractor needs ~30 formation rounds to self-sustain under pure
+# recurrence -- norm_init removes the degree-hub rich-get-richer that let 10
+# rounds suffice on the un-normalized model (measured: 10 rounds -> 0.09
+# self-sustain, 30 rounds -> 1.00). These tests exercise the LRI *mechanism*
+# on top of a stable baseline, so the baseline must actually be stable.
+ROUNDS = 30
 SEED = 42
 
 
@@ -92,8 +98,15 @@ class TestLRI(unittest.TestCase):
 
         _train_assembly(b, "s", "A")
 
-        # Enable soft LRI
-        b.set_lri("A", refractory_period=2, inhibition_strength=5.0)
+        # Enable soft LRI. The penalty is subtracted from the raw winner-input
+        # vector, but norm_init (now the Brain default) scales those inputs down
+        # to ~k/n, so a strength calibrated for the un-normalized model (5.0)
+        # now dwarfs the drive and fully flips the assembly (overlap -> 0.0). On
+        # the normalized substrate the equivalent "soft" penalty is ~0.14:
+        # measured overlap 0.79-0.85 across seeds, i.e. a partial shift. (The
+        # transition is sharp -- 0.10 -> ~0.95, 0.20 -> ~0.35 -- because
+        # normalized drives are tightly clustered; 0.14 sits centrally.)
+        b.set_lri("A", refractory_period=2, inhibition_strength=0.14)
 
         # First self-project populates history
         b.project({}, {"A": ["A"]})
@@ -103,10 +116,7 @@ class TestLRI(unittest.TestCase):
         b.project({}, {"A": ["A"]})
         asm_after = _snap(b, "A")
 
-        # Should be different but not completely disjoint. In practice the
-        # overlap is high (e.g. ~0.94–0.99 depending on RNG / platform), so
-        # we assert a non-trivial shift without overfitting to a specific
-        # numeric threshold.
+        # Should be different but not completely disjoint (partial shift).
         ovlp = asm_before.overlap(asm_after)
         self.assertLess(ovlp, 1.0,
                         "Soft LRI should shift the assembly (overlap < 1.0).")

@@ -242,3 +242,50 @@ class TestSeparateParity:
             f"{engine}: separation overlap {measured:.3f} >= 0.5")
         assert len(asm_a) == K
         assert len(asm_b) == K
+
+
+# ---------------------------------------------------------------------------
+# CSR expansion after activity reset (pregrown topology preserved)
+# ---------------------------------------------------------------------------
+
+class TestCSRShrinkGuard:
+    def test_context_reset_preserves_csr_extent(self):
+        """CONTEXT w=0 reset must not shrink pregrown CSR below stored rows."""
+        import torch
+
+        b = _make_brain("torch_sparse")
+        b.add_area("CORE", n=3000, k=30)
+        b.add_area("CTX", n=3000, k=30)
+        b.add_stimulus("w", 100)
+        eng = b._engine
+        csr = eng._area_conns["CTX"]["CTX"]
+        pat = ({"w": ["CORE"]}, {"CORE": ["CTX"], "CTX": ["CTX"]})
+
+        for _ in range(15):
+            b.project(*pat)
+            b.project_rounds(
+                "CTX",
+                {"w": ["CORE"]},
+                {"CORE": ["CTX"], "CTX": ["CTX"]},
+                rounds=2,
+            )
+
+        pregrown = csr._nrows
+        assert pregrown > 30
+
+        eng._areas["CTX"].w = 0
+        eng._areas["CTX"].winners = torch.zeros(
+            0, dtype=torch.int32, device=eng._device)
+        b.areas["CTX"].w = 0
+
+        for _ in range(5):
+            b.project(*pat)
+            b.project_rounds(
+                "CTX",
+                {"w": ["CORE"]},
+                {"CORE": ["CTX"], "CTX": ["CTX"]},
+                rounds=2,
+            )
+
+        assert csr._nrows >= pregrown
+        assert eng._areas["CTX"].w > 0

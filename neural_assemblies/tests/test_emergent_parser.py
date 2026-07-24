@@ -17,18 +17,19 @@ References:
     Mitropolsky & Papadimitriou (2025). "Simulated Language Acquisition."
 """
 
+import copy
 import time
 
 import pytest
 
 from neural_assemblies.assembly_calculus.emergent import EmergentParser
-from neural_assemblies.assembly_calculus.emergent.areas import (
+from neural_assemblies.assembly_calculus.emergent.core.areas import (
     ALL_AREAS, CORE_AREAS, CORE_TO_CATEGORY, GROUNDING_TO_CORE,
     NOUN_CORE, VERB_CORE, ADJ_CORE, ADV_CORE,
     PREP_CORE, DET_CORE, PRON_CORE,
     ROLE_AGENT, ROLE_PATIENT, VP,
 )
-from neural_assemblies.assembly_calculus.emergent.grounding import VOCABULARY
+from neural_assemblies.assembly_calculus.emergent.core.grounding import VOCABULARY
 from neural_assemblies.assembly_calculus import overlap, chance_overlap
 
 
@@ -47,14 +48,77 @@ def _timer(request):
     print(f"  [{time.perf_counter() - t0:.3f}s]")
 
 
-@pytest.fixture(scope="module")
-def trained_parser():
-    """Build and train the 40-area parser once for the whole module."""
+@pytest.fixture(scope="session")
+def _backbone_checkpoint():
+    """Train the default parser ONCE per session; other fixtures fork it.
+
+    A full train() costs ~8.4s, while fork_parser() (Brain.clone, numpy array
+    copy) costs ~0.21s -- about 40x cheaper. Several fixtures in this module
+    previously rebuilt the identical default parser from scratch.
+    """
+    from neural_assemblies.assembly_calculus.emergent.evaluation.checkpoint import (
+        ParserCheckpoint,
+    )
+
     parser = EmergentParser(
         n=N, k=K, p=P, beta=BETA, seed=SEED, rounds=ROUNDS,
+        fast_training=True,
     )
     parser.train()
-    return parser
+    return ParserCheckpoint(
+        parser=parser, depth="full", seed=SEED, n=N, k=K,
+        holdout_words=frozenset(),
+    )
+
+
+@pytest.fixture(scope="session")
+def _fork_backbone(_backbone_checkpoint):
+    """Factory returning an independent copy of the trained backbone."""
+    from neural_assemblies.assembly_calculus.emergent.evaluation.checkpoint import (
+        fork_parser,
+    )
+
+    def _make():
+        # wobbly=True deep-copies the core/role/vp assembly snapshots. The
+        # other mutable lexicon dicts are isolated by fork_parser itself, so
+        # this fixture no longer patches them by hand.
+        return fork_parser(_backbone_checkpoint, wobbly=True)
+
+    return _make
+
+
+@pytest.fixture(scope="module")
+def trained_parser(_fork_backbone):
+    """Default trained parser, forked from the session backbone."""
+    return _fork_backbone()
+
+
+@pytest.fixture(scope="session")
+def _curriculum_run():
+    """Run the FIRST_WORDS..SENTENCES curriculum ONCE per session.
+
+    Seven tests previously rebuilt this curriculum from scratch (four of them
+    the full run, at ~35-49s each), which accounted for ~193s of the module's
+    ~259s. Every assertion is a read-only inspection of the returned
+    StageResult list, so one shared run serves them all.
+    """
+    from neural_assemblies.assembly_calculus.emergent.parser import CurriculumTrainer
+
+    parser = EmergentParser(
+        n=N, k=K, p=P, beta=BETA, seed=SEED, rounds=ROUNDS,
+        fast_training=True,
+    )
+    trainer = CurriculumTrainer(parser)
+    results = trainer.train_curriculum(max_stage="SENTENCES")
+    return trainer, results
+
+
+def _stage(results, name):
+    """The StageResult for `name`, or None."""
+    for r in results:
+        if r.stage_name == name:
+            return r
+    return None
 
 
 # ======================================================================
@@ -75,11 +139,17 @@ DETS = [w for w, ctx in VOCABULARY.items() if ctx.dominant_modality == "none"]
 # ======================================================================
 
 class TestBrainSetup:
-    """Verify the emergent brain is correctly configured (45 areas)."""
+    """Verify the emergent brain is correctly configured (48 areas)."""
 
-    def test_44_areas_created(self, trained_parser):
-        """All expected areas (45) should be registered in the brain."""
-        assert len(trained_parser.brain.areas) == 45
+    def test_all_areas_created(self, trained_parser):
+        """Every area in ALL_AREAS should be registered, and only those.
+
+        48 areas: ROLE_SCENE holds the whole-scene assembly, and
+        ROLE_ACTION / SYN_VERB give the verb its thematic slot and syntactic
+        slot, without which verb position is unrepresentable (Mitropolsky &
+        Papadimitriou 2025, sec. 2.3).
+        """
+        assert len(trained_parser.brain.areas) == len(ALL_AREAS) == 48
 
     def test_all_area_names_registered(self, trained_parser):
         """Every area in ALL_AREAS should exist in the brain."""
@@ -605,7 +675,7 @@ class TestGeneralization:
 
     def test_grounding_alone_without_phon(self):
         """Word with no phon stimulus classifies via grounding features."""
-        from neural_assemblies.assembly_calculus.emergent.grounding import GroundingContext
+        from neural_assemblies.assembly_calculus.emergent.core.grounding import GroundingContext
 
         parser = EmergentParser(
             n=N, k=K, p=P, beta=BETA, seed=SEED, rounds=ROUNDS,
@@ -638,14 +708,14 @@ class TestScaledVocabulary:
     def scaled_parser(self):
         """Build and train parser with scaled vocabulary."""
         from neural_assemblies.assembly_calculus.emergent.vocabulary_builder import build_vocabulary
-        from neural_assemblies.assembly_calculus.emergent.training_data import generate_training_sentences
+        from neural_assemblies.assembly_calculus.emergent.curriculum.data import generate_training_sentences
 
         vocab = build_vocabulary()
         sentences = generate_training_sentences(vocab, n_sentences=100, seed=SEED)
 
         parser = EmergentParser(
             n=N, k=K, p=P, beta=BETA, seed=SEED, rounds=ROUNDS,
-            vocabulary=vocab,
+            vocabulary=vocab, fast_training=True,
         )
         parser.train(sentences=sentences)
         return parser, vocab
@@ -820,10 +890,16 @@ class TestIncrementalProcessing:
         assert result["categories"]["dog"] == "NOUN"
         assert result["categories"]["runs"] == "VERB"
 
-    def test_incremental_context_assembly_grows(self, trained_parser):
-        """Context assembly should change as words are processed."""
+    def test_incremental_context_assembly_grows(self, _fork_backbone):
+        """Context assembly should change as words are processed.
+
+        Uses its own fork: parse_incremental drives plasticity into CONTEXT,
+        so running it repeatedly on a parser shared with sibling tests
+        saturates the area and makes this assertion order-dependent.
+        """
+        parser = _fork_backbone()
         words = ["the", "dog", "chases", "the", "cat"]
-        result = trained_parser.parse_incremental(words)
+        result = parser.parse_incremental(words)
         # Context assemblies at start vs end should differ
         asm0 = result["steps"][0]["context_assembly"]  # after "the"
         asm4 = result["steps"][4]["context_assembly"]  # after "cat"
@@ -915,7 +991,7 @@ class TestUnsupervisedLearning:
     @pytest.fixture(scope="class")
     def unsupervised_parser(self):
         """Build and train a parser with unsupervised role learning."""
-        from neural_assemblies.assembly_calculus.emergent.training_data import (
+        from neural_assemblies.assembly_calculus.emergent.curriculum.data import (
             create_training_sentences,
         )
         parser = EmergentParser(
@@ -957,7 +1033,7 @@ class TestUnsupervisedLearning:
 
     def test_unsupervised_no_role_annotations_used(self):
         """Verify the training path doesn't use role labels."""
-        from neural_assemblies.assembly_calculus.emergent.training_data import (
+        from neural_assemblies.assembly_calculus.emergent.curriculum.data import (
             create_training_sentences, GroundedSentence,
         )
         sentences = create_training_sentences()
@@ -1013,7 +1089,7 @@ class TestNextTokenPrediction:
     @pytest.fixture(scope="class")
     def prediction_parser(self):
         """Build a parser trained for next-token prediction."""
-        from neural_assemblies.assembly_calculus.emergent.training_data import (
+        from neural_assemblies.assembly_calculus.emergent.curriculum.data import (
             create_training_sentences,
         )
         parser = EmergentParser(
@@ -1130,12 +1206,14 @@ class TestDistributionalLearning:
     """Feature 6: Learn categories from distributional statistics, not grounding."""
 
     @pytest.fixture(scope="class")
-    def dist_parser(self):
-        """Build a parser trained with distributional + grounded data."""
-        parser = EmergentParser(
-            n=N, k=K, p=P, beta=BETA, seed=SEED, rounds=ROUNDS,
-        )
-        parser.train()
+    def dist_parser(self, _fork_backbone):
+        """Parser forked from the session backbone, then given raw sentences.
+
+        Forking rather than retraining: this fixture mutates the parser with
+        extra distributional input, so it needs an independent copy, not a
+        shared one.
+        """
+        parser = _fork_backbone()
 
         # Also train distributional on raw sentence lists (no grounding)
         raw_sentences = [
@@ -1409,12 +1487,9 @@ class TestWordOrderTypology:
     """Feature 8: Learn word order (SVO/SOV/VSO) from data."""
 
     @pytest.fixture(scope="class")
-    def svo_parser(self):
-        """Parser trained on English SVO sentences."""
-        parser = EmergentParser(
-            n=N, k=K, p=P, beta=BETA, seed=SEED, rounds=ROUNDS,
-        )
-        parser.train()
+    def svo_parser(self, _fork_backbone):
+        """Parser forked from the session backbone, then given SVO input."""
+        parser = _fork_backbone()
         # Also train distributional + typological
         svo_sents = [
             ["the", "dog", "runs"],
@@ -1534,6 +1609,103 @@ class TestWordOrderTypology:
             {"agent": "dog", "action": "runs"})
         assert len(output) >= 2
 
+    def test_object_initial_orders_are_representable(self, svo_parser):
+        """The output space of infer_word_order covers all six basic orders.
+
+        The six-label set is BUILT IN (``core.word_order.WORD_ORDERS``); what
+        is learned is which label a corpus is assigned. This test checks the
+        label space, not emergence.
+        """
+        from neural_assemblies.assembly_calculus.emergent.core.word_order import (
+            WORD_ORDERS,
+        )
+
+        assert set(WORD_ORDERS) == {"SVO", "SOV", "VSO", "OSV", "OVS", "VOS"}
+
+        for order in WORD_ORDERS:
+            svo_parser.dist_stats.role_order_counts.clear()
+            svo_parser.dist_stats.role_order_counts[order] = 10
+            inferred, conf = svo_parser.infer_word_order()
+            assert inferred == order
+            assert conf == 1.0
+            assert svo_parser.word_order_evidence == "roles"
+        svo_parser.dist_stats.role_order_counts.clear()
+
+    def test_role_order_evidence_from_annotations(self, svo_parser):
+        """Role annotations, not spelling, decide the S/O ordering."""
+        svo_parser.dist_stats.role_order_counts.clear()
+        got = svo_parser.record_role_order_evidence(
+            ["the", "bird", "chases", "the", "dog"],
+            [None, "patient", "action", None, "agent"],
+        )
+        assert got == "OVS"
+        # An intransitive carries no information about object position.
+        assert svo_parser.record_role_order_evidence(
+            ["the", "dog", "runs"], [None, "agent", "action"],
+        ) is None
+        svo_parser.dist_stats.role_order_counts.clear()
+
+    def test_object_initial_flips_default_role_ranking(self, svo_parser):
+        """Constituent order, not voice, sets the unmarked role ranking."""
+        from neural_assemblies.assembly_calculus.emergent.core.areas import (
+            ROLE_AGENT as A, ROLE_PATIENT as P_,
+        )
+
+        original = svo_parser.word_order_type
+        try:
+            for order in ("SVO", "SOV", "VSO"):
+                svo_parser.word_order_type = order
+                assert svo_parser.constituent_role_order() == [A, P_]
+            for order in ("OSV", "OVS", "VOS"):
+                svo_parser.word_order_type = order
+                assert svo_parser.constituent_role_order() == [P_, A]
+        finally:
+            svo_parser.word_order_type = original
+
+    def test_generation_produces_all_six_orders(self, svo_parser):
+        """generate() emits the slot sequence of the inferred typology."""
+        from neural_assemblies.assembly_calculus.emergent.core.word_order import (
+            WORD_ORDERS, order_slots,
+        )
+
+        original = svo_parser.word_order_type
+        try:
+            for order in WORD_ORDERS:
+                svo_parser.word_order_type = order
+                out = svo_parser.generate(
+                    {"agent": "dog", "action": "chases", "patient": "cat"})
+                seen = []
+                for w in out:
+                    if w in VERBS:
+                        seen.append("V")
+                    elif w == "dog":
+                        seen.append("S")
+                    elif w == "cat":
+                        seen.append("O")
+                if len(seen) == 3:
+                    assert tuple(seen) == order_slots(order), (
+                        f"{order}: got {out}")
+        finally:
+            svo_parser.word_order_type = original
+
+    def test_position_profiles_are_not_an_unconditional_svo_prior(
+        self, svo_parser,
+    ):
+        """Position profiles report their provenance and track the typology."""
+        profiles, source = svo_parser.position_profiles()
+        assert source in ("learned", "typology", "svo-prior")
+        assert "NOUN" in profiles and "VERB" in profiles
+
+        # With no corpus evidence, a verb-final typology must not be handed
+        # the English verb-medial range.
+        from neural_assemblies.assembly_calculus.emergent.core.word_order import (
+            position_profiles_for_order,
+        )
+
+        svo_lo, svo_hi = position_profiles_for_order("SVO")["VERB"]
+        sov_lo, sov_hi = position_profiles_for_order("SOV")["VERB"]
+        assert sov_lo > svo_lo and sov_hi > svo_hi
+
     def test_pre_rules_noun_count_tracking(self, svo_parser):
         """Incremental parse should track noun count for routing."""
         words = ["the", "cat", "chases", "the", "bird"]
@@ -1547,17 +1719,13 @@ class TestTenseMoodPolarity:
     """Feature 9: TENSE, MOOD, POLARITY, CONJ_CORE activation tests."""
 
     @pytest.fixture(scope="class")
-    def trained_parser(self):
-        """Parser trained with full pipeline including tense/mood/polarity."""
-        parser = EmergentParser(
-            n=N, k=K, p=P, beta=BETA, seed=SEED, rounds=ROUNDS,
-        )
-        parser.train()
-        return parser
+    def trained_parser(self, _fork_backbone):
+        """Full-pipeline parser, forked from the session backbone."""
+        return _fork_backbone()
 
     def test_tense_area_trained(self, trained_parser):
         """TENSE area should have non-empty winners after training."""
-        from neural_assemblies.assembly_calculus.emergent.areas import TENSE
+        from neural_assemblies.assembly_calculus.emergent.core.areas import TENSE
         # After train_tense, the TENSE area should have been activated
         # (it's used during training via project calls)
         area = trained_parser.brain.areas[TENSE]
@@ -1608,7 +1776,7 @@ class TestTenseMoodPolarity:
 
     def test_conjunction_classification(self):
         """'and' should be in CONJ_CORE lexicon after conjunction training."""
-        from neural_assemblies.assembly_calculus.emergent.areas import CONJ_CORE
+        from neural_assemblies.assembly_calculus.emergent.core.areas import CONJ_CORE
         parser = EmergentParser(
             n=N, k=K, p=P, beta=BETA, seed=SEED, rounds=ROUNDS,
         )
@@ -1689,67 +1857,44 @@ class TestCurriculumLearning:
         assert result.sentences_trained > 0, "Stage 1 should train sentences"
         assert "lexicon" in result.phases_run
 
-    def test_stage2_expands_vocab(self):
+    def test_stage2_expands_vocab(self, _curriculum_run):
         """Vocab should grow from stage 1 to stage 2."""
-        from neural_assemblies.assembly_calculus.emergent.parser import CurriculumTrainer
-        parser = EmergentParser(
-            n=N, k=K, p=P, beta=BETA, seed=SEED, rounds=ROUNDS,
-        )
-        trainer = CurriculumTrainer(parser)
-        r1 = trainer.train_stage("FIRST_WORDS")
-        r2 = trainer.train_stage("VOCABULARY_SPURT")
+        _, results = _curriculum_run
+        r1 = _stage(results, "FIRST_WORDS")
+        r2 = _stage(results, "VOCABULARY_SPURT")
+        assert r1 is not None and r2 is not None
         assert r2.vocab_size >= r1.vocab_size, (
             f"Stage 2 vocab ({r2.vocab_size}) should be >= "
             f"stage 1 ({r1.vocab_size})")
 
-    def test_stage3_learns_roles(self):
+    def test_stage3_learns_roles(self, _curriculum_run):
         """Stage 3 (TWO_WORD) should include role training."""
-        from neural_assemblies.assembly_calculus.emergent.parser import CurriculumTrainer
-        parser = EmergentParser(
-            n=N, k=K, p=P, beta=BETA, seed=SEED, rounds=ROUNDS,
-        )
-        trainer = CurriculumTrainer(parser)
-        trainer.train_stage("FIRST_WORDS")
-        trainer.train_stage("VOCABULARY_SPURT")
-        r3 = trainer.train_stage("TWO_WORD")
+        _, results = _curriculum_run
+        r3 = _stage(results, "TWO_WORD")
+        assert r3 is not None
         assert "roles" in r3.phases_run, "Stage 3 should train roles"
 
-    def test_stage4_learns_word_order(self):
+    def test_stage4_learns_word_order(self, _curriculum_run):
         """Stage 4 (SENTENCES) should include word order training."""
-        from neural_assemblies.assembly_calculus.emergent.parser import CurriculumTrainer
-        parser = EmergentParser(
-            n=N, k=K, p=P, beta=BETA, seed=SEED, rounds=ROUNDS,
-        )
-        trainer = CurriculumTrainer(parser)
-        results = trainer.train_curriculum(max_stage="SENTENCES")
+        _, results = _curriculum_run
         r4 = results[-1]
         assert r4.stage_name == "SENTENCES"
         assert "word_order" in r4.phases_run, (
             "Stage 4 should train word order")
         assert "tense" in r4.phases_run, "Stage 4 should train tense"
 
-    def test_plasticity_decreases(self):
+    def test_plasticity_decreases(self, _curriculum_run):
         """Beta should decrease across stages."""
-        from neural_assemblies.assembly_calculus.emergent.parser import CurriculumTrainer
-        parser = EmergentParser(
-            n=N, k=K, p=P, beta=BETA, seed=SEED, rounds=ROUNDS,
-        )
-        trainer = CurriculumTrainer(parser)
-        results = trainer.train_curriculum(max_stage="SENTENCES")
+        _, results = _curriculum_run
         betas = [r.beta for r in results]
         # Should be non-increasing
         for i in range(1, len(betas)):
             assert betas[i] <= betas[i - 1], (
                 f"Beta should not increase: {betas}")
 
-    def test_curriculum_end_to_end(self):
+    def test_curriculum_end_to_end(self, _curriculum_run):
         """Stages 1-4 should produce a parser that can classify words."""
-        from neural_assemblies.assembly_calculus.emergent.parser import CurriculumTrainer
-        parser = EmergentParser(
-            n=N, k=K, p=P, beta=BETA, seed=SEED, rounds=ROUNDS,
-        )
-        trainer = CurriculumTrainer(parser)
-        results = trainer.train_curriculum(max_stage="SENTENCES")
+        _, results = _curriculum_run
         # At least one stage should have non-zero accuracy
         any_acc = any(r.classification_accuracy > 0 for r in results)
         assert any_acc, (
@@ -1772,30 +1917,22 @@ class TestCurriculumLearning:
         assert r.vocab_size > 0
         assert isinstance(r.phases_run, list)
 
-    def test_early_stages_skip_tense(self):
+    def test_early_stages_skip_tense(self, _curriculum_run):
         """Tense should only be trained at SENTENCES stage or later."""
-        from neural_assemblies.assembly_calculus.emergent.parser import CurriculumTrainer
-        parser = EmergentParser(
-            n=N, k=K, p=P, beta=BETA, seed=SEED, rounds=ROUNDS,
-        )
-        trainer = CurriculumTrainer(parser)
-        r1 = trainer.train_stage("FIRST_WORDS")
-        r2 = trainer.train_stage("TWO_WORD")
+        _, results = _curriculum_run
+        r1 = _stage(results, "FIRST_WORDS")
+        r2 = _stage(results, "TWO_WORD")
+        assert r1 is not None and r2 is not None
         assert "tense" not in r1.phases_run, (
             "FIRST_WORDS should not train tense")
         assert "tense" not in r2.phases_run, (
             "TWO_WORD should not train tense")
 
-    def test_stage_results_accumulate(self):
+    def test_stage_results_accumulate(self, _curriculum_run):
         """trainer.stage_results should accumulate across stages."""
-        from neural_assemblies.assembly_calculus.emergent.parser import CurriculumTrainer
-        parser = EmergentParser(
-            n=N, k=K, p=P, beta=BETA, seed=SEED, rounds=ROUNDS,
-        )
-        trainer = CurriculumTrainer(parser)
-        trainer.train_stage("FIRST_WORDS")
-        trainer.train_stage("VOCABULARY_SPURT")
-        assert len(trainer.stage_results) == 2
+        trainer, results = _curriculum_run
+        assert len(trainer.stage_results) == len(results)
+        assert len(trainer.stage_results) >= 2
 
     def test_complex_grammar_includes_conjunctions(self):
         """COMPLEX_GRAMMAR stage should include conjunction training."""
@@ -1808,14 +1945,11 @@ class TestEvaluationFramework:
     """Feature 11: Evaluation framework tests."""
 
     @pytest.fixture(scope="class")
-    def eval_suite(self):
-        """EvaluationSuite with a trained parser."""
+    def eval_suite(self, _fork_backbone):
+        """EvaluationSuite over a parser forked from the session backbone."""
         from neural_assemblies.assembly_calculus.emergent.parser import EvaluationSuite
-        parser = EmergentParser(
-            n=N, k=K, p=P, beta=BETA, seed=SEED, rounds=ROUNDS,
-        )
-        parser.train()
-        return EvaluationSuite(parser)
+
+        return EvaluationSuite(_fork_backbone())
 
     def test_evaluation_suite_creates(self, eval_suite):
         """EvaluationSuite should instantiate with a parser."""
@@ -1887,17 +2021,12 @@ class TestEvaluationFramework:
         assert len(report) > 0
         assert "Evaluation Report" in report
 
-    def test_evaluation_on_curriculum_parser(self):
+    def test_evaluation_on_curriculum_parser(self, _curriculum_run):
         """EvaluationSuite should work on a curriculum-trained parser."""
-        from neural_assemblies.assembly_calculus.emergent.parser import (
-            CurriculumTrainer, EvaluationSuite,
-        )
-        parser = EmergentParser(
-            n=N, k=K, p=P, beta=BETA, seed=SEED, rounds=ROUNDS,
-        )
-        trainer = CurriculumTrainer(parser)
-        trainer.train_curriculum(max_stage="SENTENCES")
-        suite = EvaluationSuite(parser)
+        from neural_assemblies.assembly_calculus.emergent.parser import EvaluationSuite
+
+        trainer, _ = _curriculum_run
+        suite = EvaluationSuite(trainer.parser)
         result = suite.full_evaluation()
         assert isinstance(result, dict)
 

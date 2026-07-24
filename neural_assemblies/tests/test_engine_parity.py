@@ -57,7 +57,7 @@ class TestEngineParity(unittest.TestCase):
         for _ in range(rounds):
             b1.project({"s": ["A"]}, {})
 
-        engine = create_engine("numpy_sparse", p=P, seed=SEED, w_max=20.0)
+        engine = create_engine("numpy_sparse", p=P, seed=SEED, w_max=20.0, norm_init=True)
         engine.add_area("A", n=N, k=K, beta=BETA)
         engine.add_stimulus("s", size=K)
         engine_w = []
