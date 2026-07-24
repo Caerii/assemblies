@@ -111,3 +111,29 @@ class TestBatchedProjection:
         winners = torch.randint(0, 2000, (4, 40), device="cuda")
         out = batched_project(W, winners, 40, rounds=3)
         assert out.shape == (4, 40)
+
+
+class TestBlockDiagonalIndependent:
+    """Batching INDEPENDENT connectomes (Phase 3): each item has its own weights,
+    stacked block-diagonal so one SpMM projects all B. Must match looping B
+    independent projections."""
+
+    def test_block_diagonal_matches_looped(self):
+        import torch
+        from neural_assemblies.core.torch_engine._batched import (
+            block_diagonal, batched_project_independent,
+        )
+
+        n, p, k, rounds, B = 3000, 0.004, 80, 4, 8
+        mats = [_rand_csr(n, p, seed=200 + b) for b in range(B)]
+        W_block = block_diagonal(mats, n)
+        assert W_block.shape == (B * n, B * n)
+
+        torch.manual_seed(9)
+        winners = torch.randint(0, n, (B, k), device="cuda")
+        batched = batched_project_independent(W_block, winners, B, n, k, rounds)
+
+        for b in range(B):
+            ref = _project_one(mats[b], winners[b], k, rounds)
+            assert set(batched[b].tolist()) == set(ref.tolist()), (
+                f"item {b}: block-diagonal != independent looped")

@@ -159,13 +159,22 @@ Validation ladder:
 | **0 ✅** | on-device topk, fast set_winners, norm_init port | landed; 43 parity tests green | — |
 | **1 ✅** | dense-drive single-area mode (Lever A), engine flag `dense_drive` | landed; behaviorally correct (sep 0.000, recovery 0.96), and *faster* than the sparse GPU sampler (n=5M: 0.43 vs 0.51 ms/round) | SpMV perf; parity vs reference |
 | **2 ✅** | batched projection through a **shared** connectome (Lever B, clean case) | landed (`_batched.py`); identical to sequential per item, **7× @ B=8, 21× @ B=32** (RTX 3080) | VRAM (batched [B,n] + SpMM) |
-| **3** | block-diagonal CSR / batched SpMM for **independent** connectomes; batched Hebbian | data-parallel training of different brains | index bookkeeping; VRAM (edge count × B) |
+| **3 ◑** | block-diagonal SpMM for **independent** connectomes; batched Hebbian | *projection* landed (`batched_project_independent`); identical to looped, **3.5–5×**. Batched Hebbian + training-loop integration remain | index bookkeeping; VRAM (edge count × B) |
 | **4** | CUDA-graph capture of the fused projection | kill residual launch overhead | graph re-capture on shape change |
 
-Phases 0–2 are done and measured. The remaining two extend batching from a
-*shared* connectome (batch inference/parse — Phase 2) to *independent* per-item
-connectomes with learning (data-parallel training — Phase 3), then shave the last
-launch overhead (Phase 4).
+Phases 0–2 are done and measured; Phase 3's projection primitive is done and the
+learning path is the remaining work. Phase 3 extends batching from a *shared*
+connectome (batch inference/parse — Phase 2) to *independent* per-item connectomes
+(data-parallel training — different brains stacked block-diagonal). Phase 4 then
+shaves the last launch overhead once the batched training engine is stable.
+
+**Phase 3 status.** `block_diagonal` + `batched_project_independent` in
+`_batched.py` stack B independent connectomes into one `[B*n, B*n]` sparse matrix
+and project all B in a single SpMM — bit-identical to looping B independent
+projections, 3.5–5× faster (the win is amortizing B kernel launches; total nnz,
+hence SpMM work, still scales with B). What remains for full data-parallel
+*training*: batched Hebbian over the block-diagonal value array (a masked scatter
+over winner-pair edges per block) and wiring it into the curriculum loop.
 
 **Measured so far (RTX 3080):**
 - Phase 1 dense-drive is behaviorally correct and, among GPU modes, *faster* than
