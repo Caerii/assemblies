@@ -154,17 +154,29 @@ Validation ladder:
 
 ## 5. Phased roadmap
 
-| phase | scope | expected result | risk |
+| phase | scope | result | risk |
 |---|---|---|---|
-| **0 (done)** | on-device topk, fast set_winners, norm_init port | correctness + anti-patterns removed | — |
-| **1** | dense-drive single-area mode (Lever A), behind an engine flag | GPU beats CPU for n ≳ 1e5–1e6; retires sampling + pool-exhaustion | SpMV perf; parity vs reference |
-| **2** | padded batching over the dense drive (Lever B, simple form) | throughput ∝ B for curriculum training | VRAM (edge count) |
-| **3** | block-diagonal CSR / batched SpMM; batched Hebbian | single-kernel batch projection | index bookkeeping complexity |
+| **0 ✅** | on-device topk, fast set_winners, norm_init port | landed; 43 parity tests green | — |
+| **1 ✅** | dense-drive single-area mode (Lever A), engine flag `dense_drive` | landed; behaviorally correct (sep 0.000, recovery 0.96), and *faster* than the sparse GPU sampler (n=5M: 0.43 vs 0.51 ms/round) | SpMV perf; parity vs reference |
+| **2 ✅** | batched projection through a **shared** connectome (Lever B, clean case) | landed (`_batched.py`); identical to sequential per item, **7× @ B=8, 21× @ B=32** (RTX 3080) | VRAM (batched [B,n] + SpMM) |
+| **3** | block-diagonal CSR / batched SpMM for **independent** connectomes; batched Hebbian | data-parallel training of different brains | index bookkeeping; VRAM (edge count × B) |
 | **4** | CUDA-graph capture of the fused projection | kill residual launch overhead | graph re-capture on shape change |
 
-Each phase is independently shippable and measurable. Phase 1 is the pivotal one:
-it's where the GPU first *wins*, and it simplifies norm_init and removes the
-`neuron_id_pool` fragility as a side effect.
+Phases 0–2 are done and measured. The remaining two extend batching from a
+*shared* connectome (batch inference/parse — Phase 2) to *independent* per-item
+connectomes with learning (data-parallel training — Phase 3), then shave the last
+launch overhead (Phase 4).
+
+**Measured so far (RTX 3080):**
+- Phase 1 dense-drive is behaviorally correct and, among GPU modes, *faster* than
+  the sparse truncated-normal sampler — the dense draw + single topk beat the
+  order-statistic machinery. It still loses to CPU `numpy_sparse` for a *single*
+  area (more total work), exactly as predicted; its role is to enable batching.
+- Phase 2 batched projection through a shared connectome is **numerically
+  identical** to sequential and **7–21× faster** (efficiency peaks near B=32 before
+  the batched SpMM saturates memory bandwidth). This is the first real wall-clock
+  GPU win, and it validates the design's central claim: the throughput comes from
+  the batch dimension, not from optimizing a single sparse projection.
 
 ---
 
