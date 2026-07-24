@@ -91,6 +91,15 @@ Use quick builds while writing and full builds before review or submission.
 - keep figure/table sources reusable in `_shared_assets/`
 - prefer one sentence per line for cleaner diffs
 
+## Literature
+
+Before citing a paper in a draft, check the canonical field inventory:
+
+- [../../docs/literature.md](../../docs/literature.md) — human-readable parity map
+- [../../docs/references.md](../../docs/references.md) — bibliography with links
+- [../literature/index.json](../literature/index.json) — machine-readable status per paper
+- [_shared_assets/bibliography/references.bib](_shared_assets/bibliography/references.bib) — BibTeX
+
 ## Current Status
 
 The directory is infrastructure-first for now. Keep it light until more claims

@@ -54,7 +54,7 @@ from research.experiments.base import (
     paired_ttest,
 )
 from neural_assemblies.core.brain import Brain
-from neural_assemblies.assembly_calculus.emergent.grounding import VOCABULARY, GroundingContext
+from neural_assemblies.assembly_calculus.emergent.core.grounding import VOCABULARY, GroundingContext
 
 
 # ── Ground truth categories by dominant modality ──────────────────────

@@ -47,8 +47,8 @@ from typing import Dict, List, Any, Optional, Tuple
 
 from research.experiments.base import ExperimentBase, ExperimentResult, summarize, ttest_vs_null
 from neural_assemblies.assembly_calculus.emergent import EmergentParser
-from neural_assemblies.assembly_calculus.emergent.grounding import GroundingContext
-from neural_assemblies.assembly_calculus.emergent.training_data import GroundedSentence
+from neural_assemblies.assembly_calculus.emergent.core.grounding import GroundingContext
+from neural_assemblies.assembly_calculus.emergent.curriculum.data import GroundedSentence
 
 
 @dataclass
@@ -75,7 +75,7 @@ CONJUNCTION_CONTEXTS = {
 
 def _build_extended_vocabulary() -> Dict[str, GroundingContext]:
     """Build vocabulary that includes conjunction words alongside defaults."""
-    from neural_assemblies.assembly_calculus.emergent.grounding import VOCABULARY
+    from neural_assemblies.assembly_calculus.emergent.core.grounding import VOCABULARY
     vocab = dict(VOCABULARY)
     for word, ctx in CONJUNCTION_CONTEXTS.items():
         if word not in vocab:

@@ -1,0 +1,35 @@
+# Example Julia export for cross_lang.pnas_scaling
+# Requires AssemblyCalculus.jl on LOAD_PATH.
+#
+# Usage (from Julia):
+#   include("export_metrics.jl.example")
+#   export_pnas_scaling_json("pnas_scaling_julia.json")
+
+using JSON3
+
+function export_pnas_scaling_json(path::String)
+    # TODO: wire to AssemblyCalculus.jl capacity experiment when vendored.
+    # Placeholder documents expected metric keys for CI contract.
+    doc = Dict(
+        "ir_version" => "1",
+        "protocol" => "cross_lang.pnas_scaling",
+        "backend" => "julia",
+        "regimes" => Dict(
+            "ci_parity" => Dict(
+                "n" => 5000,
+                "k" => 80,
+                "p" => 0.05,
+                "beta" => 0.1,
+                "seed" => 42,
+                "chance_overlap" => 0.016,
+                "project_persistence" => 1.0,
+                "separate_overlap" => 0.025,
+            ),
+        ),
+        "metrics" => Dict(),  # fill after Julia run
+        "notes" => "Replace with live AssemblyCalculus.jl metrics",
+    )
+    open(path, "w") do io
+        JSON3.pretty(io, doc)
+    end
+end

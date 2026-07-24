@@ -1,0 +1,29 @@
+{
+  "protocol": "nemo2025_fsm_mod3_numpy",
+  "source": "reference/nemo_numpy FSMNetwork (mdabagia/nemo brain.py)",
+  "demo_url": "http://dabagia.org/nemo/sequences/",
+  "recorded": "2026-06-23",
+  "parameters": {
+    "seed": 42,
+    "n_symbol_neurons": 1000,
+    "n_state_neurons": 500,
+    "n_arc_neurons": 5000,
+    "cap_size": 70,
+    "density": 0.2,
+    "plasticity": 0.1,
+    "presentations": 15,
+    "positive_sequence": [3, 0, 4, 7, 1, 10],
+    "negative_sequence": [6, 7, 3, 10]
+  },
+  "metrics": {
+    "positive_accepted": true,
+    "negative_rejected": true,
+    "positive_final_state": "accept",
+    "negative_final_state": "reject"
+  },
+  "expected": {
+    "positive_accepted": true,
+    "negative_rejected": true
+  },
+  "notes": "Cross-backend parity with Brain NemoArcFSM protocol nemo2025_fsm_mod3."
+}

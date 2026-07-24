@@ -1,0 +1,24 @@
+{
+  "protocol": "coin2024_softmax",
+  "source": "neural_assemblies SoftmaxContextCoin (dabagia.org context→outcome + noise)",
+  "demo_url": "http://dabagia.org/nemo/coinflipping/",
+  "recorded": "2026-06-23",
+  "parameters": {
+    "seed": 42,
+    "noise_std": 0.02,
+    "n_flips_fair": 24,
+    "n_flips_biased": 20,
+    "fair_seed_base": 100,
+    "biased_seed_base": 200,
+    "bias_train": 0.85
+  },
+  "metrics": {
+    "fair_n0": 16,
+    "fair_n1": 8,
+    "biased_majority_zero": true
+  },
+  "expected": {
+    "fair_both_outcomes": true,
+    "biased_majority_zero": true
+  }
+}

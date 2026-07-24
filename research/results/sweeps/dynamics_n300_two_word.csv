@@ -1,0 +1,13 @@
+seed,depth,holdout_pattern,wobbly_bootstrap,train_s,calibration_s,n400_cohens_d,p600_cohens_d,p600_ready,holdout_acc,holdout_small_cat,wobble_rate,wobbly_episodes,cache_hit
+42,TWO_WORD,balanced,False,3.355,0.979,0.0,6.7618,True,0.6667,DET,0.5,2,False
+42,TWO_WORD,balanced,True,3.51,1.252,0.0,6.7618,True,0.6667,NOUN,0.5,2,False
+42,TWO_WORD,subject_only,False,3.285,0.963,0.0,10.3797,True,1.0,ADJ,0.5,2,False
+42,TWO_WORD,subject_only,True,4.201,1.065,0.0,10.3797,True,0.6667,NOUN,0.5,2,False
+43,TWO_WORD,balanced,False,3.271,0.908,0.0,3.9414,True,0.6667,DET,0.5,2,False
+43,TWO_WORD,balanced,True,3.391,0.93,0.0,3.9414,True,1.0,ADJ,0.5,2,False
+43,TWO_WORD,subject_only,False,3.312,0.954,0.0,2.1389,True,1.0,ADJ,0.75,2,False
+43,TWO_WORD,subject_only,True,3.351,0.861,0.0,2.1389,True,1.0,ADJ,0.75,2,False
+44,TWO_WORD,balanced,False,3.755,1.162,0.0,5.8512,True,0.6667,DET,0.5,2,False
+44,TWO_WORD,balanced,True,3.65,0.907,0.0,5.8512,True,1.0,ADJ,0.5,2,False
+44,TWO_WORD,subject_only,False,3.418,1.006,0.0,2.6733,True,1.0,ADJ,0.75,2,False
+44,TWO_WORD,subject_only,True,3.317,1.02,0.0,2.6733,True,0.6667,NOUN,0.75,2,False

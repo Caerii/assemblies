@@ -1,0 +1,35 @@
+{
+  "protocol": "coin2024_demo",
+  "source": "neural_assemblies CoinFlipModel (dabagia.org describes softmax; impl uses k-split)",
+  "demo_url": "http://dabagia.org/nemo/coinflipping/",
+  "recorded": "2026-06-23",
+  "parameters": {
+    "seed": 42,
+    "n_flips_fair": 24,
+    "n_flips_biased": 20,
+    "fair_seed_base": 100,
+    "biased_seed_base": 200,
+    "input_noise_std": 0.02,
+    "markov_traces": "5\u00d7(q0,flip,q0)+5\u00d7(q0,flip,q1)"
+  },
+  "metrics": {
+    "fair_p1": 0.7917,
+    "fair_n0": 5,
+    "fair_n1": 19,
+    "biased_majority_zero": true,
+    "biased_n0": 20,
+    "biased_n1": 0,
+    "markov_learned_p_q0": 0.5,
+    "markov_learned_p_q1": 0.5
+  },
+  "tolerance": {
+    "fair_p1": 0.08
+  },
+  "expected": {
+    "fair_both_outcomes": true,
+    "biased_majority_zero": true,
+    "markov_learned_p_q0": 0.5,
+    "markov_learned_p_q1": 0.5
+  },
+  "notes": "Live demo has no exported numeric API; golden from package simulation at paper-described Markov protocol."
+}

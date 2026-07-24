@@ -11,8 +11,8 @@ from typing import Dict, List, Tuple
 
 import numpy as np
 
-from neural_assemblies.assembly_calculus.emergent.grounding import GroundingContext
-from neural_assemblies.assembly_calculus.emergent.training_data import GroundedSentence
+from neural_assemblies.assembly_calculus.emergent.core.grounding import GroundingContext
+from neural_assemblies.assembly_calculus.emergent.curriculum.data import GroundedSentence
 
 
 def build_small_vocab() -> Dict[str, GroundingContext]:

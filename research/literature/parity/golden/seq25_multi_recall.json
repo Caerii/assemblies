@@ -1,0 +1,27 @@
+{
+  "protocol": "seq25_multi_recall",
+  "source": "sequence_memorize + ordered_recall LRI (SEQ25-E06 smoke)",
+  "recorded": "2026-06-23",
+  "parameters": {
+    "seed": 42,
+    "n": 1000,
+    "k": 50,
+    "beta": 0.1,
+    "p": 0.05,
+    "rounds_per_step": 5,
+    "repetitions": 3,
+    "refractory_period": 3,
+    "inhibition_strength": 100.0,
+    "max_steps": 10
+  },
+  "metrics": {
+    "first_item_overlap": 0.84,
+    "second_item_overlap": 0.0,
+    "recalled_length": 1
+  },
+  "thresholds": {
+    "first_item_overlap_min": 0.3,
+    "recalled_length_min": 1
+  },
+  "notes": "Second+ item recall at paper length tracked in SEQ25-E07 sweep; LRI terminates after first novel step in CI params."
+}

@@ -1,0 +1,25 @@
+protocol: coin2024_demo
+paper_id: dabagia2024coinflipping
+description: "Coin-flipping demo parity — fair coin + Markov frequency learning"
+
+parameters:
+  seed: 42
+  n_flips_fair: 1000
+  input_noise_std: 0.02
+  markov_traces: "5× (q0,flip,q0) + 5× (q0,flip,q1)"
+
+entrypoints:
+  fair: neural_assemblies.programs.markov_coin.CoinFlipModel.coin.flip
+  markov: neural_assemblies.programs.markov_coin.train_markov_from_sequences
+
+golden: research/literature/parity/golden/coin2024_demo.json
+config_ref: parity/configs/coin2024.yaml
+
+implementation_gap:
+  paper: "softmax plasticity rule (Fig 3–4)"
+  repo: "proportional k-split in RandomChoiceArea.flip"
+
+demo_url: http://dabagia.org/nemo/coinflipping/
+reference_repo: .reference/mdabagia-nemo
+reference_notebook: nemo-demo.ipynb
+reference_doc: docs/coinflipping.markdown

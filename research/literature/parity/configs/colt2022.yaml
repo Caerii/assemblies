@@ -1,0 +1,56 @@
+paper_id: dabagia2022classify
+bibkey: dabagia2022classify
+title: "Assemblies Learn to Classify Well-Separated Distributions (COLT 2022)"
+
+learn_assembly:
+  api_default:
+    max_epochs: 12
+    project_rounds: 6
+    stability_window: 2
+    convergence: 0.90
+  protocols_pinned:
+    max_epochs: 12
+    project_rounds: 6
+    convergence: 0.85
+
+learn_separable_classes:
+  max_epochs: 10
+  project_rounds: 8
+  min_pairwise_overlap: 0.5
+
+classify:
+  fuzzy_readout_threshold: 0.3
+
+toy_parity:
+  n: 5000
+  k: 80
+  p: 0.05
+  beta: 0.1
+  seed: 42
+
+legacy_mnist_hierarchical:
+  module: legacy/root_modules/image_learner.py
+  class: CIFAR10Brain
+  p: 0.01
+  areas:
+    LOW_LEVEL: {n: 1024, k: 100, beta: 0.05}
+    MID_LEVEL: {n: 512, k: 50, beta: 0.05}
+    HIGH_LEVEL: {n: 256, k: 25, beta: 0.05}
+    CLASS_AREA: {n: 100, k: 10, beta: 0.05, explicit: true}
+  MNIST_INDICES: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+  eval_max_samples: 500
+
+golden_artifacts:
+  mnist: research/literature/parity/golden/colt2022_mnist.json
+  separable_toy: null  # inline test only
+
+reference_repo:
+  url: https://github.com/mdabagia/learning-with-assemblies
+  local_path: .reference/mdabagia-learning-with-assemblies
+  env_var: REF_COLT2022_PATH
+  notebooks:
+    mnist: MNIST.ipynb
+    stimulus_classes: Stimulus-Classes.ipynb
+    halfspace: Halfspace.ipynb
+  modules: [brain.py, nemo.py]
+  legacy_also: legacy/root_modules/image_learner.py

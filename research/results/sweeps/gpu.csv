@@ -1,0 +1,3 @@
+seed,depth,holdout_pattern,wobbly_bootstrap,train_s,calibration_s,fork_s,n400_cohens_d,p600_cohens_d,p600_ready,holdout_acc,holdout_small_cat,wobble_rate,wobbly_episodes,cache_hit
+42,TWO_WORD,balanced,False,902.57,1351.763,10.865,0.0,0.0,True,0.6667,DET,1.0,2,True
+42,TWO_WORD,balanced,True,902.57,1351.763,5.439,0.0,0.0,True,0.6667,NOUN,1.0,2,True

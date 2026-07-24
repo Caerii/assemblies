@@ -1,0 +1,5 @@
+seed,depth,holdout_pattern,wobbly_bootstrap,train_s,calibration_s,n400_cohens_d,p600_cohens_d,p600_ready,holdout_acc,holdout_small_cat,wobble_rate,wobbly_episodes,cache_hit
+42,SENTENCES,balanced,False,9.193,1.739,0.0,3.8067,True,1.0,ADJ,0.75,2,False
+42,SENTENCES,balanced,True,9.171,1.601,0.0,3.8067,True,0.6667,NOUN,0.75,2,False
+43,SENTENCES,balanced,False,7.615,1.407,0.0,3.2452,True,1.0,ADJ,0.5,2,False
+43,SENTENCES,balanced,True,7.079,1.408,0.0,3.2452,True,1.0,ADJ,0.5,2,False

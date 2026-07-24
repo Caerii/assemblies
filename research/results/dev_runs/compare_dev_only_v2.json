@@ -1,0 +1,119 @@
+{
+  "n": 3000,
+  "k": 30,
+  "seeds": [
+    42,
+    43,
+    44
+  ],
+  "engine": "numpy_sparse",
+  "wall_seconds": 237.284,
+  "rows": [
+    {
+      "path": "developmental",
+      "seed": 42,
+      "train_seconds": 72.881,
+      "novel_easy": 0.375,
+      "novel_strain": 0.3333333333333333,
+      "systematicity": 0.3333333333333333,
+      "strain_gap": 0.041666666666666685,
+      "holdout_bootstrap": 1.0,
+      "lexicon_holdout": 1.0,
+      "roles": 0.375,
+      "bridge_oov_top5": 0.0,
+      "bridge_seen_top5": 0.0,
+      "dialogue": 0.0,
+      "composite": 0.2916666666666667,
+      "science_score": 0.4,
+      "probe_counts": {
+        "easy": 3,
+        "strain": 6,
+        "systematicity": 3,
+        "bridge_oov": 7,
+        "bridge_seen": 20
+      },
+      "blocked_at_stage": null,
+      "remedial_sentences": 263.0
+    },
+    {
+      "path": "developmental",
+      "seed": 43,
+      "train_seconds": 73.417,
+      "novel_easy": 1.0,
+      "novel_strain": 1.0,
+      "systematicity": 1.0,
+      "strain_gap": 0.0,
+      "holdout_bootstrap": 1.0,
+      "lexicon_holdout": 1.0,
+      "roles": 1.0,
+      "bridge_oov_top5": 0.0,
+      "bridge_seen_top5": 0.05,
+      "dialogue": 0.2727272727272727,
+      "composite": 0.5621212121212121,
+      "science_score": 0.8,
+      "probe_counts": {
+        "easy": 3,
+        "strain": 6,
+        "systematicity": 3,
+        "bridge_oov": 7,
+        "bridge_seen": 20
+      },
+      "blocked_at_stage": null,
+      "remedial_sentences": 269.0
+    },
+    {
+      "path": "developmental",
+      "seed": 44,
+      "train_seconds": 76.335,
+      "novel_easy": 1.0,
+      "novel_strain": 1.0,
+      "systematicity": 1.0,
+      "strain_gap": 0.0,
+      "holdout_bootstrap": 1.0,
+      "lexicon_holdout": 1.0,
+      "roles": 1.0,
+      "bridge_oov_top5": 0.0,
+      "bridge_seen_top5": 0.15,
+      "dialogue": 0.36363636363636365,
+      "composite": 0.5856060606060606,
+      "science_score": 0.8,
+      "probe_counts": {
+        "easy": 3,
+        "strain": 6,
+        "systematicity": 3,
+        "bridge_oov": 7,
+        "bridge_seen": 20
+      },
+      "blocked_at_stage": null,
+      "remedial_sentences": 282.0
+    }
+  ],
+  "summary": [
+    {
+      "path": "developmental",
+      "n_seeds": 3,
+      "science_score_mean": 0.6666666666666667,
+      "science_score_std": 0.23094010767585033,
+      "novel_easy_mean": 0.7916666666666666,
+      "novel_easy_std": 0.3608439182435161,
+      "novel_strain_mean": 0.7777777777777778,
+      "novel_strain_std": 0.3849001794597505,
+      "systematicity_mean": 0.7777777777777778,
+      "systematicity_std": 0.3849001794597505,
+      "strain_gap_mean": 0.013888888888888895,
+      "strain_gap_std": 0.024056261216234418,
+      "holdout_bootstrap_mean": 1.0,
+      "holdout_bootstrap_std": 0.0,
+      "bridge_oov_top5_mean": 0.0,
+      "bridge_oov_top5_std": 0.0,
+      "bridge_seen_top5_mean": 0.06666666666666667,
+      "bridge_seen_top5_std": 0.07637626158259733,
+      "dialogue_mean": 0.21212121212121213,
+      "dialogue_std": 0.18924236358783025,
+      "composite_mean": 0.4797979797979798,
+      "composite_std": 0.16334909783183135,
+      "train_seconds_mean": 74.211,
+      "train_seconds_std": 1.8588587896879056
+    }
+  ]
+}

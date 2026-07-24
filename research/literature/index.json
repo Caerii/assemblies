@@ -1,0 +1,424 @@
+{
+  "version": 1,
+  "updated": "2026-06-23",
+  "description": "Canonical Assembly Calculus literature inventory with implementation parity status for this repository.",
+  "status_legend": {
+    "implemented": "Maintained package code + tests cover the paper's core mechanism",
+    "partial": "Some mechanisms exist; not full paper protocol or not in maintained package",
+    "legacy": "Exists only under legacy/ or research/ without package tests",
+    "research": "Active experiments only; not a package guarantee",
+    "not_started": "No meaningful implementation yet"
+  },
+  "reference_implementations": [
+    {
+      "id": "ref_dmitropolsky_assemblies",
+      "name": "dmitropolsky/assemblies",
+      "url": "https://github.com/dmitropolsky/assemblies",
+      "local_path": ".reference/dmitropolsky-assemblies",
+      "role": "canonical_python",
+      "notes": "Parser, learner, turing_sim, word_order_int, MATLAB, C++"
+    },
+    {
+      "id": "ref_mdabagia_nemo",
+      "name": "mdabagia/nemo",
+      "url": "https://github.com/mdabagia/nemo",
+      "local_path": ".reference/mdabagia-nemo",
+      "role": "nemo_demos",
+      "notes": "Coin-flipping, FSM/Markov NEMO scaffolds; dabagia.org site source"
+    },
+    {
+      "id": "ref_mdabagia_colt2022",
+      "name": "mdabagia/learning-with-assemblies",
+      "url": "https://github.com/mdabagia/learning-with-assemblies",
+      "local_path": ".reference/mdabagia-learning-with-assemblies",
+      "role": "colt2022_official",
+      "notes": "MNIST.ipynb, Stimulus-Classes, Halfspace — COLT 2022 paper code"
+    },
+    {
+      "id": "ref_mdabagia_santosh_hebbian",
+      "name": "mdabagia/SantoshHebbian",
+      "url": "https://github.com/mdabagia/SantoshHebbian",
+      "local_path": ".reference/mdabagia-SantoshHebbian",
+      "role": "convergence_research",
+      "notes": "Assembly convergence heuristics; ITCS scaling experiments"
+    },
+    {
+      "id": "ref_assemblycalculus_jl",
+      "name": "AssemblyCalculus.jl",
+      "url": "https://github.com/djpasseyjr/AssemblyCalculus.jl",
+      "role": "fast_julia",
+      "notes": "Speed-focused reimplementation; assembly capacity experiments"
+    },
+    {
+      "id": "ref_this_repo",
+      "name": "Caerii/assemblies (this repo)",
+      "url": "https://github.com/Caerii/assemblies",
+      "role": "extended_platform",
+      "notes": "neural_assemblies package, GPU, EmergentParser, research program"
+    }
+  ],
+  "entries": [
+    {
+      "id": "papadimitriou2019random",
+      "tier": "foundations",
+      "year": 2019,
+      "title": "Random Projection in the Brain and Computation with Assemblies of Neurons",
+      "authors": ["Papadimitriou, C. H.", "Vempala, S. S."],
+      "venue": "ITCS 2019",
+      "bibkey": "papadimitriou2019random",
+      "urls": {
+        "doi": "https://doi.org/10.4230/LIPIcs.ITCS.2019.57",
+        "pdf": "https://faculty.cc.gatech.edu/~vempala/papers/assemblies.pdf"
+      },
+      "mechanisms": ["assembly_projection_convergence", "associate", "merge", "append"],
+      "implementation_status": "partial",
+      "package_modules": ["neural_assemblies/assembly_calculus/ops.py", "neural_assemblies/compute/"],
+      "gaps": ["No dedicated parity tests vs ITCS convergence theorems", "append operation not named in package API"]
+    },
+    {
+      "id": "papadimitriou2019ccneuro",
+      "tier": "foundations",
+      "year": 2019,
+      "title": "A Calculus for Brain Computation",
+      "authors": ["Papadimitriou, C. H."],
+      "venue": "CCNeuro proceedings",
+      "bibkey": "papadimitriou2019ccneuro",
+      "urls": {
+        "pdf": "https://ccneuro.org/2019/proceedings/0000998.pdf"
+      },
+      "mechanisms": ["RP&C_primitive", "project", "associate", "merge"],
+      "implementation_status": "partial",
+      "package_modules": ["neural_assemblies/assembly_calculus/"],
+      "gaps": ["Conceptual precursor; cite ITCS 2019 for proofs"]
+    },
+    {
+      "id": "papadimitriou2020brain",
+      "tier": "foundations",
+      "year": 2020,
+      "title": "Brain Computation by Assemblies of Neurons",
+      "authors": ["Papadimitriou, C. H.", "Vempala, S. S.", "Mitropolsky, D.", "Collins, M.", "Maass, W."],
+      "venue": "PNAS",
+      "bibkey": "papadimitriou2020brain",
+      "urls": {
+        "doi": "https://doi.org/10.1073/pnas.2001893117"
+      },
+      "mechanisms": ["project", "reciprocal_project", "associate", "merge", "pattern_complete", "separate"],
+      "implementation_status": "implemented",
+      "package_modules": [
+        "neural_assemblies/assembly_calculus/ops.py",
+        "neural_assemblies/tests/test_assembly_calculus.py"
+      ],
+      "gaps": []
+    },
+    {
+      "id": "dabagia2022classify",
+      "tier": "foundations",
+      "year": 2022,
+      "title": "Assemblies of Neurons Learn to Classify Well-Separated Distributions",
+      "authors": ["Dabagia, M.", "Vempala, S. S.", "Papadimitriou, C. H."],
+      "venue": "COLT 2022",
+      "bibkey": "dabagia2022classify",
+      "urls": {
+        "arxiv": "https://arxiv.org/abs/2110.03171",
+        "pmlr": "https://proceedings.mlr.press/v178/dabagia22a.html"
+      },
+      "mechanisms": ["online_classification", "assembly_per_class", "MNIST_demo"],
+      "implementation_status": "partial",
+      "package_modules": [
+        "neural_assemblies/assembly_calculus/ops.py",
+        "neural_assemblies/programs/learn.py"
+      ],
+      "gaps": ["No maintained MNIST/COLT end-to-end protocol"],
+      "reference_repo": "ref_mdabagia_colt2022",
+      "reference_notebook": "MNIST.ipynb"
+    },
+    {
+      "id": "dabagia2025sequences",
+      "tier": "foundations",
+      "year": 2025,
+      "title": "Computation with Sequences of Assemblies in a Model of the Brain",
+      "authors": ["Dabagia, M.", "Papadimitriou, C. H.", "Vempala, S. S."],
+      "venue": "Neural Computation / ALT 2024 / arXiv:2306.03812",
+      "bibkey": "dabagia2025sequences",
+      "urls": {
+        "arxiv": "https://arxiv.org/abs/2306.03812",
+        "alt": "https://proceedings.mlr.press/v237/dabagia24a.html"
+      },
+      "mechanisms": ["sequence_memorize", "ordered_recall", "LRI", "FSM_learning", "Turing_completeness"],
+      "implementation_status": "partial",
+      "package_modules": [
+        "neural_assemblies/assembly_calculus/ops.py",
+        "neural_assemblies/assembly_calculus/fsm.py",
+        "neural_assemblies/assembly_calculus/pfa.py",
+        "neural_assemblies/programs/fsm_learn.py",
+        "neural_assemblies/programs/tm_demo.py",
+        "neural_assemblies/programs/markov_coin.py",
+        "neural_assemblies/tests/test_literature_parity.py"
+      ],
+      "gaps": [
+        "Full paper-scale TM construction not pinned",
+        "Multi-step ordered recall length not pinned at paper scale"
+      ]
+    },
+    {
+      "id": "mitropolsky2021parser",
+      "tier": "nemo_language",
+      "year": 2021,
+      "title": "A Biologically Plausible Parser",
+      "authors": ["Mitropolsky, D.", "Collins, M. J.", "Papadimitriou, C. H."],
+      "venue": "TACL",
+      "bibkey": "mitropolsky2021parser",
+      "urls": {
+        "doi": "https://doi.org/10.1162/tacl_a_00432",
+        "arxiv": "https://arxiv.org/abs/2108.02189",
+        "acl": "https://aclanthology.org/2021.tacl-1.81/"
+      },
+      "mechanisms": ["fiber_gated_parsing", "dependency_parse", "readout", "russian_parser"],
+      "implementation_status": "partial",
+      "package_modules": [
+        "neural_assemblies/language/parser.py",
+        "neural_assemblies/programs/rule_parser.py",
+        "neural_assemblies/core/brain.py",
+        "neural_assemblies/core/numpy_engine/_sparse.py",
+        "neural_assemblies/core/torch_engine/_engine.py",
+        "neural_assemblies/tests/test_cross_engine_projection.py",
+        "neural_assemblies/tests/test_tacl_parser_suite.py"
+      ],
+      "gaps": [
+        "Expanded TACL sentence suite; center-embedding in test_tacl_parser_suite.py",
+        "Russian free-word-order suite in test_tacl_parser_suite.py",
+        "Word readout via area_lexeme_cache during fiber readout"
+      ]
+    },
+    {
+      "id": "mitropolsky2022center",
+      "tier": "nemo_language",
+      "year": 2022,
+      "title": "Center-Embedding and Constituency in the Brain and a New Characterization of Context-Free Languages",
+      "authors": ["Mitropolsky, D.", "Ejaz, A.", "Shi, M.", "Yannakakis, M.", "Papadimitriou, C. H."],
+      "venue": "NALOMA III / arXiv:2206.13217",
+      "bibkey": "mitropolsky2022center",
+      "urls": {
+        "arxiv": "https://arxiv.org/abs/2206.13217",
+        "acl": "https://aclanthology.org/2022.naloma-1.4/"
+      },
+      "mechanisms": ["center_embedding", "constituency", "working_memory", "dependent_clauses"],
+      "implementation_status": "partial",
+      "package_modules": [
+        "neural_assemblies/language/__init__.py",
+        "neural_assemblies/tests/test_tacl_parser_suite.py",
+        "neural_assemblies/tests/test_literature_parity.py"
+      ],
+      "gaps": [
+        "Paper-scale depth-2 center embedding (research/experiments only)",
+        "Outer-clause SUBJ can be overwritten by later object nouns"
+      ]
+    },
+    {
+      "id": "damore2022planning",
+      "tier": "nemo_language",
+      "year": 2022,
+      "title": "Planning with Biological Neurons and Synapses",
+      "authors": ["d'Amore, F.", "Mitropolsky, D.", "Crescenzi, P.", "Natale, E.", "Papadimitriou, C. H."],
+      "venue": "AAAI 2022",
+      "bibkey": "damore2022planning",
+      "urls": {
+        "doi": "https://doi.org/10.1609/aaai.v36i1.19875",
+        "arxiv": "https://arxiv.org/abs/2112.08186"
+      },
+      "mechanisms": ["blocks_world", "AC_program", "planning_heuristic"],
+      "implementation_status": "partial",
+      "package_modules": [
+        "neural_assemblies/programs/planning.py",
+        "neural_assemblies/tests/test_literature_parity.py"
+      ],
+      "gaps": [
+        "Full AAAI paper-scale AC operator program",
+        "Neural plan execution tracks discrete STRIPS state via run_plan_from"
+      ]
+    },
+    {
+      "id": "mitropolsky2023architecture",
+      "tier": "nemo_language",
+      "year": 2023,
+      "title": "The Architecture of a Biologically Plausible Language Organ",
+      "authors": ["Mitropolsky, D.", "Papadimitriou, C. H."],
+      "venue": "arXiv:2306.15364",
+      "bibkey": "mitropolsky2023architecture",
+      "urls": {
+        "arxiv": "https://arxiv.org/abs/2306.15364"
+      },
+      "mechanisms": ["NEMO_architecture", "LRI", "differential_lex", "role_areas", "fibers"],
+      "implementation_status": "partial",
+      "package_modules": [
+        "neural_assemblies/assembly_calculus/parser.py",
+        "neural_assemblies/nemo/",
+        "research/nemo/"
+      ],
+      "gaps": ["NemoParser is toy-scale; full organ architecture split across nemo/ and research/"]
+    },
+    {
+      "id": "dabagia2024coinflipping",
+      "tier": "nemo_language",
+      "year": 2024,
+      "title": "Coin-Flipping In The Brain: Statistical Learning with Neuronal Assemblies",
+      "authors": ["Dabagia, M.", "Mitropolsky, D.", "Papadimitriou, C. H.", "Vempala, S. S."],
+      "venue": "arXiv:2406.07715",
+      "bibkey": "dabagia2024coinflipping",
+      "urls": {
+        "arxiv": "https://arxiv.org/abs/2406.07715",
+        "demo": "http://dabagia.org/nemo/coinflipping/"
+      },
+      "mechanisms": ["conditional_coin_flip", "Markov_chain", "PFANetwork", "ambient_noise"],
+      "implementation_status": "partial",
+      "package_modules": [
+        "neural_assemblies/assembly_calculus/pfa.py",
+        "neural_assemblies/programs/markov_coin.py",
+        "neural_assemblies/tests/test_pfa.py",
+        "neural_assemblies/tests/test_literature_parity.py"
+      ],
+      "gaps": [
+        "Package flip uses k-split; reference mdabagia/nemo uses softmax+noise (see .reference/mdabagia-nemo/brain.py)",
+        "Paper-scale Markov validation with ambient-noise flip statistics at demo scale"
+      ],
+      "reference_repo": "ref_mdabagia_nemo",
+      "reference_doc": "docs/coinflipping.markdown"
+    },
+    {
+      "id": "mitropolsky2025simulated",
+      "tier": "nemo_language",
+      "year": 2025,
+      "title": "Simulated Language Acquisition in a Biologically Realistic Model of the Brain",
+      "authors": ["Mitropolsky, D.", "Papadimitriou, C. H."],
+      "venue": "arXiv:2507.11788",
+      "bibkey": "mitropolsky2025simulated",
+      "urls": {
+        "arxiv": "https://arxiv.org/abs/2507.11788",
+        "doi": "https://doi.org/10.48550/arXiv.2507.11788"
+      },
+      "mechanisms": [
+        "grounded_learning",
+        "differential_lex",
+        "role_binding",
+        "word_order",
+        "curriculum",
+        "unsupervised_roles"
+      ],
+      "implementation_status": "partial",
+      "package_modules": [
+        "neural_assemblies/assembly_calculus/emergent/",
+        "neural_assemblies/nemo/language/",
+        "research/experiments/applications/"
+      ],
+      "gaps": [
+        "Chat tuning / multi-turn curriculum not at paper scale",
+        "Continuous grounding encoders not package-stable",
+        "GPU nemo path lacks CPU fallback"
+      ]
+    },
+    {
+      "id": "onasch2025dendritic",
+      "tier": "extensions",
+      "year": 2025,
+      "title": "Assembly-based Computations through Contextual Dendritic Gating of Plasticity",
+      "authors": ["Onasch, S.", "Miehl, C.", "Miękus, M. M.", "Gjorgjieva, J."],
+      "venue": "bioRxiv",
+      "bibkey": "onasch2025dendritic",
+      "urls": {
+        "doi": "https://doi.org/10.1101/2025.07.22.666089",
+        "biorxiv": "https://www.biorxiv.org/content/10.1101/2025.07.22.666089v1"
+      },
+      "mechanisms": ["dendritic_compartments", "context_gated_plasticity", "catastrophic_forgetting_mitigation"],
+      "implementation_status": "not_started",
+      "package_modules": [],
+      "gaps": ["Dendrite-level plasticity gating not in compute layer"]
+    },
+    {
+      "id": "hoff2026epwta",
+      "tier": "extensions",
+      "year": 2026,
+      "title": "Formation of Artificial Neural Assemblies by Biologically Plausible Inhibition Mechanisms",
+      "authors": ["Hoff, L.", "Soroka, G.", "Guimarães, M.", "Villavicencio, A.", "Idiart, M."],
+      "venue": "arXiv:2603.12416",
+      "bibkey": "hoff2026epwta",
+      "urls": {
+        "arxiv": "https://arxiv.org/abs/2603.12416",
+        "doi": "https://doi.org/10.48550/arXiv.2603.12416"
+      },
+      "mechanisms": ["E_percent_WTA", "variable_assembly_size", "E_I_ratio_inhibition", "gamma_cycle_inspiration"],
+      "implementation_status": "partial",
+      "package_modules": [
+        "neural_assemblies/compute/winner_policies.py",
+        "neural_assemblies/compute/winner_selection.py",
+        "neural_assemblies/core/brain.py",
+        "neural_assemblies/core/torch_engine/_engine.py",
+        "neural_assemblies/tests/test_epwta_gpu.py",
+        "neural_assemblies/tests/test_literature_parity.py"
+      ],
+      "gaps": [
+        "Paper E/I ratio dynamics not fully reproduced",
+        "GPU cross-engine parity tests when CUDA available"
+      ]
+    },
+    {
+      "id": "ting2026speech",
+      "tier": "extensions",
+      "year": 2026,
+      "title": "Beyond Deep Learning: Speech Segmentation and Phone Classification with Neural Assemblies",
+      "authors": ["Ting, T. V.", "Sethu, V.", "Dang, A."],
+      "venue": "arXiv:2603.16923",
+      "bibkey": "ting2026speech",
+      "urls": {
+        "arxiv": "https://arxiv.org/abs/2603.16923",
+        "doi": "https://doi.org/10.48550/arXiv.2603.16923"
+      },
+      "mechanisms": [
+        "continuous_speech_encoding",
+        "mel_binarisation",
+        "population_MFCC",
+        "per_class_recurrent_areas",
+        "boundary_detection"
+      ],
+      "implementation_status": "not_started",
+      "package_modules": [],
+      "gaps": [
+        "No continuous-to-assembly encoder in maintained package",
+        "No speech boundary or phone-classification module"
+      ]
+    },
+    {
+      "id": "kopadi2026causal",
+      "tier": "extensions",
+      "year": 2026,
+      "title": "Causal Learning with Neural Assemblies",
+      "authors": ["Kopadi, E.", "Kalles, D."],
+      "venue": "arXiv:2604.26919",
+      "bibkey": "kopadi2026causal",
+      "urls": {
+        "arxiv": "https://arxiv.org/abs/2604.26919"
+      },
+      "mechanisms": ["DIRECT", "directional_binding", "synaptic_asymmetry", "do_calculus_validation"],
+      "implementation_status": "partial",
+      "package_modules": [
+        "neural_assemblies/programs/direct.py",
+        "neural_assemblies/tests/test_literature_parity.py"
+      ],
+      "gaps": [
+        "Full Pearl do-calculus battery beyond do(effect) intervention",
+        "Synaptic asymmetry training not at paper fidelity"
+      ]
+    }
+  ],
+  "implementation_roadmap_priority": [
+    "papadimitriou2020brain",
+    "dabagia2025sequences",
+    "mitropolsky2021parser",
+    "dabagia2024coinflipping",
+    "mitropolsky2025simulated",
+    "hoff2026epwta",
+    "damore2022planning",
+    "onasch2025dendritic",
+    "ting2026speech",
+    "kopadi2026causal"
+  ]
+}

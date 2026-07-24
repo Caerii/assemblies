@@ -1,0 +1,30 @@
+{
+  "protocol": "hoff2026_size_dist",
+  "source": "Hoff et al. 2026 Table 1 (arXiv:2603.12416) — extracted from PDF",
+  "recorded": "2026-06-23",
+  "paper_parameters": {
+    "n": 1000,
+    "p_s": 0.5,
+    "p_i": 0.2,
+    "omega_inh": -0.2,
+    "A_min": 6,
+    "beta_values": [0.1, 0.05, 0.01, 0.005, 0.001]
+  },
+  "table1_epwta_with_feedforward_inhibition": {
+    "beta_0.1": {"T_median_iqr": [4, 3, 5], "size_median_iqr": [23, 15, 31], "success_pct": 81.6},
+    "beta_0.05": {"T_median_iqr": [4, 4, 5], "size_median_iqr": [22, 15, 29], "success_pct": 79.2},
+    "beta_0.01": {"T_median_iqr": [10, 8, 11], "size_median_iqr": [24, 16, 31], "success_pct": 89.8},
+    "beta_0.005": {"T_median_iqr": [16, 12, 20], "size_median_iqr": [23, 16, 33], "success_pct": 92.4},
+    "beta_0.001": {"T_median_iqr": [64, 44, 83], "size_median_iqr": [26, 18, 34], "success_pct": 92.6}
+  },
+  "table1_without_feedforward_inhibition": {
+    "beta_0.001": {"size_median_iqr": [52, 35, 79], "success_pct": 99.4}
+  },
+  "repo_implementation_note": "Package EPercentPolicy is discrete projection-step analogue; feedforward inhibition (p_i, omega_inh) not implemented.",
+  "repo_smoke_targets": {
+    "fraction_of_max": 0.35,
+    "e_fraction": 0.1,
+    "min_winners": 1
+  },
+  "tolerance": "qualitative until continuous-time engine lands"
+}

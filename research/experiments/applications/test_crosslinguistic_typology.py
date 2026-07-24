@@ -57,8 +57,8 @@ from research.experiments.base import (
     paired_ttest,
 )
 from neural_assemblies.assembly_calculus.emergent import EmergentParser
-from neural_assemblies.assembly_calculus.emergent.grounding import GroundingContext
-from neural_assemblies.assembly_calculus.emergent.training_data import GroundedSentence
+from neural_assemblies.assembly_calculus.emergent.core.grounding import GroundingContext
+from neural_assemblies.assembly_calculus.emergent.curriculum.data import GroundedSentence
 
 
 # ======================================================================

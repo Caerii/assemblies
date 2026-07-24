@@ -1,0 +1,40 @@
+protocol: nemo2025_curriculum
+paper_id: mitropolsky2025simulated
+description: "NEMO developmental curriculum — fast training path (EMERGENT_FAST_TRAINING=1)"
+
+parameters:
+  n: 5000
+  k: 80
+  p: 0.05
+  beta: 0.1
+  seed: 42
+  rounds: 10
+
+env:
+  EMERGENT_FAST_TRAINING: "1"
+  EMERGENT_DEV_CURRICULUM: unset
+
+stages:
+  - BABBLE
+  - FIRST_WORDS
+  - VOCABULARY_SPURT
+  - TWO_WORD
+  - SENTENCES
+
+entrypoint: neural_assemblies.assembly_calculus.emergent.curriculum.CurriculumTrainer.train_stage
+evaluator: neural_assemblies.assembly_calculus.emergent.evaluation.EvaluationSuite
+
+golden: research/literature/parity/golden/nemo2025_curriculum.json
+config_ref: parity/configs/nemo2025.yaml
+
+thresholds:
+  sentences_classification_min: 0.80
+  role_probe_accuracy_min: 1.0
+  word_order_correct: true
+
+parity_note: "Full VOCABULARY POS via parser.train() hits 80%+; curriculum path pins stage metrics + roles"
+
+paper_figures:
+  - "Fig 2: NEMO architecture (PHON, VISUAL, MOTOR, LEX1/LEX2)"
+  - "Fig 3: Word learning scaling vs lexicon size and beta"
+  - "Fig 4: Syntax extension architecture"

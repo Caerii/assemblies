@@ -1,0 +1,25 @@
+{
+  "protocol": "colt2022_mnist_notebook",
+  "source": "learning-with-assemblies/MNIST.ipynb (faithful: bias + renorm)",
+  "recorded": "2026-06-23",
+  "parameters": {
+    "seed": 42,
+    "n_in": 784,
+    "n_neurons": 2000,
+    "cap_size": 200,
+    "sparsity": 0.1,
+    "beta": 1.0,
+    "n_rounds": 5,
+    "n_examples": 50
+  },
+  "metrics": {
+    "mean_accuracy": 0.81,
+    "per_class_accuracy": [0.98, 0.88, 0.74, 0.94, 0.84, 0.56, 0.92, 0.8, 0.7, 0.74],
+    "data_source": "mnist_csv"
+  },
+  "thresholds": {
+    "mean_accuracy_min": 0.70,
+    "metrics_match_tolerance": 0.05
+  },
+  "notes": "Notebook cells 4-7,16: per-class negative bias b=-1 and W/A column renorm are required. Full paper uses n_examples=5000."
+}

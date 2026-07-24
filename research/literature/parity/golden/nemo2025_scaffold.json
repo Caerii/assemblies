@@ -1,0 +1,50 @@
+{
+  "protocol": "nemo2025_scaffold",
+  "source": "neural_assemblies compare_scaffold_vs_simple (mdabagia/nemo ScaffoldNetwork)",
+  "demo_url": "https://dabagia.org/nemo/sequences/",
+  "recorded": "2026-06-23",
+  "parameters": {
+    "seed": 42,
+    "seq_len": 20,
+    "n": 1000,
+    "k": 30,
+    "p": 0.4,
+    "beta": 0.1,
+    "n_presentations": 10
+  },
+  "metrics": {
+    "simple_last_recall": 0.1,
+    "scaffold_last_recall": 0.0,
+    "scaffold_beats_simple": false,
+    "simple_history": [
+      0.0,
+      0.0,
+      0.0333,
+      0.0333,
+      0.1,
+      0.1,
+      0.1333,
+      0.0667,
+      0.0667,
+      0.1
+    ],
+    "scaffold_history": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ]
+  },
+  "thresholds": {
+    "simple_last_recall_min": 0.0,
+    "scaffold_last_recall_min": 0.0,
+    "metrics_match_tolerance": 0.02
+  },
+  "notes": "Site figure uses seq_len=20; nemo-demo.ipynb uses 25."
+}

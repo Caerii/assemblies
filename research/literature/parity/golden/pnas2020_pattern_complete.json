@@ -1,0 +1,24 @@
+{
+  "protocol": "pnas2020_pattern_complete",
+  "source": "neural_assemblies pattern_complete 50% cue",
+  "recorded": "2026-06-23",
+  "parameters": {
+    "seed": 42,
+    "n": 5000,
+    "k": 80,
+    "p": 0.05,
+    "beta": 0.1,
+    "rounds": 10,
+    "cue_fraction": 0.5
+  },
+  "metrics": {
+    "pattern_complete_50pct_overlap": 1.0
+  },
+  "expected": {
+    "pattern_complete_50pct_overlap_min": 0.6
+  },
+  "thresholds": {
+    "pattern_complete_50pct_overlap_min": 0.6
+  },
+  "tolerance": 0.05
+}

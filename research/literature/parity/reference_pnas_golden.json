@@ -1,0 +1,34 @@
+{
+  "protocol": "PNAS 2020 \u2014 extended ops parity",
+  "source": "neural_assemblies package (seed=42)",
+  "recorded": "2026-07-23",
+  "parameters": {
+    "seed": 42,
+    "n": 5000,
+    "k": 80,
+    "p": 0.05,
+    "beta": 0.1,
+    "rounds": 20,
+    "engine": "numpy_sparse"
+  },
+  "metrics": {
+    "project_persistence": 1.0,
+    "separate_overlap": 0.0125,
+    "chance_overlap": 0.016,
+    "associate_cue_overlap": 0.9875,
+    "associate_above_chance_factor": 61.71875,
+    "merge_cue_overlap": 1.0,
+    "merge_above_chance_factor": 62.5,
+    "merge_merged_vs_cue_s1": 1.0,
+    "reciprocal_restore_overlap": 1.0,
+    "pattern_complete_50pct_overlap": 1.0
+  },
+  "tolerance": 0.05,
+  "thresholds": {
+    "associate_above_chance_factor_min": 3.0,
+    "merge_above_chance_factor_min": 2.0,
+    "reciprocal_restore_overlap_min": 0.6,
+    "pattern_complete_50pct_overlap_min": 0.6
+  },
+  "notes": "Extended metrics use test_assembly_calculus cue protocols. Re-baselined under norm_init=True default (Brain) at 30 formation rounds; 10 rounds under-reinforces associate."
+}

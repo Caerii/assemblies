@@ -1,0 +1,47 @@
+Developmental acquisition report
+  target stage: SENTENCES
+  stages run: BABBLE -> FIRST_WORDS -> VOCABULARY_SPURT -> TWO_WORD -> SENTENCES
+  skipped early: False
+  babble forms: 24
+  fuzzy surfaces: 15
+
+--- BABBLE ---
+  vocab=24 acc=0.0% phases=['babble']
+  gate: PASS checks={'babble_forms': True}
+  observe: registered 24 pre-lexical babble forms
+  observe: no lexicon commitment — phon exposure only
+
+--- FIRST_WORDS ---
+  vocab=50 acc=skipped (sweep) phases=['lexicon']
+  gate: PASS checks={'vocab_size': True}
+  observe: first grounded lexicon assemblies forming
+  observe: 15 fuzzy surface forms linked to canonical lemmas
+  observe: adaptive remediation: 723 sentences, phases ['distributional']
+  next: extend FIRST_WORDS exposure or check grounding stimuli
+  next: run adaptive curriculum: add sentences for misclassified POS
+  remedial: 723 sents phases=['distributional'] targets=['be', 'of', 'to', 'and', 'have', 'do', 'in', 'go', 'say', 'get', 'on', 'it', 'an', 'at', 'for', 'with', 'that', 'yes', 'come', 'see', 'want', 'now', 'up', 'he', 'she', 'no', 'my', 'know', 'make', 'very', 'so', 'from', 'they', 'this', 'what', 'or', 'but', 'your', 'look', 'down', 'out']
+
+--- VOCABULARY_SPURT ---
+  vocab=200 acc=skipped (sweep) phases=['lexicon', 'distributional']
+  gate: PASS checks={'phase_distributional': True}
+  observe: distributional POS bootstrap should be accumulating
+  observe: adaptive remediation: 1391 sentences, phases ['distributional']
+  next: run adaptive curriculum: add sentences for misclassified POS
+  remedial: 1391 sents phases=['distributional'] targets=['and', 'I', 'have', 'you', 'it', 'an', 'for', 'that', 'yes', 'now', 'up', 'he', 'she', 'no', 'my', 'very', 'so', 'from', 'they', 'this', 'one', 'or', 'but', 'thing', 'like', 'just', 'more', 'by', 'if', 'your', 'all', 'down', 'out', 'day', 'tell', 'well', 'too', 'we', 'when', 'first', 'right', 'really', 'how', 'some', 'home', 'name', 'love', 'his', 'her', 'ask', 'always', 'never', 'where', 'over', 'because', 'something', 'hand', 'night', 'away', 'off', 'feel', 'keep', 'little', 'today', 'into', 'these', 'our', 'head', 'happy', 'room', 'open', 'hard', 'far', 'under', 'around', 'those', 'table', 'sun', 'floor', 'cut', 'fast', 'full', 'tree', 'leg']
+
+--- TWO_WORD ---
+  vocab=300 acc=skipped (sweep) phases=['lexicon', 'distributional', 'roles']
+  gate: PASS checks={'phase_distributional': True, 'phase_roles': True}
+  observe: distributional POS bootstrap should be accumulating
+  observe: adaptive remediation: 1601 sentences, phases ['distributional']
+  next: run adaptive curriculum: add sentences for misclassified POS
+  remedial: 1601 sents phases=['distributional'] targets=['and', 'I', 'you', 'it', 'an', 'for', 'that', 'yes', 'now', 'up', 'he', 'she', 'no', 'my', 'very', 'so', 'they', 'this', 'one', 'or', 'but', 'thing', 'like', 'just', 'more', 'if', 'time', 'as', 'your', 'all', 'down', 'day', 'well', 'then', 'too', 'we', 'when', 'really', 'how', 'some', 'life', 'only', 'home', 'name', 'love', 'old', 'his', 'her', 'always', 'never', 'where', 'because', 'something', 'next', 'own', 'still', 'than', 'night', 'away', 'little', 'today', 'these', 'our', 'their', 'word', 'many', 'other', 'before', 'after', 'which', 'anything', 'nothing', 'everything', 'any', 'open', 'light', 'hard', 'far', 'those', 'phone', 'school', 'close', 'pretty', 'much', 'wrong', 'sometimes', 'later', 'someone', 'its', 'floor', 'fast', 'street', 'hate', 'grow', 'early', 'late', 'somebody', 'park', 'star', 'slow', 'closed', 'inside', 'outside', 'wall']
+
+--- SENTENCES ---
+  vocab=500 acc=skipped (sweep) phases=['lexicon', 'distributional', 'roles', 'phrases', 'word_order', 'tense']
+  gate: PASS checks={'phase_roles': True, 'phase_word_order': True, 'novel_composition': True, 'holdout_bootstrap': True}
+  observe: structural generalization (roles, word order) hinges on this stage
+  observe: adaptive remediation: 2381 sentences, phases ['distributional']
+  next: holdout decomposition: check adjective distributional exposure
+  next: run adaptive curriculum: add sentences for misclassified POS
+  remedial: 2381 sents phases=['distributional'] targets=['and', 'I', 'you', 'it', 'an', 'for', 'that', 'yes', 'now', 'up', 'he', 'she', 'no', 'my', 'very', 'so', 'they', 'this', 'one', 'or', 'but', 'like', 'just', 'more', 'if', 'as', 'your', 'all', 'down', 'well', 'then', 'too', 'we', 'when', 'really', 'how', 'some', 'only', 'who', 'home', 'love', 'his', 'her', 'always', 'never', 'where', 'because', 'something', 'last', 'own', 'still', 'than', 'even', 'away', 'little', 'today', 'these', 'our', 'their', 'before', 'after', 'why', 'nothing', 'any', 'real', 'true', 'almost', 'yet', 'open', 'light', 'hard', 'far', 'those', 'close', 'pretty', 'sometimes', 'soon', 'later', 'its', 'hope', 'enough', 'often', 'already', 'less', 'everyone', 'both', 'another', 'every', 'quite', 'most', 'while', 'once', 'dark', 'fast', 'answer', 'hate', 'early', 'late', 'few', 'no one', 'everybody', 'usually', 'finally', 'nearly', 'until', 'each', 'none', 'tired', 'closed', 'inside', 'outside', 'quick', 'kind', 'mean', 'quickly', 'yesterday', 'behind', 'crazy', 'somewhere', 'nobody', 'surprise', 'serious', 'simple', 'easily', 'suddenly', 'anywhere', 'totally', 'so that', 'both...and', 'soft', 'empty', 'excited', 'slowly', 'surprised', 'fresh', 'friendly', 'everywhere', 'hospital', 'church', 'fear', 'worried', 'proud', 'extra', 'stupid', 'careful', 'dangerous', 'carefully', 'yellow', 'hungry', 'wet', 'loud', 'badly']

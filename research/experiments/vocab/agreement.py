@@ -10,8 +10,8 @@ forms of the same word share most features but differ in number marking.
 
 from typing import Dict, List
 
-from neural_assemblies.assembly_calculus.emergent.grounding import GroundingContext
-from neural_assemblies.assembly_calculus.emergent.training_data import GroundedSentence
+from neural_assemblies.assembly_calculus.emergent.core.grounding import GroundingContext
+from neural_assemblies.assembly_calculus.emergent.curriculum.data import GroundedSentence
 
 
 def build_agreement_vocab(

@@ -1,0 +1,23 @@
+{
+  "protocol": "pnas2020_reciprocal",
+  "source": "neural_assemblies reciprocal_project restore overlap",
+  "recorded": "2026-06-23",
+  "parameters": {
+    "seed": 42,
+    "n": 5000,
+    "k": 80,
+    "p": 0.05,
+    "beta": 0.1,
+    "rounds": 10
+  },
+  "metrics": {
+    "reciprocal_restore_overlap": 1.0
+  },
+  "expected": {
+    "reciprocal_restore_overlap_min": 0.6
+  },
+  "thresholds": {
+    "reciprocal_restore_overlap_min": 0.6
+  },
+  "tolerance": 0.05
+}

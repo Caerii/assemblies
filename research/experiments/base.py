@@ -223,8 +223,16 @@ def summarize(values: List[float]) -> Dict[str, float]:
 def ttest_vs_null(values: List[float], null_mean: float) -> Dict[str, Any]:
     """One-sample t-test against null mean. Returns t, p, Cohen's d."""
     arr = np.array(values)
-    if len(arr) < 2 or np.std(arr, ddof=1) == 0:
-        return {"t": float("inf"), "p": 0.0, "d": float("inf"), "significant": True}
+    if len(arr) < 2:
+        return {"t": float("nan"), "p": float("nan"), "d": float("nan"),
+                "significant": False, "degenerate": "too_few_samples"}
+    if np.std(arr, ddof=1) == 0:
+        # Zero variance is saturation, not evidence. Reporting p=0 here made
+        # every ceiling-bound metric look maximally significant.
+        at_null = bool(np.isclose(float(np.mean(arr)), null_mean))
+        return {"t": float("nan"), "p": float("nan"), "d": float("nan"),
+                "significant": False,
+                "degenerate": "at_null" if at_null else "zero_variance"}
     t_stat, p_val = stats.ttest_1samp(arr, null_mean)
     d = (np.mean(arr) - null_mean) / np.std(arr, ddof=1)
     return {"t": float(t_stat), "p": float(p_val), "d": float(d),

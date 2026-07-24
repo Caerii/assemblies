@@ -1,0 +1,17 @@
+{
+  "protocol": "tacl2021_parser_f1",
+  "source": "TACL rule parser role-assignment smoke (cats chase mice)",
+  "recorded": "2026-06-23",
+  "parameters": {
+    "language": "english"
+  },
+  "metrics": {
+    "role_recall": 0.6667,
+    "roles_found": ["ADVERB", "OBJ", "SUBJ"],
+    "expected_roles": ["SUBJ", "VERB", "OBJ"]
+  },
+  "thresholds": {
+    "role_recall_min": 0.5
+  },
+  "notes": "Proxy for TACL21-E05 dependency F1: role coverage on closed-lexicon English sentence."
+}

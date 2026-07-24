@@ -1,0 +1,89 @@
+paper_id: papadimitriou2020brain
+bibkey: papadimitriou2020brain
+title: "Brain Computation by Assemblies of Neurons (PNAS 2020)"
+
+param_regimes:
+  paper_canonical:
+    description: "Sparse regime used in PNAS simulations / legacy separate_sim"
+    n: 10000
+    k: 100
+    p: 0.01
+    beta: 0.05
+    rounds: 10
+    seed: null
+  ci_parity:
+    description: "Pinned in test_literature_parity + reference_pnas_golden.json"
+    n: 5000
+    k: 80
+    p: 0.05
+    beta: 0.1
+    rounds: 10
+    seed: 42
+    engine: numpy_sparse
+  test_assembly_calculus:
+    description: "Package unit tests (test_assembly_calculus.py defaults)"
+    n: 10000
+    k: 100
+    p: 0.05
+    beta: 0.1
+    rounds: 10
+  legacy_large:
+    description: "legacy/root_modules/simulations.py associate/merge/pattern_com"
+    n: 100000
+    k: 317
+    p: 0.01
+    beta: 0.05
+    overlap_iter: 10
+    max_t: 50
+
+operations:
+  project:
+    persistence_threshold: 0.85
+    golden_persistence: 1.0
+    tolerance: 0.02
+  separate:
+    max_overlap_factor_vs_chance: 3.0
+    golden_overlap: 0.025
+    chance_k_over_n: 0.016
+  merge:
+    min_overlap_factor_vs_chance: 2.0
+  associate:
+    rounds: 10
+    phases: 3
+    legacy_overlap_iter: 10
+    legacy_stabilization_loops: 9
+  reciprocal_project:
+    recovery_threshold: 0.6
+    legacy_stabilization_rounds: 20
+  pattern_complete:
+    default_fraction: 0.5
+    rounds: 5
+    recovery_threshold_test: 0.6
+    recovery_threshold_doc: 0.8
+    legacy_alpha: 0.5
+    legacy_comp_iter: 1
+    legacy_project_iter: 10
+
+golden_artifacts:
+  cross_repo: research/literature/parity/reference_pnas_golden.json
+  scaling: research/literature/parity/golden/pnas2020_scaling.json
+  associate: research/literature/parity/reference_pnas_golden.json
+  merge: research/literature/parity/reference_pnas_golden.json
+  pattern_complete: research/literature/parity/reference_pnas_golden.json
+
+reference_repo:
+  url: https://github.com/dmitropolsky/assemblies
+  modules: [brain.py, simulations.py, word_order_int]
+  env_var: REF_ASSEMBLIES_PATH
+
+language_production_sketch:
+  legacy_module: legacy/root_modules/learner.py
+  class: LearnBrain_SimpleSyntax
+  LEX_n: 10000
+  LEX_k: 100
+  CORE_k: 10
+  beta: 0.06
+  proj_rounds: 2
+  train_rounds: 40
+  orders: [NV, VN]
+  interrogative: true

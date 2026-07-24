@@ -1,9 +1,30 @@
-% Master Bibliography for Neural Assembly Papers
-% Add all references here in BibTeX format
+% Master Bibliography — Assembly Calculus field + project background
+% Canonical human-readable index: docs/literature.md
+% Machine-readable parity map: research/literature/index.json
 
 % ============================================================================
-% FOUNDATIONAL ASSEMBLY CALCULUS PAPERS
+% TIER 1 — FOUNDATIONAL ASSEMBLY CALCULUS (Papadimitriou / Vempala)
 % ============================================================================
+
+@inproceedings{papadimitriou2019random,
+  title={Random projection in the brain and computation with assemblies of neurons},
+  author={Papadimitriou, Christos H and Vempala, Santosh S},
+  booktitle={10th Innovations in Theoretical Computer Science Conference (ITCS 2019)},
+  series={Leibniz International Proceedings in Informatics (LIPIcs)},
+  volume={124},
+  pages={57:1--57:19},
+  year={2019},
+  doi={10.4230/LIPIcs.ITCS.2019.57}
+}
+
+@inproceedings{papadimitriou2019ccneuro,
+  title={A calculus for brain computation},
+  author={Papadimitriou, Christos H},
+  booktitle={Cognitive Computational Neuroscience (CCNeuro) Proceedings},
+  year={2019},
+  url={https://ccneuro.org/2019/proceedings/0000998.pdf},
+  note={Conceptual precursor; overlaps ITCS 2019}
+}
 
 @article{papadimitriou2020brain,
   title={Brain computation by assemblies of neurons},
@@ -17,19 +38,89 @@
   doi={10.1073/pnas.2001893117}
 }
 
-@inproceedings{dabagia2023sequences,
+@inproceedings{dabagia2022classify,
+  title={Assemblies of neurons learn to classify well-separated distributions},
+  author={Dabagia, Max and Vempala, Santosh S and Papadimitriou, Christos H},
+  booktitle={Proceedings of the 35th Conference on Learning Theory (COLT)},
+  series={Proceedings of Machine Learning Research},
+  volume={178},
+  pages={3685--3717},
+  year={2022},
+  note={arXiv:2110.03171}
+}
+
+@inproceedings{dabagia2024sequences_alt,
   title={Computation with sequences of assemblies in a model of the brain},
   author={Dabagia, Max and Papadimitriou, Christos H and Vempala, Santosh S},
-  booktitle={Proceedings of the 35th Conference on Algorithmic Learning Theory (ALT)},
+  booktitle={Proceedings of the 35th International Conference on Algorithmic Learning Theory (ALT)},
+  series={Proceedings of Machine Learning Research},
+  volume={237},
+  pages={499--504},
   year={2024},
-  note={arXiv:2306.03812, 2023}
+  note={Extended abstract; full version arXiv:2306.03812}
+}
+
+@article{dabagia2025sequences,
+  title={Computation with sequences of assemblies in a model of the brain},
+  author={Dabagia, Max and Papadimitriou, Christos H and Vempala, Santosh S},
+  journal={Neural Computation},
+  volume={37},
+  number={1},
+  pages={193--233},
+  year={2025},
+  note={arXiv:2306.03812}
+}
+
+% ============================================================================
+% TIER 2 — NEMO / LANGUAGE / COGNITION (Mitropolsky / Papadimitriou)
+% ============================================================================
+
+@article{mitropolsky2021parser,
+  title={A biologically plausible parser},
+  author={Mitropolsky, Daniel and Collins, Michael J and Papadimitriou, Christos H},
+  journal={Transactions of the Association for Computational Linguistics},
+  volume={9},
+  pages={1374--1388},
+  year={2021},
+  doi={10.1162/tacl_a_00432},
+  note={arXiv:2108.02189}
+}
+
+@inproceedings{mitropolsky2022center,
+  title={Center-embedding and constituency in the brain and a new characterization of context-free languages},
+  author={Mitropolsky, Daniel and Ejaz, Adiba and Shi, Mirah and Yannakakis, Mihalis and Papadimitriou, Christos H},
+  booktitle={Proceedings of the 3rd Natural Logic Meets Machine Learning Workshop (NALOMA III)},
+  pages={26--37},
+  year={2022},
+  note={arXiv:2206.13217}
+}
+
+@inproceedings{damore2022planning,
+  title={Planning with biological neurons and synapses},
+  author={d'Amore, Francesco and Mitropolsky, Daniel and Crescenzi, Pierluigi and Natale, Emanuele and Papadimitriou, Christos H},
+  booktitle={Proceedings of the AAAI Conference on Artificial Intelligence},
+  volume={36},
+  number={1},
+  pages={21--28},
+  year={2022},
+  doi={10.1609/aaai.v36i1.19875},
+  note={arXiv:2112.08186}
 }
 
 @article{mitropolsky2023architecture,
   title={The architecture of a biologically plausible language organ},
   author={Mitropolsky, Daniel and Papadimitriou, Christos H},
   journal={arXiv preprint arXiv:2306.15364},
-  year={2023}
+  year={2023},
+  doi={10.48550/arXiv.2306.15364}
+}
+
+@article{dabagia2024coinflipping,
+  title={Coin-flipping in the brain: statistical learning with neuronal assemblies},
+  author={Dabagia, Max and Mitropolsky, Daniel and Papadimitriou, Christos H and Vempala, Santosh S},
+  journal={arXiv preprint arXiv:2406.07715},
+  year={2024},
+  doi={10.48550/arXiv.2406.07715}
 }
 
 @article{mitropolsky2025simulated,
@@ -38,6 +129,63 @@
   journal={arXiv preprint arXiv:2507.11788},
   year={2025},
   doi={10.48550/arXiv.2507.11788}
+}
+
+% ============================================================================
+% TIER 3 — FIELD EXTENSIONS (other groups, 2025–2026)
+% ============================================================================
+
+@article{onasch2025dendritic,
+  title={Assembly-based computations through contextual dendritic gating of plasticity},
+  author={Onasch, Sebastian and Miehl, Christoph and Miekus, M Maurycy and Gjorgjieva, Julijana},
+  journal={bioRxiv},
+  year={2025},
+  doi={10.1101/2025.07.22.666089}
+}
+
+@article{hoff2026epwta,
+  title={Formation of artificial neural assemblies by biologically plausible inhibition mechanisms},
+  author={Hoff, Lucas and Soroka, Gustavo and Guimar{\~a}es, Matheus and Villavicencio, Aline and Idiart, Marco},
+  journal={arXiv preprint arXiv:2603.12416},
+  year={2026},
+  doi={10.48550/arXiv.2603.12416}
+}
+
+@article{ting2026speech,
+  title={Beyond deep learning: speech segmentation and phone classification with neural assemblies},
+  author={Ting, Trevor Vidhyasaharan and Sethu, Vidhyasaharan and Dang, Adelson},
+  journal={arXiv preprint arXiv:2603.16923},
+  year={2026},
+  doi={10.48550/arXiv.2603.16923}
+}
+
+@article{kopadi2026causal,
+  title={Causal learning with neural assemblies},
+  author={Kopadi, Evangelia and Kalles, Dimitris},
+  journal={arXiv preprint arXiv:2604.26919},
+  year={2026}
+}
+
+% ============================================================================
+% REFERENCE IMPLEMENTATIONS (cite as software, not theory proofs)
+% ============================================================================
+
+@misc{dmitropolsky2024assemblies,
+  title={Code for NEMO and Assembly Calculus},
+  author={Mitropolsky, Daniel and collaborators},
+  howpublished={GitHub repository},
+  year={2024},
+  url={https://github.com/dmitropolsky/assemblies},
+  note={Canonical reference Python implementation}
+}
+
+@misc{passey2024assemblycalculusjl,
+  title={AssemblyCalculus.jl},
+  author={Passey, Daniel J},
+  howpublished={Julia package},
+  year={2024},
+  url={https://github.com/djpasseyjr/AssemblyCalculus.jl},
+  note={Fast Julia reimplementation}
 }
 
 % ============================================================================
@@ -51,10 +199,20 @@
   year={1949}
 }
 
+@article{buzsaki2010neural,
+  title={Neural syntax: cell assemblies, synapsembles, and readers},
+  author={Buzs{\'a}ki, Gy{\"o}rgy},
+  journal={Neuron},
+  volume={68},
+  number={3},
+  pages={362--385},
+  year={2010}
+}
+
 @article{hopfield1982neural,
   title={Neural networks and physical systems with emergent collective computational abilities},
   author={Hopfield, John J},
-  journal={Proceedings of the national academy of sciences},
+  journal={Proceedings of the National Academy of Sciences},
   volume={79},
   number={8},
   pages={2554--2558},
@@ -201,16 +359,3 @@
   year={2012},
   publisher={American Association for the Advancement of Science}
 }
-
-% ============================================================================
-% ADD YOUR REFERENCES BELOW
-% ============================================================================
-
-% Use format:
-% @article{authorYEARkeyword,
-%   title={...},
-%   author={...},
-%   journal={...},
-%   year={...},
-%   doi={...}
-% }

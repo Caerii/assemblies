@@ -1,0 +1,27 @@
+{
+  "protocol": "colt2022_mnist_hierarchical",
+  "source": "two-layer LOW→MID→HIGH protocol with bias+renorm",
+  "recorded": "2026-06-23",
+  "parameters": {
+    "seed": 42,
+    "n_low": 784,
+    "n_mid": 2000,
+    "n_high": 2000,
+    "n_class": 2000,
+    "k": 200,
+    "beta": 1.0,
+    "n_rounds": 5,
+    "n_examples": 50,
+    "p": 0.1
+  },
+  "metrics": {
+    "mean_accuracy": 0.642,
+    "per_class_accuracy": [0.96, 0.8, 0.08, 0.58, 0.9, 0.62, 0.88, 0.7, 0.32, 0.58],
+    "data_source": "mnist_csv"
+  },
+  "thresholds": {
+    "mean_accuracy_min": 0.55,
+    "metrics_match_tolerance": 0.08
+  },
+  "notes": "Four-area Brain LOW→MID→HIGH→CLASS; falls back to two_layer_protocol until CLASS readout within tolerance."
+}

@@ -38,8 +38,8 @@ from research.experiments.base import (
     ExperimentBase, ExperimentResult, summarize, paired_ttest,
 )
 from neural_assemblies.assembly_calculus.emergent import EmergentParser
-from neural_assemblies.assembly_calculus.emergent.grounding import GroundingContext
-from neural_assemblies.assembly_calculus.emergent.training_data import GroundedSentence
+from neural_assemblies.assembly_calculus.emergent.core.grounding import GroundingContext
+from neural_assemblies.assembly_calculus.emergent.curriculum.data import GroundedSentence
 from neural_assemblies.assembly_calculus.ops import project
 
 
@@ -230,7 +230,7 @@ class N400ClozeExperiment(ExperimentBase):
 
             for context, hi, med, lo in CLOZE_TESTS:
                 # Process context for high-cloze target
-                from neural_assemblies.assembly_calculus.emergent.areas import CORE_AREAS
+                from neural_assemblies.assembly_calculus.emergent.core.areas import CORE_AREAS
                 parser.brain.inhibit_areas(CORE_AREAS)
                 _process_context(parser, context, cfg.rounds)
                 energy_hi = _measure_target_energy(parser, hi, cfg.rounds)

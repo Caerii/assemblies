@@ -1,0 +1,39 @@
+paper_id: mitropolsky2023architecture
+bibkey: mitropolsky2023architecture
+title: "Architecture of a Biologically Plausible Language Organ (arXiv:2306.15364)"
+
+components:
+  - differential_lex
+  - role_areas
+  - fibers
+  - LRI_for_control
+  - sequence_areas
+
+toy_nemo_parser:
+  module: neural_assemblies/assembly_calculus/parser.py
+  areas: [LEX_NOUN, LEX_VERB, ROLE_AGENT, ROLE_ACTION, ROLE_PATIENT, SEQ]
+  status: partial
+
+emergent_organ:
+  module: neural_assemblies/assembly_calculus/emergent/core/areas.py
+  area_count: 45
+  groups:
+    INPUT_AREAS: 8
+    CORE_AREAS: 8
+    THEMATIC_AREAS: 6
+    PHRASE_AREAS: 5
+    CONTROL_AREAS: 6
+    VP_COMPONENT_AREAS: 3
+    ADVANCED_AREAS: 4
+
+split_implementation:
+  package: [neural_assemblies/nemo/, neural_assemblies/assembly_calculus/emergent/]
+  research: [research/nemo/]
+
+lri:
+  module: neural_assemblies/assembly_calculus/ops.py
+  test: neural_assemblies/tests/test_lri.py
+  organ_integration_test: missing
+
+reference_repo:
+  modules: [nemo/, parser.py]

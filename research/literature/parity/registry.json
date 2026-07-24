@@ -1,0 +1,239 @@
+{
+  "version": 1,
+  "updated": "2026-06-23",
+  "description": "Unified protocol registry for literature parity (golden + repro_command).",
+  "protocols": [
+    {
+      "protocol_id": "nemo2025_fsm_mod3",
+      "paper_id": "dabagia2025sequences",
+      "claim_ids": ["SEQ25-E10"],
+      "config": "sequences2025.yaml",
+      "golden": "golden/nemo2025_fsm_mod3.json",
+      "backend": "brain",
+      "repro_command": "python -m pytest neural_assemblies/tests/test_literature_golden.py::TestNemo2025FsmMod3Golden -v",
+      "description": "Mod-3 digit-sum FSM (nemo-demo.ipynb)"
+    },
+    {
+      "protocol_id": "coin2024_softmax",
+      "paper_id": "dabagia2024coinflipping",
+      "claim_ids": ["COIN24-E04"],
+      "config": "coin2024.yaml",
+      "golden": "golden/coin2024_softmax.json",
+      "backend": "brain",
+      "repro_command": "python -m pytest neural_assemblies/tests/test_literature_golden.py::TestCoin2024SoftmaxGolden -v",
+      "description": "Context→outcome softmax-style coin with noise"
+    },
+    {
+      "protocol_id": "colt2022_mnist_brain",
+      "paper_id": "dabagia2022classify",
+      "claim_ids": ["COLT22-E02"],
+      "config": "colt2022.yaml",
+      "golden": "golden/colt2022_mnist_brain.json",
+      "backend": "brain",
+      "repro_command": "python -m pytest neural_assemblies/tests/test_literature_golden.py::TestColt2022MnistBrainGolden -v",
+      "description": "Brain explicit INPUT→CLASS MNIST smoke"
+    },
+    {
+      "protocol_id": "coin2024_demo",
+      "paper_id": "dabagia2024coinflipping",
+      "claim_ids": ["COIN24-E01", "COIN24-M01", "COIN24-E03"],
+      "config": "coin2024.yaml",
+      "golden": "golden/coin2024_demo.json",
+      "backend": "brain",
+      "repro_command": "python -m pytest neural_assemblies/tests/test_literature_golden.py::TestCoin2024DemoGolden -v",
+      "description": "Fair/biased coin + Markov frequency demo"
+    },
+    {
+      "protocol_id": "coin2024_compete",
+      "paper_id": "dabagia2024coinflipping",
+      "claim_ids": ["COIN24-M04"],
+      "config": "coin2024.yaml",
+      "golden": "golden/coin2024_compete.json",
+      "backend": "brain",
+      "repro_command": "python -m pytest neural_assemblies/tests/test_literature_golden.py::TestCoin2024CompeteGolden -v",
+      "description": "RandomChoiceArea compete mode (nemo reference flip)"
+    },
+    {
+      "protocol_id": "nemo2025_scaffold",
+      "paper_id": "dabagia2025sequences",
+      "claim_ids": ["SEQ25-M05"],
+      "config": "sequences2025.yaml",
+      "golden": "golden/nemo2025_scaffold.json",
+      "backend": "nemo_numpy",
+      "repro_command": "python -m pytest neural_assemblies/tests/test_literature_golden.py::TestNemo2025ScaffoldGolden -v",
+      "description": "Scaffold vs simple last-item recall (length 20)"
+    },
+    {
+      "protocol_id": "colt2022_mnist",
+      "paper_id": "dabagia2022classify",
+      "claim_ids": ["COLT22-E01"],
+      "config": "colt2022.yaml",
+      "golden": "golden/colt2022_mnist.json",
+      "backend": "brain",
+      "repro_command": "python -m pytest neural_assemblies/tests/test_literature_golden.py::TestColt2022Golden -v",
+      "description": "Ten-class separable toy classification"
+    },
+    {
+      "protocol_id": "colt2022_mnist_notebook",
+      "paper_id": "dabagia2022classify",
+      "claim_ids": ["COLT22-E06"],
+      "config": "colt2022.yaml",
+      "golden": "golden/colt2022_mnist_notebook.json",
+      "backend": "nemo_numpy",
+      "repro_command": "python -m pytest neural_assemblies/tests/test_literature_golden.py::TestColt2022MnistNotebookGolden -v",
+      "description": "COLT MNIST.ipynb numpy Hebbian protocol"
+    },
+    {
+      "protocol_id": "nemo2025_curriculum",
+      "paper_id": "mitropolsky2025simulated",
+      "claim_ids": ["NEMO25-E03"],
+      "config": "nemo2025.yaml",
+      "golden": "golden/nemo2025_curriculum.json",
+      "backend": "brain",
+      "slow": true,
+      "repro_command": "python -m pytest neural_assemblies/tests/test_literature_golden.py::TestNemo2025CurriculumGolden -v",
+      "description": "EmergentParser curriculum stage metrics"
+    },
+    {
+      "protocol_id": "direct2026_pearl",
+      "paper_id": "kopadi2026causal",
+      "claim_ids": ["DIR26-M01"],
+      "config": "direct2026.yaml",
+      "golden": "golden/direct2026_pearl.json",
+      "backend": "brain",
+      "repro_command": "python -m pytest neural_assemblies/tests/test_literature_golden.py::TestDirect2026PearlGolden -v",
+      "description": "DIRECT binding asymmetry + do-calculus smoke"
+    },
+    {
+      "protocol_id": "hoff2026_size_dist",
+      "paper_id": "hoff2026epwta",
+      "claim_ids": ["EPWTA26-E03"],
+      "config": "hoff2026.yaml",
+      "golden": "golden/hoff2026_size_dist.json",
+      "backend": "brain",
+      "repro_command": "python -m pytest neural_assemblies/tests/test_literature_golden.py::TestHoff2026SizeDistGolden -v",
+      "description": "E%-WTA assembly size smoke vs Hoff Table 1"
+    },
+    {
+      "protocol_id": "pnas2020_scaling",
+      "paper_id": "papadimitriou2020brain",
+      "claim_ids": ["PNAS20-E02", "PNAS20-C01"],
+      "config": "pnas2020.yaml",
+      "golden": "golden/pnas2020_scaling.json",
+      "backend": "brain",
+      "repro_command": "python -m pytest neural_assemblies/tests/test_cross_repo_parity.py -v",
+      "description": "PNAS param regime reconciliation (CI vs paper vs test defaults)"
+    },
+    {
+      "protocol_id": "pnas2020_golden",
+      "paper_id": "papadimitriou2020brain",
+      "claim_ids": ["PNAS20-M01", "PNAS20-M02", "PNAS20-M03"],
+      "config": "pnas2020.yaml",
+      "golden": "reference_pnas_golden.json",
+      "backend": "brain",
+      "repro_command": "python -m pytest neural_assemblies/tests/test_cross_repo_parity.py::TestCrossRepoExtendedPNAS -v",
+      "description": "Extended PNAS associate/merge/reciprocal/pattern-complete goldens"
+    },
+    {
+      "protocol_id": "coin2024_markov_arc",
+      "paper_id": "dabagia2024coinflipping",
+      "claim_ids": ["COIN24-E02"],
+      "config": "coin2024.yaml",
+      "golden": "golden/coin2024_markov_arc.json",
+      "backend": "brain",
+      "repro_command": "python -m pytest neural_assemblies/tests/test_literature_golden.py::TestCoin2024MarkovArcGolden -v",
+      "description": "MarkovChainModel refracted-arc alternating states"
+    },
+    {
+      "protocol_id": "nemo2025_fsm_mod3_numpy",
+      "paper_id": "dabagia2025sequences",
+      "claim_ids": ["SEQ25-E10"],
+      "config": "sequences2025.yaml",
+      "golden": "golden/nemo2025_fsm_mod3_numpy.json",
+      "backend": "nemo_numpy",
+      "repro_command": "python -m pytest neural_assemblies/tests/test_literature_golden.py::TestNemo2025FsmMod3NumpyGolden -v",
+      "description": "Mod-3 FSM numpy reference backend (mdabagia/nemo brain.py)"
+    },
+    {
+      "protocol_id": "colt2022_mnist_hierarchical",
+      "paper_id": "dabagia2022classify",
+      "claim_ids": ["COLT22-E04"],
+      "config": "colt2022.yaml",
+      "golden": "golden/colt2022_mnist_hierarchical.json",
+      "backend": "brain",
+      "repro_command": "python -m pytest neural_assemblies/tests/test_literature_golden.py::TestColt2022MnistHierarchicalGolden -v",
+      "description": "LOW→MID→HIGH two-layer hierarchical MNIST"
+    },
+    {
+      "protocol_id": "colt2022_mnist_notebook_full",
+      "paper_id": "dabagia2022classify",
+      "claim_ids": ["COLT22-E06"],
+      "config": "colt2022.yaml",
+      "golden": "golden/colt2022_mnist_notebook_full.json",
+      "backend": "nemo_numpy",
+      "slow": true,
+      "repro_command": "python -m pytest neural_assemblies/tests/test_literature_golden.py::TestColt2022MnistNotebookFullGolden -v",
+      "description": "MNIST.ipynb at n_examples=500 (paper-scale slow)"
+    },
+    {
+      "protocol_id": "pnas2020_reciprocal",
+      "paper_id": "papadimitriou2020brain",
+      "claim_ids": ["PNAS20-M04"],
+      "config": "pnas2020.yaml",
+      "golden": "golden/pnas2020_reciprocal.json",
+      "backend": "brain",
+      "repro_command": "python -m pytest neural_assemblies/tests/test_literature_golden.py::TestPnas2020ReciprocalGolden -v",
+      "description": "Reciprocal project restore overlap"
+    },
+    {
+      "protocol_id": "pnas2020_pattern_complete",
+      "paper_id": "papadimitriou2020brain",
+      "claim_ids": ["PNAS20-M05"],
+      "config": "pnas2020.yaml",
+      "golden": "golden/pnas2020_pattern_complete.json",
+      "backend": "brain",
+      "repro_command": "python -m pytest neural_assemblies/tests/test_literature_golden.py::TestPnas2020PatternCompleteGolden -v",
+      "description": "Pattern completion 50% cue recovery"
+    },
+    {
+      "protocol_id": "seq25_multi_recall",
+      "paper_id": "dabagia2025sequences",
+      "claim_ids": ["SEQ25-E06"],
+      "config": "sequences2025.yaml",
+      "golden": "golden/seq25_multi_recall.json",
+      "backend": "brain",
+      "repro_command": "python -m pytest neural_assemblies/tests/test_literature_golden.py::TestSeq25MultiRecallGolden -v",
+      "description": "Ordered recall first-item overlap smoke"
+    },
+    {
+      "protocol_id": "tacl2021_parser_f1",
+      "paper_id": "mitropolsky2021parser",
+      "claim_ids": ["TACL21-E05"],
+      "config": "tacl2021.yaml",
+      "golden": "golden/tacl2021_parser_f1.json",
+      "backend": "brain",
+      "repro_command": "python -m pytest neural_assemblies/tests/test_literature_golden.py::TestTacl2021ParserF1Golden -v",
+      "description": "English parser role-coverage smoke"
+    },
+    {
+      "protocol_id": "cross_lang.pnas_scaling",
+      "paper_id": "papadimitriou2020brain",
+      "claim_ids": ["XINF-E02"],
+      "config": "pnas2020.yaml",
+      "golden": "golden/cross_lang_pnas_scaling.json",
+      "backend": "cross_lang",
+      "repro_command": "python -m pytest neural_assemblies/tests/test_ir_and_cross_lang.py::test_cross_lang_runner_pnas_scaling -v",
+      "description": "IR v1 cross-language PNAS scaling golden (Python baseline)"
+    },
+    {
+      "protocol_id": "colt2022_mnist_notebook_paper",
+      "paper_id": "dabagia2022classify",
+      "claim_ids": ["COLT22-E06"],
+      "config": "colt2022.yaml",
+      "golden": "golden/colt2022_mnist_notebook_paper.json",
+      "backend": "brain",
+      "repro_command": "python -m pytest neural_assemblies/tests/test_literature_golden.py::TestColt2022MnistNotebookPaperGolden -v",
+      "description": "MNIST.ipynb paper-scale n_examples=5000 (slow)"
+    }
+  ]
+}

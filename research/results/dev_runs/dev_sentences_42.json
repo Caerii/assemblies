@@ -1,0 +1,428 @@
+{
+  "max_stage": "SENTENCES",
+  "stages_run": [
+    "BABBLE",
+    "FIRST_WORDS",
+    "VOCABULARY_SPURT",
+    "TWO_WORD",
+    "SENTENCES"
+  ],
+  "skipped_early": false,
+  "blocked_at_stage": null,
+  "babble_forms": 24,
+  "fuzzy_variant_count": 15,
+  "stages": [
+    {
+      "stage": "BABBLE",
+      "vocab_size": 24,
+      "classification_accuracy": 0.0,
+      "phases_run": [
+        "babble"
+      ],
+      "metrics": {
+        "classification_accuracy": 0.0,
+        "sentences_trained": 0.0,
+        "babble_forms": 24.0
+      },
+      "gate": {
+        "passed": true,
+        "checks": {
+          "babble_forms": true
+        },
+        "metrics": {
+          "babble_forms": 24.0
+        },
+        "failures": []
+      }
+    },
+    {
+      "stage": "FIRST_WORDS",
+      "vocab_size": 50,
+      "classification_accuracy": -1.0,
+      "phases_run": [
+        "lexicon"
+      ],
+      "metrics": {
+        "classification_accuracy": -1.0,
+        "sentences_trained": 18.0,
+        "remedial_sentences": 723.0,
+        "vocab_size": 50.0
+      },
+      "gate": {
+        "passed": true,
+        "checks": {
+          "vocab_size": true
+        },
+        "metrics": {
+          "vocab_size": 50.0,
+          "classification_accuracy": -1.0
+        },
+        "failures": []
+      }
+    },
+    {
+      "stage": "VOCABULARY_SPURT",
+      "vocab_size": 200,
+      "classification_accuracy": -1.0,
+      "phases_run": [
+        "lexicon",
+        "distributional"
+      ],
+      "metrics": {
+        "classification_accuracy": -1.0,
+        "sentences_trained": 55.0,
+        "remedial_sentences": 1391.0,
+        "vocab_size": 200.0
+      },
+      "gate": {
+        "passed": true,
+        "checks": {
+          "phase_distributional": true
+        },
+        "metrics": {
+          "vocab_size": 200.0,
+          "classification_accuracy": -1.0
+        },
+        "failures": []
+      }
+    },
+    {
+      "stage": "TWO_WORD",
+      "vocab_size": 300,
+      "classification_accuracy": -1.0,
+      "phases_run": [
+        "lexicon",
+        "distributional",
+        "roles"
+      ],
+      "metrics": {
+        "classification_accuracy": -1.0,
+        "sentences_trained": 23.0,
+        "remedial_sentences": 1601.0,
+        "vocab_size": 300.0
+      },
+      "gate": {
+        "passed": true,
+        "checks": {
+          "phase_distributional": true,
+          "phase_roles": true
+        },
+        "metrics": {
+          "vocab_size": 300.0,
+          "classification_accuracy": -1.0
+        },
+        "failures": []
+      }
+    },
+    {
+      "stage": "SENTENCES",
+      "vocab_size": 500,
+      "classification_accuracy": -1.0,
+      "phases_run": [
+        "lexicon",
+        "distributional",
+        "roles",
+        "phrases",
+        "word_order",
+        "tense"
+      ],
+      "metrics": {
+        "classification_accuracy": -1.0,
+        "sentences_trained": 50.0,
+        "holdout_bootstrap": 1.0,
+        "remedial_sentences": 2381.0,
+        "vocab_size": 500.0,
+        "novel_composition": 1.0
+      },
+      "gate": {
+        "passed": true,
+        "checks": {
+          "phase_roles": true,
+          "phase_word_order": true,
+          "novel_composition": true,
+          "holdout_bootstrap": true
+        },
+        "metrics": {
+          "vocab_size": 500.0,
+          "classification_accuracy": -1.0,
+          "novel_composition": 1.0,
+          "holdout_bootstrap": 1.0
+        },
+        "failures": []
+      }
+    }
+  ],
+  "final_generalization": {
+    "lexicon_holdout": {
+      "accuracy": 1.0,
+      "total": 3,
+      "correct": 3
+    },
+    "holdout_decomposition": {
+      "per_word": {
+        "bird": {
+          "word": "bird",
+          "expected": "NOUN",
+          "in_lexicon": true,
+          "grounded": true,
+          "dominant_modality": "visual",
+          "grounding_evidence": {
+            "NOUN": 1.0
+          },
+          "grounding_features": [
+            "visual_BIRD",
+            "visual_ANIMAL"
+          ],
+          "active_grounding_stims": [
+            "visual_BIRD",
+            "visual_ANIMAL"
+          ],
+          "dist_count": 1260,
+          "verb_relative": {
+            "pre_verb": 1062,
+            "post_verb": 85,
+            "action": 0
+          },
+          "neural_readout": "NOUN",
+          "neural_by_category": {
+            "NOUN": 1.0,
+            "VERB": 0.13333333333333333,
+            "ADJ": 0.13333333333333333,
+            "ADV": 0.06666666666666667,
+            "PREP": 0.06666666666666667,
+            "DET": 0.1,
+            "PRON": 0.0,
+            "CONJ": 0.0
+          },
+          "distributional": "NOUN",
+          "distributional_scores": {
+            "NOUN": 5.524656061179291,
+            "VERB": 2.0238095238095237,
+            "PRON": 1.8626499771661065,
+            "ADJ": 1.2497031593805787,
+            "DET": 1.4145841117615312,
+            "PREP": 1.574106364428945
+          },
+          "modality_prior": "NOUN",
+          "bootstrapped": "NOUN",
+          "bootstrapped_scores": {
+            "NOUN": 1.0,
+            "VERB": 0.133,
+            "ADJ": 0.133,
+            "ADV": 0.067,
+            "PREP": 0.067,
+            "DET": 0.1,
+            "PRON": 0.0,
+            "CONJ": 0.0
+          },
+          "bootstrap_confidence": 1.8667,
+          "correct_neural": true,
+          "correct_distributional": true,
+          "correct_bootstrapped": true,
+          "failure_mode": null
+        },
+        "small": {
+          "word": "small",
+          "expected": "ADJ",
+          "in_lexicon": false,
+          "grounded": true,
+          "dominant_modality": "properties",
+          "grounding_evidence": {
+            "ADJ": 1.0
+          },
+          "grounding_features": [
+            "properties_SIZE",
+            "properties_SMALL"
+          ],
+          "active_grounding_stims": [
+            "properties_SIZE",
+            "properties_SMALL"
+          ],
+          "dist_count": 106,
+          "verb_relative": {
+            "pre_verb": 2,
+            "post_verb": 0,
+            "action": 0
+          },
+          "neural_readout": "ADJ",
+          "neural_by_category": {
+            "NOUN": 0.1,
+            "VERB": 0.16666666666666666,
+            "ADJ": 0.2,
+            "ADV": 0.03333333333333333,
+            "PREP": 0.1,
+            "DET": 0.1,
+            "PRON": 0.0,
+            "CONJ": 0.0
+          },
+          "distributional": "ADJ",
+          "distributional_scores": {
+            "ADJ": 5.008962264150943,
+            "VERB": 0.3910377358490567,
+            "NOUN": 3.4589622641509434,
+            "PRON": 1.6589622641509434,
+            "DET": 2.121462264150943,
+            "PREP": 0.12853773584905664
+          },
+          "modality_prior": "ADJ",
+          "bootstrapped": "ADJ",
+          "bootstrapped_scores": {
+            "ADJ": 0.402,
+            "VERB": 0.03,
+            "NOUN": 0.263,
+            "PRON": 0.126,
+            "DET": 0.161,
+            "PREP": 0.01,
+            "ADV": 0.007,
+            "CONJ": 0.0
+          },
+          "bootstrap_confidence": 0.4582,
+          "correct_neural": true,
+          "correct_distributional": true,
+          "correct_bootstrapped": true,
+          "failure_mode": null
+        },
+        "finds": {
+          "word": "finds",
+          "expected": "VERB",
+          "in_lexicon": true,
+          "grounded": true,
+          "dominant_modality": "motor",
+          "grounding_evidence": {
+            "VERB": 1.0
+          },
+          "grounding_features": [
+            "motor_FINDING",
+            "motor_PERCEPTION"
+          ],
+          "active_grounding_stims": [
+            "motor_FINDING",
+            "motor_PERCEPTION"
+          ],
+          "dist_count": 772,
+          "verb_relative": {
+            "pre_verb": 0,
+            "post_verb": 6,
+            "action": 766
+          },
+          "neural_readout": "VERB",
+          "neural_by_category": {
+            "NOUN": 0.06666666666666667,
+            "VERB": 0.3,
+            "ADJ": 0.06666666666666667,
+            "ADV": 0.0,
+            "PREP": 0.06666666666666667,
+            "DET": 0.13333333333333333,
+            "PRON": 0.0,
+            "CONJ": 0.0
+          },
+          "distributional": "VERB",
+          "distributional_scores": {
+            "VERB": 6.221224382186953,
+            "NOUN": 1.9175194300518135,
+            "PRON": 0.2980246113989637,
+            "ADJ": 0.4480246113989637,
+            "DET": 1.2605246113989637,
+            "PREP": 0.0
+          },
+          "modality_prior": "VERB",
+          "bootstrapped": "VERB",
+          "bootstrapped_scores": {
+            "NOUN": 0.067,
+            "VERB": 0.3,
+            "ADJ": 0.067,
+            "ADV": 0.0,
+            "PREP": 0.067,
+            "DET": 0.133,
+            "PRON": 0.0,
+            "CONJ": 0.0
+          },
+          "bootstrap_confidence": 0.35,
+          "correct_neural": true,
+          "correct_distributional": true,
+          "correct_bootstrapped": true,
+          "failure_mode": null
+        }
+      },
+      "accuracy_neural": 1.0,
+      "accuracy_distributional": 1.0,
+      "accuracy_bootstrapped": 1.0,
+      "failure_modes": {}
+    },
+    "roles": {
+      "accuracy": 1.0,
+      "per_role": {
+        "ACTION": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
+        },
+        "AGENT": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
+        },
+        "PATIENT": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
+        }
+      }
+    },
+    "novel_composition": {
+      "accuracy": 1.0,
+      "per_role": {
+        "ACTION": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
+        },
+        "AGENT": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
+        },
+        "PATIENT": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
+        }
+      }
+    },
+    "word_order": {
+      "inferred": "SVO",
+      "confidence": 0.5222082069724376,
+      "correct": true
+    },
+    "dialogue": {
+      "accuracy": 0.36363636363636365,
+      "total": 11,
+      "correct": 4,
+      "per_pattern": {
+        "who_query": 0.3,
+        "yesno_affirm": 1.0
+      }
+    },
+    "bridge_oov": {
+      "top1": 0.0,
+      "top3": 0.0,
+      "top5": 0.0,
+      "total": 2,
+      "hits_top1": 0
+    },
+    "bridge_seen": {
+      "top1": 0.1,
+      "top3": 0.1,
+      "top5": 0.1,
+      "total": 10,
+      "hits_top1": 1
+    },
+    "composite": 0.5772727272727273,
+    "holdout_words": [
+      "bird",
+      "finds",
+      "small"
+    ],
+    "oov_bridge_probe_count": 2
+  }
+}

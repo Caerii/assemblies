@@ -1,0 +1,54 @@
+{
+  "n": 3000,
+  "k": 30,
+  "seeds": [
+    42
+  ],
+  "engine": "numpy_sparse",
+  "wall_seconds": 72.775,
+  "rows": [
+    {
+      "path": "developmental",
+      "seed": 42,
+      "train_seconds": 68.06,
+      "novel_easy": 1.0,
+      "novel_strain": 1.0,
+      "systematicity": 1.0,
+      "strain_gap": 0.0,
+      "holdout_bootstrap": 1.0,
+      "lexicon_holdout": 1.0,
+      "roles": 1.0,
+      "bridge_oov_top5": 0.0,
+      "bridge_seen_top5": 0.1,
+      "dialogue": 0.36363636363636365,
+      "composite": 0.5772727272727273,
+      "science_score": 0.8,
+      "probe_counts": {
+        "easy": 3,
+        "strain": 6,
+        "systematicity": 3,
+        "bridge_oov": 7,
+        "bridge_seen": 20
+      },
+      "blocked_at_stage": null,
+      "remedial_sentences": 263.0
+    }
+  ],
+  "summary": [
+    {
+      "path": "developmental",
+      "n_seeds": 1,
+      "science_score_mean": 0.8,
+      "novel_easy_mean": 1.0,
+      "novel_strain_mean": 1.0,
+      "systematicity_mean": 1.0,
+      "strain_gap_mean": 0.0,
+      "holdout_bootstrap_mean": 1.0,
+      "bridge_oov_top5_mean": 0.0,
+      "bridge_seen_top5_mean": 0.1,
+      "dialogue_mean": 0.36363636363636365,
+      "composite_mean": 0.5772727272727273,
+      "train_seconds_mean": 68.06
+    }
+  ]
+}

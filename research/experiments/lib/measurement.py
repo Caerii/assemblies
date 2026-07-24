@@ -26,32 +26,15 @@ from typing import Dict, List, Tuple, Any
 import numpy as np
 
 from neural_assemblies.core.brain import Brain
-from research.experiments.base import measure_overlap
-from research.experiments.metrics.instability import compute_anchored_instability
+from neural_assemblies.assembly_calculus.metrics.instability import (
+    compute_anchored_instability,
+)
+from neural_assemblies.assembly_calculus.metrics.prediction import measure_n400
 from research.experiments.lib.vocabulary import (
     Vocabulary, DEFAULT_VOCAB,
     NOUNS, VERBS, LOCATIONS, NOVEL_NOUNS,
 )
 from research.experiments.lib.brain_setup import activate_word
-
-
-def measure_n400(
-    predicted: np.ndarray,
-    lexicon_entry: np.ndarray,
-) -> float:
-    """Measure N400: prediction error at the lexical level.
-
-    N400 = 1 - overlap(context-driven prediction, word's lexicon entry).
-    High values mean the word was unexpected given context.
-
-    Args:
-        predicted: Winner array from context-driven forward projection.
-        lexicon_entry: Winner array from stimulus-driven lexicon readout.
-
-    Returns:
-        N400 value in [0, 1]. 0 = perfectly predicted, 1 = completely unexpected.
-    """
-    return 1.0 - measure_overlap(predicted, lexicon_entry)
 
 
 def measure_p600(

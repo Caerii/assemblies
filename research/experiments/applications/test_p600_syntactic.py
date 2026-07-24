@@ -88,7 +88,7 @@ from research.experiments.metrics import measure_p600_settling, compute_jaccard_
 from research.experiments.metrics.measurement import measure_critical_word
 from research.experiments.infrastructure import setup_p600_pipeline
 from neural_assemblies.assembly_calculus.emergent import EmergentParser
-from neural_assemblies.assembly_calculus.emergent.areas import (
+from neural_assemblies.assembly_calculus.emergent.core.areas import (
     ROLE_AGENT, ROLE_PATIENT, SUBJ, OBJ, VP,
 )
 from neural_assemblies.assembly_calculus.ops import project

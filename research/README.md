@@ -46,6 +46,16 @@ that everything else bends around.
 - `claims/`
   Claim documents and supporting material.
 
+### Literature inventory
+
+- `literature/index.json`
+  Canonical Assembly Calculus bibliography with per-paper implementation status,
+  package module mapping, and gap list.
+- `literature/README.md`
+  How to use the literature index when implementing paper features.
+- [../docs/literature.md](../docs/literature.md)
+  Human-readable field map and parity matrix.
+
 ### Papers
 
 - `papers/`
@@ -107,6 +117,7 @@ claim-ready evidence summaries. See `claims/index.json` for the exact status.
 Use the repo tooling to check the research indexes:
 
 ```bash
+uv run python research/literature/validate_index.py
 uv run python research/experiments/infrastructure/validate_registry.py
 uv run python research/claims/validate_index.py
 uv run python research/core_questions/validate_index.py

@@ -1,0 +1,45 @@
+{
+  "ir_version": "1",
+  "protocol": "cross_lang.pnas_scaling",
+  "source": "Python neural_assemblies executor (PNAS 2020 scaling regimes)",
+  "recorded": "2026-06-23",
+  "backend": "python",
+  "claim_ids": ["XINF-E02"],
+  "regimes": {
+    "ci_parity": {
+      "n": 5000,
+      "k": 80,
+      "p": 0.05,
+      "beta": 0.1,
+      "seed": 42,
+      "chance_overlap": 0.016,
+      "project_persistence": 1.0,
+      "separate_overlap": 0.025
+    },
+    "paper_canonical": {
+      "n": 10000,
+      "k": 100,
+      "p": 0.01,
+      "beta": 0.05,
+      "seed": 42,
+      "chance_overlap": 0.01,
+      "project_persistence": 1.0,
+      "separate_overlap": 0.02
+    },
+    "test_assembly_calculus": {
+      "n": 10000,
+      "k": 100,
+      "p": 0.05,
+      "beta": 0.1,
+      "seed": 42,
+      "chance_overlap": 0.01,
+      "project_persistence": 1.0,
+      "separate_overlap": 0.01
+    }
+  },
+  "metrics": {},
+  "thresholds": {
+    "metric_tolerance": 0.05
+  },
+  "notes": "Julia AssemblyCalculus.jl should match ci_parity within tolerance."
+}

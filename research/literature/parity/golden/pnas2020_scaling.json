@@ -1,0 +1,43 @@
+{
+  "protocol": "pnas2020_scaling",
+  "source": "neural_assemblies package \u2014 dual regime reconciliation",
+  "recorded": "2026-06-23",
+  "regimes": {
+    "ci_parity": {
+      "n": 5000,
+      "k": 80,
+      "p": 0.05,
+      "beta": 0.1,
+      "seed": 42,
+      "chance_overlap": 0.016,
+      "project_persistence": 1.0,
+      "separate_overlap": 0.025
+    },
+    "paper_canonical": {
+      "n": 10000,
+      "k": 100,
+      "p": 0.01,
+      "beta": 0.05,
+      "seed": 42,
+      "chance_overlap": 0.01,
+      "project_persistence": 1.0,
+      "separate_overlap": 0.02
+    },
+    "test_assembly_calculus": {
+      "n": 10000,
+      "k": 100,
+      "p": 0.05,
+      "beta": 0.1,
+      "seed": 42,
+      "chance_overlap": 0.01,
+      "project_persistence": 1.0,
+      "separate_overlap": 0.01
+    }
+  },
+  "notes": {
+    "ci_parity": "Pinned in test_literature_parity + reference_pnas_golden.json",
+    "paper_canonical": "PNAS sparse regime n=10^4, k=100, p=0.01, beta=0.05",
+    "test_assembly_calculus": "Package unit test defaults"
+  },
+  "config_ref": "parity/configs/pnas2020.yaml"
+}

@@ -1,0 +1,99 @@
+{
+  "protocol": "nemo2025_curriculum",
+  "source": "EmergentParser CurriculumTrainer fast path",
+  "recorded": "2026-06-23",
+  "parameters": {
+    "n": 5000,
+    "k": 80,
+    "p": 0.05,
+    "beta": 0.1,
+    "seed": 42,
+    "rounds": 10,
+    "EMERGENT_FAST_TRAINING": "1",
+    "stages": [
+      "BABBLE",
+      "FIRST_WORDS",
+      "VOCABULARY_SPURT",
+      "TWO_WORD",
+      "SENTENCES"
+    ]
+  },
+  "metrics": {
+    "stage_metrics": {
+      "BABBLE": {
+        "classification_accuracy": 0.0,
+        "beta": 0.2,
+        "sentences_trained": 0,
+        "phases_run": [
+          "babble"
+        ]
+      },
+      "FIRST_WORDS": {
+        "classification_accuracy": 0.66,
+        "beta": 0.15,
+        "sentences_trained": 10,
+        "phases_run": [
+          "lexicon"
+        ]
+      },
+      "VOCABULARY_SPURT": {
+        "classification_accuracy": 0.82,
+        "beta": 0.12,
+        "sentences_trained": 90,
+        "phases_run": [
+          "lexicon",
+          "distributional"
+        ]
+      },
+      "TWO_WORD": {
+        "classification_accuracy": 0.8167,
+        "beta": 0.1,
+        "sentences_trained": 90,
+        "phases_run": [
+          "lexicon",
+          "distributional",
+          "roles"
+        ]
+      },
+      "SENTENCES": {
+        "classification_accuracy": 0.838,
+        "beta": 0.1,
+        "sentences_trained": 50,
+        "phases_run": [
+          "lexicon",
+          "distributional",
+          "roles",
+          "phrases",
+          "word_order",
+          "tense",
+          "polarity",
+          "prediction"
+        ]
+      }
+    },
+    "pos_accuracy": 0.4222,
+    "word_order_correct": true,
+    "role_probes": {
+      "accuracy": 1.0,
+      "per_role": {
+        "AGENT": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
+        },
+        "PATIENT": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
+        }
+      }
+    }
+  },
+  "thresholds": {
+    "sentences_classification_min": 0.80,
+    "role_probe_accuracy_min": 1.0,
+    "word_order_correct": true,
+    "pos_accuracy_note": "Full VOCABULARY POS via evaluate_classification is 0.42 after curriculum; parser.train() path hits 0.80+ (see test_literature_parity)"
+  },
+  "config_ref": "parity/configs/nemo2025.yaml"
+}

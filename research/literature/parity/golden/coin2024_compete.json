@@ -1,0 +1,26 @@
+{
+  "protocol": "coin2024_compete",
+  "source": "neural_assemblies CoinFlipModel flip_mode=compete (reference RandomChoiceArea)",
+  "demo_url": "http://dabagia.org/nemo/coinflipping/",
+  "recorded": "2026-06-23",
+  "parameters": {
+    "seed": 42,
+    "flip_mode": "compete",
+    "n_flips_fair": 24,
+    "n_flips_biased": 20,
+    "fair_seed_base": 100,
+    "biased_seed_base": 200,
+    "input_noise_std": 0.02
+  },
+  "metrics": {
+    "fair_n0": 13,
+    "fair_n1": 11,
+    "biased_majority_zero": true,
+    "markov_learned_p_q0": 0.5
+  },
+  "expected": {
+    "fair_both_outcomes": true,
+    "biased_majority_zero": true,
+    "markov_learned_p_q0": 0.5
+  }
+}

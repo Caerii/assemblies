@@ -1,19 +1,10 @@
 """
-ERP Measurement Functions
+ERP Measurement Functions (research EmergentParser experiments).
 
-Shared measurement primitives for N400 and P600 experiments.
-These are the core building blocks that all sentence-processing
-experiments use to measure energy, instability, and competition metrics.
+For new EmergentParser incremental probes prefer:
+  ``neural_assemblies.assembly_calculus.emergent.evaluation.erp``
 
-measure_critical_word():
-    Standard N400 + P600 measurement. Processes context, measures
-    N400 energy at critical word, measures P600 instability in
-    structural areas.
-
-measure_agreement_word():
-    Extended measurement with NUMBER co-projection. Also tracks
-    subject core area, VP competition margin, and VP assembly
-    for paired distance computation.
+Package kernels: ``neural_assemblies.assembly_calculus.metrics``
 """
 
 import numpy as np
@@ -24,7 +15,7 @@ from research.experiments.metrics.instability import (
     measure_p600_settling,
 )
 from neural_assemblies.assembly_calculus.emergent import EmergentParser
-from neural_assemblies.assembly_calculus.emergent.areas import (
+from neural_assemblies.assembly_calculus.emergent.core.areas import (
     NOUN_CORE, VERB_CORE, ROLE_AGENT, ROLE_PATIENT, VP, NUMBER,
 )
 from neural_assemblies.assembly_calculus.ops import project
@@ -380,4 +371,59 @@ def measure_agreement_word(
         "vp_winners": vp_winners,
         "core_area": crit_core,
         "subject_core": subject_core,
+    }
+
+
+def measure_critical_word_composed(
+    parser: EmergentParser,
+    context_words: List[str],
+    critical_word: str,
+    *,
+    apply_calibration: bool = True,
+) -> Dict[str, Any]:
+    """Composed ERP probes at the critical word (delegates to emergent erp runner).
+
+    Prefer this for new experiments that align with incremental N400/P600 probes.
+    Legacy energy-based measurement remains in ``measure_critical_word``.
+    """
+    from neural_assemblies.assembly_calculus.emergent.evaluation.erp import (
+        run_incremental_erp_probes,
+    )
+
+    words = list(context_words) + [critical_word]
+    position = len(context_words)
+    empty = {
+        "n400": 0.0,
+        "p600": 0.0,
+        "combined": 0.0,
+        "phrase_stability": 0.0,
+        "wobbly": False,
+        "failure_signature": "",
+        "n400_energy": 0.0,
+        "p600_mean_instability": 0.0,
+        "core_area": "",
+    }
+    if position >= len(words):
+        return empty
+
+    _, probes = run_incremental_erp_probes(
+        parser, words, apply_calibration=apply_calibration,
+    )
+    if position >= len(probes):
+        return empty
+
+    probe = probes[position]
+    return {
+        "n400": probe.n400,
+        "p600": probe.p600,
+        "combined": probe.combined,
+        "phrase_stability": probe.phrase_stability,
+        "wobbly": probe.wobbly,
+        "failure_signature": probe.failure_signature,
+        "category": probe.category,
+        "role_area": probe.role_area,
+        # Legacy key aliases for sweeps expecting energy/instability names
+        "n400_energy": probe.n400,
+        "p600_mean_instability": probe.p600,
+        "core_area": probe.category,
     }

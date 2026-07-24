@@ -1,0 +1,66 @@
+paper_id: ting2026speech
+bibkey: ting2026speech
+title: "Speech Segmentation and Phone Classification (arXiv:2603.16923)"
+status: not_started
+
+phone_classification_timit:
+  sample_rate: 16000
+  encoding: population_mfcc
+  n_input: 154
+  k_in: 87
+  n_area: 2250
+  k_cap: 732
+  beta: 0.00031
+  plasticity_rule: ABS
+  epochs: 13
+  n_classes: 39
+  train_utterances: 200
+  test_utterances: 50
+  test_segments: 4328
+  test_speakers: 24
+  target_accuracy: 0.475
+  chance: 0.026
+  readout: argmax_c R_c
+
+word_classification:
+  dataset: Speech Commands
+  n_input: 171
+  k_in: 74
+  n_area: 4655
+  k_cap: 815
+  beta: 0.0036
+  epochs: 2
+  n_classes: 10
+  target_accuracy: 0.451
+
+mel_binarisation_boundary:
+  n_mel_bins: 32
+  fft_size: 512
+  hop_length: 320
+  gamma: 0.5
+  target_active_fraction: 0.10
+
+population_mfcc:
+  M: 11
+  hop_length: 480
+  N_pop: 14
+  percentile_range: [1, 99]
+  binarisation_threshold: 0.044
+  n_input: 154
+
+boundary_detection:
+  test_utterances: 20
+  phone_f1: 0.69
+  phone_precision: 0.67
+  phone_recall: 0.74
+  word_f1: 0.61
+  tolerance_frames_phone: 2
+  tolerance_frames_word: 5
+  level1: {n: 1531, k: 135, k_in: 32, rho: 0.989, tau: 0.761, min_peak_distance: 3}
+  level2: {n: 6557, k: 588, k_in: 1513, rho: 0.092, tau: 0.745, min_peak_distance: 7}
+  beta: 0
+  change_signal: "c^(t) = 1 - (a^(t)·a^(t-1))/k"
+
+golden_artifacts:
+  phones: research/literature/parity/golden/ting2026_phones.json  # missing
+  boundaries: research/literature/parity/golden/ting2026_boundaries.json  # missing

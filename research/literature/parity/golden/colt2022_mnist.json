@@ -1,0 +1,34 @@
+{
+  "protocol": "colt2022_mnist",
+  "source": "10-class learn_separable_classes (MNIST hierarchical port pending)",
+  "recorded": "2026-06-23",
+  "parameters": {
+    "seed": 42,
+    "n": 5000,
+    "k": 80,
+    "p": 0.05,
+    "beta": 0.1,
+    "rounds": 8,
+    "n_classes": 10
+  },
+  "metrics": {
+    "train_classify_accuracy": 1.0,
+    "min_pairwise_overlap": 0.0,
+    "chance_overlap": 0.016
+  },
+  "tolerance": 0.02,
+  "thresholds": {
+    "train_classify_accuracy_min": 1.0,
+    "min_pairwise_overlap_max": 0.5
+  },
+  "notes": "Full MNIST hierarchical learner: legacy/root_modules/image_learner.py \u2014 TODO port.",
+  "legacy_target": {
+    "module": "legacy/root_modules/image_learner.py",
+    "areas": [
+      "LOW_LEVEL",
+      "MID_LEVEL",
+      "HIGH_LEVEL",
+      "CLASS_AREA"
+    ]
+  }
+}

@@ -1,0 +1,27 @@
+protocol: colt2022_mnist
+paper_id: dabagia2022classify
+description: "COLT 2022 classification parity — toy 10-class separable (full MNIST in legacy)"
+
+parameters:
+  n: 5000
+  k: 80
+  p: 0.05
+  beta: 0.1
+  seed: 42
+  n_classes: 10
+  rounds: 10
+
+entrypoint: neural_assemblies.programs.learn.learn_separable_classes
+classify_threshold: 0.3
+
+golden: research/literature/parity/golden/colt2022_mnist.json
+config_ref: parity/configs/colt2022.yaml
+
+legacy_full_mnist:
+  module: legacy/root_modules/image_learner.py
+  official_notebook: .reference/mdabagia-learning-with-assemblies/MNIST.ipynb
+  note: "Run MNIST.ipynb with data/ folder for paper-scale COLT golden"
+
+thresholds:
+  train_classify_accuracy_min: 1.0
+  min_pairwise_overlap_max: 0.5

@@ -180,7 +180,7 @@ from research.experiments.vocab.test_sentences import (
     VERB_AGREEMENT_TESTS as VERB_POSITION_TESTS,
 )
 from neural_assemblies.assembly_calculus.emergent import EmergentParser
-from neural_assemblies.assembly_calculus.emergent.areas import (
+from neural_assemblies.assembly_calculus.emergent.core.areas import (
     ROLE_AGENT, ROLE_PATIENT, SUBJ, OBJ, VP,
 )
 

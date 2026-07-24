@@ -12,8 +12,9 @@ project_root = Path(__file__).parent.parent.parent.parent
 sys.path.insert(0, str(project_root))
 
 from research.experiments.infrastructure.lexicon import build_core_lexicon
-from research.experiments.infrastructure.bootstrap import (
+from research.experiments.infrastructure.materialize_structural_weights import (
     bootstrap_structural_connectivity,
+    materialize_structural_connectivity,
 )
 from research.experiments.infrastructure.consolidation import (
     consolidate_role_connections,
@@ -29,6 +30,7 @@ from research.experiments.infrastructure.pipeline import (
 __all__ = [
     "build_core_lexicon",
     "bootstrap_structural_connectivity",
+    "materialize_structural_connectivity",
     "consolidate_role_connections",
     "consolidate_vp_connections",
     "consolidate_number_role_connections",

@@ -72,7 +72,7 @@ from research.experiments.vocab.test_sentences import (
     OBJECT_AGREEMENT_TESTS as OBJECT_TESTS,
 )
 from neural_assemblies.assembly_calculus.emergent import EmergentParser
-from neural_assemblies.assembly_calculus.emergent.areas import (
+from neural_assemblies.assembly_calculus.emergent.core.areas import (
     NOUN_CORE, VERB_CORE, ROLE_AGENT, ROLE_PATIENT, VP, NUMBER,
 )
 

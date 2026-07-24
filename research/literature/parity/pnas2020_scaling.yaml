@@ -1,0 +1,36 @@
+protocol: pnas2020_scaling
+paper_id: papadimitriou2020brain
+description: "Param regime reconciliation — CI parity vs paper canonical vs unit-test defaults"
+
+regimes:
+  ci_parity:
+    n: 5000
+    k: 80
+    p: 0.05
+    beta: 0.1
+    seed: 42
+    golden: research/literature/parity/reference_pnas_golden.json
+  paper_canonical:
+    n: 10000
+    k: 100
+    p: 0.01
+    beta: 0.05
+    seed: 42
+    source: "PNAS simulations / legacy separate_sim"
+  test_assembly_calculus:
+    n: 10000
+    k: 100
+    p: 0.05
+    beta: 0.1
+    seed: 42
+    source: neural_assemblies/tests/test_assembly_calculus.py
+
+metrics_recorded:
+  - project_persistence
+  - separate_overlap
+  - chance_overlap
+
+golden: research/literature/parity/golden/pnas2020_scaling.json
+config_ref: parity/configs/pnas2020.yaml
+
+tolerance: 0.02

@@ -19,6 +19,8 @@ from research.experiments.metrics.prediction import (
 from research.experiments.metrics.instability import (
     measure_p600_settling,
     compute_jaccard_instability,
+    compute_anchored_instability,
+    mean_jaccard_instability,
 )
 from research.experiments.metrics.measurement import (
     measure_critical_word,
@@ -32,6 +34,8 @@ __all__ = [
     "measure_prediction_error",
     "measure_p600_settling",
     "compute_jaccard_instability",
+    "compute_anchored_instability",
+    "mean_jaccard_instability",
     "measure_critical_word",
     "measure_agreement_word",
     "compute_vp_distance",

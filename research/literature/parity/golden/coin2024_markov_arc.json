@@ -1,0 +1,25 @@
+{
+  "protocol": "coin2024_markov_arc",
+  "source": "neural_assemblies MarkovChainModel (NemoMarkovPFA refracted arc)",
+  "demo_url": "http://dabagia.org/nemo/coinflipping/",
+  "recorded": "2026-06-23",
+  "parameters": {
+    "seed": 42,
+    "n_steps": 60,
+    "seed_base": 100,
+    "n": 5000,
+    "k": 80,
+    "beta": 0.1
+  },
+  "metrics": {
+    "saw_both_states": true,
+    "trajectory_length": 60,
+    "unique_states": 2
+  },
+  "expected": {
+    "saw_both_states": true,
+    "trajectory_length": 60,
+    "unique_states_min": 2
+  },
+  "notes": "Alternating current/next inhibition via NemoMarkovPFA; 50/50 q0 branches from training traces."
+}

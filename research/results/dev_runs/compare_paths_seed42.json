@@ -1,0 +1,56 @@
+{
+  "n": 3000,
+  "k": 30,
+  "seed": 42,
+  "engine": "numpy_sparse",
+  "holdout_words": [
+    "bird",
+    "finds",
+    "small"
+  ],
+  "wall_seconds": 481.675,
+  "paths": [
+    {
+      "path": "developmental",
+      "train_seconds": 396.387,
+      "engine": "numpy_sparse",
+      "novel_composition": 1.0,
+      "holdout_bootstrap": 1.0,
+      "lexicon_holdout": 1.0,
+      "roles": 1.0,
+      "word_order_svo": 1.0,
+      "composite": 0.5939393939393939,
+      "blocked_at_stage": null,
+      "stages_run": [
+        "BABBLE",
+        "FIRST_WORDS",
+        "VOCABULARY_SPURT",
+        "TWO_WORD",
+        "SENTENCES"
+      ],
+      "babble_forms": 24
+    },
+    {
+      "path": "curriculum_only",
+      "train_seconds": 21.644,
+      "engine": "numpy_sparse",
+      "novel_composition": 1.0,
+      "holdout_bootstrap": 1.0,
+      "lexicon_holdout": 1.0,
+      "roles": 1.0,
+      "word_order_svo": 1.0,
+      "composite": 0.5772727272727273
+    },
+    {
+      "path": "chat_bootstrap",
+      "train_seconds": 40.103,
+      "engine": "numpy_sparse",
+      "novel_composition": 1.0,
+      "holdout_bootstrap": 1.0,
+      "lexicon_holdout": 1.0,
+      "roles": 1.0,
+      "word_order_svo": 1.0,
+      "composite": 0.5772727272727273
+    }
+  ]
+}

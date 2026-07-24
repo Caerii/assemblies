@@ -1,0 +1,121 @@
+{
+  "version": 1,
+  "updated": "2026-06-23",
+  "ref_root_env": "REF_ROOT",
+  "ref_root_default": ".reference",
+  "repos": [
+    {
+      "id": "ref_mdabagia_nemo",
+      "clone_dir": "mdabagia-nemo",
+      "url": "https://github.com/mdabagia/nemo.git",
+      "branch": "main",
+      "license": "MIT",
+      "papers": [
+        "dabagia2024coinflipping",
+        "dabagia2025sequences"
+      ],
+      "priority": "high",
+      "env_var": "REF_NEMO_PATH",
+      "site": {
+        "base": "https://dabagia.org/nemo",
+        "pages": {
+          "home": "https://dabagia.org/nemo/",
+          "assemblies": "https://dabagia.org/nemo/assemblies/",
+          "coinflipping": "https://dabagia.org/nemo/coinflipping/",
+          "sequences": "https://dabagia.org/nemo/sequences/",
+          "about": "https://dabagia.org/nemo/about/"
+        },
+        "manifest": "research/literature/reference/nemo_site.json"
+      },
+      "key_paths": {
+        "brain": "brain.py",
+        "nemo_engine": "nemo.py",
+        "demo_notebook": "nemo-demo.ipynb",
+        "coin_doc": "docs/coinflipping.markdown",
+        "sequences_doc": "docs/sequences.markdown",
+        "site_config": "docs/_config.yml"
+      },
+      "parity_gaps": [
+        "RandomChoiceArea uses softmax+noise in reference; package uses k-split",
+        "MarkovNetwork uses RefractedArea inhibition schedule not fully ported"
+      ]
+    },
+    {
+      "id": "ref_mdabagia_colt2022",
+      "clone_dir": "mdabagia-learning-with-assemblies",
+      "url": "https://github.com/mdabagia/learning-with-assemblies.git",
+      "branch": "main",
+      "license": "MIT",
+      "papers": ["dabagia2022classify"],
+      "priority": "high",
+      "env_var": "REF_COLT2022_PATH",
+      "key_paths": {
+        "readme": "README.md",
+        "mnist_notebook": "MNIST.ipynb",
+        "stimulus_classes": "Stimulus-Classes.ipynb",
+        "halfspace": "Halfspace.ipynb",
+        "brain": "brain.py"
+      },
+      "parity_gaps": [
+        "MNIST.ipynb needs local data/ folder; not run in CI",
+        "legacy/root_modules/image_learner.py is a separate hierarchical port"
+      ]
+    },
+    {
+      "id": "ref_mdabagia_santosh_hebbian",
+      "clone_dir": "mdabagia-SantoshHebbian",
+      "url": "https://github.com/mdabagia/SantoshHebbian.git",
+      "branch": "master",
+      "license": null,
+      "papers": ["papadimitriou2019random"],
+      "priority": "medium",
+      "env_var": "REF_SANTOSH_HEBBIAN_PATH",
+      "key_paths": {
+        "assembly": "assembly.py",
+        "heuristics": "heuristics.py",
+        "convergence": "calc_converge_value.py",
+        "notebook": "assembly-opt.ipynb"
+      },
+      "parity_gaps": [
+        "Convergence heuristics not integrated into neural_assemblies/tests"
+      ]
+    },
+    {
+      "id": "ref_mdabagia_ntm",
+      "clone_dir": "mdabagia-NeuralTuringMachine",
+      "url": "https://github.com/mdabagia/NeuralTuringMachine.git",
+      "branch": "master",
+      "license": null,
+      "papers": [],
+      "priority": "archive",
+      "env_var": "REF_NTM_PATH",
+      "key_paths": {
+        "notebook": "NeuralTuringMachine.ipynb",
+        "readme": "README.md"
+      },
+      "parity_gaps": ["Out of assembly calculus scope"]
+    },
+    {
+      "id": "ref_dmitropolsky_assemblies",
+      "clone_dir": "dmitropolsky-assemblies",
+      "url": "https://github.com/dmitropolsky/assemblies.git",
+      "branch": "master",
+      "license": null,
+      "papers": [
+        "papadimitriou2020brain",
+        "mitropolsky2021parser",
+        "mitropolsky2022center",
+        "dabagia2025sequences"
+      ],
+      "priority": "high",
+      "env_var": "REF_ASSEMBLIES_PATH",
+      "key_paths": {
+        "brain": "brain.py",
+        "simulations": "simulations.py",
+        "parser": "parser.py",
+        "learner": "learner.py"
+      },
+      "parity_gaps": []
+    }
+  ]
+}

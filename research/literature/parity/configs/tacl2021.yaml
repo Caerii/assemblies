@@ -1,0 +1,82 @@
+paper_id: mitropolsky2021parser
+bibkey: mitropolsky2021parser
+title: "A Biologically Plausible Parser (TACL 2021)"
+
+english:
+  p: 0.1
+  LEX_k: 20
+  non_LEX_n: 1000
+  non_LEX_k: 50
+  project_rounds: 30
+  default_beta: 0.2
+  LEX_beta: 1.0
+  recurrent_beta: 0.05
+  interarea_beta: 0.5
+  areas:
+    - LEX
+    - DET
+    - SUBJ
+    - OBJ
+    - VERB
+    - ADJ
+    - ADVERB
+    - PREP
+    - PREP_P
+    - DEPCLAUSE
+  readout: FIBER_READOUT  # alt: FIXED_MAP_READOUT
+  max_lex_targets_per_step: 2
+
+russian:
+  p: 0.1
+  LEX_k: 10
+  non_LEX_n: 1000
+  non_LEX_k: 100
+  default_beta: 0.2
+  LEX_beta: 1.0
+  recurrent_beta: 0.05
+  areas: [LEX, NOM, ACC, DAT, VERB]
+  case_paradigm:
+    kot: [NOM, ACC, DAT]  # kot / kota / kotu
+    sobaka: [NOM, ACC, DAT]  # sobaka / sobaku / sobakie
+
+pinned_sentences:
+  english:
+    - "cats chase mice"
+    - "dogs chase cats"
+    - "big cats chase mice"
+    - "cats love mice"
+    - "dogs bite cats"
+  english_center_embed:
+    - "cats chase mice that dogs chase cats , love mice"
+    - "dogs chase cats that cats bite mice , love dogs"
+  russian:
+    - "kot vidit sobaku"
+    - "sobaka vidit kota"
+    - "kot lyubit sobaku"
+    - "sobaka lyubit kota"
+    - "kot dayet kotu sobaku"
+  russian_extra_tests:
+    - "sobaku vidit kot"  # OSV
+    - "sobakie dayet kot sobaku"  # DAT-initial
+
+lexicon_untested:
+  # in LEXEME_DICT but no sentence in test suite
+  - the
+  - a
+  - people
+  - of
+  - bad
+  - run
+  - fly
+  - quickly
+  - in
+  - are
+  - man
+  - woman
+  - saw
+
+golden_artifacts:
+  benchmark: research/literature/parity/golden/tacl2021_benchmark.json  # missing — full paper list
+
+reference_repo:
+  modules: [parser.py, rule_parser.py]

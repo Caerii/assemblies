@@ -1,0 +1,57 @@
+paper_id: hoff2026epwta
+bibkey: hoff2026epwta
+title: "E%-WTA Inhibition Mechanisms (arXiv:2603.12416)"
+
+repo_implementation:
+  policy: EPercentPolicy
+  module: neural_assemblies/compute/winner_policies.py
+  maps_to: RelativeThresholdPolicy
+  tests:
+    - neural_assemblies/tests/test_literature_parity.py
+    - neural_assemblies/tests/test_epwta_gpu.py
+
+repo_defaults:
+  n: 5000
+  k: 80
+  p: 0.05
+  beta: 0.1
+  fraction_of_max: 0.35  # test_epwta_variable_size_cap uses 0.35
+  e_fraction: 0.1
+  min_winners: 1
+
+paper_simulation_params:
+  n: 1000
+  p_s: 0.5
+  p_ac_baseline: 0.1
+  p_i: 0.2
+  omega_inh: -0.2
+  tau_m_ms: 30
+  d_ms: 3
+  epsilon: 0.1  # d/tau_m → threshold (1-epsilon)*h_max
+  k_s: 200
+  k_wta_baseline: 37
+  beta_sweep: [0.001, 0.01, 0.1]
+  beta_best_epwta: 0.01
+  A_min: 6
+  n_sims_table1: 500
+  n_sims_recovery: 200
+
+metrics:
+  recovery: "|A_rec|/|A|"
+  paper_median_recovery_epwta: 1.00
+  paper_median_recovery_ac: 0.56  # vs fixed k-WTA; varies with beta
+
+figures_to_golden:
+  - "Fig 2: failure rate vs beta, omega_inh"
+  - "Fig 3a: assembly size with/without feedforward inhibition"
+  - "Fig 3b: recovery vs k-WTA"
+  - "Fig 3c-d: multi-assembly overlap matrices"
+  - "Fig 4: success vs p_s, k_s"
+
+repo_gaps:
+  - no feedforward inhibition (p_i, omega_inh)
+  - no gamma-cycle timestepping
+  - discrete projection steps only
+
+golden_artifacts:
+  size_dist: research/literature/parity/golden/hoff2026_size_dist.json  # missing

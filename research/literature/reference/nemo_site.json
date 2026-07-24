@@ -1,0 +1,211 @@
+{
+  "version": 1,
+  "updated": "2026-06-23",
+  "site_base": "https://dabagia.org/nemo",
+  "repo_source": ".reference/mdabagia-nemo/docs",
+  "note": "Live site is Jekyll build of mdabagia/nemo/docs/. No interactive demos or numeric APIs on pages.",
+  "pages": [
+    {
+      "id": "nemo_home",
+      "url": "https://dabagia.org/nemo/",
+      "repo_file": "docs/index.markdown",
+      "role": "field_bibliography",
+      "papers_chronological": [
+        "papadimitriou2019random",
+        "papadimitriou2020brain",
+        "dabagia2022classify",
+        "mitropolsky2021parser",
+        "mitropolsky2022center",
+        "damore2022planning",
+        "mitropolsky2023architecture",
+        "dabagia2025sequences",
+        "dabagia2024coinflipping"
+      ],
+      "missing_from_site": [
+        "mitropolsky2025simulated",
+        "hoff2026epwta",
+        "kopadi2026causal",
+        "ting2026speech",
+        "onasch2025dendritic"
+      ]
+    },
+    {
+      "id": "nemo_assemblies",
+      "url": "https://dabagia.org/nemo/assemblies/",
+      "repo_file": "docs/assemblies.markdown",
+      "papers": ["papadimitriou2019random", "dabagia2022classify"],
+      "claims": [
+        {
+          "claim": "Repeated k-stimulus projection converges to stable k-assembly",
+          "paper_id": "papadimitriou2019random",
+          "package": "neural_assemblies/assembly_calculus/ops.project",
+          "parity": "pinned",
+          "golden": "research/literature/parity/reference_pnas_golden.json"
+        },
+        {
+          "claim": "Similar stimuli (high overlap) still converge — linear classifier",
+          "paper_id": "dabagia2022classify",
+          "package": "neural_assemblies/programs/learn.py",
+          "parity": "partial",
+          "golden": "research/literature/parity/golden/colt2022_mnist.json"
+        }
+      ],
+      "figures": [
+        "docs/assets/images/assembly_formation.png",
+        "docs/assets/images/assembly_formation.gif"
+      ]
+    },
+    {
+      "id": "nemo_coinflipping",
+      "url": "https://dabagia.org/nemo/coinflipping/",
+      "repo_file": "docs/coinflipping.markdown",
+      "papers": ["dabagia2024coinflipping"],
+      "architecture": {
+        "coin": "context area → state area (2 outcome assemblies) + i.i.d. activation noise",
+        "probability": "softmax of context→outcome weights (NEMO params set scale)",
+        "learning": "Hebbian rule inverts softmax so empirical frequency ≈ probability",
+        "markov": "current-state area ↔ next-state area; inhibition schedule alternates areas"
+      },
+      "claims": [
+        {
+          "claim": "Fair coin via equal context→outcome weights + noise",
+          "paper_id": "dabagia2024coinflipping",
+          "reference_impl": ".reference/mdabagia-nemo/brain.py",
+          "package": "neural_assemblies/assembly_calculus/pfa.py",
+          "parity": "partial",
+          "gap": "k-split default; compete mode matches reference flip (flip_mode=compete)",
+          "golden": "research/literature/parity/golden/coin2024_demo.json"
+        },
+        {
+          "claim": "RandomChoiceArea compete flip (reference nemo flip)",
+          "paper_id": "dabagia2024coinflipping",
+          "package": "neural_assemblies/assembly_calculus/pfa.py",
+          "parity": "pinned",
+          "golden": "research/literature/parity/golden/coin2024_compete.json"
+        },
+        {
+          "claim": "Context→outcome softmax-style coin with activation noise",
+          "paper_id": "dabagia2024coinflipping",
+          "package": "neural_assemblies/assembly_calculus/pfa.py",
+          "parity": "pinned",
+          "golden": "research/literature/parity/golden/coin2024_softmax.json",
+          "gap": "learn_from_frequencies Hebbian calibration; full softmax inversion partial"
+        },
+        {
+          "claim": "Markov chain sampling via repeated coin-flip transitions",
+          "paper_id": "dabagia2024coinflipping",
+          "reference_impl": ".reference/mdabagia-nemo/brain.py FSMNetwork/MarkovNetwork",
+          "package": "neural_assemblies/programs/markov_coin.py",
+          "parity": "pinned",
+          "golden": "research/literature/parity/golden/coin2024_markov_arc.json"
+        }
+      ],
+      "figures": [
+        "docs/assets/images/assembly_coinflip_context.png",
+        "docs/assets/images/assembly_markov_chain.png"
+      ],
+      "demo_notebook": "nemo-demo.ipynb"
+    },
+    {
+      "id": "nemo_sequences",
+      "url": "https://dabagia.org/nemo/sequences/",
+      "repo_file": "docs/sequences.markdown",
+      "papers": ["dabagia2025sequences"],
+      "architecture": {
+        "simple_memorize": "input area + main area; distinct stimulus per timestep",
+        "scaffold": "auxiliary area bidirectionally linked to main (ScaffoldNetwork)",
+        "fsm": "symbol area + state area + arc area (symbol×state pairs → next state)",
+        "tm": "FSM transducer + tape (completeness demo, not cognitive claim)"
+      },
+      "site_experiments": {
+        "scaffold_vs_simple": {
+          "sequence_length": 20,
+          "metric": "recall last item given first item only",
+          "figure": "docs/assets/images/single_vs_scaffold.png"
+        },
+        "fsm_demo": {
+          "task": "mod-3 digit sum recognizer",
+          "figure": "docs/assets/images/fsm_0modthree.png",
+          "animation": "docs/assets/images/fsm_animation.gif"
+        }
+      },
+      "claims": [
+        {
+          "claim": "Sequence memorization after few repetitions; partial cue recall",
+          "paper_id": "dabagia2025sequences",
+          "package": "neural_assemblies/assembly_calculus/ops.sequence_memorize",
+          "parity": "partial"
+        },
+        {
+          "claim": "Scaffold area speeds memorization vs simple two-area",
+          "paper_id": "dabagia2025sequences",
+          "reference_impl": ".reference/mdabagia-nemo/brain.py ScaffoldNetwork",
+          "package": "neural_assemblies/reference/nemo_numpy + assembly_calculus/scaffold.py",
+          "parity": "pinned",
+          "golden": "research/literature/parity/golden/nemo2025_scaffold.json",
+          "note": "numpy demo for parity; Brain ScaffoldNetwork for training API"
+        },
+        {
+          "claim": "FSM simulation via symbol/state/arc areas",
+          "paper_id": "dabagia2025sequences",
+          "package": "neural_assemblies/programs/nemo_fsm.py",
+          "parity": "partial"
+        },
+        {
+          "claim": "Mod-3 digit-sum FSM recognizer (nemo-demo.ipynb)",
+          "paper_id": "dabagia2025sequences",
+          "package": "neural_assemblies/programs/mod3_fsm.py",
+          "parity": "pinned",
+          "golden": "research/literature/parity/golden/nemo2025_fsm_mod3.json",
+          "cross_backend": "research/literature/parity/golden/nemo2025_fsm_mod3_numpy.json"
+        },
+        {
+          "claim": "FSM inferred from transition traces (table lookup)",
+          "paper_id": "dabagia2025sequences",
+          "package": "neural_assemblies/assembly_calculus/fsm.py",
+          "parity": "pinned"
+        },
+        {
+          "claim": "Ordered recall with LRI after memorization",
+          "paper_id": "dabagia2025sequences",
+          "package": "neural_assemblies/assembly_calculus/ops.ordered_recall",
+          "parity": "partial",
+          "golden": "research/literature/parity/golden/ (item-0 only in CI)"
+        },
+        {
+          "claim": "Turing machine tape demo",
+          "paper_id": "dabagia2025sequences",
+          "package": "neural_assemblies/programs/tm_demo.py",
+          "parity": "partial"
+        }
+      ],
+      "figures": [
+        "docs/assets/images/simple_seq.png",
+        "docs/assets/images/scaffold_seq.png",
+        "docs/assets/images/seq_animation.gif",
+        "docs/assets/images/single_vs_scaffold.png",
+        "docs/assets/images/fsm.png",
+        "docs/assets/images/fsm_0modthree.png",
+        "docs/assets/images/fsm_animation.gif"
+      ]
+    },
+    {
+      "id": "nemo_about",
+      "url": "https://dabagia.org/nemo/about/",
+      "repo_file": "docs/about.markdown",
+      "role": "model_spec",
+      "core_mechanisms": [
+        "sparse random directed connectivity between areas",
+        "k-winners-take-all per area per timestep",
+        "Hebbian plasticity (i fires then j → strengthen w_ij)",
+        "periodic area-wide inhibition (rhythmic abstraction)",
+        "optional: inhibition gated by designated neuron sets (TM construction)"
+      ],
+      "maps_to_package": [
+        "neural_assemblies/core/brain.py",
+        "neural_assemblies/compute/winner_selection.py",
+        "neural_assemblies/assembly_calculus/ops.py"
+      ]
+    }
+  ]
+}

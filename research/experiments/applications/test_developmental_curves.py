@@ -53,8 +53,8 @@ from scipy import stats as scipy_stats
 
 from research.experiments.base import ExperimentBase, ExperimentResult, summarize, ttest_vs_null
 from neural_assemblies.assembly_calculus.emergent import EmergentParser
-from neural_assemblies.assembly_calculus.emergent.grounding import GroundingContext
-from neural_assemblies.assembly_calculus.emergent.training_data import GroundedSentence, generate_training_sentences
+from neural_assemblies.assembly_calculus.emergent.core.grounding import GroundingContext
+from neural_assemblies.assembly_calculus.emergent.curriculum.data import GroundedSentence, generate_training_sentences
 from neural_assemblies.assembly_calculus.emergent.vocabulary_builder import build_vocabulary
 
 

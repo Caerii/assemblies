@@ -1,0 +1,58 @@
+paper_id: kopadi2026causal
+bibkey: kopadi2026causal
+title: "Causal Learning with Neural Assemblies / DIRECT (arXiv:2604.26919)"
+
+repo_toy_pinned:
+  n: 5000
+  k: 80
+  p: 0.05
+  beta: 0.1
+  rounds: 8
+  probe_rounds: 5
+  direct_bind_rounds: 8
+  asymmetry_min_forward: 0.1
+  do_calculus_min_fraction: 0.45  # do(effect) preserves ≥45% forward overlap
+
+repo_implementation:
+  module: neural_assemblies/programs/direct.py
+  asymmetry: fixed projection counts (effect gets max(2, rounds//3))
+  readout: overlap-based
+
+paper_training_schedule:
+  name: adaptive_soft
+  warm_beta: 0.09
+  max_beta: 0.16
+  bind_beta: 0.16
+  ramp_steps: 20
+  overlap_thr: null  # stability gate — extract from paper
+  stable_window: consecutive rounds
+  g_dir: ">1 forward gain during binding"
+  bind_exposures: bounded co-activation episodes
+
+paper_readouts:
+  synaptic_delta: "S_fwd - S_rev (connectome asymmetry)"
+  propagation_delta: "overlap(u→v) - overlap(v→u)"
+  metrics: [Precision@K, Recall@K]
+  target_precision_alzheimer: 1.0
+
+paper_graphs:
+  alzheimer_scm:
+    n_variables: 10
+    n_directed_links: 12
+    figure: Fig 10
+  education_dropout_scm: true
+  perturbation_suites:
+    R1: source perturbation
+    R2: binding-local
+    R3: encoding-separation
+    separation_factors: [6.7, 10, 15]
+    seeds: 6
+
+pearl_battery:
+  backdoor_ate: "E[Y|do(X=x)] = Σ_z E[Y|X=x,Z=z]P(Z=z)"
+  counterfactual: factual vs counterfactual direction consistency
+  figures: [9, 10, 11]
+
+golden_artifacts:
+  pearl: research/literature/parity/golden/direct2026_pearl.json  # missing
+  graphs: research/literature/parity/golden/direct2026_graphs/  # missing

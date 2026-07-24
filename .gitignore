@@ -93,3 +93,6 @@ crates/target/
 # Large downloadable datasets (MNIST / Fashion-MNIST CSV + raw idx dumps)
 data/mnist/
 data/fashion_mnist/
+
+# Downloaded literature PDFs (fetched, not repo content)
+research/literature/papers/*.pdf

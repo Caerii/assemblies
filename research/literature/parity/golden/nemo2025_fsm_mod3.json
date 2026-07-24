@@ -1,0 +1,26 @@
+{
+  "protocol": "nemo2025_fsm_mod3",
+  "source": "neural_assemblies NemoArcFSM mod-3 digit-sum recognizer (nemo-demo.ipynb)",
+  "demo_url": "http://dabagia.org/nemo/sequences/",
+  "recorded": "2026-06-23",
+  "parameters": {
+    "seed": 42,
+    "n": 2000,
+    "k": 40,
+    "beta": 0.1,
+    "rounds": 6,
+    "presentations": 15,
+    "positive_sequence": [3, 0, 4, 7, 1, 10],
+    "negative_sequence": [6, 7, 3, 10]
+  },
+  "metrics": {
+    "positive_accepted": true,
+    "negative_rejected": true,
+    "positive_final_state": "accept",
+    "positive_trajectory": ["0", "0", "0", "1", "2", "0", "accept"]
+  },
+  "expected": {
+    "positive_accepted": true,
+    "negative_rejected": true
+  }
+}

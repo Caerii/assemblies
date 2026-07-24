@@ -1,0 +1,32 @@
+{
+  "protocol": "direct2026_pearl",
+  "source": "neural_assemblies.programs.direct (seed=42)",
+  "recorded": "2026-06-23",
+  "paper_figures": {
+    "fig9": "Ground-truth Alzheimer DAG vs learned structure",
+    "fig10": "Interventional ATE sign/magnitude match",
+    "fig11": "Counterfactual direction consistency"
+  },
+  "parameters": {
+    "seed": 42,
+    "n": 5000,
+    "k": 80,
+    "p": 0.05,
+    "beta": 0.1,
+    "rounds": 8,
+    "engine": "numpy_sparse"
+  },
+  "metrics": {
+    "forward_overlap": 0.5875,
+    "reverse_overlap": 0.6,
+    "do_effect_forward_overlap": 0.925,
+    "forward_reverse_ratio": 0.9792
+  },
+  "thresholds": {
+    "forward_overlap_min": 0.1,
+    "reverse_overlap_min": 0.0,
+    "do_effect_forward_min_fraction_of_forward": 0.45
+  },
+  "paper_claims_note": "Full Alzheimer DAG recovery requires tabular SCM pipeline; this golden pins toy DIRECT binding asymmetry + do-calculus readout.",
+  "config_ref": "parity/configs/direct2026.yaml"
+}
