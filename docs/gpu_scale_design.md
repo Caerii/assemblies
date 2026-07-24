@@ -184,6 +184,32 @@ is also smaller now that batching already amortizes it across B, so this is
 correctly last. What remains before it is worthwhile: preallocate the drive/act/CSR
 buffers and update weights in place, then wrap the steady-state loop in a graph.
 
+## 5a. Language integration — batched next-token (landed)
+
+The first real language-scale payoff: `next_token.score_corpus` runs one *frozen*
+prediction per corpus position, each independent of the others, so they batch
+through the one shared connectome exactly like Phase 2. `BatchedLM`
+(`assembly_calculus/batched_next_token.py`) extracts a trained brain's frozen
+LEX→LEX connectome + per-word stimulus drive + vocabulary lexicon (baking the
+frozen norm_init 1/d_j scale in), then drives B context prefixes through it as one
+`[B, n]` activity tensor — one SpMM + one `topk` per step, one matmul for readout.
+It replicates `_predict_next_token_inner` step-for-step, so predictions match the
+sequential path and it runs **~50× faster** (RTX 3080).
+
+This surfaced a real correctness point: **prediction was not truly read-only** —
+even frozen (no plasticity), the sparse engine samples candidates and materializes
+new neurons, so the connectome mutated mid-scoring and predictions were
+nondeterministic. Added a `readonly` engine mode that suppresses candidate
+sampling (select only among materialized neurons) — inference no longer grows the
+brain, prediction is deterministic, and there is a fixed connectome to batch over.
+With it, batched matches sequential to ~100% (residual is GPU float
+non-determinism in `scatter_add`/SpMM tie-breaking, not systematic).
+
+Targets the production `norm_init=True` substrate. Use case: fast corpus scoring
+(perplexity/accuracy over a large corpus), beam/sample generation over B
+candidates. Tests: `test_batched_next_token.py` (agreement, score-corpus parity,
+readonly-prevents-materialization).
+
 ## 5b. What's productionized vs. what remains
 
 Landed and tested (43 + 12 GPU tests): the Phase-0 engine fixes, dense-drive mode

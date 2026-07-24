@@ -87,6 +87,11 @@ class TorchSparseEngine(ComputeEngine):
         # More arithmetic than the sparse path -- deliberately, so it is
         # GPU-parallel and, with a fixed [n] drive, batchable (Lever B).
         self.dense_drive = bool(kwargs.get("dense_drive", False))
+        # Read-only inference: suppress candidate sampling so a projection never
+        # materializes new neurons (select only among already-materialized ones).
+        # Inference should not mutate the brain; this also makes prediction
+        # deterministic and gives a fixed connectome to batch over (BatchedLM).
+        self.readonly = bool(kwargs.get("readonly", False))
         self._rng = np.random.default_rng(seed)
         self._plasticity_enabled_global = True
         self._global_seed = seed
@@ -510,7 +515,12 @@ class TorchSparseEngine(ComputeEngine):
             [self._stimuli[s].size for s in from_stimuli]
             + [self._areas[a].k for a in from_areas])
 
-        if self.dense_drive:
+        if self.readonly:
+            # No new candidates -> topk selects only among materialized neurons,
+            # so the projection never grows the area (deterministic inference).
+            potential_new = torch.empty(0, dtype=torch.float32,
+                                        device=self._device)
+        elif self.dense_drive:
             # Score EVERY unmaterialized neuron, not just k order statistics, so
             # the subsequent topk over n is exact (Lever A). See
             # _sample_dense_candidates and docs/gpu_scale_design.md.
