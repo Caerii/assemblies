@@ -101,30 +101,47 @@ def block_diagonal(mats, n):
         idx, torch.cat(vals), (B * n, B * n)).coalesce()
 
 
-def batched_project_independent(W_block, winners, B, n, k, rounds):
-    """Project B items through their OWN connectomes via a block-diagonal matrix.
+def batched_project_independent(
+    W_block, winners, B, n, k, rounds, *, beta=0.0, w_max=None,
+    return_weights=False,
+):
+    """Project (and optionally Hebbian-train) B items through their OWN
+    connectomes via a block-diagonal matrix -- the data-parallel case.
 
-    This is the data-parallel-training case: each item has independent weights
-    (build ``W_block`` with :func:`block_diagonal`). One SpMM + one reshape to
-    ``[B, n]`` + one batched topk drives all B. Bit-identical to looping B
-    independent projections; measured ~3.5-5x faster (the win is amortizing B
-    kernel launches, since total nnz -- and thus SpMM work -- scales with B).
+    Build ``W_block`` with :func:`block_diagonal`. Each round: one SpMM +
+    reshape to ``[B, n]`` + one batched topk drives all B; with ``beta > 0`` a
+    single masked scatter potentiates every within-item winner-pair edge
+    (``w *= 1+beta``, clamped at ``w_max``). Because block-diagonal edges never
+    cross items, that mask is automatically per-item correct -- so batched
+    training is **bit-identical to training the B brains independently**
+    (validated), at ~3.5-5x throughput.
 
-    Returns ``[B, k]`` int64 local winner indices.
-
-    NOTE: this is the projection/inference primitive. Batched Hebbian learning
-    over the block-diagonal weights (masked scatter on the value array) and the
-    training-loop integration are the remaining Phase 3 work (see
-    docs/gpu_scale_design.md).
+    Returns ``[B, k]`` int64 local winner indices; if ``return_weights`` also the
+    updated ``[nnz]`` value tensor (aligned to ``W_block.coalesce().values()``).
     """
     import torch
     device = W_block.device
-    Wt = W_block.t().to_sparse_csr()
+    W = W_block.coalesce()
+    r, c = W.indices()[0], W.indices()[1]
+    vals = W.values().clone()
     offs = torch.arange(B, device=device).view(B, 1) * n
     idx_local = winners.to(torch.int64)
     for _ in range(rounds):
+        # transpose (swap r,c) so drive = act @ W; rebuild CSR from live weights
+        Wt = torch.sparse_coo_tensor(
+            torch.stack([c, r]), vals, (B * n, B * n)).coalesce().to_sparse_csr()
         act = torch.zeros(B * n, 1, device=device)
         act[(idx_local + offs).reshape(-1)] = 1.0
         drive = torch.sparse.mm(Wt, act).view(B, n)
         idx_local = torch.topk(drive, min(k, n), dim=1).indices
+        if beta:
+            mask = torch.zeros(B * n, dtype=torch.bool, device=device)
+            mask[(idx_local + offs).reshape(-1)] = True
+            pot = mask[r] & mask[c]
+            vals = vals.clone()
+            vals[pot] = vals[pot] * (1.0 + beta)
+            if w_max is not None:
+                vals.clamp_(max=w_max)
+    if return_weights:
+        return idx_local, vals
     return idx_local

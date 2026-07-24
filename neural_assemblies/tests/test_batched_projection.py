@@ -137,3 +137,39 @@ class TestBlockDiagonalIndependent:
             ref = _project_one(mats[b], winners[b], k, rounds)
             assert set(batched[b].tolist()) == set(ref.tolist()), (
                 f"item {b}: block-diagonal != independent looped")
+
+    def test_batched_hebbian_matches_independent_training(self):
+        import torch
+        from neural_assemblies.core.torch_engine._batched import (
+            block_diagonal, batched_project_independent,
+        )
+
+        n, p, k, rounds, B, beta = 3000, 0.01, 80, 6, 6, 0.1
+        mats = [_rand_csr(n, p, seed=300 + b) for b in range(B)]
+        W_block = block_diagonal(mats, n)
+        torch.manual_seed(11)
+        winners = torch.randint(0, n, (B, k), device="cuda")
+
+        batched = batched_project_independent(
+            W_block, winners, B, n, k, rounds, beta=beta)
+
+        # independent reference: train each brain on its own with Hebbian
+        for b in range(B):
+            W = mats[b].to_sparse_coo().coalesce()
+            r, c = W.indices()[0], W.indices()[1]
+            vals = W.values().clone()
+            idx = winners[b]
+            for _ in range(rounds):
+                Wt = torch.sparse_coo_tensor(
+                    torch.stack([c, r]), vals, (n, n)).coalesce().to_sparse_csr()
+                act = torch.zeros(n, 1, device="cuda")
+                act[idx] = 1.0
+                drive = torch.sparse.mm(Wt, act).view(1, n)
+                idx = torch.topk(drive, k, dim=1).indices.view(-1)
+                mask = torch.zeros(n, dtype=torch.bool, device="cuda")
+                mask[idx] = True
+                pot = mask[r] & mask[c]
+                vals = vals.clone()
+                vals[pot] = vals[pot] * (1.0 + beta)
+            assert set(batched[b].tolist()) == set(idx.tolist()), (
+                f"item {b}: batched Hebbian != independent training")
