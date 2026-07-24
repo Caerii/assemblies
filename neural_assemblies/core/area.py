@@ -73,6 +73,9 @@ class Area:
         inhibition_strength: float = 0.0,
         refracted: bool = False,
         refracted_strength: float = 0.0,
+        winner_policy=None,
+        input_noise_std: float = 0.0,
+        slot_count: int = 0,
     ):
         """
         Initializes the Area.
@@ -102,6 +105,9 @@ class Area:
         self.inhibition_strength = inhibition_strength
         self.refracted = refracted
         self.refracted_strength = refracted_strength
+        self.winner_policy = winner_policy
+        self.input_noise_std = input_noise_std
+        self.slot_count = int(slot_count)
 
         xp = get_xp()
         self._winners = xp.array([], dtype=xp.uint32)

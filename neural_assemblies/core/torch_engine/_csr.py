@@ -13,6 +13,8 @@ from ._hash import WEIGHT_DTYPE, csr_flat_indices
 class CSRConn:
     """CSR-format area->area connectivity on GPU."""
 
+    sparse = True  # protocol flag: not a dense Connectome bridge
+
     def __init__(self, device='cuda'):
         self._device = device
         self._nrows = 0
@@ -93,6 +95,17 @@ class CSRConn:
 
     def _rebuild_csr(self, nrows, ncols, rows, cols, vals):
         """Build CSR from COO, deduplicating (last value wins)."""
+        if len(rows) > 0:
+            nrows = max(nrows, int(rows.long().max().item()) + 1)
+            ncols = max(ncols, int(cols.long().max().item()) + 1)
+            valid = (
+                (rows >= 0) & (rows < nrows)
+                & (cols >= 0) & (cols < ncols)
+            )
+            if not bool(valid.all()):
+                rows = rows[valid]
+                cols = cols[valid]
+                vals = vals[valid]
         self._nrows = nrows
         self._ncols = ncols
         if len(rows) == 0:

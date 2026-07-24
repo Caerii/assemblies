@@ -27,6 +27,9 @@ class SparseAreaState:
     refracted: bool = False
     refracted_strength: float = 0.0
     _cumulative_bias: object = None         # xp float32 array, length w
+    winner_policy: object = None
+    input_noise_std: float = 0.0
+    explicit_source: bool = False  # winners are real neuron IDs (explicit area)
 
     def __post_init__(self):
         from collections import deque
@@ -54,6 +57,7 @@ class ExplicitAreaState:
     num_ever_fired: int = 0
     fixed_assembly: bool = False
     beta_by_source: dict = field(default_factory=dict)
+    slot_count: int = 0
 
     def __post_init__(self):
         xp = get_xp()

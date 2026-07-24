@@ -110,3 +110,22 @@ def detect_best_engine(n_hint: int = 0) -> str:
     if n_hint >= _TORCH_SPARSE_THRESHOLD and _detect_torch_cuda():
         return "torch_sparse"
     return "numpy_sparse"
+
+
+def detect_fastest_engine() -> str:
+    """Return the fastest available sparse engine (GPU when CUDA is present)."""
+    if _detect_torch_cuda():
+        return "torch_sparse"
+    return "numpy_sparse"
+
+
+def resolve_mixed_engine(engine: str) -> str:
+    """Engine for brains that mix explicit and sparse areas (e.g. TACL LEX + grammar).
+
+    Dense explicit↔sparse bridges require ``Connectome(sparse=False)`` on the
+    sparse engine via ``set_dense_area_conn``.  Auto-selection therefore prefers
+    ``numpy_sparse``, which is the validated path for literature parser parity.
+    """
+    if engine in ("auto", ""):
+        return "numpy_sparse"
+    return engine

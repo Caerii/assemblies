@@ -14,9 +14,9 @@ from ..engine import ComputeEngine, ProjectionResult
 from ..connectome import Connectome
 
 try:
-    from ...compute.winner_selection import WinnerSelector
+    from ...compute.winner_selection import WinnerSelector, select_slot_winners
 except ImportError:
-    from compute.winner_selection import WinnerSelector
+    from compute.winner_selection import WinnerSelector, select_slot_winners
 
 from ._state import ExplicitAreaState, StimulusState
 
@@ -44,8 +44,10 @@ class NumpyExplicitEngine(ComputeEngine):
 
     def add_area(self, name: str, n: int, k: int, beta: float,
                  refractory_period: int = 0,
-                 inhibition_strength: float = 0.0) -> None:
-        area = ExplicitAreaState(name=name, n=n, k=k, beta=beta)
+                 inhibition_strength: float = 0.0,
+                 slot_count: int = 0) -> None:
+        area = ExplicitAreaState(name=name, n=n, k=k, beta=beta,
+                                 slot_count=slot_count)
         self._areas[name] = area
 
         for stim_name, stim in self._stimuli.items():
@@ -79,6 +81,7 @@ class NumpyExplicitEngine(ComputeEngine):
         from_areas: List[str],
         plasticity_enabled: bool = True,
         record_activation: bool = False,
+        external_drive: np.ndarray | None = None,
     ) -> ProjectionResult:
         xp = get_xp()
         tgt = self._areas[target]
@@ -115,10 +118,21 @@ class NumpyExplicitEngine(ComputeEngine):
             if src.winners.size > 0:
                 prev_winner_inputs += conn.weights[src.winners].sum(axis=0)
 
-        # Select top-k winners
-        winners, _, _, _ = self._winner_sel.select_combined_winners(
-            prev_winner_inputs, tgt.w, tgt.k,
-        )
+        if external_drive is not None and len(external_drive) == tgt.n:
+            prev_winner_inputs += xp.asarray(
+                external_drive, dtype=xp.float32,
+            )
+
+        # Explicit areas index global neuron ids 0..n-1; do not remap to sparse
+        # contiguous slots (that path is for refractory sparse areas only).
+        if tgt.slot_count and tgt.slot_count > 1:
+            winners = select_slot_winners(
+                prev_winner_inputs, tgt.k, tgt.slot_count,
+            )
+        else:
+            _, _, _, winners = self._winner_sel.select_combined_winners(
+                prev_winner_inputs, tgt.n, tgt.k,
+            )
 
         # Apply plasticity
         if plasticity_enabled and self._plasticity_enabled_global:

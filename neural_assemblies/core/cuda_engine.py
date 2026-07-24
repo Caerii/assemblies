@@ -334,8 +334,8 @@ class CudaImplicitEngine(NumpySparseEngine):
                         log_rows, needed_rows, log_cols, needed_cols,
                         pair_seed, self.p)
 
-                conn._log_rows = needed_rows
-                conn._log_cols = needed_cols
+                conn._log_rows = max(getattr(conn, '_log_rows', 0), needed_rows)
+                conn._log_cols = max(getattr(conn, '_log_cols', 0), needed_cols)
 
             # Write specific allocations for first-time winners
             from_index = inputs_names.index(src_name)

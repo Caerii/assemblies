@@ -24,12 +24,17 @@ from typing import Dict, List
 
 import torch
 
+from ..connectome import Connectome
 from ..engine import ComputeEngine, ProjectionResult
 
 try:
     from ...compute.sparse_simulation import SparseSimulationEngine
+    from ...compute.winner_selection import WinnerSelector
+    from ...compute.winner_policies import TopKPolicy
 except ImportError:
     from compute.sparse_simulation import SparseSimulationEngine
+    from compute.winner_selection import WinnerSelector
+    from compute.winner_policies import TopKPolicy
 
 from ._hash import (
     WEIGHT_DTYPE, fnv1a_pair_seed, hash_stim_counts,
@@ -84,10 +89,13 @@ class TorchSparseEngine(ComputeEngine):
         self._stim_conns: Dict[str, Dict[str, TorchConn]] = defaultdict(dict)
         # Connectivity: src_area -> tgt_area -> CSRConn (2-D weights)
         self._area_conns: Dict[str, Dict[str, CSRConn]] = defaultdict(dict)
+        # Dense explicit→sparse edges (Connectome objects, not CSR)
+        self._dense_area_conns: Dict[str, Dict[str, Connectome]] = defaultdict(dict)
 
         # Reusable CPU math primitives (truncated normal, input splits)
         self._sparse_sim = SparseSimulationEngine(
             np.random.default_rng(seed))
+        self._winner_sel = WinnerSelector(self._rng)
 
     # -- Pair seed derivation -----------------------------------------------
 
@@ -98,15 +106,30 @@ class TorchSparseEngine(ComputeEngine):
                 self._global_seed, source, target)
         return self._pair_seeds[key]
 
+    def set_dense_area_conn(self, src: str, tgt: str, conn: Connectome) -> None:
+        """Install a dense connectome for explicit→sparse cross-engine edges."""
+        self._dense_area_conns[src][tgt] = conn
+
+    def _dense_weights(self, conn: Connectome) -> torch.Tensor:
+        w = conn.weights
+        if isinstance(w, torch.Tensor):
+            return w.float()
+        return torch.from_numpy(np.asarray(w, dtype=np.float32)).to(self._device)
+
     # -- Registration -------------------------------------------------------
 
     def add_area(self, name: str, n: int, k: int, beta: float,
                  refractory_period: int = 0,
-                 inhibition_strength: float = 0.0) -> None:
+                 inhibition_strength: float = 0.0,
+                 winner_policy=None,
+                 input_noise_std: float = 0.0) -> None:
         area = TorchAreaState(
             name=name, n=n, k=k, beta=beta,
             refractory_period=refractory_period,
-            inhibition_strength=inhibition_strength)
+            inhibition_strength=inhibition_strength,
+            winner_policy=winner_policy,
+            input_noise_std=input_noise_std,
+        )
         if n > LAZY_ID_THRESHOLD:
             area._lazy_ids = True
             area._used_ids = set()
@@ -209,6 +232,79 @@ class TorchSparseEngine(ComputeEngine):
 
         return samples
 
+    def _bootstrap_from_explicit_dense(
+        self,
+        target: str,
+        dense_act: torch.Tensor,
+        from_stimuli: List[str],
+        from_areas: List[str],
+        plasticity_enabled: bool = True,
+        rng=None,
+        record_activation: bool = False,
+    ) -> ProjectionResult:
+        """First assembly in a sparse area driven by explicit-source dense input."""
+        tgt = self._areas[target]
+        if rng is None:
+            rng = np.random.default_rng(self._rng.integers(0, 2**32))
+
+        act = dense_act.float().clone()
+        for stim in from_stimuli:
+            stim_conn = self._stim_conns[stim][target]
+            if not stim_conn.sparse and len(stim_conn.weights) > 0:
+                act += stim_conn.weights.float().sum()
+
+        policy = tgt.winner_policy or TopKPolicy(k=tgt.k)
+        act_cpu = act.detach().cpu().numpy().astype(np.float64)
+        if tgt.input_noise_std > 0:
+            act_cpu = act_cpu + rng.normal(
+                0.0, tgt.input_noise_std, size=act_cpu.shape,
+            )
+        neuron_ids = self._winner_sel.select_with_policy(act_cpu, policy)
+        neuron_ids = [int(i) for i in neuron_ids]
+        compact = list(range(len(neuron_ids)))
+        tgt.compact_to_neuron_id = list(neuron_ids)
+        if tgt.neuron_id_pool is not None:
+            tgt.neuron_id_pool_ptr = len(neuron_ids)
+
+        if plasticity_enabled and self._plasticity_enabled_global:
+            for src_name in from_areas:
+                dense_conn = self._dense_area_conns.get(src_name, {}).get(target)
+                if dense_conn is None:
+                    continue
+                src = self._areas[src_name]
+                if not getattr(src, "explicit_source", False):
+                    continue
+                beta = tgt.beta_by_source.get(src_name, tgt.beta)
+                if beta > 0:
+                    valid_rows = src.winners.long()
+                    valid_rows = valid_rows[valid_rows < dense_conn.weights.shape[0]]
+                    if len(valid_rows) > 0 and len(neuron_ids) > 0:
+                        dense_conn.update_weights(
+                            valid_rows.cpu().numpy(),
+                            neuron_ids,
+                            beta,
+                        )
+
+        tgt.winners = torch.tensor(
+            compact, dtype=torch.int32, device=self._device,
+        )
+        tgt.w = len(compact)
+        total_act = float(act[neuron_ids].sum().item()) if neuron_ids else 0.0
+
+        result = ProjectionResult(
+            winners=np.array(compact, dtype=np.uint32),
+            num_first_winners=len(compact),
+            num_ever_fired=len(compact),
+            total_activation=total_act,
+        )
+        if record_activation:
+            result.pre_kwta_inputs = act.detach().cpu().numpy().astype(
+                np.float32, copy=True,
+            )
+            result.pre_kwta_prev_only = np.zeros(0, dtype=np.float32)
+            result.pre_kwta_total = float(act.sum().item())
+        return result
+
     # -- Projection (core operation) ----------------------------------------
 
     def project_into(self, target, from_stimuli, from_areas,
@@ -217,9 +313,14 @@ class TorchSparseEngine(ComputeEngine):
         rng = np.random.default_rng(self._rng.integers(0, 2**32))
 
         # Filter sourceless areas
-        from_areas = [a for a in from_areas
-                      if self._areas[a].winners.numel() > 0
-                      and self._areas[a].w > 0]
+        from_areas = [
+            a for a in from_areas
+            if self._areas[a].winners.numel() > 0
+            and (
+                self._areas[a].w > 0
+                or getattr(self._areas[a], "explicit_source", False)
+            )
+        ]
 
         # Fixed assembly — short-circuit
         if tgt.fixed_assembly:
@@ -238,6 +339,7 @@ class TorchSparseEngine(ComputeEngine):
         # --- Accumulate inputs from previous winners ---
         prev_winner_inputs = torch.zeros(
             tgt.w, dtype=torch.float32, device=self._device)
+        explicit_dense_act = None
 
         limit = tgt.w
         for stim in from_stimuli:
@@ -247,14 +349,53 @@ class TorchSparseEngine(ComputeEngine):
                 prev_winner_inputs[:end] += stim_w[:end].float()
 
         for src_name in from_areas:
+            src = self._areas[src_name]
+            dense_conn = self._dense_area_conns.get(src_name, {}).get(target)
+            if dense_conn is not None and getattr(src, "explicit_source", False):
+                w = self._dense_weights(dense_conn)
+                valid = src.winners.long()
+                valid = valid[valid < w.shape[0]]
+                if len(valid) == 0:
+                    continue
+                if tgt.w == 0:
+                    contrib = w[valid].sum(dim=0)
+                    if explicit_dense_act is None:
+                        explicit_dense_act = contrib
+                    else:
+                        explicit_dense_act += contrib
+                    continue
+                if tgt.compact_to_neuron_id:
+                    id_t = torch.tensor(
+                        tgt.compact_to_neuron_id,
+                        dtype=torch.long,
+                        device=self._device,
+                    )
+                    valid_cols = id_t[id_t < w.shape[1]]
+                    if len(valid_cols) > 0:
+                        contrib = w[valid][:, valid_cols].sum(dim=0)
+                        end = min(limit, len(contrib))
+                        if end > 0:
+                            prev_winner_inputs[:end] += contrib[:end]
+                continue
+
             csr = self._area_conns[src_name][target]
             if csr.nnz == 0:
                 continue
-            src = self._areas[src_name]
             contrib = csr.accumulate_rows(src.winners.long(), limit)
             end = min(limit, len(contrib))
             if end > 0:
                 prev_winner_inputs[:end] += contrib[:end]
+
+        if explicit_dense_act is not None and tgt.w == 0:
+            return self._bootstrap_from_explicit_dense(
+                target,
+                explicit_dense_act,
+                from_stimuli,
+                from_areas,
+                plasticity_enabled=plasticity_enabled,
+                rng=rng,
+                record_activation=record_activation,
+            )
 
         # Zero signal — preserve current assembly
         if prev_winner_inputs.numel() > 0 and not prev_winner_inputs.any():
@@ -332,14 +473,20 @@ class TorchSparseEngine(ComputeEngine):
                 np.float32).copy()
             _pre_kwta_total_val = float(all_inputs.sum().item())
 
-        # --- Select top-k winners (torch.topk — single fused kernel) ---
-        k = tgt.k
-        if k >= len(all_inputs):
-            winners_gpu = torch.arange(len(all_inputs), dtype=torch.int32,
-                                       device=self._device)
-        else:
-            _, top_idx = torch.topk(all_inputs, k, sorted=True)
-            winners_gpu = top_idx.int()
+        # --- Select winners (policy-aware or default top-k) ---
+        policy = tgt.winner_policy or TopKPolicy(k=tgt.k)
+        inputs_cpu = all_inputs.detach().cpu().numpy().astype(np.float64)
+        if tgt.input_noise_std > 0:
+            inputs_cpu = inputs_cpu + rng.normal(
+                0.0, tgt.input_noise_std, size=inputs_cpu.shape,
+            )
+        winner_indices = self._winner_sel.select_with_policy(inputs_cpu, policy)
+        winners_gpu = torch.tensor(
+            [int(i) for i in winner_indices],
+            dtype=torch.int32,
+            device=self._device,
+        )
+        k = int(winners_gpu.numel())
 
         # --- Process first-time winners ---
         first_mask = winners_gpu.long() >= tgt.w
@@ -435,6 +582,30 @@ class TorchSparseEngine(ComputeEngine):
                 conn.weights.clamp_(0, self.w_max)
 
         for src_name in from_areas:
+            dense_conn = self._dense_area_conns.get(src_name, {}).get(target)
+            if dense_conn is not None and getattr(
+                self._areas[src_name], "explicit_source", False,
+            ):
+                beta = tgt.beta_by_source.get(src_name, tgt.beta)
+                if beta > 0:
+                    src = self._areas[src_name]
+                    valid_rows = src.winners.long()
+                    valid_rows = valid_rows[
+                        valid_rows < dense_conn.weights.shape[0]
+                    ]
+                    neuron_ids = [
+                        tgt.compact_to_neuron_id[int(w)]
+                        for w in winners_gpu.cpu().tolist()
+                        if int(w) < tgt.w
+                    ]
+                    if len(valid_rows) > 0 and len(neuron_ids) > 0:
+                        dense_conn.update_weights(
+                            valid_rows.cpu().numpy(),
+                            neuron_ids,
+                            beta,
+                        )
+                continue
+
             csr = self._area_conns[src_name][target]
             beta = tgt.beta_by_source.get(src_name, tgt.beta)
             if beta == 0:
@@ -503,10 +674,14 @@ class TorchSparseEngine(ComputeEngine):
             max_src_idx = (
                 (int(src_w_arr.max()) + 1)
                 if src_w_arr.numel() > 0 else 0)
+            # Never shrink below pregrown CSR extent (CONTEXT w can reset to 0
+            # while connectome topology is preserved — matches numpy dense path).
             needed_rows = max(
                 max_src_idx,
-                new_w if src_name == target else src.w)
-            needed_cols = new_w
+                new_w if src_name == target else src.w,
+                csr._nrows,
+            )
+            needed_cols = max(new_w, csr._ncols)
 
             log_rows = csr._log_rows
             log_cols = csr._log_cols
@@ -545,8 +720,8 @@ class TorchSparseEngine(ComputeEngine):
                         coo_c_parts.append(c)
                         coo_v_parts.append(v)
 
-                csr._log_rows = needed_rows
-                csr._log_cols = needed_cols
+                csr._log_rows = max(getattr(csr, '_log_rows', 0), needed_rows)
+                csr._log_cols = max(getattr(csr, '_log_cols', 0), needed_cols)
 
             # Explicit entries from first-timer allocations
             from_index = inputs_names.index(src_name)
@@ -567,8 +742,13 @@ class TorchSparseEngine(ComputeEngine):
                 chosen = local_rng.choice(
                     src_winners_cpu, size=sample_size, replace=False)
                 col_idx = win - prior_w
+                if col_idx < 0 or col_idx >= needed_cols:
+                    continue
                 for r in chosen:
-                    exp_rows.append(int(r))
+                    r_int = int(r)
+                    if r_int < 0 or r_int >= needed_rows:
+                        continue
+                    exp_rows.append(r_int)
                     exp_cols.append(col_idx)
 
             if exp_rows:

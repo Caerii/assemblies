@@ -57,6 +57,23 @@ class Connectome:
         """Return a copy of the underlying weight matrix."""
         return self.weights.copy()
 
+    def __getstate__(self):
+        """Drop the over-allocated growth buffer when pickling/deep-copying.
+
+        ``NumpySparseEngine`` may keep ``_cap_buf`` -- spare capacity for a
+        growing sparse vector -- with ``weights`` as a view into it. Pickling
+        both would store the slack twice and silently detach the view anyway,
+        so serialize the logical weights only; the engine reallocates capacity
+        on the next growth.
+        """
+        state = dict(self.__dict__)
+        if "_cap_buf" in state:
+            state.pop("_cap_buf")
+            w = state.get("weights")
+            if w is not None and getattr(w, "base", None) is not None:
+                state["weights"] = w.copy()
+        return state
+
     def compute_inputs(self, pre_neurons):
         """
         Computes inputs to the target neurons based on active pre-synaptic neurons.
@@ -107,3 +124,30 @@ class Connectome:
             new_cols = to_xp(np.random.binomial(1, self.p, size=(self.weights.shape[0], new_target_size)).astype(np.float32))
             self.weights = xp.hstack((self.weights, new_cols))
             self.target_size += new_target_size
+
+
+def is_dense_connectome(conn) -> bool:
+    """True for a dense ``Connectome`` usable in explicit↔sparse mixed edges."""
+    return isinstance(conn, Connectome) and not conn.sparse
+
+
+def is_sparse_connectome(conn) -> bool:
+    """True for sparse ``Connectome`` or engine-native CSR connectomes."""
+    if conn is None:
+        return True
+    if isinstance(conn, Connectome):
+        return conn.sparse
+    return True
+
+
+def dense_connectome_or_new(
+    conn,
+    *,
+    source_size: int,
+    target_size: int,
+    p: float,
+) -> Connectome:
+    """Return *conn* if it is dense; otherwise allocate a fresh dense connectome."""
+    if is_dense_connectome(conn):
+        return conn
+    return Connectome(source_size, target_size, p, sparse=False)

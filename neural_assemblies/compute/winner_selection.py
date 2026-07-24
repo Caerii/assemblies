@@ -11,6 +11,7 @@ import numpy as np
 from typing import List, Tuple
 from .utils import validate_finite
 from .winner_policies import (
+    EPercentPolicy,
     RelativeThresholdPolicy,
     ThresholdPolicy,
     TopKPolicy,
@@ -21,6 +22,41 @@ try:
     from ..core.backend import get_xp, to_cpu
 except ImportError:
     from core.backend import get_xp, to_cpu
+
+
+def select_slot_winners(
+    all_inputs: np.ndarray,
+    k: int,
+    slot_count: int,
+) -> List[int]:
+    """Pick the highest-scoring slot and return top-k winners inside it.
+
+    Used for explicit CLASS areas with contiguous digit slots ``[i*k, (i+1)*k)``.
+    """
+    inputs = np.asarray(to_cpu(all_inputs), dtype=np.float64)
+    if slot_count < 1:
+        raise ValueError("slot_count must be >= 1")
+    slot_size = inputs.size // slot_count
+    if slot_size < 1:
+        raise ValueError("slot_count too large for area size")
+    kk = min(k, slot_size)
+    best_score = -np.inf
+    best_winners: List[int] = []
+    for slot in range(slot_count):
+        start = slot * slot_size
+        end = start + slot_size
+        slot_vals = inputs[start:end]
+        if kk >= slot_size:
+            local_idx = list(range(slot_size))
+        else:
+            order = np.lexsort((np.arange(slot_size), -slot_vals))
+            local_idx = [int(order[i]) for i in range(kk)]
+        winners = [start + i for i in local_idx]
+        score = float(inputs[winners].sum())
+        if score > best_score:
+            best_score = score
+            best_winners = winners
+    return best_winners
 
 
 class WinnerSelector:
@@ -108,8 +144,15 @@ class WinnerSelector:
                     break
             return xp.asarray(chosen, dtype=int)
 
-    def select_with_policy(self, features, policy: WinnerPolicy):
-        """Select winners using an explicit winner policy object."""
+    def select_with_policy(self, features, policy: WinnerPolicy,
+                           population_sigma: float = None):
+        """Select winners using an explicit winner policy object.
+
+        ``population_sigma`` is an optional analytic estimate of the spread of
+        the FULL population's input distribution, used only by
+        ``EPercentPolicy(window="sigma")``. Callers whose ``features`` vector is
+        not the whole population (the sparse engine) should supply it.
+        """
         xp = get_xp()
         features = xp.asarray(features)
 
@@ -166,6 +209,63 @@ class WinnerSelector:
                         break
 
             return xp.asarray(chosen, dtype=int)
+
+        if isinstance(policy, EPercentPolicy):
+            if not 0.0 <= policy.fraction_of_max <= 1.0:
+                raise ValueError("fraction_of_max must be between 0 and 1")
+
+            # Eq. 5 defines the firing set as h_j in [(1-eps) h_max, h_max].
+            # For h_max < 0 -- reachable once feedforward inhibition allows
+            # negative weights -- that interval is empty, because (1-eps)h_max
+            # is GREATER than h_max. For h_max == 0 every silent neuron would
+            # trivially satisfy it, which is exactly the degenerate case the
+            # paper rules out by defining F_0 = empty (footnote 2). Both mean
+            # "nothing fires this cycle".
+            if len(features) == 0 or float(xp.max(features)) <= 0.0:
+                return xp.asarray([], dtype=int)
+
+            max_winners = max(policy.min_winners, int(round(policy.e_fraction * len(features))))
+            max_winners = min(max_winners, len(features))
+
+            if getattr(policy, "window", "epsilon") == "sigma":
+                # Window measured in spreads of the input distribution:
+                #     h_j >= h_max - sigma_c * std(h)
+                #
+                # Caveat for the sparse engine: `features` mixes materialized
+                # neurons' true inputs with sampled TOP order statistics for
+                # the not-yet-materialized ones, so this std is biased low
+                # relative to the full population. The bias shrinks as the area
+                # fills in (w >> k), which is the regime a trained area is in.
+                m = float(xp.max(features))
+                # Prefer the analytic population sigma when the caller can
+                # supply it. In the sparse engine `features` is NOT the
+                # population: it holds materialized neurons plus sampled TOP
+                # order statistics for the rest, so its empirical std is
+                # severely biased low (measured 0.48 against an analytic 1.69),
+                # and the window then collapses onto the min_winners floor.
+                sd = (float(population_sigma) if population_sigma is not None
+                      else float(xp.std(features)))
+                if sd <= 0.0:
+                    return xp.asarray([], dtype=int)
+                threshold = m - policy.sigma_c * sd
+                rel = RelativeThresholdPolicy(
+                    # Express the absolute threshold as a fraction of the max
+                    # so the shared selection path can apply it, guarding the
+                    # sign since threshold can fall below zero.
+                    fraction_of_max=max(0.0, min(1.0, threshold / m)),
+                    min_winners=policy.min_winners,
+                    max_winners=max_winners,
+                    tie_policy=policy.tie_policy,
+                )
+                return self.select_with_policy(features, rel)
+
+            rel = RelativeThresholdPolicy(
+                fraction_of_max=policy.fraction_of_max,
+                min_winners=policy.min_winners,
+                max_winners=max_winners,
+                tie_policy=policy.tie_policy,
+            )
+            return self.select_with_policy(features, rel)
 
         raise TypeError(f"Unsupported winner policy: {type(policy)!r}")
 

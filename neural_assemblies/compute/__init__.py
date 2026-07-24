@@ -8,7 +8,7 @@ algorithms, and mathematical approximations.
 
 from .statistics import StatisticalEngine
 from .neural_computation import NeuralComputationEngine
-from .winner_policies import TopKPolicy, ThresholdPolicy, RelativeThresholdPolicy, WinnerPolicy
+from .winner_policies import TopKPolicy, ThresholdPolicy, RelativeThresholdPolicy, EPercentPolicy, WinnerPolicy
 from .winner_selection import WinnerSelector
 from .plasticity import PlasticityEngine
 from .sparse_simulation import SparseSimulationEngine

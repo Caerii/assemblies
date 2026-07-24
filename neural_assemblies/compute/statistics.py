@@ -25,9 +25,20 @@ Assembly Calculus Context:
 """
 
 import numpy as np
-from scipy.stats import binom, truncnorm
 import math
 from typing import List, Tuple
+
+
+def _scipy_stats():
+    """Import ``scipy.stats`` on first use (costs ~2.9s at import time).
+
+    Only ``binom.ppf`` and ``truncnorm.rvs`` are needed, and only inside two
+    methods, but this module sits on the ``import neural_assemblies`` path so
+    every process paid for it. Python caches the module in ``sys.modules``, so
+    repeat calls are a dict lookup and the numerics are unchanged.
+    """
+    import scipy.stats as _st
+    return _st
 
 try:
     from ..core.backend import to_xp
@@ -131,7 +142,7 @@ class StatisticalEngine:
         if not 0 <= p <= 1:
             raise ValueError("Success probability must be between 0 and 1")
             
-        return binom.ppf(quantile, n, p)
+        return _scipy_stats().binom.ppf(quantile, n, p)
     
     def sample_truncated_normal_winners(self, alpha: float, total_k: int, 
                                       p: float, k: int) -> np.ndarray:
@@ -181,7 +192,7 @@ class StatisticalEngine:
         
         # Sample from truncated normal distribution
         # Using np.inf as upper bound to avoid sampling above total_k
-        samples = mu + truncnorm.rvs(a, np.inf, scale=std, size=k)
+        samples = mu + _scipy_stats().truncnorm.rvs(a, np.inf, scale=std, size=k)
         
         # Round to integers and clamp to valid range
         rounded_samples = samples.round(0).astype(int)

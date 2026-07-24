@@ -376,26 +376,32 @@ class SparseSimulationEngine:
         total_k = sum(input_sizes)
         effective_n = n - w
 
-        if effective_n <= k:
-            raise RuntimeError(
-                f"Remaining size of area too small to sample k new winners "
-                f"(effective_n={effective_n}, k={k})."
-            )
+        # Graceful saturation. `effective_n = n - w` is the count of neurons that
+        # have never fired -- the only source of brand-new winners. When it drops
+        # to k or below, the area cannot recruit a full k of fresh winners, so we
+        # recruit as many as remain (k_eff) and let the caller complete the
+        # winner set from already-materialized incumbents (it top-k selects over
+        # prev_winner_inputs + these). A biological area at capacity simply stops
+        # recruiting; it must not crash mid-training. k_eff == k whenever
+        # effective_n > k, so every non-saturated run stays bit-identical.
+        k_eff = min(k, max(0, effective_n - 1))
+        if k_eff <= 0:
+            return to_xp(np.empty(0))
 
         # Cached ppf — integer num/den for exact hash key
-        alpha = _binom_ppf_cached(effective_n - k, effective_n, total_k, p)
+        alpha = _binom_ppf_cached(effective_n - k_eff, effective_n, total_k, p)
 
         mu = total_k * p
         std = math.sqrt(total_k * p * (1.0 - p))
         if std == 0:
-            return to_xp(np.full(k, mu))
+            return to_xp(np.full(k_eff, mu))
 
         a = (alpha - mu) / std
 
         # Fast truncated normal via inverse CDF: sample U ~ Uniform(Phi(a), 1)
         # then return mu + std * Phi_inv(U).  Avoids scipy.stats overhead.
         phi_a = float(ndtr(a))
-        u = self.rng.uniform(phi_a, 1.0, size=k)
+        u = self.rng.uniform(phi_a, 1.0, size=k_eff)
         np.clip(u, phi_a, 1.0 - 1e-12, out=u)  # guard against ndtri(1)=inf
         samples = (mu + ndtri(u) * std).round(0)
         np.clip(samples, 0, total_k, out=samples)
@@ -434,24 +440,26 @@ class SparseSimulationEngine:
         total_k = sum(input_sizes)
         effective_n = n - w
 
-        if effective_n <= k:
-            raise RuntimeError(
-                f"Remaining size of area too small to sample k new winners "
-                f"(effective_n={effective_n}, k={k})."
-            )
+        # Graceful saturation -- see sample_new_winner_inputs for the rationale.
+        # k_eff == k whenever effective_n > k, so the deterministic RNG stream is
+        # unchanged for every non-saturated run (only the previously-crashing
+        # case draws a different number of variates).
+        k_eff = min(k, max(0, effective_n - 1))
+        if k_eff <= 0:
+            return to_xp(np.empty(0))
 
         alpha = float(binom.ppf(
-            float(effective_n - k) / effective_n, total_k, p
+            float(effective_n - k_eff) / effective_n, total_k, p
         ))
 
         mu = total_k * p
         std = math.sqrt(total_k * p * (1.0 - p))
         if std == 0:
-            return to_xp(np.full(k, mu))
+            return to_xp(np.full(k_eff, mu))
 
         a = (alpha - mu) / std
         samples = truncnorm.rvs(
-            a, np.inf, loc=mu, scale=std, size=k,
+            a, np.inf, loc=mu, scale=std, size=k_eff,
             random_state=self.rng,
         ).round(0)
         np.clip(samples, 0, total_k, out=samples)

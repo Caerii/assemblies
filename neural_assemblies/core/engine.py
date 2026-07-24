@@ -250,6 +250,21 @@ class ComputeEngine(ABC):
                 record_activation=record_activation)
         return result
 
+    # -- Projection fidelity (exact vs compiled topology) -----------------
+
+    def set_projection_fidelity(self, fidelity: str) -> None:
+        """Set global projection fidelity (``exact`` or ``compiled``).
+
+        Engines that do not implement compiled topology ignore this call.
+        """
+
+    def get_projection_fidelity(self) -> str:
+        """Return global projection fidelity (default ``exact``)."""
+        return "exact"
+
+    def preallocate_stim_targets(self, target: str, min_columns: int) -> None:
+        """Extend stim→*target* 1-D weight vectors to *min_columns* (no-op default)."""
+
     # -- Identity --
 
     @property
@@ -293,6 +308,42 @@ def _ensure_engines_loaded():
 def register_engine(engine_name: str, cls: type) -> None:
     """Register an engine class under the given name."""
     _ENGINE_REGISTRY[engine_name] = cls
+
+
+# Which module registers which engine, so a caller that already knows the engine
+# it wants can import ONLY that one. Loading every engine to answer "is
+# numpy_sparse available?" drags in torch (~9s), which profiling showed was 9.1s
+# of a 22.6s CPU training run -- paid once per process, including per xdist
+# worker. Keep in sync with _ensure_engines_loaded above.
+_ENGINE_MODULES = {
+    "numpy_sparse": "numpy_engine",
+    "numpy_explicit": "numpy_engine",
+    "cuda_implicit": "cuda_engine",
+    "cupy_sparse": "cupy_engine",
+    "torch_sparse": "torch_engine",
+}
+
+
+def ensure_engine(engine_name: str) -> bool:
+    """Import just the module providing *engine_name*; True if now registered.
+
+    Narrow counterpart to ``_ensure_engines_loaded``: same registration path and
+    same ImportError tolerance, but it does not import engines the caller has
+    not asked for. Unknown names return False rather than raising, matching how
+    ``list_engines`` membership tests behave.
+    """
+    if engine_name in _ENGINE_REGISTRY:
+        return True
+    module = _ENGINE_MODULES.get(engine_name)
+    if module is None:
+        return False
+    try:
+        import importlib
+
+        importlib.import_module(f".{module}", __package__)
+    except ImportError:
+        return False
+    return engine_name in _ENGINE_REGISTRY
 
 
 def list_engines() -> List[str]:

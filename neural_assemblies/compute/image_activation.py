@@ -4,6 +4,7 @@
 Image activation utilities extracted from brain.py's activate_with_image.
 """
 
+import sys
 import numpy as np
 from typing import Tuple
 
@@ -12,13 +13,31 @@ try:
 except ImportError:
     from core.backend import get_xp, to_xp, to_cpu
 
-# Optional torch import for tensor support
-try:
-    import torch
-    HAS_TORCH = True
-except ImportError:
-    torch = None
-    HAS_TORCH = False
+
+def _torch_tensor_type():
+    """``torch.Tensor`` if torch is ALREADY imported, else ``None``.
+
+    Torch is only needed here to recognise a tensor argument, but importing it
+    eagerly costs ~11s and this module is on the ``import neural_assemblies``
+    path (via ``core.brain``), so every process paid that.
+
+    Checking ``sys.modules`` instead is EQUIVALENT, not an approximation: a
+    ``torch.Tensor`` instance cannot exist unless torch has already been
+    imported by whoever constructed it. If torch is absent from ``sys.modules``
+    the isinstance check could not have matched anyway.
+    """
+    mod = sys.modules.get("torch")
+    return getattr(mod, "Tensor", None) if mod is not None else None
+
+
+def __getattr__(name):
+    # Preserve the previous module-level ``torch`` / ``HAS_TORCH`` names
+    # without forcing the import (PEP 562).
+    if name == "HAS_TORCH":
+        return _torch_tensor_type() is not None
+    if name == "torch":
+        return sys.modules.get("torch")
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
 class ImageActivationEngine:
@@ -58,7 +77,9 @@ def preprocess_image(image, target_n):
     if isinstance(image, np.ndarray):
         image_flat = image.flatten()
         image_size = image_flat.size
-    elif HAS_TORCH and isinstance(image, torch.Tensor):
+    elif (_TensorT := _torch_tensor_type()) is not None and isinstance(
+        image, _TensorT,
+    ):
         image_flat = image.flatten().cpu().numpy()
         image_size = image_flat.size
     else:

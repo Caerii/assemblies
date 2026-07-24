@@ -38,6 +38,9 @@ class TorchAreaState:
     refracted: bool = False
     refracted_strength: float = 0.0
     _cumulative_bias: Optional[torch.Tensor] = None
+    winner_policy: object = None
+    input_noise_std: float = 0.0
+    explicit_source: bool = False
 
     def __post_init__(self):
         if self.winners is None:

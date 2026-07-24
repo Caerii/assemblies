@@ -18,7 +18,7 @@ from .core import (
 # Mathematical primitives
 from .compute import (
     StatisticalEngine, NeuralComputationEngine,
-    TopKPolicy, ThresholdPolicy, RelativeThresholdPolicy, WinnerPolicy,
+    TopKPolicy, ThresholdPolicy, RelativeThresholdPolicy, EPercentPolicy, WinnerPolicy,
     WinnerSelector, PlasticityEngine,
 )
 
@@ -59,7 +59,7 @@ __all__ = [
 
     # Mathematical engines
     'StatisticalEngine', 'NeuralComputationEngine',
-    'TopKPolicy', 'ThresholdPolicy', 'RelativeThresholdPolicy', 'WinnerPolicy',
+    'TopKPolicy', 'ThresholdPolicy', 'RelativeThresholdPolicy', 'EPercentPolicy', 'WinnerPolicy',
     'WinnerSelector', 'PlasticityEngine',
 
     # Constants
