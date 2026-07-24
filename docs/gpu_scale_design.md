@@ -228,12 +228,27 @@ Measured (RTX 3080, n=6000, 240-sentence Markov corpus, 2 epochs):
 | 32 | 0.356 | 0.20 s | 0.000% |
 | 64 | 0.356 | 0.11 s | **0.000% (bit-identical)** |
 
-**~50× faster training at zero quality loss** — the weights are *bit-identical* to
-online, exactly as the mini-batch equivalence result predicts (stable regime →
-order-independent bridges). Combined with the 91× inference win, an
-assembly-calculus language model can now be **trained and run at GPU scale with no
-change to what it learns**. Tests: `test_batched_trainer.py` (learns above chance,
-mini-batch == online bit-identical, batched predict).
+~50× faster training, and the weights are *bit-identical* to online (0.000%).
+
+**What this does and does not show (corrected after a critique by Opus 5).** The
+bit-identity is a *theorem*, not evidence about assembly dynamics. At the
+`stim=2.0` used here the stimulus strictly dominates the normalized recurrent
+drive, so `topk` returns each word's assembly `A[w]` *exactly*, independent of W —
+the "recurrent multi-word context" collapses (`context([a,b,c]) == A[c]`,
+verified by assertion in `minibatch_training.py`), and the model reduces to a
+**bigram count matrix** `W[i,j] += β·count(w_{i-1}→w_i)` in a random basis. On a
+first-order Markov corpus a bigram counter is the correct model, so "0.356 vs
+0.0625 chance" confirms the counting works, *not* that assembly dynamics
+contribute; and the flat accuracy across batch sizes is entailed by the identical
+weights (one fact, not two). The honest, bounded claim is: **assembly *stability*
+is a sufficient condition for exact update-order independence** — and the sweep in
+`minibatch_training.py` shows it breaks (divergence → 58%) exactly as `stim` falls
+and recurrence starts selecting winners, i.e. in the low-stim regime where merge /
+association / pattern-completion / ordered-recall actually live. So the earlier
+phrase "no change to what it learns" is **withdrawn** as an unqualified claim; it
+holds only in the stability regime, which here is the regime that isn't using
+assembly selection. The speedup mechanism is real; the scale (n=6000, V=16) is
+trivial and demonstrates nothing that was hard. Tests: `test_batched_trainer.py`.
 
 ### Large vocabulary — sparse growing connectome
 

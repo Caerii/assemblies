@@ -10,27 +10,44 @@ Whether that preserves learning is not obvious: winner selection is a nonlinear
 topk and the potentiated assemblies depend on the current weights (recurrence),
 so batching changes which edges get strengthened.
 
-This is a controlled model (fixed word assemblies, recurrent multi-word context,
-Hebbian x_{i-1}->x_i bridges) -- the essential dynamics of next_token training,
-with the SAME update rule for online and mini-batch so the only variable is WHEN
-updates are applied. We sweep batch size and the stimulus/recurrence balance, and
-report next-token top-1 accuracy plus the relative divergence of the learned
-weights (mini-batch vs online). Runs on GPU (dense connectome for clarity).
+THIS IS A THEOREM, NOT AN EXPERIMENT -- and stating it as the latter was the
+weaker, more vulnerable claim (this framing owes to a critique by Opus 5).
 
-FINDING (RTX 3080). The stimulus-anchored regime -- high STIM, where each word's
-assembly is pinned by its stimulus and only modulated by recurrence -- is BOTH
-the best-performing regime AND perfectly batchable: mini-batch training is
-BIT-IDENTICAL to online (0.00% weight divergence at every batch size), because the
-potentiated bridges run between fixed, stimulus-anchored assemblies and so do not
-depend on the connectome's current state. As STIM drops and recurrence (the
-learned W) starts to move the winners, training becomes genuinely order-dependent
-and the learned weights diverge (20-58%), yet final task accuracy stays comparable
-(mini-batch neither systematically helps nor hurts -- like mini-batch vs online
-SGD). The operative lesson: the STABILITY assembly calculus relies on (and that
-norm_init enforces) is exactly what makes training order-independent, so one model
-CAN be trained mini-batch at GPU scale with no quality loss in the regime that
-matters. Speedup comes from batching the forward passes (validated at ~91x in
-BatchedLM); this script isolates the *correctness* question.
+  PROPOSITION. If at every selection step the stimulus drive gap exceeds the
+  largest possible recurrent contribution -- i.e. topk is decided by the stimulus
+  alone -- then the selected assembly is a function of the input only, NOT of W.
+  Then both endpoints of every Hebbian bridge (SRC, TGT) are W-independent, so the
+  accumulated update SRC.T @ TGT does not depend on update order, so mini-batch is
+  BIT-IDENTICAL to online. QED.
+
+Here that condition holds by construction: ``_rec`` normalizes recurrent drive to
+[0, 1], the stimulus adds ``stim`` to exactly k positions, so ``stim > 1`` makes
+``topk(stim*A[w] + rec) == A[w]`` EXACTLY, independent of W (asserted in ``run``).
+At stim=2.0 the "multi-word recurrent context" therefore COLLAPSES:
+context([a,b,c]) == A[c] exactly, ``ctx_rounds`` is decorative, and the model is a
+bigram count matrix ``W[i,j] += beta * count(w_{i-1} -> w_i)`` in a random sparse
+basis. On a first-order Markov corpus a bigram counter is the correct model, so
+"accuracy above chance" only confirms the counting works -- it is NOT evidence
+that assembly dynamics contribute, and 0.00% divergence is a consistency check
+that the implementation obeys its own arithmetic, not a discovery about the model.
+(The accuracy column being flat across batch sizes is likewise entailed by
+bit-identical weights -- one fact printed twice, not independent confirmation.)
+
+What the sweep DOES measure is the BOUNDARY: as ``stim`` drops toward 1 the drive
+gap closes, recurrence starts deciding winners, and update-order independence
+breaks down (weight divergence 0% -> ~58%). Read the other way, the divergence is
+an INSTRUMENT -- it measures how much the connectome participates in selection.
+Exact batchability holds precisely where recurrence selects nothing.
+
+CAVEATS this controlled model cannot address (so the real engine may break batching
+where this does not): (1) assemblies are FIXED here, so there is no within-
+projection convergence -- no rounds where a Hebbian update changes a subsequent
+winner, the mechanism most likely to make batching non-exact in practice; (2) it
+is single-area with no materialization. The honest, bounded claim: *assembly
+STABILITY is a sufficient condition for exact update-order independence*. It says
+nothing about the low-stim / selection-dependent regime where merge, association,
+pattern completion and ordered recall actually live -- and does NOT license "an AC
+language model trains with no change to what it learns" in general.
 """
 import time
 import torch
@@ -144,6 +161,20 @@ def accuracy(model, corpus):
     return correct / max(total, 1)
 
 
+def _assert_context_collapses(N, K, V, P, stim=2.0):
+    """Verify the PROPOSITION's premise directly: at stim>1 the multi-word
+    context is a function of the last word alone, independent of W. This is why
+    exact batchability at stim=2.0 is arithmetic, not a discovery."""
+    m = SeqModel(N, K, V, P, 0.3, stim, ctx_rounds=3, seed=0)
+    # scribble arbitrary bridges into W so any W-dependence would show
+    m.W = m.W + torch.rand_like(m.W)
+    a, b, c = 3, 7, 1
+    ctx = m._context([a, b, c])            # "3-word context"
+    assert bool((ctx == m.A[c]).all()), "context did not collapse to A[last]"
+    print(f"[premise] stim={stim}: context([{a},{b},{c}]) == A[{c}] exactly "
+          f"(W-independent) -> the model here is a bigram counter\n")
+
+
 def run():
     N, K, V, P = 6000, 30, 16, 0.01
     BETA, CTX = 0.3, 3
@@ -151,10 +182,13 @@ def run():
     train_corpus = sample_sentences(trans, 120, 6, seed=1)
     test_corpus = sample_sentences(trans, 40, 6, seed=2)   # held-out, same dist
 
-    # Sweep stimulus strength: high STIM -> stim-anchored, W-independent (mini-
-    # batch trivially exact); lower STIM -> the learned bridges (W) genuinely
-    # shift the context winners, so training becomes order-dependent and mini-
-    # batch COULD diverge from online. We test whether it does.
+    _assert_context_collapses(N, K, V, P, stim=2.0)
+
+    # Map the BOUNDARY. High STIM -> topk decided by the stimulus, winners are
+    # W-independent, mini-batch is bit-identical BY ARITHMETIC (W-div 0). As STIM
+    # falls toward 1 the drive gap closes, recurrence starts deciding winners, and
+    # the W-divergence column becomes a MEASURE of how much the connectome is
+    # participating in selection -- i.e. how far from exactly-batchable we are.
     for STIM in [2.0, 0.5, 0.1, 0.03]:
         print(f"\n=== STIM={STIM} (n={N} k={K} V={V} beta={BETA}, "
               f"chance={1/V:.3f}) ===")

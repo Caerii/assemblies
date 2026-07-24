@@ -30,10 +30,21 @@
 >   parser from `EmergentParser`; its hardcoded SVO role template was not
 >   touched. Claims 1-3, 8 remain INVALIDATED. `assign_role` remains an
 >   unreachable latent landmine.
-> - **BUG 4** (`score_corpus` trained on the eval corpus) — FIXED
->   (`predict_next_token` now disables plasticity by default), but the
->   contamination was unmeasurable at test-corpus scale, so no result needs
->   retraction on that basis.
+> - **BUG 4** (`score_corpus` trained on the eval corpus) — PARTIALLY FIXED.
+>   `predict_next_token` now disables *plasticity* by default, which stops
+>   weight-training on the eval set. But `brain.frozen()` disables plasticity,
+>   NOT materialization: on the sparse engine a "frozen" projection still samples
+>   candidates and recruits new neurons, so the connectome's STRUCTURE still
+>   grows during scoring (measured: `w` 1270→1274 in a small run, ~50 neurons in
+>   a larger one). So `score_corpus` remained not-strictly-read-only even after
+>   the plasticity fix — the substrate still moves across a corpus, and
+>   predictions can be order-dependent. Magnitude is config-dependent (often
+>   small, but it moved ~18% of predictions in one batched-inference audit).
+>   The true fix is the engine `readonly` mode (2026-07-24, `torch_engine`):
+>   suppress candidate sampling so a frozen projection selects only among
+>   materialized neurons. Any score_corpus number wanting a *fixed* substrate
+>   should set it. Direction of the affected claims (above chance) is unchanged;
+>   the held-out/deterministic framing of the numbers is what this weakens.
 > - **BUG 3** (PFA `_flip_k_split` plasticity) — a plasticity guard was added,
 >   but deeper analysis showed the coin performs NO attractor dynamics at all
 >   (its recurrent fiber is never materialised), so PFA/coin results measure
