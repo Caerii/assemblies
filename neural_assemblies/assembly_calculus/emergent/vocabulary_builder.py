@@ -19,7 +19,7 @@ Domain → modality mapping:
 
 from typing import Dict, List, Optional, Tuple
 
-from .grounding import GroundingContext
+from .core.grounding import GroundingContext
 
 # ---- Domain → modality mapping ----
 
@@ -174,7 +174,122 @@ def build_vocabulary(
     return vocab
 
 
-# ---- Lexicon lookup (lazy-initialized) ----
+# ---- Preset vocabulary sizes for curriculum / chat ----
+
+VOCAB_PRESETS = {
+    "core": {
+        "max_nouns": 0,
+        "max_verbs": 0,
+        "max_adj": 0,
+        "max_adv": 0,
+        "max_prep": 0,
+        "max_pron": 0,
+        "max_det": 0,
+        "max_conj": 0,
+    },
+    "medium": {
+        "max_nouns": 70,
+        "max_verbs": 50,
+        "max_adj": 40,
+        "max_adv": 22,
+        "max_prep": 15,
+        "max_pron": 12,
+        "max_det": 8,
+        "max_conj": 6,
+    },
+    "large": {
+        "max_nouns": 110,
+        "max_verbs": 80,
+        "max_adj": 60,
+        "max_adv": 35,
+        "max_prep": 20,
+        "max_pron": 15,
+        "max_det": 10,
+        "max_conj": 8,
+    },
+    "discussion": {
+        "max_nouns": 90,
+        "max_verbs": 65,
+        "max_adj": 50,
+        "max_adv": 28,
+        "max_prep": 18,
+        "max_pron": 14,
+        "max_det": 10,
+        "max_conj": 7,
+    },
+}
+
+
+def build_vocabulary_preset(
+    name: str = "medium",
+    *,
+    merge_core: bool = True,
+) -> Dict[str, GroundingContext]:
+    """Build a named vocabulary preset for scaled training and chat.
+
+    Presets:
+        core       — closed toy ``VOCABULARY`` (~45 words)
+        medium     — ~200 high-frequency lexicon words + core
+        large      — ~350 words + core
+        discussion — conversation-tuned subset + core
+
+    Args:
+        name: One of ``VOCAB_PRESETS`` keys.
+        merge_core: When True, always include toy ``VOCABULARY`` agent words.
+
+    Returns:
+        lemma → GroundingContext
+    """
+    from .core.grounding import VOCABULARY
+
+    if name not in VOCAB_PRESETS:
+        raise ValueError(
+            f"Unknown preset {name!r}; choose from {list(VOCAB_PRESETS)}"
+        )
+
+    if name == "core":
+        return dict(VOCABULARY)
+
+    scaled = build_vocabulary(**VOCAB_PRESETS[name])
+    if not merge_core:
+        return scaled
+
+    merged = dict(VOCABULARY)
+    merged.update(scaled)
+    return merged
+
+
+def verb_surface_form(lemma: str) -> str:
+    """Return a training surface form for a verb lemma (3sg if available)."""
+    result = lookup_lexicon_entry(lemma)
+    if result is None:
+        return lemma
+    entry, pos = result
+    if pos != "VERB":
+        return lemma
+    forms = entry.get("forms", {})
+    return forms.get("3sg") or forms.get("present") or lemma
+
+
+def words_by_modality(
+    vocab: Dict[str, GroundingContext],
+) -> Dict[str, List[str]]:
+    """Partition vocabulary lemmas by dominant grounding modality."""
+    buckets: Dict[str, List[str]] = {
+        "visual": [],
+        "motor": [],
+        "properties": [],
+        "spatial": [],
+        "social": [],
+        "temporal": [],
+        "none": [],
+    }
+    for word, ctx in vocab.items():
+        mod = ctx.dominant_modality
+        if mod not in buckets:
+            mod = "none"
+        buckets[mod].append(word)
+    return buckets
 
 _LEXICON_INDEX: Optional[Dict[str, Tuple[dict, str]]] = None
 

@@ -3,12 +3,32 @@
 Provides classification accuracy (per-category P/R/F1, confusion matrix),
 role assignment accuracy, word order correctness, tense/mood/polarity
 accuracy, generalization metrics, and generation quality.
+
+TWO THINGS TO KNOW BEFORE QUOTING ANY NUMBER FROM THIS FILE.
+
+First, evaluation is not free of side effects.  Classification projects into
+core areas and resets their recurrent connections; role probes drive role
+areas.  Unless plasticity is explicitly disabled, measuring a parser also
+changes it, and measuring twice does not give the same answer twice.  Take
+metrics on a parser you are finished training, or on a clone.
+
+Second, and more important, the metrics are not all measuring the same kind
+of thing.  Some -- classification accuracy, generalization on held-out
+words -- score a genuinely neural decision, where the answer came out of
+projecting and reading out.  Others score a pipeline that includes
+hand-written steps: word-order correctness on generated sentences partly
+scores the ordering ladder in ``GenerationMixin``, and tense/mood/polarity
+accuracy partly scores the word-list detectors in ``MorphosyntaxMixin``.  A
+high score on the second kind is evidence that the pipeline runs end to end;
+it is not evidence about what the assemblies learned.  Each metric's
+docstring should be read before it is cited.
 """
 
+import json
 from collections import defaultdict
 from typing import Dict, List, Optional
 
-from .areas import CORE_TO_CATEGORY
+from ..core.areas import CORE_TO_CATEGORY
 
 
 class EvaluationSuite:
@@ -138,7 +158,8 @@ class EvaluationSuite:
         """Evaluate whether the parser's inferred word order matches target.
 
         Args:
-            target: Expected typology ("SVO", "SOV", "VSO").
+            target: Expected typology, one of the six basic orders
+                (SVO, SOV, VSO, OSV, OVS, VOS).
 
         Returns:
             {"inferred": str, "confidence": float, "correct": bool}
@@ -210,8 +231,11 @@ class EvaluationSuite:
         total = 0
         for word, expected in holdout_words.items():
             grounding = self.parser.word_grounding.get(word)
-            predicted, _ = self.parser.classify_word(
-                word, grounding=grounding)
+            from ..acquisition.pos_inference import classify_word_bootstrapped
+
+            predicted, _ = classify_word_bootstrapped(
+                self.parser, word, grounding=grounding,
+            )
             if predicted == expected:
                 correct += 1
             total += 1
@@ -285,17 +309,308 @@ class EvaluationSuite:
                 if agent_word in output and action_word in output:
                     ai = output.index(agent_word)
                     vi = output.index(action_word)
-                    if expected_order == "SVO" and ai < vi:
-                        order_correct += 1
-                    elif expected_order == "SOV" and ai < vi:
-                        order_correct += 1
-                    elif expected_order == "VSO" and vi < ai:
+                    # Does the agent precede the verb in this typology?
+                    # Definitional, from the slot sequence -- covers all six
+                    # orders rather than the three subject-initial ones.
+                    from ..core.word_order import WORD_ORDERS, order_slots
+
+                    label = (expected_order
+                             if expected_order in WORD_ORDERS else "SVO")
+                    slots = order_slots(label)
+                    s_before_v = slots.index("S") < slots.index("V")
+                    if (ai < vi) == s_before_v:
                         order_correct += 1
 
         return {
             "roundtrip_accuracy": role_correct / max(role_total, 1),
             "content_recall": content_found / max(content_total, 1),
             "word_order_correct": order_correct / max(order_total, 1),
+        }
+
+    def evaluate_instruction_following(
+        self,
+        test_cases: List[dict],
+    ) -> dict:
+        """Evaluate ``parse_instruction`` against expected frame fields.
+
+        Each case: ``{"words": [...], "expected": {"mood", "action", "patient", ...}}``
+        """
+        correct = 0
+        total = 0
+        per_field: Dict[str, List[bool]] = defaultdict(list)
+
+        for case in test_cases:
+            words = case["words"]
+            expected = case.get("expected", {})
+            frame = self.parser.parse_instruction(words)
+            total += 1
+            case_ok = True
+            for field, exp_val in expected.items():
+                got = getattr(frame, field, None)
+                ok = got == exp_val
+                per_field[field].append(ok)
+                if not ok:
+                    case_ok = False
+            if case_ok:
+                correct += 1
+
+        return {
+            "accuracy": correct / max(total, 1),
+            "total": total,
+            "correct": correct,
+            "per_field_accuracy": {
+                f: sum(v) / max(len(v), 1) for f, v in per_field.items()
+            },
+        }
+
+    def evaluate_next_token(
+        self,
+        prefixes: List[List[str]],
+        expected_any: Optional[List[List[str]]] = None,
+    ) -> dict:
+        """Score next-token predictions on prefix list.
+
+        If ``expected_any`` is provided, success = top-5 contains any expected word.
+        """
+        if not hasattr(self.parser, "predict_next"):
+            return {"accuracy": 0.0, "total": 0}
+
+        hits = 0
+        total = len(prefixes)
+        for i, prefix in enumerate(prefixes):
+            preds = self.parser.predict_next(prefix)
+            if not preds:
+                continue
+            top5 = {w for w, _ in preds[:5]}
+            if expected_any and i < len(expected_any):
+                if top5 & set(expected_any[i]):
+                    hits += 1
+            elif preds[0][1] > 0.0:
+                hits += 1
+
+        return {
+            "accuracy": hits / max(total, 1),
+            "total": total,
+            "hits": hits,
+        }
+
+    def evaluate_dialogue(
+        self,
+        qa_pairs: List[dict],
+        *,
+        online_learn: bool = False,
+    ) -> dict:
+        """Evaluate multi-turn Q-A accuracy via ``EmergentSession``.
+
+        Each pair: ``{"question": "who chases the cat", "acceptable": ["dog", "the dog"]}``
+        """
+        from ..session.interactive import EmergentSession
+
+        session = EmergentSession(
+            parser=self.parser,
+            online_learn=online_learn,
+        )
+        correct = 0
+        per_pattern: Dict[str, List[bool]] = defaultdict(list)
+
+        for pair in qa_pairs:
+            qtext = pair["question"]
+            acceptable = pair.get("acceptable", [])
+            if isinstance(acceptable, str):
+                acceptable = [acceptable]
+            pattern = pair.get("pattern_type", "default")
+
+            reply = session.interact(qtext).lower()
+            reply_tokens = set(session.tokenize(reply))
+            hit = any(
+                ans.lower() in reply or ans.lower() in reply_tokens
+                for ans in acceptable
+            )
+            per_pattern[pattern].append(hit)
+            if hit:
+                correct += 1
+
+        return {
+            "accuracy": correct / max(len(qa_pairs), 1),
+            "total": len(qa_pairs),
+            "correct": correct,
+            "per_pattern": {
+                p: sum(v) / max(len(v), 1) for p, v in per_pattern.items()
+            },
+        }
+
+    def evaluate_tool_compliance(
+        self,
+        test_cases: Optional[List[dict]] = None,
+    ) -> dict:
+        """Evaluate language → tool call argument accuracy (blocks + default tools)."""
+        from ..curriculum.blocks import blocks_compliance_test_cases
+        from ..tools import ToolRegistry
+
+        if test_cases is None:
+            test_cases = blocks_compliance_test_cases()
+
+        registry = ToolRegistry()
+        correct = 0
+        arg_hits = 0
+        arg_total = 0
+
+        for case in test_cases:
+            words = case["words"]
+            frame = self.parser.parse_instruction(words)
+            call = registry.dispatch(frame)
+            exp_tool = case.get("expected_tool")
+            exp_args = case.get("expected_args", {})
+
+            if call is not None and call.name == exp_tool:
+                correct += 1
+                for key, val in exp_args.items():
+                    arg_total += 1
+                    if str(call.arguments.get(key)) == str(val):
+                        arg_hits += 1
+
+        return {
+            "tool_match_accuracy": correct / max(len(test_cases), 1),
+            "arg_accuracy": arg_hits / max(arg_total, 1),
+            "total": len(test_cases),
+            "correct": correct,
+        }
+
+    def evaluate_blocks_execution(
+        self,
+        commands: List[dict],
+    ) -> dict:
+        """Parse commands and apply via ``BlocksLanguageExecutor``; check final state."""
+        from ..blocks_bridge import BlocksLanguageExecutor, frame_to_blocks_action
+
+        executor = BlocksLanguageExecutor(blocks=("A", "B", "C"))
+        success = 0
+        for case in commands:
+            words = case["words"]
+            frame = self.parser.parse_instruction(words)
+            action = frame_to_blocks_action(frame)
+            if action is None:
+                continue
+            try:
+                executor.apply_action(action)
+                exp_on = case.get("expected_on")
+                if exp_on is not None and executor.state.on == exp_on:
+                    success += 1
+                elif exp_on is None:
+                    success += 1
+            except ValueError:
+                pass
+
+        return {
+            "accuracy": success / max(len(commands), 1),
+            "total": len(commands),
+            "success": success,
+        }
+
+    def evaluate_schema_compliance(
+        self,
+        json_samples: List[str],
+    ) -> dict:
+        """Validate JSON strings against tool_call schema."""
+        from ..structured_json import StructuredRecord, validate_record
+
+        valid = 0
+        for text in json_samples:
+            try:
+                record = StructuredRecord.from_json(text)
+                ok, _ = validate_record(record)
+                if ok:
+                    valid += 1
+            except (json.JSONDecodeError, ValueError):
+                pass
+
+        return {
+            "accuracy": valid / max(len(json_samples), 1),
+            "total": len(json_samples),
+            "valid": valid,
+        }
+
+    def evaluate_json_roundtrip(
+        self,
+        word_commands: Optional[List[List[str]]] = None,
+    ) -> dict:
+        """Language → JSON → language → tool call roundtrip accuracy."""
+        from ..curriculum.blocks import blocks_compliance_test_cases
+
+        if word_commands is None:
+            word_commands = [c["words"] for c in blocks_compliance_test_cases()]
+            word_commands.append(["chases", "the", "cat"])
+
+        hits = 0
+        schema_ok = 0
+        for words in word_commands:
+            result = self.parser.structured_roundtrip(words)
+            if result.get("schema_valid"):
+                schema_ok += 1
+            if result.get("tool_match"):
+                hits += 1
+
+        n = len(word_commands)
+        return {
+            "roundtrip_accuracy": hits / max(n, 1),
+            "schema_valid_rate": schema_ok / max(n, 1),
+            "total": n,
+            "hits": hits,
+        }
+
+    def evaluate_multi_tool_plan(
+        self,
+        cases: Optional[List[dict]] = None,
+    ) -> dict:
+        """Evaluate multi-step plans (explicit + BFS goal-directed)."""
+        from ..blocks_bridge import BlocksLanguageExecutor
+
+        if cases is None:
+            cases = [
+                {
+                    "text": "move a to table then move a to b",
+                    "blocks": ("A", "B"),
+                    "start_on": {"A": "B", "B": None},
+                    "start_clear": {"A": True, "B": False},
+                    "expected_final": {"A": "B"},
+                    "min_steps": 2,
+                },
+                {
+                    "text": "stack a on b",
+                    "start_on": {"A": None, "B": None, "C": None},
+                    "start_clear": {"A": True, "B": True, "C": True},
+                    "expected_final": {"A": "B"},
+                    "min_steps": 1,
+                    "source": "bfs",
+                },
+            ]
+
+        hits = 0
+        for case in cases:
+            blocks = tuple(case.get("blocks", ("A", "B", "C")))
+            ex = BlocksLanguageExecutor(blocks=blocks)
+            start_on = dict(case["start_on"])
+            start_clear = dict(case["start_clear"])
+            for blk in blocks:
+                start_on.setdefault(blk, None)
+                start_clear.setdefault(blk, True)
+            ex.state = ex.state.__class__(on=start_on, clear=start_clear)
+            plan = self.parser.text_to_tool_plan(case["text"], ex)
+            if plan is None or plan.length < case.get("min_steps", 1):
+                continue
+            if case.get("source") and plan.source != case["source"]:
+                continue
+            result = self.parser.execute_plan(plan, ex)
+            if not result.success:
+                continue
+            expected = case.get("expected_final", {})
+            if all(ex.state.on.get(k) == v for k, v in expected.items()):
+                hits += 1
+
+        return {
+            "accuracy": hits / max(len(cases), 1),
+            "total": len(cases),
+            "hits": hits,
         }
 
     def full_evaluation(self) -> dict:

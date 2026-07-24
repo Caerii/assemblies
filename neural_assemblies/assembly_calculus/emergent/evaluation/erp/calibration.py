@@ -1,0 +1,356 @@
+"""Empirical ERP threshold calibration on the emergent parser.
+
+Tunes excess margins from composed-ERP-style frame probes in
+``evaluation.erp.frames`` (midpoint between grammatical and violation quantiles).
+"""
+
+from __future__ import annotations
+
+import statistics
+from dataclasses import dataclass, field
+from typing import Dict, List, Optional, TYPE_CHECKING
+
+from .gates import (
+    ErpBaseline,
+    ErpReadiness,
+    ErpThresholds,
+    assess_erp_readiness,
+    calibrate_erp_baseline,
+    classify_erp_violation,
+    default_erp_thresholds,
+)
+from .frames import (
+    DEFAULT_CALIBRATION_FRAMES,
+    CalibrationFrame,
+    PositionErpSample,
+    collect_frame_samples,
+)
+from .runner import run_incremental_erp_probes
+
+if TYPE_CHECKING:
+    from ...parser import EmergentParser
+
+# Re-export for backward compatibility
+__all__ = [
+    "DEFAULT_CALIBRATION_FRAMES",
+    "ErpCalibrationReport",
+    "PositionErpSample",
+    "calibrate_erp_thresholds",
+    "collect_position_samples",
+    "ensure_parser_erp_calibration",
+    "tune_thresholds_from_samples",
+]
+
+
+@dataclass
+class ErpCalibrationReport:
+    """Outcome of empirical threshold tuning."""
+    readiness: ErpReadiness
+    baseline: ErpBaseline
+    thresholds: ErpThresholds
+    samples: List[PositionErpSample] = field(default_factory=list)
+    by_label: Dict[str, Dict[str, float]] = field(default_factory=dict)
+    separation: Dict[str, float] = field(default_factory=dict)
+    tuned: bool = False
+
+    def summary(self) -> str:
+        lines = [
+            "ERP calibration report",
+            f"  readiness: n400={self.readiness.n400_ready} "
+            f"p600={self.readiness.p600_ready} "
+            f"(lex={self.readiness.prediction_lexicon_size}, "
+            f"sents={self.readiness.sentences_seen})",
+            f"  baseline: n400={self.baseline.n400_median:.3f} "
+            f"p600={self.baseline.p600_median:.3f} "
+            f"stab={self.baseline.stability_median:.3f} "
+            f"({self.baseline.source}, n={self.baseline.sample_size})",
+            f"  thresholds: n400_margin={self.thresholds.n400_excess_margin:.3f} "
+            f"p600_margin={self.thresholds.p600_excess_margin:.3f} "
+            f"novel_n400={self.thresholds.novel_n400_excess:.3f}",
+        ]
+        for label, stats in sorted(self.by_label.items()):
+            lines.append(
+                f"  {label}: n400_ex={stats.get('n400_excess_median', 0):.3f} "
+                f"p600_ex={stats.get('p600_excess_median', 0):.3f} "
+                f"n={int(stats.get('n', 0))}",
+            )
+        if self.separation:
+            lines.append(
+                f"  separation: n400_d={self.separation.get('n400_cohens_d', 0):.2f} "
+                f"p600_d={self.separation.get('p600_cohens_d', 0):.2f}",
+            )
+        return "\n".join(lines)
+
+
+def _cohens_d(a: List[float], b: List[float]) -> float:
+    if not a or not b:
+        return 0.0
+    ma, mb = statistics.mean(a), statistics.mean(b)
+    if len(a) < 2 or len(b) < 2:
+        spread = max(
+            statistics.pstdev(a) if len(a) > 1 else 0.0,
+            statistics.pstdev(b) if len(b) > 1 else 0.0,
+            abs(mb - ma) * 0.25,
+            1e-3,
+        )
+        return (mb - ma) / spread
+    va = statistics.pvariance(a)
+    vb = statistics.pvariance(b)
+    pooled = ((va + vb) / 2.0) ** 0.5
+    if pooled < 1e-3:
+        pooled = max(abs(mb - ma) * 0.25, 1e-3)
+    return (mb - ma) / pooled
+
+
+def _quantile(values: List[float], q: float) -> float:
+    if not values:
+        return 0.0
+    ordered = sorted(values)
+    idx = min(len(ordered) - 1, max(0, int(q * (len(ordered) - 1))))
+    return ordered[idx]
+
+
+def _label_stats(samples: List[PositionErpSample], label: str) -> Dict[str, float]:
+    subset = [s for s in samples if s.label == label]
+    if not subset:
+        return {"n": 0}
+    n400_ex = [s.n400_excess for s in subset]
+    p600_ex = [s.p600_excess for s in subset]
+    return {
+        "n": float(len(subset)),
+        "n400_excess_median": statistics.median(n400_ex),
+        "p600_excess_median": statistics.median(p600_ex),
+        "n400_excess_p75": _quantile(n400_ex, 0.75),
+        "p600_excess_p75": _quantile(p600_ex, 0.75),
+        "stability_median": statistics.median([s.phrase_stability for s in subset]),
+    }
+
+
+def tune_thresholds_from_samples(
+    samples: List[PositionErpSample],
+    *,
+    baseline: ErpBaseline,
+    fallback: Optional[ErpThresholds] = None,
+) -> ErpThresholds:
+    """Midpoint between grammatical p75 and category-violation p25 excess."""
+    fb = fallback or default_erp_thresholds()
+    gram = [s for s in samples if s.label == "grammatical"]
+    catv = [s for s in samples if s.label == "category_violation"]
+    novel = [s for s in samples if s.label == "novel_noun"]
+
+    if len(gram) < 2 or len(catv) < 2:
+        return fb
+
+    g_n400 = _quantile([s.n400_excess for s in gram], 0.75)
+    c_n400 = _quantile([s.n400_excess for s in catv], 0.25)
+    g_p600 = _quantile([s.p600_excess for s in gram], 0.75)
+    c_p600 = _quantile([s.p600_excess for s in catv], 0.25)
+
+    n400_margin = max(fb.n400_excess_margin * 0.5, (g_n400 + c_n400) / 2.0)
+    p600_margin = max(fb.p600_excess_margin * 0.5, (g_p600 + c_p600) / 2.0)
+
+    novel_n400 = fb.novel_n400_excess
+    if novel:
+        novel_n400 = max(
+            fb.novel_n400_excess * 0.5,
+            _quantile([s.n400_excess for s in novel], 0.25),
+        )
+
+    return ErpThresholds(
+        n400_excess_margin=round(n400_margin, 4),
+        p600_excess_margin=round(p600_margin, 4),
+        novel_n400_excess=round(novel_n400, 4),
+        phrase_stability_ratio=fb.phrase_stability_ratio,
+        source="empirical",
+    )
+
+
+# Backward-compatible alias
+collect_position_samples = collect_frame_samples
+
+
+def _ensure_minimal_prediction_bridges(parser: "EmergentParser") -> None:
+    """Train lightweight next-token bridges if N400 readout is not yet valid."""
+    from ..sweep import sweep_mode_enabled
+
+    readiness = assess_erp_readiness(parser)
+    if readiness.n400_ready:
+        return
+    if sweep_mode_enabled() and readiness.prediction_lexicon_size > 0:
+        return
+    try:
+        from ..curriculum.data import create_training_sentences
+        sents = create_training_sentences()[:30]
+        if hasattr(parser, "train_next_token") and sents:
+            parser.train_next_token(sents, rebuild_lexicon=True)
+    except (RuntimeError, ValueError, ImportError):
+        pass
+
+
+def _relabel_samples(
+    samples: List[PositionErpSample],
+    *,
+    readiness: ErpReadiness,
+    baseline: ErpBaseline,
+    thresholds: ErpThresholds,
+) -> List[PositionErpSample]:
+    """Re-classify frame samples under tuned thresholds (no re-parse)."""
+    out: List[PositionErpSample] = []
+    for s in samples:
+        n400_ex = baseline.n400_excess(s.n400)
+        p600_ex = baseline.p600_excess(s.p600)
+        violation = classify_erp_violation(
+            s.n400,
+            s.p600,
+            readiness=readiness,
+            baseline=baseline,
+            phrase_stability=s.phrase_stability,
+            thresholds=thresholds,
+        )
+        out.append(
+            PositionErpSample(
+                label=s.label,
+                sentence=s.sentence,
+                position=s.position,
+                word=s.word,
+                category=s.category,
+                n400=s.n400,
+                p600=s.p600,
+                phrase_stability=s.phrase_stability,
+                n400_excess=n400_ex,
+                p600_excess=p600_ex,
+                violation=violation,
+            ),
+        )
+    return out
+
+
+def calibrate_erp_thresholds(
+    parser: "EmergentParser",
+    *,
+    frames: Optional[List[CalibrationFrame]] = None,
+    grammatical_sentences: Optional[List[List[str]]] = None,
+    critical_position: int = 3,
+    ensure_prediction: bool = True,
+    probe_depth: str = "calibration",
+    fast: bool = False,
+) -> ErpCalibrationReport:
+    """Full calibration: baseline → samples → tuned thresholds."""
+    if ensure_prediction:
+        _ensure_minimal_prediction_bridges(parser)
+
+    readiness = assess_erp_readiness(parser)
+    from ..sweep import sweep_mode_enabled
+    from .probe_util import critical_probe_measure_fn
+
+    sweep = sweep_mode_enabled()
+    frames = list(frames or DEFAULT_CALIBRATION_FRAMES)
+    if sweep:
+        from .frames import SWEEP_CALIBRATION_FRAMES
+        frames = list(SWEEP_CALIBRATION_FRAMES)
+
+    gram_sents = grammatical_sentences or [
+        list(words) for lbl, _d, words in frames if lbl == "grammatical"
+    ]
+    measure_fn = critical_probe_measure_fn(probe_depth) if sweep else (
+        lambda p, w, **kw: run_incremental_erp_probes(
+            p, w, apply_calibration=False, readiness=readiness,
+            probe_depth=probe_depth,
+        )
+    )
+    baseline = calibrate_erp_baseline(
+        parser,
+        gram_sents,
+        max_sentences=4 if sweep else 8,
+        measure_fn=measure_fn,
+        critical_position_only=sweep,
+    )
+
+    fb = default_erp_thresholds()
+    from ..generalization import default_holdout_set
+
+    holdout = default_holdout_set()
+    warm = sweep
+    raw_samples = collect_frame_samples(
+        parser,
+        frames,
+        critical_position=None,
+        readiness=readiness,
+        baseline=baseline,
+        thresholds=fb,
+        holdout_words=holdout,
+        probe_depth=probe_depth,
+        warm_start=warm,
+    )
+    thresholds = tune_thresholds_from_samples(
+        raw_samples, baseline=baseline, fallback=fb,
+    )
+
+    if fast:
+        tuned_samples = _relabel_samples(
+            raw_samples,
+            readiness=readiness,
+            baseline=baseline,
+            thresholds=thresholds,
+        )
+    else:
+        tuned_samples = collect_frame_samples(
+            parser,
+            frames,
+            critical_position=None,
+            readiness=readiness,
+            baseline=baseline,
+            thresholds=thresholds,
+            holdout_words=holdout,
+            probe_depth=probe_depth,
+            warm_start=warm,
+        )
+
+    by_label = {
+        lbl: _label_stats(tuned_samples, lbl)
+        for lbl in ("grammatical", "category_violation", "novel_noun")
+    }
+    gram_n400 = [s.n400_excess for s in tuned_samples if s.label == "grammatical"]
+    catv_n400 = [s.n400_excess for s in tuned_samples if s.label == "category_violation"]
+    gram_p600 = [s.p600_excess for s in tuned_samples if s.label == "grammatical"]
+    catv_p600 = [s.p600_excess for s in tuned_samples if s.label == "category_violation"]
+
+    separation = {
+        "n400_cohens_d": _cohens_d(gram_n400, catv_n400),
+        "p600_cohens_d": _cohens_d(gram_p600, catv_p600),
+    }
+
+    parser._erp_thresholds = thresholds
+    parser._erp_baseline = baseline
+
+    return ErpCalibrationReport(
+        readiness=readiness,
+        baseline=baseline,
+        thresholds=thresholds,
+        samples=tuned_samples,
+        by_label=by_label,
+        separation=separation,
+        tuned=readiness.p600_ready,
+    )
+
+
+def ensure_parser_erp_calibration(
+    parser: "EmergentParser",
+    *,
+    force: bool = False,
+    fast: Optional[bool] = None,
+) -> ErpCalibrationReport:
+    """Calibrate once per parser unless already cached."""
+    if fast is None:
+        from ..sweep import erp_fast_calibration_enabled
+        fast = erp_fast_calibration_enabled()
+    if not force and hasattr(parser, "_erp_thresholds"):
+        th = parser._erp_thresholds
+        if isinstance(th, ErpThresholds) and th.source == "empirical":
+            return ErpCalibrationReport(
+                readiness=assess_erp_readiness(parser),
+                baseline=getattr(parser, "_erp_baseline", ErpBaseline()),
+                thresholds=th,
+                tuned=True,
+            )
+    return calibrate_erp_thresholds(parser, fast=fast)
