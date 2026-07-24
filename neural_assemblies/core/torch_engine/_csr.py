@@ -140,6 +140,29 @@ class CSRConn:
         self._col = cols.int()
         self._val = vals
 
+    # -- Column in-degree (norm_init) ---------------------------------------
+
+    def column_indegree(self, ncols):
+        """Per-column count of present synapses over all stored rows.
+
+        This is the realized in-degree ``d_j`` each materialized target column
+        has accumulated so far (``(weights != 0).sum(axis=0)`` in the dense
+        picture). norm_init divides a column's summed drive by ``d_j`` to cancel
+        its degree advantage; see ``TorchSparseEngine._norm_scale``. Counts are
+        potentiation-invariant (present synapses, not summed weights), matching
+        the reference's take-it-once-at-init semantics.
+        """
+        deg = torch.zeros(ncols, dtype=torch.float32, device=self._device)
+        if self.nnz > 0:
+            cols = self._col.long()
+            valid = cols < ncols
+            if not bool(valid.all()):
+                cols = cols[valid]
+            deg.scatter_add_(
+                0, cols, torch.ones(len(cols), dtype=torch.float32,
+                                    device=self._device))
+        return deg
+
     # -- Column normalisation -----------------------------------------------
 
     def normalize_columns(self, eps=1e-8):

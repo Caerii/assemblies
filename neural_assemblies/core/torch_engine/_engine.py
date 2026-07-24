@@ -74,6 +74,11 @@ class TorchSparseEngine(ComputeEngine):
         self.w_max = w_max
         self._deterministic = deterministic
         self._gpu_sampling = gpu_sampling and not deterministic
+        # One-time incoming-weight normalization (reference `norm_init`): a
+        # read-time per-postsynaptic 1/d_j scale, ported from NumpySparseEngine.
+        # Previously this kwarg was silently swallowed by **kwargs and ignored,
+        # so a Brain(norm_init=True, engine="torch_sparse") got NO normalization.
+        self.norm_init = bool(kwargs.get("norm_init", False))
         self._rng = np.random.default_rng(seed)
         self._plasticity_enabled_global = True
         self._global_seed = seed
@@ -105,6 +110,50 @@ class TorchSparseEngine(ComputeEngine):
             self._pair_seeds[key] = fnv1a_pair_seed(
                 self._global_seed, source, target)
         return self._pair_seeds[key]
+
+    # -- norm_init: read-time incoming-weight normalization -----------------
+    # Ports NumpySparseEngine._norm_scale / _norm_candidate_divisor. The math
+    # and rationale are documented there; this is the on-device mirror. Because
+    # plasticity is multiplicative (w *= 1+beta), dividing a neuron's summed
+    # drive by its in-degree d_j at read time is identical to having
+    # initialized its incoming weights to 1/d_j, so storage stays unit-scale.
+
+    def _norm_candidate_divisor(self, tgt_n: int) -> float:
+        """Scale for sampled (unmaterialized) candidate drive: mean in-degree."""
+        return max(float(tgt_n) * self.p, 1e-12)
+
+    def _norm_scale_stim(self, conn, n_pre, stim_size, needed):
+        """1/d_j for a 1-D stimulus fiber (numpy _norm_scale, 1-D branch)."""
+        w = conn.weights
+        if w is None or w.numel() == 0:
+            return None
+        cols = int(min(needed, int(w.numel())))
+        if cols <= 0:
+            return None
+        # The stored value IS the observed in-degree from the stimulus, but
+        # only until plasticity scales it -- snapshot each column the first
+        # time it is seen (a fresh column is read before it is potentiated).
+        base = getattr(conn, "_norm_deg_base", None)
+        have = 0 if base is None else int(base.numel())
+        if have < cols:
+            add = w[have:cols].detach().float()
+            base = add if (base is None or have == 0) else torch.cat([base, add])
+            conn._norm_deg_base = base
+        deg = base[:cols]
+        unknown = max(int(n_pre) - int(stim_size), 0)
+        d = deg + unknown * self.p
+        return 1.0 / torch.clamp(d, min=1.0)
+
+    def _norm_scale_area(self, csr, n_pre, rows_known, needed):
+        """1/d_j for a 2-D area fiber (numpy _norm_scale, 2-D branch)."""
+        cols = int(min(needed, int(csr._ncols)))
+        if cols <= 0:
+            return None
+        deg = csr.column_indegree(cols)
+        rows = min(int(rows_known), int(csr._nrows))
+        unknown = max(int(n_pre) - rows, 0)
+        d = deg + unknown * self.p
+        return 1.0 / torch.clamp(d, min=1.0)
 
     def set_dense_area_conn(self, src: str, tgt: str, conn: Connectome) -> None:
         """Install a dense connectome for explicit→sparse cross-engine edges."""
@@ -343,10 +392,17 @@ class TorchSparseEngine(ComputeEngine):
 
         limit = tgt.w
         for stim in from_stimuli:
-            stim_w = self._stim_conns[stim][target].weights
+            stim_conn = self._stim_conns[stim][target]
+            stim_w = stim_conn.weights
             end = min(limit, len(stim_w))
             if end > 0:
-                prev_winner_inputs[:end] += stim_w[:end].float()
+                contrib = stim_w[:end].float()
+                if self.norm_init:
+                    nscale = self._norm_scale_stim(
+                        stim_conn, tgt.n, self._stimuli[stim].size, end)
+                    if nscale is not None:
+                        contrib = contrib * nscale[:end]
+                prev_winner_inputs[:end] += contrib
 
         for src_name in from_areas:
             src = self._areas[src_name]
@@ -384,7 +440,17 @@ class TorchSparseEngine(ComputeEngine):
             contrib = csr.accumulate_rows(src.winners.long(), limit)
             end = min(limit, len(contrib))
             if end > 0:
-                prev_winner_inputs[:end] += contrib[:end]
+                contrib = contrib[:end]
+                if self.norm_init:
+                    nscale = self._norm_scale_area(csr, src.n, src.w, end)
+                    if nscale is not None:
+                        # nscale only covers the CSR's materialized columns
+                        # (_ncols may be < end); columns beyond it carry no
+                        # synapses, so their drive is 0 and left unscaled.
+                        m = min(end, int(nscale.numel()))
+                        contrib = contrib.clone()
+                        contrib[:m] = contrib[:m] * nscale[:m]
+                prev_winner_inputs[:end] += contrib
 
         if explicit_dense_act is not None and tgt.w == 0:
             return self._bootstrap_from_explicit_dense(
@@ -426,6 +492,13 @@ class TorchSparseEngine(ComputeEngine):
                 potential_new_np = potential_new_np.get()
             potential_new_np = np.asarray(potential_new_np, dtype=np.float32)
             potential_new = torch.from_numpy(potential_new_np).to(self._device)
+
+        # norm_init: candidates are sampled on the unit-weight scale; bring them
+        # onto the normalized scale by dividing by the mean in-degree (n*p), so
+        # they compete with the 1/d_j-scaled materialized drive above. Stored
+        # weights and the sampler stay unit-scale (see _norm_candidate_divisor).
+        if self.norm_init:
+            potential_new = potential_new / self._norm_candidate_divisor(tgt.n)
 
         if prev_winner_inputs.numel() > 0:
             all_inputs = torch.cat([prev_winner_inputs, potential_new])
@@ -475,22 +548,42 @@ class TorchSparseEngine(ComputeEngine):
 
         # --- Select winners (policy-aware or default top-k) ---
         policy = tgt.winner_policy or TopKPolicy(k=tgt.k)
-        inputs_cpu = all_inputs.detach().cpu().numpy().astype(np.float64)
-        if tgt.input_noise_std > 0:
-            inputs_cpu = inputs_cpu + rng.normal(
-                0.0, tgt.input_noise_std, size=inputs_cpu.shape,
+        # On-device fast path for the default top-k policy: run torch.topk on
+        # the GPU-resident drive vector so it never crosses to host, then bring
+        # back only the k selected indices for compact-id bookkeeping. The CPU
+        # path below copies the whole W-sized drive vector and runs numpy
+        # argpartition every round -- measured 55-159x slower at large W. Custom
+        # policies (threshold / e-percent / slotted) and additive input noise
+        # keep the CPU path, which owns those semantics.
+        if isinstance(policy, TopKPolicy) and tgt.input_noise_std == 0.0:
+            k_sel = min(int(policy.k), int(all_inputs.numel()))
+            _, sel = torch.topk(all_inputs, k_sel, sorted=True)
+            winners_gpu = sel.to(torch.int32)
+        else:
+            inputs_cpu = all_inputs.detach().cpu().numpy().astype(np.float64)
+            if tgt.input_noise_std > 0:
+                inputs_cpu = inputs_cpu + rng.normal(
+                    0.0, tgt.input_noise_std, size=inputs_cpu.shape,
+                )
+            winner_indices = self._winner_sel.select_with_policy(
+                inputs_cpu, policy)
+            winners_gpu = torch.tensor(
+                [int(i) for i in winner_indices],
+                dtype=torch.int32,
+                device=self._device,
             )
-        winner_indices = self._winner_sel.select_with_policy(inputs_cpu, policy)
-        winners_gpu = torch.tensor(
-            [int(i) for i in winner_indices],
-            dtype=torch.int32,
-            device=self._device,
-        )
         k = int(winners_gpu.numel())
 
         # --- Process first-time winners ---
         first_mask = winners_gpu.long() >= tgt.w
         first_input_vals = all_inputs[winners_gpu[first_mask].long()]
+        if self.norm_init and first_input_vals.numel() > 0:
+            # New winners are sampled candidates, so their drive was divided by
+            # the candidate divisor above. Connectome expansion splits an INTEGER
+            # synapse count across fibers, so un-normalize back to unit scale
+            # first (mirror of NumpySparseEngine before _expand_connectomes).
+            first_input_vals = (
+                first_input_vals * self._norm_candidate_divisor(tgt.n))
 
         winners_cpu = winners_gpu.cpu().tolist()
         first_inputs_cpu = (first_input_vals.cpu().tolist()
@@ -781,8 +874,14 @@ class TorchSparseEngine(ComputeEngine):
 
     def set_winners(self, area: str, winners: np.ndarray) -> None:
         st = self._areas[area]
-        st.winners = torch.tensor(
-            winners, dtype=torch.int32, device=self._device)
+        # torch.tensor(uint32_array, dtype=int32, device=cuda) hits a slow
+        # element-wise path -- uint32 is not a native torch dtype, so at large k
+        # this dominated the whole projection (measured 32ms/round at k=100k).
+        # Route through int64 (torch-native) so from_numpy is zero-copy, then a
+        # single fused H2D + cast kernel.
+        arr = np.ascontiguousarray(winners, dtype=np.int64)
+        st.winners = torch.from_numpy(arr).to(
+            self._device, dtype=torch.int32, non_blocking=True)
 
     def get_num_ever_fired(self, area: str) -> int:
         return self._areas[area].w

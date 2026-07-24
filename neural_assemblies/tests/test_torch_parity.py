@@ -289,3 +289,70 @@ class TestCSRShrinkGuard:
 
         assert csr._nrows >= pregrown
         assert eng._areas["CTX"].w > 0
+
+
+# ---------------------------------------------------------------------------
+# norm_init parity (ported to torch_sparse)
+# ---------------------------------------------------------------------------
+
+class TestNormInitParity:
+    """norm_init on torch_sparse: the flag is honored (previously swallowed by
+    ``**kwargs``), the read-time 1/d_j scale engages, and both engines form
+    stable assemblies with or without it."""
+
+    def test_torch_norm_init_flag_is_wired(self):
+        # Regression: TorchSparseEngine.__init__ used to accept **kwargs and
+        # silently drop norm_init, so Brain(norm_init=True, engine="torch_sparse")
+        # ran WITHOUT normalization.
+        for ni in (True, False):
+            b = _make_brain("torch_sparse", norm_init=ni)
+            assert b._engine.norm_init is ni
+
+    @pytest.mark.parametrize("engine", ENGINES)
+    @pytest.mark.parametrize("norm_init", [True, False])
+    def test_assembly_forms_and_stabilizes(self, engine, norm_init):
+        b = _make_brain(engine, norm_init=norm_init)
+        b.add_stimulus("stim", K)
+        b.add_area("A", N, K, BETA)
+        asm = project(b, "stim", "A", rounds=ROUNDS)
+        assert len(asm) == K, f"{engine} norm_init={norm_init}: size {len(asm)}"
+        # Recurrence-only stability (matches TestProjectParity); adding fresh
+        # stim drive churns winners and is not what "stable" means here.
+        a1 = _snap(b, "A")
+        b.project({}, {"A": ["A"]})
+        a2 = _snap(b, "A")
+        assert a1.overlap(a2) > 0.9, (
+            f"{engine} norm_init={norm_init}: stability {a1.overlap(a2):.3f}")
+
+    def test_norm_init_scale_path_engages_on_torch(self):
+        # Direct evidence the normalization ran: the stimulus fiber's per-column
+        # in-degree snapshot is populated only when norm_init drives _norm_scale.
+        b_on = _make_brain("torch_sparse", norm_init=True)
+        b_on.add_stimulus("stim", K)
+        b_on.add_area("A", N, K, BETA)
+        project(b_on, "stim", "A", rounds=ROUNDS)
+        conn_on = b_on._engine._stim_conns["stim"]["A"]
+        assert getattr(conn_on, "_norm_deg_base", None) is not None
+
+        b_off = _make_brain("torch_sparse", norm_init=False)
+        b_off.add_stimulus("stim", K)
+        b_off.add_area("A", N, K, BETA)
+        project(b_off, "stim", "A", rounds=ROUNDS)
+        conn_off = b_off._engine._stim_conns["stim"]["A"]
+        assert getattr(conn_off, "_norm_deg_base", None) is None
+
+    def test_recurrent_bridge_parity_both_engines(self):
+        # A -> B bridge exercises the area-fiber (CSR) norm_scale path, which
+        # must produce a coherent bridged assembly on both engines.
+        for engine in ENGINES:
+            b = _make_brain(engine, norm_init=True)
+            b.add_stimulus("stim", K)
+            b.add_area("A", N, K, BETA)
+            b.add_area("B", N, K, BETA)
+            project(b, "stim", "A", rounds=ROUNDS)
+            b.areas["A"].fix_assembly()
+            asm_b = project(b, "stim", "B", rounds=1)
+            for _ in range(ROUNDS):
+                b.project({}, {"A": ["B"], "B": ["B"]})
+            b.areas["A"].unfix_assembly()
+            assert len(_snap(b, "B")) == K, f"{engine}: B size wrong"

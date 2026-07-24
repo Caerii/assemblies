@@ -79,8 +79,11 @@ class StimulusState:
 
 class TorchConn:
     """Lightweight connectivity wrapper for stim->area (1-D weights)."""
-    __slots__ = ('weights', 'sparse')
+    __slots__ = ('weights', 'sparse', '_norm_deg_base')
 
     def __init__(self, weights, sparse=True):
         self.weights = weights
         self.sparse = sparse
+        # norm_init: snapshot of per-column in-degree from the stimulus,
+        # captured lazily on first read (see _norm_scale_stim).
+        self._norm_deg_base = None
