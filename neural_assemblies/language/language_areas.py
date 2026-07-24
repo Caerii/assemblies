@@ -24,7 +24,7 @@ DAT = "DAT"
 
 # Fixed area stats for explicit areas
 LEX_SIZE = 20
-RUSSIAN_LEX_SIZE = 7
+RUSSIAN_LEX_SIZE = 8
 
 # Actions
 DISINHIBIT = "DISINHIBIT"

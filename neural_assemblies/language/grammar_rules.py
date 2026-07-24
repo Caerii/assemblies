@@ -279,7 +279,7 @@ def generic_russian_dative_noun(index):
         ]
     }
 
-# Russian lexeme dictionary
+# Russian lexeme dictionary (Latin transliteration + Cyrillic aliases)
 RUSSIAN_LEXEME_DICT = {
     "vidit": generic_russian_verb(0),
     "lyubit": generic_russian_verb(1),
@@ -289,5 +289,13 @@ RUSSIAN_LEXEME_DICT = {
     "sobaku": generic_russian_accusative_noun(3),
     "sobakie": generic_russian_dative_noun(3),
     "kotu": generic_russian_dative_noun(2),
-    "dayet": generic_russian_ditransitive_verb(4)
+    "dayet": generic_russian_ditransitive_verb(4),
+    "дал": generic_russian_ditransitive_verb(4),
+    "dal": generic_russian_ditransitive_verb(4),
+    "мальчик": generic_russian_nominative_noun(5),
+    "malchik": generic_russian_nominative_noun(5),
+    "девочке": generic_russian_dative_noun(6),
+    "devochke": generic_russian_dative_noun(6),
+    "мяч": generic_russian_accusative_noun(7),
+    "myach": generic_russian_accusative_noun(7),
 }

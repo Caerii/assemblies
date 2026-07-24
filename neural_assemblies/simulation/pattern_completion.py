@@ -33,7 +33,11 @@ def pattern_com(n=100000, k=317, p=0.05, beta=0.05, project_iter=10, alpha=0.5, 
     tuple: Contains two elements; the first is the final weights of the neural connections,
            and the second is the list of winners (active neurons) after completion.
     """
-    b = Brain(p, save_winners=True, engine="numpy_sparse")
+    # Un-normalized model of Papadimitriou et al. (PNAS 2020) -- the pattern
+    # completion overlap goldens are that model's numbers. norm_init (now the
+    # Brain default) is pinned off to keep this a faithful literature
+    # reproduction rather than a test of the production substrate.
+    b = Brain(p, save_winners=True, engine="numpy_sparse", norm_init=False)
     b.add_stimulus("stim", k)
     b.add_area("A", n, k, beta)
     b.project({"stim": ["A"]}, {})
@@ -67,7 +71,11 @@ def pattern_com_repeated(n=100000, k=317, p=0.05, beta=0.05, project_iter=12, al
     Returns:
     tuple: Contains overlaps of winners and the number of iterations to reach completion for each trial.
     """
-    b = Brain(p, save_winners=True, engine="numpy_sparse")
+    # Un-normalized model of Papadimitriou et al. (PNAS 2020) -- the pattern
+    # completion overlap goldens are that model's numbers. norm_init (now the
+    # Brain default) is pinned off to keep this a faithful literature
+    # reproduction rather than a test of the production substrate.
+    b = Brain(p, save_winners=True, engine="numpy_sparse", norm_init=False)
     b.add_stimulus("stim", k)
     b.add_area("A", n, k, beta)
     b.project({"stim": ["A"]}, {})

@@ -5,16 +5,18 @@ This module contains the core parser classes that extend the brain
 functionality for language processing, including English and Russian parsers.
 """
 
-import brain
+import numpy as np
+from neural_assemblies.core.brain import Brain
+from neural_assemblies.core.backend import to_cpu, resolve_mixed_engine
 from collections import defaultdict
 
 from .language_areas import *
 from .grammar_rules import LEXEME_DICT, RUSSIAN_LEXEME_DICT, AreaRule, FiberRule
 
-class ParserBrain(brain.Brain):
+class ParserBrain(Brain):
     """Base parser brain class that extends the basic brain for language processing."""
     
-    def __init__(self, p, lexeme_dict={}, all_areas=[], recurrent_areas=[], initial_areas=[], readout_rules={}):
+    def __init__(self, p, lexeme_dict={}, all_areas=[], recurrent_areas=[], initial_areas=[], readout_rules={}, engine="auto"):
         """
         Initialize the parser brain.
         
@@ -25,8 +27,11 @@ class ParserBrain(brain.Brain):
             recurrent_areas: List of recurrent language areas
             initial_areas: List of initially active areas
             readout_rules: Rules for readout processing
+            engine: Compute engine name, or ``"auto"`` for literature-safe default
         """
-        brain.Brain.__init__(self, p)
+        if engine == "auto":
+            engine = resolve_mixed_engine(engine)
+        Brain.__init__(self, p, engine=engine)
         self.lexeme_dict = lexeme_dict
         self.all_areas = all_areas
         self.recurrent_areas = recurrent_areas
@@ -36,6 +41,10 @@ class ParserBrain(brain.Brain):
         self.area_states = defaultdict(set)
         self.activated_fibers = defaultdict(set)
         self.readout_rules = readout_rules
+        self.area_lexeme_cache = {}
+        self._outer_lexeme_cache = {}
+        self._inner_lexeme_cache = {}
+        self._in_dep_clause = False
         self.initialize_states()
 
     def initialize_states(self):
@@ -102,18 +111,37 @@ class ParserBrain(brain.Brain):
                         continue
                     if len(self.area_states[area2]) == 0:
                         if len(self.fiber_states[area1][area2]) == 0:
-                            if self.area_by_name[area1].winners:
+                            if len(self.area_by_name[area1].winners) > 0:
                                 proj_map[area1].add(area2)
-                            if self.area_by_name[area2].winners:
+                            if len(self.area_by_name[area2].winners) > 0:
                                 proj_map[area2].add(area2)
         return proj_map
+
+    def _clear_area_winners(self, area_name):
+        """Clear an area's assembly and sync to compute engines."""
+        area = self.area_by_name[area_name]
+        area.unfix_assembly()
+        empty = np.array([], dtype=np.uint32)
+        area.winners = empty
+        area.w = 0
+        self._engine.set_winners(area_name, empty)
+        if area.explicit and self._explicit_engine is not None:
+            self._explicit_engine.set_winners(area_name, empty)
+
+    def _set_area_winners(self, area_name, winners):
+        """Set winners on an area and sync to the compute engine."""
+        area = self.area_by_name[area_name]
+        winners_arr = np.asarray(winners, dtype=np.uint32)
+        area.winners = winners_arr
+        self._engine_for(area).set_winners(area_name, winners_arr)
 
     def activateWord(self, area_name, word):
         """Activate a word in the specified area."""
         area = self.area_by_name[area_name]
         k = area.k
         assembly_start = self.lexeme_dict[word]["index"] * k
-        area.winners = list(range(assembly_start, assembly_start + k))
+        self._set_area_winners(
+            area_name, range(assembly_start, assembly_start + k))
         area.fix_assembly()
 
     def activateIndex(self, area_name, index):
@@ -121,26 +149,97 @@ class ParserBrain(brain.Brain):
         area = self.area_by_name[area_name]
         k = area.k
         assembly_start = index * k
-        area.winners = list(range(assembly_start, assembly_start + k))
+        self._set_area_winners(
+            area_name, range(assembly_start, assembly_start + k))
         area.fix_assembly()
 
     def interpretAssemblyAsString(self, area_name):
         """Interpret the assembly in an area as a string."""
         return self.getWord(area_name, 0.7)
 
-    def getWord(self, area_name, min_overlap=0.7):
+    def begin_dep_clause(self) -> None:
+        """Start center-embedded / relative clause lexical bindings."""
+        self._in_dep_clause = True
+        self._inner_lexeme_cache = {}
+
+    def end_dep_clause(self) -> None:
+        """Close relative clause; outer bindings resume."""
+        self._in_dep_clause = False
+
+    def reset_outer_lexeme_cache(self) -> None:
+        self._outer_lexeme_cache = {}
+        self._sync_lexeme_cache_view()
+
+    def _sync_lexeme_cache_view(self) -> None:
+        merged = dict(self._outer_lexeme_cache)
+        merged.update(self._inner_lexeme_cache)
+        self.area_lexeme_cache = merged
+
+    def record_lexeme_bindings(self, word: str) -> None:
+        """Remember which grammar areas LEX bound to for *word* this step."""
+        lexeme = self.lexeme_dict[word]
+        proj_map = self.getProjectMap()
+        targets = proj_map.get(LEX, set()) - {LEX}
+        if not targets:
+            return
+
+        cache = self._inner_lexeme_cache if self._in_dep_clause else self._outer_lexeme_cache
+
+        pre0 = [r for r in lexeme.get("PRE_RULES", []) if r.index == 0]
+        is_verb = any(
+            isinstance(r, FiberRule) and r.action == DISINHIBIT
+            and r.area1 == LEX and r.area2 == VERB
+            for r in pre0
+        )
+        if is_verb:
+            for area in targets:
+                if area in {VERB, ADVERB, DEP_CLAUSE}:
+                    cache[area] = word
+            self._sync_lexeme_cache_view()
+            return
+
+        case_areas = {SUBJ, OBJ, NOM, ACC, DAT, PREP_P, DET, ADJ}
+        for area in sorted(targets & case_areas):
+            if (
+                area == SUBJ
+                and SUBJ in cache
+                and OBJ in targets
+            ):
+                continue
+            if area == SUBJ and SUBJ in cache:
+                continue
+            cache[area] = word
+        self._sync_lexeme_cache_view()
+
+    def getWord(self, area_name, min_overlap=0.7, cue_area=None, clause_scope="auto"):
         """Get the word represented by the assembly in an area."""
-        if not self.area_by_name[area_name].winners:
+        if area_name == LEX and cue_area:
+            if clause_scope in ("inner", "auto") and cue_area in self._inner_lexeme_cache:
+                return self._inner_lexeme_cache[cue_area]
+            if clause_scope in ("outer", "auto") and cue_area in self._outer_lexeme_cache:
+                return self._outer_lexeme_cache[cue_area]
+            if clause_scope == "auto" and cue_area in self.area_lexeme_cache:
+                return self.area_lexeme_cache[cue_area]
+        if len(self.area_by_name[area_name].winners) == 0:
             raise Exception("Cannot get word because no assembly in " + area_name)
-        winners = set(self.area_by_name[area_name].winners)
+        winners = set(int(x) for x in to_cpu(self.area_by_name[area_name].winners))
         area_k = self.area_by_name[area_name].k
         threshold = min_overlap * area_k
+        best_word = None
+        best_overlap = 0
         for word, lexeme in self.lexeme_dict.items():
             word_index = lexeme["index"]
             word_assembly_start = word_index * area_k
             word_assembly = set(range(word_assembly_start, word_assembly_start + area_k))
-            if len((winners & word_assembly)) >= threshold:
+            overlap_count = len(winners & word_assembly)
+            if overlap_count > best_overlap:
+                best_word = word
+                best_overlap = overlap_count
+            if overlap_count >= threshold:
                 return word
+        min_absolute = max(3, int(0.25 * area_k))
+        if best_overlap >= min_absolute:
+            return best_word
         return None
 
     def getActivatedFibers(self):
@@ -156,9 +255,9 @@ class ParserBrain(brain.Brain):
 class RussianParserBrain(ParserBrain):
     """Russian language parser brain."""
     
-    def __init__(self, p, non_LEX_n=10000, non_LEX_k=100, LEX_k=10, 
+    def __init__(self, p, non_LEX_n=1000, non_LEX_k=100, LEX_k=10, 
                  default_beta=0.2, LEX_beta=1.0, recurrent_beta=0.05, 
-                 interarea_beta=0.5, verbose=False):
+                 interarea_beta=0.5, verbose=False, engine="auto"):
         """
         Initialize the Russian parser brain.
         
@@ -179,7 +278,8 @@ class RussianParserBrain(ParserBrain):
                             all_areas=RUSSIAN_AREAS, 
                             recurrent_areas=recurrent_areas,
                             initial_areas=[LEX],
-                            readout_rules=RUSSIAN_READOUT_RULES)
+                            readout_rules=RUSSIAN_READOUT_RULES,
+                            engine=engine)
         self.verbose = verbose
 
         LEX_n = RUSSIAN_LEX_SIZE * LEX_k
@@ -203,13 +303,21 @@ class RussianParserBrain(ParserBrain):
 
         self.update_plasticities(area_update_map=custom_plasticities)
 
+    def getWord(self, area_name, min_overlap=0.7, cue_area=None, clause_scope="auto"):
+        word = ParserBrain.getWord(
+            self, area_name, min_overlap, cue_area=cue_area, clause_scope=clause_scope,
+        )
+        if word:
+            return word
+        return "<NON-WORD>"
+
 
 class EnglishParserBrain(ParserBrain):
     """English language parser brain."""
     
-    def __init__(self, p, non_LEX_n=100000, non_LEX_k=50, LEX_k=20, 
+    def __init__(self, p, non_LEX_n=1000, non_LEX_k=50, LEX_k=20,
                  default_beta=0.2, LEX_beta=1.0, recurrent_beta=0.05, 
-                 interarea_beta=0.5, verbose=False):
+                 interarea_beta=0.5, verbose=False, engine="auto"):
         """
         Initialize the English parser brain.
         
@@ -229,22 +337,17 @@ class EnglishParserBrain(ParserBrain):
                             all_areas=AREAS, 
                             recurrent_areas=RECURRENT_AREAS, 
                             initial_areas=[LEX, SUBJ, VERB],
-                            readout_rules=ENGLISH_READOUT_RULES)
+                            readout_rules=ENGLISH_READOUT_RULES,
+                            engine=engine)
         self.verbose = verbose
 
         LEX_n = LEX_SIZE * LEX_k
         self.add_explicit_area(LEX, LEX_n, LEX_k, default_beta)
 
         DET_k = LEX_k
-        self.add_area(SUBJ, non_LEX_n, non_LEX_k, default_beta)
-        self.add_area(OBJ, non_LEX_n, non_LEX_k, default_beta)
-        self.add_area(VERB, non_LEX_n, non_LEX_k, default_beta)
-        self.add_area(ADJ, non_LEX_n, non_LEX_k, default_beta)
-        self.add_area(PREP, non_LEX_n, non_LEX_k, default_beta)
-        self.add_area(PREP_P, non_LEX_n, non_LEX_k, default_beta)
-        self.add_area(DET, non_LEX_n, DET_k, default_beta)
-        self.add_area(ADVERB, non_LEX_n, non_LEX_k, default_beta)
-        self.add_area(DEP_CLAUSE, non_LEX_n, non_LEX_k, default_beta)
+        for area_name in [SUBJ, OBJ, VERB, ADJ, PREP, PREP_P, DET, ADVERB, DEP_CLAUSE]:
+            k = DET_k if area_name == DET else non_LEX_k
+            self.add_area(area_name, non_LEX_n, k, default_beta)
 
         # Set up custom plasticities
         custom_plasticities = defaultdict(list)
@@ -262,18 +365,23 @@ class EnglishParserBrain(ParserBrain):
     def getProjectMap(self):
         """Get projection map with English-specific constraints."""
         proj_map = ParserBrain.getProjectMap(self)
-        # "War of fibers"
-        if LEX in proj_map and len(proj_map[LEX]) > 2:  # because LEX->LEX
-            raise Exception("Got that LEX projecting into many areas: " + str(proj_map[LEX]))
+        # "War of fibers" — exclude LEX→LEX recurrent from the cap
+        lex_targets = proj_map[LEX] - {LEX} if LEX in proj_map else set()
+        if len(lex_targets) > 2:
+            raise Exception(
+                "Got that LEX projecting into many areas: " + str(proj_map[LEX])
+            )
         return proj_map
 
-    def getWord(self, area_name, min_overlap=0.7):
+    def getWord(self, area_name, min_overlap=0.7, cue_area=None, clause_scope="auto"):
         """Get word with English-specific handling."""
-        word = ParserBrain.getWord(self, area_name, min_overlap)
+        word = ParserBrain.getWord(
+            self, area_name, min_overlap, cue_area=cue_area, clause_scope=clause_scope,
+        )
         if word:
             return word
         if not word and area_name == DET:
-            winners = set(self.area_by_name[area_name].winners)
+            winners = set(int(x) for x in to_cpu(self.area_by_name[area_name].winners))
             area_k = self.area_by_name[area_name].k
             threshold = min_overlap * area_k
             nodet_index = DET_SIZE - 1

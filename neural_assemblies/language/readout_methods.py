@@ -31,9 +31,20 @@ def read_out(area, mapping, brain, dependencies, readout_rules):
     """
     to_areas = mapping[area]
     brain.project({}, {area: to_areas})
-    
+
+    # `getWord` returns "<NON-WORD>" when an area's assembly matches no lexeme
+    # above the 25% identification floor -- i.e. the area holds residual NOISE,
+    # not a word (e.g. ADVERB is in the readout map but "cats chase mice" has no
+    # adverb, so ADVERB carries leftover activity whose best lexeme overlap is
+    # 3-4 of k=20, landing on a DIFFERENT random word each process). A dependency
+    # arc to/from a non-word is spurious, and its nondeterministic endpoint made
+    # this readout flaky across processes. Emit an arc only when BOTH endpoints
+    # are identifiable words.
+    def _identified(w):
+        return bool(w) and w != "<NON-WORD>"
+
     if area != DEP_CLAUSE:
-        this_word = brain.getWord(LEX)
+        this_word = brain.getWord(LEX, cue_area=area, clause_scope="outer")
 
     for to_area in to_areas:
         if to_area == LEX:
@@ -41,15 +52,19 @@ def read_out(area, mapping, brain, dependencies, readout_rules):
         if to_area == DEP_CLAUSE:
             brain.project({}, {to_area: [VERB]})
             brain.project({}, {VERB: [LEX, SUBJ]})
-            dep_verb = brain.getWord(LEX)
-            dependencies.append([this_word, dep_verb, "DEP-VERB"])
+            dep_verb = brain.getWord(LEX, cue_area=VERB, clause_scope="inner")
+            outer_head = brain.getWord(LEX, cue_area=VERB, clause_scope="outer")
+            if _identified(outer_head) and _identified(dep_verb):
+                dependencies.append([outer_head, dep_verb, "DEP-VERB"])
             brain.project({}, {SUBJ: [LEX]})
-            dep_verb_subj = brain.getWord(LEX)
-            dependencies.append([dep_verb, dep_verb_subj, "SUBJ"])
+            dep_subj = brain.getWord(LEX, cue_area=SUBJ, clause_scope="inner")
+            if _identified(dep_verb) and _identified(dep_subj):
+                dependencies.append([dep_verb, dep_subj, "SUBJ"])
             continue
         brain.project({}, {to_area: [LEX]})
-        other_word = brain.getWord(LEX)
-        dependencies.append([this_word, other_word, to_area])
+        other_word = brain.getWord(LEX, cue_area=to_area, clause_scope="outer")
+        if _identified(this_word) and _identified(other_word):
+            dependencies.append([this_word, other_word, to_area])
 
     for to_area in to_areas:
         if to_area != LEX:

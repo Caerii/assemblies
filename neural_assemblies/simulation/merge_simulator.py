@@ -25,7 +25,12 @@ def merge_sim(n=100000, k=317, p=0.01, beta=0.05, max_t=50):
     Returns:
     tuple: Saved weights of neural areas 'A', 'B', and 'C' after merging simulation.
     """
-    b = Brain(p, engine="numpy_sparse")
+    # Reproduces the un-normalized model of Papadimitriou et al. (PNAS 2020);
+    # the merge support goldens (w<=4000) are that model's numbers. norm_init
+    # (Dabagia 2024, now the Brain default) changes the recurrent dynamics and
+    # inflates support ~10x, so it is pinned off here to keep this a faithful
+    # literature reproduction rather than a test of the production substrate.
+    b = Brain(p, engine="numpy_sparse", norm_init=False)
     b.add_stimulus("stimA", k)
     b.add_stimulus("stimB", k)
     b.add_area("A", n, k, beta)

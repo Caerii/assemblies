@@ -28,7 +28,10 @@ def associate(n=100000, k=317, p=0.05, beta=0.1, overlap_iter=10):
     Returns:
     brain.Brain: The brain object after executing the association simulation.
     """
-    b = Brain(p, save_winners=True, engine="numpy_sparse")
+    # Un-normalized model of Papadimitriou et al. (PNAS 2020) -- the association
+    # overlap goldens are that model's numbers. norm_init (now the Brain
+    # default) is pinned off to keep this a faithful literature reproduction.
+    b = Brain(p, save_winners=True, engine="numpy_sparse", norm_init=False)
     b.add_stimulus("stimA", k)
     b.add_area("A", n, k, beta)
     b.add_stimulus("stimB", k)
@@ -104,7 +107,10 @@ def association_grand_sim(n=100000, k=317, p=0.01, beta=0.05, min_iter=10, max_i
     Returns:
     dict: Dictionary where keys are the number of iterations and values are the overlap ratios of assemblies in the third area as influenced by two distinct stimuli.
     """
-    b = Brain(p, save_winners=True, engine="numpy_sparse")
+    # Un-normalized model of Papadimitriou et al. (PNAS 2020) — the association
+    # overlap goldens are that model's numbers. norm_init (now the Brain
+    # default) is pinned off to keep this a faithful literature reproduction.
+    b = Brain(p, save_winners=True, engine="numpy_sparse", norm_init=False)
     b.add_stimulus("stimA", k)
     b.add_area("A", n, k, beta)
     b.add_stimulus("stimB", k)
