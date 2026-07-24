@@ -194,7 +194,8 @@ LEX→LEX connectome + per-word stimulus drive + vocabulary lexicon (baking the
 frozen norm_init 1/d_j scale in), then drives B context prefixes through it as one
 `[B, n]` activity tensor — one SpMM + one `topk` per step, one matmul for readout.
 It replicates `_predict_next_token_inner` step-for-step, so predictions match the
-sequential path and it runs **~50× faster** (RTX 3080).
+sequential path. Measured on corpus scoring (RTX 3080): **420 predictions in
+0.45 s vs 41 s sequential — 91× faster, ~930 pred/s vs ~10 pred/s.**
 
 This surfaced a real correctness point: **prediction was not truly read-only** —
 even frozen (no plasticity), the sparse engine samples candidates and materializes
