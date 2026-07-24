@@ -78,3 +78,52 @@ def test_predict_batched_shapes():
     preds = m.predict([["0"], ["1", "2"], ["3", "4", "5"]])
     assert len(preds) == 3
     assert all(p in vocab for p in preds)
+
+
+class TestSparseTrainer:
+    """Sparse growing connectome lifts the vocab ceiling at no quality cost."""
+
+    def test_sparse_learns_above_chance(self):
+        from neural_assemblies.assembly_calculus.batched_trainer import (
+            SparseBatchedSeqTrainer,
+        )
+        V = 16
+        vocab = [str(i) for i in range(V)]
+        train_c = _markov_corpus(V, 300, 6, seed=1)
+        test_c = _markov_corpus(V, 80, 6, seed=1)
+        t = SparseBatchedSeqTrainer(8000, 40, vocab, m=1, beta=0.3, seed=0)
+        t.train(train_c, batch_size=32, epochs=2)
+        assert t.accuracy(test_c) > 3.0 / V
+        assert t.nnz() > 0
+
+    def test_sparse_matches_dense_quality(self):
+        from neural_assemblies.assembly_calculus.batched_trainer import (
+            BatchedSeqTrainer, SparseBatchedSeqTrainer,
+        )
+        V = 16
+        vocab = [str(i) for i in range(V)]
+        train_c = _markov_corpus(V, 300, 6, seed=1)
+        test_c = _markov_corpus(V, 80, 6, seed=1)
+        d = BatchedSeqTrainer(8000, 40, vocab, p=0.01, beta=0.3, stim=2.0, seed=0)
+        d.train(train_c, batch_size=32, epochs=2)
+        s = SparseBatchedSeqTrainer(8000, 40, vocab, m=1, beta=0.3, seed=0)
+        s.train(train_c, batch_size=32, epochs=2)
+        # bigram sparse should be at least as good as the dense recurrent trainer
+        assert s.accuracy(test_c) >= d.accuracy(test_c) - 0.05
+
+    def test_sparse_scales_where_dense_would_oom(self):
+        # n=1e6 dense [n,n] would need ~4 TB; sparse trains in a fraction of a GB.
+        import torch
+        from neural_assemblies.assembly_calculus.batched_trainer import (
+            SparseBatchedSeqTrainer,
+        )
+        vocab = [str(i) for i in range(16)]
+        corpus = _markov_corpus(16, 120, 6, seed=1)
+        torch.cuda.reset_peak_memory_stats()
+        t = SparseBatchedSeqTrainer(1_000_000, 40, vocab, m=1, beta=0.3,
+                                    seed=0, max_batch_rows=32)
+        t.train(corpus, batch_size=32, epochs=1)
+        acc = t.accuracy(corpus)
+        peak_gb = torch.cuda.max_memory_allocated() / 1e9
+        assert acc > 3.0 / 16
+        assert peak_gb < 4.0, f"peak GPU {peak_gb:.1f}GB too high for sparse n=1e6"

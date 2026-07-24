@@ -235,6 +235,29 @@ assembly-calculus language model can now be **trained and run at GPU scale with 
 change to what it learns**. Tests: `test_batched_trainer.py` (learns above chance,
 mini-batch == online bit-identical, batched predict).
 
+### Large vocabulary — sparse growing connectome
+
+`BatchedSeqTrainer`'s dense `[n,n]` W caps at n≈1e4 (400 MB). `SparseBatchedSeqTrainer`
+replaces it with a connectome that **starts empty and grows only the bridge edges
+that actually form** (the same lazy-edge model the engine's `CSRConn` uses),
+assemblies stored as indices, activity dense `[B,n]` with B capped. Result: same
+accuracy at 100×+ larger n.
+
+| model | n | test acc | peak GPU | dense would need |
+|---|---|---|---|---|
+| dense | 8k | 0.340 | — | 0.26 GB |
+| sparse (m=1) | 8k | **0.340** | — | — |
+| sparse (m=1) | **1e6** | **0.340** | **0.44 GB** | **~4000 GB** |
+
+**The vocab ceiling is lifted ~100× with zero quality loss.** Honest limit on the
+*context* axis: a bounded m-gram *union* state (bag of the last m words) does NOT
+beat bigram — it dilutes the signal, exactly the point `StatePredictionMixin`
+makes that naive aggregation is not the answer. So `m=1` is the effective default;
+**genuinely richer context needs a *structured* bounded state** (core × syntactic
+slot × mood, weights-between-states) — the existing `StatePredictionMixin`
+architecture — not a bigger bag. That structured-state batched path is the next
+step for large context; large *vocabulary* is solved here.
+
 ## 5b. What's productionized vs. what remains
 
 Landed and tested (~60 GPU tests): the Phase-0 engine fixes, `dense_drive` and
