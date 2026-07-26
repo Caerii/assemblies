@@ -72,14 +72,63 @@ class StatePredictionMixin:
         and CONTEXT -> PREDICTION only, so without this the core, syntactic and
         MOOD pathways have no columns into PREDICTION and the Hebbian pairing
         has nothing to write to -- retrieval overlap stays at exactly zero.
+
+        WHY THE STIMULUS IS CO-FIRED.  An area->area connectome starts empty
+        (shape ``(0, 0)``).  The sparse engine initialises it LAZILY: an empty
+        connectome is registered for deferred init during input accumulation
+        (``_sparse.py`` ~line 655) and the weights are actually sampled at the
+        END of ``project_into`` (~line 908).  But an empty connectome
+        contributes NO drive, so a projection whose only source is that empty
+        fiber hits the "zero signal -> preserve current assembly" early return
+        (~line 682) and never reaches the initialisation block.  The fiber is
+        therefore stuck empty forever: it cannot deliver drive until it is
+        initialised, and it is not initialised unless something delivers drive.
+
+        Co-firing an arbitrary phonological stimulus into PREDICTION breaks that
+        deadlock -- the projection has nonzero drive, skips the early return,
+        and the deferred init runs.  Measured on a trained parser: projecting
+        ``{CORE: [PREDICTION]}`` alone leaves the connectome at ``(0, 0)``;
+        the same projection co-driven by a stimulus yields ``(876, 999)`` with
+        43,736 synapses.  This is exactly the pattern
+        ``_bootstrap_prediction_connectivity`` already uses for the CONTEXT
+        fiber (``project({phon: [PREDICTION]}, {CONTEXT: [PREDICTION]})``).
+
+        Two ordering requirements follow from the deferred-init guard
+        ``src.w > 0 and tgt.w > 0``:
+        * PREDICTION must already have materialised neurons, so
+          ``_ensure_prediction_lexicon`` runs BEFORE this.
+        * SUBJ/OBJ are empty until something drives them, so a core area is
+          projected into them first.
         """
         if self._state_pred_bootstrapped:
             return
         brain = self.brain
-        sources = [a for a in (*CORE_AREAS, SUBJ, OBJ, MOOD) if a in brain.areas]
+        if not self.stim_map:
+            return
+        arb_phon = next(iter(self.stim_map.values()))
+
         with brain.frozen():
+            # SUBJ/OBJ hold no assembly until a constituent is placed in them;
+            # deferred init needs a non-empty source, so seed them from a core.
+            seed_core = next(
+                (a for a in CORE_AREAS
+                 if a in brain.areas and brain.areas[a].w > 0),
+                None,
+            )
+            if seed_core is not None:
+                for syn in (SUBJ, OBJ):
+                    if syn in brain.areas and brain.areas[syn].w == 0:
+                        brain.project({}, {seed_core: [syn]})
+
+            sources = [
+                a for a in (*CORE_AREAS, SUBJ, OBJ, MOOD)
+                if a in brain.areas and brain.areas[a].w > 0
+            ]
             for area in sources:
-                brain.project({}, {area: [PREDICTION]})
+                # Co-fire the stimulus so the projection carries drive; see the
+                # deadlock explanation above.
+                brain.project({arb_phon: [PREDICTION]}, {area: [PREDICTION]})
+
         brain.inhibit_areas([PREDICTION])
         self._state_pred_bootstrapped = True
 
@@ -178,9 +227,13 @@ class StatePredictionMixin:
         PREDICTION while the state that anticipated it is still active, which
         is exactly the pairing Hebbian plasticity needs.
         """
+        # Order matters: the lexicon pass is what first materializes neurons in
+        # PREDICTION, and the deferred-init guard requires a non-empty target
+        # (see _bootstrap_state_paths). Bootstrapping the state fibers before it
+        # leaves every state -> PREDICTION connectome empty.
         self._bootstrap_prediction_connectivity()
-        self._bootstrap_state_paths()
         self._ensure_prediction_lexicon()
+        self._bootstrap_state_paths()
         lexicon = getattr(self, "prediction_lexicon", {}) or {}
 
         for _ in range(max(1, repetitions)):
@@ -215,6 +268,7 @@ class StatePredictionMixin:
         if not words:
             return []
         self._bootstrap_prediction_connectivity()
+        self._ensure_prediction_lexicon()   # must precede the state bootstrap
         self._bootstrap_state_paths()
         lexicon = getattr(self, "prediction_lexicon", None)
         if not lexicon:
