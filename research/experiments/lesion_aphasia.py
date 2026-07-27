@@ -22,74 +22,122 @@ confirmed to be live rather than assumed:
   position -- after training where "ball" is only ever a patient, the parser
   reads "ball chases dog" as ball=PATIENT, dog=AGENT, against word order.
 * POSITIONAL (symbolic): `constituent_role_order` returns a ranking derived from
-  `self.word_order_type`. Flipping that attribute drops role accuracy 1.00 ->
-  0.33, so it does carry the decision.
+  `self.word_order_type`. Corrupting that attribute takes reversible accuracy to
+  0.000 across every seed, so it does carry the decision.
 
 HONEST CAVEAT, stated up front: the positional route is a stored Python
 attribute, NOT a neural area. Ablating it is therefore a symbolic lesion, not a
-synaptic one, and a "Broca's lesion" here is not anatomically real.
+synaptic one, and a "Broca's lesion" here is not anatomically real. The lexical
+arm IS partly synaptic (see `decompose()` below) -- but its total-collapse
+component is a dict clear, so neither arm is purely neural.
 
-BOTH ARMS ARE SYMBOLIC -- a correction, measured by `decompose()` below
---------------------------------------------------------------------
-This file previously claimed the LEXICAL arm was "genuinely synaptic" because
-`lesion_lexical` zeroes core -> ROLE weights. That claim was WRONG, and
-`decompose()` is the experiment that falsified it. `lesion_lexical` does two
-things at full severity -- zeroes the synapses AND clears `role_lexicons` -- so
-its clean 1.00 -> 0.00 could not be attributed. Separating them:
+RESULT -- 20 brain seeds, 20 irreversible / 12 reversible items, mean +/- 95% CI
+-------------------------------------------------------------------------------
+    condition                 irreversible        reversible
+    intact                   0.930 +/-0.043    1.000 +/-0.000
+    lesion POSITIONAL        1.000 +/-0.000    0.000 +/-0.000
+    lesion LEXICAL           0.000 +/-0.000    1.000 +/-0.000
+    zero synapses only       0.467 +/-0.150    0.950 +/-0.071
+    clear lexicons only      0.000 +/-0.000    1.000 +/-0.000
 
-    manipulation                      irreversible   reversible
-    intact                                    1.00         1.00
-    zero ALL core -> ROLE synapses            0.75         1.00
-    clear role_lexicons only                  0.00         1.00
-    both                                      0.00         1.00
+    paired deltas vs intact (same brain per seed)
+    POSITIONAL   irrev +0.070 +/-0.043    rev -1.000 +/-0.000
+    LEXICAL      irrev -0.930 +/-0.043    rev +0.000 +/-0.000
 
-Clearing the dictionary is NECESSARY AND SUFFICIENT for the collapse; destroying
-every synapse is neither. `core.py::_score_role_binding` shows the mechanism --
-it reads `stored = lex.get(word)` and returns 0.0 when that misses, so an empty
-`role_lexicons` yields no signal for ANY role no matter what the weights hold.
-The synapses only shape the projected assembly that is then compared against the
-stored snapshots; the snapshots are the readout.
+A clean double dissociation: each lesion destroys one item type (to exactly
+zero, with zero variance across seeds) and leaves the other at or above its
+intact level. Both directions hold with non-overlapping intervals.
 
-So the published double dissociation is symbolic on BOTH sides, not one-neural /
-one-symbolic. What survives as a genuinely synaptic effect is smaller and in the
-predicted direction: zeroing every core -> ROLE weight costs irreversible items
-~0.25 while leaving reversible items untouched -- selective, but a long way from
-the engineered 1.00 -> 0.00.
+The +0.070 on irreversible under the POSITIONAL lesion is small but real, and
+it is a CONFOUND WORTH NAMING: irreversible items are deliberately built in
+NON-canonical order, so corrupting the order cue to object-initial makes
+position point at the right answer for exactly those items. The spared category
+is therefore slightly flattered. At +0.07 it does not threaten the
+dissociation; at the +0.50 an earlier single-seed run suggested, it would have.
 
-GRADED SEVERITY (`severity_curve()`), and which arm actually grades
-------------------------------------------------------------------
-    POSITIONAL   severity 0 / .25 / .5 / .75 / 1
-                 reversible    1.00  0.83  0.33  0.00  0.00
-                 irreversible  1.00  1.00  1.00  1.00  1.00
-    LEXICAL      irreversible  1.00  0.92  1.00  1.00  0.00
+WHERE THE LEXICAL ROUTE ACTUALLY LIVES (`decompose()`)
+-----------------------------------------------------
+`lesion_lexical` does two things at full severity -- zeroes core -> ROLE
+synapses AND clears `role_lexicons` -- so on its own it cannot say which one
+carries the effect. Splitting them shows it is BOTH, in different ways:
 
-The positional arm gives a genuinely GRADED, monotonic impairment with the
-spared type flat at ceiling -- the shape an aphasia comparison would want. The
-lexical arm does NOT grade: it is flat until severity 1.0 and then falls off a
-cliff, and per the decomposition above that cliff is the dictionary clear, not
-accumulated synaptic damage (zeroing 99% of the weights changes nothing). The
-0.92 at severity 0.25 is a single item, i.e. noise, not a dose effect.
+* Synapses alone: 0.930 -> 0.467 (+/-0.150). A large, genuinely SYNAPTIC
+  effect, and selective (reversible barely moves, 0.950 +/-0.071). The wide
+  interval is itself a finding -- how much the learned weights matter varies a
+  lot by seed.
+* Dictionary alone: 0.930 -> 0.000, zero variance. Mechanically forced:
+  `core.py::_score_role_binding` does `stored = lex.get(word)` and returns 0.0
+  on a miss, so an empty lexicon silences every role whatever the weights hold.
 
-REPRODUCIBILITY CAVEAT -- READ BEFORE QUOTING ANY NUMBER HERE
--------------------------------------------------------------
-Chasing the decomposition above turned up a separate defect: results here
-depended on PYTHONHASHSEED. Same `seed=42`, same code, different process ->
-irreversible scored 1.00 under hash seeds 0/1/2/9/13 and 0.50 under 6/8/42,
-and one hash seed crashed. Within a process it was perfectly stable across
-rebuilds, which is exactly why it went unnoticed: the test suite runs in one
-process, and `Brain(seed=)` had already been "verified" reproducible there.
+So destroying every synapse is NOT sufficient for total collapse; clearing the
+snapshots is. The snapshots are the readout and the synapses are the evidence
+fed into it. An earlier version of this file, measured on ONE seed with four
+items, read the synaptic effect as ~0.25 and concluded the arm was purely
+symbolic. That was wrong: the synaptic contribution is roughly half the
+accuracy.
 
-Root cause found and fixed for the core engine (see `_sparse.stable_seed` --
-`hash()` of a str is per-process randomized, so lazy connectomes were seeded
-differently every run), plus three set-iteration sites whose order allocates
-neurons. A plain Brain is now hash-seed stable; the EmergentParser layer is
-NOT yet -- divergence is isolated to `train_lexicon`.
+GRADED SEVERITY (`severity_curve()`, 12 brain seeds) -- only one arm grades
+--------------------------------------------------------------------------
+    POSITIONAL              irreversible          reversible
+      severity 0.00        0.933 +/-0.056      1.000 +/-0.000
+               0.25        0.950 +/-0.042      0.750 +/-0.053
+               0.50        0.979 +/-0.019      0.500 +/-0.078
+               0.75        0.987 +/-0.018      0.236 +/-0.069
+               1.00        1.000 +/-0.000      0.000 +/-0.000
 
-So the 1.00 entries below carry roughly +/-0.5 of run-to-run uncertainty on
-the irreversible column. The 0.00 entries are mechanically forced (an empty
-`role_lexicons` makes `_score_role_binding` return 0.0 for every role) and are
-robust. Treat the DIRECTION of the dissociation as the result and the exact
-magnitudes as provisional until the parser layer is deterministic too.
+    LEXICAL                 irreversible          reversible
+      severity 0.00        0.933 +/-0.056      1.000 +/-0.000
+               0.25        0.929 +/-0.055      1.000 +/-0.000
+               0.50        0.933 +/-0.056      1.000 +/-0.000
+               0.75        0.942 +/-0.051      1.000 +/-0.000
+               1.00        0.000 +/-0.000      1.000 +/-0.000
+
+The POSITIONAL arm is a near-linear DOSE-RESPONSE on reversible items
+(1.00 / .75 / .50 / .24 / .00, intervals well separated) while the spared type
+stays at ceiling -- the profile an aphasia comparison would want, and it holds
+up under sampling rather than being one seed's shape.
+
+The LEXICAL arm does NOT grade: irreversible is flat within noise through 75%
+synaptic destruction and only collapses at 1.00, where the dictionary clear
+lands. Partial synaptic damage is nearly free; total damage costs ~0.3-0.5 (the
+`zero synapses only` row). That is a strongly non-linear, redundancy-like
+profile, not an impairment gradient.
+
+Graded damage on the positional route is modelled as an UNRELIABLE cue --
+`word_order_type` becomes a property returning the corrupted object-initial
+order on a `severity` fraction of reads. That is a model of degraded syntactic
+processing, not of tissue, which is the caveat above restated.
+
+METHOD -- why the numbers above are sampled and the older ones were not
+----------------------------------------------------------------------
+Everything here previously came from a single `EmergentParser(seed=42)` printed
+to two decimals. Three separate problems, all now fixed:
+
+* n=1 model. One brain is one draw from the wiring distribution.
+* A sample of the wrong variable. `severity_curve` averaged "3 seeds" that were
+  LESION seeds (which synapses got zeroed) while the brain stayed `seed=42`;
+  `decompose` looped over seeds while rebuilding the identical `seed=42` brain.
+* Item sets too coarse. 4 irreversible / 2 reversible items meant a score could
+  only be 0, .25, .5, .75, 1.0 and one item moved it by a quarter.
+
+Now: >=8 BRAIN seeds, each trained once and `deepcopy`-ed per condition so
+conditions are PAIRED, reported as mean +/- 95% CI with paired deltas; 20/12
+items so one item is worth <=0.05.
+
+This mattered. On one seed with four items the intact irreversible baseline
+read 0.50; over 20 seeds it is 0.930 +/-0.043. The alarming number was an
+artefact of the sample, not a property of the model.
+
+REPRODUCIBILITY
+---------------
+Results here once depended on PYTHONHASHSEED -- same `seed=42`, same code,
+different process, different answer (and one hash seed crashed). Root cause was
+RNG seeds derived from `hash()` of a str plus set-of-str iteration orders that
+decide which slice of the seeded stream each stimulus draws. Fixed; 11 hash
+seeds now agree exactly, guarded by
+`neural_assemblies/tests/test_hashseed_determinism.py`, which subprocesses with
+differing hash seeds because an in-process check passes vacuously. The fix
+CHANGED the numbers, so nothing measured before it was carried forward.
 
 PREDICTIONS
     lesion POSITIONAL  -> reversible breaks, irreversible survives  (Broca's)
@@ -98,8 +146,9 @@ PREDICTIONS
 
 from __future__ import annotations
 
+import copy
 import sys
-from typing import Dict, List
+from typing import Dict, List, Sequence
 
 import numpy as np
 
@@ -114,10 +163,18 @@ from neural_assemblies.assembly_calculus.emergent.core.areas import (
 
 # Role-exclusive nouns give IRREVERSIBLE items (lexical route suffices);
 # balanced nouns appear in both roles, so only position can disambiguate them.
+#
+# SIZED FOR RESOLUTION, not just for coverage. The first version used 2+2+2
+# nouns and one test verb, giving 4 irreversible and 2 reversible items -- so a
+# score could only land on 0, 0.25, 0.5, 0.75, 1.0 and a single item moved the
+# result by a quarter. Every "0.50" reported from that version meant *two
+# items*. These counts give 20 irreversible and 12 reversible items (40 and 24
+# role judgements), so one item is worth <=0.05.
 AGENT_ONLY = ("dog", "cat")
-PATIENT_ONLY = ("ball", "book")
-BALANCED = ("bird", "boy")
+PATIENT_ONLY = ("ball", "book", "food", "table", "car")
+BALANCED = ("bird", "boy", "girl")
 VERBS = ("chases", "finds", "sees")
+TEST_VERBS = ("chases", "finds")
 
 
 def _gs(words: List[str], roles: List[str]) -> GroundedSentence:
@@ -166,15 +223,94 @@ def test_items():
     # semantics vs position: gold follows the LEXICAL preference
     for a in AGENT_ONLY:
         for pat in PATIENT_ONLY:
-            items.append(([pat, "chases", a], {a: "AGENT", pat: "PATIENT"},
-                          "irreversible"))
+            for v in TEST_VERBS:
+                items.append(([pat, v, a], {a: "AGENT", pat: "PATIENT"},
+                              "irreversible"))
     # no lexical preference available: gold follows ORDER
     for b in BALANCED:
         for other in BALANCED:
             if b != other:
-                items.append(([b, "chases", other],
-                              {b: "AGENT", other: "PATIENT"}, "reversible"))
+                for v in TEST_VERBS:
+                    items.append(([b, v, other],
+                                  {b: "AGENT", other: "PATIENT"}, "reversible"))
     return items
+
+
+def train_parser(seed: int):
+    """One trained parser at a given BRAIN seed."""
+    p = EmergentParser(n=1000, k=50, p=0.05, beta=0.1, seed=seed, rounds=10)
+    p.train(create_training_sentences() + build_corpus())
+    return p
+
+
+def _mean_ci(xs) -> tuple:
+    """(mean, half-width of the 95% CI) using the normal approximation.
+
+    n is small (tens of seeds), so this is indicative, not exact -- but it is
+    the difference between "0.50" and "0.50 +/- 0.18", and only the second one
+    tells you whether a condition actually differs from another.
+    """
+    a = np.asarray(xs, dtype=float)
+    if a.size < 2:
+        return float(a.mean()) if a.size else float("nan"), float("nan")
+    return float(a.mean()), float(1.96 * a.std(ddof=1) / np.sqrt(a.size))
+
+
+def sample_conditions(seeds: Sequence[int] = tuple(range(20))
+                      ) -> Dict[str, Dict[str, list]]:
+    """Score every condition on EVERY brain seed, returning the raw samples.
+
+    Why this exists: earlier versions of this file trained a single parser at
+    `seed=42` and reported its scores as if they were the model's behaviour.
+    They are one draw. `severity_curve` looked better because it averaged "3
+    seeds", but those were LESION seeds -- which synapses got zeroed -- while
+    the brain stayed `seed=42` throughout, so it was still n=1 brain.
+
+    Each seed is trained ONCE and deep-copied per condition, so the conditions
+    are paired (same brain), which is what makes the differences comparable.
+    """
+    conds = {
+        "intact": lambda q: None,
+        "lesion POSITIONAL": lesion_positional,
+        "lesion LEXICAL": lesion_lexical,
+        "zero synapses only": lambda q: zero_role_synapses(q, 1.0),
+        "clear lexicons only": clear_role_lexicons,
+    }
+    out = {c: {"irreversible": [], "reversible": []} for c in conds}
+    for seed in seeds:
+        base = train_parser(seed)
+        for name, fn in conds.items():
+            q = copy.deepcopy(base)
+            fn(q)
+            out[name]["irreversible"].append(score(q, "irreversible"))
+            out[name]["reversible"].append(score(q, "reversible"))
+        print(f"    seed {seed} done", flush=True)
+    return out
+
+
+def distribution(seeds: Sequence[int] = tuple(range(20))) -> None:
+    """The headline table, as a distribution rather than a point estimate."""
+    items = test_items()
+    n_irr = sum(1 for _, _, k in items if k == "irreversible")
+    n_rev = len(items) - n_irr
+    seeds = list(seeds)
+    print(f"\nDISTRIBUTION over {len(seeds)} BRAIN seeds "
+          f"({n_irr} irreversible / {n_rev} reversible items)\n")
+    res = sample_conditions(seeds)
+    print(f"\n  {'condition':<22}{'irreversible':>22}{'reversible':>22}")
+    for name, d in res.items():
+        mi, ci_i = _mean_ci(d["irreversible"])
+        mr, ci_r = _mean_ci(d["reversible"])
+        print(f"  {name:<22}{mi:>13.3f} +/-{ci_i:<6.3f}"
+              f"{mr:>13.3f} +/-{ci_r:<6.3f}", flush=True)
+    base_i = np.asarray(res["intact"]["irreversible"])
+    base_r = np.asarray(res["intact"]["reversible"])
+    print("\n  Paired deltas vs intact (same brain per seed):")
+    for name in ("lesion POSITIONAL", "lesion LEXICAL"):
+        di, ci_i = _mean_ci(np.asarray(res[name]["irreversible"]) - base_i)
+        dr, ci_r = _mean_ci(np.asarray(res[name]["reversible"]) - base_r)
+        print(f"  {name:<22} irrev {di:+.3f} +/-{ci_i:.3f}   "
+              f"rev {dr:+.3f} +/-{ci_r:.3f}", flush=True)
 
 
 def score(parser, kind: str) -> float:
@@ -221,15 +357,20 @@ def clear_role_lexicons(parser) -> None:
         parser.role_lexicons[role] = {}
 
 
-def decompose(seeds=(1, 2, 3)) -> None:
+def decompose(seeds: Sequence[int] = tuple(range(8))) -> None:
     """Attribute the lexical dissociation to synapses vs. stored snapshots.
 
     `lesion_lexical` at full severity does BOTH, so on its own it cannot say
     which one matters. This applies each alone. Result: the dictionary clear is
     necessary and sufficient, total synaptic destruction is neither.
+
+    `seeds` are BRAIN seeds. The first version looped over "seeds" while
+    rebuilding `seed=42` every time, so it averaged N identical runs -- an n=1
+    result wearing an error bar's clothing.
     """
-    print("\nDECOMPOSING the lexical lesion (which component carries it?)\n")
-    print(f"  {'manipulation':<34}{'irrev':>7}{'rev':>7}")
+    seeds = list(seeds)
+    print(f"\nDECOMPOSING the lexical lesion "
+          f"(mean +/- 95% CI over {len(seeds)} BRAIN seeds)\n")
     conds = (
         ("(none) intact", lambda p: None),
         ("zero ALL core->ROLE synapses", lambda p: zero_role_synapses(p, 1.0)),
@@ -237,17 +378,20 @@ def decompose(seeds=(1, 2, 3)) -> None:
         ("both (== lesion_lexical)",
          lambda p: (zero_role_synapses(p, 1.0), clear_role_lexicons(p))),
     )
-    for name, fn in conds:
-        irr, rev = [], []
-        for sd in seeds:
-            p = EmergentParser(n=1000, k=50, p=0.05, beta=0.1, seed=42,
-                               rounds=10)
-            p.train(create_training_sentences() + build_corpus())
-            fn(p)
-            irr.append(score(p, "irreversible"))
-            rev.append(score(p, "reversible"))
-        print(f"  {name:<34}{np.mean(irr):>7.2f}{np.mean(rev):>7.2f}",
-              flush=True)
+    acc = {name: {"irreversible": [], "reversible": []} for name, _ in conds}
+    for seed in seeds:
+        base = train_parser(seed)
+        for name, fn in conds:
+            q = copy.deepcopy(base)
+            fn(q)
+            acc[name]["irreversible"].append(score(q, "irreversible"))
+            acc[name]["reversible"].append(score(q, "reversible"))
+    print(f"  {'manipulation':<34}{'irrev':>22}{'rev':>22}")
+    for name, _ in conds:
+        mi, ci_i = _mean_ci(acc[name]["irreversible"])
+        mr, ci_r = _mean_ci(acc[name]["reversible"])
+        print(f"  {name:<34}{mi:>13.3f} +/-{ci_i:<6.3f}"
+              f"{mr:>13.3f} +/-{ci_r:<6.3f}", flush=True)
     print("\n  -> the SNAPSHOT DICTIONARY is the readout; synapses only shape\n"
           "     the projection compared against it. Both arms are symbolic.")
 
@@ -293,31 +437,45 @@ def lesion_positional(parser, severity: float = 1.0, seed: int = 0) -> None:
     parser.__dict__.pop("word_order_type", None)
 
 
-def severity_curve(seeds=(1, 2, 3),
+def severity_curve(seeds: Sequence[int] = tuple(range(8)),
                    levels=(0.0, 0.25, 0.5, 0.75, 1.0)) -> None:
     """Impairment curves: accuracy vs lesion severity, per route, per item type.
 
     The binary version showed the two routes are SEPARABLE. This asks the
     stronger question -- whether damage produces a graded PROFILE, which is what
     an aphasia comparison would need.
+
+    `seeds` are BRAIN seeds, and that is a correction. This function used to
+    hold the brain at `seed=42` and vary only the LESION seed (which synapses
+    got zeroed), then print "mean over 3 seeds" -- which read as a sample over
+    models but was three lesion draws of ONE model. Sampling the lesion tells
+    you nothing about how much of the effect is that particular brain.
+
+    Each brain is trained once and deep-copied per (route, severity), so all
+    cells are paired on the same underlying model.
     """
-    print(f"\nGRADED SEVERITY (mean over {len(seeds)} seeds)\n")
-    for route, lesion in (("POSITIONAL (symbolic)", lesion_positional),
-                          ("LEXICAL (synaptic)", lesion_lexical)):
-        print(f"  lesion {route}")
-        print(f"    {'severity':>9} {'irreversible':>13} {'reversible':>12}")
+    seeds = list(seeds)
+    print(f"\nGRADED SEVERITY (mean +/- 95% CI over {len(seeds)} BRAIN seeds)\n")
+    acc = {r: {s: {"irreversible": [], "reversible": []} for s in levels}
+           for r in ("POSITIONAL", "LEXICAL")}
+    for seed in seeds:
+        base = train_parser(seed)
+        for route, lesion in (("POSITIONAL", lesion_positional),
+                              ("LEXICAL", lesion_lexical)):
+            for sev in levels:
+                q = copy.deepcopy(base)
+                lesion(q, severity=sev, seed=seed)
+                acc[route][sev]["irreversible"].append(score(q, "irreversible"))
+                acc[route][sev]["reversible"].append(score(q, "reversible"))
+        print(f"    seed {seed} done", flush=True)
+    for route in ("POSITIONAL", "LEXICAL"):
+        print(f"\n  lesion {route}")
+        print(f"    {'severity':>9}{'irreversible':>22}{'reversible':>22}")
         for sev in levels:
-            irr_s, rev_s = [], []
-            for sd in seeds:
-                p_ = EmergentParser(n=1000, k=50, p=0.05, beta=0.1,
-                                    seed=42, rounds=10)
-                p_.train(create_training_sentences() + build_corpus())
-                lesion(p_, severity=sev, seed=sd)
-                irr_s.append(score(p_, "irreversible"))
-                rev_s.append(score(p_, "reversible"))
-            print(f"    {sev:>9.2f} {np.mean(irr_s):>13.2f} "
-                  f"{np.mean(rev_s):>12.2f}", flush=True)
-        print()
+            mi, ci_i = _mean_ci(acc[route][sev]["irreversible"])
+            mr, ci_r = _mean_ci(acc[route][sev]["reversible"])
+            print(f"    {sev:>9.2f}{mi:>13.3f} +/-{ci_i:<6.3f}"
+                  f"{mr:>13.3f} +/-{ci_r:<6.3f}", flush=True)
 
 
 def main() -> None:
@@ -328,31 +486,12 @@ def main() -> None:
           f"agent-only {AGENT_ONLY} patient-only {PATIENT_ONLY} "
           f"balanced {BALANCED}\n")
 
-    print(f"{'condition':<22} {'irreversible':>13} {'reversible':>12}")
-    print("-" * 50)
-    rows: Dict[str, tuple] = {}
-    for label, lesion in (("intact", None),
-                          ("lesion POSITIONAL", lesion_positional),
-                          ("lesion LEXICAL", lesion_lexical)):
-        p = EmergentParser(n=1000, k=50, p=0.05, beta=0.1, seed=42, rounds=10)
-        p.train(create_training_sentences() + corpus)
-        if lesion is not None:
-            lesion(p)
-        irr, rev = score(p, "irreversible"), score(p, "reversible")
-        rows[label] = (irr, rev)
-        print(f"{label:<22} {irr:>13.2f} {rev:>12.2f}", flush=True)
-
-    base_irr, base_rev = rows["intact"]
-    p_irr, p_rev = rows["lesion POSITIONAL"]
-    l_irr, l_rev = rows["lesion LEXICAL"]
-    print("\nDissociation check (drop from intact):")
-    print(f"  POSITIONAL lesion: irreversible {base_irr - p_irr:+.2f}  "
-          f"reversible {base_rev - p_rev:+.2f}   "
-          f"(Geschwind predicts reversible drops MORE)")
-    print(f"  LEXICAL lesion:    irreversible {base_irr - l_irr:+.2f}  "
-          f"reversible {base_rev - l_rev:+.2f}   "
-          f"(mirror predicts irreversible drops MORE)")
-
+    # No single-seed headline table any more. One brain is one draw, and the
+    # earlier version of this function printed its scores to two decimals as
+    # though they were the model's behaviour. `distribution()` reports the same
+    # conditions with a mean and a 95% CI over independently seeded brains,
+    # paired so the lesion deltas are within-model.
+    distribution()
     decompose()
     severity_curve()
 
