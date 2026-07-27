@@ -82,7 +82,9 @@ work in its place.
   neural.
 * **Mutual inhibition is dormant** because with targets chosen directly, the
   parser never needs to co-target -- the primitive was added to substitute for
-  fiber control and then bypassed.
+  fiber control and then bypassed. (Dormant, it turns out, is not redundant:
+  once made to fire it supplies the lexical route gating lacks. See the
+  correction under "PROPOSED primitive set".)
 * **The P600 contrast was area-confounded** because `structural_role_area` is a
   categorical stand-in for "which fiber is open", and it routes the intruding
   word by its OWN category, so a verb goes to VP and the violation is never
@@ -106,6 +108,24 @@ its current name but stop describing it as inhibition -- it is `clear_winners`.
 `add_mutual_inhibition` should be either retired or explicitly documented as a
 non-NEMO extension, because the reference achieves exclusivity by gating and
 this repo's WTA is a different model with a measured reliability problem.
+
+> **OVERTURNED by measurement** -- see `research/experiments/nemo_competitive_ab.py`.
+> Retiring it would have thrown away the one mechanism that supplies what gating
+> cannot. Gating is a perfect POSITIONAL template (reversible 1.000,
+> irreversible 0.000); mutual inhibition is a pure LEXICAL arbiter (reversible
+> 0.667, irreversible 1.000), the exact complement, over 12 seeds with zero
+> variance. It was dormant only because the SVO rule program never co-targets
+> two role areas; `competitive_verb_program` omits `INHIBIT ROLE_AGENT` and
+> `competitive_initial_open_areas` opens both slots, and then it fires and
+> decides on learned weight. Its decision variable is graded and tracks corpus
+> role bias monotonically. So this repo's WTA is not a redundant substitute for
+> fiber gating -- it is a SECOND ROUTE, and the two-route architecture the
+> lesion study found ablatively is reproduced constructively with BOTH routes in
+> primitives rather than one in a Python margin comparison.
+>
+> The general lesson: "this mechanism never fires" was a statement about the
+> rule programs driving it, not about the mechanism. Check what would make a
+> dormant primitive fire before proposing to delete it.
 
 ## PROPOSED composition
 

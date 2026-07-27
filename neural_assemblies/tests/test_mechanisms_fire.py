@@ -177,6 +177,71 @@ class TestMutualInhibitionIsReachedInProduction:
         )
 
 
+class TestMutualInhibitionFiresInCompetitiveParse:
+    """The other half: the NemoParser's competitive mode DOES co-target.
+
+    The xfail above is about `EmergentParser`, and it still holds -- that parser
+    names its targets directly and never puts two role areas in one call. The
+    competitive rule program does: `competitive_initial_open_areas` opens both
+    role slots and `competitive_verb_program` omits `INHIBIT ROLE_AGENT`, so the
+    DERIVED project map contains ROLE_AGENT and ROLE_PATIENT together and the
+    paper's inter-area inhibition finally runs.
+
+    Worth a test rather than only an experiment, because the whole result rests
+    on it: if a future rule change stops the two slots being co-targeted, the
+    parse would silently fall back to a positional template and still look
+    plausible. Measured behaviour is in
+    `research/experiments/nemo_competitive_ab.py` (irreversible 0.000 -> 1.000).
+    """
+
+    @pytest.mark.slow
+    def test_competitive_parse_co_targets_the_role_group(self):
+        import os
+
+        os.environ.setdefault("EMERGENT_FAST_TRAINING", "1")
+        from neural_assemblies.assembly_calculus.emergent.parser import (
+            EmergentParser,
+        )
+        from neural_assemblies.assembly_calculus.emergent.curriculum.data import (
+            create_training_sentences,
+        )
+        from neural_assemblies.assembly_calculus.emergent.nemo_parse import (
+            NemoParser, infer_transitive_verbs,
+        )
+
+        sentences = create_training_sentences()
+        parser = EmergentParser(n=1000, k=50, p=0.05, beta=0.1, seed=42,
+                                rounds=10)
+        parser.train(sentences)
+
+        fired = {"n": 0, "seen": 0}
+        orig = Brain._apply_mutual_inhibition
+
+        def spy(self, activation_scores):
+            fired["seen"] += 1
+            for group in self._mutual_inhibition_groups:
+                if len([n for n in group if n in activation_scores]) > 1:
+                    fired["n"] += 1
+            return orig(self, activation_scores)
+
+        Brain._apply_mutual_inhibition = spy
+        try:
+            NemoParser(
+                parser,
+                transitive_verbs=infer_transitive_verbs(sentences),
+                competitive=True,
+            ).parse(["dog", "chases", "ball"])
+        finally:
+            Brain._apply_mutual_inhibition = orig
+
+        assert fired["n"] > 0, (
+            f"competitive mode did not co-target a mutual-inhibition group: "
+            f"{fired['seen']} project() calls reached it, none had two group "
+            f"members in activation_scores. Without co-targeting the parse is "
+            f"a positional template, not a lexical competition."
+        )
+
+
 class TestConnectomeSaturation:
     def test_update_weights_respects_w_max(self):
         c = Connectome(20, 20, p=1.0, sparse=False, rng=np.random.default_rng(0))

@@ -82,6 +82,44 @@ class RuleProgram(NamedTuple):
     post: List[Rule]
 
 
+def competitive_verb_program(core_area: str = VERB_CORE) -> RuleProgram:
+    """Transitive verb that OPENS the object slot WITHOUT closing the subject.
+
+    The difference from `trans_verb_program` is one missing rule -- it does not
+    `INHIBIT ROLE_AGENT` -- and that single omission changes the model. With
+    both role slots open, a following noun projects into BOTH, and MUTUAL
+    INHIBITION arbitrates on learned weight instead of word order deciding.
+
+    That is the AC-native lexical override: the preference is already in the
+    connectome (a noun trained only as a patient has a weak agent pathway), and
+    leaving both slots open is what lets it express. Measured in isolation on
+    the two TRAINED role areas, MI picks the corpus-taught role 7/7.
+    """
+    return RuleProgram(
+        pre=[
+            fiber_rule(DISINHIBIT, core_area, ROLE_ACTION, 0),
+            fiber_rule(DISINHIBIT, ROLE_ACTION, ROLE_AGENT, 0),
+        ],
+        post=[
+            fiber_rule(INHIBIT, core_area, ROLE_ACTION, 0),
+            area_rule(DISINHIBIT, ROLE_PATIENT, 0),
+            # NOTE the absence of `area_rule(INHIBIT, ROLE_AGENT, 0)`.
+        ],
+    )
+
+
+def competitive_initial_open_areas() -> List[str]:
+    """BOTH role slots open from the start, so lexical preference can decide.
+
+    The SVO program opens only ROLE_AGENT, so the FIRST noun is forced there
+    before it can ever compete -- measured: for "ball chases dog" the project
+    map at word 1 is [NOUN_CORE, ROLE_AGENT] alone. `ball` never gets the chance
+    to prefer PATIENT, whatever the corpus taught. Opening both is the
+    precondition for the competition to mean anything.
+    """
+    return list(CORE_AREAS) + [ROLE_AGENT, ROLE_ACTION, ROLE_PATIENT]
+
+
 def initial_open_areas(word_order_type: str = "SVO") -> List[str]:
     """Areas that start disinhibited. Mirrors `initial_areas=[LEX, SUBJ, VERB]`.
 

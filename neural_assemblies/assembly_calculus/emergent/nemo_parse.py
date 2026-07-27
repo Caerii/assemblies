@@ -79,21 +79,56 @@ def infer_transitive_verbs(sentences: Iterable) -> Set[str]:
 
 
 class NemoParser:
-    """Gating-based role assignment. One instance per sentence (state is stateful)."""
+    """Gating-based role assignment. One instance per sentence (state is stateful).
+
+    `use_lexical` selects between two models, and the contrast is the point:
+
+    * False (default) -- PURE GATING. Measured 1.000 on reversible items and
+      0.000 on irreversible ones at n=1000/3000/10000 with zero variance: a
+      perfect positional mechanism with no way to let what the corpus taught
+      about a word override where the word order puts it.
+    * True -- GATING AS THE STRUCTURAL PRIOR, with the lexical margin able to
+      override it. This is the minimal composition, not a new mechanism:
+      `_assign_roles_neural` already blends a structural prior with a lexical
+      margin, and the only change is WHERE THE PRIOR COMES FROM -- the open
+      fiber instead of `self.word_order_type`, a stored Python string.
+
+    That swap is the whole point of the exercise. It is what would make the
+    lesion study's positional arm a genuine structural lesion (close a fiber)
+    rather than a symbolic one (corrupt an attribute).
+    """
 
     def __init__(self, parser, *, word_order_type: str = "SVO",
                  transitive_verbs: Optional[Set[str]] = None,
+                 use_lexical: bool = False,
+                 competitive: bool = False,
+                 lexical_weight: float = 1.0,
                  rounds: Optional[int] = None) -> None:
         self.parser = parser
         self.brain = parser.brain
         self.transitive_verbs = transitive_verbs or set()
+        self.use_lexical = use_lexical
+        # Competitive mode: leave both role slots open and let MUTUAL
+        # INHIBITION arbitrate on learned weight. MI only fires when >=2 group
+        # areas are targets of the SAME project() call, which the derived map
+        # now produces because both fibers stay open.
+        self.competitive = competitive
+        if competitive:
+            present = [a for a in (ROLE_AGENT, ROLE_PATIENT)
+                       if a in parser.brain.areas]
+            if len(present) > 1:
+                parser.brain.add_mutual_inhibition(present)
+        self.lexical_weight = lexical_weight
         self.rounds = rounds if rounds is not None else max(
             1, int(getattr(parser, "rounds", 5)) // 2)
         self._areas = [a for a in all_areas() if a in self.brain.areas]
+        if competitive:
+            from .nemo_rules import competitive_initial_open_areas
+            open_areas = competitive_initial_open_areas()
+        else:
+            open_areas = initial_open_areas(word_order_type)
         self.state = InhibitionState(
-            self._areas,
-            [a for a in initial_open_areas(word_order_type) if a in self.brain.areas],
-        )
+            self._areas, [a for a in open_areas if a in self.brain.areas])
 
     # ------------------------------------------------------------------
     def parse(self, words: List[str]) -> Dict[str, Optional[str]]:
@@ -130,6 +165,9 @@ class NemoParser:
                 transitive=word in self.transitive_verbs,
                 core_area=core,
             )
+            if self.competitive and category == "VERB" and                     word in self.transitive_verbs:
+                from .nemo_rules import competitive_verb_program
+                program = competitive_verb_program(core)
             if program is None:
                 out[word] = None
                 continue
@@ -149,7 +187,12 @@ class NemoParser:
 
                     prepare_targets(self.brain, self.state, lex_area=core)
                     proj = self.state.project_map(self.brain, lex_area=core)
-                    self.state.check_war_of_fibers(proj, core)
+                    if not self.competitive:
+                        # In the SVO program two open slots is a MALFORMED rule
+                        # set. In competitive mode offering two slots IS the
+                        # design, so the invariant is deliberately relaxed
+                        # rather than silently violated.
+                        self.state.check_war_of_fibers(proj, core)
 
                     if proj:
                         for _ in range(self.rounds):
@@ -161,7 +204,53 @@ class NemoParser:
                     # trivially correct and measures nothing. The reference
                     # reads out neurally (`getWord`: match an area's actual
                     # winners against stored assemblies), so this does too.
-                    out[word] = self._role_by_readout(word)
+                    if self.competitive and category in ("NOUN", "PRON"):
+                        # MI leaves exactly one area alive; that survivor IS the
+                        # assignment. No overlap matching, no scoring.
+                        # OPEN, not merely non-empty. Closing a slot does not
+                        # clear it, so a slot won by an EARLIER noun still has
+                        # winners; counting those made `alive` len 2 and the
+                        # second noun read out None on 8 of 12 reversible items.
+                        # A closed slot is out of the competition by definition
+                        # -- that is what closing it means.
+                        alive = [a for a in _ROLE_AREAS
+                                 if a in self.brain.areas
+                                 and self.state.area_open(a)
+                                 and len(self.brain.areas[a].winners) > 0
+                                 and a != ROLE_ACTION]
+                        out[word] = (_ROLE_LABEL[alive[0]]
+                                     if len(alive) == 1 else None)
+                        # CLOSE THE SLOT THAT WON. Without this the next noun
+                        # overwrites the binding: `prepare_targets` CLEARS every
+                        # area the core still reaches, so an open ROLE_AGENT
+                        # holding `ball` is wiped when `dog` arrives. That is
+                        # what `INHIBIT ROLE_AGENT` does in the SVO program --
+                        # it is not only a word-order rule, it is what protects
+                        # a completed binding. Closing the WINNER instead of a
+                        # fixed slot keeps that protection while letting
+                        # lexical preference choose which slot is taken.
+                        #
+                        # INDEX 1, NOT 0, and this is what index channels are
+                        # for. Word programs operate on channel 0, and the
+                        # verb's POST does `DISINHIBIT ROLE_PATIENT, 0` -- on a
+                        # shared channel that REOPENS a slot a noun just won,
+                        # and `prepare_targets` then wipes the binding. Holding
+                        # the protection on its own channel means the area stays
+                        # closed until the binder releases it, which a boolean
+                        # inhibited-flag could not express.
+                        if len(alive) == 1:
+                            self.state.inhibit_area(alive[0], 1)
+                    elif self.competitive:
+                        # Only NOUNS compete for role slots. Letting the verb
+                        # run the same readout made it report PATIENT -- it was
+                        # seeing the previous noun's surviving binding -- and it
+                        # would then have closed that slot spuriously.
+                        out[word] = self._role_from(proj, core)
+                    elif self.use_lexical:
+                        out[word] = self._blend(
+                            word, core, self._role_from(proj, core))
+                    else:
+                        out[word] = self._role_by_readout(word)
                 finally:
                     self.brain.areas[core].unfix_assembly()
                     for rule in program.post:
@@ -169,6 +258,34 @@ class NemoParser:
         return out
 
     # ------------------------------------------------------------------
+    def _blend(self, word: str, core: str, gated: Optional[str]
+               ) -> Optional[str]:
+        """Structural prior from the OPEN FIBER, lexical margin able to override.
+
+        Deliberately reuses the parser's own `_role_binding_margin`, so this is
+        not a second lexical mechanism -- it is the existing one, reading a
+        prior that now comes from the gating instead of from a stored word-order
+        string. Keeping the blend identical is what makes the comparison a test
+        of the PRIOR'S SOURCE rather than of two different scoring schemes.
+        """
+        margin_fn = getattr(self.parser, "_role_binding_margin", None)
+        if margin_fn is None:
+            return gated
+        scores = {}
+        for area, label in _ROLE_LABEL.items():
+            if area not in self.brain.areas or label == "ACTION":
+                continue
+            try:
+                lex = float(margin_fn(word, core, area))
+            except Exception:
+                lex = 0.0
+            prior = 1.0 if label == gated else 0.0
+            scores[label] = prior + self.lexical_weight * lex
+        if not scores:
+            return gated
+        best = max(scores, key=scores.get)
+        return best if scores[best] > 0.0 else gated
+
     def _role_by_readout(self, word: str, min_overlap: float = 0.25
                          ) -> Optional[str]:
         """Which role area actually holds this word, by assembly overlap.
