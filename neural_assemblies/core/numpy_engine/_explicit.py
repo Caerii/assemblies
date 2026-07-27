@@ -51,23 +51,23 @@ class NumpyExplicitEngine(ComputeEngine):
         self._areas[name] = area
 
         for stim_name, stim in self._stimuli.items():
-            conn = Connectome(stim.size, n, self.p, sparse=False)
+            conn = Connectome(stim.size, n, self.p, sparse=False, rng=self._rng)
             self._stim_conns[stim_name][name] = conn
             area.beta_by_source[stim_name] = beta
 
         for other_name, other in self._areas.items():
             if other_name == name:
-                self._area_conns[name][name] = Connectome(n, n, self.p, sparse=False)
+                self._area_conns[name][name] = Connectome(n, n, self.p, sparse=False, rng=self._rng)
             else:
-                self._area_conns[other_name][name] = Connectome(other.n, n, self.p, sparse=False)
-                self._area_conns[name][other_name] = Connectome(n, other.n, self.p, sparse=False)
+                self._area_conns[other_name][name] = Connectome(other.n, n, self.p, sparse=False, rng=self._rng)
+                self._area_conns[name][other_name] = Connectome(n, other.n, self.p, sparse=False, rng=self._rng)
                 area.beta_by_source[other_name] = beta
                 other.beta_by_source[name] = beta
 
     def add_stimulus(self, name: str, size: int) -> None:
         self._stimuli[name] = StimulusState(name=name, size=size)
         for area_name, area in self._areas.items():
-            conn = Connectome(size, area.n, self.p, sparse=False)
+            conn = Connectome(size, area.n, self.p, sparse=False, rng=self._rng)
             self._stim_conns[name][area_name] = conn
             area.beta_by_source[name] = area.beta
 
@@ -220,7 +220,7 @@ class NumpyExplicitEngine(ComputeEngine):
             conn = self._area_conns[src_name][area]
             rows, cols = conn.weights.shape
             conn.weights = xp.asarray(
-                (np.random.default_rng().random((rows, cols)) < self.p
+                (self._rng.random((rows, cols)) < self.p
                  ).astype(np.float32),
             )
 

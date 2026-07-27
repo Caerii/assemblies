@@ -130,6 +130,7 @@ class Brain:
         self.connectomes_by_stimulus: Dict[str, Dict[str, Connectome]] = {}
         self.connectomes: Dict[str, Dict[str, Connectome]] = {}
         self.rng = np.random.default_rng(seed)
+        self._conn_rng_gen = np.random.default_rng(seed + 0x9E3779B9)
         self.disable_plasticity = False
         # Per-fiber plasticity override: (src, dst) -> enabled.  Missing keys default True.
         self.plasticity_mask: dict[tuple[str, str], bool] = {}
@@ -245,6 +246,26 @@ class Brain:
     def area_by_name(self) -> Dict[str, Area]:
         """Backward-compatible alias for self.areas."""
         return self.areas
+
+    @property
+    def _conn_rng(self):
+        """Dedicated seeded stream for connectome wiring draws.
+
+        Kept SEPARATE from ``self.rng`` on purpose. ``self.rng`` is also consumed
+        by ``area.neuron_id_pool`` permutations, so drawing wiring from it shifts
+        every subsequent permutation and silently changes which neurons each area
+        recruits -- measured at 22 otherwise-passing tests broken by exactly that.
+
+        Resolved LAZILY so brains unpickled from an older ``.cache/`` parser
+        backbone (which predate this attribute) still load: those pickles have no
+        ``_conn_rng_gen``, and raising here surfaced as 11 setup ERRORs in
+        TestWordOrderTypology rather than as anything to do with wiring.
+        """
+        gen = self.__dict__.get("_conn_rng_gen")
+        if gen is None:
+            gen = np.random.default_rng(getattr(self, "_seed", 0) + 0x9E3779B9)
+            self.__dict__["_conn_rng_gen"] = gen
+        return gen
 
     def add_area(self, area_name: str, n: int, k: int, beta: float = DEFAULT_BETA,
                  explicit: bool = False, refractory_period: int = 0,
@@ -379,6 +400,7 @@ class Brain:
                         source_size=src_area.n,
                         target_size=tgt_area.n,
                         p=self.p,
+                        rng=self._conn_rng,
                     )
                     if not is_dense_connectome(existing):
                         self.connectomes.setdefault(src_name, {})[tgt_name] = dense
@@ -398,6 +420,7 @@ class Brain:
                 if not is_dense_connectome(existing):
                     dense = Connectome(
                         src_area.n, tgt_area.n, self.p, sparse=False,
+                        rng=self._conn_rng,
                     )
                     self.connectomes.setdefault(src_name, {})[tgt_name] = dense
                 if self._explicit_engine is not None and hasattr(
@@ -957,19 +980,19 @@ class Brain:
         for stim_name, stim in self.stimuli.items():
             if area.explicit:
                 # For explicit areas, create actual connectome matrices
-                connectome = Connectome(stim.size, area.n, self.p, sparse=False)
+                connectome = Connectome(stim.size, area.n, self.p, sparse=False, rng=self._conn_rng)
             else:
                 # For sparse areas, start with empty 1D vector of length area.w (0)
-                connectome = Connectome(stim.size, area.n, self.p, sparse=True)
+                connectome = Connectome(stim.size, area.n, self.p, sparse=True, rng=self._conn_rng)
                 connectome.weights = xp.empty(0, dtype=xp.float32)
             self.connectomes_by_stimulus[stim_name][area.name] = connectome
             area.beta_by_stimulus[stim_name] = area.beta
 
         # Initialize self-connection for the area
         if area.explicit:
-            self_connectome = Connectome(area.n, area.n, self.p, sparse=False)
+            self_connectome = Connectome(area.n, area.n, self.p, sparse=False, rng=self._conn_rng)
         else:
-            self_connectome = Connectome(area.n, area.n, self.p, sparse=True)
+            self_connectome = Connectome(area.n, area.n, self.p, sparse=True, rng=self._conn_rng)
             # For sparse, represent area-to-area as 2D with 0 columns
             self_connectome.weights = xp.empty((area.n, 0), dtype=xp.float32)
         self.connectomes[area.name][area.name] = self_connectome
@@ -979,13 +1002,13 @@ class Brain:
             if other_area_name != area.name:
                 if area.explicit or other_area.explicit:
                     # Create actual connectome matrices if either area is explicit
-                    connectome = Connectome(other_area.n, area.n, self.p, sparse=False)
-                    connectome_rev = Connectome(area.n, other_area.n, self.p, sparse=False)
+                    connectome = Connectome(other_area.n, area.n, self.p, sparse=False, rng=self._conn_rng)
+                    connectome_rev = Connectome(area.n, other_area.n, self.p, sparse=False, rng=self._conn_rng)
                 else:
                     # Both areas are sparse, represent compactly with 0x0 matrices initially
-                    connectome = Connectome(other_area.n, area.n, self.p, sparse=True)
+                    connectome = Connectome(other_area.n, area.n, self.p, sparse=True, rng=self._conn_rng)
                     connectome.weights = xp.empty((0, 0), dtype=xp.float32)
-                    connectome_rev = Connectome(area.n, other_area.n, self.p, sparse=True)
+                    connectome_rev = Connectome(area.n, other_area.n, self.p, sparse=True, rng=self._conn_rng)
                     connectome_rev.weights = xp.empty((0, 0), dtype=xp.float32)
                 
                 self.connectomes[other_area_name][area.name] = connectome
@@ -1006,9 +1029,9 @@ class Brain:
         # Initialize connectomes from stimulus to all areas
         for area_name, area in self.areas.items():
             if area.explicit:
-                connectome = Connectome(stimulus.size, area.n, self.p, sparse=False)
+                connectome = Connectome(stimulus.size, area.n, self.p, sparse=False, rng=self._conn_rng)
             else:
-                connectome = Connectome(stimulus.size, area.n, self.p, sparse=True)
+                connectome = Connectome(stimulus.size, area.n, self.p, sparse=True, rng=self._conn_rng)
                 connectome.weights = xp.empty(0, dtype=xp.float32)
             self.connectomes_by_stimulus[stimulus.name][area_name] = connectome
             area.beta_by_stimulus[stimulus.name] = area.beta

@@ -12,7 +12,8 @@ class Connectome:
     Represents synaptic connections between neurons in different areas or stimuli.
     """
 
-    def __init__(self, source_size: int, target_size: int, p: float, sparse: bool = False):
+    def __init__(self, source_size: int, target_size: int, p: float,
+                 sparse: bool = False, rng=None):
         """
         Initializes the Connectome.
 
@@ -21,12 +22,38 @@ class Connectome:
             target_size (int): Number of neurons in the target area.
             p (float): Connection probability.
             sparse (bool): If True, creates empty weights for sparse simulation.
+            rng: Seeded ``np.random.Generator`` to draw the initial wiring from.
+                Pass the owning Brain's generator. Without it this falls back to
+                the GLOBAL ``np.random``, which makes results depend on
+                execution history rather than on the declared seed: two Brains
+                built with the same ``seed=`` in one process get different
+                wiring, and borderline experiments flip. Measured on the
+                word-order learner -- identical config and seed, four builds in
+                one process, produced OVS, VSO, OVS, VSO (alternating, i.e.
+                reading a shared global stream) while stable configurations
+                reproduced. Only dense connectomes draw here; sparse ones start
+                empty, which is why the default engine was unaffected.
         """
         self.source_size = source_size
         self.target_size = target_size
         self.p = p
         self.sparse = sparse
+        # Store the generator or None -- never the numpy MODULE. A module is
+        # not picklable, and Brain is deep-copied in several places (parity and
+        # trace tests do `copy.deepcopy(brain)`), so stashing `np.random` here
+        # raises "cannot pickle 'module' object". Resolve the fallback at call
+        # time instead; see `_gen`.
+        self._rng = rng
         self.weights = self._initialize_weights()
+
+    @property
+    def _gen(self):
+        """Generator for wiring draws; falls back to the global stream.
+
+        The fallback exists only for direct construction (e.g. unit tests).
+        Production callers pass a seeded generator -- see the `rng` argument.
+        """
+        return self._rng if self._rng is not None else np.random
 
     def _initialize_weights(self):
         """
@@ -42,7 +69,10 @@ class Connectome:
         else:
             # For explicit simulation, create full weight matrix
             # Binomial sampling on CPU, then transfer to backend
-            w = np.random.binomial(1, self.p, size=(self.source_size, self.target_size)).astype(np.float32)
+            w = self._gen.binomial(
+                1, self.p,
+                size=(self.source_size, self.target_size),
+            ).astype(np.float32)
             return to_xp(w)
 
     # -- Array-like delegation for backward compatibility --------------------
@@ -132,11 +162,11 @@ class Connectome:
         """
         xp = get_xp()
         if new_source_size > 0:
-            new_rows = to_xp(np.random.binomial(1, self.p, size=(new_source_size, self.weights.shape[1])).astype(np.float32))
+            new_rows = to_xp(self._gen.binomial(1, self.p, size=(new_source_size, self.weights.shape[1])).astype(np.float32))
             self.weights = xp.vstack((self.weights, new_rows))
             self.source_size += new_source_size
         if new_target_size > 0:
-            new_cols = to_xp(np.random.binomial(1, self.p, size=(self.weights.shape[0], new_target_size)).astype(np.float32))
+            new_cols = to_xp(self._gen.binomial(1, self.p, size=(self.weights.shape[0], new_target_size)).astype(np.float32))
             self.weights = xp.hstack((self.weights, new_cols))
             self.target_size += new_target_size
 
@@ -161,8 +191,15 @@ def dense_connectome_or_new(
     source_size: int,
     target_size: int,
     p: float,
+    rng=None,
 ) -> Connectome:
-    """Return *conn* if it is dense; otherwise allocate a fresh dense connectome."""
+    """Return *conn* if it is dense; otherwise allocate a fresh dense connectome.
+
+    Pass the owning Brain's/engine's seeded generator as ``rng``; without it the
+    fresh connectome draws its wiring from the GLOBAL ``np.random`` and the
+    result stops depending only on the declared seed. This factory was the last
+    global-RNG consumer during Brain construction (measured: 18 calls per build).
+    """
     if is_dense_connectome(conn):
         return conn
-    return Connectome(source_size, target_size, p, sparse=False)
+    return Connectome(source_size, target_size, p, sparse=False, rng=rng)
