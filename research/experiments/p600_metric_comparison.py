@@ -132,6 +132,40 @@ TWO THINGS NOT YET RESOLVED
   drive systematically anti-correlate with training. Test it by comparing
   in-degrees on the two pathways before choosing any metric.
 
+KEYSTONE: THE MUTUAL-INHIBITION COMPETITION PICKS UNTRAINED AREAS
+-----------------------------------------------------------------
+Running the paper's competition (project the core into every role area of
+MUTUAL_INHIBITION_GROUPS[0] in ONE call, so `_apply_mutual_inhibition` fires)
+and asking whether the expected area wins:
+
+    expected area wins:  grammatical 0.333   catviol 0.000   novel 0.000
+
+Even for GRAMMATICAL items the right area wins only a third of the time, and the
+winners are ROLE_LOCATION / ROLE_GOAL / ROLE_SOURCE / ROLE_THEME. Those areas
+have NO learned connectome at all:
+
+    role area      conn from NOUN_CORE   learned weight
+    ROLE_AGENT     (4614, 960)                 127181
+    ROLE_PATIENT   (4614, 960)                 110295
+    ROLE_ACTION    (empty)                          0
+    ROLE_THEME     (empty)                          0
+    ROLE_GOAL      (empty)                          0
+    ROLE_SOURCE    (empty)                          0
+    ROLE_LOCATION  (empty)                          0
+
+So an area with ZERO learned weight beats one with 110k. `_apply_mutual_inhibition`
+picks `max(total_activation)`, and projecting into an empty connectome
+materializes a fresh random one whose low in-degree `norm_init` barely divides,
+while the trained pathway's high in-degree is divided down hard. The decision
+variable ANTI-CORRELATES WITH TRAINING.
+
+This is not an ERP problem. It is the paper's only inter-area inhibition
+selecting the wrong winner, and it explains why `parser_mixins/core.py` records
+that this mechanism "was inert, and role exclusivity was enforced by a Python
+set instead" -- the symbolic workaround was compensating for a broken
+competition. It also explains the P600 inversion: every drive-based metric here
+inherits the same anti-correlation.
+
 WHY INHIBITION IS THE RIGHT FRAME (and what the reference does)
 --------------------------------------------------------------
 The reference parser selects the role area by DISINHIBITION, not by looking up
@@ -192,7 +226,8 @@ import numpy as np
 
 CANDIDATES = (
     "raw_drive", "energy_deficit", "self_energy", "self_energy_k",
-    "binding_weak", "drive_expected", "share_expected", "n400",
+    "binding_weak", "drive_expected", "share_expected", "comp_correct",
+    "n400",
 )
 PATHWAYS: Dict[str, List[str]] = {}
 LABELS = ("grammatical", "category_violation", "novel_noun")
@@ -314,6 +349,49 @@ def collect(seed: int) -> Dict[str, Dict[str, List[float]]]:
         except Exception:
             pass
 
+        # ---- THE PAPER'S ACTUAL MECHANISM: inhibitory competition ----------
+        # Project the word's core into EVERY role area of the mutual-inhibition
+        # group in ONE call, which is the only way `_apply_mutual_inhibition`
+        # fires (it skips groups with <=1 active member). The competition is
+        # winner-take-all on total_activation, so the question a P600 should ask
+        # is simply: does the area the syntax EXPECTED win?
+        #
+        # This is area-matched BY CONSTRUCTION -- the candidate set is identical
+        # in every condition -- which is what the reference gets from opening
+        # fibers to both candidates and choosing by disinhibition.
+        #
+        # MI is DESTRUCTIVE (it sets winners=[] and w=0 on every loser), so the
+        # group state is snapshotted and restored; without this the probe would
+        # wipe trained role areas.
+        comp_correct = float("nan")
+        comp_winner = None
+        snap = {}
+        try:
+            for a in _ROLE_GROUP:
+                ar = brain.areas[a]
+                snap[a] = (np.array(ar.winners, copy=True), int(ar.w))
+            with brain.frozen():
+                brain.project({}, {core_area: list(_ROLE_GROUP)})
+            survivors = [a for a in _ROLE_GROUP
+                         if len(brain.areas[a].winners) > 0]
+            comp_winner = survivors[0] if len(survivors) == 1 else None
+            if comp_winner is not None:
+                comp_correct = 1.0 if comp_winner == expected_role else 0.0
+        except Exception:
+            pass
+        finally:
+            for a, (w_arr, w_n) in snap.items():
+                ar = brain.areas[a]
+                ar.winners = w_arr
+                ar.w = w_n
+                try:
+                    brain._engine.set_winners(a, w_arr)
+                    est = getattr(brain._engine, "_areas", {}).get(a)
+                    if est is not None:
+                        est.w = w_n
+                except Exception:
+                    pass
+
         out = orig_anchor(p, core_area, role_area, **kw)
 
         if stab_buf:
@@ -328,6 +406,7 @@ def collect(seed: int) -> Dict[str, Dict[str, List[float]]]:
             "word": probe_word["w"],
             "core_area": core_area, "role_area": role_area,
             "drive_expected": drive_exp, "share_expected": share_exp,
+            "comp_correct": comp_correct, "comp_winner": comp_winner,
             "expected_role": expected_role,
         })
         return out
@@ -384,7 +463,7 @@ def collect(seed: int) -> Dict[str, Dict[str, List[float]]]:
                 float(smp.n400) if c == "n400" else r[c]
             )
         PATHWAYS.setdefault(smp.label, []).append(
-            f"{r['core_area']}->{r['role_area']} (expected {r['expected_role']})"
+            f"exp={r['expected_role']} won={r['comp_winner']}"
         )
     print(f"  seed {seed}: {matched}/{len(report.samples)} samples matched "
           f"to probes ({len(rows)} probes total)"
