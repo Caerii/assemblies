@@ -184,8 +184,21 @@ class ConstituentOrderMixin:
 
     # ------------------------------------------------------------------
 
-    def _fire_constituent(self, word: str, role_area: str) -> Optional[str]:
+    def _fire_constituent(
+        self, word: str, role_area: str,
+        *, mood_assembly: Optional[Assembly] = None,
+    ) -> Optional[str]:
         """Fire one constituent: filler -> ROLE -> SYN, for tau steps.
+
+        When ``mood_assembly`` is given, MOOD co-fires into the syntactic area,
+        so the assembly that lands in SUBJ/VERB/OBJ is MOOD-SPECIFIC. That is
+        what lets one brain hold several moods with different word orders: the
+        ``SYN[i] -> ROLE[i+1]`` synapses are keyed by a syntactic assembly that
+        already differs per mood, so two moods that disagree about what follows
+        the subject write into disjoint synapses instead of competing for the
+        same ones. It mirrors the reference implementation, which projects MOOD
+        into the syntactic area on every step
+        (``project_map[MOOD] = [SYNTAX_area]``).
 
         Returns the syntactic area now holding the constituent, or None.
         """
@@ -205,12 +218,19 @@ class ConstituentOrderMixin:
         # training that used that one filler. Measured: the whole cue -> role
         # transition matrix sat at ~0.02 despite each pairing individually
         # reaching 0.85. The filler stays in the role area and in SCENE.
+        use_mood = mood_assembly is not None and MOOD in self.brain.areas
         code = self._role_identity(role_area)
         activate_assembly(self.brain, code if code is not None else stored)
-        # ROLE -> SYN, tau steps.
-        self.brain.project({}, {role_area: [syn]})
+        # ROLE (+ MOOD, tonic) -> SYN, tau steps.
+        srcs = {role_area: [syn]}
+        if use_mood:
+            activate_assembly(self.brain, mood_assembly)
+            srcs[MOOD] = [syn]
+        self.brain.project({}, srcs)
         for _ in range(TAU - 1):
-            self.brain.project({}, {role_area: [syn], syn: [syn]})
+            recur = dict(srcs)
+            recur[syn] = [syn]
+            self.brain.project({}, recur)
         return syn
 
     def _role_identity(self, role_area: str) -> Optional[Assembly]:
@@ -266,8 +286,29 @@ class ConstituentOrderMixin:
         if stored is not None:
             activate_assembly(self.brain, stored)
 
+    # -- mood ------------------------------------------------------------
+
+    DEFAULT_MOOD = "declarative"
+
+    @property
+    def mood(self) -> str:
+        """The mood currently being trained / generated in."""
+        return getattr(self, "_mood", self.DEFAULT_MOOD)
+
+    def set_mood(self, mood: str) -> None:
+        """Select the mood (a language register with its own word order).
+
+        The paper sweeps the NUMBER OF MOODS as one of its two axes: each mood
+        of a language may impose a different constituent order, and the model
+        must learn to condition on mood rather than memorize a single global
+        order. With one mood the task is degenerate -- there is exactly one
+        correct order, so a learner can ignore everything else and still be
+        right.
+        """
+        self._mood = str(mood)
+
     def _frame_assembly(self, n_constituents: int) -> Optional[Assembly]:
-        """A distinct MOOD assembly per clause frame (transitive vs not).
+        """A distinct MOOD assembly per (mood, clause frame).
 
         The paper gives each mood "a distinct chain of assemblies between ROLE
         and SUBJ, VERB, OBJ". Clause frame behaves the same way: what follows
@@ -277,17 +318,23 @@ class ConstituentOrderMixin:
         fatal for every order whose intransitive chain is not a prefix of its
         transitive chain (SOV, OSV, OVS, VOS), and more input does not help --
         it strengthens both transitions equally.
+
+        MOOD is the same argument one level up: two moods with different orders
+        disagree about what follows the subject, so they must not share a
+        context assembly either. Keying on (mood, frame) gives each mood its
+        own chain, which is exactly what the paper specifies.
         """
         cache = getattr(self, "_frame_assemblies", None)
         if cache is None:
             cache = {}
             self._frame_assemblies = cache
-        key = "transitive" if n_constituents >= 3 else "intransitive"
+        frame = "transitive" if n_constituents >= 3 else "intransitive"
+        key = (self.mood, frame)
         if key in cache:
             return cache[key]
         if MOOD not in self.brain.areas:
             return None
-        stim = f"frame_{key}"
+        stim = f"mood_{self.mood}_frame_{frame}"
         if stim not in self.brain.stimuli:
             self.brain.add_stimulus(stim, self.k)
         project(self.brain, stim, MOOD, rounds=self.rounds)
@@ -362,6 +409,15 @@ class ConstituentOrderMixin:
                     )
 
                 # (2) SYN[i] -> ROLE[i+1].
+                #
+                # The MOOD conditioning is carried by the SYNTACTIC assembly,
+                # not by adding MOOD to this cue: `_fire_constituent` co-fires
+                # MOOD into the syntactic area, so SUBJ-under-mood-A is a
+                # different assembly from SUBJ-under-mood-B and these synapses
+                # are already mood-specific. That is the reference
+                # implementation's arrangement (MOOD projects into the SYNTAX
+                # area at every step) and it keeps mood out of the role
+                # competition, where it would otherwise dominate.
                 prev_syn: Optional[str] = None
                 for word, role_area in seq:
                     if prev_syn is not None:
@@ -374,7 +430,8 @@ class ConstituentOrderMixin:
                                 target_area=role_area,
                                 teachers=[core],
                             )
-                    prev_syn = self._fire_constituent(word, role_area) or prev_syn
+                    prev_syn = self._fire_constituent(
+                        word, role_area, mood_assembly=mood) or prev_syn
 
     def _constituent_sequence(
         self, sent: "GroundedSentence",
@@ -398,6 +455,7 @@ class ConstituentOrderMixin:
         cue_assembly: Optional[Assembly] = None,
         *,
         exclude: Optional[set] = None,
+        mood_assembly: Optional[Assembly] = None,
     ) -> Optional[Tuple[str, str, float]]:
         """Trigger, then let the role areas compete for the cue.
 
@@ -448,6 +506,14 @@ class ConstituentOrderMixin:
             # tested and is a regression (SVO 1.00 -> 0.00): the scene
             # contains every participant, so it drives all role areas and
             # swamps the ordering signal.
+            # NOTE: MOOD is deliberately NOT added to this cue. Mood
+            # conditioning happens upstream, in the SYNTACTIC assembly (see
+            # _fire_constituent): the syntactic area is what differs per mood,
+            # so SYN[i] -> ROLE[i+1] is already mood-specific. Adding MOOD here
+            # instead was measured to destroy the ordering signal outright --
+            # MOOD carries the "which role OPENS the clause" pairing, so it
+            # dominates the weaker syntactic drive and every order collapses to
+            # the same answer (SVO and SOV both produced 'OSV').
             score = bind_strength(
                 self.brain,
                 sources=[cue_area],
@@ -522,19 +588,29 @@ class ConstituentOrderMixin:
         # First constituent is cued by MOOD; subsequent ones by the syntactic
         # area the previous constituent left firing.
         cue_area: Optional[str] = MOOD
-        cue_assembly = (self._frame_assembly(
+        mood_assembly = (self._frame_assembly(
             len(getattr(self, "_scene_fillers", {}) or {}))
             or self._ensure_mood_assembly())
+        cue_assembly = mood_assembly
 
         for _ in range(max_len):
             if cue_area is None:
                 break
-            step = self._compete(cue_area, cue_assembly, exclude=used)
+            step = self._compete(
+                cue_area, cue_assembly, exclude=used,
+                mood_assembly=mood_assembly,
+            )
             if step is None:
                 break
             role_area, word, _score = step
             used.add(role_area)
             out.append(word)
-            cue_area = self._fire_constituent(word, role_area)
+            # MOOD is tonic -- the paper has it "firing at every step
+            # throughout generation". It must co-fire here for the same reason
+            # it did in training: the syntactic assembly this leaves behind is
+            # the cue for the next constituent, and it has to be the
+            # mood-specific one the transitions were trained against.
+            cue_area = self._fire_constituent(
+                word, role_area, mood_assembly=mood_assembly)
             cue_assembly = None
         return out
