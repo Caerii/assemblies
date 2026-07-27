@@ -70,26 +70,47 @@ RESULT (4 seeds x 3 items per condition = 12 per cell)
     binding_weak    0.3667       nan    0.0875       nan     -0.80
     n400 (control)  0.9516    0.9848    0.9607     +1.77     +0.41
 
-**THE SIGN IS INVERTED, THE SIGNAL IS NOT MISSING.** `raw_drive` is the only
-candidate with the correct dissociation. The shipped metric is `1 - raw_drive`,
-which is why it scores d=-2.97: it separates strongly and points the wrong way.
-`anchored_p600_live`'s docstring asserts that a violation "routes a wrongly-typed
-core through an untrained pathway and delivers LESS" energy. On this substrate
-it delivers MORE. A plausible mechanism, not yet confirmed: an untrained
-projection is diffuse over many weak synapses while a trained one concentrates
-on ~k neurons, and `input_drive` normalizes per candidate over ALL candidates,
-which rewards the diffuse pattern. Confirm before relying on it.
+**ROOT CAUSE: THE CONTRAST IS CONFOUNDED WITH TARGET AREA.** Recording which
+pathway each condition actually probes settles it:
 
-So the earlier read of "the metric saturates" was only half right. It IS
-compressed near 1.0, which is what made it look flat, but the substantive defect
-is the inversion.
+    grammatical         {'NOUN_CORE->ROLE_PATIENT': 12}
+    category_violation  {'VERB_CORE->VP': 12}
+    novel_noun          {'NOUN_CORE->ROLE_PATIENT': 4,
+                         'NOUN_CORE->ROLE_AGENT': 4, 'ADJ_CORE->VP': 4}
+
+Grammatical and category-violation are not measured on the same brain area.
+`structural_role_area` sends a VERB to VP and a NOUN to ROLE_PATIENT, so the
+conditions differ in target-area identity -- different sizes, different
+in-degrees -- and `input_drive`'s own docstring says comparing across areas
+"reverses the sign". No choice of normalization can rescue a contrast whose two
+arms measure different areas, so the earlier readings ("saturates", then "sign
+inverted") were both downstream symptoms.
+
+**The intended mechanism never runs.** `anchored_p600_live` documents a violation
+as "routing a wrongly-typed core through an untrained pathway" into the role
+area. Because the probe follows the INTRUDING WORD'S OWN category, a verb is
+routed to VP -- where verbs belong -- so no untrained core->ROLE pathway is ever
+traversed. The code measures where the violating word WANTS to go, which is
+exactly not the violation.
+
+**The fix is a design change, not a rescale.** Measure drive into the role area
+the syntactic frame EXPECTED (where the parser was trying to bind), not the area
+implied by the intruding word's category. That makes the two arms area-matched,
+which is the precondition for any of the candidate metrics to mean anything.
+It also exposes an early signal the pipeline currently discards: the mismatch
+between expected and actual core/role area is a word-CATEGORY error available
+before role binding -- an ELAN analogue, which is what the ERP literature
+reports as the early half of the biphasic response to category violations.
+
+`novel_noun` additionally blends three different pathways (including ADJ_CORE
+for "the small dog runs"), so that arm is a mixture of area identities too.
 
 OTHER FINDINGS
-* `binding_weak` is nan for category violations: VERB_CORE -> ROLE_PATIENT does
-  not exist to project through (the reference run also found untrained pathways
-  have literally 0.0 weight sum). The AC-native candidate is undefined exactly
-  where it is needed. Treating an absent pathway as maximal weakness would fix
-  the definition, but it is a real strike against the metric.
+* `binding_weak` is nan for category violations, and NOT for the reason first
+  recorded here. The lookup is `role_lexicons[VP]`, which is empty because VP is
+  a phrase area rather than a thematic role, so there are no stored assemblies
+  to compare against. It is a consequence of the area confound above, not
+  evidence about untrained pathways.
 * `self_energy_k` rescales grammatical 0.005 -> 0.149 but leaves category
   violation at 0.0000, so the `w` divisor is NOT the whole story -- that
   condition has genuinely zero self-recurrent energy.
@@ -129,6 +150,7 @@ CANDIDATES = (
     "raw_drive", "energy_deficit", "self_energy", "self_energy_k",
     "binding_weak", "n400",
 )
+PATHWAYS: Dict[str, List[str]] = {}
 LABELS = ("grammatical", "category_violation", "novel_noun")
 
 
@@ -224,6 +246,7 @@ def collect(seed: int) -> Dict[str, Dict[str, List[float]]]:
             "raw_drive": raw, "energy_deficit": float(out),
             "self_energy": se, "self_energy_k": se_k, "binding_weak": weak,
             "word": probe_word["w"],
+            "core_area": core_area, "role_area": role_area,
         })
         return out
 
@@ -278,6 +301,9 @@ def collect(seed: int) -> Dict[str, Dict[str, List[float]]]:
             out[c][smp.label].append(
                 float(smp.n400) if c == "n400" else r[c]
             )
+        PATHWAYS.setdefault(smp.label, []).append(
+            f"{r['core_area']}->{r['role_area']}"
+        )
     print(f"  seed {seed}: {matched}/{len(report.samples)} samples matched "
           f"to probes ({len(rows)} probes total)"
           + (f", {missed} UNMATCHED" if missed else ""), flush=True)
@@ -320,6 +346,17 @@ def run(seeds: Sequence[int] = (42, 43, 44, 45)) -> None:
             verdict = "no separation"
         print(f"{c:<16}{np.nanmean(g):>10.4f}{np.nanmean(v):>10.4f}"
               f"{np.nanmean(n):>10.4f}{d_cv:>10.2f}{d_nv:>10.2f}   {verdict}")
+    # Which pathway does each condition actually probe? `structural_role_area`
+    # sends a VERB to VP and a NOUN to ROLE_PATIENT, so the conditions may not
+    # be measured on the same target area at all. `input_drive` normalizes PER
+    # CANDIDATE and its own docstring warns that comparing raw sums across areas
+    # of different size "reverses the sign" -- so if these differ by condition,
+    # the whole contrast is confounded by area identity rather than by training.
+    from collections import Counter
+    print("\n  PATHWAY ACTUALLY PROBED PER CONDITION")
+    for lbl in LABELS:
+        print(f"    {lbl:<20}{dict(Counter(PATHWAYS.get(lbl, [])))}")
+
     print("\nd(cv/g) should be LARGE POSITIVE; d(nov/g) should be SMALL.")
     print("n400 is the positive control and should show the OPPOSITE pattern.")
 
