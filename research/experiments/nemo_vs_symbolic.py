@@ -31,6 +31,7 @@ from __future__ import annotations
 
 import os
 import sys
+import copy
 from typing import Dict, List, Sequence
 
 os.environ.setdefault("EMERGENT_FAST_TRAINING", "1")
@@ -48,25 +49,42 @@ def _mean_ci(xs) -> tuple:
 
 
 def _items(kind: str = "canonical"):
-    """Canonical items cannot discriminate the paths; non-canonical ones can."""
-    if kind == "canonical":
-        rows = [(s, v, o, {s: "AGENT", v: "ACTION", o: "PATIENT"})
-                for s, v, o in (
-                    ("dog", "chases", "cat"), ("cat", "sees", "dog"),
-                    ("dog", "finds", "ball"), ("cat", "chases", "bird"),
-                    ("boy", "sees", "girl"), ("girl", "finds", "book"))]
-    else:
-        # Position says ball=AGENT; the corpus only ever made ball a patient.
-        rows = [(s, v, o, {o: "AGENT", v: "ACTION", s: "PATIENT"})
-                for s, v, o in (
-                    ("ball", "chases", "dog"), ("book", "sees", "cat"),
-                    ("ball", "finds", "cat"), ("book", "chases", "dog"))]
-    return [([s, v, o], gold) for s, v, o, gold in rows]
+    """Delegate to the lesion study's VETTED items for this corpus.
+
+    Do not invent items here. Three times now, hand-written test sentences have
+    contradicted what the corpus actually taught -- the first A/B scored words
+    (`cat`, `chases`) that were not in the SENTENCES vocabulary at all, and the
+    second put AGENT-only nouns in patient position, so the symbolic path was
+    penalised for correctly refusing the gold. `lesion_aphasia.test_items()` is
+    already built against `build_corpus()` and checked:
+
+      reversible   balanced nouns in canonical order. No lexical preference
+                   exists by construction, so ONLY word order can assign the
+                   roles -- this is what a gating mechanism should be good at.
+      irreversible role-exclusive nouns in NON-canonical order, so position says
+                   the wrong thing and only lexical experience rescues it --
+                   this is what a positional mechanism must fail.
+
+    That is exactly the contrast the A/B needs, already validated.
+    """
+    from lesion_aphasia import test_items as _ti
+
+    want = "reversible" if kind == "canonical" else "irreversible"
+    return [(list(words), gold) for words, gold, k in _ti() if k == want]
+
+
+#: ACTION is excluded from scoring. VERB_CORE -> ROLE_ACTION is never
+#: materialized (measured: shape (0,0), zero weight), so no verb is ever
+#: neurally bound to its thematic role -- in EITHER path. The symbolic parser
+#: reports ACTION from the word's category, not from a binding. Scoring it would
+#: credit both paths for something neither computes.
+SCORED_ROLES = ("AGENT", "PATIENT")
 
 
 def _score(pred: Dict[str, object], gold: Dict[str, str]) -> tuple:
-    ok = sum(1 for w, r in gold.items() if pred.get(w) == r)
-    return ok, len(gold)
+    scored = {w: r for w, r in gold.items() if r in SCORED_ROLES}
+    ok = sum(1 for w, r in scored.items() if pred.get(w) == r)
+    return ok, len(scored)
 
 
 def run(seeds: Sequence[int] = (42, 43, 44, 45, 46, 47, 48, 49)) -> None:
@@ -81,7 +99,11 @@ def run(seeds: Sequence[int] = (42, 43, 44, 45, 46, 47, 48, 49)) -> None:
         NemoParser, infer_transitive_verbs,
     )
 
-    transitive = infer_transitive_verbs(create_training_sentences())
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    from lesion_aphasia import build_corpus, train_parser as _train
+
+    corpus = create_training_sentences() + build_corpus()
+    transitive = infer_transitive_verbs(corpus)
     print("gating vs symbolic role assignment -- paired, same parser per seed")
     print(f"transitive verbs inferred from corpus: {sorted(transitive)}")
     print()
@@ -91,13 +113,19 @@ def run(seeds: Sequence[int] = (42, 43, 44, 45, 46, 47, 48, 49)) -> None:
         sym_acc: List[float] = []
         nemo_acc: List[float] = []
         for seed in seeds:
-            parser = get_parser_cache().fork("SENTENCES", seed=seed)
+            parser = _train(seed)
             s_ok = s_tot = n_ok = n_tot = 0
             for words, gold in _items(kind):
-                a, b = _score(parser.parse(list(words))["roles"], gold)
+                # SEPARATE COPIES. NemoParser mutates the brain
+                # (prepare_targets clears winners, fix/unfix changes state), so
+                # sharing one parser let the gating run corrupt every later
+                # symbolic parse -- symbolic scored 0.083 on reversible items
+                # where lesion_aphasia measures 1.000 for the same parser.
+                a, b = _score(
+                    copy.deepcopy(parser).parse(list(words))["roles"], gold)
                 s_ok, s_tot = s_ok + a, s_tot + b
-                got = NemoParser(parser, transitive_verbs=transitive).parse(
-                    list(words))
+                got = NemoParser(copy.deepcopy(parser),
+                                 transitive_verbs=transitive).parse(list(words))
                 a, b = _score(got, gold)
                 n_ok, n_tot = n_ok + a, n_tot + b
             sym_acc.append(s_ok / max(s_tot, 1))
@@ -138,6 +166,13 @@ def run(seeds: Sequence[int] = (42, 43, 44, 45, 46, 47, 48, 49)) -> None:
     elif np.isfinite(dc) and dm - dc > 0.02 and m_non_n >= m_non_s:
         print("  -> gating matches or beats symbolic on BOTH item kinds;")
         print("     replacing the symbolic path is on the table.")
+    elif m_non_n < m_non_s - 0.1:
+        print("  -> DO NOT REPLACE, and the reason is informative. Gating does")
+        print("     well where word ORDER suffices but sits at chance where")
+        print("     LEXICAL experience must override position -- it has no")
+        print("     lexical route. The symbolic margin scoring supplies that")
+        print("     route. The two are COMPLEMENTARY, not substitutes, which")
+        print("     matches the two-route structure the lesion study found.")
     else:
         print("  -> mixed or indistinguishable; not justified either way yet.")
 
