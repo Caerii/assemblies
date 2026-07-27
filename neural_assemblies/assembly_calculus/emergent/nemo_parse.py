@@ -102,6 +102,7 @@ class NemoParser:
                  transitive_verbs: Optional[Set[str]] = None,
                  use_lexical: bool = False,
                  competitive: bool = False,
+                 head_start: int = 0,
                  lexical_weight: float = 1.0,
                  rounds: Optional[int] = None) -> None:
         self.parser = parser
@@ -113,6 +114,11 @@ class NemoParser:
         # areas are targets of the SAME project() call, which the derived map
         # now produces because both fibers stay open.
         self.competitive = competitive
+        # Rounds ROLE_PATIENT's fiber stays shut while ROLE_AGENT accumulates.
+        # 0 = pure competition (lexical statistics decide, no positional
+        # information at all); large = the SVO template, since PATIENT never
+        # opens in time to compete. Only meaningful with `competitive`.
+        self.head_start = head_start
         if competitive:
             present = [a for a in (ROLE_AGENT, ROLE_PATIENT)
                        if a in parser.brain.areas]
@@ -194,7 +200,56 @@ class NemoParser:
                         # rather than silently violated.
                         self.state.check_war_of_fibers(proj, core)
 
-                    if proj:
+                    if (self.head_start and self.competitive
+                            and category in ("NOUN", "PRON")
+                            and ROLE_PATIENT in proj.get(core, ())):
+                        # THE POSITIONAL PRIOR, PAID IN TIME RATHER THAN WEIGHT.
+                        # Inhibition is binary, so a graded "subject slot is
+                        # favoured at sentence start" cannot be expressed by
+                        # opening or closing a slot -- that is the all-or-nothing
+                        # SVO program. What IS gradable in assembly calculus is
+                        # WHEN a fiber opens: hold core->ROLE_PATIENT shut for
+                        # `head_start` rounds so the agent slot accumulates drive
+                        # first, then open it and let MI compare. A sentence-
+                        # initial subject expectation becomes anticipatory
+                        # processing, and its strength is a number of rounds
+                        # rather than a tuned coefficient.
+                        #
+                        # `prepare_targets` has ALREADY run with both fibers
+                        # open, so both role areas are cleared. Do not call it
+                        # again after opening PATIENT -- it would wipe the very
+                        # head start this is trying to give.
+                        #
+                        # Channel 2: channel 0 belongs to the word programs and
+                        # channel 1 holds the winner-protection, so the head
+                        # start needs its own or releasing it would stamp on
+                        # theirs.
+                        #
+                        # Close the AREA, not just the core->PATIENT fiber.
+                        # MEASURED: with only that fiber shut, ROLE_PATIENT was
+                        # still reaching `activation_scores` from its other
+                        # sources, so MI fired DURING the head start, compared a
+                        # live AGENT against an empty PATIENT, and killed
+                        # PATIENT destructively (w=0) before it could ever
+                        # compete. Every word then read P=0.0 at the real
+                        # decision point and AGENT won unconditionally -- the
+                        # head start PRE-EMPTED the competition instead of
+                        # biasing it. A closed area is absent from the derived
+                        # map entirely, which is the only way to keep a
+                        # destructive WTA from running early. It is also how the
+                        # SVO program expresses slot state (`area_rule`).
+                        self.state.inhibit_area(ROLE_PATIENT, 2)
+                        head_proj = self.state.project_map(
+                            self.brain, lex_area=core)
+                        for _ in range(self.head_start):
+                            if head_proj:
+                                self.brain.project({}, head_proj)
+                        self.state.disinhibit_area(ROLE_PATIENT, 2)
+                        proj = self.state.project_map(self.brain, lex_area=core)
+                        for _ in range(max(0, self.rounds - self.head_start)):
+                            if proj:
+                                self.brain.project({}, proj)
+                    elif proj:
                         for _ in range(self.rounds):
                             self.brain.project({}, proj)
                     # Readout is deliberately NOT `self._role_from(proj, core)`.

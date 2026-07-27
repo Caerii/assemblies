@@ -85,6 +85,55 @@ connectome asymmetry and picks PATIENT. On the 40/36 leaners it is correct. That
 is not a broken mechanism -- it is a pure lexical-statistics arbiter behaving
 exactly like one, and it is why word order has to exist as a SEPARATE layer.
 
+CAN ONE COMPETITION HOLD BOTH ROUTES? NO -- the prior is too coarse
+--------------------------------------------------------------------
+`head_start_sweep()`, 6 seeds. The prior is paid in TIME (hold ROLE_PATIENT shut
+for r rounds so the agent slot accumulates first), because inhibition is binary
+and there is no graded weight to turn.
+
+    head_start   reversible        irreversible
+    0            0.667 +/-0.000    1.000 +/-0.000    <- pure competition
+    1            1.000 +/-0.000    0.600 +/-0.101
+    2            1.000 +/-0.000    0.600 +/-0.101
+    3            0.500 +/-0.000    0.000 +/-0.000    <- degenerate, see below
+    5            0.500 +/-0.000    0.000 +/-0.000    <- degenerate, see below
+
+PREDICTION REFUTED. I expected a small head start to fix reversible while
+leaving irreversible at 1.000, on the reasoning that lexical margins are large.
+No value scores 1.000 on both, and the mechanism measurement says why. One round
+of anticipation is not a nudge -- it is worth as much as the entire lexical
+margin range:
+
+    word   patient drive   AGENT hs=0 -> hs=1   anticipation gain   lexical margin
+    dog        54.7          123.7 -> 201.8          +78.1              -69.0
+    bird       91.1           57.6 -> 129.5          +72.0              +33.6
+    book       72.8           22.2 ->  81.7          +59.5              +50.6
+    ball       89.8           13.8 ->  49.3          +35.5              +76.0
+
+Patient drive is untouched, and AGENT gains through RECURRENT SELF-DRIVE: an
+open, active area self-projects in the derived map, so a pre-activated slot
+sustains itself. That is a full k-winner assembly's worth of drive, which is why
+the minimum step (+35 to +78) overshoots the resolution the task needs --
+separating `bird` (+33.6, should flip to AGENT) from `book` (+50.6, must not)
+requires finer grain than one round can express. At hs=1 `bird` flips correctly
+and `ball` (+76) correctly resists, but `book` flips too; hence 0.600 with real
+seed variance rather than a clean 0 or 1.
+
+SCOPE OF THE NEGATIVE RESULT: this refutes a TIME-QUANTISED prior at one-round
+granularity, not the composition idea in general. A weaker anticipatory drive
+(projecting into ROLE_AGENT from a smaller source rather than for longer) is
+untested and would be the next thing to try.
+
+The hs>=3 rows are DEGENERATE and must not be read as "strong prior becomes the
+SVO template". Traced: the SECOND noun reads None. Once the first noun's slot is
+winner-protected, the second noun has only ROLE_PATIENT available, so shutting
+it for most of the round budget leaves nothing to bind into. Those rows measure
+a readout failure, not a prior.
+
+Note: `head_start` closes the PATIENT AREA rather than the core->PATIENT fiber.
+Measured behaviourally NEUTRAL (both variants give the table above), and kept
+because area rules are how the SVO program expresses slot state.
+
 TWO BUGS THIS MEASUREMENT FOUND, both worth keeping in mind
 -----------------------------------------------------------
 1. Reading `alive` as "role areas with winners" counted a slot won by an EARLIER
@@ -240,7 +289,13 @@ def margins(seeds: Sequence[int] = (42, 43, 44),
             captured = []
 
             def spy(self, scores, _orig=original, _cap=captured):
-                if ROLE_AGENT in scores or ROLE_PATIENT in scores:
+                # BOTH, not either. Sampling on "either" catches calls only one
+                # role area is a target of, and `.get(other, 0.0)` then reports
+                # 0.0 for an area that was never in the call -- which reads
+                # exactly like the competition destroying it. Under
+                # `head_start` that is the first call every time. The
+                # competition is the call where both are present.
+                if ROLE_AGENT in scores and ROLE_PATIENT in scores:
                     _cap.append(dict(scores))
                 return _orig(self, scores)
 
@@ -262,8 +317,90 @@ def margins(seeds: Sequence[int] = (42, 43, 44),
                   f"   {'PATIENT' if patient > agent else 'AGENT'}")
 
 
+def head_start_sweep(seeds: Sequence[int] = (42, 43, 44, 45, 46, 47),
+                     values: Sequence[int] = (0, 1, 2, 3, 5)) -> None:
+    """Can ONE competition hold both routes, with the prior paid in TIME?
+
+    Gating and MI are currently ALTERNATIVES. Composing them needs a GRADED
+    positional prior, and inhibition is binary -- a slot is open or shut, which
+    is the all-or-nothing SVO template. What is gradable in assembly calculus is
+    WHEN a fiber opens. `head_start=r` holds core->ROLE_PATIENT shut for r
+    rounds so the agent slot accumulates drive first, then opens it and lets
+    mutual inhibition compare. The prior is a number of rounds, not a
+    coefficient fitted to the answer.
+
+    PREDICTION, recorded before running
+    -----------------------------------
+    head_start=0 reproduces pure competition (0.667 / 1.000) and a large
+    head_start reproduces the SVO template (1.000 / 0.000), because PATIENT
+    never opens in time to compete. The interesting claim is that a SMALL head
+    start gives 1.000 on BOTH: the lexical margins are large (`ball` drives
+    PATIENT ~5x harder than AGENT) so one round of anticipation should not
+    overturn them, while an exact 40/40 tie has nothing to resist it with.
+
+    FALSIFIABLE: if NO value scores 1.000 on both, then the two routes cannot
+    share a single competition, and the architecture genuinely needs two
+    decision stages rather than one competition with a prior. That is a real
+    result either way, so do not tune `values` until it works -- report the
+    curve.
+    """
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    os.environ.setdefault("EMERGENT_FAST_TRAINING", "1")
+    os.environ.setdefault("TRAIN_PROGRESS", "0")
+
+    from lesion_aphasia import build_corpus, test_items, train_parser
+    from nemo_vs_symbolic import _mean_ci, _score
+    from neural_assemblies.assembly_calculus.emergent.curriculum.data import (
+        create_training_sentences,
+    )
+    from neural_assemblies.assembly_calculus.emergent.nemo_parse import (
+        NemoParser, infer_transitive_verbs,
+    )
+
+    transitive = infer_transitive_verbs(create_training_sentences() + build_corpus())
+    kinds = {
+        kind: [(list(words), gold)
+               for words, gold, k in test_items() if k == kind]
+        for kind in ("reversible", "irreversible")
+    }
+
+    print(f"\n  {len(seeds)} seeds.  head_start = rounds ROLE_PATIENT stays shut")
+    print("  while ROLE_AGENT accumulates.  0 = pure lexical competition.\n")
+    print(f"  {'head_start':<12}{'reversible':>18}{'irreversible':>18}")
+
+    # Train ONCE per seed and deepcopy per condition. Training dominates the
+    # wall clock (~21s a seed), so training inside the head_start loop would
+    # cost 60 trainings instead of 6 for identical numbers.
+    scores = {(hs, kind): [] for hs in values for kind in kinds}
+    for seed in seeds:
+        trained = train_parser(seed)
+        for hs in values:
+            for kind, rows in kinds.items():
+                brain = copy.deepcopy(trained)
+                ok = total = 0
+                for words, gold in rows:
+                    pred = NemoParser(
+                        brain, transitive_verbs=transitive,
+                        competitive=True, head_start=hs,
+                    ).parse(list(words))
+                    a, b = _score(pred, gold)
+                    ok += a
+                    total += b
+                scores[(hs, kind)].append(ok / max(total, 1))
+
+    for hs in values:
+        cells = "".join(
+            f"{m:.3f} +/-{h:.3f}".rjust(18)
+            for m, h in (_mean_ci(scores[(hs, kind)]) for kind in kinds)
+        )
+        print(f"  {hs:<12}{cells}", flush=True)
+
+
 if __name__ == "__main__":
     if "--margins" in sys.argv:
         margins()
+    elif "--head-start" in sys.argv:
+        head_start_sweep()
     else:
         run()
