@@ -29,16 +29,36 @@ MOOD -> first constituent and SYN[i] -> next constituent, so:
 Only SVO and VSO are conflict-free, which is the same conclusion
 `parser_mixins/constituent_order.py::_frame_assembly` reached independently.
 
-!! REPRODUCIBILITY !!  Passing `seed=` to Brain is NOT sufficient: global RNG
-state leaks between constructions and FLIPS borderline orders. Measured, same
-config and same seed, four builds in one process:
-    SOV -> SOV,SOV,SOV,SOV      (stable)
-    OVS -> OVS,VSO,OVS,VSO      (NOT stable -- alternating, i.e. global state)
-and an identical grid re-run gave different cells for exactly the borderline
-orders. Every trial below therefore reseeds numpy / random / torch globals as
-well. Verified: with reseeding, OVS -> OVS,OVS,OVS and OSV -> OSV,OSV,OSV.
-Do not remove `_reseed`, and do not trust any borderline result measured
-without it.
+REPRODUCIBILITY.  This grid was originally unreproducible: global RNG leaked
+between Brain constructions and flipped exactly the borderline orders (identical
+config and seed, four builds in one process, gave OVS,VSO,OVS,VSO). That is now
+fixed at source -- `Brain(seed=)` draws wiring from dedicated seeded streams --
+so `_reseed` below is belt-and-braces rather than load-bearing. Keep it: it also
+pins torch's global generator, which the GPU sampler still uses.
+
+RESULT (5 seeds, 60 sentences, deterministic substrate)::
+
+    order      30%    50%    70%    90%
+    SVO   *    5/5   5/5   5/5   5/5
+    VSO   *    5/5   5/5   5/5   5/5
+    SOV        3/5   5/5   4/5   5/5
+    VOS        3/5   4/5   4/5   5/5
+    OSV        4/5   3/5   4/5   4/5
+    OVS        3/5   2/5   2/5   2/5
+
+* CONFIRMED, the conflict derivation above: SVO and VSO -- the only orders whose
+  intransitive chain is a strict prefix of the transitive one -- are perfect in
+  every cell.
+* CONFIRMED qualitatively, H4: the two OBJECT-INITIAL orders are hardest, and
+  those are the two rarest in WALS (OVS ~1%, OSV ~0.3%).
+* NOT CONFIRMED, H3: there is no cliff below 50% transitive (OSV scores 4/5 at
+  30%), and VOS behaves like SOV rather than like the other two orders the paper
+  groups it with.
+* ANOMALY: OVS gets WORSE with more transitive input (3,2,2,2), the opposite of
+  H1's direction. The one cell that contradicts rather than merely underperforms.
+* CAVEAT: the typology fit is partial. VSO is rated as easy as SVO though it is
+  ~7% of languages, and SOV harder than VSO though SOV is the most common order
+  (~41%). Object-initial rarity is predicted; the rest of the ranking is not.
 """
 
 from __future__ import annotations
