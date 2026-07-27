@@ -153,11 +153,36 @@ have NO learned connectome at all:
     ROLE_SOURCE    (empty)                          0
     ROLE_LOCATION  (empty)                          0
 
-So an area with ZERO learned weight beats one with 110k. `_apply_mutual_inhibition`
-picks `max(total_activation)`, and projecting into an empty connectome
-materializes a fresh random one whose low in-degree `norm_init` barely divides,
-while the trained pathway's high in-degree is divided down hard. The decision
-variable ANTI-CORRELATES WITH TRAINING.
+MECHANISM, measured -- and it CORRECTS the first reading above, which claimed
+untrained areas are systematically stronger. They are not. The scores mutual
+inhibition actually compares, projecting "dog" into each role area:
+
+    role area                    total_activation      pre-kWTA total
+    ROLE_AGENT                             1.1277                7.60
+    ROLE_PATIENT                           1.0685                6.61
+    ROLE_GOAL / SOURCE / ACTION            1.0467                1.05
+    ROLE_THEME / LOCATION                  1.0333                1.03
+
+The trained areas DO score highest -- by 7%, where the pre-kWTA signal separates
+them by 7x. `total_activation` sums only the top-k winners, so an untrained area
+whose entire materialized population IS k (w=30) has all of it selected and
+keeps 100% of its small drive, while a trained area's ~960 neurons dilute what
+the top-k captures. A 7x separation collapses to a near-tie that noise flips.
+
+So the defect is that THE DECISION VARIABLE DESTROYS THE MARGIN, not that it
+points the wrong way. Same family as the lesson already recorded for the ERP
+components -- post-k-WTA quantities are unreliable under `norm_init` -- but a
+different mechanism (dilution by population size, not churn).
+
+NOT YET RESOLVED: swapping the competition onto pre-k-WTA totals
+(`comp_correct_pre`) produced an implausible result -- the expected area
+"wins" 0.92 of the time for category VIOLATIONS versus 0.33 for grammatical
+items, i.e. better for a verb in an object slot than for a correct noun. That
+is almost certainly a bug in the probe rather than a finding (the per-area
+loop leaves `record_activation` set, and the accuracy has the opposite sign
+convention to a P600 magnitude, which also makes the automatic verdict column
+wrong for it). Do not read `comp_correct_pre` as evidence until the probe is
+rebuilt.
 
 This is not an ERP problem. It is the paper's only inter-area inhibition
 selecting the wrong winner, and it explains why `parser_mixins/core.py` records
@@ -227,7 +252,7 @@ import numpy as np
 CANDIDATES = (
     "raw_drive", "energy_deficit", "self_energy", "self_energy_k",
     "binding_weak", "drive_expected", "share_expected", "comp_correct",
-    "n400",
+    "comp_correct_pre", "n400",
 )
 PATHWAYS: Dict[str, List[str]] = {}
 LABELS = ("grammatical", "category_violation", "novel_noun")
@@ -365,6 +390,26 @@ def collect(seed: int) -> Dict[str, Dict[str, List[float]]]:
         # wipe trained role areas.
         comp_correct = float("nan")
         comp_winner = None
+        # Same competition, decided on PRE-kWTA total instead of the post-kWTA
+        # winner sum. total_activation sums only the top-k, so an untrained area
+        # whose materialized population IS k captures all of its drive while a
+        # trained area's ~960 neurons dilute what the top-k captures -- a 7x
+        # pre-kWTA separation collapses to a ~7% margin that noise flips.
+        comp_correct_pre = float("nan")
+        try:
+            pre_tot = {}
+            for a in _ROLE_GROUP:
+                sv = (np.array(brain.areas[a].winners, copy=True), int(brain.areas[a].w))
+                with brain.frozen():
+                    brain.record_activation = True
+                    brain.project({}, {core_area: [a]})
+                    pre_tot[a] = float(
+                        (getattr(brain, "last_pre_kwta_totals", {}) or {}).get(a, 0.0))
+                brain.areas[a].winners, brain.areas[a].w = sv
+            if pre_tot:
+                comp_correct_pre = 1.0 if max(pre_tot, key=pre_tot.get) == expected_role else 0.0
+        except Exception:
+            pass
         snap = {}
         try:
             for a in _ROLE_GROUP:
@@ -407,6 +452,7 @@ def collect(seed: int) -> Dict[str, Dict[str, List[float]]]:
             "core_area": core_area, "role_area": role_area,
             "drive_expected": drive_exp, "share_expected": share_exp,
             "comp_correct": comp_correct, "comp_winner": comp_winner,
+            "comp_correct_pre": comp_correct_pre,
             "expected_role": expected_role,
         })
         return out
