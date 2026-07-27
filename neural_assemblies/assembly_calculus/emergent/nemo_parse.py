@@ -133,11 +133,17 @@ class NemoParser:
                     proj = self.state.project_map(self.brain, lex_area=core)
                     self.state.check_war_of_fibers(proj, core)
 
-                    out[word] = self._role_from(proj, core)
-
                     if proj:
                         for _ in range(self.rounds):
                             self.brain.project({}, proj)
+                    # Readout is deliberately NOT `self._role_from(proj, core)`.
+                    # That reads the GATE, so the answer would depend only on
+                    # which fiber the rules opened and not at all on the brain
+                    # -- a symbolic readout that makes canonical SVO items
+                    # trivially correct and measures nothing. The reference
+                    # reads out neurally (`getWord`: match an area's actual
+                    # winners against stored assemblies), so this does too.
+                    out[word] = self._role_by_readout(word)
                 finally:
                     self.brain.areas[core].unfix_assembly()
                     for rule in program.post:
@@ -145,6 +151,41 @@ class NemoParser:
         return out
 
     # ------------------------------------------------------------------
+    def _role_by_readout(self, word: str, min_overlap: float = 0.25
+                         ) -> Optional[str]:
+        """Which role area actually holds this word, by assembly overlap.
+
+        The analogue of the reference's `getWord`, which matches an area's
+        WINNERS against stored assemblies rather than consulting the control
+        state. The distinction is not cosmetic: reading the gate instead makes
+        every canonical SVO item correct by construction, because the gate was
+        configured from the word order.
+
+        Returns None when no role area holds the word above threshold -- a
+        failure to bind is reported as a failure, not silently filled in from
+        the rules.
+        """
+        from neural_assemblies.assembly_calculus.assembly import (
+            overlap as assembly_overlap,
+        )
+        from neural_assemblies.assembly_calculus.ops import _snap
+
+        best_role, best = None, min_overlap
+        for area, label in _ROLE_LABEL.items():
+            if area not in self.brain.areas:
+                continue
+            w = self.brain.areas[area].winners
+            if w is None or len(w) == 0:
+                continue
+            stored = (getattr(self.parser, "role_lexicons", {}) or {}
+                      ).get(area, {}).get(word)
+            if stored is None:
+                continue
+            score = float(assembly_overlap(_snap(self.brain, area), stored))
+            if score > best:
+                best, best_role = score, label
+        return best_role
+
     def _role_from(self, proj: Dict[str, List[str]], core: str) -> Optional[str]:
         """The single role target the gating left open, if any.
 
