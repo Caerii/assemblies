@@ -1,0 +1,140 @@
+"""The category->program table, and the SVO gating it produces.
+
+The headline test is `test_svo_sequence_routes_two_nouns_to_different_slots`:
+the same noun program runs twice and lands in different roles purely because the
+verb moved the open slot. That is the property the Python `inhibited` set is
+currently standing in for.
+"""
+
+import pytest
+
+from neural_assemblies.core.inhibition import InhibitionState, apply_rule
+from neural_assemblies.assembly_calculus.emergent.nemo_rules import (
+    CATEGORY_CORE, all_areas, initial_open_areas, intrans_verb_program,
+    noun_program, program_for_category, trans_verb_program,
+)
+from neural_assemblies.assembly_calculus.emergent.core.areas import (
+    NOUN_CORE, ROLE_ACTION, ROLE_AGENT, ROLE_PATIENT, VERB_CORE,
+)
+
+
+class _FakeBrain:
+    """Only `areas[x].winners` is consulted by project_map."""
+
+    class _A:
+        def __init__(self, active):
+            self.winners = [1, 2, 3] if active else []
+
+    def __init__(self, active):
+        self.areas = {a: self._A(a in active) for a in all_areas()}
+
+
+class TestInitialState:
+    def test_patient_slot_starts_closed(self):
+        """The initial condition the whole order mechanism rests on."""
+        s = InhibitionState(all_areas(), initial_open_areas("SVO"))
+        assert s.area_open(ROLE_AGENT)
+        assert s.area_open(ROLE_ACTION)
+        assert not s.area_open(ROLE_PATIENT), (
+            "ROLE_PATIENT must start inhibited, or the first noun can bind as "
+            "patient and SVO is not encoded at all")
+
+    def test_unimplemented_orders_raise(self):
+        """Better than silently parsing SOV with SVO gating."""
+        with pytest.raises(NotImplementedError, match="only SVO"):
+            initial_open_areas("SOV")
+
+
+class TestCategorySelectsProgram:
+    def test_learned_category_selects_the_core_area(self):
+        assert CATEGORY_CORE["NOUN"] == NOUN_CORE
+        assert CATEGORY_CORE["VERB"] == VERB_CORE
+
+    def test_unknown_category_returns_none(self):
+        """Callers must be able to fall back, not parse ungated."""
+        assert program_for_category("CONJ") is None
+
+    def test_transitivity_changes_the_program(self):
+        t = program_for_category("VERB", transitive=True)
+        i = program_for_category("VERB", transitive=False)
+        opens_patient = [r for r in t.post
+                         if r.kind == "area" and r.a1 == ROLE_PATIENT]
+        assert opens_patient, "transitive verb must open the object slot"
+        assert not [r for r in i.post
+                    if r.kind == "area" and r.a1 == ROLE_PATIENT], (
+            "intransitive verb must NOT open the object slot, or an "
+            "intransitive sentence can acquire a spurious patient")
+
+
+class TestNounOffersBothSlots:
+    def test_noun_opens_agent_and_patient(self):
+        """The noun does not choose; area state decides."""
+        p = noun_program(NOUN_CORE)
+        targets = {r.a2 for r in p.pre if r.kind == "fiber"}
+        assert targets == {ROLE_AGENT, ROLE_PATIENT}
+
+
+class TestSvoGating:
+    def _state(self):
+        return InhibitionState(all_areas(), initial_open_areas("SVO"))
+
+    def test_first_noun_can_only_reach_agent(self):
+        s = self._state()
+        for r in noun_program(NOUN_CORE).pre:
+            apply_rule(s, r)
+        b = _FakeBrain({NOUN_CORE})
+        targets = s.project_map(b).get(NOUN_CORE, [])
+        assert ROLE_AGENT in targets
+        assert ROLE_PATIENT not in targets, (
+            "patient slot is closed, so the noun must not reach it")
+
+    def test_verb_advances_the_slot(self):
+        s = self._state()
+        for r in trans_verb_program(VERB_CORE).post:
+            apply_rule(s, r)
+        assert s.area_open(ROLE_PATIENT), "verb must OPEN the object slot"
+        assert not s.area_open(ROLE_AGENT), "verb must CLOSE the subject slot"
+
+    def test_svo_sequence_routes_two_nouns_to_different_slots(self):
+        """THE POINT. Identical noun program, different role, no scoring.
+
+        Nothing here compares areas, ranks candidates, or consults a stored
+        word-order string. The second noun becomes the patient because the verb
+        moved the open slot.
+        """
+        s = self._state()
+        noun = noun_program(NOUN_CORE)
+        verb = trans_verb_program(VERB_CORE)
+        b_noun = _FakeBrain({NOUN_CORE})
+
+        for r in noun.pre:
+            apply_rule(s, r)
+        first = s.project_map(b_noun).get(NOUN_CORE, [])
+        for r in noun.post:
+            apply_rule(s, r)
+
+        for r in verb.pre:
+            apply_rule(s, r)
+        for r in verb.post:
+            apply_rule(s, r)
+
+        for r in noun.pre:
+            apply_rule(s, r)
+        second = s.project_map(b_noun).get(NOUN_CORE, [])
+
+        assert ROLE_AGENT in first and ROLE_PATIENT not in first
+        assert ROLE_PATIENT in second and ROLE_AGENT not in second
+
+    def test_no_war_of_fibers_in_a_correct_sequence(self):
+        """A well-formed program never offers a word two slots at once."""
+        s = self._state()
+        for r in noun_program(NOUN_CORE).pre:
+            apply_rule(s, r)
+        b = _FakeBrain({NOUN_CORE})
+        s.check_war_of_fibers(s.project_map(b), NOUN_CORE)   # must not raise
+
+    def test_intransitive_never_opens_the_object_slot(self):
+        s = self._state()
+        for r in intrans_verb_program(VERB_CORE).post:
+            apply_rule(s, r)
+        assert not s.area_open(ROLE_PATIENT)
