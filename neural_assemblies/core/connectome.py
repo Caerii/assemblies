@@ -1,5 +1,7 @@
 # connectome.py
 
+from typing import Optional
+
 import numpy as np
 
 from .backend import get_xp, to_xp
@@ -91,7 +93,8 @@ class Connectome:
         else:
             return self.weights[pre_neurons].sum(axis=0)
 
-    def update_weights(self, pre_neurons, post_neurons, beta: float):
+    def update_weights(self, pre_neurons, post_neurons, beta: float,
+                       w_max: Optional[float] = None):
         """
         Updates the synaptic weights based on activations.
 
@@ -99,6 +102,14 @@ class Connectome:
             pre_neurons: Indices of pre-synaptic neurons.
             post_neurons: Indices of post-synaptic neurons.
             beta (float): Synaptic plasticity parameter.
+            w_max (float): Saturation ceiling. Hebbian potentiation here is
+                MULTIPLICATIVE, so without a ceiling a synapse that is
+                reinforced on every presentation grows as ``(1 + beta)^t`` and
+                overflows float32 -- measured at roughly 120 training sentences
+                on an explicit->sparse bridge, after which the weights are
+                garbage and every downstream comparison is meaningless. The
+                engines carry ``w_max`` for exactly this reason; clamping here,
+                at the multiplication, means a caller cannot forget it.
         """
         xp = get_xp()
         pre_neurons = xp.asarray(pre_neurons)
@@ -106,6 +117,10 @@ class Connectome:
         if len(pre_neurons) > 0 and len(post_neurons) > 0:
             ix = xp.ix_(pre_neurons, post_neurons)
             self.weights[ix] *= (1 + beta)
+            if w_max is not None:
+                sub = self.weights[ix]
+                xp.clip(sub, 0, w_max, out=sub)
+                self.weights[ix] = sub
 
     def expand(self, new_source_size: int = 0, new_target_size: int = 0):
         """

@@ -474,6 +474,7 @@ class NumpySparseEngine(ComputeEngine):
                                 to_cpu(valid_rows),
                                 neuron_ids,
                                 beta,
+                                w_max=self.w_max,
                             )
 
         tgt.winners = xp.asarray(compact, dtype=xp.uint32)
@@ -1066,7 +1067,8 @@ class NumpySparseEngine(ComputeEngine):
                     if int(c) < len(tgt.compact_to_neuron_id)
                 ]
                 if len(valid_rows) > 0 and len(post_ids) > 0:
-                    conn.update_weights(to_cpu(valid_rows), post_ids, beta)
+                    conn.update_weights(
+                        to_cpu(valid_rows), post_ids, beta, w_max=self.w_max)
                 continue
             if conn.weights.ndim == 2:
                 valid_rows = src_w[src_w < conn.weights.shape[0]]

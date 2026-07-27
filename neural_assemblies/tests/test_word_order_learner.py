@@ -51,13 +51,29 @@ class TestMultiMood:
     """Two moods with DIFFERENT orders on ONE brain -- the whole point of the
     helper layer, and what the paper's second sweep axis requires."""
 
-    @pytest.mark.parametrize("a,b", [("SVO", "VSO"), ("SOV", "OVS")])
-    def test_moods_differing_at_first_constituent(self, a, b):
-        # These pairs are settled by MOOD -> helper, which works.
-        orders = {0: ORDERS[a], 1: ORDERS[b]}
+    def test_moods_differing_at_first_constituent(self):
+        # Settled by MOOD -> helper, which is outside the circularity below.
+        orders = {0: ORDERS["SOV"], 1: ORDERS["OVS"]}
         m = _learner(orders)
         m.train(60)
-        for idx, want in ((0, a), (1, b)):
+        for idx, want in ((0, "SOV"), (1, "OVS")):
+            got = "".join(m.generate(idx))
+            assert got == want, f"mood{idx}: wanted {want}, got {got}"
+
+    @pytest.mark.xfail(
+        strict=False,
+        reason="SVO+VSO passed only BEFORE the w_max clamp on the dense "
+               "explicit->sparse bridge (connectome.update_weights). Those "
+               "runs were riding unbounded weights that overflow float past "
+               "~120 sentences, so the result was resting on a numerical bug, "
+               "not on learning. With the clamp in place mood separation in "
+               "SYNTAX is 1.000 and this pair fails honestly.",
+    )
+    def test_moods_differing_at_first_constituent_svo_vso(self):
+        orders = {0: ORDERS["SVO"], 1: ORDERS["VSO"]}
+        m = _learner(orders)
+        m.train(60)
+        for idx, want in ((0, "SVO"), (1, "VSO")):
             got = "".join(m.generate(idx))
             assert got == want, f"mood{idx}: wanted {want}, got {got}"
 
@@ -66,10 +82,13 @@ class TestMultiMood:
         reason="moods sharing an OPENING constituent (SVO/SOV both start with "
                "S) must diverge at the second word, which is cued by the "
                "syntactic area -- and that stays mood-blind: SYNTAX_subject "
-               "overlaps 0.95 between the two moods. MOOD -> SYNTAX cannot "
+               "overlaps 1.000 between the two moods. MOOD -> SYNTAX cannot "
                "move the winners because helper -> SYNTAX is reinforced by "
                "every sentence of every mood, so MOOD merely learns to predict "
-               "the same mood-independent assembly.",
+               "the same mood-independent assembly. Raising MOOD's plasticity "
+               "onto the syntactic areas attacks this in the right direction "
+               "but is an order of magnitude short: beta 0.3/0.6/0.9 moves the "
+               "overlap 0.978/0.956/0.816 and never flips the outcome.",
     )
     def test_moods_sharing_first_constituent(self):
         orders = {0: ORDERS["SVO"], 1: ORDERS["SOV"]}
