@@ -105,8 +105,71 @@ reports as the early half of the biphasic response to category violations.
 `novel_noun` additionally blends three different pathways (including ADJ_CORE
 for "the small dog runs"), so that arm is a mixture of area identities too.
 
-AREA-MATCHED RESULT (`drive_expected` / `share_expected`)
----------------------------------------------------------
+EVERY NUMBER BELOW THIS POINT WAS MEASURED ON A CONTAMINATED HARNESS
+--------------------------------------------------------------------
+Read the section immediately following before trusting any of it. The candidate
+probes were mutating shared brain state and perturbing each other, so the older
+tables measured PROBE ORDER as much as they measured metrics.
+
+THE HARNESS WAS MEASURING ITSELF (and the fix)
+-----------------------------------------------
+Adding ONE candidate (`binding_weak_exp`) changed `binding_weak` -- computed
+EARLIER in the same function -- from 0.8306 to 0.5806, and reversed `drive_word`
+from gram 1.30 / catviol 1.68 to gram 2.61 / catviol 0.29. Re-running identical
+code reproduces byte-for-byte, so the harness is deterministic and those swings
+were caused purely by adding a probe.
+
+Mechanism: probes call `brain.project(...)`, and `frozen()` suppresses
+PLASTICITY but not connectome MATERIALIZATION or winner updates. `input_drive`
+over the whole role group additionally fires mutual inhibition, which is
+DESTRUCTIVE. Contamination ran candidate-to-candidate AND word-to-word.
+Snapshotting winners -- which the `comp_correct` probe did carefully -- is NOT
+sufficient, because materializing a lazily-created connectome cannot be rolled
+back in place. Isolation requires a COPY.
+
+Every candidate now runs on its own `deepcopy(brain)` (~1.05s each, ~12 min a
+run). The shipped metric runs LAST on the real brain, since its value flows into
+the pipeline and its mutation is part of normal operation.
+
+This explains the drift that earlier sections tried to explain mechanistically:
+`drive_expected` read 3.64, then 1.51, then 1.01, then 0.37 across runs as
+probes were added around it. It was never a property of the metric.
+
+ISOLATED RESULT -- the intended mechanism does work
+----------------------------------------------------
+    metric            gram   catviol     novel   d(cv/g)  d(nov/g)
+    drive_word      1.5099    0.0000    6.5474     -0.97     +0.72
+    comp_correct    0.6667    0.0000    0.3333     -1.91     -0.68
+    comp_correct_pre 0.6667   0.0000    0.3333     -1.91     -0.68
+    n400 (control)  0.9556    0.9861    0.9552     +1.70     -0.02
+
+A category violation delivers EXACTLY ZERO drive into the slot position
+expects, against 1.51 for a grammatical noun. That is the mechanism
+`anchored_p600_live` always documented -- "a wrongly-typed core routed through
+an untrained pathway" -- finally running, and it is confirmed independently:
+VERB_CORE -> ROLE_PATIENT is unmaterialized, shape (0,0), on both this parser
+and the lesion parser. Note the sign convention: for a DRIVE the success case is
+NEGATIVE d (grammatical higher); the P600 magnitude is the deficit.
+
+THE PAPER'S OWN MECHANISM IS THE BEST CANDIDATE. `comp_correct` -- does the
+expected area win the mutual-inhibition competition -- separates hardest
+(d=-1.91) and needs no ad-hoc energy function at all: 2/3 for grammatical,
+NEVER for a category violation. `comp_correct_pre` now agrees with it EXACTLY,
+where the two previously disagreed; that disagreement was contamination plus the
+leaked `record_activation` flag, both fixed. The earlier warning not to trust
+`comp_correct_pre` no longer applies for that reason.
+
+STILL NOT A CLEAN 2x2, and the reason is item design not metric choice. The
+novel arm remains a cross-area MIXTURE (8 of 12 items expect ROLE_AGENT, e.g.
+"the bird sees the cat", "the small dog runs", while every grammatical item
+expects ROLE_PATIENT), so d(nov/g) is still a cross-area comparison and must not
+be read as a dissociation. Only the gram-vs-catviol column is interpretable.
+Fixing it means choosing novel-word frames that put the critical word in object
+position after the verb, so every condition expects the same slot -- an
+item-design change, tracked separately.
+
+AREA-MATCHED RESULT (`drive_expected` / `share_expected`) -- CONTAMINATED
+-------------------------------------------------------------------------
 Probing the role area POSITION expects, rather than the one the intruding word's
 category implies, area-matches grammatical against category-violation -- both
 now measure ROLE_PATIENT (confirmed in the pathway table the run prints):
@@ -132,8 +195,16 @@ TWO THINGS NOT YET RESOLVED
   drive systematically anti-correlate with training. Test it by comparing
   in-degrees on the two pathways before choosing any metric.
 
-KEYSTONE: THE MUTUAL-INHIBITION COMPETITION PICKS UNTRAINED AREAS
------------------------------------------------------------------
+KEYSTONE: THE MUTUAL-INHIBITION COMPETITION PICKS UNTRAINED AREAS -- SUPERSEDED
+-------------------------------------------------------------------------------
+Measured on the contaminated harness. Under isolation the same competition is
+the BEST candidate here (`comp_correct`, d=-1.91), and separately it turned out
+not to be broken at all: it is the LEXICAL route the gating path lacks, scoring
+1.000 on exactly the items fiber-gating scores 0.000 on. See
+`research/experiments/nemo_competitive_ab.py`. Gating restricts WHICH areas
+compete to trained ones, which is what keeps the untrained role areas below out
+of the comparison entirely.
+
 Running the paper's competition (project the core into every role area of
 MUTUAL_INHIBITION_GROUPS[0] in ONE call, so `_apply_mutual_inhibition` fires)
 and asking whether the expected area wins:
@@ -240,6 +311,7 @@ Run: .venv/Scripts/python.exe research/experiments/p600_metric_comparison.py
 
 from __future__ import annotations
 
+import copy
 import os
 import sys
 from typing import Dict, List, Sequence
@@ -251,7 +323,8 @@ import numpy as np
 
 CANDIDATES = (
     "raw_drive", "energy_deficit", "self_energy", "self_energy_k",
-    "binding_weak", "drive_expected", "share_expected", "comp_correct",
+    "binding_weak", "binding_weak_exp", "drive_expected", "share_expected",
+    "drive_word", "share_word", "deficit_word", "comp_correct",
     "comp_correct_pre", "n400",
 )
 PATHWAYS: Dict[str, List[str]] = {}
@@ -322,16 +395,46 @@ def collect(seed: int) -> Dict[str, Dict[str, List[float]]]:
         return orig_measure(p, word, category, **kw)
 
     def anchor2(p, core_area, role_area, **kw):
-        """Fires once per probe, AFTER the phrase_stability loop -> flush here."""
+        """Fires once per probe, AFTER the phrase_stability loop -> flush here.
+
+        EVERY CANDIDATE RUNS ON ITS OWN FORK. This is not defensive style, it
+        is required for the table to mean anything, and the cost of omitting it
+        was measured: adding ONE candidate (`binding_weak_exp`) changed
+        `binding_weak` -- computed EARLIER in this same function -- from 0.8306
+        to 0.5806, and reversed `drive_word` from gram 1.30 / catviol 1.68 to
+        gram 2.61 / catviol 0.29. Re-running identical code reproduces
+        byte-for-byte, so the harness is deterministic and those swings are
+        caused purely by probe order.
+
+        The mechanism: probes call `brain.project(...)`, and `frozen()`
+        suppresses PLASTICITY but not connectome MATERIALIZATION or winner
+        updates. `input_drive` over the whole role group additionally fires
+        mutual inhibition, which is DESTRUCTIVE (winners=[], w=0 on losers).
+        Contamination therefore runs candidate-to-candidate AND word-to-word.
+        Snapshotting winners is not enough -- materializing a lazily-created
+        connectome cannot be undone in place -- so isolation needs a copy.
+
+        `deepcopy(brain)` costs ~1.05s here, so full isolation adds ~12 min to
+        a 4-seed run. That is the price of a readable table.
+
+        The shipped metric (`orig_anchor`) deliberately runs LAST on the REAL
+        brain, because its return value flows on into the pipeline and its
+        mutation is part of normal operation rather than probe residue.
+        """
         sources = [core_area]
         sc = kw.get("subject_core")
         if (sc and sc != core_area and sc in brain.areas
                 and brain.areas[sc].winners is not None
                 and len(brain.areas[sc].winners) > 0):
             sources.append(sc)
+        def fork():
+            """A pristine copy of the pre-probe state, for ONE candidate."""
+            return copy.deepcopy(brain)
+
         try:
+            b = fork()
             raw = float(input_drive(
-                brain, sources=sources, target_areas=[role_area],
+                b, sources=sources, target_areas=[role_area],
             ).get(role_area, 0.0))
         except Exception:
             raw = float("nan")
@@ -340,9 +443,10 @@ def collect(seed: int) -> Dict[str, Dict[str, List[float]]]:
         try:
             lex = (getattr(p, "role_lexicons", {}) or {}).get(role_area, {})
             if lex and core_area in brain.areas:
-                with brain.frozen():
-                    brain.project({}, {core_area: [role_area]})
-                    asm = _snap(brain, role_area)
+                b = fork()
+                with b.frozen():
+                    b.project({}, {core_area: [role_area]})
+                    asm = _snap(b, role_area)
                 weak = 1.0 - float(max(ov(asm, s) for s in lex.values()))
         except Exception:
             pass
@@ -364,13 +468,77 @@ def collect(seed: int) -> Dict[str, Dict[str, List[float]]]:
         drive_exp = share_exp = float("nan")
         try:
             all_drives = input_drive(
-                brain, sources=sources, target_areas=list(_ROLE_GROUP),
+                fork(), sources=sources, target_areas=list(_ROLE_GROUP),
             )
             drive_exp = float(all_drives.get(expected_role, float("nan")))
             tot = float(sum(v for v in all_drives.values() if np.isfinite(v)))
             # Share is scale-free ACROSS areas, so it cancels the per-area
             # normalization differences that made the raw contrast unusable.
             share_exp = drive_exp / tot if tot > 1e-12 else float("nan")
+        except Exception:
+            pass
+
+        # ---- OVERLAP probe, area-matched ----------------------------------
+        # `binding_weak` above is nan for category violations because it looks
+        # up `role_lexicons[role_area]` with the UNMATCHED role area -- VP for
+        # a verb -- and VP is a phrase area with no stored role assemblies. Ask
+        # the same question against the slot POSITION expects and there are
+        # stored assemblies to compare with in every condition.
+        #
+        # This is the one candidate family that does not consume drive, and
+        # that matters here: drive ANTI-CORRELATES WITH TRAINING under
+        # norm_init. Measured, both arms targeting ROLE_PATIENT --
+        #
+        #   trained   NOUN_CORE->ROLE_PATIENT   mean in-degree ~120   drive 1.30
+        #   untrained VERB_CORE->ROLE_PATIENT   materialized at probe  drive 1.68
+        #
+        # -- because the read-time 1/d_j divisor divides a heavily trained
+        # pathway hardest while a freshly materialized one has almost no
+        # in-degree to divide by. Overlap against a STORED assembly is immune
+        # to that, and it is the readout `_score_role_binding` already uses to
+        # drive role assignment at 0.930 accuracy.
+        weak_exp = float("nan")
+        try:
+            lex_exp = (getattr(p, "role_lexicons", {}) or {}).get(expected_role, {})
+            if lex_exp and core_area in brain.areas:
+                b = fork()
+                with b.frozen():
+                    b.project({}, {core_area: [expected_role]})
+                    asm_exp = _snap(b, expected_role)
+                weak_exp = 1.0 - float(
+                    max(ov(asm_exp, s) for s in lex_exp.values()))
+        except Exception:
+            pass
+
+        # ---- SOURCE-MATCHED probe -----------------------------------------
+        # `drive_expected` is area-matched but NOT source-matched, and the
+        # asymmetry is structural rather than incidental. `sources` above is
+        # `[core_area]` plus the subject core, guarded by `sc != core_area`:
+        #
+        #   grammatical object noun -> core_area IS NOUN_CORE, and so is the
+        #       subject core, so the guard DROPS it        -> ONE source
+        #   category violation      -> core_area is VERB_CORE, subject core is
+        #       NOUN_CORE, so it is appended               -> TWO sources
+        #
+        # The violation arm therefore receives an extra TRAINED pathway that
+        # the grammatical arm is structurally denied, and VERB_CORE ->
+        # ROLE_PATIENT is unmaterialized (measured: shape (0,0), drive exactly
+        # 0.0000), so essentially ALL of the violation arm's drive comes from
+        # that extra source rather than from the violating word.
+        #
+        # A P600 asks what the INCOMING WORD costs to integrate, so the drive
+        # should be the drive that word delivers -- one source, the critical
+        # word's own core, into the slot position expects. Measured directly:
+        # a trained noun gives 0.004-0.024 and an unmaterialized verb gives
+        # 0.0, which is the sign the mechanism was designed to produce.
+        drive_word = share_word = float("nan")
+        try:
+            word_drives = input_drive(
+                fork(), sources=[core_area], target_areas=list(_ROLE_GROUP),
+            )
+            drive_word = float(word_drives.get(expected_role, float("nan")))
+            tot_w = float(sum(v for v in word_drives.values() if np.isfinite(v)))
+            share_word = drive_word / tot_w if tot_w > 1e-12 else float("nan")
         except Exception:
             pass
 
@@ -396,46 +564,47 @@ def collect(seed: int) -> Dict[str, Dict[str, List[float]]]:
         # trained area's ~960 neurons dilute what the top-k captures -- a 7x
         # pre-kWTA separation collapses to a ~7% margin that noise flips.
         comp_correct_pre = float("nan")
+        # ONE fork for the whole loop, not one per area: each iteration
+        # materializes only `core_area -> a`, and winners are restored between
+        # iterations, so within-loop cross-talk is negligible while a per-area
+        # fork would cost ~15 min a run on its own. `record_activation` is also
+        # saved and restored here -- the previous version left it set, which the
+        # module docstring flags as a reason not to trust `comp_correct_pre`.
         try:
+            b = fork()
+            prev_rec_b = getattr(b, "record_activation", False)
             pre_tot = {}
-            for a in _ROLE_GROUP:
-                sv = (np.array(brain.areas[a].winners, copy=True), int(brain.areas[a].w))
-                with brain.frozen():
-                    brain.record_activation = True
-                    brain.project({}, {core_area: [a]})
-                    pre_tot[a] = float(
-                        (getattr(brain, "last_pre_kwta_totals", {}) or {}).get(a, 0.0))
-                brain.areas[a].winners, brain.areas[a].w = sv
+            try:
+                for a in _ROLE_GROUP:
+                    sv = (np.array(b.areas[a].winners, copy=True), int(b.areas[a].w))
+                    with b.frozen():
+                        b.record_activation = True
+                        b.project({}, {core_area: [a]})
+                        pre_tot[a] = float(
+                            (getattr(b, "last_pre_kwta_totals", {}) or {}).get(a, 0.0))
+                    b.areas[a].winners, b.areas[a].w = sv
+            finally:
+                b.record_activation = prev_rec_b
             if pre_tot:
                 comp_correct_pre = 1.0 if max(pre_tot, key=pre_tot.get) == expected_role else 0.0
         except Exception:
             pass
-        snap = {}
+        # A fork replaces the snapshot/restore dance this probe used to do.
+        # Restoring winners was never sufficient anyway: the projection also
+        # MATERIALIZES `core_area -> role area` connectomes, which cannot be
+        # rolled back in place, and that residue is what leaked into every
+        # later probe.
         try:
-            for a in _ROLE_GROUP:
-                ar = brain.areas[a]
-                snap[a] = (np.array(ar.winners, copy=True), int(ar.w))
-            with brain.frozen():
-                brain.project({}, {core_area: list(_ROLE_GROUP)})
+            b = fork()
+            with b.frozen():
+                b.project({}, {core_area: list(_ROLE_GROUP)})
             survivors = [a for a in _ROLE_GROUP
-                         if len(brain.areas[a].winners) > 0]
+                         if len(b.areas[a].winners) > 0]
             comp_winner = survivors[0] if len(survivors) == 1 else None
             if comp_winner is not None:
                 comp_correct = 1.0 if comp_winner == expected_role else 0.0
         except Exception:
             pass
-        finally:
-            for a, (w_arr, w_n) in snap.items():
-                ar = brain.areas[a]
-                ar.winners = w_arr
-                ar.w = w_n
-                try:
-                    brain._engine.set_winners(a, w_arr)
-                    est = getattr(brain._engine, "_areas", {}).get(a)
-                    if est is not None:
-                        est.w = w_n
-                except Exception:
-                    pass
 
         out = orig_anchor(p, core_area, role_area, **kw)
 
@@ -451,6 +620,10 @@ def collect(seed: int) -> Dict[str, Dict[str, List[float]]]:
             "word": probe_word["w"],
             "core_area": core_area, "role_area": role_area,
             "drive_expected": drive_exp, "share_expected": share_exp,
+            "binding_weak_exp": weak_exp,
+            "drive_word": drive_word, "share_word": share_word,
+            "deficit_word": (1.0 - drive_word
+                             if np.isfinite(drive_word) else float("nan")),
             "comp_correct": comp_correct, "comp_winner": comp_winner,
             "comp_correct_pre": comp_correct_pre,
             "expected_role": expected_role,
