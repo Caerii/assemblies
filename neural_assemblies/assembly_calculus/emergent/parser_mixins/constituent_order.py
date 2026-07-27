@@ -116,7 +116,11 @@ class ConstituentOrderMixin:
         # The syntactic areas and SCENE now hold activity, so their outgoing
         # fibers can be materialized in turn. Every syntactic slot is covered,
         # including the verb's -- a missing fiber here is permanently dead.
-        for syn in set(_ROLE_TO_SYN.values()):
+        # dict.fromkeys, not set(): this loop ALLOCATES neurons, so its order is
+        # load-bearing, and set-of-str iteration order varies with PYTHONHASHSEED
+        # from one process to the next. That made identical seeds give different
+        # parses across runs while being perfectly stable within a run.
+        for syn in dict.fromkeys(_ROLE_TO_SYN.values()):
             for role in _ROLE_ORDER:
                 materialize_fiber(brain, syn, role)
         for role in _ROLE_ORDER:

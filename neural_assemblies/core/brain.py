@@ -636,16 +636,26 @@ class Brain:
                     raise IndexError(f"Not in brain.areas: {to_area_name}")
                 area_in[to_area_name].append(from_area_name)
 
-        to_update_area_names = stim_in.keys() | area_in.keys()
+        # ORDER IS LOAD-BEARING, so this must not be a set. It drives the batch
+        # config order below and the sequential projection loop, and projecting
+        # an area materializes neurons -- so the order determines how the seeded
+        # RNG stream is consumed. `stim_in.keys() | area_in.keys()` is a set of
+        # str, whose iteration order changes with PYTHONHASHSEED from process to
+        # process; identical seeds gave different results across runs while
+        # being perfectly stable within one run. dict.fromkeys dedupes while
+        # keeping the deterministic insertion order of the two dicts.
+        to_update_area_names = dict.fromkeys(
+            list(stim_in.keys()) + list(area_in.keys())
+        )
 
         # Sync winner state from Area descriptors to ALL engines for source
         # areas.  This is needed for two reasons:
         # 1. External code may set area.winners directly (pattern completion)
         # 2. Cross-engine projections: an explicit area's winners must be
         #    visible to the sparse engine when used as a source.
-        all_source_areas = set()
-        for sources in area_in.values():
-            all_source_areas.update(sources)
+        all_source_areas = dict.fromkeys(
+            src for sources in area_in.values() for src in sources
+        )
         for area_name in all_source_areas:
             area = self.areas[area_name]
             if len(area.winners) > 0:
@@ -691,9 +701,10 @@ class Brain:
                     pre_kwta[area_name] = float(result.pre_kwta_total or 0.0)
 
         # Sequential path: one target at a time
-        remaining = (to_update_area_names - set(non_explicit)
-                     if len(non_explicit) > 1
-                     else to_update_area_names)
+        # List comprehension, not a set difference: preserves the deterministic
+        # order established above (a set difference would re-randomize it).
+        _batched = set(non_explicit) if len(non_explicit) > 1 else ()
+        remaining = [n for n in to_update_area_names if n not in _batched]
         for area_name in remaining:
             engine = self._engine_for(self.areas[area_name])
             eng_area_names = getattr(engine, "_areas", {})

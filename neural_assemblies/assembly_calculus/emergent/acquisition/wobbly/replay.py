@@ -153,7 +153,10 @@ def replay_wobbly_episodes(
                 exposure=parser.dist_stats.word_count.get(word, 1),
             )
 
-    for sent in {ep.sentence for ep in mem.episodes}:
+    # dict.fromkeys, not a set comprehension: this drives TRAINING order, and
+    # set-of-tuple iteration order varies with PYTHONHASHSEED across processes.
+    # Deduplicate while keeping first-seen order so replay is reproducible.
+    for sent in dict.fromkeys(ep.sentence for ep in mem.episodes):
         parser.ingest_raw_sentence(list(sent))
 
     ingest_holdout_sentence_stats(
