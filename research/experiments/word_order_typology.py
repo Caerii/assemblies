@@ -159,21 +159,43 @@ def trial(order_name: str, transitive_fraction: float, n_sentences: int,
     return t_ok, i_ok
 
 
-def main() -> None:
+def _wilson(k: int, n: int, z: float = 1.96) -> tuple:
+    """(centre, half-width) Wilson score interval for a binomial proportion.
+
+    Wilson rather than the normal approximation because these cells sit near
+    0 and 1, where the normal interval is badly wrong (it gives zero width at
+    p=0 and can run outside [0,1]). "5/5" is not evidence of a perfect order;
+    Wilson says 5/5 is [0.57, 1.00], which is the honest statement.
+    """
+    if n == 0:
+        return float("nan"), float("nan")
+    p = k / n
+    d = 1.0 + z * z / n
+    centre = (p + z * z / (2 * n)) / d
+    half = (z * ((p * (1 - p) / n + z * z / (4 * n * n)) ** 0.5)) / d
+    return centre, half
+
+
+def main(seeds: Sequence[int] = tuple(range(1, 16))) -> None:
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
-    seeds = (1, 2, 3, 4, 5)
+    seeds = list(seeds)
     fracs = (0.3, 0.5, 0.7, 0.9)
+    n = len(seeds)
     print("Constituent-order typology (Mitropolsky & Papadimitriou 2025, Fig 5c)")
     print(f"success = correct TRANSITIVE and INTRANSITIVE generation on withheld "
-          f"scenes; {len(seeds)} seeds, 60 sentences, globals reseeded per trial\n")
-    print(f"{'order':<6}{'':<2}" + "".join(f"{int(f*100):>5}% " for f in fracs))
-    print("-" * 40)
+          f"scenes; {n} seeds, 60 sentences, globals reseeded per trial")
+    print("cells are successes/n with a 95% Wilson interval -- at these n the "
+          "intervals are WIDE, and\nthat is the point: a 2/5 vs 4/5 difference "
+          "in the older 5-seed grid was not resolvable.\n")
+    print(f"{'order':<6}{'':<2}" + "".join(f"{int(f*100):>17}% " for f in fracs))
+    print("-" * 82)
     for name in ORDERS:
         mark = "*" if name in CONFLICT_FREE else " "
         row = f"{name:<6}{mark:<2}"
         for frac in fracs:
             ok = sum(all(trial(name, frac, 60, s)) for s in seeds)
-            row += f"{ok}/{len(seeds)}".rjust(6)
+            c, h = _wilson(ok, n)
+            row += f"{ok:>3}/{n} [{max(0.0, c - h):.2f},{min(1.0, c + h):.2f}]"
         print(row, flush=True)
     print("\n* = conflict-free (intransitive chain is a prefix of the transitive)")
 
