@@ -18,6 +18,7 @@ Theory mapping: HIGH=IT, LANG=orthography, SEMANTIC=shared hub (ATL-like).
 
 from __future__ import annotations
 
+import zlib
 from dataclasses import dataclass, field
 
 import numpy as np
@@ -110,8 +111,13 @@ class CrossDomainResult:
 
 
 def _orthographic_pattern(word: str, n: int = 784, seed: int = 0) -> np.ndarray:
-    """Deterministic sparse binary pattern from word string."""
-    rng = np.random.default_rng(hash(word) % (2**32) + seed)
+    """Deterministic sparse binary pattern from word string.
+
+    Uses crc32, not hash(): Python randomizes str hashing per process, so
+    hash(word) gave a DIFFERENT pattern for the same word in every run.
+    """
+    rng = np.random.default_rng(
+        (zlib.crc32(word.encode("utf-8")) + seed) % (2 ** 32))
     pattern = np.zeros(n, dtype=np.float64)
     k = 80 + len(word) * 5
     idx = rng.choice(n, size=min(k, n), replace=False)

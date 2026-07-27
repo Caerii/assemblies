@@ -7,6 +7,7 @@ generates candidate activations for new neurons.
 """
 
 import os
+import zlib
 
 import numpy as np
 from typing import Dict, List
@@ -66,6 +67,21 @@ def _warn_fixed_target_enabled() -> bool:
 # Measured: ``_expand_connectomes`` 2.61s -> ~1.2s, whole TWO_WORD training
 # ~1.3x faster.  Set ``ASSEMBLIES_STIM_FASTPATH=0`` to fall back.
 _STIM_FASTPATH = True
+
+
+def stable_seed(*parts) -> int:
+    """A 32-bit seed from `parts` that is identical in every process.
+
+    MUST be used instead of ``hash(...)`` for anything that seeds an RNG.
+    Python randomizes ``hash()`` of str/bytes per process (PEP 456), so
+    ``hash((src, tgt, nr, nc))`` is stable WITHIN a run and different across
+    runs. Three lazy-connectome sites here seeded ``default_rng`` that way and
+    were commented "deterministic per-pair seed" -- they were not, and the
+    result was that `Brain(seed=42)` trained different weights from one process
+    to the next. Measured on the Geschwind lesion study: ~1/3 of PYTHONHASHSEED
+    values changed the reported accuracy (1.00 vs 0.50), and one crashed.
+    """
+    return zlib.crc32(repr(parts).encode("utf-8")) & 0xFFFFFFFF
 
 # Materialized fraction w/n at which an area stops being treated as sparse and
 # its stim vectors are allocated to the full n in one shot, so no first-time
@@ -389,7 +405,7 @@ class NumpySparseEngine(ComputeEngine):
             conn = Connectome(size, area.n, self.p, sparse=True)
             if area.w > 0:
                 rng = np.random.default_rng(
-                    hash((name, area_name, area.w)) & 0xFFFFFFFF)
+                    stable_seed(name, area_name, area.w))
                 conn.weights = to_xp(
                     (rng.random(area.w) < self.p).astype(np.float32)
                     * size  # scale by stimulus size for fair competition
@@ -531,7 +547,7 @@ class NumpySparseEngine(ComputeEngine):
         # dimension; shrinking it would drop live columns.
         nr, nc = max(nr, cr), max(nc, cc)
 
-        lazy_seed = hash((src_name, target, nr, nc)) & 0xFFFFFFFF
+        lazy_seed = stable_seed(src_name, target, nr, nc)
         lazy_rng = np.random.default_rng(lazy_seed)
         fresh = to_xp(self._sample_area_weights((nr, nc), lazy_rng))
 
@@ -914,7 +930,7 @@ class NumpySparseEngine(ComputeEngine):
                 src = self._areas[src_name]
                 nr, nc = src.w, new_w
                 if nr > 0 and nc > 0:
-                    lazy_seed = hash((src_name, target, nr, nc)) & 0xFFFFFFFF
+                    lazy_seed = stable_seed(src_name, target, nr, nc)
                     lazy_rng = np.random.default_rng(lazy_seed)
                     conn.weights = to_xp(
                         self._sample_area_weights((nr, nc), lazy_rng)
