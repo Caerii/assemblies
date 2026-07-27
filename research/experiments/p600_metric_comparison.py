@@ -105,6 +105,50 @@ reports as the early half of the biphasic response to category violations.
 `novel_noun` additionally blends three different pathways (including ADJ_CORE
 for "the small dog runs"), so that arm is a mixture of area identities too.
 
+AREA-MATCHED RESULT (`drive_expected` / `share_expected`)
+---------------------------------------------------------
+Probing the role area POSITION expects, rather than the one the intruding word's
+category implies, area-matches grammatical against category-violation -- both
+now measure ROLE_PATIENT (confirmed in the pathway table the run prints):
+
+    metric            gram   catviol     novel   d(cv/g)  d(nov/g)
+    drive_expected  0.0207    3.6406    6.6994     +0.61     +0.95
+    share_expected  0.0014    0.0761    0.2357     +0.60     +1.49
+
+The raw difference is ~175x, so the effect is not subtle -- but it runs OPPOSITE
+to the design intent: a verb drives the expected patient slot far harder than a
+trained noun does. Cohen's d is only ~0.6 because the variance is enormous.
+
+TWO THINGS NOT YET RESOLVED
+* The matching is INCOMPLETE. 8 of 12 novel items expect ROLE_AGENT ("the bird
+  sees the cat", "the small dog runs") while every grammatical item expects
+  ROLE_PATIENT, so d(nov/g) is still a cross-area comparison and must not be
+  read as a dissociation. Only the gram-vs-catviol column is clean.
+* A candidate mechanism for the inversion, UNCONFIRMED: `norm_init` applies a
+  read-time 1/d_j divisor per postsynaptic in-degree, so a heavily TRAINED
+  pathway (high in-degree) is divided down hardest, while an untrained
+  VERB_CORE->ROLE_PATIENT connectome is lazily materialized at probe time with
+  fresh weights and low in-degree and therefore reads LARGER. That would make
+  drive systematically anti-correlate with training. Test it by comparing
+  in-degrees on the two pathways before choosing any metric.
+
+WHY INHIBITION IS THE RIGHT FRAME (and what the reference does)
+--------------------------------------------------------------
+The reference parser selects the role area by DISINHIBITION, not by looking up
+the word's category -- `.reference/dmitropolsky-assemblies/parser.py`:
+
+    "dogs": open fibers LEX<->SUBJ and LEX<->OBJ but only SUBJ disinhibited
+
+Fibers open to BOTH candidate areas and inhibition picks the winner, so the
+candidate set is identical in every condition and the contrast is area-matched
+by construction. This repo keeps the same spec -- the seven role areas are
+MUTUAL_INHIBITION_GROUPS[0], per the paper's "the three ROLE areas are in mutual
+inhibition; this is the only use of interarea inhibition in our model". But
+`anchored_p600_live` calls `input_drive(..., target_areas=[role_area])` with ONE
+target, and mutual inhibition only fires when >=2 group areas are targets of the
+same project() call. So the competition the paper specifies never runs, and the
+categorical lookup that replaced it is what introduced the area confound.
+
 OTHER FINDINGS
 * `binding_weak` is nan for category violations, and NOT for the reason first
   recorded here. The lookup is `role_lexicons[VP]`, which is empty because VP is
@@ -148,7 +192,7 @@ import numpy as np
 
 CANDIDATES = (
     "raw_drive", "energy_deficit", "self_energy", "self_energy_k",
-    "binding_weak", "n400",
+    "binding_weak", "drive_expected", "share_expected", "n400",
 )
 PATHWAYS: Dict[str, List[str]] = {}
 LABELS = ("grammatical", "category_violation", "novel_noun")
@@ -168,6 +212,10 @@ def collect(seed: int) -> Dict[str, Dict[str, List[float]]]:
     """Measure every candidate at every frame's critical position, by label."""
     from neural_assemblies.assembly_calculus.assembly import overlap as ov
     from neural_assemblies.assembly_calculus.binding import input_drive
+    from neural_assemblies.assembly_calculus.emergent.core.areas import (
+        MUTUAL_INHIBITION_GROUPS, ROLE_AGENT, ROLE_PATIENT,
+    )
+
     from neural_assemblies.assembly_calculus.ops import _snap
     from neural_assemblies.assembly_calculus.emergent.evaluation.sweep import (
         get_parser_cache,
@@ -179,6 +227,10 @@ def collect(seed: int) -> Dict[str, Dict[str, List[float]]]:
 
     parser = get_parser_cache().fork("SENTENCES", seed=seed)
     brain = parser.brain
+    # The role-area competition group, straight from the paper spec: "the three
+    # ROLE areas are in mutual inhibition; this is the only use of interarea
+    # inhibition in our model".
+    _ROLE_GROUP = [a for a in MUTUAL_INHIBITION_GROUPS[0] if a in brain.areas]
     rows: List[dict] = []
     stab_buf: List[tuple] = []
 
@@ -206,6 +258,7 @@ def collect(seed: int) -> Dict[str, Dict[str, List[float]]]:
         `sample.word` in order instead.
         """
         probe_word["w"] = word
+        probe_word["verb_seen"] = bool(kw.get("verb_seen"))
         return orig_measure(p, word, category, **kw)
 
     def anchor2(p, core_area, role_area, **kw):
@@ -234,6 +287,33 @@ def collect(seed: int) -> Dict[str, Dict[str, List[float]]]:
         except Exception:
             pass
 
+        # ---- AREA-MATCHED probe -------------------------------------------
+        # The shipped probe picks its target from the INTRUDING WORD'S category
+        # (structural_role_area sends a VERB to VP), so grammatical and
+        # violation land on different areas and the contrast measures area
+        # identity. Here the target comes from POSITION alone -- object slot
+        # after the verb, subject slot before it -- so every condition is
+        # measured on the same area, which is what the reference parser gets
+        # for free by opening fibers to BOTH candidate role areas and letting
+        # DISINHIBITION choose ("open fibers LEX<->SUBJ and LEX<->OBJ but only
+        # SUBJ disinhibited"). The role areas are a MUTUAL_INHIBITION_GROUP
+        # here too, but inhibition only fires when >=2 group areas are targets
+        # of the same project() call, and the shipped probe passes exactly one
+        # -- so the competition the paper specifies never runs.
+        expected_role = ROLE_PATIENT if probe_word.get("verb_seen") else ROLE_AGENT
+        drive_exp = share_exp = float("nan")
+        try:
+            all_drives = input_drive(
+                brain, sources=sources, target_areas=list(_ROLE_GROUP),
+            )
+            drive_exp = float(all_drives.get(expected_role, float("nan")))
+            tot = float(sum(v for v in all_drives.values() if np.isfinite(v)))
+            # Share is scale-free ACROSS areas, so it cancels the per-area
+            # normalization differences that made the raw contrast unusable.
+            share_exp = drive_exp / tot if tot > 1e-12 else float("nan")
+        except Exception:
+            pass
+
         out = orig_anchor(p, core_area, role_area, **kw)
 
         if stab_buf:
@@ -247,6 +327,8 @@ def collect(seed: int) -> Dict[str, Dict[str, List[float]]]:
             "self_energy": se, "self_energy_k": se_k, "binding_weak": weak,
             "word": probe_word["w"],
             "core_area": core_area, "role_area": role_area,
+            "drive_expected": drive_exp, "share_expected": share_exp,
+            "expected_role": expected_role,
         })
         return out
 
@@ -302,7 +384,7 @@ def collect(seed: int) -> Dict[str, Dict[str, List[float]]]:
                 float(smp.n400) if c == "n400" else r[c]
             )
         PATHWAYS.setdefault(smp.label, []).append(
-            f"{r['core_area']}->{r['role_area']}"
+            f"{r['core_area']}->{r['role_area']} (expected {r['expected_role']})"
         )
     print(f"  seed {seed}: {matched}/{len(report.samples)} samples matched "
           f"to probes ({len(rows)} probes total)"
