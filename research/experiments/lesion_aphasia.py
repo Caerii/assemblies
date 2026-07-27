@@ -27,11 +27,69 @@ confirmed to be live rather than assumed:
 
 HONEST CAVEAT, stated up front: the positional route is a stored Python
 attribute, NOT a neural area. Ablating it is therefore a symbolic lesion, not a
-synaptic one, and a "Broca's lesion" here is not anatomically real. The LEXICAL
-lesion below is genuinely synaptic (it zeroes core -> ROLE weights). So this
-gives a double dissociation with one neural arm and one symbolic arm, which is
-weaker than the study the paper's anatomy implies but is what the implementation
-actually supports.
+synaptic one, and a "Broca's lesion" here is not anatomically real.
+
+BOTH ARMS ARE SYMBOLIC -- a correction, measured by `decompose()` below
+--------------------------------------------------------------------
+This file previously claimed the LEXICAL arm was "genuinely synaptic" because
+`lesion_lexical` zeroes core -> ROLE weights. That claim was WRONG, and
+`decompose()` is the experiment that falsified it. `lesion_lexical` does two
+things at full severity -- zeroes the synapses AND clears `role_lexicons` -- so
+its clean 1.00 -> 0.00 could not be attributed. Separating them:
+
+    manipulation                      irreversible   reversible
+    intact                                    1.00         1.00
+    zero ALL core -> ROLE synapses            0.75         1.00
+    clear role_lexicons only                  0.00         1.00
+    both                                      0.00         1.00
+
+Clearing the dictionary is NECESSARY AND SUFFICIENT for the collapse; destroying
+every synapse is neither. `core.py::_score_role_binding` shows the mechanism --
+it reads `stored = lex.get(word)` and returns 0.0 when that misses, so an empty
+`role_lexicons` yields no signal for ANY role no matter what the weights hold.
+The synapses only shape the projected assembly that is then compared against the
+stored snapshots; the snapshots are the readout.
+
+So the published double dissociation is symbolic on BOTH sides, not one-neural /
+one-symbolic. What survives as a genuinely synaptic effect is smaller and in the
+predicted direction: zeroing every core -> ROLE weight costs irreversible items
+~0.25 while leaving reversible items untouched -- selective, but a long way from
+the engineered 1.00 -> 0.00.
+
+GRADED SEVERITY (`severity_curve()`), and which arm actually grades
+------------------------------------------------------------------
+    POSITIONAL   severity 0 / .25 / .5 / .75 / 1
+                 reversible    1.00  0.83  0.33  0.00  0.00
+                 irreversible  1.00  1.00  1.00  1.00  1.00
+    LEXICAL      irreversible  1.00  0.92  1.00  1.00  0.00
+
+The positional arm gives a genuinely GRADED, monotonic impairment with the
+spared type flat at ceiling -- the shape an aphasia comparison would want. The
+lexical arm does NOT grade: it is flat until severity 1.0 and then falls off a
+cliff, and per the decomposition above that cliff is the dictionary clear, not
+accumulated synaptic damage (zeroing 99% of the weights changes nothing). The
+0.92 at severity 0.25 is a single item, i.e. noise, not a dose effect.
+
+REPRODUCIBILITY CAVEAT -- READ BEFORE QUOTING ANY NUMBER HERE
+-------------------------------------------------------------
+Chasing the decomposition above turned up a separate defect: results here
+depended on PYTHONHASHSEED. Same `seed=42`, same code, different process ->
+irreversible scored 1.00 under hash seeds 0/1/2/9/13 and 0.50 under 6/8/42,
+and one hash seed crashed. Within a process it was perfectly stable across
+rebuilds, which is exactly why it went unnoticed: the test suite runs in one
+process, and `Brain(seed=)` had already been "verified" reproducible there.
+
+Root cause found and fixed for the core engine (see `_sparse.stable_seed` --
+`hash()` of a str is per-process randomized, so lazy connectomes were seeded
+differently every run), plus three set-iteration sites whose order allocates
+neurons. A plain Brain is now hash-seed stable; the EmergentParser layer is
+NOT yet -- divergence is isolated to `train_lexicon`.
+
+So the 1.00 entries below carry roughly +/-0.5 of run-to-run uncertainty on
+the irreversible column. The 0.00 entries are mechanically forced (an empty
+`role_lexicons` makes `_score_role_binding` return 0.0 for every role) and are
+robust. Treat the DIRECTION of the dissociation as the result and the exact
+magnitudes as provisional until the parser layer is deterministic too.
 
 PREDICTIONS
     lesion POSITIONAL  -> reversible breaks, irreversible survives  (Broca's)
@@ -131,29 +189,135 @@ def score(parser, kind: str) -> float:
     return ok / max(tot, 1)
 
 
-def lesion_lexical(parser) -> None:
-    """SYNAPTIC lesion: zero the core -> ROLE weights that carry the learned
-    lexical role preference, and drop the readout targets."""
+def zero_role_synapses(parser, severity: float = 1.0, seed: int = 0) -> None:
+    """Zero a random `severity` fraction of the core -> ROLE synapses.
+
+    The purely SYNAPTIC half of `lesion_lexical`. Kept separate so the two
+    components can be applied independently -- see `decompose()`, which is what
+    showed this half is NOT what drives the lexical dissociation.
+    """
+    if severity <= 0.0:
+        return
+    rng = np.random.default_rng(seed)
     eng = parser.brain._engine
     for core in list(parser.core_lexicons.keys()):
         for role in (ROLE_AGENT, ROLE_PATIENT):
             conn = eng._area_conns.get(core, {}).get(role)
             w = getattr(conn, "weights", None)
-            if w is not None and getattr(w, "size", 0):
-                np.asarray(w)[:] = 0.0
+            if w is None or not getattr(w, "size", 0):
+                continue
+            arr = np.asarray(w)          # verified a VIEW, not a copy
+            arr[rng.random(arr.shape) < severity] = 0.0
+
+
+def clear_role_lexicons(parser) -> None:
+    """Drop the stored role->word assembly snapshots.
+
+    The SYMBOLIC half of `lesion_lexical`, and -- per `decompose()` -- the half
+    that actually carries the effect. `_score_role_binding` returns 0.0 when the
+    lookup misses, so an empty lexicon silences every role at once.
+    """
     for role in (ROLE_AGENT, ROLE_PATIENT):
         parser.role_lexicons[role] = {}
 
 
-def lesion_positional(parser) -> None:
-    """SYMBOLIC lesion: corrupt the inferred constituent order (see caveat).
+def decompose(seeds=(1, 2, 3)) -> None:
+    """Attribute the lexical dissociation to synapses vs. stored snapshots.
 
-    Setting it to None does NOT work as a lesion: `constituent_role_order`
-    falls back to the AGENT-first ranking, which is exactly right for an SVO
-    corpus, so the "damaged" parser scores perfectly. Corrupting the order to an
-    object-initial one is what actually removes the correct syntactic cue.
+    `lesion_lexical` at full severity does BOTH, so on its own it cannot say
+    which one matters. This applies each alone. Result: the dictionary clear is
+    necessary and sufficient, total synaptic destruction is neither.
     """
-    parser.word_order_type = "OVS"
+    print("\nDECOMPOSING the lexical lesion (which component carries it?)\n")
+    print(f"  {'manipulation':<34}{'irrev':>7}{'rev':>7}")
+    conds = (
+        ("(none) intact", lambda p: None),
+        ("zero ALL core->ROLE synapses", lambda p: zero_role_synapses(p, 1.0)),
+        ("clear role_lexicons only", clear_role_lexicons),
+        ("both (== lesion_lexical)",
+         lambda p: (zero_role_synapses(p, 1.0), clear_role_lexicons(p))),
+    )
+    for name, fn in conds:
+        irr, rev = [], []
+        for sd in seeds:
+            p = EmergentParser(n=1000, k=50, p=0.05, beta=0.1, seed=42,
+                               rounds=10)
+            p.train(create_training_sentences() + build_corpus())
+            fn(p)
+            irr.append(score(p, "irreversible"))
+            rev.append(score(p, "reversible"))
+        print(f"  {name:<34}{np.mean(irr):>7.2f}{np.mean(rev):>7.2f}",
+              flush=True)
+    print("\n  -> the SNAPSHOT DICTIONARY is the readout; synapses only shape\n"
+          "     the projection compared against it. Both arms are symbolic.")
+
+
+def lesion_lexical(parser, severity: float = 1.0, seed: int = 0) -> None:
+    """Lesion of the lexical route, graded by `severity` in [0, 1].
+
+    Zeroes a `severity` fraction of the core -> ROLE synapses, and at FULL
+    severity also clears the stored snapshots. Do not read this as a synaptic
+    lesion: `decompose()` shows the snapshot clear is what produces the effect,
+    and that partial synaptic damage (even 99%) produces none.
+    """
+    if severity <= 0.0:
+        return
+    zero_role_synapses(parser, severity, seed)
+    if severity >= 1.0:
+        clear_role_lexicons(parser)
+
+
+def lesion_positional(parser, severity: float = 1.0, seed: int = 0) -> None:
+    """SYMBOLIC lesion of the positional route, graded by `severity`.
+
+    The order cue is a stored attribute, so it cannot be damaged synaptically
+    (see the module caveat). Graded damage is modelled as an UNRELIABLE cue:
+    `word_order_type` becomes a property that returns the corrupted
+    object-initial order on a `severity` fraction of reads, and the correct one
+    otherwise. That is a model of degraded syntactic processing, not of tissue.
+    """
+    if severity <= 0.0:
+        return
+    rng = np.random.default_rng(seed)
+    correct = getattr(parser, "word_order_type", "SVO") or "SVO"
+
+    class _Unreliable(type(parser)):
+        pass
+
+    # Per-instance property: rebind the class so the attribute can be dynamic.
+    def _get(self):
+        return "OVS" if rng.random() < severity else correct
+
+    _Unreliable.word_order_type = property(_get)
+    parser.__class__ = _Unreliable
+    parser.__dict__.pop("word_order_type", None)
+
+
+def severity_curve(seeds=(1, 2, 3),
+                   levels=(0.0, 0.25, 0.5, 0.75, 1.0)) -> None:
+    """Impairment curves: accuracy vs lesion severity, per route, per item type.
+
+    The binary version showed the two routes are SEPARABLE. This asks the
+    stronger question -- whether damage produces a graded PROFILE, which is what
+    an aphasia comparison would need.
+    """
+    print(f"\nGRADED SEVERITY (mean over {len(seeds)} seeds)\n")
+    for route, lesion in (("POSITIONAL (symbolic)", lesion_positional),
+                          ("LEXICAL (synaptic)", lesion_lexical)):
+        print(f"  lesion {route}")
+        print(f"    {'severity':>9} {'irreversible':>13} {'reversible':>12}")
+        for sev in levels:
+            irr_s, rev_s = [], []
+            for sd in seeds:
+                p_ = EmergentParser(n=1000, k=50, p=0.05, beta=0.1,
+                                    seed=42, rounds=10)
+                p_.train(create_training_sentences() + build_corpus())
+                lesion(p_, severity=sev, seed=sd)
+                irr_s.append(score(p_, "irreversible"))
+                rev_s.append(score(p_, "reversible"))
+            print(f"    {sev:>9.2f} {np.mean(irr_s):>13.2f} "
+                  f"{np.mean(rev_s):>12.2f}", flush=True)
+        print()
 
 
 def main() -> None:
@@ -188,6 +352,9 @@ def main() -> None:
     print(f"  LEXICAL lesion:    irreversible {base_irr - l_irr:+.2f}  "
           f"reversible {base_rev - l_rev:+.2f}   "
           f"(mirror predicts irreversible drops MORE)")
+
+    decompose()
+    severity_curve()
 
 
 if __name__ == "__main__":
