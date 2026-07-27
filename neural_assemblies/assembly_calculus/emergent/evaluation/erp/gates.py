@@ -102,11 +102,46 @@ class ErpViolation:
     primary: str = ""  # "lexical" | "structural" | "none"
 
 
+def role_pathways_trained(parser: "EmergentParser") -> bool:
+    """Are core->ROLE pathways trained enough for a P600 reading to mean anything?
+
+    Test the CONDITION, not one code path that establishes it.
+    ``_role_paths_bootstrapped`` is set in exactly one place --
+    ``UnsupervisedMixin._pregrow_role_pathways`` -- so it answers "did the
+    unsupervised pre-grow run?", not "are the pathways there?". A parser trained
+    through the supervised curriculum (``train_lexicon``/``train_roles``/
+    ``train_phrases``) trains those pathways perfectly well and leaves the flag
+    False, which silently pinned P600 to a constant 0.0 for every such parser:
+    ``measure_live_integration`` returns ``0.0`` early when the gate is shut, so
+    both conditions got the same number and Cohen's d came out EXACTLY 0.0.
+
+    Measured on the SENTENCES/seed=42 fixture with the flag False: 75 words in
+    ``role_lexicons[ROLE_AGENT]``, 76 in ``[ROLE_PATIENT]``, ~172k of learned
+    weight across the materialized core->ROLE connectomes, and
+    ``parse("dog chases ball")`` returning the correct AGENT/ACTION/PATIENT.
+    The pathways were there; the flag just did not describe them.
+
+    A stored role binding is the evidence that ``train_roles`` ran and wrote
+    core->ROLE weights, and it is a parser-level fact rather than an engine
+    internal. The flag stays as a sufficient (not necessary) condition so the
+    unsupervised path keeps working unchanged.
+
+    Deliberately NOT done here: dropping the gate, or widening it until the
+    calibration test passes. The gate encodes a real claim -- on an untrained
+    parser a high P600 is not an error signal -- so removing it would
+    manufacture the very effect the calibration is supposed to detect.
+    """
+    if getattr(parser, "_role_paths_bootstrapped", False):
+        return True
+    role_lexicons = getattr(parser, "role_lexicons", None) or {}
+    return any(bool(lex) for lex in role_lexicons.values())
+
+
 def assess_erp_readiness(parser: "EmergentParser") -> ErpReadiness:
     """Gate probes on trained pathways (AC: untrained = high P600 is not an error)."""
     pred_lex = getattr(parser, "prediction_lexicon", {}) or {}
     sentences_seen = getattr(parser.dist_stats, "sentences_seen", 0)
-    role_linked = bool(getattr(parser, "_role_paths_bootstrapped", False))
+    role_linked = role_pathways_trained(parser)
 
     n400_ready = len(pred_lex) >= MIN_PREDICTION_LEXICON
     p600_ready = role_linked and sentences_seen >= MIN_DISTRIBUTIONAL_SENTENCES
