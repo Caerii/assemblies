@@ -101,6 +101,24 @@ class NemoParser:
         from neural_assemblies.assembly_calculus.ops import project
 
         out: Dict[str, Optional[str]] = {}
+
+        # A parse must not inherit training residue. Straight after training the
+        # role areas still hold the LAST training sentence: measured on seed 42,
+        # ROLE_AGENT matched `boy` at 1.0 and ROLE_PATIENT matched `girl` at 1.0.
+        # The readout then found a perfect match for `girl` in the WRONG area
+        # whenever `girl` was the subject -- exactly the deterministic 4-of-24
+        # failures the substrate sweep found at every n (0.833, zero variance).
+        #
+        # The symbolic path is immune because `_score_role_binding` scores a
+        # RELATIVE margin (own overlap minus the mean over other stored
+        # fillers), which cancels a constant residue. An absolute overlap does
+        # not, so the residue has to actually be gone.
+        for area in _ROLE_AREAS:
+            if area in self.brain.areas:
+                self.brain.areas[area].unfix_assembly()
+        self.brain.inhibit_areas([a for a in _ROLE_AREAS
+                                  if a in self.brain.areas])
+
         for word in words:
             category = self._category(word)
             core = self.parser._word_core_area(word)
