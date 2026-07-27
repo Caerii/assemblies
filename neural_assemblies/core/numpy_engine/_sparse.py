@@ -1344,11 +1344,17 @@ class NumpySparseEngine(ComputeEngine):
     def _expand_stim_vectors_legacy(self, target, stim_names, new_w) -> None:
         """Original per-step ``concatenate`` growth. Kept as the A/B reference."""
         xp = get_xp()
-        stim_to_extend = set(stim_names)
+        # dict.fromkeys, not set(): the loop below consumes ``self._rng`` once
+        # per stimulus, so ITERATION ORDER DECIDES WHICH SLICE OF THE SEEDED
+        # STREAM EACH STIMULUS GETS. These are str keys, and set-of-str order
+        # varies with PYTHONHASHSEED, so the same seed produced different
+        # stimulus weights in every process (same names, same shapes, different
+        # values). Insertion order here is deterministic.
+        stim_to_extend = dict.fromkeys(stim_names)
         for stim_name, tgt_map in self._stim_conns.items():
             conn = tgt_map.get(target)
             if conn is not None and conn.sparse and len(conn.weights) < new_w:
-                stim_to_extend.add(stim_name)
+                stim_to_extend[stim_name] = None
         for stim_name in stim_to_extend:
             conn = self._stim_conns[stim_name][target]
             if conn.sparse:
@@ -1368,8 +1374,12 @@ class NumpySparseEngine(ComputeEngine):
 
         Bit-identical to ``_expand_stim_vectors_legacy``:
 
-        * the same ``set`` is built from the same insertion sequence, so it is
-          iterated in the same order;
+        * the same ordered ``dict`` is built from the same insertion sequence,
+          so it is iterated in the same order. This was a ``set`` and the claim
+          was only true within one process: str hashing is randomized per
+          process, so the RNG slice each stimulus received changed from run to
+          run. Both paths must keep using ``dict.fromkeys`` or they diverge
+          from each other as well as from themselves;
         * ``self._rng`` is consumed by the same stimuli in the same order;
         * consecutive draws are merged into one call only when the scalar
           ``(stim_size, add_len)`` match, and ``Generator.binomial`` with
@@ -1383,12 +1393,12 @@ class NumpySparseEngine(ComputeEngine):
         ``concatenate`` per stimulus per step.
         """
         entries, by_name = self._stim_conns_for(target)
-        stim_to_extend = set(stim_names)
+        stim_to_extend = dict.fromkeys(stim_names)
         for stim_name, conn in entries:
             if conn.sparse and len(conn.weights) < new_w:
-                stim_to_extend.add(stim_name)
+                stim_to_extend[stim_name] = None
 
-        # Pass 1 -- resolve, in set-iteration order, what each stimulus needs.
+        # Pass 1 -- resolve, in insertion order, what each stimulus needs.
         plan = []  # (conn, old, add_len, stim_size or None when no rng draw)
         for stim_name in stim_to_extend:
             conn = by_name.get(stim_name)
