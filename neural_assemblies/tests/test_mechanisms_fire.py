@@ -111,6 +111,72 @@ class TestMutualInhibitionFires:
             "deliberately, update the callers that relied on the no-op")
 
 
+class TestMutualInhibitionIsReachedInProduction:
+    """The missing half of the audit: does the PARSER ever invoke it?
+
+    The two tests above establish that the mechanism suppresses correctly when
+    co-targeted, and that single-target projection no-ops. Neither asks whether
+    the emergent parser ever co-targets a group -- and it does not. Measured on
+    a SENTENCES-depth parser: 1361 `project()` calls during training and 12
+    during `parse()` reach `_apply_mutual_inhibition`, and in ZERO of them does
+    any group have two or more members in `activation_scores`.
+
+    So the paper's "the three ROLE areas are in mutual inhibition; this is the
+    only use of interarea inhibition in our model" (Mitropolsky & Papadimitriou
+    2025 sec. 2.3) is registered but dormant, and role exclusivity is carried
+    entirely by the Python `inhibited` set in `_assign_roles_neural`. Wiring the
+    groups up made the mechanism available, not operational.
+
+    xfail rather than deleted: making this pass is a design change (the parser
+    must project into competing role areas in one call), tracked as task #24.
+    Leaving it here means the gap cannot be forgotten, and the day a caller
+    starts co-targeting, this flips to xpass and says so.
+    """
+
+    @pytest.mark.slow
+    @pytest.mark.xfail(
+        reason="EmergentParser never co-targets a mutual-inhibition group, so "
+               "the paper's inter-area inhibition never runs; role exclusivity "
+               "is symbolic (the Python `inhibited` set). Task #24.",
+        strict=False,
+    )
+    def test_parser_actually_co_targets_a_group(self):
+        import os
+
+        os.environ.setdefault("EMERGENT_FAST_TRAINING", "1")
+        from neural_assemblies.assembly_calculus.emergent.parser import (
+            EmergentParser,
+        )
+        from neural_assemblies.assembly_calculus.emergent.curriculum.data import (
+            create_training_sentences,
+        )
+
+        fired = {"n": 0, "seen": 0}
+        orig = Brain._apply_mutual_inhibition
+
+        def spy(self, activation_scores):
+            fired["seen"] += 1
+            scores = activation_scores
+            for group in self._mutual_inhibition_groups:
+                if len([n for n in group if n in scores]) > 1:
+                    fired["n"] += 1
+            return orig(self, activation_scores)
+
+        Brain._apply_mutual_inhibition = spy
+        try:
+            p = EmergentParser(n=1000, k=50, p=0.05, beta=0.1, seed=42, rounds=10)
+            p.train(create_training_sentences())
+            p.parse(["the", "dog", "chases", "the", "cat"])
+        finally:
+            Brain._apply_mutual_inhibition = orig
+
+        assert fired["n"] > 0, (
+            f"mutual inhibition never fired: {fired['seen']} project() calls "
+            f"reached it, none co-targeted a group. The mechanism is dormant, "
+            f"so role exclusivity is symbolic rather than neural."
+        )
+
+
 class TestConnectomeSaturation:
     def test_update_weights_respects_w_max(self):
         c = Connectome(20, 20, p=1.0, sparse=False, rng=np.random.default_rng(0))
