@@ -62,12 +62,16 @@ class TestMultiMood:
 
     @pytest.mark.xfail(
         strict=False,
-        reason="SVO+VSO passed only BEFORE the w_max clamp on the dense "
-               "explicit->sparse bridge (connectome.update_weights). Those "
-               "runs were riding unbounded weights that overflow float past "
-               "~120 sentences, so the result was resting on a numerical bug, "
-               "not on learning. With the clamp in place mood separation in "
-               "SYNTAX is 1.000 and this pair fails honestly.",
+        reason="SVO+VSO sits ON the decision boundary -- it flips between pass "
+               "and fail across runs (seen both xfail and xpass on the same "
+               "code), which is why this is strict=False. It passed "
+               "consistently only BEFORE the w_max clamp on the dense "
+               "explicit->sparse bridge, i.e. while riding unbounded weights "
+               "that overflow float past ~120 sentences, so that earlier "
+               "result was resting on a numerical bug rather than on learning. "
+               "The underlying cause is the same mood-chain collapse: MOOD's "
+               "distinct chains form at init (SYNTAX overlap 0.04) and merge "
+               "within ~20 training sentences (-> ~1.0).",
     )
     def test_moods_differing_at_first_constituent_svo_vso(self):
         orders = {0: ORDERS["SVO"], 1: ORDERS["VSO"]}

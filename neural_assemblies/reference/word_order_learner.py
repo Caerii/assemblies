@@ -126,18 +126,14 @@ class WordOrderLearner:
         """One training step for constituent `c` (reference
         ``project_training``)."""
         tpj, helper, syn = TPJ[c], HELPER[c], SYNTAX[c]
-        if t == 0:
-            # MOOD establishes the syntactic frame BEFORE the constituent fills
-            # it. Co-firing MOOD alongside the helper is not enough on its own:
-            # helper -> SYN is reinforced by every sentence of every mood, so it
-            # decides the winners, MOOD then learns to predict that same
-            # (mood-independent) assembly, and the blindness is self-
-            # reinforcing. Measured without this step: SYNTAX_subject overlapped
-            # 0.955 across two moods, so two moods sharing an opening
-            # constituent (SVO/SOV) could never diverge at the second word --
-            # exactly the observed failure, while pairs differing at the FIRST
-            # word (SOV/OVS) worked, since those are settled by MOOD -> helper.
-            self.brain.project({}, {MOOD: [syn]})
+        # NOTE: an earlier version primed SYN from MOOD alone at t == 0, on the
+        # theory that MOOD should establish the syntactic frame before the
+        # constituent filled it. It is removed: it deviates from the reference
+        # for no measured benefit (mood separation in SYNTAX moved 0.955 ->
+        # 0.952), and the one multi-mood pair it appeared to fix (SVO+VSO) was
+        # in fact passing on unbounded weights, which the w_max clamp on the
+        # dense bridge later exposed. MOOD co-fires with the helper below, as
+        # in the reference.
         pmap: Dict[str, List[str]] = {
             PHON: [tpj],
             tpj: [helper, tpj],
