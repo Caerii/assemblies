@@ -103,6 +103,36 @@ class TestMultiMood:
             assert got == want, f"mood{idx}: wanted {want}, got {got}"
 
 
+class TestPerMoodSyntax:
+    """`per_mood_syntax=True`: give each mood its own syntactic areas.
+
+    A deliberate deviation from the paper, which keeps one SUBJ/VERB/OBJ and
+    expects the per-mood "distinct chain of assemblies" to be emergent. Measured:
+    the emergent version forms those chains correctly at init (SYNTAX overlap
+    0.04) but loses them to training (-> 1.00 within ~20 sentences), and that
+    collapse survives 100x capacity (n=1e5), the paper's beta=0.06, norm_init,
+    and raised MOOD plasticity. Making the distinctness structural removes the
+    shared target that was collapsing.
+    """
+
+    @pytest.mark.parametrize("a,b", [("SVO", "SOV"), ("SVO", "VSO"),
+                                     ("SOV", "OVS"), ("VSO", "OVS")])
+    def test_two_moods_different_orders(self, a, b):
+        m = WordOrderLearner(
+            num_nouns=4, num_verbs=2, mood_orders={0: ORDERS[a], 1: ORDERS[b]},
+            n=1000, k=50, p=0.05, beta=0.06, seed=1, per_mood_syntax=True,
+        )
+        m.train(60)
+        for idx, want in ((0, a), (1, b)):
+            got = "".join(m.generate(idx))
+            assert got == want, f"mood{idx}: wanted {want}, got {got}"
+
+    def test_default_is_off(self):
+        """The class stays a faithful reproduction unless asked otherwise."""
+        assert WordOrderLearner(mood_orders={0: ORDERS["SVO"]}).per_mood_syntax \
+            is False
+
+
 def test_no_default_word_order():
     """An untrained model must not already prefer SVO.
 

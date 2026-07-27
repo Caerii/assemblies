@@ -80,6 +80,7 @@ class WordOrderLearner:
         training_fire_rounds: int = 10,
         previous_constituent_fire_rounds: int = 2,
         norm_init: bool = False,
+        per_mood_syntax: bool = False,
     ):
         self.num_nouns = num_nouns
         self.num_verbs = num_verbs
@@ -104,6 +105,44 @@ class WordOrderLearner:
             self.brain.add_area(HELPER[c], n, k, beta)
             self.brain.add_area(SYNTAX[c], n, k, beta)
 
+        # per_mood_syntax: give each mood its OWN syntactic areas.
+        #
+        # This is a DELIBERATE DEVIATION from the paper, which keeps one
+        # SUBJ/VERB/OBJ and expects the per-mood "distinct chain of assemblies"
+        # to be emergent -- MOOD fires tonically into the syntactic areas and is
+        # supposed to select different winners per mood. Measured here, that
+        # emergent version forms the distinct chains correctly at initialization
+        # (SYNTAX overlap 0.04 between two moods) and then LOSES them to
+        # training (-> 1.00 within ~20 sentences): the helper is shared between
+        # moods, so helper->SYN potentiates toward whichever assembly won in
+        # BOTH moods' sentences and they merge. That collapse survives 100x more
+        # capacity (n=1e5), the paper's beta=0.06, norm_init, and raising MOOD's
+        # plasticity -- see the module tests for the numbers.
+        #
+        # Making the distinctness STRUCTURAL instead removes the shared target.
+        # Measured: SYNTAX separation 0.02, and multi-mood generation 24/24
+        # across 4 mood pairs x 3 seeds x 2 moods, against 17/24 for the
+        # emergent version (whose failures are concentrated in the pairs that
+        # need to diverge after a shared opening constituent: 3/6 and 2/6).
+        #
+        # Off by default so the class stays a faithful reproduction; turn it on
+        # to actually learn several moods.
+        self.per_mood_syntax = per_mood_syntax
+        self._mood_now = 0
+        self._syn_areas: Dict[tuple, str] = {}
+        if per_mood_syntax:
+            for mi in self.mood_orders:
+                for c in CONSTITUENTS:
+                    name = f"{SYNTAX[c]}_mood{mi}"
+                    self.brain.add_area(name, n, k, beta)
+                    self._syn_areas[(mi, c)] = name
+
+    def _syn(self, c: str) -> str:
+        """The syntactic area for constituent `c` under the current mood."""
+        if self.per_mood_syntax:
+            return self._syn_areas[(self._mood_now, c)]
+        return SYNTAX[c]
+
     # -- training ---------------------------------------------------------
 
     def _activate_role(self, phon_index: int, c: str, firings: int = 10) -> None:
@@ -125,7 +164,7 @@ class WordOrderLearner:
     ) -> None:
         """One training step for constituent `c` (reference
         ``project_training``)."""
-        tpj, helper, syn = TPJ[c], HELPER[c], SYNTAX[c]
+        tpj, helper, syn = TPJ[c], HELPER[c], self._syn(c)
         # NOTE: an earlier version primed SYN from MOOD alone at t == 0, on the
         # theory that MOOD should establish the syntactic frame before the
         # constituent filled it. It is removed: it deviates from the reference
@@ -149,11 +188,12 @@ class WordOrderLearner:
             # The order synapse: the PREVIOUS constituent's syntactic area
             # fires into THIS constituent's helper, recording "c follows
             # previous".
-            pmap[SYNTAX[previous]] = [helper]
+            pmap[self._syn(previous)] = [helper]
         self.brain.project({}, pmap)
 
     def train_sentence(self, mood_index: int = 0) -> None:
         """Present one random transitive sentence in `mood_index`'s order."""
+        self._mood_now = mood_index
         subj = self._rng.randrange(self.num_nouns)
         obj = self._rng.randrange(self.num_nouns)
         verb = self._rng.randrange(self.num_nouns, self.num_words)
@@ -197,6 +237,7 @@ class WordOrderLearner:
     def generate(self, mood_index: int = 0, firings: int = 3) -> List[str]:
         """Generate the constituent order for a scene (reference
         ``generate_random_sentence``). Returns e.g. ``['S', 'V', 'O']``."""
+        self._mood_now = mood_index
         subj = self._rng.randrange(self.num_nouns)
         obj = self._rng.randrange(self.num_nouns)
         verb = self._rng.randrange(self.num_nouns, self.num_words)
@@ -212,7 +253,7 @@ class WordOrderLearner:
             order = [current]
 
             for _ in range(len(CONSTITUENTS) - 1):
-                syn = SYNTAX[current]
+                syn = self._syn(current)
                 self.brain.project({}, {HELPER[current]: [syn], MOOD: [syn]})
                 remaining = [c for c in CONSTITUENTS if c not in order]
                 # Refresh every role area's helper, then let the current
