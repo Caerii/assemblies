@@ -236,9 +236,14 @@ def test_items():
     return items
 
 
-def train_parser(seed: int):
-    """One trained parser at a given BRAIN seed."""
-    p = EmergentParser(n=1000, k=50, p=0.05, beta=0.1, seed=seed, rounds=10)
+def train_parser(seed: int, *, n: int = 1000, k: int = 50):
+    """One trained parser at a given BRAIN seed.
+
+    `n`/`k` are parameterized so a substrate sweep can ask whether a result is a
+    property of the model or of a small brain. The defaults are the values every
+    number recorded in this file was measured at; change them per-call, not here.
+    """
+    p = EmergentParser(n=n, k=k, p=0.05, beta=0.1, seed=seed, rounds=10)
     p.train(create_training_sentences() + build_corpus())
     return p
 
