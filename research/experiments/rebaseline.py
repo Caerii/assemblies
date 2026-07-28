@@ -188,11 +188,81 @@ def claims_productivity(seed: int) -> Dict[str, float]:
     return {"unseen_gradient": unseen, "unseen_minus_seen": unseen - seen}
 
 
+def claims_lesion_dissociation(seed: int) -> Dict[str, float]:
+    """The double dissociation: two routes that fail on DIFFERENT sentences.
+
+    A single dissociation proves little -- one lesion being worse than another
+    can just mean it removed more. The claim is that the two lesions hurt
+    OPPOSITE item types, so each scalar is a difference of differences on ONE
+    brain, which is what makes them comparable at all:
+
+      lex_hurts_irreversible  how much more the LEXICAL lesion costs on
+                              irreversible items than on reversible ones
+      pos_hurts_reversible    the mirror for the POSITIONAL lesion
+
+    Both positive is the dissociation. Mind the direction -- I named these
+    backwards first and got -1.0 on both, which is the right arithmetic on an
+    inverted claim. IRREVERSIBLE items ("lion chases deer") are solvable from
+    world knowledge, so the LEXICAL route carries them; REVERSIBLE items ("boy
+    chases girl") have no semantic cue, so only the POSITIONAL route can. Raw
+    arms at seed 42, which is the clearest statement of the result:
+
+        intact             irrev=1.000  rev=1.000
+        lesion LEXICAL     irrev=0.000  rev=1.000
+        lesion POSITIONAL  irrev=1.000  rev=0.000
+
+    Both must be measured on the SAME brain per seed; unpairing them would let
+    between-brain variance swamp the contrast.
+    """
+    from lesion_aphasia import (
+        clear_role_lexicons, lesion_positional, score, train_parser,
+    )
+    import copy as _copy
+
+    base = train_parser(seed)
+
+    def arm(fn):
+        q = _copy.deepcopy(base)
+        if fn is not None:
+            fn(q)
+        return score(q, "irreversible"), score(q, "reversible")
+
+    irr0, rev0 = arm(None)
+    irr_lex, rev_lex = arm(clear_role_lexicons)
+    irr_pos, rev_pos = arm(lesion_positional)
+    return {
+        "lex_hurts_irreversible": (irr0 - irr_lex) - (rev0 - rev_lex),
+        "pos_hurts_reversible": (rev0 - rev_pos) - (irr0 - irr_pos),
+        "intact_reversible": rev0,
+    }
+
+
+def claims_typology(seed: int) -> Dict[str, float]:
+    """Can the true word order be recovered, across the six orders?
+
+    Reduced to ONE scalar per seed -- the fraction of the six orders correctly
+    induced, minus the 1/6 a constant answer would score. A method that always
+    says SVO gets 0.0 here by construction, which is the comparison that makes
+    the number mean anything.
+    """
+    from word_order_typology import trial
+
+    # trial returns (transitive_ok, intransitive_ok), NOT an order name.
+    # Unpacking matters: `trial(...) in (o, True)` compares a TUPLE against a
+    # string and a bool, is always False, and would have scored a working model
+    # at exactly -1/6 on every seed while looking like a real measurement.
+    orders = ("SVO", "SOV", "VSO", "VOS", "OSV", "OVS")
+    correct = sum(1 for o in orders if trial(o, 1.0, 300, seed)[0])
+    return {"typology_above_constant": correct / len(orders) - 1.0 / len(orders)}
+
+
 #: name -> group. Grouping means one expensive training run feeds every scalar
-#: derived from it, which is what makes a five-seed sweep affordable.
+#: derived from it, which is what makes a multi-seed sweep affordable.
 GROUPS: Dict[str, Callable[[int], Dict[str, float]]] = {
     "vp_structure": claims_vp_structure,
     "productivity": claims_productivity,
+    "lesion": claims_lesion_dissociation,
+    "typology": claims_typology,
 }
 CLAIMS = {
     "vp_shares_subject": "vp_structure",
@@ -200,11 +270,16 @@ CLAIMS = {
     "vp_shares_subject_distant": "vp_structure",
     "unseen_gradient": "productivity",
     "unseen_minus_seen": "productivity",
+    "lex_hurts_irreversible": "lesion",
+    "pos_hurts_reversible": "lesion",
+    "intact_reversible": "lesion",
+    "typology_above_constant": "typology",
 }
-#: Claims whose null is NOT "effect is zero". Scored by eye, not by the
-#: excludes-zero rule, because for these an interval covering zero is the
-#: result rather than the absence of one.
-REPORT_ONLY = {"unseen_minus_seen"}
+#: Claims whose null is NOT "effect is zero", so the blanket excludes-zero rule
+#: would score them backwards. `unseen_minus_seen` supports productivity when it
+#: is near zero; `intact_reversible` is a level, reported so the lesion
+#: contrasts can be read against the headroom they had to work with.
+REPORT_ONLY = {"unseen_minus_seen", "intact_reversible"}
 
 
 def run(seeds: Sequence[int] = (42, 7, 123, 2024, 5),
