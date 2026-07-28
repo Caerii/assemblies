@@ -65,6 +65,23 @@ INTRANSITIVE = [("runs", ["RUNNING"]), ("sleeps", ["SLEEPING"]),
                 ("plays", ["PLAYING"]), ("jumps", ["JUMPING"]),
                 ("sits", ["SITTING"]), ("walks", ["WALKING"])]
 
+#: referent -> (nominative, accusative). CASE IS THE POINT.
+#:
+#: English marks subject/object on pronouns MORPHOLOGICALLY, and the form is
+#: fixed by ROLE rather than by position: an OVS language would still say "him
+#: chases dog". So case is an order-INDEPENDENT cue to role, which makes it the
+#: third evidence source S-vs-O induction was missing -- lexical agreement needs
+#: role-biased nouns, and category mismatch only fixes the verb's position.
+#:
+#: `it` is deliberately syncretic (it/it), as in real English. That means the
+#: cue is PARTIAL -- only person-referring pronouns carry it -- which is both
+#: more realistic and a harder test than marking everything.
+PRONOUN_CASE = {
+    "boy": ("he", "him"), "man": ("he", "him"),
+    "girl": ("she", "her"), "woman": ("she", "her"),
+    "child": ("they", "them"),
+}
+
 DETERMINERS = ["the", "a"]
 ADJECTIVES = [("big", ["BIG"]), ("small", ["SMALL"]),
               ("red", ["RED"]), ("fast", ["FAST"])]
@@ -102,10 +119,34 @@ def _noun_phrase(word: str, rng: random.Random, *,
     return tokens, extra
 
 
+def _pronominalize(word: str, role: str, rng: random.Random,
+                   rate: float) -> Optional[str]:
+    """Replace a noun with its CASE-MARKED pronoun, chosen by ROLE.
+
+    Returns None to leave the noun alone. The grounding is untouched by the
+    caller -- a pronoun refers to the same perceived entity, so it keeps the
+    referent's features and roles still derive from the scene.
+    """
+    if role not in ("agent", "patient") or rng.random() >= rate:
+        return None
+    forms = PRONOUN_CASE.get(word)
+    if forms is None:
+        # Non-person referents would take syncretic `it`, which carries NO case
+        # information. Emitting it anyway floods the pronoun class -- measured
+        # 993 `it` against ~170 case-marked tokens -- and buries the cue under
+        # its own uninformative majority. Left as a noun instead, so
+        # `pronoun_rate` controls the density of the INFORMATIVE cue rather
+        # than of pronouns in general. Realism traded for a testable
+        # manipulation, deliberately.
+        return None
+    return forms[0] if role == "agent" else forms[1]
+
+
 def generate(n_sentences: int = 4000, *, seed: int = 0,
              word_order: str = "SVO", determiner_rate: float = 0.8,
              adjective_rate: float = 0.25,
-             intransitive_rate: float = 0.35) -> List:
+             intransitive_rate: float = 0.35,
+             pronoun_rate: float = 0.0) -> List:
     """A grounded corpus in `word_order`, with scenes attached.
 
     `intransitive_rate` is high on purpose. Intransitives were the class the
@@ -168,12 +209,24 @@ def generate(n_sentences: int = 4000, *, seed: int = 0,
             continue
         (verb, verb_f), = rng.choices(TRANSITIVE, weights=t_w, k=1)
 
-        s_tokens, s_extra = _noun_phrase(
-            subj, rng, determiner_rate=determiner_rate,
-            adjective_rate=adjective_rate)
-        o_tokens, o_extra = _noun_phrase(
-            obj, rng, determiner_rate=determiner_rate,
-            adjective_rate=adjective_rate)
+        # CASE-MARKED PRONOUNS. The form is chosen by ROLE, so it is an
+        # order-independent cue: an OVS language still says "him chases dog".
+        # A pronominalized phrase takes NO determiner or adjective, as in real
+        # English ("*the him").
+        s_pro = _pronominalize(subj, "agent", rng, pronoun_rate)
+        o_pro = _pronominalize(obj, "patient", rng, pronoun_rate)
+        if s_pro:
+            s_tokens, s_extra = [s_pro], [None]
+        else:
+            s_tokens, s_extra = _noun_phrase(
+                subj, rng, determiner_rate=determiner_rate,
+                adjective_rate=adjective_rate)
+        if o_pro:
+            o_tokens, o_extra = [o_pro], [None]
+        else:
+            o_tokens, o_extra = _noun_phrase(
+                obj, rng, determiner_rate=determiner_rate,
+                adjective_rate=adjective_rate)
         piece = {"S": s_tokens, "V": [verb], "O": o_tokens}
         extra = {"S": s_extra, "V": [None], "O": o_extra}
 
@@ -184,10 +237,13 @@ def generate(n_sentences: int = 4000, *, seed: int = 0,
                 if slot == "V":
                     contexts.append(GroundingContext(motor=list(verb_f)))
                     roles.append("action")
-                elif tok == subj:
+                elif tok == subj or (s_pro and tok == s_pro):
+                    # A pronoun refers to the SAME perceived entity, so it keeps
+                    # the referent's features and its role still derives from
+                    # the scene rather than from its form.
                     contexts.append(GroundingContext(visual=list(subj_f)))
                     roles.append("agent")
-                elif tok == obj:
+                elif tok == obj or (o_pro and tok == o_pro):
                     contexts.append(GroundingContext(visual=list(obj_f)))
                     roles.append("patient")
                 else:
