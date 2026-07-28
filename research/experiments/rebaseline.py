@@ -35,6 +35,10 @@ RESULT (2026-07-28), seeds 42/7/123/2024/5
     vp_shares_subject_distant   +0.1696 +/- 0.0514      +0.1626 +/- 0.0427  SURVIVES
     unseen_gradient             +0.2298 +/- 0.0264      +0.2436 +/- 0.0149  SURVIVES
     unseen_minus_seen           +0.0208 +/- 0.0068      +0.0168 +/- 0.0171  report
+    lex_hurts_irreversible      +1.0000 +/- 0.0000      +1.0000 +/- 0.0000  SURVIVES
+    pos_hurts_reversible        +1.0000 +/- 0.0000      +1.0000 +/- 0.0000  SURVIVES
+    intact_reversible           +1.0000 +/- 0.0000      +1.0000 +/- 0.0000  report
+    typology_above_constant     +0.8333 +/- 0.0000      +0.8333 +/- 0.0000  SURVIVES
 
 The STREAM column reproduces the numbers pinned in constituent_structure.py and
 held_out_recombination.py (+0.231, +0.114, +0.163; unseen 0.250 vs seen 0.224).
@@ -54,6 +58,16 @@ trained ones. The pre-registered prediction was only that unseen would not be
 worse. It is not worse; if anything training a pair specifically adds nothing
 and costs a little, which is what you would expect if the constituent's code is
 genuinely a function of its parts rather than a memorised whole.
+
+The four rows with half-width EXACTLY 0.0000 need reading as what they are, not
+as unusually strong evidence. They are saturated: the lesion arms score 1.0 on
+every seed and typology scores 5/6 on every seed, so the seed-to-seed variance
+is zero and the CI collapses. That says the effect is far from its threshold, it
+does NOT say the measurement is more precise than the graded ones above it. A
+saturated metric also cannot detect a partial regression -- it can only go from
+1.0 to something, with no gradient in between to warn first. `intact_reversible`
+is REPORT_ONLY for exactly this reason: it is a control that should be 1.0, so
+scoring it as a surviving claim would be scoring the absence of a bug.
 """
 
 from __future__ import annotations
