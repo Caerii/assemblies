@@ -159,14 +159,39 @@ where the two previously disagreed; that disagreement was contamination plus the
 leaked `record_activation` flag, both fixed. The earlier warning not to trust
 `comp_correct_pre` no longer applies for that reason.
 
-STILL NOT A CLEAN 2x2, and the reason is item design not metric choice. The
-novel arm remains a cross-area MIXTURE (8 of 12 items expect ROLE_AGENT, e.g.
-"the bird sees the cat", "the small dog runs", while every grammatical item
-expects ROLE_PATIENT), so d(nov/g) is still a cross-area comparison and must not
-be read as a dissociation. Only the gram-vs-catviol column is interpretable.
-Fixing it means choosing novel-word frames that put the critical word in object
-position after the verb, so every condition expects the same slot -- an
-item-design change, tracked separately.
+THE 2x2, once the novel arm is area-matched too
+------------------------------------------------
+The novel arm used to be a cross-area MIXTURE (8 of 12 items expected
+ROLE_AGENT: "the bird sees the cat" is subject position, "the small dog runs"
+is a pre-verbal adjective), so d(nov/g) compared different areas. With
+`AREA_MATCHED_CALIBRATION_FRAMES` every condition puts its critical word in
+object position, and the pathway table confirms it:
+`novel_noun {exp=ROLE_PATIENT won=ROLE_PATIENT: 12}` -- all twelve.
+
+    metric              gram   catviol    novel
+    comp_correct      0.6667    0.0000   1.0000
+    comp_deficit      0.3333    1.0000   0.0000    <- the P600's sign
+    n400 (control)    0.9560    0.9862   0.9533
+
+**P600 IS MAXIMAL FOR CATEGORY VIOLATIONS AND AT FLOOR FOR NOVEL WORDS.** It
+responds to structure and is spared by lexical novelty, which is the
+dissociation the ERP literature reports. Note `comp_correct` is an ACCURACY, so
+its success case is a NEGATIVE d; `comp_deficit` is the exact complement with
+the P600's polarity, added so the verdict column stops mislabelling it.
+
+**THE OTHER HALF IS NOT DEMONSTRATED, and the 2x2 is only half-established.**
+N400 sits at 0.9533 / 0.9560 / 0.9862 -- SATURATED, and it moves the wrong way:
+d(nov/g) = -0.13, where a novel word should drive N400 to ceiling (the repo's
+own reference run had novel 0.979 vs grammatical 0.088). So P600 dissociates
+correctly, but the complementary claim -- that novelty drives N400 while
+sparing P600 -- cannot be made from this run, because the N400 control is not
+discriminating. Fixing N400 saturation is separate work; until then, report the
+P600 half only.
+
+Unexplained and worth a look: a NOVEL word wins the expected slot MORE reliably
+(1.000) than a trained one (0.667). Plausibly a trained noun carries competing
+role associations that a holdout word does not, but that is a guess, not a
+measurement.
 
 AREA-MATCHED RESULT (`drive_expected` / `share_expected`) -- CONTAMINATED
 -------------------------------------------------------------------------
@@ -325,7 +350,7 @@ CANDIDATES = (
     "raw_drive", "energy_deficit", "self_energy", "self_energy_k",
     "binding_weak", "binding_weak_exp", "drive_expected", "share_expected",
     "drive_word", "share_word", "deficit_word", "comp_correct",
-    "comp_correct_pre", "n400",
+    "comp_deficit", "comp_correct_pre", "n400",
 )
 PATHWAYS: Dict[str, List[str]] = {}
 LABELS = ("grammatical", "category_violation", "novel_noun")
@@ -355,6 +380,9 @@ def collect(seed: int) -> Dict[str, Dict[str, List[float]]]:
     )
     from neural_assemblies.assembly_calculus.emergent.evaluation import (
         calibrate_erp_thresholds,
+    )
+    from neural_assemblies.assembly_calculus.emergent.evaluation import (
+        AREA_MATCHED_CALIBRATION_FRAMES,
     )
     import neural_assemblies.assembly_calculus.emergent.evaluation.erp.adapters as A
 
@@ -625,6 +653,12 @@ def collect(seed: int) -> Dict[str, Dict[str, List[float]]]:
             "deficit_word": (1.0 - drive_word
                              if np.isfinite(drive_word) else float("nan")),
             "comp_correct": comp_correct, "comp_winner": comp_winner,
+            # The same quantity with the P600's sign. `comp_correct` is an
+            # ACCURACY, so its success case is a NEGATIVE d and the verdict
+            # column -- which wants d(cv/g) large POSITIVE -- mislabels it.
+            # This is an exact complement, not a new measurement.
+            "comp_deficit": (1.0 - comp_correct
+                             if np.isfinite(comp_correct) else float("nan")),
             "comp_correct_pre": comp_correct_pre,
             "expected_role": expected_role,
         })
@@ -654,7 +688,15 @@ def collect(seed: int) -> Dict[str, Dict[str, List[float]]]:
             setattr(_m, "measure_live_integration", measure2)
             _patched.append(_m)
     try:
-        report = calibrate_erp_thresholds(parser)
+        # AREA-MATCHED frames: every condition puts its critical word in object
+        # position after the verb, so all three expect ROLE_PATIENT. On the
+        # default set 8 of 12 novel items expect ROLE_AGENT instead ("the bird
+        # sees the cat" is subject position, "the small dog runs" is a
+        # pre-verbal adjective), which made d(novel/grammatical) a cross-area
+        # comparison no metric could rescue. Passed explicitly rather than
+        # changed globally: the default set also feeds threshold calibration.
+        report = calibrate_erp_thresholds(
+            parser, frames=list(AREA_MATCHED_CALIBRATION_FRAMES))
     finally:
         A.anchored_p600_live, A.phrase_stability = orig_anchor, orig_stab
         for _m in _patched:

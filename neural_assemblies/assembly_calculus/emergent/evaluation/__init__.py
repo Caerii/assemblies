@@ -2,6 +2,7 @@
 
 from .erp import (
     DEFAULT_CALIBRATION_FRAMES,
+    AREA_MATCHED_CALIBRATION_FRAMES,
     ErpBaseline,
     ErpCalibrationReport,
     ErpProbeResult,
@@ -61,6 +62,7 @@ from .checkpoint import (
 
 __all__ = [
     "DEFAULT_CALIBRATION_FRAMES",
+    "AREA_MATCHED_CALIBRATION_FRAMES",
     "DEFAULT_LEXICON_HOLDOUTS",
     "DEFAULT_ROLE_PROBES",
     "ErpBaseline",

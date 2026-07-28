@@ -39,6 +39,40 @@ DEFAULT_CALIBRATION_FRAMES: List[CalibrationFrame] = [
     ("novel_noun", "holdout adj attributive", ["the", "small", "dog", "runs"]),
 ]
 
+#: Every condition puts its critical word in OBJECT position after the verb.
+#:
+#: `DEFAULT_CALIBRATION_FRAMES` above cannot support a 2x2 dissociation, and the
+#: reason is item design rather than metric choice. Measured pathway counts on
+#: that set: every grammatical and category-violation item expects ROLE_PATIENT,
+#: but 8 of 12 novel items expect ROLE_AGENT -- "the bird sees the cat" puts the
+#: novel word in SUBJECT position, and "the small dog runs" probes an attributive
+#: adjective before any verb. So d(novel/grammatical) compares DIFFERENT BRAIN
+#: AREAS, and `input_drive`'s own docstring warns that cross-area comparison
+#: reverses the ranking on size alone. No metric can rescue that.
+#:
+#: Here the subject and verb vary while the critical word stays in object
+#: position, so all three conditions expect the same slot and the contrast is
+#: area-matched by construction. `bird` is the only holdout NOUN
+#: (`DEFAULT_LEXICON_HOLDOUTS`), which is why it recurs.
+#:
+#: KEPT SEPARATE, not substituted, deliberately. Threshold calibration consumes
+#: `DEFAULT_CALIBRATION_FRAMES`, so swapping it would move calibrated thresholds
+#: and every golden that depends on them; and the adjective frame tests
+#: attributive generalization, which is a real phenomenon that simply cannot
+#: live in an area-matched role contrast. Promote this to the default only with
+#: a measurement behind it.
+AREA_MATCHED_CALIBRATION_FRAMES: List[CalibrationFrame] = [
+    ("grammatical", "trained noun object", ["the", "dog", "chases", "cat"]),
+    ("grammatical", "trained noun object 2", ["the", "cat", "sees", "dog"]),
+    ("grammatical", "trained noun object 3", ["she", "chases", "the", "cat"]),
+    ("category_violation", "verb as object", ["the", "dog", "chases", "finds"]),
+    ("category_violation", "verb as object 2", ["the", "cat", "sees", "runs"]),
+    ("category_violation", "verb as object 3", ["she", "hits", "the", "eats"]),
+    ("novel_noun", "holdout noun object", ["the", "dog", "chases", "bird"]),
+    ("novel_noun", "holdout noun object 2", ["the", "cat", "sees", "bird"]),
+    ("novel_noun", "holdout noun object 3", ["she", "chases", "the", "bird"]),
+]
+
 # Minimal frame set for sweep-mode calibration (2 per label class).
 SWEEP_CALIBRATION_FRAMES: List[CalibrationFrame] = [
     ("grammatical", "trained noun object", ["the", "dog", "chases", "cat"]),

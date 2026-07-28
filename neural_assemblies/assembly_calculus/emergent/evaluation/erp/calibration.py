@@ -21,6 +21,7 @@ from .gates import (
 )
 from .frames import (
     DEFAULT_CALIBRATION_FRAMES,
+    AREA_MATCHED_CALIBRATION_FRAMES,
     CalibrationFrame,
     PositionErpSample,
     collect_frame_samples,
@@ -33,6 +34,7 @@ if TYPE_CHECKING:
 # Re-export for backward compatibility
 __all__ = [
     "DEFAULT_CALIBRATION_FRAMES",
+    "AREA_MATCHED_CALIBRATION_FRAMES",
     "ErpCalibrationReport",
     "PositionErpSample",
     "calibrate_erp_thresholds",
