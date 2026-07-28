@@ -34,6 +34,45 @@ opposite directions and one value has to serve both:
 
 PASS CONDITION, fixed before running: rank-1 recall above 1/M_ITEMS + 0.05 from
 BOTH parents. Anything less and `compositional_depth.py` is not measuring depth.
+
+RESULT (2026-07-28): NOTHING PASSES. THE PRIMITIVE DOES NOT HOLD HERE.
+-----------------------------------------------------------------------
+At 8 items x 3 seeds = 24 trials, reps=3/rounds=2 read 0.375/0.208 against
+chance 0.125 and this file called it PASS. That was wrong, and it was wrong in
+the way small samples usually are: 0.375 is 9 of 24. Re-run at 16 items x 6
+seeds = 96 trials per cell, which lowers chance to 0.0625 AND tightens the
+interval:
+
+     reps  rounds   from A   from B   overlap
+        3       2   0.0417   0.0625   0.0344
+       10       2   0.0729   0.0521   0.0558
+       25       2   0.0729   0.0625   0.0584
+        3       3   0.0729   0.0729   0.0349
+       10       3   0.0833   0.1042   0.0507
+       25       3   0.0625   0.0729   0.0502
+
+Every cell is at chance. The best, 0.1042, is 10 of 96. Repetition does not
+rescue it -- 25 epochs is no better than 3 -- so the earlier reading that
+"repetition is the right variable" was also an artifact of the same 24 trials.
+
+WHAT THIS MEANS. The property being tested is merge's defining one: [PNAS20]
+sec 3 and `ops.merge` both state that the merged assembly responds to EITHER
+source alone. On this isolated substrate, with stimulus-driven parents and
+distinct non-collapsed constituents (pairwise overlap 0.03-0.06, chance 0.05),
+it does not measurably hold. That is a PRIMITIVE failure, and every compositional
+result that assumes retrievability is blocked behind it.
+
+It also puts a question on the 0.781 rank-1 figure quoted in
+`parser_mixins/phrases.py`. The code that produced it is not in
+research/experiments/ and I could not locate it. Three possibilities, and they
+need separating before 0.781 is used as a target:
+  1. the parser's full training regime supplies something this setup lacks
+     (its merge sources are core areas shaped by a whole lexicon phase);
+  2. it scored a DIFFERENT question -- "does the top constituent CONTAIN the
+     cue parent", which with 32 constituents and 2 parents each has a much
+     higher chance rate than the 0.031 quoted alongside it;
+  3. it is stale.
+This belongs with the back-catalogue audit (#35).
 """
 
 from __future__ import annotations
