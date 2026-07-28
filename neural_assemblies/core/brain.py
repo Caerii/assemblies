@@ -582,10 +582,17 @@ class Brain:
         that grows while being read. Areas still below ``k`` materialised
         neurons are exempt, since there is nothing there to select from.
 
-        The generator's state is restored too, so dynamics draws (input noise,
-        tie-breaks, subsampling) cost the host nothing either. Recruitment and
-        winner movement are still visible INSIDE the block; what is guaranteed
-        is that the host is unchanged on exit.
+        The generator's state and the areas' winners are restored too, so
+        dynamics draws (input noise, tie-breaks, subsampling) cost the host
+        nothing either. Winners still MOVE inside the block -- a probe that
+        could not respond would be measuring nothing -- but the host is
+        unchanged on exit, which is the whole contract.
+
+        Restoring winners here rather than at each call site is deliberate.
+        ``frozen()`` exists because its save/set/restore had been hand-rolled
+        about sixty times and one missing ``finally`` poisons the rest of the
+        session; a winners snapshot every caller must remember is the same
+        trap one level up.
         """
         engines, saved_flags, saved_states = [], [], []
         for engine in self._all_engines():
@@ -595,6 +602,8 @@ class Brain:
             saved_flags.append(engine._no_recruitment)
             saved_states.append(engine._rng.bit_generator.state)
             engine._no_recruitment = True
+        winners = {name: (area.winners.copy(), area.w, area.fixed_assembly)
+                   for name, area in self.areas.items()}
         try:
             with self.frozen():
                 yield self
@@ -602,6 +611,14 @@ class Brain:
             for engine, flag, state in zip(engines, saved_flags, saved_states):
                 engine._no_recruitment = flag
                 engine._rng.bit_generator.state = state
+            for name, (won, w, fixed) in winners.items():
+                area = self.areas[name]
+                area.unfix_assembly()
+                area.winners = won.copy()
+                area.w = w
+                if fixed:
+                    area.fix_assembly()
+                self._engine_for(area).set_winners(name, won.copy())
 
     def _all_engines(self):
         """Every compute engine backing this brain, primary first."""
