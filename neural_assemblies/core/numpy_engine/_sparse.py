@@ -191,6 +191,8 @@ class NumpySparseEngine(ComputeEngine):
                       else int(self._rng.integers(0, 2 ** 32)))
         self._content_init = _env_content_init()
         self._pair_seeds: Dict[tuple, int] = {}
+        # Set only inside Brain.read_only(); see the guard in project_into.
+        self._no_recruitment = False
         self._plasticity_enabled_global = True
         self._projection_fidelity = ProjectionFidelity.normalize(projection_fidelity)
 
@@ -798,16 +800,29 @@ class NumpySparseEngine(ComputeEngine):
                 else self._areas[a].k) for a in from_areas]
         )
 
-        old_rng = self._sparse_sim.rng
-        self._sparse_sim.rng = rng
-        if self._deterministic:
-            potential_new = self._sparse_sim.sample_new_winner_inputs_legacy(
-                input_sizes, tgt.n, tgt.w, tgt.k, self.p,
-            )
+        if self._no_recruitment and tgt.w >= tgt.k:
+            # A READ-ONLY probe answers "which of the neurons you already have
+            # respond best?", so no candidates are offered and the area cannot
+            # grow. Recruitment is the last channel by which measuring changes
+            # the thing measured: frozen() stops weights changing but not w,
+            # and two probe orders that recruit different numbers of neurons
+            # are structurally different brains no matter how init is seeded.
+            #
+            # Gated on w >= k because below it there is nothing to select from,
+            # and a silently short assembly would be worse than growing.
+            potential_new = np.empty(0, dtype=np.float32)
+            old_rng = self._sparse_sim.rng
         else:
-            potential_new = self._sparse_sim.sample_new_winner_inputs(
-                input_sizes, tgt.n, tgt.w, tgt.k, self.p,
-            )
+            old_rng = self._sparse_sim.rng
+            self._sparse_sim.rng = rng
+            if self._deterministic:
+                potential_new = self._sparse_sim.sample_new_winner_inputs_legacy(
+                    input_sizes, tgt.n, tgt.w, tgt.k, self.p,
+                )
+            else:
+                potential_new = self._sparse_sim.sample_new_winner_inputs(
+                    input_sizes, tgt.n, tgt.w, tgt.k, self.p,
+                )
         self._sparse_sim.rng = old_rng
 
         potential_new = to_xp(potential_new)

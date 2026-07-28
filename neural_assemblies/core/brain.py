@@ -564,6 +564,55 @@ class Brain:
         finally:
             self.disable_plasticity = saved
 
+    @contextlib.contextmanager
+    def read_only(self):
+        """``frozen()`` plus no RECRUITMENT and no RNG advance.
+
+        ``frozen()`` stops weights from changing. It does not stop the area
+        from GROWING, and growth turned out to be the channel that actually
+        made measurement change the measured. Parsing three items as [X,Y,Z]
+        and as [Z,Y,X] under ``frozen()`` left ROLE_ACTION at w=647 in one and
+        w=650 in the other -- structurally different brains, whose later
+        synapses cannot agree however init is seeded. That is the mechanism
+        behind probes contaminating each other.
+
+        Inside this block an area answers "which of the neurons I already have
+        respond best?" rather than "what would I become?" -- which is the
+        semantics a READOUT wants anyway: measure the trained brain, not one
+        that grows while being read. Areas still below ``k`` materialised
+        neurons are exempt, since there is nothing there to select from.
+
+        The generator's state is restored too, so dynamics draws (input noise,
+        tie-breaks, subsampling) cost the host nothing either. Recruitment and
+        winner movement are still visible INSIDE the block; what is guaranteed
+        is that the host is unchanged on exit.
+        """
+        engines, saved_flags, saved_states = [], [], []
+        for engine in self._all_engines():
+            if not hasattr(engine, "_no_recruitment"):
+                continue
+            engines.append(engine)
+            saved_flags.append(engine._no_recruitment)
+            saved_states.append(engine._rng.bit_generator.state)
+            engine._no_recruitment = True
+        try:
+            with self.frozen():
+                yield self
+        finally:
+            for engine, flag, state in zip(engines, saved_flags, saved_states):
+                engine._no_recruitment = flag
+                engine._rng.bit_generator.state = state
+
+    def _all_engines(self):
+        """Every compute engine backing this brain, primary first."""
+        seen, out = set(), []
+        for engine in (getattr(self, "_engine", None),
+                       getattr(self, "_explicit_engine", None)):
+            if engine is not None and id(engine) not in seen:
+                seen.add(id(engine))
+                out.append(engine)
+        return out
+
     def project(
         self,
         areas_by_stim: Dict[str, List[str]] = None,
