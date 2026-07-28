@@ -392,6 +392,54 @@ class TestPhraseStructure:
             f"(see reset_area_connections note in train_phrases)"
         )
 
+    def test_lexicon_covers_the_training_corpus(self):
+        """Every grounded corpus word must reach a core lexicon.
+
+        REGRESSION GUARD. Lexicon training used to be keyed to the static
+        `core.grounding.VOCABULARY` table (10 nouns, 8 verbs), so a corpus
+        supplying its own GroundingContext -- which `rich_corpus` does -- had
+        most of its vocabulary learned as a stimulus, classified correctly, and
+        then never entered `core_lexicons`. `NemoParser.parse` SKIPS such a
+        word: it returns None and, in sequential mode, the slot sequence never
+        advances, so later words are misaligned too.
+
+        Nothing errored, so the failure showed up only as bad accuracy numbers
+        (task #34). This asserts the property directly: a parser must know the
+        words it was trained on.
+
+        The corpus here supplies a word that is NOT in VOCABULARY, because a
+        corpus drawn only from the static table cannot exercise this at all --
+        the default training corpus has zero such words, so asserting over it
+        would pass with the bug fully present.
+        """
+        from neural_assemblies.assembly_calculus.emergent.curriculum.data import (
+            GroundedSentence,
+        )
+
+        # "wug" is grounded by reusing an existing context, so the corpus
+        # carries exactly the information VOCABULARY would have supplied and
+        # the test turns on registration, not on inventing new grounding.
+        corpus = [
+            GroundedSentence(
+                words=["wug", "chases", "ball"],
+                contexts=[VOCABULARY["dog"], VOCABULARY["chases"],
+                          VOCABULARY["ball"]],
+                roles=["agent", "action", "patient"],
+            ),
+        ] * 3
+        parser = EmergentParser(n=1000, k=50, p=P, beta=BETA, seed=SEED,
+                                rounds=ROUNDS, fast_training=True)
+        parser.train(corpus)
+
+        known = set()
+        for lex in parser.core_lexicons.values():
+            known |= set(lex)
+        assert "wug" in known, (
+            "a grounded corpus word never reached a core lexicon, so "
+            "NemoParser.parse would silently skip it; core lexicons hold "
+            f"{sorted(known)}"
+        )
+
     def test_vp_assemblies_are_distinct(self, trained_parser):
         """Distinct phrases must not collapse onto one assembly.
 

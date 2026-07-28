@@ -107,8 +107,10 @@ class NemoParser:
                  sequential: bool = False,
                  head_start: int = 0,
                  lexical_weight: float = 1.0,
+                 warn_on_skip: bool = True,
                  rounds: Optional[int] = None) -> None:
         self.parser = parser
+        self.warn_on_skip = warn_on_skip
         self.brain = parser.brain
         self.transitive_verbs = transitive_verbs or set()
         self.use_lexical = use_lexical
@@ -145,6 +147,17 @@ class NemoParser:
         #: [(word, addressed_open_slot?)] from the last parse. None means no
         #: slot was open to address. Recorded live during parsing.
         self.last_mismatches: List[tuple] = []
+        #: [(word, reason)] for words the parse loop could not process.
+        #:
+        #: A skipped word used to vanish silently: it got None and, in
+        #: sequential mode, the slot sequence never advanced past it, so every
+        #: LATER word was misaligned too. That produced plausible-looking
+        #: accuracy numbers with no error anywhere -- it invalidated the
+        #: transfer arm of `order_generalization.py` and took three wrong
+        #: hypotheses to find, because nothing in the output said a word had
+        #: been dropped. Recording it makes the failure inspectable; callers
+        #: measuring accuracy should assert this is empty.
+        self.skipped: List[tuple] = []
         if competitive:
             from .nemo_rules import competitive_initial_open_areas
             open_areas = competitive_initial_open_areas()
@@ -203,6 +216,7 @@ class NemoParser:
             core = self.parser._word_core_area(word)
             if core is None or core not in self.brain.areas:
                 out[word] = None
+                self.skipped.append((word, "no core area"))
                 continue
             program = program_for_category(
                 category,
@@ -219,6 +233,7 @@ class NemoParser:
                 program = sequential_verb_program(core)
             if program is None:
                 out[word] = None
+                self.skipped.append((word, "no rule program"))
                 continue
 
             # Activate the word in its core area, and hold it there while the
@@ -226,6 +241,7 @@ class NemoParser:
             phon = self.parser.stim_map.get(word)
             if phon is None:
                 out[word] = None
+                self.skipped.append((word, "no phon stimulus"))
                 continue
             with self.brain.frozen():
                 project(self.brain, phon, core, rounds=self.parser.rounds)
@@ -382,6 +398,23 @@ class NemoParser:
                     self.brain.areas[core].unfix_assembly()
                     for rule in program.post:
                         apply_rule(self.state, rule)
+        # WARN BY DEFAULT. Recording skips on `self.skipped` is useless if
+        # nothing reads it, and the whole failure mode here is that a dropped
+        # word looks exactly like a correct parse that happened to score badly.
+        # A skip is never benign in sequential mode -- the slot sequence does
+        # not advance, so every LATER word is misaligned too and one unknown
+        # word can corrupt a whole sentence. Callers measuring accuracy should
+        # additionally assert `parser.skipped == []`; this warning is the
+        # backstop for the ones that forget.
+        if self.skipped and self.warn_on_skip:
+            import warnings
+            detail = ", ".join(f"{w!r} ({why})" for w, why in self.skipped)
+            warnings.warn(
+                f"NemoParser skipped {len(self.skipped)} word(s) and returned "
+                f"None for them: {detail}. Roles for later words in the same "
+                f"sentence are unreliable. Pass warn_on_skip=False to silence.",
+                RuntimeWarning, stacklevel=2,
+            )
         return out
 
     # ------------------------------------------------------------------

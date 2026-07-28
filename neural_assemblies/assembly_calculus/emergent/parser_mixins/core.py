@@ -339,6 +339,39 @@ class CoreParserMixin:
                         self.brain.add_stimulus(stim_name, self.k)
                         self._grounding_stim_names_set.add(stim_name)
 
+    def _register_corpus_vocabulary(
+        self, sentences: List[GroundedSentence],
+    ) -> Set[str]:
+        """Register corpus words the static vocabulary table does not cover.
+
+        Returns the set of newly registered words (empty when the corpus adds
+        nothing), so callers and tests can assert on coverage rather than infer
+        it.
+
+        A ``GroundedSentence`` carries a ``GroundingContext`` per word in
+        ``contexts``, which is the same thing ``VOCABULARY`` supplies, so a
+        corpus word needs nothing extra to be trainable. Words already
+        registered keep their EXISTING context: the static table is
+        hand-authored and is treated as authoritative where the two disagree,
+        and re-registering would also re-add stimuli.
+
+        Sentences whose ``contexts`` are missing or the wrong length are
+        skipped rather than guessed at -- a word with no grounding cannot be
+        trained into a core lexicon, and silently inventing one is how the bug
+        this fixes stayed hidden.
+        """
+        added: Set[str] = set()
+        for sent in sentences:
+            contexts = getattr(sent, "contexts", None)
+            if not contexts or len(contexts) != len(sent.words):
+                continue
+            for word, ctx in zip(sent.words, contexts):
+                if ctx is None or word in self.word_grounding:
+                    continue
+                self._register_vocabulary({word: ctx})
+                added.add(word)
+        return added
+
     def _grounding_stim_names(self, ctx: GroundingContext) -> List[str]:
         """Return stimulus names for all grounding features in a context."""
         names = []
@@ -394,6 +427,28 @@ class CoreParserMixin:
 
         holdout = holdout_words or set()
         self.lexicon_holdouts = set(holdout)
+
+        # Register any word the CORPUS grounds that the static vocabulary table
+        # does not. Without this the lexicon is capped at
+        # ``core.grounding.VOCABULARY`` -- 10 nouns and 8 verbs -- no matter how
+        # rich the corpus is.
+        #
+        # The failure it caused was SILENT and produced plausible numbers. An
+        # unregistered word still got a phon stimulus (``ingest_raw_sentence``)
+        # and still classified correctly, but never entered ``core_lexicons``,
+        # and ``NemoParser.parse`` skips a word with no core lexicon entry: it
+        # returns None and the slot sequence never advances. Measured on a
+        # rich_corpus run, `man`/`woman`/`child` were unparseable while `boy`
+        # and `girl` worked, which silently invalidated the transfer arm of
+        # `order_generalization.py` (task #34).
+        #
+        # Nothing new is needed to fix it -- GroundedSentence already carries a
+        # GroundingContext per word, so corpus words have exactly the same
+        # information the static table supplies. Registered BEFORE
+        # ``train_lexicon`` so the compiled plan picks them up; holdouts are
+        # excluded because their whole point is to be registered but untrained,
+        # which ``train_lexicon`` handles.
+        self._register_corpus_vocabulary(sentences)
 
         with prog.phase("lexicon"):
             self.train_lexicon(holdout_words=holdout, skip_known=True)
