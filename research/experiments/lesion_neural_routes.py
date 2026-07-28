@@ -57,13 +57,18 @@ If 1 and 3 hold, the aphasia model is mechanistic end to end.
 
 RESULT: 1 CONFIRMED, 3 REFUTED -- the routes share an OUTPUT PATHWAY
 --------------------------------------------------------------------
-    condition                          reversible   irreversible
-    gating      intact                     1.000        0.000
-    gating      + lexical lesion           0.000        0.000
-    gating      + positional lesion        0.500        0.000
-    competitive intact                     0.667        1.000
-    competitive + lexical lesion           0.000        0.000
-    competitive + positional (leak check)  0.667        1.000
+10 seeds, paired, ZERO variance on every cell:
+
+    condition                            reversible      irreversible
+    gating      intact                 1.000 +/-0.000    0.000 +/-0.000
+    gating      + lexical lesion       0.000 +/-0.000    0.000 +/-0.000
+    gating      + positional lesion    0.500 +/-0.000    0.000 +/-0.000
+    competitive intact                 0.667 +/-0.000    1.000 +/-0.000
+    competitive + lexical lesion       0.000 +/-0.000    0.000 +/-0.000
+    competitive + positional (leak)    0.667 +/-0.000    1.000 +/-0.000
+
+The leak check is identical to intact, so the monkeypatch is correctly scoped
+and the positional-lesion rows are trustworthy.
 
 **PREDICTION 1 CONFIRMED, and it is the headline.** A SYNAPSE-ONLY lesion --
 no dict cleared anywhere -- collapses competitive's irreversible score from
