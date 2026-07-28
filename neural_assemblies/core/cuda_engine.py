@@ -14,35 +14,32 @@ Key properties:
 - Hash function matches CUDA kernels in kernels/implicit.py
 - Custom CUDA kernels for fused projection hot paths
 
-KNOWN DEFECT -- THE CONNECTIVITY THIS ENGINE BUILDS IS NOT BERNOULLI (task #37)
--------------------------------------------------------------------------------
+CONNECTIVITY IS BERNOULLI ONLY BECAUSE OF THE FINALIZER (task #37, fixed)
+--------------------------------------------------------------------------
 ``(src * 2654435761) ^ (dst * 2246822519) ^ seed`` thresholded on its low 24
 bits has the right DENSITY and the wrong dependence structure, because those
 low bits are close to a function of the low bits of src and dst alone. Measured
-on a 2048x2048 block at p=0.05 (neural_assemblies/tests/test_seeding.py):
+ON DEVICE at 2048x2048, p=0.05:
 
-    source                   density row chi2/df col chi2/df corr(i,i+1)
-    numpy Generator          0.05003       0.960       0.996    -0.00048
-    hash RAW (this engine)   0.05000       3.918       0.018    -0.05263
-    hash + fmix32            0.05023       0.980       0.944     0.00031
+    source                   density  row disp  col disp   corr(i)
+    numpy Generator (ref)    0.05003     0.960     0.996  -0.00048
+    raw hash                 0.05000     3.916     0.018  -0.05263
+    + _fmix32                0.05023     0.977     0.941   0.00031
 
-Column dispersion 0.018 means IN-DEGREE IS NEARLY CONSTANT -- column sums vary
-by ~1.3 where Binomial says ~9.9. ``norm_init`` divides each postsynaptic
-neuron's incoming weights by its in-degree, so this does not merely look wrong,
-it disables that mechanism while every density check stays green. Rows are
-over-dispersed 4x and neighbouring synapses anti-correlate, which k-WTA reads
-directly.
+Column dispersion 0.018 meant IN-DEGREE WAS NEARLY CONSTANT -- column sums
+varying by ~1.3 where Binomial says ~9.9. ``norm_init`` divides each
+postsynaptic neuron's incoming weights by its in-degree, so this did not merely
+look wrong, it disabled that mechanism while every density check stayed green.
 
-THE FIX is ``_seeding.mix32`` (murmur3 fmix32) applied before the threshold,
-which restores all three statistics. It is NOT applied here yet, deliberately:
-the same hash appears at six sites across this file and kernels/implicit.py,
-cupy is not installed in the development environment, and a change that fixes
-the engine but not the .cu kernels would leave the two DISAGREEING about which
-synapses exist -- worse than the current uniform bias. Apply it to every site
-at once, on a machine that can run tests/test_cuda_kernels.py.
+``_fmix32`` (murmur3) is now applied at both sites here and at all four in
+kernels/implicit.py -- together, because fixing a subset would leave the engine
+and the kernels disagreeing about which synapses exist, which is worse than a
+uniform bias. Verified: kernel output vs this engine's _hash_bernoulli_2d over
+6 source neurons x 4096 targets, 0 mismatched cells.
 
-Nothing currently depends on this path: it requires cupy, and no committed
-result was produced with it. Treat it as latent, not active.
+This changes which synapses exist, so any result previously produced on this
+engine is invalid. Nothing committed used it -- it requires cupy, which was not
+installed until the fix.
 
 Requires: cupy (for GPU arrays; kernels in kernels/implicit.py are optional).
 """
@@ -93,12 +90,36 @@ def _fnv1a_pair_seed(global_seed: int, source: str, target: str) -> int:
     return h
 
 
+def _fmix32(h):
+    """Murmur3 avalanche finalizer. Mirrors FMIX32 in kernels/implicit.py.
+
+    NOT optional, and not a micro-optimisation. Without it the Bernoulli test
+    reads the low 24 bits of ``(r*A) ^ (c*B)``, which are close to a function of
+    the low bits of r and c alone -- correct density, wrong dependence
+    structure. Measured on the device at 2048x2048, p=0.05:
+
+        source                   density  row disp  col disp   corr(i)
+        numpy Generator (ref)    0.05003     0.960     0.996  -0.00048
+        raw hash                 0.05000     3.916     0.018  -0.05263
+        + fmix32                 0.05023     0.980     0.944   0.00031
+
+    Column dispersion 0.018 means in-degree is nearly CONSTANT, and norm_init
+    scales each neuron's incoming weights by its in-degree, so the raw hash
+    disabled that mechanism while every density check stayed green.
+    """
+    h = h ^ (h >> cp.uint32(16))
+    h = h * cp.uint32(0x85EBCA6B)
+    h = h ^ (h >> cp.uint32(13))
+    h = h * cp.uint32(0xC2B2AE35)
+    return h ^ (h >> cp.uint32(16))
+
+
 def _hash_bernoulli_2d(row_start, row_end, col_start, col_end,
                        pair_seed, p):
     """Vectorized hash-based Bernoulli(p) matrix on GPU.
 
     Matches the CUDA kernel hash function:
-        hash = (src * 2654435761) ^ (dst * 2246822519) ^ seed
+        hash = fmix32((src * 2654435761) ^ (dst * 2246822519) ^ seed)
         connected = (hash & 0xFFFFFF) < (p * 2^24)
 
     Returns a CuPy float32 matrix of shape (row_end-row_start, col_end-col_start).
@@ -112,9 +133,11 @@ def _hash_bernoulli_2d(row_start, row_end, col_start, col_end,
     cols = cp.arange(col_start, col_end, dtype=cp.uint32)
     r, c = cp.meshgrid(rows, cols, indexing='ij')
 
-    # Same hash as implicit_projection_kernel in kernels/implicit.py
+    # Same hash as implicit_projection_kernel in kernels/implicit.py -- the two
+    # MUST agree on which synapses exist, so the finalizer belongs in both.
     h = (r * cp.uint32(2654435761)) ^ (c * cp.uint32(2246822519))
     h ^= cp.uint32(pair_seed)
+    h = _fmix32(h)
     threshold = cp.uint32(int(p * 16777216.0))
     return ((h & cp.uint32(0xFFFFFF)) < threshold).astype(cp.float32)
 
@@ -141,6 +164,7 @@ def _hash_stim_counts(stim_size, neuron_start, neuron_end,
         s, n = cp.meshgrid(stim_ids, neuron_ids, indexing='ij')
         h = (s * cp.uint32(2654435761)) ^ (n * cp.uint32(2246822519))
         h ^= cp.uint32(pair_seed)
+        h = _fmix32(h)
         threshold = cp.uint32(int(p * 16777216.0))
         connected = (h & cp.uint32(0xFFFFFF)) < threshold
         return connected.sum(axis=0).astype(cp.float32)

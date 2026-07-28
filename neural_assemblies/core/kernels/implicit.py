@@ -14,24 +14,36 @@ Ultra-optimized kernels using:
 
 Memory: O(learned_connections) instead of O(n^2)
 
-KNOWN DEFECT -- THE IMPLICIT CONNECTIVITY IS NOT BERNOULLI (task #37)
----------------------------------------------------------------------
-Every kernel below decides an edge with
+WHY EVERY HASH HERE ENDS IN AC_FMIX32 (task #37, fixed 2026-07-28)
+-------------------------------------------------------------------
+Each kernel decides an edge by testing the low 24 bits of
     hash = (src * 2654435761u) ^ (dst * 2246822519u) ^ seed;
-    connected = (hash & 0xFFFFFFu) < p * 2^24;
-and the low 24 bits it tests are close to a function of the low bits of src and
-dst alone. Density comes out right, dependence structure does not. Measured on
-the identical formula in numpy (neural_assemblies/tests/test_seeding.py,
-test_raw_kernel_hash_is_biased), 2048x2048 at p=0.05: per-column dispersion
-0.018 against 1.0 -- in-degree nearly CONSTANT -- and adjacent-cell correlation
--0.053. Since ``norm_init`` scales each neuron's incoming weights by its
-in-degree, a degenerate in-degree distribution silently disables it.
+and those bits are close to a function of the low bits of src and dst alone.
+Density comes out right; the dependence structure does not. Measured ON DEVICE
+at 2048x2048, p=0.05:
 
-FIX: murmur3 fmix32 before the threshold (see ``_seeding.mix32``, which restores
-all three statistics). Applied to ALL sites at once -- there are four here plus
-two in cuda_engine.py, and fixing a subset makes the engine and the kernels
-disagree about which synapses exist. Requires cupy to test; not installed in the
-current dev environment, which is why this is documented rather than done.
+    source                   density  row disp  col disp   corr(i)
+    numpy Generator (ref)    0.05003     0.960     0.996  -0.00048
+    raw hash                 0.05000     3.916     0.018  -0.05263
+    + AC_FMIX32              0.05023     0.977     0.941   0.00031
+
+Column dispersion 0.018 means IN-DEGREE WAS NEARLY CONSTANT -- column sums
+varied by ~1.3 where Binomial says ~9.9. ``norm_init`` scales each neuron's
+incoming weights by its in-degree, so the raw hash disabled that mechanism
+while every density check stayed green. Rows were over-dispersed 4x and
+neighbouring synapses anti-correlated, which k-WTA reads directly.
+
+The macro is murmur3's fmix32 and is defined identically in every kernel that
+hashes, matching ``_fmix32`` in cuda_engine.py and ``_seeding.mix32`` on the
+CPU. All four sites here plus both in cuda_engine.py were changed together, on
+purpose: fixing a subset would leave the engine and the kernels disagreeing
+about which synapses exist, which is worse than a uniform bias. Verified by
+comparing kernel output against the engine's _hash_bernoulli_2d for 6 source
+neurons over 4096 targets -- 0 mismatched cells.
+
+Do not "simplify" the finalizer away.
+``tests/test_seeding.py::test_raw_kernel_hash_is_biased`` pins what happens
+without it.
 
 Changelog:
 - 1.1.0: Added PyTorch top-k integration, FP16 support
@@ -55,6 +67,8 @@ if USE_TORCH_TOPK:
 # Computes projection using hash-based connectivity - NO weight matrix stored!
 
 implicit_projection_kernel = cp.RawKernel(r'''
+#define AC_FMIX32(h) do {     (h) ^= (h) >> 16; (h) *= 0x85ebca6bu;     (h) ^= (h) >> 13; (h) *= 0xc2b2ae35u;     (h) ^= (h) >> 16; } while (0)
+
 extern "C" __global__
 void implicit_projection(
     const unsigned int* active,      // k active indices
@@ -87,6 +101,7 @@ void implicit_projection(
         
         // Fast hash using multiply-xor
         unsigned int hash = (src * 2654435761u) ^ (dst * 2246822519u) ^ seed;
+        AC_FMIX32(hash);
         
         // Check if connection exists
         if ((hash & 0xFFFFFFu) < threshold) {
@@ -103,6 +118,8 @@ void implicit_projection(
 # =============================================================================
 
 apply_learned_kernel = cp.RawKernel(r'''
+#define AC_FMIX32(h) do {     (h) ^= (h) >> 16; (h) *= 0x85ebca6bu;     (h) ^= (h) >> 13; (h) *= 0xc2b2ae35u;     (h) ^= (h) >> 16; } while (0)
+
 extern "C" __global__
 void apply_learned(
     const unsigned int* learned_src,   // Source indices of learned connections
@@ -144,6 +161,7 @@ void apply_learned(
     if (src_active) {
         // Check if base connection exists (same hash as implicit_projection)
         unsigned int hash = (src * 2654435761u) ^ (dst * 2246822519u) ^ seed;
+        AC_FMIX32(hash);
         unsigned int threshold = (unsigned int)(p * 16777216.0f);
 
         if ((hash & 0xFFFFFFu) < threshold) {
@@ -270,6 +288,8 @@ def fast_topk(values: cp.ndarray, k: int) -> cp.ndarray:
 # to minimize memory round-trips
 
 fused_projection_topk_kernel = cp.RawKernel(r'''
+#define AC_FMIX32(h) do {     (h) ^= (h) >> 16; (h) *= 0x85ebca6bu;     (h) ^= (h) >> 13; (h) *= 0xc2b2ae35u;     (h) ^= (h) >> 16; } while (0)
+
 #include <cuda_fp16.h>
 
 extern "C" __global__
@@ -301,6 +321,7 @@ void fused_projection_topk(
         for (unsigned int i = 0; i < k_in; i++) {
             unsigned int src = s_active[i];
             unsigned int hash = (src * 2654435761u) ^ (dst * 2246822519u) ^ seed;
+        AC_FMIX32(hash);
             if ((hash & 0xFFFFFFu) < threshold) {
                 sum += 1.0f;
             }
@@ -317,6 +338,8 @@ void fused_projection_topk(
 # =============================================================================
 
 hebbian_update_kernel = cp.RawKernel(r'''
+#define AC_FMIX32(h) do {     (h) ^= (h) >> 16; (h) *= 0x85ebca6bu;     (h) ^= (h) >> 13; (h) *= 0xc2b2ae35u;     (h) ^= (h) >> 16; } while (0)
+
 // Must match CUDA_HASH_TABLE_SIZE in src/constants/default_params.py
 #define HASH_TABLE_SIZE (1 << 20)
 #define HASH_MASK (HASH_TABLE_SIZE - 1)
@@ -357,6 +380,7 @@ void hebbian_update(
 
     // Check if base connection exists (same hash as implicit_projection)
     unsigned int hash = (src * 2654435761u) ^ (dst * 2246822519u) ^ seed;
+        AC_FMIX32(hash);
     unsigned int threshold = (unsigned int)(p * 16777216.0f);
 
     if ((hash & 0xFFFFFFu) >= threshold) return;  // No connection to update
