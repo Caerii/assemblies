@@ -9,6 +9,7 @@ paper. The sparse engine requires k << n to avoid neuron pool exhaustion.
 """
 
 import copy
+import os
 import time
 
 import numpy as np
@@ -50,7 +51,12 @@ K = 100         # assembly size
 P = 0.05        # connection probability
 BETA = 0.1      # plasticity rate
 ROUNDS = 10     # stabilization rounds
-SEED = 42       # reproducibility
+# Overridable so the seed-dependence audit can re-run this file at many seeds
+# without editing it (research/experiments/lucky_seed_audit.py). Default 42 --
+# normal runs are unaffected. This exists because one test in this file was
+# green for its whole life while passing only ~7 times in 12: a fixed seed plus
+# a threshold near the effect's mean reports the seed, not the effect.
+SEED = int(os.environ.get("ASSEMBLIES_AUDIT_SEED", "42"))
 
 
 def _make_brain(**kwargs):
