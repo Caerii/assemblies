@@ -43,19 +43,28 @@ That is what makes this different from `constituent_role_order()`, which reads
 `self.word_order_type` (a Python string) while SCORING candidate roles. Here the
 order configures the GATING and the neural dynamics do the binding.
 
-HONEST SCOPE: SVO ONLY, FOR NOW
--------------------------------
-Only SVO is implemented, matching the reference. Do not read this as "word order
-is now emergent" -- it is not. The order still enters as a learned discrete
-parameter; what changes is that it selects a gating program instead of being
-consulted during scoring.
+ALL SIX ORDERS, VIA SLOT CONSUMPTION (see `SLOT_SEQUENCES`)
+------------------------------------------------------------
+The rules above are the SVO table, where the VERB carries the slot switch. That
+does not generalize, and the reason is worth keeping: for SOV both nouns precede
+the verb, so the switch must fire after the FIRST NOUN -- and then the same
+category (NOUN) needs two different POST rule sets, which a category->program
+map cannot express.
 
-Generalizing is not a loop over six orders, because WHICH WORD carries the slot
-switch depends on the order. For SVO the verb switches AGENT->PATIENT (the
-object follows it). For SOV both nouns precede the verb, so the switch must fire
-on the FIRST NOUN instead. Getting that right needs the state-dependent advance
-that the index channels exist to express, and it should be done after the SVO
-path is measured against the current parser -- not speculatively.
+Attaching the advance to SLOT CONSUMPTION rather than to a word dissolves it.
+The order becomes a SEQUENCE of slots, exactly one is open at a time, and every
+content word takes the next; the identical machinery then runs all six orders,
+object-initial ones included. Measured on the reversible items, seed 42:
+SVO/SOV/VSO/VOS/OSV/OVS all 1.000, with SVO reproducing the SVO-table result.
+
+HONEST SCOPE, unchanged in the part that matters. This is NOT "word order is
+emergent". The order still enters as a learned discrete parameter -- it selects
+a slot sequence instead of a rule table, and the gating is a PERFECT POSITIONAL
+TEMPLATE for whichever order it is given, exactly as the SVO path was. Scoring
+positional items with a positional mechanism is why every order reads 1.000;
+irreversible items, where lexical experience must override position, remain 0.000
+for all six, because gating still has no lexical route (that is mutual
+inhibition's job -- see `nemo_competitive_ab.py`).
 """
 
 from __future__ import annotations
@@ -241,6 +250,80 @@ def program_for_category(category: str, *, transitive: bool = True,
     if category in ("ADJ", "DET"):
         return modifier_program(core)
     return None
+
+
+#: The order of role slots each word order CONSUMES them in.
+#:
+#: This is what generalizes the gating past SVO, and it required abandoning the
+#: idea that a WORD carries the slot switch. In SVO the verb advances
+#: AGENT->PATIENT because the object follows it; in SOV both nouns precede the
+#: verb, so the switch must fire after the FIRST NOUN -- and then the same
+#: category (NOUN) would need two different POST rule sets, which a
+#: category->program map cannot express. That is the wall the module docstring
+#: described.
+#:
+#: Attach the advance to SLOT CONSUMPTION instead of to a word and it
+#: disappears: the order is just a SEQUENCE of slots, exactly one is open at a
+#: time, and every content word takes the next. The identical mechanism then
+#: runs all six orders, and it is the same winner-closes-slot device the
+#: competitive path already uses -- close what was filled, open what is next.
+#:
+#: Modifiers must NOT advance (a determiner would make "the dog" put `dog` in
+#: the object slot), so the sequencer only fires for content categories. That
+#: is a decision on the LEARNED category, not on the word.
+SLOT_SEQUENCES: Dict[str, tuple] = {
+    "SVO": (ROLE_AGENT, ROLE_ACTION, ROLE_PATIENT),
+    "SOV": (ROLE_AGENT, ROLE_PATIENT, ROLE_ACTION),
+    "VSO": (ROLE_ACTION, ROLE_AGENT, ROLE_PATIENT),
+    "VOS": (ROLE_ACTION, ROLE_PATIENT, ROLE_AGENT),
+    "OSV": (ROLE_PATIENT, ROLE_AGENT, ROLE_ACTION),
+    "OVS": (ROLE_PATIENT, ROLE_ACTION, ROLE_AGENT),
+}
+
+#: Categories that CONSUME a role slot. Determiners and adjectives bind without
+#: consuming, which is why they must not advance the sequence.
+CONTENT_CATEGORIES = frozenset({"NOUN", "PRON", "VERB"})
+
+
+def slot_sequence(word_order_type: str = "SVO") -> tuple:
+    """Slots in the order this word order fills them."""
+    try:
+        return SLOT_SEQUENCES[word_order_type]
+    except KeyError:
+        raise NotImplementedError(
+            f"no slot sequence for {word_order_type!r}; "
+            f"known orders are {sorted(SLOT_SEQUENCES)}"
+        ) from None
+
+
+def sequential_initial_open_areas(word_order_type: str = "SVO") -> List[str]:
+    """Every CORE area, plus ONLY the first slot of the sequence.
+
+    Stricter than `initial_open_areas`, which opens ROLE_AGENT and ROLE_ACTION
+    together because the SVO rules relied on the verb finding ACTION already
+    open. Under sequential gating exactly one slot is open at any time and the
+    sequencer opens the next, so the initial condition is simply "the first slot
+    of this order" -- and it is what makes an object-initial order like OVS
+    expressible at all.
+    """
+    return list(CORE_AREAS) + [slot_sequence(word_order_type)[0]]
+
+
+def sequential_verb_program(core_area: str = VERB_CORE) -> RuleProgram:
+    """A verb that binds its action and does NOT move the slot itself.
+
+    Identical to `trans_verb_program` minus the two POST area rules, because
+    under sequential gating the advance belongs to the sequencer rather than to
+    the verb. Keeping the verb's own advance as well would double-step the
+    sequence.
+    """
+    return RuleProgram(
+        pre=[
+            fiber_rule(DISINHIBIT, core_area, ROLE_ACTION, 0),
+            fiber_rule(DISINHIBIT, ROLE_ACTION, ROLE_AGENT, 0),
+        ],
+        post=[fiber_rule(INHIBIT, core_area, ROLE_ACTION, 0)],
+    )
 
 
 #: Role slots a filler can be expected in. ROLE_ACTION is excluded: it is open

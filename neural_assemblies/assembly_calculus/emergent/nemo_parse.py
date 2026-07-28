@@ -49,7 +49,8 @@ from neural_assemblies.core.inhibition import (
 
 from .core.areas import ROLE_ACTION, ROLE_AGENT, ROLE_PATIENT
 from .nemo_rules import (
-    all_areas, initial_open_areas, program_for_category,
+    CONTENT_CATEGORIES, all_areas, initial_open_areas, program_for_category,
+    sequential_initial_open_areas, sequential_verb_program, slot_sequence,
 )
 
 _ROLE_LABEL = {
@@ -102,6 +103,7 @@ class NemoParser:
                  transitive_verbs: Optional[Set[str]] = None,
                  use_lexical: bool = False,
                  competitive: bool = False,
+                 sequential: bool = False,
                  head_start: int = 0,
                  lexical_weight: float = 1.0,
                  rounds: Optional[int] = None) -> None:
@@ -128,13 +130,45 @@ class NemoParser:
         self.rounds = rounds if rounds is not None else max(
             1, int(getattr(parser, "rounds", 5)) // 2)
         self._areas = [a for a in all_areas() if a in self.brain.areas]
+        # SEQUENTIAL gating generalizes past SVO. `initial_open_areas` raises
+        # for any other order, because the SVO rule table hard-codes the verb
+        # as the word that advances the slot. Here the order is a SEQUENCE of
+        # slots, one open at a time, and each CONTENT word takes the next -- so
+        # all six orders run the same machinery. Opt in explicitly for SVO so
+        # the existing measured path is untouched by default.
+        self.word_order_type = word_order_type or "SVO"
+        self.sequential = bool(sequential) or (
+            not competitive and self.word_order_type != "SVO")
+        self._sequence = (slot_sequence(self.word_order_type)
+                          if self.sequential else ())
         if competitive:
             from .nemo_rules import competitive_initial_open_areas
             open_areas = competitive_initial_open_areas()
+        elif self.sequential:
+            open_areas = sequential_initial_open_areas(self.word_order_type)
         else:
             open_areas = initial_open_areas(word_order_type)
         self.state = InhibitionState(
             self._areas, [a for a in open_areas if a in self.brain.areas])
+
+    # ------------------------------------------------------------------
+    def _open_slot(self) -> Optional[str]:
+        """The single slot this order currently has open, if any.
+
+        Sequential gating keeps exactly one open, which is what makes the
+        readout unambiguous -- there is nothing to score or compare.
+        """
+        live = [s for s in self._sequence
+                if s in self.brain.areas and self.state.area_open(s)]
+        return live[0] if len(live) == 1 else None
+
+    def _next_slot(self, current: str) -> Optional[str]:
+        """The slot this order fills after `current`; None at the end."""
+        seq = self._sequence
+        if current not in seq:
+            return None
+        idx = seq.index(current) + 1
+        return seq[idx] if idx < len(seq) else None
 
     # ------------------------------------------------------------------
     def parse(self, words: List[str]) -> Dict[str, Optional[str]]:
@@ -174,6 +208,11 @@ class NemoParser:
             if self.competitive and category == "VERB" and                     word in self.transitive_verbs:
                 from .nemo_rules import competitive_verb_program
                 program = competitive_verb_program(core)
+            elif self.sequential and category == "VERB":
+                # The sequencer owns the advance, so the verb must NOT also
+                # carry it -- `trans_verb_program`'s POST area rules would
+                # double-step and skip a slot.
+                program = sequential_verb_program(core)
             if program is None:
                 out[word] = None
                 continue
@@ -193,6 +232,9 @@ class NemoParser:
 
                     prepare_targets(self.brain, self.state, lex_area=core)
                     proj = self.state.project_map(self.brain, lex_area=core)
+                    # Captured BEFORE the word's own post rules or the
+                    # sequencer run, so it is the slot this word arrived at.
+                    open_slot = self._open_slot() if self.sequential else None
                     if not self.competitive:
                         # In the SVO program two open slots is a MALFORMED rule
                         # set. In competitive mode offering two slots IS the
@@ -301,6 +343,19 @@ class NemoParser:
                         # seeing the previous noun's surviving binding -- and it
                         # would then have closed that slot spuriously.
                         out[word] = self._role_from(proj, core)
+                    elif self.sequential:
+                        # Exactly one slot is open, so the slot the word landed
+                        # in IS the open one -- no overlap matching needed, and
+                        # no ambiguity to resolve. Then ADVANCE: close what was
+                        # filled, open the next slot of this order. Only
+                        # CONTENT words consume a slot; a determiner that
+                        # advanced would put "the dog" in the object slot.
+                        out[word] = _ROLE_LABEL.get(open_slot) if open_slot else None
+                        if category in CONTENT_CATEGORIES and open_slot:
+                            self.state.inhibit_area(open_slot, 0)
+                            nxt = self._next_slot(open_slot)
+                            if nxt is not None:
+                                self.state.disinhibit_area(nxt, 0)
                     elif self.use_lexical:
                         out[word] = self._blend(
                             word, core, self._role_from(proj, core))

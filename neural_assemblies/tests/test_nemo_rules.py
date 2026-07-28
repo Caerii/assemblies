@@ -10,8 +10,10 @@ import pytest
 
 from neural_assemblies.core.inhibition import InhibitionState, apply_rule
 from neural_assemblies.assembly_calculus.emergent.nemo_rules import (
-    CATEGORY_CORE, all_areas, category_addresses_open_slot, initial_open_areas,
-    intrans_verb_program, noun_program, program_for_category, trans_verb_program,
+    CATEGORY_CORE, CONTENT_CATEGORIES, SLOT_SEQUENCES, all_areas,
+    category_addresses_open_slot, initial_open_areas, intrans_verb_program,
+    noun_program, program_for_category, sequential_initial_open_areas,
+    sequential_verb_program, slot_sequence, trans_verb_program,
 )
 from neural_assemblies.assembly_calculus.emergent.core.areas import (
     NOUN_CORE, ROLE_ACTION, ROLE_AGENT, ROLE_PATIENT, VERB_CORE,
@@ -198,3 +200,65 @@ class TestElanCategoryMismatch:
     def test_unknown_category_is_a_mismatch_not_a_missing_value(self):
         state = self._object_position_state()
         assert category_addresses_open_slot(state, "ADVERB") is False
+
+
+class TestSequentialSlotOrders:
+    """One mechanism, six word orders.
+
+    The old rule table hard-coded the verb as the word that advances the slot,
+    which is why anything but SVO raised. Attaching the advance to SLOT
+    CONSUMPTION instead makes the order just a sequence, and the same machinery
+    runs all six -- including the object-initial orders that could not be
+    expressed at all before.
+    """
+
+    def test_every_order_has_all_three_slots_exactly_once(self):
+        for order, seq in SLOT_SEQUENCES.items():
+            assert sorted(seq) == sorted(
+                (ROLE_AGENT, ROLE_ACTION, ROLE_PATIENT)), order
+
+    def test_sequence_matches_the_name(self):
+        """S/O/V in the name must be the order the slots are consumed in."""
+        letter = {ROLE_AGENT: "S", ROLE_PATIENT: "O", ROLE_ACTION: "V"}
+        for order, seq in SLOT_SEQUENCES.items():
+            assert "".join(letter[s] for s in seq) == order
+
+    def test_object_initial_order_opens_the_patient_slot_first(self):
+        """OVS was previously inexpressible: the first slot is the OBJECT."""
+        opened = sequential_initial_open_areas("OVS")
+        assert ROLE_PATIENT in opened
+        assert ROLE_AGENT not in opened, (
+            "an object-initial order must NOT start with the agent slot open, "
+            "or the first noun binds as agent and the order is not encoded"
+        )
+
+    def test_svo_still_opens_the_agent_slot_first(self):
+        opened = sequential_initial_open_areas("SVO")
+        assert ROLE_AGENT in opened
+        assert ROLE_PATIENT not in opened
+
+    def test_only_the_first_slot_is_open(self):
+        """Exactly one open slot is what makes the readout unambiguous."""
+        for order in SLOT_SEQUENCES:
+            opened = set(sequential_initial_open_areas(order))
+            roles = opened & {ROLE_AGENT, ROLE_ACTION, ROLE_PATIENT}
+            assert roles == {slot_sequence(order)[0]}, order
+
+    def test_unknown_order_raises_rather_than_defaulting(self):
+        """Silently falling back to SVO would fake support for an order."""
+        with pytest.raises(NotImplementedError):
+            slot_sequence("XYZ")
+
+    def test_sequential_verb_program_does_not_move_the_slot(self):
+        """The sequencer owns the advance; a verb carrying it too double-steps."""
+        prog = sequential_verb_program(VERB_CORE)
+        assert not [r for r in prog.post if r.kind == "area"], (
+            "sequential_verb_program must not contain area rules -- those are "
+            "the SVO slot advance, and the sequencer already does it"
+        )
+
+    def test_modifiers_are_not_content_and_so_never_advance(self):
+        """A determiner that advanced would put 'the dog' in the object slot."""
+        assert "DET" not in CONTENT_CATEGORIES
+        assert "ADJ" not in CONTENT_CATEGORIES
+        assert {"NOUN", "PRON", "VERB"} <= CONTENT_CATEGORIES
