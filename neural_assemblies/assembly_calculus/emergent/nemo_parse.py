@@ -49,7 +49,8 @@ from neural_assemblies.core.inhibition import (
 
 from .core.areas import ROLE_ACTION, ROLE_AGENT, ROLE_PATIENT
 from .nemo_rules import (
-    CONTENT_CATEGORIES, all_areas, initial_open_areas, program_for_category,
+    CONTENT_CATEGORIES, all_areas, category_addresses_open_slot,
+    initial_open_areas, program_for_category,
     sequential_initial_open_areas, sequential_verb_program, slot_sequence,
 )
 
@@ -141,6 +142,9 @@ class NemoParser:
             not competitive and self.word_order_type != "SVO")
         self._sequence = (slot_sequence(self.word_order_type)
                           if self.sequential else ())
+        #: [(word, addressed_open_slot?)] from the last parse. None means no
+        #: slot was open to address. Recorded live during parsing.
+        self.last_mismatches: List[tuple] = []
         if competitive:
             from .nemo_rules import competitive_initial_open_areas
             open_areas = competitive_initial_open_areas()
@@ -235,6 +239,19 @@ class NemoParser:
                     # Captured BEFORE the word's own post rules or the
                     # sequencer run, so it is the slot this word arrived at.
                     open_slot = self._open_slot() if self.sequential else None
+                    if self.sequential:
+                        # The ELAN signal, recorded from the LIVE gating state
+                        # rather than re-simulated afterwards. `slots` is the
+                        # order's full sequence, not just the filler slots, so
+                        # a noun meeting the ACTION slot counts as a mismatch --
+                        # which is exactly what a wrong VERB POSITION produces.
+                        self.last_mismatches.append((
+                            word,
+                            category_addresses_open_slot(
+                                self.state, category,
+                                transitive=word in self.transitive_verbs,
+                                core_area=core, slots=self._sequence),
+                        ))
                     if not self.competitive:
                         # In the SVO program two open slots is a MALFORMED rule
                         # set. In competitive mode offering two slots IS the

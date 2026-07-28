@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from typing import List, Optional
 
 from .grounding import GroundingContext
+from .scene import SceneEvent
 
 
 @dataclass
@@ -34,6 +35,13 @@ class GroundedSentence:
     contexts: List[GroundingContext]
     roles: List[Optional[str]] = None
     mood: str = "declarative"
+    #: PERCEIVED event structure, when the corpus supplies it. Unlike `roles`,
+    #: this IS part of the experience: it says who acted on whom, with
+    #: participants identified by perceptual FEATURES rather than by words, and
+    #: ordered by CAUSAL role rather than by word order. `scene.roles_from_scene`
+    #: turns it into per-word roles without consulting position, which is what
+    #: makes word-order induction non-circular. See `core/scene.py`.
+    event: Optional["SceneEvent"] = None
 
     def __post_init__(self):
         if self.roles is None:
