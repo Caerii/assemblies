@@ -14,6 +14,36 @@ Key properties:
 - Hash function matches CUDA kernels in kernels/implicit.py
 - Custom CUDA kernels for fused projection hot paths
 
+KNOWN DEFECT -- THE CONNECTIVITY THIS ENGINE BUILDS IS NOT BERNOULLI (task #37)
+-------------------------------------------------------------------------------
+``(src * 2654435761) ^ (dst * 2246822519) ^ seed`` thresholded on its low 24
+bits has the right DENSITY and the wrong dependence structure, because those
+low bits are close to a function of the low bits of src and dst alone. Measured
+on a 2048x2048 block at p=0.05 (neural_assemblies/tests/test_seeding.py):
+
+    source                   density row chi2/df col chi2/df corr(i,i+1)
+    numpy Generator          0.05003       0.960       0.996    -0.00048
+    hash RAW (this engine)   0.05000       3.918       0.018    -0.05263
+    hash + fmix32            0.05023       0.980       0.944     0.00031
+
+Column dispersion 0.018 means IN-DEGREE IS NEARLY CONSTANT -- column sums vary
+by ~1.3 where Binomial says ~9.9. ``norm_init`` divides each postsynaptic
+neuron's incoming weights by its in-degree, so this does not merely look wrong,
+it disables that mechanism while every density check stays green. Rows are
+over-dispersed 4x and neighbouring synapses anti-correlate, which k-WTA reads
+directly.
+
+THE FIX is ``_seeding.mix32`` (murmur3 fmix32) applied before the threshold,
+which restores all three statistics. It is NOT applied here yet, deliberately:
+the same hash appears at six sites across this file and kernels/implicit.py,
+cupy is not installed in the development environment, and a change that fixes
+the engine but not the .cu kernels would leave the two DISAGREEING about which
+synapses exist -- worse than the current uniform bias. Apply it to every site
+at once, on a machine that can run tests/test_cuda_kernels.py.
+
+Nothing currently depends on this path: it requires cupy, and no committed
+result was produced with it. Treat it as latent, not active.
+
 Requires: cupy (for GPU arrays; kernels in kernels/implicit.py are optional).
 """
 

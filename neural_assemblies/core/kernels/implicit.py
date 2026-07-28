@@ -14,6 +14,25 @@ Ultra-optimized kernels using:
 
 Memory: O(learned_connections) instead of O(n^2)
 
+KNOWN DEFECT -- THE IMPLICIT CONNECTIVITY IS NOT BERNOULLI (task #37)
+---------------------------------------------------------------------
+Every kernel below decides an edge with
+    hash = (src * 2654435761u) ^ (dst * 2246822519u) ^ seed;
+    connected = (hash & 0xFFFFFFu) < p * 2^24;
+and the low 24 bits it tests are close to a function of the low bits of src and
+dst alone. Density comes out right, dependence structure does not. Measured on
+the identical formula in numpy (neural_assemblies/tests/test_seeding.py,
+test_raw_kernel_hash_is_biased), 2048x2048 at p=0.05: per-column dispersion
+0.018 against 1.0 -- in-degree nearly CONSTANT -- and adjacent-cell correlation
+-0.053. Since ``norm_init`` scales each neuron's incoming weights by its
+in-degree, a degenerate in-degree distribution silently disables it.
+
+FIX: murmur3 fmix32 before the threshold (see ``_seeding.mix32``, which restores
+all three statistics). Applied to ALL sites at once -- there are four here plus
+two in cuda_engine.py, and fixing a subset makes the engine and the kernels
+disagree about which synapses exist. Requires cupy to test; not installed in the
+current dev environment, which is why this is documented rather than done.
+
 Changelog:
 - 1.1.0: Added PyTorch top-k integration, FP16 support
 - 1.0.0: Initial implicit connectivity implementation
