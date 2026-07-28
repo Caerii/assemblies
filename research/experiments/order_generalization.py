@@ -36,6 +36,38 @@ PREDICTIONS, recorded before running
    across the orders that share a verb position, since neither noun prefers a
    role. Reported explicitly, because a tie here is the CORRECT answer and not
    a failure.
+
+RESULT (2026-07-28) -- HALF VALID, AND THE TRANSFER HALF IS NOT
+----------------------------------------------------------------
+    true  induced   transfer   wrong-order ctrl   balanced-only
+    SVO   SVO         0.237          0.325        no preference
+    SOV   SOV         0.250          0.200        no preference
+    VSO   VSO         0.188          0.087        no preference
+    VOS   VOS         0.188          0.037        no preference
+    OSV   OSV         0.250          0.150        no preference
+    OVS   OVS         0.237          0.037        no preference
+
+Prediction 1 CONFIRMED: induction recovers the true order 6/6.
+Prediction 4 CONFIRMED: balanced items alone induce nothing, as they should.
+
+**Prediction 2 is UNTESTED, not refuted, and the transfer column must not be
+read.** `BALANCED_WORDS` is (boy, girl, man, woman, child), but only boy and
+girl are in `core.grounding.VOCABULARY`. Words outside it are learned as
+stimuli and classify correctly, yet never enter a CORE LEXICON -- and
+`NemoParser.parse` silently SKIPS such a word, so it returns None and the slot
+sequence never advances. Instrumented: `_open_slot` is not even called for
+`man`. Every held-out item whose object is man/woman/child could not score, and
+the measured pattern is exactly that -- subject and verb always right, object
+None unless it is `girl`.
+
+That also makes the wrong-order control uninterpretable here (for SVO it
+"beats" the induced order, 0.325 vs 0.237), which is the tell: a real
+positional template cannot lose to a wrong order on reversible items, since
+gating is measured elsewhere at 1.000 on exactly these.
+
+DO NOT re-run for the transfer claim until task #34 lands. Then either fix
+lexicon coverage or restrict BALANCED_WORDS to in-vocabulary words -- but note
+that leaves only boy/girl/bird, which is thin for a transfer test.
 """
 
 from __future__ import annotations
