@@ -28,6 +28,23 @@ except ImportError:
     from compute.winner_policies import TopKPolicy
 
 from ._state import SparseAreaState, StimulusState
+from ._seeding import (
+    fnv1a_pair_seed,
+    hash_area_weights,
+    stable_seed,
+)
+
+
+def _env_content_init() -> bool:
+    """Whether area->area weights are addressed by (row, col) or by draw order.
+
+    On by default. Set ``ASSEMBLIES_STREAM_INIT=1`` to restore the old
+    stream-addressed behaviour -- kept only so the two can be A/B'd on the same
+    seed, since this switch moves every seeded weight (not their distribution).
+    """
+    return os.environ.get("ASSEMBLIES_STREAM_INIT", "").strip().lower() not in (
+        "1", "true", "yes", "on",
+    )
 
 
 def _warn_fixed_target_enabled() -> bool:
@@ -69,19 +86,9 @@ def _warn_fixed_target_enabled() -> bool:
 _STIM_FASTPATH = True
 
 
-def stable_seed(*parts) -> int:
-    """A 32-bit seed from `parts` that is identical in every process.
-
-    MUST be used instead of ``hash(...)`` for anything that seeds an RNG.
-    Python randomizes ``hash()`` of str/bytes per process (PEP 456), so
-    ``hash((src, tgt, nr, nc))`` is stable WITHIN a run and different across
-    runs. Three lazy-connectome sites here seeded ``default_rng`` that way and
-    were commented "deterministic per-pair seed" -- they were not, and the
-    result was that `Brain(seed=42)` trained different weights from one process
-    to the next. Measured on the Geschwind lesion study: ~1/3 of PYTHONHASHSEED
-    values changed the reported accuracy (1.00 vs 0.50), and one crashed.
-    """
-    return zlib.crc32(repr(parts).encode("utf-8")) & 0xFFFFFFFF
+# ``stable_seed`` moved to ._seeding and is re-exported above: it belongs with
+# the rest of the seeding policy, and importers outside this module rely on the
+# name being here.
 
 # Materialized fraction w/n at which an area stops being treated as sparse and
 # its stim vectors are allocated to the full n in one shot, so no first-time
@@ -177,6 +184,13 @@ class NumpySparseEngine(ComputeEngine):
         self.norm_init = norm_init
         self._deterministic = deterministic
         self._rng = np.random.default_rng(seed)
+        # Kept alongside the Generator because content-addressed init needs the
+        # seed VALUE, not a cursor into a stream. When no seed was given, one is
+        # drawn once here so a fiber's identity is still fixed for this engine.
+        self._seed = (int(seed) if seed is not None
+                      else int(self._rng.integers(0, 2 ** 32)))
+        self._content_init = _env_content_init()
+        self._pair_seeds: Dict[tuple, int] = {}
         self._plasticity_enabled_global = True
         self._projection_fidelity = ProjectionFidelity.normalize(projection_fidelity)
 
@@ -231,6 +245,34 @@ class NumpySparseEngine(ComputeEngine):
         inh = present & (rng.random(shape) < self.inhibitory_prob)
         w[inh] = self.inhibitory_weight
         return w
+
+    def _pair_seed(self, source: str, target: str) -> int:
+        """Seed identifying one fiber, cached. Depends only on names + seed."""
+        key = (source, target)
+        seed = self._pair_seeds.get(key)
+        if seed is None:
+            seed = fnv1a_pair_seed(self._seed, source, target)
+            self._pair_seeds[key] = seed
+        return seed
+
+    def _init_area_block(self, source, target, r0, r1, c0, c1):
+        """Initial weights for absolute rows [r0,r1) x cols [c0,c1) of a fiber.
+
+        Addressed by position, so which cells a caller happens to ask for --
+        and in what order -- cannot change any of their values. That is the
+        whole point: growth by rows-then-columns and by columns-then-rows must
+        produce the same matrix, or "the same brain" depends on parse order.
+
+        The legacy branch draws from the shared stream instead and is order
+        dependent by construction; it exists only for A/B'ing the switch.
+        """
+        if not self._content_init:
+            return to_xp(self._sample_area_weights(
+                (max(r1 - r0, 0), max(c1 - c0, 0)), self._rng))
+        return to_xp(hash_area_weights(
+            r0, r1, c0, c1, self._pair_seed(source, target), self.p,
+            self.inhibitory_prob, self.inhibitory_weight,
+        ))
 
     # -- norm_init: one-time incoming-weight normalization -------------------
 
@@ -547,9 +589,12 @@ class NumpySparseEngine(ComputeEngine):
         # dimension; shrinking it would drop live columns.
         nr, nc = max(nr, cr), max(nc, cc)
 
-        lazy_seed = stable_seed(src_name, target, nr, nc)
-        lazy_rng = np.random.default_rng(lazy_seed)
-        fresh = to_xp(self._sample_area_weights((nr, nc), lazy_rng))
+        # Content-addressed, so this agrees CELL BY CELL with what
+        # _expand_connectomes would have written. Under the old per-shape seed
+        # the two paths sampled independently, so a cell's weight depended on
+        # which path happened to materialise it first -- order dependence of
+        # the same kind, one level up.
+        fresh = self._init_area_block(src_name, target, 0, nr, 0, nc)
 
         # Preserve everything already learned. Overwriting the whole block
         # would discard the accumulated Hebbian weights every time the target
@@ -930,11 +975,8 @@ class NumpySparseEngine(ComputeEngine):
                 src = self._areas[src_name]
                 nr, nc = src.w, new_w
                 if nr > 0 and nc > 0:
-                    lazy_seed = stable_seed(src_name, target, nr, nc)
-                    lazy_rng = np.random.default_rng(lazy_seed)
-                    conn.weights = to_xp(
-                        self._sample_area_weights((nr, nc), lazy_rng)
-                    )
+                    conn.weights = self._init_area_block(
+                        src_name, target, 0, nr, 0, nc)
 
         result = ProjectionResult(
             winners=np.array(new_winner_indices, dtype=np.uint32),
@@ -1205,17 +1247,13 @@ class NumpySparseEngine(ComputeEngine):
 
             if self._deterministic:
                 if needed_rows > phys_rows:
-                    nr = needed_rows - phys_rows
-                    new_rows = to_xp(
-                        self._sample_area_weights((nr, phys_cols), self._rng)
-                    )
+                    new_rows = self._init_area_block(
+                        src_name, target, phys_rows, needed_rows, 0, phys_cols)
                     conn.weights = xp.vstack([conn.weights, new_rows]) if phys_cols > 0 else xp.zeros((needed_rows, 0), dtype=xp.float32)
                     phys_rows = needed_rows
                 if needed_cols > phys_cols:
-                    nc = needed_cols - phys_cols
-                    new_cols = to_xp(
-                        self._sample_area_weights((phys_rows, nc), self._rng)
-                    )
+                    new_cols = self._init_area_block(
+                        src_name, target, 0, phys_rows, phys_cols, needed_cols)
                     conn.weights = xp.hstack([conn.weights, new_cols]) if phys_rows > 0 else xp.zeros((0, needed_cols), dtype=xp.float32)
                     phys_cols = needed_cols
             else:
@@ -1241,27 +1279,39 @@ class NumpySparseEngine(ComputeEngine):
                     conn.weights = buf
                     phys_rows, phys_cols = new_pr, new_pc
 
+                # The three pieces of the L-shaped new region. Under
+                # content addressing each is written at its ABSOLUTE position,
+                # so splitting the region this way is invisible: the same cell
+                # gets the same value whichever piece happens to cover it.
                 nr = needed_rows - log_rows
                 nc = needed_cols - log_cols
                 if nr > 0 and log_cols > 0:
-                    conn.weights[log_rows:needed_rows, :log_cols] = to_xp(
-                        self._sample_area_weights((nr, log_cols), self._rng)
-                    )
+                    conn.weights[log_rows:needed_rows, :log_cols] = (
+                        self._init_area_block(src_name, target, log_rows,
+                                            needed_rows, 0, log_cols))
                 if nc > 0 and log_rows > 0:
-                    conn.weights[:log_rows, log_cols:needed_cols] = to_xp(
-                        self._sample_area_weights((log_rows, nc), self._rng)
-                    )
+                    conn.weights[:log_rows, log_cols:needed_cols] = (
+                        self._init_area_block(src_name, target, 0, log_rows,
+                                            log_cols, needed_cols))
                 if nr > 0 and nc > 0:
-                    conn.weights[log_rows:needed_rows, log_cols:needed_cols] = to_xp(
-                        self._sample_area_weights((nr, nc), self._rng)
-                    )
+                    conn.weights[log_rows:needed_rows, log_cols:needed_cols] = (
+                        self._init_area_block(src_name, target, log_rows,
+                                            needed_rows, log_cols, needed_cols))
 
                 conn._log_rows = max(getattr(conn, '_log_rows', 0), needed_rows)
                 conn._log_cols = max(getattr(conn, '_log_cols', 0), needed_cols)
 
             # -- Write specific allocations for first-time winners --
             from_index = inputs_names.index(src_name)
-            local_rng = np.random.default_rng(self._rng.integers(0, 2**32))
+            # Which presynaptic winners a first-time winner attaches to is part
+            # of INITIALISATION, so it is keyed on the fiber and the growth
+            # point rather than drawn from the shared stream. Left on the
+            # stream it would reintroduce the order dependence one layer below
+            # the weights themselves.
+            local_rng = np.random.default_rng(
+                stable_seed(self._seed, src_name, target, prior_w, new_w)
+                if self._content_init
+                else self._rng.integers(0, 2**32))
             src_winners_cpu = np.asarray(
                 to_cpu(src.winners) if hasattr(src.winners, 'get') else src.winners
             )
