@@ -52,6 +52,20 @@ WHAT WOULD FALSIFY THE HEADLINE CLAIM
 A flat held-out gradient with an intact trained gradient. That is memorisation
 wearing the appearance of structure, and it is the outcome this design exists to
 be able to see.
+RE-BASELINED 2026-07-28, after synapse initialisation became content-addressed
+------------------------------------------------------------------------------
+That change moves every seeded weight, so any number here derived from one seed
+was unverified until re-derived. Re-run over 5 seeds under BOTH disciplines by
+``rebaseline.py``, which reports the reduced claim as mean +/- 95% CI:
+
+    unseen_gradient     +0.2298 +/- 0.0264  (content)   +0.2436 +/- 0.0149  (stream)
+    unseen_minus_seen   +0.0208 +/- 0.0068  (content)   +0.0168 +/- 0.0171  (stream)
+
+Both survive, the two disciplines overlap, and ``unseen_minus_seen`` is
+positive with its interval excluding zero under the current engine -- unseen
+combinations score slightly ABOVE trained ones, not merely level with them.
+Change a number here and change it there; ``rebaseline.py`` is what actually
+gets re-run.
 """
 
 from __future__ import annotations

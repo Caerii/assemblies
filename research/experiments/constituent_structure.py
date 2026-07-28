@@ -55,6 +55,23 @@ compositional costume. Two things are reported to catch this: mean training-
 index distance per bin (are the bins balanced?), and the bin profile recomputed
 on DISTANT pairs only. A structure effect that survives on distant pairs is not
 proximity.
+
+RE-BASELINED 2026-07-28, after synapse initialisation became content-addressed
+------------------------------------------------------------------------------
+That change moves every seeded weight, so any number here derived from one seed
+was unverified until re-derived. Re-run over 5 seeds under BOTH disciplines by
+``rebaseline.py``, which reduces each claim to a contrast and reports mean +/-
+95% CI:
+
+    shares subject           +0.2492 +/- 0.0449 (content)  +0.2307 +/- 0.0360 (stream)
+    shares verb              +0.1213 +/- 0.0152 (content)  +0.1145 +/- 0.0148 (stream)
+    shares subject, DISTANT  +0.1696 +/- 0.0514 (content)  +0.1626 +/- 0.0427 (stream)
+
+All three survive and the two disciplines overlap everywhere, so the
+initialisation change moved the numbers without moving the result. The distant
+row is the one that matters most: the structure effect is still there once
+training proximity cannot explain it, which is what PREDICTION 1 needed and
+what the confound above was written to catch.
 """
 
 from __future__ import annotations
