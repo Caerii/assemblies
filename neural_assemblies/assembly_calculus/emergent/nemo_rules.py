@@ -243,6 +243,70 @@ def program_for_category(category: str, *, transitive: bool = True,
     return None
 
 
+#: Role slots a filler can be expected in. ROLE_ACTION is excluded: it is open
+#: throughout the SVO program, so counting it would make every verb "expected"
+#: everywhere and the mismatch could never fire.
+_FILLER_SLOTS = (ROLE_AGENT, ROLE_PATIENT)
+
+
+def category_addresses_open_slot(state, category: str, *,
+                                 transitive: bool = True,
+                                 core_area: Optional[str] = None,
+                                 slots=_FILLER_SLOTS) -> Optional[bool]:
+    """Does this word's LEARNED category address the slot the syntax has open?
+
+    THE ELAN ANALOGUE, and it costs nothing to compute. The audit's finding was
+    that "there is no ELAN because expected-vs-actual is not represented
+    anywhere". With fiber state it IS: `expected` is whichever role slot the
+    rule programs have left disinhibited, and `actual` is the set of slots the
+    incoming word's program opens fibers to. A category violation is exactly
+    the case where those do not intersect --
+
+        noun in object position   noun_program opens fibers to AGENT and
+                                  PATIENT, PATIENT is the open slot   -> True
+        verb in object position   trans_verb_program targets ROLE_ACTION
+                                  only, so the open patient slot is
+                                  never addressed                     -> False
+        NOVEL noun                still a noun program, so it addresses the
+                                  slot exactly like a trained noun     -> True
+
+    That last row is the point: this responds to word-CATEGORY violations and
+    is blind to lexical novelty, which is the dissociation the ERP literature
+    reports between ELAN and N400. It is also available at word ONSET, before
+    any binding or settling, matching ELAN's early timing.
+
+    HONEST SCOPE. This is a predicate over gating state, NOT a neural energy --
+    it reads the rule program rather than measuring dynamics. What keeps it
+    from being a category lookup in disguise is that the CATEGORY IS LEARNED
+    (that is this repo's contribution); the mismatch is between a learned
+    category's program and the syntactic state, and nothing here names which
+    word is which. Its virtue is the same one that made the competition the
+    best P600 candidate: no ad-hoc energy function.
+
+    Returns None when no filler slot is open at all -- there is nothing being
+    expected, so "mismatch" is not defined rather than false.
+    """
+    open_slots = [s for s in slots if state.area_open(s)]
+    if not open_slots:
+        return None
+    program = program_for_category(
+        category, transitive=transitive, core_area=core_area)
+    if program is None:
+        # A category with no rule program cannot address anything. That is a
+        # mismatch, not a missing measurement.
+        return False
+    # Only fibers leaving the WORD'S OWN CORE count. `trans_verb_program` also
+    # opens ROLE_ACTION<->ROLE_AGENT so the verb can reach its subject, and
+    # counting that made a sentence-initial verb look like it addressed the
+    # agent slot -- i.e. no category violation at all. Caught by
+    # `test_subject_position_also_addressed_by_a_noun`.
+    core = core_area or CATEGORY_CORE.get(category)
+    targets = {rule.a2 for rule in program.pre
+               if rule.kind == "fiber" and rule.action == DISINHIBIT
+               and rule.a1 == core}
+    return any(slot in targets for slot in open_slots)
+
+
 def all_areas() -> List[str]:
     """Areas the inhibition state machine must know about."""
     return list(CORE_AREAS) + [ROLE_AGENT, ROLE_ACTION, ROLE_PATIENT]

@@ -10,8 +10,8 @@ import pytest
 
 from neural_assemblies.core.inhibition import InhibitionState, apply_rule
 from neural_assemblies.assembly_calculus.emergent.nemo_rules import (
-    CATEGORY_CORE, all_areas, initial_open_areas, intrans_verb_program,
-    noun_program, program_for_category, trans_verb_program,
+    CATEGORY_CORE, all_areas, category_addresses_open_slot, initial_open_areas,
+    intrans_verb_program, noun_program, program_for_category, trans_verb_program,
 )
 from neural_assemblies.assembly_calculus.emergent.core.areas import (
     NOUN_CORE, ROLE_ACTION, ROLE_AGENT, ROLE_PATIENT, VERB_CORE,
@@ -138,3 +138,63 @@ class TestSvoGating:
         for r in intrans_verb_program(VERB_CORE).post:
             apply_rule(s, r)
         assert not s.area_open(ROLE_PATIENT)
+
+
+class TestElanCategoryMismatch:
+    """The ELAN analogue: does the word's category address the open slot?
+
+    The load-bearing row is `test_novel_noun_behaves_like_a_trained_noun`. A
+    measure that fired for novel words would be a generic anomaly detector, not
+    an ELAN -- the ERP literature's whole point is that ELAN tracks word
+    CATEGORY while N400 tracks lexical/semantic fit, and they dissociate.
+    """
+
+    @staticmethod
+    def _object_position_state():
+        """State after 'the dog chases': the object slot is the open one."""
+        state = InhibitionState(all_areas(), initial_open_areas("SVO"))
+        for rule in trans_verb_program(VERB_CORE).post:
+            apply_rule(state, rule)
+        assert state.area_open(ROLE_PATIENT)
+        assert not state.area_open(ROLE_AGENT)
+        return state
+
+    def test_noun_addresses_the_open_object_slot(self):
+        state = self._object_position_state()
+        assert category_addresses_open_slot(state, "NOUN") is True
+
+    def test_verb_in_object_position_is_a_mismatch(self):
+        """The category violation: the verb's program never targets the slot."""
+        state = self._object_position_state()
+        assert category_addresses_open_slot(state, "VERB") is False, (
+            "a transitive verb opens VERB_CORE->ROLE_ACTION only, so the open "
+            "patient slot is never addressed -- that IS the category violation"
+        )
+
+    def test_novel_noun_behaves_like_a_trained_noun(self):
+        """Blind to lexical novelty, by construction.
+
+        Novelty lives in the connectome, not the rule table: an unseen noun
+        that was CATEGORISED as a noun selects `noun_program` exactly like a
+        trained one. So this fires for category violations and not for novel
+        words, which is the ELAN/N400 dissociation.
+        """
+        state = self._object_position_state()
+        assert (category_addresses_open_slot(state, "NOUN")
+                is category_addresses_open_slot(state, "PRON") is True)
+
+    def test_subject_position_also_addressed_by_a_noun(self):
+        """At sentence start the open slot is AGENT, and a noun addresses it."""
+        state = InhibitionState(all_areas(), initial_open_areas("SVO"))
+        assert category_addresses_open_slot(state, "NOUN") is True
+        assert category_addresses_open_slot(state, "VERB") is False
+
+    def test_returns_none_when_no_filler_slot_is_open(self):
+        """Nothing expected -> mismatch is undefined, not False."""
+        state = InhibitionState(all_areas(), initial_open_areas("SVO"))
+        state.inhibit_area(ROLE_AGENT, 0)
+        assert category_addresses_open_slot(state, "NOUN") is None
+
+    def test_unknown_category_is_a_mismatch_not_a_missing_value(self):
+        state = self._object_position_state()
+        assert category_addresses_open_slot(state, "ADVERB") is False
