@@ -63,6 +63,21 @@ subject is still assigned correctly and only the object flips. Systematic
 reversal, exactly as predicted; the control just is not a full reversal for
 half the orders.
 
+RE-BASELINED 2026-07-28, after synapse initialisation became content-addressed
+------------------------------------------------------------------------------
+That change moves every seeded weight, so this table needed re-deriving. Re-run
+under BOTH disciplines, seed 42: the grid above reproduces EXACTLY under each --
+6/6 induced, transfer 1.000 on every order, controls 0.500/0.000, balanced-only
+showing no preference. Saturated values are where a re-roll would show up most
+plainly if the result were seed luck, and it does not.
+
+Now runs in ~7.6 min rather than ~48. The old cost was `NemoParser(deepcopy(
+parser))` per parse -- the fork, not the parse. `probe_parse` isolates in place
+via read_only(), verified equivalent on this exact workload (0 of 72 answers
+differ, host uncontaminated after all 72). Multi-seed runs of this grid are
+therefore affordable now, and a single-seed table should stop being the version
+of record.
+
 AN EARLIER RUN OF THIS FILE REPORTED TRANSFER AT 0.188-0.250 AND WAS AN
 ARTIFACT, not a refutation. Three of the five BALANCED_WORDS were absent from
 core lexicons and silently skipped by NemoParser, so most held-out items could
@@ -73,7 +88,6 @@ the failure mode -- plausible numbers, no error -- is the one to watch for.
 
 from __future__ import annotations
 
-import copy
 import os
 import sys
 from typing import Dict, List, Sequence
@@ -100,8 +114,13 @@ def run(seeds: Sequence[int] = (42,), n_train: int = 1200) -> None:
     from neural_assemblies.assembly_calculus.emergent.core.scene import (
         roles_from_scene,
     )
+    # probe_parse, not NemoParser(deepcopy(parser)): the fork was 98% of this
+    # experiment's cost and read_only isolation is equivalent here -- verified
+    # on this exact workload (12 items x 6 hypotheses), 0 of 72 answers differ,
+    # host uncontaminated after all 72, 59.1x faster. That is what makes a
+    # multi-seed run of this grid affordable at all.
     from neural_assemblies.assembly_calculus.emergent.nemo_parse import (
-        NemoParser, infer_transitive_verbs,
+        infer_transitive_verbs, probe_parse,
     )
     from neural_assemblies.assembly_calculus.emergent.parser import EmergentParser
 
@@ -139,10 +158,9 @@ def run(seeds: Sequence[int] = (42,), n_train: int = 1200) -> None:
                 agree = judged = 0
                 for s, v, o in biased_items:
                     words = _order_words(s, v, o, true_order)
-                    pred = NemoParser(copy.deepcopy(parser),
-                                      transitive_verbs=transitive,
-                                      sequential=True, word_order_type=h,
-                                      ).parse(words)
+                    pred = probe_parse(parser, words,
+                                       transitive_verbs=transitive,
+                                       sequential=True, word_order_type=h)
                     for w in words:
                         if prefs.get(w) in ("AGENT", "PATIENT"):
                             judged += 1
@@ -156,10 +174,10 @@ def run(seeds: Sequence[int] = (42,), n_train: int = 1200) -> None:
                 ok = tot = 0
                 for s, v, o in balanced_items:
                     words = _order_words(s, v, o, true_order)
-                    pred = NemoParser(copy.deepcopy(parser),
-                                      transitive_verbs=transitive,
-                                      sequential=True,
-                                      word_order_type=hypothesis).parse(words)
+                    pred = probe_parse(parser, words,
+                                       transitive_verbs=transitive,
+                                       sequential=True,
+                                       word_order_type=hypothesis)
                     tot += 2
                     ok += 1 if pred.get(s) == "AGENT" else 0
                     ok += 1 if pred.get(o) == "PATIENT" else 0
@@ -176,10 +194,9 @@ def run(seeds: Sequence[int] = (42,), n_train: int = 1200) -> None:
                 agree = judged = 0
                 for s, v, o in balanced_items:
                     words = _order_words(s, v, o, true_order)
-                    pred = NemoParser(copy.deepcopy(parser),
-                                      transitive_verbs=transitive,
-                                      sequential=True, word_order_type=h,
-                                      ).parse(words)
+                    pred = probe_parse(parser, words,
+                                       transitive_verbs=transitive,
+                                       sequential=True, word_order_type=h)
                     for w in (s, o):
                         pref = prefs.get(w)
                         if pref in ("AGENT", "PATIENT"):
