@@ -56,6 +56,26 @@ from ..core.areas import (
 from ..core.grounding import GroundingContext, VOCABULARY
 from ..curriculum.data import GroundedSentence, create_training_sentences
 
+#: Projection rounds for MERGE into a multi-assembly area.
+#: Below `self.rounds` because deep reinforcement builds one strong attractor
+#: and merges the rest. On the ISOLATED primitive this is decisive: 94 merges
+#: into an n=1000 area give pairwise overlap 0.752 at rounds 10, 0.078 at 3,
+#: 0.051 at 1.
+#:
+#: NOT load-bearing on the parser's own path, and it is not what collapsed VP
+#: -- that was `reset_area_connections(VP)`, see `train_phrases`. Swept on the
+#: real path after removing the reset (seed 42, 32 constituents), the value
+#: barely matters and is not even monotonic:
+#:
+#:     rounds    1      2      3      5     10
+#:     overlap   0.299  0.444  0.562  0.390  0.406
+#:     rank-1    0.781  0.781  0.781  0.781  0.781   (subject cue; flat)
+#:
+#: Kept at 2 for consistency with `_ROLE_BINDING_ROUNDS`, which faced the same
+#: shared-area problem. Do not read the spread above as tuning signal: it is
+#: one seed, and the differences are within what seed variation covers.
+MERGE_ROUNDS = 2
+
 
 # Modality field names on GroundingContext (order matters for dominant_modality)
 _MODALITY_FIELDS = (
@@ -750,10 +770,17 @@ class CoreParserMixin:
                     VERB_CORE, rounds=self.rounds,
                 )
 
-                # Merge subject + verb into VP
+                # Merge subject + verb into VP.
+                #
+                # Shallow rounds, matching `_ROLE_BINDING_ROUNDS` above and for
+                # the same documented reason: recurrence merges assemblies that
+                # share an area. On the ISOLATED primitive this is decisive --
+                # 94 merges into an n=1000 area give mean pairwise overlap
+                # 0.752 at rounds=10 but 0.051 at rounds=1 (area size is the
+                # other lever: n=3000 -> 0.231, n=10000 -> 0.002).
                 vp_asm = merge(
                     self.brain, subj_core, VERB_CORE, VP,
-                    rounds=self.rounds,
+                    rounds=MERGE_ROUNDS,
                 )
                 vp_key = f"{subj_word}_{verb_word}"
                 self.vp_assemblies[vp_key] = vp_asm
@@ -776,8 +803,44 @@ class CoreParserMixin:
                     vp_key_full = f"{subj_word}_{verb_word}_{obj_word}"
                     self.vp_assemblies[vp_key_full] = _snap(self.brain, VP)
 
-                # Reset VP connections for next sentence
-                self.brain._engine.reset_area_connections(VP)
+                # NO reset_area_connections(VP) between sentences.
+                #
+                # It used to be here, "to reset VP connections for the next
+                # sentence", and it was the cause of the phrase-structure
+                # collapse -- the SAME failure already documented and fixed for
+                # role areas above (see the note by `self.brain.project({},
+                # {core_area: [role_area]})`). Resetting empties the sparse
+                # connectome, so on the next merge every candidate neuron in VP
+                # has equal input and the deterministic index tie-break in
+                # winner selection hands back the same k neurons regardless of
+                # which words were merged.
+                #
+                # Measured paired over seeds 42/7/123, means; the arms differ
+                # only in this one line, and every seed agrees:
+                #
+                #                    pairwise    VP    rank-1 retrieval
+                #                     overlap     w      subj    verb
+                #   with the reset      1.000    74     0.156   0.094
+                #   without it          0.492   752     0.781   0.646
+                #
+                # w is how many VP neurons have EVER fired: with the reset only
+                # ~74 of 1000 were ever recruited, so k=50 winners drawn from a
+                # 74-neuron pool cannot be distinct -- every phrase was the same
+                # assembly, pairwise overlap 1.000.
+                #
+                # Rank-1 cues VP with ONE parent and asks whether the top-
+                # scoring stored constituent contains that parent; chance is
+                # 0.031 over the 32-constituent pool. The reset arm's 0.156 is
+                # not partial credit, it is a tie-break artifact: when every
+                # assembly is identical, `max` returns whichever key it sees
+                # first. This is the property merge exists to provide (ops.merge,
+                # [PNAS20] sec 3 -- the merged assembly responds to EITHER
+                # source alone); without it a constituent is not retrievable
+                # from its parts and nothing can be composed further from it.
+                #
+                # Carrying VP's connectome across sentences is not a leak to be
+                # cleaned up; it is where the phrase lexicon LIVES. The role
+                # areas reached the same conclusion for the same reason.
 
     def train_word_order(
         self,

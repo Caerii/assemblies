@@ -368,6 +368,49 @@ class TestPhraseStructure:
             )
             break  # Just check first
 
+    def test_vp_area_recruits_beyond_one_assembly(self, trained_parser):
+        """VP must recruit far more than K neurons across many phrases.
+
+        REGRESSION GUARD. `train_phrases` used to call
+        ``reset_area_connections(VP)`` after every sentence. That empties the
+        sparse connectome, so on the next merge every candidate had equal input
+        and winner selection's deterministic index tie-break returned the SAME
+        K neurons regardless of the words merged. VP ended training with w only
+        marginally above k -- every phrase was literally one assembly.
+
+        w is how many neurons have EVER fired in the area, so with dozens of
+        distinct phrases merged it must exceed k by a wide margin. The
+        threshold is deliberately loose (2x): the bug pins w to ~1.5x k while a
+        healthy area reaches ~10x, so nothing delicate rides on the constant.
+        """
+        area = trained_parser.brain.areas[VP]
+        n_phrases = len(trained_parser.vp_assemblies)
+        assert n_phrases >= 4, f"too few phrases to be meaningful: {n_phrases}"
+        assert area.w > 2 * area.k, (
+            f"VP recruited w={area.w} for {n_phrases} phrases at k={area.k}: "
+            f"k winners cannot be distinct when drawn from so small a pool "
+            f"(see reset_area_connections note in train_phrases)"
+        )
+
+    def test_vp_assemblies_are_distinct(self, trained_parser):
+        """Distinct phrases must not collapse onto one assembly.
+
+        The companion guard to the recruitment test above: under the reset bug
+        mean pairwise overlap was exactly 1.000. A merged constituent that is
+        identical to every other carries no information about its parts, so
+        nothing can be composed from it.
+        """
+        import itertools
+
+        stored = list(trained_parser.vp_assemblies.values())
+        pairs = list(itertools.combinations(stored, 2))
+        assert pairs, "need at least two VP assemblies to compare"
+        mean_ov = sum(overlap(a, b) for a, b in pairs) / len(pairs)
+        assert mean_ov < 0.9, (
+            f"VP assemblies mean pairwise overlap {mean_ov:.3f} over "
+            f"{len(stored)} phrases -- phrase structure has collapsed"
+        )
+
     def test_np_identification(self, trained_parser):
         """Parser should identify NP phrases from DET+ADJ+NOUN sequences."""
         result = trained_parser.parse(["the", "big", "dog", "runs"])
