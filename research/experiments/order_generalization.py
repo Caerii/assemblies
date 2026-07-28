@@ -37,37 +37,38 @@ PREDICTIONS, recorded before running
    role. Reported explicitly, because a tie here is the CORRECT answer and not
    a failure.
 
-RESULT (2026-07-28) -- HALF VALID, AND THE TRANSFER HALF IS NOT
-----------------------------------------------------------------
+RESULT (2026-07-28), after the corpus-driven lexicon fix (task #34)
+--------------------------------------------------------------------
     true  induced   transfer   wrong-order ctrl   balanced-only
-    SVO   SVO         0.237          0.325        no preference
-    SOV   SOV         0.250          0.200        no preference
-    VSO   VSO         0.188          0.087        no preference
-    VOS   VOS         0.188          0.037        no preference
-    OSV   OSV         0.250          0.150        no preference
-    OVS   OVS         0.237          0.037        no preference
+    SVO   SVO         1.000          0.500        no preference
+    SOV   SOV         1.000          0.500        no preference
+    VSO   VSO         1.000          0.500        no preference
+    VOS   VOS         1.000          0.000        no preference
+    OSV   OSV         1.000          0.000        no preference
+    OVS   OVS         1.000          0.000        no preference
 
-Prediction 1 CONFIRMED: induction recovers the true order 6/6.
-Prediction 4 CONFIRMED: balanced items alone induce nothing, as they should.
+ALL FOUR PREDICTIONS CONFIRMED, 6/6 on each.
 
-**Prediction 2 is UNTESTED, not refuted, and the transfer column must not be
-read.** `BALANCED_WORDS` is (boy, girl, man, woman, child), but only boy and
-girl are in `core.grounding.VOCABULARY`. Words outside it are learned as
-stimuli and classify correctly, yet never enter a CORE LEXICON -- and
-`NemoParser.parse` silently SKIPS such a word, so it returns None and the slot
-sequence never advances. Instrumented: `_open_slot` is not even called for
-`man`. Every held-out item whose object is man/woman/child could not score, and
-the measured pattern is exactly that -- subject and verb always right, object
-None unless it is `girl`.
+Prediction 2 -- the transfer claim, and the one that could fail -- holds at
+1.000 for every order. Order induced from UNAMBIGUOUS (lexically biased)
+sentences transfers perfectly to held-out REVERSIBLE ones, where no semantic
+cue exists and only the induced order can assign the roles. That is semantic
+bootstrapping working end to end.
 
-That also makes the wrong-order control uninterpretable here (for SVO it
-"beats" the induced order, 0.325 vs 0.237), which is the tell: a real
-positional template cannot lose to a wrong order on reversible items, since
-gating is measured elsewhere at 1.000 on exactly these.
+Prediction 3 needs one correction: it expected a wrong order to score ~0.0
+everywhere. It scores 0.000 for VOS/OSV/OVS but 0.500 for SVO/SOV/VSO, and
+that is not partial failure -- the control is simply the next order in ORDERS,
+which for those three shares the SUBJECT position with the true order, so the
+subject is still assigned correctly and only the object flips. Systematic
+reversal, exactly as predicted; the control just is not a full reversal for
+half the orders.
 
-DO NOT re-run for the transfer claim until task #34 lands. Then either fix
-lexicon coverage or restrict BALANCED_WORDS to in-vocabulary words -- but note
-that leaves only boy/girl/bird, which is thin for a transfer test.
+AN EARLIER RUN OF THIS FILE REPORTED TRANSFER AT 0.188-0.250 AND WAS AN
+ARTIFACT, not a refutation. Three of the five BALANCED_WORDS were absent from
+core lexicons and silently skipped by NemoParser, so most held-out items could
+not score. The tell was already visible: the wrong-order control BEAT the
+induced order for SVO, which a positional template cannot do. Recorded because
+the failure mode -- plausible numbers, no error -- is the one to watch for.
 """
 
 from __future__ import annotations
