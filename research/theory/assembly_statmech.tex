@@ -1,0 +1,338 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,booktabs,microtype}
+\usepackage[colorlinks,linkcolor=blue!50!black,citecolor=blue!50!black]{hyperref}
+
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\theoremstyle{plain}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}[lemma]{Proposition}
+\newtheorem{conjecture}[lemma]{Conjecture}
+
+% Every formal statement carries its epistemic status. A document that mixes
+% proved, measured and guessed claims without marking which is which is worse
+% than no document, because it launders one into another.
+\newcommand{\PROVED}{\textnormal{\footnotesize\textsf{[PROVED]}}}
+\newcommand{\MEASURED}{\textnormal{\footnotesize\textsf{[MEASURED]}}}
+\newcommand{\OPEN}{\textnormal{\footnotesize\textsf{[OPEN]}}}
+
+\newcommand{\wta}{\mathrm{top}_k}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Prob}{\mathbb{P}}
+
+\title{Statistical Mechanics of Assembly Calculus:\\
+       Order Parameters, Control Parameters, and a Measured Critical Gain}
+\author{Assemblies project --- working document}
+\date{2026-07-29}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+We set up the assembly-calculus substrate as a statistical-mechanical system:
+microstates (the connectome and the firing pattern), macrostates (overlap,
+retrieval accuracy, margin), and control parameters (load $\alpha$, gain $g$,
+afferent number $\mu$, depth $D$). Within this frame, a collapse previously
+described as a ``depth ceiling'' is identified as a transition in a single
+control parameter, the \emph{gain} $g=(1+\beta)^T$, with a measured critical
+value $g_c \approx 1.9$ that is invariant to how $\beta$ and $T$ factorise it
+and invariant to connection density $p$. Statements below are marked
+\PROVED, \MEASURED\ or \OPEN; nothing is asserted as proved that has only been
+observed.
+\end{abstract}
+
+\section{The substrate}
+
+\begin{definition}[Area and assembly]
+An \emph{area} $A$ consists of $n$ neurons with a firing cap $k \ll n$. A
+\emph{state} of $A$ is a set $x \subseteq [n]$ with $|x| = k$. There are
+$\binom{n}{k}$ such states; we call this the \emph{configuration space} of $A$.
+\end{definition}
+
+\begin{definition}[Connectome and microstate]
+A \emph{fiber} from area $A$ to area $B$ carries weights $W \in
+\mathbb{R}^{n_B \times n_A}$. At initialisation $W_{ij} \sim
+\mathrm{Bernoulli}(p)$ independently. The \emph{microstate} of the system is
+the pair $(\{W^{(f)}\}_f, \{x_A\}_A)$: every synaptic weight together with the
+current firing set of every area.
+\end{definition}
+
+\begin{definition}[Dynamics]
+In one round, neuron $i \in B$ receives
+\(
+  I_i = \sum_{A \to B} \sum_{j \in x_A} W^{(A\to B)}_{ij},
+\)
+and the new state is $x_B' = \wta(I)$, the $k$ largest coordinates (ties broken
+by index). Plasticity is multiplicative and Hebbian: for $j \in x_A$ and $i \in
+x_B'$,
+\[
+  W_{ij} \;\longleftarrow\; \min\!\big(W_{ij}\,(1+\beta),\; w_{\max}\big).
+\]
+\end{definition}
+
+\begin{definition}[Gain]\label{def:gain}
+If a source assembly is presented for $T$ consecutive rounds and the target
+assembly is stable across them, every fiber from source to target is
+potentiated $T$ times. The resulting multiplicative advantage
+\[
+  \boxed{\,g \;=\; (1+\beta)^T\,}
+\]
+is the \emph{gain}. It is the natural coupling constant of the system: $\beta$
+and $T$ enter the dynamics only through this product over a stable
+presentation.
+\end{definition}
+
+\section{Macrostates: order parameters}
+
+\begin{definition}[Overlap]
+For assemblies $a,b$ in the same area, $q_{ab} = |a \cap b| / k$. For a family
+$\{a_m\}_{m=1}^{M}$ the \emph{spread} is the mean pairwise overlap
+$\bar q = \binom{M}{2}^{-1}\sum_{m<m'} q_{a_m a_{m'}}$.
+\end{definition}
+
+\begin{lemma}[Overlap floor]\label{lem:floor} \PROVED
+If $a,b$ are independent uniformly random $k$-subsets of $[n]$ then
+$\E[q_{ab}] = k/n$.
+\end{lemma}
+\begin{proof}
+$|a \cap b| = \sum_{i=1}^{n} \mathbf{1}[i \in a]\mathbf{1}[i \in b]$. The two
+indicators are independent with means $k/n$, so $\E|a\cap b| = n(k/n)^2 =
+k^2/n$, and dividing by $k$ gives $k/n$.
+\end{proof}
+
+The floor $q_0 = k/n$ is size dependent, so raw overlap cannot be compared
+across system sizes. We therefore use the normalised order parameter
+\begin{equation}\label{eq:Q}
+  Q \;=\; \frac{\bar q - q_0}{1 - q_0} \in [0,1],
+\end{equation}
+which vanishes for mutually independent assemblies at any $n$ and equals $1$
+under total collapse. $Q$ plays the role of the Edwards--Anderson overlap in
+spin glasses, and of the retrieval overlap in the Hopfield model.
+
+Two further macrostates are measured. \emph{Retrieval accuracy} $R$ is the
+probability that a re-presented item's read-out has its largest overlap with
+the correct stored assembly. \emph{Margin} $\rho$ is the ratio of best to
+second-best overlap; it is the more sensitive statistic, moving well before $R$
+departs from $1$.
+
+\section{Control parameters}
+
+\begin{align}
+  \alpha &= \frac{Mk}{n} && \text{\emph{load}: fraction of the substrate committed}\\
+  g &= (1+\beta)^T && \text{\emph{gain}: Definition~\ref{def:gain}}\\
+  \mu &= kp && \text{\emph{afferent number}: mean inputs from one assembly}\\
+  D && &\text{\emph{depth}: levels of composition}
+\end{align}
+
+The load $\alpha$ is the exact analogue of the Hopfield storage ratio. The
+afferent number $\mu$ has no Hopfield counterpart because that model is fully
+connected; here it is decisive, and its role is the subject of
+Proposition~\ref{prop:mu}.
+
+\section{Measured phase structure}
+
+At $\alpha = 0.8$, $\mu = 2.5$, $D = 5$, three regimes are distinguished by the
+\emph{pair} $(Q, R)$ --- neither alone separates them.
+
+\begin{center}
+\begin{tabular}{llll}
+\toprule
+Phase & $Q$ & $R$ & Mechanism \\
+\midrule
+Starved   & $\approx 0$ & $<1$ & assemblies distinct but drive too weak to retrieve\\
+Retrieval & $\approx 0$ & $\approx 1$ & the working phase \\
+Collapsed & $\to 1$ & $\to 0$ & assemblies merge on contact \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+That the starved and collapsed phases are \emph{both} low-$R$ while differing
+in $Q$ is the practically important fact: they require opposite corrections
+(raise $g$ versus lower $g$), and a diagnostic keyed on $R$ alone cannot tell
+them apart.
+
+\begin{conjecture}[Critical gain]\label{conj:gc} \MEASURED
+For $T \ge 2$ and at fixed $(n,\alpha,\mu,D)$ there is a critical gain $g_c$
+such that composition to depth $5$ succeeds for $g < g_c$ and fails for
+$g > g_c$, and $g_c$ depends on $\beta$ and $T$ only through $g$. At $n=4000$,
+$\alpha=0.8$, $\mu=2.5$, $D=5$ the boundary lies at $g_c \approx 1.9$.
+\end{conjecture}
+
+\paragraph{$g_c$ is not a constant of the substrate.} The size qualification
+above is not pedantry. A fine scan at matched load gives, by the $R=1/2$
+crossing, $g_c \approx 1.71$ at $n=2000$ against $\approx 1.9$ at $n=4000$: the
+critical gain \emph{rises with system size}. This is consistent in direction
+with the separately measured threshold for recurrence persistence, which also
+rises with $n$. Any statement of the form ``$g_c \approx 2$'' is therefore a
+statement about one system size, and the object of interest is the function
+$g_c(n,\alpha,\mu,D)$ --- which is what Conjecture~\ref{conj:fss} is really
+about, and what makes the $\sqrt{2\ln(n/k)}$ term in
+Conjecture~\ref{conj:why} the right shape to be looking for.
+
+Evidence ($n=4000$, $\alpha=0.8$, $\mu=2.5$, $D=5$, 2 seeds): $\beta$ ranges
+over $0.18$--$0.45$ across the boundary while $g$ does not move.
+
+\begin{center}
+\begin{tabular}{ccccc}
+\toprule
+$T$ & $\beta$ & $g=(1+\beta)^T$ & $R$ & $\bar q$ \\
+\midrule
+3 & 0.18 & 1.643 & 1.000 & 0.0157 \\
+2 & 0.30 & 1.690 & 1.000 & 0.0180 \\
+3 & 0.22 & 1.816 & 0.883 & 0.0254 \\
+2 & 0.35 & 1.823 & 0.938 & 0.0247 \\
+2 & 0.40 & 1.960 & 0.164 & 0.0812 \\
+3 & 0.26 & 2.000 & 0.117 & 0.2359 \\
+2 & 0.45 & 2.103 & 0.070 & 0.2691 \\
+3 & 0.32 & 2.300 & 0.047 & 0.6170 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+$T=1$ lies systematically below this curve (at $g=1.800$ it gives $R=0.625$
+where $T\in\{2,3\}$ give $0.938$ and $0.883$), so the collapse onto $g$ is
+asserted only for $T \ge 2$. A single round does not let the target assembly
+converge before plasticity is applied, which is a separate effect and is not
+described by $g$.
+
+\begin{proposition}[Density sets the level, not the location]\label{prop:mu} \MEASURED
+Doubling $p$ from $0.05$ to $0.10$ (i.e.\ $\mu$ from $2.5$ to $5$) raises the
+depth-5 margin from $4.65$ to $8.11$ and $R$ from $0.938$ to $1.000$ at
+$\beta=0.35$, while leaving the failure at $\beta=0.40$ unchanged
+($R = 0.164 \to 0.172$). Moreover the \emph{sign} of $\partial \rho/\partial
+\beta$ depends on $\mu$: for $\mu \lesssim 1$ the margin has an interior
+maximum in $\beta$, and for $\mu \gtrsim 2.5$ it is increasing over the tested
+range.
+\end{proposition}
+
+Interpretation: with few afferents, potentiation concentrates drive on a
+handful of neurons that then win every subsequent competition, so large $\beta$
+manufactures collapse; with many afferents the same potentiation is spread
+across a rich pattern and selectivity survives. Density therefore controls the
+\emph{amplitude} of the signal but not the \emph{stability boundary}.
+
+\section{What remains to be derived}
+
+\begin{conjecture}[Finite-size scaling]\label{conj:fss} \OPEN
+Near $g_c$ the order parameter obeys
+\[
+  Q(g,n) \;=\; n^{-\gamma/\nu}\, F\!\big((g-g_c)\, n^{1/\nu}\big)
+\]
+for a scaling function $F$ and exponents $\gamma,\nu$; equivalently, curves of
+$Q$ against $g$ at different $n$ cross at $g_c$ and collapse when replotted
+against $(g-g_c)n^{1/\nu}$.
+\end{conjecture}
+
+This is the statement that distinguishes a genuine continuous transition from a
+mere threshold, and it is what \texttt{critical\_point\_scan.py} is measuring.
+A threshold set by a fixed arithmetic condition would show no $n$ dependence at
+all; a first-order transition would show hysteresis instead of collapse.
+
+\begin{conjecture}[Why $g_c \approx 2$]\label{conj:why} \OPEN
+The observed $g_c$ lies close to $2$, the point at which one stable
+presentation doubles a fiber's weight. A derivation should compare the
+potentiated drive of a stored assembly's members against the upper order
+statistics of the fresh candidate pool: with afferent counts
+$\mathrm{Binomial}(k,p)$, the $k$-th largest of $n$ candidates sits
+approximately $\sqrt{2\ln(n/k)}$ standard deviations above the mean, giving a
+condition of the form $g > 1 + c\sqrt{(1-p)/(kp)}\,\sqrt{2\ln(n/k)}$ for a
+veteran to displace fresh candidates.
+\end{conjecture}
+
+We flag a tension that must be resolved rather than glossed: the right-hand
+side of that expression depends on $p$, whereas $g_c$ was measured to be
+\emph{independent} of $p$ (Proposition~\ref{prop:mu}). Either the relevant
+comparison is not against fresh candidates but against \emph{other stored}
+assemblies --- whose drive is potentiated by the same $g$, cancelling the
+density dependence --- or the argument is wrong. The first alternative is the
+more likely and is the natural next derivation.
+
+\begin{proposition}[Depth is information-limited]\label{prop:dpi} \OPEN
+Model level $L$ of a chain as a channel $X \to A_1 \to \cdots \to A_D$ where
+$X$ is the item identity, uniform on $M$ values. By the data-processing
+inequality $I(X; A_1) \ge \cdots \ge I(X; A_D)$, and exact retrieval at depth
+$D$ requires $I(X;A_D) = \log M$. Hence if each level loses at least $\delta$
+bits, the maximum reliably composable depth is at most
+$(\log M - \log M_{\min})/\delta$.
+\end{proposition}
+
+This turns depth decay into a measurable quantity --- $\delta$ is estimable
+from the confusion matrix at each level --- and gives a bound that does not
+depend on the details of $\wta$. Making it quantitative requires estimating
+$I(X;A_L)$ from the empirical read-out distribution, which the scan's per-level
+records already support.
+
+\section{Operating point: is the substrate quasicritical?}
+
+A measured critical point invites the question the critical-brain literature
+asks of cortex: does the system work best \emph{at} criticality, or near it?
+Here the question is sharp because $g$ is an explicit parameter rather than
+something the system must self-organise towards.
+
+\paragraph{A scope caveat, stated plainly.} This substrate is not a spiking
+network. It has no membrane dynamics, no continuous time, and no avalanches;
+one ``round'' is a synchronous $k$-WTA update. So the classical signatures of
+critical brain dynamics --- avalanche size and duration distributions with
+exponents near $-3/2$ and $-2$, and the associated crackling-noise relation ---
+are \emph{not} measurable here, and any claim of continuity with those results
+would be an equivocation. What transfers is the weaker and still useful
+statement: a control parameter with a critical value, an order parameter that
+changes character across it, and an operating point defined relative to it.
+
+\begin{proposition}[The optimum lies strictly below $g_c$]\label{prop:sub} \MEASURED
+At depth $5$, margin is not maximised as $g \to g_c^-$. At $T=2$, $g=1.690$
+gives margin $6.53$ while $g=1.823$ gives $4.65$; at $T=3$, $g=1.643$ gives
+$9.65$ while $g=1.816$ gives $4.85$. Performance degrades on approach to the
+transition from below, before the transition itself.
+\end{proposition}
+
+This is the opposite of ``tune to the critical point''. It suggests the useful
+regime is \emph{subcritical with headroom}, and it has a natural reading: the
+approach to $g_c$ is where overlap begins to accumulate, and at depth that
+accumulation compounds multiplicatively along the chain.
+
+\begin{conjecture}[Depth lowers the optimal gain]\label{conj:depth-gain} \OPEN
+The gain maximising margin decreases with composition depth $D$. At $D=3$ the
+margin is still increasing at $\beta=0.35$ ($4.70 \to 7.89 \to 8.97$ for
+$\beta = 0.10, 0.20, 0.35$); at $D=5$ an interior maximum appears near
+$\beta \approx 0.30$.
+\end{conjecture}
+
+The evidence for Conjecture~\ref{conj:depth-gain} is currently assembled across
+runs with differing seeds and is the weakest claim in this document; it is
+stated because it is directly testable on the scan data, not because it is
+established.
+
+\paragraph{Consequence: a per-area gain schedule.} If the optimal gain falls
+with depth, then a single global $\beta$ is provably suboptimal for a
+hierarchy, and areas deeper in the composition chain should carry lower gain.
+Since $g=(1+\beta)^T$, this can be realised either by lowering $\beta$ per area
+or by shortening $T$ per level --- the two are interchangeable to the extent
+Conjecture~\ref{conj:gc} holds, which is itself a testable prediction about a
+design choice. A time-varying schedule (high gain early to recruit, decaying
+later to protect what is stored) is the same statement along the training axis
+rather than the spatial one, and is the natural analogue of a
+neuromodulatory gating of plasticity.
+
+\section{Ensembles and entropy}
+
+The configuration entropy of one area is
+\(
+  S \;=\; \ln\binom{n}{k} \;\approx\; k\ln(n/k) + k
+\)
+nats, an upper bound on what an area can represent. Capacity questions then
+become counting arguments: the $M$ stored assemblies must be mutually
+distinguishable under the read-out, and $\alpha$ measures how much of the
+configuration space is committed.
+
+A canonical ensemble can be introduced by softening $\wta$: assign to each
+state $x$ the energy $E(x) = -\sum_{i \in x} I_i$ and the Gibbs measure
+$\Prob(x) \propto e^{-E(x)/\tau}$ over $k$-subsets, with partition function
+$Z(\tau) = \sum_{|x|=k} e^{-E(x)/\tau}$. Deterministic $k$-WTA is the
+$\tau \to 0$ limit. This is the natural route to a free energy for the
+substrate, and it is worth noting that $\tau$ is not currently a parameter of
+the implementation --- introducing it would be a modelling choice, not a
+measurement, and should be kept clearly separate from the results above.
+
+\end{document}
