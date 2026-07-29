@@ -60,7 +60,8 @@ TRAIN = [["dog", "chases", "cat"], ["cat", "sees", "bird"],
          ["bird", "catches", "dog"], ["dog", "sees", "bird"]]
 
 
-def build(beta, seed, no_reset=False, ff_roles=False, dedup=False):
+def build(beta, seed, no_reset=False, ff_roles=False, dedup=False,
+          nouns=None, verbs=None, train=None, roles_fn=None):
     from neural_assemblies.assembly_calculus.parser import NemoParser
     from neural_assemblies.core.brain import Brain
 
@@ -101,18 +102,27 @@ def build(beta, seed, no_reset=False, ff_roles=False, dedup=False):
             return _orig_reset(area, *a, **k)
 
         brain._engine.reset_area_connections = _selective_reset
+    nouns = NOUNS if nouns is None else nouns
+    verbs = VERBS if verbs is None else verbs
+    train = TRAIN if train is None else train
     parser = NemoParser(brain, n=N, k=K, beta=beta, rounds=ROUNDS)
     parser.setup_areas()
-    for w in NOUNS:
+    for w in nouns:
         parser.register_word(w, "noun", f"vis_{w}")
-    for w in VERBS:
+    for w in verbs:
         parser.register_word(w, "verb", f"mot_{w}")
     parser.train_lexicon()
-    if ff_roles:
-        train_roles_ff(parser, TRAIN, dedup=dedup)
+    if roles_fn is not None:
+        # Caller supplies the whole role-training schedule. Used by
+        # bridge_capacity.py, which needs the training and readout drives to be
+        # the SAME code path -- see its docstring.
+        roles_fn(parser)
+    elif ff_roles:
+        train_roles_ff(parser, train, dedup=dedup)
+        parser.train_word_order(train)
     else:
-        parser.train_roles(TRAIN)
-    parser.train_word_order(TRAIN)
+        parser.train_roles(train)
+        parser.train_word_order(train)
     return parser, brain
 
 
@@ -228,7 +238,24 @@ def role_retrieval(brain, parser, recur=True):
                     if recur:
                         tgt[role_area] = [role_area]
                     brain.project({}, tgt)
-                live = set(int(x) for x in brain.areas[role_area].winners)
+                # THE INDEX SPACES MUST MATCH, and this line is why every arm
+                # of this experiment read at chance. `stored` holds NEURON IDs
+                # (an `Assembly` snapshot); `brain.areas[x].winners` holds
+                # COMPACT ENGINE INDICES. Intersecting the two compares
+                # unrelated coordinate systems, so the overlap is whatever two
+                # arbitrary integer sets share -- which is to say chance, no
+                # matter how healthy the representation is, and invariant to
+                # every parameter. `_snap` is the one-way door between the two
+                # spaces and has to be used on both sides.
+                #
+                # Set BR_COMPACT_READOUT=1 to restore the bug as a negative
+                # control; it should reproduce chance in every arm.
+                if os.environ.get("BR_COMPACT_READOUT") == "1":
+                    live = set(int(x)
+                               for x in brain.areas[role_area].winners)
+                else:
+                    from neural_assemblies.assembly_calculus.ops import _snap
+                    live = set(int(x) for x in _snap(brain, role_area).winners)
                 brain.areas[lex_area].unfix_assembly()
             best, best_ov = None, -1.0
             for other, asm in stored.items():

@@ -1,10 +1,12 @@
 # Role binding: what the paper does, what the demo does, and why one retrieves
 
-Written after the bridge experiment measured role retrieval at chance in six
-different training configurations, and no amount of gain correction moved it.
-The conclusion is that this was never a tuning problem. The demo parser's role
-binding is **not the paper's mechanism**, and the mechanism it uses has no
-addressable key, so there is nothing for a readout to cue on.
+**STATUS: substantially RETRACTED and rewritten.** The first version of this
+document concluded that the demo parser's role binding has no addressable key,
+that the difference from the synthetic task was **arity**, and that no amount of
+parameter tuning could help. That conclusion was drawn from a measurement that
+was comparing two different coordinate systems. With the metric fixed, the same
+code in the same arms retrieves at **1.000**. Section 6 records exactly what
+fell and what survived.
 
 ## 1. What the paper actually specifies
 
@@ -26,112 +28,131 @@ many word assemblies.** It holds one thing at a time. The binding lives in the
 *gating pattern*, and the parse is recovered from which fibers were open — not
 from assembly similarity inside a shared area.
 
-## 2. What the demo parser does instead
+## 2. The bug that produced four months of "role retrieval is at chance"
 
-`assembly_calculus/parser.py` — whose own docstring calls it "a composition
-demo" — does the thing the paper's design avoids:
+`assembly_calculus/parser.py` stores an assembly per word in a shared role area
+and recovers it later by similarity. Measuring that requires intersecting the
+live activity with each stored assembly — and the two live in **different index
+spaces**:
 
 ```python
-for word, role_area in zip(sentence, role_sequence):
-    project(brain, stim_map[word], lex_area, rounds)
-    brain.areas[lex_area].fix_assembly()
-    for _ in range(rounds):
-        brain.project({}, {lex_area: [role_area], role_area: [role_area]})
-    role_lexicons[role_area][word] = _snap(brain, role_area)
-    brain._engine.reset_area_connections(role_area)
+stored = {w: list(lex[w].winners) for w in words}          # NEURON IDs
+live   = set(int(x) for x in brain.areas[role_area].winners)  # COMPACT indices
 ```
 
-Every word is projected into a **shared** role area and an assembly per word is
-stored there, to be recovered later by similarity. Three separate problems
-follow, and only the first two are the ones I had been chasing:
+The sparse engine never materialises an area's full `n` neurons; a neuron gets a
+compact slot only once it has won something. `Assembly.winners` holds stable
+neuron IDs, `area.winners` holds compact positions, and `ops._snap` is the
+one-way door between them. Intersecting the two compares unrelated coordinate
+systems, so the overlap is whatever two arbitrary integer sets happen to share.
 
-1. **The reset zeroes the connectome**, so k-WTA falls to its index tie-break
-   and every word yields the same winners. Fixed by suppressing the reset for
-   `ROLE_*` only — it is genuinely load-bearing for LEX, where each word has its
-   own grounding stimulus so the tie-break is never reached.
-2. **Self-recurrence in a shared area** is this project's documented collapse
-   channel. Removing it, plus the gain derived from the phase map, takes
-   distinctness to 1.000 and overlap to an order of magnitude *below* the chance
-   floor.
-3. **There is no cue.** And this one is not a bug to fix — it is the design.
+That is **exactly chance, invariant to every parameter** — which is precisely
+what was observed and precisely what was over-interpreted. The A/B, on the
+unchanged toy corpus with `BR_COMPACT_READOUT` as a negative control:
 
-## 3. Why retrieval reads at chance: no addressable key
+| arm | broken metric | matched index spaces |
+|---|---|---|
+| shipped (reset + recurrence) | 0.333 / 0.333 / 0.333 | **0.333 / 0.333 / 0.333** |
+| no reset, feed-forward | 0.444 / 0.111 / 0.333 | **1.000 / 1.000 / 1.000** |
+| no reset, feed-forward, dedup | 0.444 / 0.111 / 0.333 | **1.000 / 1.000 / 1.000** |
 
-Readout drives `LEX -> ROLE` and asks which stored role assembly the result
-matches. But the *only* input is the word's LEX assembly, and the LEX→ROLE
-fiber plus the shared recurrent fiber are trained by **every** word. So the
-question "retrieve dog-as-agent" and "retrieve cat-as-agent" are posed with
-nothing that distinguishes them except a lexical pattern the shared fibers have
-already smeared together.
+(AGENT / ACTION / PATIENT; chance 0.333.) The broken column reproduces the exact
+figures previously reported, including the 0.444 that was read as a hint of a
+weak effect. This failure mode is on record in this project's own notes as
+having "silently voided the merge line" once already.
 
-Contrast the synthetic sweeps, where retrieval reached **1.000** at depth 5.
-There, each item's level-`L` assembly was formed by
+## 3. What the real defect is, and it is the shipped path
 
-    merge(C[L-1], P[L] -> C[L],  stim_b = p{L}_{item})
+The **shipped** arm still sits at exactly chance with matched index spaces, so
+one of the two original diagnoses survives intact:
 
-i.e. **two parents**: the content (the chain so far) and a per-item partner
-stimulus. That partner is a *key*. Retrieval works because the read presents the
-same key.
+1. `train_roles` calls `reset_area_connections(role_area)` after **every**
+   word, zeroing the role area's connectome so k-WTA falls through to its index
+   tie-break and returns the same lowest-index winners for every word. This
+   reset is genuinely load-bearing in `train_lexicon`, where each word has its
+   own grounding stimulus so the tie-break is never reached, and harmful in
+   `train_roles`. **The fix must be per-call-site.**
+2. `train_roles` also drives `{lex: [role], role: [role]}` — self-recurrence in
+   a shared area, this project's documented collapse channel.
 
-So the difference is not gain, depth, load or density — all of which I mapped.
-It is **arity**:
+Remove both and retrieval is perfect. Note the shipped arm's signature: accuracy
+exactly at chance *with a unit margin*, which is this project's recorded
+"dead probe" pattern and should always prompt a look at the metric before the
+mechanism.
 
-> The synthetic task binds with **two** parents, one of which acts as an
-> addressable key. The parser's role binding projects from **one** parent and
-> therefore stores content with no key to retrieve it by.
+## 4. Retrieval works, and it works well past the ladder's capacity bound
 
-That is why sweeping β from 0.1 to 0.004 changed nothing about retrieval while
-changing distinctness by two orders of magnitude. Distinctness is a property of
-storage; retrievability requires a key.
+`bridge_capacity.py` runs the fixed metric on the 40-noun / 20-verb corpus, at
+the gain derived from the phase map (`beta = g_c^(1/rounds) - 1 = 0.0718`) with
+`kp` held at 10 and each `(word, role)` binding trained exactly once. At
+n=1000, k=50 the ladder's capacity bound is `M_max ~ 1.15 n/k ~ 23`:
 
-## 4. Two proper designs, and they are not the same project
+| area | M | α = M/M_max | diag | offdiag | retrieval | chance |
+|---|---|---|---|---|---|---|
+| AGENT | 16 | 0.70 | 1.000 | 0.079 | 1.000 | 0.062 |
+| ACTION | 20 | 0.87 | 0.998 | 0.099 | 1.000 | 0.050 |
+| PATIENT | 40 | **1.74** | 0.948 | 0.238 | **1.000** | 0.025 |
 
-**(A) Gated — the paper's.** Role assignment is a *fiber* decision. Grammar
-disinhibits `LEX -> ROLE_AGENT` for a subject, the role area receives only that
-projection, and the parse is read from the activated-fiber set. Already
-implemented in `language/parser.py`. Measured separately as a **perfect
-positional template** — 1.000 on reversible sentences, 0.000 on irreversible —
-i.e. flawless structure with *no lexical sensitivity whatsoever*.
+Two things to read off this. First, the **order parameters move exactly as the
+map predicts**: as α rises past 1 the diagonal falls and the off-diagonal
+climbs threefold — crowding is arriving on schedule. Second, **retrieval
+accuracy does not break**, because the argmax still has margin (0.948 against
+0.238). So α\* ≈ 1.15 is **not a constant of the substrate**. It was measured on
+a depth-5 chain of shared areas, where errors compound across levels; role
+binding here is depth 1, and a single association tolerates far more load.
+Locating the depth-1 wall is a separate sweep, not an extrapolation.
 
-**(B) Keyed merge — what the synthetic results support.** Make role binding a
-genuine `merge` of two parents: the word's LEX assembly and a **role cue**
-(a per-role stimulus, or the gating state reified as a drive). Then a role area
-holds `bind(word, role)`, retrieval presents the role cue, and the phase map
-applies directly with everything it says about capacity, gain and depth.
+## 5. Two proper designs, and they are still not the same project
 
-These are complementary rather than competing, which is the substance of the
-open question in task #33: gating supplies the structure the lexical route
-lacks, and the lexical route supplies the content sensitivity gating lacks.
+**(A) Gated — the paper's.** Role assignment is a *fiber* decision, and the
+parse is read from the activated-fiber set. Already implemented in
+`language/parser.py`. Measured separately as a **perfect positional template** —
+1.000 on reversible sentences, 0.000 on irreversible — i.e. flawless structure
+with *no lexical sensitivity whatsoever*.
 
-## 5. Concrete recommendation
+**(B) Lexical — the demo's, and it does work.** A word's LEX assembly is an
+addressable key: k of n neurons, near-disjoint across words, so a feed-forward
+`LEX -> ROLE` fiber is an ordinary associative memory. This is what now measures
+1.000.
 
-Do **not** keep tuning the demo's role path; it has no key and no amount of β
-will give it one. Instead:
+These are complementary, which is the substance of task #33 — and the case is
+stronger than before, because both routes are now known to work in their own
+terms. `corpus.py` supplies the reversible/irreversible split needed to test the
+composition directly.
 
-1. **Change the mechanism, not the parameter.** Re-implement role binding as
-   `merge(LEX, ROLE_CUE -> ROLE_AREA)` with a per-role cue stimulus present at
-   *both* training and readout. This is a small change and it makes the
-   parser's role areas the same object the phase map was built on.
-2. **Then the map applies quantitatively.** At n=1000, k=50 the map gives
-   `M_max ~ 1.15 n/k ~ 23` items per role area, with per-merge gain set from the
-   corpus by `g = g_c^(1/(rounds * c_max))`. For a 3-word corpus that is
-   comfortably inside capacity — consistent with distinctness already being fine
-   once the reset is out of the way.
-3. **Keep the reset fix regardless**, per call site: suppress for `ROLE_*`,
-   retain for `LEX`.
-4. **Judge with the paper's readout where the paper's mechanism is used.**
-   `getWord(area, cue_area=...)` and `getActivatedFibers()` are the designed
-   readouts for the gated route; assembly-similarity readout is only meaningful
-   for the keyed-merge route.
+## 6. What is retracted
 
-## 6. What this retracts and what it leaves standing
+**Retracted outright:**
 
-**Retracted:** my framing that the parser's role failure was an instance of the
-crowding phenomenon the phase map describes. It is not. Crowding was present and
-is fixed, and retrieval was independently broken for an architectural reason.
+- That the demo parser's role binding **has no addressable key**. It has one:
+  the LEX assembly. Retrieval is 1.000.
+- That the operative difference from the synthetic task is **arity** — two
+  parents versus one. A single parent suffices; the second parent in the
+  synthetic task was never what made it retrievable.
+- That "no amount of β will give it one". The claim was untestable as posed,
+  because the metric could not have responded to β no matter what happened in
+  the brain. β *invariance* was the diagnostic tell and I read it as evidence
+  for a structural claim instead of evidence against the measurement.
+- The derivation that **no single β exists** at these operating points. Its
+  arithmetic stands on its own terms and its conclusion — train each binding
+  once, so `c_max = 1` — is what `bridge_capacity.py` does. But it was offered
+  as the explanation of a failure that had a different cause, and the dedup arm
+  retrieves at 1.000 *and so does the non-dedup arm*, so the corpus-frequency
+  spread was not what was breaking anything here.
 
-**Standing:** the phase map itself, and the bridge's first two findings — that
-the lexicon is immune for a mechanistic reason (feed-forward selection cannot be
-reordered by uniform potentiation), and that the derived gain repairs
-representational health in the role areas. What does not follow, and what I
-briefly implied, is that repairing representational health repairs the task.
+**Standing:**
+
+- The `reset_area_connections` diagnosis, per call site: load-bearing for LEX,
+  destructive for ROLE. The shipped arm is still at chance because of it.
+- Self-recurrence in a shared area as the collapse channel.
+- The phase map, now with a **confirmed quantitative signature** in the parser:
+  diag and offdiag track α through the crowding onset (§4).
+- That the lexicon is immune to gain for a mechanistic reason. Separately
+  confirmed at 0.977 PHON-only reproduction, unchanged by role training.
+
+**Method note.** The 0.020 precondition reading that started this was *also* the
+same index-space bug, in the gate I had written to catch exactly this class of
+error. The gate fired correctly and my explanation of it was wrong twice over
+before `lex_reproducibility.py` measured the three candidate causes separately
+instead of arguing about them. Checking a precondition is not the same as
+checking the precondition check.
