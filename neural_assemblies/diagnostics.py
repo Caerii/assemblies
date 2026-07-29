@@ -397,6 +397,114 @@ def recurrence_audit(brain, areas: Optional[Sequence[str]] = None
     return out
 
 
+@dataclass
+class FiberState:
+    """One area->area pathway: does it exist, and does it carry anything?"""
+
+    src: str
+    dst: str
+    rows: int
+    cols: int
+    nnz: int
+    p99_over_median: float
+    dst_w: int
+
+    @property
+    def dead(self) -> bool:
+        """No weights at all -- this pathway delivers exactly zero drive."""
+        return self.cols == 0 or self.nnz == 0
+
+    @property
+    def potentiated(self) -> bool:
+        r = self.p99_over_median
+        return r == r and r > 3.0
+
+    @property
+    def silently_ignored(self) -> bool:
+        """Dead pathway into an area that HAS materialised neurons.
+
+        This is the dangerous combination, and it is not the same as a merely
+        unused fiber. The target is live and being driven, so a projection
+        naming this source looks like it works: k-WTA still returns k winners
+        and the caller gets a plausible assembly. It just contains no
+        information from this source.
+        """
+        return self.dead and self.dst_w > 0
+
+
+def fiber_census(brain, driven: Optional[Mapping[str, Sequence[str]]] = None
+                 ) -> List[FiberState]:
+    """Every area->area pathway in the brain, and whether it can carry drive.
+
+    WHY THIS EXISTS. An area->area weight block is materialised lazily, so a
+    pathway that has never successfully carried drive has shape (0, 0) and
+    contributes exactly zero -- while the projection that names it still
+    returns k winners and looks like it worked. Two bugs of this shape are on
+    record: a role area fed by two LEX areas silently used only the first
+    (every item through the second "stored" the target's stale assembly), and
+    `reset_area_connections` zeroing a connectome so k-WTA fell through to its
+    index tie-break.
+
+    The signature in results is "mechanism X turns out to have surprisingly
+    little effect", which is indistinguishable from a real negative result by
+    inspection of the numbers alone. This function distinguishes them.
+
+    Args:
+        driven: optional {src: [dst, ...]} of pathways the caller BELIEVES it
+            is using. Any of those found dead is reported as a failed verdict
+            rather than merely listed, which is the difference between a census
+            and a test.
+
+    Returns FiberState records; pass to `format_report` or filter on
+    `.silently_ignored`.
+    """
+    out: List[FiberState] = []
+    for dst_name in brain.areas:
+        try:
+            eng = brain._engine_for(brain.areas[dst_name])
+        except Exception:                                    # noqa: BLE001
+            continue
+        conns = getattr(eng, "_area_conns", {})
+        dst_w = int(getattr(brain.areas[dst_name], "w", 0) or 0)
+        for src_name, per_dst in conns.items():
+            conn = per_dst.get(dst_name)
+            if conn is None:
+                continue
+            w = getattr(conn, "weights", None)
+            shape = tuple(getattr(w, "shape", (0, 0)) or (0, 0))
+            rows, cols = (shape + (0, 0))[:2]
+            nnz, ratio = 0, float("nan")
+            if w is not None and cols > 0:
+                arr = np.asarray(w.todense() if hasattr(w, "todense") else w)
+                pos = arr.ravel()
+                pos = pos[pos > 0]
+                nnz = int(pos.size)
+                if pos.size >= 8:
+                    med = float(np.median(pos))
+                    if med > 0:
+                        ratio = float(np.percentile(pos, 99)) / med
+            out.append(FiberState(src_name, dst_name, int(rows), int(cols),
+                                  nnz, ratio, dst_w))
+
+    if driven:
+        by_pair = {(f.src, f.dst): f for f in out}
+        for src, dsts in driven.items():
+            for dst in dsts:
+                f = by_pair.get((src, dst))
+                if f is None:
+                    out.append(Verdict(  # type: ignore[arg-type]
+                        False, f"fiber {src}->{dst}",
+                        "NO SUCH PATHWAY -- the projection cannot have run"))
+                elif f.dead:
+                    out.append(Verdict(  # type: ignore[arg-type]
+                        False, f"fiber {src}->{dst}",
+                        f"DEAD (shape {f.rows}x{f.cols}, nnz {f.nnz}) while "
+                        f"{dst} has w={f.dst_w} -- this source delivers ZERO "
+                        f"drive and the projection silently returns "
+                        f"{dst}'s existing assembly"))
+    return out
+
+
 def collapse_scan(brain, stored_by_area: Mapping[str, Mapping]
                   ) -> Dict[str, AreaHealth]:
     """Distinctness check across every area holding stored assemblies.
@@ -437,6 +545,18 @@ def format_report(items) -> str:
                                key=lambda kv: -(kv[1] if kv[1] == kv[1] else -1)):
                 lines.append(f"      {s:<16}{v:>10.4f}  {it.share(s):>7.1%}")
             lines += [f"      {v}" for v in it.verdicts if not v.ok]
+        elif isinstance(it, FiberState):
+            tag = ("DEAD*" if it.silently_ignored else
+                   "dead " if it.dead else
+                   "hot  " if it.potentiated else "ok   ")
+            lines.append(
+                f"  [{tag}] {it.src:>14} -> {it.dst:<14} "
+                f"{it.rows:>6}x{it.cols:<6} nnz {it.nnz:>8}  "
+                f"dst_w {it.dst_w:>6}"
+                + (f"  p99/med {it.p99_over_median:.1f}x"
+                   if it.p99_over_median == it.p99_over_median else "")
+                + ("   <-- delivers ZERO drive into a live area"
+                   if it.silently_ignored else ""))
         elif isinstance(it, Verdict):
             if not it.ok:
                 lines.append(f"  {it}")
