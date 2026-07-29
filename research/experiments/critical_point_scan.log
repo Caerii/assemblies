@@ -1,0 +1,44 @@
+
+  CRITICAL POINT SCAN   alpha=0.8 depth=5 T=2 k=50 p=0.05
+  3 sizes x 11 gains x 3 seeds = 99 trials -> F:\Github\assemblies\research\experiments\critical_point_scan.csv
+
+  n=2000  M=32  floor=0.02500
+    g=1.50 (beta=0.225)  acc=1.000 Q=0.0046   [15s]
+    g=1.65 (beta=0.285)  acc=0.885 Q=0.0236   [10s]
+    g=1.75 (beta=0.323)  acc=0.260 Q=0.1128   [9s]
+    g=1.82 (beta=0.349)  acc=0.031 Q=0.1766   [13s]
+    g=1.88 (beta=0.371)  acc=0.031 Q=0.2329   [12s]
+    g=1.92 (beta=0.386)  acc=0.031 Q=0.3737   [12s]
+    g=1.96 (beta=0.400)  acc=0.042 Q=0.3676   [14s]
+    g=2.00 (beta=0.414)  acc=0.031 Q=0.3561   [15s]
+    g=2.06 (beta=0.435)  acc=0.042 Q=0.3898   [13s]
+    g=2.15 (beta=0.466)  acc=0.062 Q=0.4559   [13s]
+    g=2.30 (beta=0.517)  acc=0.021 Q=0.5846   [12s]
+
+  n=4000  M=64  floor=0.01250
+    g=1.50 (beta=0.225)  acc=0.995 Q=0.0022   [43s]
+    g=1.65 (beta=0.285)  acc=1.000 Q=0.0042   [31s]
+    g=1.75 (beta=0.323)  acc=1.000 Q=0.0060   [41s]
+    g=1.82 (beta=0.349)  acc=0.833 Q=0.0162   [35s]
+    g=1.88 (beta=0.371)  acc=0.557 Q=0.0297   [32s]
+    g=1.92 (beta=0.386)  acc=0.609 Q=0.0408   [34s]
+    g=1.96 (beta=0.400)  acc=0.297 Q=0.0546   [27s]
+    g=2.00 (beta=0.414)  acc=0.109 Q=0.1458   [29s]
+    g=2.06 (beta=0.435)  acc=0.089 Q=0.1655   [35s]
+    g=2.15 (beta=0.466)  acc=0.068 Q=0.3455   [36s]
+    g=2.30 (beta=0.517)  acc=0.083 Q=0.3685   [53s]
+
+  n=8000  M=128  floor=0.00625
+    g=1.50 (beta=0.225)  acc=0.927 Q=0.0013   [215s]
+    g=1.65 (beta=0.285)  acc=1.000 Q=0.0017   [172s]
+    g=1.75 (beta=0.323)  acc=1.000 Q=0.0019   [155s]
+    g=1.82 (beta=0.349)  acc=1.000 Q=0.0023   [145s]
+    g=1.88 (beta=0.371)  acc=1.000 Q=0.0025   [163s]
+    g=1.92 (beta=0.386)  acc=1.000 Q=0.0029   [182s]
+    g=1.96 (beta=0.400)  acc=1.000 Q=0.0035   [166s]
+    g=2.00 (beta=0.414)  acc=0.995 Q=0.0049   [139s]
+    g=2.06 (beta=0.435)  acc=0.987 Q=0.0043   [125s]
+    g=2.15 (beta=0.466)  acc=0.635 Q=0.0088   [123s]
+    g=2.30 (beta=0.517)  acc=0.081 Q=0.0275   [113s]
+
+  wrote F:\Github\assemblies\research\experiments\critical_point_scan.csv

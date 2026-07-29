@@ -22,7 +22,7 @@
 \newcommand{\Prob}{\mathbb{P}}
 
 \title{Statistical Mechanics of Assembly Calculus:\\
-       Order Parameters, Control Parameters, and a Measured Critical Gain}
+       Order Parameters, Control Parameters, and a Measured Gain Crossover}
 \author{Assemblies project --- working document}
 \date{2026-07-29}
 
@@ -255,10 +255,47 @@ more) it requires
 \[
   g_c(8000,128) \;\approx\; 1.917 + 0.29\ln 2 \;\approx\; \boxed{2.12}.
 \]
-This is registered before that cell finished measuring. A result near $2.12$
-supports the form; convergence towards a constant instead would mean $g_c$ has
-a thermodynamic limit and the logarithm is a small-$n$ artifact; continued
-growth at a different rate would falsify the coefficient.
+This was registered before that cell finished measuring.
+
+\paragraph{Outcome: the prediction missed.} The measured value is
+$g_c(8000,128) = 2.176$, against the predicted $2.12$ --- an error of $0.056$
+on an increment of $0.259$, so roughly $20\%$ of the effect. The qualitative
+content survived and the quantitative coefficient did not: the increments at
+$\alpha=0.8$ are $+0.202$ then $+0.259$, i.e.\ \emph{growing}, whereas a
+logarithm in $n$ requires equal increments per doubling. Refitting on all three
+sizes gives $\partial g_c/\partial\ln n \approx 0.333$ rather than the $0.291$
+inferred from the two-cell decomposition.
+
+What is nonetheless settled is the qualitative question. Against the three
+sizes at $\alpha = 0.8$ ($g_c = 1.715,\ 1.915,\ 2.176$):
+\[
+  \text{constant: } \mathrm{resid}\ 0.107, \qquad
+  \log: 0.0006, \qquad
+  \sqrt{2\ln(n/k)}: 0.0010 .
+\]
+A constant $g_c$ is decisively rejected --- two orders of magnitude worse ---
+so \textbf{$g_c$ has no thermodynamic limit within the tested range}. The
+logarithmic and extreme-value forms are not distinguishable from one another at
+three sizes, and no claim is made between them.
+
+\paragraph{It is a crossover, not a critical point.} The logistic fits also
+return a transition \emph{width}. At $\alpha=0.8$ these are $0.035$, $0.055$
+and $0.040$ for $n = 2000, 4000, 8000$: the boundary \emph{moves} with size but
+does not \emph{sharpen}. A continuous critical transition requires
+$w \sim n^{-1/\nu} \to 0$. Consistently, the collapse scan rails at the largest
+$\nu$ offered ($\nu = 6$, the edge of the search), which is the scan's way of
+saying that subtracting $g_c(n)$ alone already aligns the curves and no
+rescaling of the axis is wanted.
+
+We therefore \textbf{withdraw the term ``critical point''} in favour of
+\emph{sharp crossover with a size-dependent location}, and
+Conjecture~\ref{conj:fss} is correspondingly disfavoured rather than supported.
+
+One caveat keeps this from being final: the gain grid has spacing $0.04$--$0.06$
+near the boundary, so widths of $0.035$--$0.055$ sit at the resolution limit.
+The honest statement is that the width is \emph{not resolved to shrink}, not
+that it provably does not. Settling it requires a grid refined around each
+$g_c(n)$ separately, which is the next measurement.
 
 The sign structure is worth stating plainly, because it is the practical
 content: \textbf{bigger substrates tolerate more gain, and heavier loads

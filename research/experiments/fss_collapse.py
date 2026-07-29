@@ -86,16 +86,23 @@ def curves(rows):
 
 
 def logistic_gc(gs, r):
-    """g_c from a logistic fit R(g) = 1/(1+exp((g-gc)/w)), least squares."""
-    best, bestres = float("nan"), float("inf")
+    """Fit R(g) = 1/(1+exp((g-gc)/w)); return (gc, w, residual).
+
+    THE WIDTH w IS NOT COSMETIC. It is what separates a critical point from a
+    crossover. At a genuine continuous transition the transition region narrows
+    with system size (w -> 0 as n grows, like n^{-1/nu}); at a crossover the
+    location may move while the width stays put. Reporting g_c without w would
+    let a smooth crossover be presented as criticality.
+    """
+    best, bestw, bestres = float("nan"), float("nan"), float("inf")
     lo, hi = float(gs.min()), float(gs.max())
     for gc in np.linspace(lo, hi, 400):
-        for w in (0.01, 0.02, 0.04, 0.08, 0.15):
+        for w in np.linspace(0.005, 0.30, 60):
             pred = 1.0 / (1.0 + np.exp((gs - gc) / w))
             res = float(np.sum((pred - r) ** 2))
             if res < bestres:
-                bestres, best = res, gc
-    return best, bestres
+                bestres, best, bestw = res, gc, w
+    return best, bestw, bestres
 
 
 def fit_forms(ns, gcs, k):
@@ -141,17 +148,20 @@ def main():
     k = rows[0]["k"]
 
     print(f"\n  FINITE-SIZE SCALING   k={k}   {len(cur)} (n, M) cells\n")
-    print(f"  {'n':>7} {'M':>6} {'alpha':>7} {'g_c':>8} {'resid':>9}")
-    gc_of = {}
+    print(f"  {'n':>7} {'M':>6} {'alpha':>7} {'g_c':>8} {'width':>8} "
+          f"{'resid':>9}")
+    gc_of, width_of = {}, {}
     for (n, M) in sorted(cur):
         gs, r, _q = cur[(n, M)]
         if r.max() < 0.5 or r.min() > 0.5:
             print(f"  {n:>7} {M:>6} {M * k / n:>7.2f}   "
                   f"(no half-crossing in range)")
             continue
-        gc, res = logistic_gc(gs, r)
+        gc, wid, res = logistic_gc(gs, r)
         gc_of[(n, M)] = gc
-        print(f"  {n:>7} {M:>6} {M * k / n:>7.2f} {gc:>8.3f} {res:>9.4f}")
+        width_of[(n, M)] = wid
+        print(f"  {n:>7} {M:>6} {M * k / n:>7.2f} {gc:>8.3f} {wid:>8.3f} "
+          f"{res:>9.4f}")
 
     # Only cells at MATCHED load may be compared as a size series -- load is
     # itself a control parameter, so mixing loads would confound the fit.
