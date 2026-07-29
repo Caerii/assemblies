@@ -109,16 +109,48 @@ class Brain:
             norm_init (bool): One-time normalization of each postsynaptic
                    neuron's incoming weights, per fiber, to sum 1 -- the
                    reference implementation's ``norm_init``
-                   (``.reference/mdabagia-nemo/brain.py``).  OFF by default;
-                   turning it on changes results, so it is opt-in.  It is the
-                   prerequisite for ``recurrent_projection``: without it,
-                   self-recurrence collapses independent assemblies into a
-                   shared attractor (see ``project_rounds``).  ``numpy_sparse``
-                   only; see ``NumpySparseEngine._norm_scale`` for how it is
-                   realized under lazy neuron materialization.
+                   (``.reference/mdabagia-nemo/brain.py``).  ON by default.
+                   Literature and parity reproductions must pin it FALSE to
+                   match un-normalized paper goldens.  It is the prerequisite
+                   for ``recurrent_projection``: without it, self-recurrence
+                   collapses independent assemblies into a shared attractor
+                   (see ``project_rounds``).  ``numpy_sparse`` only; see
+                   ``NumpySparseEngine._norm_scale`` for how it is realized
+                   under lazy neuron materialization.
             recurrent_projection (bool): Apply target self-recurrence in the
-                   ``project_rounds`` fast path.  Requires ``norm_init``;
-                   ignored without it.
+                   ``project_rounds`` fast path.  Gated on ``norm_init``:
+                   with ``norm_init=False`` it is ignored, so parity
+                   reproductions are unaffected either way.
+
+                   OFF by default, and that default is a KNOWN-WRONG
+                   COMPROMISE rather than a modelling choice.  Off, this path
+                   diverges from the documented ``project()`` protocol: it runs
+                   stimulus-only projection with NO target self-recurrence, so
+                   nothing built through it is an assembly in the defining
+                   sense (Dabagia et al. 2024: a set of k neurons whose
+                   INTERNAL weights have been strengthened).  ``ops.project``
+                   used to route through here and therefore inherited that; it
+                   no longer does, and runs the protocol directly.
+
+                   Turning this ON is still the right end state and is blocked
+                   on a real bug, not on taste.  Measured 2026-07-28, flipping
+                   the default to True gives 10 test failures AND TWO HARD
+                   SEGFAULTS (Windows access violation) in the batched
+                   subsystem -- ``batched_next_token._scores`` and
+                   ``batched_trainer._rec`` -- which evidently assume the
+                   recurrence-free projection map.  That is a latent
+                   memory-safety bug this flag merely exposes.  Fix it there
+                   first, then flip this.
+
+                   Parity when it IS on, parents re-cued by their own stimulus
+                   (3 seeds x 8 items, rank-1 ID chance 0.125)::
+
+                       n=2000 k=45 p=0.01   SELF 0.6426  ID 1.0000
+                       n=1000 k=50 p=0.05   SELF 0.8992  ID 1.0000
+
+                   matching an explicit per-round loop EXACTLY (0.6426 and
+                   0.8992), which is what confirms the dropped self-recurrence
+                   is the ONLY divergence between fast path and protocol.
         """
         self.p = p
         self.w_max = w_max

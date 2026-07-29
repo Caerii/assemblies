@@ -94,7 +94,7 @@ A, B, C = "A", "B", "C"
 
 def trial(seed: int, reps: int, rounds: int):
     from neural_assemblies.assembly_calculus.assembly import overlap
-    from neural_assemblies.assembly_calculus.ops import merge, project
+    from neural_assemblies.assembly_calculus.ops import _snap, merge, project
     from neural_assemblies.core.brain import Brain
 
     brain = Brain(p=P, seed=seed)
@@ -104,9 +104,16 @@ def trial(seed: int, reps: int, rounds: int):
         brain.add_stimulus(f"a{m}", K)
         brain.add_stimulus(f"b{m}", K)
 
+    # Parent build rounds raised 12 -> 20. Under norm_init an assembly holds
+    # only while (1+beta)^T clears the population maximum; at beta=0.10, 12
+    # rounds gives 3.14, which is BELOW the measured threshold (~6 at n=1e4,
+    # lower but still above 3 here). See
+    # research/experiments/recurrent_assembly_decay.py. Parents that dissolve
+    # cannot be cued, so every recall number below was measured against
+    # assemblies that were not stable in the first place.
     for m in range(M_ITEMS):
-        project(brain, f"a{m}", A, rounds=12)
-        project(brain, f"b{m}", B, rounds=12)
+        project(brain, f"a{m}", A, rounds=20)
+        project(brain, f"b{m}", B, rounds=20)
 
     # Interleaved repetition: every item is merged once per epoch, so no item
     # gets all its exposure at the end. Blocked repetition would confound
@@ -121,11 +128,21 @@ def trial(seed: int, reps: int, rounds: int):
     def cue(m: int, from_a: bool) -> bool:
         src, stim = (A, f"a{m}") if from_a else (B, f"b{m}")
         with brain.read_only():
-            project(brain, stim, src, rounds=4)
+            # rounds=20 to match the build: a cue that does not itself clear the
+            # stability threshold presents a DIFFERENT assembly than the one
+            # whose synapses onto C were written, so the probe would be asking
+            # the wrong question however good merge was.
+            project(brain, stim, src, rounds=20)
             brain.project({}, {src: [C]})
             for _ in range(rounds - 1):
                 brain.project({}, {src: [C], C: [C]})
-            live = np.array(brain.areas[C].winners, dtype=np.int64)
+            # `_snap` NOT `brain.areas[C].winners`. The latter holds COMPACT
+            # engine indices; `stored` holds NEURON IDS (every ops.* return
+            # value does). Measured: the two index spaces are DISJOINT
+            # (overlap 0.0), so comparing them returns exactly chance -- which
+            # is what this file previously reported, for that reason and not
+            # because merge failed.
+            live = np.asarray(_snap(brain, C).winners, dtype=np.int64)
         return max((overlap(live, asm), j) for j, asm in stored.items())[1] == m
 
     from_a = sum(cue(m, True) for m in range(M_ITEMS)) / M_ITEMS

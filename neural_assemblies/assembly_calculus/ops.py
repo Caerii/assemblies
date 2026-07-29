@@ -310,8 +310,43 @@ def _unfix(brain, *area_names):
 # Primitive operations
 # ---------------------------------------------------------------------------
 
-def project(brain, stimulus, target, rounds=10) -> Assembly:
+def project(brain, stimulus, target, rounds=10, recurrent=False) -> Assembly:
     """Project a stimulus into a target area, forming a stable assembly.
+
+    ``recurrent`` OPTS IN TO THE PROTOCOL AS DOCUMENTED BELOW, and defaults
+    False because the default path does NOT implement it. ``Brain.project_rounds``
+    filters the projection map with ``a != target`` unless
+    ``Brain(recurrent_projection=True)``, which itself defaults False -- so by
+    default this function runs stimulus-only on every round, with no
+    ``target -> target`` recurrence at all. What that builds is not an assembly
+    in the defining sense (Dabagia et al. 2024: k neurons whose INTERNAL weights
+    have been strengthened).
+
+    The default is kept WRONG on purpose. The repository -- goldens, the parser,
+    and ~40 tests -- is calibrated on the stimulus-only path; flipping it is a
+    migration with its own re-baseline, not a bug fix. Measured when it was
+    flipped: ~40 test failures and the "not slow" suite hanging at 54%, because
+    below the stability threshold recurrence recruits without bound, ``w`` grows
+    every step, and projection cost scales with ``w`` -- callers do not fail,
+    they crawl.
+
+    PASS ``recurrent=True`` FOR NEW WORK, and mind the training window, which
+    has two walls pointing opposite ways
+    (``research/experiments/recurrent_assembly_decay.py``):
+
+    * a lone assembly re-selecting itself needs ``(1+beta)^rounds`` ABOVE the
+      population maximum -- roughly 6 at n=1e4, and the threshold RISES with n
+      (overlap 0.630 / 0.150 / 0.007 at n=2000 / 1e4 / 5e4 for a fixed 2.6);
+    * many assemblies sharing one target need the incumbent BELOW the level
+      where it dominates the k-cap -- past about 3, the first assembly stored
+      wins every later merge.
+
+    Use ``research/experiments/_substrate.py`` rather than calling this
+    directly: it wires the opt-in, the correct readout, and the window together.
+
+    This branch is bit-identical to ``project_rounds`` run with
+    ``Brain(recurrent_projection=True)``; it is the same fast-path recurrent
+    mode, reached without changing a global default.
 
     Protocol::
 
@@ -333,7 +368,12 @@ def project(brain, stimulus, target, rounds=10) -> Assembly:
         consecutive rounds.
     """
     brain.project({stimulus: [target]}, {})
-    if rounds > 1:
+    if recurrent:
+        # Driven directly rather than through project_rounds, whose `a != target`
+        # filter would strip the recurrence this argument exists to request.
+        for _ in range(rounds - 1):
+            brain.project({stimulus: [target]}, {target: [target]})
+    elif rounds > 1:
         brain.project_rounds(
             target=target,
             areas_by_stim={stimulus: [target]},
