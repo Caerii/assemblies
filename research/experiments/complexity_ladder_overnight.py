@@ -65,6 +65,7 @@ from __future__ import annotations
 import os
 import statistics
 import sys
+import time
 import traceback
 
 os.environ.setdefault("TRAIN_PROGRESS", "0")
@@ -171,6 +172,20 @@ def trial(n, m_items, depth, seed):
             {L: spread(stored[L].values()) for L in stored})
 
 
+#: Wall-clock ceiling per cell. The first run of this ladder spent over an hour
+#: on single n=10000/M=2048 cells with NO output during them, because cost grows
+#: as n*M*depth and the tail cells are ~100x the head cells. A sweep that cannot
+#: say what it is doing, or how long it will take, is not usable overnight.
+CELL_BUDGET_S = float(os.environ.get("LADDER_CELL_BUDGET_S", "900"))
+
+
+def work_units(n, m_items, depth):
+    """Rough cost model: merges and builds both scale as M*depth, and the
+    sparse ops scale with n. Only RATIOS matter -- it is calibrated from the
+    first completed cell, so the absolute constant is irrelevant."""
+    return (n / 1000.0) * m_items * depth
+
+
 def emit(line, fh):
     print(line, flush=True)
     fh.write(line + "\n")
@@ -192,22 +207,42 @@ def main() -> None:
              f"{'full_1':>9}{'full_D':>9}{'marg_1':>8}{'marg_D':>8}"
              f"{'spr_1':>8}{'spr_D':>8}{'trials':>8}  verdict", fh)
 
+        rate = None          # seconds per work unit, calibrated as we go
         for n, m_items, depth in LADDER:
+            units = work_units(n, m_items, depth)
+            if rate is not None:
+                predicted = rate * units
+                if predicted > CELL_BUDGET_S:
+                    # LOG the skip. A silent cap reads as "covered everything".
+                    emit(f"  {n:>7}{m_items:>6}{depth:>3}{'':>41}  SKIPPED: "
+                         f"~{predicted / 60:.0f} min > budget "
+                         f"{CELL_BUDGET_S / 60:.0f} min", fh)
+                    continue
+                emit(f"    .. starting n={n} M={m_items} D={depth}, est "
+                     f"{predicted / 60:.1f} min", fh)
+            t0 = time.monotonic()
             try:
                 seeds = seeds_for(m_items)
-                res = [trial(n, m_items, depth, s) for s in seeds]
+                res = []
+                for si, sd in enumerate(seeds):
+                    res.append(trial(n, m_items, depth, sd))
+                    emit(f"    .. seed {si + 1}/{len(seeds)} done "
+                         f"({time.monotonic() - t0:.0f}s)", fh)
                 tot = sum(x[1] for x in res)
                 f1 = sum(x[0][1] for x in res) / tot
                 fd = sum(x[0][depth] for x in res) / tot
                 m1 = statistics.mean(x[2][1] for x in res)
                 md = statistics.mean(x[2][depth] for x in res)
                 s1 = statistics.mean(x[3][1] for x in res)
-                sd = statistics.mean(x[3][depth] for x in res)
+                sdv = statistics.mean(x[3][depth] for x in res)
                 verdict = "PASS" if fd > 0.90 else (
                     "MARGINAL" if fd > 0.50 else "FAIL")
+                elapsed = time.monotonic() - t0
+                rate = elapsed / units if units else rate
                 emit(f"  {n:>7}{m_items:>6}{depth:>3}{m_items * K_ / n:>7.1f}"
                      f"{1 / m_items:>9.5f}{f1:>9.4f}{fd:>9.4f}{m1:>8.2f}"
-                     f"{md:>8.2f}{s1:>8.4f}{sd:>8.4f}{tot:>8}  {verdict}", fh)
+                     f"{md:>8.2f}{s1:>8.4f}{sdv:>8.4f}{tot:>8}  {verdict}"
+                     f"   [{elapsed:.0f}s]", fh)
             except Exception as exc:  # keep the ladder going
                 emit(f"  {n:>7}{m_items:>6}{depth:>3}"
                      f"{'':>41}  FAILED: {type(exc).__name__}: {exc}", fh)
