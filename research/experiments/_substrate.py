@@ -31,6 +31,7 @@ from __future__ import annotations
 
 import contextlib
 import itertools
+import os
 import statistics
 from typing import Dict, Iterable, Sequence, Tuple
 
@@ -204,6 +205,55 @@ def measure_window(n: int, k: int, beta: float = 0.1, p: float = 0.05,
         curve[rounds] = statistics.mean(vals)
     ok = [r for r in candidates if curve[r] > 0.9]
     return (ok[0] if ok else max(candidates, key=lambda r: curve[r])), curve
+
+
+# --------------------------------------------------------------------------
+# Running seeds in parallel
+# --------------------------------------------------------------------------
+
+def _seed_worker(payload):
+    import importlib
+    mod_name, fn_name, args, seed = payload
+    fn = getattr(importlib.import_module(mod_name), fn_name)
+    return fn(*args, seed)
+
+
+def parallel_seeds(fn, seeds: Sequence[int], *args, workers: int = 0):
+    """Run ``fn(*args, seed)`` for each seed in a separate process.
+
+    Seeds are INDEPENDENT trials -- each builds its own ``Brain(seed=...)`` and
+    shares no state -- so this is exactly equivalent to the serial loop, not an
+    approximation. The engine is single-threaded CPU-bound numpy (profiled: 79%
+    of a trial is inside ``project``), so wall-clock scales close to linearly
+    with cores until the seed count runs out.
+
+    PYTHONHASHSEED IS PINNED, and must be. Multiprocessing on Windows spawns
+    fresh interpreters, and this project has already been bitten once by
+    ``hash()``-derived RNG seeds making ``Brain(seed=)`` differ ACROSS processes
+    while staying stable within one -- a failure no single-process test can
+    catch. Without this line every worker would draw a different hash seed and
+    the "same" seed would mean something different in each.
+
+    ``fn`` must be a module-level function taking ``seed`` LAST, since spawn
+    pickles by qualified name.
+
+    Falls back to the serial loop for a single seed or worker, which keeps
+    debugging (and tracebacks) usable.
+    """
+    import concurrent.futures as _cf
+    import multiprocessing as _mp
+
+    seeds = list(seeds)
+    n_workers = workers or min(len(seeds), max(1, (os.cpu_count() or 2) - 1))
+    if n_workers <= 1 or len(seeds) <= 1:
+        return [fn(*args, s) for s in seeds]
+
+    os.environ["PYTHONHASHSEED"] = "0"
+    payloads = [(fn.__module__, fn.__name__, args, s) for s in seeds]
+    ctx = _mp.get_context("spawn")
+    with _cf.ProcessPoolExecutor(max_workers=n_workers,
+                                 mp_context=ctx) as pool:
+        return list(pool.map(_seed_worker, payloads))
 
 
 # --------------------------------------------------------------------------
