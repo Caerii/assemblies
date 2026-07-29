@@ -1,0 +1,14 @@
+
+  DEPTH AT LOW LOAD   n=4000 M=256 load=3.2 seeds=2
+  margin/spread/distinct are at the DEEPEST level; floor=0.0125
+
+    beta  depth   marg_D    spr_D  distinct      
+    0.20      3     1.95   0.0201     0.805  CROWDED      [94s]
+    0.20      5     1.01   0.0793     0.012  CROWDED      [187s]
+
+    0.35      3     1.02   0.2483     0.139  CROWDED      [77s]
+    0.35      5     1.01   0.4759     0.010  CROWDED      [159s]
+
+    0.50      3     1.02   0.4811     0.121  CROWDED      [75s]
+    0.50      5     1.01   0.7366     0.008  CROWDED      [122s]
+
