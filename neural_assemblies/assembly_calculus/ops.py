@@ -567,7 +567,8 @@ def _associate_body(brain, source_a, source_b, target,
 
 
 def merge(brain, source_a, source_b, target,
-          stim_a=None, stim_b=None, rounds=10) -> Assembly:
+          stim_a=None, stim_b=None, rounds=10, *,
+          parent_self=True, target_self=True, back_project=True) -> Assembly:
     """Merge assemblies from two source areas into a target area.
 
     Protocol::
@@ -590,9 +591,54 @@ def merge(brain, source_a, source_b, target,
         stim_a: Optional stimulus name that drives source_a.
         stim_b: Optional stimulus name that drives source_b.
         rounds: Number of projection rounds (default 10).
+        parent_self: Keep ``source -> source`` (default True).
+        target_self: Keep ``target -> target`` (default True).
+        back_project: Keep ``target -> sources`` (default True).
 
     Returns:
         Assembly snapshot of the merged assembly in target.
+
+    THE THREE RECURRENT CHANNELS, and when to gate them:
+        The defaults reproduce the protocol above exactly and are correct for
+        what this operation ports -- ONE merge, of one pair, as in
+        ``.reference/dmitropolsky-assemblies simulations.merge_sim``.
+
+        They are wrong for MANY merges through shared areas, which is this
+        project's extension and not the reference's. Each channel accumulates
+        potentiation across merges until it beats the next item's stimulus in
+        k-WTA, and all three collapse their areas at different points.
+        Measured n=1000 k=50 beta=0.1, 16 merges into one shared target, at
+        the merge round T where each first bites (mean pairwise overlap of the
+        16 items, against a random-pair floor of 0.0500; recall is rank-1
+        identity from cueing one parent):
+
+            channel                gates           collapses      by T
+            parent_self  source -> source          the PARENTS       5
+            target_self  target -> target          the TARGET       10
+            back_project target -> sources         the parents      20
+
+        parent_self is by far the strongest: gating it alone takes parent
+        overlap from 0.9431 to 0.0518 at T=5. back_project -- the channel this
+        docstring spends the most words on, and the one [PNAS20]'s "two-way
+        connectivity" refers to -- is the weakest, and gating it changed parent
+        overlap only from 0.9431 to 0.8266. The 3.47x parent potentiation
+        measured above is a genuine SINGLE-merge property; it does not survive
+        contact with sixteen of them.
+
+        With all three gated -- repeated stimulus-driven feed-forward
+        projection -- recall is 1.0000 and fidelity 0.9069 at T=10, against
+        0.9271 / 0.3825 for the defaults at their own best setting (T=2).
+        The merge CRITERION still holds without the back-projection: the
+        composed assembly is returned from EITHER parent alone, acc 1.0000
+        cueing source_b. So the two-way connectivity is not what the criterion
+        needs, at least for retrieval from a partial cue.
+
+        Rule of thumb: gate all three when the target holds MANY composed items;
+        keep the defaults when the areas hold one thing at a time. Same law as
+        ``core/brain.py:project_rounds`` documents for the lexicon -- the
+        potentiation that makes ONE assembly persist is what makes MANY
+        assemblies merge. See ``research/experiments/merge_recurrence_channels``
+        and ``merge_capacity_ladder``.
 
     Theory (Papadimitriou 2020, §3):
         The merged assembly in target responds to EITHER source alone.
@@ -657,22 +703,22 @@ def merge(brain, source_a, source_b, target,
     if stim_b:
         stim_dict[stim_b] = [source_b]
 
+    src_map = {
+        source_a: ([source_a] if parent_self else []) + [target],
+        source_b: ([source_b] if parent_self else []) + [target],
+    }
+    tgt_list = (([target] if target_self else [])
+                + ([source_a, source_b] if back_project else []))
+
     try:
         # Step 1: Simultaneous projection (no target recurrence yet)
-        brain.project(
-            stim_dict,
-            {source_a: [source_a, target], source_b: [source_b, target]},
-        )
+        brain.project(stim_dict, dict(src_map))
 
         # Steps 2+: Add target recurrence and feedback to sources
         for _ in range(rounds - 1):
             brain.project(
                 stim_dict,
-                {
-                    source_a: [source_a, target],
-                    source_b: [source_b, target],
-                    target: [target, source_a, source_b],
-                },
+                {**src_map, **({target: tgt_list} if tgt_list else {})},
             )
     finally:
         # See associate: a raise must not leave the sources fixed for the rest
