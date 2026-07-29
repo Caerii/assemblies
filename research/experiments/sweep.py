@@ -78,7 +78,11 @@ GAINS_FINE = [1.08, 1.15, 1.22, 1.30, 1.40,
 
 def cut_gain_x_alpha():
     """THE PHASE DIAGRAM: gain against load, at one system size."""
-    for M, g in itertools.product([32, 64, 128, 256], GAINS_FINE):
+    # M = 96, 160, 192 (alpha = 1.2, 2.0, 2.4) test the registered closure
+    # prediction: fitting width = a - b ln(alpha) on the two bracketed loads
+    # gives closure at alpha* ~ 1.87, so 2.0 and 2.4 should be closed or nearly
+    # so, and 1.2 should show a width near 0.35.
+    for M, g in itertools.product([32, 64, 96, 128, 160, 192, 256], GAINS_FINE):
         yield dict(n=4000, k=50, p=0.05, M=M, gain=g, depth=5)
 
 
