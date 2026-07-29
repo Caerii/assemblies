@@ -1,0 +1,75 @@
+
+  BRIDGE: parser vs phase map   n=1000 k=50 p=0.05 rounds=10
+  corpus: 4 sentences, counts={'dog': 3, 'chases': 1, 'cat': 2, 'sees': 2, 'bird': 3, 'catches': 1}, c_max=3, kp=2.5
+
+    beta   g/step  g_eff(c_max)  prescription g_c^(1/(rounds*c_max))
+  0.1000    2.594          17.4
+  0.0500    1.629          4.32
+  0.0234    1.260             2
+  0.0100    1.105          1.35
+
+  prescribed beta for g_c=2.0: 0.02337  (vs 0.1 in use -> 4x smaller)
+
+  === reset AS SHIPPED, beta=0.1 (g/step=2.594) ===
+    area              items  distinct   spread    floor  verdict
+    LEX_NOUN              3     1.000   0.0253   0.0500  ok (0/5 seeds)
+    LEX_VERB              3     1.000   0.0267   0.0500  ok (0/5 seeds)
+    ROLE_ACTION           3     0.333   1.0000   0.0500  COLLAPSED (5/5 seeds)
+    ROLE_AGENT            3     0.333   1.0000   0.0500  COLLAPSED (5/5 seeds)
+    ROLE_PATIENT          3     0.333   1.0000   0.0500  COLLAPSED (5/5 seeds)
+
+  === reset AS SHIPPED, beta=0.05 (g/step=1.629) ===
+    area              items  distinct   spread    floor  verdict
+    LEX_NOUN              3     1.000   0.0213   0.0500  ok (0/5 seeds)
+    LEX_VERB              3     1.000   0.0187   0.0500  ok (0/5 seeds)
+    ROLE_ACTION           3     0.333   1.0000   0.0500  COLLAPSED (5/5 seeds)
+    ROLE_AGENT            3     0.333   1.0000   0.0500  COLLAPSED (5/5 seeds)
+    ROLE_PATIENT          3     0.333   1.0000   0.0500  COLLAPSED (5/5 seeds)
+
+  === reset AS SHIPPED, beta=0.0234 (g/step=1.260) ===
+    area              items  distinct   spread    floor  verdict
+    LEX_NOUN              3     1.000   0.0200   0.0500  ok (0/5 seeds)
+    LEX_VERB              3     1.000   0.0080   0.0500  ok (0/5 seeds)
+    ROLE_ACTION           3     0.333   1.0000   0.0500  COLLAPSED (5/5 seeds)
+    ROLE_AGENT            3     0.333   1.0000   0.0500  COLLAPSED (5/5 seeds)
+    ROLE_PATIENT          3     0.333   1.0000   0.0500  COLLAPSED (5/5 seeds)
+
+  === reset AS SHIPPED, beta=0.01 (g/step=1.105) ===
+    area              items  distinct   spread    floor  verdict
+    LEX_NOUN              3     1.000   0.0160   0.0500  ok (0/5 seeds)
+    LEX_VERB              3     1.000   0.0093   0.0500  ok (0/5 seeds)
+    ROLE_ACTION           3     0.333   1.0000   0.0500  COLLAPSED (5/5 seeds)
+    ROLE_AGENT            3     0.333   1.0000   0.0500  COLLAPSED (5/5 seeds)
+    ROLE_PATIENT          3     0.333   1.0000   0.0500  COLLAPSED (5/5 seeds)
+
+  === reset NEUTRALISED, beta=0.1 (g/step=2.594) ===
+    area              items  distinct   spread    floor  verdict
+    LEX_NOUN              3     1.000   0.1253   0.0500  ok (1/5 seeds)
+    LEX_VERB              3     1.000   0.0760   0.0500  ok (0/5 seeds)
+    ROLE_ACTION           3     1.000   0.4533   0.0500  COLLAPSED (5/5 seeds)
+    ROLE_AGENT            3     1.000   0.4600   0.0500  COLLAPSED (3/5 seeds)
+    ROLE_PATIENT          3     1.000   0.5120   0.0500  COLLAPSED (4/5 seeds)
+
+  === reset NEUTRALISED, beta=0.05 (g/step=1.629) ===
+    area              items  distinct   spread    floor  verdict
+    LEX_NOUN              3     1.000   0.0267   0.0500  ok (0/5 seeds)
+    LEX_VERB              3     1.000   0.0373   0.0500  ok (0/5 seeds)
+    ROLE_ACTION           3     1.000   0.0240   0.0500  ok (0/5 seeds)
+    ROLE_AGENT            3     1.000   0.0120   0.0500  ok (0/5 seeds)
+    ROLE_PATIENT          3     1.000   0.0147   0.0500  ok (0/5 seeds)
+
+  === reset NEUTRALISED, beta=0.0234 (g/step=1.260) ===
+    area              items  distinct   spread    floor  verdict
+    LEX_NOUN              3     1.000   0.0133   0.0500  ok (0/5 seeds)
+    LEX_VERB              3     1.000   0.0067   0.0500  ok (0/5 seeds)
+    ROLE_ACTION           3     1.000   0.0080   0.0500  ok (0/5 seeds)
+    ROLE_AGENT            3     1.000   0.0133   0.0500  ok (0/5 seeds)
+    ROLE_PATIENT          3     1.000   0.0067   0.0500  ok (0/5 seeds)
+
+  === reset NEUTRALISED, beta=0.01 (g/step=1.105) ===
+    area              items  distinct   spread    floor  verdict
+    LEX_NOUN              3     1.000   0.0093   0.0500  ok (0/5 seeds)
+    LEX_VERB              3     1.000   0.0133   0.0500  ok (0/5 seeds)
+    ROLE_ACTION           3     1.000   0.0067   0.0500  ok (0/5 seeds)
+    ROLE_AGENT            3     1.000   0.0053   0.0500  ok (0/5 seeds)
+    ROLE_PATIENT          3     1.000   0.0093   0.0500  ok (0/5 seeds)

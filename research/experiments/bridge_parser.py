@@ -37,6 +37,7 @@ distinct verb phrases collapsing onto a single assembly.
 
 from __future__ import annotations
 
+import csv
 import os
 import sys
 
@@ -142,6 +143,17 @@ if __name__ == "__main__":
     print(f"\n  prescribed beta for g_c=2.0: {presc:.5f}  "
           f"(vs 0.1 in use -> {0.1 / presc:.0f}x smaller)")
 
+    out_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                            os.environ.get("BR_OUT", "bridge_parser.csv"))
+    new = not os.path.exists(out_path)
+    fh = open(out_path, "a", newline="", encoding="utf-8")
+    wcsv = csv.writer(fh)
+    if new:
+        wcsv.writerow(["cut", "reset", "n", "k", "p", "rounds", "beta",
+                       "g_step", "g_eff", "area", "kind", "n_items", "seed",
+                       "distinct_frac", "spread", "floor", "collapsed"])
+        fh.flush()
+
     # TWO FACTORS. Varying beta alone cannot separate "the map is right" from
     # "a structural bug pins these areas", because both produce collapse. The
     # reset arm is what makes the beta arm interpretable.
@@ -155,6 +167,15 @@ if __name__ == "__main__":
                 parser, brain = build(beta, seed, no_reset=no_reset)
                 for area, h in area_report(brain, parser).items():
                     agg.setdefault(area, []).append(h)
+                    wcsv.writerow([
+                        "bridge", int(no_reset), N, K, P, ROUNDS,
+                        f"{beta:.5f}", f"{(1 + beta) ** ROUNDS:.5f}",
+                        f"{(1 + beta) ** (ROUNDS * c_max):.5f}", area,
+                        "lexicon" if area.startswith("LEX") else "role",
+                        h.n_items, seed, f"{h.distinct_frac:.6f}",
+                        f"{h.spread:.6f}", f"{h.floor:.6f}",
+                        int(h.collapsed)])
+            fh.flush()
             if not agg:
                 print("    (no area held >=2 assemblies -- nothing to score)")
                 continue

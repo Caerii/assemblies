@@ -28,11 +28,14 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 #: Every results file, so a single call sees the whole campaign.
 ALL_CSVS = ["sweep.csv", "critical_point_scan.csv", "capacity_direct.csv",
             "capacity_k.csv", "confound_n4000_M32.csv",
-            "confound_n2000_M64.csv", "zipf_gain.csv"]
+            "confound_n2000_M64.csv", "zipf_gain.csv", "zipf_scaled.csv",
+            "bridge_parser.csv"]
 
 NUM = ("p", "kp", "alpha", "beta", "gain", "acc", "margin", "spread",
-       "floor", "Q", "acc_head", "acc_tail", "zipf_s")
-INT = ("n", "k", "M", "T", "depth", "level", "seed")
+       "floor", "Q", "acc_head", "acc_tail", "zipf_s", "distinct_frac",
+       "g_step", "g_eff")
+INT = ("n", "k", "M", "T", "depth", "level", "seed", "rounds", "reset",
+       "n_items", "collapsed")
 
 
 def load(paths=None, deepest_only=True):
