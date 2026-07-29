@@ -1,0 +1,46 @@
+  COMPLEXITY LADDER  k=50 beta=0.2 p=0.05, feed-forward lexicon, gated merge T=2
+  one SHARED area per level; margin = best/second-best stored match; floor = k/n
+  full_D = accuracy at the DEEPEST level; a cell passes when full_D > 0.90
+
+        n     M  D   load   chance   full_1   full_D  marg_1  marg_D   spr_1   spr_D  trials  verdict
+     1000    64  3    3.2  0.01562   1.0000   0.0417    3.39    1.01  0.0878  0.3008     192  FAIL   [7s]
+    .. starting n=1000 M=128 D=3, est 0.2 min
+     1000   128  3    6.4  0.00781   0.9297   0.0208    1.39    1.00  0.1721  0.5826     384  FAIL   [10s]
+    .. starting n=1000 M=256 D=3, est 0.3 min
+     1000   256  3   12.8  0.00391   0.4180   0.0065    1.05    1.00  0.3478  0.7397     768  FAIL   [15s]
+    .. starting n=4000 M=64 D=3, est 0.3 min
+     4000    64  3    0.8  0.01562   1.0000   1.0000   12.85    8.05  0.0141  0.0141     192  PASS   [9s]
+    .. starting n=4000 M=256 D=3, est 0.6 min
+     4000   256  3    3.2  0.00391   1.0000   0.6940    8.51    1.78  0.0169  0.0211     768  MARGINAL   [31s]
+    .. starting n=4000 M=512 D=3, est 1.0 min
+     4000   512  3    6.4  0.00195   1.0000   0.0742    6.35    1.02  0.0199  0.1502    1024  FAIL   [62s]
+    .. starting n=1000 M=64 D=5, est 0.1 min
+     1000    64  5    3.2  0.01562   1.0000   0.0156    3.55    1.00  0.0849  0.4283     192  FAIL   [7s]
+    .. starting n=1000 M=128 D=5, est 0.2 min
+     1000   128  5    6.4  0.00781   0.9297   0.0078    1.44    1.00  0.1675  0.6799     384  FAIL   [12s]
+    .. starting n=4000 M=256 D=5, est 1.6 min
+     4000   256  5    3.2  0.00391   1.0000   0.0117    8.59    1.01  0.0168  0.0597     768  FAIL   [57s]
+    .. starting n=4000 M=512 D=5, est 1.9 min
+     4000   512  5    6.4  0.00195   1.0000   0.0039    6.36    1.01  0.0201  0.3119    1024  FAIL   [133s]
+    .. starting n=4000 M=256 D=7, est 1.6 min
+     4000   256  7    3.2  0.00391   1.0000   0.0039    8.42    1.00  0.0169  0.0800     768  FAIL   [123s]
+    .. starting n=4000 M=512 D=7, est 4.1 min
+     4000   512  7    6.4  0.00195   1.0000   0.0029    6.35    1.00  0.0200  0.4275    1024  FAIL   [245s]
+    .. starting n=10000 M=512 D=3, est 4.4 min
+    10000   512  3    2.6  0.00195   0.0020   0.0020    1.00    1.00  0.9999  1.0000    1024  FAIL   [18s]
+    .. starting n=10000 M=1024 D=3, est 0.6 min
+    10000  1024  3    5.1  0.00098   0.0010   0.0010    1.00    1.00  0.9999  1.0000    2048  FAIL   [59s]
+    .. starting n=10000 M=512 D=5, est 0.8 min
+    10000   512  5    2.6  0.00195   1.0000   0.1230   12.22    1.24  0.0065  0.0066    1024  FAIL   [308s]
+    .. starting n=10000 M=1024 D=5, est 10.3 min
+    10000  1024  5    5.1  0.00098   1.0000   0.0332   10.88    1.15  0.0063  0.0065    2048  FAIL   [839s]
+    .. starting n=10000 M=1024 D=7, est 19.6 min
+    10000  1024  7                                           FAILED: ValueError: not enough values to unpack (expected 5, got 4)
+    .. starting n=10000 M=2048 D=3, est 16.8 min
+    10000  2048  3                                           FAILED: ValueError: not enough values to unpack (expected 5, got 4)
+    .. starting n=10000 M=2048 D=5, est 28.0 min
+    10000  2048  5                                           FAILED: ValueError: not enough values to unpack (expected 5, got 4)
+
+  DONE. Read the margin columns, not the accuracies: a cell can read 0.95 with
+  a margin of 1.47x, which is one step from failing. The ceiling is where
+  margin approaches ~1.1, and spr_1 is the leading indicator for the level above.

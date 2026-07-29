@@ -211,10 +211,45 @@ def measure_window(n: int, k: int, beta: float = 0.1, p: float = 0.05,
 # Running seeds in parallel
 # --------------------------------------------------------------------------
 
-def _seed_worker(payload):
+def _resolve_module(mod_name, mod_file):
+    """Import the module holding the worker function, INCLUDING ``__main__``.
+
+    The bug this exists to prevent, found 2026-07-29: the first version sent
+    ``fn.__module__`` and called ``importlib.import_module`` on it. For a
+    function defined in a script that name is ``"__main__"``, and under spawn
+    the child's ``__main__`` is its own bootstrap -- so the worker silently ran
+    something other than the intended module. It did not raise; it returned
+    plausible numbers. A ladder cell that reads 1.0000 accuracy and 0.0059
+    spread when run directly came back as 0.0020 and 0.9999 through the pool.
+
+    Loading ``__main__`` by FILE PATH under a synthetic name fixes it. The
+    module's ``if __name__ == "__main__"`` guard does not fire, so importing it
+    does not re-run the experiment.
+    """
     import importlib
-    mod_name, fn_name, args, seed = payload
-    fn = getattr(importlib.import_module(mod_name), fn_name)
+    import importlib.util
+    import sys
+
+    if mod_name != "__main__":
+        return importlib.import_module(mod_name)
+    cached = sys.modules.get("_parallel_seeds_main")
+    if cached is not None and getattr(cached, "__file__", None) == mod_file:
+        return cached
+    if not mod_file:
+        raise RuntimeError(
+            "parallel_seeds cannot resolve a __main__ function with no "
+            "__file__; call it from an importable module")
+    spec = importlib.util.spec_from_file_location(
+        "_parallel_seeds_main", mod_file)
+    mod = importlib.util.module_from_spec(spec)
+    sys.modules["_parallel_seeds_main"] = mod
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def _seed_worker(payload):
+    mod_name, mod_file, fn_name, args, seed = payload
+    fn = getattr(_resolve_module(mod_name, mod_file), fn_name)
     return fn(*args, seed)
 
 
@@ -249,11 +284,100 @@ def parallel_seeds(fn, seeds: Sequence[int], *args, workers: int = 0):
         return [fn(*args, s) for s in seeds]
 
     os.environ["PYTHONHASHSEED"] = "0"
-    payloads = [(fn.__module__, fn.__name__, args, s) for s in seeds]
+    import sys as _sys
+    mod = _sys.modules.get(fn.__module__)
+    mod_file = getattr(mod, "__file__", None)
+    payloads = [(fn.__module__, mod_file, fn.__name__, args, s) for s in seeds]
     ctx = _mp.get_context("spawn")
     with _cf.ProcessPoolExecutor(max_workers=n_workers,
                                  mp_context=ctx) as pool:
-        return list(pool.map(_seed_worker, payloads))
+        out = list(pool.map(_seed_worker, payloads))
+
+    # SELF-CHECK. One seed is recomputed in-process and compared. The original
+    # equivalence test passed only because it imported the experiment as a
+    # normal module -- the single configuration in which the __main__ bug
+    # cannot occur -- so equivalence is now asserted on every real run instead
+    # of once, offline, in the safe case. Costs one extra seed.
+    if os.environ.get("SUBSTRATE_VERIFY_PARALLEL", "1") != "0":
+        ref = fn(*args, seeds[0])
+        if repr(ref) != repr(out[0]):
+            raise AssertionError(
+                "parallel_seeds diverged from serial for seed "
+                f"{seeds[0]}: workers are not running the same code or state. "
+                f"serial={repr(ref)[:200]} parallel={repr(out[0])[:200]}")
+    return out
+
+
+# --------------------------------------------------------------------------
+# Invariants -- fail loudly rather than return plausible numbers
+# --------------------------------------------------------------------------
+
+def check_distinct(assemblies, n: int, k: int, where: str = "") -> tuple:
+    """Non-fatal distinctness check. Returns (spread, note-or-empty).
+
+    For MEASUREMENT sites, where partial crowding is a legitimate result rather
+    than a defect. Distinguishing the two matters: an area whose items overlap
+    0.1956 against a 0.0500 floor is the crowding regime this project studies
+    on purpose, while one at 0.9999 has degenerated and its numbers mean
+    nothing. The first must be reported, not raised on -- an early version of
+    this check aborted exactly the cell that was demonstrating crowding.
+    """
+    vals = list(assemblies)
+    s = spread(vals)
+    floor = k / n if n else float("nan")
+    if s == s and floor == floor and s > 0.5:
+        return s, f"DEGENERATE(spr={s:.4f})"
+    return s, ""
+
+
+def assert_distinct(assemblies, n: int, k: int, where: str = "",
+                    tolerance: float = 3.0) -> float:
+    """Assert a set of assemblies is still mutually distinct. Returns spread.
+
+    THE FAILURE THIS CATCHES is the one that has cost the most time in this
+    project: an area collapses so every item returns the same assembly, and
+    every downstream number then reads exactly chance -- indistinguishable from
+    a genuine negative by inspection. It happened to the lexicon, to merge's
+    parents, to merge's target, to the mood chains, and most recently to a
+    ladder cell that read 0.0020 accuracy with a spread of 0.9999 where a direct
+    run of the same cell gave 1.0000 and 0.0059.
+
+    Call it on the STORED items before believing anything measured from them.
+    The random-pair floor is k/n; `tolerance` multiples of it is generous --
+    real collapses measured 0.5 to 1.0 against floors of 0.005 to 0.05, so this
+    separates cleanly rather than splitting hairs.
+    """
+    vals = list(assemblies)
+    s = spread(vals)
+    floor = k / n if n else float("nan")
+    if s == s and floor == floor and s > max(tolerance * floor, floor + 0.05):
+        raise AssertionError(
+            f"COLLAPSE{(' in ' + where) if where else ''}: {len(vals)} "
+            f"assemblies have mean pairwise overlap {s:.4f} against a "
+            f"random-pair floor of {floor:.4f}. Everything measured from these "
+            f"will read at chance for a reason that has nothing to do with the "
+            f"hypothesis under test.")
+    return s
+
+
+def assert_machine_idle(threshold: float = 40.0) -> None:
+    """Warn when another heavy job is competing for the CPU.
+
+    Benchmarks taken while a background sweep was running read 7.9/14.9/37.1s
+    for code that measures 6.3/11.0/24.9s idle -- enough to invert a
+    before/after comparison. Timing conclusions drawn on a loaded machine are
+    not conclusions. Best-effort: prints rather than raises, and silently does
+    nothing when psutil is unavailable.
+    """
+    try:
+        import psutil
+    except ImportError:
+        return
+    load = psutil.cpu_percent(interval=0.3)
+    if load > threshold:
+        print(f"  [WARNING] CPU is {load:.0f}% busy before this measurement. "
+              f"Timing comparisons taken now are not trustworthy -- stop "
+              f"competing jobs first.")
 
 
 # --------------------------------------------------------------------------

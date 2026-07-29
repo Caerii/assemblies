@@ -73,7 +73,8 @@ os.environ.setdefault("TRAIN_PROGRESS", "0")
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from _substrate import (  # noqa: E402
-    parallel_seeds, probe, read, similarity, spread,
+    assert_machine_idle, check_distinct, parallel_seeds, probe, read,
+    similarity, spread,
 )
 
 #: beta is an ENV KNOB because depth_beta_rescue.py found depth peaks at an
@@ -152,6 +153,15 @@ def trial(n, m_items, depth, seed):
                       stim_b=f"p{L}_{m}", rounds=MERGE_ROUNDS, **GATED)
                 stored[L][m] = read(brain, level(L))
 
+    # A collapsed level makes every number below it read at chance for a
+    # reason unrelated to the hypothesis. Catch it here rather than in a
+    # results table -- a cell that reads spr 0.9999 has not measured depth.
+    degenerate = []
+    for L in range(1, depth + 1):
+        _s, note = check_distinct(stored[L].values(), n, K_)
+        if note:
+            degenerate.append(f"L{L}:{note}")
+
     full = {L: 0 for L in range(1, depth + 1)}
     margins = {L: [] for L in range(1, depth + 1)}
     for m in range(m_items):
@@ -168,6 +178,7 @@ def trial(n, m_items, depth, seed):
                     margins[L].append(sims[0][0] / sims[1][0])
                 src = level(L)
 
+    _ = degenerate
     return (full, m_items,
             {L: (statistics.mean(v) if v else float("nan"))
              for L, v in margins.items()},
@@ -198,6 +209,7 @@ def emit(line, fh):
 def main() -> None:
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
+    assert_machine_idle()
     with open(OUT, "w", encoding="utf-8") as fh:
         emit(f"  COMPLEXITY LADDER  k={K_} beta={BETA} p={P_}, feed-forward "
              f"lexicon, gated merge T={MERGE_ROUNDS}", fh)
