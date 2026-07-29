@@ -1,0 +1,28 @@
+
+  DIRECT CAPACITY   gain=1.69 (beta=0.300) depth=5 seeds=2  mode=n
+
+  n=2000  k=50 p=0.05
+    M=16    acc=1.000 marg=  5.82 [7s]
+    M=32    acc=0.938 marg=  2.96 [7s]
+    M=64    acc=0.031 marg=  1.00 [20s]
+    M=128   acc=0.008 marg=  1.00 [37s]
+    -> M_max ~ 45
+
+  n=4000  k=50 p=0.05
+    M=32    acc=1.000 marg= 10.24 [16s]
+    M=64    acc=1.000 marg=  6.53 [33s]
+    M=128   acc=0.031 marg=  1.02 [71s]
+    M=256   acc=0.012 marg=  1.01 [162s]
+    -> M_max ~ 92
+
+  n=8000  k=50 p=0.05
+    M=64    acc=1.000 marg= 14.95 [44s]
+    M=128   acc=1.000 marg=  9.65 [111s]
+    M=256   acc=0.920 marg=  3.52 [270s]
+    M=512   acc=0.027 marg=  1.02 [597s]
+    -> M_max ~ 355
+
+  --- capacity scaling ---
+    n 2000->4000:  M_max 45->92   exponent 1.03
+    n 4000->8000:  M_max 92->355   exponent 1.95
+    (inferred claim was ~1.6; 1.0 would mean capacity is extensive)
