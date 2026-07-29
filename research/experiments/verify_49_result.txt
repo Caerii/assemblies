@@ -1,0 +1,21 @@
+########## ARM 1: CONTROL (legacy loader, bug present) ##########
+
+  verify #49 -- CONTROL (legacy loader, bug present)
+  n=4000 M=512 D=3 beta=0.2 seeds=(42, 7)
+  worker module: __main__
+
+    parallel[0]  distinct={1: 512, 2: 94, 3: 36} total=512 marg={1: 6.34, 2: 1.09, 3: 1.02} spr={1: 0.0198, 2: 0.059, 3: 0.1375}
+
+  control arm expected DIVERGENCE: NO -- TEST IS BLIND
+control exit=1
+
+########## ARM 2: FIX ##########
+
+  verify #49 -- FIX
+  n=4000 M=512 D=3 beta=0.2 seeds=(42, 7)
+  worker module: __main__
+
+    parallel[0]  distinct={1: 512, 2: 94, 3: 36} total=512 marg={1: 6.34, 2: 1.09, 3: 1.02} spr={1: 0.0198, 2: 0.059, 3: 0.1375}
+
+  fix arm expected AGREEMENT: yes -- parallel == serial
+fix exit=0

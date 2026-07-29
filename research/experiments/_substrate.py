@@ -237,6 +237,18 @@ def _resolve_module(mod_name, mod_file):
             "parallel_seeds cannot resolve a __main__ function with no "
             "__file__; call it from an importable module")
 
+    # NEGATIVE CONTROL. `SUBSTRATE_LEGACY_LOADER=1` forces the old, broken
+    # synthetic-name path. It exists for exactly one reason: a regression test
+    # that cannot fail proves nothing, and this project already shipped one --
+    # test_parallel_seeds_main passed with the bug deliberately reintroduced,
+    # because its n=400 M=6 cell is far too small to show a failure that needs
+    # M=512. An env var rather than a monkeypatch because the fault occurs in
+    # the CHILD process, and only the environment crosses a spawn boundary.
+    if os.environ.get("SUBSTRATE_LEGACY_LOADER") != "1":
+        _resolve_by_real_name = True
+    else:
+        _resolve_by_real_name = False
+
     # PREFER THE MODULE'S REAL NAME. Loading the file under a synthetic name
     # produces a SECOND module object for the same source, and that is the
     # configuration measured to break: with the ladder imported normally,
@@ -245,14 +257,15 @@ def _resolve_module(mod_name, mod_file):
     # at spread 0.9998. Importing by real name is the path already known to be
     # correct, so take it whenever the file is importable -- which it is for
     # every experiment here, since the directory is on sys.path.
-    real_name = os.path.splitext(os.path.basename(mod_file))[0]
-    try:
-        mod = importlib.import_module(real_name)
-        if os.path.realpath(getattr(mod, "__file__", "")) == \
-                os.path.realpath(mod_file):
-            return mod
-    except ImportError:
-        pass
+    if _resolve_by_real_name:
+        real_name = os.path.splitext(os.path.basename(mod_file))[0]
+        try:
+            mod = importlib.import_module(real_name)
+            if os.path.realpath(getattr(mod, "__file__", "")) == \
+                    os.path.realpath(mod_file):
+                return mod
+        except ImportError:
+            pass
 
     # Fall back to the file-path load only when the real name is unavailable
     # or resolves to a DIFFERENT file (a name collision on sys.path, which
@@ -269,8 +282,65 @@ def _resolve_module(mod_name, mod_file):
     return mod
 
 
+def _source_fingerprint():
+    """Hash of every source file a worker might import.
+
+    THE FAILURE THIS EXISTS FOR, root-caused 2026-07-29. A ladder run reported
+    that its workers disagreed with the parent at n=4000 M=512: serial gave 512
+    distinct assemblies at margin 6.34, the worker gave 1 at spread 0.9998. It
+    survived every explanation offered -- process state, scale, hash seed,
+    parent history, and the module loader, all eliminated by measurement, and
+    the cell later refused to reproduce in all four loader/history
+    combinations.
+
+    The cause was mundane and invisible to those tests: THE ENGINE SOURCE WAS
+    EDITED WHILE THE RUN WAS IN FLIGHT. A parent loads its modules once at
+    startup; every spawned worker re-imports FROM DISK. So an edit made after
+    launch puts the children on different code, silently. The edits in question
+    were an experimental lazy stimulus initialisation, applied and reverted
+    within about five minutes -- never committed, so no git history records
+    them -- and the ladder happened to reach its M=512 cell inside that window.
+    The signature matches exactly: that lazy engine measures spread 0.9988 to
+    0.9998 at chance accuracy, which is what the worker returned.
+
+    Stat-only, so it costs microseconds per file and runs once in the parent
+    and once per worker.
+    """
+    import hashlib
+
+    h = hashlib.sha256()
+    roots = [os.path.dirname(os.path.abspath(__file__)),
+             os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
+                 os.path.abspath(__file__)))), "neural_assemblies")]
+    for root in roots:
+        for dirpath, dirnames, filenames in os.walk(root):
+            dirnames[:] = [d for d in dirnames
+                           if d not in ("__pycache__", ".git")]
+            for name in sorted(filenames):
+                if not name.endswith(".py"):
+                    continue
+                p = os.path.join(dirpath, name)
+                try:
+                    st = os.stat(p)
+                except OSError:
+                    continue
+                h.update(p.encode("utf-8", "replace"))
+                h.update(f"{st.st_mtime_ns}:{st.st_size}".encode())
+    return h.hexdigest()[:16]
+
+
 def _seed_worker(payload):
-    mod_name, mod_file, fn_name, args, seed = payload
+    mod_name, mod_file, fn_name, args, seed, fingerprint = payload
+    if fingerprint is not None:
+        here = _source_fingerprint()
+        if here != fingerprint:
+            raise RuntimeError(
+                "SOURCE CHANGED WHILE THIS RUN WAS IN FLIGHT. The parent "
+                f"started with sources {fingerprint} and this worker imported "
+                f"{here}. Spawned workers re-import from disk, so any edit "
+                "made after launch puts them on different code than the "
+                "parent -- silently, and with plausible-looking numbers. "
+                "Re-run without editing the tree underneath it.")
     fn = getattr(_resolve_module(mod_name, mod_file), fn_name)
     return fn(*args, seed)
 
@@ -309,7 +379,12 @@ def parallel_seeds(fn, seeds: Sequence[int], *args, workers: int = 0):
     import sys as _sys
     mod = _sys.modules.get(fn.__module__)
     mod_file = getattr(mod, "__file__", None)
-    payloads = [(fn.__module__, mod_file, fn.__name__, args, s) for s in seeds]
+    # Fingerprint the tree ONCE, in the parent, before any worker starts. Set
+    # SUBSTRATE_SOURCE_GUARD=0 only if you are deliberately editing mid-run.
+    fp = (_source_fingerprint()
+          if os.environ.get("SUBSTRATE_SOURCE_GUARD", "1") != "0" else None)
+    payloads = [(fn.__module__, mod_file, fn.__name__, args, s, fp)
+                for s in seeds]
     ctx = _mp.get_context("spawn")
     with _cf.ProcessPoolExecutor(max_workers=n_workers,
                                  mp_context=ctx) as pool:

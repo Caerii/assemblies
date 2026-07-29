@@ -1,0 +1,21 @@
+  [WARNING] CPU is 69% busy before this measurement. Timing comparisons taken now are not trustworthy -- stop competing jobs first.
+  COMPLEXITY LADDER  k=50 beta=0.2 p=0.05, feed-forward lexicon, gated merge T=2
+  one SHARED area per level; margin = best/second-best stored match; floor = k/n
+  full_D = accuracy at the DEEPEST level; a cell passes when full_D > 0.90
+
+        n     M  D   load   chance   full_1   full_D  marg_1  marg_D   spr_1   spr_D  trials  verdict
+     1000    64  3    3.2  0.01562   1.0000   0.0417    3.39    1.01  0.0878  0.3008     192  FAIL   [14s]
+    .. starting n=1000 M=128 D=3, est 0.5 min
+     1000   128  3    6.4  0.00781   0.9297   0.0208    1.39    1.00  0.1721  0.5826     384  FAIL   [15s]
+    .. starting n=1000 M=256 D=3, est 0.5 min
+     1000   256  3   12.8  0.00391   0.4180   0.0065    1.05    1.00  0.3478  0.7397     768  FAIL   [29s]
+    .. starting n=4000 M=64 D=3, est 0.5 min
+     4000    64  3    0.8  0.01562   1.0000   1.0000   12.85    8.05  0.0141  0.0141     192  PASS   [22s]
+    .. starting n=4000 M=256 D=3, est 1.5 min
+     4000   256  3    3.2  0.00391   1.0000   0.6940    8.51    1.78  0.0169  0.0211     768  MARGINAL   [87s]
+    .. starting n=4000 M=512 D=3, est 2.9 min
+     4000   512  3    6.4  0.00195   1.0000   0.0742    6.35    1.02  0.0199  0.1502    1024  FAIL   [205s]
+
+  DONE. Read the margin columns, not the accuracies: a cell can read 0.95 with
+  a margin of 1.47x, which is one step from failing. The ceiling is where
+  margin approaches ~1.1, and spr_1 is the leading indicator for the level above.

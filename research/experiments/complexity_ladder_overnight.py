@@ -104,6 +104,18 @@ LADDER = [
 ]
 
 
+# Restrict the sweep to named cells, e.g. LADDER_ONLY="4000:512:3".
+# Added to reproduce the #49 divergence on the ONE cell that showed it, without
+# spending an hour walking the whole ladder to reach it. The worker function
+# must stay in this module for that reproduction to be faithful -- the fault
+# needs the duplicated module to be the one holding the experiment's globals,
+# which a wrapper that delegates to an imported ladder does NOT provide.
+_ONLY = os.environ.get("LADDER_ONLY", "").strip()
+if _ONLY:
+    _want = {tuple(int(x) for x in c.split(":")) for c in _ONLY.split(",")}
+    LADDER = [c for c in LADDER if c in _want]
+
+
 def seeds_for(m):
     return (42, 7, 123) if m <= 256 else (42, 7)
 
