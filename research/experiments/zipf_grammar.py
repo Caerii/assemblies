@@ -102,6 +102,8 @@ BUILD_ROUNDS = 6
 #: Same gated merge channels as every other measurement in this campaign, so
 #: the Zipfian result is comparable to the uniform phase diagram.
 GATED = dict(parent_self=False, target_self=False, back_project=False)
+#: Homeostatic weight scaling, the candidate frequency compensator.
+SCALING = os.environ.get("ZIPF_SCALING", "0") == "1"
 
 
 def zipf_counts(m_items, s, total, rng):
@@ -120,7 +122,14 @@ def trial(gain, skew, seed):
 
     beta = gain ** (1.0 / T) - 1.0
     rng = random.Random(seed)
-    brain = Brain(p=P, seed=seed)
+    # SYNAPTIC SCALING as a candidate frequency compensator. Zipfian skew was
+    # measured to close the composition wedge outright (skew 1.0 peaks at 0.152
+    # against 1.000 uniform), and the mechanism is cumulative potentiation
+    # making an item's effective gain g^count. Any fix has to remove that
+    # dependence on count. Homeostatic scaling is the standing candidate and is
+    # already a Brain option, so it costs one flag to test rather than a new
+    # mechanism to write.
+    brain = Brain(p=P, seed=seed, synaptic_scaling=SCALING)
     brain.add_area("A", N, K, beta=beta)
     for L in range(1, DEPTH + 1):
         brain.add_area(f"P{L}", N, K, beta=beta)
@@ -208,7 +217,7 @@ if __name__ == "__main__":
             for seed in SEEDS:
                 a, hd, tl, dfrac, ph, pt = trial(gain, skew, seed)
                 accs.append(a); heads.append(hd); tails.append(tl); ds.append(dfrac)
-                w.writerow(["zipf", N, K, P, M, T, f"{gain:.4f}",
+                w.writerow([f"zipf{'_scaled' if SCALING else ''}", N, K, P, M, T, f"{gain:.4f}",
                             f"{skew:.2f}", seed, 1, 1, f"{a:.6f}",
                             f"{hd:.6f}", f"{tl:.6f}", f"{dfrac:.6f}", ph, pt])
             fh.flush()
