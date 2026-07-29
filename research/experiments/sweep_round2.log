@@ -1,0 +1,52 @@
+########## gain_x_alpha ##########
+
+  SWEEP gain_x_alpha   64 configs x 2 seeds
+  40 to run, 88 already done -> F:\Github\assemblies\research\experiments\sweep.csv
+
+  [  1/40] n=4000 M=32 p=0.05 D=5 g=1.08 s=42  acc=0.781 marg=  1.79  [6s, eta 4m]
+  [  2/40] n=4000 M=32 p=0.05 D=5 g=1.08 s=43  acc=0.750 marg=  1.91  [3s, eta 3m]
+  [  3/40] n=4000 M=32 p=0.05 D=5 g=1.15 s=42  acc=0.875 marg=  2.84  [5s, eta 3m]
+  [  4/40] n=4000 M=32 p=0.05 D=5 g=1.15 s=43  acc=1.000 marg=  2.91  [4s, eta 3m]
+  [  5/40] n=4000 M=32 p=0.05 D=5 g=1.22 s=42  acc=0.969 marg=  4.06  [4s, eta 3m]
+  [  6/40] n=4000 M=32 p=0.05 D=5 g=1.22 s=43  acc=0.969 marg=  3.45  [4s, eta 2m]
+  [  7/40] n=4000 M=32 p=0.05 D=5 g=1.30 s=42  acc=1.000 marg=  4.98  [3s, eta 2m]
+  [  8/40] n=4000 M=32 p=0.05 D=5 g=1.30 s=43  acc=1.000 marg=  5.15  [4s, eta 2m]
+  [  9/40] n=4000 M=32 p=0.05 D=5 g=1.40 s=42  acc=1.000 marg=  6.98  [3s, eta 2m]
+  [ 10/40] n=4000 M=32 p=0.05 D=5 g=1.40 s=43  acc=1.000 marg=  6.14  [4s, eta 2m]
+  [ 11/40] n=4000 M=64 p=0.05 D=5 g=1.08 s=42  acc=0.094 marg=  1.19  [12s, eta 2m]
+  [ 12/40] n=4000 M=64 p=0.05 D=5 g=1.08 s=43  acc=0.188 marg=  1.30  [11s, eta 2m]
+  [ 13/40] n=4000 M=64 p=0.05 D=5 g=1.15 s=42  acc=0.344 marg=  1.27  [20s, eta 3m]
+  [ 14/40] n=4000 M=64 p=0.05 D=5 g=1.15 s=43  acc=0.234 marg=  1.28  [18s, eta 3m]
+  [ 15/40] n=4000 M=64 p=0.05 D=5 g=1.22 s=42  acc=0.453 marg=  1.52  [20s, eta 3m]
+  [ 16/40] n=4000 M=64 p=0.05 D=5 g=1.22 s=43  acc=0.547 marg=  1.59  [13s, eta 3m]
+  [ 17/40] n=4000 M=64 p=0.05 D=5 g=1.30 s=42  acc=0.688 marg=  1.97  [10s, eta 3m]
+  [ 18/40] n=4000 M=64 p=0.05 D=5 g=1.30 s=43  acc=0.750 marg=  2.11  [9s, eta 3m]
+  [ 19/40] n=4000 M=64 p=0.05 D=5 g=1.40 s=42  acc=0.953 marg=  3.07  [9s, eta 3m]
+  [ 20/40] n=4000 M=64 p=0.05 D=5 g=1.40 s=43  acc=0.969 marg=  3.37  [11s, eta 3m]
+  [ 21/40] n=4000 M=128 p=0.05 D=5 g=1.08 s=42  acc=0.008 marg=  1.15  [23s, eta 3m]
+  [ 22/40] n=4000 M=128 p=0.05 D=5 g=1.08 s=43  acc=0.023 marg=  1.19  [27s, eta 3m]
+  [ 23/40] n=4000 M=128 p=0.05 D=5 g=1.15 s=42  acc=0.031 marg=  1.18  [21s, eta 3m]
+  [ 24/40] n=4000 M=128 p=0.05 D=5 g=1.15 s=43  acc=0.016 marg=  1.19  [19s, eta 3m]
+  [ 25/40] n=4000 M=128 p=0.05 D=5 g=1.22 s=42  acc=0.094 marg=  1.20  [21s, eta 3m]
+  [ 26/40] n=4000 M=128 p=0.05 D=5 g=1.22 s=43  acc=0.117 marg=  1.25  [22s, eta 3m]
+  [ 27/40] n=4000 M=128 p=0.05 D=5 g=1.30 s=42  acc=0.188 marg=  1.33  [18s, eta 3m]
+  [ 28/40] n=4000 M=128 p=0.05 D=5 g=1.30 s=43  acc=0.234 marg=  1.29  [25s, eta 2m]
+  [ 29/40] n=4000 M=128 p=0.05 D=5 g=1.40 s=42  acc=0.477 marg=  1.51  [20s, eta 2m]
+  [ 30/40] n=4000 M=128 p=0.05 D=5 g=1.40 s=43  acc=0.492 marg=  1.69  [17s, eta 2m]
+  [ 31/40] n=4000 M=256 p=0.05 D=5 g=1.08 s=42  acc=0.004 marg=  1.17  [57s, eta 2m]
+  [ 32/40] n=4000 M=256 p=0.05 D=5 g=1.08 s=43  acc=0.004 marg=  1.17  [78s, eta 2m]
+  [ 33/40] n=4000 M=256 p=0.05 D=5 g=1.15 s=42  acc=0.020 marg=  1.15  [84s, eta 2m]
+  [ 34/40] n=4000 M=256 p=0.05 D=5 g=1.15 s=43  acc=0.023 marg=  1.16  [76s, eta 2m]
+  [ 35/40] n=4000 M=256 p=0.05 D=5 g=1.22 s=42  acc=0.023 marg=  1.17  [76s, eta 2m]
+  [ 36/40] n=4000 M=256 p=0.05 D=5 g=1.22 s=43  acc=0.020 marg=  1.17  [62s, eta 2m]
+  [ 37/40] n=4000 M=256 p=0.05 D=5 g=1.30 s=42  acc=0.051 marg=  1.16  [80s, eta 1m]
+  [ 38/40] n=4000 M=256 p=0.05 D=5 g=1.30 s=43  acc=0.047 marg=  1.17  [82s, eta 1m]
+  [ 39/40] n=4000 M=256 p=0.05 D=5 g=1.40 s=42  acc=0.008 marg=  1.02  [68s, eta 0m]
+  [ 40/40] n=4000 M=256 p=0.05 D=5 g=1.40 s=43  acc=0.008 marg=  1.09  [63s, eta 0m]
+
+  done in 18.5 min
+########## gain_x_k ##########
+
+  SWEEP gain_x_k   48 configs x 2 seeds
+  96 to run, 0 already done -> F:\Github\assemblies\research\experiments\sweep.csv
+
