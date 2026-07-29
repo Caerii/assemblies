@@ -59,6 +59,37 @@ def _warn_fixed_target_enabled() -> bool:
     )
 
 
+def _strict_drive_enabled() -> bool:
+    """Whether to warn when a projection delivers NO drive to its target.
+
+    Off by default (behaviour-neutral); set ``ASSEMBLIES_STRICT_DRIVE=1``, which
+    the test suite and the research scripts should do.
+
+    WHY THIS EXISTS. The recurring failure mode in this project is not a wrong
+    number, it is a mechanism that silently does not fire, because a projection
+    with no drive still returns k winners and looks like it worked. Three
+    instances are on record and each cost days:
+
+      * `reset_area_connections` zeroing a connectome, so every candidate had
+        equal input and the deterministic index tie-break returned the SAME k
+        winners for every item -- bit-identical stored assemblies, retrieval at
+        exactly chance, invariant to every parameter.
+      * a second source area into an already-grown target whose weight block
+        was never sized, so it delivered zero and the target silently kept its
+        previous assembly. Whichever source projected first was the only one
+        that ever worked.
+      * projection INTO a fixed area, whose inputs are discarded (that one has
+        its own switch above).
+
+    All three have the same signature in results -- "mechanism X turns out to
+    have surprisingly little effect" -- which is indistinguishable from a real
+    negative result by looking at the numbers. This makes the engine say so.
+    """
+    return os.environ.get("ASSEMBLIES_STRICT_DRIVE", "").strip().lower() in (
+        "1", "true", "yes", "on",
+    )
+
+
 # -- stim->area vector growth policy ----------------------------------------
 #
 # Every first-time winner in an area appends one slot to the stim->area weight
@@ -912,6 +943,28 @@ class NumpySparseEngine(ComputeEngine):
             # ever works, and nothing warns.
             self._init_deferred_area_srcs(
                 target, _deferred_init_srcs, int(tgt.w))
+            if _strict_drive_enabled() and (from_stimuli or from_areas):
+                import warnings
+                empty = [s for s in from_areas
+                         if getattr(self._area_conns.get(s, {}).get(target),
+                                    "weights", None) is None
+                         or tuple(getattr(
+                             self._area_conns[s][target].weights,
+                             "shape", (0, 0)) or (0, 0))[1:2] == (0,)]
+                warnings.warn(
+                    f"projection into {target!r} from "
+                    f"{list(from_stimuli) + list(from_areas)} delivered ZERO "
+                    f"drive; {target!r} keeps its previous assembly, so this "
+                    f"looks like it worked and stored nothing new"
+                    + (f". Empty weight blocks: "
+                       f"{', '.join(f'{s}->{target}' for s in empty)}"
+                       if empty else "")
+                    + ". Common causes: reset_area_connections zeroed the "
+                      "connectome (k-WTA then returns the same index "
+                      "tie-break winners for every input), or a source is "
+                      "projecting into this area for the first time.",
+                    RuntimeWarning, stacklevel=3,
+                )
             return ProjectionResult(
                 winners=np.array(to_cpu(tgt.winners), dtype=np.uint32),
                 num_first_winners=0,
