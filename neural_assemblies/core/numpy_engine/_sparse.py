@@ -278,6 +278,136 @@ class NumpySparseEngine(ComputeEngine):
 
     # -- norm_init: one-time incoming-weight normalization -------------------
 
+    #: Set NEURAL_ASSEMBLIES_VERIFY_NNZ=1 to assert the incrementally
+    #: maintained column counts against a full recount on every read. Slow, and
+    #: the point: it converts "did I find every write site?" from an argument
+    #: into a measurement. Run it over the suite before trusting the fast path.
+    _VERIFY_NNZ = bool(int(os.environ.get("NEURAL_ASSEMBLIES_VERIFY_NNZ", "0")))
+
+    @staticmethod
+    def mark_region_refilled(conn, log_rows: int, log_cols: int) -> None:
+        """Initialised content is about to be written below/right of the
+        logical extent, into cells the degree counter may already have tallied.
+
+        The counter reads up to the PHYSICAL array shape, which can run ahead of
+        the LOGICAL content -- allocated-but-uninitialised cells read as zero
+        and are counted as zero. When `_expand_connectomes` fills them the
+        tally becomes wrong, which is what the verifier caught (252 mutations of
+        already-counted blocks in one trial).
+
+        The repair is exact rather than a blanket invalidation: the affected
+        rows contributed EXACTLY ZERO to every column total, so rewinding the
+        row watermark to `log_rows` and letting the incremental path re-add rows
+        [log_rows, rows) reproduces the true count. Columns at or beyond
+        `log_cols` were tallied as zero for the same reason and are simply
+        recomputed.
+        """
+        have = int(getattr(conn, "_deg_rows", 0))
+        if have > log_rows:
+            conn._deg_rows = int(log_rows)
+        counts = getattr(conn, "_deg_counts_arr", None)
+        if counts is not None and len(counts) > log_cols:
+            d = getattr(conn, "_deg_dirty", None)
+            stale = set(range(int(log_cols), len(counts)))
+            conn._deg_dirty = stale if d is None else (d | stale)
+
+    @staticmethod
+    def mark_column_dirty(conn, col_idx: int) -> None:
+        """Record that *col_idx*'s nonzero pattern changed inside OLD rows.
+
+        Growth into fresh rows or fresh columns is handled by the incremental
+        arithmetic in `_deg_counts`. This exists for the one thing that
+        arithmetic cannot see: a write that lands in a region already counted.
+        `sample_new_winner_inputs` does exactly that -- it writes
+        ``weights[chosen, col_idx] = 1.0`` where `chosen` are EXISTING source
+        rows, and `_expansion_col` can map a first-time winner onto a column
+        that was already materialised (index reuse).
+
+        Measured before this was handled: 56.6% of previously counted blocks had
+        changed by the next read, by up to 7 synapses. An incremental count that
+        ignores them is not an optimisation, it is a different divisor -- which
+        showed up as margins of 11.995 against 12.697 while accuracy stayed
+        identical at 64/64/64.
+        """
+        d = getattr(conn, "_deg_dirty", None)
+        if d is None:
+            conn._deg_dirty = {int(col_idx)}
+        else:
+            d.add(int(col_idx))
+
+    def _deg_counts(self, conn, w, rows: int, cols: int):
+        """Per-column nonzero counts over ``w[:rows, :cols]``, maintained.
+
+        WHY THIS IS NOT A RECOUNT. The previous implementation cached on
+        ``(rows, cols)`` and recomputed the whole block whenever either changed.
+        Rows materialise ONE AT A TIME during training, so the key changed on
+        80% of calls and each miss cost O(rows*cols). Profiled over a single
+        ladder cell (n=4000, M=64, depth 3): 763 recounts touching 3.4 BILLION
+        elements, which is the entire 28.1s that `_norm_scale` contributed to a
+        64.2s trial -- 44% of the run, spent recomputing a quantity that changes
+        by a handful of synapses at a time.
+
+        Here the counts persist and are extended:
+          * new COLUMNS are counted over the rows already accounted for;
+          * new ROWS add their contribution to every tracked column;
+          * columns flagged by `mark_column_dirty` are recomputed alone.
+        Work therefore scales with what actually changed, O(dr*cols + rows*dc),
+        rather than with the size of the matrix. `np.count_nonzero` replaces
+        ``(w != 0).sum(axis=0)`` as well, which avoids materialising a boolean
+        temporary the size of the block.
+
+        Exactness is asserted rather than argued -- see `_VERIFY_NNZ`.
+        """
+        xp = get_xp()
+        counts = getattr(conn, "_deg_counts_arr", None)
+        have_rows = int(getattr(conn, "_deg_rows", 0))
+
+        # Full (re)build: first use, or the block shrank, which the incremental
+        # arithmetic is not defined for.
+        if counts is None or have_rows > rows or len(counts) > w.shape[1]:
+            counts = xp.asarray(np.count_nonzero(np.asarray(to_cpu(w))[:rows, :cols],
+                                                 axis=0), dtype=xp.float32)
+            conn._deg_counts_arr = counts
+            conn._deg_rows = rows
+            conn._deg_dirty = None
+        else:
+            w_cpu = np.asarray(to_cpu(w))
+            have_cols = len(counts)
+            if cols > have_cols:
+                add = xp.asarray(
+                    np.count_nonzero(w_cpu[:have_rows, have_cols:cols], axis=0),
+                    dtype=xp.float32)
+                counts = xp.concatenate([counts, add])
+                conn._deg_counts_arr = counts
+            if rows > have_rows:
+                tracked = len(counts)
+                counts[:tracked] += xp.asarray(
+                    np.count_nonzero(w_cpu[have_rows:rows, :tracked], axis=0),
+                    dtype=xp.float32)
+                conn._deg_rows = rows
+                have_rows = rows
+            dirty = getattr(conn, "_deg_dirty", None)
+            if dirty:
+                idx = [c for c in sorted(dirty) if c < len(counts)]
+                if idx:
+                    counts[idx] = xp.asarray(
+                        np.count_nonzero(w_cpu[:have_rows, idx], axis=0),
+                        dtype=xp.float32)
+                conn._deg_dirty = None
+
+        if self._VERIFY_NNZ:
+            truth = np.count_nonzero(np.asarray(to_cpu(w))[:rows, :cols], axis=0)
+            got = np.asarray(to_cpu(conn._deg_counts_arr))[:cols]
+            if not np.array_equal(got, truth):
+                bad = int(np.argmax(np.abs(got - truth)))
+                raise AssertionError(
+                    f"maintained column counts diverged at rows={rows} "
+                    f"cols={cols}: column {bad} has {got[bad]} but the matrix "
+                    f"has {truth[bad]}. A write site changed an already-counted "
+                    f"region without calling mark_column_dirty()."
+                )
+        return conn._deg_counts_arr
+
     def _norm_scale(self, conn, n_pre: int, rows_known: int, needed: int):
         """Per-postsynaptic-neuron read-time scale ``1/d_j`` for one fiber.
 
@@ -349,12 +479,7 @@ class NumpySparseEngine(ComputeEngine):
             cols = int(min(needed, w.shape[1]))
             if cols <= 0:
                 return None
-            key = (rows, cols)
-            if getattr(conn, "_norm_deg_key", None) != key:
-                conn._norm_deg = xp.asarray(
-                    (w[:rows, :cols] != 0).sum(axis=0), dtype=xp.float32)
-                conn._norm_deg_key = key
-            deg = conn._norm_deg[:cols]
+            deg = self._deg_counts(conn, w, rows, cols)[:cols]
             unknown = max(int(n_pre) - rows, 0)
         else:
             cols = int(min(needed, len(w)))
@@ -1300,6 +1425,14 @@ class NumpySparseEngine(ComputeEngine):
                 # gets the same value whichever piece happens to cover it.
                 nr = needed_rows - log_rows
                 nc = needed_cols - log_cols
+                # The degree counter reads up to the PHYSICAL shape, which can
+                # run ahead of the LOGICAL content: rows/cols that are
+                # allocated but not yet initialised read as zero and get
+                # counted as zero. Filling them below therefore changes a
+                # region the counter already tallied. Rewind precisely -- those
+                # rows contributed exactly 0, so re-adding them is exact -- and
+                # flag the columns about to be initialised.
+                self.mark_region_refilled(conn, log_rows, log_cols)
                 if nr > 0 and log_cols > 0:
                     conn.weights[log_rows:needed_rows, :log_cols] = (
                         self._init_area_block(src_name, target, log_rows,
@@ -1341,6 +1474,10 @@ class NumpySparseEngine(ComputeEngine):
                 col_idx = self._expansion_col(int(win), prior_w)
                 if 0 <= col_idx < phys_cols:
                     conn.weights[chosen, col_idx] = 1.0
+                    # `chosen` are EXISTING rows and `_expansion_col` can reuse
+                    # an already-materialised column, so this write can land
+                    # inside a region the degree counter has already tallied.
+                    self.mark_column_dirty(conn, col_idx)
 
     # -- stim->area vector growth -------------------------------------------
 
@@ -1538,6 +1675,9 @@ class NumpySparseEngine(ComputeEngine):
             col_idx = self._expansion_col(int(win), prior_w)
             if 0 <= col_idx < phys_cols:
                 conn.weights[chosen, col_idx] = 1.0
+                # See the note at the other sampling site: this can write into
+                # an already-counted (row, column) region.
+                self.mark_column_dirty(conn, col_idx)
 
     def _expansion_col(self, win: int, prior_w: int) -> int:
         """Column to write a first-time winner's sampled afferents into.
