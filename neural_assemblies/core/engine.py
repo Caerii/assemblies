@@ -361,7 +361,22 @@ def create_engine(engine_name: str, **kwargs) -> ComputeEngine:
 
         engine = create_engine("numpy_sparse", p=0.05, seed=42, w_max=20.0)
     """
-    _ensure_engines_loaded()
+    # Import ONLY the requested engine's module. `_ensure_engines_loaded` pulls
+    # in every backend, and `cuda_engine` imports torch at module scope -- so
+    # asking for "numpy_sparse" was paying for torch. Profiled on a research
+    # trial: ~13s per process of `nt.listdir` / importlib path scanning /
+    # torch._register_to_dispatcher, none of which the numpy path uses. That is
+    # charged PER PROCESS, so it also capped `parallel_seeds` (measured 1.57x
+    # where ~3x was available) and every pytest-xdist worker.
+    #
+    # The narrow loader and its module map already existed for exactly this
+    # reason -- see the comment on `_ENGINE_MODULES` -- but `create_engine`,
+    # the main entry point, never used them.
+    #
+    # Fall back to the broad load only when the narrow one fails, so an unknown
+    # or aliased name still reports the full list of what is available.
+    if not ensure_engine(engine_name):
+        _ensure_engines_loaded()
     if engine_name not in _ENGINE_REGISTRY:
         available = ", ".join(_ENGINE_REGISTRY.keys()) or "(none)"
         raise ValueError(

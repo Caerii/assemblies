@@ -61,3 +61,15 @@
      4000   512  7    6.4  0.00195   1.0000   0.0029    6.35    1.00  0.0200  0.4275    1024  FAIL   [708s]
     .. starting n=10000 M=512 D=3, est 12.6 min
     .. seed 1/2 done (679s)
+    .. seed 2/2 done (1307s)
+    10000   512  3    2.6  0.00195   1.0000   0.9775   12.35    3.93  0.0064  0.0065    1024  PASS   [1307s]
+    10000  1024  3                                           SKIPPED: ~44 min > budget 20 min
+    10000   512  5                                           SKIPPED: ~36 min > budget 20 min
+    10000  1024  5                                           SKIPPED: ~73 min > budget 20 min
+    10000  1024  7                                           SKIPPED: ~102 min > budget 20 min
+    10000  2048  3                                           SKIPPED: ~87 min > budget 20 min
+    10000  2048  5                                           SKIPPED: ~145 min > budget 20 min
+
+  DONE. Read the margin columns, not the accuracies: a cell can read 0.95 with
+  a margin of 1.47x, which is one step from failing. The ceiling is where
+  margin approaches ~1.1, and spr_1 is the leading indicator for the level above.
