@@ -1,0 +1,31 @@
+### LOW-BETA SIDE AT LOAD 3.2 (the untested quadrant)
+
+  DEPTH AT LOW LOAD   n=4000 M=256 load=3.2 seeds=2
+  margin/spread/distinct are at the DEEPEST level; floor=0.0125
+
+    beta  depth   marg_D    spr_D  distinct      
+    0.05      3     1.35   0.0129     0.227  CROWDED      [78s]
+    0.05      5     1.17   0.0130     0.004  CROWDED      [155s]
+
+    0.10      3     1.66   0.0143     0.504  CROWDED      [55s]
+    0.10      5     1.16   0.0145     0.029  CROWDED      [106s]
+
+    0.15      3     2.33   0.0158     0.875  CROWDED      [61s]
+    0.15      5     1.17   0.0156     0.059  CROWDED      [89s]
+
+
+### RECONCILIATION AT LOAD 0.8: does 0.40 really die where 0.35 thrives?
+
+  DEPTH AT LOW LOAD   n=4000 M=64 load=0.8 seeds=2
+  margin/spread/distinct are at the DEEPEST level; floor=0.0125
+
+    beta  depth   marg_D    spr_D   acc_D      
+    0.35      3     8.97   0.0177   1.000  OK                       [17s]
+    0.35      5     4.65   0.0247   0.938  OK                       [32s]
+
+    0.40      3     7.67   0.0213   1.000  OK                       [16s]
+    0.40      5     1.19   0.0812   0.164  CROWDED(spr=6x floor)    [28s]
+
+    0.50      3     1.22   0.1046   0.344  CROWDED(spr=8x floor)    [15s]
+    0.50      5     1.01   0.3224   0.086  CROWDED(spr=26x floor)   [29s]
+

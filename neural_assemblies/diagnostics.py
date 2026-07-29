@@ -119,6 +119,7 @@ class AreaHealth:
     n_items: int
     floor: float                    #: chance pairwise overlap, k/n
     spread: float                   #: measured mean pairwise overlap
+    distinct_frac: float = float("nan")  #: unique assemblies / items stored
     accuracy: float = float("nan")  #: rank-1 identity, if cues were supplied
     margin: float = float("nan")    #: best match / second best
     identity: float = float("nan")  #: re-cue overlap with what was stored
@@ -126,7 +127,15 @@ class AreaHealth:
 
     @property
     def collapsed(self) -> bool:
-        return any(v.label == "distinct" and not v.ok for v in self.verdicts)
+        """True when the area can no longer tell its occupants apart.
+
+        Counts duplicates as collapse, not just high overlap. Partial collapse
+        -- most items sharing a few assemblies while the rest stay clean --
+        leaves mean pairwise overlap at the floor, so keying this on ``spread``
+        alone would call a mostly-destroyed area healthy.
+        """
+        return any(v.label in ("distinct", "no duplicates") and not v.ok
+                   for v in self.verdicts)
 
     @property
     def trustworthy(self) -> bool:
@@ -160,7 +169,11 @@ def area_health(brain, area: str, stored: Mapping,
     floor = (k / n) if n else float("nan")
     spread = _spread(stored.values())
 
-    h = AreaHealth(area=area, n_items=len(items), floor=floor, spread=spread)
+    uniq = len({tuple(sorted(int(x) for x in a)) for a in stored.values()})
+    frac = (uniq / len(items)) if items else float("nan")
+
+    h = AreaHealth(area=area, n_items=len(items), floor=floor, spread=spread,
+                   distinct_frac=frac)
 
     # DISTINCTNESS. Two-thirds of the way to the floor is a generous bar; the
     # collapses measured were 0.5-1.0 against floors of 0.01-0.05, so this
@@ -169,6 +182,21 @@ def area_health(brain, area: str, stored: Mapping,
         h.verdicts.append(Verdict(
             spread < max(3 * floor, floor + 0.05), "distinct",
             f"pairwise overlap {spread:.4f} vs floor {floor:.4f}"))
+
+    # DUPLICATES, which the spread bar above cannot see. Mean pairwise overlap
+    # is dominated by the pairs that DIFFER, so items landing on a handful of
+    # shared assemblies barely move it: 256 items on ~58 assemblies makes only
+    # ~1.3% of pairs identical, which leaves the mean at the floor. An area can
+    # therefore lose most of its capacity and still pass "distinct".
+    #
+    # Duplicates are the failure that actually destroys a read -- two items
+    # with the SAME assembly are unrecoverable no matter how well separated
+    # everything else is -- so they get their own verdict rather than a
+    # footnote on this one.
+    if frac == frac:
+        h.verdicts.append(Verdict(
+            frac >= 0.9, "no duplicates",
+            f"{uniq}/{len(items)} assemblies unique ({frac:.3f})"))
 
     if cues is None:
         return h
@@ -395,6 +423,11 @@ def format_report(items) -> str:
             lines.append(
                 f"  {it.area:<16} items {it.n_items:<5} spread "
                 f"{it.spread:.4f} (floor {it.floor:.4f})"
+                # Printed next to spread ON PURPOSE: these two disagree exactly
+                # when partial collapse is happening, and seeing the pair is
+                # what makes that visible at a glance.
+                + (f"  distinct {it.distinct_frac:.3f}"
+                   if it.distinct_frac == it.distinct_frac else "")
                 + (f"  acc {it.accuracy:.4f}  margin {it.margin:.2f}x"
                    if it.accuracy == it.accuracy else ""))
             lines += [f"      {v}" for v in it.verdicts if not v.ok]
