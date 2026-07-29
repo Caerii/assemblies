@@ -60,7 +60,7 @@ TRAIN = [["dog", "chases", "cat"], ["cat", "sees", "bird"],
          ["bird", "catches", "dog"], ["dog", "sees", "bird"]]
 
 
-def build(beta, seed, no_reset=False, ff_roles=False):
+def build(beta, seed, no_reset=False, ff_roles=False, dedup=False):
     from neural_assemblies.assembly_calculus.parser import NemoParser
     from neural_assemblies.core.brain import Brain
 
@@ -109,7 +109,7 @@ def build(beta, seed, no_reset=False, ff_roles=False):
         parser.register_word(w, "verb", f"mot_{w}")
     parser.train_lexicon()
     if ff_roles:
-        train_roles_ff(parser, TRAIN)
+        train_roles_ff(parser, TRAIN, dedup=dedup)
     else:
         parser.train_roles(TRAIN)
     parser.train_word_order(TRAIN)
@@ -124,7 +124,7 @@ def word_counts():
     return c
 
 
-def train_roles_ff(parser, sentences):
+def train_roles_ff(parser, sentences, dedup=False):
     """train_roles WITHOUT the role-area self-recurrence.
 
     The shipped version drives {lex: [role], role: [role]}. Self-recurrence in
@@ -146,8 +146,21 @@ def train_roles_ff(parser, sentences):
     )
 
     seq = [ROLE_AGENT, ROLE_ACTION, ROLE_PATIENT]
+    # DEDUP drives c_max to 1. Both walls must hold across the corpus frequency
+    # range at once: the rarest item needs (1+b)^(rounds*c_min) >= `need` to be
+    # re-selectable at all, while the most frequent needs
+    # (1+b)^(rounds*c_max) <= g_c to avoid crowding. A single beta therefore
+    # exists only if need^(c_max/c_min) <= g_c, and at every shipped operating
+    # point it does not -- 12.53 against 2.24 at n=10000 k=100 p=0.05.
+    # Training each (word, role) binding ONCE removes the spread, which is the
+    # only change that makes a single beta possible at all.
+    seen = set()
     for sentence in sentences:
         for word, role_area in zip(sentence, seq):
+            if dedup:
+                if (word, role_area) in seen:
+                    continue
+                seen.add((word, role_area))
             lex_area = ("LEX_NOUN"
                         if parser.word_categories[word] == "noun"
                         else "LEX_VERB")
@@ -281,17 +294,17 @@ if __name__ == "__main__":
     # TWO FACTORS. Varying beta alone cannot separate "the map is right" from
     # "a structural bug pins these areas", because both produce collapse. The
     # reset arm is what makes the beta arm interpretable.
-    ARMS = [(False, False, "shipped (reset + recurrence)"),
-            (True, False, "no reset, recurrence KEPT"),
-            (True, True, "no reset, FEED-FORWARD roles")]
-    for no_reset, ff_roles, tag in ARMS:
+    ARMS = [(False, False, False, "shipped (reset + recurrence)"),
+            (True, True, False, "no reset, feed-forward, c_max=3"),
+            (True, True, True, "no reset, feed-forward, DEDUP c_max=1")]
+    for no_reset, ff_roles, dedup, tag in ARMS:
         for beta in BETAS:
             print(f"\n  === {tag}, beta={beta} "
                   f"(g/step={(1 + beta) ** ROUNDS:.3f}) ===")
             agg, task = {}, {}
             for seed in SEEDS:
                 parser, brain = build(beta, seed, no_reset=no_reset,
-                                      ff_roles=ff_roles)
+                                      ff_roles=ff_roles, dedup=dedup)
                 for ra, acc in role_retrieval(brain, parser,
                                               recur=not ff_roles).items():
                     task.setdefault(ra, []).append(acc)
