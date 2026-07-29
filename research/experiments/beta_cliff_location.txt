@@ -1,0 +1,25 @@
+
+  BETA CLIFF LOCATION vs MERGE ROUNDS   n=4000 M=64 depth=5 p=0.05
+  prediction: cliff at (1+beta)^T = 2, i.e. beta = 2^(1/T) - 1
+
+  T=1   predicted cliff at beta 1.000
+     beta   (1+b)^T    marg     acc      spr
+     0.60     1.600    1.49   0.484   0.0153  DEAD(starved)    [22s]
+     0.80     1.800    1.87   0.625   0.0168  DEAD(starved)    [16s]
+     1.00     2.000    1.50   0.344   0.0253  DEAD(starved)    [19s]
+     1.20     2.200    1.02   0.031   0.0843  DEAD(spr=7x)     [15s]
+
+  T=2   predicted cliff at beta 0.414
+     beta   (1+b)^T    marg     acc      spr
+     0.30     1.690    6.53   1.000   0.0180  OK               [21s]
+     0.35     1.823    4.65   0.938   0.0247  OK               [29s]
+     0.40     1.960    1.19   0.164   0.0812  DEAD(spr=6x)     [25s]
+     0.45     2.103    1.01   0.070   0.2691  DEAD(spr=22x)    [22s]
+
+  T=3   predicted cliff at beta 0.260
+     beta   (1+b)^T    marg     acc      spr
+     0.18     1.643    9.65   1.000   0.0157  OK               [28s]
+     0.22     1.816    4.85   0.883   0.0254  DEAD(starved)    [31s]
+     0.26     2.000    1.02   0.117   0.2359  DEAD(spr=19x)    [27s]
+     0.32     2.300    1.01   0.047   0.6170  DEAD(spr=49x)    [23s]
+
