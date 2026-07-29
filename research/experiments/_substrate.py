@@ -349,6 +349,23 @@ def check_distinct(assemblies, n: int, k: int, where: str = "") -> tuple:
     floor = k / n if n else float("nan")
     if s == s and floor == floor and s > 0.5:
         return s, f"DEGENERATE(spr={s:.4f})"
+
+    # SPREAD IS NEARLY BLIND TO PARTIAL COLLAPSE, so it cannot be the only
+    # criterion. Measured 2026-07-29 at n=4000 M=256 beta=0.05: only 22.7% of
+    # items had a distinct assembly -- the rest were EXACT duplicates of each
+    # other -- and mean pairwise overlap still read 0.0129 against a 0.0125
+    # floor. That is arithmetic, not a fluke: 256 items landing on ~58 distinct
+    # assemblies makes only ~1.3% of PAIRS identical, which moves the mean by
+    # almost nothing. So a run can lose three quarters of its representational
+    # capacity and pass a spread-only check without a murmur.
+    #
+    # Duplicates are what actually destroys a read -- two items with the same
+    # assembly are unrecoverable no matter how well separated everything else
+    # is. Report the fraction directly.
+    uniq = len({tuple(sorted(int(x) for x in a)) for a in vals})
+    frac = uniq / len(vals) if vals else float("nan")
+    if frac == frac and frac < 0.9:
+        return s, f"PARTIAL-COLLAPSE(distinct={frac:.3f}, spr={s:.4f})"
     return s, ""
 
 
