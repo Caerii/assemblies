@@ -1039,6 +1039,40 @@ class Brain:
         # Self-recurrence is therefore enabled only when that normalization is
         # active.  `synaptic_scaling` is still accepted as a gate for backward
         # compatibility, but norm_init is the validated one.
+        #
+        # HOW FAR THAT GENERALISES -- measured 2026-07-28,
+        # research/experiments/norm_init_recurrence_limit.py, n=1000 k=50
+        # beta=0.1, M items sharing one area, rank-1 identity across all M:
+        #
+        #     M           2      4      8     16     32     64    128
+        #     rec RAW  1.000  1.000  0.667  0.188  0.031  0.016  0.009
+        #     rec norm 1.000  1.000  1.000  1.000  1.000  0.039  0.018
+        #     ff  norm 1.000  1.000  1.000  1.000  1.000  1.000  1.000
+        #
+        # norm_init is a real fix and moves the ceiling from M=4 to M=32.  It
+        # is NOT a blanket one.  The numbers above this note were taken at
+        # M=2, and "recurrence is safe" holds only for roughly a SINGLE
+        # assembly per area: past ~32 items the competitor for a new item's
+        # k-WTA is not a high-degree hub but the ALREADY-POTENTIATED
+        # assemblies of the items learned before it, and normalising INITIAL
+        # weights says nothing about those.  The ceiling scales with n (M=32 /
+        # 64 / 256 at n=1000 / 2000 / 4000), which is what identifies it as
+        # accumulated potentiation rather than degree bias.
+        #
+        # SO DO NOT FLIP `recurrent_projection` ON GLOBALLY.  The production
+        # lexicon trains through this exact path -- training/batch.py
+        # `apply_lexicon_word` passes {core_area: [core_area]}, which the
+        # `a != target` filter below silently strips -- with dozens of words
+        # per core area.  Enabling self-recurrence there collapses the lexicon
+        # into one assembly, and it fails SILENTLY: at M=128 each word still
+        # re-cues to overlap 0.68 with what was stored (so any probe reading
+        # only self-overlap reports success) while rank-1 identity across the
+        # lexicon is 0.018 against a chance of 0.008.
+        #
+        # Feed-forward has no measured ceiling at all -- 1.0000 up to M=256 in
+        # n=1000, i.e. 12.8x oversubscription, with pairwise overlap 0.0510
+        # against a random-pair floor of 0.0500 (lexicon_capacity_law.py).  For
+        # areas holding many items, that is the regime to be in.
         allow_self = getattr(self, "recurrent_projection", False) and (
             getattr(self, "norm_init", False)
             or getattr(self, "_synaptic_scaling", False)

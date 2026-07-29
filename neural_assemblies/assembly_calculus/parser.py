@@ -162,7 +162,35 @@ class NemoParser:
             else:
                 self.verb_lexicon[word] = asm
 
-            # Reset recurrent connections for next word
+            # Reset recurrent connections for next word.
+            #
+            # LOAD-BEARING, not housekeeping. The loop above runs
+            # `{lex_area: [lex_area]}` through the SLOW path, so unlike
+            # training/batch.py it is not saved by `project_rounds`'s
+            # `a != target` filter, and self-recurrence really does apply here.
+            # Without this reset the first word's potentiated self-connections
+            # win the k-WTA against every later word's stimulus and the whole
+            # lexicon converges. Measured, n=1000 k=50 beta=0.1, nouns only:
+            #
+            #     M=16  with reset  spread 0.0460, 16 distinct assemblies
+            #     M=16  without     spread 0.7632,  5 distinct
+            #     M=64  with reset  spread 0.0499, 64 distinct
+            #     M=64  without     spread 0.9153,  7 distinct
+            #
+            # (floor = k/n = 0.0500, so "with reset" is at chance separation --
+            # exactly what a lexicon needs.)
+            #
+            # This is the same accumulated-potentiation collapse documented at
+            # core/brain.py:project_rounds, and the general fix there is to
+            # train shared areas FEED-FORWARD rather than to reset after every
+            # item -- resetting also discards the recurrent structure, so these
+            # assemblies have none. See
+            # research/experiments/norm_init_recurrence_limit.py.
+            #
+            # Note this is NOT the failure mode where a mid-learning reset
+            # zeroes the connectome and the index tie-break returns identical
+            # winners: each word here has its own grounding stimulus, so the
+            # tie-break is never reached.
             self.brain._engine.reset_area_connections(lex_area)
 
     def train_roles(self, sentences: List[List[str]]):
