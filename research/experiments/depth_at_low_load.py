@@ -45,16 +45,25 @@ SEEDS = [int(x) for x in os.environ.get("DLL_SEEDS", "42,43").split(",")]
 
 
 def run_cell(beta, depth):
-    """Mean over seeds of the DEEPEST level's margin, spread and distinctness."""
+    """Mean over seeds of the DEEPEST level's margin, spread and ACCURACY.
+
+    NOTE ON THE FIRST RETURN VALUE. `trial` returns `full`, which counts items
+    whose retrieved assembly best-matches the CORRECT stored one. That is
+    retrieval accuracy, NOT a count of distinct assemblies. An earlier version
+    of this file called it `distinct`, which made the two statistics look
+    mutually impossible -- 0.004 "distinct" alongside a spread sitting at the
+    floor. They were never in conflict: assemblies stay well separated while
+    retrieval fails, which is starvation, not collapse.
+    """
     ladder.BETA = beta          # trial reads the module-level constant
-    margs, sprs, dists = [], [], []
+    margs, sprs, accs = [], [], []
     for s in SEEDS:
-        distinct, total, margins, spreads = ladder.trial(N, M, depth, s)
+        full, total, margins, spreads = ladder.trial(N, M, depth, s)
         margs.append(margins[depth])
         sprs.append(spreads[depth])
-        dists.append(distinct[depth] / total if total else float("nan"))
+        accs.append(full[depth] / total if total else float("nan"))
     mean = lambda v: sum(v) / len(v)  # noqa: E731
-    return mean(margs), mean(sprs), mean(dists)
+    return mean(margs), mean(sprs), mean(accs)
 
 
 if __name__ == "__main__":
@@ -63,29 +72,31 @@ if __name__ == "__main__":
           f"seeds={len(SEEDS)}")
     print("  margin/spread/distinct are at the DEEPEST level; "
           f"floor={50 / N:.4f}\n")
+    floor = 50 / N
     print(f"  {'beta':>6} {'depth':>6} {'marg_D':>8} {'spr_D':>8} "
-          f"{'distinct':>9}  {'':>4}")
+          f"{'acc_D':>7}  {'':>4}")
 
     for beta in BETAS:
         for depth in DEPTHS:
             t0 = time.time()
             try:
-                marg, spr, dist = run_cell(beta, depth)
+                marg, spr, acc = run_cell(beta, depth)
             except Exception as exc:  # noqa: BLE001
                 print(f"  {beta:>6.2f} {depth:>6} "
                       f"      FAILED: {type(exc).__name__}: {exc}")
                 continue
-            # A margin at 1.00 with everything still distinct is signal loss;
-            # a collapsed spread is crowding. They need different fixes, so
-            # never report one as the other.
-            if dist < 0.9:
-                verdict = "CROWDED"
-            elif marg < 1.10:
-                verdict = "SIGNAL-LOSS"
-            elif marg < 2.0:
-                verdict = "WEAK"
-            else:
+            # THE TWO FAILURES LOOK THE SAME IN ACCURACY AND OPPOSITE IN
+            # SPREAD, and they want opposite fixes, so never report one as the
+            # other. Assemblies still separated (spread at the floor) while
+            # retrieval dies = the chain cannot carry the signal: STARVATION,
+            # raise beta. Spread climbing = assemblies merging on contact:
+            # CROWDING, lower beta.
+            if acc >= 0.90:
                 verdict = "OK"
+            elif spr > 3 * floor:
+                verdict = f"CROWDED(spr={spr / floor:.0f}x floor)"
+            else:
+                verdict = "STARVED(spr at floor)"
             print(f"  {beta:>6.2f} {depth:>6} {marg:>8.2f} {spr:>8.4f} "
-                  f"{dist:>9.3f}  {verdict:<12} [{time.time() - t0:.0f}s]")
+                  f"{acc:>7.3f}  {verdict:<24} [{time.time() - t0:.0f}s]")
         print()
