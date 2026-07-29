@@ -1,0 +1,12 @@
+
+  ZIPFIAN CORPUS   n=4000 k=50 M=64 p=0.05 total presentations=64
+  1 skews x 5 gains x 3 seeds
+
+      s   gain    acc   head   tail    h-t  distinct   pres h/t
+   1.00   1.03  0.812  0.857  0.810 +0.048     1.000    13/1    [38s]
+   1.00   1.05  0.818  0.857  0.762 +0.095     1.000    13/1    [34s]
+   1.00   1.08  0.833  0.889  0.778 +0.111     1.000    13/1    [36s]
+   1.00   1.12  0.745  0.841  0.619 +0.222     1.000    13/1    [41s]
+   1.00   1.15  0.521  0.619  0.397 +0.222     1.000    13/1    [37s]
+
+  wrote F:\Github\assemblies\research\experiments\zipf_scaled.csv
