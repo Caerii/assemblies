@@ -35,11 +35,18 @@ microstates (the connectome and the firing pattern), macrostates (overlap,
 retrieval accuracy, margin), and control parameters (load $\alpha$, gain $g$,
 afferent number $\mu$, depth $D$). Within this frame, a collapse previously
 described as a ``depth ceiling'' is identified as a transition in a single
-control parameter, the \emph{gain} $g=(1+\beta)^T$, with a measured critical
-value $g_c \approx 1.9$ that is invariant to how $\beta$ and $T$ factorise it
-and invariant to connection density $p$. Statements below are marked
+control parameter, the \emph{gain} $g=(1+\beta)^T$. The boundary $g_c$ is
+invariant to how $\beta$ and $T$ factorise the gain and invariant to connection
+density $p$, but it is \emph{not} a constant of the substrate: it grows with
+system size and falls with load, measured as $g_c = 1.715,\ 1.915,\ 2.176$ for
+$n = 2000,\ 4000,\ 8000$ at fixed load. A constant $g_c$ is rejected by two
+orders of magnitude in residual. The transition width, however, does not shrink
+over the same range, so we describe this as a \emph{sharp crossover with a
+size-dependent location} rather than a critical point, and say explicitly where
+that reading is limited by grid resolution. Statements below are marked
 \PROVED, \MEASURED\ or \OPEN; nothing is asserted as proved that has only been
-observed.
+observed, and one registered numerical prediction is recorded together with its
+failure.
 \end{abstract}
 
 \section{The substrate}
