@@ -232,13 +232,35 @@ def _resolve_module(mod_name, mod_file):
 
     if mod_name != "__main__":
         return importlib.import_module(mod_name)
-    cached = sys.modules.get("_parallel_seeds_main")
-    if cached is not None and getattr(cached, "__file__", None) == mod_file:
-        return cached
     if not mod_file:
         raise RuntimeError(
             "parallel_seeds cannot resolve a __main__ function with no "
             "__file__; call it from an importable module")
+
+    # PREFER THE MODULE'S REAL NAME. Loading the file under a synthetic name
+    # produces a SECOND module object for the same source, and that is the
+    # configuration measured to break: with the ladder imported normally,
+    # parallel matches serial bit for bit on the cell that fails; forced
+    # through the synthetic-name load, the same cell collapses to one assembly
+    # at spread 0.9998. Importing by real name is the path already known to be
+    # correct, so take it whenever the file is importable -- which it is for
+    # every experiment here, since the directory is on sys.path.
+    real_name = os.path.splitext(os.path.basename(mod_file))[0]
+    try:
+        mod = importlib.import_module(real_name)
+        if os.path.realpath(getattr(mod, "__file__", "")) == \
+                os.path.realpath(mod_file):
+            return mod
+    except ImportError:
+        pass
+
+    # Fall back to the file-path load only when the real name is unavailable
+    # or resolves to a DIFFERENT file (a name collision on sys.path, which
+    # would be worse). Left in so an unimportable script still runs, but it is
+    # the path with a known unexplained failure -- see task #49.
+    cached = sys.modules.get("_parallel_seeds_main")
+    if cached is not None and getattr(cached, "__file__", None) == mod_file:
+        return cached
     spec = importlib.util.spec_from_file_location(
         "_parallel_seeds_main", mod_file)
     mod = importlib.util.module_from_spec(spec)
