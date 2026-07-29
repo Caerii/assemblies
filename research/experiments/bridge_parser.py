@@ -60,7 +60,7 @@ TRAIN = [["dog", "chases", "cat"], ["cat", "sees", "bird"],
          ["bird", "catches", "dog"], ["dog", "sees", "bird"]]
 
 
-def build(beta, seed, no_reset=False):
+def build(beta, seed, no_reset=False, ff_roles=False):
     from neural_assemblies.assembly_calculus.parser import NemoParser
     from neural_assemblies.core.brain import Brain
 
@@ -82,7 +82,25 @@ def build(beta, seed, no_reset=False):
         #
         # So the map's prediction is UNTESTABLE on these areas until this is
         # out of the way -- a structural bug masks any gain effect entirely.
-        brain._engine.reset_area_connections = lambda *a, **k: None
+        # SUPPRESS IT FOR ROLE AREAS ONLY. A global suppression was wrong and
+        # produced a misleading run: train_lexicon resets LEX before every
+        # word, so a LEX assembly is only reproducible if the reader resets
+        # too -- which is exactly what the parser's own classify_word does.
+        # Removing the reset everywhere therefore broke LEX reproduction, so
+        # the role area was driven by an input that never occurred in training,
+        # and role retrieval read at chance in every arm for a reason that had
+        # nothing to do with the role areas.
+        #
+        # The reset is genuinely LOAD-BEARING for the lexicon and harmful for
+        # the roles, which is why the fix has to be per-call-site.
+        _orig_reset = brain._engine.reset_area_connections
+
+        def _selective_reset(area, *a, **k):
+            if isinstance(area, str) and area.startswith("ROLE_"):
+                return None
+            return _orig_reset(area, *a, **k)
+
+        brain._engine.reset_area_connections = _selective_reset
     parser = NemoParser(brain, n=N, k=K, beta=beta, rounds=ROUNDS)
     parser.setup_areas()
     for w in NOUNS:
@@ -90,7 +108,10 @@ def build(beta, seed, no_reset=False):
     for w in VERBS:
         parser.register_word(w, "verb", f"mot_{w}")
     parser.train_lexicon()
-    parser.train_roles(TRAIN)
+    if ff_roles:
+        train_roles_ff(parser, TRAIN)
+    else:
+        parser.train_roles(TRAIN)
     parser.train_word_order(TRAIN)
     return parser, brain
 
@@ -101,6 +122,109 @@ def word_counts():
         for w in s:
             c[w] = c.get(w, 0) + 1
     return c
+
+
+def train_roles_ff(parser, sentences):
+    """train_roles WITHOUT the role-area self-recurrence.
+
+    The shipped version drives {lex: [role], role: [role]}. Self-recurrence in
+    a SHARED area during training is this project's documented collapse
+    channel, and the recorded general fix is to build shared areas
+    FEED-FORWARD rather than to reset after each item. The shipped code does
+    the opposite on both counts: it keeps the recurrence AND resets.
+
+    That combination explains what the reset arm alone could not. Removing the
+    reset restores distinctness -- assemblies differ, overlap falls below the
+    chance floor -- and role retrieval still reads at chance, because the
+    recurrent fiber is shared across every word and pulls the area toward a
+    common attractor whatever the lexical drive. Distinct storage and
+    retrievable storage are not the same property.
+    """
+    from neural_assemblies.assembly_calculus.ops import project
+    from neural_assemblies.assembly_calculus.parser import (
+        ROLE_ACTION, ROLE_AGENT, ROLE_PATIENT, _snap,
+    )
+
+    seq = [ROLE_AGENT, ROLE_ACTION, ROLE_PATIENT]
+    for sentence in sentences:
+        for word, role_area in zip(sentence, seq):
+            lex_area = ("LEX_NOUN"
+                        if parser.word_categories[word] == "noun"
+                        else "LEX_VERB")
+            project(parser.brain, parser.stim_map[word], lex_area,
+                    rounds=parser.rounds)
+            parser.brain.areas[lex_area].fix_assembly()
+            for _ in range(parser.rounds):
+                parser.brain.project({}, {lex_area: [role_area]})
+            parser.role_lexicons.setdefault(role_area, {})[word] = _snap(
+                parser.brain, role_area)
+            parser.brain.areas[lex_area].unfix_assembly()
+
+
+def role_retrieval(brain, parser, recur=True):
+    """TASK-LEVEL metric: can a role area say WHICH word it is holding?
+
+    Distinctness says the stored assemblies differ; it does not say the area
+    can be driven back to the right one. This drives each word's LEX assembly
+    into the role area and checks that the resulting activity best matches that
+    word's stored role assembly rather than another word's -- the direct
+    analogue of retrieval accuracy in the synthetic sweeps.
+
+    `parser.assign_role` cannot be used for this. Its own docstring says it is
+    bookkeeping: it reports which lexicon contains the word and consults
+    nothing about the brain's state, because LEX and ROLE have separate neuron
+    populations and cross-area overlap is structurally ~0. So a role metric
+    has to be measured WITHIN a role area, which is what this does.
+
+    Readout runs inside `probe` so it cannot itself train the area -- reading
+    with plasticity live would let the measurement create the structure it is
+    trying to detect.
+    """
+    from _substrate import probe
+
+    out = {}
+    for role_area, lex in parser.role_lexicons.items():
+        words = [w for w in lex if w in parser.word_categories]
+        if len(words) < 2:
+            continue
+        stored = {w: list(getattr(lex[w], "winners", lex[w])) for w in words}
+        hits = 0
+        for w in words:
+            lex_area = ("LEX_NOUN" if parser.word_categories[w] == "noun"
+                        else "LEX_VERB")
+            with probe(brain):
+                from neural_assemblies.assembly_calculus.ops import project
+                # Reset LEX first: train_lexicon built each word's assembly on
+                # a zeroed LEX area driven by that word's own grounding
+                # stimulus, so this is the only protocol that reproduces it.
+                # classify_word does the same thing for the same reason.
+                brain._engine.reset_area_connections(lex_area)
+                project(brain, parser.stim_map[w], lex_area,
+                        rounds=parser.rounds)
+                brain.areas[lex_area].fix_assembly()
+                # MATCH THE TRAINING PROTOCOL EXACTLY. train_roles drives
+                # {lex_area: [role_area], role_area: [role_area]} -- with
+                # self-recurrence. A readout that omits the recurrence is
+                # running different dynamics from the ones that built the
+                # assembly, and will read at chance no matter how healthy the
+                # representation is. That is a defect in the measurement, not
+                # in the parser, and it is worth being explicit about because
+                # the first version of this function made exactly that mistake.
+                for _ in range(parser.rounds):
+                    tgt = {lex_area: [role_area]}
+                    if recur:
+                        tgt[role_area] = [role_area]
+                    brain.project({}, tgt)
+                live = set(int(x) for x in brain.areas[role_area].winners)
+                brain.areas[lex_area].unfix_assembly()
+            best, best_ov = None, -1.0
+            for other, asm in stored.items():
+                ov = len(live & set(int(x) for x in asm)) / max(len(asm), 1)
+                if ov > best_ov:
+                    best, best_ov = other, ov
+            hits += (best == w)
+        out[role_area] = hits / len(words)
+    return out
 
 
 def area_report(brain, parser):
@@ -157,18 +281,24 @@ if __name__ == "__main__":
     # TWO FACTORS. Varying beta alone cannot separate "the map is right" from
     # "a structural bug pins these areas", because both produce collapse. The
     # reset arm is what makes the beta arm interpretable.
-    for no_reset in (False, True):
-        tag = "reset NEUTRALISED" if no_reset else "reset AS SHIPPED"
+    ARMS = [(False, False, "shipped (reset + recurrence)"),
+            (True, False, "no reset, recurrence KEPT"),
+            (True, True, "no reset, FEED-FORWARD roles")]
+    for no_reset, ff_roles, tag in ARMS:
         for beta in BETAS:
             print(f"\n  === {tag}, beta={beta} "
                   f"(g/step={(1 + beta) ** ROUNDS:.3f}) ===")
-            agg = {}
+            agg, task = {}, {}
             for seed in SEEDS:
-                parser, brain = build(beta, seed, no_reset=no_reset)
+                parser, brain = build(beta, seed, no_reset=no_reset,
+                                      ff_roles=ff_roles)
+                for ra, acc in role_retrieval(brain, parser,
+                                              recur=not ff_roles).items():
+                    task.setdefault(ra, []).append(acc)
                 for area, h in area_report(brain, parser).items():
                     agg.setdefault(area, []).append(h)
                     wcsv.writerow([
-                        "bridge", int(no_reset), N, K, P, ROUNDS,
+                        f"bridge{'_ff' if ff_roles else ''}", int(no_reset), N, K, P, ROUNDS,
                         f"{beta:.5f}", f"{(1 + beta) ** ROUNDS:.5f}",
                         f"{(1 + beta) ** (ROUNDS * c_max):.5f}", area,
                         "lexicon" if area.startswith("LEX") else "role",
@@ -191,3 +321,13 @@ if __name__ == "__main__":
                       f"{spr:>8.4f} {floor:>8.4f}  "
                       f"{'COLLAPSED' if collapsed > len(hs) / 2 else 'ok'} "
                       f"({collapsed}/{len(hs)} seeds)")
+            if task:
+                # Chance is 1/n_items, so 0.333 for three words -- printed so a
+                # metric sitting exactly at chance is recognisable as such
+                # rather than read as a number.
+                n_items = max(len(v) for v in [list(task.values())[0]]) and 3
+                print(f"    {'ROLE RETRIEVAL':<16} "
+                      + "  ".join(f"{ra.replace('ROLE_', '')} "
+                                  f"{sum(v) / len(v):.3f}"
+                                  for ra, v in sorted(task.items()))
+                      + f"   (chance {1 / n_items:.3f})")
