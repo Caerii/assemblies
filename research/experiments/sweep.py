@@ -66,7 +66,14 @@ FIELDS = ["cut", "n", "k", "p", "kp", "M", "alpha", "T", "beta", "gain",
 #: fss_collapse.py at alpha=0.8, depth 5, k=50, p=0.05.
 GC_AT_ALPHA_08 = {2000: 1.715, 4000: 1.915, 8000: 2.176}
 
-GAINS_FINE = [1.50, 1.60, 1.70, 1.78, 1.84, 1.90, 1.96, 2.02, 2.10, 2.20, 2.35]
+# The grid must bracket BOTH walls. The first version started at 1.50 because
+# it was anchored on the alpha=0.8 boundary, and at alpha=1.6 that turned out to
+# be above the starvation wall entirely -- the lowest gain sampled was already
+# the best one, so the lower wall was never in the scan and the wedge width was
+# unmeasurable. The low tail below is sized from the older beta sweeps, where a
+# fully bracketed wedge appears at alpha=3.2 depth 3 with its peak near g=1.32.
+GAINS_FINE = [1.08, 1.15, 1.22, 1.30, 1.40,
+              1.50, 1.60, 1.70, 1.78, 1.84, 1.90, 1.96, 2.02, 2.10, 2.20, 2.35]
 
 
 def cut_gain_x_alpha():
@@ -98,10 +105,29 @@ def cut_capacity_rel():
             yield dict(n=n, k=50, p=0.05, M=M, gain=0.88 * gc, depth=5)
 
 
+def cut_gain_x_k():
+    """g_c against ASSEMBLY SIZE, at matched load and matched afferent count.
+
+    The capacity sweep in k was confounded exactly as the n sweep had been: it
+    compared sizes at a fixed ABSOLUTE gain while g_c is known to move with
+    other axes, so a k whose boundary happens to be higher simply gets more
+    headroom. Two cells then agreed at alpha* = 1.15 and the third read >= 1.6.
+
+    Nothing about assembly size can be claimed until g_c(k) is known, so
+    measure it: hold alpha = 0.8 by scaling M with 1/k, and hold kp = 2.5 by
+    scaling p with 1/k, leaving k as the only thing that varies.
+    """
+    for k in (25, 50, 100):
+        for g in GAINS_FINE:
+            yield dict(n=4000, k=k, p=2.5 / k, M=int(0.8 * 4000 / k),
+                       gain=g, depth=5)
+
+
 CUTS = {
     "gain_x_alpha": cut_gain_x_alpha,
     "gain_x_depth": cut_gain_x_depth,
     "gain_x_kp": cut_gain_x_kp,
+    "gain_x_k": cut_gain_x_k,
     "capacity_rel": cut_capacity_rel,
 }
 
@@ -133,6 +159,27 @@ def main():
     done = done_keys(OUT)
     todo = [(c, s) for c in configs for s in seeds
             if key_of(cut, c, s) not in done]
+
+    # ONE WRITER AT A TIME. Two cuts were once launched against this file
+    # concurrently because a shell guard used `pgrep`, which does not exist in
+    # Git Bash and so failed open. No rows were corrupted -- appends of this
+    # size happened to stay atomic -- but that was luck, not design, and a
+    # torn row in a results file is the kind of thing that is discovered much
+    # later, in an analysis, as an inexplicable number.
+    lock = OUT + ".lock"
+    try:
+        lock_fd = os.open(lock, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+        os.write(lock_fd, f"{os.getpid()} {cut}".encode())
+        os.close(lock_fd)
+    except FileExistsError:
+        holder = ""
+        try:
+            with open(lock, encoding="utf-8") as lf:
+                holder = lf.read().strip()
+        except OSError:
+            pass
+        sys.exit(f"  {OUT} is already being written by [{holder}].\n"
+                 f"  Wait for it, or remove {lock} if that run is dead.")
 
     new = not os.path.exists(OUT)
     fh = open(OUT, "a", newline="", encoding="utf-8")
@@ -172,6 +219,10 @@ def main():
               f"marg={margins[D]:6.2f}  [{time.time() - t0:.0f}s, "
               f"eta {eta / 60:.0f}m]")
     fh.close()
+    try:
+        os.remove(lock)
+    except OSError:
+        pass
     print(f"\n  done in {(time.time() - t_start) / 60:.1f} min")
 
 
