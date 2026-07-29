@@ -1,0 +1,51 @@
+
+  DIRECT CAPACITY   gain=1.69 (beta=0.300) depth=5 seeds=2  mode=k
+
+  k=25  fixed p  p=0.0500  kp=1.25
+    M=16    acc=1.000 marg=  6.59 [7s]
+    M=32    acc=0.953 marg=  3.90 [7s]
+    M=64    acc=0.742 marg=  2.72 [22s]
+    M=128   acc=0.605 marg=  2.02 [59s]
+    M=256   acc=0.092 marg=  1.23 [174s]
+    -> M_max ~ 148
+
+  k=25  fixed kp  p=0.1000  kp=2.50
+    M=16    acc=1.000 marg= 17.36 [2s]
+    M=32    acc=1.000 marg= 17.64 [7s]
+    M=64    acc=1.000 marg= 11.46 [26s]
+    M=128   acc=0.988 marg=  6.73 [79s]
+    M=256   acc=0.889 marg=  3.67 [199s]
+    -> M_max ~ nan
+
+  k=50  fixed p  p=0.0500  kp=2.50
+    M=16    acc=1.000 marg= 15.10 [5s]
+    M=32    acc=1.000 marg= 10.24 [14s]
+    M=64    acc=1.000 marg=  6.53 [29s]
+    M=128   acc=0.031 marg=  1.02 [63s]
+    M=256   acc=0.012 marg=  1.01 [127s]
+    -> M_max ~ 92
+
+  k=50  fixed kp  p=0.0500  kp=2.50
+    M=16    acc=1.000 marg= 15.10 [4s]
+    M=32    acc=1.000 marg= 10.24 [9s]
+    M=64    acc=1.000 marg=  6.53 [36s]
+    M=128   acc=0.031 marg=  1.02 [78s]
+    M=256   acc=0.012 marg=  1.01 [155s]
+    -> M_max ~ 92
+
+  k=100  fixed p  p=0.0500  kp=5.00
+    M=16    acc=1.000 marg= 14.41 [6s]
+    M=32    acc=0.641 marg=  1.78 [15s]
+    M=64    acc=0.016 marg=  1.00 [29s]
+    M=128   acc=0.008 marg=  1.00 [64s]
+    M=256   acc=0.004 marg=  1.00 [143s]
+    -> M_max ~ 37
+
+  k=100  fixed kp  p=0.0250  kp=2.50
+    M=16    acc=1.000 marg=  8.14 [8s]
+    M=32    acc=0.984 marg=  2.16 [17s]
+    M=64    acc=0.055 marg=  1.00 [32s]
+    M=128   acc=0.027 marg=  1.00 [67s]
+    M=256   acc=0.002 marg=  1.00 [129s]
+    -> M_max ~ 46
+
