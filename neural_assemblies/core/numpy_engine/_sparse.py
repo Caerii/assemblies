@@ -734,6 +734,33 @@ class NumpySparseEngine(ComputeEngine):
 
     # -- Projection ---------------------------------------------------------
 
+    def _init_deferred_area_srcs(self, target, src_names, new_w) -> None:
+        """Size the empty area->area blocks marked during this projection.
+
+        A source area whose connectome into *target* has never been sized
+        contributes nothing on the round it is first used; this gives it a
+        Bernoulli(p) block over the target's currently materialised neurons so
+        it can contribute on the NEXT round. The stimulus path has carried the
+        same fix since `add_stimulus` ("without this the empty weight vector
+        produces zero input and the projection short-circuits"); this is its
+        area->area counterpart.
+
+        Called from BOTH exits of `project_into` -- the normal one and the
+        zero-signal early return. Only reaching it from the normal exit made it
+        unreachable whenever the new source was the only source, which is
+        exactly when it is needed.
+        """
+        if not src_names:
+            return
+        for src_name in src_names:
+            conn = self._area_conns[src_name][target]
+            if conn.weights.shape[1] > 0:
+                continue  # already sized by expand_connectomes
+            nr, nc = int(self._areas[src_name].w), int(new_w)
+            if nr > 0 and nc > 0:
+                conn.weights = self._init_area_block(
+                    src_name, target, 0, nr, 0, nc)
+
     def project_into(
         self,
         target: str,
@@ -868,6 +895,23 @@ class NumpySparseEngine(ComputeEngine):
 
         # Zero signal -> preserve current assembly
         if len(prev_winner_inputs) > 0 and float(xp.sum(prev_winner_inputs)) == 0.0:
+            # RUN THE DEFERRED INIT BEFORE RETURNING. Without this the
+            # mechanism is UNREACHABLE in the one case it exists for: a source
+            # area projecting into an already-grown target for the first time.
+            # Its connectome block is empty, so it contributes nothing, so the
+            # total is zero, so we return here -- before the consumption site
+            # at the end of this function. Next round is identical, forever.
+            #
+            # The observable symptom is not a zero assembly but a STALE one:
+            # this branch preserves `tgt.winners`, so every item driven through
+            # the dead fiber "stores" whatever the target last held. Measured
+            # on a role area fed by LEX_NOUN then LEX_VERB: all 20 verbs
+            # returned the 40th noun's assembly, and swapping the training
+            # order swapped which category collapsed (40 nouns onto the last
+            # verb). Whichever source happens to go first is the only one that
+            # ever works, and nothing warns.
+            self._init_deferred_area_srcs(
+                target, _deferred_init_srcs, int(tgt.w))
             return ProjectionResult(
                 winners=np.array(to_cpu(tgt.winners), dtype=np.uint32),
                 num_first_winners=0,
@@ -1107,16 +1151,7 @@ class NumpySparseEngine(ComputeEngine):
         # Sources whose connectomes were empty this round get initialised now
         # so they can contribute signal on the NEXT projection round.  Uses a
         # deterministic per-pair seed to avoid disturbing the main RNG.
-        if _deferred_init_srcs:
-            for src_name in _deferred_init_srcs:
-                conn = self._area_conns[src_name][target]
-                if conn.weights.shape[1] > 0:
-                    continue  # already sized by expand_connectomes
-                src = self._areas[src_name]
-                nr, nc = src.w, new_w
-                if nr > 0 and nc > 0:
-                    conn.weights = self._init_area_block(
-                        src_name, target, 0, nr, 0, nc)
+        self._init_deferred_area_srcs(target, _deferred_init_srcs, new_w)
 
         result = ProjectionResult(
             winners=np.array(new_winner_indices, dtype=np.uint32),

@@ -100,7 +100,29 @@ accuracy does not break**, because the argmax still has margin (0.948 against
 0.238). So α\* ≈ 1.15 is **not a constant of the substrate**. It was measured on
 a depth-5 chain of shared areas, where errors compound across levels; role
 binding here is depth 1, and a single association tolerates far more load.
-Locating the depth-1 wall is a separate sweep, not an extrapolation.
+
+The follow-up sweep varies load **alone** — n=1000, k=50, p=0.2, so k/n and kp
+are both fixed and only M moves. This matters because the table above cannot
+separate α from density: it varied k at fixed kp, so p = 10/k and k/n ran from
+0.01 to 0.40, and at k/n = 0.4 an off-diagonal of 0.977 is forced by pigeonhole
+rather than by load. The tell is that α = 1.74 appears twice with margins 0.694
+and 0.464.
+
+| M | α | distinct | diag | offdiag | margin | retrieval |
+|---|---|---|---|---|---|---|
+| 10 | 0.50 | 1.000 | 1.000 | 0.050 | 0.950 | 1.000 |
+| 20 | 1.00 | 1.000 | 0.999 | 0.094 | 0.905 | 1.000 |
+| 30 | 1.50 | 1.000 | 0.988 | 0.148 | 0.841 | 1.000 |
+| 40 | 2.00 | 1.000 | 0.945 | 0.221 | 0.723 | 1.000 |
+
+Retrieval is perfect throughout while the margin decays smoothly, so **α\* at
+depth 1 is bounded below by 2.0 and is not yet located**. Extending the curve is
+blocked on vocabulary rather than on parameters: past M=40 the sweep starts
+adding verbs, which arrive through a *second* source fibre, and **load is
+per-fibre, not per-area** — at M=60 the busiest fibre still carries 40 items.
+The signature of that confound is a margin that *rises* (0.723 → 0.799 → 0.831),
+which is not capacity recovering but the mean off-diagonal being diluted by
+cross-fibre pairs whose weights are independent.
 
 ## 5. Two proper designs, and they are still not the same project
 
@@ -150,7 +172,43 @@ composition directly.
 - That the lexicon is immune to gain for a mechanistic reason. Separately
   confirmed at 0.977 PHON-only reproduction, unchanged by role training.
 
-**Method note.** The 0.020 precondition reading that started this was *also* the
+## 7. An engine bug found on the way, and it is not confined to this experiment
+
+The load sweep's first run reported a hard ceiling at exactly 40 distinct
+assemblies for both M=50 and M=60, with `retrieval == distinct_frac` to three
+decimals. That looked like capacity and was not. Shuffling the training order
+left the collapsed set unchanged — always the 20 verbs, never a noun, with the
+first collapse at training position 2 — which ruled out both accumulation and
+order and pointed at the *source area*.
+
+`LEX_VERB -> ROLE_AGENT` had `weights.shape == (0, 0)`. In the sparse engine an
+area→area block is materialised lazily, and a source first used against an
+already-grown target is marked for **deferred initialisation** so it can
+contribute on the next round. That consumption site sits at the end of
+`project_into` — *after* the "zero signal → preserve current assembly" early
+return. So when the new source is the **only** source, it contributes nothing,
+the total is zero, the function returns early, and the initialisation never
+runs. Every round after is identical. Forever.
+
+The symptom is not a zero assembly but a **stale** one, because that branch
+preserves the target's current winners. Every verb "stored" the 40th noun's
+assembly. Swapping the training order swapped which category died — 40 nouns
+onto the last verb — so whichever source happens to project first is the only
+one that ever works, and nothing warns.
+
+Fixed by running the deferred init on both exits. After the fix, 60 of 60
+assemblies are distinct in either training order and both fibres materialise.
+
+**Scope.** The per-area sweep in §4 is unaffected and its numbers are unchanged
+to four decimals, because each role area there receives from exactly one LEX
+area (`bindings` sends nouns to AGENT/PATIENT and verbs to ACTION). The bug
+needs *two* source areas into one target, introduced at different times — which
+is the normal shape of helper-area architectures, so it is worth an audit rather
+than a footnote.
+
+## 8. Method notes
+
+The 0.020 precondition reading that started this was *also* the
 same index-space bug, in the gate I had written to catch exactly this class of
 error. The gate fired correctly and my explanation of it was wrong twice over
 before `lex_reproducibility.py` measured the three candidate causes separately

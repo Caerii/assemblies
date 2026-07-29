@@ -20,10 +20,35 @@ _xp = np
 _HAS_CUPY = None
 
 
+def _torch_first():
+    """Load PyTorch's CUDA libraries BEFORE CuPy's, if torch is installed.
+
+    On Windows the two ship their own copies of the CUDA runtime and cuBLAS,
+    and whichever imports first wins DLL resolution process-wide. CuPy winning
+    leaves torch bound to CuPy's cuBLAS, which dies on larger matmuls with a
+    bare `Windows fatal exception: access violation` -- no traceback, no
+    Python-level error, and the crash surfaces in whatever unrelated code
+    happens to run the matmul.
+
+    Measured with cupy 14.1.1 (CUDA 13.02) and torch 2.12.1+cu130: importing
+    CuPy first crashes a torch training loop even when NO CuPy operation is
+    ever executed; importing torch first is fine. So this is called at every
+    site that genuinely imports CuPy.
+
+    Silently does nothing when torch is absent -- torch is an optional
+    dependency and CuPy-only installations must keep working.
+    """
+    try:
+        import torch  # noqa: F401
+    except Exception:                                        # noqa: BLE001
+        pass
+
+
 def _detect_cupy():
     global _HAS_CUPY
     if _HAS_CUPY is None:
         try:
+            _torch_first()
             import cupy
             cupy.array([1.0])  # verify GPU is usable
             _HAS_CUPY = True
@@ -43,9 +68,11 @@ def set_backend(name="auto"):
     if name == "numpy":
         _xp = np
     elif name == "cupy":
+        _torch_first()
         import cupy
         _xp = cupy
     elif name == "auto":
+        # _detect_cupy already ran _torch_first before importing CuPy.
         _xp = __import__("cupy") if _detect_cupy() else np
     else:
         raise ValueError(f"Unknown backend: {name!r}")

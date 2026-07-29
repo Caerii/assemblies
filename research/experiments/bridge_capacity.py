@@ -239,6 +239,164 @@ def retrieval(parser, determinism_check=True):
     return out
 
 
+def _duplicate_report(parser, order, nouns):
+    """Who lost their assembly: late-trained items, or verbs?
+
+    Groups the role area's stored assemblies by exact winner set. Any group of
+    size > 1 is a collapse. Reports the collapsed items' positions in TRAINING
+    ORDER and their noun/verb split, which is what distinguishes the two
+    candidate mechanisms.
+    """
+    lex = parser.role_lexicons.get("ROLE_AGENT", {})
+    groups = {}
+    for w in order:
+        if w not in lex:
+            continue
+        groups.setdefault(frozenset(int(x) for x in lex[w].winners),
+                          []).append(w)
+    dup = [w for ws in groups.values() if len(ws) > 1 for w in ws[1:]]
+    pos = [order.index(w) for w in dup]
+    nset = set(nouns)
+    return {
+        "n_distinct": len(groups),
+        "n_dup": len(dup),
+        "first_dup_pos": min(pos) if pos else None,
+        "dup_nouns": sum(w in nset for w in dup),
+        "dup_verbs": sum(w not in nset for w in dup),
+        "mean_dup_pos": (sum(pos) / len(pos)) if pos else float("nan"),
+    }
+
+
+def load_sweep():
+    """alpha varied by LOAD ALONE, at fixed n, k, p -- the unconfounded test.
+
+    WHY THIS EXISTS. The POINTS sweep varied k at fixed kp, so p = 10/k and
+    k/n moved with it, from 0.01 to 0.40. That cannot separate load from
+    density, and the data says so plainly: alpha = 1.74 occurs twice with
+    margins 0.694 and 0.464, so alpha does not collapse the curve. Worse, at
+    k/n = 0.4 an assembly is 40% of the area, so an off-diagonal overlap of
+    0.977 is forced by pigeonhole and has nothing to do with how many items
+    are stored. The apparent agreement of retrieval accuracy at matched alpha
+    was agreement between saturated and degenerate values.
+
+    So: hold n=1000, k=50, p=0.2 -- hence k/n = 0.05 and kp = 10 fixed -- and
+    vary only M, the number of words trained into ONE role area. alpha = Mk/n
+    = M/20, so M from 10 to 60 sweeps alpha from 0.5 to 3.0 and brackets the
+    wall suspected between 1.74 and 2.78 with load as the only moving part.
+
+    ONLY M <= 40 IS CLEAN, and the data announces it. The word list is 40 nouns
+    then 20 verbs, so M > 40 starts adding VERBS -- which arrive through
+    LEX_VERB, a SECOND source fibre. That changes the number of afferent
+    fibres, not just the load, and it shows up as a non-monotonic margin:
+
+        M      10     20     30     40  |    50     60
+        margin  .950   .905   .841   .723 |  .799   .831
+
+    The rise is not capacity recovering. Cross-fibre pairs have near-zero
+    overlap because their weights are independent, so adding verbs pulls the
+    MEAN off-diagonal down while the within-noun pairs are unchanged. LOAD IS
+    PER-FIBRE, NOT PER-AREA: at M=60 the busiest fibre still carries only 40
+    items, so alpha_eff is 2.0 rather than 3.0.
+
+    Read the curve at M <= 40 only: single fibre, retrieval 1.000 throughout,
+    margin decaying smoothly 0.950 -> 0.723 as alpha goes 0.5 -> 2.0. Pushing
+    a single fibre past alpha = 2.0 needs MORE SAME-CATEGORY WORDS -- a lexicon
+    task, not a parameter change -- so alpha* at depth 1 is bounded below by
+    2.0 here and not yet located.
+    """
+    import bridge_parser as bp
+
+    n = int(os.environ.get("BC_LN", "1000"))
+    k = int(os.environ.get("BC_LK", "50"))
+    p = KP / k
+    m_max = 1.15 * n / k
+    beta = derived_beta()
+    nouns, verbs = corpus.build(N_NOUNS, N_VERBS)
+    words = list(nouns) + list(verbs)
+    Ms = [int(x) for x in os.environ.get(
+        "BC_MS", "10,20,30,40,50,60").split(",")]
+
+    print(f"\n  LOAD SWEEP -- alpha by M alone   n={n} k={k} p={p:g} "
+          f"(kp={KP:g}, k/n={k / n:g} FIXED)  beta={beta:.5f}")
+    print(f"  M_max = 1.15n/k = {m_max:.0f}, so alpha = M/{m_max:.0f}; "
+          f"one shared role area holds all M words")
+    print(f"\n  {'M':>4} {'alpha':>7} {'distinct':>9} {'spread':>8} "
+          f"{'diag':>7} {'offdiag':>8} {'margin':>8} {'retrieval':>10} "
+          f"{'95% CI':>15} {'chance':>7}")
+
+    out_path = os.path.join(HERE, os.environ.get("BC_LOUT",
+                                                 "bridge_load.csv"))
+    new = not os.path.exists(out_path)
+    fh = open(out_path, "a", newline="", encoding="utf-8")
+    wcsv = csv.writer(fh)
+    if new:
+        wcsv.writerow(["n", "k", "p", "kp", "beta", "rounds", "M", "m_max",
+                       "alpha", "acc", "lo", "hi", "chance", "diag",
+                       "offdiag", "margin", "spread", "distinct_frac",
+                       "nondet", "seeds"])
+    for M in Ms:
+        sub = words[:M]
+        binds = [(w, 0) for w in sub]          # every word into ROLE_AGENT
+        if os.environ.get("BC_SHUFFLE") == "1":
+            # WHICH items lose their assembly? Two mechanisms predict
+            # different answers and the default order cannot tell them apart,
+            # because it happens to train all 40 nouns before any verb.
+            #
+            #   CATEGORY -- verbs collapse because LEX_VERB -> ROLE_AGENT is a
+            #     second fiber arriving into an already-trained area.
+            #   ORDER    -- LATE items collapse, whatever they are, because the
+            #     area has accumulated high-in-degree hub neurons that win for
+            #     any input. This project's documented collapse mechanism.
+            #
+            # Both give exactly 40 distinct at M=50 and M=60 under the default
+            # ordering. Shuffling separates them: under CATEGORY the survivors
+            # stay the nouns, under ORDER they become the first 40 trained.
+            import random as _r
+            sub = list(sub)
+            _r.Random(12345).shuffle(sub)
+            binds = [(w, 0) for w in sub]
+        bp.N, bp.K, bp.P, bp.ROUNDS = n, k, p, ROUNDS
+        hits = trials = nondet = 0
+        dg, od, spr, dfr = [], [], [], []
+        diag_words = {"n_dup": 0}
+        for seed in SEEDS:
+            parser, brain = bp.build(beta, seed, nouns=nouns, verbs=verbs,
+                                     roles_fn=make_trainer(binds))
+            st = retrieval(parser)["ROLE_AGENT"]
+            hits += st["hits"]
+            trials += st["trials"]
+            nondet += st["nondet"]
+            dg.append(st["diag"])
+            od.append(st["offdiag"])
+            h = bp.area_report(brain, parser)["ROLE_AGENT"]
+            spr.append(h.spread)
+            dfr.append(h.distinct_frac)
+            if seed == SEEDS[0]:
+                diag_words = _duplicate_report(parser, sub, nouns)
+        ph, lo, hi = wilson(hits, trials)
+        mn = lambda v: sum(v) / len(v)                        # noqa: E731
+        d, o = mn(dg), mn(od)
+        print(f"  {M:>4} {M * k / n:>7.2f} {mn(dfr):>9.3f} {mn(spr):>8.4f} "
+              f"{d:>7.3f} {o:>8.4f} {d - o:>8.3f} {ph:>10.3f} "
+              f"[{lo:.3f},{hi:.3f}]".rjust(0) + f" {1 / M:>7.4f}")
+        if diag_words["n_dup"]:
+            print(f"       -> {diag_words['n_distinct']} distinct, "
+                  f"{diag_words['n_dup']} collapsed; first at training "
+                  f"position {diag_words['first_dup_pos']}, mean position "
+                  f"{diag_words['mean_dup_pos']:.1f}; "
+                  f"{diag_words['dup_nouns']} nouns / "
+                  f"{diag_words['dup_verbs']} verbs")
+        wcsv.writerow([n, k, f"{p:g}", f"{KP:g}", f"{beta:.6f}", ROUNDS, M,
+                       f"{m_max:.1f}", f"{M * k / n:.4f}", f"{ph:.6f}",
+                       f"{lo:.6f}", f"{hi:.6f}", f"{1 / M:.6f}", f"{d:.6f}",
+                       f"{o:.6f}", f"{d - o:.6f}", f"{mn(spr):.6f}",
+                       f"{mn(dfr):.6f}", nondet,
+                       "|".join(str(s) for s in SEEDS)])
+        fh.flush()
+    fh.close()
+    print(f"\n  wrote {out_path}")
+
+
 def main():
     import bridge_parser as bp
 
@@ -352,4 +510,7 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    if os.environ.get("BC_MODE") == "load":
+        load_sweep()
+    else:
+        main()
