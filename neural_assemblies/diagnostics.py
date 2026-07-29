@@ -1,0 +1,410 @@
+"""Runtime diagnostics for assemblies: is this measurement trustworthy?
+
+WHY THIS MODULE EXISTS
+----------------------
+On 2026-07-28/29 a research session produced eight experiments, six of which
+refuted the one before them. Not one of the six was refuted by new theory --
+each was refuted by a CONTROL that cost almost nothing to add and had simply
+not been there. The failures fell into four repeatable shapes:
+
+  1. COLLAPSE UPSTREAM. An area holding many items merges them into one, and
+     everything downstream then reads exactly chance. Six hours were spent on
+     "composition fails at depth" before a spread column showed the PARENTS had
+     become a single assembly before composition ever ran.
+  2. DEAD PROBE. Reading under `read_only()` from an area that was never
+     materialised returns the same degenerate winners for every input, so
+     accuracy is EXACTLY chance and margin is EXACTLY 1.00. Twice mistaken for
+     a negative result.
+  3. WRONG INDEX SPACE. `area.winners` holds compact engine indices;
+     `ops._snap` returns stable neuron IDs. Comparing across them is silently
+     at chance.
+  4. STABILITY MISTAKEN FOR DISCRIMINABILITY. After collapse every item still
+     re-cues to high overlap with what was stored, because it returns THE
+     collapsed assembly. A probe reading only self-overlap reports success at
+     0.7763 while rank-1 identity is 0.0143.
+
+Every one of those is mechanically detectable. This module detects them. The
+organising idea is that a diagnostic should answer "can I believe this number?",
+not merely "what is this number?" -- so the functions here return verdicts and
+reasons, not just floats.
+
+WHAT THIS IS NOT
+----------------
+Not a metrics library. `research/experiments/_substrate.py` covers reading,
+similarity and probing for experiments. This is for interrogating a LIVE brain,
+including mid-training, and is safe to call from production code.
+"""
+
+from __future__ import annotations
+
+import itertools
+import statistics
+from dataclasses import dataclass, field
+from typing import Dict, Iterable, List, Mapping, Optional, Sequence
+
+import numpy as np
+
+__all__ = [
+    "Verdict", "AreaHealth", "DriveBreakdown",
+    "read_assembly", "assembly_overlap",
+    "area_health", "drive_breakdown", "recurrence_audit", "collapse_scan",
+    "format_report",
+]
+
+
+# --------------------------------------------------------------------------
+# Verdicts
+# --------------------------------------------------------------------------
+
+@dataclass
+class Verdict:
+    """A judgement plus the reason for it. The reason is the point.
+
+    A bare boolean sends the reader back to the code to find out what was
+    checked; every failure this module exists to catch was originally missed by
+    someone reading a number without its provenance.
+    """
+
+    ok: bool
+    label: str
+    detail: str = ""
+
+    def __bool__(self) -> bool:
+        return self.ok
+
+    def __str__(self) -> str:
+        mark = "OK  " if self.ok else "WARN"
+        return f"[{mark}] {self.label}{(': ' + self.detail) if self.detail else ''}"
+
+
+# --------------------------------------------------------------------------
+# The one sanctioned readout
+# --------------------------------------------------------------------------
+
+def read_assembly(brain, area: str) -> np.ndarray:
+    """Current assembly in *area* as STABLE NEURON IDS.
+
+    Always use this rather than ``brain.areas[area].winners``, which is a
+    different coordinate system (compact engine indices, renumbered as the area
+    recruits). Comparing the two returns chance -- silently, looking exactly
+    like a negative result. See failure shape 3 in the module docstring.
+    """
+    from neural_assemblies.assembly_calculus.ops import _snap
+    return np.asarray(_snap(brain, area).winners, dtype=np.int64)
+
+
+def assembly_overlap(a, b) -> float:
+    """Overlap between two assemblies of neuron IDs. Order-insensitive."""
+    from neural_assemblies.assembly_calculus.assembly import overlap
+    return float(overlap(np.asarray(a, dtype=np.int64),
+                         np.asarray(b, dtype=np.int64)))
+
+
+def _spread(assemblies: Iterable) -> float:
+    pairs = list(itertools.combinations(list(assemblies), 2))
+    if not pairs:
+        return float("nan")
+    return statistics.mean(assembly_overlap(x, y) for x, y in pairs)
+
+
+# --------------------------------------------------------------------------
+# Area health
+# --------------------------------------------------------------------------
+
+@dataclass
+class AreaHealth:
+    """Whether an area can still tell its occupants apart."""
+
+    area: str
+    n_items: int
+    floor: float                    #: chance pairwise overlap, k/n
+    spread: float                   #: measured mean pairwise overlap
+    accuracy: float = float("nan")  #: rank-1 identity, if cues were supplied
+    margin: float = float("nan")    #: best match / second best
+    identity: float = float("nan")  #: re-cue overlap with what was stored
+    verdicts: List[Verdict] = field(default_factory=list)
+
+    @property
+    def collapsed(self) -> bool:
+        return any(v.label == "distinct" and not v.ok for v in self.verdicts)
+
+    @property
+    def trustworthy(self) -> bool:
+        """False when a verdict says the MEASUREMENT is suspect, not the area."""
+        return not any(v.label in ("live probe", "index space") and not v.ok
+                       for v in self.verdicts)
+
+
+def area_health(brain, area: str, stored: Mapping,
+                cues: Optional[Mapping] = None,
+                chance: Optional[float] = None) -> AreaHealth:
+    """Can *area* still distinguish the assemblies stored in it?
+
+    Args:
+        brain: the live Brain.
+        area: area name.
+        stored: {key: assembly} of neuron IDs, e.g. from ``read_assembly``.
+        cues: optional {key: callable} that re-presents item ``key`` and leaves
+            *area* holding whatever it retrieves. When given, accuracy, margin
+            and identity are measured; without it only distinctness is.
+        chance: rank-1 chance level. Defaults to 1/len(stored).
+
+    Returns:
+        AreaHealth. Check ``.trustworthy`` BEFORE reading the numbers -- a
+        failed measurement and a failed area look identical otherwise, which is
+        the whole reason this returns verdicts.
+    """
+    items = list(stored)
+    k = int(getattr(brain.areas[area], "k", 0) or 0)
+    n = int(getattr(brain.areas[area], "n", 0) or 0)
+    floor = (k / n) if n else float("nan")
+    spread = _spread(stored.values())
+
+    h = AreaHealth(area=area, n_items=len(items), floor=floor, spread=spread)
+
+    # DISTINCTNESS. Two-thirds of the way to the floor is a generous bar; the
+    # collapses measured were 0.5-1.0 against floors of 0.01-0.05, so this
+    # separates cleanly rather than splitting hairs.
+    if floor == floor:
+        h.verdicts.append(Verdict(
+            spread < max(3 * floor, floor + 0.05), "distinct",
+            f"pairwise overlap {spread:.4f} vs floor {floor:.4f}"))
+
+    if cues is None:
+        return h
+
+    hits, margins, idents = 0, [], []
+    for key in items:
+        cues[key]()
+        live = read_assembly(brain, area)
+        sims = sorted(((assembly_overlap(live, a), j)
+                       for j, a in stored.items()), reverse=True)
+        hits += sims[0][1] == key
+        idents.append(assembly_overlap(live, stored[key]))
+        if len(sims) > 1 and sims[1][0] > 0:
+            margins.append(sims[0][0] / sims[1][0])
+
+    h.accuracy = hits / len(items) if items else float("nan")
+    h.margin = statistics.mean(margins) if margins else float("nan")
+    h.identity = statistics.mean(idents) if idents else float("nan")
+    ch = chance if chance is not None else (1.0 / len(items) if items else 0.0)
+
+    # DEAD PROBE. Exactly chance with a unit margin means every read returned
+    # the same thing -- usually recruitment blocked under read_only() in an
+    # area that was never materialised. This is a claim about the MEASUREMENT,
+    # so it is checked before anything is concluded about the area.
+    dead = (abs(h.margin - 1.0) < 1e-9) or (
+        h.margin == h.margin and h.margin < 1.001 and abs(h.accuracy - ch) < 1e-9)
+    h.verdicts.append(Verdict(
+        not dead, "live probe",
+        "margin is exactly 1.00 and accuracy is exactly chance -- every read "
+        "returned the same assembly. Materialise the area OUTSIDE the probe "
+        "before measuring" if dead else f"margin {h.margin:.2f}x"))
+
+    h.verdicts.append(Verdict(
+        h.accuracy > ch + 0.2, "discriminable",
+        f"rank-1 {h.accuracy:.4f} vs chance {ch:.4f}"))
+
+    # STABILITY IS NOT DISCRIMINABILITY. High identity with chance accuracy is
+    # the signature of a collapsed area: every item stably returns THE one
+    # assembly. Reported as its own verdict because reading identity alone is
+    # exactly how this was missed.
+    if h.identity > 0.5 and h.accuracy < ch + 0.2:
+        h.verdicts.append(Verdict(
+            False, "stability != identity",
+            f"re-cue overlap {h.identity:.4f} looks healthy but rank-1 is "
+            f"{h.accuracy:.4f} -- items are STABLE and INDISTINGUISHABLE"))
+
+    # A margin this thin is one step from failing even while accuracy is high.
+    if h.margin == h.margin and h.margin < 1.2 and h.accuracy > 0.9:
+        h.verdicts.append(Verdict(
+            False, "margin thin",
+            f"accuracy {h.accuracy:.4f} rests on a {h.margin:.2f}x margin; "
+            f"treat as about to fail, not as passing"))
+
+    return h
+
+
+# --------------------------------------------------------------------------
+# Drive decomposition
+# --------------------------------------------------------------------------
+
+@dataclass
+class DriveBreakdown:
+    """Where an area's input actually comes from."""
+
+    target: str
+    per_source: Dict[str, float]
+    verdicts: List[Verdict] = field(default_factory=list)
+
+    @property
+    def total(self) -> float:
+        vals = [v for v in self.per_source.values() if v == v]
+        return sum(vals) if vals else float("nan")
+
+    def share(self, source: str) -> float:
+        t = self.total
+        return (self.per_source.get(source, float("nan")) / t) if t else float("nan")
+
+
+def drive_breakdown(brain, target: str, sources: Sequence[str],
+                    target_ids=None,
+                    expect_controlling: Optional[str] = None) -> DriveBreakdown:
+    """Mean synaptic weight each source delivers onto *target*'s assembly.
+
+    Read straight from the connectome, so no projection is run and neither
+    k-WTA nor settling can intervene. This is the measurement that decides
+    which input wins the k-WTA, and it is the one that was missing when five
+    consecutive interventions on multi-mood word order all failed: the
+    conditioning signal controlled 4% of the drive, and nothing anyone changed
+    altered that share.
+
+    Args:
+        target: area whose incoming drive is decomposed.
+        sources: source areas to attribute drive to. Include *target* itself to
+            measure self-recurrence, which is usually the largest term and is
+            usually the one nobody looked at.
+        target_ids: neuron IDs to score against. Defaults to *target*'s current
+            assembly.
+        expect_controlling: source you believe decides the outcome. When given,
+            a verdict fires if it does not hold a plurality of the drive.
+    """
+    from neural_assemblies.assembly_calculus.ops import _compact_index
+
+    if target_ids is None:
+        target_ids = read_assembly(brain, target)
+
+    eng_t = brain._engine_for(brain.areas[target])
+    t_inv = _compact_index(eng_t, target) or {}
+
+    per: Dict[str, float] = {}
+    for src in sources:
+        conn = getattr(eng_t, "_area_conns", {}).get(src, {}).get(target)
+        w = getattr(conn, "weights", None)
+        if w is None or getattr(w, "shape", (0, 0))[0] == 0:
+            per[src] = float("nan")
+            continue
+        w = np.asarray(w.todense() if hasattr(w, "todense") else w)
+        src_win = np.asarray(brain.areas[src].winners)
+        rows = [int(x) for x in src_win if int(x) < w.shape[0]]
+        cols = [t_inv[int(x)] for x in target_ids
+                if int(x) in t_inv and t_inv[int(x)] < w.shape[1]]
+        per[src] = (float(w[np.ix_(rows, cols)].mean())
+                    if rows and cols else float("nan"))
+
+    d = DriveBreakdown(target=target, per_source=per)
+
+    if expect_controlling is not None:
+        share = d.share(expect_controlling)
+        others = {s: v for s, v in per.items()
+                  if s != expect_controlling and v == v}
+        top = max(others, key=lambda s: others[s]) if others else None
+        d.verdicts.append(Verdict(
+            share == share and share > 0.4, "controlling source",
+            f"{expect_controlling} holds {share:.1%} of the drive"
+            + (f"; {top} holds {d.share(top):.1%}" if top else "")
+            + ("" if (share == share and share > 0.4) else
+               " -- it cannot decide the k-WTA, and any fix that leaves this "
+               "share unchanged will fail")))
+    return d
+
+
+# --------------------------------------------------------------------------
+# Whole-brain sweeps
+# --------------------------------------------------------------------------
+
+def recurrence_audit(brain, areas: Optional[Sequence[str]] = None
+                     ) -> List[Verdict]:
+    """Flag self-recurrent fibers, the collapse channel found at every level.
+
+    Self-recurrence with plasticity is safe for an area holding ONE assembly
+    and destroys an area holding many: the first item's self-connections
+    potentiate until they beat each later item's input. Measured ceilings under
+    norm_init were 32 / 64 / 256 items at n = 1000 / 2000 / 4000; feed-forward
+    had no measurable ceiling at all.
+
+    This reports which self-fibers EXIST and how potentiated they are. It cannot
+    know how many items an area is meant to hold, so it reports rather than
+    judges -- but a heavily potentiated self-fiber on a shared area is the first
+    thing to check when retrieval reads chance.
+
+    STATISTIC. The tail-to-median weight ratio, NOT the matrix mean.
+
+    A whole-matrix mean dilutes the potentiated entries into the unpotentiated
+    bulk: measured on a self-fiber whose active block averaged 1.95 (39x the
+    p=0.05 baseline), the matrix mean did not clear a 2x threshold at all and
+    this check silently passed. Comparing to `p` is also wrong under norm_init,
+    where the initial weight is normalised per postsynaptic neuron rather than
+    set to p.
+
+    p99 / median is free of both problems. A freshly initialised fiber has a
+    narrow weight distribution whatever the normalisation, so the ratio is near
+    1; Hebbian potentiation concentrates on the assemblies that co-fired and
+    produces a heavy tail.
+    """  # noqa: D208
+    out: List[Verdict] = []
+    names = list(areas) if areas is not None else list(brain.areas)
+    for a in names:
+        try:
+            eng = brain._engine_for(brain.areas[a])
+        except Exception:
+            continue
+        conn = getattr(eng, "_area_conns", {}).get(a, {}).get(a)
+        w = getattr(conn, "weights", None)
+        if w is None or getattr(w, "shape", (0, 0))[0] == 0:
+            continue
+        arr = np.asarray(w.todense() if hasattr(w, "todense") else w).ravel()
+        arr = arr[arr > 0]
+        if arr.size < 8:
+            continue
+        med = float(np.median(arr))
+        tail = float(np.percentile(arr, 99))
+        ratio = (tail / med) if med > 0 else float("nan")
+        hot = ratio == ratio and ratio > 3.0
+        out.append(Verdict(
+            not hot, f"self-fiber {a}",
+            f"p99/median {ratio:.1f}x (p99 {tail:.4f}, median {med:.4f})"
+            + (" -- potentiated. If this area holds MANY items this is the "
+               "collapse channel; train it feed-forward" if hot else "")))
+    return out
+
+
+def collapse_scan(brain, stored_by_area: Mapping[str, Mapping]
+                  ) -> Dict[str, AreaHealth]:
+    """Distinctness check across every area holding stored assemblies.
+
+    The cheapest useful diagnostic there is, and the one whose absence cost the
+    most: run it on the LEXICON and the PARENT areas before concluding anything
+    about composition or retrieval downstream. Collapse upstream reads as chance
+    downstream and is indistinguishable from a genuine negative by inspection.
+    """
+    return {area: area_health(brain, area, stored)
+            for area, stored in stored_by_area.items()}
+
+
+# --------------------------------------------------------------------------
+# Reporting
+# --------------------------------------------------------------------------
+
+def format_report(items) -> str:
+    """Render health objects, breakdowns or verdicts as aligned text."""
+    lines: List[str] = []
+    seq = items.values() if isinstance(items, Mapping) else items
+    for it in (seq if isinstance(seq, (list, tuple, type({}.values()))) else [seq]):
+        if isinstance(it, AreaHealth):
+            lines.append(
+                f"  {it.area:<16} items {it.n_items:<5} spread "
+                f"{it.spread:.4f} (floor {it.floor:.4f})"
+                + (f"  acc {it.accuracy:.4f}  margin {it.margin:.2f}x"
+                   if it.accuracy == it.accuracy else ""))
+            lines += [f"      {v}" for v in it.verdicts if not v.ok]
+        elif isinstance(it, DriveBreakdown):
+            lines.append(f"  drive into {it.target}:")
+            for s, v in sorted(it.per_source.items(),
+                               key=lambda kv: -(kv[1] if kv[1] == kv[1] else -1)):
+                lines.append(f"      {s:<16}{v:>10.4f}  {it.share(s):>7.1%}")
+            lines += [f"      {v}" for v in it.verdicts if not v.ok]
+        elif isinstance(it, Verdict):
+            if not it.ok:
+                lines.append(f"  {it}")
+    return "\n".join(lines) if lines else "  (nothing flagged)"

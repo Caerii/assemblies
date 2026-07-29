@@ -1,0 +1,7 @@
+  OVERNIGHT CHARACTERIZATION -- axes never varied before
+  capacity = largest M with rank-1 > 0.90, ladder (16, 32, 64, 128, 256, 512, 1024), 3 seeds
+  CENSORED = the ladder ran out before the substrate did, so M_max is a LOWER BOUND
+  every cell passes through diagnostics; UNTRUSTWORTHY means the measurement failed, not the substrate
+
+  A. LEXICON capacity vs (n, k, beta), feed-forward, p=0.05
+        n    k   beta     k/n   M_max   margin        note
