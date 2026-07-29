@@ -214,6 +214,57 @@ across a rich pattern and selectivity survives. Density therefore controls the
 
 \section{What remains to be derived}
 
+\subsection{An empirical law for \texorpdfstring{$g_c$}{g\_c}}
+
+Untangling $n$ from $M$ --- the main scan holds $\alpha$ fixed and so moves
+both at once --- gives three cells that separate the two variables:
+
+\begin{center}
+\begin{tabular}{ccccl}
+\toprule
+$n$ & $M$ & $\alpha$ & $g_c$ & \\
+\midrule
+2000 & 32 & 0.8 & 1.715 & \\
+4000 & 32 & 0.4 & 2.260 & $n$ doubled at fixed $M$: $\Delta = +0.545$\\
+4000 & 64 & 0.8 & 1.917 & $M$ doubled at fixed $n$: $\Delta = -0.343$\\
+2000 & 64 & 1.6 & $<1.50$ & below the scanned range\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Both variables move $g_c$, and in opposite directions, so neither the
+fresh-pool picture ($n$ only) nor the stored-set picture ($M$ only) is
+complete on its own. Reading the two increments as logarithmic gives
+$\partial g_c/\partial \ln n \approx 0.79$ and
+$\partial g_c/\partial \ln M \approx -0.50$, and substituting $M = \alpha n/k$
+collapses these to
+
+\begin{equation}\label{eq:gclaw}
+  g_c \;\approx\; C \;+\; 0.29\,\ln n \;-\; 0.50\,\ln \alpha .
+\end{equation}
+
+\begin{conjecture}[Empirical form of $g_c$]\label{conj:gclaw} \MEASURED
+$g_c$ increases logarithmically with system size at fixed load and decreases
+logarithmically with load, as in \eqref{eq:gclaw}.
+\end{conjecture}
+
+Three points determine three coefficients, so \eqref{eq:gclaw} is not yet
+tested --- it is a fit. Its content is the \emph{prediction} it makes at a
+fourth cell. For $n=8000$, $M=128$ (again $\alpha=0.8$, both doubling once
+more) it requires
+\[
+  g_c(8000,128) \;\approx\; 1.917 + 0.29\ln 2 \;\approx\; \boxed{2.12}.
+\]
+This is registered before that cell finished measuring. A result near $2.12$
+supports the form; convergence towards a constant instead would mean $g_c$ has
+a thermodynamic limit and the logarithm is a small-$n$ artifact; continued
+growth at a different rate would falsify the coefficient.
+
+The sign structure is worth stating plainly, because it is the practical
+content: \textbf{bigger substrates tolerate more gain, and heavier loads
+tolerate less.} A gain that is safe on a small vocabulary can therefore become
+unsafe purely by adding items --- with no change to any plasticity parameter.
+
 \begin{conjecture}[Finite-size scaling]\label{conj:fss} \OPEN
 Near $g_c$ the order parameter obeys
 \[

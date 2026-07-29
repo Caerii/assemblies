@@ -1,0 +1,39 @@
+### n=4000 with M=32 (alpha=0.4) -- same M as the n=2000 cell
+
+  CRITICAL POINT SCAN   alpha=0.4 depth=5 T=2 k=50 p=0.05
+  1 sizes x 11 gains x 3 seeds = 33 trials -> F:\Github\assemblies\research\experiments\confound_n4000_M32.csv
+
+  n=4000  M=32  floor=0.01250
+    g=1.50 (beta=0.225)  acc=1.000 Q=0.0025   [19s]
+    g=1.65 (beta=0.285)  acc=1.000 Q=0.0043   [18s]
+    g=1.75 (beta=0.323)  acc=1.000 Q=0.0058   [18s]
+    g=1.82 (beta=0.349)  acc=1.000 Q=0.0064   [26s]
+    g=1.88 (beta=0.371)  acc=1.000 Q=0.0063   [20s]
+    g=1.92 (beta=0.386)  acc=1.000 Q=0.0071   [19s]
+    g=1.96 (beta=0.400)  acc=1.000 Q=0.0078   [22s]
+    g=2.00 (beta=0.414)  acc=1.000 Q=0.0065   [21s]
+    g=2.06 (beta=0.435)  acc=1.000 Q=0.0089   [18s]
+    g=2.15 (beta=0.466)  acc=0.833 Q=0.0253   [25s]
+    g=2.30 (beta=0.517)  acc=0.323 Q=0.0527   [25s]
+
+  wrote F:\Github\assemblies\research\experiments\confound_n4000_M32.csv
+
+### n=2000 with M=64 (alpha=1.6) -- same M as the n=4000 cell
+
+  CRITICAL POINT SCAN   alpha=1.6 depth=5 T=2 k=50 p=0.05
+  1 sizes x 11 gains x 3 seeds = 33 trials -> F:\Github\assemblies\research\experiments\confound_n2000_M64.csv
+
+  n=2000  M=64  floor=0.02500
+    g=1.50 (beta=0.225)  acc=0.047 Q=0.0545   [41s]
+    g=1.65 (beta=0.285)  acc=0.021 Q=0.2633   [31s]
+    g=1.75 (beta=0.323)  acc=0.026 Q=0.3971   [27s]
+    g=1.82 (beta=0.349)  acc=0.021 Q=0.5587   [27s]
+    g=1.88 (beta=0.371)  acc=0.026 Q=0.5431   [26s]
+    g=1.92 (beta=0.386)  acc=0.031 Q=0.5449   [23s]
+    g=1.96 (beta=0.400)  acc=0.021 Q=0.6342   [20s]
+    g=2.00 (beta=0.414)  acc=0.016 Q=0.6986   [22s]
+    g=2.06 (beta=0.435)  acc=0.021 Q=0.6991   [22s]
+    g=2.15 (beta=0.466)  acc=0.021 Q=0.7077   [22s]
+    g=2.30 (beta=0.517)  acc=0.016 Q=0.7781   [22s]
+
+  wrote F:\Github\assemblies\research\experiments\confound_n2000_M64.csv
