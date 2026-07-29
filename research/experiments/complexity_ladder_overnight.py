@@ -73,12 +73,21 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from _substrate import probe, read, similarity, spread  # noqa: E402
 
-K_, P_, BETA = 50, 0.05, 0.10
+#: beta is an ENV KNOB because depth_beta_rescue.py found depth peaks at an
+#: INTERIOR beta: 0.10 starves the chain (fiber under-potentiated, assemblies
+#: distinct but margin decaying) while 0.20 reaches depth 5-6. The first pass of
+#: this ladder ran at 0.10 and its depth failures at large n show exactly the
+#: starvation signature -- spr_D at the floor with margin collapsed -- so they
+#: are operating-point artifacts, not capacity ceilings. Re-run at 0.20 to
+#: separate the two.
+K_, P_ = 50, 0.05
+BETA = float(os.environ.get("LADDER_BETA", "0.10"))
 BUILD_ROUNDS, MERGE_ROUNDS = 6, 2
 LEAF = "A"
 GATED = dict(parent_self=False, target_self=False, back_project=False)
-OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                   "complexity_ladder_results.txt")
+OUT = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)),
+    os.environ.get("LADDER_OUT", "complexity_ladder_results.txt"))
 
 #: (n, M, depth). Cheapest first so a short night still covers the useful part.
 LADDER = [
