@@ -1,0 +1,9 @@
+  COMPLEXITY LADDER  k=50 beta=0.1 p=0.05, feed-forward lexicon, gated merge T=2
+  one SHARED area per level; margin = best/second-best stored match; floor = k/n
+  full_D = accuracy at the DEEPEST level; a cell passes when full_D > 0.90
+
+        n     M  D   load   chance   full_1   full_D  marg_1  marg_D   spr_1   spr_D  trials  verdict
+     1000    64  3    3.2  0.01562   1.0000   0.7292    4.41    1.52  0.0561  0.0599     192  MARGINAL
+     1000   128  3    6.4  0.00781   1.0000   0.0365    3.34    1.02  0.0663  0.1398     384  FAIL
+     1000   256  3   12.8  0.00391   0.9388   0.0052    1.44    1.00  0.1199  0.4230     768  FAIL
+     4000    64  3    0.8  0.01562   1.0000   0.9896   12.55    4.81  0.0111  0.0114     192  PASS
