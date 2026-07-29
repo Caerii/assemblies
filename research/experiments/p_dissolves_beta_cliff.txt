@@ -1,0 +1,31 @@
+### DOES HIGH p DISSOLVE THE BETA CLIFF? p=0.10 (k*p=5.0)
+
+  DEPTH AT LOW LOAD   n=4000 M=64 load=0.8 seeds=2
+  margin/spread/distinct are at the DEEPEST level; floor=0.0125
+
+    beta  depth   marg_D    spr_D   acc_D      
+    0.35      5     8.11   0.0216   1.000  OK                       [31s]
+    0.35      6     6.45   0.0262   0.938  OK                       [32s]
+
+    0.40      5     1.32   0.0466   0.172  CROWDED(spr=4x floor)    [23s]
+    0.40      6     1.11   0.0762   0.047  CROWDED(spr=6x floor)    [25s]
+
+    0.50      5     1.00   0.2069   0.031  CROWDED(spr=17x floor)   [19s]
+    0.50      6     1.00   0.2362   0.016  CROWDED(spr=19x floor)   [24s]
+
+
+### BASELINE p=0.05 (k*p=2.5) -- 0.40 died at D=5 here
+
+  DEPTH AT LOW LOAD   n=4000 M=64 load=0.8 seeds=2
+  margin/spread/distinct are at the DEEPEST level; floor=0.0125
+
+    beta  depth   marg_D    spr_D   acc_D      
+    0.35      5     4.65   0.0247   0.938  OK                       [25s]
+    0.35      6     4.34   0.0210   0.945  OK                       [25s]
+
+    0.40      5     1.19   0.0812   0.164  CROWDED(spr=6x floor)    [22s]
+    0.40      6     1.01   0.1538   0.016  CROWDED(spr=12x floor)   [29s]
+
+    0.50      5     1.01   0.3224   0.086  CROWDED(spr=26x floor)   [18s]
+    0.50      6     1.00   0.4200   0.023  CROWDED(spr=34x floor)   [32s]
+
