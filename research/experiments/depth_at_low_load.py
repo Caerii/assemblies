@@ -39,6 +39,10 @@ import complexity_ladder_overnight as ladder  # noqa: E402
 
 N = int(os.environ.get("DLL_N", "4000"))
 M = int(os.environ.get("DLL_M", "64"))
+# Connection density. Exposed because the SNR sweep showed k*p decides whether
+# beta helps or hurts at all: below k*p ~ 1 the beta curve has an interior
+# optimum (high beta crowds), above ~2.5 it is monotone increasing.
+P = float(os.environ.get("DLL_P", "0"))  # 0 = leave the ladder's own value
 DEPTHS = [int(x) for x in os.environ.get("DLL_DEPTHS", "3,4,5,6").split(",")]
 BETAS = [float(x) for x in os.environ.get("DLL_BETAS", "0.10,0.20,0.35").split(",")]
 SEEDS = [int(x) for x in os.environ.get("DLL_SEEDS", "42,43").split(",")]
@@ -56,6 +60,8 @@ def run_cell(beta, depth):
     retrieval fails, which is starvation, not collapse.
     """
     ladder.BETA = beta          # trial reads the module-level constant
+    if P:
+        ladder.P_ = P
     margs, sprs, accs = [], [], []
     for s in SEEDS:
         full, total, margins, spreads = ladder.trial(N, M, depth, s)
