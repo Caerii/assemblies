@@ -985,6 +985,31 @@ def _reset_recurrent(brain, area_name):
 
     Delegates to the engine's ``reset_area_connections`` method, which
     preserves stimulus→area connections while reverting area→area weights.
+
+    THE RULE FOR WHEN THIS IS CORRECT, since the same call is load-bearing in
+    one place and destructive in another and that cost this project weeks:
+
+    **CORRECT** on an area whose next input is a per-item **STIMULUS**. Each
+    item has its own stimulus, so the k-WTA tie-break is never reached, and
+    without the reset the first item's recurrent attractor wins against every
+    later item's drive. Measured on a lexicon, n=1000 k=50 beta=0.1:
+    M=64 gives 64 distinct assemblies with the reset and 7 without
+    (spread 0.0499 vs 0.9153). This is why ``train_lexicon`` and the core-area
+    probes in ``classify``/``morphosyntax``/``incremental`` all reset.
+
+    **DESTRUCTIVE** on a shared area whose input is another **AREA** — role
+    areas, VP, any binding target. Zeroing that connectome leaves every
+    candidate neuron at equal input, so the deterministic index tie-break
+    returns the SAME k winners for every source: all stored assemblies become
+    bit-identical, retrieval reads exactly chance with a unit margin, and no
+    value of beta can separate them. Measured on the demo parser, the reset
+    fired 138 times over 40 sentences and all 138 zeroed a pathway that was
+    carrying weight, leaving one live area→area pathway in the whole brain.
+
+    So: **stimulus-driven target, reset; area-driven target, never.** For the
+    second case use :func:`bind`, which is the one implementation of that
+    protocol. ``ASSEMBLIES_STRICT_DRIVE=1`` makes a violation say so at runtime
+    instead of returning plausible winners.
     """
     brain._engine.reset_area_connections(area_name)
 
