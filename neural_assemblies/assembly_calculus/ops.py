@@ -1150,9 +1150,20 @@ def sequence_memorize(brain, stimuli, target, rounds_per_step=10,
         phase_b_ratio: Fraction of rounds_per_step for Phase B (recurrence).
             If None, uses legacy default (2 rounds regardless of total).
             A value of 0.5 with rounds_per_step=10 gives 5:5 split.
+
+            FOR ORDERED RECALL, PASS THIS **TOGETHER WITH** ``repetitions>=3``.
+            The legacy default never builds the inter-assembly bridge at all
+            (see the root-cause comment in the body), and this parameter is what
+            opens the recurrent fiber across the transition -- but it reads as a
+            dead parameter at the default ``repetitions=1``, which is how it was
+            previously dismissed. 0.5, 0.8 and 1.0 all take recall from 1 of 3
+            to 2 of 3 once repetitions is 3 or more.
         beta_boost: Temporary plasticity boost for recurrent connections
             during Phase B.  If None, uses the area's current beta.
-            A value of 0.5 strengthens inter-assembly bridges.
+            A value of 0.5 strengthens inter-assembly bridges.  Best measured
+            result is ``phase_b_ratio=1.0, repetitions=3, beta_boost=0.5``
+            (2.33 of 3); note it is NOT monotone in repetitions -- the same
+            setting falls back to 1.00 by repetitions=8.
 
     Returns:
         Sequence of Assembly snapshots (one per stimulus, from last repetition).
@@ -1212,18 +1223,41 @@ def sequence_memorize(brain, stimuli, target, rounds_per_step=10,
             # value over n never-fired candidates is ~10.8 -- fresh neurons win,
             # recall lands on noise, and ordered_recall stops after ONE step.
             #
-            # Two structural reasons, both here:
-            #   * `stim_rounds = rounds_per_step - 2` leaves Phase B exactly TWO
-            #     rounds no matter how large rounds_per_step is, so the bridge
-            #     does not scale with T. [SEQ25]'s bound says raising T buys
-            #     perfect recall of the whole sequence; here raising T grows only
-            #     Phase A, i.e. the wrong term.
-            #   * Phase A projects {stim: [target]} with NO target->target fiber,
-            #     so x_{i-1} is not presynaptic during it at all. By the time
-            #     Phase B opens that fiber, x_{i-1} has not been driven for
-            #     `stim_rounds` steps. The sentence that used to be here -- "while
-            #     x_i is being driven into place, the x_{i-1} neurons are still
-            #     firing" -- is therefore not what happens.
+            # ROOT CAUSE, isolated 2026-07-30. The bridge is not "too weak"; it
+            # is STRUCTURALLY NEVER WRITTEN. Measured: the target->target
+            # connectome is EMPTY after stimulus-only rounds, so Phase A never
+            # touches it. The x_{i-1} -> x_i transition happens DURING Phase A --
+            # the one moment when prev=x_{i-1} and new=x_i coincide is exactly
+            # the moment the recurrent fiber is closed. Phase B opens it only
+            # after the winners are already x_i, so every round it runs
+            # potentiates the ATTRACTOR (x_i -> x_i). That is why within-assembly
+            # weights reach w_max while the bridge stays at ambient.
+            #
+            # THE FIX NEEDS NO NEW CODE: `phase_b_ratio` already shrinks Phase A
+            # (at 1.0, `stim_rounds` is 0 and every round carries the recurrent
+            # fiber), so the transition is potentiated. It was previously
+            # recorded as having no effect, but that was measured at the DEFAULT
+            # `repetitions=1`, where nothing helps. Steps recalled of L=3, at
+            # n=5000, k=80, p=0.05, beta=0.1, T=10, mean over 3 seeds:
+            #
+            #     phase_b_ratio   reps=1   reps=3   reps=5   reps=8
+            #     legacy (None)     1.00     1.00     1.00     1.00
+            #     0.5 / 0.8 / 1.0   1.00     2.00     2.00     2.00
+            #     1.0 + boost 0.5   1.00     2.33     2.00     1.00
+            #
+            # So it is the INTERACTION that matters: pass `phase_b_ratio` AND
+            # `repetitions >= 3`. Either alone reads 1.00 and looks like a dead
+            # parameter.
+            #
+            # STILL OPEN: this reaches 2 of 3, not 3 of 3, and it is NOT
+            # monotone -- raising repetitions further degrades it again (2.00 at
+            # 5, 1.33 at 10, 1.00 at 20) while the bridge keeps growing. The
+            # obvious explanation is ruled out: the assemblies do NOT merge.
+            # Pairwise overlap stays at 0.000-0.004, below the 0.016 chance
+            # level, at every repetition count up to 40. The remaining suspect is
+            # the within/bridge RATIO (1.11 at reps=5 vs 1.76 at reps=40): the
+            # attractor grows faster than the bridge, and recall has to escape
+            # the attractor to advance.
             if beta_boost is not None:
                 # NOTE: saves the AREA-WIDE default beta but restores it into
                 # the target->target pathway specifically.  If a caller had

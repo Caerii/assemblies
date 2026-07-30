@@ -263,6 +263,56 @@ class TestLiteratureParity:
         assert len(recalled) >= 1
         assert overlap(recalled[0], memorized[0]) > 0.3
 
+    def test_phase_b_ratio_advances_recall_only_with_repetitions(self):
+        """[SEQ25] #56: the bridge needs BOTH phase_b_ratio and repetitions>=3.
+
+        The legacy split never writes the inter-assembly bridge at all -- the
+        x_i -> x_i+1 transition happens during Phase A, which carries no
+        target->target fiber, so the one moment the two assemblies co-occur is
+        the moment the fiber is closed.  ``phase_b_ratio`` opens it across the
+        transition.
+
+        This test exists because the parameter was previously recorded as
+        having NO effect.  That measurement was taken at the default
+        ``repetitions=1``, where nothing helps; the effect is entirely in the
+        interaction.  Measured over seeds 1-3 (steps recalled of 3):
+
+            phase_b_ratio   reps=1   reps=3   reps=5
+            legacy (None)     1.00     1.00     1.00
+            1.0               1.00     2.00     2.00
+
+        Asserted on the two cells that differ by a whole step, so this cannot
+        pass on a threshold that a dead parameter would also clear.
+        """
+        def steps(ratio, reps, seed):
+            b = _brain(seed=seed)
+            for i in range(3):
+                b.add_stimulus(f"s{i}", K)
+            b.add_area("A", N, K, BETA)
+            b.set_lri("A", refractory_period=3, inhibition_strength=100.0)
+            mem = sequence_memorize(
+                b, ["s0", "s1", "s2"], "A", rounds_per_step=ROUNDS,
+                repetitions=reps, phase_b_ratio=ratio,
+            )
+            return len(ordered_recall(
+                b, "A", "s0", max_steps=3, known_assemblies=list(mem)))
+
+        seeds = (1, 2, 3)
+        legacy = [steps(None, 3, s) for s in seeds]
+        opened = [steps(1.0, 3, s) for s in seeds]
+        reps1 = [steps(1.0, 1, s) for s in seeds]
+
+        assert min(opened) >= 2, (
+            f"phase_b_ratio=1.0 with repetitions=3 should advance past the "
+            f"first assembly on every seed, got {opened}")
+        assert max(legacy) < min(opened), (
+            f"the legacy split should be strictly worse: legacy {legacy} vs "
+            f"opened {opened}")
+        assert max(reps1) <= 1, (
+            f"the control must hold: at repetitions=1 the parameter should do "
+            f"nothing, got {reps1}. If this fires, the interaction claim in "
+            f"sequence_memorize's docstring needs re-deriving.")
+
     def test_tm_demo_longer_unary_tape(self):
         """Sequences paper: unary increment TM halts on multi-symbol input."""
         b = _brain()
