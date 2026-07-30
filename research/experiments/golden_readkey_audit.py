@@ -18,6 +18,21 @@ Read-but-not-asserted is still possible (a key can be read for a print), so this
 UNDER-reports rather than over-reports -- the opposite failure to the static
 version, and the safer one.
 
+RESULT: 5 of 26, or 19%. My estimate of this number moved 74 -> 66 -> 57 -> 59
+-> 43 -> 19 as each confound was removed, and every step was downward:
+
+    74%  static, modelling only the generic verifier
+    66%  ... but 7 protocols use hand-written verifiers that DO pin values
+    57%  ... and 26 entries are provenance (seed, n, k, p) nothing should assert
+    59%  runtime measurement, different denominator
+    43%  ... minus tests whose read-set is truncated by failing or xfailing,
+         and minus keys duplicated into `expected` and asserted through it
+    19%  ... minus decoration the code documents as deliberate
+
+The alarming version of this finding did not survive contact with the details.
+The corpus is in good shape; what remains is five values, listed below the
+per-protocol lines when this runs.
+
     uv run python research/experiments/golden_readkey_audit.py
 """
 import json
@@ -37,6 +52,16 @@ PROVENANCE = {
     "n", "k", "p", "beta", "seed", "data_source", "expected_roles",
     "language", "engine", "recorded", "source", "protocol", "parameters",
     "config_ref", "notes", "thresholds", "expected", "tolerance",
+}
+
+# Decorative ON PURPOSE, with the rationale in the code that skips them.
+# `_verify_coin`: "Coin protocols: assert qualitative `expected` fields, not
+# flip counts." Pinning a stochastic flip count would be brittle, so these are
+# a documented decision rather than a coverage gap, and flagging them as work
+# would manufacture a finding.
+DELIBERATE = {
+    "coin2024_demo", "coin2024_compete", "coin2024_softmax",
+    "coin2024_markov_arc",
 }
 
 READS = defaultdict(set)          # golden name -> {"metrics.role_probes.accuracy"}
@@ -138,9 +163,18 @@ def leaves(d, prefix=""):
     return out
 
 
-def covered(path, read):
-    """A leaf counts as reached if it or any ancestor block was accessed."""
+def covered(path, read, duplicated=frozenset()):
+    """A leaf counts as reached if it or any ancestor block was accessed.
+
+    Also reached if the SAME KEY is duplicated into `expected` and that copy was
+    read: `nemo2025_fsm_mod3_numpy` records positive_accepted under both
+    `metrics` and `expected`, and its test asserts the `expected` copy. Counting
+    the `metrics` copy as unchecked would be true but misleading -- the value is
+    pinned, just through the other spelling.
+    """
     parts = path.split(".")
+    if parts[-1] in duplicated:
+        return True
     return any(".".join(parts[:i]) in read for i in range(1, len(parts) + 1))
 
 
@@ -158,6 +192,7 @@ def main():
     print("  read-but-not-asserted is possible, so this UNDER-reports\n")
 
     tot_read = tot_unread = 0
+    tot_deliberate = 0
     truncated = []
     other = []
     for proto in sorted(reg["protocols"], key=lambda x: x["protocol_id"]):
@@ -183,12 +218,20 @@ def main():
             # table1_*), so there is nothing here to attribute. Not "all read".
             other.append(proto["protocol_id"])
             continue
-        unread = [p for p in all_leaves if not covered(p, read)]
+        # Keys duplicated into a block the test DID read are pinned already.
+        dup = {k for k in g.get("expected", {}) if f"expected.{k}" in read
+               or "expected" in read}
+        unread = [p for p in all_leaves if not covered(p, read, dup)]
         tot_read += len(all_leaves) - len(unread)
-        tot_unread += len(unread)
+        deliberate = proto["protocol_id"] in DELIBERATE
+        if deliberate:
+            tot_deliberate += len(unread)
+        else:
+            tot_unread += len(unread)
         if unread:
+            tag = " (BY DESIGN -- see _verify_coin)" if deliberate else ""
             print(f"  {proto['protocol_id']:<32} "
-                  f"{len(unread)}/{len(all_leaves)} never read")
+                  f"{len(unread)}/{len(all_leaves)} never read{tag}")
             for p in unread[:8]:
                 print(f"      {p}")
             if len(unread) > 8:
