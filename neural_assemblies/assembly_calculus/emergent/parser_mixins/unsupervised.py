@@ -138,8 +138,33 @@ class UnsupervisedMixin:
         When ``corpus_index`` is provided, uses precompiled role updates
         instead of re-classifying every token each pass.
         """
+        import os
+
         from ..core.corpus_index import compile_corpus
         from ..training.perf import adaptive_rounds
+
+        # SINGLE-PASS ROLE TRAINING, the phase map's prescription.
+        #
+        # Plasticity is cumulative, so an item trained c times reaches effective
+        # gain (1+beta)^(rounds*c) and the gain becomes a DISTRIBUTION over
+        # items rather than a control parameter. Both walls must hold at once:
+        # the rarest item needs enough gain to be re-selectable, the most
+        # frequent must stay under the crowding wall. A single beta exists only
+        # if need^(c_max/c_min) <= g_c, which repeated presentation violates.
+        #
+        # Two things drive c above 1 here: `repetitions` (3 passes over the same
+        # deduplicated (word, role) list) and `adaptive_rounds`, which scales
+        # rounds by corpus frequency -- so a frequent word gets BOTH more passes
+        # and more rounds per pass. Driving c_max to 1 is what took the demo
+        # parser from exactly chance to 1.000 retrieval.
+        #
+        # Env-gated rather than switched, because this changes what every
+        # emergent result trained on and the comparison has to be paired.
+        single_pass = os.environ.get(
+            "EMERGENT_ROLE_SINGLE_PASS", "").strip().lower() in (
+            "1", "true", "yes", "on")
+        if single_pass:
+            repetitions = 1
 
         for role_area in THEMATIC_AREAS:
             if role_area not in self.role_lexicons:
@@ -167,8 +192,14 @@ class UnsupervisedMixin:
                 for update in corpus_index.role_updates:
                     if update.word not in self.stim_map:
                         continue
-                    rounds = adaptive_rounds(
-                        self.rounds, word_freq.get(update.word, 1),
+                    # adaptive_rounds scales rounds by corpus frequency, so a
+                    # frequent word gets more gain per pass on top of more
+                    # passes. Under single_pass hold rounds fixed, which is what
+                    # makes c_max = 1 rather than merely smaller.
+                    rounds = (
+                        self.rounds if single_pass
+                        else adaptive_rounds(
+                            self.rounds, word_freq.get(update.word, 1))
                     )
                     batch.apply_role_update(
                         update.word, update.role_area, rounds=rounds,
