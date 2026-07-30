@@ -434,6 +434,61 @@ class FiberState:
         return self.dead and self.dst_w > 0
 
 
+def _fiber_shape(conn):
+    """``(rows, cols, nnz, p99/median)`` for a connectome of EITHER backend.
+
+    THIS EXISTS BECAUSE THE CENSUS WAS BLIND ON TORCH.  It used to read
+    ``conn.weights`` directly.  The torch engine's ``CSRConn`` has no such
+    attribute, so ``getattr(conn, "weights", None)`` returned ``None``, every
+    torch fiber measured as shape ``(0, 0)`` with ``nnz`` 0 -- i.e. *dead*, and
+    ``silently_ignored`` whenever the target was live.
+
+    Measured on a two-area torch brain: it flagged **4 of 4** fibers as
+    silently ignored, including a healthy one at ``nnz = 1314``.  It could not
+    distinguish a genuinely dead fiber from a working one, which on that engine
+    makes it worse than useless -- it produces confident false positives, and
+    this function's docstring has been cited as grounds to trust a negative.
+
+    Same principle as ``core/_pricing.py``: ask the connectome, do not reach
+    into one backend's storage. CSR exposes ``nnz`` / ``_nrows`` / ``_ncols``;
+    the dense/1-D path exposes ``weights``.
+    """
+    w = getattr(conn, "weights", None)
+    if w is None:
+        # CSR-style (torch). Shape and nnz are first-class; the weight-spread
+        # ratio needs the values, which live in `_val`.
+        rows = int(getattr(conn, "_nrows", 0) or 0)
+        cols = int(getattr(conn, "_ncols", 0) or 0)
+        nnz = int(getattr(conn, "nnz", 0) or 0)
+        ratio = float("nan")
+        val = getattr(conn, "_val", None)
+        if val is not None and nnz >= 8:
+            try:
+                pos = np.asarray(val.detach().float().cpu().numpy())
+            except AttributeError:
+                pos = np.asarray(val)
+            pos = pos[pos > 0]
+            if pos.size >= 8:
+                med = float(np.median(pos))
+                if med > 0:
+                    ratio = float(np.percentile(pos, 99)) / med
+        return rows, cols, nnz, ratio
+
+    shape = tuple(getattr(w, "shape", (0, 0)) or (0, 0))
+    rows, cols = (shape + (0, 0))[:2]
+    nnz, ratio = 0, float("nan")
+    if cols > 0:
+        arr = np.asarray(w.todense() if hasattr(w, "todense") else w)
+        pos = arr.ravel()
+        pos = pos[pos > 0]
+        nnz = int(pos.size)
+        if pos.size >= 8:
+            med = float(np.median(pos))
+            if med > 0:
+                ratio = float(np.percentile(pos, 99)) / med
+    return rows, cols, nnz, ratio
+
+
 def fiber_census(brain, driven: Optional[Mapping[str, Sequence[str]]] = None
                  ) -> List[FiberState]:
     """Every area->area pathway in the brain, and whether it can carry drive.
@@ -472,19 +527,7 @@ def fiber_census(brain, driven: Optional[Mapping[str, Sequence[str]]] = None
             conn = per_dst.get(dst_name)
             if conn is None:
                 continue
-            w = getattr(conn, "weights", None)
-            shape = tuple(getattr(w, "shape", (0, 0)) or (0, 0))
-            rows, cols = (shape + (0, 0))[:2]
-            nnz, ratio = 0, float("nan")
-            if w is not None and cols > 0:
-                arr = np.asarray(w.todense() if hasattr(w, "todense") else w)
-                pos = arr.ravel()
-                pos = pos[pos > 0]
-                nnz = int(pos.size)
-                if pos.size >= 8:
-                    med = float(np.median(pos))
-                    if med > 0:
-                        ratio = float(np.percentile(pos, 99)) / med
+            rows, cols, nnz, ratio = _fiber_shape(conn)
             out.append(FiberState(src_name, dst_name, int(rows), int(cols),
                                   nnz, ratio, dst_w))
 
