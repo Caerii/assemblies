@@ -59,6 +59,52 @@ def _warn_fixed_target_enabled() -> bool:
     )
 
 
+def _explicit_src_norm_enabled() -> bool:
+    """Whether an EXPLICIT source area's drive is norm_init-scaled like any other.
+
+    ON by default, because leaving it off silently defeats ``norm_init`` for
+    every fiber whose presynaptic area is explicit.
+
+    THE DEFECT.  ``project_into`` accumulates drive from three kinds of source.
+    The stimulus path and the general area path both multiply their contribution
+    by ``_norm_scale`` (the per-neuron ``1/d_j``).  The explicit-dense path did
+    not.  Meanwhile sampled candidates for unmaterialized neurons are ALWAYS
+    divided by ``_norm_candidate_divisor`` (``n * p``).  So under ``norm_init``
+    the two populations that top-k chooses between were on scales a factor of
+    ``n * p`` apart::
+
+        incumbent (explicit source) ~ Binomial(a, p)              # raw counts
+        candidate                   ~ Binomial(a, p) / (n * p)    # normalized
+
+    Measured at the [COLT22] parameters (n=1e3, k=1e2, p=0.1, a=165 active):
+    incumbent drive min 23.10 / median 25.30 against a candidate max of 0.43 --
+    a factor of ~100, exactly ``n * p``.
+
+    TWO CONSEQUENCES, both silent.
+
+    1. **The target seals.**  Once it has materialized ``k`` neurons, no
+       candidate can ever outbid an incumbent again, whatever the input.  The
+       area's cap becomes constant, so every readout that compares a cap against
+       a stored assembly reads exactly 1.0000 -- the perfect-score signature.
+    2. **Fiber weighting is corrupted even with no recruitment.**  An area
+       driven by BOTH an explicit and a non-explicit source weights the explicit
+       one ``n_pre * p`` times too heavily, because only the other fiber is
+       divided by its own in-degree.  Normalized, a fiber contributes about
+       ``k / n_pre``; unnormalized it contributes about ``k * p`` regardless of
+       ``n_pre``, which erases the reference's deliberate geometry.
+
+    The first assembly is affected too: ``_bootstrap_from_explicit_dense``
+    selected the initial cap by RAW in-degree, which is precisely the
+    "pre-existing hubs" that ``norm_init`` exists to eliminate.
+
+    Set ``ASSEMBLIES_EXPLICIT_SRC_NORM=0`` to restore the unnormalized
+    behaviour, which is needed to reproduce results recorded before this fix.
+    """
+    return os.environ.get(
+        "ASSEMBLIES_EXPLICIT_SRC_NORM", "1",
+    ).strip().lower() in ("1", "true", "yes", "on")
+
+
 def _fixed_target_plasticity_enabled() -> bool:
     """Whether a projection INTO a fixed area still potentiates its afferents.
 
@@ -937,8 +983,22 @@ class NumpySparseEngine(ComputeEngine):
                 valid = src_w[src_w < conn.weights.shape[0]]
                 if len(valid) == 0:
                     continue
+                # norm_init applies to THIS fiber too.  The connectome is dense
+                # and full-width, so its columns are NEURON IDs rather than
+                # compact indices -- ask for the whole width and index the
+                # result by neuron id.  All rows exist, so rows_known is the
+                # full row count and `_norm_scale`'s unknown-row term is zero.
+                # See `_explicit_src_norm_enabled` for what omitting this did.
+                enorm = None
+                if _explicit_src_norm_enabled():
+                    enorm = self._norm_scale(
+                        conn, src.n, conn.weights.shape[0],
+                        int(conn.weights.shape[1]),
+                    )
                 if tgt.w == 0:
                     contrib = conn.weights[valid].sum(axis=0)
+                    if enorm is not None:
+                        contrib = contrib * enorm[:len(contrib)]
                     if explicit_dense_act is None:
                         explicit_dense_act = contrib.astype(xp.float32, copy=True)
                     else:
@@ -950,6 +1010,8 @@ class NumpySparseEngine(ComputeEngine):
                 valid_cols = neuron_ids[neuron_ids < conn.weights.shape[1]]
                 if len(valid_cols) > 0:
                     contrib = conn.weights[valid][:, valid_cols].sum(axis=0)
+                    if enorm is not None:
+                        contrib = contrib * enorm[valid_cols]
                     end = min(limit, len(contrib))
                     if end > 0:
                         prev_winner_inputs[:end] += contrib[:end]
