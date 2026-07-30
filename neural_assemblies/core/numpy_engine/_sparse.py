@@ -116,8 +116,28 @@ def _explicit_src_norm_enabled() -> bool:
 def _self_fiber_deferred_init() -> bool:
     """Whether a SELF fiber (``A -> A``) gets deferred block initialization.
 
-    ON by default.  Excluding self fibers left a whole class of recurrence
-    silently inert.
+    **OFF by default, and that is a staging decision, not a verdict on the
+    defect.**  Excluding self fibers leaves a whole class of recurrence
+    silently inert, and that IS a bug.  But turning it on repairs ~4,900 dead
+    deliveries at once, and the repository is calibrated on the inert
+    behaviour: measured over the full ``not slow`` suite, ON takes it from
+    **5 failures to 21** -- ERP calibration, noise robustness, cross-repo
+    parity, engine E2 overlap, simulation integration and three torch-parity
+    cells all move, because each was reading "preserve the current assembly"
+    and now reads what its fiber actually delivers.
+
+    ``ops.project``'s docstring already prices exactly this class of change:
+    *"the default is kept WRONG on purpose ... flipping it is a migration with
+    its own re-baseline, not a bug fix."*  The same applies here.  Set
+    ``ASSEMBLIES_SELF_FIBER_INIT=1`` to run with the defect repaired; the
+    migration is tracked as #72 and #70.
+
+    Note the two PNAS protocol corrections that came out of this investigation
+    are INDEPENDENT of this flag and are already live: they pass
+    ``recurrent=True``, so ``A -> A`` is exercised while the area is still
+    recruiting and ``_expand_connectomes`` sizes the block the ordinary way.
+    The flag only matters for a self fiber first driven AFTER its area stops
+    growing.
 
     THE DEFECT.  ``project_into`` marks an empty area->area block for deferred
     sizing so it can carry drive on the NEXT round -- but the guard read
@@ -160,7 +180,7 @@ def _self_fiber_deferred_init() -> bool:
     and PFA figure in the repo is such a number.
     """
     return os.environ.get(
-        "ASSEMBLIES_SELF_FIBER_INIT", "1",
+        "ASSEMBLIES_SELF_FIBER_INIT", "0",
     ).strip().lower() in ("1", "true", "yes", "on")
 
 
