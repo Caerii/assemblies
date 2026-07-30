@@ -45,9 +45,11 @@ from typing import Dict, Iterable, List, Mapping, Optional, Sequence
 import numpy as np
 
 __all__ = [
-    "Verdict", "AreaHealth", "DriveBreakdown",
+    "Verdict", "AreaHealth", "DriveBreakdown", "FiberState",
+    "PricingExposure",
     "read_assembly", "assembly_overlap",
     "area_health", "drive_breakdown", "recurrence_audit", "collapse_scan",
+    "fiber_census", "pricing_exposure",
     "format_report",
 ]
 
@@ -505,6 +507,116 @@ def fiber_census(brain, driven: Optional[Mapping[str, Sequence[str]]] = None
     return out
 
 
+@dataclass
+class PricingExposure:
+    """Whether one target area sits on a path the k-WTA pricing bugs affected."""
+
+    area: str
+    n: int
+    src_pops: Dict[str, int]        # source area -> its n, per incoming fiber
+    explicit_srcs: List[str]        # sources that are explicit (dense) areas
+    norm_init: bool
+
+    @property
+    def heterogeneous(self) -> bool:
+        """Some source population differs from the target's own n.
+
+        The pre-fix divisor was ``tgt.n * p`` for every fiber, so it was correct
+        only here. Anywhere else the incumbent and candidate populations sat a
+        factor ``tgt.n / n_pre`` apart, with a sign: candidates over-divided
+        (small source) SEAL the area at k, under-divided (large source) never
+        let it settle.
+        """
+        return any(pop != self.n for pop in self.src_pops.values())
+
+    @property
+    def exposed(self) -> bool:
+        """Results read through this area may have been distorted."""
+        return self.norm_init and (self.heterogeneous
+                                   or bool(self.explicit_srcs))
+
+    def __str__(self) -> str:
+        if not self.norm_init:
+            return f"{self.area}: norm_init off -- not exposed"
+        if not self.exposed:
+            return f"{self.area}: all sources n={self.n} -- not exposed"
+        bits = []
+        if self.heterogeneous:
+            odd = {s: p for s, p in self.src_pops.items() if p != self.n}
+            bits.append(f"heterogeneous n (target {self.n}, sources {odd})")
+        if self.explicit_srcs:
+            bits.append(f"explicit sources {self.explicit_srcs}")
+        return f"{self.area}: EXPOSED -- " + "; ".join(bits)
+
+
+def pricing_exposure(brain) -> List[PricingExposure]:
+    """Which areas sit on paths the k-WTA pricing bugs distorted.
+
+    WHY THIS EXISTS. Two engine fixes (`c7ce506`, `54e6c00`, unified in
+    `5fa91ed`) changed how ``top-k`` prices materialized incumbents against
+    sampled candidates under ``norm_init``. Every result recorded before them is
+    potentially affected -- but only if its brain actually reached an affected
+    path, and most do not. Re-recording the entire golden corpus to find out is
+    expensive and, worse, uninformative about WHY a number moved.
+
+    This answers the cheaper question first: could this brain's topology have
+    touched the bug at all? Two conditions, both static:
+
+      * a fiber whose presynaptic area has a different ``n`` from the target,
+        which is what the per-fiber divisor fix corrected; and
+      * a fiber from an EXPLICIT area, whose drive skipped normalization
+        entirely so incumbents ran ~``n*p`` above candidates.
+
+    An area that is not exposed cannot have moved, so its recorded numbers stand
+    without a re-run. An exposed one needs re-recording, and the reported detail
+    says which of the two mechanisms to expect.
+
+    NOT EXPOSED IS NOT THE SAME AS CORRECT -- this reads topology, not dynamics,
+    and says nothing about the other silent-failure classes. Pair it with
+    `fiber_census` and `area_health`.
+
+    Deliberately conservative in the other direction too: a connectome the
+    engine materialized but nothing ever drove still counts as a fiber here, so
+    a reverse edge can flag an area that was only ever a source. Over-reporting
+    costs a re-run; under-reporting leaves a wrong number standing.
+    """
+    out: List[PricingExposure] = []
+    norm_init = bool(getattr(brain, "norm_init", False))
+    for dst_name, dst in brain.areas.items():
+        try:
+            eng = brain._engine_for(dst)
+        except Exception:                                    # noqa: BLE001
+            continue
+        eng_areas = getattr(eng, "_areas", {})
+        dst_n = int(getattr(dst, "n", 0) or 0)
+        pops: Dict[str, int] = {}
+        explicit: List[str] = []
+        for src_name, per_dst in getattr(eng, "_area_conns", {}).items():
+            if per_dst.get(dst_name) is None:
+                continue
+            src_state = eng_areas.get(src_name)
+            if src_state is None:
+                continue
+            pops[src_name] = int(getattr(src_state, "n", 0) or 0)
+            if getattr(src_state, "explicit_source", False):
+                explicit.append(src_name)
+        # Dense explicit->sparse edges live in their own map on the torch engine.
+        for src_name, per_dst in getattr(eng, "_dense_area_conns", {}).items():
+            if per_dst.get(dst_name) is None:
+                continue
+            src_state = eng_areas.get(src_name)
+            if src_state is None:
+                continue
+            pops.setdefault(src_name, int(getattr(src_state, "n", 0) or 0))
+            if (getattr(src_state, "explicit_source", False)
+                    and src_name not in explicit):
+                explicit.append(src_name)
+        if pops:
+            out.append(PricingExposure(dst_name, dst_n, pops, explicit,
+                                       norm_init))
+    return out
+
+
 def collapse_scan(brain, stored_by_area: Mapping[str, Mapping]
                   ) -> Dict[str, AreaHealth]:
     """Distinctness check across every area holding stored assemblies.
@@ -557,6 +669,8 @@ def format_report(items) -> str:
                    if it.p99_over_median == it.p99_over_median else "")
                 + ("   <-- delivers ZERO drive into a live area"
                    if it.silently_ignored else ""))
+        elif isinstance(it, PricingExposure):
+            lines.append(f"  [{'EXPOSED' if it.exposed else 'clean  '}] {it}")
         elif isinstance(it, Verdict):
             if not it.ok:
                 lines.append(f"  {it}")
