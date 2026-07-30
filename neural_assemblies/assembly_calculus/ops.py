@@ -656,44 +656,59 @@ def associate(brain, source_a, source_b, target,
 
 def _associate_body(brain, source_a, source_b, target,
                     stim_a, stim_b, rounds, use_fix):
-    """Projection phases for :func:`associate`; see it for the contract."""
+    """Projection phases for :func:`associate`; see it for the contract.
+
+    NO ``project_rounds`` FAST PATH HERE, and that is the fix for association
+    rather than an optimisation given up. Its fast path filters
+    ``dst_areas_by_src_area`` with ``a != target`` unless
+    ``Brain(recurrent_projection=True)``, so the ``target: [target]`` entry
+    every phase below passes it was SILENTLY DROPPED -- the argument was
+    accepted and discarded. An assembly is defined by its strengthened internal
+    weights (Dabagia 2024), so removing target recurrence removes the thing
+    being built, and the co-fired winners of phase 3 never consolidate.
+
+    MEASURED at n=1e4, k=100, p=0.05, beta=0.1, rounds=10, over 5 seeds, as
+    post-association overlap between the assembly cued by source_a alone and the
+    one cued by source_b alone (the claim as PNAS20 states it, against a chance
+    of 0.0100):
+
+        fixed sources, via project_rounds     0.0100  ->  1.0x chance
+        fixed sources, explicit projections   0.1840  -> 18.4x chance
+        stimulus-driven sources (unchanged)   0.2160  -> 21.6x chance
+
+    So ``associate`` did nothing at all whenever it was called WITHOUT stimuli,
+    which is the default and what the conformance test uses. The stimulus path
+    worked only because it had already been written as explicit projections and
+    therefore kept its recurrence -- the two branches were not two spellings of
+    one protocol, one of them was broken.
+
+    The previous note here claimed the branches differed only by "the
+    source_a -> source_a fiber" and that "winners are unaffected". Both were
+    wrong: the winners differed completely, and the recurrence was the reason.
+
+    The remaining asymmetry IS principled and is kept: a fixed source needs no
+    self-recurrence because its winners cannot move, while a stimulus-driven
+    source needs it to hold its assembly across rounds.
+    """
+    def _phase(stim_dict, src_dsts, rounds_):
+        """One phase: feed-forward round, then rounds_-1 with target recurrence."""
+        for i in range(max(1, rounds_)):
+            dsts = dict(src_dsts)
+            if i > 0:
+                dsts[target] = [target]
+            brain.project(stim_dict, dsts)
+
     # Phase 1: Establish source_a → target pathway
     stim_dict_a = {stim_a: [source_a]} if stim_a else {}
-    brain.project(stim_dict_a, {source_a: [source_a, target]})
-    # Fast path: when sources are fixed, only target changes — project_rounds
-    # handles it in a tight GPU loop.  When stims drive sources, each round
-    # must also update the source area, so we fall back to brain.project().
-    #
-    # The two branches are NOT synapse-for-synapse identical: the fast path
-    # omits the source_a -> source_a fiber that the slow path keeps open.
-    # Winners are unaffected (source_a is fixed either way), but the slow path
-    # additionally potentiates source_a's recurrent weights.  Documented
-    # rather than reconciled, since aligning them would change measured
-    # results for every caller that passes stimuli.
-    if rounds > 1 and use_fix:
-        brain.project_rounds(
-            target=target,
-            areas_by_stim={},
-            dst_areas_by_src_area={source_a: [target], target: [target]},
-            rounds=rounds - 1,
-        )
-    else:
-        for _ in range(rounds - 1):
-            brain.project(stim_dict_a, {source_a: [source_a, target], target: [target]})
+    a_dsts = ({source_a: [target]} if use_fix
+              else {source_a: [source_a, target]})
+    _phase(stim_dict_a, a_dsts, rounds)
 
     # Phase 2: Establish source_b → target pathway
     stim_dict_b = {stim_b: [source_b]} if stim_b else {}
-    brain.project(stim_dict_b, {source_b: [source_b, target]})
-    if rounds > 1 and use_fix:
-        brain.project_rounds(
-            target=target,
-            areas_by_stim={},
-            dst_areas_by_src_area={source_b: [target], target: [target]},
-            rounds=rounds - 1,
-        )
-    else:
-        for _ in range(rounds - 1):
-            brain.project(stim_dict_b, {source_b: [source_b, target], target: [target]})
+    b_dsts = ({source_b: [target]} if use_fix
+              else {source_b: [source_b, target]})
+    _phase(stim_dict_b, b_dsts, rounds)
 
     # Phase 3: Both sources drive target simultaneously (this is the step
     # that creates the shared winners; see the docstring).
@@ -702,19 +717,14 @@ def _associate_body(brain, source_a, source_b, target,
         stim_dict_both[stim_a] = [source_a]
     if stim_b:
         stim_dict_both[stim_b] = [source_b]
-    if use_fix:
-        brain.project_rounds(
-            target=target,
-            areas_by_stim={},
-            dst_areas_by_src_area={source_a: [target], source_b: [target], target: [target]},
-            rounds=rounds,
-        )
-    else:
-        for _ in range(rounds):
-            brain.project(
-                stim_dict_both,
-                {source_a: [source_a, target], source_b: [source_b, target], target: [target]},
-            )
+    both_dsts = ({source_a: [target], source_b: [target]} if use_fix
+                 else {source_a: [source_a, target],
+                       source_b: [source_b, target]})
+    # Target recurrence from the FIRST round here: phases 1 and 2 have already
+    # established the target assembly, so there is no feed-forward-only round
+    # to carve out -- this phase is consolidating a blend of the two.
+    for _ in range(rounds):
+        brain.project(stim_dict_both, {**both_dsts, target: [target]})
 
 
 def merge(brain, source_a, source_b, target,

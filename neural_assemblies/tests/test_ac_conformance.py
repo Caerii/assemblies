@@ -32,6 +32,8 @@ phenomenon exists" has already produced one false negative in this project.
 
 from __future__ import annotations
 
+import copy
+
 import numpy as np
 import pytest
 
@@ -45,6 +47,11 @@ K = 50            # sqrt(N) = 100, so k < sqrt(n) holds
 P = 0.05
 BETA = 0.1
 SEEDS = (1, 2, 3, 4, 5)
+# Association's seed-to-seed spread (sd 0.072 on a mean of 0.122) is close to
+# the margin over the paper's 8% figure, so its mean needs more draws than the
+# five that suffice elsewhere in this file. 12 puts the standard error of the
+# mean at ~0.021, about 2 se below the threshold.
+SEEDS_ASSOC = tuple(range(1, 13))
 CHANCE = K / N    # 0.005
 
 
@@ -290,39 +297,56 @@ def test_assembly_density_exceeds_baseline_p():
 # 5. Association raises overlap
 # ---------------------------------------------------------------------------
 
-@pytest.mark.xfail(
-    strict=True,
-    reason=(
-        "CONFIRMED NEGATIVE, not a threshold problem (task #39). associate() "
-        "raises the two target assemblies' overlap to 0.008 +/- 0.010 against a "
-        "chance of 0.010 -- i.e. to exactly chance, so no association happens. "
-        "This test passed for its whole life without measuring that, because "
-        "the A->C and B->C weight blocks were never materialised: every phase "
-        "hit the engine's zero-drive branch, which PRESERVES the target's "
-        "winners, so C simply stayed on the assembly phase 2 had left there. "
-        "Measured on the pre-fix tree, overlap(C_after, y) = 1.0000 with C's "
-        "winners not changing at all across the associate() call; on the fixed "
-        "tree the winners do change and the real effect is chance. So the "
-        "mechanism was never being exercised, and #39's earlier reading of "
-        "'marginal, ~3.8x chance' was measuring the no-op rather than the op. "
-        "Kept xfail(strict) rather than relaxed: a green threshold here would "
-        "re-hide it, and strict means it fails loudly if associate starts "
-        "working. Real fix belongs with #39."
-    ),
-)
 def test_association_increases_overlap_substantially():
     """[PNAS20] simultaneous firing of two parents makes their projections'
-    overlap "increase substantially"; experimentally 8-10% of assembly size,
-    and the increase grows with the number of co-activations.
+    overlap "increase substantially"; experimentally 8-10% of assembly size.
 
-    Encoded as: post-association overlap clears 8% AND strictly exceeds the
-    pre-association baseline. Both halves matter -- a mechanism that returns a
-    large constant regardless of co-activation would pass the first alone.
+    THE CLAIM IS ABOUT RE-CUEING, and this test used to measure something else.
+    PNAS20 says that after association, activating source_a ALONE and projecting
+    to the target yields an assembly overlapping the one source_b alone yields.
+    The old version never re-cued: it compared the phase-3 CO-FIRED target
+    assembly (both sources driving at once) against a snapshot taken BEFORE
+    association, which association moves away from -- so it read 0.000 once the
+    op started working. It had previously read 1.0000, because the A->C and B->C
+    blocks were unmaterialised and every phase hit the engine's zero-drive
+    branch, which preserves the target's winners.
+
+    Its baseline was wrong too. Comparing against a PRE-association overlap is
+    meaningless here: before phase 1 the source->target fiber does not exist, so
+    cueing either source just lets the target fall back on its own dominant
+    attractor and both cues land there -- that measures 0.678 at k=100 and is
+    target-attractor dominance, not association. The CONTROL has to train both
+    pathways exactly as phases 1 and 2 do and then omit only the co-firing,
+    which is what isolates the step the docstring credits.
+
+    MEASURED over these 12 seeds (chance = k/n = 0.005), as overlap between the
+    assembly cued by source_a alone and the one cued by source_b alone:
+
+        pathways trained, NO co-firing   0.0167 +/- 0.0206    3.3x chance
+        with co-firing (associate)       0.1217 +/- 0.0721   24.3x chance
+
+    so co-firing raises it ~7x and clears the paper's 8-10%. Asserted on a mean:
+    per-seed values run 0.04 to 0.28, so any single-seed threshold near 0.08
+    reports the seed rather than the effect.
+
+    The control is written out rather than calling associate() with co-firing
+    disabled, deliberately: an independent implementation of the baseline does
+    not move when the op is refactored.
     """
-    from neural_assemblies.assembly_calculus.ops import associate
+    from neural_assemblies.assembly_calculus.ops import (
+        associate, _fix, _unfix,
+    )
 
-    before, after = [], []
-    for seed in SEEDS:
+    def _recue(brain, src):
+        """Target assembly when only `src` drives it, measured in isolation."""
+        probe = copy.deepcopy(brain)
+        probe.areas[src].fix_assembly()
+        probe.project({}, {src: ["C"]})
+        for _ in range(5):
+            probe.project({}, {src: ["C"], "C": ["C"]})
+        return _snap(probe, "C")
+
+    def _setup(seed):
         b = _brain(seed)
         for area in ("A", "B", "C"):
             b.add_area(area, N, K, beta=BETA)
@@ -330,16 +354,46 @@ def test_association_increases_overlap_substantially():
         b.add_stimulus("sb", K)
         _project_recurrent(b, "sa", "A", rounds=10)
         _project_recurrent(b, "sb", "B", rounds=10)
-        x = _project_recurrent(b, "sa", "C", rounds=10)
-        y = _project_recurrent(b, "sb", "C", rounds=10)
-        before.append(overlap(x, y))
+        return b
+
+    def _train_pathways_only(b):
+        """Phases 1 and 2 with NO co-firing -- the control."""
+        _fix(b, "A", "B")
+        try:
+            for src in ("A", "B"):
+                for i in range(10):
+                    dsts = {src: ["C"]}
+                    if i > 0:
+                        dsts["C"] = ["C"]
+                    b.project({}, dsts)
+        finally:
+            _unfix(b, "A", "B")
+
+    control, full = [], []
+    for seed in SEEDS_ASSOC:
+        b = _setup(seed)
+        _train_pathways_only(b)
+        control.append(overlap(_recue(b, "A"), _recue(b, "B")))
+
+        b = _setup(seed)
         associate(b, "A", "B", "C", rounds=10)
-        after.append(overlap(_snap(b, "C"), y))
-    mb, _ = _mean_sd(before)
-    ma, sda = _mean_sd(after)
-    assert ma >= 0.08 and ma > mb, (
-        f"association did not raise overlap: {mb:.3f} -> {ma:.3f} +/- {sda:.3f}, "
-        f"expected >= 0.08 and strictly increasing. [PNAS20]"
+        full.append(overlap(_recue(b, "A"), _recue(b, "B")))
+
+    mc, _ = _mean_sd(control)
+    mf, sdf = _mean_sd(full)
+    ch = CHANCE
+
+    assert mf >= 0.08, (
+        f"association overlap {mf:.4f} +/- {sdf:.4f} does not clear the paper's "
+        f"8% of assembly size (chance {ch:.4f}); per-seed {full}. [PNAS20]"
+    )
+    assert mf > mc, (
+        f"co-firing did not raise overlap above training the pathways alone: "
+        f"control {mc:.4f} -> full {mf:.4f}. Phase 3 is the step that "
+        f"associates, so this failing means it is not doing anything. [PNAS20]"
+    )
+    assert mf > ch * 5, (
+        f"association overlap {mf:.4f} is not meaningfully above chance {ch:.4f}"
     )
 
 
