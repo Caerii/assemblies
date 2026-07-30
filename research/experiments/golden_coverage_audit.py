@@ -1,4 +1,16 @@
-"""How much of each recorded golden is actually CHECKED?
+"""How much of each recorded golden is actually CHECKED?  (SEE CAVEAT)
+
+SUPERSEDED for the headline number by `golden_readkey_audit.py`. This script
+models `verify_against_golden`, but only 7 of the 20 golden tests go through
+`verify_protocol` at all -- the other 13 have inline bodies that assert against
+`g["metrics"][...]` directly, which a static read cannot see. It therefore
+reports `nemo2025_curriculum` as asserting nothing when that test's body pins
+two of its metrics to +-0.05 and +-0.01.
+
+Still useful for what it does see: the per-metric PINNED / weak / DECORATIVE
+breakdown of the runner-driven protocols, and in particular the SLACK on every
+one-sided bound, which the runtime audit does not compute.
+
 
 `verify_against_golden` compares two blocks only -- `golden["expected"]` (exact
 or within tolerance) and `golden["thresholds"]` (one-sided `_min` / `_max`
