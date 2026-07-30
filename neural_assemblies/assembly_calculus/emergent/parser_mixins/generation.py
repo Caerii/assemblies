@@ -35,7 +35,7 @@ them is inferred from the corpus, and the concatenation itself is symbolic.
 
 from typing import Dict, List, Optional, Set
 
-from neural_assemblies.assembly_calculus.ops import project, _snap
+from neural_assemblies.assembly_calculus.ops import bind, project, _snap
 from neural_assemblies.assembly_calculus.readout import readout_all
 
 from ..core.areas import (
@@ -48,18 +48,41 @@ class GenerationMixin:
 
     def _decode_role_to_word(self, role_area: str,
                              core_area: str) -> Optional[str]:
-        """Project from a role area to a core area and readout the best word.
+        """Which word is *role_area* currently holding?
 
-        Activates the role assembly, projects to core area, reads out
-        against core lexicon.
+        READ THE STRUCTURE THAT WAS ACTUALLY TRAINED. This used to project
+        ``role_area -> core_area`` and read out against the core lexicon, which
+        cannot work: ``train_roles`` trains ``core -> ROLE``, and the reverse
+        fiber is never trained at all. It then called
+        ``reset_area_connections(core_area)`` first, zeroing whatever that fiber
+        happened to hold. So the decode was a random projection along an
+        untrained pathway, and the output was correspondingly arbitrary --
+        asking for dog/chase/cat produced "the thing meet the letter", and the
+        answer drifted between identical calls as the fiber materialised.
+
+        ``role_lexicons[role_area]`` IS trained: it is exactly what
+        :func:`ops.bind` stored, in the same area and the same index space. So
+        the readout is a direct comparison against it, with no projection and
+        no reset. Same principle as ``diagnostics.read_assembly``: compare
+        neuron IDs to neuron IDs, and never re-derive through a pathway the
+        training never touched.
+
+        Falls back to the old reverse projection only when no role lexicon
+        exists, so a parser trained without ``train_roles`` behaves as before
+        rather than silently returning None.
         """
+        role_lex = getattr(self, "role_lexicons", {}).get(role_area, {})
+        if role_lex:
+            asm = _snap(self.brain, role_area)
+            overlaps = readout_all(asm, role_lex)
+            if overlaps and overlaps[0][1] > 0.0:
+                return overlaps[0][0]
+            return None
+
         lex = self.core_lexicons.get(core_area, {})
         if not lex:
             return None
-
         self.brain._engine.reset_area_connections(core_area)
-
-        # Project role -> core with recurrence
         self.brain.project({}, {role_area: [core_area]})
         if self.rounds > 1:
             self.brain.project_rounds(
@@ -71,7 +94,6 @@ class GenerationMixin:
                 },
                 rounds=self.rounds - 1,
             )
-
         asm = _snap(self.brain, core_area)
         overlaps = readout_all(asm, lex)
         if overlaps and overlaps[0][1] > 0.0:
@@ -108,17 +130,18 @@ class GenerationMixin:
         # Activate agent in its core area, project to ROLE_AGENT
         if agent_word and agent_word in self.stim_map:
             agent_core = self._word_core_area(agent_word)
-            phon = self.stim_map[agent_word]
-            project(self.brain, phon, agent_core, rounds=self.rounds)
-            self.brain.areas[agent_core].fix_assembly()
-
-            # Project to ROLE_AGENT
-            for _ in range(self.rounds):
-                self.brain.project(
-                    {},
-                    {agent_core: [ROLE_AGENT], ROLE_AGENT: [ROLE_AGENT]},
-                )
-            self.brain.areas[agent_core].unfix_assembly()
+            # THIRD COPY OF THE BINDING PROTOCOL, now routed through `ops.bind`
+            # like the other two. This one had drifted furthest: it recurred
+            # from round 1 for `self.rounds` steps, re-projected phon instead
+            # of replaying the stabilized core assembly, and then called
+            # reset_area_connections(ROLE_AGENT) -- which zeroes the very
+            # core->ROLE pathway train_roles built, so the NEXT generation call
+            # found it dead. See `ops.bind` for why each of those is wrong.
+            stored_core = self.core_lexicons.get(agent_core, {}).get(agent_word)
+            if stored_core is None:
+                project(self.brain, self.stim_map[agent_word], agent_core,
+                        rounds=self.rounds)
+            bind(self.brain, agent_core, ROLE_AGENT, stored_core)
 
             # Readout: role -> core -> word
             decoded = self._decode_role_to_word(ROLE_AGENT, agent_core)
@@ -127,7 +150,6 @@ class GenerationMixin:
                 if ctx and ctx.dominant_modality == "visual":
                     agent_phrase.append("the")
                 agent_phrase.append(decoded)
-            self.brain._engine.reset_area_connections(ROLE_AGENT)
 
         # Action word
         if action_word and action_word in self.stim_map:
@@ -145,17 +167,12 @@ class GenerationMixin:
         # Patient
         if patient_word and patient_word in self.stim_map:
             patient_core = self._word_core_area(patient_word)
-            phon = self.stim_map[patient_word]
-            project(self.brain, phon, patient_core, rounds=self.rounds)
-            self.brain.areas[patient_core].fix_assembly()
-
-            for _ in range(self.rounds):
-                self.brain.project(
-                    {},
-                    {patient_core: [ROLE_PATIENT],
-                     ROLE_PATIENT: [ROLE_PATIENT]},
-                )
-            self.brain.areas[patient_core].unfix_assembly()
+            stored_core = self.core_lexicons.get(
+                patient_core, {}).get(patient_word)
+            if stored_core is None:
+                project(self.brain, self.stim_map[patient_word], patient_core,
+                        rounds=self.rounds)
+            bind(self.brain, patient_core, ROLE_PATIENT, stored_core)
 
             decoded = self._decode_role_to_word(ROLE_PATIENT, patient_core)
             if decoded:
@@ -163,7 +180,6 @@ class GenerationMixin:
                 if ctx and ctx.dominant_modality == "visual":
                     patient_phrase.append("the")
                 patient_phrase.append(decoded)
-            self.brain._engine.reset_area_connections(ROLE_PATIENT)
 
         # Assemble in the learned word order. All six basic orders are
         # produced by walking the slot sequence of the inferred typology, so

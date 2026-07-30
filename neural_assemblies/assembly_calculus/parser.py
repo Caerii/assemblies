@@ -241,9 +241,14 @@ class NemoParser:
         20 verbs with each (word, role) binding trained once: distinctness
         1.000 and role retrieval 1.000 against a chance level of 0.025-0.062,
         versus exactly chance before.
+
+        The protocol itself lives in :func:`ops.bind`, which is the single
+        implementation shared with ``emergent.parser_mixins.roles`` and
+        ``emergent.parser_mixins.generation``. It used to be hand-rolled in all
+        three, and the three drifted into different states with only one
+        correct -- which is precisely how the bug survived.
         """
-        from .emergent.parser_mixins._shared import _ROLE_BINDING_ROUNDS
-        from .ops import activate_assembly
+        from .ops import bind
 
         role_sequence = [ROLE_AGENT, ROLE_ACTION, ROLE_PATIENT]
 
@@ -254,26 +259,17 @@ class NemoParser:
 
                 stored_lex = (self.noun_lexicon if category == "noun"
                               else self.verb_lexicon).get(word)
-                if stored_lex is not None:
-                    activate_assembly(self.brain, stored_lex)
-                else:
+                if stored_lex is None:
+                    # No stabilized snapshot yet (train_lexicon not run):
+                    # fall back to driving the stimulus, accepting the drift
+                    # that `bind`'s docstring warns about.
                     project(self.brain, self.stim_map[word], lex_area,
                             rounds=self.rounds)
-                self.brain.areas[lex_area].fix_assembly()
 
-                self.brain.project({}, {lex_area: [role_area]})
-                for _ in range(_ROLE_BINDING_ROUNDS - 1):
-                    self.brain.project(
-                        {},
-                        {lex_area: [role_area], role_area: [role_area]},
-                    )
-
-                asm = _snap(self.brain, role_area)
+                asm = bind(self.brain, lex_area, role_area, stored_lex)
                 if role_area not in self.role_lexicons:
                     self.role_lexicons[role_area] = {}
                 self.role_lexicons[role_area][word] = asm
-
-                self.brain.areas[lex_area].unfix_assembly()
 
     def train_word_order(self, sentences: List[List[str]]):
         """Phase 3: Word order via sequence memorization.

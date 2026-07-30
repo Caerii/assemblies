@@ -383,6 +383,104 @@ def project(brain, stimulus, target, rounds=10, recurrent=False) -> Assembly:
     return _snap(brain, target)
 
 
+#: Recurrent rounds in :func:`bind`. Round 1 is always feed-forward, so the
+#: total is ``1 + BIND_TAIL_ROUNDS``. Kept at 1 to match
+#: ``parser_mixins._shared._ROLE_BINDING_ROUNDS = 2``, which faced the same
+#: shared-area problem and was swept: on the real path the value barely matters
+#: and is not monotonic, while deep reinforcement demonstrably merges items in a
+#: shared area (94 constituents into n=1000: pairwise overlap 0.752 at 10
+#: rounds, 0.078 at 3, 0.051 at 1).
+BIND_TAIL_ROUNDS = 1
+
+
+def bind(brain, source_area, target_area, source_assembly=None, *,
+         tail_rounds=BIND_TAIL_ROUNDS, fix_source=True) -> Assembly:
+    """Bind the content of *source_area* into a SHARED *target_area*.
+
+    THE ONE IMPLEMENTATION OF THIS PROTOCOL. It existed as three hand-rolled
+    copies -- ``assembly_calculus.parser.train_roles``,
+    ``emergent.parser_mixins.roles.train_roles`` and
+    ``emergent.parser_mixins.generation`` -- which drifted into three DIFFERENT
+    states, only one of them correct. That drift is what produced the bug: the
+    emergent copy had been fixed, the other two had not, and nothing connected
+    them. Duplicated protocol logic rots silently, one copy at a time, so this
+    function is the fix for the class rather than for the instance.
+
+    Three properties, each of which one of the copies got wrong:
+
+    1. **NO** ``reset_area_connections`` on the target. Zeroing the connectome
+       leaves every candidate neuron at equal input, so the deterministic index
+       tie-break in winner selection returns the SAME k winners for every
+       source -- all stored assemblies become bit-identical, retrieval reads
+       exactly chance with a unit margin, and no value of beta can separate
+       them. Measured on the demo parser: the reset fired 138 times over 40
+       sentences and all 138 zeroed a pathway that was carrying weight,
+       leaving one live area->area pathway in the entire brain.
+
+    2. **Replay** a stored *source_assembly* rather than re-projecting a
+       stimulus into the source. ``project(phon, core)`` carries plasticity, so
+       the source assembly drifts between storing a binding and reading it
+       back, and retrieval then misses the target it was trained on.
+       ``activate_assembly`` is exactly reproducible.
+
+    3. **Round 1 feed-forward**, recurrence only in a short tail. Round 1
+       input-driven makes the bound assembly a function of the source;
+       self-recurrence in a shared area is this project's documented collapse
+       channel, because the first item's self-connections potentiate until they
+       beat every later item's input.
+
+    SYMMETRY IS THE POINT. Training and readout must call THIS function, the
+    readout inside ``brain.read_only()``. Two call sites that merely agree today
+    are the situation that produced the bug; one function cannot disagree with
+    itself. A readout running different dynamics from the drive that built the
+    assembly reads at chance no matter how healthy the representation is.
+
+    Args:
+        source_area: area holding the filler.
+        target_area: shared area the binding is stored in.
+        source_assembly: snapshot to replay into *source_area*. If None, the
+            caller has already established the source's activity.
+        tail_rounds: recurrent rounds after the feed-forward one.
+        fix_source: hold the source steady during the projection. Leave True
+            unless the source is a stimulus-driven area you want to keep live.
+
+    Returns the bound assembly as an immutable snapshot (NEURON IDs).
+    """
+    if source_assembly is not None:
+        activate_assembly(brain, source_assembly)
+    if fix_source:
+        brain.areas[source_area].fix_assembly()
+    try:
+        brain.project({}, {source_area: [target_area]})
+        for _ in range(max(0, tail_rounds)):
+            brain.project({}, {source_area: [target_area],
+                               target_area: [target_area]})
+        return _snap(brain, target_area)
+    finally:
+        if fix_source:
+            brain.areas[source_area].unfix_assembly()
+
+
+def read_binding(brain, source_area, target_area, source_assembly=None, *,
+                 tail_rounds=BIND_TAIL_ROUNDS) -> Assembly:
+    """Re-drive a binding for READOUT, with plasticity and recruitment off.
+
+    Identical dynamics to :func:`bind` by construction -- it calls it -- wrapped
+    in ``brain.read_only()`` so the measurement cannot create the structure it
+    is trying to detect. ``frozen()`` is NOT equivalent: it stops weights
+    changing but not ``w``, and two probe orders that recruit differently are
+    structurally different brains.
+
+    Compare the result against stored snapshots with
+    ``diagnostics.assembly_overlap``. Both sides are then neuron IDs; comparing
+    a snapshot against ``area.winners`` (compact engine indices) reads exactly
+    chance and has silently voided three results in this project.
+    """
+    with brain.read_only():
+        return bind(brain, source_area, target_area, source_assembly,
+                    tail_rounds=tail_rounds)
+
+
 def reciprocal_project(brain, source, target, rounds=10) -> Assembly:
     """Project assembly from source area into target area.
 

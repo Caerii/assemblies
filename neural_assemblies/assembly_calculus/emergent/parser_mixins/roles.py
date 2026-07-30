@@ -11,6 +11,7 @@ from neural_assemblies.assembly_calculus.assembly import (
 )
 from neural_assemblies.assembly_calculus.ops import (
     activate_assembly,
+    bind,
     project,
     _snap,
 )
@@ -78,34 +79,22 @@ class RoleBindingMixin:
                 # retrieval then misses. train_lexicon has already converged
                 # these, so replay the snapshot instead.
                 stored_core = self.core_lexicons.get(core_area, {}).get(word)
-                if stored_core is not None:
-                    activate_assembly(self.brain, stored_core)
-                else:
+                if stored_core is None:
                     project(self.brain, phon, core_area, rounds=self.rounds)
-                self.brain.areas[core_area].fix_assembly()
 
-                # Canonical projection: round 1 is input-driven, so the role
-                # assembly is a function of the filler, then a short recurrent
-                # tail stabilizes it (see _ROLE_BINDING_ROUNDS).
+                # ONE SHARED IMPLEMENTATION -- see `ops.bind`, which carries the
+                # rationale for all three of its properties (no reset, replay
+                # the stabilized snapshot, feed-forward round 1 + short tail).
                 #
-                # The previous code recurred from round 1 for self.rounds
-                # steps and then called reset_area_connections(role_area).
-                # Zeroing the connectome left every candidate neuron at equal
-                # input, so the deterministic index tie-break in winner
-                # selection picked the *same* k neurons for every word -- all
-                # stored role assemblies were literally the identical winner
-                # set (pairwise overlap 1.000). Readout could not discriminate,
-                # and role assignment silently fell through to word order.
-                self.brain.project({}, {core_area: [role_area]})
-                for _ in range(_ROLE_BINDING_ROUNDS - 1):
-                    self.brain.project(
-                        {}, {core_area: [role_area], role_area: [role_area]},
-                    )
-
-                asm = _snap(self.brain, role_area)
+                # This code used to be the only correct copy of that protocol,
+                # while `assembly_calculus.parser.train_roles` and
+                # `generation.py` had drifted to older, broken versions. The
+                # drift is what let the bug survive: fixing it here fixed
+                # nothing there, and nothing connected them. Calling one
+                # function is the fix for the class.
+                asm = bind(self.brain, core_area, role_area, stored_core,
+                           tail_rounds=_ROLE_BINDING_ROUNDS - 1)
                 self.role_lexicons[role_area][word] = asm
-
-                self.brain.areas[core_area].unfix_assembly()
 
         # Learn gating patterns from function word → role co-occurrences
         self._learn_gating_patterns(sentences)

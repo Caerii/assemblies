@@ -94,6 +94,8 @@ from .metrics import (
 from .sequence import Sequence
 from .ops import (
     project,
+    bind,
+    read_binding,
     reciprocal_project,
     associate,
     merge,
@@ -165,7 +167,8 @@ __all__ = [
     "compute_anchored_instability", "compute_jaccard_instability",
     "mean_jaccard_instability", "measure_n400",
     # Operations
-    "project", "reciprocal_project", "associate", "merge",
+    "project", "bind", "read_binding", "reciprocal_project",
+    "associate", "merge",
     "pattern_complete", "separate", "learn_assembly", "learn_assembly_from_pattern",
     "consolidate_pair",
     "project_trace", "reciprocal_project_trace", "associate_trace",
