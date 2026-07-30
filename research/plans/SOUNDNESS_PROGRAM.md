@@ -31,14 +31,14 @@ every step downward. Report the number after the corrections, not before.
 
 ## Phase table
 
-| Phase | Goal | Exit criterion | Blocks |
-|---|---|---|---|
-| **0** | Green baseline | full `not slow` suite has 0 unexplained failures | everything |
-| **1** | Determinism | same seed ⇒ same result across processes, both engines | precision of 2–5 |
-| **2** | Materialization semantics | one definition of "when does a synapse exist" | 3 |
-| **3** | Audit standing claims | every headline claim has a falsifier that has been RUN | 5 |
-| **4** | Research frontier | open mechanistic questions closed or bounded | 5 |
-| **5** | The thesis | compositional generalization vs deep learning, on real input | — |
+| Phase | Goal | Exit criterion | Tasks | Blocks |
+|---|---|---|---|---|
+| **0** | Green baseline | full `not slow` suite has 0 unexplained failures | #53, #64, #40 | everything |
+| **1** | Determinism | same seed ⇒ same result across processes, both engines | #65, #60 | precision of 2–5 |
+| **2** | Materialization semantics | one definition of "when does a synapse exist" | #69 (= #62/#47/#41/#50) | 3 |
+| **3** | Audit standing claims | every headline claim has a falsifier that has been RUN | #66, #67, #68, #54, #55, #35, #63 | 5 |
+| **4** | Research frontier | open mechanistic questions closed or bounded | #56, #58, #57, #51, #52, #46 | 5 |
+| **5** | The thesis | compositional generalization vs deep learning, on real input | #30, #29, #33, #28, #32 | — |
 
 Phases 0 and 1 are one push. Phase 3 is read-only and interleaves with 2.
 
@@ -69,8 +69,17 @@ Triage: fold into `#32` (P600 root cause: saturated metric + `frozen()` probe
 contamination) or file separately. Do not assume; check.
 
 **0.3 — `test_cuda_kernels.py`.** `#40`, 9 of 15 fail against a refactored
-engine. Port it or delete it. Leaving it red is what forced every suite run to
-exclude it, which is how the fact that the suite *completes* stayed hidden.
+engine. Port it or delete it.
+
+Leaving it red is not cosmetic. It is what forced every full-suite run to pass
+`--ignore` or `-x`, and that is precisely how the fact that the suite
+*completes* stayed hidden — on 2026-07-30 the suite was reported as finishing
+in 6m49s, which was wrong; `-x` had stopped it at this file after about a third
+of the files. The real figure is 25m17s. **A permanent known-red does not merely
+fail to inform, it distorts how every other run is read.**
+
+If deleting: verify unreachability first and make it its own reviewable commit
+stating what was verified. Do not silently `rm` tracked code.
 
 ---
 
@@ -107,9 +116,25 @@ materialization needs the same treatment: today there is no single answer to
 - **`#47`** materialized connectome blocks are not frozen — 56.6% change
   retroactively.
 - **`#41`** `read_only()` does not roll back connectome materialization.
+  Recruitment, not plasticity, is the channel by which measuring changes the
+  measured.
 - **`#50`** multi-source areas and the deferred-init bug.
 
-Treat as one piece of work with one owning concept, not four tickets.
+Tracked as one task, **`#69`**.
+
+**The precedent to follow.** `5fa91ed` fixed the pricing divergence by moving
+the *law* into `core/_pricing.py` and having both engines call it, while leaving
+genuinely storage-specific extraction in each. It worked because it separated
+the rule from the backend. Materialization needs the same three-way split:
+
+| | |
+|---|---|
+| **when** a row/column comes into existence | the rule — shared |
+| **how** it is allocated and stored | per-engine |
+| **who** may trigger it | a projection may; a read-only probe may not |
+
+Do this **after** Phase 1. While torch is non-reproducible across processes, any
+cross-engine difference below ~10% is unreadable and `#62` cannot be verified.
 
 ---
 
