@@ -605,7 +605,8 @@ def consolidate_pair(
 # ---------------------------------------------------------------------------
 
 def associate(brain, source_a, source_b, target,
-              stim_a=None, stim_b=None, rounds=10) -> Assembly:
+              stim_a=None, stim_b=None, rounds=10, *,
+              cofire_rounds=None) -> Assembly:
     """Associate two source assemblies through a shared target area.
 
     Protocol::
@@ -633,15 +634,43 @@ def associate(brain, source_a, source_b, target,
         stim_a: Optional stimulus name that drives source_a.
         stim_b: Optional stimulus name that drives source_b.
         rounds: Number of rounds per phase (default 10).
+        cofire_rounds: Number of CO-ACTIVATIONS in phase 3, defaulting to
+            ``rounds``. This is [PNAS20]'s own independent variable -- it says
+            post-association overlap "increases with the extent of cooccurrence
+            (the number of consecutive simultaneous activations of the two
+            parents)" -- and it could not be varied before, because ``rounds``
+            moved the pathway training and the co-firing together. ``0`` gives
+            the natural control: both pathways trained, nothing associated.
 
     Returns:
         Assembly snapshot of the associated assembly in target.
 
-    Theory (Papadimitriou 2020, §3):
-        After association, activating source_a alone and projecting to
-        target produces an assembly that significantly overlaps with the
-        assembly produced by activating source_b alone. The overlap is
-        well above chance level (k/n).
+    Theory [PNAS20] §3:
+        After association, activating source_a alone and projecting to target
+        produces an assembly that significantly overlaps with the one source_b
+        alone produces -- "an overlap between associated assemblies in the MTL of
+        about 8 to 10% of the size of an assembly".
+
+        ASSOCIATION IS PARTIAL BY DEFINITION, and there is a budget past which
+        this operation stops being association at all. [PNAS20] treats associate
+        and merge as different operations: association leaves a partial overlap,
+        merge yields one assembly with both parents. Measured at n=1e4, k=50,
+        p=0.05, beta=0.1, as overlap between the two singly-cued readouts
+        (chance 0.005, 12 seeds; see tests/test_ac_conformance.py):
+
+            cofire_rounds      0   0.0167     5   0.0200
+                               1   0.0167    10   0.1217   <- the paper's band
+                               2   0.0167    20   0.9317   <- a merge
+                               3   0.0183
+
+        and against merge at the same parameters: rounds=10 gives associate
+        0.1425 vs merge 1.0000 (separated), rounds=20 gives 0.9850 vs 1.0000
+        (indistinguishable). So the default of 10 sits in the regime the paper
+        describes, and raising it does not "associate harder" -- it merges.
+
+        Consequence worth knowing: research/literature/parity records its goldens
+        at rounds=20, so associate_cue_overlap is pinned at 0.9875 against a
+        merge_cue_overlap of 1.0. That value is not association.
     """
     use_fix = (stim_a is None and stim_b is None)
     if use_fix:
@@ -650,6 +679,7 @@ def associate(brain, source_a, source_b, target,
     try:
         _associate_body(
             brain, source_a, source_b, target, stim_a, stim_b, rounds, use_fix,
+            cofire_rounds,
         )
     finally:
         # A raise mid-projection must not leave the sources fixed: the areas
@@ -663,7 +693,7 @@ def associate(brain, source_a, source_b, target,
 
 
 def _associate_body(brain, source_a, source_b, target,
-                    stim_a, stim_b, rounds, use_fix):
+                    stim_a, stim_b, rounds, use_fix, cofire_rounds=None):
     """Projection phases for :func:`associate`; see it for the contract.
 
     NO ``project_rounds`` FAST PATH HERE, and that is the fix for association
@@ -731,7 +761,8 @@ def _associate_body(brain, source_a, source_b, target,
     # Target recurrence from the FIRST round here: phases 1 and 2 have already
     # established the target assembly, so there is no feed-forward-only round
     # to carve out -- this phase is consolidating a blend of the two.
-    for _ in range(rounds):
+    cofire = rounds if cofire_rounds is None else max(0, cofire_rounds)
+    for _ in range(cofire):
         brain.project(stim_dict_both, {**both_dsts, target: [target]})
 
 

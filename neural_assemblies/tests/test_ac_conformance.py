@@ -99,6 +99,28 @@ def _project_recurrent(brain, stim: str, area: str, rounds: int):
     return _snap(brain, area)
 
 
+def _recue_target(brain, src: str, target: str = "C", rounds: int = 5):
+    """Assembly *target* settles on when only *src* drives it, in isolation.
+
+    This is the readout [PNAS20] describes for association: "if two associated
+    assemblies x and y are both projected in another area", i.e. cue ONE parent
+    and see where the target lands. Measuring the target right after a co-firing
+    step instead answers a different question -- what a blend of both parents
+    looks like -- and that is what an earlier version of the association test
+    got wrong.
+
+    Runs on a deepcopy so the cue leaves no trace: the projection is plastic, so
+    cueing A and then cueing B on the same brain would have B read a connectome
+    that A just reshaped.
+    """
+    probe = copy.deepcopy(brain)
+    probe.areas[src].fix_assembly()
+    probe.project({}, {src: [target]})
+    for _ in range(rounds):
+        probe.project({}, {src: [target], target: [target]})
+    return _snap(probe, target)
+
+
 def _mean_sd(vals):
     return float(np.mean(vals)), float(np.std(vals))
 
@@ -338,22 +360,13 @@ def test_association_increases_overlap_substantially():
     per-seed values run 0.04 to 0.28, so any single-seed threshold near 0.08
     reports the seed rather than the effect.
 
-    The control is written out rather than calling associate() with co-firing
-    disabled, deliberately: an independent implementation of the baseline does
-    not move when the op is refactored.
+    The control uses ``cofire_rounds=0`` -- phases 1 and 2 run, only the
+    co-firing is withheld -- so the baseline is the same protocol minus the one
+    step under test.
     """
-    from neural_assemblies.assembly_calculus.ops import (
-        associate, _fix, _unfix,
-    )
+    from neural_assemblies.assembly_calculus.ops import associate
 
-    def _recue(brain, src):
-        """Target assembly when only `src` drives it, measured in isolation."""
-        probe = copy.deepcopy(brain)
-        probe.areas[src].fix_assembly()
-        probe.project({}, {src: ["C"]})
-        for _ in range(5):
-            probe.project({}, {src: ["C"], "C": ["C"]})
-        return _snap(probe, "C")
+    _recue = _recue_target
 
     def _setup(seed):
         b = _brain(seed)
@@ -365,23 +378,14 @@ def test_association_increases_overlap_substantially():
         _project_recurrent(b, "sb", "B", rounds=10)
         return b
 
-    def _train_pathways_only(b):
-        """Phases 1 and 2 with NO co-firing -- the control."""
-        _fix(b, "A", "B")
-        try:
-            for src in ("A", "B"):
-                for i in range(10):
-                    dsts = {src: ["C"]}
-                    if i > 0:
-                        dsts["C"] = ["C"]
-                    b.project({}, dsts)
-        finally:
-            _unfix(b, "A", "B")
-
     control, full = [], []
     for seed in SEEDS_ASSOC:
+        # cofire_rounds=0 runs phases 1 and 2 -- both pathways trained -- and
+        # omits ONLY the co-firing, which is the step the paper credits. Using
+        # the op's own parameter rather than a hand-copied protocol means the
+        # control cannot drift away from what it is controlling for.
         b = _setup(seed)
-        _train_pathways_only(b)
+        associate(b, "A", "B", "C", rounds=10, cofire_rounds=0)
         control.append(overlap(_recue(b, "A"), _recue(b, "B")))
 
         b = _setup(seed)
@@ -403,6 +407,102 @@ def test_association_increases_overlap_substantially():
     )
     assert mf > ch * 5, (
         f"association overlap {mf:.4f} is not meaningfully above chance {ch:.4f}"
+    )
+
+
+def test_association_grows_with_coactivation():
+    """[PNAS20] post-association overlap "increases with the extent of
+    cooccurrence (the number of consecutive simultaneous activations of the two
+    parents)".
+
+    THE PAPER STATES THIS AND NOTHING TESTED IT. The claim was even quoted in the
+    docstring above ("the increase grows with the number of co-activations") while
+    only the 8% figure was asserted -- and it was not testable at all until the
+    number of co-activations became a parameter, since `rounds` moved the pathway
+    training and the co-firing together.
+
+    MEASURED here (k/n = 0.005, mean over 12 seeds), sweeping cofire_rounds:
+
+        0    0.0167      5    0.0200
+        1    0.0167     10    0.1217     <- the paper's 8-10% band
+        2    0.0167     20    0.9317     <- a merge, not an association
+        3    0.0183
+
+    Monotone non-decreasing throughout. Note the flat stretch at 0-2: with k=50
+    the overlap quantum is 0.02, and one or two co-firing rounds do not move
+    enough weight to flip which attractor the readout settles into. So the
+    assertion is made across WIDELY separated points rather than adjacent ones --
+    adjacent steps are within the measurement's resolution, and requiring strict
+    monotonicity there would be testing the quantisation, not the claim.
+    """
+    from neural_assemblies.assembly_calculus.ops import associate
+
+    def _measure(cofire):
+        vals = []
+        for seed in SEEDS_ASSOC:
+            b = _brain(seed)
+            for area in ("A", "B", "C"):
+                b.add_area(area, N, K, beta=BETA)
+            b.add_stimulus("sa", K)
+            b.add_stimulus("sb", K)
+            _project_recurrent(b, "sa", "A", rounds=10)
+            _project_recurrent(b, "sb", "B", rounds=10)
+            associate(b, "A", "B", "C", rounds=10, cofire_rounds=cofire)
+            vals.append(overlap(_recue_target(b, "A"), _recue_target(b, "B")))
+        return _mean_sd(vals)[0]
+
+    none_, some, lots = _measure(0), _measure(10), _measure(20)
+    assert none_ < some < lots, (
+        f"overlap did not grow with co-activation: "
+        f"0 -> {none_:.4f}, 10 -> {some:.4f}, 20 -> {lots:.4f}. [PNAS20]"
+    )
+
+
+def test_associate_and_merge_are_distinguishable():
+    """[PNAS20] associate and merge are DIFFERENT operations: association leaves
+    a partial overlap ("8 to 10% of the size of an assembly"), while merge
+    produces a single assembly with both parents as its parents.
+
+    An implementation where the two coincide has not implemented either. Ours
+    coincides once co-firing runs long enough -- measured at these parameters
+    over 8 seeds:
+
+        rounds=10   associate 0.1425   merge 1.0000   separated
+        rounds=20   associate 0.9850   merge 1.0000   NOT separated
+
+    which matters beyond this test: research/literature/parity records its
+    goldens at rounds=20 and so pins associate_cue_overlap at 0.9875 against a
+    merge_cue_overlap of 1.0. That golden is inside the merge regime, i.e. it is
+    not recording association at all. Its threshold
+    (associate_above_chance_factor_min = 3.0) cannot notice, because both regimes
+    clear it by a wide margin. This test is the one that can.
+    """
+    from neural_assemblies.assembly_calculus.ops import associate, merge
+
+    def _run(op):
+        vals = []
+        for seed in SEEDS:
+            b = _brain(seed)
+            for area in ("A", "B", "C"):
+                b.add_area(area, N, K, beta=BETA)
+            b.add_stimulus("sa", K)
+            b.add_stimulus("sb", K)
+            _project_recurrent(b, "sa", "A", rounds=10)
+            _project_recurrent(b, "sb", "B", rounds=10)
+            op(b, "A", "B", "C", rounds=10)
+            vals.append(overlap(_recue_target(b, "A"), _recue_target(b, "B")))
+        return _mean_sd(vals)[0]
+
+    assoc, merged = _run(associate), _run(merge)
+    assert merged - assoc > 0.3, (
+        f"associate and merge are not distinguishable: associate {assoc:.4f} vs "
+        f"merge {merged:.4f}. Association is supposed to leave a PARTIAL overlap; "
+        f"if it reaches merge levels the co-firing budget is too long and the two "
+        f"operations have collapsed into one. [PNAS20]"
+    )
+    assert assoc < 0.5, (
+        f"association overlap {assoc:.4f} is at merge levels, not the paper's "
+        f"8-10% band. [PNAS20]"
     )
 
 
