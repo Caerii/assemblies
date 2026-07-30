@@ -1191,15 +1191,39 @@ def sequence_memorize(brain, stimuli, target, rounds_per_step=10,
             for _ in range(stim_rounds):
                 brain.project({stim_name: [target]}, {})
 
-            # Phase B: stimulus + recurrence rounds to build the
-            # inter-assembly Hebbian bridge (x_{i-1} -> x_i).  The bridge is
-            # what makes recall possible: while x_i is being driven into
-            # place, the x_{i-1} neurons are still firing, so target->target
-            # synapses from x_{i-1} onto x_i get potentiated.  Later,
-            # activating x_{i-1} alone drives x_i harder than anything else
-            # in the area.  Raising beta here deepens exactly those bridges
-            # without over-strengthening the within-assembly recurrence that
-            # Phase A already built.
+            # Phase B: stimulus + recurrence rounds, intended to build the
+            # inter-assembly Hebbian bridge (x_{i-1} -> x_i). Raising beta here
+            # deepens those bridges without over-strengthening the
+            # within-assembly recurrence Phase A already built.
+            #
+            # MEASURED, AND THE BRIDGE COMES OUT FAR TOO WEAK -- see #56. In the
+            # A->A connectome after memorising L=3 at n=5000, k=80, T=8 (mean
+            # weight of nonzero synapses, ambient = 1.0):
+            #
+            #     reps     within x_i->x_i     bridge x_i->x_i+1     ratio
+            #        1              1.0636                1.0051     1.06x
+            #        3              1.5242                1.0229     1.49x
+            #       10              5.8003                1.1895     4.88x
+            #       25             20.0000                1.6763    11.93x
+            #
+            # Within-assembly weights run to the w_max ceiling of 20 while the
+            # bridge barely leaves ambient, so after LRI suppresses x_i the
+            # x_i+1 neurons draw about (k*p) * 1.68 ~ 6.7 while the extreme
+            # value over n never-fired candidates is ~10.8 -- fresh neurons win,
+            # recall lands on noise, and ordered_recall stops after ONE step.
+            #
+            # Two structural reasons, both here:
+            #   * `stim_rounds = rounds_per_step - 2` leaves Phase B exactly TWO
+            #     rounds no matter how large rounds_per_step is, so the bridge
+            #     does not scale with T. [SEQ25]'s bound says raising T buys
+            #     perfect recall of the whole sequence; here raising T grows only
+            #     Phase A, i.e. the wrong term.
+            #   * Phase A projects {stim: [target]} with NO target->target fiber,
+            #     so x_{i-1} is not presynaptic during it at all. By the time
+            #     Phase B opens that fiber, x_{i-1} has not been driven for
+            #     `stim_rounds` steps. The sentence that used to be here -- "while
+            #     x_i is being driven into place, the x_{i-1} neurons are still
+            #     firing" -- is therefore not what happens.
             if beta_boost is not None:
                 # NOTE: saves the AREA-WIDE default beta but restores it into
                 # the target->target pathway specifically.  If a caller had
