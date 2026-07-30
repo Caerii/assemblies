@@ -625,18 +625,80 @@ class NumpySparseEngine(ComputeEngine):
         d = deg + xp.float32(unknown * self.p)
         return 1.0 / xp.maximum(d, xp.float32(1.0))
 
-    def _norm_candidate_divisor(self, tgt) -> float:
+    def _norm_candidate_divisor(self, tgt, input_sizes=None,
+                                src_pops=None) -> float:
         """Scale factor applied to sampled (unmaterialized) candidate drive.
 
         Candidates are sampled on the unit-weight scale as top order statistics
         of ``Binomial(sum(input_sizes), p)``.  Under norm_init a materialized
-        neuron's drive is that same count divided by its in-degree, whose mean
-        is ``n * p``.  Dividing candidates by ``n * p`` puts both populations
-        on one scale.  Candidate in-degree *variance* is deliberately not
-        modelled: an unmaterialized neuron has no persistent in-degree yet (it
-        is drawn only when the neuron materializes), which is exactly the
-        "no pre-existing hubs" property norm_init is here to enforce.
+        neuron's drive is that same count divided by its in-degree, so the
+        divisor here has to reproduce that scale or the two populations top-k
+        chooses between are not comparable.
+
+        WHY ``n * p`` IS NOT ENOUGH.  A materialized neuron's drive is summed
+        PER FIBER, each divided by that fiber's own in-degree (mean
+        ``n_pre * p``)::
+
+            incumbent  ~ sum_f Binomial(a_f, p) / (n_pre_f * p)
+                       ~ sum_f a_f / n_pre_f
+
+        while the sampler draws one ``Binomial(sum_f a_f, p)`` and divided it by
+        ``tgt.n * p``, i.e. ``(sum_f a_f) / tgt.n``.  Those agree only when
+        every source population equals the target's ``n``.  When they differ the
+        two scales sit a factor ``tgt.n / n_pre`` apart, and the pathology has a
+        sign.  Measured (k=100, p=0.05, stim-driven SRC held fixed, 15 rounds,
+        engine ``w`` and round-to-round assembly overlap)::
+
+            n_src   n_tgt |  norm_init=True      |  norm_init=False
+             1000   10000 |  w=100 (SEALED)      |  w=257  stab 0.945
+             5000    5000 |  w=197  stab 1.000   |  w=254  stab 0.951
+            10000    1000 |  w=999  stab 0.127   |  w=241  stab 0.961
+
+        Candidates over-divided (``n_src << n_tgt``) can never outbid an
+        incumbent, so the target seals at ``k`` and every cap-vs-assembly
+        readout reads exactly 1.0000; under-divided (``n_src >> n_tgt``) they
+        always win and the assembly never stabilizes.  Both vanish with
+        norm_init off, which is what identifies the divisor rather than
+        capacity as the cause.
+
+        THE FIX.  Choose ``D`` so the sampled total lands on the incumbent
+        scale::
+
+            (sum_f a_f * p) / D  ==  sum_f a_f / n_pre_f
+            D = p * (sum_f a_f) / (sum_f a_f / n_pre_f)
+
+        an activity-weighted harmonic mean of the source populations.  When all
+        ``n_pre_f == tgt.n`` this collapses to ``tgt.n * p`` exactly, so the
+        homogeneous case -- which is every configuration in the current test
+        suite -- is bit-identical.
+
+        ``src_pops`` gives the presynaptic population for each entry of
+        ``input_sizes``; for stimulus fibers that is the TARGET's ``n``, matching
+        ``_norm_scale``'s convention (a stimulus is treated as the active cap of
+        an implicit input population of size ``n``).  With either argument
+        omitted this falls back to ``tgt.n * p``.
+
+        Candidate in-degree *variance* is deliberately not modelled: an
+        unmaterialized neuron has no persistent in-degree yet (it is drawn only
+        when the neuron materializes), which is exactly the "no pre-existing
+        hubs" property norm_init is here to enforce.  Nor is the variance of the
+        per-fiber mixture: the sampler draws a single pooled binomial, so only
+        the SCALE is corrected here.  That is the dominant term -- the mismatch
+        above is a factor of 8-10 -- but it is why this is a scale fix and not a
+        full per-fiber sampler.
         """
+        if input_sizes and src_pops and len(input_sizes) == len(src_pops):
+            total = 0.0
+            weighted = 0.0
+            for size, pop in zip(input_sizes, src_pops):
+                size = float(size)
+                pop = float(pop)
+                if size <= 0.0 or pop <= 0.0:
+                    continue
+                total += size
+                weighted += size / pop
+            if total > 0.0 and weighted > 0.0:
+                return max(self.p * total / weighted, 1e-12)
         return max(float(tgt.n) * self.p, 1e-12)
 
     # -- Registration -------------------------------------------------------
@@ -1143,6 +1205,14 @@ class NumpySparseEngine(ComputeEngine):
             + [(int(self._areas[a].winners.size) if self.norm_init
                 else self._areas[a].k) for a in from_areas]
         )
+        # Presynaptic POPULATION per fiber, parallel to input_sizes. Used only
+        # to price candidates on the incumbent scale -- see
+        # `_norm_candidate_divisor`. Stimulus fibers use the target's own n,
+        # matching `_norm_scale`'s convention for them.
+        src_pops = (
+            [tgt.n for _ in from_stimuli]
+            + [self._areas[a].n for a in from_areas]
+        )
 
         if self._no_recruitment and tgt.w >= tgt.k:
             # A READ-ONLY probe answers "which of the neurons you already have
@@ -1173,7 +1243,8 @@ class NumpySparseEngine(ComputeEngine):
         # norm_init: bring sampled candidates onto the normalized scale (see
         # _norm_candidate_divisor).  Stored weights and the sampler stay on the
         # unit scale; only the drive comparison is rescaled.
-        norm_div = self._norm_candidate_divisor(tgt) if self.norm_init else None
+        norm_div = (self._norm_candidate_divisor(tgt, input_sizes, src_pops)
+                    if self.norm_init else None)
         if norm_div is not None:
             potential_new = potential_new / norm_div
         if len(prev_winner_inputs) > 0:
