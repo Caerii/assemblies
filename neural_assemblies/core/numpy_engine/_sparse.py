@@ -936,6 +936,115 @@ class NumpySparseEngine(ComputeEngine):
 
     # -- Projection ---------------------------------------------------------
 
+    def materialize_area(self, area: str) -> int:
+        """Bring ALL ``n`` of an area's neurons into existence at once.
+
+        WHY THIS EXISTS.  This engine materializes neurons lazily: only the
+        ``w`` neurons that have actually won are given a compact index, and
+        every weight block is sized to ``w``.  For feed-forward use that is the
+        whole point -- it is what makes ``n = 10^6`` tractable.  But it silently
+        breaks any protocol that DRIVES THE AREA FROM AN ARBITRARY SUBSET OF
+        ``n``, because the neurons it names mostly do not exist yet and deliver
+        nothing.
+
+        The measured case is the reference NEMO coin.  Its
+        ``RecurrentArea.reset`` allocates ``recurrent_weights`` as a full dense
+        ``n x n`` Bernoulli matrix up front, and its ``flip`` then seeds a
+        UNIFORM RANDOM ``k``-subset of all ``n``.  Ported onto lazy
+        materialization at ``n=2000`` the area had ``w=357`` -- 17.9% of it
+        existed -- so a uniform ``k=50`` seed contained on average
+        ``9.2 +/- 2.6`` materialized neurons and **82% of the seed had no
+        outgoing recurrent synapse at all**.  Settling was resolving ~9 neurons
+        of signal, which is why it walked to noise instead of completing to an
+        attractor, and why no ``(beta, rounds, settle)`` cell produced a fair
+        coin.
+
+        COST.  ``O(n^2)`` memory for the self fiber, so this is opt-in and
+        belongs only in protocols that genuinely need whole-area addressing.
+        At ``n=2000`` that is 16 MB; at ``n=10^5`` it is 40 GB, so callers
+        working at scale want a different protocol, not this.
+
+        The new weights come from ``_init_area_block``, which is addressed by
+        ABSOLUTE position -- so a materialized-all-at-once area has exactly the
+        weights it would have had if the same neurons had been recruited one at
+        a time.  Materializing does not change the brain, only when it exists.
+
+        Returns the number of neurons newly materialized.
+        """
+        xp = get_xp()
+        tgt = self._areas[area]
+        prior_w = int(tgt.w)
+        n = int(tgt.n)
+        if prior_w >= n:
+            return 0
+
+        # 1. Give every remaining neuron a compact index, drawn from the same
+        #    shuffled pool the incremental path consumes, so identities match.
+        if tgt.neuron_id_pool is not None:
+            pool = np.asarray(to_cpu(tgt.neuron_id_pool))
+            need = n - len(tgt.compact_to_neuron_id)
+            ptr = int(tgt.neuron_id_pool_ptr)
+            take = pool[ptr:ptr + need]
+            tgt.compact_to_neuron_id.extend(int(x) for x in take)
+            tgt.neuron_id_pool_ptr = ptr + len(take)
+        while len(tgt.compact_to_neuron_id) < n:
+            tgt.compact_to_neuron_id.append(len(tgt.compact_to_neuron_id))
+
+        # 2. Stimulus fibers are 1-D over the target's neurons.
+        stim_names = [s for s, per in self._stim_conns.items()
+                      if area in per]
+        if stim_names:
+            if self._stim_fastpath:
+                self._expand_stim_vectors_fast(area, tgt, stim_names, n)
+            else:
+                self._expand_stim_vectors_legacy(area, stim_names, n)
+
+        # 3. Area fibers, BOTH directions. Incoming blocks gain columns;
+        #    outgoing blocks gain rows; the self fiber gains both.
+        def _grow(conn, src_name, dst_name, rows, cols):
+            if not conn.sparse:
+                return
+            w = conn.weights
+            if getattr(w, "ndim", 0) != 2:
+                w = xp.empty((0, 0), dtype=xp.float32)
+            pr, pc = w.shape
+            if rows > pr:
+                add = self._init_area_block(src_name, dst_name, pr, rows, 0, pc)
+                w = xp.vstack([w, add]) if pc > 0 else xp.zeros(
+                    (rows, 0), dtype=xp.float32)
+                pr = rows
+            if cols > pc:
+                add = self._init_area_block(src_name, dst_name, 0, pr, pc, cols)
+                w = xp.hstack([w, add]) if pr > 0 else xp.zeros(
+                    (0, cols), dtype=xp.float32)
+                pc = cols
+            conn.weights = w
+            conn._log_rows, conn._log_cols = pr, pc
+            # The in-degree cache is indexed by (rows, cols); it is rebuilt
+            # from scratch rather than patched, because norm_init reads it.
+            conn._deg_counts_arr = None
+            conn._deg_rows = 0
+            conn._deg_dirty = None
+
+        for src_name, per_dst in self._area_conns.items():
+            conn = per_dst.get(area)
+            if conn is not None:
+                src_rows = n if src_name == area else int(
+                    self._areas[src_name].w)
+                _grow(conn, src_name, area, src_rows, n)
+        for dst_name, conn in self._area_conns.get(area, {}).items():
+            if dst_name == area or conn is None:
+                continue
+            _grow(conn, area, dst_name, n, int(self._areas[dst_name].w))
+
+        tgt.w = n
+        if tgt.refracted and tgt._cumulative_bias is not None:
+            old = tgt._cumulative_bias
+            tgt._cumulative_bias = xp.zeros(n, dtype=xp.float32)
+            if len(old) > 0:
+                tgt._cumulative_bias[:len(old)] = old
+        return n - prior_w
+
     def _init_deferred_area_srcs(self, target, src_names, new_w) -> None:
         """Size the empty area->area blocks marked during this projection.
 
