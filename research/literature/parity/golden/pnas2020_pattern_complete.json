@@ -1,24 +1,26 @@
 {
   "protocol": "pnas2020_pattern_complete",
   "source": "neural_assemblies pattern_complete 50% cue",
-  "recorded": "2026-06-23",
+  "recorded": "2026-07-30",
   "parameters": {
     "seed": 42,
     "n": 5000,
     "k": 80,
     "p": 0.05,
     "beta": 0.1,
-    "rounds": 10,
-    "cue_fraction": 0.5
+    "rounds": 20,
+    "cue_fraction": 0.5,
+    "recurrent": true
   },
   "metrics": {
-    "pattern_complete_50pct_overlap": 1.0
+    "pattern_complete_50pct_overlap": 0.975
   },
   "expected": {
-    "pattern_complete_50pct_overlap_min": 0.6
+    "pattern_complete_50pct_overlap_min": 0.85
   },
   "thresholds": {
-    "pattern_complete_50pct_overlap_min": 0.6
+    "pattern_complete_50pct_overlap_min": 0.85
   },
-  "tolerance": 0.05
+  "tolerance": 0.05,
+  "notes": "RE-RECORDED 2026-07-30 after the protocol was corrected. The previous recording (1.0, rounds=10, recurrent implicitly False) was an ARTIFACT: ops.project defaults recurrent=False so A->A was never trained, and the empty self block delivered zero drive, so project_into preserved the cue unchanged and the score compared the cue against a reference it is part of. With the self fiber alive but still untrained the same protocol reads 0.0075 +/- 0.0061, i.e. chance. Training the fiber as the reference does (b.project({'stimA':['A']}, {'A':['A']}) x20, overlap_sim.py) gives a real attractor. rounds=20 not 10 because (1.1)^10 = 2.59 is BELOW the norm_init retention threshold while (1.1)^20 = 6.7 clears it. Arithmetic floor is cue_fraction = 0.5: only excess above that is evidence."
 }

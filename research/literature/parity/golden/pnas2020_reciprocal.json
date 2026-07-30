@@ -1,23 +1,25 @@
 {
   "protocol": "pnas2020_reciprocal",
   "source": "neural_assemblies reciprocal_project restore overlap",
-  "recorded": "2026-06-23",
+  "recorded": "2026-07-30",
   "parameters": {
     "seed": 42,
     "n": 5000,
     "k": 80,
     "p": 0.05,
     "beta": 0.1,
-    "rounds": 10
+    "rounds": 20,
+    "recurrent": true
   },
   "metrics": {
-    "reciprocal_restore_overlap": 1.0
+    "reciprocal_restore_overlap": 0.9625
   },
   "expected": {
-    "reciprocal_restore_overlap_min": 0.6
+    "reciprocal_restore_overlap_min": 0.9
   },
   "thresholds": {
-    "reciprocal_restore_overlap_min": 0.6
+    "reciprocal_restore_overlap_min": 0.9
   },
-  "tolerance": 0.05
+  "tolerance": 0.05,
+  "notes": "RE-RECORDED 2026-07-30 after the protocol was corrected. Same defect as pnas2020_pattern_complete: ops.project defaults recurrent=False, so A->A was never trained while the recovery leg leans on that fiber. Over 8 seeds: recurrent=False/rounds=10 gives 0.2188 +/- 0.0380 (the old default), recurrent=True/rounds=20 gives 0.9922 +/- 0.0124, and the reference at its own rounds=20 gives 0.9988 +/- 0.0033. The previous 0.6 threshold was never achievable at rounds=10 -- the REFERENCE reads 0.5875 +/- 0.1047 there -- and traced to a single-seed 0.740 quoted in an ops.py docstring. The previously recorded metric of 1.0 was a dead-fiber artifact."
 }

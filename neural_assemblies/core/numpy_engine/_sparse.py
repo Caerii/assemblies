@@ -113,6 +113,57 @@ def _explicit_src_norm_enabled() -> bool:
     ).strip().lower() in ("1", "true", "yes", "on")
 
 
+def _self_fiber_deferred_init() -> bool:
+    """Whether a SELF fiber (``A -> A``) gets deferred block initialization.
+
+    ON by default.  Excluding self fibers left a whole class of recurrence
+    silently inert.
+
+    THE DEFECT.  ``project_into`` marks an empty area->area block for deferred
+    sizing so it can carry drive on the NEXT round -- but the guard read
+    ``src_name != target``, so a self fiber was never marked.  Self blocks are
+    otherwise sized only as a side effect of the target RECRUITING, via
+    ``_expand_connectomes``.  So a self fiber first driven AFTER its area has
+    stopped growing is **permanently** dead: it delivers exactly zero, and
+    ``project_into`` then takes the "zero signal -- preserve current assembly"
+    branch and hands back the incumbent winners.  The projection looks like it
+    worked.  It returns ``k`` winners.  They are simply the ones already there.
+
+    WHAT IT COST, measured by ``research/experiments/dormant_mechanism_sweep.py``
+    over a full suite slice (275,834 ``project()`` calls): 27 fibers dead on
+    100% of their uses, 4,910 dead deliveries, and 23 of the 27 were self
+    fibers -- ``VP->VP`` 84/84, ``PREDICTION->PREDICTION`` 55/55, and every coin
+    and PFA settle loop.
+
+    The sharpest case is ``RandomChoiceArea._flip_k_split``, which builds a
+    k-split mix with ``rng.choice`` and then "settles" it with
+    ``project({}, {area: [area]})``.  With the self block at ``(0, 0)`` that
+    loop does nothing at all::
+
+        rounds = 0 / 1 / 10   ->  200/200 per-flip agreement, identical heads
+        COIN->COIN block      ->  shape (0, 0), nnz 0
+        winners moved         ->  0 of 10 rounds
+        cross-fiber control   ->  moves winners 2/5 rounds
+
+    i.e. the neural coin's outcome was decided entirely by the numpy RNG that
+    built the mix, and the substrate contributed nothing -- under ``test_pfa``,
+    ``test_nemo_fsm``, ``test_computation_value``, four ``TestCoin2024*Golden``
+    classes and the ``coin2024_*`` parity protocols.
+
+    ``NumpySparseEngine.ensure_area_conn`` is the explicit repair for exactly
+    this situation and ``binding.py`` calls it with that reasoning in a comment.
+    Across the same slice it was invoked ZERO times in 631,925 projections: the
+    disease occurred 27 times over and the cure was never reached.
+
+    Set ``ASSEMBLIES_SELF_FIBER_INIT=0`` to restore the old behaviour, which is
+    required to reproduce any number recorded before this fix -- and every coin
+    and PFA figure in the repo is such a number.
+    """
+    return os.environ.get(
+        "ASSEMBLIES_SELF_FIBER_INIT", "1",
+    ).strip().lower() in ("1", "true", "yes", "on")
+
+
 def _fixed_target_plasticity_enabled() -> bool:
     """Whether a projection INTO a fixed area still potentiates its afferents.
 
@@ -1025,9 +1076,12 @@ class NumpySparseEngine(ComputeEngine):
                         prev_winner_inputs[:end] += contrib[:end]
                 continue
             if conn.weights.shape[1] == 0:
-                # Mark cross-area connections for deferred init so they
-                # are available on the NEXT projection round.
-                if (conn.sparse and src_name != target
+                # Mark connections for deferred init so they are available on
+                # the NEXT projection round.  See `_self_fiber_deferred_init`
+                # for why SELF fibers were excluded here and what that cost.
+                if (conn.sparse
+                        and (src_name != target
+                             or _self_fiber_deferred_init())
                         and self._areas[src_name].w > 0 and tgt.w > 0):
                     _deferred_init_srcs.append(src_name)
                 continue
