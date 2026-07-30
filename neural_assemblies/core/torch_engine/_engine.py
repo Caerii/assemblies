@@ -96,6 +96,10 @@ class TorchSparseEngine(ComputeEngine):
         # deterministic and gives a fixed connectome to batch over (BatchedLM).
         self.readonly = bool(kwargs.get("readonly", False))
         self._rng = np.random.default_rng(seed)
+        # Device-side generator for candidate draws. Without it the samplers
+        # fall through to torch's PROCESS-GLOBAL stream and Brain(seed=) stops
+        # being reproducible across processes -- see `_device_rng`.
+        self._torch_gen = None
         self._plasticity_enabled_global = True
         self._global_seed = seed
         self._pair_seeds: Dict[tuple, int] = {}
@@ -193,6 +197,47 @@ class TorchSparseEngine(ComputeEngine):
         deg = (weights[:, :cols] > 0).sum(dim=0).float()
         return inverse_indegree(deg, n_pre, n_pre, self.p)
 
+    # -- seeded device RNG --------------------------------------------------
+
+    def _device_rng(self, rng):
+        """A torch generator whose stream is derived from the seeded ``rng``.
+
+        WHY THIS EXISTS.  Both candidate samplers below took an
+        ``rng: np.random.Generator`` argument and then drew from torch's
+        PROCESS-GLOBAL stream instead -- ``torch.rand`` and ``torch.normal``
+        with no ``generator=``.  ``_sample_truncated_normal_gpu`` declared the
+        parameter and never referenced it at all; ``_sample_dense_candidates``
+        used it only on the ``_deterministic`` branch.
+
+        The consequence is invisible within one process and fatal across two:
+        ``Brain(seed=1)`` reproduces perfectly if you run it twice in the same
+        interpreter, because the global stream advances the same way -- and
+        diverges between processes, because the global stream's starting point
+        is not ours to control.  Measured on one cell (k=100, p=0.05, beta=0.05,
+        15 rounds, norm_init, n_src=1000 -> n_tgt=10000): w = 484, 514, 506 on
+        three separate invocations at a fixed seed.  Candidate draws land right
+        at the k-WTA cut, so a different draw flips borderline winners and the
+        difference compounds over rounds.
+
+        This is the fourth appearance of this class in this codebase -- global
+        RNG leaking between Brain constructions, ``hash()``-derived seeds
+        differing across processes, CUDA's non-Bernoulli init, and now this.
+        The pattern each time: **an in-process test cannot catch it**, because
+        within one process the global stream is perfectly repeatable.  Any test
+        for this must spawn a subprocess and compare.
+
+        Seeding per call off ``rng`` keeps the device stream slaved to the
+        numpy stream that the caller already threads through, so one seed still
+        determines the whole run.
+        """
+        gen = self._torch_gen
+        if gen is None:
+            gen = torch.Generator(device=self._device)
+            self._torch_gen = gen
+        if rng is not None:
+            gen.manual_seed(int(rng.integers(0, 2 ** 63 - 1)))
+        return gen
+
     # -- dense-drive candidate sampling (Lever A) ---------------------------
 
     def _sample_dense_candidates(self, input_sizes, n_unmat, rng):
@@ -215,9 +260,14 @@ class TorchSparseEngine(ComputeEngine):
             cand = torch.from_numpy(
                 np.asarray(draw, dtype=np.float32)).to(self._device)
         else:
+            # Same defect as `_sample_truncated_normal_gpu` had: without an
+            # explicit generator this reads torch's process-global stream while
+            # `rng` -- already threaded in, and used on the branch above -- is
+            # ignored. See `_device_rng`.
             cand = torch.normal(
                 mu, sigma or 1e-6, size=(int(n_unmat),),
-                device=self._device, dtype=torch.float32)
+                device=self._device, dtype=torch.float32,
+                generator=self._device_rng(rng))
         return cand.clamp_(min=0.0)
 
     def set_dense_area_conn(self, src: str, tgt: str, conn: Connectome) -> None:
@@ -336,7 +386,8 @@ class TorchSparseEngine(ComputeEngine):
         _SQRT2 = math.sqrt(2.0)
         phi_a = 0.5 * (1.0 + math.erf(a / _SQRT2))
 
-        u = torch.rand(k, dtype=torch.float32, device=self._device)
+        u = torch.rand(k, dtype=torch.float32, device=self._device,
+                       generator=self._device_rng(rng))
         u = phi_a + (1.0 - phi_a) * u
         u.clamp_(phi_a + 1e-12, 1.0 - 1e-12)
 
