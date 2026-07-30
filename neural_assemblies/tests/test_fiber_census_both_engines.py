@@ -82,6 +82,43 @@ def test_census_reports_nonzero_shape_for_a_materialized_fiber(engine):
 
 
 @pytest.mark.parametrize("engine", ENGINES)
+def test_census_flags_exactly_the_dead_fiber(engine):
+    """The sharp form: name which fiber should be flagged, and check only it.
+
+    The reciprocal protocol is the right vehicle because it produces a KNOWN
+    asymmetry on torch -- `A->B` is driven and materializes, `B->A` is named by
+    `reciprocal_project` but its block is never sized, so it delivers exactly
+    zero and the back-projection preserves A's assembly. Measured on torch at
+    n=1000 k=50: A->B rows=86 cols=159 nnz=1314, B->A rows=0 cols=0 nnz=0.
+
+    A census that flags "not everything" could still flag the wrong subset.
+    This pins the subset.
+    """
+    from neural_assemblies.assembly_calculus.ops import (
+        project, reciprocal_project,
+    )
+
+    b = Brain(p=P, save_winners=True, seed=1, engine=engine, norm_init=False)
+    b.add_stimulus("s", K)
+    b.add_area("A", N, K, BETA)
+    b.add_area("B", N, K, BETA)
+    project(b, "s", "A", rounds=5)
+    reciprocal_project(b, "A", "B", rounds=5)
+
+    by_pair = {(f.src, f.dst): f for f in fiber_census(b)}
+    ab = by_pair.get(("A", "B"))
+    assert ab is not None and not ab.dead, (
+        f"{engine}: A->B was driven by reciprocal_project but reads dead "
+        f"({ab.rows}x{ab.cols}, nnz {ab.nnz})" if ab else
+        f"{engine}: A->B missing from the census")
+
+    flagged = sorted(k for k, f in by_pair.items() if f.silently_ignored)
+    assert ("A", "B") not in flagged, (
+        f"{engine}: the LIVE fiber A->B is flagged silently_ignored. "
+        f"Flagged set: {flagged}")
+
+
+@pytest.mark.parametrize("engine", ENGINES)
 def test_census_does_not_flag_every_fiber(engine):
     """The blindness signature: EVERY fiber reads dead.
 

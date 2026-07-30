@@ -521,15 +521,21 @@ def fiber_census(brain, driven: Optional[Mapping[str, Sequence[str]]] = None
             eng = brain._engine_for(brain.areas[dst_name])
         except Exception:                                    # noqa: BLE001
             continue
-        conns = getattr(eng, "_area_conns", {})
         dst_w = int(getattr(brain.areas[dst_name], "w", 0) or 0)
-        for src_name, per_dst in conns.items():
-            conn = per_dst.get(dst_name)
-            if conn is None:
-                continue
-            rows, cols, nnz, ratio = _fiber_shape(conn)
-            out.append(FiberState(src_name, dst_name, int(rows), int(cols),
-                                  nnz, ratio, dst_w))
+        seen = set()
+        # BOTH connectome maps. The torch engine keeps explicit->sparse edges in
+        # a SEPARATE `_dense_area_conns` map, which `pricing_exposure` already
+        # reads and this did not -- so a dense explicit fiber was invisible to
+        # the census entirely rather than merely mis-measured.
+        for attr in ("_area_conns", "_dense_area_conns"):
+            for src_name, per_dst in getattr(eng, attr, {}).items():
+                conn = per_dst.get(dst_name)
+                if conn is None or (src_name, dst_name) in seen:
+                    continue
+                seen.add((src_name, dst_name))
+                rows, cols, nnz, ratio = _fiber_shape(conn)
+                out.append(FiberState(src_name, dst_name, int(rows),
+                                      int(cols), nnz, ratio, dst_w))
 
     if driven:
         by_pair = {(f.src, f.dst): f for f in out}
