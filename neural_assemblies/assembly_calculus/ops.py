@@ -503,37 +503,68 @@ def read_binding(brain, source_area, target_area, source_assembly=None, *,
                     tail_rounds=tail_rounds)
 
 
-def reciprocal_project(brain, source, target, rounds=10) -> Assembly:
-    """Project assembly from source area into target area.
+def reciprocal_project(brain, source, target, rounds=10, *,
+                       fix_source=True) -> Assembly:
+    """Project source into target, and train the RETURN path while doing it.
 
-    Protocol::
+    Protocol (the reference's, ``simulations.fixed_assembly_recip_proj``)::
 
-        1. source → target                          (initial projection)
-        2. (source → target) + (target → target)    × (rounds - 1)
+        source is held fixed
+        1. source → target                                        (feed-forward)
+        2. (source → target) + (target → [target, source])         × (rounds - 1)
+
+    THE ``target → source`` EDGE IS THE WHOLE POINT, and it was missing. Without
+    it this function was a plain one-way ``project`` with target recurrence, so
+    nothing ever wrote the target→source synapses -- while its own docstring
+    promised "the source assembly can be recovered by projecting back". It could
+    not be: there was nothing there to recover it with.
+
+    Holding the source fixed is what makes the return path meaningful rather
+    than merely present. The back-projection is written against a STATIONARY
+    source assembly, so those synapses encode the pattern that is to be
+    restored; if the source drifts under its own recurrence meanwhile, each
+    round potentiates toward a different target and the sum restores nothing.
+    (This depends on projections into a fixed area still applying plasticity,
+    which is the reference's behaviour -- see the sparse engine's
+    ``_fixed_target_plasticity_enabled``. It did not hold here until it was
+    fixed alongside this function, which is why adding the edge alone was not
+    enough.)
+
+    MEASURED. Restoration overlap after projecting back, at
+    ``tests/test_assembly_calculus.py``'s parameters (n=1e4, k=100, p=0.05,
+    beta=0.1, rounds=10) -- reference implementation 0.75, this function 0.00
+    before the fix. At the reference's own defaults (n=1e5, k=317, p=0.01,
+    beta=0.05) the reference restores 0.246 on the first back-projection rising
+    to 0.344, matching the expectation written into that function's header
+    comment. Restoration is PARTIAL by nature: perfect restoration is the
+    signature of a dead fiber, not of a working one, and three of this repo's
+    conformance tests were green for exactly that reason.
 
     Args:
         brain: Brain instance.
         source: Name of the source area (must have an established assembly).
         target: Name of the target area.
         rounds: Number of projection rounds (default 10).
+        fix_source: hold the source steady for the duration, so the return path
+            is written against one pattern. Leave True unless the source is
+            stimulus-driven and you are keeping it live yourself.
 
     Returns:
         Assembly snapshot of the new assembly in target.
-
-    Theory:
-        The target assembly is a "copy" of the source assembly in the
-        new area's neural population. After stabilization, the source
-        assembly can be recovered by projecting back (target → source).
     """
-    brain.project({}, {source: [target]})
-    if rounds > 1:
-        brain.project_rounds(
-            target=target,
-            areas_by_stim={},
-            dst_areas_by_src_area={source: [target], target: [target]},
-            rounds=rounds - 1,
-        )
-    return _snap(brain, target)
+    if fix_source:
+        brain.areas[source].fix_assembly()
+    try:
+        brain.project({}, {source: [target]})
+        for _ in range(max(0, rounds - 1)):
+            # Not `project_rounds`: that helper stabilises a SINGLE named
+            # target, and this step has two destinations -- the target and,
+            # via the return edge, the source.
+            brain.project({}, {source: [target], target: [target, source]})
+        return _snap(brain, target)
+    finally:
+        if fix_source:
+            brain.areas[source].unfix_assembly()
 
 
 def consolidate_pair(

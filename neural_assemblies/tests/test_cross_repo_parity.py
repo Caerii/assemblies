@@ -255,7 +255,15 @@ def _extended_metrics(params: dict) -> dict:
     c4 = _snap(b_copy4, "C")
     merge_ov = overlap(c3, c4)
 
-    b3 = Brain(p=p_conn, save_winners=True, seed=seed, engine="numpy_sparse")
+    # recurrent_projection=True because the REFERENCE's reciprocal protocol
+    # forms its source assembly with explicit self-recurrence
+    # (`simulations.fixed_assembly_recip_proj` loops
+    # `b.project({"stimA": ["A"]}, {"A": ["A"]})`), and restoration is only as
+    # good as the assembly being restored. With it off, `project` builds a
+    # weakly consolidated A and this metric under-reads: measured 0.7125 vs
+    # 0.9859 +/- 0.0205 over 8 seeds with it on, against the reference's 1.000.
+    b3 = Brain(p=p_conn, save_winners=True, seed=seed, engine="numpy_sparse",
+               recurrent_projection=True)
     b3.add_stimulus("s", k)
     b3.add_area("A", n, k, beta)
     b3.add_area("B", n, k, beta)

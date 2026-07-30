@@ -290,6 +290,26 @@ def test_assembly_density_exceeds_baseline_p():
 # 5. Association raises overlap
 # ---------------------------------------------------------------------------
 
+@pytest.mark.xfail(
+    strict=True,
+    reason=(
+        "CONFIRMED NEGATIVE, not a threshold problem (task #39). associate() "
+        "raises the two target assemblies' overlap to 0.008 +/- 0.010 against a "
+        "chance of 0.010 -- i.e. to exactly chance, so no association happens. "
+        "This test passed for its whole life without measuring that, because "
+        "the A->C and B->C weight blocks were never materialised: every phase "
+        "hit the engine's zero-drive branch, which PRESERVES the target's "
+        "winners, so C simply stayed on the assembly phase 2 had left there. "
+        "Measured on the pre-fix tree, overlap(C_after, y) = 1.0000 with C's "
+        "winners not changing at all across the associate() call; on the fixed "
+        "tree the winners do change and the real effect is chance. So the "
+        "mechanism was never being exercised, and #39's earlier reading of "
+        "'marginal, ~3.8x chance' was measuring the no-op rather than the op. "
+        "Kept xfail(strict) rather than relaxed: a green threshold here would "
+        "re-hide it, and strict means it fails loudly if associate starts "
+        "working. Real fix belongs with #39."
+    ),
+)
 def test_association_increases_overlap_substantially():
     """[PNAS20] simultaneous firing of two parents makes their projections'
     overlap "increase substantially"; experimentally 8-10% of assembly size,

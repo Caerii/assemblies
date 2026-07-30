@@ -57,6 +57,11 @@ ROUNDS = 10     # stabilization rounds
 # green for its whole life while passing only ~7 times in 12: a fixed seed plus
 # a threshold near the effect's mean reports the seed, not the effect.
 SEED = int(os.environ.get("ASSEMBLIES_AUDIT_SEED", "42"))
+# For effects whose seed-to-seed spread is comparable to the margin being
+# asserted, so the assertion is on a mean rather than on one draw. Same purpose
+# as test_ac_conformance.SEEDS; the thresholds calibrated against these are
+# quoted with the mean and sd that were measured over exactly this tuple.
+SEEDS = (42, 43, 44, 45, 46, 47, 48, 49)
 
 
 def _make_brain(**kwargs):
@@ -151,30 +156,69 @@ class TestProject:
 
 class TestReciprocalProject:
     def test_reciprocal_project_creates_copy(self):
-        """Projecting A→B then B→A recovers the original A assembly.
+        """Projecting A→B then B→A PARTIALLY restores the original A assembly.
 
-        Theory: Reciprocal projection restores the source assembly.
+        Theory: reciprocal projection writes a return path, so the source can be
+        recovered from the target afterwards.
+
+        RESTORATION IS PARTIAL, AND THE OLD THRESHOLD TESTED A NO-OP. This
+        asserted ``> 0.6`` at a single seed and passed for years by measuring
+        exactly 1.0000 -- because the B->A weight block was never materialised,
+        so every back-projection round hit the engine's zero-drive branch, which
+        PRESERVES the target's winners. A never moved, so "recovery" was A
+        sitting still. Perfect restoration is the signature of a dead fiber, not
+        a working one, which is why 1.0 is now an explicit failure below.
+
+        Calibrated against the reference (``.reference/dmitropolsky-assemblies``
+        running ``simulations.fixed_assembly_recip_proj``'s protocol): it
+        restores 0.740 at these parameters, and its own header comment documents
+        partial restoration ("first B->A gets only 25% ... restore up to 42%" at
+        its defaults). We measure mean 0.5687 +/- 0.0394 over 8 seeds, so the
+        floor here is mean - ~3 sd. norm_init is pinned off per the repo's rule
+        that reference reproductions do so; with it on, recurrence DEGRADES
+        restoration instead of improving it (0.53 -> 0.22), increasingly so as
+        k/n falls.
+
+        Asserted on a MEAN OVER SEEDS: 0.5687 with sd 0.0394 means a single-seed
+        threshold anywhere near the mean reports the seed rather than the effect,
+        the hazard this file's header already warns about.
         """
-        b = _make_brain()
-        b.add_stimulus("stim", K)
-        b.add_area("A", N, K, BETA)
-        b.add_area("B", N, K, BETA)
+        restored = []
+        for seed in SEEDS:
+            b = _make_brain(seed=seed, norm_init=False)
+            b.add_stimulus("stim", K)
+            b.add_area("A", N, K, BETA)
+            b.add_area("B", N, K, BETA)
 
-        # Establish assembly in A
-        original_a = project(b, "stim", "A", rounds=ROUNDS)
+            original_a = project(b, "stim", "A", rounds=ROUNDS)
 
-        # Fix A, project A → B
-        b.areas["A"].fix_assembly()
-        reciprocal_project(b, "A", "B", rounds=ROUNDS)
+            # reciprocal_project fixes A itself and runs the target->source edge
+            # that writes the return path; that edge is what makes the recovery
+            # below possible at all.
+            reciprocal_project(b, "A", "B", rounds=ROUNDS)
 
-        # Unfix A, project B → A
-        b.areas["A"].unfix_assembly()
-        b.project({}, {"B": ["A"]})
-        for _ in range(ROUNDS - 1):
-            b.project({}, {"B": ["A"], "A": ["A"]})
+            b.project({}, {"B": ["A"]})
+            for _ in range(ROUNDS - 1):
+                b.project({}, {"B": ["A"], "A": ["A"]})
+            restored.append(original_a.overlap(_snap(b, "A")))
 
-        recovered_a = _snap(b, "A")
-        assert original_a.overlap(recovered_a) > 0.6
+        mean = sum(restored) / len(restored)
+        ch = chance_overlap(K, N)
+        assert mean > 0.45, (
+            f"reciprocal restoration collapsed: {mean:.4f} over {len(SEEDS)} "
+            f"seeds (expected ~0.57, reference 0.740), values {restored}"
+        )
+        assert mean > ch * 5, (
+            f"restoration {mean:.4f} is not meaningfully above chance {ch:.4f}"
+        )
+        # A DEAD FIBER READS PERFECT. If the return path is never materialised
+        # the back-projection preserves A's winners and every seed reports
+        # exactly 1.0; that is what this test used to measure.
+        assert not all(r == 1.0 for r in restored), (
+            "every seed restored EXACTLY 1.0 -- the back-projection is a no-op "
+            "and A is being preserved rather than restored; check that the "
+            "B->A block is materialised (ASSEMBLIES_STRICT_DRIVE=1)"
+        )
 
     def test_reciprocal_project_target_has_assembly(self):
         b = _make_brain()

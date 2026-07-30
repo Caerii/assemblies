@@ -59,6 +59,51 @@ def _warn_fixed_target_enabled() -> bool:
     )
 
 
+def _fixed_target_plasticity_enabled() -> bool:
+    """Whether a projection INTO a fixed area still potentiates its afferents.
+
+    ON by default, because this is what the reference implementation does and
+    the divergence was silently breaking its central idiom.
+
+    ``.reference/dmitropolsky-assemblies/brain.py`` handles a fixed target by
+    pinning the winners and skipping recruitment::
+
+        if target_area.fixed_assembly:
+          target_area._new_winners = target_area.winners
+          target_area._new_w = target_area.w
+          num_first_winners_processed = 0
+
+    and then FALLS THROUGH to the plasticity section, which sits outside that
+    branch, so ``from_area -> fixed_target`` synapses are still multiplied by
+    ``(1 + beta)`` onto the frozen winners. Holding an area fixed means "do not
+    let the winners move", not "do not learn".
+
+    That is the whole mechanism behind the reference's reciprocal idiom --
+    ``parser.py``'s "reciprocal until stable, LEX frozen", and
+    ``simulations.fixed_assembly_recip_proj``, which freezes A and runs
+    ``{"A": ["B"], "B": ["A", "B"]}`` so that B->A is written against a
+    stationary A and can later restore it. We short-circuited before plasticity,
+    so the back-fiber was never written and restoration was impossible.
+
+    MEASURED against the reference at its own defaults (n=1e5, k=317, p=0.01,
+    beta=0.05): first B->A restores 0.246 of A, rising to 0.344 -- which matches
+    the expectation recorded in that function's header comment ("first B->A gets
+    only 25% ... restore up to 42%"). At the parameters
+    ``tests/test_assembly_calculus.py`` uses it reaches 0.75, so that file's
+    ``> 0.6`` assertion was calibrated correctly all along; what it was testing
+    was broken.
+
+    Set ``ASSEMBLIES_FIXED_TARGET_PLASTICITY=0`` to restore the short-circuit,
+    kept so the two can be A/B'd on one seed. Note that the old behaviour makes
+    such a projection a silent no-op, which is what
+    ``ASSEMBLIES_WARN_FIXED_TARGET`` exists to surface.
+    """
+    return os.environ.get(
+        "ASSEMBLIES_FIXED_TARGET_PLASTICITY", "").strip().lower() not in (
+        "0", "false", "no", "off",
+    )
+
+
 def _strict_drive_enabled() -> bool:
     """Whether to warn when a projection delivers NO drive to its target.
 
@@ -814,16 +859,30 @@ class NumpySparseEngine(ComputeEngine):
             )
         ]
 
-        # Fixed assembly — short-circuit. The inputs are SILENTLY DISCARDED and
-        # no plasticity is applied: a fixed area holds its assembly and ignores
-        # drive. That is correct for holding a SOURCE steady, but projecting
-        # WITH inputs INTO a fixed area is almost always a caller bug -- it
-        # looks like training but writes nothing. This exact footgun produced
-        # three separate "the mechanism doesn't work" investigations (merge,
-        # associate, direct binding). The guard below makes it loud when opted
-        # in (ASSEMBLIES_WARN_FIXED_TARGET=1); default behaviour is unchanged.
+        # Fixed assembly — the winners do not move. Whether the AFFERENTS still
+        # learn is the question, and we used to answer it differently from the
+        # reference: inputs were discarded and no plasticity was applied, so a
+        # projection into a fixed area looked like training but wrote nothing.
+        # That footgun produced three separate "the mechanism doesn't work"
+        # investigations (merge, associate, direct binding) -- and a fourth,
+        # since it also made `reciprocal_project` unable to restore its source.
+        #
+        # The reference potentiates the afferents onto the frozen winners; see
+        # `_fixed_target_plasticity_enabled` for the code, the idiom it enables
+        # and the numbers. So the default now learns, and only the WINNERS are
+        # held. The old short-circuit remains available for A/B.
         if tgt.fixed_assembly:
-            if (plasticity_enabled and (from_stimuli or from_areas)
+            learn = (plasticity_enabled and (from_stimuli or from_areas)
+                     and _fixed_target_plasticity_enabled())
+            if learn:
+                # Size any never-used source block FIRST -- a multiplicative
+                # `w *= 1 + beta` cannot grow an unmaterialised (0, 0) block,
+                # so without this the potentiation would be a no-op of exactly
+                # the kind this branch is being fixed for.
+                self._init_deferred_area_srcs(target, from_areas, int(tgt.w))
+                self._apply_plasticity(
+                    target, from_stimuli, from_areas, tgt.winners)
+            elif (plasticity_enabled and (from_stimuli or from_areas)
                     and _warn_fixed_target_enabled()):
                 import warnings
                 warnings.warn(

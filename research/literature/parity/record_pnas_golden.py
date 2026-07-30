@@ -38,8 +38,8 @@ BETA = 0.1
 ROUNDS = 20
 
 
-def _brain() -> Brain:
-    return Brain(p=P, save_winners=True, seed=SEED, engine="numpy_sparse")
+def _brain(**kw) -> Brain:
+    return Brain(p=P, save_winners=True, seed=SEED, engine="numpy_sparse", **kw)
 
 
 def metrics_project_separate() -> dict:
@@ -127,7 +127,22 @@ def metrics_merge() -> dict:
 
 
 def metrics_reciprocal() -> dict:
-    b = _brain()
+    # recurrent_projection=True to match the reference's formation loop for this
+    # protocol, which projects `{"stimA": ["A"]}, {"A": ["A"]}` -- restoration
+    # cannot exceed the consolidation of the assembly being restored. Kept in
+    # sync with tests/test_cross_repo_parity.py's `b3`; see the note there.
+    #
+    # This golden was VERIFIED against the reference implementation rather than
+    # only re-recorded from here: running
+    # `simulations.fixed_assembly_recip_proj`'s protocol on
+    # .reference/dmitropolsky-assemblies/brain.py at these parameters restores
+    # 1.000, which is the value below. That check matters because this file
+    # writes a file named `reference_pnas_golden.json` using OUR ops, so a
+    # regression in the op would otherwise be recorded as the new "reference"
+    # and the parity test would keep passing. It did exactly that: reciprocal
+    # restoration read a perfect 1.0 for a while because the back-fiber was
+    # never materialised and the projection was a silent no-op.
+    b = _brain(recurrent_projection=True)
     b.add_stimulus("s", K)
     b.add_area("A", N, K, BETA)
     b.add_area("B", N, K, BETA)
