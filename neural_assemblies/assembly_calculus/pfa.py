@@ -107,12 +107,19 @@ class RandomChoiceArea:
                             rounds=rounds_train)
         brain._engine.reset_area_connections(self.area_name)
 
-        # Stage 2 -- deepen both basins in ONE shared connectome, alternating
-        # so neither gets a systematic head start.  This is what makes them
-        # competing attractors rather than two unrelated assemblies: after
-        # this loop the area has a single weight matrix with two stable
-        # fixed points, which is the precondition for a mixed initial state
-        # to fall into one or the other.
+        # Stage 2 -- INTENDED to deepen both basins in ONE shared connectome,
+        # alternating so neither gets a systematic head start.
+        #
+        # MEASURED 2026-07-30: IT DOES NOT DO THIS. `project` here is
+        # `ops.project`, whose `recurrent` argument defaults False, so every
+        # call below is stimulus-only and NOT ONE RECURRENT WEIGHT IS WRITTEN.
+        # After this loop the area has no `C -> C` weight block at all (shape
+        # (0, 0), nnz 0, while the area has w=357). There are no fixed points,
+        # so there is nothing for a mixed initial state to fall into.
+        #
+        # Passing `recurrent=True` does write the block -- 18,006 synapses --
+        # but does NOT yield a working coin: see `flip`. Left as-is
+        # deliberately, because the recurrent version measures WORSE.
         for _ in range(3):
             project(brain, self._stim0, self.area_name, rounds=rounds_train)
             project(brain, self._stim1, self.area_name, rounds=rounds_train)
@@ -141,6 +148,45 @@ class RandomChoiceArea:
 
         Both return 0 or 1 by asking which trained attractor the settled state
         overlaps more; ties go to 0.
+
+        THE SETTLE LOOP CONTRIBUTES NOTHING, AND MAKING IT LIVE MAKES THE COIN
+        WORSE.  Measured 2026-07-30, and both halves matter.
+
+        As shipped the loop is inert: the ``area -> area`` block is never
+        allocated (self fibers are excluded from deferred init -- see
+        ``_self_fiber_deferred_init`` in the numpy engine), so it delivers zero
+        drive and ``project_into`` hands back the incumbent winners::
+
+            rounds = 0 / 1 / 10   ->  200/200 identical flips, same head count
+            winners moved         ->  0 of 10 rounds
+            cross-fiber control   ->  moves winners 2/5 rounds
+
+        So the answer is decided entirely by the ``rng.choice`` above.
+
+        Waking the fiber AND training it recurrently was tried across
+        ``beta`` in {0.05, 0.1, 0.2}, ``rounds_train`` in {10, 20, 40} and
+        settle lengths {0, 1, 2, 3, 5, 10}, over 5-8 brains x 100 flips.  No
+        cell is a fair coin.  At bias=0.5, ``compete`` reads 0.661 +/- 0.039
+        across brains as shipped, against 0.319 +/- 0.159 and 0.649 +/- 0.165
+        recurrently trained -- the mean stays biased and the ACROSS-BRAIN
+        spread grows 4-6x, which is the worse failure: a coin that answers 0.08
+        of the time in one brain and 0.52 in another is not a coin.
+
+        ``k_split`` additionally fails to track its own ``bias`` once settling
+        is live.  With no settling it is exactly monotone (0.000 / 0.000 /
+        0.710 / 1.000 / 1.000 across bias 0 -> 1); with any settling that
+        collapses, and at beta=0.1/T=20 it INVERTS (0.614 -> 0.200 as bias
+        rises).  The seeded mix already carries the answer and the dynamics
+        destroy it.
+
+        Note also that ``bias`` is OUR invention.  The reference
+        (``.reference/mdabagia-nemo/brain.py::RandomChoiceArea.flip``) seeds a
+        UNIFORM RANDOM k-subset of all n neurons and has no bias parameter at
+        all; ``compete`` reproduces that only at bias=0.5.
+
+        What that leaves: the substrate is not amplifying a random seed into a
+        clean binary decision here, and the published coin numbers measure the
+        seed RNG.  Tracked as #70.
 
         The two modes are NOT interchangeable as measurement instruments.
         ``compete`` disables plasticity for the duration of the flip, so it is
