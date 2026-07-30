@@ -24,6 +24,9 @@ from typing import Dict, List
 
 import torch
 
+from .._pricing import (
+    area_fiber_activity, candidate_divisor, inverse_indegree,
+)
 from ..connectome import Connectome
 from ..engine import ComputeEngine, ProjectionResult
 
@@ -125,15 +128,24 @@ class TorchSparseEngine(ComputeEngine):
         return self._pair_seeds[key]
 
     # -- norm_init: read-time incoming-weight normalization -----------------
-    # Ports NumpySparseEngine._norm_scale / _norm_candidate_divisor. The math
-    # and rationale are documented there; this is the on-device mirror. Because
-    # plasticity is multiplicative (w *= 1+beta), dividing a neuron's summed
-    # drive by its in-degree d_j at read time is identical to having
-    # initialized its incoming weights to 1/d_j, so storage stays unit-scale.
+    # The LAW lives in core/_pricing.py and is shared with the numpy engine.
+    # Only in-degree EXTRACTION is backend-specific and stays here, because how
+    # you count a column's realized synapses depends on the storage format.
+    #
+    # This used to be a hand-written "on-device mirror" of the numpy code, and
+    # it drifted: two fixes to the numpy copy never arrived here, so the two
+    # engines priced k-WTA differently. See core/_pricing.py for the measured
+    # divergence table.
 
-    def _norm_candidate_divisor(self, tgt_n: int) -> float:
-        """Scale for sampled (unmaterialized) candidate drive: mean in-degree."""
-        return max(float(tgt_n) * self.p, 1e-12)
+    def _norm_candidate_divisor(self, tgt_n: int, input_sizes=None,
+                                src_pops=None) -> float:
+        """Scale for sampled (unmaterialized) candidate drive.
+
+        See `core._pricing.candidate_divisor`. With ``src_pops`` omitted this
+        falls back to ``tgt_n * p``, which is correct only when every source
+        population equals the target's ``n``.
+        """
+        return candidate_divisor(self.p, tgt_n, input_sizes, src_pops)
 
     def _norm_scale_stim(self, conn, n_pre, stim_size, needed):
         """1/d_j for a 1-D stimulus fiber (numpy _norm_scale, 1-D branch)."""
@@ -153,20 +165,33 @@ class TorchSparseEngine(ComputeEngine):
             base = add if (base is None or have == 0) else torch.cat([base, add])
             conn._norm_deg_base = base
         deg = base[:cols]
-        unknown = max(int(n_pre) - int(stim_size), 0)
-        d = deg + unknown * self.p
-        return 1.0 / torch.clamp(d, min=1.0)
+        return inverse_indegree(deg, n_pre, stim_size, self.p)
 
     def _norm_scale_area(self, csr, n_pre, rows_known, needed):
-        """1/d_j for a 2-D area fiber (numpy _norm_scale, 2-D branch)."""
+        """1/d_j for a 2-D area fiber; see `core._pricing.inverse_indegree`."""
         cols = int(min(needed, int(csr._ncols)))
         if cols <= 0:
             return None
-        deg = csr.column_indegree(cols)
         rows = min(int(rows_known), int(csr._nrows))
-        unknown = max(int(n_pre) - rows, 0)
-        d = deg + unknown * self.p
-        return 1.0 / torch.clamp(d, min=1.0)
+        deg = csr.column_indegree(cols, nrows=rows)
+        return inverse_indegree(deg, n_pre, rows, self.p)
+
+    def _norm_scale_dense(self, weights, n_pre, needed):
+        """1/d_j for a DENSE explicit-source fiber.
+
+        Every row of a dense connectome exists, so there is no unknown-row term
+        and the in-degree is just the column count of present synapses. This
+        path had NO normalization at all until the law was unified: an explicit
+        source's incumbents were delivered as raw counts while candidates were
+        divided by n*p, leaving the two populations a factor of n*p apart, which
+        sealed the target at k. See `_explicit_src_norm_enabled` in the numpy
+        engine for the measured numbers.
+        """
+        cols = int(min(needed, int(weights.shape[1])))
+        if cols <= 0:
+            return None
+        deg = (weights[:, :cols] > 0).sum(dim=0).float()
+        return inverse_indegree(deg, n_pre, n_pre, self.p)
 
     # -- dense-drive candidate sampling (Lever A) ---------------------------
 
@@ -453,8 +478,19 @@ class TorchSparseEngine(ComputeEngine):
                 valid = valid[valid < w.shape[0]]
                 if len(valid) == 0:
                     continue
+                # norm_init applies to THIS fiber too. The connectome is dense
+                # and full-width, so its columns are NEURON IDs rather than
+                # compact indices -- scale the whole width and index the result
+                # by neuron id. Omitting this left explicit incumbents on the
+                # raw-count scale while candidates were divided by n*p, so the
+                # target sealed at k and every readout read exactly 1.0000.
+                enorm = None
+                if self.norm_init:
+                    enorm = self._norm_scale_dense(w, src.n, int(w.shape[1]))
                 if tgt.w == 0:
                     contrib = w[valid].sum(dim=0)
+                    if enorm is not None:
+                        contrib = contrib * enorm[:len(contrib)]
                     if explicit_dense_act is None:
                         explicit_dense_act = contrib
                     else:
@@ -469,6 +505,8 @@ class TorchSparseEngine(ComputeEngine):
                     valid_cols = id_t[id_t < w.shape[1]]
                     if len(valid_cols) > 0:
                         contrib = w[valid][:, valid_cols].sum(dim=0)
+                        if enorm is not None:
+                            contrib = contrib * enorm[valid_cols]
                         end = min(limit, len(contrib))
                         if end > 0:
                             prev_winner_inputs[:end] += contrib[:end]
@@ -513,7 +551,16 @@ class TorchSparseEngine(ComputeEngine):
         # --- Sample new winner candidates via truncated normal ---
         input_sizes = (
             [self._stimuli[s].size for s in from_stimuli]
-            + [self._areas[a].k for a in from_areas])
+            + [area_fiber_activity(int(self._areas[a].winners.numel()),
+                                   self._areas[a].k, self.norm_init)
+               for a in from_areas])
+        # Presynaptic POPULATION per fiber, parallel to input_sizes. Used only
+        # to price candidates on the incumbent scale -- see
+        # `core._pricing.candidate_divisor`. Stimulus fibers use the target's
+        # own n, matching the convention in `inverse_indegree`.
+        src_pops = (
+            [tgt.n for _ in from_stimuli]
+            + [self._areas[a].n for a in from_areas])
 
         if self.readonly:
             # No new candidates -> topk selects only among materialized neurons,
@@ -549,7 +596,8 @@ class TorchSparseEngine(ComputeEngine):
         # they compete with the 1/d_j-scaled materialized drive above. Stored
         # weights and the sampler stay unit-scale (see _norm_candidate_divisor).
         if self.norm_init:
-            potential_new = potential_new / self._norm_candidate_divisor(tgt.n)
+            potential_new = potential_new / self._norm_candidate_divisor(
+                tgt.n, input_sizes, src_pops)
 
         if prev_winner_inputs.numel() > 0:
             all_inputs = torch.cat([prev_winner_inputs, potential_new])
@@ -633,8 +681,12 @@ class TorchSparseEngine(ComputeEngine):
             # the candidate divisor above. Connectome expansion splits an INTEGER
             # synapse count across fibers, so un-normalize back to unit scale
             # first (mirror of NumpySparseEngine before _expand_connectomes).
+            # Must be the SAME divisor that was applied, which now depends on
+            # the fibers, not on tgt.n alone -- otherwise the round trip is
+            # asymmetric and the recovered synapse count is wrong.
             first_input_vals = (
-                first_input_vals * self._norm_candidate_divisor(tgt.n))
+                first_input_vals * self._norm_candidate_divisor(
+                    tgt.n, input_sizes, src_pops))
 
         winners_cpu = winners_gpu.cpu().tolist()
         first_inputs_cpu = (first_input_vals.cpu().tolist()

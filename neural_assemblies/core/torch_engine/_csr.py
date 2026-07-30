@@ -142,20 +142,38 @@ class CSRConn:
 
     # -- Column in-degree (norm_init) ---------------------------------------
 
-    def column_indegree(self, ncols):
-        """Per-column count of present synapses over all stored rows.
+    def column_indegree(self, ncols, nrows=None):
+        """Per-column count of present synapses over the first ``nrows`` rows.
 
         This is the realized in-degree ``d_j`` each materialized target column
-        has accumulated so far (``(weights != 0).sum(axis=0)`` in the dense
-        picture). norm_init divides a column's summed drive by ``d_j`` to cancel
-        its degree advantage; see ``TorchSparseEngine._norm_scale``. Counts are
-        potentiation-invariant (present synapses, not summed weights), matching
-        the reference's take-it-once-at-init semantics.
+        has accumulated so far (``(weights[:nrows] != 0).sum(axis=0)`` in the
+        dense picture). norm_init divides a column's summed drive by ``d_j`` to
+        cancel its degree advantage; see `core._pricing.inverse_indegree`.
+        Counts are potentiation-invariant (present synapses, not summed
+        weights), matching the reference's take-it-once-at-init semantics.
+
+        ``nrows`` IS NOT OPTIONAL IN EFFECT.  The caller pairs this count with
+        an unknown-row term ``p * (n_pre - rows_known)`` covering the rows that
+        have not materialized yet.  Counting rows beyond ``rows_known`` here
+        charges those same rows twice, inflating ``d_j``, which shrinks ``1/d_j``
+        and under-drives every incumbent -- so candidates win and the area
+        recruits without bound.  Measured with this bound missing (k=100,
+        p=0.05, n_src=1000 -> n_tgt=10000, 15 rounds): w=464 and stability 0.77,
+        against w=154 and stability 1.000 for the numpy engine, which has always
+        passed the bound.  Defaults to all stored rows only for callers that
+        genuinely want the full count.
         """
         deg = torch.zeros(ncols, dtype=torch.float32, device=self._device)
         if self.nnz > 0:
             cols = self._col.long()
             valid = cols < ncols
+            if nrows is not None and int(nrows) < self._nrows:
+                # Row r owns the flat slice [crow[r], crow[r+1]); everything at
+                # or past crow[nrows] belongs to a row we must not count.
+                cutoff = int(self._crow[int(nrows)].item())
+                bound = torch.zeros_like(valid)
+                bound[:cutoff] = True
+                valid = valid & bound
             if not bool(valid.all()):
                 cols = cols[valid]
             deg.scatter_add_(
