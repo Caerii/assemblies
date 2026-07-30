@@ -36,7 +36,7 @@ every step downward. Report the number after the corrections, not before.
 | **0** | Green baseline | full `not slow` suite has 0 unexplained failures | #53, ~~#64~~ ✅, #40 | everything |
 | **1** | Determinism | same seed ⇒ same result across processes, both engines | ~~#65~~ ✅, #60 | precision of 2–5 |
 | **2** | Materialization semantics | one definition of "when does a synapse exist" | #69 (= #47/#41/#50 — **#62 removed**) | 3 |
-| **3** | Audit standing claims | every headline claim has a falsifier that has been RUN | ~~#66~~ ✅, #67, #68, #54, #55, #35, #63 | 5 |
+| **3** | Audit standing claims | every headline claim has a falsifier that has been RUN | ~~#66~~ ✅, ~~#68~~ ✅, #67, #70, #71, #54, #55, #35, #63 | 5 |
 | **4** | Research frontier | open mechanistic questions closed or bounded | #56, #58, #57, #51, #52, #46 | 5 |
 | **5** | The thesis | compositional generalization vs deep learning, on real input | #30, #29, #33, #28, #32 | — |
 
@@ -213,11 +213,42 @@ seeds in the linked result artifact and re-label anything single-run.
 from our own ops; `#55` the PNAS goldens record `associate` in the merge regime
 (rounds=20). A golden recorded from the thing it validates is not a golden.
 
-**3.4 — Dormant mechanisms.** Mutual inhibition: 1373 `project()` calls, ZERO
-co-target a group, so the paper's inhibition has never run. Any claim phrased
-"the paper's model does X" is a claim about a variant. `fiber_census` and
-`ASSEMBLIES_STRICT_DRIVE` exist; the gap is that they have been used
-per-investigation rather than as a repo-wide coverage sweep.
+**3.4 — Dormant mechanisms. DONE 2026-07-30 (`#68`), and it found the largest
+result of the program so far.**
+
+**The neural coin is not neural** (`#70`). `RandomChoiceArea._flip_k_split`
+settles with `project({}, {area: [area]})` — and that self-fiber's weight block
+is `(0,0)`, so the loop delivers zero drive and returns the incumbent winners.
+Verified on four falsifiers: `rounds` = 0 / 1 / 10 give **200/200 per-flip
+agreement**, the block is empty, winners move in **0 of 10** rounds, and a cross
+fiber control moves them 2/5. The outcome is decided entirely by the numpy RNG
+that builds the k-split mix. This underpins `test_pfa`, `test_nemo_fsm`,
+`test_computation_value`, four `TestCoin2024*Golden` classes and the
+`coin2024_*` protocols — **a paper reproduction that does not use the model.**
+
+Root cause is general: `project_into` registers deferred init only when
+`src_name != target`, so **self-fibers are excluded by construction** and one
+first driven after its area stops growing is permanently dead. 27 fibers dead on
+100% of uses, 23 of them self-fibers. `ensure_area_conn` — the repair for
+exactly this — is called **zero** times in 631,925 projections.
+
+**The diagnostic itself was broken** (`#71`). `fiber_census` reads
+`conn.weights`; `CSRConn` has no such attribute, so every torch fiber reads
+`(0,0)` and a healthy `nnz=1314` fiber is flagged dead. And raw
+`silently_ignored` over-reports by **~700x** — 13,905 dead-into-live of which
+13,885 were never *driven*. Splitting on "was it ever driven" leaves 20.
+
+**Mutual inhibition confirmed, with a refinement**, because *dormant* and
+*unreachable* are different claims. 1 co-target in 142,844 calls on a brain with
+a declared group — and that 1 is the test written to force it. But
+`NemoParser(competitive=True)` **does** co-target (3 times in one 3-word parse),
+because its project map is *derived* from `InhibitionState` rather than named by
+the caller. Both tests reaching it are `slow`-marked. Reachable by exactly one
+route; nothing in the default suite takes it.
+
+Never firing: `_use_compiled_projection` (611,106 calls, 0 fires),
+`ensure_area_conn`, `_sample_area_weights`, `Brain.normalize_weights`,
+`Brain.remove_mutual_inhibition`.
 
 **3.5 — Residue.** `#35` back-catalogue for the two silent-failure classes;
 `#63` the 5 remaining unchecked golden values + the `tacl2021 roles_found`
