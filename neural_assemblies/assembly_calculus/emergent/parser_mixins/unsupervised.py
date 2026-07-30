@@ -31,6 +31,7 @@ from typing import Dict, List, Optional, TYPE_CHECKING
 from neural_assemblies.assembly_calculus.ops import project
 
 from ..core.areas import (
+    ROLE_ACTION,
     ROLE_AGENT,
     ROLE_PATIENT,
     THEMATIC_AREAS,
@@ -175,36 +176,80 @@ class UnsupervisedMixin:
 
         self._extract_role_lexicons_from_weights(
             corpus_vocab=corpus_index.content_words,
+            # OBSERVED (word, role) PAIRS, which is both more correct and the
+            # fix for a crowding problem -- see the docstring below.
+            role_pairs={(u.word, u.role_area)
+                        for u in corpus_index.role_updates},
         )
 
     def _extract_role_lexicons_from_weights(
         self,
         corpus_vocab: Optional[set] = None,
+        role_pairs: Optional[set] = None,
     ):
-        """Extract role lexicons for corpus content words (not full vocab)."""
-        for role_area in [ROLE_AGENT, ROLE_PATIENT]:
+        """Snapshot a role lexicon entry for each (word, role) actually seen.
+
+        TWO DEFECTS FIXED HERE, both of which made role readout much worse than
+        the substrate allows.
+
+        1. **ROLE_ACTION was never extracted.** The role list was hardcoded to
+           ``[ROLE_AGENT, ROLE_PATIENT]``, and the modality filter admitted only
+           ``visual``/``social`` -- so verbs (``motor``) were excluded twice
+           over. Measured on the SENTENCES parser: ROLE_ACTION held **0** words
+           while VERB_CORE had learned 51 verbs, so the verb sat outside the
+           role system entirely and its position could not be learned. That is
+           the exact failure ``train_roles``' own comment says it fixed, in the
+           other code path.
+
+        2. **The cross-product manufactured crowding.** Enumerating
+           ``candidates x [AGENT, PATIENT]`` stored EVERY content word in BOTH
+           role areas, whether or not it ever appeared in that role -- measured,
+           65 items in each, the same 65 nouns including 'bag', 'beach' and
+           'bed' as agents. Load is what sets crowding: alpha = Mk/n, and at
+           n=1000, k=50 that is alpha ~ 3.25 per area, well past where the
+           measured margin collapses. Round-trip accuracy was 0.154 (AGENT) and
+           0.215 (PATIENT) against a chance of 0.015 -- real signal, but the
+           same protocol reaches 1.000 when only observed bindings are stored.
+
+        So when ``role_pairs`` is supplied it is used verbatim: exactly the
+        (word, role) pairs the corpus actually licensed, which both populates
+        ROLE_ACTION and drops M to what the corpus supports. The cross-product
+        remains as a fallback for callers that have no corpus index, now
+        including ROLE_ACTION and motor words so the verb is not silently
+        dropped there either.
+        """
+        for role_area in THEMATIC_AREAS:
             if role_area not in self.role_lexicons:
                 self.role_lexicons[role_area] = {}
 
-        candidates = corpus_vocab
-        if candidates is None:
-            candidates = {
-                w for w, ctx in self.word_grounding.items()
-                if ctx.dominant_modality in ("visual", "social")
-                and w in self.stim_map
-            }
-
-        missing = [
-            (word, role_area)
-            for word in candidates
-            for role_area in [ROLE_AGENT, ROLE_PATIENT]
-            if (
-                word in self.stim_map
+        if role_pairs is not None:
+            missing = [
+                (word, role_area)
+                for (word, role_area) in sorted(role_pairs)
+                if word in self.stim_map
                 and word not in self.role_lexicons.get(role_area, {})
-                and (ctx := self.word_grounding.get(word)) is not None
-                and ctx.dominant_modality in ("visual", "social")
-            )
-        ]
+            ]
+        else:
+            candidates = corpus_vocab
+            if candidates is None:
+                candidates = {
+                    w for w, ctx in self.word_grounding.items()
+                    if ctx.dominant_modality in ("visual", "social", "motor")
+                    and w in self.stim_map
+                }
+            missing = [
+                (word, role_area)
+                for word in candidates
+                for role_area in (ROLE_AGENT, ROLE_ACTION, ROLE_PATIENT)
+                if (
+                    word in self.stim_map
+                    and word not in self.role_lexicons.get(role_area, {})
+                    and (ctx := self.word_grounding.get(word)) is not None
+                    and (ctx.dominant_modality == "motor"
+                         if role_area == ROLE_ACTION
+                         else ctx.dominant_modality in ("visual", "social"))
+                )
+            ]
         if not missing:
             return
 

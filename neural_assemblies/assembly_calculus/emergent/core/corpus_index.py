@@ -11,7 +11,9 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Dict, List, Optional, Set, Tuple
 
-from .areas import CORE_TO_CATEGORY, GROUNDING_TO_CORE, ROLE_AGENT, ROLE_PATIENT
+from .areas import (
+    CORE_TO_CATEGORY, GROUNDING_TO_CORE, ROLE_ACTION, ROLE_AGENT, ROLE_PATIENT,
+)
 from .grounding import GroundingContext
 from .sentence import GroundedSentence
 
@@ -194,6 +196,16 @@ def _assign_noun_roles(
             slot = pick(post_slots, post_rank)
             post_rank += 1
         out.append((idx, word, slot_role[slot]))
+
+    # THE VERB IS A ROLE FILLER TOO, and omitting it here is why ROLE_ACTION
+    # held ZERO words while VERB_CORE had learned 51 verbs -- the verb sat
+    # outside the role system entirely, so its position could not be learned.
+    # `roles.py`'s own comment says exactly that about the supervised path
+    # ("Skipping it here left the verb outside the role system"); the
+    # unsupervised path had the same omission one layer further up, in this
+    # function, which only ever iterated `noun_positions`.
+    if verb_pos is not None and 0 <= verb_pos < len(words):
+        out.append((verb_pos, words[verb_pos], ROLE_ACTION))
     return out
 
 
