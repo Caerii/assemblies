@@ -1,0 +1,47 @@
+{
+  "protocol": "colt2022_halfspace",
+  "cite_tag": "COLT22",
+  "claim": "Theorem 6: presenting Omega(log k) samples from D+ forms an assembly A* such that a fresh D+ sample's cap overlaps at least 3k/4 of A*, and a D- sample's at most k/4.",
+  "source": "learning-with-assemblies/Halfspace.ipynb numpy port",
+  "recorded": "2026-07-30",
+  "parameters": {
+    "n_in": 1000,
+    "n_neurons": 1000,
+    "cap_size": 100,
+    "sparsity": 0.1,
+    "n_rounds": 5,
+    "beta": 1.0,
+    "margin": 3,
+    "seeds": 5
+  },
+  "metrics": {
+    "pos_overlap": 99.1196,
+    "neg_overlap": 9.5086,
+    "per_seed_pos": [
+      97.706,
+      99.307,
+      99.926,
+      99.617,
+      99.042
+    ],
+    "per_seed_neg": [
+      11.221,
+      10.238,
+      8.911,
+      4.333,
+      12.84
+    ],
+    "n_on_pos": 45,
+    "n_on_neg": 0
+  },
+  "thresholds": {
+    "pos_overlap_min": 75.0,
+    "neg_overlap_max": 25.0
+  },
+  "notes": [
+    "beta=1.0, not the 0.1 used elsewhere in this repo.",
+    "Weights are column-normalized at init AND AGAIN after training, before evaluation -- the theorem assumes homeostasis BETWEEN training and evaluation, which one-time norm_init does not do.",
+    "Evaluation is recurrent: k_cap(out @ W + x @ A).",
+    "Classes are a halfspace with margin and OVERLAPPING support, not two disjoint supports."
+  ]
+}

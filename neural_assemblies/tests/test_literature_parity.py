@@ -427,3 +427,68 @@ class TestLiteratureParityNEMO2025:
         result = EvaluationSuite(nemo_parser).evaluate_word_order(target="SVO")
         assert result["correct"] is True
         assert result["inferred"] == "SVO"
+
+
+class TestColt2022Halfspace:
+    """[COLT22] Theorem 6 (Learning Linear Thresholds), the paper's own protocol.
+
+    Ported from ``.reference/mdabagia-learning-with-assemblies/Halfspace.ipynb``.
+    Asserts the theorem's OWN bounds -- a fresh D+ sample's cap overlaps at
+    least 3k/4 of A*, a D- sample's at most k/4 -- which hold here with wide
+    margin (measured ~99 and ~10 against 75 and 25), so this tests the effect
+    rather than the seed set.
+
+    This replaces nothing: the older ``test_colt_separable_classes`` asserts
+    ``min_ov < 0.5``, which is satisfiable without any generalisation at all.
+    """
+
+    @pytest.fixture(scope="class")
+    def result(self):
+        from neural_assemblies.programs.colt_halfspace_numpy import (
+            run_colt_halfspace,
+        )
+        return run_colt_halfspace()
+
+    def test_positive_cap_overlaps_at_least_three_quarters_k(self, result):
+        k = result.parameters["cap_size"]
+        assert result.pos_overlap >= 0.75 * k, (
+            f"D+ cap overlaps A* in {result.pos_overlap:.2f} neurons, "
+            f"below the theorem's 3k/4 = {0.75 * k:.0f}"
+        )
+
+    def test_negative_cap_overlaps_at_most_a_quarter_k(self, result):
+        k = result.parameters["cap_size"]
+        assert result.neg_overlap <= 0.25 * k, (
+            f"D- cap overlaps A* in {result.neg_overlap:.2f} neurons, "
+            f"above the theorem's k/4 = {0.25 * k:.0f}"
+        )
+
+    def test_every_seed_separates_not_just_the_mean(self, result):
+        k = result.parameters["cap_size"]
+        for i, (p, n) in enumerate(zip(result.per_seed_pos, result.per_seed_neg)):
+            assert p >= 0.75 * k and n <= 0.25 * k, (
+                f"seed index {i} does not separate: D+ {p:.2f}, D- {n:.2f}"
+            )
+
+    def test_classes_share_support(self, result):
+        """The claim is non-trivial only because the supports overlap.
+
+        Both distributions draw Bernoulli(k/n) over the coordinates outside the
+        halfspace block, so a positive-looking example can be drawn from D-.
+        If negatives carried their own disjoint block this would be trivial.
+        """
+        assert result.n_on_neg == 0
+        assert result.n_on_pos > 0
+
+    def test_golden_matches_recorded(self, result):
+        import json
+        from pathlib import Path
+
+        golden_path = (Path(__file__).resolve().parents[2] / "research"
+                       / "literature" / "parity" / "golden"
+                       / "colt2022_halfspace.json")
+        golden = json.loads(golden_path.read_text(encoding="utf-8"))
+        assert result.pos_overlap == pytest.approx(
+            golden["metrics"]["pos_overlap"], abs=0.01)
+        assert result.neg_overlap == pytest.approx(
+            golden["metrics"]["neg_overlap"], abs=0.01)
