@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import os
 import time
+from pathlib import Path
 from dataclasses import dataclass, field
 from typing import Dict, FrozenSet, List, Optional, Set, Tuple, TYPE_CHECKING
 
@@ -63,6 +64,64 @@ def backbone_cache_dir():
     return Path(__file__).resolve().parents[4] / ".cache" / "backbones"
 
 
+_TRAINING_SOURCES = (
+    # Modules whose contents change what a trained backbone contains. Kept
+    # explicit rather than hashing the whole package, so an unrelated edit does
+    # not needlessly invalidate hours of training.
+    "assembly_calculus/ops.py",
+    "assembly_calculus/emergent/core/corpus_index.py",
+    "assembly_calculus/emergent/parser_mixins/roles.py",
+    "assembly_calculus/emergent/parser_mixins/unsupervised.py",
+    "assembly_calculus/emergent/parser_mixins/core.py",
+    "assembly_calculus/emergent/parser_mixins/classify.py",
+    "assembly_calculus/emergent/training/batch.py",
+    "assembly_calculus/emergent/training/schedule.py",
+    "core/numpy_engine/_sparse.py",
+)
+
+_CODE_FINGERPRINT: Optional[str] = None
+
+
+def training_code_fingerprint() -> str:
+    """Short hash of the sources that determine a trained backbone.
+
+    WHY THE CACHE KEY NEEDS THIS. The key was (depth, seed, n, k, holdout) --
+    nothing about the CODE. So after changing role training, a warm session
+    happily served a pickle trained by the OLD code, and an A/B of an
+    intervention returned byte-identical numbers in both arms because neither
+    arm trained anything. That reads exactly like a clean negative result.
+
+    It is the same failure as workers re-importing edited source mid-run: the
+    thing measured was not the thing under test. Both are silent, and both
+    produce a plausible number rather than an error.
+
+    Hashes size and mtime rather than contents -- enough to notice an edit,
+    cheap enough to run on every lookup. Set ``ASSEMBLIES_IGNORE_CODE_FINGERPRINT=1``
+    to opt out when deliberately reusing a backbone across a known-irrelevant
+    change.
+    """
+    global _CODE_FINGERPRINT
+    if _CODE_FINGERPRINT is not None:
+        return _CODE_FINGERPRINT
+    if os.environ.get("ASSEMBLIES_IGNORE_CODE_FINGERPRINT", "").strip().lower() \
+            in ("1", "true", "yes", "on"):
+        _CODE_FINGERPRINT = "ignored"
+        return _CODE_FINGERPRINT
+    import hashlib
+
+    pkg = Path(__file__).resolve().parents[3]
+    h = hashlib.blake2b(digest_size=6)
+    for rel in _TRAINING_SOURCES:
+        p = pkg / rel
+        try:
+            st = p.stat()
+            h.update(f"{rel}:{st.st_size}:{int(st.st_mtime)}".encode())
+        except OSError:
+            h.update(f"{rel}:missing".encode())
+    _CODE_FINGERPRINT = h.hexdigest()
+    return _CODE_FINGERPRINT
+
+
 def _backbone_disk_path(depth, *, seed, n, k, holdout):
     """Full path for one backbone pickle, or ``None`` when caching is off."""
     root = backbone_cache_dir()
@@ -70,9 +129,15 @@ def _backbone_disk_path(depth, *, seed, n, k, holdout):
         return None
     from .checkpoint import backbone_cache_filename
 
-    return root / backbone_cache_filename(
+    name = backbone_cache_filename(
         depth, seed=seed, n=n, k=k, holdout_words=holdout,
     )
+    # Fingerprint goes in the FILENAME, so a code change misses the cache and
+    # retrains instead of loading a stale backbone. Old files simply stop being
+    # found; they are cache entries, not data.
+    fp = training_code_fingerprint()
+    name = f"{Path(name).stem}.code{fp}{Path(name).suffix or '.pkl'}"
+    return root / name
 
 
 @dataclass

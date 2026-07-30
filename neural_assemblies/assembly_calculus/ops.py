@@ -394,6 +394,7 @@ BIND_TAIL_ROUNDS = 1
 
 
 def bind(brain, source_area, target_area, source_assembly=None, *,
+         source_stimulus=None, project_rounds=10,
          tail_rounds=BIND_TAIL_ROUNDS, fix_source=True) -> Assembly:
     """Bind the content of *source_area* into a SHARED *target_area*.
 
@@ -446,8 +447,29 @@ def bind(brain, source_area, target_area, source_assembly=None, *,
 
     Returns the bound assembly as an immutable snapshot (NEURON IDs).
     """
-    if source_assembly is not None:
+    # STALE SNAPSHOTS ARE EXPECTED, not exceptional, so the guard belongs here
+    # rather than in each caller. `consolidation.prepare_area_for_replay`
+    # deliberately resets an area's compact_to_neuron_id and re-issues neuron
+    # IDs, which orphans every snapshot taken before it -- its own docstring
+    # says "do not carry pre-consolidation lexicons across". The novel-chat
+    # curriculum really does consolidate between `train_lexicon` (which fills
+    # the lexicons) and the role pass (which replays them), so an unguarded
+    # `activate_assembly` raises there.
+    #
+    # `training/batch.py` was the only copy of this protocol that had the guard,
+    # which made it the STRONGEST implementation -- so unifying had to absorb it
+    # upward. Routing that caller through an unguarded `bind` would have turned
+    # a cleanup into a crash on any consolidated parser.
+    replayed = False
+    if source_assembly is not None and assembly_is_current(brain,
+                                                           source_assembly):
         activate_assembly(brain, source_assembly)
+        replayed = True
+    if not replayed and source_stimulus is not None:
+        # Same fallback every caller had hand-rolled: no usable snapshot, so
+        # drive the source from its stimulus and accept the drift this
+        # function's docstring warns about.
+        project(brain, source_stimulus, source_area, rounds=project_rounds)
     if fix_source:
         brain.areas[source_area].fix_assembly()
     try:

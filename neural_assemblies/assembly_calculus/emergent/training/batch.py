@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from neural_assemblies.assembly_calculus.ops import (
-    activate_assembly, assembly_is_current, project, _snap,
+    activate_assembly, assembly_is_current, bind, project, _snap,
 )
 
 # Kept in sync with parser_mixins.core._ROLE_BINDING_ROUNDS (imported lazily to
@@ -77,30 +77,26 @@ class BatchProjector:
         # entries no longer map. Rather than crash in activate_assembly, fall
         # back to re-projecting phon -> core, which is exactly what a word with
         # no stored core already does and yields a fresh valid assembly.
+        # ONE SHARED IMPLEMENTATION -- `ops.bind`, which now carries the
+        # stale-snapshot guard this function used to be the only holder of, plus
+        # the stimulus fallback every copy had hand-rolled. See its docstring
+        # for why each property matters; the comments that were here are now
+        # there, so they cannot drift out of sync with the code again.
+        #
+        # `clear_role` stays OUTSIDE the primitive on purpose: it interacts with
+        # the compiled path's neuron-id pool (a ring-reuse device) and is not
+        # part of the binding protocol.
         stored_core = p.core_lexicons.get(core_area, {}).get(word)
-        if stored_core is not None and assembly_is_current(p.brain, stored_core):
-            activate_assembly(p.brain, stored_core)
-        else:
-            project(p.brain, phon, core_area, rounds=rounds)
-        p.brain.areas[core_area].fix_assembly()
-
-        # Canonical projection: round 1 input-driven so the role assembly is a
-        # function of the filler, then a short recurrent tail. Recurring for
-        # the full `rounds` instead pulls every filler into the role area's
-        # dominant attractor and merges the bindings. See
-        # _ROLE_BINDING_ROUNDS in parser_mixins/core.py for the measurements
-        # and the literature constants behind the value 2.
-        p.brain.project({}, {core_area: [role_area]})
-        for _ in range(ROLE_BINDING_ROUNDS - 1):
-            p.brain.project(
-                {}, {core_area: [role_area], role_area: [role_area]},
-            )
+        asm = bind(
+            p.brain, core_area, role_area, stored_core,
+            source_stimulus=phon, project_rounds=rounds,
+            tail_rounds=ROLE_BINDING_ROUNDS - 1,
+        )
 
         if role_area not in p.role_lexicons:
             p.role_lexicons[role_area] = {}
-        p.role_lexicons[role_area][word] = _snap(p.brain, role_area)
+        p.role_lexicons[role_area][word] = asm
 
-        p.brain.areas[core_area].unfix_assembly()
         if clear_role and hasattr(p, "_clear_role_activity"):
             p._clear_role_activity(role_area)
 
