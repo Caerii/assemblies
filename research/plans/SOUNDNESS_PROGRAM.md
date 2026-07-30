@@ -33,10 +33,10 @@ every step downward. Report the number after the corrections, not before.
 
 | Phase | Goal | Exit criterion | Tasks | Blocks |
 |---|---|---|---|---|
-| **0** | Green baseline | full `not slow` suite has 0 unexplained failures | #53, #64, #40 | everything |
-| **1** | Determinism | same seed ⇒ same result across processes, both engines | #65, #60 | precision of 2–5 |
-| **2** | Materialization semantics | one definition of "when does a synapse exist" | #69 (= #62/#47/#41/#50) | 3 |
-| **3** | Audit standing claims | every headline claim has a falsifier that has been RUN | #66, #67, #68, #54, #55, #35, #63 | 5 |
+| **0** | Green baseline | full `not slow` suite has 0 unexplained failures | #53, ~~#64~~ ✅, #40 | everything |
+| **1** | Determinism | same seed ⇒ same result across processes, both engines | ~~#65~~ ✅, #60 | precision of 2–5 |
+| **2** | Materialization semantics | one definition of "when does a synapse exist" | #69 (= #47/#41/#50 — **#62 removed**) | 3 |
+| **3** | Audit standing claims | every headline claim has a falsifier that has been RUN | ~~#66~~ ✅, #67, #68, #54, #55, #35, #63 | 5 |
 | **4** | Research frontier | open mechanistic questions closed or bounded | #56, #58, #57, #51, #52, #46 | 5 |
 | **5** | The thesis | compositional generalization vs deep learning, on real input | #30, #29, #33, #28, #32 | — |
 
@@ -108,17 +108,36 @@ The pricing fix worked because the law moved to one place
 materialization needs the same treatment: today there is no single answer to
 "when does a synapse exist, and who is allowed to bring it into being".
 
-- **`#62`** engines agree on pricing but not recruitment (torch `w=506` vs numpy
-  `w=154` at 1000→10000). The candidate sampler is RULED OUT — forcing torch
-  onto the numpy CPU sampler leaves it at 464. Evidence points at allocation:
-  numpy over-allocates rows in blocks (632x200 backing `src.w=329, tgt.w=150`),
-  torch allocates exactly (387x231 backing `387/231`).
+**`#62` HAS BEEN REMOVED FROM THIS FAMILY — my framing was falsified.** The
+recruitment gap reproduces with *no area-to-area connectome at all*: one
+stimulus into one area gives numpy `w=311` vs torch `w=431` (5 seeds, n=1000).
+A lazy-materialization schedule cannot explain a gap that predates any lazy
+block. It is two float-precision defects in the torch pricing path, with
+opposite signs: the candidate→allocation **round trip** (`(10/50)*50 =
+9.9999990463256836`, and `int()` returns 9, because CUDA float32 division runs
+up to 1 ULP low), and **`WEIGHT_DTYPE = torch.bfloat16`** quantizing the Hebbian
+product enough to reorder the 28–49 entry tie block sitting exactly at the k-WTA
+cut. Each was proven by an invariance that moves the number to *exact* equality
+with numpy. A third, smaller area-to-area divergence survives both and is not
+yet explained. Fix separately from this task.
+
+Remaining, and these genuinely are one family:
+
 - **`#47`** materialized connectome blocks are not frozen — 56.6% change
   retroactively.
 - **`#41`** `read_only()` does not roll back connectome materialization.
   Recruitment, not plasticity, is the channel by which measuring changes the
   measured.
 - **`#50`** multi-source areas and the deferred-init bug.
+- **NEW, found by the `#53` investigation and squarely in this family:** the
+  torch engine has no equivalent of numpy's `_init_deferred_area_srcs`
+  (`numpy_engine/_sparse.py:868`, called from all three exits of
+  `project_into`). A source area whose block into the target has never been
+  sized contributes nothing and is never given a Bernoulli(p) block — so it can
+  **never** contribute on any later round either. Measured: after the entire
+  reciprocal protocol, torch's `B→A` CSRConn is `_nrows=0, _ncols=0,
+  val.sum()=0.0`. That is precisely "when does a synapse exist, and who brings
+  it into being".
 
 Tracked as one task, **`#69`**.
 
@@ -148,14 +167,40 @@ needs one invariance test: sweep a parameter that MUST matter and show the
 number moves. Zero variance across a wide range is the sealed-area signature,
 and we have now seen a sealed area score *better* than a correct one.
 
-| Claim | Recorded | Source |
+**DONE 2026-07-30 (`#66`). Four of six do not survive.**
+
+| Claim | Verdict | The measurement that decided it |
 |---|---|---|
-| Q20 reactivation fidelity | **1.000 ± 0.000** across 2–8 stimuli | `open_questions.md`, a *Critical Discovery* |
-| Q12 retrieval accuracy | 1.000, no early-vs-late degradation | `open_questions.md` |
-| gating role binding | 1.000 gated / 0.000 ungated | memory `gating-is-load-bearing-for-binding` |
-| composition depth 3 | flat 1.0000 on shared areas | memory `composition-amplifies-overlap` |
-| lexicon 256 words | acc 1.0000 in n=1000 | memory `recurrence-is-the-collapse-channel` |
-| role retrieval | 1.000 | memory `role-retrieval-works-key-retracted` |
+| Q20 reactivation | **DEAD PROBE** | β=0.0/1 round gives bit-identical assemblies to β=0.10/30 rounds |
+| Q12 retrieval | **DEAD PROBE** | same protocol, same cause |
+| lexicon 256 words | **VOID** as a memory result | still 1.0000 at β=0.00, i.e. with nothing stored |
+| composition depth 3 | **DEGENERATE** | permuted partners score 1.0000, identical to matched |
+| gating role binding | SOUND, **over-titled** | `multi` passes at β=0; sentence read == word-alone read |
+| role retrieval | SOUND readout, saturated metric | β=0 null also 1.0000 to α=13.9 |
+
+**The shared cause of the first three: one private stimulus fiber per item into
+an `explicit=True` area.** Items never compete, so no item can write into
+another's synapses; the winner set is fixed from round 1 and independent of β.
+A positive control with a real coupling channel, using the *same metric code*,
+degrades to 0.9237 by M=64 — the harness can move, the protocol has no
+interference channel. Swapping M private fibers for ONE shared fiber breaks the
+lexicon result (0.8672 at M=128).
+
+**The lexicon/capacity contradiction dissolves rather than resolving.** α*≈1.15
+is a depth-5 *shared-fiber* quantity, not an area constant. Crowding requires a
+shared fiber **and** plasticity; neither claim was wrong about its own regime.
+
+**What survives and is stronger than recorded:** the gating 1/S law holds
+exactly across S=2,3,5,8, and β buys capacity under load (M=256: 0.5994 at β=0
+vs 1.0000 at β=0.10). The depth line (`#46`) also survives — `depth_beta_rescue`
+at M=32/depth-8 shows a genuine interior optimum, 0.6250 → **0.9688** → 0.7292
+across β = 0 / 0.10 / 0.20. The M=16/depth-3 cell is simply too easy to show it,
+which is exactly why it read flat.
+
+**A rule this cost us.** *Shared areas make the degenerate solution unscoreable*
+was argued from architecture and never measured. It is false: the cascade is
+deterministic given the leaf, so the leaf key alone selects correctly at every
+level. **Cue-independence must be measured, not argued.**
 
 **3.2 — Seed counts on "Completed" entries.** `open_questions.md` marks nine
 questions Completed. Q03 is Completed at `R²=0.601, p=0.070` — a null labelled
