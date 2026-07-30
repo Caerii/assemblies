@@ -13,7 +13,16 @@ Every assertion below cites the specific claim it encodes:
              research/literature/papers/papadimitriou2020_pnas.pdf
     [HOFF26] Hoff et al. (2026), E%-WTA. Eq. 10/11 for assembly density.
              research/literature/papers/hoff2026_epwta.pdf
-    [NEMOREF] .reference/mdabagia-nemo/brain.py -- the reference implementation.
+    [NEMOREF] .reference/mdabagia-nemo/brain.py -- the NEMO reference.
+    [ACREF]  .reference/dmitropolsky-assemblies -- the canonical Python AC
+             implementation, and the ground truth for the primitives here.
+    [COIN24] Dabagia, Papadimitriou & Vempala (2024), arXiv:2406.07715.
+             Sec. 2 supplies the definition of an assembly used throughout.
+
+These tags are not free-form: each resolves to a ``cite_tag`` in
+``research/literature/index.json``, which holds the full reference and a
+local PDF where one is checked in. ``test_literature_index.py`` fails if a
+tag cited anywhere in the tree has no entry.
 
 WHY THESE TESTS DID NOT EXIST BEFORE, and why that mattered: the library's
 higher-level machinery (parser, roles, FSM, PFA coin, next-token) is built on

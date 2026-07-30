@@ -20,7 +20,7 @@ The five primitives of the calculus, and where they are implemented:
     merge             :func:`merge`             two assemblies -> one conjunct
     pattern_complete  :func:`pattern_complete`  partial cue -> full assembly
 
-plus the sequence extension of Dabagia et al. (:func:`sequence_memorize` /
+plus the sequence extension of [SEQ25] (:func:`sequence_memorize` /
 :func:`ordered_recall`), which needs long-range inhibition (a refractory
 period) to break the attractor that the other operations rely on.
 
@@ -45,8 +45,14 @@ All functions:
 - Accept ``rounds`` for stabilization control
 
 Reference:
-    Papadimitriou, Vempala, Mitropolsky, Collins, Maass.
+    [PNAS20] Papadimitriou, Vempala, Mitropolsky, Collins, Maass.
     "Brain Computation by Assemblies of Neurons." PNAS 117(25), 2020.
+
+Bracketed tags such as [PNAS20] / [COIN24] / [SEQ25] / [ACREF] are citation
+keys resolving against ``research/literature/index.json`` (field ``cite_tag``),
+which carries the full reference and a local PDF path where one is checked in.
+``tests/test_literature_index.py`` fails if a tag used here has no entry, so a
+citation cannot quietly become a dead string.
 """
 
 import random
@@ -319,8 +325,10 @@ def project(brain, stimulus, target, rounds=10, recurrent=False) -> Assembly:
     ``Brain(recurrent_projection=True)``, which itself defaults False -- so by
     default this function runs stimulus-only on every round, with no
     ``target -> target`` recurrence at all. What that builds is not an assembly
-    in the defining sense (Dabagia et al. 2024: k neurons whose INTERNAL weights
-    have been strengthened).
+    in the defining sense: [COIN24] §2 defines an assembly as "sets of k neurons
+    in a single brain area ... when the internal synaptic weights of the set have
+    been suf[f]iciently strengthened", and stimulus-only projection strengthens
+    no internal weight at all.
 
     The default is kept WRONG on purpose. The repository -- goldens, the parser,
     and ~40 tests -- is calibrated on the stimulus-only path; flipping it is a
@@ -507,7 +515,7 @@ def reciprocal_project(brain, source, target, rounds=10, *,
                        fix_source=True) -> Assembly:
     """Project source into target, and train the RETURN path while doing it.
 
-    Protocol (the reference's, ``simulations.fixed_assembly_recip_proj``)::
+    Protocol (the reference's [ACREF], ``simulations.fixed_assembly_recip_proj``)::
 
         source is held fixed
         1. source → target                                        (feed-forward)
@@ -530,7 +538,7 @@ def reciprocal_project(brain, source, target, rounds=10, *,
     fixed alongside this function, which is why adding the edge alone was not
     enough.)
 
-    MEASURED. Restoration overlap after projecting back, at
+    MEASURED against [ACREF]. Restoration overlap after projecting back, at
     ``tests/test_assembly_calculus.py``'s parameters (n=1e4, k=100, p=0.05,
     beta=0.1, rounds=10) -- reference implementation 0.75, this function 0.00
     before the fix. At the reference's own defaults (n=1e5, k=317, p=0.01,
@@ -664,8 +672,8 @@ def _associate_body(brain, source_a, source_b, target,
     ``Brain(recurrent_projection=True)``, so the ``target: [target]`` entry
     every phase below passes it was SILENTLY DROPPED -- the argument was
     accepted and discarded. An assembly is defined by its strengthened internal
-    weights (Dabagia 2024), so removing target recurrence removes the thing
-    being built, and the co-fired winners of phase 3 never consolidate.
+    weights ([COIN24] §2), so removing target recurrence removes the thing being
+    built, and the co-fired winners of phase 3 never consolidate.
 
     MEASURED at n=1e4, k=100, p=0.05, beta=0.1, rounds=10, over 5 seeds, as
     post-association overlap between the assembly cued by source_a alone and the
@@ -1078,7 +1086,13 @@ def _reset_recurrent(brain, area_name):
 
 
 # ---------------------------------------------------------------------------
-# Sequence operations (Dabagia et al. 2024)
+# Sequence operations [SEQ25]
+#
+# NOTE the citation tags: this file refers to two different Dabagia et al.
+# papers, and both used to read "Dabagia et al. 2024".
+#   [SEQ25]  sequences -- Neural Computation 2025, ALT 2024, arXiv:2306.03812
+#   [COIN24] the assembly DEFINITION quoted above -- arXiv:2406.07715 (2024)
+# Tags resolve against research/literature/index.json; see validate_index.py.
 # ---------------------------------------------------------------------------
 
 from .sequence import Sequence

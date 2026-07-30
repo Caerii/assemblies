@@ -13,6 +13,7 @@
     {
       "id": "ref_dmitropolsky_assemblies",
       "name": "dmitropolsky/assemblies",
+      "cite_tag": "ACREF",
       "url": "https://github.com/dmitropolsky/assemblies",
       "local_path": ".reference/dmitropolsky-assemblies",
       "role": "canonical_python",
@@ -21,6 +22,7 @@
     {
       "id": "ref_mdabagia_nemo",
       "name": "mdabagia/nemo",
+      "cite_tag": "NEMOREF",
       "url": "https://github.com/mdabagia/nemo",
       "local_path": ".reference/mdabagia-nemo",
       "role": "nemo_demos",
@@ -29,6 +31,7 @@
     {
       "id": "ref_mdabagia_colt2022",
       "name": "mdabagia/learning-with-assemblies",
+      "cite_tag": "COLTREF",
       "url": "https://github.com/mdabagia/learning-with-assemblies",
       "local_path": ".reference/mdabagia-learning-with-assemblies",
       "role": "colt2022_official",
@@ -37,6 +40,7 @@
     {
       "id": "ref_mdabagia_santosh_hebbian",
       "name": "mdabagia/SantoshHebbian",
+      "cite_tag": "HEBBREF",
       "url": "https://github.com/mdabagia/SantoshHebbian",
       "local_path": ".reference/mdabagia-SantoshHebbian",
       "role": "convergence_research",
@@ -45,6 +49,7 @@
     {
       "id": "ref_assemblycalculus_jl",
       "name": "AssemblyCalculus.jl",
+      "cite_tag": "JLREF",
       "url": "https://github.com/djpasseyjr/AssemblyCalculus.jl",
       "role": "fast_julia",
       "notes": "Speed-focused reimplementation; assembly capacity experiments"
@@ -52,6 +57,7 @@
     {
       "id": "ref_this_repo",
       "name": "Caerii/assemblies (this repo)",
+      "cite_tag": "THISREPO",
       "url": "https://github.com/Caerii/assemblies",
       "role": "extended_platform",
       "notes": "neural_assemblies package, GPU, EmergentParser, research program"
@@ -66,7 +72,9 @@
       "authors": ["Papadimitriou, C. H.", "Vempala, S. S."],
       "venue": "ITCS 2019",
       "bibkey": "papadimitriou2019random",
+      "cite_tag": "ITCS19",
       "urls": {
+        "local_pdf": "research/literature/papers/papadimitriou2019_itcs.pdf",
         "doi": "https://doi.org/10.4230/LIPIcs.ITCS.2019.57",
         "pdf": "https://faculty.cc.gatech.edu/~vempala/papers/assemblies.pdf"
       },
@@ -83,6 +91,7 @@
       "authors": ["Papadimitriou, C. H."],
       "venue": "CCNeuro proceedings",
       "bibkey": "papadimitriou2019ccneuro",
+      "cite_tag": "CALC19",
       "urls": {
         "pdf": "https://ccneuro.org/2019/proceedings/0000998.pdf"
       },
@@ -99,7 +108,9 @@
       "authors": ["Papadimitriou, C. H.", "Vempala, S. S.", "Mitropolsky, D.", "Collins, M.", "Maass, W."],
       "venue": "PNAS",
       "bibkey": "papadimitriou2020brain",
+      "cite_tag": "PNAS20",
       "urls": {
+        "local_pdf": "research/literature/papers/papadimitriou2020_pnas.pdf",
         "doi": "https://doi.org/10.1073/pnas.2001893117"
       },
       "mechanisms": ["project", "reciprocal_project", "associate", "merge", "pattern_complete", "separate"],
@@ -118,7 +129,9 @@
       "authors": ["Dabagia, M.", "Vempala, S. S.", "Papadimitriou, C. H."],
       "venue": "COLT 2022",
       "bibkey": "dabagia2022classify",
+      "cite_tag": "COLT22",
       "urls": {
+        "local_pdf": "research/literature/papers/dabagia2022_colt.pdf",
         "arxiv": "https://arxiv.org/abs/2110.03171",
         "pmlr": "https://proceedings.mlr.press/v178/dabagia22a.html"
       },
@@ -140,7 +153,9 @@
       "authors": ["Dabagia, M.", "Papadimitriou, C. H.", "Vempala, S. S."],
       "venue": "Neural Computation / ALT 2024 / arXiv:2306.03812",
       "bibkey": "dabagia2025sequences",
+      "cite_tag": "SEQ25",
       "urls": {
+        "local_pdf": "research/literature/papers/dabagia2025_sequences.pdf",
         "arxiv": "https://arxiv.org/abs/2306.03812",
         "alt": "https://proceedings.mlr.press/v237/dabagia24a.html"
       },
@@ -168,7 +183,9 @@
       "authors": ["Mitropolsky, D.", "Collins, M. J.", "Papadimitriou, C. H."],
       "venue": "TACL",
       "bibkey": "mitropolsky2021parser",
+      "cite_tag": "TACL21",
       "urls": {
+        "local_pdf": "research/literature/papers/mitropolsky2021_tacl.pdf",
         "doi": "https://doi.org/10.1162/tacl_a_00432",
         "arxiv": "https://arxiv.org/abs/2108.02189",
         "acl": "https://aclanthology.org/2021.tacl-1.81/"
@@ -198,6 +215,7 @@
       "authors": ["Mitropolsky, D.", "Ejaz, A.", "Shi, M.", "Yannakakis, M.", "Papadimitriou, C. H."],
       "venue": "NALOMA III / arXiv:2206.13217",
       "bibkey": "mitropolsky2022center",
+      "cite_tag": "CENTER22",
       "urls": {
         "arxiv": "https://arxiv.org/abs/2206.13217",
         "acl": "https://aclanthology.org/2022.naloma-1.4/"
@@ -222,6 +240,7 @@
       "authors": ["d'Amore, F.", "Mitropolsky, D.", "Crescenzi, P.", "Natale, E.", "Papadimitriou, C. H."],
       "venue": "AAAI 2022",
       "bibkey": "damore2022planning",
+      "cite_tag": "PLAN22",
       "urls": {
         "doi": "https://doi.org/10.1609/aaai.v36i1.19875",
         "arxiv": "https://arxiv.org/abs/2112.08186"
@@ -245,6 +264,7 @@
       "authors": ["Mitropolsky, D.", "Papadimitriou, C. H."],
       "venue": "arXiv:2306.15364",
       "bibkey": "mitropolsky2023architecture",
+      "cite_tag": "ARCH23",
       "urls": {
         "arxiv": "https://arxiv.org/abs/2306.15364"
       },
@@ -265,7 +285,9 @@
       "authors": ["Dabagia, M.", "Mitropolsky, D.", "Papadimitriou, C. H.", "Vempala, S. S."],
       "venue": "arXiv:2406.07715",
       "bibkey": "dabagia2024coinflipping",
+      "cite_tag": "COIN24",
       "urls": {
+        "local_pdf": "research/literature/papers/dabagia2024_coinflipping.pdf",
         "arxiv": "https://arxiv.org/abs/2406.07715",
         "demo": "http://dabagia.org/nemo/coinflipping/"
       },
@@ -292,7 +314,9 @@
       "authors": ["Mitropolsky, D.", "Papadimitriou, C. H."],
       "venue": "arXiv:2507.11788",
       "bibkey": "mitropolsky2025simulated",
+      "cite_tag": "ACQ25",
       "urls": {
+        "local_pdf": "research/literature/papers/mitropolsky2025_acquisition.pdf",
         "arxiv": "https://arxiv.org/abs/2507.11788",
         "doi": "https://doi.org/10.48550/arXiv.2507.11788"
       },
@@ -324,6 +348,7 @@
       "authors": ["Onasch, S.", "Miehl, C.", "Miękus, M. M.", "Gjorgjieva, J."],
       "venue": "bioRxiv",
       "bibkey": "onasch2025dendritic",
+      "cite_tag": "DEND25",
       "urls": {
         "doi": "https://doi.org/10.1101/2025.07.22.666089",
         "biorxiv": "https://www.biorxiv.org/content/10.1101/2025.07.22.666089v1"
@@ -341,7 +366,9 @@
       "authors": ["Hoff, L.", "Soroka, G.", "Guimarães, M.", "Villavicencio, A.", "Idiart, M."],
       "venue": "arXiv:2603.12416",
       "bibkey": "hoff2026epwta",
+      "cite_tag": "HOFF26",
       "urls": {
+        "local_pdf": "research/literature/papers/hoff2026_epwta.pdf",
         "arxiv": "https://arxiv.org/abs/2603.12416",
         "doi": "https://doi.org/10.48550/arXiv.2603.12416"
       },
@@ -368,7 +395,9 @@
       "authors": ["Ting, T. V.", "Sethu, V.", "Dang, A."],
       "venue": "arXiv:2603.16923",
       "bibkey": "ting2026speech",
+      "cite_tag": "SPEECH26",
       "urls": {
+        "local_pdf": "research/literature/papers/ting2026_speech.pdf",
         "arxiv": "https://arxiv.org/abs/2603.16923",
         "doi": "https://doi.org/10.48550/arXiv.2603.16923"
       },
@@ -394,7 +423,9 @@
       "authors": ["Kopadi, E.", "Kalles, D."],
       "venue": "arXiv:2604.26919",
       "bibkey": "kopadi2026causal",
+      "cite_tag": "CAUSAL26",
       "urls": {
+        "local_pdf": "research/literature/papers/kopadi2026_direct.pdf",
         "arxiv": "https://arxiv.org/abs/2604.26919"
       },
       "mechanisms": ["DIRECT", "directional_binding", "synaptic_asymmetry", "do_calculus_validation"],

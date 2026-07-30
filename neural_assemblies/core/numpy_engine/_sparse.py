@@ -65,7 +65,8 @@ def _fixed_target_plasticity_enabled() -> bool:
     ON by default, because this is what the reference implementation does and
     the divergence was silently breaking its central idiom.
 
-    ``.reference/dmitropolsky-assemblies/brain.py`` handles a fixed target by
+    [ACREF] (``.reference/dmitropolsky-assemblies/brain.py``) handles a fixed
+    target by
     pinning the winners and skipping recruitment::
 
         if target_area.fixed_assembly:
