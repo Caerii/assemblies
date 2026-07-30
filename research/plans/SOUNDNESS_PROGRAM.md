@@ -56,17 +56,38 @@ be read at a glance, and every change has to be hand-diffed against a baseline.
 - `test_parity_infrastructure::test_inprocess_verify[pnas2020_reciprocal]`
 - `test_torch_parity::TestReciprocalParity::test_reciprocal_recovers[numpy_sparse]`
 
-One root cause. Note the task's own description is **stale**: it records "~0.77x
-the reference", but the measured value is 0.1875 against a 0.6 floor. It is on a
-CLEAN path per the exposure sweep, so it is not the pricing bugs. Torch passes
-the same assertion numpy fails — that asymmetry is the lead.
+**INVESTIGATED 2026-07-30. The threshold is wrong, not only the code — and my
+"torch passes where numpy fails" framing was backwards.**
 
-**0.2 — The ERP calibration pair.**
-- `test_erp_calibration::test_calibration_separates_category_violation_from_grammatical`
-- `test_erp_calibration::test_fast_calibration_preserves_separation`
+Torch does not pass; **it measures nothing.** Its `B→A` block is never
+materialized (`_nrows=0, _ncols=0, val.sum()=0.0`) after the whole protocol, so
+the back-projection hits "zero signal → preserve current assembly" and A's
+winners never move — reading exactly 1.0000 on 3/3 seeds. numpy is the honest
+engine and its 0.1875 is real.
 
-Triage: fold into `#32` (P600 root cause: saturated metric + `frozen()` probe
-contamination) or file separately. Do not assume; check.
+**The 0.6 floor is not achievable by the REFERENCE either** at these parameters:
+`.reference/dmitropolsky-assemblies` over 8 seeds gives **0.5875 ± 0.1047**
+(max 0.790). The floor traces to a single-seed reading of 0.740 in an `ops.py`
+docstring, and the golden's own recorded 1.0 is the dead-fiber artifact.
+
+Our shortfall against that 0.5875 has two measured levers, both parameter
+choices rather than defects: `ops.project` defaults `recurrent=False`, so the
+`A→A` fiber the recovery phase relies on is never trained (0.2062 → 0.3350 when
+enabled); and β=0.1 over T=10 gives `(1.1)^10 = 2.59`, below the norm_init
+retention threshold. At **β=0.2** the golden protocol reaches **0.7453 ± 0.0380**
+with a live scramble control at 0.1938.
+
+So the fix is a re-derivation, not a patch: set the threshold from a
+multi-seed reference distribution, and state the β/recurrence regime the claim
+holds in. Do not simply lower the floor to whatever we currently produce.
+
+**0.2 — The ERP calibration pair. ✅ DONE (`#64`, `6222266`).** Neither of the
+three hypotheses I offered was the cause. `anchored_p600_live` built a source
+set whose *size* was conditioned on the grammatical/violation distinction, so
+the violation arm fired one extra trained source. Cohen's d **−2.4 → +1.9**,
+3/3 green, ERP surface 13/13. Same family as `#23` (both arms must be matched)
+but a distinct instance: there it was the *area*, here the *number of summed
+sources*, which area-matching cannot catch.
 
 **0.3 — `test_cuda_kernels.py`.** `#40`, 9 of 15 fail against a refactored
 engine. Port it or delete it.
@@ -87,16 +108,32 @@ stating what was verified. Do not silently `rm` tracked code.
 
 Measurement precision gates every number in phases 2–5.
 
-**1.1 — torch_sparse is not reproducible across processes.** Same cell at fixed
-`seed=1` read `w=484, 514, 506` on three runs (`#62`). Until closed, no
-cross-engine difference below ~10% is readable at all.
+**1.1 — ✅ DONE (`#65`, `6ca3c7c`).** Both torch candidate samplers took an
+`rng: np.random.Generator` and drew from torch's **process-global** stream
+anyway — `_sample_truncated_normal_gpu` declared the parameter and never
+referenced it; `_sample_dense_candidates` used it only on the `_deterministic`
+branch. Before: `w` = 484 / 514 / 506 at a fixed seed. After: bit-identical
+across three processes.
+
+My prime suspect was `scatter_add_` float nondeterminism — real, on both hot
+paths, and **ruled out by measurement.** The same defect exists in the external
+reference for the same reason (`brain.py:414` calls `truncnorm.rvs` with no
+`random_state=`).
+
+`test_cross_process_determinism.py` spawns subprocesses, varies
+`PYTHONHASHSEED` deliberately, and asserts winner *identities* rather than
+counts. True negative verified: it fails at `w=512` vs `484` on the pre-fix
+engine.
+
+This unblocked `#62`, which now reads 154 vs 478, stable across three processes.
 
 **1.2 — `#60`** `test_reference_separate_near_chance` flips xpassed/xfailed.
+Shares this mechanism per the investigation; re-check and close if stable.
 
-This repo has been bitten three times by this exact class — `PYTHONHASHSEED`
-seeds derived from `hash()`, the global RNG leak between constructions, and now
-this. Fix the mechanism, not the instance: there should be one seeding path with
-a test that asserts cross-process identity, not per-site patches.
+This class had bitten three times before this fix — `PYTHONHASHSEED` seeds
+derived from `hash()`, the global RNG leak between constructions, CUDA's
+non-Bernoulli init. **No in-process test can catch any of them**, which is the
+durable lesson: the test must fork.
 
 ---
 
