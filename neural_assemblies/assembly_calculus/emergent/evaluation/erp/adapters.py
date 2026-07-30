@@ -174,15 +174,25 @@ def anchored_p600_live(
     if core_area not in brain.areas or role_area not in brain.areas:
         return 0.0
 
+    # THE SOURCE SET MUST NOT DEPEND ON THE CONTRAST BEING MEASURED.
+    #
+    # This previously appended `subject_core` under the guard
+    # `subject_core != core_area`. That condition IS the grammatical/violation
+    # distinction: on a grammatical pairing the probed core IS the subject's
+    # core, so nothing was appended; on a category violation the wrongly-typed
+    # core differs from the subject's, so one EXTRA trained source fired. The
+    # violation arm was therefore summing drive from more trained pathways than
+    # the grammatical arm, and that surplus outweighed and REVERSED the effect
+    # the metric exists to measure -- Cohen's d -2.4 where +1.9 was expected.
+    #
+    # It is the same family as the sign inversion fixed in #23 (the two arms
+    # measured different AREAS) but a distinct instance: here the arms measure
+    # the same area with a different NUMBER OF SUMMED SOURCES. Area-matching
+    # alone does not catch it, which is why it survived that fix.
+    #
+    # `subject_core` is kept in the signature for call-site compatibility and is
+    # deliberately unused: any re-introduction must fire it in BOTH arms.
     sources = [core_area]
-    if (
-        subject_core
-        and subject_core != core_area
-        and subject_core in brain.areas
-        and brain.areas[subject_core].winners is not None
-        and len(brain.areas[subject_core].winners) > 0
-    ):
-        sources.append(subject_core)
     if (
         NUMBER in brain.areas
         and brain.areas[NUMBER].winners is not None
