@@ -38,12 +38,40 @@ here; anything else falls through ``__array__`` to a dense copy, which is
 correct but defeats the point, so it is logged rather than silent.
 """
 
+from typing import Any
+
 import numpy as np
 
-try:
-    import scipy.sparse as sp
-except ImportError:                     # pragma: no cover
-    sp = None
+# Sentinel: None = not yet attempted, False = attempted and unavailable.
+# `False` rather than a re-try so a missing scipy costs one failed import.
+_sp: Any = None
+
+
+def scipy_sparse() -> Any:
+    """``scipy.sparse``, imported ON FIRST USE rather than at import time.
+
+    Importing it eagerly was measured at 0.7s warm / 2.5s cold and 429 extra
+    modules, paid by EVERY process that merely constructs a ``Brain`` --
+    ``_sparse.py`` imports this module, so the cost landed on runs that never
+    materialise an area and never touch CSR at all. It also drags in scipy's
+    ``array_api_compat``, which does ``exec("from numpy import *")``; that
+    resolves ``np.testing``, which calls ``platform.machine()``, which issues a
+    **WMI query** on Windows. On a 48-word lexicon build the whole import chain
+    was 1.5s against 132ms of actual projection work.
+
+    CSR is only reachable through ``materialize_area`` and ``_csr_row_sum``, so
+    the cost belongs at those call sites. Returns None when scipy is absent;
+    every caller already has a dense fallback.
+    """
+    global _sp
+    if _sp is None:
+        try:
+            import scipy.sparse as sp
+        except ImportError:             # pragma: no cover
+            _sp = False
+        else:
+            _sp = sp
+    return _sp or None
 
 
 class CSRWeights:
@@ -58,6 +86,7 @@ class CSRWeights:
     __slots__ = ("_m", "_colmap", "_densified")
 
     def __init__(self, matrix):
+        sp = scipy_sparse()
         if sp is None:                  # pragma: no cover
             raise RuntimeError("CSRWeights needs scipy.sparse")
         m = matrix if sp.isspmatrix_csr(matrix) else sp.csr_matrix(matrix)
@@ -206,6 +235,7 @@ def build_csr_from_blocks(n_rows, n_cols, block_fn, rows_per_chunk=1024):
     ``n=16,000`` -- which is the actual wall a bigger ladder hits. Here the
     peak is one chunk plus the finished CSR.
     """
+    sp = scipy_sparse()
     if sp is None:                      # pragma: no cover
         raise RuntimeError("build_csr_from_blocks needs scipy.sparse")
     rows_all, cols_all, vals_all = [], [], []

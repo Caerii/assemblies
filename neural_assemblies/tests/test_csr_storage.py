@@ -24,7 +24,8 @@ from neural_assemblies.core.brain import Brain
 from neural_assemblies.core.numpy_engine import _csr_weights as CW
 from neural_assemblies.core.numpy_engine._csr_weights import CSRWeights
 
-pytestmark = pytest.mark.skipif(CW.sp is None, reason="scipy not installed")
+pytestmark = pytest.mark.skipif(CW.scipy_sparse() is None,
+                                reason="scipy not installed")
 
 N, K, P, BETA = 1200, 120, 0.05, 1.0
 

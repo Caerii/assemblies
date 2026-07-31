@@ -13,10 +13,10 @@ import numpy as np
 from typing import Dict, List
 from collections import defaultdict
 
-try:                                    # optional: CSR mirrors for the drive
-    import scipy.sparse as sp           # read path (see `_csr_row_sum`)
-except ImportError:                     # pragma: no cover - falls back to dense
-    sp = None
+# `scipy.sparse` is imported ON FIRST USE via `scipy_sparse()`, not here --
+# importing it at module scope charged every process that merely constructs a
+# Brain ~0.7s and 429 modules for a code path most runs never reach. See
+# `_csr_weights.scipy_sparse` for the measurement.
 
 def _csr_storage_available() -> bool:
     """CSR storage needs scipy AND a numpy-backed engine.
@@ -30,10 +30,13 @@ def _csr_storage_available() -> bool:
     path correct either way rather than raising a confusing
     "Implicit conversion to a NumPy array is not allowed" from deep inside a
     chunked build.
+
+    Checking the backend FIRST also keeps the lazy scipy import off the CuPy
+    path entirely: a GPU run never pays for a module it could not use.
     """
-    if sp is None:
+    if get_xp() is not np:
         return False
-    return get_xp() is np
+    return scipy_sparse() is not None
 
 
 # A CSR mirror costs one dense pass to build and is amortised over every
@@ -62,7 +65,7 @@ except ImportError:
     from compute.winner_policies import TopKPolicy
 
 from ._state import SparseAreaState, StimulusState
-from ._csr_weights import CSRWeights, build_csr_from_blocks
+from ._csr_weights import CSRWeights, build_csr_from_blocks, scipy_sparse
 from ._seeding import (
     fnv1a_pair_seed,
     hash_area_weights,
@@ -676,7 +679,7 @@ class NumpySparseEngine(ComputeEngine):
             dens = float(np.count_nonzero(w)) / max(w.size, 1)
             if dens > _CSR_MAX_DENSITY:
                 return None
-            entry = (sp.csr_matrix(w), id(w), w.shape)
+            entry = (scipy_sparse().csr_matrix(w), id(w), w.shape)
             self._csr_drive[key] = entry
         csr = entry[0]
         out = np.asarray(csr[rows].sum(axis=0)).ravel()
