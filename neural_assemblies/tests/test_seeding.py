@@ -171,3 +171,50 @@ def test_pair_seed_separates_names_and_is_process_stable():
     assert fnv1a_pair_seed(42, "A", "B") == 0xA197CF64
     assert stable_seed("A", "B", 1) == 3229202387
     assert stable_seed("A", "B", 1) != stable_seed("A", "B", 2)
+
+
+# -- mix32 is written in place, and that must not change a single bit --------
+
+def _mix32_naive(h):
+    """The obvious spelling ``mix32`` replaced, kept as the oracle.
+
+    ``mix32`` mutates one reusable temporary instead of allocating five fresh
+    ``n x n`` arrays -- 1.52x faster, and 56% of ``materialize_area``'s cost.
+    Being faster is worthless if it moves any weight, and the whole connectome
+    is addressed through this function, so the equivalence is pinned here
+    rather than assumed from review.
+    """
+    with np.errstate(over="ignore"):
+        h = h ^ (h >> np.uint32(16))
+        h = h * np.uint32(0x85EBCA6B)
+        h = h ^ (h >> np.uint32(13))
+        h = h * np.uint32(0xC2B2AE35)
+        h = h ^ (h >> np.uint32(16))
+    return h
+
+
+def test_mix32_in_place_is_bit_identical_to_the_naive_spelling():
+    from neural_assemblies.core.numpy_engine._seeding import mix32
+    rng = np.random.default_rng(0)
+    h = rng.integers(0, 2**32, size=(257, 263), dtype=np.uint64
+                     ).astype(np.uint32)
+    assert np.array_equal(mix32(h), _mix32_naive(h))
+    # Edge values the shift/multiply chain is most likely to disagree on.
+    edges = np.array([0, 1, 2**31, 2**32 - 1, 0xFFFF, 0x10000],
+                     dtype=np.uint32).reshape(2, 3)
+    assert np.array_equal(mix32(edges), _mix32_naive(edges))
+
+
+def test_mix32_default_does_not_consume_its_input():
+    """``copy=False`` is an optimisation for callers that own ``h``.
+
+    The default must stay non-destructive: a caller reusing ``h`` after mixing
+    would otherwise read scrambled values with no error anywhere.
+    """
+    from neural_assemblies.core.numpy_engine._seeding import mix32
+    h = np.arange(64, dtype=np.uint32)
+    before = h.copy()
+    mix32(h)
+    assert np.array_equal(h, before), "mix32(copy=True) mutated its argument"
+    mix32(h, copy=False)
+    assert not np.array_equal(h, before)

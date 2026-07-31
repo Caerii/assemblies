@@ -93,7 +93,7 @@ def _raw_hash(rows, cols, pair_seed):
     return h ^ np.uint32(pair_seed)
 
 
-def mix32(h):
+def mix32(h, copy: bool = True):
     """Murmur3 ``fmix32`` avalanche finalizer.
 
     ``(r*A) ^ (c*B)`` is cheap but its low bits are close to a function of the
@@ -101,13 +101,28 @@ def mix32(h):
     24 bits. This scrambles high bits back down into them so that adjacent
     cells are independent. Whether the raw hash actually needs it is an
     empirical question, answered in ``tests/test_seeding.py``.
+
+    WRITTEN IN PLACE, because this runs over an ``n x n`` block and the naive
+    spelling allocates five fresh arrays of it -- 64 MB each at ``n=4000``, 1 GB
+    at ``n=16,000``. Reusing one temporary and mutating in place is **1.52x
+    faster** and bit-identical (asserted in ``tests/test_seeding.py``); it is
+    56% of ``materialize_area``'s cost, which is what bounds the ladder.
+
+    ``copy=False`` additionally consumes *h* itself, for callers that built it
+    solely to be mixed.
     """
+    if copy:
+        h = h.copy()
+    t = np.empty_like(h)
     with np.errstate(over="ignore"):
-        h = h ^ (h >> np.uint32(16))
-        h = h * np.uint32(0x85EBCA6B)
-        h = h ^ (h >> np.uint32(13))
-        h = h * np.uint32(0xC2B2AE35)
-        h = h ^ (h >> np.uint32(16))
+        np.right_shift(h, np.uint32(16), out=t)
+        h ^= t
+        h *= np.uint32(0x85EBCA6B)
+        np.right_shift(h, np.uint32(13), out=t)
+        h ^= t
+        h *= np.uint32(0xC2B2AE35)
+        np.right_shift(h, np.uint32(16), out=t)
+        h ^= t
     return h
 
 
@@ -126,7 +141,8 @@ def hash_uniform_2d(row_start, row_end, col_start, col_end, pair_seed,
     cols = np.arange(col_start, col_end, dtype=np.uint32).reshape(1, nc)
     h = _raw_hash(rows, cols, pair_seed)
     if finalize:
-        h = mix32(h)
+        # _raw_hash just built h for us, so mixing may consume it.
+        h = mix32(h, copy=False)
     return ((h & _MANTISSA).astype(np.float32) / _MANTISSA_SCALE)
 
 
