@@ -34,9 +34,39 @@ path so the default numpy engine can share it rather than reimplement it.
 
 from __future__ import annotations
 
+import os
 import zlib
 
 import numpy as np
+
+# -- optional Rust accelerator ---------------------------------------------
+#
+# `crates/na-kernels` computes the blocks below in one pass, with no
+# temporaries, across all cores. Measured 8-32x depending on block shape, and
+# BYTE-IDENTICAL -- which is a property of the computation rather than of the
+# tuning: it is exact u32 arithmetic with wrapping multiplies, and the one
+# float step (`m / 2^24` for integer m < 2^24) is exactly representable in f32.
+# `tests/test_rust_kernels.py` asserts the equality rather than assuming it.
+#
+# THE NUMPY CODE BELOW REMAINS THE SPECIFICATION. The extension is optional at
+# every level: absent, unbuildable, or disabled by
+# NEURAL_ASSEMBLIES_NO_RUST=1, everything still runs and produces the same
+# numbers -- just slower.
+try:
+    import na_kernels as _rust
+except ImportError:                     # pragma: no cover - accelerator absent
+    _rust = None
+
+
+def rust_kernels():
+    """The accelerator module, or None. Checked per call, not per import.
+
+    The env var is read here rather than cached so a test can toggle it and
+    A/B the two implementations inside one process.
+    """
+    if _rust is None or os.environ.get("NEURAL_ASSEMBLIES_NO_RUST", "0") != "0":
+        return None
+    return _rust
 
 # Salt distinguishing the presence draw from the inhibitory draw for the same
 # (row, col). Without it both would hash identically and every present synapse
@@ -165,6 +195,13 @@ def hash_area_weights(row_start, row_end, col_start, col_end, pair_seed,
     otherwise -- the same two-draw structure as the streamed version, with the
     second draw salted so it is independent of the first.
     """
+    rust = rust_kernels()
+    if rust is not None:
+        return rust.area_weights_block(
+            int(row_start), int(row_end), int(col_start), int(col_end),
+            int(pair_seed) & 0xFFFFFFFF, float(p),
+            float(inhibitory_prob), float(inhibitory_weight), bool(finalize),
+        )
     present = hash_bernoulli_2d(row_start, row_end, col_start, col_end,
                                 pair_seed, p, finalize=finalize)
     if inhibitory_prob <= 0.0:
@@ -190,6 +227,14 @@ def hash_stim_counts(stim_size: int, neuron_start: int, neuron_end: int,
     n = int(neuron_end - neuron_start)
     if n <= 0 or stim_size <= 0:
         return np.zeros(max(n, 0), dtype=np.float32)
+    rust = rust_kernels()
+    if rust is not None:
+        # Rust fuses the count into the hash loop, so nothing
+        # O(stim_size * n) is allocated and the chunking below is moot.
+        return rust.stim_counts(
+            int(stim_size), int(neuron_start), int(neuron_end),
+            int(pair_seed) & 0xFFFFFFFF, float(p), bool(finalize),
+        )
     out = np.zeros(n, dtype=np.float32)
     neurons = np.arange(neuron_start, neuron_end, dtype=np.uint32).reshape(1, n)
     for start in range(0, int(stim_size), chunk):

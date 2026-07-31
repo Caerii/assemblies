@@ -149,6 +149,18 @@ Optional notebook and interactive visualization dependencies:
 uv sync --group notebooks
 ```
 
+Optional Rust kernels — they make `materialize_area` 21-42x faster (n=32,000
+drops from 23.1s to 0.54s) and are byte-identical to the numpy path, which
+stays the specification. Needs a Rust toolchain; everything runs without them.
+
+```bash
+cargo build --release --manifest-path crates/Cargo.toml -p na-kernels
+python scripts/install_rust_kernels.py
+```
+
+See [docs/RUST_KERNELS.md](docs/RUST_KERNELS.md), including why bit-identity is
+a guarantee here rather than a hope.
+
 The import name is always `neural_assemblies`.
 
 ## Quick Start

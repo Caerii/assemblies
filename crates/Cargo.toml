@@ -1,3 +1,12 @@
 [workspace]
-members = ["assembly-ir"]
+members = ["assembly-ir", "na-kernels"]
 resolver = "2"
+
+# The kernels are memory-bandwidth-bound integer loops. Cross-crate LTO and a
+# single codegen unit let LLVM inline and vectorize them properly. Kept
+# portable: no `panic = "abort"` (incompatible with a PyO3 cdylib) and no
+# `target-cpu=native` (that would make a built wheel non-redistributable).
+[profile.release]
+opt-level = 3
+lto = "thin"
+codegen-units = 1

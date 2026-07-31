@@ -69,6 +69,7 @@ from ._csr_weights import CSRWeights, build_csr_from_blocks, scipy_sparse
 from ._seeding import (
     fnv1a_pair_seed,
     hash_area_weights,
+    rust_kernels,
     stable_seed,
 )
 
@@ -613,7 +614,33 @@ class NumpySparseEngine(ComputeEngine):
                 out[:rr - r0, :pc] = prev_dense[r0:rr, :pc]
             return out
 
-        conn.weights = build_csr_from_blocks(n, n, block_fn)
+        # The Rust kernel emits CSR triplets directly, so the fresh rows never
+        # exist densely even one chunk at a time. Only rows below `pr` carry
+        # trained content and need the dense overlay, and `pr` is the area's
+        # pre-materialisation `w` -- a few hundred against an `n` of tens of
+        # thousands. Restricted to the content-addressed initialiser because
+        # the legacy branch draws from the shared RNG stream, which a
+        # positionally-addressed kernel cannot reproduce.
+        rust = rust_kernels()
+        if rust is not None and self._content_init:
+            sp = scipy_sparse()
+            seed = int(self._pair_seed(area, area)) & 0xFFFFFFFF
+            parts = []
+            if pr > 0:
+                parts.append(sp.csr_matrix(block_fn(0, min(pr, n))))
+            if n > pr:
+                indptr, indices, data = rust.area_weights_csr_rows(
+                    pr, n, n, seed, float(self.p),
+                    float(self.inhibitory_prob),
+                    float(self.inhibitory_weight),
+                )
+                parts.append(sp.csr_matrix(
+                    (data, indices, indptr.astype(np.int32)),
+                    shape=(n - pr, n)))
+            conn.weights = CSRWeights(
+                sp.vstack(parts, format="csr") if len(parts) > 1 else parts[0])
+        else:
+            conn.weights = build_csr_from_blocks(n, n, block_fn)
         conn._log_rows, conn._log_cols = n, n
         # Rebuilt rather than patched: norm_init reads these, and CSRWeights
         # answers them natively (`column_nnz`) instead of scanning n^2 cells.
