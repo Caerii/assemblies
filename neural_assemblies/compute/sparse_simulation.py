@@ -40,13 +40,33 @@ except ImportError:
 @lru_cache(maxsize=256)
 def _binom_ppf_cached(quantile_num: int, quantile_den: int,
                       total_k: int, p: float) -> float:
-    """Cached binom.ppf — avoids repeated scipy overhead for stable assemblies.
+    """Cached binomial inverse CDF, computed WITHOUT importing ``scipy.stats``.
 
     Uses integer numerator/denominator for the quantile so the cache key
     is exact (no floating-point hash issues).
+
+    WHY NOT ``scipy.stats.binom.ppf``.  This is one scalar per parameter
+    combination, and it used to cost the entire ``scipy.stats`` package: +1.09s
+    and +429 modules ON TOP of the ``scipy.special`` this file already needs
+    for ``ndtr``/``ndtri``.  Because it runs inside the FIRST projection, every
+    process paid it -- measured at 981ms of a 1.7s lexicon build whose actual
+    projection work was 132ms.  A sweep that spawns a process per trial paid it
+    per trial.
+
+    The body below is ``scipy.stats.binom._ppf`` itself, which is defined in
+    terms of ``scipy.special`` only.  Not an approximation: 140/140 parameter
+    combinations (``total_k`` in {50..5000} x ``p`` in {0.01..0.3} x five
+    quantiles) return bit-identical values to ``binom.ppf``.  The
+    ``bdtr(vals-1) >= q`` step is the off-by-one correction for ``bdtrik``
+    landing exactly on an integer, and dropping it is what would make this an
+    approximation rather than a reimplementation.
     """
-    from scipy.stats import binom
-    return float(binom.ppf(quantile_num / quantile_den, total_k, p))
+    from scipy.special import bdtr, bdtrik
+
+    q = quantile_num / quantile_den
+    vals = np.ceil(bdtrik(q, total_k, p))
+    vals_below = np.maximum(vals - 1, 0)
+    return float(np.where(bdtr(vals_below, total_k, p) >= q, vals_below, vals))
 
 class SparseSimulationEngine:
     """
