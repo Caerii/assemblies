@@ -83,6 +83,27 @@ def get_xp():
     return _xp
 
 
+def xp_name(xp=None) -> str:
+    """The NAME of an array module -- ``"numpy"`` or ``"cupy"``.
+
+    Objects that pin a backend must store this, not the module itself: a module
+    cannot be pickled, and `Area`, the engines and whole `Brain`s are pickled
+    and deep-copied constantly (fork, checkpoint, the disk backbone cache,
+    read-only probes). Storing the module directly took out 143 tests with
+    "cannot pickle 'module' object".
+    """
+    mod = xp if xp is not None else _xp
+    return "cupy" if mod.__name__ == "cupy" else "numpy"
+
+
+def xp_by_name(name: str):
+    """Inverse of `xp_name`. Cheap: after the first call it is a dict lookup."""
+    if name == "cupy":
+        import cupy
+        return cupy
+    return np
+
+
 def get_backend_name():
     """Return ``"cupy"`` or ``"numpy"``."""
     return "cupy" if _xp.__name__ == "cupy" else "numpy"

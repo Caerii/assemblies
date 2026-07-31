@@ -18,23 +18,25 @@ from collections import defaultdict
 # Brain ~0.7s and 429 modules for a code path most runs never reach. See
 # `_csr_weights.scipy_sparse` for the measurement.
 
-def _csr_storage_available() -> bool:
+def _csr_storage_available(xp=None) -> bool:
     """CSR storage needs scipy AND a numpy-backed engine.
 
-    ``scipy.sparse`` is CPU-only, so a CuPy backend must fall back to dense.
-    This is checked at CALL time rather than import time because the backend
-    is process-global and mutable: constructing a ``cupy_sparse`` or CUDA
-    engine calls ``set_backend("cupy")`` and never restores it, so an engine
-    that was numpy when it was built can be handed CuPy arrays later in the
-    same process. That leak is tracked separately; declining here keeps this
-    path correct either way rather than raising a confusing
-    "Implicit conversion to a NumPy array is not allowed" from deep inside a
-    chunked build.
+    ``scipy.sparse`` is CPU-only, so a CuPy-backed engine must fall back to
+    dense, or it raises a confusing "Implicit conversion to a NumPy array is
+    not allowed" from deep inside a chunked build.
+
+    Takes the CALLER'S array module. Reading the process-global instead was
+    the bug: ``set_backend("cupy")`` is called by the CuPy and CUDA engine
+    constructors and never restored, so the answer here used to depend on
+    whichever engine had been built most recently anywhere in the process
+    rather than on the engine actually asking. Passing ``self._xp`` makes it a
+    question about one engine. The ``xp=None`` fallback is for the handful of
+    module-level callers that have no engine to hand.
 
     Checking the backend FIRST also keeps the lazy scipy import off the CuPy
     path entirely: a GPU run never pays for a module it could not use.
     """
-    if get_xp() is not np:
+    if (xp if xp is not None else get_xp()) is not np:
         return False
     return scipy_sparse() is not None
 
@@ -47,7 +49,7 @@ _CSR_MIN_CELLS = 1_000_000
 # (data + indices = 8 bytes per nonzero vs 4 per cell) and gathers no faster.
 _CSR_MAX_DENSITY = 0.25
 
-from ..backend import get_xp, to_cpu, to_xp
+from ..backend import get_xp, to_cpu, to_xp, xp_by_name, xp_name
 from .._pricing import (
     area_fiber_activity, candidate_divisor, inverse_indegree,
 )
@@ -428,6 +430,27 @@ class NumpySparseEngine(ComputeEngine):
         self._seed = (int(seed) if seed is not None
                       else int(self._rng.integers(0, 2 ** 32)))
         self._content_init = _env_content_init()
+        # THE ARRAY MODULE THIS ENGINE USES, captured ONCE here rather than
+        # re-read from a process-global on every call.
+        #
+        # `CupySparseEngine` subclasses this one and works by calling
+        # `set_backend("cupy")` before `super().__init__`, so the inherited
+        # code builds CuPy arrays -- that is why this is `get_xp()` and not
+        # plain `np`. But `set_backend` is never restored, so before this
+        # attribute existed, constructing a CuPy engine ANYWHERE in the process
+        # retroactively changed what an already-built numpy engine did, and the
+        # numpy engine started handing itself CuPy arrays mid-run. It took out
+        # 11 tests that pass in isolation, and it only reproduces where CuPy is
+        # installed, so CI never saw it.
+        #
+        # Reading it once at construction makes an engine's backend a property
+        # of THAT ENGINE. A later global flip cannot reach backwards.
+        # Stored as a NAME, resolved through the `_xp` property. The module
+        # object itself is not picklable, and Areas, engines and whole Brains
+        # are pickled and deep-copied constantly here -- fork, checkpoint, the
+        # disk backbone cache, read-only probes. Storing the module took out
+        # 143 tests with "cannot pickle 'module' object".
+        self._xp_name = xp_name()
         self._pair_seeds: Dict[tuple, int] = {}
         # Set only inside Brain.read_only(); see the guard in project_into.
         self._no_recruitment = False
@@ -458,7 +481,7 @@ class NumpySparseEngine(ComputeEngine):
         self._csr_drive: Dict[tuple, tuple] = {}
 
         # Reusable math primitives
-        self._sparse_sim = SparseSimulationEngine(self._rng)
+        self._sparse_sim = SparseSimulationEngine(self._rng, xp=self._xp)
         self._winner_sel = WinnerSelector(self._rng)
 
     def _weight_bounds(self, scale: float = 1.0):
@@ -501,6 +524,17 @@ class NumpySparseEngine(ComputeEngine):
             self._pair_seeds[key] = seed
         return seed
 
+    @property
+    def _xp(self):
+        """This engine's array module, pinned at construction."""
+        return xp_by_name(self._xp_name)
+
+    def _to_xp(self, arr):
+        """`backend.to_xp` reads the process-global, which is the leak one
+        level down: the engine would hold numpy arrays and be handed a CuPy one
+        by a helper. This converts into the engine's OWN module."""
+        return self._xp.asarray(arr)
+
     def _init_area_block(self, source, target, r0, r1, c0, c1):
         """Initial weights for absolute rows [r0,r1) x cols [c0,c1) of a fiber.
 
@@ -513,9 +547,9 @@ class NumpySparseEngine(ComputeEngine):
         dependent by construction; it exists only for A/B'ing the switch.
         """
         if not self._content_init:
-            return to_xp(self._sample_area_weights(
+            return self._to_xp(self._sample_area_weights(
                 (max(r1 - r0, 0), max(c1 - c0, 0)), self._rng))
-        return to_xp(hash_area_weights(
+        return self._to_xp(hash_area_weights(
             r0, r1, c0, c1, self._pair_seed(source, target), self.p,
             self.inhibitory_prob, self.inhibitory_weight,
         ))
@@ -598,7 +632,7 @@ class NumpySparseEngine(ComputeEngine):
         would silently reset the area to naive while leaving every shape and
         count looking right.
         """
-        xp = get_xp()
+        xp = self._xp
         prev = conn.weights
         prev = prev if getattr(prev, "ndim", 0) == 2 else None
         pr, pc = (prev.shape if prev is not None else (0, 0))
@@ -694,7 +728,7 @@ class NumpySparseEngine(ComputeEngine):
         Returns None when caching is not worthwhile or not safe, in which case
         the caller must use the dense path.
         """
-        if not _csr_storage_available() or w.ndim != 2:
+        if not _csr_storage_available(self._xp) or w.ndim != 2:
             return None
         # Below this the CSR build (one dense pass) is not amortised by the
         # gather it saves, whatever the settle length.
@@ -737,7 +771,7 @@ class NumpySparseEngine(ComputeEngine):
 
         Exactness is asserted rather than argued -- see `_VERIFY_NNZ`.
         """
-        xp = get_xp()
+        xp = self._xp
         counts = getattr(conn, "_deg_counts_arr", None)
         have_rows = int(getattr(conn, "_deg_rows", 0))
 
@@ -865,7 +899,7 @@ class NumpySparseEngine(ComputeEngine):
         """
         if not self.norm_init:
             return None
-        xp = get_xp()
+        xp = self._xp
         w = conn.weights
         if w is None or getattr(w, "size", 0) == 0:
             return None
@@ -919,7 +953,7 @@ class NumpySparseEngine(ComputeEngine):
                  inhibition_strength: float = 0.0,
                  winner_policy=None,
                  input_noise_std: float = 0.0) -> None:
-        xp = get_xp()
+        xp = self._xp
         area = SparseAreaState(name=name, n=n, k=k, beta=beta,
                                refractory_period=refractory_period,
                                inhibition_strength=inhibition_strength,
@@ -956,7 +990,7 @@ class NumpySparseEngine(ComputeEngine):
                 other.beta_by_source[name] = beta
 
     def add_stimulus(self, name: str, size: int) -> None:
-        xp = get_xp()
+        xp = self._xp
         self._stimuli[name] = StimulusState(name=name, size=size)
         self._stim_conn_version += 1
 
@@ -971,7 +1005,7 @@ class NumpySparseEngine(ComputeEngine):
             if area.w > 0:
                 rng = np.random.default_rng(
                     stable_seed(name, area_name, area.w))
-                conn.weights = to_xp(
+                conn.weights = self._to_xp(
                     (rng.random(area.w) < self.p).astype(np.float32)
                     * size  # scale by stimulus size for fair competition
                 )
@@ -987,11 +1021,11 @@ class NumpySparseEngine(ComputeEngine):
         """Select winner indices using area policy (default top-k)."""
         from ...compute.winner_policies import TopKPolicy
 
-        xp = get_xp()
+        xp = self._xp
         inputs = all_inputs
         if getattr(tgt, "input_noise_std", 0.0) > 0:
             noise = rng.normal(0, tgt.input_noise_std, size=len(inputs))
-            inputs = inputs + to_xp(noise.astype(np.float32))
+            inputs = inputs + self._to_xp(noise.astype(np.float32))
 
         policy = getattr(tgt, "winner_policy", None) or TopKPolicy(k=tgt.k)
         if (
@@ -1016,7 +1050,7 @@ class NumpySparseEngine(ComputeEngine):
         record_activation: bool = False,
     ) -> ProjectionResult:
         """First assembly in a sparse area driven by explicit-source dense input."""
-        xp = get_xp()
+        xp = self._xp
         tgt = self._areas[target]
         if rng is None:
             rng = np.random.default_rng(self._rng.integers(0, 2**32))
@@ -1174,7 +1208,7 @@ class NumpySparseEngine(ComputeEngine):
         Returns the number of neurons newly materialized.
         """
         self.invalidate_csr_drive()
-        xp = get_xp()
+        xp = self._xp
         tgt = self._areas[area]
         prior_w = int(tgt.w)
         n = int(tgt.n)
@@ -1234,7 +1268,7 @@ class NumpySparseEngine(ComputeEngine):
             if conn is None:
                 continue
             if (src_name == area and storage == "csr" and conn.sparse
-                    and _csr_storage_available()):
+                    and _csr_storage_available(self._xp)):
                 self._materialize_self_fiber_csr(area, conn, n)
                 continue
             src_rows = n if src_name == area else int(self._areas[src_name].w)
@@ -1287,7 +1321,7 @@ class NumpySparseEngine(ComputeEngine):
         plasticity_enabled: bool = True,
         record_activation: bool = False,
     ) -> ProjectionResult:
-        xp = get_xp()
+        xp = self._xp
         tgt = self._areas[target]
         rng = np.random.default_rng(self._rng.integers(0, 2**32))
 
@@ -1594,7 +1628,7 @@ class NumpySparseEngine(ComputeEngine):
                 )
         self._sparse_sim.rng = old_rng
 
-        potential_new = to_xp(potential_new)
+        potential_new = self._to_xp(potential_new)
         # norm_init: bring sampled candidates onto the normalized scale (see
         # _norm_candidate_divisor).  Stored weights and the sampler stay on the
         # unit scale; only the drive comparison is rescaled.
@@ -1829,7 +1863,7 @@ class NumpySparseEngine(ComputeEngine):
         """
         if not self.synaptic_scaling:
             return
-        xp = get_xp()
+        xp = self._xp
         cols = xp.asarray(winners, dtype=xp.int64)
         for src_name in from_areas:
             conn = self._area_conns[src_name][target]
@@ -1857,7 +1891,7 @@ class NumpySparseEngine(ComputeEngine):
 
     def _apply_plasticity(self, target, from_stimuli, from_areas, winners):
         """Hebbian learning: w *= (1 + beta), clamped at w_max."""
-        xp = get_xp()
+        xp = self._xp
         tgt = self._areas[target]
         winners_arr = xp.asarray(winners, dtype=xp.int64)
 
@@ -1936,7 +1970,7 @@ class NumpySparseEngine(ComputeEngine):
         capacity doubles when exceeded, avoiding repeated vstack/hstack
         reallocation on every step.
         """
-        xp = get_xp()
+        xp = self._xp
         tgt = self._areas[target]
         inputs_names = list(from_stimuli) + list(from_areas)
 
@@ -2159,7 +2193,7 @@ class NumpySparseEngine(ComputeEngine):
         length is the area's ever-fired count -- identical to the ``concatenate``
         the legacy path did, minus the O(w) copy on every step.
         """
-        xp = get_xp()
+        xp = self._xp
         cur = conn.weights
         buf = getattr(conn, "_cap_buf", None)
         # getattr(cur, "base", None) is not buf catches a weights array that was
@@ -2176,12 +2210,12 @@ class NumpySparseEngine(ComputeEngine):
         if fill is None:
             buf[old:new_len] = 0.0
         else:
-            buf[old:new_len] = to_xp(fill)
+            buf[old:new_len] = self._to_xp(fill)
         conn.weights = buf[:new_len]
 
     def _expand_stim_vectors_legacy(self, target, stim_names, new_w) -> None:
         """Original per-step ``concatenate`` growth. Kept as the A/B reference."""
-        xp = get_xp()
+        xp = self._xp
         # dict.fromkeys, not set(): the loop below consumes ``self._rng`` once
         # per stimulus, so ITERATION ORDER DECIDES WHICH SLICE OF THE SEEDED
         # STREAM EACH STIMULUS GETS. These are str keys, and set-of-str order
@@ -2201,7 +2235,7 @@ class NumpySparseEngine(ComputeEngine):
                     add_len = new_w - old
                     if stim_name not in stim_names:
                         stim_size = self._stimuli[stim_name].size
-                        add = to_xp(self._rng.binomial(
+                        add = self._to_xp(self._rng.binomial(
                             stim_size, self.p, size=add_len).astype(np.float32))
                     else:
                         add = xp.zeros(add_len, dtype=xp.float32)
@@ -2353,7 +2387,7 @@ class NumpySparseEngine(ComputeEngine):
         return np.array(to_cpu(st.winners), dtype=np.uint32)
 
     def set_winners(self, area: str, winners: np.ndarray) -> None:
-        xp = get_xp()
+        xp = self._xp
         st = self._areas[area]
         st.winners = xp.asarray(winners, dtype=xp.uint32)
 
@@ -2376,7 +2410,7 @@ class NumpySparseEngine(ComputeEngine):
         """Extend all stim→*target* vectors to at least *min_columns* (zeros)."""
         if min_columns <= 0 or target not in self._areas:
             return
-        xp = get_xp()
+        xp = self._xp
         n = self._areas[target].n
         for stim_name, tgt_map in self._stim_conns.items():
             conn = tgt_map.get(target)
@@ -2433,7 +2467,7 @@ class NumpySparseEngine(ComputeEngine):
     def reset_area_connections(self, area: str) -> None:
         """Reset area->area connections involving *area* to initial state."""
         self.invalidate_csr_drive()
-        xp = get_xp()
+        xp = self._xp
         for src_name in list(self._area_conns.keys()):
             if area not in self._area_conns[src_name]:
                 continue
@@ -2476,12 +2510,12 @@ class NumpySparseEngine(ComputeEngine):
         st.refracted = enabled
         st.refracted_strength = strength
         if enabled and len(st._cumulative_bias) == 0:
-            xp = get_xp()
+            xp = self._xp
             st._cumulative_bias = xp.zeros(max(st.w, 0), dtype=xp.float32)
 
     def clear_refracted_bias(self, area: str) -> None:
         """Reset accumulated refracted bias to zero."""
-        xp = get_xp()
+        xp = self._xp
         st = self._areas[area]
         st._cumulative_bias = xp.zeros(max(st.w, 0), dtype=xp.float32)
 
@@ -2490,7 +2524,7 @@ class NumpySparseEngine(ComputeEngine):
     def normalize_weights(self, target: str, source: str = None) -> None:
         """Column-normalize weights into *target* so each neuron sums to 1.0."""
         self.invalidate_csr_drive()
-        xp = get_xp()
+        xp = self._xp
         eps = 1e-8
 
         def _norm_conn(conn):
@@ -2575,7 +2609,7 @@ class NumpySparseEngine(ComputeEngine):
             for tgt_name, conn in tgt_map.items():
                 _copy_conn(conn, new._area_conns[src_name][tgt_name])
 
-        xp = get_xp()
+        xp = self._xp
         for name, src in self._areas.items():
             dst = new._areas[name]
             dst.w = src.w

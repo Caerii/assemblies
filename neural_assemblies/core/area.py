@@ -28,7 +28,7 @@ Mathematical Foundation:
 import numpy as np
 from typing import Dict, List, Optional
 
-from .backend import get_xp, to_cpu
+from .backend import get_xp, to_cpu, xp_by_name, xp_name
 
 
 class Area:
@@ -109,7 +109,15 @@ class Area:
         self.input_noise_std = input_noise_std
         self.slot_count = int(slot_count)
 
+        # Captured once, like the engine's `_xp`. Re-reading the global here
+        # meant the winners SETTER converted into whatever backend was selected
+        # most recently in the process, so an Area belonging to a numpy Brain
+        # started storing CuPy arrays the moment a GPU engine was built
+        # anywhere. The values stayed correct; the container did not, and
+        # `isinstance(area.winners, np.ndarray)` began failing far from the
+        # cause.
         xp = get_xp()
+        self._xp_name = xp_name(xp)
         self._winners = xp.array([], dtype=xp.uint32)
         self.w = 0  # Number of neurons that have ever fired
         self.fixed_assembly = False
@@ -138,9 +146,19 @@ class Area:
     def winners(self) -> np.ndarray:
         return self._winners
 
+    @property
+    def _xp(self):
+        """This area's array module, pinned at construction.
+
+        A NAME is stored rather than the module, because Areas are pickled and
+        deep-copied constantly (fork, checkpoint, disk cache, probes) and a
+        module cannot be pickled.
+        """
+        return xp_by_name(self._xp_name)
+
     @winners.setter
     def winners(self, value):
-        xp = get_xp()
+        xp = self._xp
         self._winners = xp.asarray(value, dtype=xp.uint32)
         self.w = len(self._winners)
 
@@ -181,7 +199,7 @@ class Area:
         Args:
             new_winners: The new winners to set.
         """
-        xp = get_xp()
+        xp = self._xp
         self.winners = new_winners
         if self.explicit:
             self.ever_fired[new_winners] = True

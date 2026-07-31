@@ -32,9 +32,9 @@ import numpy as np
 from typing import List, Dict, Tuple, Any
 
 try:
-    from ..core.backend import get_xp, to_cpu, to_xp
+    from ..core.backend import get_xp, to_cpu, to_xp, xp_by_name, xp_name
 except ImportError:
-    from core.backend import get_xp, to_cpu, to_xp
+    from core.backend import get_xp, to_cpu, to_xp, xp_by_name, xp_name
 
 
 @lru_cache(maxsize=256)
@@ -77,14 +77,27 @@ class SparseSimulationEngine:
     winner tracking, and input distribution management.
     """
 
-    def __init__(self, rng: np.random.Generator):
+    def __init__(self, rng: np.random.Generator, xp=None):
         """
         Initialize the sparse simulation engine.
 
         Args:
             rng (np.random.Generator): Random number generator for reproducibility
+            xp: Array module to build results with. Defaults to whatever
+                ``get_xp()`` says AT CONSTRUCTION -- captured once, not re-read
+                per call. The owning engine passes its own ``_xp`` so that a
+                later ``set_backend`` elsewhere in the process cannot change
+                what this simulator returns to an engine already running. That
+                leak is what made a CuPy engine constructed anywhere retroactively
+                hand CuPy arrays to an existing numpy engine.
         """
         self.rng = rng
+        # A NAME, not the module -- see `backend.xp_name`.
+        self._xp_name = xp_name(xp)
+
+    @property
+    def _xp(self):
+        return xp_by_name(self._xp_name)
 
     def calculate_input_distribution(self, input_sizes: List[int],
                                   first_winner_inputs: List[float]) -> List[np.ndarray]:
@@ -406,7 +419,7 @@ class SparseSimulationEngine:
         # effective_n > k, so every non-saturated run stays bit-identical.
         k_eff = min(k, max(0, effective_n - 1))
         if k_eff <= 0:
-            return to_xp(np.empty(0))
+            return self._xp.asarray(np.empty(0))
 
         # Cached ppf — integer num/den for exact hash key
         alpha = _binom_ppf_cached(effective_n - k_eff, effective_n, total_k, p)
@@ -414,7 +427,7 @@ class SparseSimulationEngine:
         mu = total_k * p
         std = math.sqrt(total_k * p * (1.0 - p))
         if std == 0:
-            return to_xp(np.full(k_eff, mu))
+            return self._xp.asarray(np.full(k_eff, mu))
 
         a = (alpha - mu) / std
 
@@ -425,7 +438,7 @@ class SparseSimulationEngine:
         np.clip(u, phi_a, 1.0 - 1e-12, out=u)  # guard against ndtri(1)=inf
         samples = (mu + ndtri(u) * std).round(0)
         np.clip(samples, 0, total_k, out=samples)
-        return to_xp(samples)
+        return self._xp.asarray(samples)
 
     def sample_new_winner_inputs_legacy(
         self,
@@ -466,7 +479,7 @@ class SparseSimulationEngine:
         # case draws a different number of variates).
         k_eff = min(k, max(0, effective_n - 1))
         if k_eff <= 0:
-            return to_xp(np.empty(0))
+            return self._xp.asarray(np.empty(0))
 
         alpha = float(binom.ppf(
             float(effective_n - k_eff) / effective_n, total_k, p
@@ -475,7 +488,7 @@ class SparseSimulationEngine:
         mu = total_k * p
         std = math.sqrt(total_k * p * (1.0 - p))
         if std == 0:
-            return to_xp(np.full(k_eff, mu))
+            return self._xp.asarray(np.full(k_eff, mu))
 
         a = (alpha - mu) / std
         samples = truncnorm.rvs(
@@ -483,7 +496,7 @@ class SparseSimulationEngine:
             random_state=self.rng,
         ).round(0)
         np.clip(samples, 0, total_k, out=samples)
-        return to_xp(samples)
+        return self._xp.asarray(samples)
 
     def compute_input_splits(
         self,
