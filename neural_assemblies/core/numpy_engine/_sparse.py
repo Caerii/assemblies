@@ -1462,6 +1462,9 @@ class NumpySparseEngine(ComputeEngine):
         # Area inputs (2-D, vectorised fancy-index)
         # Track sources whose connectomes need deferred initialisation.
         _deferred_init_srcs = []
+        # Area sources that were NAMED but delivered no drive this round --
+        # their weight block is not materialised yet. Priced out below.
+        _silent_area_srcs: set = set()
         for src_name in from_areas:
             conn = self._area_conns[src_name][target]
             src = self._areas[src_name]
@@ -1507,11 +1510,16 @@ class NumpySparseEngine(ComputeEngine):
                 # Mark connections for deferred init so they are available on
                 # the NEXT projection round.  See `_self_fiber_deferred_init`
                 # for why SELF fibers were excluded here and what that cost.
+                #
+                # THIS ROUND THE FIBER DELIVERS NOTHING, and it must not be
+                # charged into the candidate price either -- see
+                # `_silent_area_srcs` below.
                 if (conn.sparse
                         and (src_name != target
                              or _self_fiber_deferred_init())
                         and self._areas[src_name].w > 0 and tgt.w > 0):
                     _deferred_init_srcs.append(src_name)
+                _silent_area_srcs.add(src_name)
                 continue
             src_w = xp.asarray(src.winners)
             internal = src_w[src_w < conn.weights.shape[0]]
@@ -1640,12 +1648,44 @@ class NumpySparseEngine(ComputeEngine):
         # (max 0.049), confirming the fault was in the sampler, not the
         # dynamics.  Gated on norm_init only to keep default results
         # bit-identical; it is a no-op whenever len(winners) == k.
+        # A fiber whose block is not materialised yet contributed ZERO to
+        # `prev_winner_inputs` above. Charging it into the candidate price
+        # anyway is what made recurrence catastrophic: naming B->B on the round
+        # it first appears doubled total_k (100 -> 200), lifting candidates from
+        # [17,18] to [30,31], while the incumbents' drive was byte-identical
+        # with and without it (min 18.00 max 22.00 mean 18.77 either way). Every
+        # candidate then beat every incumbent -- 0 of 100 survived -- and
+        # overlap(y1,y2) went 1.000 -> 0.000 with y2 an entirely fresh cohort.
+        # PNAS 2020 predicts ~0.50 here.
+        # Zeroed, NOT dropped. `input_sizes` is parallel to
+        # from_stimuli + from_areas and `_expand_connectomes` indexes the split
+        # it produces by that position; shortening the list raised IndexError
+        # on the first multi-source projection. A zero entry costs nothing in
+        # `total_k = sum(input_sizes)` and allocates no synapses in the split.
+        def _priced(a: str) -> int:
+            if self.stable_candidates and a in _silent_area_srcs:
+                return 0
+            return area_fiber_activity(self._areas[a].winners.size,
+                                       self._areas[a].k, self.norm_init)
+
         input_sizes = (
             [self._stimuli[s].size for s in from_stimuli]
-            + [area_fiber_activity(self._areas[a].winners.size,
-                                   self._areas[a].k, self.norm_init)
-               for a in from_areas]
+            + [_priced(a) for a in from_areas]
         )
+        if sum(input_sizes) == 0:
+            # EVERY source is silent, so this is a bootstrap round: nothing is
+            # materialised yet and deferred init has not run. Pricing at zero
+            # would leave `compute_input_splits` with total_k == 0, which
+            # returns empty split vectors and makes `_expand_connectomes` raise
+            # IndexError on `split[j]`. Fall back to the nominal sizes: with no
+            # incumbents to protect there is nothing for the silent-fiber
+            # correction to fix, and the area still needs to recruit.
+            input_sizes = (
+                [self._stimuli[s].size for s in from_stimuli]
+                + [area_fiber_activity(self._areas[a].winners.size,
+                                       self._areas[a].k, self.norm_init)
+                   for a in from_areas]
+            )
         # Presynaptic POPULATION per fiber, parallel to input_sizes. Used only
         # to price candidates on the incumbent scale -- see
         # `_norm_candidate_divisor`. Stimulus fibers use the target's own n,
