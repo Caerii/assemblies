@@ -272,7 +272,18 @@ that preceded it.
 - Single engine (`numpy_sparse`). The torch path has its own open divergence
   (#62) and is not included, and `construction="attractor"` raises on any
   engine without `materialize_area` rather than silently building a dead coin.
-- `materialize_area` is `O(n²)` in memory, which is what bounds the ladder.
+- ~~`materialize_area` is `O(n²)` in memory, which is what bounds the ladder.~~
+  **Lifted.** The block is stored as CSR (`_csr_weights.py`) and built chunked,
+  so the dense form is never held: 1.0 GB → 102 MB at `n=16,000`, and
+  **`n=32,000` now runs in 410 MB** (29.5 s build, `decisive` 1.0000) where
+  dense would have needed 4.1 GB. Extending the ladder past `n=16,000` is
+  compute-bound now, not memory-bound.
+
+  A GPU port would *not* help that: measured at `n=16,000`, CUDA is 4.4× faster
+  than CPU CSR on the drive read but only in **dense** form (1.02 GB VRAM),
+  which reinstates the `O(n²)` ceiling at a lower `n` than RAM allows. Torch's
+  sparse CSR path is 0.16× — much slower. GPU is a speed/ceiling trade here,
+  not an upgrade.
 - The `coin2024_*` goldens still record the **legacy** construction, and their
   flip counts are *decorative by design* — a decision made when the counts
   could not move. They can now. Re-recording them against `attractor` is the
