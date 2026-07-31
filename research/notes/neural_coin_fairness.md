@@ -42,6 +42,37 @@ in the *same direction* as the thing being claimed. Without the null, "the coin
 gets fairer as `n` grows" reads as a capability, when fairness on its own is
 equally consistent with the area having learned nothing.
 
+### The null does not have the trend
+
+One null cell cannot settle whether the *scaling* is real either, so the null
+was run up the ladder as well:
+
+| `n` | `k` | | trained `sd` | null `sd` | | trained `decisive` | null `decisive` |
+|---|---|---|---|---|---|---|---|
+| 500 | 50 | | 0.418 | 0.055 | | 0.662 | 0.123 |
+| 2,000 | 200 | | 0.224 | 0.037 | | 0.985 | 0.111 |
+| 8,000 | 800 | | 0.065 | 0.035 | | 1.000 | 0.106 |
+
+**The null's spread is flat, and it is flat at the sampling floor.** An ideally
+fair coin still scatters by `sqrt(0.25/flips)` — 0.025 at 400 flips, 0.035 at
+200. The null reads 0.055 / 0.037 / 0.035 against those floors, so its brains
+are individually fair and there is nothing left to collapse. The trained coin
+starts 7.6× above it and converges *down* toward it.
+
+So "sd falls with `n`" is not a property of the readout, the flip count, or the
+area size. It is a property of an area that has something stored.
+
+The two `decisive` columns then move in **opposite directions**: trained climbs
+0.662 → 1.000, null *descends* 0.123 → 0.106 toward the chance floor of `k/n`
+(overlap between independent `k`-subsets concentrates as `k` grows). A single
+metric separating two arms is suggestive; two metrics whose arms diverge is a
+dissociation.
+
+One honest wrinkle: the null's `heads` sits at 0.535–0.556, consistently *above*
+0.5 — about 5 standard errors. That is not a bent coin, it is the readout. Ties
+go to 0 (`ov0 >= ov1`), and at chance the two overlaps are quantized in units of
+`1/k` and frequently equal. A third reason not to trust `heads`.
+
 `sd` matters for the same reason at one level up: a coin that answers 0 in one
 brain and 1 in another is not a coin, however good the pooled mean looks.
 
@@ -239,10 +270,36 @@ that preceded it.
 ## Caveats
 
 - Single engine (`numpy_sparse`). The torch path has its own open divergence
-  (#62) and is not included.
+  (#62) and is not included, and `construction="attractor"` raises on any
+  engine without `materialize_area` rather than silently building a dead coin.
 - `materialize_area` is `O(n²)` in memory, which is what bounds the ladder.
-- The study uses its own construction, not the shipped `RandomChoiceArea`.
-  Migrating the shipped class and re-recording the `coin2024_*` goldens is
-  tracked as #70 — and those goldens' flip counts are currently *decorative by
-  design*, a decision made when the counts could not move. It needs revisiting
-  now that they can.
+- The `coin2024_*` goldens still record the **legacy** construction, and their
+  flip counts are *decorative by design* — a decision made when the counts
+  could not move. They can now. Re-recording them against `attractor` is the
+  remaining half of #70.
+
+## Postscript: the same bug had a second copy
+
+Porting this into the shipped `RandomChoiceArea` (`construction="attractor"`)
+turned up an independent third defect in `_flip_k_split`, the package's
+**default** flip mode: it feeds `Assembly.winners` (neuron IDs) straight into
+`set_winners` (compact engine indices). Different numbers, and the engine does
+not range-check. At `n=2000, k=50` with `w=357`, only **7 of 50** ids in `asm0`
+landed inside the materialized window; `_snap` passes anything past the end of
+the mapping back through verbatim, so every step produced plausible integers
+and nothing raised.
+
+**The two defects were masking each other.** With the recurrent fiber dead, the
+out-of-range seed was never used to index any weights, so it could not crash.
+Fixing either alone is worse than fixing neither — which is a reason to be
+suspicious of any single-defect fix in a system this quiet about failure.
+
+Through the shipped API the two constructions now measure, at `n=2000, k=200`:
+
+| | decisive | heads |
+|---|---|---|
+| `legacy` | 0.159 | 0.546 |
+| `attractor` | **0.985** | 0.496 |
+
+Chance is 0.100. The fairness column does not separate them, which is the whole
+argument of this note stated one more time in the place it matters most.

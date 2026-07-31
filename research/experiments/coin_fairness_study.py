@@ -561,6 +561,52 @@ def write_figures(fs, null, st, kn, trained):
     fig_kn(kn, os.path.join(OUT_FIG, "coin_cap_density.png"))
 
 
+def null_ladder(rungs=((500, 50, 40, 400), (2000, 200, 32, 400),
+                       (8000, 800, 16, 200))):
+    """Run the beta=0 control UP THE LADDER, not just at one size.
+
+    WHY THIS IS NOT OPTIONAL.  The headline claim is about a TREND -- spread
+    collapses as the area grows -- and a single null cell cannot test a trend.
+    If the untrained coin's spread also fell with ``n``, "fairness emerges with
+    scale" would be a statement about the readout or the flip count, not about
+    anything the area learned.
+
+    Measured: it does not. The null's spread is FLAT at 0.055 / 0.037 / 0.035
+    across n = 500 / 2,000 / 8,000, against binomial sampling floors of 0.025
+    (400 flips) and 0.035 (200 flips) -- so its brains are already individually
+    fair and there is nothing left to collapse. The trained coin starts 7.6x
+    above that and converges down toward it.
+
+    The two ``decisive`` columns then move in OPPOSITE directions: trained
+    climbs 0.662 -> 1.000 while the null descends 0.123 -> 0.106 toward the
+    ``k/n`` chance floor. One metric separating two arms is suggestive; two
+    metrics whose arms diverge is a dissociation.
+    """
+    print(f"{'n':>7}{'k':>6}{'br':>4}{'flips':>7}"
+          f"{'heads':>8}{'sd':>8}{'decisive':>10}{'chance':>8}  [s]")
+    cells = []
+    for n, k, nb, nf in rungs:
+        t0 = _time.time()
+        c = measure(n=n, k=k, beta=0.0, seeds=SEEDS[:nb], n_flips=nf)
+        c.n_brains, c.n_flips = nb, nf
+        cells.append(c)
+        print(f"{n:>7}{k:>6}{nb:>4}{nf:>7}{c.heads_mean:>8.3f}"
+              f"{c.heads_sd:>8.3f}{c.decisive:>10.3f}{k/n:>8.3f}"
+              f"  [{_time.time()-t0:.0f}]")
+        sys.stdout.flush()
+    for nf in sorted({r[3] for r in rungs}):
+        # An ideally fair coin still scatters this much from flip sampling
+        # alone; a null sd at this value means the brains are individually
+        # fair, not that the measurement is insensitive.
+        print(f"binomial sd floor at {nf} flips: {np.sqrt(0.25/nf):.4f}")
+    path = os.path.join(OUT_DATA, "coin_null_ladder.json")
+    with open(path, "w") as fh:
+        json.dump({"rungs": [list(r) for r in rungs],
+                   "cells": [asdict(c) for c in cells]}, fh, indent=2)
+    print(f"data -> {path}")
+    return cells
+
+
 def replot():
     """Regenerate every figure from the recorded JSON, running nothing.
 
@@ -591,6 +637,10 @@ def main():
     ap.add_argument("--replot", action="store_true",
                     help="regenerate figures from the recorded JSON, "
                          "running no simulation")
+    ap.add_argument("--null-ladder", action="store_true",
+                    help="run the beta=0 control up the ladder (~18 min) and "
+                         "exit; tests whether the UNTRAINED coin shows the "
+                         "same finite-size trend. It does not.")
     ap.add_argument("--max-n", type=int, default=16000,
                     help="largest area on the finite-size ladder "
                          "(memory is O(n^2): ~1 GB at n=16000)")
@@ -600,6 +650,9 @@ def main():
     os.makedirs(OUT_FIG, exist_ok=True)
     if args.replot:
         replot()
+        return
+    if args.null_ladder:
+        null_ladder()
         return
     _style()
 

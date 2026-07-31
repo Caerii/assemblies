@@ -269,6 +269,30 @@ first driven after its area stops growing is permanently dead. 27 fibers dead on
 100% of uses, 23 of them self-fibers. `ensure_area_conn` — the repair for
 exactly this — is called **zero** times in 631,925 projections.
 
+**RESOLVED 2026-07-30** (`510285a`, `384fe30`). Waking the fiber was necessary
+but not sufficient: lazy materialization sizes the block to `w`, not `n`, so a
+uniform `k`-subset of `n` still addressed mostly nothing (82% of the seed at
+`n=2000`). `NumpySparseEngine.materialize_area` closes that, and
+`RandomChoiceArea(construction="attractor")` ships the validated build.
+
+Measured through the shipped API at `n=2000, k=200`: overlap with the winning
+attractor **0.985** vs `legacy`'s **0.159**, against a `k/n = 0.100` floor. The
+standalone ladder (`research/notes/neural_coin_fairness.md`) takes it to 1.000
+by `n=8000` and finds basin asymmetry scaling as **`k^-1.01`, log-log
+r = -0.997** over a 32× range in `k`.
+
+A **third** defect surfaced during the port: `_flip_k_split` — the package
+*default* mode — fed `Assembly.winners` (neuron IDs) into `set_winners`
+(compact indices), so only 7 of 50 stored ids addressed a real slot. The two
+defects were **masking each other**: with the fiber dead, the out-of-range seed
+never indexed any weights and so could not crash. Generalizable: in a system
+this quiet about failure, a single-defect fix should be assumed insufficient
+until measured.
+
+Still open on `#70`: re-record the `coin2024_*` goldens against `attractor`
+(they currently pin `legacy`, and their flip counts are decorative by a
+decision made when the counts could not move).
+
 **The diagnostic itself was broken** (`#71`). `fiber_census` reads
 `conn.weights`; `CSRConn` has no such attribute, so every torch fiber reads
 `(0,0)` and a healthy `nnz=1314` fiber is flagged dead. And raw

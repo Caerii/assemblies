@@ -89,9 +89,16 @@ averages down over more of them.
 The control that makes this a result rather than a reading: with `β = 0` —
 nothing learned — the coin is **six times fairer** than the trained one
 (across-brain sd 0.037 vs 0.224), because with nothing stored there is no basin
-to be lopsided. Its overlap with either assembly sits at chance. Fairness alone
-cannot distinguish a working coin from a broken one — it prefers the broken one —
-which is why both metrics are reported everywhere.
+to be lopsided. Fairness alone cannot distinguish a working coin from a broken
+one — it prefers the broken one — which is why both metrics are reported at
+every cell.
+
+Run up the ladder, the null's spread stays **flat** (0.055 / 0.037 / 0.035 at
+`n` = 500 / 2,000 / 8,000, against binomial sampling floors of 0.025 and 0.035),
+so the collapse is not an artifact of area size or flip count. And the two
+`decisive` columns move in *opposite* directions — trained 0.662 → 1.000, null
+0.123 → 0.106 down toward chance. Two metrics whose arms diverge is a
+dissociation, not a trend.
 
 Full analysis, seven figures, and the two defects in
 [research/notes/neural_coin_fairness.md](research/notes/neural_coin_fairness.md).
@@ -102,6 +109,9 @@ uv run python research/experiments/coin_fairness_study.py
 
 # restyle the figures from recorded data, without re-simulating
 uv run python research/experiments/coin_fairness_study.py --replot
+
+# the beta=0 control, up the ladder -- does the UNTRAINED coin trend too?
+uv run python research/experiments/coin_fairness_study.py --null-ladder
 ```
 
 ## Audience And Non-Goals
