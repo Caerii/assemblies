@@ -61,6 +61,39 @@ def pytest_collection_modifyitems(config, items):
             item.add_marker(pytest.mark.slow)
 
 
+@pytest.fixture(autouse=True)
+def _restore_array_backend():
+    """Undo the global backend flip that constructing a GPU engine performs.
+
+    ``cupy_engine.py`` and ``cuda_engine.py`` call ``set_backend("cupy")`` in
+    their constructors. The backend is PROCESS-GLOBAL and never restored, so
+    one test that builds a GPU engine hands CuPy arrays to every numpy-engine
+    test that runs after it in the same process, which then dies on "Implicit
+    conversion to a NumPy array is not allowed".
+
+    The tests it takes down are the ones written to guard materialisation and
+    CSR storage -- so they pass in isolation and fail in a full-suite run,
+    which is the failure mode least likely to be believed and most likely to be
+    dismissed as flakiness. It also only reproduces where CuPy is actually
+    installed, so CI never sees it.
+
+    THIS IS A CONTAINMENT, NOT THE FIX. The real repair is to stop consulting a
+    process-global in the first place -- pass the array module down per engine
+    -- which is tracked separately as a refactor. Restoring here makes the
+    suite's signal trustworthy in the meantime; it does NOT make the leak safe
+    for library users, who can still construct a CuPy engine and find their
+    next numpy Brain broken.
+    """
+    from neural_assemblies.core import backend as _backend
+
+    before = _backend._xp
+    try:
+        yield
+    finally:
+        if _backend._xp is not before:
+            _backend._xp = before
+
+
 @pytest.fixture(scope="session")
 def parser_cache() -> ParserCache:
     return get_parser_cache()
