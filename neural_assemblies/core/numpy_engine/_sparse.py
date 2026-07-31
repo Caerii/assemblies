@@ -430,13 +430,29 @@ class NumpySparseEngine(ComputeEngine):
         self._seed = (int(seed) if seed is not None
                       else int(self._rng.integers(0, 2 ** 32)))
         self._content_init = _env_content_init()
-        # Content-address the never-fired candidate draw. Without it the same
-        # input into the same area draws fresh top-quantile candidates every
-        # call and displaces its own incumbents, so a beta=0 projection is not
-        # idempotent. Off restores the pre-fix stream for golden comparison;
-        # see SparseSimulationEngine.sample_new_winner_inputs.
+        # Order-statistic candidate draw. Fixes non-idempotence (see
+        # SparseSimulationEngine.sample_new_winner_inputs), verified by
+        # research/experiments/projection_idempotence.py: 4 non-idempotent
+        # configurations -> 0.
+        #
+        # OPT-IN, NOT DEFAULT, and this is a known-incomplete state. Enabling
+        # it costs ~13 real test failures, all on one axis: separation between
+        # independent inputs and recruitment rate (separate_near_chance,
+        # separate_overlap, pnas_scaling, lexicon_entries_are_distinct,
+        # neither_seals_nor_exhausts). Independent stimuli read overlap
+        # 0.136 +/- 0.203 against a chance of 0.005 -- and that variance is the
+        # tell: the failure is bimodal, which is the signature of the
+        # recurrent-pricing defect this fix EXPOSED rather than caused.
+        # With a recurrent fiber present, candidates are priced as receiving
+        # from stimulus AND recurrence (total_k doubles) while the incumbents'
+        # recurrent contribution does not reach the comparison, so every
+        # candidate wins or none does.
+        #
+        # The two are coupled and have to land together; turning this on
+        # before fixing recurrent pricing trades a long-standing defect that
+        # everything is calibrated around for a fresh one that nothing is.
         self.stable_candidates = (
-            os.environ.get("NEURAL_ASSEMBLIES_STABLE_CANDIDATES", "1") != "0"
+            os.environ.get("NEURAL_ASSEMBLIES_STABLE_CANDIDATES", "0") != "0"
         )
         # THE ARRAY MODULE THIS ENGINE USES, captured ONCE here rather than
         # re-read from a process-global on every call.
@@ -1043,7 +1059,10 @@ class NumpySparseEngine(ComputeEngine):
         Winners are digested with crc32 rather than embedded, to keep the key
         small and hashable; `stable_seed` then crc32s the whole tuple.
         """
-        parts = [target, int(tgt.n), int(tgt.w), int(tgt.k)]
+        # NOTE: `w` is deliberately NOT in the key. It is the OFFSET into the
+        # order-statistic sequence this key names; including it would mint a
+        # new sequence on every recruitment and defeat the whole fix.
+        parts = [target, int(tgt.n), int(tgt.k)]
         parts.extend(sorted(from_stimuli))
         for a in sorted(from_areas):
             w = np.asarray(to_cpu(self._areas[a].winners), dtype=np.uint32)
