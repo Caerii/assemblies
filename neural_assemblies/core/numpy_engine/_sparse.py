@@ -454,6 +454,10 @@ class NumpySparseEngine(ComputeEngine):
         self.stable_candidates = (
             os.environ.get("NEURAL_ASSEMBLIES_STABLE_CANDIDATES", "0") != "0"
         )
+        # {candidate_draw_key: neurons this key has recruited}. The offset into
+        # that key's order-statistic tail. Plain dict of tuples/ints so it
+        # survives the pickling this repo does constantly.
+        self._key_recruited: Dict[tuple, int] = {}
         # THE ARRAY MODULE THIS ENGINE USES, captured ONCE here rather than
         # re-read from a process-global on every call.
         #
@@ -1695,6 +1699,7 @@ class NumpySparseEngine(ComputeEngine):
             + [self._areas[a].n for a in from_areas]
         )
 
+        draw_key = None
         if self._no_recruitment and tgt.w >= tgt.k:
             # A READ-ONLY probe answers "which of the neurons you already have
             # respond best?", so no candidates are offered and the area cannot
@@ -1707,6 +1712,7 @@ class NumpySparseEngine(ComputeEngine):
             # and a silently short assembly would be worse than growing.
             potential_new = np.empty(0, dtype=np.float32)
             old_rng = self._sparse_sim.rng
+            draw_key = None          # read-only probe: recruits nothing
         else:
             old_rng = self._sparse_sim.rng
             self._sparse_sim.rng = rng
@@ -1715,6 +1721,11 @@ class NumpySparseEngine(ComputeEngine):
             draw_key = (self._candidate_draw_key(target, tgt, from_stimuli,
                                                  from_areas)
                         if self.stable_candidates else None)
+            # How far THIS key has already eaten into its own tail. Not the
+            # area's `w` -- see _order_statistic_candidates for what that
+            # sealed.
+            draw_offset = (self._key_recruited.get(draw_key, 0)
+                           if draw_key is not None else None)
             if self._deterministic:
                 potential_new = self._sparse_sim.sample_new_winner_inputs_legacy(
                     input_sizes, tgt.n, tgt.w, tgt.k, self.p, key=draw_key,
@@ -1722,6 +1733,7 @@ class NumpySparseEngine(ComputeEngine):
             else:
                 potential_new = self._sparse_sim.sample_new_winner_inputs(
                     input_sizes, tgt.n, tgt.w, tgt.k, self.p, key=draw_key,
+                    offset=draw_offset,
                 )
         self._sparse_sim.rng = old_rng
 
@@ -1844,6 +1856,13 @@ class NumpySparseEngine(ComputeEngine):
             new_w = tgt.w + ring_slot
         else:
             new_w = tgt.w + num_first
+
+        # Advance this key's position in its own tail by what it just took.
+        # A repeat of the same input now resumes below the neurons it already
+        # holds (idempotent); a novel input still starts near rank 0.
+        if draw_key is not None and num_first > 0:
+            self._key_recruited[draw_key] = (
+                self._key_recruited.get(draw_key, 0) + num_first)
 
         # --- Apply plasticity ---
         if plasticity_enabled and self._plasticity_enabled_global:

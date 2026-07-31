@@ -398,6 +398,7 @@ class SparseSimulationEngine:
         k: int,
         p: float,
         key: Optional[Tuple] = None,
+        offset: Optional[int] = None,
     ) -> np.ndarray:
         """
         Sample potential input strengths for k new winner candidates using
@@ -475,8 +476,9 @@ class SparseSimulationEngine:
 
         if key is not None:
             return self._xp.asarray(
-                self._order_statistic_candidates(mu, std, n, w, k_eff,
-                                                 total_k, key))
+                self._order_statistic_candidates(
+                    mu, std, n, w if offset is None else offset,
+                    k_eff, total_k, key))
 
         # Fast truncated normal via inverse CDF: sample U ~ Uniform(Phi(a), 1)
         # then return mu + std * Phi_inv(U).  Avoids scipy.stats overhead.
@@ -553,9 +555,25 @@ class SparseSimulationEngine:
 
         What the model actually says: the top-k of n draws, then the NEXT k of
         the SAME n draws, are ranks 1..k and k+1..2k -- strictly decreasing.
-        So rank r gets the expected order statistic at quantile
-        (n - r - 0.5)/n, and `w` -- the count already recruited -- is an OFFSET
-        into that fixed sequence rather than part of a re-drawn threshold.
+        So rank r gets the order statistic at that rank, and the count already
+        recruited is an OFFSET into that fixed sequence rather than part of a
+        re-drawn threshold.
+
+        THE OFFSET IS PER-KEY, NOT THE AREA'S `w`.  Using `w` sealed every
+        area at exactly k: after one projection w == k, so all later candidates
+        came from ranks >= k, strictly below the incumbents recruited at ranks
+        < k, and nothing was ever recruited again. `test_engine_pricing` caught
+        it directly ("w=100 == k, the area SEALED"), and it cascaded --
+        zero-size weight blocks, lexicon entries overlapping 0.06-0.16,
+        next-token MRR 0.067 below a chance of 0.090.
+
+        The model says why `w` is wrong: a DIFFERENT stimulus has independent
+        drives, so the k already-materialised neurons are an unbiased and
+        negligible subset from its point of view, and its best candidates sit
+        near rank 0 of its OWN sequence. Only a REPEATED input should skip
+        past the neurons it already took. So the offset counts what this key
+        has recruited, which makes a repeat idempotent and a novel input free
+        to recruit.
 
         Monotone by construction, which is what makes recruitment idempotent:
         the best remaining candidate is always strictly below the worst neuron
