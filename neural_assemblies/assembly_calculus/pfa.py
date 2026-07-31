@@ -45,28 +45,96 @@ from collections import defaultdict
 import numpy as np
 
 from .assembly import overlap
-from .ops import project, _snap
+from .ops import project, _snap, _compact_index
 from .fsm import FSMNetwork
 from .transitions import TransitionLike, TransitionMap
 
 FlipMode = Literal["k_split", "compete"]
+Construction = Literal["legacy", "attractor"]
+
+
+def _seed_winners(brain, area_name: str, neuron_ids,
+                  remap: bool = True) -> np.ndarray:
+    """Install *neuron_ids* as the active winners of *area_name*.
+
+    THIS FUNCTION EXISTS BECAUSE THE TWO INDEX SPACES SILENTLY MIX HERE.
+    ``Assembly.winners`` holds NEURON IDs; ``set_winners`` expects COMPACT
+    engine indices (see ``ops._snap``). They are different numbers, and the
+    engine does not range-check, so handing it neuron IDs is accepted without
+    error and addresses whatever compact slots happen to share those integers.
+
+    Measured on the shipped legacy coin at ``n=2000, k=50``: the area had
+    ``w=357`` materialised neurons, and only **7 of 50** ids in ``asm0`` (8 of
+    50 in ``asm1``) fell inside it. 86% of each stored attractor addressed
+    nothing. ``_snap`` then passes indices past the end of the mapping back
+    through verbatim, so the round trip produced plausible integers at every
+    step and never raised.
+
+    Ids with no compact slot are DROPPED rather than passed through: a seed
+    that silently shrinks is recoverable and visible in ``len()``, whereas a
+    seed carrying non-neurons is indistinguishable from a working one. Call
+    ``engine.materialize_area`` first if every id must survive.
+
+    ``remap=False`` restores the un-translated behaviour and exists ONLY for
+    ``construction="legacy"``, whose whole purpose is reproducing recorded
+    ``coin2024_*`` goldens byte-for-byte. Translating there would shrink a
+    ``k=50`` seed to the 7 ids that happen to have slots, which is *more*
+    correct and still not a coin -- it changes the recorded numbers without
+    fixing anything. The real fix is ``construction="attractor"``, which
+    materialises the area so nothing needs dropping.
+    """
+    ids = np.asarray(neuron_ids, dtype=np.int64).ravel()
+    inv = (_compact_index(brain._engine_for(brain.areas[area_name]), area_name)
+           if remap else None)
+    if inv:
+        ids = np.asarray([inv[i] for i in (int(x) for x in ids) if i in inv],
+                         dtype=np.int64)
+    compact = np.unique(ids).astype(np.uint32)
+    brain.areas[area_name]._winners = compact
+    brain._engine.set_winners(area_name, compact)
+    return compact
 
 
 class RandomChoiceArea:
     """Neural coin-flip: two attractor assemblies compete stochastically.
 
-    Creates a brain area with two trained assemblies (attractors).
-    ``flip()`` seeds the area with a mixed activation, self-projects,
-    and reads which attractor won.
+    Creates a brain area with two trained assemblies (attractors). ``flip()``
+    seeds the area, lets recurrence settle, and reads which attractor won.
+
+    CHOOSE THE CONSTRUCTION DELIBERATELY -- they are not two tunings of one
+    thing, and only one of them builds a coin.
+
+    ``construction="attractor"`` is the working one. Measured at ``n=2000,
+    k=200, beta=3.0`` over 4 brains x 60 flips, the settled state overlaps the
+    winning attractor **0.985** against a chance floor of ``k/n = 0.100``.
+
+    ``construction="legacy"`` (the default, for now) scores **0.159** on that
+    same measurement -- barely off the floor. Its recurrent fiber is never
+    allocated, so the settle loop delivers zero drive and the returned 0/1
+    comes from the seed RNG. It is kept as the default only because the
+    recorded ``coin2024_*`` goldens were produced against it; see
+    ``_build_legacy`` for the two defects and #70 for the migration.
+
+    THE TWO ARE INDISTINGUISHABLE ON FAIRNESS. Both read ~0.5 heads with
+    comparable across-brain spread. Anything that validates this class must
+    assert on overlap-with-the-winner against ``k/n``, never on the head rate;
+    ``tests/test_coin_construction.py`` pins that distinction, and
+    ``research/notes/neural_coin_fairness.md`` has the full analysis.
 
     Args:
         brain: Brain instance.
         area_name: Name for the coin area (default "_coin").
         n: Neurons in the area (default 10000).
         k: Assembly size (default 100).
-        beta: Plasticity rate (default 0.05).
+        beta: Plasticity rate (default 0.05). The attractor construction wants
+            this HIGH (~3.0); an assembly must survive its own recurrence.
         rounds_train: Training rounds per attractor (default 15).
         prefix: Namespace prefix (default "_coin").
+        construction: "legacy" (default, broken, golden-compatible) or
+            "attractor" (validated). See above.
+        fires: attractor construction only -- how many times each assembly is
+            force-fired into the shared connectome (default 2). Symmetric by
+            construction; raising it deepens both basins equally.
     """
 
     def __init__(
@@ -78,11 +146,14 @@ class RandomChoiceArea:
         beta: float = 0.05,
         rounds_train: int = 15,
         prefix: str = "_coin",
+        construction: Construction = "legacy",
+        fires: int = 2,
     ):
         self.brain = brain
         self.area_name = f"{prefix}_{area_name}"
         self.n = n
         self.k = k
+        self.construction = construction
 
         # Create area and two stimuli
         brain.add_area(self.area_name, n, k, beta)
@@ -92,14 +163,12 @@ class RandomChoiceArea:
         brain.add_stimulus(self._stim0, k)
         brain.add_stimulus(self._stim1, k)
 
-        # Training is deliberately done in two stages.
-        #
-        # Stage 1 -- carve out two INDEPENDENT attractors.  Each stimulus is
-        # projected with the recurrent weights reset before and after, so
-        # neither assembly is formed in the shadow of the other's attractor.
-        # Without the resets the second stimulus is pulled into the first's
-        # basin and the two "attractors" end up largely overlapping, which
-        # would make the coin degenerate (always the same answer).
+        # Stage 1 (BOTH constructions) -- carve out two INDEPENDENT attractors.
+        # Each stimulus is projected with the recurrent weights reset before and
+        # after, so neither assembly is formed in the shadow of the other's
+        # basin. Without the resets the second stimulus is pulled into the
+        # first's basin and the two "attractors" largely overlap, which makes
+        # the coin degenerate (always the same answer).
         self.asm0 = project(brain, self._stim0, self.area_name,
                             rounds=rounds_train)
         brain._engine.reset_area_connections(self.area_name)
@@ -107,32 +176,106 @@ class RandomChoiceArea:
                             rounds=rounds_train)
         brain._engine.reset_area_connections(self.area_name)
 
-        # Stage 2 -- INTENDED to deepen both basins in ONE shared connectome,
-        # alternating so neither gets a systematic head start.
-        #
-        # MEASURED 2026-07-30: IT DOES NOT DO THIS. `project` here is
-        # `ops.project`, whose `recurrent` argument defaults False, so every
-        # call below is stimulus-only and NOT ONE RECURRENT WEIGHT IS WRITTEN.
-        # After this loop the area has no `C -> C` weight block at all (shape
-        # (0, 0), nnz 0, while the area has w=357). There are no fixed points,
-        # so there is nothing for a mixed initial state to fall into.
-        #
-        # Passing `recurrent=True` does write the block -- 18,006 synapses --
-        # but does NOT yield a working coin: see `flip`. Left as-is
-        # deliberately, because the recurrent version measures WORSE.
+        if construction == "attractor":
+            self._build_attractor(fires)
+        else:
+            self._build_legacy(rounds_train)
+
+    def _build_legacy(self, rounds_train: int) -> None:
+        """The shipped construction. IT DOES NOT BUILD A COIN -- see `flip`.
+
+        Retained only so recorded ``coin2024_*`` goldens stay reproducible.
+        Two independent defects, both measured 2026-07-30 at ``n=2000, k=50``:
+
+        1. The loop below is meant to deepen both basins in ONE shared
+           connectome, alternating so neither gets a head start. It does not:
+           ``ops.project``'s ``recurrent`` argument defaults False, so every
+           call is stimulus-only and NOT ONE RECURRENT WEIGHT IS WRITTEN. The
+           area ends with no ``C -> C`` block at all -- shape (0, 0), nnz 0,
+           while the area has ``w=357``. There are no fixed points, so a mixed
+           initial state has nothing to fall into.
+        2. The re-snapshot is ASYMMETRIC. asm1 is reinforced last, leaving it
+           systematically the deeper basin on every seed measured
+           (within-asm1 / within-asm0 = 5.07/4.59, 5.10/4.30, 4.82/4.44).
+
+        Passing ``recurrent=True`` here writes the block (18,006 synapses) but
+        does not produce a working coin either, because the seed still spans
+        ``w`` rather than ``n``. Use ``construction="attractor"``.
+        """
+        brain = self.brain
         for _ in range(3):
             project(brain, self._stim0, self.area_name, rounds=rounds_train)
             project(brain, self._stim1, self.area_name, rounds=rounds_train)
 
         # Stage 1's snapshots were taken against connectomes that no longer
-        # exist, so re-take them.  Everything downstream compares flip results
+        # exist, so re-take them. Everything downstream compares flip results
         # against asm0/asm1 by overlap; stale references would mis-score every
-        # flip.  Note this leaves asm1 as the most recently reinforced
-        # attractor.
+        # flip.
         self.asm0 = project(brain, self._stim0, self.area_name,
                             rounds=rounds_train)
         self.asm1 = project(brain, self._stim1, self.area_name,
                             rounds=rounds_train)
+
+    def _build_attractor(self, fires: int) -> None:
+        """The construction validated in ``research/notes/neural_coin_fairness.md``.
+
+        Three things the legacy path gets wrong, each of which was individually
+        load-bearing:
+
+        **Materialise the area first.** The reference allocates a dense
+        ``n x n`` recurrent matrix up front and seeds a uniform random
+        ``k``-subset of ALL ``n``. Under lazy materialisation the fiber spans
+        only the ``w`` neurons that have won something, so at ``n=2000`` with
+        ``w=357`` a ``k=50`` seed carried 9.2 +/- 2.6 real neurons -- 82% of it
+        addressed no synapse.
+
+        **Fire each assembly the same number of times, then stop.** Symmetry is
+        the whole claim; a last-reinforced attractor is a bent coin by
+        construction.
+
+        **FORCE the activations.** The reference's ``fire(assm)`` pins the
+        winners so plasticity writes ``assembly x assembly``. A plain
+        ``project`` recomputes winners from a still-untrained block, gets
+        noise, and potentiates ``assembly x noise`` instead. ``fix_assembly``
+        is our equivalent.
+
+        Measured over 40 brains x 400 flips at ``n=2000``: overlap with the
+        winning attractor 0.985 against a chance floor of ``k/n = 0.1``, and
+        the across-brain spread falls as ``k^-0.77`` while basin asymmetry
+        falls as ``k^-1.01`` (log-log r = -0.997) out to ``n=16,000``.
+        """
+        brain = self.brain
+        area = brain.areas[self.area_name]
+        engine = brain._engine_for(area)
+
+        materialize = getattr(engine, "materialize_area", None)
+        if materialize is None:
+            raise NotImplementedError(
+                f"construction='attractor' needs an engine that can "
+                f"materialise an area up front; {type(engine).__name__} "
+                f"cannot. Use engine='numpy_sparse'.")
+        materialize(self.area_name)
+
+        # Map both snapshots into compact space ONCE, after materialising, so
+        # every stored neuron has a slot. Done before any firing because
+        # _seed_winners drops unmapped ids and we want that to be a no-op here.
+        inv = _compact_index(engine, self.area_name) or {}
+
+        def _compact(asm):
+            return np.asarray(
+                [inv[i] for i in (int(x) for x in asm.winners) if i in inv],
+                dtype=np.uint32)
+
+        c0, c1 = _compact(self.asm0), _compact(self.asm1)
+        self._compact0, self._compact1 = c0, c1
+
+        for _ in range(fires):
+            for compact in (c0, c1):
+                area._winners = compact
+                engine.set_winners(self.area_name, compact)
+                area.fix_assembly()
+                brain.project({}, {self.area_name: [self.area_name]})
+                area.unfix_assembly()
 
     def flip(
         self,
@@ -149,52 +292,46 @@ class RandomChoiceArea:
         Both return 0 or 1 by asking which trained attractor the settled state
         overlaps more; ties go to 0.
 
-        THE SETTLE LOOP CONTRIBUTES NOTHING, AND MAKING IT LIVE MAKES THE COIN
-        WORSE.  Measured 2026-07-30, and both halves matter.
+        WHAT THE SETTLE LOOP ACTUALLY DOES DEPENDS ON ``construction``, and
+        under the default it does nothing at all.
 
-        As shipped the loop is inert: the ``area -> area`` block is never
-        allocated (self fibers are excluded from deferred init -- see
-        ``_self_fiber_deferred_init`` in the numpy engine), so it delivers zero
-        drive and ``project_into`` hands back the incumbent winners::
+        Under ``construction="legacy"`` the loop is inert: the ``area -> area``
+        block is never allocated (self fibers are excluded from deferred init
+        -- see ``_self_fiber_deferred_init`` in the numpy engine), so it
+        delivers zero drive and ``project_into`` hands back the incumbent
+        winners::
 
             rounds = 0 / 1 / 10   ->  200/200 identical flips, same head count
             winners moved         ->  0 of 10 rounds
             cross-fiber control   ->  moves winners 2/5 rounds
 
-        So the answer is decided entirely by the ``rng.choice`` above.
+        The answer is decided entirely by the ``rng.choice`` above, and the
+        settled state's overlap with the winning attractor reads 0.159 against
+        a 0.100 chance floor.
 
-        Waking the fiber AND training it recurrently was tried across
-        ``beta`` in {0.05, 0.1, 0.2}, ``rounds_train`` in {10, 20, 40} and
-        settle lengths {0, 1, 2, 3, 5, 10}, over 5-8 brains x 100 flips.  No
-        cell is a fair coin.  At bias=0.5, ``compete`` reads 0.661 +/- 0.039
-        across brains as shipped, against 0.319 +/- 0.159 and 0.649 +/- 0.165
-        recurrently trained -- the mean stays biased and the ACROSS-BRAIN
-        spread grows 4-6x, which is the worse failure: a coin that answers 0.08
-        of the time in one brain and 0.52 in another is not a coin.
+        Under ``construction="attractor"`` the same loop is the whole
+        mechanism: 0.985 on that measurement. The ladder in
+        ``research/notes/neural_coin_fairness.md`` -- same construction, run
+        standalone -- takes it to 1.000 by ``n=8000``, and shows decisiveness
+        climbing monotonically over ``rounds`` (0.571 at 1, 0.952 at 10, 0.985
+        at 20) then flat at 40: a fixed point, not a slow drift.
 
-        ``k_split`` additionally fails to track its own ``bias`` once settling
-        is live.  With no settling it is exactly monotone (0.000 / 0.000 /
-        0.710 / 1.000 / 1.000 across bias 0 -> 1); with any settling that
-        collapses, and at beta=0.1/T=20 it INVERTS (0.614 -> 0.200 as bias
-        rises).  The seeded mix already carries the answer and the dynamics
-        destroy it.
+        NOTE THAT ``bias`` IS OUR INVENTION and does not survive live settling.
+        The reference (``.reference/mdabagia-nemo/brain.py``) seeds a UNIFORM
+        RANDOM k-subset of all n and has no bias parameter; ``compete``
+        reproduces that only at bias=0.5. With the fiber dead, ``k_split``
+        tracked bias exactly (0.000 / 0.000 / 0.710 / 1.000 / 1.000 across
+        bias 0 -> 1) for the trivial reason that it was reading back its own
+        seed mix. Once the dynamics run they overwrite that mix with whichever
+        attractor won, so a biased seed does not yield a proportionally biased
+        answer -- at beta=0.1/T=20 the relationship INVERTS (0.614 -> 0.200 as
+        bias rises). If you want a biased coin, bias the BASINS (asymmetric
+        ``fires``), not the seed.
 
-        Note also that ``bias`` is OUR invention.  The reference
-        (``.reference/mdabagia-nemo/brain.py::RandomChoiceArea.flip``) seeds a
-        UNIFORM RANDOM k-subset of all n neurons and has no bias parameter at
-        all; ``compete`` reproduces that only at bias=0.5.
-
-        What that leaves: the substrate is not amplifying a random seed into a
-        clean binary decision here, and the published coin numbers measure the
-        seed RNG.  Tracked as #70.
-
-        The two modes are NOT interchangeable as measurement instruments.
-        ``compete`` disables plasticity for the duration of the flip, so it is
-        a pure read: flipping the same coin a thousand times leaves it exactly
-        as it was.  ``k_split`` leaves plasticity ON, so every flip potentiates
-        whichever basin it landed in and successive flips are not independent
-        -- the coin drifts toward its own history.  Use ``compete`` when
-        measuring a flip distribution.  ``k_split`` remains the package default
+        Both modes disable plasticity for the duration of the flip, so a flip
+        is a pure read: flipping the same coin a thousand times leaves it
+        exactly as it was. Prefer ``compete`` when measuring a distribution --
+        it is the reference protocol. ``k_split`` remains the package default
         because published numbers in this repo were produced with it.
         """
         if mode == "compete":
@@ -223,26 +360,13 @@ class RandomChoiceArea:
         if len(mixed) > self.k:
             mixed = rng.choice(mixed, size=self.k, replace=False)
 
-        b.areas[self.area_name]._winners = mixed.astype(np.uint32)
-        b._engine.set_winners(self.area_name, mixed.astype(np.uint32))
-
-        # Plasticity OFF while settling, matching _flip_compete. A flip is a
-        # MEASUREMENT of the stored attractors, not training: leaving it on
-        # would potentiate whichever basin this flip happened to land in, so
-        # successive flips on one coin would not be independent draws and a
-        # measured flip distribution could drift toward its own history.
-        # (Attempts to exhibit that drift empirically here were inconclusive --
-        # see the note in the sibling method -- but a read-out that writes is
-        # wrong regardless of whether the bias is currently large enough to
-        # detect.)
-        with b.frozen():
-            for _ in range(rounds):
-                b.project({}, {self.area_name: [self.area_name]})
-
-        result = _snap(b, self.area_name)
-        ov0 = overlap(result, self.asm0)
-        ov1 = overlap(result, self.asm1)
-        return 0 if ov0 >= ov1 else 1
+        # asm0/asm1 hold NEURON IDs; set_winners wants COMPACT indices. See
+        # _seed_winners -- under the legacy construction 86% of these ids have
+        # no compact slot at all, and are passed through untranslated so the
+        # recorded goldens still reproduce.
+        _seed_winners(b, self.area_name, mixed,
+                      remap=self.construction != "legacy")
+        return self._settle_and_read(rounds)
 
     def _flip_compete(self, bias: float, rounds: int, seed: int | None) -> int:
         """Reference NEMO coin: random/noisy seed then attractor competition."""
@@ -251,8 +375,18 @@ class RandomChoiceArea:
         area = b.areas[self.area_name]
         noise_std = getattr(area, "input_noise_std", 0.0)
 
+        # THE UNIFORM BRANCH IS ALREADY IN COMPACT SPACE and must not be
+        # remapped: it draws from the whole area, and after materialising, the
+        # compact indices are a permutation of 0..n-1, so a uniform subset of
+        # compact slots is distributionally identical to one of neuron ids.
+        # Without materialising, indices past `w` name nothing -- which is the
+        # defect that made this the reference coin in name only.
         if abs(bias - 0.5) < 1e-9 and noise_std <= 0:
             initial = rng.choice(self.n, size=self.k, replace=False)
+            initial = initial.astype(np.uint32)
+            b.areas[self.area_name]._winners = initial
+            b._engine.set_winners(self.area_name, initial)
+            return self._settle_and_read(rounds)
         else:
             w0 = self.asm0.winners.copy()
             w1 = self.asm1.winners.copy()
@@ -264,15 +398,29 @@ class RandomChoiceArea:
             chosen1 = rng.choice(w1, size=n1, replace=False) if n1 else np.array([], dtype=w1.dtype)
             if len(chosen0) + len(chosen1) == 0:
                 initial = rng.choice(self.n, size=self.k, replace=False)
-            else:
-                initial = np.unique(np.concatenate([chosen0, chosen1]))
-                if len(initial) > self.k:
-                    initial = rng.choice(initial, size=self.k, replace=False)
+                initial = initial.astype(np.uint32)
+                b.areas[self.area_name]._winners = initial
+                b._engine.set_winners(self.area_name, initial)
+                return self._settle_and_read(rounds)
+            initial = np.unique(np.concatenate([chosen0, chosen1]))
+            if len(initial) > self.k:
+                initial = rng.choice(initial, size=self.k, replace=False)
 
-        initial = initial.astype(np.uint32)
-        b.areas[self.area_name]._winners = initial
-        b._engine.set_winners(self.area_name, initial)
+        # Mixed seeds come from asm0/asm1, i.e. NEURON IDs -- remap them.
+        _seed_winners(b, self.area_name, initial,
+                      remap=self.construction != "legacy")
+        return self._settle_and_read(rounds)
 
+    def _settle_and_read(self, rounds: int) -> int:
+        """Run the recurrent settle with plasticity OFF and score the result.
+
+        Plasticity must stay off: a flip is a MEASUREMENT of the stored
+        attractors, not training. Leaving it on potentiates whichever basin
+        this flip landed in, so successive flips on one coin are not
+        independent draws and a measured distribution drifts toward its own
+        history.
+        """
+        b = self.brain
         with b.frozen():
             for _ in range(rounds):
                 b.project({}, {self.area_name: [self.area_name]})
