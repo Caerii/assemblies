@@ -77,6 +77,16 @@ _TRAINING_SOURCES = (
     "assembly_calculus/emergent/training/batch.py",
     "assembly_calculus/emergent/training/schedule.py",
     "core/numpy_engine/_sparse.py",
+    # The k-WTA CANDIDATE SAMPLER. Omitting it was the exact failure this
+    # fingerprint exists to prevent, and it cost a long false-positive hunt:
+    # `_binom_ppf_cached` was rewritten to avoid importing scipy.stats, the new
+    # value was verified identical on all 2013 calls of a live run, and
+    # test_erp_calibration still flipped -- because the backbone being
+    # calibrated had been trained under the OLD sampler and the fingerprint
+    # never noticed. Forcing a retrain made both arms agree.
+    "compute/sparse_simulation.py",
+    # Its sibling: the winner-selection policy that consumes those candidates.
+    "compute/winner_selection.py",
 )
 
 _CODE_FINGERPRINT: Optional[str] = None
