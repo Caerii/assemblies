@@ -29,7 +29,7 @@ import math
 from functools import lru_cache
 
 import numpy as np
-from typing import List, Dict, Tuple, Any
+from typing import List, Dict, Optional, Tuple, Any
 
 try:
     from ..core.backend import get_xp, to_cpu, to_xp, xp_by_name, xp_name
@@ -374,6 +374,22 @@ class SparseSimulationEngine:
 
         return new_winner_indices, first_winner_inputs, num_first_winners_processed
 
+    def _draw_rng(self, key: Optional[Tuple]) -> np.random.Generator:
+        """Generator for a candidate draw: content-addressed when keyed.
+
+        `stable_seed` is crc32 of `repr(parts)`, so it is identical in every
+        process -- `hash()` is not (PEP 456), and using it here would make the
+        fix hold within a run and silently fail across runs, which is exactly
+        the failure mode recorded for the lazy connectome seeds.
+        """
+        if key is None:
+            return self.rng
+        try:
+            from ..core.numpy_engine._seeding import stable_seed
+        except ImportError:                                   # pragma: no cover
+            from core.numpy_engine._seeding import stable_seed
+        return np.random.default_rng(stable_seed(*key))
+
     def sample_new_winner_inputs(
         self,
         input_sizes: List[int],
@@ -381,6 +397,7 @@ class SparseSimulationEngine:
         w: int,
         k: int,
         p: float,
+        key: Optional[Tuple] = None,
     ) -> np.ndarray:
         """
         Sample potential input strengths for k new winner candidates using
@@ -394,12 +411,37 @@ class SparseSimulationEngine:
         Uses cached binom.ppf and direct inverse-CDF sampling via
         scipy.special.ndtri instead of scipy.stats.truncnorm for speed.
 
+        CONTENT-ADDRESSED DRAW (`key`).  Without a key this consumes
+        ``self.rng``, so the SAME input into the SAME area draws DIFFERENT
+        candidates every call -- and because those candidates come from the
+        top-(k/n) quantile by construction, they routinely displace the real
+        incumbents. That breaks the model's defining invariant: drive is
+        |{j in x : synapse j->i}|, a fixed property of the random graph, so at
+        beta=0 a repeated projection must elect identical winners. Measured
+        before this fix, n=20000 k=50 p=0.1, overlap against the first round:
+
+            explicit  beta=0.0    1.000 1.000 1.000 1.000 1.000
+            sparse    beta=0.0    1.000 0.620 0.340 0.320 0.260
+
+        Passing `key` seeds the draw from the CONTENT of the projection --
+        target area, size of the never-fired pool, and which sources fired
+        with which assemblies -- via `stable_seed`, the same idiom the lazy
+        connectome already uses. Identical input then reproduces identical
+        candidates, while genuinely different input still gets fresh ones.
+
+        This is the same class of defect, and the same fix, as the
+        content-addressed synapse init: randomness that stands in for a fixed
+        structural fact must be keyed on that fact, not drawn from a stream.
+
         Args:
             input_sizes: Size of each input source (stimulus sizes + source area k values).
             n: Total neuron count of the target area.
             w: Number of neurons that have ever fired in the target area.
             k: Assembly size (number of winners to select).
             p: Connection probability.
+            key: Optional content key identifying this projection. When None,
+                falls back to the stateful ``self.rng`` (pre-fix behaviour,
+                retained so recorded goldens can be reproduced for comparison).
 
         Returns:
             1D array of length k with sampled input strengths for new candidates.
@@ -431,14 +473,64 @@ class SparseSimulationEngine:
 
         a = (alpha - mu) / std
 
+        if key is not None:
+            return self._xp.asarray(
+                self._order_statistic_candidates(mu, std, n, w, k_eff, total_k))
+
         # Fast truncated normal via inverse CDF: sample U ~ Uniform(Phi(a), 1)
         # then return mu + std * Phi_inv(U).  Avoids scipy.stats overhead.
         phi_a = float(ndtr(a))
-        u = self.rng.uniform(phi_a, 1.0, size=k_eff)
+        rng = self._draw_rng(key)
+        u = rng.uniform(phi_a, 1.0, size=k_eff)
         np.clip(u, phi_a, 1.0 - 1e-12, out=u)  # guard against ndtri(1)=inf
         samples = (mu + ndtri(u) * std).round(0)
         np.clip(samples, 0, total_k, out=samples)
         return self._xp.asarray(samples)
+
+    def _order_statistic_candidates(self, mu: float, std: float, n: int,
+                                    w: int, k_eff: int, total_k: int
+                                    ) -> np.ndarray:
+        """Candidate drives as ORDER STATISTICS of one fixed pool of n draws.
+
+        THE BUG THIS REPLACES.  Drawing k fresh variates from the top-(k/n)
+        tail on every call is drawing two INDEPENDENT top-k samples, when the
+        model has one pool of n neurons whose drives are fixed by the random
+        graph. Because k << n the tail threshold barely moves as w grows, so
+        the second sample is statistically indistinguishable from the first --
+        and roughly half of its candidates outbid the very incumbents the
+        first sample produced. That is why a beta=0 projection was not
+        idempotent (overlap 1.000 -> 0.620 -> 0.340 -> 0.320 -> 0.260) and why
+        assemblies churned instead of converging.
+
+        What the model actually says: the top-k of n draws, then the NEXT k of
+        the SAME n draws, are ranks 1..k and k+1..2k -- strictly decreasing.
+        So rank r gets the expected order statistic at quantile
+        (n - r - 0.5)/n, and `w` -- the count already recruited -- is an OFFSET
+        into that fixed sequence rather than part of a re-drawn threshold.
+
+        Monotone by construction, which is what makes recruitment idempotent:
+        the best remaining candidate is always strictly below the worst neuron
+        already taken, so a repeated projection has nothing new to offer and
+        the incumbents hold.
+
+        This is deterministic, and deliberately so. The random graph is drawn
+        ONCE in the model; re-randomising it per projection was the defect.
+        Using expected order statistics approximates a single fixed
+        realisation, at the cost of not modelling the spread between
+        realisations -- an area's candidate profile is now a function of
+        (n, w, mu, std) alone. Competition is against materialised incumbents,
+        which do differ per area, so this does not make areas interchangeable.
+        """
+        from scipy.special import ndtri
+
+        if k_eff <= 0:
+            return np.empty(0)
+        ranks = np.arange(w, w + k_eff, dtype=np.float64)
+        quantiles = (n - ranks - 0.5) / n
+        np.clip(quantiles, 1e-12, 1.0 - 1e-12, out=quantiles)
+        samples = (mu + ndtri(quantiles) * std).round(0)
+        np.clip(samples, 0, total_k, out=samples)
+        return samples
 
     def sample_new_winner_inputs_legacy(
         self,
@@ -447,6 +539,7 @@ class SparseSimulationEngine:
         w: int,
         k: int,
         p: float,
+        key: Optional[Tuple] = None,
     ) -> np.ndarray:
         """
         Legacy version of sample_new_winner_inputs using scipy.stats.truncnorm.
@@ -493,7 +586,7 @@ class SparseSimulationEngine:
         a = (alpha - mu) / std
         samples = truncnorm.rvs(
             a, np.inf, loc=mu, scale=std, size=k_eff,
-            random_state=self.rng,
+            random_state=self._draw_rng(key),
         ).round(0)
         np.clip(samples, 0, total_k, out=samples)
         return self._xp.asarray(samples)

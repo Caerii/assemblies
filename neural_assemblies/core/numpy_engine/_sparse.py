@@ -430,6 +430,14 @@ class NumpySparseEngine(ComputeEngine):
         self._seed = (int(seed) if seed is not None
                       else int(self._rng.integers(0, 2 ** 32)))
         self._content_init = _env_content_init()
+        # Content-address the never-fired candidate draw. Without it the same
+        # input into the same area draws fresh top-quantile candidates every
+        # call and displaces its own incumbents, so a beta=0 projection is not
+        # idempotent. Off restores the pre-fix stream for golden comparison;
+        # see SparseSimulationEngine.sample_new_winner_inputs.
+        self.stable_candidates = (
+            os.environ.get("NEURAL_ASSEMBLIES_STABLE_CANDIDATES", "1") != "0"
+        )
         # THE ARRAY MODULE THIS ENGINE USES, captured ONCE here rather than
         # re-read from a process-global on every call.
         #
@@ -1016,6 +1024,31 @@ class NumpySparseEngine(ComputeEngine):
 
     def add_connectivity(self, source: str, target: str, p: float) -> None:
         pass
+
+    def _candidate_draw_key(self, target, tgt, from_stimuli, from_areas):
+        """Identify a projection by its CONTENT, for the candidate sampler.
+
+        Two projections that should elect the same winners must produce the
+        same key, and two that should not must not. So the key carries:
+
+          * the target area and the size of its never-fired pool (`w`), which
+            is what the truncated-tail draw is a statement about;
+          * which stimuli fired -- by name, since a stimulus is a fixed
+            pattern;
+          * which areas fired AND the assembly each one fired with, because a
+            source area's drive is determined by its current winners, not by
+            its name. Keying on the name alone would hand the same candidates
+            to two different assemblies projecting along the same fiber.
+
+        Winners are digested with crc32 rather than embedded, to keep the key
+        small and hashable; `stable_seed` then crc32s the whole tuple.
+        """
+        parts = [target, int(tgt.n), int(tgt.w), int(tgt.k)]
+        parts.extend(sorted(from_stimuli))
+        for a in sorted(from_areas):
+            w = np.asarray(to_cpu(self._areas[a].winners), dtype=np.uint32)
+            parts.append((a, int(zlib.crc32(np.sort(w).tobytes()))))
+        return tuple(parts)
 
     def _select_winner_indices(self, tgt, all_inputs, rng, population_sigma=None):
         """Select winner indices using area policy (default top-k)."""
@@ -1618,13 +1651,18 @@ class NumpySparseEngine(ComputeEngine):
         else:
             old_rng = self._sparse_sim.rng
             self._sparse_sim.rng = rng
+            # Content key: what this projection IS, so the same projection
+            # draws the same candidates. See sample_new_winner_inputs.
+            draw_key = (self._candidate_draw_key(target, tgt, from_stimuli,
+                                                 from_areas)
+                        if self.stable_candidates else None)
             if self._deterministic:
                 potential_new = self._sparse_sim.sample_new_winner_inputs_legacy(
-                    input_sizes, tgt.n, tgt.w, tgt.k, self.p,
+                    input_sizes, tgt.n, tgt.w, tgt.k, self.p, key=draw_key,
                 )
             else:
                 potential_new = self._sparse_sim.sample_new_winner_inputs(
-                    input_sizes, tgt.n, tgt.w, tgt.k, self.p,
+                    input_sizes, tgt.n, tgt.w, tgt.k, self.p, key=draw_key,
                 )
         self._sparse_sim.rng = old_rng
 
