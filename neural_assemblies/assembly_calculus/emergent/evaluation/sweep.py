@@ -64,10 +64,32 @@ def backbone_cache_dir():
     return Path(__file__).resolve().parents[4] / ".cache" / "backbones"
 
 
+#: Whole packages hashed RECURSIVELY. Everything numeric lives here -- the
+#: engines, the seeding, the pricing law, the samplers, the winner policies --
+#: and enumerating them file by file is what went wrong before.
+#:
+#: The list below used to name individual engine files, on the reasoning that
+#: hashing more would "needlessly invalidate hours of training". That trade was
+#: wrong in both directions. It was too coarse to be safe: a trace of a MINIMAL
+#: projection run (two areas, four rounds) executes 15 modules under these two
+#: packages and only THREE were listed -- the misses included
+#: `core/numpy_engine/_seeding.py`, which decides every synapse's initial
+#: weight, and `core/_pricing.py`, which decides who wins. And it was too
+#: expensive to be worth it: `core/` and `compute/` are 39 files, so hashing
+#: them wholesale costs 39 `stat` calls per process.
+#:
+#: A stale backbone does not fail loudly. It returns a plausible number, and it
+#: corrupts exactly the A/B comparisons this program depends on. Retraining an
+#: extra time is the cheaper error.
+_TRAINING_SOURCE_DIRS = (
+    "core",
+    "compute",
+)
+
+#: Individual files OUTSIDE those packages. The language-level training code is
+#: spread through `assembly_calculus/`, most of which is analysis and reporting
+#: that cannot change a trained backbone, so it stays enumerated.
 _TRAINING_SOURCES = (
-    # Modules whose contents change what a trained backbone contains. Kept
-    # explicit rather than hashing the whole package, so an unrelated edit does
-    # not needlessly invalidate hours of training.
     "assembly_calculus/ops.py",
     "assembly_calculus/emergent/core/corpus_index.py",
     "assembly_calculus/emergent/parser_mixins/roles.py",
@@ -76,17 +98,6 @@ _TRAINING_SOURCES = (
     "assembly_calculus/emergent/parser_mixins/classify.py",
     "assembly_calculus/emergent/training/batch.py",
     "assembly_calculus/emergent/training/schedule.py",
-    "core/numpy_engine/_sparse.py",
-    # The k-WTA CANDIDATE SAMPLER. Omitting it was the exact failure this
-    # fingerprint exists to prevent, and it cost a long false-positive hunt:
-    # `_binom_ppf_cached` was rewritten to avoid importing scipy.stats, the new
-    # value was verified identical on all 2013 calls of a live run, and
-    # test_erp_calibration still flipped -- because the backbone being
-    # calibrated had been trained under the OLD sampler and the fingerprint
-    # never noticed. Forcing a retrain made both arms agree.
-    "compute/sparse_simulation.py",
-    # Its sibling: the winner-selection policy that consumes those candidates.
-    "compute/winner_selection.py",
 )
 
 _CODE_FINGERPRINT: Optional[str] = None
@@ -109,6 +120,12 @@ def training_code_fingerprint() -> str:
     cheap enough to run on every lookup. Set ``ASSEMBLIES_IGNORE_CODE_FINGERPRINT=1``
     to opt out when deliberately reusing a backbone across a known-irrelevant
     change.
+
+    COVERAGE is the part that has gone wrong twice, so it is now structural:
+    the whole of ``core/`` and ``compute/`` is walked recursively rather than
+    enumerated. ``tests/test_training_fingerprint.py`` traces a real projection
+    run and asserts every module that EXECUTES is covered, so the next addition
+    cannot quietly fall outside it.
     """
     global _CODE_FINGERPRINT
     if _CODE_FINGERPRINT is not None:
@@ -121,7 +138,7 @@ def training_code_fingerprint() -> str:
 
     pkg = Path(__file__).resolve().parents[3]
     h = hashlib.blake2b(digest_size=6)
-    for rel in _TRAINING_SOURCES:
+    for rel in fingerprint_source_files():
         p = pkg / rel
         try:
             st = p.stat()
@@ -130,6 +147,25 @@ def training_code_fingerprint() -> str:
             h.update(f"{rel}:missing".encode())
     _CODE_FINGERPRINT = h.hexdigest()
     return _CODE_FINGERPRINT
+
+
+def fingerprint_source_files() -> Tuple[str, ...]:
+    """Every package-relative path the fingerprint covers, sorted.
+
+    Sorted so the hash does not depend on filesystem enumeration order, which
+    differs between platforms and would give the same tree two fingerprints.
+    Exposed rather than inlined so the coverage test can assert against the
+    real set instead of re-deriving it.
+    """
+    pkg = Path(__file__).resolve().parents[3]
+    found: Set[str] = set(_TRAINING_SOURCES)
+    for d in _TRAINING_SOURCE_DIRS:
+        root = pkg / d
+        if not root.is_dir():
+            continue
+        for p in root.rglob("*.py"):
+            found.add(p.relative_to(pkg).as_posix())
+    return tuple(sorted(found))
 
 
 def _backbone_disk_path(depth, *, seed, n, k, holdout):
