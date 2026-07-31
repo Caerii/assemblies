@@ -127,22 +127,44 @@ def claim_a3(n: int, k: int, p: float, beta: float, seed: int,
         for _ in range(build_rounds):
             b.project({stim: [area]}, {area: [area]})
 
-    def project_into_c(stim: str, src: str) -> np.ndarray:
+    def train_into_c(stim: str, src: str) -> np.ndarray:
+        """Establish this source's projection in C. Plastic, on purpose."""
+        # CLEAR C FIRST. Without this the second call inherits the first: C's
+        # winners persist, C->C recurrence locks them in, and the two
+        # "independent" projections came back already overlapping 0.38 before
+        # any association had happened, which put the paper's 8-10% target
+        # below the floor. Clearing winners leaves the connectome alone.
+        b.inhibit_areas(["C"])
         for _ in range(build_rounds):
             b.project({stim: [src]}, {src: ["C"], "C": ["C"]})
         return np.asarray(b.areas["C"].winners).copy()
 
-    xc_before = project_into_c("sx", "A")
-    yc_before = project_into_c("sy", "B")
-    before = _ov(xc_before, yc_before)
+    def probe_c(stim: str, src: str) -> np.ndarray:
+        """READ this source's projection in C without rewriting it.
+
+        This must not be `train_into_c`. Reading with plasticity on re-trains
+        the very attractor being measured: each source deepens its OWN basin
+        for `build_rounds` rounds every time it is read, so after association
+        A simply re-retrieves the assembly it just rewrote instead of the joint
+        one, and the measured overlap is 0.0000 no matter how much association
+        happened. `read_only()` also blocks RECRUITMENT, which is the channel
+        that makes two probes structurally different brains.
+        """
+        with b.read_only():
+            b.inhibit_areas(["C"])
+            for _ in range(build_rounds):
+                b.project({stim: [src]}, {src: ["C"], "C": ["C"]})
+            return np.asarray(b.areas["C"].winners).copy()
+
+    train_into_c("sx", "A")
+    train_into_c("sy", "B")
+    before = _ov(probe_c("sx", "A"), probe_c("sy", "B"))
 
     for _ in range(assoc_rounds):                     # simultaneous firing
         b.project({"sx": ["A"], "sy": ["B"]},
                   {"A": ["C"], "B": ["C"], "C": ["C"]})
 
-    xc_after = project_into_c("sx", "A")
-    yc_after = project_into_c("sy", "B")
-    after = _ov(xc_after, yc_after)
+    after = _ov(probe_c("sx", "A"), probe_c("sy", "B"))
     return {"before": before, "after": after, "chance": k / n}
 
 

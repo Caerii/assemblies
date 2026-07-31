@@ -458,6 +458,22 @@ class NumpySparseEngine(ComputeEngine):
         # that key's order-statistic tail. Plain dict of tuples/ints so it
         # survives the pickling this repo does constantly.
         self._key_recruited: Dict[tuple, int] = {}
+        # Size an area->area block on the round it is FIRST NAMED rather than
+        # the round after. Needed for PNAS Fig. 2 B1-B3, where y2's competition
+        # depends on y1's recurrent input existing.
+        #
+        # SEPARATE FLAG, DEFAULT OFF, because it is net-negative today. Bundled
+        # with `stable_candidates` it took the flag-on suite from 11 non-CUDA
+        # failures to 17, and it broke three association tests that were
+        # passing (test_association_increases_overlap_substantially,
+        # test_associate_creates_shared_response, test_associate_golden) -- an
+        # extra fiber delivering on round one changes which neurons the joint
+        # assembly recruits. It moves PNAS A2 from 1.000 to 0.220 against a
+        # paper value of ~0.50, so it is directionally right and not yet
+        # correct.
+        self.eager_fiber_init = (
+            os.environ.get("NEURAL_ASSEMBLIES_EAGER_FIBER_INIT", "0") != "0"
+        )
         # THE ARRAY MODULE THIS ENGINE USES, captured ONCE here rather than
         # re-read from a process-global on every call.
         #
@@ -1511,20 +1527,40 @@ class NumpySparseEngine(ComputeEngine):
                         prev_winner_inputs[:end] += contrib[:end]
                 continue
             if conn.weights.shape[1] == 0:
-                # Mark connections for deferred init so they are available on
-                # the NEXT projection round.  See `_self_fiber_deferred_init`
-                # for why SELF fibers were excluded here and what that cost.
+                # EAGER INIT: size the block NOW, so the fiber delivers on the
+                # round it is first named rather than the one after.
                 #
-                # THIS ROUND THE FIBER DELIVERS NOTHING, and it must not be
-                # charged into the candidate price either -- see
-                # `_silent_area_srcs` below.
-                if (conn.sparse
+                # Deferring it is what kept PNAS Fig. 2 B1-B3 out of reach. The
+                # paper's ~50% overlap(y1,y2) comes from y1's neurons getting
+                # potentiated afferent input PLUS recurrent input from y1,
+                # which together are comparable to a fresh candidate's
+                # unpotentiated afferent plus the same recurrent term. Deferred,
+                # the recurrent half simply is not there on the round that
+                # decides y2, so the comparison is not the paper's.
+                if (self.eager_fiber_init and conn.sparse
                         and (src_name != target
                              or _self_fiber_deferred_init())
                         and self._areas[src_name].w > 0 and tgt.w > 0):
-                    _deferred_init_srcs.append(src_name)
-                _silent_area_srcs.add(src_name)
-                continue
+                    conn.weights = self._init_area_block(
+                        src_name, target, 0, int(self._areas[src_name].w),
+                        0, int(tgt.w))
+                if conn.weights.shape[1] == 0:
+                    # Still empty -- either eager init is off, or there is
+                    # genuinely nothing to connect yet (w == 0 on one side).
+                    # Mark for deferred init so it works on the NEXT round. See
+                    # `_self_fiber_deferred_init` for why SELF fibers are
+                    # excluded by default and what that costs.
+                    #
+                    # THIS ROUND THE FIBER DELIVERS NOTHING, and it must not be
+                    # charged into the candidate price either -- see
+                    # `_silent_area_srcs` below.
+                    if (conn.sparse
+                            and (src_name != target
+                                 or _self_fiber_deferred_init())
+                            and self._areas[src_name].w > 0 and tgt.w > 0):
+                        _deferred_init_srcs.append(src_name)
+                    _silent_area_srcs.add(src_name)
+                    continue
             src_w = xp.asarray(src.winners)
             internal = src_w[src_w < conn.weights.shape[0]]
             if len(internal) > 0 and limit > 0:
