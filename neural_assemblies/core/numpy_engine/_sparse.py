@@ -18,6 +18,24 @@ try:                                    # optional: CSR mirrors for the drive
 except ImportError:                     # pragma: no cover - falls back to dense
     sp = None
 
+def _csr_storage_available() -> bool:
+    """CSR storage needs scipy AND a numpy-backed engine.
+
+    ``scipy.sparse`` is CPU-only, so a CuPy backend must fall back to dense.
+    This is checked at CALL time rather than import time because the backend
+    is process-global and mutable: constructing a ``cupy_sparse`` or CUDA
+    engine calls ``set_backend("cupy")`` and never restores it, so an engine
+    that was numpy when it was built can be handed CuPy arrays later in the
+    same process. That leak is tracked separately; declining here keeps this
+    path correct either way rather than raising a confusing
+    "Implicit conversion to a NumPy array is not allowed" from deep inside a
+    chunked build.
+    """
+    if sp is None:
+        return False
+    return get_xp() is np
+
+
 # A CSR mirror costs one dense pass to build and is amortised over every
 # settle round that follows. Below this many cells the gather it saves is
 # smaller than the build, at any settle length.
@@ -44,6 +62,7 @@ except ImportError:
     from compute.winner_policies import TopKPolicy
 
 from ._state import SparseAreaState, StimulusState
+from ._csr_weights import CSRWeights, build_csr_from_blocks
 from ._seeding import (
     fnv1a_pair_seed,
     hash_area_weights,
@@ -556,6 +575,50 @@ class NumpySparseEngine(ComputeEngine):
         else:
             d.add(int(col_idx))
 
+    def _materialize_self_fiber_csr(self, area: str, conn, n: int) -> None:
+        """Build the full ``n x n`` self fiber straight into CSR, chunk by chunk.
+
+        Equivalent to what ``_grow``'s vstack/hstack produces, and produced
+        without ever holding the dense form -- which is the point, because the
+        transient ``O(n^2)`` allocation is the actual wall a bigger ladder hits
+        (1.0 GB at ``n=16,000``) even though the result is 95% zeros.
+
+        The final block is exactly::
+
+            [0:pr, 0:pc]   the EXISTING, already-trained sub-block
+            elsewhere      fresh `_init_area_block`, which is addressed by
+                           ABSOLUTE position, so chunking cannot change a value
+
+        Preserving the trained corner is load-bearing: everything the area has
+        learned so far lives there, and regenerating it from the initialiser
+        would silently reset the area to naive while leaving every shape and
+        count looking right.
+        """
+        xp = get_xp()
+        prev = conn.weights
+        prev = prev if getattr(prev, "ndim", 0) == 2 else None
+        pr, pc = (prev.shape if prev is not None else (0, 0))
+        prev_dense = (np.asarray(to_cpu(prev))
+                      if prev is not None and pr and pc else None)
+
+        def block_fn(r0, r1):
+            out = np.array(
+                to_cpu(self._init_area_block(area, area, r0, r1, 0, n)),
+                dtype=np.float32, copy=True)
+            if prev_dense is not None and r0 < pr:
+                rr = min(r1, pr)
+                out[:rr - r0, :pc] = prev_dense[r0:rr, :pc]
+            return out
+
+        conn.weights = build_csr_from_blocks(n, n, block_fn)
+        conn._log_rows, conn._log_cols = n, n
+        # Rebuilt rather than patched: norm_init reads these, and CSRWeights
+        # answers them natively (`column_nnz`) instead of scanning n^2 cells.
+        conn._deg_counts_arr = None
+        conn._deg_rows = 0
+        conn._deg_dirty = None
+        del xp
+
     def invalidate_csr_drive(self, src: str = None, tgt: str = None) -> None:
         """Drop CSR mirrors. Call from EVERY path that writes area weights.
 
@@ -601,7 +664,7 @@ class NumpySparseEngine(ComputeEngine):
         Returns None when caching is not worthwhile or not safe, in which case
         the caller must use the dense path.
         """
-        if sp is None or w.ndim != 2:
+        if not _csr_storage_available() or w.ndim != 2:
             return None
         # Below this the CSR build (one dense pass) is not amortised by the
         # gather it saves, whatever the settle length.
@@ -651,14 +714,31 @@ class NumpySparseEngine(ComputeEngine):
         # Full (re)build: first use, or the block shrank, which the incremental
         # arithmetic is not defined for.
         if counts is None or have_rows > rows or len(counts) > w.shape[1]:
-            counts = xp.asarray(np.count_nonzero(np.asarray(to_cpu(w))[:rows, :cols],
-                                                 axis=0), dtype=xp.float32)
+            if isinstance(w, CSRWeights) and rows >= w.shape[0]:
+                # CSR already stores the column index of every nonzero, so this
+                # is a bincount over nnz rather than a scan of n^2 cells. Only
+                # valid for the whole block -- a row-limited count would need
+                # the indptr walk, and a materialised block is always whole.
+                counts = xp.asarray(w.column_nnz()[:cols], dtype=xp.float32)
+            else:
+                counts = xp.asarray(
+                    np.count_nonzero(np.asarray(to_cpu(w))[:rows, :cols],
+                                     axis=0), dtype=xp.float32)
             conn._deg_counts_arr = counts
             conn._deg_rows = rows
             conn._deg_dirty = None
         else:
-            w_cpu = np.asarray(to_cpu(w))
             have_cols = len(counts)
+            # NOTHING-TO-DO FAST PATH. Densifying `w` before checking whether
+            # any of the three updates below actually applies cost a FULL
+            # `csr_todense` of the block on every settle round -- 99 of them in
+            # 100 rounds, 58% of the flip. A materialised block never grows and
+            # is only ever written multiplicatively, so this is the common case
+            # and it must not touch the matrix at all.
+            if (cols <= have_cols and rows <= have_rows
+                    and not getattr(conn, "_deg_dirty", None)):
+                return conn._deg_counts_arr
+            w_cpu = np.asarray(to_cpu(w))
             if cols > have_cols:
                 add = xp.asarray(
                     np.count_nonzero(w_cpu[:have_rows, have_cols:cols], axis=0),
@@ -1021,7 +1101,7 @@ class NumpySparseEngine(ComputeEngine):
 
     # -- Projection ---------------------------------------------------------
 
-    def materialize_area(self, area: str) -> int:
+    def materialize_area(self, area: str, storage: str = "csr") -> int:
         """Bring ALL ``n`` of an area's neurons into existence at once.
 
         WHY THIS EXISTS.  This engine materializes neurons lazily: only the
@@ -1044,10 +1124,17 @@ class NumpySparseEngine(ComputeEngine):
         attractor, and why no ``(beta, rounds, settle)`` cell produced a fair
         coin.
 
-        COST.  ``O(n^2)`` memory for the self fiber, so this is opt-in and
-        belongs only in protocols that genuinely need whole-area addressing.
-        At ``n=2000`` that is 16 MB; at ``n=10^5`` it is 40 GB, so callers
-        working at scale want a different protocol, not this.
+        COST, AND WHY ``storage`` EXISTS.  Dense, the self fiber is ``O(n^2)``
+        float32: 16 MB at ``n=2000`` but **1.0 GB at ``n=16,000``**, which is
+        what bounded the finite-size ladder. The block is only ``~p`` occupied
+        (measured 4.99% at ``p=0.05``), so ``storage="csr"`` (the default)
+        stores it as ``CSRWeights`` instead -- **10x less memory**, putting
+        ``n ~ 50,000`` inside the same budget -- and builds it CHUNKED, so the
+        dense form is never held even transiently. See ``_csr_weights`` for why
+        a fixed-pattern representation is correct here.
+
+        ``storage="dense"`` restores the plain ndarray for callers that need to
+        index the block in ways ``CSRWeights`` deliberately refuses.
 
         The new weights come from ``_init_area_block``, which is addressed by
         ABSOLUTE position -- so a materialized-all-at-once area has exactly the
@@ -1114,10 +1201,14 @@ class NumpySparseEngine(ComputeEngine):
 
         for src_name, per_dst in self._area_conns.items():
             conn = per_dst.get(area)
-            if conn is not None:
-                src_rows = n if src_name == area else int(
-                    self._areas[src_name].w)
-                _grow(conn, src_name, area, src_rows, n)
+            if conn is None:
+                continue
+            if (src_name == area and storage == "csr" and conn.sparse
+                    and _csr_storage_available()):
+                self._materialize_self_fiber_csr(area, conn, n)
+                continue
+            src_rows = n if src_name == area else int(self._areas[src_name].w)
+            _grow(conn, src_name, area, src_rows, n)
         for dst_name, conn in self._area_conns.get(area, {}).items():
             if dst_name == area or conn is None:
                 continue
@@ -1314,7 +1405,11 @@ class NumpySparseEngine(ComputeEngine):
                 # of it 3-11x faster and bit-identically. Only consulted with
                 # plasticity off (see `_csr_row_sum`), so it cannot go stale.
                 contrib = None
-                if not plasticity_enabled:
+                if isinstance(conn.weights, CSRWeights):
+                    # Stored sparse: answer natively, no mirror needed, and
+                    # safe with plasticity ON because there is nothing cached.
+                    contrib = conn.weights.row_sum(internal, col_end)
+                elif not plasticity_enabled:
                     contrib = self._csr_row_sum(
                         src_name, target, conn.weights, internal, col_end)
                 if contrib is None:

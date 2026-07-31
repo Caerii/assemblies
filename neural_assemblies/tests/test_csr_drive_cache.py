@@ -33,12 +33,20 @@ def _no_csr(*_a, **_k):
 
 
 def _build(seed):
+    """Materialise DENSE on purpose -- the mirror only exists for dense blocks.
+
+    ``materialize_area`` defaults to ``storage="csr"``, which stores the block
+    sparsely and answers the drive read natively; a mirror would be redundant
+    and none is built. The mirror still carries any block that is dense: an
+    explicit ``storage="dense"``, or one grown incrementally past the
+    ``_CSR_MIN_CELLS`` floor. That is the path pinned here.
+    """
     b = Brain(p=P, save_winners=True, seed=seed, engine="numpy_sparse")
     b.add_stimulus("s", K)
     b.add_area("C", N, K, BETA)
     for _ in range(6):
         b.project({"s": ["C"]}, {})
-    b._engine.materialize_area("C")
+    b._engine.materialize_area("C", storage="dense")
     return b
 
 
