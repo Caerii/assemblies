@@ -76,6 +76,11 @@ include = ["neural_assemblies*"]
 dev = [
     "pytest>=7.0.0",
     "pytest-cov>=4.0.0",
+    # The pytest config below documents `-n auto --dist loadfile` as THE way to
+    # run the full suite, and said "pytest-xdist is installed" -- it was not, in
+    # any group, so the documented command failed with "unrecognized arguments"
+    # and every suite run since has been serial on a 16-core machine.
+    "pytest-xdist>=3.6",
     "ruff>=0.1.0",
     "ipython>=8.0.0",
     "build>=1.0.0",
@@ -133,10 +138,13 @@ per-file-ignores = {"__init__.py" = ["F401"], "*.ipynb" = ["F401", "E402"]}
 testpaths = ["neural_assemblies/tests"]
 python_files = ["test_*.py", "*_test.py"]
 norecursedirs = [".worktrees"]
-# Parallelism is deliberately NOT in addopts. pytest-xdist is installed and the
-# full suite parallelizes cleanly, but spinning up workers costs ~29s of
-# interpreter+numpy import overhead, which dominates small runs: test_area.py is
-# 0.95s serially and 30.4s under `-n auto`. Opt in per-invocation instead.
+# Parallelism is deliberately NOT in addopts. pytest-xdist is in the `dev`
+# dependency group and the full suite parallelizes cleanly, but spinning up
+# workers costs interpreter+numpy import overhead which dominates small runs:
+# test_area.py is 0.95s serially and 30.4s under `-n auto`. Opt in
+# per-invocation instead. (That per-worker cost dropped by ~1.1s once
+# scipy.stats and eager scipy.sparse left the import path -- see
+# docs/RUST_KERNELS.md and `_csr_weights.scipy_sparse`.)
 #
 # Full suite:   pytest -n auto --dist loadfile
 # Single file:  pytest neural_assemblies/tests/test_foo.py      (serial, fast)
