@@ -173,6 +173,29 @@ def _recruit(engine, n_src, n_tgt, norm_init=True, seed=1):
     return w, float(np.mean(stabs[-5:]))
 
 
+def _recruit_then_switch(engine, n_src, n_tgt, norm_init=True, seed=1):
+    """Converge TGT on one source, then drive it from a DIFFERENT one.
+
+    Returns TGT's `w` after the switch. A converged-but-plastic area recruits
+    for the novel input; a sealed one cannot.
+    """
+    b = Brain(p=P, save_winners=True, seed=seed, engine=engine,
+              norm_init=norm_init)
+    b.add_stimulus("s", K)
+    b.add_stimulus("s2", K)
+    b.add_area("SRC", n_src, K, BETA)
+    b.add_area("SRC2", n_src, K, BETA)
+    b.add_area("TGT", n_tgt, K, BETA)
+    for _ in range(10):
+        b.project({"s": ["SRC"]}, {})
+        b.project({"s2": ["SRC2"]}, {})
+    for _ in range(ROUNDS):
+        b.project({"s": ["SRC"]}, {"SRC": ["TGT"]})
+    for _ in range(ROUNDS):
+        b.project({"s2": ["SRC2"]}, {"SRC2": ["TGT"]})
+    return int(b._engine_for(b.areas["TGT"])._areas["TGT"].w)
+
+
 @pytest.mark.parametrize("engine", ENGINES)
 @pytest.mark.parametrize("n_src,n_tgt", [(1000, 10000), (5000, 5000),
                                          (10000, 1000)])
@@ -192,12 +215,26 @@ def test_area_neither_seals_nor_exhausts(engine, n_src, n_tgt):
     fully materialized that only 64 neurons remained to sample from.
     """
     w, _ = _recruit(engine, n_src, n_tgt)
-    assert w > K, (
-        f"{engine} {n_src}->{n_tgt}: w={w} == k, the area SEALED -- candidates "
-        f"are over-divided and every readout against it will read 1.0000")
     assert w < n_tgt // 2, (
         f"{engine} {n_src}->{n_tgt}: w={w} of n={n_tgt}, the area is running "
         f"toward EXHAUSTION -- candidates are under-divided")
+    # SEALING IS NOT `w == k`. `_recruit` drives TGT with the SAME stable
+    # assembly every round, and a correct engine converges on that input:
+    # drive is fixed by the random graph, so the same k win every time and w
+    # stops growing. Asserting `w > K` therefore demanded CHURN and called it
+    # health -- it passed only because the old sampler re-drew candidates each
+    # round and kept displacing its own incumbents.
+    #
+    # The property that actually separates the two is whether a converged area
+    # is still PLASTIC. Measured at 10000->1000, where `w > K` fails: w holds
+    # at exactly 100 across ten rounds of constant input, then jumps to 192 on
+    # a different one. Pathological sealing cannot do that; convergence must.
+    w_new = _recruit_then_switch(engine, n_src, n_tgt)
+    assert w_new > w, (
+        f"{engine} {n_src}->{n_tgt}: after converging at w={w}, a DIFFERENT "
+        f"input recruited nothing (w={w_new}). The area is sealed -- no "
+        f"candidate can outbid an incumbent again, and every cap-vs-assembly "
+        f"readout against it will read exactly 1.0000")
 
 
 @pytest.mark.parametrize("engine", ENGINES)
