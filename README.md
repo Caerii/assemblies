@@ -62,6 +62,48 @@ Historical root scripts, old image-learning artifacts, MATLAB prototypes, and
 checkout-era modules have been moved under `legacy/`. The root files that
 remain, such as `brain.py` and `parser.py`, are compatibility shims.
 
+## A Worked Result: The Neural Coin
+
+A recurrent area storing two assemblies, seeded with a random cap-sized set,
+should settle into one of them — the smallest interesting thing recurrence can
+do. Ours returned an answer that came entirely from the seed RNG, because the
+`area → area` fiber was never allocated and delivered exactly zero drive.
+
+Two engine fixes later it works, and its behaviour is a scaling law rather than
+a capability:
+
+![Fairness is a finite-size effect](research/notes/figures/coin_finite_size.png)
+
+Holding `k/n` fixed and growing the area from `n=500` to `n=16,000`, the settled
+state becomes a **clean assembly** (overlap → 1.000, against a chance floor of
+`k/n`), the spread across independently seeded brains collapses 12×, and the
+underlying basin asymmetry falls as **`k^-1.01`** over a 32× range in `k`, at
+log-log `r = -0.997`.
+
+**The coin is not fair at any one size; it becomes fair.** Each brain is its own
+slightly-bent coin; the bentness is a finite-size fluctuation in how symmetrically
+the two assemblies happen to wire to themselves, and it self-averages away.
+Nothing is tuned — the components do not improve with `n`, the fluctuation just
+averages down over more of them.
+
+The control that makes this a result rather than a reading: with `β = 0` —
+nothing learned — the coin is **six times fairer** than the trained one
+(across-brain sd 0.037 vs 0.224), because with nothing stored there is no basin
+to be lopsided. Its overlap with either assembly sits at chance. Fairness alone
+cannot distinguish a working coin from a broken one — it prefers the broken one —
+which is why both metrics are reported everywhere.
+
+Full analysis, seven figures, and the two defects in
+[research/notes/neural_coin_fairness.md](research/notes/neural_coin_fairness.md).
+Reproduce with:
+
+```bash
+uv run python research/experiments/coin_fairness_study.py
+
+# restyle the figures from recorded data, without re-simulating
+uv run python research/experiments/coin_fairness_study.py --replot
+```
+
 ## Audience And Non-Goals
 
 This repo is for computational neuroscience, neuro-inspired ML, and researchers
