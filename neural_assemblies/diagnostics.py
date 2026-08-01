@@ -51,6 +51,7 @@ __all__ = [
     "area_health", "drive_breakdown", "recurrence_audit", "collapse_scan",
     "fiber_census", "pricing_exposure",
     "format_report",
+    "Arbitration", "arbitrate", "arbitrate_prebuilt", "ARBITER_ARMS",
 ]
 
 
@@ -724,3 +725,123 @@ def format_report(items) -> str:
             if not it.ok:
                 lines.append(f"  {it}")
     return "\n".join(lines) if lines else "  (nothing flagged)"
+
+
+# --------------------------------------------------------------------------
+# Arbitration: ask an engine that does not sample
+# --------------------------------------------------------------------------
+
+#: Arms `arbitrate` can run, in order of how much they approximate.
+#:
+#:   explicit      full n x n weights, drive computed exactly, NO candidate
+#:                 sampling anywhere. Ground truth, bounded by O(n^2) memory.
+#:   materialized  the sparse engine with `materialize_area` called on every
+#:                 area, so `w == n`, the sampler offers zero candidates
+#:                 (`k_eff = min(k, max(0, n-w-1)) == 0`) and k-WTA sees exact
+#:                 drive. Same answers as `explicit`, at O(n^2 * p) memory.
+#:   sampled       the normal sparse engine. The only arm that invents a drive
+#:                 for neurons that have not fired.
+ARBITER_ARMS = ("explicit", "materialized", "sampled")
+
+
+@dataclass
+class Arbitration:
+    """One protocol, measured on each arm with ONE extractor."""
+    label: str
+    by_arm: Dict[str, object]
+
+    def ratio(self, arm: str = "sampled", truth: str = "explicit"):
+        """`arm / truth`, elementwise for sequences, else scalar."""
+        a, t = self.by_arm.get(arm), self.by_arm.get(truth)
+        if a is None or t is None:
+            return None
+        try:
+            return [float(x) / float(y) if y else float("nan")
+                    for x, y in zip(a, t)]
+        except TypeError:
+            return float(a) / float(t) if t else float("nan")
+
+    def __str__(self) -> str:
+        def fmt(v):
+            if v is None:
+                return "  (not run)"
+            try:
+                return " ".join(f"{float(x):>8.3f}" for x in v)
+            except TypeError:
+                return f"{float(v):>8.3f}"
+        w = max(len(a) for a in self.by_arm) if self.by_arm else 0
+        return "\n".join([f"  {self.label}"] +
+                         [f"    {a:<{w}}  {fmt(self.by_arm[a])}"
+                          for a in ARBITER_ARMS if a in self.by_arm])
+
+
+def arbitrate(build, measure, arms: Sequence[str] = ARBITER_ARMS,
+              label: str = "protocol") -> Arbitration:
+    """Run one protocol on several engines and read it with ONE extractor.
+
+    WHY THIS EXISTS.  The sparse engine invents a drive for neurons that have
+    not fired (`sample_new_winner_inputs`); the explicit engine does not. So
+    whenever a sparse-engine number looks wrong, the question "is this the
+    substrate or the sampler?" is answerable -- but only by running the same
+    protocol on an engine that does not share the approximation.
+
+    Measured 2026-07-31 on the merge protocol, support in units of k:
+
+        n, k        explicit    materialized    sampled
+        1000, 32       6.1          5.9           8.9
+        2000, 45       6.1          7.2           8.2
+        4000, 63       6.9          7.2          10.8
+
+    `materialized` tracks `explicit`; `sampled` runs systematically high. That
+    is the sampler's accuracy cost, and it is the first thing to rule out.
+
+    THE SHARED EXTRACTOR IS THE POINT, not a convenience. Hand-built arbiter
+    harnesses read `area.w` on the sparse side and distinct-winners-over-the-run
+    on the explicit side -- two different quantities with the same informal
+    name -- and reported the sampler gap as 2-4x when it is ~1.4x. `measure`
+    runs unchanged against every arm precisely so that cannot happen. See
+    [[same-name-two-meanings]].
+
+    Args:
+        build: ``build(explicit: bool) -> Brain``. Construct the brain and run
+            the protocol. `explicit` selects `add_area(..., explicit=True)`;
+            ignore it if the protocol is engine-agnostic. Must be
+            side-effect-free across calls (reseed inside).
+        measure: ``measure(brain) -> value``. Scalar or sequence. Applied
+            IDENTICALLY to every arm.
+        arms: subset of `ARBITER_ARMS`.
+        label: shown in `str(...)`.
+
+    Returns:
+        `Arbitration`; `.by_arm[arm]` and `.ratio()`.
+
+    Note `materialized` needs `n^2 * p` floats per area fiber, and `explicit`
+    needs `n^2`, so scale `n` down and preserve `k*p` (the expected afferent
+    count) rather than `p` -- see the module docstring of
+    `research/literature/parity/pnas2020_paper_claims.py` for why copying `p`
+    to a smaller `n` silently destroys the dynamics.
+    """
+    out: Dict[str, object] = {}
+    for arm in arms:
+        if arm not in ARBITER_ARMS:
+            raise ValueError(f"unknown arm {arm!r}; expected {ARBITER_ARMS}")
+        brain = build(arm == "explicit")
+        if arm == "materialized":
+            for name, area in list(brain.areas.items()):
+                eng = brain._engine_for(area)
+                if hasattr(eng, "materialize_area"):
+                    eng.materialize_area(name)
+        out[arm] = measure(brain)
+    return Arbitration(label=label, by_arm=out)
+
+
+def arbitrate_prebuilt(run, arms: Sequence[str] = ARBITER_ARMS,
+                       label: str = "protocol") -> Arbitration:
+    """`arbitrate` for protocols that must materialize BEFORE they run.
+
+    `arbitrate` materializes after `build` returns, which is correct when the
+    protocol is what `build` executed. When the protocol must see a fully
+    materialized area from its first projection, pass ``run(arm) -> value``
+    and do the materialization inside it.
+    """
+    return Arbitration(label=label, by_arm={a: run(a) for a in arms})

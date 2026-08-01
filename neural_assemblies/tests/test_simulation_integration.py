@@ -30,6 +30,7 @@ from neural_assemblies.simulation.projection_simulator import project_sim
 from neural_assemblies.simulation.association_simulator import association_sim
 from neural_assemblies.simulation.merge_simulator import merge_sim
 from neural_assemblies.simulation.pattern_completion import pattern_com
+from neural_assemblies.provenance import golden
 import brain_util as bu
 
 class TestSimulationIntegration(unittest.TestCase):
@@ -56,8 +57,15 @@ class TestSimulationIntegration(unittest.TestCase):
         (_, winners) = pattern_com(
             100000, 317, 0.01, 0.05, 25, 0.5, 5)
         elapsed_time = time.time() - start_time
-        self.assertGreaterEqual(bu.overlap(winners[24], winners[29]), 300,
-                               "Pattern completion test failed.")
+        # 300 of k=317 is 0.946 recovery. Measured 2026-07-31, the EXPLICIT
+        # engine (no candidate sampling) recovers 0.67-0.89 from a 50% cue --
+        # so this threshold is calibrated on a sampler that returns a PERFECT
+        # 1.000 at three of four sizes, which the exact model never does.
+        self.assertGreaterEqual(
+            bu.overlap(winners[24], winners[29]),
+            golden(300, "C", "our own truncated-normal sampler; explicit "
+                             "engine reads 0.67-0.89 of k, not 0.946"),
+            "Pattern completion test failed.")
         print(f"Pattern Completion completed in {elapsed_time:.2f} seconds.")
 
     def test_association(self):
@@ -106,9 +114,19 @@ class TestSimulationIntegration(unittest.TestCase):
         print("Testing Merge...")
         (w_a, w_b, w_c) = merge_sim(100000, 317, 0.01, 0.05, 50)
         elapsed_time = time.time() - start_time
-        self.assertLessEqual(w_a[-1], 4000, "Merge test failed for area A.")
-        self.assertLessEqual(w_b[-1], 4000, "Merge test failed for area B.")
-        self.assertLessEqual(w_c[-1], 8000, "Merge test failed for area C.")
+        # Support bounds, NOT paper claims. Recorded from this repo's own
+        # truncated-normal sampler, which reads w_a=3505 / w_b=2639 / w_c=2974.
+        # For scale: measured 2026-07-31, the explicit engine (which samples no
+        # candidates at all) puts merge support at ~6.4k, i.e. ~2030 at k=317 --
+        # well under these bounds. They bound the SAMPLER, not the model.
+        src = ("our own truncated-normal sampler; it reads 3505/2639/2974, "
+               "and the explicit engine reads ~6.4k = ~2030")
+        self.assertLessEqual(w_a[-1], golden(4000, "C", src),
+                             "Merge test failed for area A.")
+        self.assertLessEqual(w_b[-1], golden(4000, "C", src),
+                             "Merge test failed for area B.")
+        self.assertLessEqual(w_c[-1], golden(8000, "C", src),
+                             "Merge test failed for area C.")
         print(f"Merge test completed in {elapsed_time:.2f} seconds.")
 
 if __name__ == '__main__':

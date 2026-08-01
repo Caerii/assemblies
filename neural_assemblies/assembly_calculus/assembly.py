@@ -33,13 +33,35 @@ from dataclasses import dataclass
 class Assembly:
     """A snapshot of a neural assembly in a brain area.
 
+    THE INDEX SPACE IS NOT THE SAME AS ``Area.winners``.  There are two, and
+    they are both called "winners" in this codebase:
+
+      * ``Area.winners`` -- COMPACT ENGINE INDICES, ``0..w-1``, dense over the
+        neurons that have been materialized so far;
+      * ``Assembly.winners`` (this) -- NEURON IDS in ``0..n-1``, produced by
+        ``_snap`` mapping through ``compact_to_neuron_id``.
+
+    Comparing one to the other is silently accepted, returns a number, and
+    reads as chance -- it voided a merge-recall result once. Prefer the alias
+    ``neuron_ids`` in new code so the space is stated at the call site.
+
     Attributes:
         area: Name of the brain area this assembly lives in.
-        winners: Neuron indices (uint32) forming the assembly.
+        winners: Neuron IDs (uint32) forming the assembly. See ``neuron_ids``.
     """
 
     area: str
     winners: np.ndarray
+
+    @property
+    def neuron_ids(self) -> np.ndarray:
+        """``winners``, named for the index space it is actually in.
+
+        Same array, no copy. Exists so a reader does not have to know which of
+        the two "winners" they are holding -- see
+        [[two-index-spaces-compact-vs-neuron-id]].
+        """
+        return self.winners
 
     def __post_init__(self):
         # Store an immutable copy so the snapshot can't be mutated
