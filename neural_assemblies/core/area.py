@@ -119,7 +119,14 @@ class Area:
         xp = get_xp()
         self._xp_name = xp_name(xp)
         self._winners = xp.array([], dtype=xp.uint32)
-        self.w = 0  # Number of neurons that have ever fired
+        # `w` MEANS TWO THINGS. Between projections the engine syncs it to
+        # num-ever-fired; the `winners` setter then overwrites it with
+        # `len(winners)`. Both readings are load-bearing, so `_num_ever_fired`
+        # tracks the recruitment one separately and survives a winners
+        # assignment -- read it via `get_num_ever_fired()`, and use
+        # `active_count` for the other meaning.
+        self.w = 0
+        self._num_ever_fired = 0
         self.fixed_assembly = False
 
         # Temporary state for projection updates (matches brain.py)
@@ -156,10 +163,23 @@ class Area:
         """
         return xp_by_name(self._xp_name)
 
+    @property
+    def active_count(self) -> int:
+        """How many neurons are firing NOW.
+
+        One of the two things `w` means. The other is `get_num_ever_fired()`.
+        Say which you mean; `w` alone does not.
+        """
+        return len(self._winners)
+
     @winners.setter
     def winners(self, value):
         xp = self._xp
         self._winners = xp.asarray(value, dtype=xp.uint32)
+        # CLOBBERS the num-ever-fired meaning of `w`. Preserved because the
+        # projection loop and several callers depend on `w` tracking the cap
+        # between engine syncs; use `num_ever_fired` / `active_count` to say
+        # which one you mean.
         self.w = len(self._winners)
 
     def fix_assembly(self):
@@ -181,16 +201,28 @@ class Area:
         self.beta_by_area[area_name] = new_beta
 
     def get_num_ever_fired(self) -> int:
-        """
-        Returns the total number of neurons that have ever fired in this area.
+        """Neurons that have EVER fired -- recruitment, not current activity.
 
-        Returns:
-            int: The number of neurons that have ever fired.
+        Reads `_num_ever_fired`, NOT `w`. `w` carries this value only until
+        something assigns to `winners`, after which it is `len(winners)` --
+        `k` by construction for a k-cap, 0 after a clear. Returning `w` here
+        made this accessor report `k` for any area whose winners had been set
+        directly (probes, `inhibit_areas`, fixed assemblies), which reads as a
+        sealed area. See [[fake-perfect-probe-signatures]].
         """
         if self.explicit:
             return self.num_ever_fired
-        else:
-            return self.w
+        # `getattr` default, not attribute access: an Area unpickled from a
+        # checkpoint written before `_num_ever_fired` existed does not have
+        # the field, and `checkpoint.py` loads exactly such files from disk.
+        # Falling back to `w` restores the OLD semantics for those -- stale
+        # after a winners assignment, but that is what they were recorded
+        # with, and it beats an AttributeError on load.
+        #
+        # `max` rather than either alone because the two mirror the same
+        # quantity with different failure modes: `w` is fresh but clobberable,
+        # `_num_ever_fired` survives the setter but is absent on old pickles.
+        return max(int(getattr(self, "_num_ever_fired", 0)), int(self.w))
 
     def _update_winners(self, new_winners):
         """

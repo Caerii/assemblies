@@ -111,7 +111,16 @@ def distinct_states(parser, points):
 
 
 def area_sizes(parser, areas):
-    return {a: parser.brain.areas[a].w for a in areas if a in parser.brain.areas}
+    """Recruitment per area -- neurons that have ever fired.
+
+    `get_num_ever_fired()`, not `.w`: the parser assigns `area.winners`
+    directly when restoring outer state, and that setter clobbers `w` to
+    `len(winners)`. Both arms would be clobbered alike so the COMPARISON
+    survived, but the absolute numbers did not. See
+    research/notes/w_alias_back_catalogue.md.
+    """
+    return {a: parser.brain.areas[a].get_num_ever_fired()
+            for a in areas if a in parser.brain.areas}
 
 
 def main():

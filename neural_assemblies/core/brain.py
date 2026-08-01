@@ -897,6 +897,9 @@ class Brain:
 
         area.winners = result.winners
         area.w = result.num_ever_fired
+        # Keep the recruitment reading alive across a later `winners`
+        # assignment, which clobbers `w`. See Area.get_num_ever_fired.
+        area._num_ever_fired = int(result.num_ever_fired)
 
         # Sync explicit-area tracking fields
         if area.explicit:
@@ -1102,6 +1105,9 @@ class Brain:
 
         area.winners = result.winners
         area.w = result.num_ever_fired
+        # Keep the recruitment reading alive across a later `winners`
+        # assignment, which clobbers `w`. See Area.get_num_ever_fired.
+        area._num_ever_fired = int(result.num_ever_fired)
         if self.save_winners:
             area.saved_winners.append(result.winners.copy())
         if self.save_size:
