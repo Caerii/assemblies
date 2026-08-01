@@ -11,7 +11,7 @@ import zlib
 
 import numpy as np
 from typing import Dict, List
-from collections import defaultdict
+from collections import OrderedDict, defaultdict
 
 # `scipy.sparse` is imported ON FIRST USE via `scipy_sparse()`, not here --
 # importing it at module scope charged every process that merely constructs a
@@ -457,7 +457,17 @@ class NumpySparseEngine(ComputeEngine):
         # {candidate_draw_key: neurons this key has recruited}. The offset into
         # that key's order-statistic tail. Plain dict of tuples/ints so it
         # survives the pickling this repo does constantly.
-        self._key_recruited: Dict[tuple, int] = {}
+        #
+        # BOUNDED. An exact-repeat key is only needed while that input is still
+        # being repeated; the fiber accumulator below is a correct floor for
+        # everything older, so evicting the oldest entries costs nothing but a
+        # little precision on a long-dormant input.
+        self._key_recruited: "OrderedDict[tuple, int]" = OrderedDict()
+        self._key_recruited_max = 8192
+        # {fiber signature: (cumulative recruit count, {source area: winners})}.
+        # See `_fiber_draw_offset` -- this is what stops a slowly DRIFTING input
+        # from being priced as a brand-new one every round.
+        self._fiber_draw: Dict[tuple, tuple] = {}
         # Size an area->area block on the round it is FIRST NAMED rather than
         # the round after. Needed for PNAS Fig. 2 B1-B3, where y2's competition
         # depends on y1's recurrent input existing.
@@ -1089,6 +1099,110 @@ class NumpySparseEngine(ComputeEngine):
             parts.append((a, int(zlib.crc32(np.sort(w).tobytes()))))
         return tuple(parts)
 
+    def _fiber_draw_offset(self, target, tgt, from_stimuli, from_areas,
+                           input_sizes):
+        """How far a DRIFTING input has already eaten into its own tail.
+
+        `_key_recruited` answers this exactly for an input that repeats
+        byte-for-byte and gives 0 for everything else. That binary reading is
+        wrong in the middle, and the middle is where the interesting protocols
+        live: in `merge_sim` the source assemblies shift by a few neurons per
+        round, so every round mints a fresh key, every round is priced as a
+        brand-new input, and every round is handed candidates from rank ~0 --
+        the extreme top of a pool of n. Measured over 50 rounds of the merge
+        protocol, support per assembly in units of k (explicit engine = ground
+        truth, which does no candidate sampling at all):
+
+            n     k     explicit    old sampler   keyed, no discount
+            1000  32       6.1          10.0          18.4
+            2000  45       6.1          14.2          30.9
+            4000  63       6.9          12.2          25.9
+
+        The model says why. Drive is |{j in x : synapse j->i}|, so two inputs
+        overlapping 90% give drives correlated 0.9 -- the neurons already taken
+        are still near the top for the shifted input, and only the 10% that is
+        genuinely new can reach past them. Treating that as a fresh draw
+        recruits a full k every round forever.
+
+        So the offset is discounted by that correlation. `rho` is the fraction
+        of this projection's drive that also drove the previous projection
+        along the same fibers (stimuli are fixed patterns and count as fully
+        shared), and the offset is
+
+            offset = rho * (neurons this fiber has ever recruited)
+
+        rho = 1 recovers the exact-repeat count; rho = 0 (a genuinely
+        independent input on the same fibers) gives rank 0, which is what an
+        independent input deserves.
+
+        THE COUNT IS CUMULATIVE, NOT DISCOUNTED PER ROUND.  An earlier version
+        carried `eff <- rho * eff + recruited`, treating the correlation
+        between round t and round t-d as rho^d. That is wrong whenever any part
+        of the drive PERSISTS, and here some always does: a stimulus fires the
+        identical pattern every round, so a neuron wired to it is favoured in
+        all of them. Traced at n=1e5 k=317, rho sat at exactly 1/3 =
+        stim/(stim + A + C) for 25 consecutive rounds with winner stability
+        0.000 -- the geometric sum pinned the offset near 155 while `w` ran past
+        8000, so candidates kept outbidding settled incumbents and the assembly
+        never converged at all. Summing without the decay lets the offset track
+        `w`; the transient then terminates and w_A at paper scale falls
+        8725 -> 4273.
+
+        THIS IS A DAMPER, NOT A DERIVATION, AND THE ALTERNATIVE WAS MEASURED.
+        The offset is a rank, and a rank IS directly computable: the incumbents'
+        exact drives are in `prev_winner_inputs`, so one can solve
+        j* = |{i : d_i > v_j*}| and keep no state at all. That was implemented
+        and rejected on evidence -- it saturates at k_eff for any trained area,
+        which SEALS it (`test_materialize_area` caught a weight block with zero
+        rows, and association overlap fell to 0.020 against a 0.030 floor),
+        while merge at paper scale went the wrong way, 4273 -> 10698. The
+        reason is that merge's over-recruitment lives in the TRANSIENT, where
+        the incumbents genuinely are weak and a correct offset therefore says
+        "recruit". No offset policy can fix that: the offset says where in THIS
+        input's tail to start and cannot express that this tail is 90% of last
+        round's. Charging recruitment history regardless of incumbent strength
+        is exactly the crude thing that does damp it.
+
+        Keyed on the FIBER, not the content, so it is bounded by the number of
+        distinct projection shapes rather than growing without limit.
+
+        Returns ``(signature, current source winners, rho, cumulative count)``;
+        the caller applies `rho * cumulative` and writes the count back.
+        """
+        sig = (target, int(tgt.n), int(tgt.k),
+               tuple(sorted(from_stimuli)), tuple(sorted(from_areas)))
+        cur = {}
+        for a in sorted(from_areas):
+            w = np.asarray(to_cpu(self._areas[a].winners), dtype=np.uint32)
+            cur[a] = frozenset(int(x) for x in w)
+
+        prev = self._fiber_draw.get(sig)
+        if prev is None:
+            return sig, cur, 0.0, 0.0
+
+        eff, last = prev
+        # Weight each fiber by how much drive it carries, so a big stimulus
+        # does not get the same say as a k-neuron area. `input_sizes` is
+        # positionally parallel to from_stimuli + from_areas.
+        sizes = list(input_sizes)
+        stims = sorted(from_stimuli)
+        shared = total = 0.0
+        for i, _s in enumerate(stims):
+            sz = float(sizes[i]) if i < len(sizes) else 0.0
+            shared += sz          # a stimulus is the same pattern every time
+            total += sz
+        for j, a in enumerate(sorted(from_areas)):
+            idx = len(stims) + j
+            sz = float(sizes[idx]) if idx < len(sizes) else 0.0
+            if sz <= 0:
+                continue          # silent fiber: carries no drive, no say
+            prev_w = last.get(a)
+            if prev_w:
+                shared += sz * len(cur[a] & prev_w) / max(1, len(cur[a]))
+            total += sz
+        rho = (shared / total) if total > 0 else 0.0
+        return sig, cur, rho, float(eff)
+
     def _select_winner_indices(self, tgt, all_inputs, rng, population_sigma=None):
         """Select winner indices using area policy (default top-k)."""
         from ...compute.winner_policies import TopKPolicy
@@ -1300,13 +1414,33 @@ class NumpySparseEngine(ComputeEngine):
             tgt.compact_to_neuron_id.append(len(tgt.compact_to_neuron_id))
 
         # 2. Stimulus fibers are 1-D over the target's neurons.
-        stim_names = [s for s, per in self._stim_conns.items()
-                      if area in per]
-        if stim_names:
+        #
+        # PASS AN EMPTY FIRING SET, NOT THE CONNECTED ONES.  Both expansion
+        # helpers read `stim_names` as "stimuli FIRING on this step", and they
+        # deliberately leave those at ZERO because `_expand_connectomes` fills
+        # them afterwards from each new winner's own afferent split
+        # (`_grow_stim_vector(..., fill=None)` / the `xp.zeros` branch). Every
+        # OTHER stimulus takes the background `binomial(stim_size, p)` draw.
+        #
+        # This site used to pass every stimulus CONNECTED to the area, so all
+        # of them took the firing branch -- and nothing fires during
+        # materialization, so nothing ever filled them. Measured at n=1000,
+        # k=32, p=0.0991 after `materialize_area('A')`:
+        #
+        #     stimA->A : shape=(1000,) nonzero=0        <- silent
+        #     A->A     : shape=(1000,1000) density=0.0988 (p=0.0991)  <- fine
+        #
+        # A materialized area therefore received zero stimulus drive, took the
+        # "Zero signal -> preserve current assembly" early return, and saved an
+        # EMPTY winner set every round: on the merge protocol, 52 snapshots of
+        # length 0. It looked correct in the protocol this method was built for
+        # -- the NEMO coin seeds a k-subset and drives it RECURRENTLY, with no
+        # stimulus -- which is why a half-wired area went unnoticed.
+        if any(area in per for per in self._stim_conns.values()):
             if self._stim_fastpath:
-                self._expand_stim_vectors_fast(area, tgt, stim_names, n)
+                self._expand_stim_vectors_fast(area, tgt, [], n)
             else:
-                self._expand_stim_vectors_legacy(area, stim_names, n)
+                self._expand_stim_vectors_legacy(area, [], n)
 
         # 3. Area fibers, BOTH directions. Incoming blocks gain columns;
         #    outgoing blocks gain rows; the self fiber gains both.
@@ -1760,8 +1894,18 @@ class NumpySparseEngine(ComputeEngine):
             # How far THIS key has already eaten into its own tail. Not the
             # area's `w` -- see _order_statistic_candidates for what that
             # sealed.
-            draw_offset = (self._key_recruited.get(draw_key, 0)
-                           if draw_key is not None else None)
+            # Two accumulators, and the offset is the larger:
+            #   * the exact-repeat count, correct to the neuron for an input
+            #     repeated byte-for-byte, and correct THROUGH interleaving
+            #     with other inputs, which the fiber term is not;
+            #   * the correlation-discounted fiber count, which is what covers
+            #     a slowly drifting input -- see _fiber_draw_offset.
+            draw_offset = None
+            if draw_key is not None:
+                fiber_sig, fiber_cur, rho, eff = self._fiber_draw_offset(
+                    target, tgt, from_stimuli, from_areas, input_sizes)
+                draw_offset = max(self._key_recruited.get(draw_key, 0),
+                                  int(round(rho * eff)))
             if self._deterministic:
                 potential_new = self._sparse_sim.sample_new_winner_inputs_legacy(
                     input_sizes, tgt.n, tgt.w, tgt.k, self.p, key=draw_key,
@@ -1893,12 +2037,25 @@ class NumpySparseEngine(ComputeEngine):
         else:
             new_w = tgt.w + num_first
 
-        # Advance this key's position in its own tail by what it just took.
+        # Advance this input's position in its own tail by what it just took.
         # A repeat of the same input now resumes below the neurons it already
-        # holds (idempotent); a novel input still starts near rank 0.
-        if draw_key is not None and num_first > 0:
-            self._key_recruited[draw_key] = (
-                self._key_recruited.get(draw_key, 0) + num_first)
+        # holds (idempotent); a novel input still starts near rank 0; a
+        # drifting one resumes at the correlation-discounted position.
+        # NOT gated on num_first: the fiber entry must be rewritten even when
+        # nothing was recruited, because `fiber_cur` is what the NEXT round
+        # measures rho against, and leaving it stale prices that round as if
+        # this round's drift had not happened.
+        if draw_key is not None:
+            if num_first > 0:
+                self._key_recruited[draw_key] = (
+                    self._key_recruited.get(draw_key, 0) + num_first)
+                self._key_recruited.move_to_end(draw_key)
+                while len(self._key_recruited) > self._key_recruited_max:
+                    self._key_recruited.popitem(last=False)
+            # Cumulative, and rewritten every round so `fiber_cur` tracks the
+            # sources rho is measured against. See _fiber_draw_offset for why
+            # this must NOT decay by rho.
+            self._fiber_draw[fiber_sig] = (eff + num_first, fiber_cur)
 
         # --- Apply plasticity ---
         if plasticity_enabled and self._plasticity_enabled_global:
@@ -2169,14 +2326,14 @@ class NumpySparseEngine(ComputeEngine):
                 return
 
         # --- Expand stim->area 1-D vectors ---
-        stim_names = [name for name in inputs_names if name in self._stimuli]
+        firing_stimuli = [name for name in inputs_names if name in self._stimuli]
         area_names = [name for name in inputs_names if name in self._areas]
 
         if new_w > prior_w:
             if self._stim_fastpath:
-                self._expand_stim_vectors_fast(target, tgt, stim_names, new_w)
+                self._expand_stim_vectors_fast(target, tgt, firing_stimuli, new_w)
             else:
-                self._expand_stim_vectors_legacy(target, stim_names, new_w)
+                self._expand_stim_vectors_legacy(target, firing_stimuli, new_w)
 
         # Write allocations for firing stimuli
         for idx, win in enumerate(new_indices):
@@ -2365,8 +2522,17 @@ class NumpySparseEngine(ComputeEngine):
             buf[old:new_len] = self._to_xp(fill)
         conn.weights = buf[:new_len]
 
-    def _expand_stim_vectors_legacy(self, target, stim_names, new_w) -> None:
-        """Original per-step ``concatenate`` growth. Kept as the A/B reference."""
+    def _expand_stim_vectors_legacy(self, target, firing_stimuli, new_w) -> None:
+        """Original per-step ``concatenate`` growth. Kept as the A/B reference.
+
+        ``firing_stimuli`` is the stimuli FIRING on this step -- NOT the ones
+        connected to the area. Membership means "leave the new tail at ZERO,
+        the caller will write it from each new winner's own afferent split";
+        every other stimulus takes the background ``binomial(size, p)`` draw.
+        Passing the connected set instead leaves every fiber silent, and a
+        silent stimulus fiber has exactly the right shape -- see
+        `materialize_area`, which had that bug.
+        """
         xp = self._xp
         # dict.fromkeys, not set(): the loop below consumes ``self._rng`` once
         # per stimulus, so ITERATION ORDER DECIDES WHICH SLICE OF THE SEEDED
@@ -2374,7 +2540,7 @@ class NumpySparseEngine(ComputeEngine):
         # varies with PYTHONHASHSEED, so the same seed produced different
         # stimulus weights in every process (same names, same shapes, different
         # values). Insertion order here is deterministic.
-        stim_to_extend = dict.fromkeys(stim_names)
+        stim_to_extend = dict.fromkeys(firing_stimuli)
         for stim_name, tgt_map in self._stim_conns.items():
             conn = tgt_map.get(target)
             if conn is not None and conn.sparse and len(conn.weights) < new_w:
@@ -2385,7 +2551,7 @@ class NumpySparseEngine(ComputeEngine):
                 old = len(conn.weights)
                 if new_w > old:
                     add_len = new_w - old
-                    if stim_name not in stim_names:
+                    if stim_name not in firing_stimuli:
                         stim_size = self._stimuli[stim_name].size
                         add = self._to_xp(self._rng.binomial(
                             stim_size, self.p, size=add_len).astype(np.float32))
@@ -2393,8 +2559,12 @@ class NumpySparseEngine(ComputeEngine):
                         add = xp.zeros(add_len, dtype=xp.float32)
                     conn.weights = xp.concatenate([conn.weights, add])
 
-    def _expand_stim_vectors_fast(self, target, tgt, stim_names, new_w) -> None:
+    def _expand_stim_vectors_fast(self, target, tgt, firing_stimuli, new_w) -> None:
         """Amortized-capacity growth with batched background sampling.
+
+        ``firing_stimuli`` means what it does in `_expand_stim_vectors_legacy`:
+        stimuli FIRING now, whose tail is left at zero for the caller to fill.
+        Not the connected set.
 
         Bit-identical to ``_expand_stim_vectors_legacy``:
 
@@ -2417,7 +2587,7 @@ class NumpySparseEngine(ComputeEngine):
         ``concatenate`` per stimulus per step.
         """
         entries, by_name = self._stim_conns_for(target)
-        stim_to_extend = dict.fromkeys(stim_names)
+        stim_to_extend = dict.fromkeys(firing_stimuli)
         for stim_name, conn in entries:
             if conn.sparse and len(conn.weights) < new_w:
                 stim_to_extend[stim_name] = None
@@ -2433,7 +2603,7 @@ class NumpySparseEngine(ComputeEngine):
             old = len(conn.weights)
             if new_w <= old:
                 continue
-            size = (None if stim_name in stim_names
+            size = (None if stim_name in firing_stimuli
                     else self._stimuli[stim_name].size)
             plan.append((conn, old, new_w - old, size))
         if not plan:
