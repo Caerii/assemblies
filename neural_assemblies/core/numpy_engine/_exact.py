@@ -42,7 +42,7 @@ WHAT IS DIFFERENT FROM THE OTHER ENGINES.
 from __future__ import annotations
 
 from collections import OrderedDict, defaultdict
-from typing import Dict, List, Optional
+from typing import Dict, List, Mapping, Optional
 
 import numpy as np
 
@@ -52,6 +52,32 @@ from .._pricing import inverse_indegree
 from ._seeding import (fnv1a_pair_seed, hash_area_cells, hash_area_indegree,
                        hash_area_rows, hash_stim_counts)
 from ._state import StimulusState
+
+
+def _reject_unsupported(where: str, supported_defaults: Mapping[str, object],
+                        given: Mapping[str, object]) -> None:
+    """Raise if a caller asked for a mechanism this engine does not implement.
+
+    `Brain` forwards a common kwarg set to every engine, so an engine that
+    implements a subset has two options: swallow the rest in `**kwargs`, or
+    say so. Swallowing produces the failure this repo keeps rediscovering --
+    a mechanism that is wired, configured, and never runs, whose signature is
+    "X seems to have little effect". See [[silent-no-op-dead-fibers]].
+
+    Passing the DEFAULT is not a request, so it is accepted silently; passing
+    anything else raises. Unknown kwargs are accepted and ignored, because the
+    ABC may grow parameters this engine has no opinion on -- those still show
+    up as an explicit signature mismatch rather than as wrong numbers.
+    """
+    asked = [f"{key}={given[key]!r}"
+             for key, default in supported_defaults.items()
+             if key in given and given[key] != default]
+    if asked:
+        raise NotImplementedError(
+            f"{where} does not implement: {', '.join(asked)}. "
+            f"Use numpy_sparse for these, or leave them at their defaults "
+            f"({', '.join(f'{k}={v!r}' for k, v in supported_defaults.items())})."
+        )
 
 
 class _Potentiation:
@@ -293,12 +319,18 @@ class ExactAreaState:
     """Per-area state. No `compact_to_neuron_id`: the index IS the neuron id."""
 
     __slots__ = ("name", "n", "k", "beta", "winners", "fixed_assembly",
-                 "beta_by_source", "ever_fired", "w")
+                 "beta_by_source", "ever_fired", "w", "explicit_source")
 
     def __init__(self, name: str, n: int, k: int, beta: float) -> None:
         self.name, self.n, self.k, self.beta = name, n, k, beta
         self.winners = np.empty(0, dtype=np.uint32)
         self.fixed_assembly = False
+        # `Brain._project_impl` sets this on every source area. On the sparse
+        # engine it means "these winners are neuron IDs, not compact indices"
+        # -- a real distinction there ([[two-index-spaces-compact-vs-neuron-id]]).
+        # Here the two spaces COINCIDE, so it is inert by construction rather
+        # than ignored: there is no id remapping for it to control.
+        self.explicit_source = False
         self.beta_by_source: Dict[str, float] = {}
         self.ever_fired = np.zeros(n, dtype=bool)
         # `w` is num-ever-fired here, and it is n from the start because every
@@ -325,10 +357,31 @@ class NumpyExactEngine(ComputeEngine):
     #: matches the arbiter rather than diverging from it.
     DEFAULT_DTYPE = np.float32
 
+    #: Constructor kwargs `Brain` forwards to every engine that this one has no
+    #: implementation for. Listed rather than swallowed by `**kwargs`, so that
+    #: asking for one is an ERROR and not a mechanism that silently never runs
+    #: -- the repo's dominant defect class, see [[silent-no-op-dead-fibers]].
+    #: Each maps to the only value that means "not requested".
+    _UNSUPPORTED_INIT = {
+        "synaptic_scaling": False,
+        "deterministic": False,   # this engine has no RNG stream to stabilise
+    }
+
+    # `norm_init` DEFAULTS TO FALSE, matching `numpy_sparse`, and the default
+    # is load-bearing rather than a taste call: `Brain` forwards this kwarg
+    # ONLY when it is True (`brain.py`, "so other engines' constructors are
+    # unaffected" -- `numpy_explicit` does not accept it), so OMISSION IS HOW
+    # `Brain` SAYS FALSE. An engine that defaults to True therefore silently
+    # ignores `Brain(norm_init=False)` and runs the production substrate while
+    # a literature reproduction believes it pinned the un-normalised one
+    # ([[norm-init-substrate-vs-reference]]). This engine did exactly that
+    # until it was measured. Pinned for every registered engine by
+    # `test_engine_norm_init_contract`.
     def __init__(self, p: float, seed: int = 0, w_max: float = 20.0,
-                 norm_init: bool = True, inhibitory_prob: float = 0.0,
+                 norm_init: bool = False, inhibitory_prob: float = 0.0,
                  inhibitory_weight: float = -1.0, dtype=None,
-                 **_ignored) -> None:
+                 **kwargs) -> None:
+        _reject_unsupported("NumpyExactEngine()", self._UNSUPPORTED_INIT, kwargs)
         self.p = float(p)
         self.seed = int(seed)
         self.w_max = w_max
@@ -358,9 +411,25 @@ class NumpyExactEngine(ComputeEngine):
     def _pair_seed(self, source: str, target: str) -> int:
         return fnv1a_pair_seed(self.seed, source, target)
 
+    #: Per-area mechanisms `Brain.add_area` forwards that this engine has no
+    #: implementation for, with the value that means "not requested". Same
+    #: rationale as `_UNSUPPORTED_INIT`: a k-WTA modifier that is configured
+    #: and never applied changes the answer without changing the log.
+    _UNSUPPORTED_AREA = {
+        "refractory_period": 0,
+        "inhibition_strength": 0.0,
+        "winner_policy": None,
+        "input_noise_std": 0.0,
+        "slot_count": 0,
+    }
+
     def add_area(self, name: str, n: int, k: int, beta: float,
-                 refractory_period: int = 0, inhibition_strength: float = 0.0,
-                 slot_count: int = 0) -> None:
+                 refractory_period: int = 0,
+                 inhibition_strength: float = 0.0, **kwargs) -> None:
+        _reject_unsupported(
+            f"NumpyExactEngine.add_area({name!r})", self._UNSUPPORTED_AREA,
+            dict(kwargs, refractory_period=refractory_period,
+                 inhibition_strength=inhibition_strength))
         area = ExactAreaState(name, n, k, beta)
         self._areas[name] = area
         for stim_name, stim in self._stimuli.items():
@@ -522,7 +591,28 @@ class NumpyExactEngine(ComputeEngine):
         return scale
 
     def _stim_norm(self, stim: str, target: str) -> Optional[np.ndarray]:
-        """Exact `1/d_j` for a stimulus fiber; the base count IS `d_j`."""
+        """`1/d_j` for a stimulus fiber, over the IMPLICIT input population.
+
+        THE OBVIOUS READING IS DEGENERATE, and it was what this engine did
+        first. A stimulus fires in full and is stored pre-summed, so the stored
+        base count IS the neuron's in-degree from the stimulus -- and dividing
+        it by itself gives exactly 1.0 at every neuron. A constant cannot be
+        ranked, so k-WTA falls through to the index tie-break and EVERY
+        stimulus elects the same k neurons. Measured, before the fix: overlap
+        0.89 between assemblies built from unrelated stimuli, identical whether
+        norm_init was on or off and whether recurrence was on or off -- three
+        arms agreeing to four decimals, which is what a degenerate arm looks
+        like ([[fake-perfect-probe-signatures]]).
+
+        The reference's inputs are AREAS of size n with only k neurons active,
+        so every fiber delivers drive of order k/n. A stimulus of size s is the
+        same object: the active cap of an implicit input population of size
+        `n_post`. Charging the other `n_post - s` rows at the ambient rate `p`
+        restores that geometry, so stimulus drive ~ s/n and recurrent drive ~
+        k/n compete on equal terms. `numpy_sparse._norm_scale` documents this
+        and passes `n_pre=tgt.n, rows_known=stim.size`; this line is the same
+        law, which is why the two engines can be compared at all.
+        """
         if not self.norm_init:
             return None
         key = (stim, target)
@@ -531,7 +621,8 @@ class NumpyExactEngine(ComputeEngine):
             return cached
         size = self._stimuli[stim].size
         deg = self._stim_base[stim][target]
-        scale = inverse_indegree(deg, size, size, self.p, xp=np)
+        scale = inverse_indegree(deg, self._areas[target].n, size, self.p,
+                                 xp=np)
         self._stim_norm_cache[key] = scale
         return scale
 
@@ -628,11 +719,26 @@ class NumpyExactEngine(ComputeEngine):
         tgt.winners = np.asarray(winners, dtype=np.uint32)
         tgt.ever_fired[winners] = True
 
-        return ProjectionResult(
+        result = ProjectionResult(
             winners=np.array(tgt.winners, dtype=np.uint32),
             num_first_winners=0,
             num_ever_fired=tgt.num_ever_fired,
             total_activation=float(drive[winners].sum()))
+        if record_activation:
+            # The ERP components read PRE-k-WTA energy, because post-k-WTA the
+            # winner set is renormalised and the sign of the effect flips under
+            # norm_init -- see [[erp-prekwta-not-postkwta]]. `pre_kwta` here is
+            # the SUMMED AFFERENT DRIVE, the same quantity `numpy_sparse` snaps
+            # from `all_inputs`, and on this engine it is exact rather than
+            # part-sampled.
+            #
+            # `pre_kwta_prev_only` is left EMPTY, not zero-filled: this engine
+            # has no separate previous-winner input path to split out, and a
+            # zero vector of length n would read as "measured, and it was zero".
+            result.pre_kwta_inputs = np.array(drive, dtype=np.float32, copy=True)
+            result.pre_kwta_prev_only = np.zeros(0, dtype=np.float32)
+            result.pre_kwta_total = float(drive.sum())
+        return result
 
     def _clamped(self, mult: np.ndarray) -> np.ndarray:
         """`w_max` is a ceiling in MULTIPLES of the initial weight.

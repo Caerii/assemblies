@@ -288,7 +288,7 @@ def _ensure_engines_loaded():
         return
     _ENGINES_LOADED = True
     try:
-        from . import numpy_engine  # noqa: F401 — registers numpy_sparse, numpy_explicit
+        from . import numpy_engine  # noqa: F401 — numpy_sparse, numpy_explicit, numpy_exact
     except ImportError:
         pass
     try:
@@ -318,6 +318,7 @@ def register_engine(engine_name: str, cls: type) -> None:
 _ENGINE_MODULES = {
     "numpy_sparse": "numpy_engine",
     "numpy_explicit": "numpy_engine",
+    "numpy_exact": "numpy_engine",
     "cuda_implicit": "cuda_engine",
     "cupy_sparse": "cupy_engine",
     "torch_sparse": "torch_engine",

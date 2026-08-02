@@ -54,6 +54,7 @@ __all__ = [
     "fiber_census", "pricing_exposure",
     "format_report",
     "Arbitration", "arbitrate", "arbitrate_prebuilt", "ARBITER_ARMS",
+    "Arm", "arm_spec",
     "Ensemble", "ensemble", "compare_arms", "paired_delta",
 ]
 
@@ -742,9 +743,62 @@ def format_report(items) -> str:
 #:                 area, so `w == n`, the sampler offers zero candidates
 #:                 (`k_eff = min(k, max(0, n-w-1)) == 0`) and k-WTA sees exact
 #:                 drive. Same answers as `explicit`, at O(n^2 * p) memory.
+#:   exact         `numpy_exact`: the drive is recomputed from a content-addressed
+#:                 hash instead of stored, so it is exact with NO n^2 term. This
+#:                 is the arm that lets a protocol be arbitrated at the n the
+#:                 science actually uses, rather than at a shrunken n.
 #:   sampled       the normal sparse engine. The only arm that invents a drive
 #:                 for neurons that have not fired.
-ARBITER_ARMS = ("explicit", "materialized", "sampled")
+ARBITER_ARMS = ("explicit", "materialized", "exact", "sampled")
+
+
+@dataclass(frozen=True)
+class Arm:
+    """How to build a `Brain` for one arbiter arm.
+
+    WHY THIS IS AN OBJECT AND NOT A BOOL. The original signature was
+    ``build(explicit: bool)``, which encoded "which arm" as "is it the explicit
+    one" -- fine with two arms, wrong with four, and it forced every caller to
+    grow an `if` when a new engine arrived. An arm now says what it needs and
+    the caller splats it:
+
+        def build(arm):
+            b = Brain(p=P, seed=0, **arm.brain_kwargs)
+            b.add_area("A", n, k, beta, **arm.area_kwargs)
+            ...
+            return b
+
+    Written that way, a caller supports every present and future arm without
+    naming any of them.
+    """
+    name: str
+    brain_kwargs: Dict[str, object]   # splat into `Brain(...)`
+    area_kwargs: Dict[str, object]    # splat into `brain.add_area(...)`
+
+    @property
+    def explicit(self) -> bool:
+        """True for the `explicit` arm, for callers that must still branch."""
+        return self.name == "explicit"
+
+
+#: The concrete build recipe per arm. `materialized` builds like `sampled` and
+#: is then materialised by `arbitrate` AFTER the brain exists, which is why its
+#: kwargs are identical to `sampled`'s and not a third engine.
+_ARM_SPECS: Dict[str, Arm] = {
+    "explicit":     Arm("explicit", {}, {"explicit": True}),
+    "materialized": Arm("materialized", {}, {}),
+    "exact":        Arm("exact", {"engine": "numpy_exact"}, {}),
+    "sampled":      Arm("sampled", {}, {}),
+}
+
+
+def arm_spec(name: str) -> Arm:
+    """The `Arm` for *name*; raises on an unknown arm."""
+    try:
+        return _ARM_SPECS[name]
+    except KeyError:
+        raise ValueError(
+            f"unknown arm {name!r}; expected one of {ARBITER_ARMS}") from None
 
 
 @dataclass
@@ -806,9 +860,9 @@ def arbitrate(build, measure, arms: Sequence[str] = ARBITER_ARMS,
     [[same-name-two-meanings]].
 
     Args:
-        build: ``build(explicit: bool) -> Brain``. Construct the brain and run
-            the protocol. `explicit` selects `add_area(..., explicit=True)`;
-            ignore it if the protocol is engine-agnostic. Must be
+        build: ``build(arm: Arm) -> Brain``. Construct the brain and run the
+            protocol, splatting `arm.brain_kwargs` into `Brain(...)` and
+            `arm.area_kwargs` into every `add_area(...)`. Must be
             side-effect-free across calls (reseed inside).
         measure: ``measure(brain) -> value``. Scalar or sequence. Applied
             IDENTICALLY to every arm.
@@ -818,17 +872,20 @@ def arbitrate(build, measure, arms: Sequence[str] = ARBITER_ARMS,
     Returns:
         `Arbitration`; `.by_arm[arm]` and `.ratio()`.
 
-    Note `materialized` needs `n^2 * p` floats per area fiber, and `explicit`
-    needs `n^2`, so scale `n` down and preserve `k*p` (the expected afferent
-    count) rather than `p` -- see the module docstring of
-    `research/literature/parity/pnas2020_paper_claims.py` for why copying `p`
-    to a smaller `n` silently destroys the dynamics.
+    ON CHOOSING n. `materialized` needs `n^2 * p` floats per area fiber and
+    `explicit` needs `n^2`, so those two arms force `n` down -- and when you
+    shrink `n`, preserve `k*p` (the expected afferent count), NOT `p`; see the
+    module docstring of `research/literature/parity/pnas2020_paper_claims.py`
+    for why copying `p` to a smaller `n` destroys the dynamics. The `exact`
+    arm has no such term, so a protocol that only needs truth-vs-sampler can
+    run ``arms=("exact", "sampled")`` at full size. Include `explicit` at a
+    small `n` as well when you want to check that `exact` and the ground truth
+    still agree.
     """
     out: Dict[str, object] = {}
     for arm in arms:
-        if arm not in ARBITER_ARMS:
-            raise ValueError(f"unknown arm {arm!r}; expected {ARBITER_ARMS}")
-        brain = build(arm == "explicit")
+        spec = arm_spec(arm)
+        brain = build(spec)
         if arm == "materialized":
             for name, area in list(brain.areas.items()):
                 eng = brain._engine_for(area)
@@ -844,10 +901,11 @@ def arbitrate_prebuilt(run, arms: Sequence[str] = ARBITER_ARMS,
 
     `arbitrate` materializes after `build` returns, which is correct when the
     protocol is what `build` executed. When the protocol must see a fully
-    materialized area from its first projection, pass ``run(arm) -> value``
+    materialized area from its first projection, pass ``run(arm: Arm) -> value``
     and do the materialization inside it.
     """
-    return Arbitration(label=label, by_arm={a: run(a) for a in arms})
+    return Arbitration(label=label,
+                       by_arm={a: run(arm_spec(a)) for a in arms})
 
 
 # --------------------------------------------------------------------------

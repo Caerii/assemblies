@@ -181,6 +181,14 @@ class Brain:
                 engine_kwargs["inhibitory_weight"] = inhibitory_weight
             if synaptic_scaling:
                 engine_kwargs["synaptic_scaling"] = True
+            # FORWARDED ONLY WHEN TRUE, so `numpy_explicit` -- whose
+            # constructor does not accept it -- is unaffected. The invariant
+            # that makes this safe: OMISSION MEANS FALSE, so every engine that
+            # accepts `norm_init` MUST default it to False. An engine that
+            # defaults to True silently upgrades `Brain(norm_init=False)` to
+            # the production substrate, which is invisible in every log and
+            # wrong in exactly the runs that pinned it off on purpose (paper
+            # parity). Pinned by `test_engine_norm_init_contract`.
             if norm_init:
                 engine_kwargs["norm_init"] = True
             self._engine: ComputeEngine = create_engine(engine, **engine_kwargs)

@@ -340,3 +340,148 @@ class TestSelectionEquivalences:
         members = np.array([3, 900], dtype=np.int64)
         pos = _Potentiation._positions(rows, members)
         assert sorted(rows[pos].tolist()) == [3, 900]
+
+
+# -- L5 -- integrated -------------------------------------------------------
+
+class TestL5Integration:
+    """The engine must be REACHABLE, and must refuse what it cannot do.
+
+    L0-L3 test the engine object directly. None of them would notice that it
+    is unregistered, that `Brain` cannot construct it, or that it silently
+    drops a mechanism `Brain` asked for -- which is the failure mode that has
+    cost this repo the most, because the run still completes and still returns
+    a number ([[silent-no-op-dead-fibers]]).
+    """
+
+    def test_registered_and_constructible_through_brain(self):
+        from neural_assemblies.core.engine import create_engine, ensure_engine
+
+        assert ensure_engine("numpy_exact"), "engine not in the registry"
+        assert create_engine("numpy_exact", p=P, seed=SEED).name == "numpy_exact"
+
+        b = Brain(p=P, seed=SEED, engine="numpy_exact")
+        b.add_stimulus("s", K)
+        b.add_area("A", N, K, BETA)
+        b.add_area("B", N, K, BETA)
+        for _ in range(3):
+            b.project({"s": ["A"]}, {})
+        b.project({}, {"A": ["B"]})
+        assert b.engine_name == "numpy_exact"
+        assert len(b.areas["A"].winners) == K
+        assert len(b.areas["B"].winners) == K
+
+    @pytest.mark.parametrize("kwargs", [
+        {"refractory_period": 3},
+        {"inhibition_strength": 0.5},
+        {"input_noise_std": 0.1},
+    ])
+    def test_unimplemented_area_mechanisms_raise_not_ignored(self, kwargs):
+        """A mechanism this engine lacks must be an ERROR, never a no-op.
+
+        Silently accepting `refractory_period=3` would produce a run that looks
+        like LRI and has none, and no assertion downstream distinguishes that
+        from LRI that simply did not help.
+        """
+        b = Brain(p=P, seed=SEED, engine="numpy_exact")
+        with pytest.raises(NotImplementedError, match="does not implement"):
+            b.add_area("A", N, K, BETA, **kwargs)
+
+    def test_defaults_are_not_treated_as_requests(self):
+        """Passing the default explicitly must NOT raise -- it asks for nothing."""
+        b = Brain(p=P, seed=SEED, engine="numpy_exact")
+        b.add_area("A", N, K, BETA, refractory_period=0, inhibition_strength=0.0)
+        assert "A" in b.areas
+
+    def test_record_activation_returns_the_pre_kwta_drive(self):
+        """The ERP components read this hook; an empty result reads as zero.
+
+        Asserted against the winners: every winner's recorded drive must be at
+        least the k-th largest value, which is exactly what k-WTA selected on.
+        """
+        e = _exact()
+        for _ in range(3):
+            e.project_into("A", ["s"], [], plasticity_enabled=True)
+        r = e.project_into("A", ["s"], [], plasticity_enabled=False,
+                           record_activation=True)
+        assert r.pre_kwta_inputs is not None
+        assert r.pre_kwta_inputs.shape == (N,)
+        assert r.pre_kwta_total == pytest.approx(float(r.pre_kwta_inputs.sum()),
+                                                 rel=1e-6)
+        kth = np.sort(r.pre_kwta_inputs)[-K]
+        assert (r.pre_kwta_inputs[r.winners] >= kth).all()
+
+    def test_arbiter_exposes_an_exact_arm(self):
+        from neural_assemblies import diagnostics as dx
+
+        assert "exact" in dx.ARBITER_ARMS
+        assert dx.arm_spec("exact").brain_kwargs["engine"] == "numpy_exact"
+        with pytest.raises(ValueError, match="unknown arm"):
+            dx.arm_spec("no-such-arm")
+
+    def test_arbitrate_runs_every_arm_through_one_builder(self):
+        """The builder must not need to know the arm names.
+
+        That is the whole point of the `Arm` object: `explicit` selects a
+        dense engine via `area_kwargs`, `exact` selects a different engine via
+        `brain_kwargs`, and this builder branches on neither.
+        """
+        from neural_assemblies import diagnostics as dx
+
+        def build(arm):
+            b = Brain(p=P, seed=SEED, **arm.brain_kwargs)
+            b.add_stimulus("s", K)
+            b.add_area("A", N, K, BETA, **arm.area_kwargs)
+            for _ in range(3):
+                b.project({"s": ["A"]}, {})
+            return b
+
+        got = dx.arbitrate(build, lambda b: len(b.areas["A"].winners),
+                           label="k winners")
+        assert set(got.by_arm) == set(dx.ARBITER_ARMS)
+        assert all(v == K for v in got.by_arm.values())
+
+
+def test_engine_norm_init_contract():
+    """Every engine accepting `norm_init` must DEFAULT it to False.
+
+    `Brain` forwards the kwarg only when True, so omission is how it says
+    False. An engine defaulting to True silently upgrades
+    `Brain(norm_init=False)` to the production substrate -- which is precisely
+    the runs that pinned it off deliberately (literature parity), and the
+    upgrade appears nowhere in any log.
+
+    This is a CONTRACT test, not an exact-engine test: it walks the registry so
+    the next engine added inherits the check.
+    """
+    import inspect
+
+    from neural_assemblies.core.engine import _ENGINE_MODULES, ensure_engine
+    from neural_assemblies.core.engine import _ENGINE_REGISTRY
+
+    checked = []
+    for engine_name in _ENGINE_MODULES:
+        if not ensure_engine(engine_name):
+            continue          # optional backend (cupy/torch) not installed
+        params = inspect.signature(_ENGINE_REGISTRY[engine_name]).parameters
+        if "norm_init" not in params:
+            continue
+        checked.append(engine_name)
+        assert params["norm_init"].default is False, (
+            f"{engine_name} defaults norm_init to "
+            f"{params['norm_init'].default!r}; Brain omits the kwarg to mean "
+            f"False, so this engine ignores Brain(norm_init=False)")
+
+    assert "numpy_sparse" in checked and "numpy_exact" in checked, (
+        f"contract checked only {checked} -- if an engine stopped taking "
+        f"norm_init, this test has quietly lost its subject")
+
+
+def test_brain_norm_init_reaches_every_engine():
+    """The contract above is about defaults; this one is about the wiring."""
+    for engine_name in ("numpy_sparse", "numpy_exact"):
+        for want in (True, False):
+            b = Brain(p=P, seed=SEED, engine=engine_name, norm_init=want)
+            assert b._engine.norm_init is want, (
+                f"Brain(norm_init={want}) gave {engine_name} "
+                f"norm_init={b._engine.norm_init}")
