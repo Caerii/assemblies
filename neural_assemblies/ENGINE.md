@@ -53,6 +53,29 @@ derived-by-rank, and none); each traded one protocol against another, because
 none had the information. Do not re-derive them -- see
 `research/notes/candidate_sampler_ground_truth.md`.
 
+Measured directly on `pnas2020_scaling` (n=10000, k=100, p=0.01), where the
+trade is visible in one table -- `chance = k/n = 0.0100`:
+
+| arm | persistence | separate_overlap |
+| --- | ---: | ---: |
+| **materialized (samples nothing)** | **1.0000** | **0.0100** |
+| sampled, offset on | 1.0000 | 0.0900 |
+| sampled, offset 0 | 0.9800 | 0.0100 |
+
+The exact model gets both. No offset setting does: it buys persistence and
+pays in separation. The same lever swings the coin's fairness (attractor
+0.825 with the offset, 0.475 without). A scalar per fiber cannot carry a
+correlation, which is why tuning it keeps failing.
+
+**Keying fixes the diagonal, not the off-diagonal.** Making a repeated
+projection draw the same candidates fixes "same input, same drive". It cannot
+give "similar inputs, similar drives" -- that correlation is gone at the draw.
+So protocols scored on identity or distinctness (`separate`, the coin) are
+repaired by keying alone, while ones scored on PARTIAL overlap are not:
+next-token MRR reads 0.1159 exact, 0.0744 keyed-with-offset, 0.0901 keyed
+without it. Expect the same for pattern completion from a cue, association,
+and graded category structure.
+
 The real fix is to *compute* the drive rather than sample it: `_init_area_block`
 is addressed by absolute `(row, col)` via `hash_area_weights`, so any neuron's
 drive is computable in `O(|active| * n)` time and `O(n)` memory, no weight
@@ -111,6 +134,11 @@ allocation order.
 * **Materialization is lazy**, so a protocol that drives an area from an
   arbitrary `k`-subset of `n` mostly names neurons that do not exist.
   `materialize_area` first.
+* **Physical capacity is amortised and is NOT the logical size.** Buffers grow
+  by doubling; every consumer slices by the logical `w` (`min(src.w,
+  w.shape[0])`). Reading `weights.shape` as "how big is this fiber" is another
+  instance of the same-name trap. Growth is clamped to `n` -- it was not, and
+  an `n=10000` area held a (15682, 15682) matrix.
 * **Dense `Connectome` init is draw-order dependent** (task #81): declaring an
   extra stimulus rewires every connectome built after it. Affects the explicit
   engine. Build comparison arms by `deepcopy`, not by rebuilding.

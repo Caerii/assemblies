@@ -365,3 +365,117 @@ This substrate makes it very easy to build a measurement that reports the thing
 it caused. `read_only()` probes, a `beta=0` null, checking the floor before
 believing the ceiling, and -- when there is one -- an arbiter that does not
 share the approximation under test.
+
+---
+
+# The offset cannot be right (2026-08-01)
+
+The flag was left opt-in because it broke tests. Triaging those, 5 of the 7
+reproduce in isolation (`wobbly_stress readiness_gates` and
+`erp calibration_separates_category_violation` PASS when run alone, so they are
+order- or cache-dependent, not flag-caused).
+
+Of the 5, two share ONE root cause: the fiber-draw offset. A third does NOT,
+and that negative result is the useful part -- see "Where the single-cause
+story breaks" below.
+
+## pnas2020_scaling, `paper_canonical` cell (n=10000, k=100, p=0.01, beta=0.05)
+
+| arm | project_persistence | separate_overlap |
+| --- | ---: | ---: |
+| **materialized (samples nothing)** | **1.0000** | **0.0100** |
+| flag off | 1.0000 | 0.0200 |
+| flag on | 1.0000 | 0.0900 |
+| flag on, offset forced to 0 | 0.9800 | 0.0100 |
+
+`chance = k/n = 0.0100`.
+
+Read the top row first. **The exact model gets both**: an assembly that fully
+persists, and two separately-projected assemblies at exactly chance overlap --
+which is the PNAS 2020 claim. Every sampled arm misses at least one.
+
+* The offset is the ENTIRE separation failure. Keying alone lands on chance.
+* But removing it costs persistence (1.0000 -> 0.9800).
+* So the offset buys persistence and pays in separation, and there is no
+  setting of it that buys both. This is the fourth offset policy to trade one
+  protocol against another; see the list above. It is not a tuning problem.
+* **The golden itself is an artifact.** `separate_overlap = 0.02` is 2x the
+  exact value. Flag-off passes it by being wrong in the direction the golden
+  was recorded in. So "make the flag match the golden" was never the right
+  target.
+
+## The coin, 40 flips (`test_fairness_cannot_tell_the_two_apart`)
+
+| arm | legacy | attractor |
+| --- | ---: | ---: |
+| flag off | 0.500 | 0.650 |
+| flag on | 0.450 | **0.825** |
+| flag on, offset forced to 0 | 0.575 | 0.475 |
+
+Same lever. Binomial SE at 40 flips is 0.079, so flag-on's attractor sits 4.1
+SE from fair and the offset-free arm sits 0.3 SE from it. Consistent with
+[[neural-coin-is-a-scaling-law]]: fairness emerges when basin asymmetry
+self-averages, and a persistent offset is exactly what stops it averaging.
+
+## Merge points the same way
+
+Explicit ~2030 (in the units the test bounds at 4000); flag off 3505; flag on
+4273. The offset was ADDED to cut merge over-recruitment and it does -- but
+flag-on still lands further from the exact model than flag-off. The offset
+helps the protocol it was fitted to and hurts the others.
+
+## Where the single-cause story breaks: next-token prediction
+
+`test_next_token_scaling` (n=10000, k=100, 50-word vocabulary), MRR against a
+chance floor of 0.0900:
+
+| arm | MRR | top1 | top3 |
+| --- | ---: | ---: | ---: |
+| **materialized (samples nothing)** | **0.1159** | 0.0000 | 0.0870 |
+| flag off | 0.1165 | 0.0000 | 0.0870 |
+| flag on | 0.0744 | 0.0000 | 0.0652 |
+| flag on, offset forced to 0 | 0.0901 | 0.0000 | 0.0652 |
+
+Two corrections to earlier readings of this test:
+
+* `top1 = 0.0000` holds in the EXACT model too. It is a property of the task,
+  not an engine artifact, and not evidence of a collapse.
+* Zeroing the offset recovers only ~37% of the gap (0.0744 -> 0.0901 against
+  an exact 0.1159). Unlike separation and the coin, the offset is NOT the
+  whole story here.
+
+### Why the same lever does not fix all three
+
+Keying makes a repeated projection draw the same candidates. That fixes the
+DIAGONAL of the drive covariance -- same input, same drive. It does nothing
+for the OFF-DIAGONAL -- similar inputs, similar drives -- because that
+correlation was thrown away at the draw and no key can reconstruct it.
+
+    separate()   two disjoint stimuli, no shared component   diagonal only
+    the coin     one construction flipped repeatedly          diagonal only
+    next-token   contexts that share most of their words     off-diagonal
+
+So the two protocols keying fixes are exactly the two that only need the
+diagonal, and the one it does not fix is the one whose whole task is graded
+similarity between overlapping inputs. This is the same `d_i(S)` term as at
+the top of this note, seen from the other side.
+
+It also predicts which future protocols will fail under the flag: anything
+scored on partial overlap (pattern completion from a cue, association,
+graded category structure), and not the ones scored on identity or
+distinctness.
+
+## Conclusion
+
+Do not tune the offset again. Three protocols now agree that it is a band-aid
+over information the sampler threw away at the draw: the correlation between
+`d_i(x)` and `d_i(x')` for inputs sharing a component. A scalar per fiber
+cannot carry it, which is why every policy so far has traded protocols.
+
+The sampler-free arm demonstrates the information is recoverable, and
+`hash_area_weights` makes it computable in O(n) memory. That is the fix.
+
+**Decision: `NEURAL_ASSEMBLIES_STABLE_CANDIDATES` stays opt-in.** Its
+order-independence benefit is real (up to 18% of an assembly, see
+[[content-addressed-synapse-init]]), but it is not worth 5 protocol
+regressions when the principled fix is known and scoped.

@@ -690,6 +690,13 @@ class NumpySparseEngine(ComputeEngine):
         prev = conn.weights
         prev = prev if getattr(prev, "ndim", 0) == 2 else None
         pr, pc = (prev.shape if prev is not None else (0, 0))
+        # CLAMP: physical capacity is amortised and may exceed `n` on a
+        # connectome grown before that doubling was bounded (or restored from
+        # such a pickle). Everything at or past `n` is padding no consumer
+        # reads -- it is sliced off by the logical `w` -- so dropping it here
+        # is lossless, where copying it raised a broadcast error mid-way
+        # through materialisation and left the area half-built.
+        pr, pc = min(int(pr), int(n)), min(int(pc), int(n))
         prev_dense = (np.asarray(to_cpu(prev))
                       if prev is not None and pr and pc else None)
 
@@ -2384,11 +2391,24 @@ class NumpySparseEngine(ComputeEngine):
 
                 new_pr, new_pc = phys_rows, phys_cols
                 need_realloc = False
+                # CLAMPED TO n, like `_stim_capacity` does for the 1-D case.
+                # Rows index presynaptic neurons of `src` and columns
+                # postsynaptic neurons of `tgt`, so neither can logically
+                # exceed that area's n -- `needed_*` is bounded by `w <= n`.
+                # Unclamped doubling overshot it: a LEX with n=10000, w=7918
+                # held a (15682, 15682) matrix, 984 MB where 400 MB is the
+                # most the fiber can ever need, and up to ~4x n^2 in the
+                # worst case. Consumers slice by the LOGICAL w (see
+                # `_norm_*`), so the padding never changed a result -- it
+                # only wasted memory and crashed `materialize_area`, which
+                # reasonably assumed no block exceeds n.
                 if needed_rows > phys_rows:
-                    new_pr = max(needed_rows, phys_rows * 2, 2 * src.k)
+                    new_pr = min(max(needed_rows, phys_rows * 2, 2 * src.k),
+                                 max(int(src.n), int(needed_rows)))
                     need_realloc = True
                 if needed_cols > phys_cols:
-                    new_pc = max(needed_cols, phys_cols * 2, 2 * tgt.k)
+                    new_pc = min(max(needed_cols, phys_cols * 2, 2 * tgt.k),
+                                 max(int(tgt.n), int(needed_cols)))
                     need_realloc = True
 
                 if need_realloc:
