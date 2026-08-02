@@ -1077,10 +1077,17 @@ class Brain:
         # of LOAD, and norm_init changes which neurons win and therefore how
         # fast the area recruits.  The two arms did not share the error.
         #
-        # The "ceiling scales with n" inference is likewise UNSUPPORTED rather
-        # than refuted -- it was read off the same instrument, and n at fixed k
-        # is load.  Re-running that sweep on exact drive is task #90's
-        # remainder.
+        # The "ceiling scales with n" inference was re-run on exact drive
+        # (research/notes/ceiling_n_scaling_on_exact_drive.md) and the GROWTH
+        # is real -- the sampler did not produce it, inflation is 2.0x/1.0x/1.0x
+        # across n.  But the SHAPE of that growth is still not established, and
+        # the exponent measured there (1.70) is WITHDRAWN: both that sweep and
+        # the original table hold beta and T fixed while n varies, i.e. they
+        # compare along the n axis at fixed ABSOLUTE gain, which is the design
+        # that produced this repo's withdrawn n^1.49.  The controlled version
+        # of that measurement is EXTENSIVE (exponent 1.01, M_max ~ 1.15 n/k).
+        # So "accumulated potentiation rather than degree bias" may well be
+        # right, but the numbers here do not establish it.
         #
         # WHAT DID NOT CHANGE, and is why this gate stays: recurrence is the
         # collapse channel and is far worse than feed-forward on BOTH engines

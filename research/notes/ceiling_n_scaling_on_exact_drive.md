@@ -1,5 +1,30 @@
 # The recurrence ceiling does scale with n — and not by the law anyone stated
 
+> ## ⚠️ THE SUPER-LINEAR READING IS WITHDRAWN PENDING A CONTROL
+>
+> Everything below about the coverage law and α\* being "refuted" was measured
+> at **fixed absolute gain**: `beta = 0.10` and `T = 6` held constant while `n`
+> varied. [[critical-load-alpha-star]] states the rule in one line —
+> *"whenever `g_c` depends on an axis, comparing along that axis at fixed
+> ABSOLUTE gain is confounded — this bit the n sweep and then the k sweep
+> identically"* — and this is the same n sweep with the same design.
+>
+> The withdrawn `n^1.49` came from exactly this. The **controlled** version of
+> that measurement, at fixed *relative* gain `g = 0.88·g_c(n)`, came out
+> **extensive: exponent 1.01, `M_max ≈ 1.15 n/k`**. My fine grid reports
+> **1.70**, which is what the confound is known to manufacture, and its
+> proximity to 1.49 is the signature rather than corroboration.
+>
+> **What survives:** the ceiling grows with n (true at `a = 1` too), the
+> sampler did not produce that growth, and the feed-forward control has no
+> ceiling. **What is suspended:** super-linearity, "the coverage law is
+> refuted", "α\* is refuted", and "one big area holds more than the sum of its
+> parts". The many-areas SPLIT arm inherits the same suspension, since its
+> capacity loss was read through the same lens.
+>
+> `task90_gain_confound.py` is the decisive test — measure `a` at several
+> absolute gains; if it moves, it was never a property of the substrate.
+
 Task #90, second half. `research/experiments/task90_ceiling_n_scaling.py`,
 k=50, beta=0.1, p=0.05, buildT=6, one shared area, 3 seeds. **k and p held
 fixed while n varies**, which is what a coverage law's prediction requires.

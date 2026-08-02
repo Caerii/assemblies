@@ -54,6 +54,40 @@ artifact ([[critical-load-alpha-star]]). Naming an exponent from three points
 is how that happened. This file reports a RANGE from the bracket extremes
 alongside the least-squares slope, and treats disagreement between them as a
 reason not to quote either.
+
+!!! THE EXPONENT THIS FILE MEASURES IS CONFOUNDED. READ THIS BEFORE QUOTING IT
+-----------------------------------------------------------------------------
+It ran, it produced a = 1.70 with a bracket of [1.52, 1.84] and two doublings
+agreeing to within 7% (3.14x and 3.37x), and that is NOT good enough, because
+the design is the one already known to be broken.
+
+`critical-load-alpha-star` records the rule in one line:
+
+    Whenever g_c depends on an axis, comparing along that axis at fixed
+    ABSOLUTE gain is confounded -- this bit the n sweep and then the k sweep
+    identically.
+
+This sweep holds `beta = 0.10` and `PARENT_ROUNDS = 6` fixed while n varies, so
+the gain `(1+beta)^T` is fixed in absolute terms, on the n axis. That is the
+same design that produced the withdrawn `n^1.49`, and the corrected measurement
+of the same quantity -- at fixed RELATIVE gain `g = 0.88 g_c(n)` -- came out at
+exponent **1.01**, i.e. EXTENSIVE, `M_max ~ 1.15 n/k`.
+
+So `a = 1.70` here is exactly what the confound is known to manufacture, and it
+directly contradicts a standing measurement that controlled for it. The
+similarity to 1.49 is not corroboration; it is the signature.
+
+WHAT THIS DOES TO THE REST OF THE SESSION'S READING. The claim "the ceiling
+scales with n" survives trivially -- it grows under a = 1 as well. The claim
+that mattered, that scaling is SUPER-linear and therefore refutes the coverage
+law and alpha*, does NOT survive, because the confound can manufacture
+super-linearity outright: that is precisely how 1.01 was once read as 1.49.
+Everything this session said about "one big area holds more than the sum of its
+parts" is suspended pending the controlled run.
+
+THE DECISIVE TEST, which is cheap: measure `a` at SEVERAL absolute gains. If
+`a` is a property of the substrate it will not move; if it is inherited from
+`g_c(n)` sliding under a fixed gain, it will. `task90_gain_confound.py`.
 """
 
 from __future__ import annotations
@@ -149,14 +183,22 @@ def main() -> None:
     print(f"    E3 super-linear survives the bracket:   {str(e3):>5}")
 
     print()
+    print(f"    !!! DO NOT QUOTE a = {a_fit:.2f}. THE DESIGN IS CONFOUNDED. !!!")
+    print(f"    beta={BETA} and T={PARENT_ROUNDS} are held FIXED while n varies,")
+    print(f"    so this compares along the n axis at fixed ABSOLUTE gain. That")
+    print(f"    is the design that produced this repo's withdrawn n^1.49; the")
+    print(f"    controlled version of the same measurement, at fixed RELATIVE")
+    print(f"    gain g = 0.88 g_c(n), came out EXTENSIVE at exponent 1.01.")
+    print(f"    See [[critical-load-alpha-star]] and the module docstring.")
+    print(f"    a ~ {a_fit:.2f} landing near 1.49 is the signature, not support.")
+    print(f"    Run task90_gain_confound.py before believing any of it.")
+    print()
     if e1 and e2 and e3:
-        print(f"    THE EXPONENT IS MEASURED, NOT READ OFF A GRID: a ~ {a_fit:.2f}.")
-        print(f"    Three points and one estimator, so quote it with the range")
-        print(f"    and not alone. What is robust either way: a > 1, so the")
-        print(f"    coverage law (a = 1) and alpha* are both refuted, and one")
-        print(f"    big area holds MORE than the sum of its parts -- which is")
-        print(f"    the same fact the many-areas split arm measured from the")
-        print(f"    other side.")
+        print(f"    What the grid work DID buy, independent of the confound:")
+        print(f"    every crossing now has an interior point, so the ceiling is")
+        print(f"    a measured crossing rather than a grid artifact, and the")
+        print(f"    estimator refuses to interpolate across a cliff. Whatever")
+        print(f"    the controlled sweep says, it can be read off this machinery.")
     elif e3:
         print(f"    SUPER-LINEARITY HOLDS, THE EXPONENT DOES NOT RESOLVE.")
         print(f"    a > 1 survives every bracket, so the coverage law and alpha*")

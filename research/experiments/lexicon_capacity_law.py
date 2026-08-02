@@ -109,12 +109,17 @@ def build_rec(brain, stim, area, rounds):
     return read(brain, area)
 
 
-def trial(n, m_words, mode, seed, engine="numpy_sparse"):
+def trial(n, m_words, mode, seed, engine="numpy_sparse", beta=None):
+    """*beta* defaults to the module's BETA. Passed rather than monkeypatched:
+    the gain `(1+beta)^T` is the axis the confound check varies, and mutating a
+    module global to sweep it is how an experiment silently inherits the last
+    value someone set."""
     from neural_assemblies.core.brain import Brain
 
+    beta = BETA if beta is None else beta
     build = build_ff if mode == "ff" else build_rec
     brain = Brain(p=P_, seed=seed, engine=engine)
-    brain.add_area(AREA, n, K_, beta=BETA)
+    brain.add_area(AREA, n, K_, beta=beta)
     for m in range(m_words):
         brain.add_stimulus(f"w{m}", K_)
 
@@ -131,8 +136,8 @@ def trial(n, m_words, mode, seed, engine="numpy_sparse"):
     return hits, m_words, statistics.mean(ident), spread(stored.values())
 
 
-def run(n, m_words, mode, engine="numpy_sparse"):
-    res = [trial(n, m_words, mode, s, engine) for s in SEEDS]
+def run(n, m_words, mode, engine="numpy_sparse", beta=None):
+    res = [trial(n, m_words, mode, s, engine, beta) for s in SEEDS]
     tot = sum(x[1] for x in res)
     return (sum(x[0] for x in res) / tot,
             statistics.mean(x[2] for x in res),

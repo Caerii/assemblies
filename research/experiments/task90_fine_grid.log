@@ -1,0 +1,54 @@
+
+  #90 -- capacity exponent on a x1.25 grid inside each bracket
+  k=50 beta=0.1 p=0.05 buildT=6, engine numpy_exact
+  crossing interpolated in log2(M); brackets from the coarse sweep
+
+  --- n=1000,  bracket [16, 32),  grid [16, 20, 25, 31, 32] ---
+       M   cover      acc    ident   spread     secs
+      16    0.80   1.0000   0.9279   0.0677      2.5
+      20    1.00   1.0000   0.9070   0.0742      4.0
+      25    1.25   1.0000   0.8637   0.0838      5.8
+      31    1.55   0.7312   0.7282   0.1046      8.0
+      32    1.60   0.7188   0.7102   0.1088      8.3
+      -> M* = 27.1  bracket [25, 31)  interior 2
+
+  --- n=2000,  bracket [64, 128),  grid [64, 80, 100, 125, 128] ---
+       M   cover      acc    ident   spread     secs
+      64    1.60   1.0000   0.9170   0.0313     23.7
+      80    2.00   1.0000   0.8839   0.0334     36.7
+     100    2.50   0.6333   0.5853   0.0458     61.7
+     125    3.12   0.0240   0.2894   0.1018    102.3
+     128    3.20   0.0208   0.3026   0.1100    119.5
+      -> M* = 85.0  bracket [80, 100)  interior 1
+
+  --- n=4000,  bracket [256, 512),  grid [256, 320, 400, 500, 512] ---
+       M   cover      acc    ident   spread     secs
+     256    3.20   1.0000   0.9155   0.0147    238.5
+     320    4.00   0.8021   0.7561   0.0172    347.6
+     400    5.00   0.0700   0.2453   0.0482    613.2
+     500    6.25   0.0140   0.3271   0.1216   1074.3
+     512    6.40   0.0137   0.3382   0.1309   1128.7
+      -> M* = 286.6  bracket [256, 320)  interior 1
+
+  READING
+
+    n= 1000  M* = 27.1  bracket [25, 31)  interior 2
+    n= 2000  M* = 85.0  bracket [80, 100)  interior 1
+    n= 4000  M* = 286.6  bracket [256, 320)  interior 1
+
+    E1 every crossing has an interior point:  True
+
+    exponent a in M_max ~ n^a
+      least squares on interpolated M*   a = 1.70
+      from the coarse bracket extremes   a in [1.52, 1.84]
+
+    E2 fit lands inside the coarse bracket:  True
+    E3 super-linear survives the bracket:    True
+
+    THE EXPONENT IS MEASURED, NOT READ OFF A GRID: a ~ 1.70.
+    Three points and one estimator, so quote it with the range
+    and not alone. What is robust either way: a > 1, so the
+    coverage law (a = 1) and alpha* are both refuted, and one
+    big area holds MORE than the sum of its parts -- which is
+    the same fact the many-areas split arm measured from the
+    other side.
