@@ -228,28 +228,84 @@ class TestNextTokenScaling:
         b, stim_map, lexicon, train_corpus = _setup_scaled_model()
         assert len(train_corpus) == 40
 
-    def test_overall_accuracy_above_chance(self):
-        """MRR should be above chance (1/50 = 0.02 for top-1).
+    @pytest.mark.slow
+    @pytest.mark.xfail(
+        strict=True,
+        reason="AT CHANCE over 18 seeds (0.0904 +/- 0.0083 vs 0.0900), and "
+               "BEATEN BY A UNIGRAM (0.1362) -- the architecture cannot learn "
+               "a transition, see the docstring. Tasks #86, #87. Do not "
+               "delete or retune; this is the record that it fails.",
+    )
+    def test_overall_accuracy_beats_chance_as_an_ensemble(self):
+        """Does next-token prediction beat chance -- ACROSS SEEDS, not on one?
 
-        Chance MRR for uniform random over 50 words is approximately
-        sum(1/k for k=1..50) / 50 = 0.090.  We expect the model to
-        exceed this.
+        This replaces a single-seed assertion that passed only because seed 42
+        is a lucky draw. Measured 2026-08-02, seeds 42..59:
+
+            mean MRR 0.0904 +/- 0.0083 (95% CI)   sd 0.0180
+            chance   0.0900
+            range    0.0551 .. 0.1220, with 6 of 18 seeds BELOW chance
+
+        The mean sits 0.05 SE above chance -- indistinguishable from it. The
+        old test asserted `scores["mrr"] > chance` for ONE brain and so
+        reported which draw it got, not what the model does.
+
+        WHY A SINGLE SEED CANNOT WORK HERE. Drive from a stimulus is
+        Binomial(k, p), a small integer, so at low `k*p` the top-k boundary
+        falls inside a large tied band and the assembly is completed by index
+        convention rather than by drive. At this model's parameters that is a
+        large fraction of every assembly, which is where the 0.0180 sd comes
+        from. The fix is more seeds, never a wider threshold.
+
+        AND "> CHANCE" IS THE WRONG BAR. Measured on this grammar over 1042
+        predictions, the optimal predictors are:
+
+            chance (uniform over 50)                  0.0900
+            unigram (word frequency, NO context)      0.1362
+            bigram-optimal (current word only)        0.2454
+            model                                     0.0904
+
+        The model is 0.3% of the way from chance to the bigram optimum, and
+        loses to counting word frequencies. So chance is the FLOOR here, not a
+        modest target, and a passing "> chance" assertion would have meant
+        almost nothing even when it passed.
+
+        THE ARCHITECTURE CANNOT REPRESENT THE TASK. It is
+        `token -> stimulus -> LEX (recurrent) -> overlap readout`. Presenting
+        w_t drives LEX to w_t's own assembly, so the state read out IS the
+        current word, not a prediction. Hebbian plasticity associates things
+        that are CO-ACTIVE, and w_t and w_{t+1} never are -- they are separated
+        by a timestep. One area with recurrence can therefore learn "w_t
+        follows w_t" and not the transition. Fixing this needs a distinct
+        prediction site that the current stimulus does not drive; see task #87.
+
+        Left as a STRICT xfail rather than deleted or relaxed: if a real
+        improvement lands, this starts XPASSing and says so.
         """
-        b, stim_map, lexicon, _ = _setup_scaled_model()
-        test_corpus = _generate_test_sentences(10)
-
-        scores = score_corpus(
-            b, "LEX", test_corpus, stim_map, lexicon,
-            rounds_per_token=ROUNDS,
-        )
-
         chance_mrr = sum(1.0 / k for k in range(1, 51)) / 50
-        print(f"  MRR={scores['mrr']:.3f}, top1={scores['top1_accuracy']:.3f}, "
-              f"top3={scores['top3_accuracy']:.3f}, chance_mrr={chance_mrr:.3f}")
+        mrrs = []
+        for seed in (42, 43, 44, 45, 46):
+            global SEED
+            prev, SEED = SEED, seed
+            try:
+                b, stim_map, lexicon, _ = _setup_scaled_model()
+                corpus = _generate_test_sentences(10)
+                mrrs.append(score_corpus(b, "LEX", corpus, stim_map, lexicon,
+                                         rounds_per_token=ROUNDS)["mrr"])
+            finally:
+                SEED = prev
 
-        assert scores["mrr"] > chance_mrr, (
-            f"MRR {scores['mrr']:.3f} should exceed chance {chance_mrr:.3f}. "
-            f"Scores: {scores}"
+        mean = sum(mrrs) / len(mrrs)
+        sd = (sum((m - mean) ** 2 for m in mrrs) / (len(mrrs) - 1)) ** 0.5
+        ci = 1.96 * sd / len(mrrs) ** 0.5
+        print(f"  MRR mean={mean:.4f} +/- {ci:.4f} over {len(mrrs)} seeds, "
+              f"chance={chance_mrr:.4f}")
+
+        # The LOWER confidence bound must clear chance. A point estimate that
+        # happens to exceed it is what this test used to accept.
+        assert mean - ci > chance_mrr, (
+            f"next-token MRR is at chance: {mean:.4f} +/- {ci:.4f} vs "
+            f"{chance_mrr:.4f} over {len(mrrs)} seeds"
         )
 
     def test_accuracy_by_word_class(self):
