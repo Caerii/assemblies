@@ -32,13 +32,19 @@ class TestArea(unittest.TestCase):
         self.area.unfix_assembly()
         self.assertFalse(self.area.fixed_assembly)
 
-    def test_update_beta_by_stimulus(self):
-        self.area.update_beta_by_stimulus("Stim1", 0.1)
-        self.assertEqual(self.area.beta_by_stimulus["Stim1"], 0.1)
+    def test_update_beta_by_stimulus_refuses_rather_than_no_ops(self):
+        # This used to write `beta_by_stimulus` and return happily, while the
+        # engine went on reading `beta_by_source`. See test_per_fiber_beta.py.
+        with self.assertRaises(NotImplementedError) as ctx:
+            self.area.update_beta_by_stimulus("Stim1", 0.1)
+        self.assertIn("update_plasticities", str(ctx.exception))
 
-    def test_update_beta_by_area(self):
-        self.area.update_beta_by_area("Area1", 0.2)
-        self.assertEqual(self.area.beta_by_area["Area1"], 0.2)
+    def test_update_beta_by_area_refuses_rather_than_no_ops(self):
+        with self.assertRaises(NotImplementedError) as ctx:
+            self.area.update_beta_by_area("Area1", 0.2)
+        # The message must name the route that works, not just the failure.
+        self.assertIn("brain.update_plasticity('Area1', 'TestArea', 0.2)",
+                      str(ctx.exception))
 
 if __name__ == '__main__':
     unittest.main()

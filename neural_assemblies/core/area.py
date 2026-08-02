@@ -193,12 +193,38 @@ class Area:
         self.fixed_assembly = False
 
     def update_beta_by_stimulus(self, stimulus_name: str, new_beta: float):
-        """Updates synaptic plasticity parameter for a specific stimulus."""
-        self.beta_by_stimulus[stimulus_name] = new_beta
+        """DEAD ROUTE. Use `Brain.update_plasticities(stim_update_map=...)`.
+
+        See `update_beta_by_area` for why this raises instead of working.
+        """
+        raise NotImplementedError(
+            f"Area.update_beta_by_stimulus({stimulus_name!r}, {new_beta}) does "
+            f"not reach the engine, so it would change nothing. Use\n"
+            f"    brain.update_plasticities(stim_update_map="
+            f"{{{self.name!r}: [({stimulus_name!r}, {new_beta})]}})"
+        )
 
     def update_beta_by_area(self, area_name: str, new_beta: float):
-        """Updates synaptic plasticity parameter for a specific area."""
-        self.beta_by_area[area_name] = new_beta
+        """DEAD ROUTE. Use `Brain.update_plasticity(from_area, to_area, beta)`.
+
+        Writing `self.beta_by_area` alone is a silent no-op on every engine
+        except the legacy dense `compute.explicit_projection` path: the sparse,
+        torch and cuda engines all read their own `AreaState.beta_by_source`,
+        which only `engine.set_beta` writes. An `Area` cannot forward to the
+        engine itself -- it holds no engine handle on purpose, because Areas are
+        pickled and deep-copied constantly (that is also why `_xp` stores a
+        name, not a module).
+
+        `Brain.update_plasticity` writes BOTH, which is what keeps the two
+        readers agreeing. This raises rather than no-ops because the silent
+        version cost a full 10-seed run that reported two identical arms as a
+        negative result.
+        """
+        raise NotImplementedError(
+            f"Area.update_beta_by_area({area_name!r}, {new_beta}) does not "
+            f"reach the engine, so it would change nothing. Use\n"
+            f"    brain.update_plasticity({area_name!r}, {self.name!r}, {new_beta})"
+        )
 
     def get_num_ever_fired(self) -> int:
         """Neurons that have EVER fired -- recruitment, not current activity.

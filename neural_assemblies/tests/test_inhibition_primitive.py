@@ -95,6 +95,40 @@ class TestProjectMapDerivation:
         s.disinhibit_fiber("LEX", "SUBJ", 0)
         assert "SUBJ" in s.project_map(b)["LEX"]
 
+    def test_self_recurrence_is_implied_by_any_open_input_fiber(self):
+        """You CANNOT gate an area's self-fiber while it is receiving.
+
+        This looks like a bug and is not: `parser.py:413` puts
+        `proj_map[area2].add(area2)` inside the `fiber_states[area1][area2]`
+        guard, so the self-projection rides on the state of the INPUT fiber,
+        never on `fiber_states[area2][area2]`. Faithfully ported.
+
+        The consequence is a real limit on what gating can express. In NEMO,
+        "receive input" and "sustain yourself" are the same event, so the only
+        way to switch off an area's self-recurrence is to switch the area (or
+        every fiber into it) off entirely -- see case C below.
+
+        This matters because self-recurrence during TRAINING is this repo's
+        measured collapse channel for shared areas. Gating cannot close it
+        selectively; only a per-fiber beta can (`Brain.update_plasticity`,
+        task #88). Anyone "fixing" this to consult the self-fiber would diverge
+        from the reference and silently change every parse.
+        """
+        b = self._brain()
+        b.project({"s": ["LEX"]}, {"LEX": ["SUBJ"]})     # give SUBJ winners
+        s = InhibitionState(AREAS, initial_areas=AREAS)
+        s.disinhibit_fiber("LEX", "SUBJ", 0)
+        s.inhibit_fiber("SUBJ", "SUBJ", 0)               # explicitly close it
+
+        assert not s.fiber_open("SUBJ", "SUBJ")
+        assert "SUBJ" in s.project_map(b)["SUBJ"], (
+            "self-recurrence was gated by the self-fiber -- the reference "
+            "derives it from the INPUT fiber (parser.py:413)")
+
+        s.inhibit_fiber("LEX", "SUBJ", 0)                # close the input too
+        assert "SUBJ" not in s.project_map(b).get("SUBJ", []), (
+            "closing every fiber into an area must stop its self-projection")
+
     def test_inhibited_area_blocks_its_open_fiber(self):
         """Area state gates independently of fiber state -- this is how the
         reference routes a noun: the noun opens fibers to BOTH SUBJ and OBJ,

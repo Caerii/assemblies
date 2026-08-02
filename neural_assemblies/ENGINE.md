@@ -120,8 +120,15 @@ all three. Use it before attributing an anomaly to the model.
 | `Area.w` | num-ever-fired | `len(winners)`, after any winners assignment |
 | `winners` | `Area`: compact indices `0..w-1` | `Assembly`: neuron IDs `0..n-1` |
 | "support" | distinct winners over a run | `area.w` |
+| per-fiber beta | `Area.beta_by_area` (dense path) | `AreaState.beta_by_source` (engine) |
 
 Use `get_num_ever_fired()` / `active_count`, and `Assembly.neuron_ids`.
+
+For beta, use **`Brain.update_plasticity(from, to, beta)`** -- it writes both.
+`Area.update_beta_by_area` wrote only the first and so changed nothing on the
+sparse/torch/cuda engines; it now raises. An `Area` cannot forward to the engine
+because it holds no engine handle by design (it is pickled and deep-copied
+constantly -- the same reason `_xp` stores a name, not a module).
 
 **3. Check the floor and the degenerate case.** A metric is evidence only if a
 plausible broken state fails it. A sealed area scores 1.000 on stability; a
@@ -157,3 +164,10 @@ allocation order.
   engine. Build comparison arms by `deepcopy`, not by rebuilding.
 * **`read_only()`** blocks recruitment and RNG advance -- use it for probes, or
   measuring changes what it measures.
+* **Gating cannot switch off self-recurrence.** `InhibitionState.project_map`
+  derives `X -> X` from the state of the fibers INTO `X`, never from
+  `fiber_states[X][X]` -- faithful to `parser.py:413`. So an area that is
+  receiving is also self-sustaining, and the only way to stop that is to close
+  every fiber into it. Since self-recurrence during training is this repo's
+  measured collapse channel for shared areas, "live but non-plastic" is
+  expressible **only** as a per-fiber beta, not as a gate.
