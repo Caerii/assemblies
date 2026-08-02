@@ -162,3 +162,47 @@ partially-built product would cap a value still being multiplied.
   measured instead (1–2 tied at n=3e5; float32 and float16 both agreed 1.0000
   with float64 there, but that is a measurement at those parameters, not a
   guarantee).
+
+---
+
+## Appendix: does the drive have to be float?
+
+Asked because k-WTA only needs an ORDER, and the un-normalised drive is an
+integer count. Measured at n=3e5, k=548, all arrays given the SAME rank
+structure (fixed-point scaled to fill each type's range) and pre-touched so
+cache residency does not confound the timings:
+
+| dtype | MB | copy | `+=` | select | tied@boundary | agrees with f64 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| **float32** | 1.2 | 0.428 | **0.092** | **0.161** | 1 | 1.0000 |
+| float64 | 2.4 | 1.985 | 1.585 | 1.189 | 1 | 1.0000 |
+| int32 fx30 | 1.2 | 0.521 | 0.205 | 0.178 | 1 | 1.0000 |
+| uint16 fx16 | 0.6 | 0.022 | 0.239 | 0.282 | 1 | 1.0000 |
+| int16 fx15 | 0.6 | 0.020 | 0.183 | 0.284 | 1 | 1.0000 |
+| uint8 fx8 | 0.3 | 0.011 | 0.143 | 0.200 | **53** | **0.9945** |
+
+**Integers buy nothing at equal width.** int32 fixed-point is slower than
+float32 on both copy and select, so the intuition that "comparisons are
+cheaper on ints" does not survive contact with numpy's specialised float
+kernels.
+
+**Width is the only real lever, and 16-bit is a wash.** Copies get ~20x
+faster (half the bytes, and it fits in cache), but numpy's `partition` on
+16-bit integers is less optimised and selection gets slower by about as much.
+
+**8-bit breaks the model, not just the precision.** 53 neurons land in the
+tied band instead of 1, and agreement with float64 drops to 0.9945 — the
+assembly starts being decided by index convention rather than by drive. This
+is the concrete form of the warning on `DEFAULT_DTYPE`: precision is a
+modelling parameter because k-WTA is a comparison.
+
+float16 was measured separately and is SLOWER than float32 (8.4 vs 6.3 ms per
+round) despite being half the width: numpy has no native float16 arithmetic
+and upcasts internally on every op.
+
+**Conclusion: float32 stays the default.** It is exact for the un-normalised
+count (an integer below 2^24), it is what `numpy_sparse` accumulates in — so
+it matches the arbiter rather than diverging from it — and nothing measured
+beats it once both halves of the round are counted. `dtype` remains a
+parameter for anyone who wants to trade the tie band for bytes at very large
+n, with this table as the price list.
