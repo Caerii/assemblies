@@ -417,12 +417,24 @@ SE from fair and the offset-free arm sits 0.3 SE from it. Consistent with
 [[neural-coin-is-a-scaling-law]]: fairness emerges when basin asymmetry
 self-averages, and a persistent offset is exactly what stops it averaging.
 
-## Merge points the same way
+## Merge pulls the OTHER way -- the trade is proven at both ends
 
-Explicit ~2030 (in the units the test bounds at 4000); flag off 3505; flag on
-4273. The offset was ADDED to cut merge over-recruitment and it does -- but
-flag-on still lands further from the exact model than flag-off. The offset
-helps the protocol it was fitted to and hurts the others.
+merge_sim(100000, 317, 0.01, 0.05, 50), final support:
+
+| arm | w_a | w_b | w_c |
+| --- | ---: | ---: | ---: |
+| flag off | 3505 | 2639 | 2974 |
+| flag on | 4273 | 3964 | 4142 |
+| flag on, offset forced to 0 | **11660** | **10977** | **11284** |
+
+Without the offset merge over-recruits by 3.3x. So this is not "the offset is
+bad": it is LOAD-BEARING for merge -- the protocol it was fitted to -- and
+harmful for separation and the coin, which the same lever fixes by being
+removed. Both directions are measured, so no single setting can be chosen on
+evidence.
+
+For scale, explicit reads ~2030 in these units, so even flag-on with the
+offset is 2x the exact model.
 
 ## Where the single-cause story breaks: next-token prediction
 
