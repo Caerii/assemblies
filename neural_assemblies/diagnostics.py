@@ -39,8 +39,10 @@ from __future__ import annotations
 
 import itertools
 import statistics
+import warnings
 from dataclasses import dataclass, field
-from typing import Dict, Iterable, List, Mapping, Optional, Sequence
+from typing import (Any, Dict, Iterable, List, Mapping, Optional, Sequence,
+                    Tuple)
 
 import numpy as np
 
@@ -52,6 +54,7 @@ __all__ = [
     "fiber_census", "pricing_exposure",
     "format_report",
     "Arbitration", "arbitrate", "arbitrate_prebuilt", "ARBITER_ARMS",
+    "Ensemble", "ensemble", "compare_arms", "paired_delta",
 ]
 
 
@@ -845,3 +848,145 @@ def arbitrate_prebuilt(run, arms: Sequence[str] = ARBITER_ARMS,
     and do the materialization inside it.
     """
     return Arbitration(label=label, by_arm={a: run(a) for a in arms})
+
+
+# --------------------------------------------------------------------------
+# Ensembles and arm comparison
+#
+# These exist because of four measurement errors made in one session, three
+# of which had the SAME shape: a number looked like a result and was actually
+# a mechanism that never ran.
+#
+#   * a candidate arm and its control returned IDENTICAL values because the
+#     fiber under test was never materialised (zero drive, k winners anyway);
+#   * a "regression" of 1.68 sd was acted on as real when the seed-to-seed
+#     spread covered it;
+#   * a test asserted "above chance" from ONE seed for a quantity whose
+#     ensemble mean was AT chance;
+#   * a readout scored the unigram baseline with nothing learned, because
+#     `sorted()` broke ties in an order that correlated with the answer.
+#
+# The point of these helpers is that the safe path is the short one.
+# --------------------------------------------------------------------------
+
+@dataclass(frozen=True)
+class Ensemble:
+    """A measurement over seeds. Never a point estimate.
+
+    The assembly calculus is a claim about ENSEMBLES -- `G(n,p)` is one draw
+    and nothing scientific may depend on which draw you got. A single-seed
+    before/after is not a measurement, so this is what a result looks like.
+    """
+
+    label: str
+    values: Tuple[float, ...]
+    mean: float
+    ci: float          # half-width of the 95% interval
+
+    @property
+    def low(self) -> float:
+        return self.mean - self.ci
+
+    @property
+    def high(self) -> float:
+        return self.mean + self.ci
+
+    def beats(self, threshold: float) -> bool:
+        """Strictly above `threshold` -- judged by the CONFIDENCE BOUND.
+
+        Not `mean > threshold`. A point estimate that happens to clear a bar
+        is exactly what produced the bogus "next-token beats chance" claim.
+        """
+        return self.low > threshold
+
+    def indistinguishable_from(self, threshold: float) -> bool:
+        return self.low <= threshold <= self.high
+
+    def __str__(self) -> str:
+        return (f"{self.label}: {self.mean:.4f} +/- {self.ci:.4f} "
+                f"(n={len(self.values)}, "
+                f"{min(self.values):.4f}..{max(self.values):.4f})")
+
+
+def ensemble(run, seeds: Sequence[int], label: str = "arm") -> Ensemble:
+    """Run `run(seed) -> float` over `seeds` and summarise as mean +/- 95% CI.
+
+    Args:
+        run: callable taking a seed and returning a scalar.
+        seeds: at least 3; fewer cannot support an interval.
+        label: shown in `str()`.
+    """
+    seeds = list(seeds)
+    if len(seeds) < 3:
+        raise ValueError(
+            f"{len(seeds)} seeds cannot support a confidence interval. "
+            f"Seed-to-seed sd is routinely as large as the effects measured "
+            f"here, so 1-2 seeds is a draw, not a measurement.")
+    vals = [float(run(s)) for s in seeds]
+    mean = statistics.mean(vals)
+    # t critical value, two-sided 95%, for the small n used in practice.
+    tcrit = {3: 4.303, 4: 3.182, 5: 2.776, 6: 2.571, 7: 2.447, 8: 2.365,
+             9: 2.306, 10: 2.262, 11: 2.228, 12: 2.201}.get(len(vals), 1.96)
+    ci = tcrit * statistics.stdev(vals) / len(vals) ** 0.5
+    return Ensemble(label, tuple(vals), mean, ci)
+
+
+def compare_arms(arms: Dict[str, Any], seeds: Sequence[int],
+                 strict: bool = True) -> Dict[str, Ensemble]:
+    """Run several arms on the SAME seeds and refuse to return silent no-ops.
+
+    THE GUARD IS THE POINT. If two arms produce bit-identical values on every
+    seed they did not run different computations, however different their
+    configuration looked. That is not a finding of "no effect" -- it is a dead
+    pathway, a flag that never reached the engine, or two names for one code
+    path, and it is the single most common way this codebase produces a
+    confident wrong answer.
+
+    It happened here: closing a fiber during training left it unmaterialised,
+    so re-opening it at readout projected through a connectome that was never
+    grown. The "intervention" arm and its control agreed to four decimals
+    across ten seeds, which reads as a clean negative result and was in fact
+    the control measured twice.
+
+    Args:
+        arms: ``{name: run}``, each ``run(seed) -> float``.
+        seeds: shared across arms so differences are paired.
+        strict: raise on identical arms. Set False only when duplication is
+            genuinely expected, and say why at the call site.
+
+    Raises:
+        ValueError: if two arms are identical on every seed and `strict`.
+    """
+    out = {name: ensemble(run, seeds, name) for name, run in arms.items()}
+    names = list(out)
+    for i, a in enumerate(names):
+        for b in names[i + 1:]:
+            if out[a].values == out[b].values:
+                msg = (f"arms {a!r} and {b!r} returned IDENTICAL values on all "
+                       f"{len(seeds)} seeds -- they are not two arms. Check "
+                       f"that the intervention reached the engine and that "
+                       f"the fiber it targets was ever materialised "
+                       f"(see fiber_census); a never-grown connectome carries "
+                       f"zero drive and still returns k winners.")
+                if strict:
+                    raise ValueError(msg)
+                warnings.warn(msg, RuntimeWarning, stacklevel=2)
+    return out
+
+
+def paired_delta(a: Ensemble, b: Ensemble, label: str = "delta") -> Ensemble:
+    """Per-seed difference `a - b`, which is what an A/B actually asks.
+
+    Comparing two independent CIs is not the same test and is less powerful;
+    and comparing a difference against a SINGLE arm's sd understates the
+    spread by ~sqrt(2), which is how a 1.49-sd difference got reported as
+    2.10 sd here.
+    """
+    if len(a.values) != len(b.values):
+        raise ValueError("paired_delta needs the same seeds in both arms")
+    diffs = [x - y for x, y in zip(a.values, b.values)]
+    mean = statistics.mean(diffs)
+    tcrit = {3: 4.303, 4: 3.182, 5: 2.776, 6: 2.571, 7: 2.447, 8: 2.365,
+             9: 2.306, 10: 2.262, 11: 2.228, 12: 2.201}.get(len(diffs), 1.96)
+    ci = tcrit * statistics.stdev(diffs) / len(diffs) ** 0.5
+    return Ensemble(label, tuple(diffs), mean, ci)

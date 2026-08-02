@@ -95,6 +95,19 @@ about the sampler, not the substrate.
 
 ## Reading a number safely
 
+**0. Measure an ENSEMBLE, and prove your arms differ.** The calculus is a
+claim about ensembles: `G(n,p)` is one draw and no result may depend on which
+draw you got. A single-seed before/after is not a measurement.
+
+    from neural_assemblies.diagnostics import compare_arms, paired_delta
+    arms = compare_arms({"treatment": run_a, "control": run_b}, seeds=range(42, 52))
+    print(paired_delta(arms["treatment"], arms["control"]))
+
+`compare_arms` RAISES if two arms return identical values on every seed --
+that is a dead pathway or a flag that never reached the engine, not a negative
+result, and it is the most common way this repo produces a confident wrong
+answer. `Ensemble.beats(x)` tests the confidence bound, never the mean.
+
 **1. Arbitrate.** `diagnostics.arbitrate(build, measure)` runs a protocol on
 `explicit` / `materialized` / `sampled` through **one** extractor and returns
 all three. Use it before attributing an anomaly to the model.
