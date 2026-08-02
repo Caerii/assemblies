@@ -331,3 +331,54 @@ def hash_area_cells(rows, cols, pair_seed, p: float,
                                  inhibitory_weight, finalize).reshape(-1)
         out[i] = full[cols]
     return out
+
+
+def hash_area_csr(rows, n_cols: int, pair_seed, p: float,
+                  inhibitory_prob: float = 0.0, inhibitory_weight: float = -1.0,
+                  finalize: bool = True):
+    """Edge list (CSR) of a fiber restricted to `rows`. `(indptr, indices, data)`.
+
+    G(n,p) is drawn once at t=0 and never changes, so a row's neighbours are a
+    fixed fact. Enumerating them once and reusing turns the drive from
+    `k * n` hash evaluations into `k * n * p` scatter-adds -- at n=1e4, p=0.05
+    that is 100k updates instead of 2M hashes.
+    """
+    rows = np.ascontiguousarray(rows, dtype=np.int64)
+    rust = rust_kernels()
+    if rust is not None:
+        return rust.area_rows_csr(
+            rows, int(n_cols), int(pair_seed) & 0xFFFFFFFF, float(p),
+            float(inhibitory_prob), float(inhibitory_weight), bool(finalize))
+    indptr = np.zeros(rows.size + 1, dtype=np.int64)
+    idx_parts, dat_parts = [], []
+    for i, r in enumerate(rows):
+        w = hash_area_weights(int(r), int(r) + 1, 0, int(n_cols), pair_seed, p,
+                              inhibitory_prob, inhibitory_weight,
+                              finalize).reshape(-1)
+        nz = np.flatnonzero(w)
+        idx_parts.append(nz.astype(np.int32))
+        dat_parts.append(np.asarray(w)[nz].astype(np.float32))
+        indptr[i + 1] = indptr[i] + nz.size
+    empty_i = np.zeros(0, dtype=np.int32)
+    return (indptr,
+            np.concatenate(idx_parts) if idx_parts else empty_i,
+            np.concatenate(dat_parts) if dat_parts else empty_i.astype(np.float32))
+
+
+def csr_drive(indptr, indices, rows, n_cols: int):
+    """Accumulate cached CSR rows into an `n_cols` drive vector.
+
+    Only valid where every present weight is 1 (``inhibitory_prob == 0``), in
+    which case the drive IS a count. Fused in Rust because doing it from numpy
+    does not pay: the accumulation is cheap but GATHERING the rows out of the
+    CSR costs more than the dense rescan (measured 1.81 ms against 0.74 ms).
+    """
+    rust = rust_kernels()
+    rows = np.ascontiguousarray(rows, dtype=np.int64)
+    if rust is not None:
+        return rust.csr_row_counts(indptr, indices, rows, int(n_cols))
+    out = np.zeros(int(n_cols), dtype=np.float32)
+    for r in rows:
+        a, b = int(indptr[int(r)]), int(indptr[int(r) + 1])
+        np.add.at(out, indices[a:b], 1.0)
+    return out

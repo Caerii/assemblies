@@ -506,6 +506,147 @@ fn area_rows_block<'py>(
     Ok(arr.reshape([nr, nc])?)
 }
 
+/// Accumulate a cached CSR adjacency into a drive vector, in one pass.
+///
+/// The companion to `area_rows_csr`. Given the fiber's edge list, the drive
+/// for an assembly is a scatter-add over its rows' neighbours -- about
+/// `k * n * p` increments into an `n`-vector, which at n=1e4 is 100k updates
+/// into 40 KB and stays in L2.
+///
+/// This exists because doing it from numpy does NOT pay: the accumulation
+/// itself is cheap (`np.bincount` of pre-gathered indices, 0.21 ms) but
+/// GATHERING the rows out of the CSR costs more than the dense rescan it was
+/// meant to replace (`np.repeat` + fancy-index, 1.81 ms against 0.74 ms).
+/// Fusing gather and accumulate removes the intermediate entirely.
+///
+/// Serial on purpose: splitting rows across threads needs a private
+/// accumulator each and a reduction over `n`, which costs more than the
+/// scatter for the sizes this is called at.
+#[pyfunction]
+#[pyo3(signature = (indptr, indices, rows, n_cols))]
+fn csr_row_counts<'py>(
+    py: Python<'py>,
+    indptr: numpy::PyReadonlyArray1<'py, i64>,
+    indices: numpy::PyReadonlyArray1<'py, i32>,
+    rows: numpy::PyReadonlyArray1<'py, i64>,
+    n_cols: i64,
+) -> PyResult<Bound<'py, PyArray1<f32>>> {
+    let (_, nc) = check_block(0, 0, 0, n_cols)?;
+    let indptr = indptr.as_slice()?;
+    let indices = indices.as_slice()?;
+    let rows = rows.as_slice()?;
+    let out = py.allow_threads(|| {
+        let mut out = vec![0.0f32; nc];
+        for &r in rows {
+            let r = r as usize;
+            if r + 1 >= indptr.len() {
+                continue;
+            }
+            let (a, b) = (indptr[r] as usize, indptr[r + 1] as usize);
+            for &j in &indices[a..b] {
+                out[j as usize] += 1.0;
+            }
+        }
+        out
+    });
+    Ok(out.into_pyarray_bound(py))
+}
+
+/// Adjacency (CSR) of an ARBITRARY row set -- the present synapses only.
+///
+/// The drive is a sum over PRESENT synapses, of which a row has about
+/// `n * p`: at n=1e4, p=0.05 that is 500 out of 10,000. Computing it by
+/// scanning the row evaluates 10,000 hashes to find 500 edges, so ~95% of
+/// every round is spent rediscovering that the other 9,500 are absent -- and
+/// absence is a FIXED FACT of G(n,p), which the model says is drawn once at
+/// t=0 and never changes.
+///
+/// Returning the edge list lets the caller cache it per row and reduce the
+/// drive to a scatter-add over `k * n * p` entries instead of `k * n` hash
+/// evaluations. Same weights, same order, no approximation -- the graph is
+/// simply enumerated instead of rescanned.
+#[pyfunction]
+#[pyo3(signature = (rows, n_cols, pair_seed, p,
+                    inhibitory_prob=0.0, inhibitory_weight=-1.0, finalize=true))]
+#[allow(clippy::too_many_arguments)]
+fn area_rows_csr<'py>(
+    py: Python<'py>,
+    rows: numpy::PyReadonlyArray1<'py, i64>,
+    n_cols: i64,
+    pair_seed: u32,
+    p: f64,
+    inhibitory_prob: f64,
+    inhibitory_weight: f64,
+    finalize: bool,
+) -> PyResult<(
+    Bound<'py, PyArray1<i64>>,
+    Bound<'py, PyArray1<i32>>,
+    Bound<'py, PyArray1<f32>>,
+)> {
+    let (_, nc) = check_block(0, 0, 0, n_cols)?;
+    let rows = check_rows(rows.as_slice()?)?;
+    let (p, inhibitory_prob, inhibitory_weight) =
+        (p as f32, inhibitory_prob as f32, inhibitory_weight as f32);
+
+    let (indptr, indices, data) = py.allow_threads(|| {
+        // Per-row vectors collected IN ORDER, so the result cannot depend on
+        // how rayon scheduled the work.
+        let per_row: Vec<(Vec<i32>, Vec<f32>)> = {
+            let build = |&row: &u32| {
+                let rh = row.wrapping_mul(MUL_ROW) ^ pair_seed;
+                // n*p with headroom, so the common case never reallocates.
+                let cap = ((nc as f32) * p * 1.3) as usize + 16;
+                let (mut idx, mut val) = (Vec::with_capacity(cap), Vec::with_capacity(cap));
+                for j in 0..nc as u32 {
+                    let mut h = rh ^ j.wrapping_mul(MUL_COL);
+                    if finalize {
+                        h = fmix32(h);
+                    }
+                    if ((h & MANTISSA) as f32) / MANTISSA_SCALE >= p {
+                        continue;
+                    }
+                    idx.push(j as i32);
+                    val.push(if inhibitory_prob <= 0.0 {
+                        1.0
+                    } else {
+                        cell_weight(
+                            row,
+                            j,
+                            pair_seed,
+                            p,
+                            inhibitory_prob,
+                            inhibitory_weight,
+                            finalize,
+                        )
+                    });
+                }
+                (idx, val)
+            };
+            if rows.len() * nc >= PARALLEL_MIN_CELLS {
+                rows.par_iter().map(build).collect()
+            } else {
+                rows.iter().map(build).collect()
+            }
+        };
+        let total: usize = per_row.iter().map(|(i, _)| i.len()).sum();
+        let mut indptr = Vec::with_capacity(rows.len() + 1);
+        let mut indices = Vec::with_capacity(total);
+        let mut data = Vec::with_capacity(total);
+        indptr.push(0i64);
+        for (idx, val) in per_row {
+            indices.extend_from_slice(&idx);
+            data.extend_from_slice(&val);
+            indptr.push(indices.len() as i64);
+        }
+        (indptr, indices, data)
+    });
+    Ok((
+        indptr.into_pyarray_bound(py),
+        indices.into_pyarray_bound(py),
+        data.into_pyarray_bound(py),
+    ))
+}
+
 /// Gather block on an arbitrary row set AND an arbitrary column set.
 ///
 /// The potentiated part of a fiber is confined to the columns the stored
@@ -647,6 +788,8 @@ fn na_kernels(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(area_rows_sum, m)?)?;
     m.add_function(wrap_pyfunction!(area_rows_block, m)?)?;
     m.add_function(wrap_pyfunction!(area_cells_block, m)?)?;
+    m.add_function(wrap_pyfunction!(area_rows_csr, m)?)?;
+    m.add_function(wrap_pyfunction!(csr_row_counts, m)?)?;
     m.add_function(wrap_pyfunction!(area_indegree, m)?)?;
     Ok(())
 }

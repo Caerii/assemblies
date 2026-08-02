@@ -49,8 +49,9 @@ import numpy as np
 from ..backend import to_cpu
 from ..engine import ComputeEngine, ProjectionResult
 from .._pricing import inverse_indegree
-from ._seeding import (fnv1a_pair_seed, hash_area_cells, hash_area_indegree,
-                       hash_area_rows, hash_stim_counts)
+from ._seeding import (csr_drive, fnv1a_pair_seed, hash_area_cells,
+                       hash_area_csr, hash_area_indegree, hash_area_rows,
+                       hash_stim_counts)
 from ._state import StimulusState
 
 
@@ -150,7 +151,7 @@ class _Potentiation:
 
     def apply_to(self, block: np.ndarray, rows: np.ndarray, beta: float,
                  w_max: Optional[float] = None,
-                 col_index: Optional[Dict[int, int]] = None) -> bool:
+                 col_index: Optional[np.ndarray] = None) -> bool:
         """Multiply `block` in place by `(1+beta)^c`. True if anything applied.
 
         NO DENSE COUNT MATRIX IS BUILT. Exponents ADD, so
@@ -189,8 +190,11 @@ class _Potentiation:
                 cols = self._sets[tid]
                 if col_index is not None:
                     # `block` spans only the touched columns, so translate.
-                    cols = np.fromiter((col_index[int(c)] for c in cols),
-                                       dtype=np.int64, count=cols.size)
+                    # BOTH arrays are sorted, so this is a searchsorted, not a
+                    # dict lookup per column: the generator version ran 200
+                    # Python lookups per event per round and was 0.83 ms, the
+                    # single largest cost in the projection.
+                    cols = np.searchsorted(col_index, cols)
                 ix = np.ix_(hit, cols)
                 block[ix] *= (1.0 + beta) ** mult
                 regions.append(ix)
@@ -258,6 +262,8 @@ class NumpyExactEngine(ComputeEngine):
         # (src, tgt) -> exact 1/d_j, computed once and cached
         self._norm_cache: Dict[tuple, np.ndarray] = {}
         self._stim_norm_cache: Dict[tuple, np.ndarray] = {}
+        # (src, tgt) -> (indptr, indices) edge list, or None when unaffordable
+        self._csr_cache: Dict[tuple, object] = {}
 
     # -- wiring -------------------------------------------------------------
 
@@ -335,10 +341,48 @@ class NumpyExactEngine(ComputeEngine):
         The Rust kernel fuses the sum into the hash loop and parallelises over
         COLUMNS, so no accumulator is shared between threads and the answer
         does not depend on how many cores ran it.
+
+        Where the fiber's edge list is cached, the sum is a scatter-add over
+        `k * n * p` entries instead of `k * n` hash evaluations -- 14.6x at
+        n=1e4, p=0.05, and 52x at p=0.01. Both paths give the same numbers;
+        `_fiber_csr` decides only on whether the cache is affordable.
         """
+        csr = self._fiber_csr(source, target)
+        if csr is not None:
+            return np.asarray(csr_drive(csr[0], csr[1], rows, n_cols),
+                              dtype=np.float64)
         return hash_area_rows(
             rows, n_cols, self._pair_seed(source, target), self.p,
             self.inhibitory_prob, self.inhibitory_weight, want_sum=True)
+
+    #: Per-fiber edge-list cache budget. The CSR is `n_pre * n_post * p` edges
+    #: at 4 bytes, so it is 20 MB at n=1e4/p=0.05 but 2 GB at n=1e5 -- it buys
+    #: a large constant factor, not a change of asymptote, so it is capped and
+    #: the engine falls back to rescanning rather than exhausting memory.
+    CSR_CACHE_BUDGET_BYTES = 256 * 1024 * 1024
+
+    def _fiber_csr(self, source: str, target: str):
+        """`(indptr, indices)` for a fiber, or None if caching is not affordable.
+
+        Only built when every present weight is 1. With inhibitory synapses the
+        drive is not a count and `csr_drive` does not apply; that path keeps
+        rescanning, which is correct, just slower.
+        """
+        if self.inhibitory_prob > 0.0:
+            return None
+        key = (source, target)
+        if key in self._csr_cache:
+            return self._csr_cache[key]
+        n_pre = self._areas[source].n
+        n_post = self._areas[target].n
+        if n_pre * n_post * self.p * 4 > self.CSR_CACHE_BUDGET_BYTES:
+            self._csr_cache[key] = None
+            return None
+        indptr, indices, _ = hash_area_csr(
+            np.arange(n_pre, dtype=np.int64), n_post,
+            self._pair_seed(source, target), self.p)
+        self._csr_cache[key] = (indptr, indices)
+        return self._csr_cache[key]
 
     def _area_norm(self, source: str, target: str) -> Optional[np.ndarray]:
         """Exact `1/d_j` for an area fiber. No unknown-row correction needed.
@@ -426,8 +470,7 @@ class NumpyExactEngine(ComputeEngine):
                 # `w_max` is a ceiling in MULTIPLES of the initial weight, and
                 # storage is on the unit scale, so clamping the weight IS
                 # clamping the multiplier. Capped per potentiated region.
-                pot.apply_to(sub, rows, beta, self.w_max,
-                             {int(c): j for j, c in enumerate(cols)})
+                pot.apply_to(sub, rows, beta, self.w_max, cols)
                 summed[cols] += sub.sum(axis=0, dtype=np.float64) - before
             scale = self._area_norm(src_name, target)
             drive += summed if scale is None else summed * scale
@@ -481,8 +524,26 @@ class NumpyExactEngine(ComputeEngine):
         which is the same rule the explicit engine's selector applies.
         """
         k = int(min(k, drive.size))
-        order = np.argsort(-drive, kind="stable")[:k]
-        return np.sort(order).astype(np.int64)
+        if k <= 0:
+            return np.empty(0, dtype=np.int64)
+        if k >= drive.size:
+            return np.arange(drive.size, dtype=np.int64)
+        # `argsort` is O(n log n) and measured 0.60 ms at n=1e4 -- the second
+        # largest cost in a projection once the drive itself became cheap.
+        # `argpartition` is O(n), but its order WITHIN the partition is
+        # unspecified, so the tie-break has to be reconstructed rather than
+        # inherited: take everything strictly above the k-th value, then fill
+        # from the tied band in INDEX order. `flatnonzero` returns ascending
+        # indices, which is exactly the "lowest index wins" rule the stable
+        # argsort was providing.
+        part = np.argpartition(-drive, k - 1)
+        thresh = drive[part[k - 1]]
+        above = np.flatnonzero(drive > thresh)
+        if above.size >= k:
+            return above[:k].astype(np.int64)
+        tied = np.flatnonzero(drive == thresh)
+        return np.sort(np.concatenate(
+            [above, tied[:k - above.size]])).astype(np.int64)
 
     # -- accessors ----------------------------------------------------------
 
