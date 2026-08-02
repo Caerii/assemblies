@@ -261,3 +261,61 @@ class TestL3GradedSimilarity:
             f"similarity is not monotone in shared fraction: {curve}")
         assert curve[-2] > curve[0] + 0.1, (
             f"curve is flat, so nothing is graded: {curve}")
+
+
+# -- the equivalences the proof sketches claim -----------------------------
+
+class TestSelectionEquivalences:
+    """`research/notes/exact_drive_equivalences.md` argues these hold in
+    general; these pin the cases a proof cannot catch (an off-by-one in the
+    refinement, a tie-break that stops being index-ascending)."""
+
+    @staticmethod
+    def _cases():
+        rng = np.random.default_rng(0)
+        out = []
+        for i in range(36):
+            n = int(rng.integers(9_000, 40_000))
+            k = int(rng.integers(5, 400))
+            kind = i % 6
+            if kind == 0:
+                d = rng.poisson(10, n).astype(np.float32)
+            elif kind == 1:                       # ties straddling the boundary
+                d = np.zeros(n, dtype=np.float32); d[:k * 3] = 1.0
+            elif kind == 2:                       # every value identical
+                d = np.ones(n, dtype=np.float32)
+            elif kind == 3:                       # mass aligned with the STRIDE
+                d = np.zeros(n, dtype=np.float32); d[::64] = 5.0
+            elif kind == 4:
+                d = rng.exponential(1, n).astype(np.float32)
+            else:                                 # mass at the far index end
+                d = np.zeros(n, dtype=np.float32); d[-k // 2:] = 9.0
+            out.append((d, k))
+        return out
+
+    def test_pivot_path_equals_full_selection(self):
+        """Claim 1: |C| >= k implies the top-k is inside C, whatever the pivot."""
+        e = _exact()
+        for d, k in self._cases():
+            fast = np.sort(e._select(d, k))
+            slow = np.sort(e._exact_topk(d, k))
+            assert np.array_equal(fast, slow), (
+                f"pivot path diverged at n={d.size}, k={k}")
+
+    def test_tie_break_is_highest_drive_then_lowest_index(self):
+        """The half of the total order a value-only argument cannot give."""
+        e = _exact()
+        d = np.zeros(20_000, dtype=np.float32)
+        d[[5, 9, 100]] = 3.0
+        d[200:400] = 1.0
+        assert e._select(d, 5).tolist() == [5, 9, 100, 200, 201]
+
+    def test_event_order_is_sorted_not_set_order(self):
+        """Claim 2's caveat: float multiply is not associative, so the order
+        events are applied in is part of the contract, not an accident."""
+        import inspect
+        from neural_assemblies.core.numpy_engine import _exact as mod
+        src = inspect.getsource(mod._Potentiation.apply_to)
+        assert "sorted(touched)" in src, (
+            "apply_to iterates raw set order; that is deterministic for int "
+            "keys only as a CPython implementation detail")

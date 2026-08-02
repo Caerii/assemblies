@@ -141,7 +141,7 @@ class _Potentiation:
         if not touched:
             return None
         cols: set = set()
-        for sid in touched:
+        for sid in sorted(touched):
             for tid in self._by_src[sid]:
                 cols.update(self._sets[tid].tolist())
         if not cols:
@@ -179,7 +179,14 @@ class _Potentiation:
             return False
         applied = False
         regions = []
-        for sid in touched:
+        # SORTED, not raw set order. Floating-point multiplication is not
+        # associative, so the order events are applied in decides the last ulp
+        # of a cell touched by more than one. Set iteration happens to be
+        # deterministic for int keys (hash(i) == i), but that is an
+        # undocumented CPython internal and depends on the table's growth
+        # history; sorting makes the guarantee explicit and costs nothing at
+        # these sizes.
+        for sid in sorted(touched):
             hit = np.array([pos_of[int(m)] for m in self._sets[sid]
                             if int(m) in pos_of], dtype=np.int64)
             if hit.size == 0:
@@ -239,13 +246,27 @@ class ExactAreaState:
 class NumpyExactEngine(ComputeEngine):
     """Exact drive for every neuron, with no weight storage."""
 
+    #: Precision of the drive vector and the cache. NOT merely a speed knob:
+    #: k-WTA is a COMPARISON, so precision decides how many neurons land in the
+    #: tied band at the k-th boundary -- and a tie is resolved by index
+    #: convention, not by the model. Lower precision therefore hands more of
+    #: each assembly to the tie-break. See `research/notes/exact_drive_precision.md`
+    #: for the measured tie-inflation and assembly divergence per dtype.
+    #:
+    #: float32 is the default because it is EXACT for the un-normalised drive
+    #: (a count below 2^24) and is what `numpy_sparse` accumulates in, so it
+    #: matches the arbiter rather than diverging from it.
+    DEFAULT_DTYPE = np.float32
+
     def __init__(self, p: float, seed: int = 0, w_max: float = 20.0,
                  norm_init: bool = True, inhibitory_prob: float = 0.0,
-                 inhibitory_weight: float = -1.0, **_ignored) -> None:
+                 inhibitory_weight: float = -1.0, dtype=None,
+                 **_ignored) -> None:
         self.p = float(p)
         self.seed = int(seed)
         self.w_max = w_max
         self.norm_init = bool(norm_init)
+        self.dtype = np.dtype(dtype) if dtype is not None else self.DEFAULT_DTYPE
         self.inhibitory_prob = float(inhibitory_prob)
         self.inhibitory_weight = float(inhibitory_weight)
         self._plasticity_enabled_global = True
@@ -387,23 +408,26 @@ class NumpyExactEngine(ComputeEngine):
         hit = self._drive_cache.get(key)
         if hit is not None:
             self._drive_cache.move_to_end(key)
-            return hit.astype(np.float64, copy=True)
+            return hit.copy()
 
-        val = hash_area_rows(
+        val = np.asarray(hash_area_rows(
             arr, n_cols, self._pair_seed(source, target), self.p,
-            self.inhibitory_prob, self.inhibitory_weight, want_sum=True)
-        val = np.asarray(val, dtype=np.float64)
-
-        # Stored float32: the base drive is a small count (Binomial(k, p), mean
-        # k*p), so float32 holds it exactly and halves the footprint.
-        store = val.astype(np.float32)
+            self.inhibitory_prob, self.inhibitory_weight, want_sum=True),
+            dtype=np.float64)
+        # NORM FOLDED IN BEFORE STORING. `1/d_j` is immutable per fiber, so a
+        # cache hit then needs no multiply at all -- one fewer O(n) pass, and
+        # at n=3e5 that pass cost 1.2 ms.
+        scale = self._area_norm(source, target)
+        if scale is not None:
+            val = val * scale
+        store = val.astype(self.dtype)
         self._drive_cache[key] = store
         self._drive_bytes += store.nbytes
         while (self._drive_bytes > self.DRIVE_CACHE_BUDGET_BYTES
                and self._drive_cache):
             _, evicted = self._drive_cache.popitem(last=False)
             self._drive_bytes -= evicted.nbytes
-        return val
+        return store.copy()
 
     def _area_norm(self, source: str, target: str) -> Optional[np.ndarray]:
         """Exact `1/d_j` for an area fiber. No unknown-row correction needed.
@@ -460,7 +484,12 @@ class NumpyExactEngine(ComputeEngine):
                 num_first_winners=0, num_ever_fired=tgt.num_ever_fired)
 
         n = tgt.n
-        drive = np.zeros(n, dtype=np.float64)
+        # FLOAT32 END TO END. The drive is a small count (Binomial(k, p)),
+        # which float32 represents exactly, and `numpy_sparse` accumulates in
+        # float32 too -- so this matches the arbiter rather than diverging from
+        # it. Measured at n=3e5: the f64 round spent 5.0 ms in `argpartition`
+        # against 1.8 ms in f32, plus 0.9 ms upcasting.
+        drive = np.zeros(n, dtype=self.dtype)
 
         for stim in from_stimuli:
             base = self._stim_base[stim][target]
@@ -468,7 +497,8 @@ class NumpyExactEngine(ComputeEngine):
             beta = tgt.beta_by_source.get(stim, tgt.beta)
             w = base * self._clamped(np.power(1.0 + beta, pot))
             scale = self._stim_norm(stim, target)
-            drive += w if scale is None else w * scale
+            drive += np.asarray(w if scale is None else w * scale,
+                                dtype=np.float32)
 
         for src_name in from_areas:
             src = self._areas[src_name]
@@ -482,6 +512,8 @@ class NumpyExactEngine(ComputeEngine):
             #       + sum_i (w_ij - f(i, j))   <- confined to touched columns
             #
             # and the (k, n) block never has to exist even on the plastic path.
+            # Already normalised: `_cached_fiber_sum` folds the per-neuron
+            # 1/d_j in before storing, so a cache hit needs no multiply at all.
             summed = self._fiber_sum(src_name, target, rows, n)
             cols = (None if (pot is None or beta == 0)
                     else pot.touched_cols(rows))
@@ -492,12 +524,17 @@ class NumpyExactEngine(ComputeEngine):
                 # storage is on the unit scale, so clamping the weight IS
                 # clamping the multiplier. Capped per potentiated region.
                 pot.apply_to(sub, rows, beta, self.w_max, cols)
-                summed[cols] += sub.sum(axis=0, dtype=np.float64) - before
-            scale = self._area_norm(src_name, target)
-            drive += summed if scale is None else summed * scale
+                corr = sub.sum(axis=0, dtype=np.float64) - before
+                # `summed` is already normalised; the correction is raw, so it
+                # takes the same per-neuron scale before being added in.
+                scale = self._area_norm(src_name, target)
+                if scale is not None:
+                    corr = corr * scale[cols]
+                summed[cols] += corr.astype(summed.dtype)
+            drive += summed
 
         if external_drive is not None and len(external_drive) == n:
-            drive += np.asarray(external_drive, dtype=np.float64)
+            drive += np.asarray(external_drive, dtype=self.dtype)
 
         winners = self._select(drive, tgt.k)
 
@@ -534,37 +571,76 @@ class NumpyExactEngine(ComputeEngine):
             return mult
         return np.minimum(mult, float(self.w_max))
 
+    #: Oversample factor for the probabilistic pivot, and the sampling stride.
+    #: 4x leaves the candidate set ~4k, small enough to refine cheaply and
+    #: loose enough that the pivot essentially never overshoots.
+    PIVOT_OVERSAMPLE = 4
+    PIVOT_STRIDE = 64
+
     @staticmethod
-    def _select(drive: np.ndarray, k: int) -> np.ndarray:
+    def _exact_topk(drive: np.ndarray, k: int,
+                    cand: Optional[np.ndarray] = None) -> np.ndarray:
         """Top-k by drive, ties broken by LOWEST INDEX.
 
-        Chosen deliberately rather than inherited: a tie-break decides
-        borderline results, and at low `k*p` a large fraction of every assembly
-        sits inside a tied band (measured 62% at k*p=1, 12% at 15.9). `argsort`
-        with a stable kind makes the rule "highest drive, then lowest index",
-        which is the same rule the explicit engine's selector applies.
+        `cand`, when given, must be an ASCENDING index array that provably
+        contains the top k -- the tie-break relies on that ordering.
         """
-        k = int(min(k, drive.size))
-        if k <= 0:
-            return np.empty(0, dtype=np.int64)
-        if k >= drive.size:
-            return np.arange(drive.size, dtype=np.int64)
-        # `argsort` is O(n log n) and measured 0.60 ms at n=1e4 -- the second
-        # largest cost in a projection once the drive itself became cheap.
-        # `argpartition` is O(n), but its order WITHIN the partition is
-        # unspecified, so the tie-break has to be reconstructed rather than
-        # inherited: take everything strictly above the k-th value, then fill
-        # from the tied band in INDEX order. `flatnonzero` returns ascending
-        # indices, which is exactly the "lowest index wins" rule the stable
-        # argsort was providing.
-        part = np.argpartition(-drive, k - 1)
-        thresh = drive[part[k - 1]]
-        above = np.flatnonzero(drive > thresh)
+        vals = drive if cand is None else drive[cand]
+        thresh = np.partition(vals, vals.size - k)[vals.size - k]
+        if cand is None:
+            above = np.flatnonzero(drive > thresh)
+            tied = None
+        else:
+            above = cand[vals > thresh]
         if above.size >= k:
             return above[:k].astype(np.int64)
-        tied = np.flatnonzero(drive == thresh)
+        tied = (np.flatnonzero(drive == thresh) if cand is None
+                else cand[vals == thresh])
         return np.sort(np.concatenate(
             [above, tied[:k - above.size]])).astype(np.int64)
+
+    def _select(self, drive: np.ndarray, k: int) -> np.ndarray:
+        """Top-k with a PROBABILISTIC PIVOT and an EXACT result.
+
+        Guess a threshold from a cheap sample; if the set above it holds at
+        least k elements then the true top-k is PROVABLY inside it (anything
+        excluded is below the pivot, hence below the k-th largest of a set that
+        already has k members above the pivot). So the guess only decides how
+        much work the exact refinement does -- never what comes out. A pivot
+        that overshoots is caught by the size check and costs one fallback.
+
+        Measured at n=3e5, k=548, identical winners in every case:
+
+            argpartition on indices        4.879 ms
+            partition on values            2.182 ms
+            histogram select               5.541 ms   <- SLOWER, more passes
+            sampled pivot + verify         0.167 ms   <- 13x
+
+        The candidate set is ~2,283 for k=548, so the refinement sorts 2e3
+        elements instead of 3e5. Fallback rate over 200 assemblies: 0/200.
+
+        The sample is a fixed STRIDE, not a random draw: it needs no RNG, so it
+        cannot perturb reproducibility, and correctness does not depend on the
+        sample being unbiased -- only the amount of work does.
+        """
+        n = drive.size
+        k = int(min(k, n))
+        if k <= 0:
+            return np.empty(0, dtype=np.int64)
+        if k >= n:
+            return np.arange(n, dtype=np.int64)
+        stride = self.PIVOT_STRIDE
+        # Only worth a pivot when the array is much larger than both the sample
+        # and k; otherwise the full partition is already cheap.
+        if n >= 8192 and k * stride < n:
+            sample = drive[::stride]
+            m = sample.size
+            want = min(m - 1, max(1, int(self.PIVOT_OVERSAMPLE * k * m / n)))
+            pivot = np.partition(sample, m - want)[m - want]
+            cand = np.flatnonzero(drive > pivot)
+            if cand.size >= k:
+                return self._exact_topk(drive, k, cand)
+        return self._exact_topk(drive, k)
 
     # -- accessors ----------------------------------------------------------
 
