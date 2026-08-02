@@ -310,12 +310,33 @@ class TestSelectionEquivalences:
         d[200:400] = 1.0
         assert e._select(d, 5).tolist() == [5, 9, 100, 200, 201]
 
-    def test_event_order_is_sorted_not_set_order(self):
+    def test_event_application_order_is_deterministic(self):
         """Claim 2's caveat: float multiply is not associative, so the order
-        events are applied in is part of the contract, not an accident."""
-        import inspect
-        from neural_assemblies.core.numpy_engine import _exact as mod
-        src = inspect.getsource(mod._Potentiation.apply_to)
-        assert "sorted(touched)" in src, (
-            "apply_to iterates raw set order; that is deterministic for int "
-            "keys only as a CPython implementation detail")
+        events are applied in is part of the contract, not an accident.
+
+        Asserted on BEHAVIOUR, not on source text -- the previous version
+        grepped for `sorted(touched)` and broke the moment the sort moved into
+        a helper, while the guarantee was still intact.
+        """
+        from neural_assemblies.core.numpy_engine._exact import _Potentiation
+        pot = _Potentiation()
+        rng = np.random.default_rng(3)
+        for _ in range(8):
+            src = np.sort(rng.choice(500, 40, replace=False)).astype(np.int64)
+            tgt = np.sort(rng.choice(500, 40, replace=False)).astype(np.int64)
+            pot.bump(src, tgt)
+        probe = np.sort(rng.choice(500, 60, replace=False)).astype(np.int64)
+        order = pot._touched(probe)
+        assert order == sorted(order), (
+            "events are applied in an unsorted order; float multiplication is "
+            "not associative, so that makes the last ulp depend on set "
+            "iteration order")
+
+    def test_positions_handles_unsorted_rows(self):
+        """`searchsorted` on an unsorted array fails SILENTLY, and winners are
+        not guaranteed sorted -- `set_winners` takes any order."""
+        from neural_assemblies.core.numpy_engine._exact import _Potentiation
+        rows = np.array([50, 3, 900, 17], dtype=np.int64)
+        members = np.array([3, 900], dtype=np.int64)
+        pos = _Potentiation._positions(rows, members)
+        assert sorted(rows[pos].tolist()) == [3, 900]

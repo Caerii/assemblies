@@ -82,7 +82,8 @@ class _Potentiation:
     does not help; changing the structure does.
     """
 
-    __slots__ = ("_sets", "_ids", "_events", "_by_src", "_members")
+    __slots__ = ("_sets", "_ids", "_events", "_by_src", "_members",
+                 "_touch_memo")
 
     def __init__(self) -> None:
         self._sets: List[np.ndarray] = []          # id -> sorted index array
@@ -90,6 +91,7 @@ class _Potentiation:
         self._events: Dict[tuple, int] = {}        # (sid, tid) -> multiplicity
         self._by_src: Dict[int, List[int]] = defaultdict(list)
         self._members: Dict[int, set] = defaultdict(set)   # row -> {sid}
+        self._touch_memo: Dict[bytes, tuple] = {}          # assembly -> sids
 
     def __len__(self) -> int:
         """Distinct potentiated (row, col) pairs this represents."""
@@ -118,6 +120,49 @@ class _Potentiation:
                 self._members[int(r)].add(sid)
         self._events[key] += 1
 
+    @staticmethod
+    def _axis_index(idx: np.ndarray, extent: int):
+        """`slice(None)` when `idx` selects the whole axis in order, else `idx`.
+
+        `np.ix_` fancy indexing COPIES: `block[ix] *= f` gathers the sub-block,
+        multiplies, and scatters it back, and the clamp repeats that -- four
+        non-contiguous passes over 300k elements, measured at 12.2 ms. When the
+        sub-block IS the event's own rows x cols -- the common case, since the
+        columns were chosen as exactly the touched ones -- the indices are the
+        identity and a plain in-place multiply works.
+        """
+        if idx.size != extent:
+            return idx
+        if idx[0] != 0 or idx[-1] != extent - 1:
+            return idx
+        return slice(None) if np.array_equal(
+            idx, np.arange(extent, dtype=idx.dtype)) else idx
+
+    @staticmethod
+    def _positions(rows_sorted: np.ndarray, members: np.ndarray) -> np.ndarray:
+        """Positions of `members` within `rows`, dropping absentees.
+
+        Both arrays are sorted, so this is a searchsorted. The dict-and-list
+        spelling -- `{int(r): i for ...}` then `[pos[int(m)] for m in ...]` --
+        costs ~1600 interpreter operations per event at k=548 and measured
+        6-12 ms per round against 0.5-1.4 ms for the gather it feeds.
+        """
+        if rows_sorted.size == 0 or members.size == 0:
+            return np.empty(0, dtype=np.int64)
+        # `rows` is NOT guaranteed sorted -- `set_winners` accepts any order,
+        # and L3 drives from deliberately unsorted patterns. searchsorted on an
+        # unsorted array returns nonsense silently, so sort when needed and map
+        # the positions back through the permutation.
+        if rows_sorted.size > 1 and not np.all(rows_sorted[:-1] <= rows_sorted[1:]):
+            order = np.argsort(rows_sorted, kind="stable")
+            srt = rows_sorted[order]
+            idx = np.searchsorted(srt, members)
+            np.clip(idx, 0, srt.size - 1, out=idx)
+            return order[idx[srt[idx] == members]]
+        idx = np.searchsorted(rows_sorted, members)
+        np.clip(idx, 0, rows_sorted.size - 1, out=idx)
+        return idx[rows_sorted[idx] == members]
+
     def intersects(self, rows: np.ndarray) -> bool:
         """Does anything stored here touch these rows? Cheap enough to ask
         before deciding whether the caller needs a materialised block."""
@@ -126,6 +171,26 @@ class _Potentiation:
                 return True
         return False
 
+    def _touched(self, rows: np.ndarray):
+        """Sorted sids whose source set meets `rows`, memoised per assembly.
+
+        Assemblies repeat, so this is computed once per distinct assembly
+        rather than once per round; the memo is invalidated whenever a new
+        source set is interned, which is the only thing that can change it.
+        """
+        key = rows.tobytes()
+        hit = self._touch_memo.get(key)
+        if hit is not None and hit[0] == len(self._sets):
+            return hit[1]
+        touched = set()
+        for r in rows:
+            got = self._members.get(int(r))
+            if got:
+                touched |= got
+        out = sorted(touched)
+        self._touch_memo[key] = (len(self._sets), out)
+        return out
+
     def touched_cols(self, rows: np.ndarray) -> Optional[np.ndarray]:
         """The columns any stored outer product reaches from these rows.
 
@@ -133,15 +198,11 @@ class _Potentiation:
         is too -- everything else is exactly the initial weight and is already
         accounted for by the fused sum. Returns None when nothing applies.
         """
-        touched: set = set()
-        for r in rows:
-            got = self._members.get(int(r))
-            if got:
-                touched |= got
+        touched = self._touched(rows)
         if not touched:
             return None
         cols: set = set()
-        for sid in sorted(touched):
+        for sid in touched:
             for tid in self._by_src[sid]:
                 cols.update(self._sets[tid].tolist())
         if not cols:
@@ -169,12 +230,7 @@ class _Potentiation:
         rather than a transcendental.
         """
         rows = np.asarray(rows, dtype=np.int64)
-        pos_of = {int(r): i for i, r in enumerate(rows)}
-        touched: set = set()
-        for r in rows:
-            got = self._members.get(int(r))
-            if got:
-                touched |= got
+        touched = self._touched(rows)
         if not touched:
             return False
         applied = False
@@ -186,9 +242,8 @@ class _Potentiation:
         # undocumented CPython internal and depends on the table's growth
         # history; sorting makes the guarantee explicit and costs nothing at
         # these sizes.
-        for sid in sorted(touched):
-            hit = np.array([pos_of[int(m)] for m in self._sets[sid]
-                            if int(m) in pos_of], dtype=np.int64)
+        for sid in touched:                      # already sorted; see below
+            hit = self._positions(rows, self._sets[sid])
             if hit.size == 0:
                 continue
             for tid in self._by_src[sid]:
@@ -201,8 +256,17 @@ class _Potentiation:
                     # Python lookups per event per round and was 0.83 ms, the
                     # single largest cost in the projection.
                     cols = np.searchsorted(col_index, cols)
-                ix = np.ix_(hit, cols)
-                block[ix] *= (1.0 + beta) ** mult
+                r = self._axis_index(hit, block.shape[0])
+                c = self._axis_index(cols, block.shape[1])
+                if isinstance(r, slice) and isinstance(c, slice):
+                    block *= (1.0 + beta) ** mult          # contiguous, in place
+                    ix = (r, c)
+                elif isinstance(r, slice):
+                    block[:, c] *= (1.0 + beta) ** mult    # one fancy axis
+                    ix = (r, c)
+                else:
+                    ix = np.ix_(hit, cols)
+                    block[ix] *= (1.0 + beta) ** mult
                 regions.append(ix)
                 applied = True
 
@@ -215,10 +279,13 @@ class _Potentiation:
         if applied and w_max is not None:
             cap = np.float32(w_max)
             for ix in regions:
-                # Assignment, NOT `out=block[ix]`: fancy indexing returns a
-                # COPY, so an in-place write there lands in a temporary and is
-                # silently discarded.
-                block[ix] = np.minimum(block[ix], cap)
+                if isinstance(ix[0], slice) and isinstance(ix[1], slice):
+                    np.minimum(block, cap, out=block)   # a real in-place view
+                else:
+                    # Assignment, NOT `out=block[ix]`: fancy indexing returns a
+                    # COPY, so an in-place write there lands in a temporary and
+                    # is silently discarded.
+                    block[ix] = np.minimum(block[ix], cap)
         return applied
 
 
@@ -519,12 +586,18 @@ class NumpyExactEngine(ComputeEngine):
                     else pot.touched_cols(rows))
             if cols is not None:
                 sub = self._fiber_cells(src_name, target, rows, cols)
-                before = sub.sum(axis=0, dtype=np.float64)
+                # Reduce in float32, not float64. The block is float32, so a
+                # float64 accumulator forces an upcast of every element on both
+                # the before and after sums -- 1.1 ms of the round at n=3e5,
+                # its single largest item. Summing k terms each bounded by
+                # w_max carries a relative error of about sqrt(k)*eps ~ 1e-6,
+                # far below the spacing the k-WTA boundary resolves.
+                before = sub.sum(axis=0, dtype=np.float32)
                 # `w_max` is a ceiling in MULTIPLES of the initial weight, and
                 # storage is on the unit scale, so clamping the weight IS
                 # clamping the multiplier. Capped per potentiated region.
                 pot.apply_to(sub, rows, beta, self.w_max, cols)
-                corr = sub.sum(axis=0, dtype=np.float64) - before
+                corr = sub.sum(axis=0, dtype=np.float32) - before
                 # `summed` is already normalised; the correction is raw, so it
                 # takes the same per-neuron scale before being added in.
                 scale = self._area_norm(src_name, target)
