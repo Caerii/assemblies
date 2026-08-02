@@ -1,0 +1,41 @@
+
+  #90 -- study II's CONTEXT cross-prefix overlap on exact drive
+  n=1000 k=50 beta=0.1 p=0.05 rounds=10, seed 42
+  the claim: 0.7566 +/- 0.0958, 'collapsed to one attractor'
+  chance floor k/n = 0.0500
+
+  |prefix|  pairs |          numpy_sparse          |          numpy_exact          
+                  |   overlap  distinct  neurons   |   overlap  distinct  neurons  
+         1    595 |     0.8187         8       108 |     0.5258         6       244
+         2    595 |     0.5930        23       141 |     0.1597        17       499
+         3    595 |     0.2263        26       248 |     0.1197        15       481
+         4    435 |     0.1869        26       296 |     0.0949        20       590
+         5    190 |     0.2868        13       208 |     0.1825         9       325
+         6     55 |     0.2575         5       206 |     0.2655         6       225
+         7     10 |     0.8860         3        62 |     0.2180         5       162
+
+    pooled cross-prefix overlap,  numpy_sparse: 0.4579
+    pooled cross-prefix overlap,   numpy_exact: 0.2310
+
+    C1 exact reads LOWER than the sampler:   True   0.2310 vs 0.4579
+    C2 and still well above chance:          True   0.2310 vs floor 0.0500 (4.6x)
+
+    STUDY II'S COLLAPSE IS REAL AND ITS MAGNITUDE IS NOT.
+    CONTEXT does merge across prefixes on the exact substrate --
+    0.2310 is 4.6x chance -- so the mechanism stands.
+    The sampler inflates it by 2.0x in this protocol.
+
+    WHAT THIS DOES *NOT* LICENSE. My sparse arm reads
+    0.4579, not the published 0.7566, so this is not that
+    number re-measured and 0.7566 must NOT be replaced by
+    0.2310. Different harness: study II's figure came from the
+    next-token training path in PREREG_context_recurrence_off,
+    not from create_training_sentences. What transfers is the
+    RATIO (2.0x) and the direction; re-deriving 0.7566
+    itself needs that harness run on both engines.
+
+    The mechanism is visible in the counts: exact recruits about
+    twice the distinct CONTEXT neurons at every prefix length
+    (244 vs 108 at length 1, 499 vs 141 at length 2 as measured).
+    The sampler confines CONTEXT to a smaller pool, and a smaller
+    pool is what makes successive prefixes land on each other.

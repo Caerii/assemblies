@@ -261,6 +261,37 @@ class _Potentiation:
             return False
         applied = False
         regions = []
+        cap = np.float32(w_max) if w_max is not None else None
+        # CLAMP AFTER EVERY EVENT when the multiplier is >= 1, which is the
+        # only way to keep the running product finite. This engine reached
+        # `overflow encountered in multiply` on a real parser run: a cell
+        # potentiated by enough events sends `f * (1+beta)^sum` past float32's
+        # 3.4e38 BEFORE the deferred clamp ever sees it, and inf then poisons
+        # the column sum.
+        #
+        # The comment this replaces said clamping between events would "cap a
+        # product still being built". That is true for beta < 0 and FALSE for
+        # beta >= 0, because for any multiplier m >= 1 and cap c > 0
+        #
+        #     min(min(x, c) * m, c) == min(x * m, c)
+        #
+        #   x <= c:  left is min(x*m, c), same as right.
+        #   x >  c:  left is min(c*m, c) = c since m >= 1; right is c too
+        #            because x*m > x > c.
+        #
+        # so clamping early is not an approximation, it is the same number. The
+        # deferred pass is kept for beta < 0, where the identity does not hold
+        # and no overflow is possible either.
+        clamp_now = cap is not None and beta >= 0.0
+
+        def _clamp(blk, ix, c):
+            if isinstance(ix[0], slice) and isinstance(ix[1], slice):
+                np.minimum(blk, c, out=blk)      # a real in-place view
+            else:
+                # Assignment, NOT `out=blk[ix]`: fancy indexing returns a COPY,
+                # so an in-place write there lands in a temporary and is
+                # silently discarded.
+                blk[ix] = np.minimum(blk[ix], c)
         # SORTED, not raw set order. Floating-point multiplication is not
         # associative, so the order events are applied in decides the last ulp
         # of a cell touched by more than one. Set iteration happens to be
@@ -282,17 +313,20 @@ class _Potentiation:
                     # Python lookups per event per round and was 0.83 ms, the
                     # single largest cost in the projection.
                     cols = np.searchsorted(col_index, cols)
+                factor = (1.0 + beta) ** mult
                 r = self._axis_index(hit, block.shape[0])
                 c = self._axis_index(cols, block.shape[1])
                 if isinstance(r, slice) and isinstance(c, slice):
-                    block *= (1.0 + beta) ** mult          # contiguous, in place
+                    block *= factor                       # contiguous, in place
                     ix = (r, c)
                 elif isinstance(r, slice):
-                    block[:, c] *= (1.0 + beta) ** mult    # one fancy axis
+                    block[:, c] *= factor                 # one fancy axis
                     ix = (r, c)
                 else:
                     ix = np.ix_(hit, cols)
-                    block[ix] *= (1.0 + beta) ** mult
+                    block[ix] *= factor
+                if clamp_now:
+                    _clamp(block, ix, cap)
                 regions.append(ix)
                 applied = True
 
@@ -300,18 +334,11 @@ class _Potentiation:
         # untouched cell still holds its initial weight, which is 1 (or the
         # inhibitory value) and cannot exceed the cap. So clamp the regions,
         # not the block: the whole-block pass is 2e6 elements at n=1e4, k=200.
-        # It happens AFTER every event, because clamping between two events
-        # that share a cell would cap a product still being built.
-        if applied and w_max is not None:
-            cap = np.float32(w_max)
+        # Only reached for beta < 0; see `clamp_now` above for why beta >= 0
+        # clamps in the loop instead.
+        if applied and cap is not None and not clamp_now:
             for ix in regions:
-                if isinstance(ix[0], slice) and isinstance(ix[1], slice):
-                    np.minimum(block, cap, out=block)   # a real in-place view
-                else:
-                    # Assignment, NOT `out=block[ix]`: fancy indexing returns a
-                    # COPY, so an in-place write there lands in a temporary and
-                    # is silently discarded.
-                    block[ix] = np.minimum(block[ix], cap)
+                _clamp(block, ix, cap)
         return applied
 
 
@@ -319,7 +346,8 @@ class ExactAreaState:
     """Per-area state. No `compact_to_neuron_id`: the index IS the neuron id."""
 
     __slots__ = ("name", "n", "k", "beta", "winners", "fixed_assembly",
-                 "beta_by_source", "ever_fired", "w", "explicit_source")
+                 "beta_by_source", "ever_fired", "w", "explicit_source",
+                 "compact_to_neuron_id")
 
     def __init__(self, name: str, n: int, k: int, beta: float) -> None:
         self.name, self.n, self.k, self.beta = name, n, k, beta
@@ -331,6 +359,15 @@ class ExactAreaState:
         # Here the two spaces COINCIDE, so it is inert by construction rather
         # than ignored: there is no id remapping for it to control.
         self.explicit_source = False
+        # PERMANENTLY EMPTY, and that is the correct value rather than a stub.
+        # An empty mapping means "compact index IS the neuron id", which every
+        # reader already handles (`Brain._project_impl` falls through to
+        # `result.winners`), and here it is true by construction: this engine
+        # never renumbers, because every neuron exists from the start. The
+        # attribute exists at all because the parser's reset paths ASSIGN to it
+        # (`parser_mixins/incremental.py`), and `__slots__` turned that into an
+        # AttributeError that stopped the parser reading assemblies at all.
+        self.compact_to_neuron_id: list = []
         self.beta_by_source: Dict[str, float] = {}
         self.ever_fired = np.zeros(n, dtype=bool)
         # `w` is num-ever-fired here, and it is n from the start because every
