@@ -124,3 +124,59 @@ class TestLoadAudit:
         from neural_assemblies.diagnostics import load_audit
         with _pytest.raises(ValueError, match="at least two"):
             load_audit({"only": self._built(True)})
+
+
+# --------------------------------------------------------------------------
+# gain_stability -- the confound that has now bitten three times
+# --------------------------------------------------------------------------
+
+class TestGainStability:
+    """Synthetic on purpose. The real check costs ~20 minutes of engine time;
+    what needs pinning here is the DECISION RULE, and a closed-form effect
+    makes the true-positive and true-negative cases exact rather than sampled.
+    The measured case it encodes is in
+    `research/notes/ceiling_n_scaling_on_exact_drive.md`.
+    """
+
+    #: The measured capacity exponent at three gains (2026-08-02). The design
+    #: held beta and T fixed while n varied, which is the known-broken one.
+    MEASURED = {1.34: 1.55, 1.77: 1.65, 2.99: 0.87}
+    FLOOR = 0.20      #: measured estimator scatter, not a chosen threshold
+
+    def test_flags_the_case_that_was_actually_an_artifact(self):
+        from neural_assemblies.diagnostics import gain_stability
+
+        gs = gain_stability(lambda g: self.MEASURED[g], tuple(self.MEASURED),
+                            noise_floor=self.FLOOR, label="capacity exponent")
+        assert gs.confounded and not gs.inconclusive, str(gs)
+        assert gs.spread == pytest.approx(0.78, abs=1e-9)
+
+    def test_does_not_flag_a_gain_independent_effect(self):
+        """Without this the check could flag everything and mean nothing."""
+        from neural_assemblies.diagnostics import gain_stability
+
+        gs = gain_stability(lambda g: 1.42 + 0.02 * (g > 2), (1.34, 1.77, 2.99),
+                            noise_floor=self.FLOOR, label="stable effect")
+        assert not gs.confounded, str(gs)
+
+    def test_a_result_near_the_noise_floor_is_inconclusive_either_way(self):
+        """The first real run said 'not confounded' at 0.29 vs a guessed 0.30.
+        A margin that thin is a coin flip and must not read as a verdict."""
+        from neural_assemblies.diagnostics import gain_stability
+
+        gs = gain_stability(lambda g: {1.0: 0.00, 2.0: 0.21}[g], (1.0, 2.0),
+                            noise_floor=self.FLOOR)
+        assert gs.inconclusive, str(gs)
+        assert "INCONCLUSIVE" in str(gs)
+
+    def test_refuses_to_run_without_a_measured_noise_floor(self):
+        from neural_assemblies.diagnostics import gain_stability
+
+        with pytest.raises(ValueError, match="noise_floor must be measured"):
+            gain_stability(lambda g: 1.0, (1.0, 2.0), noise_floor=0.0)
+
+    def test_one_gain_is_not_a_stability_check(self):
+        from neural_assemblies.diagnostics import gain_stability
+
+        with pytest.raises(ValueError, match="at least two gains"):
+            gain_stability(lambda g: 1.0, (1.0,), noise_floor=0.2)

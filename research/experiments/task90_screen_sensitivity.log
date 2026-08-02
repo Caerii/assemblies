@@ -1,0 +1,31 @@
+
+  Does load_audit have any specificity, or does it only rank?
+  n=1000 k=50 beta=0.1 M=32, train 6 rounds (IDENTICAL in both arms), 6 seeds
+  arm A probes with 6 rounds, arm B with 2
+
+   numpy_sparse   acc A 1.0000  B 1.0000  delta +0.0000   |  ident A 0.8418 B 0.8052
+                  screen: [ok            ] L            load probeA=0.999  probeB=0.999   gap 0.000
+    numpy_exact   acc A 0.7292  B 0.9948  delta -0.2656   |  ident A 0.7018 B 0.7907
+
+  READING
+
+    S1 the screen PASSES this pair:        True
+    S2 the A/B is real on EITHER engine:   True   sampler +0.0000, exact -0.2656  (on acc)
+    S3 and it SURVIVES on exact drive:    False   sampler +0.0000 vs exact -0.2656
+
+    THE SCREEN CANNOT CLEAR ANYTHING, AND THE WORST WAY.
+    It PASSED this pair (load gap 0.000, training identical),
+    and on that pair the sampler reports NOTHING (+0.0000)
+    where the exact substrate reports -0.2656. Not a
+    magnitude error -- a missed effect entirely.
+
+    So matched load is NOT sufficient for a trustworthy A/B.
+    Matching load matches the RECRUITMENT channel of the
+    sampler's error; evidently it distorts something else too,
+    and at high occupancy (load 0.999 here) it reports perfect
+    retrieval where the substrate has already degraded.
+
+    ACTION: `load_audit` is a RANKING device. Its docstring and
+    task90_ab_load_triage must stop implying that an unflagged
+    pair is cleared. Nothing short of re-running on exact drive
+    clears an A/B.

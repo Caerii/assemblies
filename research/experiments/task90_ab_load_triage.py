@@ -19,8 +19,22 @@ WHAT A FLAG MEANS, AND DOES NOT
 Flagged = the two arms did not share the instrument's error, so the MAGNITUDE
 of the difference is not the model's. It is NOT a claim the direction is wrong;
 in the norm_init case the direction survived (norm_init helps) and only the size
-collapsed (8.0x -> 1.0x). Unflagged = the load-dependent channel is ruled out;
-other confounds are still the reader's problem.
+collapsed (8.0x -> 1.0x).
+
+UNFLAGGED MEANS NOTHING. This was written as "the load-dependent channel is
+ruled out" and that is FALSE, measured
+(`task90_load_screen_sensitivity.py`). Two arms differing only in READOUT --
+training bit-identical, load gap 0.000, screen passes -- read:
+
+    numpy_sparse   acc 1.0000 vs 1.0000    delta +0.0000
+    numpy_exact    acc 0.7292 vs 0.9948    delta -0.2656
+
+The sampler reported NO effect where the substrate has a large one. So the
+screen's specificity is zero in the only case that could be constructed, and
+matched load is not sufficient for a trustworthy A/B: it matches the
+RECRUITMENT channel of the error, and there is at least one other.
+
+THIS FILE RANKS WHAT TO RE-RUN FIRST. It does not clear anything.
 
 The threshold (0.05 of the area) is calibrated against seed noise, not theory:
 two seeds of the same protocol separate by ~0.02, so 0.05 is above the null and
