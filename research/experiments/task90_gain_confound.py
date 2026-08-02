@@ -63,7 +63,11 @@ import lexicon_capacity_law as L  # noqa: E402
 from _substrate import ceiling_from_curve  # noqa: E402
 
 ENGINE = "numpy_exact"
-N_PAIR = (1000, 4000)
+# n=1000/2000, not 1000/4000. At beta=0.05 the n=4000 ceiling sits near M=800
+# and that single cell cost 49 MINUTES; the slope needs two points, not the
+# widest two. Stated because shrinking the span to afford the control is a real
+# weakening of the test and should not be silent.
+N_PAIR = (1000, 2000)
 BETAS = (0.05, 0.10, 0.20)
 T = L.PARENT_ROUNDS
 
@@ -79,18 +83,29 @@ def measure(n, beta, budget=9):
             break
         m *= 2
     c = ceiling_from_curve(pts)
-    if c.censored or c.supported:
+    if c.censored:
         return c, pts
-    lo, hi = c.lo, c.hi or c.lo * 2    # refine inside the bracket
-    x = lo * 1.25
-    while x < hi and len(pts) < budget + 4:
-        mm = int(round(x))
-        if mm not in [p[0] for p in pts]:
-            acc = L.run(n, mm, "rec", ENGINE, beta)[0]
-            pts.append((mm, acc))
-            print(f"      M={mm:<5} acc={acc:.4f}  (refine)", flush=True)
-        x *= 1.25
-    return ceiling_from_curve(pts), pts
+    # REFINE UNTIL RESOLVED, not until `supported`. An earlier version stopped
+    # as soon as one interior point existed, which left factor-2 brackets in
+    # the result -- and m_star on a factor-2 bracket is grid-dependent by ~30%,
+    # which moved the two-point exponent by 0.20 and swamped the gain effect
+    # this file exists to measure. See `Ceiling.resolved`.
+    while not c.resolved() and len(pts) < budget + 6:
+        lo, hi = c.lo, c.hi or c.lo * 2
+        x = lo * 1.25
+        added = False
+        while x < hi:
+            mm = int(round(x))
+            if mm not in [p[0] for p in pts] and lo < mm < hi:
+                acc = L.run(n, mm, "rec", ENGINE, beta)[0]
+                pts.append((mm, acc))
+                added = True
+                print(f"      M={mm:<5} acc={acc:.4f}  (refine)", flush=True)
+            x *= 1.25
+        c = ceiling_from_curve(pts)
+        if not added:
+            break                      # grid exhausted; report what we have
+    return c, pts
 
 
 def main() -> None:
@@ -125,12 +140,36 @@ def main() -> None:
 
     vals = list(slopes.values())
     spread = max(vals) - min(vals)
+    # THE ESTIMATOR'S OWN REPRODUCIBILITY, measured rather than assumed: the
+    # same configuration (n=1000, beta=0.10) gave m_star 20.5 on a factor-2
+    # bracket and 27.1 on a x1.25 one -- 32% apart, moving a two-point exponent
+    # by 0.20. A gain effect smaller than that is simply not detectable by this
+    # design, so the decision threshold is set against the measured floor
+    # instead of picked. The first run of this file reported "not confounded"
+    # at spread 0.29 against a threshold of 0.30, which was a coin flip
+    # dressed as a verdict.
+    GRID_NOISE = 0.20
     print(f"\n    exponent across gains: {min(vals):.2f} .. {max(vals):.2f}   "
           f"spread {spread:.2f}")
 
-    g1 = spread > 0.30      # wider than any single estimate's bracket
+    unresolved = [(b, n) for b in BETAS for n in N_PAIR
+                  if not out[(b, n)].resolved()]
+    g1 = spread > GRID_NOISE
+    print(f"    estimator grid-noise floor: {GRID_NOISE:.2f}  "
+          f"(measured -- see Ceiling.resolved)")
+    if unresolved:
+        print(f"\n    !! {len(unresolved)} of {len(BETAS) * len(N_PAIR)} "
+              f"crossings NOT RESOLVED: "
+              + ", ".join(f"beta={b} n={n}" for b, n in unresolved))
+        print(f"    The exponents above are NOT quotable and neither verdict")
+        print(f"    below means anything. Widen the refine budget and re-run.")
     print(f"\n    G1 `a` MOVES with gain (confounded):  {str(g1):>5}")
     print(f"    G2 `a` is stable (property):          {str(not g1):>5}")
+    if abs(spread - GRID_NOISE) < 0.08:
+        print(f"       ^ spread {spread:.2f} sits within 0.08 of the grid-noise")
+        print(f"         floor {GRID_NOISE:.2f}. INCONCLUSIVE whichever way it")
+        print(f"         fell -- the design cannot separate a gain effect from")
+        print(f"         the estimator's own scatter at this size.")
 
     print()
     if g1:

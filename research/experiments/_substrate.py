@@ -619,11 +619,36 @@ class Ceiling:
         """False when the estimate spans a cliff with nothing inside it."""
         return not self.censored and self.n_interior >= 1
 
+    @property
+    def bracket_ratio(self) -> float:
+        """hi/lo. 2.0 on a doubling grid, ~1.25 on a refined one."""
+        return (self.hi / self.lo) if (self.hi and self.lo) else float("inf")
+
+    def resolved(self, max_ratio: float = 1.35) -> bool:
+        """SUPPORTED IS NOT ENOUGH -- the bracket must also be tight.
+
+        A factor-2 bracket can contain an interior point and still leave
+        `m_star` grid-dependent, because accuracy is not linear in log2(M)
+        across a transition. Measured: n=1000, beta=0.10 gives m_star = 20.5 on
+        a bracket of [16, 32) and 27.1 on [25, 31) -- the SAME configuration,
+        32% apart, purely from which grid was used. That 32% moves a two-point
+        exponent by 0.20, which was enough to swamp the effect a gain sweep was
+        trying to measure.
+
+        So an estimate is only quotable when it is supported AND resolved.
+        """
+        return self.supported and self.bracket_ratio <= max_ratio
+
     def __str__(self) -> str:
         if self.censored:
             return f"M* >= {self.lo} (CENSORED: curve never crossed)"
-        tag = "" if self.supported else "  [CLIFF: no interior point, "\
-                                        "m_star is interpolation only]"
+        if not self.supported:
+            tag = "  [CLIFF: no interior point, m_star is interpolation only]"
+        elif not self.resolved():
+            tag = (f"  [UNRESOLVED: bracket is {self.bracket_ratio:.2f}x, "
+                   f"refine before quoting m_star]")
+        else:
+            tag = ""
         return (f"M* = {self.m_star:.1f}  bracket [{self.lo}, {self.hi})"
                 f"  interior {self.n_interior}{tag}")
 
