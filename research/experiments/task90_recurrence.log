@@ -1,0 +1,27 @@
+
+  #90 -- the brain.py recurrence table, re-derived on exact drive
+  n=1000 k=50 beta=0.1 p=0.05, one area, 6 seeds
+  chance overlap (floor) = 0.0500
+
+     M       arm |     acc   ident  spread |     acc   ident  spread |
+                 |  --- numpy_sparse ---   |  --- numpy_exact ----   |
+     2  rec norm |  1.0000  0.6133  0.0267 |  1.0000  0.9433  0.0900 |  <-- UNDER-POWERED on numpy_sparse; UNDER-POWERED on numpy_exact
+     2   rec RAW |  1.0000  0.7983  0.4000 |  1.0000  0.9717  0.0800 |  <-- UNDER-POWERED on numpy_sparse; UNDER-POWERED on numpy_exact
+     2  ff  norm |  1.0000  0.9167  0.0267 |  1.0000  1.0000  0.0467 |  <-- UNDER-POWERED on numpy_sparse; UNDER-POWERED on numpy_exact
+
+     4  rec norm |  1.0000  0.7167  0.0367 |  1.0000  0.9467  0.0750 |  <-- UNDER-POWERED on numpy_sparse; UNDER-POWERED on numpy_exact
+     4   rec RAW |  1.0000  0.8283  0.4061 |  1.0000  0.9775  0.0839 |  <-- UNDER-POWERED on numpy_sparse; UNDER-POWERED on numpy_exact
+     4  ff  norm |  1.0000  0.9142  0.0450 |  1.0000  1.0000  0.0678 |  <-- UNDER-POWERED on numpy_sparse; UNDER-POWERED on numpy_exact
+
+     8  rec norm |  1.0000  0.7958  0.0394 |  1.0000  0.9450  0.0599 |  <-- UNDER-POWERED on numpy_sparse; UNDER-POWERED on numpy_exact
+     8   rec RAW |  0.6667  0.8304  0.5135 |  1.0000  0.9758  0.0704 |  <-- UNDER-POWERED on numpy_sparse; UNDER-POWERED on numpy_exact
+     8  ff  norm |  1.0000  0.9329  0.0376 |  1.0000  1.0000  0.0594 |  <-- UNDER-POWERED on numpy_sparse; UNDER-POWERED on numpy_exact
+
+    16  rec norm |  1.0000  0.8500  0.0504 |  1.0000  0.9254  0.0648 |
+    16   rec RAW |  0.1875  0.7983  0.6477 |  1.0000  0.9548  0.0727 |
+    16  ff  norm |  1.0000  0.9569  0.0454 |  1.0000  1.0000  0.0561 |
+
+    32  rec norm |  1.0000  0.8418  0.0642 |  0.7292  0.7018  0.1040 |
+    32   rec RAW |  0.0312  0.9007  0.8219 |  0.4427  0.6036  0.1399 |
+    32  ff  norm |  1.0000  0.9759  0.0484 |  1.0000  1.0000  0.0582 |
+

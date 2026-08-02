@@ -1060,15 +1060,33 @@ class Brain:
         #     rec norm 1.000  1.000  1.000  1.000  1.000  0.039  0.018
         #     ff  norm 1.000  1.000  1.000  1.000  1.000  1.000  1.000
         #
-        # norm_init is a real fix and moves the ceiling from M=4 to M=32.  It
-        # is NOT a blanket one.  The numbers above this note were taken at
-        # M=2, and "recurrence is safe" holds only for roughly a SINGLE
-        # assembly per area: past ~32 items the competitor for a new item's
-        # k-WTA is not a high-degree hub but the ALREADY-POTENTIATED
-        # assemblies of the items learned before it, and normalising INITIAL
-        # weights says nothing about those.  The ceiling scales with n (M=32 /
-        # 64 / 256 at n=1000 / 2000 / 4000), which is what identifies it as
-        # accumulated potentiation rather than degree bias.
+        # THE TABLE ABOVE IS THE SAMPLER'S, NOT THE SUBSTRATE'S -- re-derived
+        # 2026-08-02 on `numpy_exact`, which computes the drive instead of
+        # inventing one for neurons that have not fired
+        # (research/notes/recurrence_ceiling_on_exact_drive.md):
+        #
+        #     ceiling (acc > 0.90)      numpy_sparse   numpy_exact
+        #     recurrent, norm_init ON       M=32          M=16
+        #     recurrent, norm_init OFF      M= 4          M=16
+        #     feed-forward,        ON       M=64          M=64
+        #
+        # So norm_init's capacity gain under recurrence is 8.0x on the sampler
+        # and 1.0x on exact drive.  It still does something (acc 0.73 vs 0.44
+        # at M=32) but it does not move the ceiling, and "moves the ceiling
+        # from M=4 to M=32" was an artifact: the sampler's error is a function
+        # of LOAD, and norm_init changes which neurons win and therefore how
+        # fast the area recruits.  The two arms did not share the error.
+        #
+        # The "ceiling scales with n" inference is likewise UNSUPPORTED rather
+        # than refuted -- it was read off the same instrument, and n at fixed k
+        # is load.  Re-running that sweep on exact drive is task #90's
+        # remainder.
+        #
+        # WHAT DID NOT CHANGE, and is why this gate stays: recurrence is the
+        # collapse channel and is far worse than feed-forward on BOTH engines
+        # at every M, and the exact ceiling with norm_init on is LOWER (16, not
+        # 32) than the sampler claimed.  The gate was right; the stated reason
+        # was not.
         #
         # SO DO NOT FLIP `recurrent_projection` ON GLOBALLY.  The production
         # lexicon trains through this exact path -- training/batch.py

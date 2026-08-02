@@ -81,10 +81,10 @@ def build(brain, stim, rounds, recurrent):
     return read(brain, AREA)
 
 
-def trial(m_words, recurrent, norm_init, seed):
+def trial(m_words, recurrent, norm_init, seed, engine="numpy_sparse"):
     from neural_assemblies.core.brain import Brain
 
-    brain = Brain(p=P_, seed=seed, norm_init=norm_init)
+    brain = Brain(p=P_, seed=seed, norm_init=norm_init, engine=engine)
     brain.add_area(AREA, N, K_, beta=BETA)
     for m in range(m_words):
         brain.add_stimulus(f"w{m}", K_)
@@ -101,8 +101,8 @@ def trial(m_words, recurrent, norm_init, seed):
     return hits, m_words, statistics.mean(ident), spread(stored.values())
 
 
-def run(m_words, recurrent, norm_init):
-    res = [trial(m_words, recurrent, norm_init, s) for s in SEEDS]
+def run(m_words, recurrent, norm_init, engine="numpy_sparse"):
+    res = [trial(m_words, recurrent, norm_init, s, engine) for s in SEEDS]
     tot = sum(x[1] for x in res)
     return (sum(x[0] for x in res) / tot,
             statistics.mean(x[2] for x in res),
