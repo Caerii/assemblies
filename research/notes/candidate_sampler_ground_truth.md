@@ -491,3 +491,62 @@ The sampler-free arm demonstrates the information is recoverable, and
 order-independence benefit is real (up to 18% of an assembly, see
 [[content-addressed-synapse-init]]), but it is not worth 5 protocol
 regressions when the principled fix is known and scoped.
+
+---
+
+# Ensemble, not realization (2026-08-02)
+
+The assembly calculus is a claim about ENSEMBLES. `G(n,p)` is one draw; nothing
+scientific may depend on which draw you got. Determinism is an ENGINEERING
+property -- reproduce a run, bisect a bug, diff two changes -- not a validity
+property. Conflating the two produced a mistake worth recording.
+
+## The mistake
+
+Door 6 (content-addressing stim init) was reverted partly because next-token
+MRR read 0.1165 before and 0.0786 after, crossing a chance floor of 0.0900.
+Both were single seeds over 46 predictions. Measuring the null spread on ONE
+fixed substrate:
+
+    seed   42      43      44      45      46      47
+    MRR    0.1165  0.1041  0.0909  0.0745  0.0551  0.0732
+
+    mean 0.0857 +/- 0.0180 (95% CI)   sd 0.0225   chance 0.0900
+
+The gap acted on was **1.68 sd**. It was never evidence.
+
+## The larger finding
+
+`test_next_token_scaling::test_overall_accuracy_above_chance` asserts a
+SINGLE-SEED point estimate of a quantity whose ensemble mean is AT chance
+(0.0857 vs 0.0900, CI straddling it). It passes because seed 42 is a lucky
+draw; 3 of 6 seeds fail it. The test does not measure what its name claims.
+
+This generalises: **a test that breaks when the substrate is re-drawn from the
+same distribution is pinning a realization, not a model property.** Any
+substrate change (content addressing, a different hash, a different seed
+policy) will "break" such tests, and reverting on that basis protects the
+artifact instead of the result.
+
+## The protocol this implies
+
+For any substrate change:
+
+1. Confirm the DISTRIBUTION is preserved (mean, variance) -- door 6 does:
+   stim weights mean 2.223 before and after.
+2. Run affected tests over N seeds under BOTH substrates.
+3. Compare distributions with CIs.
+4. Only an ensemble shift is a regression.
+
+And for goldens generally: a point value with a tolerance is only meaningful
+when the seed-to-seed sd is far below the tolerance. Otherwise the golden
+records a draw. See [[report-distributions-not-point-estimates]].
+
+## Where determinism still matters, exactly
+
+Not for validity -- for making "the same brain" WELL-DEFINED. Content
+addressing means a seed identifies a brain independent of the order operations
+happened to occur in. Without it, `Brain(seed=42)` is not one object, so no
+A/B is trustworthy and no bug is bisectable. That is the whole value of the six
+doors, and it is orthogonal to whether any particular hash is "right" -- it is
+not, and it should not matter.
