@@ -1073,13 +1073,31 @@ class LoadGap:
         """Only engines that INVENT a drive can have a load-dependent error."""
         return self.engine not in ("numpy_exact", "numpy_explicit")
 
+    @property
+    def cross_engine(self) -> bool:
+        """True when the arms ran on DIFFERENT engines.
+
+        Then this is not an A/B at all and `confounded` is meaningless: a gap
+        measures how much the two engines' recruitment diverges, which is a
+        useful number and a different claim. Kept separate because calling an
+        engine comparison "confounded" is precisely the two-meanings-one-name
+        error this module exists to prevent ([[same-name-two-meanings]]).
+        """
+        return self.engine == "mixed"
+
     def confounded(self, threshold: float = 0.05) -> bool:
-        return self.sampler_bearing and self.gap > threshold
+        """Did two arms of ONE comparison fail to share the sampler's error?"""
+        return (self.sampler_bearing and not self.cross_engine
+                and self.gap > threshold)
 
     def __str__(self) -> str:
         arms = "  ".join(f"{a}={v:.3f}" for a, v in sorted(self.by_arm.items()))
-        tag = ("CONFOUNDED" if self.confounded() else
-               "ok        " if self.sampler_bearing else "n/a (exact)")
+        if self.cross_engine:
+            tag = "engines differ"
+        elif not self.sampler_bearing:
+            tag = "n/a (exact)   "
+        else:
+            tag = "CONFOUNDED    " if self.confounded() else "ok            "
         return f"[{tag}] {self.area:<12} load {arms}   gap {self.gap:.3f}"
 
 

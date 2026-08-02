@@ -53,6 +53,20 @@
 
     UNTRIAGED, and named so the gap is visible: every parser-level
     A/B -- lesions, fiber gating, mood, ERP contrasts. Each changes
-    which neurons win and so is a load-gap candidate, and none can
-    be measured here until the emergent parser runs on numpy_exact
-    (blocked: it uses LRI/refractory, which that engine rejects).
+    which neurons win and so is a load-gap candidate.
+
+    These were listed as BLOCKED on the emergent parser running on
+    numpy_exact. That was asserted twice and never checked, and it
+    is WRONG: the parser constructs, trains and parses on that
+    engine, and returns the same categories. It does not request a
+    non-default refractory_period, so nothing is rejected.
+
+    Measured while checking (n=1000, k=50, one trained lexicon),
+    load per core area, exact vs sparse:
+        DET_CORE  0.376 / 0.876     PREP_CORE  0.225 / 0.506
+        VERB_CORE 0.305 / 0.670     ADJ_CORE   0.197 / 0.464
+        NOUN_CORE 0.230 / 0.530     PRON_CORE  0.154 / 0.338
+    The sampler recruits ~2.3x the substrate in EVERY core area, so
+    the whole parser sits at a systematically different load than
+    the model it is meant to be. Nothing blocks re-deriving the
+    parser-level results; it is now just work.
