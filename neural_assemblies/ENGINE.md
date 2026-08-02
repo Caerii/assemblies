@@ -73,8 +73,31 @@ give "similar inputs, similar drives" -- that correlation is gone at the draw.
 So protocols scored on identity or distinctness (`separate`, the coin) are
 repaired by keying alone, while ones scored on PARTIAL overlap are not:
 next-token MRR reads 0.1159 exact, 0.0744 keyed-with-offset, 0.0901 keyed
-without it. Expect the same for pattern completion from a cue, association,
-and graded category structure.
+without it.
+
+**Measured, and the error goes toward MERGING.** `overlap(DST(P_f), DST(P_1))`
+as inputs share a fraction `f` of their neurons (n=2000, k=100, p=0.1, chance
+0.0500) -- `research/notes/graded_similarity_and_sampler_load.md`:
+
+| f | 0.0 | 0.2 | 0.4 | 0.6 | 0.8 | 1.0 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| explicit | 0.0500 | 0.1080 | 0.1960 | 0.3300 | 0.5040 | 1.0000 |
+| sampled | **0.9060** | 0.9000 | 0.9200 | 0.9360 | 0.9500 | 1.0000 |
+
+The exact substrate has a textbook graded curve. The sampler does not flatten
+it to chance -- it flattens it to 0.906, so **fully disjoint inputs give nearly
+the same assembly**. Not a sealed area: pools are identical (105 vs 105), the
+candidates exist, invented drives just never outbid materialized incumbents.
+
+**The size of that error is a function of area LOAD, and it inverts.** Overlap
+between disjoint inputs as the population grows: sampled 0.9025 -> 0.1900 while
+explicit rises 0.0425 -> 0.2625, crossing near half the area materialized.
+
+> Distinctness measured on the sparse engine at LOW area load is not a
+> measurement. A lightly-loaded area reports a merge the model does not have,
+> by up to **18x chance**.
+
+Paired A/B comparisons at equal load survive this; absolute overlaps do not.
 
 The real fix is to *compute* the drive rather than sample it: `_init_area_block`
 is addressed by absolute `(row, col)` via `hash_area_weights`, so any neuron's
