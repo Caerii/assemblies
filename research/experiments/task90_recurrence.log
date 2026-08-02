@@ -25,3 +25,39 @@
     32   rec RAW |  0.0312  0.9007  0.8219 |  0.4427  0.6036  0.1399 |
     32  ff  norm |  1.0000  0.9759  0.0484 |  1.0000  1.0000  0.0582 |
 
+    64  rec norm |  0.0391  0.4247  0.2091 |  0.0208  0.5666  0.3510 |
+    64   rec RAW |  0.0156  0.9463  0.8978 |  0.0286  0.6201  0.4104 |
+    64  ff  norm |  1.0000  0.9863  0.0502 |  1.0000  1.0000  0.0584 |
+
+  READING
+
+    spread, exact - sparse,  rec norm:  +0.063 +0.038 +0.020 +0.014 +0.040 +0.142
+    spread, exact - sparse,   rec RAW:  -0.320 -0.322 -0.443 -0.575 -0.682 -0.487
+    spread, exact - sparse,  ff  norm:  +0.020 +0.023 +0.022 +0.011 +0.010 +0.008
+                                          M=2    M=4    M=8   M=16   M=32   M=64
+
+    H1 engines disagree on spread:         True
+    H2 sampler over-reports distinctness: False   (it does on rec norm and NOT on rec RAW -- the sign REVERSES)
+    H3 acc moves less than spread:        False   max acc gap 0.2708 vs max spread gap 0.1418
+
+    ceiling( rec norm, acc>0.90):  numpy_sparse M=32   numpy_exact M=16
+    ceiling(  rec RAW, acc>0.90):  numpy_sparse M=4   numpy_exact M=16
+    ceiling( ff  norm, acc>0.90):  numpy_sparse M=64   numpy_exact M=64
+
+    norm_init's capacity gain under recurrence on numpy_sparse: M=4 -> M=32  (8.0x)
+    norm_init's capacity gain under recurrence on  numpy_exact: M=16 -> M=16  (1.0x)
+
+    THE SAMPLER'S ERROR CHANGES SIGN BETWEEN THE TWO ARMS.
+    With norm_init on it reports slightly MORE distinctness than
+    the substrate has; with norm_init off it reports dramatically
+    LESS. So it is not a bias that a constant correction removes.
+
+    THAT BREAKS THE STANDING REASSURANCE. The graded-similarity
+    note argued that absolute overlaps were suspect but PAIRED
+    comparisons survived, since both arms share the engine and the
+    load. This pairing is norm_init on vs off -- and it does not
+    survive: the sampler's own error is what differs between the
+    arms, because norm_init changes which neurons win, hence
+    recruitment, hence load, hence the size of the sampler's
+    invention. A/B is only safe when the manipulation does not
+    move load. norm_init moves it.
