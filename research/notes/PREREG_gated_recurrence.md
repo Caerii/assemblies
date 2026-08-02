@@ -116,4 +116,117 @@ study I should be re-run on it.
 
 ## Results
 
-*(empty — appended after the runs; nothing above may change)*
+**Run 2026-08-02, 10 seeds (42..51), paired. Nothing above was changed.**
+
+**H0 PASSED.** `get_beta("CONTEXT","CONTEXT") == 0.0` in the engine, and
+`compare_arms` accepted all three arms — so arm C is real this time, unlike
+study III's.
+
+| arm | MRR (mean ± 95% CI) |
+| --- | ---: |
+| A no-context | 0.2074 ± 0.0126 |
+| B ctx recurrent, plastic | 0.1046 ± 0.0128 |
+| **C ctx recurrent, frozen (β_rec = 0)** | **0.1152 ± 0.0121** |
+
+A and B reproduce studies I and II to four decimals, which is the check that the
+harness did not drift.
+
+| paired difference | value | pre-registered bar |
+| --- | ---: | --- |
+| H2  C − B | **+0.0106 ± 0.0142** | lower bound > 0 |
+| H3  C − A | **−0.0922 ± 0.0148** | lower bound > 0 |
+
+| CONTEXT overlap across different prefixes | value |
+| --- | ---: |
+| B plastic | 0.7566 ± 0.0958 |
+| **C frozen** | **0.1756 ± 0.0200** |
+
+### H1 SUPPORTED, decisively
+
+Freezing the self-fiber takes prefix-overlap from **0.7566 to 0.1756**, far
+below the pre-registered 0.5. **The collapse is plasticity ON the recurrence,
+not the recurrence itself.** Prediction correct.
+
+### H2 FALSIFIED — and I predicted it would be supported
+
+C − B is +0.0106 with a CI of (−0.0146, +0.0431), which covers zero. A **4.3×
+improvement in distinctness bought no measurable prediction.** I predicted this
+would follow from H1. It did not.
+
+### H3 FALSIFIED, as predicted — but worse than predicted
+
+I predicted arm C would land at *parity* with no-context (~0.2074). It lands at
+0.1152, i.e. **0.0922 BELOW it**, with the whole CI negative. Direction right,
+magnitude wrong: a frozen recurrent CONTEXT still actively hurts.
+
+### H4 SUPPORTED trivially
+
+0.1152 is nowhere near 0.2338.
+
+## The finding: distinctness is not information
+
+This is a clean dissociation, and it is more informative than H2 succeeding
+would have been. CONTEXT can be made to hold **distinct** states per prefix —
+that is now demonstrated — and those distinct states carry **no usable
+information** about the next word.
+
+Both failing arms have a nameable defect, and they are opposite:
+
+* **B (plastic)** over-generalises. Every prefix maps to the same attractor, so
+  CONTEXT injects a constant into PRED and swamps the informative LEX→PRED
+  signal.
+* **C (frozen)** under-generalises. A frozen random self-fiber is a **hash of
+  the prefix**: maximally distinct, with no similarity structure at all, so
+  nothing transfers between related prefixes.
+
+Neither is what context requires, which is *graded* similarity — close states
+for similar prefixes, distant for different ones.
+
+### Why C cannot learn, measured (exploratory, not pre-registered)
+
+Repetition counts on the training corpus, 200 sentences, 1056 prediction sites:
+
+| prefix length | distinct | mean repetitions | seen exactly once |
+| --- | ---: | ---: | ---: |
+| 1 (unigram) | 50 | 21.12 | 0% |
+| 2 (bigram) | 431 | 2.45 | 44% |
+| **full sentence prefix** | **743** | **1.42** | **90%** |
+
+CONTEXT accumulates the FULL prefix, and 90% of those are seen exactly once.
+Hebbian potentiation cannot accumulate anything from a state that occurs once,
+so **arm C is unlearnable by construction at this corpus size** — no substrate
+would learn a full-prefix→next-word map from 743 prefixes seen 1.42 times each.
+The bigram pathway works precisely because its contexts repeat 2.45× and the
+unigram 21×.
+
+## The caveat that decides how much this means
+
+Graded similarity is exactly the structure the candidate sampler discards.
+`ENGINE.md`: keying fixes the diagonal, not the off-diagonal — "similar inputs,
+similar drives" is gone at the draw, and the measured cost on this very task is
+0.1159 exact vs 0.0744 sampled.
+
+So arm C is handicapped in precisely the way the engine is known to handicap
+partial-overlap structure, and **this experiment cannot distinguish "AC cannot
+represent graded context" from "the sampler removed the mechanism that
+would."** The repo has separately demonstrated graded composition
+([[vp-composition-structured-and-productive]]), which is evidence for the
+second reading.
+
+**Task #85 is therefore no longer only a soundness chore — it is the blocker on
+the scientific question.** Study IV should be re-run on exact drive before its
+negative half is treated as a statement about the assembly calculus.
+
+## What is safe to conclude now
+
+1. A recurrent shared area collapses under Hebbian k-WTA, and the collapse
+   channel is **plasticity on the self-fiber** (H1, 4.3× effect).
+2. Removing that plasticity **does not** produce a usable context
+   representation (H2, H3).
+3. The reason is structural, not a tuning failure: β_rec is a single scalar
+   choosing between over- and under-generalisation, and **the useful regime may
+   be empty at this corpus size regardless of β**, because the states it would
+   have to learn from do not repeat.
+
+That third point is what the next study must test, and it is a claim about the
+*window* rather than a point — see the follow-up pre-registration.
