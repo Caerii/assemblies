@@ -343,10 +343,238 @@ fn stim_counts<'py>(
     Ok(out.into_pyarray_bound(py))
 }
 
+/// Check an arbitrary row-index set, returning it as u32.
+fn check_rows(rows: &[i64]) -> PyResult<Vec<u32>> {
+    let mut out = Vec::with_capacity(rows.len());
+    for &r in rows {
+        if r < 0 || r > u32::MAX as i64 {
+            return Err(PyValueError::new_err(
+                "row indices must be within the u32 index space",
+            ));
+        }
+        out.push(r as u32);
+    }
+    Ok(out)
+}
+
+/// Column sums over an ARBITRARY set of rows, fused -- the block is never
+/// materialised.
+///
+/// This is the exact-drive inner loop. An assembly's winners are a scattered
+/// index set, not a contiguous range, so the Python side had to call
+/// `area_weights_block` once per row: at n=1e4, k=200 that is 200 calls and
+/// 200 allocations per projection round for ~1.7 ms of actual hashing, and it
+/// measured 8 ms. The un-potentiated drive only ever needs the SUM, so nothing
+/// of size k*n has to exist at all.
+///
+/// Parallelised over COLUMNS (the output axis), so no accumulator is shared
+/// between threads and the result is independent of thread count -- the same
+/// discipline `stim_counts` uses. Summation order within a column is fixed by
+/// the row order given, so this is reproducible, not merely deterministic.
+#[pyfunction]
+#[pyo3(signature = (rows, col_start, col_end, pair_seed, p,
+                    inhibitory_prob=0.0, inhibitory_weight=-1.0, finalize=true))]
+#[allow(clippy::too_many_arguments)]
+fn area_rows_sum<'py>(
+    py: Python<'py>,
+    rows: numpy::PyReadonlyArray1<'py, i64>,
+    col_start: i64,
+    col_end: i64,
+    pair_seed: u32,
+    p: f64,
+    inhibitory_prob: f64,
+    inhibitory_weight: f64,
+    finalize: bool,
+) -> PyResult<Bound<'py, PyArray1<f32>>> {
+    let (_, nc) = check_block(0, 0, col_start, col_end)?;
+    let rows = check_rows(rows.as_slice()?)?;
+    let (p, inhibitory_prob, inhibitory_weight) =
+        (p as f32, inhibitory_prob as f32, inhibitory_weight as f32);
+
+    let out = py.allow_threads(|| {
+        // Precompute each row's half-hash once; it is reused for every column.
+        let rh: Vec<u32> = rows
+            .iter()
+            .map(|r| r.wrapping_mul(MUL_ROW) ^ pair_seed)
+            .collect();
+        let mut out = vec![0.0f32; nc];
+        let body = |j: usize, slot: &mut f32| {
+            let col = (col_start as u32).wrapping_add(j as u32);
+            let ch = col.wrapping_mul(MUL_COL);
+            let mut acc = 0.0f32;
+            for (i, &h0) in rh.iter().enumerate() {
+                let mut h = h0 ^ ch;
+                if finalize {
+                    h = fmix32(h);
+                }
+                if ((h & MANTISSA) as f32) / MANTISSA_SCALE >= p {
+                    continue;
+                }
+                acc += if inhibitory_prob <= 0.0 {
+                    1.0
+                } else {
+                    cell_weight(
+                        rows[i],
+                        col,
+                        pair_seed,
+                        p,
+                        inhibitory_prob,
+                        inhibitory_weight,
+                        finalize,
+                    )
+                };
+            }
+            *slot = acc;
+        };
+        if rows.len() * nc >= PARALLEL_MIN_CELLS {
+            out.par_iter_mut().enumerate().for_each(|(j, s)| body(j, s));
+        } else {
+            out.iter_mut().enumerate().for_each(|(j, s)| body(j, s));
+        }
+        out
+    });
+    Ok(out.into_pyarray_bound(py))
+}
+
+/// The `(len(rows), n_cols)` block for an ARBITRARY row set, in one call.
+///
+/// Needed only where the fiber carries potentiation, since the learned factor
+/// applies per (row, col). Same fused hashing as `area_rows_sum`, but it has
+/// to materialise, so it is the fallback rather than the default path.
+#[pyfunction]
+#[pyo3(signature = (rows, col_start, col_end, pair_seed, p,
+                    inhibitory_prob=0.0, inhibitory_weight=-1.0, finalize=true))]
+#[allow(clippy::too_many_arguments)]
+fn area_rows_block<'py>(
+    py: Python<'py>,
+    rows: numpy::PyReadonlyArray1<'py, i64>,
+    col_start: i64,
+    col_end: i64,
+    pair_seed: u32,
+    p: f64,
+    inhibitory_prob: f64,
+    inhibitory_weight: f64,
+    finalize: bool,
+) -> PyResult<Bound<'py, PyArray2<f32>>> {
+    let (_, nc) = check_block(0, 0, col_start, col_end)?;
+    let rows = check_rows(rows.as_slice()?)?;
+    let nr = rows.len();
+    let (p, inhibitory_prob, inhibitory_weight) =
+        (p as f32, inhibitory_prob as f32, inhibitory_weight as f32);
+
+    let data = py.allow_threads(|| {
+        let mut out = vec![0.0f32; nr * nc];
+        let body = |i: usize, row_out: &mut [f32]| {
+            let row = rows[i];
+            let rh = row.wrapping_mul(MUL_ROW) ^ pair_seed;
+            for (j, cell) in row_out.iter_mut().enumerate() {
+                let col = (col_start as u32).wrapping_add(j as u32);
+                let mut h = rh ^ col.wrapping_mul(MUL_COL);
+                if finalize {
+                    h = fmix32(h);
+                }
+                if ((h & MANTISSA) as f32) / MANTISSA_SCALE >= p {
+                    continue;
+                }
+                *cell = if inhibitory_prob <= 0.0 {
+                    1.0
+                } else {
+                    cell_weight(
+                        row,
+                        col,
+                        pair_seed,
+                        p,
+                        inhibitory_prob,
+                        inhibitory_weight,
+                        finalize,
+                    )
+                };
+            }
+        };
+        if nr * nc >= PARALLEL_MIN_CELLS {
+            out.par_chunks_mut(nc.max(1))
+                .enumerate()
+                .for_each(|(i, r)| body(i, r));
+        } else {
+            out.chunks_mut(nc.max(1))
+                .enumerate()
+                .for_each(|(i, r)| body(i, r));
+        }
+        out
+    });
+    let arr = data.into_pyarray_bound(py);
+    Ok(arr.reshape([nr, nc])?)
+}
+
+/// Exact per-column IN-DEGREE over rows [0, n_rows) -- the `norm_init` divisor.
+///
+/// `stim_counts` computes the same shape of quantity and is deliberately NOT
+/// reused: it compares `m < p * 2^24` where `cell_weight` compares
+/// `m / 2^24 >= p`. Those are the same predicate mathematically but are
+/// evaluated differently, so they are not guaranteed to agree at the boundary
+/// -- and a degree that disagreed with the weights actually drawn for the
+/// fiber would corrupt the norm_init divisor silently.
+///
+/// Measured, they agree everywhere tested: p in {0.01, 0.05, 0.1, 0.2, 0.3,
+/// 0.5, 0.0499999, 0.333333} over 1500 columns, ZERO differing columns. So
+/// this duplication buys safety, not correctness, and could be collapsed if
+/// the equivalence were ever proven rather than sampled.
+///
+/// This replaces a chunked numpy pass that allocated the block in slabs and
+/// measured 0.8-2.4 s at n=1e4 -- one-time and cached, but paid per fiber.
+#[pyfunction]
+#[pyo3(signature = (n_rows, col_start, col_end, pair_seed, p, finalize=true))]
+fn area_indegree<'py>(
+    py: Python<'py>,
+    n_rows: i64,
+    col_start: i64,
+    col_end: i64,
+    pair_seed: u32,
+    p: f64,
+    finalize: bool,
+) -> PyResult<Bound<'py, PyArray1<f32>>> {
+    let (_, nc) = check_block(0, 0, col_start, col_end)?;
+    if n_rows < 0 || n_rows > u32::MAX as i64 {
+        return Err(PyValueError::new_err(
+            "n_rows must be within the u32 index space",
+        ));
+    }
+    let p = p as f32;
+    let out = py.allow_threads(|| {
+        let mut out = vec![0.0f32; nc];
+        let body = |j: usize, slot: &mut f32| {
+            let col = (col_start as u32).wrapping_add(j as u32);
+            let ch = col.wrapping_mul(MUL_COL) ^ pair_seed;
+            let mut count = 0u32;
+            for r in 0..n_rows as u32 {
+                let mut h = r.wrapping_mul(MUL_ROW) ^ ch;
+                if finalize {
+                    h = fmix32(h);
+                }
+                // The `cell_weight` predicate, not the `stim_counts` one.
+                if ((h & MANTISSA) as f32) / MANTISSA_SCALE < p {
+                    count += 1;
+                }
+            }
+            *slot = count as f32;
+        };
+        if (n_rows as usize) * nc >= PARALLEL_MIN_CELLS {
+            out.par_iter_mut().enumerate().for_each(|(j, s)| body(j, s));
+        } else {
+            out.iter_mut().enumerate().for_each(|(j, s)| body(j, s));
+        }
+        out
+    });
+    Ok(out.into_pyarray_bound(py))
+}
+
 #[pymodule]
 fn na_kernels(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(area_weights_block, m)?)?;
     m.add_function(wrap_pyfunction!(area_weights_csr_rows, m)?)?;
     m.add_function(wrap_pyfunction!(stim_counts, m)?)?;
+    m.add_function(wrap_pyfunction!(area_rows_sum, m)?)?;
+    m.add_function(wrap_pyfunction!(area_rows_block, m)?)?;
+    m.add_function(wrap_pyfunction!(area_indegree, m)?)?;
     Ok(())
 }

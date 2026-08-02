@@ -246,3 +246,63 @@ def hash_stim_counts(stim_size: int, neuron_start: int, neuron_end: int,
         out += (h & _MANTISSA).astype(np.float32).__lt__(
             p * _MANTISSA_SCALE).sum(axis=0)
     return out
+
+
+def hash_area_rows(rows, n_cols: int, pair_seed, p: float,
+                   inhibitory_prob: float = 0.0, inhibitory_weight: float = -1.0,
+                   finalize: bool = True, want_sum: bool = False):
+    """Initial weights for an ARBITRARY set of rows -- block, or column sums.
+
+    An assembly's winners are a scattered index set, not a contiguous range, so
+    `hash_area_weights` has to be called once per row. At n=1e4, k=200 that is
+    200 calls and 200 allocations per projection round for ~1.7 ms of actual
+    hashing. The Rust kernels take the row set directly and, with
+    `want_sum=True`, fuse the column sum so nothing of size k*n is allocated at
+    all -- which is what the un-potentiated drive actually needs.
+
+    Falls back to per-row `hash_area_weights` when the accelerator is absent,
+    so behaviour is identical either way.
+    """
+    rows = np.ascontiguousarray(rows, dtype=np.int64)
+    rust = rust_kernels()
+    if rust is not None:
+        fn = rust.area_rows_sum if want_sum else rust.area_rows_block
+        return fn(rows, 0, int(n_cols), int(pair_seed) & 0xFFFFFFFF, float(p),
+                  float(inhibitory_prob), float(inhibitory_weight),
+                  bool(finalize))
+    if want_sum:
+        acc = np.zeros(int(n_cols), dtype=np.float64)
+        for r in rows:
+            acc += hash_area_weights(int(r), int(r) + 1, 0, int(n_cols),
+                                     pair_seed, p, inhibitory_prob,
+                                     inhibitory_weight, finalize).reshape(-1)
+        return acc
+    out = np.empty((rows.size, int(n_cols)), dtype=np.float32)
+    for i, r in enumerate(rows):
+        out[i] = hash_area_weights(int(r), int(r) + 1, 0, int(n_cols),
+                                   pair_seed, p, inhibitory_prob,
+                                   inhibitory_weight, finalize).reshape(-1)
+    return out
+
+
+def hash_area_indegree(n_rows: int, n_cols: int, pair_seed, p: float,
+                       finalize: bool = True, chunk: int = 512):
+    """Per-column count of present synapses over rows [0, n_rows).
+
+    The exact `norm_init` divisor `d_j`. Only computable at all because every
+    row exists; the lazy engines have to estimate the not-yet-materialised part
+    (`inverse_indegree`'s ambient term). Counted with the SAME predicate the
+    weights are drawn with, never `hash_stim_counts`' -- see the kernel's note.
+    """
+    rust = rust_kernels()
+    if rust is not None:
+        return rust.area_indegree(int(n_rows), 0, int(n_cols),
+                                  int(pair_seed) & 0xFFFFFFFF, float(p),
+                                  bool(finalize))
+    deg = np.zeros(int(n_cols), dtype=np.float32)
+    for r0 in range(0, int(n_rows), chunk):
+        r1 = min(r0 + chunk, int(n_rows))
+        blk = hash_area_weights(r0, r1, 0, int(n_cols), pair_seed, p,
+                                0.0, -1.0, finalize)
+        deg += (np.asarray(blk) != 0).sum(axis=0)
+    return deg

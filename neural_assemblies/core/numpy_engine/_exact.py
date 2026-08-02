@@ -49,7 +49,8 @@ import numpy as np
 from ..backend import to_cpu
 from ..engine import ComputeEngine, ProjectionResult
 from .._pricing import inverse_indegree
-from ._seeding import fnv1a_pair_seed, hash_area_weights, hash_stim_counts
+from ._seeding import (fnv1a_pair_seed, hash_area_indegree, hash_area_rows,
+                       hash_stim_counts)
 from ._state import StimulusState
 
 
@@ -125,8 +126,8 @@ class _Potentiation:
                 return True
         return False
 
-    def apply_to(self, block: np.ndarray, rows: np.ndarray,
-                 beta: float) -> bool:
+    def apply_to(self, block: np.ndarray, rows: np.ndarray, beta: float,
+                 w_max: Optional[float] = None) -> bool:
         """Multiply `block` in place by `(1+beta)^c`. True if anything applied.
 
         NO DENSE COUNT MATRIX IS BUILT. Exponents ADD, so
@@ -154,6 +155,7 @@ class _Potentiation:
         if not touched:
             return False
         applied = False
+        regions = []
         for sid in touched:
             hit = np.array([pos_of[int(m)] for m in self._sets[sid]
                             if int(m) in pos_of], dtype=np.int64)
@@ -161,8 +163,24 @@ class _Potentiation:
                 continue
             for tid in self._by_src[sid]:
                 mult = self._events[(sid, tid)]
-                block[np.ix_(hit, self._sets[tid])] *= (1.0 + beta) ** mult
+                ix = np.ix_(hit, self._sets[tid])
+                block[ix] *= (1.0 + beta) ** mult
+                regions.append(ix)
                 applied = True
+
+        # `w_max` can only ever bind where something was potentiated -- an
+        # untouched cell still holds its initial weight, which is 1 (or the
+        # inhibitory value) and cannot exceed the cap. So clamp the regions,
+        # not the block: the whole-block pass is 2e6 elements at n=1e4, k=200.
+        # It happens AFTER every event, because clamping between two events
+        # that share a cell would cap a product still being built.
+        if applied and w_max is not None:
+            cap = np.float32(w_max)
+            for ix in regions:
+                # Assignment, NOT `out=block[ix]`: fancy indexing returns a
+                # COPY, so an in-place write there lands in a temporary and is
+                # silently discarded.
+                block[ix] = np.minimum(block[ix], cap)
         return applied
 
 
@@ -261,32 +279,26 @@ class NumpyExactEngine(ComputeEngine):
         way in costs `k * n` casts per round for no precision that survives the
         k-WTA comparison.
         """
-        ps = self._pair_seed(source, target)
-        out = np.empty((len(rows), n_cols), dtype=np.float32)
-        for i, r in enumerate(rows):
-            r = int(r)
-            out[i] = hash_area_weights(
-                r, r + 1, 0, n_cols, ps, self.p,
-                self.inhibitory_prob, self.inhibitory_weight).reshape(-1)
-        return out
+        return hash_area_rows(
+            rows, n_cols, self._pair_seed(source, target), self.p,
+            self.inhibitory_prob, self.inhibitory_weight)
 
     def _fiber_sum(self, source: str, target: str, rows: np.ndarray,
                    n_cols: int) -> np.ndarray:
         """Column sums of `rows` x [0, n_cols) WITHOUT materialising the block.
 
         The un-potentiated drive only ever needs the sum, so the (k, n) block
-        need not exist: at n=1e4, k=200 that is a 8 MB allocation per round
+        need not exist: at n=1e4, k=200 that is an 8 MB allocation per round
         bought for nothing. Used whenever the fiber carries no potentiation
         (every readout, and every fiber before it has learned anything).
+
+        The Rust kernel fuses the sum into the hash loop and parallelises over
+        COLUMNS, so no accumulator is shared between threads and the answer
+        does not depend on how many cores ran it.
         """
-        ps = self._pair_seed(source, target)
-        acc = np.zeros(n_cols, dtype=np.float64)
-        for r in rows:
-            r = int(r)
-            acc += hash_area_weights(
-                r, r + 1, 0, n_cols, ps, self.p,
-                self.inhibitory_prob, self.inhibitory_weight).reshape(-1)
-        return acc
+        return hash_area_rows(
+            rows, n_cols, self._pair_seed(source, target), self.p,
+            self.inhibitory_prob, self.inhibitory_weight, want_sum=True)
 
     def _area_norm(self, source: str, target: str) -> Optional[np.ndarray]:
         """Exact `1/d_j` for an area fiber. No unknown-row correction needed.
@@ -305,16 +317,10 @@ class NumpyExactEngine(ComputeEngine):
             return cached
         n_pre = self._areas[source].n
         n_post = self._areas[target].n
-        deg = np.zeros(n_post, dtype=np.float64)
-        ps = self._pair_seed(source, target)
-        chunk = max(1, min(n_pre, max(1, 4_000_000 // max(n_post, 1))))
-        for r0 in range(0, n_pre, chunk):
-            r1 = min(r0 + chunk, n_pre)
-            blk = np.asarray(
-                hash_area_weights(r0, r1, 0, n_post, ps, self.p,
-                                  self.inhibitory_prob, self.inhibitory_weight),
-                dtype=np.float64)
-            deg += (blk != 0).sum(axis=0)
+        deg = np.asarray(
+            hash_area_indegree(n_pre, n_post, self._pair_seed(source, target),
+                               self.p),
+            dtype=np.float64)
         scale = inverse_indegree(deg, n_pre, n_pre, self.p, xp=np)
         self._norm_cache[key] = scale
         return scale
@@ -370,12 +376,11 @@ class NumpyExactEngine(ComputeEngine):
                 summed = self._fiber_sum(src_name, target, rows, n)
             else:
                 block = self._fiber_rows(src_name, target, rows, n)
-                if pot.apply_to(block, rows, beta) and self.w_max is not None:
-                    # `w_max` is a ceiling in MULTIPLES of the initial weight,
-                    # and storage is on the unit scale, so clamping the weight
-                    # IS clamping the multiplier. Applied once over the block
-                    # rather than per event, because the events compose.
-                    np.minimum(block, np.float32(self.w_max), out=block)
+                # `w_max` is a ceiling in MULTIPLES of the initial weight, and
+                # storage is on the unit scale, so clamping the weight IS
+                # clamping the multiplier. Handed to `apply_to` so it can cap
+                # the potentiated regions only.
+                pot.apply_to(block, rows, beta, self.w_max)
                 summed = block.sum(axis=0, dtype=np.float64)
             scale = self._area_norm(src_name, target)
             drive += summed if scale is None else summed * scale
