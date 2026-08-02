@@ -30,10 +30,11 @@ THE ONE RULE. Nothing in an experiment should ever touch
 from __future__ import annotations
 
 import contextlib
+import dataclasses
 import itertools
 import os
 import statistics
-from typing import Dict, Iterable, Sequence, Tuple
+from typing import Dict, Iterable, Optional, Sequence, Tuple
 
 import numpy as np
 
@@ -579,3 +580,93 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
+
+# --------------------------------------------------------------------------
+# Ceilings -- where a curve crosses a threshold, not where a grid does
+# --------------------------------------------------------------------------
+
+@dataclasses.dataclass(frozen=True)
+class Ceiling:
+    """Where accuracy crosses a threshold, with the uncertainty attached.
+
+    WHY NOT JUST `max(M : acc > 0.90)`. That is what every capacity sweep here
+    did, and it reports a GRID POINT as if it were a measurement. On a factor-2
+    grid the true crossing lies anywhere in ``[M, 2M)``, so a per-doubling ratio
+    computed from two such numbers is only bracketed to a factor of FOUR --
+    which is how "four-fold per doubling, so roughly n^2" got said out loud when
+    the data supported an exponent anywhere in (1, 3).
+
+    So this returns three things and callers must use all of them: the
+    interpolated crossing, the grid bracket it sits in, and whether there were
+    any points INSIDE the transition. Without interior points the interpolation
+    is drawing a straight line across a cliff and `m_star` is decoration --
+    `supported` says so.
+    """
+
+    m_star: float          #: interpolated crossing, geometric
+    lo: int                #: last grid M above the threshold
+    hi: Optional[int]      #: first grid M below it; None if censored
+    censored: bool         #: the curve never fell below the threshold
+    n_interior: int        #: grid points strictly inside the transition band
+
+    @property
+    def bracket(self) -> Tuple[int, Optional[int]]:
+        return (self.lo, self.hi)
+
+    @property
+    def supported(self) -> bool:
+        """False when the estimate spans a cliff with nothing inside it."""
+        return not self.censored and self.n_interior >= 1
+
+    def __str__(self) -> str:
+        if self.censored:
+            return f"M* >= {self.lo} (CENSORED: curve never crossed)"
+        tag = "" if self.supported else "  [CLIFF: no interior point, "\
+                                        "m_star is interpolation only]"
+        return (f"M* = {self.m_star:.1f}  bracket [{self.lo}, {self.hi})"
+                f"  interior {self.n_interior}{tag}")
+
+
+def ceiling_from_curve(points, threshold: float = 0.90,
+                       interior_band=(0.10, 0.90)) -> Ceiling:
+    """Interpolate where ``acc`` crosses *threshold* as ``M`` grows.
+
+    Uses EVERY point rather than one grid crossing, and interpolates in
+    ``log2(M)`` because these sweeps are geometric -- linear interpolation in M
+    on a doubling grid biases the estimate toward the lower point.
+
+    Args:
+        points: iterable of ``(M, acc)``. Sorted internally.
+        threshold: the accuracy defining "still works".
+        interior_band: accuracies counted as INSIDE the transition. A grid that
+            jumps 1.0000 -> 0.0156 has no interior point and the crossing is
+            not really measured; a grid with 0.72 in it does.
+
+    Returns:
+        `Ceiling`. Check `.supported` before quoting `.m_star`.
+    """
+    pts = sorted((int(m), float(a)) for m, a in points)
+    if not pts:
+        raise ValueError("no points")
+    interior = sum(1 for _, a in pts if interior_band[0] < a < interior_band[1])
+
+    above = [m for m, a in pts if a > threshold]
+    if not above:
+        return Ceiling(m_star=float(pts[0][0]), lo=pts[0][0], hi=pts[0][0],
+                       censored=False, n_interior=interior)
+    lo = max(above)
+    below = [(m, a) for m, a in pts if m > lo]
+    if not below:
+        return Ceiling(m_star=float(lo), lo=lo, hi=None, censored=True,
+                       n_interior=interior)
+
+    hi, acc_hi = below[0]
+    acc_lo = dict(pts)[lo]
+    span = acc_lo - acc_hi
+    t = 0.0 if span <= 0 else (acc_lo - threshold) / span
+    t = min(max(t, 0.0), 1.0)
+    import math
+    m_star = 2.0 ** (math.log2(lo) + t * (math.log2(hi) - math.log2(lo)))
+    return Ceiling(m_star=m_star, lo=lo, hi=hi, censored=False,
+                   n_interior=interior)

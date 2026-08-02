@@ -1,0 +1,32 @@
+
+  #90 -- locating the n=4000 recurrence ceiling (main sweep censored it at M=256)
+  k=50 beta=0.1 p=0.05 buildT=6, chance floor 0.0125
+
+       M   cover        engine       acc    ident   spread    secs
+     256    3.20  numpy_sparse    1.0000   0.8962   0.0140    10.8
+     256    3.20   numpy_exact    1.0000   0.9155   0.0147   215.8
+
+     512    6.40  numpy_sparse    0.0078   0.2512   0.0795    24.4
+     512    6.40   numpy_exact    0.0137   0.3382   0.1309  1265.7
+
+  READING
+
+    n=4000 rec ceiling on  numpy_sparse: M=256
+    n=4000 rec ceiling on   numpy_exact: M=256
+
+    Second clean step: n=2000 M=64 -> n=4000 M=256, 4.0x per doubling.
+    First step was 16 -> 64, 4.0x. Two steps at ~4.0x and
+    4.0x put the law near M_max ~ n^2, NOT M_max ~ n.
+
+    Coverage at the ceiling: 3.20 here against 0.8
+    at n=1000 -- rising with n, which a coverage law forbids.
+    alpha* (1.15 n/k) predicts 92; measured 256.
+
+    STILL ONLY THREE POINTS. An n^1.49 claim here was withdrawn
+    once as an artifact; two clean steps are enough to say
+    'super-linear, and not the stated law', and NOT enough to
+    fit an exponent. The mechanism to test next is extreme-value
+    statistics over n candidates -- an assembly survives its own
+    recurrence while (1+beta)^T beats the max of n draws -- which
+    predicts a ceiling growing faster than n and has nothing to
+    do with coverage.
