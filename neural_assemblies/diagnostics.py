@@ -56,6 +56,7 @@ __all__ = [
     "Arbitration", "arbitrate", "arbitrate_prebuilt", "ARBITER_ARMS",
     "Arm", "arm_spec",
     "Ensemble", "ensemble", "compare_arms", "paired_delta",
+    "LoadGap", "area_load", "load_audit",
 ]
 
 
@@ -1048,3 +1049,102 @@ def paired_delta(a: Ensemble, b: Ensemble, label: str = "delta") -> Ensemble:
              9: 2.306, 10: 2.262, 11: 2.228, 12: 2.201}.get(len(diffs), 1.96)
     ci = tcrit * statistics.stdev(diffs) / len(diffs) ** 0.5
     return Ensemble(label, tuple(diffs), mean, ci)
+
+
+# --------------------------------------------------------------------------
+# Load matching -- when an A/B on the sampler is not an A/B
+# --------------------------------------------------------------------------
+
+@dataclass(frozen=True)
+class LoadGap:
+    """Per-area load across the arms of one comparison."""
+
+    area: str
+    by_arm: Dict[str, float]      # arm -> w / n, the fraction ever fired
+    engine: str
+
+    @property
+    def gap(self) -> float:
+        vals = list(self.by_arm.values())
+        return max(vals) - min(vals) if vals else 0.0
+
+    @property
+    def sampler_bearing(self) -> bool:
+        """Only engines that INVENT a drive can have a load-dependent error."""
+        return self.engine not in ("numpy_exact", "numpy_explicit")
+
+    def confounded(self, threshold: float = 0.05) -> bool:
+        return self.sampler_bearing and self.gap > threshold
+
+    def __str__(self) -> str:
+        arms = "  ".join(f"{a}={v:.3f}" for a, v in sorted(self.by_arm.items()))
+        tag = ("CONFOUNDED" if self.confounded() else
+               "ok        " if self.sampler_bearing else "n/a (exact)")
+        return f"[{tag}] {self.area:<12} load {arms}   gap {self.gap:.3f}"
+
+
+def area_load(brain) -> Dict[str, float]:
+    """Per-area load `w / n` -- the fraction of neurons that have EVER fired.
+
+    Read through `get_num_ever_fired`, not `area.w`. Those are two different
+    quantities that shared a name, and reading the wrong one produced a 1.0000
+    that the model does not produce ([[same-name-two-meanings]]).
+    """
+    out = {}
+    for name, area in brain.areas.items():
+        eng = brain._engine_for(area)
+        try:
+            w = int(eng.get_num_ever_fired(name))
+        except (KeyError, AttributeError):
+            continue
+        out[name] = w / float(area.n) if area.n else 0.0
+    return out
+
+
+def load_audit(brains: Dict[str, Any], threshold: float = 0.05
+               ) -> List[LoadGap]:
+    """Do the arms of this comparison sit at the SAME area load?
+
+    WHY THIS EXISTS, and it is a correction to a rule this module used to
+    state. `arbitrate`'s docstring said absolute overlaps were suspect on the
+    sampler but PAIRED comparisons survived, because both arms share the engine
+    and therefore share its error. They share the engine. They share the error
+    only if they share the LOAD -- and the sampler's error is a steep function
+    of load (disjoint-input overlap 0.90 at low load, 0.19 once the area fills;
+    `research/notes/graded_similarity_and_sampler_load.md`).
+
+    Measured counterexample: norm_init on vs off under recurrence reads an 8.0x
+    capacity gain on `numpy_sparse` and 1.0x on `numpy_exact`
+    (`research/notes/recurrence_ceiling_on_exact_drive.md`). norm_init changes
+    which neurons win, so it changes how fast the area recruits, so the two
+    arms carried DIFFERENT sampler errors and the difference between them was
+    partly the difference between two errors.
+
+    So the question "is this A/B safe?" is not answered by reasoning about the
+    manipulation -- it is MEASURED here. Any manipulation that leaves the arms
+    at the same load is fine whatever it does; any that separates them is
+    suspect however innocuous it looks.
+
+    A flag is NOT a verdict that the result is wrong. It says the two arms did
+    not share the instrument's error, so the comparison should be re-run on
+    `numpy_exact` (or `arms=("exact", "sampled")` via `arbitrate`) before the
+    magnitude is quoted. On exact/explicit engines there is no sampler, so
+    every gap is reported as `n/a`.
+
+    Args:
+        brains: ``{arm_name: Brain}``, each AFTER its protocol has run.
+        threshold: load difference above which an arm pair is flagged.
+
+    Returns:
+        One `LoadGap` per area present in every arm, worst gap first.
+    """
+    if len(brains) < 2:
+        raise ValueError("load_audit compares arms; give it at least two")
+    loads = {arm: area_load(b) for arm, b in brains.items()}
+    shared = set.intersection(*(set(d) for d in loads.values()))
+    engines = {getattr(b, "engine_name", "?") for b in brains.values()}
+    engine = engines.pop() if len(engines) == 1 else "mixed"
+    gaps = [LoadGap(area=a, engine=engine,
+                    by_arm={arm: loads[arm][a] for arm in brains})
+            for a in sorted(shared)]
+    return sorted(gaps, key=lambda g: -g.gap)

@@ -109,11 +109,11 @@ def build_rec(brain, stim, area, rounds):
     return read(brain, area)
 
 
-def trial(n, m_words, mode, seed):
+def trial(n, m_words, mode, seed, engine="numpy_sparse"):
     from neural_assemblies.core.brain import Brain
 
     build = build_ff if mode == "ff" else build_rec
-    brain = Brain(p=P_, seed=seed)
+    brain = Brain(p=P_, seed=seed, engine=engine)
     brain.add_area(AREA, n, K_, beta=BETA)
     for m in range(m_words):
         brain.add_stimulus(f"w{m}", K_)
@@ -131,8 +131,8 @@ def trial(n, m_words, mode, seed):
     return hits, m_words, statistics.mean(ident), spread(stored.values())
 
 
-def run(n, m_words, mode):
-    res = [trial(n, m_words, mode, s) for s in SEEDS]
+def run(n, m_words, mode, engine="numpy_sparse"):
+    res = [trial(n, m_words, mode, s, engine) for s in SEEDS]
     tot = sum(x[1] for x in res)
     return (sum(x[0] for x in res) / tot,
             statistics.mean(x[2] for x in res),
