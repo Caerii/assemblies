@@ -1,0 +1,58 @@
+
+  A/B load triage -- did both arms share the sampler's error?
+  n=1000 k=50 beta=0.1 p=0.05, 8 items, 3 seeds, flag above a gap of 0.05
+
+  [CONFOUNDED] gap 0.204   norm_init ON vs OFF  [recurrence-needs-norm-init, self-recurrence-stability-window]
+               load: off 0.667   on 0.872
+
+  [CONFOUNDED] gap 0.123   recurrent vs feed-forward build  [recurrence-is-the-collapse-channel]
+               load: ff 0.748   rec 0.872
+
+  [CONFOUNDED] gap 0.122   rounds 6 vs 20 (reinforcement depth)  [reinforcement-tradeoff]
+               load: T20 0.750   T6 0.872
+
+  [CONFOUNDED] gap 0.056   beta 0.10 vs 0.00 (the null arm)  [beta-opposes-capacity-and-depth]
+               load: beta.00 0.928   beta.10 0.872
+
+  [ok        ] gap 0.021   CONTROL: same protocol, two seeds (must NOT flag)
+               load: a 0.872   b 0.866
+
+  READING
+
+    control gap 0.021 < 0.05, so the threshold
+    is above seed noise and the flags mean something.
+
+    4 of 4 substrate A/Bs are load-
+    confounded on numpy_sparse. Their DIRECTIONS may well stand;
+    their MAGNITUDES are not the model's until re-run on
+    numpy_exact. In priority order:
+
+      0.204  norm_init ON vs OFF  [recurrence-needs-norm-init, self-recurrence-stability-window]
+      0.123  recurrent vs feed-forward build  [recurrence-is-the-collapse-channel]
+      0.122  rounds 6 vs 20 (reinforcement depth)  [reinforcement-tradeoff]
+      0.056  beta 0.10 vs 0.00 (the null arm)  [beta-opposes-capacity-and-depth]
+
+    HOW MUCH A FLAG IS WORTH -- the two cases already re-derived on
+    numpy_exact, which is the whole calibration set:
+
+      norm_init on/off   flagged 0.204   8.0x -> 1.0x capacity gain
+                                         CONCLUSION CHANGED
+      rec vs ff          flagged 0.123   ff has no ceiling on both;
+                                         rec ceiling 32 -> 16
+                                         magnitude moved, CONCLUSION HELD
+
+    So a flag is a SCREEN, not a verdict: 2 flagged, 2 re-derived,
+    1 conclusion changed. And 4 of 4 firing means the screen is not
+    very selective HERE, at load 0.87 in a nearly-full area, where
+    almost any manipulation moves recruitment. Read the ordering,
+    not the count. Its sensitivity is UNMEASURED -- there is no known
+    case that passed the screen and still changed on exact drive,
+    because no unflagged A/B has been re-derived yet. That is the
+    experiment that would tell us whether this check can be trusted
+    to clear anything, and it has not been run.
+
+    UNTRIAGED, and named so the gap is visible: every parser-level
+    A/B -- lesions, fiber gating, mood, ERP contrasts. Each changes
+    which neurons win and so is a load-gap candidate, and none can
+    be measured here until the emergent parser runs on numpy_exact
+    (blocked: it uses LRI/refractory, which that engine rejects).
