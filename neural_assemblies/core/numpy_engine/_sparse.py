@@ -71,6 +71,7 @@ from ._csr_weights import CSRWeights, build_csr_from_blocks, scipy_sparse
 from ._seeding import (
     fnv1a_pair_seed,
     hash_area_weights,
+    hash_stim_counts,
     rust_kernels,
     stable_seed,
 )
@@ -2573,8 +2574,17 @@ class NumpySparseEngine(ComputeEngine):
                     add_len = new_w - old
                     if stim_name not in firing_stimuli:
                         stim_size = self._stimuli[stim_name].size
-                        add = self._to_xp(self._rng.binomial(
-                            stim_size, self.p, size=add_len).astype(np.float32))
+                        if self._content_init:
+                            # Must track `_expand_stim_vectors_fast` exactly --
+                            # the two are asserted bit-identical.
+                            add = self._to_xp(np.asarray(hash_stim_counts(
+                                int(stim_size), int(old), int(new_w),
+                                self._pair_seed(stim_name, target), self.p,
+                            ), dtype=np.float32))
+                        else:
+                            add = self._to_xp(self._rng.binomial(
+                                stim_size, self.p,
+                                size=add_len).astype(np.float32))
                     else:
                         add = xp.zeros(add_len, dtype=xp.float32)
                     conn.weights = xp.concatenate([conn.weights, add])
@@ -2613,7 +2623,10 @@ class NumpySparseEngine(ComputeEngine):
                 stim_to_extend[stim_name] = None
 
         # Pass 1 -- resolve, in insertion order, what each stimulus needs.
-        plan = []  # (conn, old, add_len, stim_size or None when no rng draw)
+        # (conn, old, add_len, stim_size or None when firing, stim_name).
+        # The name is carried because the content-addressed fill keys on the
+        # (stimulus, target) pair seed, not on position in this list.
+        plan = []
         for stim_name in stim_to_extend:
             conn = by_name.get(stim_name)
             if conn is None:
@@ -2625,35 +2638,70 @@ class NumpySparseEngine(ComputeEngine):
                 continue
             size = (None if stim_name in firing_stimuli
                     else self._stimuli[stim_name].size)
-            plan.append((conn, old, new_w - old, size))
+            plan.append((conn, old, new_w - old, size, stim_name))
         if not plan:
             return
 
-        # Pass 2 -- batch maximal runs of identical (stim_size, add_len) draws.
+        # Pass 2 -- fill the background for the stimuli that are NOT firing.
         draws = {}
         rng_idx = [i for i, item in enumerate(plan) if item[3] is not None]
-        i = 0
-        while i < len(rng_idx):
-            size, add_len = plan[rng_idx[i]][3], plan[rng_idx[i]][2]
-            j = i + 1
-            while (j < len(rng_idx)
-                   and plan[rng_idx[j]][3] == size
-                   and plan[rng_idx[j]][2] == add_len):
-                j += 1
-            count = j - i
-            if count == 1:
-                draws[rng_idx[i]] = self._rng.binomial(
-                    size, self.p, size=add_len).astype(np.float32)
-            else:
-                block = self._rng.binomial(
-                    size, self.p, size=add_len * count).astype(np.float32)
-                for t in range(count):
-                    draws[rng_idx[i + t]] = block[t * add_len:(t + 1) * add_len]
-            i = j
+
+        if self._content_init:
+            # CONTENT-ADDRESSED, like `_init_area_block` and like the torch and
+            # cuda engines, which have used `hash_stim_counts` here for a
+            # while. This path alone was still drawing from `self._rng`, so
+            # area->area init was a fixed fact of (row, col) while stim->area
+            # init depended on how many draws had been consumed before it --
+            # mixed disciplines inside one engine, which is worse than either.
+            #
+            # It stayed hidden because a FIRING stimulus never reaches this
+            # branch: its weights come from `compute_input_splits`, so an
+            # ordinary projection is unaffected and assemblies did not move.
+            # It bit exactly three places: `materialize_area` (so the
+            # sampler-free ARBITER carried an order-dependent stimulus
+            # component), the never-fired stim drive that exact-drive needs,
+            # and numpy-vs-torch parity. Measured before this change: an
+            # unused extra stimulus left only 21.3% of a materialized stim
+            # vector identical.
+            #
+            # Same distribution either way -- `hash_stim_counts` materialises
+            # the stimulus x neuron connectivity and counts it, which is what
+            # `binomial(size, p)` was approximating -- so this is a
+            # re-baseline of per-seed values, not of statistics.
+            for idx in rng_idx:
+                _conn, old, add_len, size, stim_name = plan[idx]
+                draws[idx] = np.asarray(hash_stim_counts(
+                    int(size), int(old), int(old + add_len),
+                    self._pair_seed(stim_name, target), self.p,
+                ), dtype=np.float32)
+        else:
+            # Legacy stream path, kept for A/B via ASSEMBLIES_STREAM_INIT.
+            # Batches maximal runs of identical (stim_size, add_len) draws;
+            # `Generator.binomial` with scalar parameters fills
+            # element-by-element, so splitting one call into several is
+            # bit-identical.
+            i = 0
+            while i < len(rng_idx):
+                size, add_len = plan[rng_idx[i]][3], plan[rng_idx[i]][2]
+                j = i + 1
+                while (j < len(rng_idx)
+                       and plan[rng_idx[j]][3] == size
+                       and plan[rng_idx[j]][2] == add_len):
+                    j += 1
+                count = j - i
+                if count == 1:
+                    draws[rng_idx[i]] = self._rng.binomial(
+                        size, self.p, size=add_len).astype(np.float32)
+                else:
+                    block = self._rng.binomial(
+                        size, self.p, size=add_len * count).astype(np.float32)
+                    for t in range(count):
+                        draws[rng_idx[i + t]] = block[t * add_len:(t + 1) * add_len]
+                i = j
 
         # Pass 3 -- write.
         n = tgt.n
-        for idx, (conn, old, _add_len, size) in enumerate(plan):
+        for idx, (conn, old, _add_len, size, _stim_name) in enumerate(plan):
             self._grow_stim_vector(
                 conn, n, old, new_w, draws[idx] if size is not None else None,
             )
