@@ -321,10 +321,67 @@ def fig_load_triage():
     _save(fig, "task90_load_triage.png")
 
 
+# -- 6. the gain confound ------------------------------------------------------
+
+GAIN_ROW = re.compile(
+    r"^\s*beta=([\d.]+)\s+gain=\s*([\d.]+)\s+M\*\(\d+\)=\s*([\d.]+)"
+    r"\s+M\*\(\d+\)=\s*([\d.]+)\s+a=([\d.]+)", re.M)
+
+
+def fig_gain_confound():
+    rows = GAIN_ROW.findall(_log("task90_gain_confound.log"))
+    if not rows:
+        raise SystemExit("task90_gain_confound.log has no rows -- format drift")
+    beta = [float(r[0]) for r in rows]
+    gain = [float(r[1]) for r in rows]
+    lo = [float(r[2]) for r in rows]
+    hi = [float(r[3]) for r in rows]
+    a = [float(r[4]) for r in rows]
+
+    fig, (ax, ax2) = plt.subplots(1, 2, figsize=(9.4, 3.5))
+    ax.plot(gain, a, marker="o", color="#D1495B", zorder=3)
+    # The measured grid-noise floor of the estimator, drawn as the error it is.
+    # Without it a reader cannot tell whether the spread is signal.
+    for g, av in zip(gain, a):
+        ax.plot([g, g], [av - 0.10, av + 0.10], color="#D1495B", lw=1.2,
+                alpha=0.5, zorder=2)
+    ax.axhline(1.0, color="0.2", lw=1.2, ls=(0, (5, 3)), zorder=1)
+    ax.text(0.99, 1.02, "extensive, a = 1 (the standing alpha* law) ",
+            transform=ax.get_yaxis_transform(), ha="right", va="bottom",
+            fontsize=7.2, color="0.25")
+    for g, av, b in zip(gain, a, beta):
+        ax.annotate(f"  beta={b}", (g, av), fontsize=7.4, color="0.35",
+                    va="center")
+    ax.set_xlabel("absolute gain  (1+beta)^T")
+    ax.set_ylabel("fitted exponent  a  in  M_max ~ n^a")
+    ax.set_title("The exponent MOVES with gain")
+
+    w = 0.35
+    idx = np.arange(len(rows))
+    ax2.bar(idx - w / 2, lo, w, color="#4C6EF5", label="M* at n=1000")
+    ax2.bar(idx + w / 2, hi, w, color="#22A699", label="M* at n=2000")
+    ax2.set_xticks(idx)
+    ax2.set_xticklabels([f"beta={b}" for b in beta])
+    ax2.set_yscale("log", base=2)
+    ax2.set_ylabel("resolved ceiling  M*")
+    ax2.set_title("gain sets the ceiling outright")
+    ax2.legend(loc="upper right", fontsize=7.5)
+    ax2.grid(axis="x", visible=False)
+
+    fig.suptitle("Task #90: the capacity exponent is a fixed-gain artifact, "
+                 "not a law", fontsize=10.5, y=1.02)
+    fs.caption(fig, "Whiskers are the estimator's MEASURED grid-noise floor "
+                    "(0.20 wide); the spread across gains is 0.78, nearly 4x "
+                    "that.\nAt beta=0.20 the exponent is 0.87 — SUB-linear — "
+                    "so super-linearity does not merely fail to replicate, it "
+                    "REVERSES. a = 1 sits inside the range.", y=-0.06)
+    _save(fig, "task90_gain_confound.png")
+
+
 def main():
     print("\n  task #90 figures")
     for fn in (fig_sampler_sign, fig_ceiling, fig_context, fig_many_areas,
-               fig_load_triage):
+               fig_load_triage, fig_gain_confound):
         try:
             fn()
         except SystemExit as e:

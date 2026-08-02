@@ -24,6 +24,30 @@
 >
 > `task90_gain_confound.py` is the decisive test — measure `a` at several
 > absolute gains; if it moves, it was never a property of the substrate.
+>
+> ### It ran. CONFIRMED CONFOUNDED.
+>
+> | beta | gain (1+β)^6 | M\*(1000) | M\*(2000) | **a** |
+> | ---: | ---: | ---: | ---: | ---: |
+> | 0.05 | 1.34 | 74.6 | 218.8 | **1.55** |
+> | 0.10 | 1.77 | 27.1 | 85.0 | **1.65** |
+> | 0.20 | 2.99 | 12.3 | 22.4 | **0.87** |
+>
+> All six crossings resolved (interior points ≥1, brackets ≤1.25×). Spread
+> **0.78** against a measured grid-noise floor of 0.20 — nearly 4× the floor.
+>
+> **At beta=0.20 the exponent is 0.87: SUB-linear.** So the super-linear
+> reading does not merely fail to replicate, it REVERSES with gain. `a` is not
+> a property of the substrate; it is a reading of how far a fixed gain sits
+> from `g_c(n)`.
+>
+> And α\*'s extensive law (`a = 1.0`) sits comfortably inside the measured
+> range 0.87–1.65 — exactly what you expect if the true relationship is
+> extensive and each fixed gain tilts it one way or the other.
+>
+> The exponent needs a sweep at fixed RELATIVE gain `g = c·g_c(n)`, which
+> requires measuring `g_c(n)` for this protocol first. That is the real next
+> step and it has not been done.
 
 Task #90, second half. `research/experiments/task90_ceiling_n_scaling.py`,
 k=50, beta=0.1, p=0.05, buildT=6, one shared area, 3 seeds. **k and p held

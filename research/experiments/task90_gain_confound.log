@@ -1,0 +1,89 @@
+
+  Is the capacity exponent a substrate property, or a fixed gain?
+  k=50 p=0.05 T=6, engine numpy_exact, n in (1000, 2000), beta in (0.05, 0.1, 0.2)
+
+  --- beta=0.05  gain=(1+beta)^6=1.34 ---
+    n=1000
+      M=8     acc=1.0000
+      M=16    acc=1.0000
+      M=32    acc=1.0000
+      M=64    acc=1.0000
+      M=128   acc=0.0156
+      M=80    acc=0.8542  (refine)
+      M=100   acc=0.1667  (refine)
+      M=125   acc=0.0187  (refine)
+      -> M* = 74.6  bracket [64, 80)  interior 2   [294s]
+
+    n=2000
+      M=8     acc=1.0000
+      M=16    acc=1.0000
+      M=32    acc=1.0000
+      M=64    acc=1.0000
+      M=128   acc=1.0000
+      M=256   acc=0.6549
+      M=160   acc=1.0000  (refine)
+      M=200   acc=1.0000  (refine)
+      M=250   acc=0.7520  (refine)
+      -> M* = 218.8  bracket [200, 250)  interior 2   [840s]
+
+  --- beta=0.1  gain=(1+beta)^6=1.77 ---
+    n=1000
+      M=8     acc=1.0000
+      M=16    acc=1.0000
+      M=32    acc=0.7188
+      M=20    acc=1.0000  (refine)
+      M=25    acc=1.0000  (refine)
+      M=31    acc=0.7312  (refine)
+      -> M* = 27.1  bracket [25, 31)  interior 2   [20s]
+
+    n=2000
+      M=8     acc=1.0000
+      M=16    acc=1.0000
+      M=32    acc=1.0000
+      M=64    acc=1.0000
+      M=128   acc=0.0208
+      M=80    acc=1.0000  (refine)
+      M=100   acc=0.6333  (refine)
+      M=125   acc=0.0240  (refine)
+      -> M* = 85.0  bracket [80, 100)  interior 1   [244s]
+
+  --- beta=0.2  gain=(1+beta)^6=2.99 ---
+    n=1000
+      M=8     acc=1.0000
+      M=16    acc=0.3542
+      M=10    acc=1.0000  (refine)
+      M=12    acc=0.9444  (refine)
+      -> M* = 12.3  bracket [12, 16)  interior 1   [4s]
+
+    n=2000
+      M=8     acc=1.0000
+      M=16    acc=1.0000
+      M=32    acc=0.7083
+      M=20    acc=1.0000  (refine)
+      M=25    acc=0.8000  (refine)
+      M=31    acc=0.7634  (refine)
+      -> M* = 22.4  bracket [20, 25)  interior 3   [17s]
+
+  READING
+
+    beta=0.05  gain= 1.34   M*(1000)=   74.6  M*(2000)=  218.8   a=1.55
+    beta=0.1   gain= 1.77   M*(1000)=   27.1  M*(2000)=   85.0   a=1.65
+    beta=0.2   gain= 2.99   M*(1000)=   12.3  M*(2000)=   22.4   a=0.87
+
+    exponent across gains: 0.87 .. 1.65   spread 0.78
+    estimator grid-noise floor: 0.20  (measured -- see Ceiling.resolved)
+
+    G1 `a` MOVES with gain (confounded):   True
+    G2 `a` is stable (property):          False
+
+    CONFIRMED CONFOUNDED. The exponent is not a property of the
+    substrate -- it is a reading of how far a FIXED gain sits
+    from g_c(n), and g_c moves with n. So a = 1.70 is withdrawn,
+    exactly as n^1.49 was, and this session's claim that the
+    coverage law and alpha* are refuted is WITHDRAWN with it.
+    The standing result stands: capacity is EXTENSIVE,
+    M_max ~ 1.15 n/k ([[critical-load-alpha-star]]).
+
+    To measure the exponent properly, sweep n at fixed RELATIVE
+    gain g = c * g_c(n), which needs g_c(n) for THIS protocol --
+    a separate measurement, and the real next step.
