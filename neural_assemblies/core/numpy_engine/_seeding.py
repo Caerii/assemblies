@@ -306,3 +306,28 @@ def hash_area_indegree(n_rows: int, n_cols: int, pair_seed, p: float,
                                 0.0, -1.0, finalize)
         deg += (np.asarray(blk) != 0).sum(axis=0)
     return deg
+
+
+def hash_area_cells(rows, cols, pair_seed, p: float,
+                    inhibitory_prob: float = 0.0, inhibitory_weight: float = -1.0,
+                    finalize: bool = True):
+    """Initial weights on an arbitrary rows x cols GATHER.
+
+    Potentiation reaches a scattered set of columns, so the correction term in
+    the exact drive lives on a gather, not on a contiguous slice -- a
+    bounding range would span nearly all of `n` and save nothing.
+    """
+    rows = np.ascontiguousarray(rows, dtype=np.int64)
+    cols = np.ascontiguousarray(cols, dtype=np.int64)
+    rust = rust_kernels()
+    if rust is not None:
+        return rust.area_cells_block(
+            rows, cols, int(pair_seed) & 0xFFFFFFFF, float(p),
+            float(inhibitory_prob), float(inhibitory_weight), bool(finalize))
+    out = np.empty((rows.size, cols.size), dtype=np.float32)
+    for i, r in enumerate(rows):
+        full = hash_area_weights(int(r), int(r) + 1, 0, int(cols.max()) + 1,
+                                 pair_seed, p, inhibitory_prob,
+                                 inhibitory_weight, finalize).reshape(-1)
+        out[i] = full[cols]
+    return out

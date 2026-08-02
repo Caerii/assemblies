@@ -506,6 +506,77 @@ fn area_rows_block<'py>(
     Ok(arr.reshape([nr, nc])?)
 }
 
+/// Gather block on an arbitrary row set AND an arbitrary column set.
+///
+/// The potentiated part of a fiber is confined to the columns the stored
+/// outer products actually touch, which is a scattered subset -- so a
+/// contiguous column range would span almost all of `n` and defeat the point.
+/// With this, the plastic path materialises only `len(rows) x len(cols)` and
+/// the untouched bulk stays inside `area_rows_sum`, never allocated.
+#[pyfunction]
+#[pyo3(signature = (rows, cols, pair_seed, p,
+                    inhibitory_prob=0.0, inhibitory_weight=-1.0, finalize=true))]
+#[allow(clippy::too_many_arguments)]
+fn area_cells_block<'py>(
+    py: Python<'py>,
+    rows: numpy::PyReadonlyArray1<'py, i64>,
+    cols: numpy::PyReadonlyArray1<'py, i64>,
+    pair_seed: u32,
+    p: f64,
+    inhibitory_prob: f64,
+    inhibitory_weight: f64,
+    finalize: bool,
+) -> PyResult<Bound<'py, PyArray2<f32>>> {
+    let rows = check_rows(rows.as_slice()?)?;
+    let cols = check_rows(cols.as_slice()?)?;
+    let (nr, nc) = (rows.len(), cols.len());
+    let (p, inhibitory_prob, inhibitory_weight) =
+        (p as f32, inhibitory_prob as f32, inhibitory_weight as f32);
+
+    let data = py.allow_threads(|| {
+        let mut out = vec![0.0f32; nr * nc];
+        let body = |i: usize, row_out: &mut [f32]| {
+            let row = rows[i];
+            let rh = row.wrapping_mul(MUL_ROW) ^ pair_seed;
+            for (j, cell) in row_out.iter_mut().enumerate() {
+                let col = cols[j];
+                let mut h = rh ^ col.wrapping_mul(MUL_COL);
+                if finalize {
+                    h = fmix32(h);
+                }
+                if ((h & MANTISSA) as f32) / MANTISSA_SCALE >= p {
+                    continue;
+                }
+                *cell = if inhibitory_prob <= 0.0 {
+                    1.0
+                } else {
+                    cell_weight(
+                        row,
+                        col,
+                        pair_seed,
+                        p,
+                        inhibitory_prob,
+                        inhibitory_weight,
+                        finalize,
+                    )
+                };
+            }
+        };
+        if nr * nc >= PARALLEL_MIN_CELLS {
+            out.par_chunks_mut(nc.max(1))
+                .enumerate()
+                .for_each(|(i, r)| body(i, r));
+        } else {
+            out.chunks_mut(nc.max(1))
+                .enumerate()
+                .for_each(|(i, r)| body(i, r));
+        }
+        out
+    });
+    let arr = data.into_pyarray_bound(py);
+    Ok(arr.reshape([nr, nc])?)
+}
+
 /// Exact per-column IN-DEGREE over rows [0, n_rows) -- the `norm_init` divisor.
 ///
 /// `stim_counts` computes the same shape of quantity and is deliberately NOT
@@ -575,6 +646,7 @@ fn na_kernels(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(stim_counts, m)?)?;
     m.add_function(wrap_pyfunction!(area_rows_sum, m)?)?;
     m.add_function(wrap_pyfunction!(area_rows_block, m)?)?;
+    m.add_function(wrap_pyfunction!(area_cells_block, m)?)?;
     m.add_function(wrap_pyfunction!(area_indegree, m)?)?;
     Ok(())
 }

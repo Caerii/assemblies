@@ -49,8 +49,8 @@ import numpy as np
 from ..backend import to_cpu
 from ..engine import ComputeEngine, ProjectionResult
 from .._pricing import inverse_indegree
-from ._seeding import (fnv1a_pair_seed, hash_area_indegree, hash_area_rows,
-                       hash_stim_counts)
+from ._seeding import (fnv1a_pair_seed, hash_area_cells, hash_area_indegree,
+                       hash_area_rows, hash_stim_counts)
 from ._state import StimulusState
 
 
@@ -126,8 +126,31 @@ class _Potentiation:
                 return True
         return False
 
+    def touched_cols(self, rows: np.ndarray) -> Optional[np.ndarray]:
+        """The columns any stored outer product reaches from these rows.
+
+        The learned factor is confined to these, so the drive's correction term
+        is too -- everything else is exactly the initial weight and is already
+        accounted for by the fused sum. Returns None when nothing applies.
+        """
+        touched: set = set()
+        for r in rows:
+            got = self._members.get(int(r))
+            if got:
+                touched |= got
+        if not touched:
+            return None
+        cols: set = set()
+        for sid in touched:
+            for tid in self._by_src[sid]:
+                cols.update(self._sets[tid].tolist())
+        if not cols:
+            return None
+        return np.fromiter(sorted(cols), dtype=np.int64, count=len(cols))
+
     def apply_to(self, block: np.ndarray, rows: np.ndarray, beta: float,
-                 w_max: Optional[float] = None) -> bool:
+                 w_max: Optional[float] = None,
+                 col_index: Optional[Dict[int, int]] = None) -> bool:
         """Multiply `block` in place by `(1+beta)^c`. True if anything applied.
 
         NO DENSE COUNT MATRIX IS BUILT. Exponents ADD, so
@@ -163,7 +186,12 @@ class _Potentiation:
                 continue
             for tid in self._by_src[sid]:
                 mult = self._events[(sid, tid)]
-                ix = np.ix_(hit, self._sets[tid])
+                cols = self._sets[tid]
+                if col_index is not None:
+                    # `block` spans only the touched columns, so translate.
+                    cols = np.fromiter((col_index[int(c)] for c in cols),
+                                       dtype=np.int64, count=cols.size)
+                ix = np.ix_(hit, cols)
                 block[ix] *= (1.0 + beta) ** mult
                 regions.append(ix)
                 applied = True
@@ -283,6 +311,18 @@ class NumpyExactEngine(ComputeEngine):
             rows, n_cols, self._pair_seed(source, target), self.p,
             self.inhibitory_prob, self.inhibitory_weight)
 
+    def _fiber_cells(self, source: str, target: str, rows: np.ndarray,
+                     cols: np.ndarray) -> np.ndarray:
+        """Initial weights on an arbitrary rows x cols GATHER.
+
+        The potentiated part of a fiber sits on scattered columns, so a
+        contiguous range would span nearly all of `n` and there would be no
+        saving. This is the only block the plastic path materialises.
+        """
+        return hash_area_cells(
+            rows, cols, self._pair_seed(source, target), self.p,
+            self.inhibitory_prob, self.inhibitory_weight)
+
     def _fiber_sum(self, source: str, target: str, rows: np.ndarray,
                    n_cols: int) -> np.ndarray:
         """Column sums of `rows` x [0, n_cols) WITHOUT materialising the block.
@@ -370,18 +410,25 @@ class NumpyExactEngine(ComputeEngine):
             rows = np.asarray(src.winners, dtype=np.int64)
             beta = tgt.beta_by_source.get(src_name, tgt.beta)
             pot = self._area_pot.get((src_name, target))
-            if pot is None or beta == 0 or not pot.intersects(rows):
-                # Nothing learned on this fiber reaches these rows, so the sum
-                # is all that is needed and the block never has to exist.
-                summed = self._fiber_sum(src_name, target, rows, n)
-            else:
-                block = self._fiber_rows(src_name, target, rows, n)
+            # THE BULK IS ALWAYS THE FUSED SUM. Learning only ever perturbs the
+            # columns the stored outer products reach, so the drive is
+            #
+            #     d = sum_i f(i, j)            <- fused, nothing materialised
+            #       + sum_i (w_ij - f(i, j))   <- confined to touched columns
+            #
+            # and the (k, n) block never has to exist even on the plastic path.
+            summed = self._fiber_sum(src_name, target, rows, n)
+            cols = (None if (pot is None or beta == 0)
+                    else pot.touched_cols(rows))
+            if cols is not None:
+                sub = self._fiber_cells(src_name, target, rows, cols)
+                before = sub.sum(axis=0, dtype=np.float64)
                 # `w_max` is a ceiling in MULTIPLES of the initial weight, and
                 # storage is on the unit scale, so clamping the weight IS
-                # clamping the multiplier. Handed to `apply_to` so it can cap
-                # the potentiated regions only.
-                pot.apply_to(block, rows, beta, self.w_max)
-                summed = block.sum(axis=0, dtype=np.float64)
+                # clamping the multiplier. Capped per potentiated region.
+                pot.apply_to(sub, rows, beta, self.w_max,
+                             {int(c): j for j, c in enumerate(cols)})
+                summed[cols] += sub.sum(axis=0, dtype=np.float64) - before
             scale = self._area_norm(src_name, target)
             drive += summed if scale is None else summed * scale
 
