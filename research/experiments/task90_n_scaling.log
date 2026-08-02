@@ -1,0 +1,67 @@
+
+  #90 -- does the ceiling scale with n? sampler vs exact drive
+  k=50 beta=0.1 p=0.05 buildT=6, ONE area, 3 seeds
+  k and p held FIXED while n varies -- a coverage law predicts M_max ~ n
+
+  --- rec ---
+       n     M   cover |   numpy_sparse acc |    numpy_exact acc
+    1000    16    0.80 |   1.0000 spr 0.051 |   1.0000 spr 0.068
+    1000    32    1.60 |   1.0000 spr 0.064 |   0.7188 spr 0.109
+    1000    64    3.20 |   0.0312 spr 0.239 |   0.0156 spr 0.353
+    1000   128    6.40 |   0.0052 spr 0.515 |   0.0208 spr 0.602
+    1000   256   12.80 |   0.0143 spr 0.687 |   0.0156 spr 0.739
+
+    2000    16    0.40 |   1.0000 spr 0.020 |   1.0000 spr 0.027
+    2000    32    0.80 |   1.0000 spr 0.026 |   1.0000 spr 0.030
+    2000    64    1.60 |   1.0000 spr 0.028 |   1.0000 spr 0.031
+    2000   128    3.20 |   0.8281 spr 0.037 |   0.0208 spr 0.110
+    2000   256    6.40 |   0.0104 spr 0.315 |   0.0260 spr 0.396
+
+    4000    16    0.20 |   1.0000 spr 0.010 |   1.0000 spr 0.014
+    4000    32    0.40 |   1.0000 spr 0.011 |   1.0000 spr 0.014
+    4000    64    0.80 |   1.0000 spr 0.013 |   1.0000 spr 0.014
+    4000   128    1.60 |   1.0000 spr 0.014 |   1.0000 spr 0.014
+    4000   256    3.20 |   1.0000 spr 0.014 |   1.0000 spr 0.015
+
+  --- ff ---
+       n     M   cover |   numpy_sparse acc |    numpy_exact acc
+    1000    16    0.80 |   1.0000 spr 0.046 |   1.0000 spr 0.055
+    1000    32    1.60 |   1.0000 spr 0.048 |   1.0000 spr 0.058
+    1000    64    3.20 |   1.0000 spr 0.050 |   1.0000 spr 0.058
+    1000   128    6.40 |   1.0000 spr 0.051 |   1.0000 spr 0.058
+    1000   256   12.80 |   1.0000 spr 0.051 |   1.0000 spr 0.058
+
+    2000    16    0.40 |   1.0000 spr 0.023 |   1.0000 spr 0.030
+    2000    32    0.80 |   1.0000 spr 0.025 |   1.0000 spr 0.030
+    2000    64    1.60 |   1.0000 spr 0.025 |   1.0000 spr 0.030
+    2000   128    3.20 |   1.0000 spr 0.026 |   1.0000 spr 0.030
+    2000   256    6.40 |   1.0000 spr 0.025 |   1.0000 spr 0.030
+
+    4000    16    0.20 |   1.0000 spr 0.012 |   1.0000 spr 0.012
+    4000    32    0.40 |   1.0000 spr 0.011 |   1.0000 spr 0.013
+    4000    64    0.80 |   1.0000 spr 0.012 |   1.0000 spr 0.013
+    4000   128    1.60 |   1.0000 spr 0.012 |   1.0000 spr 0.013
+    4000   256    3.20 |   1.0000 spr 0.012 |   1.0000 spr 0.013
+
+  READING
+
+     rec ceiling on numpy_sparse: n=1000 M=32  n=2000 M=64  n=4000 M=256    (2.0x -> 4.0x per doubling)
+     rec ceiling on  numpy_exact: n=1000 M=16  n=2000 M=64  n=4000 M=256    (4.0x -> 4.0x per doubling)
+
+      ff ceiling on numpy_sparse: n=1000 M=256  n=2000 M=256  n=4000 M=256    (1.0x -> 1.0x per doubling)
+      ff ceiling on  numpy_exact: n=1000 M=256  n=2000 M=256  n=4000 M=256    (1.0x -> 1.0x per doubling)
+
+    Z1 exact ceiling moves with n:         True   [16, 64, 256]
+    Z2 and does so ~linearly (1.4-3x):    False
+    Z3 sparse inflation GROWS with n:     False   sparse/exact = 2.0x 1.0x 1.0x
+    Z4 ff has no ceiling, either engine:   True   exact [256, 256, 256]  sparse [256, 256, 256]
+
+    against critical-load alpha* (M_max ~ 1.15 n/k):
+       predicted  n=1000 M=23  n=2000 M=46  n=4000 M=92
+       exact      n=1000 M=16  n=2000 M=64  n=4000 M=256
+       sparse     n=1000 M=32  n=2000 M=64  n=4000 M=256
+
+    The ceiling scales with n on exact drive, and the sampler's
+    inflation does NOT grow with n -- so the scaling is real and
+    the instrument is not what produced it. brain.py's inference
+    was right for a reason it had not established.

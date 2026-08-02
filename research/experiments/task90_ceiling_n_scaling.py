@@ -91,19 +91,33 @@ def main() -> None:
             print()
 
     def ceiling(n, mode, engine):
+        """(M, censored). CENSORED means the arm still passed at the LARGEST M
+        tested, so the true ceiling is only bounded BELOW.
+
+        Reporting a censored value as if it were measured is how a sweep
+        manufactures an exponent: at n=4000 the recurrent arm reads 1.0000 at
+        M=256 with spread barely above the floor, so "ceiling = 256" is a
+        statement about M_SWEEP, not about the substrate. Every ratio computed
+        from a censored endpoint is a LOWER BOUND and is printed as ">=".
+        """
         ok = [m for m in M_SWEEP if table[(n, m, mode, engine)][0] > 0.90]
-        return max(ok) if ok else 0
+        top = max(M_SWEEP)
+        return (max(ok) if ok else 0), bool(ok) and max(ok) == top
 
     print("  READING\n")
     for mode in MODES:
         for e in ENGINES:
             cs = [ceiling(n, mode, e) for n in N_SWEEP]
             ratios = " -> ".join(
-                f"{(b / a):.1f}x" if a else "n/a"
-                for a, b in zip(cs, cs[1:]))
-            print(f"    {mode:>4} ceiling on {e:>12}: "
-                  + "  ".join(f"n={n} M={c}" for n, c in zip(N_SWEEP, cs))
+                (">=" if (cb or ab) else "") + f"{(b / a):.1f}x" if a else "n/a"
+                for (a, ab), (b, cb) in zip(cs, cs[1:]))
+            cells = "  ".join(f"n={n} M{'>=' if cen else '='}{c}"
+                              for n, (c, cen) in zip(N_SWEEP, cs))
+            print(f"    {mode:>4} ceiling on {e:>12}: {cells}"
                   + f"    ({ratios} per doubling)")
+        if any(ceiling(n, mode, e)[1] for n in N_SWEEP for e in ENGINES):
+            print(f"         ^ CENSORED at the top of M_SWEEP={max(M_SWEEP)}; "
+                  f"those are lower bounds, not measurements")
         print()
 
     rec_ex = [ceiling(n, "rec", "numpy_exact") for n in N_SWEEP]
@@ -111,29 +125,38 @@ def main() -> None:
     ff_ex = [ceiling(n, "ff", "numpy_exact") for n in N_SWEEP]
     ff_sp = [ceiling(n, "ff", "numpy_sparse") for n in N_SWEEP]
 
-    z1 = len(set(rec_ex)) > 1
-    z2 = all(1.4 <= (b / a) <= 3.0 for a, b in zip(rec_ex, rec_ex[1:]) if a)
-    # inflation = sparse / exact, and Z3 says it GROWS with n
-    infl = [(s / x) if x else float("nan") for s, x in zip(rec_sp, rec_ex)]
+    # Ratios are only interpretable where NEITHER endpoint is censored.
+    steps = [(a, b, ac or bc) for (a, ac), (b, bc)
+             in zip(rec_ex, rec_ex[1:])]
+    clean = [(a, b) for a, b, cen in steps if not cen and a]
+    z1 = len({c for c, _ in rec_ex}) > 1
+    z2 = bool(clean) and all(1.4 <= b / a <= 3.0 for a, b in clean)
+    infl = [(s / x) if x else float("nan")
+            for (s, _), (x, _) in zip(rec_sp, rec_ex)]
     z3 = all(b >= a for a, b in zip(infl, infl[1:])) and max(infl) > 1.0
-    z4 = all(c == max(M_SWEEP) for c in ff_ex + ff_sp)
+    z4 = all(c == max(M_SWEEP) for c, _ in ff_ex + ff_sp)
 
-    print(f"    Z1 exact ceiling moves with n:        {str(z1):>5}   {rec_ex}")
-    print(f"    Z2 and does so ~linearly (1.4-3x):    {str(z2):>5}")
+    print(f"    Z1 exact ceiling moves with n:        {str(z1):>5}   "
+          + " ".join(f"{'>=' if cen else ''}{c}" for c, cen in rec_ex))
+    print(f"    Z2 and does so ~linearly (1.4-3x):    {str(z2):>5}   "
+          + (f"uncensored steps: "
+             + " ".join(f"{a}->{b} ({b / a:.1f}x)" for a, b in clean)
+             if clean else "NO uncensored step -- Z2 IS UNTESTED, not false"))
     print(f"    Z3 sparse inflation GROWS with n:     {str(z3):>5}   "
           f"sparse/exact = " + " ".join(f"{i:.1f}x" for i in infl))
     print(f"    Z4 ff has no ceiling, either engine:  {str(z4):>5}   "
-          f"exact {ff_ex}  sparse {ff_sp}")
+          f"(and every ff value is CENSORED at M={max(M_SWEEP)}, which is what "
+          f"'no ceiling in this range' means)")
 
     print()
     alpha = [1.15 * n / K_ for n in N_SWEEP]
     print("    against critical-load alpha* (M_max ~ 1.15 n/k):")
     print(f"       predicted  " + "  ".join(f"n={n} M={a:.0f}"
                                             for n, a in zip(N_SWEEP, alpha)))
-    print(f"       exact      " + "  ".join(f"n={n} M={c}"
-                                            for n, c in zip(N_SWEEP, rec_ex)))
-    print(f"       sparse     " + "  ".join(f"n={n} M={c}"
-                                            for n, c in zip(N_SWEEP, rec_sp)))
+    for name, cs in (("exact", rec_ex), ("sparse", rec_sp)):
+        print(f"       {name:<10}" + "  ".join(
+            f"n={n} M{'>=' if cen else '='}{c}"
+            for n, (c, cen) in zip(N_SWEEP, cs)))
 
     print()
     if not z4:
@@ -149,10 +172,28 @@ def main() -> None:
         print("    sampler's low-load error runs away rather than where the")
         print("    substrate gains capacity.")
     elif z1:
-        print("    The ceiling scales with n on exact drive, and the sampler's")
-        print("    inflation does NOT grow with n -- so the scaling is real and")
-        print("    the instrument is not what produced it. brain.py's inference")
-        print("    was right for a reason it had not established.")
+        print("    THE CEILING SCALES WITH n, AND THE SAMPLER DID NOT PRODUCE")
+        print("    THAT. Inflation is 2.0x / 1.0x / 1.0x -- it does not grow")
+        print("    with n, so this is the one #90 claim that SURVIVES contact")
+        print("    with exact drive. brain.py's inference was right; it just")
+        print("    had not established it, and my own prediction (Z3, that the")
+        print("    4x step was the instrument running away) is FALSIFIED.")
+        print()
+        print("    BUT IT IS NOT THE LAW ANYONE STATED. On the one uncensored")
+        print("    doubling, exact goes 16 -> 64: FOUR-fold per doubling of n,")
+        print("    not two. That is super-linear, so it is not the coverage law")
+        print("    (M_max ~ n at fixed k), and it is not alpha* either --")
+        print("    1.15n/k predicts 23 / 46 / 92 against measured 16 / 64 />=256.")
+        print("    Critical COVERAGE at the ceiling RISES with n (0.8, 1.6,")
+        print("    >=3.2), which is precisely what a coverage law forbids.")
+        print()
+        print("    WHAT IS NOT ESTABLISHED: the exponent. n=4000 is censored at")
+        print("    the top of M_SWEEP, so 'quadratic' rests on ONE clean step")
+        print("    and three points. A previous n^1.49 claim here was withdrawn")
+        print("    as a fixed-absolute-gain artifact, so the bar is high: locate")
+        print("    the n=4000 ceiling with a longer M_SWEEP before naming any")
+        print("    exponent, and check the mechanism -- extreme-value statistics")
+        print("    over n candidates, not coverage -- predicts the shape.")
     else:
         print("    THE EXACT CEILING DOES NOT MOVE WITH n. The coverage law is")
         print("    refuted on the substrate, and 'accumulated potentiation")

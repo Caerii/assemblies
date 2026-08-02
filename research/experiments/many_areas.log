@@ -1,0 +1,39 @@
+
+  Many areas: compute win, capacity loss, or both?
+  k=50 beta=0.1 p=0.05 buildT=6, M=128 items total, 3 seeds, engine numpy_exact
+  routing is GIVEN, so chance = A/M and rises with A -- read capacity/neuron across rows, not acc
+
+  --- SPLIT: fixed 4000 neurons total ---
+    A  n/area  M/area  neurons  chance      acc   spread   floor     secs  speedup
+    1    4000     128     4000  0.0078   1.0000   0.0139  0.0125     20.0     1.0x
+    2    2000      64     4000  0.0156   1.0000   0.0312  0.0250     15.8     1.3x
+    4    1000      32     4000  0.0312   0.6745   0.1170  0.0500     10.1     2.0x
+    8     500      16     4000  0.0625   0.2865   0.2782  0.1000      6.3     3.2x
+
+  --- GROW:  fixed 1000 neurons per area ---
+    A  n/area  M/area  neurons  chance      acc   spread   floor     secs  speedup
+    1    1000     128     1000  0.0078   0.0208   0.5886  0.0500     45.2     1.0x
+    2    1000      64     2000  0.0156   0.0234   0.3310  0.0500     22.2     2.0x
+    4    1000      32     4000  0.0312   0.6745   0.1170  0.0500     19.9     2.3x
+    8    1000      16     8000  0.0625   1.0000   0.0692  0.0500      7.5     6.0x
+
+  READING
+
+    split wall-clock  A=1:20s  A=2:16s  A=4:10s  A=8:6s
+          if exactly 1/A 20s  10s  5s  3s
+     grow wall-clock  A=1:45s  A=2:22s  A=4:20s  A=8:8s
+          if exactly 1/A 45s  23s  11s  6s
+
+    P1 wall-clock falls ~1/A:             True
+    split items retained / 1000 neurons  A=1:32.0  A=2:32.0  A=4:21.6  A=8:9.2
+     grow items retained / 1000 neurons  A=1:2.7  A=2:1.5  A=4:21.6  A=8:16.0
+
+    P2 SPLIT loses capacity/neuron:       True
+    P3 GROW  holds capacity/neuron flat: False
+
+    MANY AREAS ARE A COMPUTE WIN PAID FOR IN CAPACITY.
+    Out of a FIXED neuron budget, partitioning buys back the
+    quadratic -- the same items cost ~1/A -- and gives up
+    capacity per neuron, because one big area holds more than
+    the sum of its parts. Which side wins is a choice about what
+    is scarce, not a fact about the model.
