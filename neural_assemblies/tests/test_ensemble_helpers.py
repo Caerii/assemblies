@@ -180,3 +180,50 @@ class TestGainStability:
 
         with pytest.raises(ValueError, match="at least two gains"):
             gain_stability(lambda g: 1.0, (1.0,), noise_floor=0.2)
+
+
+class TestVerifyProbe:
+    """`verify_probe` refuses an instrument that cannot produce both answers.
+
+    The three cases below are not hypothetical -- they are the three probes
+    written in one evening, all on the same object, all reading exactly 1.000
+    for three DIFFERENT reasons. Two were caught by disbelieving a round
+    number; the third shipped, and a published result had to be retracted.
+    """
+
+    def test_accepts_a_probe_that_separates(self):
+        from neural_assemblies.diagnostics import verify_probe
+        c = verify_probe(lambda: 0.9, lambda: 0.1, label="sane")
+        assert c.discriminating and c.separation == pytest.approx(0.8)
+
+    def test_refuses_the_index_tie_break_shape(self):
+        """Untrained weights all tie, so k-WTA returns the same set either way."""
+        from neural_assemblies.diagnostics import verify_probe
+        with pytest.raises(AssertionError, match="cannot discriminate"):
+            verify_probe(lambda: 1.0, lambda: 1.0, label="tie-break")
+
+    def test_refuses_the_saturated_shape(self):
+        """0.846 against 0.840 is a difference between two ceilings."""
+        from neural_assemblies.diagnostics import verify_probe
+        with pytest.raises(AssertionError, match="cannot discriminate"):
+            verify_probe(lambda: 0.846, lambda: 0.840, label="saturated")
+
+    def test_refuses_an_inverted_probe(self):
+        """Reading LOW where it must read HIGH is worse than not separating."""
+        from neural_assemblies.diagnostics import verify_probe
+        with pytest.raises(AssertionError, match="cannot discriminate"):
+            verify_probe(lambda: 0.1, lambda: 0.9, label="inverted")
+
+    def test_the_separation_bar_is_caller_supplied(self):
+        """A real effect smaller than the blunt default must still be statable
+        -- but stated BEFORE the data, for the reason gain_stability's
+        noise_floor is mandatory."""
+        from neural_assemblies.diagnostics import verify_probe
+        c = verify_probe(lambda: 0.55, lambda: 0.50, min_separation=0.04,
+                         label="fine-grained")
+        assert c.discriminating
+
+    def test_it_reports_both_readings_for_the_log(self):
+        from neural_assemblies.diagnostics import verify_probe
+        c = verify_probe(lambda: 0.7, lambda: 0.2, label="probe")
+        assert "0.7000" in str(c) and "0.2000" in str(c)
