@@ -1,0 +1,33 @@
+
+  #93 -- can p, beta or homeostasis move the arc's 2:1 trade?
+  n=1000 k=50, 60 sentences, 2 seeds, NEURON IDS throughout
+  a real conjunction needs BOTH separations below 0.5
+
+              cell     p  beta  homeo  across-STATE  across-MOOD   multi  1-mood
+          baseline  0.05  0.06  False          0.98         0.81    4/16     0/4
+            p=0.10  0.10  0.06  False          0.97         0.89    2/16     0/4
+    p=0.20 (paper)  0.20  0.06  False          0.95         0.91    2/16     0/4
+       homeostasis  0.05  0.06   True          1.00         0.46    1/16     0/4
+    p=0.20 + homeo  0.20  0.06   True          1.00         0.61    2/16     2/4
+        + low beta  0.20  0.01   True          0.99         0.62    2/16     0/4
+
+  READING
+
+    P1 raising p lowers across-STATE:         True   0.98 -> 0.95
+    P2 homeostasis moves the RATIO:          False   best homeo cell 1.00 / 0.46
+    P3 some cell has BOTH below 0.5:         False   none
+
+    best sum: homeostasis -> 1.00 + 0.46 = 1.46   (baseline 1.79), multi 1/16, floor 0/4
+
+    NO CELL IS A CONJUNCTION. Across every axis on which our
+    setup violates the theorem -- density, plasticity, per-round
+    homeostasis -- one shared k-WTA area still cannot hold
+    (state, symbol). The remedy is then architectural, not
+    parametric: an arc area per state, or the paper's mutual
+    inhibition over the ROLE areas, which this repo has measured
+    as never once firing ([[mutual-inhibition-prefers-untrained]]).
+
+    WARNING: a cell that improved the separations FAILED the
+    single-mood floor. Improvement there is not a better
+    conjunction, it is a model that stopped working -- the
+    failure mode that made the #95 arc arms uninterpretable.

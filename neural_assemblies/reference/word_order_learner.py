@@ -126,6 +126,7 @@ class WordOrderLearner:
         conjunctive_arc: bool = False,
         scoring: str = "winners",
         synaptic_scaling: bool = False,
+        engine: str = "auto",
     ):
         if scoring not in ("winners", "pre_kwta"):
             raise ValueError(
@@ -167,8 +168,23 @@ class WordOrderLearner:
         # participate at all. Both inputs to ARC are areas, so both are covered.
         #
         # numpy_sparse only.
+        # ENGINE IS NOW A PARAMETER, and it should have been from the start.
+        # This class had none, so every word-order result in this repository --
+        # the 24/32 baseline, the arc arms, the p/beta/homeostasis sweeps --
+        # was measured on `numpy_sparse`, whose candidate sampler INVENTS the
+        # drive for neurons that have not fired. This session established that
+        # matched load is not sufficient to trust such an A/B and that
+        # "nothing short of re-running on exact drive clears one"
+        # ([[sampler-error-changes-sign-across-arms]]), and the arc manipulation
+        # ADDS AN AREA -- the largest recruitment change available, i.e. exactly
+        # the class the sampler distorts most.
+        #
+        # `numpy_exact` computes the drive instead. Note the one interaction to
+        # watch: it does not yet apply plasticity into a FIXED area (#97). PHON
+        # and MOOD are fixed here by `activate`, but only ever as SOURCES, so
+        # this protocol is unaffected -- checked rather than assumed.
         self.brain = Brain(p=p, seed=seed, norm_init=norm_init,
-                           synaptic_scaling=synaptic_scaling)
+                           synaptic_scaling=synaptic_scaling, engine=engine)
         # PHON and MOOD are EXPLICIT: each word / mood is a fixed, addressable
         # assembly, activated by index exactly as the reference does.
         self.brain.add_explicit_area(PHON, self.num_words * k, k, beta)

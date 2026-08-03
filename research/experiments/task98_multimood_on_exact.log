@@ -1,0 +1,29 @@
+
+  #98 -- multi-mood word order: sampler vs exact drive
+  n=1000 k=50 p=0.05 beta=0.06, 60 sentences, 3 seeds
+
+  numpy_sparse
+      SVO+SOV   3/6
+      SVO+VSO   3/6
+      SOV+OVS   6/6
+      VSO+OVS   6/6
+      TOTAL 18/24   single-mood floor 4/4
+
+  numpy_exact
+      SVO+SOV   4/6
+      SVO+VSO   4/6
+      SOV+OVS   6/6
+      VSO+OVS   6/6
+      TOTAL 20/24   single-mood floor 4/4
+
+  READING
+
+    M1 exact beats sparse:                  True   18 -> 20 of 24
+    M2 gain concentrated in SVO+SOV:        True   shared-opening +1, others +1 over 3 pairs
+    M3 single-mood floor holds on exact:    True   4/4
+
+    THE SAMPLER WAS A LARGE PART OF THE PROBLEM. Every
+    word-order number in this repo predates an `engine`
+    parameter on WordOrderLearner and is therefore a sampler
+    measurement; the arc programme in #92/#93/#95 was built to
+    fix a failure the exact substrate does not fully have.
