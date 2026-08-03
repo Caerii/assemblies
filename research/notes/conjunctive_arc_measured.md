@@ -36,19 +36,27 @@ as every other transition. Fired for the same number of rounds as the direct
 order synapse it replaces, so the two arms differ in the SOURCE of the order
 signal and not in how much drive it gets.
 
-## The arc itself works
+## The arc itself works -- WEAKER THAN FIRST REPORTED
+
+> ⚠️ The separations below were first recorded as **0.46-0.78** across moods.
+> That was `set(area.winners)` -- COMPACT ENGINE INDICES -- compared between two
+> deepcopies, and under `frozen()` recruitment still runs, so the copies can
+> assign the same index to different neurons. On stable neuron IDs
+> (`diagnostics.read_assembly`) the true figures are worse, and one state is
+> effectively merged. Caught by `test_index_space_ratchet`.
 
     same-(state, mood) formed twice, overlap   1.00, 1.00, 1.00   (stable identity)
-    across moods, same state                   q0 0.46-0.62   S 0.70-0.76
-                                               V 0.64-0.78    O 0.54-0.66
+    across moods, same state (NEURON IDS)      q0 0.48   S 0.83
+                                               V 0.97    O 0.58
     HELPER across moods (the thing it replaces)          1.00
-    SYNTAX across moods                                  0.96-0.98
+    SYNTAX across moods                                  0.98-1.00
 
-So the arc has a stable identity AND is mood-specific, which is more than any
-previous intervention achieved -- five are on record as failing, and the
-structural workaround `per_mood_syntax` succeeds only by adding an area per
-mood. This is the first version where the mood distinction is both LEARNED and
-actually present in an assembly.
+So the arc has a stable identity and is PARTLY mood-specific -- better than
+HELPER's flat 1.00 at q0 and O, but at V (0.97) it is merged. The earlier claim
+that "the mood distinction is both LEARNED and actually present in an assembly"
+overstated it: it is present for some states and absent for others. See
+`arc_conjunction_has_no_operating_point.md` for the corrected sweep and for why
+there is no gain setting that fixes this.
 
 ## And it does not reach the output, because the readout is size-confounded
 

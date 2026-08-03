@@ -69,6 +69,24 @@ from typing import Dict, List, Optional, Sequence
 
 from neural_assemblies.assembly_calculus.binding import input_drive
 from neural_assemblies.core.brain import Brain
+from neural_assemblies.diagnostics import assembly_overlap, read_assembly
+
+
+def _mean_pairwise_overlap(snaps: Sequence) -> float:
+    """Mean overlap over all pairs, on NEURON IDS.
+
+    Deliberately not `set(area.winners)`: those are COMPACT ENGINE INDICES,
+    renumbered as an area recruits. This probe compares two DEEPCOPIES of one
+    brain driven with different moods, and `frozen()` still permits
+    recruitment, so the copies can hand the same compact index to different
+    neurons -- the comparison would then read chance and look like a clean
+    negative. Caught by `test_index_space_ratchet`; see
+    [[two-index-spaces-compact-vs-neuron-id]].
+    """
+    pairs = [(a, b) for i, a in enumerate(snaps) for b in snaps[i + 1:]]
+    if not pairs:
+        return float("nan")
+    return sum(assembly_overlap(a, b) for a, b in pairs) / len(pairs)
 
 PHON = "PHON"
 MOOD = "MOOD"
@@ -452,7 +470,7 @@ class WordOrderLearner:
         live, saved_mood = self.brain, self._mood_now
         try:
             for c in CONSTITUENTS:
-                snaps: List[set] = []
+                snaps: List = []
                 for mi in self.mood_orders:
                     self.brain = copy.deepcopy(live)
                     with self.brain.frozen():
@@ -463,13 +481,8 @@ class WordOrderLearner:
                         self.brain.project(
                             {}, {HELPER[c]: [syn], MOOD: [syn]})
                         name = syn if which == "syntax" else HELPER[c]
-                        snaps.append(set(self.brain.areas[name].winners))
-                pairs = [(a, b) for i, a in enumerate(snaps)
-                         for b in snaps[i + 1:]]
-                out[c] = (
-                    sum(len(a & b) / max(min(len(a), len(b)), 1)
-                        for a, b in pairs) / max(len(pairs), 1)
-                )
+                        snaps.append(read_assembly(self.brain, name))
+                out[c] = _mean_pairwise_overlap(snaps)
         finally:
             self.brain, self._mood_now = live, saved_mood
         return out
@@ -491,7 +504,7 @@ class WordOrderLearner:
         live, saved_mood = self.brain, self._mood_now
         try:
             for q in ("q0",) + CONSTITUENTS:
-                snaps: List[set] = []
+                snaps: List = []
                 for mi in self.mood_orders:
                     self.brain = copy.deepcopy(live)
                     with self.brain.frozen():
@@ -503,13 +516,8 @@ class WordOrderLearner:
                             self.brain.project(
                                 {}, {HELPER[q]: [self._syn(q)], MOOD: [self._syn(q)]})
                         self._form_arc(None if q == "q0" else q)
-                        snaps.append(set(self.brain.areas[ARC].winners))
-                pairs = [(a, b) for i, a in enumerate(snaps)
-                         for b in snaps[i + 1:]]
-                out[q] = (
-                    sum(len(a & b) / max(min(len(a), len(b)), 1)
-                        for a, b in pairs) / max(len(pairs), 1)
-                )
+                        snaps.append(read_assembly(self.brain, ARC))
+                out[q] = _mean_pairwise_overlap(snaps)
         finally:
             self.brain, self._mood_now = live, saved_mood
         return out
