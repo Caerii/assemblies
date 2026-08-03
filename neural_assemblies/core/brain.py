@@ -1162,7 +1162,9 @@ class Brain:
         for stim_name, stim in self.stimuli.items():
             if area.explicit:
                 # For explicit areas, create actual connectome matrices
-                connectome = Connectome(stim.size, area.n, self.p, sparse=False, rng=self._conn_rng)
+                connectome = Connectome(stim.size, area.n, self.p, sparse=False,
+                                        rng=self._conn_rng,
+                                        pair_seed=self._fiber_seed(stim_name, area.name))
             else:
                 # For sparse areas, start with empty 1D vector of length area.w (0)
                 connectome = Connectome(stim.size, area.n, self.p, sparse=True, rng=self._conn_rng)
@@ -1172,7 +1174,9 @@ class Brain:
 
         # Initialize self-connection for the area
         if area.explicit:
-            self_connectome = Connectome(area.n, area.n, self.p, sparse=False, rng=self._conn_rng)
+            self_connectome = Connectome(area.n, area.n, self.p, sparse=False,
+                                         rng=self._conn_rng,
+                                         pair_seed=self._fiber_seed(area.name, area.name))
         else:
             self_connectome = Connectome(area.n, area.n, self.p, sparse=True, rng=self._conn_rng)
             # For sparse, represent area-to-area as 2D with 0 columns
@@ -1184,8 +1188,14 @@ class Brain:
             if other_area_name != area.name:
                 if area.explicit or other_area.explicit:
                     # Create actual connectome matrices if either area is explicit
-                    connectome = Connectome(other_area.n, area.n, self.p, sparse=False, rng=self._conn_rng)
-                    connectome_rev = Connectome(area.n, other_area.n, self.p, sparse=False, rng=self._conn_rng)
+                    connectome = Connectome(
+                        other_area.n, area.n, self.p, sparse=False,
+                        rng=self._conn_rng,
+                        pair_seed=self._fiber_seed(other_area_name, area.name))
+                    connectome_rev = Connectome(
+                        area.n, other_area.n, self.p, sparse=False,
+                        rng=self._conn_rng,
+                        pair_seed=self._fiber_seed(area.name, other_area_name))
                 else:
                     # Both areas are sparse, represent compactly with 0x0 matrices initially
                     connectome = Connectome(other_area.n, area.n, self.p, sparse=True, rng=self._conn_rng)
@@ -1200,6 +1210,23 @@ class Brain:
                 area.beta_by_area[other_area_name] = area.beta
                 other_area.beta_by_area[area.name] = area.beta
 
+    def _fiber_seed(self, source: str, target: str) -> int:
+        """Content-addressed identity for one fiber's initial wiring.
+
+        Dense connectomes used to draw from a STREAM, so a fiber's wiring
+        depended on how many draws preceded it -- i.e. on the order areas and
+        stimuli were created. Two Brains with the SAME seed and the same two
+        areas, built in opposite order, agreed on X->X wiring at 0.905, which
+        is exactly chance for p=0.05. Door 5 of
+        [[content-addressed-synapse-init]].
+
+        Keying on (global seed, source name, target name) makes the wiring a
+        function of WHICH fiber it is, so construction order cannot reach it.
+        Same primitive `numpy_exact` is built on.
+        """
+        from .numpy_engine._seeding import fnv1a_pair_seed
+        return fnv1a_pair_seed(self._seed, source, target)
+
     def _initialize_connectomes_for_stimulus(self, stimulus: Stimulus):
         """
         Initializes connectomes related to a new stimulus.
@@ -1211,7 +1238,9 @@ class Brain:
         # Initialize connectomes from stimulus to all areas
         for area_name, area in self.areas.items():
             if area.explicit:
-                connectome = Connectome(stimulus.size, area.n, self.p, sparse=False, rng=self._conn_rng)
+                connectome = Connectome(stimulus.size, area.n, self.p, sparse=False,
+                                        rng=self._conn_rng,
+                                        pair_seed=self._fiber_seed(stimulus.name, area_name))
             else:
                 connectome = Connectome(stimulus.size, area.n, self.p, sparse=True, rng=self._conn_rng)
                 connectome.weights = xp.empty(0, dtype=xp.float32)

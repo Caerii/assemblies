@@ -33,6 +33,7 @@ class NumpyExplicitEngine(ComputeEngine):
                  deterministic: bool = False):
         self.p = p
         self.w_max = w_max
+        self.seed = int(seed)
         self._rng = np.random.default_rng(seed)
         self._plasticity_enabled_global = True
 
@@ -41,6 +42,23 @@ class NumpyExplicitEngine(ComputeEngine):
         self._stim_conns: Dict[str, Dict[str, Connectome]] = defaultdict(dict)
         self._area_conns: Dict[str, Dict[str, Connectome]] = defaultdict(dict)
         self._winner_sel = WinnerSelector(self._rng)
+
+    def _fiber_seed(self, source: str, target: str) -> int:
+        """Content-addressed identity for one fiber -- door 5 of
+        [[content-addressed-synapse-init]].
+
+        This engine draws its dense connectomes from a single `_rng` STREAM, so
+        a fiber's wiring depended on how many draws preceded it: two Brains
+        with the same seed and the same areas, created in opposite order,
+        agreed on X->X wiring at 0.905, exactly chance for p=0.05. Keying on
+        (seed, source, target) makes wiring a function of WHICH fiber it is.
+
+        The explicit engine is where explicit areas' connectomes are actually
+        born -- `Brain` adopts the same objects -- so patching Brain alone left
+        this open, verified by the object identities matching.
+        """
+        from ._seeding import fnv1a_pair_seed
+        return fnv1a_pair_seed(self.seed, source, target)
 
     def add_area(self, name: str, n: int, k: int, beta: float,
                  refractory_period: int = 0,
@@ -51,23 +69,33 @@ class NumpyExplicitEngine(ComputeEngine):
         self._areas[name] = area
 
         for stim_name, stim in self._stimuli.items():
-            conn = Connectome(stim.size, n, self.p, sparse=False, rng=self._rng)
+            conn = Connectome(stim.size, n, self.p, sparse=False,
+                              rng=self._rng,
+                              pair_seed=self._fiber_seed(stim_name, name))
             self._stim_conns[stim_name][name] = conn
             area.beta_by_source[stim_name] = beta
 
         for other_name, other in self._areas.items():
             if other_name == name:
-                self._area_conns[name][name] = Connectome(n, n, self.p, sparse=False, rng=self._rng)
+                self._area_conns[name][name] = Connectome(
+                    n, n, self.p, sparse=False, rng=self._rng,
+                    pair_seed=self._fiber_seed(name, name))
             else:
-                self._area_conns[other_name][name] = Connectome(other.n, n, self.p, sparse=False, rng=self._rng)
-                self._area_conns[name][other_name] = Connectome(n, other.n, self.p, sparse=False, rng=self._rng)
+                self._area_conns[other_name][name] = Connectome(
+                    other.n, n, self.p, sparse=False, rng=self._rng,
+                    pair_seed=self._fiber_seed(other_name, name))
+                self._area_conns[name][other_name] = Connectome(
+                    n, other.n, self.p, sparse=False, rng=self._rng,
+                    pair_seed=self._fiber_seed(name, other_name))
                 area.beta_by_source[other_name] = beta
                 other.beta_by_source[name] = beta
 
     def add_stimulus(self, name: str, size: int) -> None:
         self._stimuli[name] = StimulusState(name=name, size=size)
         for area_name, area in self._areas.items():
-            conn = Connectome(size, area.n, self.p, sparse=False, rng=self._rng)
+            conn = Connectome(size, area.n, self.p, sparse=False,
+                              rng=self._rng,
+                              pair_seed=self._fiber_seed(name, area_name))
             self._stim_conns[name][area_name] = conn
             area.beta_by_source[name] = area.beta
 

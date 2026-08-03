@@ -13,7 +13,7 @@ class Connectome:
     """
 
     def __init__(self, source_size: int, target_size: int, p: float,
-                 sparse: bool = False, rng=None):
+                 sparse: bool = False, rng=None, pair_seed=None):
         """
         Initializes the Connectome.
 
@@ -44,6 +44,19 @@ class Connectome:
         # raises "cannot pickle 'module' object". Resolve the fallback at call
         # time instead; see `_gen`.
         self._rng = rng
+        # CONTENT-ADDRESSED WIRING when a pair seed is supplied -- door 5 of
+        # [[content-addressed-synapse-init]]. Without it, the dense path draws
+        # from a STREAM, so a fiber's wiring depends on how many draws happened
+        # before it, i.e. on the ORDER areas were created. Measured: two Brains
+        # with the SAME seed and the same two areas, created in opposite order,
+        # agree on X->X wiring at 0.905 -- exactly the chance level for p=0.05
+        # (0.05^2 + 0.95^2), so the two wirings are independent draws.
+        #
+        # `hash_area_weights` keys each synapse on (row, col, pair_seed), so
+        # creation order cannot reach it. This is the same primitive
+        # `numpy_exact` is built on; door 5 stayed open only because the dense
+        # path predates it.
+        self._pair_seed = pair_seed
         self.weights = self._initialize_weights()
 
     @property
@@ -68,7 +81,16 @@ class Connectome:
             return xp.empty((self.source_size, 0), dtype=xp.float32)
         else:
             # For explicit simulation, create full weight matrix
-            # Binomial sampling on CPU, then transfer to backend
+            if self._pair_seed is not None:
+                from .numpy_engine._seeding import hash_area_weights
+                w = np.asarray(
+                    hash_area_weights(0, self.source_size,
+                                      0, self.target_size,
+                                      self._pair_seed, self.p),
+                    dtype=np.float32)
+                return to_xp(w)
+            # Stream fallback: order-dependent, kept only for direct
+            # construction without a fiber identity. See __init__.
             w = self._gen.binomial(
                 1, self.p,
                 size=(self.source_size, self.target_size),
