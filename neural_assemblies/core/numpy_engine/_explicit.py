@@ -18,6 +18,7 @@ try:
 except ImportError:
     from compute.winner_selection import WinnerSelector, select_slot_winners
 
+from ._exact import _reject_unsupported
 from ._state import ExplicitAreaState, StimulusState
 
 
@@ -60,12 +61,50 @@ class NumpyExplicitEngine(ComputeEngine):
         from ._seeding import fnv1a_pair_seed
         return fnv1a_pair_seed(self.seed, source, target)
 
+    #: Per-area mechanisms `Brain.add_area` forwards that this engine does not
+    #: implement, with the value meaning "not requested". Same rationale as
+    #: `NumpyExactEngine._UNSUPPORTED_AREA`.
+    #:
+    #: `refractory_period` and `inhibition_strength` were in the SIGNATURE and
+    #: went nowhere -- `ExplicitAreaState` has no field for either, so LRI was
+    #: silently off on this engine while the caller's configuration said it was
+    #: on. That is [[silent-no-op-dead-fibers]] exactly: configured, wired,
+    #: never runs, and the symptom is "LRI seems to have little effect".
+    _UNSUPPORTED_AREA = {
+        "refractory_period": 0,
+        "inhibition_strength": 0.0,
+        "input_noise_std": 0.0,
+    }
+
     def add_area(self, name: str, n: int, k: int, beta: float,
                  refractory_period: int = 0,
                  inhibition_strength: float = 0.0,
-                 slot_count: int = 0) -> None:
+                 slot_count: int = 0,
+                 winner_policy=None,
+                 input_noise_std: float = 0.0) -> None:
+        """Dense area registration.
+
+        `winner_policy` and `input_noise_std` ARE IN THIS SIGNATURE because
+        `Brain.add_area` forwards them to the primary engine unconditionally.
+        Without them `Brain(engine="numpy_explicit")` raised TypeError on the
+        first `add_area` -- so the dense engine, which is the ground truth every
+        sampler result is checked against, could not be constructed through the
+        public API at all. It was reachable only as an `explicit=True` area
+        inside a sparse brain, by a different call with a different kwarg set.
+
+        `winner_policy` is implemented here rather than refused: this engine has
+        an RNG and a `WinnerSelector` already, and a competition rule that
+        cannot run on the exact-drive engine is a rule whose results cannot be
+        checked (#94). `input_noise_std` is refused loudly instead of ignored.
+        """
+        _reject_unsupported(
+            f"NumpyExplicitEngine.add_area({name!r})", self._UNSUPPORTED_AREA,
+            dict(refractory_period=refractory_period,
+                 inhibition_strength=inhibition_strength,
+                 input_noise_std=input_noise_std))
         area = ExplicitAreaState(name=name, n=n, k=k, beta=beta,
-                                 slot_count=slot_count)
+                                 slot_count=slot_count,
+                                 winner_policy=winner_policy)
         self._areas[name] = area
 
         for stim_name, stim in self._stimuli.items():
@@ -173,9 +212,7 @@ class NumpyExplicitEngine(ComputeEngine):
                 prev_winner_inputs, tgt.k, tgt.slot_count,
             )
         else:
-            _, _, _, winners = self._winner_sel.select_combined_winners(
-                prev_winner_inputs, tgt.n, tgt.k,
-            )
+            winners = self._select_winners(prev_winner_inputs, tgt)
 
         # Apply plasticity
         if plasticity_enabled and self._plasticity_enabled_global:
@@ -221,6 +258,30 @@ class NumpyExplicitEngine(ComputeEngine):
             num_ever_fired=tgt.num_ever_fired,
             total_activation=total_act,
         )
+
+    def _select_winners(self, drive, tgt):
+        """k-WTA unless the area carries a `winner_policy`.
+
+        Policies go through the SHARED `compute.winner_selection`
+        implementation, exactly as `NumpyExactEngine._select_winners` does, so
+        the engines cannot come to disagree about what a policy MEANS -- the
+        failure mode of [[pricing-law-implemented-twice]], where the same law
+        was implemented twice and one copy missed two fixes.
+
+        Unlike the exact engine this one HAS an RNG, so a policy that samples
+        works here rather than needing a stand-in generator.
+        """
+        policy = getattr(tgt, "winner_policy", None)
+        if policy is None:
+            _, _, _, winners = self._winner_sel.select_combined_winners(
+                drive, tgt.n, tgt.k)
+            return winners
+        from ...compute.winner_policies import TopKPolicy
+        if isinstance(policy, TopKPolicy) and policy.k == tgt.k:
+            _, _, _, winners = self._winner_sel.select_combined_winners(
+                drive, tgt.n, tgt.k)
+            return winners
+        return self._winner_sel.select_with_policy(drive, policy)
 
     def get_winners(self, area: str) -> np.ndarray:
         st = self._areas[area]

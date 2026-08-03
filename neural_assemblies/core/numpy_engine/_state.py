@@ -58,6 +58,13 @@ class ExplicitAreaState:
     fixed_assembly: bool = False
     beta_by_source: dict = field(default_factory=dict)
     slot_count: int = 0
+    #: Competition rule; None is plain k-WTA. Present here for the same reason
+    #: it was added to `numpy_exact` (#94): an emergent-size rule like E%-WTA is
+    #: a claim about the DRIVE DISTRIBUTION, so it has to be runnable on an
+    #: engine that does not invent drive. This is the dense ground-truth engine,
+    #: and a policy being unavailable here is what makes a policy result
+    #: uncheckable rather than merely unmeasured.
+    winner_policy: object = None
 
     def __post_init__(self):
         xp = get_xp()

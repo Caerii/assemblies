@@ -265,6 +265,48 @@ class ComputeEngine(ABC):
     def preallocate_stim_targets(self, target: str, min_columns: int) -> None:
         """Extend stim→*target* 1-D weight vectors to *min_columns* (no-op default)."""
 
+    # -- Materialization --
+
+    def fiber_extent(self, source: str, target: str) -> Optional[int]:
+        """How many of *target*'s neurons this fiber has COLUMNS for, or None.
+
+        WHY THIS EXISTS.  Three different numbers are in play for a lazily
+        materialized fiber and callers were picking between them by hand::
+
+            area.w            neurons the engine has materialized -- EXCEPT on
+                              the explicit engine, where it is len(winners)==k
+                              and is not an extent at all
+            conn._log_cols    the fiber's logical column watermark, which can
+                              lag `w` when the area grew through some OTHER
+                              fiber
+            conn.weights.shape[1]   PHYSICAL capacity, which over-runs both
+                              because growth doubles
+
+        Measured on one recurrent protocol at n=1000, the three gave 247 / 213 /
+        367 columns for the same fiber at the same instant, and the quantity
+        being measured through them moved 1.87 / 1.65 / 2.84.  Choosing wrong is
+        not a rounding error, and nothing in the API made the choice explicit.
+
+        ``None`` means the question does not apply: the fiber is dense, so every
+        one of the target's neurons has a column and there is no watermark to
+        disagree with.  Callers must treat ``None`` as "not applicable", NOT as
+        zero -- that distinction is the whole point of an Optional return.
+
+        Engines that do not materialize lazily inherit this default.
+        """
+        return None
+
+    def materialized_count(self, area: str) -> Optional[int]:
+        """Neurons of *area* that have been given a compact index, or None.
+
+        The companion to `fiber_extent`.  ``None`` for engines that allocate all
+        ``n`` up front, where the concept does not apply.  Deliberately NOT
+        named ``w``: `w` already means two different things depending on which
+        object is asked, and adding a third reader of that name to the ABC is
+        how the confusion propagates.
+        """
+        return None
+
     # -- Identity --
 
     @property

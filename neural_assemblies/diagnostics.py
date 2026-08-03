@@ -418,6 +418,39 @@ class FiberState:
     nnz: int
     p99_over_median: float
     dst_w: int
+    #: Logical column watermark of a LAZY fiber; None when the fiber is dense
+    #: (every column exists) or the engine does not materialize lazily.
+    #: None means NOT APPLICABLE and must not be read as zero.
+    extent: Optional[int] = None
+    #: Neurons the engine has actually materialized in `dst`, or None. NOT the
+    #: same as `dst_w`, which is Brain-side and means len(winners) on an
+    #: explicit area. See ComputeEngine.fiber_extent.
+    dst_materialized: Optional[int] = None
+
+    @property
+    def extent_desync(self) -> int:
+        """``materialized - extent``: neurons of the target with NO column here.
+
+        Zero whenever the question does not apply (dense fiber, or an engine
+        that allocates all ``n`` up front), so a caller can sum this over a
+        census without special-casing.
+
+        WHAT A NONZERO VALUE MEANS. The target area grew through some other
+        fiber and this one was not expanded with it, so its last columns are
+        allocated-but-uninitialised zeros. Any read that slices this fiber by
+        the area's neuron count therefore includes columns that deliver
+        identically nothing, and any read that slices by the watermark silently
+        drops real neurons.
+
+        MEASURED. A `frozen()` probe -- plasticity off, recruitment ON -- adds
+        ~26 neurons and desyncs by exactly that many, because the probe drove
+        the area from a stimulus while the self fiber was not a source. The same
+        probe under `read_only()` desyncs by 0. This is the observable form of
+        "the probe changed the thing it was measuring".
+        """
+        if self.extent is None or self.dst_materialized is None:
+            return 0
+        return int(self.dst_materialized) - int(self.extent)
 
     @property
     def dead(self) -> bool:
@@ -440,6 +473,21 @@ class FiberState:
         information from this source.
         """
         return self.dead and self.dst_w > 0
+
+
+def _safe(fn, *args):
+    """Call an OPTIONAL engine accessor, returning None if it is not there.
+
+    `fiber_extent` / `materialized_count` have defaults on the ABC, but engines
+    are also constructed directly in research code and third-party subclasses
+    predate them. A census that raised on an older engine would be worse than
+    one that reports "not applicable", which is already the meaning of None.
+    """
+    try:
+        v = fn(*args)
+    except Exception:                                        # noqa: BLE001
+        return None
+    return None if v is None else int(v)
 
 
 def _fiber_shape(conn):
@@ -542,9 +590,22 @@ def fiber_census(brain, driven: Optional[Mapping[str, Sequence[str]]] = None
                     continue
                 seen.add((src_name, dst_name))
                 rows, cols, nnz, ratio = _fiber_shape(conn)
+                # Ask the ENGINE for the logical extent rather than reaching
+                # into one backend's storage -- same principle as _fiber_shape.
+                # Both are Optional and None means "not applicable", so a dense
+                # fiber reports no desync instead of a spurious one.
+                extent = _safe(eng.fiber_extent, src_name, dst_name)
+                mat = _safe(eng.materialized_count, dst_name)
                 out.append(FiberState(src_name, dst_name, int(rows),
-                                      int(cols), nnz, ratio, dst_w))
+                                      int(cols), nnz, ratio, dst_w,
+                                      extent=extent, dst_materialized=mat))
 
+    # VERDICTS ONLY WHEN THE CALLER DECLARES `driven`. Appending them
+    # unconditionally would change what a plain census RETURNS -- every
+    # existing caller does `[f for f in fiber_census(b) if f.dead]` and a
+    # Verdict has no `.dead`. A desync is still visible without `driven`: it is
+    # `.extent_desync` on the record, which is where a census belongs. The
+    # difference between a census and a test is the declaration.
     if driven:
         by_pair = {(f.src, f.dst): f for f in out}
         for src, dsts in driven.items():
@@ -561,6 +622,17 @@ def fiber_census(brain, driven: Optional[Mapping[str, Sequence[str]]] = None
                         f"{dst} has w={f.dst_w} -- this source delivers ZERO "
                         f"drive and the projection silently returns "
                         f"{dst}'s existing assembly"))
+                elif f.extent_desync:
+                    out.append(Verdict(  # type: ignore[arg-type]
+                        False, f"fiber {src}->{dst}",
+                        f"EXTENT DESYNC by {f.extent_desync}: {dst} has "
+                        f"{f.dst_materialized} materialized neurons but this "
+                        f"fiber has columns for only {f.extent}. The area grew "
+                        f"through a different fiber and this one was not "
+                        f"expanded with it, so its last {f.extent_desync} "
+                        f"columns are uninitialised zeros and deliver nothing. "
+                        f"A probe under frozen() does exactly this; "
+                        f"read_only() does not"))
     return out
 
 

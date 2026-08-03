@@ -74,20 +74,21 @@ def test_fibers_drawn_before_the_insertion_point_are_unaffected():
     assert np.array_equal(s1_without, s1_with)
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="Connectome._initialize_weights draws sequentially from one shared "
-           "generator, so an unused stimulus shifts every fiber built after "
-           "it (~9.5% of A->A synapses at n=500). Fixing it means keying dense "
-           "init on (source, target) content the way the sparse path already "
-           "does, which rewires every explicit-engine golden and needs its own "
-           "re-recording pass.")
 def test_unused_stimulus_does_not_rewire_the_recurrent_fiber():
     """Declaring a stimulus you never fire must not change the connectome.
 
-    Measured today: 23752 of 250000 A->A synapses differ, and the downstream
-    effect is not subtle -- explicit `project` persistence read 0.9048 without
-    the unused stimulus and 0.7460 with it, at identical parameters.
+    WAS XFAIL, NOW PASSES -- door 5 of [[content-addressed-synapse-init]] is
+    closed (d253b33). The old reason named the fix exactly: "keying dense init
+    on (source, target) content the way the sparse path already does". That is
+    what `Connectome(pair_seed=...)` plus `NumpyExplicitEngine._fiber_seed` do,
+    so the predicted golden re-recording pass was not needed after all -- the
+    fiber a golden was recorded on now gets the SAME wiring it had, because
+    wiring is a function of which fiber it is rather than of draw order.
+
+    Measured when this was a defect: 23752 of 250000 A->A synapses differed,
+    and the downstream effect was not subtle -- explicit `project` persistence
+    read 0.9048 without the unused stimulus and 0.7460 with it, at identical
+    parameters.
     """
     _, aa_without = _wiring(False)
     _, aa_with = _wiring(True)

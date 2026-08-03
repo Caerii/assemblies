@@ -508,6 +508,10 @@ class NumpySparseEngine(ComputeEngine):
         self._pair_seeds: Dict[tuple, int] = {}
         # Set only inside Brain.read_only(); see the guard in project_into.
         self._no_recruitment = False
+        # Opt-in: raise when a projection RECRUITS while plasticity is off.
+        # See the raise site in project_into for why this is not the default.
+        self._strict_probes = bool(int(
+            os.environ.get("NEURAL_ASSEMBLIES_STRICT_PROBES", "0") or 0))
         self._plasticity_enabled_global = True
         self._projection_fidelity = ProjectionFidelity.normalize(projection_fidelity)
 
@@ -2063,6 +2067,34 @@ class NumpySparseEngine(ComputeEngine):
         else:
             new_w = tgt.w + num_first
 
+        # getattr, not attribute access: Brains are pickled to the disk backbone
+        # cache and an engine restored from an entry written before this flag
+        # existed has no such attribute.
+        if (num_first and not plasticity_enabled
+                and getattr(self, "_strict_probes", False)):
+            # RECRUITMENT WHILE PLASTICITY IS OFF is the signature of a probe
+            # written against `frozen()` that meant `read_only()`. frozen()
+            # stops weights changing; it does not stop the area GROWING, and
+            # growth is what makes a measurement change the measured -- two
+            # probe orders that recruit different numbers of neurons are
+            # structurally different brains however init is seeded.
+            #
+            # Off by default and opt-in via NEURAL_ASSEMBLIES_STRICT_PROBES=1,
+            # same discipline as _VERIFY_NNZ: it converts "which of these 50
+            # frozen() sites is a contaminating probe?" from an argument into a
+            # measurement you can run over the whole suite. It is NOT on by
+            # default because switching a site to read_only() CHANGES ITS
+            # NUMBERS -- suppressing recruitment moves what the probe reads
+            # (stored/probe overlap 0.038 -> 0.180 on one protocol) -- so each
+            # site is a measured decision, not a mechanical rename.
+            raise RuntimeError(
+                f"STRICT PROBES: projection into {target!r} recruited "
+                f"{num_first} neurons while plasticity was disabled. A read "
+                f"that grows the area contaminates what it measures; use "
+                f"brain.read_only() rather than brain.frozen() for probes, or "
+                f"unset NEURAL_ASSEMBLIES_STRICT_PROBES if this projection is "
+                f"meant to build structure without learning.")
+
         # Advance this input's position in its own tail by what it just took.
         # A repeat of the same input now resumes below the neurons it already
         # holds (idempotent); a novel input still starts near rank 0; a
@@ -2758,6 +2790,29 @@ class NumpySparseEngine(ComputeEngine):
     def get_neuron_id_mapping(self, area: str) -> list:
         """Return the compact_to_neuron_id list for stable winner IDs."""
         return self._areas[area].compact_to_neuron_id
+
+    # -- Materialization (see ComputeEngine.fiber_extent for the rationale) --
+
+    def materialized_count(self, area: str):
+        st = self._areas.get(area)
+        return None if st is None else int(st.w)
+
+    def fiber_extent(self, source: str, target: str):
+        """Logical column watermark of ``source -> target``.
+
+        Returns ``None`` when the fiber is dense (every column exists, so the
+        watermark is vacuous) or absent, and the integer watermark when it is
+        lazily materialized. The PHYSICAL shape is deliberately not returned:
+        growth doubles capacity, so it over-runs the logical content and
+        columns past the watermark are allocated-but-uninitialised zeros.
+        """
+        conn = self._area_conns.get(source, {}).get(target)
+        if conn is None or not getattr(conn, "sparse", False):
+            return None
+        w = getattr(conn, "weights", None)
+        if w is None or getattr(w, "ndim", 0) != 2:
+            return None
+        return int(min(getattr(conn, "_log_cols", w.shape[1]), w.shape[1]))
 
     # -- Projection fidelity ------------------------------------------------
 
