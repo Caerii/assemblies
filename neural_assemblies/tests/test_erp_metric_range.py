@@ -44,6 +44,7 @@ from neural_assemblies.assembly_calculus.emergent.evaluation import (
 from neural_assemblies.assembly_calculus.emergent.evaluation.erp.gates import (
     ErpBaseline,
 )
+from neural_assemblies.diagnostics import separation
 
 
 def _samples(report, label):
@@ -94,13 +95,22 @@ class TestRawQuantityIsSaturated:
         self, forked_parser,
     ):
         """The saturation is a magnitude problem, NOT a sign or existence
-        problem, and this keeps the two claims apart. Violations must score
-        HIGHER than grammatical on the raw quantity."""
+        problem, and this keeps the two claims apart.
+
+        ASSERTS AUC > 0.5, NOT PERFECT ORDERING. The first version of this test
+        asserted `max(gram) < min(catv)` and failed on exactly one overlapping
+        pair (0.9939 vs 0.9932) -- after I had already MEASURED AUC = 0.889,
+        which says the ordering is not perfect. Asserting a 1.000-equivalent I
+        had evidence against is [[fake-perfect-probe-signatures]]; with n=3 per
+        arm the AUC granularity is 1/9, so one bad pair is well within what the
+        protocol produces.
+        """
         report = calibrate_erp_thresholds(forked_parser("SENTENCES", seed=11))
         gram = [float(s.p600) for s in _samples(report, "grammatical")]
         catv = [float(s.p600) for s in _samples(report, "category_violation")]
         assert gram and catv
-        assert max(gram) < min(catv), (
-            f"grammatical {gram} and violation {catv} overlap -- the "
-            f"separation itself has gone, which is a bigger problem than "
-            f"its scale")
+        sep = separation(catv, gram, "p600")
+        assert sep.auc > 0.5, (
+            f"violations do not score above grammatical: AUC {sep.auc:.3f} on "
+            f"gram {gram} vs catv {catv}. At or below 0.5 the separation "
+            f"itself has gone, which is a bigger problem than its scale")

@@ -28,6 +28,12 @@ from .frames import (
 )
 from .runner import run_incremental_erp_probes
 
+# Lazy at call time, not import time: `diagnostics` pulls in the wider package
+# and this module is imported during parser construction.
+def _separation(hi, lo, label):
+    from neural_assemblies.diagnostics import separation
+    return separation(hi, lo, label=label)
+
 if TYPE_CHECKING:
     from ...parser import EmergentParser
 
@@ -78,8 +84,16 @@ class ErpCalibrationReport:
             )
         if self.separation:
             lines.append(
-                f"  separation: n400_d={self.separation.get('n400_cohens_d', 0):.2f} "
-                f"p600_d={self.separation.get('p600_cohens_d', 0):.2f}",
+                # AUC first, and the span beside it: a perfect ordering across
+                # a sliver of the range is both facts at once. Cohen's d is
+                # shown last and parenthesised because it is computed on the
+                # clipped excess and is not an effect size (see `separation`).
+                f"  separation: n400_auc={self.separation.get('n400_auc', float('nan')):.3f}"
+                f"(span {self.separation.get('n400_span', float('nan')):.4f}) "
+                f"p600_auc={self.separation.get('p600_auc', float('nan')):.3f}"
+                f"(span {self.separation.get('p600_span', float('nan')):.4f})"
+                f"  [clipped d: n400={self.separation.get('n400_cohens_d', 0):.2f} "
+                f"p600={self.separation.get('p600_cohens_d', 0):.2f}]",
             )
         return "\n".join(lines)
 
@@ -316,11 +330,41 @@ def calibrate_erp_thresholds(
     catv_n400 = [s.n400_excess for s in tuned_samples if s.label == "category_violation"]
     gram_p600 = [s.p600_excess for s in tuned_samples if s.label == "grammatical"]
     catv_p600 = [s.p600_excess for s in tuned_samples if s.label == "category_violation"]
+    # RAW, not excess. The excess is clipped against the grammatical median, so
+    # the null arm sits on a 0.0 floor -- see the AUC entries below.
+    gram_n400_raw = [s.n400 for s in tuned_samples if s.label == "grammatical"]
+    catv_n400_raw = [s.n400 for s in tuned_samples if s.label == "category_violation"]
+    gram_p600_raw = [s.p600 for s in tuned_samples if s.label == "grammatical"]
+    catv_p600_raw = [s.p600 for s in tuned_samples if s.label == "category_violation"]
 
+    # COHEN'S D IS RETAINED FOR CONTINUITY AND SHOULD NOT BE QUOTED AS AN
+    # EFFECT SIZE. It is computed on `*_excess`, which is
+    # `max(0, v - baseline.p600_median)` where the baseline IS the grammatical
+    # median -- so the null arm is clipped against itself onto an exact 0.0
+    # floor with almost no variance. Any reduction in measurement noise then
+    # inflates d without the effect growing: making the parse read-only moved
+    # d from 1.63 to 3.97 while the absolute gap moved 0.0030 to 0.0047.
+    #
+    # Measured across four encodings of an IDENTICAL ordering, d spanned
+    # 2.241 to 24.754 while AUC was 1.000 throughout.
+    #
+    # `*_auc` is the quantity to read. It is a rank statistic on the RAW value,
+    # invariant under every monotone transform -- so it survives clipping,
+    # rescaling, and redefinition of the underlying quantity, which is exactly
+    # what broke every absolute threshold here when P600 changed from unbounded
+    # churn (0.12 vs 5.24) to a bounded energy deficit (0.989 vs 0.995).
+    # `*_span` reports how much of the range the raw values occupy, because a
+    # perfect ordering across 0.7% of the scale is both of those things at once.
     separation = {
         "n400_cohens_d": _cohens_d(gram_n400, catv_n400),
         "p600_cohens_d": _cohens_d(gram_p600, catv_p600),
     }
+    for name, hi, lo in (("n400", catv_n400_raw, gram_n400_raw),
+                         ("p600", catv_p600_raw, gram_p600_raw)):
+        if hi and lo:
+            sep = _separation(hi, lo, label=name)
+            separation[f"{name}_auc"] = sep.auc
+            separation[f"{name}_span"] = sep.span
 
     parser._erp_thresholds = thresholds
     parser._erp_baseline = baseline

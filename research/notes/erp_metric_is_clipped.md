@@ -79,6 +79,128 @@ That is consistent with #28 ("N400 is saturated") and locates it further: the
 N400 path does not read incremental parse state, so it cannot be contaminated by
 parse growth -- and equally cannot benefit from fixing it.
 
+## WHY the clipping is there, and what actually went wrong
+
+The clipping is not a mistake. It was correct for a quantity that no longer
+exists.
+
+`gates.py` records the scale it was designed against:
+
+    Grammatical null:   N400 ~ 0.09,  anchored P600 ~ 0.02-0.12
+    Category violation: N400 ~ 0.35,  anchored P600 ~ 5.0 (cumulative)
+
+P600 was UNBOUNDED and CUMULATIVE, with a **44x** separation. For that quantity,
+"excess over baseline, clipped at zero" is exactly right: it is a DETECTOR
+statistic. You do not care how far below the null you sit, only how far above,
+and `P600_EXCESS_MARGIN = 0.152` sits sensibly between 0.12 and 5.24.
+
+Then `adapters.py` replaced the quantity. Its module docstring says why, and the
+reason was good -- post-k-WTA churn reverses sign under `norm_init`, measured at
+Cohen's d = -1.94. So P600 became `1 - normalized_energy`, **bounded in [0,1]**,
+and now lives at 0.989 vs 0.995.
+
+**The quantity was replaced. The statistic, the clipping, and the constants
+around it were not.** That is the root cause, and it is this repo's dominant
+defect pattern wearing new clothes: one name, `p600`, meaning two things on
+scales three orders of magnitude apart, with the machinery keeping the old
+meaning ([[same-name-two-meanings]]).
+
+### Consequence: the P600 detector cannot fire
+
+    seed 11: source=empirical  p600_margin=0.0760  max observed excess=0.0064  -> 11.9x below
+    seed 12: source=empirical  p600_margin=0.0760  max observed excess=0.0064  -> 11.9x below
+    seed 42: source=empirical  p600_margin=0.0760  max observed excess=0.0063  -> 12.1x below
+
+    wobbly signatures = {}   STRUCTURAL fires = 0    on every seed
+
+And the "empirical" label is false. The tuning is
+
+    p600_margin = max(fb.p600_excess_margin * 0.5, (g_p75 + c_p25) / 2.0)
+
+so the hardcoded floor `0.152 * 0.5 = 0.076` always beats the data-derived
+midpoint (~0.0021). The calibration reports `source="empirical"` while using a
+constant tuned for the old scale. This is [[silent-no-op-dead-fibers]] at the
+level of a metric: configured, wired, labelled, and unable to fire.
+
+## How it should be designed
+
+**1. Separate the DETECTOR from the EFFECT MEASUREMENT.** They are different
+jobs and want different statistics. A detector needs a threshold and one-sided
+clipping is fine. An effect measurement must never see clipped data.
+
+**2. Score separation with a RANK statistic, on the RAW value.** Implemented as
+`diagnostics.separation` -> AUC (probability of superiority), null 0.5. It is
+invariant under every monotone transform, so it is unmoved by clipping, by
+rescaling, and by the redefinition that actually happened here. Measured on four
+encodings of one identical ordering, Cohen's d spanned 2.241 to 24.754 while AUC
+was 1.000 throughout.
+
+What the ERP contrast reads in the honest statistic:
+
+    parse grows      p600 AUC 0.889 (span 0.0071)   n400 AUC 0.778 (span 0.0329)
+    parse read_only  p600 AUC 1.000 (span 0.0081)   n400 AUC 0.778 (span 0.0329)
+
+P600 goes from one misordered pair in nine to perfectly ordered -- a real,
+interpretable improvement. And **N400 is 0.778, not the ~1.0 its Cohen's d of
+1.79-2.50 implied**: nearly a quarter of pairs are misordered. With n=3 per arm
+the resolution is 1/9, which is itself worth stating.
+
+**3. Report the SPAN beside it.** AUC deliberately ignores magnitude, so it
+would call a perfect ordering across 0.8% of the range perfect. Both facts
+matter and neither should hide the other; `Separation.saturated` flags it.
+
+**4. Never let a reference constant override a data-derived threshold.**
+`max(reference * 0.5, data)` is the specific construct that let a rescaled
+metric silently fall back to a stale number. A reference belongs in the
+"not enough data" branch -- which `if len(gram) < 2: return fb` already does
+correctly -- not in a max() against the data.
+
+**5. A baseline must not be the null arm's own median.** Scoring the grammatical
+condition against the grammatical median guarantees a floor. If the detector
+needs a baseline, it should come from held-out samples, not from the samples
+being scored.
+
+**6. Fix the saturation itself.** Span 0.008 on a [0,1] quantity means the
+normalizer is far off: the role area receives ~1% of its normalizing scale in
+every condition. That is a separate defect from the statistics, still open, and
+the one that would make these numbers interpretable rather than merely correct.
+
+## A STALE BACKBONE INVERTED THE EFFECT, and that invalidates today's numbers
+
+Found while checking the above. Seed 42, same code, same seed:
+
+    stale disk backbone   gram [0.9939, 0.9952, 0.9935]   catv [0.9922, 0.9951, 0.9945]
+                          Cohen's d = -0.26      AUC = 0.444    INVERTED
+    cache cleared         gram [0.9873, 0.9934, 0.9873]   catv [0.9925, 0.9941, 0.9949]
+                          Cohen's d = +1.80                     correctly signed
+
+Ruled out as my own doing: with the cache cleared, the code before my edit gives
+d = 1.800 and after it gives d = 1.781 -- float noise. The edit is innocent; the
+CACHE was producing an inverted result.
+
+WHY. `.cache/backbones` pickles a trained parser and fingerprints it on SOURCE.
+But #102 says parsing MUTATES the parser, so a pickled backbone also carries its
+PARSE HISTORY -- how many sentences were run through it before it was written.
+Two backbones from identical source and seed are different objects if they were
+saved after different amounts of evaluation, and the fingerprint cannot see it.
+
+That is [[backbone-fingerprint-gap]] meeting [[erp_probe_isolation]]'s finding,
+and it is a complete mechanism for **#80** ("parser training is NOT reproducible
+across processes -- p600 spread 1.37-2.52 at one seed"). The spread is parse
+history, cached.
+
+**CONSEQUENCE FOR TODAY'S OTHER NUMBERS.** Everything measured in
+[[erp_probe_isolation]] and in the read-only-parse table above ran against
+cached backbones of unknown parse history. The probe-isolation delta
+(p600 d 2.192 -> 1.853) and the read-only-parse delta (1.632 -> 3.973) are
+therefore NOT SAFE to quote until re-run on cleared caches. The DIRECTION of the
+read-only result is corroborated by the mechanism (less contamination, tighter
+distributions) but the magnitudes are not established.
+
+This also explains three test failures seen today that had nothing to do with
+the change under test, and it is the second time in this session that a
+"result" turned out to be a property of the measurement apparatus.
+
 ## What this means for the order of work
 
 Adopting the read-only parse is well-evidenced on reproducibility and does not
