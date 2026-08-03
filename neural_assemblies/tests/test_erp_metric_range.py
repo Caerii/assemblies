@@ -78,13 +78,23 @@ class TestExcessIsClippedAtItsOwnNull:
         catv = [float(s.p600_excess)
                 for s in _samples(report, "category_violation")]
         assert gram and catv, "calibration produced no samples"
-        assert min(gram) == 0.0, (
-            f"nothing in the grammatical arm reaches the clip floor: {gram}")
-        assert max(gram) < min(catv) or sum(gram) < sum(catv), (
-            f"grammatical excess {gram} is not below violation {catv} -- the "
-            f"clipping asymmetry has gone, which would mean the baseline is no "
-            f"longer the grammatical median and Cohen's d may finally be an "
-            f"effect size")
+
+        # SPREAD, not a specific value. Asserting `min(gram) == 0.0` was pinning
+        # a realization of a quantity that drifts across training runs (#80:
+        # same seed, separate processes, grammatical p600 moved 0.9874 ->
+        # 0.9872). The mechanism is that clipping CRUSHES the null arm's spread
+        # while leaving the violation arm's intact -- that is what makes Cohen's
+        # d divide by a floor, and it is what should be asserted.
+        spread_gram = max(gram) - min(gram)
+        spread_catv = max(catv) - min(catv)
+        assert spread_gram <= spread_catv or min(gram) == 0.0, (
+            f"the clipping asymmetry has gone: grammatical excess {gram} "
+            f"(spread {spread_gram:.5f}) is no longer crushed relative to "
+            f"violation {catv} (spread {spread_catv:.5f}). If the baseline is "
+            f"no longer the grammatical median, this defect is fixed and "
+            f"Cohen's d may finally be an effect size")
+        assert separation(catv, gram, "p600_excess").auc > 0.5, (
+            f"violation excess does not out-rank grammatical: {catv} vs {gram}")
 
 
 class TestRawQuantityIsSaturated:
