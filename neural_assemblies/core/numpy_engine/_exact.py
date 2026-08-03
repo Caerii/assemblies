@@ -363,7 +363,7 @@ class ExactAreaState:
 
     __slots__ = ("name", "n", "k", "beta", "winners", "fixed_assembly",
                  "beta_by_source", "ever_fired", "w", "explicit_source",
-                 "compact_to_neuron_id")
+                 "compact_to_neuron_id", "winner_policy")
 
     def __init__(self, name: str, n: int, k: int, beta: float) -> None:
         self.name, self.n, self.k, self.beta = name, n, k, beta
@@ -384,6 +384,9 @@ class ExactAreaState:
         # (`parser_mixins/incremental.py`), and `__slots__` turned that into an
         # AttributeError that stopped the parser reading assemblies at all.
         self.compact_to_neuron_id: list = []
+        # None means plain k-WTA. Anything else goes through
+        # `compute.winner_selection.select_with_policy` -- see `add_area`.
+        self.winner_policy = None
         self.beta_by_source: Dict[str, float] = {}
         self.ever_fired = np.zeros(n, dtype=bool)
         # `w` is num-ever-fired here, and it is n from the start because every
@@ -476,19 +479,41 @@ class NumpyExactEngine(ComputeEngine):
     _UNSUPPORTED_AREA = {
         "refractory_period": 0,
         "inhibition_strength": 0.0,
-        "winner_policy": None,
         "input_noise_std": 0.0,
         "slot_count": 0,
     }
 
     def add_area(self, name: str, n: int, k: int, beta: float,
                  refractory_period: int = 0,
-                 inhibition_strength: float = 0.0, **kwargs) -> None:
+                 inhibition_strength: float = 0.0,
+                 winner_policy=None, **kwargs) -> None:
+        """`winner_policy` selects the competition rule; None is plain k-WTA.
+
+        SUPPORTED HERE, and it matters where it is supported. E%-WTA (Hoff et
+        al. 2026) makes assembly SIZE emergent -- the firing set is
+        `{j : h_j in [(1-eps) h_max, h_max]}` rather than a fixed k. Running
+        that on `numpy_sparse` means running an emergent-size rule on top of
+        drive the candidate sampler INVENTED for neurons that have not fired,
+        so the size it discovers is partly a property of the sampler. This
+        engine rejected policies outright, which left every E%-WTA and
+        literature-parity result in the repository sampler-side by default.
+
+        One property worth stating: `select_with_policy` takes an optional
+        `population_sigma` for `EPercentPolicy(window="sigma")`, because a
+        caller whose feature vector is not the whole population has to estimate
+        the spread. Here the drive vector IS the whole population, so the
+        estimate is unnecessary and the sigma window is exact by construction.
+
+        `input_noise_std` remains unsupported and is not an oversight: it needs
+        an RNG stream, and this engine deliberately has none -- that is what
+        makes it reproducible by content-addressing rather than by seeding.
+        """
         _reject_unsupported(
             f"NumpyExactEngine.add_area({name!r})", self._UNSUPPORTED_AREA,
             dict(kwargs, refractory_period=refractory_period,
                  inhibition_strength=inhibition_strength))
         area = ExactAreaState(name, n, k, beta)
+        area.winner_policy = winner_policy
         self._areas[name] = area
         for stim_name, stim in self._stimuli.items():
             self._wire_stim(stim_name, stim.size, name)
@@ -833,7 +858,7 @@ class NumpyExactEngine(ComputeEngine):
         if external_drive is not None and len(external_drive) == n:
             drive += np.asarray(external_drive, dtype=self.dtype)
 
-        winners = self._select(drive, tgt.k)
+        winners = self._select_winners(drive, tgt)
 
         if plasticity_enabled and self._plasticity_enabled_global:
             self._apply_plasticity(target, from_stimuli, from_areas, winners)
@@ -928,6 +953,30 @@ class NumpyExactEngine(ComputeEngine):
                 else cand[vals == thresh])
         return np.sort(np.concatenate(
             [above, tied[:k - above.size]])).astype(np.int64)
+
+    def _select_winners(self, drive: np.ndarray, tgt) -> np.ndarray:
+        """k-WTA unless the area carries a `winner_policy`.
+
+        The plain path is kept separate because it is the hot one and has its
+        own probabilistic-pivot optimisation; policies go through the shared
+        `compute.winner_selection` implementation so the two engines cannot
+        disagree about what a policy MEANS ([[pricing-law-implemented-twice]]).
+        """
+        policy = getattr(tgt, "winner_policy", None)
+        if policy is None:
+            return self._select(drive, tgt.k)
+        from ...compute.winner_policies import TopKPolicy
+        if isinstance(policy, TopKPolicy) and policy.k == tgt.k:
+            return self._select(drive, tgt.k)
+        from ...compute.winner_selection import WinnerSelector
+        # `WinnerSelector` takes an RNG for the policies that need one; none of
+        # the paths reached here do, and this engine deliberately holds no RNG
+        # stream -- content-addressing is what makes it reproducible. A fresh
+        # default_rng is passed rather than None so a future policy that does
+        # sample fails loudly at ITS call site instead of on an AttributeError.
+        selected = WinnerSelector(np.random.default_rng(0)).select_with_policy(
+            drive, policy)
+        return np.asarray(to_cpu(selected), dtype=np.int64)
 
     def _select(self, drive: np.ndarray, k: int) -> np.ndarray:
         """Top-k with a PROBABILISTIC PIVOT and an EXACT result.

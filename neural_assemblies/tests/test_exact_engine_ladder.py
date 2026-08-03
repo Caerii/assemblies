@@ -691,3 +691,108 @@ class TestFixedTargetPlasticity:
             f"{engine_name}: an association written while the target was "
             f"PINNED does not retrieve ({got:.3f} against chance "
             f"{chance:.3f}) -- the write was discarded")
+
+
+class TestWinnerPolicies:
+    """E%-WTA on exact drive, and the degeneracy it exposes on the sampler.
+
+    Hoff et al. (2026) replace k-WTA with a window on the drive distribution,
+    `F = {j : h_j in [(1-eps) h_max, h_max]}`, so assembly SIZE is emergent.
+    That is a claim about the distribution of the drive -- which makes it
+    exactly the wrong thing to run on an engine that INVENTS the drive for
+    neurons that have not fired.
+
+    `numpy_exact` used to reject winner policies outright, so every E%-WTA
+    result in this repository was sampler-side by default: `epwta.py`,
+    `programs/markov_coin.py`, `parity/executors.py`, and two literature-golden
+    tests.
+    """
+
+    POLICY_KW = dict(fraction_of_max=0.5, min_winners=1)
+
+    @staticmethod
+    def _sizes(engine_name, rounds=6):
+        from neural_assemblies.compute import EPercentPolicy
+        b = Brain(p=P, seed=3, engine=engine_name)
+        b.add_area("A", 2000, 50, beta=0.1,
+                   winner_policy=EPercentPolicy(fraction_of_max=0.5,
+                                                min_winners=1))
+        b.add_stimulus("s", 50)
+        out = []
+        for _ in range(rounds):
+            b.project({"s": ["A"]}, {})
+            out.append((len(b.areas["A"].winners), b.areas["A"].w))
+        return out
+
+    def test_exact_accepts_a_winner_policy_at_all(self):
+        """It raised NotImplementedError before -- the whole of #94."""
+        sizes = self._sizes("numpy_exact")
+        assert len(sizes) == 6
+
+    def test_exact_produces_a_genuinely_emergent_size(self):
+        """Not k, and not the recruited pool: a property of the drive."""
+        sizes = self._sizes("numpy_exact")
+        firing = [f for f, _ in sizes]
+        assert all(f != 50 for f in firing), (
+            f"E%-WTA returned exactly k -- that is k-WTA wearing a hat: {firing}")
+        assert len(set(firing)) == 1, (
+            f"size should settle once the assembly is stable, got {firing}")
+
+    def test_exact_size_is_a_real_selection(self):
+        """Strictly between k and n, and stable: a competition, not a pool.
+
+        NOT phrased as `|F| != area.w`, which was the first attempt and is
+        meaningless here: `Brain.Area.w` tracks the last winner count while
+        `engine.w` is n (184 against 2000 for the same area). `w` is two
+        different quantities depending on which object is asked -- [[same-name-
+        two-meanings]] and #83, caught for a second time while writing the test
+        that was supposed to catch a different degeneracy.
+
+        On this engine there IS no recruited pool: every neuron exists from
+        t=0. So the honest discriminator is that the window selects a
+        non-trivial subset and settles.
+        """
+        firing = [f for f, _ in self._sizes("numpy_exact")]
+        assert all(50 < f < 2000 for f in firing), (
+            f"E%-WTA selected nothing meaningful -- sizes {firing} against "
+            f"k=50 and n=2000")
+
+    def test_sampler_e_percent_is_degenerate_and_stays_pinned(self):
+        """DOCUMENTS A DEFECT rather than asserting correctness.
+
+        On `numpy_sparse`, |F| is IDENTICALLY `area.w` at every round: the
+        whole recruited pool fires, so the "emergent assembly size" is a
+        readout of recruitment, not of the drive distribution. Measured
+        50/100/150/200/250/300 against w of 50/100/150/200/250/300.
+
+        Pinned so the identity cannot quietly change without someone noticing
+        -- and so that the next reader of an E%-WTA number knows which engine
+        produced it. If this ever starts failing, the sampler's candidate drive
+        has changed and every E%-WTA result needs re-deriving again.
+        """
+        for firing, w in self._sizes("numpy_sparse"):
+            assert firing == w, (
+                f"sampler E%-WTA no longer equals the recruited pool "
+                f"({firing} vs {w}) -- re-derive the E%-WTA results and "
+                f"update this test")
+
+    def test_a_topk_policy_matching_k_is_the_plain_path(self):
+        """The fast path must be exercised, and must agree with no policy."""
+        from neural_assemblies.compute import TopKPolicy
+        a = Brain(p=P, seed=3, engine="numpy_exact")
+        a.add_area("A", 2000, 50, beta=0.1, winner_policy=TopKPolicy(k=50))
+        a.add_stimulus("s", 50)
+        b = Brain(p=P, seed=3, engine="numpy_exact")
+        b.add_area("A", 2000, 50, beta=0.1)
+        b.add_stimulus("s", 50)
+        for _ in range(3):
+            a.project({"s": ["A"]}, {})
+            b.project({"s": ["A"]}, {})
+        assert (set(a.areas["A"].winners.tolist())
+                == set(b.areas["A"].winners.tolist()))
+
+    def test_input_noise_is_still_refused_and_says_why(self):
+        """Unsupported ON PURPOSE: it needs an RNG this engine does not have."""
+        b = Brain(p=P, seed=3, engine="numpy_exact")
+        with pytest.raises(NotImplementedError, match="input_noise_std"):
+            b.add_area("A", 500, 20, beta=0.1, input_noise_std=0.5)
