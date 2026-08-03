@@ -61,15 +61,30 @@ class TestExcessIsClippedAtItsOwnNull:
         assert b.p600_excess(0.99) == 0.0
         assert b.p600_excess(0.995) == pytest.approx(0.005)
 
-    def test_grammatical_excess_lands_on_the_floor(self, forked_parser):
-        """And it does so in practice, not just in principle."""
+    def test_grammatical_excess_is_crushed_against_the_floor(self, forked_parser):
+        """And it does so in practice, not just in principle.
+
+        ASSERTS THE ASYMMETRY, not that a specific sample equals 0.0. The first
+        version asserted `any(v == 0.0 for v in vals)` and failed whenever the
+        baseline happened to come from a different sample set -- a realization,
+        not the mechanism, which is the trap this whole file is about.
+
+        The structural fact is that clipping against the grammatical median
+        crushes the null arm's spread while leaving the violation arm intact.
+        That is what makes Cohen's d divide by a floor.
+        """
         report = calibrate_erp_thresholds(forked_parser("SENTENCES", seed=11))
-        vals = [float(s.p600_excess) for s in _samples(report, "grammatical")]
-        assert vals, "no grammatical samples -- the calibration did not run"
-        assert any(v == 0.0 for v in vals), (
-            f"grammatical p600_excess no longer hits the 0.0 floor: {vals}. If "
-            f"the baseline is no longer the grammatical median, this defect is "
-            f"fixed and Cohen's d may finally be an effect size")
+        gram = [float(s.p600_excess) for s in _samples(report, "grammatical")]
+        catv = [float(s.p600_excess)
+                for s in _samples(report, "category_violation")]
+        assert gram and catv, "calibration produced no samples"
+        assert min(gram) == 0.0, (
+            f"nothing in the grammatical arm reaches the clip floor: {gram}")
+        assert max(gram) < min(catv) or sum(gram) < sum(catv), (
+            f"grammatical excess {gram} is not below violation {catv} -- the "
+            f"clipping asymmetry has gone, which would mean the baseline is no "
+            f"longer the grammatical median and Cohen's d may finally be an "
+            f"effect size")
 
 
 class TestRawQuantityIsSaturated:

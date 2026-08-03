@@ -141,3 +141,153 @@ def test_baseline_is_not_stale():
         + "\n".join(f"    {p}: baseline {was}, actual {now}"
                     for p, (was, now) in sorted(stale.items()))
     )
+
+
+# ---------------------------------------------------------------------------
+# `.w` -- the SAME defect class, a second quantity pair
+#
+# TIER A + C of research/plans/TYPE_SAFETY_PROGRAM.md. Added here rather than in
+# a new file BECAUSE it is the same class: one attribute name, two quantities,
+# wrong read returns a plausible number. A separate ratchet would be the fifth
+# mechanism for a class that already has one.
+#
+# THE PAIR:
+#     sparse engine    `w` = neurons MATERIALIZED
+#     explicit engine  `w` = len(winners), i.e. k -- not an extent at all
+#
+# MEASURED on one area at one instant: 247 against 50. Slicing a fiber by the
+# wrong one kept only the ~k^2/n assembly neurons whose GLOBAL id happened to
+# fall below k, and the quantity being measured through the three candidate
+# extents (`w`, `_log_cols`, `weights.shape[1]` = 247/213/367) read
+# 1.87 / 1.65 / 2.84. I made that mistake myself writing the harness for #69.
+#
+# SANCTIONED READS, which name what they return and give None for "not
+# applicable" rather than 0:
+#     engine.materialized_count(area)    neurons that exist
+#     engine.fiber_extent(src, dst)      columns of one fiber
+#
+# Same exemptions as above: `core/` and `engine` own the space by construction.
+# ---------------------------------------------------------------------------
+
+#: `.w` as a whole attribute -- not `.weights`, `.winners`, `.w_max`.
+_W_ACCESS = re.compile(r"\.w\b(?!_)")
+
+#: Frozen baseline: path -> lines reading `.w`. Verified 2026-08-03,
+#: 44 files / 136 lines outside core.
+W_BASELINE = {
+    "legacy/root_modules/simulations.py": 13,
+    "legacy/root_modules/image_learner.py": 12,
+    "neural_assemblies/simulation/advanced_simulations.py": 12,
+    "research/experiments/capacity/lexicon_capacity.py": 8,
+    "neural_assemblies/assembly_calculus/emergent/parser_mixins/incremental.py": 7,
+    "neural_assemblies/assembly_calculus/emergent/training/linker.py": 6,
+    "neural_assemblies/assembly_calculus/emergent/parser_mixins/state_prediction.py": 4,
+    "research/experiments/metrics/measurement.py": 4,
+    "research/experiments/recruitment/recruitment_mechanisms.py": 4,
+    "research/experiments/recurrent_assembly_decay.py": 4,
+    "tests/test_brain_core.py": 4,
+    "legacy/scripts/simulations/turing_sim.py": 3,
+    "neural_assemblies/assembly_calculus/emergent/parser_mixins/unsupervised.py": 3,
+    "neural_assemblies/simulation/turing_simulations.py": 3,
+    "research/experiments/_substrate.py": 3,
+    "research/experiments/p600_metric_comparison.py": 3,
+    "research/experiments/primitives/diagnose_erp_dynamics.py": 3,
+    "research/experiments/recruitment/smoke.py": 3,
+    "legacy/root_modules/parser.py": 2,
+    "legacy/root_modules/recursive_parser.py": 2,
+    "neural_assemblies/assembly_calculus/consolidation.py": 2,
+    "neural_assemblies/assembly_calculus/emergent/training/compiler.py": 2,
+    "neural_assemblies/diagnostics.py": 2,
+    "neural_assemblies/programs/colt_mnist_tier_a.py": 2,
+    "neural_assemblies/programs/patch_merge.py": 2,
+    "research/experiments/capacity/analyze.py": 2,
+    "research/experiments/capacity/parser_recruitment.py": 2,
+    "research/experiments/distinctiveness/test_competition_mechanisms.py": 2,
+    "research/experiments/recruitment/diagnose_synaptic_scaling.py": 2,
+    "neural_assemblies/assembly_calculus/assembly.py": 1,
+    "neural_assemblies/assembly_calculus/binding.py": 1,
+    "neural_assemblies/assembly_calculus/emergent/evaluation/erp/adapters.py": 1,
+    "neural_assemblies/assembly_calculus/tracing/operations.py": 1,
+    "neural_assemblies/compute/winner_selection.py": 1,
+    "neural_assemblies/language/debugger.py": 1,
+    "neural_assemblies/language/parser.py": 1,
+    "neural_assemblies/programs/colt_mnist_hierarchical_brain.py": 1,
+    "neural_assemblies/programs/colt_mnist_visual_advanced_brain.py": 1,
+    "neural_assemblies/simulation/density_simulator.py": 1,
+    "research/experiments/erp_p600_probe_contamination.py": 1,
+    "research/experiments/metrics/instability.py": 1,
+    "research/experiments/metrics/settling.py": 1,
+    "research/experiments/prediction_paths_compare.py": 1,
+    "research/experiments/worker_divergence_probe.py": 1,
+}
+
+_W_ADVICE = (
+    "\n\n  `.w` means TWO different quantities: neurons MATERIALIZED on the"
+    "\n  sparse engine, but len(winners) == k on the explicit engine. Measured"
+    "\n  247 vs 50 for one area at one instant. Prefer a read that names what"
+    "\n  it returns, and that gives None for 'not applicable' rather than 0:"
+    "\n"
+    "\n      engine.materialized_count(area)   neurons that exist"
+    "\n      engine.fiber_extent(src, dst)     columns of one fiber"
+    "\n"
+    "\n  If this site is genuinely engine-internal, raise its W_BASELINE entry"
+    "\n  with a comment saying which quantity it means and why."
+)
+
+
+def _scan_w():
+    found = {}
+    for root, dirs, files in os.walk(REPO):
+        dirs[:] = [d for d in dirs if d not in
+                   (".git", "__pycache__", ".venv", "node_modules",
+                    ".reference", ".pytest_cache")]
+        for fn in files:
+            if not fn.endswith(".py"):
+                continue
+            full = os.path.join(root, fn)
+            rel = os.path.relpath(full, REPO).replace(os.sep, "/")
+            # `/tests/` excluded as well as the engine: a test that pins the
+            # ambiguity deliberately (there are several) must not be flagged.
+            if any(x in rel for x in _EXEMPT) or "/tests/" in rel:
+                continue
+            try:
+                text = open(full, encoding="utf-8").read()
+            except Exception:                                # noqa: BLE001
+                continue
+            n = sum(1 for line in text.splitlines() if _W_ACCESS.search(line))
+            if n:
+                found[rel] = n
+    return found
+
+
+def test_no_new_ambiguous_w_reads():
+    found = _scan_w()
+    grew = {p: (W_BASELINE.get(p, 0), n) for p, n in found.items()
+            if n > W_BASELINE.get(p, 0)}
+    assert not grew, (
+        "new or increased ambiguous `.w` reads outside the engine:\n"
+        + "\n".join(f"    {p}: {was} -> {now}"
+                    for p, (was, now) in sorted(grew.items()))
+        + _W_ADVICE
+    )
+
+
+def test_w_baseline_is_not_stale():
+    found = _scan_w()
+    stale = {p: (c, found.get(p, 0)) for p, c in W_BASELINE.items()
+             if found.get(p, 0) < c}
+    assert not stale, (
+        "W_BASELINE is above the real count -- lower these:\n"
+        + "\n".join(f"    {p}: baseline {was}, actual {now}"
+                    for p, (was, now) in sorted(stale.items()))
+    )
+
+
+def test_both_scanners_still_see_something():
+    """A ratchet whose regex has stopped matching passes forever and protects
+    nothing. Pin that each scanner is still looking at real code."""
+    assert _scan(), "compact-index scanner matched nothing -- check _ACCESS"
+    w = _scan_w()
+    assert sum(w.values()) > 50, (
+        f"`.w` scanner found only {sum(w.values())} lines; the baseline was "
+        f"built at 136, so it has probably stopped matching")

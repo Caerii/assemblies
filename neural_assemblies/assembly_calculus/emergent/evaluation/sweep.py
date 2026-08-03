@@ -186,12 +186,40 @@ def _backbone_disk_path(depth, *, seed, n, k, holdout):
     return root / name
 
 
+def _pristine_copy(parser):
+    """Untouched snapshot for `ParserCache.fork` to clone.
+
+    Taken the moment a parser enters the cache and never handed out, so no
+    amount of mutation through `get()` can reach it. `None` on failure -- a
+    cache that cannot snapshot must degrade to the old behaviour rather than
+    break the run.
+    """
+    try:
+        import copy
+        return copy.deepcopy(parser)
+    except Exception:                                        # noqa: BLE001
+        return None
+
+
 @dataclass
 class ParserCacheEntry:
     parser: "EmergentParser"
     train_seconds: float
     calibrated: bool = False
     calibration_seconds: float = 0.0
+    #: A copy taken BEFORE anything was allowed to touch `parser`, and never
+    #: handed out directly. `fork()` clones this rather than the live object.
+    #:
+    #: WHY. `get()` returns the shared `parser`, and its contract said that was
+    #: "only safe to read". Reading is not safe: parsing RECRUITS -- one 5-word
+    #: sentence of known words adds 663 neurons to an already-trained parser
+    #: (#102). So a test that merely PARSED through `sentences_parser` grew the
+    #: shared object, and every later `fork()` cloned the grown version.
+    #:
+    #: Measured consequence: seed 42 read Cohen's d = -0.26, INVERTED, against
+    #: +1.80 from a pristine parser, and two suite tests failed as a function of
+    #: which other tests had run first (#103).
+    pristine: Optional["EmergentParser"] = None
 
 
 @dataclass
@@ -260,6 +288,7 @@ class ParserCache:
                     train_seconds=cached.train_seconds,
                     calibrated=cached.calibrated,
                     calibration_seconds=cached.calibration_seconds,
+                    pristine=_pristine_copy(cached.parser),
                 )
                 self._entries[key] = entry
                 if calibrate and not entry.calibrated:
@@ -293,7 +322,8 @@ class ParserCache:
                 # A cache that cannot be written must never fail the run.
                 pass
 
-        entry = ParserCacheEntry(parser=parser, train_seconds=train_seconds)
+        entry = ParserCacheEntry(parser=parser, train_seconds=train_seconds,
+                                 pristine=_pristine_copy(parser))
         self._entries[key] = entry
         if calibrate:
             self._calibrate(entry)
@@ -315,10 +345,25 @@ class ParserCache:
         but each caller gets its own copy to scribble on.
 
         Pass ``wobbly=True`` when replay may rewrite the assembly lexicons.
+
+        CLONES THE PRISTINE SNAPSHOT, not the live cached object. `get()` hands
+        out a shared parser, and PARSING MUTATES IT (#102: one 5-word sentence
+        of known words recruits 663 neurons). So a test that only read through
+        `sentences_parser` still grew the shared object, and every fork after it
+        inherited the growth -- which is how seed 42 came to read Cohen's d
+        = -0.26, inverted, against +1.80 from a pristine parser (#103).
         """
         from .checkpoint import fork_parser_instance
 
-        return fork_parser_instance(self.get(depth, **kwargs), wobbly=wobbly)
+        parser = self.get(depth, **kwargs)
+        # `get` has just populated the entry; find it by identity rather than
+        # by rebuilding the key, so the two cannot drift apart.
+        source = parser
+        for entry in self._entries.values():
+            if entry.parser is parser and entry.pristine is not None:
+                source = entry.pristine
+                break
+        return fork_parser_instance(source, wobbly=wobbly)
 
     def _calibrate(self, entry: ParserCacheEntry) -> None:
         from .erp import ensure_parser_erp_calibration

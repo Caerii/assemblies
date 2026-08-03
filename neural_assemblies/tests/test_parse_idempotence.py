@@ -98,3 +98,35 @@ class TestParseIsNotIdempotent:
         assert a == b, f"read-only parses still disagree:\n{a}\n{b}"
         assert _materialized(parser.brain) == before, (
             "a read-only parse still recruited")
+
+
+class TestForkIsIsolatedFromTheSharedParser:
+    """#103. `fork()` must clone a PRISTINE snapshot, not the live cache entry.
+
+    THE DEFECT. `ParserCache.get()` hands out a shared parser and its contract
+    said that was "only safe to read". Reading is not safe -- parsing recruits
+    (see above). So a test that merely PARSED through `sentences_parser` grew
+    the shared object, and every later `fork()` cloned the grown version.
+
+    MEASURED consequence: seed 42 read Cohen's d = -0.26, the separation
+    INVERTED, against +1.80 from a pristine parser; and two suite tests passed
+    or failed depending on which other tests had run first.
+    """
+
+    def test_abusing_the_shared_parser_does_not_move_later_forks(self):
+        from neural_assemblies.assembly_calculus.emergent.evaluation.sweep import (
+            get_parser_cache,
+        )
+        cache = get_parser_cache()
+        before = _materialized(cache.fork("SENTENCES", seed=42).brain)
+        shared = cache.get("SENTENCES", seed=42)
+        for _ in range(3):
+            _probe(shared)
+        assert _materialized(shared.brain) > before, (
+            "the shared parser did not grow -- this test cannot detect the "
+            "leak it exists for; check that parsing still recruits")
+        after = _materialized(cache.fork("SENTENCES", seed=42).brain)
+        assert after == before, (
+            f"fork inherited {after - before} neurons of growth from the "
+            f"shared cache entry -- ParserCacheEntry.pristine is not being "
+            f"used, so evaluation order leaks between tests again")
