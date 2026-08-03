@@ -1,0 +1,7 @@
+ MOOD->ARC beta   across-STATE   across-MOOD   (both LOW = a real conjunction)
+   0.000                0.57          1.00
+   0.005                0.57          0.99
+   0.010                0.62          0.95
+   0.020                0.82          0.78
+   0.040                0.91          0.69
+   0.060                0.93          0.67

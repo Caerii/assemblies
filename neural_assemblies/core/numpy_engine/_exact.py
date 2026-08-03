@@ -442,6 +442,11 @@ class NumpyExactEngine(ComputeEngine):
         # (src, tgt, assembly) -> base drive. O(assemblies * n), LRU-bounded.
         self._drive_cache: "OrderedDict[tuple, np.ndarray]" = OrderedDict()
         self._drive_bytes = 0
+        # (src, tgt) -> per-fiber connection probability; see add_connectivity.
+        self._fiber_p: Dict[tuple, float] = {}
+        # Counts projections so `add_connectivity` can refuse to change the
+        # substrate under weights that are already written.
+        self._projections = 0
 
     # -- wiring -------------------------------------------------------------
 
@@ -486,13 +491,56 @@ class NumpyExactEngine(ComputeEngine):
         n = self._areas[area_name].n
         base = np.asarray(
             hash_stim_counts(size, 0, n, self._pair_seed(stim_name, area_name),
-                             self.p),
+                             self._p_of(stim_name, area_name)),
             dtype=np.float64)
         self._stim_base[stim_name][area_name] = base
         self._stim_pot[stim_name][area_name] = np.zeros(n, dtype=np.float64)
 
     def add_connectivity(self, source: str, target: str, p: float) -> None:
-        pass
+        """Set this fiber's connection probability, overriding the global `p`.
+
+        WHY THIS EXISTS.  Mitropolsky & Papadimitriou (2025) do not give every
+        fiber the same density: "four of these 2m + 6 fibers ... have increased
+        parameters beta AND p, making them stronger conduits of synaptic
+        input". Those four are what makes the noun/verb split emerge without a
+        label -- LEX1 is wired more densely to VISUAL, LEX2 to MOTOR, and the
+        class of a word falls out of which lexical area can hold a stable
+        assembly for it. Per-fiber beta already exists (`set_beta`); per-fiber
+        `p` did not, so that architecture was unbuildable here.
+
+        WHY IT IS THIS METHOD AND NOT A NEW ONE.  `add_connectivity(source,
+        target, p)` was already on the engine interface, already documented in
+        `engine.py` with a worked example -- and was `pass` in all three
+        engines. Every caller that believed it had set a per-fiber density
+        silently got the global one. Implementing the existing name is the fix;
+        adding `set_fiber_p` beside it would have left the trap in place.
+
+        STRUCTURAL, SO IT MUST PRECEDE TRAFFIC.  `p` selects which synapses
+        exist. Changing it after a fiber has carried drive would leave
+        potentiation sitting on synapses that no longer exist and silently
+        rewrite already-formed assemblies, so this raises instead. Stimulus
+        fibers are re-wired here because `_wire_stim` baked the old `p` into
+        `_stim_base` at `add_stimulus` time.
+        """
+        p = float(p)
+        if not 0.0 <= p <= 1.0:
+            raise ValueError(f"p must be in [0, 1]; got {p}")
+        if self._projections and p != self._p_of(source, target):
+            raise RuntimeError(
+                f"add_connectivity({source!r}, {target!r}, p={p}) after "
+                f"{self._projections} projections. Connectivity is structural: "
+                f"changing p decides which synapses EXIST, and potentiation "
+                f"already written would be left on synapses that no longer do. "
+                f"Set connectivity before any projection.")
+        self._fiber_p[(source, target)] = p
+        self._norm_cache.pop((source, target), None)
+        self._stim_norm_cache.pop((source, target), None)
+        if source in self._stimuli and target in self._areas:
+            self._wire_stim(source, self._stimuli[source].size, target)
+
+    def _p_of(self, source: str, target: str) -> float:
+        """This fiber's connection probability, defaulting to the global `p`."""
+        return self._fiber_p.get((source, target), self.p)
 
     # -- the substrate, recomputed ------------------------------------------
 
@@ -508,7 +556,8 @@ class NumpyExactEngine(ComputeEngine):
         k-WTA comparison.
         """
         return hash_area_rows(
-            rows, n_cols, self._pair_seed(source, target), self.p,
+            rows, n_cols, self._pair_seed(source, target),
+            self._p_of(source, target),
             self.inhibitory_prob, self.inhibitory_weight)
 
     def _fiber_cells(self, source: str, target: str, rows: np.ndarray,
@@ -520,7 +569,8 @@ class NumpyExactEngine(ComputeEngine):
         saving. This is the only block the plastic path materialises.
         """
         return hash_area_cells(
-            rows, cols, self._pair_seed(source, target), self.p,
+            rows, cols, self._pair_seed(source, target),
+            self._p_of(source, target),
             self.inhibitory_prob, self.inhibitory_weight)
 
     def _fiber_sum(self, source: str, target: str, rows: np.ndarray,
@@ -584,7 +634,8 @@ class NumpyExactEngine(ComputeEngine):
             return hit.copy()
 
         val = np.asarray(hash_area_rows(
-            arr, n_cols, self._pair_seed(source, target), self.p,
+            arr, n_cols, self._pair_seed(source, target),
+            self._p_of(source, target),
             self.inhibitory_prob, self.inhibitory_weight, want_sum=True),
             dtype=np.float64)
         # NORM FOLDED IN BEFORE STORING. `1/d_j` is immutable per fiber, so a
@@ -619,11 +670,12 @@ class NumpyExactEngine(ComputeEngine):
             return cached
         n_pre = self._areas[source].n
         n_post = self._areas[target].n
+        fp = self._p_of(source, target)
         deg = np.asarray(
             hash_area_indegree(n_pre, n_post, self._pair_seed(source, target),
-                               self.p),
+                               fp),
             dtype=np.float64)
-        scale = inverse_indegree(deg, n_pre, n_pre, self.p, xp=np)
+        scale = inverse_indegree(deg, n_pre, n_pre, fp, xp=np)
         self._norm_cache[key] = scale
         return scale
 
@@ -658,8 +710,8 @@ class NumpyExactEngine(ComputeEngine):
             return cached
         size = self._stimuli[stim].size
         deg = self._stim_base[stim][target]
-        scale = inverse_indegree(deg, self._areas[target].n, size, self.p,
-                                 xp=np)
+        scale = inverse_indegree(deg, self._areas[target].n, size,
+                                 self._p_of(stim, target), xp=np)
         self._stim_norm_cache[key] = scale
         return scale
 
@@ -672,6 +724,8 @@ class NumpyExactEngine(ComputeEngine):
                      ) -> ProjectionResult:
         tgt = self._areas[target]
         from_areas = [a for a in from_areas if self._areas[a].winners.size > 0]
+        # Marks the substrate as in use; `add_connectivity` refuses after this.
+        self._projections += 1
 
         if tgt.fixed_assembly:
             return ProjectionResult(

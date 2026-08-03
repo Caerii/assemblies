@@ -72,7 +72,22 @@ class NumpyExplicitEngine(ComputeEngine):
             area.beta_by_source[name] = area.beta
 
     def add_connectivity(self, source: str, target: str, p: float) -> None:
-        pass
+        """Per-fiber connection probability -- NOT supported by this engine.
+
+        Same rationale as `numpy_sparse.add_connectivity`: this was `pass`
+        everywhere while the interface advertised it, so callers silently got
+        the global `p`. Here the connectomes are drawn dense at construction
+        from a shared RNG stream, so a per-fiber density would have to be
+        threaded into `add_area`/`add_stimulus` ordering -- exactly the
+        draw-order coupling this engine already has open as door 5 (#81).
+        Requesting the global `p` stays a no-op; anything else raises.
+        """
+        if float(p) != float(self.p):
+            raise NotImplementedError(
+                f"numpy_explicit does not support per-fiber connectivity: "
+                f"add_connectivity({source!r}, {target!r}, p={p}) differs from "
+                f"the engine's p={self.p}. Use numpy_exact, which implements "
+                f"it, rather than assuming this call took effect.")
 
     def project_into(
         self,

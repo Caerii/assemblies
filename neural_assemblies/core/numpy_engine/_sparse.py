@@ -1076,7 +1076,26 @@ class NumpySparseEngine(ComputeEngine):
             area.beta_by_source[name] = area.beta
 
     def add_connectivity(self, source: str, target: str, p: float) -> None:
-        pass
+        """Per-fiber connection probability -- NOT supported by this engine.
+
+        This was `pass` in every engine while `engine.py` documented it in the
+        interface with a worked example, so any caller that set a per-fiber
+        density silently got the global one -- the repo's dominant defect class
+        ([[silent-no-op-dead-fibers]]). `numpy_exact` now implements it; here it
+        cannot be done cheaply, because the candidate sampler combines several
+        input fibers into one truncated-tail draw parameterised by a single `p`
+        (`candidate_divisor`), and a per-fiber density would have to be pushed
+        through that draw rather than through the connectome alone.
+
+        Requesting the global `p` is not a request, so it stays a no-op;
+        anything else raises rather than being ignored.
+        """
+        if float(p) != float(self.p):
+            raise NotImplementedError(
+                f"numpy_sparse does not support per-fiber connectivity: "
+                f"add_connectivity({source!r}, {target!r}, p={p}) differs from "
+                f"the engine's p={self.p}. Use numpy_exact, which implements "
+                f"it, rather than assuming this call took effect.")
 
     def _candidate_draw_key(self, target, tgt, from_stimuli, from_areas):
         """Identify a projection by its CONTENT, for the candidate sampler.

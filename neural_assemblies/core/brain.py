@@ -1232,6 +1232,27 @@ class Brain:
         if self._explicit_engine is not None and self.areas[to_area].explicit:
             self._explicit_engine.set_beta(to_area, from_area, new_beta)
 
+    def add_connectivity(self, source: str, target: str, p: float) -> None:
+        """Set one fiber's connection probability, overriding the global `p`.
+
+        The counterpart of `update_plasticity`, which does the same for beta.
+        Mitropolsky & Papadimitriou (2025) need both: four of their fibers
+        carry "increased parameters beta AND p", and that asymmetry is what
+        makes the noun/verb split emerge without a label.
+
+        Only `numpy_exact` implements it. The others RAISE rather than ignore
+        -- this method was `pass` in every engine while the interface
+        advertised it, so a caller that set a per-fiber density silently got
+        the global one. Requesting the value already in force is not a change
+        and stays a no-op everywhere.
+
+        Connectivity is structural: it decides which synapses exist, so it must
+        be set before the fiber carries any traffic.
+        """
+        self._engine.add_connectivity(source, target, p)
+        if self._explicit_engine is not None:
+            self._explicit_engine.add_connectivity(source, target, p)
+
     def update_plasticities(
         self,
         area_update_map: Dict[str, List[Tuple[str, float]]] = {},

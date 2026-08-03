@@ -34,11 +34,31 @@ Word order lives in the ``SYNTAX_i -> helper`` synapses, and the mood
 conditioning rides in because ``MOOD -> SYNTAX`` fires at every step, making the
 syntactic assemblies themselves mood-specific.
 
-One deliberate improvement over the reference: cross-area drive comparison uses
-``input_drive(..., metric="pre_kwta")``, which normalizes per candidate neuron.
-The reference sums raw weights over winners, which biases the comparison toward
-whichever area happens to have recruited more neurons (this repository measured
-two role areas differing 391 vs 449, enough to reverse a ranking on size alone).
+SCORING, AND A CORRECTION.  This port used to describe ``metric="pre_kwta"`` as
+"one deliberate improvement over the reference", on the grounds that "the
+reference sums raw weights over winners, which biases the comparison toward
+whichever area happens to have recruited more neurons (two role areas measured
+here differed 391 vs 449, enough to reverse a ranking on size alone)".
+
+THAT REASONING IS WRONG, and the "improvement" introduced the very confound it
+claimed to remove. The reference's ``get_total_input`` is
+
+    sum over w in from_area.winners, u in to_area.winners of connectome[w, u]
+
+-- a sum over ``k_from * k_to`` terms. Both factors are ``k``, in every area,
+always. It CANNOT be biased by recruited size. The 391-vs-449 measurement was of
+``w``, and ``w`` does not enter that sum.
+
+``pre_kwta`` does enter it: it averages over all ``w`` candidates, so it is a
+function of recruited size by construction. Measured on the trained model, the
+mood-dependent part of the score was ~15% while the constant per-helper spread
+was ~63%, with helper sizes 432 / 658 / 484 -- the competition was decided by
+recruitment rather than by learning (research/notes/conjunctive_arc_measured.md).
+
+``scoring="winners"`` is therefore the DEFAULT and the faithful reading of both
+the reference and the paper's "the role area with the most synaptic input will
+be selected". ``scoring="pre_kwta"`` is kept so the old behaviour is still
+reachable and the two can be compared.
 """
 
 from __future__ import annotations
@@ -86,7 +106,14 @@ class WordOrderLearner:
         norm_init: bool = False,
         per_mood_syntax: bool = False,
         conjunctive_arc: bool = False,
+        scoring: str = "winners",
     ):
+        if scoring not in ("winners", "pre_kwta"):
+            raise ValueError(
+                f"scoring must be 'winners' (the reference's winner-to-winner "
+                f"sum, and the default) or 'pre_kwta' (the size-confounded "
+                f"variant this port used to default to); got {scoring!r}")
+        self.scoring = scoring
         self.num_nouns = num_nouns
         self.num_verbs = num_verbs
         self.num_words = num_nouns + num_verbs
@@ -317,13 +344,16 @@ class WordOrderLearner:
         `source` may be several areas. Under `conjunctive_arc` the transition
         is scored on (SYNTAX_prev, MOOD) together, because that pair -- not
         either alone -- is what identifies the arc.
+
+        `metric` is `self.scoring`; see the module docstring for why the
+        default is the reference's winner-to-winner sum and not `pre_kwta`.
         """
         sources = [source] if isinstance(source, str) else list(source)
         drives = input_drive(
             self.brain,
             sources=sources,
             target_areas=[HELPER[c] for c in candidates],
-            metric="pre_kwta",
+            metric=self.scoring,
         )
         best = max(candidates, key=lambda c: drives.get(HELPER[c], 0.0))
         return best

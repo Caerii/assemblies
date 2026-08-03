@@ -1,0 +1,22 @@
+
+  #95 -- does the readout decide the competition, or does size?
+  n=1000 k=50 p=0.05 beta=0.06, 60 sentences, 4 mood pairs x 4 seeds = 32 generations per arm
+
+    scoring   arc   multi-mood   1-mood  signal/bias
+   pre_kwta False      24/32        4/4         0.01
+   pre_kwta  True       7/32        1/4         0.22
+    winners False      24/32        4/4         0.01
+    winners  True       6/32        0/4         0.30
+
+  READING
+
+    R1 `winners` beats `pre_kwta` at arc=off:  False   24/32 -> 24/32
+    R2 the arc's effect improves:              False   -17 under pre_kwta, -18 under winners
+    R3 single-mood floor is 4/4 everywhere:    False   [4, 1, 4, 0]
+
+    best arm: scoring=pre_kwta arc=False -> 24/32, signal/bias 0.01
+    signal/bias is still BELOW 1 in the best arm: the score is
+    still dominated by a constant per-helper term, so these
+    numbers are read off a floor and the readout is STILL the
+    binding constraint. Do not treat the mechanism comparison
+    as settled.

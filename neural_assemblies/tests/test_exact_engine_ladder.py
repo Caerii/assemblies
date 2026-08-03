@@ -17,6 +17,8 @@ import pytest
 
 from neural_assemblies.core.brain import Brain
 from neural_assemblies.core.numpy_engine._exact import NumpyExactEngine
+from neural_assemblies.core.numpy_engine._explicit import NumpyExplicitEngine
+from neural_assemblies.core.numpy_engine._sparse import NumpySparseEngine
 
 N, K, P, BETA, SEED = 600, 30, 0.1, 0.05, 42
 
@@ -485,3 +487,81 @@ def test_brain_norm_init_reaches_every_engine():
             assert b._engine.norm_init is want, (
                 f"Brain(norm_init={want}) gave {engine_name} "
                 f"norm_init={b._engine.norm_init}")
+
+
+class TestPerFiberConnectivity:
+    """`add_connectivity` is real on this engine, and loud on the others.
+
+    Mitropolsky & Papadimitriou (2025) do not give every fiber the same
+    density -- four fibers carry "increased parameters beta AND p", and that
+    asymmetry is what makes the noun/verb split emerge without a label. The
+    method to express it was already on the engine interface, documented in
+    `engine.py` with a worked example, and was `pass` in all three engines.
+    """
+
+    @staticmethod
+    def _built(fiber_p, n=2000, k=50, seed=3):
+        b = Brain(p=P, seed=seed, engine="numpy_exact")
+        b.add_area("A", n, k, beta=0.1)
+        b.add_stimulus("s", k)
+        if fiber_p is not None:
+            b._engine.add_connectivity("s", "A", fiber_p)
+        for _ in range(5):
+            b.project({"s": ["A"]}, {})
+        return b
+
+    def test_raising_p_raises_in_degree_proportionally(self):
+        """The knob must reach the substrate, not just the bookkeeping."""
+        lo = self._built(None)._engine._stim_base["s"]["A"].mean()
+        hi = self._built(0.30)._engine._stim_base["s"]["A"].mean()
+        assert hi / lo == pytest.approx(0.30 / P, rel=0.05), (
+            f"per-fiber p did not reach the in-degree: {lo:.3f} -> {hi:.3f}, "
+            f"ratio {hi / lo:.2f} against the requested {0.30 / P:.2f}")
+
+    def test_it_changes_which_neurons_win(self):
+        """A density that does not move the assembly is not doing anything."""
+        a = set(self._built(None).areas["A"].winners.tolist())
+        b = set(self._built(0.30).areas["A"].winners.tolist())
+        assert len(a & b) / len(a) < 0.25, (
+            f"p=0.05 and p=0.30 on the same fiber elected overlapping "
+            f"assemblies ({len(a & b) / len(a):.2f}) -- suspect a no-op")
+
+    def test_default_is_the_global_p(self):
+        e = Brain(p=P, seed=SEED, engine="numpy_exact")._engine
+        assert e._p_of("anything", "at_all") == P
+
+    def test_refuses_to_change_the_substrate_after_traffic(self):
+        """p decides which synapses EXIST; changing it under written weights
+        would leave potentiation on synapses that no longer do."""
+        b = self._built(None)
+        with pytest.raises(RuntimeError, match="structural"):
+            b._engine.add_connectivity("s", "A", 0.2)
+
+    def test_restating_the_global_p_after_traffic_is_allowed(self):
+        """Not a change, so not an error -- otherwise the guard would fire on
+        callers that are merely being explicit."""
+        self._built(None)._engine.add_connectivity("s", "A", P)
+
+    def test_rejects_an_impossible_probability(self):
+        e = Brain(p=P, seed=SEED, engine="numpy_exact")._engine
+        with pytest.raises(ValueError):
+            e.add_connectivity("s", "A", 1.5)
+
+    @pytest.mark.parametrize("cls", [NumpySparseEngine, NumpyExplicitEngine])
+    def test_other_engines_refuse_rather_than_ignore(self, cls):
+        """The original bug: `pass` everywhere, so a caller that set a
+        per-fiber density silently got the global one.
+
+        Engines are built DIRECTLY rather than through `Brain`, because
+        `numpy_explicit` cannot be reached through `Brain.add_area` at all --
+        it does not accept `winner_policy`. That is a separate gap; going
+        around it here keeps this test about connectivity.
+        """
+        e = cls(p=P, seed=SEED)
+        with pytest.raises(NotImplementedError, match="per-fiber"):
+            e.add_connectivity("s", "A", 0.2)
+
+    @pytest.mark.parametrize("cls", [NumpySparseEngine, NumpyExplicitEngine])
+    def test_other_engines_accept_the_global_p(self, cls):
+        """Asking for what is already true is not a request."""
+        cls(p=P, seed=SEED).add_connectivity("s", "A", P)
