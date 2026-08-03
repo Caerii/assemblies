@@ -43,6 +43,7 @@ two role areas differing 391 vs 449, enough to reverse a ranking on size alone).
 
 from __future__ import annotations
 
+import copy
 import random
 from typing import Dict, List, Optional, Sequence
 
@@ -59,6 +60,9 @@ HELPER = {
     "O": "TPJ_patient_helper",
 }
 SYNTAX = {"S": "SYNTAX_subject", "V": "SYNTAX_verb", "O": "SYNTAX_object"}
+
+# The FSM arc area (`conjunctive_arc`). Not in the reference.
+ARC = "ARC"
 
 CONSTITUENTS = ("S", "V", "O")
 
@@ -81,6 +85,7 @@ class WordOrderLearner:
         previous_constituent_fire_rounds: int = 2,
         norm_init: bool = False,
         per_mood_syntax: bool = False,
+        conjunctive_arc: bool = False,
     ):
         self.num_nouns = num_nouns
         self.num_verbs = num_verbs
@@ -127,6 +132,61 @@ class WordOrderLearner:
         #
         # Off by default so the class stays a faithful reproduction; turn it on
         # to actually learn several moods.
+        # conjunctive_arc: make HELPER the FSM ARC ASSEMBLY.
+        #
+        # Multi-mood word order is a finite state machine -- state = the last
+        # constituent emitted, symbol = the mood, transition = the next
+        # constituent -- and Dabagia/Papadimitriou/Vempala (2025) Thm 4 shows
+        # NEMO learns an arbitrary FSM. Their architecture is explicit about
+        # what carries a transition: "each pair of state and symbol assemblies
+        # projects to the associated ARC ASSEMBLY, which in turn projects back
+        # to the assembly corresponding to the state the FSM would switch to."
+        # The arc A_{q,sigma} is a CONJUNCTION of (state, symbol) holding its
+        # own identity.
+        #
+        # Our HELPER areas are already positioned to be that arc: they receive
+        # SYNTAX_prev (the state) and MOOD (the symbol). But the reference
+        # fires MOOD into the helper on the FIRST WORD ONLY, so every
+        # non-initial transition is mood-blind by construction -- which is
+        # exactly the recorded failure profile, with failures concentrated in
+        # the mood pairs that must diverge AFTER a shared opening constituent.
+        #
+        # FIRST ATTEMPT, MEASURED AND REJECTED: simply co-fire MOOD into the
+        # current constituent's helper at every step, making the EXISTING
+        # helper the arc. It changes nothing -- helper mood-separation stays at
+        # 1.00 and generation is unchanged. The reason is legible in the
+        # architecture: `_activate_role` drives TPJ -> helper for ten rounds,
+        # so a single MOOD co-fire is a few percent of the helper's drive and
+        # cannot move its winners. That is [[mood-collapse-is-a-drive-ratio]]
+        # again, one layer down.
+        #
+        # And that is precisely where the reference architecture departs from
+        # Theorem 4: the theorem's arc A_{q,sigma} receives the state and the
+        # symbol AND NOTHING ELSE. Our helper also receives the word, which
+        # dominates it. A conjunction cannot form in an area whose winners are
+        # already decided by a third input.
+        #
+        # SO THE ARC GETS ITS OWN AREA. `ARC` receives only SYNTAX_prev (the
+        # state q) and MOOD (the symbol sigma); its assembly IS A_{q,sigma}.
+        # The transition is then learned as ARC -> helper[next], and generation
+        # picks the next constituent by drive from ARC alone. Both ends of
+        # Theorem 4's "each pair of state and symbol assemblies projects to the
+        # associated arc assembly, which in turn projects back to the ... state
+        # the FSM would switch to".
+        #
+        # The first word uses MOOD alone into ARC -- the start state q0 -- which
+        # is what the reference already did with MOOD -> helper, now routed
+        # through the same area as every other transition instead of being a
+        # special case.
+        #
+        # Off by default: the reference does not do this, and this class is a
+        # faithful port. Unlike `per_mood_syntax` the distinctness stays
+        # LEARNED -- one shared area, no per-mood areas, and the number of arc
+        # assemblies it must hold is |states| x |moods|, which Thm 4 sizes at
+        # n >= |Q|^2|Sigma|^2 (a few hundred neurons here).
+        self.conjunctive_arc = conjunctive_arc
+        if conjunctive_arc:
+            self.brain.add_area(ARC, n, k, beta)
         self.per_mood_syntax = per_mood_syntax
         self._mood_now = 0
         self._syn_areas: Dict[tuple, str] = {}
@@ -181,15 +241,41 @@ class WordOrderLearner:
         }                         # mood-specific, which is what keys the order
         if t > 0:
             pmap[syn] = [syn]
-        if first_word:
-            # Which constituent OPENS the clause is learned from MOOD.
-            pmap[MOOD] = pmap[MOOD] + [helper]
-        if t <= self.previous_constituent_fire_rounds and previous is not None:
-            # The order synapse: the PREVIOUS constituent's syntactic area
-            # fires into THIS constituent's helper, recording "c follows
-            # previous".
-            pmap[self._syn(previous)] = [helper]
+        if self.conjunctive_arc:
+            # The order synapse runs through the ARC instead: ARC already
+            # holds A_{q,sigma} (formed in `_form_arc` before these rounds), so
+            # ARC -> helper records "c follows q IN THIS MOOD". Fired for the
+            # same number of rounds as the direct synapse it replaces, so the
+            # two arms differ in the SOURCE of the order signal and not in how
+            # much drive it gets.
+            if t <= self.previous_constituent_fire_rounds:
+                pmap[ARC] = [helper]
+        else:
+            if first_word:
+                # Which constituent OPENS the clause is learned from MOOD.
+                pmap[MOOD] = pmap[MOOD] + [helper]
+            if (t <= self.previous_constituent_fire_rounds
+                    and previous is not None):
+                # The order synapse: the PREVIOUS constituent's syntactic area
+                # fires into THIS constituent's helper, recording "c follows
+                # previous". Mood-blind -- SYNTAX_prev is the same assembly in
+                # every mood, which is the whole problem.
+                pmap[self._syn(previous)] = [helper]
         self.brain.project({}, pmap)
+
+    def _form_arc(self, previous: Optional[str], rounds: int = 2) -> None:
+        """Settle A_{q,sigma} in ARC from (SYNTAX_prev, MOOD).
+
+        `previous is None` is the start state q0, where the arc is MOOD alone
+        -- the same signal the reference uses to choose the opening
+        constituent, routed through the same area as every other transition
+        rather than kept as a special case.
+        """
+        src: Dict[str, List[str]] = {MOOD: [ARC]}
+        if previous is not None:
+            src[self._syn(previous)] = [ARC]
+        for _ in range(rounds):
+            self.brain.project({}, src)
 
     def train_sentence(self, mood_index: int = 0) -> None:
         """Present one random transitive sentence in `mood_index`'s order."""
@@ -204,6 +290,8 @@ class WordOrderLearner:
         order = list(self.mood_orders[mood_index])
         previous: Optional[str] = None
         for pos, c in enumerate(order):
+            if self.conjunctive_arc:
+                self._form_arc(previous)
             for t in range(self.training_fire_rounds):
                 self._project_training(
                     c, t, first_word=(pos == 0), previous=previous)
@@ -217,17 +305,23 @@ class WordOrderLearner:
 
     # -- generation -------------------------------------------------------
 
-    def _strongest(self, source: str, candidates: Sequence[str]) -> str:
+    def _strongest(self, source: str | Sequence[str],
+                   candidates: Sequence[str]) -> str:
         """The candidate helper receiving the most synaptic input from `source`.
 
         This is the paper's selection rule ("the role area with the most
         synaptic input will be selected") and the reference's
         ``get_biggest_input_TPJ_from_*``, but normalized per candidate neuron so
         the comparison is not decided by which area recruited more neurons.
+
+        `source` may be several areas. Under `conjunctive_arc` the transition
+        is scored on (SYNTAX_prev, MOOD) together, because that pair -- not
+        either alone -- is what identifies the arc.
         """
+        sources = [source] if isinstance(source, str) else list(source)
         drives = input_drive(
             self.brain,
-            sources=[source],
+            sources=sources,
             target_areas=[HELPER[c] for c in candidates],
             metric="pre_kwta",
         )
@@ -247,21 +341,145 @@ class WordOrderLearner:
             for c, idx in (("S", subj), ("O", obj), ("V", verb)):
                 self._activate_role(idx, c, firings=firings)
 
-            # First constituent: whichever helper MOOD drives hardest.
-            current = self._strongest(MOOD, CONSTITUENTS)
-            self.brain.project({}, {MOOD: [HELPER[current]]})
+            # First constituent: the start arc q0. Without the arc this is
+            # MOOD -> helper directly, exactly as the reference does it.
+            if self.conjunctive_arc:
+                self._form_arc(None)
+                cue: str = ARC
+            else:
+                cue = MOOD
+            current = self._strongest(cue, CONSTITUENTS)
+            self.brain.project({}, {cue: [HELPER[current]]})
             order = [current]
 
             for _ in range(len(CONSTITUENTS) - 1):
                 syn = self._syn(current)
                 self.brain.project({}, {HELPER[current]: [syn], MOOD: [syn]})
                 remaining = [c for c in CONSTITUENTS if c not in order]
-                # Refresh every role area's helper, then let the current
-                # syntactic area pick the next constituent.
+                if self.conjunctive_arc:
+                    # Re-form the arc for the transition out of `current`,
+                    # then let it -- not the mood-blind syntactic area -- pick
+                    # the next constituent.
+                    self._form_arc(current)
+                    cue = ARC
+                else:
+                    cue = syn
+                # Refresh every role area's helper, then let the cue pick.
                 self.brain.project({}, {
-                    syn: [HELPER[c] for c in remaining],
+                    cue: [HELPER[c] for c in remaining],
                     **{TPJ[c]: [HELPER[c]] for c in CONSTITUENTS},
                 })
-                current = self._strongest(syn, remaining)
+                current = self._strongest(cue, remaining)
                 order.append(current)
         return order
+
+    # -- diagnostics ------------------------------------------------------
+
+    def mood_separation(self, which: str = "syntax") -> Dict[str, float]:
+        """Overlap of each constituent's assembly between moods; 1.0 = merged.
+
+        The quantity the whole multi-mood question turns on, exposed as a
+        method so experiments stop reaching into ``brain.areas``. `which` is
+        ``"syntax"`` or ``"helper"`` -- the latter looks at the arc itself.
+
+        Reference points already measured for SYNTAX: ~0.04 at initialization,
+        ~1.00 after ~20 training sentences in the emergent configuration.
+
+        HOW IT DRIVES THE AREA, AND WHY IT MATTERS.  The first version of this
+        method fired ``MOOD -> SYNTAX`` alone and read 1.000 at initialization,
+        where the true value is 0.04. That is not a measurement: on an untrained
+        fiber every weight is 1, every candidate ties, and the deterministic
+        index tie-break hands back the same winners for every mood -- failure
+        mode 4 in ``assembly_calculus.binding``. A probe that cannot distinguish
+        "merged" from "never driven" is worthless here, since those are exactly
+        the two hypotheses.
+
+        So the area is driven through the REAL chain, the same one ``generate``
+        uses: PHON -> TPJ -> helper -> SYNTAX with MOOD co-firing. The scene is
+        held FIXED across moods (same word indices) so that only the mood
+        differs; otherwise word identity confounds the comparison.
+
+        AND IT USES ``frozen()``, NOT ``read_only()``.  The second version of
+        this method used ``read_only()`` for isolation and ALSO read 1.000 at
+        initialization -- for a different reason, which is that ``read_only()``
+        freezes the winners. The probe was returning whatever was already in
+        the area, identically for every mood. Two different degenerate probes,
+        both reading exactly 1.000, neither of them a measurement.
+
+        ``frozen()`` disables plasticity but lets winners move, which is what
+        ``generate`` itself runs under, so this reads the same state generation
+        reads. ``frozen()`` alone does NOT isolate, though: recruitment is not
+        rolled back (see [[probe-isolation-required]]), and measured here,
+        calling this method between ``train`` and ``generate`` CHANGED the
+        generated order. So the whole probe runs against a deepcopy and the
+        trained brain is never touched. That costs one copy of a small brain
+        and removes the entire class of "the measurement moved the result".
+        """
+        if self.num_moods < 2:
+            return {c: float("nan") for c in CONSTITUENTS}
+        fixed = {"S": 0, "O": min(1, self.num_nouns - 1), "V": self.num_nouns}
+        out: Dict[str, float] = {}
+        live, saved_mood = self.brain, self._mood_now
+        try:
+            for c in CONSTITUENTS:
+                snaps: List[set] = []
+                for mi in self.mood_orders:
+                    self.brain = copy.deepcopy(live)
+                    with self.brain.frozen():
+                        self._mood_now = mi
+                        self.brain.activate(MOOD, mi)
+                        self._activate_role(fixed[c], c, firings=3)
+                        syn = self._syn(c)
+                        self.brain.project(
+                            {}, {HELPER[c]: [syn], MOOD: [syn]})
+                        name = syn if which == "syntax" else HELPER[c]
+                        snaps.append(set(self.brain.areas[name].winners))
+                pairs = [(a, b) for i, a in enumerate(snaps)
+                         for b in snaps[i + 1:]]
+                out[c] = (
+                    sum(len(a & b) / max(min(len(a), len(b)), 1)
+                        for a, b in pairs) / max(len(pairs), 1)
+                )
+        finally:
+            self.brain, self._mood_now = live, saved_mood
+        return out
+
+    def arc_separation(self) -> Dict[str, float]:
+        """Overlap of the ARC assembly between moods, per state q; 1.0 = merged.
+
+        The quantity `conjunctive_arc` exists to move. A_{q,sigma} must differ
+        across sigma for a fixed q, or the arc is not a conjunction and the
+        transition it drives cannot be mood-specific. Key ``"q0"`` is the start
+        state (MOOD alone); the others are keyed by the previous constituent.
+
+        Returns NaN everywhere when the arc is off -- there is no such area,
+        and returning zeros would read as a passing result.
+        """
+        if not self.conjunctive_arc or self.num_moods < 2:
+            return {q: float("nan") for q in ("q0",) + CONSTITUENTS}
+        out: Dict[str, float] = {}
+        live, saved_mood = self.brain, self._mood_now
+        try:
+            for q in ("q0",) + CONSTITUENTS:
+                snaps: List[set] = []
+                for mi in self.mood_orders:
+                    self.brain = copy.deepcopy(live)
+                    with self.brain.frozen():
+                        self._mood_now = mi
+                        self.brain.activate(MOOD, mi)
+                        if q != "q0":
+                            # Put the state assembly up before reading the arc.
+                            self._activate_role(0, q, firings=3)
+                            self.brain.project(
+                                {}, {HELPER[q]: [self._syn(q)], MOOD: [self._syn(q)]})
+                        self._form_arc(None if q == "q0" else q)
+                        snaps.append(set(self.brain.areas[ARC].winners))
+                pairs = [(a, b) for i, a in enumerate(snaps)
+                         for b in snaps[i + 1:]]
+                out[q] = (
+                    sum(len(a & b) / max(min(len(a), len(b)), 1)
+                        for a, b in pairs) / max(len(pairs), 1)
+                )
+        finally:
+            self.brain, self._mood_now = live, saved_mood
+        return out
