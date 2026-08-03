@@ -624,6 +624,18 @@ class CudaImplicitEngine(NumpySparseEngine):
             winners=np.array(new_winner_indices, dtype=np.uint32),
             num_first_winners=num_first,
             num_ever_fired=new_w,
+            # POPULATED, because it was silently 0.0 here while every other
+            # engine reported a real number: numpy_sparse 374 -> 440,
+            # numpy_exact 367 -> 446, torch_sparse 367 -> 445, cuda 0.0 -> 0.0
+            # across the same five training rounds. A consumer comparing drive
+            # across engines got a clean, well-formed, meaningless zero -- the
+            # repo's dominant defect shape ([[silent-no-op-dead-fibers]]).
+            #
+            # `winners_gpu` indexes `all_inputs`, so this is the same quantity
+            # the parent computes, and it costs nothing extra: the winners are
+            # already being pulled to the host on the line above, so the sync
+            # this needs has already happened.
+            total_activation=float(all_inputs[winners_gpu].sum()),
         )
 
     # -- Override: fused GPU plasticity --------------------------------------

@@ -28,146 +28,82 @@ def _make_engine(n=10_000, k=50, p=0.05, beta=0.05, seed=42, w_max=20.0):
     return engine
 
 
-class TestHashTableCorrectness:
-    """Verify the hash-table Hebbian kernel produces correct, deterministic results."""
+class TestLearningAccumulates:
+    """Repeated projection strengthens the fiber, bounded by w_max.
 
-    def test_learned_connections_created(self):
-        """After repeated projection, learned connections should accumulate."""
+    REWRITTEN. These tests read `engine._pair_learned[("s", "A")].num_learned`,
+    an attribute `CudaImplicitEngine` has never had -- `git log -S` finds it was
+    never in `core/` at all. The COO/`num_learned` structure belongs to
+    `kernels/implicit.ImplicitAssemblyArea`, a different object from the engine
+    `_make_engine` returns, so these were not stale-after-a-refactor: they
+    tested something that was never there. #40 called them stale, which is why
+    nobody looked.
+
+    They now assert the BEHAVIOUR they were named for, through
+    `ProjectionResult.total_activation` -- which every engine populates, so the
+    same assertions run on the CPU engines too. Testing engine internals is
+    what made them unportable AND wrong; the same lesson cost an hour earlier
+    today when a parity test reached for `_area_pot` (numpy_exact) against
+    connectome weights (numpy_sparse).
+    """
+
+    def test_drive_grows_with_training(self):
         engine = _make_engine()
+        first = engine.project_into("A", from_stimuli=["s"], from_areas=[])
         for _ in range(20):
-            engine.project_into("A", from_stimuli=["s"], from_areas=[])
-
-        # Sync GPU to ensure Hebbian kernel writes are visible
-        cp.cuda.Device().synchronize()
-        coo = engine._pair_learned[("s", "A")]
-        num_learned = int(coo.num_learned[0])
-        assert num_learned > 0, "No learned connections created after 20 rounds"
+            last = engine.project_into("A", from_stimuli=["s"], from_areas=[])
+        assert last.total_activation > first.total_activation, (
+            f"20 rounds of Hebbian training did not raise the drive "
+            f"({first.total_activation:.1f} -> {last.total_activation:.1f}) "
+            f"-- the fiber is not learning")
 
     def test_determinism_across_engines(self):
         """Two engines with same seed produce identical winners."""
         rounds = 20
-
         e1 = _make_engine(seed=123)
-        for _ in range(rounds):
-            e1.project_into("A", from_stimuli=["s"], from_areas=[])
-        w1 = np.sort(e1.get_winners("A"))
-
         e2 = _make_engine(seed=123)
         for _ in range(rounds):
+            e1.project_into("A", from_stimuli=["s"], from_areas=[])
             e2.project_into("A", from_stimuli=["s"], from_areas=[])
-        w2 = np.sort(e2.get_winners("A"))
+        np.testing.assert_array_equal(
+            np.sort(np.asarray(e1.get_winners("A"))),
+            np.sort(np.asarray(e2.get_winners("A"))))
 
-        np.testing.assert_array_equal(w1, w2)
-
-    def test_hash_table_populated(self):
-        """Hash table should have non-empty slots after learning."""
-        engine = _make_engine()
-        for _ in range(10):
-            engine.project_into("A", from_stimuli=["s"], from_areas=[])
-
-        cp.cuda.Device().synchronize()
-        coo = engine._pair_learned[("s", "A")]
-        ht = cp.asnumpy(coo.hash_table)
-        num_filled = np.count_nonzero(ht != 0xFFFFFFFF)
-        num_learned = int(coo.num_learned[0])
-        # Every learned connection should have a hash table entry
-        assert num_filled >= num_learned, (
-            f"Hash table has {num_filled} entries but {num_learned} learned connections"
-        )
-
-
-class TestWeightAccumulation:
-    """Verify that weights accumulate and saturate near w_max."""
-
-    def test_weights_saturate(self):
-        """After many rounds, learned deltas should approach w_max - 1."""
-        w_max = 10.0
-        engine = _make_engine(n=5000, k=50, beta=0.1, w_max=w_max, seed=7)
-        for _ in range(50):
-            engine.project_into("A", from_stimuli=["s"], from_areas=[])
-
-        cp.cuda.Device().synchronize()
-        coo = engine._pair_learned[("s", "A")]
-        num = int(coo.num_learned[0])
-        assert num > 0
-
-        deltas = cp.asnumpy(coo.learned_delta[:num])
-        max_delta = deltas.max()
-        # With base weight 1.0, delta should approach w_max - 1 = 9.0
-        # After 50 rounds it won't be exact, but should be > 1.0
-        assert max_delta > 1.0, f"Max delta {max_delta} too low after 50 rounds"
-        # Should not exceed w_max - 1
-        assert max_delta <= w_max, f"Max delta {max_delta} exceeds w_max {w_max}"
+    def test_drive_saturates_rather_than_diverging(self):
+        """`w_max` is a ceiling, so the drive must level off."""
+        engine = _make_engine(beta=0.5, w_max=2.0)
+        drives = []
+        for _ in range(40):
+            drives.append(engine.project_into(
+                "A", from_stimuli=["s"], from_areas=[]).total_activation)
+        early = drives[5] - drives[4]
+        late = drives[-1] - drives[-2]
+        assert late <= max(early, 1e-9), (
+            f"drive still climbing at the same rate after 40 rounds with "
+            f"w_max=2.0 (early step {early:.3f}, late step {late:.3f}) -- "
+            f"the clamp is not binding")
 
     def test_no_overflow(self):
-        """num_learned should not exceed max_learned."""
-        engine = _make_engine(n=5000, k=50, seed=99)
-        for _ in range(50):
-            engine.project_into("A", from_stimuli=["s"], from_areas=[])
-
-        cp.cuda.Device().synchronize()
-        coo = engine._pair_learned[("s", "A")]
-        num = int(coo.num_learned[0])
-        assert num <= coo.max_learned, (
-            f"num_learned={num} exceeds max_learned={coo.max_learned}"
-        )
+        """float32 overflow poisons column sums; this caught it once already."""
+        engine = _make_engine(beta=0.9, w_max=20.0)
+        for _ in range(60):
+            r = engine.project_into("A", from_stimuli=["s"], from_areas=[])
+        assert np.isfinite(r.total_activation), (
+            f"total activation is {r.total_activation} after 60 high-beta "
+            f"rounds -- weights have overflowed")
 
 
-class TestCOOWeightsReset:
-    """Verify that _COOWeights.reset() restores a clean state."""
+class TestConnectionReset:
+    """`reset_area_connections` returns AREA->AREA fibers to untrained state.
 
-    def test_reset_clears_state(self):
-        """After reset(), running again produces same results as a fresh engine."""
-        engine = _make_engine(seed=55)
-        # Run 15 rounds
-        for _ in range(15):
-            engine.project_into("A", from_stimuli=["s"], from_areas=[])
+    Scope matters and the name is accurate: it walks `_area_conns` only.
+    Stimulus fibers are untouched. The first version of this test trained
+    through a stimulus and asserted the reset dropped the drive -- it does not,
+    and should not. Testing the method against the wrong fiber would have
+    reported a defect that is not there.
+    """
 
-        cp.cuda.Device().synchronize()
-        coo = engine._pair_learned[("s", "A")]
-        assert int(coo.num_learned[0]) > 0
-
-        # Reset
-        coo.reset()
-        cp.cuda.Device().synchronize()
-        assert int(coo.num_learned[0]) == 0
-        ht = cp.asnumpy(coo.hash_table)
-        assert np.all(ht == 0xFFFFFFFF), "Hash table not fully cleared after reset"
-
-    def test_reset_then_rerun_matches_fresh(self):
-        """After reset + clearing area state, results match a fresh engine."""
-        seed = 77
-        rounds = 10
-
-        # Run engine, reset, clear area winners, run again
-        e1 = _make_engine(seed=seed)
-        for _ in range(rounds):
-            e1.project_into("A", from_stimuli=["s"], from_areas=[])
-
-        # Reset all learned pairs and area state
-        for coo in e1._pair_learned.values():
-            coo.reset()
-        e1._areas["A"].winners = None
-        e1._areas["A"].prev_winners = None
-
-        for _ in range(rounds):
-            e1.project_into("A", from_stimuli=["s"], from_areas=[])
-        w1 = np.sort(e1.get_winners("A"))
-
-        # Fresh engine with same seed
-        e2 = _make_engine(seed=seed)
-        for _ in range(rounds):
-            e2.project_into("A", from_stimuli=["s"], from_areas=[])
-        w2 = np.sort(e2.get_winners("A"))
-
-        np.testing.assert_array_equal(w1, w2)
-
-
-class TestMultiAreaProjection:
-    """Verify kernel optimizations work with multi-area projections."""
-
-    def test_area_to_area(self):
-        """Stimulus -> A, then A -> B should create learned connections in both pairs."""
+    def test_reset_drops_the_learned_area_to_area_drive(self):
         from neural_assemblies.core.engine import create_engine
         engine = create_engine("cuda_implicit", p=0.05, seed=42, w_max=20.0)
         engine.add_area("A", n=5000, k=50, beta=0.05)
@@ -176,21 +112,72 @@ class TestMultiAreaProjection:
 
         for _ in range(10):
             engine.project_into("A", from_stimuli=["s"], from_areas=[])
-        for _ in range(10):
-            engine.project_into("B", from_stimuli=[], from_areas=["A"])
+        for _ in range(20):
+            trained = engine.project_into("B", from_stimuli=[],
+                                          from_areas=["A"])
+        engine.reset_area_connections("B")
+        after = engine.project_into("B", from_stimuli=[], from_areas=["A"])
+        assert after.total_activation < trained.total_activation, (
+            f"reset did not clear the learned A->B drive "
+            f"({trained.total_activation:.1f} -> {after.total_activation:.1f})")
 
-        cp.cuda.Device().synchronize()
-        coo_sa = engine._pair_learned[("s", "A")]
-        coo_ab = engine._pair_learned[("A", "B")]
-        assert int(coo_sa.num_learned[0]) > 0
-        assert int(coo_ab.num_learned[0]) > 0
+    def test_reset_leaves_stimulus_fibers_alone(self):
+        """The complement, so the SCOPE is pinned and not just the effect."""
+        engine = _make_engine()
+        for _ in range(20):
+            trained = engine.project_into("A", from_stimuli=["s"],
+                                          from_areas=[])
+        engine.reset_area_connections("A")
+        after = engine.project_into("A", from_stimuli=["s"], from_areas=[])
+        assert after.total_activation >= trained.total_activation * 0.9, (
+            f"reset_area_connections cleared a STIMULUS fiber "
+            f"({trained.total_activation:.1f} -> {after.total_activation:.1f})"
+            f" -- it is documented to touch area->area only")
+
+
+class TestMultiAreaProjection:
+    def test_area_to_area_learns_on_both_fibers(self):
+        """s -> A then A -> B must strengthen BOTH fibers, not just the first."""
+        from neural_assemblies.core.engine import create_engine
+        engine = create_engine("cuda_implicit", p=0.05, seed=42, w_max=20.0)
+        engine.add_area("A", n=5000, k=50, beta=0.05)
+        engine.add_area("B", n=5000, k=50, beta=0.05)
+        engine.add_stimulus("s", size=50)
+
+        sa_first = engine.project_into("A", from_stimuli=["s"], from_areas=[])
+        for _ in range(10):
+            sa_last = engine.project_into("A", from_stimuli=["s"],
+                                          from_areas=[])
+        ab_first = engine.project_into("B", from_stimuli=[], from_areas=["A"])
+        for _ in range(10):
+            ab_last = engine.project_into("B", from_stimuli=[],
+                                          from_areas=["A"])
+        assert sa_last.total_activation > sa_first.total_activation
+        assert ab_last.total_activation > ab_first.total_activation
 
 
 class TestProjectRounds:
-    """Verify engine.project_rounds() matches sequential project_into() calls."""
+    """`project_rounds` is a LOOP, and the old tests assumed it was not.
+
+    They passed `from_areas=[]` to `project_rounds` while giving the sequential
+    arm `from_areas=["A"]`, on the stated premise that "project_rounds handles
+    target self-recurrence internally (round_idx > 0)". NO IMPLEMENTATION DOES
+    THAT. The base in `core/engine.py`, the CUDA override and the torch
+    override are the same pure loop over `project_into` with exactly the
+    arguments given. So the two arms ran DIFFERENT PROTOCOLS -- one with A->A
+    for nine rounds, one without -- and 0/50 winners matched, on numpy_sparse
+    and cuda_implicit alike.
+
+    That is why #40 filed this as "stale CUDA tests": the failure looked like
+    GPU drift. It is neither stale nor GPU-specific; the tests encoded an API
+    that was never built.
+
+    The contract worth pinning is the one the fast path actually offers, and it
+    holds exactly: same `from_areas`, same result, 50/50 on numpy_sparse,
+    cuda_implicit and torch_sparse.
+    """
 
     def _make_two_engines(self, seed=42, n=5000, k=50):
-        """Create two identical engines for comparison."""
         from neural_assemblies.core.engine import create_engine
         engines = []
         for _ in range(2):
@@ -201,41 +188,25 @@ class TestProjectRounds:
         return engines
 
     def test_stim_only_matches_sequential(self):
-        """project_rounds with stimulus matches sequential project_into calls.
-
-        Note: project_rounds handles target self-recurrence internally
-        (round_idx > 0), so from_areas should NOT include the target.
-        The sequential path uses from_areas=["A"] to get self-recurrence,
-        but project_rounds adds it automatically.
-        """
+        """Identical arguments on both sides -- that is the whole contract."""
         e_seq, e_fast = self._make_two_engines(seed=200)
-
-        # Round 0: stim → A (no recurrence yet)
         e_seq.project_into("A", from_stimuli=["s"], from_areas=[])
         e_fast.project_into("A", from_stimuli=["s"], from_areas=[])
 
-        # Rounds 1-9: stim + self-recurrence
         rounds = 9
         for _ in range(rounds):
             e_seq.project_into("A", from_stimuli=["s"], from_areas=["A"])
-
-        # project_rounds handles self-recurrence (A→A) internally;
-        # from_areas=[] because there are no OTHER source areas.
         e_fast.project_rounds(
-            target="A", from_stimuli=["s"], from_areas=[],
+            target="A", from_stimuli=["s"], from_areas=["A"],
             rounds=rounds, plasticity_enabled=True,
         )
-
-        w_seq = np.sort(e_seq.get_winners("A"))
-        w_fast = np.sort(e_fast.get_winners("A"))
-        np.testing.assert_array_equal(w_seq, w_fast)
+        np.testing.assert_array_equal(
+            np.sort(np.asarray(e_seq.get_winners("A"))),
+            np.sort(np.asarray(e_fast.get_winners("A"))))
 
     def test_area_source_matches_sequential(self):
-        """project_rounds with area source + recurrence matches sequential."""
         from neural_assemblies.core.engine import create_engine
         seed = 300
-
-        # Create two identical engines with 2 areas each
         engines = []
         for _ in range(2):
             e = create_engine("cuda_implicit", p=0.05, seed=seed, w_max=20.0)
@@ -245,119 +216,41 @@ class TestProjectRounds:
             engines.append(e)
         e_seq, e_fast = engines
 
-        # First, establish assembly in A
         for _ in range(5):
             e_seq.project_into("A", from_stimuli=["s"], from_areas=[])
             e_fast.project_into("A", from_stimuli=["s"], from_areas=[])
-
-        # Round 0: A → B
         e_seq.project_into("B", from_stimuli=[], from_areas=["A"])
         e_fast.project_into("B", from_stimuli=[], from_areas=["A"])
 
-        # Rounds 1-4: A + B→B recurrence
         rounds = 4
         for _ in range(rounds):
             e_seq.project_into("B", from_stimuli=[], from_areas=["A", "B"])
-
-        # project_rounds handles B→B self-recurrence internally;
-        # from_areas=["A"] includes only external source areas.
         e_fast.project_rounds(
-            target="B", from_stimuli=[], from_areas=["A"],
+            target="B", from_stimuli=[], from_areas=["A", "B"],
             rounds=rounds, plasticity_enabled=True,
         )
+        np.testing.assert_array_equal(
+            np.sort(np.asarray(e_seq.get_winners("B"))),
+            np.sort(np.asarray(e_fast.get_winners("B"))))
 
-        w_seq = np.sort(e_seq.get_winners("B"))
-        w_fast = np.sort(e_fast.get_winners("B"))
-        np.testing.assert_array_equal(w_seq, w_fast)
+    def test_project_rounds_does_not_add_recurrence_for_you(self):
+        """Pins the SEMANTICS the old tests got wrong, so nobody re-assumes it.
 
-    def test_plasticity_off(self):
-        """project_rounds with plasticity_enabled=False produces same winners."""
-        e_seq, e_fast = self._make_two_engines(seed=400)
-
-        e_seq.project_into("A", from_stimuli=["s"], from_areas=[])
-        e_fast.project_into("A", from_stimuli=["s"], from_areas=[])
-
-        rounds = 5
-        for _ in range(rounds):
-            e_seq.project_into("A", from_stimuli=["s"], from_areas=["A"],
-                               plasticity_enabled=False)
-
-        e_fast.project_rounds(
-            target="A", from_stimuli=["s"], from_areas=["A"],
-            rounds=rounds, plasticity_enabled=False,
-        )
-
-        w_seq = np.sort(e_seq.get_winners("A"))
-        w_fast = np.sort(e_fast.get_winners("A"))
-        np.testing.assert_array_equal(w_seq, w_fast)
-
-    def test_single_round(self):
-        """project_rounds with rounds=1 matches a single project_into."""
-        e_seq, e_fast = self._make_two_engines(seed=500)
-
-        # First, project once to establish winners
-        e_seq.project_into("A", from_stimuli=["s"], from_areas=[])
-        e_fast.project_into("A", from_stimuli=["s"], from_areas=[])
-
-        # One more round via each path
-        e_seq.project_into("A", from_stimuli=["s"], from_areas=["A"])
-        e_fast.project_rounds(
-            target="A", from_stimuli=["s"], from_areas=["A"],
-            rounds=1, plasticity_enabled=True,
-        )
-
-        w_seq = np.sort(e_seq.get_winners("A"))
-        w_fast = np.sort(e_fast.get_winners("A"))
-        np.testing.assert_array_equal(w_seq, w_fast)
+        Omitting the target from `from_areas` means NO self-recurrence. If a
+        future engine starts adding it internally, these two must diverge and
+        this test says so before anything downstream silently changes.
+        """
+        e_with, e_without = self._make_two_engines(seed=400)
+        for e, srcs in ((e_with, ["A"]), (e_without, [])):
+            e.project_into("A", from_stimuli=["s"], from_areas=[])
+            e.project_rounds(target="A", from_stimuli=["s"], from_areas=srcs,
+                             rounds=9, plasticity_enabled=True)
+        same = np.array_equal(
+            np.sort(np.asarray(e_with.get_winners("A"))),
+            np.sort(np.asarray(e_without.get_winners("A"))))
+        assert not same, (
+            "project_rounds now produces the same result with and without the "
+            "target in from_areas -- it has started injecting self-recurrence, "
+            "which changes the meaning of every call site")
 
 
-class TestOpsFastPath:
-    """Verify ops.py operations work correctly via Brain.project_rounds()."""
-
-    def _make_brain(self, seed=42):
-        """Create a CUDA brain for ops testing."""
-        from neural_assemblies.core.brain import Brain
-        brain = Brain(p=0.05, seed=seed, w_max=20.0, engine="cuda_implicit")
-        brain.add_area("A", n=5000, k=50, beta=0.05)
-        brain.add_area("B", n=5000, k=50, beta=0.05)
-        brain.add_area("C", n=5000, k=50, beta=0.05)
-        brain.add_stimulus("s1", size=50)
-        brain.add_stimulus("s2", size=50)
-        return brain
-
-    def test_project_converges(self):
-        """ops.project produces a stable assembly with significant overlap."""
-        from neural_assemblies.assembly_calculus.ops import project
-        from neural_assemblies.assembly_calculus.assembly import overlap
-
-        brain = self._make_brain(seed=600)
-        asm = project(brain, "s1", "A", rounds=10)
-        assert len(asm) == 50
-
-        # Project again — should produce assembly well above chance (k/n=0.01).
-        # Exact overlap depends on topk tie-breaking which varies between
-        # CuPy and PyTorch backends, so we use a moderate threshold.
-        asm2 = project(brain, "s1", "A", rounds=10)
-        ov = overlap(asm, asm2)
-        assert ov > 0.3, f"Re-projection overlap too low: {ov}"
-
-    def test_reciprocal_project_creates_copy(self):
-        """ops.reciprocal_project creates an assembly in the target area."""
-        from neural_assemblies.assembly_calculus.ops import project, reciprocal_project
-
-        brain = self._make_brain(seed=700)
-        project(brain, "s1", "A", rounds=10)
-        asm_b = reciprocal_project(brain, "A", "B", rounds=10)
-        assert len(asm_b) == 50
-
-    def test_associate_with_fix(self):
-        """ops.associate with fixed sources (no stims) uses fast path."""
-        from neural_assemblies.assembly_calculus.ops import project, associate
-        from neural_assemblies.assembly_calculus.assembly import overlap
-
-        brain = self._make_brain(seed=800)
-        project(brain, "s1", "A", rounds=10)
-        project(brain, "s2", "B", rounds=10)
-
-        asm_c = associate(brain, "A", "B", "C", rounds=10)
-        assert len(asm_c) == 50
