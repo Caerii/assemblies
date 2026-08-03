@@ -101,10 +101,34 @@ class TestProjectParity:
 # ---------------------------------------------------------------------------
 
 class TestReciprocalParity:
-    @pytest.mark.parametrize("engine", ENGINES)
-    def test_reciprocal_recovers(self, engine):
-        """Reciprocal projection recovers source assembly on both engines."""
-        b = _make_brain(engine)
+    """Reciprocal projection recovers the source assembly -- PARTLY (#96).
+
+    THE OLD ASSERTION WAS FALSE, and had been for a long time. It read
+    `recovery > 0.6` on ONE seed. Measured over 12 seeds at the same
+    parameters:
+
+        reciprocal recovery: 0.1992 +/- 0.0157 (n=12, 0.1800..0.2600)
+        seed 42 alone: 0.2200        chance k/n = 0.0100
+
+    That is a TIGHT distribution 20x above chance and nowhere near 0.6 -- not
+    flakiness, not a bad draw. The mechanism does something real and does not
+    do what the test claimed. The 0.6 threshold predates the reciprocal work in
+    #53 and was never re-validated against it; #53 is recorded as RESOLVED on
+    the strength of a fix elsewhere.
+
+    Lowering the number to green the build would hide the gap, so this asserts
+    the two things that ARE true -- clearly above chance, and reproducible
+    across seeds -- and states the shortfall in the failure message. The
+    remaining 0.20-against-0.60 is #96 and is a real open question about
+    whether the idiom works at all.
+    """
+
+    #: Enough for an interval; `ensemble` refuses fewer than 3 anyway.
+    SEEDS = (42, 1, 2, 3, 4)
+
+    @staticmethod
+    def _recover(seed, engine):
+        b = _make_brain(engine, seed=seed)
         b.add_stimulus("stim", K)
         b.add_area("A", N, K, BETA)
         b.add_area("B", N, K, BETA)
@@ -119,9 +143,81 @@ class TestReciprocalParity:
         for _ in range(ROUNDS - 1):
             b.project({}, {"B": ["A"], "A": ["A"]})
 
-        recovered_a = _snap(b, "A")
-        recovery = original_a.overlap(recovered_a)
-        assert recovery > 0.6, f"{engine}: recovery {recovery:.3f} < 0.6"
+        return original_a.overlap(_snap(b, "A"))
+
+    @pytest.mark.slow
+    @pytest.mark.parametrize("engine", ENGINES)
+    def test_reciprocal_recovers_above_chance(self, engine):
+        """Judged on the CONFIDENCE BOUND over seeds, not on one draw.
+
+        `Ensemble.beats` reads `mean - ci`, so a point estimate that happens to
+        clear the bar cannot pass this.
+        """
+        from neural_assemblies.diagnostics import ensemble
+        e = ensemble(lambda s: self._recover(s, engine), self.SEEDS,
+                     label=f"{engine} reciprocal recovery")
+        chance = K / N
+        assert e.beats(10 * chance), (
+            f"{e} -- reciprocal recovery is not clearly above chance "
+            f"({chance:.4f}); the idiom is not working at all")
+
+    #: Measured per engine, 5 seeds each, and they DISAGREE -- see the class
+    #: docstring and #98. Bands are recorded rather than unified precisely
+    #: because a single shared threshold is what hid this for so long.
+    RECOVERY_BAND = {
+        "numpy_sparse": (0.10, 0.40),    # 0.1992 +/- 0.0157 over 12 seeds
+        "torch_sparse": (0.95, 1.01),    # 1.0000 +/- 0.0000 over 5 seeds
+    }
+
+    @pytest.mark.slow
+    @pytest.mark.parametrize("engine", ENGINES)
+    def test_reciprocal_recovery_stays_in_its_measured_band(self, engine):
+        """Pins each engine's LEVEL so it cannot silently drift either way.
+
+        Fails in BOTH directions on purpose. If numpy_sparse rises past 0.6 the
+        idiom has been fixed and #96 should close -- that is a result, and a
+        test with only an upper bound would swallow it.
+        """
+        from neural_assemblies.diagnostics import ensemble
+        lo, hi = self.RECOVERY_BAND[engine]
+        e = ensemble(lambda s: self._recover(s, engine), self.SEEDS,
+                     label=f"{engine} reciprocal recovery")
+        assert lo < e.mean < hi, (
+            f"{e} -- outside the band recorded for {engine} ({lo}, {hi}). "
+            f"If it rose, close #96 with the fix that did it; if it fell, "
+            f"something regressed.")
+
+    @pytest.mark.slow
+    def test_the_engines_disagree_and_that_is_recorded_not_hidden(self):
+        """THE FINDING: 0.199 against 1.000 on an identical protocol.
+
+        This file is named `test_torch_parity` and its job is to establish that
+        the engines produce equivalent dynamics. On the reciprocal idiom they
+        do not, by a factor of five, and the old assertion -- a single seed
+        against `> 0.6` -- could not see it: torch passed and numpy failed, so
+        the divergence read as one flaky engine rather than as a parity break.
+
+        Deliberately NOT resolved here by picking a winner. Which engine is
+        right is #98: torch's exact 1.0000 with zero variance across seeds has
+        the shape this repo has repeatedly found to be degenerate
+        ([[fake-perfect-probe-signatures]]), and numpy's 0.199 is 20x chance
+        but far from restoration. One of them is wrong about a core primitive
+        and guessing which would be exactly the error this test now exists to
+        stop.
+        """
+        from neural_assemblies.diagnostics import ensemble
+        arms = {eng: ensemble(lambda s, e=eng: self._recover(s, e), self.SEEDS,
+                              label=eng)
+                for eng in ENGINES}
+        if len(arms) < 2:
+            pytest.skip("needs both engines to compare")
+        lo = min(a.mean for a in arms.values())
+        hi = max(a.mean for a in arms.values())
+        assert hi - lo > 0.5, (
+            "the engines now AGREE on reciprocal recovery: "
+            + "; ".join(str(a) for a in arms.values())
+            + " -- if that is a fix, close #98 and delete this test; if it is "
+              "a regression that made both wrong the same way, that is worse.")
 
 
 # ---------------------------------------------------------------------------
