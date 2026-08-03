@@ -125,6 +125,7 @@ class WordOrderLearner:
         per_mood_syntax: bool = False,
         conjunctive_arc: bool = False,
         scoring: str = "winners",
+        synaptic_scaling: bool = False,
     ):
         if scoring not in ("winners", "pre_kwta"):
             raise ValueError(
@@ -145,7 +146,29 @@ class WordOrderLearner:
         # norm_init is off by default: this is a literature reproduction, and
         # the reference substrate is un-normalized (see the repo's
         # norm_init-substrate-vs-reference convention).
-        self.brain = Brain(p=p, seed=seed, norm_init=norm_init)
+        # synaptic_scaling is PER-ROUND HOMEOSTASIS: after each projection the
+        # winners' incoming weights are renormalised, per fiber, to a setpoint
+        # of `rows * p` (NumpySparseEngine._apply_synaptic_scaling).
+        #
+        # Its own docstring judges it WRONG for the problem it was written for
+        # -- a per-fiber setpoint cancels exactly the net potentiation that
+        # makes a recurrent assembly self-sustaining, so it removes the gain an
+        # attractor needs. That objection does not apply here: the arc has no
+        # self-recurrence, and its failure is that ONE INPUT OUT-ACCUMULATES
+        # THE OTHER (MOOD fires into ARC at every constituent, any given
+        # SYNTAX_prev only when it precedes). Holding each fiber to its own
+        # setpoint is precisely the remedy for that.
+        #
+        # It is also the closest thing here to Dabagia Thm 2's standing
+        # assumption that "after each round, homeostasis is applied, so that
+        # each neuron's incoming weights sum to 1" -- closest, not equal: the
+        # theorem normalises JOINTLY over all fibers into a neuron, this
+        # normalises each fiber separately, and stimulus fibers do not
+        # participate at all. Both inputs to ARC are areas, so both are covered.
+        #
+        # numpy_sparse only.
+        self.brain = Brain(p=p, seed=seed, norm_init=norm_init,
+                           synaptic_scaling=synaptic_scaling)
         # PHON and MOOD are EXPLICIT: each word / mood is a fixed, addressable
         # assembly, activated by index exactly as the reference does.
         self.brain.add_explicit_area(PHON, self.num_words * k, k, beta)

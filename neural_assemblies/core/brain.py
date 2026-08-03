@@ -1250,7 +1250,13 @@ class Brain:
         be set before the fiber carries any traffic.
         """
         self._engine.add_connectivity(source, target, p)
-        if self._explicit_engine is not None:
+        # Gated on the TARGET being explicit, exactly as `update_plasticity`
+        # gates `set_beta`. The first version forwarded unconditionally and
+        # raised on any explicit-source -> sparse-target fiber -- e.g. the
+        # paper's PHON -> LEX1 -- because the explicit engine refuses per-fiber
+        # p and does not own that fiber anyway. The main engine does.
+        if (self._explicit_engine is not None
+                and target in self.areas and self.areas[target].explicit):
             self._explicit_engine.add_connectivity(source, target, p)
 
     def update_plasticities(
