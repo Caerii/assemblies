@@ -397,22 +397,43 @@ class TestCrossRepoLiveReference:
     @pytest.mark.xfail(
         strict=False,
         reason=(
-            "Compares the EXTERNAL reference (.reference/dmitropolsky-assemblies "
-            "brain.py, run in a subprocess) against a stale pre-norm_init golden. "
-            "The reference's separate_overlap now measures ~0.125 vs the golden's "
-            "0.0125 near-chance value -- a 10x drift that is NOT explained by host "
-            "nondeterminism. This is a reference-drift / stale-golden issue in the "
-            "external comparison harness, independent of this repo's norm_init "
-            "work (the reference brain does not use our engine or norm_init). It "
-            "needs the golden regenerated against the current reference checkout, "
-            "with the reference present -- an environment-dependent maintenance "
-            "task, not a norm_init regression."
+            "THE REFERENCE IS BIMODAL AT THESE PARAMETERS, which is neither "
+            "of the two explanations previously recorded. Measured over seeds "
+            "42-46 with the test's own params: 0.0000, 0.5125, 0.0000, 0.3500, "
+            "0.4875 -- mean 0.27 +/- 0.32. It either separates perfectly or "
+            "barely at all; there is no 'near chance' value to compare a "
+            "golden against. "
+            "NOT a stale golden (the previous reason, which asserted a 10x "
+            "drift 'NOT explained by host nondeterminism'), and NOT "
+            "[[pythonhashseed-nondeterminism]] -- pinning PYTHONHASHSEED does "
+            "not stabilise it, verified. The reference draws through "
+            "scipy.stats.truncnorm on the GLOBAL numpy RNG, which the "
+            "subprocess never seeds, so Brain(p, seed=...) does not make it "
+            "reproducible; on top of that the outcome is strongly "
+            "seed-dependent. Fixing this means seeding the reference's global "
+            "RNG inside the subprocess and re-characterising, not regenerating "
+            "a golden."
         ),
     )
-    def test_reference_separate_near_chance(self, ref_metrics, golden):
-        """Legacy reference brain.py uses a different projection schedule; still near chance."""
+    def test_reference_separate_near_chance(self, params, ref_path, golden):
+        """Judged over seeds, on the CONFIDENCE BOUND -- see the xfail reason.
+
+        Kept as a measurement rather than deleted: when the reference's global
+        RNG is seeded this should become a real, stable comparison, and the
+        assertion below is the one that will then be meaningful. Written to
+        FAIL LOUDLY with the distribution in the message, so the next person
+        sees the bimodality rather than a bare number.
+        """
+        from neural_assemblies.diagnostics import ensemble
+
         chance = golden["metrics"]["chance_overlap"]
-        assert ref_metrics["separate_overlap"] <= chance * 3 + 1e-9, (
-            f"reference separate {ref_metrics['separate_overlap']:.4f} "
-            f"exceeds 3× chance {chance:.4f}"
-        )
+
+        def run(seed):
+            return _reference_metrics(dict(params, seed=seed),
+                                      ref_path)["separate_overlap"]
+
+        e = ensemble(run, (42, 43, 44, 45, 46), label="reference separate")
+        assert e.high < chance * 3, (
+            f"{e} -- reference separation is not clearly below 3x chance "
+            f"({chance * 3:.4f}). Read the interval, not the mean: single "
+            f"draws straddle this bar and the distribution is bimodal.")
