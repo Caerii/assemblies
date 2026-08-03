@@ -565,3 +565,129 @@ class TestPerFiberConnectivity:
     def test_other_engines_accept_the_global_p(self, cls):
         """Asking for what is already true is not a request."""
         cls(p=P, seed=SEED).add_connectivity("s", "A", P)
+
+
+class TestFixedTargetPlasticity:
+    """A FIXED area still learns. Only its winners are pinned.
+
+    `numpy_exact` used to return from `project_into` on a fixed target having
+    applied no plasticity at all. `numpy_sparse` deliberately does the opposite
+    and says why at `_fixed_target_plasticity_enabled`: the reference pins the
+    winners, skips RECRUITMENT, and still potentiates the afferents. Skipping
+    the potentiation silently breaks every protocol that writes INTO a held
+    assembly -- `reciprocal_project`, `associate`, and the round trip the
+    acquisition paper's Property 2 needs.
+
+    The bug was invisible from outside: the projection returned a well-formed
+    winner set, so the only symptom was that training bought nothing.
+    """
+
+    @staticmethod
+    def _events(engine_name, rounds=10, gate=None):
+        b = Brain(p=P, seed=5, engine=engine_name)
+        b.add_area("A", 2000, 50, beta=0.2)
+        b.add_area("B", 2000, 50, beta=0.2)
+        b.add_stimulus("s", 50)
+        for _ in range(5):
+            b.project({"s": ["A"]}, {})
+        for _ in range(5):
+            b.project({}, {"A": ["B"]})
+        b.areas["B"].fix_assembly()
+        b._engine.fix_assembly("B")
+        e = b._engine
+        key = ("A", "B")
+
+        def total():
+            store = e._area_pot.get(key)
+            return sum(store._events.values()) if store else 0
+
+        before = total()
+        for _ in range(rounds):
+            b.project({}, {"A": ["B"]})
+        return before, total(), b
+
+    def test_afferents_potentiate_into_a_pinned_area(self):
+        """The true negative this needs, constructed rather than assumed.
+
+        Counts POTENTIATION EVENTS, not distinct (row, col) pairs: repeating
+        the same (source, target) pairing raises multiplicity and leaves the
+        pair count flat, so `len(_Potentiation)` reads unchanged and would pass
+        while nothing was learned. That is the shape of the bug being tested.
+        """
+        before, after, _ = self._events("numpy_exact")
+        assert after > before, (
+            f"projecting into a fixed area applied no plasticity "
+            f"({before} -> {after} events) -- the engine is back to "
+            f"short-circuiting on tgt.fixed_assembly")
+
+    def test_the_winners_really_are_pinned(self):
+        """Learning must not come at the cost of the thing `fix` is for."""
+        _, _, b = self._events("numpy_exact")
+        held = set(b.areas["B"].winners.tolist())
+        b.project({}, {"A": ["B"]})
+        assert set(b.areas["B"].winners.tolist()) == held
+
+    def test_the_env_gate_still_turns_it_off(self):
+        """The A/B stays available, and both engines read ONE definition of it."""
+        import os
+        prev = os.environ.get("ASSEMBLIES_FIXED_TARGET_PLASTICITY")
+        os.environ["ASSEMBLIES_FIXED_TARGET_PLASTICITY"] = "0"
+        try:
+            before, after, _ = self._events("numpy_exact")
+            assert after == before, (
+                f"gate off but plasticity still applied ({before} -> {after})")
+        finally:
+            if prev is None:
+                os.environ.pop("ASSEMBLIES_FIXED_TARGET_PLASTICITY", None)
+            else:
+                os.environ["ASSEMBLIES_FIXED_TARGET_PLASTICITY"] = prev
+
+    @pytest.mark.parametrize("engine_name", ["numpy_sparse", "numpy_exact"])
+    def test_an_association_written_while_pinned_can_be_retrieved(
+            self, engine_name):
+        """The FUNCTIONAL consequence, and the one both engines must share.
+
+        THE PROTOCOL MATTERS, and two earlier versions of this test could not
+        have failed. Building B from A and then pinning it leaves A -> B
+        already trained, so retrieval reads 1.000 whether or not the pinned
+        rounds did anything -- a saturated metric whose null is not a null
+        (#28's lesson). Here A and B are built from DIFFERENT stimuli, so the
+        rounds while B is pinned are the ONLY A -> B training there has ever
+        been. If they are discarded, retrieval must fall to chance.
+
+        Measured, and this is the true negative the fix needed:
+
+            gate on    sparse 0.660   exact 0.600
+            gate off   sparse 0.000   exact 0.020     (chance k/n = 0.025)
+
+        `exact` read 0.020 BEFORE the fix as well -- retrieval at chance was
+        the entire visible symptom of an engine silently discarding the write.
+        """
+        from neural_assemblies.diagnostics import (assembly_overlap,
+                                                   read_assembly)
+        b = Brain(p=P, seed=5, engine=engine_name)
+        b.add_area("A", 2000, 50, beta=0.2)
+        b.add_area("B", 2000, 50, beta=0.2)
+        b.add_stimulus("sa", 50)
+        b.add_stimulus("sb", 50)
+        for _ in range(6):
+            b.project({"sa": ["A"]}, {})
+        for _ in range(6):
+            b.project({"sb": ["B"]}, {})
+        pinned = read_assembly(b, "B")
+
+        b.areas["B"].fix_assembly()
+        b._engine.fix_assembly("B")
+        for _ in range(10):
+            b.project({}, {"A": ["B"]})
+        b.areas["B"].unfix_assembly()
+        b._engine.unfix_assembly("B")
+
+        b.inhibit_areas(["B"])
+        b.project({}, {"A": ["B"]})
+        got = assembly_overlap(pinned, read_assembly(b, "B"))
+        chance = 50 / 2000
+        assert got > 20 * chance, (
+            f"{engine_name}: an association written while the target was "
+            f"PINNED does not retrieve ({got:.3f} against chance "
+            f"{chance:.3f}) -- the write was discarded")

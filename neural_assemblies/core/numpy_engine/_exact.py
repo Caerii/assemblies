@@ -54,6 +54,22 @@ from ._seeding import (fnv1a_pair_seed, hash_area_cells, hash_area_indegree,
 from ._state import StimulusState
 
 
+def _fixed_target_learns() -> bool:
+    """Whether a projection INTO a fixed area still potentiates its afferents.
+
+    ONE definition, owned by `_sparse`, read through here. Restating the policy
+    would let the two engines drift apart exactly as they twice drifted apart
+    on the k-WTA pricing law ([[pricing-law-implemented-twice]]) -- and this
+    engine has already diverged on it once by not implementing it at all.
+
+    Imported lazily so `_exact` does not take `_sparse`'s import cost just to
+    read an environment variable; import time is measured and defended here
+    (#74, #78). No cycle: `_sparse` does not import `_exact`.
+    """
+    from ._sparse import _fixed_target_plasticity_enabled
+    return _fixed_target_plasticity_enabled()
+
+
 def _reject_unsupported(where: str, supported_defaults: Mapping[str, object],
                         given: Mapping[str, object]) -> None:
     """Raise if a caller asked for a mechanism this engine does not implement.
@@ -728,6 +744,32 @@ class NumpyExactEngine(ComputeEngine):
         self._projections += 1
 
         if tgt.fixed_assembly:
+            # A FIXED TARGET STILL LEARNS. Only the winners are pinned.
+            #
+            # This engine used to return here having applied no plasticity at
+            # all, which is the divergence `numpy_sparse` fixed and documented
+            # at `_fixed_target_plasticity_enabled` -- the reference pins the
+            # winners and skips RECRUITMENT, then potentiates the afferents
+            # onto those frozen winners. Skipping the potentiation silently
+            # breaks every protocol whose whole point is to write INTO a held
+            # assembly: `reciprocal_project`, `associate`, and the paper's
+            # PHON -> LEX -> PHON round trip, which needs LEX -> PHON trained
+            # while PHON is held at the word ([[fixing-an-area-must-still-learn]]).
+            #
+            # Measured before the fix, on the acquisition harness: trained
+            # round-trip recall 0.00-0.20 against an UNTRAINED control of
+            # 0.06-0.18 -- i.e. training bought exactly nothing, silently.
+            #
+            # The gate is imported from `_sparse` rather than restated, so the
+            # two engines cannot drift apart on the policy the way they twice
+            # drifted apart on the pricing law ([[pricing-law-implemented-twice]]).
+            learn = (plasticity_enabled and self._plasticity_enabled_global
+                     and (from_stimuli or from_areas)
+                     and _fixed_target_learns())
+            if learn:
+                self._apply_plasticity(
+                    target, from_stimuli, from_areas,
+                    np.asarray(tgt.winners, dtype=np.int64))
             return ProjectionResult(
                 winners=np.array(tgt.winners, dtype=np.uint32),
                 num_first_winners=0, num_ever_fired=tgt.num_ever_fired)
@@ -794,18 +836,7 @@ class NumpyExactEngine(ComputeEngine):
         winners = self._select(drive, tgt.k)
 
         if plasticity_enabled and self._plasticity_enabled_global:
-            for stim in from_stimuli:
-                if tgt.beta_by_source.get(stim, tgt.beta) != 0:
-                    self._stim_pot[stim][target][winners] += 1.0
-            for src_name in from_areas:
-                if tgt.beta_by_source.get(src_name, tgt.beta) == 0:
-                    continue
-                key = (src_name, target)
-                store = self._area_pot.get(key)
-                if store is None:
-                    store = self._area_pot[key] = _Potentiation()
-                store.bump(np.asarray(self._areas[src_name].winners,
-                                      dtype=np.int64), winners)
+            self._apply_plasticity(target, from_stimuli, from_areas, winners)
 
         tgt.winners = np.asarray(winners, dtype=np.uint32)
         tgt.ever_fired[winners] = True
@@ -830,6 +861,35 @@ class NumpyExactEngine(ComputeEngine):
             result.pre_kwta_prev_only = np.zeros(0, dtype=np.float32)
             result.pre_kwta_total = float(drive.sum())
         return result
+
+    def _apply_plasticity(self, target: str, from_stimuli: List[str],
+                          from_areas: List[str], winners: np.ndarray) -> None:
+        """Potentiate every afferent of `winners` in `target`.
+
+        Extracted so the ordinary path and the FIXED-TARGET path share one
+        implementation. They previously did not share anything -- the fixed
+        path applied no plasticity at all -- and the cost of writing this twice
+        is on record in this repository under
+        [[pricing-law-implemented-twice]].
+
+        `winners` are indices into `target`; on this engine they are neuron ids
+        and compact indices at once, so no remapping is needed here (see the
+        module docstring).
+        """
+        tgt = self._areas[target]
+        for stim in from_stimuli:
+            if tgt.beta_by_source.get(stim, tgt.beta) != 0:
+                self._stim_pot[stim][target][winners] += 1.0
+        for src_name in from_areas:
+            if tgt.beta_by_source.get(src_name, tgt.beta) == 0:
+                continue
+            key = (src_name, target)
+            store = self._area_pot.get(key)
+            if store is None:
+                store = self._area_pot[key] = _Potentiation()
+            store.bump(np.asarray(self._areas[src_name].winners,
+                                  dtype=np.int64),
+                       np.asarray(winners, dtype=np.int64))
 
     def _clamped(self, mult: np.ndarray) -> np.ndarray:
         """`w_max` is a ceiling in MULTIPLES of the initial weight.
