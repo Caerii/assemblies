@@ -46,6 +46,7 @@ from ...core.areas import (
     VP,
 )
 from .gates import ErpReadiness, assess_erp_readiness, areas_with_active_assembly
+from .probe_util import probe_context
 
 if TYPE_CHECKING:
     from ...parser import EmergentParser
@@ -85,8 +86,12 @@ def _self_recurrent_energy(brain, area: str) -> float:
     The area is deliberately NOT fixed: the sparse engine short-circuits a
     projection into a FIXED target and returns before inputs are summed (see
     ``binding.bind``), which would leave ``pre_kwta_total`` unrecorded. Reading
-    energy therefore requires the free projection. Plasticity is off (frozen),
-    so this reads without reshaping the connectome.
+    energy therefore requires the free projection.
+
+    "Plasticity is off (frozen), so this reads without reshaping the
+    connectome" -- THAT WAS HALF TRUE AND THE MISSING HALF MATTERS. frozen()
+    stops weights changing; it does not stop the area GROWING, and growth
+    reshapes the connectome just as surely. See `probe_util.probe_context`.
     """
     if area not in brain.areas:
         return 0.0
@@ -94,7 +99,7 @@ def _self_recurrent_energy(brain, area: str) -> float:
     if winners is None or len(winners) == 0:
         return 0.0
     prev_rec = getattr(brain, "record_activation", False)
-    with brain.frozen():
+    with probe_context(brain):
         brain.record_activation = True
         try:
             brain.project({}, {area: [area]})
@@ -345,7 +350,7 @@ def measure_lexical_surprise(
     brain = parser.brain
     prev_fid = brain.projection_fidelity
     brain.projection_fidelity = "exact"
-    with brain.frozen():
+    with probe_context(brain):
         try:
             parser._bootstrap_prediction_connectivity()
             parser.build_context_incremental(list(prefix), reset=True, direct=True)
@@ -393,7 +398,7 @@ def measure_fresh_stimulus_integration(
         return 0.0, role_area
 
     brain = parser.brain
-    with brain.frozen():
+    with probe_context(brain):
         try:
             brain.inhibit_areas([core, role_area])
             for _ in range(2):

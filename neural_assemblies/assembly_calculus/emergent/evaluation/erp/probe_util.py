@@ -8,6 +8,22 @@ if TYPE_CHECKING:
     from ...parser import EmergentParser
 
 
+def probe_context(brain):
+    """The context an ERP MEASUREMENT runs in -- just ``Brain.probe()``.
+
+    Kept as a named indirection so this package's READS are greppable as a set
+    and can be distinguished from its PROTOCOL. The `frozen()` blocks that
+    remain in `frames.py` and `runner.py` wrap the incremental parse ADVANCE,
+    which legitimately builds parse state; those are not readouts and are
+    deliberately left alone.
+
+    The switch itself lives on `Brain.probe` -- one flag, not an ERP-local
+    copy of the same idea, since `binding.recall` and `binding.input_drive`
+    need exactly the same thing and `input_drive` IS the P600 measurement.
+    """
+    return brain.probe()
+
+
 def critical_probe_measure_fn(
     probe_depth: str = "calibration",
 ) -> Callable:

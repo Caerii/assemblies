@@ -27,6 +27,7 @@ Mathematical Foundation:
 """
 
 import contextlib
+import os
 import numpy as np
 from typing import Dict, List, Tuple
 from collections import defaultdict
@@ -603,6 +604,59 @@ class Brain:
             yield self
         finally:
             self.disable_plasticity = saved
+
+    @contextlib.contextmanager
+    def probe(self):
+        """The context a READ should run in. Prefer this over ``frozen()``.
+
+        There are two read contexts and the difference is not cosmetic.
+        ``frozen()`` stops weights changing; it does NOT stop the area growing,
+        and growth is the channel by which a measurement changes the measured.
+        A single ERP probe was measured adding 750 synapses to a self fiber,
+        every one of value 1.0 -- materialization arriving while plasticity was
+        off. Running the fast suite with ``NEURAL_ASSEMBLIES_STRICT_PROBES=1``
+        raised 214 times across the ERP path, the parser, next_token,
+        checkpoint/fork and TACL, so this is not a corner case.
+
+        WHY THIS IS A SWITCH AND NOT A SUBSTITUTION. Suppressing recruitment
+        changes what a probe can select from, so the numbers MOVE -- on one
+        protocol stored/probe overlap went 0.038 -> 0.180, because an area that
+        cannot recruit must answer from the neurons it already has. That is the
+        semantics a readout wants, but adopting it is a RE-MEASUREMENT, not a
+        rename, and each call site needs its before/after recorded.
+
+        MEASURED, then adopted. On the ERP calibration contrast over 10 seeds
+        (research/experiments/task100_erp_probe_isolation.py), paired on the
+        same trained parser::
+
+            p600 Cohen's d   2.192 +/- 0.252  ->  1.853 +/- 0.371
+                             delta -0.338, CI [-0.665, -0.011]
+            n400 Cohen's d   2.500 +/- 1.418  ->  2.380 +/- 0.992   no change
+
+        So isolation ATTENUATES P600 by ~15% rather than leaving it alone --
+        and the effect survives far above the 0.3 threshold the tests assert.
+        At 5 seeds the same delta read as "no change"; the interval only
+        excludes zero at 10, and it barely does. Treat the attenuation as real
+        but small, and the interval as marginal.
+
+        Isolation is also ~3x faster on that suite, because a probe that does
+        not grow the brain has less to do.
+
+        ``NEURAL_ASSEMBLIES_ISOLATED_PROBES=0`` restores the old ``frozen()``
+        behaviour for A/B work. The flag is read per call, not cached at import,
+        so a comparison can flip it inside one process and get PAIRED trials.
+
+        NOT FOR PROTOCOL, and this is the load-bearing distinction. Blocks that
+        ADVANCE a parse or build structure while plasticity happens to be off
+        are not reads. ``binding.materialize_fiber`` is the clearest case: it
+        exists to ALLOCATE COLUMNS, which happens as a side effect of the target
+        recruiting, so under isolation it would become a silent no-op that still
+        returns True.
+        """
+        legacy = os.environ.get(
+            "NEURAL_ASSEMBLIES_ISOLATED_PROBES", "1").strip() in ("0", "false")
+        with (self.frozen() if legacy else self.read_only()):
+            yield self
 
     @contextlib.contextmanager
     def read_only(self):

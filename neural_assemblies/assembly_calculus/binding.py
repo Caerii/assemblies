@@ -85,6 +85,12 @@ def materialize_fiber(
     if len(brain.areas[src_area].winners) == 0:
         return False
 
+    # frozen(), NOT probe() -- and this is the clearest case in the repo of the
+    # distinction. This function exists to ALLOCATE COLUMNS, and columns are
+    # allocated as a side effect of the target recruiting. `probe()` under
+    # isolation suppresses recruitment, which would turn the whole function
+    # into a silent no-op that still returns True. Plasticity-off with
+    # recruitment-on is exactly what is wanted here.
     with brain.frozen():
         brain.project({}, {src_area: [dst_area]})
 
@@ -195,8 +201,11 @@ def recall(
 ) -> Optional[Assembly]:
     """Fire the cue and return what ``target_area`` produces.
 
-    Plasticity is off, so recall is a read and does not reshape what it reads.
-    Sources are pinned for the same reason they are pinned in `bind`.
+    A read, so it runs under `Brain.probe()`. "Plasticity is off, so recall
+    does not reshape what it reads" was HALF TRUE: `frozen()` stops weights
+    changing but not the target GROWING, and recruitment reshapes the
+    connectome just as surely. Sources are pinned for the same reason they are
+    pinned in `bind`.
 
     ``clear_target`` silences the target first, and defaults True because
     otherwise the measurement is dominated by incumbency: whatever the target
@@ -217,7 +226,7 @@ def recall(
     if not live:
         return None
 
-    with brain.frozen():
+    with brain.probe():
         if clear_target:
             brain.inhibit_areas([target_area])
         for area in live:
@@ -283,9 +292,11 @@ def input_drive(
     if not live:
         return {}
 
-    # frozen() owns plasticity; record_activation is a separate flag saved here.
+    # probe() owns plasticity AND recruitment; record_activation is a separate
+    # flag saved here. This function IS the P600 measurement (see
+    # `erp.adapters.anchored_p600_live`), so it is a read in the strict sense.
     prev_rec = getattr(brain, "record_activation", False)
-    with brain.frozen():
+    with brain.probe():
         if metric == "pre_kwta":
             brain.record_activation = True
         for area in live:
