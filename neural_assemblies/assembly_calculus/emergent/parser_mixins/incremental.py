@@ -76,6 +76,43 @@ class IncrementalMixin:
     _core_ring_capacity_cols: dict = {}
     _role_paths_bootstrapped: bool = False
 
+    #: Verbs the corpus ever gives a patient. EMPTY MEANS "UNKNOWN", NOT
+    #: "NONE": with no transitivity information every verb opens the object
+    #: slot, which is the behaviour that shipped before this existed. Populate
+    #: it (see `acquisition.transitivity.learn_transitivity`) to switch the
+    #: paper's empty-project detector on.
+    transitive_verbs: Optional[set] = None
+
+    #: Structural violations seen in the CURRENT sentence, newest last. Reset
+    #: whenever the circuit is reset. See `assembly_calculus.parse_errors`.
+    _parse_errors: Optional[list] = None
+
+    @property
+    def parse_errors(self) -> list:
+        """Structural violations detected while parsing the current sentence.
+
+        The parser paper's own signals, not a graded score: an ``EmptyProject``
+        here means ``project*`` had nowhere to send a word. Empty list means a
+        clean parse -- which is NOT the same as "no detector ran", so check
+        `transitive_verbs` if this is always empty.
+        """
+        if self._parse_errors is None:
+            self._parse_errors = []
+        return self._parse_errors
+
+    def _verb_takes_an_object(self, word: Optional[str]) -> bool:
+        """Does this verb license an object slot?
+
+        UNKNOWN VERBS TAKE OBJECTS. Defaulting the other way would make every
+        untrained parser reject every object, turning a missing lexicon into a
+        stream of confident violations -- the failure mode where an apparatus
+        defect reads as a linguistic result.
+        """
+        known = self.transitive_verbs
+        if not known or word is None:
+            return True
+        return word in known
+
     def _set_freeze_connectome_growth(
         self, area_names, *, enabled: bool,
     ) -> None:
@@ -403,6 +440,51 @@ class IncrementalMixin:
         """
         target = self._get_syntactic_target(verb_seen, noun_count)
 
+        # EMPTY-PROJECT (Mitropolsky et al. 2021 sec. 6). If the slot this word
+        # needs is an INHIBITED AREA, project* has nowhere to send it and the
+        # paper calls that a detected syntactic violation -- their example is
+        # "the dogs lived" followed by "cats", where OBJ was never disinhibited
+        # because the verb was intransitive.
+        #
+        # Returning early rather than opening the fiber anyway is the whole
+        # point. The rules used to be TOTAL: `_get_syntactic_target` clamps
+        # with min(noun_count, len(seq)-1) and always names SUBJ or OBJ, so
+        # every word always had a route and no violation could ever surface.
+        # A grammar that cannot reject is not a grammar.
+        # AN OPEN PP IS A ROUTE, so a noun after a preposition is NOT stranded
+        # and must not be flagged. Measured: without this check, "the dog
+        # sleeps on the table" reports 2 errors -- the SAME count as the real
+        # violation "the dog sleeps the cat", making the detector useless on
+        # any corpus containing prepositions.
+        #
+        # KNOWN GAP, pinned in test_parse_errors_live.py: the circuit has no
+        # `core -> PP` fiber, so "table" is not flagged but does not bind into
+        # PP either. Suppressing a false alarm is not the same as routing the
+        # word correctly, and this only does the first.
+        in_pp = category in ("DET", "ADJ", "NOUN", "PRON") and \
+            circuit.is_active(PREP_CORE, PP)
+
+        # EMPTY-PROJECT (Mitropolsky et al. 2021 sec. 6). If the slot this word
+        # needs is an INHIBITED AREA, project* has nowhere to send it and the
+        # paper calls that a detected syntactic violation -- their example is
+        # "the dogs lived" followed by "cats", where OBJ was never disinhibited
+        # because the verb was intransitive.
+        #
+        # Returning early rather than opening the fiber anyway is the whole
+        # point. The rules used to be TOTAL: `_get_syntactic_target` clamps
+        # with min(noun_count, len(seq)-1) and always names SUBJ or OBJ, so
+        # every word always had a route and no violation could ever surface.
+        # A grammar that cannot reject is not a grammar.
+        if category in ("DET", "ADJ", "NOUN", "PRON") and not in_pp:
+            gate = getattr(self.brain, "_inhibition", None)
+            if gate is not None and not gate.area_open(target):
+                from neural_assemblies.assembly_calculus.parse_errors import (
+                    EmptyProject,
+                )
+                self.parse_errors.append(EmptyProject(
+                    empty=True, detected_by="drive", lex_targets=()))
+                return
+
         if category == "DET":
             circuit.disinhibit(DET_CORE, target)
 
@@ -432,11 +514,22 @@ class IncrementalMixin:
             circuit.disinhibit(CONJ_CORE, SENT)
 
     def _apply_post_rules(self, circuit: FiberCircuit, category: str,
-                          verb_seen: bool, noun_count: int = 0) -> None:
+                          verb_seen: bool, noun_count: int = 0,
+                          word: Optional[str] = None) -> None:
         """Inhibit fibers after projecting, preparing for next word.
 
         Mirrors recursive_parser.py POST_RULES: close channels that
         were consumed by this word.
+
+        AND, for a verb, decides whether the OBJECT SLOT EXISTS AT ALL. That is
+        the paper's mechanism for detecting a syntactic violation: an
+        intransitive verb never disinhibits area OBJ, so a following noun has
+        nowhere to go and `project*` fires nothing. It needs AREA inhibition,
+        not fiber gating -- which is why this could not be expressed before
+        `Brain.inhibit_area` existed, and why the FiberCircuit alone (all this
+        parser had) could never produce the violation.
+
+        Unknown verbs keep the slot open; see `_verb_takes_an_object`.
         """
         if category in ("NOUN", "PRON"):
             target = self._get_syntactic_target(verb_seen, noun_count)
@@ -459,10 +552,33 @@ class IncrementalMixin:
             circuit.disinhibit(VERB_CORE, VP)
             circuit.disinhibit(OBJ, VP)
 
+            # ...and decide whether the object slot exists. Only touched when
+            # transitivity is actually known, so a parser without it keeps the
+            # previous behaviour exactly and no gate is ever allocated.
+            if self.transitive_verbs:
+                if self._verb_takes_an_object(word):
+                    self.brain.disinhibit_area(OBJ)
+                else:
+                    self.brain.inhibit_area(OBJ)
+
     def _get_incremental_circuit(self, *, reset: bool = False) -> FiberCircuit:
         """Reuse a FiberCircuit across words/sentences when possible."""
         if reset or self._incremental_circuit is None:
             self._incremental_circuit = self._build_circuit()
+            # A new sentence starts with every slot available and no errors.
+            # Leaving OBJ inhibited from the last sentence's intransitive verb
+            # would make the NEXT sentence's object read as a violation -- a
+            # gate that leaks across sentences is worse than no gate, because
+            # it produces confident wrong detections rather than none.
+            self._parse_errors = []
+            # Reopen whenever a gate EXISTS, not only when transitivity is
+            # currently known. Gating on `self.transitive_verbs` here left a
+            # real bug: turning transitivity back off did not reopen OBJ, so a
+            # parser that had once seen an intransitive verb kept flagging
+            # every later object -- caught by the test that asserts silence
+            # with transitivity disabled.
+            if self.brain._inhibition is not None:
+                self.brain.disinhibit_area(OBJ)
         return self._incremental_circuit
 
     def _advance_context_direct(
@@ -550,7 +666,7 @@ class IncrementalMixin:
                 rounds=rounds - 1,
             )
 
-        self._apply_post_rules(circuit, cat, verb_seen, noun_count)
+        self._apply_post_rules(circuit, cat, verb_seen, noun_count, word=word)
 
         if cat == "VERB":
             verb_seen = True
