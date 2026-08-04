@@ -38,27 +38,47 @@ from neural_assemblies.assembly_calculus.emergent.evaluation.sweep import (  # n
 from neural_assemblies.diagnostics import ensemble, paired_delta  # noqa: E402
 
 FLAG = "NEURAL_ASSEMBLIES_ISOLATED_PROBES"
-METRICS = ("p600_cohens_d", "n400_cohens_d")
+
+#: READ THE AUC ROWS. `*_cohens_d` is retained only so this run can be compared
+#: line-for-line against the pre-#80 one; it is computed on `*_excess`, which
+#: clips the grammatical arm against its own median onto a 0.0 floor, so it
+#: inflates when measurement noise FALLS. `*_auc` is a rank statistic on the raw
+#: value and is invariant under that clipping. See
+#: research/notes/erp_metric_is_clipped.md.
+KEYS = ("p600_auc", "n400_auc", "p600_span",
+        "p600_cohens_d", "n400_cohens_d", "p600_gap")
+
+
+#: One calibration per (depth, seed, arm), reused across the metric rows. The
+#: rows are different READINGS of one measurement, not repeated measurements --
+#: recomputing them would be six trainings' worth of work for identical numbers
+#: (verified by erp_rerun_pairing_check.py, which is what licenses the reuse).
+_CACHE = {}
 
 
 def _calibrate(depth, seed, isolated):
+    hit = _CACHE.get((depth, seed, isolated))
+    if hit is not None:
+        return hit
     prev = os.environ.get(FLAG)
     os.environ[FLAG] = "1" if isolated else "0"
     try:
         parser = get_parser_cache().fork(depth, seed=seed)
-        return calibrate_erp_thresholds(parser)
+        report = calibrate_erp_thresholds(parser)
     finally:
         if prev is None:
             os.environ.pop(FLAG, None)
         else:
             os.environ[FLAG] = prev
+    _CACHE[(depth, seed, isolated)] = report
+    return report
 
 
 def metric(depth, isolated, key):
     def _run(seed):
         r = _calibrate(depth, seed, isolated)
-        if key in METRICS:
-            return float(r.separation.get(key, 0.0))
+        if key in r.separation:
+            return float(r.separation[key])
         if key == "p600_gap":
             g = r.by_label.get("grammatical", {})
             c = r.by_label.get("category_violation", {})
@@ -71,14 +91,23 @@ def metric(depth, isolated, key):
 def main(depth="SENTENCES", seeds=(11, 12, 13, 14, 15)):
     print(f"depth={depth}  seeds={list(seeds)}")
     print("+/- is a t-based 95% CI (diagnostics.ensemble), not a standard error.")
-    print("A positive p600 gap / Cohen's d means violations score HIGHER,")
-    print("which is the direction the metric exists to show.\n")
-    print(f"{'metric':14s} {'frozen() [shipped]':26s} {'read_only() [isolated]':26s} delta")
-    for key in ("p600_cohens_d", "n400_cohens_d", "p600_gap"):
+    print("A positive gap / d, and an AUC above 0.5, all mean violations score")
+    print("HIGHER, which is the direction the metric exists to show.")
+    print("AUC granularity is 1/9 per seed (n=3 samples per arm under ERP_FAST).\n")
+    print(f"{'metric':14s} {'frozen() [shipped]':26s} "
+          f"{'read_only() [isolated]':26s} delta")
+    for key in KEYS:
         a = ensemble(metric(depth, False, key), list(seeds), f"{key}/frozen")
         b = ensemble(metric(depth, True, key), list(seeds), f"{key}/isolated")
         d = paired_delta(b, a, f"{key}/delta")
-        verdict = "CHANGED" if (d.mean - d.ci) * (d.mean + d.ci) > 0 else "no change"
+        if a.values == b.values:
+            # Not a null result. Two arms agreeing bit-for-bit means the flag
+            # never reached the probe -- see diagnostics.compare_arms.
+            verdict = "IDENTICAL -- suspect the flag never reached the probe"
+        elif (d.mean - d.ci) * (d.mean + d.ci) > 0:
+            verdict = "CHANGED"
+        else:
+            verdict = "no change"
         print(f"{key:14s} {a.mean:9.3f} +/- {a.ci:<12.3f} "
               f"{b.mean:9.3f} +/- {b.ci:<12.3f} "
               f"{d.mean:+7.3f} +/- {d.ci:.3f}  {verdict}")

@@ -6,19 +6,41 @@ separation is scored on cannot support the claim being made with it.
 
 ## The read-only parse is safe
 
-`calibrate_erp_thresholds` on SENTENCES, 10 seeds, paired:
+RE-MEASURED 2026-08-04 on top of #80 and #103, so unlike the table in
+[[erp_probe_isolation]] this one is confirmed rather than corrected.
+`research/experiments/task102_rerun.log`. SENTENCES, 10 seeds, paired:
 
     metric            parse grows [HEAD]     parse read_only        delta
-    neurons recruited   1106.0 +/- 65.5        120.0 +/- 0.0      -986.0 +/- 65.5
-    p600 Cohen's d       1.632 +/- 0.401       3.973 +/- 0.060     +2.342 +/- 0.398
-    p600 median gap     0.0030 +/- 0.0004     0.0047 +/- 0.0004   +0.0017 +/- 0.0003
-    n400 Cohen's d       2.120 +/- 1.038       2.120 +/- 1.038      IDENTICAL
+    neurons recruited   1107.0 +/- 71.7        120.0 +/- 0.0      -987.0 +/- 71.7
+    p600 AUC            0.9167 +/- 0.0570     1.0000 +/- 0.0000   +0.0833 +/- 0.0570
+    p600 span           0.0071 +/- 0.0012     0.0084 +/- 0.0014   +0.0012 +/- 0.0003
+    p600 median gap     0.0028 +/- 0.0004     0.0044 +/- 0.0006   +0.0016 +/- 0.0004
+    p600 Cohen's d      1.8765 +/- 0.4462     3.8433 +/- 0.2130   +1.9669 +/- 0.4503
+    n400 AUC            0.9111 +/- 0.0977     0.9111 +/- 0.0977    IDENTICAL
+    n400 Cohen's d      2.6534 +/- 1.0276     2.6534 +/- 1.0276    IDENTICAL
 
-The separation does not collapse; it strengthens, the recruitment drops by 986
-of 1106, and the residual 120 is EXACTLY 120 on every seed -- the documented
-below-`k` exemption, deterministic. On the reproducibility axis this is a clear
-win: an evaluation that is not idempotent is broken regardless of what it
-measures.
+The separation does not collapse; it strengthens on EVERY axis at once -- rank,
+span and absolute gap -- the recruitment drops by 987 of 1107, and the residual
+120 is EXACTLY 120 on every seed (CI 0.0000), the documented below-`k` exemption,
+deterministic. On the reproducibility axis this is a clear win: an evaluation
+that is not idempotent is broken regardless of what it measures.
+
+ON THE 1.0000, WHICH IS THE KIND OF NUMBER THIS REPO GETS WRONG. Zero variance
+across 10 seeds is [[fake-perfect-probe-signatures]] on its face, so it was
+checked against the three ways that reading fails here, and it survives all
+three: the PAIRED arm reads 0.9167, not 1.000, so it is not a degenerate score
+both arms achieve; `span` INCREASES rather than collapsing, so it is not a tie
+being resolved by index order; and n=3 per arm means 1.000 is 9 correctly
+ordered pairs per seed, 90 in total, on a statistic whose granularity is 1/9.
+It is a real perfect ordering at this sample size, not an apparatus artifact --
+which is a different claim from "the ordering is perfect", since 90 pairs cannot
+distinguish 1.000 from 0.99.
+
+CONSISTENCY CHECK ACROSS THE TWO EXPERIMENTS. This table's `grows` arm reads
+p600 AUC 0.9167 and [[erp_probe_isolation]]'s ISOLATED arm reads 0.917 -- they
+are the same configuration measured by two independent scripts (isolated probes
+are now the default), and they agree. That is the cross-check that would have
+caught the stale-backbone inversion had it existed at the time.
 
 ## But the d improvement is variance, not effect
 
@@ -36,8 +58,13 @@ construction**. Measured, seed 11:
 Two of three grammatical samples are EXACTLY ZERO in both arms. Cohen's d is
 `(mean_c - mean_g) / pooled_sd`, and the pooled sd is dominated by a near-
 constant floor. So ANY reduction in measurement noise inflates d without the
-effect being larger: 1.632 -> 3.973 while the absolute gap moved 0.0030 ->
-0.0047.
+effect being larger: 1.877 -> 3.843, a 2.05x jump, while the absolute gap moved
+0.0028 -> 0.0044 and the rank statistic moved 0.917 -> 1.000. d more than
+DOUBLED on a separation that widened by 0.16% of the [0,1] range.
+
+That ratio is the cleanest statement of the defect, and it is now measured on a
+deterministic substrate: the three statistics disagree about the SIZE of one
+identical improvement by an order of magnitude, and only d disagrees wildly.
 
 **`d > 0.3` is therefore close to a vacuous test threshold.** Against a null arm
 pinned at a floor, almost any nonzero violation excess clears it. Every Cohen's
@@ -135,15 +162,23 @@ rescaling, and by the redefinition that actually happened here. Measured on four
 encodings of one identical ordering, Cohen's d spanned 2.241 to 24.754 while AUC
 was 1.000 throughout.
 
-What the ERP contrast reads in the honest statistic:
+What the ERP contrast reads in the honest statistic, now over 10 seeds rather
+than the single seed this section originally quoted:
 
-    parse grows      p600 AUC 0.889 (span 0.0071)   n400 AUC 0.778 (span 0.0329)
-    parse read_only  p600 AUC 1.000 (span 0.0081)   n400 AUC 0.778 (span 0.0329)
+    parse grows      p600 AUC 0.917 +/- 0.057 (span 0.0071)   n400 AUC 0.911 +/- 0.098
+    parse read_only  p600 AUC 1.000 +/- 0.000 (span 0.0084)   n400 AUC 0.911 +/- 0.098
 
-P600 goes from one misordered pair in nine to perfectly ordered -- a real,
-interpretable improvement. And **N400 is 0.778, not the ~1.0 its Cohen's d of
-1.79-2.50 implied**: nearly a quarter of pairs are misordered. With n=3 per arm
-the resolution is 1/9, which is itself worth stating.
+P600 goes from about one misordered pair in nine to perfectly ordered -- a real,
+interpretable improvement, and the one place where the read-only parse buys
+something beyond idempotence. And **N400 is 0.911, not the ~1.0 its Cohen's d of
+2.65 implied**: roughly one pair in eleven is misordered while d reads 2.65,
+which is the same clipping inflation seen on P600. With n=3 per arm the
+resolution is 1/9, which is itself worth stating -- 0.911 is the mean of ten
+seeds each landing on a multiple of 1/9, not a value any single seed returned.
+
+(The single-seed figures this section used to quote, 0.889 and 0.778, were seed
+11 alone. They sit inside the intervals above. A point estimate that survives
+does not retroactively become a measurement -- [[ensemble-not-realization]].)
 
 **3. Report the SPAN beside it.** AUC deliberately ignores magnitude, so it
 would call a perfect ordering across 0.8% of the range perfect. Both facts
@@ -196,6 +231,23 @@ cached backbones of unknown parse history. The probe-isolation delta
 therefore NOT SAFE to quote until re-run on cleared caches. The DIRECTION of the
 read-only result is corroborated by the mechanism (less contamination, tighter
 distributions) but the magnitudes are not established.
+
+> RESOLVED 2026-08-04, and the two experiments came apart. Both were re-run at
+> 10 seeds on top of #80 (training bit-identical across processes) and #103
+> (fork no longer clones a mutated parser), which between them are the real
+> mechanism this section was groping at.
+>
+>   * The READ-ONLY-PARSE result HELD and strengthened -- see the table at the
+>     top of this note, now the measured version.
+>   * The PROBE-ISOLATION result DID NOT. Its "~15% P600 attenuation"
+>     (-0.338 +/- 0.327) is now -0.034 +/- 0.581: gone, and its interval was
+>     never the thing to trust.
+>
+> So the suspicion recorded here was correct in kind and wrong about which
+> result it endangered. Worth keeping in view: the endangered number was the one
+> whose interval only just excluded zero, and the robust one was the number with
+> a large margin -- which is what a marginal interval on a confounded apparatus
+> is supposed to look like, and is not how I read it at the time.
 
 This also explains three test failures seen today that had nothing to do with
 the change under test, and it is the second time in this session that a

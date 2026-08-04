@@ -11,29 +11,52 @@ while reading it. #32 has named this as half the P600 root cause since it was
 filed, on suspicion. The question: under `read_only()`, does the
 grammatical/violation separation survive?
 
-## Answer: yes, with a ~15% attenuation
+## Answer: yes, at no cost -- and the "~15% attenuation" was NOT REAL
 
-`calibrate_erp_thresholds` on SENTENCES, 10 seeds, paired -- each seed trains
-ONE parser and forks it twice, so the arms differ only in probe context.
+RE-MEASURED 2026-08-04 on top of #80 (training now bit-identical across
+processes) and #103 (fork no longer clones a mutated parser). `research/
+experiments/task100_erp_rerun.log`. SENTENCES, 10 seeds, paired -- each seed
+trains ONE parser and forks it twice, so the arms differ only in probe context.
 Intervals are t-based 95% CIs from `diagnostics.ensemble`.
 
     metric           frozen() [shipped]   read_only() [isolated]   delta
-    p600 Cohen's d     2.192 +/- 0.252      1.853 +/- 0.371       -0.338 +/- 0.327
-    n400 Cohen's d     2.500 +/- 1.418      2.380 +/- 0.992       -0.120 +/- 0.704
+    p600 AUC           0.972 +/- 0.063      0.917 +/- 0.057      -0.056 +/- 0.099
+    n400 AUC           0.922 +/- 0.084      0.911 +/- 0.098      -0.011 +/- 0.059
+    p600 span          0.006 +/- 0.001      0.007 +/- 0.001      +0.001 +/- 0.000  CHANGED
+    p600 median gap    0.002 +/- 0.001      0.003 +/- 0.000      +0.001 +/- 0.001  CHANGED
+    p600 Cohen's d     1.910 +/- 0.534      1.876 +/- 0.446      -0.034 +/- 0.581
+    n400 Cohen's d     2.555 +/- 0.731      2.653 +/- 1.028      +0.098 +/- 0.915
 
-P600 attenuates by about 15%. The interval [-0.665, -0.011] excludes zero, but
-only just. N400 does not move.
+**The effect survives isolation, and isolation costs nothing.** Both arms sit
+far above the 0.5 null on the rank statistic, so the separation is not an
+artifact of probe contamination and #32's probe half does not explain the P600
+problem. That conclusion is unchanged.
 
-**The effect survives.** 1.853 sits far above the 0.3 threshold the tests
-assert, so the separation is not an artifact of probe contamination, and #32's
-probe half does not explain the P600 problem.
+WHAT CHANGED IS THE ATTENUATION, WHICH IS GONE. The table this section used to
+carry read `2.192 -> 1.853`, delta `-0.338 +/- 0.327` -- an interval that
+excluded zero by 0.011 -- and I wrote it up as "real but small". It now reads
+`1.910 -> 1.876`, delta `-0.034 +/- 0.581`. Not a smaller effect: a TENTH the
+size with an interval nearly twice as wide, centred on zero.
 
-A NOTE ON MY OWN READING. At 5 seeds this same delta read as "no change"
-(-0.193 +/- 0.728) and I wrote it up that way before adding seeds. At 10 it
-excludes zero. The 5-seed answer was underpowered, not wrong-in-kind, and the
-10-seed interval is still marginal -- treat the attenuation as real but small.
-[[report-distributions-not-point-estimates]], demonstrated on myself inside the
-same session that quotes it.
+That delta was parser variation, not probe contamination. Both of its sources
+are now closed, and neither was visible in the numbers at the time.
+
+READ THE GAP ROWS, NOT THE AUC ROW, for the direction. `p600_span` and the
+median gap both INCREASE under isolation and both exclude zero, so isolation
+slightly WIDENS the raw separation. The AUC nominally dips, which is not
+evidence against that: at 0.972 it is one granularity step (1/9, n=3 per arm)
+from the ceiling and has almost nowhere to go but down.
+
+No row read `IDENTICAL`, so both arms genuinely ran different computations --
+the guard that has caught a dead pathway in this repo before.
+
+A NOTE ON MY OWN READING, KEPT BECAUSE IT GOT WORSE. At 5 seeds this delta read
+"no change" (-0.193 +/- 0.728); at 10 it excluded zero and I reported an
+attenuation; on a trustworthy substrate it is zero again. The 5-seed reading was
+underpowered AND the 10-seed reading was confounded, and adding seeds fixed only
+the first of those. Seeds do not rescue a measurement whose apparatus varies
+between arms -- [[ensemble-not-realization]] and
+[[backbone-fingerprint-gap]] together, demonstrated on myself twice in two days.
 
 Isolation is also ~3x faster on the ERP suite (53s -> 17s), because a probe that
 does not grow the brain has less to do.

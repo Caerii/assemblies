@@ -44,7 +44,7 @@ from neural_assemblies.assembly_calculus.emergent.evaluation.sweep import (  # n
     get_parser_cache,
 )
 from neural_assemblies.diagnostics import (                             # noqa: E402
-    compare_arms, ensemble, paired_delta,
+    compare_arms, paired_delta,
 )
 
 
@@ -53,7 +53,22 @@ def _materialized(brain):
                for n in brain.areas)
 
 
+#: READ THE AUC ROWS -- see task100_erp_probe_isolation.py for why `*_cohens_d`
+#: is retained but must not be quoted. This experiment is the sharpest case:
+#: the read-only parse moved d from 1.63 to 3.97 while the ABSOLUTE gap moved
+#: 0.0030 to 0.0047, i.e. d more than doubled on an effect that grew by half.
+KEYS = ("grew", "p600_auc", "n400_auc", "p600_span",
+        "p600_cohens_d", "n400_cohens_d", "p600_gap")
+
+#: See task100's `_CACHE`: one calibration per (depth, seed, arm), read many
+#: ways. Repeatability within a process is checked by erp_rerun_pairing_check.py.
+_CACHE = {}
+
+
 def _run(depth, seed, readonly_parse):
+    hit = _CACHE.get((depth, seed, readonly_parse))
+    if hit is not None:
+        return hit
     parser = get_parser_cache().fork(depth, seed=seed)
     brain = parser.brain
     before = _materialized(brain)
@@ -62,7 +77,9 @@ def _run(depth, seed, readonly_parse):
             report = calibrate_erp_thresholds(parser)
     else:
         report = calibrate_erp_thresholds(parser)
-    return report, _materialized(brain) - before
+    out = (report, _materialized(brain) - before)
+    _CACHE[(depth, seed, readonly_parse)] = out
+    return out
 
 
 def metric(depth, readonly_parse, key):
@@ -70,8 +87,8 @@ def metric(depth, readonly_parse, key):
         report, grew = _run(depth, seed, readonly_parse)
         if key == "grew":
             return float(grew)
-        if key.endswith("_cohens_d"):
-            return float(report.separation.get(key, 0.0))
+        if key in report.separation:
+            return float(report.separation[key])
         if key == "p600_gap":
             g = report.by_label.get("grammatical", {})
             c = report.by_label.get("category_violation", {})
@@ -84,9 +101,10 @@ def metric(depth, readonly_parse, key):
 def main(depth="SENTENCES", seeds=(11, 12, 13, 14, 15, 16, 17, 18, 19, 20)):
     print(f"depth={depth}  seeds={list(seeds)}")
     print("+/- is a t-based 95% CI. Ground truth for `grew` is 0: a read that")
-    print("grows the parser cannot be repeated and cannot be ordered freely.\n")
+    print("grows the parser cannot be repeated and cannot be ordered freely.")
+    print("AUC granularity is 1/9 per seed (n=3 samples per arm under ERP_FAST).\n")
     print(f"{'metric':16s} {'parse grows [HEAD]':26s} {'parse read_only':26s} delta")
-    for key in ("grew", "p600_cohens_d", "n400_cohens_d", "p600_gap"):
+    for key in KEYS:
         arms = {
             "grows": metric(depth, False, key),
             "readonly": metric(depth, True, key),

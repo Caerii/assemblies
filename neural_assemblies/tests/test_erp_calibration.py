@@ -7,10 +7,18 @@ Two fresh trainings, SAME seed, backbone cache disabled, separate processes::
     run 1   grammatical [0.9874, 0.9938, 0.9874]   d = 1.452   AUC = 0.889
     run 2   grammatical [0.9872, 0.9941, 0.9872]   d = 1.291   AUC = 0.889
 
-Training is not reproducible across processes (#80), so Cohen's d moves 11%
-between runs of identical code -- while the rank statistic is IDENTICAL. A
-threshold on d is therefore a threshold on the run, not on the model, and
-`d > 0.3` had been failing and passing depending on which other tests ran first.
+Training was not reproducible across processes, so Cohen's d moved 11% between
+runs of identical code -- while the rank statistic was IDENTICAL. A threshold on
+d was therefore a threshold on the run, not on the model, and `d > 0.3` had been
+failing and passing depending on which other tests ran first.
+
+#80 IS NOW FIXED and training IS bit-identical across processes, so that
+particular instability is gone. THE CHOICE OF STATISTIC STANDS ANYWAY, for the
+second reason below and for one the fix demonstrated: with the substrate made
+deterministic, the 10-seed probe-isolation delta that had read `-0.338 +/- 0.327`
+(an interval excluding zero, written up as a real 15% attenuation) re-measured
+as `-0.034 +/- 0.581`. d was tracking the apparatus. AUC over the same arms
+moved 0.972 -> 0.917, within one granularity step of its ceiling.
 
 d is also not an effect size here even when it is stable: it is computed on
 `p600_excess = max(0, v - grammatical_median)`, which clips the NULL arm against
