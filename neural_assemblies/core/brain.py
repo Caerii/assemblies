@@ -207,6 +207,9 @@ class Brain:
 
         # Inter-area inhibition groups for winner-take-all
         self._mutual_inhibition_groups: List[List[str]] = []
+        #: AC area/fiber inhibition. None until something is actually
+        #: inhibited, so a Brain that never gates pays nothing for it.
+        self._inhibition = None
         # One-time incoming-weight normalization (reference `norm_init`).
         # Prerequisite for self-recurrence; see project_rounds.
         self.norm_init: bool = norm_init
@@ -807,6 +810,14 @@ class Brain:
                     raise IndexError(f"Not in brain.areas: {to_area_name}")
                 area_in[to_area_name].append(from_area_name)
 
+        # AC AREA/FIBER INHIBITION. The calculus has exactly two control
+        # primitives and this is where they act: an inhibited area neither
+        # fires nor is fired into, and a closed fiber carries nothing. Skipped
+        # entirely unless something is actually inhibited, so the default Brain
+        # pays nothing and behaves exactly as before.
+        if self._inhibition is not None and self._inhibition.any_closed():
+            stim_in, area_in = self._apply_inhibition(stim_in, area_in)
+
         # ORDER IS LOAD-BEARING, so this must not be a set. It drives the batch
         # config order below and the sequential projection loop, and projecting
         # an area materializes neurons -- so the order determines how the seeded
@@ -1016,15 +1027,109 @@ class Brain:
         """Reset accumulated refracted bias to zero for an area."""
         self._engine.clear_refracted_bias(area_name)
 
-    def inhibit_areas(self, area_names: List[str]) -> None:
-        """Suppress all activity in specified areas.
+    # ---- AC inhibition: areas and fibers, persistent, gating ---------------
+    #
+    # THREE THINGS IN THIS CLASS ARE CALLED INHIBITION AND THEY ARE DIFFERENT.
+    # Keeping them apart is the whole point of this block:
+    #
+    #   inhibit_area / inhibit_fiber   the CALCULUS. Persistent gating: an
+    #       (this section)             inhibited area neither fires nor is
+    #                                  fired into; a closed fiber carries
+    #                                  nothing. Two primitives, and the AC has
+    #                                  no others for control.
+    #
+    #   clear_activity                 NOT the calculus. A one-shot wipe of an
+    #   (alias: inhibit_areas)         area's winners. The area is fully live
+    #                                  again on the very next projection. Named
+    #                                  "inhibit_areas" historically, which is
+    #                                  [[same-name-two-meanings]] across 20
+    #                                  files, so the honest name is primary now.
+    #
+    #   add_mutual_inhibition          NOT the calculus either. Post-hoc
+    #                                  winner-take-all BETWEEN areas, applied
+    #                                  after projecting. Measured dormant
+    #                                  (#24): 1373 project() calls, zero
+    #                                  co-targeting a group.
 
-        Clears winners in each named area so the next projection step
-        sees no active neurons from those areas.  Connectome weights are
-        preserved, so re-stimulation recovers the original assembly.
+    @property
+    def inhibition(self):
+        """The AC inhibition state, created fully OPEN on first use.
 
-        Typical usage: call before switching patterns in a recurrent loop
-        to clear residual activity from the previous pattern.
+        Lazily built and extended, so areas added later are registered
+        automatically -- and open, because a new area is not gated until
+        somebody gates it.
+        """
+        from .inhibition import InhibitionState
+
+        if self._inhibition is None:
+            self._inhibition = InhibitionState.all_open(list(self.areas))
+        else:
+            self._inhibition.ensure_areas(list(self.areas), open_new=True)
+        return self._inhibition
+
+    def inhibit_area(self, area_name: str, index: int = 0) -> None:
+        """Prevent *area_name* from firing or being fired into, until released.
+
+        The AC's area inhibition. Unlike ``clear_activity`` this PERSISTS: the
+        area is skipped by every projection until ``disinhibit_area`` releases
+        it. Its winners are left alone, which is what makes the parser's
+        "hold this role while the next word settles" work.
+
+        ``index`` gives independent rules independent channels on the same
+        area; it reopens only when every holder has released it.
+        """
+        self.inhibition.inhibit_area(area_name, index)
+
+    def disinhibit_area(self, area_name: str, index: int = 0) -> None:
+        """Release this holder's claim on *area_name*."""
+        self.inhibition.disinhibit_area(area_name, index)
+
+    def inhibit_fiber(self, a1: str, a2: str, index: int = 0) -> None:
+        """Close the fiber between *a1* and *a2*. SYMMETRIC, as in the reference."""
+        self.inhibition.inhibit_fiber(a1, a2, index)
+
+    def disinhibit_fiber(self, a1: str, a2: str, index: int = 0) -> None:
+        """Release this holder's claim on the *a1* <-> *a2* fiber."""
+        self.inhibition.disinhibit_fiber(a1, a2, index)
+
+    def _apply_inhibition(self, stim_in, area_in):
+        """Drop everything the gating state closes. Returns filtered maps.
+
+        Three rules, all from Algorithm 2's ``project*``: a stimulus cannot
+        drive an inhibited area; an inhibited area is not a target; and an edge
+        needs BOTH endpoints open and its fiber open.
+        """
+        state = self._inhibition
+        stim_out = defaultdict(list)
+        for target, stims in stim_in.items():
+            if state.area_open(target):
+                stim_out[target] = list(stims)
+
+        area_out = defaultdict(list)
+        for target, sources in area_in.items():
+            if not state.area_open(target):
+                continue
+            kept = [s for s in sources
+                    if state.area_open(s) and state.fiber_open(s, target)]
+            if kept:
+                area_out[target] = kept
+        return stim_out, area_out
+
+    def clear_activity(self, area_names: List[str]) -> None:
+        """Wipe the winners of these areas. NOT the AC's inhibition.
+
+        Clears winners so the next projection step sees no active neurons from
+        those areas. Connectome weights are preserved, so re-stimulation
+        recovers the original assembly -- and the area is fully live again
+        immediately, which is the difference from ``inhibit_area``.
+
+        Typical usage: call before switching patterns in a recurrent loop to
+        clear residual activity from the previous pattern.
+
+        Exposed as ``inhibit_areas`` too, which is what ~20 modules call it.
+        That name is misleading -- nothing is inhibited, an assembly is erased
+        -- and it collided with the calculus's own term for a different
+        mechanism, so the descriptive name is the primary one now.
         """
         for name in area_names:
             area = self.areas[name]
@@ -1035,13 +1140,30 @@ class Brain:
             if engine is not self._engine:
                 self._engine.set_winners(name, np.array([], dtype=np.uint32))
 
+    #: Historical name for ``clear_activity``. Kept because ~20 modules use it
+    #: and a mass rename is a separate, reviewable change; see the block
+    #: comment above for why it is no longer the primary name.
+    inhibit_areas = clear_activity
+
     def add_mutual_inhibition(self, area_names: List[str]) -> None:
-        """Enable winner-take-all competition between areas.
+        """Post-hoc winner-take-all between areas. NOT the AC's inhibition.
 
         When areas in this group receive simultaneous input via
         ``project()``, only the area with the highest total synaptic
         drive retains its winners; all others are silenced (winners
         cleared to empty).
+
+        THIS IS NOT WHAT THE PAPERS MEAN BY INHIBITION, and the difference is
+        architectural rather than terminological. This runs AFTER projecting
+        and compares total drive across areas; the calculus inhibits BEFORE, by
+        gating which projections happen at all (``inhibit_area`` /
+        ``inhibit_fiber``). Gating needs no cross-area comparison, which
+        matters because that comparison is measurably unreliable here -- a 7x
+        pre-k-WTA separation collapses to a ~7% margin.
+
+        Measured DORMANT (#24): across a full parser run, 1373 ``project()``
+        calls, ZERO of which co-target a group, so this has never fired. Prefer
+        the gating primitives.
 
         Persistent: applies to all future projections until
         ``remove_mutual_inhibition`` is called.
@@ -1457,6 +1579,10 @@ class Brain:
         cloned.disable_plasticity = self.disable_plasticity
         cloned.plasticity_mask = dict(self.plasticity_mask)
         cloned._mutual_inhibition_groups = copy.deepcopy(self._mutual_inhibition_groups)
+        # Gating state travels with the clone. A fork that silently reopened
+        # every fiber would parse the next word differently from its parent
+        # while looking identical -- the #103 shape, one level up.
+        cloned._inhibition = copy.deepcopy(self._inhibition)
         # NOTE: clone() bypasses __init__ via object.__new__, so every Brain
         # attribute must be copied explicitly here or forks lose it.
         cloned.last_activation_scores = dict(

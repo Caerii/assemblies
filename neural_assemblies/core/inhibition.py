@@ -72,6 +72,54 @@ class InhibitionState:
             if a in self.area_states:
                 self.area_states[a].discard(0)
 
+    @classmethod
+    def all_open(cls, areas: Iterable[str]) -> "InhibitionState":
+        """Every area AND every fiber open. The only safe default for a Brain.
+
+        The normal constructor closes everything, which is right for a parser
+        whose rule set opens exactly what each word needs. It is wrong as a
+        Brain default: a Brain that gated projections shut by default would
+        silently stop projecting, and on this substrate "nothing happened"
+        still returns k winners, so it would look like a result rather than an
+        error ([[silent-no-op-dead-fibers]]).
+        """
+        state = cls(areas, initial_areas=areas)
+        for src in state.areas:
+            for dst in state.areas:
+                state.fiber_states[src][dst].clear()
+        return state
+
+    def ensure_areas(self, areas: Iterable[str], *, open_new: bool) -> None:
+        """Register areas created after this state was built.
+
+        A Brain can ``add_area`` at any time, and an area the state has never
+        heard of would raise on lookup. ``open_new`` must be stated by the
+        caller rather than defaulted: for a Brain the answer is True (a new
+        area is not gated until someone gates it) and for a parser rule set it
+        is False (nothing is open until a rule opens it), and picking one
+        silently would be wrong half the time.
+        """
+        for a in areas:
+            if a in self.area_states:
+                continue
+            self.areas.append(a)
+            self.fiber_states.setdefault(a, defaultdict(set))
+            self.area_states[a] = set() if open_new else {0}
+            for other in self.areas:
+                if open_new:
+                    self.fiber_states[a][other].clear()
+                    self.fiber_states[other][a].clear()
+                else:
+                    self.fiber_states[a][other].add(0)
+                    self.fiber_states[other][a].add(0)
+
+    def any_closed(self) -> bool:
+        """True if anything at all is inhibited. Lets callers skip the filter."""
+        if any(self.area_states.values()):
+            return True
+        return any(idx for dsts in self.fiber_states.values()
+                   for idx in dsts.values())
+
     # ---- state mutation ------------------------------------------------
     def inhibit_fiber(self, a1: str, a2: str, index: int = 0) -> None:
         """Close fiber a1<->a2 on `index`. Symmetric, matching the reference."""

@@ -1,0 +1,12 @@
+F:\Github\assemblies\research\experiments\erp_full_substrate.py:153: RuntimeWarning: arms 'frozen' and 'no_recruit' returned IDENTICAL values on all 5 seeds -- they are not two arms. Check that the intervention reached the engine and that the fiber it targets was ever materialised (see fiber_census); a never-grown connectome carries zero drive and still returns k winners.
+  out = compare_arms(arms, list(seeds), strict=False)
+depth=SENTENCES  seeds=[11, 12, 13, 14, 15]
+full = every neuron materialised, i.e. the substrate the AC specifies.
+`materialized` is the direct check that the arms differ as claimed.
+
+metric        frozen [shipped]       no_recruit             full [AC]              full-frozen
+materialized   18083.0000+/-111.3795   16640.0000+/-57.1006   141030.0000+/-0.0000    +122947.0000+/-111.3795  CHANGED
+p600_auc           1.0000+/-0.0000         1.0000+/-0.0000         0.9222+/-0.1799       -0.0778+/-0.1799  no change
+p600_span          0.0065+/-0.0011         0.0087+/-0.0015         0.0011+/-0.0003       -0.0054+/-0.0010  CHANGED
+p600_gap           0.0025+/-0.0004         0.0046+/-0.0004         0.0002+/-0.0001       -0.0023+/-0.0003  CHANGED
+n400_auc           0.8889+/-0.1951         0.8667+/-0.1799         0.8222+/-0.2092       -0.0667+/-0.1234  no change

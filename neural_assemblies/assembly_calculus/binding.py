@@ -258,7 +258,23 @@ def input_drive(
     The pre-k-WTA figure is normalized per candidate because areas do not
     have the same number of recruited neurons: two role areas measured here
     differed by 391 vs 449, and comparing raw sums across them reverses the
-    ranking purely on size. Any cross-area comparison must divide out ``w``.
+    ranking purely on size. Any cross-area comparison must divide out the
+    candidate count.
+
+    ``w`` IS THE WRONG STAND-IN FOR THAT COUNT, and it decides the scale of
+    every number this function returns (#104). The intent above is right --
+    make areas commensurable -- but ``w`` is the MATERIALISED count, an
+    artifact of lazy instantiation with no counterpart in the calculus, where
+    an area has a fixed ``n``. Measured across arms that vary how much of an
+    area competes (research/experiments/erp_full_substrate.log): ``w`` grows
+    7.8x, the P600 gap this feeds falls 12.5x, while the rank statistic barely
+    moves. So the SCALE tracks training history, which is why a threshold set
+    once ended up 11.9x above anything observable.
+
+    RATIOS BETWEEN AREAS MEASURED IN ONE CALL ARE STILL FINE -- that is what
+    this function is for, and it is why the defect stayed invisible. It is
+    absolute magnitudes, and thresholds on them, that do not survive.
+    See research/notes/erp_scale_is_an_implementation_detail.md.
 
     The distinction is not cosmetic. This repository's N400 work found global
     pre-k-WTA energy to be the robust quantity (Cohen's d = -25.2) while

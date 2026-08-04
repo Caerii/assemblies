@@ -92,6 +92,24 @@ def _self_recurrent_energy(brain, area: str) -> float:
     connectome" -- THAT WAS HALF TRUE AND THE MISSING HALF MATTERS. frozen()
     stops weights changing; it does not stop the area GROWING, and growth
     reshapes the connectome just as surely. See `probe_util.probe_context`.
+
+    THE DIVISOR IS WRONG AND IT SETS THE WHOLE SCALE (#104). ``area.w`` is the
+    MATERIALISED COUNT -- how many neurons lazy instantiation has got around to
+    creating -- which is an implementation detail with no counterpart in the
+    calculus, where an area has a fixed ``n``. Measured over arms that vary how
+    much of the area competes (research/experiments/erp_full_substrate.log):
+    ``w`` grows 7.8x and the p600 gap falls 12.5x, span 5.9x, while the rank
+    statistic barely moves (AUC 1.000 -> 0.922). So every training that grows
+    the parser shrinks this number, which is how ``P600_EXCESS_MARGIN`` ended
+    up 11.9x above anything observable without anyone editing it -- and it is
+    also the mechanism behind the saturation, since ``1 - drive/w`` is pushed
+    toward 1.0 as ``w`` grows.
+
+    The same divisor is in ``binding.input_drive``, which this function calls,
+    so it is one choice on two paths. Replace it with something the MODEL
+    defines (``k``, ``k*p``, contributing sources) and accept the fix only if
+    the four-arm table becomes w-invariant. See
+    research/notes/erp_scale_is_an_implementation_detail.md.
     """
     if area not in brain.areas:
         return 0.0

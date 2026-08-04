@@ -172,43 +172,41 @@ def test_baseline_is_not_stale():
 #: `.w` as a whole attribute -- not `.weights`, `.winners`, `.w_max`.
 _W_ACCESS = re.compile(r"\.w\b(?!_)")
 
-#: Frozen baseline: path -> lines reading `.w`. Verified 2026-08-03,
-#: 44 files / 136 lines outside core.
+#: Frozen baseline: path -> COUNT OF `.w` ATTRIBUTE READS (tokenized, so
+#: strings and comments do not count). Re-frozen 2026-08-04 when the scan
+#: moved from a line regex to tokenize: 38 files / 115 reads outside core,
+#: down from "44 files / 136 lines" -- 21 of those were PROSE, and six files
+#: had nothing but prose. The old number was part code and part commentary,
+#: so deleting a real read while adding a comment about it netted to zero.
 W_BASELINE = {
     "legacy/root_modules/simulations.py": 13,
-    "legacy/root_modules/image_learner.py": 12,
     "neural_assemblies/simulation/advanced_simulations.py": 12,
-    "research/experiments/capacity/lexicon_capacity.py": 8,
+    "legacy/root_modules/image_learner.py": 8,
     "neural_assemblies/assembly_calculus/emergent/parser_mixins/incremental.py": 7,
     "neural_assemblies/assembly_calculus/emergent/training/linker.py": 6,
-    "neural_assemblies/assembly_calculus/emergent/parser_mixins/state_prediction.py": 4,
+    "research/experiments/capacity/lexicon_capacity.py": 6,
     "research/experiments/metrics/measurement.py": 4,
     "research/experiments/recruitment/recruitment_mechanisms.py": 4,
-    "research/experiments/recurrent_assembly_decay.py": 4,
     "tests/test_brain_core.py": 4,
     "legacy/scripts/simulations/turing_sim.py": 3,
+    "neural_assemblies/assembly_calculus/emergent/parser_mixins/state_prediction.py": 3,
     "neural_assemblies/assembly_calculus/emergent/parser_mixins/unsupervised.py": 3,
     "neural_assemblies/simulation/turing_simulations.py": 3,
     "research/experiments/_substrate.py": 3,
     "research/experiments/p600_metric_comparison.py": 3,
     "research/experiments/primitives/diagnose_erp_dynamics.py": 3,
     "research/experiments/recruitment/smoke.py": 3,
-    "legacy/root_modules/parser.py": 2,
-    "legacy/root_modules/recursive_parser.py": 2,
     "neural_assemblies/assembly_calculus/consolidation.py": 2,
     "neural_assemblies/assembly_calculus/emergent/training/compiler.py": 2,
-    "neural_assemblies/diagnostics.py": 2,
     "neural_assemblies/programs/colt_mnist_tier_a.py": 2,
     "neural_assemblies/programs/patch_merge.py": 2,
-    "research/experiments/capacity/analyze.py": 2,
-    "research/experiments/capacity/parser_recruitment.py": 2,
     "research/experiments/distinctiveness/test_competition_mechanisms.py": 2,
-    "research/experiments/recruitment/diagnose_synaptic_scaling.py": 2,
-    "neural_assemblies/assembly_calculus/assembly.py": 1,
+    "research/experiments/recurrent_assembly_decay.py": 2,
+    "legacy/root_modules/parser.py": 1,
+    "legacy/root_modules/recursive_parser.py": 1,
     "neural_assemblies/assembly_calculus/binding.py": 1,
     "neural_assemblies/assembly_calculus/emergent/evaluation/erp/adapters.py": 1,
     "neural_assemblies/assembly_calculus/tracing/operations.py": 1,
-    "neural_assemblies/compute/winner_selection.py": 1,
     "neural_assemblies/language/debugger.py": 1,
     "neural_assemblies/language/parser.py": 1,
     "neural_assemblies/programs/colt_mnist_hierarchical_brain.py": 1,
@@ -217,7 +215,7 @@ W_BASELINE = {
     "research/experiments/erp_p600_probe_contamination.py": 1,
     "research/experiments/metrics/instability.py": 1,
     "research/experiments/metrics/settling.py": 1,
-    "research/experiments/prediction_paths_compare.py": 1,
+    "research/experiments/recruitment/diagnose_synaptic_scaling.py": 1,
     "research/experiments/worker_divergence_probe.py": 1,
 }
 
@@ -233,6 +231,43 @@ _W_ADVICE = (
     "\n  If this site is genuinely engine-internal, raise its W_BASELINE entry"
     "\n  with a comment saying which quantity it means and why."
 )
+
+
+def _count_w_reads(text: str) -> int:
+    """Count `.w` ATTRIBUTE READS, ignoring strings and comments.
+
+    WHY TOKENIZE AND NOT A REGEX ON LINES. The line scan this replaces counted
+    prose: a docstring warning that `.w` is the wrong divisor read as a NEW
+    ambiguous access and failed the ratchet, which punishes documenting the
+    hazard the ratchet exists to track. Worse, it means the frozen baselines
+    were part code and part commentary, so an edit that deleted a real read and
+    added a comment about it netted to zero.
+
+    Tokenizing keeps the guard strictly stronger: only an OP `.` followed by
+    NAME `w` counts, which is an attribute access and nothing else.
+
+    Falls back to the old line scan when a file will not tokenize -- some
+    research scripts do not parse -- because silently counting zero there would
+    be a hole in a guard whose whole job is to have no holes.
+    """
+    import io
+    import tokenize
+
+    try:
+        toks = list(tokenize.generate_tokens(io.StringIO(text).readline))
+    except (tokenize.TokenError, SyntaxError, IndentationError):
+        return sum(1 for line in text.splitlines() if _W_ACCESS.search(line))
+
+    n = 0
+    prev_op_dot = False
+    for tok in toks:
+        if tok.type == tokenize.OP and tok.string == ".":
+            prev_op_dot = True
+            continue
+        if prev_op_dot and tok.type == tokenize.NAME and tok.string == "w":
+            n += 1
+        prev_op_dot = False
+    return n
 
 
 def _scan_w():
@@ -254,7 +289,7 @@ def _scan_w():
                 text = open(full, encoding="utf-8").read()
             except Exception:                                # noqa: BLE001
                 continue
-            n = sum(1 for line in text.splitlines() if _W_ACCESS.search(line))
+            n = _count_w_reads(text)
             if n:
                 found[rel] = n
     return found
@@ -291,3 +326,49 @@ def test_both_scanners_still_see_something():
     assert sum(w.values()) > 50, (
         f"`.w` scanner found only {sum(w.values())} lines; the baseline was "
         f"built at 136, so it has probably stopped matching")
+
+
+def test_the_w_scan_counts_CODE_and_not_PROSE():
+    """The guard on the guard, and it caught a real own-goal.
+
+    A docstring warning that `.w` is the wrong divisor used to read as a NEW
+    ambiguous access and fail the ratchet -- punishing documentation of the
+    exact hazard the ratchet tracks. It also meant the frozen numbers were part
+    code and part commentary, so removing a real read while adding a comment
+    about it netted to zero. Re-freezing found 21 of 136 tracked "reads" were
+    prose, and six files had NOTHING but prose.
+    """
+    src = (
+        '"""A docstring mentioning area.w and brain.w and obj.w."""\n'
+        "# a comment about foo.w\n"
+        "x = 'a string with bar.w in it'\n"
+        "def f(area):\n"
+        "    return area.w\n"                       # the ONLY real read
+    )
+    assert _count_w_reads(src) == 1, (
+        "the `.w` scan is counting strings or comments again; the baseline is "
+        "no longer a count of attribute reads")
+
+
+def test_the_w_scan_still_counts_real_reads_in_several_forms():
+    """The positive control. A tokenizer that returned 0 would pass the test
+    above and silently disable the whole ratchet."""
+    src = (
+        "a = area.w\n"
+        "b = brain.areas['X'].w + 1\n"
+        "c = self.w\n"
+        "d = obj.w_max\n"                           # NOT a match: `w_max`
+        "e = w\n"                                   # NOT a match: bare name
+    )
+    assert _count_w_reads(src) == 3
+
+
+def test_the_w_scan_falls_back_when_a_file_will_not_tokenize():
+    """Unparseable research scripts must not silently count zero.
+
+    A guard whose failure mode is "sees nothing" is worse than no guard, since
+    it reports success. On a tokenize error the scan reverts to the old line
+    regex, which over-counts rather than under-counts.
+    """
+    broken = "def f(:\n    return area.w\n"
+    assert _count_w_reads(broken) >= 1

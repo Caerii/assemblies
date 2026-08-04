@@ -64,6 +64,7 @@ __all__ = [
     "assembly_stability",
     "lexical_readout",
     "empty_project",
+    "empty_project_on_brain",
 ]
 
 
@@ -356,7 +357,22 @@ class EmptyProject:
         return f"EMPTY-PROJECT (by {self.detected_by})"
 
 
-def empty_project(state, brain, lex_area: str) -> EmptyProject:
+def empty_project_on_brain(brain, lex_area: str) -> EmptyProject:
+    """``empty_project`` against the Brain's OWN gating state.
+
+    The paper's parser carries its inhibition state alongside the brain; ours
+    now lives on it (``Brain.inhibit_area`` / ``inhibit_fiber``), so this is
+    the form most call sites want. Reports ``detected_by="drive"`` because the
+    gate it consults is the same one ``Brain.project`` filters through -- an
+    empty answer here means the projection genuinely would not run, not merely
+    that a separate bookkeeping object says so.
+    """
+    return empty_project(brain.inhibition, brain, lex_area,
+                         _detected_by="drive")
+
+
+def empty_project(state, brain, lex_area: str,
+                  *, _detected_by: str = "gating") -> EmptyProject:
     """Would ``project*`` fire nothing from *lex_area* under this gating state?
 
     The paper's example: having processed an intransitive verb, OBJ is not
@@ -375,5 +391,5 @@ def empty_project(state, brain, lex_area: str) -> EmptyProject:
     # bound of 2 in InhibitionState.check_war_of_fibers), so counting it here
     # would make every state look non-empty.
     targets = tuple(t for t in proj.get(lex_area, ()) if t != lex_area)
-    return EmptyProject(empty=not targets, detected_by="gating",
+    return EmptyProject(empty=not targets, detected_by=_detected_by,
                         lex_targets=targets)
