@@ -1,0 +1,13 @@
+F:\Github\assemblies\research\experiments\erp_growth_neutrality.py:152: RuntimeWarning: arms 'no_recruit' and 'read_only' returned IDENTICAL values on all 10 seeds -- they are not two arms. Check that the intervention reached the engine and that the fiber it targets was ever materialised (see fiber_census); a never-grown connectome carries zero drive and still returns k winners.
+  out = compare_arms(arms, list(seeds), strict=False)
+depth=SENTENCES  seeds=[11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+A=frozen (recruit YES)  B=no_recruit  C=read_only (B + winners restored)
+A vs B isolates RECRUITMENT -- identical is the PREDICTION, not a worry.
+B vs C isolates WINNER RESTORE -- a difference there is protocol.
+
+metric      A frozen               B no_recruit           C read_only            A-B (recruit)          B-C (restore)
+grew        1482.7000+/-87.5569     120.0000+/-0.0000      120.0000+/-0.0000     +1362.7000+/-87.5569      +0.0000+/-0.0000  A!=B RECRUITMENT LEAKS
+p600_auc       0.9722+/-0.0628        1.0000+/-0.0000        1.0000+/-0.0000       -0.0278+/-0.0628       +0.0000+/-0.0000  A!=B RECRUITMENT LEAKS
+n400_auc       0.9222+/-0.0842        0.9111+/-0.0977        0.9111+/-0.0977       +0.0111+/-0.0586       +0.0000+/-0.0000  A!=B RECRUITMENT LEAKS
+p600_span      0.0061+/-0.0013        0.0084+/-0.0014        0.0084+/-0.0014       -0.0022+/-0.0005       +0.0000+/-0.0000  A!=B RECRUITMENT LEAKS
+p600_gap       0.0022+/-0.0006        0.0046+/-0.0005        0.0046+/-0.0005       -0.0024+/-0.0002       +0.0000+/-0.0000  A!=B RECRUITMENT LEAKS

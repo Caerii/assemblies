@@ -627,17 +627,28 @@ class Brain:
 
         MEASURED, then adopted. On the ERP calibration contrast over 10 seeds
         (research/experiments/task100_erp_probe_isolation.py), paired on the
-        same trained parser::
+        same trained parser, RE-RUN once training became reproducible (#80) and
+        `fork` stopped cloning a mutated parser (#103)::
 
-            p600 Cohen's d   2.192 +/- 0.252  ->  1.853 +/- 0.371
-                             delta -0.338, CI [-0.665, -0.011]
-            n400 Cohen's d   2.500 +/- 1.418  ->  2.380 +/- 0.992   no change
+            p600 AUC         0.972 +/- 0.063  ->  0.917 +/- 0.057
+            p600 median gap  0.002 +/- 0.001  ->  0.003 +/- 0.000   CHANGED
+            p600 Cohen's d   1.910 +/- 0.534  ->  1.876 +/- 0.446   no change
 
-        So isolation ATTENUATES P600 by ~15% rather than leaving it alone --
-        and the effect survives far above the 0.3 threshold the tests assert.
-        At 5 seeds the same delta read as "no change"; the interval only
-        excludes zero at 10, and it barely does. Treat the attenuation as real
-        but small, and the interval as marginal.
+        Isolation costs nothing and slightly WIDENS the raw separation. An
+        earlier reading of this table reported a "~15% P600 attenuation"
+        (d 2.192 -> 1.853, delta -0.338 +/- 0.327); that is RETRACTED -- on a
+        deterministic substrate the same delta is -0.034 +/- 0.581. It was
+        parser variation, not probe contamination.
+
+        WHAT THE DIFFERENCE ACTUALLY IS. A three-arm run
+        (research/experiments/erp_growth_neutrality.py) splits this context's
+        two interventions apart: suppressing RECRUITMENT accounts for all of
+        it, and restoring winners for none -- the no-recruit and read_only arms
+        are bit-identical on every metric and all 10 seeds. So the winner
+        snapshot is host hygiene with no effect on the measurement, and the
+        numbers above are a recruitment effect. Whether that effect is a defect
+        is a separate question (the AC has no growth at all; see
+        research/experiments/erp_full_substrate.py).
 
         Isolation is also ~3x faster on that suite, because a probe that does
         not grow the brain has less to do.
