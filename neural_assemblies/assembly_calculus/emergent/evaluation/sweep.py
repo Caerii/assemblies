@@ -81,24 +81,41 @@ def backbone_cache_dir():
 #: A stale backbone does not fail loudly. It returns a plausible number, and it
 #: corrupts exactly the A/B comparisons this program depends on. Retraining an
 #: extra time is the cheaper error.
+#:
+#: `assembly_calculus` JOINED THE LIST ON 2026-08-04, and the reason is the
+#: third occurrence of one mistake. The language layer used to be ENUMERATED --
+#: eight files, chosen by judgement -- and the enumeration missed
+#: `acquisition/pos_inference.py` and `parser_mixins/prediction.py`, which are
+#: EXACTLY the two files whose edits fixed #80. They decide the order training
+#: visits words, so they decide which neurons get recruited; editing them
+#: served a stale pickle. Today's ERP re-run was safe only because those files
+#: happened to predate the cached backbone by fourteen minutes.
+#:
+#: Enumerating "the files that matter" has now failed twice (once for the
+#: engines, once here). Walking the package is the structural answer, and the
+#: cost is 149 `stat` calls per process against 49.
 _TRAINING_SOURCE_DIRS = (
     "core",
     "compute",
+    "assembly_calculus",
 )
 
-#: Individual files OUTSIDE those packages. The language-level training code is
-#: spread through `assembly_calculus/`, most of which is analysis and reporting
-#: that cannot change a trained backbone, so it stays enumerated.
-_TRAINING_SOURCES = (
-    "assembly_calculus/ops.py",
-    "assembly_calculus/emergent/core/corpus_index.py",
-    "assembly_calculus/emergent/parser_mixins/roles.py",
-    "assembly_calculus/emergent/parser_mixins/unsupervised.py",
-    "assembly_calculus/emergent/parser_mixins/core.py",
-    "assembly_calculus/emergent/parser_mixins/classify.py",
-    "assembly_calculus/emergent/training/batch.py",
-    "assembly_calculus/emergent/training/schedule.py",
+#: Carved OUT of the recursive walk above. Everything here READS a trained
+#: parser and cannot produce one, so hashing it would retrain ten backbones
+#: every time an ERP metric is edited -- and #104 is about to edit one.
+#:
+#: THE BAR FOR ADDING TO THIS LIST is "no path from this module reaches
+#: plasticity or recruitment during training", not "I think it is only
+#: analysis". `tests/test_training_fingerprint.py` traces a real parser build
+#: and fails if anything excluded here actually executes.
+_NOT_TRAINING_DIRS = (
+    "assembly_calculus/emergent/evaluation",
 )
+
+#: Individual files outside the walked packages, kept for anything that lands
+#: elsewhere in future. Empty is the healthy state: a name here is a judgement
+#: call, and judgement calls are what the two misses above were.
+_TRAINING_SOURCES = ()
 
 _CODE_FINGERPRINT: Optional[str] = None
 
@@ -164,7 +181,10 @@ def fingerprint_source_files() -> Tuple[str, ...]:
         if not root.is_dir():
             continue
         for p in root.rglob("*.py"):
-            found.add(p.relative_to(pkg).as_posix())
+            rel = p.relative_to(pkg).as_posix()
+            if any(rel.startswith(x + "/") for x in _NOT_TRAINING_DIRS):
+                continue
+            found.add(rel)
     return tuple(sorted(found))
 
 

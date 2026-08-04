@@ -56,10 +56,47 @@ def _run_a_little_training():
     return b
 
 
+def _train_a_little_parser():
+    """A REAL parser build, which is what actually produces a backbone.
+
+    WHY THIS EXISTS. The tracer used to see only `_run_a_little_training()` --
+    a bare `Brain`. That proves coverage of `core/` and `compute/`, which are
+    hashed wholesale anyway, and proves NOTHING about the language layer where
+    every cached backbone is actually trained. The enumeration of that layer
+    then missed `acquisition/pos_inference.py` and `parser_mixins/prediction.py`
+    -- the two files whose edits fixed #80 -- and the guard written to catch
+    exactly this could not see them.
+
+    Third time one shape has bitten: a guard whose exercised path is not the
+    path that produces the artifact. #21's hashseed guard exercised
+    `p.train(...)` and never the curriculum; my own replacement guard ran at
+    n=1000 and passed with the fix reverted; this one traced a bare Brain.
+
+    Kept tiny (n=300, k=10, a few sentences) because it runs under `settrace`.
+    It does not need to train WELL -- it needs to EXECUTE the modules.
+    """
+    from neural_assemblies.assembly_calculus.emergent.curriculum.data import (
+        create_training_sentences,
+    )
+    from neural_assemblies.assembly_calculus.emergent.parser import (
+        EmergentParser,
+    )
+
+    p = EmergentParser(n=300, k=10, seed=1, fast_training=True)
+    p.train(create_training_sentences()[:4])
+    return p
+
+
 def _executed_modules():
-    """Package-relative paths of every neural_assemblies file that ran code."""
+    """Package-relative paths of every neural_assemblies file that ran code.
+
+    BOTH workloads are traced: the bare-Brain one for the engine internals and
+    a real parser build for the language layer. Running only the first is the
+    hole this guard had.
+    """
     _run_a_little_training()          # warm imports; import-time code is not
-    executed = set()                  # what we are asking about
+    _train_a_little_parser()          # what we are asking about
+    executed = set()
 
     def tracer(frame, event, _arg):
         if event == "call":
@@ -72,6 +109,7 @@ def _executed_modules():
     sys.settrace(tracer)
     try:
         _run_a_little_training()
+        _train_a_little_parser()
     finally:
         sys.settrace(old)
 
