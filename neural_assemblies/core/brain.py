@@ -1038,6 +1038,34 @@ class Brain:
         """Reset accumulated refracted bias to zero for an area."""
         self._engine.clear_refracted_bias(area_name)
 
+    def materialize_area(self, area_name: str, storage: str = "csr") -> int:
+        """Bring all ``n`` neurons into existence AND resync the descriptor.
+
+        WHY THIS EXISTS RATHER THAN `brain._engine.materialize_area(...)`.
+        The engine updates its OWN area state; the `Area` descriptor's `w` is a
+        plain attribute that nothing syncs, so after materialising directly on
+        the engine `brain.areas[x].w` keeps whatever the last projection left
+        there. Measured at n=3000: `area.w` read **42** while the candidate
+        vector was **3000**.
+
+        That is not cosmetic. `erp/adapters.py` normalises pre-k-WTA energy by
+        `area.w`, so on a fully materialised area it divided a sum over 3000
+        candidates by 42 -- inflating the number ~70x in precisely the arm that
+        is supposed to be ground truth (#104,
+        research/notes/erp_scale_is_an_implementation_detail.md).
+
+        Returns the number of neurons newly materialised.
+        """
+        area = self.areas[area_name]
+        engine = self._engine_for(area)
+        added = int(engine.materialize_area(area_name, storage=storage) or 0)
+        count = engine.materialized_count(area_name)
+        if count is not None:
+            # `materialized_count` is the SANCTIONED accessor (#69) and says
+            # what it returns; `w` does not, which is how they drifted apart.
+            area.w = int(count)
+        return added
+
     # ---- AC inhibition: areas and fibers, persistent, gating ---------------
     #
     # THREE THINGS IN THIS CLASS ARE CALLED INHIBITION AND THEY ARE DIFFERENT.

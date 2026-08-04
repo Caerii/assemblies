@@ -164,6 +164,43 @@ divided by 42. Another instance of [[two-index-spaces-compact-vs-neuron-id]]'s
 sibling, `.w` meaning two things, and it inflates the shipped statistic by ~70x
 in exactly the arm that is supposed to be ground truth.
 
+## AND UNDER ALL OF IT: THE VIOLATION ARM PROBES AN AREA THAT DOES NOT EXIST
+
+Found while wiring the pool-ratio guard. On a PRISTINE fork, before any parse:
+
+    area           self-fiber extent   materialised
+    ROLE_PATIENT   960                 675
+    VP             0                   0
+    NP             0                   0
+
+    _self_recurrent_energy(brain, "VP")  ->  0.000000
+        total 0.0 over 0 candidates, while VP holds 30 winners
+
+**`VP` has never been built.** Its self-fiber has zero columns, so the
+projection carries no drive, sums nothing, and returns exactly zero. `p600 =
+1 - energy`, so the VP arm reads a CONSTANT 1.0 regardless of the sentence.
+
+This sits beneath the other two findings and largely subsumes them:
+
+  * the `area.w` divisor is wrong -- still true, still worth fixing;
+  * no divisor helps, because the pool cannot express concentration -- still
+    true, measured, and the reason a 5x improvement looked like a fix;
+  * **but one arm of the contrast is structurally empty**, and no choice of
+    statistic recovers information from a fiber with no columns.
+
+It also explains the saturation more directly than the denominator does. The
+violation arm sits pinned near 1.0 because its energy is ZERO, not because the
+metric is compressed against a ceiling.
+
+And it is the missing half of [[erp-p600-sign-inverted]], which recorded that
+the two arms "measure DIFFERENT AREAS (ROLE_PATIENT vs VP)" and that "the
+documented untrained-pathway mechanism never runs". This is WHY it never ran.
+
+Classic [[silent-no-op-dead-fibers]]: zero drive, k-WTA still returns k
+winners, nothing raises, and the number reads like a measurement. Pinned as
+xfail(strict) in `tests/test_erp_probe_is_alive.py` with ROLE_PATIENT as the
+live positive control, so "everything reads zero" cannot pass for a fix.
+
 ## Consequences
 
 **For #104.** The fix is not a better margin. It is a denominator that is a

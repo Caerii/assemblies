@@ -106,9 +106,25 @@ def _self_recurrent_energy(brain, area: str) -> float:
     toward 1.0 as ``w`` grows.
 
     The same divisor is in ``binding.input_drive``, which this function calls,
-    so it is one choice on two paths. Replace it with something the MODEL
-    defines (``k``, ``k*p``, contributing sources) and accept the fix only if
-    the four-arm table becomes w-invariant. See
+    so it is one choice on two paths.
+
+    AND REPLACING IT DOES NOT FIX ANYTHING -- MEASURED, hypothesis refuted
+    (research/experiments/erp_denominator_invariance.log). Six statistics off
+    the same sum across three materialisation levels: ``w`` drifts 40.6x, and
+    then EVERY scale-free alternative lands on 7.76-7.78 -- including two that
+    are ratios of quantities from the SAME pool, where pool size cancels
+    algebraically. A statistic whose normalisation cannot matter still drifts,
+    so the drift is not in the normalisation.
+
+    THE POOL IS THE PROBLEM. Concentration (top-k drive over pool mean) reads
+    1.23 when the area is lazily materialised and 9.57 when it is full, because
+
+        lazy pool = 42 candidates, k = 30  ->  71% OF THE POOL IS THE ASSEMBLY
+
+    leaving nothing for the assembly to stand out from. Hence
+    ``pre_kwta_pool_ratio`` below: a number read at pool/k ~ 1.4 is not a
+    measurement, and this package's history is of exactly such numbers being
+    reported as results. See
     research/notes/erp_scale_is_an_implementation_detail.md.
     """
     if area not in brain.areas:
@@ -122,12 +138,43 @@ def _self_recurrent_energy(brain, area: str) -> float:
         try:
             brain.project({}, {area: [area]})
             totals = getattr(brain, "last_pre_kwta_totals", {}) or {}
+            counts = getattr(brain, "last_pre_kwta_counts", {}) or {}
+            _record_pool_ratio(brain, area, counts.get(area))
             w = max(int(brain.areas[area].w), 1)
             return float(totals.get(area, 0.0)) / w
         except (RuntimeError, IndexError, ValueError):
             return 0.0
         finally:
             brain.record_activation = prev_rec
+
+
+#: Below this, a concentration/energy read cannot separate a trained pathway
+#: from an untrained one because most of the candidate pool IS the assembly.
+#: Not tuned: it is the point where the assembly stops being a majority of what
+#: it is being compared against. At pool/k = 2 half the pool is the assembly;
+#: measured concentration is 1.23 at pool/k = 1.4 and 9.57 at pool/k = 100.
+MIN_POOL_RATIO = 2.0
+
+
+def _record_pool_ratio(brain, area: str, count) -> None:
+    """Stash candidates/k for the last probe so callers can check it.
+
+    A SEPARATE RECORD RATHER THAN A RAISE, deliberately. Raising here would
+    break every existing caller on a substrate that has always been in this
+    regime; returning a silently untrustworthy float is what the package
+    already does. So the ratio is reported and
+    `gates.assess_erp_readiness` can gate on it -- the same shape as
+    `parse_errors.Stability.trustworthy`, which exists for the identical reason
+    (pool <= k makes a k-cap unable to move).
+    """
+    if count is None:
+        return
+    k = max(int(getattr(brain.areas[area], "k", 0)), 1)
+    ratios = getattr(brain, "last_erp_pool_ratio", None)
+    if ratios is None:
+        ratios = {}
+        brain.last_erp_pool_ratio = ratios
+    ratios[area] = float(count) / k
 
 
 def phrase_stability(
