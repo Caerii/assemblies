@@ -406,7 +406,11 @@ def sentences_from_transition_paths(
         seen.add(key)
         out.append(tokens)
 
-    for word in targets:
+    # sorted(): `targets` is a SET OF STRINGS, whose iteration order is
+    # randomized per process (PEP 456). `out` is built in this order and becomes
+    # the training corpus, so an unsorted loop makes the whole curriculum
+    # order-dependent on PYTHONHASHSEED. See `infer_holdout_categories`.
+    for word in sorted(targets):
         lefts = sorted(
             ((w1, c) for (w1, w2), c in stats.transitions.items() if w2 == word),
             key=lambda x: -x[1],
@@ -513,7 +517,20 @@ def infer_holdout_categories(
     ingest_holdout_sentence_stats(parser, targets)
 
     for _pass in range(max(1, refine_passes)):
-        for word in targets:
+        # sorted(): THIS IS THE LOOP THAT MADE TRAINING IRREPRODUCIBLE ACROSS
+        # PROCESSES (#80). `targets` is a set of strings, so its iteration order
+        # is randomized per process (PEP 456), and `classify_word_bootstrapped`
+        # PROJECTS -- it recruits neurons. Different order, different brain.
+        #
+        # Measured on `train_parser_to_depth("SENTENCES", seed=42)` before the
+        # fix: 16564 / 16572 / 16638 materialized neurons in three processes,
+        # with Cohen's d on the ERP contrast moving 1.452 -> 1.291. Pinning
+        # PYTHONHASHSEED=0 made it 16491 every time, which is what localized it
+        # here. Same class as [[pythonhashseed-nondeterminism]] (#21), which
+        # fixed `train_lexicon`; the guard written then covers
+        # `p.train(create_training_sentences())` and never reached the
+        # CURRICULUM path, so this site stayed open behind a green test.
+        for word in sorted(targets):
             cat, scores = classify_word_bootstrapped(parser, word)
             conf = pos_inference_confidence(scores)
             if cat == "UNKNOWN" or conf < min_confidence:

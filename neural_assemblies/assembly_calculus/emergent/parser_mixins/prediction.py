@@ -204,8 +204,17 @@ class PredictionMixin:
             return
 
         bridge_vocab = corpus_index.bridge_vocab & set(self.stim_map.keys())
+        # sorted(), not list(): `bridge_vocab` is a SET INTERSECTION, so its
+        # iteration order is randomized per process (PEP 456), and
+        # `lex_targets` decides the order the prediction lexicon is BUILT --
+        # which projects, which recruits. Second of the two sites that made
+        # training irreproducible across processes (#80); the other is
+        # `acquisition/pos_inference.infer_holdout_categories`.
+        #
+        # The `else` branch is a dict, which is insertion-ordered and already
+        # deterministic, so it is deliberately left alone.
         lex_targets = (
-            list(bridge_vocab)
+            sorted(bridge_vocab)
             if bridge_vocab
             else list(self.stim_map.keys())
         )

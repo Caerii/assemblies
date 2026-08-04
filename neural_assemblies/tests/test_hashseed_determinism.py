@@ -115,3 +115,76 @@ def test_emergent_parser_is_identical_across_hash_seeds():
         "EmergentParser training is not reproducible across processes; "
         f"digests per PYTHONHASHSEED: {digests}"
     )
+
+
+_CURRICULUM = """
+import hashlib
+import os
+os.environ["ASSEMBLIES_BACKBONE_CACHE"] = "0"
+os.environ.setdefault("EMERGENT_FAST_TRAINING", "1")
+os.environ["TRAIN_PROGRESS"] = "0"
+import numpy as np
+from neural_assemblies.assembly_calculus.emergent.evaluation.generalization import (
+    train_parser_to_depth,
+)
+p = train_parser_to_depth("VOCABULARY_SPURT", n=3000, k=30, seed=42)
+b = p.brain
+m = hashlib.md5()
+for name in sorted(b.areas):
+    eng = b._engine_for(b.areas[name])
+    m.update(f"{name}:{eng.materialized_count(name)}".encode())
+    m.update(np.asarray(eng.get_winners(name)).tobytes())
+print(m.hexdigest())
+"""
+
+
+@pytest.mark.slow
+def test_curriculum_training_is_identical_across_hash_seeds():
+    """The CURRICULUM path, which the test above never reached.
+
+    THE COVERAGE HOLE THIS CLOSES. `test_emergent_parser_is_identical_across_
+    hash_seeds` exercises `p.train(create_training_sentences())` and passed
+    throughout. But every parser in the suite and in `research/` is built by
+    `train_parser_to_depth`, which runs the CURRICULUM -- a different and much
+    longer path. That path had two live set-iteration sites and the guard could
+    not see either, so it stayed green for months while training was
+    irreproducible (#80).
+
+    MEASURED before the fix, `train_parser_to_depth("SENTENCES", seed=42)` in
+    three fresh processes: 16564 / 16572 / 16638 materialized neurons, with
+    Cohen's d on the ERP contrast moving 1.452 -> 1.291. Pinning
+    PYTHONHASHSEED=0 gave 16491 every time, which is what localised it.
+
+    THE TWO SITES, both `list()`/iteration over a SET OF STRINGS feeding a call
+    that PROJECTS -- i.e. that recruits neurons, so a different order is a
+    different brain:
+
+      * `acquisition/pos_inference.infer_holdout_categories` -- `for word in
+        targets` where targets is a set comprehension, calling
+        `classify_word_bootstrapped`;
+      * `acquisition/pos_inference.sentences_from_transition_paths` -- same
+        pattern, and its output order becomes the training corpus order;
+      * `parser_mixins/prediction.train_next_token` -- `list(bridge_vocab)`
+        where `bridge_vocab` is a set INTERSECTION.
+
+    Uses VOCABULARY_SPURT rather than SENTENCES to stay affordable; that stage
+    reproduced the divergence on its own (7035 vs 7022) and covers both sites.
+
+    N IS 3000, THE REAL CONFIGURATION, and that is load-bearing. The first
+    version shrank it to 1000 for speed, which silently cost the test its power.
+    A guard that cannot fail is the exact defect this file exists to catch, and
+    it was very nearly reintroduced inside the fix for it.
+
+    VERIFIED DISCRIMINATING, not assumed: with both `sorted()` calls in
+    `pos_inference` reverted this test FAILS; with them restored it passes.
+    Worth noting what that experiment also showed -- reverting ONLY
+    `infer_holdout_categories` was not enough to reproduce the divergence at
+    this stage, so `sentences_from_transition_paths`, which fixes the order of
+    the training CORPUS, is the dominant of the two. Both are fixed; only the
+    pair has been shown necessary.
+    """
+    digests = {hs: _run(_CURRICULUM, hs) for hs in HASH_SEEDS}
+    assert len(set(digests.values())) == 1, (
+        "curriculum training is not reproducible across processes; "
+        f"digests per PYTHONHASHSEED: {digests}"
+    )
