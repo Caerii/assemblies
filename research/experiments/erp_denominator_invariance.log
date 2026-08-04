@@ -1,0 +1,22 @@
+n=3000 k=30 p=0.05  seeds=[1, 2, 3, 4, 5]
+Reported per divisor: mean over seeds at each materialisation level,
+then max/min across levels. 1.00 = the number stopped moving.
+
+arm            w  candidates
+lazy          42          42
+half         188         188
+full          42        3000
+
+divisor                   lazy                half                full   max/min  verdict
+w             0.08474+/-0.0068     0.01914+/-0.0027     0.77660+/-0.0665      40.58  SCALE TRACKS MATERIALISATION
+cand          0.08474+/-0.0068     0.01914+/-0.0027     0.01089+/-0.0002       7.78  SCALE TRACKS MATERIALISATION
+k             0.11892+/-0.0050     0.11892+/-0.0050     1.08901+/-0.0172       9.16  SCALE TRACKS MATERIALISATION
+null          0.05650+/-0.0045     0.01276+/-0.0018     0.00726+/-0.0001       7.78  SCALE TRACKS MATERIALISATION
+topk/mean     1.23106+/-0.0439     5.47940+/-0.4752     9.56747+/-0.4511       7.77  SCALE TRACKS MATERIALISATION
+max/mean      1.61388+/-0.1885     7.17839+/-0.9179    12.52743+/-1.2459       7.76  SCALE TRACKS MATERIALISATION
+
+LOWEST DRIFT: 'max/mean' at max/min 7.762 -- and that is NOT a recommendation.
+Four scale-free statistics, two of them ratios WITHIN one pool where
+pool size cancels algebraically, drift by the same factor. A quantity
+whose normalisation cannot matter still moves, so the drift is not in
+the normalisation. See the pool/k ratios in the table above.

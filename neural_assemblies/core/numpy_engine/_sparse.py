@@ -1322,6 +1322,7 @@ class NumpySparseEngine(ComputeEngine):
             result.pre_kwta_inputs = np.array(to_cpu(act), dtype=np.float32, copy=True)
             result.pre_kwta_prev_only = np.zeros(0, dtype=np.float32)
             result.pre_kwta_total = float(xp.sum(act))
+            result.pre_kwta_count = int(len(act))
         return result
 
     def ensure_area_conn(self, src_name: str, target: str) -> bool:
@@ -1835,6 +1836,7 @@ class NumpySparseEngine(ComputeEngine):
                 result.pre_kwta_inputs = snap
                 result.pre_kwta_prev_only = snap
                 result.pre_kwta_total = float(xp.sum(inputs_slice))
+                result.pre_kwta_count = int(len(inputs_slice))
             return result
 
         # --- Sample new winner candidates via truncated normal ---
@@ -1991,6 +1993,7 @@ class NumpySparseEngine(ComputeEngine):
             _pre_kwta_snapshot = np.array(to_cpu(all_inputs),
                                           dtype=np.float32, copy=True)
             _pre_kwta_total_val = float(xp.sum(all_inputs))
+            _pre_kwta_count_val = int(len(all_inputs))
 
         # --- Select winners (top-k or area policy) ---
         # Analytic sigma of the population input distribution: each source
@@ -2165,6 +2168,7 @@ class NumpySparseEngine(ComputeEngine):
             result.pre_kwta_inputs = _pre_kwta_snapshot
             result.pre_kwta_prev_only = _raw_prev
             result.pre_kwta_total = _pre_kwta_total_val
+            result.pre_kwta_count = _pre_kwta_count_val
         return result
 
     # -- Plasticity ---------------------------------------------------------

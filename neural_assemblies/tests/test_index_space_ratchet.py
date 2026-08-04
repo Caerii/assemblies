@@ -179,6 +179,12 @@ _W_ACCESS = re.compile(r"\.w\b(?!_)")
 #: had nothing but prose. The old number was part code and part commentary,
 #: so deleting a real read while adding a comment about it netted to zero.
 W_BASELINE = {
+    #: DELIBERATE. This experiment exists to prove `.w` is the WRONG divisor
+    #: for pre-k-WTA energy (#104), so it must read `.w` to score it against
+    #: the alternatives. Measured 40.58x drift across materialisation levels
+    #: versus 7.78x for the next-worst -- see
+    #: research/notes/erp_scale_is_an_implementation_detail.md.
+    "research/experiments/erp_denominator_invariance.py": 1,
     "legacy/root_modules/simulations.py": 13,
     "neural_assemblies/simulation/advanced_simulations.py": 12,
     "legacy/root_modules/image_learner.py": 8,

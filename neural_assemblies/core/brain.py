@@ -225,6 +225,13 @@ class Brain:
         # copies a length-n vector per projection.
         self.record_activation: bool = False
         self.last_pre_kwta_totals: Dict[str, float] = {}
+        #: Candidates each total was summed over. A SUM WITHOUT ITS
+        #: COUNT is not a measurement: every consumer wanting a
+        #: per-candidate figure had to guess a divisor, and both of
+        #: them guessed `area.w` -- the MATERIALISED count, which is
+        #: not the candidate set. That guess sets the whole scale of
+        #: the P600 (#104).
+        self.last_pre_kwta_counts: Dict[str, int] = {}
 
         # Used by activate_with_image()
         self.image_activation_engine = ImageActivationEngine()
@@ -865,6 +872,7 @@ class Brain:
         # Track activation scores for mutual inhibition
         activation_scores = {}
         pre_kwta = {}
+        pre_kwta_n = {}
 
         # Batched path: process multiple targets in one kernel launch
         # (only for non-explicit areas on the main engine)
@@ -881,6 +889,7 @@ class Brain:
                 activation_scores[area_name] = result.total_activation
                 if getattr(self, 'record_activation', False):
                     pre_kwta[area_name] = float(result.pre_kwta_total or 0.0)
+                    pre_kwta_n[area_name] = int(result.pre_kwta_count or 0)
 
         # Sequential path: one target at a time
         # List comprehension, not a set difference: preserves the deterministic
@@ -923,6 +932,7 @@ class Brain:
             activation_scores[area_name] = result.total_activation
             if getattr(self, 'record_activation', False):
                 pre_kwta[area_name] = float(result.pre_kwta_total or 0.0)
+                pre_kwta_n[area_name] = int(result.pre_kwta_count or 0)
 
         # Total synaptic drive each target received, kept for the caller. This
         # is the quantity area-level competition is decided on, so exposing it
@@ -930,6 +940,7 @@ class Brain:
         self.last_activation_scores = dict(activation_scores)
         if getattr(self, 'record_activation', False):
             self.last_pre_kwta_totals = dict(pre_kwta)
+            self.last_pre_kwta_counts = dict(pre_kwta_n)
 
         # Post-projection: apply mutual inhibition (area-level WTA)
         if self._mutual_inhibition_groups:

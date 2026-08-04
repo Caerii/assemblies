@@ -44,6 +44,16 @@ class ProjectionResult:
     pre_kwta_inputs: Optional[np.ndarray] = None      # float32, full all_inputs before topk
     pre_kwta_prev_only: Optional[np.ndarray] = None   # float32, prev_winner_inputs before penalties
     pre_kwta_total: float = 0.0                        # sum of all_inputs (scalar)
+    #: How many candidates ``pre_kwta_total`` was summed over, i.e.
+    #: ``len(all_inputs)``. REPORTED BECAUSE A SUM WITHOUT ITS COUNT IS NOT A
+    #: MEASUREMENT: every consumer that wanted a per-candidate figure had to
+    #: guess a divisor, and both of them guessed `area.w` -- the MATERIALISED
+    #: count, which is not the candidate set and grows with training history.
+    #: That one mis-guess sets the entire scale of the P600 (#104): `w` grows
+    #: 7.8x across probe arms and the measured gap falls 12.5x. Same defect
+    #: class as `.w` meaning two things -- see
+    #: research/notes/erp_scale_is_an_implementation_detail.md.
+    pre_kwta_count: int = 0
 
 
 class ComputeEngine(ABC):

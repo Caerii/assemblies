@@ -100,6 +100,70 @@ Every subsequent training made `w` larger and the metric smaller. The threshold
 did not drift away from the data; **the data drifted away from the threshold, by
 construction, every time the parser grew.**
 
+## MEASURED: no denominator fixes it, and that is the finding
+
+`erp_denominator_invariance.log`, n=3000 k=30 p=0.05, five seeds, three
+materialisation levels on one controlled projection. Six candidate statistics
+off the SAME sum, scored by max/min across levels (1.00 = the number stopped
+moving):
+
+    statistic         lazy       half       full    max/min
+    w              0.08474    0.01914    0.77660      40.58   [shipped]
+    k              0.11892    0.11892    1.08901       9.16
+    cand           0.08474    0.01914    0.01089       7.78
+    null           0.05650    0.01276    0.00726       7.78
+    topk/mean      1.23106    5.47940    9.56747       7.77
+    max/mean       1.61388    7.17839   12.52743       7.76
+
+    candidates          42        188       3000
+
+**Every scale-free candidate lands on 7.76-7.78.** `cand`, `null`, `topk/mean`
+and `max/mean` are four structurally different statistics -- two are ratios of
+two quantities drawn from the SAME pool, so pool size cancels algebraically --
+and they drift by the same factor. A quantity whose normalisation cannot matter
+still moves, so **the drift is not in the normalisation.**
+
+Two corrections to my own reasoning, both worth keeping:
+
+* I nominated `null = total / (count * k * p)` as the principled favourite. It
+  is `cand` divided by `k*p`, **a constant**, so its drift is IDENTICAL to
+  `cand`'s by construction. Dividing by a constant cannot change a ratio of
+  means. The prediction was not merely wrong, it was unfalsifiable.
+* `w` is the worst by a wide margin (40.58), which the earlier note got right.
+  But replacing it buys a factor of five, not a fix.
+
+### What is actually happening: the pool cannot express concentration
+
+Read the `topk/mean` row. In the lazy arm the top-k drive is **1.23x** the pool
+mean; at full materialisation it is **9.57x**. The trained assembly does not
+stand out at all when the area is lazily materialised -- and the reason is
+arithmetic:
+
+    lazy pool = 42 candidates, k = 30   ->   71% OF THE POOL IS THE ASSEMBLY
+
+There is nothing for the assembly to stand out FROM. The mean is dominated by
+the very neurons the statistic is trying to distinguish. Exactly the vacuity
+that `Stability.trustworthy` guards in `parse_errors` (pool <= k makes the
+k-cap unable to move), reached independently from the ERP side on the same day.
+
+**So the requirement is a POOL, not a divisor.** Any concentration measure needs
+`pool >> k` before it means anything, and the shipped probe runs at pool/k ~ 1.4.
+
+A residual remains and should not be swept up: between 188 and 3000 candidates
+`topk/mean` still moves 1.75x. That is the sampler changing the DISTRIBUTION,
+not just the count -- [[sampler-merges-at-low-load]] and
+[[sampler-is-the-whole-discrepancy]] from the ERP side. Pool size explains most
+of the 7.8x; it does not explain all of it.
+
+### An `area.w` desync found in passing
+
+In the `full` arm `area.w` reads **42** while the candidate vector is **3000**:
+`engine.materialize_area()` does not update the `Area` descriptor's `w`. That
+is why the shipped `w` divisor reads 0.777 there -- a sum over 3000 candidates
+divided by 42. Another instance of [[two-index-spaces-compact-vs-neuron-id]]'s
+sibling, `.w` meaning two things, and it inflates the shipped statistic by ~70x
+in exactly the arm that is supposed to be ground truth.
+
 ## Consequences
 
 **For #104.** The fix is not a better margin. It is a denominator that is a
