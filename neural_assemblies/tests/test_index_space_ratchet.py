@@ -42,6 +42,8 @@ from __future__ import annotations
 import os
 import re
 
+from ._source_scan import code_lines, count_attribute_reads
+
 REPO = os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__))))
 
@@ -107,7 +109,13 @@ def _scan():
                 text = open(full, encoding="utf-8").read()
             except Exception:                                # noqa: BLE001
                 continue
-            n = sum(1 for line in text.splitlines()
+            # CODE ONLY. `_count_w_reads` below was moved off raw text in
+            # 2026-08 for counting prose, but THIS scanner was left on it --
+            # so a docstring naming `area.winners` next to the word "overlap"
+            # still inflated a baseline. Third door on the same defect (the
+            # methodology ratchet was the second). `_source_scan` exists so the
+            # next one cannot be fixed alone.
+            n = sum(1 for line in code_lines(text)
                     if _ACCESS.search(line) and _COMPARE.search(line))
             if n:
                 found[rel] = n
@@ -131,16 +139,25 @@ def test_baseline_is_not_stale():
 
     Keeps the ratchet honest in the other direction: a baseline that drifts
     above reality stops catching anything.
+
+    COVERS BOTH BASELINES. `W_BASELINE` was added later and this check was not
+    extended to it, so the `.w` half of the ratchet had no staleness guard at
+    all -- the same one-sibling-fixed asymmetry that let three scanners go on
+    counting prose after one of them stopped. Checked here rather than in a
+    second test function for the same reason: one mechanism, not two.
     """
-    found = _scan()
-    stale = {p: (c, found.get(p, 0)) for p, c in BASELINE.items()
-             if found.get(p, 0) < c}
-    assert not stale, (
-        "BASELINE is above the real count -- lower these so the ratchet keeps "
-        "its grip:\n"
-        + "\n".join(f"    {p}: baseline {was}, actual {now}"
-                    for p, (was, now) in sorted(stale.items()))
-    )
+    for name, baseline, found in (
+        ("BASELINE", BASELINE, _scan()),
+        ("W_BASELINE", W_BASELINE, _scan_w()),
+    ):
+        stale = {p: (c, found.get(p, 0)) for p, c in baseline.items()
+                 if found.get(p, 0) < c}
+        assert not stale, (
+            f"{name} is above the real count -- lower these so the ratchet "
+            f"keeps its grip:\n"
+            + "\n".join(f"    {p}: baseline {was}, actual {now}"
+                        for p, (was, now) in sorted(stale.items()))
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -170,7 +187,10 @@ def test_baseline_is_not_stale():
 # ---------------------------------------------------------------------------
 
 #: `.w` as a whole attribute -- not `.weights`, `.winners`, `.w_max`.
-_W_ACCESS = re.compile(r"\.w\b(?!_)")
+#: Kept only as documentation of the ORIGINAL line-scan pattern. The live
+#: counter is `_source_scan.count_attribute_reads`, which walks tokens and
+#: carries its own fallback regex; this constant is no longer consulted.
+_W_ACCESS_HISTORICAL = re.compile(r"\.w\b(?!_)")
 
 #: Frozen baseline: path -> COUNT OF `.w` ATTRIBUTE READS (tokenized, so
 #: strings and comments do not count). Re-frozen 2026-08-04 when the scan
@@ -255,25 +275,12 @@ def _count_w_reads(text: str) -> int:
     Falls back to the old line scan when a file will not tokenize -- some
     research scripts do not parse -- because silently counting zero there would
     be a hole in a guard whose whole job is to have no holes.
+
+    The implementation now lives in `_source_scan.count_attribute_reads`, shared
+    with the methodology ratchet. It was duplicated here first, which is how the
+    sibling scanners went on counting prose for weeks after this one stopped.
     """
-    import io
-    import tokenize
-
-    try:
-        toks = list(tokenize.generate_tokens(io.StringIO(text).readline))
-    except (tokenize.TokenError, SyntaxError, IndentationError):
-        return sum(1 for line in text.splitlines() if _W_ACCESS.search(line))
-
-    n = 0
-    prev_op_dot = False
-    for tok in toks:
-        if tok.type == tokenize.OP and tok.string == ".":
-            prev_op_dot = True
-            continue
-        if prev_op_dot and tok.type == tokenize.NAME and tok.string == "w":
-            n += 1
-        prev_op_dot = False
-    return n
+    return count_attribute_reads(text, "w")
 
 
 def _scan_w():

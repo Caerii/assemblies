@@ -46,6 +46,8 @@ from typing import (Any, Dict, Iterable, List, Mapping, Optional, Sequence,
 
 import numpy as np
 
+from neural_assemblies.core.index_spaces import NeuronIds
+
 __all__ = [
     "Verdict", "AreaHealth", "DriveBreakdown", "FiberState",
     "PricingExposure",
@@ -105,10 +107,17 @@ def read_assembly(brain, area: str) -> np.ndarray:
 
 
 def assembly_overlap(a, b) -> float:
-    """Overlap between two assemblies of neuron IDs. Order-insensitive."""
+    """Overlap between two assemblies of NEURON IDS. Order-insensitive.
+
+    Both operands are asserted into the neuron-ID space, which is what makes
+    this the sanctioned pairing for `read_assembly`. Handing it compact engine
+    indices is the defect in `core/index_spaces` -- it will return a plausible
+    number that reads as chance -- so read through `read_assembly`, never off
+    `area.winners` directly.
+    """
     from neural_assemblies.assembly_calculus.assembly import overlap
-    return float(overlap(np.asarray(a, dtype=np.int64),
-                         np.asarray(b, dtype=np.int64)))
+    return float(overlap(NeuronIds(np.asarray(a, dtype=np.int64)),
+                         NeuronIds(np.asarray(b, dtype=np.int64))))
 
 
 def _spread(assemblies: Iterable) -> float:

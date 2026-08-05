@@ -33,6 +33,7 @@ from neural_assemblies.assembly_calculus.metrics.instability import (
     mean_jaccard_instability,
 )
 from neural_assemblies.assembly_calculus.ops import _compact_index
+from neural_assemblies.core.measurement import Measured, defined_values
 
 from ...core.areas import (
     ADJP,
@@ -75,7 +76,7 @@ def phrase_stability_rounds_for_depth(probe_depth: ProbeDepth) -> int:
     return PHRASE_STABILITY_ROUNDS_CALIBRATION
 
 
-def _self_recurrent_energy(brain, area: str) -> float:
+def _self_recurrent_energy(brain, area: str) -> Measured:
     """Normalized self-recurrent PRE-k-WTA energy of the assembly in *area*.
 
     The assembly projects back into its own area; the summed drive over
@@ -126,12 +127,43 @@ def _self_recurrent_energy(brain, area: str) -> float:
     measurement, and this package's history is of exactly such numbers being
     reported as results. See
     research/notes/erp_scale_is_an_implementation_detail.md.
+
+    RETURNS `Measured`, AND THAT IS THE POINT OF THIS FUNCTION'S HISTORY. Four
+    different conditions used to return the bare float 0.0 -- area absent, no
+    winners, projection failed, and genuinely-zero drive -- and a fifth, THE
+    FIBER DOES NOT EXIST, was indistinguishable from the fourth. `VP -> VP` is
+    shape (0,0) because nothing ever declares it, so this read exactly 0.000000
+    and `1 - energy` was a CONSTANT 1.0 for the whole P600 violation arm. Every
+    magnitude published off that arm was measured with a dead probe.
+
+    Each of those is now an UNDEFINED measurement naming its own precondition,
+    so the caller cannot average it into a result. See `core/measurement`.
     """
     if area not in brain.areas:
-        return 0.0
+        return Measured.undefined(f"area {area!r} is not in this brain")
     winners = brain.areas[area].winners
     if winners is None or len(winners) == 0:
-        return 0.0
+        return Measured.undefined(f"{area} has no winners; nothing is firing")
+
+    # THE STRUCTURAL CHECK, ahead of the projection. A zero-synapse fiber still
+    # produces a projection and still returns k winners -- the totalizing
+    # substrate has no way to refuse -- so asking afterwards whether the drive
+    # was zero cannot distinguish "no fiber" from "weak assembly".
+    engine = getattr(brain, "_engine", None)
+    extent = None
+    if engine is not None and hasattr(engine, "fiber_extent"):
+        try:
+            extent = engine.fiber_extent(area, area)
+        except (AttributeError, KeyError, RuntimeError):
+            extent = None
+    if extent == 0:
+        return Measured.undefined(
+            f"{area} has no self-fiber ({area}->{area} is unmaterialized), so "
+            f"self-recurrent energy is not defined for it -- this is the #108 "
+            f"defect that made the P600 violation arm a constant",
+            area=area, extent=0,
+        )
+
     prev_rec = getattr(brain, "record_activation", False)
     with probe_context(brain):
         brain.record_activation = True
@@ -141,9 +173,12 @@ def _self_recurrent_energy(brain, area: str) -> float:
             counts = getattr(brain, "last_pre_kwta_counts", {}) or {}
             _record_pool_ratio(brain, area, counts.get(area))
             w = max(int(brain.areas[area].w), 1)
-            return float(totals.get(area, 0.0)) / w
-        except (RuntimeError, IndexError, ValueError):
-            return 0.0
+            return Measured.of(float(totals.get(area, 0.0)) / w)
+        except (RuntimeError, IndexError, ValueError) as exc:
+            return Measured.undefined(
+                f"projection into {area} failed: {type(exc).__name__}",
+                area=area,
+            )
         finally:
             brain.record_activation = prev_rec
 
@@ -261,8 +296,12 @@ def phrase_stability(
     *,
     rounds: int = 3,
     k: Optional[int] = None,
-) -> float:
+) -> Measured:
     """Phrase integration as normalized self-recurrent PRE-k-WTA energy.
+
+    RETURNS `Measured`, which may be UNDEFINED -- most often because the area
+    has no self-fiber. Do not average it with `sum(...)/len(...)`; use
+    `measurement.defined_values` and report how many readings were dropped.
 
     Replaces the recurrent winner-overlap churn (``overlap / k``), which
     reverses sign under ``norm_init`` because it is a post-k-WTA quantity.
@@ -276,7 +315,7 @@ def phrase_stability(
     function's docstring. Off by default: it is an A/B seam, not an adoption.
     """
     if os.environ.get("ERP_AFFERENT_ENERGY", "").strip() in ("1", "true", "on"):
-        return afferent_energy(brain, area)
+        return Measured.of(afferent_energy(brain, area))
     return _self_recurrent_energy(brain, area)
 
 
@@ -367,19 +406,37 @@ def _expected_slot_enabled() -> bool:
     while the in-suite failure read gram [0.9932, 0.9928, 0.9945] vs catv
     [0.9927, 0.9925, 0.9924] -- a different parser state entirely.
 
-    TWO EXPLANATIONS RULED OUT on the way, recorded so they are not re-derived:
-      * raw vs excess: `p600_excess(v) = max(0, v - p600_median)` is MONOTONE,
-        so clipping can only create ties (AUC -> 0.5), never invert an ordering.
-      * warm-up order in the A/B harness (obs runs first, exp second, same
-        process): refuted -- the COLD exp arm reads 1.000, not 0.000.
+    RESOLVED: IT IS THE BACKBONE CACHE, AND THE DISPATCH REALLY DOES INVERT ON A
+    FRESHLY-TRAINED PARSER.
 
-    So the suite has CROSS-TEST STATE LEAKAGE (#102/#36 family) and cannot
-    currently adjudicate this change; any suite-level A/B here is unreliable
-    until that is fixed. Default stays OFF because a change should not be
-    adopted on contested evidence -- not because the dispatch is known bad.
+        warm cache, default path            62 passed     75-128s
+        warm cache, ERP_EXPECTED_SLOT=1     62 passed
+        COLD cache, default path            62 passed     430s
+        COLD cache, ERP_EXPECTED_SLOT=1      4 FAILED     339s
 
-    The 10-seed A/B below stands as a measurement; it is not sufficient alone.
-    (97438ec is the cautionary case: targeted runs green, full suite inverted.)
+    The DEFAULT path is consistent warm and cold, so the cache is not broadly
+    poisoning results -- but a cached parser and a freshly-trained one differ in
+    some structure that THIS dispatch reads and the shipped one does not. And
+    the 10-seed A/B below ran entirely on `get_parser_cache().fork()`, i.e. on
+    cached parsers, which is exactly why it looked good. AN A/B BUILT ON CACHED
+    PARSERS IS EVIDENCE ABOUT CACHED PARSERS ONLY.
+
+    Likely mechanism, unconfirmed: same family as the VP self-fiber finding --
+    pre-grown pathways wire the neurons materialised at bootstrap and later
+    training recruits DIFFERENT ones, so what ROLE_PATIENT can reach is
+    training-path dependent. Fixing that is prior to re-testing this dispatch.
+
+    THREE EXPLANATIONS RULED OUT on the way, recorded so they are not re-derived:
+      * cross-test state leakage: all four precursor files together pass.
+      * raw vs excess: A FALSE PREMISE I held briefly. `calibration.py` builds
+        `separation["p600_auc"]` from `catv_p600_raw, gram_p600_raw` -- the RAW
+        p600, the same quantity the tests rank. The two harnesses measure the
+        SAME thing and still disagreed, which is what leaves the cache standing.
+      * warm-up order in the A/B harness (obs first, exp second, one process):
+        refuted -- the COLD exp arm reads 1.000, not 0.000.
+
+    RUNTIME IS THE TELL: 75-128s is a disk hit, 340-430s is a retrain. If a
+    result moves and the runtime jumped, suspect the substrate before the code.
 
         p600_auc   obs 0.9056 +/- 0.0268   exp 0.7167 +/- 0.0805
                    delta -0.1889 +/- 0.0627   (CI excludes zero)
@@ -521,10 +578,31 @@ def measure_live_integration(
     stab_rounds = phrase_stability_rounds_for_depth(probe_depth)
     if probe_depth == "mining" and phrase_areas:
         phrase_areas = [role_area] if role_area in phrase_areas else phrase_areas[:1]
-    stabilities = [
+    readings = [
         phrase_stability(parser.brain, area, rounds=stab_rounds)
         for area in phrase_areas
     ]
+    # THE HISTORICAL FALLBACK IS KEPT ON PURPOSE, AND IS NOW VISIBLE.
+    #
+    # An undefined reading (usually a dead self-fiber) has always entered this
+    # mean as a hard 0.0, pulling stability down and p600 up -- a gap wearing
+    # the costume of a finding. Dropping them instead is the CORRECT
+    # aggregation, and `defined_values` below does exactly that.
+    #
+    # But it is not behaviour-preserving: measured, switching to the dropped
+    # form moves every P600 magnitude and fails five ERP tests, including the
+    # strict xfail that pins the metric's range. Changing every published number
+    # is a measured change with its own A/B, not a side effect of a typing
+    # refactor -- and today already produced two adoptions that had to be rolled
+    # back for exactly that kind of unmeasured coupling.
+    #
+    # So `.or_else(0.0)` reproduces the old arithmetic EXACTLY while making the
+    # choice explicit at the call site, and `stabilities_dropped` records what
+    # the honest version would have discarded. Flip to `defined_values` behind a
+    # measurement; the plumbing is already here.
+    stabilities = [r.or_else(0.0) for r in readings]
+    stabilities_dropped = sum(1 for r in readings if not r.defined)
+    _ = defined_values  # the corrected aggregation, pending its own A/B
     mean_stability = (
         sum(stabilities) / len(stabilities) if stabilities else 1.0
     )
@@ -537,10 +615,17 @@ def measure_live_integration(
 
     p600 = N400_WEIGHT * phrase_instability + P600_WEIGHT * anchored
     if _ERP_DEBUG:
+        dropped = ""
+        if stabilities_dropped:
+            # Name the reasons: a run where most areas are undefined is a probe
+            # failure wearing the costume of a low-stability result.
+            why = "; ".join(sorted({r.why for r in readings if not r.defined}))
+            dropped = (f" DROPPED={stabilities_dropped}/{len(readings)} "
+                       f"({why})")
         print(
             f"[P600] w={word!r} cat={category} role={role_area} "
             f"self_energy={mean_stability:.4f} instab={phrase_instability:.4f} "
-            f"anchored_deficit={anchored:.4f} p600={p600:.4f}",
+            f"anchored_deficit={anchored:.4f} p600={p600:.4f}{dropped}",
         )
     return round(p600, 4), role_area, round(mean_stability, 4)
 

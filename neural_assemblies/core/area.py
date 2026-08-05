@@ -29,6 +29,7 @@ import numpy as np
 from typing import Dict, List, Optional
 
 from .backend import get_xp, to_cpu, xp_by_name, xp_name
+from .index_spaces import CompactIdx
 
 
 class Area:
@@ -150,8 +151,21 @@ class Area:
         self.neuron_id_pool_ptr: int = 0
 
     @property
-    def winners(self) -> np.ndarray:
-        return self._winners
+    def winners(self) -> CompactIdx:
+        """COMPACT ENGINE INDICES, ``0..w-1`` -- NOT neuron IDs.
+
+        The return type is what stops this being confused with
+        ``Assembly.winners``, which holds stable neuron IDs in ``0..n-1``. The
+        two are both uint32 arrays and are COMPLETELY DISJOINT as measured, so
+        mixing them returns a number that reads as exactly chance. Convert with
+        ``index_spaces.to_neuron_ids`` (or use ``diagnostics.read_assembly``,
+        the sanctioned readout) before comparing against anything stored.
+
+        Compact indices are also NOT STABLE: they are reassigned as the area
+        materializes more neurons, so one saved across a projection is a bug
+        waiting to be dereferenced.
+        """
+        return CompactIdx(self._winners)
 
     @property
     def _xp(self):

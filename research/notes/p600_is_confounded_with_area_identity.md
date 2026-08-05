@@ -134,7 +134,27 @@ GRANULARITY CAVEAT. 3 grammatical x 3 violation = 9 pairs, so AUC moves in steps
 of 1/9 and 8 of 10 seeds read exactly 6/9. The estimate is coarse by
 construction. Widen the frame set before reading finer differences into it.
 
-## Why it is not adopted: the ERP suite leaks state across tests
+## Why it is not adopted: RESOLVED — the A/B ran on CACHED parsers
+
+**Read this section before the one below it, which records a wrong diagnosis.**
+
+    warm cache, default path            62 passed     75-128s
+    warm cache, ERP_EXPECTED_SLOT=1     62 passed
+    COLD cache, default path            62 passed     430s
+    COLD cache, ERP_EXPECTED_SLOT=1      4 FAILED     339s
+
+The default path behaves identically warm and cold. **Only the expected-slot
+dispatch inverts on a freshly-trained parser.** And the 10-seed A/B below ran
+entirely on `get_parser_cache().fork()` — cached parsers — which is exactly why
+it looked good. An A/B built on cached parsers is evidence about cached parsers
+only.
+
+So the rollback stands, now for the right reason: the dispatch reads structure
+that is training-path dependent (same family as the VP self-fiber finding —
+pre-grown pathways wire bootstrap neurons, later training recruits different
+ones). Fixing that is prior to re-testing the dispatch.
+
+## The wrong diagnosis I committed first, kept as a record
 
 Flipping the default failed 4 ERP tests. That looked like the 97438ec pattern
 (targeted runs green, full suite inverted) and I rolled back. But the failures
@@ -153,10 +173,15 @@ p600 AUC **1.000** on gram [0.988, 0.9923, 0.9881] vs catv [0.9927, 0.993,
 
 TWO EXPLANATIONS RULED OUT, recorded so they are not re-derived:
 
-- **raw vs excess.** `separation["p600_auc"]` ranks p600_excess and the test
-  ranks raw p600, but `p600_excess(v) = max(0, v - p600_median)` is MONOTONE:
-  clipping can only create ties (AUC -> 0.5), never invert an ordering. So this
-  cannot produce 0.000 vs 1.000.
+- **raw vs excess.** I first framed this as "the two measurements rank different
+  quantities". **That premise was wrong** — `calibration.py` builds
+  `separation["p600_auc"]` from `catv_p600_raw, gram_p600_raw`, i.e. from the
+  RAW p600, the same quantity the test ranks. There was never a raw-vs-excess
+  discrepancy to explain. (Even had there been one it could not invert an
+  ordering: `p600_excess(v) = max(0, v - median)` is MONOTONE, so clipping only
+  creates ties toward 0.5.) The two harnesses measure the same thing and still
+  disagreed — which is what makes the cached-vs-fresh explanation the only one
+  left standing.
 - **warm-up order in my own A/B harness.** `erp_expected_slot_ab.py` runs obs
   first and exp second in one process, and a cold process's first probes read
   ~0.43 where warm reads ~0.998 -- a real effect, and a real flaw in the

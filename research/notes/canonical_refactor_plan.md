@@ -1,0 +1,258 @@
+# One canonical way: the refactor plan
+
+**Thesis (the user's, and the evidence agrees):** the bugs come from there being
+more than one way to do each thing. Where two ways exist, one is wrong, and the
+substrate is TOTALIZING so the wrong one returns a plausible number instead of
+raising.
+
+This document is the plan of record. Each phase states what changes, how it is
+VERIFIED, and what would count as failure. Phases are ordered so that each is
+independently committable and the suite is green between them.
+
+---
+
+## Phase 0 — Settle the ERP cache question (BLOCKER for Phase 5)
+
+The 4 ERP failures behind commit 724a217 **did not reproduce** (62 passed on
+re-run). The committed conclusion "the suite leaks state across tests" is NOT
+established and must be corrected either way.
+
+Leading hypothesis: the failing run took **352s** where every other run took
+75-128s, i.e. it rebuilt the backbone cache and therefore ran against a
+DIFFERENTLY-TRAINED parser. That is the `backbone-fingerprint-gap` failure mode:
+invisible cache state changing a result with no code difference.
+
+### RESOLVED. Not leakage; not a general cache defect either.
+
+    warm cache, default path            62 passed     75-128s
+    warm cache, ERP_EXPECTED_SLOT=1     62 passed
+    COLD cache, default path            62 passed     430s
+    COLD cache, ERP_EXPECTED_SLOT=1      4 FAILED     339s
+
+The default path is CONSISTENT warm and cold. **Only the expected-slot dispatch
+diverges**, so the cache is not broadly poisoning results — but a cached parser
+and a freshly-trained one differ in some structure that this dispatch reads and
+the shipped one does not.
+
+**The methodological finding, which is the transferable one:** the 10-seed A/B
+that appeared to support adopting expected-slot dispatch ran entirely on
+`get_parser_cache().fork()` — cached parsers. It does not survive fresh
+training. **An A/B built on cached parsers is evidence about cached parsers
+only.** This is a direct requirement on Phase 4: the harness must record, and
+preferably vary, the substrate provenance.
+
+Likely mechanism (unconfirmed, same family as the VP self-fiber finding):
+pre-grown pathways wire the neurons materialised at bootstrap, later training
+recruits DIFFERENT neurons, so what ROLE_PATIENT can reach is training-path
+dependent.
+
+Consequences: the rollback in 724a217 was correct, but its stated reason
+("cross-test state leakage") is WRONG and is corrected in the note, the task,
+and memory. Three hypotheses were ruled out by measurement first — cross-test
+leakage, global RNG, and the `fork()` pristine fallback — and are recorded so
+they are not re-derived.
+
+---
+
+## Phase 1 — Two index spaces become two types
+
+`Area.winners` is COMPACT ENGINE INDICES; `Assembly.winners` is STABLE NEURON
+IDS. Both are `uint32` ndarrays, so mixing them is accepted, returns a number,
+and reads as chance. Cost so far: the merge line (voided), a retracted
+"role retrieval is at chance" theory that survived a 25x beta sweep, and a
+precondition gate that read 0.020 — the same bug inside the check written to
+catch that class of bug.
+
+`test_index_space_ratchet.py` already contains the honest admission: *"The defect
+is MIXING the two spaces, which needs dataflow analysis to detect properly."*
+**Types are that dataflow analysis.** The ratchet contains legacy sites; the
+types stop new ones. This EXTENDS the existing mechanism, it does not replace it.
+
+- `core/index_spaces.py`: `CompactIdx`, `NeuronIds` NewTypes; `SameSpace`
+  value-restricted TypeVar; `to_neuron_ids`; `same_space` runtime smoke check.
+  **Done.**
+- Annotate the producers: `Area.winners -> CompactIdx`,
+  `Assembly.winners: NeuronIds`, `Assembly.neuron_ids -> NeuronIds`,
+  `diagnostics.read_assembly -> NeuronIds`.
+- `overlap` gets overloads so two-of-the-same-space is accepted and one-of-each
+  is a checker error. A union parameter would wrongly accept the mixed call; a
+  bare `ndarray` accepts everything, which is the status quo.
+### STATUS: done for the library; criterion moved, with the reason recorded.
+
+**The guard has verified power.** `test_index_space_types.py` shells out to
+pyright (a NewType is erased at runtime, so a test that does not run the checker
+would assert nothing) and asserts BOTH halves: the three mixed calls ARE flagged,
+the three same-space calls are NOT. Asserting only the first half would pass for
+a checker that rejects everything, which is a wall rather than a guard.
+
+**The criterion "ZERO net new pyright errors" was NOT met, and here is the
+honest accounting.** Baseline HEAD 2046 errors / 511 files, measured via
+`git stash` so the comparison is against real HEAD rather than a half-edited
+tree. After the change: **2083, i.e. +37** — and all 37 are in `tests/` and
+`programs/`, ZERO in the library:
+
+    6  tests/test_assembly_calculus.py        3  programs/colt_mnist_tier_a.py
+    6  tests/test_metrics_kernels.py          2  programs/colt_mnist_forward_completion.py
+    4  tests/test_engine_e2_overlap.py        ... 12 more program/test files, 1-2 each
+
+They are all the same shape: a raw `np.ndarray` literal passed to `overlap`,
+which now demands a declared space. This is the predicted cascade, and the plan
+allowed narrowing with a reason. The reason: the defect requires code that
+touches BOTH an area and a stored assembly, which is library behaviour. A test
+that builds two literal arrays and overlaps them cannot commit it. Forcing
+`NeuronIds(...)` wrappers into fixtures buys no safety and adds ceremony, which
+is how annotations get deleted.
+
+Library sites fixed rather than suppressed, each stating its space at the point
+of conversion: `ops._snap` (the one-way door), `diagnostics.assembly_overlap`
+(the sanctioned pairing), `metrics.measure_n400`, `constituent_order`.
+
+**Follow-up, tracked not forgotten:** the 37 test/program sites should be
+migrated when those files are next touched. Left as-is deliberately — a
+mechanical sweep of 21 files now would bury the ERP findings in the same commit.
+
+---
+
+## Phase 2 — Every measurement carries a definedness bit
+
+The substrate has no ⊥, so functions invent one:
+
+- `phrase_stability` returns `1.0` for BOTH "perfectly stable" and "there were
+  no phrase areas".
+- `_self_recurrent_energy` returns `0.0` for BOTH "no energy" and "the fiber
+  does not exist" — which is exactly how the P600 violation arm read a constant
+  for months.
+- an out-of-vocabulary word returns `p600 0.0000, stability 1.0000`, the
+  degenerate no-parse, indistinguishable from data.
+
+`parse_errors.Stability` already has `.trustworthy`, and `diagnostics` already
+warns "check `.trustworthy` BEFORE reading numbers". **Generalize that; do not
+invent a second convention.**
+
+### STATUS: type built and applied to the readout that caused the worst defect.
+
+`core/measurement.py` — `Measured(value, defined, why, detail)`. The design
+decision that matters: **`float()`, comparison, and arithmetic all RAISE on an
+undefined value.** `.trustworthy` is opt-in and the caller has to remember; the
+P600 and phrase-stability defects are precisely the cases where nobody
+remembered. `energy < threshold` on a dead fiber now raises instead of quietly
+answering — that comparison is the bug verbatim. `.or_else(fallback)` is the
+sanctioned escape, and it makes the default VISIBLE at the call site.
+
+The undefined value still carries NaN so a bypass degrades to NaN rather than to
+0.0 or 1.0 — the two numbers that read as findings because they sit at the ends
+of the range.
+
+`_self_recurrent_energy` migrated. It previously returned bare 0.0 for FIVE
+distinct conditions (area absent / no winners / projection failed /
+genuinely-zero drive / **the fiber does not exist**), and the fifth is the one
+that made the P600 violation arm a constant. It now checks `engine.fiber_extent`
+STRUCTURALLY, before projecting — asking afterwards whether drive was zero
+cannot distinguish "no fiber" from "weak assembly", because the totalizing
+substrate returns k winners either way.
+
+`measure_live_integration` now aggregates with `defined_values` and records
+`stabilities_dropped`. Previously a dead fiber contributed a hard 0.0 into the
+mean and pulled it toward "unstable" — a finding rather than a gap.
+
+- **Verified:** `test_measurement.py`, 10 tests, asserting the REFUSALS (float,
+  comparison, arithmetic, both operand orders) rather than the storage. A
+  version that stored `defined` but let `float()` through would pass a
+  storage-only test and be worthless.
+
+**THE AGGREGATION IS DELIBERATELY NOT FIXED, and this is the lesson of the
+phase.** My first version switched `measure_live_integration` to
+`defined_values`, which drops undefined readings instead of averaging them as
+0.0. That is the CORRECT aggregation — and it failed 5 ERP tests, because it
+raises `mean_stability` and therefore moves every P600 magnitude, including
+tripping the strict xfail that pins the metric's range.
+
+Correct is not the same as free. Changing every published number is a measured
+change needing its own A/B, not a side effect of a typing refactor — and today
+already produced two adoptions rolled back for exactly that kind of unmeasured
+coupling. So the site uses `.or_else(0.0)`, which reproduces the old arithmetic
+EXACTLY while making the fallback visible at the call site, and records
+`stabilities_dropped` so the honest version's cost is observable. The corrected
+aggregation is one line away, behind a measurement.
+
+This is also the first real test of `.or_else` as designed: the escape hatch
+exists so that keeping a legacy default is a *stated* decision rather than an
+invisible one.
+
+- **Remaining:** `diagnostics` probes and the `nemo/` phrase-stability twins
+  still return bare floats; the corrected aggregation awaits its A/B.
+
+**NOTE ON CACHE INVALIDATION:** Phase 1 edits `core/` and `assembly_calculus/`,
+both of which ARE in `_TRAINING_SOURCE_DIRS`, so the backbone fingerprint
+changes and every ERP run after Phase 1 retrains (~340-400s vs 75-128s). Expect
+it; it is not a regression, and per Phase 0 the cold path is the trustworthy one.
+
+---
+
+## Phase 3 — Name the three quantities all called "p600"
+
+`s.p600` (raw deficit), `s.p600_excess` (clipped over baseline),
+`separation["p600_auc"]` (AUC computed on the excess). Three quantities, one word
+in conversation — I compared two of them today and briefly believed they
+contradicted each other.
+
+- Rename to `p600_deficit`, `p600_excess_over_baseline`, `auc_of_excess`
+  (keeping backward-compatible properties where goldens depend on the old names).
+- ONE reporting function returning all three together, so nobody picks one by
+  accident.
+- **Verify:** ERP suite green; goldens unchanged in value.
+
+---
+
+## Phase 4 — One experiment harness
+
+```
+141 experiment scripts
+ 88 re-implement the sys.path preamble
+ 60 hand-roll a mean over seeds
+ 17 use diagnostics.ensemble
+```
+
+Every script re-derives its own protocol, so each can independently get pairing,
+seeding, or ordering wrong — and mine did today: both arms in one process, `obs`
+first, so `exp` was only ever measured WARM while the suite measured it COLD.
+
+- `research/harness.py`: `study(arms, seeds, measure, criteria=...)` that
+  - isolates or counterbalances arm order (kills the warm/cold confound),
+  - always returns paired ensembles with CIs via the EXISTING
+    `diagnostics.ensemble` / `paired_delta`,
+  - stamps the backbone fingerprint and cache-hit status into the result,
+  - evaluates PRE-REGISTERED criteria and prints PASS/FAIL.
+- Pre-registration worked today (it is why a 0.75 was not quietly accepted);
+  make it a field, not a matter of discipline.
+- **Verify:** port `erp_expected_slot_ab.py` to it and reproduce the 10-seed
+  numbers; the harness must FAIL the pre-registered criteria when handed a
+  deliberately inverted arm.
+
+---
+
+## Phase 5 — Retire env flags as the A/B mechanism
+
+28 distinct `os.environ` reads, consulted deep inside call stacks.
+`ERP_EXPECTED_SLOT` is read INSIDE `measure_live_integration`, so the same call
+means different things depending on process-global state, and experiments mutate
+`os.environ` with save/restore around it.
+
+- Thread an explicit `ErpProtocol` config, defaulted once at the entry point.
+- Flags become config fields; A/B becomes passing two configs.
+- Keep env vars ONLY for deployment switches (engine selection, cache path,
+  progress logging).
+- **Verify:** ERP suite green; the A/B experiment runs with no `os.environ`
+  mutation; flag count drops.
+
+---
+
+## Standing rules for this work
+
+1. **Green between phases.** Each phase commits separately with the suite green.
+2. **Construct the true negative.** A guard that has never failed has unmeasured
+   power. For each new check, show it firing on the defect it targets.
+3. **Baseline before changing.** Record pyright counts / test counts BEFORE, so
+   "no new errors" is a measurement rather than an impression.
+4. **Do not add a second way.** If a mechanism exists (ratchet, `.trustworthy`,
+   `diagnostics.ensemble`), extend it. Adding a parallel one is the disease.

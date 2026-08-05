@@ -26,13 +26,21 @@ from typing import Union
 import numpy as np
 
 from ..assembly import overlap
+from ...core.index_spaces import NeuronIds
 
 
 def measure_n400(
-    predicted: Union[np.ndarray, list, object],
-    lexicon_entry: Union[np.ndarray, list, object],
+    predicted: NeuronIds,
+    lexicon_entry: NeuronIds,
 ) -> float:
     """N400 = 1 - overlap(context prediction, lexicon entry).
+
+    BOTH OPERANDS ARE NEURON IDS. A stored lexicon entry is in neuron-ID space
+    by construction (it outlives the projection that made it), so the live
+    prediction must be read through ``ops._snap`` / ``diagnostics.read_assembly``
+    and not off ``area.winners``. Passing compact indices here compares
+    unrelated integer sets and returns a plausible N400 -- see
+    ``core/index_spaces``.
 
     Returns value in [0, 1]: 0 = perfectly predicted, 1 = fully unexpected.
 

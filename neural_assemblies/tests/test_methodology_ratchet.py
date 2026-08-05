@@ -61,6 +61,8 @@ import json
 import os
 import re
 
+from ._source_scan import blank_prose
+
 REPO = os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__))))
 BASELINE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)),
@@ -115,10 +117,18 @@ def _scan():
                 text = open(full, encoding="utf-8").read()
             except Exception:                                # noqa: BLE001
                 continue
-            if (_SEEDY.search(text) and _SEEDLOOP.search(text)
-                    and not _SANCTIONED.search(text)):
-                hand[rel] = len(_SEEDY.findall(text))
-            n = sum(1 for line in text.splitlines()
+            # SCAN CODE, NOT PROSE. This scanned raw text until 2026-08-05,
+            # which counted `Brain(seed=)` inside a docstring EXPLAINING the
+            # global-RNG hazard as a new unpinned construction -- a guard
+            # punishing documentation of the thing it guards. The sibling
+            # ratchet (`test_index_space_ratchet`) had the identical defect and
+            # was fixed alone; the shared scanner exists so the next one cannot
+            # be fixed alone again. See `_source_scan`.
+            code = blank_prose(text)
+            if (_SEEDY.search(code) and _SEEDLOOP.search(code)
+                    and not _SANCTIONED.search(code)):
+                hand[rel] = len(_SEEDY.findall(code))
+            n = sum(1 for line in code.splitlines()
                     if _BRAIN.search(line) and "engine=" not in line)
             if n:
                 unpinned[rel] = n

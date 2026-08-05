@@ -60,6 +60,7 @@ import random
 import numpy as np
 
 from .assembly import Assembly, overlap
+from ..core.index_spaces import NeuronIds
 
 
 # ---------------------------------------------------------------------------
@@ -109,8 +110,11 @@ def _snap(brain, area_name) -> Assembly:
              for idx in winners],
             dtype=np.uint32,
         )
-        return Assembly(area_name, mapped)
-    return Assembly(area_name, winners.copy())
+        # THE one-way door between the index spaces: compact -> neuron IDs.
+        return Assembly(area_name, NeuronIds(mapped))
+    # No mapping table means an EXPLICIT area, where the index already IS the
+    # neuron id -- so this is a relabel, not a conversion.
+    return Assembly(area_name, NeuronIds(winners.copy()))
 
 
 def _compact_index(engine, area_name: str):

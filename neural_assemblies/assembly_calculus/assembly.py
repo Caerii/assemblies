@@ -27,6 +27,9 @@ and it documents why.
 
 import numpy as np
 from dataclasses import dataclass
+from typing import overload
+
+from ..core.index_spaces import CompactIdx, NeuronIds, SameSpace
 
 
 @dataclass(frozen=True)
@@ -51,10 +54,10 @@ class Assembly:
     """
 
     area: str
-    winners: np.ndarray
+    winners: NeuronIds
 
     @property
-    def neuron_ids(self) -> np.ndarray:
+    def neuron_ids(self) -> NeuronIds:
         """``winners``, named for the index space it is actually in.
 
         Same array, no copy. Exists so a reader does not have to know which of
@@ -107,8 +110,25 @@ class Assembly:
         return hash((self.area, tuple(self.winners)))
 
 
+@overload
+def overlap(a: "Assembly", b: "Assembly") -> float: ...
+@overload
+def overlap(a: SameSpace, b: SameSpace) -> float: ...
 def overlap(a, b) -> float:
     """Overlap ratio between two winner arrays or Assemblies.
+
+    THE OVERLOADS ARE THE POINT, and they encode a rule prose could not enforce:
+    both arguments must be in the SAME index space. ``SameSpace`` is a
+    value-restricted TypeVar, so it binds to ONE of ``CompactIdx``/``NeuronIds``
+    per call -- two compact arrays are fine, two neuron-ID arrays are fine, and
+    ONE OF EACH is a checker error. A union parameter would wrongly accept the
+    mixed call; a bare ``np.ndarray`` on both accepts everything, which is the
+    status quo that cost this project three results (see
+    ``core/index_spaces``).
+
+    Passing an ``Assembly`` alongside a raw array is also rejected: say
+    ``a.neuron_ids`` so the space is visible at the call site.
+
 
     Returns |A ∩ B| / min(|A|, |B|), or 0.0 if either is empty.
 

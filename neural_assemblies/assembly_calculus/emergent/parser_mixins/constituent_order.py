@@ -53,6 +53,7 @@ from typing import Dict, List, Optional, Tuple, TYPE_CHECKING
 import numpy as np
 
 from neural_assemblies.assembly_calculus.assembly import Assembly
+from neural_assemblies.core.index_spaces import NeuronIds
 from neural_assemblies.assembly_calculus.binding import (
     bind, bind_strength, input_drive, materialize_fiber, recall,
 )
@@ -277,8 +278,11 @@ class ConstituentOrderMixin:
             cached[role_area] = None
             return None
 
+        # `counts` is accumulated from snapped assemblies, so `top` is already
+        # in NEURON-ID space; the wrapper states that rather than implying it.
         identity = Assembly(
-            area=role_area, winners=np.array(top, dtype=np.uint32),
+            area=role_area,
+            winners=NeuronIds(np.array(top, dtype=np.uint32)),
         )
         cached[role_area] = identity
         return identity
