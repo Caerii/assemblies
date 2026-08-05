@@ -177,6 +177,84 @@ def _record_pool_ratio(brain, area: str, count) -> None:
     ratios[area] = float(count) / k
 
 
+def _live_sources_into(brain, area: str) -> List[str]:
+    """Areas that BOTH have winners and own a real fiber into *area*.
+
+    Both halves matter. A source with no winners contributes nothing; a source
+    whose fiber into *area* has never been materialised contributes nothing
+    either, and the second case is invisible -- k-WTA still returns k winners
+    ([[silent-no-op-dead-fibers]]), which is the whole reason the self-recurrent
+    probe read 0.0 for a year without anyone noticing.
+    """
+    engine = brain._engine_for(brain.areas[area])
+    conns = getattr(engine, "_area_conns", None)
+    if conns is None:
+        return []
+    out = []
+    for src in sorted(brain.areas):            # sorted: recruitment order (#80)
+        if src == area:
+            continue
+        conn = conns.get(src, {}).get(area)
+        w = getattr(conn, "weights", None)
+        if w is None or getattr(w, "shape", (0, 0))[0] == 0:
+            continue
+        if len(brain.areas[src].winners) == 0:
+            continue
+        out.append(src)
+    return out
+
+
+def afferent_energy(brain, area: str) -> float:
+    """Normalized PRE-k-WTA energy *area* RECEIVES FROM ITS SOURCES.
+
+    THE ALTERNATIVE TO `_self_recurrent_energy`, and the reason it exists is
+    measured (#108). VP -- the P600 violation arm -- has NO self-fiber at all:
+    `VP -> VP` is shape (0,0) with zero synapses, because `_build_circuit`
+    never declares it. So the self-recurrent probe returned exactly 0.000000
+    and `1 - energy` was a constant 1.0 whatever the sentence was.
+
+    VP is not unbuilt; it is richly built the other way round::
+
+        VERB_CORE -> VP   (2543, 480)   50032 synapses
+        SUBJ      -> VP    (296, 480)    4360
+        OBJ       -> VP    (120, 656)    2736
+        VP        -> VP        (0, 0)       0
+
+    The grammatical arm probes ROLE_PATIENT, which DOES have a self-fiber
+    (960x960, 24173 synapses) only because `_pregrow_role_pathways` explicitly
+    opens `{core: [role], role: [role]}`. So the two arms were never measuring
+    comparable quantities -- one had the probed fiber and the other did not.
+
+    Afferent drive is defined for BOTH arms and needs no new structure. It is
+    NOT wired in by default: whether it separates grammatical from violation is
+    an empirical question, and the last structural change made here inverted
+    seed 42 below chance. Compare with
+    research/experiments/erp_afferent_vs_recurrent.py before adopting.
+    """
+    if area not in brain.areas:
+        return 0.0
+    sources = _live_sources_into(brain, area)
+    if not sources:
+        return 0.0
+    prev_rec = getattr(brain, "record_activation", False)
+    with probe_context(brain):
+        brain.record_activation = True
+        try:
+            brain.project({}, {src: [area] for src in sources})
+            totals = getattr(brain, "last_pre_kwta_totals", {}) or {}
+            counts = getattr(brain, "last_pre_kwta_counts", {}) or {}
+            _record_pool_ratio(brain, area, counts.get(area))
+            # Divided by the candidates ACTUALLY SUMMED, not by `area.w` --
+            # the shipped divisor is the materialised count, which is a
+            # lazy-instantiation artifact (#104).
+            n = max(int(counts.get(area, 0)), 1)
+            return float(totals.get(area, 0.0)) / n
+        except (RuntimeError, IndexError, ValueError):
+            return 0.0
+        finally:
+            brain.record_activation = prev_rec
+
+
 def phrase_stability(
     brain,
     area: str,
@@ -192,7 +270,13 @@ def phrase_stability(
     ``1 - stability`` as the (deficit) phrase-instability term. ``rounds`` /
     ``k`` are retained for call-site compatibility but no longer used: energy
     is a single-projection quantity, not a settling one.
+
+    ``ERP_AFFERENT_ENERGY=1`` switches to `afferent_energy`, which is the only
+    quantity DEFINED for an area with no self-fiber -- see #108 and that
+    function's docstring. Off by default: it is an A/B seam, not an adoption.
     """
+    if os.environ.get("ERP_AFFERENT_ENERGY", "").strip() in ("1", "true", "on"):
+        return afferent_energy(brain, area)
     return _self_recurrent_energy(brain, area)
 
 

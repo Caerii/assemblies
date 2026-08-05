@@ -1,0 +1,12 @@
+depth=SENTENCES  seeds=[11, 12, 13, 42]   (42 is the seed that caught the last attempt)
+AUC null is 0.5. BELOW it means the contrast is INVERTED, which is
+worse than no effect and is exactly how the previous fix failed.
+
+metric     self [shipped]           aff [candidate]          delta
+p600_auc      0.9444+/-0.1021         0.0000+/-0.0000       -0.9444+/-0.1021  CHANGED
+p600_span     0.0078+/-0.0012         0.0176+/-0.0023       +0.0098+/-0.0023  CHANGED
+n400_auc      0.9444+/-0.1768         0.9444+/-0.1768       +0.0000+/-0.0000  IDENTICAL -- the flag never reached the probe
+
+PER-SEED p600_auc (a mean hides an inversion on one seed):
+  self  s11=1.000  s12=0.889  s13=1.000  s42=0.889   none below chance
+  aff   s11=0.000  s12=0.000  s13=0.000  s42=0.000   INVERTED on [11, 12, 13, 42]
