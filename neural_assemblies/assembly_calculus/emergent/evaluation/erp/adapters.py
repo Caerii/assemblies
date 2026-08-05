@@ -689,7 +689,7 @@ def measure_lexical_surprise(
     word: str,
     *,
     readiness: Optional[ErpReadiness] = None,
-) -> float:
+) -> Measured:
     """N400 adapter: pre-k-WTA ENERGY DEFICIT at the word's PREDICTION assembly.
 
     Replaces ``1 - overlap(context->PREDICTION, entry)``, a post-k-WTA overlap
@@ -699,19 +699,39 @@ def measure_lexical_surprise(
     word has its neurons strongly driven (high energy => low N400); an anomaly
     does not (low energy => high N400). N400 = ``1 - energy`` is therefore
     larger for violations, the correct sign.
+
+    RETURNS `Measured`. FOUR conditions used to return a bare float here, and
+    the fourth is the dangerous one: a word ABSENT from the prediction lexicon
+    returned **1.0**, i.e. MAXIMUM SURPRISE -- indistinguishable from a real
+    N400 effect, and a novel or held-out word is precisely the case that would
+    be absent. That is the VP dead-probe defect (#108) wearing the N400's
+    clothes, and #28 records this arm as unexplainedly saturated.
+
+    Each undefined branch carries its legacy fallback in `detail["legacy"]` so
+    callers can reproduce the old arithmetic EXACTLY while making the choice
+    visible -- see `measurement.Measured.or_else` and the Phase 2 note in
+    research/notes/canonical_refactor_plan.md.
     """
     if not prefix:
-        return 0.0
+        return Measured.undefined(
+            "no prefix: there is no context to predict from", legacy=0.0)
     readiness = readiness or assess_erp_readiness(parser)
     if not readiness.n400_ready:
-        return 0.0
+        return Measured.undefined(
+            "parser is not n400_ready (prediction lexicon too small)",
+            legacy=0.0)
     if not hasattr(parser, "prediction_lexicon"):
-        return 0.0
+        return Measured.undefined(
+            "parser has no prediction_lexicon at all", legacy=0.0)
 
     parser._ensure_prediction_lexicon([word])
     entry = parser.prediction_lexicon.get(word)
     if entry is None:
-        return 1.0
+        return Measured.undefined(
+            f"{word!r} is not in the prediction lexicon, so its surprise is "
+            f"undefined -- the legacy 1.0 reads as MAXIMUM surprise and is "
+            f"indistinguishable from a real N400",
+            legacy=1.0, word=word)
 
     brain = parser.brain
     prev_fid = brain.projection_fidelity
@@ -740,7 +760,7 @@ def measure_lexical_surprise(
                     f"[N400] w={word!r} ctx={' '.join(prefix)!r} "
                     f"pred_energy={energy:.4f} n400={n400:.4f}",
                 )
-            return n400
+            return Measured.of(n400)
         finally:
             brain.projection_fidelity = prev_fid
 

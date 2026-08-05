@@ -102,9 +102,21 @@ def run_incremental_erp_probes(
             record_probe = probe_positions is None or i in probe_positions
             n400 = 0.0
             if record_probe and prefix:
-                n400 = measure_lexical_surprise(
+                # BEHAVIOUR-PRESERVING: each undefined branch carries the float
+                # it used to return in `detail["legacy"]`, so the arithmetic is
+                # byte-identical while the fallback is now VISIBLE. The 1.0
+                # branch is the one that matters -- a word missing from the
+                # prediction lexicon read as MAXIMUM surprise, which is what an
+                # anomaly is supposed to look like (#28).
+                n400_m = measure_lexical_surprise(
                     parser, tuple(prefix), word, readiness=readiness,
                 )
+                n400 = n400_m.or_else(
+                    float((n400_m.detail or {}).get("legacy", 0.0)))
+                if not n400_m.defined:
+                    result.setdefault("n400_undefined", []).append(
+                        {"word": word, "position": i, "why": n400_m.why,
+                         "legacy": n400})
 
             # CAPTURED BEFORE CONSUMPTION, and that is the whole point.
             # `expected_role_area` asks what the parse predicted at this

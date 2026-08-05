@@ -213,8 +213,28 @@ This is also the first real test of `.or_else` as designed: the escape hatch
 exists so that keeping a legacy default is a *stated* decision rather than an
 invisible one.
 
-- **Remaining:** `diagnostics` probes and the `nemo/` phrase-stability twins
-  still return bare floats; the corrected aggregation awaits its A/B.
+**SECOND MIGRATION: `measure_lexical_surprise` (the N400 readout).** It had FOUR
+bare-float escapes, and one returned **1.0 — MAXIMUM SURPRISE — when the word is
+absent from the prediction lexicon.** That is exactly what a real anomaly looks
+like, and a novel or held-out word is precisely the case that would be absent.
+The VP dead-probe defect (#108) in the other half of the 2x2, and a candidate
+explanation for #28 ("N400 is saturated / not reading parse state").
+
+**MEASURED, AND THE HYPOTHESIS IS REFUTED: 0 of 37 probes undefined** across all
+three conditions (`research/experiments/n400_undefined_census.py`). The reason is
+visible once typed: `_ensure_prediction_lexicon([word])` runs BEFORE the lookup,
+creating the entry on demand, so the 1.0 branch is effectively dead. It is a
+LATENT hazard — worth having typed, since anything that stops pre-creating
+entries would silently turn it live — but it does not explain #28. One
+explanation cleared, honestly, by a census rather than by reading the code.
+
+Behaviour preserved via `detail["legacy"]`: each undefined branch carries the
+float it used to return, so the caller reproduces the old arithmetic byte-for-
+byte while the fallback is visible. ERP suite 87 passed after the migration.
+
+- **Remaining:** `anchored_p600_live`, `_predicted_energy`, `afferent_energy`
+  (9 more ⊥-inventions in adapters.py), `diagnostics` probes, the `nemo/`
+  phrase-stability twins; the corrected aggregation still awaits its A/B.
 
 **NOTE ON CACHE INVALIDATION:** Phase 1 edits `core/` and `assembly_calculus/`,
 both of which ARE in `_TRAINING_SOURCE_DIRS`, so the backbone fingerprint
