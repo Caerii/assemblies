@@ -47,6 +47,7 @@ from ...core.areas import (
     VP,
 )
 from .gates import ErpReadiness, assess_erp_readiness, areas_with_active_assembly
+from .protocol import ErpProtocol
 from .probe_util import probe_context
 
 if TYPE_CHECKING:
@@ -314,7 +315,7 @@ def phrase_stability(
     quantity DEFINED for an area with no self-fiber -- see #108 and that
     function's docstring. Off by default: it is an A/B seam, not an adoption.
     """
-    if os.environ.get("ERP_AFFERENT_ENERGY", "").strip() in ("1", "true", "on"):
+    if ErpProtocol.from_environment().afferent_energy:
         return Measured.of(afferent_energy(brain, area))
     return _self_recurrent_energy(brain, area)
 
@@ -456,7 +457,7 @@ def _expected_slot_enabled() -> bool:
     in steps of 1/9 and 8 of 10 seeds read exactly 6/9. The estimate is coarse
     by construction; widen the frame set before reading finer differences.
     """
-    return os.environ.get("ERP_EXPECTED_SLOT", "").strip() in ("1", "true", "on")
+    return ErpProtocol.from_environment().expected_slot
 
 
 def anchored_p600_live(

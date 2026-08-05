@@ -1,0 +1,10 @@
+study over 10 seeds [11, 12, 13, 42, 7, 19, 23, 31, 37, 101] (order=counterbalance)
+  substrate: disk_hits=1 trained_fresh=10 backbone_cache=on fingerprint=158files
+  p600_auc_of_raw   0.9056+/-0.0268   ->   0.7167+/-0.0805    delta -0.1889+/-0.0627  [PASS]
+  p600_span_of_raw   0.0080+/-0.0006   ->   0.0064+/-0.0008    delta -0.0017+/-0.0004  [PASS]
+  VERDICT: PASS
+
+CAVEAT: 1 parser(s) came from the DISK CACHE.
+This study is evidence about CACHED parsers. The same contrast
+inverts on freshly-trained ones -- re-run with
+ASSEMBLIES_BACKBONE_CACHE=0 before reading it as an adoption.

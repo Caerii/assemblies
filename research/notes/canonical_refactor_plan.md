@@ -22,7 +22,41 @@ Leading hypothesis: the failing run took **352s** where every other run took
 DIFFERENTLY-TRAINED parser. That is the `backbone-fingerprint-gap` failure mode:
 invisible cache state changing a result with no code difference.
 
-### RESOLVED. Not leakage; not a general cache defect either.
+### FINAL SYNTHESIS (third revision — the two below it are superseded)
+
+    test_erp_metric_range.py ALONE, warm      3 passed
+    test_erp_metric_range.py ALONE, COLD      3 passed
+    full `-k erp` selection, warm            62 passed
+    full `-k erp` selection, COLD             4 FAILED
+
+There IS a cross-test channel, and **the warm cache MASKS it** — forks come from
+a disk-loaded pristine snapshot rather than a parser trained in this session.
+Cold exposes it. My first conclusion (leakage, 724a217) was closer to right than
+the cache story that replaced it; the cache is the MODULATOR.
+
+**The dispatch is probably fine.** The 10-seed harness study gives IDENTICAL
+numbers warm and fully cold (0.9056 → 0.7167, every seed above chance,
+`backbone_cache=OFF trained_fresh=10`). "It inverts on freshly-trained parsers"
+is NOT supported. Adoption stays blocked because the SUITE cannot adjudicate —
+not because the dispatch is bad. That is a different, weaker claim than the one
+committed earlier, and the commit message overstated it.
+
+**Ruled out, each by measurement:** global RNG (byte-identical **under cold**,
+where training actually re-runs — the earlier warm test was VACUOUS, since
+training never ran and the burn could not have mattered); calibration
+contaminating forks (`pristine` precedes `_calibrate`, which defaults off); the
+`fork()` pristine fallback; raw-vs-excess (a false premise, now pinned by a
+test); harness arm-order.
+
+**Open:** which shared state carries it when cold. Candidates: the in-memory
+`_entries` dict, module-level ERP state, pinned-backend globals.
+
+**Method lesson, and the reason this took three tries:** *check what a negative
+result was ALLOWED to see.* The RNG test cleared a hypothesis it could not have
+detected, and "precursor files pass together" was measured warm and said nothing
+about cold. Bisect under every condition, not the convenient one.
+
+### Superseded: "not leakage; not a general cache defect either."
 
     warm cache, default path            62 passed     75-128s
     warm cache, ERP_EXPECTED_SLOT=1     62 passed
@@ -294,12 +328,34 @@ reads the three p600 quantities through Phase 3's sanctioned reader.
 means different things depending on process-global state, and experiments mutate
 `os.environ` with save/restore around it.
 
-- Thread an explicit `ErpProtocol` config, defaulted once at the entry point.
-- Flags become config fields; A/B becomes passing two configs.
-- Keep env vars ONLY for deployment switches (engine selection, cache path,
-  progress logging).
-- **Verify:** ERP suite green; the A/B experiment runs with no `os.environ`
-  mutation; flag count drops.
+### STATUS: the VALUE exists and owns the semantics; threading is deferred, stated.
+
+`erp/protocol.py` — `ErpProtocol(expected_slot, afferent_energy, debug)`, frozen,
+with `from_environment()` as the ONE adapter and `.with_(...)` to derive an arm.
+`adapters.py` now delegates both flag reads to it, so the spelling rules
+("0"/"false"/"off"/"" are all off; "1"/"true"/"on"/"yes" are on) live in exactly
+one place instead of being re-spelled at each site — an earlier version of
+`_expected_slot_enabled` defaulted ON and treated any unrecognised value as
+enabled, so the two spellings of one intent behaved differently.
+
+Why frozen and why `.with_()`: an arm becomes an EXPRESSION
+(`base.with_(expected_slot=True)`) rather than a moment in time. The thing being
+removed is `os.environ` mutation as an argument-passing mechanism — it cannot
+nest, it leaks on exception, and it makes "which arm produced this number" a
+property of when you looked.
+
+**THREADING THE VALUE THROUGH `measure_live_integration` → `phrase_stability` IS
+DELIBERATELY NOT DONE.** That touches the live ERP metric, which is under active
+investigation (#108) and whose magnitudes must not move as a side effect of a
+plumbing change. Two adoptions were rolled back today for exactly that coupling,
+and Phase 2 hit it again. The value, the adapter and the tests are in place; the
+call-chain change goes behind its own measurement.
+
+- **Verified:** `test_erp_protocol.py`, 19 tests — frozen-ness, derivation
+  without mutation, the full truthy/falsey spelling set, and an INJECTABLE
+  environment so no test has to mutate the real one (a config reader that can
+  only read `os.environ` forces tests to reintroduce the problem being removed).
+  Flag semantics confirmed unchanged end-to-end: default off, `=1` on, `=0` off.
 
 ---
 
