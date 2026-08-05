@@ -208,6 +208,10 @@ def link_role_topology(
         return
 
     parser._pregrow_role_pathways(corpus_index)
+    # Phrase areas need the SAME treatment and never got it: VP's self-fiber
+    # had zero columns on a fully trained parser, so the ERP probe that reads
+    # it returned exactly 0.0 (#104). Idempotent and guarded by its own flag.
+    parser._pregrow_phrase_pathways()
 
     core_areas: set = set()
     for update in corpus_index.role_updates:

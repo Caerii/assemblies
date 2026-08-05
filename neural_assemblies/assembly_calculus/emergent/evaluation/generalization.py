@@ -307,7 +307,7 @@ def run_generalization_gate(
                 train_dialogue_with_holdouts(parser, schedule, holdout_set)
         else:
             train_dialogue_with_holdouts(parser, schedule, holdout_set)
-        return parser
+        return _finish_parser(parser)
 
     exact = _train(exact=True)
     compiled = _train(exact=False)
@@ -339,6 +339,31 @@ _DEPTH_CONVERSATION_STAGE = {
 }
 
 
+def _finish_parser(parser: "EmergentParser") -> "EmergentParser":
+    """Structural build every depth needs, whichever branch produced it.
+
+    PHRASE SELF-FIBERS ARE NOT BUILT BY THE CURRICULUM. Measured on
+    `train_parser_to_depth("SENTENCES")` -- the path behind EVERY ERP number --
+    VP, NP, PP and ADJP all had `fiber_extent(area, area) == 0`, so the P600
+    probe that reads VP's self-recurrent energy returned exactly 0.000000 and
+    `1 - energy` was a constant 1.0 (#104).
+
+    `train_phrases` does exercise `VP -> VP`, but only for sentences WITH an
+    object, and the curriculum never calls it -- the direct `parser.train()`
+    path does. Two training paths, one of them missing a structure the other
+    builds, and only the deficient one produces published numbers. Third time
+    that shape has bitten (#21's hashseed guard, #106's fingerprint tracer).
+
+    Placed here rather than in `CurriculumTrainer` because only two of the four
+    branches above use that class, and a build every parser needs must not
+    depend on which branch made it. Idempotent.
+    """
+    pregrow = getattr(parser, "_pregrow_phrase_pathways", None)
+    if pregrow is not None:
+        pregrow()
+    return parser
+
+
 def train_parser_to_depth(
     depth: str,
     *,
@@ -368,12 +393,12 @@ def train_parser_to_depth(
             holdout_words=holdout,
             train_prediction=True,
         )
-        return parser
+        return _finish_parser(parser)
 
     if depth == "DIALOGUE_ONLY":
         schedule = build_dialogue_stage_schedule(parser, seed=seed)
         train_dialogue_with_holdouts(parser, schedule, holdout)
-        return parser
+        return _finish_parser(parser)
 
     if depth in _DEPTH_CONVERSATION_STAGE:
         stage_name, skip_early = _DEPTH_CONVERSATION_STAGE[depth]
@@ -382,7 +407,7 @@ def train_parser_to_depth(
             max_stage=stage_name,
             skip_early_if_loaded=skip_early,
         )
-        return parser
+        return _finish_parser(parser)
 
     if depth not in _STAGE_CONFIG:
         raise ValueError(
@@ -392,7 +417,7 @@ def train_parser_to_depth(
 
     trainer = CurriculumTrainer(parser, holdout_words=holdout)
     trainer.train_curriculum(max_stage=depth)
-    return parser
+    return _finish_parser(parser)
 
 
 def _metric_scalar(metrics: Dict[str, object], key: str, field: str = "accuracy") -> float:

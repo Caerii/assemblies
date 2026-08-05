@@ -77,19 +77,29 @@ class TestTheProbedAreasAreReal:
         assert _self_recurrent_energy(b, ROLE_PATIENT) > 0.0
 
     @pytest.mark.xfail(strict=True, reason=(
-        "MEASURED DEFECT, pinned. The P600 violation arm probes VP, whose "
-        "self-fiber has ZERO columns on a pristine parser -- so "
-        "_self_recurrent_energy returns exactly 0.0 and `1 - energy` is a "
-        "constant 1.0 regardless of the sentence. A dead fiber carries no "
-        "drive and k-WTA still returns k winners, so nothing raises. This is "
-        "the root cause beneath both the `area.w` divisor and the small-pool "
-        "finding; see research/notes/erp_scale_is_an_implementation_detail.md."))
+        "PARTIALLY FIXED, and the remainder is honest. `_pregrow_phrase_"
+        "pathways` now builds VP/NP/PP/ADJP self-fibers and is called from "
+        "every `train_parser_to_depth` exit. VERIFIED on a freshly trained "
+        "curriculum parser with the backbone cache DISABLED: VP self-fiber "
+        "0 -> 66 columns, energy 0.000000 -> 0.000060, pool/k 14.7, and "
+        "p600_auc 1.0. But this test runs through `forked_parser`, which "
+        "serves a CACHED backbone, and there VP still reads 0.0 -- so some "
+        "cached path does not pick the fix up. Prime suspect: #106's "
+        "`_NOT_TRAINING_DIRS` excludes ALL of `emergent/evaluation`, yet "
+        "`evaluation/generalization.py` is where `train_parser_to_depth` (and "
+        "now `_finish_parser`) lives, so editing it does NOT invalidate the "
+        "cache. That carve-out fails its own stated bar -- 'no path reaches "
+        "plasticity or recruitment during training' -- and should be narrowed "
+        "to `evaluation/erp`. Left failing rather than relaxed: the fix is "
+        "real but incomplete on the path the tests actually exercise."))
     def test_the_violation_arm_is_alive_too(self, parsed):
         b = parsed
         eng = b._engine_for(b.areas[VP])
         assert (eng.fiber_extent(VP, VP) or 0) > 0, (
             f"VP self-fiber has {eng.fiber_extent(VP, VP)} columns and "
-            f"{eng.materialized_count(VP)} materialised neurons")
+            f"{eng.materialized_count(VP)} materialised neurons -- a dead "
+            f"fiber carries no drive and k-WTA still returns k winners, so "
+            f"nothing else will raise")
         assert _self_recurrent_energy(b, VP) > 0.0
 
 
