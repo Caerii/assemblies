@@ -201,6 +201,49 @@ winners, nothing raises, and the number reads like a measurement. Pinned as
 xfail(strict) in `tests/test_erp_probe_is_alive.py` with ROLE_PATIENT as the
 live positive control, so "everything reads zero" cannot pass for a fix.
 
+## RESOLVED: it is a METRIC/ARCHITECTURE MISMATCH, not a broken fiber
+
+Read the blocks directly (`engine._area_conns[src][dst]` -- nested, not
+tuple-keyed, which is why an earlier probe of mine returned None and produced a
+wrong theory about frozen row extents):
+
+    fiber                          shape        synapses
+    VERB_CORE    -> VP           (2543, 480)      50032
+    SUBJ         -> VP            (296, 480)       4360
+    OBJ          -> VP            (120, 656)       2736
+    VP           -> VP                (0, 0)           0
+    ROLE_PATIENT -> ROLE_PATIENT    (960, 960)     24173
+
+**VP is a well-built area with three healthy afferent fibers. The only fiber it
+lacks is self-recurrence -- and self-recurrence is the only fiber the P600
+metric reads.**
+
+Nothing is broken. `_self_recurrent_energy` asks for a quantity the parser's
+architecture never builds for VP. The parser has no `VP -> VP` in
+`_build_circuit`; `train_phrases` uses it, but only for sentences WITH an
+object, and only on the direct training path.
+
+AND THAT IS THE ASYMMETRY BETWEEN THE ARMS. The grammatical arm probes
+ROLE_PATIENT, which HAS a self-fiber because `_pregrow_role_pathways`
+explicitly opens `{core: [role], role: [role]}`. The violation arm probes VP,
+which never gets one. [[erp-p600-sign-inverted]] recorded that "the two arms
+measure DIFFERENT AREAS"; the reason it mattered is that one of those areas has
+the probed fiber and the other does not. The contrast was never between two
+comparable measurements.
+
+### The fix is to measure a fiber that exists
+
+Not to build `VP -> VP`. That was tried and reverted: pre-growing it inverted
+seed 42 to `p600_auc = 0.444`, below the null, because the bootstrap recruits
+neurons that never win and displaces the real assembly.
+
+`binding.input_drive` already computes AFFERENT drive -- what an area receives
+from its sources -- and VERB_CORE -> VP carries 50,032 synapses. That quantity
+is well defined for BOTH arms and needs no new structure. Whether it separates
+grammatical from violation is an open empirical question and must be measured
+paired over seeds before adoption, with seed 42 in the set, since that is the
+seed that caught the last attempt.
+
 ## Consequences
 
 **For #104.** The fix is not a better margin. It is a denominator that is a
