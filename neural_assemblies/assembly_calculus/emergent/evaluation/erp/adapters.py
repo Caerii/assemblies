@@ -240,7 +240,7 @@ def _live_sources_into(brain, area: str) -> List[str]:
     return out
 
 
-def afferent_energy(brain, area: str) -> float:
+def afferent_energy(brain, area: str) -> Measured:
     """Normalized PRE-k-WTA energy *area* RECEIVES FROM ITS SOURCES.
 
     THE ALTERNATIVE TO `_self_recurrent_energy`, and the reason it exists is
@@ -266,12 +266,20 @@ def afferent_energy(brain, area: str) -> float:
     an empirical question, and the last structural change made here inverted
     seed 42 below chance. Compare with
     research/experiments/erp_afferent_vs_recurrent.py before adopting.
+
+    RETURNS `Measured` like its sibling. It is default-off, but a rejected
+    candidate that still invents a bottom is exactly how a rejected candidate
+    gets quietly re-adopted later and reads as a finding.
     """
     if area not in brain.areas:
-        return 0.0
+        return Measured.undefined(f"area {area!r} is not in this brain",
+                                  legacy=0.0)
     sources = _live_sources_into(brain, area)
     if not sources:
-        return 0.0
+        return Measured.undefined(
+            f"no live source owns a materialized fiber into {area}, so there "
+            f"is no afferent drive to measure",
+            legacy=0.0, area=area)
     prev_rec = getattr(brain, "record_activation", False)
     with probe_context(brain):
         brain.record_activation = True
@@ -284,9 +292,11 @@ def afferent_energy(brain, area: str) -> float:
             # the shipped divisor is the materialised count, which is a
             # lazy-instantiation artifact (#104).
             n = max(int(counts.get(area, 0)), 1)
-            return float(totals.get(area, 0.0)) / n
-        except (RuntimeError, IndexError, ValueError):
-            return 0.0
+            return Measured.of(float(totals.get(area, 0.0)) / n)
+        except (RuntimeError, IndexError, ValueError) as exc:
+            return Measured.undefined(
+                f"afferent projection into {area} failed: "
+                f"{type(exc).__name__}", legacy=0.0, area=area)
         finally:
             brain.record_activation = prev_rec
 
@@ -316,7 +326,7 @@ def phrase_stability(
     function's docstring. Off by default: it is an A/B seam, not an adoption.
     """
     if ErpProtocol.from_environment().afferent_energy:
-        return Measured.of(afferent_energy(brain, area))
+        return afferent_energy(brain, area)
     return _self_recurrent_energy(brain, area)
 
 
@@ -467,7 +477,7 @@ def anchored_p600_live(
     *,
     subject_core: Optional[str] = None,
     n_settling: int = P600_SETTLING_ROUNDS,
-) -> float:
+) -> Measured:
     """Live-anchored P600 as a PRE-k-WTA ENERGY DEFICIT into the role area.
 
     The fixed core assemblies (plus the subject core and NUMBER when live) fire
@@ -483,10 +493,21 @@ def anchored_p600_live(
     ``input_drive`` owns the frozen()/fix/unfix and record_activation handling.
     ``n_settling`` is retained for call-site compatibility; pre-k-WTA energy is
     the immediate single-projection drive, so no settling loop is run.
+
+    RETURNS `Measured`. Both escapes below used to return 0.0 -- ZERO DEFICIT,
+    i.e. PERFECTLY INTEGRATED -- when the probe could not run at all. That is
+    the VP dead-probe defect (#108) mirrored to the other end of the range: 1.0
+    reads as a violation, 0.0 reads as a flawless parse, and a metric with no
+    bottom must pick one of them. `detail["legacy"]` carries the old value so
+    callers reproduce the arithmetic exactly while the choice stays visible.
     """
     brain = parser.brain
-    if core_area not in brain.areas or role_area not in brain.areas:
-        return 0.0
+    missing = [a for a in (core_area, role_area) if a not in brain.areas]
+    if missing:
+        return Measured.undefined(
+            f"{', '.join(missing)} not in this brain, so there is no pathway "
+            f"to measure -- the legacy 0.0 reads as a PERFECT parse",
+            legacy=0.0, missing=tuple(missing))
 
     # THE SOURCE SET MUST NOT DEPEND ON THE CONTRAST BEING MEASURED.
     #
@@ -516,10 +537,12 @@ def anchored_p600_live(
 
     try:
         drives = input_drive(brain, sources=sources, target_areas=[role_area])
-    except (RuntimeError, IndexError, ValueError):
-        return 0.0
+    except (RuntimeError, IndexError, ValueError) as exc:
+        return Measured.undefined(
+            f"input_drive into {role_area} failed: {type(exc).__name__}",
+            legacy=0.0, role_area=role_area)
     energy = float(drives.get(role_area, 0.0))
-    return max(0.0, 1.0 - energy)
+    return Measured.of(max(0.0, 1.0 - energy))
 
 
 def measure_live_integration(
@@ -609,10 +632,13 @@ def measure_live_integration(
     )
     phrase_instability = 1.0 - mean_stability
 
-    anchored = anchored_p600_live(
+    anchored_m = anchored_p600_live(
         parser, core, role_area, subject_core=subject_core,
         n_settling=settling_rounds_for_depth(probe_depth),
     )
+    # Byte-identical to the old arithmetic; the fallback is now stated.
+    anchored = anchored_m.or_else(
+        float((anchored_m.detail or {}).get("legacy", 0.0)))
 
     p600 = N400_WEIGHT * phrase_instability + P600_WEIGHT * anchored
     if _ERP_DEBUG:
@@ -631,7 +657,7 @@ def measure_live_integration(
     return round(p600, 4), role_area, round(mean_stability, 4)
 
 
-def _predicted_energy(brain, entry) -> float:
+def _predicted_energy(brain, entry) -> Measured:
     """Mean PRE-k-WTA drive the settled context delivers to *entry*'s neurons.
 
     ``entry`` is a stored PREDICTION assembly (STABLE neuron IDs). A final
@@ -642,10 +668,22 @@ def _predicted_energy(brain, entry) -> float:
     word-specific counterpart of global pre-k-WTA energy (this package's robust
     N400 quantity), needed because two frames sharing a context deliver
     identical GLOBAL PREDICTION energy and only differ on the target word.
+
+    RETURNS `Measured`, AND EVERY ESCAPE HERE BECOMES N400 = 1.0. The caller
+    computes ``1 - energy``, so a 0.0 returned because the probe could not run
+    is MAXIMUM SURPRISE -- the same dead-probe shape as #108, one level down and
+    invisible to a census of `measure_lexical_surprise` alone (which is exactly
+    what the first N400 census measured, so its clean result was narrower than
+    it looked).
+
+    The last escape is the one to watch: `not idx` means the stored assembly's
+    NEURON IDS did not map into the compact drive vector -- the two-index-space
+    defect (`core/index_spaces`) surfacing as a confident maximum N400.
     """
     area = PREDICTION
     if area not in brain.areas:
-        return 0.0
+        return Measured.undefined(
+            "no PREDICTION area in this brain", legacy=0.0)
     engine = brain._engine_for(brain.areas[area])
     eng_areas = getattr(engine, "_areas", {})
     from_areas = [a for a in (CONTEXT, area) if a in eng_areas]
@@ -659,14 +697,18 @@ def _predicted_energy(brain, entry) -> float:
             plasticity_enabled=False,
             record_activation=True,
         )
-    except (RuntimeError, IndexError, ValueError):
-        return 0.0
+    except (RuntimeError, IndexError, ValueError) as exc:
+        return Measured.undefined(
+            f"projection into PREDICTION failed: {type(exc).__name__}",
+            legacy=0.0)
     finally:
         brain.record_activation = prev_rec
 
     vec = getattr(result, "pre_kwta_inputs", None)
     if vec is None or len(vec) == 0:
-        return 0.0
+        return Measured.undefined(
+            "no pre-k-WTA input vector was recorded for PREDICTION",
+            legacy=0.0)
     vec = np.asarray(vec)
     entry_ids = np.asarray(entry.winners, dtype=np.int64)
     n2c = _compact_index(engine, area)
@@ -679,8 +721,16 @@ def _predicted_energy(brain, entry) -> float:
             if int(i) in n2c and n2c[int(i)] < len(vec)
         ]
     if not idx:
-        return 0.0
-    return float(np.mean(vec[idx]))
+        # THE INDEX-SPACE DEFECT, surfacing as a confident maximum N400: the
+        # entry's NEURON IDS did not map into the compact drive vector, so
+        # there is nothing to average. See `core/index_spaces`.
+        return Measured.undefined(
+            "the stored assembly's neuron IDs do not map into PREDICTION's "
+            "compact drive vector (index-space mismatch or unmaterialized "
+            "neurons), so its predicted energy is undefined",
+            legacy=0.0, entry_size=int(len(entry_ids)),
+            vector_size=int(len(vec)))
+    return Measured.of(float(np.mean(vec[idx])))
 
 
 def measure_lexical_surprise(
@@ -753,7 +803,18 @@ def measure_lexical_surprise(
                     },
                     rounds=infer - 1,
                 )
-            energy = _predicted_energy(brain, entry)
+            energy_m = _predicted_energy(brain, entry)
+            if not energy_m.defined:
+                # Propagate rather than silently becoming 1 - 0.0 = MAXIMUM
+                # surprise. The legacy value is preserved by the caller's
+                # `.or_else`, so the arithmetic is unchanged -- but the reason
+                # now travels with it instead of being erased by a subtraction.
+                return Measured.undefined(
+                    f"predicted energy undefined: {energy_m.why}",
+                    legacy=1.0 - float(
+                        (energy_m.detail or {}).get("legacy", 0.0)),
+                    inner=energy_m.detail)
+            energy = float(energy_m)
             n400 = 1.0 - energy
             if _ERP_DEBUG:
                 print(

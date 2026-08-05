@@ -268,10 +268,14 @@ def _probe_at_critical_position_warm(
         )
         cache[tuple()] = state
 
-    n400 = (
+    # Same definedness unwrap as `runner`: `Measured` in, legacy float out, so
+    # the stored sample keeps the exact value it had before the migration.
+    _n400_m = (
         measure_lexical_surprise(parser, tuple(prefix), word, readiness=readiness)
-        if prefix else 0.0
+        if prefix else None
     )
+    n400 = 0.0 if _n400_m is None else _n400_m.or_else(
+        float((_n400_m.detail or {}).get("legacy", 0.0)))
 
     with parser.brain.frozen():
         cat, verb_seen, noun_count = parser._advance_incremental_word(

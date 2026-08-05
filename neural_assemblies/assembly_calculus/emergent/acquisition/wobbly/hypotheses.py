@@ -173,7 +173,13 @@ def trial_category_in_sentence(
 
     with parser.brain.frozen():
         try:
-            n400 = measure_lexical_surprise(parser, tuple(prefix), word) if prefix else 0.0
+            # `measure_lexical_surprise` returns `Measured`; `.or_else` with
+            # the branch's own legacy value keeps this arithmetic byte-
+            # identical to before the definedness migration.
+            _n400_m = (measure_lexical_surprise(parser, tuple(prefix), word)
+                       if prefix else None)
+            n400 = 0.0 if _n400_m is None else _n400_m.or_else(
+                float((_n400_m.detail or {}).get("legacy", 0.0)))
             _cat, verb_seen, noun_count = parser._advance_incremental_word(
                 word,
                 circuit,

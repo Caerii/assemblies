@@ -232,9 +232,29 @@ Behaviour preserved via `detail["legacy"]`: each undefined branch carries the
 float it used to return, so the caller reproduces the old arithmetic byte-for-
 byte while the fallback is visible. ERP suite 87 passed after the migration.
 
-- **Remaining:** `anchored_p600_live`, `_predicted_energy`, `afferent_energy`
-  (9 more ⊥-inventions in adapters.py), `diagnostics` probes, the `nemo/`
-  phrase-stability twins; the corrected aggregation still awaits its A/B.
+**adapters.py IS NOW CLEAN: 13 ⊥-inventions -> 0.** All four readouts migrated
+(`_self_recurrent_energy`, `measure_lexical_surprise`, `anchored_p600_live`,
+`_predicted_energy`, `afferent_energy`), every one behaviour-preserving via
+`detail["legacy"]`. ERP suite 87 passed at each step.
+
+What the sweep exposed, which reading the code had not:
+
+- `anchored_p600_live` returned **0.0 — ZERO DEFICIT, a flawless parse —** when
+  the probed area did not exist. The VP defect mirrored to the *other* end of
+  the range: a metric with no bottom must pick 0.0 or 1.0, and both read as
+  findings.
+- `_predicted_energy` returned 0.0 on four paths, and the caller computes
+  `1 - energy`, so **every one of them became N400 = 1.0, maximum surprise**.
+  Its last escape (`not idx`) fires when the stored assembly's NEURON IDS fail
+  to map into the compact drive vector — the two-index-space defect
+  (`core/index_spaces`) surfacing as a confident maximum N400.
+- **My first N400 census was too narrow and I said it was clean.** It counted
+  only `measure_lexical_surprise`'s own escapes, not `_predicted_energy`'s one
+  level down. Re-run with both levels covered: still 0/37, so the conclusion
+  holds — but it now covers what it claimed to.
+
+- **Remaining:** `diagnostics` probes and the `nemo/` phrase-stability twins;
+  the corrected aggregation still awaits its A/B.
 
 **NOTE ON CACHE INVALIDATION:** Phase 1 edits `core/` and `assembly_calculus/`,
 both of which ARE in `_TRAINING_SOURCE_DIRS`, so the backbone fingerprint
