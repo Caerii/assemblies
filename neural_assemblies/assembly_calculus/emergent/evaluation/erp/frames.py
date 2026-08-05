@@ -27,13 +27,35 @@ if TYPE_CHECKING:
 
 CalibrationFrame = Tuple[str, str, List[str]]
 
+#: EVERY WORD IN A FRAME MUST BE IN THE TRAINED VOCABULARY.
+#:
+#: `verb as object 3` read `["she", "hits", "the", "eats"]` until 2026-08-05.
+#: `hits` is in no curriculum sentence and no holdout -- it occurred ONLY in
+#: this file -- so the parser categorised it UNKNOWN and that item's MAIN VERB
+#: was unrecognised before its critical word was ever reached (measured:
+#: p600 0.0000, phrase_stability 1.0000, i.e. the degenerate no-parse reading).
+#: A third of the category-violation arm was therefore not a category violation.
+#: It is now `chases`, which is trained (16 curriculum occurrences) and makes
+#: the item a MINIMAL PAIR of its grammatical control `she chases the cat`, as
+#: items 1 and 2 already were.
+#:
+#: The eight trained verbs are runs/sees/eats/chases/plays/sleeps/reads/finds
+#: (`core/grounding.py`). Adding a word to the vocabulary is NOT the cheaper fix
+#: -- it moves the substrate for every result in the repo; editing the frame is
+#: contained.
+#:
+#: KNOWN, NOT FIXED HERE: `verb as object` uses `finds` as its critical word,
+#: and `finds` is a DEFAULT_LEXICON_HOLDOUT. That item is simultaneously a
+#: category violation and a novel word, which is exactly the contrast the
+#: `novel_noun` arm exists to isolate. Swapping it changes what the violation
+#: arm MEANS, so it wants a measurement rather than an edit -- see #108.
 DEFAULT_CALIBRATION_FRAMES: List[CalibrationFrame] = [
     ("grammatical", "trained noun object", ["the", "dog", "chases", "cat"]),
     ("grammatical", "trained noun object 2", ["the", "cat", "sees", "dog"]),
     ("grammatical", "trained noun object 3", ["she", "chases", "the", "cat"]),
     ("category_violation", "verb as object", ["the", "dog", "chases", "finds"]),
     ("category_violation", "verb as object 2", ["the", "cat", "sees", "runs"]),
-    ("category_violation", "verb as object 3", ["she", "hits", "the", "eats"]),
+    ("category_violation", "verb as object 3", ["she", "chases", "the", "eats"]),
     ("novel_noun", "holdout noun object", ["the", "dog", "chases", "bird"]),
     ("novel_noun", "holdout noun subject", ["the", "bird", "sees", "the", "cat"]),
     ("novel_noun", "holdout adj attributive", ["the", "small", "dog", "runs"]),
@@ -67,7 +89,7 @@ AREA_MATCHED_CALIBRATION_FRAMES: List[CalibrationFrame] = [
     ("grammatical", "trained noun object 3", ["she", "chases", "the", "cat"]),
     ("category_violation", "verb as object", ["the", "dog", "chases", "finds"]),
     ("category_violation", "verb as object 2", ["the", "cat", "sees", "runs"]),
-    ("category_violation", "verb as object 3", ["she", "hits", "the", "eats"]),
+    ("category_violation", "verb as object 3", ["she", "chases", "the", "eats"]),
     ("novel_noun", "holdout noun object", ["the", "dog", "chases", "bird"]),
     ("novel_noun", "holdout noun object 2", ["the", "cat", "sees", "bird"]),
     ("novel_noun", "holdout noun object 3", ["she", "chases", "the", "bird"]),
@@ -78,7 +100,7 @@ SWEEP_CALIBRATION_FRAMES: List[CalibrationFrame] = [
     ("grammatical", "trained noun object", ["the", "dog", "chases", "cat"]),
     ("grammatical", "trained noun object 2", ["she", "chases", "the", "cat"]),
     ("category_violation", "verb as object", ["the", "dog", "chases", "finds"]),
-    ("category_violation", "verb as object 2", ["she", "hits", "the", "eats"]),
+    ("category_violation", "verb as object 2", ["she", "chases", "the", "eats"]),
     ("novel_noun", "holdout noun object", ["the", "dog", "chases", "bird"]),
     ("novel_noun", "holdout adj attributive", ["the", "small", "dog", "runs"]),
 ]

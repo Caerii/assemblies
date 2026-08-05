@@ -89,6 +89,7 @@ def run_incremental_erp_probes(
     verb_seen = False
     noun_count = 0
     subject_core: Optional[str] = None
+    main_verb: Optional[str] = None
     prefix: List[str] = []
     last_index = len(words) - 1
     if stop_at_position is not None:
@@ -105,11 +106,21 @@ def run_incremental_erp_probes(
                     parser, tuple(prefix), word, readiness=readiness,
                 )
 
+            # CAPTURED BEFORE CONSUMPTION, and that is the whole point.
+            # `expected_role_area` asks what the parse predicted at this
+            # position; taking `verb_seen` after the word is consumed would make
+            # the verb itself predict an object slot, which is the same class of
+            # error the expected-slot dispatch exists to fix.
+            verb_seen_before = verb_seen
+
             cat, verb_seen, noun_count = parser._advance_incremental_word(
                 word, circuit, verb_seen, noun_count,
             )
             result["categories"][word] = cat
             prefix.append(word)
+
+            if cat == "VERB" and main_verb is None:
+                main_verb = word
 
             if cat in ("NOUN", "PRON") and len(prefix) <= 2 and not verb_seen:
                 subject_core = CATEGORY_TO_CORE.get(cat)
@@ -127,6 +138,8 @@ def run_incremental_erp_probes(
                 subject_core=subject_core,
                 readiness=readiness,
                 probe_depth=probe_depth,
+                verb_seen_before=verb_seen_before,
+                object_open=parser._verb_takes_an_object(main_verb),
             )
             combined = N400_WEIGHT * n400 + P600_WEIGHT * p600
 

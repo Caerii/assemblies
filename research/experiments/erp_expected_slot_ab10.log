@@ -1,0 +1,13 @@
+depth=SENTENCES  seeds=[11, 12, 13, 42, 7, 19, 23, 31, 37, 101]   (42 is the seed that caught the last structural change)
+AUC null is 0.5. BELOW it means INVERTED, which is the failure mode
+that actually occurred last time. A SMALLER but honest effect is a
+pass; an inverted or constant one is not.
+
+metric     obs [shipped]            exp [candidate]          delta
+p600_auc      0.9056+/-0.0268         0.7167+/-0.0805       -0.1889+/-0.0627  CHANGED
+p600_span     0.0080+/-0.0006         0.0064+/-0.0008       -0.0017+/-0.0004  CHANGED
+n400_auc      0.9111+/-0.0902         0.9111+/-0.0902       +0.0000+/-0.0000  IDENTICAL -- the flag never reached the probe
+
+PER-SEED p600_auc (a mean hides an inversion on one seed):
+  obs   s11=1.000  s12=0.889  s13=0.889  s42=0.889  s7=0.889  s19=0.944  s23=0.889  s31=0.889  s37=0.889  s101=0.889   none below chance
+  exp   s11=1.000  s12=0.667  s13=0.667  s42=0.667  s7=0.667  s19=0.667  s23=0.667  s31=0.667  s37=0.667  s101=0.833   none below chance

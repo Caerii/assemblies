@@ -293,11 +293,113 @@ def _phrase_areas_for_category(category: str, *, verb_seen: bool) -> List[str]:
 
 
 def structural_role_area(category: str, *, verb_seen: bool) -> str:
+    """The area implied by the word's OBSERVED category.
+
+    THIS IS THE CONFOUND, not merely a convention. A category violation IS a
+    word whose observed category differs from the expected one, so dispatching
+    the probe area on `category` makes the violation arm read a DIFFERENT AREA
+    from its grammatical control by construction -- in every frame set, at every
+    seed, under every definition of energy. Measured on both shipped frame sets:
+    grammatical -> ROLE_PATIENT x3, category_violation -> VP x3.
+
+    Area identity alone reproduces the headline AUC with the condition held
+    constant (research/notes/p600_is_confounded_with_area_identity.md), which is
+    why `_self_recurrent_energy` reads a constant 1.0 on VP and `afferent_energy`
+    reads AUC exactly 0.000 with ZERO seed variance. Both are the same fact.
+
+    Kept as the default and as the fallback for positions where the grammar
+    licenses more than one continuation. See `expected_role_area`.
+    """
     if category == "VERB":
         return VP
     if category in ("NOUN", "PRON"):
         return ROLE_PATIENT if verb_seen else ROLE_AGENT
     return VP
+
+
+def expected_role_area(
+    *, verb_seen_before: bool, object_open: bool,
+) -> Optional[str]:
+    """The slot the PARSE predicts here, independent of what word arrived.
+
+    Returns None where the grammar licenses more than one continuation and no
+    single area is predicted; the caller falls back to `structural_role_area`.
+
+    ONLY the post-verb object position is claimed. After a verb that licenses an
+    object, the next content word is expected in ROLE_PATIENT whether it turns
+    out to be `cat` or `finds` -- so both ERP arms read the same area and the
+    contrast becomes "did the word deliver drive into the slot the grammar
+    predicted?", which is what a P600 is. Before the verb, both a verb (VP) and
+    further subject material (ROLE_AGENT) are licensed, so there is no unique
+    expectation and claiming one would be inventing structure.
+
+    `verb_seen_before` MUST be the state BEFORE the word was consumed. Taking it
+    after would make the verb itself expect an object slot and probe
+    ROLE_PATIENT, which is the same class of error this function exists to fix.
+
+    `object_open` comes from `_verb_takes_an_object`, the predicate built for the
+    paper's empty-project detector (#24) -- this reuses that mechanism rather
+    than adding a parallel one. Unknown verbs keep the slot open there, so an
+    untrained parser behaves exactly as before.
+    """
+    if verb_seen_before and object_open:
+        return ROLE_PATIENT
+    return None
+
+
+def _expected_slot_enabled() -> bool:
+    """A/B seam, DEFAULT OFF. `ERP_EXPECTED_SLOT=1` dispatches on the predicted
+    slot; the shipped default keeps the observed-category dispatch.
+
+    ADOPTION WAS ATTEMPTED AND ROLLED BACK, AND THE BLOCKER IS NOT THIS CODE.
+    Flipping the default failed 4 ERP tests, but THE FAILURES ARE
+    ORDER-DEPENDENT and do not reproduce in isolation:
+
+        pytest test_erp_metric_range.py                  3 passed, 1 xfailed
+        pytest test_erp_calibration.py                   3 passed, 1 xpassed
+        pytest test_erp_calibration.py test_erp_metric_range.py
+                                                         6 passed, 1 xfailed
+        pytest -k erp   (full selection)                 4 FAILED
+
+    all with ERP_EXPECTED_SLOT=1. A cold single-arm process
+    (research/experiments/erp_cold_vs_warm_arm.py) reads seed 11 exp raw p600
+    AUC 1.000 on gram [0.988, 0.9923, 0.9881] vs catv [0.9927, 0.993, 0.9927],
+    while the in-suite failure read gram [0.9932, 0.9928, 0.9945] vs catv
+    [0.9927, 0.9925, 0.9924] -- a different parser state entirely.
+
+    TWO EXPLANATIONS RULED OUT on the way, recorded so they are not re-derived:
+      * raw vs excess: `p600_excess(v) = max(0, v - p600_median)` is MONOTONE,
+        so clipping can only create ties (AUC -> 0.5), never invert an ordering.
+      * warm-up order in the A/B harness (obs runs first, exp second, same
+        process): refuted -- the COLD exp arm reads 1.000, not 0.000.
+
+    So the suite has CROSS-TEST STATE LEAKAGE (#102/#36 family) and cannot
+    currently adjudicate this change; any suite-level A/B here is unreliable
+    until that is fixed. Default stays OFF because a change should not be
+    adopted on contested evidence -- not because the dispatch is known bad.
+
+    The 10-seed A/B below stands as a measurement; it is not sufficient alone.
+    (97438ec is the cautionary case: targeted runs green, full suite inverted.)
+
+        p600_auc   obs 0.9056 +/- 0.0268   exp 0.7167 +/- 0.0805
+                   delta -0.1889 +/- 0.0627   (CI excludes zero)
+
+        per-seed exp: 1.000, 0.667 x8, 0.833 -- none below chance, not constant
+
+    The DROP is the point. The shipped 0.9056 is confounded: area identity alone
+    reproduces that AUC with the condition held constant. Area-matched, the
+    effect survives at 0.7167 with CI 0.636-0.797, clearly above the 0.5 null.
+    So the P600 is REAL and was inflated by ~0.19 AUC.
+
+    Pre-registered bar, all three met: arms area-match; every seed above chance
+    (42 is the seed that inverted the last structural change); the violation arm
+    is no longer constant (zero seed variance was the `afferent_energy` defect).
+
+    CAVEAT ON GRANULARITY: 3 grammatical x 3 violation = 9 pairs, so AUC moves
+    in steps of 1/9 and 8 of 10 seeds read exactly 6/9. The estimate is coarse
+    by construction; widen the frame set before reading finer differences.
+    """
+    return os.environ.get("ERP_EXPECTED_SLOT", "").strip() in ("1", "true", "on")
 
 
 def anchored_p600_live(
@@ -371,21 +473,50 @@ def measure_live_integration(
     subject_core: Optional[str] = None,
     readiness: Optional[ErpReadiness] = None,
     probe_depth: ProbeDepth = "calibration",
+    verb_seen_before: Optional[bool] = None,
+    object_open: bool = True,
 ) -> Tuple[float, str, float]:
-    """P600 on live parse: phrase instability + live-anchored role settling."""
+    """P600 on live parse: phrase instability + live-anchored role settling.
+
+    ``ERP_EXPECTED_SLOT=1`` dispatches the probed area on the slot the PARSE
+    PREDICTS rather than the observed word's category, which is the only way to
+    area-match the grammatical/violation contrast -- see `expected_role_area`.
+    OFF by default: adoption was attempted and rolled back, see
+    `_expected_slot_enabled`. The shipped default is CONFOUNDED and its
+    magnitudes must not be quoted as effect sizes either.
+
+    ``verb_seen_before`` is the pre-consumption state and is required for that
+    path; callers that do not supply it keep the observed-category dispatch,
+    so the flag silently does nothing rather than reading the wrong state.
+    """
     readiness = readiness or assess_erp_readiness(parser)
     core = CATEGORY_TO_CORE.get(category)
     if core is None:
         return 0.0, VP, 1.0
 
-    role_area = structural_role_area(category, verb_seen=verb_seen)
+    # The PHRASE areas must be matched too, not only the role area. Measured:
+    # phrase_stability is PERFECTLY determined by which area is read (0.0049 on
+    # every ROLE_PATIENT probe, 0.0000 on every VP probe, in ALL conditions), so
+    # leaving `_phrase_areas_for_category` on the observed category would carry
+    # the confound straight into the stability term and area-match only half the
+    # metric. When the slot is predicted, the category it predicts is nominal.
+    role_area = None
+    phrase_category = category
+    if _expected_slot_enabled() and verb_seen_before is not None:
+        role_area = expected_role_area(
+            verb_seen_before=verb_seen_before, object_open=object_open,
+        )
+        if role_area is not None:
+            phrase_category = "NOUN"
+    if role_area is None:
+        role_area = structural_role_area(category, verb_seen=verb_seen)
 
     if not readiness.p600_ready:
         return 0.0, role_area, 1.0
 
     phrase_areas = areas_with_active_assembly(
         parser.brain,
-        _phrase_areas_for_category(category, verb_seen=verb_seen),
+        _phrase_areas_for_category(phrase_category, verb_seen=verb_seen),
     )
     stab_rounds = phrase_stability_rounds_for_depth(probe_depth)
     if probe_depth == "mining" and phrase_areas:
