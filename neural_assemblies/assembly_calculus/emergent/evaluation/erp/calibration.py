@@ -50,6 +50,63 @@ __all__ = [
 ]
 
 
+@dataclass(frozen=True)
+class ErpQuantities:
+    """THE THREE THINGS CALLED "p600", each named for what it actually is.
+
+    They are genuinely different quantities and the shared word has cost real
+    time: two of them were compared as if interchangeable, and the apparent
+    contradiction was chased for hours before the definitions were re-read.
+
+        deficit_raw          `sample.p600` -- 1 - normalized pre-k-WTA energy
+                             into the role area. Bounded [0,1], and SATURATED:
+                             it occupies ~0.7% of that range in every condition,
+                             so absolute values carry almost nothing.
+
+        excess_over_baseline `sample.p600_excess` -- max(0, deficit_raw -
+                             baseline.p600_median). CLIPPED at its own null, so
+                             roughly half the mass sits exactly at 0 and it is
+                             not an effect size. Cohen's d computed on it is
+                             meaningless (see `_cohens_d`'s caller).
+
+        auc_of_raw           AUC ranking violation against grammatical ON
+                             `deficit_raw` -- NOT on the excess. A rank
+                             statistic, so it is invariant under every monotone
+                             transform and survives redefinition of the
+                             underlying quantity. THIS IS THE ONE TO READ.
+
+    `auc_of_raw` is the field most often mis-stated: the key in `separation` is
+    spelled `p600_auc`, which says nothing about which quantity was ranked, and
+    it ranks the RAW deficit (`calibration.py` passes `catv_p600_raw`).
+
+    `span` is reported alongside because a perfect ordering across 0.7% of the
+    scale is both a perfect ordering and a saturated metric at once, and either
+    fact alone is misleading.
+    """
+
+    deficit_raw_grammatical: List[float]
+    deficit_raw_violation: List[float]
+    excess_over_baseline_grammatical: List[float]
+    excess_over_baseline_violation: List[float]
+    auc_of_raw: float
+    span_of_raw: float
+
+    @property
+    def n(self) -> int:
+        """Pairs behind `auc_of_raw`. AUC granularity is 1/(n_hi*n_lo).
+
+        With 3 items per condition the statistic moves in steps of 1/9, so
+        differences under ~0.11 are not resolvable at all -- worth knowing
+        before reading a change as an effect.
+        """
+        return len(self.deficit_raw_grammatical) * len(self.deficit_raw_violation)
+
+    def __str__(self) -> str:  # pragma: no cover - display only
+        return (f"auc_of_raw={self.auc_of_raw:.3f} (n_pairs={self.n}, "
+                f"granularity={1.0 / self.n if self.n else float('nan'):.3f}) "
+                f"span_of_raw={self.span_of_raw:.4f}")
+
+
 @dataclass
 class ErpCalibrationReport:
     """Outcome of empirical threshold tuning."""
@@ -60,6 +117,35 @@ class ErpCalibrationReport:
     by_label: Dict[str, Dict[str, float]] = field(default_factory=dict)
     separation: Dict[str, float] = field(default_factory=dict)
     tuned: bool = False
+
+    def p600_quantities(self) -> ErpQuantities:
+        """All three "p600" quantities together, so none is picked by accident.
+
+        THE SANCTIONED READER. `separation["p600_auc"]` and `sample.p600` and
+        `sample.p600_excess` remain because goldens and callers depend on those
+        names, but reaching for one of them in isolation is how they get
+        confused. This returns them side by side, labelled.
+        """
+        gram = [float(s.p600) for s in self.samples if s.label == "grammatical"]
+        catv = [float(s.p600) for s in self.samples
+                if s.label == "category_violation"]
+        gram_ex = [float(s.p600_excess) for s in self.samples
+                   if s.label == "grammatical"]
+        catv_ex = [float(s.p600_excess) for s in self.samples
+                   if s.label == "category_violation"]
+        if gram and catv:
+            sep = _separation(catv, gram, label="p600")
+            auc, span = sep.auc, sep.span
+        else:
+            auc = span = float("nan")
+        return ErpQuantities(
+            deficit_raw_grammatical=gram,
+            deficit_raw_violation=catv,
+            excess_over_baseline_grammatical=gram_ex,
+            excess_over_baseline_violation=catv_ex,
+            auc_of_raw=auc,
+            span_of_raw=span,
+        )
 
     def summary(self) -> str:
         lines = [

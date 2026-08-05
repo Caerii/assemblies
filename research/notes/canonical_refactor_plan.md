@@ -196,11 +196,37 @@ it; it is not a regression, and per Phase 0 the cold path is the trustworthy one
 in conversation — I compared two of them today and briefly believed they
 contradicted each other.
 
-- Rename to `p600_deficit`, `p600_excess_over_baseline`, `auc_of_excess`
-  (keeping backward-compatible properties where goldens depend on the old names).
-- ONE reporting function returning all three together, so nobody picks one by
-  accident.
-- **Verify:** ERP suite green; goldens unchanged in value.
+### STATUS: done, and my own characterisation of the problem was wrong.
+
+**Correction first.** I described the third quantity as "AUC on the excess". It
+is not — `calibration.py` builds `separation["p600_auc"]` from
+`catv_p600_raw, gram_p600_raw`, so it ranks the **RAW deficit**. Believing
+otherwise produced a whole false explanation for a real discrepancy and cost
+hours. The naming problem is real (the key `p600_auc` says nothing about which
+quantity it ranks) but it is a different problem than I stated.
+
+**Not a rename.** Goldens, tests and saved reports depend on `sample.p600`,
+`sample.p600_excess` and `separation["p600_auc"]`. Renaming the storage would
+fork every one of those into old-name/new-name pairs — literally adding a second
+way, which is the disease. So the fix is ONE UNAMBIGUOUS READER:
+
+`ErpQuantities` + `ErpCalibrationReport.p600_quantities()` returns all three side
+by side under names that say what they are — `deficit_raw`,
+`excess_over_baseline`, `auc_of_raw` — plus `span_of_raw` and `n`, because a
+perfect ordering across 0.7% of the scale is both a perfect ordering and a
+saturated metric, and either fact alone misleads. `n` exposes the AUC
+granularity (3x3 frames → steps of 1/9), so a change under ~0.11 cannot be read
+as an effect.
+
+- **Verified:** `test_erp_quantities.py`. The load-bearing one is
+  `test_auc_is_computed_on_raw_not_on_excess`, constructed so raw and excess
+  rank the arms OPPOSITE ways — it reads 1.0 now and would read 0.0 if the
+  computation ever switched. Plus a live check that `p600_quantities().auc_of_raw`
+  equals `separation["p600_auc"]`, which fails the moment the name and the
+  computation diverge. The belief that cost the time is now a test, not a
+  docstring.
+- A missing arm yields **NaN**, not 0.0 or 0.5 — the totalizing-substrate
+  failure would otherwise reappear in the reporting layer.
 
 ---
 
@@ -225,9 +251,39 @@ first, so `exp` was only ever measured WARM while the suite measured it COLD.
   - evaluates PRE-REGISTERED criteria and prints PASS/FAIL.
 - Pre-registration worked today (it is why a 0.75 was not quietly accepted);
   make it a field, not a matter of discipline.
-- **Verify:** port `erp_expected_slot_ab.py` to it and reproduce the 10-seed
-  numbers; the harness must FAIL the pre-registered criteria when handed a
-  deliberately inverted arm.
+### STATUS: `research/harness.py` built; 12 tests, all encoding real failures.
+
+`study(arms, seeds, criteria, order)` + `Criteria` + `Provenance`. It CALLS
+`diagnostics.ensemble` / `paired_delta` rather than reimplementing them —
+statistics live there, protocol lives here, and a second statistics
+implementation would be the disease.
+
+What it enforces, each traceable to a specific mistake:
+
+- **Counterbalanced arm order.** The old script ran control-then-candidate every
+  seed, so the candidate was only ever measured WARM while the suite measured it
+  COLD. `order="as_given"` keeps the old behaviour but must now be chosen.
+- **Substrate provenance in the artefact.** `Provenance` records disk hits vs
+  fresh trainings. Phase 0's whole finding was that an A/B on cached parsers is
+  evidence about cached parsers only; that limitation is now printed, not
+  reconstructed later from runtimes.
+- **Pre-registration as a FIELD.** `Criteria(above, on_every_seed, must_vary,
+  delta_excludes_zero, allow_decrease)` is stored in the result, so the verdict
+  is reproducible from the artefact alone rather than from discipline.
+- **`allow_decrease=True` by default**, deliberately: removing a confound should
+  shrink an inflated effect, and a bar that treats every decrease as failure
+  selects for confounded metrics.
+
+**Verified by the failures it catches**, not its happy path:
+`test_a_deliberately_inverted_arm_fails` is the true-negative — a harness that
+cannot reject is decoration. `test_a_single_inverted_seed_fails_even_when_the_mean_passes`
+first PROVES the mean-only check is fooled by the seed-42 shape, then shows
+`on_every_seed` catches it. Plus a constant-candidate rejection (the
+`afferent_energy` zero-variance signature) and an honest-smaller-effect
+acceptance.
+
+`research/experiments/erp_expected_slot_study.py` ports the real A/B onto it and
+reads the three p600 quantities through Phase 3's sanctioned reader.
 
 ---
 
