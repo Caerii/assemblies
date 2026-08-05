@@ -6,7 +6,32 @@ import pytest
 
 os.environ.setdefault("EMERGENT_FAST_TRAINING", "1")
 os.environ["TRAIN_PROGRESS"] = "0"
-os.environ["EMERGENT_DEV_CURRICULUM"] = "1"
+
+
+@pytest.fixture(autouse=True)
+def _developmental_curriculum(monkeypatch):
+    """Scope the curriculum switch to THIS module's tests.
+
+    THIS LINE USED TO RUN AT IMPORT: `os.environ["EMERGENT_DEV_CURRICULUM"]="1"`.
+    pytest imports every collected module before running anything, so
+    `pytest neural_assemblies/tests/` set it for the WHOLE SESSION and every
+    parser trained afterwards used a different corpus (the flag disables the
+    preset skip, so babble + early grammar always run). Running the same files
+    by explicit path never imported this module and so never saw it.
+
+    That single line produced a full day of wrong diagnoses: 4 ERP tests failed
+    under `pytest tests/` and passed under `pytest <files>`, which was read
+    first as cross-test state leakage, then as a cached-vs-fresh parser defect.
+    Only cold runs showed it, because a warm run DESERIALIZES a parser instead
+    of training one -- which is what made the cache look causal.
+
+    `monkeypatch` restores the previous value after each test, so importing this
+    file can no longer reconfigure anybody else's training. The cache key also
+    now includes the flag (`sweep._TRAINING_ENV_VARS`) so the two curricula can
+    never share an entry, in memory or on disk -- belt and braces, because this
+    module is not the only place that could set it.
+    """
+    monkeypatch.setenv("EMERGENT_DEV_CURRICULUM", "1")
 
 from neural_assemblies.assembly_calculus.emergent import (
     EmergentParser,

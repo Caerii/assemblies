@@ -200,6 +200,39 @@ def fingerprint_source_files() -> Tuple[str, ...]:
     return tuple(sorted(found))
 
 
+#: Environment variables that change WHAT GETS TRAINED, not merely how fast.
+#: They must be part of the cache identity: two parsers that differ in any of
+#: these are different parsers, however equal their (depth, seed, n, k) look.
+#:
+#: THE BUG THIS CLOSES. `EMERGENT_DEV_CURRICULUM` turns off the preset skip so
+#: babble + early grammar always run -- a different training corpus. It was
+#: absent from the key, so a parser trained under it was stored under the SAME
+#: key as one trained without, in memory AND on disk. One full-suite run
+#: therefore poisoned the on-disk backbone for every later run.
+#:
+#: It reached the suite by import, not by intent: `tests/test_acquisition.py`
+#: set it at MODULE level, and pytest imports every collected module before
+#: running anything. So `pytest tests/` silently retrained every parser on a
+#: different corpus, while `pytest <explicit files>` did not -- which is exactly
+#: the pattern that looked like cross-test leakage and then like a cache defect.
+#: Measured: adding `EMERGENT_DEV_CURRICULUM=1` to an otherwise-passing cold run
+#: reproduces its 4 ERP failures precisely.
+_TRAINING_ENV_VARS = ("EMERGENT_DEV_CURRICULUM",)
+
+
+def _training_env_signature() -> Tuple:
+    """The training-affecting environment, as part of the cache identity.
+
+    Read at call time rather than import time on purpose: a process may legally
+    change these between studies, and a signature captured at import would go
+    stale in exactly the way this exists to prevent.
+    """
+    return tuple(
+        (name, os.environ.get(name, "").strip().lower())
+        for name in _TRAINING_ENV_VARS
+    )
+
+
 def _backbone_disk_path(depth, *, seed, n, k, holdout):
     """Full path for one backbone pickle, or ``None`` when caching is off."""
     root = backbone_cache_dir()
@@ -214,7 +247,14 @@ def _backbone_disk_path(depth, *, seed, n, k, holdout):
     # retrains instead of loading a stale backbone. Old files simply stop being
     # found; they are cache entries, not data.
     fp = training_code_fingerprint()
-    name = f"{Path(name).stem}.code{fp}{Path(name).suffix or '.pkl'}"
+    # The training ENVIRONMENT joins the code fingerprint in the filename, for
+    # the same reason: a backbone trained under a different curriculum is a
+    # different backbone, and must miss rather than load. Without this, one
+    # `pytest tests/` run wrote a dev-curriculum parser over the normal one and
+    # every later warm run silently used it.
+    env = "".join(v for _n, v in _training_env_signature() if v)
+    suffix = f".code{fp}" + (f".env{env}" if env else "")
+    name = f"{Path(name).stem}{suffix}{Path(name).suffix or '.pkl'}"
     return root / name
 
 
@@ -274,7 +314,8 @@ class ParserCache:
         fast_training: bool,
     ) -> Tuple:
         holdout = frozenset(holdout_words or ())
-        return (depth, seed, holdout, n, k, fast_training)
+        return (depth, seed, holdout, n, k, fast_training,
+                _training_env_signature())
 
     def get(
         self,
