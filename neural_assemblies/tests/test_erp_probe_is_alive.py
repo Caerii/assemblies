@@ -77,30 +77,30 @@ class TestTheProbedAreasAreReal:
         assert _self_recurrent_energy(b, ROLE_PATIENT) > 0.0
 
     @pytest.mark.xfail(strict=True, reason=(
-        "PARTIALLY FIXED, and the remainder is honest. `_pregrow_phrase_"
-        "pathways` now builds VP/NP/PP/ADJP self-fibers and is called from "
-        "every `train_parser_to_depth` exit. VERIFIED on a freshly trained "
-        "curriculum parser with the backbone cache DISABLED: VP self-fiber "
-        "0 -> 66 columns, energy 0.000000 -> 0.000060, pool/k 14.7, and "
-        "p600_auc 1.0. But this test runs through `forked_parser`, which "
-        "serves a CACHED backbone, and there VP still reads 0.0 -- so some "
-        "cached path does not pick the fix up. Prime suspect: #106's "
-        "`_NOT_TRAINING_DIRS` excludes ALL of `emergent/evaluation`, yet "
-        "`evaluation/generalization.py` is where `train_parser_to_depth` (and "
-        "now `_finish_parser`) lives, so editing it does NOT invalidate the "
-        "cache. That carve-out fails its own stated bar -- 'no path reaches "
-        "plasticity or recruitment during training' -- and should be narrowed "
-        "to `evaluation/erp`. Left failing rather than relaxed: the fix is "
-        "real but incomplete on the path the tests actually exercise."))
+        "PARTLY FIXED, and the residue is a DIFFERENT defect than the one this "
+        "test was written for. `_pregrow_phrase_pathways` now builds the "
+        "phrase self-fibers on every training path, so VP has gone from 0 "
+        "columns to 120 -- but the probe STILL reads exactly 0.000000 after "
+        "calibration, with 30 winners present. Fiber exists, winners exist, "
+        "drive is zero. That means the pre-growth wired the ~71 neurons it "
+        "materialised, and calibration then recruited DIFFERENT neurons into "
+        "VP whose rows in the self-block have no synapses -- so the assembly "
+        "that actually fires cannot reach itself. Same family as "
+        "[[self-fibers-excluded-from-deferred-init]] (a self-fiber whose block "
+        "spans w rather than n). Fixing it means the self-block must grow with "
+        "the area, not once at bootstrap, which is an engine change. "
+        "ROLE_PATIENT is the live control at 0.009929 and passes."))
     def test_the_violation_arm_is_alive_too(self, parsed):
         b = parsed
         eng = b._engine_for(b.areas[VP])
         assert (eng.fiber_extent(VP, VP) or 0) > 0, (
             f"VP self-fiber has {eng.fiber_extent(VP, VP)} columns and "
-            f"{eng.materialized_count(VP)} materialised neurons -- a dead "
-            f"fiber carries no drive and k-WTA still returns k winners, so "
-            f"nothing else will raise")
-        assert _self_recurrent_energy(b, VP) > 0.0
+            f"{eng.materialized_count(VP)} materialised neurons")
+        assert len(b.areas[VP].winners) > 0, "VP never fired at all"
+        assert _self_recurrent_energy(b, VP) > 0.0, (
+            f"VP has {eng.fiber_extent(VP, VP)} self-fiber columns and "
+            f"{len(b.areas[VP].winners)} winners yet delivers ZERO drive -- "
+            f"the firing assembly's rows in the self-block are unwired")
 
 
 class TestPoolRatioIsReported:

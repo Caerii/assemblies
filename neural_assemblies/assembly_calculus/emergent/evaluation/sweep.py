@@ -102,14 +102,26 @@ _TRAINING_SOURCE_DIRS = (
 
 #: Carved OUT of the recursive walk above. Everything here READS a trained
 #: parser and cannot produce one, so hashing it would retrain ten backbones
-#: every time an ERP metric is edited -- and #104 is about to edit one.
+#: every time an ERP metric is edited.
 #:
-#: THE BAR FOR ADDING TO THIS LIST is "no path from this module reaches
-#: plasticity or recruitment during training", not "I think it is only
-#: analysis". `tests/test_training_fingerprint.py` traces a real parser build
-#: and fails if anything excluded here actually executes.
+#: THE BAR IS "no path from this module reaches plasticity or recruitment
+#: during training", not "I think it is only analysis".
+#:
+#: I FAILED MY OWN BAR ON THE FIRST TRY, and it cost a real fix. This started
+#: as the whole of `emergent/evaluation`, on the reasoning that evaluation
+#: reads rather than trains. But `evaluation/generalization.py` is where
+#: `train_parser_to_depth` lives -- it is the function that BUILDS every cached
+#: backbone -- so adding phrase-pathway pre-growth there changed training and
+#: did NOT invalidate the cache. The fix worked with the cache disabled and was
+#: invisible through `forked_parser`, which is exactly the stale-pickle failure
+#: this fingerprint exists to prevent (#106, and [[backbone-fingerprint-gap]]
+#: for the third time).
+#:
+#: `evaluation/erp` is the genuine measurement layer: it probes a finished
+#: parser and never trains. Nothing else in `evaluation/` qualifies, because
+#: `sweep.py` and `generalization.py` both orchestrate training.
 _NOT_TRAINING_DIRS = (
-    "assembly_calculus/emergent/evaluation",
+    "assembly_calculus/emergent/evaluation/erp",
 )
 
 #: Individual files outside the walked packages, kept for anything that lands

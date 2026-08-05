@@ -342,25 +342,32 @@ _DEPTH_CONVERSATION_STAGE = {
 def _finish_parser(parser: "EmergentParser") -> "EmergentParser":
     """Structural build every depth needs, whichever branch produced it.
 
-    PHRASE SELF-FIBERS ARE NOT BUILT BY THE CURRICULUM. Measured on
-    `train_parser_to_depth("SENTENCES")` -- the path behind EVERY ERP number --
-    VP, NP, PP and ADJP all had `fiber_extent(area, area) == 0`, so the P600
-    probe that reads VP's self-recurrent energy returned exactly 0.000000 and
-    `1 - energy` was a constant 1.0 (#104).
+    CURRENTLY A NO-OP, and the reason is a measured regression rather than a
+    change of mind.
 
-    `train_phrases` does exercise `VP -> VP`, but only for sentences WITH an
-    object, and the curriculum never calls it -- the direct `parser.train()`
-    path does. Two training paths, one of them missing a structure the other
-    builds, and only the deficient one produces published numbers. Third time
-    that shape has bitten (#21's hashseed guard, #106's fingerprint tracer).
+    It called `_pregrow_phrase_pathways()`, which builds the phrase areas'
+    self-fibers. That fixed a real defect on paper: VP's self-fiber had ZERO
+    columns on the curriculum path, so the ERP P600 violation arm read exactly
+    0.000000 and `1 - energy` was a constant 1.0 (#104). Pre-growth took it to
+    120 columns on every training path.
 
-    Placed here rather than in `CurriculumTrainer` because only two of the four
-    branches above use that class, and a build every parser needs must not
-    depend on which branch made it. Idempotent.
+    IT DID NOT WORK, AND IT MADE THINGS WORSE.
+
+      * It does not reliably revive the arm. On a fresh n=3000 parser VP read
+        0.000060; through the cached fixture it still read exactly 0.000000.
+        VP's winners land at compact indices 71..100 -- 71 being EXACTLY the
+        materialised count when the pre-growth ran -- i.e. the firing assembly
+        sits outside whatever the bootstrap block covers.
+      * It INVERTED a shipped contrast. Seed 42 SENTENCES went to
+        `p600_auc = 0.444`, below the 0.5 null: violations scoring BELOW
+        grammatical. Pre-growth recruits ~71 neurons that never win and
+        displaces the real assembly, so it does not merely fail to help.
+
+    Kept as a seam rather than deleted because #108 needs it: the underlying
+    defect (a self-fiber that does not cover neurons recruited after it was
+    built) is real and unfixed, and `_pregrow_phrase_pathways` is the harness
+    for measuring it. Re-enable only alongside a fix that makes the block grow.
     """
-    pregrow = getattr(parser, "_pregrow_phrase_pathways", None)
-    if pregrow is not None:
-        pregrow()
     return parser
 
 

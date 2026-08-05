@@ -208,10 +208,13 @@ def link_role_topology(
         return
 
     parser._pregrow_role_pathways(corpus_index)
-    # Phrase areas need the SAME treatment and never got it: VP's self-fiber
-    # had zero columns on a fully trained parser, so the ERP probe that reads
-    # it returned exactly 0.0 (#104). Idempotent and guarded by its own flag.
-    parser._pregrow_phrase_pathways()
+    # NOT `_pregrow_phrase_pathways()` -- it lives in `_finish_parser`, which
+    # runs on every `train_parser_to_depth` exit. Calling it here as well was
+    # redundant AND measurably wrong: it adds a fixed number of winner-sampling
+    # calls to BOTH arms of `test_compiled_role_reduces_sampling`, which
+    # compares a RATIO (103 vs 126, needing < 0.8). A constant added to both
+    # sides of a ratio moves it toward 1 and made a real 18% saving read as a
+    # regression. Role linking is not the place to build phrase structure.
 
     core_areas: set = set()
     for update in corpus_index.role_updates:
