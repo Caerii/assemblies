@@ -29,6 +29,32 @@ except ImportError:
 
 from neural_assemblies.compute.statistics import StatisticalEngine
 
+#: Below this, a wall-clock RATIO is not a measurement of anything.
+#:
+#: Every timing assertion here compares two durations as a ratio. The operations
+#: are sub-millisecond, so at the low end the ratio is dominated by timer
+#: resolution, cache state and OS scheduling rather than by the algorithm -- and
+#: the suite is often run alongside another process. Observed twice in
+#: consecutive full-tier runs, on two DIFFERENT assertions in this file:
+#:
+#:     test_batch_processing_performance   0.0015354 vs bound 0.0013510
+#:     test_parameter_sensitivity          0.0052992 vs bound 0.0043820  (12x)
+#:
+#: both of which pass 3-4/4 when run alone.
+#:
+#: The floor makes each assertion say "either the ratio holds OR both durations
+#: are too small to adjudicate", which keeps it able to catch a real O(n) or
+#: order-of-magnitude regression while refusing to arbitrate microseconds.
+#: WIDENING THE MULTIPLIER WOULD NOT DO: that hides a genuine regression exactly
+#: as readily as it hides jitter.
+#:
+#: Defined once, at module scope, ON PURPOSE. Commit 0657e5a added this same
+#: floor as a local in `test_scaling_performance` and left the other five
+#: assertions bare -- which is why two of them have since flaked. One floor
+#: cannot be fixed in one place and missed in the others.
+TIMING_FLOOR_S = 0.005   # 5 ms: larger than any plausible scheduling hiccup
+
+
 class TestStatisticsPerformance(unittest.TestCase):
     """
     Performance and stress tests for the Statistical Engine.
@@ -96,7 +122,7 @@ class TestStatisticsPerformance(unittest.TestCase):
         # another under contention and fails on scheduling noise -- observed
         # exactly that. The floor keeps the test honest about O(n) while
         # refusing to adjudicate microseconds.
-        floor = 0.005  # 5 ms: larger than any plausible scheduling hiccup here
+        floor = TIMING_FLOOR_S
         for i in range(1, len(times)):
             self.assertLess(times[i], max(times[0] * 2, floor),
                             f"size index {i} took {times[i]*1e3:.2f} ms against "
@@ -256,7 +282,8 @@ class TestStatisticsPerformance(unittest.TestCase):
         # Should scale well (not exponential)
         for i in range(1, len(times)):
             if times[i-1] > 0:  # Avoid division by zero
-                self.assertLess(times[i], times[i-1] * 10)
+                self.assertLess(times[i],
+                                max(times[i-1] * 10, TIMING_FLOOR_S))
     
     def test_memory_efficiency(self):
         """Test memory efficiency with large datasets."""
@@ -316,7 +343,8 @@ class TestStatisticsPerformance(unittest.TestCase):
         # Both paths are sub-millisecond, so use a wide multiplier to
         # tolerate OS scheduling jitter.
         if valid_time > 0:  # Avoid division by zero
-            self.assertLess(invalid_time, valid_time * 10)
+            self.assertLess(invalid_time,
+                            max(valid_time * 10, TIMING_FLOOR_S))
     
     def test_batch_processing_performance(self):
         """Test performance of batch processing operations."""
@@ -335,7 +363,8 @@ class TestStatisticsPerformance(unittest.TestCase):
         large_op_time = time.perf_counter() - start_time
         
         # Large operation should be reasonably efficient (allow some variance)
-        self.assertLess(large_op_time, small_ops_time * 1.5)  # Allow 50% overhead
+        self.assertLess(large_op_time,
+                        max(small_ops_time * 1.5, TIMING_FLOOR_S))
     
     def test_parameter_sensitivity(self):
         """Test performance sensitivity to different parameters."""
@@ -354,7 +383,8 @@ class TestStatisticsPerformance(unittest.TestCase):
         max_time = max(times)
         min_time = min(times)
         if min_time > 0:  # Avoid division by zero
-            self.assertLess(max_time, min_time * 10)  # Should not vary by more than 10x
+            self.assertLess(max_time,
+                            max(min_time * 10, TIMING_FLOOR_S))
     
     def test_reproducibility_performance(self):
         """Test that reproducibility doesn't significantly impact performance."""
@@ -375,8 +405,10 @@ class TestStatisticsPerformance(unittest.TestCase):
         non_reproducible_time = time.perf_counter() - start_time
         
         # Performance should be similar (allow some variance)
-        self.assertLess(abs(reproducible_time - non_reproducible_time),
-                       max(reproducible_time, non_reproducible_time) * 0.8)  # Allow 80% difference
+        self.assertLess(
+            abs(reproducible_time - non_reproducible_time),
+            max(max(reproducible_time, non_reproducible_time) * 0.8,
+                TIMING_FLOOR_S))
 
 if __name__ == '__main__':
     unittest.main()
