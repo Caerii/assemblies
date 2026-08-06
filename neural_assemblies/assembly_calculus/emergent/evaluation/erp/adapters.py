@@ -261,11 +261,28 @@ def afferent_energy(brain, area: str) -> Measured:
     opens `{core: [role], role: [role]}`. So the two arms were never measuring
     comparable quantities -- one had the probed fiber and the other did not.
 
-    Afferent drive is defined for BOTH arms and needs no new structure. It is
-    NOT wired in by default: whether it separates grammatical from violation is
-    an empirical question, and the last structural change made here inverted
-    seed 42 below chance. Compare with
-    research/experiments/erp_afferent_vs_recurrent.py before adopting.
+    ITS JUSTIFICATION IS NOW DISSOLVED, AND IT IS STILL NOT ADOPTED (2026-08-06).
+    With `expected_slot` on by default (f79c4f5) BOTH arms probe ROLE_PATIENT,
+    which HAS a self-fiber -- so the shipped metric is defined on both arms too
+    and this one is no longer the only quantity available. Re-measured cold, 10
+    seeds, `disk_hits=0 trained_fresh=10`
+    (research/experiments/erp_afferent_energy_study.py):
+
+        p600_auc_of_raw    0.7167 +/- 0.0805  ->  0.7500 +/- 0.0732
+                           delta +0.0333 +/- 0.0627   -- CI SPANS ZERO
+        p600_span_of_raw   0.0064 +/- 0.0008  ->  0.0123 +/- 0.0010
+                           delta +0.0059 +/- 0.0005   -- decisive
+
+    It spreads the conditions ~1.9x further apart WITHOUT ordering them better.
+    The wider span does not rescue the graded detector either: that needs a
+    margin of 0.0760, which is 11.9x the self-recurrent span and still 6.2x the
+    afferent one (research/notes/erp_metric_is_clipped.md).
+
+    The ORIGINAL rejection -- AUC 0.000, zero variance over four seeds -- is
+    VOID, not confirmed: it was measured while the arms probed different areas,
+    and zero variance is the signature of a constant. Kept as a correct,
+    default-off implementation; do not re-adopt it on the strength of the span
+    row alone.
 
     RETURNS `Measured` like its sibling. It is default-off, but a rejected
     candidate that still invents a bottom is exactly how a rejected candidate

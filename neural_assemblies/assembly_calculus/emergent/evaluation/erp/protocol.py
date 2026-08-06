@@ -61,9 +61,12 @@ class ErpProtocol:
             it SHRINKS, which is what removing a confound is supposed to do.
             The 0.906 was the confound; 0.717 is the effect.
         afferent_energy: measure drive INTO an area instead of self-recurrent
-            energy. Rejected on measurement (AUC 0.000, zero variance across
-            four seeds) but kept as a correct implementation for once the arms
-            are area-matched.
+            energy. NOT ADOPTED, re-measured 2026-08-06 now that the arms ARE
+            area-matched: AUC 0.7167 -> 0.7500, delta +0.0333+/-0.0627 with the
+            CI spanning zero, while the span nearly doubles. It spreads the
+            conditions further apart without ordering them better. (The
+            original "AUC 0.000, zero variance" rejection is void -- taken while
+            the arms probed different areas.)
         debug: print per-probe diagnostics.
     """
 
@@ -127,7 +130,7 @@ class ErpProtocol:
 #: The shipped protocol. `expected_slot` is ON -- it area-matches the
 #: grammatical/violation contrast, which nothing else can do, and the cold
 #: 10-seed study says it shrinks the effect rather than inverting it.
-#: `afferent_energy` stays OFF: rejected on measurement (AUC 0.000, zero seed
-#: variance), and that rejection was itself an artefact of the arms probing
-#: different areas -- it is worth RE-measuring now that they do not.
+#: `afferent_energy` stays OFF -- RE-measured cold on area-matched arms
+#: (2026-08-06) and its AUC delta's CI spans zero, so it does not discriminate
+#: better; see research/notes/afferent_energy_is_not_adopted.md.
 DEFAULT_PROTOCOL = ErpProtocol()
