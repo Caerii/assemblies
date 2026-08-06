@@ -253,8 +253,64 @@ What the sweep exposed, which reading the code had not:
   level down. Re-run with both levels covered: still 0/37, so the conclusion
   holds — but it now covers what it claimed to.
 
-- **Remaining:** `diagnostics` probes and the `nemo/` phrase-stability twins;
-  the corrected aggregation still awaits its A/B.
+**`diagnostics.AreaHealth` MIGRATED, and the defect it hid was the opposite of
+the expected one.** Every quantity defaulted to NaN, and NaN answers False
+rather than raising. Measured before the fix (`research/notes/
+the_best_case_was_the_undefined_one.md`):
+
+- **The margin was undefined exactly when separation was PERFECT.** A margin was
+  recorded only when the runner-up had NONZERO overlap; zero overlap is the best
+  possible separation, so the best probes contributed nothing. Three disjoint
+  assemblies with exact re-cue read `accuracy 1.0000, margin nan` — printed as
+  an OK verdict.
+- Because `abs(nan - 1.0) < 1e-9` is False, **the dead-probe check could not
+  fire on an unmeasurable margin** and certified the probe live.
+- **The bias is structural, not occasional.** `margins` never contained a
+  perfectly-separated probe, so the margin reported for any single seed was
+  already a mean over the imperfect probes only — every margin this codebase has
+  reported is downward-biased by construction.
+  `overnight_characterization.py:143` then hand-filtered NaN
+  (`h.margin == h.margin`) while averaging accuracy unguarded on the line above,
+  additionally dropping whole seeds that separated cleanly throughout. How often
+  that second case fired is NOT measured; the first needs no measurement.
+
+Fix: *unbounded is not undefined.* `best/0` with `best > 0` is infinity, which
+makes the mean infinite — loud, and impossible to publish by accident; only
+`0/0` is undefined. All six quantities are now `Measured`; verdicts test
+`.defined` instead of the NaN idiom; `format_report` prints `n/a`.
+
+**Writing the guard test in both directions found a second defect, present
+before AND after the change:** constant reads against DISTINCT stored
+assemblies. Every cue returns the same thing — a dead probe by definition — yet
+the runner-up overlap is zero, so the margin is unbounded, the best-looking
+value in the range. The check now asks the reads directly
+(`len(read_signatures) == 1`) instead of inferring it from a ratio.
+
+Siblings checked: `parse_errors.LexicalReadout.margin` and
+`programs/colt_mnist_lri_readout` both use a DIFFERENCE, not a ratio, so a zero
+runner-up gives `best - 0`. Neither shares the defect.
+
+**The `nemo/` twins were not a migration target — they were the duplication
+itself.** `nemo/language/emergent_learner.py` (1783 lines) was the pre-split
+original of the `emergent/` package, orphaned by commit 84bda12 and imported by
+NOTHING for months; `EmergentNemoBrain` there was a strict subset of the live
+one (15 methods vs 25, none unique). Deleted. `get_phrase_stability` existed in
+both copies as an exact zero-caller alias for `measure_stability` — removed, so
+there is one name. `measure_stability` itself carried the same ⊥-invention as
+the ERP `phrase_stability`: `0.0` when the area holds no assembly, which every
+consumer reads as MAXIMALLY WOBBLY. Migrated, with its one real caller
+(`generation/neural_decoder.py`) now answering "not found" explicitly.
+
+- **Remaining:** 19 metric-named functions still invent a bottom (24 sites),
+  enumerated by an AST census; the live-path ones worth doing next are
+  `_role_binding_margin` (task #110 — it returns TWO quantities under one name
+  and they are normalized against each other), `signal_confidence`,
+  `mean_jaccard_instability` and `bind_strength`. The corrected `defined_values`
+  aggregation still awaits its A/B.
+- **Coverage gap found in passing:** `testpaths = ["neural_assemblies/tests"]`,
+  so `nemo/language/emergent/tests/` is not in the default suite at all — the
+  `brain.py` change above has no CI coverage and was verified by running that
+  directory by hand.
 
 **NOTE ON CACHE INVALIDATION:** Phase 1 edits `core/` and `assembly_calculus/`,
 both of which ARE in `_TRAINING_SOURCE_DIRS`, so the backbone fingerprint

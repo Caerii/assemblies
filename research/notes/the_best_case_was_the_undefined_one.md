@@ -66,6 +66,19 @@ entire seed came out perfect, which nothing recorded. The first effect needs no
 measurement: it is structural, and it is why the number was **biased downward by
 a filter that looked like hygiene**.
 
+## What has to be retracted: nothing
+
+Checked before claiming a cost. No note in `research/notes/` or `docs/` cites an
+`area_health` margin numerically — the `margin 11.9x` figures in
+`a_grammar_that_cannot_reject.md` and `erp_metric_is_clipped.md` are
+`p600_margin`, a detector THRESHOLD, an unrelated quantity. The biased number
+appears only in `overnight_characterization`'s capacity table and in the
+self-check's console output, neither of which is cited as a result.
+
+So the defect is real and structural, and its published blast radius is zero.
+Both halves of that are worth stating: "biased by construction" without "and
+here is what it changed" is the kind of alarm that costs a day.
+
 ## The fix
 
 *Unbounded is not undefined.* `best/0` with `best > 0` is infinity, and saying

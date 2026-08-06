@@ -22,6 +22,7 @@ import numpy as np
 from typing import Dict, Optional, Set, Tuple, List
 from collections import defaultdict
 
+from neural_assemblies.core.measurement import Measured
 from neural_assemblies.nemo.core.kernel import projection_fp16_kernel, hebbian_kernel
 from .areas import Area, NUM_AREAS, MUTUAL_INHIBITION_GROUPS
 from .params import EmergentParams, GroundingModality
@@ -404,30 +405,43 @@ class EmergentNemoBrain:
     # STABILITY MEASUREMENT
     # =========================================================================
     
-    def measure_stability(self, area: Area, rounds: int = 3) -> float:
+    def measure_stability(self, area: Area, rounds: int = 3) -> Measured:
         """
         Measure assembly stability in an area.
-        
+
         Stable assembly = valid parse/category
         Wobbly assembly = error/wrong category
+
+        UNDEFINED when the area holds no assembly, rather than 0.0. Both
+        consumers read low stability as WOBBLY -- `test_merge_stability` calls
+        it incompatible, and the decoder's "does this pattern exist" check
+        thresholds it at 0.3 -- so returning 0.0 for "there was nothing to
+        measure" hands each of them a maximally confident wrong answer. Same
+        defect as the ERP `phrase_stability` readout, in the other half of the
+        codebase; see `core/measurement`.
         """
         if self.current[area] is None:
-            return 0.0
-        
+            return Measured.undefined(
+                f"{area} holds no assembly, so there is nothing to re-project",
+                area=str(area))
+
         initial = set(self.current[area].get().tolist())
-        
+
         # Recurrent projection
         for _ in range(rounds):
             self._project(area, self.current[area], learn=False)
-        
+
         if self.current[area] is None:
-            return 0.0
-        
+            return Measured.undefined(
+                f"{area} was emptied by the re-projection, so there is no "
+                f"final assembly to compare against", area=str(area),
+                rounds=rounds)
+
         final = set(self.current[area].get().tolist())
-        
+
         # Calculate overlap
         intersection = len(initial & final)
-        return intersection / self.p.k
+        return Measured.of(intersection / self.p.k)
     
     def get_learned_strength(self, area: Area, inp: cp.ndarray) -> float:
         """Get strength of learned connections for input in an area"""
@@ -506,10 +520,12 @@ class EmergentNemoBrain:
         if role in self.inhibited:
             self.inhibited.remove(role)
     
-    def get_phrase_stability(self, phrase_area: Area, rounds: int = 3) -> float:
-        """Measure phrase stability (high = well-formed, low = malformed)."""
-        return self.measure_stability(phrase_area, rounds)
-    
+    # `get_phrase_stability` lived here as an exact one-line alias for
+    # `measure_stability` with a different name and a threshold claim in its
+    # docstring that nothing enforced. It had ZERO callers, in this file and in
+    # the orphaned duplicate of it deleted alongside. Two names for one
+    # measurement is how the two get fixed separately.
+
     def project_backwards(self, from_area: Area, to_area: Area) -> Optional[cp.ndarray]:
         """Project backwards for generation (SENT → VP → NP → LEX)."""
         if self.current[from_area] is None:
@@ -525,7 +541,7 @@ class EmergentNemoBrain:
     # if the result is STABLE. We don't query - we test.
     
     def test_merge_stability(self, target_area: Area, candidate: cp.ndarray,
-                             stability_rounds: int = 3) -> float:
+                             stability_rounds: int = 3) -> Measured:
         """
         Test if merging a candidate into an area produces a stable result.
         
@@ -537,8 +553,11 @@ class EmergentNemoBrain:
         
         High stability (>0.5) = compatible
         Low stability (<0.3) = incompatible (wobbly)
-        
-        Returns: stability score (0.0 to 1.0)
+
+        Returns: a `Measured` stability, UNDEFINED when the merge left nothing
+        in the target area. "Incompatible" and "the merge produced no assembly
+        to judge" are different answers, and only one of them is about the
+        candidate.
         """
         # Save current state
         saved_current = self.current[target_area]

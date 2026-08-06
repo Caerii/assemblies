@@ -367,11 +367,20 @@ class EmergentRetriever:
             return False, 0.0
         
         # Measure stability - high stability means this is a learned pattern
-        stability = self.brain.measure_stability(Area.VP, rounds=3)
-        
+        measured = self.brain.measure_stability(Area.VP, rounds=3)
+
+        # An UNDEFINED stability means the re-projection emptied VP, so there
+        # was no assembly to judge. That is not evidence that the pattern is
+        # absent -- but this predicate has to answer yes or no, so it answers
+        # "not found" EXPLICITLY rather than by reading an invented 0.0.
+        if not measured.defined:
+            return False, 0.0
+
+        stability = float(measured)
+
         # Threshold for "exists"
         exists = stability > 0.3
-        
+
         return exists, stability
 
 
