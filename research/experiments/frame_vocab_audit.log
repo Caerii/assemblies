@@ -1,0 +1,63 @@
+depth=SENTENCES seed=11
+registered stimuli: 517   words with a core assembly: 123   declared holdouts: ['bird', 'finds', 'small']
+
+### DEFAULT_CALIBRATION_FRAMES
+  grammatical         trained noun object      the dog chases[UNTRAINED] cat[UNTRAINED]
+                      critical='cat' categories={'the': 'DET', 'dog': 'NOUN', 'chases': 'NOUN', 'cat': 'NOUN'}
+  grammatical         trained noun object 2    the cat[UNTRAINED] sees[UNTRAINED] dog
+                      critical='dog' categories={'the': 'DET', 'cat': 'NOUN', 'sees': 'VERB', 'dog': 'NOUN'}
+  grammatical         trained noun object 3    she[UNTRAINED] chases[UNTRAINED] the cat[UNTRAINED]
+                      critical='cat' categories={'she': 'NOUN', 'chases': 'NOUN', 'the': 'DET', 'cat': 'NOUN'}
+  category_violation  verb as object           the dog chases[UNTRAINED] finds[holdout]
+                      critical='finds' categories={'the': 'DET', 'dog': 'NOUN', 'chases': 'NOUN', 'finds': 'VERB'}
+  category_violation  verb as object 2         the cat[UNTRAINED] sees[UNTRAINED] runs[UNTRAINED]
+                      critical='runs' categories={'the': 'DET', 'cat': 'NOUN', 'sees': 'VERB', 'runs': 'VERB'}
+  category_violation  verb as object 3         she[UNTRAINED] chases[UNTRAINED] the eats[UNTRAINED]
+                      critical='eats' categories={'she': 'NOUN', 'chases': 'NOUN', 'the': 'DET', 'eats': 'VERB'}
+  novel_noun          holdout noun object      the dog chases[UNTRAINED] bird[holdout]
+                      critical='bird' categories={'the': 'DET', 'dog': 'NOUN', 'chases': 'NOUN', 'bird': 'NOUN'}
+  novel_noun          holdout noun subject     the bird[holdout] sees[UNTRAINED] the cat[UNTRAINED]
+                      critical='bird' categories={'the': 'DET', 'bird': 'NOUN', 'sees': 'VERB', 'cat': 'NOUN'}
+  novel_noun          holdout adj attributive  the small[holdout] dog runs[UNTRAINED]
+                      critical='small' categories={'the': 'DET', 'small': 'VERB', 'dog': 'NOUN', 'runs': 'VERB'}
+  --> 9/9 items contain a word that is neither trained nor a declared holdout
+
+### AREA_MATCHED_CALIBRATION_FRAMES
+  grammatical         trained noun object      the dog chases[UNTRAINED] cat[UNTRAINED]
+                      critical='cat' categories={'the': 'DET', 'dog': 'NOUN', 'chases': 'NOUN', 'cat': 'NOUN'}
+  grammatical         trained noun object 2    the cat[UNTRAINED] sees[UNTRAINED] dog
+                      critical='dog' categories={'the': 'DET', 'cat': 'NOUN', 'sees': 'VERB', 'dog': 'NOUN'}
+  grammatical         trained noun object 3    she[UNTRAINED] chases[UNTRAINED] the cat[UNTRAINED]
+                      critical='cat' categories={'she': 'NOUN', 'chases': 'NOUN', 'the': 'DET', 'cat': 'NOUN'}
+  category_violation  verb as object           the dog chases[UNTRAINED] finds[holdout]
+                      critical='finds' categories={'the': 'DET', 'dog': 'NOUN', 'chases': 'NOUN', 'finds': 'VERB'}
+  category_violation  verb as object 2         the cat[UNTRAINED] sees[UNTRAINED] runs[UNTRAINED]
+                      critical='runs' categories={'the': 'DET', 'cat': 'NOUN', 'sees': 'VERB', 'runs': 'VERB'}
+  category_violation  verb as object 3         she[UNTRAINED] chases[UNTRAINED] the eats[UNTRAINED]
+                      critical='eats' categories={'she': 'NOUN', 'chases': 'NOUN', 'the': 'DET', 'eats': 'VERB'}
+  novel_noun          holdout noun object      the dog chases[UNTRAINED] bird[holdout]
+                      critical='bird' categories={'the': 'DET', 'dog': 'NOUN', 'chases': 'NOUN', 'bird': 'NOUN'}
+  novel_noun          holdout noun object 2    the cat[UNTRAINED] sees[UNTRAINED] bird[holdout]
+                      critical='bird' categories={'the': 'DET', 'cat': 'NOUN', 'sees': 'VERB', 'bird': 'NOUN'}
+  novel_noun          holdout noun object 3    she[UNTRAINED] chases[UNTRAINED] the bird[holdout]
+                      critical='bird' categories={'she': 'NOUN', 'chases': 'NOUN', 'the': 'DET', 'bird': 'NOUN'}
+  --> 9/9 items contain a word that is neither trained nor a declared holdout
+
+### SWEEP_CALIBRATION_FRAMES
+  grammatical         trained noun object      the dog chases[UNTRAINED] cat[UNTRAINED]
+                      critical='cat' categories={'the': 'DET', 'dog': 'NOUN', 'chases': 'NOUN', 'cat': 'NOUN'}
+  grammatical         trained noun object 2    she[UNTRAINED] chases[UNTRAINED] the cat[UNTRAINED]
+                      critical='cat' categories={'she': 'NOUN', 'chases': 'NOUN', 'the': 'DET', 'cat': 'NOUN'}
+  category_violation  verb as object           the dog chases[UNTRAINED] finds[holdout]
+                      critical='finds' categories={'the': 'DET', 'dog': 'NOUN', 'chases': 'NOUN', 'finds': 'VERB'}
+  category_violation  verb as object 2         she[UNTRAINED] chases[UNTRAINED] the eats[UNTRAINED]
+                      critical='eats' categories={'she': 'NOUN', 'chases': 'NOUN', 'the': 'DET', 'eats': 'VERB'}
+  novel_noun          holdout noun object      the dog chases[UNTRAINED] bird[holdout]
+                      critical='bird' categories={'the': 'DET', 'dog': 'NOUN', 'chases': 'NOUN', 'bird': 'NOUN'}
+  novel_noun          holdout adj attributive  the small[holdout] dog runs[UNTRAINED]
+                      critical='small' categories={'the': 'DET', 'small': 'VERB', 'dog': 'NOUN', 'runs': 'VERB'}
+  --> 6/6 items contain a word that is neither trained nor a declared holdout
+
+A HOLDOUT IS SUPPOSED TO BE UNTRAINED -- that is what makes the
+novel arm novel. An UNTRAINED non-holdout is the defect: the item
+does not test what its label says, and nothing raises.
