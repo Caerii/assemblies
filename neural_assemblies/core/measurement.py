@@ -119,6 +119,19 @@ class Measured:
             return f"UNDEFINED ({self.why})"
         return f"{self.value:.6f}"
 
+    def __format__(self, spec: str) -> str:
+        """``f"{m:.4f}"`` formats the value, and RAISES when undefined.
+
+        Without this, a format spec falls through to ``object.__format__``,
+        which raises an unhelpful TypeError for a defined value and -- worse --
+        an f-string with no spec would print the ``__str__`` form. Routing
+        through ``__float__`` keeps the one rule: an undefined measurement
+        cannot be rendered as a number anywhere, including in a report.
+        """
+        if not spec:
+            return str(self)
+        return format(float(self), spec)
+
 
 def defined_values(measurements) -> list:
     """The defined values only, for aggregating over a set of probes.

@@ -162,3 +162,49 @@ class TestProvenanceIsRecorded:
         p = Provenance(cache_stats_before={"disk_hits": "?"},
                        cache_stats_after={"disk_hits": "?"})
         assert p.cache_disk_hits == 0
+
+
+# --------------------------------------------------------------------------
+# Arms must report the SAME metrics -- a gap is not a zero
+# --------------------------------------------------------------------------
+
+def test_study_refuses_arms_that_report_different_metrics():
+    """The metric set is the UNION over arms, so a gap used to be filled with 0.0.
+
+    That fill is ASYMMETRIC between the arms -- the arm that omitted the metric
+    gets a fabricated 0.0 and the other gets its real value -- so it moves the
+    very delta the harness exists to measure, by an amount nobody chose. This
+    was live in `study()` as `.get(metric, 0.0)` until 2026-08-05.
+    """
+    with pytest.raises(ValueError, match="did not report the same metrics"):
+        study(
+            arms={"ctrl": lambda s: {"acc": 0.5, "margin": 2.0},
+                  "cand": lambda s: {"acc": 0.9}},          # no `margin`
+            seeds=[1, 2, 3],
+        )
+
+
+def test_study_names_the_arm_seed_and_metric_that_is_missing():
+    """A refusal that does not say WHAT is missing sends the reader back to the
+    code, which is the failure mode `Verdict` exists to prevent."""
+    with pytest.raises(ValueError) as excinfo:
+        study(
+            arms={"ctrl": lambda s: {"acc": 0.5, "margin": 2.0},
+                  "cand": lambda s: ({"acc": 0.9} if s == 2
+                                     else {"acc": 0.9, "margin": 3.0})},
+            seeds=[1, 2, 3],
+        )
+    message = str(excinfo.value)
+    assert "cand" in message and "seed 2" in message and "margin" in message
+    assert "ctrl" not in message.split("comparable")[-1], (
+        "only the arm that actually omitted a metric should be listed")
+
+
+def test_study_accepts_arms_that_report_the_same_metrics():
+    """The other direction: the guard must not reject a well-formed study."""
+    result = study(
+        arms={"ctrl": lambda s: {"acc": 0.5, "margin": 2.0},
+              "cand": lambda s: {"acc": 0.9, "margin": 3.0}},
+        seeds=[1, 2, 3],
+    )
+    assert set(result.metrics) == {"acc", "margin"}

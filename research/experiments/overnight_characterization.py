@@ -55,6 +55,7 @@ os.environ.setdefault("TRAIN_PROGRESS", "0")
 REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, REPO)
 
+from neural_assemblies.core.measurement import defined_values  # noqa: E402
 from neural_assemblies.diagnostics import area_health, read_assembly  # noqa: E402
 
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)),
@@ -139,8 +140,21 @@ def capacity(fn, **kw):
         except Exception as exc:
             flags.append(f"{type(exc).__name__}@M={m}")
             break
-        acc = statistics.mean(h.accuracy for h in hs)
-        mar = statistics.mean(h.margin for h in hs if h.margin == h.margin)
+        # `h.accuracy` and `h.margin` are `Measured`, not floats. The old code
+        # averaged accuracy unguarded and hand-filtered margin with the NaN
+        # idiom `h.margin == h.margin` on the very next line -- and that filter
+        # dropped exactly the seeds where separation was PERFECT, so the
+        # reported margin was a mean over the worse half. `defined_values`
+        # drops only genuinely-unmeasurable readings, and says how many.
+        accs = defined_values([h.accuracy for h in hs])
+        mars = defined_values([h.margin for h in hs])
+        if len(accs) < len(hs):
+            flags.append(f"ACC_UNDEFINED@M={m}({len(hs) - len(accs)}/{len(hs)})")
+            break
+        acc = statistics.mean(accs)
+        mar = statistics.mean(mars) if mars else float("nan")
+        if len(mars) < len(hs):
+            flags.append(f"margin over {len(mars)}/{len(hs)} seeds@M={m}")
         if any(not h.trustworthy for h in hs):
             flags.append(f"UNTRUSTWORTHY@M={m}")
             break

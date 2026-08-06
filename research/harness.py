@@ -259,10 +259,26 @@ def study(
         for name in run_order:
             readings[name][seed] = dict(arms[name](seed))
 
+    # The metric set is the UNION over arms and seeds, so a reading that omits a
+    # metric would have been filled with `.get(metric, 0.0)` below -- silently,
+    # and ASYMMETRICALLY between the arms, which fabricates the delta this
+    # harness exists to measure. A missing metric is a bug in the arm, not a
+    # zero: refuse it and name exactly what is missing where.
     metric_names = sorted({
         k for per_seed in readings.values()
         for vals in per_seed.values() for k in vals
     })
+    missing = [
+        f"{name}/seed {seed}: {sorted(set(metric_names) - set(vals))}"
+        for name, per_seed in readings.items()
+        for seed, vals in sorted(per_seed.items())
+        if set(metric_names) - set(vals)
+    ]
+    if missing:
+        raise ValueError(
+            "arms did not report the same metrics, so the arms are not "
+            "comparable. Filling the gaps with 0.0 would move the delta by an "
+            "amount nobody chose:\n  " + "\n  ".join(missing))
 
     fp_after, stats_after = _provenance_snapshot()
     prov = Provenance(
@@ -275,9 +291,12 @@ def study(
 
     out: Dict[str, MetricResult] = {}
     for metric in metric_names:
-        ctrl = ensemble(lambda s, m=metric: float(readings[ctrl_name][s].get(m, 0.0)),
+        # Indexed, not `.get`-with-a-default: every metric is present for every
+        # seed in both arms by the check above, so a KeyError here would be a
+        # real inconsistency and should surface as one.
+        ctrl = ensemble(lambda s, m=metric: float(readings[ctrl_name][s][m]),
                         seeds, f"{metric}/{ctrl_name}")
-        cand = ensemble(lambda s, m=metric: float(readings[cand_name][s].get(m, 0.0)),
+        cand = ensemble(lambda s, m=metric: float(readings[cand_name][s][m]),
                         seeds, f"{metric}/{cand_name}")
         d = paired_delta(cand, ctrl, f"{metric}/delta")
         res = MetricResult(metric=metric, control=ctrl, candidate=cand, delta=d)

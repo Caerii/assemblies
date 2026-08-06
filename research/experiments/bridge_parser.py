@@ -352,15 +352,26 @@ if __name__ == "__main__":
             print(f"    {'area':<16} {'items':>6} {'distinct':>9} "
                   f"{'spread':>8} {'floor':>8}  verdict")
             for area, hs in sorted(agg.items()):
-                mean = lambda f: sum(f(h) for h in hs) / len(hs)  # noqa: E731
-                dfrac = mean(lambda h: h.distinct_frac)
-                spr = mean(lambda h: h.spread)
-                floor = hs[0].floor
+                # These are `Measured`. Averaging over a mixture would be the
+                # aggregate form of the ⊥-invention this module exists to
+                # catch, so undefined readings are dropped and COUNTED -- a
+                # mean over 2 of 9 seeds is a different claim from one over 9.
+                from neural_assemblies.core.measurement import defined_values
+
+                def mean(f, hs=hs):
+                    vals = defined_values([f(h) for h in hs])
+                    return (sum(vals) / len(vals) if vals else float("nan"),
+                            len(hs) - len(vals))
+                dfrac, dfrac_drop = mean(lambda h: h.distinct_frac)
+                spr, spr_drop = mean(lambda h: h.spread)
+                dropped = max(dfrac_drop, spr_drop)
+                floor = hs[0].floor.or_else(float("nan"))
                 collapsed = sum(h.collapsed for h in hs)
                 print(f"    {area:<16} {hs[0].n_items:>6} {dfrac:>9.3f} "
                       f"{spr:>8.4f} {floor:>8.4f}  "
                       f"{'COLLAPSED' if collapsed > len(hs) / 2 else 'ok'} "
-                      f"({collapsed}/{len(hs)} seeds)")
+                      f"({collapsed}/{len(hs)} seeds)"
+                      + (f"  [{dropped} undefined]" if dropped else ""))
             if task:
                 # Chance is 1/n_items, so 0.333 for three words -- printed so a
                 # metric sitting exactly at chance is recognisable as such
