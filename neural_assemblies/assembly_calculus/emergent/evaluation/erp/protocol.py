@@ -91,42 +91,44 @@ class ErpProtocol:
             it SHRINKS, which is what removing a confound is supposed to do.
             The 0.906 was the confound; 0.717 is the effect.
         expected_slot_source_core: ALSO take the probe's SOURCE core from the
-            expected category, not only its target area. ADOPTED AND ON since
-            2026-08-06. `ERP_EXPECTED_SLOT_SOURCE_CORE=0` restores the old
-            observed-category source for reproducing pre-adoption numbers.
+            expected category. **OFF, AND IT MUST STAY OFF -- it does not
+            remove a confound, it removes the METRIC'S MECHANISM.** Kept only
+            as a LESION control, because switching it on is the cleanest way to
+            ask how much of the P600 flows through the designed pathway.
 
-            `expected_slot` has THREE consumers of "the category":
-            `role_area` (the probe's target), `phrase_category` (which phrase
-            areas are read), and `core` (the probe's SOURCE). It reached the
-            first two. `core` is still `CATEGORY_TO_CORE[observed]`, so the
-            violation arm reads VERB_CORE -> ROLE_PATIENT while its control
-            reads NOUN_CORE -> ROLE_PATIENT: area identity again, one level
-            over, and the same one-sibling shape the fix itself was written to
-            close. The comment above the block even says "when the slot is
-            predicted, the category it predicts is nominal" -- and then does
-            not apply that to `core`.
+            IT WAS ADOPTED ON 2026-08-06 AND REVERTED THE SAME DAY. The
+            reasoning that adopted it: `expected_slot` reads "the category"
+            three times -- `role_area` (probe TARGET), `phrase_category`, and
+            `core` (probe SOURCE) -- and reached only the first two, so the
+            violation arm read VERB_CORE -> ROLE_PATIENT while its control read
+            NOUN_CORE -> ROLE_PATIENT. That looked exactly like #108's
+            area-identity confound one level over.
 
-            MEASURED with the condition HELD CONSTANT
-            (`erp_source_core_identity_control.py`): the same grammatical
-            sentence, the same trained noun in object position, with only the
-            category LABEL handed to the metric changed, separates at AUC
-            0.78 / 0.89 / 0.89 over seeds 11/12/42, span 0.0058-0.0071 against
-            the real contrast's 0.0064. A control containing no violation of
-            any kind scores about as high as the reported effect.
+            IT IS NOT. `anchored_p600_live`'s own docstring states the design:
+            "a category violation routes a WRONGLY-TYPED CORE through an
+            UNTRAINED PATHWAY and delivers LESS". The source core differing
+            between arms IS the mechanism -- that is what a category violation
+            physically is in this architecture. #108's target-area problem was
+            different in kind: `VP -> VP` is unmaterialized, so that probe was
+            reading a fiber that does not exist. A live trained area and a live
+            untrained pathway are not the same thing as a dead one.
 
-            ADOPTED on a pre-registered cold study
-            (`erp_source_core_study.py`, 10 seeds, disk_hits=0
-            trained_fresh=10): p600_auc_of_raw 0.7167+/-0.0805 ->
-            0.6056+/-0.0545, delta -0.1111+/-0.0898 with the CI excluding
-            zero, above chance on EVERY seed, span unchanged at 0.0064. It
-            shrinks and does not invert -- what removing a confound looks
-            like, and the same shape as `expected_slot` itself.
+            THE CONTROL THAT "PROVED" THE CONFOUND WAS NOT CONDITION-CONSTANT.
+            `erp_source_core_identity_control.py` forced a trained noun's
+            category to VERB and reported AUC 0.78/0.89/0.89, described as "only
+            the category LABEL handed to the metric changed". False:
+            `_advance_incremental_word` computes
+            `core_area = CATEGORY_TO_CORE[cat]` and PROJECTS THE WORD THERE, so
+            forcing VERB puts the noun in VERB_CORE and reads the untrained
+            pathway. The control manufactured a genuine category violation and
+            then reported the metric detecting it as evidence of a confound.
 
-            SO THE HEADLINE P600 HAS NOW SHRUNK TWICE:
-                0.9056  no area matching at all
-                0.7167  probe TARGET matched      (f79c4f5)
-                0.6056  probe SOURCE matched too  (this)
-            About two thirds of the original figure was area identity.
+            So the 0.78-0.89 is the metric WORKING, and turning this flag on
+            costs 0.7167 -> 0.6056 by neutralising the source: both arms then
+            read NOUN_CORE, where the violation arm holds a STALE SUBJECT
+            assembly rather than the critical word at all. That 0.1111 is a
+            lower bound on how much of the P600 travels through the pathway
+            mechanism, which is the one useful thing the episode produced.
         afferent_energy: measure drive INTO an area instead of self-recurrent
             energy. NOT ADOPTED, re-measured 2026-08-06 now that the arms ARE
             area-matched: AUC 0.7167 -> 0.7500, delta +0.0333+/-0.0627 with the
@@ -138,7 +140,7 @@ class ErpProtocol:
     """
 
     expected_slot: bool = True
-    expected_slot_source_core: bool = True
+    expected_slot_source_core: bool = False
     afferent_energy: bool = False
     debug: bool = False
 

@@ -46,6 +46,28 @@ chance, or constant across seeds. Both are encoded above.
 
 RUN COLD -- `ASSEMBLIES_BACKBONE_CACHE=0` -- or it is evidence about cached
 parsers only.
+
+RE-RUN 2026-08-06 ON A DIFFERENT METRIC, and the reason is worth stating because
+it is a trap this file walked into once.
+
+The first run of this study returned p600 AUC exactly 1.0000 with ZERO variance
+for `trained_area_matched`, which failed the `must_vary` bar. Asking WHY a score
+was perfect found the cause: `expected_slot` corrected the probe's TARGET area
+but not its SOURCE core, so the violation arm read VERB_CORE -> ROLE_PATIENT
+against a control reading NOUN_CORE -> ROLE_PATIENT. That was measured, adopted
+as `expected_slot_source_core` (0d70cc8), and moved the headline 0.7167 ->
+0.6056.
+
+**Which means the 1.0000 was measured on the metric that had the confound in
+it -- the confound this study's own result was used to diagnose.** The adoption
+invalidated the study that motivated it. So every number below the first run is
+superseded, and the re-run is not a repetition: it is the first time clean ITEMS
+and a clean METRIC are measured together.
+
+It is also self-checking. A collapse toward ~0.6 confirms the source-core
+diagnosis end to end. A 1.0000 that SURVIVES means there is a third confound and
+the explanation was incomplete -- which is the more informative outcome and the
+one to hope for last.
 """
 import os
 import sys

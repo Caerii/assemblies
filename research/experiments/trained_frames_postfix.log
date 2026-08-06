@@ -1,0 +1,27 @@
+STUDY A -- area-matching alone (both arms share the same untrained
+vocabulary, so any difference is the item POSITIONS)
+study over 10 seeds [11, 12, 13, 42, 7, 19, 23, 31, 37, 101] (order=counterbalance)
+  substrate: disk_hits=0 trained_fresh=10 backbone_cache=OFF fingerprint=158files
+  p600_auc_of_raw   0.6056+/-0.0545   ->   0.6056+/-0.0576    delta +0.0000+/-0.0649  [FAIL]
+      - below 0.5 on seeds [37] -- a mean hides a single-seed inversion, which is how the last structural change passed review
+  p600_span_of_raw   0.0064+/-0.0008   ->   0.0064+/-0.0008    delta -0.0000+/-0.0004  [PASS]
+  untrained_items   9.0000+/-0.0000   ->   9.0000+/-0.0000    delta +0.0000+/-0.0000  [PASS]
+  VERDICT: FAIL
+
+STUDY B -- vocabulary alone (both arms are area-matched already, so
+any difference is that the words were actually TRAINED)
+study over 10 seeds [11, 12, 13, 42, 7, 19, 23, 31, 37, 101] (order=counterbalance)
+  substrate: disk_hits=0 trained_fresh=0 backbone_cache=OFF fingerprint=158files
+  p600_auc_of_raw   0.6056+/-0.0576   ->   0.9278+/-0.0594    delta +0.3222+/-0.0616  [PASS]
+  p600_span_of_raw   0.0064+/-0.0008   ->   0.0081+/-0.0010    delta +0.0017+/-0.0008  [PASS]
+  untrained_items   9.0000+/-0.0000   ->   0.0000+/-0.0000    delta -9.0000+/-0.0000  [PASS]
+  VERDICT: PASS
+
+A + B compose: `area_matched` is the shared arm, so study A prices
+the positions and study B prices the vocabulary, on one substrate.
+
+`untrained_items` counts frames containing a word that is neither
+trained nor a declared holdout. It should read 9 for both older
+arms and 0 for the trained arm -- if it does not, the arms are not
+what this study says they are.
+

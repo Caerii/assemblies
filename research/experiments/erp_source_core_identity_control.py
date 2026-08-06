@@ -1,4 +1,49 @@
-"""Does the P600 read INTEGRATION, or just which core area the word came from?
+"""RETRACTED CONTROL -- it was not condition-constant, and the retraction is
+the finding.
+
+WHAT THIS SCRIPT CLAIMED. That holding the CONDITION constant -- same
+grammatical sentence, same trained noun in object position, "only the category
+LABEL handed to the metric changed" -- still separates at AUC 0.78 / 0.89 /
+0.89, and that this proved the P600 was reading SOURCE CORE IDENTITY rather
+than integration difficulty. `expected_slot_source_core` was adopted on that
+basis and the headline moved 0.7167 -> 0.6056.
+
+WHY IT IS WRONG. `forced_category` is not a label. `_advance_incremental_word`
+does:
+
+    core_area = CATEGORY_TO_CORE.get(cat, self._word_core_area(word))
+    project(self.brain, phon, core_area, rounds=rounds)
+
+so forcing VERB PROJECTS THE NOUN INTO VERB_CORE, and the probe then reads
+VERB_CORE -> ROLE_PATIENT: an untrained pathway. That is precisely what
+`anchored_p600_live` documents a category violation to BE -- "a wrongly-typed
+core routed through an untrained pathway". **The control manufactured a real
+category violation and then reported the metric detecting it as proof of a
+confound.**
+
+So the 0.78-0.89 is the metric WORKING. The adoption was reverted.
+
+WHAT THE NUMBERS STILL MEAN. Read the other way round, they are a decent
+demonstration that the pathway mechanism is load-bearing: type a trained noun as
+a verb and the P600 rises, on the same sentence, at the same position. Together
+with the lesion measurement (matching the source costs 0.7167 -> 0.6056, because
+the violation arm then reads a STALE SUBJECT assembly in NOUN_CORE instead of
+the critical word), that is a lower bound on how much of the effect flows
+through the designed route.
+
+THE LESSON, which is the reason this file is kept rather than deleted: a control
+is only condition-constant if you have checked what its knob DOES, not what its
+parameter is called. `forced_category` reads like an annotation and is a
+projection target. Same shape as [[same-name-two-meanings]], and it cost an
+adoption.
+
+THE CONTROL THIS STILL NEEDS: run the SAME frames on an untrained or shallow
+parser, which changes no typing at all. If the separation survives there, it is
+structural; if it collapses, it is learned.
+
+--- original docstring below, retained so the retraction can be checked ---
+
+Does the P600 read INTEGRATION, or just which core area the word came from?
 
 THE 1.0000 THAT PROMPTED THIS. `TRAINED_AREA_MATCHED_CALIBRATION_FRAMES` --
 items whose words are all trained and stably classified -- scores p600 AUC

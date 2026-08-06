@@ -564,18 +564,24 @@ def measure_live_integration(
     # the confound straight into the stability term and area-match only half the
     # metric. When the slot is predicted, the category it predicts is nominal.
     #
-    # THE FIX REACHED TWO OF THREE CONSUMERS. "The category" is read three
-    # times here -- for `role_area` (the probe's TARGET), for
-    # `phrase_category` (which phrase areas are read), and for `core` (the
-    # probe's SOURCE, computed above). `expected_slot` corrected the first two
-    # and left the third on the observed category, so the violation arm reads
-    # VERB_CORE -> ROLE_PATIENT against a control reading
-    # NOUN_CORE -> ROLE_PATIENT. Area identity, one level over, in the fix
-    # written to remove area identity. Measured with the CONDITION HELD
-    # CONSTANT -- same sentence, same trained noun, only the category LABEL
-    # changed -- that difference alone separates at AUC 0.78/0.89/0.89 with a
-    # span (0.0058-0.0071) matching the real contrast's 0.0064.
-    # See research/experiments/erp_source_core_identity_control.py.
+    # `core` STAYS ON THE OBSERVED CATEGORY, AND THAT IS THE DESIGN.
+    #
+    # "The category" is read three times here -- `role_area` (the probe's
+    # TARGET), `phrase_category` (which phrase areas are read), and `core` (the
+    # probe's SOURCE, computed above). It is tempting to read the third as a
+    # missed sibling of the #108 fix. It is not.
+    #
+    # `anchored_p600_live` measures a category violation BY the source core
+    # differing: a wrongly-typed core routes through an UNTRAINED core->role
+    # pathway and delivers less drive. Matching the source would delete the
+    # mechanism, not a confound. #108's target problem was different in kind --
+    # `VP -> VP` is unmaterialized, so that probe read a fiber that does not
+    # exist; a live untrained pathway is not a dead one.
+    #
+    # Measured: forcing the source to match costs 0.7167 -> 0.6056, because the
+    # violation arm then reads NOUN_CORE holding a STALE SUBJECT assembly
+    # instead of the critical word. `protocol.expected_slot_source_core` keeps
+    # that available as a LESION control and is off by default.
     role_area = None
     phrase_category = category
     if protocol.expected_slot and verb_seen_before is not None:
