@@ -398,56 +398,49 @@ def expected_role_area(
 
 
 def _expected_slot_enabled() -> bool:
-    """A/B seam, DEFAULT OFF. `ERP_EXPECTED_SLOT=1` dispatches on the predicted
-    slot; the shipped default keeps the observed-category dispatch.
+    """ADOPTED, DEFAULT ON (2026-08-06). `ERP_EXPECTED_SLOT=0` restores the old
+    observed-category dispatch for reproducing pre-adoption numbers.
 
-    ADOPTION WAS ATTEMPTED AND ROLLED BACK, AND THE BLOCKER IS NOT THIS CODE.
-    Flipping the default failed 4 ERP tests, but THE FAILURES ARE
-    ORDER-DEPENDENT and do not reproduce in isolation:
+    THE PREVIOUS VERSION OF THIS DOCSTRING WAS WRONG, and wrong in the way this
+    module is about. It said, under a heading reading "RESOLVED":
 
-        pytest test_erp_metric_range.py                  3 passed, 1 xfailed
-        pytest test_erp_calibration.py                   3 passed, 1 xpassed
-        pytest test_erp_calibration.py test_erp_metric_range.py
-                                                         6 passed, 1 xfailed
-        pytest -k erp   (full selection)                 4 FAILED
+        IT IS THE BACKBONE CACHE, AND THE DISPATCH REALLY DOES INVERT ON A
+        FRESHLY-TRAINED PARSER.
 
-    all with ERP_EXPECTED_SLOT=1. A cold single-arm process
-    (research/experiments/erp_cold_vs_warm_arm.py) reads seed 11 exp raw p600
-    AUC 1.000 on gram [0.988, 0.9923, 0.9881] vs catv [0.9927, 0.993, 0.9927],
-    while the in-suite failure read gram [0.9932, 0.9928, 0.9945] vs catv
-    [0.9927, 0.9925, 0.9924] -- a different parser state entirely.
-
-    RESOLVED: IT IS THE BACKBONE CACHE, AND THE DISPATCH REALLY DOES INVERT ON A
-    FRESHLY-TRAINED PARSER.
+    The evidence was that flipping the default failed 4 ERP tests only in the
+    full `-k erp` selection and only on a cold cache, never in isolation:
 
         warm cache, default path            62 passed     75-128s
         warm cache, ERP_EXPECTED_SLOT=1     62 passed
         COLD cache, default path            62 passed     430s
         COLD cache, ERP_EXPECTED_SLOT=1      4 FAILED     339s
 
-    The DEFAULT path is consistent warm and cold, so the cache is not broadly
-    poisoning results -- but a cached parser and a freshly-trained one differ in
-    some structure that THIS dispatch reads and the shipped one does not. And
-    the 10-seed A/B below ran entirely on `get_parser_cache().fork()`, i.e. on
-    cached parsers, which is exactly why it looked good. AN A/B BUILT ON CACHED
-    PARSERS IS EVIDENCE ABOUT CACHED PARSERS ONLY.
+    That table is real. The INFERENCE from it was not. The cause was
+    `test_acquisition.py` setting `EMERGENT_DEV_CURRICULUM=1` AT MODULE LEVEL,
+    which pytest executes at collection and which therefore reconfigured
+    training for every later test in the process. Warm runs were immune because
+    they deserialize a parser instead of training one -- which is exactly what
+    made the cache look causal. Fixed in 7e8c61b; the same run is now 87 passed.
 
-    Likely mechanism, unconfirmed: same family as the VP self-fiber finding --
-    pre-grown pathways wire the neurons materialised at bootstrap and later
-    training recruits DIFFERENT ones, so what ROLE_PATIENT can reach is
-    training-path dependent. Fixing that is prior to re-testing this dispatch.
+    Note what the wrong diagnosis had going for it: a clean 2x2, a plausible
+    mechanism (pre-grown pathways wiring bootstrap neurons), and a correct
+    observation that an A/B on cached parsers is evidence about cached parsers
+    only. It was still wrong, and it blocked a real fix for a day. "Reproducible
+    under condition X" is not "caused by X".
 
-    THREE EXPLANATIONS RULED OUT on the way, recorded so they are not re-derived:
-      * cross-test state leakage: all four precursor files together pass.
-      * raw vs excess: A FALSE PREMISE I held briefly. `calibration.py` builds
-        `separation["p600_auc"]` from `catv_p600_raw, gram_p600_raw` -- the RAW
-        p600, the same quantity the tests rank. The two harnesses measure the
-        SAME thing and still disagreed, which is what leaves the cache standing.
-      * warm-up order in the A/B harness (obs first, exp second, one process):
-        refuted -- the COLD exp arm reads 1.000, not 0.000.
+    RE-MEASURED COLD THROUGH THE HARNESS, and the inversion does not exist:
 
-    RUNTIME IS THE TELL: 75-128s is a disk hit, 340-430s is a retrain. If a
-    result moves and the runtime jumped, suspect the substrate before the code.
+        ASSEMBLIES_BACKBONE_CACHE=0, 10 seeds, counterbalanced
+        substrate: disk_hits=0 trained_fresh=10 backbone_cache=OFF
+        p600_auc_of_raw    0.9056 +/- 0.0268  ->  0.7167 +/- 0.0805
+        p600_span_of_raw   0.0080 +/- 0.0006  ->  0.0064 +/- 0.0008
+        VERDICT: PASS
+
+    Identical to the warm numbers below. It does not invert; it SHRINKS.
+
+    RUNTIME IS STILL THE TELL: 75-128s is a disk hit, 340-430s is a retrain. If
+    a result moves and the runtime jumped, suspect the substrate before the
+    code -- just do not stop there, as I did.
 
         p600_auc   obs 0.9056 +/- 0.0268   exp 0.7167 +/- 0.0805
                    delta -0.1889 +/- 0.0627   (CI excludes zero)

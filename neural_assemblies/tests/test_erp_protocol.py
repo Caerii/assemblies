@@ -20,25 +20,54 @@ from neural_assemblies.assembly_calculus.emergent.evaluation.erp.protocol import
 
 class TestTheShippedDefault:
 
-    def test_both_measurement_flags_are_off(self):
-        """`expected_slot` inverts on fresh parsers; `afferent_energy` was
-        rejected on measurement (AUC 0.000, zero variance, four seeds)."""
-        assert DEFAULT_PROTOCOL.expected_slot is False
+    def test_expected_slot_is_on_and_afferent_energy_is_off(self):
+        """`expected_slot` was ADOPTED on 2026-08-06 (#108).
+
+        It is the only thing that area-matches the grammatical/violation
+        contrast: `structural_role_area` dispatches on the OBSERVED category,
+        so a category violation probes VP while its control probes
+        ROLE_PATIENT -- in every frame set, at every seed. Area-matched FRAMES
+        cannot fix that, because both shipped sets already put the critical
+        word in object position and the dispatch still splits them.
+
+        It was off on the claim that it "inverts on freshly-trained parsers".
+        REFUTED: cold, 10 seeds, `disk_hits=0 trained_fresh=10`, AUC
+        0.9056 -> 0.7167, above chance on every seed. It shrinks the effect,
+        which is what removing a confound does.
+
+        `afferent_energy` stays off: rejected on measurement (AUC 0.000, zero
+        seed variance) -- though that rejection was itself measured while the
+        arms probed different areas, so it is worth re-measuring now.
+        """
+        assert DEFAULT_PROTOCOL.expected_slot is True
         assert DEFAULT_PROTOCOL.afferent_energy is False
 
-    def test_default_describes_itself_as_default_not_as_nothing(self):
-        """A study that recorded no deviations must not look like one that
-        recorded nothing at all."""
-        assert DEFAULT_PROTOCOL.describe() == "default"
+    def test_the_default_describes_itself_rather_than_saying_nothing(self):
+        """A study that recorded no flags must not look like one that recorded
+        nothing at all -- and the description must name what was ON, not the
+        delta from a default that changes over time."""
+        assert DEFAULT_PROTOCOL.describe() == "expected_slot"
+        assert ErpProtocol(expected_slot=False).describe() == "no-flags"
 
 
 class TestAnArmIsAValue:
 
     def test_deriving_an_arm_is_an_expression(self):
+        """Stated in BOTH directions, so it does not silently become vacuous.
+
+        This used to derive `expected_slot=True` from a False default. When the
+        default flipped, `base.with_(expected_slot=True)` still passed while
+        asserting nothing -- base and arm agreed. Deriving the control arm off
+        the shipped default is the version that keeps testing something.
+        """
         base = ErpProtocol()
-        arm = base.with_(expected_slot=True)
-        assert arm.expected_slot is True
-        assert base.expected_slot is False, "deriving must not mutate the base"
+        control = base.with_(expected_slot=False)
+        assert control.expected_slot is False
+        assert base.expected_slot is True, "deriving must not mutate the base"
+
+        candidate = control.with_(expected_slot=True)
+        assert candidate.expected_slot is True
+        assert control.expected_slot is False, "deriving must not mutate the base"
 
     def test_the_protocol_is_frozen(self):
         """A mutable protocol is the environment variable with extra steps."""
