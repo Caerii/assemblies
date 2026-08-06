@@ -55,6 +55,53 @@ here); the violation arm is not constant.
 **The DROP is the result.** Removing a confound should shrink an inflated
 effect, not reverse it. 0.9056 was the confound; 0.7167 is the effect.
 
+## Verified directly, not inferred
+
+`research/experiments/erp_which_area_per_arm.py` under the adopted default,
+seed 11, at the critical word of each item:
+
+| condition | critical word | category | AREA PROBED |
+|---|---|---|---|
+| grammatical | `cat`, `dog`, `cat` | NOUN | ROLE_PATIENT ×3 |
+| category_violation | `finds`, `runs`, `eats` | **VERB** | **ROLE_PATIENT ×3** |
+
+The violation row previously read **VP**, where `phrase_stability` was a
+constant 0.0000 because `VP -> VP` has zero synapses. The headline contrast now
+probes one area and the metric is live on both arms (stability 0.0049 on
+violations, not 0.0000).
+
+The critical p600 values on that seed — grammatical [0.9907, 0.9950, 0.9880] vs
+violation [0.9973, 0.9929, 0.9927] — give 7 of 9 ordered pairs, AUC 0.778,
+consistent with the 0.7167 ensemble mean.
+
+### The NOVEL arm is still cross-area, and the dispatch cannot fix it
+
+| frame set | novel-arm critical probes | |
+|---|---|---|
+| `DEFAULT` | `bird` object → ROLE_PATIENT; `bird` **subject** → **ROLE_AGENT** | MISMATCHED |
+| `AREA_MATCHED` | `bird` ×3 → ROLE_PATIENT | clean |
+
+`expected_role_area` claims ONLY the post-verb object slot. Before the verb both
+a verb and further subject material are licensed, so it returns None and falls
+back to the observed-category dispatch — claiming an expectation there would be
+inventing structure. **So the two levers are complementary, not alternatives:
+the dispatch fixes the grammatical/violation contrast, and only the FRAMES fix
+the novel arm.** Promoting `AREA_MATCHED_CALIBRATION_FRAMES` to the default
+moves calibrated thresholds and every golden that depends on them, so it wants
+its own measurement — it is the remaining half of this, and it is what #28
+(the N400/novel arm) is blocked behind.
+
+### A defect in the diagnostic, found by using it
+
+The first version of that table was wrong on the novel row, because
+`erp_which_area_per_arm.py` picked the critical word as `probes[-1]` while the
+real calibration path uses `critical_position_for_frame`, which probes the
+HOLDOUT token. The two agree for grammatical and category_violation and diverge
+for novel_noun: for `the bird sees the cat` the calibration measures `bird`
+(subject) and the diagnostic measured `cat` (object, and a trained word). **A
+diagnostic that reimplements the rule it is diagnosing will eventually disagree
+with it** — the script now calls the shared function.
+
 ## What I got wrong, and it blocked this for a day
 
 The previous docstring said, under a heading reading **RESOLVED**:

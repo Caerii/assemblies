@@ -47,6 +47,10 @@ os.environ.setdefault("EMERGENT_ERP_FAST", "1")
 from neural_assemblies.assembly_calculus.emergent.evaluation.erp.frames import (  # noqa: E402
     AREA_MATCHED_CALIBRATION_FRAMES,
     DEFAULT_CALIBRATION_FRAMES,
+    critical_position_for_frame,
+)
+from neural_assemblies.assembly_calculus.emergent.evaluation.generalization import (  # noqa: E402
+    DEFAULT_LEXICON_HOLDOUTS,
 )
 from neural_assemblies.assembly_calculus.emergent.evaluation.erp.runner import (  # noqa: E402
     run_incremental_erp_probes,
@@ -70,10 +74,23 @@ def main(depth="SENTENCES", seed=11):
         rows = []
         for label, name, words in frames:
             _result, probes = run_incremental_erp_probes(parser, list(words))
-            # The CRITICAL word is the last one in every frame EXCEPT the
-            # attributive-adjective item, where it is `small` and the sentence
-            # continues. That frame is printed but excluded from the verdict.
-            crit = probes[-1]
+            # ASK THE CALIBRATION PATH which word is critical -- do not
+            # reimplement the rule.
+            #
+            # This script used `probes[-1]`, "the last word except the
+            # attributive item". That agrees with `critical_position_for_frame`
+            # for the grammatical and category_violation arms, and DISAGREES
+            # for novel_noun: the real rule probes the HOLDOUT token, so for
+            # `the bird sees the cat` the calibration measures `bird` (subject
+            # position) while this script measured `cat` (object position, and
+            # a trained word). The diagnostic was reporting a different word
+            # than the thing it was diagnosing -- and I read a novel-arm area
+            # off it before noticing.
+            pos = critical_position_for_frame(
+                label, list(words), holdout_words=set(DEFAULT_LEXICON_HOLDOUTS))
+            crit = probes[pos] if pos < len(probes) else probes[-1]
+            # The attributive item's critical word is mid-sentence by design,
+            # so it is printed but kept out of the per-condition verdict.
             attributive = "attributive" in name
             if not attributive:
                 by_cond[label][crit.role_area] += 1
