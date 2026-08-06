@@ -56,6 +56,10 @@ from .calibration import (
 from .frames import (
     DEFAULT_CALIBRATION_FRAMES,
     AREA_MATCHED_CALIBRATION_FRAMES,
+    TRAINED_AREA_MATCHED_CALIBRATION_FRAMES,
+    audit_frame_vocabulary,
+    frame_word_status,
+    unusable_frame_words,
     CalibrationFrame,
     PositionErpSample,
     collect_frame_samples,
@@ -90,6 +94,10 @@ from .runner import ErpProbeResult, probe_word_at_position, run_incremental_erp_
 __all__ = [
     "DEFAULT_CALIBRATION_FRAMES",
     "AREA_MATCHED_CALIBRATION_FRAMES",
+    "TRAINED_AREA_MATCHED_CALIBRATION_FRAMES",
+    "audit_frame_vocabulary",
+    "frame_word_status",
+    "unusable_frame_words",
     "CalibrationFrame",
     "ErpBaseline",
     "ErpCalibrationReport",

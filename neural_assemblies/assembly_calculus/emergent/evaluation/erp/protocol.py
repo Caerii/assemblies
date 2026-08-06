@@ -19,13 +19,33 @@ is the value; `from_environment()` is the ONE adapter that reads the legacy
 variables, called once at the entry point. Everything below takes the value.
 Adding another `os.environ.get` inside the measurement path re-opens the door.
 
-MIGRATION STATE (deliberately partial, and stated rather than implied):
-`from_environment()` exists and is tested, and the flag semantics now live in
-exactly one place. The call chain from `measure_live_integration` down to
-`phrase_stability` is NOT yet threaded -- that touches the live ERP metric,
-which is under active investigation (#108) and whose magnitudes must not move as
-a side effect of a plumbing change. Two adoptions were rolled back today for
-exactly that coupling. Thread it behind a measurement, not with one.
+MIGRATION STATE: THREADED (#115, 2026-08-06). `erp/adapters.py` -- the
+measurement layer -- now contains no `import os` at all, and a comment where the
+import was says why. `from_environment()` is called at exactly two boundaries,
+`measure_live_integration` and `measure_lexical_surprise`, plus the two drivers
+above them (`run_incremental_erp_probes`, `collect_frame_samples`) so a study
+can resolve it ONCE per parse and pass the value down.
+
+What that buys, concretely:
+
+  * `phrase_stability` takes a REQUIRED `protocol` and has no default. It runs
+    once per phrase area per probe, so the old `os.environ` read made the
+    environment a per-area input to a measurement three levels below anyone who
+    chose it. A default of `from_environment()` would have looked threaded
+    while leaving the door open.
+  * `_expected_slot_enabled()` is GONE. A zero-argument function returning an
+    environment variable is the shape this module exists to eliminate.
+  * `_ERP_DEBUG` is gone too, and it was the worst of the three: a MODULE-LEVEL
+    read, frozen at import, so `ERP_DEBUG=1` set by any test or study after the
+    module loaded did nothing whatsoever, silently.
+  * One parse can no longer measure its first word under one protocol and its
+    last under another.
+
+The earlier note here said to thread it "behind a measurement, not with one",
+because #108 was live and its magnitudes must not move as a side effect. #108
+closed (f79c4f5) and the afferent-energy question closed with it (0fcedb4), so
+that condition is met: this change resolves the same values from the same
+environment and is intended to be numerically inert.
 """
 from __future__ import annotations
 

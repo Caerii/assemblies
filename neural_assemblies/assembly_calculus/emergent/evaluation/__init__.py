@@ -3,6 +3,10 @@
 from .erp import (
     DEFAULT_CALIBRATION_FRAMES,
     AREA_MATCHED_CALIBRATION_FRAMES,
+    TRAINED_AREA_MATCHED_CALIBRATION_FRAMES,
+    audit_frame_vocabulary,
+    frame_word_status,
+    unusable_frame_words,
     ErpBaseline,
     ErpCalibrationReport,
     ErpProbeResult,
@@ -63,6 +67,10 @@ from .checkpoint import (
 __all__ = [
     "DEFAULT_CALIBRATION_FRAMES",
     "AREA_MATCHED_CALIBRATION_FRAMES",
+    "TRAINED_AREA_MATCHED_CALIBRATION_FRAMES",
+    "audit_frame_vocabulary",
+    "frame_word_status",
+    "unusable_frame_words",
     "DEFAULT_LEXICON_HOLDOUTS",
     "DEFAULT_ROLE_PROBES",
     "ErpBaseline",

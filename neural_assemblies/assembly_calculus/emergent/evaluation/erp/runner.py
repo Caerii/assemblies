@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import List, Optional, Set, Tuple, TYPE_CHECKING
 
+from .protocol import ErpProtocol
 from .adapters import (
     N400_WEIGHT,
     P600_WEIGHT,
@@ -63,13 +64,19 @@ def run_incremental_erp_probes(
     probe_positions: Optional[Set[int]] = None,
     stop_at_position: Optional[int] = None,
     finalize_parse: bool = True,
+    protocol: Optional[ErpProtocol] = None,
 ) -> Tuple[dict, List[ErpProbeResult]]:
     """Full incremental parse with per-word N400/P600 probes.
 
     When *probe_positions* is set, only those indices produce probe records
     (parse still runs through *stop_at_position* or sentence end).
     *stop_at_position* ends the loop after probing that index (inclusive).
+
+    *protocol* is resolved ONCE here and passed to every probe, so one parse
+    cannot measure its first word under one protocol and its last under
+    another -- which an environment read per probe permitted (#115).
     """
+    protocol = ErpProtocol.from_environment() if protocol is None else protocol
     if not words:
         return {"categories": {}, "roles": {}, "phrases": {}, "wobbly_probes": []}, []
 
@@ -110,6 +117,7 @@ def run_incremental_erp_probes(
                 # anomaly is supposed to look like (#28).
                 n400_m = measure_lexical_surprise(
                     parser, tuple(prefix), word, readiness=readiness,
+                    protocol=protocol,
                 )
                 n400 = n400_m.or_else(
                     float((n400_m.detail or {}).get("legacy", 0.0)))
@@ -152,6 +160,7 @@ def run_incremental_erp_probes(
                 probe_depth=probe_depth,
                 verb_seen_before=verb_seen_before,
                 object_open=parser._verb_takes_an_object(main_verb),
+                protocol=protocol,
             )
             combined = N400_WEIGHT * n400 + P600_WEIGHT * p600
 

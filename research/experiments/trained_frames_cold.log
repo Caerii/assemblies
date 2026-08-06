@@ -1,0 +1,27 @@
+STUDY A -- area-matching alone (both arms share the same untrained
+vocabulary, so any difference is the item POSITIONS)
+study over 10 seeds [11, 12, 13, 42, 7, 19, 23, 31, 37, 101] (order=counterbalance)
+  substrate: disk_hits=0 trained_fresh=10 backbone_cache=OFF fingerprint=158files
+  p600_auc_of_raw   0.7167+/-0.0805   ->   0.7556+/-0.1046    delta +0.0389+/-0.0992  [PASS]
+  p600_span_of_raw   0.0064+/-0.0008   ->   0.0063+/-0.0008    delta -0.0000+/-0.0003  [PASS]
+  untrained_items   9.0000+/-0.0000   ->   9.0000+/-0.0000    delta +0.0000+/-0.0000  [PASS]
+  VERDICT: PASS
+
+STUDY B -- vocabulary alone (both arms are area-matched already, so
+any difference is that the words were actually TRAINED)
+study over 10 seeds [11, 12, 13, 42, 7, 19, 23, 31, 37, 101] (order=counterbalance)
+  substrate: disk_hits=0 trained_fresh=0 backbone_cache=OFF fingerprint=158files
+  p600_auc_of_raw   0.7556+/-0.1046   ->   1.0000+/-0.0000    delta +0.2444+/-0.1046  [FAIL]
+      - CONSTANT across all seeds (1.0000) -- zero variance is the signature of a structural artefact, not an effect
+  p600_span_of_raw   0.0063+/-0.0008   ->   0.0077+/-0.0007    delta +0.0013+/-0.0010  [PASS]
+  untrained_items   9.0000+/-0.0000   ->   0.0000+/-0.0000    delta -9.0000+/-0.0000  [PASS]
+  VERDICT: FAIL
+
+A + B compose: `area_matched` is the shared arm, so study A prices
+the positions and study B prices the vocabulary, on one substrate.
+
+`untrained_items` counts frames containing a word that is neither
+trained nor a declared holdout. It should read 9 for both older
+arms and 0 for the trained arm -- if it does not, the arms are not
+what this study says they are.
+

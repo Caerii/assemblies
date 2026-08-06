@@ -23,6 +23,9 @@ survive the metric changing -- which it is expected to, and has, twice.
 import pytest
 
 from neural_assemblies.assembly_calculus.emergent.core.grounding import VOCABULARY
+from neural_assemblies.assembly_calculus.emergent.vocabulary_builder import (
+    build_vocabulary_preset,
+)
 from neural_assemblies.assembly_calculus.emergent.evaluation.erp.adapters import (
     expected_role_area,
     structural_role_area,
@@ -31,6 +34,11 @@ from neural_assemblies.assembly_calculus.emergent.evaluation.erp.frames import (
     AREA_MATCHED_CALIBRATION_FRAMES,
     DEFAULT_CALIBRATION_FRAMES,
     SWEEP_CALIBRATION_FRAMES,
+    TRAINED_AREA_MATCHED_CALIBRATION_FRAMES,
+    unusable_frame_words,
+)
+from neural_assemblies.assembly_calculus.emergent.evaluation.generalization import (
+    default_holdout_set,
 )
 from neural_assemblies.assembly_calculus.emergent.core.areas import (
     ROLE_AGENT,
@@ -42,6 +50,7 @@ FRAME_SETS = {
     "DEFAULT": DEFAULT_CALIBRATION_FRAMES,
     "AREA_MATCHED": AREA_MATCHED_CALIBRATION_FRAMES,
     "SWEEP": SWEEP_CALIBRATION_FRAMES,
+    "TRAINED_AREA_MATCHED": TRAINED_AREA_MATCHED_CALIBRATION_FRAMES,
 }
 
 
@@ -52,19 +61,111 @@ def test_every_frame_word_is_in_the_vocabulary(set_name):
     VOCABULARY is the grounded lexicon the parser is built from; a word outside
     it can never be categorised, so the item measures the parser's failure to
     know a word rather than the contrast the frame was written to express.
+
+    THE TABLE THIS ASSERTS AGAINST IS THE PARSER'S PRESET, NOT `VOCABULARY`,
+    and finding out why is a small lesson in this codebase's dominant defect.
+
+    FOUR different sets have been used as "the vocabulary", and they disagree
+    in BOTH directions:
+
+        VOCABULARY (core/grounding.py)         45 words   static table
+        build_vocabulary_preset("medium")     222 words   what the parser IS built from
+        parser.stim_map                       517 words   REGISTERED
+        union of parser.core_lexicons         123 words   TRAINED
+
+    `VOCABULARY` is a strict subset of the preset, and `train_parser_to_depth`
+    passes the PRESET. So asserting against `VOCABULARY` both under- and
+    over-approximates: `chases` is in `VOCABULARY`, in the preset, and in
+    `stim_map`, yet is never TRAINED and classifies NOUN -- while `want`,
+    `see`, `have`, `man`, `bed` are trained, correctly classified, and absent
+    from `VOCABULARY`.
+
+    This test used to read `VOCABULARY` and passed the whole time the default
+    frames were unusable. Both facts were true at once, which is the tell:
+    the guard and the thing it guards were about different sets.
+
+    STILL NECESSARY, STILL NOT SUFFICIENT. It is the cheap static check -- it
+    catches a word that exists nowhere but frames.py, which is what `hits`
+    was. Whether the parser actually LEARNED the word needs a parser; see
+    `test_shipped_frames_are_trained_on_the_parser`.
     """
+    preset = build_vocabulary_preset("medium")
+    assert set(VOCABULARY) <= set(preset), (
+        "VOCABULARY is no longer a subset of the medium preset, so the two "
+        "static tables have diverged and this test is asserting against the "
+        "wrong one again."
+    )
     unknown = {
         word
         for _label, _name, words in FRAME_SETS[set_name]
         for word in words
-        if word not in VOCABULARY
+        if word not in preset
     }
     assert not unknown, (
-        f"{set_name} contains words outside VOCABULARY: {sorted(unknown)}. "
-        f"Such an item parses UNKNOWN and reads p600 0.0 / stability 1.0 -- a "
-        f"degenerate no-parse that looks like data. Use a trained word, or add "
-        f"it to the lexicon deliberately (which moves the whole substrate)."
+        f"{set_name} contains words outside the vocabulary preset the parser "
+        f"is built from: {sorted(unknown)}. Such an item parses UNKNOWN and "
+        f"reads p600 0.0 / stability 1.0 -- a degenerate no-parse that looks "
+        f"like data. Use a preset word, or extend the preset deliberately "
+        f"(which moves the whole substrate)."
     )
+
+
+@pytest.mark.slow
+def test_shipped_frames_are_trained_on_the_parser(sentences_parser):
+    """The frames a study SHIPS must be words this parser actually learned.
+
+    `TRAINED_AREA_MATCHED_CALIBRATION_FRAMES` was selected by measuring the
+    parser rather than by remembering a corpus, so it is the set this guard
+    protects. The two older sets are audited by the test below and knowingly
+    fail; asserting on them here would just pin the defect.
+
+    A trained word and a correctly-classified word are INDEPENDENT properties,
+    so both are checked: `chases` is untrained and classifies NOUN, `small` is
+    a declared holdout and classifies VERB, and neither implies the other.
+    """
+    bad = unusable_frame_words(
+        sentences_parser,
+        TRAINED_AREA_MATCHED_CALIBRATION_FRAMES,
+        holdout_words=default_holdout_set(),
+    )
+    assert not bad, (
+        "TRAINED_AREA_MATCHED_CALIBRATION_FRAMES contains words this parser "
+        f"neither trained nor declared a holdout: { {k: [str(s) for s in v] for k, v in bad.items()} }. "
+        "The substrate is totalizing -- such a word still gets a stimulus, "
+        "still gets a category, and still returns a p600 -- so nothing else "
+        "will report this."
+    )
+
+
+@pytest.mark.slow
+def test_the_older_frame_sets_are_known_to_be_untrained(sentences_parser):
+    """Pins the DEFECT, so that fixing it is visible rather than silent.
+
+    9 of 9 items in both older sets contain a word that is neither trained nor
+    a declared holdout, `chases` foremost. This is recorded as an assertion
+    rather than a comment because the alternative -- deleting the sets -- would
+    move every calibrated threshold and every downstream golden as a side
+    effect. When they are repaired or retired, THIS TEST FAILS, which is
+    exactly the notification wanted.
+
+    See research/notes/the_calibration_frames_are_untrained.md.
+    """
+    holdouts = default_holdout_set()
+    for name, frames in (("DEFAULT", DEFAULT_CALIBRATION_FRAMES),
+                         ("AREA_MATCHED", AREA_MATCHED_CALIBRATION_FRAMES)):
+        bad = unusable_frame_words(
+            sentences_parser, frames, holdout_words=holdouts,
+        )
+        assert len(bad) == len(frames), (
+            f"{name}: expected every item to contain an untrained word "
+            f"(the recorded defect), got {len(bad)}/{len(frames)}. If this "
+            f"set was repaired, move it under the guard above."
+        )
+        offenders = {s.word for v in bad.values() for s in v}
+        assert "chases" in offenders, (
+            f"{name}: `chases` was the headline offender -- untrained AND "
+            f"classified NOUN, so five items had no main verb. Got {sorted(offenders)}."
+        )
 
 
 def test_observed_dispatch_mismatches_the_arms():

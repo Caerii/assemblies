@@ -39,6 +39,7 @@ from ...evaluation.erp import (
     measure_lexical_surprise,
     measure_live_integration,
 )
+from ...evaluation.erp.protocol import ErpProtocol
 
 if TYPE_CHECKING:
     from ...parser import EmergentParser
@@ -159,8 +160,16 @@ def trial_category_in_sentence(
     words: List[str],
     position: int,
     forced_category: str,
+    *,
+    protocol: Optional[ErpProtocol] = None,
 ) -> Optional[Tuple[float, float, float, float]]:
-    """Re-parse with forced POS at *position*; return combined metrics or None."""
+    """Re-parse with forced POS at *position*; return combined metrics or None.
+
+    *protocol* is resolved once and shared by both ERP reads below, so a single
+    trial cannot measure its N400 under one protocol and its P600 under another
+    (#115).
+    """
+    protocol = ErpProtocol.from_environment() if protocol is None else protocol
     prefix = words[:position]
     word = words[position]
 
@@ -176,7 +185,8 @@ def trial_category_in_sentence(
             # `measure_lexical_surprise` returns `Measured`; `.or_else` with
             # the branch's own legacy value keeps this arithmetic byte-
             # identical to before the definedness migration.
-            _n400_m = (measure_lexical_surprise(parser, tuple(prefix), word)
+            _n400_m = (measure_lexical_surprise(parser, tuple(prefix), word,
+                                               protocol=protocol)
                        if prefix else None)
             n400 = 0.0 if _n400_m is None else _n400_m.or_else(
                 float((_n400_m.detail or {}).get("legacy", 0.0)))
@@ -193,6 +203,7 @@ def trial_category_in_sentence(
                 forced_category,
                 verb_seen=verb_seen,
                 subject_core=subject_core,
+                protocol=protocol,
             )
         except (RuntimeError, IndexError, ValueError):
             return None

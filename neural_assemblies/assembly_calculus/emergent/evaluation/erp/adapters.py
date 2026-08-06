@@ -23,7 +23,12 @@ correct P600/N400 sign.
 
 from __future__ import annotations
 
-import os
+# NOTE: `import os` is deliberately ABSENT. As of #115 this module -- the ERP
+# measurement layer -- reads no environment variable at all. Every choice that
+# changes what an ERP number MEANS arrives as an `ErpProtocol` argument, and
+# `ErpProtocol.from_environment()` is the one adapter, called at the two public
+# entry points below. If you find yourself adding `import os` here, you are
+# reopening the door protocol.py was written to close.
 from typing import List, Optional, Tuple, TYPE_CHECKING
 
 import numpy as np
@@ -60,7 +65,10 @@ PHRASE_STABILITY_ROUNDS_MINING = 1
 N400_WEIGHT = 0.55
 P600_WEIGHT = 0.45
 
-_ERP_DEBUG = os.environ.get("ERP_DEBUG", "").strip() not in ("", "0", "false")
+#: `_ERP_DEBUG` WAS A MODULE-LEVEL ENV READ, and that is worse than an env read
+#: inside a function: it was frozen at IMPORT, so `ERP_DEBUG=1` set by a test or
+#: a study after this module loaded did nothing at all, silently. It is now
+#: `protocol.debug`, resolved per call with everything else (#115).
 
 ProbeDepth = str  # "calibration" | "mining"
 
@@ -324,6 +332,7 @@ def phrase_stability(
     *,
     rounds: int = 3,
     k: Optional[int] = None,
+    protocol: ErpProtocol,
 ) -> Measured:
     """Phrase integration as normalized self-recurrent PRE-k-WTA energy.
 
@@ -338,11 +347,18 @@ def phrase_stability(
     ``k`` are retained for call-site compatibility but no longer used: energy
     is a single-projection quantity, not a settling one.
 
-    ``ERP_AFFERENT_ENERGY=1`` switches to `afferent_energy`, which is the only
-    quantity DEFINED for an area with no self-fiber -- see #108 and that
-    function's docstring. Off by default: it is an A/B seam, not an adoption.
+    `protocol.afferent_energy` switches to `afferent_energy`, the only quantity
+    DEFINED for an area with no self-fiber -- see #108 and that function's
+    docstring. Off in `DEFAULT_PROTOCOL`: it is an A/B seam, not an adoption.
+
+    `protocol` IS REQUIRED, and deliberately has no default. This function is
+    called once per phrase area per probe, so an `os.environ` read here made
+    the environment a per-area input to a measurement three call levels below
+    anyone who chose it -- the exact defect `protocol.py` exists to close, and
+    the last piece of the chain it recorded as unthreaded. A default of
+    `from_environment()` would have kept that door open while looking closed.
     """
-    if ErpProtocol.from_environment().afferent_energy:
+    if protocol.afferent_energy:
         return afferent_energy(brain, area)
     return _self_recurrent_energy(brain, area)
 
@@ -414,70 +430,18 @@ def expected_role_area(
     return None
 
 
-def _expected_slot_enabled() -> bool:
-    """ADOPTED, DEFAULT ON (2026-08-06). `ERP_EXPECTED_SLOT=0` restores the old
-    observed-category dispatch for reproducing pre-adoption numbers.
-
-    THE PREVIOUS VERSION OF THIS DOCSTRING WAS WRONG, and wrong in the way this
-    module is about. It said, under a heading reading "RESOLVED":
-
-        IT IS THE BACKBONE CACHE, AND THE DISPATCH REALLY DOES INVERT ON A
-        FRESHLY-TRAINED PARSER.
-
-    The evidence was that flipping the default failed 4 ERP tests only in the
-    full `-k erp` selection and only on a cold cache, never in isolation:
-
-        warm cache, default path            62 passed     75-128s
-        warm cache, ERP_EXPECTED_SLOT=1     62 passed
-        COLD cache, default path            62 passed     430s
-        COLD cache, ERP_EXPECTED_SLOT=1      4 FAILED     339s
-
-    That table is real. The INFERENCE from it was not. The cause was
-    `test_acquisition.py` setting `EMERGENT_DEV_CURRICULUM=1` AT MODULE LEVEL,
-    which pytest executes at collection and which therefore reconfigured
-    training for every later test in the process. Warm runs were immune because
-    they deserialize a parser instead of training one -- which is exactly what
-    made the cache look causal. Fixed in 7e8c61b; the same run is now 87 passed.
-
-    Note what the wrong diagnosis had going for it: a clean 2x2, a plausible
-    mechanism (pre-grown pathways wiring bootstrap neurons), and a correct
-    observation that an A/B on cached parsers is evidence about cached parsers
-    only. It was still wrong, and it blocked a real fix for a day. "Reproducible
-    under condition X" is not "caused by X".
-
-    RE-MEASURED COLD THROUGH THE HARNESS, and the inversion does not exist:
-
-        ASSEMBLIES_BACKBONE_CACHE=0, 10 seeds, counterbalanced
-        substrate: disk_hits=0 trained_fresh=10 backbone_cache=OFF
-        p600_auc_of_raw    0.9056 +/- 0.0268  ->  0.7167 +/- 0.0805
-        p600_span_of_raw   0.0080 +/- 0.0006  ->  0.0064 +/- 0.0008
-        VERDICT: PASS
-
-    Identical to the warm numbers below. It does not invert; it SHRINKS.
-
-    RUNTIME IS STILL THE TELL: 75-128s is a disk hit, 340-430s is a retrain. If
-    a result moves and the runtime jumped, suspect the substrate before the
-    code -- just do not stop there, as I did.
-
-        p600_auc   obs 0.9056 +/- 0.0268   exp 0.7167 +/- 0.0805
-                   delta -0.1889 +/- 0.0627   (CI excludes zero)
-
-        per-seed exp: 1.000, 0.667 x8, 0.833 -- none below chance, not constant
-
-    The DROP is the point. The shipped 0.9056 is confounded: area identity alone
-    reproduces that AUC with the condition held constant. Area-matched, the
-    effect survives at 0.7167 with CI 0.636-0.797, clearly above the 0.5 null.
-    So the P600 is REAL and was inflated by ~0.19 AUC.
-
-    Pre-registered bar, all three met: arms area-match; every seed above chance
-    (42 is the seed that inverted the last structural change); the violation arm
-    is no longer constant (zero seed variance was the `afferent_energy` defect).
-
-    CAVEAT ON GRANULARITY: 3 grammatical x 3 violation = 9 pairs, so AUC moves
-    in steps of 1/9 and 8 of 10 seeds read exactly 6/9. The estimate is coarse
-    by construction; widen the frame set before reading finer differences.
-    """
-    return ErpProtocol.from_environment().expected_slot
+#: `_expected_slot_enabled()` USED TO LIVE HERE, and its removal is the point of
+#: the #115 threading: it was a zero-argument function whose answer came from
+#: `os.environ`, called from inside `measure_live_integration`. Read
+#: `protocol.expected_slot` instead -- the value now arrives as an argument, so
+#: a result can be attributed to an arm from the call site.
+#:
+#: The research record it carried is NOT lost. It is in
+#: `research/notes/p600_the_honest_number_is_0717.md` (the cold 10-seed
+#: re-measurement, 0.9056 -> 0.7167, the 1/9 granularity caveat, and the wrong
+#: "IT IS THE BACKBONE CACHE" diagnosis with its real cause in 7e8c61b), and
+#: condensed on `ErpProtocol.expected_slot`. A docstring on a function that
+#: should not exist is not where a finding should be kept.
 
 
 def anchored_p600_live(
@@ -566,20 +530,28 @@ def measure_live_integration(
     probe_depth: ProbeDepth = "calibration",
     verb_seen_before: Optional[bool] = None,
     object_open: bool = True,
+    protocol: Optional[ErpProtocol] = None,
 ) -> Tuple[float, str, float]:
     """P600 on live parse: phrase instability + live-anchored role settling.
 
-    ``ERP_EXPECTED_SLOT=1`` dispatches the probed area on the slot the PARSE
-    PREDICTS rather than the observed word's category, which is the only way to
-    area-match the grammatical/violation contrast -- see `expected_role_area`.
-    OFF by default: adoption was attempted and rolled back, see
-    `_expected_slot_enabled`. The shipped default is CONFOUNDED and its
-    magnitudes must not be quoted as effect sizes either.
+    `protocol.expected_slot` dispatches the probed area on the slot the PARSE
+    PREDICTS rather than the observed word's category -- the only way to
+    area-match the grammatical/violation contrast, see `expected_role_area`.
+    ADOPTED AND ON since f79c4f5: re-measured cold over 10 seeds it does not
+    invert, it SHRINKS, 0.9056 -> 0.7167. `ERP_EXPECTED_SLOT=0` restores the
+    old dispatch for reproducing pre-adoption numbers.
+
+    THIS IS THE ONE PLACE THE LEGACY ENVIRONMENT IS READ on the measurement
+    path (#115). `protocol=None` means "resolve it from the environment here,
+    once"; everything below this call takes the value. Pass an `ErpProtocol`
+    to make a study's arm a visible expression instead of a temporal one --
+    which is what lets a number be attributed to an arm from the call site.
 
     ``verb_seen_before`` is the pre-consumption state and is required for that
     path; callers that do not supply it keep the observed-category dispatch,
     so the flag silently does nothing rather than reading the wrong state.
     """
+    protocol = ErpProtocol.from_environment() if protocol is None else protocol
     readiness = readiness or assess_erp_readiness(parser)
     core = CATEGORY_TO_CORE.get(category)
     if core is None:
@@ -593,7 +565,7 @@ def measure_live_integration(
     # metric. When the slot is predicted, the category it predicts is nominal.
     role_area = None
     phrase_category = category
-    if _expected_slot_enabled() and verb_seen_before is not None:
+    if protocol.expected_slot and verb_seen_before is not None:
         role_area = expected_role_area(
             verb_seen_before=verb_seen_before, object_open=object_open,
         )
@@ -613,7 +585,8 @@ def measure_live_integration(
     if probe_depth == "mining" and phrase_areas:
         phrase_areas = [role_area] if role_area in phrase_areas else phrase_areas[:1]
     readings = [
-        phrase_stability(parser.brain, area, rounds=stab_rounds)
+        phrase_stability(parser.brain, area, rounds=stab_rounds,
+                         protocol=protocol)
         for area in phrase_areas
     ]
     # THE HISTORICAL FALLBACK IS KEPT ON PURPOSE, AND IS NOW VISIBLE.
@@ -651,7 +624,7 @@ def measure_live_integration(
         float((anchored_m.detail or {}).get("legacy", 0.0)))
 
     p600 = N400_WEIGHT * phrase_instability + P600_WEIGHT * anchored
-    if _ERP_DEBUG:
+    if protocol.debug:
         dropped = ""
         if stabilities_dropped:
             # Name the reasons: a run where most areas are undefined is a probe
@@ -749,6 +722,7 @@ def measure_lexical_surprise(
     word: str,
     *,
     readiness: Optional[ErpReadiness] = None,
+    protocol: Optional[ErpProtocol] = None,
 ) -> Measured:
     """N400 adapter: pre-k-WTA ENERGY DEFICIT at the word's PREDICTION assembly.
 
@@ -775,6 +749,7 @@ def measure_lexical_surprise(
     if not prefix:
         return Measured.undefined(
             "no prefix: there is no context to predict from", legacy=0.0)
+    protocol = ErpProtocol.from_environment() if protocol is None else protocol
     readiness = readiness or assess_erp_readiness(parser)
     if not readiness.n400_ready:
         return Measured.undefined(
@@ -826,7 +801,7 @@ def measure_lexical_surprise(
                     inner=energy_m.detail)
             energy = float(energy_m)
             n400 = 1.0 - energy
-            if _ERP_DEBUG:
+            if protocol.debug:
                 print(
                     f"[N400] w={word!r} ctx={' '.join(prefix)!r} "
                     f"pred_energy={energy:.4f} n400={n400:.4f}",
