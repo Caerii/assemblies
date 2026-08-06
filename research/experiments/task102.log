@@ -1,0 +1,11 @@
+F:\Github\assemblies\research\experiments\task102_readonly_parse.py:97: RuntimeWarning: arms 'grows' and 'readonly' returned IDENTICAL values on all 10 seeds -- they are not two arms. Check that the intervention reached the engine and that the fiber it targets was ever materialised (see fiber_census); a never-grown connectome carries zero drive and still returns k winners.
+  out = compare_arms(arms, list(seeds), strict=False)
+depth=SENTENCES  seeds=[11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
++/- is a t-based 95% CI. Ground truth for `grew` is 0: a read that
+grows the parser cannot be repeated and cannot be ordered freely.
+
+metric           parse grows [HEAD]         parse read_only            delta
+grew              1106.0000 +/- 65.5416       120.0000 +/- 0.0000      -986.0000 +/- 65.5416  CHANGED
+p600_cohens_d        1.6317 +/- 0.4013          3.9733 +/- 0.0603        +2.3416 +/- 0.3982  CHANGED
+n400_cohens_d        2.1196 +/- 1.0382          2.1196 +/- 1.0382        +0.0000 +/- 0.0000  IDENTICAL -- arms did not differ, suspect a dead path
+p600_gap             0.0030 +/- 0.0004          0.0047 +/- 0.0004        +0.0017 +/- 0.0003  CHANGED

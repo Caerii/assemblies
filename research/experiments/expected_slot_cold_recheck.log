@@ -1,0 +1,8 @@
+study over 10 seeds [11, 12, 13, 42, 7, 19, 23, 31, 37, 101] (order=counterbalance)
+  substrate: disk_hits=0 trained_fresh=10 backbone_cache=OFF fingerprint=158files
+  p600_auc_of_raw   0.9056+/-0.0268   ->   0.7167+/-0.0805    delta -0.1889+/-0.0627  [PASS]
+  p600_span_of_raw   0.0080+/-0.0006   ->   0.0064+/-0.0008    delta -0.0017+/-0.0004  [PASS]
+  VERDICT: PASS
+
+10 parser(s) trained fresh in-process -- this is
+the substrate that decides adoption.

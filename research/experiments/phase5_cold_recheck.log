@@ -1,0 +1,21 @@
+..........F.Fx......FxF.x..............................................x [ 79%]
+...................                                                      [100%]
+================================== FAILURES ===================================
+E   assert 0.0008500000000000174 > 0.0022500000000000853
+F:\Github\assemblies\neural_assemblies\tests\test_erp_calibration.py:79: assert 0.0008500000000000174 > 0.0022500000000000853
+E   assert 0.2777777777777778 > 0.5
+F:\Github\assemblies\neural_assemblies\tests\test_erp_calibration.py:105: assert 0.2777777777777778 > 0.5
+E   AssertionError: the clipping asymmetry has gone: grammatical excess [0.0007000000000000339, 0.0023999999999999577, 0.0007000000000000339] (spread 0.00170) is no longer crushed relative to violation [0.0006000000000000449, 0.00029999999999996696, 0.00039999999999995595] (spread 0.00030). If the baseline is no longer the grammatical median, this defect is fixed and Cohen's d may finally be an effect size
+    assert (0.0016999999999999238 <= 0.000300000000000078 or 0.0007000000000000339 == 0.0)
+     +  where 0.0007000000000000339 = min([0.0007000000000000339, 0.0023999999999999577, 0.0007000000000000339])
+F:\Github\assemblies\neural_assemblies\tests\test_erp_metric_range.py:90: AssertionError: the clipping asymmetry has gone: grammatical excess [0.0007000000000000339, 0.0023999999999999577, 0.0007000000000000339] (spread 0.00170) is no longer crushed relative to violation [0.0006000000000000449, 0.00029999999999996696, 0.00039999999999995595] (spread 0.00030). If the baseline is no longer the grammatical median, this defect is fixed and Cohen's d may finally be an effect size
+E   AssertionError: violations do not score above grammatical: AUC 0.000 on gram [0.9927, 0.9944, 0.9927] vs catv [0.9926, 0.9923, 0.9924]. At or below 0.5 the separation itself has gone, which is a bigger problem than its scale
+    assert 0.0 > 0.5
+     +  where 0.0 = Separation(label='p600', auc=0.0, n_high=3, n_low=3, span=0.0020999999999999908).auc
+F:\Github\assemblies\neural_assemblies\tests\test_erp_metric_range.py:138: AssertionError: violations do not score above grammatical: AUC 0.000 on gram [0.9927, 0.9944, 0.9927] vs catv [0.9926, 0.9923, 0.9924]. At or below 0.5 the separation itself has gone, which is a bigger problem than its scale
+=========================== short test summary info ===========================
+FAILED neural_assemblies/tests/test_erp_calibration.py::TestErpCalibration::test_calibration_separates_category_violation_from_grammatical
+FAILED neural_assemblies/tests/test_erp_calibration.py::TestErpCalibration::test_fast_calibration_preserves_separation
+FAILED neural_assemblies/tests/test_erp_metric_range.py::TestExcessIsClippedAtItsOwnNull::test_grammatical_excess_is_crushed_against_the_floor
+FAILED neural_assemblies/tests/test_erp_metric_range.py::TestRawQuantityIsSaturated::test_the_separation_itself_is_real_and_correctly_signed
+4 failed, 83 passed, 1400 deselected, 4 xfailed in 183.90s (0:03:03)

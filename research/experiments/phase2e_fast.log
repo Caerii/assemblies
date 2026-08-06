@@ -1,0 +1,43 @@
+........................................................................ [  5%]
+........................................................................ [ 10%]
+..............................................................x......... [ 15%]
+........................................................................ [ 20%]
+........................................................................ [ 26%]
+........................................................................ [ 31%]
+.................................................................X...... [ 36%]
+.x..x................................................................... [ 41%]
+........................................................................ [ 47%]
+.s........................x...........................Xx................ [ 52%]
+....................x................................................... [ 57%]
+........................................................................ [ 62%]
+............x.......................................x.x................. [ 68%]
+........................................................................ [ 73%]
+.........................................................x.............. [ 78%]
+........................................................................ [ 83%]
+........................................................................ [ 89%]
+.......................................................................x [ 94%]
+.......................................................................F [ 99%]
+F...                                                                     [100%]
+================================== FAILURES ===================================
+E   neural_assemblies.core.measurement.UndefinedMeasurement: measurement is undefined: parser is not n400_ready (prediction lexicon too small). Check `.defined` before use, or call `.or_else(fallback)` and say in the caller what the fallback means.
+F:\Github\assemblies\neural_assemblies\core\measurement.py:87: neural_assemblies.core.measurement.UndefinedMeasurement: measurement is undefined: parser is not n400_ready (prediction lexicon too small). Check `.defined` before use, or call `.or_else(fallback)` and say in the caller what the fallback means.
+E   neural_assemblies.core.measurement.UndefinedMeasurement: measurement is undefined: parser is not n400_ready (prediction lexicon too small). Check `.defined` before use, or call `.or_else(fallback)` and say in the caller what the fallback means.
+F:\Github\assemblies\neural_assemblies\core\measurement.py:87: neural_assemblies.core.measurement.UndefinedMeasurement: measurement is undefined: parser is not n400_ready (prediction lexicon too small). Check `.defined` before use, or call `.or_else(fallback)` and say in the caller what the fallback means.
+============================== warnings summary ===============================
+neural_assemblies/tests/test_batched_next_token.py::test_batched_matches_sequential_top1
+  F:\Github\assemblies\neural_assemblies\core\torch_engine\_batched.py:40: UserWarning: Sparse invariant checks are implicitly disabled. Memory errors (e.g. SEGFAULT) will occur when operating on a sparse tensor which violates the invariants, but checks incur performance overhead. To silence this warning, explicitly opt in or out. See `torch.sparse.check_sparse_tensor_invariants.__doc__` for guidance.  (Triggered internally at C:\actions-runner\_work\pytorch\pytorch\aten\src\ATen\Context.cpp:767.)
+    return torch.sparse_csr_tensor(crow, col, val, size=(n, n))
+
+neural_assemblies/tests/test_batched_next_token.py::test_batched_matches_sequential_top1
+  F:\Github\assemblies\neural_assemblies\core\torch_engine\_batched.py:40: UserWarning: Sparse CSR tensor support is in beta state. If you miss a functionality in the sparse tensor support, please submit a feature request to https://github.com/pytorch/pytorch/issues. (Triggered internally at C:\actions-runner\_work\pytorch\pytorch\aten\src\ATen\SparseCsrTensorImpl.cpp:51.)
+    return torch.sparse_csr_tensor(crow, col, val, size=(n, n))
+
+neural_assemblies/tests/test_projection_parity.py::TestProjectIntoParityFull::test_seed_sweep_parity
+  F:\Github\assemblies\neural_assemblies\tests\test_projection_parity.py:289: UserWarning: First-winner inputs differ by up to 6.0; acceptable due to RNG/rounding path differences
+    warnings.warn(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED neural_assemblies/tests/test_wobbly_bootstrap.py::TestWobblyMining::test_resolve_hypotheses_picks_alternate_when_better
+FAILED neural_assemblies/tests/test_wobbly_bootstrap.py::TestWobblyMining::test_bootstrap_from_wobbly_memory_assigns_small_adj
+2 failed, 1356 passed, 1 skipped, 119 deselected, 11 xfailed, 2 xpassed, 3 warnings in 1444.75s (0:24:04)

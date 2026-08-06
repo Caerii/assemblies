@@ -58,6 +58,16 @@ def _truthy(raw: Optional[str]) -> bool:
     return (raw or "").strip().lower() in ("1", "true", "on", "yes")
 
 
+def _source_core_default(raw: Optional[str]) -> bool:
+    """ABSENT means the True default; PRESENT is parsed for truthiness.
+
+    Same absent-vs-present rule as `ERP_EXPECTED_SLOT`, and for the same
+    reason: once a flag defaults to True, `_truthy` alone silently turns every
+    unset environment into False and quietly un-adopts the change.
+    """
+    return ErpProtocol.expected_slot_source_core if raw is None else _truthy(raw)
+
+
 @dataclass(frozen=True)
 class ErpProtocol:
     """Every choice that changes what an ERP number MEANS.
@@ -80,6 +90,43 @@ class ErpProtocol:
             0.7167+/-0.0805, above chance on every seed. It does not invert --
             it SHRINKS, which is what removing a confound is supposed to do.
             The 0.906 was the confound; 0.717 is the effect.
+        expected_slot_source_core: ALSO take the probe's SOURCE core from the
+            expected category, not only its target area. ADOPTED AND ON since
+            2026-08-06. `ERP_EXPECTED_SLOT_SOURCE_CORE=0` restores the old
+            observed-category source for reproducing pre-adoption numbers.
+
+            `expected_slot` has THREE consumers of "the category":
+            `role_area` (the probe's target), `phrase_category` (which phrase
+            areas are read), and `core` (the probe's SOURCE). It reached the
+            first two. `core` is still `CATEGORY_TO_CORE[observed]`, so the
+            violation arm reads VERB_CORE -> ROLE_PATIENT while its control
+            reads NOUN_CORE -> ROLE_PATIENT: area identity again, one level
+            over, and the same one-sibling shape the fix itself was written to
+            close. The comment above the block even says "when the slot is
+            predicted, the category it predicts is nominal" -- and then does
+            not apply that to `core`.
+
+            MEASURED with the condition HELD CONSTANT
+            (`erp_source_core_identity_control.py`): the same grammatical
+            sentence, the same trained noun in object position, with only the
+            category LABEL handed to the metric changed, separates at AUC
+            0.78 / 0.89 / 0.89 over seeds 11/12/42, span 0.0058-0.0071 against
+            the real contrast's 0.0064. A control containing no violation of
+            any kind scores about as high as the reported effect.
+
+            ADOPTED on a pre-registered cold study
+            (`erp_source_core_study.py`, 10 seeds, disk_hits=0
+            trained_fresh=10): p600_auc_of_raw 0.7167+/-0.0805 ->
+            0.6056+/-0.0545, delta -0.1111+/-0.0898 with the CI excluding
+            zero, above chance on EVERY seed, span unchanged at 0.0064. It
+            shrinks and does not invert -- what removing a confound looks
+            like, and the same shape as `expected_slot` itself.
+
+            SO THE HEADLINE P600 HAS NOW SHRUNK TWICE:
+                0.9056  no area matching at all
+                0.7167  probe TARGET matched      (f79c4f5)
+                0.6056  probe SOURCE matched too  (this)
+            About two thirds of the original figure was area identity.
         afferent_energy: measure drive INTO an area instead of self-recurrent
             energy. NOT ADOPTED, re-measured 2026-08-06 now that the arms ARE
             area-matched: AUC 0.7167 -> 0.7500, delta +0.0333+/-0.0627 with the
@@ -91,6 +138,7 @@ class ErpProtocol:
     """
 
     expected_slot: bool = True
+    expected_slot_source_core: bool = True
     afferent_energy: bool = False
     debug: bool = False
 
@@ -121,6 +169,8 @@ class ErpProtocol:
         return cls(
             expected_slot=(cls.expected_slot if raw_slot is None
                            else _truthy(raw_slot)),
+            expected_slot_source_core=_source_core_default(
+                env.get("ERP_EXPECTED_SLOT_SOURCE_CORE")),
             afferent_energy=_truthy(env.get("ERP_AFFERENT_ENERGY")),
             debug=_truthy(env.get("ERP_DEBUG")),
         )
@@ -142,7 +192,8 @@ class ErpProtocol:
         Never an empty string: a study that records nothing and a study that
         recorded "no flags" must not look alike.
         """
-        on = [f for f in ("expected_slot", "afferent_energy", "debug")
+        on = [f for f in ("expected_slot", "expected_slot_source_core",
+                          "afferent_energy", "debug")
               if getattr(self, f)]
         return "+".join(on) if on else "no-flags"
 

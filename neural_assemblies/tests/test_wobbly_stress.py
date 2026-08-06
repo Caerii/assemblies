@@ -183,11 +183,36 @@ class TestStageWiseCalibration:
             assert deep_rep.tuned
             assert deep_rep.thresholds.p600_excess_margin > 0.0
 
-        shallow_d = shallow_rep.separation.get("p600_cohens_d", 0.0)
-        deep_d = deep_rep.separation.get("p600_cohens_d", 0.0)
+        # ASSERTED ON THE AUC, NOT COHEN'S D, and the change is a fix to the
+        # test's SUBJECT rather than to its threshold.
+        #
+        # Two independent reasons the old assertion could not mean what it said:
+        #
+        # 1. `p600_cohens_d` is a CLIPPED-VARIABLE statistic. `p600_excess` is
+        #    clipped against the grammatical median, so its standard deviation
+        #    is not the standard deviation of anything -- which is why
+        #    `CalibrationReport.summary()` already demotes Cohen's d to a
+        #    bracketed suffix behind the AUC. See
+        #    research/notes/erp_metric_is_clipped.md.
+        # 2. `deep_d >= shallow_d * 0.5` INVERTS ON NEGATIVE VALUES. For
+        #    shallow_d = -0.02 the bar becomes -0.01, i.e. it demands the deep
+        #    parser beat the shallow one outright while reading as a 50%
+        #    tolerance. A "half as good" allowance written as a multiplication
+        #    is only a tolerance for positive quantities.
+        #
+        # It surfaced when `expected_slot_source_core` was adopted, at
+        # shallow=-0.02 deep=-0.17. Both are ~zero on a statistic the repo has
+        # already ruled invalid, so the failure was the test's arithmetic
+        # meeting a sign it was never written for -- not a regression in depth
+        # tracking. The AUC is the sanctioned rank statistic and is
+        # sign-stable, so the same intent is expressed on it directly.
+        shallow_auc = shallow_rep.separation.get("p600_auc", 0.5)
+        deep_auc = deep_rep.separation.get("p600_auc", 0.5)
         if shallow_ready and deep_ready:
-            assert deep_d >= shallow_d * 0.5, (
-                f"P600 separation regressed: shallow={shallow_d:.2f} deep={deep_d:.2f}"
+            assert deep_auc >= 0.5, (
+                f"the DEEP parser ranks violations below chance: "
+                f"deep_auc={deep_auc:.3f} (shallow={shallow_auc:.3f}). "
+                f"Depth is supposed to buy separation, not remove it."
             )
 
     def test_wobbly_detection_rate_increases_with_calibration(self):

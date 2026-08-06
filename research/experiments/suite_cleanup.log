@@ -1,0 +1,86 @@
+........................................................................ [  5%]
+........................................................................ [ 11%]
+...........................................x............................ [ 17%]
+........................................................................ [ 22%]
+........................................................................ [ 28%]
+........................................................................ [ 34%]
+....................................F......Fx........................... [ 40%]
+........................................................................ [ 45%]
+.............s........................x...........................Xx.... [ 51%]
+................................x....................................... [ 57%]
+........................................................................ [ 62%]
+..............x..........x.............................................. [ 68%]
+........................................................................ [ 74%]
+................x....................................................... [ 80%]
+........................................................................ [ 85%]
+........................................................................ [ 91%]
+..............................x......................................... [ 97%]
+...................................                                      [100%]
+================================== FAILURES ===================================
+________ TestErpCalibration.test_fast_calibration_preserves_separation ________
+
+self = <neural_assemblies.tests.test_erp_calibration.TestErpCalibration object at 0x000001377FDC3EC0>
+forked_parser = <function forked_parser.<locals>._make at 0x00000137293DE2A0>
+
+    def test_fast_calibration_preserves_separation(self, forked_parser):
+        # Two SEPARATE forks on purpose: calibrating one must not contaminate
+        # the other, since the whole point is comparing full against fast on
+        # identically-trained parsers.
+        parser = forked_parser("SENTENCES", seed=42)
+        full = calibrate_erp_thresholds(parser, fast=False)
+        parser2 = forked_parser("SENTENCES", seed=42)
+        fast = calibrate_erp_thresholds(parser2, fast=True)
+>       assert fast.separation.get("p600_cohens_d", 0) > 0.3
+E       AssertionError: assert 0.07590680990538072 > 0.3
+E        +  where 0.07590680990538072 = <built-in method get of dict object at 0x0000013833E21B80>('p600_cohens_d', 0)
+E        +    where <built-in method get of dict object at 0x0000013833E21B80> = {'n400_auc': 1.0, 'n400_cohens_d': 3.527774229673741, 'n400_span': 0.051100000000000034, 'p600_auc': 0.5555555555555556, ...}.get
+E        +      where {'n400_auc': 1.0, 'n400_cohens_d': 3.527774229673741, 'n400_span': 0.051100000000000034, 'p600_auc': 0.5555555555555556, ...} = ErpCalibrationReport(readiness=ErpReadiness(n400_ready=True, p600_ready=True, prediction_lexicon_size=161, sentences_s....0, 'n400_span': 0.051100000000000034, 'p600_auc': 0.5555555555555556, 'p600_span': 0.0034999999999999476}, tuned=True).separation
+
+neural_assemblies\tests\test_erp_calibration.py:56: AssertionError
+_ TestExcessIsClippedAtItsOwnNull.test_grammatical_excess_is_crushed_against_the_floor _
+
+self = <neural_assemblies.tests.test_erp_metric_range.TestExcessIsClippedAtItsOwnNull object at 0x000001377FDE5DF0>
+forked_parser = <function forked_parser.<locals>._make at 0x00000137293DE2A0>
+
+    def test_grammatical_excess_is_crushed_against_the_floor(self, forked_parser):
+        """And it does so in practice, not just in principle.
+    
+        ASSERTS THE ASYMMETRY, not that a specific sample equals 0.0. The first
+        version asserted `any(v == 0.0 for v in vals)` and failed whenever the
+        baseline happened to come from a different sample set -- a realization,
+        not the mechanism, which is the trap this whole file is about.
+    
+        The structural fact is that clipping against the grammatical median
+        crushes the null arm's spread while leaving the violation arm intact.
+        That is what makes Cohen's d divide by a floor.
+        """
+        report = calibrate_erp_thresholds(forked_parser("SENTENCES", seed=11))
+        gram = [float(s.p600_excess) for s in _samples(report, "grammatical")]
+        catv = [float(s.p600_excess)
+                for s in _samples(report, "category_violation")]
+        assert gram and catv, "calibration produced no samples"
+>       assert min(gram) == 0.0, (
+            f"nothing in the grammatical arm reaches the clip floor: {gram}")
+E       AssertionError: nothing in the grammatical arm reaches the clip floor: [0.0013499999999998513, 0.0020499999999998852, 0.0012499999999998623]
+E       assert 0.0012499999999998623 == 0.0
+E        +  where 0.0012499999999998623 = min([0.0013499999999998513, 0.0020499999999998852, 0.0012499999999998623])
+
+neural_assemblies\tests\test_erp_metric_range.py:81: AssertionError
+============================== warnings summary ===============================
+neural_assemblies/tests/test_batched_next_token.py::test_batched_matches_sequential_top1
+  F:\Github\assemblies\neural_assemblies\core\torch_engine\_batched.py:40: UserWarning: Sparse invariant checks are implicitly disabled. Memory errors (e.g. SEGFAULT) will occur when operating on a sparse tensor which violates the invariants, but checks incur performance overhead. To silence this warning, explicitly opt in or out. See `torch.sparse.check_sparse_tensor_invariants.__doc__` for guidance.  (Triggered internally at C:\actions-runner\_work\pytorch\pytorch\aten\src\ATen\Context.cpp:767.)
+    return torch.sparse_csr_tensor(crow, col, val, size=(n, n))
+
+neural_assemblies/tests/test_batched_next_token.py::test_batched_matches_sequential_top1
+  F:\Github\assemblies\neural_assemblies\core\torch_engine\_batched.py:40: UserWarning: Sparse CSR tensor support is in beta state. If you miss a functionality in the sparse tensor support, please submit a feature request to https://github.com/pytorch/pytorch/issues. (Triggered internally at C:\actions-runner\_work\pytorch\pytorch\aten\src\ATen\SparseCsrTensorImpl.cpp:51.)
+    return torch.sparse_csr_tensor(crow, col, val, size=(n, n))
+
+neural_assemblies/tests/test_projection_parity.py::TestProjectIntoParityFull::test_seed_sweep_parity
+  F:\Github\assemblies\neural_assemblies\tests\test_projection_parity.py:289: UserWarning: First-winner inputs differ by up to 4.0; acceptable due to RNG/rounding path differences
+    warnings.warn(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED neural_assemblies/tests/test_erp_calibration.py::TestErpCalibration::test_fast_calibration_preserves_separation
+FAILED neural_assemblies/tests/test_erp_metric_range.py::TestExcessIsClippedAtItsOwnNull::test_grammatical_excess_is_crushed_against_the_floor
+2 failed, 1246 passed, 1 skipped, 116 deselected, 9 xfailed, 1 xpassed, 3 warnings in 867.85s (0:14:27)

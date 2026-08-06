@@ -1,0 +1,89 @@
+bringing up nodes...
+bringing up nodes...
+
+........................................................................ [  6%]
+........................................................................ [ 13%]
+..............F.FF..F.................F................x................ [ 19%]
+...........F.F......F........Xx...EEEE..EEEEEEEEEEE.EEE.EEEEEEEEE....... [ 26%]
+........EE.EE.E.EEEEEE.....................................F...FF..F.FF. [ 32%]
+F..FF..................................F..............x..............F.F [ 39%]
+....................................x................................... [ 46%]
+....................EEE..EE.............FF............................EE [ 52%]
+EE..E............F.....................x.........x....F................. [ 59%]
+.......................F...........F..F................................. [ 65%]
+..................................F..........................s.......... [ 72%]
+........................................................................ [ 79%]
+......F..........................................................EEEEEFE [ 85%]
+EEEEE......F......................F........EEEEEEEEEF..EEE........F..F.. [ 92%]
+.............E..F.EE.E..E...F...EEEEEEEEEEEEEEE.....EEEE.....FFFF....... [ 98%]
+...EEEE.EEE.                                                             [100%]
+============================== warnings summary ===============================
+neural_assemblies/tests/test_batched_trainer.py::TestSparseTrainer::test_sparse_learns_above_chance
+  F:\Github\assemblies\neural_assemblies\assembly_calculus\batched_trainer.py:216: UserWarning: Sparse invariant checks are implicitly disabled. Memory errors (e.g. SEGFAULT) will occur when operating on a sparse tensor which violates the invariants, but checks incur performance overhead. To silence this warning, explicitly opt in or out. See `torch.sparse.check_sparse_tensor_invariants.__doc__` for guidance.  (Triggered internally at C:\actions-runner\_work\pytorch\pytorch\aten\src\ATen\Context.cpp:767.)
+    self.W = torch.sparse_coo_tensor(
+
+neural_assemblies/tests/test_batched_trainer.py::TestSparseTrainer::test_sparse_learns_above_chance
+  F:\Github\assemblies\neural_assemblies\assembly_calculus\batched_trainer.py:237: UserWarning: Sparse CSR tensor support is in beta state. If you miss a functionality in the sparse tensor support, please submit a feature request to https://github.com/pytorch/pytorch/issues. (Triggered internally at C:\actions-runner\_work\pytorch\pytorch\aten\src\ATen\SparseCsrTensorImpl.cpp:51.)
+    Wt = self.W.t().to_sparse_csr()
+
+neural_assemblies/tests/test_projection_parity.py::TestProjectIntoParityFull::test_seed_sweep_parity
+  F:\Github\assemblies\neural_assemblies\tests\test_projection_parity.py:289: UserWarning: First-winner inputs differ by up to 5.0; acceptable due to RNG/rounding path differences
+    warnings.warn(
+
+neural_assemblies/tests/test_projection_parity.py::TestProjectIntoParityFull::test_seed_sweep_parity
+  F:\Github\assemblies\neural_assemblies\tests\test_projection_parity.py:298: UserWarning: Per-winner input allocations differ by up to 4.0; acceptable
+    warnings.warn(
+
+neural_assemblies/tests/test_batched_next_token.py::test_batched_matches_sequential_top1
+  F:\Github\assemblies\neural_assemblies\core\torch_engine\_batched.py:40: UserWarning: Sparse invariant checks are implicitly disabled. Memory errors (e.g. SEGFAULT) will occur when operating on a sparse tensor which violates the invariants, but checks incur performance overhead. To silence this warning, explicitly opt in or out. See `torch.sparse.check_sparse_tensor_invariants.__doc__` for guidance.  (Triggered internally at C:\actions-runner\_work\pytorch\pytorch\aten\src\ATen\Context.cpp:767.)
+    return torch.sparse_csr_tensor(crow, col, val, size=(n, n))
+
+neural_assemblies/tests/test_batched_next_token.py::test_batched_matches_sequential_top1
+  F:\Github\assemblies\neural_assemblies\core\torch_engine\_batched.py:40: UserWarning: Sparse CSR tensor support is in beta state. If you miss a functionality in the sparse tensor support, please submit a feature request to https://github.com/pytorch/pytorch/issues. (Triggered internally at C:\actions-runner\_work\pytorch\pytorch\aten\src\ATen\SparseCsrTensorImpl.cpp:51.)
+    return torch.sparse_csr_tensor(crow, col, val, size=(n, n))
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED neural_assemblies/tests/test_torch_parity.py::TestReciprocalParity::test_reciprocal_recovers[numpy_sparse]
+FAILED neural_assemblies/tests/test_assembly_calculus.py::TestAssociate::test_associate_creates_shared_response
+FAILED neural_assemblies/tests/test_assembly_calculus.py::TestMerge::test_merge_responds_to_either_source
+FAILED neural_assemblies/tests/test_assembly_calculus.py::TestPatternCompletion::test_pattern_completion_degrades_with_less_cue
+FAILED neural_assemblies/tests/test_torch_parity.py::TestAssociateParity::test_associate_shared_response[numpy_sparse]
+FAILED neural_assemblies/tests/test_torch_parity.py::TestAssociateParity::test_associate_shared_response[torch_sparse]
+FAILED neural_assemblies/tests/test_torch_parity.py::TestMergeParity::test_merge_responds_to_either[numpy_sparse]
+FAILED neural_assemblies/tests/test_torch_parity.py::TestMergeParity::test_merge_responds_to_either[torch_sparse]
+FAILED neural_assemblies/tests/test_cuda_kernels.py::TestHashTableCorrectness::test_learned_connections_created
+FAILED neural_assemblies/tests/test_cuda_kernels.py::TestHashTableCorrectness::test_hash_table_populated
+FAILED neural_assemblies/tests/test_cuda_kernels.py::TestWeightAccumulation::test_weights_saturate
+FAILED neural_assemblies/tests/test_cuda_kernels.py::TestWeightAccumulation::test_no_overflow
+FAILED neural_assemblies/tests/test_cuda_kernels.py::TestCOOWeightsReset::test_reset_clears_state
+FAILED neural_assemblies/tests/test_cuda_kernels.py::TestCOOWeightsReset::test_reset_then_rerun_matches_fresh
+FAILED neural_assemblies/tests/test_cuda_kernels.py::TestMultiAreaProjection::test_area_to_area
+FAILED neural_assemblies/tests/test_cuda_kernels.py::TestProjectRounds::test_stim_only_matches_sequential
+FAILED neural_assemblies/tests/test_cuda_kernels.py::TestProjectRounds::test_area_source_matches_sequential
+FAILED neural_assemblies/tests/test_ac_conformance.py::test_association_increases_overlap_substantially
+FAILED neural_assemblies/tests/test_ac_conformance.py::test_association_grows_with_coactivation
+FAILED neural_assemblies/tests/test_ac_conformance.py::test_associate_and_merge_are_distinguishable
+FAILED neural_assemblies/tests/test_trace.py::test_reciprocal_project_trace_can_probe_merged_target
+FAILED neural_assemblies/tests/test_trace.py::test_source_response_traces_compare_each_source_to_reference
+FAILED neural_assemblies/tests/test_stim_fastpath_equivalence.py::test_capacity_buffer_survives_pickling
+FAILED neural_assemblies/tests/test_read_only_probes.py::test_probe_order_does_not_change_the_brain
+FAILED neural_assemblies/tests/test_checkpoint_fork.py::test_delta_cell_produces_valid_result[False-balanced]
+FAILED neural_assemblies/tests/test_mechanisms_fire.py::test_brain_is_deep_copyable
+FAILED neural_assemblies/tests/test_checkpoint_fork.py::test_delta_cell_produces_valid_result[False-subject_only]
+FAILED neural_assemblies/tests/test_checkpoint_fork.py::test_delta_cell_produces_valid_result[False-object_only]
+FAILED neural_assemblies/tests/test_checkpoint_fork.py::test_delta_cell_produces_valid_result[True-balanced]
+FAILED neural_assemblies/tests/test_emergent_parser.py::TestIncrementalProcessing::test_incremental_context_assembly_grows
+FAILED neural_assemblies/tests/test_checkpoint_fork.py::test_delta_cell_produces_valid_result[True-subject_only]
+FAILED neural_assemblies/tests/test_checkpoint_fork.py::test_delta_cell_produces_valid_result[True-object_only]
+FAILED neural_assemblies/tests/test_checkpoint_fork.py::test_fork_preserves_erp_calibration
+FAILED neural_assemblies/tests/test_bootstrap.py::TestHoldoutBootstrap::test_sentences_depth_holdout_bootstrap_floor
+FAILED neural_assemblies/tests/test_checkpoint_fork.py::test_fork_isolation_after_ingest
+FAILED neural_assemblies/tests/test_checkpoint_fork.py::test_brain_clone_matches_deepcopy_metrics
+FAILED neural_assemblies/tests/test_checkpoint_fork.py::test_backbone_disk_cache_roundtrip
+FAILED neural_assemblies/tests/test_erp_calibration.py::TestErpCalibration::test_calibration_separates_category_violation_from_grammatical
+FAILED neural_assemblies/tests/test_erp_calibration.py::TestErpCalibration::test_tuned_thresholds_flag_catviol_not_grammatical
+FAILED neural_assemblies/tests/test_erp_calibration.py::TestErpCalibration::test_fast_calibration_preserves_separation
+FAILED neural_assemblies/tests/test_erp_integration.py::TestErpIntegration::test_calibrate_mine_replay_pipeline
+41 failed, 941 passed, 1 skipped, 6 xfailed, 1 xpassed, 6 warnings, 102 errors in 194.91s (0:03:14)
+EXIT=1

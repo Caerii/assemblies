@@ -1,0 +1,90 @@
+..............X.......x..x.......FFF.......FF........................... [ 72%]
+..x........................                                              [100%]
+================================== FAILURES ===================================
+__________ TestTheShippedDefault.test_both_measurement_flags_are_off __________
+
+self = <neural_assemblies.tests.test_erp_protocol.TestTheShippedDefault object at 0x0000025A90BB75F0>
+
+    def test_both_measurement_flags_are_off(self):
+        """`expected_slot` inverts on fresh parsers; `afferent_energy` was
+        rejected on measurement (AUC 0.000, zero variance, four seeds)."""
+>       assert DEFAULT_PROTOCOL.expected_slot is False
+E       assert True is False
+E        +  where True = ErpProtocol(expected_slot=True, afferent_energy=False, debug=False).expected_slot
+
+neural_assemblies\tests\test_erp_protocol.py:26: AssertionError
+_ TestTheShippedDefault.test_default_describes_itself_as_default_not_as_nothing _
+
+self = <neural_assemblies.tests.test_erp_protocol.TestTheShippedDefault object at 0x0000025A90BDE150>
+
+    def test_default_describes_itself_as_default_not_as_nothing(self):
+        """A study that recorded no deviations must not look like one that
+        recorded nothing at all."""
+>       assert DEFAULT_PROTOCOL.describe() == "default"
+E       AssertionError: assert 'expected_slot' == 'default'
+E         
+E         - default
+E         + expected_slot
+
+neural_assemblies\tests\test_erp_protocol.py:32: AssertionError
+___________ TestAnArmIsAValue.test_deriving_an_arm_is_an_expression ___________
+
+self = <neural_assemblies.tests.test_erp_protocol.TestAnArmIsAValue object at 0x0000025A90BDDD60>
+
+    def test_deriving_an_arm_is_an_expression(self):
+        base = ErpProtocol()
+        arm = base.with_(expected_slot=True)
+        assert arm.expected_slot is True
+>       assert base.expected_slot is False, "deriving must not mutate the base"
+E       AssertionError: deriving must not mutate the base
+E       assert True is False
+E        +  where True = ErpProtocol(expected_slot=True, afferent_energy=False, debug=False).expected_slot
+
+neural_assemblies\tests\test_erp_protocol.py:41: AssertionError
+_____ TestTheOneEnvironmentAdapter.test_falsey_spellings_do_not_enable[] ______
+
+self = <neural_assemblies.tests.test_erp_protocol.TestTheOneEnvironmentAdapter object at 0x0000025A90BDF3B0>
+raw = ''
+
+    @pytest.mark.parametrize("raw", ["0", "false", "off", "", "  ", "no"])
+    def test_falsey_spellings_do_not_enable(self, raw):
+        """`ERP_EXPECTED_SLOT=0` must DISABLE.
+    
+        An earlier version of this flag defaulted to on and treated anything
+        other than "0"/"false"/"off" as enabled, so the two spellings of the
+        same intent behaved differently. Pin the whole set.
+        """
+>       assert not ErpProtocol.from_environment({"ERP_EXPECTED_SLOT": raw}).expected_slot
+E       AssertionError: assert not True
+E        +  where True = ErpProtocol(expected_slot=True, afferent_energy=False, debug=False).expected_slot
+E        +    where ErpProtocol(expected_slot=True, afferent_energy=False, debug=False) = from_environment({'ERP_EXPECTED_SLOT': ''})
+E        +      where from_environment = ErpProtocol.from_environment
+
+neural_assemblies\tests\test_erp_protocol.py:71: AssertionError
+____ TestTheOneEnvironmentAdapter.test_falsey_spellings_do_not_enable[  ] _____
+
+self = <neural_assemblies.tests.test_erp_protocol.TestTheOneEnvironmentAdapter object at 0x0000025A90BDF470>
+raw = '  '
+
+    @pytest.mark.parametrize("raw", ["0", "false", "off", "", "  ", "no"])
+    def test_falsey_spellings_do_not_enable(self, raw):
+        """`ERP_EXPECTED_SLOT=0` must DISABLE.
+    
+        An earlier version of this flag defaulted to on and treated anything
+        other than "0"/"false"/"off" as enabled, so the two spellings of the
+        same intent behaved differently. Pin the whole set.
+        """
+>       assert not ErpProtocol.from_environment({"ERP_EXPECTED_SLOT": raw}).expected_slot
+E       AssertionError: assert not True
+E        +  where True = ErpProtocol(expected_slot=True, afferent_energy=False, debug=False).expected_slot
+E        +    where ErpProtocol(expected_slot=True, afferent_energy=False, debug=False) = from_environment({'ERP_EXPECTED_SLOT': '  '})
+E        +      where from_environment = ErpProtocol.from_environment
+
+neural_assemblies\tests\test_erp_protocol.py:71: AssertionError
+=========================== short test summary info ===========================
+FAILED neural_assemblies/tests/test_erp_protocol.py::TestTheShippedDefault::test_both_measurement_flags_are_off
+FAILED neural_assemblies/tests/test_erp_protocol.py::TestTheShippedDefault::test_default_describes_itself_as_default_not_as_nothing
+FAILED neural_assemblies/tests/test_erp_protocol.py::TestAnArmIsAValue::test_deriving_an_arm_is_an_expression
+FAILED neural_assemblies/tests/test_erp_protocol.py::TestTheOneEnvironmentAdapter::test_falsey_spellings_do_not_enable[]
+FAILED neural_assemblies/tests/test_erp_protocol.py::TestTheOneEnvironmentAdapter::test_falsey_spellings_do_not_enable[  ]
+5 failed, 90 passed, 1412 deselected, 3 xfailed, 1 xpassed in 181.26s (0:03:01)

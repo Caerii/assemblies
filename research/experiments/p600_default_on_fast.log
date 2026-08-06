@@ -1,0 +1,68 @@
+........................................................................ [  5%]
+........................................................................ [ 10%]
+........................................................................ [ 15%]
+..x..................................................................... [ 20%]
+........................................................................ [ 25%]
+........................................................................ [ 31%]
+........................................................................ [ 36%]
+.....X.......x..x....................................................... [ 41%]
+........................................................................ [ 46%]
+.............s........................x...........................Xx.... [ 51%]
+................................x....................................... [ 56%]
+........................................................................ [ 62%]
+........................x.......................................x.x..... [ 67%]
+........................................................................ [ 72%]
+........................................................................ [ 77%]
+.....x.................................................................. [ 82%]
+........................................F............................... [ 87%]
+........................................................................ [ 93%]
+...................x.................................................... [ 98%]
+........................                                                 [100%]
+================================== FAILURES ===================================
+____________ TestStatisticsPerformance.test_parameter_sensitivity _____________
+
+self = <neural_assemblies.tests.test_statistics_performance.TestStatisticsPerformance testMethod=test_parameter_sensitivity>
+
+    def test_parameter_sensitivity(self):
+        """Test performance sensitivity to different parameters."""
+        # Test with different p values
+        n = 10000
+        p_values = [0.001, 0.01, 0.1, 0.5, 0.9, 0.99, 0.999]
+        times = []
+    
+        for p in p_values:
+            start_time = time.perf_counter()
+            samples = self.stats_engine.sample_binomial_winners(n, p, 10000)
+            end_time = time.perf_counter()
+            times.append(end_time - start_time)
+    
+        # Performance should not vary dramatically with p
+        max_time = max(times)
+        min_time = min(times)
+        if min_time > 0:  # Avoid division by zero
+>           self.assertLess(max_time, min_time * 10)  # Should not vary by more than 10x
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           AssertionError: 0.005299199983710423 not less than 0.004382000188343227
+
+neural_assemblies\tests\test_statistics_performance.py:357: AssertionError
+============================== warnings summary ===============================
+neural_assemblies/tests/test_batched_next_token.py::test_batched_matches_sequential_top1
+  F:\Github\assemblies\neural_assemblies\core\torch_engine\_batched.py:40: UserWarning: Sparse invariant checks are implicitly disabled. Memory errors (e.g. SEGFAULT) will occur when operating on a sparse tensor which violates the invariants, but checks incur performance overhead. To silence this warning, explicitly opt in or out. See `torch.sparse.check_sparse_tensor_invariants.__doc__` for guidance.  (Triggered internally at C:\actions-runner\_work\pytorch\pytorch\aten\src\ATen\Context.cpp:767.)
+    return torch.sparse_csr_tensor(crow, col, val, size=(n, n))
+
+neural_assemblies/tests/test_batched_next_token.py::test_batched_matches_sequential_top1
+  F:\Github\assemblies\neural_assemblies\core\torch_engine\_batched.py:40: UserWarning: Sparse CSR tensor support is in beta state. If you miss a functionality in the sparse tensor support, please submit a feature request to https://github.com/pytorch/pytorch/issues. (Triggered internally at C:\actions-runner\_work\pytorch\pytorch\aten\src\ATen\SparseCsrTensorImpl.cpp:51.)
+    return torch.sparse_csr_tensor(crow, col, val, size=(n, n))
+
+neural_assemblies/tests/test_projection_parity.py::TestProjectIntoParityFull::test_seed_sweep_parity
+  F:\Github\assemblies\neural_assemblies\tests\test_projection_parity.py:289: UserWarning: First-winner inputs differ by up to 5.0; acceptable due to RNG/rounding path differences
+    warnings.warn(
+
+neural_assemblies/tests/test_projection_parity.py::TestProjectIntoParityFull::test_seed_sweep_parity
+  F:\Github\assemblies\neural_assemblies\tests\test_projection_parity.py:298: UserWarning: Per-winner input allocations differ by up to 4.0; acceptable
+    warnings.warn(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED neural_assemblies/tests/test_statistics_performance.py::TestStatisticsPerformance::test_parameter_sensitivity
+1 failed, 1377 passed, 1 skipped, 119 deselected, 11 xfailed, 2 xpassed, 4 warnings in 1156.89s (0:19:16)

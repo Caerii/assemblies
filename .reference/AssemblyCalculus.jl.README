@@ -1,0 +1,13 @@
+# AssemblyCalculus.jl vendor pointer
+
+Clone the Julia reference implementation for cross-language parity:
+
+```bash
+git clone https://github.com/Caerii/AssemblyCalculus.jl.git AssemblyCalculus.jl
+```
+
+Upstream: https://github.com/djpasseyjr/AssemblyCalculus.jl  
+Maintainer fork: https://github.com/Caerii/AssemblyCalculus.jl
+
+Until vendored, use the standalone reference at
+`research/literature/cross_lang/julia/pnas_scaling.jl` for CI contract checks.

@@ -563,6 +563,19 @@ def measure_live_integration(
     # leaving `_phrase_areas_for_category` on the observed category would carry
     # the confound straight into the stability term and area-match only half the
     # metric. When the slot is predicted, the category it predicts is nominal.
+    #
+    # THE FIX REACHED TWO OF THREE CONSUMERS. "The category" is read three
+    # times here -- for `role_area` (the probe's TARGET), for
+    # `phrase_category` (which phrase areas are read), and for `core` (the
+    # probe's SOURCE, computed above). `expected_slot` corrected the first two
+    # and left the third on the observed category, so the violation arm reads
+    # VERB_CORE -> ROLE_PATIENT against a control reading
+    # NOUN_CORE -> ROLE_PATIENT. Area identity, one level over, in the fix
+    # written to remove area identity. Measured with the CONDITION HELD
+    # CONSTANT -- same sentence, same trained noun, only the category LABEL
+    # changed -- that difference alone separates at AUC 0.78/0.89/0.89 with a
+    # span (0.0058-0.0071) matching the real contrast's 0.0064.
+    # See research/experiments/erp_source_core_identity_control.py.
     role_area = None
     phrase_category = category
     if protocol.expected_slot and verb_seen_before is not None:
@@ -571,6 +584,8 @@ def measure_live_integration(
         )
         if role_area is not None:
             phrase_category = "NOUN"
+            if protocol.expected_slot_source_core:
+                core = CATEGORY_TO_CORE.get(phrase_category, core)
     if role_area is None:
         role_area = structural_role_area(category, verb_seen=verb_seen)
 

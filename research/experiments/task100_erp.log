@@ -1,0 +1,9 @@
+depth=SENTENCES  seeds=[11, 12, 13, 14, 15]
++/- is a t-based 95% CI (diagnostics.ensemble), not a standard error.
+A positive p600 gap / Cohen's d means violations score HIGHER,
+which is the direction the metric exists to show.
+
+metric         frozen() [shipped]         read_only() [isolated]     delta
+p600_cohens_d      2.127 +/- 0.251            1.934 +/- 0.906         -0.193 +/- 0.728  no change
+n400_cohens_d      3.181 +/- 3.243            2.839 +/- 1.800         -0.342 +/- 1.665  no change
+p600_gap           0.002 +/- 0.000            0.003 +/- 0.000         +0.001 +/- 0.000  CHANGED

@@ -1,0 +1,13 @@
+study over 10 seeds [11, 12, 13, 42, 7, 19, 23, 31, 37, 101] (order=counterbalance)
+  substrate: disk_hits=0 trained_fresh=10 backbone_cache=OFF fingerprint=158files
+  p600_auc_of_raw   0.7167+/-0.0805   ->   0.7500+/-0.0732    delta +0.0333+/-0.0627  [PASS]
+  p600_span_of_raw   0.0064+/-0.0008   ->   0.0123+/-0.0010    delta +0.0059+/-0.0005  [PASS]
+  VERDICT: PASS
+
+EXPECTED_SLOT is ON by default since f79c4f5, so BOTH arms here probe
+ROLE_PATIENT. The shipped self-recurrent metric is therefore defined
+on both, and `afferent_energy` no longer has a structural argument in
+its favour -- only an empirical one, which is what this measures.
+
+10 parser(s) trained fresh in-process -- this is
+the substrate that decides adoption.

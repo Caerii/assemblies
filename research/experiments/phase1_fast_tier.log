@@ -1,0 +1,54 @@
+........................................................................ [  5%]
+........................................................................ [ 10%]
+..............................................................x......... [ 16%]
+........................................................................ [ 21%]
+........................................................................ [ 27%]
+........................................................................ [ 32%]
+.................................................................X...... [ 38%]
+.x..x................................................................... [ 43%]
+.................................................s...................... [ 48%]
+..x...........................Xx....................................x... [ 54%]
+.............................F.......................................... [ 59%]
+..................................................x..................... [ 65%]
+..................x.x................................................... [ 70%]
+........................................................................ [ 76%]
+...........x............................................................ [ 81%]
+........................................................................ [ 86%]
+........................................................................ [ 92%]
+.........................x.............................................. [ 97%]
+..............................                                           [100%]
+================================== FAILURES ===================================
+__________________ test_no_new_unpinned_engine_constructions __________________
+neural_assemblies\tests\test_methodology_ratchet.py:151: in test_no_new_unpinned_engine_constructions
+    assert not grew, (
+E   AssertionError: new or increased `Brain()` without an explicit engine:
+E         research/experiments/erp_rng_leak_check.py: 0 -> 1
+E     
+E       `Brain(...)` without `engine=` silently selects `numpy_sparse`,
+E       whose candidate sampler INVENTS drive for neurons that have not fired.
+E       Every word-order result in this repo was measured that way because
+E       WordOrderLearner had no engine parameter. Pin the engine explicitly --
+E       `numpy_exact` computes the drive -- or raise the baseline entry with a
+E       comment saying why the sampler is the right instrument here.
+E   assert not {'research/experiments/erp_rng_leak_check.py': (0, 1)}
+============================== warnings summary ===============================
+neural_assemblies/tests/test_batched_next_token.py::test_batched_matches_sequential_top1
+  F:\Github\assemblies\neural_assemblies\core\torch_engine\_batched.py:40: UserWarning: Sparse invariant checks are implicitly disabled. Memory errors (e.g. SEGFAULT) will occur when operating on a sparse tensor which violates the invariants, but checks incur performance overhead. To silence this warning, explicitly opt in or out. See `torch.sparse.check_sparse_tensor_invariants.__doc__` for guidance.  (Triggered internally at C:\actions-runner\_work\pytorch\pytorch\aten\src\ATen\Context.cpp:767.)
+    return torch.sparse_csr_tensor(crow, col, val, size=(n, n))
+
+neural_assemblies/tests/test_batched_next_token.py::test_batched_matches_sequential_top1
+  F:\Github\assemblies\neural_assemblies\core\torch_engine\_batched.py:40: UserWarning: Sparse CSR tensor support is in beta state. If you miss a functionality in the sparse tensor support, please submit a feature request to https://github.com/pytorch/pytorch/issues. (Triggered internally at C:\actions-runner\_work\pytorch\pytorch\aten\src\ATen\SparseCsrTensorImpl.cpp:51.)
+    return torch.sparse_csr_tensor(crow, col, val, size=(n, n))
+
+neural_assemblies/tests/test_projection_parity.py::TestProjectIntoParityFull::test_seed_sweep_parity
+  F:\Github\assemblies\neural_assemblies\tests\test_projection_parity.py:289: UserWarning: First-winner inputs differ by up to 6.0; acceptable due to RNG/rounding path differences
+    warnings.warn(
+
+neural_assemblies/tests/test_projection_parity.py::TestProjectIntoParityFull::test_seed_sweep_parity
+  F:\Github\assemblies\neural_assemblies\tests\test_projection_parity.py:298: UserWarning: Per-winner input allocations differ by up to 4.0; acceptable
+    warnings.warn(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED neural_assemblies/tests/test_methodology_ratchet.py::test_no_new_unpinned_engine_constructions
+1 failed, 1311 passed, 1 skipped, 118 deselected, 11 xfailed, 2 xpassed, 4 warnings in 1695.00s (0:28:14)

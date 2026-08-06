@@ -1,0 +1,11 @@
+
+  #91 -- does noun/verb emerge with NO label?
+  n=10000 k=50, p 0.05->0.2 and beta 0.06->0.2 on 4 fibers, engine numpy_exact
+  8 nouns + 4 verbs, 120 sentences (~10/word), 3 seeds, majority baseline 0.67
+
+             arm   noun gap   verb gap   accuracy  stability
+      asymmetric     -0.340     -0.197      0.000      0.846
+    CONTROL flat      0.004      0.005      0.556      0.962
+
+  E3 -- gap vs number of distinct complements (asymmetric arm)
+   complements   noun gap

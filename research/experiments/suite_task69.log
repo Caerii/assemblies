@@ -1,0 +1,57 @@
+........................................................................ [  5%]
+........................................................................ [ 11%]
+...........................................x............................ [ 17%]
+........................................................................ [ 23%]
+........................................................................ [ 29%]
+........................................................................ [ 35%]
+........................................................................ [ 41%]
+........................................................................ [ 47%]
+......s........................x...........................Xx........... [ 53%]
+.........................x..........................F................... [ 59%]
+............................................................x........... [ 65%]
+........................................................................ [ 71%]
+.............................................x.......................... [ 76%]
+........................................................................ [ 82%]
+........................................................................ [ 88%]
+...........................................................x............ [ 94%]
+................................................................         [100%]
+================================== FAILURES ===================================
+___________________ test_no_new_hand_rolled_seed_statistics ___________________
+
+    def test_no_new_hand_rolled_seed_statistics():
+        base, _ = _load_baseline()
+        found, _ = _scan()
+        grew = _grown(found, base)
+>       assert not grew, (
+            "new or increased hand-rolled seed statistics:\n" + _fmt(grew)
+            + _SEED_ADVICE)
+E       AssertionError: new or increased hand-rolled seed statistics:
+E             research/experiments/task69_stored_assembly_privilege.py: 0 -> 3
+E         
+E           A mean over seeds with no interval cannot support a comparison, and
+E           the comparison gets made anyway. Use `diagnostics.ensemble(run, seeds)`
+E           -- it refuses fewer than 3 seeds -- and `paired_delta` for an A/B.
+E           Judge with `Ensemble.beats(threshold)`, which reads the confidence
+E           bound rather than the mean. If the site is a mean over CONDITIONS
+E           rather than over seeds, raise its entry in methodology_baseline.json
+E           with a comment in test_methodology_ratchet.py saying so.
+E       assert not {'research/experiments/task69_stored_assembly_privilege.py': (0, 3)}
+
+neural_assemblies\tests\test_methodology_ratchet.py:142: AssertionError
+============================== warnings summary ===============================
+neural_assemblies/tests/test_batched_next_token.py::test_batched_matches_sequential_top1
+  F:\Github\assemblies\neural_assemblies\core\torch_engine\_batched.py:40: UserWarning: Sparse invariant checks are implicitly disabled. Memory errors (e.g. SEGFAULT) will occur when operating on a sparse tensor which violates the invariants, but checks incur performance overhead. To silence this warning, explicitly opt in or out. See `torch.sparse.check_sparse_tensor_invariants.__doc__` for guidance.  (Triggered internally at C:\actions-runner\_work\pytorch\pytorch\aten\src\ATen\Context.cpp:767.)
+    return torch.sparse_csr_tensor(crow, col, val, size=(n, n))
+
+neural_assemblies/tests/test_batched_next_token.py::test_batched_matches_sequential_top1
+  F:\Github\assemblies\neural_assemblies\core\torch_engine\_batched.py:40: UserWarning: Sparse CSR tensor support is in beta state. If you miss a functionality in the sparse tensor support, please submit a feature request to https://github.com/pytorch/pytorch/issues. (Triggered internally at C:\actions-runner\_work\pytorch\pytorch\aten\src\ATen\SparseCsrTensorImpl.cpp:51.)
+    return torch.sparse_csr_tensor(crow, col, val, size=(n, n))
+
+neural_assemblies/tests/test_projection_parity.py::TestProjectIntoParityFull::test_seed_sweep_parity
+  F:\Github\assemblies\neural_assemblies\tests\test_projection_parity.py:289: UserWarning: First-winner inputs differ by up to 4.0; acceptable due to RNG/rounding path differences
+    warnings.warn(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED neural_assemblies/tests/test_methodology_ratchet.py::test_no_new_hand_rolled_seed_statistics
+1 failed, 1206 passed, 1 skipped, 116 deselected, 7 xfailed, 1 xpassed, 3 warnings in 1000.94s (0:16:40)

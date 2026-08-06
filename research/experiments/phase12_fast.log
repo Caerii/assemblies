@@ -1,0 +1,38 @@
+........................................................................ [  5%]
+........................................................................ [ 10%]
+..............................................................x......... [ 16%]
+........................................................................ [ 21%]
+........................................................................ [ 26%]
+........................................................................ [ 32%]
+.................................................................x...... [ 37%]
+.x..x................................................................... [ 43%]
+.................................................s...................... [ 48%]
+..x...........................Xx....................................x... [ 53%]
+........................................................................ [ 59%]
+............................................................x........... [ 64%]
+............................x.x......................................... [ 70%]
+........................................................................ [ 75%]
+.....................x.................................................. [ 80%]
+........................................................................ [ 86%]
+........................................................................ [ 91%]
+...................................x.................................... [ 97%]
+........................................                                 [100%]
+============================== warnings summary ===============================
+neural_assemblies/tests/test_batched_next_token.py::test_batched_matches_sequential_top1
+  F:\Github\assemblies\neural_assemblies\core\torch_engine\_batched.py:40: UserWarning: Sparse invariant checks are implicitly disabled. Memory errors (e.g. SEGFAULT) will occur when operating on a sparse tensor which violates the invariants, but checks incur performance overhead. To silence this warning, explicitly opt in or out. See `torch.sparse.check_sparse_tensor_invariants.__doc__` for guidance.  (Triggered internally at C:\actions-runner\_work\pytorch\pytorch\aten\src\ATen\Context.cpp:767.)
+    return torch.sparse_csr_tensor(crow, col, val, size=(n, n))
+
+neural_assemblies/tests/test_batched_next_token.py::test_batched_matches_sequential_top1
+  F:\Github\assemblies\neural_assemblies\core\torch_engine\_batched.py:40: UserWarning: Sparse CSR tensor support is in beta state. If you miss a functionality in the sparse tensor support, please submit a feature request to https://github.com/pytorch/pytorch/issues. (Triggered internally at C:\actions-runner\_work\pytorch\pytorch\aten\src\ATen\SparseCsrTensorImpl.cpp:51.)
+    return torch.sparse_csr_tensor(crow, col, val, size=(n, n))
+
+neural_assemblies/tests/test_projection_parity.py::TestProjectIntoParityFull::test_seed_sweep_parity
+  F:\Github\assemblies\neural_assemblies\tests\test_projection_parity.py:289: UserWarning: First-winner inputs differ by up to 5.0; acceptable due to RNG/rounding path differences
+    warnings.warn(
+
+neural_assemblies/tests/test_projection_parity.py::TestProjectIntoParityFull::test_seed_sweep_parity
+  F:\Github\assemblies\neural_assemblies\tests\test_projection_parity.py:298: UserWarning: Per-winner input allocations differ by up to 4.0; acceptable
+    warnings.warn(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+1322 passed, 1 skipped, 118 deselected, 12 xfailed, 1 xpassed, 4 warnings in 1250.39s (0:20:50)

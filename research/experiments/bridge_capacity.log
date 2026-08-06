@@ -1,0 +1,89 @@
+
+  ROLE RETRIEVAL vs CAPACITY   rounds=10 zipf_s=1.0 seeds=[42, 43, 44]
+  corpus: 400 sentences, 60 types, 76 bindings (c_max=173 in the stream, 1 in training)
+  derived beta = g_c^(1/rounds) - 1 = 0.07177 (g/step = 2.000 = g_c = 2.0)
+  items per role area: AGENT=16  ACTION=20  PATIENT=40
+
+       n     k      p    kp   M_max    need  feasible
+    1000    50  0.200    10      23   1.692       YES
+           AGENT    M=16   alpha=M/M_max=0.70  predicted OK
+           ACTION   M=20   alpha=M/M_max=0.87  predicted OK
+           PATIENT  M=40   alpha=M/M_max=1.74  predicted DEGRADED
+    1000   100  0.100    10      12   1.644       YES
+           AGENT    M=16   alpha=M/M_max=1.39  predicted DEGRADED
+           ACTION   M=20   alpha=M/M_max=1.74  predicted DEGRADED
+           PATIENT  M=40   alpha=M/M_max=3.48  predicted DEGRADED
+    1000   200  0.050    10       6   1.553       YES
+           AGENT    M=16   alpha=M/M_max=2.78  predicted DEGRADED
+           ACTION   M=20   alpha=M/M_max=3.48  predicted DEGRADED
+           PATIENT  M=40   alpha=M/M_max=6.96  predicted DEGRADED
+    1000   400  0.025    10       3   1.423       YES
+           AGENT    M=16   alpha=M/M_max=5.57  predicted DEGRADED
+           ACTION   M=20   alpha=M/M_max=6.96  predicted DEGRADED
+           PATIENT  M=40   alpha=M/M_max=13.91  predicted DEGRADED
+   10000   100  0.100    10     115   1.910       YES
+           AGENT    M=16   alpha=M/M_max=0.14  predicted OK
+           ACTION   M=20   alpha=M/M_max=0.17  predicted OK
+           PATIENT  M=40   alpha=M/M_max=0.35  predicted OK
+
+  === n=1000 k=50 p=0.2 (kp=10) M_max~23 beta=0.07177 ===
+    seed 42: ACTION 1.000  AGENT 1.000  PATIENT 1.000
+    seed 43: ACTION 1.000  AGENT 1.000  PATIENT 1.000
+    seed 44: ACTION 1.000  AGENT 1.000  PATIENT 1.000
+
+    area              M  a=M/Mmax  distinct   spread   diag  offdiag  retrieval          95% CI  chance
+    ROLE_AGENT       16      0.70     1.000   0.0900  1.000   0.0900      1.000   [0.926,1.000]  0.0625
+    ROLE_ACTION      20      0.87     1.000   0.1018  0.998   0.1028      1.000   [0.940,1.000]  0.0500
+    ROLE_PATIENT     40      1.74     1.000   0.2211  0.942   0.2481      1.000   [0.969,1.000]  0.0250
+    LEX_NOUN         40      1.74     1.000   0.0495      -        -          -               -       -
+    LEX_VERB         20      0.87     1.000   0.0461      -        -          -               -       -
+
+  === n=1000 k=100 p=0.1 (kp=10) M_max~12 beta=0.07177 ===
+    seed 42: ACTION 1.000  AGENT 1.000  PATIENT 0.575
+    seed 43: ACTION 1.000  AGENT 1.000  PATIENT 0.675
+    seed 44: ACTION 1.000  AGENT 1.000  PATIENT 0.625
+
+    area              M  a=M/Mmax  distinct   spread   diag  offdiag  retrieval          95% CI  chance
+    ROLE_AGENT       16      1.39     1.000   0.3514  0.963   0.3733      1.000   [0.926,1.000]  0.0625
+    ROLE_ACTION      20      1.74     1.000   0.4048  0.919   0.4551      1.000   [0.940,1.000]  0.0500
+    ROLE_PATIENT     40      3.48     1.000   0.6034  0.850   0.7020      0.625   [0.536,0.706]  0.0250
+    LEX_NOUN         40      3.48     1.000   0.1003      -        -          -               -       -
+    LEX_VERB         20      1.74     1.000   0.0982      -        -          -               -       -
+
+  === n=1000 k=200 p=0.05 (kp=10) M_max~6 beta=0.07177 ===
+    seed 42: ACTION 0.650  AGENT 0.688  PATIENT 0.600
+    seed 43: ACTION 0.600  AGENT 0.688  PATIENT 0.700
+    seed 44: ACTION 0.650  AGENT 0.625  PATIENT 0.725
+
+    area              M  a=M/Mmax  distinct   spread   diag  offdiag  retrieval          95% CI  chance
+    ROLE_AGENT       16      2.78     1.000   0.7259  0.901   0.8018      0.667   [0.525,0.783]  0.0625
+    ROLE_ACTION      20      3.48     1.000   0.7757  0.913   0.8403      0.633   [0.507,0.744]  0.0500
+    ROLE_PATIENT     40      6.96     1.000   0.8235  0.922   0.8665      0.675   [0.587,0.752]  0.0250
+    LEX_NOUN         40      6.96     1.000   0.2000      -        -          -               -       -
+    LEX_VERB         20      3.48     1.000   0.2010      -        -          -               -       -
+
+  === n=1000 k=400 p=0.025 (kp=10) M_max~3 beta=0.07177 ===
+    seed 42: ACTION 0.600  AGENT 0.625  PATIENT 0.775
+    seed 43: ACTION 0.600  AGENT 0.500  PATIENT 0.825
+    seed 44: ACTION 0.750  AGENT 0.688  PATIENT 0.800
+
+    area              M  a=M/Mmax  distinct   spread   diag  offdiag  retrieval          95% CI  chance
+    ROLE_AGENT       16      5.57     1.000   0.9418  0.973   0.9633      0.604   [0.463,0.730]  0.0625
+    ROLE_ACTION      20      6.96     1.000   0.9487  0.976   0.9658      0.650   [0.524,0.758]  0.0500
+    ROLE_PATIENT     40     13.91     1.000   0.9682  0.987   0.9772      0.800   [0.720,0.862]  0.0250
+    LEX_NOUN         40     13.91     1.000   0.4007      -        -          -               -       -
+    LEX_VERB         20      6.96     1.000   0.4010      -        -          -               -       -
+
+  === n=10000 k=100 p=0.1 (kp=10) M_max~115 beta=0.07177 ===
+    seed 42: ACTION 1.000  AGENT 1.000  PATIENT 1.000
+    seed 43: ACTION 1.000  AGENT 1.000  PATIENT 1.000
+    seed 44: ACTION 1.000  AGENT 1.000  PATIENT 1.000
+
+    area              M  a=M/Mmax  distinct   spread   diag  offdiag  retrieval          95% CI  chance
+    ROLE_AGENT       16      0.14     1.000   0.0070  1.000   0.0070      1.000   [0.926,1.000]  0.0625
+    ROLE_ACTION      20      0.17     1.000   0.0074  1.000   0.0074      1.000   [0.940,1.000]  0.0500
+    ROLE_PATIENT     40      0.35     1.000   0.0086  1.000   0.0086      1.000   [0.969,1.000]  0.0250
+    LEX_NOUN         40      0.35     1.000   0.0079      -        -          -               -       -
+    LEX_VERB         20      0.17     1.000   0.0067      -        -          -               -       -
+
+  wrote F:\Github\assemblies\research\experiments\bridge_capacity.csv
