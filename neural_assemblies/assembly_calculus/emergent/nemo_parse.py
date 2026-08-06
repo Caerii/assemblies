@@ -435,8 +435,14 @@ class NemoParser:
         for area, label in _ROLE_LABEL.items():
             if area not in self.brain.areas or label == "ACTION":
                 continue
+            # `_role_binding_margin` returns a `Measured`; undefined means
+            # there is no lexical evidence for this role, which contributes
+            # nothing and leaves the gated prior in charge. Stated with
+            # `.or_else` rather than left to the bare `except Exception` below,
+            # which would have swallowed the UndefinedMeasurement along with
+            # every real error and produced the same 0.0 either way.
             try:
-                lex = float(margin_fn(word, core, area))
+                lex = margin_fn(word, core, area).or_else(0.0)
             except Exception:
                 lex = 0.0
             prior = 1.0 if label == gated else 0.0

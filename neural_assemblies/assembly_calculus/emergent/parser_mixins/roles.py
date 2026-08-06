@@ -6,6 +6,7 @@ only their address is.
 
 
 from typing import Dict, List, Optional
+from neural_assemblies.core.measurement import Measured
 from neural_assemblies.assembly_calculus.assembly import (
     overlap as assembly_overlap,
 )
@@ -121,7 +122,7 @@ class RoleBindingMixin:
         return None
 
     def _role_binding_margin(self, word: str, core_area: str,
-                             role_area: str) -> float:
+                             role_area: str) -> Measured:
         """Lexical evidence that `word` was bound into `role_area`, in [0, 1].
 
         Requires the core assembly for `word` to be active and FIXED.
@@ -149,11 +150,34 @@ class RoleBindingMixin:
         a role does not rewrite it.  (The previous code ran one round, then
         called ``reset_area_connections(role_area)``, which destroyed the
         learned core->role weights as a side effect of parsing.)
+
+        UNDEFINED, NOT ZERO, when the residual cannot be formed. There are two
+        such cases, and returning a number for either used to make this function
+        report TWO DIFFERENT QUANTITIES under one name:
+
+        * the word has no stored binding here -- no evidence, rather than
+          evidence of zero;
+        * the word is the ONLY filler in this role's lexicon, so there is no
+          baseline to subtract. The old code returned the raw ``own`` overlap
+          for this case, which is the quantity this whole docstring exists to
+          reject: ~0.9 for every candidate role, carrying no learned
+          information. Because ``_assign_roles_neural`` NORMALIZES these
+          margins against each other, that raw value took probability mass away
+          from properly-baselined competitors -- making LEXICON SIZE move the
+          role decision.
+
+        Measured before changing it (`research/experiments/
+        role_margin_branch_census.py`, seeds 11/12/42): the single-filler branch
+        fires **0 times** in a real parse, so this costs nothing today. It is
+        typed so it cannot start costing something silently.
         """
         lex = self.role_lexicons.get(role_area, {})
         stored = lex.get(word)
         if stored is None:
-            return 0.0
+            return Measured.undefined(
+                f"{word!r} has no stored binding in {role_area}, so there is "
+                f"no lexical evidence either way",
+                word=word, role_area=role_area, lexicon_size=len(lex))
 
         with self.brain.frozen():
             self.brain.project({}, {core_area: [role_area]})
@@ -167,9 +191,12 @@ class RoleBindingMixin:
         others = [assembly_overlap(asm, a)
                   for other, a in lex.items() if other != word]
         if not others:
-            return own
+            return Measured.undefined(
+                f"{word!r} is the only filler stored in {role_area}, so there "
+                f"is no baseline to subtract and the residual is not defined",
+                word=word, role_area=role_area, own=own)
         base = sum(others) / len(others)
-        return max(0.0, (own - base) / max(1e-6, 1.0 - base))
+        return Measured.of(max(0.0, (own - base) / max(1e-6, 1.0 - base)))
 
     def _assign_roles_neural(self, words: List[str],
                              categories: Dict[str, str],
@@ -268,8 +295,14 @@ class RoleBindingMixin:
             best_score = -1.0
 
             candidates = [ra for ra in role_order if ra not in inhibited]
+            # `.or_else(0.0)` is EXPLICIT, and it is the right default here:
+            # an undefined margin means there is no lexical evidence for this
+            # role, so it should contribute nothing and let the structural prior
+            # decide. The old code produced the same 0.0 for the no-binding case
+            # and a near-1.0 RAW OVERLAP for the single-filler case, which is
+            # the confound this replaces (see `_role_binding_margin`).
             margins = {
-                ra: self._role_binding_margin(word, core_area, ra)
+                ra: self._role_binding_margin(word, core_area, ra).or_else(0.0)
                 for ra in candidates
             }
             # Turn the per-area margins into a distribution over the competing
