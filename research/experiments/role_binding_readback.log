@@ -1,0 +1,46 @@
+=== seed 11 ===
+  NOUN_CORE      Area.w=2546    engine.w=2546
+  ROLE_PATIENT   Area.w=0       engine.w=675  <-- ALIAS != RECRUITED, input_drive divides by the alias
+  ROLE_AGENT     Area.w=0       engine.w=874  <-- ALIAS != RECRUITED, input_drive divides by the alias
+  readings: 71 words
+  drive->ROLE_PATIENT  min=0.013103 max=26.694454
+  drive->ROLE_AGENT    min=0.012637 max=17.390684
+  patient_bound   n=36  mean->PATIENT=12.068563  mean->AGENT=5.256085  mean contrast=+6.812478
+  agent_bound     n=29  mean->PATIENT=13.564255  mean->AGENT=2.207672  mean contrast=+11.356583
+  unbound         n=6   mean->PATIENT=13.530444  mean->AGENT=4.982599  mean contrast=+8.547845
+  AUC(patient_bound drive->PATIENT above agent_bound) = 0.4583   n_pairs=1044
+  AUC(patient_bound above UNBOUND)                    = 0.4630   n_pairs=216
+  NOUN_CORE pairwise overlap over 24 words: mean=0.1306 min=0.0000 max=1.0000
+
+=== seed 12 ===
+  NOUN_CORE      Area.w=2531    engine.w=2531
+  ROLE_PATIENT   Area.w=0       engine.w=601  <-- ALIAS != RECRUITED, input_drive divides by the alias
+  ROLE_AGENT     Area.w=0       engine.w=930  <-- ALIAS != RECRUITED, input_drive divides by the alias
+  readings: 71 words
+  drive->ROLE_PATIENT  min=0.013284 max=27.709257
+  drive->ROLE_AGENT    min=0.012408 max=29.366432
+  patient_bound   n=36  mean->PATIENT=7.989337  mean->AGENT=10.505129  mean contrast=-2.515791
+  agent_bound     n=29  mean->PATIENT=12.780751  mean->AGENT=3.501643  mean contrast=+9.279108
+  unbound         n=6   mean->PATIENT=14.042382  mean->AGENT=4.766444  mean contrast=+9.275938
+  AUC(patient_bound drive->PATIENT above agent_bound) = 0.3482   n_pairs=1044
+  AUC(patient_bound above UNBOUND)                    = 0.3935   n_pairs=216
+  NOUN_CORE pairwise overlap over 24 words: mean=0.1316 min=0.0000 max=1.0000
+
+=== seed 42 ===
+  NOUN_CORE      Area.w=2459    engine.w=2459
+  ROLE_PATIENT   Area.w=0       engine.w=666  <-- ALIAS != RECRUITED, input_drive divides by the alias
+  ROLE_AGENT     Area.w=0       engine.w=954  <-- ALIAS != RECRUITED, input_drive divides by the alias
+  readings: 71 words
+  drive->ROLE_PATIENT  min=0.011849 max=19.723129
+  drive->ROLE_AGENT    min=0.012180 max=31.264009
+  patient_bound   n=36  mean->PATIENT=4.442451  mean->AGENT=14.804316  mean contrast=-10.361864
+  agent_bound     n=29  mean->PATIENT=7.007441  mean->AGENT=10.261757  mean contrast=-3.254315
+  unbound         n=6   mean->PATIENT=2.126579  mean->AGENT=19.413717  mean contrast=-17.287138
+  AUC(patient_bound drive->PATIENT above agent_bound) = 0.3578   n_pairs=1044
+  AUC(patient_bound above UNBOUND)                    = 0.4861   n_pairs=216
+  NOUN_CORE pairwise overlap over 24 words: mean=0.1256 min=0.0000 max=1.0000
+
+READING IT. AUC ~ 0.5 with the sanity checks passing means the
+binding wrote nothing a downstream area can read -- which is a
+claim about the ROLE MECHANISM, not about the ERP metric, and it
+would put every role result in the repo on the same footing.
