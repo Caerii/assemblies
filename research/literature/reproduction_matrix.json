@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated": "2026-06-23",
+  "updated": "2026-08-07",
   "description": "Claim-level reproduction matrix for Assembly Calculus literature. Each row is one falsifiable unit: protocol + test + optional golden.",
   "donoho_contract": {
     "protocol": "parity/PROTOCOLS.md or parity/<paper_id>.yaml",
@@ -23,10 +23,10 @@
   },
   "summary": {
     "papers": 16,
-    "claims_total": 95,
-    "pinned": 34,
-    "partial": 22,
-    "missing": 29,
+    "claims_total": 101,
+    "pinned": 49,
+    "partial": 21,
+    "missing": 21,
     "theorem": 5,
     "research": 5
   },
@@ -1402,6 +1402,48 @@
       "gap": "Wire matrix JSON to pytest -k",
       "priority": "P1",
       "repro_command": null
+    },
+    {
+      "claim_id": "COLT22-T03",
+      "paper_id": "dabagia2022classify",
+      "category": "theorem",
+      "claim": "Theorem 3 (Recall): a fresh sample from class A yields a cap overlapping A* by at least 1 - e^{-kpr}",
+      "status": "pinned",
+      "module": "neural_assemblies/programs/colt_multiassembly_numpy.py",
+      "test": "neural_assemblies/tests/test_literature_parity.py::TestColtMultiAssembly::test_recall_meets_theorem_3_bound",
+      "protocol_id": "colt2022_multiassembly",
+      "golden": "research/literature/parity/golden/colt2022_multiassembly.json",
+      "gap": null,
+      "priority": "P1",
+      "repro_command": "python research/literature/parity/record_colt_multiassembly.py"
+    },
+    {
+      "claim_id": "COLT22-T04",
+      "paper_id": "dabagia2022classify",
+      "category": "theorem",
+      "claim": "Theorem 4 (Multiple Assemblies): with |S_A n S_B| = alpha*k, assembly overlap preserves it, |A* n B*| <= alpha*k",
+      "status": "partial",
+      "module": "neural_assemblies/programs/colt_multiassembly_numpy.py",
+      "test": "neural_assemblies/tests/test_literature_parity.py::TestColtMultiAssembly::test_theorem_4_overlap_preservation_does_not_hold",
+      "protocol_id": "colt2022_multiassembly",
+      "golden": "research/literature/parity/golden/colt2022_multiassembly.json",
+      "gap": "DIVERGENCE, pinned rather than asserted: overlap is AMPLIFIED, not preserved (alpha 0.25 -> ~0.50, 0.50 -> ~0.90 at beta=0.10), and raising beta to/past beta0=1.349 does not restore it. Every practical beta is far below beta0 -- including the papers' own beta=0.06 -- so the hypothesis is not in force and this is a divergence from the guarantee, not a refutation. See research/notes/kwta_amplifies_input_overlap.md",
+      "priority": "P1",
+      "repro_command": "python research/literature/parity/record_colt_multiassembly.py"
+    },
+    {
+      "claim_id": "COLT22-T01b",
+      "paper_id": "dabagia2022classify",
+      "category": "theorem",
+      "claim": "Theorem 1 (Creation): support bound |A*| <= k / (1 - exp(-(beta/beta0)^2))",
+      "status": "partial",
+      "module": "neural_assemblies/programs/colt_multiassembly_numpy.py",
+      "test": "neural_assemblies/tests/test_literature_parity.py::TestColtMultiAssembly::test_theorem_1_support_bound_is_vacuous_here",
+      "protocol_id": "colt2022_multiassembly",
+      "golden": "research/literature/parity/golden/colt2022_multiassembly.json",
+      "gap": "VACUOUS at every beta anyone runs (182k here, 506k at the acquisition paper's beta=0.06), so it is recorded and its vacuity asserted rather than the bound itself -- a bound nothing can violate is not a check.",
+      "priority": "P3",
+      "repro_command": "python research/literature/parity/record_colt_multiassembly.py"
     }
   ]
 }

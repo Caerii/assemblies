@@ -1,0 +1,67 @@
+{
+  "protocol": "colt2022_multiassembly",
+  "cite_tag": "COLT22",
+  "claim": "Theorem 3 (Recall): a fresh sample from class A yields a cap overlapping A* by at least 1 - e^{-kpr}. Theorem 4 (Multiple Assemblies): with |S_A n S_B| = alpha*k, |A* n B*| <= alpha*k.",
+  "source": "COLT 2022 paper text; protocol implemented in neural_assemblies/programs/colt_multiassembly_numpy.py",
+  "recorded": "2026-08-07",
+  "parameters": {
+    "n": 10000,
+    "k": 100,
+    "p": 0.05,
+    "beta": 0.1,
+    "r": 0.9,
+    "q": 0.0,
+    "rounds": 10,
+    "seeds": [
+      42,
+      7
+    ],
+    "engine": "numpy_exact"
+  },
+  "metrics": {
+    "recall": 1.0,
+    "recall_floor": 0.9889,
+    "alphas": [
+      0.0,
+      0.25,
+      0.5
+    ],
+    "overlaps": [
+      0.03,
+      0.535,
+      0.915
+    ],
+    "chance": [
+      0.0183,
+      0.0173,
+      0.0158
+    ],
+    "supports": [
+      1.365,
+      1.365,
+      1.365
+    ],
+    "beta0": 1.3492,
+    "support_bound_in_k": 182.5
+  },
+  "thresholds": {
+    "recall_min": 0.9889
+  },
+  "divergences": {
+    "theorem_4_overlap_preservation": {
+      "status": "DOES NOT HOLD",
+      "expected": "|A* n B*| / k <= alpha",
+      "measured": {
+        "0.0": 0.03,
+        "0.25": 0.535,
+        "0.5": 0.915
+      },
+      "note": "Overlap is AMPLIFIED, with beta as the gain. Raising beta to and past beta0 (1.5/2.0/4.0 vs beta0=1.349) does NOT restore preservation -- those arms are identical to beta=0.5. Every practical beta is far below beta0, including the papers' own simulations, so the theorem's hypothesis is not in force and this is a divergence from the guarantee rather than a refutation of the theorem."
+    }
+  },
+  "notes": [
+    "Engine PINNED to numpy_exact: the numpy_sparse candidate sampler invents drive for neurons that have not fired, so an overlap measurement there is partly a property of the sampler.",
+    "alpha=0 is scored against the CHANCE floor |A*||B*|/n, not against the theorem's literal 0, which no finite substrate can deliver.",
+    "Stimulus classes are DISTRIBUTIONS (r=0.9, q=0.0), not the fixed deterministic patterns our lexicon uses -- without sampling there is no core set for these theorems to describe."
+  ]
+}

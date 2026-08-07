@@ -542,3 +542,109 @@ class TestColt2022Halfspace:
             golden["metrics"]["pos_overlap"], abs=0.01)
         assert result.neg_overlap == pytest.approx(
             golden["metrics"]["neg_overlap"], abs=0.01)
+
+
+class TestColtMultiAssembly:
+    # NOT marked slow: measured 4.1s for the whole class, so it runs in the
+    # default `-m "not slow"` selection. A parity check that only runs in the
+    # slow tier is a parity check that does not run.
+    """[COLT22] Theorems 1/3/4 -- creation, recall, and MULTIPLE assemblies.
+
+    The point of this class is that it does THREE DIFFERENT THINGS with three
+    theorems, and says which is which:
+
+      * Theorem 3 (Recall) is ASSERTED. It holds with wide margin.
+      * Theorem 1's support bound is asserted to be VACUOUS -- because it is,
+        at every beta anyone runs, and a bound nothing can violate must not be
+        mistaken for a passing check.
+      * Theorem 4 (overlap preservation) is PINNED AS A DIVERGENCE. It does not
+        hold here, and a test that merely asserted it would be red forever
+        while a test that ignored it would let the gap drift silently.
+    """
+
+    @pytest.fixture(scope="class")
+    def result(self):
+        from neural_assemblies.programs.colt_multiassembly_numpy import (
+            run_colt_multiassembly,
+        )
+        return run_colt_multiassembly()
+
+    def test_recall_meets_theorem_3_bound(self, result):
+        """Theorem 3: a fresh sample's cap overlaps A* by >= 1 - e^{-kpr}.
+
+        This also VALIDATES THE HARNESS. If recall fails, the assemblies never
+        formed and no Theorem 4 number from the same run means anything -- so
+        this assertion has to pass before the others are readable.
+        """
+        assert result.recall >= result.recall_floor, (
+            f"recall {result.recall:.4f} is below the theorem's floor "
+            f"{result.recall_floor:.4f}; the class assemblies did not form, so "
+            f"every other number in this class is uninterpretable")
+
+    def test_theorem_1_support_bound_is_vacuous_here(self, result):
+        """The support bound cannot fail at our beta, so it is not a check.
+
+        `beta0` is a LOWER bound on plasticity and we run two orders of
+        magnitude under it -- as do the papers' own simulations (beta=0.06
+        against beta0=1.349). The support bound k/(1-exp(-(b/b0)^2)) then
+        exceeds 100k, which no real run approaches. Asserting it would be a
+        test that passes for a reason unrelated to the model being right.
+        """
+        from neural_assemblies.programs.colt_multiassembly_numpy import (
+            support_bound,
+        )
+        k = int(result.parameters["k"])
+        beta = float(result.parameters["beta"])
+        bound = support_bound(k, beta, result.beta0)
+        assert bound > 50 * k, (
+            f"support bound is {bound / k:.1f}k, which is tight enough to be "
+            f"worth asserting -- the regime changed and this test should "
+            f"become a real check instead of documenting vacuity")
+        assert max(result.supports) < 3.0, (
+            "support inflation grew beyond 3k; that is a real change in "
+            "assembly formation even though the theorem cannot see it")
+
+    def test_theorem_4_overlap_preservation_does_not_hold(self, result):
+        """PINNED DIVERGENCE: |A* n B*| <= alpha*k is violated by amplification.
+
+        Measured at beta=0.10: alpha 0.25 -> ~0.50, alpha 0.50 -> ~0.90. Raising
+        beta to and past beta0 does NOT restore preservation.
+
+        IF THIS TEST FAILS, overlap preservation started holding -- which is a
+        fix worth knowing about, not a regression. Update the golden and
+        research/notes/kwta_amplifies_input_overlap.md rather than silencing it.
+        """
+        offenders = [
+            (a, o) for a, o, c in zip(result.alphas, result.overlaps,
+                                      result.chance)
+            if a >= 0.25 and (o - c) > a
+        ]
+        assert offenders, (
+            "Theorem 4's bound now HOLDS at alpha >= 0.25. That is a change in "
+            "the substrate, not a test failure -- re-record the golden and "
+            "update the note that documents the divergence.")
+
+    def test_alpha_zero_overlap_is_at_chance(self, result):
+        """CONTROL. Disjoint classes must not share more than the floor.
+
+        Without this, "overlap grows with alpha" would be consistent with the
+        area simply collapsing everything together regardless of input.
+        """
+        i = result.alphas.index(0.0)
+        assert result.overlaps[i] <= result.chance[i] + 0.02, (
+            f"disjoint stimulus classes overlap {result.overlaps[i]:.4f} "
+            f"against a chance floor of {result.chance[i]:.4f} -- the area is "
+            f"merging assemblies that share NO input")
+
+    def test_golden_matches_recorded(self, result):
+        import json
+        from pathlib import Path
+
+        golden_path = (Path(__file__).resolve().parents[2] / "research"
+                       / "literature" / "parity" / "golden"
+                       / "colt2022_multiassembly.json")
+        golden = json.loads(golden_path.read_text(encoding="utf-8"))
+        assert result.recall == pytest.approx(
+            golden["metrics"]["recall"], abs=0.02)
+        for got, want in zip(result.overlaps, golden["metrics"]["overlaps"]):
+            assert got == pytest.approx(want, abs=0.05)

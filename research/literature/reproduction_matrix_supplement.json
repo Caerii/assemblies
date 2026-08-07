@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated": "2026-06-23",
+  "updated": "2026-08-07",
   "description": "Supplemental claim rows from exhaustive paper audit (configs, legacy, extended empirical).",
   "claims": [
     {
@@ -383,15 +383,15 @@
       "paper_id": "dabagia2022classify",
       "category": "empirical",
       "claim": "Multi-class online interference in shared CLASS area",
-      "status": "missing",
-      "module": null,
-      "test": null,
-      "protocol_id": "colt2022.multiclass",
+      "status": "pinned",
+      "module": "neural_assemblies/programs/colt_multiassembly_numpy.py",
+      "test": "neural_assemblies/tests/test_literature_parity.py::TestColtMultiAssembly::test_alpha_zero_overlap_is_at_chance",
+      "protocol_id": "colt2022_multiassembly",
       "config_ref": "parity/configs/colt2022.yaml",
-      "golden": null,
-      "gap": null,
+      "golden": "research/literature/parity/golden/colt2022_multiassembly.json",
+      "gap": "Interference measured as |A* n B*| against stimulus overlap alpha; the alpha=0 control pins that disjoint classes stay at the chance floor. See COLT22-T04 for the amplification at alpha > 0.",
       "priority": "P2",
-      "repro_command": null
+      "repro_command": "python research/literature/parity/record_colt_multiassembly.py"
     },
     {
       "claim_id": "COLT22-M03",
@@ -409,19 +409,19 @@
       "repro_command": "uv run pytest neural_assemblies/programs/learn.py -v"
     },
     {
-      "claim_id": "SEQ25-M05",
+      "claim_id": "SEQ25-M09",
       "paper_id": "dabagia2025sequences",
       "category": "mechanism",
       "claim": "FiberCircuit gates TM tape symbol presentation",
-      "status": "pinned",
+      "status": "partial",
       "module": null,
       "test": "neural_assemblies/programs/tm_demo.py",
       "protocol_id": "sequences2025.tm_fiber",
       "config_ref": "parity/configs/sequences2025.yaml",
       "golden": null,
-      "gap": null,
+      "gap": "Demo script only, no test and no golden. Was marked `pinned` while carrying the SCAFFOLD claim's repro_command, which exercises a different claim entirely.",
       "priority": "P1",
-      "repro_command": "python -m pytest neural_assemblies/tests/test_literature_golden.py::TestNemo2025ScaffoldGolden -v"
+      "repro_command": "python -m neural_assemblies.programs.tm_demo"
     },
     {
       "claim_id": "SEQ25-M06",
@@ -589,7 +589,7 @@
       "repro_command": "uv run pytest neural_assemblies/programs/fsm_learn.py -v"
     },
     {
-      "claim_id": "SEQ25-E10",
+      "claim_id": "SEQ25-E14",
       "paper_id": "dabagia2025sequences",
       "category": "empirical",
       "claim": "Multi-state FSM inference beyond 2-state toy",
@@ -1638,5 +1638,14 @@
       "priority": "P3",
       "repro_command": null
     }
-  ]
+  ],
+  "summary": {
+    "claims_total": 109,
+    "pinned": 17,
+    "partial": 62,
+    "missing": 19,
+    "theorem": 0,
+    "research": 7,
+    "legacy": 4
+  }
 }
