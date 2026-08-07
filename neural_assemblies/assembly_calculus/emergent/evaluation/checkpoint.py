@@ -309,6 +309,29 @@ def source_fingerprint() -> str:
     return _SOURCE_FINGERPRINT
 
 
+def training_params_digest(params) -> str:
+    """Stable short digest of the training parameters that are not in the name.
+
+    WHY THIS IS A REQUIRED ARGUMENT rather than an optional one with a default.
+    The filename used to key on ``depth, seed, n, k, holdout`` only, so two
+    parsers trained at DIFFERENT beta collided on one cache file -- the second
+    arm of a beta A/B would silently load the first arm's backbone and the
+    study would compare a parser against a copy of itself. Nothing raises;
+    warm runs do not train ([[backbone-fingerprint-gap]]), so the only symptom
+    is an effect size of zero.
+
+    `p`, `rounds` and the vocabulary had the same hole. Making the parameter
+    REQUIRED means a new training knob cannot be added without either putting
+    it in here or deliberately deciding not to -- the omission has to be
+    spelled, which is the point ([[one-canonical-way]]).
+    """
+    import hashlib
+
+    items = sorted((str(key), repr(value)) for key, value in dict(params).items())
+    h = hashlib.sha256("|".join(f"{key}={value}" for key, value in items).encode())
+    return h.hexdigest()[:10]
+
+
 def backbone_cache_filename(
     depth: str,
     *,
@@ -316,11 +339,12 @@ def backbone_cache_filename(
     n: int,
     k: int,
     holdout_words: FrozenSet[str],
+    params,
 ) -> str:
     holdout_tag = "-".join(sorted(holdout_words)) or "none"
     return (
         f"v{BACKBONE_CACHE_VERSION}_{source_fingerprint()}"
-        f"_{depth}_s{seed}_n{n}_k{k}"
+        f"_{depth}_s{seed}_n{n}_k{k}_t{training_params_digest(params)}"
         f"_h{holdout_tag}.pkl"
     )
 
@@ -364,9 +388,10 @@ def backbone_cache_path(
     n: int,
     k: int,
     holdout_words: FrozenSet[str],
+    params,
 ):
     from pathlib import Path
 
     return Path(cache_dir) / backbone_cache_filename(
-        depth, seed=seed, n=n, k=k, holdout_words=holdout_words,
+        depth, seed=seed, n=n, k=k, holdout_words=holdout_words, params=params,
     )

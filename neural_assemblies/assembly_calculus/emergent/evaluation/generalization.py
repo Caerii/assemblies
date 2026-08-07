@@ -376,12 +376,23 @@ def train_parser_to_depth(
     *,
     n: int = 3000,
     k: int = 30,
+    beta: float = 0.1,
+    p: float = 0.05,
+    rounds: int = 10,
     seed: int = 42,
     holdout_words: Optional[Set[str]] = None,
     vocabulary: Optional[dict] = None,
     fast_training: bool = True,
 ) -> "EmergentParser":
-    """Train a fresh parser to a named curriculum checkpoint."""
+    """Train a fresh parser to a named curriculum checkpoint.
+
+    `beta`, `p` and `rounds` are exposed for the same reason `n` and `k` are:
+    they are training parameters a study may vary. Defaults track
+    `EmergentParser.__init__`. Anything added here MUST also enter the cache
+    keys in `sweep.ParserCache` -- a training knob that is not cache-key
+    material makes an A/B silently compare an arm against a cached copy of the
+    other one.
+    """
     from ..vocabulary_builder import build_vocabulary_preset
     from ..curriculum import CurriculumTrainer, _STAGE_CONFIG
     from ..parser import EmergentParser
@@ -391,7 +402,8 @@ def train_parser_to_depth(
     holdout = holdout_words or default_holdout_set()
     vocab = vocabulary if vocabulary is not None else build_vocabulary_preset("medium")
     parser = EmergentParser(
-        n=n, k=k, seed=seed, vocabulary=vocab, fast_training=fast_training,
+        n=n, k=k, beta=beta, p=p, rounds=rounds, seed=seed, vocabulary=vocab,
+        fast_training=fast_training,
     )
 
     if depth == "FULL_TRAIN":

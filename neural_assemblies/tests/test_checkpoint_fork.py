@@ -96,6 +96,56 @@ def test_brain_clone_matches_deepcopy_metrics():
     assert delta["holdout_small_cat"] == delta_dc["holdout_small_cat"]
 
 
+def test_training_params_are_cache_key_material():
+    """Two parsers trained at different beta must not share a cache entry.
+
+    THE BUG THIS PINS. `backbone_cache_filename` keyed on depth/seed/n/k/holdout
+    only, so a study varying beta (or p, or rounds) got the OTHER arm's pickled
+    backbone. Nothing raises, and warm runs do not train, so the only symptom
+    is an effect size of exactly zero -- which reads as a clean negative result.
+
+    Both layers are checked, because they fail independently: the on-disk
+    filename AND the in-memory `ParserCache._key`.
+    """
+    from neural_assemblies.assembly_calculus.emergent.evaluation.checkpoint import (
+        backbone_cache_filename,
+    )
+
+    hold = frozenset({"bird"})
+    ref = {"beta": 0.10, "p": 0.05, "rounds": 10}
+    name = backbone_cache_filename(
+        "SENTENCES", seed=11, n=3000, k=30, holdout_words=hold, params=ref)
+    for field, other in (("beta", 0.05), ("p", 0.01), ("rounds", 20)):
+        changed = backbone_cache_filename(
+            "SENTENCES", seed=11, n=3000, k=30, holdout_words=hold,
+            params={**ref, field: other})
+        assert changed != name, (
+            f"{field} does not change the backbone cache filename, so two "
+            f"arms differing only in {field} would share one pickle")
+
+    # Omission must be a TypeError, not a default. A new training knob has to
+    # be spelled into the key or deliberately left out -- it cannot be
+    # forgotten silently.
+    with pytest.raises(TypeError):
+        backbone_cache_filename(                          # type: ignore[call-arg]
+            "SENTENCES", seed=11, n=3000, k=30, holdout_words=hold)
+
+
+def test_parser_cache_key_separates_training_params():
+    from neural_assemblies.assembly_calculus.emergent.evaluation.sweep import (
+        ParserCache,
+    )
+
+    cache = ParserCache()
+    a = cache._key("SENTENCES", seed=11, holdout_words=None, n=3000, k=30,
+                   fast_training=True,
+                   params=(("beta", 0.10), ("p", 0.05), ("rounds", 10)))
+    b = cache._key("SENTENCES", seed=11, holdout_words=None, n=3000, k=30,
+                   fast_training=True,
+                   params=(("beta", 0.05), ("p", 0.05), ("rounds", 10)))
+    assert a != b, "in-memory ParserCache key ignores beta"
+
+
 def test_backbone_disk_cache_roundtrip(tmp_path):
     n, k, seed = 300, 8, 42
     backbone = build_parser_backbone(
@@ -114,6 +164,7 @@ def test_backbone_disk_cache_roundtrip(tmp_path):
     holdout = frozenset(default_holdout_set())
     path = backbone_cache_path(
         tmp_path, "TWO_WORD", seed=seed, n=n, k=k, holdout_words=holdout,
+        params={"beta": 0.1, "p": 0.05, "rounds": 10},
     )
     save_backbone_cache(backbone, path)
     loaded = load_backbone_cache(path)

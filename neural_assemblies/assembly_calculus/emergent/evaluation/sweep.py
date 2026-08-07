@@ -18,6 +18,12 @@ if TYPE_CHECKING:
 
 DEFAULT_N = 3000
 DEFAULT_K = 30
+#: Must track `EmergentParser.__init__`. These are cache-key material: they were
+#: absent from both the in-memory key and the on-disk filename, so a study that
+#: varied one of them silently re-used the other arm's parser.
+DEFAULT_BETA = 0.1
+DEFAULT_P = 0.05
+DEFAULT_ROUNDS = 10
 
 
 def sweep_mode_enabled() -> bool:
@@ -233,7 +239,7 @@ def _training_env_signature() -> Tuple:
     )
 
 
-def _backbone_disk_path(depth, *, seed, n, k, holdout):
+def _backbone_disk_path(depth, *, seed, n, k, holdout, params):
     """Full path for one backbone pickle, or ``None`` when caching is off."""
     root = backbone_cache_dir()
     if root is None:
@@ -241,7 +247,7 @@ def _backbone_disk_path(depth, *, seed, n, k, holdout):
     from .checkpoint import backbone_cache_filename
 
     name = backbone_cache_filename(
-        depth, seed=seed, n=n, k=k, holdout_words=holdout,
+        depth, seed=seed, n=n, k=k, holdout_words=holdout, params=params,
     )
     # Fingerprint goes in the FILENAME, so a code change misses the cache and
     # retrains instead of loading a stale backbone. Old files simply stop being
@@ -312,9 +318,10 @@ class ParserCache:
         n: int,
         k: int,
         fast_training: bool,
+        params: Tuple,
     ) -> Tuple:
         holdout = frozenset(holdout_words or ())
-        return (depth, seed, holdout, n, k, fast_training,
+        return (depth, seed, holdout, n, k, fast_training, params,
                 _training_env_signature())
 
     def get(
@@ -325,13 +332,24 @@ class ParserCache:
         holdout_words: Optional[Set[str]] = None,
         n: int = DEFAULT_N,
         k: int = DEFAULT_K,
+        beta: float = DEFAULT_BETA,
+        p: float = DEFAULT_P,
+        rounds: int = DEFAULT_ROUNDS,
         fast_training: bool = True,
         calibrate: bool = False,
     ) -> "EmergentParser":
-        """Return a trained parser, building and caching on first access."""
+        """Return a trained parser, building and caching on first access.
+
+        `beta`, `p` and `rounds` are part of BOTH cache keys. They were in
+        neither, so a study that varied one of them re-used the other arm's
+        parser -- in-memory within a run, and via the pickled backbone across
+        runs. Neither raises, and warm runs do not train, so the only symptom
+        was a zero effect.
+        """
+        params = (("beta", beta), ("p", p), ("rounds", rounds))
         key = self._key(
             depth, seed=seed, holdout_words=holdout_words,
-            n=n, k=k, fast_training=fast_training,
+            n=n, k=k, fast_training=fast_training, params=params,
         )
         if key in self._entries:
             self.hits += 1
@@ -349,6 +367,7 @@ class ParserCache:
         # retraining: the in-memory dict above only amortizes within one run.
         disk_path = _backbone_disk_path(
             depth, seed=seed, n=n, k=k, holdout=frozenset(holdout),
+            params=dict(params),
         )
         if disk_path is not None:
             from .checkpoint import load_backbone_cache
@@ -373,6 +392,9 @@ class ParserCache:
             depth,
             n=n,
             k=k,
+            beta=beta,
+            p=p,
+            rounds=rounds,
             seed=seed,
             holdout_words=holdout,
             fast_training=fast_training,
