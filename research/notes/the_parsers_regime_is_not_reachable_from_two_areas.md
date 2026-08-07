@@ -1,5 +1,21 @@
 # The parser's regime is not reachable from a two-area model — stopping here
 
+> **SUPERSEDED 2026-08-07, and the negative below is now EXPLAINED** — see
+> `the_mean_spread_was_hiding_a_bimodal_distribution.md`.
+>
+> The measurements here are correct. The conclusion drawn from them — "the
+> behaviour is not derivable from the minimal model, so stop" — was premature
+> by one piece of arithmetic. The toy's spread of 0.017 sits against a
+> random-pair floor of `k/n` = 0.0200: it is **pinned at its floor**, and a
+> substrate at its floor has no room to express intermediate overlap. That is
+> why the knobs produced only "separated or collapsed" and nothing between.
+>
+> The parser's 0.13 is 12.5× ITS floor, and its distribution is bimodal in a way
+> the mean cannot represent. The toy's words are independent random stimuli, so
+> they share no input features and there is nothing to harden — which is
+> precisely the mechanism the parser exhibits. **The model was wrong for the
+> question, not the question unanswerable.**
+
 ## The stopping rule, invoked
 
 Before running this I wrote: *"#123 is the last localization. If it confirms

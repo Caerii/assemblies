@@ -1,5 +1,24 @@
 # A shared target holds 96 bindings perfectly. The parser's problem is separation.
 
+> **PARTIALLY RETRACTED 2026-08-07** — see
+> `the_mean_spread_was_hiding_a_bimodal_distribution.md`. The capacity
+> conclusion stands. **The spread comparison below does not.**
+>
+> 1. The spreads are quoted RAW across two substrates with different
+>    random-pair floors (`overlap` normalises by k, so the floor is `k/n`). The
+>    toy's 0.0172 sits against a floor of 0.0200 — it is **pinned at its floor**,
+>    not well separated — and the parser's 0.13 against 0.0100. "8–12× more
+>    overlapping" compares two different zeros.
+> 2. Mean pairwise overlap is a function of the neuron DEGREE SEQUENCE alone
+>    (`Σ C(d_x,2) / (C(M,2)·k)`, exact). It cannot see that the parser's
+>    distribution is **bimodal** — 24% of `NOUN_CORE` assemblies are exact
+>    duplicates of another word's — which is the defect it was being used to
+>    argue about.
+>
+> The section below titled "The experiment this names" is what led to the
+> two-area sweep that found no intermediate regime. That negative is now
+> explained: a substrate at its floor cannot express one.
+
 ## The sweep
 
 Source population built **once** at M=96 and never changed, so source separation
