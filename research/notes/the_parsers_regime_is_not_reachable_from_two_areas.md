@@ -1,5 +1,14 @@
 # The parser's regime is not reachable from a two-area model — stopping here
 
+> **RETRACTED 2026-08-07** — see `kwta_amplifies_input_overlap.md`. The
+> conclusion is wrong, and for one specific reason: **every knob here was swept
+> at α = 0** — independent random stimuli, which is the one input regime where
+> the collapse mechanism cannot occur. With two stimulus classes sharing αk
+> sensory neurons, a two-area model reproduces the parser's behaviour exactly,
+> and the resulting law predicts the parser's per-pair assembly overlap from its
+> grounding features (rank correlation +0.399/+0.575). The minimal model was
+> never the problem; the input regime it was swept at was.
+>
 > **SUPERSEDED 2026-08-07, and the negative below is now EXPLAINED** — see
 > `the_mean_spread_was_hiding_a_bimodal_distribution.md`.
 >
