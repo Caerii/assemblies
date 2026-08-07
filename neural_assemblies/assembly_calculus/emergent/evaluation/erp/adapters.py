@@ -457,10 +457,38 @@ def anchored_p600_live(
     The fixed core assemblies (plus the subject core and NUMBER when live) fire
     into the role area through their core->role pathway; ``input_drive`` reads
     the summed synaptic drive over the role area's candidate neurons BEFORE
-    winner selection, normalized per candidate. A grammatical pairing traverses
-    a trained pathway and delivers HIGH energy; a category violation routes a
-    wrongly-typed core through an untrained pathway and delivers LESS. P600 is
-    the DEFICIT ``1 - energy`` -- larger for violations.
+    winner selection, normalized per candidate. P600 is the DEFICIT
+    ``1 - energy`` -- larger for violations.
+
+    THE SENTENCE THAT USED TO BE HERE -- "a grammatical pairing traverses a
+    TRAINED PATHWAY and delivers HIGH energy; a category violation routes a
+    WRONGLY-TYPED CORE through an UNTRAINED PATHWAY and delivers LESS" -- is two
+    claims, and MEASUREMENT SAYS ONLY THE SECOND ONE DOES ANY WORK.
+
+    Every shipped contrast varies them together, because the only way it builds
+    a violation is to put a verb in a noun slot. Separated
+    (`research/experiments/erp_pathway_vs_area_control.py`, 5 seeds, source area
+    held fixed, corpus frequency matched at zero, 10 items per arm):
+
+        agent_only vs patient_trained   PATHWAY only  AUC 0.5150 +/- 0.0725
+        verb_object vs patient_trained  as shipped    AUC 0.8870 +/- 0.0275
+        verb_object vs agent_only       AREA only     AUC 0.9800 +/- 0.0400
+
+    A noun that was NEVER bound into ROLE_PATIENT reads the same as one that
+    was -- same sentence, same position, same source area. Swapping the source
+    AREA alone reproduces the whole effect.
+
+    So this is an AREA-IDENTITY readout, not a pathway-learning one. What it
+    reports is that nouns and verbs live in different areas whose drive into
+    ROLE_PATIENT differs; the categoriser routes the word and the areas do the
+    rest. Do not describe it as detecting a selectional violation, and do not
+    describe it as evidence of learning which types fill which slots.
+
+    A candidate mechanism for why word-level learning is invisible: role binding
+    sits in the CROWDING regime (#52, pairwise overlap 0.15-0.22), so individual
+    noun assemblies in NOUN_CORE may overlap too much for per-word pathway
+    strength to survive the normalization, while NOUN_CORE and VERB_CORE do not
+    overlap at all.
 
     This replaces the settle-and-measure-winner-churn protocol, which reversed
     sign under ``norm_init`` (see module docstring / ``binding.input_drive``).
