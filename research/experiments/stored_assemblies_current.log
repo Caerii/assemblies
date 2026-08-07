@@ -1,0 +1,38 @@
+=== seed 11 ===  71 stored NOUN_CORE assemblies
+  assembly_is_current: 71/71
+  ROUND TRIP  mean=1.0000 min=1.0000  (1.000 expected; below it = live index-space bug)
+  FRESHNESS   mean=0.2737 min=0.0000 max=0.9667
+     patient  n=36  mean freshness=0.2898
+     agent    n=29  mean freshness=0.2506
+     unbound  n=6   mean freshness=0.2889
+  least fresh: [('bottle', 'agent', 0.0), ('bread', 'patient', 0.0), ('cake', 'patient', 0.0), ('dog', 'patient', 0.0), ('egg', 'agent', 0.0), ('king', 'patient', 0.0)]
+
+=== seed 12 ===  71 stored NOUN_CORE assemblies
+  assembly_is_current: 71/71
+  ROUND TRIP  mean=1.0000 min=1.0000  (1.000 expected; below it = live index-space bug)
+  FRESHNESS   mean=0.2751 min=0.0000 max=1.0000
+     patient  n=36  mean freshness=0.2870
+     agent    n=29  mean freshness=0.2621
+     unbound  n=6   mean freshness=0.2667
+  least fresh: [('bread', 'patient', 0.0), ('egg', 'agent', 0.0), ('house', 'agent', 0.0), ('king', 'patient', 0.0), ('letter', 'patient', 0.0), ('man', 'patient', 0.0)]
+
+=== seed 42 ===  71 stored NOUN_CORE assemblies
+  assembly_is_current: 71/71
+  ROUND TRIP  mean=1.0000 min=1.0000  (1.000 expected; below it = live index-space bug)
+  FRESHNESS   mean=0.2939 min=0.0000 max=0.9667
+     patient  n=36  mean freshness=0.3111
+     agent    n=29  mean freshness=0.2851
+     unbound  n=6   mean freshness=0.2333
+  least fresh: [('bread', 'patient', 0.0), ('cup', 'patient', 0.0), ('dog', 'patient', 0.0), ('egg', 'agent', 0.0), ('man', 'patient', 0.0), ('meat', 'agent', 0.0)]
+
+READING IT.
+  round trip < 1.000  -> the ID<->compact mapping is broken NOW, and
+                         every stored-assembly probe is void.
+  round trip = 1.000 but freshness LOW -> the snapshots no longer
+                         match what the words produce. The probe was
+                         reading assemblies that are not the word's,
+                         which is enough to void the inverted result
+                         without any claim about WHY they drifted.
+  both high            -> the stored assemblies are fine and the
+                         inversion is about the role areas, not the
+                         source.
