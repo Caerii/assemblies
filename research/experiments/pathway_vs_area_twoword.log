@@ -1,0 +1,6 @@
+seed 11: POOLS TOO SMALL {'patient_trained': 0, 'verb_object': 3} -- arms would differ in size as well as in kind; skipping this seed rather than comparing unequal arms
+seed 12: POOLS TOO SMALL {'patient_trained': 0, 'verb_object': 3} -- arms would differ in size as well as in kind; skipping this seed rather than comparing unequal arms
+seed 42: POOLS TOO SMALL {'patient_trained': 0, 'verb_object': 3} -- arms would differ in size as well as in kind; skipping this seed rather than comparing unequal arms
+seed 7: POOLS TOO SMALL {'patient_trained': 0, 'verb_object': 2} -- arms would differ in size as well as in kind; skipping this seed rather than comparing unequal arms
+seed 19: POOLS TOO SMALL {'patient_trained': 0, 'verb_object': 2} -- arms would differ in size as well as in kind; skipping this seed rather than comparing unequal arms
+no seed produced comparable pools -- nothing measured

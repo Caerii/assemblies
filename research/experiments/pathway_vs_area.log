@@ -1,0 +1,50 @@
+=== seed 11 ===
+  patient_trained  n=10  mean p600=0.9906  items=['cake', 'city', 'day', 'face', 'fire', 'foot', 'hand', 'head', 'king', 'mom']
+  agent_only       n=10  mean p600=0.9905  items=['bag', 'beach', 'child', 'death', 'egg', 'flower', 'hospital', 'life', 'meat', 'money']
+  verb_object      n=10  mean p600=0.9932  items=['become', 'bring', 'care', 'choose', 'cook', 'dream', 'enter', 'get', 'grow', 'guess']
+  (a) PATHWAY only  AUC=0.5850  span=0.0132
+  (a+b) SHIPPED     AUC=0.9100  span=0.0108
+  (b) AREA only     AUC=0.9950  span=0.0151
+
+=== seed 12 ===
+  patient_trained  n=10  mean p600=0.9903  items=['cake', 'city', 'cup', 'day', 'face', 'fire', 'foot', 'hand', 'head', 'king']
+  agent_only       n=10  mean p600=0.9891  items=['bag', 'child', 'death', 'egg', 'flower', 'gift', 'hospital', 'life', 'meat', 'money']
+  verb_object      n=10  mean p600=0.9930  items=['bring', 'build', 'care', 'choose', 'cook', 'cut', 'enter', 'get', 'grow', 'hold']
+  (a) PATHWAY only  AUC=0.4450  span=0.0179
+  (a+b) SHIPPED     AUC=0.8850  span=0.0118
+  (b) AREA only     AUC=0.9950  span=0.0196
+
+=== seed 42 ===
+  patient_trained  n=10  mean p600=0.9908  items=['bread', 'city', 'cup', 'day', 'face', 'fire', 'foot', 'hand', 'head', 'letter']
+  agent_only       n=10  mean p600=0.9902  items=['bag', 'beach', 'child', 'death', 'egg', 'flower', 'gift', 'hospital', 'life', 'meat']
+  verb_object      n=10  mean p600=0.9931  items=['become', 'bring', 'build', 'buy', 'carry', 'choose', 'cut', 'die', 'dream', 'get']
+  (a) PATHWAY only  AUC=0.4900  span=0.0135
+  (a+b) SHIPPED     AUC=0.8550  span=0.0103
+  (b) AREA only     AUC=1.0000  span=0.0153
+
+=== seed 7 ===
+  patient_trained  n=10  mean p600=0.9900  items=['cake', 'city', 'day', 'face', 'fire', 'foot', 'hand', 'head', 'king', 'letter']
+  agent_only       n=10  mean p600=0.9894  items=['bag', 'beach', 'child', 'death', 'flower', 'hospital', 'life', 'meat', 'money', 'moon']
+  verb_object      n=10  mean p600=0.9925  items=['become', 'bring', 'build', 'buy', 'care', 'cut', 'dream', 'enter', 'get', 'grow']
+  (a) PATHWAY only  AUC=0.5900  span=0.0176
+  (a+b) SHIPPED     AUC=0.9100  span=0.0110
+  (b) AREA only     AUC=0.9900  span=0.0193
+
+=== seed 19 ===
+  patient_trained  n=10  mean p600=0.9909  items=['cake', 'city', 'cup', 'day', 'face', 'fire', 'foot', 'hand', 'head', 'letter']
+  agent_only       n=10  mean p600=0.9902  items=['bag', 'beach', 'child', 'death', 'flower', 'gift', 'hospital', 'life', 'money', 'mouth']
+  verb_object      n=10  mean p600=0.9930  items=['be', 'become', 'bring', 'build', 'care', 'cook', 'cut', 'die', 'dream', 'finish']
+  (a) PATHWAY only  AUC=0.4650  span=0.0114
+  (a+b) SHIPPED     AUC=0.8750  span=0.0101
+  (b) AREA only     AUC=0.9200  span=0.0138
+
+==================================================================
+ACROSS SEEDS (mean +/- half-range)
+  (a) PATHWAY only : agent_only vs patient_trained     AUC=0.5150 +/-0.0725  per-seed=[0.59, 0.585, 0.445, 0.465, 0.49]
+  (a+b) SHIPPED    : verb_object vs patient_trained    AUC=0.8870 +/-0.0275  per-seed=[0.91, 0.91, 0.885, 0.875, 0.855]
+  (b) AREA only    : verb_object vs agent_only         AUC=0.9800 +/-0.0400  per-seed=[0.99, 0.995, 0.995, 0.92, 1.0]
+
+READING IT. (a) near 0.5 with (a+b) high means the shipped effect
+contains NO word-level pathway learning -- it is area identity, and
+`untrained pathway` is the wrong description of it. (a) clearly
+above 0.5 means pathway learning is real and separable.
