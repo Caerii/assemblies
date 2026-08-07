@@ -89,10 +89,42 @@ is the composition line's question, not the ERP line's.
 If the effect survives to M = 36, target capacity is refuted and the parser's
 state is doing something neither experiment has isolated.
 
-## Open, and separable
+## Consolidation re-issuing IDs: chased, and REFUTED
 
-Whether the stored/fresh divergence is drift or something sharper (consolidation
-re-issuing IDs would look like this too, and `assembly_is_current` checks
-presence rather than identity) is **not** settled here and does not need to be
-settled to use the number above. Both readings imply the same thing: a snapshot
-taken at training time does not address the neurons a later parse activates.
+The sharper reading was that `prepare_area_for_replay` had recycled neuron IDs
+out from under the snapshots. It fits every observation: it sets
+`neuron_id_pool_ptr = 0`, so old IDs are handed out again to different neurons;
+the round trip would still read 1.0000 because the mapping stays internally
+consistent; and `drop_stale_assemblies` — the purge written for exactly this —
+detects orphans via `assembly_is_current`, which checks **presence**, so
+recycled IDs survive it.
+
+**It does not happen on this parser.** Two independent reasons, either alone
+sufficient:
+
+1. `stage_consolidation_passes("SENTENCES")` returns **0** under both `fast=True`
+   and `fast=False`. `STAGE_CONSOLIDATION_PASSES` contains only `DIALOGUE` and
+   `CONVERSATION`, so `consolidate_role_pathways` returns before calling
+   `consolidate` at all.
+2. Even if it ran, `build_role_pathway_protocol` skips every word whose
+   `role is None` — and `build_stage_schedule` hands every curriculum sentence
+   `roles=[None] * len(sent)`. The protocol would be **empty**, so
+   `_prepare_step_areas` would never fire.
+
+So the 0.27 is **ordinary drift**: training after the lexicon phase moved the
+attractors, and the snapshots were never re-taken. That is a weaker mechanism
+and the same operational consequence — a snapshot taken at training time does
+not address the neurons a later parse activates.
+
+Worth noting reason (2) separately: `roles=[None]` now has a **third**
+consequence. It disables annotation-driven `train_roles`, it leaves the role
+lexicons to the unsupervised route, and it empties the role-pathway
+consolidation protocol. Three mechanisms silently inert from one line. See #116.
+
+## Open
+
+Whether the drift is benign (the parse works fine off fresh projections and only
+the snapshots are stale) or load-bearing (consumers of `core_lexicons` are
+reading assemblies the substrate no longer produces) is not settled. The
+consumers are worth enumerating: `classify_word` compares against the core
+lexicon, `train_roles` binds from it, generation replays it.
