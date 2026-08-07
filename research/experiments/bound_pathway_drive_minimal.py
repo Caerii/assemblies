@@ -107,7 +107,10 @@ def _set_beta(brain, beta):
 
 
 def trial(*, norm_init: bool, beta: float, seed: int):
-    brain = Brain(p=P, seed=seed, norm_init=norm_init)
+    # Engine PINNED: auto resolves to numpy_sparse at these sizes, so this is
+    # behaviour-preserving, but an implicit engine lets a default change
+    # silently reinterpret recorded numbers ([[pin-backend-not-global]]).
+    brain = Brain(p=P, seed=seed, norm_init=norm_init, engine="numpy_sparse")
     brain.add_area(SRC, N, K, beta=beta)
     brain.add_area(DST, N, K, beta=beta)
     names = [f"a{i}" for i in range(M_UNBOUND + 1)]

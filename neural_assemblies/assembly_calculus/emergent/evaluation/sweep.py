@@ -24,6 +24,7 @@ DEFAULT_K = 30
 DEFAULT_BETA = 0.1
 DEFAULT_P = 0.05
 DEFAULT_ROUNDS = 10
+DEFAULT_PHON_WEIGHT = 1.0
 
 
 def sweep_mode_enabled() -> bool:
@@ -335,6 +336,7 @@ class ParserCache:
         beta: float = DEFAULT_BETA,
         p: float = DEFAULT_P,
         rounds: int = DEFAULT_ROUNDS,
+        phon_weight: float = DEFAULT_PHON_WEIGHT,
         fast_training: bool = True,
         calibrate: bool = False,
     ) -> "EmergentParser":
@@ -346,7 +348,8 @@ class ParserCache:
         runs. Neither raises, and warm runs do not train, so the only symptom
         was a zero effect.
         """
-        params = (("beta", beta), ("p", p), ("rounds", rounds))
+        params = (("beta", beta), ("p", p), ("rounds", rounds),
+                  ("phon_weight", phon_weight))
         key = self._key(
             depth, seed=seed, holdout_words=holdout_words,
             n=n, k=k, fast_training=fast_training, params=params,
@@ -395,6 +398,7 @@ class ParserCache:
             beta=beta,
             p=p,
             rounds=rounds,
+            phon_weight=phon_weight,
             seed=seed,
             holdout_words=holdout,
             fast_training=fast_training,

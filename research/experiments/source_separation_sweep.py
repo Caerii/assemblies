@@ -102,7 +102,10 @@ def _spread(items, cap=30):
 
 
 def trial(shared_size, seed, build_rounds=BUILD_ROUNDS):
-    brain = Brain(p=P, seed=seed, norm_init=True)
+    # Engine PINNED: auto resolves to numpy_sparse at these sizes, so this is
+    # behaviour-preserving, but an implicit engine lets a default change
+    # silently reinterpret recorded numbers ([[pin-backend-not-global]]).
+    brain = Brain(p=P, seed=seed, norm_init=True, engine="numpy_sparse")
     brain.add_area(SRC, N, K, beta=BETA)
     brain.add_area(DST, N, K, beta=BETA)
     names = [f"a{i}" for i in range(M)]

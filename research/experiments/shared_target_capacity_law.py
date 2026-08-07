@@ -100,7 +100,10 @@ def _spread(targets, cap=30):
 
 
 def run(n, seed):
-    brain = Brain(p=P, seed=seed, norm_init=True)
+    # Engine PINNED: auto resolves to numpy_sparse at these sizes, so this is
+    # behaviour-preserving, but an implicit engine lets a default change
+    # silently reinterpret recorded numbers ([[pin-backend-not-global]]).
+    brain = Brain(p=P, seed=seed, norm_init=True, engine="numpy_sparse")
     brain.add_area(SRC, n, K, beta=BETA)
     brain.add_area(DST, n, K, beta=BETA)
     names = [f"a{i}" for i in range(M_MAX)]

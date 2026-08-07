@@ -125,9 +125,7 @@ class DistributionalMixin:
 
             # Register unknown words
             if word not in self.stim_map:
-                phon = f"phon_{word}"
-                self.brain.add_stimulus(phon, self.k)
-                self.stim_map[word] = phon
+                self.add_phon_stimulus(word)
 
             # Transition to next word
             if idx + 1 < n:
@@ -754,9 +752,7 @@ class DistributionalMixin:
             return
 
         # Create phon stimulus
-        phon = f"phon_{word}"
-        self.brain.add_stimulus(phon, self.k)
-        self.stim_map[word] = phon
+        self.add_phon_stimulus(word)
         if hasattr(self, "_invalidate_category_cache"):
             self._invalidate_category_cache(word)
 

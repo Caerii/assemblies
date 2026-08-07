@@ -86,6 +86,25 @@ _SEED_ADVICE = (
     "\n  with a comment in test_methodology_ratchet.py saying so."
 )
 
+#: JUSTIFICATION FOR THE 2026-08-07 BASELINE ADDITIONS (role-binding arc).
+#: Four experiment files were flagged by `hand_rolled_seed_stats`. Every one of
+#: their `np.mean` sites averages over ITEMS, not over seeds, so an interval
+#: over seeds is not the missing thing:
+#:
+#:   retrieval_guided_rebinding.py    mean over assembly PAIRS (spread)
+#:   role_area_state.py               mean over PAIRS, and over per-word MARGINS
+#:   stored_assemblies_still_current.py  mean over WORDS (round-trip, freshness)
+#:   supervised_vs_unsupervised_roles.py mean over per-word MARGINS, and PAIRS
+#:
+#: The scanner is a heuristic -- it fires when a file contains `np.mean`
+#: ANYWHERE and the token `seeds` ANYWHERE -- and `_SEED_ADVICE` names exactly
+#: this case ("if the site is a mean over CONDITIONS rather than over seeds").
+#: Rewriting them to `ensemble()` would put a confidence interval on a
+#: within-run item average, which is a different and wrong claim.
+#:
+#: What these files DO lack is seeds: they report 2-3. That is recorded as a
+#: limit in each note rather than hidden, and it is a sampling problem, not a
+#: statistic-choice problem, so it is not what this ratchet guards.
 _ENGINE_ADVICE = (
     "\n\n  `Brain(...)` without `engine=` silently selects `numpy_sparse`,"
     "\n  whose candidate sampler INVENTS drive for neurons that have not fired."

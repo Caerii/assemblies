@@ -199,6 +199,13 @@ _W_ACCESS_HISTORICAL = re.compile(r"\.w\b(?!_)")
 #: had nothing but prose. The old number was part code and part commentary,
 #: so deleting a real read while adding a comment about it netted to zero.
 W_BASELINE = {
+    #: DELIBERATE, and the same shape as the entry below. This experiment
+    #: exists to show that `input_drive` normalises by `Area.w` -- the
+    #: WINNERS-LENGTH ALIAS -- rather than by the recruited count (#119). It
+    #: prints `Area.w` and `engine.w` side by side to expose the divergence
+    #: (measured ROLE_PATIENT 0 vs 675, ROLE_AGENT 0 vs 874), so it MUST read
+    #: the alias to demonstrate that reading the alias is the bug.
+    "research/experiments/role_binding_writes_anything.py": 2,
     #: DELIBERATE. This experiment exists to prove `.w` is the WRONG divisor
     #: for pre-k-WTA energy (#104), so it must read `.w` to score it against
     #: the alternatives. Measured 40.58x drift across materialisation levels

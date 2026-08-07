@@ -110,6 +110,7 @@ class CoreParserMixin(
 
     def __init__(self, n: int = 10000, k: int = 100, p: float = 0.05,
                  beta: float = 0.1, seed: int = 42, rounds: int = 10,
+                 phon_weight: float = 1.0,
                  engine: str = "auto",
                  inference_rounds: Optional[int] = None,
                  bridge_rounds: Optional[int] = None,
@@ -135,6 +136,9 @@ class CoreParserMixin(
         self.k = k
         self.p = p
         self.beta = beta
+        #: Word-form stimulus size as a multiple of k. 1.0 reproduces the
+        #: historical behaviour exactly. See `add_phon_stimulus`.
+        self.phon_weight = phon_weight
         self.seed = seed
         self.rounds = train_r
         self.inference_rounds = infer_r
@@ -230,6 +234,42 @@ class CoreParserMixin(
     # ==================================================================
     # Setup
     # ==================================================================
+
+    def add_phon_stimulus(self, word: str) -> str:
+        """Register the word-form stimulus for *word*. THE ONLY WAY TO DO IT.
+
+        WHY THIS EXISTS AS A METHOD. Three sites hand-rolled
+        ``brain.add_stimulus(f"phon_{word}", self.k)`` -- here, and twice in
+        `distributional.py` for corpus words. That is the shape this project
+        keeps paying for: a change applied to one sibling and not the others
+        ([[one-canonical-way]]). `phon_weight` has to reach all three or the
+        drive share it controls would depend on which route registered a word.
+
+        WHAT `phon_weight` CONTROLS, and why it is a drive share rather than a
+        size. `apply_lexicon_word` fires phon PLUS one stimulus per grounding
+        feature, simultaneously, all previously of size k. So word identity was
+        1 of (1+F) equal drivers -- measured share 0.20-0.33 for F = 2..4 -- and
+        two words with the same grounding had input overlap 2F/(2+2F) = 0.667,
+        which the substrate law maps to assembly overlap ~1.0. That is the
+        exact-duplicate clusters.
+
+        With this weight, phon contributes ``phon_weight * k`` and its share
+        becomes ``W / (W + F)``. Two words sharing all F features then have
+        input overlap ``2F / (2W + 2F)``, so bounding that below the level where
+        the substrate still preserves overlap is a matter of choosing W --
+        W >= 6 puts the worst case under 0.25 at F = 2.
+
+        THE COST IS REAL AND MUST BE MEASURED, not assumed away: grounding drive
+        is what lets a word be placed from its features alone, which is the
+        generalisation pathway. A W large enough to guarantee distinctness can
+        make the representation phon-only, which scores beautifully on
+        distinctness and has lost the thing the grounding was for.
+        """
+        phon = f"phon_{word}"
+        size = max(1, int(round(float(getattr(self, "phon_weight", 1.0)) * self.k)))
+        self.brain.add_stimulus(phon, size)
+        self.stim_map[word] = phon
+        return phon
 
     def _setup_areas(self):
         """Create the brain areas and register interarea inhibition."""

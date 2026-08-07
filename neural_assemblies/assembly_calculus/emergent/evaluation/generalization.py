@@ -379,6 +379,7 @@ def train_parser_to_depth(
     beta: float = 0.1,
     p: float = 0.05,
     rounds: int = 10,
+    phon_weight: float = 1.0,
     seed: int = 42,
     holdout_words: Optional[Set[str]] = None,
     vocabulary: Optional[dict] = None,
@@ -402,8 +403,8 @@ def train_parser_to_depth(
     holdout = holdout_words or default_holdout_set()
     vocab = vocabulary if vocabulary is not None else build_vocabulary_preset("medium")
     parser = EmergentParser(
-        n=n, k=k, beta=beta, p=p, rounds=rounds, seed=seed, vocabulary=vocab,
-        fast_training=fast_training,
+        n=n, k=k, beta=beta, p=p, rounds=rounds, phon_weight=phon_weight,
+        seed=seed, vocabulary=vocab, fast_training=fast_training,
     )
 
     if depth == "FULL_TRAIN":

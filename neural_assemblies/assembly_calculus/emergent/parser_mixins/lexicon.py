@@ -25,10 +25,9 @@ class LexiconTrainingMixin:
     def _register_vocabulary(self, vocab: Dict[str, GroundingContext]):
         """Register all vocabulary words and their grounding stimuli."""
         for word, ctx in vocab.items():
-            # Phonological stimulus
-            phon = f"phon_{word}"
-            self.brain.add_stimulus(phon, self.k)
-            self.stim_map[word] = phon
+            # Phonological stimulus -- `add_phon_stimulus` is the only route,
+            # so `phon_weight` reaches every registration path.
+            self.add_phon_stimulus(word)
             self.word_grounding[word] = ctx
 
             # Grounding feature stimuli

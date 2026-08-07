@@ -82,6 +82,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 import numpy as np                                                     # noqa: E402
 
+from _substrate import read                                            # noqa: E402
 from neural_assemblies.core.brain import Brain                         # noqa: E402
 
 SENSE, B = "SENSE", "B"
@@ -132,7 +133,11 @@ def _build(brain, core, rng, rounds=ROUNDS):
     for _ in range(rounds):
         _fire(brain, _sample(core, N, K, rng))
         brain.project({}, {SENSE: [B]})
-        cap = np.asarray(brain.areas[B].winners, dtype=np.int64)
+        # `read()` rather than `areas[B].winners`: the two are the same on
+        # numpy_exact (compact index IS the neuron id there) but only one of
+        # them stays correct if this ever runs on another engine, and mixing
+        # the spaces reads as a clean negative rather than an error.
+        cap = read(brain, B)
         union.update(int(x) for x in cap)
     return union, cap
 
@@ -142,7 +147,7 @@ def _recall(brain, core, rng, star):
     with brain.read_only():
         _fire(brain, _sample(core, N, K, rng))
         brain.project({}, {SENSE: [B]})
-        cap = set(int(x) for x in np.asarray(brain.areas[B].winners))
+        cap = set(int(x) for x in read(brain, B))
     return len(cap & star) / max(len(cap), 1)
 
 

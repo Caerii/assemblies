@@ -84,7 +84,11 @@ def _set_beta(brain, beta):
 
 
 def trial(*, m_bound: int, beta: float, seed: int):
-    brain = Brain(p=P, seed=seed, norm_init=True)
+    # Engine PINNED rather than left to "auto". Measured: auto resolves to
+    # numpy_sparse at these sizes, so this is behaviour-preserving -- but an
+    # implicit engine means a future default change silently reinterprets every
+    # number already recorded from this file ([[pin-backend-not-global]]).
+    brain = Brain(p=P, seed=seed, norm_init=True, engine="numpy_sparse")
     brain.add_area(SRC, N, K, beta=beta)
     brain.add_area(DST, N, K, beta=beta)
 
