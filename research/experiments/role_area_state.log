@@ -1,0 +1,32 @@
+=== seed 11 ===
+area            stored     k       n  chance k/n    spread  vs chance
+--------------------------------------------------------------------
+NOUN_CORE           71    30    3000      0.0100    0.1384      13.8x
+ROLE_PATIENT        36    30    3000      0.0100    0.1582      15.8x
+ROLE_AGENT          46    30    3000      0.0100    0.1286      12.9x
+  ROLE_PATIENT: retrieval 12/36 = 0.333 (chance 0.028)  mean rank1/rank2 margin=1.2860
+  ROLE_AGENT: retrieval 15/46 = 0.326 (chance 0.022)  mean rank1/rank2 margin=1.2398
+
+=== seed 12 ===
+area            stored     k       n  chance k/n    spread  vs chance
+--------------------------------------------------------------------
+NOUN_CORE           71    30    3000      0.0100    0.1337      13.4x
+ROLE_PATIENT        36    30    3000      0.0100    0.1692      16.9x
+ROLE_AGENT          46    30    3000      0.0100    0.1643      16.4x
+  ROLE_PATIENT: retrieval 15/36 = 0.417 (chance 0.028)  mean rank1/rank2 margin=1.1541
+  ROLE_AGENT: retrieval 16/46 = 0.348 (chance 0.022)  mean rank1/rank2 margin=1.7106
+
+=== seed 42 ===
+area            stored     k       n  chance k/n    spread  vs chance
+--------------------------------------------------------------------
+NOUN_CORE           71    30    3000      0.0100    0.1375      13.7x
+ROLE_PATIENT        36    30    3000      0.0100    0.1690      16.9x
+ROLE_AGENT          46    30    3000      0.0100    0.1261      12.6x
+  ROLE_PATIENT: retrieval 15/36 = 0.417 (chance 0.028)  mean rank1/rank2 margin=1.1342
+  ROLE_AGENT: retrieval 18/46 = 0.391 (chance 0.022)  mean rank1/rank2 margin=1.3167
+
+READING IT. NOUN_CORE at ~0.13 is the built-in control: the protocol
+CAN see distinct assemblies. A role-area spread near 1.0 means the
+bindings merged, and then the pathway null, the P600's area-identity
+result and #31 are one finding. Spread low but retrieval at chance
+means distinct-but-unfindable, which is a different problem.
