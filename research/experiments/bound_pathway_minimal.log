@@ -1,0 +1,22 @@
+n=2000 k=40 p=0.05 build_rounds=6 bind_rounds=10 unbound=8 seeds=[42, 7, 123, 2024, 5]
+
+norm_init  beta       bound a0   unbound mean    ratio   seeds bound>unbound
+----------------------------------------------------------------------------
+True       0.1        0.035795       0.023684    1.511                  5/5
+True       0.0        0.025418       0.020657    1.230                  5/5
+False      0.1        4.610420       2.700355    1.707                  5/5
+False      0.0        2.847443       2.259784    1.260                  5/5
+
+The within-arm ratio above still contains MATERIALIZATION and
+RECRUITMENT, which is why the beta=0 rows are not 1.0. The paired
+gain below differences both out.
+
+norm_init    gain(a0)   gain(unbound)   plasticity effect   seeds a0 gains more
+------------------------------------------------------------------------------
+True           1.4097          1.1479              1.2280                  5/5
+False          1.6204          1.1963              1.3544                  5/5
+
+REFUTED. Plasticity RAISES a bound pathway's drive relative to
+unbound ones under BOTH norm_init settings, so the parser-level
+inversion is NOT a substrate property. Suspect the probe or the
+parser state -- #120 step (a), the index-space check.
