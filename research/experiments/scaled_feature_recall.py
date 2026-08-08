@@ -125,14 +125,10 @@ def train(parser):
     return parser
 
 
-def test_sets(parser):
-    from what_variation_buys import test_sets as _ts
-    return _ts(parser)
-
-
-def score(recall, items_by_label):
-    from what_variation_buys import score as _score
-    return _score(recall, items_by_label)
+from neural_assemblies.assembly_calculus.emergent.evaluation.morph_features \
+    import attested_morph_sets as test_sets  # noqa: E402
+from neural_assemblies.assembly_calculus.emergent.evaluation.morph_features \
+    import score_recall as score  # noqa: E402
 
 
 def guards(parser):
@@ -161,7 +157,6 @@ def guards(parser):
 
 
 def main():
-    sys.path.insert(0, os.path.dirname(__file__))
     results = defaultdict(dict)
     for arm in ARMS:
         for seed in SEEDS:

@@ -39,7 +39,7 @@ def main():
     vocab = build_vocabulary_preset("medium")
     trainer = CurriculumTrainer(EmergentParser(n=3000, k=30, vocabulary=vocab))
     stage_words = trainer._get_stage_words("DIALOGUE")
-    sentences_raw = trainer._generate_sentences(stage_words, 4)[:15]
+    sentences_raw = trainer.generation.generate(stage_words, 4)[:15]
 
     gs = [
         GroundedSentence(

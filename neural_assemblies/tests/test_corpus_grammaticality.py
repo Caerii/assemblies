@@ -105,7 +105,7 @@ def _licensed_verb_forms(vw, subj_tok, subj_w):
 def test_subject_verb_agreement(trainer, stage, complexity):
     words = trainer._get_stage_words(stage)
     parsed = _analyse(
-        trainer._generate_sentences_generic(words, complexity), words)
+        trainer.generation.generate_generic(words, complexity), words)
     assert parsed, f"{stage} generated no analysable sentences"
     bad = [
         (s, vtok, sorted(_licensed_verb_forms(vw, subj[1], subj[2])))
@@ -123,7 +123,7 @@ def test_subject_verb_agreement(trainer, stage, complexity):
 def test_transitivity_is_respected(trainer, stage, complexity):
     words = trainer._get_stage_words(stage)
     parsed = _analyse(
-        trainer._generate_sentences_generic(words, complexity), words)
+        trainer.generation.generate_generic(words, complexity), words)
     stranded = [s for s, _t, vw, _su, obj in parsed
                 if _feat(vw).get("intransitive") and obj is not None]
     starved = [s for s, _t, vw, _su, obj in parsed
@@ -139,7 +139,7 @@ def test_transitivity_is_respected(trainer, stage, complexity):
 def test_agents_are_animate(trainer, stage, complexity):
     words = trainer._get_stage_words(stage)
     parsed = _analyse(
-        trainer._generate_sentences_generic(words, complexity), words)
+        trainer.generation.generate_generic(words, complexity), words)
     def _animate(w):
         f = _feat(w)
         if f.get("animate"):
@@ -165,6 +165,6 @@ def test_generation_is_deterministic(trainer):
     for reasons unrelated to the substrate.
     """
     words = trainer._get_stage_words("SENTENCES")
-    first = trainer._generate_sentences_generic(words, 4)
-    second = trainer._generate_sentences_generic(words, 4)
+    first = trainer.generation.generate_generic(words, 4)
+    second = trainer.generation.generate_generic(words, 4)
     assert first == second

@@ -53,8 +53,8 @@ def _grounded(trainer, stage, complexity):
     words = trainer._get_stage_words(stage)
     for w in words:
         trainer.parser.register_word(w.lemma)
-    plans = trainer._generate_sentences(words, complexity, stage_name=stage)
-    trainer._register_surface_forms(plans, words)
+    plans = trainer.generation.generate(words, complexity, stage_name=stage)
+    trainer.generation.register_surface_forms(plans, words)
     return plans, ground_plans(trainer.parser, plans)
 
 

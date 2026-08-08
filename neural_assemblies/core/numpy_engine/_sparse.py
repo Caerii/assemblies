@@ -2342,10 +2342,13 @@ class NumpySparseEngine(ComputeEngine):
                     _lo, _hi = self._weight_bounds()
                     xp.clip(conn.weights, _lo, _hi, out=conn.weights)
 
-    # -- Connectome expansion for new winners --------------------------------
-
         # Homeostatic scaling closes the loop on the update just applied.
+        # (Runs BEFORE connectome expansion, so a first-time winner's
+        # freshly-expanded column can sit above the setpoint until its next
+        # update -- pinned in test_scoped_synaptic_scaling.py.)
         self._normalize_area_columns(target, from_areas, winners)
+
+    # -- Connectome expansion for new winners --------------------------------
 
     def _expand_connectomes(self, target, from_stimuli, from_areas,
                             input_sizes, winners, first_winner_inputs, new_w):

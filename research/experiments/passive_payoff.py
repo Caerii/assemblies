@@ -157,7 +157,7 @@ def _train(seed: int, passive_every: int):
         # Record what was actually trained on, so "held out" is a fact rather
         # than an assumption about the generator.
         words = trainer._get_stage_words("SENTENCES")
-        for plan in trainer._generate_sentences(words, 4,
+        for plan in trainer.generation.generate(words, 4,
                                                 stage_name="SENTENCES"):
             train_tokens.add(tuple(plan.tokens))
         return parser, trainer, train_tokens

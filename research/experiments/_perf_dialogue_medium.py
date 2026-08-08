@@ -81,7 +81,7 @@ def bench_dialogue_stage_only(
     stage_words = trainer._get_stage_words(stage_name)
     for w in stage_words:
         parser.register_word(w.lemma)
-    sentences = trainer._generate_sentences(stage_words, complexity)
+    sentences = trainer.generation.generate(stage_words, complexity)
 
     rounds_override = stage_training_rounds(stage_name, fast=parser.fast_training)
     old_rounds = parser.rounds
@@ -248,8 +248,8 @@ def profile_prediction() -> str:
     stage_words = trainer._get_stage_words("DIALOGUE")
     for w in stage_words:
         parser.register_word(w.lemma)
-    sentences = trainer._generate_sentences(stage_words, 4)
-    trainer._register_surface_forms(sentences, stage_words)
+    sentences = trainer.generation.generate(stage_words, 4)
+    trainer.generation.register_surface_forms(sentences, stage_words)
     phases = effective_stage_phases(
         "DIALOGUE", list(_STAGE_CONFIG["DIALOGUE"]["phases"]),
         fast=True,

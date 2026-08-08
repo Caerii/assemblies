@@ -290,7 +290,7 @@ class TestCDSCorpus:
         words = trainer._get_stage_words("FIRST_WORDS")
         for w in words[:20]:
             parser.register_word(w.lemma)
-        sentences = trainer._generate_sentences(
+        sentences = trainer.generation.generate(
             words, 1, stage_name="FIRST_WORDS",
         )
         flat = {" ".join(s.tokens) for s in sentences}

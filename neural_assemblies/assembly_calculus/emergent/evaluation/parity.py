@@ -246,13 +246,13 @@ def build_dialogue_stage_schedule(
     stage_words = trainer._get_stage_words(stage_name)
     for w in stage_words:
         parser.register_word(w.lemma)
-    sentences = trainer._generate_sentences(stage_words, config["complexity"])
+    sentences = trainer.generation.generate(stage_words, config["complexity"])
     # REQUIRED here too, and it was missing: the generator emits finite forms
     # ("builds"), `compile_corpus` skips any token absent from `stim_map`, so
     # without this every verb in this stage is silently dropped -- the same
     # dead-path shape `_register_surface_forms` was written to close on the
     # curriculum path. One registration function, called by both.
-    trainer._register_surface_forms(sentences, stage_words)
+    trainer.generation.register_surface_forms(sentences, stage_words)
 
     rounds_override = stage_training_rounds(stage_name, fast=parser.fast_training)
     if rounds_override is not None:

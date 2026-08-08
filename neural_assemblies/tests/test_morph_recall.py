@@ -42,26 +42,14 @@ from neural_assemblies.assembly_calculus.emergent.curriculum.trainer import (
 
 
 def _attested_forms(parser):
-    """Corpus-attested unambiguous verb forms, split by tense (the
-    experiment's test_sets rule, inlined: raw-data scan, homographs and
-    zero-derivation pasts excluded)."""
-    from neural_assemblies.lexicon.data import NOUNS, VERBS
+    """Corpus-attested unambiguous verb forms via the canonical builder
+    (`evaluation/morph_features.py` -- promoted there after three copies
+    of this scan existed within a day)."""
+    from neural_assemblies.assembly_calculus.emergent.evaluation \
+        .morph_features import attested_morph_sets
 
-    noun_surfaces = set()
-    for e in NOUNS:
-        noun_surfaces.add(e["lemma"])
-        pl = e.get("forms", {}).get("plural")
-        if pl:
-            noun_surfaces.add(pl)
-    past, pres = [], []
-    for e in VERBS:
-        forms = e.get("forms", {})
-        for w, bucket in ((forms.get("past"), past),
-                          (forms.get("3sg"), pres)):
-            if (w and w in parser.stim_map and w != e["lemma"]
-                    and w not in noun_surfaces):
-                bucket.append(w)
-    return past, pres
+    sets_ = attested_morph_sets(parser)
+    return sets_["PAST"], sets_["PRESENT"]
 
 
 def test_number_phase_is_scheduled():

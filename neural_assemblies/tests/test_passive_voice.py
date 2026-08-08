@@ -57,8 +57,8 @@ def plans():
     words = trainer._get_stage_words("SENTENCES")
     for w in words:
         parser.register_word(w.lemma)
-    out = trainer._generate_sentences(words, 4, stage_name="SENTENCES")
-    trainer._register_surface_forms(out, words)
+    out = trainer.generation.generate(words, 4, stage_name="SENTENCES")
+    trainer.generation.register_surface_forms(out, words)
     return ground_plans(parser, out)
 
 

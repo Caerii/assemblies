@@ -134,20 +134,26 @@ def build_parser(seed: int):
 
 
 def train(parser, arm: str):
+    # Rates live in curriculum/generation.py (the corpus-generation
+    # concern); stage phase lists live in trainer.py (orchestration).
+    # Each arm patches the module that OWNS its axis.
     from neural_assemblies.assembly_calculus.emergent.curriculum import (
         trainer as trainer_mod,
+    )
+    from neural_assemblies.assembly_calculus.emergent.curriculum import (
+        generation as generation_mod,
     )
     from neural_assemblies.assembly_calculus.emergent.curriculum import (
         CurriculumTrainer,
     )
 
-    saved_rates = (trainer_mod.PAST_RATE, trainer_mod.PLURAL_RATE)
+    saved_rates = (generation_mod.PAST_RATE, generation_mod.PLURAL_RATE)
     saved_phases = {s: list(trainer_mod._STAGE_CONFIG[s]["phases"])
                     for s in trainer_mod._STAGE_CONFIG}
     try:
         if arm == "NO_VARIATION":
-            trainer_mod.PAST_RATE = 0.0
-            trainer_mod.PLURAL_RATE = 0.0
+            generation_mod.PAST_RATE = 0.0
+            generation_mod.PLURAL_RATE = 0.0
         elif arm == "ABLATE":
             for s in trainer_mod._STAGE_CONFIG:
                 trainer_mod._STAGE_CONFIG[s]["phases"] = [
@@ -158,7 +164,7 @@ def train(parser, arm: str):
         for stage in STAGES:
             ct.train_stage(stage)
     finally:
-        trainer_mod.PAST_RATE, trainer_mod.PLURAL_RATE = saved_rates
+        generation_mod.PAST_RATE, generation_mod.PLURAL_RATE = saved_rates
         for s, ph in saved_phases.items():
             trainer_mod._STAGE_CONFIG[s]["phases"] = ph
     return parser
@@ -172,71 +178,14 @@ def ensure_stims(parser):
             parser.brain.add_stimulus(name, parser.k)
 
 
-def test_sets(parser):
-    """Scan RAW lexicon data; exclude form-level-ambiguous surfaces.
-
-    See the module docstring's TEST SETS section for the three exclusion
-    classes this replaced `lookup_lexicon_entry` to get right.
-    """
-    from neural_assemblies.lexicon.data import NOUNS, VERBS
-
-    verb_surfaces, noun_surfaces = set(), set()
-    for e in VERBS:
-        verb_surfaces.add(e["lemma"])
-        verb_surfaces.update(
-            v for v in e.get("forms", {}).values() if isinstance(v, str))
-    for e in NOUNS:
-        noun_surfaces.add(e["lemma"])
-        pl = e.get("forms", {}).get("plural")
-        if pl:
-            noun_surfaces.add(pl)
-
-    past, pres, plural, singular = [], [], [], []
-    attested = set(parser.stim_map)
-    for e in VERBS:
-        forms = e.get("forms", {})
-        for w, bucket in ((forms.get("past"), past),
-                          (forms.get("3sg"), pres)):
-            if (w and w in attested and w != e["lemma"]
-                    and w not in noun_surfaces):
-                bucket.append(w)
-    for e in NOUNS:
-        pl = e.get("forms", {}).get("plural")
-        if (pl and pl in attested and pl != e["lemma"]
-                and pl not in verb_surfaces):
-            plural.append(pl)
-            if (e["lemma"] in attested
-                    and e["lemma"] not in verb_surfaces):
-                singular.append(e["lemma"])
-    return {"PAST": past, "PRESENT": pres, "PL": plural, "SG": singular}
-
-
-def score(recall, items_by_label):
-    """Per-class accuracy + tie rate + margins + image separation."""
-    res = {}
-    seps = []
-    for label, items in items_by_label.items():
-        n_ok = n_tie = 0
-        margins = []
-        for w in items:
-            got, diag = recall(w)
-            if diag.get("image_separation") is not None:
-                seps.append(diag["image_separation"])
-            if got is None:
-                n_tie += 1
-            elif got == label:
-                n_ok += 1
-            if diag.get("margin") is not None:
-                margins.append(diag["margin"])
-        res[label] = {
-            "n": len(items), "acc": (n_ok / len(items)) if items else None,
-            "tie_rate": (n_tie / len(items)) if items else None,
-            "mean_margin": float(np.mean(margins)) if margins else None,
-        }
-    accs = [v["acc"] for v in res.values() if v["acc"] is not None]
-    res["_balanced"] = float(np.mean(accs)) if accs else None
-    res["_image_separation"] = float(np.mean(seps)) if seps else None
-    return res
+# Test-set construction and scoring were PROMOTED to the package after this
+# experiment ran (evaluation/morph_features.py holds the canonical copy and
+# the documented exclusion classes); these names remain the experiment's
+# protocol vocabulary.
+from neural_assemblies.assembly_calculus.emergent.evaluation.morph_features \
+    import attested_morph_sets as test_sets  # noqa: E402
+from neural_assemblies.assembly_calculus.emergent.evaluation.morph_features \
+    import score_recall as score  # noqa: E402
 
 
 def main():
