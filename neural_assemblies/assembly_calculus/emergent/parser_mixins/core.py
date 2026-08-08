@@ -430,8 +430,16 @@ class CoreParserMixin(
             cat, _ = self.classify_word_cached(word, grounding=grounding)
             result["categories"][word] = cat
 
-        # Step 2: Neural role assignment via learned projections
-        result["roles"] = self._assign_roles_neural(words, result["categories"])
+        # Step 2: roles from THIS parse -- gate -> record -> recall.
+        # `parse_roles_by_reconstruction` replaced `_assign_roles_neural` here
+        # after the 2x2 measurement (40 held-out reversible probes, 5 seeds):
+        # 1.0000 both voices against the margin route's 0.85 active / 0.50
+        # passive, whose stored-lexicon term flips passives toward each word's
+        # TRAINED majority role. The ERP runner deliberately still calls the
+        # margin route: its thresholds are calibrated against it, and swapping
+        # without re-calibration would silently shift every ERP number (#121).
+        result["roles"], result["role_diagnostics"] = (
+            self.parse_roles_by_reconstruction(words))
 
         # Step 3: Identify phrase boundaries
         result["phrases"] = self._identify_phrases(words, result["categories"])

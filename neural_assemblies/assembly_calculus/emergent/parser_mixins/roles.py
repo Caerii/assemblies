@@ -122,7 +122,10 @@ class RoleBindingMixin:
         return None
 
     def parse_roles_by_reconstruction(
-            self, words: List[str]) -> "tuple[Dict[str, Optional[str]], dict]":
+            self, words: List[str],
+            filler_word: Optional[str] = None,
+            filler_role: Optional[str] = None,
+    ) -> "tuple[Dict[str, Optional[str]], dict]":
         """Gate -> record -> recall: the role readout that consults THIS parse.
 
         The 2021 parser paper's division of labor, from parts this parser
@@ -172,6 +175,17 @@ class RoleBindingMixin:
         diag: dict = {"is_passive": bool(is_passive), "gaps": [],
                       "winners": {}}
         out: Dict[str, Optional[str]] = {w: None for w in words}
+
+        # FILLER-GAP (relative clauses): the antecedent has already claimed a
+        # role from OUTSIDE this clause ("the dog that ___ chased the cat" --
+        # `dog` is the inner clause's agent but is not among its words). Same
+        # contract as the margin route: pre-assign the filler, and remove its
+        # role from the sequence so an inner noun cannot take it.
+        if filler_word and filler_role:
+            out[filler_word] = filler_role
+            taken = {"AGENT": ROLE_AGENT, "PATIENT": ROLE_PATIENT}.get(
+                filler_role)
+            sequence = tuple(r for r in sequence if r != taken)
 
         def _traverse(word: str, role: str) -> bool:
             core = self._word_core_area(word)

@@ -792,9 +792,10 @@ class IncrementalMixin:
 
         result["steps"] = steps
 
-        # Assign roles via neural readout (same as batch parse)
-        result["roles"] = self._assign_roles_neural(
-            words, result["categories"])
+        # Roles from THIS parse (same route as batch parse -- one canonical
+        # readout, see core.py parse()).
+        result["roles"], result["role_diagnostics"] = (
+            self.parse_roles_by_reconstruction(words))
 
         # Identify phrases
         result["phrases"] = self._identify_phrases(
@@ -1038,7 +1039,8 @@ class IncrementalMixin:
         main_cats = {w: result["categories"][w]
                      for w in main_words
                      if w in result["categories"]}
-        result["roles"] = self._assign_roles_neural(main_words, main_cats)
+        result["roles"], result["role_diagnostics"] = (
+            self.parse_roles_by_reconstruction(main_words))
 
         # Assign roles for inner clause with filler-gap binding:
         # The antecedent noun is the "filler" — it was displaced from its
@@ -1071,8 +1073,8 @@ class IncrementalMixin:
                 else:
                     filler_r = "AGENT"
 
-            inner_roles = self._assign_roles_neural(
-                inner_words, inner_cats,
+            inner_roles, _inner_diag = self.parse_roles_by_reconstruction(
+                inner_words,
                 filler_word=filler_w,
                 filler_role=filler_r,
             )
