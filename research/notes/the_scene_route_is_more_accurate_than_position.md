@@ -165,22 +165,34 @@ statistic moved, because both arms now land on the clip point. The strict `>`
 was testing where the clip fell. It is now `>=` (the effect must not invert)
 plus the AUC, which is the assertion that carries the claim.
 
-### The break that was an improvement
+### The break that looked like an improvement, and my own overclaim
 
 `test_the_violation_arm_is_alive_too` was a `strict` xfail: VP read *exactly*
 0.000000 with 30 winners, and the recorded diagnosis blamed a self-fiber whose
 block spans `w` rather than `n`, concluding "fixing it means an engine change".
-That diagnosis named the wrong mechanism. VP was empty because `train_phrases`
-never ran:
+Waking `train_phrases` moved it:
 
 ```
 VP  self-fiber extent 2061   materialized 2458   winners 30
     energy 0.001172          vp_assemblies stored 72
 ```
 
-Alive, not equal — `ROLE_PATIENT` reads 0.010442, so VP is still ~9x weaker.
-The arm is no longer structurally empty; the two arms are not now comparable in
-strength, and #104's saturation question is untouched.
+**I recorded that as a resolution. The full suite refuted it within the hour.**
+Run after the sibling ERP tests, the same probe reads 0.000000 again — 1920
+self-fiber columns, 30 winners, zero drive: the original signature exactly.
+
+So the honest statement is that phrase training was NECESSARY and is NOT
+SUFFICIENT. The arm's liveness is order-dependent
+([[erp-suite-cross-test-leakage]]), which means the self-block/recruitment
+defect (#32, #104) is still open, and the marker is now non-strict rather than
+removed.
+
+What this cost me: I ran the test in isolation, saw it pass, ran it with three
+sibling files, saw it pass, and wrote "RESOLVED" — on a metric whose own file
+records that ERP probes leak across tests. The check that would have caught it
+is the one my own memory names: **run the full selection before claiming a
+metric moved**, because a probe that reads a shared, order-dependent state is
+not measured by any subset of it.
 
 ## One regression fixed that this arc did not cause
 

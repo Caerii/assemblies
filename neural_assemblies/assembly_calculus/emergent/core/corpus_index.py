@@ -13,6 +13,7 @@ from typing import TYPE_CHECKING, Dict, List, Optional, Set, Tuple
 
 from .areas import (
     CORE_TO_CATEGORY, GROUNDING_TO_CORE, ROLE_ACTION, ROLE_AGENT, ROLE_PATIENT,
+    ROLE_LABEL_TO_AREA,
 )
 from .grounding import GroundingContext
 from .sentence import GroundedSentence
@@ -250,9 +251,32 @@ def compile_corpus(
                 verb_pos = idx
                 break
 
+        # PERCEPTION OUTRANKS POSITION. `_assign_noun_roles` reads roles off
+        # word order, which `unsupervised.py`'s own docstring flags as unsound
+        # exactly here: "Sentences that violate the typology (passives,
+        # scrambling) will be assigned the wrong role and trained on it,
+        # silently." When the sentence carries a perceived event, its roles
+        # were derived from that event and are correct in EITHER voice, so they
+        # are used instead. Sentences with no event (raw CDS text) still fall
+        # through to the positional inducer, which is the right answer when the
+        # corpus is 100% canonical order and there is nothing else to go on.
         noun_roles: Tuple[Tuple[int, str, str], ...] = ()
-        if verb_pos is not None:
+        scene_roles = None
+        if getattr(sent, "event", None) is not None:
+            kept = [r for w, r in zip(sent.words, sent.roles) if w in smap]
+            if len(kept) == len(words):
+                scene_roles = [
+                    (i, w, ROLE_LABEL_TO_AREA[r])
+                    for i, (w, r) in enumerate(zip(words, kept))
+                    if r in ROLE_LABEL_TO_AREA
+                ]
+        if scene_roles is not None:
+            roles = scene_roles
+        elif verb_pos is not None:
             roles = _assign_noun_roles(words, categories, verb_pos, order)
+        else:
+            roles = []
+        if roles:
             noun_roles = tuple(roles)
             for _, word, role_area in roles:
                 role_counts[(word, role_area)] += 1

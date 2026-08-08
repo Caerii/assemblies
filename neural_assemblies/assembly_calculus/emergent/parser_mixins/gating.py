@@ -62,8 +62,29 @@ class GatingMixin:
             patient_first = role_order[0] == ROLE_PATIENT
             present: Set[str] = set()
             for word in sent.words:
+                # NOT `if not ctx.is_grounded`. That filter made the ROLE
+                # MARKER unreachable, which is the one subcategory this whole
+                # function exists to find: "by" carries spatial grounding, so
+                # it IS grounded and was skipped before `_func_subcat_of` ever
+                # saw it -- while that method's own docstring says it "falls
+                # back to the grounding signature so a role marker such as
+                # 'by' ... is still recognised as a MARKER rather than dropping
+                # to None". The fallback was written and then made unreachable
+                # from here. Measured: with the filter, a passive-bearing
+                # corpus taught only DET and `is_passive` fired 0/2.
+                #
+                # Prepositions are admitted by CATEGORY rather than by dropping
+                # the guard entirely: `_func_subcat_of` calls anything with
+                # spatial grounding a MARKER, which would sweep in ordinary
+                # nouns like "beach" and let a content word gate the voice.
                 ctx = self.word_grounding.get(word)
-                if ctx is not None and not ctx.is_grounded:
+                if ctx is None:
+                    continue
+                is_function_word = not ctx.is_grounded
+                if not is_function_word:
+                    cat, _conf = self.classify_word_cached(word)
+                    is_function_word = cat == "PREP"
+                if is_function_word:
                     sc = _subcat_of(word)
                     if sc is not None:
                         present.add(sc)
@@ -217,9 +238,16 @@ class GatingMixin:
         # Stage 1: voice gating learned from function-word sub-categories.
         if self.learned_gating:
             for word in words:
-                # Get sub-category (from frame analysis or cache)
-                subcat = (self.get_func_subcategory(word)
-                          if hasattr(self, 'get_func_subcategory') else None)
+                # `_func_subcat_of`, NOT raw `get_func_subcategory` -- the same
+                # lookup `_learn_gating_patterns` uses to WRITE these entries.
+                # They were two spellings of one question: the raw form returns
+                # only what frame analysis learned, so "by" (whose MARKER
+                # subcategory comes from the grounding fallback) resolved to
+                # None here and the gating entry keyed on MARKER could never be
+                # found. Measured: MARKER learned at confidence 0.960 and
+                # `is_passive` still fired 0/2 until the reader was pointed at
+                # the same function as the writer.
+                subcat = self._func_subcat_of(word)
                 if subcat is None:
                     continue
 

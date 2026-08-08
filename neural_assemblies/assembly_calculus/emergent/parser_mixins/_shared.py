@@ -13,7 +13,7 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Set, Tuple
 from ..core.areas import (
-    ROLE_AGENT, ROLE_PATIENT, ROLE_ACTION,
+    ROLE_AGENT, ROLE_PATIENT, ROLE_ACTION, ROLE_LABEL_TO_AREA,
 )
 
 #: Projection rounds for MERGE into a multi-assembly area.
@@ -79,11 +79,8 @@ _LEXICAL_SMOOTHING = 0.05
 # because many fillers share one role area and recurrence merges them.
 _ROLE_BINDING_ROUNDS = 2
 
-_ROLE_MAP = {
-    "agent": ROLE_AGENT,
-    "action": ROLE_ACTION,
-    "patient": ROLE_PATIENT,
-}
+# Re-exported, not redefined: `core.areas.ROLE_LABEL_TO_AREA` is the one copy.
+_ROLE_MAP = ROLE_LABEL_TO_AREA
 
 # Role brain area -> human-readable label
 _ROLE_LABEL = {

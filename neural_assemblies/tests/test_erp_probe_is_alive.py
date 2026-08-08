@@ -1,17 +1,25 @@
-"""The P600's violation arm probes an area that does not exist. RESOLVED.
+"""The P600's violation arm probes an area that does not exist. PARTLY MOVED.
 
-RESOLUTION (#128). VP is no longer structurally empty, and the cause was not
-the engine change this file predicted. ``train_phrases`` picks its subject and
-verb by ``role == "agent"`` / ``"action"``, and every curriculum sentence
-carried ``roles=[None]`` -- so phrase training HAD NEVER RUN, and VP existed
-only as bootstrap pre-growth plus whatever calibration recruited. Routing
-scene-derived roles through the pipeline wakes it: 72 VP merges during
-training, self-fiber extent 2061, and energy 0.001172 where it read exactly
-0.000000 before.
+UPDATE (#128), and it is NOT a resolution -- I claimed one and the full suite
+refuted it within the hour.
 
-The arm is alive, not equal: ROLE_PATIENT reads 0.010442, so VP is still ~9x
-weaker. Everything below is kept as the record of how it was diagnosed --
-including that the diagnosis named the wrong mechanism.
+``train_phrases`` picks its subject and verb by ``role == "agent"`` /
+``"action"``, and every curriculum sentence carried ``roles=[None]``, so phrase
+training HAD NEVER RUN: VP existed only as bootstrap pre-growth plus whatever
+calibration recruited. Routing scene-derived roles through the pipeline wakes
+it -- 72 VP merges during training, self-fiber extent 2061 -- and the probe
+then reads 0.001172 where it read exactly 0.000000 before.
+
+BUT ONLY IN ISOLATION. Run after the sibling ERP tests, the same probe reads
+0.000000 again with 1920 self-fiber columns and 30 winners present. Fiber
+exists, winners exist, drive is zero -- the ORIGINAL diagnosis's exact
+signature. So waking phrase training was NECESSARY and is NOT SUFFICIENT: the
+liveness of this arm depends on what ran before it, which is
+[[erp-suite-cross-test-leakage]] and means the self-block/recruitment defect
+below is still open (#32, #104).
+
+The marker is therefore non-strict: the outcome genuinely varies with test
+order, and a strict xfail would flip-flop rather than report anything.
 
 #104 / #32. Measured on a PRISTINE fork, before any parse:
 
@@ -89,30 +97,19 @@ class TestTheProbedAreasAreReal:
         assert (eng.fiber_extent(ROLE_PATIENT, ROLE_PATIENT) or 0) > 0
         assert _self_recurrent_energy(b, ROLE_PATIENT) > 0.0
 
+    @pytest.mark.xfail(strict=False, reason=(
+        "ORDER-DEPENDENT, which is itself the finding. Waking `train_phrases` "
+        "(it had never run -- every curriculum sentence carried roles=[None]) "
+        "gives VP 72 merges and self-fiber extent 2061, and the probe reads "
+        "0.001172 IN ISOLATION against 0.000000 before. Run after the sibling "
+        "ERP tests it reads 0.000000 again, with 1920 columns and 30 winners "
+        "-- fiber exists, winners exist, drive zero, the original signature. "
+        "So phrase training was NECESSARY and is NOT SUFFICIENT, and the "
+        "self-block/recruitment defect (#32, #104) is still open. Non-strict "
+        "because the outcome varies with test order; a strict marker would "
+        "flip-flop instead of reporting. ROLE_PATIENT is the live control at "
+        "0.010442 and passes in both orders."))
     def test_the_violation_arm_is_alive_too(self, parsed):
-        """NOW PASSES, and the cause was not the engine change it predicted.
-
-        The xfail here blamed a self-fiber whose block spans ``w`` rather than
-        ``n``: pre-growth wired the ~71 neurons it materialised, calibration
-        recruited different ones, so the assembly that fired could not reach
-        itself. That diagnosis said fixing it required growing the self-block
-        with the area.
-
-        What actually fixed it was upstream. ``train_phrases`` selects its
-        subject and verb by ``role == "agent"`` / ``"action"``, and every
-        curriculum sentence carried ``roles=[None]``, so IT HAD NEVER RUN --
-        VP was built only by the bootstrap pre-growth and by calibration.
-        Routing scene-derived roles through the pipeline wakes it, and the
-        merges it performs are what wire the neurons that later fire:
-
-            VP  self-fiber extent 2061   materialized 2458   winners 30
-                energy 0.001172          vp_assemblies stored 72
-
-        against 0.000000 with 120 columns before. The control is unchanged in
-        kind (ROLE_PATIENT 0.010442), so VP is alive but still ~9x weaker --
-        this says the arm is no longer structurally empty, NOT that the two
-        arms are now comparable in strength.
-        """
         b = parsed
         eng = b._engine_for(b.areas[VP])
         assert (eng.fiber_extent(VP, VP) or 0) > 0, (

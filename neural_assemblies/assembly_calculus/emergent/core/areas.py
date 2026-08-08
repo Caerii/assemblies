@@ -131,6 +131,19 @@ THEMATIC_AREAS = [
     ROLE_GOAL, ROLE_SOURCE, ROLE_LOCATION,
 ]
 
+#: Role ANNOTATION string -> thematic area. The one place this mapping lives.
+#: It was previously spelled out separately in `parser_mixins._shared` and
+#: inline in `training/consolidation`, which is how a role label can be honoured
+#: by one consumer and silently dropped by another (see #116: `goal` is in
+#: THEMATIC_AREAS but in none of the maps, so those annotations `continue`).
+#: Covering only three of the seven areas is a REAL limit, recorded here rather
+#: than rediscovered per call site.
+ROLE_LABEL_TO_AREA = {
+    "agent": ROLE_AGENT,
+    "action": ROLE_ACTION,
+    "patient": ROLE_PATIENT,
+}
+
 # Scene area is a role-system area but not a thematic slot, so it is kept out
 # of THEMATIC_AREAS (which callers iterate as the mutually-exclusive slots).
 SCENE_AREAS = [ROLE_SCENE]

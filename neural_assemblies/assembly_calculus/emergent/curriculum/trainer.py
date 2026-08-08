@@ -54,6 +54,17 @@ from ..training.perf import (
 )
 
 
+#: Emit a passive for one in every N eligible transitive clauses.
+#: English runs roughly 2-10% passive. This is deliberately higher: the gating
+#: learner is CONTRASTIVE (it compares role order with the marker present
+#: against absent), and with only ~50 generated sentences per stage a 5% rate
+#: gives it two or three examples to generalise from. Stated rather than tuned;
+#: raising it toward 1 would make the corpus passive-dominant and teach the
+#: determiner to reverse roles, which is the failure `_learn_gating_patterns`
+#: is written to avoid.
+PASSIVE_EVERY = 4
+
+
 @dataclass
 class StageResult:
     """Metrics from training a single curriculum stage."""
@@ -400,10 +411,20 @@ class CurriculumTrainer:
             if standalone:
                 frame_verbs = standalone
 
+        # The passive needs an auxiliary and a role marker. Both are looked up
+        # in the STAGE's own words, not hardcoded: a stage that has not met
+        # "be" or "by" yet simply gets no passives, which is the honest answer
+        # rather than teaching a word the learner has never heard.
+        aux = next((v for v in verbs if _feat(v).get("copula")), None)
+        self._by_marker = next(
+            (p.lemma for p in preps if p.lemma == "by"), None)
+
+        n_eligible = 0
         for _ in range(min(50, len(nouns) * len(verbs))):
             verb = _rng.choice(frame_verbs) if frame_verbs else None
             if verb is None or not nouns:
                 continue
+            obj = None
 
             # Selectional restriction: an agent or experiencer must be animate.
             # Falls back to the concrete nouns when the lexicon has no animate
@@ -454,16 +475,54 @@ class CurriculumTrainer:
                     loc = _rng.choice(loc_pool)
                     sent.extend([prep.lemma, det_word, loc.lemma])
 
-            sentences.append(SentencePlan(
-                sent,
-                event=SceneEvent(
-                    action=self._scene_features(verb.lemma),
-                    participants=participants,
-                ),
-            ))
+            event = SceneEvent(
+                action=self._scene_features(verb.lemma),
+                participants=participants,
+            )
+            sentences.append(SentencePlan(sent, event=event))
+
+            # PASSIVE: the SAME event, said in the opposite order.
+            #
+            # This is the whole reason roles come from the scene. The passive
+            # states the identical who-did-what while reversing the surface
+            # positions, so it is the one construction where a positional
+            # reading is not merely uninformative but INVERTED -- and it is
+            # therefore the contrast `_learn_gating_patterns` needs in order to
+            # learn that a marker reverses roles, from evidence rather than
+            # from spelling.
+            #
+            # Rate: one in PASSIVE_EVERY eligible clauses. English runs roughly
+            # 2-10% passive; this is higher, because the contrastive learner
+            # needs both conditions populated and the generated corpus is only
+            # ~50 sentences per stage. The number is stated rather than tuned,
+            # and it changes token frequencies -- any capacity or frequency
+            # result measured before this describes a different corpus.
+            if (complexity >= 4 and len(participants) == 2
+                    and n_eligible % PASSIVE_EVERY == 0):
+                passive = self._passive_of(verb, subj, obj, det_word, aux)
+                if passive is not None:
+                    sentences.append(SentencePlan(passive, event=event))
+            if len(participants) == 2:
+                n_eligible += 1
 
         _rng.setstate(_rng_state)
         return sentences
+
+    def _passive_of(self, verb, subj, obj, det_word: str, aux) -> Optional[List[str]]:
+        """`the cat is chased by the dog`, or None if the lexicon cannot say it.
+
+        Returns None rather than approximating: a passive missing its auxiliary
+        or its participle is not a passive, and training on a malformed one
+        would teach the marker to reverse roles in sentences that are not
+        passive at all -- the failure mode `_learn_gating_patterns` guards
+        against on the determiner.
+        """
+        ppart = (getattr(verb, "forms", None) or {}).get("ppart")
+        aux_3sg = (getattr(aux, "forms", None) or {}).get("3sg") if aux else None
+        if not ppart or not aux_3sg or self._by_marker is None:
+            return None
+        return [det_word, obj.lemma, aux_3sg, ppart,
+                self._by_marker, det_word, subj.lemma]
 
     def _generate_sentences(
         self,

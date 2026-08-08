@@ -102,6 +102,14 @@ class TrainingScheduleExecutor:
                     repetitions=schedule.distributional_reps,
                     corpus_index=idx,
                 )
+                # VOICE GATING. `_learn_gating_patterns` is otherwise reached
+                # only from `train_roles`, which does NOT run on the curriculum
+                # path -- so the parser could never learn that a marker
+                # reverses roles, and its passive branch stayed dormant however
+                # many passives the corpus contained. It is pure statistics
+                # over `sent.roles`, costs no projection, and is a no-op when
+                # the sentences carry no roles.
+                p._learn_gating_patterns(idx.grounded)
             run.append(PhaseResult("roles"))
 
         if schedule.consolidation_passes > 0 and idx.grounded:
