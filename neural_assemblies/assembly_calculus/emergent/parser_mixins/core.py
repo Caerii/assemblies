@@ -126,7 +126,8 @@ class CoreParserMixin(
                  bridge_rounds: Optional[int] = None,
                  fast_training: Optional[bool] = None,
                  norm_init: Optional[bool] = None,
-                 vocabulary: Optional[Dict[str, GroundingContext]] = None):
+                 vocabulary: Optional[Dict[str, GroundingContext]] = None,
+                 synaptic_scaling=False):
         from ..training.perf import (
             budget_rounds,
             fast_training_enabled,
@@ -166,6 +167,13 @@ class CoreParserMixin(
         # _compiled_training_enabled below).
         if norm_init is not None:
             brain_kwargs["norm_init"] = norm_init
+        # Homeostatic scaling, forwarded verbatim: False (default), True
+        # (every area -- carries the documented attractor-cancellation
+        # hazard), or a collection of TARGET area names. The scoped form is
+        # for stimulus-anchored feature areas, e.g. {TENSE, NUMBER} -- see
+        # NumpySparseEngine._normalize_area_columns and task #130.
+        if synaptic_scaling:
+            brain_kwargs["synaptic_scaling"] = synaptic_scaling
         self.brain = Brain(**brain_kwargs)
         self.engine_name = getattr(self.brain._engine, "name", resolved_engine)
 

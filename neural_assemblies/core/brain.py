@@ -82,7 +82,7 @@ class Brain:
       Language Organ." 2023.
     """
 
-    def __init__(self, p: float = DEFAULT_P, save_size: bool = True, save_winners: bool = False, seed: int = 0, w_max: float = DEFAULT_W_MAX, engine="auto", deterministic: bool = False, n_hint: int = 0, projection_fidelity: str = "exact", inhibitory_prob: float = 0.0, inhibitory_weight: float = -0.2, synaptic_scaling: bool = False, recurrent_projection: bool = False, norm_init: bool = True):
+    def __init__(self, p: float = DEFAULT_P, save_size: bool = True, save_winners: bool = False, seed: int = 0, w_max: float = DEFAULT_W_MAX, engine="auto", deterministic: bool = False, n_hint: int = 0, projection_fidelity: str = "exact", inhibitory_prob: float = 0.0, inhibitory_weight: float = -0.2, synaptic_scaling: "bool | frozenset | set | tuple" = False, recurrent_projection: bool = False, norm_init: bool = True):
         """
         Initialize a neural assembly brain simulation.
 
@@ -180,8 +180,11 @@ class Brain:
             if inhibitory_prob > 0.0:
                 engine_kwargs["inhibitory_prob"] = inhibitory_prob
                 engine_kwargs["inhibitory_weight"] = inhibitory_weight
+            # Forward the VALUE: True means every target area (legacy);
+            # a collection of area names scopes scaling to those targets
+            # only (see NumpySparseEngine._normalize_area_columns).
             if synaptic_scaling:
-                engine_kwargs["synaptic_scaling"] = True
+                engine_kwargs["synaptic_scaling"] = synaptic_scaling
             # FORWARDED ONLY WHEN TRUE, so `numpy_explicit` -- whose
             # constructor does not accept it -- is unaffected. The invariant
             # that makes this safe: OMISSION MEANS FALSE, so every engine that
@@ -1335,9 +1338,12 @@ class Brain:
         # n=1000, i.e. 12.8x oversubscription, with pairwise overlap 0.0510
         # against a random-pair floor of 0.0500 (lexicon_capacity_law.py).  For
         # areas holding many items, that is the regime to be in.
+        # `is True` deliberately: scoped scaling (a set of feature-area
+        # names) normalizes only those targets, which cannot license
+        # GLOBAL self-recurrence -- only full scaling or norm_init can.
         allow_self = getattr(self, "recurrent_projection", False) and (
             getattr(self, "norm_init", False)
-            or getattr(self, "_synaptic_scaling", False)
+            or getattr(self, "_synaptic_scaling", False) is True
         )
         from_areas_list = [a for a, tgts in dst_areas_by_src_area.items()
                            if target in tgts and (allow_self or a != target)]

@@ -404,7 +404,7 @@ class NumpySparseEngine(ComputeEngine):
                  projection_fidelity: str = ProjectionFidelity.EXACT.value,
                  inhibitory_prob: float = 0.0,
                  inhibitory_weight: float = -0.2,
-                 synaptic_scaling: bool = False,
+                 synaptic_scaling: "bool | frozenset | set | tuple" = False,
                  norm_init: bool = False):
         self.p = p
         self.w_max = w_max
@@ -417,7 +417,18 @@ class NumpySparseEngine(ComputeEngine):
         # Homeostatic synaptic scaling on area->area fibers. See
         # _normalize_area_columns for why the setpoint is the initial expected
         # column sum rather than 1, and why stimulus fibers are excluded.
-        self.synaptic_scaling = synaptic_scaling
+        #
+        # True scales EVERY target area (the legacy per-fiber form, with its
+        # documented attractor-cancellation flaw); a collection of area names
+        # scales ONLY those targets. The scoped form exists for
+        # stimulus-anchored feature areas (TENSE/NUMBER), whose recall needs
+        # the afferent fiber to be DISCRIMINATIVE, not self-sustaining -- the
+        # per-fiber objection does not apply where no attractor is required
+        # (task #130).
+        self.synaptic_scaling = (
+            synaptic_scaling if isinstance(synaptic_scaling, bool)
+            else frozenset(synaptic_scaling)
+        )
         # One-time incoming-weight normalization (Dabagia et al. reference
         # `norm_init`).  See _norm_scale for the lazy-materialization
         # formulation and why it is exactly equivalent.
@@ -2232,7 +2243,10 @@ class NumpySparseEngine(ComputeEngine):
         turn needs their 1-D pre-summed representation reconciled with the
         2-D per-synapse form the split is defined over.
         """
-        if not self.synaptic_scaling:
+        ss = self.synaptic_scaling
+        if not ss:
+            return
+        if ss is not True and target not in ss:
             return
         xp = self._xp
         cols = xp.asarray(winners, dtype=xp.int64)
