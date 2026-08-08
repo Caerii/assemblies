@@ -715,6 +715,12 @@ class DistributionalMixin:
         Checks both lemmas and inflected forms (e.g., "runs" -> motor).
         Results are cached for repeated lookups.
 
+        Homographs resolve to the category-priority winner (NOUN before
+        VERB, ...): "loves" grounds as the noun. This is a deliberate
+        single-grounding-per-surface choice -- grounding has one slot per
+        word string -- not an index limitation; POS-aware readers use
+        `lookup_lexicon_entries` to see the other readings.
+
         Args:
             word: Word string to look up.
 

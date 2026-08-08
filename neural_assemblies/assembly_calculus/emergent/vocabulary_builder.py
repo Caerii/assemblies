@@ -260,15 +260,18 @@ def build_vocabulary_preset(
 
 
 def verb_surface_form(lemma: str) -> str:
-    """Return a training surface form for a verb lemma (3sg if available)."""
-    result = lookup_lexicon_entry(lemma)
-    if result is None:
-        return lemma
-    entry, pos = result
-    if pos != "VERB":
-        return lemma
-    forms = entry.get("forms", {})
-    return forms.get("3sg") or forms.get("present") or lemma
+    """Return a training surface form for a verb lemma (3sg if available).
+
+    Filters to VERB entries whose lemma IS the argument: the POS filter
+    alone would resolve "saw" to see.past and return "sees", and no filter
+    resolved homographs like "love" to the noun and returned the bare
+    lemma, silently breaking subject agreement in generated corpora.
+    """
+    for entry, _pos in lookup_lexicon_entries(lemma, pos="VERB"):
+        if entry["lemma"] == lemma:
+            forms = entry.get("forms", {})
+            return forms.get("3sg") or forms.get("present") or lemma
+    return lemma
 
 
 def words_by_modality(
@@ -291,20 +294,27 @@ def words_by_modality(
         buckets[mod].append(word)
     return buckets
 
-_LEXICON_INDEX: Optional[Dict[str, Tuple[dict, str]]] = None
+_LEXICON_INDEX: Optional[Dict[str, List[Tuple[dict, str]]]] = None
 
 
-def _build_lexicon_index() -> Dict[str, Tuple[dict, str]]:
-    """Build a flat word → (entry, pos) index over all lexicon data.
+def _build_lexicon_index() -> Dict[str, List[Tuple[dict, str]]]:
+    """Build a flat word → [(entry, pos), ...] index over all lexicon data.
 
-    Indexes both lemmas and inflected forms.
+    Indexes both lemmas and inflected forms, keeping EVERY entry that claims
+    a surface form.  90 surfaces in the lexicon are claimed more than once
+    ("loves" is both the plural of the noun "love" and the 3sg of the verb
+    "love"; "lives" is life.plural AND live.3sg; "thought" is a noun AND
+    think.past), so a single-slot index necessarily hides one reading — the
+    old first-wins index made every noun-verb homograph's verbhood invisible.
+    Candidates are stored in category order (NOUN, VERB, ADJ, ...), so
+    ``candidates[0]`` reproduces the old first-wins winner exactly.
     """
     from neural_assemblies.lexicon.data import (
         NOUNS, VERBS, ADJECTIVES, ADVERBS,
         PREPOSITIONS, PRONOUNS, DETERMINERS, CONJUNCTIONS,
     )
 
-    index: Dict[str, Tuple[dict, str]] = {}
+    index: Dict[str, List[Tuple[dict, str]]] = {}
 
     categories = [
         (NOUNS, "NOUN"),
@@ -319,19 +329,51 @@ def _build_lexicon_index() -> Dict[str, Tuple[dict, str]]:
 
     for entries, pos in categories:
         for entry in entries:
-            lemma = entry["lemma"]
-            if lemma not in index:
-                index[lemma] = (entry, pos)
-            # Index inflected forms too
-            for form_name, form_val in entry.get("forms", {}).items():
-                if isinstance(form_val, str) and form_val not in index:
-                    index[form_val] = (entry, pos)
+            # Lemma plus inflected forms, deduped within this entry (a
+            # zero-derivation form like put.past can equal the lemma).
+            surfaces = [entry["lemma"]]
+            for form_val in entry.get("forms", {}).values():
+                if isinstance(form_val, str) and form_val:
+                    surfaces.append(form_val)
+            for surface in dict.fromkeys(surfaces):
+                index.setdefault(surface, []).append((entry, pos))
 
     return index
 
 
+def lookup_lexicon_entries(
+    word: str, pos: Optional[str] = None,
+) -> List[Tuple[dict, str]]:
+    """Look up ALL lexicon entries claiming a surface form.
+
+    This is the homograph-safe lookup: call sites that know the expected
+    POS should use it with the ``pos`` filter instead of
+    ``lookup_lexicon_entry``, which silently returns only the
+    category-priority winner.
+
+    Args:
+        word: Word string (case-sensitive).
+        pos: Optional POS label filter ("NOUN", "VERB", ...).
+
+    Returns:
+        List of (entry_dict, pos_label) candidates in category-priority
+        order (NOUN before VERB before ADJ, ...); empty if unknown.
+    """
+    global _LEXICON_INDEX
+    if _LEXICON_INDEX is None:
+        _LEXICON_INDEX = _build_lexicon_index()
+    candidates = _LEXICON_INDEX.get(word, [])
+    if pos is not None:
+        return [c for c in candidates if c[1] == pos]
+    return list(candidates)
+
+
 def lookup_verb_form(word: str) -> Optional[Tuple[str, str]]:
     """Look up whether a word is a verb form and identify its tense.
+
+    Filters candidates to VERB entries, so noun-verb homographs
+    ("loves", "lives", "thought") resolve to their verb reading here even
+    though ``lookup_lexicon_entry`` returns the noun.
 
     Args:
         word: Word string to check.
@@ -340,12 +382,10 @@ def lookup_verb_form(word: str) -> Optional[Tuple[str, str]]:
         (lemma, tense_label) if the word is a verb form, else None.
         tense_label is one of: "PRESENT", "PAST", "PROGRESSIVE", "PERFECT".
     """
-    result = lookup_lexicon_entry(word)
-    if result is None:
+    candidates = lookup_lexicon_entries(word, pos="VERB")
+    if not candidates:
         return None
-    entry, pos = result
-    if pos != "VERB":
-        return None
+    entry, _ = candidates[0]
 
     lemma = entry["lemma"]
     forms = entry.get("forms", {})
@@ -366,13 +406,16 @@ def lookup_lexicon_entry(word: str) -> Optional[Tuple[dict, str]]:
 
     Checks both lemmas and inflected forms (e.g., "runs" → run entry, "VERB").
 
+    Returns only the CATEGORY-PRIORITY winner (NOUN before VERB, ...) when
+    several entries claim the surface — "loves" reads as the noun here.
+    Call sites that know the expected POS must use
+    ``lookup_lexicon_entries(word, pos=...)`` instead.
+
     Args:
         word: Word string (case-sensitive).
 
     Returns:
         (entry_dict, pos_label) if found, else None.
     """
-    global _LEXICON_INDEX
-    if _LEXICON_INDEX is None:
-        _LEXICON_INDEX = _build_lexicon_index()
-    return _LEXICON_INDEX.get(word)
+    candidates = lookup_lexicon_entries(word)
+    return candidates[0] if candidates else None
