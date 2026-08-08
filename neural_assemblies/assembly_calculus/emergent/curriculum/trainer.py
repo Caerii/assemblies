@@ -77,6 +77,17 @@ PASSIVE_EVERY = 4
 #: the same starvation argument that set PASSIVE_EVERY. Stated, not tuned.
 DITRANSITIVE_EVERY = 6
 
+#: Probability that a complexity>=3 frame is realized in the PAST tense
+#: (0.0 disables -- the one-class corpus the variation census flagged).
+#: Module-level so an A/B can pin one axis while leaving the others at
+#: default; the passive off-switch lesson applies (an "enormous rate"
+#: non-value is not an off switch, an explicit 0.0 is).
+PAST_RATE = 0.30
+
+#: Probability that a subject with a plural form is realized PLURAL
+#: (0.0 disables). Same contract as PAST_RATE.
+PLURAL_RATE = 0.30
+
 
 @dataclass
 class StageResult:
@@ -114,16 +125,20 @@ _STAGE_CONFIG = {
     "SENTENCES": {
         "beta": 0.10,
         "complexity": 4,
+        # "number" was schedulable (schedule.py runs it) but listed by NO
+        # stage -- the `phrases` dormant-selector shape. It joins the stages
+        # that carry "tense": the corpus now varies subject number, and a
+        # phase that never runs can't read the variation.
         "phases": ["lexicon", "distributional", "roles",
-                    "phrases", "word_order", "tense", "mood", "polarity",
-                    "prediction"],
+                    "phrases", "word_order", "tense", "number", "mood",
+                    "polarity", "prediction"],
     },
     "COMPLEX_GRAMMAR": {
         "beta": 0.08,
         "complexity": 6,
         "phases": ["lexicon", "distributional", "roles",
-                    "phrases", "word_order", "tense", "mood", "polarity",
-                    "conjunctions"],
+                    "phrases", "word_order", "tense", "number", "mood",
+                    "polarity", "conjunctions"],
     },
     "INSTRUCTIONS": {
         "beta": 0.10,
@@ -141,8 +156,9 @@ _STAGE_CONFIG = {
         "beta": 0.06,
         "complexity": 6,
         "phases": ["lexicon", "distributional", "roles",
-                    "phrases", "word_order", "tense", "mood", "polarity",
-                    "conjunctions", "prediction", "dialogue", "conversation"],
+                    "phrases", "word_order", "tense", "number", "mood",
+                    "polarity", "conjunctions", "prediction", "dialogue",
+                    "conversation"],
     },
 }
 
@@ -535,9 +551,9 @@ class CurriculumTrainer:
             #            plural PRESENT agreement is the bare lemma (English),
             #            past is number-invariant
             #   pronoun  ~15% subject -- grounded 3rd person, verified below
-            past = complexity >= 3 and _rng.random() < 0.30
+            past = complexity >= 3 and _rng.random() < PAST_RATE
             plural_form = (getattr(subj, "forms", None) or {}).get("plural")
-            use_plural = bool(plural_form) and _rng.random() < 0.30
+            use_plural = bool(plural_form) and _rng.random() < PLURAL_RATE
             pron = (_rng.choice(pron_subjects)
                     if pron_subjects and _rng.random() < 0.15 else None)
 
@@ -782,6 +798,18 @@ class CurriculumTrainer:
         The form inherits the LEMMA's grounding rather than being auto-grounded
         from scratch: "builds" means what "build" means, and a form that gets an
         empty `GroundingContext` cannot enter a core lexicon at all.
+
+        KNOWN LIMIT: `word_grounding` holds ONE grounding per surface string,
+        so a form claimed by two lemmas ("lives" is life.plural AND live.3sg;
+        "thought" is a noun AND think.past) inherits from whichever stage word
+        claims it first -- deterministic (stage word order is fixed) but
+        arbitrary. Homograph pairs that share a lemma string ("loves" from
+        noun-love or verb-love) are unaffected: both routes resolve to the
+        same `word_grounding["love"]`. Token-level POS disambiguation would
+        need per-context grounding, which the parser does not represent; the
+        lexicon INDEX no longer collapses these (see
+        `lookup_lexicon_entries`), so readers that know the expected POS can
+        recover the hidden reading even though grounding cannot.
         """
         form_to_lemma: Dict[str, str] = {}
         for w in stage_words:

@@ -31,8 +31,11 @@ Note also that the detectors run over SURFACE tokens, so they see "will" and
 would register as PRESENT throughout.
 """
 
-from typing import List
+from typing import Dict, List, Optional, Tuple
 
+from neural_assemblies.assembly_calculus.assembly import (
+    overlap as assembly_overlap,
+)
 from neural_assemblies.assembly_calculus.ops import _snap
 from ..core.areas import (
     VERB_CORE, CONJ_CORE, TENSE, MOOD, POLARITY, NUMBER,
@@ -281,10 +284,28 @@ class MorphosyntaxMixin:
                 self.brain._engine.reset_area_connections(CONJ_CORE)
 
     def detect_number(self, word: str) -> str:
-        """Detect grammatical number from word grounding features.
+        """Detect grammatical number, lexicon forms first, then grounding.
 
-        Checks the word's grounding context for explicit SG/PL features.
-        Falls back to "SG" (singular) as default.
+        The grounding-feature path was the ONLY path until the variation
+        measurement (task #129) found that nothing in the pipeline ever sets
+        an SG/PL feature: plural surface forms inherit the LEMMA's grounding
+        verbatim (`_register_surface_forms`), so this teacher read "SG" for
+        every token in the corpus -- a one-class signal that made
+        `train_number` unable to learn a discrimination even where it ran.
+        The lexicon check mirrors `lookup_verb_form`: a token equal to a
+        NOUN entry's ``forms["plural"]`` is PL, form-level and unambiguous
+        for nouns. (Verb agreement is NOT decidable at the form level -- the
+        bare lemma serves plural-present agreement and other slots -- so
+        verbs fall through to the SG default, and the NUMBER area learns a
+        noun contrast only.)
+
+        Noun-verb homographs ("loves", "lives", "hates") are ambiguous at
+        the form level: the same surface is a noun plural AND a verb 3sg.
+        This teacher sees one token with no context, so it declines to call
+        those PL -- corpus verb tokens vastly outnumber plural uses of these
+        nouns, and 3sg agreement is semantically singular anyway.  (The old
+        first-wins lexicon index instead labelled every such verb token a
+        noun plural, contaminating the NUMBER teacher signal.)
 
         Args:
             word: A single word token.
@@ -292,6 +313,17 @@ class MorphosyntaxMixin:
         Returns:
             "SG" or "PL".
         """
+        from ..vocabulary_builder import lookup_lexicon_entries
+
+        candidates = lookup_lexicon_entries(word)
+        noun_plural = any(
+            pos == "NOUN" and word == entry.get("forms", {}).get("plural")
+            for entry, pos in candidates
+        )
+        verb_reading = any(pos == "VERB" for _entry, pos in candidates)
+        if noun_plural and not verb_reading:
+            return "PL"
+
         grounding = self.word_grounding.get(word)
         if grounding:
             for mod in ("visual", "motor", "properties", "spatial",
@@ -355,3 +387,129 @@ class MorphosyntaxMixin:
                         },
                         rounds=self.rounds - 1,
                     )
+
+    # ------------------------------------------------------------------
+    # RECALL -- the third of the detect/train pair, previously missing.
+    # ------------------------------------------------------------------
+
+    def _recall_morph_feature(
+            self, word: str, feature_area: str,
+            stim_by_label: Dict[str, str],
+            candidates: Tuple[str, ...],
+    ) -> "tuple[Optional[str], dict]":
+        """Read a morph feature for `word` back OUT of its feature area.
+
+        Same shape as `parse_roles_by_reconstruction`'s RECALL step: compare
+        the word's image in the feature area (word -> core -> feature, no
+        feature stimulus) against each candidate label's stimulus image, and
+        answer argmax overlap -- a tie is a failure to read, not a guess.
+
+        This is the readout `train_tense`/`train_number` never had: the
+        detectors are Python teachers, the training writes core->feature
+        associations, and until now NOTHING read them back, so whether the
+        corpus variation bought a recallable contrast was unmeasurable.
+
+        Candidate labels whose stimulus was never REGISTERED are skipped, but
+        a registered-yet-untrained stimulus still materializes an image
+        (beta=0 is not a null), so callers must restrict `candidates` to
+        labels the corpus could actually have taught when scoring accuracy.
+
+        Returns (label_or_None, diag) where diag carries per-label overlap
+        `scores`, the `margin` (top - runner), and `image_separation`
+        (pairwise overlap between candidate images -- near 1.0 means the
+        feature area cannot answer and the readout is untrustworthy).
+        """
+        from neural_assemblies.assembly_calculus.ops import (
+            project as _ops_project,
+        )
+
+        brain = self.brain
+        diag: dict = {"scores": {}, "margin": None, "image_separation": None}
+
+        core_area = self._word_core_area(word)
+        phon = self.stim_map.get(word)
+        if (core_area is None or core_area not in brain.areas
+                or feature_area not in brain.areas or phon is None):
+            return None, diag
+
+        rounds = max(1, int(self.rounds))
+        with brain.read_only():
+            brain.areas[feature_area].unfix_assembly()
+
+            images = {}
+            for label in candidates:
+                stim = stim_by_label.get(label)
+                if stim is None or stim not in brain.stimuli:
+                    continue
+                brain.inhibit_areas([feature_area])
+                brain.project({stim: [feature_area]}, {})
+                for _ in range(rounds - 1):
+                    brain.project({stim: [feature_area]},
+                                  {feature_area: [feature_area]})
+                images[label] = _snap(brain, feature_area)
+            if len(images) < 2:
+                return None, diag
+
+            pairs = list(images.items())
+            seps = [
+                float(assembly_overlap(pairs[i][1], pairs[j][1]))
+                for i in range(len(pairs)) for j in range(i + 1, len(pairs))
+            ]
+            diag["image_separation"] = max(seps)
+
+            # The probe: word -> core (settle), then core -> feature with NO
+            # feature stimulus -- exactly what the trained pathway can supply
+            # on its own.
+            brain.inhibit_areas([feature_area])
+            _ops_project(brain, phon, core_area, rounds=rounds)
+            brain.areas[core_area].fix_assembly()
+            try:
+                brain.project({}, {core_area: [feature_area]})
+                for _ in range(rounds - 1):
+                    brain.project({}, {core_area: [feature_area],
+                                       feature_area: [feature_area]})
+            finally:
+                brain.areas[core_area].unfix_assembly()
+            probe = _snap(brain, feature_area)
+
+        diag["scores"] = {
+            label: float(assembly_overlap(image, probe))
+            for label, image in images.items()
+        }
+        ranked = sorted(diag["scores"].items(), key=lambda kv: -kv[1])
+        top_label, top = ranked[0]
+        runner = ranked[1][1] if len(ranked) > 1 else 0.0
+        diag["margin"] = top - runner
+        if top > runner:
+            return top_label, diag
+        return None, diag
+
+    def recall_tense(self, word: str,
+                     candidates: Tuple[str, ...] = ("PRESENT", "PAST"),
+                     ) -> "tuple[Optional[str], dict]":
+        """Recall the tense associated with a verb FORM from the TENSE area.
+
+        Form-level by construction: `train_tense` co-fires the verb form's
+        assembly with the detected tense stimulus, so what is recallable is
+        the form->tense association ("chased" -> PAST), not anything about
+        the sentence. The default candidates are the two labels the generated
+        corpus teaches; FUTURE/PROGRESSIVE/PERFECT stimuli exist but are
+        untrained there (see `_recall_morph_feature` on why untrained labels
+        must not be scored).
+        """
+        return self._recall_morph_feature(
+            word, TENSE,
+            {t: f"tense_{t}" for t in
+             ("PRESENT", "PAST", "FUTURE", "PROGRESSIVE", "PERFECT")},
+            candidates,
+        )
+
+    def recall_number(self, word: str,
+                      candidates: Tuple[str, ...] = ("SG", "PL"),
+                      ) -> "tuple[Optional[str], dict]":
+        """Recall grammatical number for a noun form from the NUMBER area."""
+        return self._recall_morph_feature(
+            word, NUMBER,
+            {"SG": "number_SG", "PL": "number_PL"},
+            candidates,
+        )
