@@ -13,7 +13,7 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Set, Tuple
 from ..core.areas import (
-    ROLE_AGENT, ROLE_PATIENT, ROLE_ACTION, ROLE_LABEL_TO_AREA,
+    ROLE_AGENT, ROLE_PATIENT, ROLE_ACTION, ROLE_GOAL, ROLE_LABEL_TO_AREA,
 )
 
 #: Projection rounds for MERGE into a multi-assembly area.
@@ -87,6 +87,7 @@ _ROLE_LABEL = {
     ROLE_AGENT: "AGENT",
     ROLE_ACTION: "ACTION",
     ROLE_PATIENT: "PATIENT",
+    ROLE_GOAL: "GOAL",
 }
 
 

@@ -34,10 +34,11 @@ from neural_assemblies.assembly_calculus.emergent.curriculum.data import (
     GroundedSentence,
 )
 
-_ROLE_ANNOTATION_TO_AREA = {
-    "agent": ROLE_AGENT,
-    "patient": ROLE_PATIENT,
-}
+# The CANONICAL label map (goal included since #116); `action` is excluded by
+# the per-step skip below, not by maintaining a second copy of the mapping --
+# a private duplicate here is exactly how `goal` annotations were silently
+# dropped for weeks.
+from ..core.areas import ROLE_LABEL_TO_AREA as _ROLE_ANNOTATION_TO_AREA
 
 _NUMBER_STIMULI = {"SG": "number_SG", "PL": "number_PL"}
 

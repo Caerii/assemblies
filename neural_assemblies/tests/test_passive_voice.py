@@ -145,14 +145,19 @@ class TestTheParserLearnsAndAppliesIt:
         order; scoring it on the marginal rate instead is how "the" ends up
         reversing roles.
         """
-        gating = trained.learned_gating
-        assert FUNC_MARKER in gating, (
-            f"MARKER never learned; learned {sorted(gating)}")
-        marker = gating[FUNC_MARKER]
+        # WORD level, not subcategory level. The MARKER pool now contains
+        # both 'by' (reverses voice) and 'to' (marks a recipient), and pooled
+        # they CANCEL -- measured conf 0.438 the moment ditransitives entered
+        # the corpus, killing passives. The claim "the marker is learned
+        # contrastively" is carried by the per-word gating, which is also the
+        # papers' model of control (per-word action programs).
+        wg = trained.learned_word_gating
+        assert "by" in wg, f"'by' never learned; learned {sorted(wg)}"
+        marker = wg["by"]
         assert marker["reverses_roles"] is True
         assert marker["confidence"] > 0.5, marker
         assert marker["n_contrast"] > 0, (
-            "MARKER was present in every sentence, so it explains no variation")
+            "'by' was present in every sentence, so it explains no variation")
 
     def test_the_determiner_does_not_reverse(self, trained):
         """"the" occurs in both voices and must score ~0."""

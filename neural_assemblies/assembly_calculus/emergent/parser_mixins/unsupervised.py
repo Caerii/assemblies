@@ -45,7 +45,9 @@ if TYPE_CHECKING:
     from ..core.corpus_index import CorpusIndex
     from ..curriculum.data import GroundedSentence
 
-_ROLE_TRAINING_AREAS = (ROLE_AGENT, ROLE_PATIENT)
+from ..core.areas import ROLE_GOAL
+
+_ROLE_TRAINING_AREAS = (ROLE_AGENT, ROLE_PATIENT, ROLE_GOAL)
 
 
 class UnsupervisedMixin:

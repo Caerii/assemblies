@@ -119,6 +119,12 @@ def test_scene_agrees_with_position(trainer):
             for i, role in enumerate(g.roles):
                 if role is None or i not in positional:
                     continue
+                if role not in _ROLE_AREA:
+                    # `goal` has NO positional counterpart -- the inducer maps
+                    # nouns onto S/O slots only, so a recipient is precisely
+                    # where the scene knows something position cannot express.
+                    # Nothing to compare, not a disagreement.
+                    continue
                 compared += 1
                 if _ROLE_AREA[role] != positional[i]:
                     failures.append(

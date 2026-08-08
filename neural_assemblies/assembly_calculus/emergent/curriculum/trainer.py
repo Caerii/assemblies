@@ -71,6 +71,12 @@ from ..training.perf import (
 #: is written to avoid.
 PASSIVE_EVERY = 4
 
+#: Force a DITRANSITIVE verb draw for one in every N frames (0 disables).
+#: Ditransitives are 8 of ~119 frame verbs, so natural sampling yields ~4
+#: draws per 50-frame stage -- too thin for ROLE_GOAL to accumulate bindings,
+#: the same starvation argument that set PASSIVE_EVERY. Stated, not tuned.
+DITRANSITIVE_EVERY = 6
+
 
 @dataclass
 class StageResult:
@@ -427,6 +433,12 @@ class CurriculumTrainer:
         aux = next((v for v in verbs if _feat(v).get("copula")), None)
         self._by_marker = next(
             (p.lemma for p in preps if p.lemma == "by"), None)
+        # The TRANSFER marker, by feature: goal-taking and non-motion ('to';
+        # 'into' is goal+motion and excluded). A stage without it simply
+        # generates no ditransitive frames.
+        goal_marker = next(
+            (pp.lemma for pp in preps
+             if _feat(pp).get("goal") and not _feat(pp).get("motion")), None)
 
         # REALISM POOLS, each licensed by the lexicon rather than hand-listed.
         # The grammar-gap census found every one of these dimensions CONSTANT
@@ -488,11 +500,24 @@ class CurriculumTrainer:
                 return False
             if ev.role_of_features(parts[0]) != "agent":
                 return False
-            return len(parts) == 1 or ev.role_of_features(parts[1]) == "patient"
+            if len(parts) >= 2 and ev.role_of_features(parts[1]) != "patient":
+                return False
+            return len(parts) <= 2 or ev.role_of_features(parts[2]) == "goal"
+
+        ditransitives = [v for v in frame_verbs
+                         if _feat(v).get("ditransitive")]
 
         n_eligible = 0
-        for _ in range(min(50, len(nouns) * len(verbs))):
-            verb = _rng.choice(frame_verbs) if frame_verbs else None
+        for frame_i in range(min(50, len(nouns) * len(verbs))):
+            # Periodic FORCED ditransitive draw (see DITRANSITIVE_EVERY):
+            # without it the recipient construction is too rare for its role
+            # area to learn anything.
+            if (ditransitives and DITRANSITIVE_EVERY > 0
+                    and complexity >= 4
+                    and frame_i % DITRANSITIVE_EVERY == DITRANSITIVE_EVERY - 1):
+                verb = _rng.choice(ditransitives)
+            else:
+                verb = _rng.choice(frame_verbs) if frame_verbs else None
             if verb is None or not nouns:
                 continue
             obj = None
@@ -580,6 +605,29 @@ class CurriculumTrainer:
                 sent.extend([_choose_det(obj.lemma, False), obj.lemma])
                 participants.append(self._scene_features(obj.lemma))
 
+            # DITRANSITIVE: "the girl gives the ball to the boy". The third
+            # participant is the transfer's RECIPIENT, causal slot 2 -> `goal`
+            # (#116: these annotations were silently dropped for weeks because
+            # a private copy of the role map lacked the key). Recipients are
+            # animate by modeling choice; the frame is emitted only if the
+            # scene can derive ALL THREE roles, the same bar pronoun frames
+            # clear. Three participants also excludes the frame from
+            # passivization automatically (the passive gate requires two).
+            if (obj is not None and goal_marker is not None
+                    and complexity >= 4 and animate
+                    and _feat(verb).get("ditransitive")):
+                rec_pool = [r for r in animate
+                            if r.lemma not in (subj_key, obj.lemma)]
+                if rec_pool:
+                    rec = _rng.choice(rec_pool)
+                    rfeats = self._scene_features(rec.lemma)
+                    if rfeats and _derivable(
+                            afeats, participants + [rfeats]):
+                        sent.extend([goal_marker,
+                                     _choose_det(rec.lemma, False),
+                                     rec.lemma])
+                        participants.append(rfeats)
+
             # A locative PP needs a STATIC SPATIAL preposition taking a bare NP.
             # Filtering on the lexicon's own features rather than a hand list:
             # `motion` excludes "into"/"out", `goal`/`source` exclude "to"/"from"
@@ -600,6 +648,7 @@ class CurriculumTrainer:
                 # and the PP, the exact unanalysable shape this guard exists
                 # for, resurfacing through the inflection.
                 used_lemmas = {subj_key} | ({obj.lemma} if obj else set())
+                used_lemmas |= {tok for tok in sent}  # incl. any recipient
                 loc_pool = [c for c in concrete if c.lemma not in used_lemmas]
                 if loc_pool:
                     prep = _rng.choice(locatives)

@@ -58,11 +58,12 @@ if TYPE_CHECKING:
     from .sentence import GroundedSentence
 
 #: Abstract roles, in the CAUSAL order participants are listed in.
-#: Index 0 is the actor, index 1 the undergoer. Generalising event-specific
+#: Index 0 is the actor, index 1 the undergoer, index 2 the recipient of a
+#: transfer event ("gives the ball TO THE BOY"). Generalising event-specific
 #: participants (chaser, finder, eater) into these abstract roles is a real
 #: acquisition problem in its own right; ordering by causal structure is the
 #: minimal assumption that lets it be deferred rather than solved by fiat.
-CAUSAL_ROLE_ORDER = ("agent", "patient")
+CAUSAL_ROLE_ORDER = ("agent", "patient", "goal")
 
 
 def _denotes(features: Iterable[str], bundle: Iterable[str]) -> bool:

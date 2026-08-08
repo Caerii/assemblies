@@ -23,6 +23,7 @@ from ..core.areas import (
     ROLE_AGENT,
     ROLE_PATIENT,
     ROLE_ACTION,
+    ROLE_GOAL,
     FUNC_AUX,
     FUNC_DET,
     FUNC_COMP,
@@ -223,17 +224,58 @@ class RoleBindingMixin:
             # queued behind an ACTION pivot deadlocks on any unclassifiable
             # verb form). A slot is consumed even when the word cannot be
             # recorded -- an unknown word must not misalign the tail.
+            #
+            # PREPOSITIONS GOVERN THE NOUN THAT FOLLOWS, and the governor
+            # decides its slot:
+            #   * the passive MARKER's noun IS a filler (the by-phrase agent);
+            #   * an UNGROUNDED goal preposition ("to" -- no grounding entry,
+            #     unlike every locative) routes its noun to ROLE_GOAL;
+            #   * any other preposition's noun fills NOTHING.
+            # The third case also closes a latent defect: before this, ANY
+            # third noun consumed the next filler slot, so "the boy sleeps in
+            # the house" read house=PATIENT -- the PP noun mistaken for a
+            # participant.
             slot_idx = 0
             action_taken = False
+            pending: Optional[str] = None
             fillers: list = []
             for w in words:
-                if self._func_subcat_of(w) is not None:
-                    continue  # function word: control, not a filler
+                subcat = self._func_subcat_of(w)
                 cat = cats.get(w)
-                if cat in ("NOUN", "PRON") and slot_idx < len(sequence):
-                    if _traverse(w, sequence[slot_idx]):
-                        fillers.append((w, sequence[slot_idx]))
-                    slot_idx += 1
+                if cat == "PREP" or subcat == FUNC_MARKER:
+                    # The governor's slot comes from the LEARNED per-word
+                    # gating, not from groundedness -- 'to' ACQUIRES grounding
+                    # during training, so any groundedness test rots. A word
+                    # that reverses voice governs a filler (the by-phrase
+                    # agent); one that marks goal roles governs ROLE_GOAL;
+                    # everything else (locatives) governs nothing.
+                    wg = getattr(self, "learned_word_gating", {}).get(w, {})
+                    if (is_passive and wg.get("reverses_roles")
+                            and wg.get("confidence", 0) > 0.5):
+                        pending = "filler"
+                    elif wg.get("goal_conf", 0) > 0.5:
+                        pending = "goal"
+                    elif is_passive and subcat == FUNC_MARKER and not wg:
+                        # No word statistics (unseen marker): fall back to the
+                        # subcategory, preserving pre-word-gating behavior.
+                        pending = "filler"
+                    else:
+                        pending = "skip"
+                    continue
+                if subcat is not None:
+                    continue  # function word: control, not a filler
+                if cat in ("NOUN", "PRON"):
+                    governor, pending = pending, None
+                    if governor == "skip":
+                        continue
+                    if governor == "goal":
+                        if _traverse(w, ROLE_GOAL):
+                            fillers.append((w, ROLE_GOAL))
+                        continue
+                    if slot_idx < len(sequence):
+                        if _traverse(w, sequence[slot_idx]):
+                            fillers.append((w, sequence[slot_idx]))
+                        slot_idx += 1
                 elif cat == "VERB" and not action_taken:
                     if _traverse(w, ROLE_ACTION):
                         out[w] = "ACTION"

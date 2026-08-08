@@ -9,7 +9,7 @@ from collections import defaultdict
 from typing import Dict, List, Optional, Set, Tuple
 from neural_assemblies.assembly_calculus.ops import sequence_memorize
 
-from ..core.areas import ROLE_AGENT, ROLE_PATIENT, SEQ, FUNC_COMP
+from ..core.areas import ROLE_AGENT, ROLE_PATIENT, SEQ, FUNC_COMP, FUNC_MARKER
 from ..curriculum.data import GroundedSentence
 
 
@@ -49,7 +49,20 @@ class GatingMixin:
 
         # First pass: which subcategories exist at all, and per sentence,
         # whether the sentence is patient-first and which subcats it contains.
+        # Per-WORD tracking for the MARKER class only. Sub-category pooling
+        # is a compression, and it measurably FAILS exactly there: 'by'
+        # reverses voice, 'to' marks a recipient, and pooled they cancelled to
+        # conf 0.438 -- passives died the moment ditransitives entered the
+        # corpus. The paper's control is per-word action programs; this learns
+        # them, contrastively, for the one class where words disagree.
+        word_present: Dict[str, List[bool]] = defaultdict(list)
+        word_absent: Dict[str, List[bool]] = defaultdict(list)
+        word_goal_present: Dict[str, List[bool]] = defaultdict(list)
+        word_goal_absent: Dict[str, List[bool]] = defaultdict(list)
+        marker_words: Set[str] = set()
+
         sentence_facts: List[Tuple[bool, Set[str]]] = []
+        marker_facts: List[Tuple[bool, bool, Set[str]]] = []
         for sent in sentences:
             role_order = []
             for word, role in zip(sent.words, sent.roles):
@@ -60,7 +73,9 @@ class GatingMixin:
             if not role_order:
                 continue
             patient_first = role_order[0] == ROLE_PATIENT
+            has_goal = any(r == "goal" for r in sent.roles)
             present: Set[str] = set()
+            markers_here: Set[str] = set()
             for word in sent.words:
                 # NOT `if not ctx.is_grounded`. That filter made the ROLE
                 # MARKER unreachable, which is the one subcategory this whole
@@ -88,8 +103,40 @@ class GatingMixin:
                     sc = _subcat_of(word)
                     if sc is not None:
                         present.add(sc)
+                        if sc == FUNC_MARKER:
+                            markers_here.add(word)
             all_subcats |= present
+            marker_words |= markers_here
             sentence_facts.append((patient_first, present))
+            marker_facts.append((patient_first, has_goal, markers_here))
+
+        for patient_first, has_goal, markers_here in marker_facts:
+            for w in marker_words:
+                if w in markers_here:
+                    word_present[w].append(patient_first)
+                    word_goal_present[w].append(has_goal)
+                else:
+                    word_absent[w].append(patient_first)
+                    word_goal_absent[w].append(has_goal)
+
+        for w in marker_words:
+            pres = word_present.get(w, [])
+            absent = word_absent.get(w, [])
+            if not pres:
+                continue
+            p_present = sum(pres) / len(pres)
+            effect = (p_present - sum(absent) / len(absent)) if absent else 0.0
+            gp = word_goal_present.get(w, [])
+            ga = word_goal_absent.get(w, [])
+            g_present = sum(gp) / len(gp) if gp else 0.0
+            g_effect = (g_present - sum(ga) / len(ga)) if ga else 0.0
+            self.learned_word_gating[w] = {
+                "reverses_roles": effect > 0.5,
+                "confidence": float(max(0.0, effect)),
+                "goal_conf": float(max(0.0, g_effect)),
+                "n_examples": len(pres),
+                "n_contrast": len(absent),
+            }
 
         for patient_first, present in sentence_facts:
             for sc in all_subcats:
@@ -236,7 +283,7 @@ class GatingMixin:
         base_order = self.constituent_role_order()
 
         # Stage 1: voice gating learned from function-word sub-categories.
-        if self.learned_gating:
+        if self.learned_gating or getattr(self, "learned_word_gating", None):
             for word in words:
                 # `_func_subcat_of`, NOT raw `get_func_subcategory` -- the same
                 # lookup `_learn_gating_patterns` uses to WRITE these entries.
@@ -249,6 +296,17 @@ class GatingMixin:
                 # the same function as the writer.
                 subcat = self._func_subcat_of(word)
                 if subcat is None:
+                    continue
+
+                # WORD-LEVEL gating outranks the subcategory pool for MARKER
+                # words: 'by' reverses voice and 'to' marks a recipient, and
+                # pooling them cancelled both (MARKER conf 0.438, passives
+                # dead). A word with its own learned entry answers for itself.
+                wg = getattr(self, "learned_word_gating", {}).get(word)
+                if wg is not None:
+                    if (wg.get("reverses_roles", False)
+                            and wg.get("confidence", 0) > 0.5):
+                        return list(reversed(base_order)), True
                     continue
 
                 gating = self.learned_gating.get(subcat)

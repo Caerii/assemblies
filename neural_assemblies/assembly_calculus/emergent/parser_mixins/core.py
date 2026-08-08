@@ -237,6 +237,14 @@ class CoreParserMixin(
         # Format: {func_subcat: {"role_bias": {ROLE_AGENT: float, ROLE_PATIENT: float},
         #                        "clause_boundary": bool}}
         self.learned_gating: Dict[str, Dict] = {}
+        #: Per-WORD gating for MARKER-class words -- the paper's control is
+        #: per-word action programs, and subcategory grouping measurably
+        #: cancels when two MARKER words have opposite effects ('by' reverses
+        #: voice, 'to' marks a recipient: pooled, MARKER read conf 0.438 and
+        #: passives died). Keys are words; values mirror `learned_gating`
+        #: entries plus `goal_conf` (contrastive evidence the word marks a
+        #: GOAL role).
+        self.learned_word_gating: Dict[str, Dict] = {}
 
         self._setup_areas()
         self._register_vocabulary(vocabulary or VOCABULARY)

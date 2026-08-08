@@ -136,12 +136,13 @@ THEMATIC_AREAS = [
 #: inline in `training/consolidation`, which is how a role label can be honoured
 #: by one consumer and silently dropped by another (see #116: `goal` is in
 #: THEMATIC_AREAS but in none of the maps, so those annotations `continue`).
-#: Covering only three of the seven areas is a REAL limit, recorded here rather
-#: than rediscovered per call site.
+#: Covering four of the seven areas is a REAL limit, recorded here rather
+#: than rediscovered per call site (theme/source/location remain unmapped).
 ROLE_LABEL_TO_AREA = {
     "agent": ROLE_AGENT,
     "action": ROLE_ACTION,
     "patient": ROLE_PATIENT,
+    "goal": ROLE_GOAL,
 }
 
 # Scene area is a role-system area but not a thematic slot, so it is kept out

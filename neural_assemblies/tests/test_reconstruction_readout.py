@@ -68,6 +68,37 @@ class TestReconstructionReadout:
         assert roles.get(agent) == "AGENT", (text, roles, diag["gaps"])
         assert roles.get(patient) == "PATIENT", (text, roles, diag["gaps"])
 
+    def test_ditransitive_reads_goal(self, trained):
+        """ROLE_GOAL, live end to end (#116): the recipient after the learned
+        goal marker reads out of the fourth thematic area."""
+        roles, diag = trained.parse_roles_by_reconstruction(
+            "the girl tells the food to the boy".split())
+        assert roles.get("girl") == "AGENT", (roles, diag["gaps"])
+        assert roles.get("food") == "PATIENT", (roles, diag["gaps"])
+        assert roles.get("boy") == "GOAL", (roles, diag["gaps"])
+
+    def test_locative_noun_fills_nothing(self, trained):
+        """A PP-governed noun is not a participant. Before the prep-governor
+        state machine, ANY third noun consumed the next filler slot and
+        "the boy sleeps in the house" read house=PATIENT."""
+        roles, _diag = trained.parse_roles_by_reconstruction(
+            "the boy sleeps in the house".split())
+        assert roles.get("boy") == "AGENT", roles
+        assert roles.get("house") is None, roles
+
+    def test_marker_words_learn_distinct_programs(self, trained):
+        """Per-WORD gating: 'by' reverses voice, 'to' marks goal -- POOLED by
+        subcategory these cancelled (MARKER conf fell to 0.438 the moment
+        ditransitives entered the corpus, and passives died). Each word must
+        answer for itself, contrastively."""
+        wg = trained.learned_word_gating
+        assert "by" in wg and "to" in wg, sorted(wg)
+        assert wg["by"]["reverses_roles"] and wg["by"]["confidence"] > 0.5
+        assert wg["by"]["goal_conf"] < 0.5
+        assert not wg["to"]["reverses_roles"]
+        assert wg["to"]["goal_conf"] > 0.5
+        assert wg["to"]["n_contrast"] > 0, "goal evidence must be contrastive"
+
     def test_gap_is_positive_with_margin(self, trained):
         """Ties, not wrong answers, are how substrate collapse presents here."""
         for text in ("the dog chases the cat", "the cat is chased by the dog"):
