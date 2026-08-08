@@ -108,9 +108,19 @@ class CoreParserMixin(
     order they run in and the state they share.
     """
 
+    # DEFAULTS phon_weight=6.0, beta=0.05 -- the Phase B pair, flipped on three
+    # independent lines of evidence (deferred until all three were in):
+    #   1. core-assembly duplicates 0.32 -> 0.06, role retrieval 0.77 -> 0.97
+    #      (semantic drive share, research/notes phase_b);
+    #   2. reconstruction-readout parsing 9/12 -> 12/12 BOTH voices, occupant
+    #      gap 0.50 -> 0.95 (sentence_conditioned_readout.py);
+    #   3. event-representation separation C2 0.9528 -> 0.0417 -- at the old
+    #      default the substrate could not distinguish "child enters mouse"
+    #      from "mouse enters child".
+    # Known cost, stated: grounding-only recall 0.82 -> 0.67 (still 4x chance).
     def __init__(self, n: int = 10000, k: int = 100, p: float = 0.05,
-                 beta: float = 0.1, seed: int = 42, rounds: int = 10,
-                 phon_weight: float = 1.0,
+                 beta: float = 0.05, seed: int = 42, rounds: int = 10,
+                 phon_weight: float = 6.0,
                  engine: str = "auto",
                  inference_rounds: Optional[int] = None,
                  bridge_rounds: Optional[int] = None,

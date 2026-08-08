@@ -85,14 +85,24 @@ class TestExcessIsClippedAtItsOwnNull:
         # 0.9872). The mechanism is that clipping CRUSHES the null arm's spread
         # while leaving the violation arm's intact -- that is what makes Cohen's
         # d divide by a floor, and it is what should be asserted.
-        spread_gram = max(gram) - min(gram)
-        spread_catv = max(catv) - min(catv)
-        assert spread_gram <= spread_catv or min(gram) == 0.0, (
-            f"the clipping asymmetry has gone: grammatical excess {gram} "
-            f"(spread {spread_gram:.5f}) is no longer crushed relative to "
-            f"violation {catv} (spread {spread_catv:.5f}). If the baseline is "
-            f"no longer the grammatical median, this defect is fixed and "
-            f"Cohen's d may finally be an effect size")
+        #
+        # CONDITIONAL ON THE CLIP ENGAGING, and this condition is the second
+        # realization-pin this test has shed. The clip crushes the null arm
+        # only when grammatical samples actually FALL at or below the baseline
+        # median; under the phon_weight=6/beta=0.05 defaults the seed-11
+        # samples all sit strictly above it (min excess 0.00045), so nothing
+        # clips, both arms carry real spread, and there is no asymmetry to
+        # assert. That is not the defect being fixed -- `p600_excess` is still
+        # max(0, x - median), pinned above by the mechanism test -- it is the
+        # defect having no purchase on this run's samples.
+        clipped = [v for v in gram if v == 0.0]
+        if clipped:
+            spread_gram = max(gram) - min(gram)
+            spread_catv = max(catv) - min(catv)
+            assert spread_gram <= spread_catv, (
+                f"the clip fired ({len(clipped)} grammatical samples at 0.0) "
+                f"yet the null arm is not crushed: grammatical spread "
+                f"{spread_gram:.5f} > violation spread {spread_catv:.5f}")
         assert separation(catv, gram, "p600_excess").auc > 0.5, (
             f"violation excess does not out-rank grammatical: {catv} vs {gram}")
 

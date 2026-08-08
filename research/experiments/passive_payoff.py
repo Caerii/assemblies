@@ -172,17 +172,65 @@ def _train(seed: int, passive_every: int):
 _FINGERPRINTS: dict = {}
 
 
-def _arm(passive_every: int, voice: str):
-    def run(seed: int) -> float:
+def _score_reconstruction(parser, probes) -> Tuple[float, float]:
+    """(active, passive) accuracy through the gate->record->recall readout.
+
+    REGISTERED PREDICTIONS, before running at this scale:
+      * reconstruction + alternating: passives at or above the margin route's
+        0.60 (the 4-event probe read 12/12 at the new defaults).
+      * reconstruction + active_only: passives STAY inverted/low -- an
+        active-only corpus never teaches MARKER, so the gate never selects the
+        patient-first sequence. If this holds, the corpus effect flows through
+        the LEARNED CONTROL and the substrate supplies identity: the clean
+        factorization the papers describe.
+    """
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    from sentence_conditioned_readout import gated_parse_and_reconstruct
+
+    hits = {"active": 0, "passive": 0}
+    total = {"active": 0, "passive": 0}
+    for tokens, agent, patient in probes:
+        voice = "passive" if "by" in tokens else "active"
+        total[voice] += 1
+        roles, _diag = gated_parse_and_reconstruct(parser, list(tokens))
+        if roles.get(agent) == "AGENT" and roles.get(patient) == "PATIENT":
+            hits[voice] += 1
+    return (hits["active"] / max(1, total["active"]),
+            hits["passive"] / max(1, total["passive"]))
+
+
+#: (passive_every, seed) -> {metric: value}. One training serves all four
+#: cells (voice x readout), so adding the readout dimension costs no retraining.
+_RESULTS: dict = {}
+
+
+def _evaluate(passive_every: int, seed: int) -> dict:
+    key = (passive_every, seed)
+    if key not in _RESULTS:
         parser, trainer, train_tokens = _train(seed, passive_every)
         asm = parser.core_lexicons.get("NOUN_CORE", {}).get("dog")
-        _FINGERPRINTS[(passive_every, voice, seed)] = (
-            parser.brain.areas["NOUN_CORE"].w,
+        # `materialized_count`, not `area.w`: the ratchet is right that `.w`
+        # names two different quantities, and a fingerprint must be unambiguous.
+        area = parser.brain.areas["NOUN_CORE"]
+        engine = parser.brain._engine_for(area)
+        _FINGERPRINTS[(passive_every, seed)] = (
+            engine.materialized_count("NOUN_CORE"),
             tuple(sorted(int(x) for x in getattr(asm, "winners", []))[:4]),
         )
         probes = _held_out_probes(trainer, train_tokens)
-        active_acc, passive_acc = _score(parser, probes)
-        return passive_acc if voice == "passive" else active_acc
+        m_act, m_pas = _score(parser, probes)
+        r_act, r_pas = _score_reconstruction(parser, probes)
+        _RESULTS[key] = {
+            ("margin", "active"): m_act, ("margin", "passive"): m_pas,
+            ("reconstruction", "active"): r_act,
+            ("reconstruction", "passive"): r_pas,
+        }
+    return _RESULTS[key]
+
+
+def _arm(passive_every: int, voice: str, readout: str = "margin"):
+    def run(seed: int) -> float:
+        return _evaluate(passive_every, seed)[(readout, voice)]
     return run
 
 
@@ -207,39 +255,43 @@ def main() -> None:
     print(f"       {' '.join(probes[1][0])!r} -> agent={probes[1][1]}")
     print()
 
-    for voice in ("active", "passive"):
-        arms = compare_arms(
-            {"alternating": _arm(4, voice),
-             "active_only": _arm(NO_PASSIVES, voice)},
-            SEEDS,
-            # Not strict on the ACTIVE set: the two corpora share every active
-            # sentence, so identical scores there are a real possibility and
-            # would be a finding (no regression), not a dead pathway.
-            strict=(voice == "passive"),
-        )
-        print(f"  === {voice.upper()} voice (chance {CHANCE:.2f}) ===")
-        for name, ens in arms.items():
-            verdict = ("ABOVE chance" if ens.beats(CHANCE)
-                       else "BELOW chance -- systematically inverted"
-                       if ens.high < CHANCE else "indistinguishable from chance")
-            print(f"      {ens}   {verdict}")
-        delta = paired_delta(arms["alternating"], arms["active_only"],
-                             "alternating - active_only")
-        print(f"      {delta}")
-        print(f"      paired delta clears 0: {delta.beats(0.0)}")
+    for readout in ("margin", "reconstruction"):
+        for voice in ("active", "passive"):
+            arms = compare_arms(
+                {"alternating": _arm(4, voice, readout),
+                 "active_only": _arm(NO_PASSIVES, voice, readout)},
+                SEEDS,
+                # Strict on passives: both readouts PREDICT the corpus arms
+                # differ there (margin via role stats, reconstruction via the
+                # learned gate), so identical values would be a dead pathway --
+                # this guard is what caught the off-switch bug. Not strict on
+                # actives: the corpora share every active sentence.
+                strict=(voice == "passive"),
+            )
+            print(f"  === {readout.upper()} readout, {voice.upper()} voice "
+                  f"(chance {CHANCE:.2f}) ===")
+            for _name, ens in arms.items():
+                verdict = ("ABOVE chance" if ens.beats(CHANCE)
+                           else "BELOW chance -- systematically inverted"
+                           if ens.high < CHANCE
+                           else "indistinguishable from chance")
+                print(f"      {ens}   {verdict}")
+            delta = paired_delta(arms["alternating"], arms["active_only"],
+                                 "alternating - active_only")
+            print(f"      {delta}")
+            print(f"      paired delta clears 0: {delta.beats(0.0)}")
 
-        # Did the SUBSTRATE vary while the metric did not? A zero-width CI is
-        # only meaningful once that is answered.
-        fps = {v for (pe, vo, sd), v in _FINGERPRINTS.items() if vo == voice}
-        n_distinct = len(fps)
-        spread = max(e.ci for e in arms.values())
-        if spread == 0.0:
-            print(f"      SEED-INVARIANT metric with {n_distinct} DISTINCT "
-                  f"substrates -- "
-                  + ("the decision is not made by the assemblies"
-                     if n_distinct > 1 else
-                     "seeds never reached the substrate; the CI is fiction"))
-        print()
+            # Did the SUBSTRATE vary while the metric did not? A zero-width CI
+            # is only meaningful once that is answered.
+            n_distinct = len(set(_FINGERPRINTS.values()))
+            spread = max(e.ci for e in arms.values())
+            if spread == 0.0:
+                print(f"      SEED-INVARIANT metric with {n_distinct} DISTINCT "
+                      f"substrates -- "
+                      + ("the decision is not made by the assemblies"
+                         if n_distinct > 1 else
+                         "seeds never reached the substrate; the CI is fiction"))
+            print()
 
 
 if __name__ == "__main__":

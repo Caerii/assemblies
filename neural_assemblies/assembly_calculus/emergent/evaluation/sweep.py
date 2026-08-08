@@ -21,10 +21,10 @@ DEFAULT_K = 30
 #: Must track `EmergentParser.__init__`. These are cache-key material: they were
 #: absent from both the in-memory key and the on-disk filename, so a study that
 #: varied one of them silently re-used the other arm's parser.
-DEFAULT_BETA = 0.1
+DEFAULT_BETA = 0.05
 DEFAULT_P = 0.05
 DEFAULT_ROUNDS = 10
-DEFAULT_PHON_WEIGHT = 1.0
+DEFAULT_PHON_WEIGHT = 6.0
 
 
 def sweep_mode_enabled() -> bool:
