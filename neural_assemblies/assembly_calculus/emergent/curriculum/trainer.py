@@ -54,7 +54,14 @@ from ..training.perf import (
 )
 
 
-#: Emit a passive for one in every N eligible transitive clauses.
+#: Emit a passive for one in every N eligible transitive clauses. 0 disables.
+#:
+#: The 0 case is not decoration: an A/B on "corpus with vs without passives"
+#: needs an off switch, and the obvious one -- setting N enormous -- does NOT
+#: work, because `n_eligible % N == 0` is TRUE at n_eligible == 0 and the first
+#: clause still emits. That contaminated the control arm with exactly one
+#: passive, which the experiment's own sanity check caught before it scored
+#: anything.
 #: English runs roughly 2-10% passive. This is deliberately higher: the gating
 #: learner is CONTRASTIVE (it compares role order with the marker present
 #: against absent), and with only ~50 generated sentences per stage a 5% rate
@@ -498,6 +505,7 @@ class CurriculumTrainer:
             # and it changes token frequencies -- any capacity or frequency
             # result measured before this describes a different corpus.
             if (complexity >= 4 and len(participants) == 2
+                    and PASSIVE_EVERY > 0
                     and n_eligible % PASSIVE_EVERY == 0):
                 passive = self._passive_of(verb, subj, obj, det_word, aux)
                 if passive is not None:
