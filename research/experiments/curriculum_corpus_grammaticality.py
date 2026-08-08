@@ -80,7 +80,8 @@ def audit(sentences, words):
             continue
         vi, vtok, vword = verbs[0]
         nouns = [(i, t, w) for i, (t, w) in enumerate(entries)
-                 if w is not None and w.category == WordCategory.NOUN]
+                 if w is not None and w.category in (WordCategory.NOUN,
+                                                     WordCategory.PRONOUN)]
         # A noun governed by a PREPOSITION is not a direct object. Without this
         # the check called "the boy sleeps in the house" an object on an
         # intransitive verb -- 15 false positives, an audit bug rather than a
@@ -91,16 +92,28 @@ def audit(sentences, words):
         governed = {i for i in range(len(entries))
                     if any(pi < i for pi in prep_at)}
         subj = next((x for x in nouns if x[0] < vi), None)
-        obj = next((x for x in nouns if x[0] > vi and x[0] not in governed),
-                   None)
+        obj = next((x for x in nouns if x[0] > vi and x[0] not in governed
+                    and x[2].category == WordCategory.NOUN), None)
         f = _feat(vword)
         s = " ".join(sent)
 
-        # 1. agreement
-        finite = (getattr(vword, "forms", None) or {}).get("3sg")
-        if subj is not None and finite and vtok != finite:
-            bad["agreement"] += 1
-            examples["agreement"].append(f"{s}   (want '{finite}')")
+        # 1. agreement: past is number-invariant; present is 3sg for a
+        # singular subject and the bare lemma for a plural one (surface
+        # plural for nouns, `number` feature for pronouns).
+        vforms = getattr(vword, "forms", None) or {}
+        if subj is not None:
+            if subj[2].category == WordCategory.PRONOUN:
+                plural = (_feat(subj[2]) or {}).get("number") == "pl"
+            else:
+                plural = subj[1] == (getattr(subj[2], "forms", None)
+                                     or {}).get("plural")
+            licensed = {vforms.get("past"),
+                        vword.lemma if plural else vforms.get("3sg")}
+            licensed = {x for x in licensed if x}
+            if licensed and vtok not in licensed:
+                bad["agreement"] += 1
+                examples["agreement"].append(
+                    f"{s}   (licensed {sorted(licensed)})")
 
         # 2. transitivity
         if f.get("intransitive") and obj is not None:
@@ -112,8 +125,15 @@ def audit(sentences, words):
 
         # 3. selectional fit
         args = getattr(vword, "arguments", None) or []
+        def _animate(w):
+            f = _feat(w)
+            return bool(f.get("animate")) or (
+                bool(f.get("personal"))
+                and (f.get("gender") in ("m", "f")
+                     or f.get("number") == "pl"))
+
         if args and args[0] in ("agent", "experiencer") and subj is not None:
-            if not _feat(subj[2]).get("animate"):
+            if not _animate(subj[2]):
                 bad["inanimate_agent"] += 1
                 examples["inanimate_agent"].append(s)
     return bad, examples

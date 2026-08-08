@@ -65,8 +65,10 @@ def _analyse(plans, words):
         if not verbs:
             continue
         vi, vtok, vword = verbs[0]
+        # Subjects may now be PRONOUNS; objects are still nouns only.
         nouns = [(i, t, w) for i, (t, w) in enumerate(entries)
-                 if w is not None and w.category == WordCategory.NOUN]
+                 if w is not None and w.category in (WordCategory.NOUN,
+                                                     WordCategory.PRONOUN)]
         # A noun after a PREPOSITION is a PP object, not a direct object.
         # Without this the check called "the boy sleeps in the house" an object
         # on an intransitive verb -- 15 false positives when first written.
@@ -74,9 +76,29 @@ def _analyse(plans, words):
                    if w is not None and w.category == WordCategory.PREPOSITION]
         subj = next((x for x in nouns if x[0] < vi), None)
         obj = next((x for x in nouns
-                    if x[0] > vi and not any(p < x[0] for p in prep_at)), None)
+                    if x[0] > vi and x[2].category == WordCategory.NOUN
+                    and not any(p < x[0] for p in prep_at)), None)
         out.append((" ".join(sent), vtok, vword, subj, obj))
     return out
+
+
+def _licensed_verb_forms(vw, subj_tok, subj_w):
+    """Verb tokens grammatical for THIS subject.
+
+    English agreement, read off the lexicon: PAST is number-invariant;
+    present is 3sg for a singular subject and the bare lemma for a plural
+    one. Subject number comes from the surface (token == the noun's plural
+    form) or, for pronouns, from the `number` feature.
+    """
+    forms = getattr(vw, "forms", None) or {}
+    if subj_w.category == WordCategory.PRONOUN:
+        plural = (getattr(subj_w, "features", None) or {}).get(
+            "number") == "pl"
+    else:
+        plural = subj_tok == (getattr(subj_w, "forms", None) or {}).get(
+            "plural")
+    lic = {forms.get("past"), vw.lemma if plural else forms.get("3sg")}
+    return {x for x in lic if x}
 
 
 @pytest.mark.parametrize("stage,complexity", STAGES)
@@ -86,15 +108,15 @@ def test_subject_verb_agreement(trainer, stage, complexity):
         trainer._generate_sentences_generic(words, complexity), words)
     assert parsed, f"{stage} generated no analysable sentences"
     bad = [
-        (s, vtok, (getattr(vw, "forms", None) or {}).get("3sg"))
+        (s, vtok, sorted(_licensed_verb_forms(vw, subj[1], subj[2])))
         for s, vtok, vw, subj, _obj in parsed
         if subj is not None
-        and (getattr(vw, "forms", None) or {}).get("3sg")
-        and vtok != (getattr(vw, "forms", None) or {}).get("3sg")
+        and _licensed_verb_forms(vw, subj[1], subj[2])
+        and vtok not in _licensed_verb_forms(vw, subj[1], subj[2])
     ]
     assert not bad, (
-        f"{stage}: {len(bad)} sentences use a bare lemma with a singular "
-        f"subject, e.g. {bad[0][0]!r} (want {bad[0][2]!r})")
+        f"{stage}: {len(bad)} sentences break agreement, "
+        f"e.g. {bad[0][0]!r} (licensed {bad[0][2]!r})")
 
 
 @pytest.mark.parametrize("stage,complexity", STAGES)
@@ -118,11 +140,19 @@ def test_agents_are_animate(trainer, stage, complexity):
     words = trainer._get_stage_words(stage)
     parsed = _analyse(
         trainer._generate_sentences_generic(words, complexity), words)
+    def _animate(w):
+        f = _feat(w)
+        if f.get("animate"):
+            return True
+        # Personal pronouns: he/she by gender, they by number; 'it' is not.
+        return bool(f.get("personal")) and (
+            f.get("gender") in ("m", "f") or f.get("number") == "pl")
+
     bad = [s for s, _t, vw, subj, _o in parsed
            if subj is not None
            and (getattr(vw, "arguments", None) or [""])[0]
            in ("agent", "experiencer")
-           and not _feat(subj[2]).get("animate")]
+           and not _animate(subj[2])]
     assert not bad, (
         f"{stage}: inanimate subject for an agentive verb, e.g. {bad[0]!r}")
 

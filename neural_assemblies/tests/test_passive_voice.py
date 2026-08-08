@@ -89,8 +89,10 @@ def test_passives_are_wellformed(plans):
         assert by_i >= 2, f"{' '.join(g.words)!r}: `by` with no clause before it"
         assert by_i + 2 < len(g.words), (
             f"{' '.join(g.words)!r}: `by` with no agent after it")
-        # aux immediately before the participle, participle immediately before `by`
-        assert g.words[by_i - 2] == "is", (
+        # aux immediately before the participle, participle immediately
+        # before `by`. is/was: the corpus now varies tense, and the passive
+        # auxiliary carries it.
+        assert g.words[by_i - 2] in ("is", "was"), (
             f"{' '.join(g.words)!r}: no auxiliary before the participle")
 
 
@@ -170,7 +172,10 @@ class TestTheParserLearnsAndAppliesIt:
         cats = {w: trained.classify_word_cached(w)[0] for w in words}
         _order, is_passive = trained._determine_role_order(words, cats)
         assert is_passive, f"{text!r}: the passive branch did not fire"
-        roles = trained._assign_roles_neural(words, cats)
+        # The PRODUCTION route. `_assign_roles_neural` is demoted to the ERP
+        # calibration path only, and its word-level role statistics move with
+        # the corpus -- pinning them here would pin the demoted instrument.
+        roles, _diag = trained.parse_roles_by_reconstruction(words)
         assert roles.get(agent) == "AGENT", roles
         assert roles.get(patient) == "PATIENT", roles
 
@@ -184,6 +189,6 @@ class TestTheParserLearnsAndAppliesIt:
         cats = {w: trained.classify_word_cached(w)[0] for w in words}
         _order, is_passive = trained._determine_role_order(words, cats)
         assert not is_passive, f"{text!r}: active sentence read as passive"
-        roles = trained._assign_roles_neural(words, cats)
+        roles, _diag = trained.parse_roles_by_reconstruction(words)
         assert roles.get(agent) == "AGENT", roles
         assert roles.get(patient) == "PATIENT", roles

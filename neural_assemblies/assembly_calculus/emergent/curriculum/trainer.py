@@ -332,6 +332,8 @@ class CurriculumTrainer:
         adjs = [w for w in words if w.category == WordCategory.ADJECTIVE]
         dets = [w for w in words if w.category == WordCategory.DETERMINER]
         preps = [w for w in words if w.category == WordCategory.PREPOSITION]
+        advs = [w for w in words if w.category == WordCategory.ADVERB]
+        prons = [w for w in words if w.category == WordCategory.PRONOUN]
 
         sentences: List[SentencePlan] = []
 
@@ -426,6 +428,68 @@ class CurriculumTrainer:
         self._by_marker = next(
             (p.lemma for p in preps if p.lemma == "by"), None)
 
+        # REALISM POOLS, each licensed by the lexicon rather than hand-listed.
+        # The grammar-gap census found every one of these dimensions CONSTANT
+        # in the generated corpus -- one tense, one number, one determiner, no
+        # adverbs, no pronouns -- and a cue that never varies carries no
+        # information, so nothing downstream could learn agreement, tense or
+        # determiner statistics however long it trained.
+        # NOT interrogative: `whose` is possessive:True AND interrogative:True,
+        # and "whose girls grew the boy" is a question wearing a declarative
+        # frame -- caught by the variation census, not by the audit (mood is
+        # not one of its three checks).
+        possessives = [d.lemma for d in dets
+                       if _feat(d).get("possessive")
+                       and not _feat(d).get("interrogative")]
+        manner_advs = [a for a in advs if _feat(a).get("manner")]
+        # Subject pronouns: grounded 3rd person only (1st/2nd have no
+        # grounding, so their scene roles could never be derived), and
+        # animate-safe -- he/she by gender, they by number -- so the animacy
+        # rule below cannot be violated by 'it runs'.
+        pron_subjects = [
+            pr for pr in prons
+            if _feat(pr).get("person") == 3
+            and self.parser.word_grounding.get(pr.lemma) is not None
+            and (_feat(pr).get("gender") in ("m", "f")
+                 or _feat(pr).get("number") == "pl")
+        ]
+
+        def _choose_det(after: str, plural: bool) -> str:
+            """A licensed determiner for the NP whose next token is `after`.
+
+            60% definite, matching the dominance of "the" in real text; the
+            remainder exercises possessives (number-neutral) and, for singular
+            NPs, the indefinite article -- a/an chosen by the FOLLOWING token's
+            initial, which is why the adjective must be chosen before the
+            determiner ("an big dog" is what choosing them in the other order
+            produces).
+            """
+            if _rng.random() < 0.6:
+                return det_word
+            alts = list(possessives)
+            if not plural:
+                art = "an" if after[:1].lower() in "aeiou" else "a"
+                if any(d.lemma == art for d in dets):
+                    alts.append(art)
+            return _rng.choice(alts) if alts else det_word
+
+        def _derivable(action_feats, parts) -> bool:
+            """Would `roles_from_scene` recover every role of this frame?
+
+            Checked AT GENERATION for pronoun frames: a pronoun's features are
+            thin ([MALE, PERSON]-ish), so against a same-category noun the
+            reference test can tie and the role comes back None. A frame whose
+            roles cannot be derived from its own scene must not be emitted --
+            that is the wellformedness bar the passive arc established.
+            """
+            ev = SceneEvent(action=list(action_feats),
+                            participants=[list(x) for x in parts])
+            if not parts:
+                return False
+            if ev.role_of_features(parts[0]) != "agent":
+                return False
+            return len(parts) == 1 or ev.role_of_features(parts[1]) == "patient"
+
         n_eligible = 0
         for _ in range(min(50, len(nouns) * len(verbs))):
             verb = _rng.choice(frame_verbs) if frame_verbs else None
@@ -440,26 +504,81 @@ class CurriculumTrainer:
             subj_pool = (animate if (needs_animate and animate) else concrete)
             subj = _rng.choice(subj_pool)
 
-            sent = [det_word, subj.lemma, _finite(verb)]
+            # SURFACE REALIZATION, each choice licensed by the lexicon:
+            #   tense    ~30% past -- forms["past"], present on all 119+ verbs
+            #   number   ~30% plural subject -- forms["plural"], 108/116 nouns;
+            #            plural PRESENT agreement is the bare lemma (English),
+            #            past is number-invariant
+            #   pronoun  ~15% subject -- grounded 3rd person, verified below
+            past = complexity >= 3 and _rng.random() < 0.30
+            plural_form = (getattr(subj, "forms", None) or {}).get("plural")
+            use_plural = bool(plural_form) and _rng.random() < 0.30
+            pron = (_rng.choice(pron_subjects)
+                    if pron_subjects and _rng.random() < 0.15 else None)
 
-            # THE PERCEIVED EVENT, built alongside the string rather than
-            # recovered from it. `participants` is in CAUSAL order -- actor
-            # first -- which is a fact about the world and stays fixed however
-            # the sentence orders its words.
-            participants = [self._scene_features(subj.lemma)]
-
-            # NOT gated on complexity: a transitive verb needs its object to be
-            # grammatical at any sentence length.
+            # Object chosen BEFORE the surface is assembled, because the
+            # pronoun frame's derivability check needs the object's features.
+            # NOT gated on complexity: a transitive verb needs its object to
+            # be grammatical at any sentence length.
+            obj = None
             if _takes_object(verb):
                 obj_pool = [o for o in concrete if o.lemma != subj.lemma]
                 if obj_pool:
                     obj = _rng.choice(obj_pool)
-                    sent.extend([det_word, obj.lemma])
-                    participants.append(self._scene_features(obj.lemma))
 
-            if complexity >= 5 and adjs:
-                adj = _rng.choice(adjs)
-                sent.insert(1, adj.lemma)
+            afeats = self._scene_features(verb.lemma)
+            if pron is not None:
+                pfeats = self._scene_features(pron.lemma)
+                parts = [pfeats] + (
+                    [self._scene_features(obj.lemma)] if obj else [])
+                if not (pfeats and _derivable(afeats, parts)):
+                    # A frame whose roles its own scene cannot derive is not
+                    # emitted with a pronoun; fall back to the noun subject.
+                    pron = None
+
+            if pron is not None:
+                subj_key = pron.lemma
+                subj_plural = _feat(pron).get("number") == "pl"
+                subj_tokens = [pron.lemma]
+            else:
+                subj_key = subj.lemma
+                subj_plural = use_plural
+                subj_surface = ((plural_form or subj.lemma) if use_plural
+                                else subj.lemma)
+                # Adjective BEFORE determiner: a/an agrees with the token that
+                # follows the article, which is the adjective when there is one.
+                adj_lemma = (_rng.choice(adjs).lemma
+                             if complexity >= 5 and adjs else None)
+                efirst = adj_lemma if adj_lemma else subj_surface
+                subj_tokens = [_choose_det(efirst, subj_plural)]
+                if adj_lemma:
+                    subj_tokens.append(adj_lemma)
+                subj_tokens.append(subj_surface)
+
+            if past:
+                vform = (getattr(verb, "forms", None) or {}).get(
+                    "past") or _finite(verb)
+            elif subj_plural:
+                vform = verb.lemma
+            else:
+                vform = _finite(verb)
+
+            sent = list(subj_tokens)
+            # Manner adverb, pre-verbal ("the dog quickly chases the cat").
+            if complexity >= 4 and manner_advs and _rng.random() < 0.20:
+                sent.append(_rng.choice(manner_advs).lemma)
+            sent.append(vform)
+
+            # THE PERCEIVED EVENT, built alongside the string rather than
+            # recovered from it. `participants` is in CAUSAL order -- actor
+            # first -- which is a fact about the world and stays fixed however
+            # the sentence orders its words. Keyed on the LEMMA: 'dogs' means
+            # what 'dog' means, and the surface form inherits its grounding.
+            participants = [self._scene_features(subj_key)]
+
+            if obj is not None:
+                sent.extend([_choose_det(obj.lemma, False), obj.lemma])
+                participants.append(self._scene_features(obj.lemma))
 
             # A locative PP needs a STATIC SPATIAL preposition taking a bare NP.
             # Filtering on the lexicon's own features rather than a hand list:
@@ -475,8 +594,13 @@ class CurriculumTrainer:
             # be right. Found by comparing scene-derived roles against the
             # positional inducer -- the two disagreed exactly here.
             if complexity >= 6 and locatives and concrete:
-                loc_pool = [c for c in concrete
-                            if c.lemma not in {w for w in sent}]
+                # Excluded by LEMMA, not by surface token: with plural
+                # subjects, "her couches hold ... between the couch" slipped
+                # the old surface check -- same referent in a thematic role
+                # and the PP, the exact unanalysable shape this guard exists
+                # for, resurfacing through the inflection.
+                used_lemmas = {subj_key} | ({obj.lemma} if obj else set())
+                loc_pool = [c for c in concrete if c.lemma not in used_lemmas]
                 if loc_pool:
                     prep = _rng.choice(locatives)
                     loc = _rng.choice(loc_pool)
@@ -504,10 +628,17 @@ class CurriculumTrainer:
             # ~50 sentences per stage. The number is stated rather than tuned,
             # and it changes token frequencies -- any capacity or frequency
             # result measured before this describes a different corpus.
+            # Skipped for pronoun subjects: the by-phrase needs the ACCUSATIVE
+            # ("by him"), and the lexicon carries no case forms -- "by he" is
+            # not a passive, and training on it would corrupt the marker.
             if (complexity >= 4 and len(participants) == 2
+                    and pron is None
                     and PASSIVE_EVERY > 0
                     and n_eligible % PASSIVE_EVERY == 0):
-                passive = self._passive_of(verb, subj, obj, det_word, aux)
+                passive = self._passive_of(
+                    verb, obj, aux, det_word,
+                    by_tokens=[det_word] + subj_tokens[1:],
+                    past=past)
                 if passive is not None:
                     sentences.append(SentencePlan(passive, event=event))
             if len(participants) == 2:
@@ -516,21 +647,28 @@ class CurriculumTrainer:
         _rng.setstate(_rng_state)
         return sentences
 
-    def _passive_of(self, verb, subj, obj, det_word: str, aux) -> Optional[List[str]]:
-        """`the cat is chased by the dog`, or None if the lexicon cannot say it.
+    def _passive_of(self, verb, obj, aux, det_word: str,
+                    by_tokens: List[str],
+                    past: bool = False) -> Optional[List[str]]:
+        """`the cat is/was chased by the dog`, or None if the lexicon cannot.
 
         Returns None rather than approximating: a passive missing its auxiliary
         or its participle is not a passive, and training on a malformed one
         would teach the marker to reverse roles in sentences that are not
         passive at all -- the failure mode `_learn_gating_patterns` guards
         against on the determiner.
+
+        The auxiliary agrees with the PASSIVE subject (the active object,
+        singular in the current frames), so tense selects is/was; the by-phrase
+        carries the active subject NP's surface, plural and adjective included.
         """
         ppart = (getattr(verb, "forms", None) or {}).get("ppart")
-        aux_3sg = (getattr(aux, "forms", None) or {}).get("3sg") if aux else None
-        if not ppart or not aux_3sg or self._by_marker is None:
+        aux_forms = (getattr(aux, "forms", None) or {}) if aux else {}
+        aux_form = aux_forms.get("past") if past else aux_forms.get("3sg")
+        if not ppart or not aux_form or self._by_marker is None:
             return None
-        return [det_word, obj.lemma, aux_3sg, ppart,
-                self._by_marker, det_word, subj.lemma]
+        return ([det_word, obj.lemma, aux_form, ppart, self._by_marker]
+                + list(by_tokens))
 
     def _generate_sentences(
         self,
