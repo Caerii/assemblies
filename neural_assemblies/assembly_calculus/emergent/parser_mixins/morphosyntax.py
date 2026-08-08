@@ -31,6 +31,7 @@ Note also that the detectors run over SURFACE tokens, so they see "will" and
 would register as PRESENT throughout.
 """
 
+from contextlib import contextmanager
 from typing import Dict, List, Optional, Tuple
 
 from neural_assemblies.assembly_calculus.assembly import (
@@ -148,6 +149,52 @@ class MorphosyntaxMixin:
                 return "NEGATIVE"
         return "AFFIRMATIVE"
 
+    def _novelty_gain(self, feature: str, word: str) -> float:
+        """Surprise gain for this episode, from the learner's OWN history.
+
+        E2 (task #131): rare events write BIGGER updates -- the
+        neuromodulated-plasticity (ACh/NE) analog, and the complement of
+        homeostatic scaling, which removes accumulated MASS but cannot
+        strengthen an association that was only ever written twice.
+
+        The registered form: after counting this exposure,
+
+            gain = min(novelty_gain_max, sqrt(mean_count / count))
+
+        Self-normalizing (a uniform corpus gives ~1 everywhere) and
+        LABEL-FREE: the counts key on (feature area, surface form), never
+        on a linguistic category -- a gain keyed to "is plural" would be
+        PLURAL_EVERY in disguise. `novelty_gain_max` <= 1 disables
+        (default), preserving exact prior behavior.
+        """
+        gmax = getattr(self, "novelty_gain_max", 1.0)
+        counts = self._morph_exposure
+        key = f"{feature}:{word}"
+        counts[key] = counts.get(key, 0) + 1
+        if gmax <= 1.0:
+            return 1.0
+        prefix = feature + ":"
+        feature_counts = [c for k, c in counts.items()
+                          if k.startswith(prefix)]
+        mean_count = sum(feature_counts) / len(feature_counts)
+        return min(gmax, (mean_count / counts[key]) ** 0.5)
+
+    @contextmanager
+    def _gain_on_fiber(self, target: str, source: str, gain: float):
+        """Transiently multiply one fiber's beta through the engine's own
+        set_beta/get_beta -- the authoritative per-fiber store (the #88
+        lesson: writing any OTHER beta bookkeeping is a silent no-op)."""
+        if gain == 1.0:
+            yield
+            return
+        eng = self.brain._engine
+        base = eng.get_beta(target, source)
+        eng.set_beta(target, source, base * gain)
+        try:
+            yield
+        finally:
+            eng.set_beta(target, source, base)
+
     def train_tense(self, sentences: List[List[str]]) -> None:
         """Train TENSE area from verb morphology in sentences.
 
@@ -176,20 +223,23 @@ class MorphosyntaxMixin:
                 grounding = self.word_grounding.get(word)
                 if grounding and grounding.dominant_modality == "motor":
                     phon = self.stim_map[word]
-                    # Project tense + verb → TENSE area
-                    self.brain.project(
-                        {tense_stim: [TENSE], phon: [VERB_CORE]},
-                        {VERB_CORE: [TENSE]},
-                    )
-                    if self.rounds > 1:
-                        self.brain.project_rounds(
-                            target=TENSE,
-                            areas_by_stim={tense_stim: [TENSE]},
-                            dst_areas_by_src_area={
-                                VERB_CORE: [TENSE], TENSE: [TENSE],
-                            },
-                            rounds=self.rounds - 1,
+                    # Project tense + verb → TENSE area. The gain brackets
+                    # the AFFERENT fiber only -- the one recall probes.
+                    gain = self._novelty_gain("TENSE", word)
+                    with self._gain_on_fiber(TENSE, VERB_CORE, gain):
+                        self.brain.project(
+                            {tense_stim: [TENSE], phon: [VERB_CORE]},
+                            {VERB_CORE: [TENSE]},
                         )
+                        if self.rounds > 1:
+                            self.brain.project_rounds(
+                                target=TENSE,
+                                areas_by_stim={tense_stim: [TENSE]},
+                                dst_areas_by_src_area={
+                                    VERB_CORE: [TENSE], TENSE: [TENSE],
+                                },
+                                rounds=self.rounds - 1,
+                            )
                     break  # One tense per sentence
 
     def train_mood(self, sentences: List[List[str]]) -> None:
@@ -373,20 +423,23 @@ class MorphosyntaxMixin:
                 core_area = GROUNDING_TO_CORE[mod]
                 phon = self.stim_map[word]
 
-                # Project number_stim + word phon -> NUMBER area
-                self.brain.project(
-                    {num_stim: [NUMBER], phon: [core_area]},
-                    {core_area: [NUMBER]},
-                )
-                if self.rounds > 1:
-                    self.brain.project_rounds(
-                        target=NUMBER,
-                        areas_by_stim={num_stim: [NUMBER]},
-                        dst_areas_by_src_area={
-                            core_area: [NUMBER], NUMBER: [NUMBER],
-                        },
-                        rounds=self.rounds - 1,
+                # Project number_stim + word phon -> NUMBER area, novelty
+                # gain on the afferent fiber (see _novelty_gain).
+                gain = self._novelty_gain("NUMBER", word)
+                with self._gain_on_fiber(NUMBER, core_area, gain):
+                    self.brain.project(
+                        {num_stim: [NUMBER], phon: [core_area]},
+                        {core_area: [NUMBER]},
                     )
+                    if self.rounds > 1:
+                        self.brain.project_rounds(
+                            target=NUMBER,
+                            areas_by_stim={num_stim: [NUMBER]},
+                            dst_areas_by_src_area={
+                                core_area: [NUMBER], NUMBER: [NUMBER],
+                            },
+                            rounds=self.rounds - 1,
+                        )
 
     # ------------------------------------------------------------------
     # RECALL -- the third of the detect/train pair, previously missing.

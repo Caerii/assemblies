@@ -127,7 +127,8 @@ class CoreParserMixin(
                  fast_training: Optional[bool] = None,
                  norm_init: Optional[bool] = None,
                  vocabulary: Optional[Dict[str, GroundingContext]] = None,
-                 synaptic_scaling=False):
+                 synaptic_scaling=False,
+                 novelty_gain_max: float = 1.0):
         from ..training.perf import (
             budget_rounds,
             fast_training_enabled,
@@ -174,6 +175,14 @@ class CoreParserMixin(
         # NumpySparseEngine._normalize_area_columns and task #130.
         if synaptic_scaling:
             brain_kwargs["synaptic_scaling"] = synaptic_scaling
+        # Surprise-modulated plasticity (E2, task #131): morph-feature
+        # training episodes multiply the afferent fiber's beta by a novelty
+        # gain derived from the learner's OWN exposure counts -- never from
+        # a linguistic label (a gain keyed to "is plural" would be a corpus
+        # knob in disguise). 1.0 disables (exact prior behavior). See
+        # MorphosyntaxMixin._novelty_gain for the registered form.
+        self.novelty_gain_max = float(novelty_gain_max)
+        self._morph_exposure: Dict[str, int] = {}
         self.brain = Brain(**brain_kwargs)
         self.engine_name = getattr(self.brain._engine, "name", resolved_engine)
 
