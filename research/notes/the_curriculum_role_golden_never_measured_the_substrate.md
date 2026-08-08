@@ -77,6 +77,40 @@ route?) restated with a measurement attached: the two routes are combined by
 `prior + lexical` with no notion of which one is *entitled* to decide for this
 word in this frame.
 
+## ROOT CAUSE (second correction, same day): the probe tests a binding the corpus never teaches
+
+The section above blamed "a one-sided training history". That is right in
+outline and wrong about the cause, and the difference matters.
+
+**The role-training corpus is not the corpus I grepped.** `train_unsupervised`
+is called with a **precompiled** `corpus_index` (2 calls, 90 and 50 sentences),
+so wrapping `compile_corpus` captured nothing — it is never called on this path.
+The 11 natural `dog` sentences I found ("the dog runs fast", "the dog ran
+away", "big dog run") live in STAGE3/STAGE4, which **do not train roles**.
+
+In the corpus that actually trains roles, `dog` appears **exactly once**:
+
+```
+the store build the dog          ->  dog : ROLE_PATIENT   (1 update, the only one)
+```
+
+`dog` is the object there, so the PATIENT binding is **correct for the only
+sentence the role trainer ever saw it in**. There is no agent binding to lose,
+no training-path bug, and nothing for a better substrate to recover.
+
+So `role_probe_accuracy = 1.0` was **never achievable from this corpus**. The
+probe asks for `dog = AGENT`; the role corpus only ever teaches `dog = PATIENT`.
+The golden asserts an outcome its own training data contradicts.
+
+That also finally explains the byte-identical arms without any appeal to metric
+wiring: improving the substrate improves retrieval **of the binding that
+exists**, and the binding that exists is the wrong one for this probe.
+
+**Separately worth flagging:** `the store build the dog` is not English. The
+role-induction corpus contains generated strings that are ungrammatical, so role
+induction is partly learning from noise. That is a corpus-quality question of
+its own, and it is upstream of every role result measured on this path.
+
 ## What to do
 
 1. **Still do not re-record at 0.667.** The claim is broken, not the threshold.
