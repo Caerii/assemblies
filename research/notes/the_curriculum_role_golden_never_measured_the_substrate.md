@@ -1,72 +1,96 @@
-# The NEMO-2025 curriculum role-probe golden is substrate-invariant
+# RETRACTED TITLE — the role probe DOES measure the substrate. The failure is a one-sided lexical binding.
 
-## The broken claim
+> **CORRECTION, same day.** The original version of this note concluded that
+> `evaluate_roles` is "substrate-invariant" and "never measured the assembly
+> calculus", from the fact that β and `phon_weight` left the accuracy
+> byte-identical. **That inference was wrong**, and a census of the actual
+> mechanism refutes it. The corrected finding is below. Commit `008ba9d`'s
+> message carries the wrong claim.
 
-`nemo2025_curriculum.json` asserts `role_probe_accuracy_min = 1.0`. Cold, it
-delivers **0.6667**.
+## What is still true
 
-**Not a regression I introduced.** Verified in a worktree at `6ecfa15` — the
-commit this session started from — with `ASSEMBLIES_BACKBONE_CACHE=0`: the same
-0.6667. It reproduces identically warm and cold.
+`nemo2025_curriculum` asserts `role_probe_accuracy_min = 1.0` and delivers
+**0.6667**. Pre-existing — reproduced in a worktree at `6ecfa15` with
+`ASSEMBLIES_BACKBONE_CACHE=0`. It stayed green because warm backbones
+deserialize instead of training, so a golden recorded pre-`norm_init`
+(2026-06-23) could rot while CI passed.
 
-## Why it stayed green
+And β=0.05 / `phon_weight`=6 do leave the accuracy at exactly 0.6667.
 
-The golden was recorded **2026-06-23, before `norm_init` became the default
-substrate**, and the failure was already observed on 2026-07-31. In between, CI
-stayed green because **warm backbones deserialize instead of training** — a
-golden can rot for weeks while the suite passes
-(`backbone-fingerprint-gap`). It surfaced now only because adding a file moved
-the source fingerprint and forced a cold retrain.
+## What I got wrong
 
-## The hypothesis, and the clean negative
+I read "accuracy does not move" as "the metric cannot see the substrate."
+Censusing the mechanism shows the opposite. `_assign_roles_neural` computes
 
-Role probes ask whether a word is recoverable from its role, and this session
-moved exactly that quantity: β 0.10→0.05 and `phon_weight` 1→6 took role ret@6
-from 0.806/0.733 to 0.974/0.964. So the obvious hypothesis was that the golden
-broke when role binding degraded.
+```
+score = prior + lexical,   lexical = (margin + eps)/total if any(margins) else 0
+```
 
-| arm | role acc | word order | sent acc |
-|---|---|---|---|
-| golden as recorded | 0.6667 | True | 0.838 |
-| β=0.05 | 0.6667 | True | 0.838 |
-| phon_weight=6 | 0.6667 | True | 0.838 |
-| β=0.05 + phon_weight=6 | 0.6667 | True | 0.838 |
+and I predicted every `margin` would be undefined, making `lexical` identically
+zero. Measured, over both probes:
 
-**Refuted.** And the manner of refutation is the finding.
+| | margin reads | defined | non-zero | value |
+|---|---|---|---|---|
+| golden as recorded | 5 | **5/5 (100%)** | 1/5 | `dog → ROLE_PATIENT` **0.9855** |
+| β=0.05 + phon_weight=6 | 5 | **5/5 (100%)** | 1/5 | `dog → ROLE_PATIENT` **1.0000** |
 
-## Every arm is byte-identical, which is the real result
+The lexical term is **live**, and it **is** substrate-sensitive — 0.9855 → 1.0000
+under the drive-share fix. My claim that it was inert was false.
 
-Not "similar" — **identical**, to the last digit, including `sent_acc` 0.838 and
-the per-role breakdown (AGENT precision 1.0 / recall 0.5; PATIENT precision 0.5
-/ recall 1.0). Two parameters that demonstrably reshape the substrate change
-*nothing at all* here.
+## The actual root cause
 
-That is the silent-no-op signature. `evaluate_roles` calls `parser.parse(words)`
-and reads `result["roles"]`, and that assignment is **substrate-invariant** —
-so this metric was never measuring the assembly calculus. The systematic
-confusion (one AGENT read as PATIENT, deterministically) is the signature of a
-positional or symbolic rule, not of neural retrieval.
+```
+['the','dog','runs']            -> dog = PATIENT   (expected AGENT)   WRONG
+['the','cat','chases','the','bird'] -> cat = AGENT, bird = PATIENT    correct
+```
 
-This lines up with what the repo already knows: role exclusivity is enforced
-symbolically (`mutual-inhibition-prefers-untrained`), and #33 is open on whether
-the symbolic role route can be retired for the neural one.
+`ROLE_AGENT` holds 46 entries, `ROLE_PATIENT` 36 — and **`dog` is in
+`ROLE_PATIENT` only**. It was never bound as an agent during training. So at
+probe time the lexical evidence for PATIENT is ~1.0, there is no AGENT evidence
+at all, and the lexical term outvotes the structural prior that would otherwise
+make the preverbal noun the agent.
 
-## What follows
+**One noun with a one-sided training history, assigned its habitual role in a
+sentence where it has a different one.**
 
-1. **The golden's 1.0 → 0.667 was not caused by `norm_init`.** A substrate
-   change cannot move a substrate-invariant metric. Something in the symbolic
-   path changed; that is where to look.
-2. **Do NOT re-record at 0.667.** Lowering a threshold until it passes converts
-   a broken claim into a passing test, which is what the parity programme exists
-   to prevent. The value is not the problem — the metric is.
-3. **A parity golden whose value cannot respond to the model is not a parity
-   golden.** Before the threshold is touched, `evaluate_roles` needs a readout
-   that reads the role lexicons, which is #121's job.
+## Why the arms are byte-identical, correctly explained
+
+The substrate genuinely improved — the margin rose 0.9855 → 1.0000. But the
+*decision* was already saturated and wrong, so a better substrate makes the
+wrong answer **more confident** without flipping it. With a denominator of 3, an
+unflipped decision is an unmoved metric.
+
+So the invariance was never evidence about the metric's wiring; it was evidence
+that the error is **categorical, not marginal**. Improving binding quality
+cannot fix a word that has no AGENT binding to retrieve.
+
+## What this says about the architecture
+
+A per-word role lexicon encodes *which role this word usually had*, not *which
+role it has in this sentence*. The structural prior exists to supply the latter,
+but the current combination lets a single strong lexical match override it. For
+an intransitive subject — where the lexicon has nothing useful and position has
+everything — that is exactly backwards.
+
+That is a real design question, and it is #33's question (retire the symbolic
+route?) restated with a measurement attached: the two routes are combined by
+`prior + lexical` with no notion of which one is *entitled* to decide for this
+word in this frame.
+
+## What to do
+
+1. **Still do not re-record at 0.667.** The claim is broken, not the threshold.
+2. The fix is not #121 (a better readout) as I previously wrote — the readout
+   already works. It is either (a) train `dog` as an agent, which fixes the
+   probe and nothing else, or (b) make the lexical term unable to override the
+   prior when the word has evidence for only ONE role and the frame implies
+   another. (b) is the real change and needs its own study.
+3. Anything asserting "role accuracy" on 3 items is under-powered; one item is
+   0.333.
 
 ## Limits
 
-One seed (42), the golden's own. The denominator is **3** — a single probe item
-is 0.333 — so this metric could not resolve a small effect even if it were
-substrate-sensitive. The identical-across-arms result is what carries the
-conclusion, not the 0.667 itself. I did not trace which line in `parse()`
-assigns the roles; that is the next step and it is #33/#121 territory.
+One seed (42), the golden's own. Two sentences, three role slots. I did not
+check whether `dog` is absent from `ROLE_AGENT` because the corpus never uses it
+as one, or because the agent binding was written and lost — that distinction
+matters for fix (a) and is not yet measured.
