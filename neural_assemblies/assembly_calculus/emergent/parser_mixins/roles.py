@@ -121,6 +121,138 @@ class RoleBindingMixin:
             return FUNC_DET
         return None
 
+    def parse_roles_by_reconstruction(
+            self, words: List[str]) -> "tuple[Dict[str, Optional[str]], dict]":
+        """Gate -> record -> recall: the role readout that consults THIS parse.
+
+        The 2021 parser paper's division of labor, from parts this parser
+        already had (promoted here from
+        `research/experiments/sentence_conditioned_readout.py`, which measured
+        it before it was wired):
+
+          GATE    `_determine_role_order` (learned voice gating) selects the
+                  filler sequence -- agent-first active, patient-first passive.
+          RECORD  each content word's core assembly bind-traverses (T=2) into
+                  the open slot; the parse's state is the role areas' WINNERS.
+          RECALL  reconstruction: occupant(R) = argmax_w overlap(image(w->R),
+                  winners(R)). No `role_lexicons` anywhere, so a word never
+                  TRAINED in a role still reads out of it -- the exact case
+                  where `_role_binding_margin` measurably fails (it flips
+                  passives toward each word's trained majority role).
+
+        Measured at the phon_weight=6/beta=0.05 defaults, 40 held-out
+        reversible probes x 5 seeds: 1.0000 both voices, against the margin
+        route's 0.85 active / 0.50 passive. With an active-only corpus the
+        same readout reads passives at 0.0000 -- perfectly inverted -- because
+        no MARKER was learned and the gate never selects patient-first: the
+        corpus effect flows entirely through the learned control, and the
+        substrate supplies identity.
+
+        A READOUT, not a learning step: runs under ``brain.read_only()`` and
+        restores all state on exit. The whole answer rests on the substrate's
+        image separation (occupant gap 0.87+ at current defaults; at
+        phon_weight=1 it collapsed to ties), which is what makes parsing
+        accuracy a measurement OF the substrate.
+
+        Returns ({word: role_label_or_None}, diagnostics). Diagnostics carry
+        `is_passive`, per-area winners, and (role, occupant, top, runner, gap)
+        tuples -- the GAP is the substrate-dependence metric and callers
+        asserting only the labels are measuring the gate.
+        """
+        from neural_assemblies.assembly_calculus.ops import (
+            project as _ops_project,
+        )
+
+        brain = self.brain
+        cats = {w: self.classify_word_cached(w)[0] for w in words}
+        _order, is_passive = self._determine_role_order(words, cats)
+        sequence = ((ROLE_PATIENT, ROLE_AGENT) if is_passive
+                    else (ROLE_AGENT, ROLE_PATIENT))
+
+        diag: dict = {"is_passive": bool(is_passive), "gaps": [],
+                      "winners": {}}
+        out: Dict[str, Optional[str]] = {w: None for w in words}
+
+        def _traverse(word: str, role: str) -> bool:
+            core = self._word_core_area(word)
+            if core is None or core not in brain.areas:
+                return False
+            stored = self.core_lexicons.get(core, {}).get(word)
+            if stored is not None:
+                activate_assembly(brain, stored)
+            else:
+                phon = self.stim_map.get(word)
+                if phon is None:
+                    return False
+                _ops_project(brain, phon, core, rounds=self.rounds)
+            brain.areas[core].fix_assembly()
+            try:
+                brain.project({}, {core: [role]})
+                for _ in range(_ROLE_BINDING_ROUNDS - 1):
+                    brain.project({}, {core: [role], role: [role]})
+            finally:
+                brain.areas[core].unfix_assembly()
+            return True
+
+        with brain.read_only():
+            # A parse must not inherit residue: training leaves the LAST
+            # trained sentence's winners in the role areas (measured:
+            # deterministic 4-of-24 failures until cleared).
+            role_areas = [a for a in (ROLE_AGENT, ROLE_ACTION, ROLE_PATIENT)
+                          if a in brain.areas]
+            for area in role_areas:
+                brain.areas[area].unfix_assembly()
+            brain.inhibit_areas(role_areas)
+
+            # RECORD. Nouns consume the voice-ordered filler sequence; the
+            # first verb-classified token takes ACTION independently (a noun
+            # queued behind an ACTION pivot deadlocks on any unclassifiable
+            # verb form). A slot is consumed even when the word cannot be
+            # recorded -- an unknown word must not misalign the tail.
+            slot_idx = 0
+            action_taken = False
+            fillers: list = []
+            for w in words:
+                if self._func_subcat_of(w) is not None:
+                    continue  # function word: control, not a filler
+                cat = cats.get(w)
+                if cat in ("NOUN", "PRON") and slot_idx < len(sequence):
+                    if _traverse(w, sequence[slot_idx]):
+                        fillers.append((w, sequence[slot_idx]))
+                    slot_idx += 1
+                elif cat == "VERB" and not action_taken:
+                    if _traverse(w, ROLE_ACTION):
+                        out[w] = "ACTION"
+                    action_taken = True
+
+            # Capture the parse state BEFORE replays disturb it.
+            snaps = {role: _snap(brain, role) for _w, role in fillers}
+            diag["winners"] = {
+                role: tuple(int(x) for x in snap.winners)
+                for role, snap in snaps.items()
+            }
+
+            # RECALL: which candidate's image reproduces each area's winners?
+            nouns = [w for w in words if cats.get(w) in ("NOUN", "PRON")
+                     and self._func_subcat_of(w) is None]
+            for role, snap in snaps.items():
+                scores = {}
+                for w in nouns:
+                    if not _traverse(w, role):
+                        continue
+                    scores[w] = float(
+                        assembly_overlap(_snap(brain, role), snap))
+                if not scores:
+                    continue
+                ranked = sorted(scores.items(), key=lambda kv: -kv[1])
+                occupant, top = ranked[0]
+                runner = ranked[1][1] if len(ranked) > 1 else 0.0
+                diag["gaps"].append((role, occupant, top, runner,
+                                     top - runner))
+                if top > runner:  # a tie is a failure to read, not a guess
+                    out[occupant] = _ROLE_LABEL[role]
+        return out, diag
+
     def _role_binding_margin(self, word: str, core_area: str,
                              role_area: str) -> Measured:
         """Lexical evidence that `word` was bound into `role_area`, in [0, 1].

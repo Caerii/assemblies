@@ -134,12 +134,18 @@ def _project_word(parser, word: str, role: str) -> bool:
 
 def gated_parse_and_reconstruct(parser, words: List[str]
                                 ) -> Tuple[Dict[str, Optional[str]], dict]:
-    """Gate -> record -> recall, inside one read_only block.
-
-    Returns ({word: role}, diagnostics). Diagnostics carry the winners
-    snapshot per role area and the occupant/non-occupant overlaps, because the
-    GAP is the substrate metric and the roles alone would hide it.
+    """Delegates to the CANONICAL implementation, promoted into the package
+    after this experiment measured it: `RoleBindingMixin.
+    parse_roles_by_reconstruction`. The body below is retained ONLY as the
+    reference the promotion was checked against; the delegation keeps this
+    harness measuring the shipped code rather than a drifting copy.
     """
+    return parser.parse_roles_by_reconstruction(list(words))
+
+
+def _reference_gated_parse_and_reconstruct(
+        parser, words: List[str]) -> Tuple[Dict[str, Optional[str]], dict]:
+    """The original experiment-local implementation (promotion reference)."""
     brain = parser.brain
     cats = {w: parser.classify_word_cached(w)[0] for w in words}
 
