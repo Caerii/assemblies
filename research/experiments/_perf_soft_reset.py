@@ -43,9 +43,9 @@ def main():
 
     gs = [
         GroundedSentence(
-            words=s,
-            contexts=[GroundingContext()] * len(s),
-            roles=[None] * len(s),
+            words=list(s.tokens),
+            contexts=[GroundingContext()] * len(s.tokens),
+            roles=[None] * len(s.tokens),
         )
         for s in sentences_raw
     ]

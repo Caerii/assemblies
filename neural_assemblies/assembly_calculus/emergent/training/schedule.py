@@ -12,7 +12,7 @@ from ..core.corpus_index import (
     grounded_fraction,
     merge_corpus_indices,
 )
-from ..core.grounding import GroundingContext
+from ..core.sentence import SentencePlan, ground_plans
 from ..curriculum.data import GroundedSentence
 from ..training.perf import stage_distributional_reps
 
@@ -227,27 +227,23 @@ class TrainingScheduleExecutor:
         cls,
         parser: "EmergentParser",
         stage_name: str,
-        raw_sentences: List[List[str]],
+        raw_sentences: List[SentencePlan],
         phases: List[str],
         *,
         extra_prediction: Optional[List[GroundedSentence]] = None,
         conversation_sents: Optional[List[GroundedSentence]] = None,
         transition_cache: Optional[TransitionCache] = None,
     ) -> TrainingSchedule:
-        """Compile sentences once and build a stage training schedule."""
+        """Compile sentences once and build a stage training schedule.
+
+        Grounding is resolved HERE and nowhere earlier: inflected surface forms
+        are registered between generation and this call, so a plan that
+        resolved its own contexts would capture the empty ones and every
+        scene-derived role would come back None.
+        """
         from ..training.perf import STAGE_WORD_ORDER_REPS, stage_consolidation_passes
 
-        grounded = [
-            GroundedSentence(
-                words=sent,
-                contexts=[
-                    parser.word_grounding.get(w, GroundingContext())
-                    for w in sent
-                ],
-                roles=[None] * len(sent),
-            )
-            for sent in raw_sentences
-        ]
+        grounded = ground_plans(parser, raw_sentences)
         idx = compile_corpus(parser, grounded)
 
         prediction_index = None

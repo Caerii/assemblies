@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 from contextlib import contextmanager
-from typing import Dict, Iterator, List, Optional, Sequence, Tuple, TYPE_CHECKING
+from typing import (
+    Dict, Iterator, List, Optional, Sequence, Set, Tuple, TYPE_CHECKING,
+)
 
 if TYPE_CHECKING:
     from ..core.corpus_index import CorpusIndex
@@ -245,6 +247,12 @@ def build_dialogue_stage_schedule(
     for w in stage_words:
         parser.register_word(w.lemma)
     sentences = trainer._generate_sentences(stage_words, config["complexity"])
+    # REQUIRED here too, and it was missing: the generator emits finite forms
+    # ("builds"), `compile_corpus` skips any token absent from `stim_map`, so
+    # without this every verb in this stage is silently dropped -- the same
+    # dead-path shape `_register_surface_forms` was written to close on the
+    # curriculum path. One registration function, called by both.
+    trainer._register_surface_forms(sentences, stage_words)
 
     rounds_override = stage_training_rounds(stage_name, fast=parser.fast_training)
     if rounds_override is not None:

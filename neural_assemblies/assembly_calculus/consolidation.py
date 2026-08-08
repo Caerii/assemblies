@@ -298,6 +298,7 @@ def consolidate(
     *,
     passes: int = 1,
     clear_activity: bool = True,
+    prepare_areas: bool = True,
 ) -> Set[PathwayEdge]:
     """Replay a consolidation protocol without resetting area connections.
 
@@ -307,6 +308,22 @@ def consolidate(
         passes: Number of full replays through ``steps`` (developmental
             experience / sleep cycles).
         clear_activity: Inhibit all areas after consolidation (default).
+        prepare_areas: Rewind ``w`` and the neuron-ID mapping of every area a
+            step touches, via :func:`prepare_area_for_replay`. Required after
+            EPISODIC reset, where the connectome was cleared and a stale ``w``
+            would leave replayed weights disconnected. **Destructive
+            otherwise**, and the two senses of "reset" are easy to conflate:
+            this function does not reset CONNECTIONS, but preparing an area
+            does reset its INDEX SPACE, which invalidates every Assembly
+            snapshot of it.
+
+            Measured on the curriculum at ``DIALOGUE``: preparing the SOURCE
+            area of a role replay rewound ``NOUN_CORE`` from w=2493 to w=976
+            and left 48 of 74 stored nouns unmappable (34 of 44 verbs), so a
+            later parse raised "Assembly neuron N not in area mapping". The
+            source of a role replay IS the core lexicon; rewinding it destroys
+            the assemblies the replay exists to strengthen. Callers that
+            replay onto a LIVE connectome must pass ``False``.
 
     Returns:
         Set of ``(source_area, target_area)`` edges strengthened.
@@ -320,7 +337,8 @@ def consolidate(
     strengthened: Set[PathwayEdge] = set()
     for _ in range(passes):
         for step in steps:
-            _prepare_step_areas(brain, step)
+            if prepare_areas:
+                _prepare_step_areas(brain, step)
             strengthened |= _replay_step(brain, step)
 
     if clear_activity:

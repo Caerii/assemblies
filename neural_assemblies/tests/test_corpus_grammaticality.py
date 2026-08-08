@@ -48,7 +48,8 @@ def trainer():
     return CurriculumTrainer(EmergentParser(n=500, k=20, seed=42))
 
 
-def _analyse(sentences, words):
+def _analyse(plans, words):
+    sentences = [p.tokens for p in plans]
     by_lemma = {w.lemma: w for w in words}
     form_to_word = {}
     for w in words:

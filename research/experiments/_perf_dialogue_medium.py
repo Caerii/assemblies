@@ -249,6 +249,7 @@ def profile_prediction() -> str:
     for w in stage_words:
         parser.register_word(w.lemma)
     sentences = trainer._generate_sentences(stage_words, 4)
+    trainer._register_surface_forms(sentences, stage_words)
     phases = effective_stage_phases(
         "DIALOGUE", list(_STAGE_CONFIG["DIALOGUE"]["phases"]),
         fast=True,

@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from typing import List, Optional
 
 from .grounding import GroundingContext
-from .scene import SceneEvent
+from .scene import SceneEvent, roles_from_scene
 
 
 @dataclass
@@ -52,3 +52,57 @@ class GroundedSentence:
         assert len(self.words) == len(self.roles), (
             f"words ({len(self.words)}) != roles ({len(self.roles)})"
         )
+
+
+@dataclass
+class SentencePlan:
+    """A sentence BEFORE grounding: tokens plus the event they describe.
+
+    WHY THIS EXISTS RATHER THAN A BARE TOKEN LIST. A generator that returns
+    ``List[str]`` can only say WHAT WAS SAID, so every downstream consumer has
+    to recover who-did-what from word order -- which is exactly the mapping
+    role induction is trying to learn, and is simply WRONG for a passive
+    ("the cat was chased by the dog" reads cat=agent positionally). The event
+    is what the speaker SAW; it is the same for both voices, and it is the only
+    non-circular place a role label can come from. See ``core/scene.py``.
+
+    Grounding is deliberately NOT resolved here. Contexts must be looked up
+    after inflected surface forms are registered (``_register_surface_forms``),
+    so a plan that grounded itself eagerly would capture empty contexts and
+    every derived role would be ``None``. ``ground_plans`` is the one place
+    that conversion happens.
+    """
+
+    tokens: List[str]
+    event: Optional[SceneEvent] = None
+    mood: str = "declarative"
+
+    def __len__(self) -> int:
+        return len(self.tokens)
+
+
+def ground_plans(parser, plans: List[SentencePlan]) -> List[GroundedSentence]:
+    """Resolve plans against a parser's grounding — the ONE conversion.
+
+    Roles come from PERCEPTION when the plan carries an event, and are left
+    ``None`` otherwise (raw text, e.g. the CDS corpora, genuinely has no role
+    information and must not be given fabricated labels). Deriving them here
+    rather than at each call site is what keeps the two role paths -- the
+    positional inducer in ``corpus_index`` and the gating learner in
+    ``parser_mixins.gating`` -- reading the same answer.
+    """
+    out: List[GroundedSentence] = []
+    for plan in plans:
+        sentence = GroundedSentence(
+            words=list(plan.tokens),
+            contexts=[
+                parser.word_grounding.get(w, GroundingContext())
+                for w in plan.tokens
+            ],
+            mood=plan.mood,
+            event=plan.event,
+        )
+        if plan.event is not None:
+            sentence.roles = roles_from_scene(sentence)
+        out.append(sentence)
+    return out

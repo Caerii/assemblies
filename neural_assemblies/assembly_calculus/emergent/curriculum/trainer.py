@@ -41,6 +41,8 @@ from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Set
 
 from ..core.grounding import GroundingContext
+from ..core.scene import SceneEvent
+from ..core.sentence import SentencePlan
 from .data import GroundedSentence
 from ..core.areas import GROUNDING_TO_CORE, DET_CORE
 from ..training.perf import (
@@ -278,12 +280,32 @@ class CurriculumTrainer:
                 return singles + [s for s in sentences if len(s) > 1][:12]
         return sentences
 
+    def _scene_features(self, lemma: str) -> List[str]:
+        """The perceptual features of a word, as `roles_from_scene` reads them.
+
+        Deliberately the SAME accessor the derivation uses, so a participant
+        bundle cannot be built from one view of a word's grounding and matched
+        against another. A word with no grounding yields no features, and
+        `SceneEvent.role_of_features` then declines to give it a role.
+        """
+        from ..core.scene import _word_features
+
+        ctx = self.parser.word_grounding.get(lemma)
+        return list(_word_features(ctx)) if ctx is not None else []
+
     def _generate_sentences_generic(
         self,
         words: list,
         complexity: int,
-    ) -> List[List[str]]:
-        """Deterministic pattern generator (no CDS corpora)."""
+    ) -> List[SentencePlan]:
+        """Deterministic pattern generator (no CDS corpora).
+
+        Returns SENTENCE PLANS, not token lists. Every full clause carries the
+        `SceneEvent` it describes, because who-acted-on-whom is not recoverable
+        from the string: a passive states the same event in the opposite order,
+        and a positional reading of it is inverted, not merely uninformative.
+        See `core/sentence.py::SentencePlan`.
+        """
         from neural_assemblies.lexicon.lexicon_manager import WordCategory
         import random as _rng
 
@@ -293,21 +315,23 @@ class CurriculumTrainer:
         dets = [w for w in words if w.category == WordCategory.DETERMINER]
         preps = [w for w in words if w.category == WordCategory.PREPOSITION]
 
-        sentences: List[List[str]] = []
+        sentences: List[SentencePlan] = []
 
+        # Fragments, not clauses: a bare noun or a determiner phrase describes
+        # no event, so there is nothing to attach and no role to derive.
         if complexity == 1:
             for n in nouns[:20]:
-                sentences.append([n.lemma])
+                sentences.append(SentencePlan([n.lemma]))
             for v in verbs[:10]:
-                sentences.append([v.lemma])
+                sentences.append(SentencePlan([v.lemma]))
             return sentences
 
         if complexity == 2:
             for n in nouns[:15]:
                 if dets:
-                    sentences.append([dets[0].lemma, n.lemma])
+                    sentences.append(SentencePlan([dets[0].lemma, n.lemma]))
                 for v in verbs[:5]:
-                    sentences.append([n.lemma, v.lemma])
+                    sentences.append(SentencePlan([n.lemma, v.lemma]))
             return sentences
 
         _rng_state = _rng.getstate()
@@ -390,12 +414,20 @@ class CurriculumTrainer:
 
             sent = [det_word, subj.lemma, _finite(verb)]
 
+            # THE PERCEIVED EVENT, built alongside the string rather than
+            # recovered from it. `participants` is in CAUSAL order -- actor
+            # first -- which is a fact about the world and stays fixed however
+            # the sentence orders its words.
+            participants = [self._scene_features(subj.lemma)]
+
             # NOT gated on complexity: a transitive verb needs its object to be
             # grammatical at any sentence length.
             if _takes_object(verb):
                 obj_pool = [o for o in concrete if o.lemma != subj.lemma]
                 if obj_pool:
-                    sent.extend([det_word, _rng.choice(obj_pool).lemma])
+                    obj = _rng.choice(obj_pool)
+                    sent.extend([det_word, obj.lemma])
+                    participants.append(self._scene_features(obj.lemma))
 
             if complexity >= 5 and adjs:
                 adj = _rng.choice(adjs)
@@ -408,12 +440,27 @@ class CurriculumTrainer:
             # non-spatial excludes "because"/"according", which need their own
             # complement. Without this the generator emitted "plays the paper
             # away the food".
+            # The ground of a locative must be a DIFFERENT thing from the
+            # participants. "the library sleeps among the library" is not
+            # merely odd, it is unanalysable: the same referent occupies a
+            # thematic role and the PP at once, so no role assignment of it can
+            # be right. Found by comparing scene-derived roles against the
+            # positional inducer -- the two disagreed exactly here.
             if complexity >= 6 and locatives and concrete:
-                prep = _rng.choice(locatives)
-                loc = _rng.choice(concrete)
-                sent.extend([prep.lemma, det_word, loc.lemma])
+                loc_pool = [c for c in concrete
+                            if c.lemma not in {w for w in sent}]
+                if loc_pool:
+                    prep = _rng.choice(locatives)
+                    loc = _rng.choice(loc_pool)
+                    sent.extend([prep.lemma, det_word, loc.lemma])
 
-            sentences.append(sent)
+            sentences.append(SentencePlan(
+                sent,
+                event=SceneEvent(
+                    action=self._scene_features(verb.lemma),
+                    participants=participants,
+                ),
+            ))
 
         _rng.setstate(_rng_state)
         return sentences
@@ -424,30 +471,36 @@ class CurriculumTrainer:
         complexity: int,
         *,
         stage_name: Optional[str] = None,
-    ) -> List[List[str]]:
+    ) -> List[SentencePlan]:
         """Generate training sentences; CDS corpora at early stages.
 
         At ``SENTENCES`` complexity (>=4), CDS telegraphic lines are blended
         with generic full SVO frames so role assignment gets enough exposure.
+
+        CDS and holdout-bridge lines carry NO event, and must not: they are
+        real transcribed text, nobody recorded the scene, and inventing one
+        would be fabricating the supervision this whole path exists to avoid.
+        They keep `roles=None` and fall through to positional induction.
         """
         generic = self._generate_sentences_generic(words, complexity)
 
         if not stage_name:
             return generic
 
-        cds = self._cds_corpus_sentences(stage_name, words, complexity)
-        if not cds:
+        cds_tokens = self._cds_corpus_sentences(stage_name, words, complexity)
+        if not cds_tokens:
             return generic
+        cds = [SentencePlan(list(tokens)) for tokens in cds_tokens]
 
         if complexity >= 4 and stage_name in ("SENTENCES", "COMPLEX_GRAMMAR"):
             seen: set = set()
-            merged: List[List[str]] = []
-            for sent in cds + generic:
-                key = tuple(sent)
+            merged: List[SentencePlan] = []
+            for plan in cds + generic:
+                key = tuple(plan.tokens)
                 if key in seen:
                     continue
                 seen.add(key)
-                merged.append(sent)
+                merged.append(plan)
             if self.holdout_words and stage_name == "SENTENCES":
                 from .holdout_bridges import holdout_bridge_token_lists
 
@@ -455,12 +508,12 @@ class CurriculumTrainer:
                     key = tuple(tokens)
                     if key not in seen:
                         seen.add(key)
-                        merged.append(tokens)
+                        merged.append(SentencePlan(list(tokens)))
             return merged
 
         return cds
 
-    def _register_surface_forms(self, sentences: List[List[str]],
+    def _register_surface_forms(self, sentences: List[SentencePlan],
                                 stage_words: list) -> set:
         """Register inflected surface forms, sharing the lemma's grounding.
 
@@ -484,7 +537,7 @@ class CurriculumTrainer:
 
         added: set = set()
         for sent in sentences:
-            for tok in sent:
+            for tok in sent.tokens:
                 if tok in added or tok in self.parser.stim_map:
                     continue
                 self.parser.register_word(tok)
@@ -788,7 +841,13 @@ class CurriculumTrainer:
             schedule = TrainingScheduleExecutor.build_stage_schedule(
                 self.parser,
                 label,
-                [s.words for s in sentences],
+                # Carry the event across rather than dropping to tokens: a
+                # remedial pass re-trains the same sentences, and a sentence
+                # that loses its scene here would silently switch to positional
+                # roles halfway through training.
+                [SentencePlan(list(s.words), event=getattr(s, "event", None),
+                              mood=getattr(s, "mood", "declarative"))
+                 for s in sentences],
                 phases,
                 transition_cache=self._transition_cache,
             )

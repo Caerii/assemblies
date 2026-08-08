@@ -128,7 +128,8 @@ def main():
     grand = collections.Counter()
     for stage, complexity in STAGES:
         words = trainer._get_stage_words(stage)
-        sents = trainer._generate_sentences_generic(words, complexity)
+        sents = [p.tokens for p in
+                 trainer._generate_sentences_generic(words, complexity)]
         bad, ex = audit(sents, words)
         total = len(sents)
         grand.update(bad)

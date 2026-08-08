@@ -293,7 +293,7 @@ class TestCDSCorpus:
         sentences = trainer._generate_sentences(
             words, 1, stage_name="FIRST_WORDS",
         )
-        flat = {" ".join(s) for s in sentences}
+        flat = {" ".join(s.tokens) for s in sentences}
         assert "ball" in flat
         assert "more milk" in flat or "my ball" in flat
 

@@ -52,7 +52,7 @@ below that.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import List, Optional, Sequence, TYPE_CHECKING
+from typing import Iterable, List, Optional, Sequence, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .sentence import GroundedSentence
@@ -63,6 +63,23 @@ if TYPE_CHECKING:
 #: acquisition problem in its own right; ordering by causal structure is the
 #: minimal assumption that lets it be deferred rather than solved by fiat.
 CAUSAL_ROLE_ORDER = ("agent", "patient")
+
+
+def _denotes(features: Iterable[str], bundle: Iterable[str]) -> bool:
+    """Do these word features REFER to this perceived thing, not merely resemble it?
+
+    One rule, used by both matchers below, because they were two spellings of
+    the same question and the looser one silently disagreed with the stricter.
+
+    Containment either way: the word's features must be a subset of the thing's
+    or a superset of them. A partial overlap means the word shares a property
+    with the thing -- `bear` and `friend` are both animate, `closed` and `seems`
+    are both motor -- and sharing a property is not being the same thing.
+    """
+    wanted, seen = set(features), set(bundle)
+    if not wanted or not seen:
+        return False
+    return len(wanted & seen) >= min(len(wanted), len(seen))
 
 
 @dataclass
@@ -95,6 +112,21 @@ class SceneEvent:
 
         A tie returns None rather than guessing. Two participants a learner
         genuinely cannot tell apart should yield no role, not an arbitrary one.
+
+        REFERENCE, NOT RESEMBLANCE, and this is the second thing best-overlap
+        alone gets wrong. Ranking participants against each other presumes the
+        word denotes ONE OF THEM; a word that denotes something else entirely
+        still wins by default, because there is no competitor for it to lose
+        to. Measured on the curriculum's own locative frames, that put the
+        PP-object into a thematic role -- "the meat creates the money on the
+        chicken" made `chicken` the AGENT, on nothing but a superordinate
+        feature shared with `meat`. 10 of 130 role assignments, every one of
+        them a noun inside a prepositional phrase.
+
+        So the winning bundle must also CONTAIN the word's features or be
+        contained by them: a partial resemblance is not reference. `girl`
+        against [BOY, PERSON] shares PERSON and is rejected, which is right --
+        a learner who sees a boy does not conclude a girl acted.
         """
         wanted = set(features)
         if not wanted:
@@ -104,10 +136,21 @@ class SceneEvent:
         if best == 0 or scores.count(best) != 1:
             return None
         idx = scores.index(best)
+        if not _denotes(wanted, self.participants[idx]):
+            return None
         return CAUSAL_ROLE_ORDER[idx] if idx < len(CAUSAL_ROLE_ORDER) else None
 
     def is_action(self, features: Sequence[str]) -> bool:
-        return bool(set(features) & set(self.action))
+        """Does this word denote the event itself?
+
+        Same rule as `role_of_features`, and deliberately the same rule: a bare
+        intersection accepts any word that merely RESEMBLES the action. On "the
+        closed lamp seems towards the fish" that gave BOTH `closed` and `seems`
+        the action role, because a past participle shares motor features with
+        the verb. Two actions in one clause is not a graded answer, it is a
+        wrong one.
+        """
+        return _denotes(features, self.action)
 
 
 def _word_features(context) -> List[str]:

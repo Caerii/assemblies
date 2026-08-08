@@ -207,14 +207,25 @@ def consolidate_role_pathways(
     passes: int = 1,
     log_fn: Optional[Callable] = None,
 ) -> Set[PathwayEdge]:
-    """Replay role binding without reset — persistent core→role weights."""
+    """Replay role binding without reset — persistent core→role weights.
+
+    ``prepare_areas=False`` is what makes "without reset" true. The SOURCE of a
+    role replay is a CORE area, which holds the stabilized lexicon; preparing
+    it rewinds ``w`` and re-issues neuron IDs, invalidating every stored
+    assembly of the words being replayed. Measured at ``DIALOGUE``:
+    ``NOUN_CORE`` w=2493 -> 976 with 48 of 74 nouns left unmappable, which then
+    raised "Assembly neuron N not in area mapping" at parse time. Preparation
+    is for replay onto a connectome that was just CLEARED; this replays onto a
+    live one.
+    """
     protocol = build_role_pathway_protocol(parser, training_sentences)
     if passes <= 0:
         if log_fn:
             log_fn("  Skipping role pathway consolidation (passes=0)")
         return set()
 
-    edges = consolidate(parser.brain, protocol, passes=passes)
+    edges = consolidate(parser.brain, protocol, passes=passes,
+                        prepare_areas=False)
     if log_fn:
         passes_str = f" ({passes} pass{'es' if passes != 1 else ''})"
         log_fn(
@@ -231,14 +242,19 @@ def consolidate_vp_pathways(
     passes: int = 1,
     log_fn: Optional[Callable] = None,
 ) -> Set[PathwayEdge]:
-    """Replay VP merge without reset — persistent phrase-structure weights."""
+    """Replay VP merge without reset — persistent phrase-structure weights.
+
+    ``prepare_areas=False`` for the same reason as the role pathways above: the
+    merge sources are core areas holding the stabilized lexicon.
+    """
     protocol = build_vp_pathway_protocol(parser, training_sentences)
     if passes <= 0:
         if log_fn:
             log_fn("  Skipping VP pathway consolidation (passes=0)")
         return set()
 
-    edges = consolidate(parser.brain, protocol, passes=passes)
+    edges = consolidate(parser.brain, protocol, passes=passes,
+                        prepare_areas=False)
     if log_fn:
         passes_str = f" ({passes} pass{'es' if passes != 1 else ''})"
         log_fn(
@@ -255,14 +271,18 @@ def consolidate_number_role_pathways(
     passes: int = 1,
     log_fn: Optional[Callable] = None,
 ) -> Set[PathwayEdge]:
-    """Replay NUMBER co-projection role binding without reset."""
+    """Replay NUMBER co-projection role binding without reset.
+
+    ``prepare_areas=False`` -- same core-area sources, same reason.
+    """
     protocol = build_number_role_pathway_protocol(parser, training_sentences)
     if passes <= 0:
         if log_fn:
             log_fn("  Skipping number-role pathway consolidation (passes=0)")
         return set()
 
-    edges = consolidate(parser.brain, protocol, passes=passes)
+    edges = consolidate(parser.brain, protocol, passes=passes,
+                        prepare_areas=False)
     if log_fn and edges:
         passes_str = f" ({passes} pass{'es' if passes != 1 else ''})"
         log_fn(f"  Number-role consolidated {len(edges)} pathways{passes_str}")
@@ -276,14 +296,18 @@ def consolidate_number_vp_pathways(
     passes: int = 1,
     log_fn: Optional[Callable] = None,
 ) -> Set[PathwayEdge]:
-    """Replay NUMBER-aware VP merge without reset."""
+    """Replay NUMBER-aware VP merge without reset.
+
+    ``prepare_areas=False`` -- same core-area sources, same reason.
+    """
     protocol = build_number_vp_pathway_protocol(parser, training_sentences)
     if passes <= 0:
         if log_fn:
             log_fn("  Skipping number-VP pathway consolidation (passes=0)")
         return set()
 
-    edges = consolidate(parser.brain, protocol, passes=passes)
+    edges = consolidate(parser.brain, protocol, passes=passes,
+                        prepare_areas=False)
     if log_fn and edges:
         passes_str = f" ({passes} pass{'es' if passes != 1 else ''})"
         log_fn(f"  Number-VP consolidated {len(edges)} pathways{passes_str}")

@@ -23,21 +23,18 @@ import os
 import sys
 from typing import Dict, List, Tuple
 
-#: Perceptual features per referent, matching what `build_corpus` grounds each
-#: word in. Kept in one place so the scenes cannot drift from the grounding --
-#: a mismatch would make `role_of_features` silently return None.
-REFERENT_FEATURES: Dict[str, List[str]] = {
-    "dog": ["DOG", "ANIMAL"],
-    "cat": ["CAT", "ANIMAL"],
-    "bird": ["BIRD", "ANIMAL"],
-    "boy": ["BOY", "PERSON"],
-    "girl": ["GIRL", "PERSON"],
-    "ball": ["BALL", "OBJECT"],
-    "book": ["BOOK", "OBJECT"],
-    "food": ["FOOD", "OBJECT"],
-    "table": ["TABLE", "OBJECT"],
-    "car": ["CAR", "OBJECT"],
-}
+# A HAND-WRITTEN FEATURE TABLE USED TO LIVE HERE, and it had drifted. Its own
+# comment said "kept in one place so the scenes cannot drift from the grounding
+# -- a mismatch would make `role_of_features` silently return None", and then
+# `table` was listed as [TABLE, OBJECT] while the corpus grounds it as
+# [TABLE, FURNITURE]. `check()` still read 198/198 because partial overlap on
+# TABLE alone was enough to win; tightening the matcher to require reference
+# rather than resemblance exposed it as 180/198.
+#
+# The lesson is the general one: a second copy of a fact does not stay in sync
+# because a comment asks it to. Participants are now read from the grounding
+# itself, through the SAME accessor `roles_from_scene` uses, so the two cannot
+# disagree at all.
 
 
 def with_events(corpus: List) -> List:
@@ -51,7 +48,9 @@ def with_events(corpus: List) -> List:
     perceives the dog doing the chasing without being told that the first noun
     is the subject.
     """
-    from neural_assemblies.assembly_calculus.emergent.core.scene import SceneEvent
+    from neural_assemblies.assembly_calculus.emergent.core.scene import (
+        SceneEvent, _word_features,
+    )
 
     out = []
     for sentence in corpus:
@@ -60,9 +59,9 @@ def with_events(corpus: List) -> List:
         for word, context, role in zip(sentence.words, sentence.contexts,
                                        sentence.roles):
             if role == "agent":
-                actor = REFERENT_FEATURES.get(word) or list(context.visual)
+                actor = _word_features(context)
             elif role == "patient":
-                undergoer = REFERENT_FEATURES.get(word) or list(context.visual)
+                undergoer = _word_features(context)
             elif role == "action":
                 action_features = list(context.motor)
         participants = [p for p in (actor, undergoer) if p]

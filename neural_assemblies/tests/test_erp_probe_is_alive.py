@@ -1,4 +1,17 @@
-"""The P600's violation arm probes an area that does not exist.
+"""The P600's violation arm probes an area that does not exist. RESOLVED.
+
+RESOLUTION (#128). VP is no longer structurally empty, and the cause was not
+the engine change this file predicted. ``train_phrases`` picks its subject and
+verb by ``role == "agent"`` / ``"action"``, and every curriculum sentence
+carried ``roles=[None]`` -- so phrase training HAD NEVER RUN, and VP existed
+only as bootstrap pre-growth plus whatever calibration recruited. Routing
+scene-derived roles through the pipeline wakes it: 72 VP merges during
+training, self-fiber extent 2061, and energy 0.001172 where it read exactly
+0.000000 before.
+
+The arm is alive, not equal: ROLE_PATIENT reads 0.010442, so VP is still ~9x
+weaker. Everything below is kept as the record of how it was diagnosed --
+including that the diagnosis named the wrong mechanism.
 
 #104 / #32. Measured on a PRISTINE fork, before any parse:
 
@@ -76,21 +89,30 @@ class TestTheProbedAreasAreReal:
         assert (eng.fiber_extent(ROLE_PATIENT, ROLE_PATIENT) or 0) > 0
         assert _self_recurrent_energy(b, ROLE_PATIENT) > 0.0
 
-    @pytest.mark.xfail(strict=True, reason=(
-        "PARTLY FIXED, and the residue is a DIFFERENT defect than the one this "
-        "test was written for. `_pregrow_phrase_pathways` now builds the "
-        "phrase self-fibers on every training path, so VP has gone from 0 "
-        "columns to 120 -- but the probe STILL reads exactly 0.000000 after "
-        "calibration, with 30 winners present. Fiber exists, winners exist, "
-        "drive is zero. That means the pre-growth wired the ~71 neurons it "
-        "materialised, and calibration then recruited DIFFERENT neurons into "
-        "VP whose rows in the self-block have no synapses -- so the assembly "
-        "that actually fires cannot reach itself. Same family as "
-        "[[self-fibers-excluded-from-deferred-init]] (a self-fiber whose block "
-        "spans w rather than n). Fixing it means the self-block must grow with "
-        "the area, not once at bootstrap, which is an engine change. "
-        "ROLE_PATIENT is the live control at 0.009929 and passes."))
     def test_the_violation_arm_is_alive_too(self, parsed):
+        """NOW PASSES, and the cause was not the engine change it predicted.
+
+        The xfail here blamed a self-fiber whose block spans ``w`` rather than
+        ``n``: pre-growth wired the ~71 neurons it materialised, calibration
+        recruited different ones, so the assembly that fired could not reach
+        itself. That diagnosis said fixing it required growing the self-block
+        with the area.
+
+        What actually fixed it was upstream. ``train_phrases`` selects its
+        subject and verb by ``role == "agent"`` / ``"action"``, and every
+        curriculum sentence carried ``roles=[None]``, so IT HAD NEVER RUN --
+        VP was built only by the bootstrap pre-growth and by calibration.
+        Routing scene-derived roles through the pipeline wakes it, and the
+        merges it performs are what wire the neurons that later fire:
+
+            VP  self-fiber extent 2061   materialized 2458   winners 30
+                energy 0.001172          vp_assemblies stored 72
+
+        against 0.000000 with 120 columns before. The control is unchanged in
+        kind (ROLE_PATIENT 0.010442), so VP is alive but still ~9x weaker --
+        this says the arm is no longer structurally empty, NOT that the two
+        arms are now comparable in strength.
+        """
         b = parsed
         eng = b._engine_for(b.areas[VP])
         assert (eng.fiber_extent(VP, VP) or 0) > 0, (

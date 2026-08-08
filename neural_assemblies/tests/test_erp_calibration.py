@@ -76,7 +76,21 @@ class TestErpCalibration:
         assert gram.get("n", 0) >= 2
         assert catv.get("n", 0) >= 2
 
-        assert catv["p600_excess_median"] > gram["p600_excess_median"]
+        # NOT `catv_median > gram_median`. `p600_excess` is
+        # max(0, deficit_raw - baseline.p600_median) -- clipped at its own
+        # null, and calibration.py's own docstring says "roughly half the mass
+        # sits exactly at 0 and it is not an effect size", while the AUC on the
+        # RAW deficit "IS THE ONE TO READ". With n=3 per arm both medians land
+        # on the clip point routinely: measured 0.0016 vs 0.0 in one training
+        # run and 0.0 vs 0.0 in another, while the AUC was 1.000 in BOTH. A
+        # strict `>` there tests where the clip fell, not whether violations
+        # separate.
+        #
+        # What survives is the direction: the excess must not INVERT.
+        assert catv["p600_excess_median"] >= gram["p600_excess_median"], (
+            f"p600 excess inverted: category_violation "
+            f"{catv['p600_excess_median']:.4f} < grammatical "
+            f"{gram['p600_excess_median']:.4f}")
         assert report.separation["p600_auc"] > CHANCE, (
             f"p600 AUC {report.separation['p600_auc']:.3f} is not above chance "
             f"-- violations do not out-score grammatical")
