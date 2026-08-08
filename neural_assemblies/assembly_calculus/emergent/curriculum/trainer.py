@@ -38,7 +38,7 @@ what keeps earlier structure refreshed as beta falls.
 """
 
 from dataclasses import dataclass, field
-from typing import List, Optional, Set
+from typing import Dict, List, Optional, Set
 
 from ..core.grounding import GroundingContext
 from .data import GroundedSentence
@@ -314,25 +314,103 @@ class CurriculumTrainer:
         _rng.seed(42)
         det_word = dets[0].lemma if dets else "the"
 
+        # GRAMMATICALITY. The previous version emitted
+        # `[det, random_noun, verb.LEMMA, det, random_noun]` unconditionally,
+        # which produced strings like "the store build the dog": no
+        # subject-verb agreement, an object forced onto intransitive verbs, and
+        # subjects drawn uniformly over all nouns including abstract ones.
+        #
+        # That corpus is what role induction learns AGENT/PATIENT from, so the
+        # bindings were partly noise -- `dog` got its ONLY role binding from
+        # that single sentence, as its object, which is why the curriculum
+        # golden asks for dog=AGENT and can never get it.
+        #
+        # The lexicon already carries everything needed to do this properly:
+        # `forms["3sg"]`, `features` (transitive / intransitive /
+        # ambitransitive / stative / copula, and animate / abstract on nouns),
+        # and `arguments` (the thematic frame). None of it was being read.
+        def _feat(word) -> dict:
+            return getattr(word, "features", None) or {}
+
+        def _finite(verb) -> str:
+            """3sg present, because every generated subject is `the <noun>`."""
+            return (getattr(verb, "forms", None) or {}).get("3sg") or verb.lemma
+
+        def _first_arg(verb) -> str:
+            args = getattr(verb, "arguments", None) or []
+            return args[0] if args else ""
+
+        def _takes_object(verb) -> bool:
+            f = _feat(verb)
+            if f.get("transitive") or f.get("ditransitive"):
+                return True
+            if f.get("intransitive"):
+                return False
+            if f.get("ambitransitive"):
+                return bool(_rng.getrandbits(1))
+            # Unannotated: assume intransitive rather than invent an argument.
+            return False
+
+        locatives = [
+            p for p in preps
+            if _feat(p).get("spatial")
+            and not _feat(p).get("motion")
+            and not _feat(p).get("goal")
+            and not _feat(p).get("source")
+        ]
+        animate = [n for n in nouns if _feat(n).get("animate")]
+        concrete = [n for n in nouns if not _feat(n).get("abstract")] or nouns
+        # A copula needs a predicate ("the dog is big"), which this frame does
+        # not build, so `be` would only ever yield "the dog is". Excluded rather
+        # than emitted ungrammatical.
+        frame_verbs = [v for v in verbs if not _feat(v).get("copula")]
+        # At complexity 3 the frame is `the <noun> <verb>` with no object slot,
+        # so a TRANSITIVE verb there is ungrammatical ("the water takes").
+        # Prefer verbs that can stand alone; the object test below still fires
+        # if one slips through, so grammar wins over sentence length rather
+        # than the filter being load-bearing on its own.
+        if complexity < 4:
+            standalone = [v for v in frame_verbs
+                          if _feat(v).get("intransitive")
+                          or _feat(v).get("ambitransitive")]
+            if standalone:
+                frame_verbs = standalone
+
         for _ in range(min(50, len(nouns) * len(verbs))):
-            subj = _rng.choice(nouns) if nouns else None
-            verb = _rng.choice(verbs) if verbs else None
-            if subj is None or verb is None:
+            verb = _rng.choice(frame_verbs) if frame_verbs else None
+            if verb is None or not nouns:
                 continue
 
-            sent = [det_word, subj.lemma, verb.lemma]
+            # Selectional restriction: an agent or experiencer must be animate.
+            # Falls back to the concrete nouns when the lexicon has no animate
+            # word at this stage, rather than silently allowing "the anger runs".
+            needs_animate = _first_arg(verb) in ("agent", "experiencer")
+            subj_pool = (animate if (needs_animate and animate) else concrete)
+            subj = _rng.choice(subj_pool)
 
-            if complexity >= 4 and nouns:
-                obj = _rng.choice(nouns)
-                sent.extend([det_word, obj.lemma])
+            sent = [det_word, subj.lemma, _finite(verb)]
+
+            # NOT gated on complexity: a transitive verb needs its object to be
+            # grammatical at any sentence length.
+            if _takes_object(verb):
+                obj_pool = [o for o in concrete if o.lemma != subj.lemma]
+                if obj_pool:
+                    sent.extend([det_word, _rng.choice(obj_pool).lemma])
 
             if complexity >= 5 and adjs:
                 adj = _rng.choice(adjs)
                 sent.insert(1, adj.lemma)
 
-            if complexity >= 6 and preps and nouns:
-                prep = _rng.choice(preps)
-                loc = _rng.choice(nouns)
+            # A locative PP needs a STATIC SPATIAL preposition taking a bare NP.
+            # Filtering on the lexicon's own features rather than a hand list:
+            # `motion` excludes "into"/"out", `goal`/`source` exclude "to"/"from"
+            # (fine with a motion verb, wrong with a stative one), and
+            # non-spatial excludes "because"/"according", which need their own
+            # complement. Without this the generator emitted "plays the paper
+            # away the food".
+            if complexity >= 6 and locatives and concrete:
+                prep = _rng.choice(locatives)
+                loc = _rng.choice(concrete)
                 sent.extend([prep.lemma, det_word, loc.lemma])
 
             sentences.append(sent)
@@ -381,6 +459,42 @@ class CurriculumTrainer:
             return merged
 
         return cds
+
+    def _register_surface_forms(self, sentences: List[List[str]],
+                                stage_words: list) -> set:
+        """Register inflected surface forms, sharing the lemma's grounding.
+
+        REQUIRED, not hygiene. Generated sentences now carry finite verb forms
+        ("builds", not "build") so they agree with their subject, and
+        `compile_corpus` skips any token missing from `stim_map`
+        (`if update.word not in self.stim_map: continue`). Without this, every
+        inflected verb would be SILENTLY DROPPED from role training and
+        ROLE_ACTION would quietly empty out -- the same dead-path shape that
+        left the verb outside the role system before.
+
+        The form inherits the LEMMA's grounding rather than being auto-grounded
+        from scratch: "builds" means what "build" means, and a form that gets an
+        empty `GroundingContext` cannot enter a core lexicon at all.
+        """
+        form_to_lemma: Dict[str, str] = {}
+        for w in stage_words:
+            for form in (getattr(w, "forms", None) or {}).values():
+                if isinstance(form, str) and form:
+                    form_to_lemma.setdefault(form, w.lemma)
+
+        added: set = set()
+        for sent in sentences:
+            for tok in sent:
+                if tok in added or tok in self.parser.stim_map:
+                    continue
+                self.parser.register_word(tok)
+                lemma = form_to_lemma.get(tok)
+                if lemma is not None:
+                    ctx = self.parser.word_grounding.get(lemma)
+                    if ctx is not None:
+                        self.parser.word_grounding[tok] = ctx
+                added.add(tok)
+        return added
 
     def _set_global_beta(self, beta: float) -> None:
         """Set plasticity (beta) for all area-to-area connections."""
@@ -560,6 +674,7 @@ class CurriculumTrainer:
         sentences = self._generate_sentences(
             stage_words, complexity, stage_name=stage_name,
         )
+        self._register_surface_forms(sentences, stage_words)
 
         from ..train_progress import current_progress
         from .data import create_instruction_sentences
