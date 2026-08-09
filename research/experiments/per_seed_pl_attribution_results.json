@@ -1,0 +1,5088 @@
+{
+  "cells": {
+    "42": {
+      "pl_acc": 0.8913043478260869,
+      "sg_acc": 1,
+      "pl_rows": [
+        {
+          "form": "checkers",
+          "exposure": 4,
+          "ok": true,
+          "own": 0.5659101605415344,
+          "other": 0.04974163696169853,
+          "shared_rows": 6,
+          "shared_weighted": 7
+        },
+        {
+          "form": "toys",
+          "exposure": 5,
+          "ok": true,
+          "own": 0.6998579502105713,
+          "other": 0.06921343505382538,
+          "shared_rows": 1,
+          "shared_weighted": 1
+        },
+        {
+          "form": "men",
+          "exposure": 8,
+          "ok": true,
+          "own": 0.9428107142448425,
+          "other": 0.08322122693061829,
+          "shared_rows": 4,
+          "shared_weighted": 4
+        },
+        {
+          "form": "tools",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.08870913833379745,
+          "other": 0.06269718706607819,
+          "shared_rows": 8,
+          "shared_weighted": 8
+        },
+        {
+          "form": "feet",
+          "exposure": 9,
+          "ok": true,
+          "own": 0.6719946265220642,
+          "other": 0.12936782836914062,
+          "shared_rows": 8,
+          "shared_weighted": 8
+        },
+        {
+          "form": "clips",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.06283082813024521,
+          "other": 0.07332969456911087,
+          "shared_rows": 4,
+          "shared_weighted": 4
+        },
+        {
+          "form": "chipmunks",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.11469542980194092,
+          "other": 0.09889699518680573,
+          "shared_rows": 7,
+          "shared_weighted": 7
+        },
+        {
+          "form": "boots",
+          "exposure": 7,
+          "ok": true,
+          "own": 0.5816903114318848,
+          "other": 0.03789189085364342,
+          "shared_rows": 1,
+          "shared_weighted": 1
+        },
+        {
+          "form": "pictures",
+          "exposure": 2,
+          "ok": true,
+          "own": 0.11023688316345215,
+          "other": 0.043531205505132675,
+          "shared_rows": 5,
+          "shared_weighted": 5
+        },
+        {
+          "form": "scares",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.0300143975764513,
+          "other": 0.08697323501110077,
+          "shared_rows": 6,
+          "shared_weighted": 6
+        },
+        {
+          "form": "rocks",
+          "exposure": 2,
+          "ok": true,
+          "own": 0.10176253318786621,
+          "other": 0.06421434879302979,
+          "shared_rows": 7,
+          "shared_weighted": 7
+        },
+        {
+          "form": "books",
+          "exposure": 6,
+          "ok": true,
+          "own": 0.5519447326660156,
+          "other": 0.06252667307853699,
+          "shared_rows": 9,
+          "shared_weighted": 9
+        },
+        {
+          "form": "children",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.08376159518957138,
+          "other": 0.03759588301181793,
+          "shared_rows": 6,
+          "shared_weighted": 6
+        },
+        {
+          "form": "beans",
+          "exposure": 3,
+          "ok": true,
+          "own": 0.5223618745803833,
+          "other": 0.06322848796844482,
+          "shared_rows": 5,
+          "shared_weighted": 6
+        },
+        {
+          "form": "nails",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.09289821237325668,
+          "other": 0.0703154057264328,
+          "shared_rows": 8,
+          "shared_weighted": 12
+        },
+        {
+          "form": "woods",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.1313660591840744,
+          "other": 0.06290628015995026,
+          "shared_rows": 6,
+          "shared_weighted": 7
+        },
+        {
+          "form": "records",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.08718995749950409,
+          "other": 0.08698529005050659,
+          "shared_rows": 12,
+          "shared_weighted": 12
+        },
+        {
+          "form": "pieces",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.10376590490341187,
+          "other": 0.061383187770843506,
+          "shared_rows": 9,
+          "shared_weighted": 9
+        },
+        {
+          "form": "pennies",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.08895079046487808,
+          "other": 0.08563138544559479,
+          "shared_rows": 5,
+          "shared_weighted": 5
+        },
+        {
+          "form": "sardines",
+          "exposure": 3,
+          "ok": true,
+          "own": 0.5644571781158447,
+          "other": 0.12888529896736145,
+          "shared_rows": 6,
+          "shared_weighted": 7
+        },
+        {
+          "form": "peas",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.11154410243034363,
+          "other": 0.06432802975177765,
+          "shared_rows": 9,
+          "shared_weighted": 9
+        },
+        {
+          "form": "horses",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.10016456246376038,
+          "other": 0.038783662021160126,
+          "shared_rows": 6,
+          "shared_weighted": 7
+        },
+        {
+          "form": "nuns",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.10480131208896637,
+          "other": 0.05449948087334633,
+          "shared_rows": 6,
+          "shared_weighted": 6
+        },
+        {
+          "form": "stars",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.11651618778705597,
+          "other": 0.038292523473501205,
+          "shared_rows": 4,
+          "shared_weighted": 4
+        },
+        {
+          "form": "tracks",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.10625311732292175,
+          "other": 0.09126231074333191,
+          "shared_rows": 9,
+          "shared_weighted": 13
+        },
+        {
+          "form": "trains",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.029969550669193268,
+          "other": 0.03739165514707565,
+          "shared_rows": 5,
+          "shared_weighted": 5
+        },
+        {
+          "form": "knees",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.10766858607530594,
+          "other": 0.038789644837379456,
+          "shared_rows": 8,
+          "shared_weighted": 9
+        },
+        {
+          "form": "pencils",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.10401373356580734,
+          "other": 0.07314899563789368,
+          "shared_rows": 6,
+          "shared_weighted": 6
+        },
+        {
+          "form": "plugs",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.10952311009168625,
+          "other": 0.07058311253786087,
+          "shared_rows": 4,
+          "shared_weighted": 4
+        },
+        {
+          "form": "cords",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.10765375941991806,
+          "other": 0.0708613395690918,
+          "shared_rows": 5,
+          "shared_weighted": 5
+        },
+        {
+          "form": "flowers",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.03031105361878872,
+          "other": 0.038063209503889084,
+          "shared_rows": 4,
+          "shared_weighted": 4
+        },
+        {
+          "form": "matches",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.12446145713329315,
+          "other": 0.06019539013504982,
+          "shared_rows": 8,
+          "shared_weighted": 9
+        },
+        {
+          "form": "doughnuts",
+          "exposure": 3,
+          "ok": true,
+          "own": 0.5479605793952942,
+          "other": 0.041819795966148376,
+          "shared_rows": 6,
+          "shared_weighted": 7
+        },
+        {
+          "form": "people",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.09280752390623093,
+          "other": 0.09986905008554459,
+          "shared_rows": 10,
+          "shared_weighted": 10
+        },
+        {
+          "form": "gloves",
+          "exposure": 4,
+          "ok": true,
+          "own": 0.6125592589378357,
+          "other": 0.03774474561214447,
+          "shared_rows": 3,
+          "shared_weighted": 3
+        },
+        {
+          "form": "dishes",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.10916299372911453,
+          "other": 0.055343203246593475,
+          "shared_rows": 5,
+          "shared_weighted": 5
+        },
+        {
+          "form": "spurs",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.1063656434416771,
+          "other": 0.06659095734357834,
+          "shared_rows": 9,
+          "shared_weighted": 9
+        },
+        {
+          "form": "plays",
+          "exposure": 2,
+          "ok": true,
+          "own": 0.2577360272407532,
+          "other": 0.03718774765729904,
+          "shared_rows": 4,
+          "shared_weighted": 4
+        },
+        {
+          "form": "pillows",
+          "exposure": 3,
+          "ok": true,
+          "own": 0.5352165102958679,
+          "other": 0.0712655708193779,
+          "shared_rows": 5,
+          "shared_weighted": 5
+        },
+        {
+          "form": "exercises",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.11835221201181412,
+          "other": 0.07637741416692734,
+          "shared_rows": 9,
+          "shared_weighted": 10
+        },
+        {
+          "form": "keys",
+          "exposure": 2,
+          "ok": true,
+          "own": 0.19406218826770782,
+          "other": 0.03850829228758812,
+          "shared_rows": 4,
+          "shared_weighted": 4
+        },
+        {
+          "form": "squirrels",
+          "exposure": 2,
+          "ok": true,
+          "own": 0.20585200190544128,
+          "other": 0.046776413917541504,
+          "shared_rows": 7,
+          "shared_weighted": 7
+        },
+        {
+          "form": "games",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.12703783810138702,
+          "other": 0.07903872430324554,
+          "shared_rows": 3,
+          "shared_weighted": 3
+        },
+        {
+          "form": "shoes",
+          "exposure": 4,
+          "ok": true,
+          "own": 0.6320944428443909,
+          "other": 0.056781500577926636,
+          "shared_rows": 8,
+          "shared_weighted": 8
+        },
+        {
+          "form": "mittens",
+          "exposure": 3,
+          "ok": true,
+          "own": 0.5685148239135742,
+          "other": 0.04583318158984184,
+          "shared_rows": 6,
+          "shared_weighted": 7
+        },
+        {
+          "form": "dollars",
+          "exposure": 2,
+          "ok": true,
+          "own": 0.1981467306613922,
+          "other": 0.037305086851119995,
+          "shared_rows": 2,
+          "shared_weighted": 2
+        }
+      ]
+    },
+    "43": {
+      "pl_acc": 0.2826086956521739,
+      "sg_acc": 0.9972451790633609,
+      "pl_rows": [
+        {
+          "form": "checkers",
+          "exposure": 4,
+          "ok": true,
+          "own": 0.5358369946479797,
+          "other": 0.06960374116897583,
+          "shared_rows": 8,
+          "shared_weighted": 8
+        },
+        {
+          "form": "toys",
+          "exposure": 5,
+          "ok": false,
+          "own": 0.02619847096502781,
+          "other": 0.049232225865125656,
+          "shared_rows": 3,
+          "shared_weighted": 3
+        },
+        {
+          "form": "men",
+          "exposure": 8,
+          "ok": false,
+          "own": 0.02381434477865696,
+          "other": 0.03721882030367851,
+          "shared_rows": 2,
+          "shared_weighted": 2
+        },
+        {
+          "form": "tools",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.02575928531587124,
+          "other": 0.1279621720314026,
+          "shared_rows": 10,
+          "shared_weighted": 11
+        },
+        {
+          "form": "feet",
+          "exposure": 9,
+          "ok": true,
+          "own": 0.9036437273025513,
+          "other": 0.06351852416992188,
+          "shared_rows": 4,
+          "shared_weighted": 4
+        },
+        {
+          "form": "clips",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.02618727833032608,
+          "other": 0.11909307539463043,
+          "shared_rows": 6,
+          "shared_weighted": 9
+        },
+        {
+          "form": "chipmunks",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.025413865223526955,
+          "other": 0.08092530071735382,
+          "shared_rows": 5,
+          "shared_weighted": 5
+        },
+        {
+          "form": "boots",
+          "exposure": 7,
+          "ok": true,
+          "own": 0.35073283314704895,
+          "other": 0.06886323541402817,
+          "shared_rows": 6,
+          "shared_weighted": 7
+        },
+        {
+          "form": "pictures",
+          "exposure": 2,
+          "ok": false,
+          "own": 0.02438231185078621,
+          "other": 0.10179557651281357,
+          "shared_rows": 4,
+          "shared_weighted": 5
+        },
+        {
+          "form": "scares",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.025664757937192917,
+          "other": 0.04059179872274399,
+          "shared_rows": 3,
+          "shared_weighted": 3
+        },
+        {
+          "form": "rocks",
+          "exposure": 2,
+          "ok": false,
+          "own": 0.027594655752182007,
+          "other": 0.06450905650854111,
+          "shared_rows": 7,
+          "shared_weighted": 7
+        },
+        {
+          "form": "books",
+          "exposure": 6,
+          "ok": false,
+          "own": 0.025352202355861664,
+          "other": 0.054977890104055405,
+          "shared_rows": 4,
+          "shared_weighted": 5
+        },
+        {
+          "form": "children",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.02358788251876831,
+          "other": 0.04487266391515732,
+          "shared_rows": 4,
+          "shared_weighted": 4
+        },
+        {
+          "form": "beans",
+          "exposure": 3,
+          "ok": false,
+          "own": 0.025566425174474716,
+          "other": 0.04941203072667122,
+          "shared_rows": 4,
+          "shared_weighted": 4
+        },
+        {
+          "form": "nails",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.02736409194767475,
+          "other": 0.04425323009490967,
+          "shared_rows": 7,
+          "shared_weighted": 8
+        },
+        {
+          "form": "woods",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.025725580751895905,
+          "other": 0.09064214676618576,
+          "shared_rows": 6,
+          "shared_weighted": 6
+        },
+        {
+          "form": "records",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.026027942076325417,
+          "other": 0.07518624514341354,
+          "shared_rows": 7,
+          "shared_weighted": 7
+        },
+        {
+          "form": "pieces",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.030533429235219955,
+          "other": 0.05644244700670242,
+          "shared_rows": 6,
+          "shared_weighted": 7
+        },
+        {
+          "form": "pennies",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.024771466851234436,
+          "other": 0.04738397151231766,
+          "shared_rows": 7,
+          "shared_weighted": 8
+        },
+        {
+          "form": "sardines",
+          "exposure": 3,
+          "ok": false,
+          "own": 0.026225106790661812,
+          "other": 0.04197901859879494,
+          "shared_rows": 6,
+          "shared_weighted": 6
+        },
+        {
+          "form": "peas",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.025197520852088928,
+          "other": 0.1040993258357048,
+          "shared_rows": 6,
+          "shared_weighted": 7
+        },
+        {
+          "form": "horses",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.027079585939645767,
+          "other": 0.04724825173616409,
+          "shared_rows": 6,
+          "shared_weighted": 6
+        },
+        {
+          "form": "nuns",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.05553120747208595,
+          "other": 0.043215878307819366,
+          "shared_rows": 4,
+          "shared_weighted": 4
+        },
+        {
+          "form": "stars",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.02382197603583336,
+          "other": 0.038786448538303375,
+          "shared_rows": 4,
+          "shared_weighted": 4
+        },
+        {
+          "form": "tracks",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.024011868983507156,
+          "other": 0.06137193366885185,
+          "shared_rows": 6,
+          "shared_weighted": 6
+        },
+        {
+          "form": "trains",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.02703137882053852,
+          "other": 0.043724462389945984,
+          "shared_rows": 7,
+          "shared_weighted": 8
+        },
+        {
+          "form": "knees",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.026350127533078194,
+          "other": 0.044689856469631195,
+          "shared_rows": 6,
+          "shared_weighted": 7
+        },
+        {
+          "form": "pencils",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.025185879319906235,
+          "other": 0.05122760310769081,
+          "shared_rows": 7,
+          "shared_weighted": 8
+        },
+        {
+          "form": "plugs",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.026532553136348724,
+          "other": 0.05296650528907776,
+          "shared_rows": 6,
+          "shared_weighted": 6
+        },
+        {
+          "form": "cords",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.02498718537390232,
+          "other": 0.11783719807863235,
+          "shared_rows": 7,
+          "shared_weighted": 8
+        },
+        {
+          "form": "flowers",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.02563115954399109,
+          "other": 0.03833231329917908,
+          "shared_rows": 9,
+          "shared_weighted": 10
+        },
+        {
+          "form": "matches",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.02357957325875759,
+          "other": 0.04342937096953392,
+          "shared_rows": 6,
+          "shared_weighted": 6
+        },
+        {
+          "form": "doughnuts",
+          "exposure": 3,
+          "ok": false,
+          "own": 0.06689245253801346,
+          "other": 0.11053110659122467,
+          "shared_rows": 7,
+          "shared_weighted": 7
+        },
+        {
+          "form": "people",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.02577655017375946,
+          "other": 0.07186069339513779,
+          "shared_rows": 9,
+          "shared_weighted": 10
+        },
+        {
+          "form": "gloves",
+          "exposure": 4,
+          "ok": false,
+          "own": 0.025965329259634018,
+          "other": 0.041558146476745605,
+          "shared_rows": 2,
+          "shared_weighted": 2
+        },
+        {
+          "form": "dishes",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.023944130167365074,
+          "other": 0.04534563049674034,
+          "shared_rows": 7,
+          "shared_weighted": 9
+        },
+        {
+          "form": "spurs",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.025767147541046143,
+          "other": 0.04177696257829666,
+          "shared_rows": 4,
+          "shared_weighted": 5
+        },
+        {
+          "form": "plays",
+          "exposure": 2,
+          "ok": true,
+          "own": 0.1787584275007248,
+          "other": 0.04068446904420853,
+          "shared_rows": 7,
+          "shared_weighted": 8
+        },
+        {
+          "form": "pillows",
+          "exposure": 3,
+          "ok": true,
+          "own": 0.4901997148990631,
+          "other": 0.06905392557382584,
+          "shared_rows": 5,
+          "shared_weighted": 6
+        },
+        {
+          "form": "exercises",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.10849734395742416,
+          "other": 0.0460621640086174,
+          "shared_rows": 7,
+          "shared_weighted": 7
+        },
+        {
+          "form": "keys",
+          "exposure": 2,
+          "ok": true,
+          "own": 0.22177313268184662,
+          "other": 0.08070506155490875,
+          "shared_rows": 4,
+          "shared_weighted": 4
+        },
+        {
+          "form": "squirrels",
+          "exposure": 2,
+          "ok": true,
+          "own": 0.2314971387386322,
+          "other": 0.07377517223358154,
+          "shared_rows": 5,
+          "shared_weighted": 6
+        },
+        {
+          "form": "games",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.1274234503507614,
+          "other": 0.06765124946832657,
+          "shared_rows": 6,
+          "shared_weighted": 6
+        },
+        {
+          "form": "shoes",
+          "exposure": 4,
+          "ok": true,
+          "own": 0.6598165035247803,
+          "other": 0.038285188376903534,
+          "shared_rows": 4,
+          "shared_weighted": 5
+        },
+        {
+          "form": "mittens",
+          "exposure": 3,
+          "ok": true,
+          "own": 0.6893644332885742,
+          "other": 0.07215754687786102,
+          "shared_rows": 6,
+          "shared_weighted": 6
+        },
+        {
+          "form": "dollars",
+          "exposure": 2,
+          "ok": true,
+          "own": 0.2381609082221985,
+          "other": 0.03657687455415726,
+          "shared_rows": 2,
+          "shared_weighted": 2
+        }
+      ]
+    },
+    "44": {
+      "pl_acc": 0.5,
+      "sg_acc": 1,
+      "pl_rows": [
+        {
+          "form": "checkers",
+          "exposure": 4,
+          "ok": true,
+          "own": 0.6849433183670044,
+          "other": 0.03619995340704918,
+          "shared_rows": 3,
+          "shared_weighted": 3
+        },
+        {
+          "form": "toys",
+          "exposure": 5,
+          "ok": false,
+          "own": 0.02782619372010231,
+          "other": 0.04164119437336922,
+          "shared_rows": 5,
+          "shared_weighted": 6
+        },
+        {
+          "form": "men",
+          "exposure": 8,
+          "ok": false,
+          "own": 0.02681680954992771,
+          "other": 0.07701075822114944,
+          "shared_rows": 3,
+          "shared_weighted": 3
+        },
+        {
+          "form": "tools",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.027011100202798843,
+          "other": 0.04159326106309891,
+          "shared_rows": 5,
+          "shared_weighted": 5
+        },
+        {
+          "form": "feet",
+          "exposure": 9,
+          "ok": true,
+          "own": 0.9968534708023071,
+          "other": 0.07182199507951736,
+          "shared_rows": 4,
+          "shared_weighted": 5
+        },
+        {
+          "form": "clips",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.02960873767733574,
+          "other": 0.05898013710975647,
+          "shared_rows": 3,
+          "shared_weighted": 3
+        },
+        {
+          "form": "chipmunks",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.027440747246146202,
+          "other": 0.03701980784535408,
+          "shared_rows": 7,
+          "shared_weighted": 7
+        },
+        {
+          "form": "boots",
+          "exposure": 7,
+          "ok": true,
+          "own": 0.7578808069229126,
+          "other": 0.09409943968057632,
+          "shared_rows": 4,
+          "shared_weighted": 4
+        },
+        {
+          "form": "pictures",
+          "exposure": 2,
+          "ok": false,
+          "own": 0.028372015804052353,
+          "other": 0.04127519577741623,
+          "shared_rows": 3,
+          "shared_weighted": 3
+        },
+        {
+          "form": "scares",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.07138742506504059,
+          "other": 0.04496544227004051,
+          "shared_rows": 9,
+          "shared_weighted": 9
+        },
+        {
+          "form": "rocks",
+          "exposure": 2,
+          "ok": false,
+          "own": 0.06443682312965393,
+          "other": 0.096891850233078,
+          "shared_rows": 4,
+          "shared_weighted": 5
+        },
+        {
+          "form": "books",
+          "exposure": 6,
+          "ok": false,
+          "own": 0.02934793196618557,
+          "other": 0.037189412862062454,
+          "shared_rows": 6,
+          "shared_weighted": 6
+        },
+        {
+          "form": "children",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.024663306772708893,
+          "other": 0.03822117671370506,
+          "shared_rows": 3,
+          "shared_weighted": 3
+        },
+        {
+          "form": "beans",
+          "exposure": 3,
+          "ok": false,
+          "own": 0.026793109253048897,
+          "other": 0.04581144452095032,
+          "shared_rows": 3,
+          "shared_weighted": 4
+        },
+        {
+          "form": "nails",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.030033506453037262,
+          "other": 0.12019701302051544,
+          "shared_rows": 9,
+          "shared_weighted": 10
+        },
+        {
+          "form": "woods",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.02870972827076912,
+          "other": 0.05083569511771202,
+          "shared_rows": 12,
+          "shared_weighted": 15
+        },
+        {
+          "form": "records",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.028804630041122437,
+          "other": 0.1274837851524353,
+          "shared_rows": 10,
+          "shared_weighted": 10
+        },
+        {
+          "form": "pieces",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.030898824334144592,
+          "other": 0.09232580661773682,
+          "shared_rows": 3,
+          "shared_weighted": 6
+        },
+        {
+          "form": "pennies",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.027131889015436172,
+          "other": 0.04607251286506653,
+          "shared_rows": 4,
+          "shared_weighted": 4
+        },
+        {
+          "form": "sardines",
+          "exposure": 3,
+          "ok": false,
+          "own": 0.027842003852128983,
+          "other": 0.06479752063751221,
+          "shared_rows": 5,
+          "shared_weighted": 5
+        },
+        {
+          "form": "peas",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.025977419689297676,
+          "other": 0.05561031773686409,
+          "shared_rows": 6,
+          "shared_weighted": 6
+        },
+        {
+          "form": "horses",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.034993574023246765,
+          "other": 0.08960550278425217,
+          "shared_rows": 6,
+          "shared_weighted": 6
+        },
+        {
+          "form": "nuns",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.027982836589217186,
+          "other": 0.08405395597219467,
+          "shared_rows": 7,
+          "shared_weighted": 7
+        },
+        {
+          "form": "stars",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.027646590024232864,
+          "other": 0.06922852247953415,
+          "shared_rows": 4,
+          "shared_weighted": 4
+        },
+        {
+          "form": "tracks",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.02757135219871998,
+          "other": 0.050228334963321686,
+          "shared_rows": 10,
+          "shared_weighted": 11
+        },
+        {
+          "form": "trains",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.026906901970505714,
+          "other": 0.0455666221678257,
+          "shared_rows": 6,
+          "shared_weighted": 7
+        },
+        {
+          "form": "knees",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.026249952614307404,
+          "other": 0.07902402430772781,
+          "shared_rows": 5,
+          "shared_weighted": 6
+        },
+        {
+          "form": "pencils",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.10552434623241425,
+          "other": 0.0684526190161705,
+          "shared_rows": 9,
+          "shared_weighted": 12
+        },
+        {
+          "form": "plugs",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.10845672339200974,
+          "other": 0.058133259415626526,
+          "shared_rows": 2,
+          "shared_weighted": 2
+        },
+        {
+          "form": "cords",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.10247249156236649,
+          "other": 0.044464241713285446,
+          "shared_rows": 5,
+          "shared_weighted": 5
+        },
+        {
+          "form": "flowers",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.10612129420042038,
+          "other": 0.09557896107435226,
+          "shared_rows": 5,
+          "shared_weighted": 5
+        },
+        {
+          "form": "matches",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.10181502252817154,
+          "other": 0.06866656988859177,
+          "shared_rows": 8,
+          "shared_weighted": 11
+        },
+        {
+          "form": "doughnuts",
+          "exposure": 3,
+          "ok": true,
+          "own": 0.4814789295196533,
+          "other": 0.06711777299642563,
+          "shared_rows": 3,
+          "shared_weighted": 3
+        },
+        {
+          "form": "people",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.1064666360616684,
+          "other": 0.08933170139789581,
+          "shared_rows": 4,
+          "shared_weighted": 5
+        },
+        {
+          "form": "gloves",
+          "exposure": 4,
+          "ok": true,
+          "own": 0.5934335589408875,
+          "other": 0.037588465958833694,
+          "shared_rows": 4,
+          "shared_weighted": 4
+        },
+        {
+          "form": "dishes",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.10249392688274384,
+          "other": 0.04116364195942879,
+          "shared_rows": 6,
+          "shared_weighted": 6
+        },
+        {
+          "form": "spurs",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.12068218737840652,
+          "other": 0.050516389310359955,
+          "shared_rows": 4,
+          "shared_weighted": 4
+        },
+        {
+          "form": "plays",
+          "exposure": 2,
+          "ok": true,
+          "own": 0.16500437259674072,
+          "other": 0.09296811372041702,
+          "shared_rows": 7,
+          "shared_weighted": 10
+        },
+        {
+          "form": "pillows",
+          "exposure": 3,
+          "ok": true,
+          "own": 0.5840300917625427,
+          "other": 0.070311039686203,
+          "shared_rows": 4,
+          "shared_weighted": 4
+        },
+        {
+          "form": "exercises",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.1148843914270401,
+          "other": 0.07601144164800644,
+          "shared_rows": 3,
+          "shared_weighted": 3
+        },
+        {
+          "form": "keys",
+          "exposure": 2,
+          "ok": true,
+          "own": 0.2156737744808197,
+          "other": 0.041923314332962036,
+          "shared_rows": 6,
+          "shared_weighted": 7
+        },
+        {
+          "form": "squirrels",
+          "exposure": 2,
+          "ok": true,
+          "own": 0.19194048643112183,
+          "other": 0.044879503548145294,
+          "shared_rows": 4,
+          "shared_weighted": 5
+        },
+        {
+          "form": "games",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.11450310796499252,
+          "other": 0.04187764227390289,
+          "shared_rows": 6,
+          "shared_weighted": 6
+        },
+        {
+          "form": "shoes",
+          "exposure": 4,
+          "ok": true,
+          "own": 0.639410674571991,
+          "other": 0.0481698177754879,
+          "shared_rows": 5,
+          "shared_weighted": 5
+        },
+        {
+          "form": "mittens",
+          "exposure": 3,
+          "ok": true,
+          "own": 0.6860889196395874,
+          "other": 0.04156767204403877,
+          "shared_rows": 5,
+          "shared_weighted": 5
+        },
+        {
+          "form": "dollars",
+          "exposure": 2,
+          "ok": true,
+          "own": 0.1630019247531891,
+          "other": 0.03781915828585625,
+          "shared_rows": 3,
+          "shared_weighted": 3
+        }
+      ]
+    },
+    "45": {
+      "pl_acc": 0.021739130434782608,
+      "sg_acc": 0.9972451790633609,
+      "pl_rows": [
+        {
+          "form": "checkers",
+          "exposure": 4,
+          "ok": true,
+          "own": 0.678460419178009,
+          "other": 0.03602856770157814,
+          "shared_rows": 3,
+          "shared_weighted": 3
+        },
+        {
+          "form": "toys",
+          "exposure": 5,
+          "ok": false,
+          "own": 0.0,
+          "other": 0.03383883088827133,
+          "shared_rows": 5,
+          "shared_weighted": 5
+        },
+        {
+          "form": "men",
+          "exposure": 8,
+          "ok": false,
+          "own": 0.0,
+          "other": 0.06873556226491928,
+          "shared_rows": 7,
+          "shared_weighted": 7
+        },
+        {
+          "form": "tools",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.0,
+          "other": 0.041296254843473434,
+          "shared_rows": 5,
+          "shared_weighted": 5
+        },
+        {
+          "form": "feet",
+          "exposure": 9,
+          "ok": false,
+          "own": 0.0,
+          "other": 0.034934282302856445,
+          "shared_rows": 3,
+          "shared_weighted": 3
+        },
+        {
+          "form": "clips",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.0,
+          "other": 0.035605479031801224,
+          "shared_rows": 7,
+          "shared_weighted": 7
+        },
+        {
+          "form": "chipmunks",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.0,
+          "other": 0.055541668087244034,
+          "shared_rows": 9,
+          "shared_weighted": 9
+        },
+        {
+          "form": "boots",
+          "exposure": 7,
+          "ok": false,
+          "own": 0.0,
+          "other": 0.033626582473516464,
+          "shared_rows": 7,
+          "shared_weighted": 7
+        },
+        {
+          "form": "pictures",
+          "exposure": 2,
+          "ok": false,
+          "own": 0.0,
+          "other": 0.05658985301852226,
+          "shared_rows": 6,
+          "shared_weighted": 6
+        },
+        {
+          "form": "scares",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.0,
+          "other": 0.039906617254018784,
+          "shared_rows": 5,
+          "shared_weighted": 5
+        },
+        {
+          "form": "rocks",
+          "exposure": 2,
+          "ok": false,
+          "own": 0.0,
+          "other": 0.033240336924791336,
+          "shared_rows": 6,
+          "shared_weighted": 9
+        },
+        {
+          "form": "books",
+          "exposure": 6,
+          "ok": false,
+          "own": 0.0,
+          "other": 0.0578138493001461,
+          "shared_rows": 6,
+          "shared_weighted": 6
+        },
+        {
+          "form": "children",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.0,
+          "other": 0.043094929307699203,
+          "shared_rows": 7,
+          "shared_weighted": 8
+        },
+        {
+          "form": "beans",
+          "exposure": 3,
+          "ok": false,
+          "own": 0.0,
+          "other": 0.03502736985683441,
+          "shared_rows": 2,
+          "shared_weighted": 2
+        },
+        {
+          "form": "nails",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.0,
+          "other": 0.05480428412556648,
+          "shared_rows": 9,
+          "shared_weighted": 10
+        },
+        {
+          "form": "woods",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.0,
+          "other": 0.0660352036356926,
+          "shared_rows": 5,
+          "shared_weighted": 6
+        },
+        {
+          "form": "records",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.0,
+          "other": 0.05957809090614319,
+          "shared_rows": 7,
+          "shared_weighted": 7
+        },
+        {
+          "form": "pieces",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.0,
+          "other": 0.076763816177845,
+          "shared_rows": 7,
+          "shared_weighted": 7
+        },
+        {
+          "form": "pennies",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.0,
+          "other": 0.04802146553993225,
+          "shared_rows": 4,
+          "shared_weighted": 4
+        },
+        {
+          "form": "sardines",
+          "exposure": 3,
+          "ok": false,
+          "own": 0.0,
+          "other": 0.05337053909897804,
+          "shared_rows": 4,
+          "shared_weighted": 5
+        },
+        {
+          "form": "peas",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.0,
+          "other": 0.0794513002038002,
+          "shared_rows": 7,
+          "shared_weighted": 7
+        },
+        {
+          "form": "horses",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.0,
+          "other": 0.04371960461139679,
+          "shared_rows": 9,
+          "shared_weighted": 10
+        },
+        {
+          "form": "nuns",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.0,
+          "other": 0.03433637693524361,
+          "shared_rows": 7,
+          "shared_weighted": 7
+        },
+        {
+          "form": "stars",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.0,
+          "other": 0.03811931610107422,
+          "shared_rows": 4,
+          "shared_weighted": 5
+        },
+        {
+          "form": "tracks",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.0,
+          "other": 0.03485250473022461,
+          "shared_rows": 6,
+          "shared_weighted": 6
+        },
+        {
+          "form": "trains",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.0,
+          "other": 0.042009200900793076,
+          "shared_rows": 6,
+          "shared_weighted": 8
+        },
+        {
+          "form": "knees",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.0,
+          "other": 0.052924882620573044,
+          "shared_rows": 5,
+          "shared_weighted": 5
+        },
+        {
+          "form": "pencils",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.0,
+          "other": 0.06093510240316391,
+          "shared_rows": 8,
+          "shared_weighted": 10
+        },
+        {
+          "form": "plugs",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.0,
+          "other": 0.041068438440561295,
+          "shared_rows": 5,
+          "shared_weighted": 5
+        },
+        {
+          "form": "cords",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.0,
+          "other": 0.03484715521335602,
+          "shared_rows": 9,
+          "shared_weighted": 10
+        },
+        {
+          "form": "flowers",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.0,
+          "other": 0.06260879337787628,
+          "shared_rows": 10,
+          "shared_weighted": 10
+        },
+        {
+          "form": "matches",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.0,
+          "other": 0.07824818789958954,
+          "shared_rows": 10,
+          "shared_weighted": 11
+        },
+        {
+          "form": "doughnuts",
+          "exposure": 3,
+          "ok": false,
+          "own": 0.0,
+          "other": 0.03620452433824539,
+          "shared_rows": 5,
+          "shared_weighted": 5
+        },
+        {
+          "form": "people",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.0,
+          "other": 0.03384273871779442,
+          "shared_rows": 5,
+          "shared_weighted": 5
+        },
+        {
+          "form": "gloves",
+          "exposure": 4,
+          "ok": false,
+          "own": 0.0,
+          "other": 0.03767219930887222,
+          "shared_rows": 5,
+          "shared_weighted": 5
+        },
+        {
+          "form": "dishes",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.0,
+          "other": 0.062118735164403915,
+          "shared_rows": 5,
+          "shared_weighted": 5
+        },
+        {
+          "form": "spurs",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.0,
+          "other": 0.03740353137254715,
+          "shared_rows": 5,
+          "shared_weighted": 5
+        },
+        {
+          "form": "plays",
+          "exposure": 2,
+          "ok": false,
+          "own": 0.0,
+          "other": 0.0675341933965683,
+          "shared_rows": 6,
+          "shared_weighted": 6
+        },
+        {
+          "form": "pillows",
+          "exposure": 3,
+          "ok": false,
+          "own": 0.0,
+          "other": 0.03306632488965988,
+          "shared_rows": 5,
+          "shared_weighted": 6
+        },
+        {
+          "form": "exercises",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.0,
+          "other": 0.07154322415590286,
+          "shared_rows": 5,
+          "shared_weighted": 5
+        },
+        {
+          "form": "keys",
+          "exposure": 2,
+          "ok": false,
+          "own": 0.0,
+          "other": 0.04128100350499153,
+          "shared_rows": 4,
+          "shared_weighted": 5
+        },
+        {
+          "form": "squirrels",
+          "exposure": 2,
+          "ok": false,
+          "own": 0.0,
+          "other": 0.03588918223977089,
+          "shared_rows": 5,
+          "shared_weighted": 6
+        },
+        {
+          "form": "games",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.0,
+          "other": 0.07385090738534927,
+          "shared_rows": 7,
+          "shared_weighted": 8
+        },
+        {
+          "form": "shoes",
+          "exposure": 4,
+          "ok": false,
+          "own": 0.0,
+          "other": 0.04147856682538986,
+          "shared_rows": 5,
+          "shared_weighted": 5
+        },
+        {
+          "form": "mittens",
+          "exposure": 3,
+          "ok": false,
+          "own": 0.0,
+          "other": 0.07414813339710236,
+          "shared_rows": 4,
+          "shared_weighted": 5
+        },
+        {
+          "form": "dollars",
+          "exposure": 2,
+          "ok": false,
+          "own": 0.0,
+          "other": 0.03280801698565483,
+          "shared_rows": 3,
+          "shared_weighted": 3
+        }
+      ]
+    },
+    "46": {
+      "pl_acc": 0.717391304347826,
+      "sg_acc": 1,
+      "pl_rows": [
+        {
+          "form": "checkers",
+          "exposure": 4,
+          "ok": true,
+          "own": 0.6384090781211853,
+          "other": 0.03897598385810852,
+          "shared_rows": 4,
+          "shared_weighted": 4
+        },
+        {
+          "form": "toys",
+          "exposure": 5,
+          "ok": true,
+          "own": 0.6514652371406555,
+          "other": 0.05934695526957512,
+          "shared_rows": 3,
+          "shared_weighted": 3
+        },
+        {
+          "form": "men",
+          "exposure": 8,
+          "ok": true,
+          "own": 0.12827424705028534,
+          "other": 0.09868193417787552,
+          "shared_rows": 4,
+          "shared_weighted": 4
+        },
+        {
+          "form": "tools",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.03065430372953415,
+          "other": 0.10434171557426453,
+          "shared_rows": 7,
+          "shared_weighted": 7
+        },
+        {
+          "form": "feet",
+          "exposure": 9,
+          "ok": true,
+          "own": 0.7165387868881226,
+          "other": 0.04056091606616974,
+          "shared_rows": 2,
+          "shared_weighted": 2
+        },
+        {
+          "form": "clips",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.03294507786631584,
+          "other": 0.037138648331165314,
+          "shared_rows": 4,
+          "shared_weighted": 4
+        },
+        {
+          "form": "chipmunks",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.02822461538016796,
+          "other": 0.08468735218048096,
+          "shared_rows": 8,
+          "shared_weighted": 8
+        },
+        {
+          "form": "boots",
+          "exposure": 7,
+          "ok": true,
+          "own": 0.9361462593078613,
+          "other": 0.03722340241074562,
+          "shared_rows": 5,
+          "shared_weighted": 5
+        },
+        {
+          "form": "pictures",
+          "exposure": 2,
+          "ok": true,
+          "own": 0.11352211236953735,
+          "other": 0.08601689338684082,
+          "shared_rows": 6,
+          "shared_weighted": 6
+        },
+        {
+          "form": "scares",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.03247517719864845,
+          "other": 0.10602933168411255,
+          "shared_rows": 8,
+          "shared_weighted": 10
+        },
+        {
+          "form": "rocks",
+          "exposure": 2,
+          "ok": false,
+          "own": 0.037827782332897186,
+          "other": 0.11457748711109161,
+          "shared_rows": 7,
+          "shared_weighted": 7
+        },
+        {
+          "form": "books",
+          "exposure": 6,
+          "ok": true,
+          "own": 0.2951510548591614,
+          "other": 0.040592990815639496,
+          "shared_rows": 4,
+          "shared_weighted": 4
+        },
+        {
+          "form": "children",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.028105057775974274,
+          "other": 0.06772270053625107,
+          "shared_rows": 5,
+          "shared_weighted": 5
+        },
+        {
+          "form": "beans",
+          "exposure": 3,
+          "ok": true,
+          "own": 0.24154219031333923,
+          "other": 0.037481412291526794,
+          "shared_rows": 2,
+          "shared_weighted": 2
+        },
+        {
+          "form": "nails",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.03009590320289135,
+          "other": 0.044954024255275726,
+          "shared_rows": 6,
+          "shared_weighted": 6
+        },
+        {
+          "form": "woods",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.04088527336716652,
+          "other": 0.0679161548614502,
+          "shared_rows": 5,
+          "shared_weighted": 5
+        },
+        {
+          "form": "records",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.028245413675904274,
+          "other": 0.07431911677122116,
+          "shared_rows": 7,
+          "shared_weighted": 9
+        },
+        {
+          "form": "pieces",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.03073328174650669,
+          "other": 0.0830213725566864,
+          "shared_rows": 8,
+          "shared_weighted": 10
+        },
+        {
+          "form": "pennies",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.02966322749853134,
+          "other": 0.10157197713851929,
+          "shared_rows": 8,
+          "shared_weighted": 8
+        },
+        {
+          "form": "sardines",
+          "exposure": 3,
+          "ok": true,
+          "own": 0.6015101671218872,
+          "other": 0.042543426156044006,
+          "shared_rows": 5,
+          "shared_weighted": 5
+        },
+        {
+          "form": "peas",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.02994602918624878,
+          "other": 0.09134117513895035,
+          "shared_rows": 7,
+          "shared_weighted": 8
+        },
+        {
+          "form": "horses",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.09998513013124466,
+          "other": 0.06607344001531601,
+          "shared_rows": 7,
+          "shared_weighted": 8
+        },
+        {
+          "form": "nuns",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.11264313757419586,
+          "other": 0.03808259591460228,
+          "shared_rows": 4,
+          "shared_weighted": 4
+        },
+        {
+          "form": "stars",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.12161599844694138,
+          "other": 0.0405060239136219,
+          "shared_rows": 3,
+          "shared_weighted": 3
+        },
+        {
+          "form": "tracks",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.09019167721271515,
+          "other": 0.0931253656744957,
+          "shared_rows": 6,
+          "shared_weighted": 7
+        },
+        {
+          "form": "trains",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.1119687408208847,
+          "other": 0.07030892372131348,
+          "shared_rows": 4,
+          "shared_weighted": 4
+        },
+        {
+          "form": "knees",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.1096738651394844,
+          "other": 0.049957387149333954,
+          "shared_rows": 6,
+          "shared_weighted": 6
+        },
+        {
+          "form": "pencils",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.1109975278377533,
+          "other": 0.04083753004670143,
+          "shared_rows": 8,
+          "shared_weighted": 8
+        },
+        {
+          "form": "plugs",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.11788175255060196,
+          "other": 0.03919763118028641,
+          "shared_rows": 3,
+          "shared_weighted": 3
+        },
+        {
+          "form": "cords",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.11075587570667267,
+          "other": 0.050113778561353683,
+          "shared_rows": 9,
+          "shared_weighted": 10
+        },
+        {
+          "form": "flowers",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.09513834118843079,
+          "other": 0.05709458142518997,
+          "shared_rows": 9,
+          "shared_weighted": 9
+        },
+        {
+          "form": "matches",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.12228646874427795,
+          "other": 0.039743248373270035,
+          "shared_rows": 6,
+          "shared_weighted": 6
+        },
+        {
+          "form": "doughnuts",
+          "exposure": 3,
+          "ok": true,
+          "own": 0.640423595905304,
+          "other": 0.08264942467212677,
+          "shared_rows": 7,
+          "shared_weighted": 8
+        },
+        {
+          "form": "people",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.10437911003828049,
+          "other": 0.07248707115650177,
+          "shared_rows": 5,
+          "shared_weighted": 5
+        },
+        {
+          "form": "gloves",
+          "exposure": 4,
+          "ok": true,
+          "own": 0.4771881699562073,
+          "other": 0.03846757486462593,
+          "shared_rows": 2,
+          "shared_weighted": 2
+        },
+        {
+          "form": "dishes",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.12505501508712769,
+          "other": 0.05364751070737839,
+          "shared_rows": 6,
+          "shared_weighted": 6
+        },
+        {
+          "form": "spurs",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.10920718312263489,
+          "other": 0.06594230234622955,
+          "shared_rows": 4,
+          "shared_weighted": 4
+        },
+        {
+          "form": "plays",
+          "exposure": 2,
+          "ok": true,
+          "own": 0.22561383247375488,
+          "other": 0.04157227650284767,
+          "shared_rows": 2,
+          "shared_weighted": 2
+        },
+        {
+          "form": "pillows",
+          "exposure": 3,
+          "ok": true,
+          "own": 0.6172390580177307,
+          "other": 0.062203917652368546,
+          "shared_rows": 7,
+          "shared_weighted": 7
+        },
+        {
+          "form": "exercises",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.11311447620391846,
+          "other": 0.07204242050647736,
+          "shared_rows": 4,
+          "shared_weighted": 4
+        },
+        {
+          "form": "keys",
+          "exposure": 2,
+          "ok": true,
+          "own": 0.19125615060329437,
+          "other": 0.04498589038848877,
+          "shared_rows": 6,
+          "shared_weighted": 6
+        },
+        {
+          "form": "squirrels",
+          "exposure": 2,
+          "ok": true,
+          "own": 0.22524522244930267,
+          "other": 0.03871495649218559,
+          "shared_rows": 4,
+          "shared_weighted": 4
+        },
+        {
+          "form": "games",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.12146449089050293,
+          "other": 0.046006932854652405,
+          "shared_rows": 5,
+          "shared_weighted": 5
+        },
+        {
+          "form": "shoes",
+          "exposure": 4,
+          "ok": true,
+          "own": 0.502856433391571,
+          "other": 0.0604475736618042,
+          "shared_rows": 4,
+          "shared_weighted": 4
+        },
+        {
+          "form": "mittens",
+          "exposure": 3,
+          "ok": true,
+          "own": 0.5376386642456055,
+          "other": 0.048631295561790466,
+          "shared_rows": 4,
+          "shared_weighted": 4
+        },
+        {
+          "form": "dollars",
+          "exposure": 2,
+          "ok": true,
+          "own": 0.22962400317192078,
+          "other": 0.05060963332653046,
+          "shared_rows": 7,
+          "shared_weighted": 7
+        }
+      ]
+    },
+    "47": {
+      "pl_acc": 0.3695652173913043,
+      "sg_acc": 0.9972451790633609,
+      "pl_rows": [
+        {
+          "form": "checkers",
+          "exposure": 4,
+          "ok": true,
+          "own": 0.6056187748908997,
+          "other": 0.067677341401577,
+          "shared_rows": 2,
+          "shared_weighted": 2
+        },
+        {
+          "form": "toys",
+          "exposure": 5,
+          "ok": false,
+          "own": 0.028394790366292,
+          "other": 0.055930159986019135,
+          "shared_rows": 4,
+          "shared_weighted": 4
+        },
+        {
+          "form": "men",
+          "exposure": 8,
+          "ok": false,
+          "own": 0.026416022330522537,
+          "other": 0.04691594839096069,
+          "shared_rows": 5,
+          "shared_weighted": 5
+        },
+        {
+          "form": "tools",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.02760656177997589,
+          "other": 0.037762779742479324,
+          "shared_rows": 6,
+          "shared_weighted": 6
+        },
+        {
+          "form": "feet",
+          "exposure": 9,
+          "ok": true,
+          "own": 0.9766568541526794,
+          "other": 0.070688396692276,
+          "shared_rows": 2,
+          "shared_weighted": 2
+        },
+        {
+          "form": "clips",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.06703686714172363,
+          "other": 0.09139939397573471,
+          "shared_rows": 5,
+          "shared_weighted": 5
+        },
+        {
+          "form": "chipmunks",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.04971672594547272,
+          "other": 0.04079785570502281,
+          "shared_rows": 6,
+          "shared_weighted": 6
+        },
+        {
+          "form": "boots",
+          "exposure": 7,
+          "ok": true,
+          "own": 0.8851314187049866,
+          "other": 0.037215348333120346,
+          "shared_rows": 3,
+          "shared_weighted": 4
+        },
+        {
+          "form": "pictures",
+          "exposure": 2,
+          "ok": false,
+          "own": 0.02756008878350258,
+          "other": 0.06487701088190079,
+          "shared_rows": 9,
+          "shared_weighted": 10
+        },
+        {
+          "form": "scares",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.028203146532177925,
+          "other": 0.046474356204271317,
+          "shared_rows": 5,
+          "shared_weighted": 5
+        },
+        {
+          "form": "rocks",
+          "exposure": 2,
+          "ok": false,
+          "own": 0.026175254955887794,
+          "other": 0.03846102952957153,
+          "shared_rows": 5,
+          "shared_weighted": 5
+        },
+        {
+          "form": "books",
+          "exposure": 6,
+          "ok": false,
+          "own": 0.027351317927241325,
+          "other": 0.037276484072208405,
+          "shared_rows": 1,
+          "shared_weighted": 1
+        },
+        {
+          "form": "children",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.026937147602438927,
+          "other": 0.0930028036236763,
+          "shared_rows": 6,
+          "shared_weighted": 7
+        },
+        {
+          "form": "beans",
+          "exposure": 3,
+          "ok": false,
+          "own": 0.025023819878697395,
+          "other": 0.04158734157681465,
+          "shared_rows": 4,
+          "shared_weighted": 5
+        },
+        {
+          "form": "nails",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.026805909350514412,
+          "other": 0.04380083084106445,
+          "shared_rows": 4,
+          "shared_weighted": 4
+        },
+        {
+          "form": "woods",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.02642534300684929,
+          "other": 0.08637218177318573,
+          "shared_rows": 6,
+          "shared_weighted": 6
+        },
+        {
+          "form": "records",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.026388773694634438,
+          "other": 0.12634506821632385,
+          "shared_rows": 10,
+          "shared_weighted": 11
+        },
+        {
+          "form": "pieces",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.026440434157848358,
+          "other": 0.06841229647397995,
+          "shared_rows": 8,
+          "shared_weighted": 9
+        },
+        {
+          "form": "pennies",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.027633028104901314,
+          "other": 0.08570079505443573,
+          "shared_rows": 5,
+          "shared_weighted": 6
+        },
+        {
+          "form": "sardines",
+          "exposure": 3,
+          "ok": false,
+          "own": 0.02657388709485531,
+          "other": 0.04432567581534386,
+          "shared_rows": 2,
+          "shared_weighted": 2
+        },
+        {
+          "form": "peas",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.02798481285572052,
+          "other": 0.10472095012664795,
+          "shared_rows": 6,
+          "shared_weighted": 7
+        },
+        {
+          "form": "horses",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.02724493481218815,
+          "other": 0.0759119763970375,
+          "shared_rows": 7,
+          "shared_weighted": 7
+        },
+        {
+          "form": "nuns",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.025980185717344284,
+          "other": 0.11344825476408005,
+          "shared_rows": 9,
+          "shared_weighted": 9
+        },
+        {
+          "form": "stars",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.026960913091897964,
+          "other": 0.03776181489229202,
+          "shared_rows": 3,
+          "shared_weighted": 4
+        },
+        {
+          "form": "tracks",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.02733747288584709,
+          "other": 0.07964305579662323,
+          "shared_rows": 7,
+          "shared_weighted": 7
+        },
+        {
+          "form": "trains",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.02772480808198452,
+          "other": 0.046550899744033813,
+          "shared_rows": 9,
+          "shared_weighted": 9
+        },
+        {
+          "form": "knees",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.024762757122516632,
+          "other": 0.03643902391195297,
+          "shared_rows": 4,
+          "shared_weighted": 4
+        },
+        {
+          "form": "pencils",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.0266202874481678,
+          "other": 0.05400626361370087,
+          "shared_rows": 8,
+          "shared_weighted": 8
+        },
+        {
+          "form": "plugs",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.027200479060411453,
+          "other": 0.07017869502305984,
+          "shared_rows": 11,
+          "shared_weighted": 12
+        },
+        {
+          "form": "cords",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.02603278122842312,
+          "other": 0.09528247267007828,
+          "shared_rows": 12,
+          "shared_weighted": 17
+        },
+        {
+          "form": "flowers",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.02798401191830635,
+          "other": 0.10905488580465317,
+          "shared_rows": 4,
+          "shared_weighted": 4
+        },
+        {
+          "form": "matches",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.026826800778508186,
+          "other": 0.05692047253251076,
+          "shared_rows": 8,
+          "shared_weighted": 9
+        },
+        {
+          "form": "doughnuts",
+          "exposure": 3,
+          "ok": true,
+          "own": 0.10536908358335495,
+          "other": 0.037256378680467606,
+          "shared_rows": 4,
+          "shared_weighted": 5
+        },
+        {
+          "form": "people",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.10510820150375366,
+          "other": 0.07446229457855225,
+          "shared_rows": 9,
+          "shared_weighted": 10
+        },
+        {
+          "form": "gloves",
+          "exposure": 4,
+          "ok": true,
+          "own": 0.6069676876068115,
+          "other": 0.07799027860164642,
+          "shared_rows": 7,
+          "shared_weighted": 8
+        },
+        {
+          "form": "dishes",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.10024961829185486,
+          "other": 0.11752644926309586,
+          "shared_rows": 9,
+          "shared_weighted": 10
+        },
+        {
+          "form": "spurs",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.1136578917503357,
+          "other": 0.0690191313624382,
+          "shared_rows": 6,
+          "shared_weighted": 6
+        },
+        {
+          "form": "plays",
+          "exposure": 2,
+          "ok": true,
+          "own": 0.19425362348556519,
+          "other": 0.03814973309636116,
+          "shared_rows": 2,
+          "shared_weighted": 2
+        },
+        {
+          "form": "pillows",
+          "exposure": 3,
+          "ok": true,
+          "own": 0.38187912106513977,
+          "other": 0.05106829106807709,
+          "shared_rows": 6,
+          "shared_weighted": 6
+        },
+        {
+          "form": "exercises",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.10855471342802048,
+          "other": 0.08896712213754654,
+          "shared_rows": 11,
+          "shared_weighted": 13
+        },
+        {
+          "form": "keys",
+          "exposure": 2,
+          "ok": true,
+          "own": 0.19681046903133392,
+          "other": 0.03713532164692879,
+          "shared_rows": 4,
+          "shared_weighted": 5
+        },
+        {
+          "form": "squirrels",
+          "exposure": 2,
+          "ok": true,
+          "own": 0.1238730251789093,
+          "other": 0.037829019129276276,
+          "shared_rows": 5,
+          "shared_weighted": 6
+        },
+        {
+          "form": "games",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.11010593920946121,
+          "other": 0.042105432599782944,
+          "shared_rows": 4,
+          "shared_weighted": 4
+        },
+        {
+          "form": "shoes",
+          "exposure": 4,
+          "ok": true,
+          "own": 0.6688603162765503,
+          "other": 0.03870588541030884,
+          "shared_rows": 1,
+          "shared_weighted": 1
+        },
+        {
+          "form": "mittens",
+          "exposure": 3,
+          "ok": true,
+          "own": 0.5030343532562256,
+          "other": 0.04803255945444107,
+          "shared_rows": 4,
+          "shared_weighted": 4
+        },
+        {
+          "form": "dollars",
+          "exposure": 2,
+          "ok": true,
+          "own": 0.23863960802555084,
+          "other": 0.037080977112054825,
+          "shared_rows": 3,
+          "shared_weighted": 3
+        }
+      ]
+    },
+    "48": {
+      "pl_acc": 0.8478260869565217,
+      "sg_acc": 0.9917355371900827,
+      "pl_rows": [
+        {
+          "form": "checkers",
+          "exposure": 4,
+          "ok": true,
+          "own": 0.5541802644729614,
+          "other": 0.11677296459674835,
+          "shared_rows": 9,
+          "shared_weighted": 10
+        },
+        {
+          "form": "toys",
+          "exposure": 5,
+          "ok": true,
+          "own": 0.7242141962051392,
+          "other": 0.09352552145719528,
+          "shared_rows": 9,
+          "shared_weighted": 10
+        },
+        {
+          "form": "men",
+          "exposure": 8,
+          "ok": true,
+          "own": 0.8677300214767456,
+          "other": 0.08032006770372391,
+          "shared_rows": 5,
+          "shared_weighted": 5
+        },
+        {
+          "form": "tools",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.03082985244691372,
+          "other": 0.07616645842790604,
+          "shared_rows": 10,
+          "shared_weighted": 12
+        },
+        {
+          "form": "feet",
+          "exposure": 9,
+          "ok": true,
+          "own": 0.8953860402107239,
+          "other": 0.03704124689102173,
+          "shared_rows": 1,
+          "shared_weighted": 1
+        },
+        {
+          "form": "clips",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.031942032277584076,
+          "other": 0.08702500909566879,
+          "shared_rows": 7,
+          "shared_weighted": 7
+        },
+        {
+          "form": "chipmunks",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.029450539499521255,
+          "other": 0.07548794150352478,
+          "shared_rows": 7,
+          "shared_weighted": 8
+        },
+        {
+          "form": "boots",
+          "exposure": 7,
+          "ok": true,
+          "own": 0.6906485557556152,
+          "other": 0.0659811794757843,
+          "shared_rows": 8,
+          "shared_weighted": 10
+        },
+        {
+          "form": "pictures",
+          "exposure": 2,
+          "ok": true,
+          "own": 0.20695126056671143,
+          "other": 0.06496630609035492,
+          "shared_rows": 6,
+          "shared_weighted": 6
+        },
+        {
+          "form": "scares",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.091868095099926,
+          "other": 0.040904413908720016,
+          "shared_rows": 7,
+          "shared_weighted": 7
+        },
+        {
+          "form": "rocks",
+          "exposure": 2,
+          "ok": true,
+          "own": 0.21636614203453064,
+          "other": 0.13160353899002075,
+          "shared_rows": 7,
+          "shared_weighted": 7
+        },
+        {
+          "form": "books",
+          "exposure": 6,
+          "ok": true,
+          "own": 0.7928051948547363,
+          "other": 0.056643057614564896,
+          "shared_rows": 4,
+          "shared_weighted": 5
+        },
+        {
+          "form": "children",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.03092152625322342,
+          "other": 0.09025374054908752,
+          "shared_rows": 9,
+          "shared_weighted": 10
+        },
+        {
+          "form": "beans",
+          "exposure": 3,
+          "ok": true,
+          "own": 0.4225853383541107,
+          "other": 0.04588882252573967,
+          "shared_rows": 5,
+          "shared_weighted": 6
+        },
+        {
+          "form": "nails",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.11356780678033829,
+          "other": 0.06856567412614822,
+          "shared_rows": 9,
+          "shared_weighted": 9
+        },
+        {
+          "form": "woods",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.11718328297138214,
+          "other": 0.037059031426906586,
+          "shared_rows": 6,
+          "shared_weighted": 6
+        },
+        {
+          "form": "records",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.11129919439554214,
+          "other": 0.0663924589753151,
+          "shared_rows": 8,
+          "shared_weighted": 9
+        },
+        {
+          "form": "pieces",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.09776537865400314,
+          "other": 0.03930817171931267,
+          "shared_rows": 6,
+          "shared_weighted": 7
+        },
+        {
+          "form": "pennies",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.09267975389957428,
+          "other": 0.11726874113082886,
+          "shared_rows": 9,
+          "shared_weighted": 9
+        },
+        {
+          "form": "sardines",
+          "exposure": 3,
+          "ok": true,
+          "own": 0.5692921280860901,
+          "other": 0.0390205904841423,
+          "shared_rows": 5,
+          "shared_weighted": 5
+        },
+        {
+          "form": "peas",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.12571141123771667,
+          "other": 0.08625355362892151,
+          "shared_rows": 6,
+          "shared_weighted": 8
+        },
+        {
+          "form": "horses",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.08793888986110687,
+          "other": 0.05195597559213638,
+          "shared_rows": 8,
+          "shared_weighted": 10
+        },
+        {
+          "form": "nuns",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.10725773125886917,
+          "other": 0.0659979060292244,
+          "shared_rows": 5,
+          "shared_weighted": 6
+        },
+        {
+          "form": "stars",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.030567742884159088,
+          "other": 0.04001681134104729,
+          "shared_rows": 5,
+          "shared_weighted": 5
+        },
+        {
+          "form": "tracks",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.10300324857234955,
+          "other": 0.041470590978860855,
+          "shared_rows": 7,
+          "shared_weighted": 7
+        },
+        {
+          "form": "trains",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.10064727067947388,
+          "other": 0.11924320459365845,
+          "shared_rows": 5,
+          "shared_weighted": 5
+        },
+        {
+          "form": "knees",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.10909126698970795,
+          "other": 0.05546075850725174,
+          "shared_rows": 7,
+          "shared_weighted": 7
+        },
+        {
+          "form": "pencils",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.1122058629989624,
+          "other": 0.06389634311199188,
+          "shared_rows": 6,
+          "shared_weighted": 7
+        },
+        {
+          "form": "plugs",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.12108452618122101,
+          "other": 0.11850529164075851,
+          "shared_rows": 5,
+          "shared_weighted": 7
+        },
+        {
+          "form": "cords",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.11004245281219482,
+          "other": 0.04416210204362869,
+          "shared_rows": 8,
+          "shared_weighted": 8
+        },
+        {
+          "form": "flowers",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.1051727756857872,
+          "other": 0.04396938905119896,
+          "shared_rows": 5,
+          "shared_weighted": 7
+        },
+        {
+          "form": "matches",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.10896116495132446,
+          "other": 0.04745812341570854,
+          "shared_rows": 9,
+          "shared_weighted": 9
+        },
+        {
+          "form": "doughnuts",
+          "exposure": 3,
+          "ok": true,
+          "own": 0.45896434783935547,
+          "other": 0.06252516061067581,
+          "shared_rows": 7,
+          "shared_weighted": 7
+        },
+        {
+          "form": "people",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.10624922066926956,
+          "other": 0.03692654147744179,
+          "shared_rows": 4,
+          "shared_weighted": 4
+        },
+        {
+          "form": "gloves",
+          "exposure": 4,
+          "ok": true,
+          "own": 0.5145989060401917,
+          "other": 0.06393957138061523,
+          "shared_rows": 3,
+          "shared_weighted": 3
+        },
+        {
+          "form": "dishes",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.11299996823072433,
+          "other": 0.06330498307943344,
+          "shared_rows": 7,
+          "shared_weighted": 7
+        },
+        {
+          "form": "spurs",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.09909319132566452,
+          "other": 0.07764021307229996,
+          "shared_rows": 6,
+          "shared_weighted": 6
+        },
+        {
+          "form": "plays",
+          "exposure": 2,
+          "ok": true,
+          "own": 0.19905322790145874,
+          "other": 0.03810283914208412,
+          "shared_rows": 7,
+          "shared_weighted": 8
+        },
+        {
+          "form": "pillows",
+          "exposure": 3,
+          "ok": true,
+          "own": 0.4148150384426117,
+          "other": 0.03710445389151573,
+          "shared_rows": 4,
+          "shared_weighted": 5
+        },
+        {
+          "form": "exercises",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.10716418921947479,
+          "other": 0.05582862347364426,
+          "shared_rows": 10,
+          "shared_weighted": 12
+        },
+        {
+          "form": "keys",
+          "exposure": 2,
+          "ok": true,
+          "own": 0.22694143652915955,
+          "other": 0.03868437558412552,
+          "shared_rows": 8,
+          "shared_weighted": 10
+        },
+        {
+          "form": "squirrels",
+          "exposure": 2,
+          "ok": true,
+          "own": 0.190820574760437,
+          "other": 0.03687034919857979,
+          "shared_rows": 8,
+          "shared_weighted": 9
+        },
+        {
+          "form": "games",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.11675725877285004,
+          "other": 0.0954204797744751,
+          "shared_rows": 11,
+          "shared_weighted": 13
+        },
+        {
+          "form": "shoes",
+          "exposure": 4,
+          "ok": true,
+          "own": 0.4241660237312317,
+          "other": 0.05361182242631912,
+          "shared_rows": 7,
+          "shared_weighted": 8
+        },
+        {
+          "form": "mittens",
+          "exposure": 3,
+          "ok": true,
+          "own": 0.4527572691440582,
+          "other": 0.04649987816810608,
+          "shared_rows": 7,
+          "shared_weighted": 7
+        },
+        {
+          "form": "dollars",
+          "exposure": 2,
+          "ok": true,
+          "own": 0.24487623572349548,
+          "other": 0.050793327391147614,
+          "shared_rows": 4,
+          "shared_weighted": 5
+        }
+      ]
+    },
+    "49": {
+      "pl_acc": 0.7391304347826086,
+      "sg_acc": 1,
+      "pl_rows": [
+        {
+          "form": "checkers",
+          "exposure": 4,
+          "ok": true,
+          "own": 0.5702245235443115,
+          "other": 0.036805182695388794,
+          "shared_rows": 0,
+          "shared_weighted": 0
+        },
+        {
+          "form": "toys",
+          "exposure": 5,
+          "ok": true,
+          "own": 0.7603534460067749,
+          "other": 0.11450342833995819,
+          "shared_rows": 6,
+          "shared_weighted": 6
+        },
+        {
+          "form": "men",
+          "exposure": 8,
+          "ok": true,
+          "own": 0.3600045144557953,
+          "other": 0.043478354811668396,
+          "shared_rows": 2,
+          "shared_weighted": 2
+        },
+        {
+          "form": "tools",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.028023911640048027,
+          "other": 0.06430754065513611,
+          "shared_rows": 6,
+          "shared_weighted": 6
+        },
+        {
+          "form": "feet",
+          "exposure": 9,
+          "ok": true,
+          "own": 0.86320960521698,
+          "other": 0.05965954437851906,
+          "shared_rows": 3,
+          "shared_weighted": 3
+        },
+        {
+          "form": "clips",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.02948339842259884,
+          "other": 0.06653080135583878,
+          "shared_rows": 7,
+          "shared_weighted": 8
+        },
+        {
+          "form": "chipmunks",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.031292445957660675,
+          "other": 0.1311406046152115,
+          "shared_rows": 11,
+          "shared_weighted": 11
+        },
+        {
+          "form": "boots",
+          "exposure": 7,
+          "ok": true,
+          "own": 0.6833476424217224,
+          "other": 0.038420602679252625,
+          "shared_rows": 2,
+          "shared_weighted": 2
+        },
+        {
+          "form": "pictures",
+          "exposure": 2,
+          "ok": true,
+          "own": 0.09783153980970383,
+          "other": 0.07305508106946945,
+          "shared_rows": 7,
+          "shared_weighted": 8
+        },
+        {
+          "form": "scares",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.054118599742650986,
+          "other": 0.10511373728513718,
+          "shared_rows": 8,
+          "shared_weighted": 10
+        },
+        {
+          "form": "rocks",
+          "exposure": 2,
+          "ok": true,
+          "own": 0.11823567003011703,
+          "other": 0.039524421095848083,
+          "shared_rows": 5,
+          "shared_weighted": 5
+        },
+        {
+          "form": "books",
+          "exposure": 6,
+          "ok": true,
+          "own": 0.6081802248954773,
+          "other": 0.03922577202320099,
+          "shared_rows": 6,
+          "shared_weighted": 6
+        },
+        {
+          "form": "children",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.0927865132689476,
+          "other": 0.10767833888530731,
+          "shared_rows": 7,
+          "shared_weighted": 8
+        },
+        {
+          "form": "beans",
+          "exposure": 3,
+          "ok": true,
+          "own": 0.5103948712348938,
+          "other": 0.03826102241873741,
+          "shared_rows": 2,
+          "shared_weighted": 3
+        },
+        {
+          "form": "nails",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.08022495359182358,
+          "other": 0.0738445296883583,
+          "shared_rows": 6,
+          "shared_weighted": 7
+        },
+        {
+          "form": "woods",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.11246873438358307,
+          "other": 0.07922019809484482,
+          "shared_rows": 5,
+          "shared_weighted": 5
+        },
+        {
+          "form": "records",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.10515478998422623,
+          "other": 0.10681604593992233,
+          "shared_rows": 9,
+          "shared_weighted": 11
+        },
+        {
+          "form": "pieces",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.02821807563304901,
+          "other": 0.055902015417814255,
+          "shared_rows": 6,
+          "shared_weighted": 7
+        },
+        {
+          "form": "pennies",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.10189636796712875,
+          "other": 0.060384687036275864,
+          "shared_rows": 8,
+          "shared_weighted": 8
+        },
+        {
+          "form": "sardines",
+          "exposure": 3,
+          "ok": true,
+          "own": 0.547548234462738,
+          "other": 0.04187276214361191,
+          "shared_rows": 5,
+          "shared_weighted": 5
+        },
+        {
+          "form": "peas",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.0859399363398552,
+          "other": 0.08906741440296173,
+          "shared_rows": 11,
+          "shared_weighted": 14
+        },
+        {
+          "form": "horses",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.1118834838271141,
+          "other": 0.05145110562443733,
+          "shared_rows": 7,
+          "shared_weighted": 10
+        },
+        {
+          "form": "nuns",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.10737314820289612,
+          "other": 0.06612883508205414,
+          "shared_rows": 9,
+          "shared_weighted": 10
+        },
+        {
+          "form": "stars",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.1109648048877716,
+          "other": 0.04250257462263107,
+          "shared_rows": 3,
+          "shared_weighted": 3
+        },
+        {
+          "form": "tracks",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.08732961863279343,
+          "other": 0.053019434213638306,
+          "shared_rows": 8,
+          "shared_weighted": 8
+        },
+        {
+          "form": "trains",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.08194193989038467,
+          "other": 0.060175247490406036,
+          "shared_rows": 7,
+          "shared_weighted": 8
+        },
+        {
+          "form": "knees",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.11132021993398666,
+          "other": 0.07542414218187332,
+          "shared_rows": 6,
+          "shared_weighted": 7
+        },
+        {
+          "form": "pencils",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.10849975794553757,
+          "other": 0.11440422385931015,
+          "shared_rows": 9,
+          "shared_weighted": 11
+        },
+        {
+          "form": "plugs",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.10657396912574768,
+          "other": 0.1094072163105011,
+          "shared_rows": 8,
+          "shared_weighted": 9
+        },
+        {
+          "form": "cords",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.1012011468410492,
+          "other": 0.04241461306810379,
+          "shared_rows": 8,
+          "shared_weighted": 9
+        },
+        {
+          "form": "flowers",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.11064140498638153,
+          "other": 0.05043363198637962,
+          "shared_rows": 5,
+          "shared_weighted": 5
+        },
+        {
+          "form": "matches",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.030405918136239052,
+          "other": 0.047835253179073334,
+          "shared_rows": 6,
+          "shared_weighted": 6
+        },
+        {
+          "form": "doughnuts",
+          "exposure": 3,
+          "ok": true,
+          "own": 0.4712255597114563,
+          "other": 0.03752951696515083,
+          "shared_rows": 5,
+          "shared_weighted": 6
+        },
+        {
+          "form": "people",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.10398728400468826,
+          "other": 0.06408683955669403,
+          "shared_rows": 6,
+          "shared_weighted": 6
+        },
+        {
+          "form": "gloves",
+          "exposure": 4,
+          "ok": true,
+          "own": 0.5437389016151428,
+          "other": 0.04196929186582565,
+          "shared_rows": 9,
+          "shared_weighted": 10
+        },
+        {
+          "form": "dishes",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.10240588337182999,
+          "other": 0.11580017954111099,
+          "shared_rows": 8,
+          "shared_weighted": 8
+        },
+        {
+          "form": "spurs",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.10041138529777527,
+          "other": 0.07891020178794861,
+          "shared_rows": 10,
+          "shared_weighted": 11
+        },
+        {
+          "form": "plays",
+          "exposure": 2,
+          "ok": true,
+          "own": 0.20831583440303802,
+          "other": 0.0389523059129715,
+          "shared_rows": 7,
+          "shared_weighted": 7
+        },
+        {
+          "form": "pillows",
+          "exposure": 3,
+          "ok": true,
+          "own": 0.5459133386611938,
+          "other": 0.04348199442028999,
+          "shared_rows": 6,
+          "shared_weighted": 6
+        },
+        {
+          "form": "exercises",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.10155241191387177,
+          "other": 0.07576736062765121,
+          "shared_rows": 4,
+          "shared_weighted": 4
+        },
+        {
+          "form": "keys",
+          "exposure": 2,
+          "ok": true,
+          "own": 0.19876964390277863,
+          "other": 0.0712883397936821,
+          "shared_rows": 4,
+          "shared_weighted": 5
+        },
+        {
+          "form": "squirrels",
+          "exposure": 2,
+          "ok": true,
+          "own": 0.22910304367542267,
+          "other": 0.03676549717783928,
+          "shared_rows": 3,
+          "shared_weighted": 3
+        },
+        {
+          "form": "games",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.09724931418895721,
+          "other": 0.08797519654035568,
+          "shared_rows": 7,
+          "shared_weighted": 8
+        },
+        {
+          "form": "shoes",
+          "exposure": 4,
+          "ok": true,
+          "own": 0.6017842888832092,
+          "other": 0.0427515022456646,
+          "shared_rows": 5,
+          "shared_weighted": 5
+        },
+        {
+          "form": "mittens",
+          "exposure": 3,
+          "ok": true,
+          "own": 0.6950469017028809,
+          "other": 0.03951410576701164,
+          "shared_rows": 2,
+          "shared_weighted": 2
+        },
+        {
+          "form": "dollars",
+          "exposure": 2,
+          "ok": true,
+          "own": 0.18759769201278687,
+          "other": 0.11092374473810196,
+          "shared_rows": 6,
+          "shared_weighted": 6
+        }
+      ]
+    },
+    "50": {
+      "pl_acc": 0.8695652173913043,
+      "sg_acc": 0.9944903581267218,
+      "pl_rows": [
+        {
+          "form": "checkers",
+          "exposure": 4,
+          "ok": true,
+          "own": 0.5559505224227905,
+          "other": 0.10907347500324249,
+          "shared_rows": 7,
+          "shared_weighted": 7
+        },
+        {
+          "form": "toys",
+          "exposure": 5,
+          "ok": true,
+          "own": 0.6153796315193176,
+          "other": 0.07429077476263046,
+          "shared_rows": 5,
+          "shared_weighted": 6
+        },
+        {
+          "form": "men",
+          "exposure": 8,
+          "ok": true,
+          "own": 0.8795443177223206,
+          "other": 0.05091126263141632,
+          "shared_rows": 2,
+          "shared_weighted": 2
+        },
+        {
+          "form": "tools",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.09237750619649887,
+          "other": 0.1283176690340042,
+          "shared_rows": 7,
+          "shared_weighted": 7
+        },
+        {
+          "form": "feet",
+          "exposure": 9,
+          "ok": true,
+          "own": 0.7592571973800659,
+          "other": 0.062334123998880386,
+          "shared_rows": 3,
+          "shared_weighted": 3
+        },
+        {
+          "form": "clips",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.09381385892629623,
+          "other": 0.03895903006196022,
+          "shared_rows": 4,
+          "shared_weighted": 4
+        },
+        {
+          "form": "chipmunks",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.030593281611800194,
+          "other": 0.05329660326242447,
+          "shared_rows": 4,
+          "shared_weighted": 4
+        },
+        {
+          "form": "boots",
+          "exposure": 7,
+          "ok": true,
+          "own": 0.5843970775604248,
+          "other": 0.061051372438669205,
+          "shared_rows": 7,
+          "shared_weighted": 7
+        },
+        {
+          "form": "pictures",
+          "exposure": 2,
+          "ok": true,
+          "own": 0.2160070836544037,
+          "other": 0.04238690808415413,
+          "shared_rows": 5,
+          "shared_weighted": 5
+        },
+        {
+          "form": "scares",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.10125942528247833,
+          "other": 0.0856461301445961,
+          "shared_rows": 8,
+          "shared_weighted": 8
+        },
+        {
+          "form": "rocks",
+          "exposure": 2,
+          "ok": true,
+          "own": 0.15447944402694702,
+          "other": 0.03817778825759888,
+          "shared_rows": 6,
+          "shared_weighted": 7
+        },
+        {
+          "form": "books",
+          "exposure": 6,
+          "ok": true,
+          "own": 0.5891008973121643,
+          "other": 0.038651950657367706,
+          "shared_rows": 6,
+          "shared_weighted": 6
+        },
+        {
+          "form": "children",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.11149103939533234,
+          "other": 0.05449730157852173,
+          "shared_rows": 4,
+          "shared_weighted": 5
+        },
+        {
+          "form": "beans",
+          "exposure": 3,
+          "ok": true,
+          "own": 0.5004556179046631,
+          "other": 0.03966552019119263,
+          "shared_rows": 4,
+          "shared_weighted": 4
+        },
+        {
+          "form": "nails",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.09582351893186569,
+          "other": 0.050808049738407135,
+          "shared_rows": 9,
+          "shared_weighted": 11
+        },
+        {
+          "form": "woods",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.12401112914085388,
+          "other": 0.042352885007858276,
+          "shared_rows": 3,
+          "shared_weighted": 3
+        },
+        {
+          "form": "records",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.09975698590278625,
+          "other": 0.045084014534950256,
+          "shared_rows": 6,
+          "shared_weighted": 7
+        },
+        {
+          "form": "pieces",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.10965804755687714,
+          "other": 0.07256924360990524,
+          "shared_rows": 5,
+          "shared_weighted": 6
+        },
+        {
+          "form": "pennies",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.09371200203895569,
+          "other": 0.04125092178583145,
+          "shared_rows": 7,
+          "shared_weighted": 7
+        },
+        {
+          "form": "sardines",
+          "exposure": 3,
+          "ok": true,
+          "own": 0.6413363218307495,
+          "other": 0.037588607519865036,
+          "shared_rows": 4,
+          "shared_weighted": 4
+        },
+        {
+          "form": "peas",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.09194852411746979,
+          "other": 0.1322340965270996,
+          "shared_rows": 10,
+          "shared_weighted": 10
+        },
+        {
+          "form": "horses",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.1059245690703392,
+          "other": 0.11882664263248444,
+          "shared_rows": 11,
+          "shared_weighted": 13
+        },
+        {
+          "form": "nuns",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.10196668654680252,
+          "other": 0.0684206411242485,
+          "shared_rows": 7,
+          "shared_weighted": 7
+        },
+        {
+          "form": "stars",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.12087177485227585,
+          "other": 0.058660078793764114,
+          "shared_rows": 8,
+          "shared_weighted": 9
+        },
+        {
+          "form": "tracks",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.116789810359478,
+          "other": 0.09327070415019989,
+          "shared_rows": 8,
+          "shared_weighted": 9
+        },
+        {
+          "form": "trains",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.0923258364200592,
+          "other": 0.061174094676971436,
+          "shared_rows": 8,
+          "shared_weighted": 10
+        },
+        {
+          "form": "knees",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.032418813556432724,
+          "other": 0.040365882217884064,
+          "shared_rows": 4,
+          "shared_weighted": 4
+        },
+        {
+          "form": "pencils",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.12495095282793045,
+          "other": 0.09821213036775589,
+          "shared_rows": 7,
+          "shared_weighted": 9
+        },
+        {
+          "form": "plugs",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.09141087532043457,
+          "other": 0.08730164170265198,
+          "shared_rows": 7,
+          "shared_weighted": 7
+        },
+        {
+          "form": "cords",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.10911011695861816,
+          "other": 0.07444734871387482,
+          "shared_rows": 7,
+          "shared_weighted": 7
+        },
+        {
+          "form": "flowers",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.11483212560415268,
+          "other": 0.06958117336034775,
+          "shared_rows": 3,
+          "shared_weighted": 3
+        },
+        {
+          "form": "matches",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.11895495653152466,
+          "other": 0.044741153717041016,
+          "shared_rows": 7,
+          "shared_weighted": 7
+        },
+        {
+          "form": "doughnuts",
+          "exposure": 3,
+          "ok": true,
+          "own": 0.45283952355384827,
+          "other": 0.038805682212114334,
+          "shared_rows": 2,
+          "shared_weighted": 2
+        },
+        {
+          "form": "people",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.09939650446176529,
+          "other": 0.09298896789550781,
+          "shared_rows": 10,
+          "shared_weighted": 11
+        },
+        {
+          "form": "gloves",
+          "exposure": 4,
+          "ok": true,
+          "own": 0.6355332136154175,
+          "other": 0.04116499796509743,
+          "shared_rows": 5,
+          "shared_weighted": 5
+        },
+        {
+          "form": "dishes",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.11489001661539078,
+          "other": 0.10395003110170364,
+          "shared_rows": 6,
+          "shared_weighted": 7
+        },
+        {
+          "form": "spurs",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.09464428573846817,
+          "other": 0.1126478835940361,
+          "shared_rows": 11,
+          "shared_weighted": 12
+        },
+        {
+          "form": "plays",
+          "exposure": 2,
+          "ok": true,
+          "own": 0.1585153043270111,
+          "other": 0.0421881340444088,
+          "shared_rows": 4,
+          "shared_weighted": 4
+        },
+        {
+          "form": "pillows",
+          "exposure": 3,
+          "ok": true,
+          "own": 0.5848913788795471,
+          "other": 0.0373176708817482,
+          "shared_rows": 4,
+          "shared_weighted": 4
+        },
+        {
+          "form": "exercises",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.10733348876237869,
+          "other": 0.09570615738630295,
+          "shared_rows": 9,
+          "shared_weighted": 10
+        },
+        {
+          "form": "keys",
+          "exposure": 2,
+          "ok": true,
+          "own": 0.1930919736623764,
+          "other": 0.0696297362446785,
+          "shared_rows": 2,
+          "shared_weighted": 2
+        },
+        {
+          "form": "squirrels",
+          "exposure": 2,
+          "ok": true,
+          "own": 0.18677084147930145,
+          "other": 0.0397358275949955,
+          "shared_rows": 7,
+          "shared_weighted": 7
+        },
+        {
+          "form": "games",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.10564837604761124,
+          "other": 0.037505410611629486,
+          "shared_rows": 6,
+          "shared_weighted": 6
+        },
+        {
+          "form": "shoes",
+          "exposure": 4,
+          "ok": true,
+          "own": 0.6570209264755249,
+          "other": 0.04552506282925606,
+          "shared_rows": 8,
+          "shared_weighted": 9
+        },
+        {
+          "form": "mittens",
+          "exposure": 3,
+          "ok": true,
+          "own": 0.48385483026504517,
+          "other": 0.042888179421424866,
+          "shared_rows": 5,
+          "shared_weighted": 7
+        },
+        {
+          "form": "dollars",
+          "exposure": 2,
+          "ok": true,
+          "own": 0.20600064098834991,
+          "other": 0.08077878504991531,
+          "shared_rows": 7,
+          "shared_weighted": 11
+        }
+      ]
+    },
+    "51": {
+      "pl_acc": 0.9130434782608695,
+      "sg_acc": 1,
+      "pl_rows": [
+        {
+          "form": "checkers",
+          "exposure": 4,
+          "ok": true,
+          "own": 0.4786374270915985,
+          "other": 0.05616338923573494,
+          "shared_rows": 3,
+          "shared_weighted": 3
+        },
+        {
+          "form": "toys",
+          "exposure": 5,
+          "ok": true,
+          "own": 0.7148382067680359,
+          "other": 0.08991559594869614,
+          "shared_rows": 5,
+          "shared_weighted": 6
+        },
+        {
+          "form": "men",
+          "exposure": 8,
+          "ok": true,
+          "own": 0.8843923807144165,
+          "other": 0.04110041633248329,
+          "shared_rows": 1,
+          "shared_weighted": 1
+        },
+        {
+          "form": "tools",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.10664431005716324,
+          "other": 0.13073329627513885,
+          "shared_rows": 10,
+          "shared_weighted": 10
+        },
+        {
+          "form": "feet",
+          "exposure": 9,
+          "ok": true,
+          "own": 0.6555169820785522,
+          "other": 0.08107171952724457,
+          "shared_rows": 5,
+          "shared_weighted": 6
+        },
+        {
+          "form": "clips",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.1160816177725792,
+          "other": 0.09234527498483658,
+          "shared_rows": 10,
+          "shared_weighted": 11
+        },
+        {
+          "form": "chipmunks",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.10480623692274094,
+          "other": 0.03749597445130348,
+          "shared_rows": 9,
+          "shared_weighted": 9
+        },
+        {
+          "form": "boots",
+          "exposure": 7,
+          "ok": true,
+          "own": 0.5853363275527954,
+          "other": 0.05218726024031639,
+          "shared_rows": 3,
+          "shared_weighted": 4
+        },
+        {
+          "form": "pictures",
+          "exposure": 2,
+          "ok": true,
+          "own": 0.11617325991392136,
+          "other": 0.06484690308570862,
+          "shared_rows": 4,
+          "shared_weighted": 4
+        },
+        {
+          "form": "scares",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.03177443519234657,
+          "other": 0.07031578570604324,
+          "shared_rows": 3,
+          "shared_weighted": 3
+        },
+        {
+          "form": "rocks",
+          "exposure": 2,
+          "ok": true,
+          "own": 0.16697311401367188,
+          "other": 0.05268397927284241,
+          "shared_rows": 6,
+          "shared_weighted": 6
+        },
+        {
+          "form": "books",
+          "exposure": 6,
+          "ok": true,
+          "own": 0.624710202217102,
+          "other": 0.06506805866956711,
+          "shared_rows": 4,
+          "shared_weighted": 4
+        },
+        {
+          "form": "children",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.09608040750026703,
+          "other": 0.04714245721697807,
+          "shared_rows": 5,
+          "shared_weighted": 5
+        },
+        {
+          "form": "beans",
+          "exposure": 3,
+          "ok": true,
+          "own": 0.3231660723686218,
+          "other": 0.06508319824934006,
+          "shared_rows": 3,
+          "shared_weighted": 3
+        },
+        {
+          "form": "nails",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.10730043053627014,
+          "other": 0.043892767280340195,
+          "shared_rows": 7,
+          "shared_weighted": 7
+        },
+        {
+          "form": "woods",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.12281698733568192,
+          "other": 0.05605677142739296,
+          "shared_rows": 2,
+          "shared_weighted": 3
+        },
+        {
+          "form": "records",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.08984778821468353,
+          "other": 0.07698769867420197,
+          "shared_rows": 12,
+          "shared_weighted": 13
+        },
+        {
+          "form": "pieces",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.09824995696544647,
+          "other": 0.0907510370016098,
+          "shared_rows": 4,
+          "shared_weighted": 4
+        },
+        {
+          "form": "pennies",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.09790517389774323,
+          "other": 0.0643857941031456,
+          "shared_rows": 8,
+          "shared_weighted": 8
+        },
+        {
+          "form": "sardines",
+          "exposure": 3,
+          "ok": true,
+          "own": 0.593830406665802,
+          "other": 0.06653846800327301,
+          "shared_rows": 7,
+          "shared_weighted": 7
+        },
+        {
+          "form": "peas",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.09845177829265594,
+          "other": 0.060100007802248,
+          "shared_rows": 5,
+          "shared_weighted": 5
+        },
+        {
+          "form": "horses",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.12026968598365784,
+          "other": 0.049546971917152405,
+          "shared_rows": 9,
+          "shared_weighted": 10
+        },
+        {
+          "form": "nuns",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.10593663901090622,
+          "other": 0.04247572273015976,
+          "shared_rows": 7,
+          "shared_weighted": 9
+        },
+        {
+          "form": "stars",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.09773661196231842,
+          "other": 0.0846792459487915,
+          "shared_rows": 10,
+          "shared_weighted": 10
+        },
+        {
+          "form": "tracks",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.11050314456224442,
+          "other": 0.09929440170526505,
+          "shared_rows": 8,
+          "shared_weighted": 8
+        },
+        {
+          "form": "trains",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.11028698831796646,
+          "other": 0.06650228053331375,
+          "shared_rows": 8,
+          "shared_weighted": 11
+        },
+        {
+          "form": "knees",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.11749934405088425,
+          "other": 0.0458381325006485,
+          "shared_rows": 7,
+          "shared_weighted": 8
+        },
+        {
+          "form": "pencils",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.11498473584651947,
+          "other": 0.04506101459264755,
+          "shared_rows": 8,
+          "shared_weighted": 8
+        },
+        {
+          "form": "plugs",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.11680587381124496,
+          "other": 0.08294367790222168,
+          "shared_rows": 9,
+          "shared_weighted": 10
+        },
+        {
+          "form": "cords",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.114241823554039,
+          "other": 0.11843450367450714,
+          "shared_rows": 8,
+          "shared_weighted": 8
+        },
+        {
+          "form": "flowers",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.09977523982524872,
+          "other": 0.04250320419669151,
+          "shared_rows": 7,
+          "shared_weighted": 7
+        },
+        {
+          "form": "matches",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.11723849177360535,
+          "other": 0.08336212486028671,
+          "shared_rows": 4,
+          "shared_weighted": 5
+        },
+        {
+          "form": "doughnuts",
+          "exposure": 3,
+          "ok": true,
+          "own": 0.6100991368293762,
+          "other": 0.04144521802663803,
+          "shared_rows": 1,
+          "shared_weighted": 1
+        },
+        {
+          "form": "people",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.10537794977426529,
+          "other": 0.07288607954978943,
+          "shared_rows": 9,
+          "shared_weighted": 10
+        },
+        {
+          "form": "gloves",
+          "exposure": 4,
+          "ok": true,
+          "own": 0.6422537565231323,
+          "other": 0.04236984997987747,
+          "shared_rows": 2,
+          "shared_weighted": 2
+        },
+        {
+          "form": "dishes",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.02944307215511799,
+          "other": 0.038676247000694275,
+          "shared_rows": 2,
+          "shared_weighted": 2
+        },
+        {
+          "form": "spurs",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.11016492545604706,
+          "other": 0.0660601332783699,
+          "shared_rows": 7,
+          "shared_weighted": 8
+        },
+        {
+          "form": "plays",
+          "exposure": 2,
+          "ok": true,
+          "own": 0.1921873390674591,
+          "other": 0.06598221510648727,
+          "shared_rows": 2,
+          "shared_weighted": 2
+        },
+        {
+          "form": "pillows",
+          "exposure": 3,
+          "ok": true,
+          "own": 0.3381892442703247,
+          "other": 0.12137418985366821,
+          "shared_rows": 5,
+          "shared_weighted": 6
+        },
+        {
+          "form": "exercises",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.10989506542682648,
+          "other": 0.04181421175599098,
+          "shared_rows": 7,
+          "shared_weighted": 8
+        },
+        {
+          "form": "keys",
+          "exposure": 2,
+          "ok": true,
+          "own": 0.18342885375022888,
+          "other": 0.1019090786576271,
+          "shared_rows": 7,
+          "shared_weighted": 7
+        },
+        {
+          "form": "squirrels",
+          "exposure": 2,
+          "ok": true,
+          "own": 0.17651039361953735,
+          "other": 0.0830753892660141,
+          "shared_rows": 10,
+          "shared_weighted": 12
+        },
+        {
+          "form": "games",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.08730944246053696,
+          "other": 0.08420919626951218,
+          "shared_rows": 10,
+          "shared_weighted": 10
+        },
+        {
+          "form": "shoes",
+          "exposure": 4,
+          "ok": true,
+          "own": 0.5277435779571533,
+          "other": 0.038627997040748596,
+          "shared_rows": 4,
+          "shared_weighted": 4
+        },
+        {
+          "form": "mittens",
+          "exposure": 3,
+          "ok": true,
+          "own": 0.6180238723754883,
+          "other": 0.07300436496734619,
+          "shared_rows": 5,
+          "shared_weighted": 5
+        },
+        {
+          "form": "dollars",
+          "exposure": 2,
+          "ok": true,
+          "own": 0.23867003619670868,
+          "other": 0.046053946018218994,
+          "shared_rows": 9,
+          "shared_weighted": 9
+        }
+      ]
+    },
+    "52": {
+      "pl_acc": 0.8260869565217391,
+      "sg_acc": 0.9889807162534435,
+      "pl_rows": [
+        {
+          "form": "checkers",
+          "exposure": 4,
+          "ok": true,
+          "own": 0.5854239463806152,
+          "other": 0.06253983080387115,
+          "shared_rows": 4,
+          "shared_weighted": 4
+        },
+        {
+          "form": "toys",
+          "exposure": 5,
+          "ok": true,
+          "own": 0.6813727021217346,
+          "other": 0.07810954749584198,
+          "shared_rows": 8,
+          "shared_weighted": 8
+        },
+        {
+          "form": "men",
+          "exposure": 8,
+          "ok": true,
+          "own": 0.742356538772583,
+          "other": 0.058080270886421204,
+          "shared_rows": 3,
+          "shared_weighted": 3
+        },
+        {
+          "form": "tools",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.027803786098957062,
+          "other": 0.12085907906293869,
+          "shared_rows": 8,
+          "shared_weighted": 10
+        },
+        {
+          "form": "feet",
+          "exposure": 9,
+          "ok": true,
+          "own": 0.7622110843658447,
+          "other": 0.09989477694034576,
+          "shared_rows": 3,
+          "shared_weighted": 3
+        },
+        {
+          "form": "clips",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.03683033958077431,
+          "other": 0.08744371682405472,
+          "shared_rows": 7,
+          "shared_weighted": 8
+        },
+        {
+          "form": "chipmunks",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.031795039772987366,
+          "other": 0.13230058550834656,
+          "shared_rows": 8,
+          "shared_weighted": 8
+        },
+        {
+          "form": "boots",
+          "exposure": 7,
+          "ok": true,
+          "own": 0.5646569132804871,
+          "other": 0.03888680413365364,
+          "shared_rows": 2,
+          "shared_weighted": 2
+        },
+        {
+          "form": "pictures",
+          "exposure": 2,
+          "ok": true,
+          "own": 0.2084631621837616,
+          "other": 0.037995949387550354,
+          "shared_rows": 2,
+          "shared_weighted": 2
+        },
+        {
+          "form": "scares",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.0954078808426857,
+          "other": 0.08818281441926956,
+          "shared_rows": 9,
+          "shared_weighted": 10
+        },
+        {
+          "form": "rocks",
+          "exposure": 2,
+          "ok": true,
+          "own": 0.156558096408844,
+          "other": 0.040859490633010864,
+          "shared_rows": 2,
+          "shared_weighted": 2
+        },
+        {
+          "form": "books",
+          "exposure": 6,
+          "ok": true,
+          "own": 0.6928316354751587,
+          "other": 0.03758560121059418,
+          "shared_rows": 3,
+          "shared_weighted": 3
+        },
+        {
+          "form": "children",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.093121238052845,
+          "other": 0.08816196769475937,
+          "shared_rows": 9,
+          "shared_weighted": 10
+        },
+        {
+          "form": "beans",
+          "exposure": 3,
+          "ok": true,
+          "own": 0.5542057752609253,
+          "other": 0.06778661906719208,
+          "shared_rows": 6,
+          "shared_weighted": 7
+        },
+        {
+          "form": "nails",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.11229033768177032,
+          "other": 0.03844711557030678,
+          "shared_rows": 6,
+          "shared_weighted": 8
+        },
+        {
+          "form": "woods",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.09602266550064087,
+          "other": 0.06591526418924332,
+          "shared_rows": 8,
+          "shared_weighted": 9
+        },
+        {
+          "form": "records",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.10651733726263046,
+          "other": 0.05780556797981262,
+          "shared_rows": 7,
+          "shared_weighted": 7
+        },
+        {
+          "form": "pieces",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.030912967398762703,
+          "other": 0.05610563978552818,
+          "shared_rows": 6,
+          "shared_weighted": 7
+        },
+        {
+          "form": "pennies",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.03129478171467781,
+          "other": 0.07986639440059662,
+          "shared_rows": 8,
+          "shared_weighted": 9
+        },
+        {
+          "form": "sardines",
+          "exposure": 3,
+          "ok": true,
+          "own": 0.6010472178459167,
+          "other": 0.055178701877593994,
+          "shared_rows": 3,
+          "shared_weighted": 3
+        },
+        {
+          "form": "peas",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.11376689374446869,
+          "other": 0.0817960724234581,
+          "shared_rows": 5,
+          "shared_weighted": 6
+        },
+        {
+          "form": "horses",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.09350703656673431,
+          "other": 0.1067955493927002,
+          "shared_rows": 8,
+          "shared_weighted": 8
+        },
+        {
+          "form": "nuns",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.11324309557676315,
+          "other": 0.050770025700330734,
+          "shared_rows": 9,
+          "shared_weighted": 9
+        },
+        {
+          "form": "stars",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.0827317088842392,
+          "other": 0.09852084517478943,
+          "shared_rows": 8,
+          "shared_weighted": 9
+        },
+        {
+          "form": "tracks",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.10805708169937134,
+          "other": 0.06865726411342621,
+          "shared_rows": 5,
+          "shared_weighted": 5
+        },
+        {
+          "form": "trains",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.11240050196647644,
+          "other": 0.03880712389945984,
+          "shared_rows": 5,
+          "shared_weighted": 5
+        },
+        {
+          "form": "knees",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.10255832970142365,
+          "other": 0.03793457895517349,
+          "shared_rows": 9,
+          "shared_weighted": 10
+        },
+        {
+          "form": "pencils",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.11567903310060501,
+          "other": 0.04050150513648987,
+          "shared_rows": 4,
+          "shared_weighted": 4
+        },
+        {
+          "form": "plugs",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.03066510334610939,
+          "other": 0.04068769887089729,
+          "shared_rows": 5,
+          "shared_weighted": 7
+        },
+        {
+          "form": "cords",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.10795862972736359,
+          "other": 0.08015769720077515,
+          "shared_rows": 7,
+          "shared_weighted": 10
+        },
+        {
+          "form": "flowers",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.10548066347837448,
+          "other": 0.09178472310304642,
+          "shared_rows": 6,
+          "shared_weighted": 6
+        },
+        {
+          "form": "matches",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.09483718872070312,
+          "other": 0.06552036851644516,
+          "shared_rows": 5,
+          "shared_weighted": 5
+        },
+        {
+          "form": "doughnuts",
+          "exposure": 3,
+          "ok": true,
+          "own": 0.5605558156967163,
+          "other": 0.06458219140768051,
+          "shared_rows": 5,
+          "shared_weighted": 5
+        },
+        {
+          "form": "people",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.11153452843427658,
+          "other": 0.08803638815879822,
+          "shared_rows": 4,
+          "shared_weighted": 4
+        },
+        {
+          "form": "gloves",
+          "exposure": 4,
+          "ok": true,
+          "own": 0.6258153915405273,
+          "other": 0.039645716547966,
+          "shared_rows": 1,
+          "shared_weighted": 1
+        },
+        {
+          "form": "dishes",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.11465251445770264,
+          "other": 0.042020559310913086,
+          "shared_rows": 4,
+          "shared_weighted": 4
+        },
+        {
+          "form": "spurs",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.1120080053806305,
+          "other": 0.07754332572221756,
+          "shared_rows": 5,
+          "shared_weighted": 5
+        },
+        {
+          "form": "plays",
+          "exposure": 2,
+          "ok": true,
+          "own": 0.20540237426757812,
+          "other": 0.11217878758907318,
+          "shared_rows": 3,
+          "shared_weighted": 5
+        },
+        {
+          "form": "pillows",
+          "exposure": 3,
+          "ok": true,
+          "own": 0.4035097360610962,
+          "other": 0.037797749042510986,
+          "shared_rows": 5,
+          "shared_weighted": 5
+        },
+        {
+          "form": "exercises",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.09196245670318604,
+          "other": 0.07582259178161621,
+          "shared_rows": 5,
+          "shared_weighted": 6
+        },
+        {
+          "form": "keys",
+          "exposure": 2,
+          "ok": true,
+          "own": 0.17371658980846405,
+          "other": 0.10446834564208984,
+          "shared_rows": 4,
+          "shared_weighted": 4
+        },
+        {
+          "form": "squirrels",
+          "exposure": 2,
+          "ok": true,
+          "own": 0.2205066829919815,
+          "other": 0.04450209438800812,
+          "shared_rows": 7,
+          "shared_weighted": 8
+        },
+        {
+          "form": "games",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.1063687652349472,
+          "other": 0.038957629352808,
+          "shared_rows": 5,
+          "shared_weighted": 5
+        },
+        {
+          "form": "shoes",
+          "exposure": 4,
+          "ok": true,
+          "own": 0.558904767036438,
+          "other": 0.11332277953624725,
+          "shared_rows": 7,
+          "shared_weighted": 8
+        },
+        {
+          "form": "mittens",
+          "exposure": 3,
+          "ok": true,
+          "own": 0.5456226468086243,
+          "other": 0.10622178018093109,
+          "shared_rows": 7,
+          "shared_weighted": 9
+        },
+        {
+          "form": "dollars",
+          "exposure": 2,
+          "ok": true,
+          "own": 0.17294885218143463,
+          "other": 0.028839079663157463,
+          "shared_rows": 4,
+          "shared_weighted": 4
+        }
+      ]
+    },
+    "53": {
+      "pl_acc": 0.9130434782608695,
+      "sg_acc": 0.9944903581267218,
+      "pl_rows": [
+        {
+          "form": "checkers",
+          "exposure": 4,
+          "ok": true,
+          "own": 0.5711818933486938,
+          "other": 0.06931796669960022,
+          "shared_rows": 4,
+          "shared_weighted": 4
+        },
+        {
+          "form": "toys",
+          "exposure": 5,
+          "ok": true,
+          "own": 0.6050886511802673,
+          "other": 0.10959098488092422,
+          "shared_rows": 6,
+          "shared_weighted": 6
+        },
+        {
+          "form": "men",
+          "exposure": 8,
+          "ok": true,
+          "own": 0.8564776182174683,
+          "other": 0.04514177888631821,
+          "shared_rows": 5,
+          "shared_weighted": 5
+        },
+        {
+          "form": "tools",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.03107716329395771,
+          "other": 0.08413879573345184,
+          "shared_rows": 6,
+          "shared_weighted": 6
+        },
+        {
+          "form": "feet",
+          "exposure": 9,
+          "ok": true,
+          "own": 0.9421777129173279,
+          "other": 0.09060755372047424,
+          "shared_rows": 7,
+          "shared_weighted": 8
+        },
+        {
+          "form": "clips",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.05543128401041031,
+          "other": 0.05659487470984459,
+          "shared_rows": 4,
+          "shared_weighted": 4
+        },
+        {
+          "form": "chipmunks",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.03196725621819496,
+          "other": 0.07772877812385559,
+          "shared_rows": 5,
+          "shared_weighted": 5
+        },
+        {
+          "form": "boots",
+          "exposure": 7,
+          "ok": true,
+          "own": 0.7280177474021912,
+          "other": 0.12110060453414917,
+          "shared_rows": 7,
+          "shared_weighted": 9
+        },
+        {
+          "form": "pictures",
+          "exposure": 2,
+          "ok": true,
+          "own": 0.17616692185401917,
+          "other": 0.04179222881793976,
+          "shared_rows": 4,
+          "shared_weighted": 5
+        },
+        {
+          "form": "scares",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.10937422513961792,
+          "other": 0.041570913046598434,
+          "shared_rows": 5,
+          "shared_weighted": 5
+        },
+        {
+          "form": "rocks",
+          "exposure": 2,
+          "ok": true,
+          "own": 0.11435826867818832,
+          "other": 0.057800475507974625,
+          "shared_rows": 6,
+          "shared_weighted": 6
+        },
+        {
+          "form": "books",
+          "exposure": 6,
+          "ok": true,
+          "own": 0.6430850028991699,
+          "other": 0.03998178616166115,
+          "shared_rows": 4,
+          "shared_weighted": 4
+        },
+        {
+          "form": "children",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.10049406439065933,
+          "other": 0.036750104278326035,
+          "shared_rows": 4,
+          "shared_weighted": 4
+        },
+        {
+          "form": "beans",
+          "exposure": 3,
+          "ok": true,
+          "own": 0.7110838294029236,
+          "other": 0.05646759644150734,
+          "shared_rows": 4,
+          "shared_weighted": 4
+        },
+        {
+          "form": "nails",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.09979663789272308,
+          "other": 0.06897156685590744,
+          "shared_rows": 10,
+          "shared_weighted": 11
+        },
+        {
+          "form": "woods",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.10156082361936569,
+          "other": 0.09670024365186691,
+          "shared_rows": 6,
+          "shared_weighted": 6
+        },
+        {
+          "form": "records",
+          "exposure": 1,
+          "ok": false,
+          "own": 0.032108865678310394,
+          "other": 0.06662160903215408,
+          "shared_rows": 5,
+          "shared_weighted": 5
+        },
+        {
+          "form": "pieces",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.10452935099601746,
+          "other": 0.06366628408432007,
+          "shared_rows": 4,
+          "shared_weighted": 4
+        },
+        {
+          "form": "pennies",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.11512298136949539,
+          "other": 0.04358503222465515,
+          "shared_rows": 3,
+          "shared_weighted": 3
+        },
+        {
+          "form": "sardines",
+          "exposure": 3,
+          "ok": true,
+          "own": 0.5913599729537964,
+          "other": 0.05819245055317879,
+          "shared_rows": 3,
+          "shared_weighted": 3
+        },
+        {
+          "form": "peas",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.11611726880073547,
+          "other": 0.04195430129766464,
+          "shared_rows": 3,
+          "shared_weighted": 4
+        },
+        {
+          "form": "horses",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.10929469764232635,
+          "other": 0.08166185021400452,
+          "shared_rows": 5,
+          "shared_weighted": 5
+        },
+        {
+          "form": "nuns",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.1031130775809288,
+          "other": 0.05940829962491989,
+          "shared_rows": 7,
+          "shared_weighted": 10
+        },
+        {
+          "form": "stars",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.10906527936458588,
+          "other": 0.0552670955657959,
+          "shared_rows": 7,
+          "shared_weighted": 7
+        },
+        {
+          "form": "tracks",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.1015005111694336,
+          "other": 0.0746028795838356,
+          "shared_rows": 11,
+          "shared_weighted": 11
+        },
+        {
+          "form": "trains",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.10457157343626022,
+          "other": 0.058949440717697144,
+          "shared_rows": 5,
+          "shared_weighted": 5
+        },
+        {
+          "form": "knees",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.1214492991566658,
+          "other": 0.07949057221412659,
+          "shared_rows": 8,
+          "shared_weighted": 9
+        },
+        {
+          "form": "pencils",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.10759566724300385,
+          "other": 0.038564085960388184,
+          "shared_rows": 4,
+          "shared_weighted": 4
+        },
+        {
+          "form": "plugs",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.10878585278987885,
+          "other": 0.04354659840464592,
+          "shared_rows": 7,
+          "shared_weighted": 7
+        },
+        {
+          "form": "cords",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.11284106224775314,
+          "other": 0.04292452335357666,
+          "shared_rows": 5,
+          "shared_weighted": 7
+        },
+        {
+          "form": "flowers",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.11953824013471603,
+          "other": 0.05451161041855812,
+          "shared_rows": 7,
+          "shared_weighted": 8
+        },
+        {
+          "form": "matches",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.09625604003667831,
+          "other": 0.04340847581624985,
+          "shared_rows": 5,
+          "shared_weighted": 6
+        },
+        {
+          "form": "doughnuts",
+          "exposure": 3,
+          "ok": true,
+          "own": 0.40203791856765747,
+          "other": 0.03905300423502922,
+          "shared_rows": 3,
+          "shared_weighted": 3
+        },
+        {
+          "form": "people",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.11258170753717422,
+          "other": 0.06370704621076584,
+          "shared_rows": 6,
+          "shared_weighted": 7
+        },
+        {
+          "form": "gloves",
+          "exposure": 4,
+          "ok": true,
+          "own": 0.6803804636001587,
+          "other": 0.04813402518630028,
+          "shared_rows": 6,
+          "shared_weighted": 6
+        },
+        {
+          "form": "dishes",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.1018422469496727,
+          "other": 0.09915589541196823,
+          "shared_rows": 6,
+          "shared_weighted": 6
+        },
+        {
+          "form": "spurs",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.10659679025411606,
+          "other": 0.0643020048737526,
+          "shared_rows": 7,
+          "shared_weighted": 7
+        },
+        {
+          "form": "plays",
+          "exposure": 2,
+          "ok": true,
+          "own": 0.19284676015377045,
+          "other": 0.07651468366384506,
+          "shared_rows": 8,
+          "shared_weighted": 8
+        },
+        {
+          "form": "pillows",
+          "exposure": 3,
+          "ok": true,
+          "own": 0.38469552993774414,
+          "other": 0.03741276264190674,
+          "shared_rows": 2,
+          "shared_weighted": 2
+        },
+        {
+          "form": "exercises",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.10514647513628006,
+          "other": 0.07844173163175583,
+          "shared_rows": 8,
+          "shared_weighted": 8
+        },
+        {
+          "form": "keys",
+          "exposure": 2,
+          "ok": true,
+          "own": 0.18531806766986847,
+          "other": 0.06806305050849915,
+          "shared_rows": 7,
+          "shared_weighted": 9
+        },
+        {
+          "form": "squirrels",
+          "exposure": 2,
+          "ok": true,
+          "own": 0.21762695908546448,
+          "other": 0.03693929314613342,
+          "shared_rows": 2,
+          "shared_weighted": 2
+        },
+        {
+          "form": "games",
+          "exposure": 1,
+          "ok": true,
+          "own": 0.12118738144636154,
+          "other": 0.09277226030826569,
+          "shared_rows": 10,
+          "shared_weighted": 12
+        },
+        {
+          "form": "shoes",
+          "exposure": 4,
+          "ok": true,
+          "own": 0.5159611105918884,
+          "other": 0.04022013396024704,
+          "shared_rows": 5,
+          "shared_weighted": 5
+        },
+        {
+          "form": "mittens",
+          "exposure": 3,
+          "ok": true,
+          "own": 0.5348305106163025,
+          "other": 0.06520414352416992,
+          "shared_rows": 5,
+          "shared_weighted": 5
+        },
+        {
+          "form": "dollars",
+          "exposure": 2,
+          "ok": true,
+          "own": 0.22192133963108063,
+          "other": 0.07159674167633057,
+          "shared_rows": 6,
+          "shared_weighted": 7
+        }
+      ]
+    }
+  },
+  "analysis": {
+    "A1_split_half_word_corr": 0.5188795920578284,
+    "A1_exposure_vs_failure": -0.6121676036716531,
+    "A2_drive_medians": {
+      "own_fail": 0.02703137882053852,
+      "own_pass": 0.12505501508712769,
+      "other_fail": 0.06093510240316391,
+      "other_pass": 0.056781500577926636
+    },
+    "A3_collision_vs_correct": {
+      "per_seed": [
+        0.1087709854779841,
+        -0.15082102675336653,
+        -0.1625108973331553,
+        -0.2362467141030783,
+        -0.4597766880950388,
+        -0.27506617270143185,
+        -0.09705539291688099,
+        -0.4866558383272893,
+        -0.18250754075678635,
+        0.07592608307701415,
+        -0.3830541247917012,
+        0.13204538548352707
+      ],
+      "mean": -0.1764126618116836,
+      "ci": 0.13271052177610118
+    },
+    "A4_pl_distribution": [
+      0.022,
+      0.283,
+      0.37,
+      0.5,
+      0.717,
+      0.739,
+      0.826,
+      0.848,
+      0.87,
+      0.891,
+      0.913,
+      0.913
+    ],
+    "A4_cross_n_corr": 0.15389675281277312,
+    "A4_cross_n_seeds": 5
+  }
+}
