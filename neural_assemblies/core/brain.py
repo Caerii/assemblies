@@ -82,7 +82,7 @@ class Brain:
       Language Organ." 2023.
     """
 
-    def __init__(self, p: float = DEFAULT_P, save_size: bool = True, save_winners: bool = False, seed: int = 0, w_max: float = DEFAULT_W_MAX, engine="auto", deterministic: bool = False, n_hint: int = 0, projection_fidelity: str = "exact", inhibitory_prob: float = 0.0, inhibitory_weight: float = -0.2, synaptic_scaling: "bool | frozenset | set | tuple" = False, recurrent_projection: bool = False, norm_init: bool = True):
+    def __init__(self, p: float = DEFAULT_P, save_size: bool = True, save_winners: bool = False, seed: int = 0, w_max: float = DEFAULT_W_MAX, engine="auto", deterministic: bool = False, n_hint: int = 0, projection_fidelity: str = "exact", inhibitory_prob: float = 0.0, inhibitory_weight: float = -0.2, synaptic_scaling: "bool | frozenset | set | tuple" = False, synaptic_scaling_deferred: bool = False, recurrent_projection: bool = False, norm_init: bool = True):
         """
         Initialize a neural assembly brain simulation.
 
@@ -185,6 +185,8 @@ class Brain:
             # only (see NumpySparseEngine._normalize_area_columns).
             if synaptic_scaling:
                 engine_kwargs["synaptic_scaling"] = synaptic_scaling
+                if synaptic_scaling_deferred:
+                    engine_kwargs["synaptic_scaling_deferred"] = True
             # FORWARDED ONLY WHEN TRUE, so `numpy_explicit` -- whose
             # constructor does not accept it -- is unaffected. The invariant
             # that makes this safe: OMISSION MEANS FALSE, so every engine that
@@ -217,6 +219,7 @@ class Brain:
         # Prerequisite for self-recurrence; see project_rounds.
         self.norm_init: bool = norm_init
         self._synaptic_scaling: bool = synaptic_scaling
+        self._synaptic_scaling_deferred: bool = synaptic_scaling_deferred
         # Apply target self-recurrence in the project_rounds fast path.
         # Only safe together with norm_init (see project_rounds).
         self.recurrent_projection: bool = recurrent_projection

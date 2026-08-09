@@ -405,6 +405,7 @@ class NumpySparseEngine(ComputeEngine):
                  inhibitory_prob: float = 0.0,
                  inhibitory_weight: float = -0.2,
                  synaptic_scaling: "bool | frozenset | set | tuple" = False,
+                 synaptic_scaling_deferred: bool = False,
                  norm_init: bool = False):
         self.p = p
         self.w_max = w_max
@@ -429,6 +430,10 @@ class NumpySparseEngine(ComputeEngine):
             synaptic_scaling if isinstance(synaptic_scaling, bool)
             else frozenset(synaptic_scaling)
         )
+        # E9 (#138): defer scaling to flush_synaptic_scaling() at phase
+        # boundaries -- fast Hebbian inside a slowly renormalized envelope.
+        self.synaptic_scaling_deferred = synaptic_scaling_deferred
+        self._pending_scaling: dict = {}
         # One-time incoming-weight normalization (Dabagia et al. reference
         # `norm_init`).  See _norm_scale for the lazy-materialization
         # formulation and why it is exactly equivalent.
@@ -2248,6 +2253,23 @@ class NumpySparseEngine(ComputeEngine):
             return
         if ss is not True and target not in ss:
             return
+        # SLOW HOMEOSTASIS (E9, #138): biological synaptic scaling operates
+        # over hours-to-days, segregated from fast Hebbian plasticity --
+        # and E8 measured why: per-update renormalization fights repeated
+        # writes seed-bistably (variance +/-0.058 -> +/-0.120 under
+        # repetition). Deferred mode ACCUMULATES touched columns and
+        # normalizes only at flush_synaptic_scaling() (called by trainers
+        # at phase boundaries): fast Hebbian inside a slowly renormalized
+        # envelope. Default False = per-update, byte-identical.
+        if getattr(self, "synaptic_scaling_deferred", False):
+            pending = self._pending_scaling
+            for src_name in from_areas:
+                pending.setdefault((src_name, target), set()).update(
+                    int(c) for c in winners)
+            return
+        self._scale_columns_now(target, from_areas, winners)
+
+    def _scale_columns_now(self, target, from_areas, winners):
         xp = self._xp
         cols = xp.asarray(winners, dtype=xp.int64)
         for src_name in from_areas:
@@ -2273,6 +2295,25 @@ class NumpySparseEngine(ComputeEngine):
             safe = xp.where(xp.abs(sums) > 1e-12, sums, 1.0)
             scale = xp.where(xp.abs(sums) > 1e-12, setpoint / safe, 1.0)
             w[:rows, valid] = sub * scale
+
+    def flush_synaptic_scaling(self) -> int:
+        """Apply deferred homeostatic scaling to every touched column.
+
+        The slow half of the fast/slow separation (see
+        _normalize_area_columns). Setpoints use the areas' CURRENT logical
+        sizes -- slow homeostasis regulates the state as it stands at the
+        boundary, which is the semantics the timescale argument wants.
+        Returns the number of (src, tgt) fibers scaled.
+        """
+        pending = getattr(self, "_pending_scaling", None)
+        if not pending:
+            return 0
+        n = 0
+        for (src_name, target), cols in pending.items():
+            self._scale_columns_now(target, [src_name], sorted(cols))
+            n += 1
+        pending.clear()
+        return n
 
     def _apply_plasticity(self, target, from_stimuli, from_areas, winners):
         """Hebbian learning: w *= (1 + beta), clamped at w_max."""

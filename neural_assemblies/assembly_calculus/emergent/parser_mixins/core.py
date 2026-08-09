@@ -127,6 +127,7 @@ class CoreParserMixin(
                  norm_init: Optional[bool] = None,
                  vocabulary: Optional[Dict[str, GroundingContext]] = None,
                  synaptic_scaling=False,
+                 synaptic_scaling_deferred: bool = False,
                  novelty_gain_max: float = 1.0,
                  novelty_gain_exp: float = 0.5):
         from ..training.perf import (
@@ -175,6 +176,12 @@ class CoreParserMixin(
         # NumpySparseEngine._normalize_area_columns and task #130.
         if synaptic_scaling:
             brain_kwargs["synaptic_scaling"] = synaptic_scaling
+            # SLOW HOMEOSTASIS (E9, #138): defer normalization to phase
+            # boundaries (train_tense/train_number flush at their end) --
+            # fast Hebbian inside a slowly renormalized envelope, the
+            # timescale separation E8 measured the need for.
+            if synaptic_scaling_deferred:
+                brain_kwargs["synaptic_scaling_deferred"] = True
         # Surprise-modulated plasticity (E2, task #131): morph-feature
         # training episodes multiply the afferent fiber's beta by a novelty
         # gain derived from the learner's OWN exposure counts -- never from

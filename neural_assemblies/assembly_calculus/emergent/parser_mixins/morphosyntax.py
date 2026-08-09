@@ -254,6 +254,12 @@ class MorphosyntaxMixin:
                             )
                     break  # One tense per sentence
 
+        # SLOW HOMEOSTASIS boundary (E9): if scaling is deferred, this
+        # phase end is where the accumulated mass gets renormalized.
+        eng = self.brain._engine
+        if getattr(eng, "synaptic_scaling_deferred", False):
+            eng.flush_synaptic_scaling()
+
     def train_mood(self, sentences: List[List[str]]) -> None:
         """Train MOOD area from sentence mood detection.
 
@@ -456,6 +462,12 @@ class MorphosyntaxMixin:
                             },
                             rounds=self.rounds - 1,
                         )
+
+        # SLOW HOMEOSTASIS boundary (E9): if scaling is deferred, this
+        # phase end is where the accumulated mass gets renormalized.
+        eng = self.brain._engine
+        if getattr(eng, "synaptic_scaling_deferred", False):
+            eng.flush_synaptic_scaling()
 
     # ------------------------------------------------------------------
     # RECALL -- the third of the detect/train pair, previously missing.
