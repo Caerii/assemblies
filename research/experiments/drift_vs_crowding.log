@@ -1,0 +1,60 @@
+[E18 chunk zipf-200 seed=42] PL ov acc=0.733 (n=30) | w PL=215 SG=232 | drift=0.2333 | eps=0
+[done ('chunk', 200, 42)]
+[E18 record zipf-200 seed=43] PL ov acc=0.433 (n=30) | w PL=225 SG=227 | drift=- | eps=661
+[done ('record', 200, 43)]
+[E18 record zipf-200 seed=42] PL ov acc=0.600 (n=30) | w PL=215 SG=232 | drift=- | eps=661
+[done ('record', 200, 42)]
+[E18 record zipf-200 seed=44] PL ov acc=0.500 (n=30) | w PL=205 SG=230 | drift=- | eps=661
+[done ('record', 200, 44)]
+[E18 chunk zipf-200 seed=43] PL ov acc=0.767 (n=30) | w PL=214 SG=227 | drift=0.2333 | eps=0
+[done ('chunk', 200, 43)]
+[E18 record zipf-200 seed=46] PL ov acc=0.533 (n=30) | w PL=201 SG=231 | drift=- | eps=661
+[done ('record', 200, 46)]
+[E18 chunk zipf-200 seed=44] PL ov acc=0.767 (n=30) | w PL=206 SG=230 | drift=0.1667 | eps=0
+[done ('chunk', 200, 44)]
+[E18 record zipf-200 seed=45] PL ov acc=0.633 (n=30) | w PL=207 SG=227 | drift=- | eps=661
+[done ('record', 200, 45)]
+[E18 chunk zipf-200 seed=45] PL ov acc=0.700 (n=30) | w PL=207 SG=227 | drift=0.2 | eps=0
+[done ('chunk', 200, 45)]
+[E18 record zipf-400 seed=43] PL ov acc=0.209 (n=43) | w PL=230 SG=226 | drift=- | eps=1314
+[done ('record', 400, 43)]
+[E18 record zipf-400 seed=45] PL ov acc=0.233 (n=43) | w PL=228 SG=230 | drift=- | eps=1314
+[done ('record', 400, 45)]
+[E18 record zipf-400 seed=44] PL ov acc=0.302 (n=43) | w PL=217 SG=227 | drift=- | eps=1314
+[done ('record', 400, 44)]
+[E18 record zipf-400 seed=42] PL ov acc=0.209 (n=43) | w PL=235 SG=223 | drift=- | eps=1314
+[done ('record', 400, 42)]
+[E18 record zipf-400 seed=46] PL ov acc=0.256 (n=43) | w PL=232 SG=216 | drift=- | eps=1314
+[done ('record', 400, 46)]
+[E18 chunk zipf-200 seed=46] PL ov acc=0.667 (n=30) | w PL=206 SG=231 | drift=0.2667 | eps=0
+[done ('chunk', 200, 46)]
+[E18 chunk zipf-400 seed=43] PL ov acc=0.488 (n=43) | w PL=230 SG=226 | drift=0.0667 | eps=0
+[done ('chunk', 400, 43)]
+[E18 chunk zipf-400 seed=42] PL ov acc=0.488 (n=43) | w PL=235 SG=223 | drift=0.0 | eps=0
+[done ('chunk', 400, 42)]
+[E18 chunk zipf-400 seed=44] PL ov acc=0.628 (n=43) | w PL=217 SG=227 | drift=0.0333 | eps=0
+[done ('chunk', 400, 44)]
+[E18 chunk zipf-400 seed=45] PL ov acc=0.419 (n=43) | w PL=228 SG=230 | drift=0.0667 | eps=0
+[done ('chunk', 400, 45)]
+[E18 chunk zipf-400 seed=46] PL ov acc=0.535 (n=43) | w PL=232 SG=216 | drift=0.0 | eps=0
+[done ('chunk', 400, 46)]
+
+=== registered bars ===
+D1 rho(last position, correct) @200: 0.0305 +/- 0.1603 (n=5, -0.1101..0.1810)
+D1 rho(last position, correct) @400: 0.0852 +/- 0.2331 (n=5, -0.1242..0.3317)
+D2 total drift 400 - 200 (bar > 0): -0.1867 +/- 0.0752 (n=5, -0.2667..-0.1333)
+   total drift @200: 0.2200 +/- 0.0472 (n=5, 0.1667..0.2667)
+   total drift @400: 0.0333 +/- 0.0414 (n=5, 0.0000..0.0667)
+C1 NUMBER_PL ever-fired @200: 210.6000 +/- 11.8298 (n=5, 201.0000..225.0000)
+C1 NUMBER_SG ever-fired @200: 229.4000 +/- 2.8581 (n=5, 227.0000..232.0000)
+C1 NUMBER_PL ever-fired @400: 228.4000 +/- 8.5382 (n=5, 217.0000..235.0000)
+C1 NUMBER_SG ever-fired @400: 224.4000 +/- 6.6043 (n=5, 216.0000..230.0000)
+
+=== comparability check (chunk-arm accuracy vs record) ===
+PL overlap acc record-200: 0.5400 +/- 0.0988 (n=5, 0.4333..0.6333)
+PL overlap acc chunk-200: 0.7267 +/- 0.0540 (n=5, 0.6667..0.7667)
+PL overlap acc record-400: 0.2419 +/- 0.0483 (n=5, 0.2093..0.3023)
+PL overlap acc chunk-400: 0.5116 +/- 0.0958 (n=5, 0.4186..0.6279)
+
+=== drift trajectory (chunk-400, seed mean, overlap to FINAL image) ===
+  0.97 1.00 1.00 1.00 1.00 1.00 1.00 1.00
