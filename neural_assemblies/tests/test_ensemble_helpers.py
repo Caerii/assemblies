@@ -227,3 +227,52 @@ class TestVerifyProbe:
         from neural_assemblies.diagnostics import verify_probe
         c = verify_probe(lambda: 0.7, lambda: 0.2, label="probe")
         assert "0.7000" in str(c) and "0.2000" in str(c)
+
+
+class TestRankStatistics:
+    """Promoted from research/experiments/overlap_ceiling.py (#149 literate
+    pass) after six experiments imported them from an experiment file.
+    Pinned: tie handling, a hand-checkable coefficient, and NaN-on-constant
+    (an OUTCOME to report, never to filter -- the undefinedness lesson)."""
+
+    def test_rankdata_averages_ties(self):
+        from neural_assemblies.diagnostics import rankdata
+        assert rankdata([3, 1, 4, 1, 5]).tolist() == [3.0, 1.5, 4.0, 1.5, 5.0]
+
+    def test_spearman_hand_value(self):
+        from neural_assemblies.diagnostics import spearman
+        # One adjacent transposition in each half of a 5-permutation:
+        # rho = 1 - 6*sum(d^2)/(n(n^2-1)) = 1 - 6*4/120 = 0.8
+        assert abs(spearman([1, 2, 3, 4, 5], [2, 1, 4, 3, 5]) - 0.8) < 1e-12
+
+    def test_spearman_nan_on_constant_input(self):
+        import math
+        from neural_assemblies.diagnostics import spearman
+        assert math.isnan(spearman([1, 1, 1], [1, 2, 3]))
+
+    def test_partial_spearman_removes_the_confound(self):
+        from neural_assemblies.diagnostics import partial_spearman, spearman
+        # y == z: controlling for z must destroy the raw correlation. The
+        # residuals are fp noise, not exact zeros, so the result is a small
+        # spurious number (measured -0.027 here), not 0.0 and not NaN --
+        # pin "far below raw", the claim actually used by E11's analysis.
+        x = [1, 2, 3, 4, 5]
+        z = [2, 1, 4, 3, 5]
+        assert spearman(x, z) > 0.7
+        assert abs(partial_spearman(x, z, z)) < 0.1
+
+    def test_experiment_reexport_is_the_same_object(self):
+        """`from overlap_ceiling import spearman` must keep reproducing the
+        committed E-series scripts -- via re-export, not a second copy."""
+        import importlib.util
+        import os
+        from neural_assemblies import diagnostics
+        path = os.path.join(os.path.dirname(diagnostics.__file__), "..",
+                            "research", "experiments", "overlap_ceiling.py")
+        if not os.path.exists(path):
+            pytest.skip("research/ not present in this checkout")
+        spec = importlib.util.spec_from_file_location("_oc_reexport", path)
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        assert mod.spearman is diagnostics.spearman
+        assert mod.partial_spearman is diagnostics.partial_spearman

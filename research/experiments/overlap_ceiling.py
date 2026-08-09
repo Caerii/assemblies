@@ -88,44 +88,18 @@ OUT_PATH = os.path.join(os.path.dirname(__file__),
 
 
 # ---------------------------------------------------------------------------
-# Rank statistics (numpy-only; scipy.stats stays off the import path)
+# Rank statistics: canonical home is neural_assemblies.diagnostics (#149
+# literate pass -- six experiments were importing them from HERE, which made
+# an experiment file a de-facto library). Re-exported so the committed
+# E-series scripts that do `from overlap_ceiling import spearman` keep
+# reproducing byte-identically.
 # ---------------------------------------------------------------------------
 
-def _rankdata(a) -> np.ndarray:
-    a = np.asarray(a, float)
-    order = np.argsort(a, kind="mergesort")
-    ranks = np.empty(len(a), float)
-    sa = a[order]
-    i = 0
-    while i < len(a):
-        j = i
-        while j + 1 < len(a) and sa[j + 1] == sa[i]:
-            j += 1
-        ranks[order[i:j + 1]] = 0.5 * (i + j) + 1.0
-        i = j + 1
-    return ranks
-
-
-def spearman(x, y) -> float:
-    rx, ry = _rankdata(x), _rankdata(y)
-    if np.std(rx) == 0 or np.std(ry) == 0:
-        return float("nan")
-    return float(np.corrcoef(rx, ry)[0, 1])
-
-
-def partial_spearman(x, y, z) -> float:
-    """Spearman(x, y) with z partialled out (least squares on ranks)."""
-    rx, ry, rz = _rankdata(x), _rankdata(y), _rankdata(z)
-    A = np.vstack([np.ones_like(rz), rz]).T
-
-    def resid(v):
-        beta, *_ = np.linalg.lstsq(A, v, rcond=None)
-        return v - A @ beta
-
-    ex, ey = resid(rx), resid(ry)
-    if np.std(ex) == 0 or np.std(ey) == 0:
-        return float("nan")
-    return float(np.corrcoef(ex, ey)[0, 1])
+from neural_assemblies.diagnostics import (  # noqa: E402,F401
+    partial_spearman,
+    rankdata as _rankdata,
+    spearman,
+)
 
 
 # ---------------------------------------------------------------------------
