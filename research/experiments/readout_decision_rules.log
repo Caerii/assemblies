@@ -1,0 +1,61 @@
+n=3000 seed=42 exc sg/pl 0.592/0.826 z sg/pl 0.567/0.826 spreadSG/PL 1.50
+n=3000 seed=43 exc sg/pl 0.570/0.739 z sg/pl 0.548/0.783 spreadSG/PL 2.56
+n=3000 seed=44 exc sg/pl 0.601/0.587 z sg/pl 0.584/0.609 spreadSG/PL 1.22
+n=3000 seed=45 exc sg/pl 0.529/0.739 z sg/pl 0.504/0.761 spreadSG/PL 1.45
+n=3000 seed=46 exc sg/pl 0.529/0.870 z sg/pl 0.518/0.891 spreadSG/PL 1.47
+n=10000 seed=42 exc sg/pl 0.468/0.717 z sg/pl 0.457/0.717 spreadSG/PL 2.66
+n=10000 seed=43 exc sg/pl 0.493/0.739 z sg/pl 0.482/0.739 spreadSG/PL 2.02
+n=10000 seed=44 exc sg/pl 0.510/0.761 z sg/pl 0.504/0.761 spreadSG/PL 2.94
+n=10000 seed=45 exc sg/pl 0.518/0.717 z sg/pl 0.501/0.717 spreadSG/PL 2.16
+n=10000 seed=46 exc sg/pl 0.504/0.674 z sg/pl 0.493/0.674 spreadSG/PL 2.37
+{
+  "Z1_spread_ratio_3000": {
+    "mean": 1.6387459135688383,
+    "ci": 0.6541272036849289
+  },
+  "Z2_gap_excess_3000": {
+    "mean": 0.19342436219906572,
+    "ci": 0.14757937788179232
+  },
+  "Z2_gap_z_3000": {
+    "mean": 0.2295604263983711,
+    "ci": 0.15736859199454822
+  },
+  "Z3_zbal_minus_excbal_3000": {
+    "mean": 0.0009522098454905148,
+    "ci": 0.0107855206455885
+  },
+  "z_bal_3000": {
+    "mean": 0.6591328302790753,
+    "ci": 0.056124095523603194
+  },
+  "excess_bal_3000": {
+    "mean": 0.6581806204335848,
+    "ci": 0.05899996394277546
+  },
+  "Z1_spread_ratio_10000": {
+    "mean": 2.429348291580022,
+    "ci": 0.46064626524326935
+  },
+  "Z2_gap_excess_10000": {
+    "mean": 0.22311654090310215,
+    "ci": 0.04557847933640107
+  },
+  "Z2_gap_z_10000": {
+    "mean": 0.23413582464965865,
+    "ci": 0.043371651014460035
+  },
+  "Z3_zbal_minus_excbal_10000": {
+    "mean": -0.005509641873278204,
+    "ci": 0.002418314816701793
+  },
+  "z_bal_10000": {
+    "mean": 0.6046712181099533,
+    "ci": 0.024672371354918034
+  },
+  "excess_bal_10000": {
+    "mean": 0.6101808599832315,
+    "ci": 0.023780238394578858
+  }
+}
+-> F:\Github\assemblies-run-e2\research\experiments\readout_decision_rules_results.json
