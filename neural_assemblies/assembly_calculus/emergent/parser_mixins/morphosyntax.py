@@ -708,16 +708,50 @@ class MorphosyntaxMixin:
 
             # Settle the word's core assembly (the recall probe's own
             # activation, unchanged from the shared-area readout).
-            brain.inhibit_areas(list(cand_areas.values()))
+            areas_list = list(cand_areas.values())
+            brain.inhibit_areas(areas_list)
             _ops_project(brain, phon, core_area, rounds=rounds)
             brain.areas[core_area].fix_assembly()
+            # COMPETITION DYNAMICS (E16, #145). E15 measured the one-shot
+            # comparison's margins pinned at 7-10% (the #24 weak-primitive
+            # finding, third time). Two multi-step modes:
+            #   "latched"  MI applies EVERY step and the step-1 winner's
+            #              recurrence amplifies its drive -- the paper's
+            #              latch. Registered prediction: this HOLDS a
+            #              decision (margin grows), it cannot CHANGE one.
+            #   "settled"  each candidate settles ALONE for T-1 recurrent
+            #              steps (solo targets, MI silent), then ONE
+            #              competition step where each area's recurrent
+            #              evidence joins its afferent drive -- evidence
+            #              accumulation before the commitment.
+            mode = getattr(self, "mi_readout_mode", "oneshot")
+            T = max(1, int(getattr(self, "mi_latch_rounds", 1)))
             try:
-                # THE COMPETITION: co-target the MI group in ONE call.
-                brain.project(
-                    {}, {core_area: list(cand_areas.values())})
+                if mode == "settled" and T > 1:
+                    for area in areas_list:
+                        brain.inhibit_areas([area])
+                        brain.project({}, {core_area: [area]})
+                        for _ in range(T - 1):
+                            brain.project({}, {core_area: [area],
+                                               area: [area]})
+                    dst = {core_area: areas_list}
+                    for area in areas_list:
+                        dst[area] = [area]
+                    brain.project({}, dst)
+                else:
+                    # THE COMPETITION: co-target the MI group in ONE call.
+                    brain.project({}, {core_area: areas_list})
+                    if mode == "latched" and T > 1:
+                        for _ in range(T - 1):
+                            dst = {core_area: areas_list}
+                            for area in areas_list:
+                                dst[area] = [area]
+                            brain.project({}, dst)
             finally:
                 brain.areas[core_area].unfix_assembly()
             drive = dict(getattr(brain, "last_activation_scores", {}) or {})
+            diag["mode"] = mode
+            diag["latch_rounds"] = T
             diag["mi_survivors"] = [
                 label for label, area in cand_areas.items()
                 if len(getattr(brain.areas[area], "winners", ())) > 0]

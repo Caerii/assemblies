@@ -116,3 +116,28 @@ def test_default_parser_untouched():
         assert feature_value_area(NUMBER, lab) not in p.brain.areas
     _got, diag = p.recall_number("dogs")
     assert diag.get("readout") != "mi_split"
+
+
+def test_competition_dynamics_modes(split_parser):
+    """E16 (#145): latched and settled modes answer through the same API.
+
+    Accuracy claims live in the experiment; pinned here is that each mode
+    runs, reports itself in diag, and the latched mode cannot CHANGE the
+    one-shot decision (MI silences the loser at step 1, so its recurrence
+    is gone -- the registered holds-not-changes prediction, at unit scale).
+    """
+    base_mode = getattr(split_parser, "mi_readout_mode", "oneshot")
+    try:
+        answers = {}
+        for mode, t in (("oneshot", 1), ("latched", 5), ("settled", 5)):
+            split_parser.mi_readout_mode = mode
+            split_parser.mi_latch_rounds = t
+            got, diag = split_parser.recall_number("dogs")
+            assert diag["mode"] == mode and diag["latch_rounds"] == t
+            assert diag["readout"] == "mi_split"
+            answers[mode] = got
+        assert answers["latched"] == answers["oneshot"], (
+            "the latch changed the decision -- it must only hold it")
+    finally:
+        split_parser.mi_readout_mode = base_mode
+        split_parser.mi_latch_rounds = 1
