@@ -203,6 +203,8 @@ class MorphosyntaxMixin:
         Args:
             sentences: List of token lists.
         """
+        # Training invalidates the recall readout's label-image cache.
+        self._feature_image_cache.clear()
         # Register tense stimuli
         tense_stims = {}
         for tense_name in ("PRESENT", "PAST", "FUTURE",
@@ -398,6 +400,8 @@ class MorphosyntaxMixin:
         Args:
             sentences: List of token lists.
         """
+        # Training invalidates the recall readout's label-image cache.
+        self._feature_image_cache.clear()
         number_stims = {}
         for num_name in ("SG", "PL"):
             stim_name = f"number_{num_name}"
@@ -489,10 +493,20 @@ class MorphosyntaxMixin:
         with brain.read_only():
             brain.areas[feature_area].unfix_assembly()
 
+            # Label images are a property of the SUBSTRATE, not the probed
+            # word -- identical for every word on an unchanged connectome,
+            # and recomputing them per call was ~40% of readout time.
+            # train_tense/train_number invalidate the cache; any new writer
+            # into a feature area must too.
             images = {}
             for label in candidates:
                 stim = stim_by_label.get(label)
                 if stim is None or stim not in brain.stimuli:
+                    continue
+                key = (feature_area, label, rounds)
+                cached = self._feature_image_cache.get(key)
+                if cached is not None:
+                    images[label] = cached
                     continue
                 brain.inhibit_areas([feature_area])
                 brain.project({stim: [feature_area]}, {})
@@ -500,6 +514,7 @@ class MorphosyntaxMixin:
                     brain.project({stim: [feature_area]},
                                   {feature_area: [feature_area]})
                 images[label] = _snap(brain, feature_area)
+                self._feature_image_cache[key] = images[label]
             if len(images) < 2:
                 return None, diag
 

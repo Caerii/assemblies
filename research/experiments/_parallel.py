@@ -42,6 +42,13 @@ def run_cells(
     cells = list(cells)
     if max_workers is None:
         max_workers = min(len(cells), max(1, (os.cpu_count() or 4) - 2))
+    # Pin BLAS to one thread per worker BEFORE the pool spawns (children
+    # inherit env; the thread count is read at numpy import). Without this,
+    # N workers x M BLAS threads oversubscribes the box severalfold and the
+    # cells fight each other. Each cell is ~single-core work anyway.
+    for var in ("OMP_NUM_THREADS", "MKL_NUM_THREADS",
+                "OPENBLAS_NUM_THREADS", "NUMEXPR_NUM_THREADS"):
+        os.environ.setdefault(var, "1")
     results: Dict[Tuple, dict] = {}
     with ProcessPoolExecutor(max_workers=max_workers) as pool:
         futures = {pool.submit(worker, *cell): cell for cell in cells}
@@ -50,6 +57,49 @@ def run_cells(
             results[cell] = fut.result()
             print(f"[done {cell}]", flush=True)
     return results
+
+
+def forked_parser(base_tag: str, seed: int,
+                  build_and_train_pre: Callable[[], object],
+                  arm_setup: Callable[[object], None],
+                  train_final: Callable[[object], object]):
+    """Fork per-arm training from a shared pre-stage checkpoint.
+
+    THE OBSERVATION THIS EXPLOITS: an experiment's arms usually differ only
+    in mechanisms that act during the FINAL curriculum stage (feature
+    phases run only in SENTENCES; scoped scaling touches only areas that
+    receive plasticity there), so the earlier stages are BIT-IDENTICAL
+    across arms -- and were being retrained once per arm. Train them once
+    per seed, checkpoint (parser + global RNG states, so the continuation
+    consumes the same draws full training would), then per arm: load a
+    fresh copy, apply the arm's flags, train the final stage only.
+
+    Equivalence is NOT assumed: `research/experiments/fork_equivalence.py`
+    pins full-train == fork-train exactly before any experiment relies on
+    this. `arm_setup` must set flags that work POST-CONSTRUCTION (engine
+    attribute for scoped scaling, parser attribute for novelty gain).
+    """
+    import random as _random
+
+    import numpy as _np
+
+    os.makedirs(CACHE_DIR, exist_ok=True)
+    path = os.path.join(
+        CACHE_DIR, _cache_key(f"pre-{base_tag}", seed) + ".pkl")
+    if os.path.exists(path):
+        with open(path, "rb") as f:
+            parser, np_state, py_state = pickle.load(f)
+    else:
+        parser = build_and_train_pre()
+        np_state = _np.random.get_state()
+        py_state = _random.getstate()
+        with open(path, "wb") as f:
+            pickle.dump((parser, np_state, py_state), f,
+                        protocol=pickle.HIGHEST_PROTOCOL)
+    _np.random.set_state(np_state)
+    _random.setstate(py_state)
+    arm_setup(parser)
+    return train_final(parser)
 
 
 def _cache_key(tag: str, seed: int) -> str:

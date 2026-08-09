@@ -182,6 +182,12 @@ class CoreParserMixin(
         # MorphosyntaxMixin._novelty_gain for the registered form.
         self.novelty_gain_max = float(novelty_gain_max)
         self._morph_exposure: Dict[str, int] = {}
+        #: Label-image cache for the morph recall readout. A feature area's
+        #: stimulus images are identical for every probed word on an
+        #: unchanged substrate, and recomputing them per word was ~40% of
+        #: readout time. INVALIDATION: train_tense/train_number clear it;
+        #: any other path that trains into a feature area must too.
+        self._feature_image_cache: Dict[tuple, object] = {}
         self.brain = Brain(**brain_kwargs)
         self.engine_name = getattr(self.brain._engine, "name", resolved_engine)
 
