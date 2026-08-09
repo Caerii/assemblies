@@ -484,11 +484,15 @@ def anchored_p600_live(
     rest. Do not describe it as detecting a selectional violation, and do not
     describe it as evidence of learning which types fill which slots.
 
-    A candidate mechanism for why word-level learning is invisible: role binding
-    sits in the CROWDING regime (#52, pairwise overlap 0.15-0.22), so individual
-    noun assemblies in NOUN_CORE may overlap too much for per-word pathway
-    strength to survive the normalization, while NOUN_CORE and VERB_CORE do not
-    overlap at all.
+    The crowding explanation this paragraph used to offer ("role binding sits
+    in the crowding regime, #52, pairwise overlap 0.15-0.22") is RETIRED: #52
+    closed the other way -- at the production recipe the binding channel
+    discriminates stored role bindings at 0.97-1.000 (role_recipe_2x2, both
+    n=3e3 and n=1e5). Word-level learning is invisible HERE because drive is
+    the wrong channel, not because the substrate lacks the information:
+    `input_drive` sums over all candidates and measures HOW MUCH, never WHERE
+    (test_drive_and_binding_are_orthogonal.py). `role_binding_deficit` below
+    is the WHERE-channel readout (#121).
 
     This replaces the settle-and-measure-winner-churn protocol, which reversed
     sign under ``norm_init`` (see module docstring / ``binding.input_drive``).
@@ -545,6 +549,97 @@ def anchored_p600_live(
             legacy=0.0, role_area=role_area)
     energy = float(drives.get(role_area, 0.0))
     return Measured.of(max(0.0, 1.0 - energy))
+
+
+def role_binding_deficit(
+    parser: "EmergentParser",
+    core_area: str,
+    role_area: str,
+    word: str,
+) -> Measured:
+    """P600 role integration read on the BINDING channel: WHERE, not HOW MUCH.
+
+    #121. `anchored_p600_live` above is measured to be an AREA-IDENTITY
+    readout: on the pathway-only contrast (two nouns, same source area, one
+    bound into the probed role area during training and one not) it reads AUC
+    0.5150 +/- 0.0725 -- chance (erp_pathway_vs_area_control.py). That is not
+    a defect of its implementation but of its CHANNEL: `input_drive` sums
+    synaptic drive over ALL candidate neurons, and drive measures how much,
+    never where (test_drive_and_binding_are_orthogonal.py). Word-level binding
+    history is invisible to it in principle.
+
+    This adapter reads the OTHER channel. It replays the word's stored core
+    assembly and re-drives the binding with `ops.read_binding` -- the SAME
+    dynamics `ops.bind` used to store every role binding, under
+    `brain.read_only()` so the probe cannot create the structure it detects --
+    then scores how well the recalled assembly lands on ANY stored binding in
+    the role area's lexicon:
+
+        deficit = 1 - max over stored bindings of assembly_overlap(probe, stored)
+
+    A word whose core->role pathway was TRAINED reproduces its stored binding
+    (measured at 0.97-1.000 top-1 through this exact channel at both n=3e3 and
+    n=1e5; #52, role_recipe_2x2). A word never bound into this role area has
+    no strengthened synapses to steer the projection, so the probe lands off
+    the stored attractors and the deficit is LARGE. The max runs over the
+    whole lexicon (not the word's own entry) so the quantity is DEFINED for
+    cues that were never bound here -- which is exactly the arm the contrast
+    needs.
+
+    The stale docstring claim this replaces: `anchored_p600_live` explains
+    word-level invisibility by "role binding sits in the CROWDING regime (#52,
+    pairwise overlap 0.15-0.22)". #52 has since been closed the other way: at
+    the production recipe the binding channel discriminates stored role
+    bindings at 0.97-1.000. The crowding excuse is gone; the drive channel is
+    simply the wrong instrument.
+
+    KNOWN HAZARD, pre-stated (#120): an earlier binding readback measured
+    INVERTED (AUC 0.35-0.46). If the probe is captured by a dominant shared
+    attractor in the role area, an untrained cue can land ON a stored binding
+    and read a SMALL deficit. `detail["landed_on"]` records which stored
+    binding won so a per-arm landing census can diagnose exactly that, and
+    the registered experiment (erp_pathway_vs_area_binding.py) states the
+    direction in advance.
+
+    Returns `Measured`; undefined when the word has no stored core assembly,
+    the snapshot is stale (post-consolidation), or the role lexicon is empty.
+    """
+    from neural_assemblies.assembly_calculus.ops import (
+        assembly_is_current, read_binding,
+    )
+    from neural_assemblies.diagnostics import assembly_overlap
+
+    brain = parser.brain
+    stored_core = parser.core_lexicons.get(core_area, {}).get(word)
+    if stored_core is None:
+        return Measured.undefined(
+            f"{word!r} has no stored assembly in {core_area}, so there is no "
+            f"cue to replay", word=word, core_area=core_area)
+    if not assembly_is_current(brain, stored_core):
+        return Measured.undefined(
+            f"{word!r}'s {core_area} snapshot is stale (consolidation "
+            f"re-issued neuron IDs); replaying it would probe a pattern that "
+            f"no longer exists", word=word, core_area=core_area)
+    lexicon = parser.role_lexicons.get(role_area, {})
+    if not lexicon:
+        return Measured.undefined(
+            f"{role_area} has no stored bindings to land on",
+            role_area=role_area)
+
+    try:
+        probe = read_binding(brain, core_area, role_area, stored_core)
+    except (RuntimeError, IndexError, ValueError, KeyError) as exc:
+        return Measured.undefined(
+            f"read_binding {core_area}->{role_area} failed: "
+            f"{type(exc).__name__}: {exc}", word=word)
+    scores = {cand: float(assembly_overlap(stored.winners, probe.winners))
+              for cand, stored in lexicon.items()}
+    landed_on = max(scores, key=scores.get)
+    best = scores[landed_on]
+    return Measured(max(0.0, 1.0 - best), True, "",
+                    {"landed_on": landed_on, "best_overlap": best,
+                     "self_overlap": scores.get(word),
+                     "n_candidates": len(scores)})
 
 
 def measure_live_integration(
