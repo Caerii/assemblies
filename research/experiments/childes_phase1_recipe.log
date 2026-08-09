@@ -1,0 +1,91 @@
+seed=42 sg_e2p=1.000 pl_e2p=1.000 pl_e1=0.889 scaling_deferred=False
+seed=43 sg_e2p=1.000 pl_e2p=1.000 pl_e1=0.889 scaling_deferred=False
+seed=44 sg_e2p=1.000 pl_e2p=1.000 pl_e1=0.889 scaling_deferred=False
+seed=45 sg_e2p=1.000 pl_e2p=1.000 pl_e1=0.926 scaling_deferred=False
+seed=46 sg_e2p=1.000 pl_e2p=1.000 pl_e1=0.704 scaling_deferred=False
+seed=47 sg_e2p=1.000 pl_e2p=1.000 pl_e1=0.815 scaling_deferred=False
+seed=48 sg_e2p=1.000 pl_e2p=1.000 pl_e1=0.778 scaling_deferred=False
+seed=49 sg_e2p=1.000 pl_e2p=1.000 pl_e1=1.000 scaling_deferred=False
+seed=50 sg_e2p=1.000 pl_e2p=1.000 pl_e1=0.852 scaling_deferred=False
+seed=51 sg_e2p=1.000 pl_e2p=1.000 pl_e1=0.741 scaling_deferred=False
+{
+  "P1_headline_match": true,
+  "P1_mismatches": [],
+  "P2_rho_per_seed": [
+    0.212,
+    0.212,
+    0.212,
+    0.171,
+    0.368,
+    0.28,
+    0.311,
+    null,
+    0.248,
+    0.34
+  ],
+  "P2_rho": {
+    "mean": 0.26167446128897026,
+    "ci": 0.05064365123609748,
+    "n": 9
+  },
+  "P3_n_failures": 41,
+  "P3_failure_exposures": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+  ],
+  "P3_fail_shared_weighted": {
+    "mean": 10.292682926829269,
+    "ci": 0.9049513704433743,
+    "n": 41
+  },
+  "P3_pass_shared_weighted": {
+    "mean": 6.276849642004773,
+    "ci": 0.28271340575186554,
+    "n": 419
+  },
+  "P4_liveness": {
+    "scaling_deferred": false,
+    "scaling_areas": []
+  },
+  "guard_sg_min": 1
+}
+-> F:\Github\assemblies-run-e2\research\experiments\childes_phase1_recipe_results.json

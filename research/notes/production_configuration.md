@@ -56,6 +56,46 @@ This note is the one place the whole configuration is stated together.**
   accumulator — latching holds a decision exactly and never changes one
   (E16, accuracy delta 0.0000). Both answers always ride in diag.
 
+## The paper-regime recipe — production at scale on real corpora (#151)
+
+**Adopted by the re-run adoption gate (`145288c`): min(SG, PL) on the
+E≥2 exam = 1.000 ± 0.000 across all ten seeds, balanced 0.955 ± 0.019,
+PL E=1 0.848 ± 0.064, on Brown at n=10⁵. REQUIRES the fixed engine
+(≥ `53e9808`) — on the pre-fix engine the same recipe read PL E≥2
+0.779 ± 0.227 with a ~1-in-10 silent dead-fiber death
+(the_dead_fiber_was_a_growth_ratchet.md). Figures:
+research/figures/fig_151_*.**
+
+For morph-feature learning from a REAL corpus (natural Zipf/imbalance),
+on top of the defaults:
+
+```python
+p = EmergentParser(n=100_000, k=30, ...)   # papers' scale: collision
+                                            # load V*k^2/n ~ 3 at V=370
+p.morph_label_stim = False   # ROUTING-ONLY: the teacher picks the
+                             # area, the WORD picks the winners -- the
+                             # papers' construction; the label stimulus
+                             # is an attractor that competes with the
+                             # word at recall (the 2x2, 90f12e3)
+p.morph_beta_gain = 4.0      # COLT22 Remark-2 margin lever at kp=1.5
+p.train_number(sentences, labels=corpus_teacher)  # corpus annotation
+# scaling stays OFF (the #150 inversion, below); readout stays "mi"
+```
+
+Split value areas are a PREREQUISITE of routing-only, not an
+independent axis: with one shared area the routing IS the label, so
+there is nothing to route. Reporting is STRATIFIED BY EXPOSURE — the
+E=1 stratum is priced (0.85), not hidden.
+
+Scope notes from the Phase 1 close-out (childes_phase1_recipe,
+`fd8b1c4`): the exposure law transfers attenuated at ceiling
+(ρ = 0.26 ± 0.05 vs 0.61 pre-fix; interpretation rule pre-registered);
+ALL residual failures are E=1 words carrying 64% more SG-shared row
+mass (10.3 vs 6.3) — collision load is the residual, feeding the open
+theory unit on why E=1 clears the naive margin at all. Deferred
+scaling is DORMANT in this recipe (P4 liveness), so the E19 schedule
+claims below are scoped to the synthetic configuration.
+
 ## The measured-best (production/scale) configuration
 
 For a morph-feature learner at scale — and for the CHILDES graduation —
