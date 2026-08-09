@@ -66,6 +66,12 @@ import numpy as np
 SEEDS = list(range(42, 47))
 KS = (1, 40, 160, 0)
 BUDGETS = (200, 400)
+# E19b (declared in the E19 note BEFORE running): power extension on the
+# SAME bars -- seeds 42-51, arms {1, 40, 0}. Env-selected so the E19
+# registration above stays the file's default reading.
+if os.environ.get("FR_E19B") == "1":
+    SEEDS = list(range(42, 52))
+    KS = (1, 40, 0)
 PRE_STAGES = ("FIRST_WORDS", "VOCABULARY_SPURT", "TWO_WORD")
 FINAL = "SENTENCES"
 N = int(os.environ.get("FR_N", "3000"))
@@ -73,8 +79,10 @@ if os.environ.get("FR_SMOKE") == "1":
     SEEDS = [42]
     KS = (160, 0)
 
-OUT_PATH = os.path.join(os.path.dirname(__file__),
-                        "flush_rate_sweep_results.json")
+OUT_PATH = os.path.join(
+    os.path.dirname(__file__),
+    "flush_rate_e19b_results.json" if os.environ.get("FR_E19B") == "1"
+    else "flush_rate_sweep_results.json")
 
 E17_REF = {200: 0.700, 400: 0.570}
 
