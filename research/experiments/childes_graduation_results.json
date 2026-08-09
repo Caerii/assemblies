@@ -1,0 +1,17 @@
+{
+  "census": {
+    "files": [
+      "brown_adult.jsonl"
+    ],
+    "utterances_kept": 85002,
+    "aligned": 82101,
+    "misaligned": 2901,
+    "types": 6959,
+    "tokens": 360280,
+    "C1_zipf_slope": -1.096378484537301,
+    "C2_teachable_utterances": 40859,
+    "C3_plural_share": 0.1023358678169323,
+    "C1_pass": true,
+    "C2_pass": true
+  }
+}

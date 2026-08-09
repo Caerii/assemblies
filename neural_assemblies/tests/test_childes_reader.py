@@ -77,3 +77,20 @@ def test_frequency_spectrum_counts_tokens():
     freq = frequency_spectrum(utts)
     assert freq["the"] >= 3
     assert freq["dogs"] == 1 and freq["dog"] == 1
+
+
+def test_childesdb_jsonl_route():
+    """The auth-wall deviation route (#150): childes-db rows -> the same
+    Utterance stream, with null-mor counted where misalignment was."""
+    from neural_assemblies.assembly_calculus.emergent.curriculum.childes \
+        import read_childesdb_jsonl
+
+    jsonl = "\n".join([
+        '{"speaker": "Mother", "words": ["the", "dogs", "run"],'
+        ' "mor": ["det:art|the", "n|dog-PL", "v|run"]}',
+        '{"speaker": "Mother", "words": ["hm"], "mor": null}',
+    ])
+    utts, stats = read_childesdb_jsonl(jsonl)
+    assert len(utts) == 2
+    assert mor_number_teacher(utts[0]) == {"dogs": "PL"}
+    assert utts[1].mor is None and stats.mor_misaligned == 1

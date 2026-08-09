@@ -67,6 +67,7 @@ from neural_assemblies.assembly_calculus.emergent.curriculum.childes import (
     frequency_spectrum,
     mor_number_teacher,
     read_cha,
+    read_childesdb_jsonl,
 )
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "..",
@@ -77,15 +78,21 @@ SEEDS = list(range(42, 52))
 
 
 def load_corpus():
-    """All .cha files under data/childes/, recursively."""
+    """All .cha and childes-db .jsonl files under data/childes/,
+    recursively (the jsonl route is the registered auth-wall deviation
+    -- see fetch_childes_brown.py)."""
     utts, stats_list, files = [], [], []
     for root, _dirs, names in os.walk(DATA_DIR):
         for fn in sorted(names):
-            if not fn.endswith(".cha"):
+            if fn.endswith(".cha"):
+                reader = read_cha
+            elif fn.endswith(".jsonl"):
+                reader = read_childesdb_jsonl
+            else:
                 continue
             path = os.path.join(root, fn)
             text = open(path, encoding="utf-8", errors="replace").read()
-            u, s = read_cha(text)
+            u, s = reader(text)
             utts.extend(u)
             stats_list.append(s)
             files.append(os.path.relpath(path, DATA_DIR))

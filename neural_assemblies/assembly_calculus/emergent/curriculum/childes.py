@@ -162,6 +162,41 @@ def read_cha(text: str,
     return utterances, stats
 
 
+def read_childesdb_jsonl(text: str) -> Tuple[List[Utterance], ChaStats]:
+    """childes-db export (fetch_childes_brown.py) -> the same Utterance
+    stream read_cha produces.
+
+    REGISTERED DEVIATION (#150, stated in the fetch script): TalkBank's
+    raw-CHAT downloads went behind account auth, so data arrives as
+    childes-db token rows. Alignment is guaranteed by construction there,
+    so the honesty counter transposes: `mor_misaligned` counts
+    utterances whose token rows lacked part-of-speech (mor comes through
+    as null), the no-teacher case of this format.
+    """
+    import json as _json
+
+    stats = ChaStats()
+    utterances: List[Utterance] = []
+    for line in text.splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        row = _json.loads(line)
+        stats.utterances_total += 1
+        stats.by_speaker[row["speaker"]] += 1
+        words = tuple(row["words"])
+        if not words:
+            continue
+        mor = row.get("mor")
+        if mor is None:
+            stats.mor_misaligned += 1
+            utterances.append(Utterance(row["speaker"], words, None))
+        else:
+            utterances.append(Utterance(row["speaker"], words, tuple(mor)))
+    stats.utterances_kept = len(utterances)
+    return utterances, stats
+
+
 # ---------------------------------------------------------------------------
 # Corpus-statistics probes the graduation's bars are written against.
 # ---------------------------------------------------------------------------
