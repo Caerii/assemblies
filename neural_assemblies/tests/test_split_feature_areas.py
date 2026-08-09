@@ -290,9 +290,14 @@ def test_routing_only_training():
     got_pl, diag = p0.recall_number("dogs")
     assert diag["readout"] == "mi_split"
     assert not (got_pl is None and p0.recall_number("dog")[0] is None)
-    w0 = frozenset(p0.brain.areas[feature_value_area(NUMBER, "PL")].winners)
-    w1 = frozenset(p1.brain.areas[feature_value_area(NUMBER, "PL")].winners)
-    assert w0 != w1, "routing-only wrote the same assembly as label-stim"
+    # NEURON-ID space, deliberately: the two arms materialize their value
+    # areas through different projections, so their COMPACT indices differ
+    # trivially and an inequality there would pass even if the assemblies
+    # were the same neurons (the ratchet's exact complaint).
+    from neural_assemblies.diagnostics import read_assembly
+    a0 = frozenset(read_assembly(p0.brain, feature_value_area(NUMBER, "PL")))
+    a1 = frozenset(read_assembly(p1.brain, feature_value_area(NUMBER, "PL")))
+    assert a0 != a1, "routing-only wrote the same assembly as label-stim"
 
 
 def test_morph_beta_gain_reaches_the_fiber():

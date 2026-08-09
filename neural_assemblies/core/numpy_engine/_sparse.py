@@ -1540,15 +1540,29 @@ class NumpySparseEngine(ComputeEngine):
         return n - prior_w
 
     def _init_deferred_area_srcs(self, target, src_names, new_w) -> None:
-        """Size the empty area->area blocks marked during this projection.
+        """Repair the area->area blocks marked as undelivering this projection.
 
-        A source area whose connectome into *target* has never been sized
-        contributes nothing on the round it is first used; this gives it a
-        Bernoulli(p) block over the target's currently materialised neurons so
-        it can contribute on the NEXT round. The stimulus path has carried the
-        same fix since `add_stimulus` ("without this the empty weight vector
-        produces zero input and the projection short-circuits"); this is its
-        area->area counterpart.
+        Two repair cases, same next-round semantics:
+
+        EMPTY. A source area whose connectome into *target* has never been
+        sized contributes nothing on the round it is first used; this gives it
+        a Bernoulli(p) block over the target's currently materialised neurons
+        so it can contribute on the NEXT round. The stimulus path has carried
+        the same fix since `add_stimulus` ("without this the empty weight
+        vector produces zero input and the projection short-circuits"); this
+        is its area->area counterpart.
+
+        STALE (#151 dead fiber). A block that EXISTS but whose initialised
+        rows/cols no longer cover (src.w, tgt.w). Row/col growth used to
+        happen only inside `_expand_connectomes`, which returns early when the
+        target recruits no first-time winner -- so one no-recruitment episode
+        after the source had grown froze the fiber forever: out-of-range rows
+        are silently dropped from drive, zero drive recruits nobody, and no
+        recruitment means no expansion. MEASURED (dead_fiber_hunt, Brown at
+        n=1e5): seed 45's NOUN_CORE->NUMBER_PL froze at 180 rows while the
+        source grew to 18641, reading own-drive exactly 0.0 on 45/46 trained
+        words. Content-addressed init makes this repair value-identical to
+        the expansion the recruit path would have done.
 
         Called from BOTH exits of `project_into` -- the normal one and the
         zero-signal early return. Only reaching it from the normal exit made it
@@ -1559,12 +1573,78 @@ class NumpySparseEngine(ComputeEngine):
             return
         for src_name in src_names:
             conn = self._area_conns[src_name][target]
-            if conn.weights.shape[1] > 0:
-                continue  # already sized by expand_connectomes
             nr, nc = int(self._areas[src_name].w), int(new_w)
+            if getattr(conn.weights, "shape", (0, 0))[1] > 0:
+                self._ensure_area_block_coverage(src_name, target, conn,
+                                                 nr, nc)
+                continue
             if nr > 0 and nc > 0:
                 conn.weights = self._init_area_block(
                     src_name, target, 0, nr, 0, nc)
+
+    def _ensure_area_block_coverage(self, src_name, target, conn,
+                                    needed_rows, needed_cols) -> None:
+        """Grow an EXISTING block so its INITIALISED region covers
+        [0, needed_rows) x [0, needed_cols).
+
+        The counterpart of `_expand_connectomes`' growth step for the
+        no-recruitment case (see `_init_deferred_area_srcs`). Mirrors its
+        mechanics exactly: amortised physical realloc, L-shaped
+        content-addressed fill, degree-counter rewind, watermark update. In
+        deterministic mode it grows EXACTLY (no doubling), because that
+        branch of `_expand_connectomes` treats the physical shape as the
+        logical extent and would never fill padding this method left behind.
+
+        No-op on CSR-stored, dense/explicit, and 1-D blocks -- only the lazy
+        2-D ndarray representation has the recruitment-gated growth defect.
+        """
+        xp = self._xp
+        w = conn.weights
+        if (not conn.sparse or isinstance(w, CSRWeights)
+                or getattr(w, "ndim", 0) != 2):
+            return
+        phys_rows, phys_cols = w.shape
+        if phys_cols == 0:
+            return  # empty block: the EMPTY repair path owns this case
+        log_rows = min(int(getattr(conn, "_log_rows", phys_rows)), phys_rows)
+        log_cols = min(int(getattr(conn, "_log_cols", phys_cols)), phys_cols)
+        needed_rows = max(int(needed_rows), log_rows)
+        needed_cols = max(int(needed_cols), log_cols)
+        if needed_rows <= log_rows and needed_cols <= log_cols:
+            return
+        src = self._areas[src_name]
+        tgt = self._areas[target]
+        new_pr, new_pc = phys_rows, phys_cols
+        if needed_rows > phys_rows:
+            new_pr = (needed_rows if self._deterministic else
+                      min(max(needed_rows, phys_rows * 2, 2 * src.k),
+                          max(int(src.n), needed_rows)))
+        if needed_cols > phys_cols:
+            new_pc = (needed_cols if self._deterministic else
+                      min(max(needed_cols, phys_cols * 2, 2 * tgt.k),
+                          max(int(tgt.n), needed_cols)))
+        if (new_pr, new_pc) != (phys_rows, phys_cols):
+            buf = xp.zeros((new_pr, new_pc), dtype=xp.float32)
+            if phys_rows > 0 and phys_cols > 0:
+                buf[:phys_rows, :phys_cols] = w
+            conn.weights = buf
+        nr = needed_rows - log_rows
+        nc = needed_cols - log_cols
+        self.mark_region_refilled(conn, log_rows, log_cols)
+        if nr > 0 and log_cols > 0:
+            conn.weights[log_rows:needed_rows, :log_cols] = (
+                self._init_area_block(src_name, target, log_rows,
+                                      needed_rows, 0, log_cols))
+        if nc > 0 and log_rows > 0:
+            conn.weights[:log_rows, log_cols:needed_cols] = (
+                self._init_area_block(src_name, target, 0, log_rows,
+                                      log_cols, needed_cols))
+        if nr > 0 and nc > 0:
+            conn.weights[log_rows:needed_rows, log_cols:needed_cols] = (
+                self._init_area_block(src_name, target, log_rows,
+                                      needed_rows, log_cols, needed_cols))
+        conn._log_rows = max(int(getattr(conn, "_log_rows", 0)), needed_rows)
+        conn._log_cols = max(int(getattr(conn, "_log_cols", 0)), needed_cols)
 
     def project_into(
         self,
@@ -1742,6 +1822,29 @@ class NumpySparseEngine(ComputeEngine):
                         _deferred_init_srcs.append(src_name)
                     _silent_area_srcs.add(src_name)
                     continue
+            # STALE COVERAGE (#151 dead fiber): growth is recruitment-gated
+            # (`_expand_connectomes` returns early with no first-time winner),
+            # so a no-recruitment episode after the source has grown freezes
+            # this block forever -- out-of-range rows are dropped from the
+            # slice below, zero drive recruits nobody, and no recruitment
+            # means no expansion. Mark for the deferred repair (same
+            # next-round semantics as the empty-block path above). Self
+            # fibers keep the `_self_fiber_deferred_init` gate, and a
+            # read_only() probe must not repair -- growth is exactly the
+            # channel that contract closes, and a stale fiber read under it
+            # honestly reports the trained brain as it is.
+            if (conn.sparse and not self._no_recruitment
+                    and not isinstance(conn.weights, CSRWeights)
+                    and getattr(conn.weights, "ndim", 0) == 2
+                    and (src_name != target or _self_fiber_deferred_init())):
+                _cov_r = min(int(getattr(conn, "_log_rows",
+                                         conn.weights.shape[0])),
+                             int(conn.weights.shape[0]))
+                _cov_c = min(int(getattr(conn, "_log_cols",
+                                         conn.weights.shape[1])),
+                             int(conn.weights.shape[1]))
+                if int(src.w) > _cov_r or int(tgt.w) > _cov_c:
+                    _deferred_init_srcs.append(src_name)
             src_w = xp.asarray(src.winners)
             internal = src_w[src_w < conn.weights.shape[0]]
             if len(internal) > 0 and limit > 0:
