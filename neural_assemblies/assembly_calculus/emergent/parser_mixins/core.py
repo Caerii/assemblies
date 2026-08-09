@@ -229,6 +229,17 @@ class CoreParserMixin(
         #: restored from a pre-stage checkpoint. False = byte-identical prior
         #: behavior.
         self.split_feature_areas = bool(split_feature_areas)
+        #: #149: which readout recall_tense/recall_number RETURN under the
+        #: split ("mi" | "overlap"). E15 measured the two CROSSING: MI
+        #: (cross-area drive competition) wins at the 50-frame default
+        #: budget (0.620 vs 0.540 on number), the within-area overlap
+        #: readout wins at >=200 frames (0.700 vs 0.637; E19b's terminal
+        #: 0.727 is overlap's) -- single-step drive comparison saturates
+        #: early (#24's weak primitive). "mi" is measured-best at the
+        #: default corpus; production at scale sets "overlap" -- see
+        #: research/notes/production_configuration.md. Both answers always
+        #: ride in diag regardless of this switch.
+        self.morph_readout: str = "mi"
         self._morph_exposure: Dict[str, int] = {}
         #: Label-image cache for the morph recall readout. A feature area's
         #: stimulus images are identical for every probed word on an

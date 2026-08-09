@@ -143,6 +143,28 @@ def test_competition_dynamics_modes(split_parser):
         split_parser.mi_latch_rounds = 1
 
 
+def test_morph_readout_switch(split_parser):
+    """#149: the returned answer follows `morph_readout`; both answers ride
+    in diag either way. The readouts CROSS by budget (E15: MI wins at 50
+    frames, overlap at >=200), so this is a measured parameter with a
+    per-regime best -- not two interchangeable ways to do one thing."""
+    base = getattr(split_parser, "morph_readout", "mi")
+    try:
+        split_parser.morph_readout = "mi"
+        got_mi, diag_mi = split_parser.recall_number("dogs")
+        assert "mi_answer" in diag_mi and "overlap_answer" in diag_mi
+        assert got_mi == diag_mi["mi_answer"]
+
+        split_parser.morph_readout = "overlap"
+        got_ov, diag_ov = split_parser.recall_number("dogs")
+        expected = (diag_ov["overlap_answer"]
+                    if diag_ov["overlap_answer"] is not None
+                    else diag_ov["mi_answer"])  # tie falls back to MI
+        assert got_ov == expected
+    finally:
+        split_parser.morph_readout = base
+
+
 def test_morph_flush_every_rate():
     """E19 (#148): morph_flush_every=K triggers interim deferred flushes.
 

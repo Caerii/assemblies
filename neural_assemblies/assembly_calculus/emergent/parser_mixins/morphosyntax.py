@@ -681,14 +681,21 @@ class MorphosyntaxMixin:
         0.0 by construction, and E15's experiment must VERIFY that with
         its own counter rather than trust this line.
 
-        A SECONDARY readout rides along in `diag["overlap_scores"]` /
+        A SECOND readout rides along in `diag["overlap_scores"]` /
         `diag["overlap_answer"]`: each area probed alone (no co-target, MI
         silent), scored by overlap against its own label image -- the
-        E-series shared-area readout translated per-area. Registered as a
-        diagnostic, not the answer; #24 measured cross-area drive
-        comparison as the less reliable primitive in the ROLE setting, so
-        if the two readouts disagree systematically that is a finding to
-        report, not to average.
+        E-series shared-area readout translated per-area. E15 (#144)
+        measured the two CROSSING: MI wins at the 50-frame default budget
+        (0.620 vs 0.540), overlap wins at >=200 frames (0.700 vs 0.637;
+        the E19b terminal 0.727 is overlap's), because single-step
+        cross-area drive comparison saturates early (margins pinned at
+        7-10% -- the #24 weak primitive, measured three times). The
+        RETURNED answer therefore follows `self.morph_readout` ("mi" |
+        "overlap", #149): "mi" is measured-best at the default corpus,
+        "overlap" is the production readout at scale -- see
+        research/notes/production_configuration.md. Both answers are
+        always in diag; systematic disagreement between them is a finding
+        to report, not to average.
         """
         from neural_assemblies.assembly_calculus.ops import (
             project as _ops_project,
@@ -821,9 +828,14 @@ class MorphosyntaxMixin:
         ov = sorted(diag["overlap_scores"].items(), key=lambda kv: -kv[1])
         if ov and (len(ov) < 2 or ov[0][1] > ov[1][1]):
             diag["overlap_answer"] = ov[0][0]
-        if top > runner:
-            return top_label, diag
-        return None, diag
+        diag["mi_answer"] = top_label if top > runner else None
+        if getattr(self, "morph_readout", "mi") == "overlap":
+            # Overlap decides; an overlap TIE falls back to the MI
+            # decision (the commit device breaks ties by drive) rather
+            # than refusing on a readout the caller chose for accuracy.
+            if diag["overlap_answer"] is not None:
+                return diag["overlap_answer"], diag
+        return diag["mi_answer"], diag
 
     def recall_tense(self, word: str,
                      candidates: Tuple[str, ...] = ("PRESENT", "PAST"),
