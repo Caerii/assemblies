@@ -1,0 +1,618 @@
+{
+  "K40-200": {
+    "42": {
+      "attested": {
+        "mi_balanced": 0.65,
+        "ov_balanced": 0.7333333333333334,
+        "pl_ov": 0.7666666666666667,
+        "sg_ov": 0.7
+      },
+      "tense_balanced": 0.5879578246392897,
+      "mean_concentration": 1.074454129279365,
+      "n_flush_obs": 50,
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "44": {
+      "attested": {
+        "mi_balanced": 0.5166666666666667,
+        "ov_balanced": 0.7666666666666667,
+        "pl_ov": 0.7666666666666667,
+        "sg_ov": 0.7666666666666667
+      },
+      "tense_balanced": 0.6025249722530521,
+      "mean_concentration": 1.0667755216004873,
+      "n_flush_obs": 50,
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "45": {
+      "attested": {
+        "mi_balanced": 0.5833333333333334,
+        "ov_balanced": 0.7,
+        "pl_ov": 0.6666666666666666,
+        "sg_ov": 0.7333333333333333
+      },
+      "tense_balanced": 0.5847669256381798,
+      "mean_concentration": 1.0647967573687387,
+      "n_flush_obs": 50,
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "43": {
+      "attested": {
+        "mi_balanced": 0.65,
+        "ov_balanced": 0.7166666666666667,
+        "pl_ov": 0.6666666666666666,
+        "sg_ov": 0.7666666666666667
+      },
+      "tense_balanced": 0.6046059933407325,
+      "mean_concentration": 1.0580239958210744,
+      "n_flush_obs": 50,
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "46": {
+      "attested": {
+        "mi_balanced": 0.5333333333333333,
+        "ov_balanced": 0.7333333333333334,
+        "pl_ov": 0.7666666666666667,
+        "sg_ov": 0.7
+      },
+      "tense_balanced": 0.6119589345172032,
+      "mean_concentration": 1.072475521150306,
+      "n_flush_obs": 50,
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    }
+  },
+  "K1-200": {
+    "42": {
+      "attested": {
+        "mi_balanced": 0.6166666666666667,
+        "ov_balanced": 0.6666666666666666,
+        "pl_ov": 0.6666666666666666,
+        "sg_ov": 0.6666666666666666
+      },
+      "tense_balanced": 0.7053274139844616,
+      "mean_concentration": 1.0151644881270903,
+      "n_flush_obs": 661,
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "44": {
+      "attested": {
+        "mi_balanced": 0.4666666666666667,
+        "ov_balanced": 0.6833333333333333,
+        "pl_ov": 0.6333333333333333,
+        "sg_ov": 0.7333333333333333
+      },
+      "tense_balanced": 0.6066870144284129,
+      "mean_concentration": 1.0159267831802592,
+      "n_flush_obs": 661,
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "43": {
+      "attested": {
+        "mi_balanced": 0.65,
+        "ov_balanced": 0.6333333333333333,
+        "pl_ov": 0.5666666666666667,
+        "sg_ov": 0.7
+      },
+      "tense_balanced": 0.6351276359600444,
+      "mean_concentration": 1.0147129186062163,
+      "n_flush_obs": 661,
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "45": {
+      "attested": {
+        "mi_balanced": 0.5833333333333334,
+        "ov_balanced": 0.6833333333333333,
+        "pl_ov": 0.6333333333333333,
+        "sg_ov": 0.7333333333333333
+      },
+      "tense_balanced": 0.6434517203107658,
+      "mean_concentration": 1.0161393883584897,
+      "n_flush_obs": 661,
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "46": {
+      "attested": {
+        "mi_balanced": 0.6333333333333333,
+        "ov_balanced": 0.75,
+        "pl_ov": 0.7,
+        "sg_ov": 0.8
+      },
+      "tense_balanced": 0.5836570477247502,
+      "mean_concentration": 1.0153334460374415,
+      "n_flush_obs": 661,
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    }
+  },
+  "K1-400": {
+    "42": {
+      "attested": {
+        "mi_balanced": 0.6395348837209303,
+        "ov_balanced": 0.5930232558139534,
+        "pl_ov": 0.627906976744186,
+        "sg_ov": 0.5581395348837209
+      },
+      "tense_balanced": 0.5761513600861836,
+      "mean_concentration": 1.0174309541292204,
+      "n_flush_obs": 1314,
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "44": {
+      "attested": {
+        "mi_balanced": 0.5581395348837209,
+        "ov_balanced": 0.6627906976744187,
+        "pl_ov": 0.6744186046511628,
+        "sg_ov": 0.6511627906976745
+      },
+      "tense_balanced": 0.6553999461352007,
+      "mean_concentration": 1.0176151444889812,
+      "n_flush_obs": 1314,
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "43": {
+      "attested": {
+        "mi_balanced": 0.6162790697674418,
+        "ov_balanced": 0.6627906976744187,
+        "pl_ov": 0.627906976744186,
+        "sg_ov": 0.6976744186046512
+      },
+      "tense_balanced": 0.5272690546727713,
+      "mean_concentration": 1.0161223829955062,
+      "n_flush_obs": 1314,
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "45": {
+      "attested": {
+        "mi_balanced": 0.5465116279069767,
+        "ov_balanced": 0.686046511627907,
+        "pl_ov": 0.6046511627906976,
+        "sg_ov": 0.7674418604651163
+      },
+      "tense_balanced": 0.5898195529221654,
+      "mean_concentration": 1.0188499444144545,
+      "n_flush_obs": 1314,
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "46": {
+      "attested": {
+        "mi_balanced": 0.5465116279069767,
+        "ov_balanced": 0.6395348837209303,
+        "pl_ov": 0.627906976744186,
+        "sg_ov": 0.6511627906976745
+      },
+      "tense_balanced": 0.586520333961756,
+      "mean_concentration": 1.0159688048112245,
+      "n_flush_obs": 1314,
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    }
+  },
+  "K160-200": {
+    "42": {
+      "attested": {
+        "mi_balanced": 0.6333333333333333,
+        "ov_balanced": 0.7333333333333334,
+        "pl_ov": 0.7,
+        "sg_ov": 0.7666666666666667
+      },
+      "tense_balanced": 0.5879578246392897,
+      "mean_concentration": 1.1770499634566918,
+      "n_flush_obs": 14,
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "43": {
+      "attested": {
+        "mi_balanced": 0.7,
+        "ov_balanced": 0.7,
+        "pl_ov": 0.6333333333333333,
+        "sg_ov": 0.7666666666666667
+      },
+      "tense_balanced": 0.6287458379578246,
+      "mean_concentration": 1.1334984425230539,
+      "n_flush_obs": 14,
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "44": {
+      "attested": {
+        "mi_balanced": 0.48333333333333334,
+        "ov_balanced": 0.6833333333333333,
+        "pl_ov": 0.5666666666666667,
+        "sg_ov": 0.8
+      },
+      "tense_balanced": 0.615149833518313,
+      "mean_concentration": 1.1710325059689624,
+      "n_flush_obs": 14,
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "45": {
+      "attested": {
+        "mi_balanced": 0.5833333333333334,
+        "ov_balanced": 0.6833333333333333,
+        "pl_ov": 0.6333333333333333,
+        "sg_ov": 0.7333333333333333
+      },
+      "tense_balanced": 0.5658990011098779,
+      "mean_concentration": 1.1714601078812208,
+      "n_flush_obs": 14,
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "46": {
+      "attested": {
+        "mi_balanced": 0.55,
+        "ov_balanced": 0.7333333333333333,
+        "pl_ov": 0.7333333333333333,
+        "sg_ov": 0.7333333333333333
+      },
+      "tense_balanced": 0.6077968923418424,
+      "mean_concentration": 1.1717568582001323,
+      "n_flush_obs": 14,
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    }
+  },
+  "K40-400": {
+    "44": {
+      "attested": {
+        "mi_balanced": 0.6046511627906976,
+        "ov_balanced": 0.6976744186046511,
+        "pl_ov": 0.7906976744186046,
+        "sg_ov": 0.6046511627906976
+      },
+      "tense_balanced": 0.6100861836789658,
+      "mean_concentration": 1.063691963696564,
+      "n_flush_obs": 99,
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "43": {
+      "attested": {
+        "mi_balanced": 0.6627906976744186,
+        "ov_balanced": 0.6395348837209303,
+        "pl_ov": 0.5581395348837209,
+        "sg_ov": 0.7209302325581395
+      },
+      "tense_balanced": 0.6417317532992189,
+      "mean_concentration": 1.058424371664381,
+      "n_flush_obs": 99,
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "42": {
+      "attested": {
+        "mi_balanced": 0.6046511627906976,
+        "ov_balanced": 0.6511627906976745,
+        "pl_ov": 0.5581395348837209,
+        "sg_ov": 0.7441860465116279
+      },
+      "tense_balanced": 0.603487745758147,
+      "mean_concentration": 1.0663396098257745,
+      "n_flush_obs": 99,
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "46": {
+      "attested": {
+        "mi_balanced": 0.5232558139534884,
+        "ov_balanced": 0.6511627906976745,
+        "pl_ov": 0.6511627906976745,
+        "sg_ov": 0.6511627906976745
+      },
+      "tense_balanced": 0.5915701589011582,
+      "mean_concentration": 1.0629768271459192,
+      "n_flush_obs": 99,
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "45": {
+      "attested": {
+        "mi_balanced": 0.5930232558139534,
+        "ov_balanced": 0.6511627906976745,
+        "pl_ov": 0.6511627906976745,
+        "sg_ov": 0.6511627906976745
+      },
+      "tense_balanced": 0.5941287368704551,
+      "mean_concentration": 1.0708497317332564,
+      "n_flush_obs": 99,
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    }
+  },
+  "K160-400": {
+    "42": {
+      "attested": {
+        "mi_balanced": 0.6046511627906976,
+        "ov_balanced": 0.6395348837209303,
+        "pl_ov": 0.4883720930232558,
+        "sg_ov": 0.7906976744186046
+      },
+      "tense_balanced": 0.605776999730676,
+      "mean_concentration": 1.13014095088381,
+      "n_flush_obs": 27,
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "43": {
+      "attested": {
+        "mi_balanced": 0.6162790697674418,
+        "ov_balanced": 0.6046511627906976,
+        "pl_ov": 0.4883720930232558,
+        "sg_ov": 0.7209302325581395
+      },
+      "tense_balanced": 0.6354026393751684,
+      "mean_concentration": 1.1340017400970381,
+      "n_flush_obs": 27,
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "44": {
+      "attested": {
+        "mi_balanced": 0.6046511627906976,
+        "ov_balanced": 0.6627906976744187,
+        "pl_ov": 0.6511627906976745,
+        "sg_ov": 0.6744186046511628
+      },
+      "tense_balanced": 0.6364126043630487,
+      "mean_concentration": 1.1517872314217252,
+      "n_flush_obs": 27,
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "45": {
+      "attested": {
+        "mi_balanced": 0.6046511627906976,
+        "ov_balanced": 0.5697674418604651,
+        "pl_ov": 0.46511627906976744,
+        "sg_ov": 0.6744186046511628
+      },
+      "tense_balanced": 0.6037570697549152,
+      "mean_concentration": 1.1567128892414733,
+      "n_flush_obs": 27,
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "46": {
+      "attested": {
+        "mi_balanced": 0.5232558139534884,
+        "ov_balanced": 0.6511627906976745,
+        "pl_ov": 0.5581395348837209,
+        "sg_ov": 0.7441860465116279
+      },
+      "tense_balanced": 0.5282790196606517,
+      "mean_concentration": 1.1441615296603826,
+      "n_flush_obs": 27,
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    }
+  },
+  "K0-200": {
+    "42": {
+      "attested": {
+        "mi_balanced": 0.6666666666666667,
+        "ov_balanced": 0.7333333333333334,
+        "pl_ov": 0.6,
+        "sg_ov": 0.8666666666666667
+      },
+      "tense_balanced": 0.5879578246392897,
+      "mean_concentration": 2.402965950220015,
+      "n_flush_obs": 3,
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "43": {
+      "attested": {
+        "mi_balanced": 0.7,
+        "ov_balanced": 0.6333333333333333,
+        "pl_ov": 0.43333333333333335,
+        "sg_ov": 0.8333333333333334
+      },
+      "tense_balanced": 0.621392896781354,
+      "mean_concentration": 2.225398214121654,
+      "n_flush_obs": 3,
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "44": {
+      "attested": {
+        "mi_balanced": 0.5166666666666667,
+        "ov_balanced": 0.6833333333333333,
+        "pl_ov": 0.5,
+        "sg_ov": 0.8666666666666667
+      },
+      "tense_balanced": 0.6245837957824639,
+      "mean_concentration": 2.244936715311299,
+      "n_flush_obs": 3,
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "45": {
+      "attested": {
+        "mi_balanced": 0.5666666666666667,
+        "ov_balanced": 0.7166666666666667,
+        "pl_ov": 0.6333333333333333,
+        "sg_ov": 0.8
+      },
+      "tense_balanced": 0.5732519422863485,
+      "mean_concentration": 2.2414071227484476,
+      "n_flush_obs": 3,
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "46": {
+      "attested": {
+        "mi_balanced": 0.5833333333333334,
+        "ov_balanced": 0.6833333333333333,
+        "pl_ov": 0.5333333333333333,
+        "sg_ov": 0.8333333333333334
+      },
+      "tense_balanced": 0.6077968923418424,
+      "mean_concentration": 2.3284594577646023,
+      "n_flush_obs": 3,
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    }
+  },
+  "K0-400": {
+    "42": {
+      "attested": {
+        "mi_balanced": 0.6162790697674418,
+        "ov_balanced": 0.5465116279069767,
+        "pl_ov": 0.20930232558139536,
+        "sg_ov": 0.8837209302325582
+      },
+      "tense_balanced": 0.6280635604632373,
+      "mean_concentration": 2.949371843096125,
+      "n_flush_obs": 3,
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "43": {
+      "attested": {
+        "mi_balanced": 0.686046511627907,
+        "ov_balanced": 0.5930232558139534,
+        "pl_ov": 0.20930232558139536,
+        "sg_ov": 0.9767441860465116
+      },
+      "tense_balanced": 0.632372744411527,
+      "mean_concentration": 3.0066019638670496,
+      "n_flush_obs": 3,
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "44": {
+      "attested": {
+        "mi_balanced": 0.5697674418604651,
+        "ov_balanced": 0.6046511627906976,
+        "pl_ov": 0.3023255813953488,
+        "sg_ov": 0.9069767441860465
+      },
+      "tense_balanced": 0.6407217883113385,
+      "mean_concentration": 3.2270103296069412,
+      "n_flush_obs": 3,
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "45": {
+      "attested": {
+        "mi_balanced": 0.5813953488372093,
+        "ov_balanced": 0.5465116279069767,
+        "pl_ov": 0.23255813953488372,
+        "sg_ov": 0.8604651162790697
+      },
+      "tense_balanced": 0.6143953676272556,
+      "mean_concentration": 3.0309778295841565,
+      "n_flush_obs": 3,
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "46": {
+      "attested": {
+        "mi_balanced": 0.5581395348837209,
+        "ov_balanced": 0.5697674418604651,
+        "pl_ov": 0.2558139534883721,
+        "sg_ov": 0.8837209302325582
+      },
+      "tense_balanced": 0.5399272825208726,
+      "mean_concentration": 2.90058560138551,
+      "n_flush_obs": 3,
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    }
+  }
+}

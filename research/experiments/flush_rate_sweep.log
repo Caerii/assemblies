@@ -1,0 +1,116 @@
+[E19 K=40 zipf-200 seed=42] ov bal=0.733 (PL=0.767 SG=0.700) | mi bal=0.650 | tense=0.588 | conc=1.074454129279365 | flushes=50 | roles 4/4
+[done (40, 200, 42)]
+[E19 K=1 zipf-200 seed=42] ov bal=0.667 (PL=0.667 SG=0.667) | mi bal=0.617 | tense=0.705 | conc=1.0151644881270903 | flushes=661 | roles 4/4
+[done (1, 200, 42)]
+[E19 K=1 zipf-200 seed=44] ov bal=0.683 (PL=0.633 SG=0.733) | mi bal=0.467 | tense=0.607 | conc=1.0159267831802592 | flushes=661 | roles 4/4
+[done (1, 200, 44)]
+[E19 K=1 zipf-200 seed=43] ov bal=0.633 (PL=0.567 SG=0.700) | mi bal=0.650 | tense=0.635 | conc=1.0147129186062163 | flushes=661 | roles 4/4
+[done (1, 200, 43)]
+[E19 K=40 zipf-200 seed=44] ov bal=0.767 (PL=0.767 SG=0.767) | mi bal=0.517 | tense=0.603 | conc=1.0667755216004873 | flushes=50 | roles 4/4
+[done (40, 200, 44)]
+[E19 K=40 zipf-200 seed=45] ov bal=0.700 (PL=0.667 SG=0.733) | mi bal=0.583 | tense=0.585 | conc=1.0647967573687387 | flushes=50 | roles 4/4
+[done (40, 200, 45)]
+[E19 K=40 zipf-200 seed=43] ov bal=0.717 (PL=0.667 SG=0.767) | mi bal=0.650 | tense=0.605 | conc=1.0580239958210744 | flushes=50 | roles 4/4
+[done (40, 200, 43)]
+[E19 K=1 zipf-200 seed=45] ov bal=0.683 (PL=0.633 SG=0.733) | mi bal=0.583 | tense=0.643 | conc=1.0161393883584897 | flushes=661 | roles 4/4
+[done (1, 200, 45)]
+[E19 K=1 zipf-200 seed=46] ov bal=0.750 (PL=0.700 SG=0.800) | mi bal=0.633 | tense=0.584 | conc=1.0153334460374415 | flushes=661 | roles 4/4
+[done (1, 200, 46)]
+[E19 K=1 zipf-400 seed=42] ov bal=0.593 (PL=0.628 SG=0.558) | mi bal=0.640 | tense=0.576 | conc=1.0174309541292204 | flushes=1314 | roles 4/4
+[done (1, 400, 42)]
+[E19 K=1 zipf-400 seed=44] ov bal=0.663 (PL=0.674 SG=0.651) | mi bal=0.558 | tense=0.655 | conc=1.0176151444889812 | flushes=1314 | roles 4/4
+[done (1, 400, 44)]
+[E19 K=1 zipf-400 seed=43] ov bal=0.663 (PL=0.628 SG=0.698) | mi bal=0.616 | tense=0.527 | conc=1.0161223829955062 | flushes=1314 | roles 4/4
+[done (1, 400, 43)]
+[E19 K=1 zipf-400 seed=45] ov bal=0.686 (PL=0.605 SG=0.767) | mi bal=0.547 | tense=0.590 | conc=1.0188499444144545 | flushes=1314 | roles 4/4
+[done (1, 400, 45)]
+[E19 K=1 zipf-400 seed=46] ov bal=0.640 (PL=0.628 SG=0.651) | mi bal=0.547 | tense=0.587 | conc=1.0159688048112245 | flushes=1314 | roles 4/4
+[done (1, 400, 46)]
+[E19 K=40 zipf-200 seed=46] ov bal=0.733 (PL=0.767 SG=0.700) | mi bal=0.533 | tense=0.612 | conc=1.072475521150306 | flushes=50 | roles 4/4
+[done (40, 200, 46)]
+[E19 K=160 zipf-200 seed=42] ov bal=0.733 (PL=0.700 SG=0.767) | mi bal=0.633 | tense=0.588 | conc=1.1770499634566918 | flushes=14 | roles 4/4
+[done (160, 200, 42)]
+[E19 K=160 zipf-200 seed=43] ov bal=0.700 (PL=0.633 SG=0.767) | mi bal=0.700 | tense=0.629 | conc=1.1334984425230539 | flushes=14 | roles 4/4
+[done (160, 200, 43)]
+[E19 K=160 zipf-200 seed=44] ov bal=0.683 (PL=0.567 SG=0.800) | mi bal=0.483 | tense=0.615 | conc=1.1710325059689624 | flushes=14 | roles 4/4
+[done (160, 200, 44)]
+[E19 K=40 zipf-400 seed=44] ov bal=0.698 (PL=0.791 SG=0.605) | mi bal=0.605 | tense=0.610 | conc=1.063691963696564 | flushes=99 | roles 4/4
+[done (40, 400, 44)]
+[E19 K=40 zipf-400 seed=43] ov bal=0.640 (PL=0.558 SG=0.721) | mi bal=0.663 | tense=0.642 | conc=1.058424371664381 | flushes=99 | roles 4/4
+[done (40, 400, 43)]
+[E19 K=40 zipf-400 seed=42] ov bal=0.651 (PL=0.558 SG=0.744) | mi bal=0.605 | tense=0.603 | conc=1.0663396098257745 | flushes=99 | roles 4/4
+[done (40, 400, 42)]
+[E19 K=40 zipf-400 seed=46] ov bal=0.651 (PL=0.651 SG=0.651) | mi bal=0.523 | tense=0.592 | conc=1.0629768271459192 | flushes=99 | roles 4/4
+[done (40, 400, 46)]
+[E19 K=40 zipf-400 seed=45] ov bal=0.651 (PL=0.651 SG=0.651) | mi bal=0.593 | tense=0.594 | conc=1.0708497317332564 | flushes=99 | roles 4/4
+[done (40, 400, 45)]
+[E19 K=160 zipf-200 seed=45] ov bal=0.683 (PL=0.633 SG=0.733) | mi bal=0.583 | tense=0.566 | conc=1.1714601078812208 | flushes=14 | roles 4/4
+[done (160, 200, 45)]
+[E19 K=160 zipf-200 seed=46] ov bal=0.733 (PL=0.733 SG=0.733) | mi bal=0.550 | tense=0.608 | conc=1.1717568582001323 | flushes=14 | roles 4/4
+[done (160, 200, 46)]
+[E19 K=160 zipf-400 seed=42] ov bal=0.640 (PL=0.488 SG=0.791) | mi bal=0.605 | tense=0.606 | conc=1.13014095088381 | flushes=27 | roles 4/4
+[done (160, 400, 42)]
+[E19 K=160 zipf-400 seed=43] ov bal=0.605 (PL=0.488 SG=0.721) | mi bal=0.616 | tense=0.635 | conc=1.1340017400970381 | flushes=27 | roles 4/4
+[done (160, 400, 43)]
+[E19 K=160 zipf-400 seed=44] ov bal=0.663 (PL=0.651 SG=0.674) | mi bal=0.605 | tense=0.636 | conc=1.1517872314217252 | flushes=27 | roles 4/4
+[done (160, 400, 44)]
+[E19 K=0 zipf-200 seed=42] ov bal=0.733 (PL=0.600 SG=0.867) | mi bal=0.667 | tense=0.588 | conc=2.402965950220015 | flushes=3 | roles 4/4
+[done (0, 200, 42)]
+[E19 K=0 zipf-200 seed=43] ov bal=0.633 (PL=0.433 SG=0.833) | mi bal=0.700 | tense=0.621 | conc=2.225398214121654 | flushes=3 | roles 4/4
+[done (0, 200, 43)]
+[E19 K=0 zipf-200 seed=44] ov bal=0.683 (PL=0.500 SG=0.867) | mi bal=0.517 | tense=0.625 | conc=2.244936715311299 | flushes=3 | roles 4/4
+[done (0, 200, 44)]
+[E19 K=0 zipf-200 seed=45] ov bal=0.717 (PL=0.633 SG=0.800) | mi bal=0.567 | tense=0.573 | conc=2.2414071227484476 | flushes=3 | roles 4/4
+[done (0, 200, 45)]
+[E19 K=0 zipf-200 seed=46] ov bal=0.683 (PL=0.533 SG=0.833) | mi bal=0.583 | tense=0.608 | conc=2.3284594577646023 | flushes=3 | roles 4/4
+[done (0, 200, 46)]
+[E19 K=160 zipf-400 seed=45] ov bal=0.570 (PL=0.465 SG=0.674) | mi bal=0.605 | tense=0.604 | conc=1.1567128892414733 | flushes=27 | roles 4/4
+[done (160, 400, 45)]
+[E19 K=160 zipf-400 seed=46] ov bal=0.651 (PL=0.558 SG=0.744) | mi bal=0.523 | tense=0.528 | conc=1.1441615296603826 | flushes=27 | roles 4/4
+[done (160, 400, 46)]
+[E19 K=0 zipf-400 seed=42] ov bal=0.547 (PL=0.209 SG=0.884) | mi bal=0.616 | tense=0.628 | conc=2.949371843096125 | flushes=3 | roles 4/4
+[done (0, 400, 42)]
+[E19 K=0 zipf-400 seed=43] ov bal=0.593 (PL=0.209 SG=0.977) | mi bal=0.686 | tense=0.632 | conc=3.0066019638670496 | flushes=3 | roles 4/4
+[done (0, 400, 43)]
+[E19 K=0 zipf-400 seed=44] ov bal=0.605 (PL=0.302 SG=0.907) | mi bal=0.570 | tense=0.641 | conc=3.2270103296069412 | flushes=3 | roles 4/4
+[done (0, 400, 44)]
+[E19 K=0 zipf-400 seed=45] ov bal=0.547 (PL=0.233 SG=0.860) | mi bal=0.581 | tense=0.614 | conc=3.0309778295841565 | flushes=3 | roles 4/4
+[done (0, 400, 45)]
+[E19 K=0 zipf-400 seed=46] ov bal=0.570 (PL=0.256 SG=0.884) | mi bal=0.558 | tense=0.540 | conc=2.90058560138551 | flushes=3 | roles 4/4
+[done (0, 400, 46)]
+
+=== K x budget (attested balanced, overlap readout) ===
+K=1    zipf-200: 0.6833 +/- 0.0528 (n=5, 0.6333..0.7500)
+K=40   zipf-200: 0.7300 +/- 0.0307 (n=5, 0.7000..0.7667)
+K=160  zipf-200: 0.7067 +/- 0.0314 (n=5, 0.6833..0.7333)
+K=0    zipf-200: 0.6900 +/- 0.0476 (n=5, 0.6333..0.7333)
+K=1    zipf-400: 0.6488 +/- 0.0438 (n=5, 0.5930..0.6860)
+K=40   zipf-400: 0.6581 +/- 0.0281 (n=5, 0.6395..0.6977)
+K=160  zipf-400: 0.6256 +/- 0.0472 (n=5, 0.5698..0.6628)
+K=0    zipf-400: 0.5721 +/- 0.0329 (n=5, 0.5465..0.6047)
+
+=== registered bars ===
+F1 K=40 minus best endpoint @400 (>0): 0.0093 +/- 0.0483 (n=5, -0.0349..0.0581)
+F1 K=160 minus best endpoint @400 (>0): -0.0233 +/- 0.0797 (n=5, -0.1163..0.0465)
+F2 best arm K=40 zipf-200 (bar >= 0.75): 0.7300 +/- 0.0307 (n=5, 0.7000..0.7667)
+F3 K=1    zipf-200: mean concentration 1.015  acc 0.683
+F3 K=40   zipf-200: mean concentration 1.067  acc 0.730
+F3 K=160  zipf-200: mean concentration 1.165  acc 0.707
+F3 K=0    zipf-200: mean concentration 2.289  acc 0.690
+F3 K=1    zipf-400: mean concentration 1.017  acc 0.649
+F3 K=40   zipf-400: mean concentration 1.064  acc 0.658
+F3 K=160  zipf-400: mean concentration 1.143  acc 0.626
+F3 K=0    zipf-400: mean concentration 3.023  acc 0.572
+F3 rank corr(concentration, accuracy) across arms = -0.1190  (bar < 0)
+
+=== guards ===
+K=0 zipf-200 (E17 ref 0.700): 0.6900 +/- 0.0476 (n=5, 0.6333..0.7333)
+K=0 zipf-400 (E17 ref 0.570): 0.5721 +/- 0.0329 (n=5, 0.5465..0.6047)
+K=1    zipf-200: tense 0.635 | roles 20/20
+K=40   zipf-200: tense 0.598 | roles 20/20
+K=160  zipf-200: tense 0.601 | roles 20/20
+K=0    zipf-200: tense 0.603 | roles 20/20
+K=1    zipf-400: tense 0.587 | roles 20/20
+K=40   zipf-400: tense 0.608 | roles 20/20
+K=160  zipf-400: tense 0.602 | roles 20/20
+K=0    zipf-400: tense 0.611 | roles 20/20
