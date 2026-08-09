@@ -219,13 +219,13 @@ class CurriculumTrainer:
         return lm
 
     def _set_global_beta(self, beta: float) -> None:
-        """Set plasticity (beta) for all area-to-area connections."""
-        brain = self.parser.brain
-        for area_name in brain.areas:
-            area = brain.areas[area_name]
-            for src in area.beta_by_area:
-                area.beta_by_area[src] = beta
-                brain._engine.set_beta(area_name, src, beta)
+        """Stage plasticity schedule -- DELEGATES to the parser's beta
+        policy owner. This method used to loop over the engine store
+        directly, which silently ERASED per-fiber overlays
+        (`role_bind_gain`) at every stage boundary; `set_base_beta`
+        re-prices them instead. Kept as a thin wrapper because parity.py
+        and the stage schedules call it by this name."""
+        self.parser.set_base_beta(beta)
 
     def _evaluate_classification(self, words: list) -> float:
         """Quick classification accuracy on a word list.

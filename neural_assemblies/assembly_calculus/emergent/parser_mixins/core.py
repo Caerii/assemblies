@@ -49,6 +49,7 @@ when it returns can be stated there.
 """
 
 from collections import defaultdict
+from contextlib import contextmanager
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Set, Tuple
 
@@ -268,6 +269,12 @@ class CoreParserMixin(
         #: gain 4 -> beta_eff 0.2 -> boost (1.2)^15 ~ 15. 1.0 = exact
         #: prior behavior.
         self.morph_beta_gain: float = 1.0
+        # Backing state for the `role_bind_gain` property (see its docstring
+        # for the design). Written directly here because the setter touches
+        # engine betas, and at this point in construction the role areas may
+        # not exist yet.
+        self._role_bind_gain: float = 1.0
+        self._role_fiber_base_beta: Dict[tuple, float] = {}
         self._morph_exposure: Dict[str, int] = {}
         #: Label-image cache for the morph recall readout. A feature area's
         #: stimulus images are identical for every probed word on an
@@ -357,6 +364,102 @@ class CoreParserMixin(
 
         self._setup_areas()
         self._register_vocabulary(vocabulary or VOCABULARY)
+
+    # ==================================================================
+    # Per-fiber plasticity policy
+    # ==================================================================
+
+    @contextmanager
+    def _gain_on_fiber(self, target: str, source: str, gain: float):
+        """Transiently multiply one fiber's beta through the engine's own
+        set_beta/get_beta -- the authoritative per-fiber store (the #88
+        lesson: writing any OTHER beta bookkeeping is a silent no-op).
+
+        Lives on the core mixin because it is a property of FIBERS, not of
+        any one training phase; morphosyntax and any future phase share
+        this single bracket rather than growing siblings.
+        """
+        if gain == 1.0:
+            yield
+            return
+        eng = self.brain._engine
+        base = eng.get_beta(target, source)
+        eng.set_beta(target, source, base * gain)
+        try:
+            yield
+        finally:
+            eng.set_beta(target, source, base)
+
+    @property
+    def role_bind_gain(self) -> float:
+        """Fiber-beta gain on every CORE->ROLE fiber (#52 recipe propagation).
+
+        Same Remark-2 margin lever as `morph_beta_gain`, at role binding's
+        operating point: the standing exam runs kp=1.5 with bind's T=2
+        plasticity rounds, so one episode boosts (1.05)^2 ~ 1.10 against an
+        extreme factor 2.48-3.29 (n=3e3-1e5) -- baseline needs E~9
+        exposures where gain 4 needs E~3. Registered 2x2 decides adoption;
+        1.0 = exact prior behavior.
+
+        A PROPERTY WHOSE SETTER WRITES THE ENGINE'S PER-FIBER BETA STORE,
+        not a bracket at one call site, deliberately: role_lexicons has
+        FIVE writers (roles.train_roles, unsupervised/batch, consolidation,
+        generation, constituent_order) and the curriculum path does NOT run
+        train_roles -- a bracket at any one site is a dormant selector on
+        the others ([[one-canonical-way]]). Setting the store once makes
+        every present and future writer see the same gain, and makes the
+        obvious idiom (`p.role_bind_gain = 4.0`) the correct one.
+        """
+        return self._role_bind_gain
+
+    @role_bind_gain.setter
+    def role_bind_gain(self, gain: float) -> None:
+        gain = float(gain)
+        if gain == self._role_bind_gain:
+            return
+        eng = self.brain._engine
+        for core in sorted(set(GROUNDING_TO_CORE.values())):
+            for role in THEMATIC_AREAS:
+                key = (role, core)
+                base = self._role_fiber_base_beta.get(key)
+                if base is None:
+                    base = eng.get_beta(role, core)
+                    self._role_fiber_base_beta[key] = base
+                eng.set_beta(role, core, base * gain)
+        self._role_bind_gain = gain
+
+    def set_base_beta(self, beta: float) -> None:
+        """THE ONE WRITER of the global area->area plasticity rate.
+
+        The curriculum trainer's stage schedule used to loop over every
+        fiber and write the engine's beta store directly
+        (`CurriculumTrainer._set_global_beta`), which CLOBBERED any
+        per-fiber policy: `role_bind_gain` set 0.2 on the core->role
+        fibers and the next stage's schedule silently reset them to 0.1.
+        Caught by test_role_bind_gain's liveness test -- trained mass was
+        byte-identical between gain arms because the gain never survived
+        into the SENTENCES stage.
+
+        Two writers of one store compose only if one of them owns the
+        policy. This method owns it: effective(fiber) = base * overlay,
+        recomputed here for every registered overlay, so a stage schedule
+        RE-PRICES the overlays instead of erasing them. The trainer
+        delegates; new schedules must call this, never the engine.
+        """
+        beta = float(beta)
+        brain = self.brain
+        for area_name in brain.areas:
+            area = brain.areas[area_name]
+            for src in area.beta_by_area:
+                area.beta_by_area[src] = beta
+                brain._engine.set_beta(area_name, src, beta)
+        # Re-apply overlays on the new base: the stage changed the price
+        # level, not the policy.
+        eng = brain._engine
+        for core in sorted(set(GROUNDING_TO_CORE.values())):
+            for role in THEMATIC_AREAS:
+                self._role_fiber_base_beta[(role, core)] = beta
+                eng.set_beta(role, core, beta * self._role_bind_gain)
 
     # ==================================================================
     # Setup

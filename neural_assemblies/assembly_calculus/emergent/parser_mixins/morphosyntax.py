@@ -186,21 +186,9 @@ class MorphosyntaxMixin:
         exp = getattr(self, "novelty_gain_exp", 0.5)
         return min(gmax, (mean_count / counts[key]) ** exp)
 
-    @contextmanager
-    def _gain_on_fiber(self, target: str, source: str, gain: float):
-        """Transiently multiply one fiber's beta through the engine's own
-        set_beta/get_beta -- the authoritative per-fiber store (the #88
-        lesson: writing any OTHER beta bookkeeping is a silent no-op)."""
-        if gain == 1.0:
-            yield
-            return
-        eng = self.brain._engine
-        base = eng.get_beta(target, source)
-        eng.set_beta(target, source, base * gain)
-        try:
-            yield
-        finally:
-            eng.set_beta(target, source, base)
+    # `_gain_on_fiber` moved to CoreParserMixin: it is a property of
+    # FIBERS, not of this phase, and a second copy here is exactly the
+    # sibling-drift pattern ([[one-canonical-way]]).
 
     # ------------------------------------------------------------------
     # PER-VALUE FEATURE AREAS (E15, #144)
