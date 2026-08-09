@@ -1,0 +1,6 @@
+n=3000
+  SG: recall-x-trainedimage 0.998  trainedimage-x-classattractor 0.998
+  PL: recall-x-trainedimage 0.997  trainedimage-x-classattractor 0.997
+n=10000
+  SG: recall-x-trainedimage 0.998  trainedimage-x-classattractor 0.998
+  PL: recall-x-trainedimage 0.998  trainedimage-x-classattractor 0.998

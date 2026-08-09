@@ -1,0 +1,36 @@
+equivalence gate: 409/409 (1.0000)
+n=3000 seed=42 acc sg/pl 0.540/0.761 med own/other 1.020/0.911 stab sg/pl 0.9959/0.9829
+n=3000 seed=43 acc sg/pl 0.700/0.630 med own/other 1.219/0.919 stab sg/pl 0.9963/0.9820
+n=3000 seed=44 acc sg/pl 0.567/0.565 med own/other 0.993/0.866 stab sg/pl 0.9963/0.9906
+n=3000 seed=45 acc sg/pl 0.410/0.674 med own/other 0.887/0.933 stab sg/pl 0.9965/0.9755
+n=3000 seed=46 acc sg/pl 0.518/0.783 med own/other 0.990/0.908 stab sg/pl 0.9965/0.9819
+n=10000 seed=42 acc sg/pl 0.212/0.848 med own/other 0.065/0.123 stab sg/pl 0.9965/0.9873
+n=10000 seed=43 acc sg/pl 0.198/0.913 med own/other 0.060/0.136 stab sg/pl 0.9965/0.9862
+n=10000 seed=44 acc sg/pl 0.251/0.848 med own/other 0.072/0.123 stab sg/pl 0.9953/0.9884
+n=10000 seed=45 acc sg/pl 0.215/0.870 med own/other 0.049/0.108 stab sg/pl 0.9971/0.9914
+n=10000 seed=46 acc sg/pl 0.215/0.848 med own/other 0.068/0.118 stab sg/pl 0.9961/0.9843
+{
+  "G1_other_ratio": {
+    "mean": 0.1338323775066742,
+    "ci": 0.015584209983754002
+  },
+  "G1_own_ratio": {
+    "mean": 0.06182324423618484,
+    "ci": 0.012026295543562783
+  },
+  "G2_gap_3000": {
+    "mean": -0.013706184558855593,
+    "ci": 0.0067804254086244655
+  },
+  "G2_gap_10000": {
+    "mean": -0.008810637483299421,
+    "ci": 0.0030938299786950293
+  },
+  "G2_gap_growth": {
+    "mean": 0.0048955470755561725,
+    "ci": 0.007667589522015801
+  },
+  "G3_matched_own_sg_over_pl_3000": 0.7954898702298958,
+  "G3_matched_own_sg_over_pl_10000": 0.3418998580715951
+}
+-> F:\Github\assemblies-run-e2\research\experiments\imbalance_attribution_results.json
