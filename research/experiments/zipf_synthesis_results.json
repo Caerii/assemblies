@@ -1,0 +1,3756 @@
+{
+  "UNIFORM": {
+    "51": {
+      "number": {
+        "SG": {
+          "n": 10,
+          "acc": 0.8,
+          "tie_rate": 0.1,
+          "mean_margin": 0.21000000000000002
+        },
+        "PL": {
+          "n": 10,
+          "acc": 0.8,
+          "tie_rate": 0.0,
+          "mean_margin": 0.15333333333333335
+        },
+        "_balanced": 0.8,
+        "_image_separation": 0.03333333333333333
+      },
+      "tense": {
+        "PRESENT": {
+          "n": 25,
+          "acc": 0.52,
+          "tie_rate": 0.04,
+          "mean_margin": 0.10266666666666666
+        },
+        "PAST": {
+          "n": 23,
+          "acc": 0.6956521739130435,
+          "tie_rate": 0.13043478260869565,
+          "mean_margin": 0.11159420289855071
+        },
+        "_balanced": 0.6078260869565217,
+        "_image_separation": 0.06666666666666667
+      },
+      "fixed": {
+        "SG": {
+          "n": 10,
+          "acc": 0.8,
+          "tie_rate": 0.1,
+          "mean_margin": 0.21000000000000002
+        },
+        "PL": {
+          "n": 10,
+          "acc": 0.8,
+          "tie_rate": 0.0,
+          "mean_margin": 0.15333333333333335
+        },
+        "_balanced": 0.8,
+        "_image_separation": 0.03333333333333333
+      },
+      "shared_image_cols": 1,
+      "items": [
+        {
+          "form": "babies",
+          "attested": true,
+          "fixed": true,
+          "exposure": 1,
+          "delta": -46.001861572265625,
+          "correct": false,
+          "answer": "SG"
+        },
+        {
+          "form": "boys",
+          "attested": true,
+          "fixed": true,
+          "exposure": 1,
+          "delta": -14.8819580078125,
+          "correct": false,
+          "answer": "SG"
+        },
+        {
+          "form": "ears",
+          "attested": true,
+          "fixed": true,
+          "exposure": 1,
+          "delta": 15.562873840332031,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "gifts",
+          "attested": true,
+          "fixed": true,
+          "exposure": 1,
+          "delta": 30.544065475463867,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "girls",
+          "attested": true,
+          "fixed": true,
+          "exposure": 4,
+          "delta": 57.304500579833984,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "hands",
+          "attested": true,
+          "fixed": true,
+          "exposure": 1,
+          "delta": 7.879608154296875,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "hearts",
+          "attested": true,
+          "fixed": true,
+          "exposure": 1,
+          "delta": 16.291290283203125,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "legs",
+          "attested": true,
+          "fixed": true,
+          "exposure": 1,
+          "delta": 13.798534393310547,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "windows",
+          "attested": true,
+          "fixed": true,
+          "exposure": 1,
+          "delta": 13.048358917236328,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "winds",
+          "attested": true,
+          "fixed": true,
+          "exposure": 2,
+          "delta": 25.49087142944336,
+          "correct": true,
+          "answer": "PL"
+        }
+      ],
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "47": {
+      "number": {
+        "SG": {
+          "n": 10,
+          "acc": 0.8,
+          "tie_rate": 0.1,
+          "mean_margin": 0.29666666666666663
+        },
+        "PL": {
+          "n": 10,
+          "acc": 0.3,
+          "tie_rate": 0.0,
+          "mean_margin": 0.12000000000000002
+        },
+        "_balanced": 0.55,
+        "_image_separation": 0.06666666666666667
+      },
+      "tense": {
+        "PRESENT": {
+          "n": 25,
+          "acc": 0.64,
+          "tie_rate": 0.04,
+          "mean_margin": 0.1653333333333333
+        },
+        "PAST": {
+          "n": 23,
+          "acc": 0.782608695652174,
+          "tie_rate": 0.043478260869565216,
+          "mean_margin": 0.16231884057971016
+        },
+        "_balanced": 0.711304347826087,
+        "_image_separation": 0.0
+      },
+      "fixed": {
+        "SG": {
+          "n": 10,
+          "acc": 0.8,
+          "tie_rate": 0.1,
+          "mean_margin": 0.29666666666666663
+        },
+        "PL": {
+          "n": 10,
+          "acc": 0.3,
+          "tie_rate": 0.0,
+          "mean_margin": 0.12000000000000002
+        },
+        "_balanced": 0.55,
+        "_image_separation": 0.06666666666666667
+      },
+      "shared_image_cols": 2,
+      "items": [
+        {
+          "form": "babies",
+          "attested": true,
+          "fixed": true,
+          "exposure": 1,
+          "delta": 2.495706558227539,
+          "correct": false,
+          "answer": "SG"
+        },
+        {
+          "form": "boys",
+          "attested": true,
+          "fixed": true,
+          "exposure": 1,
+          "delta": 23.03736114501953,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "ears",
+          "attested": true,
+          "fixed": true,
+          "exposure": 1,
+          "delta": -45.434730529785156,
+          "correct": false,
+          "answer": "SG"
+        },
+        {
+          "form": "gifts",
+          "attested": true,
+          "fixed": true,
+          "exposure": 1,
+          "delta": 19.411376953125,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "girls",
+          "attested": true,
+          "fixed": true,
+          "exposure": 4,
+          "delta": 54.41351318359375,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "hands",
+          "attested": true,
+          "fixed": true,
+          "exposure": 1,
+          "delta": -21.044456481933594,
+          "correct": false,
+          "answer": "SG"
+        },
+        {
+          "form": "hearts",
+          "attested": true,
+          "fixed": true,
+          "exposure": 1,
+          "delta": -4.341606140136719,
+          "correct": false,
+          "answer": "SG"
+        },
+        {
+          "form": "legs",
+          "attested": true,
+          "fixed": true,
+          "exposure": 1,
+          "delta": -4.1863555908203125,
+          "correct": false,
+          "answer": "SG"
+        },
+        {
+          "form": "windows",
+          "attested": true,
+          "fixed": true,
+          "exposure": 1,
+          "delta": 0.2530403137207031,
+          "correct": false,
+          "answer": "SG"
+        },
+        {
+          "form": "winds",
+          "attested": true,
+          "fixed": true,
+          "exposure": 2,
+          "delta": -24.350616455078125,
+          "correct": false,
+          "answer": "SG"
+        }
+      ],
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "46": {
+      "number": {
+        "SG": {
+          "n": 10,
+          "acc": 0.8,
+          "tie_rate": 0.0,
+          "mean_margin": 0.21333333333333332
+        },
+        "PL": {
+          "n": 10,
+          "acc": 0.6,
+          "tie_rate": 0.2,
+          "mean_margin": 0.06
+        },
+        "_balanced": 0.7,
+        "_image_separation": 0.13333333333333333
+      },
+      "tense": {
+        "PRESENT": {
+          "n": 25,
+          "acc": 0.56,
+          "tie_rate": 0.12,
+          "mean_margin": 0.11599999999999999
+        },
+        "PAST": {
+          "n": 23,
+          "acc": 0.5652173913043478,
+          "tie_rate": 0.08695652173913043,
+          "mean_margin": 0.10144927536231883
+        },
+        "_balanced": 0.5626086956521739,
+        "_image_separation": 0.03333333333333333
+      },
+      "fixed": {
+        "SG": {
+          "n": 10,
+          "acc": 0.8,
+          "tie_rate": 0.0,
+          "mean_margin": 0.21333333333333332
+        },
+        "PL": {
+          "n": 10,
+          "acc": 0.6,
+          "tie_rate": 0.2,
+          "mean_margin": 0.06
+        },
+        "_balanced": 0.7,
+        "_image_separation": 0.13333333333333333
+      },
+      "shared_image_cols": 4,
+      "items": [
+        {
+          "form": "babies",
+          "attested": true,
+          "fixed": true,
+          "exposure": 1,
+          "delta": 5.89495849609375,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "boys",
+          "attested": true,
+          "fixed": true,
+          "exposure": 1,
+          "delta": 7.917198181152344,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "ears",
+          "attested": true,
+          "fixed": true,
+          "exposure": 1,
+          "delta": 29.20685386657715,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "gifts",
+          "attested": true,
+          "fixed": true,
+          "exposure": 1,
+          "delta": 15.314247131347656,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "girls",
+          "attested": true,
+          "fixed": true,
+          "exposure": 4,
+          "delta": 26.78982162475586,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "hands",
+          "attested": true,
+          "fixed": true,
+          "exposure": 1,
+          "delta": -10.673328399658203,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "hearts",
+          "attested": true,
+          "fixed": true,
+          "exposure": 1,
+          "delta": -5.916652679443359,
+          "correct": false,
+          "answer": "SG"
+        },
+        {
+          "form": "legs",
+          "attested": true,
+          "fixed": true,
+          "exposure": 1,
+          "delta": 17.76224136352539,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "windows",
+          "attested": true,
+          "fixed": true,
+          "exposure": 1,
+          "delta": 2.094623565673828,
+          "correct": false,
+          "answer": "SG"
+        },
+        {
+          "form": "winds",
+          "attested": true,
+          "fixed": true,
+          "exposure": 2,
+          "delta": 3.9704055786132812,
+          "correct": true,
+          "answer": "PL"
+        }
+      ],
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "43": {
+      "number": {
+        "SG": {
+          "n": 10,
+          "acc": 0.6,
+          "tie_rate": 0.2,
+          "mean_margin": 0.18666666666666665
+        },
+        "PL": {
+          "n": 10,
+          "acc": 0.4,
+          "tie_rate": 0.0,
+          "mean_margin": 0.06666666666666667
+        },
+        "_balanced": 0.5,
+        "_image_separation": 0.06666666666666667
+      },
+      "tense": {
+        "PRESENT": {
+          "n": 25,
+          "acc": 0.6,
+          "tie_rate": 0.08,
+          "mean_margin": 0.13466666666666666
+        },
+        "PAST": {
+          "n": 23,
+          "acc": 0.7391304347826086,
+          "tie_rate": 0.08695652173913043,
+          "mean_margin": 0.1347826086956522
+        },
+        "_balanced": 0.6695652173913043,
+        "_image_separation": 0.0
+      },
+      "fixed": {
+        "SG": {
+          "n": 10,
+          "acc": 0.6,
+          "tie_rate": 0.2,
+          "mean_margin": 0.18666666666666665
+        },
+        "PL": {
+          "n": 10,
+          "acc": 0.4,
+          "tie_rate": 0.0,
+          "mean_margin": 0.06666666666666667
+        },
+        "_balanced": 0.5,
+        "_image_separation": 0.06666666666666667
+      },
+      "shared_image_cols": 2,
+      "items": [
+        {
+          "form": "babies",
+          "attested": true,
+          "fixed": true,
+          "exposure": 1,
+          "delta": -19.21143341064453,
+          "correct": false,
+          "answer": "SG"
+        },
+        {
+          "form": "boys",
+          "attested": true,
+          "fixed": true,
+          "exposure": 1,
+          "delta": -9.903022766113281,
+          "correct": false,
+          "answer": "SG"
+        },
+        {
+          "form": "ears",
+          "attested": true,
+          "fixed": true,
+          "exposure": 1,
+          "delta": 12.47900390625,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "gifts",
+          "attested": true,
+          "fixed": true,
+          "exposure": 1,
+          "delta": 6.076007843017578,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "girls",
+          "attested": true,
+          "fixed": true,
+          "exposure": 4,
+          "delta": 23.620006561279297,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "hands",
+          "attested": true,
+          "fixed": true,
+          "exposure": 1,
+          "delta": -2.9149551391601562,
+          "correct": false,
+          "answer": "SG"
+        },
+        {
+          "form": "hearts",
+          "attested": true,
+          "fixed": true,
+          "exposure": 1,
+          "delta": -3.7119903564453125,
+          "correct": false,
+          "answer": "SG"
+        },
+        {
+          "form": "legs",
+          "attested": true,
+          "fixed": true,
+          "exposure": 1,
+          "delta": -7.4024505615234375,
+          "correct": false,
+          "answer": "SG"
+        },
+        {
+          "form": "windows",
+          "attested": true,
+          "fixed": true,
+          "exposure": 1,
+          "delta": 20.491161346435547,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "winds",
+          "attested": true,
+          "fixed": true,
+          "exposure": 2,
+          "delta": 4.506839752197266,
+          "correct": false,
+          "answer": "SG"
+        }
+      ],
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "48": {
+      "number": {
+        "SG": {
+          "n": 10,
+          "acc": 0.7,
+          "tie_rate": 0.1,
+          "mean_margin": 0.19666666666666668
+        },
+        "PL": {
+          "n": 10,
+          "acc": 0.6,
+          "tie_rate": 0.0,
+          "mean_margin": 0.13333333333333336
+        },
+        "_balanced": 0.6499999999999999,
+        "_image_separation": 0.06666666666666667
+      },
+      "tense": {
+        "PRESENT": {
+          "n": 25,
+          "acc": 0.76,
+          "tie_rate": 0.0,
+          "mean_margin": 0.13599999999999998
+        },
+        "PAST": {
+          "n": 23,
+          "acc": 0.6086956521739131,
+          "tie_rate": 0.13043478260869565,
+          "mean_margin": 0.09420289855072465
+        },
+        "_balanced": 0.6843478260869565,
+        "_image_separation": 0.03333333333333333
+      },
+      "fixed": {
+        "SG": {
+          "n": 10,
+          "acc": 0.7,
+          "tie_rate": 0.1,
+          "mean_margin": 0.19666666666666668
+        },
+        "PL": {
+          "n": 10,
+          "acc": 0.6,
+          "tie_rate": 0.0,
+          "mean_margin": 0.13333333333333336
+        },
+        "_balanced": 0.6499999999999999,
+        "_image_separation": 0.06666666666666667
+      },
+      "shared_image_cols": 2,
+      "items": [
+        {
+          "form": "babies",
+          "attested": true,
+          "fixed": true,
+          "exposure": 1,
+          "delta": 25.079357147216797,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "boys",
+          "attested": true,
+          "fixed": true,
+          "exposure": 1,
+          "delta": 11.645946502685547,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "ears",
+          "attested": true,
+          "fixed": true,
+          "exposure": 1,
+          "delta": -54.1348876953125,
+          "correct": false,
+          "answer": "SG"
+        },
+        {
+          "form": "gifts",
+          "attested": true,
+          "fixed": true,
+          "exposure": 1,
+          "delta": 4.98760986328125,
+          "correct": false,
+          "answer": "SG"
+        },
+        {
+          "form": "girls",
+          "attested": true,
+          "fixed": true,
+          "exposure": 4,
+          "delta": 72.35636901855469,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "hands",
+          "attested": true,
+          "fixed": true,
+          "exposure": 1,
+          "delta": 73.81579971313477,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "hearts",
+          "attested": true,
+          "fixed": true,
+          "exposure": 1,
+          "delta": 4.1648712158203125,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "legs",
+          "attested": true,
+          "fixed": true,
+          "exposure": 1,
+          "delta": -24.237464904785156,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "windows",
+          "attested": true,
+          "fixed": true,
+          "exposure": 1,
+          "delta": -13.567047119140625,
+          "correct": false,
+          "answer": "SG"
+        },
+        {
+          "form": "winds",
+          "attested": true,
+          "fixed": true,
+          "exposure": 2,
+          "delta": -22.470809936523438,
+          "correct": false,
+          "answer": "SG"
+        }
+      ],
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "42": {
+      "number": {
+        "SG": {
+          "n": 10,
+          "acc": 0.7,
+          "tie_rate": 0.2,
+          "mean_margin": 0.14333333333333337
+        },
+        "PL": {
+          "n": 10,
+          "acc": 0.6,
+          "tie_rate": 0.0,
+          "mean_margin": 0.11333333333333333
+        },
+        "_balanced": 0.6499999999999999,
+        "_image_separation": 0.03333333333333333
+      },
+      "tense": {
+        "PRESENT": {
+          "n": 25,
+          "acc": 0.76,
+          "tie_rate": 0.08,
+          "mean_margin": 0.13733333333333334
+        },
+        "PAST": {
+          "n": 23,
+          "acc": 0.8260869565217391,
+          "tie_rate": 0.043478260869565216,
+          "mean_margin": 0.1217391304347826
+        },
+        "_balanced": 0.7930434782608695,
+        "_image_separation": 0.03333333333333333
+      },
+      "fixed": {
+        "SG": {
+          "n": 10,
+          "acc": 0.7,
+          "tie_rate": 0.2,
+          "mean_margin": 0.14333333333333337
+        },
+        "PL": {
+          "n": 10,
+          "acc": 0.6,
+          "tie_rate": 0.0,
+          "mean_margin": 0.11333333333333333
+        },
+        "_balanced": 0.6499999999999999,
+        "_image_separation": 0.03333333333333333
+      },
+      "shared_image_cols": 1,
+      "items": [
+        {
+          "form": "babies",
+          "attested": true,
+          "fixed": true,
+          "exposure": 1,
+          "delta": 8.322738647460938,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "boys",
+          "attested": true,
+          "fixed": true,
+          "exposure": 1,
+          "delta": -2.3763694763183594,
+          "correct": false,
+          "answer": "SG"
+        },
+        {
+          "form": "ears",
+          "attested": true,
+          "fixed": true,
+          "exposure": 1,
+          "delta": 12.564132690429688,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "gifts",
+          "attested": true,
+          "fixed": true,
+          "exposure": 1,
+          "delta": -28.050064086914062,
+          "correct": false,
+          "answer": "SG"
+        },
+        {
+          "form": "girls",
+          "attested": true,
+          "fixed": true,
+          "exposure": 4,
+          "delta": 41.36866760253906,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "hands",
+          "attested": true,
+          "fixed": true,
+          "exposure": 1,
+          "delta": 18.25924301147461,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "hearts",
+          "attested": true,
+          "fixed": true,
+          "exposure": 1,
+          "delta": 14.138710021972656,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "legs",
+          "attested": true,
+          "fixed": true,
+          "exposure": 1,
+          "delta": -2.3220748901367188,
+          "correct": false,
+          "answer": "SG"
+        },
+        {
+          "form": "windows",
+          "attested": true,
+          "fixed": true,
+          "exposure": 1,
+          "delta": 19.695829391479492,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "winds",
+          "attested": true,
+          "fixed": true,
+          "exposure": 2,
+          "delta": -19.162498474121094,
+          "correct": false,
+          "answer": "SG"
+        }
+      ],
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "44": {
+      "number": {
+        "SG": {
+          "n": 10,
+          "acc": 1.0,
+          "tie_rate": 0.0,
+          "mean_margin": 0.25999999999999995
+        },
+        "PL": {
+          "n": 10,
+          "acc": 0.5,
+          "tie_rate": 0.1,
+          "mean_margin": 0.06333333333333332
+        },
+        "_balanced": 0.75,
+        "_image_separation": 0.13333333333333333
+      },
+      "tense": {
+        "PRESENT": {
+          "n": 25,
+          "acc": 0.68,
+          "tie_rate": 0.12,
+          "mean_margin": 0.13733333333333334
+        },
+        "PAST": {
+          "n": 23,
+          "acc": 0.5217391304347826,
+          "tie_rate": 0.0,
+          "mean_margin": 0.14927536231884062
+        },
+        "_balanced": 0.6008695652173913,
+        "_image_separation": 0.06666666666666667
+      },
+      "fixed": {
+        "SG": {
+          "n": 10,
+          "acc": 1.0,
+          "tie_rate": 0.0,
+          "mean_margin": 0.25999999999999995
+        },
+        "PL": {
+          "n": 10,
+          "acc": 0.5,
+          "tie_rate": 0.1,
+          "mean_margin": 0.06333333333333332
+        },
+        "_balanced": 0.75,
+        "_image_separation": 0.13333333333333333
+      },
+      "shared_image_cols": 4,
+      "items": [
+        {
+          "form": "babies",
+          "attested": true,
+          "fixed": true,
+          "exposure": 1,
+          "delta": 16.197040557861328,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "boys",
+          "attested": true,
+          "fixed": true,
+          "exposure": 1,
+          "delta": 7.5807647705078125,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "ears",
+          "attested": true,
+          "fixed": true,
+          "exposure": 1,
+          "delta": -12.598762512207031,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "gifts",
+          "attested": true,
+          "fixed": true,
+          "exposure": 1,
+          "delta": 0.5083541870117188,
+          "correct": false,
+          "answer": "SG"
+        },
+        {
+          "form": "girls",
+          "attested": true,
+          "fixed": true,
+          "exposure": 4,
+          "delta": 14.6827392578125,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "hands",
+          "attested": true,
+          "fixed": true,
+          "exposure": 1,
+          "delta": -8.136520385742188,
+          "correct": false,
+          "answer": "SG"
+        },
+        {
+          "form": "hearts",
+          "attested": true,
+          "fixed": true,
+          "exposure": 1,
+          "delta": 16.007888793945312,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "legs",
+          "attested": true,
+          "fixed": true,
+          "exposure": 1,
+          "delta": -13.205108642578125,
+          "correct": false,
+          "answer": "SG"
+        },
+        {
+          "form": "windows",
+          "attested": true,
+          "fixed": true,
+          "exposure": 1,
+          "delta": -16.74356460571289,
+          "correct": false,
+          "answer": "SG"
+        },
+        {
+          "form": "winds",
+          "attested": true,
+          "fixed": true,
+          "exposure": 2,
+          "delta": 4.297401428222656,
+          "correct": true,
+          "answer": "PL"
+        }
+      ],
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "45": {
+      "number": {
+        "SG": {
+          "n": 10,
+          "acc": 0.7,
+          "tie_rate": 0.0,
+          "mean_margin": 0.1766666666666667
+        },
+        "PL": {
+          "n": 10,
+          "acc": 0.5,
+          "tie_rate": 0.1,
+          "mean_margin": 0.11333333333333333
+        },
+        "_balanced": 0.6,
+        "_image_separation": 0.10000000000000002
+      },
+      "tense": {
+        "PRESENT": {
+          "n": 25,
+          "acc": 0.72,
+          "tie_rate": 0.04,
+          "mean_margin": 0.14
+        },
+        "PAST": {
+          "n": 23,
+          "acc": 0.7391304347826086,
+          "tie_rate": 0.0,
+          "mean_margin": 0.1391304347826087
+        },
+        "_balanced": 0.7295652173913043,
+        "_image_separation": 0.09999999999999999
+      },
+      "fixed": {
+        "SG": {
+          "n": 10,
+          "acc": 0.7,
+          "tie_rate": 0.0,
+          "mean_margin": 0.1766666666666667
+        },
+        "PL": {
+          "n": 10,
+          "acc": 0.5,
+          "tie_rate": 0.1,
+          "mean_margin": 0.11333333333333333
+        },
+        "_balanced": 0.6,
+        "_image_separation": 0.10000000000000002
+      },
+      "shared_image_cols": 3,
+      "items": [
+        {
+          "form": "babies",
+          "attested": true,
+          "fixed": true,
+          "exposure": 1,
+          "delta": -2.5474472045898438,
+          "correct": false,
+          "answer": "SG"
+        },
+        {
+          "form": "boys",
+          "attested": true,
+          "fixed": true,
+          "exposure": 1,
+          "delta": 6.187953948974609,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "ears",
+          "attested": true,
+          "fixed": true,
+          "exposure": 1,
+          "delta": -68.09189987182617,
+          "correct": false,
+          "answer": "SG"
+        },
+        {
+          "form": "gifts",
+          "attested": true,
+          "fixed": true,
+          "exposure": 1,
+          "delta": 13.316043853759766,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "girls",
+          "attested": true,
+          "fixed": true,
+          "exposure": 4,
+          "delta": 20.344951629638672,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "hands",
+          "attested": true,
+          "fixed": true,
+          "exposure": 1,
+          "delta": 3.52581787109375,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "hearts",
+          "attested": true,
+          "fixed": true,
+          "exposure": 1,
+          "delta": -12.130294799804688,
+          "correct": false,
+          "answer": "SG"
+        },
+        {
+          "form": "legs",
+          "attested": true,
+          "fixed": true,
+          "exposure": 1,
+          "delta": 25.9444580078125,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "windows",
+          "attested": true,
+          "fixed": true,
+          "exposure": 1,
+          "delta": -23.259658813476562,
+          "correct": false,
+          "answer": "SG"
+        },
+        {
+          "form": "winds",
+          "attested": true,
+          "fixed": true,
+          "exposure": 2,
+          "delta": 29.300804138183594,
+          "correct": true,
+          "answer": "PL"
+        }
+      ],
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "49": {
+      "number": {
+        "SG": {
+          "n": 10,
+          "acc": 0.8,
+          "tie_rate": 0.0,
+          "mean_margin": 0.15333333333333335
+        },
+        "PL": {
+          "n": 10,
+          "acc": 0.5,
+          "tie_rate": 0.2,
+          "mean_margin": 0.05
+        },
+        "_balanced": 0.65,
+        "_image_separation": 0.16666666666666663
+      },
+      "tense": {
+        "PRESENT": {
+          "n": 25,
+          "acc": 0.64,
+          "tie_rate": 0.04,
+          "mean_margin": 0.18666666666666665
+        },
+        "PAST": {
+          "n": 23,
+          "acc": 0.6521739130434783,
+          "tie_rate": 0.13043478260869565,
+          "mean_margin": 0.15217391304347824
+        },
+        "_balanced": 0.6460869565217391,
+        "_image_separation": 0.0
+      },
+      "fixed": {
+        "SG": {
+          "n": 10,
+          "acc": 0.8,
+          "tie_rate": 0.0,
+          "mean_margin": 0.15333333333333335
+        },
+        "PL": {
+          "n": 10,
+          "acc": 0.5,
+          "tie_rate": 0.2,
+          "mean_margin": 0.05
+        },
+        "_balanced": 0.65,
+        "_image_separation": 0.16666666666666663
+      },
+      "shared_image_cols": 5,
+      "items": [
+        {
+          "form": "babies",
+          "attested": true,
+          "fixed": true,
+          "exposure": 1,
+          "delta": -23.592376708984375,
+          "correct": false,
+          "answer": "SG"
+        },
+        {
+          "form": "boys",
+          "attested": true,
+          "fixed": true,
+          "exposure": 1,
+          "delta": -2.7614212036132812,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "ears",
+          "attested": true,
+          "fixed": true,
+          "exposure": 1,
+          "delta": -8.475639343261719,
+          "correct": false,
+          "answer": "SG"
+        },
+        {
+          "form": "gifts",
+          "attested": true,
+          "fixed": true,
+          "exposure": 1,
+          "delta": 1.2969932556152344,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "girls",
+          "attested": true,
+          "fixed": true,
+          "exposure": 4,
+          "delta": 31.00592041015625,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "hands",
+          "attested": true,
+          "fixed": true,
+          "exposure": 1,
+          "delta": 8.548316955566406,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "hearts",
+          "attested": true,
+          "fixed": true,
+          "exposure": 1,
+          "delta": -5.225074768066406,
+          "correct": false,
+          "answer": "SG"
+        },
+        {
+          "form": "legs",
+          "attested": true,
+          "fixed": true,
+          "exposure": 1,
+          "delta": 6.744274139404297,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "windows",
+          "attested": true,
+          "fixed": true,
+          "exposure": 1,
+          "delta": -1.4514312744140625,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "winds",
+          "attested": true,
+          "fixed": true,
+          "exposure": 2,
+          "delta": 5.546630859375,
+          "correct": false,
+          "answer": null
+        }
+      ],
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "50": {
+      "number": {
+        "SG": {
+          "n": 10,
+          "acc": 0.7,
+          "tie_rate": 0.0,
+          "mean_margin": 0.22666666666666666
+        },
+        "PL": {
+          "n": 10,
+          "acc": 0.6,
+          "tie_rate": 0.0,
+          "mean_margin": 0.09333333333333332
+        },
+        "_balanced": 0.6499999999999999,
+        "_image_separation": 0.06666666666666667
+      },
+      "tense": {
+        "PRESENT": {
+          "n": 25,
+          "acc": 0.64,
+          "tie_rate": 0.08,
+          "mean_margin": 0.12933333333333333
+        },
+        "PAST": {
+          "n": 23,
+          "acc": 0.7391304347826086,
+          "tie_rate": 0.08695652173913043,
+          "mean_margin": 0.10724637681159423
+        },
+        "_balanced": 0.6895652173913043,
+        "_image_separation": 0.06666666666666667
+      },
+      "fixed": {
+        "SG": {
+          "n": 10,
+          "acc": 0.7,
+          "tie_rate": 0.0,
+          "mean_margin": 0.22666666666666666
+        },
+        "PL": {
+          "n": 10,
+          "acc": 0.6,
+          "tie_rate": 0.0,
+          "mean_margin": 0.09333333333333332
+        },
+        "_balanced": 0.6499999999999999,
+        "_image_separation": 0.06666666666666667
+      },
+      "shared_image_cols": 2,
+      "items": [
+        {
+          "form": "babies",
+          "attested": true,
+          "fixed": true,
+          "exposure": 1,
+          "delta": 19.744733810424805,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "boys",
+          "attested": true,
+          "fixed": true,
+          "exposure": 1,
+          "delta": 11.702970504760742,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "ears",
+          "attested": true,
+          "fixed": true,
+          "exposure": 1,
+          "delta": -19.952922821044922,
+          "correct": false,
+          "answer": "SG"
+        },
+        {
+          "form": "gifts",
+          "attested": true,
+          "fixed": true,
+          "exposure": 1,
+          "delta": -16.045581817626953,
+          "correct": false,
+          "answer": "SG"
+        },
+        {
+          "form": "girls",
+          "attested": true,
+          "fixed": true,
+          "exposure": 4,
+          "delta": 29.854530334472656,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "hands",
+          "attested": true,
+          "fixed": true,
+          "exposure": 1,
+          "delta": 17.44322967529297,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "hearts",
+          "attested": true,
+          "fixed": true,
+          "exposure": 1,
+          "delta": 6.6213836669921875,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "legs",
+          "attested": true,
+          "fixed": true,
+          "exposure": 1,
+          "delta": -31.33354949951172,
+          "correct": false,
+          "answer": "SG"
+        },
+        {
+          "form": "windows",
+          "attested": true,
+          "fixed": true,
+          "exposure": 1,
+          "delta": 16.06454849243164,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "winds",
+          "attested": true,
+          "fixed": true,
+          "exposure": 2,
+          "delta": -4.713462829589844,
+          "correct": false,
+          "answer": "SG"
+        }
+      ],
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    }
+  },
+  "ZIPF": {
+    "42": {
+      "number": {
+        "SG": {
+          "n": 9,
+          "acc": 0.8888888888888888,
+          "tie_rate": 0.1111111111111111,
+          "mean_margin": 0.16666666666666663
+        },
+        "PL": {
+          "n": 9,
+          "acc": 0.3333333333333333,
+          "tie_rate": 0.3333333333333333,
+          "mean_margin": 0.07037037037037036
+        },
+        "_balanced": 0.611111111111111,
+        "_image_separation": 0.03333333333333333
+      },
+      "tense": {
+        "PRESENT": {
+          "n": 29,
+          "acc": 0.7586206896551724,
+          "tie_rate": 0.0,
+          "mean_margin": 0.1747126436781609
+        },
+        "PAST": {
+          "n": 20,
+          "acc": 0.8,
+          "tie_rate": 0.05,
+          "mean_margin": 0.14500000000000005
+        },
+        "_balanced": 0.7793103448275862,
+        "_image_separation": 0.06666666666666667
+      },
+      "fixed": {
+        "SG": {
+          "n": 10,
+          "acc": 0.8,
+          "tie_rate": 0.0,
+          "mean_margin": 0.10333333333333335
+        },
+        "PL": {
+          "n": 10,
+          "acc": 0.0,
+          "tie_rate": 1.0,
+          "mean_margin": null
+        },
+        "_balanced": 0.4,
+        "_image_separation": 0.03333333333333333
+      },
+      "shared_image_cols": 1,
+      "items": [
+        {
+          "form": "babies",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "boys",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "children",
+          "attested": true,
+          "fixed": false,
+          "exposure": 2,
+          "delta": 35.09664535522461,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "dogs",
+          "attested": true,
+          "fixed": false,
+          "exposure": 1,
+          "delta": 18.109289169311523,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "ears",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "eyes",
+          "attested": true,
+          "fixed": false,
+          "exposure": 1,
+          "delta": 1.6876678466796875,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "friends",
+          "attested": true,
+          "fixed": false,
+          "exposure": 1,
+          "delta": -17.01363754272461,
+          "correct": false,
+          "answer": "SG"
+        },
+        {
+          "form": "gifts",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "girls",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "hands",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "hearts",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "legs",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "mice",
+          "attested": true,
+          "fixed": false,
+          "exposure": 1,
+          "delta": -1.9608383178710938,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "mothers",
+          "attested": true,
+          "fixed": false,
+          "exposure": 1,
+          "delta": 6.916179656982422,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "papers",
+          "attested": true,
+          "fixed": false,
+          "exposure": 2,
+          "delta": 25.880207061767578,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "tables",
+          "attested": true,
+          "fixed": false,
+          "exposure": 1,
+          "delta": -5.125621795654297,
+          "correct": false,
+          "answer": "SG"
+        },
+        {
+          "form": "windows",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "winds",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "women",
+          "attested": true,
+          "fixed": false,
+          "exposure": 1,
+          "delta": -0.6505966186523438,
+          "correct": false,
+          "answer": "SG"
+        }
+      ],
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "44": {
+      "number": {
+        "SG": {
+          "n": 9,
+          "acc": 0.6666666666666666,
+          "tie_rate": 0.2222222222222222,
+          "mean_margin": 0.13333333333333333
+        },
+        "PL": {
+          "n": 9,
+          "acc": 0.4444444444444444,
+          "tie_rate": 0.0,
+          "mean_margin": 0.13703703703703704
+        },
+        "_balanced": 0.5555555555555556,
+        "_image_separation": 0.13333333333333333
+      },
+      "tense": {
+        "PRESENT": {
+          "n": 29,
+          "acc": 0.6896551724137931,
+          "tie_rate": 0.13793103448275862,
+          "mean_margin": 0.11724137931034484
+        },
+        "PAST": {
+          "n": 20,
+          "acc": 0.55,
+          "tie_rate": 0.15,
+          "mean_margin": 0.10833333333333331
+        },
+        "_balanced": 0.6198275862068966,
+        "_image_separation": 0.03333333333333333
+      },
+      "fixed": {
+        "SG": {
+          "n": 10,
+          "acc": 1.0,
+          "tie_rate": 0.0,
+          "mean_margin": 0.13
+        },
+        "PL": {
+          "n": 10,
+          "acc": 0.0,
+          "tie_rate": 1.0,
+          "mean_margin": null
+        },
+        "_balanced": 0.5,
+        "_image_separation": 0.13333333333333333
+      },
+      "shared_image_cols": 4,
+      "items": [
+        {
+          "form": "babies",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "boys",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "children",
+          "attested": true,
+          "fixed": false,
+          "exposure": 2,
+          "delta": 19.169586181640625,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "dogs",
+          "attested": true,
+          "fixed": false,
+          "exposure": 1,
+          "delta": -14.964000701904297,
+          "correct": false,
+          "answer": "SG"
+        },
+        {
+          "form": "ears",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "eyes",
+          "attested": true,
+          "fixed": false,
+          "exposure": 1,
+          "delta": -23.390907287597656,
+          "correct": false,
+          "answer": "SG"
+        },
+        {
+          "form": "friends",
+          "attested": true,
+          "fixed": false,
+          "exposure": 1,
+          "delta": -76.57274627685547,
+          "correct": false,
+          "answer": "SG"
+        },
+        {
+          "form": "gifts",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "girls",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "hands",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "hearts",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "legs",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "mice",
+          "attested": true,
+          "fixed": false,
+          "exposure": 1,
+          "delta": -10.44735336303711,
+          "correct": false,
+          "answer": "SG"
+        },
+        {
+          "form": "mothers",
+          "attested": true,
+          "fixed": false,
+          "exposure": 1,
+          "delta": -2.995758056640625,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "papers",
+          "attested": true,
+          "fixed": false,
+          "exposure": 2,
+          "delta": 16.559120178222656,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "tables",
+          "attested": true,
+          "fixed": false,
+          "exposure": 1,
+          "delta": -4.564727783203125,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "windows",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "winds",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "women",
+          "attested": true,
+          "fixed": false,
+          "exposure": 1,
+          "delta": -16.061527252197266,
+          "correct": false,
+          "answer": "SG"
+        }
+      ],
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "45": {
+      "number": {
+        "SG": {
+          "n": 9,
+          "acc": 0.7777777777777778,
+          "tie_rate": 0.0,
+          "mean_margin": 0.13703703703703704
+        },
+        "PL": {
+          "n": 9,
+          "acc": 0.5555555555555556,
+          "tie_rate": 0.3333333333333333,
+          "mean_margin": 0.08518518518518518
+        },
+        "_balanced": 0.6666666666666667,
+        "_image_separation": 0.0
+      },
+      "tense": {
+        "PRESENT": {
+          "n": 29,
+          "acc": 0.8275862068965517,
+          "tie_rate": 0.034482758620689655,
+          "mean_margin": 0.135632183908046
+        },
+        "PAST": {
+          "n": 20,
+          "acc": 0.55,
+          "tie_rate": 0.0,
+          "mean_margin": 0.14833333333333334
+        },
+        "_balanced": 0.6887931034482759,
+        "_image_separation": 0.03333333333333333
+      },
+      "fixed": {
+        "SG": {
+          "n": 10,
+          "acc": 0.5,
+          "tie_rate": 0.2,
+          "mean_margin": 0.10333333333333335
+        },
+        "PL": {
+          "n": 10,
+          "acc": 0.0,
+          "tie_rate": 1.0,
+          "mean_margin": null
+        },
+        "_balanced": 0.25,
+        "_image_separation": 0.0
+      },
+      "shared_image_cols": 0,
+      "items": [
+        {
+          "form": "babies",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "boys",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "children",
+          "attested": true,
+          "fixed": false,
+          "exposure": 2,
+          "delta": 36.8799991607666,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "dogs",
+          "attested": true,
+          "fixed": false,
+          "exposure": 1,
+          "delta": 33.1180305480957,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "ears",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "eyes",
+          "attested": true,
+          "fixed": false,
+          "exposure": 1,
+          "delta": 11.222921371459961,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "friends",
+          "attested": true,
+          "fixed": false,
+          "exposure": 1,
+          "delta": 17.11029815673828,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "gifts",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "girls",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "hands",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "hearts",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "legs",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "mice",
+          "attested": true,
+          "fixed": false,
+          "exposure": 1,
+          "delta": -3.8782596588134766,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "mothers",
+          "attested": true,
+          "fixed": false,
+          "exposure": 1,
+          "delta": 41.99776840209961,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "papers",
+          "attested": true,
+          "fixed": false,
+          "exposure": 2,
+          "delta": 15.987510681152344,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "tables",
+          "attested": true,
+          "fixed": false,
+          "exposure": 1,
+          "delta": 9.296630859375,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "windows",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "winds",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "women",
+          "attested": true,
+          "fixed": false,
+          "exposure": 1,
+          "delta": 13.790454864501953,
+          "correct": false,
+          "answer": "SG"
+        }
+      ],
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "43": {
+      "number": {
+        "SG": {
+          "n": 9,
+          "acc": 0.4444444444444444,
+          "tie_rate": 0.0,
+          "mean_margin": 0.16296296296296295
+        },
+        "PL": {
+          "n": 9,
+          "acc": 0.4444444444444444,
+          "tie_rate": 0.1111111111111111,
+          "mean_margin": 0.08148148148148149
+        },
+        "_balanced": 0.4444444444444444,
+        "_image_separation": 0.03333333333333333
+      },
+      "tense": {
+        "PRESENT": {
+          "n": 29,
+          "acc": 0.7586206896551724,
+          "tie_rate": 0.034482758620689655,
+          "mean_margin": 0.16781609195402303
+        },
+        "PAST": {
+          "n": 20,
+          "acc": 0.6,
+          "tie_rate": 0.0,
+          "mean_margin": 0.11499999999999999
+        },
+        "_balanced": 0.6793103448275861,
+        "_image_separation": 0.03333333333333333
+      },
+      "fixed": {
+        "SG": {
+          "n": 10,
+          "acc": 0.7,
+          "tie_rate": 0.1,
+          "mean_margin": 0.13
+        },
+        "PL": {
+          "n": 10,
+          "acc": 0.0,
+          "tie_rate": 1.0,
+          "mean_margin": null
+        },
+        "_balanced": 0.35,
+        "_image_separation": 0.03333333333333333
+      },
+      "shared_image_cols": 1,
+      "items": [
+        {
+          "form": "babies",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "boys",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "children",
+          "attested": true,
+          "fixed": false,
+          "exposure": 2,
+          "delta": 20.0557861328125,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "dogs",
+          "attested": true,
+          "fixed": false,
+          "exposure": 1,
+          "delta": 14.087818145751953,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "ears",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "eyes",
+          "attested": true,
+          "fixed": false,
+          "exposure": 1,
+          "delta": -10.28573226928711,
+          "correct": false,
+          "answer": "SG"
+        },
+        {
+          "form": "friends",
+          "attested": true,
+          "fixed": false,
+          "exposure": 1,
+          "delta": 20.138484954833984,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "gifts",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "girls",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "hands",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "hearts",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "legs",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "mice",
+          "attested": true,
+          "fixed": false,
+          "exposure": 1,
+          "delta": -3.9991683959960938,
+          "correct": false,
+          "answer": "SG"
+        },
+        {
+          "form": "mothers",
+          "attested": true,
+          "fixed": false,
+          "exposure": 1,
+          "delta": 39.869218826293945,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "papers",
+          "attested": true,
+          "fixed": false,
+          "exposure": 2,
+          "delta": -1.20257568359375,
+          "correct": false,
+          "answer": "SG"
+        },
+        {
+          "form": "tables",
+          "attested": true,
+          "fixed": false,
+          "exposure": 1,
+          "delta": 2.6855697631835938,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "windows",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "winds",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "women",
+          "attested": true,
+          "fixed": false,
+          "exposure": 1,
+          "delta": -8.485404968261719,
+          "correct": false,
+          "answer": "SG"
+        }
+      ],
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "48": {
+      "number": {
+        "SG": {
+          "n": 9,
+          "acc": 0.6666666666666666,
+          "tie_rate": 0.1111111111111111,
+          "mean_margin": 0.0962962962962963
+        },
+        "PL": {
+          "n": 9,
+          "acc": 0.4444444444444444,
+          "tie_rate": 0.2222222222222222,
+          "mean_margin": 0.06296296296296296
+        },
+        "_balanced": 0.5555555555555556,
+        "_image_separation": 0.16666666666666663
+      },
+      "tense": {
+        "PRESENT": {
+          "n": 29,
+          "acc": 0.6206896551724138,
+          "tie_rate": 0.13793103448275862,
+          "mean_margin": 0.14367816091954025
+        },
+        "PAST": {
+          "n": 20,
+          "acc": 0.7,
+          "tie_rate": 0.1,
+          "mean_margin": 0.15333333333333332
+        },
+        "_balanced": 0.6603448275862069,
+        "_image_separation": 0.0
+      },
+      "fixed": {
+        "SG": {
+          "n": 10,
+          "acc": 0.8,
+          "tie_rate": 0.1,
+          "mean_margin": 0.10333333333333335
+        },
+        "PL": {
+          "n": 10,
+          "acc": 0.0,
+          "tie_rate": 1.0,
+          "mean_margin": null
+        },
+        "_balanced": 0.4,
+        "_image_separation": 0.16666666666666669
+      },
+      "shared_image_cols": 5,
+      "items": [
+        {
+          "form": "babies",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "boys",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "children",
+          "attested": true,
+          "fixed": false,
+          "exposure": 2,
+          "delta": 11.603282928466797,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "dogs",
+          "attested": true,
+          "fixed": false,
+          "exposure": 1,
+          "delta": 19.425636291503906,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "ears",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "eyes",
+          "attested": true,
+          "fixed": false,
+          "exposure": 1,
+          "delta": -37.19614791870117,
+          "correct": false,
+          "answer": "SG"
+        },
+        {
+          "form": "friends",
+          "attested": true,
+          "fixed": false,
+          "exposure": 1,
+          "delta": 4.072139739990234,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "gifts",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "girls",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "hands",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "hearts",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "legs",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "mice",
+          "attested": true,
+          "fixed": false,
+          "exposure": 1,
+          "delta": 10.200515747070312,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "mothers",
+          "attested": true,
+          "fixed": false,
+          "exposure": 1,
+          "delta": 6.08587646484375,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "papers",
+          "attested": true,
+          "fixed": false,
+          "exposure": 2,
+          "delta": 7.472633361816406,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "tables",
+          "attested": true,
+          "fixed": false,
+          "exposure": 1,
+          "delta": -3.768890380859375,
+          "correct": false,
+          "answer": "SG"
+        },
+        {
+          "form": "windows",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "winds",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "women",
+          "attested": true,
+          "fixed": false,
+          "exposure": 1,
+          "delta": -8.621955871582031,
+          "correct": false,
+          "answer": "SG"
+        }
+      ],
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "51": {
+      "number": {
+        "SG": {
+          "n": 9,
+          "acc": 0.7777777777777778,
+          "tie_rate": 0.1111111111111111,
+          "mean_margin": 0.1037037037037037
+        },
+        "PL": {
+          "n": 9,
+          "acc": 0.3333333333333333,
+          "tie_rate": 0.2222222222222222,
+          "mean_margin": 0.10370370370370369
+        },
+        "_balanced": 0.5555555555555556,
+        "_image_separation": 0.06666666666666667
+      },
+      "tense": {
+        "PRESENT": {
+          "n": 29,
+          "acc": 0.6206896551724138,
+          "tie_rate": 0.10344827586206896,
+          "mean_margin": 0.12988505747126436
+        },
+        "PAST": {
+          "n": 20,
+          "acc": 0.75,
+          "tie_rate": 0.0,
+          "mean_margin": 0.13666666666666666
+        },
+        "_balanced": 0.6853448275862069,
+        "_image_separation": 0.06666666666666667
+      },
+      "fixed": {
+        "SG": {
+          "n": 10,
+          "acc": 0.6,
+          "tie_rate": 0.1,
+          "mean_margin": 0.12999999999999998
+        },
+        "PL": {
+          "n": 10,
+          "acc": 0.0,
+          "tie_rate": 1.0,
+          "mean_margin": null
+        },
+        "_balanced": 0.3,
+        "_image_separation": 0.06666666666666667
+      },
+      "shared_image_cols": 2,
+      "items": [
+        {
+          "form": "babies",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "boys",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "children",
+          "attested": true,
+          "fixed": false,
+          "exposure": 2,
+          "delta": 35.869606018066406,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "dogs",
+          "attested": true,
+          "fixed": false,
+          "exposure": 1,
+          "delta": -36.48780059814453,
+          "correct": false,
+          "answer": "SG"
+        },
+        {
+          "form": "ears",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "eyes",
+          "attested": true,
+          "fixed": false,
+          "exposure": 1,
+          "delta": 5.919975280761719,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "friends",
+          "attested": true,
+          "fixed": false,
+          "exposure": 1,
+          "delta": -59.712345123291016,
+          "correct": false,
+          "answer": "SG"
+        },
+        {
+          "form": "gifts",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "girls",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "hands",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "hearts",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "legs",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "mice",
+          "attested": true,
+          "fixed": false,
+          "exposure": 1,
+          "delta": -2.3603973388671875,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "mothers",
+          "attested": true,
+          "fixed": false,
+          "exposure": 1,
+          "delta": -6.0725250244140625,
+          "correct": false,
+          "answer": "SG"
+        },
+        {
+          "form": "papers",
+          "attested": true,
+          "fixed": false,
+          "exposure": 2,
+          "delta": -4.639034271240234,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "tables",
+          "attested": true,
+          "fixed": false,
+          "exposure": 1,
+          "delta": -19.872207641601562,
+          "correct": false,
+          "answer": "SG"
+        },
+        {
+          "form": "windows",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "winds",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "women",
+          "attested": true,
+          "fixed": false,
+          "exposure": 1,
+          "delta": 19.746803283691406,
+          "correct": true,
+          "answer": "PL"
+        }
+      ],
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "46": {
+      "number": {
+        "SG": {
+          "n": 9,
+          "acc": 0.5555555555555556,
+          "tie_rate": 0.1111111111111111,
+          "mean_margin": 0.0925925925925926
+        },
+        "PL": {
+          "n": 9,
+          "acc": 0.6666666666666666,
+          "tie_rate": 0.0,
+          "mean_margin": 0.07777777777777778
+        },
+        "_balanced": 0.6111111111111112,
+        "_image_separation": 0.10000000000000002
+      },
+      "tense": {
+        "PRESENT": {
+          "n": 29,
+          "acc": 0.8275862068965517,
+          "tie_rate": 0.06896551724137931,
+          "mean_margin": 0.12183908045977013
+        },
+        "PAST": {
+          "n": 20,
+          "acc": 0.65,
+          "tie_rate": 0.05,
+          "mean_margin": 0.13666666666666666
+        },
+        "_balanced": 0.7387931034482759,
+        "_image_separation": 0.06666666666666667
+      },
+      "fixed": {
+        "SG": {
+          "n": 10,
+          "acc": 0.8,
+          "tie_rate": 0.0,
+          "mean_margin": 0.13000000000000003
+        },
+        "PL": {
+          "n": 10,
+          "acc": 0.0,
+          "tie_rate": 1.0,
+          "mean_margin": null
+        },
+        "_balanced": 0.4,
+        "_image_separation": 0.1
+      },
+      "shared_image_cols": 3,
+      "items": [
+        {
+          "form": "babies",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "boys",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "children",
+          "attested": true,
+          "fixed": false,
+          "exposure": 2,
+          "delta": 40.35536575317383,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "dogs",
+          "attested": true,
+          "fixed": false,
+          "exposure": 1,
+          "delta": 17.088539123535156,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "ears",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "eyes",
+          "attested": true,
+          "fixed": false,
+          "exposure": 1,
+          "delta": 14.873409271240234,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "friends",
+          "attested": true,
+          "fixed": false,
+          "exposure": 1,
+          "delta": 19.022438049316406,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "gifts",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "girls",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "hands",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "hearts",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "legs",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "mice",
+          "attested": true,
+          "fixed": false,
+          "exposure": 1,
+          "delta": 13.045265197753906,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "mothers",
+          "attested": true,
+          "fixed": false,
+          "exposure": 1,
+          "delta": 10.939674377441406,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "papers",
+          "attested": true,
+          "fixed": false,
+          "exposure": 2,
+          "delta": -44.30413055419922,
+          "correct": false,
+          "answer": "SG"
+        },
+        {
+          "form": "tables",
+          "attested": true,
+          "fixed": false,
+          "exposure": 1,
+          "delta": 6.037025451660156,
+          "correct": false,
+          "answer": "SG"
+        },
+        {
+          "form": "windows",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "winds",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "women",
+          "attested": true,
+          "fixed": false,
+          "exposure": 1,
+          "delta": 6.952186584472656,
+          "correct": false,
+          "answer": "SG"
+        }
+      ],
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "47": {
+      "number": {
+        "SG": {
+          "n": 9,
+          "acc": 0.7777777777777778,
+          "tie_rate": 0.1111111111111111,
+          "mean_margin": 0.17777777777777778
+        },
+        "PL": {
+          "n": 9,
+          "acc": 0.4444444444444444,
+          "tie_rate": 0.1111111111111111,
+          "mean_margin": 0.06296296296296296
+        },
+        "_balanced": 0.6111111111111112,
+        "_image_separation": 0.10000000000000002
+      },
+      "tense": {
+        "PRESENT": {
+          "n": 29,
+          "acc": 0.7241379310344828,
+          "tie_rate": 0.10344827586206896,
+          "mean_margin": 0.13218390804597702
+        },
+        "PAST": {
+          "n": 20,
+          "acc": 0.55,
+          "tie_rate": 0.0,
+          "mean_margin": 0.15833333333333333
+        },
+        "_balanced": 0.6370689655172415,
+        "_image_separation": 0.03333333333333333
+      },
+      "fixed": {
+        "SG": {
+          "n": 10,
+          "acc": 0.6,
+          "tie_rate": 0.1,
+          "mean_margin": 0.19000000000000003
+        },
+        "PL": {
+          "n": 10,
+          "acc": 0.0,
+          "tie_rate": 1.0,
+          "mean_margin": null
+        },
+        "_balanced": 0.3,
+        "_image_separation": 0.1
+      },
+      "shared_image_cols": 3,
+      "items": [
+        {
+          "form": "babies",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "boys",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "children",
+          "attested": true,
+          "fixed": false,
+          "exposure": 2,
+          "delta": 20.730411529541016,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "dogs",
+          "attested": true,
+          "fixed": false,
+          "exposure": 1,
+          "delta": -17.622467041015625,
+          "correct": false,
+          "answer": "SG"
+        },
+        {
+          "form": "ears",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "eyes",
+          "attested": true,
+          "fixed": false,
+          "exposure": 1,
+          "delta": 10.395675659179688,
+          "correct": false,
+          "answer": "SG"
+        },
+        {
+          "form": "friends",
+          "attested": true,
+          "fixed": false,
+          "exposure": 1,
+          "delta": -3.274852752685547,
+          "correct": false,
+          "answer": "SG"
+        },
+        {
+          "form": "gifts",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "girls",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "hands",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "hearts",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "legs",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "mice",
+          "attested": true,
+          "fixed": false,
+          "exposure": 1,
+          "delta": 14.943859100341797,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "mothers",
+          "attested": true,
+          "fixed": false,
+          "exposure": 1,
+          "delta": 20.18410301208496,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "papers",
+          "attested": true,
+          "fixed": false,
+          "exposure": 2,
+          "delta": -7.928516387939453,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "tables",
+          "attested": true,
+          "fixed": false,
+          "exposure": 1,
+          "delta": 15.042957305908203,
+          "correct": false,
+          "answer": "SG"
+        },
+        {
+          "form": "windows",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "winds",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "women",
+          "attested": true,
+          "fixed": false,
+          "exposure": 1,
+          "delta": 9.093246459960938,
+          "correct": true,
+          "answer": "PL"
+        }
+      ],
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "50": {
+      "number": {
+        "SG": {
+          "n": 9,
+          "acc": 0.5555555555555556,
+          "tie_rate": 0.2222222222222222,
+          "mean_margin": 0.07777777777777778
+        },
+        "PL": {
+          "n": 9,
+          "acc": 0.7777777777777778,
+          "tie_rate": 0.1111111111111111,
+          "mean_margin": 0.055555555555555546
+        },
+        "_balanced": 0.6666666666666667,
+        "_image_separation": 0.20000000000000004
+      },
+      "tense": {
+        "PRESENT": {
+          "n": 29,
+          "acc": 0.6551724137931034,
+          "tie_rate": 0.13793103448275862,
+          "mean_margin": 0.11149425287356321
+        },
+        "PAST": {
+          "n": 20,
+          "acc": 0.6,
+          "tie_rate": 0.1,
+          "mean_margin": 0.09833333333333333
+        },
+        "_balanced": 0.6275862068965516,
+        "_image_separation": 0.06666666666666667
+      },
+      "fixed": {
+        "SG": {
+          "n": 10,
+          "acc": 0.8,
+          "tie_rate": 0.0,
+          "mean_margin": 0.12333333333333334
+        },
+        "PL": {
+          "n": 10,
+          "acc": 0.0,
+          "tie_rate": 1.0,
+          "mean_margin": null
+        },
+        "_balanced": 0.4,
+        "_image_separation": 0.2
+      },
+      "shared_image_cols": 6,
+      "items": [
+        {
+          "form": "babies",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "boys",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "children",
+          "attested": true,
+          "fixed": false,
+          "exposure": 2,
+          "delta": 12.739166259765625,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "dogs",
+          "attested": true,
+          "fixed": false,
+          "exposure": 1,
+          "delta": -0.2639961242675781,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "ears",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "eyes",
+          "attested": true,
+          "fixed": false,
+          "exposure": 1,
+          "delta": 3.0078506469726562,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "friends",
+          "attested": true,
+          "fixed": false,
+          "exposure": 1,
+          "delta": -5.271579742431641,
+          "correct": false,
+          "answer": "SG"
+        },
+        {
+          "form": "gifts",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "girls",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "hands",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "hearts",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "legs",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "mice",
+          "attested": true,
+          "fixed": false,
+          "exposure": 1,
+          "delta": 24.683101654052734,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "mothers",
+          "attested": true,
+          "fixed": false,
+          "exposure": 1,
+          "delta": 15.228950500488281,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "papers",
+          "attested": true,
+          "fixed": false,
+          "exposure": 2,
+          "delta": 14.868473052978516,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "tables",
+          "attested": true,
+          "fixed": false,
+          "exposure": 1,
+          "delta": 20.4245662689209,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "windows",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "winds",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "women",
+          "attested": true,
+          "fixed": false,
+          "exposure": 1,
+          "delta": -2.4505271911621094,
+          "correct": false,
+          "answer": null
+        }
+      ],
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "49": {
+      "number": {
+        "SG": {
+          "n": 9,
+          "acc": 0.5555555555555556,
+          "tie_rate": 0.1111111111111111,
+          "mean_margin": 0.0962962962962963
+        },
+        "PL": {
+          "n": 9,
+          "acc": 0.5555555555555556,
+          "tie_rate": 0.0,
+          "mean_margin": 0.08888888888888889
+        },
+        "_balanced": 0.5555555555555556,
+        "_image_separation": 0.06666666666666667
+      },
+      "tense": {
+        "PRESENT": {
+          "n": 29,
+          "acc": 0.6551724137931034,
+          "tie_rate": 0.10344827586206896,
+          "mean_margin": 0.135632183908046
+        },
+        "PAST": {
+          "n": 20,
+          "acc": 0.75,
+          "tie_rate": 0.15,
+          "mean_margin": 0.11333333333333333
+        },
+        "_balanced": 0.7025862068965517,
+        "_image_separation": 0.03333333333333333
+      },
+      "fixed": {
+        "SG": {
+          "n": 10,
+          "acc": 0.8,
+          "tie_rate": 0.1,
+          "mean_margin": 0.12333333333333332
+        },
+        "PL": {
+          "n": 10,
+          "acc": 0.0,
+          "tie_rate": 1.0,
+          "mean_margin": null
+        },
+        "_balanced": 0.4,
+        "_image_separation": 0.06666666666666667
+      },
+      "shared_image_cols": 2,
+      "items": [
+        {
+          "form": "babies",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "boys",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "children",
+          "attested": true,
+          "fixed": false,
+          "exposure": 2,
+          "delta": 22.288768768310547,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "dogs",
+          "attested": true,
+          "fixed": false,
+          "exposure": 1,
+          "delta": -25.49079132080078,
+          "correct": false,
+          "answer": "SG"
+        },
+        {
+          "form": "ears",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "eyes",
+          "attested": true,
+          "fixed": false,
+          "exposure": 1,
+          "delta": 16.605628967285156,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "friends",
+          "attested": true,
+          "fixed": false,
+          "exposure": 1,
+          "delta": -27.620437622070312,
+          "correct": false,
+          "answer": "SG"
+        },
+        {
+          "form": "gifts",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "girls",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "hands",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "hearts",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "legs",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "mice",
+          "attested": true,
+          "fixed": false,
+          "exposure": 1,
+          "delta": 24.274311065673828,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "mothers",
+          "attested": true,
+          "fixed": false,
+          "exposure": 1,
+          "delta": 11.694293975830078,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "papers",
+          "attested": true,
+          "fixed": false,
+          "exposure": 2,
+          "delta": 19.05615997314453,
+          "correct": true,
+          "answer": "PL"
+        },
+        {
+          "form": "tables",
+          "attested": true,
+          "fixed": false,
+          "exposure": 1,
+          "delta": 4.951686859130859,
+          "correct": false,
+          "answer": "SG"
+        },
+        {
+          "form": "windows",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "winds",
+          "attested": false,
+          "fixed": true,
+          "exposure": 0,
+          "delta": null,
+          "correct": false,
+          "answer": null
+        },
+        {
+          "form": "women",
+          "attested": true,
+          "fixed": false,
+          "exposure": 1,
+          "delta": -12.318424224853516,
+          "correct": false,
+          "answer": "SG"
+        }
+      ],
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    }
+  }
+}

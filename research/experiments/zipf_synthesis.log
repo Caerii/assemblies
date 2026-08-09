@@ -1,0 +1,98 @@
+[E13 UNIFORM seed=51] num bal=0.800 (attested PL n=10) | fixed bal=0.800 | tense=0.608 | shared cols=1 | roles 4/4
+[done ('UNIFORM', 51)]
+[E13 ZIPF seed=42] num bal=0.611 (attested PL n=9) | fixed bal=0.400 | tense=0.779 | shared cols=1 | roles 4/4
+[done ('ZIPF', 42)]
+[E13 UNIFORM seed=47] num bal=0.550 (attested PL n=10) | fixed bal=0.550 | tense=0.711 | shared cols=2 | roles 4/4
+[E13 UNIFORM seed=46] num bal=0.700 (attested PL n=10) | fixed bal=0.700 | tense=0.563 | shared cols=4 | roles 4/4
+[E13 ZIPF seed=44] num bal=0.556 (attested PL n=9) | fixed bal=0.500 | tense=0.620 | shared cols=4 | roles 4/4
+[done ('UNIFORM', 47)]
+[E13 UNIFORM seed=43] num bal=0.500 (attested PL n=10) | fixed bal=0.500 | tense=0.670 | shared cols=2 | roles 4/4
+[done ('UNIFORM', 46)]
+[done ('ZIPF', 44)]
+[E13 ZIPF seed=45] num bal=0.667 (attested PL n=9) | fixed bal=0.250 | tense=0.689 | shared cols=0 | roles 4/4
+[E13 UNIFORM seed=48] num bal=0.650 (attested PL n=10) | fixed bal=0.650 | tense=0.684 | shared cols=2 | roles 4/4
+[done ('ZIPF', 45)]
+[done ('UNIFORM', 43)]
+[done ('UNIFORM', 48)]
+[E13 UNIFORM seed=42] num bal=0.650 (attested PL n=10) | fixed bal=0.650 | tense=0.793 | shared cols=1 | roles 4/4
+[done ('UNIFORM', 42)]
+[E13 UNIFORM seed=44] num bal=0.750 (attested PL n=10) | fixed bal=0.750 | tense=0.601 | shared cols=4 | roles 4/4
+[E13 UNIFORM seed=45] num bal=0.600 (attested PL n=10) | fixed bal=0.600 | tense=0.730 | shared cols=3 | roles 4/4
+[E13 UNIFORM seed=49] num bal=0.650 (attested PL n=10) | fixed bal=0.650 | tense=0.646 | shared cols=5 | roles 4/4
+[done ('UNIFORM', 44)]
+[done ('UNIFORM', 45)]
+[E13 UNIFORM seed=50] num bal=0.650 (attested PL n=10) | fixed bal=0.650 | tense=0.690 | shared cols=2 | roles 4/4
+[done ('UNIFORM', 49)]
+[done ('UNIFORM', 50)]
+[E13 ZIPF seed=43] num bal=0.444 (attested PL n=9) | fixed bal=0.350 | tense=0.679 | shared cols=1 | roles 4/4
+[done ('ZIPF', 43)]
+[E13 ZIPF seed=48] num bal=0.556 (attested PL n=9) | fixed bal=0.400 | tense=0.660 | shared cols=5 | roles 4/4
+[done ('ZIPF', 48)]
+[E13 ZIPF seed=51] num bal=0.556 (attested PL n=9) | fixed bal=0.300 | tense=0.685 | shared cols=2 | roles 4/4
+[done ('ZIPF', 51)]
+[E13 ZIPF seed=46] num bal=0.611 (attested PL n=9) | fixed bal=0.400 | tense=0.739 | shared cols=3 | roles 4/4
+[done ('ZIPF', 46)]
+[E13 ZIPF seed=47] num bal=0.611 (attested PL n=9) | fixed bal=0.300 | tense=0.637 | shared cols=3 | roles 4/4
+[done ('ZIPF', 47)]
+[E13 ZIPF seed=50] num bal=0.667 (attested PL n=9) | fixed bal=0.400 | tense=0.628 | shared cols=6 | roles 4/4
+[done ('ZIPF', 50)]
+[E13 ZIPF seed=49] num bal=0.556 (attested PL n=9) | fixed bal=0.400 | tense=0.703 | shared cols=2 | roles 4/4
+[done ('ZIPF', 49)]
+
+=== registered bars ===
+UNIFORM number balanced: 0.6500 +/- 0.0631 (n=10, 0.5000..0.8000)
+ZIPF number balanced: 0.5833 +/- 0.0468 (n=10, 0.4444..0.6667)
+A1 ZIPF-UNIFORM attested: -0.0667 +/- 0.0723 (n=10, -0.2444..0.0667)
+UNIFORM fixed-probe balanced: 0.6500 +/- 0.0631 (n=10, 0.5000..0.8000)
+ZIPF fixed-probe balanced: 0.3700 +/- 0.0511 (n=10, 0.2500..0.5000)
+A2 ZIPF-UNIFORM fixed: -0.2800 +/- 0.0657 (n=10, -0.5000..-0.1500)
+B  UNIFORM shared SG-PL image cols: 2.6000 +/- 0.9656 (n=10, 1.0000..5.0000)
+B  ZIPF shared SG-PL image cols: 2.7000 +/- 1.3509 (n=10, 0.0000..6.0000)
+C  rho(exposure, correct) ZIPF per seed: {42: 0.756, 43: 0.06, 44: 0.598, 45: -0.06, 46: -0.189, 47: 0.06, 48: 0.598, 49: 0.478, 50: 0.286, 51: 0.189}
+   over 10/10 defined seeds: 0.2775 +/- 0.2272 (n=10, -0.1890..0.7559)
+   degenerate (constant-outcome) seeds: {} | pooled rho = 0.2673
+C  rho(delta, correct) ZIPF per seed: {42: 0.822, 43: 0.779, 44: 0.866, 45: 0.606, 46: 0.822, 47: 0.606, 48: 0.693, 49: 0.866, 50: 0.725, 51: 0.822}
+   over 10/10 defined seeds: 0.7606 +/- 0.0704 (n=10, 0.6062..0.8660)
+   degenerate (constant-outcome) seeds: {} | pooled rho = 0.7420
+
+=== guards ===
+ZIPF tense: 0.6819 +/- 0.0358 (n=10, 0.6198..0.7793)
+UNIFORM tense: 0.6695 +/- 0.0487 (n=10, 0.5626..0.7930)
+E9 SLOW R1 reference: number 0.650 +/- 0.063
+UNIFORM: roles 40/40 | attested PL n per seed [10, 10, 10, 10, 10, 10, 10, 10, 10, 10]
+ZIPF: roles 40/40 | attested PL n per seed [9, 9, 9, 9, 9, 9, 9, 9, 9, 9]
+
+=== per-item (pooled over seeds) ===
+UNIFORM:
+  girls      fixed exp/seed= 4.0  acc=1.00
+  winds      fixed exp/seed= 2.0  acc=0.40
+  babies     fixed exp/seed= 1.0  acc=0.40
+  boys       fixed exp/seed= 1.0  acc=0.70
+  ears       fixed exp/seed= 1.0  acc=0.40
+  gifts      fixed exp/seed= 1.0  acc=0.60
+  hands      fixed exp/seed= 1.0  acc=0.50
+  hearts     fixed exp/seed= 1.0  acc=0.50
+  legs       fixed exp/seed= 1.0  acc=0.50
+  windows    fixed exp/seed= 1.0  acc=0.40
+ZIPF:
+  children         exp/seed= 2.0  acc=1.00
+  papers           exp/seed= 2.0  acc=0.50
+  dogs             exp/seed= 1.0  acc=0.50
+  eyes             exp/seed= 1.0  acc=0.40
+  friends          exp/seed= 1.0  acc=0.30
+  mice             exp/seed= 1.0  acc=0.40
+  mothers          exp/seed= 1.0  acc=0.80
+  tables           exp/seed= 1.0  acc=0.40
+  women            exp/seed= 1.0  acc=0.20
+  babies     fixed exp/seed= 0.0  acc=0.00
+  boys       fixed exp/seed= 0.0  acc=0.00
+  ears       fixed exp/seed= 0.0  acc=0.00
+  gifts      fixed exp/seed= 0.0  acc=0.00
+  girls      fixed exp/seed= 0.0  acc=0.00
+  hands      fixed exp/seed= 0.0  acc=0.00
+  hearts     fixed exp/seed= 0.0  acc=0.00
+  legs       fixed exp/seed= 0.0  acc=0.00
+  windows    fixed exp/seed= 0.0  acc=0.00
+  winds      fixed exp/seed= 0.0  acc=0.00
+[unregistered] token-weighted PL acc UNIFORM: 0.6286 +/- 0.0827 (n=10, 0.4286..0.8571)
+[unregistered] token-weighted PL acc ZIPF: 0.5455 +/- 0.0920 (n=10, 0.3636..0.8182)
