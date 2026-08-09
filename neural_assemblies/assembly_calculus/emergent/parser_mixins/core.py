@@ -129,7 +129,8 @@ class CoreParserMixin(
                  synaptic_scaling=False,
                  synaptic_scaling_deferred: bool = False,
                  novelty_gain_max: float = 1.0,
-                 novelty_gain_exp: float = 0.5):
+                 novelty_gain_exp: float = 0.5,
+                 split_feature_areas: bool = False):
         from ..training.perf import (
             budget_rounds,
             fast_training_enabled,
@@ -201,6 +202,16 @@ class CoreParserMixin(
         #: exposure 1.41 -- E3); 1.0 (linear) makes a once-seen form among
         #: 5x-seen neighbors write ~5x, so GAIN_MAX becomes a live cap.
         self.novelty_gain_exp = float(novelty_gain_exp)
+        #: E15 (#144): one area PER FEATURE VALUE (NUMBER_SG/NUMBER_PL, ...)
+        #: in a mutual-inhibition group, instead of two label values sharing
+        #: one k-WTA area. E14 measured the one-area design's label images
+        #: MERGING as total label projections grow (2.6 -> 17.8 shared cols
+        #: of 30 at 200 frames) -- an architecture limit no corpus shape can
+        #: fix. The value areas are created LAZILY by train_tense/train_number
+        #: (never at construction), so this flag can be flipped on a parser
+        #: restored from a pre-stage checkpoint. False = byte-identical prior
+        #: behavior.
+        self.split_feature_areas = bool(split_feature_areas)
         self._morph_exposure: Dict[str, int] = {}
         #: Label-image cache for the morph recall readout. A feature area's
         #: stimulus images are identical for every probed word on an

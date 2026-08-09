@@ -215,6 +215,35 @@ MUTUAL_INHIBITION_GROUPS = [
     [SUBJ, SYN_VERB, OBJ, IOBJ],
 ]
 
+# ---- Per-value feature areas (E15, task #144) ----
+# E14 measured the scaling blocker of the one-area feature design: TWO label
+# values sharing ONE k-WTA area merge as total label projections grow (shared
+# SG∩PL image columns 2.6 -> 17.8 of 30 at 200 frames, through fully VARIED
+# sentences -- count, not replay). k-WTA amplifies shared drive, so both
+# labels recruit the area's mass attractor and the images converge. No corpus
+# shape fixes an architecture problem.
+#
+# The fix is the papers' own pattern: one area PER VALUE, in a mutual
+# inhibition group -- "two or more areas can be in mutual inhibition, in which
+# case there is firing only in the area that receives the greatest total
+# synaptic input" (Mitropolsky & Papadimitriou 2025, sec. 2; their ROLE
+# triple is "the only use of interarea inhibition in our model", and this
+# extends the same device to feature values). Merging becomes structurally
+# impossible: the two label images live in different areas.
+#
+# OPT-IN: these areas are NOT in ALL_AREAS. They are created lazily by
+# MorphosyntaxMixin when `split_feature_areas` is enabled, and their MI group
+# is registered at creation -- the default 48-area topology is untouched.
+FEATURE_VALUE_LABELS = {
+    NUMBER: ("SG", "PL"),
+    TENSE: ("PRESENT", "PAST", "FUTURE", "PROGRESSIVE", "PERFECT"),
+}
+
+
+def feature_value_area(feature: str, label: str) -> str:
+    """The per-value area name for (feature, label), e.g. NUMBER_SG."""
+    return f"{feature}_{label}"
+
 # ---- Function word sub-categories ----
 # These are sub-types of DET (ungrounded words) discovered from
 # distributional frames. They route through DET_CORE neurally but

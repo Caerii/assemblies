@@ -202,6 +202,50 @@ class MorphosyntaxMixin:
         finally:
             eng.set_beta(target, source, base)
 
+    # ------------------------------------------------------------------
+    # PER-VALUE FEATURE AREAS (E15, #144)
+    # ------------------------------------------------------------------
+
+    def _feature_target_area(self, feature: str, label: str) -> str:
+        """Where this (feature, label) episode trains.
+
+        Default: the shared feature area (TENSE/NUMBER) -- byte-identical
+        prior behavior. Under `split_feature_areas`: the per-value area
+        (NUMBER_SG, TENSE_PAST, ...). E14 (#143) measured the shared-area
+        design's label images MERGING as total label projections grow
+        (shared SG-PL cols 2.6 -> 17.8 of 30 at 200 frames, through VARIED
+        sentences); one area per value makes that structurally impossible.
+        """
+        if not getattr(self, "split_feature_areas", False):
+            return feature
+        from ..core.areas import feature_value_area
+        return feature_value_area(feature, label)
+
+    def _ensure_value_areas(self, feature: str) -> List[str]:
+        """Create `feature`'s per-value areas + their MI group, idempotently.
+
+        LAZY BY DESIGN: called from train_tense/train_number when the split
+        is enabled, never at construction, so the flag can be flipped on a
+        parser restored from a pre-stage checkpoint. The mutual-inhibition
+        group is the paper's device verbatim -- "firing only in the area
+        that receives the greatest total synaptic input" (Mitropolsky &
+        Papadimitriou 2025, sec. 2; their ROLE triple) -- and it stays
+        silent during training because teacher-forced episodes target ONE
+        value area per project() call; it fires exactly when recall
+        co-targets the group.
+        """
+        from ..core.areas import FEATURE_VALUE_LABELS, feature_value_area
+
+        names = [feature_value_area(feature, lab)
+                 for lab in FEATURE_VALUE_LABELS[feature]]
+        for name in names:
+            if name not in self.brain.areas:
+                self.brain.add_area(name, self.n, self.k, self.beta)
+        groups = getattr(self.brain, "_mutual_inhibition_groups", [])
+        if not any(set(g) == set(names) for g in groups):
+            self.brain.add_mutual_inhibition(names)
+        return names
+
     def train_tense(self, sentences: List[List[str]]) -> None:
         """Train TENSE area from verb morphology in sentences.
 
@@ -212,6 +256,8 @@ class MorphosyntaxMixin:
         """
         # Training invalidates the recall readout's label-image cache.
         self._feature_image_cache.clear()
+        if getattr(self, "split_feature_areas", False):
+            self._ensure_value_areas(TENSE)
         # Register tense stimuli
         tense_stims = {}
         for tense_name in ("PRESENT", "PAST", "FUTURE",
@@ -227,6 +273,10 @@ class MorphosyntaxMixin:
           for sent in sentences:
             tense = self.detect_tense(sent)
             tense_stim = tense_stims[tense]
+            # Shared area by default; the per-value area under the split
+            # (E15). Teacher-forced: exactly ONE area is targeted, so the
+            # MI group stays silent during training.
+            tgt = self._feature_target_area(TENSE, tense)
 
             # Find the verb in this sentence using grounding (fast path)
             for word in sent:
@@ -238,17 +288,17 @@ class MorphosyntaxMixin:
                     # Project tense + verb → TENSE area. The gain brackets
                     # the AFFERENT fiber only -- the one recall probes.
                     gain = self._novelty_gain("TENSE", word)
-                    with self._gain_on_fiber(TENSE, VERB_CORE, gain):
+                    with self._gain_on_fiber(tgt, VERB_CORE, gain):
                         self.brain.project(
-                            {tense_stim: [TENSE], phon: [VERB_CORE]},
-                            {VERB_CORE: [TENSE]},
+                            {tense_stim: [tgt], phon: [VERB_CORE]},
+                            {VERB_CORE: [tgt]},
                         )
                         if self.rounds > 1:
                             self.brain.project_rounds(
-                                target=TENSE,
-                                areas_by_stim={tense_stim: [TENSE]},
+                                target=tgt,
+                                areas_by_stim={tense_stim: [tgt]},
                                 dst_areas_by_src_area={
-                                    VERB_CORE: [TENSE], TENSE: [TENSE],
+                                    VERB_CORE: [tgt], tgt: [tgt],
                                 },
                                 rounds=self.rounds - 1,
                             )
@@ -418,6 +468,8 @@ class MorphosyntaxMixin:
         """
         # Training invalidates the recall readout's label-image cache.
         self._feature_image_cache.clear()
+        if getattr(self, "split_feature_areas", False):
+            self._ensure_value_areas(NUMBER)
         number_stims = {}
         for num_name in ("SG", "PL"):
             stim_name = f"number_{num_name}"
@@ -444,21 +496,24 @@ class MorphosyntaxMixin:
                 num_stim = number_stims[num]
                 core_area = GROUNDING_TO_CORE[mod]
                 phon = self.stim_map[word]
+                # Shared area by default; per-value area under the split
+                # (E15) -- one target per call, MI silent during training.
+                tgt = self._feature_target_area(NUMBER, num)
 
                 # Project number_stim + word phon -> NUMBER area, novelty
                 # gain on the afferent fiber (see _novelty_gain).
                 gain = self._novelty_gain("NUMBER", word)
-                with self._gain_on_fiber(NUMBER, core_area, gain):
+                with self._gain_on_fiber(tgt, core_area, gain):
                     self.brain.project(
-                        {num_stim: [NUMBER], phon: [core_area]},
-                        {core_area: [NUMBER]},
+                        {num_stim: [tgt], phon: [core_area]},
+                        {core_area: [tgt]},
                     )
                     if self.rounds > 1:
                         self.brain.project_rounds(
-                            target=NUMBER,
-                            areas_by_stim={num_stim: [NUMBER]},
+                            target=tgt,
+                            areas_by_stim={num_stim: [tgt]},
                             dst_areas_by_src_area={
-                                core_area: [NUMBER], NUMBER: [NUMBER],
+                                core_area: [tgt], tgt: [tgt],
                             },
                             rounds=self.rounds - 1,
                         )
@@ -576,6 +631,125 @@ class MorphosyntaxMixin:
             return top_label, diag
         return None, diag
 
+    def _recall_morph_feature_split(
+            self, word: str, feature: str,
+            stim_by_label: Dict[str, str],
+            candidates: Tuple[str, ...],
+    ) -> "tuple[Optional[str], dict]":
+        """Per-value-area recall: the paper's mutual inhibition DECIDES.
+
+        The competition is one project() co-targeting every candidate's
+        value area from the word's settled core assembly -- exactly the
+        condition under which `add_mutual_inhibition` fires, and exactly
+        the paper's readout: "there is firing only in the area that
+        receives the greatest total synaptic input" (Mitropolsky &
+        Papadimitriou 2025). The answer is the winning AREA's label;
+        `diag["scores"]` carries each area's total drive (the quantity the
+        competition was decided on, exposed via last_activation_scores).
+
+        Label-image merging is structurally impossible here -- the images
+        live in different areas -- so `image_separation` is reported as
+        0.0 by construction, and E15's experiment must VERIFY that with
+        its own counter rather than trust this line.
+
+        A SECONDARY readout rides along in `diag["overlap_scores"]` /
+        `diag["overlap_answer"]`: each area probed alone (no co-target, MI
+        silent), scored by overlap against its own label image -- the
+        E-series shared-area readout translated per-area. Registered as a
+        diagnostic, not the answer; #24 measured cross-area drive
+        comparison as the less reliable primitive in the ROLE setting, so
+        if the two readouts disagree systematically that is a finding to
+        report, not to average.
+        """
+        from neural_assemblies.assembly_calculus.ops import (
+            project as _ops_project,
+        )
+        from ..core.areas import feature_value_area
+
+        brain = self.brain
+        diag: dict = {"scores": {}, "margin": None,
+                      "image_separation": None, "readout": "mi_split",
+                      "overlap_scores": {}, "overlap_answer": None}
+
+        core_area = self._word_core_area(word)
+        phon = self.stim_map.get(word)
+        if (core_area is None or core_area not in brain.areas
+                or phon is None):
+            return None, diag
+
+        cand_areas: Dict[str, str] = {}
+        for label in candidates:
+            stim = stim_by_label.get(label)
+            area = feature_value_area(feature, label)
+            if (stim is not None and stim in brain.stimuli
+                    and area in brain.areas):
+                cand_areas[label] = area
+        if len(cand_areas) < 2:
+            return None, diag
+
+        rounds = max(1, int(self.rounds))
+        with brain.read_only():
+            # Label images, one per AREA (cache keyed by area name, so
+            # split and shared keys never collide; train_* invalidates).
+            images = {}
+            for label, area in cand_areas.items():
+                key = (area, label, rounds)
+                cached = self._feature_image_cache.get(key)
+                if cached is None:
+                    stim = stim_by_label[label]
+                    brain.inhibit_areas([area])
+                    brain.project({stim: [area]}, {})
+                    for _ in range(rounds - 1):
+                        brain.project({stim: [area]}, {area: [area]})
+                    cached = _snap(brain, area)
+                    self._feature_image_cache[key] = cached
+                images[label] = cached
+            diag["image_separation"] = 0.0  # structural; see docstring
+
+            # Settle the word's core assembly (the recall probe's own
+            # activation, unchanged from the shared-area readout).
+            brain.inhibit_areas(list(cand_areas.values()))
+            _ops_project(brain, phon, core_area, rounds=rounds)
+            brain.areas[core_area].fix_assembly()
+            try:
+                # THE COMPETITION: co-target the MI group in ONE call.
+                brain.project(
+                    {}, {core_area: list(cand_areas.values())})
+            finally:
+                brain.areas[core_area].unfix_assembly()
+            drive = dict(getattr(brain, "last_activation_scores", {}) or {})
+            diag["mi_survivors"] = [
+                label for label, area in cand_areas.items()
+                if len(getattr(brain.areas[area], "winners", ())) > 0]
+
+            # Secondary: per-area solo probe, overlap vs the label image.
+            for label, area in cand_areas.items():
+                brain.inhibit_areas([area])
+                brain.areas[core_area].fix_assembly()
+                try:
+                    brain.project({}, {core_area: [area]})
+                    for _ in range(rounds - 1):
+                        brain.project({}, {core_area: [area],
+                                           area: [area]})
+                finally:
+                    brain.areas[core_area].unfix_assembly()
+                probe = _snap(brain, area)
+                diag["overlap_scores"][label] = float(
+                    assembly_overlap(images[label], probe))
+
+        diag["scores"] = {label: float(drive.get(area, 0.0))
+                          for label, area in cand_areas.items()}
+        ranked = sorted(diag["scores"].items(), key=lambda kv: -kv[1])
+        top_label, top = ranked[0]
+        runner = ranked[1][1] if len(ranked) > 1 else 0.0
+        diag["margin"] = ((top - runner) / top) if top > 0 else None
+        ov = sorted(diag["overlap_scores"].items(), key=lambda kv: -kv[1])
+        if ov and (len(ov) < 2 or ov[0][1] > ov[1][1]):
+            diag["overlap_answer"] = ov[0][0]
+        if top > runner:
+            return top_label, diag
+        return None, diag
+
     def recall_tense(self, word: str,
                      candidates: Tuple[str, ...] = ("PRESENT", "PAST"),
                      ) -> "tuple[Optional[str], dict]":
@@ -589,19 +763,19 @@ class MorphosyntaxMixin:
         untrained there (see `_recall_morph_feature` on why untrained labels
         must not be scored).
         """
-        return self._recall_morph_feature(
-            word, TENSE,
-            {t: f"tense_{t}" for t in
-             ("PRESENT", "PAST", "FUTURE", "PROGRESSIVE", "PERFECT")},
-            candidates,
-        )
+        stims = {t: f"tense_{t}" for t in
+                 ("PRESENT", "PAST", "FUTURE", "PROGRESSIVE", "PERFECT")}
+        if getattr(self, "split_feature_areas", False):
+            return self._recall_morph_feature_split(
+                word, TENSE, stims, candidates)
+        return self._recall_morph_feature(word, TENSE, stims, candidates)
 
     def recall_number(self, word: str,
                       candidates: Tuple[str, ...] = ("SG", "PL"),
                       ) -> "tuple[Optional[str], dict]":
         """Recall grammatical number for a noun form from the NUMBER area."""
-        return self._recall_morph_feature(
-            word, NUMBER,
-            {"SG": "number_SG", "PL": "number_PL"},
-            candidates,
-        )
+        stims = {"SG": "number_SG", "PL": "number_PL"}
+        if getattr(self, "split_feature_areas", False):
+            return self._recall_morph_feature_split(
+                word, NUMBER, stims, candidates)
+        return self._recall_morph_feature(word, NUMBER, stims, candidates)
