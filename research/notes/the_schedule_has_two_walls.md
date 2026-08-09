@@ -59,3 +59,29 @@ estimate is unbiased and the bars unchanged. It decides whether F1's
 interior optimum and F2's 0.75 are real at n=10, and it is the last
 cheap measurement before the consolidation/adoption unit and the
 CHILDES graduation.
+
+## E19b addendum (seeds 42–51, same bars — the power verdicts)
+
+- **F2 FAILS DEFINITIVELY**: K=40 zipf-200 = 0.7267 ± 0.0369 at n=10,
+  stable from n=5 (0.730). The E-series 0.75 bar is NOT cleared after
+  nineteen experiments; the program's honest best is **0.727 ± 0.037**.
+- **F1 resolves into a sharper law than the one registered.** The RIGHT
+  wall is decisive and unconditional: both K=40 and K=1 beat per-phase
+  flushing at 400 by ~+0.09 paired (0.664/0.651 vs 0.570). The LEFT
+  wall does not exist at these settings: per-episode flushing ties
+  K=40 (+0.013 ± 0.026). Reconciled with E9, whose per-update penalty
+  appeared only under R4 repetition: the left wall is CONDITIONAL on
+  fast-loop collisions (repetition multiplying renormalizations); the
+  right wall (within-interval mass concentration) is unconditional.
+  The production rule is therefore simple: FLUSH OFTEN — any interval
+  well below the concentration scale is fine, and only repetition-style
+  training needs the interval floor.
+- Guards: K=0 replicates E17 at both budgets a second time; tense flat;
+  roles 80/80 across E19+E19b.
+
+**The number arc ends here**: statistics (Zipf × budget), architecture
+(per-value areas + MI), readout (within-area evidence; MI = commit),
+and schedule (mass-paced flushing) each fixed at its level, with
+0.727 ± 0.037 as the honest terminal number against the 0.75 bar and
+every residual named. The consolidation/adoption unit and the CHILDES
+graduation are the registered continuations.
