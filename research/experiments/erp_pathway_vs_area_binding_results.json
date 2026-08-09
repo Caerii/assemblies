@@ -1,0 +1,3878 @@
+{
+  "seeds": {
+    "11": {
+      "binding_rows": {
+        "patient_trained": [
+          {
+            "word": "beach",
+            "deficit": 0.0,
+            "landed_on": "beach",
+            "best_overlap": 1.0,
+            "self_overlap": 1.0,
+            "n_candidates": 29
+          },
+          {
+            "word": "chair",
+            "deficit": 0.1333333333333333,
+            "landed_on": "chair",
+            "best_overlap": 0.8666666666666667,
+            "self_overlap": 0.8666666666666667,
+            "n_candidates": 29
+          },
+          {
+            "word": "child",
+            "deficit": 0.06666666666666665,
+            "landed_on": "child",
+            "best_overlap": 0.9333333333333333,
+            "self_overlap": 0.9333333333333333,
+            "n_candidates": 29
+          },
+          {
+            "word": "eye",
+            "deficit": 0.1333333333333333,
+            "landed_on": "eye",
+            "best_overlap": 0.8666666666666667,
+            "self_overlap": 0.8666666666666667,
+            "n_candidates": 29
+          },
+          {
+            "word": "face",
+            "deficit": 0.033333333333333326,
+            "landed_on": "face",
+            "best_overlap": 0.9666666666666667,
+            "self_overlap": 0.9666666666666667,
+            "n_candidates": 29
+          },
+          {
+            "word": "finger",
+            "deficit": 0.0,
+            "landed_on": "finger",
+            "best_overlap": 1.0,
+            "self_overlap": 1.0,
+            "n_candidates": 29
+          },
+          {
+            "word": "fire",
+            "deficit": 0.033333333333333326,
+            "landed_on": "fire",
+            "best_overlap": 0.9666666666666667,
+            "self_overlap": 0.9666666666666667,
+            "n_candidates": 29
+          },
+          {
+            "word": "gift",
+            "deficit": 0.09999999999999998,
+            "landed_on": "gift",
+            "best_overlap": 0.9,
+            "self_overlap": 0.9,
+            "n_candidates": 29
+          },
+          {
+            "word": "girl",
+            "deficit": 0.0,
+            "landed_on": "person",
+            "best_overlap": 1.0,
+            "self_overlap": 0.9,
+            "n_candidates": 29
+          },
+          {
+            "word": "hand",
+            "deficit": 0.033333333333333326,
+            "landed_on": "hand",
+            "best_overlap": 0.9666666666666667,
+            "self_overlap": 0.9666666666666667,
+            "n_candidates": 29
+          }
+        ],
+        "agent_only": [
+          {
+            "word": "apple",
+            "deficit": 0.9333333333333333,
+            "landed_on": "face",
+            "best_overlap": 0.06666666666666667,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "bear",
+            "deficit": 0.8666666666666667,
+            "landed_on": "room",
+            "best_overlap": 0.13333333333333333,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "beds",
+            "deficit": 0.5333333333333333,
+            "landed_on": "chair",
+            "best_overlap": 0.4666666666666667,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "boys",
+            "deficit": 0.16666666666666663,
+            "landed_on": "girl",
+            "best_overlap": 0.8333333333333334,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "bread",
+            "deficit": 0.9333333333333333,
+            "landed_on": "dad",
+            "best_overlap": 0.06666666666666667,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "brother",
+            "deficit": 0.0,
+            "landed_on": "person",
+            "best_overlap": 1.0,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "cloud",
+            "deficit": 0.9333333333333333,
+            "landed_on": "eye",
+            "best_overlap": 0.06666666666666667,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "clouds",
+            "deficit": 0.9333333333333333,
+            "landed_on": "face",
+            "best_overlap": 0.06666666666666667,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "country",
+            "deficit": 0.6333333333333333,
+            "landed_on": "room",
+            "best_overlap": 0.36666666666666664,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "cup",
+            "deficit": 0.6666666666666667,
+            "landed_on": "paper",
+            "best_overlap": 0.3333333333333333,
+            "self_overlap": null,
+            "n_candidates": 29
+          }
+        ],
+        "verb_object": [
+          {
+            "word": "ask",
+            "deficit": 0.9333333333333333,
+            "landed_on": "finger",
+            "best_overlap": 0.06666666666666667,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "asks",
+            "deficit": 0.9,
+            "landed_on": "hand",
+            "best_overlap": 0.1,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "be",
+            "deficit": 0.8666666666666667,
+            "landed_on": "cat",
+            "best_overlap": 0.13333333333333333,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "becomes",
+            "deficit": 0.9333333333333333,
+            "landed_on": "girl",
+            "best_overlap": 0.06666666666666667,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "begins",
+            "deficit": 0.8666666666666667,
+            "landed_on": "eye",
+            "best_overlap": 0.13333333333333333,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "bought",
+            "deficit": 0.9333333333333333,
+            "landed_on": "juice",
+            "best_overlap": 0.06666666666666667,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "buys",
+            "deficit": 0.9333333333333333,
+            "landed_on": "door",
+            "best_overlap": 0.06666666666666667,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "came",
+            "deficit": 0.9333333333333333,
+            "landed_on": "door",
+            "best_overlap": 0.06666666666666667,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "carried",
+            "deficit": 0.9,
+            "landed_on": "eye",
+            "best_overlap": 0.1,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "dies",
+            "deficit": 0.9333333333333333,
+            "landed_on": "face",
+            "best_overlap": 0.06666666666666667,
+            "self_overlap": null,
+            "n_candidates": 29
+          }
+        ]
+      },
+      "pools": {
+        "patient_trained": [
+          "beach",
+          "chair",
+          "child",
+          "eye",
+          "face",
+          "finger",
+          "fire",
+          "gift",
+          "girl",
+          "hand"
+        ],
+        "agent_only": [
+          "apple",
+          "bear",
+          "beds",
+          "boys",
+          "bread",
+          "brother",
+          "cloud",
+          "clouds",
+          "country",
+          "cup"
+        ],
+        "verb_object": [
+          "ask",
+          "asks",
+          "be",
+          "becomes",
+          "begins",
+          "bought",
+          "buys",
+          "came",
+          "carried",
+          "dies"
+        ]
+      },
+      "undefined_per_arm": {
+        "patient_trained": 0,
+        "agent_only": 0,
+        "verb_object": 0
+      },
+      "binding": {
+        "patient_trained": [
+          0.0,
+          0.1333333333333333,
+          0.06666666666666665,
+          0.1333333333333333,
+          0.033333333333333326,
+          0.0,
+          0.033333333333333326,
+          0.09999999999999998,
+          0.0,
+          0.033333333333333326
+        ],
+        "agent_only": [
+          0.9333333333333333,
+          0.8666666666666667,
+          0.5333333333333333,
+          0.16666666666666663,
+          0.9333333333333333,
+          0.0,
+          0.9333333333333333,
+          0.9333333333333333,
+          0.6333333333333333,
+          0.6666666666666667
+        ],
+        "verb_object": [
+          0.9333333333333333,
+          0.9,
+          0.8666666666666667,
+          0.9333333333333333,
+          0.8666666666666667,
+          0.9333333333333333,
+          0.9333333333333333,
+          0.9333333333333333,
+          0.9,
+          0.9333333333333333
+        ]
+      },
+      "drive": {
+        "patient_trained": [
+          0.9922,
+          0.99,
+          0.9906,
+          0.9905,
+          0.9903,
+          0.9909,
+          0.991,
+          0.9908,
+          0.9891,
+          0.9903
+        ],
+        "agent_only": [
+          0.9908,
+          0.9909,
+          0.9915,
+          0.9909,
+          0.9914,
+          0.9904,
+          0.9912,
+          0.991,
+          0.9913,
+          0.9915
+        ],
+        "verb_object": [
+          0.9916,
+          0.9915,
+          0.992,
+          0.9919,
+          0.9921,
+          0.9918,
+          0.9913,
+          0.9918,
+          0.9922,
+          0.9918
+        ]
+      },
+      "auc": {
+        "pathway_BINDING": 0.915,
+        "pathway_drive": 0.79,
+        "shipped_BINDING": 1.0,
+        "shipped_drive": 0.905,
+        "area_BINDING": 0.71,
+        "area_drive": 0.955
+      }
+    },
+    "12": {
+      "binding_rows": {
+        "patient_trained": [
+          {
+            "word": "beach",
+            "deficit": 0.0,
+            "landed_on": "beach",
+            "best_overlap": 1.0,
+            "self_overlap": 1.0,
+            "n_candidates": 29
+          },
+          {
+            "word": "chair",
+            "deficit": 0.06666666666666665,
+            "landed_on": "chair",
+            "best_overlap": 0.9333333333333333,
+            "self_overlap": 0.9333333333333333,
+            "n_candidates": 29
+          },
+          {
+            "word": "child",
+            "deficit": 0.1333333333333333,
+            "landed_on": "child",
+            "best_overlap": 0.8666666666666667,
+            "self_overlap": 0.8666666666666667,
+            "n_candidates": 29
+          },
+          {
+            "word": "eye",
+            "deficit": 0.0,
+            "landed_on": "eye",
+            "best_overlap": 1.0,
+            "self_overlap": 1.0,
+            "n_candidates": 29
+          },
+          {
+            "word": "face",
+            "deficit": 0.0,
+            "landed_on": "face",
+            "best_overlap": 1.0,
+            "self_overlap": 1.0,
+            "n_candidates": 29
+          },
+          {
+            "word": "finger",
+            "deficit": 0.033333333333333326,
+            "landed_on": "finger",
+            "best_overlap": 0.9666666666666667,
+            "self_overlap": 0.9666666666666667,
+            "n_candidates": 29
+          },
+          {
+            "word": "fire",
+            "deficit": 0.0,
+            "landed_on": "fire",
+            "best_overlap": 1.0,
+            "self_overlap": 1.0,
+            "n_candidates": 29
+          },
+          {
+            "word": "gift",
+            "deficit": 0.19999999999999996,
+            "landed_on": "gift",
+            "best_overlap": 0.8,
+            "self_overlap": 0.8,
+            "n_candidates": 29
+          },
+          {
+            "word": "girl",
+            "deficit": 0.0,
+            "landed_on": "person",
+            "best_overlap": 1.0,
+            "self_overlap": 0.9666666666666667,
+            "n_candidates": 29
+          },
+          {
+            "word": "hand",
+            "deficit": 0.0,
+            "landed_on": "hand",
+            "best_overlap": 1.0,
+            "self_overlap": 1.0,
+            "n_candidates": 29
+          }
+        ],
+        "agent_only": [
+          {
+            "word": "apple",
+            "deficit": 0.9,
+            "landed_on": "wall",
+            "best_overlap": 0.1,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "bear",
+            "deficit": 0.8,
+            "landed_on": "girl",
+            "best_overlap": 0.2,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "beds",
+            "deficit": 0.8333333333333334,
+            "landed_on": "gift",
+            "best_overlap": 0.16666666666666666,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "boys",
+            "deficit": 0.09999999999999998,
+            "landed_on": "girl",
+            "best_overlap": 0.9,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "bread",
+            "deficit": 0.9333333333333333,
+            "landed_on": "eye",
+            "best_overlap": 0.06666666666666667,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "brother",
+            "deficit": 0.0,
+            "landed_on": "person",
+            "best_overlap": 1.0,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "cloud",
+            "deficit": 0.8,
+            "landed_on": "paper",
+            "best_overlap": 0.2,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "clouds",
+            "deficit": 0.9,
+            "landed_on": "rock",
+            "best_overlap": 0.1,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "country",
+            "deficit": 0.7,
+            "landed_on": "room",
+            "best_overlap": 0.3,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "cup",
+            "deficit": 0.8666666666666667,
+            "landed_on": "chair",
+            "best_overlap": 0.13333333333333333,
+            "self_overlap": null,
+            "n_candidates": 29
+          }
+        ],
+        "verb_object": [
+          {
+            "word": "ask",
+            "deficit": 0.9,
+            "landed_on": "rock",
+            "best_overlap": 0.1,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "asks",
+            "deficit": 0.8666666666666667,
+            "landed_on": "key",
+            "best_overlap": 0.13333333333333333,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "be",
+            "deficit": 0.9,
+            "landed_on": "child",
+            "best_overlap": 0.1,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "becomes",
+            "deficit": 0.9333333333333333,
+            "landed_on": "star",
+            "best_overlap": 0.06666666666666667,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "begins",
+            "deficit": 0.9,
+            "landed_on": "eye",
+            "best_overlap": 0.1,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "bought",
+            "deficit": 0.9,
+            "landed_on": "wall",
+            "best_overlap": 0.1,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "buys",
+            "deficit": 0.9,
+            "landed_on": "key",
+            "best_overlap": 0.1,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "came",
+            "deficit": 0.9,
+            "landed_on": "girl",
+            "best_overlap": 0.1,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "carried",
+            "deficit": 0.9,
+            "landed_on": "door",
+            "best_overlap": 0.1,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "dies",
+            "deficit": 0.9333333333333333,
+            "landed_on": "door",
+            "best_overlap": 0.06666666666666667,
+            "self_overlap": null,
+            "n_candidates": 29
+          }
+        ]
+      },
+      "pools": {
+        "patient_trained": [
+          "beach",
+          "chair",
+          "child",
+          "eye",
+          "face",
+          "finger",
+          "fire",
+          "gift",
+          "girl",
+          "hand"
+        ],
+        "agent_only": [
+          "apple",
+          "bear",
+          "beds",
+          "boys",
+          "bread",
+          "brother",
+          "cloud",
+          "clouds",
+          "country",
+          "cup"
+        ],
+        "verb_object": [
+          "ask",
+          "asks",
+          "be",
+          "becomes",
+          "begins",
+          "bought",
+          "buys",
+          "came",
+          "carried",
+          "dies"
+        ]
+      },
+      "undefined_per_arm": {
+        "patient_trained": 0,
+        "agent_only": 0,
+        "verb_object": 0
+      },
+      "binding": {
+        "patient_trained": [
+          0.0,
+          0.06666666666666665,
+          0.1333333333333333,
+          0.0,
+          0.0,
+          0.033333333333333326,
+          0.0,
+          0.19999999999999996,
+          0.0,
+          0.0
+        ],
+        "agent_only": [
+          0.9,
+          0.8,
+          0.8333333333333334,
+          0.09999999999999998,
+          0.9333333333333333,
+          0.0,
+          0.8,
+          0.9,
+          0.7,
+          0.8666666666666667
+        ],
+        "verb_object": [
+          0.9,
+          0.8666666666666667,
+          0.9,
+          0.9333333333333333,
+          0.9,
+          0.9,
+          0.9,
+          0.9,
+          0.9,
+          0.9333333333333333
+        ]
+      },
+      "drive": {
+        "patient_trained": [
+          0.991,
+          0.9892,
+          0.9906,
+          0.9901,
+          0.9896,
+          0.9906,
+          0.9903,
+          0.9904,
+          0.989,
+          0.9909
+        ],
+        "agent_only": [
+          0.9906,
+          0.9914,
+          0.9906,
+          0.9903,
+          0.9911,
+          0.9898,
+          0.9904,
+          0.9907,
+          0.9908,
+          0.9911
+        ],
+        "verb_object": [
+          0.9914,
+          0.9914,
+          0.9918,
+          0.9915,
+          0.9915,
+          0.9913,
+          0.9921,
+          0.9919,
+          0.9921,
+          0.9918
+        ]
+      },
+      "auc": {
+        "pathway_BINDING": 0.91,
+        "pathway_drive": 0.73,
+        "shipped_BINDING": 1.0,
+        "shipped_drive": 1.0,
+        "area_BINDING": 0.815,
+        "area_drive": 0.98
+      }
+    },
+    "42": {
+      "binding_rows": {
+        "patient_trained": [
+          {
+            "word": "beach",
+            "deficit": 0.033333333333333326,
+            "landed_on": "beach",
+            "best_overlap": 0.9666666666666667,
+            "self_overlap": 0.9666666666666667,
+            "n_candidates": 29
+          },
+          {
+            "word": "chair",
+            "deficit": 0.06666666666666665,
+            "landed_on": "book",
+            "best_overlap": 0.9333333333333333,
+            "self_overlap": 0.9,
+            "n_candidates": 29
+          },
+          {
+            "word": "child",
+            "deficit": 0.0,
+            "landed_on": "child",
+            "best_overlap": 1.0,
+            "self_overlap": 1.0,
+            "n_candidates": 29
+          },
+          {
+            "word": "eye",
+            "deficit": 0.0,
+            "landed_on": "eye",
+            "best_overlap": 1.0,
+            "self_overlap": 1.0,
+            "n_candidates": 29
+          },
+          {
+            "word": "face",
+            "deficit": 0.06666666666666665,
+            "landed_on": "face",
+            "best_overlap": 0.9333333333333333,
+            "self_overlap": 0.9333333333333333,
+            "n_candidates": 29
+          },
+          {
+            "word": "finger",
+            "deficit": 0.0,
+            "landed_on": "finger",
+            "best_overlap": 1.0,
+            "self_overlap": 1.0,
+            "n_candidates": 29
+          },
+          {
+            "word": "fire",
+            "deficit": 0.0,
+            "landed_on": "fire",
+            "best_overlap": 1.0,
+            "self_overlap": 1.0,
+            "n_candidates": 29
+          },
+          {
+            "word": "gift",
+            "deficit": 0.09999999999999998,
+            "landed_on": "gift",
+            "best_overlap": 0.9,
+            "self_overlap": 0.9,
+            "n_candidates": 29
+          },
+          {
+            "word": "girl",
+            "deficit": 0.0,
+            "landed_on": "cat",
+            "best_overlap": 1.0,
+            "self_overlap": 0.9666666666666667,
+            "n_candidates": 29
+          },
+          {
+            "word": "hand",
+            "deficit": 0.0,
+            "landed_on": "hand",
+            "best_overlap": 1.0,
+            "self_overlap": 1.0,
+            "n_candidates": 29
+          }
+        ],
+        "agent_only": [
+          {
+            "word": "apple",
+            "deficit": 0.8666666666666667,
+            "landed_on": "child",
+            "best_overlap": 0.13333333333333333,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "bear",
+            "deficit": 0.6666666666666667,
+            "landed_on": "chair",
+            "best_overlap": 0.3333333333333333,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "beds",
+            "deficit": 0.7,
+            "landed_on": "key",
+            "best_overlap": 0.3,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "bread",
+            "deficit": 0.9,
+            "landed_on": "key",
+            "best_overlap": 0.1,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "brother",
+            "deficit": 0.0,
+            "landed_on": "cat",
+            "best_overlap": 1.0,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "cloud",
+            "deficit": 0.9,
+            "landed_on": "finger",
+            "best_overlap": 0.1,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "clouds",
+            "deficit": 0.8666666666666667,
+            "landed_on": "key",
+            "best_overlap": 0.13333333333333333,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "country",
+            "deficit": 0.7666666666666666,
+            "landed_on": "chair",
+            "best_overlap": 0.23333333333333334,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "cup",
+            "deficit": 0.7,
+            "landed_on": "key",
+            "best_overlap": 0.3,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "cups",
+            "deficit": 0.9,
+            "landed_on": "key",
+            "best_overlap": 0.1,
+            "self_overlap": null,
+            "n_candidates": 29
+          }
+        ],
+        "verb_object": [
+          {
+            "word": "ask",
+            "deficit": 0.9333333333333333,
+            "landed_on": "dad",
+            "best_overlap": 0.06666666666666667,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "asks",
+            "deficit": 0.9,
+            "landed_on": "juice",
+            "best_overlap": 0.1,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "be",
+            "deficit": 0.9,
+            "landed_on": "nose",
+            "best_overlap": 0.1,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "becomes",
+            "deficit": 0.8666666666666667,
+            "landed_on": "eye",
+            "best_overlap": 0.13333333333333333,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "begins",
+            "deficit": 0.9,
+            "landed_on": "store",
+            "best_overlap": 0.1,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "bought",
+            "deficit": 0.9,
+            "landed_on": "face",
+            "best_overlap": 0.1,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "buys",
+            "deficit": 0.9333333333333333,
+            "landed_on": "rock",
+            "best_overlap": 0.06666666666666667,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "came",
+            "deficit": 0.9333333333333333,
+            "landed_on": "key",
+            "best_overlap": 0.06666666666666667,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "carried",
+            "deficit": 0.9,
+            "landed_on": "girl",
+            "best_overlap": 0.1,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "dies",
+            "deficit": 0.9333333333333333,
+            "landed_on": "nose",
+            "best_overlap": 0.06666666666666667,
+            "self_overlap": null,
+            "n_candidates": 29
+          }
+        ]
+      },
+      "pools": {
+        "patient_trained": [
+          "beach",
+          "chair",
+          "child",
+          "eye",
+          "face",
+          "finger",
+          "fire",
+          "gift",
+          "girl",
+          "hand"
+        ],
+        "agent_only": [
+          "apple",
+          "bear",
+          "beds",
+          "bread",
+          "brother",
+          "cloud",
+          "clouds",
+          "country",
+          "cup",
+          "cups"
+        ],
+        "verb_object": [
+          "ask",
+          "asks",
+          "be",
+          "becomes",
+          "begins",
+          "bought",
+          "buys",
+          "came",
+          "carried",
+          "dies"
+        ]
+      },
+      "undefined_per_arm": {
+        "patient_trained": 0,
+        "agent_only": 0,
+        "verb_object": 0
+      },
+      "binding": {
+        "patient_trained": [
+          0.033333333333333326,
+          0.06666666666666665,
+          0.0,
+          0.0,
+          0.06666666666666665,
+          0.0,
+          0.0,
+          0.09999999999999998,
+          0.0,
+          0.0
+        ],
+        "agent_only": [
+          0.8666666666666667,
+          0.6666666666666667,
+          0.7,
+          0.9,
+          0.0,
+          0.9,
+          0.8666666666666667,
+          0.7666666666666666,
+          0.7,
+          0.9
+        ],
+        "verb_object": [
+          0.9333333333333333,
+          0.9,
+          0.9,
+          0.8666666666666667,
+          0.9,
+          0.9,
+          0.9333333333333333,
+          0.9333333333333333,
+          0.9,
+          0.9333333333333333
+        ]
+      },
+      "drive": {
+        "patient_trained": [
+          0.992,
+          0.9903,
+          0.9906,
+          0.9898,
+          0.9901,
+          0.9905,
+          0.9906,
+          0.9911,
+          0.9896,
+          0.9901
+        ],
+        "agent_only": [
+          0.9912,
+          0.9908,
+          0.9911,
+          0.9915,
+          0.9904,
+          0.9913,
+          0.9912,
+          0.9918,
+          0.9911,
+          0.9912
+        ],
+        "verb_object": [
+          0.9912,
+          0.9912,
+          0.992,
+          0.9914,
+          0.9918,
+          0.9917,
+          0.9917,
+          0.9914,
+          0.9918,
+          0.9917
+        ]
+      },
+      "auc": {
+        "pathway_BINDING": 0.93,
+        "pathway_drive": 0.84,
+        "shipped_BINDING": 1.0,
+        "shipped_drive": 0.905,
+        "area_BINDING": 0.885,
+        "area_drive": 0.83
+      }
+    },
+    "7": {
+      "binding_rows": {
+        "patient_trained": [
+          {
+            "word": "beach",
+            "deficit": 0.0,
+            "landed_on": "beach",
+            "best_overlap": 1.0,
+            "self_overlap": 1.0,
+            "n_candidates": 29
+          },
+          {
+            "word": "chair",
+            "deficit": 0.06666666666666665,
+            "landed_on": "chair",
+            "best_overlap": 0.9333333333333333,
+            "self_overlap": 0.9333333333333333,
+            "n_candidates": 29
+          },
+          {
+            "word": "child",
+            "deficit": 0.033333333333333326,
+            "landed_on": "child",
+            "best_overlap": 0.9666666666666667,
+            "self_overlap": 0.9666666666666667,
+            "n_candidates": 29
+          },
+          {
+            "word": "eye",
+            "deficit": 0.0,
+            "landed_on": "eye",
+            "best_overlap": 1.0,
+            "self_overlap": 1.0,
+            "n_candidates": 29
+          },
+          {
+            "word": "face",
+            "deficit": 0.06666666666666665,
+            "landed_on": "face",
+            "best_overlap": 0.9333333333333333,
+            "self_overlap": 0.9333333333333333,
+            "n_candidates": 29
+          },
+          {
+            "word": "finger",
+            "deficit": 0.0,
+            "landed_on": "finger",
+            "best_overlap": 1.0,
+            "self_overlap": 1.0,
+            "n_candidates": 29
+          },
+          {
+            "word": "fire",
+            "deficit": 0.0,
+            "landed_on": "fire",
+            "best_overlap": 1.0,
+            "self_overlap": 1.0,
+            "n_candidates": 29
+          },
+          {
+            "word": "gift",
+            "deficit": 0.1333333333333333,
+            "landed_on": "gift",
+            "best_overlap": 0.8666666666666667,
+            "self_overlap": 0.8666666666666667,
+            "n_candidates": 29
+          },
+          {
+            "word": "girl",
+            "deficit": 0.0,
+            "landed_on": "cat",
+            "best_overlap": 1.0,
+            "self_overlap": 0.9666666666666667,
+            "n_candidates": 29
+          },
+          {
+            "word": "hand",
+            "deficit": 0.0,
+            "landed_on": "hand",
+            "best_overlap": 1.0,
+            "self_overlap": 1.0,
+            "n_candidates": 29
+          }
+        ],
+        "agent_only": [
+          {
+            "word": "apple",
+            "deficit": 0.8666666666666667,
+            "landed_on": "finger",
+            "best_overlap": 0.13333333333333333,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "bear",
+            "deficit": 0.9333333333333333,
+            "landed_on": "door",
+            "best_overlap": 0.06666666666666667,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "beds",
+            "deficit": 0.8666666666666667,
+            "landed_on": "man",
+            "best_overlap": 0.13333333333333333,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "boys",
+            "deficit": 0.09999999999999998,
+            "landed_on": "cat",
+            "best_overlap": 0.9,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "bread",
+            "deficit": 0.9,
+            "landed_on": "dad",
+            "best_overlap": 0.1,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "brother",
+            "deficit": 0.0,
+            "landed_on": "cat",
+            "best_overlap": 1.0,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "cloud",
+            "deficit": 0.9333333333333333,
+            "landed_on": "chair",
+            "best_overlap": 0.06666666666666667,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "clouds",
+            "deficit": 0.9,
+            "landed_on": "tree",
+            "best_overlap": 0.1,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "country",
+            "deficit": 0.7333333333333334,
+            "landed_on": "room",
+            "best_overlap": 0.26666666666666666,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "cup",
+            "deficit": 0.5666666666666667,
+            "landed_on": "money",
+            "best_overlap": 0.43333333333333335,
+            "self_overlap": null,
+            "n_candidates": 29
+          }
+        ],
+        "verb_object": [
+          {
+            "word": "ask",
+            "deficit": 0.9333333333333333,
+            "landed_on": "gift",
+            "best_overlap": 0.06666666666666667,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "asks",
+            "deficit": 0.9,
+            "landed_on": "rock",
+            "best_overlap": 0.1,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "be",
+            "deficit": 0.9,
+            "landed_on": "eye",
+            "best_overlap": 0.1,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "becomes",
+            "deficit": 0.9,
+            "landed_on": "store",
+            "best_overlap": 0.1,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "begins",
+            "deficit": 0.9333333333333333,
+            "landed_on": "finger",
+            "best_overlap": 0.06666666666666667,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "buys",
+            "deficit": 0.9,
+            "landed_on": "door",
+            "best_overlap": 0.1,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "came",
+            "deficit": 0.9,
+            "landed_on": "door",
+            "best_overlap": 0.1,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "carried",
+            "deficit": 0.9,
+            "landed_on": "man",
+            "best_overlap": 0.1,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "dies",
+            "deficit": 0.9,
+            "landed_on": "rock",
+            "best_overlap": 0.1,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "draw",
+            "deficit": 0.9333333333333333,
+            "landed_on": "door",
+            "best_overlap": 0.06666666666666667,
+            "self_overlap": null,
+            "n_candidates": 29
+          }
+        ]
+      },
+      "pools": {
+        "patient_trained": [
+          "beach",
+          "chair",
+          "child",
+          "eye",
+          "face",
+          "finger",
+          "fire",
+          "gift",
+          "girl",
+          "hand"
+        ],
+        "agent_only": [
+          "apple",
+          "bear",
+          "beds",
+          "boys",
+          "bread",
+          "brother",
+          "cloud",
+          "clouds",
+          "country",
+          "cup"
+        ],
+        "verb_object": [
+          "ask",
+          "asks",
+          "be",
+          "becomes",
+          "begins",
+          "buys",
+          "came",
+          "carried",
+          "dies",
+          "draw"
+        ]
+      },
+      "undefined_per_arm": {
+        "patient_trained": 0,
+        "agent_only": 0,
+        "verb_object": 0
+      },
+      "binding": {
+        "patient_trained": [
+          0.0,
+          0.06666666666666665,
+          0.033333333333333326,
+          0.0,
+          0.06666666666666665,
+          0.0,
+          0.0,
+          0.1333333333333333,
+          0.0,
+          0.0
+        ],
+        "agent_only": [
+          0.8666666666666667,
+          0.9333333333333333,
+          0.8666666666666667,
+          0.09999999999999998,
+          0.9,
+          0.0,
+          0.9333333333333333,
+          0.9,
+          0.7333333333333334,
+          0.5666666666666667
+        ],
+        "verb_object": [
+          0.9333333333333333,
+          0.9,
+          0.9,
+          0.9,
+          0.9333333333333333,
+          0.9,
+          0.9,
+          0.9,
+          0.9,
+          0.9333333333333333
+        ]
+      },
+      "drive": {
+        "patient_trained": [
+          0.9916,
+          0.9891,
+          0.9903,
+          0.9903,
+          0.9903,
+          0.9909,
+          0.9899,
+          0.9907,
+          0.9895,
+          0.991
+        ],
+        "agent_only": [
+          0.9915,
+          0.9914,
+          0.9911,
+          0.9907,
+          0.9912,
+          0.9905,
+          0.9909,
+          0.9914,
+          0.991,
+          0.9916
+        ],
+        "verb_object": [
+          0.992,
+          0.9916,
+          0.9917,
+          0.9919,
+          0.9921,
+          0.9917,
+          0.9917,
+          0.9918,
+          0.9917,
+          0.9919
+        ]
+      },
+      "auc": {
+        "pathway_BINDING": 0.92,
+        "pathway_drive": 0.83,
+        "shipped_BINDING": 1.0,
+        "shipped_drive": 0.995,
+        "area_BINDING": 0.76,
+        "area_drive": 0.995
+      }
+    },
+    "19": {
+      "binding_rows": {
+        "patient_trained": [
+          {
+            "word": "beach",
+            "deficit": 0.09999999999999998,
+            "landed_on": "beach",
+            "best_overlap": 0.9,
+            "self_overlap": 0.9,
+            "n_candidates": 29
+          },
+          {
+            "word": "chair",
+            "deficit": 0.06666666666666665,
+            "landed_on": "paper",
+            "best_overlap": 0.9333333333333333,
+            "self_overlap": 0.9,
+            "n_candidates": 29
+          },
+          {
+            "word": "child",
+            "deficit": 0.0,
+            "landed_on": "child",
+            "best_overlap": 1.0,
+            "self_overlap": 1.0,
+            "n_candidates": 29
+          },
+          {
+            "word": "eye",
+            "deficit": 0.033333333333333326,
+            "landed_on": "eye",
+            "best_overlap": 0.9666666666666667,
+            "self_overlap": 0.9666666666666667,
+            "n_candidates": 29
+          },
+          {
+            "word": "face",
+            "deficit": 0.0,
+            "landed_on": "face",
+            "best_overlap": 1.0,
+            "self_overlap": 1.0,
+            "n_candidates": 29
+          },
+          {
+            "word": "finger",
+            "deficit": 0.06666666666666665,
+            "landed_on": "finger",
+            "best_overlap": 0.9333333333333333,
+            "self_overlap": 0.9333333333333333,
+            "n_candidates": 29
+          },
+          {
+            "word": "fire",
+            "deficit": 0.033333333333333326,
+            "landed_on": "fire",
+            "best_overlap": 0.9666666666666667,
+            "self_overlap": 0.9666666666666667,
+            "n_candidates": 29
+          },
+          {
+            "word": "gift",
+            "deficit": 0.06666666666666665,
+            "landed_on": "gift",
+            "best_overlap": 0.9333333333333333,
+            "self_overlap": 0.9333333333333333,
+            "n_candidates": 29
+          },
+          {
+            "word": "girl",
+            "deficit": 0.0,
+            "landed_on": "person",
+            "best_overlap": 1.0,
+            "self_overlap": 0.9333333333333333,
+            "n_candidates": 29
+          },
+          {
+            "word": "hand",
+            "deficit": 0.0,
+            "landed_on": "hand",
+            "best_overlap": 1.0,
+            "self_overlap": 1.0,
+            "n_candidates": 29
+          }
+        ],
+        "agent_only": [
+          {
+            "word": "apple",
+            "deficit": 0.9,
+            "landed_on": "chair",
+            "best_overlap": 0.1,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "bear",
+            "deficit": 0.6666666666666667,
+            "landed_on": "paper",
+            "best_overlap": 0.3333333333333333,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "beds",
+            "deficit": 0.7333333333333334,
+            "landed_on": "paper",
+            "best_overlap": 0.26666666666666666,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "boys",
+            "deficit": 0.06666666666666665,
+            "landed_on": "girl",
+            "best_overlap": 0.9333333333333333,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "bread",
+            "deficit": 0.9,
+            "landed_on": "juice",
+            "best_overlap": 0.1,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "brother",
+            "deficit": 0.0,
+            "landed_on": "person",
+            "best_overlap": 1.0,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "cloud",
+            "deficit": 0.8666666666666667,
+            "landed_on": "beach",
+            "best_overlap": 0.13333333333333333,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "clouds",
+            "deficit": 0.9,
+            "landed_on": "rock",
+            "best_overlap": 0.1,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "country",
+            "deficit": 0.9,
+            "landed_on": "girl",
+            "best_overlap": 0.1,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "cup",
+            "deficit": 0.7666666666666666,
+            "landed_on": "paper",
+            "best_overlap": 0.23333333333333334,
+            "self_overlap": null,
+            "n_candidates": 29
+          }
+        ],
+        "verb_object": [
+          {
+            "word": "ask",
+            "deficit": 0.9,
+            "landed_on": "child",
+            "best_overlap": 0.1,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "be",
+            "deficit": 0.9333333333333333,
+            "landed_on": "nose",
+            "best_overlap": 0.06666666666666667,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "becomes",
+            "deficit": 0.8666666666666667,
+            "landed_on": "store",
+            "best_overlap": 0.13333333333333333,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "begins",
+            "deficit": 0.9333333333333333,
+            "landed_on": "girl",
+            "best_overlap": 0.06666666666666667,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "bought",
+            "deficit": 0.9333333333333333,
+            "landed_on": "door",
+            "best_overlap": 0.06666666666666667,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "buys",
+            "deficit": 0.9,
+            "landed_on": "floor",
+            "best_overlap": 0.1,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "came",
+            "deficit": 0.9333333333333333,
+            "landed_on": "gift",
+            "best_overlap": 0.06666666666666667,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "carried",
+            "deficit": 0.9,
+            "landed_on": "beach",
+            "best_overlap": 0.1,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "dies",
+            "deficit": 0.9,
+            "landed_on": "juice",
+            "best_overlap": 0.1,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "draw",
+            "deficit": 0.9,
+            "landed_on": "face",
+            "best_overlap": 0.1,
+            "self_overlap": null,
+            "n_candidates": 29
+          }
+        ]
+      },
+      "pools": {
+        "patient_trained": [
+          "beach",
+          "chair",
+          "child",
+          "eye",
+          "face",
+          "finger",
+          "fire",
+          "gift",
+          "girl",
+          "hand"
+        ],
+        "agent_only": [
+          "apple",
+          "bear",
+          "beds",
+          "boys",
+          "bread",
+          "brother",
+          "cloud",
+          "clouds",
+          "country",
+          "cup"
+        ],
+        "verb_object": [
+          "ask",
+          "be",
+          "becomes",
+          "begins",
+          "bought",
+          "buys",
+          "came",
+          "carried",
+          "dies",
+          "draw"
+        ]
+      },
+      "undefined_per_arm": {
+        "patient_trained": 0,
+        "agent_only": 0,
+        "verb_object": 0
+      },
+      "binding": {
+        "patient_trained": [
+          0.09999999999999998,
+          0.06666666666666665,
+          0.0,
+          0.033333333333333326,
+          0.0,
+          0.06666666666666665,
+          0.033333333333333326,
+          0.06666666666666665,
+          0.0,
+          0.0
+        ],
+        "agent_only": [
+          0.9,
+          0.6666666666666667,
+          0.7333333333333334,
+          0.06666666666666665,
+          0.9,
+          0.0,
+          0.8666666666666667,
+          0.9,
+          0.9,
+          0.7666666666666666
+        ],
+        "verb_object": [
+          0.9,
+          0.9333333333333333,
+          0.8666666666666667,
+          0.9333333333333333,
+          0.9333333333333333,
+          0.9,
+          0.9333333333333333,
+          0.9,
+          0.9,
+          0.9
+        ]
+      },
+      "drive": {
+        "patient_trained": [
+          0.9925,
+          0.9903,
+          0.9899,
+          0.9902,
+          0.9901,
+          0.9899,
+          0.9896,
+          0.99,
+          0.9894,
+          0.9903
+        ],
+        "agent_only": [
+          0.9907,
+          0.9905,
+          0.9903,
+          0.9908,
+          0.991,
+          0.9901,
+          0.991,
+          0.9911,
+          0.9909,
+          0.9908
+        ],
+        "verb_object": [
+          0.9912,
+          0.9913,
+          0.9918,
+          0.9913,
+          0.9909,
+          0.9917,
+          0.9916,
+          0.9914,
+          0.9918,
+          0.9915
+        ]
+      },
+      "auc": {
+        "pathway_BINDING": 0.895,
+        "pathway_drive": 0.855,
+        "shipped_BINDING": 1.0,
+        "shipped_drive": 0.9,
+        "area_BINDING": 0.855,
+        "area_drive": 0.965
+      }
+    },
+    "43": {
+      "binding_rows": {
+        "patient_trained": [
+          {
+            "word": "beach",
+            "deficit": 0.033333333333333326,
+            "landed_on": "beach",
+            "best_overlap": 0.9666666666666667,
+            "self_overlap": 0.9666666666666667,
+            "n_candidates": 29
+          },
+          {
+            "word": "chair",
+            "deficit": 0.1333333333333333,
+            "landed_on": "chair",
+            "best_overlap": 0.8666666666666667,
+            "self_overlap": 0.8666666666666667,
+            "n_candidates": 29
+          },
+          {
+            "word": "child",
+            "deficit": 0.06666666666666665,
+            "landed_on": "child",
+            "best_overlap": 0.9333333333333333,
+            "self_overlap": 0.9333333333333333,
+            "n_candidates": 29
+          },
+          {
+            "word": "eye",
+            "deficit": 0.0,
+            "landed_on": "eye",
+            "best_overlap": 1.0,
+            "self_overlap": 1.0,
+            "n_candidates": 29
+          },
+          {
+            "word": "face",
+            "deficit": 0.033333333333333326,
+            "landed_on": "face",
+            "best_overlap": 0.9666666666666667,
+            "self_overlap": 0.9666666666666667,
+            "n_candidates": 29
+          },
+          {
+            "word": "finger",
+            "deficit": 0.0,
+            "landed_on": "finger",
+            "best_overlap": 1.0,
+            "self_overlap": 1.0,
+            "n_candidates": 29
+          },
+          {
+            "word": "fire",
+            "deficit": 0.033333333333333326,
+            "landed_on": "fire",
+            "best_overlap": 0.9666666666666667,
+            "self_overlap": 0.9666666666666667,
+            "n_candidates": 29
+          },
+          {
+            "word": "gift",
+            "deficit": 0.033333333333333326,
+            "landed_on": "gift",
+            "best_overlap": 0.9666666666666667,
+            "self_overlap": 0.9666666666666667,
+            "n_candidates": 29
+          },
+          {
+            "word": "girl",
+            "deficit": 0.0,
+            "landed_on": "person",
+            "best_overlap": 1.0,
+            "self_overlap": 0.9666666666666667,
+            "n_candidates": 29
+          },
+          {
+            "word": "hand",
+            "deficit": 0.0,
+            "landed_on": "hand",
+            "best_overlap": 1.0,
+            "self_overlap": 1.0,
+            "n_candidates": 29
+          }
+        ],
+        "agent_only": [
+          {
+            "word": "apple",
+            "deficit": 0.8333333333333334,
+            "landed_on": "key",
+            "best_overlap": 0.16666666666666666,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "bear",
+            "deficit": 0.8666666666666667,
+            "landed_on": "key",
+            "best_overlap": 0.13333333333333333,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "beds",
+            "deficit": 0.7333333333333334,
+            "landed_on": "door",
+            "best_overlap": 0.26666666666666666,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "bread",
+            "deficit": 0.9,
+            "landed_on": "floor",
+            "best_overlap": 0.1,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "brother",
+            "deficit": 0.0,
+            "landed_on": "person",
+            "best_overlap": 1.0,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "cloud",
+            "deficit": 0.8666666666666667,
+            "landed_on": "key",
+            "best_overlap": 0.13333333333333333,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "clouds",
+            "deficit": 0.8333333333333334,
+            "landed_on": "beach",
+            "best_overlap": 0.16666666666666666,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "country",
+            "deficit": 0.6,
+            "landed_on": "room",
+            "best_overlap": 0.4,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "cup",
+            "deficit": 0.7666666666666666,
+            "landed_on": "cat",
+            "best_overlap": 0.23333333333333334,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "cups",
+            "deficit": 0.6,
+            "landed_on": "book",
+            "best_overlap": 0.4,
+            "self_overlap": null,
+            "n_candidates": 29
+          }
+        ],
+        "verb_object": [
+          {
+            "word": "ask",
+            "deficit": 0.9,
+            "landed_on": "door",
+            "best_overlap": 0.1,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "asks",
+            "deficit": 0.8333333333333334,
+            "landed_on": "book",
+            "best_overlap": 0.16666666666666666,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "be",
+            "deficit": 0.9,
+            "landed_on": "chair",
+            "best_overlap": 0.1,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "becomes",
+            "deficit": 0.9,
+            "landed_on": "hand",
+            "best_overlap": 0.1,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "begins",
+            "deficit": 0.8666666666666667,
+            "landed_on": "floor",
+            "best_overlap": 0.13333333333333333,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "bought",
+            "deficit": 0.9,
+            "landed_on": "wall",
+            "best_overlap": 0.1,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "came",
+            "deficit": 0.9,
+            "landed_on": "man",
+            "best_overlap": 0.1,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "carried",
+            "deficit": 0.8666666666666667,
+            "landed_on": "child",
+            "best_overlap": 0.13333333333333333,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "dies",
+            "deficit": 0.9,
+            "landed_on": "finger",
+            "best_overlap": 0.1,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "draw",
+            "deficit": 0.8666666666666667,
+            "landed_on": "eye",
+            "best_overlap": 0.13333333333333333,
+            "self_overlap": null,
+            "n_candidates": 29
+          }
+        ]
+      },
+      "pools": {
+        "patient_trained": [
+          "beach",
+          "chair",
+          "child",
+          "eye",
+          "face",
+          "finger",
+          "fire",
+          "gift",
+          "girl",
+          "hand"
+        ],
+        "agent_only": [
+          "apple",
+          "bear",
+          "beds",
+          "bread",
+          "brother",
+          "cloud",
+          "clouds",
+          "country",
+          "cup",
+          "cups"
+        ],
+        "verb_object": [
+          "ask",
+          "asks",
+          "be",
+          "becomes",
+          "begins",
+          "bought",
+          "came",
+          "carried",
+          "dies",
+          "draw"
+        ]
+      },
+      "undefined_per_arm": {
+        "patient_trained": 0,
+        "agent_only": 0,
+        "verb_object": 0
+      },
+      "binding": {
+        "patient_trained": [
+          0.033333333333333326,
+          0.1333333333333333,
+          0.06666666666666665,
+          0.0,
+          0.033333333333333326,
+          0.0,
+          0.033333333333333326,
+          0.033333333333333326,
+          0.0,
+          0.0
+        ],
+        "agent_only": [
+          0.8333333333333334,
+          0.8666666666666667,
+          0.7333333333333334,
+          0.9,
+          0.0,
+          0.8666666666666667,
+          0.8333333333333334,
+          0.6,
+          0.7666666666666666,
+          0.6
+        ],
+        "verb_object": [
+          0.9,
+          0.8333333333333334,
+          0.9,
+          0.9,
+          0.8666666666666667,
+          0.9,
+          0.9,
+          0.8666666666666667,
+          0.9,
+          0.8666666666666667
+        ]
+      },
+      "drive": {
+        "patient_trained": [
+          0.9925,
+          0.9903,
+          0.9897,
+          0.9897,
+          0.9897,
+          0.9906,
+          0.9899,
+          0.9903,
+          0.9893,
+          0.9904
+        ],
+        "agent_only": [
+          0.991,
+          0.9908,
+          0.9907,
+          0.991,
+          0.9898,
+          0.9912,
+          0.9912,
+          0.9912,
+          0.9908,
+          0.9913
+        ],
+        "verb_object": [
+          0.9911,
+          0.9911,
+          0.9912,
+          0.9914,
+          0.9919,
+          0.9914,
+          0.9916,
+          0.9914,
+          0.9917,
+          0.992
+        ]
+      },
+      "auc": {
+        "pathway_BINDING": 0.92,
+        "pathway_drive": 0.85,
+        "shipped_BINDING": 1.0,
+        "shipped_drive": 0.9,
+        "area_BINDING": 0.87,
+        "area_drive": 0.895
+      }
+    },
+    "44": {
+      "binding_rows": {
+        "patient_trained": [
+          {
+            "word": "beach",
+            "deficit": 0.0,
+            "landed_on": "beach",
+            "best_overlap": 1.0,
+            "self_overlap": 1.0,
+            "n_candidates": 29
+          },
+          {
+            "word": "chair",
+            "deficit": 0.06666666666666665,
+            "landed_on": "chair",
+            "best_overlap": 0.9333333333333333,
+            "self_overlap": 0.9333333333333333,
+            "n_candidates": 29
+          },
+          {
+            "word": "child",
+            "deficit": 0.06666666666666665,
+            "landed_on": "child",
+            "best_overlap": 0.9333333333333333,
+            "self_overlap": 0.9333333333333333,
+            "n_candidates": 29
+          },
+          {
+            "word": "eye",
+            "deficit": 0.2666666666666667,
+            "landed_on": "eye",
+            "best_overlap": 0.7333333333333333,
+            "self_overlap": 0.7333333333333333,
+            "n_candidates": 29
+          },
+          {
+            "word": "face",
+            "deficit": 0.033333333333333326,
+            "landed_on": "face",
+            "best_overlap": 0.9666666666666667,
+            "self_overlap": 0.9666666666666667,
+            "n_candidates": 29
+          },
+          {
+            "word": "finger",
+            "deficit": 0.06666666666666665,
+            "landed_on": "finger",
+            "best_overlap": 0.9333333333333333,
+            "self_overlap": 0.9333333333333333,
+            "n_candidates": 29
+          },
+          {
+            "word": "fire",
+            "deficit": 0.0,
+            "landed_on": "fire",
+            "best_overlap": 1.0,
+            "self_overlap": 1.0,
+            "n_candidates": 29
+          },
+          {
+            "word": "gift",
+            "deficit": 0.23333333333333328,
+            "landed_on": "gift",
+            "best_overlap": 0.7666666666666667,
+            "self_overlap": 0.7666666666666667,
+            "n_candidates": 29
+          },
+          {
+            "word": "girl",
+            "deficit": 0.0,
+            "landed_on": "cat",
+            "best_overlap": 1.0,
+            "self_overlap": 0.9666666666666667,
+            "n_candidates": 29
+          },
+          {
+            "word": "hand",
+            "deficit": 0.0,
+            "landed_on": "hand",
+            "best_overlap": 1.0,
+            "self_overlap": 1.0,
+            "n_candidates": 29
+          }
+        ],
+        "agent_only": [
+          {
+            "word": "apple",
+            "deficit": 0.6666666666666667,
+            "landed_on": "paper",
+            "best_overlap": 0.3333333333333333,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "bear",
+            "deficit": 0.7333333333333334,
+            "landed_on": "girl",
+            "best_overlap": 0.26666666666666666,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "beds",
+            "deficit": 0.8333333333333334,
+            "landed_on": "face",
+            "best_overlap": 0.16666666666666666,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "boys",
+            "deficit": 0.033333333333333326,
+            "landed_on": "cat",
+            "best_overlap": 0.9666666666666667,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "bread",
+            "deficit": 0.9333333333333333,
+            "landed_on": "beach",
+            "best_overlap": 0.06666666666666667,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "brother",
+            "deficit": 0.0,
+            "landed_on": "cat",
+            "best_overlap": 1.0,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "cloud",
+            "deficit": 0.5666666666666667,
+            "landed_on": "money",
+            "best_overlap": 0.43333333333333335,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "clouds",
+            "deficit": 0.8333333333333334,
+            "landed_on": "key",
+            "best_overlap": 0.16666666666666666,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "country",
+            "deficit": 0.8,
+            "landed_on": "room",
+            "best_overlap": 0.2,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "cup",
+            "deficit": 0.6,
+            "landed_on": "paper",
+            "best_overlap": 0.4,
+            "self_overlap": null,
+            "n_candidates": 29
+          }
+        ],
+        "verb_object": [
+          {
+            "word": "ask",
+            "deficit": 0.9333333333333333,
+            "landed_on": "girl",
+            "best_overlap": 0.06666666666666667,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "asks",
+            "deficit": 0.9,
+            "landed_on": "star",
+            "best_overlap": 0.1,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "be",
+            "deficit": 0.9333333333333333,
+            "landed_on": "door",
+            "best_overlap": 0.06666666666666667,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "becomes",
+            "deficit": 0.9333333333333333,
+            "landed_on": "rock",
+            "best_overlap": 0.06666666666666667,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "begins",
+            "deficit": 0.9,
+            "landed_on": "nose",
+            "best_overlap": 0.1,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "bought",
+            "deficit": 0.9,
+            "landed_on": "door",
+            "best_overlap": 0.1,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "buys",
+            "deficit": 0.8666666666666667,
+            "landed_on": "child",
+            "best_overlap": 0.13333333333333333,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "came",
+            "deficit": 0.9333333333333333,
+            "landed_on": "eye",
+            "best_overlap": 0.06666666666666667,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "carried",
+            "deficit": 0.9,
+            "landed_on": "eye",
+            "best_overlap": 0.1,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "dies",
+            "deficit": 0.9,
+            "landed_on": "floor",
+            "best_overlap": 0.1,
+            "self_overlap": null,
+            "n_candidates": 29
+          }
+        ]
+      },
+      "pools": {
+        "patient_trained": [
+          "beach",
+          "chair",
+          "child",
+          "eye",
+          "face",
+          "finger",
+          "fire",
+          "gift",
+          "girl",
+          "hand"
+        ],
+        "agent_only": [
+          "apple",
+          "bear",
+          "beds",
+          "boys",
+          "bread",
+          "brother",
+          "cloud",
+          "clouds",
+          "country",
+          "cup"
+        ],
+        "verb_object": [
+          "ask",
+          "asks",
+          "be",
+          "becomes",
+          "begins",
+          "bought",
+          "buys",
+          "came",
+          "carried",
+          "dies"
+        ]
+      },
+      "undefined_per_arm": {
+        "patient_trained": 0,
+        "agent_only": 0,
+        "verb_object": 0
+      },
+      "binding": {
+        "patient_trained": [
+          0.0,
+          0.06666666666666665,
+          0.06666666666666665,
+          0.2666666666666667,
+          0.033333333333333326,
+          0.06666666666666665,
+          0.0,
+          0.23333333333333328,
+          0.0,
+          0.0
+        ],
+        "agent_only": [
+          0.6666666666666667,
+          0.7333333333333334,
+          0.8333333333333334,
+          0.033333333333333326,
+          0.9333333333333333,
+          0.0,
+          0.5666666666666667,
+          0.8333333333333334,
+          0.8,
+          0.6
+        ],
+        "verb_object": [
+          0.9333333333333333,
+          0.9,
+          0.9333333333333333,
+          0.9333333333333333,
+          0.9,
+          0.9,
+          0.8666666666666667,
+          0.9333333333333333,
+          0.9,
+          0.9
+        ]
+      },
+      "drive": {
+        "patient_trained": [
+          0.9915,
+          0.9905,
+          0.9901,
+          0.9897,
+          0.9897,
+          0.99,
+          0.99,
+          0.9904,
+          0.9893,
+          0.9911
+        ],
+        "agent_only": [
+          0.9907,
+          0.9909,
+          0.9909,
+          0.991,
+          0.9914,
+          0.9901,
+          0.9905,
+          0.991,
+          0.9911,
+          0.9908
+        ],
+        "verb_object": [
+          0.9915,
+          0.9916,
+          0.9919,
+          0.992,
+          0.9922,
+          0.992,
+          0.992,
+          0.992,
+          0.9918,
+          0.9918
+        ]
+      },
+      "auc": {
+        "pathway_BINDING": 0.865,
+        "pathway_drive": 0.785,
+        "shipped_BINDING": 1.0,
+        "shipped_drive": 0.995,
+        "area_BINDING": 0.92,
+        "area_drive": 1.0
+      }
+    },
+    "45": {
+      "binding_rows": {
+        "patient_trained": [
+          {
+            "word": "beach",
+            "deficit": 0.0,
+            "landed_on": "beach",
+            "best_overlap": 1.0,
+            "self_overlap": 1.0,
+            "n_candidates": 29
+          },
+          {
+            "word": "chair",
+            "deficit": 0.09999999999999998,
+            "landed_on": "chair",
+            "best_overlap": 0.9,
+            "self_overlap": 0.9,
+            "n_candidates": 29
+          },
+          {
+            "word": "child",
+            "deficit": 0.0,
+            "landed_on": "child",
+            "best_overlap": 1.0,
+            "self_overlap": 1.0,
+            "n_candidates": 29
+          },
+          {
+            "word": "eye",
+            "deficit": 0.033333333333333326,
+            "landed_on": "eye",
+            "best_overlap": 0.9666666666666667,
+            "self_overlap": 0.9666666666666667,
+            "n_candidates": 29
+          },
+          {
+            "word": "face",
+            "deficit": 0.033333333333333326,
+            "landed_on": "face",
+            "best_overlap": 0.9666666666666667,
+            "self_overlap": 0.9666666666666667,
+            "n_candidates": 29
+          },
+          {
+            "word": "finger",
+            "deficit": 0.033333333333333326,
+            "landed_on": "finger",
+            "best_overlap": 0.9666666666666667,
+            "self_overlap": 0.9666666666666667,
+            "n_candidates": 29
+          },
+          {
+            "word": "fire",
+            "deficit": 0.0,
+            "landed_on": "fire",
+            "best_overlap": 1.0,
+            "self_overlap": 1.0,
+            "n_candidates": 29
+          },
+          {
+            "word": "gift",
+            "deficit": 0.09999999999999998,
+            "landed_on": "gift",
+            "best_overlap": 0.9,
+            "self_overlap": 0.9,
+            "n_candidates": 29
+          },
+          {
+            "word": "girl",
+            "deficit": 0.0,
+            "landed_on": "cat",
+            "best_overlap": 1.0,
+            "self_overlap": 0.9666666666666667,
+            "n_candidates": 29
+          },
+          {
+            "word": "hand",
+            "deficit": 0.0,
+            "landed_on": "hand",
+            "best_overlap": 1.0,
+            "self_overlap": 1.0,
+            "n_candidates": 29
+          }
+        ],
+        "agent_only": [
+          {
+            "word": "apple",
+            "deficit": 0.9333333333333333,
+            "landed_on": "finger",
+            "best_overlap": 0.06666666666666667,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "bear",
+            "deficit": 0.8333333333333334,
+            "landed_on": "girl",
+            "best_overlap": 0.16666666666666666,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "beds",
+            "deficit": 0.6,
+            "landed_on": "money",
+            "best_overlap": 0.4,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "boys",
+            "deficit": 0.06666666666666665,
+            "landed_on": "girl",
+            "best_overlap": 0.9333333333333333,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "bread",
+            "deficit": 0.9333333333333333,
+            "landed_on": "eye",
+            "best_overlap": 0.06666666666666667,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "brother",
+            "deficit": 0.0,
+            "landed_on": "person",
+            "best_overlap": 1.0,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "cloud",
+            "deficit": 0.6666666666666667,
+            "landed_on": "fire",
+            "best_overlap": 0.3333333333333333,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "clouds",
+            "deficit": 0.7333333333333334,
+            "landed_on": "fire",
+            "best_overlap": 0.26666666666666666,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "country",
+            "deficit": 0.6,
+            "landed_on": "room",
+            "best_overlap": 0.4,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "cup",
+            "deficit": 0.7333333333333334,
+            "landed_on": "paper",
+            "best_overlap": 0.26666666666666666,
+            "self_overlap": null,
+            "n_candidates": 29
+          }
+        ],
+        "verb_object": [
+          {
+            "word": "ask",
+            "deficit": 0.9,
+            "landed_on": "eye",
+            "best_overlap": 0.1,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "asks",
+            "deficit": 0.9,
+            "landed_on": "gift",
+            "best_overlap": 0.1,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "be",
+            "deficit": 0.9,
+            "landed_on": "nose",
+            "best_overlap": 0.1,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "becomes",
+            "deficit": 0.8666666666666667,
+            "landed_on": "room",
+            "best_overlap": 0.13333333333333333,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "begins",
+            "deficit": 0.9,
+            "landed_on": "dad",
+            "best_overlap": 0.1,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "bought",
+            "deficit": 0.9333333333333333,
+            "landed_on": "rock",
+            "best_overlap": 0.06666666666666667,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "buys",
+            "deficit": 0.9,
+            "landed_on": "rock",
+            "best_overlap": 0.1,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "came",
+            "deficit": 0.9333333333333333,
+            "landed_on": "eye",
+            "best_overlap": 0.06666666666666667,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "carried",
+            "deficit": 0.9333333333333333,
+            "landed_on": "eye",
+            "best_overlap": 0.06666666666666667,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "dies",
+            "deficit": 0.9333333333333333,
+            "landed_on": "eye",
+            "best_overlap": 0.06666666666666667,
+            "self_overlap": null,
+            "n_candidates": 29
+          }
+        ]
+      },
+      "pools": {
+        "patient_trained": [
+          "beach",
+          "chair",
+          "child",
+          "eye",
+          "face",
+          "finger",
+          "fire",
+          "gift",
+          "girl",
+          "hand"
+        ],
+        "agent_only": [
+          "apple",
+          "bear",
+          "beds",
+          "boys",
+          "bread",
+          "brother",
+          "cloud",
+          "clouds",
+          "country",
+          "cup"
+        ],
+        "verb_object": [
+          "ask",
+          "asks",
+          "be",
+          "becomes",
+          "begins",
+          "bought",
+          "buys",
+          "came",
+          "carried",
+          "dies"
+        ]
+      },
+      "undefined_per_arm": {
+        "patient_trained": 0,
+        "agent_only": 0,
+        "verb_object": 0
+      },
+      "binding": {
+        "patient_trained": [
+          0.0,
+          0.09999999999999998,
+          0.0,
+          0.033333333333333326,
+          0.033333333333333326,
+          0.033333333333333326,
+          0.0,
+          0.09999999999999998,
+          0.0,
+          0.0
+        ],
+        "agent_only": [
+          0.9333333333333333,
+          0.8333333333333334,
+          0.6,
+          0.06666666666666665,
+          0.9333333333333333,
+          0.0,
+          0.6666666666666667,
+          0.7333333333333334,
+          0.6,
+          0.7333333333333334
+        ],
+        "verb_object": [
+          0.9,
+          0.9,
+          0.9,
+          0.8666666666666667,
+          0.9,
+          0.9333333333333333,
+          0.9,
+          0.9333333333333333,
+          0.9333333333333333,
+          0.9333333333333333
+        ]
+      },
+      "drive": {
+        "patient_trained": [
+          0.993,
+          0.9899,
+          0.9904,
+          0.9903,
+          0.9899,
+          0.9902,
+          0.9901,
+          0.9903,
+          0.9889,
+          0.9903
+        ],
+        "agent_only": [
+          0.9907,
+          0.9906,
+          0.9904,
+          0.9907,
+          0.9901,
+          0.99,
+          0.9905,
+          0.9903,
+          0.991,
+          0.9902
+        ],
+        "verb_object": [
+          0.9915,
+          0.9915,
+          0.9914,
+          0.9913,
+          0.9919,
+          0.9917,
+          0.9915,
+          0.9915,
+          0.9914,
+          0.9915
+        ]
+      },
+      "auc": {
+        "pathway_BINDING": 0.905,
+        "pathway_drive": 0.71,
+        "shipped_BINDING": 1.0,
+        "shipped_drive": 0.9,
+        "area_BINDING": 0.84,
+        "area_drive": 1.0
+      }
+    },
+    "46": {
+      "binding_rows": {
+        "patient_trained": [
+          {
+            "word": "beach",
+            "deficit": 0.0,
+            "landed_on": "beach",
+            "best_overlap": 1.0,
+            "self_overlap": 1.0,
+            "n_candidates": 29
+          },
+          {
+            "word": "chair",
+            "deficit": 0.06666666666666665,
+            "landed_on": "chair",
+            "best_overlap": 0.9333333333333333,
+            "self_overlap": 0.9333333333333333,
+            "n_candidates": 29
+          },
+          {
+            "word": "child",
+            "deficit": 0.06666666666666665,
+            "landed_on": "child",
+            "best_overlap": 0.9333333333333333,
+            "self_overlap": 0.9333333333333333,
+            "n_candidates": 29
+          },
+          {
+            "word": "eye",
+            "deficit": 0.0,
+            "landed_on": "eye",
+            "best_overlap": 1.0,
+            "self_overlap": 1.0,
+            "n_candidates": 29
+          },
+          {
+            "word": "face",
+            "deficit": 0.0,
+            "landed_on": "face",
+            "best_overlap": 1.0,
+            "self_overlap": 1.0,
+            "n_candidates": 29
+          },
+          {
+            "word": "finger",
+            "deficit": 0.0,
+            "landed_on": "finger",
+            "best_overlap": 1.0,
+            "self_overlap": 1.0,
+            "n_candidates": 29
+          },
+          {
+            "word": "fire",
+            "deficit": 0.0,
+            "landed_on": "fire",
+            "best_overlap": 1.0,
+            "self_overlap": 1.0,
+            "n_candidates": 29
+          },
+          {
+            "word": "gift",
+            "deficit": 0.0,
+            "landed_on": "gift",
+            "best_overlap": 1.0,
+            "self_overlap": 1.0,
+            "n_candidates": 29
+          },
+          {
+            "word": "girl",
+            "deficit": 0.033333333333333326,
+            "landed_on": "girl",
+            "best_overlap": 0.9666666666666667,
+            "self_overlap": 0.9666666666666667,
+            "n_candidates": 29
+          },
+          {
+            "word": "hand",
+            "deficit": 0.06666666666666665,
+            "landed_on": "hand",
+            "best_overlap": 0.9333333333333333,
+            "self_overlap": 0.9333333333333333,
+            "n_candidates": 29
+          }
+        ],
+        "agent_only": [
+          {
+            "word": "apple",
+            "deficit": 0.8666666666666667,
+            "landed_on": "hand",
+            "best_overlap": 0.13333333333333333,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "bear",
+            "deficit": 0.8666666666666667,
+            "landed_on": "beach",
+            "best_overlap": 0.13333333333333333,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "beds",
+            "deficit": 0.7,
+            "landed_on": "key",
+            "best_overlap": 0.3,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "boys",
+            "deficit": 0.09999999999999998,
+            "landed_on": "girl",
+            "best_overlap": 0.9,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "bread",
+            "deficit": 0.7666666666666666,
+            "landed_on": "key",
+            "best_overlap": 0.23333333333333334,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "brother",
+            "deficit": 0.0,
+            "landed_on": "person",
+            "best_overlap": 1.0,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "cloud",
+            "deficit": 0.9,
+            "landed_on": "face",
+            "best_overlap": 0.1,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "clouds",
+            "deficit": 0.9,
+            "landed_on": "mountain",
+            "best_overlap": 0.1,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "country",
+            "deficit": 0.6333333333333333,
+            "landed_on": "room",
+            "best_overlap": 0.36666666666666664,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "cup",
+            "deficit": 0.6333333333333333,
+            "landed_on": "chair",
+            "best_overlap": 0.36666666666666664,
+            "self_overlap": null,
+            "n_candidates": 29
+          }
+        ],
+        "verb_object": [
+          {
+            "word": "ask",
+            "deficit": 0.9,
+            "landed_on": "finger",
+            "best_overlap": 0.1,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "asks",
+            "deficit": 0.9,
+            "landed_on": "dad",
+            "best_overlap": 0.1,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "be",
+            "deficit": 0.9,
+            "landed_on": "juice",
+            "best_overlap": 0.1,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "becomes",
+            "deficit": 0.9,
+            "landed_on": "girl",
+            "best_overlap": 0.1,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "begins",
+            "deficit": 0.9,
+            "landed_on": "key",
+            "best_overlap": 0.1,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "bought",
+            "deficit": 0.9,
+            "landed_on": "hand",
+            "best_overlap": 0.1,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "buys",
+            "deficit": 0.9,
+            "landed_on": "hand",
+            "best_overlap": 0.1,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "came",
+            "deficit": 0.9,
+            "landed_on": "hand",
+            "best_overlap": 0.1,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "carried",
+            "deficit": 0.9,
+            "landed_on": "nose",
+            "best_overlap": 0.1,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "dies",
+            "deficit": 0.9,
+            "landed_on": "finger",
+            "best_overlap": 0.1,
+            "self_overlap": null,
+            "n_candidates": 29
+          }
+        ]
+      },
+      "pools": {
+        "patient_trained": [
+          "beach",
+          "chair",
+          "child",
+          "eye",
+          "face",
+          "finger",
+          "fire",
+          "gift",
+          "girl",
+          "hand"
+        ],
+        "agent_only": [
+          "apple",
+          "bear",
+          "beds",
+          "boys",
+          "bread",
+          "brother",
+          "cloud",
+          "clouds",
+          "country",
+          "cup"
+        ],
+        "verb_object": [
+          "ask",
+          "asks",
+          "be",
+          "becomes",
+          "begins",
+          "bought",
+          "buys",
+          "came",
+          "carried",
+          "dies"
+        ]
+      },
+      "undefined_per_arm": {
+        "patient_trained": 0,
+        "agent_only": 0,
+        "verb_object": 0
+      },
+      "binding": {
+        "patient_trained": [
+          0.0,
+          0.06666666666666665,
+          0.06666666666666665,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.033333333333333326,
+          0.06666666666666665
+        ],
+        "agent_only": [
+          0.8666666666666667,
+          0.8666666666666667,
+          0.7,
+          0.09999999999999998,
+          0.7666666666666666,
+          0.0,
+          0.9,
+          0.9,
+          0.6333333333333333,
+          0.6333333333333333
+        ],
+        "verb_object": [
+          0.9,
+          0.9,
+          0.9,
+          0.9,
+          0.9,
+          0.9,
+          0.9,
+          0.9,
+          0.9,
+          0.9
+        ]
+      },
+      "drive": {
+        "patient_trained": [
+          0.9914,
+          0.9905,
+          0.9902,
+          0.9905,
+          0.9903,
+          0.9908,
+          0.9903,
+          0.9904,
+          0.9892,
+          0.9906
+        ],
+        "agent_only": [
+          0.991,
+          0.9908,
+          0.9913,
+          0.9912,
+          0.9902,
+          0.9896,
+          0.9908,
+          0.9906,
+          0.9913,
+          0.9905
+        ],
+        "verb_object": [
+          0.9907,
+          0.991,
+          0.9913,
+          0.9912,
+          0.9916,
+          0.9915,
+          0.9918,
+          0.9917,
+          0.9912,
+          0.9917
+        ]
+      },
+      "auc": {
+        "pathway_BINDING": 0.93,
+        "pathway_drive": 0.69,
+        "shipped_BINDING": 1.0,
+        "shipped_drive": 0.94,
+        "area_BINDING": 0.9,
+        "area_drive": 0.845
+      }
+    },
+    "47": {
+      "binding_rows": {
+        "patient_trained": [
+          {
+            "word": "beach",
+            "deficit": 0.033333333333333326,
+            "landed_on": "beach",
+            "best_overlap": 0.9666666666666667,
+            "self_overlap": 0.9666666666666667,
+            "n_candidates": 29
+          },
+          {
+            "word": "chair",
+            "deficit": 0.09999999999999998,
+            "landed_on": "chair",
+            "best_overlap": 0.9,
+            "self_overlap": 0.9,
+            "n_candidates": 29
+          },
+          {
+            "word": "child",
+            "deficit": 0.0,
+            "landed_on": "child",
+            "best_overlap": 1.0,
+            "self_overlap": 1.0,
+            "n_candidates": 29
+          },
+          {
+            "word": "eye",
+            "deficit": 0.033333333333333326,
+            "landed_on": "eye",
+            "best_overlap": 0.9666666666666667,
+            "self_overlap": 0.9666666666666667,
+            "n_candidates": 29
+          },
+          {
+            "word": "face",
+            "deficit": 0.0,
+            "landed_on": "face",
+            "best_overlap": 1.0,
+            "self_overlap": 1.0,
+            "n_candidates": 29
+          },
+          {
+            "word": "finger",
+            "deficit": 0.09999999999999998,
+            "landed_on": "finger",
+            "best_overlap": 0.9,
+            "self_overlap": 0.9,
+            "n_candidates": 29
+          },
+          {
+            "word": "fire",
+            "deficit": 0.033333333333333326,
+            "landed_on": "fire",
+            "best_overlap": 0.9666666666666667,
+            "self_overlap": 0.9666666666666667,
+            "n_candidates": 29
+          },
+          {
+            "word": "gift",
+            "deficit": 0.0,
+            "landed_on": "gift",
+            "best_overlap": 1.0,
+            "self_overlap": 1.0,
+            "n_candidates": 29
+          },
+          {
+            "word": "girl",
+            "deficit": 0.0,
+            "landed_on": "person",
+            "best_overlap": 1.0,
+            "self_overlap": 0.8666666666666667,
+            "n_candidates": 29
+          },
+          {
+            "word": "hand",
+            "deficit": 0.0,
+            "landed_on": "hand",
+            "best_overlap": 1.0,
+            "self_overlap": 1.0,
+            "n_candidates": 29
+          }
+        ],
+        "agent_only": [
+          {
+            "word": "apple",
+            "deficit": 0.9,
+            "landed_on": "door",
+            "best_overlap": 0.1,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "bear",
+            "deficit": 0.8,
+            "landed_on": "cat",
+            "best_overlap": 0.2,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "beds",
+            "deficit": 0.7333333333333334,
+            "landed_on": "paper",
+            "best_overlap": 0.26666666666666666,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "boys",
+            "deficit": 0.19999999999999996,
+            "landed_on": "cat",
+            "best_overlap": 0.8,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "bread",
+            "deficit": 0.8666666666666667,
+            "landed_on": "key",
+            "best_overlap": 0.13333333333333333,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "brother",
+            "deficit": 0.033333333333333326,
+            "landed_on": "cat",
+            "best_overlap": 0.9666666666666667,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "cloud",
+            "deficit": 0.8333333333333334,
+            "landed_on": "key",
+            "best_overlap": 0.16666666666666666,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "clouds",
+            "deficit": 0.9,
+            "landed_on": "tree",
+            "best_overlap": 0.1,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "country",
+            "deficit": 0.5666666666666667,
+            "landed_on": "room",
+            "best_overlap": 0.43333333333333335,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "cup",
+            "deficit": 0.8333333333333334,
+            "landed_on": "chair",
+            "best_overlap": 0.16666666666666666,
+            "self_overlap": null,
+            "n_candidates": 29
+          }
+        ],
+        "verb_object": [
+          {
+            "word": "ask",
+            "deficit": 0.8666666666666667,
+            "landed_on": "man",
+            "best_overlap": 0.13333333333333333,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "be",
+            "deficit": 0.9333333333333333,
+            "landed_on": "key",
+            "best_overlap": 0.06666666666666667,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "becomes",
+            "deficit": 0.9666666666666667,
+            "landed_on": "girl",
+            "best_overlap": 0.03333333333333333,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "begins",
+            "deficit": 0.9,
+            "landed_on": "face",
+            "best_overlap": 0.1,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "buys",
+            "deficit": 0.9333333333333333,
+            "landed_on": "door",
+            "best_overlap": 0.06666666666666667,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "came",
+            "deficit": 0.9,
+            "landed_on": "mountain",
+            "best_overlap": 0.1,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "carried",
+            "deficit": 0.9,
+            "landed_on": "gift",
+            "best_overlap": 0.1,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "dies",
+            "deficit": 0.8666666666666667,
+            "landed_on": "key",
+            "best_overlap": 0.13333333333333333,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "draw",
+            "deficit": 0.9,
+            "landed_on": "tree",
+            "best_overlap": 0.1,
+            "self_overlap": null,
+            "n_candidates": 29
+          },
+          {
+            "word": "drinks",
+            "deficit": 0.9,
+            "landed_on": "key",
+            "best_overlap": 0.1,
+            "self_overlap": null,
+            "n_candidates": 29
+          }
+        ]
+      },
+      "pools": {
+        "patient_trained": [
+          "beach",
+          "chair",
+          "child",
+          "eye",
+          "face",
+          "finger",
+          "fire",
+          "gift",
+          "girl",
+          "hand"
+        ],
+        "agent_only": [
+          "apple",
+          "bear",
+          "beds",
+          "boys",
+          "bread",
+          "brother",
+          "cloud",
+          "clouds",
+          "country",
+          "cup"
+        ],
+        "verb_object": [
+          "ask",
+          "be",
+          "becomes",
+          "begins",
+          "buys",
+          "came",
+          "carried",
+          "dies",
+          "draw",
+          "drinks"
+        ]
+      },
+      "undefined_per_arm": {
+        "patient_trained": 0,
+        "agent_only": 0,
+        "verb_object": 0
+      },
+      "binding": {
+        "patient_trained": [
+          0.033333333333333326,
+          0.09999999999999998,
+          0.0,
+          0.033333333333333326,
+          0.0,
+          0.09999999999999998,
+          0.033333333333333326,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "agent_only": [
+          0.9,
+          0.8,
+          0.7333333333333334,
+          0.19999999999999996,
+          0.8666666666666667,
+          0.033333333333333326,
+          0.8333333333333334,
+          0.9,
+          0.5666666666666667,
+          0.8333333333333334
+        ],
+        "verb_object": [
+          0.8666666666666667,
+          0.9333333333333333,
+          0.9666666666666667,
+          0.9,
+          0.9333333333333333,
+          0.9,
+          0.9,
+          0.8666666666666667,
+          0.9,
+          0.9
+        ]
+      },
+      "drive": {
+        "patient_trained": [
+          0.9907,
+          0.9902,
+          0.9897,
+          0.99,
+          0.9902,
+          0.9906,
+          0.99,
+          0.9909,
+          0.9894,
+          0.9908
+        ],
+        "agent_only": [
+          0.9912,
+          0.9913,
+          0.9912,
+          0.9913,
+          0.9913,
+          0.9905,
+          0.9904,
+          0.9914,
+          0.9909,
+          0.9911
+        ],
+        "verb_object": [
+          0.9915,
+          0.9915,
+          0.9918,
+          0.9919,
+          0.9919,
+          0.9917,
+          0.992,
+          0.9918,
+          0.9919,
+          0.992
+        ]
+      },
+      "auc": {
+        "pathway_BINDING": 0.965,
+        "pathway_drive": 0.915,
+        "shipped_BINDING": 1.0,
+        "shipped_drive": 1.0,
+        "area_BINDING": 0.9,
+        "area_drive": 1.0
+      }
+    }
+  },
+  "analysis": {
+    "pathway_BINDING": {
+      "mean": 0.9155000000000001,
+      "sd": 0.025868255964920917,
+      "n": 10,
+      "per_seed": [
+        0.915,
+        0.91,
+        0.93,
+        0.92,
+        0.895,
+        0.92,
+        0.865,
+        0.905,
+        0.93,
+        0.965
+      ]
+    },
+    "pathway_drive": {
+      "mean": 0.7995,
+      "sd": 0.07201273035605119,
+      "n": 10,
+      "per_seed": [
+        0.79,
+        0.73,
+        0.84,
+        0.83,
+        0.855,
+        0.85,
+        0.785,
+        0.71,
+        0.69,
+        0.915
+      ]
+    },
+    "shipped_BINDING": {
+      "mean": 1.0,
+      "sd": 0.0,
+      "n": 10,
+      "per_seed": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    "shipped_drive": {
+      "mean": 0.944,
+      "sd": 0.04753945729601884,
+      "n": 10,
+      "per_seed": [
+        0.905,
+        1.0,
+        0.905,
+        0.995,
+        0.9,
+        0.9,
+        0.995,
+        0.9,
+        0.94,
+        1.0
+      ]
+    },
+    "area_BINDING": {
+      "mean": 0.8455,
+      "sd": 0.06697636399009232,
+      "n": 10,
+      "per_seed": [
+        0.71,
+        0.815,
+        0.885,
+        0.76,
+        0.855,
+        0.87,
+        0.92,
+        0.84,
+        0.9,
+        0.9
+      ]
+    },
+    "area_drive": {
+      "mean": 0.9465,
+      "sd": 0.06583016870030876,
+      "n": 10,
+      "per_seed": [
+        0.955,
+        0.98,
+        0.83,
+        0.995,
+        0.965,
+        0.895,
+        1.0,
+        1.0,
+        0.845,
+        1.0
+      ]
+    }
+  }
+}

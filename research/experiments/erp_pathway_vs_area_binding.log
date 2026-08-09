@@ -1,0 +1,48 @@
+=== seed 11 ===
+  pathway   BINDING AUC=0.9150  drive AUC=0.7900  undef={'patient_trained': 0, 'agent_only': 0, 'verb_object': 0}
+  shipped   BINDING AUC=1.0000  drive AUC=0.9050  undef={'patient_trained': 0, 'agent_only': 0, 'verb_object': 0}
+  area      BINDING AUC=0.7100  drive AUC=0.9550  undef={'patient_trained': 0, 'agent_only': 0, 'verb_object': 0}
+=== seed 12 ===
+  pathway   BINDING AUC=0.9100  drive AUC=0.7300  undef={'patient_trained': 0, 'agent_only': 0, 'verb_object': 0}
+  shipped   BINDING AUC=1.0000  drive AUC=1.0000  undef={'patient_trained': 0, 'agent_only': 0, 'verb_object': 0}
+  area      BINDING AUC=0.8150  drive AUC=0.9800  undef={'patient_trained': 0, 'agent_only': 0, 'verb_object': 0}
+=== seed 42 ===
+  pathway   BINDING AUC=0.9300  drive AUC=0.8400  undef={'patient_trained': 0, 'agent_only': 0, 'verb_object': 0}
+  shipped   BINDING AUC=1.0000  drive AUC=0.9050  undef={'patient_trained': 0, 'agent_only': 0, 'verb_object': 0}
+  area      BINDING AUC=0.8850  drive AUC=0.8300  undef={'patient_trained': 0, 'agent_only': 0, 'verb_object': 0}
+=== seed 7 ===
+  pathway   BINDING AUC=0.9200  drive AUC=0.8300  undef={'patient_trained': 0, 'agent_only': 0, 'verb_object': 0}
+  shipped   BINDING AUC=1.0000  drive AUC=0.9950  undef={'patient_trained': 0, 'agent_only': 0, 'verb_object': 0}
+  area      BINDING AUC=0.7600  drive AUC=0.9950  undef={'patient_trained': 0, 'agent_only': 0, 'verb_object': 0}
+=== seed 19 ===
+  pathway   BINDING AUC=0.8950  drive AUC=0.8550  undef={'patient_trained': 0, 'agent_only': 0, 'verb_object': 0}
+  shipped   BINDING AUC=1.0000  drive AUC=0.9000  undef={'patient_trained': 0, 'agent_only': 0, 'verb_object': 0}
+  area      BINDING AUC=0.8550  drive AUC=0.9650  undef={'patient_trained': 0, 'agent_only': 0, 'verb_object': 0}
+=== seed 43 ===
+  pathway   BINDING AUC=0.9200  drive AUC=0.8500  undef={'patient_trained': 0, 'agent_only': 0, 'verb_object': 0}
+  shipped   BINDING AUC=1.0000  drive AUC=0.9000  undef={'patient_trained': 0, 'agent_only': 0, 'verb_object': 0}
+  area      BINDING AUC=0.8700  drive AUC=0.8950  undef={'patient_trained': 0, 'agent_only': 0, 'verb_object': 0}
+=== seed 44 ===
+  pathway   BINDING AUC=0.8650  drive AUC=0.7850  undef={'patient_trained': 0, 'agent_only': 0, 'verb_object': 0}
+  shipped   BINDING AUC=1.0000  drive AUC=0.9950  undef={'patient_trained': 0, 'agent_only': 0, 'verb_object': 0}
+  area      BINDING AUC=0.9200  drive AUC=1.0000  undef={'patient_trained': 0, 'agent_only': 0, 'verb_object': 0}
+=== seed 45 ===
+  pathway   BINDING AUC=0.9050  drive AUC=0.7100  undef={'patient_trained': 0, 'agent_only': 0, 'verb_object': 0}
+  shipped   BINDING AUC=1.0000  drive AUC=0.9000  undef={'patient_trained': 0, 'agent_only': 0, 'verb_object': 0}
+  area      BINDING AUC=0.8400  drive AUC=1.0000  undef={'patient_trained': 0, 'agent_only': 0, 'verb_object': 0}
+=== seed 46 ===
+  pathway   BINDING AUC=0.9300  drive AUC=0.6900  undef={'patient_trained': 0, 'agent_only': 0, 'verb_object': 0}
+  shipped   BINDING AUC=1.0000  drive AUC=0.9400  undef={'patient_trained': 0, 'agent_only': 0, 'verb_object': 0}
+  area      BINDING AUC=0.9000  drive AUC=0.8450  undef={'patient_trained': 0, 'agent_only': 0, 'verb_object': 0}
+=== seed 47 ===
+  pathway   BINDING AUC=0.9650  drive AUC=0.9150  undef={'patient_trained': 0, 'agent_only': 0, 'verb_object': 0}
+  shipped   BINDING AUC=1.0000  drive AUC=1.0000  undef={'patient_trained': 0, 'agent_only': 0, 'verb_object': 0}
+  area      BINDING AUC=0.9000  drive AUC=1.0000  undef={'patient_trained': 0, 'agent_only': 0, 'verb_object': 0}
+==================================================================
+  pathway_BINDING      AUC=0.9155 sd=0.0259 n=10
+  pathway_drive        AUC=0.7995 sd=0.0720 n=10
+  shipped_BINDING      AUC=1.0000 sd=0.0000 n=10
+  shipped_drive        AUC=0.9440 sd=0.0475 n=10
+  area_BINDING         AUC=0.8455 sd=0.0670 n=10
+  area_drive           AUC=0.9465 sd=0.0658 n=10
+-> F:\Github\assemblies-run-e2\research\experiments\erp_pathway_vs_area_binding_results.json
