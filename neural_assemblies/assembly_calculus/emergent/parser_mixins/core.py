@@ -248,6 +248,26 @@ class CoreParserMixin(
         #: research/notes/production_configuration.md. Both answers always
         #: ride in diag regardless of this switch.
         self.morph_readout: str = "mi"
+        #: #151 (paper-regime axes; what_the_papers_actually_prescribe.md).
+        #: LABEL-STIMULUS SHARE: True fires number_SG/number_PL into the
+        #: value area during training (the E-series protocol -- winners
+        #: label-selected, images collapse to a class attractor, 0.998
+        #: measured). False = ROUTING-ONLY, the papers' construction: the
+        #: teacher still routes the projection to the correct value area
+        #: but only the WORD drives it, so winners are word-selected and
+        #: recall compares boosted-extreme vs unboosted-extreme (the
+        #: label is WHERE, never WHAT -- acquisition 2025 p9, COLT22
+        #: Alg. 1). Number-only until tense needs it.
+        self.morph_label_stim: bool = True
+        #: Fiber-beta gain on the core->value fiber during morph training,
+        #: composed with the novelty gain. COLT22 Remark 2's margin
+        #: (beta >~ sqrt(2 ln(n/k)/kp)) is a beta-vs-kp tradeoff; our
+        #: kp=1.5 sits below margin at every measured n (extreme factor
+        #: 2.48-2.78 vs effective boost ~2.1) and there is no per-fiber p
+        #: lever, so beta is the margin's engine-supported knob:
+        #: gain 4 -> beta_eff 0.2 -> boost (1.2)^15 ~ 15. 1.0 = exact
+        #: prior behavior.
+        self.morph_beta_gain: float = 1.0
         self._morph_exposure: Dict[str, int] = {}
         #: Label-image cache for the morph recall readout. A feature area's
         #: stimulus images are identical for every probed word on an

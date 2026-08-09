@@ -266,3 +266,61 @@ def test_mass_readout(split_parser):
             assert got == diag["mi_answer"]
     finally:
         split_parser.morph_readout = base
+
+
+def test_routing_only_training():
+    """#151: morph_label_stim=False trains value areas from the WORD's
+    drive alone (the papers' construction -- the teacher routes, the
+    word selects winners). Pinned mechanically: value areas fire, the
+    shared area does not, recall still answers, and the resulting
+    substrate DIFFERS from label-stim training on the same seed (the
+    flag must change what is written, not merely run)."""
+    def build(label_on):
+        p = EmergentParser(n=600, k=20, seed=48, fast_training=True)
+        p.morph_label_stim = label_on
+        _register_plurals(p)
+        p.train_number(SENTS)
+        return p
+
+    p0, p1 = build(False), build(True)
+    for area in (feature_value_area(NUMBER, "SG"),
+                 feature_value_area(NUMBER, "PL")):
+        assert p0.brain.areas[area].get_num_ever_fired() > 0
+    assert p0.brain.areas[NUMBER].get_num_ever_fired() == 0
+    got_pl, diag = p0.recall_number("dogs")
+    assert diag["readout"] == "mi_split"
+    assert not (got_pl is None and p0.recall_number("dog")[0] is None)
+    w0 = frozenset(p0.brain.areas[feature_value_area(NUMBER, "PL")].winners)
+    w1 = frozenset(p1.brain.areas[feature_value_area(NUMBER, "PL")].winners)
+    assert w0 != w1, "routing-only wrote the same assembly as label-stim"
+
+
+def test_morph_beta_gain_reaches_the_fiber():
+    """#151: morph_beta_gain composes into the _gain_on_fiber bracket --
+    a raised gain must change trained WEIGHTS on the same seed (winners
+    may coincide at toy scale, weights cannot: the gain multiplies every
+    Hebbian write on the core->value fiber). 1.0 reproduces exactly."""
+    import numpy as _np
+
+    def build(g):
+        p = EmergentParser(n=600, k=20, seed=49, fast_training=True)
+        p.morph_beta_gain = g
+        _register_plurals(p)
+        p.train_number(SENTS)
+        eng = p.brain._engine
+        area = feature_value_area(NUMBER, "PL")
+        # The trained fiber is core->value; every other fiber into the
+        # area is a (0,0) pre-wired stub, so take the max-mass one.
+        total = max(
+            (float(_np.asarray(dsts[area].weights).sum())
+             for src, dsts in eng._area_conns.items()
+             if area in dsts
+             and getattr(dsts[area], "weights", None) is not None),
+            default=0.0)
+        assert total > 0, "no trained fiber into the PL value area"
+        return total
+
+    base = build(1.0)
+    assert build(1.0) == base, "same seed, same gain must reproduce"
+    assert build(4.0) != base, "gain 4 left every weight identical -- " \
+        "the bracket did not receive it"

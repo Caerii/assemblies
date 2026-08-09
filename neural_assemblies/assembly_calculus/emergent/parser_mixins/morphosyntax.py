@@ -539,20 +539,28 @@ class MorphosyntaxMixin:
                 # (E15) -- one target per call, MI silent during training.
                 tgt = self._feature_target_area(NUMBER, num)
 
-                # Project number_stim + word phon -> NUMBER area, novelty
-                # gain on the afferent fiber (see _novelty_gain).
-                gain = self._novelty_gain("NUMBER", word)
+                # Project word phon -> core -> value area; the label
+                # stimulus co-fires only under morph_label_stim (#151:
+                # the papers' construction is ROUTING-ONLY -- the teacher
+                # picks the area, the word picks the winners). Novelty
+                # gain x morph_beta_gain on the afferent fiber (COLT22
+                # Remark 2's margin lever).
+                gain = (self._novelty_gain("NUMBER", word)
+                        * float(getattr(self, "morph_beta_gain", 1.0)))
+                label_on = bool(getattr(self, "morph_label_stim", True))
                 # Self-recurrence deliberately untrained -- see the E16
                 # note at the train_tense site.
                 with self._gain_on_fiber(tgt, core_area, gain):
                     self.brain.project(
-                        {num_stim: [tgt], phon: [core_area]},
+                        ({num_stim: [tgt], phon: [core_area]} if label_on
+                         else {phon: [core_area]}),
                         {core_area: [tgt]},
                     )
                     if self.rounds > 1:
                         self.brain.project_rounds(
                             target=tgt,
-                            areas_by_stim={num_stim: [tgt]},
+                            areas_by_stim=({num_stim: [tgt]} if label_on
+                                           else {}),
                             dst_areas_by_src_area={
                                 core_area: [tgt], tgt: [tgt],
                             },
