@@ -267,6 +267,10 @@ class MorphosyntaxMixin:
                 self.brain.add_stimulus(stim_name, self.k)
             tense_stims[tense_name] = stim_name
 
+        flush_every = int(getattr(self, "morph_flush_every", 0))
+        eng = self.brain._engine
+        deferred = getattr(eng, "synaptic_scaling_deferred", False)
+        episode = 0
         # E8 (#137): epochs raise per-form exposure at fixed diversity --
         # the one quantity uniform corpora pin (~1.5) at every size (E7).
         for _epoch in range(max(1, getattr(self, "morph_repetitions", 1))):
@@ -310,6 +314,12 @@ class MorphosyntaxMixin:
                                 },
                                 rounds=self.rounds - 1,
                             )
+                    episode += 1
+                    # E19: interim flush every K episodes (0 = phase-end
+                    # only). See morph_flush_every in core.py.
+                    if (deferred and flush_every > 0
+                            and episode % flush_every == 0):
+                        eng.flush_synaptic_scaling()
                     break  # One tense per sentence
 
         # SLOW HOMEOSTASIS boundary (E9): if scaling is deferred, this
@@ -485,6 +495,10 @@ class MorphosyntaxMixin:
                 self.brain.add_stimulus(stim_name, self.k)
             number_stims[num_name] = stim_name
 
+        flush_every = int(getattr(self, "morph_flush_every", 0))
+        eng = self.brain._engine
+        deferred = getattr(eng, "synaptic_scaling_deferred", False)
+        episode = 0
         # Same epoch loop as train_tense -- see E8 note there.
         for _epoch in range(max(1, getattr(self, "morph_repetitions", 1))):
           for sent in sentences:
@@ -527,6 +541,11 @@ class MorphosyntaxMixin:
                             },
                             rounds=self.rounds - 1,
                         )
+                episode += 1
+                # E19: interim flush every K episodes (0 = phase-end only).
+                if (deferred and flush_every > 0
+                        and episode % flush_every == 0):
+                    eng.flush_synaptic_scaling()
 
         # SLOW HOMEOSTASIS boundary (E9): if scaling is deferred, this
         # phase end is where the accumulated mass gets renormalized.

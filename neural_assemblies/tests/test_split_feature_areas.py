@@ -141,3 +141,36 @@ def test_competition_dynamics_modes(split_parser):
     finally:
         split_parser.mi_readout_mode = base_mode
         split_parser.mi_latch_rounds = 1
+
+
+def test_morph_flush_every_rate():
+    """E19 (#148): morph_flush_every=K triggers interim deferred flushes.
+
+    Pinned mechanically: K=2 on a 4-episode corpus fires interim flushes
+    (counted by wrapping the engine's flush), and the default 0 fires
+    NONE beyond the phase-end one. The schedule's accuracy claims live
+    in the pre-registered experiment.
+    """
+    from neural_assemblies.assembly_calculus.emergent.core.areas import (
+        FEATURE_VALUE_LABELS,
+    )
+
+    def build(flush_every):
+        p = EmergentParser(n=600, k=20, seed=45, fast_training=True,
+                           split_feature_areas=True)
+        _register_plurals(p)
+        eng = p.brain._engine
+        vals = frozenset(feature_value_area(NUMBER, lab)
+                         for lab in FEATURE_VALUE_LABELS[NUMBER])
+        eng.synaptic_scaling = vals
+        p.brain._synaptic_scaling = vals
+        eng.synaptic_scaling_deferred = True
+        p.morph_flush_every = flush_every
+        calls = []
+        orig = eng.flush_synaptic_scaling
+        eng.flush_synaptic_scaling = lambda: calls.append(1) or orig()
+        p.train_number(SENTS)
+        return len(calls)
+
+    assert build(0) == 1, "default must flush exactly once, at phase end"
+    assert build(2) >= 2, "K=2 over 4+ episodes must fire interim flushes"
