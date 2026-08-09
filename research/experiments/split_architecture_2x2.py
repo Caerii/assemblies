@@ -149,6 +149,14 @@ def run_cell(arm: str, frames: int, seed: int) -> dict:
     fixed = score_recall(parser.recall_number,
                          {"SG": FIXED_SG, "PL": FIXED_PL})
 
+    # Secondary-readout scoring over the SG side too, so an overlap-readout
+    # "balanced" is computable (added with the per-item extension above).
+    sg_overlap_ok = sg_total = 0
+    for lemma in (sets_["SG"] if sets_["SG"] else FIXED_SG):
+        _g, d = parser.recall_number(lemma)
+        sg_total += 1
+        sg_overlap_ok += d.get("overlap_answer") == "SG"
+
     # Bar A, structural half: the two label images by AREA. Verified,
     # not assumed: both areas exist, are distinct, and each image is
     # nonempty in its own area.
@@ -183,6 +191,13 @@ def run_cell(arm: str, frames: int, seed: int) -> dict:
                       if (m_pl and m_sg) else None),
             "correct": bool(got == "PL"),
             "answer": got,
+            # Added after the first full run (bars unchanged): the MI and
+            # overlap readouts disagreed on ~38% of answered items and only
+            # agreement COUNTS were stored, so the "which readout is the
+            # bottleneck" question was unanswerable from the JSON.
+            "overlap_answer": ov_ans,
+            "overlap_correct": bool(ov_ans == "PL"),
+            "margin": diag.get("margin"),
         })
     total_exp = sum(it["exposure"] for it in items if it["attested"])
 
@@ -203,6 +218,7 @@ def run_cell(arm: str, frames: int, seed: int) -> dict:
             "structural_ok": structural_ok, "items": items,
             "mean_mi_margin": float(np.mean(margins)) if margins else None,
             "readout_agree": agree, "readout_agree_total": agree_total,
+            "sg_overlap_ok": sg_overlap_ok, "sg_total": sg_total,
             "total_attested_exposure": total_exp,
             "guards": {"roles_ok": g_ok, "roles_total": g_total}}
 
@@ -241,6 +257,25 @@ def main():
     print("\n=== the split 2x2 (attested number balanced, MI readout) ===")
     for cell in sorted(results):
         print(ensemble(lambda s: bal(cell, s), SEEDS, label=f"{cell:12s}"))
+
+    def overlap_bal(cell, s):
+        r = results[cell][s]
+        its = [it for it in r["items"]
+               if it["attested"] and "overlap_correct" in it]
+        if not its or not r.get("sg_total"):
+            return float("nan")
+        pl = sum(it["overlap_correct"] for it in its) / len(its)
+        sg = r["sg_overlap_ok"] / r["sg_total"]
+        return (pl + sg) / 2
+
+    have_overlap = all("overlap_correct" in it
+                       for c in results for s in SEEDS
+                       for it in results[c][s]["items"][:1])
+    if have_overlap:
+        print("\n=== same cells, OVERLAP readout (the readout A/B) ===")
+        for cell in sorted(results):
+            print(ensemble(lambda s: overlap_bal(cell, s), SEEDS,
+                           label=f"{cell:12s}"))
 
     print("\n=== registered bars ===")
     all_structural = all(results[c][s]["structural_ok"]
