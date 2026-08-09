@@ -1,0 +1,43 @@
+brown n=3000 seed=42 mi sg/pl 0.540/0.761 mass sg/pl 0.771/0.413
+brown n=3000 seed=43 mi sg/pl 0.700/0.630 mass sg/pl 0.837/0.391
+brown n=3000 seed=44 mi sg/pl 0.567/0.565 mass sg/pl 0.796/0.348
+brown n=3000 seed=45 mi sg/pl 0.410/0.674 mass sg/pl 0.700/0.500
+brown n=3000 seed=46 mi sg/pl 0.518/0.783 mass sg/pl 0.747/0.500
+brown n=10000 seed=42 mi sg/pl 0.212/0.848 mass sg/pl 0.333/0.761
+brown n=10000 seed=43 mi sg/pl 0.198/0.913 mass sg/pl 0.292/0.848
+brown n=10000 seed=44 mi sg/pl 0.251/0.848 mass sg/pl 0.350/0.848
+brown n=10000 seed=45 mi sg/pl 0.215/0.870 mass sg/pl 0.344/0.739
+brown n=10000 seed=46 mi sg/pl 0.215/0.848 mass sg/pl 0.322/0.761
+synth seed=42 mi_bal 0.545 mass_bal 0.507
+synth seed=43 mi_bal 0.634 mass_bal 0.558
+synth seed=44 mi_bal 0.627 mass_bal 0.562
+synth seed=45 mi_bal 0.655 mass_bal 0.690
+synth seed=46 mi_bal 0.706 mass_bal 0.438
+{
+  "M1_mass_bal_3000": {
+    "mean": 0.6003413582464966,
+    "ci": 0.024782625239518772
+  },
+  "M1_mass_sg_3000": {
+    "mean": 0.7702479338842976,
+    "ci": 0.0642835205486072
+  },
+  "M1_mass_sg_10000": {
+    "mean": 0.3283746556473829,
+    "ci": 0.028449909013752845
+  },
+  "M2_delta_mass": {
+    "mean": -0.04050185650976168,
+    "ci": 0.0503557654065157
+  },
+  "M2_delta_mi": {
+    "mean": -0.07315846209126842,
+    "ci": 0.07381097925904188
+  },
+  "M2_abs_shrinks": true,
+  "M3_paired_mass_minus_mi": {
+    "mean": -0.08245614035087726,
+    "ci": 0.13965123772412372
+  }
+}
+-> F:\Github\assemblies-run-e2\research\experiments\mass_readout_gate_results.json

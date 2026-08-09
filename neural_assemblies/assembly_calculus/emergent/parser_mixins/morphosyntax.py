@@ -718,7 +718,7 @@ class MorphosyntaxMixin:
             project as _ops_project,
         )
         from ..core.areas import feature_value_area
-        from ..evaluation.morph_features import afferent_mass
+        from ..evaluation.morph_features import excess_afferent_mass
 
         brain = self.brain
         diag: dict = {"scores": {}, "margin": None,
@@ -850,15 +850,16 @@ class MorphosyntaxMixin:
                 diag["overlap_scores"][label] = float(
                     assembly_overlap(images[label], probe))
 
-        # MASS readout (#151): score each area at FIXED label-image
-        # columns -- the word's afferent mass into the columns training
-        # actually wrote. This denies the OPPOSING area its extreme-value
-        # pick: the attribution unit measured MI comparing boosted-
-        # TYPICAL columns (own attractor) against selected-EXTREME
-        # background columns (other area's free k-WTA), which crosses
-        # below 1 as n grows. At fixed columns both sides are typical
-        # and only the Hebbian boost separates them -- E12's instrument
-        # as a decision rule.
+        # MASS readout (#151): score each area by the word's EXCESS
+        # afferent mass into FIXED label-image columns. Fixed columns
+        # deny the opposing area its extreme-value pick (the attribution
+        # unit's finding: MI compares boosted-TYPICAL attractor columns
+        # against selected-EXTREME background columns, which crosses
+        # below 1 as n grows). The base-rate subtraction removes
+        # shared-row class-mass inflation (the mass_readout_gate M1
+        # failure: raw mass read CLASS total mass and flipped bias with
+        # n). What remains is word-specific evidence -- what this word's
+        # episodes wrote above what any random row-set would read.
         eng = brain._engine
         for label, area in cand_areas.items():
             cols = compact_images.get(label) or []
@@ -867,8 +868,10 @@ class MorphosyntaxMixin:
             if not cols or w is None or getattr(w, "ndim", 0) != 2:
                 diag["mass_scores"] = {}
                 break
-            diag["mass_scores"][label] = afferent_mass(
-                w, core_rows, {label: cols})[label]
+            m = excess_afferent_mass(w, core_rows, {label: cols})[label]
+            diag["mass_scores"][label] = m["excess"]
+            diag.setdefault("mass_raw", {})[label] = m["mass"]
+            diag.setdefault("mass_baseline", {})[label] = m["baseline"]
 
         diag["scores"] = {label: float(drive.get(area, 0.0))
                           for label, area in cand_areas.items()}

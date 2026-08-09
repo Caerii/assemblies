@@ -157,6 +157,39 @@ def afferent_mass(w, rows: List[int],
     return out
 
 
+def excess_afferent_mass(w, rows: List[int],
+                         images: Dict[str, List[int]]) -> Dict[str, dict]:
+    """Word-specific EXCESS mass into each label image: raw mass minus
+    the image's base rate for a random row-set of the same size.
+
+    WHY THE CORRECTION EXISTS (#151, mass_readout_gate M1 FAILURE,
+    recorded before this was written): raw mass into the frequent
+    class's image is inflated by SHARED CORE ROWS -- with hundreds of
+    words' core assemblies colliding in one area, any word's rows carry
+    other words' boosts, so raw mass reads CLASS TOTAL mass (flipping
+    the bias toward SG at n=3000 and back toward PL at n=10000 as
+    collisions thin). Subtracting expected mass for |rows| random rows
+    (|rows| * colsum / n_rows) leaves the word-SPECIFIC evidence --
+    what this word's episodes wrote above what any word would read.
+
+    Returns {label: {"mass": raw, "baseline": expected, "excess": diff}}.
+    """
+    rows = [r for r in rows if r < w.shape[0]]
+    out: Dict[str, dict] = {}
+    n_rows_total = max(1, int(w.shape[0]))
+    for label, img in images.items():
+        cols = [c for c in img if c < w.shape[1]]
+        if not rows or not cols:
+            out[label] = {"mass": 0.0, "baseline": 0.0, "excess": 0.0}
+            continue
+        mass = float(np.asarray(w[np.ix_(rows, cols)]).sum())
+        colsum = float(np.asarray(w[:, cols]).sum())
+        baseline = colsum * (len(rows) / n_rows_total)
+        out[label] = {"mass": mass, "baseline": baseline,
+                      "excess": mass - baseline}
+    return out
+
+
 def score_recall(
     recall: Callable[[str], Tuple],
     items_by_label: Dict[str, List[str]],
