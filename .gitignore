@@ -96,3 +96,4 @@ data/fashion_mnist/
 
 # Downloaded literature PDFs (fetched, not repo content)
 research/literature/papers/*.pdf
+research/experiments/_parser_cache/
