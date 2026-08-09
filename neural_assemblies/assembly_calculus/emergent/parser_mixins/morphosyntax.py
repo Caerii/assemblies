@@ -221,32 +221,6 @@ class MorphosyntaxMixin:
         from ..core.areas import feature_value_area
         return feature_value_area(feature, label)
 
-    @contextmanager
-    def _value_area_recurrence(self):
-        """Let a split training episode actually train tgt->tgt.
-
-        brain.project_rounds' allow_self gate silently DROPS self-loop
-        sources unless recurrent_projection is on (the #89 disagreement;
-        found when E16's multi-step competition read bit-identical drives
-        -- the dead self-fiber had never been trained). The flag must not
-        flip globally (brain.py's warning: self-recurrence during training
-        is the collapse channel for MULTI-assembly areas), but a per-VALUE
-        area is single-attractor BY DESIGN -- the one regime where
-        recurrent deepening is the paper's latching substrate rather than
-        a merge hazard -- and norm_init satisfies the gate's other
-        conjunct. Bracketed per episode, split path only.
-        """
-        if not getattr(self, "split_feature_areas", False):
-            yield
-            return
-        brain = self.brain
-        prev = getattr(brain, "recurrent_projection", False)
-        brain.recurrent_projection = True
-        try:
-            yield
-        finally:
-            brain.recurrent_projection = prev
-
     def _ensure_value_areas(self, feature: str) -> List[str]:
         """Create `feature`'s per-value areas + their MI group, idempotently.
 
@@ -314,8 +288,15 @@ class MorphosyntaxMixin:
                     # Project tense + verb → TENSE area. The gain brackets
                     # the AFFERENT fiber only -- the one recall probes.
                     gain = self._novelty_gain("TENSE", word)
-                    with self._gain_on_fiber(tgt, VERB_CORE, gain), \
-                            self._value_area_recurrence():
+                    # NOTE (E16, #145): value-area SELF-RECURRENCE is
+                    # deliberately NOT trained here. It was, briefly (the
+                    # #89 allow_self bracket), to give the multi-step
+                    # competition evidence to accumulate -- and the paired
+                    # measurement read the substrate DAMAGE at -0.09 on
+                    # the overlap readout (deep generic label attractors
+                    # flatten word discrimination). Feed-forward label
+                    # training is the measured-best form.
+                    with self._gain_on_fiber(tgt, VERB_CORE, gain):
                         self.brain.project(
                             {tense_stim: [tgt], phon: [VERB_CORE]},
                             {VERB_CORE: [tgt]},
@@ -530,8 +511,9 @@ class MorphosyntaxMixin:
                 # Project number_stim + word phon -> NUMBER area, novelty
                 # gain on the afferent fiber (see _novelty_gain).
                 gain = self._novelty_gain("NUMBER", word)
-                with self._gain_on_fiber(tgt, core_area, gain), \
-                        self._value_area_recurrence():
+                # Self-recurrence deliberately untrained -- see the E16
+                # note at the train_tense site.
+                with self._gain_on_fiber(tgt, core_area, gain):
                     self.brain.project(
                         {num_stim: [tgt], phon: [core_area]},
                         {core_area: [tgt]},
