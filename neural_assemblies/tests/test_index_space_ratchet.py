@@ -249,6 +249,11 @@ W_BASELINE = {
     "research/experiments/metrics/instability.py": 1,
     "research/experiments/metrics/settling.py": 1,
     "research/experiments/recruitment/diagnose_synaptic_scaling.py": 1,
+    # E10's committed census (#139): `eng._areas[src].w` as a ROW BOUND,
+    # min'd against the connectome's true shape -- it means MATERIALIZED
+    # count and cannot overrun. The archival script stays as run; caught
+    # late because no full live-tree suite ran between E10 and #149.
+    "research/experiments/wmax_census.py": 1,
     "research/experiments/worker_divergence_probe.py": 1,
 }
 
