@@ -70,7 +70,19 @@ parser.morph_readout = "overlap"       # the >=200-frame winner
 ```
 
 This is the E19b terminal cell: zipf-200 × split × K=40 × overlap =
-**0.727 ± 0.037** (n=10 seeds). The corpus default stays
+**0.727 ± 0.037** (n=10 seeds).
+
+**SCOPE LIMIT measured by the #150 graduation (Brown, 90/10 class
+imbalance): deferred scaling INVERTS the number decision on real CDS —
+per-column normalization equalizes value areas whose form loads differ
+~8x and the rare class's area becomes a constant responder (SG 0.036
+scaled vs 0.513 unscaled, causal by intervention). Until the per-form
+normalization unit lands, deferred scaling on feature value areas is
+recommended ONLY for corpora near the synthetic 70/30 imbalance; on
+natural-imbalance corpora run scaling OFF. See
+research/notes/the_real_corpus_inverts_the_collapse.md.**
+
+The corpus default stays
 `SUBJECT_SAMPLING="uniform"` because zipf at the default 50-frame budget
 was measured a null (E13) and the uniform-50 corpus underlies every
 non-morph arc's standing measurement; the zipf knob dissolves entirely
