@@ -1,0 +1,87 @@
+{
+  "files": [
+    "brown_adult.jsonl"
+  ],
+  "utterances_kept": 85002,
+  "aligned": 82101,
+  "misaligned": 2901,
+  "types": 6959,
+  "tokens": 360280,
+  "C1_zipf_slope": -1.096378484537301,
+  "C2_teachable_utterances": 40859,
+  "C3_plural_share": 0.1023358678169323,
+  "C1_pass": true,
+  "C2_pass": true
+}
+seed=42 arm=A sg_mi=0.003 pl_mi=1.000 sg_ov=0.069 pl_ov=1.000
+seed=42 arm=B sg_mi=0.000 pl_mi=1.000 sg_ov=0.386 pl_ov=0.935
+seed=42 arm=C sg_mi=0.551 pl_mi=0.630 sg_ov=0.551 pl_ov=0.630
+seed=43 arm=A sg_mi=0.050 pl_mi=1.000 sg_ov=0.099 pl_ov=1.000
+seed=43 arm=B sg_mi=0.003 pl_mi=1.000 sg_ov=0.526 pl_ov=0.913
+seed=43 arm=C sg_mi=0.490 pl_mi=0.761 sg_ov=0.490 pl_ov=0.761
+seed=44 arm=A sg_mi=0.242 pl_mi=0.761 sg_ov=0.198 pl_ov=0.891
+seed=44 arm=B sg_mi=0.000 pl_mi=1.000 sg_ov=0.314 pl_ov=0.978
+seed=44 arm=C sg_mi=0.490 pl_mi=0.826 sg_ov=0.490 pl_ov=0.826
+seed=45 arm=A sg_mi=0.003 pl_mi=1.000 sg_ov=0.094 pl_ov=0.978
+seed=45 arm=B sg_mi=0.000 pl_mi=1.000 sg_ov=0.433 pl_ov=0.826
+seed=45 arm=C sg_mi=0.543 pl_mi=0.696 sg_ov=0.543 pl_ov=0.696
+seed=46 arm=A sg_mi=0.000 pl_mi=1.000 sg_ov=0.061 pl_ov=0.957
+seed=46 arm=B sg_mi=0.000 pl_mi=1.000 sg_ov=0.377 pl_ov=0.957
+seed=46 arm=C sg_mi=0.496 pl_mi=0.717 sg_ov=0.496 pl_ov=0.717
+seed=47 arm=A sg_mi=0.008 pl_mi=1.000 sg_ov=0.083 pl_ov=1.000
+seed=47 arm=B sg_mi=0.000 pl_mi=1.000 sg_ov=0.408 pl_ov=0.913
+seed=47 arm=C sg_mi=0.499 pl_mi=0.717 sg_ov=0.499 pl_ov=0.717
+seed=48 arm=A sg_mi=0.003 pl_mi=1.000 sg_ov=0.050 pl_ov=1.000
+seed=48 arm=B sg_mi=0.000 pl_mi=1.000 sg_ov=0.364 pl_ov=0.870
+seed=48 arm=C sg_mi=0.499 pl_mi=0.674 sg_ov=0.499 pl_ov=0.674
+seed=49 arm=A sg_mi=0.003 pl_mi=1.000 sg_ov=0.080 pl_ov=1.000
+seed=49 arm=B sg_mi=0.000 pl_mi=1.000 sg_ov=0.430 pl_ov=0.848
+seed=49 arm=C sg_mi=0.488 pl_mi=0.717 sg_ov=0.488 pl_ov=0.717
+seed=50 arm=A sg_mi=0.006 pl_mi=1.000 sg_ov=0.061 pl_ov=0.978
+seed=50 arm=B sg_mi=0.000 pl_mi=1.000 sg_ov=0.394 pl_ov=0.870
+seed=50 arm=C sg_mi=0.554 pl_mi=0.783 sg_ov=0.554 pl_ov=0.783
+seed=51 arm=A sg_mi=0.041 pl_mi=1.000 sg_ov=0.248 pl_ov=0.957
+seed=51 arm=B sg_mi=0.000 pl_mi=1.000 sg_ov=0.402 pl_ov=0.913
+seed=51 arm=C sg_mi=0.559 pl_mi=0.674 sg_ov=0.559 pl_ov=0.674
+{
+  "files": [
+    "brown_adult.jsonl"
+  ],
+  "n_train": 1000,
+  "noun_episodes": 1386,
+  "exam_forms": 409,
+  "ambiguous_excluded": 0,
+  "F1_spearman": {
+    "mean": -0.04740129288079872,
+    "ci": 0.04062148143659196,
+    "n": 10
+  },
+  "F1_per_seed": [
+    -0.07319018103246588,
+    -0.02278087926175952,
+    0.1012238543333464,
+    -0.07319018103246588,
+    -0.07604214256832464,
+    -0.09577183284220238,
+    -0.07319018103246588,
+    -0.07319018103246588,
+    -0.05951214889870882,
+    -0.028369055440474737
+  ],
+  "F2_paired_A_minus_B": {
+    "mean": 0.005812073302191878,
+    "ci": 0.006182593925414051,
+    "n": 10
+  },
+  "F3_paired_PL_A_minus_C": {
+    "mean": 0.2565217391304348,
+    "ci": 0.08667265448754194,
+    "n": 10
+  },
+  "guard_sg": {
+    "A": 0.03581267217630854,
+    "B": 0.0002754820936639119,
+    "C": 0.5168044077134987
+  }
+}
+-> F:\Github\assemblies-run-e2\research\experiments\childes_graduation_results.json

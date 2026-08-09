@@ -1,0 +1,14 @@
+seed=42 E(n=10k) sg=0.212 pl=0.848 rho=0.0184
+seed=43 E(n=10k) sg=0.198 pl=0.913 rho=0.0610
+seed=44 E(n=10k) sg=0.251 pl=0.848 rho=0.0318
+seed=45 E(n=10k) sg=0.215 pl=0.870 rho=-0.0029
+seed=46 E(n=10k) sg=0.215 pl=0.848 rho=0.0718
+seed=47 E(n=10k) sg=0.185 pl=0.870 rho=0.0384
+seed=48 E(n=10k) sg=0.231 pl=0.848 rho=0.0354
+seed=49 E(n=10k) sg=0.223 pl=0.848 rho=0.0572
+seed=50 E(n=10k) sg=0.204 pl=0.935 rho=0.0467
+seed=51 E(n=10k) sg=0.212 pl=0.891 rho=0.0721
+E mean sg=0.2146+/-0.0130 pl=0.8717+/-0.0225 F1=0.0430+/-0.0171
+exposure 1: acc=0.2723
+exposure 2-3: acc=0.2864
+exposure 4+: acc=0.3240

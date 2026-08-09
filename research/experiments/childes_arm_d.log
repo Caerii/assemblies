@@ -1,0 +1,14 @@
+seed=42 sg=0.540 pl=0.761 rho=0.1271
+seed=43 sg=0.700 pl=0.630 rho=0.0608
+seed=44 sg=0.567 pl=0.565 rho=0.0872
+seed=45 sg=0.410 pl=0.674 rho=0.1539
+seed=46 sg=0.518 pl=0.783 rho=0.0454
+seed=47 sg=0.493 pl=0.739 rho=0.0640
+seed=48 sg=0.468 pl=0.717 rho=0.1263
+seed=49 sg=0.477 pl=0.696 rho=-0.0406
+seed=50 sg=0.501 pl=0.761 rho=0.0779
+seed=51 sg=0.452 pl=0.761 rho=-0.0146
+F1(D) = 0.0687 +/- 0.0439
+exposure 1: n=195x10 acc=0.4995
+exposure 2-3: n=118x10 acc=0.5602
+exposure 4+: n=96x10 acc=0.5750
