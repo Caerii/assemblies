@@ -1,0 +1,48 @@
+[SLOW R1 seed=49] num bal=0.65 (PL=0.5) | tense bal=0.6460869565217391 | roles 4/4
+[done (1, 49)]
+[SLOW R1 seed=47] num bal=0.55 (PL=0.3) | tense bal=0.711304347826087 | roles 4/4
+[done (1, 47)]
+[SLOW R1 seed=50] num bal=0.6499999999999999 (PL=0.6) | tense bal=0.6895652173913043 | roles 4/4
+[done (1, 50)]
+[SLOW R1 seed=43] num bal=0.5 (PL=0.4) | tense bal=0.6695652173913043 | roles 4/4
+[SLOW R1 seed=42] num bal=0.6499999999999999 (PL=0.6) | tense bal=0.7930434782608695 | roles 4/4
+[done (1, 43)]
+[done (1, 42)]
+[SLOW R1 seed=51] num bal=0.8 (PL=0.8) | tense bal=0.6078260869565217 | roles 4/4
+[SLOW R1 seed=46] num bal=0.7 (PL=0.6) | tense bal=0.5626086956521739 | roles 4/4
+[done (1, 51)]
+[done (1, 46)]
+[SLOW R1 seed=44] num bal=0.75 (PL=0.5) | tense bal=0.6008695652173913 | roles 4/4
+[done (1, 44)]
+[SLOW R1 seed=45] num bal=0.6 (PL=0.5) | tense bal=0.7295652173913043 | roles 4/4
+[done (1, 45)]
+[SLOW R4 seed=44] num bal=0.75 (PL=0.5) | tense bal=0.6278260869565218 | roles 4/4
+[SLOW R4 seed=43] num bal=0.65 (PL=0.5) | tense bal=0.7495652173913043 | roles 4/4
+[done (4, 44)]
+[done (4, 43)]
+[SLOW R4 seed=45] num bal=0.6 (PL=0.3) | tense bal=0.7730434782608695 | roles 4/4
+[done (4, 45)]
+[SLOW R1 seed=48] num bal=0.6499999999999999 (PL=0.6) | tense bal=0.6843478260869565 | roles 4/4
+[done (1, 48)]
+[SLOW R4 seed=42] num bal=0.6 (PL=0.3) | tense bal=0.831304347826087 | roles 4/4
+[done (4, 42)]
+[SLOW R4 seed=46] num bal=0.65 (PL=0.4) | tense bal=0.6426086956521739 | roles 4/4
+[done (4, 46)]
+[SLOW R4 seed=47] num bal=0.65 (PL=0.4) | tense bal=0.711304347826087 | roles 4/4
+[done (4, 47)]
+[SLOW R4 seed=51] num bal=0.6 (PL=0.3) | tense bal=0.8095652173913044 | roles 4/4
+[SLOW R4 seed=50] num bal=0.44999999999999996 (PL=0.2) | tense bal=0.7547826086956522 | roles 4/4
+[SLOW R4 seed=49] num bal=0.6 (PL=0.5) | tense bal=0.7478260869565218 | roles 4/4
+[done (4, 51)]
+[done (4, 50)]
+[SLOW R4 seed=48] num bal=0.8 (PL=0.7) | tense bal=0.6460869565217391 | roles 4/4
+[done (4, 49)]
+[done (4, 48)]
+
+=== registered bars ===
+number:SLOW:R1: 0.6500 +/- 0.0631 (n=10, 0.5000..0.8000)
+  tense:SLOW:R1: 0.6695 +/- 0.0487 (n=10, 0.5626..0.7930)
+number:SLOW:R4: 0.6350 +/- 0.0675 (n=10, 0.4500..0.8000)
+  tense:SLOW:R4: 0.7294 +/- 0.0507 (n=10, 0.6278..0.8313)
+T1 SLOW R1 vs FAST R1 ref 0.6500+/-0.0584
+T2 SLOW-FAST at R4: 0.0050 +/- 0.1244 (n=10, -0.2500..0.2500)  (per-seed: [0.15, 0.25, -0.05, -0.15, -0.25, 0.15, 0.15, 0.1, -0.15, -0.15])
