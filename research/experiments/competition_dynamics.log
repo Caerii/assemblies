@@ -1,0 +1,94 @@
+[E16 zipf-200 seed=42] oneshot-1=0.517 | latched-3=0.517 | latched-10=0.517 | settled-3=0.650 | settled-10=0.533 | overlap=0.650 | PL n=30 exp=49 | roles 4/4
+[done (200, 42)]
+[E16 zipf-200 seed=50] oneshot-1=0.600 | latched-3=0.600 | latched-10=0.600 | settled-3=0.650 | settled-10=0.650 | overlap=0.683 | PL n=30 exp=49 | roles 4/4
+[E16 zipf-200 seed=43] oneshot-1=0.683 | latched-3=0.683 | latched-10=0.683 | settled-3=0.700 | settled-10=0.733 | overlap=0.550 | PL n=30 exp=49 | roles 4/4
+[done (200, 50)]
+[E16 zipf-200 seed=51] oneshot-1=0.567 | latched-3=0.567 | latched-10=0.567 | settled-3=0.617 | settled-10=0.483 | overlap=0.567 | PL n=30 exp=49 | roles 4/4
+[done (200, 43)]
+[done (200, 51)]
+[E16 zipf-200 seed=49] oneshot-1=0.583 | latched-3=0.583 | latched-10=0.583 | settled-3=0.717 | settled-10=0.650 | overlap=0.717 | PL n=30 exp=49 | roles 4/4
+[done (200, 49)]
+[E16 zipf-200 seed=46] oneshot-1=0.567 | latched-3=0.567 | latched-10=0.567 | settled-3=0.700 | settled-10=0.600 | overlap=0.650 | PL n=30 exp=49 | roles 4/4
+[done (200, 46)]
+[E16 zipf-200 seed=45] oneshot-1=0.617 | latched-3=0.617 | latched-10=0.617 | settled-3=0.600 | settled-10=0.667 | overlap=0.400 | PL n=30 exp=49 | roles 4/4
+[done (200, 45)]
+[E16 zipf-200 seed=48] oneshot-1=0.600 | latched-3=0.600 | latched-10=0.600 | settled-3=0.600 | settled-10=0.567 | overlap=0.617 | PL n=30 exp=49 | roles 4/4
+[E16 zipf-200 seed=44] oneshot-1=0.567 | latched-3=0.567 | latched-10=0.567 | settled-3=0.667 | settled-10=0.617 | overlap=0.700 | PL n=30 exp=49 | roles 4/4
+[done (200, 48)]
+[done (200, 44)]
+[E16 zipf-200 seed=47] oneshot-1=0.667 | latched-3=0.667 | latched-10=0.667 | settled-3=0.683 | settled-10=0.767 | overlap=0.567 | PL n=30 exp=49 | roles 4/4
+[done (200, 47)]
+[E16 zipf-400 seed=43] oneshot-1=0.733 | latched-3=0.733 | latched-10=0.733 | settled-3=0.663 | settled-10=0.616 | overlap=0.628 | PL n=43 exp=107 | roles 4/4
+[done (400, 43)]
+[E16 zipf-400 seed=42] oneshot-1=0.605 | latched-3=0.605 | latched-10=0.605 | settled-3=0.581 | settled-10=0.558 | overlap=0.570 | PL n=43 exp=107 | roles 4/4
+[done (400, 42)]
+[E16 zipf-400 seed=44] oneshot-1=0.558 | latched-3=0.558 | latched-10=0.558 | settled-3=0.605 | settled-10=0.547 | overlap=0.523 | PL n=43 exp=107 | roles 4/4
+[done (400, 44)]
+[E16 zipf-400 seed=45] oneshot-1=0.651 | latched-3=0.651 | latched-10=0.651 | settled-3=0.628 | settled-10=0.581 | overlap=0.477 | PL n=43 exp=107 | roles 4/4
+[done (400, 45)]
+[E16 zipf-400 seed=47] oneshot-1=0.663 | latched-3=0.663 | latched-10=0.663 | settled-3=0.674 | settled-10=0.640 | overlap=0.616 | PL n=43 exp=107 | roles 4/4
+[done (400, 47)]
+[E16 zipf-400 seed=49] oneshot-1=0.558 | latched-3=0.558 | latched-10=0.558 | settled-3=0.593 | settled-10=0.535 | overlap=0.581 | PL n=43 exp=107 | roles 4/4
+[done (400, 49)]
+[E16 zipf-400 seed=46] oneshot-1=0.535 | latched-3=0.535 | latched-10=0.535 | settled-3=0.581 | settled-10=0.581 | overlap=0.500 | PL n=43 exp=107 | roles 4/4
+[done (400, 46)]
+[E16 zipf-400 seed=50] oneshot-1=0.744 | latched-3=0.744 | latched-10=0.744 | settled-3=0.640 | settled-10=0.581 | overlap=0.570 | PL n=43 exp=107 | roles 4/4
+[E16 zipf-400 seed=48] oneshot-1=0.558 | latched-3=0.558 | latched-10=0.558 | settled-3=0.651 | settled-10=0.686 | overlap=0.477 | PL n=43 exp=107 | roles 4/4
+[done (400, 50)]
+[done (400, 48)]
+[E16 zipf-400 seed=51] oneshot-1=0.698 | latched-3=0.698 | latched-10=0.698 | settled-3=0.686 | settled-10=0.512 | overlap=0.581 | PL n=43 exp=107 | roles 4/4
+[done (400, 51)]
+
+=== variants x budget (attested number balanced) ===
+zipf-200 oneshot-1: 0.5967 +/- 0.0355 (n=10, 0.5167..0.6833)
+zipf-200 latched-3: 0.5967 +/- 0.0355 (n=10, 0.5167..0.6833)
+zipf-200 latched-10: 0.5967 +/- 0.0355 (n=10, 0.5167..0.6833)
+zipf-200 settled-3: 0.6583 +/- 0.0304 (n=10, 0.6000..0.7167)
+zipf-200 settled-10: 0.6267 +/- 0.0619 (n=10, 0.4833..0.7667)
+zipf-200 overlap: 0.6100 +/- 0.0673 (n=10, 0.4000..0.7167)
+zipf-400 oneshot-1: 0.6302 +/- 0.0558 (n=10, 0.5349..0.7442)
+zipf-400 latched-3: 0.6302 +/- 0.0558 (n=10, 0.5349..0.7442)
+zipf-400 latched-10: 0.6302 +/- 0.0558 (n=10, 0.5349..0.7442)
+zipf-400 settled-3: 0.6302 +/- 0.0277 (n=10, 0.5814..0.6860)
+zipf-400 settled-10: 0.5837 +/- 0.0372 (n=10, 0.5116..0.6860)
+zipf-400 overlap: 0.5523 +/- 0.0393 (n=10, 0.4767..0.6279)
+
+=== registered bars ===
+L  acc(latched-3) - acc(oneshot) @200 (bar: == 0): 0.0000 +/- 0.0000 (n=10, 0.0000..0.0000)
+L  acc(latched-10) - acc(oneshot) @200 (bar: == 0): 0.0000 +/- 0.0000 (n=10, 0.0000..0.0000)
+L  margin(latched-10) - margin(oneshot) @200 (>0): 0.5451 +/- 0.0185 (n=10, 0.4968..0.5758)
+S  acc(settled-10) - acc(oneshot) @200 (>0): 0.0300 +/- 0.0376 (n=10, -0.0833..0.1000)
+S  acc(settled-10) - acc(overlap) @200 (~0 or >): 0.0167 +/- 0.1012 (n=10, -0.1167..0.2667)
+X  best variant zipf-200 = settled-3 (bar @400 >= 0.75): 0.6583 +/- 0.0304 (n=10, 0.6000..0.7167)
+X  best variant zipf-400 = settled-3 (bar @400 >= 0.75): 0.6302 +/- 0.0277 (n=10, 0.5814..0.6860)
+
+=== exposure arithmetic check + guards ===
+total attested PL exposure zipf-200: 49.0000 +/- 0.0000 (n=10, 49.0000..49.0000)
+attested PL n           zipf-200: 30.0000 +/- 0.0000 (n=10, 30.0000..30.0000)
+roles zipf-200: 40/40
+total attested PL exposure zipf-400: 107.0000 +/- 0.0000 (n=10, 107.0000..107.0000)
+attested PL n           zipf-400: 43.0000 +/- 0.0000 (n=10, 43.0000..43.0000)
+roles zipf-400: 40/40
+E15 reference: oneshot zipf-200 = 0.637 +/- 0.048, overlap zipf-200 = 0.700 +/- 0.037
+
+=== zipf-400 per-item, best MI variant (pooled) ===
+  men        exp/seed= 14.0  acc=0.70
+  women      exp/seed= 10.0  acc=0.40
+  children   exp/seed=  7.0  acc=0.50
+  moms       exp/seed=  5.0  acc=0.70
+  foods      exp/seed=  5.0  acc=0.40
+  hospitals  exp/seed=  5.0  acc=0.60
+  worlds     exp/seed=  4.0  acc=0.40
+  clouds     exp/seed=  4.0  acc=0.60
+  babies     exp/seed=  3.0  acc=0.40
+  mothers    exp/seed=  3.0  acc=0.30
+  friends    exp/seed=  3.0  acc=0.20
+  boys       exp/seed=  2.0  acc=0.50
+  heads      exp/seed=  2.0  acc=0.20
+  arms       exp/seed=  2.0  acc=0.20
+  hearts     exp/seed=  2.0  acc=0.40
+  books      exp/seed=  2.0  acc=0.40
+  pictures   exp/seed=  2.0  acc=0.40
+  papers     exp/seed=  2.0  acc=0.40
+  houses     exp/seed=  2.0  acc=0.30
+  trees      exp/seed=  2.0  acc=0.30
