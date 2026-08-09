@@ -159,13 +159,19 @@ class MorphosyntaxMixin:
 
         The registered form: after counting this exposure,
 
-            gain = min(novelty_gain_max, sqrt(mean_count / count))
+            gain = min(novelty_gain_max, (mean_count / count) ** exp)
 
         Self-normalizing (a uniform corpus gives ~1 everywhere) and
         LABEL-FREE: the counts key on (feature area, surface form), never
         on a linguistic category -- a gain keyed to "is plural" would be
         PLURAL_EVERY in disguise. `novelty_gain_max` <= 1 disables
         (default), preserving exact prior behavior.
+
+        THE EXPONENT IS THE LEVER (E3, #132): at exp=0.5 (E2's original
+        sqrt) the raw gain NEVER exceeded 1.215 on this corpus (mean
+        exposure 1.41), so every cap >= 1.2 was the same experiment and
+        the mechanism acted mostly as mild familiarity suppression.
+        exp=1.0 (linear) restores GAIN_MAX to a live parameter.
         """
         gmax = getattr(self, "novelty_gain_max", 1.0)
         counts = self._morph_exposure
@@ -177,7 +183,8 @@ class MorphosyntaxMixin:
         feature_counts = [c for k, c in counts.items()
                           if k.startswith(prefix)]
         mean_count = sum(feature_counts) / len(feature_counts)
-        return min(gmax, (mean_count / counts[key]) ** 0.5)
+        exp = getattr(self, "novelty_gain_exp", 0.5)
+        return min(gmax, (mean_count / counts[key]) ** exp)
 
     @contextmanager
     def _gain_on_fiber(self, target: str, source: str, gain: float):

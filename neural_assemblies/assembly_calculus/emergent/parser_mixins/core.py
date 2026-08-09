@@ -127,7 +127,8 @@ class CoreParserMixin(
                  norm_init: Optional[bool] = None,
                  vocabulary: Optional[Dict[str, GroundingContext]] = None,
                  synaptic_scaling=False,
-                 novelty_gain_max: float = 1.0):
+                 novelty_gain_max: float = 1.0,
+                 novelty_gain_exp: float = 0.5):
         from ..training.perf import (
             budget_rounds,
             fast_training_enabled,
@@ -181,6 +182,11 @@ class CoreParserMixin(
         # knob in disguise). 1.0 disables (exact prior behavior). See
         # MorphosyntaxMixin._novelty_gain for the registered form.
         self.novelty_gain_max = float(novelty_gain_max)
+        #: Exponent on (mean_count/count). 0.5 (sqrt) is E2's original form,
+        #: measured VACUOUS on this corpus (max raw gain 1.215 at mean
+        #: exposure 1.41 -- E3); 1.0 (linear) makes a once-seen form among
+        #: 5x-seen neighbors write ~5x, so GAIN_MAX becomes a live cap.
+        self.novelty_gain_exp = float(novelty_gain_exp)
         self._morph_exposure: Dict[str, int] = {}
         #: Label-image cache for the morph recall readout. A feature area's
         #: stimulus images are identical for every probed word on an
