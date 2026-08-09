@@ -221,7 +221,10 @@ class MorphosyntaxMixin:
                 self.brain.add_stimulus(stim_name, self.k)
             tense_stims[tense_name] = stim_name
 
-        for sent in sentences:
+        # E8 (#137): epochs raise per-form exposure at fixed diversity --
+        # the one quantity uniform corpora pin (~1.5) at every size (E7).
+        for _epoch in range(max(1, getattr(self, "morph_repetitions", 1))):
+          for sent in sentences:
             tense = self.detect_tense(sent)
             tense_stim = tense_stims[tense]
 
@@ -416,7 +419,9 @@ class MorphosyntaxMixin:
                 self.brain.add_stimulus(stim_name, self.k)
             number_stims[num_name] = stim_name
 
-        for sent in sentences:
+        # Same epoch loop as train_tense -- see E8 note there.
+        for _epoch in range(max(1, getattr(self, "morph_repetitions", 1))):
+          for sent in sentences:
             for word in sent:
                 if word not in self.stim_map:
                     continue

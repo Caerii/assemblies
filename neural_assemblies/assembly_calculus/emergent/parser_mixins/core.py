@@ -182,6 +182,13 @@ class CoreParserMixin(
         # knob in disguise). 1.0 disables (exact prior behavior). See
         # MorphosyntaxMixin._novelty_gain for the registered form.
         self.novelty_gain_max = float(novelty_gain_max)
+        #: Epochs over the stage corpus for the morph-feature phases
+        #: (train_tense/train_number). 1 = byte-identical prior behavior.
+        #: E7 (#136) measured per-form exposure PINNED at ~1.5 by uniform
+        #: sampling at every corpus size; repetition is how exposure rises
+        #: at fixed diversity (Zipf's role in real corpora, repeated
+        #: utterances in childhood). E8 (#137) sweeps it.
+        self.morph_repetitions: int = 1
         #: Exponent on (mean_count/count). 0.5 (sqrt) is E2's original form,
         #: measured VACUOUS on this corpus (max raw gain 1.215 at mean
         #: exposure 1.41 -- E3); 1.0 (linear) makes a once-seen form among
