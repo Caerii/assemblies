@@ -1,0 +1,1530 @@
+{
+  "R2:OFF": {
+    "46": {
+      "number": {
+        "SG": {
+          "n": 10,
+          "acc": 1.0,
+          "tie_rate": 0.0,
+          "mean_margin": 0.33666666666666667
+        },
+        "PL": {
+          "n": 10,
+          "acc": 0.1,
+          "tie_rate": 0.1,
+          "mean_margin": 0.17666666666666667
+        },
+        "_balanced": 0.55,
+        "_image_separation": 0.13333333333333333
+      },
+      "tense": {
+        "PRESENT": {
+          "n": 25,
+          "acc": 0.56,
+          "tie_rate": 0.08,
+          "mean_margin": 0.18533333333333335
+        },
+        "PAST": {
+          "n": 23,
+          "acc": 0.6521739130434783,
+          "tie_rate": 0.13043478260869565,
+          "mean_margin": 0.13333333333333333
+        },
+        "_balanced": 0.6060869565217392,
+        "_image_separation": 0.03333333333333333
+      },
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "49": {
+      "number": {
+        "SG": {
+          "n": 10,
+          "acc": 0.9,
+          "tie_rate": 0.0,
+          "mean_margin": 0.38
+        },
+        "PL": {
+          "n": 10,
+          "acc": 0.1,
+          "tie_rate": 0.0,
+          "mean_margin": 0.21999999999999997
+        },
+        "_balanced": 0.5,
+        "_image_separation": 0.06666666666666667
+      },
+      "tense": {
+        "PRESENT": {
+          "n": 25,
+          "acc": 0.8,
+          "tie_rate": 0.0,
+          "mean_margin": 0.22933333333333333
+        },
+        "PAST": {
+          "n": 23,
+          "acc": 0.6086956521739131,
+          "tie_rate": 0.08695652173913043,
+          "mean_margin": 0.1956521739130435
+        },
+        "_balanced": 0.7043478260869566,
+        "_image_separation": 0.0
+      },
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "43": {
+      "number": {
+        "SG": {
+          "n": 10,
+          "acc": 1.0,
+          "tie_rate": 0.0,
+          "mean_margin": 0.4033333333333333
+        },
+        "PL": {
+          "n": 10,
+          "acc": 0.0,
+          "tie_rate": 0.1,
+          "mean_margin": 0.17666666666666667
+        },
+        "_balanced": 0.5,
+        "_image_separation": 0.03333333333333333
+      },
+      "tense": {
+        "PRESENT": {
+          "n": 25,
+          "acc": 0.72,
+          "tie_rate": 0.08,
+          "mean_margin": 0.17866666666666664
+        },
+        "PAST": {
+          "n": 23,
+          "acc": 0.7391304347826086,
+          "tie_rate": 0.13043478260869565,
+          "mean_margin": 0.1826086956521739
+        },
+        "_balanced": 0.7295652173913043,
+        "_image_separation": 0.0
+      },
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "48": {
+      "number": {
+        "SG": {
+          "n": 10,
+          "acc": 1.0,
+          "tie_rate": 0.0,
+          "mean_margin": 0.26999999999999996
+        },
+        "PL": {
+          "n": 10,
+          "acc": 0.3,
+          "tie_rate": 0.3,
+          "mean_margin": 0.09666666666666665
+        },
+        "_balanced": 0.65,
+        "_image_separation": 0.20000000000000004
+      },
+      "tense": {
+        "PRESENT": {
+          "n": 25,
+          "acc": 0.68,
+          "tie_rate": 0.04,
+          "mean_margin": 0.212
+        },
+        "PAST": {
+          "n": 23,
+          "acc": 0.6086956521739131,
+          "tie_rate": 0.17391304347826086,
+          "mean_margin": 0.16376811594202897
+        },
+        "_balanced": 0.6443478260869566,
+        "_image_separation": 0.03333333333333333
+      },
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "47": {
+      "number": {
+        "SG": {
+          "n": 10,
+          "acc": 1.0,
+          "tie_rate": 0.0,
+          "mean_margin": 0.4800000000000001
+        },
+        "PL": {
+          "n": 10,
+          "acc": 0.0,
+          "tie_rate": 0.0,
+          "mean_margin": 0.21000000000000002
+        },
+        "_balanced": 0.5,
+        "_image_separation": 0.06666666666666667
+      },
+      "tense": {
+        "PRESENT": {
+          "n": 25,
+          "acc": 0.6,
+          "tie_rate": 0.04,
+          "mean_margin": 0.2053333333333333
+        },
+        "PAST": {
+          "n": 23,
+          "acc": 0.782608695652174,
+          "tie_rate": 0.0,
+          "mean_margin": 0.18260869565217389
+        },
+        "_balanced": 0.691304347826087,
+        "_image_separation": 0.0
+      },
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "51": {
+      "number": {
+        "SG": {
+          "n": 10,
+          "acc": 1.0,
+          "tie_rate": 0.0,
+          "mean_margin": 0.38000000000000006
+        },
+        "PL": {
+          "n": 10,
+          "acc": 0.1,
+          "tie_rate": 0.0,
+          "mean_margin": 0.18
+        },
+        "_balanced": 0.55,
+        "_image_separation": 0.06666666666666667
+      },
+      "tense": {
+        "PRESENT": {
+          "n": 25,
+          "acc": 0.76,
+          "tie_rate": 0.0,
+          "mean_margin": 0.19466666666666668
+        },
+        "PAST": {
+          "n": 23,
+          "acc": 0.6521739130434783,
+          "tie_rate": 0.08695652173913043,
+          "mean_margin": 0.14202898550724635
+        },
+        "_balanced": 0.7060869565217391,
+        "_image_separation": 0.06666666666666667
+      },
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "50": {
+      "number": {
+        "SG": {
+          "n": 10,
+          "acc": 1.0,
+          "tie_rate": 0.0,
+          "mean_margin": 0.3666666666666667
+        },
+        "PL": {
+          "n": 10,
+          "acc": 0.0,
+          "tie_rate": 0.0,
+          "mean_margin": 0.18000000000000002
+        },
+        "_balanced": 0.5,
+        "_image_separation": 0.13333333333333333
+      },
+      "tense": {
+        "PRESENT": {
+          "n": 25,
+          "acc": 0.72,
+          "tie_rate": 0.08,
+          "mean_margin": 0.19866666666666666
+        },
+        "PAST": {
+          "n": 23,
+          "acc": 0.782608695652174,
+          "tie_rate": 0.13043478260869565,
+          "mean_margin": 0.15942028985507245
+        },
+        "_balanced": 0.751304347826087,
+        "_image_separation": 0.03333333333333333
+      },
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "44": {
+      "number": {
+        "SG": {
+          "n": 10,
+          "acc": 1.0,
+          "tie_rate": 0.0,
+          "mean_margin": 0.33999999999999997
+        },
+        "PL": {
+          "n": 10,
+          "acc": 0.3,
+          "tie_rate": 0.0,
+          "mean_margin": 0.13999999999999999
+        },
+        "_balanced": 0.65,
+        "_image_separation": 0.20000000000000004
+      },
+      "tense": {
+        "PRESENT": {
+          "n": 25,
+          "acc": 0.48,
+          "tie_rate": 0.16,
+          "mean_margin": 0.184
+        },
+        "PAST": {
+          "n": 23,
+          "acc": 0.6956521739130435,
+          "tie_rate": 0.043478260869565216,
+          "mean_margin": 0.17681159420289855
+        },
+        "_balanced": 0.5878260869565217,
+        "_image_separation": 0.06666666666666667
+      },
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "45": {
+      "number": {
+        "SG": {
+          "n": 10,
+          "acc": 1.0,
+          "tie_rate": 0.0,
+          "mean_margin": 0.3566666666666667
+        },
+        "PL": {
+          "n": 10,
+          "acc": 0.1,
+          "tie_rate": 0.0,
+          "mean_margin": 0.16
+        },
+        "_balanced": 0.55,
+        "_image_separation": 0.16666666666666663
+      },
+      "tense": {
+        "PRESENT": {
+          "n": 25,
+          "acc": 0.72,
+          "tie_rate": 0.08,
+          "mean_margin": 0.18
+        },
+        "PAST": {
+          "n": 23,
+          "acc": 0.7391304347826086,
+          "tie_rate": 0.08695652173913043,
+          "mean_margin": 0.15942028985507245
+        },
+        "_balanced": 0.7295652173913043,
+        "_image_separation": 0.09999999999999999
+      },
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "42": {
+      "number": {
+        "SG": {
+          "n": 10,
+          "acc": 1.0,
+          "tie_rate": 0.0,
+          "mean_margin": 0.35
+        },
+        "PL": {
+          "n": 10,
+          "acc": 0.1,
+          "tie_rate": 0.1,
+          "mean_margin": 0.16333333333333333
+        },
+        "_balanced": 0.55,
+        "_image_separation": 0.13333333333333333
+      },
+      "tense": {
+        "PRESENT": {
+          "n": 25,
+          "acc": 0.64,
+          "tie_rate": 0.16,
+          "mean_margin": 0.188
+        },
+        "PAST": {
+          "n": 23,
+          "acc": 0.7391304347826086,
+          "tie_rate": 0.043478260869565216,
+          "mean_margin": 0.15507246376811595
+        },
+        "_balanced": 0.6895652173913043,
+        "_image_separation": 0.03333333333333333
+      },
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    }
+  },
+  "R2:SCALED": {
+    "42": {
+      "number": {
+        "SG": {
+          "n": 10,
+          "acc": 0.7,
+          "tie_rate": 0.2,
+          "mean_margin": 0.16666666666666669
+        },
+        "PL": {
+          "n": 10,
+          "acc": 0.3,
+          "tie_rate": 0.2,
+          "mean_margin": 0.11000000000000001
+        },
+        "_balanced": 0.5,
+        "_image_separation": 0.0
+      },
+      "tense": {
+        "PRESENT": {
+          "n": 25,
+          "acc": 0.72,
+          "tie_rate": 0.08,
+          "mean_margin": 0.18666666666666668
+        },
+        "PAST": {
+          "n": 23,
+          "acc": 0.6521739130434783,
+          "tie_rate": 0.08695652173913043,
+          "mean_margin": 0.17681159420289855
+        },
+        "_balanced": 0.6860869565217391,
+        "_image_separation": 0.0
+      },
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "43": {
+      "number": {
+        "SG": {
+          "n": 10,
+          "acc": 0.7,
+          "tie_rate": 0.2,
+          "mean_margin": 0.22333333333333333
+        },
+        "PL": {
+          "n": 10,
+          "acc": 0.4,
+          "tie_rate": 0.2,
+          "mean_margin": 0.07999999999999999
+        },
+        "_balanced": 0.55,
+        "_image_separation": 0.06666666666666667
+      },
+      "tense": {
+        "PRESENT": {
+          "n": 25,
+          "acc": 0.76,
+          "tie_rate": 0.12,
+          "mean_margin": 0.204
+        },
+        "PAST": {
+          "n": 23,
+          "acc": 0.4782608695652174,
+          "tie_rate": 0.043478260869565216,
+          "mean_margin": 0.1014492753623188
+        },
+        "_balanced": 0.6191304347826088,
+        "_image_separation": 0.03333333333333333
+      },
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "44": {
+      "number": {
+        "SG": {
+          "n": 10,
+          "acc": 0.9,
+          "tie_rate": 0.1,
+          "mean_margin": 0.26
+        },
+        "PL": {
+          "n": 10,
+          "acc": 0.8,
+          "tie_rate": 0.1,
+          "mean_margin": 0.09
+        },
+        "_balanced": 0.8500000000000001,
+        "_image_separation": 0.06666666666666667
+      },
+      "tense": {
+        "PRESENT": {
+          "n": 25,
+          "acc": 0.68,
+          "tie_rate": 0.04,
+          "mean_margin": 0.22000000000000003
+        },
+        "PAST": {
+          "n": 23,
+          "acc": 0.6956521739130435,
+          "tie_rate": 0.043478260869565216,
+          "mean_margin": 0.1855072463768116
+        },
+        "_balanced": 0.6878260869565218,
+        "_image_separation": 0.0
+      },
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "45": {
+      "number": {
+        "SG": {
+          "n": 10,
+          "acc": 0.8,
+          "tie_rate": 0.1,
+          "mean_margin": 0.19666666666666666
+        },
+        "PL": {
+          "n": 10,
+          "acc": 0.6,
+          "tie_rate": 0.1,
+          "mean_margin": 0.10666666666666666
+        },
+        "_balanced": 0.7,
+        "_image_separation": 0.06666666666666667
+      },
+      "tense": {
+        "PRESENT": {
+          "n": 25,
+          "acc": 0.84,
+          "tie_rate": 0.04,
+          "mean_margin": 0.22266666666666665
+        },
+        "PAST": {
+          "n": 23,
+          "acc": 0.6521739130434783,
+          "tie_rate": 0.043478260869565216,
+          "mean_margin": 0.18115942028985507
+        },
+        "_balanced": 0.7460869565217392,
+        "_image_separation": 0.03333333333333333
+      },
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "46": {
+      "number": {
+        "SG": {
+          "n": 10,
+          "acc": 0.7,
+          "tie_rate": 0.3,
+          "mean_margin": 0.17666666666666667
+        },
+        "PL": {
+          "n": 10,
+          "acc": 0.7,
+          "tie_rate": 0.1,
+          "mean_margin": 0.09
+        },
+        "_balanced": 0.7,
+        "_image_separation": 0.03333333333333333
+      },
+      "tense": {
+        "PRESENT": {
+          "n": 25,
+          "acc": 0.64,
+          "tie_rate": 0.24,
+          "mean_margin": 0.16133333333333336
+        },
+        "PAST": {
+          "n": 23,
+          "acc": 0.5217391304347826,
+          "tie_rate": 0.17391304347826086,
+          "mean_margin": 0.10869565217391304
+        },
+        "_balanced": 0.5808695652173913,
+        "_image_separation": 0.03333333333333333
+      },
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "49": {
+      "number": {
+        "SG": {
+          "n": 10,
+          "acc": 0.6,
+          "tie_rate": 0.1,
+          "mean_margin": 0.21000000000000002
+        },
+        "PL": {
+          "n": 10,
+          "acc": 0.2,
+          "tie_rate": 0.0,
+          "mean_margin": 0.12333333333333334
+        },
+        "_balanced": 0.4,
+        "_image_separation": 0.03333333333333333
+      },
+      "tense": {
+        "PRESENT": {
+          "n": 25,
+          "acc": 0.72,
+          "tie_rate": 0.0,
+          "mean_margin": 0.22133333333333333
+        },
+        "PAST": {
+          "n": 23,
+          "acc": 0.6521739130434783,
+          "tie_rate": 0.043478260869565216,
+          "mean_margin": 0.16086956521739132
+        },
+        "_balanced": 0.6860869565217391,
+        "_image_separation": 0.03333333333333333
+      },
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "48": {
+      "number": {
+        "SG": {
+          "n": 10,
+          "acc": 0.8,
+          "tie_rate": 0.1,
+          "mean_margin": 0.2
+        },
+        "PL": {
+          "n": 10,
+          "acc": 0.5,
+          "tie_rate": 0.2,
+          "mean_margin": 0.17
+        },
+        "_balanced": 0.65,
+        "_image_separation": 0.10000000000000002
+      },
+      "tense": {
+        "PRESENT": {
+          "n": 25,
+          "acc": 0.64,
+          "tie_rate": 0.0,
+          "mean_margin": 0.19733333333333333
+        },
+        "PAST": {
+          "n": 23,
+          "acc": 0.7391304347826086,
+          "tie_rate": 0.13043478260869565,
+          "mean_margin": 0.1478260869565217
+        },
+        "_balanced": 0.6895652173913043,
+        "_image_separation": 0.03333333333333333
+      },
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "50": {
+      "number": {
+        "SG": {
+          "n": 10,
+          "acc": 0.6,
+          "tie_rate": 0.0,
+          "mean_margin": 0.2
+        },
+        "PL": {
+          "n": 10,
+          "acc": 0.3,
+          "tie_rate": 0.2,
+          "mean_margin": 0.07666666666666666
+        },
+        "_balanced": 0.44999999999999996,
+        "_image_separation": 0.03333333333333333
+      },
+      "tense": {
+        "PRESENT": {
+          "n": 25,
+          "acc": 0.6,
+          "tie_rate": 0.08,
+          "mean_margin": 0.18
+        },
+        "PAST": {
+          "n": 23,
+          "acc": 0.6956521739130435,
+          "tie_rate": 0.043478260869565216,
+          "mean_margin": 0.16086956521739132
+        },
+        "_balanced": 0.6478260869565218,
+        "_image_separation": 0.06666666666666667
+      },
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "47": {
+      "number": {
+        "SG": {
+          "n": 10,
+          "acc": 0.8,
+          "tie_rate": 0.1,
+          "mean_margin": 0.31
+        },
+        "PL": {
+          "n": 10,
+          "acc": 0.4,
+          "tie_rate": 0.2,
+          "mean_margin": 0.11333333333333333
+        },
+        "_balanced": 0.6000000000000001,
+        "_image_separation": 0.03333333333333333
+      },
+      "tense": {
+        "PRESENT": {
+          "n": 25,
+          "acc": 0.72,
+          "tie_rate": 0.08,
+          "mean_margin": 0.19333333333333336
+        },
+        "PAST": {
+          "n": 23,
+          "acc": 0.782608695652174,
+          "tie_rate": 0.08695652173913043,
+          "mean_margin": 0.1753623188405797
+        },
+        "_balanced": 0.751304347826087,
+        "_image_separation": 0.06666666666666667
+      },
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "51": {
+      "number": {
+        "SG": {
+          "n": 10,
+          "acc": 0.9,
+          "tie_rate": 0.0,
+          "mean_margin": 0.21000000000000002
+        },
+        "PL": {
+          "n": 10,
+          "acc": 0.5,
+          "tie_rate": 0.3,
+          "mean_margin": 0.10666666666666666
+        },
+        "_balanced": 0.7,
+        "_image_separation": 0.06666666666666667
+      },
+      "tense": {
+        "PRESENT": {
+          "n": 25,
+          "acc": 0.56,
+          "tie_rate": 0.2,
+          "mean_margin": 0.15866666666666668
+        },
+        "PAST": {
+          "n": 23,
+          "acc": 0.782608695652174,
+          "tie_rate": 0.08695652173913043,
+          "mean_margin": 0.1492753623188406
+        },
+        "_balanced": 0.671304347826087,
+        "_image_separation": 0.03333333333333333
+      },
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    }
+  },
+  "R4:OFF": {
+    "44": {
+      "number": {
+        "SG": {
+          "n": 10,
+          "acc": 1.0,
+          "tie_rate": 0.0,
+          "mean_margin": 0.2566666666666667
+        },
+        "PL": {
+          "n": 10,
+          "acc": 0.2,
+          "tie_rate": 0.3,
+          "mean_margin": 0.10999999999999999
+        },
+        "_balanced": 0.6,
+        "_image_separation": 0.29999999999999993
+      },
+      "tense": {
+        "PRESENT": {
+          "n": 25,
+          "acc": 0.56,
+          "tie_rate": 0.04,
+          "mean_margin": 0.19866666666666666
+        },
+        "PAST": {
+          "n": 23,
+          "acc": 0.6956521739130435,
+          "tie_rate": 0.0,
+          "mean_margin": 0.17101449275362318
+        },
+        "_balanced": 0.6278260869565218,
+        "_image_separation": 0.13333333333333333
+      },
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "43": {
+      "number": {
+        "SG": {
+          "n": 10,
+          "acc": 1.0,
+          "tie_rate": 0.0,
+          "mean_margin": 0.27666666666666667
+        },
+        "PL": {
+          "n": 10,
+          "acc": 0.0,
+          "tie_rate": 0.0,
+          "mean_margin": 0.17666666666666664
+        },
+        "_balanced": 0.5,
+        "_image_separation": 0.3666666666666666
+      },
+      "tense": {
+        "PRESENT": {
+          "n": 25,
+          "acc": 0.68,
+          "tie_rate": 0.12,
+          "mean_margin": 0.1746666666666666
+        },
+        "PAST": {
+          "n": 23,
+          "acc": 0.7391304347826086,
+          "tie_rate": 0.043478260869565216,
+          "mean_margin": 0.17391304347826086
+        },
+        "_balanced": 0.7095652173913043,
+        "_image_separation": 0.19999999999999998
+      },
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "42": {
+      "number": {
+        "SG": {
+          "n": 10,
+          "acc": 0.9,
+          "tie_rate": 0.1,
+          "mean_margin": 0.16666666666666666
+        },
+        "PL": {
+          "n": 10,
+          "acc": 0.3,
+          "tie_rate": 0.0,
+          "mean_margin": 0.1166666666666667
+        },
+        "_balanced": 0.6,
+        "_image_separation": 0.5666666666666667
+      },
+      "tense": {
+        "PRESENT": {
+          "n": 25,
+          "acc": 0.92,
+          "tie_rate": 0.0,
+          "mean_margin": 0.272
+        },
+        "PAST": {
+          "n": 23,
+          "acc": 0.6956521739130435,
+          "tie_rate": 0.08695652173913043,
+          "mean_margin": 0.1565217391304348
+        },
+        "_balanced": 0.8078260869565217,
+        "_image_separation": 0.09999999999999999
+      },
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "45": {
+      "number": {
+        "SG": {
+          "n": 10,
+          "acc": 0.9,
+          "tie_rate": 0.1,
+          "mean_margin": 0.15666666666666668
+        },
+        "PL": {
+          "n": 10,
+          "acc": 0.4,
+          "tie_rate": 0.1,
+          "mean_margin": 0.08666666666666667
+        },
+        "_balanced": 0.65,
+        "_image_separation": 0.4333333333333334
+      },
+      "tense": {
+        "PRESENT": {
+          "n": 25,
+          "acc": 0.84,
+          "tie_rate": 0.08,
+          "mean_margin": 0.21866666666666665
+        },
+        "PAST": {
+          "n": 23,
+          "acc": 0.7391304347826086,
+          "tie_rate": 0.0,
+          "mean_margin": 0.15362318840579708
+        },
+        "_balanced": 0.7895652173913044,
+        "_image_separation": 0.09999999999999999
+      },
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "46": {
+      "number": {
+        "SG": {
+          "n": 10,
+          "acc": 1.0,
+          "tie_rate": 0.0,
+          "mean_margin": 0.32666666666666666
+        },
+        "PL": {
+          "n": 10,
+          "acc": 0.2,
+          "tie_rate": 0.0,
+          "mean_margin": 0.21666666666666665
+        },
+        "_balanced": 0.6,
+        "_image_separation": 0.26666666666666666
+      },
+      "tense": {
+        "PRESENT": {
+          "n": 25,
+          "acc": 0.68,
+          "tie_rate": 0.08,
+          "mean_margin": 0.20800000000000002
+        },
+        "PAST": {
+          "n": 23,
+          "acc": 0.7391304347826086,
+          "tie_rate": 0.08695652173913043,
+          "mean_margin": 0.13623188405797104
+        },
+        "_balanced": 0.7095652173913043,
+        "_image_separation": 0.09999999999999999
+      },
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "47": {
+      "number": {
+        "SG": {
+          "n": 10,
+          "acc": 1.0,
+          "tie_rate": 0.0,
+          "mean_margin": 0.32333333333333336
+        },
+        "PL": {
+          "n": 10,
+          "acc": 0.0,
+          "tie_rate": 0.1,
+          "mean_margin": 0.15666666666666668
+        },
+        "_balanced": 0.5,
+        "_image_separation": 0.29999999999999993
+      },
+      "tense": {
+        "PRESENT": {
+          "n": 25,
+          "acc": 0.68,
+          "tie_rate": 0.04,
+          "mean_margin": 0.18533333333333335
+        },
+        "PAST": {
+          "n": 23,
+          "acc": 0.8260869565217391,
+          "tie_rate": 0.0,
+          "mean_margin": 0.1927536231884058
+        },
+        "_balanced": 0.7530434782608696,
+        "_image_separation": 0.13333333333333333
+      },
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "48": {
+      "number": {
+        "SG": {
+          "n": 10,
+          "acc": 1.0,
+          "tie_rate": 0.0,
+          "mean_margin": 0.2899999999999999
+        },
+        "PL": {
+          "n": 10,
+          "acc": 0.4,
+          "tie_rate": 0.0,
+          "mean_margin": 0.14666666666666664
+        },
+        "_balanced": 0.7,
+        "_image_separation": 0.33333333333333326
+      },
+      "tense": {
+        "PRESENT": {
+          "n": 25,
+          "acc": 0.72,
+          "tie_rate": 0.04,
+          "mean_margin": 0.21199999999999997
+        },
+        "PAST": {
+          "n": 23,
+          "acc": 0.6086956521739131,
+          "tie_rate": 0.08695652173913043,
+          "mean_margin": 0.12318840579710144
+        },
+        "_balanced": 0.6643478260869565,
+        "_image_separation": 0.16666666666666666
+      },
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "49": {
+      "number": {
+        "SG": {
+          "n": 10,
+          "acc": 0.8,
+          "tie_rate": 0.0,
+          "mean_margin": 0.13999999999999996
+        },
+        "PL": {
+          "n": 10,
+          "acc": 0.2,
+          "tie_rate": 0.0,
+          "mean_margin": 0.1
+        },
+        "_balanced": 0.5,
+        "_image_separation": 0.5999999999999999
+      },
+      "tense": {
+        "PRESENT": {
+          "n": 25,
+          "acc": 0.8,
+          "tie_rate": 0.0,
+          "mean_margin": 0.20133333333333334
+        },
+        "PAST": {
+          "n": 23,
+          "acc": 0.6521739130434783,
+          "tie_rate": 0.13043478260869565,
+          "mean_margin": 0.13333333333333328
+        },
+        "_balanced": 0.7260869565217392,
+        "_image_separation": 0.13333333333333333
+      },
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "50": {
+      "number": {
+        "SG": {
+          "n": 10,
+          "acc": 1.0,
+          "tie_rate": 0.0,
+          "mean_margin": 0.22666666666666666
+        },
+        "PL": {
+          "n": 10,
+          "acc": 0.2,
+          "tie_rate": 0.0,
+          "mean_margin": 0.11000000000000001
+        },
+        "_balanced": 0.6,
+        "_image_separation": 0.4666666666666667
+      },
+      "tense": {
+        "PRESENT": {
+          "n": 25,
+          "acc": 0.6,
+          "tie_rate": 0.16,
+          "mean_margin": 0.16399999999999998
+        },
+        "PAST": {
+          "n": 23,
+          "acc": 0.8260869565217391,
+          "tie_rate": 0.08695652173913043,
+          "mean_margin": 0.1652173913043478
+        },
+        "_balanced": 0.7130434782608696,
+        "_image_separation": 0.19999999999999998
+      },
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "51": {
+      "number": {
+        "SG": {
+          "n": 10,
+          "acc": 1.0,
+          "tie_rate": 0.0,
+          "mean_margin": 0.24333333333333326
+        },
+        "PL": {
+          "n": 10,
+          "acc": 0.2,
+          "tie_rate": 0.0,
+          "mean_margin": 0.11333333333333333
+        },
+        "_balanced": 0.6,
+        "_image_separation": 0.4333333333333334
+      },
+      "tense": {
+        "PRESENT": {
+          "n": 25,
+          "acc": 0.88,
+          "tie_rate": 0.04,
+          "mean_margin": 0.19333333333333327
+        },
+        "PAST": {
+          "n": 23,
+          "acc": 0.6086956521739131,
+          "tie_rate": 0.08695652173913043,
+          "mean_margin": 0.14782608695652175
+        },
+        "_balanced": 0.7443478260869565,
+        "_image_separation": 0.13333333333333333
+      },
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    }
+  },
+  "R4:SCALED": {
+    "43": {
+      "number": {
+        "SG": {
+          "n": 10,
+          "acc": 0.7,
+          "tie_rate": 0.1,
+          "mean_margin": 0.23666666666666666
+        },
+        "PL": {
+          "n": 10,
+          "acc": 0.1,
+          "tie_rate": 0.2,
+          "mean_margin": 0.07999999999999999
+        },
+        "_balanced": 0.39999999999999997,
+        "_image_separation": 0.10000000000000002
+      },
+      "tense": {
+        "PRESENT": {
+          "n": 25,
+          "acc": 0.72,
+          "tie_rate": 0.04,
+          "mean_margin": 0.23733333333333334
+        },
+        "PAST": {
+          "n": 23,
+          "acc": 0.5652173913043478,
+          "tie_rate": 0.0,
+          "mean_margin": 0.17391304347826086
+        },
+        "_balanced": 0.6426086956521739,
+        "_image_separation": 0.03333333333333333
+      },
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "44": {
+      "number": {
+        "SG": {
+          "n": 10,
+          "acc": 0.8,
+          "tie_rate": 0.2,
+          "mean_margin": 0.2533333333333333
+        },
+        "PL": {
+          "n": 10,
+          "acc": 0.8,
+          "tie_rate": 0.1,
+          "mean_margin": 0.15666666666666668
+        },
+        "_balanced": 0.8,
+        "_image_separation": 0.03333333333333333
+      },
+      "tense": {
+        "PRESENT": {
+          "n": 25,
+          "acc": 0.68,
+          "tie_rate": 0.04,
+          "mean_margin": 0.22933333333333336
+        },
+        "PAST": {
+          "n": 23,
+          "acc": 0.5217391304347826,
+          "tie_rate": 0.13043478260869565,
+          "mean_margin": 0.17681159420289858
+        },
+        "_balanced": 0.6008695652173913,
+        "_image_separation": 0.0
+      },
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "42": {
+      "number": {
+        "SG": {
+          "n": 10,
+          "acc": 0.7,
+          "tie_rate": 0.3,
+          "mean_margin": 0.15333333333333335
+        },
+        "PL": {
+          "n": 10,
+          "acc": 0.2,
+          "tie_rate": 0.5,
+          "mean_margin": 0.07333333333333333
+        },
+        "_balanced": 0.44999999999999996,
+        "_image_separation": 0.16666666666666663
+      },
+      "tense": {
+        "PRESENT": {
+          "n": 25,
+          "acc": 0.8,
+          "tie_rate": 0.04,
+          "mean_margin": 0.18400000000000002
+        },
+        "PAST": {
+          "n": 23,
+          "acc": 0.5652173913043478,
+          "tie_rate": 0.13043478260869565,
+          "mean_margin": 0.1463768115942029
+        },
+        "_balanced": 0.682608695652174,
+        "_image_separation": 0.0
+      },
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "47": {
+      "number": {
+        "SG": {
+          "n": 10,
+          "acc": 0.7,
+          "tie_rate": 0.1,
+          "mean_margin": 0.2666666666666667
+        },
+        "PL": {
+          "n": 10,
+          "acc": 0.3,
+          "tie_rate": 0.0,
+          "mean_margin": 0.16333333333333336
+        },
+        "_balanced": 0.5,
+        "_image_separation": 0.10000000000000002
+      },
+      "tense": {
+        "PRESENT": {
+          "n": 25,
+          "acc": 0.68,
+          "tie_rate": 0.12,
+          "mean_margin": 0.192
+        },
+        "PAST": {
+          "n": 23,
+          "acc": 0.8260869565217391,
+          "tie_rate": 0.08695652173913043,
+          "mean_margin": 0.1710144927536232
+        },
+        "_balanced": 0.7530434782608696,
+        "_image_separation": 0.09999999999999999
+      },
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "45": {
+      "number": {
+        "SG": {
+          "n": 10,
+          "acc": 0.9,
+          "tie_rate": 0.1,
+          "mean_margin": 0.15333333333333332
+        },
+        "PL": {
+          "n": 10,
+          "acc": 0.6,
+          "tie_rate": 0.2,
+          "mean_margin": 0.08666666666666667
+        },
+        "_balanced": 0.75,
+        "_image_separation": 0.20000000000000004
+      },
+      "tense": {
+        "PRESENT": {
+          "n": 25,
+          "acc": 0.72,
+          "tie_rate": 0.16,
+          "mean_margin": 0.24799999999999997
+        },
+        "PAST": {
+          "n": 23,
+          "acc": 0.6521739130434783,
+          "tie_rate": 0.0,
+          "mean_margin": 0.1608695652173913
+        },
+        "_balanced": 0.6860869565217391,
+        "_image_separation": 0.03333333333333333
+      },
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "46": {
+      "number": {
+        "SG": {
+          "n": 10,
+          "acc": 1.0,
+          "tie_rate": 0.0,
+          "mean_margin": 0.18333333333333335
+        },
+        "PL": {
+          "n": 10,
+          "acc": 0.8,
+          "tie_rate": 0.0,
+          "mean_margin": 0.1166666666666667
+        },
+        "_balanced": 0.9,
+        "_image_separation": 0.10000000000000002
+      },
+      "tense": {
+        "PRESENT": {
+          "n": 25,
+          "acc": 0.68,
+          "tie_rate": 0.08,
+          "mean_margin": 0.16133333333333333
+        },
+        "PAST": {
+          "n": 23,
+          "acc": 0.6521739130434783,
+          "tie_rate": 0.13043478260869565,
+          "mean_margin": 0.1289855072463768
+        },
+        "_balanced": 0.6660869565217391,
+        "_image_separation": 0.03333333333333333
+      },
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "48": {
+      "number": {
+        "SG": {
+          "n": 10,
+          "acc": 0.7,
+          "tie_rate": 0.2,
+          "mean_margin": 0.20999999999999996
+        },
+        "PL": {
+          "n": 10,
+          "acc": 0.6,
+          "tie_rate": 0.0,
+          "mean_margin": 0.15333333333333335
+        },
+        "_balanced": 0.6499999999999999,
+        "_image_separation": 0.13333333333333333
+      },
+      "tense": {
+        "PRESENT": {
+          "n": 25,
+          "acc": 0.64,
+          "tie_rate": 0.12,
+          "mean_margin": 0.22399999999999998
+        },
+        "PAST": {
+          "n": 23,
+          "acc": 0.6521739130434783,
+          "tie_rate": 0.08695652173913043,
+          "mean_margin": 0.18405797101449278
+        },
+        "_balanced": 0.6460869565217391,
+        "_image_separation": 0.03333333333333333
+      },
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "50": {
+      "number": {
+        "SG": {
+          "n": 10,
+          "acc": 0.7,
+          "tie_rate": 0.0,
+          "mean_margin": 0.15666666666666668
+        },
+        "PL": {
+          "n": 10,
+          "acc": 0.5,
+          "tie_rate": 0.2,
+          "mean_margin": 0.06333333333333334
+        },
+        "_balanced": 0.6,
+        "_image_separation": 0.29999999999999993
+      },
+      "tense": {
+        "PRESENT": {
+          "n": 25,
+          "acc": 0.72,
+          "tie_rate": 0.08,
+          "mean_margin": 0.18666666666666668
+        },
+        "PAST": {
+          "n": 23,
+          "acc": 0.6521739130434783,
+          "tie_rate": 0.043478260869565216,
+          "mean_margin": 0.16956521739130437
+        },
+        "_balanced": 0.6860869565217391,
+        "_image_separation": 0.06666666666666667
+      },
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "49": {
+      "number": {
+        "SG": {
+          "n": 10,
+          "acc": 0.8,
+          "tie_rate": 0.0,
+          "mean_margin": 0.17666666666666667
+        },
+        "PL": {
+          "n": 10,
+          "acc": 0.2,
+          "tie_rate": 0.1,
+          "mean_margin": 0.11333333333333333
+        },
+        "_balanced": 0.5,
+        "_image_separation": 0.29999999999999993
+      },
+      "tense": {
+        "PRESENT": {
+          "n": 25,
+          "acc": 0.8,
+          "tie_rate": 0.0,
+          "mean_margin": 0.22666666666666666
+        },
+        "PAST": {
+          "n": 23,
+          "acc": 0.4782608695652174,
+          "tie_rate": 0.17391304347826086,
+          "mean_margin": 0.1449275362318841
+        },
+        "_balanced": 0.6391304347826088,
+        "_image_separation": 0.06666666666666667
+      },
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    },
+    "51": {
+      "number": {
+        "SG": {
+          "n": 10,
+          "acc": 0.8,
+          "tie_rate": 0.1,
+          "mean_margin": 0.24666666666666673
+        },
+        "PL": {
+          "n": 10,
+          "acc": 0.7,
+          "tie_rate": 0.0,
+          "mean_margin": 0.16333333333333333
+        },
+        "_balanced": 0.75,
+        "_image_separation": 0.03333333333333333
+      },
+      "tense": {
+        "PRESENT": {
+          "n": 25,
+          "acc": 0.76,
+          "tie_rate": 0.04,
+          "mean_margin": 0.20666666666666664
+        },
+        "PAST": {
+          "n": 23,
+          "acc": 0.6956521739130435,
+          "tie_rate": 0.08695652173913043,
+          "mean_margin": 0.1463768115942029
+        },
+        "_balanced": 0.7278260869565217,
+        "_image_separation": 0.06666666666666667
+      },
+      "guards": {
+        "roles_ok": 4,
+        "roles_total": 4
+      }
+    }
+  }
+}
