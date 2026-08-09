@@ -1,0 +1,70 @@
+brown seed=42 sg_e2p=1.000 pl_e2p=1.000 pl_e1=0.815 bal=0.946
+brown seed=43 sg_e2p=1.000 pl_e2p=0.526 pl_e1=0.111 bal=0.640
+brown seed=44 sg_e2p=1.000 pl_e2p=0.632 pl_e1=0.407 bal=0.750
+brown seed=45 sg_e2p=1.000 pl_e2p=0.053 pl_e1=0.000 bal=0.509
+brown seed=46 sg_e2p=1.000 pl_e2p=0.947 pl_e1=0.556 bal=0.859
+brown seed=47 sg_e2p=1.000 pl_e2p=0.632 pl_e1=0.185 bal=0.683
+brown seed=48 sg_e2p=0.995 pl_e2p=1.000 pl_e1=0.741 bal=0.920
+brown seed=49 sg_e2p=1.000 pl_e2p=1.000 pl_e1=0.556 bal=0.870
+brown seed=50 sg_e2p=1.000 pl_e2p=1.000 pl_e1=0.778 bal=0.932
+brown seed=51 sg_e2p=1.000 pl_e2p=1.000 pl_e1=0.852 bal=0.957
+synth L1G1 seed=42 overall=0.797 bal=0.546
+synth L1G1 seed=43 overall=0.773 bal=0.635
+synth L1G1 seed=44 overall=0.820 bal=0.627
+synth L1G1 seed=45 overall=0.750 bal=0.656
+synth L1G1 seed=46 overall=0.719 bal=0.707
+synth L0G4 seed=42 overall=0.875 bal=0.555
+synth L0G4 seed=43 overall=0.836 bal=0.499
+synth L0G4 seed=44 overall=0.906 bal=0.607
+synth L0G4 seed=45 overall=0.859 bal=0.546
+synth L0G4 seed=46 overall=0.906 bal=0.607
+{
+  "R1_min_e2p": {
+    "mean": 0.7784345479082321,
+    "ci": 0.226856997151921,
+    "n": 10
+  },
+  "R1_per_seed_min_e2p": [
+    1,
+    0.526,
+    0.632,
+    0.053,
+    0.947,
+    0.632,
+    0.995,
+    1,
+    1,
+    1
+  ],
+  "headline_bal": {
+    "mean": 0.8065067672775182,
+    "ci": 0.10964571726259709,
+    "n": 10
+  },
+  "headline_sg_e2p": {
+    "mean": 0.9994871794871795,
+    "ci": 0.0011599999999999959,
+    "n": 10
+  },
+  "headline_pl_e2p": {
+    "mean": 0.7789473684210526,
+    "ci": 0.2271379445900138,
+    "n": 10
+  },
+  "headline_pl_e1": {
+    "mean": 0.5,
+    "ci": 0.22279569029923404,
+    "n": 10
+  },
+  "R2a_delta_e2p": {
+    "mean": 0.014492753623188337,
+    "ci": 0.17924647617973513,
+    "n": 5
+  },
+  "R2b_delta_e1": {
+    "mean": -0.1346153846153846,
+    "ci": 0.09798856023551794,
+    "n": 5
+  }
+}
+-> F:\Github\assemblies-run-e2\research\experiments\adoption_gate_results.json
