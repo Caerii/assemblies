@@ -1,0 +1,7 @@
+seed=45 zeros=45/46 served=checkers (own=0.678460419178009, ep=3) first_pl=checkers
+  PL fiber shape=[180, 60] nnz=673 extent=49 mat_dst=49 desync=0 cols_with_mass=49 top30_share=0.9372494015667535
+  SG fiber shape=[29310, 7680] nnz=5810592 desync=0
+seed=42 zeros=0/46 served=men (own=0.9428107142448425, ep=119) first_pl=checkers
+  PL fiber shape=[24176, 1920] nnz=1500373 extent=1600 mat_dst=1600 desync=0 cols_with_mass=1600 top30_share=0.02175618533812052
+  SG fiber shape=[35424, 15360] nnz=11677747 desync=0
+-> F:\Github\assemblies-run-e2\research\experiments\dead_fiber_hunt_results.json
