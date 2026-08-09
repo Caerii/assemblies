@@ -162,11 +162,19 @@ def run_cell(arm: str, seed: int) -> dict:
 
     exposure = getattr(parser, "_morph_exposure", {})
     items = []
-    for form in FIXED_PL:
+    # Per-item collection covers the fixed set AND the arm's own attested
+    # PL forms. Added after the first full run: under zipf the corpus is
+    # deterministic per arm and its head nouns turned out DISJOINT from the
+    # fixed set (all ten fixed items at zero exposure), so the mechanism
+    # check was blind exactly where the redistribution went. Bars unchanged
+    # -- this extends the diagnostics, not the registration.
+    for form in sorted(set(FIXED_PL) | set(sets_["PL"])):
         mass = item_afferent_mass(parser, form, NUMBER, img)
         got, _diag = parser.recall_number(form)
         items.append({
             "form": form,
+            "attested": form in sets_["PL"],
+            "fixed": form in FIXED_PL,
             "exposure": exposure.get(f"NUMBER:{form}", 0),
             "delta": (mass["PL"] - mass["SG"]) if mass else None,
             "correct": bool(got == "PL"),
@@ -190,16 +198,26 @@ def run_cell(arm: str, seed: int) -> dict:
 
 
 def main():
-    from _parallel import run_cells
+    # ZS_ANALYZE=1 re-runs the bar analysis from the existing results JSON
+    # (added after the first full run: the C bars crashed on NaN Spearman
+    # -- seeds whose fixed-probe outcomes are CONSTANT have no defined
+    # correlation, and statistics.stdev chokes on the NaN. Cells were fine.)
+    if os.environ.get("ZS_ANALYZE") == "1":
+        with open(OUT_PATH) as f:
+            raw = json.load(f)
+        results = {a: {int(s): v for s, v in by.items()}
+                   for a, by in raw.items()}
+    else:
+        from _parallel import run_cells
 
-    cells = [(a, s) for a in ARMS for s in SEEDS]
-    cell_results = run_cells(run_cell, cells)
-    results: dict = {a: {} for a in ARMS}
-    for (arm, seed), res in cell_results.items():
-        results[arm][seed] = res
-    with open(OUT_PATH, "w") as f:
-        json.dump({a: {str(s): v for s, v in by.items()}
-                   for a, by in results.items()}, f, indent=2)
+        cells = [(a, s) for a in ARMS for s in SEEDS]
+        cell_results = run_cells(run_cell, cells)
+        results = {a: {} for a in ARMS}
+        for (arm, seed), res in cell_results.items():
+            results[arm][seed] = res
+        with open(OUT_PATH, "w") as f:
+            json.dump({a: {str(s): v for s, v in by.items()}
+                       for a, by in results.items()}, f, indent=2)
 
     if len(SEEDS) < 3:
         print("\n(smoke mode: too few seeds for ensembles -- see JSON)")
@@ -232,16 +250,44 @@ def main():
                   f"B  {arm} shared SG-PL image cols"))
 
     def per_seed_rho(s, key):
+        # C runs over the arm's OWN attested items -- where the exposure
+        # went -- with legacy fallback for pre-extension JSONs (no
+        # "attested" flag: use all collected items).
         its = [it for it in results["ZIPF"][s]["items"]
-               if it["delta"] is not None]
+               if it["delta"] is not None
+               and it.get("attested", True)]
         x = [it[key] for it in its]
         ok = [1.0 if it["correct"] else 0.0 for it in its]
         return spearman(x, ok)
 
-    print(ensemble(lambda s: per_seed_rho(s, "exposure"), SEEDS,
-                   label="C  rho(exposure, correct) ZIPF"))
-    print(ensemble(lambda s: per_seed_rho(s, "delta"), SEEDS,
-                   label="C  rho(mass delta, correct) ZIPF"))
+    # NaN-AWARE, not NaN-filtered ([[undefinedness-correlates-with-outcome]]):
+    # a seed's rho is undefined exactly when its fixed-probe outcomes are
+    # CONSTANT (all-fail or all-pass), which is an outcome, not noise.
+    # Per-seed values are printed in full; the ensemble runs over the
+    # defined seeds with the degenerate ones counted next to it; the pooled
+    # rho (items pooled across all seeds) has no degeneracy and is the
+    # companion number.
+    for key in ("exposure", "delta"):
+        vals = {s: per_seed_rho(s, key) for s in SEEDS}
+        defined = [s for s in SEEDS if not np.isnan(vals[s])]
+        degenerate = {s: [it["correct"]
+                          for it in results["ZIPF"][s]["items"]][0]
+                      for s in SEEDS if np.isnan(vals[s])}
+        pooled_x = [it[key] for s in SEEDS
+                    for it in results["ZIPF"][s]["items"]
+                    if it["delta"] is not None
+                    and it.get("attested", True)]
+        pooled_ok = [1.0 if it["correct"] else 0.0 for s in SEEDS
+                     for it in results["ZIPF"][s]["items"]
+                     if it["delta"] is not None
+                     and it.get("attested", True)]
+        print(f"C  rho({key}, correct) ZIPF per seed: "
+              f"{ {s: round(v, 3) for s, v in vals.items()} }")
+        if len(defined) >= 3:
+            print("   " + str(ensemble(lambda s: vals[s], defined,
+                  label=f"over {len(defined)}/{len(SEEDS)} defined seeds")))
+        print(f"   degenerate (constant-outcome) seeds: {degenerate} | "
+              f"pooled rho = {spearman(pooled_x, pooled_ok):.4f}")
 
     print("\n=== guards ===")
     print(ens("ZIPF", ("tense", "_balanced"), "ZIPF tense"))
@@ -254,17 +300,46 @@ def main():
         npl = [results[arm][s]["number"]["PL"]["n"] for s in SEEDS]
         print(f"{arm}: roles {ok}/{tot} | attested PL n per seed {npl}")
 
-    print("\n=== ZIPF per-item (pooled) ===")
+    print("\n=== per-item (pooled over seeds) ===")
     from collections import defaultdict
-    agg = defaultdict(lambda: [0, 0, 0])
-    for s in SEEDS:
-        for it in results["ZIPF"][s]["items"]:
-            a = agg[it["form"]]
-            a[0] += it["exposure"]
-            a[1] += it["correct"]
-            a[2] += 1
-    for form, (e, ok, n) in sorted(agg.items(), key=lambda kv: -kv[1][0]):
-        print(f"  {form:10s} exp/seed={e / n:4.1f}  acc={ok / n:.2f}")
+    for arm in ARMS:
+        agg = defaultdict(lambda: [0, 0, 0])
+        for s in SEEDS:
+            for it in results[arm][s]["items"]:
+                a = agg[it["form"]]
+                a[0] += it["exposure"]
+                a[1] += it["correct"]
+                a[2] += 1
+        fixed_set = set(FIXED_PL)
+        print(f"{arm}:")
+        for form, (e, ok, n) in sorted(agg.items(),
+                                       key=lambda kv: -kv[1][0]):
+            tag = "fixed" if form in fixed_set else "     "
+            print(f"  {form:10s} {tag} exp/seed={e / n:4.1f}  "
+                  f"acc={ok / n:.2f}")
+
+    # UNREGISTERED companion readout (marked so): exposure-weighted
+    # accuracy over the fixed PL items -- the exam TOKEN frequency grades,
+    # as opposed to the balanced per-form exam the bars use. If ZIPF wins
+    # here while losing A1/A2, redistribution optimized a different exam,
+    # and the divergence is the finding to take forward, not a verdict.
+    def token_weighted(arm, s):
+        its = [it for it in results[arm][s]["items"]
+               if it.get("attested", True)]
+        wsum = sum(it["exposure"] for it in its)
+        if wsum == 0:
+            return float("nan")
+        return sum(it["exposure"] * it["correct"] for it in its) / wsum
+
+    for arm in ARMS:
+        vals = [token_weighted(arm, s) for s in SEEDS]
+        if any(np.isnan(v) for v in vals):
+            print(f"[unregistered] token-weighted PL acc {arm}: undefined "
+                  f"(zero exposure on the scored set in some seed)")
+        else:
+            print(ensemble(lambda s: token_weighted(arm, s), SEEDS,
+                           label=f"[unregistered] token-weighted PL acc "
+                                 f"{arm}"))
 
 
 if __name__ == "__main__":
