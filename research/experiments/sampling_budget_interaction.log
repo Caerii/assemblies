@@ -1,0 +1,149 @@
+[E14 UNIFORM-50 seed=43] num bal=0.500 (PL n=10, total exp=14) | tense=0.670 | shared cols=2 | roles 4/4
+[E14 UNIFORM-50 seed=49] num bal=0.650 (PL n=10, total exp=14) | tense=0.646 | shared cols=5 | roles 4/4
+[done ('UNIFORM', 50, 43)]
+[done ('UNIFORM', 50, 49)]
+[E14 UNIFORM-50 seed=47] num bal=0.550 (PL n=10, total exp=14) | tense=0.711 | shared cols=2 | roles 4/4
+[done ('UNIFORM', 50, 47)]
+[E14 UNIFORM-50 seed=44] num bal=0.750 (PL n=10, total exp=14) | tense=0.601 | shared cols=4 | roles 4/4
+[done ('UNIFORM', 50, 44)]
+[E14 UNIFORM-50 seed=46] num bal=0.700 (PL n=10, total exp=14) | tense=0.563 | shared cols=4 | roles 4/4
+[done ('UNIFORM', 50, 46)]
+[E14 UNIFORM-50 seed=51] num bal=0.800 (PL n=10, total exp=14) | tense=0.608 | shared cols=1 | roles 4/4
+[done ('UNIFORM', 50, 51)]
+[E14 UNIFORM-50 seed=48] num bal=0.650 (PL n=10, total exp=14) | tense=0.684 | shared cols=2 | roles 4/4
+[E14 UNIFORM-50 seed=42] num bal=0.650 (PL n=10, total exp=14) | tense=0.793 | shared cols=1 | roles 4/4
+[done ('UNIFORM', 50, 48)]
+[done ('UNIFORM', 50, 42)]
+[E14 UNIFORM-50 seed=45] num bal=0.600 (PL n=10, total exp=14) | tense=0.730 | shared cols=3 | roles 4/4
+[done ('UNIFORM', 50, 45)]
+[E14 UNIFORM-50 seed=50] num bal=0.650 (PL n=10, total exp=14) | tense=0.690 | shared cols=2 | roles 4/4
+[done ('UNIFORM', 50, 50)]
+[E14 UNIFORM-200 seed=43] num bal=0.562 (PL n=40, total exp=56) | tense=0.603 | shared cols=19 | roles 4/4
+[done ('UNIFORM', 200, 43)]
+[E14 UNIFORM-200 seed=45] num bal=0.387 (PL n=40, total exp=56) | tense=0.658 | shared cols=19 | roles 4/4
+[done ('UNIFORM', 200, 45)]
+[E14 UNIFORM-200 seed=44] num bal=0.512 (PL n=40, total exp=56) | tense=0.663 | shared cols=19 | roles 4/4
+[done ('UNIFORM', 200, 44)]
+[E14 UNIFORM-200 seed=42] num bal=0.525 (PL n=40, total exp=56) | tense=0.617 | shared cols=16 | roles 4/4
+[done ('UNIFORM', 200, 42)]
+[E14 ZIPF-50 seed=42] num bal=0.611 (PL n=9, total exp=11) | tense=0.779 | shared cols=1 | roles 4/4
+[done ('ZIPF', 50, 42)]
+[E14 ZIPF-50 seed=44] num bal=0.556 (PL n=9, total exp=11) | tense=0.620 | shared cols=4 | roles 4/4
+[done ('ZIPF', 50, 44)]
+[E14 ZIPF-50 seed=43] num bal=0.444 (PL n=9, total exp=11) | tense=0.679 | shared cols=1 | roles 4/4
+[done ('ZIPF', 50, 43)]
+[E14 ZIPF-50 seed=45] num bal=0.667 (PL n=9, total exp=11) | tense=0.689 | shared cols=0 | roles 4/4
+[done ('ZIPF', 50, 45)]
+[E14 UNIFORM-200 seed=50] num bal=0.450 (PL n=40, total exp=56) | tense=0.613 | shared cols=19 | roles 4/4
+[done ('UNIFORM', 200, 50)]
+[E14 UNIFORM-200 seed=48] num bal=0.550 (PL n=40, total exp=56) | tense=0.610 | shared cols=14 | roles 4/4
+[E14 UNIFORM-200 seed=49] num bal=0.525 (PL n=40, total exp=56) | tense=0.557 | shared cols=19 | roles 4/4
+[done ('UNIFORM', 200, 48)]
+[done ('UNIFORM', 200, 49)]
+[E14 UNIFORM-200 seed=46] num bal=0.350 (PL n=40, total exp=56) | tense=0.626 | shared cols=21 | roles 4/4
+[done ('UNIFORM', 200, 46)]
+[E14 UNIFORM-200 seed=51] num bal=0.487 (PL n=40, total exp=56) | tense=0.616 | shared cols=19 | roles 4/4
+[done ('UNIFORM', 200, 51)]
+[E14 UNIFORM-200 seed=47] num bal=0.550 (PL n=40, total exp=56) | tense=0.639 | shared cols=13 | roles 4/4
+[done ('UNIFORM', 200, 47)]
+[E14 ZIPF-50 seed=46] num bal=0.611 (PL n=9, total exp=11) | tense=0.739 | shared cols=3 | roles 4/4
+[done ('ZIPF', 50, 46)]
+[E14 ZIPF-50 seed=47] num bal=0.611 (PL n=9, total exp=11) | tense=0.637 | shared cols=3 | roles 4/4
+[done ('ZIPF', 50, 47)]
+[E14 ZIPF-50 seed=48] num bal=0.556 (PL n=9, total exp=11) | tense=0.660 | shared cols=5 | roles 4/4
+[done ('ZIPF', 50, 48)]
+[E14 ZIPF-50 seed=49] num bal=0.556 (PL n=9, total exp=11) | tense=0.703 | shared cols=2 | roles 4/4
+[done ('ZIPF', 50, 49)]
+[E14 ZIPF-50 seed=51] num bal=0.556 (PL n=9, total exp=11) | tense=0.685 | shared cols=2 | roles 4/4
+[done ('ZIPF', 50, 51)]
+[E14 ZIPF-50 seed=50] num bal=0.667 (PL n=9, total exp=11) | tense=0.628 | shared cols=6 | roles 4/4
+[done ('ZIPF', 50, 50)]
+[E14 ZIPF-200 seed=42] num bal=0.517 (PL n=30, total exp=49) | tense=0.601 | shared cols=11 | roles 4/4
+[done ('ZIPF', 200, 42)]
+[E14 ZIPF-200 seed=43] num bal=0.550 (PL n=30, total exp=49) | tense=0.593 | shared cols=9 | roles 4/4
+[done ('ZIPF', 200, 43)]
+[E14 ZIPF-200 seed=46] num bal=0.667 (PL n=30, total exp=49) | tense=0.595 | shared cols=7 | roles 4/4
+[done ('ZIPF', 200, 46)]
+[E14 ZIPF-200 seed=50] num bal=0.583 (PL n=30, total exp=49) | tense=0.558 | shared cols=15 | roles 4/4
+[done ('ZIPF', 200, 50)]
+[E14 ZIPF-200 seed=45] num bal=0.617 (PL n=30, total exp=49) | tense=0.648 | shared cols=12 | roles 4/4
+[done ('ZIPF', 200, 45)]
+[E14 ZIPF-200 seed=44] num bal=0.517 (PL n=30, total exp=49) | tense=0.565 | shared cols=10 | roles 4/4
+[done ('ZIPF', 200, 44)]
+[E14 ZIPF-200 seed=47] num bal=0.450 (PL n=30, total exp=49) | tense=0.592 | shared cols=10 | roles 4/4
+[E14 ZIPF-200 seed=48] num bal=0.650 (PL n=30, total exp=49) | tense=0.591 | shared cols=10 | roles 4/4
+[done ('ZIPF', 200, 47)]
+[done ('ZIPF', 200, 48)]
+[E14 ZIPF-200 seed=49] num bal=0.500 (PL n=30, total exp=49) | tense=0.642 | shared cols=11 | roles 4/4
+[done ('ZIPF', 200, 49)]
+[E14 ZIPF-200 seed=51] num bal=0.600 (PL n=30, total exp=49) | tense=0.633 | shared cols=8 | roles 4/4
+[done ('ZIPF', 200, 51)]
+
+=== the 2x2 (attested number balanced) ===
+UNIFORM-200 : 0.4900 +/- 0.0518 (n=10, 0.3500..0.5625)
+UNIFORM-50  : 0.6500 +/- 0.0631 (n=10, 0.5000..0.8000)
+ZIPF-200    : 0.5650 +/- 0.0501 (n=10, 0.4500..0.6667)
+ZIPF-50     : 0.5833 +/- 0.0468 (n=10, 0.4444..0.6667)
+
+=== registered bars ===
+I   INTERACTION (zipf slope - uniform slope): 0.1417 +/- 0.1173 (n=10, -0.1611..0.4056)
+II  zipf-200 balanced (bar >= 0.75): 0.5650 +/- 0.0501 (n=10, 0.4500..0.6667)
+III shared SG-PL image cols UNIFORM-200: 17.8000 +/- 1.8407 (n=10, 13.0000..21.0000)
+III shared SG-PL image cols UNIFORM-50: 2.6000 +/- 0.9656 (n=10, 1.0000..5.0000)
+III shared SG-PL image cols ZIPF-200: 10.3000 +/- 1.5834 (n=10, 7.0000..15.0000)
+III shared SG-PL image cols ZIPF-50: 2.7000 +/- 1.3509 (n=10, 0.0000..6.0000)
+IV  rho(mass, correct) ZIPF-200 per seed: {42: 0.563, 43: 0.615, 44: 0.688, 45: 0.703, 46: 0.656, 47: 0.507, 48: 0.697, 49: 0.761, 50: 0.579, 51: 0.707}
+    over 10/10 defined seeds: 0.6475 +/- 0.0565 (n=10, 0.5071..0.7606)
+
+=== exposure arithmetic check ===
+total attested PL exposure UNIFORM-200: 56.0000 +/- 0.0000 (n=10, 56.0000..56.0000)
+attested PL n           UNIFORM-200: 40.0000 +/- 0.0000 (n=10, 40.0000..40.0000)
+total attested PL exposure UNIFORM-50: 14.0000 +/- 0.0000 (n=10, 14.0000..14.0000)
+attested PL n           UNIFORM-50: 10.0000 +/- 0.0000 (n=10, 10.0000..10.0000)
+total attested PL exposure ZIPF-200: 49.0000 +/- 0.0000 (n=10, 49.0000..49.0000)
+attested PL n           ZIPF-200: 30.0000 +/- 0.0000 (n=10, 30.0000..30.0000)
+total attested PL exposure ZIPF-50: 11.0000 +/- 0.0000 (n=10, 11.0000..11.0000)
+attested PL n           ZIPF-50: 9.0000 +/- 0.0000 (n=10, 9.0000..9.0000)
+
+=== guards ===
+tense UNIFORM-200: 0.6201 +/- 0.0215 (n=10, 0.5568..0.6627)
+tense UNIFORM-50: 0.6695 +/- 0.0487 (n=10, 0.5626..0.7930)
+tense ZIPF-200: 0.6019 +/- 0.0217 (n=10, 0.5584..0.6476)
+tense ZIPF-50: 0.6819 +/- 0.0358 (n=10, 0.6198..0.7793)
+roles UNIFORM-200: 40/40
+roles UNIFORM-50: 40/40
+roles ZIPF-200: 40/40
+roles ZIPF-50: 40/40
+E13/E9 reference: uni50 number 0.650 +/- 0.063
+
+=== zipf-200 per-item (pooled over seeds) ===
+  children   exp/seed=  4.0  acc=0.80
+  foods      exp/seed=  4.0  acc=0.40
+  women      exp/seed=  4.0  acc=0.60
+  babies     exp/seed=  2.0  acc=0.30
+  books      exp/seed=  2.0  acc=0.60
+  boys       exp/seed=  2.0  acc=0.60
+  fires      exp/seed=  2.0  acc=0.40
+  heads      exp/seed=  2.0  acc=0.10
+  houses     exp/seed=  2.0  acc=0.40
+  men        exp/seed=  2.0  acc=0.20
+  mothers    exp/seed=  2.0  acc=0.30
+  papers     exp/seed=  2.0  acc=0.40
+  trees      exp/seed=  2.0  acc=0.10
+  chairs     exp/seed=  1.0  acc=0.20
+  clouds     exp/seed=  1.0  acc=0.10
+  dads       exp/seed=  1.0  acc=0.40
+  dogs       exp/seed=  1.0  acc=0.30
+  eyes       exp/seed=  1.0  acc=0.20
+  friends    exp/seed=  1.0  acc=0.10
+  gifts      exp/seed=  1.0  acc=0.40
+  girls      exp/seed=  1.0  acc=0.30
+  hearts     exp/seed=  1.0  acc=0.20
+  mice       exp/seed=  1.0  acc=0.20
+  moms       exp/seed=  1.0  acc=0.60
+  pictures   exp/seed=  1.0  acc=0.30
+  rocks      exp/seed=  1.0  acc=0.30
+  rooms      exp/seed=  1.0  acc=0.10
+  suns       exp/seed=  1.0  acc=0.10
+  tables     exp/seed=  1.0  acc=0.30
+  worlds     exp/seed=  1.0  acc=0.20
