@@ -141,6 +141,183 @@ def census() -> dict:
     return out
 
 
+# ---------------------------------------------------------------------------
+# PHASE 1 -- registered protocol details (fixed before the run; the census
+# had already passed C1 -1.096 / C2 40859 when these were written, but no
+# substrate cell had been run).
+#
+#   N_TRAIN = 1000 teachable utterances in corpus order. Chosen to MATCH
+#   the terminal cell's PL mass: at C3 = 0.102 plural share this slice
+#   carries ~130 PL noun episodes, the zipf-200 regime where every
+#   adopted mechanism was measured. Total noun episodes reported for
+#   F2's power clause (>= 200 = powered).
+#   TEACHER: corpus annotation via train_number(labels=...) -- one
+#   GLOBAL form->label map, majority over the slice; forms attested
+#   with BOTH labels are trained on majority but EXCLUDED from the exam
+#   and counted (a homograph is not a fair exam item for either label).
+#   EXAM: every unambiguous trained form, recall_number; correctness
+#   against the corpus label; BOTH readouts recorded (mi = default,
+#   overlap = production-at-scale), bars evaluated on mi.
+#   ARMS (paired by seed, seeds 42-51):
+#     A split+K40 (the adopted defaults; deferred scaling on value areas)
+#     B split+K0  (per-phase flush)      -> F2 = A - B balanced, paired
+#     C shared+K40 (legacy architecture) -> F3 = A - C on PL acc, paired
+#   F1 on arm A: diagnostics.spearman(exposure, mi_correct) per seed.
+#   DECISION RULES: F1 mean > 0 with n=10 CI excluding 0; F2 claim the
+#   wall only if CI excludes 0 (else direction-only); F3 pass iff CI
+#   excludes 0. GUARD: SG >= 0.8 per arm mean -- a failure is reported
+#   as a finding, never adjusted away.
+#   Parser: n=3000, k=30, fast_training -- the slow-test scale. Corpus
+#   nouns registered with visual grounding (the papers' grounding
+#   assumption for objects); np/random reseeded per cell (the global
+#   RNG leak lesson).
+# ---------------------------------------------------------------------------
+
+N_TRAIN = 1000
+
+#: CG_SMOKE=1: API-breakage check ONLY (1 seed, 50 utterances, n=600) --
+#: direction is never read from a smoke run, per the standing rule.
+SMOKE = os.environ.get("CG_SMOKE") == "1"
+if SMOKE:
+    SEEDS = [999]
+    N_TRAIN = 50
+
+
+def build_number_slice(utts, n_train=None):
+    if n_train is None:
+        n_train = N_TRAIN
+    from collections import Counter
+    sl, label_counts = [], {}
+    for u in utts:
+        t = mor_number_teacher(u)
+        if not t:
+            continue
+        sl.append(u)
+        for w, lab in t.items():
+            label_counts.setdefault(w, Counter())[lab] += 1
+        if len(sl) >= n_train:
+            break
+    labels, ambiguous = {}, []
+    exposures = {}
+    for w, c in label_counts.items():
+        if len(c) > 1:
+            ambiguous.append(w)
+        labels[w] = c.most_common(1)[0][0]
+        exposures[w] = sum(c.values())
+    sentences = [list(u.words) for u in sl]
+    return sentences, labels, exposures, sorted(ambiguous)
+
+
+def run_cell(seed, split, flush_k, sentences, labels, exposures, ambiguous):
+    import random
+
+    import numpy as np_
+
+    from neural_assemblies.assembly_calculus.emergent import EmergentParser
+    from neural_assemblies.assembly_calculus.emergent.core.areas import (
+        NUMBER, feature_value_area,
+    )
+    from neural_assemblies.assembly_calculus.emergent.core.grounding import (
+        GroundingContext,
+    )
+
+    random.seed(seed)
+    np_.random.seed(seed)
+    n, k = (600, 20) if SMOKE else (3000, 30)
+    p = EmergentParser(n=n, k=k, seed=seed, fast_training=True,
+                       split_feature_areas=split)
+    for w in labels:
+        if w not in p.stim_map:
+            p.register_word(w)
+        p.word_grounding[w] = GroundingContext(visual=[w])
+    scaled = (frozenset(feature_value_area(NUMBER, l) for l in ("SG", "PL"))
+              if split else frozenset((NUMBER,)))
+    eng = p.brain._engine
+    eng.synaptic_scaling = scaled
+    p.brain._synaptic_scaling = scaled
+    eng.synaptic_scaling_deferred = True
+    p.morph_flush_every = flush_k
+    p.train_number(sentences, labels=labels)
+
+    rows = []
+    for w, lab in labels.items():
+        if w in ambiguous:
+            continue
+        got, diag = p.recall_number(w)
+        mi = diag.get("mi_answer", got)
+        ov = diag.get("overlap_answer")
+        ov = ov if ov is not None else mi
+        rows.append({"form": w, "label": lab, "exposure": exposures[w],
+                     "mi": mi == lab, "ov": ov == lab})
+
+    def acc(lab, key):
+        xs = [r[key] for r in rows if r["label"] == lab]
+        return (sum(xs) / len(xs)) if xs else None
+
+    return {
+        "rows": rows,
+        "sg_mi": acc("SG", "mi"), "pl_mi": acc("PL", "mi"),
+        "sg_ov": acc("SG", "ov"), "pl_ov": acc("PL", "ov"),
+    }
+
+
+def phase1():
+    import statistics as st
+
+    from neural_assemblies.diagnostics import spearman
+
+    utts, _stats, files = load_corpus()
+    sentences, labels, exposures, ambiguous = build_number_slice(utts)
+    noun_episodes = sum(exposures.values())
+    n_pl_exam = sum(1 for w, l in labels.items()
+                    if l == "PL" and w not in ambiguous)
+    if n_pl_exam == 0:
+        raise SystemExit("no unambiguous PL exam forms in the slice -- "
+                         "the registered stop, widen N_TRAIN")
+    arms = {"A": (True, 40), "B": (True, 0), "C": (False, 40)}
+    seeds_out = {}
+    for seed in SEEDS:
+        seeds_out[seed] = {}
+        for arm, (split, k) in arms.items():
+            r = run_cell(seed, split, k, sentences, labels, exposures,
+                         ambiguous)
+            seeds_out[seed][arm] = r
+            print(f"seed={seed} arm={arm} sg_mi={r['sg_mi']:.3f} "
+                  f"pl_mi={r['pl_mi']:.3f} sg_ov={r['sg_ov']:.3f} "
+                  f"pl_ov={r['pl_ov']:.3f}", flush=True)
+
+    def bal(r):
+        return (r["sg_mi"] + r["pl_mi"]) / 2
+
+    f1 = [spearman([row["exposure"] for row in seeds_out[s]["A"]["rows"]],
+                   [row["mi"] for row in seeds_out[s]["A"]["rows"]])
+          for s in SEEDS]
+    f2 = [bal(seeds_out[s]["A"]) - bal(seeds_out[s]["B"]) for s in SEEDS]
+    f3 = [seeds_out[s]["A"]["pl_mi"] - seeds_out[s]["C"]["pl_mi"]
+          for s in SEEDS]
+
+    def mci(xs):
+        xs = [x for x in xs if x == x]  # NaN seeds reported, not averaged
+        if len(xs) < 2:
+            return {"mean": xs[0] if xs else None, "ci": None, "n": len(xs)}
+        return {"mean": st.mean(xs),
+                "ci": 2.262 * st.stdev(xs) / len(xs) ** 0.5, "n": len(xs)}
+
+    out = {
+        "files": files, "n_train": len(sentences),
+        "noun_episodes": noun_episodes, "exam_forms": len(labels),
+        "ambiguous_excluded": len(ambiguous),
+        "F1_spearman": mci(f1), "F1_per_seed": f1,
+        "F2_paired_A_minus_B": mci(f2),
+        "F3_paired_PL_A_minus_C": mci(f3),
+        "guard_sg": {arm: st.mean(seeds_out[s][arm]["sg_mi"]
+                                  for s in SEEDS) for arm in arms},
+        "per_seed": {s: {a: {k: v for k, v in seeds_out[s][a].items()
+                             if k != "rows"} for a in arms} for s in SEEDS},
+    }
+    return out
+
+
 def main():
     mode = sys.argv[1] if len(sys.argv) > 1 else "census"
     results = {"census": census()}
@@ -150,9 +327,9 @@ def main():
             print("C2 FAILED -- Phase 1 does not run (the registered "
                   "stop, not an error).")
         else:
-            raise SystemExit(
-                "Phase 1 harness lands in the next unit -- census first, "
-                "per the registration.")
+            results["phase1"] = phase1()
+            print(json.dumps({k: v for k, v in results["phase1"].items()
+                              if k != "per_seed"}, indent=2))
     with open(OUT_PATH, "w", encoding="utf-8") as f:
         json.dump(results, f, indent=2)
     print(f"-> {OUT_PATH}")
