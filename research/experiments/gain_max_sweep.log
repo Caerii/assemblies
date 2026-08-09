@@ -1,0 +1,138 @@
+[OFF seed=46] num bal=0.5 (PL=0.1) | tense bal=0.5808695652173913 | roles 9/9 C1=True
+[done ('OFF', 46)]
+[OFF seed=45] num bal=0.45 (PL=0.0) | tense bal=0.6878260869565218 | roles 9/9 C1=True
+[OFF seed=48] num bal=0.65 (PL=0.3) | tense bal=0.6460869565217391 | roles 9/9 C1=True
+[done ('OFF', 45)]
+[done ('OFF', 48)]
+[OFF seed=44] num bal=0.5 (PL=0.0) | tense bal=0.6226086956521739 | roles 9/9 C1=True
+[OFF seed=43] num bal=0.55 (PL=0.1) | tense bal=0.731304347826087 | roles 9/9 C1=True
+[done ('OFF', 44)]
+[done ('OFF', 43)]
+[SCALED seed=42] num bal=0.6499999999999999 (PL=0.6) | tense bal=0.6695652173913043 | roles 9/9 C1=True
+[done ('SCALED', 42)]
+[SCALED seed=45] num bal=0.55 (PL=0.4) | tense bal=0.6878260869565218 | roles 9/9 C1=True
+[done ('SCALED', 45)]
+[OFF seed=47] num bal=0.5 (PL=0.1) | tense bal=0.7530434782608696 | roles 9/9 C1=True
+[done ('OFF', 47)]
+[SCALED seed=44] num bal=0.75 (PL=0.5) | tense bal=0.5843478260869566 | roles 9/9 C1=True
+[done ('SCALED', 44)]
+[OFF seed=51] num bal=0.55 (PL=0.2) | tense bal=0.6078260869565217 | roles 9/9 C1=True
+[done ('OFF', 51)]
+[SCALED seed=43] num bal=0.6 (PL=0.3) | tense bal=0.5843478260869566 | roles 9/9 C1=True
+[OFF seed=50] num bal=0.55 (PL=0.1) | tense bal=0.711304347826087 | roles 9/9 C1=True
+[OFF seed=42] num bal=0.5 (PL=0.0) | tense bal=0.771304347826087 | roles 9/9 C1=True
+[done ('SCALED', 43)]
+[done ('OFF', 50)]
+[done ('OFF', 42)]
+[OFF seed=49] num bal=0.55 (PL=0.1) | tense bal=0.6660869565217391 | roles 9/9 C1=True
+[done ('OFF', 49)]
+[SCALED seed=49] num bal=0.7 (PL=0.7) | tense bal=0.691304347826087 | roles 9/9 C1=True
+[done ('SCALED', 49)]
+[SCALED seed=48] num bal=0.55 (PL=0.5) | tense bal=0.5808695652173913 | roles 9/9 C1=True
+[done ('SCALED', 48)]
+[SCALED seed=46] num bal=0.75 (PL=0.6) | tense bal=0.5478260869565217 | roles 9/9 C1=True
+[SCALED seed=50] num bal=0.6 (PL=0.5) | tense bal=0.6278260869565218 | roles 9/9 C1=True
+[done ('SCALED', 46)]
+[done ('SCALED', 50)]
+[SCALED seed=47] num bal=0.6 (PL=0.6) | tense bal=0.731304347826087 | roles 9/9 C1=True
+[SCALED seed=51] num bal=0.75 (PL=0.7) | tense bal=0.7095652173913043 | roles 9/9 C1=True
+[done ('SCALED', 47)]
+[done ('SCALED', 51)]
+[BOTH:2.0 seed=42] num bal=0.75 (PL=0.7) | tense bal=0.7295652173913043 | roles 9/9 C1=True
+[done ('BOTH:2.0', 42)]
+[BOTH:2.0 seed=49] num bal=0.65 (PL=0.4) | tense bal=0.731304347826087 | roles 9/9 C1=True
+[done ('BOTH:2.0', 49)]
+[BOTH:2.0 seed=44] num bal=0.8 (PL=0.6) | tense bal=0.6678260869565218 | roles 9/9 C1=True
+[BOTH:2.0 seed=43] num bal=0.6 (PL=0.3) | tense bal=0.6695652173913043 | roles 9/9 C1=True
+[done ('BOTH:2.0', 44)]
+[done ('BOTH:2.0', 43)]
+[BOTH:2.0 seed=48] num bal=0.6499999999999999 (PL=0.6) | tense bal=0.711304347826087 | roles 9/9 C1=True
+[BOTH:2.0 seed=47] num bal=0.6000000000000001 (PL=0.4) | tense bal=0.7547826086956522 | roles 9/9 C1=True
+[done ('BOTH:2.0', 48)]
+[done ('BOTH:2.0', 47)]
+[BOTH:2.0 seed=46] num bal=0.75 (PL=0.6) | tense bal=0.6295652173913043 | roles 9/9 C1=True
+[done ('BOTH:2.0', 46)]
+[BOTH:2.0 seed=45] num bal=0.8 (PL=0.8) | tense bal=0.7478260869565218 | roles 9/9 C1=True
+[done ('BOTH:2.0', 45)]
+[BOTH:2.0 seed=50] num bal=0.75 (PL=0.6) | tense bal=0.6278260869565218 | roles 9/9 C1=True
+[done ('BOTH:2.0', 50)]
+[BOTH:2.0 seed=51] num bal=0.75 (PL=0.7) | tense bal=0.6678260869565218 | roles 9/9 C1=True
+[done ('BOTH:2.0', 51)]
+[BOTH:4.0 seed=43] num bal=0.6 (PL=0.3) | tense bal=0.6695652173913043 | roles 9/9 C1=True
+[done ('BOTH:4.0', 43)]
+[BOTH:4.0 seed=42] num bal=0.75 (PL=0.7) | tense bal=0.7295652173913043 | roles 9/9 C1=True
+[done ('BOTH:4.0', 42)]
+[BOTH:4.0 seed=45] num bal=0.8 (PL=0.8) | tense bal=0.7478260869565218 | roles 9/9 C1=True
+[done ('BOTH:4.0', 45)]
+[BOTH:4.0 seed=44] num bal=0.8 (PL=0.6) | tense bal=0.6678260869565218 | roles 9/9 C1=True
+[done ('BOTH:4.0', 44)]
+[BOTH:4.0 seed=46] num bal=0.75 (PL=0.6) | tense bal=0.6295652173913043 | roles 9/9 C1=True
+[BOTH:4.0 seed=49] num bal=0.65 (PL=0.4) | tense bal=0.731304347826087 | roles 9/9 C1=True
+[done ('BOTH:4.0', 49)]
+[done ('BOTH:4.0', 46)]
+[BOTH:4.0 seed=47] num bal=0.6000000000000001 (PL=0.4) | tense bal=0.7547826086956522 | roles 9/9 C1=True
+[done ('BOTH:4.0', 47)]
+[BOTH:4.0 seed=48] num bal=0.6499999999999999 (PL=0.6) | tense bal=0.711304347826087 | roles 9/9 C1=True
+[done ('BOTH:4.0', 48)]
+[BOTH:4.0 seed=51] num bal=0.75 (PL=0.7) | tense bal=0.6678260869565218 | roles 9/9 C1=True
+[done ('BOTH:4.0', 51)]
+[BOTH:4.0 seed=50] num bal=0.75 (PL=0.6) | tense bal=0.6278260869565218 | roles 9/9 C1=True
+[done ('BOTH:4.0', 50)]
+[BOTH:6.0 seed=42] num bal=0.75 (PL=0.7) | tense bal=0.7295652173913043 | roles 9/9 C1=True
+[done ('BOTH:6.0', 42)]
+[BOTH:6.0 seed=43] num bal=0.6 (PL=0.3) | tense bal=0.6695652173913043 | roles 9/9 C1=True
+[done ('BOTH:6.0', 43)]
+[BOTH:6.0 seed=44] num bal=0.8 (PL=0.6) | tense bal=0.6678260869565218 | roles 9/9 C1=True
+[done ('BOTH:6.0', 44)]
+[BOTH:6.0 seed=46] num bal=0.75 (PL=0.6) | tense bal=0.6295652173913043 | roles 9/9 C1=True
+[done ('BOTH:6.0', 46)]
+[BOTH:6.0 seed=49] num bal=0.65 (PL=0.4) | tense bal=0.731304347826087 | roles 9/9 C1=True
+[done ('BOTH:6.0', 49)]
+[BOTH:6.0 seed=47] num bal=0.6000000000000001 (PL=0.4) | tense bal=0.7547826086956522 | roles 9/9 C1=True
+[done ('BOTH:6.0', 47)]
+[BOTH:6.0 seed=45] num bal=0.8 (PL=0.8) | tense bal=0.7478260869565218 | roles 9/9 C1=True
+[done ('BOTH:6.0', 45)]
+[BOTH:6.0 seed=48] num bal=0.6499999999999999 (PL=0.6) | tense bal=0.711304347826087 | roles 9/9 C1=True
+[done ('BOTH:6.0', 48)]
+[BOTH:6.0 seed=51] num bal=0.75 (PL=0.7) | tense bal=0.6678260869565218 | roles 9/9 C1=True
+[done ('BOTH:6.0', 51)]
+[BOTH:6.0 seed=50] num bal=0.75 (PL=0.6) | tense bal=0.6278260869565218 | roles 9/9 C1=True
+[done ('BOTH:6.0', 50)]
+[BOTH:8.0 seed=42] num bal=0.75 (PL=0.7) | tense bal=0.7295652173913043 | roles 9/9 C1=True
+[done ('BOTH:8.0', 42)]
+[BOTH:8.0 seed=43] num bal=0.6 (PL=0.3) | tense bal=0.6695652173913043 | roles 9/9 C1=True
+[done ('BOTH:8.0', 43)]
+[BOTH:8.0 seed=44] num bal=0.8 (PL=0.6) | tense bal=0.6678260869565218 | roles 9/9 C1=True
+[done ('BOTH:8.0', 44)]
+[BOTH:8.0 seed=45] num bal=0.8 (PL=0.8) | tense bal=0.7478260869565218 | roles 9/9 C1=True
+[done ('BOTH:8.0', 45)]
+[BOTH:8.0 seed=46] num bal=0.75 (PL=0.6) | tense bal=0.6295652173913043 | roles 9/9 C1=True
+[done ('BOTH:8.0', 46)]
+[BOTH:8.0 seed=47] num bal=0.6000000000000001 (PL=0.4) | tense bal=0.7547826086956522 | roles 9/9 C1=True
+[done ('BOTH:8.0', 47)]
+[BOTH:8.0 seed=50] num bal=0.75 (PL=0.6) | tense bal=0.6278260869565218 | roles 9/9 C1=True
+[done ('BOTH:8.0', 50)]
+[BOTH:8.0 seed=48] num bal=0.6499999999999999 (PL=0.6) | tense bal=0.711304347826087 | roles 9/9 C1=True
+[done ('BOTH:8.0', 48)]
+[BOTH:8.0 seed=49] num bal=0.65 (PL=0.4) | tense bal=0.731304347826087 | roles 9/9 C1=True
+[done ('BOTH:8.0', 49)]
+[BOTH:8.0 seed=51] num bal=0.75 (PL=0.7) | tense bal=0.6678260869565218 | roles 9/9 C1=True
+[done ('BOTH:8.0', 51)]
+
+=== registered predictions ===
+number:OFF: 0.5300 +/- 0.0384 (n=10, 0.4500..0.6500)
+number:SCALED: 0.6500 +/- 0.0584 (n=10, 0.5500..0.7500)
+number:BOTH:2.0: 0.7100 +/- 0.0554 (n=10, 0.6000..0.8000)
+number:BOTH:4.0: 0.7100 +/- 0.0554 (n=10, 0.6000..0.8000)
+number:BOTH:6.0: 0.7100 +/- 0.0554 (n=10, 0.6000..0.8000)
+number:BOTH:8.0: 0.7100 +/- 0.0554 (n=10, 0.6000..0.8000)
+tense:OFF: 0.6778 +/- 0.0458 (n=10, 0.5809..0.7713)
+tense:SCALED: 0.6415 +/- 0.0460 (n=10, 0.5478..0.7313)
+tense:BOTH:2.0: 0.6937 +/- 0.0338 (n=10, 0.6278..0.7548)
+tense:BOTH:4.0: 0.6937 +/- 0.0338 (n=10, 0.6278..0.7548)
+tense:BOTH:6.0: 0.6937 +/- 0.0338 (n=10, 0.6278..0.7548)
+tense:BOTH:8.0: 0.6937 +/- 0.0338 (n=10, 0.6278..0.7548)
+
+S1 best config: BOTH:2.0 (mean 0.7100, bar 0.75)
+S2 BOTH:2.0-SCALED: 0.0600 +/- 0.0649 (n=10, -0.0500..0.2500)  (per-seed: [0.1, 0.0, 0.05, 0.25, 0.0, 0.0, 0.1, -0.05, 0.15, 0.0])
+S3 tense BOTH:2.0-OFF: 0.0159 +/- 0.0414 (n=10, -0.0835..0.0652)
