@@ -1,0 +1,65 @@
+[OFF seed=48] num bal=0.6 (PL=0.2) | tense bal=0.6695652173913043 | roles 4/4
+[done ('OFF', 48)]
+[OFF seed=43] num bal=0.5 (PL=0.1) | tense bal=0.5791304347826087 | roles 4/4
+[OFF seed=44] num bal=0.6 (PL=0.2) | tense bal=0.5226086956521738 | roles 4/4
+[done ('OFF', 43)]
+[done ('OFF', 44)]
+[OFF seed=42] num bal=0.65 (PL=0.3) | tense bal=0.6443478260869566 | roles 4/4
+[done ('OFF', 42)]
+[OFF seed=45] num bal=0.6 (PL=0.2) | tense bal=0.5843478260869566 | roles 4/4
+[done ('OFF', 45)]
+[OFF seed=51] num bal=0.55 (PL=0.4) | tense bal=0.5460869565217391 | roles 4/4
+[OFF seed=47] num bal=0.6 (PL=0.3) | tense bal=0.5678260869565217 | roles 4/4
+[done ('OFF', 51)]
+[OFF seed=49] num bal=0.7 (PL=0.4) | tense bal=0.7095652173913043 | roles 4/4
+[done ('OFF', 47)]
+[done ('OFF', 49)]
+[SCALED seed=44] num bal=0.65 (PL=0.5) | tense bal=0.5478260869565217 | roles 4/4
+[SCALED seed=42] num bal=0.6 (PL=0.6) | tense bal=0.6173913043478261 | roles 4/4
+[SCALED seed=45] num bal=0.6000000000000001 (PL=0.4) | tense bal=0.6260869565217391 | roles 4/4
+[OFF seed=46] num bal=0.65 (PL=0.3) | tense bal=0.6443478260869566 | roles 4/4
+[done ('SCALED', 44)]
+[done ('SCALED', 42)]
+[done ('SCALED', 45)]
+[done ('OFF', 46)]
+[OFF seed=50] num bal=0.55 (PL=0.1) | tense bal=0.6530434782608696 | roles 4/4
+[done ('OFF', 50)]
+[SCALED seed=43] num bal=0.5 (PL=0.4) | tense bal=0.6895652173913043 | roles 4/4
+[done ('SCALED', 43)]
+[SCALED seed=46] num bal=0.75 (PL=0.6) | tense bal=0.7095652173913043 | roles 4/4
+[done ('SCALED', 46)]
+[SCALED seed=48] num bal=0.65 (PL=0.3) | tense bal=0.6026086956521739 | roles 4/4
+[done ('SCALED', 48)]
+[SCALED seed=50] num bal=0.7 (PL=0.6) | tense bal=0.751304347826087 | roles 4/4
+[done ('SCALED', 50)]
+[SCALED seed=49] num bal=0.75 (PL=0.8) | tense bal=0.5260869565217392 | roles 4/4
+[SCALED seed=51] num bal=0.6000000000000001 (PL=0.4) | tense bal=0.6060869565217392 | roles 4/4
+[done ('SCALED', 49)]
+[done ('SCALED', 51)]
+[SCALED seed=47] num bal=0.6 (PL=0.5) | tense bal=0.5660869565217391 | roles 4/4
+[done ('SCALED', 47)]
+[BOTH seed=47] num bal=0.75 (PL=0.6) | tense bal=0.5026086956521739 | roles 4/4
+[BOTH seed=43] num bal=0.8500000000000001 (PL=0.8) | tense bal=0.6878260869565218 | roles 4/4
+[done ('BOTH', 47)]
+[done ('BOTH', 43)]
+[BOTH seed=46] num bal=0.75 (PL=0.6) | tense bal=0.662608695652174 | roles 4/4
+[done ('BOTH', 46)]
+[BOTH seed=42] num bal=0.5 (PL=0.3) | tense bal=0.6860869565217391 | roles 4/4
+[done ('BOTH', 42)]
+[BOTH seed=49] num bal=0.75 (PL=0.7) | tense bal=0.6460869565217391 | roles 4/4
+[BOTH seed=44] num bal=0.55 (PL=0.3) | tense bal=0.5208695652173914 | roles 4/4
+[done ('BOTH', 49)]
+[done ('BOTH', 44)]
+[BOTH seed=45] num bal=0.6000000000000001 (PL=0.4) | tense bal=0.6426086956521739 | roles 4/4
+[done ('BOTH', 45)]
+[BOTH seed=48] num bal=0.8 (PL=0.7) | tense bal=0.6043478260869566 | roles 4/4
+[done ('BOTH', 48)]
+[BOTH seed=50] num bal=0.7 (PL=0.6) | tense bal=0.7043478260869566 | roles 4/4
+[done ('BOTH', 50)]
+[BOTH seed=51] num bal=0.7 (PL=0.5) | tense bal=0.6460869565217391 | roles 4/4
+[done ('BOTH', 51)]
+
+=== registered readings (n=6000 vs n=3000 reference) ===
+number:OFF:n6000: 0.6000 +/- 0.0413 (n=10, 0.5000..0.7000)  vs n=3000 0.5300+/-0.0384 -> MOVES (crowding implicated)
+number:SCALED:n6000: 0.6400 +/- 0.0554 (n=10, 0.5000..0.7500)  vs n=3000 0.6500+/-0.0584 -> flat (image structure implicated)
+number:BOTH:n6000: 0.6950 +/- 0.0799 (n=10, 0.5000..0.8500)  vs n=3000 0.7100+/-0.0554 -> flat (image structure implicated)
