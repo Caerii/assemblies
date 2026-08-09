@@ -137,3 +137,19 @@ under a real corpus, whose statistics are Zipfian by nature (#30/#150).
   visible again in the adoption gate as the split's tense-PAST trend.
 - The non-monotone budget curve (0.700@200 → 0.570@400 per-phase) is
   largely but not fully recovered by the schedule (0.658@400 at K=40).
+
+## Role binding (#52, measured on the 2x2 at seeds 42-51)
+
+- `role_bind_gain = 1.0` — the morphology margin lever does NOT
+  propagate to roles: gain 4 CROWDS at n=3e3 (retrieval 0.990 → 0.933,
+  paired −0.057 ± 0.012; damage concentrated on the most-trained
+  ROLE_AGENT words — frequency swamping, not margin) and buys nothing
+  at n=1e5 (gain-1 retrieval is 1.000 ± 0.000; interaction
+  −0.007 ± 0.008). Adopt-only-if bar not met; see
+  research/notes/the_margin_lever_only_pays_below_the_margin.md.
+- Scale is free on this axis: at fixed k=30, role retrieval and parse
+  are both at ceiling at n=1e5 (collision load falls faster than the
+  margin demand rises). No per-scale retuning.
+- Beta policy has ONE writer: `EmergentParser.set_base_beta` (the stage
+  schedule delegates; per-fiber overlays like `role_bind_gain` survive
+  stage boundaries by construction — `test_role_bind_gain.py`).
