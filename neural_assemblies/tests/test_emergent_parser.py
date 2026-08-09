@@ -142,14 +142,27 @@ class TestBrainSetup:
     """Verify the emergent brain is correctly configured (48 areas)."""
 
     def test_all_areas_created(self, trained_parser):
-        """Every area in ALL_AREAS should be registered, and only those.
+        """Every area in ALL_AREAS is registered; the ONLY extras allowed
+        are the lazily created per-value feature areas.
 
-        48 areas: ROLE_SCENE holds the whole-scene assembly, and
+        48 static areas: ROLE_SCENE holds the whole-scene assembly, and
         ROLE_ACTION / SYN_VERB give the verb its thematic slot and syntactic
         slot, without which verb position is unrepresentable (Mitropolsky &
-        Papadimitriou 2025, sec. 2.3).
+        Papadimitriou 2025, sec. 2.3). Since the #149 adoption of
+        split_feature_areas, train_tense/train_number ALSO create one area
+        per feature value (E15, #144) -- deliberately absent from ALL_AREAS
+        because they are training-created, not construction-created.
         """
-        assert len(trained_parser.brain.areas) == len(ALL_AREAS) == 48
+        from neural_assemblies.assembly_calculus.emergent.core.areas import (
+            FEATURE_VALUE_LABELS, feature_value_area,
+        )
+        assert len(ALL_AREAS) == 48
+        value_areas = {feature_value_area(f, lab)
+                       for f, labs in FEATURE_VALUE_LABELS.items()
+                       for lab in labs}
+        extras = set(trained_parser.brain.areas) - set(ALL_AREAS)
+        assert extras <= value_areas, f"unexpected areas: {extras - value_areas}"
+        assert set(ALL_AREAS) <= set(trained_parser.brain.areas)
 
     def test_all_area_names_registered(self, trained_parser):
         """Every area in ALL_AREAS should exist in the brain."""

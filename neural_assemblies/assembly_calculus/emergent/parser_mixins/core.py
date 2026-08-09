@@ -130,7 +130,7 @@ class CoreParserMixin(
                  synaptic_scaling_deferred: bool = False,
                  novelty_gain_max: float = 1.0,
                  novelty_gain_exp: float = 0.5,
-                 split_feature_areas: bool = False):
+                 split_feature_areas: bool = True):
         from ..training.perf import (
             budget_rounds,
             fast_training_enabled,
@@ -226,8 +226,16 @@ class CoreParserMixin(
         #: of 30 at 200 frames) -- an architecture limit no corpus shape can
         #: fix. The value areas are created LAZILY by train_tense/train_number
         #: (never at construction), so this flag can be flipped on a parser
-        #: restored from a pre-stage checkpoint. False = byte-identical prior
-        #: behavior.
+        #: restored from a pre-stage checkpoint.
+        #: DEFAULT True (adopted #149 through an n=10 PAIRED gate at the
+        #: default corpus, bars registered before data): balanced tense
+        #: delta -0.039 +/- 0.058 (no measured harm; a single seed read
+        #: -0.26 and two more read -0.26/+0.17 -- the ensemble lesson,
+        #: both directions), SG 0.920, and PL 0.415 vs 0.085 shared --
+        #: the split takes PL recall off the floor at the DEFAULT corpus,
+        #: not only at the zipf-200 scale where E15/E19b measured 0.700/
+        #: 0.727. False = the legacy shared-area path, byte-identical to
+        #: pre-E15, kept reachable for parity reproductions.
         self.split_feature_areas = bool(split_feature_areas)
         #: #149: which readout recall_tense/recall_number RETURN under the
         #: split ("mi" | "overlap"). E15 measured the two CROSSING: MI

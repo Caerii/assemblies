@@ -1,0 +1,14 @@
+seed=42 split bal=0.663 (P0.57/p0.76 sg=1.00 pl=0.23)  shared bal=0.771 (P0.78/p0.76 sg=1.00 pl=0.00)
+seed=43 split bal=0.661 (P0.52/p0.80 sg=0.93 pl=0.46)  shared bal=0.731 (P0.78/p0.68 sg=1.00 pl=0.08)
+seed=44 split bal=0.730 (P0.74/p0.72 sg=1.00 pl=0.38)  shared bal=0.623 (P0.57/p0.68 sg=1.00 pl=0.00)
+seed=45 split bal=0.586 (P0.65/p0.52 sg=0.87 pl=0.54)  shared bal=0.688 (P0.70/p0.68 sg=1.00 pl=0.08)
+seed=46 split bal=0.576 (P0.39/p0.76 sg=1.00 pl=0.69)  shared bal=0.581 (P0.52/p0.64 sg=0.93 pl=0.08)
+seed=47 split bal=0.623 (P0.57/p0.68 sg=0.87 pl=0.31)  shared bal=0.753 (P0.83/p0.68 sg=1.00 pl=0.08)
+seed=48 split bal=0.601 (P0.52/p0.68 sg=0.80 pl=0.31)  shared bal=0.646 (P0.65/p0.64 sg=0.93 pl=0.23)
+seed=49 split bal=0.639 (P0.48/p0.80 sg=0.87 pl=0.31)  shared bal=0.666 (P0.65/p0.68 sg=1.00 pl=0.08)
+seed=50 split bal=0.621 (P0.52/p0.72 sg=0.87 pl=0.46)  shared bal=0.711 (P0.78/p0.64 sg=0.93 pl=0.08)
+seed=51 split bal=0.693 (P0.83/p0.56 sg=1.00 pl=0.46)  shared bal=0.608 (P0.70/p0.52 sg=0.93 pl=0.15)
+
+G1 paired balanced-tense delta = -0.0387 +/- 0.0578
+G2 split SG mean = 0.9200
+G3 split PL mean = 0.4154 vs shared PL mean = 0.0846

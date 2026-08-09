@@ -1,5 +1,5 @@
 """Per-value feature areas (E15, #144): the split must exist, route, and
-leave the default byte-path alone.
+keep the legacy shared-area path reachable.
 
 WHY THIS ARCHITECTURE EXISTS. E14 (#143) measured the one-area feature
 design's scaling blocker: TWO label values sharing ONE k-WTA area merge as
@@ -14,8 +14,14 @@ WHAT IS PINNED HERE, deliberately mechanical: area creation + MI group
 registration (idempotent), training routes each detected value to its own
 area, recall answers through the MI competition, the flag can be flipped
 POST-CONSTRUCTION (the checkpoint-reuse path every experiment depends on),
-and a default parser creates none of it. Accuracy claims live in the
-pre-registered experiment, not here.
+and the LEGACY shared-area path stays reachable via
+split_feature_areas=False. Accuracy claims live in the pre-registered
+experiment, not here.
+
+DEFAULT: True since the #149 adoption -- decided by an n=10 paired gate
+at the default corpus (tense delta -0.039 +/- 0.058 NS, SG 0.920, PL
+0.415 vs 0.085 shared), not by E15's scale numbers alone. The
+default-construction fixture below is itself the pin on that.
 """
 from __future__ import annotations
 
@@ -47,8 +53,10 @@ def _register_plurals(p):
 
 @pytest.fixture(scope="module")
 def split_parser():
-    p = EmergentParser(n=600, k=20, seed=42, fast_training=True,
-                       split_feature_areas=True)
+    # Default construction on purpose: the #149 adoption means a plain
+    # parser IS the split parser, and this fixture pins that.
+    p = EmergentParser(n=600, k=20, seed=42, fast_training=True)
+    assert p.split_feature_areas is True, "adopted default regressed"
     _register_plurals(p)
     p.train_number(SENTS)
     p.train_tense(SENTS)
@@ -97,9 +105,10 @@ def test_recall_answers_through_mi(split_parser):
 
 
 def test_flag_flips_post_construction():
-    """The checkpoint-reuse path: default-built parser, flag flipped after
+    """The checkpoint-reuse path: legacy-built parser, flag flipped after
     construction, training creates the areas lazily."""
-    p = EmergentParser(n=600, k=20, seed=43, fast_training=True)
+    p = EmergentParser(n=600, k=20, seed=43, fast_training=True,
+                       split_feature_areas=False)
     assert feature_value_area(NUMBER, "SG") not in p.brain.areas
     p.split_feature_areas = True
     _register_plurals(p)
@@ -108,9 +117,13 @@ def test_flag_flips_post_construction():
     assert feature_value_area(NUMBER, "PL") in p.brain.areas
 
 
-def test_default_parser_untouched():
-    """No flag: no value areas, no extra MI groups, shared-area readout."""
-    p = EmergentParser(n=600, k=20, seed=44, fast_training=True)
+def test_legacy_shared_path_reachable():
+    """split_feature_areas=False: no value areas, no extra MI groups,
+    shared-area readout -- byte-identical pre-E15 behavior, kept for
+    literature-parity reproductions (the norm_init substrate-vs-reference
+    pattern)."""
+    p = EmergentParser(n=600, k=20, seed=44, fast_training=True,
+                       split_feature_areas=False)
     p.train_number(SENTS)
     for lab in FEATURE_VALUE_LABELS[NUMBER]:
         assert feature_value_area(NUMBER, lab) not in p.brain.areas
