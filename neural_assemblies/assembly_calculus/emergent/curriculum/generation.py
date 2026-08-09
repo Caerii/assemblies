@@ -90,6 +90,16 @@ SUBJECT_SAMPLING = "uniform"
 #: sets this to PLURAL_RATE. Same off-switch contract as PASSIVE_EVERY.
 OBJECT_PLURAL_RATE = 0.0
 
+#: Frame budget per complexity>=3 stage. THE constant every experiment
+#: through E6 held fixed, and E6 (#135) proved it is the binding one:
+#: form diversity and per-form exposure are CONJUGATE at fixed budget
+#: (the diverse corpus scored WORSE -- more forms, fewer exposures each),
+#: so only a larger budget can raise both. Also the least child-like
+#: number in the pipeline: fifty utterances is not a developmental stage.
+#: 50 reproduces the measured production corpus byte-for-byte; E7 (#136)
+#: sweeps it.
+FRAMES_PER_STAGE = 50
+
 
 class SentenceGenerator:
     """Generates stage corpora for a parser; composed by `CurriculumTrainer`.
@@ -388,7 +398,8 @@ class SentenceGenerator:
 
         n_eligible = 0
         subj_usage: Dict[str, int] = {}
-        for frame_i in range(min(50, len(nouns) * len(verbs))):
+        for frame_i in range(min(FRAMES_PER_STAGE,
+                                 len(nouns) * len(verbs))):
             # Periodic FORCED ditransitive draw (see DITRANSITIVE_EVERY):
             # without it the recipient construction is too rare for its role
             # area to learn anything.
