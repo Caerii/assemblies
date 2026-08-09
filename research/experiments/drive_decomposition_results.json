@@ -1,0 +1,1066 @@
+{
+  "R1": {
+    "46": {
+      "items": [
+        {
+          "form": "boys",
+          "mass_PL": 42.469970703125,
+          "mass_SG": 34.552772521972656,
+          "delta": 7.917198181152344,
+          "answer": "PL",
+          "correct": true,
+          "margin": 0.03333333333333333,
+          "exposure": 1
+        },
+        {
+          "form": "girls",
+          "mass_PL": 50.37546157836914,
+          "mass_SG": 23.58563995361328,
+          "delta": 26.78982162475586,
+          "answer": "PL",
+          "correct": true,
+          "margin": 0.2,
+          "exposure": 4
+        },
+        {
+          "form": "babies",
+          "mass_PL": 56.89422607421875,
+          "mass_SG": 50.999267578125,
+          "delta": 5.89495849609375,
+          "answer": null,
+          "correct": false,
+          "margin": 0.0,
+          "exposure": 1
+        },
+        {
+          "form": "ears",
+          "mass_PL": 59.062294006347656,
+          "mass_SG": 29.855440139770508,
+          "delta": 29.20685386657715,
+          "answer": "PL",
+          "correct": true,
+          "margin": 0.09999999999999999,
+          "exposure": 1
+        },
+        {
+          "form": "hands",
+          "mass_PL": 39.7427864074707,
+          "mass_SG": 50.416114807128906,
+          "delta": -10.673328399658203,
+          "answer": null,
+          "correct": false,
+          "margin": 0.0,
+          "exposure": 1
+        },
+        {
+          "form": "legs",
+          "mass_PL": 53.65801239013672,
+          "mass_SG": 35.89577102661133,
+          "delta": 17.76224136352539,
+          "answer": "PL",
+          "correct": true,
+          "margin": 0.06666666666666667,
+          "exposure": 1
+        },
+        {
+          "form": "hearts",
+          "mass_PL": 47.16495895385742,
+          "mass_SG": 53.08161163330078,
+          "delta": -5.916652679443359,
+          "answer": "SG",
+          "correct": false,
+          "margin": -0.033333333333333326,
+          "exposure": 1
+        },
+        {
+          "form": "gifts",
+          "mass_PL": 69.05865478515625,
+          "mass_SG": 53.744407653808594,
+          "delta": 15.314247131347656,
+          "answer": "PL",
+          "correct": true,
+          "margin": 0.1,
+          "exposure": 1
+        },
+        {
+          "form": "windows",
+          "mass_PL": 35.285186767578125,
+          "mass_SG": 33.1905632019043,
+          "delta": 2.094623565673828,
+          "answer": "SG",
+          "correct": false,
+          "margin": -0.03333333333333333,
+          "exposure": 1
+        },
+        {
+          "form": "winds",
+          "mass_PL": 47.72092056274414,
+          "mass_SG": 43.75051498413086,
+          "delta": 3.9704055786132812,
+          "answer": "PL",
+          "correct": true,
+          "margin": 0.033333333333333326,
+          "exposure": 2
+        }
+      ],
+      "shared_image_cols": 4,
+      "image_k": 30
+    },
+    "45": {
+      "items": [
+        {
+          "form": "boys",
+          "mass_PL": 51.0363655090332,
+          "mass_SG": 44.848411560058594,
+          "delta": 6.187953948974609,
+          "answer": "PL",
+          "correct": true,
+          "margin": 0.06666666666666668,
+          "exposure": 1
+        },
+        {
+          "form": "girls",
+          "mass_PL": 76.00532531738281,
+          "mass_SG": 55.66037368774414,
+          "delta": 20.344951629638672,
+          "answer": "PL",
+          "correct": true,
+          "margin": 0.13333333333333333,
+          "exposure": 4
+        },
+        {
+          "form": "babies",
+          "mass_PL": 45.575218200683594,
+          "mass_SG": 48.12266540527344,
+          "delta": -2.5474472045898438,
+          "answer": "SG",
+          "correct": false,
+          "margin": -0.06666666666666667,
+          "exposure": 1
+        },
+        {
+          "form": "ears",
+          "mass_PL": 56.844669342041016,
+          "mass_SG": 124.93656921386719,
+          "delta": -68.09189987182617,
+          "answer": "SG",
+          "correct": false,
+          "margin": -0.2333333333333333,
+          "exposure": 1
+        },
+        {
+          "form": "hands",
+          "mass_PL": 37.04603576660156,
+          "mass_SG": 33.52021789550781,
+          "delta": 3.52581787109375,
+          "answer": null,
+          "correct": false,
+          "margin": 0.0,
+          "exposure": 1
+        },
+        {
+          "form": "legs",
+          "mass_PL": 48.99217987060547,
+          "mass_SG": 23.04772186279297,
+          "delta": 25.9444580078125,
+          "answer": "PL",
+          "correct": true,
+          "margin": 0.1,
+          "exposure": 1
+        },
+        {
+          "form": "hearts",
+          "mass_PL": 42.069305419921875,
+          "mass_SG": 54.19960021972656,
+          "delta": -12.130294799804688,
+          "answer": "SG",
+          "correct": false,
+          "margin": -0.16666666666666669,
+          "exposure": 1
+        },
+        {
+          "form": "gifts",
+          "mass_PL": 71.96147155761719,
+          "mass_SG": 58.64542770385742,
+          "delta": 13.316043853759766,
+          "answer": "PL",
+          "correct": true,
+          "margin": 0.1,
+          "exposure": 1
+        },
+        {
+          "form": "windows",
+          "mass_PL": 40.92494201660156,
+          "mass_SG": 64.18460083007812,
+          "delta": -23.259658813476562,
+          "answer": "SG",
+          "correct": false,
+          "margin": -0.13333333333333333,
+          "exposure": 1
+        },
+        {
+          "form": "winds",
+          "mass_PL": 76.04965209960938,
+          "mass_SG": 46.74884796142578,
+          "delta": 29.300804138183594,
+          "answer": "PL",
+          "correct": true,
+          "margin": 0.13333333333333333,
+          "exposure": 2
+        }
+      ],
+      "shared_image_cols": 3,
+      "image_k": 30
+    },
+    "44": {
+      "items": [
+        {
+          "form": "boys",
+          "mass_PL": 37.064109802246094,
+          "mass_SG": 29.48334503173828,
+          "delta": 7.5807647705078125,
+          "answer": "PL",
+          "correct": true,
+          "margin": 0.03333333333333334,
+          "exposure": 1
+        },
+        {
+          "form": "girls",
+          "mass_PL": 76.6380844116211,
+          "mass_SG": 61.955345153808594,
+          "delta": 14.6827392578125,
+          "answer": "PL",
+          "correct": true,
+          "margin": 0.06666666666666668,
+          "exposure": 4
+        },
+        {
+          "form": "babies",
+          "mass_PL": 46.31196594238281,
+          "mass_SG": 30.114925384521484,
+          "delta": 16.197040557861328,
+          "answer": "PL",
+          "correct": true,
+          "margin": 0.06666666666666667,
+          "exposure": 1
+        },
+        {
+          "form": "ears",
+          "mass_PL": 61.51264190673828,
+          "mass_SG": 74.11140441894531,
+          "delta": -12.598762512207031,
+          "answer": null,
+          "correct": false,
+          "margin": 0.0,
+          "exposure": 1
+        },
+        {
+          "form": "hands",
+          "mass_PL": 43.17115020751953,
+          "mass_SG": 51.30767059326172,
+          "delta": -8.136520385742188,
+          "answer": "SG",
+          "correct": false,
+          "margin": -0.033333333333333326,
+          "exposure": 1
+        },
+        {
+          "form": "legs",
+          "mass_PL": 31.354721069335938,
+          "mass_SG": 44.55982971191406,
+          "delta": -13.205108642578125,
+          "answer": "SG",
+          "correct": false,
+          "margin": -0.06666666666666668,
+          "exposure": 1
+        },
+        {
+          "form": "hearts",
+          "mass_PL": 46.470340728759766,
+          "mass_SG": 30.462451934814453,
+          "delta": 16.007888793945312,
+          "answer": "PL",
+          "correct": true,
+          "margin": 0.2,
+          "exposure": 1
+        },
+        {
+          "form": "gifts",
+          "mass_PL": 52.92723846435547,
+          "mass_SG": 52.41888427734375,
+          "delta": 0.5083541870117188,
+          "answer": "SG",
+          "correct": false,
+          "margin": -0.033333333333333326,
+          "exposure": 1
+        },
+        {
+          "form": "windows",
+          "mass_PL": 45.5831413269043,
+          "mass_SG": 62.32670593261719,
+          "delta": -16.74356460571289,
+          "answer": "SG",
+          "correct": false,
+          "margin": -0.06666666666666668,
+          "exposure": 1
+        },
+        {
+          "form": "winds",
+          "mass_PL": 35.98185348510742,
+          "mass_SG": 31.684452056884766,
+          "delta": 4.297401428222656,
+          "answer": "PL",
+          "correct": true,
+          "margin": 0.06666666666666667,
+          "exposure": 2
+        }
+      ],
+      "shared_image_cols": 4,
+      "image_k": 30
+    },
+    "42": {
+      "items": [
+        {
+          "form": "boys",
+          "mass_PL": 30.13410186767578,
+          "mass_SG": 32.51047134399414,
+          "delta": -2.3763694763183594,
+          "answer": "SG",
+          "correct": false,
+          "margin": -0.033333333333333326,
+          "exposure": 1
+        },
+        {
+          "form": "girls",
+          "mass_PL": 76.78148651123047,
+          "mass_SG": 35.412818908691406,
+          "delta": 41.36866760253906,
+          "answer": "PL",
+          "correct": true,
+          "margin": 0.23333333333333334,
+          "exposure": 4
+        },
+        {
+          "form": "babies",
+          "mass_PL": 29.954120635986328,
+          "mass_SG": 21.63138198852539,
+          "delta": 8.322738647460938,
+          "answer": "PL",
+          "correct": true,
+          "margin": 0.03333333333333333,
+          "exposure": 1
+        },
+        {
+          "form": "ears",
+          "mass_PL": 45.19489288330078,
+          "mass_SG": 32.630760192871094,
+          "delta": 12.564132690429688,
+          "answer": "PL",
+          "correct": true,
+          "margin": 0.2,
+          "exposure": 1
+        },
+        {
+          "form": "hands",
+          "mass_PL": 44.53506851196289,
+          "mass_SG": 26.27582550048828,
+          "delta": 18.25924301147461,
+          "answer": "PL",
+          "correct": true,
+          "margin": 0.06666666666666667,
+          "exposure": 1
+        },
+        {
+          "form": "legs",
+          "mass_PL": 42.411460876464844,
+          "mass_SG": 44.73353576660156,
+          "delta": -2.3220748901367188,
+          "answer": "SG",
+          "correct": false,
+          "margin": -0.03333333333333334,
+          "exposure": 1
+        },
+        {
+          "form": "hearts",
+          "mass_PL": 41.778297424316406,
+          "mass_SG": 27.63958740234375,
+          "delta": 14.138710021972656,
+          "answer": "PL",
+          "correct": true,
+          "margin": 0.06666666666666668,
+          "exposure": 1
+        },
+        {
+          "form": "gifts",
+          "mass_PL": 43.72913360595703,
+          "mass_SG": 71.7791976928711,
+          "delta": -28.050064086914062,
+          "answer": "SG",
+          "correct": false,
+          "margin": -0.19999999999999998,
+          "exposure": 1
+        },
+        {
+          "form": "windows",
+          "mass_PL": 40.31645965576172,
+          "mass_SG": 20.620630264282227,
+          "delta": 19.695829391479492,
+          "answer": "PL",
+          "correct": true,
+          "margin": 0.06666666666666668,
+          "exposure": 1
+        },
+        {
+          "form": "winds",
+          "mass_PL": 40.52943420410156,
+          "mass_SG": 59.691932678222656,
+          "delta": -19.162498474121094,
+          "answer": "SG",
+          "correct": false,
+          "margin": -0.2,
+          "exposure": 2
+        }
+      ],
+      "shared_image_cols": 1,
+      "image_k": 30
+    },
+    "43": {
+      "items": [
+        {
+          "form": "boys",
+          "mass_PL": 47.32231903076172,
+          "mass_SG": 57.225341796875,
+          "delta": -9.903022766113281,
+          "answer": "SG",
+          "correct": false,
+          "margin": -0.06666666666666668,
+          "exposure": 1
+        },
+        {
+          "form": "girls",
+          "mass_PL": 57.89550018310547,
+          "mass_SG": 34.27549362182617,
+          "delta": 23.620006561279297,
+          "answer": "PL",
+          "correct": true,
+          "margin": 0.1,
+          "exposure": 4
+        },
+        {
+          "form": "babies",
+          "mass_PL": 46.93207550048828,
+          "mass_SG": 66.14350891113281,
+          "delta": -19.21143341064453,
+          "answer": "SG",
+          "correct": false,
+          "margin": -0.06666666666666665,
+          "exposure": 1
+        },
+        {
+          "form": "ears",
+          "mass_PL": 43.83856201171875,
+          "mass_SG": 31.35955810546875,
+          "delta": 12.47900390625,
+          "answer": "PL",
+          "correct": true,
+          "margin": 0.03333333333333334,
+          "exposure": 1
+        },
+        {
+          "form": "hands",
+          "mass_PL": 41.243003845214844,
+          "mass_SG": 44.157958984375,
+          "delta": -2.9149551391601562,
+          "answer": "SG",
+          "correct": false,
+          "margin": -0.03333333333333334,
+          "exposure": 1
+        },
+        {
+          "form": "legs",
+          "mass_PL": 62.413604736328125,
+          "mass_SG": 69.81605529785156,
+          "delta": -7.4024505615234375,
+          "answer": "SG",
+          "correct": false,
+          "margin": -0.033333333333333354,
+          "exposure": 1
+        },
+        {
+          "form": "hearts",
+          "mass_PL": 43.37372589111328,
+          "mass_SG": 47.085716247558594,
+          "delta": -3.7119903564453125,
+          "answer": "SG",
+          "correct": false,
+          "margin": -0.033333333333333326,
+          "exposure": 1
+        },
+        {
+          "form": "gifts",
+          "mass_PL": 40.07107162475586,
+          "mass_SG": 33.99506378173828,
+          "delta": 6.076007843017578,
+          "answer": "PL",
+          "correct": true,
+          "margin": 0.13333333333333333,
+          "exposure": 1
+        },
+        {
+          "form": "windows",
+          "mass_PL": 47.888553619384766,
+          "mass_SG": 27.39739227294922,
+          "delta": 20.491161346435547,
+          "answer": "PL",
+          "correct": true,
+          "margin": 0.1,
+          "exposure": 1
+        },
+        {
+          "form": "winds",
+          "mass_PL": 55.086753845214844,
+          "mass_SG": 50.57991409301758,
+          "delta": 4.506839752197266,
+          "answer": "SG",
+          "correct": false,
+          "margin": -0.06666666666666668,
+          "exposure": 2
+        }
+      ],
+      "shared_image_cols": 2,
+      "image_k": 30
+    }
+  },
+  "R4": {
+    "46": {
+      "items": [
+        {
+          "form": "boys",
+          "mass_PL": 34.58711242675781,
+          "mass_SG": 50.70628356933594,
+          "delta": -16.119171142578125,
+          "answer": "SG",
+          "correct": false,
+          "margin": -0.06666666666666668,
+          "exposure": 4
+        },
+        {
+          "form": "girls",
+          "mass_PL": 58.42816925048828,
+          "mass_SG": 19.657955169677734,
+          "delta": 38.77021408081055,
+          "answer": "PL",
+          "correct": true,
+          "margin": 0.1,
+          "exposure": 16
+        },
+        {
+          "form": "babies",
+          "mass_PL": 43.621238708496094,
+          "mass_SG": 43.93651580810547,
+          "delta": -0.315277099609375,
+          "answer": "SG",
+          "correct": false,
+          "margin": -0.033333333333333326,
+          "exposure": 4
+        },
+        {
+          "form": "ears",
+          "mass_PL": 50.344871520996094,
+          "mass_SG": 16.87417984008789,
+          "delta": 33.4706916809082,
+          "answer": "PL",
+          "correct": true,
+          "margin": 0.13333333333333333,
+          "exposure": 4
+        },
+        {
+          "form": "hands",
+          "mass_PL": 40.205509185791016,
+          "mass_SG": 76.3089599609375,
+          "delta": -36.103450775146484,
+          "answer": "SG",
+          "correct": false,
+          "margin": -0.16666666666666666,
+          "exposure": 4
+        },
+        {
+          "form": "legs",
+          "mass_PL": 25.512432098388672,
+          "mass_SG": 18.619142532348633,
+          "delta": 6.893289566040039,
+          "answer": null,
+          "correct": false,
+          "margin": 0.0,
+          "exposure": 4
+        },
+        {
+          "form": "hearts",
+          "mass_PL": 58.443511962890625,
+          "mass_SG": 42.77721405029297,
+          "delta": 15.666297912597656,
+          "answer": "SG",
+          "correct": false,
+          "margin": -0.033333333333333354,
+          "exposure": 4
+        },
+        {
+          "form": "gifts",
+          "mass_PL": 69.39485168457031,
+          "mass_SG": 41.26689910888672,
+          "delta": 28.127952575683594,
+          "answer": "PL",
+          "correct": true,
+          "margin": 0.09999999999999999,
+          "exposure": 4
+        },
+        {
+          "form": "windows",
+          "mass_PL": 35.49641418457031,
+          "mass_SG": 47.620941162109375,
+          "delta": -12.124526977539062,
+          "answer": "SG",
+          "correct": false,
+          "margin": -0.033333333333333326,
+          "exposure": 4
+        },
+        {
+          "form": "winds",
+          "mass_PL": 65.68987274169922,
+          "mass_SG": 35.86642837524414,
+          "delta": 29.823444366455078,
+          "answer": "PL",
+          "correct": true,
+          "margin": 0.13333333333333333,
+          "exposure": 8
+        }
+      ],
+      "shared_image_cols": 8,
+      "image_k": 30
+    },
+    "45": {
+      "items": [
+        {
+          "form": "boys",
+          "mass_PL": 54.729164123535156,
+          "mass_SG": 54.4094352722168,
+          "delta": 0.3197288513183594,
+          "answer": "SG",
+          "correct": false,
+          "margin": -0.033333333333333354,
+          "exposure": 4
+        },
+        {
+          "form": "girls",
+          "mass_PL": 135.97242736816406,
+          "mass_SG": 59.922664642333984,
+          "delta": 76.04976272583008,
+          "answer": "PL",
+          "correct": true,
+          "margin": 0.23333333333333336,
+          "exposure": 16
+        },
+        {
+          "form": "babies",
+          "mass_PL": 43.35808563232422,
+          "mass_SG": 54.85111618041992,
+          "delta": -11.493030548095703,
+          "answer": "SG",
+          "correct": false,
+          "margin": -0.1,
+          "exposure": 4
+        },
+        {
+          "form": "ears",
+          "mass_PL": 66.97184753417969,
+          "mass_SG": 61.11692810058594,
+          "delta": 5.85491943359375,
+          "answer": "SG",
+          "correct": false,
+          "margin": -0.06666666666666665,
+          "exposure": 4
+        },
+        {
+          "form": "hands",
+          "mass_PL": 36.0645637512207,
+          "mass_SG": 40.5364875793457,
+          "delta": -4.471923828125,
+          "answer": "SG",
+          "correct": false,
+          "margin": -0.09999999999999999,
+          "exposure": 4
+        },
+        {
+          "form": "legs",
+          "mass_PL": 23.529476165771484,
+          "mass_SG": 21.200410842895508,
+          "delta": 2.3290653228759766,
+          "answer": "SG",
+          "correct": false,
+          "margin": -0.06666666666666668,
+          "exposure": 4
+        },
+        {
+          "form": "hearts",
+          "mass_PL": 59.05412673950195,
+          "mass_SG": 39.36366271972656,
+          "delta": 19.69046401977539,
+          "answer": null,
+          "correct": false,
+          "margin": 0.0,
+          "exposure": 4
+        },
+        {
+          "form": "gifts",
+          "mass_PL": 114.773681640625,
+          "mass_SG": 75.9015884399414,
+          "delta": 38.872093200683594,
+          "answer": "PL",
+          "correct": true,
+          "margin": 0.06666666666666665,
+          "exposure": 4
+        },
+        {
+          "form": "windows",
+          "mass_PL": 21.65259552001953,
+          "mass_SG": 21.60662841796875,
+          "delta": 0.04596710205078125,
+          "answer": "SG",
+          "correct": false,
+          "margin": -0.06666666666666667,
+          "exposure": 4
+        },
+        {
+          "form": "winds",
+          "mass_PL": 131.3777313232422,
+          "mass_SG": 66.36639404296875,
+          "delta": 65.01133728027344,
+          "answer": "PL",
+          "correct": true,
+          "margin": 0.09999999999999998,
+          "exposure": 8
+        }
+      ],
+      "shared_image_cols": 13,
+      "image_k": 30
+    },
+    "42": {
+      "items": [
+        {
+          "form": "boys",
+          "mass_PL": 33.745792388916016,
+          "mass_SG": 42.15947723388672,
+          "delta": -8.413684844970703,
+          "answer": "SG",
+          "correct": false,
+          "margin": -0.13333333333333333,
+          "exposure": 4
+        },
+        {
+          "form": "girls",
+          "mass_PL": 146.03575134277344,
+          "mass_SG": 91.15391540527344,
+          "delta": 54.8818359375,
+          "answer": "PL",
+          "correct": true,
+          "margin": 0.10000000000000003,
+          "exposure": 16
+        },
+        {
+          "form": "babies",
+          "mass_PL": 21.411455154418945,
+          "mass_SG": 24.646089553833008,
+          "delta": -3.2346343994140625,
+          "answer": "SG",
+          "correct": false,
+          "margin": -0.06666666666666667,
+          "exposure": 4
+        },
+        {
+          "form": "ears",
+          "mass_PL": 83.64492797851562,
+          "mass_SG": 63.8572998046875,
+          "delta": 19.787628173828125,
+          "answer": "PL",
+          "correct": true,
+          "margin": 0.033333333333333326,
+          "exposure": 4
+        },
+        {
+          "form": "hands",
+          "mass_PL": 23.644309997558594,
+          "mass_SG": 20.510059356689453,
+          "delta": 3.1342506408691406,
+          "answer": null,
+          "correct": false,
+          "margin": 0.0,
+          "exposure": 4
+        },
+        {
+          "form": "legs",
+          "mass_PL": 50.59949493408203,
+          "mass_SG": 71.57760620117188,
+          "delta": -20.978111267089844,
+          "answer": "SG",
+          "correct": false,
+          "margin": -0.1333333333333333,
+          "exposure": 4
+        },
+        {
+          "form": "hearts",
+          "mass_PL": 52.883995056152344,
+          "mass_SG": 35.69001007080078,
+          "delta": 17.193984985351562,
+          "answer": "PL",
+          "correct": true,
+          "margin": 0.06666666666666667,
+          "exposure": 4
+        },
+        {
+          "form": "gifts",
+          "mass_PL": 43.31629180908203,
+          "mass_SG": 55.72932815551758,
+          "delta": -12.413036346435547,
+          "answer": "SG",
+          "correct": false,
+          "margin": -0.1,
+          "exposure": 4
+        },
+        {
+          "form": "windows",
+          "mass_PL": 20.805688858032227,
+          "mass_SG": 10.031822204589844,
+          "delta": 10.773866653442383,
+          "answer": null,
+          "correct": false,
+          "margin": 0.0,
+          "exposure": 4
+        },
+        {
+          "form": "winds",
+          "mass_PL": 56.250205993652344,
+          "mass_SG": 55.75809097290039,
+          "delta": 0.4921150207519531,
+          "answer": "SG",
+          "correct": false,
+          "margin": -0.06666666666666665,
+          "exposure": 8
+        }
+      ],
+      "shared_image_cols": 17,
+      "image_k": 30
+    },
+    "44": {
+      "items": [
+        {
+          "form": "boys",
+          "mass_PL": 47.33791732788086,
+          "mass_SG": 23.27591323852539,
+          "delta": 24.06200408935547,
+          "answer": null,
+          "correct": false,
+          "margin": 0.0,
+          "exposure": 4
+        },
+        {
+          "form": "girls",
+          "mass_PL": 200.89837646484375,
+          "mass_SG": 56.37014389038086,
+          "delta": 144.5282325744629,
+          "answer": "PL",
+          "correct": true,
+          "margin": 0.4666666666666667,
+          "exposure": 16
+        },
+        {
+          "form": "babies",
+          "mass_PL": 77.65946960449219,
+          "mass_SG": 48.933773040771484,
+          "delta": 28.725696563720703,
+          "answer": "PL",
+          "correct": true,
+          "margin": 0.06666666666666665,
+          "exposure": 4
+        },
+        {
+          "form": "ears",
+          "mass_PL": 57.34968185424805,
+          "mass_SG": 70.60039520263672,
+          "delta": -13.250713348388672,
+          "answer": "SG",
+          "correct": false,
+          "margin": -0.09999999999999998,
+          "exposure": 4
+        },
+        {
+          "form": "hands",
+          "mass_PL": 40.4761962890625,
+          "mass_SG": 33.71099090576172,
+          "delta": 6.765205383300781,
+          "answer": "PL",
+          "correct": true,
+          "margin": 0.033333333333333326,
+          "exposure": 4
+        },
+        {
+          "form": "legs",
+          "mass_PL": 26.649444580078125,
+          "mass_SG": 19.541349411010742,
+          "delta": 7.108095169067383,
+          "answer": "SG",
+          "correct": false,
+          "margin": -0.03333333333333333,
+          "exposure": 4
+        },
+        {
+          "form": "hearts",
+          "mass_PL": 110.3565673828125,
+          "mass_SG": 42.606834411621094,
+          "delta": 67.7497329711914,
+          "answer": "PL",
+          "correct": true,
+          "margin": 0.19999999999999998,
+          "exposure": 4
+        },
+        {
+          "form": "gifts",
+          "mass_PL": 64.72975158691406,
+          "mass_SG": 44.37875747680664,
+          "delta": 20.350994110107422,
+          "answer": "PL",
+          "correct": true,
+          "margin": 0.13333333333333333,
+          "exposure": 4
+        },
+        {
+          "form": "windows",
+          "mass_PL": 41.53087615966797,
+          "mass_SG": 58.96369171142578,
+          "delta": -17.432815551757812,
+          "answer": "SG",
+          "correct": false,
+          "margin": -0.19999999999999998,
+          "exposure": 4
+        },
+        {
+          "form": "winds",
+          "mass_PL": 28.028369903564453,
+          "mass_SG": 17.74154281616211,
+          "delta": 10.286827087402344,
+          "answer": null,
+          "correct": false,
+          "margin": 0.0,
+          "exposure": 8
+        }
+      ],
+      "shared_image_cols": 9,
+      "image_k": 30
+    },
+    "43": {
+      "items": [
+        {
+          "form": "boys",
+          "mass_PL": 64.77439880371094,
+          "mass_SG": 65.91922760009766,
+          "delta": -1.1448287963867188,
+          "answer": "PL",
+          "correct": true,
+          "margin": 0.06666666666666668,
+          "exposure": 4
+        },
+        {
+          "form": "girls",
+          "mass_PL": 137.23509216308594,
+          "mass_SG": 71.422119140625,
+          "delta": 65.81297302246094,
+          "answer": "PL",
+          "correct": true,
+          "margin": 0.16666666666666669,
+          "exposure": 16
+        },
+        {
+          "form": "babies",
+          "mass_PL": 60.86945343017578,
+          "mass_SG": 67.37688446044922,
+          "delta": -6.5074310302734375,
+          "answer": "PL",
+          "correct": true,
+          "margin": 0.033333333333333326,
+          "exposure": 4
+        },
+        {
+          "form": "ears",
+          "mass_PL": 25.274873733520508,
+          "mass_SG": 43.758094787597656,
+          "delta": -18.48322105407715,
+          "answer": "SG",
+          "correct": false,
+          "margin": -0.06666666666666668,
+          "exposure": 4
+        },
+        {
+          "form": "hands",
+          "mass_PL": 34.19594192504883,
+          "mass_SG": 36.4656982421875,
+          "delta": -2.269756317138672,
+          "answer": "SG",
+          "correct": false,
+          "margin": -0.06666666666666667,
+          "exposure": 4
+        },
+        {
+          "form": "legs",
+          "mass_PL": 91.44027709960938,
+          "mass_SG": 51.0358772277832,
+          "delta": 40.40439987182617,
+          "answer": "PL",
+          "correct": true,
+          "margin": 0.1,
+          "exposure": 4
+        },
+        {
+          "form": "hearts",
+          "mass_PL": 49.94422912597656,
+          "mass_SG": 73.72329711914062,
+          "delta": -23.779067993164062,
+          "answer": "SG",
+          "correct": false,
+          "margin": -0.16666666666666666,
+          "exposure": 4
+        },
+        {
+          "form": "gifts",
+          "mass_PL": 25.352130889892578,
+          "mass_SG": 53.06681823730469,
+          "delta": -27.71468734741211,
+          "answer": "SG",
+          "correct": false,
+          "margin": -0.16666666666666666,
+          "exposure": 4
+        },
+        {
+          "form": "windows",
+          "mass_PL": 34.85251998901367,
+          "mass_SG": 32.702362060546875,
+          "delta": 2.150157928466797,
+          "answer": "PL",
+          "correct": true,
+          "margin": 0.033333333333333326,
+          "exposure": 4
+        },
+        {
+          "form": "winds",
+          "mass_PL": 63.480464935302734,
+          "mass_SG": 62.425559997558594,
+          "delta": 1.0549049377441406,
+          "answer": "SG",
+          "correct": false,
+          "margin": -0.033333333333333326,
+          "exposure": 8
+        }
+      ],
+      "shared_image_cols": 11,
+      "image_k": 30
+    }
+  }
+}
