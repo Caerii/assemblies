@@ -1,0 +1,3 @@
+n=1e5 L0G2 seed=42 sg=0.997 pl=0.783 bal=0.890
+n=1e5 L0G2 seed=43 sg=1.000 pl=0.283 bal=0.641
+n=1e5 L0G2 seed=44 sg=1.000 pl=0.391 bal=0.696

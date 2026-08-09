@@ -1,0 +1,7 @@
+n=100000 L0G4 seed=42 sg=1.000 pl=0.891 bal=0.946 (28.8s train)
+n=100000 L0G4 seed=43 sg=0.997 pl=0.283 bal=0.640 (28.4s train)
+n=100000 L0G4 seed=44 sg=1.000 pl=0.500 bal=0.750 (24.7s train)
+sg {'mean': 0.9990817263544536, 'ci': 0.0039513314967860825}
+pl {'mean': 0.5579710144927537, 'ci': 0.7663210035535322}
+bal {'mean': 0.7785263704236036, 'ci': 0.3846899281259488}
+-> F:\Github\assemblies-run-e2\research\experiments\paper_regime_scale_results.json
