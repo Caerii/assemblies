@@ -221,6 +221,32 @@ class MorphosyntaxMixin:
         from ..core.areas import feature_value_area
         return feature_value_area(feature, label)
 
+    @contextmanager
+    def _value_area_recurrence(self):
+        """Let a split training episode actually train tgt->tgt.
+
+        brain.project_rounds' allow_self gate silently DROPS self-loop
+        sources unless recurrent_projection is on (the #89 disagreement;
+        found when E16's multi-step competition read bit-identical drives
+        -- the dead self-fiber had never been trained). The flag must not
+        flip globally (brain.py's warning: self-recurrence during training
+        is the collapse channel for MULTI-assembly areas), but a per-VALUE
+        area is single-attractor BY DESIGN -- the one regime where
+        recurrent deepening is the paper's latching substrate rather than
+        a merge hazard -- and norm_init satisfies the gate's other
+        conjunct. Bracketed per episode, split path only.
+        """
+        if not getattr(self, "split_feature_areas", False):
+            yield
+            return
+        brain = self.brain
+        prev = getattr(brain, "recurrent_projection", False)
+        brain.recurrent_projection = True
+        try:
+            yield
+        finally:
+            brain.recurrent_projection = prev
+
     def _ensure_value_areas(self, feature: str) -> List[str]:
         """Create `feature`'s per-value areas + their MI group, idempotently.
 
@@ -288,7 +314,8 @@ class MorphosyntaxMixin:
                     # Project tense + verb → TENSE area. The gain brackets
                     # the AFFERENT fiber only -- the one recall probes.
                     gain = self._novelty_gain("TENSE", word)
-                    with self._gain_on_fiber(tgt, VERB_CORE, gain):
+                    with self._gain_on_fiber(tgt, VERB_CORE, gain), \
+                            self._value_area_recurrence():
                         self.brain.project(
                             {tense_stim: [tgt], phon: [VERB_CORE]},
                             {VERB_CORE: [tgt]},
@@ -503,7 +530,8 @@ class MorphosyntaxMixin:
                 # Project number_stim + word phon -> NUMBER area, novelty
                 # gain on the afferent fiber (see _novelty_gain).
                 gain = self._novelty_gain("NUMBER", word)
-                with self._gain_on_fiber(tgt, core_area, gain):
+                with self._gain_on_fiber(tgt, core_area, gain), \
+                        self._value_area_recurrence():
                     self.brain.project(
                         {num_stim: [tgt], phon: [core_area]},
                         {core_area: [tgt]},
@@ -726,6 +754,17 @@ class MorphosyntaxMixin:
             #              accumulation before the commitment.
             mode = getattr(self, "mi_readout_mode", "oneshot")
             T = max(1, int(getattr(self, "mi_latch_rounds", 1)))
+            # SELF-RECURRENCE BRACKET. brain.project's allow_self gate
+            # silently DROPS {A: [A]} sources unless recurrent_projection
+            # is on (the #89 disagreement; caught here as bit-identical
+            # scores across T -- the silent-no-op-dead-fibers signature).
+            # The flag must not flip globally (brain.py's own warning:
+            # it changes every projection's regime), so it is bracketed
+            # around this read_only competition only; norm_init satisfies
+            # the gate's other conjunct on production parsers.
+            prev_rec = getattr(brain, "recurrent_projection", False)
+            if T > 1:
+                brain.recurrent_projection = True
             try:
                 if mode == "settled" and T > 1:
                     for area in areas_list:
@@ -748,6 +787,7 @@ class MorphosyntaxMixin:
                                 dst[area] = [area]
                             brain.project({}, dst)
             finally:
+                brain.recurrent_projection = prev_rec
                 brain.areas[core_area].unfix_assembly()
             drive = dict(getattr(brain, "last_activation_scores", {}) or {})
             diag["mode"] = mode
