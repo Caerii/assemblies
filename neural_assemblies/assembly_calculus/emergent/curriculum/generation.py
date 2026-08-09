@@ -92,9 +92,20 @@ PLURAL_RATE = 0.30
 #:               the label images; Zipf is the REDISTRIBUTION lever --
 #:               per-form exposure rises on head forms at CONSTANT total
 #:               episode and label-stimulus budget.
-#: DEFAULT STAYS "uniform": E6 measured coverage as a regression, and
-#: "zipf" must likewise FOLLOW E13's (#142) multi-seed verdict, not
-#: precede it. Experiments patch this module attribute in their workers.
+#: THE VERDICT IS NOW IN (#149). E13 (#142): zipf at the default 50-frame
+#: budget is a NULL -- redistribution needs a budget worth redistributing
+#: (~12 total PL episodes cannot be reallocated into reliability). E14
+#: (#143): the gain is the zipf x budget INTERACTION. E15-E19b: every
+#: terminal number of the arc (0.700 thrice-replicated, 0.727 +/- 0.037)
+#: lives on zipf-200. So the DEFAULT STAYS "uniform" *because the default
+#: budget is 50*: at that budget zipf was measured to buy nothing, and
+#: the uniform-50 corpus is the substrate of every non-morph arc's
+#: standing measurement. The production configuration adopts zipf JOINTLY
+#: with FRAMES_PER_STAGE=200 -- see
+#: research/notes/production_configuration.md. The real resolution is the
+#: CHILDES corpus (#30/#150), whose statistics are Zipfian without this
+#: knob existing at all. Experiments patch this module attribute in
+#: their workers.
 SUBJECT_SAMPLING = "uniform"
 
 #: Zipf exponent s for SUBJECT_SAMPLING="zipf" (weights 1/rank^s).
