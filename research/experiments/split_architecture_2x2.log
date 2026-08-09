@@ -1,0 +1,146 @@
+[E15 UNIFORM-50 seed=48] num bal=0.550 (PL n=10, exp=14) | tense=0.561 | margin=0.090 | agree=9/10 | roles 4/4
+[done ('UNIFORM', 50, 48)]
+[E15 UNIFORM-50 seed=43] num bal=0.800 (PL n=10, exp=14) | tense=0.639 | margin=0.060 | agree=4/9 | roles 4/4
+[E15 UNIFORM-50 seed=44] num bal=0.500 (PL n=10, exp=14) | tense=0.688 | margin=0.054 | agree=5/10 | roles 4/4
+[done ('UNIFORM', 50, 43)]
+[E15 UNIFORM-50 seed=46] num bal=0.750 (PL n=10, exp=14) | tense=0.556 | margin=0.105 | agree=5/8 | roles 4/4
+[E15 UNIFORM-50 seed=45] num bal=0.800 (PL n=10, exp=14) | tense=0.543 | margin=0.113 | agree=7/8 | roles 4/4
+[done ('UNIFORM', 50, 44)]
+[E15 UNIFORM-50 seed=42] num bal=0.450 (PL n=10, exp=14) | tense=0.663 | margin=0.063 | agree=3/10 | roles 4/4
+[done ('UNIFORM', 50, 46)]
+[done ('UNIFORM', 50, 45)]
+[done ('UNIFORM', 50, 42)]
+[E15 UNIFORM-50 seed=51] num bal=0.700 (PL n=10, exp=14) | tense=0.715 | margin=0.084 | agree=6/9 | roles 4/4
+[E15 UNIFORM-50 seed=47] num bal=0.550 (PL n=10, exp=14) | tense=0.577 | margin=0.083 | agree=5/7 | roles 4/4
+[done ('UNIFORM', 50, 51)]
+[done ('UNIFORM', 50, 47)]
+[E15 UNIFORM-50 seed=50] num bal=0.650 (PL n=10, exp=14) | tense=0.556 | margin=0.091 | agree=3/6 | roles 4/4
+[done ('UNIFORM', 50, 50)]
+[E15 UNIFORM-50 seed=49] num bal=0.450 (PL n=10, exp=14) | tense=0.661 | margin=0.103 | agree=7/9 | roles 4/4
+[done ('UNIFORM', 50, 49)]
+[E15 UNIFORM-200 seed=42] num bal=0.525 (PL n=40, exp=56) | tense=0.666 | margin=0.146 | agree=22/34 | roles 4/4
+[done ('UNIFORM', 200, 42)]
+[E15 UNIFORM-200 seed=45] num bal=0.562 (PL n=40, exp=56) | tense=0.558 | margin=0.099 | agree=25/34 | roles 4/4
+[done ('UNIFORM', 200, 45)]
+[E15 UNIFORM-200 seed=43] num bal=0.550 (PL n=40, exp=56) | tense=0.562 | margin=0.120 | agree=22/31 | roles 4/4
+[done ('UNIFORM', 200, 43)]
+[E15 UNIFORM-200 seed=44] num bal=0.550 (PL n=40, exp=56) | tense=0.631 | margin=0.129 | agree=16/36 | roles 4/4
+[done ('UNIFORM', 200, 44)]
+[E15 ZIPF-50 seed=42] num bal=0.667 (PL n=9, exp=11) | tense=0.679 | margin=0.071 | agree=1/4 | roles 4/4
+[E15 ZIPF-50 seed=43] num bal=0.611 (PL n=9, exp=11) | tense=0.666 | margin=0.074 | agree=6/8 | roles 4/4
+[done ('ZIPF', 50, 42)]
+[done ('ZIPF', 50, 43)]
+[E15 ZIPF-50 seed=44] num bal=0.444 (PL n=9, exp=11) | tense=0.683 | margin=0.065 | agree=4/7 | roles 4/4
+[done ('ZIPF', 50, 44)]
+[E15 ZIPF-50 seed=45] num bal=0.556 (PL n=9, exp=11) | tense=0.514 | margin=0.144 | agree=4/8 | roles 4/4
+[done ('ZIPF', 50, 45)]
+[E15 UNIFORM-200 seed=47] num bal=0.600 (PL n=40, exp=56) | tense=0.647 | margin=0.083 | agree=27/36 | roles 4/4
+[done ('UNIFORM', 200, 47)]
+[E15 UNIFORM-200 seed=50] num bal=0.575 (PL n=40, exp=56) | tense=0.596 | margin=0.106 | agree=23/36 | roles 4/4
+[done ('UNIFORM', 200, 50)]
+[E15 UNIFORM-200 seed=46] num bal=0.575 (PL n=40, exp=56) | tense=0.599 | margin=0.094 | agree=20/35 | roles 4/4
+[E15 UNIFORM-200 seed=51] num bal=0.738 (PL n=40, exp=56) | tense=0.650 | margin=0.086 | agree=20/31 | roles 4/4
+[done ('UNIFORM', 200, 46)]
+[done ('UNIFORM', 200, 51)]
+[E15 UNIFORM-200 seed=49] num bal=0.562 (PL n=40, exp=56) | tense=0.586 | margin=0.072 | agree=22/33 | roles 4/4
+[done ('UNIFORM', 200, 49)]
+[E15 ZIPF-50 seed=47] num bal=0.722 (PL n=9, exp=11) | tense=0.631 | margin=0.054 | agree=4/5 | roles 4/4
+[done ('ZIPF', 50, 47)]
+[E15 ZIPF-50 seed=46] num bal=0.556 (PL n=9, exp=11) | tense=0.612 | margin=0.057 | agree=2/8 | roles 4/4
+[done ('ZIPF', 50, 46)]
+[E15 UNIFORM-200 seed=48] num bal=0.662 (PL n=40, exp=56) | tense=0.591 | margin=0.114 | agree=22/35 | roles 4/4
+[done ('UNIFORM', 200, 48)]
+[E15 ZIPF-50 seed=48] num bal=0.611 (PL n=9, exp=11) | tense=0.698 | margin=0.074 | agree=3/5 | roles 4/4
+[done ('ZIPF', 50, 48)]
+[E15 ZIPF-50 seed=49] num bal=0.667 (PL n=9, exp=11) | tense=0.548 | margin=0.054 | agree=5/8 | roles 4/4
+[done ('ZIPF', 50, 49)]
+[E15 ZIPF-50 seed=51] num bal=0.722 (PL n=9, exp=11) | tense=0.764 | margin=0.099 | agree=3/7 | roles 4/4
+[done ('ZIPF', 50, 51)]
+[E15 ZIPF-50 seed=50] num bal=0.389 (PL n=9, exp=11) | tense=0.731 | margin=0.055 | agree=4/8 | roles 4/4
+[done ('ZIPF', 50, 50)]
+[E15 ZIPF-200 seed=43] num bal=0.700 (PL n=30, exp=49) | tense=0.621 | margin=0.072 | agree=15/23 | roles 4/4
+[done ('ZIPF', 200, 43)]
+[E15 ZIPF-200 seed=42] num bal=0.667 (PL n=30, exp=49) | tense=0.588 | margin=0.090 | agree=18/28 | roles 4/4
+[done ('ZIPF', 200, 42)]
+[E15 ZIPF-200 seed=44] num bal=0.517 (PL n=30, exp=49) | tense=0.625 | margin=0.160 | agree=16/27 | roles 4/4
+[done ('ZIPF', 200, 44)]
+[E15 ZIPF-200 seed=45] num bal=0.567 (PL n=30, exp=49) | tense=0.573 | margin=0.119 | agree=13/28 | roles 4/4
+[done ('ZIPF', 200, 45)]
+[E15 ZIPF-200 seed=50] num bal=0.667 (PL n=30, exp=49) | tense=0.626 | margin=0.093 | agree=18/27 | roles 4/4
+[done ('ZIPF', 200, 50)]
+[E15 ZIPF-200 seed=46] num bal=0.583 (PL n=30, exp=49) | tense=0.608 | margin=0.104 | agree=16/26 | roles 4/4
+[done ('ZIPF', 200, 46)]
+[E15 ZIPF-200 seed=48] num bal=0.733 (PL n=30, exp=49) | tense=0.653 | margin=0.075 | agree=14/26 | roles 4/4
+[E15 ZIPF-200 seed=49] num bal=0.683 (PL n=30, exp=49) | tense=0.530 | margin=0.078 | agree=15/27 | roles 4/4
+[done ('ZIPF', 200, 48)]
+[done ('ZIPF', 200, 49)]
+[E15 ZIPF-200 seed=47] num bal=0.617 (PL n=30, exp=49) | tense=0.701 | margin=0.098 | agree=16/25 | roles 4/4
+[E15 ZIPF-200 seed=51] num bal=0.633 (PL n=30, exp=49) | tense=0.658 | margin=0.105 | agree=20/27 | roles 4/4
+[done ('ZIPF', 200, 47)]
+[done ('ZIPF', 200, 51)]
+
+=== the split 2x2 (attested number balanced, MI readout) ===
+UNIFORM-200 : 0.5900 +/- 0.0456 (n=10, 0.5250..0.7375)
+UNIFORM-50  : 0.6200 +/- 0.0986 (n=10, 0.4500..0.8000)
+ZIPF-200    : 0.6367 +/- 0.0476 (n=10, 0.5167..0.7333)
+ZIPF-50     : 0.5944 +/- 0.0796 (n=10, 0.3889..0.7222)
+
+=== same cells, OVERLAP readout (the readout A/B) ===
+UNIFORM-200 : 0.6050 +/- 0.0391 (n=10, 0.5250..0.6750)
+UNIFORM-50  : 0.5400 +/- 0.0750 (n=10, 0.4000..0.7500)
+ZIPF-200    : 0.7000 +/- 0.0373 (n=10, 0.6333..0.8000)
+ZIPF-50     : 0.5278 +/- 0.0800 (n=10, 0.3333..0.6667)
+
+=== registered bars ===
+A  structural: label images in disjoint areas, all cells: True
+A  mean MI margin UNIFORM-200: 0.1048 +/- 0.0164 (n=10, 0.0717..0.1463)
+A  mean MI margin UNIFORM-50: 0.0846 +/- 0.0145 (n=10, 0.0537..0.1130)
+A  mean MI margin ZIPF-200: 0.0994 +/- 0.0185 (n=10, 0.0718..0.1598)
+A  mean MI margin ZIPF-50: 0.0747 +/- 0.0201 (n=10, 0.0538..0.1442)
+B  zipf-200 balanced (bar >= 0.75): 0.6367 +/- 0.0476 (n=10, 0.5167..0.7333)
+C  rho(mass delta, correct) ZIPF-200 per seed: {42: 0.535, 43: 0.401, 44: 0.532, 45: 0.442, 46: 0.578, 47: 0.523, 48: 0.42, 49: 0.348, 50: 0.587, 51: 0.662}
+   over 10/10 defined seeds: 0.5027 +/- 0.0697 (n=10, 0.3476..0.6617)
+D1 uniform budget slope (E14 was -0.160): -0.0300 +/- 0.1021 (n=10, -0.2500..0.1125)
+D2 uniform-200-split: 0.5900 +/- 0.0456 (n=10, 0.5250..0.7375)  vs E14 shared-area 0.490+/-0.052 (different readout -- caveat)
+
+=== guards ===
+tense UNIFORM-200: 0.6086 +/- 0.0269 (n=10, 0.5582..0.6661)
+tense UNIFORM-50: 0.6157 +/- 0.0458 (n=10, 0.5426..0.7148)
+tense ZIPF-200: 0.6183 +/- 0.0342 (n=10, 0.5302..0.7012)
+tense ZIPF-50: 0.6526 +/- 0.0557 (n=10, 0.5138..0.7638)
+UNIFORM-200: roles 40/40 | readout agreement 219/341 | attested PL n=40
+UNIFORM-50: roles 40/40 | readout agreement 54/86 | attested PL n=10
+ZIPF-200: roles 40/40 | readout agreement 161/264 | attested PL n=30
+ZIPF-50: roles 40/40 | readout agreement 36/68 | attested PL n=9
+
+=== zipf-200 per-item (pooled over seeds) ===
+  children   exp/seed=  4.0  acc=0.50
+  foods      exp/seed=  4.0  acc=0.40
+  women      exp/seed=  4.0  acc=0.10
+  babies     exp/seed=  2.0  acc=0.20
+  books      exp/seed=  2.0  acc=0.30
+  boys       exp/seed=  2.0  acc=0.30
+  fires      exp/seed=  2.0  acc=0.40
+  heads      exp/seed=  2.0  acc=0.00
+  houses     exp/seed=  2.0  acc=0.20
+  men        exp/seed=  2.0  acc=0.20
+  mothers    exp/seed=  2.0  acc=0.30
+  papers     exp/seed=  2.0  acc=0.40
+  trees      exp/seed=  2.0  acc=0.40
+  chairs     exp/seed=  1.0  acc=0.20
+  clouds     exp/seed=  1.0  acc=0.30
+  dads       exp/seed=  1.0  acc=0.40
+  dogs       exp/seed=  1.0  acc=0.10
+  eyes       exp/seed=  1.0  acc=0.20
+  friends    exp/seed=  1.0  acc=0.50
+  gifts      exp/seed=  1.0  acc=0.50
+  girls      exp/seed=  1.0  acc=0.30
+  hearts     exp/seed=  1.0  acc=0.50
+  mice       exp/seed=  1.0  acc=0.30
+  moms       exp/seed=  1.0  acc=0.60
+  pictures   exp/seed=  1.0  acc=0.40
+  rocks      exp/seed=  1.0  acc=0.50
+  rooms      exp/seed=  1.0  acc=0.40
+  suns       exp/seed=  1.0  acc=0.30
+  tables     exp/seed=  1.0  acc=0.60
+  worlds     exp/seed=  1.0  acc=0.10
