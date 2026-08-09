@@ -1,0 +1,1807 @@
+{
+  "44": {
+    "items": {
+      "PL": [
+        {
+          "form": "boys",
+          "lemma": "boy",
+          "overlap": 0.0,
+          "placebo_overlap": 0.0,
+          "answer": "PL",
+          "correct": true,
+          "margin": 0.03333333333333334,
+          "exposure_form": 1,
+          "exposure_lemma": 3
+        },
+        {
+          "form": "girls",
+          "lemma": "girl",
+          "overlap": 0.0,
+          "placebo_overlap": 0.0,
+          "answer": "PL",
+          "correct": true,
+          "margin": 0.06666666666666668,
+          "exposure_form": 4,
+          "exposure_lemma": 2
+        },
+        {
+          "form": "babies",
+          "lemma": "baby",
+          "overlap": 0.0,
+          "placebo_overlap": 0.03333333333333333,
+          "answer": "PL",
+          "correct": true,
+          "margin": 0.06666666666666667,
+          "exposure_form": 1,
+          "exposure_lemma": 1
+        },
+        {
+          "form": "ears",
+          "lemma": "ear",
+          "overlap": 0.03333333333333333,
+          "placebo_overlap": 0.03333333333333333,
+          "answer": null,
+          "correct": false,
+          "margin": 0.0,
+          "exposure_form": 1,
+          "exposure_lemma": 1
+        },
+        {
+          "form": "hands",
+          "lemma": "hand",
+          "overlap": 0.0,
+          "placebo_overlap": 0.0,
+          "answer": "SG",
+          "correct": false,
+          "margin": -0.033333333333333326,
+          "exposure_form": 1,
+          "exposure_lemma": 1
+        },
+        {
+          "form": "legs",
+          "lemma": "leg",
+          "overlap": 0.03333333333333333,
+          "placebo_overlap": 0.0,
+          "answer": "SG",
+          "correct": false,
+          "margin": -0.06666666666666668,
+          "exposure_form": 1,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "hearts",
+          "lemma": "heart",
+          "overlap": 0.03333333333333333,
+          "placebo_overlap": 0.03333333333333333,
+          "answer": "PL",
+          "correct": true,
+          "margin": 0.2,
+          "exposure_form": 1,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "gifts",
+          "lemma": "gift",
+          "overlap": 0.03333333333333333,
+          "placebo_overlap": 0.06666666666666667,
+          "answer": "SG",
+          "correct": false,
+          "margin": -0.033333333333333326,
+          "exposure_form": 1,
+          "exposure_lemma": 1
+        },
+        {
+          "form": "windows",
+          "lemma": "window",
+          "overlap": 0.03333333333333333,
+          "placebo_overlap": 0.06666666666666667,
+          "answer": "SG",
+          "correct": false,
+          "margin": -0.06666666666666668,
+          "exposure_form": 1,
+          "exposure_lemma": 1
+        },
+        {
+          "form": "winds",
+          "lemma": "wind",
+          "overlap": 0.0,
+          "placebo_overlap": 0.0,
+          "answer": "PL",
+          "correct": true,
+          "margin": 0.06666666666666667,
+          "exposure_form": 2,
+          "exposure_lemma": 1
+        }
+      ],
+      "PAST": [
+        {
+          "form": "walked",
+          "lemma": "walk",
+          "overlap": 0.0,
+          "placebo_overlap": 0.06666666666666667,
+          "answer": "PAST",
+          "correct": true,
+          "margin": 0.33333333333333337,
+          "exposure_form": 1,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "returned",
+          "lemma": "return",
+          "overlap": 0.0,
+          "placebo_overlap": 0.0,
+          "answer": "PAST",
+          "correct": true,
+          "margin": 0.23333333333333334,
+          "exposure_form": 1,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "arrived",
+          "lemma": "arrive",
+          "overlap": 0.03333333333333333,
+          "placebo_overlap": 0.0,
+          "answer": "PAST",
+          "correct": true,
+          "margin": 0.06666666666666668,
+          "exposure_form": 1,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "looked",
+          "lemma": "look",
+          "overlap": 0.0,
+          "placebo_overlap": 0.0,
+          "answer": "PAST",
+          "correct": true,
+          "margin": 0.16666666666666666,
+          "exposure_form": 1,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "said",
+          "lemma": "say",
+          "overlap": 0.03333333333333333,
+          "placebo_overlap": 0.06666666666666667,
+          "answer": "PRESENT",
+          "correct": false,
+          "margin": -0.06666666666666668,
+          "exposure_form": 0,
+          "exposure_lemma": 1
+        },
+        {
+          "form": "told",
+          "lemma": "tell",
+          "overlap": 0.0,
+          "placebo_overlap": 0.0,
+          "answer": "PAST",
+          "correct": true,
+          "margin": 0.4666666666666667,
+          "exposure_form": 3,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "talked",
+          "lemma": "talk",
+          "overlap": 0.0,
+          "placebo_overlap": 0.03333333333333333,
+          "answer": "PRESENT",
+          "correct": false,
+          "margin": -0.1333333333333333,
+          "exposure_form": 1,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "brought",
+          "lemma": "bring",
+          "overlap": 0.1,
+          "placebo_overlap": 0.06666666666666667,
+          "answer": "PAST",
+          "correct": true,
+          "margin": 0.06666666666666665,
+          "exposure_form": 2,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "carried",
+          "lemma": "carry",
+          "overlap": 0.06666666666666667,
+          "placebo_overlap": 0.0,
+          "answer": "PAST",
+          "correct": true,
+          "margin": 0.06666666666666665,
+          "exposure_form": 1,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "chose",
+          "lemma": "choose",
+          "overlap": 0.03333333333333333,
+          "placebo_overlap": null,
+          "answer": "PRESENT",
+          "correct": false,
+          "margin": -0.03333333333333334,
+          "exposure_form": 1,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "loved",
+          "lemma": "love",
+          "overlap": 0.0,
+          "placebo_overlap": null,
+          "answer": "PAST",
+          "correct": true,
+          "margin": 0.03333333333333334,
+          "exposure_form": 0,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "wanted",
+          "lemma": "want",
+          "overlap": 0.0,
+          "placebo_overlap": null,
+          "answer": "PAST",
+          "correct": true,
+          "margin": 0.33333333333333337,
+          "exposure_form": 2,
+          "exposure_lemma": 1
+        },
+        {
+          "form": "hoped",
+          "lemma": "hope",
+          "overlap": 0.03333333333333333,
+          "placebo_overlap": null,
+          "answer": "PRESENT",
+          "correct": false,
+          "margin": -0.06666666666666668,
+          "exposure_form": 0,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "missed",
+          "lemma": "miss",
+          "overlap": 0.0,
+          "placebo_overlap": 0.03333333333333333,
+          "answer": "PRESENT",
+          "correct": false,
+          "margin": -0.13333333333333333,
+          "exposure_form": 0,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "worried",
+          "lemma": "worry",
+          "overlap": 0.03333333333333333,
+          "placebo_overlap": null,
+          "answer": "PRESENT",
+          "correct": false,
+          "margin": -0.13333333333333336,
+          "exposure_form": 0,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "grew",
+          "lemma": "grow",
+          "overlap": 0.03333333333333333,
+          "placebo_overlap": 0.03333333333333333,
+          "answer": "PAST",
+          "correct": true,
+          "margin": 0.23333333333333334,
+          "exposure_form": 1,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "fixed",
+          "lemma": "fix",
+          "overlap": 0.03333333333333333,
+          "placebo_overlap": 0.03333333333333333,
+          "answer": "PRESENT",
+          "correct": false,
+          "margin": -0.1,
+          "exposure_form": 0,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "ate",
+          "lemma": "eat",
+          "overlap": 0.03333333333333333,
+          "placebo_overlap": 0.0,
+          "answer": "PRESENT",
+          "correct": false,
+          "margin": -0.13333333333333333,
+          "exposure_form": 1,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "slept",
+          "lemma": "sleep",
+          "overlap": 0.03333333333333333,
+          "placebo_overlap": 0.06666666666666667,
+          "answer": "PAST",
+          "correct": true,
+          "margin": 0.26666666666666666,
+          "exposure_form": 1,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "closed",
+          "lemma": "close",
+          "overlap": 0.0,
+          "placebo_overlap": 0.0,
+          "answer": "PRESENT",
+          "correct": false,
+          "margin": -0.1,
+          "exposure_form": 0,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "showed",
+          "lemma": "show",
+          "overlap": 0.0,
+          "placebo_overlap": 0.03333333333333333,
+          "answer": "PRESENT",
+          "correct": false,
+          "margin": -0.09999999999999998,
+          "exposure_form": 1,
+          "exposure_lemma": 0
+        }
+      ]
+    },
+    "skipped": [
+      [
+        "PAST",
+        "surprised",
+        "no core image"
+      ],
+      [
+        "PAST",
+        "was",
+        "no core image"
+      ]
+    ]
+  },
+  "45": {
+    "items": {
+      "PL": [
+        {
+          "form": "boys",
+          "lemma": "boy",
+          "overlap": 0.0,
+          "placebo_overlap": 0.0,
+          "answer": "PL",
+          "correct": true,
+          "margin": 0.06666666666666668,
+          "exposure_form": 1,
+          "exposure_lemma": 3
+        },
+        {
+          "form": "girls",
+          "lemma": "girl",
+          "overlap": 0.03333333333333333,
+          "placebo_overlap": 0.03333333333333333,
+          "answer": "PL",
+          "correct": true,
+          "margin": 0.13333333333333333,
+          "exposure_form": 4,
+          "exposure_lemma": 2
+        },
+        {
+          "form": "babies",
+          "lemma": "baby",
+          "overlap": 0.0,
+          "placebo_overlap": 0.0,
+          "answer": "SG",
+          "correct": false,
+          "margin": -0.06666666666666667,
+          "exposure_form": 1,
+          "exposure_lemma": 1
+        },
+        {
+          "form": "ears",
+          "lemma": "ear",
+          "overlap": 0.03333333333333333,
+          "placebo_overlap": 0.0,
+          "answer": "SG",
+          "correct": false,
+          "margin": -0.2333333333333333,
+          "exposure_form": 1,
+          "exposure_lemma": 1
+        },
+        {
+          "form": "hands",
+          "lemma": "hand",
+          "overlap": 0.03333333333333333,
+          "placebo_overlap": 0.03333333333333333,
+          "answer": null,
+          "correct": false,
+          "margin": 0.0,
+          "exposure_form": 1,
+          "exposure_lemma": 1
+        },
+        {
+          "form": "legs",
+          "lemma": "leg",
+          "overlap": 0.03333333333333333,
+          "placebo_overlap": 0.03333333333333333,
+          "answer": "PL",
+          "correct": true,
+          "margin": 0.1,
+          "exposure_form": 1,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "hearts",
+          "lemma": "heart",
+          "overlap": 0.13333333333333333,
+          "placebo_overlap": 0.0,
+          "answer": "SG",
+          "correct": false,
+          "margin": -0.16666666666666669,
+          "exposure_form": 1,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "gifts",
+          "lemma": "gift",
+          "overlap": 0.06666666666666667,
+          "placebo_overlap": 0.0,
+          "answer": "PL",
+          "correct": true,
+          "margin": 0.1,
+          "exposure_form": 1,
+          "exposure_lemma": 1
+        },
+        {
+          "form": "windows",
+          "lemma": "window",
+          "overlap": 0.03333333333333333,
+          "placebo_overlap": 0.0,
+          "answer": "SG",
+          "correct": false,
+          "margin": -0.13333333333333333,
+          "exposure_form": 1,
+          "exposure_lemma": 1
+        },
+        {
+          "form": "winds",
+          "lemma": "wind",
+          "overlap": 0.03333333333333333,
+          "placebo_overlap": 0.0,
+          "answer": "PL",
+          "correct": true,
+          "margin": 0.13333333333333333,
+          "exposure_form": 2,
+          "exposure_lemma": 1
+        }
+      ],
+      "PAST": [
+        {
+          "form": "walked",
+          "lemma": "walk",
+          "overlap": 0.03333333333333333,
+          "placebo_overlap": 0.1,
+          "answer": "PRESENT",
+          "correct": false,
+          "margin": -0.06666666666666668,
+          "exposure_form": 1,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "returned",
+          "lemma": "return",
+          "overlap": 0.03333333333333333,
+          "placebo_overlap": 0.0,
+          "answer": "PAST",
+          "correct": true,
+          "margin": 0.2666666666666666,
+          "exposure_form": 1,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "arrived",
+          "lemma": "arrive",
+          "overlap": 0.0,
+          "placebo_overlap": 0.0,
+          "answer": "PRESENT",
+          "correct": false,
+          "margin": -0.1,
+          "exposure_form": 1,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "looked",
+          "lemma": "look",
+          "overlap": 0.03333333333333333,
+          "placebo_overlap": 0.0,
+          "answer": "PAST",
+          "correct": true,
+          "margin": 0.13333333333333333,
+          "exposure_form": 1,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "said",
+          "lemma": "say",
+          "overlap": 0.0,
+          "placebo_overlap": 0.03333333333333333,
+          "answer": "PAST",
+          "correct": true,
+          "margin": 0.16666666666666666,
+          "exposure_form": 0,
+          "exposure_lemma": 1
+        },
+        {
+          "form": "told",
+          "lemma": "tell",
+          "overlap": 0.0,
+          "placebo_overlap": 0.0,
+          "answer": "PAST",
+          "correct": true,
+          "margin": 0.43333333333333335,
+          "exposure_form": 3,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "talked",
+          "lemma": "talk",
+          "overlap": 0.0,
+          "placebo_overlap": 0.0,
+          "answer": "PAST",
+          "correct": true,
+          "margin": 0.13333333333333333,
+          "exposure_form": 1,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "brought",
+          "lemma": "bring",
+          "overlap": 0.03333333333333333,
+          "placebo_overlap": 0.0,
+          "answer": "PAST",
+          "correct": true,
+          "margin": 0.06666666666666665,
+          "exposure_form": 2,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "carried",
+          "lemma": "carry",
+          "overlap": 0.06666666666666667,
+          "placebo_overlap": 0.0,
+          "answer": "PAST",
+          "correct": true,
+          "margin": 0.13333333333333336,
+          "exposure_form": 1,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "chose",
+          "lemma": "choose",
+          "overlap": 0.0,
+          "placebo_overlap": null,
+          "answer": "PAST",
+          "correct": true,
+          "margin": 0.033333333333333354,
+          "exposure_form": 1,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "loved",
+          "lemma": "love",
+          "overlap": 0.03333333333333333,
+          "placebo_overlap": null,
+          "answer": "PAST",
+          "correct": true,
+          "margin": 0.13333333333333336,
+          "exposure_form": 0,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "wanted",
+          "lemma": "want",
+          "overlap": 0.0,
+          "placebo_overlap": null,
+          "answer": "PAST",
+          "correct": true,
+          "margin": 0.2,
+          "exposure_form": 2,
+          "exposure_lemma": 1
+        },
+        {
+          "form": "hoped",
+          "lemma": "hope",
+          "overlap": 0.0,
+          "placebo_overlap": null,
+          "answer": "PAST",
+          "correct": true,
+          "margin": 0.03333333333333334,
+          "exposure_form": 0,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "missed",
+          "lemma": "miss",
+          "overlap": 0.03333333333333333,
+          "placebo_overlap": 0.03333333333333333,
+          "answer": "PRESENT",
+          "correct": false,
+          "margin": -0.16666666666666669,
+          "exposure_form": 0,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "worried",
+          "lemma": "worry",
+          "overlap": 0.0,
+          "placebo_overlap": null,
+          "answer": "PAST",
+          "correct": true,
+          "margin": 0.13333333333333333,
+          "exposure_form": 0,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "grew",
+          "lemma": "grow",
+          "overlap": 0.03333333333333333,
+          "placebo_overlap": 0.0,
+          "answer": "PAST",
+          "correct": true,
+          "margin": 0.16666666666666669,
+          "exposure_form": 1,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "fixed",
+          "lemma": "fix",
+          "overlap": 0.0,
+          "placebo_overlap": 0.0,
+          "answer": "PRESENT",
+          "correct": false,
+          "margin": -0.13333333333333333,
+          "exposure_form": 0,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "ate",
+          "lemma": "eat",
+          "overlap": 0.03333333333333333,
+          "placebo_overlap": 0.0,
+          "answer": "PAST",
+          "correct": true,
+          "margin": 0.1333333333333333,
+          "exposure_form": 1,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "slept",
+          "lemma": "sleep",
+          "overlap": 0.06666666666666667,
+          "placebo_overlap": 0.0,
+          "answer": "PAST",
+          "correct": true,
+          "margin": 0.2333333333333333,
+          "exposure_form": 1,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "closed",
+          "lemma": "close",
+          "overlap": 0.1,
+          "placebo_overlap": 0.0,
+          "answer": "PAST",
+          "correct": true,
+          "margin": 0.06666666666666668,
+          "exposure_form": 0,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "showed",
+          "lemma": "show",
+          "overlap": 0.0,
+          "placebo_overlap": 0.06666666666666667,
+          "answer": "PRESENT",
+          "correct": false,
+          "margin": -0.06666666666666665,
+          "exposure_form": 1,
+          "exposure_lemma": 0
+        }
+      ]
+    },
+    "skipped": [
+      [
+        "PAST",
+        "surprised",
+        "no core image"
+      ],
+      [
+        "PAST",
+        "was",
+        "no core image"
+      ]
+    ]
+  },
+  "43": {
+    "items": {
+      "PL": [
+        {
+          "form": "boys",
+          "lemma": "boy",
+          "overlap": 0.03333333333333333,
+          "placebo_overlap": 0.03333333333333333,
+          "answer": "SG",
+          "correct": false,
+          "margin": -0.06666666666666668,
+          "exposure_form": 1,
+          "exposure_lemma": 3
+        },
+        {
+          "form": "girls",
+          "lemma": "girl",
+          "overlap": 0.03333333333333333,
+          "placebo_overlap": 0.0,
+          "answer": "PL",
+          "correct": true,
+          "margin": 0.1,
+          "exposure_form": 4,
+          "exposure_lemma": 2
+        },
+        {
+          "form": "babies",
+          "lemma": "baby",
+          "overlap": 0.03333333333333333,
+          "placebo_overlap": 0.0,
+          "answer": "SG",
+          "correct": false,
+          "margin": -0.06666666666666665,
+          "exposure_form": 1,
+          "exposure_lemma": 1
+        },
+        {
+          "form": "ears",
+          "lemma": "ear",
+          "overlap": 0.03333333333333333,
+          "placebo_overlap": 0.0,
+          "answer": "PL",
+          "correct": true,
+          "margin": 0.03333333333333334,
+          "exposure_form": 1,
+          "exposure_lemma": 1
+        },
+        {
+          "form": "hands",
+          "lemma": "hand",
+          "overlap": 0.0,
+          "placebo_overlap": 0.0,
+          "answer": "SG",
+          "correct": false,
+          "margin": -0.03333333333333334,
+          "exposure_form": 1,
+          "exposure_lemma": 1
+        },
+        {
+          "form": "legs",
+          "lemma": "leg",
+          "overlap": 0.03333333333333333,
+          "placebo_overlap": 0.06666666666666667,
+          "answer": "SG",
+          "correct": false,
+          "margin": -0.033333333333333354,
+          "exposure_form": 1,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "hearts",
+          "lemma": "heart",
+          "overlap": 0.03333333333333333,
+          "placebo_overlap": 0.03333333333333333,
+          "answer": "SG",
+          "correct": false,
+          "margin": -0.033333333333333326,
+          "exposure_form": 1,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "gifts",
+          "lemma": "gift",
+          "overlap": 0.03333333333333333,
+          "placebo_overlap": 0.06666666666666667,
+          "answer": "PL",
+          "correct": true,
+          "margin": 0.13333333333333333,
+          "exposure_form": 1,
+          "exposure_lemma": 1
+        },
+        {
+          "form": "windows",
+          "lemma": "window",
+          "overlap": 0.03333333333333333,
+          "placebo_overlap": 0.0,
+          "answer": "PL",
+          "correct": true,
+          "margin": 0.1,
+          "exposure_form": 1,
+          "exposure_lemma": 1
+        },
+        {
+          "form": "winds",
+          "lemma": "wind",
+          "overlap": 0.0,
+          "placebo_overlap": 0.0,
+          "answer": "SG",
+          "correct": false,
+          "margin": -0.06666666666666668,
+          "exposure_form": 2,
+          "exposure_lemma": 1
+        }
+      ],
+      "PAST": [
+        {
+          "form": "walked",
+          "lemma": "walk",
+          "overlap": 0.0,
+          "placebo_overlap": 0.03333333333333333,
+          "answer": "PRESENT",
+          "correct": false,
+          "margin": -0.06666666666666667,
+          "exposure_form": 1,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "returned",
+          "lemma": "return",
+          "overlap": 0.03333333333333333,
+          "placebo_overlap": 0.0,
+          "answer": "PAST",
+          "correct": true,
+          "margin": 0.03333333333333334,
+          "exposure_form": 1,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "arrived",
+          "lemma": "arrive",
+          "overlap": 0.0,
+          "placebo_overlap": 0.0,
+          "answer": "PAST",
+          "correct": true,
+          "margin": 0.033333333333333326,
+          "exposure_form": 1,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "looked",
+          "lemma": "look",
+          "overlap": 0.0,
+          "placebo_overlap": 0.0,
+          "answer": "PAST",
+          "correct": true,
+          "margin": 0.36666666666666664,
+          "exposure_form": 1,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "said",
+          "lemma": "say",
+          "overlap": 0.03333333333333333,
+          "placebo_overlap": 0.03333333333333333,
+          "answer": "PAST",
+          "correct": true,
+          "margin": 0.033333333333333354,
+          "exposure_form": 0,
+          "exposure_lemma": 1
+        },
+        {
+          "form": "told",
+          "lemma": "tell",
+          "overlap": 0.0,
+          "placebo_overlap": 0.03333333333333333,
+          "answer": "PAST",
+          "correct": true,
+          "margin": 0.4,
+          "exposure_form": 3,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "talked",
+          "lemma": "talk",
+          "overlap": 0.0,
+          "placebo_overlap": 0.03333333333333333,
+          "answer": "PAST",
+          "correct": true,
+          "margin": 0.2666666666666666,
+          "exposure_form": 1,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "brought",
+          "lemma": "bring",
+          "overlap": 0.03333333333333333,
+          "placebo_overlap": 0.0,
+          "answer": "PAST",
+          "correct": true,
+          "margin": 0.19999999999999998,
+          "exposure_form": 2,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "carried",
+          "lemma": "carry",
+          "overlap": 0.03333333333333333,
+          "placebo_overlap": 0.0,
+          "answer": "PRESENT",
+          "correct": false,
+          "margin": -0.16666666666666666,
+          "exposure_form": 1,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "chose",
+          "lemma": "choose",
+          "overlap": 0.06666666666666667,
+          "placebo_overlap": null,
+          "answer": "PAST",
+          "correct": true,
+          "margin": 0.3333333333333333,
+          "exposure_form": 1,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "loved",
+          "lemma": "love",
+          "overlap": 0.0,
+          "placebo_overlap": null,
+          "answer": "PAST",
+          "correct": true,
+          "margin": 0.1,
+          "exposure_form": 0,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "wanted",
+          "lemma": "want",
+          "overlap": 0.03333333333333333,
+          "placebo_overlap": null,
+          "answer": "PAST",
+          "correct": true,
+          "margin": 0.06666666666666665,
+          "exposure_form": 2,
+          "exposure_lemma": 1
+        },
+        {
+          "form": "hoped",
+          "lemma": "hope",
+          "overlap": 0.0,
+          "placebo_overlap": null,
+          "answer": "PAST",
+          "correct": true,
+          "margin": 0.033333333333333326,
+          "exposure_form": 0,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "missed",
+          "lemma": "miss",
+          "overlap": 0.0,
+          "placebo_overlap": 0.1,
+          "answer": "PRESENT",
+          "correct": false,
+          "margin": -0.06666666666666668,
+          "exposure_form": 0,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "worried",
+          "lemma": "worry",
+          "overlap": 0.03333333333333333,
+          "placebo_overlap": null,
+          "answer": "PAST",
+          "correct": true,
+          "margin": 0.06666666666666665,
+          "exposure_form": 0,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "grew",
+          "lemma": "grow",
+          "overlap": 0.06666666666666667,
+          "placebo_overlap": 0.03333333333333333,
+          "answer": "PAST",
+          "correct": true,
+          "margin": 0.33333333333333337,
+          "exposure_form": 1,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "fixed",
+          "lemma": "fix",
+          "overlap": 0.0,
+          "placebo_overlap": 0.0,
+          "answer": null,
+          "correct": false,
+          "margin": 0.0,
+          "exposure_form": 0,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "ate",
+          "lemma": "eat",
+          "overlap": 0.0,
+          "placebo_overlap": 0.0,
+          "answer": "PAST",
+          "correct": true,
+          "margin": 0.09999999999999999,
+          "exposure_form": 1,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "slept",
+          "lemma": "sleep",
+          "overlap": 0.0,
+          "placebo_overlap": 0.0,
+          "answer": null,
+          "correct": false,
+          "margin": 0.0,
+          "exposure_form": 1,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "closed",
+          "lemma": "close",
+          "overlap": 0.0,
+          "placebo_overlap": 0.0,
+          "answer": "PAST",
+          "correct": true,
+          "margin": 0.06666666666666667,
+          "exposure_form": 0,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "showed",
+          "lemma": "show",
+          "overlap": 0.03333333333333333,
+          "placebo_overlap": 0.0,
+          "answer": "PAST",
+          "correct": true,
+          "margin": 0.19999999999999998,
+          "exposure_form": 1,
+          "exposure_lemma": 0
+        }
+      ]
+    },
+    "skipped": [
+      [
+        "PAST",
+        "surprised",
+        "no core image"
+      ],
+      [
+        "PAST",
+        "was",
+        "no core image"
+      ]
+    ]
+  },
+  "46": {
+    "items": {
+      "PL": [
+        {
+          "form": "boys",
+          "lemma": "boy",
+          "overlap": 0.0,
+          "placebo_overlap": 0.06666666666666667,
+          "answer": "PL",
+          "correct": true,
+          "margin": 0.03333333333333333,
+          "exposure_form": 1,
+          "exposure_lemma": 3
+        },
+        {
+          "form": "girls",
+          "lemma": "girl",
+          "overlap": 0.03333333333333333,
+          "placebo_overlap": 0.0,
+          "answer": "PL",
+          "correct": true,
+          "margin": 0.2,
+          "exposure_form": 4,
+          "exposure_lemma": 2
+        },
+        {
+          "form": "babies",
+          "lemma": "baby",
+          "overlap": 0.03333333333333333,
+          "placebo_overlap": 0.1,
+          "answer": null,
+          "correct": false,
+          "margin": 0.0,
+          "exposure_form": 1,
+          "exposure_lemma": 1
+        },
+        {
+          "form": "ears",
+          "lemma": "ear",
+          "overlap": 0.0,
+          "placebo_overlap": 0.0,
+          "answer": "PL",
+          "correct": true,
+          "margin": 0.09999999999999999,
+          "exposure_form": 1,
+          "exposure_lemma": 1
+        },
+        {
+          "form": "hands",
+          "lemma": "hand",
+          "overlap": 0.0,
+          "placebo_overlap": 0.0,
+          "answer": null,
+          "correct": false,
+          "margin": 0.0,
+          "exposure_form": 1,
+          "exposure_lemma": 1
+        },
+        {
+          "form": "legs",
+          "lemma": "leg",
+          "overlap": 0.06666666666666667,
+          "placebo_overlap": 0.0,
+          "answer": "PL",
+          "correct": true,
+          "margin": 0.06666666666666667,
+          "exposure_form": 1,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "hearts",
+          "lemma": "heart",
+          "overlap": 0.0,
+          "placebo_overlap": 0.0,
+          "answer": "SG",
+          "correct": false,
+          "margin": -0.033333333333333326,
+          "exposure_form": 1,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "gifts",
+          "lemma": "gift",
+          "overlap": 0.0,
+          "placebo_overlap": 0.0,
+          "answer": "PL",
+          "correct": true,
+          "margin": 0.1,
+          "exposure_form": 1,
+          "exposure_lemma": 1
+        },
+        {
+          "form": "windows",
+          "lemma": "window",
+          "overlap": 0.0,
+          "placebo_overlap": 0.03333333333333333,
+          "answer": "SG",
+          "correct": false,
+          "margin": -0.03333333333333333,
+          "exposure_form": 1,
+          "exposure_lemma": 1
+        },
+        {
+          "form": "winds",
+          "lemma": "wind",
+          "overlap": 0.0,
+          "placebo_overlap": 0.0,
+          "answer": "PL",
+          "correct": true,
+          "margin": 0.033333333333333326,
+          "exposure_form": 2,
+          "exposure_lemma": 1
+        }
+      ],
+      "PAST": [
+        {
+          "form": "walked",
+          "lemma": "walk",
+          "overlap": 0.0,
+          "placebo_overlap": 0.06666666666666667,
+          "answer": "PAST",
+          "correct": true,
+          "margin": 0.06666666666666668,
+          "exposure_form": 1,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "returned",
+          "lemma": "return",
+          "overlap": 0.03333333333333333,
+          "placebo_overlap": 0.03333333333333333,
+          "answer": "PAST",
+          "correct": true,
+          "margin": 0.16666666666666666,
+          "exposure_form": 1,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "arrived",
+          "lemma": "arrive",
+          "overlap": 0.06666666666666667,
+          "placebo_overlap": 0.06666666666666667,
+          "answer": "PAST",
+          "correct": true,
+          "margin": 0.2333333333333333,
+          "exposure_form": 1,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "looked",
+          "lemma": "look",
+          "overlap": 0.0,
+          "placebo_overlap": 0.03333333333333333,
+          "answer": "PAST",
+          "correct": true,
+          "margin": 0.06666666666666668,
+          "exposure_form": 1,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "said",
+          "lemma": "say",
+          "overlap": 0.0,
+          "placebo_overlap": 0.03333333333333333,
+          "answer": "PRESENT",
+          "correct": false,
+          "margin": -0.06666666666666665,
+          "exposure_form": 0,
+          "exposure_lemma": 1
+        },
+        {
+          "form": "told",
+          "lemma": "tell",
+          "overlap": 0.0,
+          "placebo_overlap": 0.0,
+          "answer": "PAST",
+          "correct": true,
+          "margin": 0.1,
+          "exposure_form": 3,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "talked",
+          "lemma": "talk",
+          "overlap": 0.03333333333333333,
+          "placebo_overlap": 0.0,
+          "answer": "PRESENT",
+          "correct": false,
+          "margin": -0.2,
+          "exposure_form": 1,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "brought",
+          "lemma": "bring",
+          "overlap": 0.03333333333333333,
+          "placebo_overlap": 0.06666666666666667,
+          "answer": "PAST",
+          "correct": true,
+          "margin": 0.1,
+          "exposure_form": 2,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "carried",
+          "lemma": "carry",
+          "overlap": 0.0,
+          "placebo_overlap": 0.03333333333333333,
+          "answer": null,
+          "correct": false,
+          "margin": 0.0,
+          "exposure_form": 1,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "chose",
+          "lemma": "choose",
+          "overlap": 0.0,
+          "placebo_overlap": null,
+          "answer": "PRESENT",
+          "correct": false,
+          "margin": -0.06666666666666667,
+          "exposure_form": 1,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "loved",
+          "lemma": "love",
+          "overlap": 0.0,
+          "placebo_overlap": null,
+          "answer": null,
+          "correct": false,
+          "margin": 0.0,
+          "exposure_form": 0,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "wanted",
+          "lemma": "want",
+          "overlap": 0.0,
+          "placebo_overlap": null,
+          "answer": "PAST",
+          "correct": true,
+          "margin": 0.3666666666666667,
+          "exposure_form": 2,
+          "exposure_lemma": 1
+        },
+        {
+          "form": "hoped",
+          "lemma": "hope",
+          "overlap": 0.03333333333333333,
+          "placebo_overlap": null,
+          "answer": "PAST",
+          "correct": true,
+          "margin": 0.033333333333333326,
+          "exposure_form": 0,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "missed",
+          "lemma": "miss",
+          "overlap": 0.0,
+          "placebo_overlap": 0.06666666666666667,
+          "answer": "PRESENT",
+          "correct": false,
+          "margin": -0.06666666666666668,
+          "exposure_form": 0,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "worried",
+          "lemma": "worry",
+          "overlap": 0.0,
+          "placebo_overlap": null,
+          "answer": "PAST",
+          "correct": true,
+          "margin": 0.033333333333333326,
+          "exposure_form": 0,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "grew",
+          "lemma": "grow",
+          "overlap": 0.03333333333333333,
+          "placebo_overlap": 0.03333333333333333,
+          "answer": "PAST",
+          "correct": true,
+          "margin": 0.2666666666666666,
+          "exposure_form": 1,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "fixed",
+          "lemma": "fix",
+          "overlap": 0.0,
+          "placebo_overlap": 0.0,
+          "answer": "PAST",
+          "correct": true,
+          "margin": 0.06666666666666668,
+          "exposure_form": 0,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "ate",
+          "lemma": "eat",
+          "overlap": 0.06666666666666667,
+          "placebo_overlap": 0.03333333333333333,
+          "answer": "PRESENT",
+          "correct": false,
+          "margin": -0.033333333333333354,
+          "exposure_form": 1,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "slept",
+          "lemma": "sleep",
+          "overlap": 0.03333333333333333,
+          "placebo_overlap": 0.03333333333333333,
+          "answer": "PAST",
+          "correct": true,
+          "margin": 0.033333333333333326,
+          "exposure_form": 1,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "closed",
+          "lemma": "close",
+          "overlap": 0.0,
+          "placebo_overlap": 0.03333333333333333,
+          "answer": "PRESENT",
+          "correct": false,
+          "margin": -0.03333333333333334,
+          "exposure_form": 0,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "showed",
+          "lemma": "show",
+          "overlap": 0.0,
+          "placebo_overlap": 0.03333333333333333,
+          "answer": "PAST",
+          "correct": true,
+          "margin": 0.16666666666666663,
+          "exposure_form": 1,
+          "exposure_lemma": 0
+        }
+      ]
+    },
+    "skipped": [
+      [
+        "PAST",
+        "surprised",
+        "no core image"
+      ],
+      [
+        "PAST",
+        "was",
+        "no core image"
+      ]
+    ]
+  },
+  "42": {
+    "items": {
+      "PL": [
+        {
+          "form": "boys",
+          "lemma": "boy",
+          "overlap": 0.0,
+          "placebo_overlap": 0.03333333333333333,
+          "answer": "SG",
+          "correct": false,
+          "margin": -0.033333333333333326,
+          "exposure_form": 1,
+          "exposure_lemma": 3
+        },
+        {
+          "form": "girls",
+          "lemma": "girl",
+          "overlap": 0.03333333333333333,
+          "placebo_overlap": 0.0,
+          "answer": "PL",
+          "correct": true,
+          "margin": 0.23333333333333334,
+          "exposure_form": 4,
+          "exposure_lemma": 2
+        },
+        {
+          "form": "babies",
+          "lemma": "baby",
+          "overlap": 0.03333333333333333,
+          "placebo_overlap": 0.06666666666666667,
+          "answer": "PL",
+          "correct": true,
+          "margin": 0.03333333333333333,
+          "exposure_form": 1,
+          "exposure_lemma": 1
+        },
+        {
+          "form": "ears",
+          "lemma": "ear",
+          "overlap": 0.03333333333333333,
+          "placebo_overlap": 0.0,
+          "answer": "PL",
+          "correct": true,
+          "margin": 0.2,
+          "exposure_form": 1,
+          "exposure_lemma": 1
+        },
+        {
+          "form": "hands",
+          "lemma": "hand",
+          "overlap": 0.0,
+          "placebo_overlap": 0.0,
+          "answer": "PL",
+          "correct": true,
+          "margin": 0.06666666666666667,
+          "exposure_form": 1,
+          "exposure_lemma": 1
+        },
+        {
+          "form": "legs",
+          "lemma": "leg",
+          "overlap": 0.0,
+          "placebo_overlap": 0.03333333333333333,
+          "answer": "SG",
+          "correct": false,
+          "margin": -0.03333333333333334,
+          "exposure_form": 1,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "hearts",
+          "lemma": "heart",
+          "overlap": 0.0,
+          "placebo_overlap": 0.13333333333333333,
+          "answer": "PL",
+          "correct": true,
+          "margin": 0.06666666666666668,
+          "exposure_form": 1,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "gifts",
+          "lemma": "gift",
+          "overlap": 0.03333333333333333,
+          "placebo_overlap": 0.06666666666666667,
+          "answer": "SG",
+          "correct": false,
+          "margin": -0.19999999999999998,
+          "exposure_form": 1,
+          "exposure_lemma": 1
+        },
+        {
+          "form": "windows",
+          "lemma": "window",
+          "overlap": 0.0,
+          "placebo_overlap": 0.0,
+          "answer": "PL",
+          "correct": true,
+          "margin": 0.06666666666666668,
+          "exposure_form": 1,
+          "exposure_lemma": 1
+        },
+        {
+          "form": "winds",
+          "lemma": "wind",
+          "overlap": 0.06666666666666667,
+          "placebo_overlap": 0.0,
+          "answer": "SG",
+          "correct": false,
+          "margin": -0.2,
+          "exposure_form": 2,
+          "exposure_lemma": 1
+        }
+      ],
+      "PAST": [
+        {
+          "form": "walked",
+          "lemma": "walk",
+          "overlap": 0.0,
+          "placebo_overlap": 0.0,
+          "answer": "PAST",
+          "correct": true,
+          "margin": 0.09999999999999998,
+          "exposure_form": 1,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "returned",
+          "lemma": "return",
+          "overlap": 0.1,
+          "placebo_overlap": 0.0,
+          "answer": "PAST",
+          "correct": true,
+          "margin": 0.3,
+          "exposure_form": 1,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "arrived",
+          "lemma": "arrive",
+          "overlap": 0.03333333333333333,
+          "placebo_overlap": 0.03333333333333333,
+          "answer": "PAST",
+          "correct": true,
+          "margin": 0.06666666666666668,
+          "exposure_form": 1,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "looked",
+          "lemma": "look",
+          "overlap": 0.0,
+          "placebo_overlap": 0.0,
+          "answer": "PAST",
+          "correct": true,
+          "margin": 0.19999999999999998,
+          "exposure_form": 1,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "said",
+          "lemma": "say",
+          "overlap": 0.0,
+          "placebo_overlap": 0.0,
+          "answer": "PAST",
+          "correct": true,
+          "margin": 0.06666666666666665,
+          "exposure_form": 0,
+          "exposure_lemma": 1
+        },
+        {
+          "form": "told",
+          "lemma": "tell",
+          "overlap": 0.1,
+          "placebo_overlap": 0.1,
+          "answer": "PAST",
+          "correct": true,
+          "margin": 0.33333333333333337,
+          "exposure_form": 3,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "talked",
+          "lemma": "talk",
+          "overlap": 0.0,
+          "placebo_overlap": 0.0,
+          "answer": "PAST",
+          "correct": true,
+          "margin": 0.033333333333333326,
+          "exposure_form": 1,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "brought",
+          "lemma": "bring",
+          "overlap": 0.03333333333333333,
+          "placebo_overlap": 0.06666666666666667,
+          "answer": "PAST",
+          "correct": true,
+          "margin": 0.16666666666666669,
+          "exposure_form": 2,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "carried",
+          "lemma": "carry",
+          "overlap": 0.03333333333333333,
+          "placebo_overlap": 0.03333333333333333,
+          "answer": "PAST",
+          "correct": true,
+          "margin": 0.13333333333333333,
+          "exposure_form": 1,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "chose",
+          "lemma": "choose",
+          "overlap": 0.03333333333333333,
+          "placebo_overlap": null,
+          "answer": "PAST",
+          "correct": true,
+          "margin": 0.1,
+          "exposure_form": 1,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "loved",
+          "lemma": "love",
+          "overlap": 0.0,
+          "placebo_overlap": null,
+          "answer": "PAST",
+          "correct": true,
+          "margin": 0.033333333333333326,
+          "exposure_form": 0,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "wanted",
+          "lemma": "want",
+          "overlap": 0.03333333333333333,
+          "placebo_overlap": null,
+          "answer": "PAST",
+          "correct": true,
+          "margin": 0.19999999999999998,
+          "exposure_form": 2,
+          "exposure_lemma": 1
+        },
+        {
+          "form": "hoped",
+          "lemma": "hope",
+          "overlap": 0.03333333333333333,
+          "placebo_overlap": null,
+          "answer": "PRESENT",
+          "correct": false,
+          "margin": -0.06666666666666667,
+          "exposure_form": 0,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "missed",
+          "lemma": "miss",
+          "overlap": 0.0,
+          "placebo_overlap": 0.03333333333333333,
+          "answer": "PAST",
+          "correct": true,
+          "margin": 0.13333333333333333,
+          "exposure_form": 0,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "worried",
+          "lemma": "worry",
+          "overlap": 0.03333333333333333,
+          "placebo_overlap": null,
+          "answer": "PAST",
+          "correct": true,
+          "margin": 0.06666666666666667,
+          "exposure_form": 0,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "grew",
+          "lemma": "grow",
+          "overlap": 0.0,
+          "placebo_overlap": 0.0,
+          "answer": "PAST",
+          "correct": true,
+          "margin": 0.26666666666666666,
+          "exposure_form": 1,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "fixed",
+          "lemma": "fix",
+          "overlap": 0.0,
+          "placebo_overlap": 0.0,
+          "answer": "PRESENT",
+          "correct": false,
+          "margin": -0.06666666666666665,
+          "exposure_form": 0,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "ate",
+          "lemma": "eat",
+          "overlap": 0.0,
+          "placebo_overlap": 0.03333333333333333,
+          "answer": "PAST",
+          "correct": true,
+          "margin": 0.13333333333333333,
+          "exposure_form": 1,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "slept",
+          "lemma": "sleep",
+          "overlap": 0.0,
+          "placebo_overlap": 0.03333333333333333,
+          "answer": "PAST",
+          "correct": true,
+          "margin": 0.16666666666666669,
+          "exposure_form": 1,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "closed",
+          "lemma": "close",
+          "overlap": 0.0,
+          "placebo_overlap": 0.0,
+          "answer": null,
+          "correct": false,
+          "margin": 0.0,
+          "exposure_form": 0,
+          "exposure_lemma": 0
+        },
+        {
+          "form": "showed",
+          "lemma": "show",
+          "overlap": 0.1,
+          "placebo_overlap": 0.03333333333333333,
+          "answer": "PAST",
+          "correct": true,
+          "margin": 0.06666666666666665,
+          "exposure_form": 1,
+          "exposure_lemma": 0
+        }
+      ]
+    },
+    "skipped": [
+      [
+        "PAST",
+        "surprised",
+        "no core image"
+      ],
+      [
+        "PAST",
+        "was",
+        "no core image"
+      ]
+    ]
+  }
+}

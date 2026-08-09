@@ -1,0 +1,26 @@
+[E11 seed=44] PL 5/10 correct | overlap mean=0.017 range=(0.000,0.033) | skipped=2
+[done (44,)]
+[E11 seed=45] PL 5/10 correct | overlap mean=0.040 range=(0.000,0.133) | skipped=2
+[done (45,)]
+[E11 seed=43] PL 4/10 correct | overlap mean=0.027 range=(0.000,0.033) | skipped=2
+[done (43,)]
+[E11 seed=46] PL 6/10 correct | overlap mean=0.013 range=(0.000,0.067) | skipped=2
+[done (46,)]
+[E11 seed=42] PL 6/10 correct | overlap mean=0.020 range=(0.000,0.067) | skipped=2
+[done (42,)]
+
+=== B0 power gate (seed 42, 10 PL items) ===
+sd(overlap)=0.0221  range=0.0667  (bar: sd>0 and range>=0.15)
+B0 FAILS
+
+=== registered bars (5-seed ensembles) ===
+B1  rho(overlap, correct) PL: -0.0434 +/- 0.4604 (n=5, -0.6000..0.4082)
+B1' rho(overlap, margin) PL: 0.0060 +/- 0.4222 (n=5, -0.4216..0.3941)
+B2  overlap(fail)-overlap(pass) PL: 0.0044 +/- 0.0169 (n=5, -0.0111..0.0200)
+B4a partial rho | exposure PL: -0.0172 +/- 0.4256 (n=5, -0.4689..0.4848)
+B4b placebo rho PL: -0.1648 +/- 0.2860 (n=5, -0.3497..0.2182)
+B5  mean_overlap PAST - PL: -0.0024 +/- 0.0122 (n=5, -0.0162..0.0056)
+
+=== B3 error fingerprint (pooled over seeds) ===
+failures: 24  answered-SG: 20  ties: 4  other: 0
+pooled rho(overlap, answered-SG) = 0.0506
