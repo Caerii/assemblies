@@ -1,0 +1,83 @@
+[E17 zipf-200 seed=42] attested mi=0.667 ov=0.733 | fixed mi=0.667 ov=0.733 | tense=0.588 | PL n=30 exp=49 | roles 4/4
+[done (200, 42)]
+[E17 zipf-200 seed=50] attested mi=0.667 ov=0.633 | fixed mi=0.667 ov=0.633 | tense=0.626 | PL n=30 exp=49 | roles 4/4
+[E17 zipf-200 seed=44] attested mi=0.517 ov=0.683 | fixed mi=0.517 ov=0.683 | tense=0.625 | PL n=30 exp=49 | roles 4/4
+[E17 zipf-200 seed=43] attested mi=0.700 ov=0.633 | fixed mi=0.700 ov=0.633 | tense=0.621 | PL n=30 exp=49 | roles 4/4
+[done (200, 50)]
+[done (200, 43)]
+[done (200, 44)]
+[E17 zipf-200 seed=46] attested mi=0.583 ov=0.683 | fixed mi=0.583 ov=0.683 | tense=0.608 | PL n=30 exp=49 | roles 4/4
+[E17 zipf-200 seed=45] attested mi=0.567 ov=0.717 | fixed mi=0.567 ov=0.717 | tense=0.573 | PL n=30 exp=49 | roles 4/4
+[done (200, 46)]
+[done (200, 45)]
+[E17 zipf-200 seed=51] attested mi=0.633 ov=0.700 | fixed mi=0.633 ov=0.700 | tense=0.658 | PL n=30 exp=49 | roles 4/4
+[E17 zipf-200 seed=48] attested mi=0.733 ov=0.667 | fixed mi=0.733 ov=0.667 | tense=0.653 | PL n=30 exp=49 | roles 4/4
+[E17 zipf-200 seed=49] attested mi=0.683 ov=0.800 | fixed mi=0.683 ov=0.800 | tense=0.530 | PL n=30 exp=49 | roles 4/4
+[done (200, 51)]
+[done (200, 48)]
+[done (200, 49)]
+[E17 zipf-200 seed=47] attested mi=0.617 ov=0.750 | fixed mi=0.617 ov=0.750 | tense=0.701 | PL n=30 exp=49 | roles 4/4
+[done (200, 47)]
+[E17 zipf-400 seed=42] attested mi=0.616 ov=0.547 | fixed mi=0.633 ov=0.550 | tense=0.628 | PL n=43 exp=107 | roles 4/4
+[done (400, 42)]
+[E17 zipf-400 seed=43] attested mi=0.686 ov=0.593 | fixed mi=0.733 ov=0.633 | tense=0.632 | PL n=43 exp=107 | roles 4/4
+[done (400, 43)]
+[E17 zipf-400 seed=44] attested mi=0.570 ov=0.605 | fixed mi=0.633 ov=0.583 | tense=0.641 | PL n=43 exp=107 | roles 4/4
+[done (400, 44)]
+[E17 zipf-400 seed=45] attested mi=0.581 ov=0.547 | fixed mi=0.600 ov=0.617 | tense=0.614 | PL n=43 exp=107 | roles 4/4
+[done (400, 45)]
+[E17 zipf-400 seed=49] attested mi=0.570 ov=0.558 | fixed mi=0.617 ov=0.600 | tense=0.563 | PL n=43 exp=107 | roles 4/4
+[done (400, 49)]
+[E17 zipf-400 seed=51] attested mi=0.674 ov=0.628 | fixed mi=0.717 ov=0.667 | tense=0.661 | PL n=43 exp=107 | roles 4/4
+[done (400, 51)]
+[E17 zipf-400 seed=47] attested mi=0.593 ov=0.523 | fixed mi=0.583 ov=0.517 | tense=0.636 | PL n=43 exp=107 | roles 4/4
+[done (400, 47)]
+[E17 zipf-400 seed=48] attested mi=0.651 ov=0.547 | fixed mi=0.683 ov=0.567 | tense=0.568 | PL n=43 exp=107 | roles 4/4
+[done (400, 48)]
+[E17 zipf-400 seed=46] attested mi=0.558 ov=0.570 | fixed mi=0.600 ov=0.550 | tense=0.540 | PL n=43 exp=107 | roles 4/4
+[done (400, 46)]
+[E17 zipf-400 seed=50] attested mi=0.628 ov=0.581 | fixed mi=0.683 ov=0.617 | tense=0.590 | PL n=43 exp=107 | roles 4/4
+[done (400, 50)]
+
+=== readouts x budget ===
+zipf-200 attested mi_balanced: 0.6367 +/- 0.0476 (n=10, 0.5167..0.7333)
+zipf-200 attested ov_balanced: 0.7000 +/- 0.0373 (n=10, 0.6333..0.8000)
+zipf-200 fixed    mi_balanced: 0.6367 +/- 0.0476 (n=10, 0.5167..0.7333)
+zipf-200 fixed    ov_balanced: 0.7000 +/- 0.0373 (n=10, 0.6333..0.8000)
+zipf-400 attested mi_balanced: 0.6128 +/- 0.0328 (n=10, 0.5581..0.6860)
+zipf-400 attested ov_balanced: 0.5698 +/- 0.0229 (n=10, 0.5233..0.6279)
+zipf-400 fixed    mi_balanced: 0.6483 +/- 0.0375 (n=10, 0.5833..0.7333)
+zipf-400 fixed    ov_balanced: 0.5900 +/- 0.0324 (n=10, 0.5167..0.6667)
+
+=== registered bars ===
+R  zipf-200 overlap (E15 ref 0.700): 0.7000 +/- 0.0373 (n=10, 0.6333..0.8000)
+V  zipf-400 overlap attested (>= 0.75): 0.5698 +/- 0.0229 (n=10, 0.5233..0.6279)
+V' zipf-400 overlap FIXED exam: 0.5900 +/- 0.0324 (n=10, 0.5167..0.6667)
+
+=== guards ===
+tense zipf-200: 0.6183 +/- 0.0342 (n=10, 0.5302..0.7012)
+zipf-200: roles 40/40 | attested PL n=30 total exp=49
+tense zipf-400: 0.6073 +/- 0.0285 (n=10, 0.5399..0.6615)
+zipf-400: roles 40/40 | attested PL n=43 total exp=107
+
+=== zipf-400 exposure -> accuracy (overlap readout, pooled) ===
+  men        exp/seed= 14.0  acc=0.60
+  women      exp/seed= 10.0  acc=0.30
+  children   exp/seed=  7.0  acc=0.60
+  moms       exp/seed=  5.0  acc=0.40
+  foods      exp/seed=  5.0  acc=0.10
+  hospitals  exp/seed=  5.0  acc=0.10
+  worlds     exp/seed=  4.0  acc=0.10
+  clouds     exp/seed=  4.0  acc=0.10
+  babies     exp/seed=  3.0  acc=0.40
+  mothers    exp/seed=  3.0  acc=0.20
+  friends    exp/seed=  3.0  acc=0.20
+  boys       exp/seed=  2.0  acc=0.30
+  heads      exp/seed=  2.0  acc=0.30
+  arms       exp/seed=  2.0  acc=0.40
+  hearts     exp/seed=  2.0  acc=0.20
+  books      exp/seed=  2.0  acc=0.20
+  pictures   exp/seed=  2.0  acc=0.30
+  papers     exp/seed=  2.0  acc=0.30
+  houses     exp/seed=  2.0  acc=0.00
+  trees      exp/seed=  2.0  acc=0.10
