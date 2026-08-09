@@ -178,3 +178,75 @@ def test_generation_is_deterministic(trainer):
     first = trainer.generation.generate_generic(words, 4)
     second = trainer.generation.generate_generic(words, 4)
     assert first == second
+
+
+def test_zipf_arm_is_grammatical_and_concentrates(trainer, monkeypatch):
+    """SUBJECT_SAMPLING="zipf" (E13, #142) must stay grammatical AND actually
+    redistribute: head-noun subject share strictly above uniform's.
+
+    The concentration check is the arms-must-differ lesson as a unit test --
+    a zipf branch that draws like uniform would run E13 as a null and report
+    the baseline as a verdict. The default arm is pinned byte-identical
+    below (`test_default_sampling_unchanged_by_zipf_branch`).
+    """
+    from collections import Counter
+
+    from neural_assemblies.assembly_calculus.emergent.curriculum import (
+        generation as gen,
+    )
+
+    words = trainer._get_stage_words("SENTENCES")
+
+    def subject_counts():
+        parsed = _analyse(
+            trainer.generation.generate_generic(words, 4), words)
+        return Counter(s[2].lemma for _s, _t, _v, s, _o in parsed
+                       if s is not None and not _feat(s[2]).get("personal"))
+
+    uni = subject_counts()
+    monkeypatch.setattr(gen, "SUBJECT_SAMPLING", "zipf")
+    parsed = _analyse(
+        trainer.generation.generate_generic(words, 4), words)
+    assert parsed, "zipf arm generated no analysable sentences"
+    bad = [
+        (s, vtok) for s, vtok, vw, subj, _obj in parsed
+        if subj is not None
+        and _licensed_verb_forms(vw, subj[1], subj[2])
+        and vtok not in _licensed_verb_forms(vw, subj[1], subj[2])
+    ]
+    assert not bad, f"zipf arm breaks agreement, e.g. {bad[0][0]!r}"
+    zipf = Counter(s[2].lemma for _s, _t, _v, s, _o in parsed
+                   if s is not None and not _feat(s[2]).get("personal"))
+    assert zipf and uni
+    assert (max(zipf.values()) / sum(zipf.values())
+            > max(uni.values()) / sum(uni.values())), (
+        f"zipf head share {max(zipf.values())}/{sum(zipf.values())} not "
+        f"above uniform's {max(uni.values())}/{sum(uni.values())}")
+
+
+def test_default_sampling_unchanged_by_zipf_branch(trainer):
+    """The default corpus must be byte-identical to the pre-zipf generator.
+
+    The zipf weights are computed outside the frame loop and consume no RNG,
+    so the "uniform" realization -- the corpus every E-series measurement
+    describes -- cannot have shifted. Pinned as a token checksum rather than
+    a golden file: any drift in the default realization is a finding, not
+    a formatting change.
+    """
+    import hashlib
+
+    words = trainer._get_stage_words("SENTENCES")
+    plans = trainer.generation.generate_generic(words, 4)
+    digest = hashlib.sha256(
+        "\n".join(" ".join(p.tokens) for p in plans).encode()).hexdigest()
+    assert digest == EXPECTED_DEFAULT_CORPUS_SHA, (
+        "default (uniform) corpus realization changed -- if intentional, "
+        "re-pin EXPECTED_DEFAULT_CORPUS_SHA and note which measurements "
+        "the new corpus invalidates")
+
+
+#: sha256 of the SENTENCES-stage default corpus (n=500/k=20/seed=42 fixture).
+#: Pinned when the zipf branch landed (E13, #142); every E1-E12 measurement
+#: describes this realization.
+EXPECTED_DEFAULT_CORPUS_SHA = (
+    "a148792f3e9a752cf75bece3a98d0b53de9d5703e961502ad5226d6af844186c")

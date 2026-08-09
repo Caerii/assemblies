@@ -74,6 +74,74 @@ def attested_morph_sets(parser) -> Dict[str, List[str]]:
     return {"PAST": past, "PRESENT": pres, "PL": plural, "SG": singular}
 
 
+def feature_images_compact(
+    parser, feature_area: str, stim_by_label: Dict[str, str],
+) -> Dict[str, List[int]]:
+    """Label images in COMPACT space (the weight matrix's coordinates).
+
+    The `_recall_morph_feature` image protocol (stimulus projection plus
+    ``rounds - 1`` recurrent settles), promoted from E12
+    (`drive_decomposition.py`, task #141) on its second use. Compact
+    winners -- NOT `_snap` Assemblies -- because the consumer indexes the
+    engine's weight matrices, which live in compact coordinates.
+    """
+    brain = parser.brain
+    rounds = max(1, int(parser.rounds))
+    images: Dict[str, List[int]] = {}
+    with brain.read_only():
+        for label, stim in stim_by_label.items():
+            if stim not in brain.stimuli:
+                continue
+            brain.inhibit_areas([feature_area])
+            brain.project({stim: [feature_area]}, {})
+            for _ in range(rounds - 1):
+                brain.project({stim: [feature_area]},
+                              {feature_area: [feature_area]})
+            images[label] = [int(c) for c in
+                             brain.areas[feature_area].winners]
+    return images
+
+
+def item_afferent_mass(
+    parser, word: str, feature_area: str,
+    images: Dict[str, List[int]],
+) -> "dict | None":
+    """Summed weight from `word`'s core-assembly rows into each label image.
+
+    The E12 readout (task #141, rho 0.846 against item correctness): rows
+    are the recall probe's own core activation in compact space, columns
+    are `feature_images_compact` label images. WHERE-structured by
+    construction -- it sums over exactly the columns the recall readout
+    compares -- which is why it sees the decision the all-candidates
+    input_drive probe cannot. Returns {label: mass} or None if the word
+    has no phon/route.
+    """
+    from neural_assemblies.assembly_calculus.ops import (
+        project as _ops_project,
+    )
+
+    brain = parser.brain
+    eng = brain._engine
+    core = parser._word_core_area(word)
+    phon = parser.stim_map.get(word)
+    conn = eng._area_conns.get(core, {}).get(feature_area)
+    w = getattr(conn, "weights", None) if conn is not None else None
+    if phon is None or w is None or getattr(w, "ndim", 0) != 2:
+        return None
+    rounds = max(1, int(parser.rounds))
+    with brain.read_only():
+        brain.inhibit_areas([feature_area])
+        _ops_project(brain, phon, core, rounds=rounds)
+        rows = [int(r) for r in brain.areas[core].winners
+                if int(r) < w.shape[0]]
+    out = {}
+    for label, img in images.items():
+        cols = [c for c in img if c < w.shape[1]]
+        out[label] = (float(np.asarray(w[np.ix_(rows, cols)]).sum())
+                      if rows and cols else 0.0)
+    return out
+
+
 def score_recall(
     recall: Callable[[str], Tuple],
     items_by_label: Dict[str, List[str]],

@@ -80,10 +80,26 @@ PLURAL_RATE = 0.30
 #:               Uniform-with-replacement under-covers the vocabulary vs
 #:               natural long-tail text, and E5 (#134) localized the
 #:               number-recall ceiling to the resulting thin PL image.
-#: DEFAULT STAYS "uniform" until E6 (#135) measures the diverse corpus --
-#: a first single-seed check read tense PAST 0.826 -> 0.368 under
-#: diversity, so the flip must FOLLOW the 10-seed verdict, not precede it.
+#:               E6 (#135) measured it: WORSE -- diversity without data
+#:               is dilution (exposure and coverage are conjugate at
+#:               fixed budget).
+#:   "zipf"      rank-frequency weights 1/rank^ZIPF_EXPONENT over the
+#:               stage noun order (the rank assignment is IMPOSED and
+#:               arbitrary; what is Zipfian is the distribution, which is
+#:               the natural-text shape uniform sampling lacks). E12
+#:               (#141) showed per-item afferent mass decides number
+#:               recall and that phase REPETITION self-defeats by merging
+#:               the label images; Zipf is the REDISTRIBUTION lever --
+#:               per-form exposure rises on head forms at CONSTANT total
+#:               episode and label-stimulus budget.
+#: DEFAULT STAYS "uniform": E6 measured coverage as a regression, and
+#: "zipf" must likewise FOLLOW E13's (#142) multi-seed verdict, not
+#: precede it. Experiments patch this module attribute in their workers.
 SUBJECT_SAMPLING = "uniform"
+
+#: Zipf exponent s for SUBJECT_SAMPLING="zipf" (weights 1/rank^s).
+#: 1.0 is the classic rank-frequency law; stated, not tuned.
+ZIPF_EXPONENT = 1.0
 
 #: PLURAL_RATE for OBJECT NPs (0.0 disables -- the measured production
 #: corpus; objects were the last always-singular slot). E6's diverse arm
@@ -398,6 +414,13 @@ class SentenceGenerator:
 
         n_eligible = 0
         subj_usage: Dict[str, int] = {}
+        # Rank weights for "zipf" (computed unconditionally -- no RNG, and
+        # keeping it out of the loop keeps every arm's draw count identical).
+        # Ranked over ALL stage nouns so both subject pools are covered.
+        zipf_w: Dict[str, float] = {
+            w.lemma: 1.0 / (rank + 1) ** ZIPF_EXPONENT
+            for rank, w in enumerate(nouns)
+        }
         for frame_i in range(min(FRAMES_PER_STAGE,
                                  len(nouns) * len(verbs))):
             # Periodic FORCED ditransitive draw (see DITRANSITIVE_EVERY):
@@ -424,6 +447,14 @@ class SentenceGenerator:
                            key=lambda w: (subj_usage.get(w.lemma, 0),
                                           _rng.random()))
                 subj_usage[subj.lemma] = subj_usage.get(subj.lemma, 0) + 1
+            elif SUBJECT_SAMPLING == "zipf":
+                # Rank-frequency draw (one RNG call, like choice()): head
+                # nouns recur, which is where per-form exposure comes from
+                # in natural text (E7's pinning is a uniform-sampling
+                # artifact, not a corpus-size one).
+                subj = _rng.choices(
+                    subj_pool,
+                    weights=[zipf_w[w.lemma] for w in subj_pool], k=1)[0]
             else:
                 subj = _rng.choice(subj_pool)
 
