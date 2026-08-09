@@ -471,7 +471,8 @@ class MorphosyntaxMixin:
                     return "PL"
         return "SG"
 
-    def train_number(self, sentences: List[List[str]]) -> None:
+    def train_number(self, sentences: List[List[str]],
+                     labels: Optional[Dict[str, str]] = None) -> None:
         """Train NUMBER area from morphological number features.
 
         For each content word (noun or verb) in each sentence, detects
@@ -483,6 +484,17 @@ class MorphosyntaxMixin:
 
         Args:
             sentences: List of token lists.
+            labels: optional CORPUS-ANNOTATION teacher (#150): word ->
+                "SG"|"PL". When given, it replaces `detect_number` and
+                words absent from it are skipped -- the teacher signal
+                comes from the corpus's own morphological annotation
+                (CHILDES %mor / childes-db suffix), which is the
+                acquisition papers' assumed perceptual teacher. None
+                (default) = the parser's lexicon-based detect path,
+                byte-identical prior behavior. The stim_map + grounding
+                gates apply on BOTH paths: an unregistered or ungrounded
+                word never trains. Number-only for now; train_tense
+                grows the same parameter on first need, not by symmetry.
         """
         # Training invalidates the recall readout's label-image cache.
         self._feature_image_cache.clear()
@@ -514,7 +526,12 @@ class MorphosyntaxMixin:
                 if mod not in ("visual", "motor"):
                     continue
 
-                num = self.detect_number(word)
+                if labels is None:
+                    num = self.detect_number(word)
+                else:
+                    num = labels.get(word)
+                    if num not in ("SG", "PL"):
+                        continue
                 num_stim = number_stims[num]
                 core_area = GROUNDING_TO_CORE[mod]
                 phon = self.stim_map[word]

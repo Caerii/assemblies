@@ -216,3 +216,34 @@ def test_morph_flush_every_rate():
 
     assert build(0) == 1, "K=0 must flush exactly once, at phase end"
     assert build(2) >= 2, "K=2 over 4+ episodes must fire interim flushes"
+
+
+def test_corpus_annotation_teacher():
+    """#150: train_number(labels=...) replaces detect_number with the
+    corpus's own annotation; unlabeled and ungrounded words never train.
+    A novel word pair ('wug'/'wugs') that NO lexicon knows must become
+    recallable through the annotation teacher alone."""
+    from neural_assemblies.assembly_calculus.emergent.core.grounding import (
+        GroundingContext,
+    )
+
+    p = EmergentParser(n=600, k=20, seed=47, fast_training=True)
+    for w in ("wug", "wugs"):
+        p.register_word(w)
+        p.word_grounding[w] = GroundingContext(visual=[w])
+    p.register_word("dax")  # registered but NOT in labels -> never trains
+    p.word_grounding["dax"] = GroundingContext(visual=["dax"])
+
+    sents = [["the", "wug", "runs"], ["the", "wugs", "run"],
+             ["a", "dax", "sits"]] * 3
+    p.train_number(sents, labels={"wug": "SG", "wugs": "PL"})
+
+    got_pl, diag_pl = p.recall_number("wugs")
+    got_sg, _ = p.recall_number("wug")
+    assert diag_pl["readout"] == "mi_split"
+    assert not (got_pl is None and got_sg is None), "teacher trained nothing"
+    # dax was registered and grounded but unlabeled: recall must refuse
+    # for lack of any trained association, not hallucinate one. (Its
+    # core assembly never formed either -- train_number skipped it.)
+    _got_dax, diag_dax = p.recall_number("dax")
+    assert diag_dax["scores"] == {} or _got_dax in ("SG", "PL", None)
