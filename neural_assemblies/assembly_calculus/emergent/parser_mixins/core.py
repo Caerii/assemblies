@@ -198,14 +198,22 @@ class CoreParserMixin(
         #: utterances in childhood). E8 (#137) sweeps it.
         self.morph_repetitions: int = 1
         #: E19 (#148): interim deferred-scaling flushes every K morph
-        #: episodes (0 = phase-boundary only, byte-identical prior
-        #: behavior). E18 measured the per-phase schedule as the 400-frame
+        #: episodes (0 = phase-boundary only, the pre-E19 schedule).
+        #: E18 measured the per-phase schedule as the 400-frame
         #: degradation channel (+0.19/+0.27 PL from 8 interim flushes):
         #: within-interval Hebbian mass concentrates multiplicatively and
         #: the eventual column normalization cannot undo the ratios. The
         #: slow loop must be slow relative to fast dynamics (E9) AND fast
         #: relative to accumulated mass (E18) -- a RATE, not a boundary.
-        self.morph_flush_every: int = 0
+        #: DEFAULT 40 (adopted #149): E19b at n=10 -- the right wall (mass
+        #: concentration) is UNCONDITIONAL (K=40 and K=1 both beat
+        #: per-phase by ~+0.09 paired at 400 frames), the left wall is
+        #: conditional on repetition-style training (E9's per-update
+        #: penalty appeared only under R4 repetition), and K=40 is the
+        #: measured-best cell (0.727 +/- 0.037). INERT unless
+        #: synaptic_scaling_deferred is on, so every non-homeostatic
+        #: path is byte-identical.
+        self.morph_flush_every: int = 40
         #: Exponent on (mean_count/count). 0.5 (sqrt) is E2's original form,
         #: measured VACUOUS on this corpus (max raw gain 1.215 at mean
         #: exposure 1.41 -- E3); 1.0 (linear) makes a once-seen form among

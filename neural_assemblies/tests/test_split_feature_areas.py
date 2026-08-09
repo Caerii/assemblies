@@ -147,13 +147,20 @@ def test_morph_flush_every_rate():
     """E19 (#148): morph_flush_every=K triggers interim deferred flushes.
 
     Pinned mechanically: K=2 on a 4-episode corpus fires interim flushes
-    (counted by wrapping the engine's flush), and the default 0 fires
-    NONE beyond the phase-end one. The schedule's accuracy claims live
-    in the pre-registered experiment.
+    (counted by wrapping the engine's flush), and K=0 fires NONE beyond
+    the phase-end one. The DEFAULT is 40 since the #149 adoption (E19b:
+    right wall unconditional, K=40 the measured-best cell) -- inert
+    without deferred scaling, which is why the default byte-path stays
+    identical. The schedule's accuracy claims live in the pre-registered
+    experiment.
     """
     from neural_assemblies.assembly_calculus.emergent.core.areas import (
         FEATURE_VALUE_LABELS,
     )
+
+    assert EmergentParser(n=600, k=20, seed=46,
+                          fast_training=True).morph_flush_every == 40, (
+        "adopted flush-schedule default regressed")
 
     def build(flush_every):
         p = EmergentParser(n=600, k=20, seed=45, fast_training=True,
@@ -172,5 +179,5 @@ def test_morph_flush_every_rate():
         p.train_number(SENTS)
         return len(calls)
 
-    assert build(0) == 1, "default must flush exactly once, at phase end"
+    assert build(0) == 1, "K=0 must flush exactly once, at phase end"
     assert build(2) >= 2, "K=2 over 4+ episodes must fire interim flushes"
