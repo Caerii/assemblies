@@ -718,11 +718,13 @@ class MorphosyntaxMixin:
             project as _ops_project,
         )
         from ..core.areas import feature_value_area
+        from ..evaluation.morph_features import afferent_mass
 
         brain = self.brain
         diag: dict = {"scores": {}, "margin": None,
                       "image_separation": None, "readout": "mi_split",
-                      "overlap_scores": {}, "overlap_answer": None}
+                      "overlap_scores": {}, "overlap_answer": None,
+                      "mass_scores": {}, "mass_answer": None}
 
         core_area = self._word_core_area(word)
         phon = self.stim_map.get(word)
@@ -744,9 +746,15 @@ class MorphosyntaxMixin:
         with brain.read_only():
             # Label images, one per AREA (cache keyed by area name, so
             # split and shared keys never collide; train_* invalidates).
+            # COMPACT winners are cached alongside the _snap Assembly:
+            # the mass readout (#151) indexes the engine's weight
+            # matrices, which live in compact coordinates -- mixing the
+            # two index spaces reads exactly chance.
             images = {}
+            compact_images = {}
             for label, area in cand_areas.items():
                 key = (area, label, rounds)
+                ckey = (area, label, rounds, "compact")
                 cached = self._feature_image_cache.get(key)
                 if cached is None:
                     stim = stim_by_label[label]
@@ -754,9 +762,14 @@ class MorphosyntaxMixin:
                     brain.project({stim: [area]}, {})
                     for _ in range(rounds - 1):
                         brain.project({stim: [area]}, {area: [area]})
+                    self._feature_image_cache[ckey] = [
+                        int(c) for c in brain.areas[area].winners]
                     cached = _snap(brain, area)
                     self._feature_image_cache[key] = cached
                 images[label] = cached
+                compact_images[label] = self._feature_image_cache.get(
+                    ckey, [])
+
             diag["image_separation"] = 0.0  # structural; see docstring
 
             # Settle the word's core assembly (the recall probe's own
@@ -764,6 +777,7 @@ class MorphosyntaxMixin:
             areas_list = list(cand_areas.values())
             brain.inhibit_areas(areas_list)
             _ops_project(brain, phon, core_area, rounds=rounds)
+            core_rows = [int(r) for r in brain.areas[core_area].winners]
             brain.areas[core_area].fix_assembly()
             # COMPETITION DYNAMICS (E16, #145). E15 measured the one-shot
             # comparison's margins pinned at 7-10% (the #24 weak-primitive
@@ -836,6 +850,26 @@ class MorphosyntaxMixin:
                 diag["overlap_scores"][label] = float(
                     assembly_overlap(images[label], probe))
 
+        # MASS readout (#151): score each area at FIXED label-image
+        # columns -- the word's afferent mass into the columns training
+        # actually wrote. This denies the OPPOSING area its extreme-value
+        # pick: the attribution unit measured MI comparing boosted-
+        # TYPICAL columns (own attractor) against selected-EXTREME
+        # background columns (other area's free k-WTA), which crosses
+        # below 1 as n grows. At fixed columns both sides are typical
+        # and only the Hebbian boost separates them -- E12's instrument
+        # as a decision rule.
+        eng = brain._engine
+        for label, area in cand_areas.items():
+            cols = compact_images.get(label) or []
+            conn = eng._area_conns.get(core_area, {}).get(area)
+            w = getattr(conn, "weights", None) if conn is not None else None
+            if not cols or w is None or getattr(w, "ndim", 0) != 2:
+                diag["mass_scores"] = {}
+                break
+            diag["mass_scores"][label] = afferent_mass(
+                w, core_rows, {label: cols})[label]
+
         diag["scores"] = {label: float(drive.get(area, 0.0))
                           for label, area in cand_areas.items()}
         ranked = sorted(diag["scores"].items(), key=lambda kv: -kv[1])
@@ -845,13 +879,18 @@ class MorphosyntaxMixin:
         ov = sorted(diag["overlap_scores"].items(), key=lambda kv: -kv[1])
         if ov and (len(ov) < 2 or ov[0][1] > ov[1][1]):
             diag["overlap_answer"] = ov[0][0]
+        ms = sorted(diag["mass_scores"].items(), key=lambda kv: -kv[1])
+        if len(ms) == len(cand_areas) and (len(ms) < 2 or ms[0][1] > ms[1][1]):
+            diag["mass_answer"] = ms[0][0]
         diag["mi_answer"] = top_label if top > runner else None
-        if getattr(self, "morph_readout", "mi") == "overlap":
-            # Overlap decides; an overlap TIE falls back to the MI
-            # decision (the commit device breaks ties by drive) rather
-            # than refusing on a readout the caller chose for accuracy.
-            if diag["overlap_answer"] is not None:
-                return diag["overlap_answer"], diag
+        # A TIE on the chosen readout falls back to the MI decision (the
+        # commit device breaks ties by drive) rather than refusing on a
+        # readout the caller chose for accuracy.
+        mode_answer = {"overlap": diag["overlap_answer"],
+                       "mass": diag["mass_answer"]}.get(
+            getattr(self, "morph_readout", "mi"))
+        if mode_answer is not None:
+            return mode_answer, diag
         return diag["mi_answer"], diag
 
     def recall_tense(self, word: str,

@@ -132,8 +132,23 @@ def item_afferent_mass(
     with brain.read_only():
         brain.inhibit_areas([feature_area])
         _ops_project(brain, phon, core, rounds=rounds)
-        rows = [int(r) for r in brain.areas[core].winners
-                if int(r) < w.shape[0]]
+        rows = [int(r) for r in brain.areas[core].winners]
+    return afferent_mass(w, rows, images)
+
+
+def afferent_mass(w, rows: List[int],
+                  images: Dict[str, List[int]]) -> Dict[str, float]:
+    """Summed weight from `rows` into each label image's columns.
+
+    The matrix-sum core of `item_afferent_mass`, exposed on its second
+    use (#151): the `morph_readout="mass"` recall path scores areas at
+    FIXED label-image columns with the core assembly it has ALREADY
+    settled, so it must not re-settle. Rows and columns are COMPACT
+    indices and are bounds-filtered against the matrix -- a compact
+    index beyond the materialized extent has no trained mass by
+    definition.
+    """
+    rows = [r for r in rows if r < w.shape[0]]
     out = {}
     for label, img in images.items():
         cols = [c for c in img if c < w.shape[1]]

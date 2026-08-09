@@ -247,3 +247,22 @@ def test_corpus_annotation_teacher():
     # core assembly never formed either -- train_number skipped it.)
     _got_dax, diag_dax = p.recall_number("dax")
     assert diag_dax["scores"] == {} or _got_dax in ("SG", "PL", None)
+
+
+def test_mass_readout(split_parser):
+    """#151: 'mass' scores each area at FIXED label-image columns (the
+    E12 instrument as a decision rule -- the attribution unit measured
+    MI comparing boosted-typical vs selected-extreme columns, which the
+    fixed-column read denies by construction). Answer follows
+    diag['mass_scores'] argmax, MI fallback on tie/undefined."""
+    base = split_parser.morph_readout
+    try:
+        split_parser.morph_readout = "mass"
+        got, diag = split_parser.recall_number("dogs")
+        assert set(diag["mass_scores"]) == {"SG", "PL"}
+        if diag["mass_answer"] is not None:
+            assert got == diag["mass_answer"]
+        else:
+            assert got == diag["mi_answer"]
+    finally:
+        split_parser.morph_readout = base
