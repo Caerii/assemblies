@@ -94,10 +94,20 @@ def _licensed_verb_forms(vw, subj_tok, subj_w):
     if subj_w.category == WordCategory.PRONOUN:
         plural = (getattr(subj_w, "features", None) or {}).get(
             "number") == "pl"
+        numbers = [plural]
     else:
-        plural = subj_tok == (getattr(subj_w, "forms", None) or {}).get(
-            "plural")
-    lic = {forms.get("past"), vw.lemma if plural else forms.get("3sg")}
+        noun_plural = (getattr(subj_w, "forms", None) or {}).get("plural")
+        if subj_tok == noun_plural == subj_w.lemma:
+            # NUMBER-AMBIGUOUS surface ("fish" is its own plural): either
+            # agreement is grammatical. Latent until coverage sampling made
+            # rare nouns actually surface as subjects -- the analyzer, not
+            # the generator, was wrong on "the fish destroys".
+            numbers = [False, True]
+        else:
+            numbers = [subj_tok == noun_plural]
+    lic = {forms.get("past")}
+    for plural in numbers:
+        lic.add(vw.lemma if plural else forms.get("3sg"))
     return {x for x in lic if x}
 
 

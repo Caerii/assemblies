@@ -73,6 +73,23 @@ PAST_RATE = 0.30
 #: (0.0 disables). Same contract as PAST_RATE.
 PLURAL_RATE = 0.30
 
+#: How frame SUBJECTS are drawn from the stage pool.
+#:   "uniform"   with-replacement (the measured production corpus).
+#:   "coverage"  least-used-first with random tie-break: every eligible
+#:               noun surfaces as a subject before any repeats.
+#:               Uniform-with-replacement under-covers the vocabulary vs
+#:               natural long-tail text, and E5 (#134) localized the
+#:               number-recall ceiling to the resulting thin PL image.
+#: DEFAULT STAYS "uniform" until E6 (#135) measures the diverse corpus --
+#: a first single-seed check read tense PAST 0.826 -> 0.368 under
+#: diversity, so the flip must FOLLOW the 10-seed verdict, not precede it.
+SUBJECT_SAMPLING = "uniform"
+
+#: PLURAL_RATE for OBJECT NPs (0.0 disables -- the measured production
+#: corpus; objects were the last always-singular slot). E6's diverse arm
+#: sets this to PLURAL_RATE. Same off-switch contract as PASSIVE_EVERY.
+OBJECT_PLURAL_RATE = 0.0
+
 
 class SentenceGenerator:
     """Generates stage corpora for a parser; composed by `CurriculumTrainer`.
@@ -370,6 +387,7 @@ class SentenceGenerator:
                          if _feat(v).get("ditransitive")]
 
         n_eligible = 0
+        subj_usage: Dict[str, int] = {}
         for frame_i in range(min(50, len(nouns) * len(verbs))):
             # Periodic FORCED ditransitive draw (see DITRANSITIVE_EVERY):
             # without it the recipient construction is too rare for its role
@@ -389,7 +407,14 @@ class SentenceGenerator:
             # word at this stage, rather than silently allowing "the anger runs".
             needs_animate = _first_arg(verb) in ("agent", "experiencer")
             subj_pool = (animate if (needs_animate and animate) else concrete)
-            subj = _rng.choice(subj_pool)
+            if SUBJECT_SAMPLING == "coverage":
+                # Least-used first, random tie-break: coverage, not a rate.
+                subj = min(subj_pool,
+                           key=lambda w: (subj_usage.get(w.lemma, 0),
+                                          _rng.random()))
+                subj_usage[subj.lemma] = subj_usage.get(subj.lemma, 0) + 1
+            else:
+                subj = _rng.choice(subj_pool)
 
             # SURFACE REALIZATION, each choice licensed by the lexicon:
             #   tense    ~30% past -- forms["past"], present on all 119+ verbs
@@ -463,8 +488,27 @@ class SentenceGenerator:
             # what 'dog' means, and the surface form inherits its grounding.
             participants = [self.scene_features(subj_key)]
 
+            # OBJECT NUMBER varies too (E5/E6, #135): objects were the last
+            # always-singular NP slot -- a censused-constant axis carrying no
+            # information, and the binding constraint on distinct plural
+            # forms (the PL image's n-invariant ceiling was built from ~10).
+            # Same PLURAL_RATE as subjects; English objects trigger no
+            # agreement, so the surface is free. The EVENT stays keyed on
+            # the lemma: 'cakes' means what 'cake' means.
+            obj_use_plural = False
             if obj is not None:
-                sent.extend([_choose_det(obj.lemma, False), obj.lemma])
+                obj_plural_form = (getattr(obj, "forms", None)
+                                   or {}).get("plural")
+                # Rate gate FIRST: at 0.0 no RNG draw may be consumed, or
+                # the "off" corpus is a different REALIZATION than the
+                # measured one (the off-switch lesson, in RNG form).
+                obj_use_plural = (OBJECT_PLURAL_RATE > 0
+                                  and bool(obj_plural_form)
+                                  and _rng.random() < OBJECT_PLURAL_RATE)
+                obj_surface = (obj_plural_form if obj_use_plural
+                               else obj.lemma)
+                sent.extend([_choose_det(obj_surface, obj_use_plural),
+                             obj_surface])
                 participants.append(self.scene_features(obj.lemma))
 
             # DITRANSITIVE: "the girl gives the ball to the boy". The third
@@ -542,8 +586,13 @@ class SentenceGenerator:
             # Skipped for pronoun subjects: the by-phrase needs the ACCUSATIVE
             # ("by him"), and the lexicon carries no case forms -- "by he" is
             # not a passive, and training on it would corrupt the marker.
+            # Skipped for PLURAL objects: the passive subject is the active
+            # object, and the lexicon's aux forms cover is/was only -- "the
+            # cats is chased" is not a passive, the same shape as the
+            # pronoun-case exclusion below.
             if (complexity >= 4 and len(participants) == 2
                     and pron is None
+                    and not obj_use_plural
                     and PASSIVE_EVERY > 0
                     and n_eligible % PASSIVE_EVERY == 0):
                 passive = self.passive_of(
