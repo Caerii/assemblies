@@ -38,6 +38,7 @@ including mid-training, and is safe to call from production code.
 from __future__ import annotations
 
 import itertools
+import math
 import statistics
 import warnings
 from dataclasses import dataclass, field
@@ -1185,6 +1186,20 @@ def ensemble(run, seeds: Sequence[int], label: str = "arm") -> Ensemble:
             f"Seed-to-seed sd is routinely as large as the effects measured "
             f"here, so 1-2 seeds is a draw, not a measurement.")
     vals = [float(run(s)) for s in seeds]
+    bad = [s for s, v in zip(seeds, vals) if math.isnan(v)]
+    if bad:
+        # Refuse LOUDLY rather than let statistics.stdev die with a cryptic
+        # AttributeError deep in the fraction machinery (it cost two
+        # analysis iterations in one night). NaN values are usually an
+        # undefined per-seed statistic (e.g. a correlation over a
+        # constant-outcome seed) -- and dropping them silently is exactly
+        # the bias the undefinedness-correlates-with-outcome lesson warns
+        # about, so the caller must decide what a NaN seed MEANS.
+        raise ValueError(
+            f"ensemble '{label}': NaN from seeds {bad}. A NaN usually "
+            f"means the per-seed statistic is UNDEFINED there (constant "
+            f"outcomes, empty selection). Handle those seeds explicitly "
+            f"-- do not silently filter them.")
     mean = statistics.mean(vals)
     # t critical value, two-sided 95%, for the small n used in practice.
     tcrit = {3: 4.303, 4: 3.182, 5: 2.776, 6: 2.571, 7: 2.447, 8: 2.365,
