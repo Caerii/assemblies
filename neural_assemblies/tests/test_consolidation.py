@@ -69,6 +69,9 @@ class TestConsolidationCalculus:
                 )
             ],
             passes=2,
+            # This test IS the episodic-reset scenario (connections cleared
+            # above), the one case that must opt IN to area preparation.
+            prepare_areas=True,
         )
         consolidated_nnz = _conn_nonzero(brain, NOUN_CORE, ROLE_AGENT)
 

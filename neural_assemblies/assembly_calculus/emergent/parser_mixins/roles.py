@@ -19,6 +19,7 @@ from neural_assemblies.assembly_calculus.ops import (
 
 from ..core.areas import (
     GROUNDING_TO_CORE,
+    ROLE_LABEL_TO_AREA,
     THEMATIC_AREAS,
     ROLE_AGENT,
     ROLE_PATIENT,
@@ -30,7 +31,7 @@ from ..core.areas import (
     FUNC_MARKER,
 )
 from ..curriculum.data import GroundedSentence
-from ._shared import _STRUCTURAL_PRIOR, _LEXICAL_SMOOTHING, _ROLE_BINDING_ROUNDS, _ROLE_MAP, _ROLE_LABEL
+from ._shared import _STRUCTURAL_PRIOR, _LEXICAL_SMOOTHING, _ROLE_BINDING_ROUNDS, _ROLE_LABEL
 
 
 class RoleBindingMixin:
@@ -65,7 +66,7 @@ class RoleBindingMixin:
                 # its position could not be learned.
                 if role is None:
                     continue
-                role_area = _ROLE_MAP.get(role)
+                role_area = ROLE_LABEL_TO_AREA.get(role)
                 if role_area is None:
                     continue
                 if word not in self.stim_map:

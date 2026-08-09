@@ -80,7 +80,6 @@ _LEXICAL_SMOOTHING = 0.05
 _ROLE_BINDING_ROUNDS = 2
 
 # Re-exported, not redefined: `core.areas.ROLE_LABEL_TO_AREA` is the one copy.
-_ROLE_MAP = ROLE_LABEL_TO_AREA
 
 # Role brain area -> human-readable label
 _ROLE_LABEL = {

@@ -298,7 +298,7 @@ def consolidate(
     *,
     passes: int = 1,
     clear_activity: bool = True,
-    prepare_areas: bool = True,
+    prepare_areas: bool = False,
 ) -> Set[PathwayEdge]:
     """Replay a consolidation protocol without resetting area connections.
 
@@ -309,21 +309,23 @@ def consolidate(
             experience / sleep cycles).
         clear_activity: Inhibit all areas after consolidation (default).
         prepare_areas: Rewind ``w`` and the neuron-ID mapping of every area a
-            step touches, via :func:`prepare_area_for_replay`. Required after
-            EPISODIC reset, where the connectome was cleared and a stale ``w``
-            would leave replayed weights disconnected. **Destructive
-            otherwise**, and the two senses of "reset" are easy to conflate:
-            this function does not reset CONNECTIONS, but preparing an area
-            does reset its INDEX SPACE, which invalidates every Assembly
-            snapshot of it.
+            step touches, via :func:`prepare_area_for_replay`. Opt-in for the
+            EPISODIC-RESET case only, where the connectome was cleared and a
+            stale ``w`` would leave replayed weights disconnected.
+            **Destructive on a live connectome**, and the two senses of
+            "reset" are easy to conflate: this function does not reset
+            CONNECTIONS, but preparing an area does reset its INDEX SPACE,
+            which invalidates every Assembly snapshot of it.
 
-            Measured on the curriculum at ``DIALOGUE``: preparing the SOURCE
-            area of a role replay rewound ``NOUN_CORE`` from w=2493 to w=976
-            and left 48 of 74 stored nouns unmappable (34 of 44 verbs), so a
+            Default False because every production caller replays onto a
+            LIVE connectome and the old True default had to be overridden by
+            all of them -- a default all callers override is wrong. Measured
+            on the curriculum at ``DIALOGUE``: preparing the SOURCE area of
+            a role replay rewound ``NOUN_CORE`` from w=2493 to w=976 and
+            left 48 of 74 stored nouns unmappable (34 of 44 verbs), so a
             later parse raised "Assembly neuron N not in area mapping". The
-            source of a role replay IS the core lexicon; rewinding it destroys
-            the assemblies the replay exists to strengthen. Callers that
-            replay onto a LIVE connectome must pass ``False``.
+            source of a role replay IS the core lexicon; rewinding it
+            destroys the assemblies the replay exists to strengthen.
 
     Returns:
         Set of ``(source_area, target_area)`` edges strengthened.

@@ -78,7 +78,6 @@ from ._shared import (
     _MODALITY_FIELDS,
     _ROLE_BINDING_ROUNDS,
     _ROLE_LABEL,
-    _ROLE_MAP,
     _STRUCTURAL_PRIOR,
 )
 from .classify import CategoryClassificationMixin

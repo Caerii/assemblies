@@ -210,7 +210,9 @@ def consolidate_role_pathways(
 ) -> Set[PathwayEdge]:
     """Replay role binding without reset — persistent core→role weights.
 
-    ``prepare_areas=False`` is what makes "without reset" true. The SOURCE of a
+    The primitive's default (`prepare_areas=False`, flipped after every
+    production wrapper had to override the old True) is what makes
+    "without reset" true. The SOURCE of a
     role replay is a CORE area, which holds the stabilized lexicon; preparing
     it rewinds ``w`` and re-issues neuron IDs, invalidating every stored
     assembly of the words being replayed. Measured at ``DIALOGUE``:
@@ -225,8 +227,7 @@ def consolidate_role_pathways(
             log_fn("  Skipping role pathway consolidation (passes=0)")
         return set()
 
-    edges = consolidate(parser.brain, protocol, passes=passes,
-                        prepare_areas=False)
+    edges = consolidate(parser.brain, protocol, passes=passes)
     if log_fn:
         passes_str = f" ({passes} pass{'es' if passes != 1 else ''})"
         log_fn(
@@ -245,7 +246,8 @@ def consolidate_vp_pathways(
 ) -> Set[PathwayEdge]:
     """Replay VP merge without reset — persistent phrase-structure weights.
 
-    ``prepare_areas=False`` for the same reason as the role pathways above: the
+    Live-connectome replay (the default) for the same reason as the role
+    pathways above: the
     merge sources are core areas holding the stabilized lexicon.
     """
     protocol = build_vp_pathway_protocol(parser, training_sentences)
@@ -254,8 +256,7 @@ def consolidate_vp_pathways(
             log_fn("  Skipping VP pathway consolidation (passes=0)")
         return set()
 
-    edges = consolidate(parser.brain, protocol, passes=passes,
-                        prepare_areas=False)
+    edges = consolidate(parser.brain, protocol, passes=passes)
     if log_fn:
         passes_str = f" ({passes} pass{'es' if passes != 1 else ''})"
         log_fn(
@@ -274,7 +275,7 @@ def consolidate_number_role_pathways(
 ) -> Set[PathwayEdge]:
     """Replay NUMBER co-projection role binding without reset.
 
-    ``prepare_areas=False`` -- same core-area sources, same reason.
+    Live-connectome replay (the default) -- same core-area sources, same reason.
     """
     protocol = build_number_role_pathway_protocol(parser, training_sentences)
     if passes <= 0:
@@ -282,8 +283,7 @@ def consolidate_number_role_pathways(
             log_fn("  Skipping number-role pathway consolidation (passes=0)")
         return set()
 
-    edges = consolidate(parser.brain, protocol, passes=passes,
-                        prepare_areas=False)
+    edges = consolidate(parser.brain, protocol, passes=passes)
     if log_fn and edges:
         passes_str = f" ({passes} pass{'es' if passes != 1 else ''})"
         log_fn(f"  Number-role consolidated {len(edges)} pathways{passes_str}")
@@ -299,7 +299,7 @@ def consolidate_number_vp_pathways(
 ) -> Set[PathwayEdge]:
     """Replay NUMBER-aware VP merge without reset.
 
-    ``prepare_areas=False`` -- same core-area sources, same reason.
+    Live-connectome replay (the default) -- same core-area sources, same reason.
     """
     protocol = build_number_vp_pathway_protocol(parser, training_sentences)
     if passes <= 0:
@@ -307,8 +307,7 @@ def consolidate_number_vp_pathways(
             log_fn("  Skipping number-VP pathway consolidation (passes=0)")
         return set()
 
-    edges = consolidate(parser.brain, protocol, passes=passes,
-                        prepare_areas=False)
+    edges = consolidate(parser.brain, protocol, passes=passes)
     if log_fn and edges:
         passes_str = f" ({passes} pass{'es' if passes != 1 else ''})"
         log_fn(f"  Number-VP consolidated {len(edges)} pathways{passes_str}")
