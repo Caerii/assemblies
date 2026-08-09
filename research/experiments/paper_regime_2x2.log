@@ -1,0 +1,113 @@
+n=3000 L1G1 seed=42 sg=0.540 pl=0.761 bal=0.650 imgatt sg/pl 0.998/0.997
+n=3000 L1G1 seed=43 sg=0.700 pl=0.630 bal=0.665 imgatt sg/pl 0.998/0.999
+n=3000 L1G1 seed=44 sg=0.567 pl=0.565 bal=0.566 imgatt sg/pl 0.998/1.000
+n=3000 L1G1 seed=45 sg=0.410 pl=0.674 bal=0.542 imgatt sg/pl 0.998/0.995
+n=3000 L1G1 seed=46 sg=0.518 pl=0.783 bal=0.650 imgatt sg/pl 0.998/0.996
+n=3000 L0G1 seed=42 sg=1.000 pl=0.130 bal=0.565 imgatt sg/pl 0.077/0.091
+n=3000 L0G1 seed=43 sg=1.000 pl=0.109 bal=0.554 imgatt sg/pl 0.091/0.107
+n=3000 L0G1 seed=44 sg=1.000 pl=0.109 bal=0.554 imgatt sg/pl 0.086/0.092
+n=3000 L0G1 seed=45 sg=1.000 pl=0.087 bal=0.543 imgatt sg/pl 0.073/0.099
+n=3000 L0G1 seed=46 sg=1.000 pl=0.130 bal=0.565 imgatt sg/pl 0.078/0.085
+n=3000 L1G4 seed=42 sg=0.264 pl=0.957 bal=0.610 imgatt sg/pl 0.920/0.999
+n=3000 L1G4 seed=43 sg=0.284 pl=0.957 bal=0.620 imgatt sg/pl 0.922/0.998
+n=3000 L1G4 seed=44 sg=0.488 pl=0.870 bal=0.679 imgatt sg/pl 0.971/0.998
+n=3000 L1G4 seed=45 sg=0.317 pl=0.913 bal=0.615 imgatt sg/pl 0.886/0.996
+n=3000 L1G4 seed=46 sg=0.435 pl=0.826 bal=0.631 imgatt sg/pl 0.973/0.999
+n=3000 L0G4 seed=42 sg=1.000 pl=0.391 bal=0.696 imgatt sg/pl 0.111/0.131
+n=3000 L0G4 seed=43 sg=1.000 pl=0.478 bal=0.739 imgatt sg/pl 0.141/0.128
+n=3000 L0G4 seed=44 sg=1.000 pl=0.391 bal=0.696 imgatt sg/pl 0.134/0.161
+n=3000 L0G4 seed=45 sg=1.000 pl=0.391 bal=0.696 imgatt sg/pl 0.120/0.127
+n=3000 L0G4 seed=46 sg=1.000 pl=0.391 bal=0.696 imgatt sg/pl 0.119/0.152
+n=10000 L1G1 seed=42 sg=0.212 pl=0.848 bal=0.530 imgatt sg/pl 0.998/0.998
+n=10000 L1G1 seed=43 sg=0.198 pl=0.913 bal=0.556 imgatt sg/pl 0.998/0.997
+n=10000 L1G1 seed=44 sg=0.251 pl=0.848 bal=0.549 imgatt sg/pl 0.998/0.997
+n=10000 L1G1 seed=45 sg=0.215 pl=0.870 bal=0.542 imgatt sg/pl 0.998/0.999
+n=10000 L1G1 seed=46 sg=0.215 pl=0.848 bal=0.531 imgatt sg/pl 0.998/0.998
+n=10000 L0G1 seed=42 sg=1.000 pl=0.239 bal=0.620 imgatt sg/pl 0.023/0.030
+n=10000 L0G1 seed=43 sg=1.000 pl=0.348 bal=0.674 imgatt sg/pl 0.030/0.043
+n=10000 L0G1 seed=44 sg=0.997 pl=0.261 bal=0.629 imgatt sg/pl 0.018/0.035
+n=10000 L0G1 seed=45 sg=1.000 pl=0.304 bal=0.652 imgatt sg/pl 0.021/0.038
+n=10000 L0G1 seed=46 sg=0.997 pl=0.283 bal=0.640 imgatt sg/pl 0.022/0.043
+n=10000 L1G4 seed=42 sg=0.656 pl=0.087 bal=0.371 imgatt sg/pl 0.906/1.000
+n=10000 L1G4 seed=43 sg=0.576 pl=0.239 bal=0.407 imgatt sg/pl 0.934/1.000
+n=10000 L1G4 seed=44 sg=0.328 pl=0.957 bal=0.642 imgatt sg/pl 0.895/1.000
+n=10000 L1G4 seed=45 sg=0.317 pl=0.957 bal=0.637 imgatt sg/pl 0.961/0.999
+n=10000 L1G4 seed=46 sg=0.215 pl=0.935 bal=0.575 imgatt sg/pl 0.962/0.978
+n=10000 L0G4 seed=42 sg=1.000 pl=0.522 bal=0.761 imgatt sg/pl 0.037/0.068
+n=10000 L0G4 seed=43 sg=1.000 pl=0.543 bal=0.772 imgatt sg/pl 0.023/0.070
+n=10000 L0G4 seed=44 sg=1.000 pl=0.543 bal=0.772 imgatt sg/pl 0.015/0.060
+n=10000 L0G4 seed=45 sg=0.997 pl=0.413 bal=0.705 imgatt sg/pl 0.032/0.057
+n=10000 L0G4 seed=46 sg=1.000 pl=0.435 bal=0.717 imgatt sg/pl 0.032/0.067
+synth L1G1 seed=42 bal=0.545
+synth L1G1 seed=43 bal=0.634
+synth L1G1 seed=44 bal=0.627
+synth L1G1 seed=45 bal=0.655
+synth L1G1 seed=46 bal=0.706
+synth L0G4 seed=42 bal=0.555
+synth L0G4 seed=43 bal=0.499
+synth L0G4 seed=44 bal=0.607
+synth L0G4 seed=45 bal=0.546
+synth L0G4 seed=46 bal=0.607
+{
+  "P1_imgatt_sg_L0G4_3000": {
+    "mean": 0.12492194674012855,
+    "ci": 0.015159617282254553
+  },
+  "P2_bal_L0G4_3000": {
+    "mean": 0.7043478260869565,
+    "ci": 0.024139130434782587
+  },
+  "P2_sg_L0G4_3000": {
+    "mean": 1,
+    "ci": 0.0
+  },
+  "P3_L0G1_minus_L1G1_3000": {
+    "mean": -0.058336327703916634,
+    "ci": 0.061702398499961154
+  },
+  "P3_L1G4_minus_L1G1_3000": {
+    "mean": 0.01610372499700565,
+    "ci": 0.08906079343572454
+  },
+  "P3_L0G4_minus_L1G1_3000": {
+    "mean": 0.08948975925260509,
+    "ci": 0.06150370931720643
+  },
+  "P4_gap_L0G4_3000": {
+    "mean": -0.591304347826087,
+    "ci": 0.04827826086956524
+  },
+  "P1_imgatt_sg_L0G4_10000": {
+    "mean": 0.027731864095500457,
+    "ci": 0.010943449789505219
+  },
+  "P2_bal_L0G4_10000": {
+    "mean": 0.7453766918193796,
+    "ci": 0.03941436331882957
+  },
+  "P2_sg_L0G4_10000": {
+    "mean": 0.9994490358126722,
+    "ci": 0.0015294765840220537
+  },
+  "P3_L0G1_minus_L1G1_10000": {
+    "mean": 0.1012276919391544,
+    "ci": 0.01975978112038232
+  },
+  "P3_L1G4_minus_L1G1_10000": {
+    "mean": -0.015217391304347783,
+    "ci": 0.15879144463341993
+  },
+  "P3_L0G4_minus_L1G1_10000": {
+    "mean": 0.20367708707629656,
+    "ci": 0.035219730271125814
+  },
+  "P4_gap_L0G4_10000": {
+    "mean": -0.5081446879865853,
+    "ci": 0.07669215103572792
+  },
+  "GUARD_synth_L0G4_minus_L1G1": {
+    "mean": -0.07071524966261811,
+    "ci": 0.07729620639282701
+  }
+}
+-> F:\Github\assemblies-run-e2\research\experiments\paper_regime_2x2_results.json
