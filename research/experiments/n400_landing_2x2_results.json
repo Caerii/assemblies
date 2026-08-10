@@ -1,0 +1,4406 @@
+{
+  "seeds": {
+    "7": {
+      "n_contexts": 12,
+      "rows": [
+        {
+          "prefix": "do you want milk or",
+          "arm": "attested",
+          "word": "juice",
+          "energy": 0.9870052095502615,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "do you want milk or",
+          "arm": "unattested_noun",
+          "word": "girls",
+          "energy": 0.977707302197814,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "do you want milk or",
+          "arm": "verb_violation",
+          "word": "slept",
+          "energy": 0.9652637727558613,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "do you want milk or",
+          "arm": "novel",
+          "word": "small",
+          "energy": 0.9896257873624563,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "she is reading a",
+          "arm": "attested",
+          "word": "book",
+          "energy": 0.9867814118042588,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "she is reading a",
+          "arm": "unattested_noun",
+          "word": "mountain",
+          "energy": 0.9894930804148316,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "she is reading a",
+          "arm": "verb_violation",
+          "word": "fixed",
+          "energy": 0.9916303064674139,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "she is reading a",
+          "arm": "novel",
+          "word": "small",
+          "energy": 0.9896257873624563,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "mommy reads a",
+          "arm": "attested",
+          "word": "book",
+          "energy": 0.9867814118042588,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "mommy reads a",
+          "arm": "unattested_noun",
+          "word": "keys",
+          "energy": 0.9894994553178549,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "mommy reads a",
+          "arm": "verb_violation",
+          "word": "started",
+          "energy": 0.9737733546644449,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "mommy reads a",
+          "arm": "novel",
+          "word": "finds",
+          "energy": 0.986252786591649,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "i want to go to the",
+          "arm": "attested",
+          "word": "park",
+          "energy": 0.9850201867520809,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "i want to go to the",
+          "arm": "unattested_noun",
+          "word": "ball",
+          "energy": 0.9884403897449374,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "i want to go to the",
+          "arm": "verb_violation",
+          "word": "know",
+          "energy": 0.9618029147386551,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "i want to go to the",
+          "arm": "novel",
+          "word": "finds",
+          "energy": 0.986252786591649,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "we played in the",
+          "arm": "attested",
+          "word": "park",
+          "energy": 0.9850201867520809,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "we played in the",
+          "arm": "unattested_noun",
+          "word": "dad",
+          "energy": 0.9882627865299582,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "we played in the",
+          "arm": "verb_violation",
+          "word": "seems",
+          "energy": 0.9889800865203142,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "we played in the",
+          "arm": "novel",
+          "word": "bird",
+          "energy": 0.947696927934885,
+          "landing": 0.9333333333333333,
+          "overlap": 0.06666666666666667
+        },
+        {
+          "prefix": "where is my",
+          "arm": "attested",
+          "word": "ball",
+          "energy": 0.9884403897449374,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "where is my",
+          "arm": "unattested_noun",
+          "word": "parks",
+          "energy": 0.9643410965800285,
+          "landing": 0.9333333333333333,
+          "overlap": 0.06666666666666667
+        },
+        {
+          "prefix": "where is my",
+          "arm": "verb_violation",
+          "word": "be",
+          "energy": 0.9800263568758965,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "where is my",
+          "arm": "novel",
+          "word": "bird",
+          "energy": 0.947696927934885,
+          "landing": 0.9333333333333333,
+          "overlap": 0.06666666666666667
+        },
+        {
+          "prefix": "who is at the",
+          "arm": "attested",
+          "word": "door",
+          "energy": 0.988858730532229,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "who is at the",
+          "arm": "unattested_noun",
+          "word": "hand",
+          "energy": 0.9903514981269836,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "who is at the",
+          "arm": "verb_violation",
+          "word": "came",
+          "energy": 0.9874052749946713,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "who is at the",
+          "arm": "novel",
+          "word": "small",
+          "energy": 0.9896257873624563,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "dog in",
+          "arm": "attested",
+          "word": "house",
+          "energy": 0.9914154512807727,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "dog in",
+          "arm": "unattested_noun",
+          "word": "father",
+          "energy": 0.9859901601448655,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "dog in",
+          "arm": "verb_violation",
+          "word": "have",
+          "energy": 0.9600213281810284,
+          "landing": 0.9333333333333333,
+          "overlap": 0.06666666666666667
+        },
+        {
+          "prefix": "dog in",
+          "arm": "novel",
+          "word": "finds",
+          "energy": 0.986252786591649,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "does she have a",
+          "arm": "attested",
+          "word": "dog",
+          "energy": 0.9761851169168949,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "does she have a",
+          "arm": "unattested_noun",
+          "word": "parks",
+          "energy": 0.9643410965800285,
+          "landing": 0.9333333333333333,
+          "overlap": 0.06666666666666667
+        },
+        {
+          "prefix": "does she have a",
+          "arm": "verb_violation",
+          "word": "begins",
+          "energy": 0.9879289856180549,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "does she have a",
+          "arm": "novel",
+          "word": "bird",
+          "energy": 0.947696927934885,
+          "landing": 0.9333333333333333,
+          "overlap": 0.06666666666666667
+        },
+        {
+          "prefix": "not my",
+          "arm": "attested",
+          "word": "toy",
+          "energy": 0.9900199230760336,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "not my",
+          "arm": "unattested_noun",
+          "word": "mountain",
+          "energy": 0.9894930804148316,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "not my",
+          "arm": "verb_violation",
+          "word": "have",
+          "energy": 0.9600213281810284,
+          "landing": 0.9333333333333333,
+          "overlap": 0.06666666666666667
+        },
+        {
+          "prefix": "not my",
+          "arm": "novel",
+          "word": "small",
+          "energy": 0.9896257873624563,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "mommy read",
+          "arm": "attested",
+          "word": "book",
+          "energy": 0.9867814118042588,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "mommy read",
+          "arm": "unattested_noun",
+          "word": "friend",
+          "energy": 0.9841828662902117,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "mommy read",
+          "arm": "verb_violation",
+          "word": "came",
+          "energy": 0.9874052749946713,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "mommy read",
+          "arm": "novel",
+          "word": "finds",
+          "energy": 0.986252786591649,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "daddy throw",
+          "arm": "attested",
+          "word": "ball",
+          "energy_undefined": "predicted energy undefined: no pre-k-WTA input vector was recorded for PREDICTIO",
+          "landing_undefined": "PREDICTION settled to an empty assembly -- the legacy 1.0 would read as MAXIMUM "
+        },
+        {
+          "prefix": "daddy throw",
+          "arm": "unattested_noun",
+          "word": "river",
+          "energy_undefined": "predicted energy undefined: no pre-k-WTA input vector was recorded for PREDICTIO",
+          "landing_undefined": "PREDICTION settled to an empty assembly -- the legacy 1.0 would read as MAXIMUM "
+        },
+        {
+          "prefix": "daddy throw",
+          "arm": "verb_violation",
+          "word": "felt",
+          "energy_undefined": "predicted energy undefined: no pre-k-WTA input vector was recorded for PREDICTIO",
+          "landing_undefined": "PREDICTION settled to an empty assembly -- the legacy 1.0 would read as MAXIMUM "
+        },
+        {
+          "prefix": "daddy throw",
+          "arm": "novel",
+          "word": "small",
+          "energy_undefined": "predicted energy undefined: no pre-k-WTA input vector was recorded for PREDICTIO",
+          "landing_undefined": "PREDICTION settled to an empty assembly -- the legacy 1.0 would read as MAXIMUM "
+        }
+      ],
+      "undefined": {
+        "energy": {
+          "attested": 1,
+          "unattested_noun": 1,
+          "verb_violation": 1,
+          "novel": 1
+        },
+        "landing": {
+          "attested": 1,
+          "unattested_noun": 1,
+          "verb_violation": 1,
+          "novel": 1
+        }
+      },
+      "auc": {
+        "sem_energy": 0.4669421487603306,
+        "syn_energy": 0.34710743801652894,
+        "nov_energy": 0.39669421487603307,
+        "sem_landing": 0.36363636363636365,
+        "syn_landing": 0.22727272727272727,
+        "nov_landing": 0.36363636363636365
+      },
+      "energy_arm_means": {
+        "attested": 0.9866,
+        "unattested_noun": 0.9829,
+        "verb_violation": 0.9768,
+        "novel": 0.977
+      },
+      "energy_clip_ge_095": {
+        "attested": 11,
+        "unattested_noun": 11,
+        "verb_violation": 11,
+        "novel": 8
+      },
+      "landing_arm_means": {
+        "attested": 1.0,
+        "unattested_noun": 0.9848,
+        "verb_violation": 0.9758,
+        "novel": 0.9818
+      },
+      "landing_clip_ge_095": {
+        "attested": 11,
+        "unattested_noun": 9,
+        "verb_violation": 9,
+        "novel": 8
+      }
+    },
+    "11": {
+      "n_contexts": 12,
+      "rows": [
+        {
+          "prefix": "the man who is tall is my",
+          "arm": "attested",
+          "word": "dad",
+          "energy": 0.9901326978579164,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "the man who is tall is my",
+          "arm": "unattested_noun",
+          "word": "mom",
+          "energy": 0.9619126915931702,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "the man who is tall is my",
+          "arm": "verb_violation",
+          "word": "started",
+          "energy": 0.9923849697224796,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "the man who is tall is my",
+          "arm": "novel",
+          "word": "finds",
+          "energy": 0.9563118815422058,
+          "landing": 0.9333333333333333,
+          "overlap": 0.06666666666666667
+        },
+        {
+          "prefix": "mommy read",
+          "arm": "attested",
+          "word": "book",
+          "energy": 0.991088611073792,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "mommy read",
+          "arm": "unattested_noun",
+          "word": "chair",
+          "energy": 0.9881865959614515,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "mommy read",
+          "arm": "verb_violation",
+          "word": "have",
+          "energy": 0.989499282091856,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "mommy read",
+          "arm": "novel",
+          "word": "finds",
+          "energy": 0.9563118815422058,
+          "landing": 0.9333333333333333,
+          "overlap": 0.06666666666666667
+        },
+        {
+          "prefix": "dog in",
+          "arm": "attested",
+          "word": "house",
+          "energy": 0.9846392730250955,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "dog in",
+          "arm": "unattested_noun",
+          "word": "dog",
+          "energy": 0.9486819691956043,
+          "landing": 0.9333333333333333,
+          "overlap": 0.06666666666666667
+        },
+        {
+          "prefix": "dog in",
+          "arm": "verb_violation",
+          "word": "ask",
+          "energy": 0.977269584313035,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "dog in",
+          "arm": "novel",
+          "word": "finds",
+          "energy": 0.9563118815422058,
+          "landing": 0.9333333333333333,
+          "overlap": 0.06666666666666667
+        },
+        {
+          "prefix": "who that",
+          "arm": "attested",
+          "word": "man",
+          "energy": 0.9889812227338552,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "who that",
+          "arm": "unattested_noun",
+          "word": "stars",
+          "energy": 0.9911321811378002,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "who that",
+          "arm": "verb_violation",
+          "word": "fixes",
+          "energy": 0.987331029959023,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "who that",
+          "arm": "novel",
+          "word": "bird",
+          "energy": 0.9409940838813782,
+          "landing": 0.9333333333333333,
+          "overlap": 0.06666666666666667
+        },
+        {
+          "prefix": "do you want milk or",
+          "arm": "attested",
+          "word": "juice",
+          "energy": 0.9752795174717903,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "do you want milk or",
+          "arm": "unattested_noun",
+          "word": "doctor",
+          "energy": 0.9897261206060648,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "do you want milk or",
+          "arm": "verb_violation",
+          "word": "dies",
+          "energy": 0.9848478622734547,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "do you want milk or",
+          "arm": "novel",
+          "word": "finds",
+          "energy": 0.9563118815422058,
+          "landing": 0.9333333333333333,
+          "overlap": 0.06666666666666667
+        },
+        {
+          "prefix": "mommy reads a",
+          "arm": "attested",
+          "word": "book",
+          "energy": 0.991088611073792,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "mommy reads a",
+          "arm": "unattested_noun",
+          "word": "time",
+          "energy": 0.9814208075404167,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "mommy reads a",
+          "arm": "verb_violation",
+          "word": "started",
+          "energy": 0.9923849697224796,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "mommy reads a",
+          "arm": "novel",
+          "word": "small",
+          "energy": 0.9839292392134666,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "where is my",
+          "arm": "attested",
+          "word": "ball",
+          "energy": 0.9900551913306117,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "where is my",
+          "arm": "unattested_noun",
+          "word": "brother",
+          "energy": 0.9741759244352579,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "where is my",
+          "arm": "verb_violation",
+          "word": "ate",
+          "energy": 0.9752727318555117,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "where is my",
+          "arm": "novel",
+          "word": "bird",
+          "energy": 0.9409940838813782,
+          "landing": 0.9333333333333333,
+          "overlap": 0.06666666666666667
+        },
+        {
+          "prefix": "book on",
+          "arm": "attested",
+          "word": "floor",
+          "energy": 0.9892868157476187,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "book on",
+          "arm": "unattested_noun",
+          "word": "dog",
+          "energy": 0.9486819691956043,
+          "landing": 0.9333333333333333,
+          "overlap": 0.06666666666666667
+        },
+        {
+          "prefix": "book on",
+          "arm": "verb_violation",
+          "word": "jumped",
+          "energy": 0.9878735328093171,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "book on",
+          "arm": "novel",
+          "word": "finds",
+          "energy": 0.9563118815422058,
+          "landing": 0.9333333333333333,
+          "overlap": 0.06666666666666667
+        },
+        {
+          "prefix": "we played in the",
+          "arm": "attested",
+          "word": "park",
+          "energy": 0.9710072539746761,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "we played in the",
+          "arm": "unattested_noun",
+          "word": "apple",
+          "energy": 0.9750858061015606,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "we played in the",
+          "arm": "verb_violation",
+          "word": "want",
+          "energy": 0.989688690751791,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "we played in the",
+          "arm": "novel",
+          "word": "small",
+          "energy": 0.9839292392134666,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "i want to go to the",
+          "arm": "attested",
+          "word": "park",
+          "energy": 0.9710072539746761,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "i want to go to the",
+          "arm": "unattested_noun",
+          "word": "hospitals",
+          "energy": 0.9588516093790531,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "i want to go to the",
+          "arm": "verb_violation",
+          "word": "woken",
+          "energy": 0.9862576369196177,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "i want to go to the",
+          "arm": "novel",
+          "word": "finds",
+          "energy": 0.9563118815422058,
+          "landing": 0.9333333333333333,
+          "overlap": 0.06666666666666667
+        },
+        {
+          "prefix": "does she have a",
+          "arm": "attested",
+          "word": "dog",
+          "energy": 0.9486819691956043,
+          "landing": 0.9333333333333333,
+          "overlap": 0.06666666666666667
+        },
+        {
+          "prefix": "does she have a",
+          "arm": "unattested_noun",
+          "word": "keys",
+          "energy": 0.9866148438304663,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "does she have a",
+          "arm": "verb_violation",
+          "word": "becomes",
+          "energy": 0.9728704262524843,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "does she have a",
+          "arm": "novel",
+          "word": "bird",
+          "energy": 0.9409940838813782,
+          "landing": 0.9333333333333333,
+          "overlap": 0.06666666666666667
+        },
+        {
+          "prefix": "ball and",
+          "arm": "attested",
+          "word": "book",
+          "energy": 0.991088611073792,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "ball and",
+          "arm": "unattested_noun",
+          "word": "breads",
+          "energy": 0.987203985452652,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "ball and",
+          "arm": "verb_violation",
+          "word": "draw",
+          "energy": 0.9893619446083903,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "ball and",
+          "arm": "novel",
+          "word": "small",
+          "energy": 0.9839292392134666,
+          "landing": 1.0,
+          "overlap": 0.0
+        }
+      ],
+      "undefined": {
+        "energy": {},
+        "landing": {}
+      },
+      "auc": {
+        "sem_energy": 0.3263888888888889,
+        "syn_energy": 0.5208333333333334,
+        "nov_energy": 0.125,
+        "sem_landing": 0.4479166666666667,
+        "syn_landing": 0.5520833333333334,
+        "nov_landing": 0.19791666666666666
+      },
+      "energy_arm_means": {
+        "attested": 0.9819,
+        "unattested_noun": 0.9743,
+        "verb_violation": 0.9854,
+        "novel": 0.9594
+      },
+      "energy_clip_ge_095": {
+        "attested": 11,
+        "unattested_noun": 10,
+        "verb_violation": 12,
+        "novel": 9
+      },
+      "landing_arm_means": {
+        "attested": 0.9861,
+        "unattested_noun": 0.9806,
+        "verb_violation": 0.9917,
+        "novel": 0.95
+      },
+      "landing_clip_ge_095": {
+        "attested": 11,
+        "unattested_noun": 10,
+        "verb_violation": 12,
+        "novel": 3
+      }
+    },
+    "12": {
+      "n_contexts": 12,
+      "rows": [
+        {
+          "prefix": "mommy read",
+          "arm": "attested",
+          "word": "book",
+          "energy": 0.9912324165925384,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "mommy read",
+          "arm": "unattested_noun",
+          "word": "boys",
+          "energy": 0.9803445022553205,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "mommy read",
+          "arm": "verb_violation",
+          "word": "wake",
+          "energy": 0.9882488837465644,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "mommy read",
+          "arm": "novel",
+          "word": "finds",
+          "energy": 0.9739506207406521,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "daddy throw",
+          "arm": "attested",
+          "word": "ball",
+          "energy_undefined": "predicted energy undefined: no pre-k-WTA input vector was recorded for PREDICTIO",
+          "landing_undefined": "PREDICTION settled to an empty assembly -- the legacy 1.0 would read as MAXIMUM "
+        },
+        {
+          "prefix": "daddy throw",
+          "arm": "unattested_noun",
+          "word": "bear",
+          "energy_undefined": "predicted energy undefined: no pre-k-WTA input vector was recorded for PREDICTIO",
+          "landing_undefined": "PREDICTION settled to an empty assembly -- the legacy 1.0 would read as MAXIMUM "
+        },
+        {
+          "prefix": "daddy throw",
+          "arm": "verb_violation",
+          "word": "know",
+          "energy_undefined": "predicted energy undefined: no pre-k-WTA input vector was recorded for PREDICTIO",
+          "landing_undefined": "PREDICTION settled to an empty assembly -- the legacy 1.0 would read as MAXIMUM "
+        },
+        {
+          "prefix": "daddy throw",
+          "arm": "novel",
+          "word": "finds",
+          "energy_undefined": "predicted energy undefined: no pre-k-WTA input vector was recorded for PREDICTIO",
+          "landing_undefined": "PREDICTION settled to an empty assembly -- the legacy 1.0 would read as MAXIMUM "
+        },
+        {
+          "prefix": "book on",
+          "arm": "attested",
+          "word": "floor",
+          "energy": 0.9782344195991755,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "book on",
+          "arm": "unattested_noun",
+          "word": "park",
+          "energy": 0.9884641198441386,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "book on",
+          "arm": "verb_violation",
+          "word": "grown",
+          "energy": 0.9907466527074575,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "book on",
+          "arm": "novel",
+          "word": "small",
+          "energy": 0.9875372359529138,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "she is reading a",
+          "arm": "attested",
+          "word": "book",
+          "energy": 0.9912324165925384,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "she is reading a",
+          "arm": "unattested_noun",
+          "word": "water",
+          "energy": 0.9888704000040889,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "she is reading a",
+          "arm": "verb_violation",
+          "word": "want",
+          "energy": 0.9817734900861979,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "she is reading a",
+          "arm": "novel",
+          "word": "bird",
+          "energy": 0.9828513003885746,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "she take",
+          "arm": "attested",
+          "word": "toy",
+          "energy": 0.980453060939908,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "she take",
+          "arm": "unattested_noun",
+          "word": "parks",
+          "energy": 0.9890639893710613,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "she take",
+          "arm": "verb_violation",
+          "word": "lost",
+          "energy": 0.9757929090410471,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "she take",
+          "arm": "novel",
+          "word": "finds",
+          "energy": 0.9739506207406521,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "ball and",
+          "arm": "attested",
+          "word": "book",
+          "energy": 0.9912324165925384,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "ball and",
+          "arm": "unattested_noun",
+          "word": "dog",
+          "energy": 0.9871166925877333,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "ball and",
+          "arm": "verb_violation",
+          "word": "grown",
+          "energy": 0.9907466527074575,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "ball and",
+          "arm": "novel",
+          "word": "finds",
+          "energy": 0.9739506207406521,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "who is at the",
+          "arm": "attested",
+          "word": "door",
+          "energy": 0.9881349187344313,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "who is at the",
+          "arm": "unattested_noun",
+          "word": "parks",
+          "energy": 0.9890639893710613,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "who is at the",
+          "arm": "verb_violation",
+          "word": "made",
+          "energy": 0.9834304340183735,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "who is at the",
+          "arm": "novel",
+          "word": "small",
+          "energy": 0.9875372359529138,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "i want to go to the",
+          "arm": "attested",
+          "word": "park",
+          "energy": 0.9884641198441386,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "i want to go to the",
+          "arm": "unattested_noun",
+          "word": "picture",
+          "energy": 0.9262425452470779,
+          "landing": 0.9333333333333333,
+          "overlap": 0.06666666666666667
+        },
+        {
+          "prefix": "i want to go to the",
+          "arm": "verb_violation",
+          "word": "ends",
+          "energy": 0.9892931841313839,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "i want to go to the",
+          "arm": "novel",
+          "word": "bird",
+          "energy": 0.9828513003885746,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "the man who is tall is my",
+          "arm": "attested",
+          "word": "dad",
+          "energy": 0.9874048624187708,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "the man who is tall is my",
+          "arm": "unattested_noun",
+          "word": "night",
+          "energy": 0.968010850250721,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "the man who is tall is my",
+          "arm": "verb_violation",
+          "word": "see",
+          "energy": 0.9658790491521358,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "the man who is tall is my",
+          "arm": "novel",
+          "word": "finds",
+          "energy": 0.9739506207406521,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "who that",
+          "arm": "attested",
+          "word": "man",
+          "energy": 0.9768632985651493,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "who that",
+          "arm": "unattested_noun",
+          "word": "cups",
+          "energy": 0.9819140080362558,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "who that",
+          "arm": "verb_violation",
+          "word": "draw",
+          "energy": 0.9881535647436976,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "who that",
+          "arm": "novel",
+          "word": "small",
+          "energy": 0.9875372359529138,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "not my",
+          "arm": "attested",
+          "word": "toy",
+          "energy": 0.980453060939908,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "not my",
+          "arm": "unattested_noun",
+          "word": "face",
+          "energy": 0.9869374893605709,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "not my",
+          "arm": "verb_violation",
+          "word": "started",
+          "energy": 0.9890655977651477,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "not my",
+          "arm": "novel",
+          "word": "bird",
+          "energy": 0.9828513003885746,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "do you want milk or",
+          "arm": "attested",
+          "word": "juice",
+          "energy": 0.9922972791828215,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "do you want milk or",
+          "arm": "unattested_noun",
+          "word": "fish",
+          "energy": 0.984631534665823,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "do you want milk or",
+          "arm": "verb_violation",
+          "word": "watched",
+          "energy": 0.9898341922089458,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "do you want milk or",
+          "arm": "novel",
+          "word": "finds",
+          "energy": 0.9739506207406521,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        }
+      ],
+      "undefined": {
+        "energy": {
+          "attested": 1,
+          "unattested_noun": 1,
+          "verb_violation": 1,
+          "novel": 1
+        },
+        "landing": {
+          "attested": 1,
+          "unattested_noun": 1,
+          "verb_violation": 1,
+          "novel": 1
+        }
+      },
+      "auc": {
+        "sem_energy": 0.3760330578512397,
+        "syn_energy": 0.45454545454545453,
+        "nov_energy": 0.2231404958677686,
+        "sem_landing": 0.5289256198347108,
+        "syn_landing": 0.5909090909090909,
+        "nov_landing": 0.45454545454545453
+      },
+      "energy_arm_means": {
+        "attested": 0.986,
+        "unattested_noun": 0.9792,
+        "verb_violation": 0.9848,
+        "novel": 0.9801
+      },
+      "energy_clip_ge_095": {
+        "attested": 11,
+        "unattested_noun": 10,
+        "verb_violation": 11,
+        "novel": 11
+      },
+      "landing_arm_means": {
+        "attested": 0.9879,
+        "unattested_noun": 0.9879,
+        "verb_violation": 0.9939,
+        "novel": 0.9848
+      },
+      "landing_clip_ge_095": {
+        "attested": 11,
+        "unattested_noun": 10,
+        "verb_violation": 11,
+        "novel": 11
+      }
+    },
+    "19": {
+      "n_contexts": 12,
+      "rows": [
+        {
+          "prefix": "do you want milk or",
+          "arm": "attested",
+          "word": "juice",
+          "energy": 0.9908221988007426,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "do you want milk or",
+          "arm": "unattested_noun",
+          "word": "breads",
+          "energy": 0.9669287391006947,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "do you want milk or",
+          "arm": "verb_violation",
+          "word": "loses",
+          "energy": 0.9903086991980672,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "do you want milk or",
+          "arm": "novel",
+          "word": "bird",
+          "energy": 0.9713512565940619,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "where is my",
+          "arm": "attested",
+          "word": "ball",
+          "energy": 0.988828968256712,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "where is my",
+          "arm": "unattested_noun",
+          "word": "night",
+          "energy": 0.9882872579619288,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "where is my",
+          "arm": "verb_violation",
+          "word": "paint",
+          "energy": 0.9868734898045659,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "where is my",
+          "arm": "novel",
+          "word": "finds",
+          "energy": 0.9522982873022556,
+          "landing": 0.9333333333333333,
+          "overlap": 0.06666666666666667
+        },
+        {
+          "prefix": "who is at the",
+          "arm": "attested",
+          "word": "door",
+          "energy": 0.9849848859012127,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "who is at the",
+          "arm": "unattested_noun",
+          "word": "ball",
+          "energy": 0.988828968256712,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "who is at the",
+          "arm": "verb_violation",
+          "word": "dies",
+          "energy": 0.9862818764522672,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "who is at the",
+          "arm": "novel",
+          "word": "finds",
+          "energy": 0.9522982873022556,
+          "landing": 0.9333333333333333,
+          "overlap": 0.06666666666666667
+        },
+        {
+          "prefix": "she is reading a",
+          "arm": "attested",
+          "word": "book",
+          "energy": 0.9879426378756762,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "she is reading a",
+          "arm": "unattested_noun",
+          "word": "woman",
+          "energy": 0.9836298786103725,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "she is reading a",
+          "arm": "verb_violation",
+          "word": "fixed",
+          "energy": 0.9892337489873171,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "she is reading a",
+          "arm": "novel",
+          "word": "bird",
+          "energy": 0.9713512565940619,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "she take",
+          "arm": "attested",
+          "word": "toy",
+          "energy": 0.9901976799592376,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "she take",
+          "arm": "unattested_noun",
+          "word": "boys",
+          "energy": 0.983062332496047,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "she take",
+          "arm": "verb_violation",
+          "word": "came",
+          "energy": 0.9893701216205955,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "she take",
+          "arm": "novel",
+          "word": "bird",
+          "energy": 0.9713512565940619,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "i want to go to the",
+          "arm": "attested",
+          "word": "park",
+          "energy": 0.9679103940725327,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "i want to go to the",
+          "arm": "unattested_noun",
+          "word": "night",
+          "energy": 0.9882872579619288,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "i want to go to the",
+          "arm": "verb_violation",
+          "word": "fixes",
+          "energy": 0.9887029929086566,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "i want to go to the",
+          "arm": "novel",
+          "word": "finds",
+          "energy": 0.9522982873022556,
+          "landing": 0.9333333333333333,
+          "overlap": 0.06666666666666667
+        },
+        {
+          "prefix": "dog in",
+          "arm": "attested",
+          "word": "house",
+          "energy": 0.9834830779582262,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "dog in",
+          "arm": "unattested_noun",
+          "word": "cat",
+          "energy": 0.9126025438308716,
+          "landing": 0.8,
+          "overlap": 0.2
+        },
+        {
+          "prefix": "dog in",
+          "arm": "verb_violation",
+          "word": "do",
+          "energy": 0.9867183240130544,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "dog in",
+          "arm": "novel",
+          "word": "small",
+          "energy": 0.9549756236374378,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "does she have a",
+          "arm": "attested",
+          "word": "dog",
+          "energy": 0.9823409132659435,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "does she have a",
+          "arm": "unattested_noun",
+          "word": "nose",
+          "energy": 0.9907423900440335,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "does she have a",
+          "arm": "verb_violation",
+          "word": "touches",
+          "energy": 0.9884664388373494,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "does she have a",
+          "arm": "novel",
+          "word": "bird",
+          "energy": 0.9713512565940619,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "the man who is tall is my",
+          "arm": "attested",
+          "word": "dad",
+          "energy": 0.9871629942208529,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "the man who is tall is my",
+          "arm": "unattested_noun",
+          "word": "money",
+          "energy": 0.9881961308419704,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "the man who is tall is my",
+          "arm": "verb_violation",
+          "word": "talked",
+          "energy": 0.9803634639829397,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "the man who is tall is my",
+          "arm": "novel",
+          "word": "small",
+          "energy": 0.9549756236374378,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "mommy read",
+          "arm": "attested",
+          "word": "book",
+          "energy": 0.9879426378756762,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "mommy read",
+          "arm": "unattested_noun",
+          "word": "clouds",
+          "energy": 0.9795624669641256,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "mommy read",
+          "arm": "verb_violation",
+          "word": "ask",
+          "energy": 0.9731933437287807,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "mommy read",
+          "arm": "novel",
+          "word": "finds",
+          "energy": 0.9522982873022556,
+          "landing": 0.9333333333333333,
+          "overlap": 0.06666666666666667
+        },
+        {
+          "prefix": "we played in the",
+          "arm": "attested",
+          "word": "park",
+          "energy": 0.9679103940725327,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "we played in the",
+          "arm": "unattested_noun",
+          "word": "world",
+          "energy": 0.9876627568155527,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "we played in the",
+          "arm": "verb_violation",
+          "word": "talked",
+          "energy": 0.9803634639829397,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "we played in the",
+          "arm": "novel",
+          "word": "finds",
+          "energy": 0.9522982873022556,
+          "landing": 0.9333333333333333,
+          "overlap": 0.06666666666666667
+        },
+        {
+          "prefix": "ball and",
+          "arm": "attested",
+          "word": "book",
+          "energy": 0.9879426378756762,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "ball and",
+          "arm": "unattested_noun",
+          "word": "wall",
+          "energy": 0.9909231355413795,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "ball and",
+          "arm": "verb_violation",
+          "word": "ate",
+          "energy": 0.9873580476269126,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "ball and",
+          "arm": "novel",
+          "word": "small",
+          "energy": 0.9549756236374378,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        }
+      ],
+      "undefined": {
+        "energy": {},
+        "landing": {}
+      },
+      "auc": {
+        "sem_energy": 0.5173611111111112,
+        "syn_energy": 0.5277777777777778,
+        "nov_energy": 0.05555555555555555,
+        "sem_landing": 0.4513888888888889,
+        "syn_landing": 0.5416666666666666,
+        "nov_landing": 0.09027777777777778
+      },
+      "energy_arm_means": {
+        "attested": 0.984,
+        "unattested_noun": 0.9791,
+        "verb_violation": 0.9856,
+        "novel": 0.9593
+      },
+      "energy_clip_ge_095": {
+        "attested": 12,
+        "unattested_noun": 11,
+        "verb_violation": 12,
+        "novel": 12
+      },
+      "landing_arm_means": {
+        "attested": 0.9944,
+        "unattested_noun": 0.9778,
+        "verb_violation": 0.9972,
+        "novel": 0.9556
+      },
+      "landing_clip_ge_095": {
+        "attested": 12,
+        "unattested_noun": 11,
+        "verb_violation": 12,
+        "novel": 7
+      }
+    },
+    "42": {
+      "n_contexts": 12,
+      "rows": [
+        {
+          "prefix": "we played in the",
+          "arm": "attested",
+          "word": "park",
+          "energy": 0.983330849558115,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "we played in the",
+          "arm": "unattested_noun",
+          "word": "toy",
+          "energy": 0.9877194901928306,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "we played in the",
+          "arm": "verb_violation",
+          "word": "touches",
+          "energy": 0.9911520844325423,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "we played in the",
+          "arm": "novel",
+          "word": "finds",
+          "energy": 0.9876630185171962,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "she take",
+          "arm": "attested",
+          "word": "toy",
+          "energy": 0.9877194901928306,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "she take",
+          "arm": "unattested_noun",
+          "word": "door",
+          "energy": 0.9473192654550076,
+          "landing": 0.9333333333333333,
+          "overlap": 0.06666666666666667
+        },
+        {
+          "prefix": "she take",
+          "arm": "verb_violation",
+          "word": "started",
+          "energy": 0.9854081571102142,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "she take",
+          "arm": "novel",
+          "word": "finds",
+          "energy": 0.9876630185171962,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "mommy reads a",
+          "arm": "attested",
+          "word": "book",
+          "energy": 0.9891963703557849,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "mommy reads a",
+          "arm": "unattested_noun",
+          "word": "life",
+          "energy": 0.9702093228697777,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "mommy reads a",
+          "arm": "verb_violation",
+          "word": "started",
+          "energy": 0.9854081571102142,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "mommy reads a",
+          "arm": "novel",
+          "word": "finds",
+          "energy": 0.9876630185171962,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "i want to go to the",
+          "arm": "attested",
+          "word": "park",
+          "energy": 0.983330849558115,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "i want to go to the",
+          "arm": "unattested_noun",
+          "word": "cup",
+          "energy": 0.9845256041735411,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "i want to go to the",
+          "arm": "verb_violation",
+          "word": "felt",
+          "energy": 0.979592164978385,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "i want to go to the",
+          "arm": "novel",
+          "word": "bird",
+          "energy": 0.9723361004143953,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "who that",
+          "arm": "attested",
+          "word": "man",
+          "energy": 0.9690695237368345,
+          "landing": 0.9333333333333333,
+          "overlap": 0.06666666666666667
+        },
+        {
+          "prefix": "who that",
+          "arm": "unattested_noun",
+          "word": "finger",
+          "energy": 0.9819759652018547,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "who that",
+          "arm": "verb_violation",
+          "word": "walked",
+          "energy": 0.9898840766400099,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "who that",
+          "arm": "novel",
+          "word": "small",
+          "energy": 0.9693546164780855,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "dog in",
+          "arm": "attested",
+          "word": "house",
+          "energy": 0.9914078572764993,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "dog in",
+          "arm": "unattested_noun",
+          "word": "rain",
+          "energy": 0.9805014729499817,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "dog in",
+          "arm": "verb_violation",
+          "word": "felt",
+          "energy": 0.979592164978385,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "dog in",
+          "arm": "novel",
+          "word": "small",
+          "energy": 0.9693546164780855,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "daddy throw",
+          "arm": "attested",
+          "word": "ball",
+          "energy_undefined": "predicted energy undefined: no pre-k-WTA input vector was recorded for PREDICTIO",
+          "landing_undefined": "PREDICTION settled to an empty assembly -- the legacy 1.0 would read as MAXIMUM "
+        },
+        {
+          "prefix": "daddy throw",
+          "arm": "unattested_noun",
+          "word": "stars",
+          "energy_undefined": "predicted energy undefined: no pre-k-WTA input vector was recorded for PREDICTIO",
+          "landing_undefined": "PREDICTION settled to an empty assembly -- the legacy 1.0 would read as MAXIMUM "
+        },
+        {
+          "prefix": "daddy throw",
+          "arm": "verb_violation",
+          "word": "jumped",
+          "energy_undefined": "predicted energy undefined: no pre-k-WTA input vector was recorded for PREDICTIO",
+          "landing_undefined": "PREDICTION settled to an empty assembly -- the legacy 1.0 would read as MAXIMUM "
+        },
+        {
+          "prefix": "daddy throw",
+          "arm": "novel",
+          "word": "small",
+          "energy_undefined": "predicted energy undefined: no pre-k-WTA input vector was recorded for PREDICTIO",
+          "landing_undefined": "PREDICTION settled to an empty assembly -- the legacy 1.0 would read as MAXIMUM "
+        },
+        {
+          "prefix": "who is at the",
+          "arm": "attested",
+          "word": "door",
+          "energy": 0.9473192654550076,
+          "landing": 0.9333333333333333,
+          "overlap": 0.06666666666666667
+        },
+        {
+          "prefix": "who is at the",
+          "arm": "unattested_noun",
+          "word": "mother",
+          "energy": 0.9628467783331871,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "who is at the",
+          "arm": "verb_violation",
+          "word": "grown",
+          "energy": 0.9895407082512975,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "who is at the",
+          "arm": "novel",
+          "word": "bird",
+          "energy": 0.9723361004143953,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "does she have a",
+          "arm": "attested",
+          "word": "dog",
+          "energy": 0.9792814925312996,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "does she have a",
+          "arm": "unattested_noun",
+          "word": "cloud",
+          "energy": 0.9589601680636406,
+          "landing": 0.9333333333333333,
+          "overlap": 0.06666666666666667
+        },
+        {
+          "prefix": "does she have a",
+          "arm": "verb_violation",
+          "word": "made",
+          "energy": 0.9631271436810493,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "does she have a",
+          "arm": "novel",
+          "word": "finds",
+          "energy": 0.9876630185171962,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "ball and",
+          "arm": "attested",
+          "word": "book",
+          "energy": 0.9891963703557849,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "ball and",
+          "arm": "unattested_noun",
+          "word": "brother",
+          "energy": 0.9889624863862991,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "ball and",
+          "arm": "verb_violation",
+          "word": "want",
+          "energy": 0.9776883646845818,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "ball and",
+          "arm": "novel",
+          "word": "bird",
+          "energy": 0.9723361004143953,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "do you want milk or",
+          "arm": "attested",
+          "word": "juice",
+          "energy": 0.9807066507637501,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "do you want milk or",
+          "arm": "unattested_noun",
+          "word": "chair",
+          "energy": 0.99000552482903,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "do you want milk or",
+          "arm": "verb_violation",
+          "word": "come",
+          "energy": 0.9723965488374233,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "do you want milk or",
+          "arm": "novel",
+          "word": "small",
+          "energy": 0.9693546164780855,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "book on",
+          "arm": "attested",
+          "word": "floor",
+          "energy": 0.9896524092182517,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "book on",
+          "arm": "unattested_noun",
+          "word": "country",
+          "energy": 0.9875429356470704,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "book on",
+          "arm": "verb_violation",
+          "word": "wanted",
+          "energy": 0.9872561702504754,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "book on",
+          "arm": "novel",
+          "word": "small",
+          "energy": 0.9693546164780855,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        }
+      ],
+      "undefined": {
+        "energy": {
+          "attested": 1,
+          "unattested_noun": 1,
+          "verb_violation": 1,
+          "novel": 1
+        },
+        "landing": {
+          "attested": 1,
+          "unattested_noun": 1,
+          "verb_violation": 1,
+          "novel": 1
+        }
+      },
+      "auc": {
+        "sem_energy": 0.3884297520661157,
+        "syn_energy": 0.4793388429752066,
+        "nov_energy": 0.3140495867768595,
+        "sem_landing": 0.4628099173553719,
+        "syn_landing": 0.45041322314049587,
+        "nov_landing": 0.3760330578512397
+      },
+      "energy_arm_means": {
+        "attested": 0.9809,
+        "unattested_noun": 0.9764,
+        "verb_violation": 0.9819,
+        "novel": 0.9768
+      },
+      "energy_clip_ge_095": {
+        "attested": 10,
+        "unattested_noun": 10,
+        "verb_violation": 11,
+        "novel": 11
+      },
+      "landing_arm_means": {
+        "attested": 0.9848,
+        "unattested_noun": 0.9818,
+        "verb_violation": 0.9848,
+        "novel": 0.9788
+      },
+      "landing_clip_ge_095": {
+        "attested": 9,
+        "unattested_noun": 9,
+        "verb_violation": 11,
+        "novel": 11
+      }
+    },
+    "43": {
+      "n_contexts": 12,
+      "rows": [
+        {
+          "prefix": "mommy reads a",
+          "arm": "attested",
+          "word": "book",
+          "energy": 0.991846683435142,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "mommy reads a",
+          "arm": "unattested_noun",
+          "word": "answer",
+          "energy": 0.9898347426205873,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "mommy reads a",
+          "arm": "verb_violation",
+          "word": "bought",
+          "energy": 0.981788033619523,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "mommy reads a",
+          "arm": "novel",
+          "word": "bird",
+          "energy": 0.9337014853954315,
+          "landing": 0.9333333333333333,
+          "overlap": 0.06666666666666667
+        },
+        {
+          "prefix": "does she have a",
+          "arm": "attested",
+          "word": "dog",
+          "energy": 0.9835266284644604,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "does she have a",
+          "arm": "unattested_noun",
+          "word": "chicken",
+          "energy": 0.9658904895186424,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "does she have a",
+          "arm": "verb_violation",
+          "word": "walked",
+          "energy": 0.9790222011506557,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "does she have a",
+          "arm": "novel",
+          "word": "bird",
+          "energy": 0.9337014853954315,
+          "landing": 0.9333333333333333,
+          "overlap": 0.06666666666666667
+        },
+        {
+          "prefix": "the man who is tall is my",
+          "arm": "attested",
+          "word": "dad",
+          "energy": 0.9896089294925332,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "the man who is tall is my",
+          "arm": "unattested_noun",
+          "word": "hoped",
+          "energy": 0.9717314299196005,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "the man who is tall is my",
+          "arm": "verb_violation",
+          "word": "came",
+          "energy": 0.9886747431010008,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "the man who is tall is my",
+          "arm": "novel",
+          "word": "small",
+          "energy": 0.9802918322384357,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "do you want milk or",
+          "arm": "attested",
+          "word": "juice",
+          "energy": 0.9785076715052128,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "do you want milk or",
+          "arm": "unattested_noun",
+          "word": "place",
+          "energy": 0.9640583470463753,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "do you want milk or",
+          "arm": "verb_violation",
+          "word": "made",
+          "energy": 0.9908564584329724,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "do you want milk or",
+          "arm": "novel",
+          "word": "finds",
+          "energy": 0.9700726494193077,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "where is my",
+          "arm": "attested",
+          "word": "ball",
+          "energy": 0.9923949181102216,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "where is my",
+          "arm": "unattested_noun",
+          "word": "name",
+          "energy": 0.9802915193140507,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "where is my",
+          "arm": "verb_violation",
+          "word": "grew",
+          "energy": 0.9894184032455087,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "where is my",
+          "arm": "novel",
+          "word": "finds",
+          "energy": 0.9700726494193077,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "daddy throw",
+          "arm": "attested",
+          "word": "ball",
+          "energy_undefined": "predicted energy undefined: no pre-k-WTA input vector was recorded for PREDICTIO",
+          "landing_undefined": "PREDICTION settled to an empty assembly -- the legacy 1.0 would read as MAXIMUM "
+        },
+        {
+          "prefix": "daddy throw",
+          "arm": "unattested_noun",
+          "word": "breads",
+          "energy_undefined": "predicted energy undefined: no pre-k-WTA input vector was recorded for PREDICTIO",
+          "landing_undefined": "PREDICTION settled to an empty assembly -- the legacy 1.0 would read as MAXIMUM "
+        },
+        {
+          "prefix": "daddy throw",
+          "arm": "verb_violation",
+          "word": "waits",
+          "energy_undefined": "predicted energy undefined: no pre-k-WTA input vector was recorded for PREDICTIO",
+          "landing_undefined": "PREDICTION settled to an empty assembly -- the legacy 1.0 would read as MAXIMUM "
+        },
+        {
+          "prefix": "daddy throw",
+          "arm": "novel",
+          "word": "bird",
+          "energy_undefined": "predicted energy undefined: no pre-k-WTA input vector was recorded for PREDICTIO",
+          "landing_undefined": "PREDICTION settled to an empty assembly -- the legacy 1.0 would read as MAXIMUM "
+        },
+        {
+          "prefix": "i want to go to the",
+          "arm": "attested",
+          "word": "park",
+          "energy": 0.9800463523715734,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "i want to go to the",
+          "arm": "unattested_noun",
+          "word": "brother",
+          "energy": 0.9782436583191156,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "i want to go to the",
+          "arm": "verb_violation",
+          "word": "waits",
+          "energy": 0.9904069025069475,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "i want to go to the",
+          "arm": "novel",
+          "word": "bird",
+          "energy": 0.9337014853954315,
+          "landing": 0.9333333333333333,
+          "overlap": 0.06666666666666667
+        },
+        {
+          "prefix": "we played in the",
+          "arm": "attested",
+          "word": "park",
+          "energy": 0.9800463523715734,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "we played in the",
+          "arm": "unattested_noun",
+          "word": "moon",
+          "energy": 0.9651601538062096,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "we played in the",
+          "arm": "verb_violation",
+          "word": "draw",
+          "energy": 0.972039669752121,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "we played in the",
+          "arm": "novel",
+          "word": "small",
+          "energy": 0.9802918322384357,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "who is at the",
+          "arm": "attested",
+          "word": "door",
+          "energy": 0.9895572559908032,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "who is at the",
+          "arm": "unattested_noun",
+          "word": "toy",
+          "energy": 0.9848053203895688,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "who is at the",
+          "arm": "verb_violation",
+          "word": "is",
+          "energy": 0.9831574149429798,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "who is at the",
+          "arm": "novel",
+          "word": "finds",
+          "energy": 0.9700726494193077,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "she take",
+          "arm": "attested",
+          "word": "toy",
+          "energy": 0.9848053203895688,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "she take",
+          "arm": "unattested_noun",
+          "word": "stars",
+          "energy": 0.9882326563820243,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "she take",
+          "arm": "verb_violation",
+          "word": "seems",
+          "energy": 0.9751802366226912,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "she take",
+          "arm": "novel",
+          "word": "finds",
+          "energy": 0.9700726494193077,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "book on",
+          "arm": "attested",
+          "word": "floor",
+          "energy": 0.9856938980519772,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "book on",
+          "arm": "unattested_noun",
+          "word": "head",
+          "energy": 0.9820778947323561,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "book on",
+          "arm": "verb_violation",
+          "word": "is",
+          "energy": 0.9831574149429798,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "book on",
+          "arm": "novel",
+          "word": "finds",
+          "energy": 0.9700726494193077,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "who that",
+          "arm": "attested",
+          "word": "man",
+          "energy": 0.9912845315411687,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "who that",
+          "arm": "unattested_noun",
+          "word": "beds",
+          "energy": 0.9831586051732302,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "who that",
+          "arm": "verb_violation",
+          "word": "do",
+          "energy": 0.9885582476854324,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "who that",
+          "arm": "novel",
+          "word": "small",
+          "energy": 0.9802918322384357,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        }
+      ],
+      "undefined": {
+        "energy": {
+          "attested": 1,
+          "unattested_noun": 1,
+          "verb_violation": 1,
+          "novel": 1
+        },
+        "landing": {
+          "attested": 1,
+          "unattested_noun": 1,
+          "verb_violation": 1,
+          "novel": 1
+        }
+      },
+      "auc": {
+        "sem_energy": 0.22727272727272727,
+        "syn_energy": 0.36363636363636365,
+        "nov_energy": 0.0743801652892562,
+        "sem_landing": 0.4090909090909091,
+        "syn_landing": 0.5,
+        "nov_landing": 0.09917355371900827
+      },
+      "energy_arm_means": {
+        "attested": 0.9861,
+        "unattested_noun": 0.9776,
+        "verb_violation": 0.9838,
+        "novel": 0.9629
+      },
+      "energy_clip_ge_095": {
+        "attested": 11,
+        "unattested_noun": 11,
+        "verb_violation": 11,
+        "novel": 8
+      },
+      "landing_arm_means": {
+        "attested": 0.9909,
+        "unattested_noun": 0.9848,
+        "verb_violation": 0.9909,
+        "novel": 0.9576
+      },
+      "landing_clip_ge_095": {
+        "attested": 11,
+        "unattested_noun": 11,
+        "verb_violation": 11,
+        "novel": 8
+      }
+    },
+    "44": {
+      "n_contexts": 12,
+      "rows": [
+        {
+          "prefix": "she take",
+          "arm": "attested",
+          "word": "toy",
+          "energy": 0.9800753891468048,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "she take",
+          "arm": "unattested_noun",
+          "word": "time",
+          "energy": 0.9880035305395722,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "she take",
+          "arm": "verb_violation",
+          "word": "started",
+          "energy": 0.9801414087414742,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "she take",
+          "arm": "novel",
+          "word": "finds",
+          "energy": 0.9597733728587627,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "where is my",
+          "arm": "attested",
+          "word": "ball",
+          "energy": 0.988624763675034,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "where is my",
+          "arm": "unattested_noun",
+          "word": "woman",
+          "energy": 0.9692858532071114,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "where is my",
+          "arm": "verb_violation",
+          "word": "becomes",
+          "energy": 0.9826198481023312,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "where is my",
+          "arm": "novel",
+          "word": "finds",
+          "energy": 0.9597733728587627,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "she is reading a",
+          "arm": "attested",
+          "word": "book",
+          "energy": 0.9885032791644335,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "she is reading a",
+          "arm": "unattested_noun",
+          "word": "boys",
+          "energy": 0.9731160644441843,
+          "landing": 0.9333333333333333,
+          "overlap": 0.06666666666666667
+        },
+        {
+          "prefix": "she is reading a",
+          "arm": "verb_violation",
+          "word": "ask",
+          "energy": 0.9902110882103443,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "she is reading a",
+          "arm": "novel",
+          "word": "finds",
+          "energy": 0.9597733728587627,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "does she have a",
+          "arm": "attested",
+          "word": "dog",
+          "energy": 0.9829866401851177,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "does she have a",
+          "arm": "unattested_noun",
+          "word": "gift",
+          "energy": 0.9884829157963395,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "does she have a",
+          "arm": "verb_violation",
+          "word": "do",
+          "energy": 0.9798611421138048,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "does she have a",
+          "arm": "novel",
+          "word": "small",
+          "energy": 0.941819541156292,
+          "landing": 0.9333333333333333,
+          "overlap": 0.06666666666666667
+        },
+        {
+          "prefix": "who that",
+          "arm": "attested",
+          "word": "man",
+          "energy": 0.9848760357126594,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "who that",
+          "arm": "unattested_noun",
+          "word": "picture",
+          "energy": 0.9713282231241465,
+          "landing": 0.9333333333333333,
+          "overlap": 0.06666666666666667
+        },
+        {
+          "prefix": "who that",
+          "arm": "verb_violation",
+          "word": "started",
+          "energy": 0.9801414087414742,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "who that",
+          "arm": "novel",
+          "word": "small",
+          "energy": 0.941819541156292,
+          "landing": 0.9333333333333333,
+          "overlap": 0.06666666666666667
+        },
+        {
+          "prefix": "mommy reads a",
+          "arm": "attested",
+          "word": "book",
+          "energy": 0.9885032791644335,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "mommy reads a",
+          "arm": "unattested_noun",
+          "word": "day",
+          "energy": 0.9864332117140293,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "mommy reads a",
+          "arm": "verb_violation",
+          "word": "be",
+          "energy": 0.9916844498366117,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "mommy reads a",
+          "arm": "novel",
+          "word": "finds",
+          "energy": 0.9597733728587627,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "daddy throw",
+          "arm": "attested",
+          "word": "ball",
+          "energy_undefined": "predicted energy undefined: no pre-k-WTA input vector was recorded for PREDICTIO",
+          "landing_undefined": "PREDICTION settled to an empty assembly -- the legacy 1.0 would read as MAXIMUM "
+        },
+        {
+          "prefix": "daddy throw",
+          "arm": "unattested_noun",
+          "word": "nose",
+          "energy_undefined": "predicted energy undefined: no pre-k-WTA input vector was recorded for PREDICTIO",
+          "landing_undefined": "PREDICTION settled to an empty assembly -- the legacy 1.0 would read as MAXIMUM "
+        },
+        {
+          "prefix": "daddy throw",
+          "arm": "verb_violation",
+          "word": "felt",
+          "energy_undefined": "predicted energy undefined: no pre-k-WTA input vector was recorded for PREDICTIO",
+          "landing_undefined": "PREDICTION settled to an empty assembly -- the legacy 1.0 would read as MAXIMUM "
+        },
+        {
+          "prefix": "daddy throw",
+          "arm": "novel",
+          "word": "bird",
+          "energy_undefined": "predicted energy undefined: no pre-k-WTA input vector was recorded for PREDICTIO",
+          "landing_undefined": "PREDICTION settled to an empty assembly -- the legacy 1.0 would read as MAXIMUM "
+        },
+        {
+          "prefix": "mommy read",
+          "arm": "attested",
+          "word": "book",
+          "energy": 0.9885032791644335,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "mommy read",
+          "arm": "unattested_noun",
+          "word": "person",
+          "energy": 0.9889048039913177,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "mommy read",
+          "arm": "verb_violation",
+          "word": "want",
+          "energy": 0.9787451904267073,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "mommy read",
+          "arm": "novel",
+          "word": "small",
+          "energy": 0.941819541156292,
+          "landing": 0.9333333333333333,
+          "overlap": 0.06666666666666667
+        },
+        {
+          "prefix": "book on",
+          "arm": "attested",
+          "word": "floor",
+          "energy": 0.986303212121129,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "book on",
+          "arm": "unattested_noun",
+          "word": "hearts",
+          "energy": 0.9924748335033655,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "book on",
+          "arm": "verb_violation",
+          "word": "put",
+          "energy": 0.9685984775424004,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "book on",
+          "arm": "novel",
+          "word": "finds",
+          "energy": 0.9597733728587627,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "dog in",
+          "arm": "attested",
+          "word": "house",
+          "energy": 0.9913866696879268,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "dog in",
+          "arm": "unattested_noun",
+          "word": "bottle",
+          "energy": 0.9829585459083319,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "dog in",
+          "arm": "verb_violation",
+          "word": "fixes",
+          "energy": 0.9681678339838982,
+          "landing": 0.9333333333333333,
+          "overlap": 0.06666666666666667
+        },
+        {
+          "prefix": "dog in",
+          "arm": "novel",
+          "word": "finds",
+          "energy": 0.9597733728587627,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "ball and",
+          "arm": "attested",
+          "word": "book",
+          "energy": 0.9885032791644335,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "ball and",
+          "arm": "unattested_noun",
+          "word": "girls",
+          "energy": 0.9919118983671069,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "ball and",
+          "arm": "verb_violation",
+          "word": "is",
+          "energy": 0.9830627012997866,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "ball and",
+          "arm": "novel",
+          "word": "finds",
+          "energy": 0.9597733728587627,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "who is at the",
+          "arm": "attested",
+          "word": "door",
+          "energy": 0.988779854029417,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "who is at the",
+          "arm": "unattested_noun",
+          "word": "hearts",
+          "energy": 0.9924748335033655,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "who is at the",
+          "arm": "verb_violation",
+          "word": "reads",
+          "energy": 0.9867380289360881,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "who is at the",
+          "arm": "novel",
+          "word": "finds",
+          "energy": 0.9597733728587627,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        }
+      ],
+      "undefined": {
+        "energy": {
+          "attested": 1,
+          "unattested_noun": 1,
+          "verb_violation": 1,
+          "novel": 1
+        },
+        "landing": {
+          "attested": 1,
+          "unattested_noun": 1,
+          "verb_violation": 1,
+          "novel": 1
+        }
+      },
+      "auc": {
+        "sem_energy": 0.4628099173553719,
+        "syn_energy": 0.24793388429752067,
+        "nov_energy": 0.0,
+        "sem_landing": 0.35537190082644626,
+        "syn_landing": 0.2231404958677686,
+        "nov_landing": 0.03305785123966942
+      },
+      "energy_arm_means": {
+        "attested": 0.987,
+        "unattested_noun": 0.9841,
+        "verb_violation": 0.9809,
+        "novel": 0.9549
+      },
+      "energy_clip_ge_095": {
+        "attested": 11,
+        "unattested_noun": 11,
+        "verb_violation": 11,
+        "novel": 8
+      },
+      "landing_arm_means": {
+        "attested": 0.997,
+        "unattested_noun": 0.9818,
+        "verb_violation": 0.9758,
+        "novel": 0.9576
+      },
+      "landing_clip_ge_095": {
+        "attested": 11,
+        "unattested_noun": 9,
+        "verb_violation": 10,
+        "novel": 8
+      }
+    },
+    "45": {
+      "n_contexts": 12,
+      "rows": [
+        {
+          "prefix": "i want to go to the",
+          "arm": "attested",
+          "word": "park",
+          "energy": 0.9822144377976656,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "i want to go to the",
+          "arm": "unattested_noun",
+          "word": "nose",
+          "energy": 0.9776580613106489,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "i want to go to the",
+          "arm": "verb_violation",
+          "word": "draw",
+          "energy": 0.9899067683145404,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "i want to go to the",
+          "arm": "novel",
+          "word": "finds",
+          "energy": 0.9634364731609821,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "she is reading a",
+          "arm": "attested",
+          "word": "book",
+          "energy": 0.9692504592239857,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "she is reading a",
+          "arm": "unattested_noun",
+          "word": "friend",
+          "energy": 0.9803552310913801,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "she is reading a",
+          "arm": "verb_violation",
+          "word": "ends",
+          "energy": 0.969925170764327,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "she is reading a",
+          "arm": "novel",
+          "word": "small",
+          "energy": 0.9643869660794735,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "daddy throw",
+          "arm": "attested",
+          "word": "ball",
+          "energy_undefined": "predicted energy undefined: no pre-k-WTA input vector was recorded for PREDICTIO",
+          "landing_undefined": "PREDICTION settled to an empty assembly -- the legacy 1.0 would read as MAXIMUM "
+        },
+        {
+          "prefix": "daddy throw",
+          "arm": "unattested_noun",
+          "word": "tree",
+          "energy_undefined": "predicted energy undefined: no pre-k-WTA input vector was recorded for PREDICTIO",
+          "landing_undefined": "PREDICTION settled to an empty assembly -- the legacy 1.0 would read as MAXIMUM "
+        },
+        {
+          "prefix": "daddy throw",
+          "arm": "verb_violation",
+          "word": "see",
+          "energy_undefined": "predicted energy undefined: no pre-k-WTA input vector was recorded for PREDICTIO",
+          "landing_undefined": "PREDICTION settled to an empty assembly -- the legacy 1.0 would read as MAXIMUM "
+        },
+        {
+          "prefix": "daddy throw",
+          "arm": "novel",
+          "word": "small",
+          "energy_undefined": "predicted energy undefined: no pre-k-WTA input vector was recorded for PREDICTIO",
+          "landing_undefined": "PREDICTION settled to an empty assembly -- the legacy 1.0 would read as MAXIMUM "
+        },
+        {
+          "prefix": "does she have a",
+          "arm": "attested",
+          "word": "dog",
+          "energy": 0.9480340294539928,
+          "landing": 0.9,
+          "overlap": 0.1
+        },
+        {
+          "prefix": "does she have a",
+          "arm": "unattested_noun",
+          "word": "face",
+          "energy": 0.9872680017724633,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "does she have a",
+          "arm": "verb_violation",
+          "word": "reads",
+          "energy": 0.9804642274975777,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "does she have a",
+          "arm": "novel",
+          "word": "bird",
+          "energy": 0.9452695325016975,
+          "landing": 0.9333333333333333,
+          "overlap": 0.06666666666666667
+        },
+        {
+          "prefix": "who is at the",
+          "arm": "attested",
+          "word": "door",
+          "energy": 0.9816152546554804,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "who is at the",
+          "arm": "unattested_noun",
+          "word": "cup",
+          "energy": 0.9818270243704319,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "who is at the",
+          "arm": "verb_violation",
+          "word": "asks",
+          "energy": 0.9894368406385183,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "who is at the",
+          "arm": "novel",
+          "word": "small",
+          "energy": 0.9643869660794735,
+          "landing": 0.9333333333333333,
+          "overlap": 0.06666666666666667
+        },
+        {
+          "prefix": "mommy reads a",
+          "arm": "attested",
+          "word": "book",
+          "energy": 0.9692504592239857,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "mommy reads a",
+          "arm": "unattested_noun",
+          "word": "floor",
+          "energy": 0.9893538067117333,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "mommy reads a",
+          "arm": "verb_violation",
+          "word": "put",
+          "energy": 0.9882090678438544,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "mommy reads a",
+          "arm": "novel",
+          "word": "bird",
+          "energy": 0.9452695325016975,
+          "landing": 0.9333333333333333,
+          "overlap": 0.06666666666666667
+        },
+        {
+          "prefix": "we played in the",
+          "arm": "attested",
+          "word": "park",
+          "energy": 0.9822144377976656,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "we played in the",
+          "arm": "unattested_noun",
+          "word": "day",
+          "energy": 0.9905879022553563,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "we played in the",
+          "arm": "verb_violation",
+          "word": "wake",
+          "energy": 0.9768477324396372,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "we played in the",
+          "arm": "novel",
+          "word": "bird",
+          "energy": 0.9452695325016975,
+          "landing": 0.9333333333333333,
+          "overlap": 0.06666666666666667
+        },
+        {
+          "prefix": "who that",
+          "arm": "attested",
+          "word": "man",
+          "energy": 0.9632021300494671,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "who that",
+          "arm": "unattested_noun",
+          "word": "bottle",
+          "energy": 0.9898654036223888,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "who that",
+          "arm": "verb_violation",
+          "word": "bought",
+          "energy": 0.9896571338176727,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "who that",
+          "arm": "novel",
+          "word": "bird",
+          "energy": 0.9452695325016975,
+          "landing": 0.9333333333333333,
+          "overlap": 0.06666666666666667
+        },
+        {
+          "prefix": "she take",
+          "arm": "attested",
+          "word": "toy",
+          "energy": 0.9863240271806717,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "she take",
+          "arm": "unattested_noun",
+          "word": "cheese",
+          "energy": 0.9873022241517901,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "she take",
+          "arm": "verb_violation",
+          "word": "know",
+          "energy": 0.9797825142741203,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "she take",
+          "arm": "novel",
+          "word": "small",
+          "energy": 0.9643869660794735,
+          "landing": 0.9333333333333333,
+          "overlap": 0.06666666666666667
+        },
+        {
+          "prefix": "do you want milk or",
+          "arm": "attested",
+          "word": "juice",
+          "energy": 0.9904673881828785,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "do you want milk or",
+          "arm": "unattested_noun",
+          "word": "clouds",
+          "energy": 0.9906214168295264,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "do you want milk or",
+          "arm": "verb_violation",
+          "word": "bought",
+          "energy": 0.9896571338176727,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "do you want milk or",
+          "arm": "novel",
+          "word": "small",
+          "energy": 0.9643869660794735,
+          "landing": 0.9333333333333333,
+          "overlap": 0.06666666666666667
+        },
+        {
+          "prefix": "mommy read",
+          "arm": "attested",
+          "word": "book",
+          "energy": 0.9692504592239857,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "mommy read",
+          "arm": "unattested_noun",
+          "word": "woman",
+          "energy": 0.9878336088731885,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "mommy read",
+          "arm": "verb_violation",
+          "word": "woken",
+          "energy": 0.9906611843034625,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "mommy read",
+          "arm": "novel",
+          "word": "finds",
+          "energy": 0.9634364731609821,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "where is my",
+          "arm": "attested",
+          "word": "ball",
+          "energy": 0.9886144446209073,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "where is my",
+          "arm": "unattested_noun",
+          "word": "keys",
+          "energy": 0.9844172410666943,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "where is my",
+          "arm": "verb_violation",
+          "word": "want",
+          "energy": 0.9722157679498196,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "where is my",
+          "arm": "novel",
+          "word": "finds",
+          "energy": 0.9634364731609821,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        }
+      ],
+      "undefined": {
+        "energy": {
+          "attested": 1,
+          "unattested_noun": 1,
+          "verb_violation": 1,
+          "novel": 1
+        },
+        "landing": {
+          "attested": 1,
+          "unattested_noun": 1,
+          "verb_violation": 1,
+          "novel": 1
+        }
+      },
+      "auc": {
+        "sem_energy": 0.768595041322314,
+        "syn_energy": 0.7024793388429752,
+        "nov_energy": 0.11570247933884298,
+        "sem_landing": 0.6859504132231405,
+        "syn_landing": 0.6033057851239669,
+        "nov_landing": 0.15702479338842976
+      },
+      "energy_arm_means": {
+        "attested": 0.9755,
+        "unattested_noun": 0.9861,
+        "verb_violation": 0.9833,
+        "novel": 0.9572
+      },
+      "energy_clip_ge_095": {
+        "attested": 10,
+        "unattested_noun": 11,
+        "verb_violation": 11,
+        "novel": 7
+      },
+      "landing_arm_means": {
+        "attested": 0.9788,
+        "unattested_noun": 0.997,
+        "verb_violation": 0.9909,
+        "novel": 0.9455
+      },
+      "landing_clip_ge_095": {
+        "attested": 10,
+        "unattested_noun": 11,
+        "verb_violation": 11,
+        "novel": 4
+      }
+    },
+    "46": {
+      "n_contexts": 12,
+      "rows": [
+        {
+          "prefix": "she is reading a",
+          "arm": "attested",
+          "word": "book",
+          "energy": 0.9906001007184386,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "she is reading a",
+          "arm": "unattested_noun",
+          "word": "kings",
+          "energy": 0.9887971971184015,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "she is reading a",
+          "arm": "verb_violation",
+          "word": "touches",
+          "energy": 0.9774015378206968,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "she is reading a",
+          "arm": "novel",
+          "word": "bird",
+          "energy": 0.9733535051345825,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "mommy reads a",
+          "arm": "attested",
+          "word": "book",
+          "energy": 0.9906001007184386,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "mommy reads a",
+          "arm": "unattested_noun",
+          "word": "life",
+          "energy": 0.988073255866766,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "mommy reads a",
+          "arm": "verb_violation",
+          "word": "surprised",
+          "energy": 0.9848470715805888,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "mommy reads a",
+          "arm": "novel",
+          "word": "finds",
+          "energy": 0.9711407516151667,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "dog in",
+          "arm": "attested",
+          "word": "house",
+          "energy": 0.9884686823934317,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "dog in",
+          "arm": "unattested_noun",
+          "word": "keys",
+          "energy": 0.9873708309605718,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "dog in",
+          "arm": "verb_violation",
+          "word": "came",
+          "energy": 0.983719103038311,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "dog in",
+          "arm": "novel",
+          "word": "finds",
+          "energy": 0.9711407516151667,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "we played in the",
+          "arm": "attested",
+          "word": "park",
+          "energy": 0.9830445051193237,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "we played in the",
+          "arm": "unattested_noun",
+          "word": "beds",
+          "energy": 0.9816262684762478,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "we played in the",
+          "arm": "verb_violation",
+          "word": "bought",
+          "energy": 0.9872846445068717,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "we played in the",
+          "arm": "novel",
+          "word": "bird",
+          "energy": 0.9733535051345825,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "where is my",
+          "arm": "attested",
+          "word": "ball",
+          "energy": 0.9654942415654659,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "where is my",
+          "arm": "unattested_noun",
+          "word": "dog",
+          "energy": 0.9884228715673089,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "where is my",
+          "arm": "verb_violation",
+          "word": "buys",
+          "energy": 0.9571632780134678,
+          "landing": 0.9333333333333333,
+          "overlap": 0.06666666666666667
+        },
+        {
+          "prefix": "where is my",
+          "arm": "novel",
+          "word": "finds",
+          "energy": 0.9711407516151667,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "do you want milk or",
+          "arm": "attested",
+          "word": "juice",
+          "energy": 0.9812563546001911,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "do you want milk or",
+          "arm": "unattested_noun",
+          "word": "hand",
+          "energy": 0.984190646559,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "do you want milk or",
+          "arm": "verb_violation",
+          "word": "felt",
+          "energy": 0.9886322617530823,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "do you want milk or",
+          "arm": "novel",
+          "word": "small",
+          "energy": 0.9843473024666309,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "daddy throw",
+          "arm": "attested",
+          "word": "ball",
+          "energy_undefined": "predicted energy undefined: no pre-k-WTA input vector was recorded for PREDICTIO",
+          "landing_undefined": "PREDICTION settled to an empty assembly -- the legacy 1.0 would read as MAXIMUM "
+        },
+        {
+          "prefix": "daddy throw",
+          "arm": "unattested_noun",
+          "word": "wall",
+          "energy_undefined": "predicted energy undefined: no pre-k-WTA input vector was recorded for PREDICTIO",
+          "landing_undefined": "PREDICTION settled to an empty assembly -- the legacy 1.0 would read as MAXIMUM "
+        },
+        {
+          "prefix": "daddy throw",
+          "arm": "verb_violation",
+          "word": "waits",
+          "energy_undefined": "predicted energy undefined: no pre-k-WTA input vector was recorded for PREDICTIO",
+          "landing_undefined": "PREDICTION settled to an empty assembly -- the legacy 1.0 would read as MAXIMUM "
+        },
+        {
+          "prefix": "daddy throw",
+          "arm": "novel",
+          "word": "small",
+          "energy_undefined": "predicted energy undefined: no pre-k-WTA input vector was recorded for PREDICTIO",
+          "landing_undefined": "PREDICTION settled to an empty assembly -- the legacy 1.0 would read as MAXIMUM "
+        },
+        {
+          "prefix": "who that",
+          "arm": "attested",
+          "word": "man",
+          "energy": 0.9909193934872746,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "who that",
+          "arm": "unattested_noun",
+          "word": "hand",
+          "energy": 0.984190646559,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "who that",
+          "arm": "verb_violation",
+          "word": "be",
+          "energy": 0.9914387464523315,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "who that",
+          "arm": "novel",
+          "word": "finds",
+          "energy": 0.9711407516151667,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "mommy read",
+          "arm": "attested",
+          "word": "book",
+          "energy": 0.9906001007184386,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "mommy read",
+          "arm": "unattested_noun",
+          "word": "finger",
+          "energy": 0.9864062275737524,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "mommy read",
+          "arm": "verb_violation",
+          "word": "felt",
+          "energy": 0.9886322617530823,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "mommy read",
+          "arm": "novel",
+          "word": "finds",
+          "energy": 0.9711407516151667,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "the man who is tall is my",
+          "arm": "attested",
+          "word": "dad",
+          "energy": 0.9912953050807118,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "the man who is tall is my",
+          "arm": "unattested_noun",
+          "word": "phone",
+          "energy": 0.9874496916308999,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "the man who is tall is my",
+          "arm": "verb_violation",
+          "word": "fixes",
+          "energy": 0.9912384869530797,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "the man who is tall is my",
+          "arm": "novel",
+          "word": "finds",
+          "energy": 0.9711407516151667,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "she take",
+          "arm": "attested",
+          "word": "toy",
+          "energy": 0.9891542373225093,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "she take",
+          "arm": "unattested_noun",
+          "word": "room",
+          "energy": 0.9898251285776496,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "she take",
+          "arm": "verb_violation",
+          "word": "ate",
+          "energy": 0.9704921338707209,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "she take",
+          "arm": "novel",
+          "word": "bird",
+          "energy": 0.9733535051345825,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "who is at the",
+          "arm": "attested",
+          "word": "door",
+          "energy": 0.9895123336464167,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "who is at the",
+          "arm": "unattested_noun",
+          "word": "answer",
+          "energy": 0.9755651447921991,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "who is at the",
+          "arm": "verb_violation",
+          "word": "sent",
+          "energy": 0.9884554473683238,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "who is at the",
+          "arm": "novel",
+          "word": "finds",
+          "energy": 0.9711407516151667,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        }
+      ],
+      "undefined": {
+        "energy": {
+          "attested": 1,
+          "unattested_noun": 1,
+          "verb_violation": 1,
+          "novel": 1
+        },
+        "landing": {
+          "attested": 1,
+          "unattested_noun": 1,
+          "verb_violation": 1,
+          "novel": 1
+        }
+      },
+      "auc": {
+        "sem_energy": 0.2809917355371901,
+        "syn_energy": 0.35537190082644626,
+        "nov_energy": 0.10743801652892562,
+        "sem_landing": 0.5,
+        "syn_landing": 0.4049586776859504,
+        "nov_landing": 0.09090909090909091
+      },
+      "energy_arm_means": {
+        "attested": 0.9864,
+        "unattested_noun": 0.9856,
+        "verb_violation": 0.9827,
+        "novel": 0.9729
+      },
+      "energy_clip_ge_095": {
+        "attested": 11,
+        "unattested_noun": 11,
+        "verb_violation": 11,
+        "novel": 11
+      },
+      "landing_arm_means": {
+        "attested": 0.997,
+        "unattested_noun": 0.997,
+        "verb_violation": 0.9879,
+        "novel": 0.9697
+      },
+      "landing_clip_ge_095": {
+        "attested": 11,
+        "unattested_noun": 11,
+        "verb_violation": 10,
+        "novel": 11
+      }
+    },
+    "47": {
+      "n_contexts": 12,
+      "rows": [
+        {
+          "prefix": "i want to go to the",
+          "arm": "attested",
+          "word": "park",
+          "energy": 0.9806720539927483,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "i want to go to the",
+          "arm": "unattested_noun",
+          "word": "hoped",
+          "energy": 0.9913246491923928,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "i want to go to the",
+          "arm": "verb_violation",
+          "word": "woken",
+          "energy": 0.9672881662845612,
+          "landing": 0.9333333333333333,
+          "overlap": 0.06666666666666667
+        },
+        {
+          "prefix": "i want to go to the",
+          "arm": "novel",
+          "word": "bird",
+          "energy": 0.9676695838570595,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "daddy throw",
+          "arm": "attested",
+          "word": "ball",
+          "energy_undefined": "predicted energy undefined: no pre-k-WTA input vector was recorded for PREDICTIO",
+          "landing_undefined": "PREDICTION settled to an empty assembly -- the legacy 1.0 would read as MAXIMUM "
+        },
+        {
+          "prefix": "daddy throw",
+          "arm": "unattested_noun",
+          "word": "star",
+          "energy_undefined": "predicted energy undefined: no pre-k-WTA input vector was recorded for PREDICTIO",
+          "landing_undefined": "PREDICTION settled to an empty assembly -- the legacy 1.0 would read as MAXIMUM "
+        },
+        {
+          "prefix": "daddy throw",
+          "arm": "verb_violation",
+          "word": "drinks",
+          "energy_undefined": "predicted energy undefined: no pre-k-WTA input vector was recorded for PREDICTIO",
+          "landing_undefined": "PREDICTION settled to an empty assembly -- the legacy 1.0 would read as MAXIMUM "
+        },
+        {
+          "prefix": "daddy throw",
+          "arm": "novel",
+          "word": "bird",
+          "energy_undefined": "predicted energy undefined: no pre-k-WTA input vector was recorded for PREDICTIO",
+          "landing_undefined": "PREDICTION settled to an empty assembly -- the legacy 1.0 would read as MAXIMUM "
+        },
+        {
+          "prefix": "she take",
+          "arm": "attested",
+          "word": "toy",
+          "energy": 0.9798106569796801,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "she take",
+          "arm": "unattested_noun",
+          "word": "hope",
+          "energy": 0.9903946779668331,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "she take",
+          "arm": "verb_violation",
+          "word": "is",
+          "energy": 0.9905324457213283,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "she take",
+          "arm": "novel",
+          "word": "small",
+          "energy": 0.9632399789988995,
+          "landing": 0.9333333333333333,
+          "overlap": 0.06666666666666667
+        },
+        {
+          "prefix": "who that",
+          "arm": "attested",
+          "word": "man",
+          "energy": 0.992469253949821,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "who that",
+          "arm": "unattested_noun",
+          "word": "cups",
+          "energy": 0.98383111320436,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "who that",
+          "arm": "verb_violation",
+          "word": "dies",
+          "energy": 0.9663519971072674,
+          "landing": 0.9333333333333333,
+          "overlap": 0.06666666666666667
+        },
+        {
+          "prefix": "who that",
+          "arm": "novel",
+          "word": "finds",
+          "energy": 0.9629932753741741,
+          "landing": 0.9333333333333333,
+          "overlap": 0.06666666666666667
+        },
+        {
+          "prefix": "mommy reads a",
+          "arm": "attested",
+          "word": "book",
+          "energy": 0.9873289661481977,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "mommy reads a",
+          "arm": "unattested_noun",
+          "word": "doctor",
+          "energy": 0.9910272918641567,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "mommy reads a",
+          "arm": "verb_violation",
+          "word": "came",
+          "energy": 0.9905574759468436,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "mommy reads a",
+          "arm": "novel",
+          "word": "bird",
+          "energy": 0.9676695838570595,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "dog in",
+          "arm": "attested",
+          "word": "house",
+          "energy": 0.968426063656807,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "dog in",
+          "arm": "unattested_noun",
+          "word": "chicken",
+          "energy": 0.9913099752739072,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "dog in",
+          "arm": "verb_violation",
+          "word": "waits",
+          "energy": 0.9887803103774786,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "dog in",
+          "arm": "novel",
+          "word": "small",
+          "energy": 0.9632399789988995,
+          "landing": 0.9333333333333333,
+          "overlap": 0.06666666666666667
+        },
+        {
+          "prefix": "where is my",
+          "arm": "attested",
+          "word": "ball",
+          "energy": 0.9905059179291129,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "where is my",
+          "arm": "unattested_noun",
+          "word": "horse",
+          "energy": 0.9777706805616617,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "where is my",
+          "arm": "verb_violation",
+          "word": "made",
+          "energy": 0.9751653634011745,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "where is my",
+          "arm": "novel",
+          "word": "finds",
+          "energy": 0.9629932753741741,
+          "landing": 0.9333333333333333,
+          "overlap": 0.06666666666666667
+        },
+        {
+          "prefix": "does she have a",
+          "arm": "attested",
+          "word": "dog",
+          "energy": 0.9652820415794849,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "does she have a",
+          "arm": "unattested_noun",
+          "word": "cat",
+          "energy": 0.9118133559823036,
+          "landing": 0.9,
+          "overlap": 0.1
+        },
+        {
+          "prefix": "does she have a",
+          "arm": "verb_violation",
+          "word": "felt",
+          "energy": 0.9615623913705349,
+          "landing": 0.9333333333333333,
+          "overlap": 0.06666666666666667
+        },
+        {
+          "prefix": "does she have a",
+          "arm": "novel",
+          "word": "finds",
+          "energy": 0.9629932753741741,
+          "landing": 0.9333333333333333,
+          "overlap": 0.06666666666666667
+        },
+        {
+          "prefix": "who is at the",
+          "arm": "attested",
+          "word": "door",
+          "energy": 0.9767747465521097,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "who is at the",
+          "arm": "unattested_noun",
+          "word": "answer",
+          "energy": 0.9898826573044062,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "who is at the",
+          "arm": "verb_violation",
+          "word": "started",
+          "energy": 0.9902543080970645,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "who is at the",
+          "arm": "novel",
+          "word": "bird",
+          "energy": 0.9676695838570595,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "mommy read",
+          "arm": "attested",
+          "word": "book",
+          "energy": 0.9873289661481977,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "mommy read",
+          "arm": "unattested_noun",
+          "word": "mom",
+          "energy": 0.977769048884511,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "mommy read",
+          "arm": "verb_violation",
+          "word": "becomes",
+          "energy": 0.9878159845247865,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "mommy read",
+          "arm": "novel",
+          "word": "finds",
+          "energy": 0.9629932753741741,
+          "landing": 0.9333333333333333,
+          "overlap": 0.06666666666666667
+        },
+        {
+          "prefix": "not my",
+          "arm": "attested",
+          "word": "toy",
+          "energy": 0.9798106569796801,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "not my",
+          "arm": "unattested_noun",
+          "word": "baby",
+          "energy": 0.9760369975119829,
+          "landing": 0.9666666666666667,
+          "overlap": 0.03333333333333333
+        },
+        {
+          "prefix": "not my",
+          "arm": "verb_violation",
+          "word": "ends",
+          "energy": 0.9917975692078471,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "not my",
+          "arm": "novel",
+          "word": "bird",
+          "energy": 0.9676695838570595,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "ball and",
+          "arm": "attested",
+          "word": "book",
+          "energy": 0.9873289661481977,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "ball and",
+          "arm": "unattested_noun",
+          "word": "child",
+          "energy": 0.9895051447674632,
+          "landing": 1.0,
+          "overlap": 0.0
+        },
+        {
+          "prefix": "ball and",
+          "arm": "verb_violation",
+          "word": "dies",
+          "energy": 0.9663519971072674,
+          "landing": 0.9333333333333333,
+          "overlap": 0.06666666666666667
+        },
+        {
+          "prefix": "ball and",
+          "arm": "novel",
+          "word": "small",
+          "energy": 0.9632399789988995,
+          "landing": 0.9333333333333333,
+          "overlap": 0.06666666666666667
+        }
+      ],
+      "undefined": {
+        "energy": {
+          "attested": 1,
+          "unattested_noun": 1,
+          "verb_violation": 1,
+          "novel": 1
+        },
+        "landing": {
+          "attested": 1,
+          "unattested_noun": 1,
+          "verb_violation": 1,
+          "novel": 1
+        }
+      },
+      "auc": {
+        "sem_energy": 0.5867768595041323,
+        "syn_energy": 0.512396694214876,
+        "nov_energy": 0.03305785123966942,
+        "sem_landing": 0.5289256198347108,
+        "syn_landing": 0.3884297520661157,
+        "nov_landing": 0.24793388429752067
+      },
+      "energy_arm_means": {
+        "attested": 0.9814,
+        "unattested_noun": 0.9792,
+        "verb_violation": 0.9797,
+        "novel": 0.9648
+      },
+      "energy_clip_ge_095": {
+        "attested": 11,
+        "unattested_noun": 10,
+        "verb_violation": 11,
+        "novel": 11
+      },
+      "landing_arm_means": {
+        "attested": 0.9879,
+        "unattested_noun": 0.9848,
+        "verb_violation": 0.9727,
+        "novel": 0.9576
+      },
+      "landing_clip_ge_095": {
+        "attested": 11,
+        "unattested_noun": 10,
+        "verb_violation": 7,
+        "novel": 4
+      }
+    }
+  },
+  "analysis": {
+    "nov_energy": {
+      "mean": 0.1445018365472911,
+      "sd": 0.127907934643327,
+      "n": 10,
+      "per_seed": [
+        0.39669421487603307,
+        0.125,
+        0.2231404958677686,
+        0.05555555555555555,
+        0.3140495867768595,
+        0.0743801652892562,
+        0.0,
+        0.11570247933884298,
+        0.10743801652892562,
+        0.03305785123966942
+      ]
+    },
+    "nov_landing": {
+      "mean": 0.21105084940312216,
+      "sd": 0.1443225494000636,
+      "n": 10,
+      "per_seed": [
+        0.36363636363636365,
+        0.19791666666666666,
+        0.45454545454545453,
+        0.09027777777777778,
+        0.3760330578512397,
+        0.09917355371900827,
+        0.03305785123966942,
+        0.15702479338842976,
+        0.09090909090909091,
+        0.24793388429752067
+      ]
+    },
+    "sem_energy": {
+      "mean": 0.44016012396694215,
+      "sd": 0.15879549040258398,
+      "n": 10,
+      "per_seed": [
+        0.4669421487603306,
+        0.3263888888888889,
+        0.3760330578512397,
+        0.5173611111111112,
+        0.3884297520661157,
+        0.22727272727272727,
+        0.4628099173553719,
+        0.768595041322314,
+        0.2809917355371901,
+        0.5867768595041323
+      ]
+    },
+    "sem_landing": {
+      "mean": 0.4734016299357209,
+      "sd": 0.09627034470536408,
+      "n": 10,
+      "per_seed": [
+        0.36363636363636365,
+        0.4479166666666667,
+        0.5289256198347108,
+        0.4513888888888889,
+        0.4628099173553719,
+        0.4090909090909091,
+        0.35537190082644626,
+        0.6859504132231405,
+        0.5,
+        0.5289256198347108
+      ]
+    },
+    "syn_energy": {
+      "mean": 0.4511421028466483,
+      "sd": 0.1279778808837584,
+      "n": 10,
+      "per_seed": [
+        0.34710743801652894,
+        0.5208333333333334,
+        0.45454545454545453,
+        0.5277777777777778,
+        0.4793388429752066,
+        0.36363636363636365,
+        0.24793388429752067,
+        0.7024793388429752,
+        0.35537190082644626,
+        0.512396694214876
+      ]
+    },
+    "syn_landing": {
+      "mean": 0.44821797520661155,
+      "sd": 0.1380589744289394,
+      "n": 10,
+      "per_seed": [
+        0.22727272727272727,
+        0.5520833333333334,
+        0.5909090909090909,
+        0.5416666666666666,
+        0.45041322314049587,
+        0.5,
+        0.2231404958677686,
+        0.6033057851239669,
+        0.4049586776859504,
+        0.3884297520661157
+      ]
+    }
+  }
+}

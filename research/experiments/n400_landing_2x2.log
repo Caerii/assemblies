@@ -1,0 +1,38 @@
+=== seed 7 (12 contexts) ===
+  energy   AUC sem=0.467 syn=0.347 nov=0.397  means={'attested': 0.9866, 'unattested_noun': 0.9829, 'verb_violation': 0.9768, 'novel': 0.977}  undef={'attested': 1, 'unattested_noun': 1, 'verb_violation': 1, 'novel': 1}
+  landing  AUC sem=0.364 syn=0.227 nov=0.364  means={'attested': 1.0, 'unattested_noun': 0.9848, 'verb_violation': 0.9758, 'novel': 0.9818}  undef={'attested': 1, 'unattested_noun': 1, 'verb_violation': 1, 'novel': 1}
+=== seed 11 (12 contexts) ===
+  energy   AUC sem=0.326 syn=0.521 nov=0.125  means={'attested': 0.9819, 'unattested_noun': 0.9743, 'verb_violation': 0.9854, 'novel': 0.9594}  undef={}
+  landing  AUC sem=0.448 syn=0.552 nov=0.198  means={'attested': 0.9861, 'unattested_noun': 0.9806, 'verb_violation': 0.9917, 'novel': 0.95}  undef={}
+=== seed 12 (12 contexts) ===
+  energy   AUC sem=0.376 syn=0.455 nov=0.223  means={'attested': 0.986, 'unattested_noun': 0.9792, 'verb_violation': 0.9848, 'novel': 0.9801}  undef={'attested': 1, 'unattested_noun': 1, 'verb_violation': 1, 'novel': 1}
+  landing  AUC sem=0.529 syn=0.591 nov=0.455  means={'attested': 0.9879, 'unattested_noun': 0.9879, 'verb_violation': 0.9939, 'novel': 0.9848}  undef={'attested': 1, 'unattested_noun': 1, 'verb_violation': 1, 'novel': 1}
+=== seed 19 (12 contexts) ===
+  energy   AUC sem=0.517 syn=0.528 nov=0.056  means={'attested': 0.984, 'unattested_noun': 0.9791, 'verb_violation': 0.9856, 'novel': 0.9593}  undef={}
+  landing  AUC sem=0.451 syn=0.542 nov=0.090  means={'attested': 0.9944, 'unattested_noun': 0.9778, 'verb_violation': 0.9972, 'novel': 0.9556}  undef={}
+=== seed 42 (12 contexts) ===
+  energy   AUC sem=0.388 syn=0.479 nov=0.314  means={'attested': 0.9809, 'unattested_noun': 0.9764, 'verb_violation': 0.9819, 'novel': 0.9768}  undef={'attested': 1, 'unattested_noun': 1, 'verb_violation': 1, 'novel': 1}
+  landing  AUC sem=0.463 syn=0.450 nov=0.376  means={'attested': 0.9848, 'unattested_noun': 0.9818, 'verb_violation': 0.9848, 'novel': 0.9788}  undef={'attested': 1, 'unattested_noun': 1, 'verb_violation': 1, 'novel': 1}
+=== seed 43 (12 contexts) ===
+  energy   AUC sem=0.227 syn=0.364 nov=0.074  means={'attested': 0.9861, 'unattested_noun': 0.9776, 'verb_violation': 0.9838, 'novel': 0.9629}  undef={'attested': 1, 'unattested_noun': 1, 'verb_violation': 1, 'novel': 1}
+  landing  AUC sem=0.409 syn=0.500 nov=0.099  means={'attested': 0.9909, 'unattested_noun': 0.9848, 'verb_violation': 0.9909, 'novel': 0.9576}  undef={'attested': 1, 'unattested_noun': 1, 'verb_violation': 1, 'novel': 1}
+=== seed 44 (12 contexts) ===
+  energy   AUC sem=0.463 syn=0.248 nov=0.000  means={'attested': 0.987, 'unattested_noun': 0.9841, 'verb_violation': 0.9809, 'novel': 0.9549}  undef={'attested': 1, 'unattested_noun': 1, 'verb_violation': 1, 'novel': 1}
+  landing  AUC sem=0.355 syn=0.223 nov=0.033  means={'attested': 0.997, 'unattested_noun': 0.9818, 'verb_violation': 0.9758, 'novel': 0.9576}  undef={'attested': 1, 'unattested_noun': 1, 'verb_violation': 1, 'novel': 1}
+=== seed 45 (12 contexts) ===
+  energy   AUC sem=0.769 syn=0.702 nov=0.116  means={'attested': 0.9755, 'unattested_noun': 0.9861, 'verb_violation': 0.9833, 'novel': 0.9572}  undef={'attested': 1, 'unattested_noun': 1, 'verb_violation': 1, 'novel': 1}
+  landing  AUC sem=0.686 syn=0.603 nov=0.157  means={'attested': 0.9788, 'unattested_noun': 0.997, 'verb_violation': 0.9909, 'novel': 0.9455}  undef={'attested': 1, 'unattested_noun': 1, 'verb_violation': 1, 'novel': 1}
+=== seed 46 (12 contexts) ===
+  energy   AUC sem=0.281 syn=0.355 nov=0.107  means={'attested': 0.9864, 'unattested_noun': 0.9856, 'verb_violation': 0.9827, 'novel': 0.9729}  undef={'attested': 1, 'unattested_noun': 1, 'verb_violation': 1, 'novel': 1}
+  landing  AUC sem=0.500 syn=0.405 nov=0.091  means={'attested': 0.997, 'unattested_noun': 0.997, 'verb_violation': 0.9879, 'novel': 0.9697}  undef={'attested': 1, 'unattested_noun': 1, 'verb_violation': 1, 'novel': 1}
+=== seed 47 (12 contexts) ===
+  energy   AUC sem=0.587 syn=0.512 nov=0.033  means={'attested': 0.9814, 'unattested_noun': 0.9792, 'verb_violation': 0.9797, 'novel': 0.9648}  undef={'attested': 1, 'unattested_noun': 1, 'verb_violation': 1, 'novel': 1}
+  landing  AUC sem=0.529 syn=0.388 nov=0.248  means={'attested': 0.9879, 'unattested_noun': 0.9848, 'verb_violation': 0.9727, 'novel': 0.9576}  undef={'attested': 1, 'unattested_noun': 1, 'verb_violation': 1, 'novel': 1}
+==================================================================
+  nov_energy       AUC=0.1445 sd=0.1279 n=10
+  nov_landing      AUC=0.2111 sd=0.1443 n=10
+  sem_energy       AUC=0.4402 sd=0.1588 n=10
+  sem_landing      AUC=0.4734 sd=0.0963 n=10
+  syn_energy       AUC=0.4511 sd=0.1280 n=10
+  syn_landing      AUC=0.4482 sd=0.1381 n=10
+-> F:\Github\assemblies-run-e2\research\experiments\n400_landing_2x2_results.json
