@@ -108,5 +108,49 @@ class TestFsmForm(unittest.TestCase):
         self.assertLess(len(set(alternating)), g.order // 2)
 
 
+class TestCsrRejectionIsCached(unittest.TestCase):
+    """A fiber too dense for CSR must be measured ONCE, not once per projection.
+
+    `_csr_drive_sum` returned None for dense fibers without recording it, so the
+    next projection re-scanned the whole block to re-derive the same answer.
+    On a fully materialised state area that was 314 ms per projection and 99%
+    of an evaluation run. Behaviour is unaffected -- the same dense path is
+    taken either way -- so only the recomputation is observable, and only as
+    time. Which is exactly why nothing caught it.
+    """
+
+    def test_dense_fiber_is_measured_once(self):
+        import numpy as np
+        from neural_assemblies.core.brain import Brain
+
+        b = Brain(p=0.05, save_winners=True, seed=42, engine="numpy_sparse")
+        b.add_area("SRC", 1200, 40, 0.1)
+        b.add_area("TGT", 1200, 40, 0.1)
+        b.add_connectivity("SRC", "TGT", 0.4)      # above _CSR_MAX_DENSITY
+        b.add_stimulus("s", 40)
+        b.materialize_area("TGT")
+        for _ in range(3):
+            b.project({"s": ["SRC"]}, {})
+        calls = {"n": 0}
+        real = np.count_nonzero
+
+        def counting(*a, **kw):
+            calls["n"] += 1
+            return real(*a, **kw)
+
+        import neural_assemblies.core.numpy_engine._sparse as sp
+        sp.np.count_nonzero = counting
+        try:
+            with b.frozen():
+                for _ in range(6):
+                    b.project({}, {"SRC": ["TGT"]})
+        finally:
+            sp.np.count_nonzero = real
+        self.assertLessEqual(
+            calls["n"], 3,
+            f"{calls['n']} full-block scans over 6 projections -- the CSR "
+            f"rejection is being re-derived per projection again")
+
+
 if __name__ == "__main__":
     unittest.main()

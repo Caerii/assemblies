@@ -836,9 +836,26 @@ class NumpySparseEngine(ComputeEngine):
         if entry is None or entry[1] != id(w) or entry[2] != w.shape:
             dens = float(np.count_nonzero(w)) / max(w.size, 1)
             if dens > _CSR_MAX_DENSITY:
+                # THE REJECTION IS CACHED TOO, and forgetting to was expensive.
+                # `count_nonzero` here scans the WHOLE block; returning None
+                # without recording the answer meant the next projection found
+                # no entry and scanned it again, re-deriving the same "no"
+                # forever. On a word-problem organ at organ_p=0.4 -- above this
+                # threshold, so always rejected -- against a fully materialised
+                # 20000x4200 state area, that was 314 ms per projection and
+                # 62.8s of a 63.4s evaluation: 99% of the run recomputing one
+                # boolean. Every fiber denser than _CSR_MAX_DENSITY paid it.
+                #
+                # `None` in the slot means "measured, not worth it". The
+                # id/shape guard re-tests after reallocation, and the existing
+                # invalidation clears negative and positive entries alike, so
+                # this needs no separate lifecycle.
+                self._csr_drive[key] = (None, id(w), w.shape)
                 return None
             entry = (scipy_sparse().csr_matrix(w), id(w), w.shape)
             self._csr_drive[key] = entry
+        if entry[0] is None:
+            return None
         csr = entry[0]
         out = np.asarray(csr[rows].sum(axis=0)).ravel()
         if col_end < w.shape[1]:
