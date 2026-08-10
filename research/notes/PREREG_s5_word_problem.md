@@ -126,3 +126,48 @@ the true one. *Prediction: PASSES.*
    machine: the alphabet is given and the transitions are teacher-forced, which
    is exactly the gap [[SEQ-STATE-CODE-EMERGENT]] records and A3 measures. Any
    write-up says so in the same breath as the result.
+
+---
+
+## Amendment 2, after the first run, and it is a READOUT change only
+
+The first run passed S1, S3 and S4 and failed S2. S3 -- "accuracy does not
+depend on solvability", the bar the whole design exists for -- passed, but
+UNDERPOWERED, and that has to be said before anything is built on it. Exact
+trajectory accuracy over 10 seeds is 10 BINARY outcomes; the CIs came out at
++/-0.23 to 0.38, so the test cannot resolve 0.90 from 0.95 whether or not the
+difference is real. The tell is in the table: Z60, the EASIEST group, read
+0.70 at L=500 against A4xZ5's 0.90, which is noise of exactly that size.
+
+So a finer readout is added to the SAME protocol. No parameter changes, no new
+arms, no re-selection of cells -- the machine and the words are identical and
+only what is recorded from them changes.
+
+**`step`, transition accuracy.** For each step the expected next state is
+re-derived from the OBSERVED previous state rather than the true one. Raw
+agreement against ground truth would conflate ONE derailment with hundreds of
+errors, since a machine that leaves the correct state stays wrong afterwards
+through no further fault of its own. This yields ~500 observations per cell
+instead of 1.
+
+**`first_bad`**, the step at which the trajectory first leaves ground truth,
+which separates "derails early then drifts" from "runs clean then slips once".
+
+### Bars, stated before the re-run
+
+**S5a.** The solvable/non-solvable gap in per-step accuracy at L=500 is
+< 0.005. *Prediction: PASSES.* Inverting the first run's exact-trajectory
+numbers implies per-step rates of 0.99929 (Z60), 0.99979 (A4xZ5), 0.99929 (A5)
+and 0.99861 (S5) -- a spread of ~1e-3 with the easiest and a hardest group
+sharing a value. If that inversion is right the gap is far below 0.005; if the
+measured gap is much larger, the inversion was wrong and S3's pass was hiding
+a real effect.
+
+**S5b.** Per-step accuracy exceeds 0.995 on every group.
+*Prediction: PASSES*, from the same inversion.
+
+S2's failure is NOT re-litigated. It stands as recorded: exact trajectory at
+L=500 does decay, and the per-step numbers explain WHY without excusing it --
+a ~1e-3 per-step error compounded over 500 steps. [[SEQ-EXACT-RECOVERY]] is
+bounded rather than overturned, and this amendment measures the bound instead
+of inferring it.

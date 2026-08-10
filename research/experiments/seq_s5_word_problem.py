@@ -93,14 +93,45 @@ def build(group_name, seed, arm):
 
 
 def evaluate(group, fsm, symbols, seed, lengths=LENGTHS):
-    """Exact-trajectory accuracy at each length, from one trained organ."""
+    """Exact-trajectory accuracy, plus the per-step readout it is too coarse for.
+
+    THREE STATISTICS, and the second is the one that measures the machine.
+
+    `exact`      500 consecutive correct steps. 10 binary outcomes over 10
+                 seeds, so its CI is +/-0.23 at best -- it cannot resolve a
+                 moderate effect, which is why S3 passed underpowered.
+    `step`       TRANSITION accuracy: for each i, the expected next state is
+                 re-derived from the OBSERVED previous state, not the true one.
+                 Raw agreement with `truth` would conflate ONE derailment with
+                 many errors, since a machine that leaves the correct state
+                 stays wrong afterwards through no further fault of its own.
+                 ~500 observations per cell instead of 1.
+    `first_bad`  the step at which the trajectory first leaves ground truth,
+                 or the length if it never does. Distinguishes "derails early
+                 and drifts" from "runs clean then slips once".
+    """
     rng = random.Random(seed + 4242)
     longest = max(lengths)
     word = [rng.choice(symbols) for _ in range(longest)]
     truth = true_trajectory(group, word)
     start = group.label(group.identity)
     got = fsm.run(word, start_state=start)
-    return {str(L): bool(got[:L] == truth[:L]) for L in lengths}
+
+    _states, _symbols, transitions = word_problem_fsm(group)
+    table = {(fr, sym): to for fr, sym, to in transitions}
+    prev, correct = start, []
+    for sym, obs in zip(word, got):
+        correct.append(obs == table[(prev, sym)])
+        prev = obs
+
+    out = {}
+    for L in lengths:
+        out[str(L)] = bool(got[:L] == truth[:L])
+        out[f"step{L}"] = float(np.mean(correct[:L]))
+    diverge = next((i for i, (a, b) in enumerate(zip(got, truth)) if a != b),
+                   longest)
+    out["first_bad"] = int(diverge)
+    return out
 
 
 def worker(group_name, seed, arm):
@@ -218,6 +249,31 @@ def main():
         cells = "  ".join(f"{e.mean:.2f}+/-{e.ci:.2f}" for e in row)
         print(f"    {g:8s} {str(solv):9s} {cells}", flush=True)
     out["curve"] = curve
+
+    print("\n  [per-step] TRANSITION accuracy -- what `exact` is too coarse for")
+    print(f"\n    {'group':8s} {'solvable':9s} {'step@500':>20s} "
+          f"{'first divergence':>20s}")
+    per_step = {}
+    for g in GROUP_NAMES:
+        e = ensemble_from_values(
+            [r[(g, s, "trained")]["step500"] for s in seeds],
+            f"{g}/step", keys=seeds)
+        fb = ensemble_from_values(
+            [float(r[(g, s, "trained")]["first_bad"]) for s in seeds],
+            f"{g}/first_bad", keys=seeds)
+        per_step[g] = {"step500": [e.mean, e.ci], "first_bad": [fb.mean, fb.ci]}
+        print(f"    {g:8s} {str(GROUPS[g]().solvable):9s} "
+              f"{e.mean:.5f}+/-{e.ci:.5f}  {fb.mean:10.1f}+/-{fb.ci:.1f}",
+              flush=True)
+    out["per_step"] = per_step
+    solv = [per_step[g]["step500"][0] for g in GROUP_NAMES
+            if GROUPS[g]().solvable]
+    hard = [per_step[g]["step500"][0] for g in GROUP_NAMES
+            if not GROUPS[g]().solvable]
+    gap = float(np.mean(solv) - np.mean(hard))
+    print(f"    solvable {np.mean(solv):.5f}  non-solvable {np.mean(hard):.5f}"
+          f"  gap {gap:+.5f}")
+    out["solvability_gap_per_step"] = gap
 
     print("\n=== BARS ===")
     a5_100 = _acc(r, "A5", "trained", seeds, 100)
