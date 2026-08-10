@@ -242,7 +242,42 @@ _RESULTS: List[Result] = [
                "raising k to reach kp spends capacity and forces n up with it.",
     ),
 
+    Result(
+        id="RATE-HETEROGENEITY",
+        status=Status.MEASURED,
+        claim="Learning rate is settable PER FIBER and genuinely bites: two "
+              "fibers into the same area, driven by the same projections, "
+              "diverge by more than an order of magnitude in weight.",
+        source="This repository.",
+        evidence=("beta=0.5 vs beta=0.01 into one target over 10 rounds: max "
+                  "weight 20.000 (at the w_max clamp) vs 1.094",),
+        implemented_by=("neural_assemblies.core.brain.Brain.update_plasticity",),
+        caveat="Density is NOT yet settable per fiber on the production engine "
+               "-- see [[SEQ-ORGAN-EMBEDS]]. And a fast fiber saturates against "
+               "w_max, so 'fast' has a ceiling that 'slow' does not: an A/B "
+               "across rates is confounded unless w_max is checked.",
+    ),
+
     # ------------------------------------------------------------- extensions
+    Result(
+        id="DUAL-RATE",
+        status=Status.EXTENSION,
+        claim="Running fast and slow pathways at once is FUNCTIONALLY useful: "
+              "a high-beta fiber binds in one shot (episodic) while a low-beta "
+              "fiber accumulates statistics (semantic), and a system with both "
+              "does something neither does alone.",
+        source="Proposed here; not proved and not measured.",
+        preconditions=("[[RATE-HETEROGENEITY]] -- the mechanism exists",
+                       "[[SEQ-BETA-WINDOW]] -- each rate must sit inside its "
+                       "own window, and the windows may not overlap"),
+        caveat="UNTESTED. That the knob exists is measured; that turning it "
+               "buys anything is not. Two known tensions to design against: "
+               "beta trades capacity against depth (low favours capacity, high "
+               "favours depth), and the afferent count flips the SIGN of beta's "
+               "effect, so a rate that helps one fiber can hurt another at a "
+               "different kp. Falsified if a dual-rate organ matches the better "
+               "of its two single-rate controls.",
+    ),
     Result(
         id="SEQ-ORGAN-EMBEDS",
         status=Status.EXTENSION,
