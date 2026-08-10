@@ -88,6 +88,37 @@ does not have. This was pre-stated as a risk and it fired. Both arms collapse
 in the same direction as the reference's ablation, so the conclusion stands,
 but the arms are not literally comparable.
 
+## Which link drifts: the ARC, and the state area is cleaning up after it
+
+`seq_a1_where_drift_starts.py` compares, at every step, what actually fired
+against what an EXACT cue would have selected. Mean over 10 seeds:
+
+    ours   arc    1.00  0.82  0.64  0.46  0.23  0.14
+    ours   state  0.99  0.96  0.93  0.79  0.53  0.33
+    ref    state  1.00  0.99  0.99  0.98  0.93  0.77
+
+The arc crosses 0.9 at mean step index 1.4, the state at 3.5. The pre-stated
+branch that fires is ARC SENSITIVITY: at step 2 the state assembly is still
+96% correct while the arc has already fallen to 0.82. A conjunction with 0.000
+between-assembly overlap has no tolerance for an imperfect input.
+
+The second reading is the one worth keeping: **state overlap is HIGHER than arc
+overlap at every step**. `arc -> state` is not lossy -- it is performing partial
+CLEAN-UP, pulling 0.82 back to 0.96. The state area corrects; the arc's error
+simply grows faster than the correction. That kills the "lossy recovery"
+hypothesis and, with it, the regime explanation: an area doing clean-up is not
+an area starved of afferents. (The reference's state area runs at the same
+kp = 14 against the same 18.6 floor and decides 3/3, which said the same thing
+a priori.)
+
+The reference drifts too -- 0.93 and 0.77 on its last two steps -- but slowly
+enough to keep the trajectory. Ours is 4/10 on trajectory, the reference 3/3.
+
+So the question is no longer "which link" but "why is OUR arc so much more
+sensitive than the reference's, given both are 0.000-overlap conjunctions".
+That is [[kwta-amplifies-input-overlap]] territory: our k-WTA is known to
+amplify rather than contract input differences, with beta as the gain.
+
 ## Next step, pre-registered
 
 The registered rule for "P-GOLD fails while the reference passes" is that the
