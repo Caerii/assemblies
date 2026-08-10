@@ -105,3 +105,48 @@ clean pairs' margin distribution, and WHERE the failed step actually lands
    reported for clean seeds too, not only derailed ones (a defect the word
    never visits is still a defect).
 3. E5 is exploratory and generates hypotheses, not conclusions.
+
+---
+
+## Result of the first run, and Addendum: the memory channel
+
+C1 PASS (40/40 deterministic). C4 PASS. **C2 FAIL, C3 FAIL** -- and the
+census is EMPTY: zero defective transitions on any seed of any group, margin
+1.0000 on every censused pair. H-defect is falsified. 11/40 trajectories
+derail anyway, with pre-derailment on-block minima as low as 0.086 while the
+readout still labels correctly; clean seeds dip to 69/70 and recover.
+
+**The paradox this leaves.** Census: exact-in -> exact-out, universally. The
+step has no declared memory: no arc self-fiber, no state self-fiber, weights
+frozen under `probe()`. Exact single steps composed memorylessly cannot leave
+the lattice, by induction. They do. Therefore the step has UNDECLARED memory,
+and the only structural difference between census and sequence is RESIDUAL
+CONTENT: the census inhibits the arc (and state) before every step; the
+sequence carries the previous step's arc winners into the next projection.
+
+**E6 (bisection), registered before running.** On each derailed seed, replay
+(deterministic, so faithful), find the FIRST step d where the live state
+deviates from the block of its own label (state at d-1 exact by minimality).
+Then three single-step probes of the same (state_{d-1}, sym_d):
+
+  P-census   inhibit arc+state, cue the block, step.       Expect exact.
+  P-residual inhibit, cue the block, then SET the arc to its step-(d-1)
+             winners before stepping. If this reproduces the in-sequence
+             off-block output, the arc residual is the memory channel.
+  P-arc      compare the ARC assembly at step d in-sequence against the
+             census arc for the same pair: does deviation enter at arc
+             SELECTION or at arc -> state?
+
+**Predictions.** P-census exact (anything else contradicts the census just
+taken). P-residual reproduces the deviation, ~70% -- elimination leaves arc
+residual as the only candidate, but "the only candidate I can see" has been
+wrong once already today (H-defect). If P-residual is exact too, the channel
+is in how the state ARRIVES (projection vs `activate_assembly`), which is a
+different engine finding.
+
+**Interpretation, stated now.** Whatever channel E6 names is an ENGINE
+SEMANTICS finding, not a science result: the model's declared step is
+memoryless and the implementation's is not. The fix lands in the engine with
+a regression test, the S5 study re-runs after it, and [[SEQ-EXACT-RECOVERY]]
+is re-evaluated on the repaired substrate -- the current horizon numbers may
+be an artifact of the leak.
