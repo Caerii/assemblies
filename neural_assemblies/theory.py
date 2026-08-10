@@ -196,11 +196,26 @@ _RESULTS: List[Result] = [
                   "research/experiments/seq_a1_horizon.py: 2000 steps, 5/5 "
                   "seeds, zero errors, exact recovery every step",
                   "research/experiments/seq_a1_limit_cycle.py: constant input "
-                  "gives an orbit closing bit-identically, 30/30"),
+                  "gives an orbit closing bit-identically, 30/30",
+                  "research/experiments/seq_s5_soft_census.py: at 60-120 "
+                  "states, ~0.25-0.6% of transitions are SOFT (correct label, "
+                  "one intruder neuron); first lattice exit equals first "
+                  "soft-pair visit, 40/40 seeds, zero parameters"),
         caveat="Expansion and quantization are a PAIR. Amplification alone is "
                "chaos; it is only benign because a quantizing area follows it. "
                "Composition steps without a re-quantizing stage should be "
-               "expected to drift.",
+               "expected to drift. AND THE MAP HAS SOFT SPOTS at scale: a "
+               "~0.5%-per-transition subset emits 69/70 of the right block "
+               "(one intruder), so exactness holds until the word first "
+               "visits a soft pair -- the measured 'horizon' is a "
+               "first-hitting time, not a decay constant. Post-visit, "
+               "trajectories recover (6/18), wander metastably for up to "
+               "~330 steps, or derail into an absorbing off-lattice regime "
+               "(12/18). Apparent group differences at fixed L were the "
+               "pair-count |G|x|gens| at a FLAT per-pair rate, not "
+               "solvability. Intruder mechanism open; norm_init=False (the "
+               "parity substrate) leaves state-area hubs unchecked and is "
+               "the registered suspect.",
     ),
     Result(
         id="ARC-CONJUNCT-EXPOSURE",

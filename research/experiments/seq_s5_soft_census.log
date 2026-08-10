@@ -1,0 +1,53 @@
+=== E7: soft census, snapped inside the probe ===
+
+    [tier 0.67 GB/worker] 30 cells, 14 workers
+    [tier 2.69 GB/worker] 10 cells, 7 workers
+
+    group   seed first_bad   dev pred_dev  V2  soft  hard  min_ov
+    Z60       42       500     -        -   T     0     0  1.0000
+    Z60       43       500     -        -   T     0     0  1.0000
+    Z60       44       500    36       36   T     1     0  0.9857
+    Z60       45       500     -        -   T     0     0  1.0000
+    Z60       46       500   209      209   T     1     0  0.9857
+    Z60       47       249   241      241   T     1     0  0.9857
+    Z60       48       500     -        -   T     0     0  1.0000
+    Z60       49       137    25       25   T     2     0  0.9857
+    Z60       50       258   208      208   T     1     0  0.9857
+    Z60       51       500     -        -   T     0     0  1.0000
+    A4xZ5     42       500     -        -   T     0     0  1.0000
+    A4xZ5     43       500     -        -   T     0     0  1.0000
+    A4xZ5     44       500     -        -   T     0     0  1.0000
+    A4xZ5     45       500     -        -   T     0     0  1.0000
+    A4xZ5     46       500     -        -   T     0     0  1.0000
+    A4xZ5     47       500     -        -   T     0     0  1.0000
+    A4xZ5     48       500     -        -   T     0     0  1.0000
+    A4xZ5     49        25    20       20   T     2     0  0.9857
+    A4xZ5     50       500    61       61   T     1     0  0.9857
+    A4xZ5     51       500     -        -   T     0     0  1.0000
+    A5        42       500     -        -   T     0     0  1.0000
+    A5        43       500     -        -   T     0     0  1.0000
+    A5        44         3     0        0   T     1     0  0.9857
+    A5        45       500    32       32   T     2     0  0.9857
+    A5        46       500    59       59   T     1     0  0.9857
+    A5        47       369    38       38   T     1     0  0.9857
+    A5        48       279    15       15   T     2     0  0.9857
+    A5        49       500     -        -   T     0     0  1.0000
+    A5        50       500     -        -   T     0     0  1.0000
+    A5        51       500     -        -   T     0     0  1.0000
+    S5        42       500     -        -   T     1     0  0.9857
+    S5        43       500     -        -   T     0     0  1.0000
+    S5        44       500   132      132   T     1     0  0.9857
+    S5        45        10     7        7   T     2     0  0.9857
+    S5        46       299   296      296   T     3     0  0.9857
+    S5        47        89    85       85   T     2     0  0.9857
+    S5        48       219   213      213   T     2     0  0.9857
+    S5        49       500     -        -   T     0     0  1.0000
+    S5        50       390   218      218   T     3     0  0.9857
+    S5        51       500     -        -   T     0     0  1.0000
+
+=== BARS ===
+  PASS  V1a instrument alive (census overlaps vary somewhere)
+  PASS  V1b deviating seeds have soft/hard pairs
+  PASS  V2 first_dev == first true-path visit to a bad pair, every seed
+
+wrote F:\Github\assemblies\research\experiments\seq_s5_soft_census_results.json
