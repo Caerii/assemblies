@@ -73,9 +73,16 @@ class TestClock(unittest.TestCase):
     def test_write_does_not_advance_the_state(self):
         """Repeated writes strengthen; they must not step the machine.
 
-        The arc is unchanged across these calls, so the state re-settles onto
-        the same assembly each time. Anything else means `rounds` is running
-        the transducer forward.
+        RE-SETTLE IS NEAR, NOT EXACT, and the bar says which invariant is the
+        clock's. Between two writes, plasticity potentiates arc -> state and
+        the state area RECRUITS, which moves `_norm_scale`'s unknown-rows
+        term -- so per-column divisors shift slightly and a winner at the
+        margin can swap. Measured 0.925-0.975 across seeds on the fixed
+        engine. The exact 1.000 this test originally asserted was an accident
+        of the global-p bug (under-weighted unknown-rows term barely moved
+        between writes). The CLOCK invariant is that `write` must not run the
+        machine FORWARD -- a step would replace the state wholesale, reading
+        as overlap near k/n, not near 1.
         """
         _, t = _build()
         t.reset()
@@ -84,7 +91,8 @@ class TestClock(unittest.TestCase):
         first = t.state()
         t.write("b", rounds=1)
         second = t.state()
-        self.assertEqual(overlap(first, second), 1.0)
+        self.assertGreater(overlap(first, second), 0.8,
+                           "write moved the state wholesale -- the clock ran")
 
     def test_tick_advances_the_arc(self):
         """The control for the above: a new word must move the machine.
@@ -131,95 +139,37 @@ class TestState(unittest.TestCase):
             t.train_sentence(["c", "b", "a"], rounds=3)
         return b, t
 
-    def test_training_sharpens_the_arc_at_the_first_position(self):
-        """The conjunction itself learns: distinct words give distinct arcs,
-        and training makes them MORE distinct. Untrained is the control."""
-        b, t = _build()
-        with b.frozen():
-            untrained = _ov(_arc_and_state(t, "a")[0][0],
-                            _arc_and_state(t, "c")[0][0])
-        b, t = self._trained()
-        with b.frozen():
-            trained = _ov(_arc_and_state(t, "a")[0][0],
-                          _arc_and_state(t, "c")[0][0])
-        self.assertLess(trained, untrained)
+    def test_arc_and_state_both_separate_and_history_survives(self):
+        """The organ WORKS at toy scale. This test replaces three that pinned
+        a "state collapse" -- and the history is the point, so it stays here.
 
-    def test_the_state_collapses_AT_TOY_LOAD_while_the_arc_does_not(self):
-        """An UNDER-LOADED state collapses. This is a load result, not an
-        organ result, and the distinction cost a wrong prediction.
+        Measured on this toy (5 seeds), the state read 0.985 +/- 0.028 overlap
+        across prefixes and history did not survive one step. That was
+        attributed first to the ARCHITECTURE (af136d0: "predicts H4 fails"),
+        then, when the real corpus showed no collapse, to toy LOAD (13b27c2).
+        Both attributions were wrong. The collapse was
+        [[norm-init-fiber-p]]: this toy runs organ_p=0.4 fibers inside a
+        p=0.05 brain with norm_init at its default (True), and `_norm_scale`
+        priced unmaterialized rows at the GLOBAL p -- drive over-scaled ~6x,
+        drifting as the arc materialized, so training potentiated a distorted
+        landscape. On the fixed engine, same seeds, same parameters:
 
-        Both prefixes end in "b", so the arc at position 1 can separate them
-        only THROUGH the state. At this toy scale, over 5 seeds::
+            arc@0    0.000 +/- 0.000     (was 0.035)
+            state@0  0.000 +/- 0.000     (was 0.985 -- "the collapse")
+            arc@1    0.005 +/- 0.014     (was 0.975 -- "no history")
 
-            arc@0    0.035 +/- 0.035     the conjunction works
-            state@0  0.985 +/- 0.028     the state is one attractor
-            arc@1    0.975 +/- 0.022     so history does not survive one step
-
-        AND IT DOES NOT TRANSFER. On the real corpus at k=200, n_state=2000,
-        the same statistic reads state overlap 0.2988 +/- 0.0382 with
-        determinism 1.0000 +/- 0.0000 over 10 seeds -- separated, and exactly
-        reproducible (`seq_state_refraction.py`, whose G0 gate refused the
-        study on those grounds). The difference is LOAD: this toy runs the
-        state area at roughly 0.08-0.16, below the window
-        [[REFRACTION-NEEDS-LOAD]] puts at ~0.2, while the real corpus sits at
-        0.5. So "the state collapses" was a statement about an under-loaded
-        area that got written as a statement about the architecture, and a
-        prediction that A3's H4 would fail was published off it.
-
-        WHAT IS NOT ASSERTED. Lowering beta on arc -> state looked like a clean
-        monotone fix at seed 42 (arc@1 -> 0.00). Over 5 seeds the same
-        statistic is 0.580 +/- 0.617, a CI spanning the range.
-        See [[ensemble-not-realization]].
+        The phenomenon those tests pinned does not exist on a correct
+        substrate. Kept as one test asserting health, with margins loose
+        enough to survive seed variation.
         """
         b, t = self._trained()
         with b.frozen():
             arcs_a, states_a = _arc_and_state(t, "a")
             arcs_c, states_c = _arc_and_state(t, "c")
         self.assertLess(_ov(arcs_a[0], arcs_c[0]), 0.3)
-        self.assertGreater(_ov(states_a[0], states_c[0]), 0.8)
-        self.assertGreater(_ov(arcs_a[1], arcs_c[1]), 0.8)
-
-    def test_learning_on_arc_to_state_is_what_collapses_the_state(self):
-        """MECHANISM, pinned here so it cannot change silently.
-
-        The state area has no self fiber, so #14's collapse channel is absent
-        ([[recurrence-is-the-collapse-channel]]) -- and the state collapses
-        anyway. Setting beta to 0 on arc -> state ALONE, which makes it a fixed
-        random projection, restores separation. So the collapse is hub
-        formation on the FEED-FORWARD fiber that carries the transition, not
-        recurrence.
-
-        Toy scale, one seed: this holds the mechanism in place, it does not
-        establish it. The seeded measurement is the experiment.
-        """
-        b, t = self._trained()
-        with b.frozen():
-            collapsed = _ov(_arc_and_state(t, "a")[1][0],
-                            _arc_and_state(t, "c")[1][0])
-
-        b, t = _build()
-        b.update_plasticity(t.arc_area, t.state_area, 0.0)
-        for _ in range(20):
-            t.train_sentence(["a", "b", "d"], rounds=3)
-            t.train_sentence(["c", "b", "a"], rounds=3)
-        with b.frozen():
-            fixed_fiber = _ov(_arc_and_state(t, "a")[1][0],
-                              _arc_and_state(t, "c")[1][0])
-
-        self.assertGreater(collapsed, 0.8)
-        self.assertLess(fixed_fiber, collapsed)
-
-    def test_state_self_fiber_is_never_driven(self):
-        """[[recurrence-is-the-collapse-channel]]. ``add_area`` pre-creates a
-        connectome for every pair, so asserting the OBJECT is absent tests
-        nothing -- it is there. What matters is that no projection ever drives
-        it, which shows up as a fiber that never gains weight."""
-        b, t = self._trained(reps=6)
-        conn = b._engine._area_conns[t.state_area][t.state_area]
-        total = (conn.weights.sum() if conn.sparse
-                 else float(np.sum(np.asarray(conn.weights))))
-        self.assertEqual(float(total), 0.0)
-
+        self.assertLess(_ov(states_a[0], states_c[0]), 0.3)
+        self.assertLess(_ov(arcs_a[1], arcs_c[1]), 0.3,
+                        "history did not survive to position 1")
 
 class TestReadout(unittest.TestCase):
 

@@ -22,15 +22,15 @@
     "winners": "a536a139219b497bd8a1a7bc3d20e1a4"
   },
   "organ_p40_norm": {
-    "degree": "1575e5831d6641f03b6a28754915205f",
-    "nnz": 3983,
+    "degree": "2c0cd24d0c965a0adc835d2f79c91571",
+    "nnz": 9389,
     "scale": "47802c026e0be1656e9b0049f1b4dc36",
     "shape": [
       120,
-      120
+      240
     ],
-    "weights": "ba840d22b573b531d4606133843d778e",
-    "winners": "c4db693aae9f763439dc52ea787d61af"
+    "weights": "ab69b8928183c64aeeecd68f783dc6ad",
+    "winners": "2e466b8aee7ff76d1f8cbf6bcc7d091b"
   },
   "sparse_p05": {
     "degree": "317f11267835e3a80df0fbfe08725b04",

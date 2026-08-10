@@ -952,7 +952,8 @@ class NumpySparseEngine(ComputeEngine):
                 )
         return conn._deg_counts_arr
 
-    def _norm_scale(self, conn, n_pre: int, rows_known: int, needed: int):
+    def _norm_scale(self, conn, n_pre: int, rows_known: int, needed: int,
+                    p: float | None = None):
         """Per-postsynaptic-neuron read-time scale ``1/d_j`` for one fiber.
 
         Reproduces the reference implementation's ``norm_init``
@@ -1046,7 +1047,18 @@ class NumpySparseEngine(ComputeEngine):
         # `rows_known` has already been folded into `unknown` above, because the
         # 1-D and 2-D branches count "rows that exist" differently. Pass the
         # residual directly by declaring zero known rows.
-        return inverse_indegree(deg, unknown, 0, self.p, xp=xp)
+        #
+        # THE FIBER'S p, NOT THE BRAIN'S. Unmaterialized rows contribute
+        # `unknown * p` expected synapses, and they arrive at the fiber's own
+        # density: pricing them at the global p under-estimated d_j 6.15x on
+        # a p=0.4 fiber in a p=0.05 brain (130.0 vs 799.9), over-scaling the
+        # drive by a factor that DRIFTS toward 1x as the source materializes
+        # -- so training potentiated under a moving mis-scale. Same defect
+        # class as the per-fiber w_max clamp: a scale derived from p while
+        # the weights were drawn at a different p. Callers pass their fiber's
+        # p; None means homogeneous and falls back to the brain's.
+        return inverse_indegree(deg, unknown, 0,
+                                self.p if p is None else float(p), xp=xp)
 
     def _norm_candidate_divisor(self, tgt, input_sizes=None,
                                 src_pops=None, input_ps=None) -> float:
@@ -1802,7 +1814,8 @@ class NumpySparseEngine(ComputeEngine):
             end = min(limit, len(stim_w))
             if end > 0:
                 nscale = self._norm_scale(
-                    stim_conn, tgt.n, self._stimuli[stim].size, end)
+                    stim_conn, tgt.n, self._stimuli[stim].size, end,
+                    p=self._p_for(stim, target))
                 if nscale is None:
                     prev_winner_inputs[:end] += stim_w[:end]
                 else:
@@ -1833,6 +1846,7 @@ class NumpySparseEngine(ComputeEngine):
                     enorm = self._norm_scale(
                         conn, src.n, conn.weights.shape[0],
                         int(conn.weights.shape[1]),
+                        p=self._p_for(src_name, target),
                     )
                 if tgt.w == 0:
                     contrib = conn.weights[valid].sum(axis=0)
@@ -1932,7 +1946,8 @@ class NumpySparseEngine(ComputeEngine):
                     contrib = conn.weights[internal, :col_end].sum(axis=0)
                 nscale = self._norm_scale(
                     conn, self._areas[src_name].n,
-                    self._areas[src_name].w, col_end)
+                    self._areas[src_name].w, col_end,
+                    p=self._p_for(src_name, target))
                 if nscale is not None:
                     contrib = contrib * nscale[:col_end]
                 prev_winner_inputs[:col_end] += contrib

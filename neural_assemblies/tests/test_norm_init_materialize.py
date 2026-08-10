@@ -29,7 +29,6 @@ from __future__ import annotations
 import random
 
 import numpy as np
-import pytest
 
 from neural_assemblies.core.brain import Brain
 from neural_assemblies.diagnostics import read_assembly
@@ -67,31 +66,50 @@ def test_norm_init_is_live_on_materialized_fibers():
         "retracted version of this file wrongly diagnosed at storage level")
 
 
-@pytest.mark.xfail(
-    reason="_norm_scale prices unmaterialized rows at the GLOBAL p, not the "
-           "fiber's own p: measured d_j 130.0 vs correct 799.9 (6.15x "
-           "over-scaling) on a p=0.4 fiber in a p=0.05 brain. Same class as "
-           "the per-fiber w_max clamp bug. Fix: pass the fiber p at the "
-           "three _norm_scale call sites.",
-    strict=False,
-)
 def test_norm_scale_unknown_rows_use_the_fiber_p():
+    """REGRESSION for the global-p defect: d_j 130.0 vs correct 799.9 (6.15x)
+    before the fix. Unmaterialized rows must be priced at the FIBER p.
+
+    Observed THROUGH THE REAL PATH: the first draft called `_norm_scale`
+    directly, which bypasses the call sites the fix changed and silently
+    tests the fallback. The projection is what must pass the fiber p.
+    """
     b = _hetero_brain(True)
     b.materialize_area("TGT")
     for _ in range(3):
         b.project({"s": ["SRC"]}, {})
+    # Prime the fiber: the FIRST SRC->TGT projection takes the bootstrap
+    # path, which does not consult _norm_scale at all. The steady-state
+    # drive path is the one under test.
     b.project({}, {"SRC": ["TGT"]})
     eng = b._engine
+    seen = {}
+    orig = eng._norm_scale
+
+    def recording(conn, n_pre, rows_known, needed, p=None):
+        seen[(n_pre, needed)] = p
+        return orig(conn, n_pre, rows_known, needed, p=p)
+
+    eng._norm_scale = recording
+    try:
+        b.project({}, {"SRC": ["TGT"]})
+    finally:
+        eng._norm_scale = orig
+    area_calls = [p for (n_pre, _), p in seen.items() if n_pre == 2000]
+    assert area_calls, "the SRC->TGT projection never consulted _norm_scale"
+    assert all(p == 0.4 for p in area_calls), (
+        f"projection passed p={area_calls} for a 0.4 fiber -- unmaterialized "
+        f"rows are being priced at the wrong density again")
+
+    # And the arithmetic itself, given the right p:
     conn = eng._area_conns["SRC"]["TGT"]
     src = eng._areas["SRC"]
     rows_known = min(src.w, conn.weights.shape[0])
-    nscale = eng._norm_scale(conn, 2000, rows_known, 1200)
+    nscale = orig(conn, 2000, rows_known, 1200, p=0.4)
     d_used = 1.0 / np.asarray(nscale)
     w = conn.weights
     dense = np.asarray(w.todense() if hasattr(w, "todense") else w)
     counts = (dense[:rows_known, :1200] != 0).sum(axis=0)
-    unknown = 2000 - rows_known
-    correct = counts + 0.40 * unknown
+    correct = counts + 0.40 * (2000 - rows_known)
     ratio = float(correct.mean() / d_used.mean())
-    assert 0.8 < ratio < 1.25, (
-        f"d_j off by {ratio:.2f}x -- unknown rows priced at the wrong p")
+    assert 0.8 < ratio < 1.25, f"d_j off by {ratio:.2f}x with the fiber p given"
