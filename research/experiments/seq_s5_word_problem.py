@@ -122,6 +122,46 @@ def report_regime(group_name, seed=42):
                          if r.area.startswith("_wp")]))
 
 
+def _dense_gb(group_name):
+    """Bytes the two organ fibers occupy DENSE, per worker.
+
+    The state area is fully materialised (its assemblies are assigned blocks),
+    so arc <-> state is stored dense at `n_arc x n_state` in each direction.
+    """
+    group = GROUPS[group_name]()
+    n_arc, n_state = sizes(group, len(group.generators))
+    return n_arc * n_state * 4 * 2 / 1e9
+
+
+def run_tiered(cells, budget_gb=20.0):
+    """Run cells in memory tiers, sized so a big group cannot exhaust RAM.
+
+    The first attempt ran all 160 cells at the pool's default width and died:
+    S5 needs 2.69 GB of dense fiber per worker, 37.6 GB across 14 workers, and
+    growth REALLOCATES -- `_ensure_area_block_coverage` builds the new buffer
+    while the old one is still live -- so the peak is about twice that. The
+    order-60 groups are 0.67 GB each and were never the problem.
+
+    Cells are grouped by footprint and each tier gets `budget_gb / footprint`
+    workers. This is scheduling, not sizing: no cell's parameters change, so
+    the measurement is identical to running them one at a time.
+    """
+    out = {}
+    tiers = {}
+    for cell in cells:
+        tiers.setdefault(round(_dense_gb(cell[0]), 2), []).append(cell)
+    for gb, group_cells in sorted(tiers.items()):
+        # Capped by CORES as well as by memory -- the memory budget alone said
+        # 29 workers for the order-60 tier on a 16-core box.
+        workers = max(1, min(len(group_cells),
+                             int(budget_gb // max(gb, 0.01)),
+                             max(1, (os.cpu_count() or 4) - 2)))
+        print(f"    [tier {gb:.2f} GB/worker] {len(group_cells)} cells, "
+              f"{workers} workers", flush=True)
+        out.update(run_cells(worker, group_cells, max_workers=workers))
+    return out
+
+
 def _acc(results, group_name, arm, seeds, length):
     return ensemble_from_values(
         [float(results[(group_name, s, arm)][str(length)]) for s in seeds],
@@ -145,7 +185,7 @@ def main():
     print("\n  [controls] must all sit at chance before any real arm counts")
     ctrl_cells = [(g, s, a) for g in GROUP_NAMES for s in seeds
                   for a in ("untrained", "beta0", "shuffled")]
-    r = run_cells(worker, ctrl_cells)
+    r = run_tiered(ctrl_cells)
     ctrl_ok, ctrl_rows = True, {}
     for g in GROUP_NAMES:
         for a in ("untrained", "beta0", "shuffled"):
@@ -166,8 +206,8 @@ def main():
 
     # -- the real arms ------------------------------------------------------
     print("\n  [trained] exact trajectory accuracy, full length curve")
-    r.update(run_cells(worker, [(g, s, "trained") for g in GROUP_NAMES
-                                for s in seeds]))
+    r.update(run_tiered([(g, s, "trained") for g in GROUP_NAMES
+                         for s in seeds]))
     curve = {}
     header = "  ".join(f"L={L}" for L in LENGTHS)
     print(f"\n    {'group':8s} {'solvable':9s} {header}")
