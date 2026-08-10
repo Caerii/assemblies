@@ -1,0 +1,242 @@
+{
+  "arms": [
+    {
+      "arm": "multi_mood",
+      "moods": [
+        "svo",
+        "vso",
+        "osv"
+      ],
+      "refraction": true,
+      "correct": 10,
+      "n": 10,
+      "across_state": 0.000873015873015873,
+      "across_mood": 0.013690476190476192,
+      "rows": [
+        {
+          "seed": 1,
+          "all_moods_correct": true,
+          "across_state": 0.0007936507936507937,
+          "across_mood": 0.015476190476190477
+        },
+        {
+          "seed": 2,
+          "all_moods_correct": true,
+          "across_state": 0.0,
+          "across_mood": 0.014285714285714285
+        },
+        {
+          "seed": 3,
+          "all_moods_correct": true,
+          "across_state": 0.0007936507936507937,
+          "across_mood": 0.02023809523809524
+        },
+        {
+          "seed": 4,
+          "all_moods_correct": true,
+          "across_state": 0.0015873015873015873,
+          "across_mood": 0.007142857142857143
+        },
+        {
+          "seed": 5,
+          "all_moods_correct": true,
+          "across_state": 0.0015873015873015873,
+          "across_mood": 0.011904761904761904
+        },
+        {
+          "seed": 6,
+          "all_moods_correct": true,
+          "across_state": 0.0015873015873015873,
+          "across_mood": 0.010714285714285713
+        },
+        {
+          "seed": 7,
+          "all_moods_correct": true,
+          "across_state": 0.0007936507936507937,
+          "across_mood": 0.017857142857142856
+        },
+        {
+          "seed": 8,
+          "all_moods_correct": true,
+          "across_state": 0.0,
+          "across_mood": 0.011904761904761904
+        },
+        {
+          "seed": 9,
+          "all_moods_correct": true,
+          "across_state": 0.0007936507936507937,
+          "across_mood": 0.014285714285714285
+        },
+        {
+          "seed": 10,
+          "all_moods_correct": true,
+          "across_state": 0.0007936507936507937,
+          "across_mood": 0.013095238095238096
+        }
+      ]
+    },
+    {
+      "arm": "single_mood",
+      "moods": [
+        "svo"
+      ],
+      "refraction": true,
+      "correct": 2,
+      "n": 10,
+      "across_state": 0.03976190476190476,
+      "across_mood": NaN,
+      "rows": [
+        {
+          "seed": 1,
+          "all_moods_correct": false,
+          "across_state": 0.021428571428571432,
+          "across_mood": NaN
+        },
+        {
+          "seed": 2,
+          "all_moods_correct": false,
+          "across_state": 0.02380952380952381,
+          "across_mood": NaN
+        },
+        {
+          "seed": 3,
+          "all_moods_correct": false,
+          "across_state": 0.04047619047619048,
+          "across_mood": NaN
+        },
+        {
+          "seed": 4,
+          "all_moods_correct": false,
+          "across_state": 0.059523809523809534,
+          "across_mood": NaN
+        },
+        {
+          "seed": 5,
+          "all_moods_correct": false,
+          "across_state": 0.02380952380952381,
+          "across_mood": NaN
+        },
+        {
+          "seed": 6,
+          "all_moods_correct": false,
+          "across_state": 0.04285714285714285,
+          "across_mood": NaN
+        },
+        {
+          "seed": 7,
+          "all_moods_correct": true,
+          "across_state": 0.05714285714285714,
+          "across_mood": NaN
+        },
+        {
+          "seed": 8,
+          "all_moods_correct": true,
+          "across_state": 0.061904761904761914,
+          "across_mood": NaN
+        },
+        {
+          "seed": 9,
+          "all_moods_correct": false,
+          "across_state": 0.03333333333333333,
+          "across_mood": NaN
+        },
+        {
+          "seed": 10,
+          "all_moods_correct": false,
+          "across_state": 0.03333333333333333,
+          "across_mood": NaN
+        }
+      ]
+    },
+    {
+      "arm": "null_no_refraction",
+      "moods": [
+        "svo",
+        "vso",
+        "osv"
+      ],
+      "refraction": false,
+      "correct": 0,
+      "n": 10,
+      "across_state": 0.9476190476190475,
+      "across_mood": 0.9639285714285715,
+      "rows": [
+        {
+          "seed": 1,
+          "all_moods_correct": false,
+          "across_state": 0.9476190476190476,
+          "across_mood": 0.967857142857143
+        },
+        {
+          "seed": 2,
+          "all_moods_correct": false,
+          "across_state": 0.9626984126984127,
+          "across_mood": 0.9714285714285715
+        },
+        {
+          "seed": 3,
+          "all_moods_correct": false,
+          "across_state": 0.9373015873015872,
+          "across_mood": 0.9476190476190477
+        },
+        {
+          "seed": 4,
+          "all_moods_correct": false,
+          "across_state": 0.9666666666666666,
+          "across_mood": 0.9714285714285715
+        },
+        {
+          "seed": 5,
+          "all_moods_correct": false,
+          "across_state": 0.9253968253968252,
+          "across_mood": 0.9619047619047619
+        },
+        {
+          "seed": 6,
+          "all_moods_correct": false,
+          "across_state": 0.9436507936507935,
+          "across_mood": 0.9630952380952381
+        },
+        {
+          "seed": 7,
+          "all_moods_correct": false,
+          "across_state": 0.9476190476190476,
+          "across_mood": 0.9726190476190477
+        },
+        {
+          "seed": 8,
+          "all_moods_correct": false,
+          "across_state": 0.9452380952380951,
+          "across_mood": 0.9523809523809524
+        },
+        {
+          "seed": 9,
+          "all_moods_correct": false,
+          "across_state": 0.9515873015873014,
+          "across_mood": 0.9654761904761905
+        },
+        {
+          "seed": 10,
+          "all_moods_correct": false,
+          "across_state": 0.9484126984126983,
+          "across_mood": 0.9654761904761906
+        }
+      ]
+    }
+  ],
+  "verdicts": {
+    "P-ORDER": true,
+    "P-CONJ2": true,
+    "P-FLOOR": false,
+    "P-NULL": true
+  },
+  "params": {
+    "ambient_p": 0.05,
+    "organ_p": 0.4,
+    "n_arc": 5000,
+    "n_state": 500,
+    "k": 70,
+    "beta": 0.1,
+    "presentations": 15
+  }
+}

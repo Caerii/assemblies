@@ -1,0 +1,18 @@
+=== does refraction need LOAD to converge? ===
+    sweeping arc size at fixed content, so load M*k/n is the only thing moving
+
+  single-mood (3 conjunctions)
+    n_arc  5000  load  0.04  1/10 correct
+    n_arc  2000  load  0.10  7/10 correct
+    n_arc  1000  load  0.21  10/10 correct
+    n_arc   500  load  0.42  10/10 correct
+    n_arc   350  load  0.60  10/10 correct
+
+  multi-mood (9 conjunctions)
+    n_arc  5000  load  0.13  9/10 correct
+    n_arc  2000  load  0.32  10/10 correct
+    n_arc  1000  load  0.63  10/10 correct
+    n_arc   500  load  1.26  10/10 correct
+    n_arc   350  load  1.80  1/10 correct
+
+wrote F:\Github\assemblies\research\experiments\seq_a2_refraction_load_results.json

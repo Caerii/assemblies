@@ -1,0 +1,63 @@
+=== A2: #92's word-order conjunction through the fixed organ ===
+    ambient p=0.05, organ p=0.4, k=70, presentations=15
+    exposure per presentation -- mood {'svo': 3, 'vso': 3, 'osv': 3}, state {'START': 3, 'S': 3, 'V': 2, 'O': 1}
+    the asymmetry #92 failed on is PRESERVED: a mood fires 3x where a state fires 1x
+
+  [multi-mood] refraction on
+    seed  1: order ok   arc across-state 0.001  across-mood 0.015
+  [ok  ] _a2_state          n=500     k=70    afferent kp   28.0 vs floor  18.6  (_a2_arc=28)
+  [ok  ] _a2_arc            n=5000    k=70    afferent kp   56.0 vs floor  25.6  (_a2_state=28, _a2_sym_svo=28)
+    seed  2: order ok   arc across-state 0.000  across-mood 0.014
+    seed  3: order ok   arc across-state 0.001  across-mood 0.020
+    seed  4: order ok   arc across-state 0.002  across-mood 0.007
+    seed  5: order ok   arc across-state 0.002  across-mood 0.012
+    seed  6: order ok   arc across-state 0.002  across-mood 0.011
+    seed  7: order ok   arc across-state 0.001  across-mood 0.018
+    seed  8: order ok   arc across-state 0.000  across-mood 0.012
+    seed  9: order ok   arc across-state 0.001  across-mood 0.014
+    seed 10: order ok   arc across-state 0.001  across-mood 0.013
+    -> 10/10 seeds with every mood correct
+
+  [single-mood] the floor #92's arc arms failed (R3)
+    seed  1: order  .   arc across-state 0.021  across-mood nan
+    seed  2: order  .   arc across-state 0.024  across-mood nan
+    seed  3: order  .   arc across-state 0.040  across-mood nan
+    seed  4: order  .   arc across-state 0.060  across-mood nan
+    seed  5: order  .   arc across-state 0.024  across-mood nan
+    seed  6: order  .   arc across-state 0.043  across-mood nan
+    seed  7: order ok   arc across-state 0.057  across-mood nan
+    seed  8: order ok   arc across-state 0.062  across-mood nan
+    seed  9: order  .   arc across-state 0.033  across-mood nan
+    seed 10: order  .   arc across-state 0.033  across-mood nan
+F:\Github\assemblies\research\experiments\seq_a2_word_order_fsm.py:171: RuntimeWarning: Mean of empty slice
+  "across_mood": float(np.nanmean([r["across_mood"] for r in rows])),
+    -> 2/10 seeds with every mood correct
+
+  [null] refraction off -- must fail
+    seed  1: order  .   arc across-state 0.948  across-mood 0.968
+    seed  2: order  .   arc across-state 0.963  across-mood 0.971
+    seed  3: order  .   arc across-state 0.937  across-mood 0.948
+    seed  4: order  .   arc across-state 0.967  across-mood 0.971
+    seed  5: order  .   arc across-state 0.925  across-mood 0.962
+    seed  6: order  .   arc across-state 0.944  across-mood 0.963
+    seed  7: order  .   arc across-state 0.948  across-mood 0.973
+    seed  8: order  .   arc across-state 0.945  across-mood 0.952
+    seed  9: order  .   arc across-state 0.952  across-mood 0.965
+    seed 10: order  .   arc across-state 0.948  across-mood 0.965
+    -> 0/10 seeds with every mood correct
+
+=== SUMMARY ===
+  arm                    correct  across-state  across-mood
+  multi_mood               10/10         0.001        0.014
+  single_mood               2/10         0.040          nan
+  null_no_refraction        0/10         0.948        0.964
+
+  #92 measured across-state 0.90-0.99 and across-mood 0.48-0.97
+
+=== BARS ===
+  P-ORDER   PASS
+  P-CONJ2   PASS
+  P-FLOOR   FAIL
+  P-NULL    PASS
+
+wrote F:\Github\assemblies\research\experiments\seq_a2_word_order_results.json

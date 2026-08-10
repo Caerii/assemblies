@@ -1,0 +1,72 @@
+[
+  {
+    "arm": "single-mood (3 conjunctions)",
+    "n_arc": 5000,
+    "load": 0.042,
+    "correct": 1,
+    "n": 10
+  },
+  {
+    "arm": "single-mood (3 conjunctions)",
+    "n_arc": 2000,
+    "load": 0.105,
+    "correct": 7,
+    "n": 10
+  },
+  {
+    "arm": "single-mood (3 conjunctions)",
+    "n_arc": 1000,
+    "load": 0.21,
+    "correct": 10,
+    "n": 10
+  },
+  {
+    "arm": "single-mood (3 conjunctions)",
+    "n_arc": 500,
+    "load": 0.42,
+    "correct": 10,
+    "n": 10
+  },
+  {
+    "arm": "single-mood (3 conjunctions)",
+    "n_arc": 350,
+    "load": 0.6,
+    "correct": 10,
+    "n": 10
+  },
+  {
+    "arm": "multi-mood (9 conjunctions)",
+    "n_arc": 5000,
+    "load": 0.126,
+    "correct": 9,
+    "n": 10
+  },
+  {
+    "arm": "multi-mood (9 conjunctions)",
+    "n_arc": 2000,
+    "load": 0.315,
+    "correct": 10,
+    "n": 10
+  },
+  {
+    "arm": "multi-mood (9 conjunctions)",
+    "n_arc": 1000,
+    "load": 0.63,
+    "correct": 10,
+    "n": 10
+  },
+  {
+    "arm": "multi-mood (9 conjunctions)",
+    "n_arc": 500,
+    "load": 1.26,
+    "correct": 10,
+    "n": 10
+  },
+  {
+    "arm": "multi-mood (9 conjunctions)",
+    "n_arc": 350,
+    "load": 1.8,
+    "correct": 1,
+    "n": 10
+  }
+]

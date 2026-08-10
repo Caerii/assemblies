@@ -231,6 +231,30 @@ _RESULTS: List[Result] = [
         implemented_by=("neural_assemblies/core/_refraction.py",),
     ),
     Result(
+        id="REFRACTION-NEEDS-LOAD",
+        status=Status.MEASURED,
+        claim="A refracted conjunction area has an operating WINDOW in load "
+              "M*k/n: below ~0.2 its assemblies never converge, above ~1.15 "
+              "they do not fit. An arc must be SIZED to the number of "
+              "conjunctions it holds.",
+        source="This repository.",
+        evidence=("research/experiments/seq_a2_refraction_load.py: sweeping arc "
+                  "size at fixed content, a 3-conjunction arc goes 1/10 at load "
+                  "0.04 to 10/10 at 0.21; a 9-conjunction arc holds 10/10 from "
+                  "0.32 to 1.26 and collapses to 1/10 at 1.80",
+                  "arc assembly stability across training: 0.286 from "
+                  "presentation 5 to 15 under-loaded, 0.957 from 10 to 15 loaded"),
+        preconditions=("refraction active -- this is a statement about what "
+                       "refraction needs, not about k-WTA generally",),
+        caveat="A NEW SILENT-FAILURE MODE. Under-loaded, every local diagnostic "
+               "reads healthy -- the conjunction is clean, every area is "
+               "in-regime, refraction is charging -- while the organ fails, "
+               "because the assemblies never stopped moving. `regime_audit` "
+               "cannot see it; assembly stability across training can. The "
+               "upper bound is [[AC-CAP]] and is not independent of it. "
+               "Bounds are approximate and from one task.",
+    ),
+    Result(
         id="AC-CAP",
         status=Status.MEASURED,
         claim="Assembly capacity is EXTENSIVE: about M_max ~ 1.15 n/k distinct "
