@@ -53,6 +53,7 @@ from ..backend import get_xp, to_cpu, to_xp, xp_by_name, xp_name
 from .._pricing import (
     area_fiber_activity, candidate_divisor, inverse_indegree,
 )
+from .._refraction import refraction_increment
 from ..engine import ComputeEngine, ProjectionResult
 from ..connectome import Connectome
 from ..projection_fidelity import ProjectionFidelity
@@ -2259,15 +2260,25 @@ class NumpySparseEngine(ComputeEngine):
                 set(int(i) for i in new_winner_indices))
 
         # --- Update refracted cumulative bias ---
-        if tgt.refracted and tgt.refracted_strength > 0:
+        # Gated on plasticity, and on the SAME condition as the Hebbian update
+        # above. The reference charges the bias inside `RefractedArea.update`,
+        # so `update=False` stops learning and charging together; ours did not,
+        # which meant a no-learn readout kept charging and altered the very
+        # trajectory it was meant to observe -- one step of a test sequence
+        # changing the next.
+        if (tgt.refracted and tgt.refracted_strength > 0
+                and plasticity_enabled and self._plasticity_enabled_global):
             if len(tgt._cumulative_bias) < new_w:
                 old = tgt._cumulative_bias
                 tgt._cumulative_bias = xp.zeros(new_w, dtype=xp.float32)
                 if len(old) > 0:
                     tgt._cumulative_bias[:len(old)] = old
-            for cidx in new_winner_indices:
-                if cidx < len(tgt._cumulative_bias):
-                    tgt._cumulative_bias[cidx] += tgt.refracted_strength
+            bias = tgt._cumulative_bias
+            widx = xp.asarray(new_winner_indices)
+            widx = widx[widx < len(bias)]
+            if len(widx) > 0:
+                bias[widx] += refraction_increment(
+                    all_inputs[widx], bias[widx], tgt.refracted_strength)
 
         total_act = float(xp.sum(all_inputs[new_winner_indices]))
 

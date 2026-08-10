@@ -47,6 +47,7 @@ Requires: cupy (for GPU arrays; kernels in kernels/implicit.py are optional).
 import numpy as np
 from typing import Dict, List
 
+from ._refraction import refraction_increment
 from .engine import ProjectionResult, register_engine
 from .backend import get_xp, to_cpu, to_xp
 
@@ -610,15 +611,22 @@ class CudaImplicitEngine(NumpySparseEngine):
                 set(int(i) for i in new_winner_indices))
 
         # --- Update refracted cumulative bias ---
-        if tgt.refracted and tgt.refracted_strength > 0:
+        # Rule and gating live in `core._refraction`; see that module for why
+        # the increment is proportional to raw drive and why charging is tied
+        # to the same condition as the Hebbian update.
+        if (tgt.refracted and tgt.refracted_strength > 0
+                and plasticity_enabled and self._plasticity_enabled_global):
             if len(tgt._cumulative_bias) < new_w:
                 old = tgt._cumulative_bias
                 tgt._cumulative_bias = cp.zeros(new_w, dtype=cp.float32)
                 if len(old) > 0:
                     tgt._cumulative_bias[:len(old)] = old
-            for cidx in new_winner_indices:
-                if cidx < len(tgt._cumulative_bias):
-                    tgt._cumulative_bias[cidx] += tgt.refracted_strength
+            bias = tgt._cumulative_bias
+            widx = cp.asarray(new_winner_indices)
+            widx = widx[widx < len(bias)]
+            if widx.size > 0:
+                bias[widx] += refraction_increment(
+                    all_inputs[widx], bias[widx], tgt.refracted_strength)
 
         return ProjectionResult(
             winners=np.array(new_winner_indices, dtype=np.uint32),

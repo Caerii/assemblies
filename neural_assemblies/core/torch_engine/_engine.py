@@ -27,6 +27,7 @@ import torch
 from .._pricing import (
     area_fiber_activity, candidate_divisor, inverse_indegree,
 )
+from .._refraction import refraction_increment
 from ..connectome import Connectome
 from ..engine import ComputeEngine, ProjectionResult
 
@@ -784,16 +785,25 @@ class TorchSparseEngine(ComputeEngine):
                 set(int(i) for i in new_winner_indices))
 
         # --- Update refracted cumulative bias ---
-        if tgt.refracted and tgt.refracted_strength > 0:
+        # Rule and gating live in `core._refraction`; see that module for why
+        # the increment is proportional to raw drive and why charging is tied
+        # to the same condition as the Hebbian update.
+        if (tgt.refracted and tgt.refracted_strength > 0
+                and plasticity_enabled and self._plasticity_enabled_global):
             if len(tgt._cumulative_bias) < new_w:
                 old = tgt._cumulative_bias
                 tgt._cumulative_bias = torch.zeros(
                     new_w, dtype=torch.float32, device=self._device)
                 if len(old) > 0:
                     tgt._cumulative_bias[:len(old)] = old
-            for cidx in new_winner_indices:
-                if cidx < len(tgt._cumulative_bias):
-                    tgt._cumulative_bias[cidx] += tgt.refracted_strength
+            bias = tgt._cumulative_bias
+            widx = torch.as_tensor(
+                np.asarray(new_winner_indices, dtype=np.int64),
+                device=bias.device)
+            widx = widx[widx < len(bias)]
+            if widx.numel() > 0:
+                bias[widx] += refraction_increment(
+                    all_inputs[widx], bias[widx], tgt.refracted_strength)
 
         total_act = float(all_inputs[new_winner_indices].sum().item())
 

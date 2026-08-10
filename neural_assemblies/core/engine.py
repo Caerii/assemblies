@@ -192,11 +192,34 @@ class ComputeEngine(ABC):
                       strength: float = 0.0) -> None:
         """Enable or disable refracted mode for an area.
 
-        Refracted mode accumulates a permanent bias: each time a neuron
-        fires, its bias grows, making it progressively harder to fire
-        again.  This is distinct from LRI (sliding-window penalty).
-        Default is a no-op.
+        Refracted mode accumulates a bias: each time a neuron fires, its bias
+        grows, making it progressively harder to fire again.  This is distinct
+        from LRI (sliding-window penalty).
+
+        ENABLING IT ON AN ENGINE THAT DOES NOT IMPLEMENT IT RAISES.  This
+        default used to be a silent no-op, which is the failure this repo keeps
+        rediscovering: a mechanism configured, accepted, and never run, whose
+        signature is "X seems to have little effect".  See
+        [[silent-no-op-dead-fibers]] and `_reject_unsupported` in
+        `numpy_engine/_exact.py`, which applies the same rule to `add_area`.
+
+        Refraction is not a modifier that merely sharpens a result.  Ablated
+        from the reference FSM it takes the mod-3 task from 3/3 seeds to 0/3
+        and the arc's across-symbol overlap from 0.000 to 0.989 -- the area
+        stops being a conjunction at all.  An engine that silently ignores the
+        request therefore does not return a slightly different number; it
+        returns a different experiment.
+
+        Requesting the DEFAULT (``enabled=False``) is not a request for the
+        mechanism and stays a no-op everywhere, matching `_reject_unsupported`.
         """
+        if enabled:
+            raise NotImplementedError(
+                f"{type(self).__name__}.set_refracted({area!r}, enabled=True) "
+                f"is not implemented by this engine, so refraction would be "
+                f"configured and never applied. Use numpy_sparse (or torch/cuda, "
+                f"which inherit it), or leave refracted=False."
+            )
 
     def clear_refracted_bias(self, area: str) -> None:
         """Reset accumulated refracted bias to zero.
