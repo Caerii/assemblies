@@ -53,6 +53,9 @@ Every call site in the repo already passes ``refracted_strength=0.1``, and 0.1
 is exactly the reference's ``plasticity``, so correcting the rule makes those
 call sites right without changing their arguments.
 
+Results: [[ARC-CONJUNCT-EXPOSURE]] (what refraction opposes),
+[[REFRACTION-PROPORTIONAL]] (why the rule is drive-proportional).
+
 WHY IT LIVES HERE AND NOT IN AN ENGINE
 --------------------------------------
 The accumulation existed as three copies -- ``numpy_engine/_sparse.py``,

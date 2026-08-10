@@ -47,6 +47,13 @@ class NemoArcFSM:
     * the arc's two conjuncts should be exposed comparably often; see
       [[role-gain-crowds-not-margins]].
 
+    RESULTS. Implements [[SEQ-FSM]] on the substrate of
+    [[SEQ-TIME-IN-WEIGHTS]]. Its preconditions are [[SEQ-REGIME]] in EVERY
+    area -- check with `diagnostics.regime_audit` before trusting a negative --
+    and comparable exposure across conjuncts ([[ARC-CONJUNCT-EXPOSURE]]).
+    Behaviour over long sequences is [[SEQ-EXACT-RECOVERY]]. The state
+    alphabet is assigned, not induced: see [[SEQ-STATE-CODE-EMERGENT]].
+
     ONE TEACHER-FORCED WRITE. The reference performs
     ``state.set_input(arc.read()); state.fire(new_state)``: a single
     potentiation of arc -> state onto the TARGET assembly. The previous

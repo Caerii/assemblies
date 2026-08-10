@@ -1,0 +1,328 @@
+"""The indexed register of results this codebase stands on.
+
+WHY THIS EXISTS
+---------------
+Most of what this system does is an instance of something proved in the
+literature, a measurement we made ourselves, or an EXTRAPOLATION beyond both.
+Those three are not interchangeable, and until they are written down they are
+indistinguishable in a docstring: "the theory requires kp >= 3 ln n" reads the
+same whether it is a theorem, our own sweep, or a guess.
+
+So every claim a docstring leans on gets an ID here, with its PRECONDITIONS and
+its STATUS. Code cites it by ID in double brackets. Three consequences:
+
+* an extension is obvious at the point of use, because its status says so;
+* preconditions travel with the claim, so "we are inside the theorem" is
+  checkable rather than assumed -- this is what `diagnostics.regime_audit`
+  automates for the one precondition we kept violating;
+* citations cannot rot: `unresolved_citations` scans the package and
+  `neural_assemblies/tests/test_theory_citations.py` fails on a dangling one.
+
+CITATION SYNTAX. Result IDs are UPPERCASE-DASHED, written in double
+brackets at the point of use. The
+lowercase-kebab ``[[silent-no-op-dead-fibers]]`` links already used throughout
+the codebase point at operator memory, not at results, and the checker
+deliberately ignores them.
+
+STATUS IS NOT QUALITY. A `MEASURED` result can be better evidence for our
+purposes than a `PROVED` one whose preconditions we cannot meet. The point of
+the label is to say what would have to be true for the claim to transfer, not
+to rank the claims.
+"""
+
+from __future__ import annotations
+
+import os
+import re
+from dataclasses import dataclass, field
+from typing import Dict, List, Sequence
+
+#: Matches an UPPERCASE-DASHED result citation in double brackets. Lowercase
+#: kebab links are operator memory, not results, and never match.
+CITATION = re.compile(r"\[\[([A-Z][A-Z0-9]*(?:-[A-Z0-9]+)*)\]\]")
+
+
+class Status:
+    """How much weight a claim can carry, and what would invalidate it."""
+
+    #: Stated and proved in the cited source. Transfers only inside its
+    #: preconditions -- check them before relying on it.
+    PROVED = "PROVED"
+
+    #: Established empirically in this repository, with the experiment named.
+    #: Transfers to the regime it was measured in; re-measure outside it.
+    MEASURED = "MEASURED"
+
+    #: We rely on this BEYOND where it is proved or measured. Every use is a
+    #: standing risk and should say what would falsify it.
+    EXTENSION = "EXTENSION"
+
+
+@dataclass(frozen=True)
+class Result:
+    """One citable claim, with the conditions under which it holds."""
+
+    id: str
+    status: str
+    claim: str
+    source: str
+    preconditions: Sequence[str] = field(default_factory=tuple)
+    evidence: Sequence[str] = field(default_factory=tuple)
+    implemented_by: Sequence[str] = field(default_factory=tuple)
+    caveat: str = ""
+
+    def __str__(self) -> str:
+        head = f"[{self.status}] {self.id}: {self.claim}"
+        bits = [f"    source: {self.source}"]
+        if self.preconditions:
+            bits.append("    requires: " + "; ".join(self.preconditions))
+        if self.evidence:
+            bits.append("    evidence: " + "; ".join(self.evidence))
+        if self.implemented_by:
+            bits.append("    used by: " + "; ".join(self.implemented_by))
+        if self.caveat:
+            bits.append(f"    CAVEAT: {self.caveat}")
+        return head + "\n" + "\n".join(bits)
+
+
+_RESULTS: List[Result] = [
+    # ---------------------------------------------------------------- sequences
+    Result(
+        id="SEQ-TIME-IN-WEIGHTS",
+        status=Status.PROVED,
+        claim="Sequence/temporal structure is carried by DIRECTED inter-assembly "
+              "weights, not by an accumulator or a decaying trace.",
+        source="Dabagia, Papadimitriou & Vempala, 'Computation with Sequences "
+               "in a Model of the Brain' (arXiv:2306.03812), Thm 1.",
+        preconditions=("plasticity on the directed fiber",
+                       "assemblies stable enough to be re-presented"),
+        implemented_by=("neural_assemblies/programs/nemo_fsm.py",),
+        caveat="Read the contrapositive too: a recurrent buffer accumulating "
+               "context is NOT how this model represents history, which is the "
+               "architectural account of the CONTEXT-area collapse in #14.",
+    ),
+    Result(
+        id="SEQ-REGIME",
+        status=Status.PROVED,
+        claim="Winner selection is reliable only when a target neuron receives "
+              "kp >= 3 ln n synapses FROM THE DRIVING ASSEMBLY.",
+        source="Dabagia et al. (arXiv:2306.03812); assumed by every theorem in "
+               "the paper, and satisfied by its own FSM demo at n=5000, k=70, "
+               "p=0.4 (kp=28 per conjunct pair vs floor 25.6).",
+        preconditions=("counted PER AREA, over the sources that co-fire",
+                       "k is the SOURCE assembly's size, not the target's"),
+        evidence=("research/experiments/seq_a1_exactness_sweep.py",),
+        implemented_by=("neural_assemblies.diagnostics.regime_audit",),
+        caveat="An organ is in-regime only when EVERY area in it is. Several "
+               "of this repo's null results were recorded an order of magnitude "
+               "below floor, where failure is predicted regardless of the "
+               "mechanism under test -- those nulls are not evidence.",
+    ),
+    Result(
+        id="SEQ-BETA-WINDOW",
+        status=Status.PROVED,
+        claim="Sequence learning needs beta in a WINDOW: large enough to write a "
+              "transition in finite presentations, small enough that the "
+              "assemblies formed on presentation 1 do not move.",
+        source="Dabagia et al. (arXiv:2306.03812), sequence-memorization "
+               "analysis.",
+        preconditions=("per-fiber beta, so the window can differ across fibers",),
+        caveat="Explains the non-monotone recall in #56 (better at 3 repetitions "
+               "than at 8) as a violation from below rather than as noise.",
+    ),
+    Result(
+        id="SEQ-FSM",
+        status=Status.PROVED,
+        claim="A finite-state machine is simulable by three areas: input, state, "
+              "and a CONJUNCTION arc that fires for (state, symbol) and projects "
+              "to the next state.",
+        source="Dabagia et al. (arXiv:2306.03812), Thm 4; demo at n=5000, k=70, "
+               "p=0.4, beta=0.1, 15 presentations.",
+        preconditions=("[[SEQ-REGIME]] in every area",
+                       "each transition presented comparably often",
+                       "teacher-forced write onto the TARGET state assembly"),
+        evidence=("research/experiments/seq_a1_fsm_parity.py (10/10 seeds)",
+                  "neural_assemblies/reference/nemo_numpy/fsm_network.py"),
+        implemented_by=("neural_assemblies.programs.nemo_fsm.NemoArcFSM",),
+    ),
+    Result(
+        id="SEQ-TRANSDUCER",
+        status=Status.PROVED,
+        claim="Prediction/output is an FSM with one more area, fired together "
+              "with the state update during training -- a transducer.",
+        source="Dabagia et al. (arXiv:2306.03812), Remark 5.",
+        preconditions=("[[SEQ-FSM]]",),
+        caveat="NOT YET BUILT HERE. Our stateless next-token model scoring "
+               "exactly the bigram optimum is the degenerate one-state case.",
+    ),
+    Result(
+        id="SEQ-TM",
+        status=Status.PROVED,
+        claim="A Turing machine is simulable by an FSM plus three-area tape "
+              "cycles, about ten areas in total.",
+        source="Dabagia et al. (arXiv:2306.03812), Thm 7.",
+        preconditions=("[[SEQ-FSM]]", "unbounded tape areas"),
+        caveat="NOT BUILT HERE. [[SEQ-EXACT-RECOVERY]] gives unbounded TIME with "
+               "fixed memory, which is the control half only -- it does not by "
+               "itself confer more than finite-automaton power.",
+    ),
+
+    # ------------------------------------------------- measured in this repo
+    Result(
+        id="SEQ-REGIME-CLIFF",
+        status=Status.MEASURED,
+        claim="Crossing the kp >= 3 ln n floor is a CLIFF, not a slope: below it "
+              "recovery is almost never exact and the machine fails; above it "
+              "every seed runs correctly.",
+        source="This repository.",
+        evidence=("research/experiments/seq_a1_exactness_sweep.py: state kp "
+                  "14 -> 4/100 exact steps and 4/10 trajectories; kp 21 -> "
+                  "80/100 and 10/10; kp 28 -> 100/100 and 10/10, with the "
+                  "transition at the predicted p = 18.6/70 = 0.266",),
+        implemented_by=("neural_assemblies.diagnostics.regime_audit",),
+        caveat="Mean overlap read 0.812 at the failing point while exactness "
+               "was 4/100 -- the mean hides this mechanism entirely.",
+    ),
+    Result(
+        id="SEQ-EXACT-RECOVERY",
+        status=Status.MEASURED,
+        claim="The state area is a DISCRETE attractor: k-WTA maps a whole "
+              "neighbourhood onto exactly one stored assembly in one step. "
+              "Recovery must be EXACT -- 69 of 70 neurons is a failure, not a "
+              "near-miss -- because the arc amplifies any residual ~8x per step.",
+        source="This repository.",
+        evidence=("research/experiments/seq_a1_arc_transfer.py: "
+                  "d(output loss)/d(input loss) = 8.17 ours, 10.33 reference",
+                  "research/experiments/seq_a1_horizon.py: 2000 steps, 5/5 "
+                  "seeds, zero errors, exact recovery every step",
+                  "research/experiments/seq_a1_limit_cycle.py: constant input "
+                  "gives an orbit closing bit-identically, 30/30"),
+        caveat="Expansion and quantization are a PAIR. Amplification alone is "
+               "chaos; it is only benign because a quantizing area follows it. "
+               "Composition steps without a re-quantizing stage should be "
+               "expected to drift.",
+    ),
+    Result(
+        id="ARC-CONJUNCT-EXPOSURE",
+        status=Status.MEASURED,
+        claim="A conjunction area collapses onto whichever conjunct is exposed "
+              "more often, unless an opposing force (refraction) is present.",
+        source="This repository; the same law as the role-binding gain result.",
+        evidence=("research/experiments/seq_arc_refraction_reference.py: "
+                  "ablating refraction takes across-symbol overlap 0.000 -> "
+                  "0.989 and the task 3/3 -> 0/3",),
+        preconditions=("BOTH overlap directions measured -- one alone cannot "
+                       "distinguish a conjunction from collapse onto the other "
+                       "conjunct",),
+        caveat="Task #92 measured one direction, read 0.90-0.99, and concluded "
+               "a conjunctive arc has no operating point. It has one.",
+    ),
+    Result(
+        id="REFRACTION-PROPORTIONAL",
+        status=Status.MEASURED,
+        claim="Refraction must charge in proportion to the winner's raw drive. "
+              "A constant increment is not an equivalent parameterization: "
+              "Hebbian growth multiplies drive while a constant grows linearly, "
+              "so its operating point MOVES with training duration.",
+        source="This repository.",
+        evidence=("research/experiments/seq_arc_refraction_reference.py: the "
+                  "constant winning at 15 presentations fails at 30, while the "
+                  "proportional rule passes both untouched",),
+        implemented_by=("neural_assemblies/core/_refraction.py",),
+    ),
+    Result(
+        id="AC-CAP",
+        status=Status.MEASURED,
+        claim="Assembly capacity is EXTENSIVE: about M_max ~ 1.15 n/k distinct "
+              "assemblies per area.",
+        source="This repository (critical-load measurement).",
+        evidence=("research/notes/capacity_is_not_the_constraint_separation_is.md",
+                  "research/notes/graded_similarity_and_sampler_load.md"),
+        caveat="This is why k and p are not interchangeable routes to a regime: "
+               "raising k to reach kp spends capacity and forces n up with it.",
+    ),
+
+    # ------------------------------------------------------------- extensions
+    Result(
+        id="SEQ-ORGAN-EMBEDS",
+        status=Status.EXTENSION,
+        claim="A sequence organ can run at its own regime INSIDE a brain whose "
+              "ambient density is far lower, by setting p (or k) locally.",
+        source="Not proved and not yet measured here.",
+        preconditions=("per-fiber p on the production engine",),
+        caveat="FALSIFIABLE AND UNTESTED. The parser runs p=0.05 while the organ "
+               "needs p >~ 0.27 locally. Nothing establishes that a heterogeneous "
+               "brain behaves like the homogeneous one each theorem assumes, and "
+               "the candidate sampler currently folds all fibers into a single "
+               "p, so the mechanism does not yet exist to test it with.",
+    ),
+    Result(
+        id="SEQ-STATE-CODE-EMERGENT",
+        status=Status.EXTENSION,
+        claim="The state alphabet can be INDUCED from data rather than assigned.",
+        source="Not proved and not measured, here or in the source paper.",
+        caveat="THE LOAD-BEARING GAP. Both our FSM and the reference assign "
+               "state assemblies as disjoint blocks by hand. Every result under "
+               "[[SEQ-FSM]] and [[SEQ-EXACT-RECOVERY]] is therefore about "
+               "running a machine over a GIVEN alphabet, not about discovering "
+               "one. Language needs the latter.",
+    ),
+]
+
+RESULTS: Dict[str, Result] = {r.id: r for r in _RESULTS}
+
+
+def cite(result_id: str) -> Result:
+    """Look up a result, raising if the ID is unknown."""
+    try:
+        return RESULTS[result_id]
+    except KeyError:
+        raise KeyError(
+            f"unknown result {result_id!r}. Add it to neural_assemblies/theory.py "
+            f"rather than citing an ID that does not resolve. Known: "
+            f"{', '.join(sorted(RESULTS))}"
+        ) from None
+
+
+def extensions() -> List[Result]:
+    """Everything the codebase relies on beyond what is proved or measured."""
+    return [r for r in _RESULTS if r.status == Status.EXTENSION]
+
+
+def _source_files(root: str) -> List[str]:
+    out = []
+    for base, _dirs, names in os.walk(root):
+        if any(part in base for part in (".git", "__pycache__", "reference")):
+            continue
+        out += [os.path.join(base, n) for n in names
+                if n.endswith((".py", ".md"))]
+    return out
+
+
+def unresolved_citations(root: str) -> Dict[str, List[str]]:
+    """Map each dangling result citation to the files citing it.
+
+    Lowercase-kebab links are operator memory and are ignored by `CITATION`.
+    """
+    missing: Dict[str, List[str]] = {}
+    for path in _source_files(root):
+        try:
+            text = open(path, encoding="utf-8", errors="ignore").read()
+        except OSError:                                      # noqa: PERF203
+            continue
+        for rid in set(CITATION.findall(text)):
+            if rid not in RESULTS:
+                missing.setdefault(rid, []).append(path)
+    return missing
+
+
+def format_index(results: Sequence[Result] = ()) -> str:
+    """Render the register, extensions last so they are what you read last."""
+    order = {Status.PROVED: 0, Status.MEASURED: 1, Status.EXTENSION: 2}
+    items = list(results) or _RESULTS
+    return "\n\n".join(str(r) for r in
+                       sorted(items, key=lambda r: (order[r.status], r.id)))
+
+
+if __name__ == "__main__":
+    print(format_index())
