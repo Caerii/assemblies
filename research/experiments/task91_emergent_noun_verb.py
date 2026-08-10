@@ -152,19 +152,33 @@ class Lexicon:
                 })
 
     def stability(self, word: str, lex: str, rounds: int = 3) -> float:
-        """Property 1/3: is the k-cap PHON[w] elects self-sustaining?
+        """Property 1/3: is the k-cap PHON[w] elects SELF-sustaining?
 
-        Fire PHON[w] into `lex`, snapshot, then keep firing (PHON[w] plus the
-        area's own recurrence) and compare. A stable assembly returns itself;
-        the paper's "wobbly" set does not.
+        Fire PHON[w] into `lex` once, snapshot, then drop PHON and run
+        `lex`'s OWN recurrence alone. A stable assembly returns itself; the
+        paper's "wobbly" set does not.
+
+        PHON MUST BE DROPPED AFTER THE FIRST ROUND. An earlier version kept
+        firing `{PHON: [lex], lex: [lex]}` through every recurrent round --
+        but PHON->lex is one of the FOUR strengthened fibers (`_strengthen`),
+        so PHON alone can pin the winners regardless of what `lex` itself
+        holds. Measured: both areas read stability ~0.97 for every word
+        including the CONTROL arm with the asymmetry removed, which is not a
+        property of anything learned -- it is PHON re-selecting its own
+        target every round. A saturated metric's null is not a null (#28).
+        Testing genuine self-sustenance means removing the external drive
+        before asking whether the pattern persists.
         """
         with self.brain.frozen():
             self.brain.inhibit_areas([lex])
             self.brain.activate(PHON, self.index[word])
             self.brain.project({}, {PHON: [lex]})
             first = read_assembly(self.brain, lex)
+            self.brain.areas[PHON].unfix_assembly()
+            self.brain._engine.unfix_assembly(PHON)
+            self.brain.inhibit_areas([PHON])
             for _ in range(rounds):
-                self.brain.project({}, {PHON: [lex], lex: [lex]})
+                self.brain.project({}, {lex: [lex]})
             return assembly_overlap(first, read_assembly(self.brain, lex))
 
     def recall(self, word: str, lex: str) -> float:
