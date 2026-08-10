@@ -1,0 +1,112 @@
+# PREREG A3: a transducer state instead of a recurrent accumulator
+
+Registered before implementing or running. Successor to
+`PREREG_context_beyond_bigram.md` (#14), whose parameters and reference values
+are inherited unchanged so the arms are comparable.
+
+## What #14 established
+
+| arm | MRR |
+| --- | ---: |
+| chance | 0.0900 |
+| unigram | 0.1178 |
+| no-context model (bigram by construction) | 0.2074 ± 0.0126 |
+| **bigram optimum** | **0.2338** |
+| CONTEXT arm (recurrent accumulator) | **0.1046 ± 0.0128** |
+
+CONTEXT did not merely fail to help, it HALVED performance, and the mechanism
+was measured: cross-prefix CONTEXT overlap **0.7566 ± 0.0958**, i.e. collapse
+to one attractor, which then injects the same drive into PRED on every
+prediction and swamps the informative signal.
+
+#14's own conclusion was that the result is not "AC cannot hold context" but
+"a recurrent helper area cannot hold context under Hebbian k-WTA". Its proposed
+next step was to close CONTEXT's self-recurrence.
+
+## What A3 does differently
+
+The plan of record says context is TRANSITIONS, not accumulation
+([[SEQ-TIME-IN-WEIGHTS]]). So the recurrent accumulator is replaced by the
+organ A1 and A2 validated -- a feed-forward state with NO self-fiber, updated
+only through a refracted conjunctive arc:
+
+    stim[w]           -> LEX                current word
+    gstim[w]          -> OUT                grounding signature (as in #14)
+    LEX + SEQ_STATE   -> SEQ_ARC            the conjunction (history, word)
+    SEQ_ARC           -> SEQ_STATE          state update, feed-forward
+    SEQ_ARC           -> OUT                prediction from the conjunction
+
+OUT is fired together with the state update during training, which is what
+makes this a transducer rather than an acceptor ([[SEQ-TRANSDUCER]]).
+
+Three differences from #14's CONTEXT, each one a documented failure channel:
+no self-fiber ([[recurrence-is-the-collapse-channel]]); the update passes
+through a conjunction with refraction ([[ARC-CONJUNCT-EXPOSURE]]); and the
+organ runs at its own regime ([[SEQ-ORGAN-EMBEDS]]).
+
+## Parameters
+
+Inherited from #14 and FIXED: n=10000, k=200, p=0.05 ambient, beta=0.10,
+3 train rounds per pair, 200 training sentences, seeds 42..51, same generator.
+
+Organ-local, and NOT inherited because #14 had no organ:
+
+* `organ_p` on the arc's and state's fibers, set so kp clears the floor. At
+  k=200 the floor for n=10000 is 3 ln 10000 = 27.6, so organ_p = 0.2 gives
+  kp = 40. [[SEQ-REGIME]]
+* `n_arc` is SWEPT, and this is a design axis rather than a tuning knob.
+  [[REFRACTION-NEEDS-LOAD]] says the arc has an operating window in load
+  M*k/n, and for an emergent state M -- the number of distinct (state, word)
+  conjunctions actually visited -- is NOT KNOWN IN ADVANCE. It cannot be, since
+  it is what the experiment is asking about. Sweeping n_arc and reporting the
+  whole curve is the honest form; picking the best cell and reporting it alone
+  would be exactly the retrospective-tuning failure #14's prereg was written to
+  avoid. The load achieved is reported per cell.
+
+## Hypotheses, with honest predictions
+
+**H1 — beats #14's CONTEXT arm.** Lower bound of the paired difference against
+0.1046 > 0. *Prediction: PASSES.* The self-fiber was the measured collapse
+channel and it is gone.
+
+**H2 — beats the no-context model.** Lower bound > 0.2074.
+*Prediction: uncertain, roughly even odds.* This requires the state to carry
+information the current word does not, and to deliver it through OUT.
+
+**H3 (the real question) — beats the bigram optimum.** Lower bound > 0.2338.
+*Prediction: FAILS.* [[SEQ-STATE-CODE-EMERGENT]] is unproven and this is
+exactly where it bites: in A1 and A2 the state alphabet was GIVEN and the
+transitions teacher-forced, whereas here nothing tells the state what to
+encode. An untaught state is whatever the arc's dynamics produce, and there is
+no reason that should align with predictive prefix structure.
+
+**H4 (mechanism, reported regardless) — the state does not collapse.** Mean
+pairwise overlap of state assemblies across DIFFERENT prefixes at the same
+position < 0.5, against #14's 0.7566. *Prediction: PASSES.*
+
+**H5 (null, runs FIRST) — beta = 0 at chance.** Upper bound < 0.1178. If it
+beats chance the study stops and becomes a bug hunt.
+
+## Interpretation, stated now
+
+The informative outcome is H4 passing while H3 fails. That would say the organ
+FIXES state maintenance -- the thing #14 diagnosed -- and that the remaining
+gap is state INDUCTION, localising the problem to
+[[SEQ-STATE-CODE-EMERGENT]] rather than leaving it diffuse. It would also mean
+every sequence result so far concerns running a machine over a given alphabet,
+and that the alphabet is the whole remaining question for language.
+
+H3 passing would be a much larger claim than anything measured here so far, and
+would need an independent replication before it goes anywhere.
+
+H4 failing while H3 fails means the organ did not fix maintenance either, and
+the transducer inherits #14's problem rather than solving it.
+
+## Committed in advance
+
+1. H5 first. No parameter changes after seeing results.
+2. The full n_arc curve is reported, not its best cell.
+3. H4 is reported whatever H3 does -- it is the mechanism, not a consolation.
+4. A degenerate-arm audit accompanies any result at or above the bigram
+   optimum, since a readout that can reach 0.2338 without using the state is
+   the failure mode this architecture is most exposed to.
