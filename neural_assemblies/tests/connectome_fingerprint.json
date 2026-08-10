@@ -1,0 +1,57 @@
+{
+  "organ_p40": {
+    "degree": "fbf1082e45d29822515e0bb8157f4072",
+    "nnz": 5630,
+    "scale": "47802c026e0be1656e9b0049f1b4dc36",
+    "shape": [
+      120,
+      240
+    ],
+    "weights": "fc91d68bb622a0883ba6f39f18fade81",
+    "winners": "056f94db51f98f2ea14a3a058c7805df"
+  },
+  "organ_p40_materialized": {
+    "degree": "15cc67286b6c23b24e86a74191200880",
+    "nnz": 26348,
+    "scale": "47802c026e0be1656e9b0049f1b4dc36",
+    "shape": [
+      120,
+      700
+    ],
+    "weights": "4ef0e752a1f4d88f1817456987e31478",
+    "winners": "a536a139219b497bd8a1a7bc3d20e1a4"
+  },
+  "organ_p40_norm": {
+    "degree": "1575e5831d6641f03b6a28754915205f",
+    "nnz": 3983,
+    "scale": "47802c026e0be1656e9b0049f1b4dc36",
+    "shape": [
+      120,
+      120
+    ],
+    "weights": "ba840d22b573b531d4606133843d778e",
+    "winners": "c4db693aae9f763439dc52ea787d61af"
+  },
+  "sparse_p05": {
+    "degree": "317f11267835e3a80df0fbfe08725b04",
+    "nnz": 1102,
+    "scale": "47802c026e0be1656e9b0049f1b4dc36",
+    "shape": [
+      120,
+      240
+    ],
+    "weights": "5082f7a2cba2772874cb4d5f8a7f2552",
+    "winners": "7b06e89f5b31a539640af8e16a5f9610"
+  },
+  "sparse_p05_norm": {
+    "degree": "f4c59802fbd825848ea997dcf8b50e23",
+    "nnz": 1616,
+    "scale": "47802c026e0be1656e9b0049f1b4dc36",
+    "shape": [
+      120,
+      240
+    ],
+    "weights": "fff736e58ff81fa5c883ccf364ed2428",
+    "winners": "06ff0295072748ca750a27f6dfe71746"
+  }
+}
