@@ -119,6 +119,42 @@ sensitive than the reference's, given both are 0.000-overlap conjunctions".
 That is [[kwta-amplifies-input-overlap]] territory: our k-WTA is known to
 amplify rather than contract input differences, with beta as the gain.
 
+## The arc is NOT the discrepancy: recovery has to be EXACT
+
+`seq_a1_arc_transfer.py` perturbs the state cue by swapping m of its k neurons
+for UNUSED ones and reads how far the arc assembly moves:
+
+    input overlap  1.000  0.986  0.971  0.957  0.929  0.900  0.857  0.800
+    ours  arc      1.000  0.805  0.710  0.643  0.476  0.390  0.248  0.129
+    reference      1.000  0.767  0.719  0.524  0.390  0.310  0.233  0.071
+
+The prediction was that ours amplifies and the reference does not. **It is
+false, in the informative direction.** Both arcs amplify violently, and the
+REFERENCE amplifies more: d(output loss)/d(input loss) is 10.33 for the
+reference against 8.17 for us, and at m=3 the reference lands at 0.524 where we
+land at 0.643. Our arc is the more tolerant of the two.
+
+So arc sensitivity cannot be the discrepancy, and the previous section's
+framing ("why is OUR arc so much more sensitive") was wrong. The reference wins
+while being MORE sensitive, which leaves only one way it can work: its recovery
+never introduces an error for the arc to amplify.
+
+The per-step traces say exactly that. Reference seed 7 holds 1.00 at every one
+of the six steps; seed 13 holds 1.00 for four. Ours begins at 0.99 -- about 69
+of 70 neurons -- and compounds from there. With ~8x amplification per step, an
+initial error of 1/70 = 0.014 reaches order 1 within five steps, which is the
+observed collapse.
+
+**The requirement is EXACT recovery, not good recovery.** The state area is a
+discrete attractor and 69/70 is a failure, not a near-miss. This also explains
+the per-seed pattern in both implementations: our seed 8 recovers exactly and
+holds 0.97 to the end; reference seed 42 does NOT recover exactly and decays to
+0.34 like ours.
+
+That reframes the fix. It is not tolerance, not extra afferents in the general
+sense, and not clean-up strength -- it is whatever makes the k-th winner's
+margin large enough that recovery is exact every time.
+
 ## Next step, pre-registered
 
 The registered rule for "P-GOLD fails while the reference passes" is that the
