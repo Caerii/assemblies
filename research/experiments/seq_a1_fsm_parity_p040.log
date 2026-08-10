@@ -1,0 +1,80 @@
+A1: mod-3 FSM through our Brain. n_arc=5000 n_state=500 k=70 p=0.4 beta=0.1 presentations=15
+    arc:   kp per fiber = 28, both conjuncts = 56, floor 3 ln 5000 = 25.6
+    state: afferent kp = 28, floor 3 ln 500 = 18.6
+
+  [main] refraction on, drive-proportional
+    seed  1: pos=accept neg=reject DECIDED  arc across-state 0.000 across-symbol 0.000  (2.9s)
+    seed  2: pos=accept neg=reject DECIDED  arc across-state 0.000 across-symbol 0.000  (2.0s)
+    seed  3: pos=accept neg=reject DECIDED  arc across-state 0.000 across-symbol 0.000  (2.2s)
+    seed  4: pos=accept neg=reject DECIDED  arc across-state 0.000 across-symbol 0.000  (2.2s)
+    seed  5: pos=accept neg=reject DECIDED  arc across-state 0.000 across-symbol 0.000  (2.0s)
+    seed  6: pos=accept neg=reject DECIDED  arc across-state 0.000 across-symbol 0.000  (2.2s)
+    seed  7: pos=accept neg=reject DECIDED  arc across-state 0.000 across-symbol 0.000  (2.1s)
+    seed  8: pos=accept neg=reject DECIDED  arc across-state 0.000 across-symbol 0.000  (1.9s)
+    seed  9: pos=accept neg=reject DECIDED  arc across-state 0.000 across-symbol 0.000  (2.0s)
+    seed 10: pos=accept neg=reject DECIDED  arc across-state 0.000 across-symbol 0.000  (1.9s)
+
+  [null] refraction OFF -- must FAIL, or the result is void
+    seed  1: pos=0      neg=1            .  arc across-state 0.881 across-symbol 1.000  (0.7s)
+    seed  2: pos=0      neg=0            .  arc across-state 0.895 across-symbol 1.000  (0.8s)
+    seed  3: pos=0      neg=1            .  arc across-state 0.895 across-symbol 1.000  (0.6s)
+    seed  4: pos=2      neg=2            .  arc across-state 0.862 across-symbol 1.000  (1.1s)
+    seed  5: pos=1      neg=1            .  arc across-state 0.929 across-symbol 1.000  (1.3s)
+    seed  6: pos=0      neg=0            .  arc across-state 0.871 across-symbol 1.000  (0.9s)
+    seed  7: pos=0      neg=0            .  arc across-state 0.924 across-symbol 1.000  (1.3s)
+    seed  8: pos=0      neg=0            .  arc across-state 0.862 across-symbol 1.000  (1.0s)
+    seed  9: pos=0      neg=0            .  arc across-state 0.890 across-symbol 1.000  (0.7s)
+    seed 10: pos=1      neg=1            .  arc across-state 0.900 across-symbol 1.000  (0.5s)
+
+  [degen] zero presentations
+    seed  1: pos=0      neg=0            .  arc across-state 1.000 across-symbol 1.000  (0.0s)
+    seed  2: pos=0      neg=0            .  arc across-state 1.000 across-symbol 1.000  (0.0s)
+    seed  3: pos=0      neg=0            .  arc across-state 1.000 across-symbol 1.000  (0.1s)
+    seed  4: pos=0      neg=0            .  arc across-state 1.000 across-symbol 1.000  (0.1s)
+    seed  5: pos=0      neg=0            .  arc across-state 1.000 across-symbol 1.000  (0.1s)
+    seed  6: pos=0      neg=0            .  arc across-state 1.000 across-symbol 1.000  (0.1s)
+    seed  7: pos=0      neg=0            .  arc across-state 1.000 across-symbol 1.000  (0.1s)
+    seed  8: pos=0      neg=0            .  arc across-state 1.000 across-symbol 1.000  (0.0s)
+    seed  9: pos=0      neg=0            .  arc across-state 1.000 across-symbol 1.000  (0.0s)
+    seed 10: pos=0      neg=0            .  arc across-state 1.000 across-symbol 1.000  (0.0s)
+
+  [degen] beta = 0
+    seed  1: pos=reject neg=accept       .  arc across-state 0.309 across-symbol 0.113  (2.3s)
+    seed  2: pos=2      neg=1            .  arc across-state 0.310 across-symbol 0.106  (2.1s)
+    seed  3: pos=0      neg=accept       .  arc across-state 0.304 across-symbol 0.108  (1.6s)
+    seed  4: pos=1      neg=1            .  arc across-state 0.313 across-symbol 0.107  (1.6s)
+    seed  5: pos=0      neg=1            .  arc across-state 0.317 across-symbol 0.098  (1.8s)
+    seed  6: pos=2      neg=0            .  arc across-state 0.317 across-symbol 0.110  (1.7s)
+    seed  7: pos=2      neg=2            .  arc across-state 0.297 across-symbol 0.098  (1.7s)
+    seed  8: pos=0      neg=1            .  arc across-state 0.313 across-symbol 0.106  (1.6s)
+    seed  9: pos=0      neg=accept       .  arc across-state 0.309 across-symbol 0.103  (1.6s)
+    seed 10: pos=0      neg=0            .  arc across-state 0.306 across-symbol 0.110  (1.7s)
+
+  [A/B] constant-increment refraction rule
+    seed  1: pos=2      neg=2            .  arc across-state 0.905 across-symbol 1.000  (0.5s)
+    seed  2: pos=1      neg=1            .  arc across-state 0.895 across-symbol 1.000  (0.5s)
+    seed  3: pos=0      neg=0            .  arc across-state 0.910 across-symbol 1.000  (0.5s)
+    seed  4: pos=0      neg=0            .  arc across-state 0.895 across-symbol 1.000  (0.5s)
+    seed  5: pos=1      neg=1            .  arc across-state 0.933 across-symbol 1.000  (0.5s)
+    seed  6: pos=0      neg=0            .  arc across-state 0.919 across-symbol 1.000  (0.5s)
+    seed  7: pos=1      neg=1            .  arc across-state 0.914 across-symbol 1.000  (0.5s)
+    seed  8: pos=1      neg=1            .  arc across-state 0.919 across-symbol 1.000  (0.5s)
+    seed  9: pos=1      neg=1            .  arc across-state 0.900 across-symbol 1.000  (0.6s)
+    seed 10: pos=1      neg=1            .  arc across-state 0.971 across-symbol 1.000  (0.4s)
+
+=== SUMMARY ===
+  arm                  decided  across-state  across-symbol  state-asm ov    max w
+  main                   10/10         0.000          0.000         0.000     5.56
+  null                    0/10         0.891          1.000         0.000    20.00
+  degen_untrained         0/10         1.000          1.000         0.000     0.00
+  degen_beta0             0/10         0.309          0.106         0.000     1.00
+  constant_rule           0/10         0.916          1.000         0.000    20.00
+
+=== BARS ===
+  P-PRE    PASS
+  P-GOLD   PASS
+  P-CONJ   PASS
+  P-NULL   PASS
+  P-DEGEN  PASS
+
+wrote research/experiments/seq_a1_fsm_parity_p040_results.json

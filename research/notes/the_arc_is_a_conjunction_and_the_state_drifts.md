@@ -155,7 +155,61 @@ That reframes the fix. It is not tolerance, not extra afferents in the general
 sense, and not clean-up strength -- it is whatever makes the k-th winner's
 margin large enough that recovery is exact every time.
 
-## Next step, pre-registered
+## RESOLVED: honour the floor for EVERY area, and A1 passes 10/10
+
+`seq_a1_exactness_sweep.py` sweeps `p`, which sets how many afferents an active
+assembly delivers and therefore the margin at the k-th winner. The target
+metric is the fraction of steps where recovery is EXACT, not mean overlap:
+
+    p     state kp   exact steps   traj ok   decided   mean overlap
+    0.20     14.0       4/100        4/10      5/10       0.812
+    0.30     21.0      80/100       10/10     10/10       0.997
+    0.40     28.0     100/100       10/10     10/10       1.000
+    0.50     35.0     100/100       10/10     10/10       1.000
+
+The state area's floor is 3 ln 500 = 18.6, i.e. p = 0.266. **The transition
+happens exactly where the theory says it should.** Below the floor recovery is
+essentially never exact (4/100) and the organ fails; above it, recovery is
+exact and every seed runs the machine correctly.
+
+Re-running the full bar set at p=0.4:
+
+| arm | decided | across-state | across-symbol |
+|---|---|---|---|
+| main | **10/10** | 0.000 | 0.000 |
+| null (refraction off) | 0/10 | 0.891 | 1.000 |
+| untrained | 0/10 | 1.000 | 1.000 |
+| beta = 0 | 0/10 | 0.309 | 0.106 |
+| constant-rule A/B | 0/10 | 0.916 | 1.000 |
+
+**P-GOLD, P-CONJ, P-NULL, P-DEGEN and P-PRE all pass.** A1 is closed: the
+transition organ learns and RUNS a finite-state machine end to end, decided
+from the assembly, on 10/10 seeds.
+
+### What the earlier failure actually was
+
+I put the ARC above its floor (kp = 28 vs 25.6) and left the STATE below its
+own (14 vs 18.6), because I copied the reference's density without checking the
+floor separately for each area. The reference survives marginally there -- 2 of
+3 seeds recover exactly -- and our substrate does not. The regime condition is
+per-AREA, and an organ is only in-regime when every area in it is.
+
+### Two lessons worth keeping
+
+**The mean hid an all-or-nothing mechanism.** At p=0.2 mean overlap reads a
+respectable 0.812 while exactness is 4/100. Reporting the mean would have
+suggested a system that mostly works and needs tuning; the truth was a system
+whose attractor almost never landed. Pick the statistic the mechanism is
+actually made of.
+
+**Amplification was a red herring twice over.** The arc amplifies ~8x, the
+reference ~10x, and it does not matter: with exact recovery there is no error
+to amplify. Two of my predictions were falsified on the way here (per-step
+error accumulation, then arc hypersensitivity), and both falsifications were
+worth more than the confirmations would have been -- the first ruled out the
+transitions, the second ruled out tolerance and pointed at exactness.
+
+## Next step (superseded -- A1 passed)
 
 The registered rule for "P-GOLD fails while the reference passes" is that the
 divergence is in OUR substrate, with the sparse sampler as prime suspect

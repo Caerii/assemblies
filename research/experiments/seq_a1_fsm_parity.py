@@ -192,8 +192,14 @@ def main():
     ap.add_argument("--seeds", type=int, default=len(SEEDS))
     ap.add_argument("--smoke", action="store_true",
                     help="1 seed, 2 presentations: API check only, numbers VOID")
+    ap.add_argument("--p", type=float, default=None,
+                    help="connection probability; the state area's regime floor "
+                         "is 3 ln n_state / k = 0.266")
     ap.add_argument("--out", default="research/experiments/seq_a1_fsm_parity_results.json")
     args = ap.parse_args()
+
+    if args.p is not None:
+        globals()["P"] = args.p
 
     if args.smoke:
         print("SMOKE RUN -- checks API breakage only. Numbers are VOID.")
@@ -203,8 +209,10 @@ def main():
 
     print(f"A1: mod-3 FSM through our Brain. n_arc={N_ARC} n_state={N_STATE} "
           f"k={K} p={P} beta={BETA} presentations={presentations}")
-    print(f"    kp per fiber = {K * P:.0f}, both conjuncts = {2 * K * P:.0f}, "
-          f"floor 3 ln n = {3 * np.log(N_ARC):.1f}")
+    print(f"    arc:   kp per fiber = {K * P:.0f}, both conjuncts = "
+          f"{2 * K * P:.0f}, floor 3 ln {N_ARC} = {3 * np.log(N_ARC):.1f}")
+    print(f"    state: afferent kp = {K * P:.0f}, "
+          f"floor 3 ln {N_STATE} = {3 * np.log(N_STATE):.1f}")
 
     arms = []
     print("\n  [main] refraction on, drive-proportional")
