@@ -58,9 +58,33 @@ From A1's closed configuration and FIXED: k=70, beta=0.10, organ_p=0.40,
 refracted_strength=0.10, 15 presentations, norm_init=False, engine
 numpy_sparse, seeds 42..51.
 
-`n_state` is set per group to `max(|G| * k, 3 ln n floor)`, since state
-assemblies are disjoint neuron-ID blocks and |G| differs across arms. `n_arc`
-follows A1. Both are reported, and neither is tuned per group.
+`n_state` is set per group to `2 * |G| * k`, since state assemblies are
+disjoint neuron-ID blocks and |G| differs across arms.
+
+### Amendment 1, made BEFORE the first run: `n_arc` matches LOAD, not size
+
+The paragraph above originally said `n_arc` follows A1 (5000). Working the
+arithmetic before running shows that would sink every arm for a reason that
+has nothing to do with the question. The arc's load is `M * k / n_arc` where
+`M` is the number of distinct (state, symbol) conjunctions, here exactly
+`|G| * |generators|`:
+
+    A5, Z60, A4xZ5   M = 120   load at n_arc=5000 = 1.68
+    S5               M = 240   load at n_arc=5000 = 3.36
+
+[[REFRACTION-NEEDS-LOAD]] puts the operating window at roughly 0.2 to 1.15;
+above it the assemblies do not fit. Every arm would fail, the non-solvable
+arms slightly worse for having more states, and the result would read as a
+solvability effect. That is the confound the equal-order design exists to
+remove.
+
+So `n_arc` is set per group to `round(M * k / 0.42)`, holding the arc at the
+middle of its window for every arm. This is matching REGIME rather than
+matching a number, and it is the choice that keeps solvability the only
+variable. Declared here, before any data, because deciding it afterwards would
+be indistinguishable from tuning. The achieved load is reported per group and
+must come out at 0.42 for all four; if it does not, the sizing is wrong and
+says so.
 
 ## Hypotheses
 

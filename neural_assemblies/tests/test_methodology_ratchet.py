@@ -78,6 +78,12 @@ interval is taken and where every bar is judged. Rewriting them as `ensemble`
 would put a confidence interval over sentence pairs inside one brain, which is
 a different and wrong claim -- the "mean over CONDITIONS rather than over
 seeds" case `_SEED_ADVICE` names.
+
+RAISED 2026-08-10 for `seq_s5_word_problem.py` (1 site). `np.mean` there
+averages the solvable GROUPS' accuracies (Z60 and A4xZ5) into the reference
+that the non-solvable arms are compared against -- a mean over ARMS, not over
+seeds. Each arm's own accuracy is an `ensemble_from_values` over seeds, and
+every bar is judged on those intervals.
 """
 
 from __future__ import annotations
