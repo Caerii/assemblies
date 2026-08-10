@@ -43,6 +43,15 @@
     A5       False     0.90+/-0.23  0.90+/-0.23  0.90+/-0.23  0.70+/-0.35
     S5       False     1.00+/-0.00  0.90+/-0.23  0.80+/-0.30  0.50+/-0.38
 
+  [per-step] TRANSITION accuracy -- what `exact` is too coarse for
+
+    group    solvable              step@500     first divergence
+    Z60      True      0.83220+/-0.19906       414.4+/-101.2
+    A4xZ5    True      0.90680+/-0.21082       452.5+/-107.4
+    A5       False     0.83360+/-0.22870       415.1+/-117.0
+    S5       False     0.70520+/-0.26536       350.7+/-134.4
+    solvable 0.86950  non-solvable 0.76940  gap +0.10010
+
 === BARS ===
   PASS  S1 A5 exact at L=100 >= 9/10 seeds (got 9/10, mean 0.900)
   FAIL  S2 L=500 indistinguishable from L=10
