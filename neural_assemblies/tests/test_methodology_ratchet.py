@@ -92,6 +92,14 @@ brain -- both within a single seed, forming that seed's record. Every bar in
 that study (C1-C4) is a per-seed exact condition ANDed across seeds, with each
 seed's value printed on its own line; no aggregate over seeds is judged at
 all.
+
+RAISED (1 -> 6) 2026-08-10 for `seq_s5_word_problem.py`, the Amendment 2
+per-step readout. `np.mean(correct[:L])` in `evaluate` averages TRANSITION
+correctness over the STEPS of one trajectory -- the per-seed statistic, which
+`ensemble_from_values` then aggregates across seeds where every bar is judged.
+The solvable/non-solvable summary averages the four ARMS' ensemble means for a
+printed gap; no bar reads it, and the amendment's S5a/S5b verdicts were judged
+on the per-arm ensembles.
 """
 
 from __future__ import annotations

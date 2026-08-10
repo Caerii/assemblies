@@ -131,7 +131,7 @@
     "research/experiments/two_phase_read.py": 5,
     "research/experiments/universality_composition.py": 6,
     "research/experiments/seq_state_refraction.py": 2,
-    "research/experiments/seq_s5_word_problem.py": 1,
+    "research/experiments/seq_s5_word_problem.py": 6,
     "research/experiments/seq_s5_cliff_anatomy.py": 2
   },
   "unpinned_engine": {
