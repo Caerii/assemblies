@@ -78,6 +78,17 @@ BASELINE = {
     "neural_assemblies/tests/test_ac_conformance.py": 1,
     "research/experiments/distinctiveness/test_competition_mechanisms.py": 1,
     "research/experiments/stability/test_phase_diagram.py": 1,
+    # COMPACT-VS-COMPACT ON PURPOSE, and the strictest available check.
+    # `test_no_op_call_leaves_results_bit_identical` asserts that calling
+    # `add_connectivity` with the density already in force changes NOTHING, by
+    # comparing `area.winners` between two identically-constructed brains.
+    # Both sides are the same area's compact indices produced by the same
+    # construction, so they are directly comparable -- and comparing compact
+    # indices is STRONGER than comparing neuron IDs here, because it would also
+    # catch a divergence in materialization order that a neuron-ID comparison
+    # would hide. Neuron IDs would be the wrong instrument for a bit-identity
+    # claim about the engine.
+    "neural_assemblies/tests/test_per_fiber_density.py": 1,
 }
 
 _ADVICE = (

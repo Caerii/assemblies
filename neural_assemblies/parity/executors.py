@@ -11,6 +11,14 @@ from neural_assemblies.reference.nemo_numpy import compare_scaffold_vs_simple
 from .paths import golden_dir, parity_root
 
 
+
+class RetractedProtocol(RuntimeError):
+    """A parity protocol whose golden is no longer evidence.
+
+    Distinct from a failure: nothing is wrong with the code, the RECORD is
+    withdrawn. Callers should skip rather than report a discrepancy.
+    """
+
 def _load_golden(name: str) -> dict:
     path = golden_dir() / name
     if not path.is_file():
@@ -197,15 +205,25 @@ def execute_hoff2026_size_dist() -> dict:
 
 
 def execute_nemo2025_fsm_mod3() -> dict:
-    from neural_assemblies.programs.mod3_fsm import run_mod3_fsm_demo
+    """RETRACTED protocol -- the golden certified a dictionary lookup.
 
-    g = _load_golden("nemo2025_fsm_mod3.json")
-    result = run_mod3_fsm_demo(**g["parameters"])
-    return {
-        "positive_accepted": result.positive_accepted,
-        "negative_rejected": result.negative_rejected,
-        "positive_final_state": result.final_state,
-    }
+    It was recorded while `NemoArcFSM.step_symbol` returned a table lookup, so
+    its metrics came from the transition table rather than from the network:
+    the same values are returned by an untrained brain and at beta=0. Its
+    parameters also put the arc at kp = 2 against a floor of 22.8. Re-running
+    it would compare live dynamics against numbers no network produced.
+
+    Raising rather than returning numbers, because a parity executor that
+    quietly reports SOMETHING is how a retracted golden comes back. See the
+    RETRACTED block in the golden and
+    `research/notes/the_arc_is_a_conjunction_and_the_state_drifts.md`; the
+    condition for re-recording is P-GOLD passing in seq_a1_fsm_parity.py.
+    """
+    raise RetractedProtocol(
+        "nemo2025_fsm_mod3 was retracted on 2026-08-10 (commit fc2a036): the "
+        "golden was recorded against a table-lookup readout, so it is not "
+        "evidence about the network. Do not re-record until the FSM decides "
+        "reliably from the assembly.")
 
 
 def execute_coin2024_softmax() -> dict:

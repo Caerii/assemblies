@@ -57,7 +57,16 @@ def test_list_protocols_matches_registry():
     ],
 )
 def test_inprocess_verify(protocol_id: str):
-    result = verify_protocol(protocol_id)
+    # A RETRACTED golden is skipped, not failed. Nothing is wrong with the
+    # code; the RECORD is withdrawn, so there is nothing to verify against and
+    # a discrepancy would be meaningless. Skipping keeps the protocol visible
+    # in the run -- deleting it is how a retraction gets quietly forgotten.
+    from neural_assemblies.parity.executors import RetractedProtocol
+
+    try:
+        result = verify_protocol(protocol_id)
+    except RetractedProtocol as exc:
+        pytest.skip(str(exc))
     assert result.passed, f"{protocol_id}: {result.diffs or result.message}"
 
 

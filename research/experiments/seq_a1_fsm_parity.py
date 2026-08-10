@@ -39,6 +39,7 @@ import numpy as np
 from neural_assemblies.assembly_calculus.assembly import overlap
 from neural_assemblies.assembly_calculus.ops import _snap
 from neural_assemblies.core.brain import Brain
+from neural_assemblies.diagnostics import ensemble
 from neural_assemblies.programs.mod3_fsm import (
     ALL_STATES, DIGIT_SYMBOLS, build_mod3_fsm, run_digit_sequence,
     train_mod3_fsm,
@@ -173,16 +174,27 @@ def run_arm(name, seeds, *, constant=False, **kwargs):
 
 
 def summarize(arm):
+    """Overlap statistics carry a 95% interval; decisions stay counts.
+
+    P-CONJ and P-PRE compare a per-seed statistic against a threshold, and a
+    mean over seeds with no interval cannot support that comparison. The
+    decision bars (P-GOLD, P-NULL, P-DEGEN) are counts of seeds and need none.
+    """
     rows = arm["rows"]
-    n = len(rows)
-    decided = sum(r["decided"] for r in rows)
-    def mean(key):
-        return float(np.mean([r[key] for r in rows]))
+    seeds = [r["seed"] for r in rows]
+
+    def ens(key):
+        by_seed = {r["seed"]: r[key] for r in rows}
+        return ensemble(lambda sd: by_seed[sd], seeds, f"{arm['arm']}:{key}")
+
+    state, symbol, pre = (ens("across_state"), ens("across_symbol"),
+                          ens("state_assembly_overlap"))
     return {
-        "arm": arm["arm"], "n": n, "decided": decided,
-        "across_state": mean("across_state"),
-        "across_symbol": mean("across_symbol"),
-        "state_assembly_overlap": mean("state_assembly_overlap"),
+        "arm": arm["arm"], "n": len(rows),
+        "decided": sum(r["decided"] for r in rows),
+        "across_state": state.mean, "across_state_ci": state.ci,
+        "across_symbol": symbol.mean, "across_symbol_ci": symbol.ci,
+        "state_assembly_overlap": pre.mean, "state_assembly_overlap_ci": pre.ci,
         "max_weight": max(r["max_weight"] for r in rows),
     }
 
@@ -240,10 +252,13 @@ def main():
     null_s = summaries[1]
     n = main_s["n"]
     verdicts = {
-        "P-PRE": main_s["state_assembly_overlap"] < 0.05,
+        # UPPER bound below the threshold, so the claim survives seed variation.
+        "P-PRE": (main_s["state_assembly_overlap"]
+                  + main_s["state_assembly_overlap_ci"] < 0.05),
         "P-GOLD": main_s["decided"] >= 0.8 * n,
-        "P-CONJ": (main_s["across_state"] < 0.15
-                   and main_s["across_symbol"] < 0.15),
+        "P-CONJ": (main_s["across_state"] + main_s["across_state_ci"] < 0.15
+                   and main_s["across_symbol"]
+                   + main_s["across_symbol_ci"] < 0.15),
         "P-NULL": (null_s["decided"] <= 0.2 * n
                    and null_s["across_symbol"] > 0.5),
         "P-DEGEN": all(s["decided"] <= 0.2 * n for s in summaries[2:4]),

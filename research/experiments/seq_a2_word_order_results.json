@@ -11,7 +11,7 @@
       "correct": 10,
       "n": 10,
       "across_state": 0.000873015873015873,
-      "across_mood": 0.013690476190476192,
+      "across_state_ci": 0.00041888888888888884,
       "rows": [
         {
           "seed": 1,
@@ -73,7 +73,9 @@
           "across_state": 0.0007936507936507937,
           "across_mood": 0.013095238095238096
         }
-      ]
+      ],
+      "across_mood": 0.01369047619047619,
+      "across_mood_ci": 0.0026399768195402304
     },
     {
       "arm": "single_mood",
@@ -84,7 +86,7 @@
       "correct": 2,
       "n": 10,
       "across_state": 0.03976190476190476,
-      "across_mood": NaN,
+      "across_state_ci": 0.01098034307358406,
       "rows": [
         {
           "seed": 1,
@@ -146,7 +148,9 @@
           "across_state": 0.03333333333333333,
           "across_mood": NaN
         }
-      ]
+      ],
+      "across_mood": NaN,
+      "across_mood_ci": NaN
     },
     {
       "arm": "null_no_refraction",
@@ -159,7 +163,7 @@
       "correct": 0,
       "n": 10,
       "across_state": 0.9476190476190475,
-      "across_mood": 0.9639285714285715,
+      "across_state_ci": 0.008356378565874454,
       "rows": [
         {
           "seed": 1,
@@ -221,7 +225,9 @@
           "across_state": 0.9484126984126983,
           "across_mood": 0.9654761904761906
         }
-      ]
+      ],
+      "across_mood": 0.9639285714285715,
+      "across_mood_ci": 0.00590043720756038
     }
   ],
   "verdicts": {

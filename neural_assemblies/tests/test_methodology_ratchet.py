@@ -53,6 +53,21 @@ The baseline lives in `methodology_baseline.json`, generated rather than
 hand-typed. Lower an entry when a file is fixed. RAISING one, or adding a new
 file, needs a comment here saying why that site is legitimate -- which is the
 whole point of the friction.
+
+RAISED 2026-08-10, for the sequence-organ scripts (`seq_*`). Two of them judged
+BARS on a bare mean over seeds and were FIXED rather than baselined:
+`seq_a1_fsm_parity.py` and `seq_a2_word_order_fsm.py` now build a
+`diagnostics.ensemble` for every overlap statistic and test the CONFIDENCE
+BOUND against the threshold, so P-CONJ/P-CONJ2/P-PRE survive seed variation
+rather than resting on a point estimate.
+
+The eight files added to the baseline judge NOTHING on their aggregates. Their
+decision bars are counts of seeds (x/10 correct), which need no interval, and
+every one of them prints the per-seed value on its own line -- the mean is a
+reading aid over a distribution already reported in full, which is the
+"mean over CONDITIONS rather than over seeds" case this ratchet exempts.
+`seq_a1_step_accuracy.py` additionally reports mean +/- sd explicitly.
+`task91_exposure_sweep.py` predates this work and is unchanged.
 """
 
 from __future__ import annotations

@@ -547,10 +547,17 @@ class TestPerFiberConnectivity:
         with pytest.raises(ValueError):
             e.add_connectivity("s", "A", 1.5)
 
-    @pytest.mark.parametrize("cls", [NumpySparseEngine, NumpyExplicitEngine])
+    @pytest.mark.parametrize("cls", [NumpyExplicitEngine])
     def test_other_engines_refuse_rather_than_ignore(self, cls):
         """The original bug: `pass` everywhere, so a caller that set a
         per-fiber density silently got the global one.
+
+        `NumpySparseEngine` was on this list until it IMPLEMENTED per-fiber
+        connectivity (e97a280); refusing is only the right behaviour for an
+        engine that cannot do it. Its own coverage is in
+        `test_per_fiber_density.py`, which asserts the density is realized
+        rather than merely accepted -- the failure mode this test guards is
+        acceptance without effect, and "raises" and "works" are both cures.
 
         Engines are built DIRECTLY rather than through `Brain`, because
         `numpy_explicit` cannot be reached through `Brain.add_area` at all --

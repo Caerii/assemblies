@@ -29,8 +29,6 @@
     seed  8: order ok   arc across-state 0.062  across-mood nan
     seed  9: order  .   arc across-state 0.033  across-mood nan
     seed 10: order  .   arc across-state 0.033  across-mood nan
-F:\Github\assemblies\research\experiments\seq_a2_word_order_fsm.py:171: RuntimeWarning: Mean of empty slice
-  "across_mood": float(np.nanmean([r["across_mood"] for r in rows])),
     -> 2/10 seeds with every mood correct
 
   [null] refraction off -- must fail
@@ -47,10 +45,10 @@ F:\Github\assemblies\research\experiments\seq_a2_word_order_fsm.py:171: RuntimeW
     -> 0/10 seeds with every mood correct
 
 === SUMMARY ===
-  arm                    correct  across-state  across-mood
-  multi_mood               10/10         0.001        0.014
-  single_mood               2/10         0.040          nan
-  null_no_refraction        0/10         0.948        0.964
+  arm                    correct      across-state       across-mood
+  multi_mood               10/10      0.001+/-0.000      0.014+/-0.003
+  single_mood               2/10      0.040+/-0.011        nan+/-nan  
+  null_no_refraction        0/10      0.948+/-0.008      0.964+/-0.006
 
   #92 measured across-state 0.90-0.99 and across-mood 0.48-0.97
 

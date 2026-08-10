@@ -51,8 +51,8 @@ ORGAN_P = 0.40
 def build(seed, *, organ_p, ambient_p=AMBIENT_P, with_neighbours=True):
     random.seed(seed)
     np.random.seed(seed)
-    brain = Brain(p=ambient_p, save_winners=True, seed=seed,
-                  engine="numpy_sparse", norm_init=False)
+    brain = Brain(engine="numpy_sparse", p=ambient_p, save_winners=True,
+                  seed=seed, norm_init=False)
     fsm = build_mod3_fsm(brain, n=N_ARC, k=K, n_state=N_STATE, beta=BETA,
                          organ_p=organ_p)
     if with_neighbours:

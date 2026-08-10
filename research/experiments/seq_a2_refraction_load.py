@@ -47,8 +47,8 @@ N_ARCS = (5000, 2000, 1000, 500, 350)
 def build(seed, moods, n_arc):
     random.seed(seed)
     np.random.seed(seed)
-    brain = Brain(p=AMBIENT_P, save_winners=True, seed=seed,
-                  engine="numpy_sparse", norm_init=False)
+    brain = Brain(engine="numpy_sparse", p=AMBIENT_P, save_winners=True,
+                  seed=seed, norm_init=False)
     fsm = NemoArcFSM(brain, states=list(STATES), symbols=list(moods),
                      transitions=transitions_for(moods), n=n_arc, k=K,
                      n_state=N_STATE, beta=BETA, organ_p=ORGAN_P,

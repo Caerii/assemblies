@@ -68,7 +68,9 @@ import numpy as np
 from neural_assemblies.assembly_calculus.assembly import overlap
 from neural_assemblies.assembly_calculus.ops import _snap
 from neural_assemblies.core.brain import Brain
-from neural_assemblies.diagnostics import format_report, regime_audit
+from neural_assemblies.diagnostics import (
+    ensemble, format_report, regime_audit,
+)
 from neural_assemblies.programs.nemo_fsm import NemoArcFSM
 
 SEEDS = tuple(range(1, 11))
@@ -102,8 +104,8 @@ def exposure(moods):
 def build(seed, moods, *, refraction=True):
     random.seed(seed)
     np.random.seed(seed)
-    brain = Brain(p=AMBIENT_P, save_winners=True, seed=seed,
-                  engine="numpy_sparse", norm_init=False)
+    brain = Brain(engine="numpy_sparse", p=AMBIENT_P, save_winners=True,
+                  seed=seed, norm_init=False)
     fsm = NemoArcFSM(
         brain, states=list(STATES), symbols=list(moods),
         transitions=transitions_for(moods),
@@ -165,11 +167,24 @@ def arm(name, moods, *, refraction=True, seeds=SEEDS, show_audit=False):
                                  if "_a2" in r.area]))
     correct = sum(r["all_moods_correct"] for r in rows)
     print(f"    -> {correct}/{len(rows)} seeds with every mood correct")
-    return {"arm": name, "moods": list(moods), "refraction": refraction,
-            "correct": correct, "n": len(rows),
-            "across_state": float(np.mean([r["across_state"] for r in rows])),
-            "across_mood": float(np.nanmean([r["across_mood"] for r in rows])),
-            "rows": rows}
+    # Overlap bars are judged on the CONFIDENCE BOUND, not a bare mean: a mean
+    # over seeds with no interval cannot support the comparison P-CONJ2 makes
+    # against 0.15. The decision bars stay counts, which need no interval.
+    by_state = {r["seed"]: r["across_state"] for r in rows}
+    ens_state = ensemble(lambda sd: by_state[sd], [r["seed"] for r in rows],
+                         f"{name}:across_state")
+    out = {"arm": name, "moods": list(moods), "refraction": refraction,
+           "correct": correct, "n": len(rows),
+           "across_state": ens_state.mean, "across_state_ci": ens_state.ci,
+           "rows": rows}
+    if len(moods) > 1:
+        by_mood = {r["seed"]: r["across_mood"] for r in rows}
+        ens_mood = ensemble(lambda sd: by_mood[sd], [r["seed"] for r in rows],
+                            f"{name}:across_mood")
+        out["across_mood"], out["across_mood_ci"] = ens_mood.mean, ens_mood.ci
+    else:
+        out["across_mood"], out["across_mood_ci"] = float("nan"), float("nan")
+    return out
 
 
 def main():
@@ -197,15 +212,19 @@ def main():
     m, single, null = arms[0], arms[1], arms[2]
     verdicts = {
         "P-ORDER": m["correct"] >= 0.8 * n,
-        "P-CONJ2": m["across_state"] < 0.15 and m["across_mood"] < 0.15,
+        # UPPER bound below the bar, so the claim survives seed variation.
+        "P-CONJ2": (m["across_state"] + m["across_state_ci"] < 0.15
+                    and m["across_mood"] + m["across_mood_ci"] < 0.15),
         "P-FLOOR": single["correct"] >= 0.8 * n,
         "P-NULL": null["correct"] <= 0.2 * n,
     }
     print("\n=== SUMMARY ===")
-    print(f"  {'arm':<20s} {'correct':>9s} {'across-state':>13s} {'across-mood':>12s}")
+    print(f"  {'arm':<20s} {'correct':>9s} {'across-state':>17s} "
+          f"{'across-mood':>17s}")
     for a in arms:
         print(f"  {a['arm']:<20s} {a['correct']:>6d}/{a['n']:<2d} "
-              f"{a['across_state']:>13.3f} {a['across_mood']:>12.3f}")
+              f"{a['across_state']:>10.3f}+/-{a['across_state_ci']:<5.3f} "
+              f"{a['across_mood']:>10.3f}+/-{a['across_mood_ci']:<5.3f}")
     print("\n  #92 measured across-state 0.90-0.99 and across-mood 0.48-0.97")
     print("\n=== BARS ===")
     for bar, ok in verdicts.items():
