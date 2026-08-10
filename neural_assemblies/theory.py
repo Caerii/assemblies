@@ -280,21 +280,27 @@ _RESULTS: List[Result] = [
     ),
     Result(
         id="SEQ-ORGAN-EMBEDS",
-        status=Status.EXTENSION,
-        claim="A sequence organ can run at its own regime INSIDE a brain whose "
-              "ambient density is far lower, by setting p (or k) locally.",
-        source="Not proved and not yet measured here.",
-        preconditions=("per-fiber p, which `Brain.add_connectivity` now "
-                       "provides on numpy_exact AND numpy_sparse",),
-        caveat="FALSIFIABLE AND UNTESTED. The MECHANISM now exists -- a fiber "
-               "draws its own density, verified at 0.399 and 0.050 into one "
-               "target in one brain -- but that an organ actually WORKS at its "
-               "own regime inside a sparser brain is a separate claim and has "
-               "not been measured. Nothing establishes that a heterogeneous "
-               "brain behaves like the homogeneous one each theorem assumes; "
-               "the pooled candidate draw is moment-matched across fibers, "
-               "which is exact in the first two moments and an approximation "
-               "beyond them. Test it before relying on it.",
+        status=Status.MEASURED,
+        claim="A sequence organ runs at its own regime INSIDE a brain whose "
+              "ambient density is far lower, given per-fiber p.",
+        source="This repository.",
+        preconditions=("per-fiber p (`Brain.add_connectivity`, numpy_exact and "
+                       "numpy_sparse)",
+                       "EVERY per-fiber quantity scaled by the fiber's p, not "
+                       "the global one -- see the caveat"),
+        evidence=("research/experiments/seq_a1_local_regime.py: ambient p=0.05 "
+                  "with organ fibers at p=0.4 gives 10/10 correct trajectories, "
+                  "matching the uniform p=0.4 result, while the same organ left "
+                  "at the ambient density gives 0/10",),
+        caveat="The heterogeneous path found a defect that the regime audit "
+               "could NOT see: the stimulus weight clamp was scaled by the "
+               "global p while the weights were drawn at the fiber's p, so a "
+               "dense fiber in a sparse brain saturated at a sparse ceiling. "
+               "The organ read 1/10 while every area reported comfortably "
+               "in-regime. Any NEW per-fiber quantity is a candidate for the "
+               "same class. The pooled candidate draw also remains "
+               "moment-matched -- exact in the first two moments, an "
+               "approximation beyond them.",
     ),
     Result(
         id="SEQ-STATE-CODE-EMERGENT",

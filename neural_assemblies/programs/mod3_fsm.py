@@ -50,6 +50,7 @@ def build_mod3_fsm(
     k: int = 40,
     n_state: int | None = None,
     beta: float = 0.1,
+    organ_p: float | None = None,
     refracted_strength: float = 0.1,
     prefix: str = "_mod3",
 ) -> NemoArcFSM:
@@ -62,6 +63,7 @@ def build_mod3_fsm(
         k=k,
         n_state=n_state,
         beta=beta,
+        organ_p=organ_p,
         refracted_strength=refracted_strength,
         prefix=prefix,
     )

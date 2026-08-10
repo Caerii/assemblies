@@ -113,6 +113,29 @@ class TestPerFiberDensity(unittest.TestCase):
         self.assertEqual(b._engine._p_for("sa", "TGT"), 0.40)
         self.assertEqual(b._engine._p_for("sb", "TGT"), 0.05)
 
+    def test_weight_clamp_is_scaled_by_the_FIBER_density(self):
+        """The clamp must use the p the weights were DRAWN at.
+
+        A stimulus connectome stores PRE-SUMMED input starting near
+        ``size * p``, and the w_max ceiling is scaled by that magnitude. Using
+        the GLOBAL p clamped a dense fiber inside a sparse brain at its sparse
+        ceiling -- drawn at 0.4 the weights start near 28 but were clipped at
+        w_max * 60 * 0.05, so Hebbian growth saturated instead of separating.
+        Measured cost: the mod-3 FSM fell from 10/10 correct trajectories to
+        1/10, with the regime audit reporting the organ comfortably in-regime
+        the whole time.
+        """
+        b = _wire(_brain(p=0.05), beta=0.1)
+        b.add_connectivity("sa", "TGT", 0.40)
+        for _ in range(6):
+            b.project({"sa": ["TGT"]}, {})
+        w = np.asarray(b._engine._stim_conns["sa"]["TGT"].weights)
+        sparse_ceiling = b.w_max * 60 * 0.05
+        self.assertGreater(
+            float(w.max()), sparse_ceiling,
+            "dense fiber is pinned at the ceiling implied by the GLOBAL p, so "
+            "its weights saturate instead of growing")
+
     def test_regime_audit_reads_the_override(self):
         """The audit must price the fiber at ITS density, not the global one."""
         from neural_assemblies.diagnostics import regime_audit

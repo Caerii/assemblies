@@ -74,6 +74,7 @@ class NemoArcFSM:
         k: int = 80,
         n_state: int | None = None,
         beta: float = 0.1,
+        organ_p: float | None = None,
         refracted_strength: float = 0.1,
         prefix: str = "_nemo_fsm",
     ):
@@ -92,6 +93,13 @@ class NemoArcFSM:
             self.arc_area, n, k, beta,
             refracted=True, refracted_strength=refracted_strength,
         )
+
+        # LOCAL REGIME. `organ_p` sets this organ's OWN density, so it can sit
+        # above its kp >= 3 ln n floor ([[SEQ-REGIME]]) inside a brain whose
+        # ambient density is far lower -- the arrangement [[SEQ-ORGAN-EMBEDS]]
+        # describes. Applied to every fiber the organ drives, and applied HERE,
+        # before any traffic, because connectivity is structural.
+        self.organ_p = organ_p
 
         # Symbols are stimuli. The reference's symbol area is a single
         # symbol->arc matrix whose per-symbol assemblies are DISJOINT row
@@ -118,6 +126,12 @@ class NemoArcFSM:
         #
         # `materialize_area` first: a neuron ID has no compact slot until it
         # exists, and `activate_assembly` rightly refuses IDs it cannot map.
+        if organ_p is not None:
+            for sym_stim in self._sym_stim.values():
+                brain.add_connectivity(sym_stim, self.arc_area, organ_p)
+            brain.add_connectivity(self.state_area, self.arc_area, organ_p)
+            brain.add_connectivity(self.arc_area, self.state_area, organ_p)
+
         brain.materialize_area(self.state_area)
         self._state_asm: Dict[str, Assembly] = {
             st: Assembly(self.state_area,

@@ -2200,8 +2200,11 @@ class NumpySparseEngine(ComputeEngine):
         # emergent; a faithful fix needs the window referenced to an
         # inhibitory pool driven by RECENT ACTIVITY rather than by the silent
         # bulk, which is not modelled here yet.
-        pop_sigma = float(np.sqrt(sum(sz * self.p * (1.0 - self.p)
-                                      for sz in input_sizes))) or None
+        # Per-fiber densities where they are set: this is a population spread
+        # over the SAME per-fiber binomials the sampler prices.
+        _sigma_ps = input_ps if input_ps is not None else [self.p] * len(input_sizes)
+        pop_sigma = float(np.sqrt(sum(sz * pp * (1.0 - pp)
+                                      for sz, pp in zip(input_sizes, _sigma_ps)))) or None
         if pop_sigma is not None and norm_div is not None:
             pop_sigma = pop_sigma / norm_div
         new_winner_indices = self._select_winner_indices(
@@ -2514,7 +2517,18 @@ class NumpySparseEngine(ComputeEngine):
                 # 0.30 for beta = 0.001, 0.01 and 0.1 alike. Scaling the cap
                 # by the initial magnitude restores the intended semantics.
                 stim = self._stimuli.get(stim_name)
-                scale = max(1.0, float(getattr(stim, "size", 1)) * self.p)
+                # THIS FIBER's density, not the global one. A stimulus
+                # connectome stores PRE-SUMMED input starting near
+                # ``size * p``, so the clamp has to be scaled by the same p the
+                # weights were DRAWN at. Using the global p clamped a dense
+                # fiber inside a sparse brain at its sparse ceiling: drawn at
+                # p=0.4 the weights start near 28 but were clipped at
+                # w_max * 70 * 0.05 = 70, so 15 presentations of Hebbian growth
+                # (1.1^15 = 4.18, reaching ~117) saturated instead. A saturated
+                # conjunct cannot discriminate, and the mod-3 FSM fell from
+                # 10/10 correct trajectories to 1/10.
+                scale = max(1.0, float(getattr(stim, "size", 1))
+                            * self._p_for(stim_name, target))
                 lo, hi = self._weight_bounds(scale)
                 xp.clip(conn.weights, lo, hi, out=conn.weights)
 

@@ -1,0 +1,41 @@
+=== organ at its own regime inside a sparse brain ===
+    ambient p = 0.05, organ p = 0.4, k = 70
+    organ floors: arc 3 ln 5000 = 25.6, state 3 ln 500 = 18.6
+
+  [local regime] organ fibers at p=0.4
+    seed  1: positive ok  negative ok
+  [ok  ] _mod3_state        n=500     k=70    afferent kp   28.0 vs floor  18.6  (_mod3_arc=28)
+  [ok  ] _mod3_arc          n=5000    k=70    afferent kp   56.0 vs floor  25.6  (_mod3_state=28, _mod3_sym_4=28)
+    seed  2: positive ok  negative ok
+    seed  3: positive ok  negative ok
+    seed  4: positive ok  negative ok
+    seed  5: positive ok  negative ok
+    seed  6: positive ok  negative ok
+    seed  7: positive ok  negative ok
+    seed  8: positive ok  negative ok
+    seed  9: positive ok  negative ok
+    seed 10: positive ok  negative ok
+    -> 10/10 fully correct trajectories
+
+  [ambient only] no override -- every organ fiber at p=0.05
+    seed  1: positive  .  negative  .
+  [LOW ] _mod3_state        n=500     k=70    afferent kp    3.5 vs floor  18.6  (_mod3_arc=4)
+  [LOW ] _mod3_arc          n=5000    k=70    afferent kp    7.0 vs floor  25.6  (_mod3_state=4, _mod3_sym_4=4)
+    seed  2: positive  .  negative  .
+    seed  3: positive  .  negative  .
+    seed  4: positive  .  negative  .
+    seed  5: positive  .  negative  .
+    seed  6: positive  .  negative  .
+    seed  7: positive  .  negative  .
+    seed  8: positive  .  negative ok
+    seed  9: positive  .  negative  .
+    seed 10: positive  .  negative  .
+    -> 0/10 fully correct trajectories
+
+=== SUMMARY ===
+  local_regime   organ_p=0.4   10/10 correct trajectories
+  ambient_only   organ_p=None  0/10 correct trajectories
+
+  SEQ-ORGAN-EMBEDS: SUPPORTED
+
+wrote F:\Github\assemblies\research\experiments\seq_a1_local_regime_results.json
