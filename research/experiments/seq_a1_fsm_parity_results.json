@@ -1,0 +1,1114 @@
+{
+  "summaries": [
+    {
+      "arm": "main",
+      "n": 10,
+      "decided": 5,
+      "across_state": 0.0,
+      "across_symbol": 0.0,
+      "state_assembly_overlap": 0.0,
+      "max_weight": 7.400252819061279
+    },
+    {
+      "arm": "null",
+      "n": 10,
+      "decided": 0,
+      "across_state": 0.8851904761904763,
+      "across_symbol": 0.9992169312169313,
+      "state_assembly_overlap": 0.0,
+      "max_weight": 20.0
+    },
+    {
+      "arm": "degen_untrained",
+      "n": 10,
+      "decided": 0,
+      "across_state": 1.0,
+      "across_symbol": 1.0,
+      "state_assembly_overlap": 0.0,
+      "max_weight": 0.0
+    },
+    {
+      "arm": "degen_beta0",
+      "n": 10,
+      "decided": 1,
+      "across_state": 0.1707142857142857,
+      "across_symbol": 0.051883597883597886,
+      "state_assembly_overlap": 0.0,
+      "max_weight": 1.0
+    },
+    {
+      "arm": "constant_rule",
+      "n": 10,
+      "decided": 0,
+      "across_state": 0.9001904761904761,
+      "across_symbol": 0.9997142857142857,
+      "state_assembly_overlap": 0.0,
+      "max_weight": 20.0
+    }
+  ],
+  "arms": [
+    {
+      "arm": "main",
+      "constant_rule": false,
+      "params": {
+        "presentations": 15
+      },
+      "rows": [
+        {
+          "seed": 1,
+          "positive_final": "2",
+          "negative_final": "reject",
+          "decided": false,
+          "positive_trajectory": [
+            "0",
+            "0",
+            "0",
+            "1",
+            "2",
+            "0",
+            "2"
+          ],
+          "across_state": 0.0,
+          "across_symbol": 0.0,
+          "state_assembly_overlap": 0.0,
+          "max_weight": 6.11591100692749,
+          "seconds": 2.9
+        },
+        {
+          "seed": 2,
+          "positive_final": "0",
+          "negative_final": "0",
+          "decided": false,
+          "positive_trajectory": [
+            "0",
+            "0",
+            "0",
+            "1",
+            "2",
+            "0",
+            "0"
+          ],
+          "across_state": 0.0,
+          "across_symbol": 0.0,
+          "state_assembly_overlap": 0.0,
+          "max_weight": 5.5599188804626465,
+          "seconds": 1.4
+        },
+        {
+          "seed": 3,
+          "positive_final": "0",
+          "negative_final": "reject",
+          "decided": false,
+          "positive_trajectory": [
+            "0",
+            "0",
+            "0",
+            "1",
+            "2",
+            "0",
+            "0"
+          ],
+          "across_state": 0.0,
+          "across_symbol": 0.0,
+          "state_assembly_overlap": 0.0,
+          "max_weight": 6.11591100692749,
+          "seconds": 1.3
+        },
+        {
+          "seed": 4,
+          "positive_final": "accept",
+          "negative_final": "reject",
+          "decided": true,
+          "positive_trajectory": [
+            "0",
+            "0",
+            "0",
+            "1",
+            "2",
+            "1",
+            "accept"
+          ],
+          "across_state": 0.0,
+          "across_symbol": 0.0,
+          "state_assembly_overlap": 0.0,
+          "max_weight": 5.5599188804626465,
+          "seconds": 1.3
+        },
+        {
+          "seed": 5,
+          "positive_final": "reject",
+          "negative_final": "reject",
+          "decided": false,
+          "positive_trajectory": [
+            "0",
+            "0",
+            "0",
+            "1",
+            "2",
+            "0",
+            "reject"
+          ],
+          "across_state": 0.0,
+          "across_symbol": 0.0,
+          "state_assembly_overlap": 0.0,
+          "max_weight": 6.727502346038818,
+          "seconds": 1.6
+        },
+        {
+          "seed": 6,
+          "positive_final": "accept",
+          "negative_final": "reject",
+          "decided": true,
+          "positive_trajectory": [
+            "0",
+            "0",
+            "0",
+            "1",
+            "2",
+            "0",
+            "accept"
+          ],
+          "across_state": 0.0,
+          "across_symbol": 0.0,
+          "state_assembly_overlap": 0.0,
+          "max_weight": 7.400252819061279,
+          "seconds": 1.4
+        },
+        {
+          "seed": 7,
+          "positive_final": "1",
+          "negative_final": "reject",
+          "decided": false,
+          "positive_trajectory": [
+            "0",
+            "0",
+            "0",
+            "1",
+            "2",
+            "1",
+            "1"
+          ],
+          "across_state": 0.0,
+          "across_symbol": 0.0,
+          "state_assembly_overlap": 0.0,
+          "max_weight": 5.5599188804626465,
+          "seconds": 1.4
+        },
+        {
+          "seed": 8,
+          "positive_final": "accept",
+          "negative_final": "reject",
+          "decided": true,
+          "positive_trajectory": [
+            "0",
+            "0",
+            "0",
+            "1",
+            "2",
+            "0",
+            "accept"
+          ],
+          "across_state": 0.0,
+          "across_symbol": 0.0,
+          "state_assembly_overlap": 0.0,
+          "max_weight": 6.727502346038818,
+          "seconds": 1.5
+        },
+        {
+          "seed": 9,
+          "positive_final": "accept",
+          "negative_final": "reject",
+          "decided": true,
+          "positive_trajectory": [
+            "0",
+            "0",
+            "0",
+            "1",
+            "2",
+            "0",
+            "accept"
+          ],
+          "across_state": 0.0,
+          "across_symbol": 0.0,
+          "state_assembly_overlap": 0.0,
+          "max_weight": 5.5599188804626465,
+          "seconds": 1.3
+        },
+        {
+          "seed": 10,
+          "positive_final": "accept",
+          "negative_final": "reject",
+          "decided": true,
+          "positive_trajectory": [
+            "0",
+            "0",
+            "0",
+            "1",
+            "2",
+            "0",
+            "accept"
+          ],
+          "across_state": 0.0,
+          "across_symbol": 0.0,
+          "state_assembly_overlap": 0.0,
+          "max_weight": 6.11591100692749,
+          "seconds": 1.3
+        }
+      ]
+    },
+    {
+      "arm": "null",
+      "constant_rule": false,
+      "params": {
+        "presentations": 15,
+        "strength": 0.0
+      },
+      "rows": [
+        {
+          "seed": 1,
+          "positive_final": "1",
+          "negative_final": "1",
+          "decided": false,
+          "positive_trajectory": [
+            "0",
+            "1",
+            "1",
+            "2",
+            "1",
+            "1",
+            "1"
+          ],
+          "across_state": 0.8714285714285714,
+          "across_symbol": 1.0,
+          "state_assembly_overlap": 0.0,
+          "max_weight": 20.0,
+          "seconds": 0.7
+        },
+        {
+          "seed": 2,
+          "positive_final": "0",
+          "negative_final": "0",
+          "decided": false,
+          "positive_trajectory": [
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0"
+          ],
+          "across_state": 0.919047619047619,
+          "across_symbol": 1.0,
+          "state_assembly_overlap": 0.0,
+          "max_weight": 20.0,
+          "seconds": 0.7
+        },
+        {
+          "seed": 3,
+          "positive_final": "2",
+          "negative_final": "0",
+          "decided": false,
+          "positive_trajectory": [
+            "0",
+            "0",
+            "1",
+            "0",
+            "0",
+            "1",
+            "2"
+          ],
+          "across_state": 0.8476190476190475,
+          "across_symbol": 1.0,
+          "state_assembly_overlap": 0.0,
+          "max_weight": 20.0,
+          "seconds": 0.8
+        },
+        {
+          "seed": 4,
+          "positive_final": "2",
+          "negative_final": "2",
+          "decided": false,
+          "positive_trajectory": [
+            "0",
+            "2",
+            "1",
+            "2",
+            "2",
+            "2",
+            "2"
+          ],
+          "across_state": 0.8404761904761903,
+          "across_symbol": 0.9952380952380953,
+          "state_assembly_overlap": 0.0,
+          "max_weight": 20.0,
+          "seconds": 0.6
+        },
+        {
+          "seed": 5,
+          "positive_final": "1",
+          "negative_final": "1",
+          "decided": false,
+          "positive_trajectory": [
+            "0",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1"
+          ],
+          "across_state": 0.8952380952380952,
+          "across_symbol": 1.0,
+          "state_assembly_overlap": 0.0,
+          "max_weight": 20.0,
+          "seconds": 0.5
+        },
+        {
+          "seed": 6,
+          "positive_final": "1",
+          "negative_final": "1",
+          "decided": false,
+          "positive_trajectory": [
+            "0",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1"
+          ],
+          "across_state": 0.8571428571428573,
+          "across_symbol": 1.0,
+          "state_assembly_overlap": 0.0,
+          "max_weight": 20.0,
+          "seconds": 0.6
+        },
+        {
+          "seed": 7,
+          "positive_final": "1",
+          "negative_final": "1",
+          "decided": false,
+          "positive_trajectory": [
+            "0",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1"
+          ],
+          "across_state": 0.8923809523809522,
+          "across_symbol": 0.9969312169312168,
+          "state_assembly_overlap": 0.0,
+          "max_weight": 20.0,
+          "seconds": 0.6
+        },
+        {
+          "seed": 8,
+          "positive_final": "2",
+          "negative_final": "2",
+          "decided": false,
+          "positive_trajectory": [
+            "0",
+            "2",
+            "2",
+            "2",
+            "0",
+            "2",
+            "2"
+          ],
+          "across_state": 0.9238095238095239,
+          "across_symbol": 1.0,
+          "state_assembly_overlap": 0.0,
+          "max_weight": 20.0,
+          "seconds": 0.6
+        },
+        {
+          "seed": 9,
+          "positive_final": "1",
+          "negative_final": "1",
+          "decided": false,
+          "positive_trajectory": [
+            "0",
+            "1",
+            "2",
+            "2",
+            "1",
+            "1",
+            "1"
+          ],
+          "across_state": 0.8952380952380953,
+          "across_symbol": 1.0,
+          "state_assembly_overlap": 0.0,
+          "max_weight": 20.0,
+          "seconds": 0.6
+        },
+        {
+          "seed": 10,
+          "positive_final": "1",
+          "negative_final": "1",
+          "decided": false,
+          "positive_trajectory": [
+            "0",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1"
+          ],
+          "across_state": 0.9095238095238095,
+          "across_symbol": 1.0,
+          "state_assembly_overlap": 0.0,
+          "max_weight": 20.0,
+          "seconds": 0.6
+        }
+      ]
+    },
+    {
+      "arm": "degen_untrained",
+      "constant_rule": false,
+      "params": {
+        "presentations": 0
+      },
+      "rows": [
+        {
+          "seed": 1,
+          "positive_final": "0",
+          "negative_final": "0",
+          "decided": false,
+          "positive_trajectory": [
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0"
+          ],
+          "across_state": 1.0,
+          "across_symbol": 1.0,
+          "state_assembly_overlap": 0.0,
+          "max_weight": 0.0,
+          "seconds": 0.0
+        },
+        {
+          "seed": 2,
+          "positive_final": "0",
+          "negative_final": "0",
+          "decided": false,
+          "positive_trajectory": [
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0"
+          ],
+          "across_state": 1.0,
+          "across_symbol": 1.0,
+          "state_assembly_overlap": 0.0,
+          "max_weight": 0.0,
+          "seconds": 0.0
+        },
+        {
+          "seed": 3,
+          "positive_final": "0",
+          "negative_final": "0",
+          "decided": false,
+          "positive_trajectory": [
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0"
+          ],
+          "across_state": 1.0,
+          "across_symbol": 1.0,
+          "state_assembly_overlap": 0.0,
+          "max_weight": 0.0,
+          "seconds": 0.0
+        },
+        {
+          "seed": 4,
+          "positive_final": "0",
+          "negative_final": "0",
+          "decided": false,
+          "positive_trajectory": [
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0"
+          ],
+          "across_state": 1.0,
+          "across_symbol": 1.0,
+          "state_assembly_overlap": 0.0,
+          "max_weight": 0.0,
+          "seconds": 0.0
+        },
+        {
+          "seed": 5,
+          "positive_final": "0",
+          "negative_final": "0",
+          "decided": false,
+          "positive_trajectory": [
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0"
+          ],
+          "across_state": 1.0,
+          "across_symbol": 1.0,
+          "state_assembly_overlap": 0.0,
+          "max_weight": 0.0,
+          "seconds": 0.0
+        },
+        {
+          "seed": 6,
+          "positive_final": "0",
+          "negative_final": "0",
+          "decided": false,
+          "positive_trajectory": [
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0"
+          ],
+          "across_state": 1.0,
+          "across_symbol": 1.0,
+          "state_assembly_overlap": 0.0,
+          "max_weight": 0.0,
+          "seconds": 0.0
+        },
+        {
+          "seed": 7,
+          "positive_final": "0",
+          "negative_final": "0",
+          "decided": false,
+          "positive_trajectory": [
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0"
+          ],
+          "across_state": 1.0,
+          "across_symbol": 1.0,
+          "state_assembly_overlap": 0.0,
+          "max_weight": 0.0,
+          "seconds": 0.0
+        },
+        {
+          "seed": 8,
+          "positive_final": "0",
+          "negative_final": "0",
+          "decided": false,
+          "positive_trajectory": [
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0"
+          ],
+          "across_state": 1.0,
+          "across_symbol": 1.0,
+          "state_assembly_overlap": 0.0,
+          "max_weight": 0.0,
+          "seconds": 0.0
+        },
+        {
+          "seed": 9,
+          "positive_final": "0",
+          "negative_final": "0",
+          "decided": false,
+          "positive_trajectory": [
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0"
+          ],
+          "across_state": 1.0,
+          "across_symbol": 1.0,
+          "state_assembly_overlap": 0.0,
+          "max_weight": 0.0,
+          "seconds": 0.0
+        },
+        {
+          "seed": 10,
+          "positive_final": "0",
+          "negative_final": "0",
+          "decided": false,
+          "positive_trajectory": [
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0"
+          ],
+          "across_state": 1.0,
+          "across_symbol": 1.0,
+          "state_assembly_overlap": 0.0,
+          "max_weight": 0.0,
+          "seconds": 0.0
+        }
+      ]
+    },
+    {
+      "arm": "degen_beta0",
+      "constant_rule": false,
+      "params": {
+        "presentations": 15,
+        "beta": 0.0
+      },
+      "rows": [
+        {
+          "seed": 1,
+          "positive_final": "2",
+          "negative_final": "0",
+          "decided": false,
+          "positive_trajectory": [
+            "0",
+            "0",
+            "0",
+            "accept",
+            "2",
+            "0",
+            "2"
+          ],
+          "across_state": 0.16428571428571423,
+          "across_symbol": 0.047724867724867726,
+          "state_assembly_overlap": 0.0,
+          "max_weight": 1.0,
+          "seconds": 1.1
+        },
+        {
+          "seed": 2,
+          "positive_final": "1",
+          "negative_final": "accept",
+          "decided": false,
+          "positive_trajectory": [
+            "0",
+            "0",
+            "2",
+            "accept",
+            "2",
+            "2",
+            "1"
+          ],
+          "across_state": 0.17238095238095238,
+          "across_symbol": 0.058095238095238096,
+          "state_assembly_overlap": 0.0,
+          "max_weight": 1.0,
+          "seconds": 1.3
+        },
+        {
+          "seed": 3,
+          "positive_final": "0",
+          "negative_final": "1",
+          "decided": false,
+          "positive_trajectory": [
+            "0",
+            "0",
+            "accept",
+            "1",
+            "0",
+            "0",
+            "0"
+          ],
+          "across_state": 0.16857142857142854,
+          "across_symbol": 0.05841269841269841,
+          "state_assembly_overlap": 0.0,
+          "max_weight": 1.0,
+          "seconds": 1.2
+        },
+        {
+          "seed": 4,
+          "positive_final": "0",
+          "negative_final": "reject",
+          "decided": false,
+          "positive_trajectory": [
+            "0",
+            "2",
+            "reject",
+            "2",
+            "0",
+            "0",
+            "0"
+          ],
+          "across_state": 0.1719047619047619,
+          "across_symbol": 0.05174603174603175,
+          "state_assembly_overlap": 0.0,
+          "max_weight": 1.0,
+          "seconds": 1.2
+        },
+        {
+          "seed": 5,
+          "positive_final": "accept",
+          "negative_final": "reject",
+          "decided": true,
+          "positive_trajectory": [
+            "0",
+            "0",
+            "0",
+            "accept",
+            "accept",
+            "1",
+            "accept"
+          ],
+          "across_state": 0.1780952380952381,
+          "across_symbol": 0.04952380952380952,
+          "state_assembly_overlap": 0.0,
+          "max_weight": 1.0,
+          "seconds": 1.2
+        },
+        {
+          "seed": 6,
+          "positive_final": "reject",
+          "negative_final": "1",
+          "decided": false,
+          "positive_trajectory": [
+            "0",
+            "0",
+            "accept",
+            "1",
+            "accept",
+            "0",
+            "reject"
+          ],
+          "across_state": 0.16904761904761903,
+          "across_symbol": 0.051005291005291005,
+          "state_assembly_overlap": 0.0,
+          "max_weight": 1.0,
+          "seconds": 1.3
+        },
+        {
+          "seed": 7,
+          "positive_final": "0",
+          "negative_final": "2",
+          "decided": false,
+          "positive_trajectory": [
+            "0",
+            "0",
+            "accept",
+            "accept",
+            "reject",
+            "2",
+            "0"
+          ],
+          "across_state": 0.1876190476190476,
+          "across_symbol": 0.05047619047619048,
+          "state_assembly_overlap": 0.0,
+          "max_weight": 1.0,
+          "seconds": 1.7
+        },
+        {
+          "seed": 8,
+          "positive_final": "accept",
+          "negative_final": "2",
+          "decided": false,
+          "positive_trajectory": [
+            "0",
+            "reject",
+            "0",
+            "1",
+            "1",
+            "0",
+            "accept"
+          ],
+          "across_state": 0.16666666666666666,
+          "across_symbol": 0.05132275132275132,
+          "state_assembly_overlap": 0.0,
+          "max_weight": 1.0,
+          "seconds": 1.9
+        },
+        {
+          "seed": 9,
+          "positive_final": "1",
+          "negative_final": "accept",
+          "decided": false,
+          "positive_trajectory": [
+            "0",
+            "2",
+            "reject",
+            "0",
+            "2",
+            "1",
+            "1"
+          ],
+          "across_state": 0.17523809523809528,
+          "across_symbol": 0.049417989417989416,
+          "state_assembly_overlap": 0.0,
+          "max_weight": 1.0,
+          "seconds": 1.6
+        },
+        {
+          "seed": 10,
+          "positive_final": "1",
+          "negative_final": "2",
+          "decided": false,
+          "positive_trajectory": [
+            "0",
+            "2",
+            "0",
+            "0",
+            "reject",
+            "1",
+            "1"
+          ],
+          "across_state": 0.15333333333333332,
+          "across_symbol": 0.05111111111111111,
+          "state_assembly_overlap": 0.0,
+          "max_weight": 1.0,
+          "seconds": 1.2
+        }
+      ]
+    },
+    {
+      "arm": "constant_rule",
+      "constant_rule": true,
+      "params": {
+        "presentations": 15
+      },
+      "rows": [
+        {
+          "seed": 1,
+          "positive_final": "1",
+          "negative_final": "1",
+          "decided": false,
+          "positive_trajectory": [
+            "0",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1"
+          ],
+          "across_state": 0.8904761904761904,
+          "across_symbol": 1.0,
+          "state_assembly_overlap": 0.0,
+          "max_weight": 20.0,
+          "seconds": 0.6
+        },
+        {
+          "seed": 2,
+          "positive_final": "0",
+          "negative_final": "0",
+          "decided": false,
+          "positive_trajectory": [
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0"
+          ],
+          "across_state": 0.9142857142857141,
+          "across_symbol": 1.0,
+          "state_assembly_overlap": 0.0,
+          "max_weight": 20.0,
+          "seconds": 0.7
+        },
+        {
+          "seed": 3,
+          "positive_final": "0",
+          "negative_final": "0",
+          "decided": false,
+          "positive_trajectory": [
+            "0",
+            "0",
+            "1",
+            "1",
+            "1",
+            "1",
+            "0"
+          ],
+          "across_state": 0.8857142857142856,
+          "across_symbol": 1.0,
+          "state_assembly_overlap": 0.0,
+          "max_weight": 20.0,
+          "seconds": 0.9
+        },
+        {
+          "seed": 4,
+          "positive_final": "2",
+          "negative_final": "2",
+          "decided": false,
+          "positive_trajectory": [
+            "0",
+            "2",
+            "2",
+            "1",
+            "2",
+            "2",
+            "2"
+          ],
+          "across_state": 0.8857142857142858,
+          "across_symbol": 1.0,
+          "state_assembly_overlap": 0.0,
+          "max_weight": 20.0,
+          "seconds": 0.7
+        },
+        {
+          "seed": 5,
+          "positive_final": "1",
+          "negative_final": "1",
+          "decided": false,
+          "positive_trajectory": [
+            "0",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1"
+          ],
+          "across_state": 0.9,
+          "across_symbol": 1.0,
+          "state_assembly_overlap": 0.0,
+          "max_weight": 20.0,
+          "seconds": 0.7
+        },
+        {
+          "seed": 6,
+          "positive_final": "1",
+          "negative_final": "1",
+          "decided": false,
+          "positive_trajectory": [
+            "0",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1"
+          ],
+          "across_state": 0.8666666666666665,
+          "across_symbol": 1.0,
+          "state_assembly_overlap": 0.0,
+          "max_weight": 20.0,
+          "seconds": 0.7
+        },
+        {
+          "seed": 7,
+          "positive_final": "1",
+          "negative_final": "1",
+          "decided": false,
+          "positive_trajectory": [
+            "0",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1"
+          ],
+          "across_state": 0.9238095238095236,
+          "across_symbol": 1.0,
+          "state_assembly_overlap": 0.0,
+          "max_weight": 20.0,
+          "seconds": 1.1
+        },
+        {
+          "seed": 8,
+          "positive_final": "0",
+          "negative_final": "2",
+          "decided": false,
+          "positive_trajectory": [
+            "0",
+            "0",
+            "0",
+            "0",
+            "2",
+            "0",
+            "0"
+          ],
+          "across_state": 0.9209523809523807,
+          "across_symbol": 0.997142857142857,
+          "state_assembly_overlap": 0.0,
+          "max_weight": 20.0,
+          "seconds": 0.9
+        },
+        {
+          "seed": 9,
+          "positive_final": "1",
+          "negative_final": "2",
+          "decided": false,
+          "positive_trajectory": [
+            "0",
+            "1",
+            "2",
+            "2",
+            "1",
+            "1",
+            "1"
+          ],
+          "across_state": 0.8761904761904761,
+          "across_symbol": 1.0,
+          "state_assembly_overlap": 0.0,
+          "max_weight": 20.0,
+          "seconds": 0.7
+        },
+        {
+          "seed": 10,
+          "positive_final": "1",
+          "negative_final": "0",
+          "decided": false,
+          "positive_trajectory": [
+            "0",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1"
+          ],
+          "across_state": 0.938095238095238,
+          "across_symbol": 1.0,
+          "state_assembly_overlap": 0.0,
+          "max_weight": 20.0,
+          "seconds": 0.7
+        }
+      ]
+    }
+  ],
+  "verdicts": {
+    "P-PRE": true,
+    "P-GOLD": false,
+    "P-CONJ": true,
+    "P-NULL": true,
+    "P-DEGEN": true
+  },
+  "params": {
+    "n_arc": 5000,
+    "n_state": 500,
+    "k": 70,
+    "p": 0.2,
+    "beta": 0.1,
+    "presentations": 15,
+    "strength": 0.1
+  }
+}

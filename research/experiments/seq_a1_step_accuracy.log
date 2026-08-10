@@ -1,0 +1,18 @@
+  seed  1: per-step accuracy 1.000 (33/33)
+  seed  2: per-step accuracy 1.000 (33/33)
+  seed  3: per-step accuracy 1.000 (33/33)
+  seed  4: per-step accuracy 1.000 (33/33)
+  seed  5: per-step accuracy 1.000 (33/33)
+  seed  6: per-step accuracy 1.000 (33/33)
+  seed  7: per-step accuracy 1.000 (33/33)
+  seed  8: per-step accuracy 1.000 (33/33)
+  seed  9: per-step accuracy 1.000 (33/33)
+  seed 10: per-step accuracy 1.000 (33/33)
+
+  per-step accuracy      1.000 +/- 0.000 over 10 seeds
+    digit transitions    1.000 (n=300)
+    'end' transitions    1.000 (n=30)
+
+  implied P(decide both) = a^10 = 1.000; A1 observed 0.500
+
+wrote F:\Github\assemblies\research\experiments\seq_a1_step_accuracy_results.json
