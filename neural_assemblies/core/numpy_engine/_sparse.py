@@ -409,6 +409,11 @@ class NumpySparseEngine(ComputeEngine):
                  synaptic_scaling_deferred: bool = False,
                  norm_init: bool = False):
         self.p = p
+        #: (source, target) -> density, for fibers that override `p`.
+        #: EMPTY BY DEFAULT, and every path below is byte-for-byte the
+        #: pre-existing one while it stays empty -- that is the property
+        #: that makes heterogeneous density safe to put on the hot path.
+        self._fiber_p: Dict[Tuple[str, str], float] = {}
         self.w_max = w_max
         # Feedforward inhibition (Hoff et al. 2026, Eq. 7): an area->area
         # synapse is inhibitory with probability inhibitory_prob (p_i), taking
@@ -574,7 +579,16 @@ class NumpySparseEngine(ComputeEngine):
             return 0.0, hi
         return -abs(self.inhibitory_weight) * self.w_max * scale, hi
 
-    def _sample_area_weights(self, shape, rng):
+    def _p_for(self, source: str, target: str) -> float:
+        """This fiber's connection probability; the global `p` unless set."""
+        return self._fiber_p.get((source, target), self.p)
+
+    def heterogeneous(self) -> bool:
+        """Whether any fiber overrides `p`. Guards every fast path that
+        assumes one density, so the homogeneous case never changes."""
+        return bool(self._fiber_p)
+
+    def _sample_area_weights(self, shape, rng, p=None):
         """Initial area->area weights, with optional feedforward inhibition.
 
         Each present synapse (probability ``p``) is excitatory (weight 1) with
@@ -582,7 +596,7 @@ class NumpySparseEngine(ComputeEngine):
         otherwise. With ``inhibitory_prob == 0`` this is the original binomial
         0/1 connectome, bit-for-bit.
         """
-        present = rng.random(shape) < self.p
+        present = rng.random(shape) < (self.p if p is None else p)
         if self.inhibitory_prob <= 0.0:
             return present.astype(np.float32)
         w = present.astype(np.float32)
@@ -621,11 +635,12 @@ class NumpySparseEngine(ComputeEngine):
         The legacy branch draws from the shared stream instead and is order
         dependent by construction; it exists only for A/B'ing the switch.
         """
+        fiber_p = self._p_for(source, target)
         if not self._content_init:
             return self._to_xp(self._sample_area_weights(
-                (max(r1 - r0, 0), max(c1 - c0, 0)), self._rng))
+                (max(r1 - r0, 0), max(c1 - c0, 0)), self._rng, fiber_p))
         return self._to_xp(hash_area_weights(
-            r0, r1, c0, c1, self._pair_seed(source, target), self.p,
+            r0, r1, c0, c1, self._pair_seed(source, target), fiber_p,
             self.inhibitory_prob, self.inhibitory_weight,
         ))
 
@@ -1017,7 +1032,7 @@ class NumpySparseEngine(ComputeEngine):
         return inverse_indegree(deg, unknown, 0, self.p, xp=xp)
 
     def _norm_candidate_divisor(self, tgt, input_sizes=None,
-                                src_pops=None) -> float:
+                                src_pops=None, input_ps=None) -> float:
         """Scale applied to sampled candidate drive; see `core._pricing`.
 
         The law -- an activity-weighted harmonic mean of the source populations
@@ -1026,7 +1041,8 @@ class NumpySparseEngine(ComputeEngine):
         never reached the torch mirror, and the two engines priced k-WTA
         differently until the law was unified.
         """
-        return candidate_divisor(self.p, tgt.n, input_sizes, src_pops)
+        return candidate_divisor(self.p if input_ps is None else input_ps,
+                                 tgt.n, input_sizes, src_pops)
 
     # -- Registration -------------------------------------------------------
 
@@ -1048,7 +1064,8 @@ class NumpySparseEngine(ComputeEngine):
 
         # Initialize stim->area connectomes for every already-registered stimulus
         for stim_name, stim in self._stimuli.items():
-            conn = Connectome(stim.size, n, self.p, sparse=True)
+            conn = Connectome(stim.size, n, self._p_for(stim_name, name),
+                              sparse=True)
             conn.weights = xp.empty(0, dtype=xp.float32)
             self._stim_conns[stim_name][name] = conn
             area.beta_by_source[stim_name] = beta
@@ -1056,15 +1073,20 @@ class NumpySparseEngine(ComputeEngine):
         # Initialize area->area connectomes (both directions) for every existing area
         for other_name, other in self._areas.items():
             if other_name == name:
-                self_conn = Connectome(n, n, self.p, sparse=True)
+                self_conn = Connectome(n, n, self._p_for(name, name),
+                                       sparse=True)
                 self_conn.weights = xp.empty((0, 0), dtype=xp.float32)
                 self._area_conns[name][name] = self_conn
             else:
-                conn_fwd = Connectome(other.n, n, self.p, sparse=True)
+                conn_fwd = Connectome(other.n, n,
+                                      self._p_for(other_name, name),
+                                      sparse=True)
                 conn_fwd.weights = xp.empty((0, 0), dtype=xp.float32)
                 self._area_conns[other_name][name] = conn_fwd
 
-                conn_rev = Connectome(n, other.n, self.p, sparse=True)
+                conn_rev = Connectome(n, other.n,
+                                      self._p_for(name, other_name),
+                                      sparse=True)
                 conn_rev.weights = xp.empty((0, 0), dtype=xp.float32)
                 self._area_conns[name][other_name] = conn_rev
 
@@ -1083,12 +1105,13 @@ class NumpySparseEngine(ComputeEngine):
         # Without this, the empty weight vector produces zero input and
         # the projection short-circuits, making online learning impossible.
         for area_name, area in self._areas.items():
-            conn = Connectome(size, area.n, self.p, sparse=True)
+            fiber_p = self._p_for(name, area_name)
+            conn = Connectome(size, area.n, fiber_p, sparse=True)
             if area.w > 0:
                 rng = np.random.default_rng(
                     stable_seed(name, area_name, area.w))
                 conn.weights = self._to_xp(
-                    (rng.random(area.w) < self.p).astype(np.float32)
+                    (rng.random(area.w) < fiber_p).astype(np.float32)
                     * size  # scale by stimulus size for fair competition
                 )
             else:
@@ -1097,26 +1120,53 @@ class NumpySparseEngine(ComputeEngine):
             area.beta_by_source[name] = area.beta
 
     def add_connectivity(self, source: str, target: str, p: float) -> None:
-        """Per-fiber connection probability -- NOT supported by this engine.
+        """Set one fiber's connection probability, overriding the global `p`.
 
-        This was `pass` in every engine while `engine.py` documented it in the
-        interface with a worked example, so any caller that set a per-fiber
-        density silently got the global one -- the repo's dominant defect class
-        ([[silent-no-op-dead-fibers]]). `numpy_exact` now implements it; here it
-        cannot be done cheaply, because the candidate sampler combines several
-        input fibers into one truncated-tail draw parameterised by a single `p`
-        (`candidate_divisor`), and a per-fiber density would have to be pushed
-        through that draw rather than through the connectome alone.
+        WHY IT IS WORTH THE COMPLEXITY. The regime condition kp >= 3 ln n
+        ([[SEQ-REGIME]]) is per-AREA, so an organ that needs a dense local
+        regime inside an otherwise sparse brain needs density set per fiber --
+        that is [[SEQ-ORGAN-EMBEDS]]. `k` is NOT a substitute even though only
+        the product appears in the floor: raising it spends capacity
+        ([[AC-CAP]]) and forces `n` up with it.
 
-        Requesting the global `p` is not a request, so it stays a no-op;
-        anything else raises rather than being ignored.
+        WHAT HAD TO CHANGE. The candidate sampler prices unmaterialized
+        neurons with ONE pooled draw for the whole projection, which is exact
+        only when every fiber shares a `p`. With per-fiber densities the pooled
+        count is a Poisson-binomial, moment-matched by
+        `_pricing.effective_binomial`, and the divisor's numerator generalizes
+        from ``p * sum_f a_f`` to ``sum_f a_f * p_f``.
+
+        HOMOGENEOUS BRAINS ARE UNAFFECTED. `_fiber_p` is empty until this is
+        called, and every path checks that before taking a heterogeneous
+        branch, so a brain that never calls this is byte-for-byte what it was.
+
+        STRUCTURAL, SO IT MUST PRECEDE TRAFFIC. `p` decides which synapses
+        exist. Changing it once a fiber has carried drive would leave
+        potentiation sitting on synapses that no longer exist and silently
+        rewrite formed assemblies, so this raises instead. Requesting the value
+        already in force is not a change and stays a no-op.
         """
-        if float(p) != float(self.p):
-            raise NotImplementedError(
-                f"numpy_sparse does not support per-fiber connectivity: "
-                f"add_connectivity({source!r}, {target!r}, p={p}) differs from "
-                f"the engine's p={self.p}. Use numpy_exact, which implements "
-                f"it, rather than assuming this call took effect.")
+        key = (source, target)
+        if float(p) == float(self._fiber_p.get(key, self.p)):
+            return
+        if source not in self._areas and source not in self._stimuli:
+            raise KeyError(f"unknown source {source!r}")
+        if target not in self._areas:
+            raise KeyError(f"unknown target area {target!r}")
+
+        conn = (self._area_conns.get(source, {}).get(target)
+                if source in self._areas
+                else self._stim_conns.get(source, {}).get(target))
+        if conn is not None and getattr(conn, "weights", None) is not None:
+            if int(np.size(to_cpu(conn.weights))) > 0:
+                raise RuntimeError(
+                    f"add_connectivity({source!r}, {target!r}, p={p}) after the "
+                    f"fiber has carried traffic. Connectivity is structural: "
+                    f"changing it now would leave potentiation on synapses that "
+                    f"no longer exist. Set it before the first projection.")
+        self._fiber_p[key] = float(p)
+        if conn is not None:
+            conn.p = float(p)
 
     def _candidate_draw_key(self, target, tgt, from_stimuli, from_areas):
         """Identify a projection by its CONTENT, for the candidate sampler.
@@ -1485,7 +1535,7 @@ class NumpySparseEngine(ComputeEngine):
         # -- the NEMO coin seeds a k-subset and drives it RECURRENTLY, with no
         # stimulus -- which is why a half-wired area went unnoticed.
         if any(area in per for per in self._stim_conns.values()):
-            if self._stim_fastpath:
+            if self._stim_fastpath and not self.heterogeneous():
                 self._expand_stim_vectors_fast(area, tgt, [], n)
             else:
                 self._expand_stim_vectors_legacy(area, [], n)
@@ -2020,6 +2070,12 @@ class NumpySparseEngine(ComputeEngine):
             [tgt.n for _ in from_stimuli]
             + [self._areas[a].n for a in from_areas]
         )
+        # Per-fiber densities, parallel to input_sizes. None while no fiber
+        # overrides `p`, which keeps the pooled draw and the divisor on their
+        # original scalar code paths -- see `add_connectivity`.
+        input_ps = ([self._p_for(s, target) for s in from_stimuli]
+                    + [self._p_for(a, target) for a in from_areas]
+                    ) if self.heterogeneous() else None
 
         draw_key = None
         if self._no_recruitment and tgt.w >= tgt.k:
@@ -2060,11 +2116,13 @@ class NumpySparseEngine(ComputeEngine):
                                   int(round(rho * eff)))
             if self._deterministic:
                 potential_new = self._sparse_sim.sample_new_winner_inputs_legacy(
-                    input_sizes, tgt.n, tgt.w, tgt.k, self.p, key=draw_key,
+                    input_sizes, tgt.n, tgt.w, tgt.k,
+                    self.p if input_ps is None else input_ps, key=draw_key,
                 )
             else:
                 potential_new = self._sparse_sim.sample_new_winner_inputs(
-                    input_sizes, tgt.n, tgt.w, tgt.k, self.p, key=draw_key,
+                    input_sizes, tgt.n, tgt.w, tgt.k,
+                    self.p if input_ps is None else input_ps, key=draw_key,
                     offset=draw_offset,
                 )
         self._sparse_sim.rng = old_rng
@@ -2073,7 +2131,8 @@ class NumpySparseEngine(ComputeEngine):
         # norm_init: bring sampled candidates onto the normalized scale (see
         # _norm_candidate_divisor).  Stored weights and the sampler stay on the
         # unit scale; only the drive comparison is rescaled.
-        norm_div = (self._norm_candidate_divisor(tgt, input_sizes, src_pops)
+        norm_div = (self._norm_candidate_divisor(tgt, input_sizes, src_pops,
+                                                 input_ps)
                     if self.norm_init else None)
         if norm_div is not None:
             potential_new = potential_new / norm_div
@@ -2564,7 +2623,11 @@ class NumpySparseEngine(ComputeEngine):
         area_names = [name for name in inputs_names if name in self._areas]
 
         if new_w > prior_w:
-            if self._stim_fastpath:
+            # The fast path batches background draws by stimulus SIZE, which
+            # assumes one density for all of them. With per-fiber `p` set, take
+            # the per-fiber-correct path instead; the two are otherwise
+            # bit-identical, so homogeneous brains keep the fast one.
+            if self._stim_fastpath and not self.heterogeneous():
                 self._expand_stim_vectors_fast(target, tgt, firing_stimuli, new_w)
             else:
                 self._expand_stim_vectors_legacy(target, firing_stimuli, new_w)
@@ -2801,7 +2864,8 @@ class NumpySparseEngine(ComputeEngine):
                     if stim_name not in firing_stimuli:
                         stim_size = self._stimuli[stim_name].size
                         add = self._to_xp(self._rng.binomial(
-                            stim_size, self.p, size=add_len).astype(np.float32))
+                            stim_size, self._p_for(stim_name, target),
+                            size=add_len).astype(np.float32))
                     else:
                         add = xp.zeros(add_len, dtype=xp.float32)
                     conn.weights = xp.concatenate([conn.weights, add])

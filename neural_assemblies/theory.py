@@ -284,12 +284,17 @@ _RESULTS: List[Result] = [
         claim="A sequence organ can run at its own regime INSIDE a brain whose "
               "ambient density is far lower, by setting p (or k) locally.",
         source="Not proved and not yet measured here.",
-        preconditions=("per-fiber p on the production engine",),
-        caveat="FALSIFIABLE AND UNTESTED. The parser runs p=0.05 while the organ "
-               "needs p >~ 0.27 locally. Nothing establishes that a heterogeneous "
-               "brain behaves like the homogeneous one each theorem assumes, and "
-               "the candidate sampler currently folds all fibers into a single "
-               "p, so the mechanism does not yet exist to test it with.",
+        preconditions=("per-fiber p, which `Brain.add_connectivity` now "
+                       "provides on numpy_exact AND numpy_sparse",),
+        caveat="FALSIFIABLE AND UNTESTED. The MECHANISM now exists -- a fiber "
+               "draws its own density, verified at 0.399 and 0.050 into one "
+               "target in one brain -- but that an organ actually WORKS at its "
+               "own regime inside a sparser brain is a separate claim and has "
+               "not been measured. Nothing establishes that a heterogeneous "
+               "brain behaves like the homogeneous one each theorem assumes; "
+               "the pooled candidate draw is moment-matched across fibers, "
+               "which is exact in the first two moments and an approximation "
+               "beyond them. Test it before relying on it.",
     ),
     Result(
         id="SEQ-STATE-CODE-EMERGENT",

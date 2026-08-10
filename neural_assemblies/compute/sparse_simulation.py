@@ -29,7 +29,9 @@ import math
 from functools import lru_cache
 
 import numpy as np
-from typing import List, Dict, Optional, Tuple, Any
+from typing import List, Dict, Optional, Sequence, Tuple, Any, Union
+
+from neural_assemblies.core._pricing import effective_binomial
 
 try:
     from ..core.backend import get_xp, to_cpu, to_xp, xp_by_name, xp_name
@@ -396,7 +398,7 @@ class SparseSimulationEngine:
         n: int,
         w: int,
         k: int,
-        p: float,
+        p: Union[float, Sequence[float]],
         key: Optional[Tuple] = None,
         offset: Optional[int] = None,
     ) -> np.ndarray:
@@ -450,6 +452,15 @@ class SparseSimulationEngine:
         from scipy.special import ndtr, ndtri
 
         total_k = sum(input_sizes)
+        # PER-FIBER `p`. The pooled count is Binomial(total_k, p) only when
+        # every fiber shares a density; otherwise it is a Poisson-binomial,
+        # moment-matched here to one binomial. `effective_binomial` returns its
+        # inputs UNCHANGED for homogeneous p, so the scalar path below is
+        # byte-for-byte what it was. `total_k` stays the PHYSICAL bound for
+        # clipping -- a candidate cannot receive more synapses than there are
+        # active afferents, whatever the matched distribution says.
+        draw_n, draw_p = ((total_k, p) if isinstance(p, (int, float))
+                          else effective_binomial(input_sizes, p))
         effective_n = n - w
 
         # Graceful saturation. `effective_n = n - w` is the count of neurons that
@@ -465,10 +476,11 @@ class SparseSimulationEngine:
             return self._xp.asarray(np.empty(0))
 
         # Cached ppf — integer num/den for exact hash key
-        alpha = _binom_ppf_cached(effective_n - k_eff, effective_n, total_k, p)
+        alpha = _binom_ppf_cached(effective_n - k_eff, effective_n,
+                                  draw_n, draw_p)
 
-        mu = total_k * p
-        std = math.sqrt(total_k * p * (1.0 - p))
+        mu = draw_n * draw_p
+        std = math.sqrt(draw_n * draw_p * (1.0 - draw_p))
         if std == 0:
             return self._xp.asarray(np.full(k_eff, mu))
 
@@ -604,7 +616,7 @@ class SparseSimulationEngine:
         n: int,
         w: int,
         k: int,
-        p: float,
+        p: Union[float, Sequence[float]],
         key: Optional[Tuple] = None,
     ) -> np.ndarray:
         """
@@ -630,6 +642,8 @@ class SparseSimulationEngine:
         from scipy.stats import binom, truncnorm
 
         total_k = sum(input_sizes)
+        draw_n, draw_p = ((total_k, p) if isinstance(p, (int, float))
+                          else effective_binomial(input_sizes, p))
         effective_n = n - w
 
         # Graceful saturation -- see sample_new_winner_inputs for the rationale.
@@ -641,11 +655,11 @@ class SparseSimulationEngine:
             return self._xp.asarray(np.empty(0))
 
         alpha = float(binom.ppf(
-            float(effective_n - k_eff) / effective_n, total_k, p
+            float(effective_n - k_eff) / effective_n, draw_n, draw_p
         ))
 
-        mu = total_k * p
-        std = math.sqrt(total_k * p * (1.0 - p))
+        mu = draw_n * draw_p
+        std = math.sqrt(draw_n * draw_p * (1.0 - draw_p))
         if std == 0:
             return self._xp.asarray(np.full(k_eff, mu))
 
