@@ -7,17 +7,53 @@ Reference: dabagia.org/nemo/sequences/, dabagia.org/nemo/coinflipping/
 
 from __future__ import annotations
 
-from typing import Dict, List, Tuple
+from typing import Dict, List, Sequence, Tuple
 
 import numpy as np
 
-from neural_assemblies.assembly_calculus.ops import _snap, project
+from neural_assemblies.assembly_calculus.assembly import Assembly, overlap
+from neural_assemblies.assembly_calculus.ops import (
+    _snap, activate_assembly, project,
+)
 from neural_assemblies.assembly_calculus.pfa import RandomChoiceArea
 from neural_assemblies.assembly_calculus.transitions import TransitionLike, TransitionMap
 
 
 class NemoArcFSM:
-    """Symbol + state + refracted arc FSM (reference FSMNetwork)."""
+    """Symbol + state + refracted arc FSM (reference ``FSMNetwork``).
+
+    THE MACHINE DECIDES. ``step`` reads the next state OUT of the state
+    assembly by nearest overlap; it does not consult the transition table.
+    The previous version returned ``self._table[(from_state, symbol)]`` -- a
+    dictionary lookup -- after running and discarding the dynamics, so every
+    FSM claim in this repo passed with an untrained brain, with zero
+    presentations, and with beta=0 (measured; see
+    `research/experiments/seq_arc_refraction_reference.py`). The table is
+    still held, but only training may read it.
+
+    THE ARC IS A CONJUNCTION, AND REFRACTION IS WHAT KEEPS IT ONE. The arc
+    receives the symbol and the current state; without an opposing force it
+    collapses onto whichever conjunct is exposed more -- to ``A_sigma`` when
+    the symbol fires more (task #92) or to ``A_q`` when the state does (the
+    reference's mod-3 table, where ablating refraction takes across-symbol
+    overlap to 0.989 and the task to 0/3). Two consequences for this class:
+
+    * the accumulated bias MUST persist across transitions. The previous
+      version called ``clear_refracted_bias`` at the top of every
+      ``train_transition``, which is a no-op mechanism dressed as an active
+      one -- the reference clears activations between transitions and never
+      clears the bias.
+    * the arc's two conjuncts should be exposed comparably often; see
+      [[role-gain-crowds-not-margins]].
+
+    ONE TEACHER-FORCED WRITE. The reference performs
+    ``state.set_input(arc.read()); state.fire(new_state)``: a single
+    potentiation of arc -> state onto the TARGET assembly. The previous
+    version projected arc -> state freely first, potentiating onto whatever
+    the arc already preferred, and only then drove the target from its own
+    stimulus -- so the transition was never taught along the pathway that has
+    to carry it at test time.
+    """
 
     def __init__(
         self,
@@ -28,6 +64,7 @@ class NemoArcFSM:
         *,
         n: int = 5000,
         k: int = 80,
+        n_state: int | None = None,
         beta: float = 0.1,
         rounds: int = 10,
         refracted_strength: float = 0.1,
@@ -41,61 +78,75 @@ class NemoArcFSM:
         self.prefix = prefix
 
         self.state_area = f"{prefix}_state"
-        self.symbol_area = f"{prefix}_symbol"
         self.arc_area = f"{prefix}_arc"
 
-        brain.add_area(self.state_area, n, k, beta)
-        brain.add_area(self.symbol_area, n, k, beta)
+        brain.add_area(self.state_area, n_state or n, k, beta)
         brain.add_area(
             self.arc_area, n, k, beta,
             refracted=True, refracted_strength=refracted_strength,
         )
 
+        # Symbols are stimuli. The reference's symbol area is a single
+        # symbol->arc matrix whose per-symbol assemblies are DISJOINT row
+        # blocks; independent stimulus connectomes of size k are the same
+        # object, without a second area to keep in sync.
         self._sym_stim: Dict[str, str] = {}
-        self._st_stim: Dict[str, str] = {}
         for sym in symbols:
             s = f"{prefix}_sym_{sym}"
             brain.add_stimulus(s, k)
             self._sym_stim[sym] = s
-            project(brain, s, self.symbol_area, rounds=rounds)
 
+        # One stable assembly per state, formed once and REPLAYED thereafter
+        # rather than re-projected: re-projecting carries plasticity, so the
+        # cue would drift away from the assembly the transitions were taught
+        # against. Same reason `ops.bind` replays a stored source.
+        self._st_stim: Dict[str, str] = {}
+        self._state_asm: Dict[str, Assembly] = {}
         for st in states:
             s = f"{prefix}_st_{st}"
             brain.add_stimulus(s, k)
             self._st_stim[st] = s
-            project(brain, s, self.state_area, rounds=rounds)
+            self._state_asm[st] = project(brain, s, self.state_area, rounds=rounds)
 
         self._table: Dict[Tuple[str, str], str] = (
             self.transition_map.deterministic_table()
         )
 
-    def reset(self) -> None:
+    # -- state cueing -------------------------------------------------------
+
+    def state_assembly(self, state: str) -> Assembly:
+        """The stored assembly for *state*, in neuron IDs."""
+        return self._state_asm[state]
+
+    def _cue_state(self, state: str, *, fix: bool = True) -> None:
+        activate_assembly(self.brain, self._state_asm[state])
+        if fix:
+            self.brain.areas[self.state_area].fix_assembly()
+
+    def _unfix_state(self) -> None:
+        self.brain.areas[self.state_area].unfix_assembly()
+
+    def clear_bias(self) -> None:
+        """Discard the arc's accumulated refraction.
+
+        Deliberately NOT called during training: the accumulation across
+        transitions is the mechanism that keeps the arc conjunctive.
+        """
         self.brain.clear_refracted_bias(self.arc_area)
 
-    def _project_arc(self) -> None:
-        self.brain.project(
-            {},
-            {self.symbol_area: [self.arc_area], self.state_area: [self.arc_area]},
-        )
+    # -- training -----------------------------------------------------------
 
     def train_transition(self, symbol: str, from_state: str, to_state: str) -> None:
-        """Fire symbol+state into refracted arc, bind next state."""
-        self.reset()
-        project(self.brain, self._sym_stim[symbol], self.symbol_area, rounds=1)
-        project(self.brain, self._st_stim[from_state], self.state_area, rounds=1)
-        self._project_arc()
-        self.brain.project({}, {self.arc_area: [self.state_area]})
-        project(self.brain, self._st_stim[to_state], self.state_area, rounds=self.rounds)
-
-    def step_symbol(self, symbol: str, from_state: str) -> str:
-        """One FSM step: (from_state, symbol) → next state assembly."""
-        to_state = self._table[(from_state, symbol)]
-        project(self.brain, self._sym_stim[symbol], self.symbol_area, rounds=1)
-        project(self.brain, self._st_stim[from_state], self.state_area, rounds=1)
-        self._project_arc()
-        self.brain.project({}, {self.arc_area: [self.state_area]})
-        project(self.brain, self._st_stim[to_state], self.state_area, rounds=self.rounds)
-        return to_state
+        """One presentation of ``(from_state, symbol) -> to_state``."""
+        b = self.brain
+        b.inhibit_areas([self.arc_area, self.state_area])
+        self._cue_state(from_state)
+        b.project({self._sym_stim[symbol]: [self.arc_area]},
+                  {self.state_area: [self.arc_area]})
+        self._unfix_state()
+        self._cue_state(to_state)
+        b.project({}, {self.arc_area: [self.state_area]})
+        self._unfix_state()
 
     def train_from_list(
         self, transition_list: List[Tuple[str, str, str]], presentations: int = 1,
@@ -103,6 +154,45 @@ class NemoArcFSM:
         for _ in range(presentations):
             for sym, fr, to in transition_list:
                 self.train_transition(sym, fr, to)
+
+    # -- running ------------------------------------------------------------
+
+    def read_state(self) -> str:
+        """Label the state area's CURRENT assembly by nearest stored state."""
+        current = _snap(self.brain, self.state_area)
+        return max(self.states,
+                   key=lambda st: overlap(current, self._state_asm[st]))
+
+    def step(self, symbol: str) -> str:
+        """Advance one symbol from whatever the state area currently holds."""
+        b = self.brain
+        b.project({self._sym_stim[symbol]: [self.arc_area]},
+                  {self.state_area: [self.arc_area]})
+        b.project({}, {self.arc_area: [self.state_area]})
+        return self.read_state()
+
+    def run(self, symbols: Sequence[str], start_state: str) -> List[str]:
+        """Run a symbol string from *start_state*; return the state trajectory.
+
+        Runs inside ``brain.probe()``, the sanctioned read context. Turning
+        plasticity off is NOT sufficient: projection still RECRUITS, which
+        moves the compact index space and the sampler's draws, so two identical
+        runs of a trained machine returned different trajectories
+        (``['q1','q1','q0']`` then ``['q0','q0','q0']``) even with the weights
+        and the refraction bias provably unchanged. See
+        [[probe-isolation-required]] -- recruitment, not plasticity, is the
+        channel by which a readout changes what it is reading.
+
+        ``probe()`` also implies ``frozen()``, so the arc charges no refraction
+        bias here, matching the reference's ``update=False``: one step of a
+        sequence cannot alter the next.
+        """
+        b = self.brain
+        with b.probe():
+            b.inhibit_areas([self.arc_area, self.state_area])
+            self._cue_state(start_state)
+            self._unfix_state()
+            return [self.step(sym) for sym in symbols]
 
 
 class NemoMarkovPFA:

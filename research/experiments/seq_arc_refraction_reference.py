@@ -182,31 +182,31 @@ def q4_scale_dependence():
         print(row)
 
 
-def q5_fake_perfect_audit():
-    print("\n=== Q5: fake-perfect audit of the SHIPPED programs ===")
+def q5_degenerate_arms():
+    """Degenerate arms must FAIL. Before the readout was fixed they all passed.
+
+    The recorded log for this section at commit d5e64f8 shows the pre-fix
+    state: `step_symbol` returned a table lookup, so an untrained brain, a
+    zero-presentation run and a beta=0 run each accepted the positive string
+    and rejected the negative. Those readings are the reason the readout
+    changed; this section now guards against their return.
+    """
+    print("\n=== Q5: degenerate arms (must FAIL) ===")
     from neural_assemblies.core.brain import Brain
-    from neural_assemblies.programs.nemo_fsm import NemoArcFSM
     from neural_assemblies.programs.mod3_fsm import (
         build_mod3_fsm, run_digit_sequence, train_mod3_fsm,
     )
 
-    b = Brain(p=0.05, save_winners=True, seed=42, engine="numpy_sparse")
-    fsm = NemoArcFSM(b, states=["q0", "q1"], symbols=["a"],
-                     transitions=[("q0", "a", "q1"), ("q1", "a", "q0")],
-                     n=2000, k=40, beta=0.1, rounds=6)
-    nxt = fsm.step_symbol("a", "q0")   # test_deterministic_transition's assertion
-    print(f"  untrained step_symbol('a','q0') -> {nxt!r}  "
-          f"(shipped test asserts 'q1': {'PASSES' if nxt == 'q1' else 'fails'})")
-
-    for label, presentations, beta in (("zero presentations", 0, 0.1),
+    for label, presentations, beta in (("untrained", 0, 0.1),
                                        ("beta = 0", 15, 0.0)):
         brain = Brain(p=0.05, save_winners=True, seed=42, engine="numpy_sparse")
         demo = build_mod3_fsm(brain, n=2000, k=40, beta=beta, rounds=6)
         train_mod3_fsm(demo, presentations=presentations)
         pos, _ = run_digit_sequence(demo, list(POSITIVE))
         neg, _ = run_digit_sequence(demo, list(NEGATIVE))
-        print(f"  {label:<20s}: positive -> {pos!r} ({pos == 'accept'}), "
-              f"negative -> {neg!r} ({neg == 'reject'})")
+        decided = (pos == "accept" and neg == "reject")
+        print(f"  {label:<20s}: positive -> {pos!r}, negative -> {neg!r}  "
+              f"-> {'DECIDED (bad: a degenerate arm should not)' if decided else 'fails as required'}")
 
 
 if __name__ == "__main__":
@@ -217,4 +217,4 @@ if __name__ == "__main__":
         q4_constant_rule()
         q4_scale_dependence()
     if which in ("all", "audit"):
-        q5_fake_perfect_audit()
+        q5_degenerate_arms()

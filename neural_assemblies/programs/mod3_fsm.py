@@ -48,6 +48,7 @@ def build_mod3_fsm(
     *,
     n: int = 2000,
     k: int = 40,
+    n_state: int | None = None,
     beta: float = 0.1,
     rounds: int = 6,
     refracted_strength: float = 0.1,
@@ -60,6 +61,7 @@ def build_mod3_fsm(
         transitions=mod3_transition_table(),
         n=n,
         k=k,
+        n_state=n_state,
         beta=beta,
         rounds=rounds,
         refracted_strength=refracted_strength,
@@ -79,14 +81,16 @@ def train_mod3_fsm(
 
 
 def run_digit_sequence(fsm: NemoArcFSM, digits: Sequence[int]) -> Tuple[str, List[str]]:
-    """Simulate digit string; ``10`` denotes the end symbol."""
-    state = "0"
-    trajectory = [state]
-    for d in digits:
-        sym = END_SYMBOL if d == 10 else str(d)
-        state = fsm.step_symbol(sym, state)
-        trajectory.append(state)
-    return state, trajectory
+    """Simulate digit string; ``10`` denotes the end symbol.
+
+    Every state after the first is read out of the state assembly. This used
+    to advance by table lookup, which made the accept/reject verdict below
+    independent of the network -- it was returned correctly by an untrained
+    brain and by beta=0.
+    """
+    symbols = [END_SYMBOL if d == 10 else str(d) for d in digits]
+    trajectory = ["0"] + fsm.run(symbols, start_state="0")
+    return trajectory[-1], trajectory
 
 
 def run_mod3_fsm_demo(
