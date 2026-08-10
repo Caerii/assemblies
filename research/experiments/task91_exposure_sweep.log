@@ -1,0 +1,28 @@
+
+  #91 exposure sweep -- does the split appear with more training, same n=10000/k=50/vocab?
+  majority baseline 0.667, 3 seeds
+
+   sentences/word          arm   noun gap   verb gap   accuracy  stability
+               10   asymmetric      0.009     -0.013      0.500      0.477
+               10      control      0.010     -0.020      0.528      0.278
+               40   asymmetric     -0.044     -0.153      0.444      0.360
+               40      control     -0.010      0.040      0.389      0.358
+F:\Github\assemblies\neural_assemblies\core\numpy_engine\_exact.py:339: RuntimeWarning: overflow encountered in multiply
+  block[:, c] *= factor                 # one fancy axis
+F:\Github\assemblies\neural_assemblies\core\numpy_engine\_exact.py:339: RuntimeWarning: overflow encountered in cast
+  block[:, c] *= factor                 # one fancy axis
+F:\Github\assemblies\neural_assemblies\core\numpy_engine\_exact.py:339: RuntimeWarning: invalid value encountered in multiply
+  block[:, c] *= factor                 # one fancy axis
+              160   asymmetric     -0.063     -0.085      0.389      0.324
+              160      control      0.034      0.015      0.556      0.216
+
+  READING
+
+    P-RESCUE  accuracy rises and clears baseline by 160x: False   0.500 -> 0.389 (baseline 0.667)
+    CONTROL   flat arm stays flat across levels:       True   0.528 -> 0.556
+
+    P-NULL: accuracy stays flat within noise across all three
+    exposure levels. #91 closes on THIS design -- the null is
+    about the mechanism as implemented (architecture, vocab
+    size, k), not about under-training. Paper-fidelity
+    deviations (n=10^4, no C_i areas) are the next candidates.

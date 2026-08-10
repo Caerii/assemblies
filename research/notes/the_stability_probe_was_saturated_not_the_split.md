@@ -63,15 +63,66 @@ reach. `numpy_exact`'s O(M^2) cost ([[numpy-exact-95x-slower]]) makes a
 naive scale-up expensive; the cheap next probe is exposure alone
 (more sentences/word, same tiny vocabulary) before touching n or k.
 
+## Sequential extension: does exposure rescue the null? NO -- on the
+## two trustworthy levels, and the third is numerically corrupted
+
+**Script:** `research/experiments/task91_exposure_sweep.py`
+**Artifact:** `task91_exposure_sweep.log`
+
+Registered before running: hold n=10^4, k=50, and the 12-word
+vocabulary fixed; vary ONLY sentences/word (10x/40x/160x); run both
+arms at every level so a rising control voids any reading; decision
+rule pre-stated (production-scale testing warranted only if accuracy
+clears baseline AND the control stays flat).
+
+| sentences/word | arm        | noun gap | verb gap | accuracy | stability |
+|-----------------|------------|----------|----------|----------|-----------|
+| 10x (baseline)  | asymmetric | +0.009   | −0.013   | 0.500    | 0.477     |
+| 10x             | control    | +0.010   | −0.020   | 0.528    | 0.278     |
+| 40x             | asymmetric | −0.044   | −0.153   | 0.444    | 0.360     |
+| 40x             | control    | −0.010   | +0.040   | 0.389    | 0.358     |
+| 160x            | asymmetric | −0.063   | −0.085   | **0.389**| 0.324     |
+| 160x            | control    | +0.034   | +0.015   | 0.556    | 0.216     |
+
+**The 160x row is NUMERICALLY CORRUPTED, not evidence.** The run threw
+`RuntimeWarning: overflow encountered in multiply` /
+`invalid value encountered in multiply` at
+`numpy_engine/_exact.py:339`. Root-caused precisely: `apply_to`'s
+per-event potentiation factor `(1.0 + beta) ** mult` is computed
+UNCLAMPED: with 1920 sentences on a 12-word vocabulary, some
+self-recurrent fiber's co-firing count (`mult`) grew large enough for
+`factor` to overflow to `inf` in float64 BEFORE the existing post-
+multiply `w_max` clamp ever saw it, and `0 * inf = nan` poisoned cells
+no downstream clamp can recover (NaN propagates through
+`np.minimum`). This is a real engine gap distinct from the overflow
+class already fixed at that same call site (documented in its own
+docstring) -- flagged as its own out-of-scope unit
+(`task_a0ad124c`), not fixed here.
+
+**On the two CLEAN levels (10x, 40x), there is no rescue signal --
+if anything the opposite.** Accuracy in the asymmetric arm FALLS with
+exposure (0.500 -> 0.444), and the control falls too (0.528 -> 0.389).
+Both arms decline together, which does not read as "the asymmetry's
+effect strengthens with training" in either direction -- it reads as
+a 12-word, k=50 area becoming progressively MORE crowded/confusable as
+more sentences pile weight onto the same tiny set of assemblies,
+unrelated to the architectural asymmetry. P-RESCUE fails on the
+trustworthy data; the decision rule's bar (accuracy clears baseline
+AND control stays flat) is not met even setting the corrupted level
+aside.
+
 ## Status
 
-Diagnostic unit closed: the probe defect is fixed and committed, the
-corrected measurement is honest (neither saturated nor accidentally
-degenerate), and the verdict is a genuine null at this scale on TWO
-independent readouts. Production integration (replacing
-`grounding.py`'s modality map) is NOT warranted on this evidence --
-doing so on an unreplicated toy mechanism would be exactly the
+#91 closes on this design. The stability-probe defect is fixed and
+committed. The corrected measurement is honest on both readouts
+(stability, recall) and both exposure levels that produced valid
+numbers, and the verdict at every trustworthy point is a genuine null:
+no per-word category signal from the architectural asymmetry alone, at
+n=10^4/k=50/12-word vocabulary, at 10x-40x exposure. Production
+integration (replacing `grounding.py`'s modality map) is NOT warranted
+-- doing so on an unreplicated toy mechanism would be exactly the
 "promote on the strength of a number that should be doubted" pattern
-this repo's process discipline exists to prevent. The exposure-scaling
-follow-on (more sentences/word, same n/k) is the next registered step,
-not yet run.
+this repo's process discipline exists to prevent. Per the paper-
+fidelity deviations already logged in the parent script (n=10^4 not
+10^5, no C_i context areas, m=0), those -- not exposure -- are the
+next candidates if this mechanism is revisited.
