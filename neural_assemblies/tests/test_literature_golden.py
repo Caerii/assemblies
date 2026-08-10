@@ -218,14 +218,32 @@ class TestHoff2026SizeDistGolden:
 
 
 class TestNemo2025FsmMod3Golden:
-    def test_mod3_digit_sum_fsm(self):
+    def test_golden_is_retracted(self):
+        """The golden certified a dictionary lookup, and says so.
+
+        It was recorded while `NemoArcFSM.step_symbol` returned
+        `self._table[(from_state, symbol)]`, so its metrics came from the
+        transition table rather than the network -- the same values are
+        returned by an untrained brain and at beta=0. Its parameters also put
+        the arc at kp = 2 against a floor of 22.8. Asserting the retraction
+        keeps the file from being quietly restored.
+        """
         g = _load("nemo2025_fsm_mod3.json")
+        assert "RETRACTED" in g, "the mod-3 golden was retracted; see 891a0db"
+        assert "expected" not in g and "metrics" not in g, (
+            "retracted keys must stay renamed so no test can consume them")
+
+    @pytest.mark.xfail(strict=True, reason=(
+        "A1: the FSM decides 5/10 seeds (4/10 with a correct trajectory). "
+        "Single transitions are perfect 330/330; the state assembly drifts "
+        "along a sequence. Strict, so this fires and forces the golden to be "
+        "re-recorded once drift is fixed."))
+    def test_mod3_digit_sum_fsm(self):
         from neural_assemblies.programs.mod3_fsm import run_mod3_fsm_demo
 
-        result = run_mod3_fsm_demo(**g["parameters"])
-        assert result.positive_accepted == g["expected"]["positive_accepted"]
-        assert result.negative_rejected == g["expected"]["negative_rejected"]
-        assert result.final_state == g["metrics"]["positive_final_state"]
+        result = run_mod3_fsm_demo(seed=42, presentations=15)
+        assert result.positive_accepted
+        assert result.negative_rejected
 
 
 class TestCoin2024SoftmaxGolden:

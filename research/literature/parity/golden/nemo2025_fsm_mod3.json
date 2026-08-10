@@ -3,7 +3,28 @@
   "source": "neural_assemblies NemoArcFSM mod-3 digit-sum recognizer (nemo-demo.ipynb)",
   "demo_url": "http://dabagia.org/nemo/sequences/",
   "recorded": "2026-06-23",
-  "parameters": {
+  "RETRACTED": {
+    "date": "2026-08-10",
+    "commit": "891a0db",
+    "reason": "Recorded against a readout that could not fail. NemoArcFSM.step_symbol returned self._table[(from_state, symbol)] -- a dictionary lookup -- after running and discarding the dynamics, so these metrics were produced by the transition table, not by the network. Verified: the same values were returned by an UNTRAINED brain, with zero presentations, and with beta=0 (research/experiments/seq_arc_refraction_reference.py). The positive_trajectory below is simply the ground-truth mod-3 trace, computable with no network at all.",
+    "also_invalid": "The parameters were n=2000, k=40, p=0.05, giving the arc kp = 2 against a floor of 3 ln 2000 = 22.8 -- eleven times below the regime every theorem in the sequences paper requires. No network could have produced these metrics at that operating point.",
+    "measured_after_the_fix": {
+      "at_the_recorded_parameters": {
+        "positive_accepted": false,
+        "negative_rejected": false,
+        "positive_trajectory": ["0", "0", "accept", "0", "1", "0", "0"]
+      },
+      "at_the_reference_regime": {
+        "parameters": {"n": 5000, "k": 70, "n_state": 500, "p": 0.2, "beta": 0.1, "presentations": 15, "norm_init": false},
+        "positive_accepted": false,
+        "negative_rejected": true,
+        "positive_trajectory": ["0", "0", "0", "1", "2", "0", "reject"],
+        "note": "Tracks ground truth through all five digit steps and misses only the final `end` transition -- the drift signature, where overlap with the correct state is lowest."
+      }
+    },
+    "do_not_re_record_until": "P-GOLD passes in seq_a1_fsm_parity.py. A golden recorded from a machine that decides 5/10 would enshrine a coin flip. See research/notes/the_arc_is_a_conjunction_and_the_state_drifts.md."
+  },
+  "parameters_retracted": {
     "seed": 42,
     "n": 2000,
     "k": 40,
@@ -13,13 +34,13 @@
     "positive_sequence": [3, 0, 4, 7, 1, 10],
     "negative_sequence": [6, 7, 3, 10]
   },
-  "metrics": {
+  "metrics_retracted": {
     "positive_accepted": true,
     "negative_rejected": true,
     "positive_final_state": "accept",
     "positive_trajectory": ["0", "0", "0", "1", "2", "0", "accept"]
   },
-  "expected": {
+  "expected_retracted": {
     "positive_accepted": true,
     "negative_rejected": true
   }

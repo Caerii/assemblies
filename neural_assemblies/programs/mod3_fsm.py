@@ -94,20 +94,41 @@ def run_digit_sequence(fsm: NemoArcFSM, digits: Sequence[int]) -> Tuple[str, Lis
 def run_mod3_fsm_demo(
     *,
     seed: int = 42,
-    n: int = 2000,
-    k: int = 40,
+    n: int = 5000,
+    k: int = 70,
+    n_state: int = 500,
+    p: float = 0.2,
     beta: float = 0.1,
     presentations: int = 15,
     positive_sequence: Iterable[int] = (3, 0, 4, 7, 1, 10),
     negative_sequence: Iterable[int] = (6, 7, 3, 10),
 ) -> Mod3FsmResult:
-    """Train mod-3 FSM and evaluate reference positive/negative digit strings."""
+    """Train mod-3 FSM and evaluate reference positive/negative digit strings.
+
+    Defaults are the reference's regime, not the ones this demo shipped with.
+    It ran at n=2000, k=40, p=0.05, giving the arc kp = 2 against a floor of
+    3 ln 2000 = 22.8 -- eleven times below what every theorem in the sequences
+    paper requires. That was survivable only because the readout was a table
+    lookup and the dynamics could not affect the answer. At the reference's
+    n=5000, k=70, p=0.2 the arc sits at kp = 28 against 25.6 and is a clean
+    conjunction (`research/notes/the_arc_is_a_conjunction_and_the_state_drifts.md`).
+
+    `norm_init=False` pins the reference substrate; neither area here has a
+    self fiber, which is the only thing norm_init exists to stabilise.
+
+    THIS DOES NOT RELIABLY DECIDE YET. A1 measured 5/10 seeds at these
+    parameters, and only 4/10 with a fully correct trajectory: single
+    transitions are perfect (330/330) but the state assembly drifts along a
+    sequence. At seed 42 the trajectory tracks ground truth through all five
+    digit steps and misses only the final `end` transition.
+    """
     from neural_assemblies.core.brain import Brain
 
     pos = list(positive_sequence)
     neg = list(negative_sequence)
-    brain = Brain(p=0.05, save_winners=True, seed=seed, engine="numpy_sparse")
-    fsm = build_mod3_fsm(brain, n=n, k=k, beta=beta)
+    brain = Brain(p=p, save_winners=True, seed=seed, engine="numpy_sparse",
+                  norm_init=False)
+    fsm = build_mod3_fsm(brain, n=n, k=k, n_state=n_state, beta=beta)
     train_mod3_fsm(fsm, presentations=presentations)
 
     pos_final, pos_traj = run_digit_sequence(fsm, pos)
