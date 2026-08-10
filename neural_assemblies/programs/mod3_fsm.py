@@ -50,7 +50,6 @@ def build_mod3_fsm(
     k: int = 40,
     n_state: int | None = None,
     beta: float = 0.1,
-    rounds: int = 6,
     refracted_strength: float = 0.1,
     prefix: str = "_mod3",
 ) -> NemoArcFSM:
@@ -63,7 +62,6 @@ def build_mod3_fsm(
         k=k,
         n_state=n_state,
         beta=beta,
-        rounds=rounds,
         refracted_strength=refracted_strength,
         prefix=prefix,
     )
@@ -99,7 +97,6 @@ def run_mod3_fsm_demo(
     n: int = 2000,
     k: int = 40,
     beta: float = 0.1,
-    rounds: int = 6,
     presentations: int = 15,
     positive_sequence: Iterable[int] = (3, 0, 4, 7, 1, 10),
     negative_sequence: Iterable[int] = (6, 7, 3, 10),
@@ -110,7 +107,7 @@ def run_mod3_fsm_demo(
     pos = list(positive_sequence)
     neg = list(negative_sequence)
     brain = Brain(p=0.05, save_winners=True, seed=seed, engine="numpy_sparse")
-    fsm = build_mod3_fsm(brain, n=n, k=k, beta=beta, rounds=rounds)
+    fsm = build_mod3_fsm(brain, n=n, k=k, beta=beta)
     train_mod3_fsm(fsm, presentations=presentations)
 
     pos_final, pos_traj = run_digit_sequence(fsm, pos)
@@ -126,7 +123,6 @@ def run_mod3_fsm_demo(
             "n": n,
             "k": k,
             "beta": beta,
-            "rounds": rounds,
             "presentations": presentations,
             "positive_sequence": pos,
             "negative_sequence": neg,

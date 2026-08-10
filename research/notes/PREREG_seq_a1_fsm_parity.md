@@ -77,6 +77,42 @@ Test step: `disable_plasticity`; cue state 0; per symbol project
 {sym} + `SEQ_STATE` -> `SEQ_ARC` then `SEQ_ARC` -> `SEQ_STATE` free; label the
 final state by nearest overlap among the 5 stored assemblies.
 
+## Amendments, before any data
+
+**Amendment 1 (SUPERSEDED).** Raise `n_state` from the reference's 500 to 5000,
+keeping the state assemblies EMERGENT (one stimulus per state, projected once
+then replayed). Reasoning: the reference gets disjointness free by assigning
+index blocks, and two emergent assemblies in n=500, k=70 would overlap about
+k/n = 0.14, failing P-PRE by construction.
+
+**What killed it.** A smoke run (API check; task numbers void at 2
+presentations) put P-PRE at **0.224** with n_state=5000 -- sixteen times the
+0.014 chance the amendment predicted. Raising `n` does not help because the
+cause is not sparsity: it is [[sampler-merges-at-low-load]], the sparse
+sampler flattening distinct inputs into overlapping winners while the area is
+nearly empty. The amendment addressed the wrong mechanism.
+
+**Amendment 2 (in force).** State assemblies are assigned as DISJOINT NEURON-ID
+BLOCKS, exactly as the reference does with
+`arange(n_states * cap).reshape(n_states, cap)`, after materializing the state
+area so every ID has a compact slot. `n_state` returns to the reference's
+**500**. P-PRE then holds by construction rather than by luck, and the
+experiment stays on one engine.
+
+This removes a confound rather than measuring around it, and it is the more
+faithful port: an emergent state code is a genuinely interesting question, but
+it is #91's question, not this one. What A1 tests is whether the arc + state
+organ learns transitions given a clean state code -- which is what Theorem 4
+assumes.
+
+**Amendment 3 (in force).** `norm_init=False`. The reference's `FSMNetwork`
+defaults to raw Bernoulli(p) weights, our `Brain` defaults to normalized ones,
+and that changes both the drive scale and the balance between the arc's two
+conjuncts -- which is the quantity under test. [[norm-init-substrate-vs-reference]]
+already says parity reproductions pin False. It is also the safe choice here:
+norm_init exists to stop SELF-recurrence collapsing, and neither area in this
+organ has a self fiber.
+
 ## Bars
 
 Ten brain seeds, reported as a distribution and never as a bare mean.

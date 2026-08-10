@@ -28,7 +28,7 @@ class TestNemoArcFSM(unittest.TestCase):
         return b, NemoArcFSM(
             b, states=["q0", "q1"], symbols=["a"],
             transitions=[("q0", "a", "q1"), ("q1", "a", "q0")],
-            n=2000, k=40, beta=0.1, rounds=6,
+            n=2000, k=40, beta=0.1,
         )
 
     def test_trained_transition_is_read_from_the_assembly(self):

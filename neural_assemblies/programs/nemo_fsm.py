@@ -15,6 +15,7 @@ from neural_assemblies.assembly_calculus.assembly import Assembly, overlap
 from neural_assemblies.assembly_calculus.ops import (
     _snap, activate_assembly, project,
 )
+from neural_assemblies.core.index_spaces import NeuronIds
 from neural_assemblies.assembly_calculus.pfa import RandomChoiceArea
 from neural_assemblies.assembly_calculus.transitions import TransitionLike, TransitionMap
 
@@ -66,7 +67,6 @@ class NemoArcFSM:
         k: int = 80,
         n_state: int | None = None,
         beta: float = 0.1,
-        rounds: int = 10,
         refracted_strength: float = 0.1,
         prefix: str = "_nemo_fsm",
     ):
@@ -74,13 +74,13 @@ class NemoArcFSM:
         self.states = list(states)
         self.symbols = list(symbols)
         self.transition_map = TransitionMap(transitions)
-        self.rounds = rounds
         self.prefix = prefix
 
         self.state_area = f"{prefix}_state"
         self.arc_area = f"{prefix}_arc"
 
-        brain.add_area(self.state_area, n_state or n, k, beta)
+        n_state = max(n_state or n, len(self.states) * k)
+        brain.add_area(self.state_area, n_state, k, beta)
         brain.add_area(
             self.arc_area, n, k, beta,
             refracted=True, refracted_strength=refracted_strength,
@@ -96,17 +96,27 @@ class NemoArcFSM:
             brain.add_stimulus(s, k)
             self._sym_stim[sym] = s
 
-        # One stable assembly per state, formed once and REPLAYED thereafter
-        # rather than re-projected: re-projecting carries plasticity, so the
-        # cue would drift away from the assembly the transitions were taught
-        # against. Same reason `ops.bind` replays a stored source.
-        self._st_stim: Dict[str, str] = {}
-        self._state_asm: Dict[str, Assembly] = {}
-        for st in states:
-            s = f"{prefix}_st_{st}"
-            brain.add_stimulus(s, k)
-            self._st_stim[st] = s
-            self._state_asm[st] = project(brain, s, self.state_area, rounds=rounds)
+        # State assemblies are DISJOINT BLOCKS, as in the reference, which
+        # assigns `arange(n_states * cap).reshape(n_states, cap)`.
+        #
+        # They were formed by projecting one stimulus per state instead, and
+        # that does not give disjointness: measured at n_state=5000, k=70,
+        # five emergent assemblies overlapped 0.224 pairwise against a chance
+        # of k/n = 0.014 -- 16x chance. The cause is not sparsity, so raising n
+        # does not fix it; it is [[sampler-merges-at-low-load]], the sampler
+        # flattening distinct inputs into overlapping winners while the area is
+        # nearly empty. A nearest-overlap readout over five states cannot be
+        # trusted on a code like that, and the confound is avoidable, so it is
+        # avoided rather than measured around.
+        #
+        # `materialize_area` first: a neuron ID has no compact slot until it
+        # exists, and `activate_assembly` rightly refuses IDs it cannot map.
+        brain.materialize_area(self.state_area)
+        self._state_asm: Dict[str, Assembly] = {
+            st: Assembly(self.state_area,
+                         NeuronIds(np.arange(i * k, (i + 1) * k, dtype=np.uint32)))
+            for i, st in enumerate(self.states)
+        }
 
         self._table: Dict[Tuple[str, str], str] = (
             self.transition_map.deterministic_table()
