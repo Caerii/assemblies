@@ -634,7 +634,7 @@ def role_binding_deficit(
             f"{type(exc).__name__}: {exc}", word=word)
     scores = {cand: float(assembly_overlap(stored.winners, probe.winners))
               for cand, stored in lexicon.items()}
-    landed_on = max(scores, key=scores.get)
+    landed_on = max(scores, key=lambda cand: scores[cand])
     best = scores[landed_on]
     return Measured(max(0.0, 1.0 - best), True, "",
                     {"landed_on": landed_on, "best_overlap": best,
@@ -784,6 +784,35 @@ def measure_live_integration(
     return round(p600, 4), role_area, round(mean_stability, 4)
 
 
+def _settle_context_into_prediction(parser: "EmergentParser",
+                                    prefix: Tuple[str, ...]) -> None:
+    """Settle *prefix* into PREDICTION -- THE ONE settling implementation.
+
+    Extracted from `measure_lexical_surprise` so that the energy readout and
+    the landing readout (`prediction_landing_surprise`) run IDENTICAL dynamics
+    up to the read. Two settling copies that merely agree today are the
+    situation that produced the pricing-law and role-training drifts; one
+    function cannot disagree with itself. Callers own the fidelity pin and
+    `probe_context` -- this only drives the projections.
+    """
+    brain = parser.brain
+    parser._bootstrap_prediction_connectivity()
+    parser.build_context_incremental(list(prefix), reset=True, direct=True)
+    parser._clear_prediction_activity()
+    infer = parser.inference_rounds
+    brain.project({}, {CONTEXT: [PREDICTION]})
+    if infer > 1:
+        brain.project_rounds(
+            target=PREDICTION,
+            areas_by_stim={},
+            dst_areas_by_src_area={
+                CONTEXT: [PREDICTION],
+                PREDICTION: [PREDICTION],
+            },
+            rounds=infer - 1,
+        )
+
+
 def _predicted_energy(brain, entry) -> Measured:
     """Mean PRE-k-WTA drive the settled context delivers to *entry*'s neurons.
 
@@ -917,21 +946,7 @@ def measure_lexical_surprise(
     brain.projection_fidelity = "exact"
     with probe_context(brain):
         try:
-            parser._bootstrap_prediction_connectivity()
-            parser.build_context_incremental(list(prefix), reset=True, direct=True)
-            parser._clear_prediction_activity()
-            infer = parser.inference_rounds
-            brain.project({}, {CONTEXT: [PREDICTION]})
-            if infer > 1:
-                brain.project_rounds(
-                    target=PREDICTION,
-                    areas_by_stim={},
-                    dst_areas_by_src_area={
-                        CONTEXT: [PREDICTION],
-                        PREDICTION: [PREDICTION],
-                    },
-                    rounds=infer - 1,
-                )
+            _settle_context_into_prediction(parser, prefix)
             energy_m = _predicted_energy(brain, entry)
             if not energy_m.defined:
                 # Propagate rather than silently becoming 1 - 0.0 = MAXIMUM
@@ -953,6 +968,83 @@ def measure_lexical_surprise(
             return Measured.of(n400)
         finally:
             brain.projection_fidelity = prev_fid
+
+
+def prediction_landing_surprise(
+    parser: "EmergentParser",
+    prefix: Tuple[str, ...],
+    word: str,
+    *,
+    readiness: Optional[ErpReadiness] = None,
+) -> Measured:
+    """N400 on the LANDING channel: which assembly does the context settle on?
+
+    #28. `measure_lexical_surprise` reads the mean pre-k-WTA drive the settled
+    context delivers ONTO the word's stored PREDICTION assembly -- a graded
+    HOW-MUCH quantity, recorded as insensitive to expectancy ("bit-identical
+    across parse arms"). This adapter reads the OUTCOME of the competition
+    instead: after the IDENTICAL settling (`_settle_context_into_prediction`,
+    the one shared implementation), the surprise is
+
+        1 - overlap(PREDICTION's settled assembly, the word's stored entry)
+
+    -- did the context actually land on THIS word, not how much energy grazed
+    it. #121 measured this channel family (landing overlap under an isolated
+    probe) at AUC 0.916 on role pathways where the drive family read near
+    chance.
+
+    PRE-STATED HAZARD: an earlier post-k-WTA N400 (overlap of settled winners)
+    REVERSED SIGN under ``norm_init`` and was replaced by the energy form (this
+    module's docstring). That measurement predates the content-addressed init,
+    the index-space fixes and the growth-ratchet repair, and the #121 landing
+    readout -- also post-k-WTA -- did not invert. The registered experiment
+    (n400_landing_2x2.py) states the direction in advance and treats an
+    inversion as a diagnosis target, not a sign convention.
+
+    Same gates as the energy adapter so the two channels stay comparable on
+    identical probe sets; every escape is `Measured.undefined`, never 1.0.
+    """
+    from neural_assemblies.assembly_calculus.ops import _snap
+    from neural_assemblies.diagnostics import assembly_overlap
+
+    if not prefix:
+        return Measured.undefined(
+            "no prefix: there is no context to predict from")
+    readiness = readiness or assess_erp_readiness(parser)
+    if not readiness.n400_ready:
+        return Measured.undefined(
+            "parser is not n400_ready (prediction lexicon too small)")
+    if not hasattr(parser, "prediction_lexicon"):
+        return Measured.undefined("parser has no prediction_lexicon at all")
+
+    parser._ensure_prediction_lexicon([word])
+    entry = parser.prediction_lexicon.get(word)
+    if entry is None:
+        return Measured.undefined(
+            f"{word!r} is not in the prediction lexicon, so its landing "
+            f"surprise is undefined", word=word)
+
+    brain = parser.brain
+    prev_fid = brain.projection_fidelity
+    brain.projection_fidelity = "exact"
+    with probe_context(brain):
+        try:
+            _settle_context_into_prediction(parser, prefix)
+            settled = _snap(brain, PREDICTION)
+        except (RuntimeError, IndexError, ValueError, KeyError) as exc:
+            return Measured.undefined(
+                f"settling {' '.join(prefix)!r} into PREDICTION failed: "
+                f"{type(exc).__name__}: {exc}", word=word)
+        finally:
+            brain.projection_fidelity = prev_fid
+    if settled is None or len(settled.winners) == 0:
+        return Measured.undefined(
+            "PREDICTION settled to an empty assembly -- the legacy 1.0 would "
+            "read as MAXIMUM surprise", word=word)
+    ov = float(assembly_overlap(settled.winners, entry.winners))
+    return Measured(max(0.0, 1.0 - ov), True, "",
+                    {"overlap": ov, "settled_size": int(len(settled.winners)),
+                     "entry_size": int(len(entry.winners))})
 
 
 def measure_fresh_stimulus_integration(
