@@ -47,17 +47,18 @@ is *arithmetic* is here, and both engines call it.
 
 from __future__ import annotations
 
-from typing import Optional, Sequence
+from typing import Optional, Sequence, Tuple, Union
 
 __all__ = [
     "candidate_divisor",
+    "effective_binomial",
     "inverse_indegree",
     "area_fiber_activity",
 ]
 
 
 def candidate_divisor(
-    p: float,
+    p: Union[float, Sequence[float]],
     tgt_n: int,
     input_sizes: Optional[Sequence[float]] = None,
     src_pops: Optional[Sequence[float]] = None,
@@ -101,25 +102,84 @@ def candidate_divisor(
     Candidate in-degree *variance* is deliberately not modelled: an
     unmaterialized neuron has no persistent in-degree yet (it is drawn only when
     the neuron materializes), which is exactly the "no pre-existing hubs"
-    property ``norm_init`` exists to enforce.  Nor is the variance of the
-    per-fiber mixture: the sampler draws a single pooled binomial, so only the
-    SCALE is corrected here.  That is the dominant term -- the mismatch above is
-    a factor of 8-10 -- but it is why this is a scale fix and not a full
-    per-fiber sampler.
+    property ``norm_init`` exists to enforce.  The variance of the per-fiber
+    MIXTURE is handled separately, by `effective_binomial`, which is what the
+    sampler's pooled draw needs; this function corrects only the SCALE.
+
+    PER-FIBER ``p``.  ``p`` may be a sequence parallel to ``input_sizes``.  The
+    incumbent scale ``sum_f a_f / n_pre_f`` does NOT depend on ``p`` at all --
+    dividing a fiber's ``Binomial(a_f, p_f)`` by its in-degree ``n_pre_f * p_f``
+    cancels it -- so only the numerator generalizes, from ``p * sum_f a_f`` to
+    ``sum_f a_f * p_f``.  With every ``p_f`` equal this is the same expression,
+    which is what keeps homogeneous brains bit-identical.
     """
+    per_fiber = not isinstance(p, (int, float))
+    ps = list(p) if per_fiber else None
     if input_sizes and src_pops and len(input_sizes) == len(src_pops):
-        total = 0.0
+        if ps is not None and len(ps) != len(input_sizes):
+            raise ValueError(
+                f"per-fiber p has {len(ps)} entries for {len(input_sizes)} "
+                f"input sizes; they must be parallel")
+        total_weighted_p = 0.0
         weighted = 0.0
-        for size, pop in zip(input_sizes, src_pops):
+        for i, (size, pop) in enumerate(zip(input_sizes, src_pops)):
             size = float(size)
             pop = float(pop)
             if size <= 0.0 or pop <= 0.0:
                 continue
-            total += size
+            total_weighted_p += size * (ps[i] if ps is not None else float(p))
             weighted += size / pop
-        if total > 0.0 and weighted > 0.0:
-            return max(p * total / weighted, 1e-12)
-    return max(float(tgt_n) * p, 1e-12)
+        if total_weighted_p > 0.0 and weighted > 0.0:
+            return max(total_weighted_p / weighted, 1e-12)
+    flat = (sum(ps) / len(ps)) if ps else float(p)
+    return max(float(tgt_n) * flat, 1e-12)
+
+
+def effective_binomial(input_sizes: Sequence[float],
+                       ps: Sequence[float]) -> Tuple[int, float]:
+    """Moment-match ``sum_f Binomial(a_f, p_f)`` to a single ``Binomial(N, P)``.
+
+    The candidate sampler draws one pooled binomial for the whole projection,
+    which is exact only when every fiber shares a ``p``.  With per-fiber
+    densities the pooled count is a sum of independent binomials with different
+    success probabilities -- a Poisson-binomial -- whose first two moments are::
+
+        mu  = sum_f a_f p_f
+        var = sum_f a_f p_f (1 - p_f)
+
+    Matching ``N P = mu`` and ``N P (1 - P) = var`` gives ``P = 1 - var/mu`` and
+    ``N = mu / P``.  When all ``p_f == p`` this returns ``(sum_f a_f, p)``
+    EXACTLY, so the homogeneous path is unchanged rather than approximated --
+    that equality is the whole reason this is safe to put on the default path.
+
+    Two moments, not the full distribution: the sampler only needs a location
+    and a scale for its truncated-normal tail, and the third moment would not
+    survive that approximation anyway.  Returns ``(N, P)`` with ``N`` rounded,
+    since a binomial quantile needs an integer trial count.
+    """
+    sizes = [float(a) for a in input_sizes]
+    probs = [float(q) for q in ps]
+    # DISPATCH, not arithmetic that happens to agree. Evaluating 1 - var/mu on
+    # a homogeneous input returns 0.19999999999999996 for p=0.2, and the
+    # sampler's binomial-quantile cache is keyed on that float -- so deriving
+    # the answer would change every existing draw by a rounding error. Return
+    # the inputs unchanged instead, and homogeneous brains stay bit-identical.
+    if not probs or all(q == probs[0] for q in probs):
+        return int(round(sum(sizes))), (probs[0] if probs else 0.0)
+
+    mu = sum(a * q for a, q in zip(sizes, probs))
+    if mu <= 0.0:
+        return 0, 0.0
+    var = sum(float(a) * float(q) * (1.0 - float(q))
+              for a, q in zip(input_sizes, ps))
+    p_eff = 1.0 - var / mu
+    # Degenerate only if some p_f == 1 (var 0) or the match leaves the unit
+    # interval; fall back to the activity-weighted mean, which is the same
+    # location with a slightly wrong scale rather than an invalid draw.
+    if not 0.0 < p_eff <= 1.0:
+        p_eff = min(max(mu / max(sum(float(a) for a in input_sizes), 1e-12),
+                        1e-12), 1.0)
+    return int(round(mu / p_eff)), p_eff
 
 
 def inverse_indegree(deg, n_pre: int, rows_known: int, p: float, xp=None,
