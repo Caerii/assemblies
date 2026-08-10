@@ -164,16 +164,31 @@ AREA_MATCHED_CALIBRATION_FRAMES: List[CalibrationFrame] = [
 #: degenerate control separates the two readings, exactly as
 #: `p600_is_confounded_with_area_identity.md` did for the target area. Do not
 #: promote on the strength of the 1.0000; that number is the reason to doubt it.
+#: REFRESHED 2026-08-09 (#113 continuation): the original words
+#: (food/take/give/bed) trained and classified correctly when selected
+#: (ed2b58b, seeds 11+42) but stopped training on neither code nor corpus
+#: intent -- `curriculum/generation.py`'s sentence generator draws from
+#: ONE internal `_rng.seed(42)` stream (its own fixed seed, unrelated to
+#: the outer parser seed), so any edit that adds/removes a draw earlier in
+#: the function reshuffles every later draw. That module did not exist at
+#: selection time (0d330b5 extracted it from trainer.py immediately after
+#: ed2b58b) and four further commits (#135/#136/#142/#149) touched it
+#: since -- each an innocent, unrelated change that nonetheless silently
+#: reshuffled which low-frequency nouns/verbs land in a generated
+#: sentence. Re-run via `erp_frame_candidate_selection.py`, widened from
+#: 2 to 8 seeds (SEEDS in that script) precisely because 2-seed agreement
+#: had already once been mistaken for stability. See
+#: research/notes/the_calibration_frame_set_was_never_wrong.md.
 TRAINED_AREA_MATCHED_CALIBRATION_FRAMES: List[CalibrationFrame] = [
-    ("grammatical", "trained noun object", ["the", "dog", "want", "food"]),
-    ("category_violation", "verb as object", ["the", "dog", "want", "take"]),
+    ("grammatical", "trained noun object", ["the", "dog", "want", "baby"]),
+    ("category_violation", "verb as object", ["the", "dog", "want", "come"]),
     ("novel_noun", "holdout noun object", ["the", "dog", "want", "bird"]),
-    ("grammatical", "trained noun object 2", ["the", "baby", "see", "book"]),
-    ("category_violation", "verb as object 2", ["the", "baby", "see", "give"]),
-    ("novel_noun", "holdout noun object 2", ["the", "baby", "see", "bird"]),
-    ("grammatical", "trained noun object 3", ["the", "man", "have", "bed"]),
-    ("category_violation", "verb as object 3", ["the", "man", "have", "come"]),
-    ("novel_noun", "holdout noun object 3", ["the", "man", "have", "bird"]),
+    ("grammatical", "trained noun object 2", ["the", "book", "go", "cat"]),
+    ("category_violation", "verb as object 2", ["the", "book", "go", "have"]),
+    ("novel_noun", "holdout noun object 2", ["the", "book", "go", "bird"]),
+    ("grammatical", "trained noun object 3", ["the", "ball", "do", "man"]),
+    ("category_violation", "verb as object 3", ["the", "ball", "do", "see"]),
+    ("novel_noun", "holdout noun object 3", ["the", "ball", "do", "bird"]),
 ]
 
 # Minimal frame set for sweep-mode calibration (2 per label class).

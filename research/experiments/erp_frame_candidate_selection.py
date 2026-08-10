@@ -41,7 +41,23 @@ from neural_assemblies.assembly_calculus.emergent.evaluation.sweep import (  # n
     get_parser_cache,
 )
 
-SEEDS = [11, 42]
+SEEDS = [11, 42, 7, 12, 19, 43, 44, 45]
+#: Widened from [11, 42] (#113/#115 selection) after the pathspec that
+#: selection ran against was proven UNSTABLE: `curriculum/generation.py`'s
+#: sentence generator draws from ONE internal `_rng.seed(42)` stream (its own
+#: fixed seed, unrelated to the outer test/parser seed), so ANY edit that adds
+#: or removes a draw earlier in the function reshuffles every later draw --
+#: including which low-frequency nouns/verbs land in a generated sentence.
+#: Four commits touched generation.py between the original selection
+#: (ed2b58b) and this widening (#113 continuation, 2026-08-09): the module
+#: did not exist yet at ed2b58b (0d330b5 extracted it from trainer.py right
+#: after), then #135/#136/#142/#149 each edited it further. The selected
+#: words (food/bed/take/give) trained at BOTH original seeds when chosen and
+#: train at NEITHER now -- verified by checking out generation.py's ed2b58b
+#: ancestor state (trainer.py's inline generator) against current dev, same
+#: seed=42. Two seeds proved insufficient evidence of robustness; eight is
+#: not a guarantee either, but the same _rng.seed(42) coupling makes MORE
+#: seeds strictly more informative than a different two.
 
 
 def _corpus_counts():
@@ -63,24 +79,40 @@ def _corpus_counts():
     )
 
 
-def _profile(parser, holdouts, counts):
-    """word -> (trained, category, corpus count) for everything registered."""
+def _profile(parser, holdouts, counts, preset):
+    """word -> (trained, category, corpus count) for everything registered.
+
+    Restricted to `preset` (the vocabulary the guard test
+    `test_every_frame_word_is_in_the_vocabulary` checks against): a word can
+    be TRAINED on this parser via a path outside the standard noun/verb SVO
+    generator (copulas like 'is' bootstrap separately; #34's rich_corpus
+    words can enter core lexicons without being in the medium preset) and
+    still be unusable in a frame, because a frame built from a non-preset
+    word parses UNKNOWN on any OTHER parser built from the preset -- exactly
+    what shipped once as 'toy' proposed as a VERB by classifier error. This
+    filter is why that class of candidate cannot reappear silently.
+    """
     trained = {w for lex in parser.core_lexicons.values() for w in lex}
     rows = {}
-    for word in sorted(set(trained) | set(holdouts)):
+    for word in sorted((set(trained) | set(holdouts)) & set(preset)):
         cat, _scores = parser.classify_word(word)
         rows[word] = (word in trained, cat, counts.get(word, 0))
     return rows
 
 
 def main():
+    from neural_assemblies.assembly_calculus.emergent.vocabulary_builder import (
+        build_vocabulary_preset,
+    )
+
     counts = _corpus_counts()
     holdouts = set(default_holdout_set())
+    preset = set(build_vocabulary_preset("medium"))
 
     profiles = {}
     for seed in SEEDS:
         parser = get_parser_cache().fork("SENTENCES", seed=seed)
-        profiles[seed] = _profile(parser, holdouts, counts)
+        profiles[seed] = _profile(parser, holdouts, counts, preset)
 
     # A word is usable only if EVERY seed agrees on its category. A word whose
     # category flips between seeds is not a stable item, and averaging over an
