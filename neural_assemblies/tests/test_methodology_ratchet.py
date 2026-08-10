@@ -84,6 +84,14 @@ averages the solvable GROUPS' accuracies (Z60 and A4xZ5) into the reference
 that the non-solvable arms are compared against -- a mean over ARMS, not over
 seeds. Each arm's own accuracy is an `ensemble_from_values` over seeds, and
 every bar is judged on those intervals.
+
+RAISED 2026-08-10 for `seq_s5_cliff_anatomy.py` (2 sites). `pre_onblock_mean`
+averages the live state's on-block overlap over the STEPS of one trajectory,
+and `ok_margin_mean` averages readout margins over the CENSUSED PAIRS of one
+brain -- both within a single seed, forming that seed's record. Every bar in
+that study (C1-C4) is a per-seed exact condition ANDed across seeds, with each
+seed's value printed on its own line; no aggregate over seeds is judged at
+all.
 """
 
 from __future__ import annotations
