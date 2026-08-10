@@ -1349,8 +1349,31 @@ def ensemble(run, seeds: Sequence[int], label: str = "arm") -> Ensemble:
             f"{len(seeds)} seeds cannot support a confidence interval. "
             f"Seed-to-seed sd is routinely as large as the effects measured "
             f"here, so 1-2 seeds is a draw, not a measurement.")
-    vals = [float(run(s)) for s in seeds]
-    bad = [s for s, v in zip(seeds, vals) if math.isnan(v)]
+    return ensemble_from_values([float(run(s)) for s in seeds], label,
+                                keys=seeds)
+
+
+def ensemble_from_values(values: Sequence[float], label: str = "arm",
+                         keys: Optional[Sequence[Any]] = None) -> Ensemble:
+    """Summarise ALREADY-COMPUTED per-seed values as mean +/- 95% CI.
+
+    THIS EXISTS FOR PARALLEL RUNNERS. `ensemble` takes a callable and drives
+    the seeds itself, which a process pool cannot do -- the cells are computed
+    elsewhere and come back as a list. Without this the caller reaches for
+    `statistics.mean` and a hand-rolled interval, which is the exact pattern
+    `test_methodology_ratchet` exists to stop, so the sanctioned path has to
+    cover the parallel case too or the ratchet just pushes work off a cliff.
+
+    `keys` names the cells for the NaN message; it defaults to positions.
+    """
+    vals = [float(v) for v in values]
+    if len(vals) < 3:
+        raise ValueError(
+            f"{len(vals)} seeds cannot support a confidence interval. "
+            f"Seed-to-seed sd is routinely as large as the effects measured "
+            f"here, so 1-2 seeds is a draw, not a measurement.")
+    keys = list(keys) if keys is not None else list(range(len(vals)))
+    bad = [s for s, v in zip(keys, vals) if math.isnan(v)]
     if bad:
         # Refuse LOUDLY rather than let statistics.stdev die with a cryptic
         # AttributeError deep in the fraction machinery (it cost two

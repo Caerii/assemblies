@@ -36,14 +36,16 @@ from neural_assemblies.assembly_calculus.assembly import overlap
 from neural_assemblies.assembly_calculus.ops import _snap
 from neural_assemblies.core.brain import Brain
 from neural_assemblies.diagnostics import (
-    Ensemble, ensemble, format_report, paired_delta, regime_audit,
+    ensemble_from_values, format_report, paired_delta, regime_audit,
 )
 from neural_assemblies.programs.sequence_transducer import SequenceTransducer
 
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                                "study4"))
+_HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, os.path.join(_HERE, "study4"))
+sys.path.insert(0, _HERE)
 import ntp  # noqa: E402
 import ntp_ctx  # noqa: E402
+from _parallel import run_cells  # noqa: E402
 
 N, K, P, BETA = ntp.N, ntp.K, ntp.P, ntp.BETA
 TRAIN_ROUNDS, GROUND_ROUNDS = ntp.TRAIN_ROUNDS, ntp.GROUND_ROUNDS
@@ -163,6 +165,33 @@ def context_arm(seed):
                        n_test=N_TEST, engine="numpy_sparse")
 
 
+def worker(kind, seed, n_arc, beta):
+    """ONE cell, run in its own process. Must stay top-level and picklable.
+
+    Every cell reseeds numpy and random itself and shares nothing with the
+    others, which is what makes the pool safe here -- the same property
+    `_parallel` relies on. `PYTHONHASHSEED` is pinned by the caller because
+    hash()-derived seeds differ across processes and no single-process test can
+    catch that ([[pythonhashseed-nondeterminism]]).
+    """
+    if kind == "a3":
+        return {"v": a3_arm(seed, n_arc=n_arc, beta=beta)}
+    if kind == "blind":
+        return {"v": a3_arm(seed, n_arc=n_arc, beta=beta, state_blind=True)}
+    if kind == "context":
+        return {"v": context_arm(seed)}
+    if kind == "mechanism":
+        ov, m = a3_mechanism(seed, n_arc=n_arc)
+        return {"overlap": ov, "distinct_arcs": m}
+    raise ValueError(f"unknown cell kind {kind!r}")
+
+
+def _arm(results, kind, seeds, n_arc, beta, label, field="v"):
+    return ensemble_from_values(
+        [results[(kind, s, n_arc, beta)][field] for s in seeds],
+        label, keys=seeds)
+
+
 def report_regime(seed, n_arc):
     brain, t, _te = build(seed, n_arc=n_arc, beta=BETA)
     driven = {t.arc_area: [t.lex_area, t.state_area],
@@ -184,10 +213,18 @@ def main():
     print("\n  [regime] organ areas at the first seed, n_arc=10000")
     report_regime(seeds[0], 10000)
 
+    # THREE PHASES, and the split is forced by the pre-registration rather
+    # than by the pool. H5 gates everything, and `best_n` is not known until
+    # the sweep returns, so those are genuine barriers. Within a phase the
+    # cells are independent and run concurrently -- 70 sequential cells at
+    # roughly a minute each is two hours for work a 14-way pool finishes in
+    # about ten minutes, and nothing about the measurement changes: each cell
+    # reseeds itself and shares nothing.
+
     # -- H5, FIRST, as committed ------------------------------------------
     print("\n  [H5 null] beta = 0 -- must not beat the unigram baseline")
-    null = ensemble(lambda s: a3_arm(s, n_arc=10000, beta=0.0), seeds,
-                    label="null(beta=0)")
+    r = run_cells(worker, [("a3", s, 10000, 0.0) for s in seeds])
+    null = _arm(r, "a3", seeds, 10000, 0.0, "null(beta=0)")
     print(f"    {null}", flush=True)
     out["null"] = {"mean": null.mean, "ci": null.ci, "values": list(null.values)}
     h5 = null.high < UNIGRAM
@@ -200,13 +237,14 @@ def main():
         return
 
     # -- the n_arc curve ---------------------------------------------------
-    print("\n  [sweep] full n_arc curve, reported whole")
-    cells = {}
-    for n_arc in N_ARC_SWEEP:
-        e = ensemble(lambda s, na=n_arc: a3_arm(s, n_arc=na), seeds,
-                     label=f"a3(n_arc={n_arc})")
-        cells[n_arc] = e
-        print(f"    {e}", flush=True)
+    print("\n  [sweep + CONTEXT] full n_arc curve, reported whole")
+    r = run_cells(worker,
+                  [("a3", s, na, BETA) for na in N_ARC_SWEEP for s in seeds]
+                  + [("context", s, 0, BETA) for s in seeds])
+    cells = {na: _arm(r, "a3", seeds, na, BETA, f"a3(n_arc={na})")
+             for na in N_ARC_SWEEP}
+    for na in N_ARC_SWEEP:
+        print(f"    {cells[na]}", flush=True)
     out["sweep"] = {str(na): {"mean": e.mean, "ci": e.ci,
                               "values": list(e.values)}
                     for na, e in cells.items()}
@@ -217,7 +255,7 @@ def main():
 
     # -- CONTEXT, paired ---------------------------------------------------
     print("\n  [CONTEXT] #14's accumulator, re-run on the same seeds")
-    ctx = ensemble(context_arm, seeds, label="context(#14)")
+    ctx = _arm(r, "context", seeds, 0, BETA, "context(#14)")
     print(f"    {ctx}", flush=True)
     out["context"] = {"mean": ctx.mean, "ci": ctx.ci, "values": list(ctx.values)}
 
@@ -227,18 +265,17 @@ def main():
                        "values": list(delta.values)}
 
     # -- H4 mechanism, and the load actually achieved -----------------------
-    print("\n  [H4] cross-prefix state overlap and achieved arc load")
-    ovs, loads = [], []
-    for s in seeds:
-        ov, m = a3_mechanism(s, n_arc=best_n)
-        ovs.append(ov)
-        loads.append(m * K / best_n)
-        print(f"    seed {s}: state overlap {ov:.4f}  M~{m}  "
-              f"load {loads[-1]:.3f}", flush=True)
-    h4 = Ensemble("state_overlap", tuple(ovs), float(np.mean(ovs)),
-                  _ci(ovs))
-    load_e = Ensemble("arc_load", tuple(loads), float(np.mean(loads)),
-                      _ci(loads))
+    print("\n  [H4 + audit] state overlap, achieved arc load, state-blind arm")
+    r2 = run_cells(worker,
+                   [("mechanism", s, best_n, BETA) for s in seeds]
+                   + [("blind", s, best_n, BETA) for s in seeds])
+    ovs = [r2[("mechanism", s, best_n, BETA)]["overlap"] for s in seeds]
+    loads = [r2[("mechanism", s, best_n, BETA)]["distinct_arcs"] * K / best_n
+             for s in seeds]
+    for s, ov, ld in zip(seeds, ovs, loads):
+        print(f"    seed {s}: state overlap {ov:.4f}  load {ld:.3f}")
+    h4 = ensemble_from_values(ovs, "state_overlap", keys=seeds)
+    load_e = ensemble_from_values(loads, "arc_load", keys=seeds)
     print(f"    {h4}\n    {load_e}")
     out["h4"] = {"mean": h4.mean, "ci": h4.ci, "values": ovs}
     out["load"] = {"mean": load_e.mean, "ci": load_e.ci, "values": loads}
@@ -246,8 +283,7 @@ def main():
     # -- degenerate-arm audit ----------------------------------------------
     print("\n  [audit] score with the state held EMPTY -- can the readout "
           "reach the bar without it?")
-    blind = ensemble(lambda s: a3_arm(s, n_arc=best_n, state_blind=True),
-                     seeds, label="state-blind")
+    blind = _arm(r2, "blind", seeds, best_n, BETA, "state-blind")
     print(f"    {blind}", flush=True)
     out["state_blind"] = {"mean": blind.mean, "ci": blind.ci,
                           "values": list(blind.values)}
@@ -270,13 +306,6 @@ def main():
     out["verdicts"] = verdicts
     out["best_n_arc"] = best_n
     _write(out)
-
-
-def _ci(vals):
-    import statistics
-    tcrit = {3: 4.303, 4: 3.182, 5: 2.776, 6: 2.571, 7: 2.447, 8: 2.365,
-             9: 2.306, 10: 2.262, 11: 2.228, 12: 2.201}.get(len(vals), 1.96)
-    return tcrit * statistics.stdev(vals) / len(vals) ** 0.5
 
 
 def _write(out):
