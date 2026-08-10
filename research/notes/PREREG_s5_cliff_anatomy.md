@@ -150,3 +150,49 @@ memoryless and the implementation's is not. The fix lands in the engine with
 a regression test, the S5 study re-runs after it, and [[SEQ-EXACT-RECOVERY]]
 is re-evaluated on the repaired substrate -- the current horizon numbers may
 be an artifact of the leak.
+
+---
+
+## Addendum 2: the census instrument was DEAD, and the paradox dissolves
+
+**Retraction.** The claim in `79399a3` that "the step has undeclared memory"
+is WITHDRAWN. Its premise -- exact-in -> exact-out, universally -- came from a
+broken instrument.
+
+**The instrument bug.** `probe()` RESTORES WINNERS ON EXIT (verified directly:
+after == before, not after == inside). The census called `fsm.run`, which
+wraps its own probe, and then `_snap`ped AFTER it returned -- so every margin
+measured the restored pre-census residue, the same winners 240 times per
+organ. Margin 1.0000, constant, everywhere: the exact dead-probe signature
+this project already documented ([[fake-perfect-probe-signatures]]: "any
+margin that never varies is a dead probe"), printed 40 times and believed.
+`diagnostics.verify_probe` exists precisely to refuse such an instrument and
+was not used. The census LABELS remain valid (computed inside `run`).
+
+**What is actually established.** exact-in -> correct-LABEL-out. Assembly
+exactness of single steps was NEVER measured. A transition may emit 69/70 of
+the right block; deviation seeds there; composition amplifies or corrects.
+E6's one valid reading -- A5 seed 44 deviates at STEP 0, where there is no
+residual at all -- already shows deviation without memory. Memoryless step +
+SOFT defects is now the parsimonious account, and no engine-semantics anomaly
+is needed.
+
+## E7: the soft census, with a live instrument
+
+Single-step census as before, but snapped INSIDE the probe, recording the
+OUTPUT ASSEMBLY's overlap with its intended block per pair. Soft defect :=
+correct label, overlap < 1.0.
+
+Bars, stated before running:
+
+* **V1:** the valid margins VARY (the instrument is alive), and organs of
+  deviating seeds contain at least one soft pair.
+* **V2 (zero-parameter, again):** per seed, the first deviation step
+  `first_dev` equals the first step at which the word's TRUE path visits a
+  soft pair; seeds whose trajectory never deviates visit none.
+  *Prediction: PASSES, ~75%.* This is the same prediction shape that
+  falsified H-defect, now aimed at the quantity the composition actually
+  iterates.
+* **V3 (dynamics, exploratory):** whether a seeded deviation derails or
+  recovers is NOT barred here; if V2 passes it becomes the next question
+  (correction-radius curve).
