@@ -1,0 +1,26 @@
+=== Q1/Q2/Q3: golden, both collapse directions, refraction ablation ===
+    chance overlap = k/n = 0.014; task = seeds decided correctly of 3
+  refraction proportional: across-state 0.000  across-symbol 0.000  task 3/3
+  refraction          off: across-state 0.088  across-symbol 0.989  task 0/3
+
+=== Q4a: does the constant rule have an operating point at all? ===
+  strength     0.1: across-state 0.079  across-symbol 0.977  task 0/3
+  strength     1.0: across-state 0.043  across-symbol 0.954  task 0/3
+  strength     3.0: across-state 0.118  across-symbol 0.868  task 0/3
+  strength    10.0: across-state 0.000  across-symbol 0.000  task 3/3
+  strength    30.0: across-state 0.110  across-symbol 0.072  task 0/3
+  strength   100.0: across-state 0.415  across-symbol 0.408  task 0/3
+  strength   300.0: across-state 0.419  across-symbol 0.401  task 0/3
+  strength  1000.0: across-state 0.417  across-symbol 0.399  task 0/3
+
+=== Q4b: does that operating point MOVE with the drive scale? ===
+  presentations |  const=1       const=3       const=10      const=30      const=100      proportional
+  ----------------------------------------------------------------------------------------------------
+              5 |      0/3          0/3          0/3          0/3          0/3           0/3
+             15 |      0/3          0/3          3/3          0/3          0/3           3/3
+             30 |      0/3          0/3          0/3          3/3          0/3           3/3
+
+=== Q5: fake-perfect audit of the SHIPPED programs ===
+  untrained step_symbol('a','q0') -> 'q1'  (shipped test asserts 'q1': PASSES)
+  zero presentations  : positive -> 'accept' (True), negative -> 'reject' (True)
+  beta = 0            : positive -> 'accept' (True), negative -> 'reject' (True)
