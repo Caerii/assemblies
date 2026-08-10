@@ -1,0 +1,686 @@
+[
+  {
+    "seed": 1,
+    "digit": 0,
+    "expected_period": 1,
+    "measured_period": 1,
+    "labels_correct": true,
+    "return_overlap_min": 1.0,
+    "return_overlap_mean": 1.0,
+    "cross_phase_overlap": [],
+    "labels": [
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0"
+    ]
+  },
+  {
+    "seed": 1,
+    "digit": 1,
+    "expected_period": 3,
+    "measured_period": 3,
+    "labels_correct": true,
+    "return_overlap_min": 1.0,
+    "return_overlap_mean": 1.0,
+    "cross_phase_overlap": [
+      0.0,
+      0.0
+    ],
+    "labels": [
+      "1",
+      "2",
+      "0",
+      "1",
+      "2",
+      "0",
+      "1",
+      "2",
+      "0"
+    ]
+  },
+  {
+    "seed": 1,
+    "digit": 2,
+    "expected_period": 3,
+    "measured_period": 3,
+    "labels_correct": true,
+    "return_overlap_min": 1.0,
+    "return_overlap_mean": 1.0,
+    "cross_phase_overlap": [
+      0.0,
+      0.0
+    ],
+    "labels": [
+      "2",
+      "1",
+      "0",
+      "2",
+      "1",
+      "0",
+      "2",
+      "1",
+      "0"
+    ]
+  },
+  {
+    "seed": 1,
+    "digit": 3,
+    "expected_period": 1,
+    "measured_period": 1,
+    "labels_correct": true,
+    "return_overlap_min": 1.0,
+    "return_overlap_mean": 1.0,
+    "cross_phase_overlap": [],
+    "labels": [
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0"
+    ]
+  },
+  {
+    "seed": 1,
+    "digit": 4,
+    "expected_period": 3,
+    "measured_period": 3,
+    "labels_correct": true,
+    "return_overlap_min": 1.0,
+    "return_overlap_mean": 1.0,
+    "cross_phase_overlap": [
+      0.0,
+      0.0
+    ],
+    "labels": [
+      "1",
+      "2",
+      "0",
+      "1",
+      "2",
+      "0",
+      "1",
+      "2",
+      "0"
+    ]
+  },
+  {
+    "seed": 1,
+    "digit": 5,
+    "expected_period": 3,
+    "measured_period": 3,
+    "labels_correct": true,
+    "return_overlap_min": 1.0,
+    "return_overlap_mean": 1.0,
+    "cross_phase_overlap": [
+      0.0,
+      0.0
+    ],
+    "labels": [
+      "2",
+      "1",
+      "0",
+      "2",
+      "1",
+      "0",
+      "2",
+      "1",
+      "0"
+    ]
+  },
+  {
+    "seed": 1,
+    "digit": 6,
+    "expected_period": 1,
+    "measured_period": 1,
+    "labels_correct": true,
+    "return_overlap_min": 1.0,
+    "return_overlap_mean": 1.0,
+    "cross_phase_overlap": [],
+    "labels": [
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0"
+    ]
+  },
+  {
+    "seed": 1,
+    "digit": 7,
+    "expected_period": 3,
+    "measured_period": 3,
+    "labels_correct": true,
+    "return_overlap_min": 1.0,
+    "return_overlap_mean": 1.0,
+    "cross_phase_overlap": [
+      0.0,
+      0.0
+    ],
+    "labels": [
+      "1",
+      "2",
+      "0",
+      "1",
+      "2",
+      "0",
+      "1",
+      "2",
+      "0"
+    ]
+  },
+  {
+    "seed": 1,
+    "digit": 8,
+    "expected_period": 3,
+    "measured_period": 3,
+    "labels_correct": true,
+    "return_overlap_min": 1.0,
+    "return_overlap_mean": 1.0,
+    "cross_phase_overlap": [
+      0.0,
+      0.0
+    ],
+    "labels": [
+      "2",
+      "1",
+      "0",
+      "2",
+      "1",
+      "0",
+      "2",
+      "1",
+      "0"
+    ]
+  },
+  {
+    "seed": 1,
+    "digit": 9,
+    "expected_period": 1,
+    "measured_period": 1,
+    "labels_correct": true,
+    "return_overlap_min": 1.0,
+    "return_overlap_mean": 1.0,
+    "cross_phase_overlap": [],
+    "labels": [
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0"
+    ]
+  },
+  {
+    "seed": 2,
+    "digit": 0,
+    "expected_period": 1,
+    "measured_period": 1,
+    "labels_correct": true,
+    "return_overlap_min": 1.0,
+    "return_overlap_mean": 1.0,
+    "cross_phase_overlap": [],
+    "labels": [
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0"
+    ]
+  },
+  {
+    "seed": 2,
+    "digit": 1,
+    "expected_period": 3,
+    "measured_period": 3,
+    "labels_correct": true,
+    "return_overlap_min": 1.0,
+    "return_overlap_mean": 1.0,
+    "cross_phase_overlap": [
+      0.0,
+      0.0
+    ],
+    "labels": [
+      "1",
+      "2",
+      "0",
+      "1",
+      "2",
+      "0",
+      "1",
+      "2",
+      "0"
+    ]
+  },
+  {
+    "seed": 2,
+    "digit": 2,
+    "expected_period": 3,
+    "measured_period": 3,
+    "labels_correct": true,
+    "return_overlap_min": 1.0,
+    "return_overlap_mean": 1.0,
+    "cross_phase_overlap": [
+      0.0,
+      0.0
+    ],
+    "labels": [
+      "2",
+      "1",
+      "0",
+      "2",
+      "1",
+      "0",
+      "2",
+      "1",
+      "0"
+    ]
+  },
+  {
+    "seed": 2,
+    "digit": 3,
+    "expected_period": 1,
+    "measured_period": 1,
+    "labels_correct": true,
+    "return_overlap_min": 1.0,
+    "return_overlap_mean": 1.0,
+    "cross_phase_overlap": [],
+    "labels": [
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0"
+    ]
+  },
+  {
+    "seed": 2,
+    "digit": 4,
+    "expected_period": 3,
+    "measured_period": 3,
+    "labels_correct": true,
+    "return_overlap_min": 1.0,
+    "return_overlap_mean": 1.0,
+    "cross_phase_overlap": [
+      0.0,
+      0.0
+    ],
+    "labels": [
+      "1",
+      "2",
+      "0",
+      "1",
+      "2",
+      "0",
+      "1",
+      "2",
+      "0"
+    ]
+  },
+  {
+    "seed": 2,
+    "digit": 5,
+    "expected_period": 3,
+    "measured_period": 3,
+    "labels_correct": true,
+    "return_overlap_min": 1.0,
+    "return_overlap_mean": 1.0,
+    "cross_phase_overlap": [
+      0.0,
+      0.0
+    ],
+    "labels": [
+      "2",
+      "1",
+      "0",
+      "2",
+      "1",
+      "0",
+      "2",
+      "1",
+      "0"
+    ]
+  },
+  {
+    "seed": 2,
+    "digit": 6,
+    "expected_period": 1,
+    "measured_period": 1,
+    "labels_correct": true,
+    "return_overlap_min": 1.0,
+    "return_overlap_mean": 1.0,
+    "cross_phase_overlap": [],
+    "labels": [
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0"
+    ]
+  },
+  {
+    "seed": 2,
+    "digit": 7,
+    "expected_period": 3,
+    "measured_period": 3,
+    "labels_correct": true,
+    "return_overlap_min": 1.0,
+    "return_overlap_mean": 1.0,
+    "cross_phase_overlap": [
+      0.0,
+      0.0
+    ],
+    "labels": [
+      "1",
+      "2",
+      "0",
+      "1",
+      "2",
+      "0",
+      "1",
+      "2",
+      "0"
+    ]
+  },
+  {
+    "seed": 2,
+    "digit": 8,
+    "expected_period": 3,
+    "measured_period": 3,
+    "labels_correct": true,
+    "return_overlap_min": 1.0,
+    "return_overlap_mean": 1.0,
+    "cross_phase_overlap": [
+      0.0,
+      0.0
+    ],
+    "labels": [
+      "2",
+      "1",
+      "0",
+      "2",
+      "1",
+      "0",
+      "2",
+      "1",
+      "0"
+    ]
+  },
+  {
+    "seed": 2,
+    "digit": 9,
+    "expected_period": 1,
+    "measured_period": 1,
+    "labels_correct": true,
+    "return_overlap_min": 1.0,
+    "return_overlap_mean": 1.0,
+    "cross_phase_overlap": [],
+    "labels": [
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0"
+    ]
+  },
+  {
+    "seed": 3,
+    "digit": 0,
+    "expected_period": 1,
+    "measured_period": 1,
+    "labels_correct": true,
+    "return_overlap_min": 1.0,
+    "return_overlap_mean": 1.0,
+    "cross_phase_overlap": [],
+    "labels": [
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0"
+    ]
+  },
+  {
+    "seed": 3,
+    "digit": 1,
+    "expected_period": 3,
+    "measured_period": 3,
+    "labels_correct": true,
+    "return_overlap_min": 1.0,
+    "return_overlap_mean": 1.0,
+    "cross_phase_overlap": [
+      0.0,
+      0.0
+    ],
+    "labels": [
+      "1",
+      "2",
+      "0",
+      "1",
+      "2",
+      "0",
+      "1",
+      "2",
+      "0"
+    ]
+  },
+  {
+    "seed": 3,
+    "digit": 2,
+    "expected_period": 3,
+    "measured_period": 3,
+    "labels_correct": true,
+    "return_overlap_min": 1.0,
+    "return_overlap_mean": 1.0,
+    "cross_phase_overlap": [
+      0.0,
+      0.0
+    ],
+    "labels": [
+      "2",
+      "1",
+      "0",
+      "2",
+      "1",
+      "0",
+      "2",
+      "1",
+      "0"
+    ]
+  },
+  {
+    "seed": 3,
+    "digit": 3,
+    "expected_period": 1,
+    "measured_period": 1,
+    "labels_correct": true,
+    "return_overlap_min": 1.0,
+    "return_overlap_mean": 1.0,
+    "cross_phase_overlap": [],
+    "labels": [
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0"
+    ]
+  },
+  {
+    "seed": 3,
+    "digit": 4,
+    "expected_period": 3,
+    "measured_period": 3,
+    "labels_correct": true,
+    "return_overlap_min": 1.0,
+    "return_overlap_mean": 1.0,
+    "cross_phase_overlap": [
+      0.0,
+      0.0
+    ],
+    "labels": [
+      "1",
+      "2",
+      "0",
+      "1",
+      "2",
+      "0",
+      "1",
+      "2",
+      "0"
+    ]
+  },
+  {
+    "seed": 3,
+    "digit": 5,
+    "expected_period": 3,
+    "measured_period": 3,
+    "labels_correct": true,
+    "return_overlap_min": 1.0,
+    "return_overlap_mean": 1.0,
+    "cross_phase_overlap": [
+      0.0,
+      0.0
+    ],
+    "labels": [
+      "2",
+      "1",
+      "0",
+      "2",
+      "1",
+      "0",
+      "2",
+      "1",
+      "0"
+    ]
+  },
+  {
+    "seed": 3,
+    "digit": 6,
+    "expected_period": 1,
+    "measured_period": 1,
+    "labels_correct": true,
+    "return_overlap_min": 1.0,
+    "return_overlap_mean": 1.0,
+    "cross_phase_overlap": [],
+    "labels": [
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0"
+    ]
+  },
+  {
+    "seed": 3,
+    "digit": 7,
+    "expected_period": 3,
+    "measured_period": 3,
+    "labels_correct": true,
+    "return_overlap_min": 1.0,
+    "return_overlap_mean": 1.0,
+    "cross_phase_overlap": [
+      0.0,
+      0.0
+    ],
+    "labels": [
+      "1",
+      "2",
+      "0",
+      "1",
+      "2",
+      "0",
+      "1",
+      "2",
+      "0"
+    ]
+  },
+  {
+    "seed": 3,
+    "digit": 8,
+    "expected_period": 3,
+    "measured_period": 3,
+    "labels_correct": true,
+    "return_overlap_min": 1.0,
+    "return_overlap_mean": 1.0,
+    "cross_phase_overlap": [
+      0.0,
+      0.0
+    ],
+    "labels": [
+      "2",
+      "1",
+      "0",
+      "2",
+      "1",
+      "0",
+      "2",
+      "1",
+      "0"
+    ]
+  },
+  {
+    "seed": 3,
+    "digit": 9,
+    "expected_period": 1,
+    "measured_period": 1,
+    "labels_correct": true,
+    "return_overlap_min": 1.0,
+    "return_overlap_mean": 1.0,
+    "cross_phase_overlap": [],
+    "labels": [
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0"
+    ]
+  }
+]

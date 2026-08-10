@@ -238,6 +238,35 @@ Caveat: 2000 is the limit of what was run, not a proof of unboundedness. This
 is also a 3-state machine, so what is unbounded here is the STATE-TRACKING
 horizon, not memory that grows with the input.
 
+## Under constant input it is a limit cycle, closed exactly in assembly space
+
+`seq_a1_limit_cycle.py`, 3 seeds x 10 digits, 60 steps each:
+
+* measured period equals 3/gcd(d, 3) in **30/30** cases -- a fixed point for
+  d in {0,3,6,9}, a 3-cycle otherwise;
+* the orbit closes **exactly**: assembly at step t is bit-identical to step
+  t+period, overlap 1.000 on every revolution, 30/30, with no decay over 20
+  revolutions;
+* different phases of a cycle share **0.000** overlap -- maximally separated.
+
+So the driven map has genuine attracting periodic orbits, and they are periodic
+in the full assembly state, not merely in the label readout.
+
+The mechanism is the pairing of the two stages, and it is worth stating
+plainly. The arc EXPANDS -- an ~8x amplifier that drives different
+(state, symbol) pairs to 0.000-overlap assemblies. The state area QUANTIZES --
+k-WTA maps a whole neighbourhood onto exactly one stored assembly in a single
+step, which is superattracting, not merely contracting. Expansion gives
+separation; quantization gives exactness. Together they are a clean discrete
+dynamical system, and that composition is why error does not accumulate at all
+inside a basin while failure outside one is a cliff.
+
+Terminology, to be exact: this is a discrete map on a finite set, so "limit
+cycle" is by analogy -- an attracting periodic orbit with a finite basin. Under
+a varying input stream there is no cycle at all; the same attractors are
+visited in an aperiodic, input-determined order. Which is the point: it is a
+machine, not an oscillator.
+
 ## Next step (superseded -- A1 passed)
 
 The registered rule for "P-GOLD fails while the reference passes" is that the
