@@ -191,8 +191,16 @@ def run_tiered(cells, budget_gb=20.0, worker_fn=None):
     for gb, group_cells in sorted(tiers.items()):
         # Capped by CORES as well as by memory -- the memory budget alone said
         # 29 workers for the order-60 tier on a 16-core box.
+        #
+        # PRICED AT THE PEAK, NOT THE NOMINAL. Growth REALLOCATES: the new
+        # buffer is built while the old is live, so a worker's true peak is
+        # ~2x its resident footprint. Budgeting the nominal put 7 S5 workers
+        # (18.8 GB nominal, ~37 GB peak) against ~45 GB free -- it survived
+        # twice and lost the race on the third run, mid-tier, on a 1.25 GiB
+        # allocation. A scheduler that works twice and dies on the third
+        # identical invocation is pricing the wrong quantity.
         workers = max(1, min(len(group_cells),
-                             int(budget_gb // max(gb, 0.01)),
+                             int(budget_gb // max(2.0 * gb, 0.01)),
                              max(1, (os.cpu_count() or 4) - 2)))
         print(f"    [tier {gb:.2f} GB/worker] {len(group_cells)} cells, "
               f"{workers} workers", flush=True)
