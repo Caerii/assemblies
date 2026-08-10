@@ -62,7 +62,14 @@ def sizes(group, n_symbols):
     return int(round(m * K / TARGET_LOAD)), group.order * K
 
 
-def build(group_name, seed, arm):
+def build(group_name, seed, arm, norm_init=False):
+    """`norm_init` defaults to the REGISTERED substrate (False, A1 parity).
+
+    The soft-transition census made the parity clause -- "norm_init exists
+    only for self-fibers" -- an open question rather than a premise, so the
+    intervention study passes True here. Default stays False so every
+    registered result is reproduced by the call sites that produced it.
+    """
     random.seed(seed)
     np.random.seed(seed)
     group = GROUPS[group_name]()
@@ -71,7 +78,7 @@ def build(group_name, seed, arm):
     beta = 0.0 if arm == "beta0" else BETA
 
     brain = Brain(p=0.05, save_winners=True, seed=seed, engine="numpy_sparse",
-                  norm_init=False)
+                  norm_init=norm_init)
     fsm = NemoArcFSM(brain, states=states, symbols=symbols,
                      transitions=transitions, n=n_arc, k=K, n_state=n_state,
                      beta=beta, organ_p=ORGAN_P,
