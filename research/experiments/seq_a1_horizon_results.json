@@ -1,0 +1,162 @@
+[
+  {
+    "seed": 1,
+    "p": 0.3,
+    "length": 2000,
+    "first_error": 759,
+    "accuracy": 0.552,
+    "exact_fraction": 0.335,
+    "prefix_correct": {
+      "10": true,
+      "50": true,
+      "100": true,
+      "500": true,
+      "1000": false,
+      "2000": false
+    }
+  },
+  {
+    "seed": 2,
+    "p": 0.3,
+    "length": 2000,
+    "first_error": null,
+    "accuracy": 1.0,
+    "exact_fraction": 1.0,
+    "prefix_correct": {
+      "10": true,
+      "50": true,
+      "100": true,
+      "500": true,
+      "1000": true,
+      "2000": true
+    }
+  },
+  {
+    "seed": 3,
+    "p": 0.3,
+    "length": 2000,
+    "first_error": null,
+    "accuracy": 1.0,
+    "exact_fraction": 0.926,
+    "prefix_correct": {
+      "10": true,
+      "50": true,
+      "100": true,
+      "500": true,
+      "1000": true,
+      "2000": true
+    }
+  },
+  {
+    "seed": 4,
+    "p": 0.3,
+    "length": 2000,
+    "first_error": null,
+    "accuracy": 1.0,
+    "exact_fraction": 0.92,
+    "prefix_correct": {
+      "10": true,
+      "50": true,
+      "100": true,
+      "500": true,
+      "1000": true,
+      "2000": true
+    }
+  },
+  {
+    "seed": 5,
+    "p": 0.3,
+    "length": 2000,
+    "first_error": null,
+    "accuracy": 1.0,
+    "exact_fraction": 1.0,
+    "prefix_correct": {
+      "10": true,
+      "50": true,
+      "100": true,
+      "500": true,
+      "1000": true,
+      "2000": true
+    }
+  },
+  {
+    "seed": 1,
+    "p": 0.4,
+    "length": 2000,
+    "first_error": null,
+    "accuracy": 1.0,
+    "exact_fraction": 1.0,
+    "prefix_correct": {
+      "10": true,
+      "50": true,
+      "100": true,
+      "500": true,
+      "1000": true,
+      "2000": true
+    }
+  },
+  {
+    "seed": 2,
+    "p": 0.4,
+    "length": 2000,
+    "first_error": null,
+    "accuracy": 1.0,
+    "exact_fraction": 1.0,
+    "prefix_correct": {
+      "10": true,
+      "50": true,
+      "100": true,
+      "500": true,
+      "1000": true,
+      "2000": true
+    }
+  },
+  {
+    "seed": 3,
+    "p": 0.4,
+    "length": 2000,
+    "first_error": null,
+    "accuracy": 1.0,
+    "exact_fraction": 1.0,
+    "prefix_correct": {
+      "10": true,
+      "50": true,
+      "100": true,
+      "500": true,
+      "1000": true,
+      "2000": true
+    }
+  },
+  {
+    "seed": 4,
+    "p": 0.4,
+    "length": 2000,
+    "first_error": null,
+    "accuracy": 1.0,
+    "exact_fraction": 1.0,
+    "prefix_correct": {
+      "10": true,
+      "50": true,
+      "100": true,
+      "500": true,
+      "1000": true,
+      "2000": true
+    }
+  },
+  {
+    "seed": 5,
+    "p": 0.4,
+    "length": 2000,
+    "first_error": null,
+    "accuracy": 1.0,
+    "exact_fraction": 1.0,
+    "prefix_correct": {
+      "10": true,
+      "50": true,
+      "100": true,
+      "500": true,
+      "1000": true,
+      "2000": true
+    }
+  }
+]

@@ -209,6 +209,35 @@ error accumulation, then arc hypersensitivity), and both falsifications were
 worth more than the confirmations would have been -- the first ruled out the
 transitions, the second ruled out tolerance and pointed at exactness.
 
+## How long can it run? 2000 steps, zero errors
+
+If recovery is exactly exact there is no error to amplify, so the horizon
+should be unbounded; a residual per-step error rate should instead give a
+finite one. `seq_a1_horizon.py` runs one 2000-digit random string per seed and
+records the index of the FIRST divergence from ground truth (one long run
+yields every prefix).
+
+    p = 0.4 (kp 28)   5/5 seeds: first error NEVER, accuracy 1.0000,
+                      exact recovery on 2000/2000 steps
+    p = 0.3 (kp 21)   4/5 seeds: first error NEVER, accuracy 1.0000
+                      seed 1:    first error at step 759, accuracy 0.552
+
+Comfortably above the floor the machine is a genuine unbounded-horizon
+sequential computation: 10000 projections with not one wrong state. Just above
+it, most seeds run forever and one falls out of the basin partway and never
+returns -- note seed 1's accuracy after failure (0.552) is near chance for a
+3-residue machine, so leaving the basin is terminal, not a stumble.
+
+Two details worth keeping. Seeds 3 and 4 at p=0.3 hold accuracy 1.0000 while
+recovering exactly on only ~92% of steps, so the attractor does pull a slightly
+wrong state back -- exactness is sufficient but not strictly necessary, and the
+basin has width. And the failure mode is a cliff rather than a decay, which is
+what an amplifying map with a discrete attractor should do.
+
+Caveat: 2000 is the limit of what was run, not a proof of unboundedness. This
+is also a 3-state machine, so what is unbounded here is the STATE-TRACKING
+horizon, not memory that grows with the input.
+
 ## Next step (superseded -- A1 passed)
 
 The registered rule for "P-GOLD fails while the reference passes" is that the
