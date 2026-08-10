@@ -1,34 +1,27 @@
-"""norm_init must apply to MATERIALIZED fibers. It silently does not.
+"""norm_init on materialized and per-fiber connectomes: the REAL invariants.
 
-FOUND 2026-08-10 via the S5 norm_init intervention, which BACKFIRED: turning
-norm_init on took the soft-transition count from 27 to 5861 across 40 organs
-(~97% of all transitions), while the arithmetic says correct per-column
-normalization moves relative drives by ~1% at these degrees. The diagnostic
-below explains the flood:
+CORRECTION HISTORY, kept because the wrong version was committed (b21d353).
+This file first claimed norm_init was "a silent no-op on materialize_area",
+from a diagnostic that compared STORED column masses. That tested the wrong
+invariant: `_norm_scale` is deliberately a READ-TIME scale -- storage stays on
+the unit scale so `w_max` semantics and sampled-candidate commensurability
+survive, and the division by d_j happens at drive time (see `_norm_scale`'s
+docstring, which says exactly this and was read too late). Measured with the
+right instrument, norm_init is LIVE on materialized fibers: winners differ
+with it on vs off (overlap 0.75 at k=40).
 
-  * On the `materialize_area` path, norm_init is a SILENT NO-OP: column-mass
-    CV is bit-identical between norm_init=True and False (ratio 1.000) --
-    per-fiber and global-p fibers alike, both materialization orders.
-  * On the RECRUITMENT path (`_expand_connectomes`), `_norm_scale` IS applied
-    (it shows in the training profile).
+THE ACTUAL DEFECT found by re-diagnosing the S5 intervention flood
+(27 -> 5861 soft pairs): `_norm_scale` prices UNMATERIALIZED rows at the
+GLOBAL brain p while a per-fiber connectome's rows arrive at the FIBER p::
 
-So a brain that mixes materialized and recruited rows in one fiber under
-norm_init=True gets interleaved scaled/unscaled rows -- O(1) column-drive
-distortions, which is the measured flood. Inconsistent application is worse
-than absent: see [[self-fibers-excluded-from-deferred-init]] ("fixing any one
-alone is worse than none") and [[explicit-source-skips-norm-init]], the same
-defect class on the explicit-dense path, already fixed once.
+    inverse_indegree(deg, unknown, 0, self.p)      # line ~1049
 
-BLAST RADIUS. `norm_init` defaults to TRUE, so every production brain that
-calls `materialize_area` and then trains sits on the mixed regime.
-
-The fingerprint harness (`test_connectome_representation_fingerprint`) did
-not catch this because its materialized configuration runs norm_init=False
-only; extend it when fixing.
-
-The invariant test is marked xfail (not strict): it documents the defect while
-the suite stays green, and flips to XPASS the moment the fix lands -- at which
-point remove the marker and extend the fingerprint.
+Measured on a p=0.4 fiber inside a p=0.05 brain, source 86/2000 materialized:
+engine d_j = 130.0 (exactly the global-p formula), correct d_j = 799.9 --
+drive over-scaled 6.15x, and the factor DRIFTS toward 1x as the source
+materializes, so a training run potentiates under a moving mis-scale. This is
+the same defect class as the w_max clamp fixed the same morning ("clamp
+scaled by GLOBAL p while weights drawn at fiber p").
 """
 
 from __future__ import annotations
@@ -39,48 +32,66 @@ import numpy as np
 import pytest
 
 from neural_assemblies.core.brain import Brain
+from neural_assemblies.diagnostics import read_assembly
 
 
-def _column_mass_cv(norm_init: bool, per_fiber: bool) -> float:
+def _hetero_brain(norm_init: bool):
     random.seed(7)
     np.random.seed(7)
-    b = Brain(p=0.05 if per_fiber else 0.4, save_winners=True, seed=7,
-              engine="numpy_sparse", norm_init=norm_init)
-    b.add_area("SRC", 4000, 70, 0.1)
-    b.add_area("TGT", 1400, 70, 0.1)
-    if per_fiber:
-        b.add_connectivity("SRC", "TGT", 0.4)
-    b.materialize_area("TGT")
-    b.materialize_area("SRC")
-    conn = b._engine._area_conns["SRC"]["TGT"]
-    w = conn.weights
-    dense = np.asarray(w.todense() if hasattr(w, "todense") else w,
-                       dtype=np.float64)
-    mass = dense[:4000, :1400].sum(axis=0)
-    return float(mass.std() / mass.mean())
+    b = Brain(p=0.05, save_winners=True, seed=7, engine="numpy_sparse",
+              norm_init=norm_init)
+    b.add_area("SRC", 2000, 40, 0.1)
+    b.add_area("TGT", 1200, 40, 0.1)
+    b.add_connectivity("SRC", "TGT", 0.4)
+    b.add_stimulus("s", 40)
+    return b
 
 
-@pytest.mark.parametrize("per_fiber", [True, False])
+def test_norm_init_is_live_on_materialized_fibers():
+    """The corrected claim: read-time normalization DOES reach a
+    materialize_area fiber. This is what falsifies the retracted "silent
+    no-op" -- stored weights are identical by design; the DRIVE is not."""
+    winners = {}
+    for flag in (False, True):
+        b = _hetero_brain(flag)
+        b.materialize_area("TGT")
+        b.materialize_area("SRC")
+        for _ in range(4):
+            b.project({"s": ["SRC"]}, {})
+        with b.frozen():
+            b.project({}, {"SRC": ["TGT"]})
+        winners[flag] = set(read_assembly(b, "TGT").tolist())
+    assert winners[False] != winners[True], (
+        "norm_init changed nothing at read time -- if this regresses, the "
+        "scale application in project_into is dead, which is the failure the "
+        "retracted version of this file wrongly diagnosed at storage level")
+
+
 @pytest.mark.xfail(
-    reason="norm_init is a silent no-op on the materialize_area path: "
-           "column-mass CV is bit-identical with it on or off (ratio 1.000). "
-           "Measured consequence: 27 -> 5861 soft transitions when a trained "
-           "organ mixes materialized (unscaled) and recruited (scaled) rows. "
-           "seq_s5_norm_init_intervention.py, commit 0b660b6.",
+    reason="_norm_scale prices unmaterialized rows at the GLOBAL p, not the "
+           "fiber's own p: measured d_j 130.0 vs correct 799.9 (6.15x "
+           "over-scaling) on a p=0.4 fiber in a p=0.05 brain. Same class as "
+           "the per-fiber w_max clamp bug. Fix: pass the fiber p at the "
+           "three _norm_scale call sites.",
     strict=False,
 )
-def test_norm_init_equalizes_materialized_columns(per_fiber):
-    """The invariant normalization exists to enforce: near-equal column mass."""
-    cv_off = _column_mass_cv(False, per_fiber)
-    cv_on = _column_mass_cv(True, per_fiber)
-    assert cv_on < 0.5 * cv_off, (
-        f"norm_init left materialized column dispersion unchanged "
-        f"(CV {cv_on:.4f} vs {cv_off:.4f} without)")
-
-
-def test_the_no_op_is_exact_not_approximate():
-    """Pins the DIAGNOSIS while the defect stands: bit-identical, not merely
-    similar. If this starts failing while the xfail above still fails, the
-    behaviour changed without becoming correct -- flag, do not celebrate.
-    When the fix lands this test is DELETED along with the xfail marker."""
-    assert _column_mass_cv(True, True) == _column_mass_cv(False, True)
+def test_norm_scale_unknown_rows_use_the_fiber_p():
+    b = _hetero_brain(True)
+    b.materialize_area("TGT")
+    for _ in range(3):
+        b.project({"s": ["SRC"]}, {})
+    b.project({}, {"SRC": ["TGT"]})
+    eng = b._engine
+    conn = eng._area_conns["SRC"]["TGT"]
+    src = eng._areas["SRC"]
+    rows_known = min(src.w, conn.weights.shape[0])
+    nscale = eng._norm_scale(conn, 2000, rows_known, 1200)
+    d_used = 1.0 / np.asarray(nscale)
+    w = conn.weights
+    dense = np.asarray(w.todense() if hasattr(w, "todense") else w)
+    counts = (dense[:rows_known, :1200] != 0).sum(axis=0)
+    unknown = 2000 - rows_known
+    correct = counts + 0.40 * unknown
+    ratio = float(correct.mean() / d_used.mean())
+    assert 0.8 < ratio < 1.25, (
+        f"d_j off by {ratio:.2f}x -- unknown rows priced at the wrong p")
