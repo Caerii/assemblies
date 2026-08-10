@@ -129,7 +129,8 @@
     "research/experiments/task93_conjunction_budget.py": 4,
     "research/experiments/task95_readout_and_arc.py": 2,
     "research/experiments/two_phase_read.py": 5,
-    "research/experiments/universality_composition.py": 6
+    "research/experiments/universality_composition.py": 6,
+    "research/experiments/seq_state_refraction.py": 2
   },
   "unpinned_engine": {
     "research/experiments/_substrate.py": 4,

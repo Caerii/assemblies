@@ -68,6 +68,16 @@ reading aid over a distribution already reported in full, which is the
 "mean over CONDITIONS rather than over seeds" case this ratchet exempts.
 `seq_a1_step_accuracy.py` additionally reports mean +/- sd explicitly.
 `task91_exposure_sweep.py` predates this work and is unchanged.
+
+RAISED 2026-08-10 for `seq_state_refraction.py` (2 sites). Both are inside
+`measure()` and average over SENTENCE PAIRS within a single seed -- the mean
+cross-prefix overlap and the mean same-prefix overlap that together form that
+seed's separation and determinism. They ARE the per-seed statistic, and each
+one is then handed to `ensemble_from_values` across seeds, which is where the
+interval is taken and where every bar is judged. Rewriting them as `ensemble`
+would put a confidence interval over sentence pairs inside one brain, which is
+a different and wrong claim -- the "mean over CONDITIONS rather than over
+seeds" case `_SEED_ADVICE` names.
 """
 
 from __future__ import annotations

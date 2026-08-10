@@ -144,23 +144,31 @@ class TestState(unittest.TestCase):
                           _arc_and_state(t, "c")[0][0])
         self.assertLess(trained, untrained)
 
-    def test_the_state_collapses_while_the_arc_does_not(self):
-        """Where the organ actually stands, and the split is the finding.
+    def test_the_state_collapses_AT_TOY_LOAD_while_the_arc_does_not(self):
+        """An UNDER-LOADED state collapses. This is a load result, not an
+        organ result, and the distinction cost a wrong prediction.
 
         Both prefixes end in "b", so the arc at position 1 can separate them
-        only THROUGH the state. Measured at toy scale over 5 seeds, mean +/-
-        95% CI, at the registered beta::
+        only THROUGH the state. At this toy scale, over 5 seeds::
 
             arc@0    0.035 +/- 0.035     the conjunction works
             state@0  0.985 +/- 0.028     the state is one attractor
             arc@1    0.975 +/- 0.022     so history does not survive one step
 
-        WHAT IS NOT ASSERTED, AND WHY. Lowering beta on arc -> state alone
-        looked like a clean fix at seed 42 (arc@1 fell to 0.00, monotonically
-        in beta). It does not survive seeding: at beta=0 the same statistic is
-        0.580 +/- 0.617 over 5 seeds -- a CI spanning the range. The trend is
-        real enough to register as a question and nowhere near enough to assert
-        as a mechanism, so this test pins only the collapse.
+        AND IT DOES NOT TRANSFER. On the real corpus at k=200, n_state=2000,
+        the same statistic reads state overlap 0.2988 +/- 0.0382 with
+        determinism 1.0000 +/- 0.0000 over 10 seeds -- separated, and exactly
+        reproducible (`seq_state_refraction.py`, whose G0 gate refused the
+        study on those grounds). The difference is LOAD: this toy runs the
+        state area at roughly 0.08-0.16, below the window
+        [[REFRACTION-NEEDS-LOAD]] puts at ~0.2, while the real corpus sits at
+        0.5. So "the state collapses" was a statement about an under-loaded
+        area that got written as a statement about the architecture, and a
+        prediction that A3's H4 would fail was published off it.
+
+        WHAT IS NOT ASSERTED. Lowering beta on arc -> state looked like a clean
+        monotone fix at seed 42 (arc@1 -> 0.00). Over 5 seeds the same
+        statistic is 0.580 +/- 0.617, a CI spanning the range.
         See [[ensemble-not-realization]].
         """
         b, t = self._trained()
@@ -252,6 +260,28 @@ class TestReadout(unittest.TestCase):
 
 
 class TestRegime(unittest.TestCase):
+
+    def test_state_refraction_and_n_state_are_not_silent_no_ops(self):
+        """Both are SWEPT AXES, and a dead axis reads as "no effect".
+
+        `n_state` was accepted by an experiment's `build` and never passed on,
+        which would have made half that grid a duplicate of the other half
+        reported as a null. Asserting the axis reaches the engine is the only
+        thing that catches it -- the numbers alone look like a finding.
+        """
+        b, t = _build(n=2000)
+        self.assertFalse(b._engine._areas[t.state_area].refracted)
+        self.assertEqual(b.areas[t.state_area].n, 2000)
+
+        b2 = Brain(p=0.05, save_winners=True, seed=42, engine="numpy_sparse")
+        t2 = SequenceTransducer(b2, VOCAB, n=2000, n_state=500, k=40,
+                                organ_p=0.4, state_refracted_strength=0.05,
+                                prefix="_t2")
+        self.assertTrue(b2._engine._areas[t2.state_area].refracted)
+        self.assertAlmostEqual(
+            b2._engine._areas[t2.state_area].refracted_strength, 0.05)
+        self.assertEqual(b2.areas[t2.state_area].n, 500)
+        self.assertEqual(b2.areas[t2.lex_area].n, 2000)
 
     def test_organ_p_applies_to_the_four_organ_fibers(self):
         """[[SEQ-ORGAN-EMBEDS]]: the organ carries its own density, and the

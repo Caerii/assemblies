@@ -69,16 +69,21 @@ class SequenceTransducer:
         *,
         n: int = 10000,
         n_arc: int | None = None,
+        n_state: int | None = None,
         k: int = 200,
         beta: float = 0.10,
         organ_p: float | None = None,
         refracted_strength: float = 0.1,
+        state_refracted_strength: float = 0.0,
         prefix: str = "_seq",
     ):
         self.brain = brain
         self.vocab = list(vocab)
         self.k = k
         self.n_arc = n_arc or n
+        # Sized separately from LEX and OUT so a sweep over the STATE's load
+        # does not also resize the areas either side of it and confound itself.
+        self.n_state = n_state or n
 
         self.lex_area = f"{prefix}_lex"
         self.arc_area = f"{prefix}_arc"
@@ -86,7 +91,21 @@ class SequenceTransducer:
         self.out_area = f"{prefix}_out"
 
         brain.add_area(self.lex_area, n, k, beta)
-        brain.add_area(self.state_area, n, k, beta)
+        # THE STATE MAY BE REFRACTED TOO, and by default is not -- which is the
+        # configuration A3 measured collapsing (state overlap 0.985 +/- 0.028
+        # beside an arc at 0.035). The engine applies refraction as
+        # `all_inputs -= bias` with bias accruing on recent winners, so it is a
+        # usage-balancing rule and hub formation on arc -> state is exactly
+        # what it opposes. Off by default because turning it on is a
+        # RE-MEASUREMENT, not a fix: see PREREG_state_refraction.md, which
+        # requires separation and DETERMINISM together, since a state that
+        # emitted noise every step would win on separation alone.
+        if state_refracted_strength > 0:
+            brain.add_area(self.state_area, self.n_state, k, beta,
+                           refracted=True,
+                           refracted_strength=state_refracted_strength)
+        else:
+            brain.add_area(self.state_area, self.n_state, k, beta)
         brain.add_area(self.out_area, n, k, beta)
         brain.add_area(
             self.arc_area, self.n_arc, k, beta,
