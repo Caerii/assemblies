@@ -164,7 +164,7 @@ def _dense_gb(group_name):
     return n_arc * n_state * 4 * 2 / 1e9
 
 
-def run_tiered(cells, budget_gb=20.0):
+def run_tiered(cells, budget_gb=20.0, worker_fn=None):
     """Run cells in memory tiers, sized so a big group cannot exhaust RAM.
 
     The first attempt ran all 160 cells at the pool's default width and died:
@@ -189,7 +189,8 @@ def run_tiered(cells, budget_gb=20.0):
                              max(1, (os.cpu_count() or 4) - 2)))
         print(f"    [tier {gb:.2f} GB/worker] {len(group_cells)} cells, "
               f"{workers} workers", flush=True)
-        out.update(run_cells(worker, group_cells, max_workers=workers))
+        out.update(run_cells(worker_fn or worker, group_cells,
+                             max_workers=workers))
     return out
 
 
