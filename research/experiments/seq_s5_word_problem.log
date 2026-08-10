@@ -1,0 +1,52 @@
+=== finite-group word problems on the A1 organ ===
+    k=70 beta=0.1 organ_p=0.4 presentations=15, seeds 42..51
+    n_arc set per group to hold load at 0.42 (Amendment 1)
+
+  [regime] per group, at the first seed
+    Z60     order= 60 solvable=True  n_arc= 20000 n_state=  4200 arc load=0.420
+  [ok  ] _wp_state          n=4200    k=70    afferent kp   28.0 vs floor  25.0  (_wp_arc=28)
+  [ok  ] _wp_arc            n=20000   k=70    afferent kp   56.0 vs floor  29.7  (_wp_state=28, _wp_sym_g0=28)
+    A4xZ5   order= 60 solvable=True  n_arc= 20000 n_state=  4200 arc load=0.420
+  [ok  ] _wp_state          n=4200    k=70    afferent kp   28.0 vs floor  25.0  (_wp_arc=28)
+  [ok  ] _wp_arc            n=20000   k=70    afferent kp   56.0 vs floor  29.7  (_wp_state=28, _wp_sym_g0=28)
+    A5      order= 60 solvable=False n_arc= 20000 n_state=  4200 arc load=0.420
+  [ok  ] _wp_state          n=4200    k=70    afferent kp   28.0 vs floor  25.0  (_wp_arc=28)
+  [ok  ] _wp_arc            n=20000   k=70    afferent kp   56.0 vs floor  29.7  (_wp_state=28, _wp_sym_g0=28)
+    S5      order=120 solvable=False n_arc= 40000 n_state=  8400 arc load=0.420
+  [ok  ] _wp_state          n=8400    k=70    afferent kp   28.0 vs floor  27.1  (_wp_arc=28)
+  [ok  ] _wp_arc            n=40000   k=70    afferent kp   56.0 vs floor  31.8  (_wp_state=28, _wp_sym_g0=28)
+
+  [controls] must all sit at chance before any real arm counts
+    [tier 0.67 GB/worker] 90 cells, 14 workers
+    [tier 2.69 GB/worker] 30 cells, 7 workers
+    Z60     untrained  L= 10 exact 0.000 +/- 0.000
+    Z60     beta0      L= 10 exact 0.000 +/- 0.000
+    Z60     shuffled   L= 10 exact 0.000 +/- 0.000
+    A4xZ5   untrained  L= 10 exact 0.000 +/- 0.000
+    A4xZ5   beta0      L= 10 exact 0.000 +/- 0.000
+    A4xZ5   shuffled   L= 10 exact 0.000 +/- 0.000
+    A5      untrained  L= 10 exact 0.000 +/- 0.000
+    A5      beta0      L= 10 exact 0.000 +/- 0.000
+    A5      shuffled   L= 10 exact 0.000 +/- 0.000
+    S5      untrained  L= 10 exact 0.000 +/- 0.000
+    S5      beta0      L= 10 exact 0.000 +/- 0.000
+    S5      shuffled   L= 10 exact 0.000 +/- 0.000
+    S4 controls PASS
+
+  [trained] exact trajectory accuracy, full length curve
+    [tier 0.67 GB/worker] 30 cells, 14 workers
+    [tier 2.69 GB/worker] 10 cells, 7 workers
+
+    group    solvable  L=10  L=50  L=100  L=500
+    Z60      True      1.00+/-0.00  1.00+/-0.00  1.00+/-0.00  0.70+/-0.35
+    A4xZ5    True      1.00+/-0.00  0.90+/-0.23  0.90+/-0.23  0.90+/-0.23
+    A5       False     0.90+/-0.23  0.90+/-0.23  0.90+/-0.23  0.70+/-0.35
+    S5       False     1.00+/-0.00  0.90+/-0.23  0.80+/-0.30  0.50+/-0.38
+
+=== BARS ===
+  PASS  S1 A5 exact at L=100 >= 9/10 seeds (got 9/10, mean 0.900)
+  FAIL  S2 L=500 indistinguishable from L=10
+  PASS  S3 accuracy does not depend on solvability (solvable mean 0.950 at L=100)
+  PASS  S4 controls at chance
+
+wrote F:\Github\assemblies\research\experiments\seq_s5_word_problem_results.json
