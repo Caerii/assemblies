@@ -13,6 +13,7 @@ import numpy as np
 
 from ..backend import xp_name
 from ._csr_weights import scipy_sparse
+from ._virtual_weights import VirtualWeights
 
 def _csr_storage_available(xp=None) -> bool:
     """CSR storage needs scipy AND a numpy-backed engine.
@@ -95,6 +96,8 @@ class DriveCacheMixin:
         Returns None when caching is not worthwhile or not safe, in which case
         the caller must use the dense path.
         """
+        if isinstance(w, VirtualWeights):
+            return None                     # has a native row_sum
         if not _csr_storage_available(self._xp) or w.ndim != 2:
             return None
         # Below this the CSR build (one dense pass) is not amortised by the

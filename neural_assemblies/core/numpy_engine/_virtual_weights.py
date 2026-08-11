@@ -13,10 +13,13 @@ WHAT A MATERIALISED FIBER ACTUALLY IS. Under content-addressed init
             function of position, zero storage.
   OVERRIDE  the sampled first-winner edges `_expand_connectomes` writes
             explicitly (`conn.weights[chosen, col] = 1.0`, drawn from a
-            growth-point-keyed RNG). An override can only land on a
-            FIRST-TIME winner's column, which has never been potentiated, so
-            override-then-potentiate is the only event order. Sparse:
-            <= alloc (~k) cells per recruited neuron.
+            growth-point-keyed RNG). Within a recruitment round plasticity
+            runs BEFORE expansion, so the override lands on an
+            already-potentiated column and dense assignment CLOBBERS that
+            history -- `override` therefore resets the cell's event count
+            (the first version refused this order and the fingerprint run
+            refuted it immediately). Sparse: <= alloc (~k) cells per
+            recruited neuron.
   CHAIN     the Hebbian event sequence. The dense engine does
             ``w *= (1 + beta)`` in float32 THEN clips, per event, so byte
             identity requires replaying n float32 multiply-clip rounds --
@@ -205,18 +208,22 @@ class VirtualWeights:
     # -- writes -------------------------------------------------------------
 
     def override(self, rows, col: int) -> None:
-        """The recruitment write: force cells to 1.0 at a fresh column.
+        """The recruitment write: assign 1.0, CLOBBERING any history.
 
-        Refused once the column has been potentiated -- in the dense engine
-        that order cannot occur (a first-time winner's column has no events),
-        so hitting this guard means the caller's invariant broke, not ours.
+        The first version refused an override on a potentiated cell, reasoning
+        a first-time winner's column has no events. The engine refuted it in
+        one run: within a recruitment round `_apply_plasticity` executes
+        BEFORE `_expand_connectomes`, so the new winner's column is
+        potentiated (from hash-base values) and THEN assigned 1.0. Dense
+        assignment erases that history, so the exponent count resets here --
+        future events chain from 1.0, which is exactly what the dense block
+        does.
         """
         col = int(col)
         for r in np.asarray(rows, dtype=np.int64):
-            if self._exp.get(int(r), {}).get(col):
-                raise ValueError(
-                    f"override at ({int(r)}, {col}) after potentiation: "
-                    f"the dense engine cannot produce this order")
+            row_exp = self._exp.get(int(r))
+            if row_exp is not None:
+                row_exp.pop(col, None)
             self._ovr.setdefault(int(r), set()).add(col)
 
     def bump(self, rows, cols, beta: float) -> None:

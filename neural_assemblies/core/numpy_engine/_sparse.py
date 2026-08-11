@@ -47,6 +47,7 @@ from ._drive_cache import (  # noqa: F401
 )
 from ._state import SparseAreaState, StimulusState
 from ._csr_weights import CSRWeights, build_csr_from_blocks, scipy_sparse
+from ._virtual_weights import VirtualWeights
 from ._seeding import (
     fnv1a_pair_seed,
     hash_area_weights,
@@ -1396,7 +1397,13 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
                 # of it 3-11x faster and bit-identically. Only consulted with
                 # plasticity off (see `_csr_row_sum`), so it cannot go stale.
                 contrib = None
-                if isinstance(conn.weights, CSRWeights):
+                if isinstance(conn.weights, VirtualWeights):
+                    # The drive kernel regenerates the k winner rows
+                    # (~k x n_cols hashed cells) instead of traversing a
+                    # stored block; deviations come from per-row dicts.
+                    contrib = self._to_xp(conn.weights.row_sum(
+                        np.asarray(to_cpu(internal)), col_end))
+                elif isinstance(conn.weights, CSRWeights):
                     # Stored sparse: answer natively, no mirror needed, and
                     # safe with plasticity ON because there is nothing cached.
                     contrib = conn.weights.row_sum(internal, col_end)
@@ -2043,6 +2050,30 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
                 if len(valid_rows) > 0 and len(post_ids) > 0:
                     conn.update_weights(
                         to_cpu(valid_rows), post_ids, beta, w_max=self.w_max)
+                continue
+            if isinstance(conn.weights, VirtualWeights):
+                vw = conn.weights
+                valid_rows = src_w[src_w < vw.n_rows]
+                valid_cols = winners_arr[winners_arr < vw.n_cols]
+                if len(valid_rows) > 0 and len(valid_cols) > 0:
+                    try:
+                        vw.bump(np.asarray(to_cpu(valid_rows)),
+                                np.asarray(to_cpu(valid_cols)), float(beta))
+                    except ValueError:
+                        # Beta changed mid-life: one exponent store cannot
+                        # carry two growth factors, so DENSIFY -- correct
+                        # under any beta history -- and apply this event on
+                        # the dense block below.
+                        conn.weights = self._to_xp(vw.todense())
+                        conn._deg_counts_arr = None
+                        conn._deg_rows = 0
+                        ix = xp.ix_(valid_rows, valid_cols)
+                        conn.weights[ix] *= (1 + beta)
+                        if self.w_max is not None:
+                            sub = conn.weights[ix]
+                            _lo, _hi = self._weight_bounds()
+                            xp.clip(sub, _lo, _hi, out=sub)
+                            conn.weights[ix] = sub
                 continue
             if conn.weights.ndim == 2:
                 valid_rows = src_w[src_w < conn.weights.shape[0]]

@@ -18,6 +18,7 @@ import numpy as np
 from ..backend import to_cpu
 from .._pricing import candidate_divisor, inverse_indegree
 from ._csr_weights import CSRWeights
+from ._virtual_weights import VirtualWeights
 
 
 class DegreeNormMixin:
@@ -106,6 +107,19 @@ class DegreeNormMixin:
         Exactness is asserted rather than argued -- see `_VERIFY_NNZ`.
         """
         xp = self._xp
+        if isinstance(w, VirtualWeights):
+            # Degree of a virtual fiber is base-plus-overrides, recounted
+            # from the hash when the cache is cold. Only norm_init consults
+            # this, so norm-off organs never pay the regeneration.
+            counts = getattr(conn, "_deg_counts_arr", None)
+            if (counts is None or int(getattr(conn, "_deg_rows", 0)) != rows
+                    or len(counts) < cols):
+                counts = xp.asarray(
+                    w.column_nnz(rows_known=rows), dtype=xp.float32)
+                conn._deg_counts_arr = counts
+                conn._deg_rows = rows
+                conn._deg_dirty = None
+            return counts[:cols]
         counts = getattr(conn, "_deg_counts_arr", None)
         have_rows = int(getattr(conn, "_deg_rows", 0))
 

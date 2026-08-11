@@ -22,6 +22,18 @@ import numpy as np
 from ..backend import to_cpu
 from ._csr_weights import CSRWeights
 from ._seeding import stable_seed
+from ._virtual_weights import VirtualWeights
+
+
+def _virtual_weights_enabled() -> bool:
+    """Opt-in for the never-stored fiber representation.
+
+    Env-gated during rollout so the fingerprint harness can A/B one process
+    against the same golden. Composes with `VirtualWeights.supports`:
+    scaling brains and legacy init stay dense whatever the env says.
+    """
+    return os.environ.get("ASSEMBLIES_VIRTUAL_WEIGHTS", "0").strip().lower() \
+        in ("1", "true", "yes", "on")
 
 def _self_fiber_deferred_init() -> bool:
     """Whether a SELF fiber (``A -> A``) gets deferred block initialization.
@@ -98,6 +110,24 @@ def _self_fiber_deferred_init() -> bool:
 class GrowthMixin:
     """Growth methods of `NumpySparseEngine`; see module docstring."""
 
+    def _use_virtual(self) -> bool:
+        return (_virtual_weights_enabled()
+                and VirtualWeights.supports(
+                    synaptic_scaling=bool(self.synaptic_scaling),
+                    content_init=bool(self._content_init)))
+
+    def _new_virtual_fiber(self, src_name, target, n_rows, n_cols):
+        """A fiber that stores deviations only. Growth becomes two ints."""
+        tgt = self._areas[target]
+        return VirtualWeights(
+            int(n_rows), int(n_cols),
+            self._pair_seed(src_name, target),
+            self._p_for(src_name, target),
+            float(tgt.beta_by_source.get(src_name, tgt.beta)),
+            *self._weight_bounds(),
+            inhibitory_prob=self.inhibitory_prob,
+            inhibitory_weight=self.inhibitory_weight)
+
 
     def _init_deferred_area_srcs(self, target, src_names, new_w) -> None:
         """Repair the area->area blocks marked as undelivering this projection.
@@ -139,8 +169,13 @@ class GrowthMixin:
                                                  nr, nc)
                 continue
             if nr > 0 and nc > 0:
-                conn.weights = self._init_area_block(
-                    src_name, target, 0, nr, 0, nc)
+                if self._use_virtual():
+                    conn.weights = self._new_virtual_fiber(
+                        src_name, target, nr, nc)
+                else:
+                    conn.weights = self._init_area_block(
+                        src_name, target, 0, nr, 0, nc)
+                conn._log_rows, conn._log_cols = nr, nc
 
     def _ensure_area_block_coverage(self, src_name, target, conn,
                                     needed_rows, needed_cols) -> None:
@@ -160,6 +195,15 @@ class GrowthMixin:
         """
         xp = self._xp
         w = conn.weights
+        if isinstance(w, VirtualWeights):
+            # Coverage for a virtual fiber IS the resize -- no buffer, no
+            # fill, no degree rewind. This line replaces the 1.12-1.25 GiB
+            # allocations that OOM'd two studies today.
+            w.resize(max(int(needed_rows), w.n_rows),
+                     max(int(needed_cols), w.n_cols))
+            conn._log_rows = max(getattr(conn, "_log_rows", 0), w.n_rows)
+            conn._log_cols = max(getattr(conn, "_log_cols", 0), w.n_cols)
+            return
         if (not conn.sparse or isinstance(w, CSRWeights)
                 or getattr(w, "ndim", 0) != 2):
             return
@@ -296,6 +340,52 @@ class GrowthMixin:
             src = self._areas[src_name]
             if conn.weights.ndim != 2:
                 conn.weights = xp.empty((0, 0), dtype=xp.float32)
+
+            if isinstance(conn.weights, VirtualWeights) or (
+                    self._use_virtual()
+                    and getattr(conn.weights, "size", 0) == 0):
+                vw = conn.weights
+                src_w_arr = xp.asarray(src.winners)
+                max_src_idx = (int(xp.max(src_w_arr)) + 1
+                               if src_w_arr.size > 0 else 0)
+                needed_rows = max(max_src_idx,
+                                  new_w if src_name == target else src.w)
+                needed_cols = new_w
+                if not isinstance(vw, VirtualWeights):
+                    vw = self._new_virtual_fiber(src_name, target,
+                                                 needed_rows, needed_cols)
+                    conn.weights = vw
+                else:
+                    vw.resize(max(needed_rows, vw.n_rows),
+                              max(needed_cols, vw.n_cols))
+                conn._log_rows = vw.n_rows
+                conn._log_cols = vw.n_cols
+                from_index = inputs_names.index(src_name)
+                local_rng = np.random.default_rng(
+                    stable_seed(self._seed, src_name, target, prior_w, new_w)
+                    if self._content_init
+                    else self._rng.integers(0, 2**32))
+                src_winners_cpu = np.asarray(to_cpu(src.winners))
+                for idx, win in enumerate(new_indices):
+                    alloc = (int(splits_per_new[idx][from_index])
+                             if idx < len(splits_per_new) else 0)
+                    if alloc <= 0 or src.w == 0:
+                        continue
+                    sample_size = min(alloc, len(src.winners))
+                    if sample_size <= 0:
+                        continue
+                    chosen = local_rng.choice(src_winners_cpu,
+                                              size=sample_size,
+                                              replace=False)
+                    col_idx = self._expansion_col(int(win), prior_w)
+                    if 0 <= col_idx < vw.n_cols:
+                        vw.override(chosen, col_idx)
+                # Overrides can create nonzeros; drop the degree cache
+                # rather than patch it -- norm-on virtual fibers recount on
+                # demand.
+                conn._deg_counts_arr = None
+                conn._deg_rows = 0
+                continue
 
             phys_rows, phys_cols = conn.weights.shape
             src_w_arr = xp.asarray(src.winners)
@@ -619,10 +709,15 @@ class GrowthMixin:
             chosen = local_rng.choice(src_winners_cpu, size=sample_size, replace=False)
             col_idx = self._expansion_col(int(win), prior_w)
             if 0 <= col_idx < phys_cols:
-                conn.weights[chosen, col_idx] = 1.0
-                # See the note at the other sampling site: this can write into
-                # an already-counted (row, column) region.
-                self.mark_column_dirty(conn, col_idx)
+                if isinstance(conn.weights, VirtualWeights):
+                    conn.weights.override(chosen, col_idx)
+                    conn._deg_counts_arr = None
+                    conn._deg_rows = 0
+                else:
+                    conn.weights[chosen, col_idx] = 1.0
+                    # See the note at the other sampling site: this can
+                    # write into an already-counted (row, column) region.
+                    self.mark_column_dirty(conn, col_idx)
 
     def _expansion_col(self, win: int, prior_w: int) -> int:
         """Column to write a first-time winner's sampled afferents into.

@@ -59,6 +59,12 @@ def _script(rng, n_events=40):
             col = fresh.pop()
             used_cols.add(col)
             ops.append(("override", rng.choice(ROWS, 12, replace=False), col))
+        elif i % 7 == 5:
+            # the engine's real recruitment order: potentiate a column, then
+            # override cells in it -- assignment must clobber the history
+            r, c = blocks[i % len(blocks)]
+            ops.append(("hebb", r, c))
+            ops.append(("override", r[:8], int(c[0])))
         else:
             r, c = blocks[i % len(blocks)]
             ops.append(("hebb", r, c))
@@ -123,11 +129,18 @@ class TestGuards(unittest.TestCase):
         with self.assertRaises(ValueError):
             vw.bump([1, 2], [3, 4], 0.2)
 
-    def test_override_after_potentiation_refused(self):
+    def test_override_clobbers_potentiation_like_dense_assignment(self):
+        """The engine's real order: plasticity precedes expansion within a
+        recruitment round, so an override lands on a potentiated cell and
+        dense assignment ERASES the history. The first version refused this
+        order and the fingerprint run refuted it immediately."""
         vw = VirtualWeights(50, 50, 1, 0.9, 0.1, LO, HI)   # p high: base != 0
         vw.bump([1], [3], 0.1)
-        with self.assertRaises(ValueError):
-            vw.override([1], 3)
+        vw.override([1], 3)
+        self.assertEqual(vw.cell(1, 3), 1.0)
+        vw.bump([1], [3], 0.1)
+        self.assertEqual(vw.cell(1, 3), np.float32(np.float32(1.0)
+                                                   * np.float32(1.1)))
 
     def test_shrink_refused(self):
         vw = VirtualWeights(50, 50, 1, 0.4, 0.1, LO, HI)
