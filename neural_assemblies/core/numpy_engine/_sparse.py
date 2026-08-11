@@ -1142,6 +1142,27 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
             if not conn.sparse:
                 return
             w = conn.weights
+            if isinstance(w, VirtualWeights):
+                # Materializing a virtual fiber is a bounds update; the base
+                # is lazy and the deviations are already absolute-indexed.
+                w.resize(max(int(rows), w.n_rows), max(int(cols), w.n_cols))
+                conn._log_rows, conn._log_cols = w.n_rows, w.n_cols
+                conn._deg_counts_arr = None
+                conn._deg_rows = 0
+                conn._deg_dirty = None
+                return
+            if (self._use_virtual() and getattr(w, "size", 0) == 0
+                    and rows > 0 and cols > 0):
+                # A fiber born here is born virtual. One with dense CONTENT
+                # stays dense -- its cells may carry potentiation the virtual
+                # store has no history for.
+                conn.weights = self._new_virtual_fiber(
+                    src_name, dst_name, rows, cols)
+                conn._log_rows, conn._log_cols = int(rows), int(cols)
+                conn._deg_counts_arr = None
+                conn._deg_rows = 0
+                conn._deg_dirty = None
+                return
             if getattr(w, "ndim", 0) != 2:
                 w = xp.empty((0, 0), dtype=xp.float32)
             pr, pc = w.shape

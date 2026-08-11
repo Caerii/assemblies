@@ -255,6 +255,19 @@ class DegreeNormMixin:
 
         if getattr(w, "ndim", 1) == 2:
             rows = int(min(rows_known, w.shape[0]))
+            # CLAMPED TO THE FILLED EXTENT. The physical buffer's doubling
+            # padding can exceed the L-filled region, and counting those
+            # allocated-but-unfilled rows prices them at ZERO degree while
+            # they await lazy coverage -- the estimator's own contract says
+            # rows that do not exist yet are priced at p, via `unknown`.
+            # Found as a transient divergence between the dense and virtual
+            # representations at drive time: dense counted 29 padding rows
+            # as zero, virtual priced them at fiber p, and the virtual
+            # reading is the documented semantics. Sixth member of the
+            # degree/scale defect class found 2026-08-10.
+            log_rows = getattr(conn, "_log_rows", None)
+            if log_rows is not None:
+                rows = min(rows, int(log_rows))
             cols = int(min(needed, w.shape[1]))
             if cols <= 0:
                 return None

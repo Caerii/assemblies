@@ -195,6 +195,21 @@ class GrowthMixin:
         """
         xp = self._xp
         w = conn.weights
+        if (self._use_virtual() and not isinstance(w, VirtualWeights)
+                and conn.sparse and getattr(w, "ndim", 0) == 2
+                and not isinstance(w, CSRWeights)
+                and (min(int(getattr(conn, "_log_rows", w.shape[0])),
+                         w.shape[0]) == 0
+                     or min(int(getattr(conn, "_log_cols", w.shape[1])),
+                            w.shape[1]) == 0)):
+            # A dense SHELL with no content -- e.g. the (0, C) block
+            # `materialize_area` leaves when the source has never fired --
+            # upgrades to virtual here, at its first real growth. A block
+            # with filled content stays dense: those cells may carry
+            # potentiation the virtual store has no history for.
+            conn.weights = w = self._new_virtual_fiber(
+                src_name, target, max(int(needed_rows), 0),
+                max(int(needed_cols), 0))
         if isinstance(w, VirtualWeights):
             # Coverage for a virtual fiber IS the resize -- no buffer, no
             # fill, no degree rewind. This line replaces the 1.12-1.25 GiB

@@ -109,6 +109,28 @@ class VirtualWeights:
     def ndim(self):
         return 2
 
+    @property
+    def size(self):
+        """Logical cell count. TWO consumers branch on it, and its absence
+        was a silent norm kill-switch: `_norm_scale` early-returns on
+        ``getattr(w, 'size', 0) == 0``, so without this property every
+        virtual fiber skipped normalization -- measured as the *_norm
+        fingerprint configs diverging at round 1 while norm-off configs
+        matched. `clone` also branches on ``size > 0`` to decide
+        copy-vs-share."""
+        return self.n_rows * self.n_cols
+
+    def copy(self) -> "VirtualWeights":
+        """Deep copy for `clone` -- sharing the dicts would alias two brains'
+        plasticity onto one store."""
+        out = VirtualWeights(self.n_rows, self.n_cols, self.pair_seed,
+                             self.p, self.beta, self.w_lo, self.w_hi,
+                             self.inhibitory_prob, self.inhibitory_weight)
+        out._exp = {r: dict(d) for r, d in self._exp.items()}
+        out._ovr = {r: set(s) for r, s in self._ovr.items()}
+        out._potentiated = self._potentiated
+        return out
+
     def resize(self, n_rows: int, n_cols: int) -> None:
         """Growth. The dense path's 2x-peak reallocation becomes two ints."""
         if n_rows < self.n_rows or n_cols < self.n_cols:
@@ -150,17 +172,21 @@ class VirtualWeights:
     def row_sum(self, rows, col_end: Optional[int] = None) -> np.ndarray:
         """``w[rows, :col_end].sum(axis=0)`` -- the drive kernel.
 
-        Regenerates the k selected base rows (k x n_cols cells, against the
-        dense path's full-block traversal) and adds each row's deviation
-        surplus from its own small dict.
+        THE SUMMATION SEMANTICS ARE PART OF THE CONTRACT. The dense path
+        sums float32 rows with numpy's PAIRWISE reduction; a float64
+        sequential accumulation differs in ulps, and k-WTA turns an ulp into
+        a different winner ORDER on ties -- measured as same-set,
+        different-order winners on the p40_norm config. So the kernel builds
+        the k-row float32 block the dense path would have read (base plus
+        per-row chained deviations, in place) and lets the SAME
+        ``sum(axis=0)`` produce the result.
         """
         rows = np.asarray(rows, dtype=np.int64)
         cols = self.n_cols if col_end is None else min(int(col_end),
                                                        self.n_cols)
-        out = np.zeros(cols, dtype=np.float64)
-        for r in rows:
+        block = np.empty((len(rows), cols), dtype=np.float32)
+        for i, r in enumerate(rows):
             base = self._base_row(int(r), cols)
-            out += base
             dev = self._exp.get(int(r))
             if dev:
                 idx = np.fromiter((c for c in dev if c < cols),
@@ -168,9 +194,10 @@ class VirtualWeights:
                 if len(idx):
                     counts = np.fromiter((dev[int(c)] for c in idx),
                                          dtype=np.int64)
-                    chained = self._chain(base[idx], counts)
-                    out[idx] += chained.astype(np.float64) - base[idx]
-        return out.astype(np.float32)
+                    base = base.copy()
+                    base[idx] = self._chain(base[idx], counts)
+            block[i] = base
+        return block.sum(axis=0)
 
     def cell(self, row: int, col: int) -> float:
         base = float(self._base_row(int(row), int(col) + 1)[int(col)])
