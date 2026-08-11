@@ -81,3 +81,63 @@ Hub diagnostics on every organ with >= 1 soft pair, both arms:
 2. Per-organ values printed; both arms' full exact@L tables reported.
 3. Intruder identities recorded in the artifact for both arms, so the hub
    analysis is auditable offline.
+
+---
+
+## Result (2026-08-10, fixed engine, run 351e1cb): N1/N5 PASS, N2/N3/N4 FAIL — in the INFORMATIVE direction
+
+    N1 PASS   control reproduces the registered census exactly (30 soft pairs,
+              same organs, same counts). The engine fixes did not move the
+              norm_init=False substrate.
+    N2 FAIL   intervention soft rate is not zero -- it is ~100x the control:
+              5392 soft pairs across 40 organs (~90% of transitions;
+              107-116/120 on the order-60 groups, 198-216/240 on S5).
+    N3 FAIL   exact@500 is 0/10 on every group under norm_init=True.
+    N4 FAIL   control intruders are NOT hubs: afferent-mass percentiles spread
+              0.106..0.985, min 0.106 vs the >=0.99 bar; 0/19 organs share an
+              intruder across their soft pairs.
+    N5 PASS   zero hard defects in either arm. Labels stay perfectly correct;
+              only codeword integrity degrades.
+
+Intervention defect anatomy: median 2 intruders per soft pair (max 9),
+overlap down to 0.871; intruders almost never repeat within an organ (max
+recurrence 2% of an organ's soft pairs) -- diffuse displacement, not a
+shared hub.
+
+## Interpretation (per the pre-stated rules)
+
+The hub hypothesis is DEAD on both arms: control intruders sit anywhere in
+the afferent-mass distribution (N4), and norm_init=True makes the softness
+~100x worse rather than deleting it (N2). Per the prereg's own clause, "the
+defect mechanism stays open and the hitting-time account stands."
+
+The failure DIRECTION is explained by what `_norm_scale` actually is, which
+its docstring states plainly: the divisor d_j COUNTS present synapses --
+potentiation-invariant -- reproducing the reference's one-time init-time
+normalize(). After 15 presentations, trained block members carry ~(1.1)^15
+= 4.2x initial mass but are divided by their UNPOTENTIATED count; untrained
+sparse neurons carry ~1x and are divided by a SMALL count. 1/d does not
+remove the degree bias at read time -- it inverts it, handing the advantage
+to the sparsest neurons. Intruders in the 10th percentile of afferent mass
+are the signature of a stale divisor, derivable in advance.
+
+The literature check this triggered (papers, not reference code): PNAS'20,
+COLT'22 Thm 6, and the sequences paper's Thms 1-2 all assume ONGOING
+homeostasis -- "after each round ... each neuron's incoming weights sum
+to 1" is a stated hypothesis of the sequence-memorization guarantees, with
+COLT'22 renormalizing per class presentation. The reference code's
+init-only normalize() is a simulation shortcut, not the model. No substrate
+this repo has measured satisfies the theorems' precondition:
+
+    A  norm_init=False        no normalization        soft ~0.5%   (registered)
+    B  norm_init=True         1/d once, count-based   soft ~90%    (this study)
+    C  rows -> sum 1 PER ROUND (the theorems' actual hypothesis)   NEVER BUILT
+
+Also surfaced while checking preconditions: the organ sits BELOW the
+sequences paper's regime floor kp >= 3 ln n in all four groups (kp=28.0 vs
+floors 29.71 / 31.79) -- deepest in S5, the group with the worst horizon.
+A live confound for the group ordering, addressable at organ_p=0.5.
+
+Registered next steps: build substrate C (per-round row renormalization),
+re-run this census under it; re-run the M-ceiling table under C on
+numpy_exact; clear the regime floor and re-measure the group ordering.

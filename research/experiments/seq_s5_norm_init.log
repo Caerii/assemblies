@@ -2,61 +2,141 @@
 
   [control] norm_init=False -- must reproduce the registered census
     [tier 0.67 GB/worker] 30 cells, 14 workers
-    [tier 2.69 GB/worker] 10 cells, 7 workers
+[done ('Z60', 44, 'base')]
+[done ('Z60', 42, 'base')]
+[done ('A4xZ5', 42, 'base')]
+[done ('Z60', 48, 'base')]
+[done ('A4xZ5', 43, 'base')]
+[done ('Z60', 45, 'base')]
+[done ('Z60', 43, 'base')]
+[done ('A4xZ5', 45, 'base')]
+[done ('Z60', 46, 'base')]
+[done ('Z60', 49, 'base')]
+[done ('Z60', 51, 'base')]
+[done ('A4xZ5', 44, 'base')]
+[done ('Z60', 47, 'base')]
+[done ('Z60', 50, 'base')]
+[done ('A4xZ5', 47, 'base')]
+[done ('A4xZ5', 49, 'base')]
+[done ('A4xZ5', 48, 'base')]
+[done ('A4xZ5', 46, 'base')]
+[done ('A4xZ5', 50, 'base')]
+[done ('A4xZ5', 51, 'base')]
+[done ('A5', 42, 'base')]
+[done ('A5', 43, 'base')]
+[done ('A5', 45, 'base')]
+[done ('A5', 44, 'base')]
+[done ('A5', 46, 'base')]
+[done ('A5', 47, 'base')]
+[done ('A5', 48, 'base')]
+[done ('A5', 49, 'base')]
+[done ('A5', 50, 'base')]
+[done ('A5', 51, 'base')]
+    [tier 2.69 GB/worker] 10 cells, 3 workers
+[done ('S5', 43, 'base')]
+[done ('S5', 42, 'base')]
+[done ('S5', 44, 'base')]
+[done ('S5', 45, 'base')]
+[done ('S5', 47, 'base')]
+[done ('S5', 46, 'base')]
+[done ('S5', 49, 'base')]
+[done ('S5', 48, 'base')]
+[done ('S5', 50, 'base')]
+[done ('S5', 51, 'base')]
     N1 PASS (registered soft counts reproduced on all 40 organs)
 
   [intervention] norm_init=True
     [tier 0.67 GB/worker] 30 cells, 14 workers
-    [tier 2.69 GB/worker] 10 cells, 7 workers
+[done ('Z60', 42, 'norm')]
+[done ('Z60', 43, 'norm')]
+[done ('Z60', 44, 'norm')]
+[done ('Z60', 46, 'norm')]
+[done ('Z60', 45, 'norm')]
+[done ('A4xZ5', 43, 'norm')]
+[done ('Z60', 47, 'norm')]
+[done ('Z60', 50, 'norm')]
+[done ('A4xZ5', 42, 'norm')]
+[done ('Z60', 49, 'norm')]
+[done ('A4xZ5', 45, 'norm')]
+[done ('Z60', 48, 'norm')]
+[done ('Z60', 51, 'norm')]
+[done ('A4xZ5', 44, 'norm')]
+[done ('A4xZ5', 49, 'norm')]
+[done ('A4xZ5', 47, 'norm')]
+[done ('A4xZ5', 48, 'norm')]
+[done ('A4xZ5', 46, 'norm')]
+[done ('A4xZ5', 51, 'norm')]
+[done ('A4xZ5', 50, 'norm')]
+[done ('A5', 42, 'norm')]
+[done ('A5', 43, 'norm')]
+[done ('A5', 45, 'norm')]
+[done ('A5', 47, 'norm')]
+[done ('A5', 44, 'norm')]
+[done ('A5', 46, 'norm')]
+[done ('A5', 49, 'norm')]
+[done ('A5', 48, 'norm')]
+[done ('A5', 50, 'norm')]
+[done ('A5', 51, 'norm')]
+    [tier 2.69 GB/worker] 10 cells, 3 workers
+[done ('S5', 43, 'norm')]
+[done ('S5', 42, 'norm')]
+[done ('S5', 44, 'norm')]
+[done ('S5', 46, 'norm')]
+[done ('S5', 45, 'norm')]
+[done ('S5', 47, 'norm')]
+[done ('S5', 48, 'norm')]
+[done ('S5', 49, 'norm')]
+[done ('S5', 50, 'norm')]
+[done ('S5', 51, 'norm')]
 
     group   seed ctrl soft norm soft norm hard norm exact@500
-    Z60       42         0       116         0          False
+    Z60       42         0       110         0          False
     Z60       43         0       114         0          False
-    Z60       44         1       117         0          False
-    Z60       45         0       117         0          False
-    Z60       46         1       118         0          False
-    Z60       47         1       117         0          False
-    Z60       48         0       116         0          False
-    Z60       49         2       117         0          False
-    Z60       50         1       117         0          False
-    Z60       51         0       115         0          False
-    A4xZ5     42         0       119         0          False
-    A4xZ5     43         0       117         0          False
-    A4xZ5     44         0       112         0          False
-    A4xZ5     45         0       117         0          False
-    A4xZ5     46         0       118         0          False
-    A4xZ5     47         0       115         0          False
-    A4xZ5     48         0       113         0          False
-    A4xZ5     49         2       117         0          False
-    A4xZ5     50         1       116         0          False
-    A4xZ5     51         0       116         0          False
-    A5        42         0       117         0          False
-    A5        43         0       116         0          False
-    A5        44         1       116         0          False
-    A5        45         2       118         0          False
-    A5        46         1       116         0          False
-    A5        47         1       115         0          False
-    A5        48         2       118         0          False
-    A5        49         0       116         0          False
-    A5        50         0       117         0          False
-    A5        51         0       116         0          False
-    S5        42         1       238         0          False
-    S5        43         0       237         0          False
-    S5        44         1       234         0          False
-    S5        45         2       237         0          False
-    S5        46         3       236         0          False
-    S5        47         2       239         0          False
-    S5        48         2       238         0          False
-    S5        49         0       239         0          False
-    S5        50         3       237         0          False
-    S5        51         0       237         0          False
+    Z60       44         1       111         0          False
+    Z60       45         0       111         0          False
+    Z60       46         1       113         0          False
+    Z60       47         1       108         0          False
+    Z60       48         0       108         0          False
+    Z60       49         2       109         0          False
+    Z60       50         1       110         0          False
+    Z60       51         0       111         0          False
+    A4xZ5     42         0       111         0          False
+    A4xZ5     43         0       111         0          False
+    A4xZ5     44         0       110         0          False
+    A4xZ5     45         0       109         0          False
+    A4xZ5     46         0       116         0          False
+    A4xZ5     47         0       112         0          False
+    A4xZ5     48         0       112         0          False
+    A4xZ5     49         2       115         0          False
+    A4xZ5     50         1       107         0          False
+    A4xZ5     51         0       109         0          False
+    A5        42         0       108         0          False
+    A5        43         0       108         0          False
+    A5        44         1       114         0          False
+    A5        45         2       111         0          False
+    A5        46         1       109         0          False
+    A5        47         1       110         0          False
+    A5        48         2       114         0          False
+    A5        49         0       110         0          False
+    A5        50         0       108         0          False
+    A5        51         0       105         0          False
+    S5        42         1       203         0          False
+    S5        43         0       208         0          False
+    S5        44         1       199         0          False
+    S5        45         2       205         0          False
+    S5        46         3       214         0          False
+    S5        47         2       198         0          False
+    S5        48         2       207         0          False
+    S5        49         0       216         0          False
+    S5        50         3       212         0          False
+    S5        51         0       216         0          False
 
 === BARS ===
   PASS  N1 control reproduces registered census
-  FAIL  N2 intervention soft rate is ZERO (total soft 5861)
+  FAIL  N2 intervention soft rate is ZERO (total soft 5392)
   FAIL  N3 exact@500 10/10 everywhere under norm_init  {'Z60': 0, 'A4xZ5': 0, 'A5': 0, 'S5': 0}
   FAIL  N4 control intruders above 99th pct of afferent mass (min 0.1058, n=30)
   PASS  N5 no hard defects introduced (total hard 0)
   info: organs whose soft pairs share an intruder: 0/19
 
-wrote F:\Github\assemblies\research\experiments\seq_s5_norm_init_results.json
+wrote F:\Github\assemblies-run-e2\research\experiments\seq_s5_norm_init_results.json
