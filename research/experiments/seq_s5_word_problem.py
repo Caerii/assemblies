@@ -62,13 +62,16 @@ def sizes(group, n_symbols):
     return int(round(m * K / TARGET_LOAD)), group.order * K
 
 
-def build(group_name, seed, arm, norm_init=False):
+def build(group_name, seed, arm, norm_init=False, synaptic_scaling=False):
     """`norm_init` defaults to the REGISTERED substrate (False, A1 parity).
 
     The soft-transition census made the parity clause -- "norm_init exists
     only for self-fibers" -- an open question rather than a premise, so the
-    intervention study passes True here. Default stays False so every
-    registered result is reproduced by the call sites that produced it.
+    intervention study passes True here. `synaptic_scaling=True` is
+    substrate C (PREREG_substrate_c_homeostasis.md Amendment 1): per-round
+    write-time homeostasis, the theorems' stated hypothesis. Defaults stay
+    False so every registered result is reproduced by the call sites that
+    produced it.
     """
     random.seed(seed)
     np.random.seed(seed)
@@ -78,7 +81,7 @@ def build(group_name, seed, arm, norm_init=False):
     beta = 0.0 if arm == "beta0" else BETA
 
     brain = Brain(p=0.05, save_winners=True, seed=seed, engine="numpy_sparse",
-                  norm_init=norm_init)
+                  norm_init=norm_init, synaptic_scaling=synaptic_scaling)
     fsm = NemoArcFSM(brain, states=states, symbols=symbols,
                      transitions=transitions, n=n_arc, k=K, n_state=n_state,
                      beta=beta, organ_p=ORGAN_P,

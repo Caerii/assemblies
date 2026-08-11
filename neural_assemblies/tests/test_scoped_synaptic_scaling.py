@@ -68,3 +68,39 @@ def test_bool_true_still_scales_every_target():
     full = _fiber_totals(True)
     assert full["B"] < 0.6 * off["B"], (full, off)
     assert full["C"] < 0.6 * off["C"], (full, off)
+
+
+def test_setpoint_uses_fiber_p_not_brain_p():
+    """Third member of the fiber-p defect class (see _scale_columns_now).
+
+    A p=0.40 fiber inside a p=0.05 brain: the homeostatic setpoint must be
+    rows * 0.40. Priced at the global p it renormalized every TRAINED column
+    to 1/8 of its natural mass while untouched columns kept full mass --
+    inverting learning. Aggregate-signature assertion (module docstring):
+    touched columns must sit at the fiber's own scale, nowhere near the
+    brain-p scale.
+    """
+    b = Brain(p=0.05, seed=0, engine="numpy_sparse",
+              synaptic_scaling=True, norm_init=False)
+    b.add_stimulus("s", 10)
+    b.add_area("A", 500, 10, beta=0.2)
+    b.add_area("B", 500, 10, beta=0.2)
+    b.add_connectivity("A", "B", 0.4)
+    b.project({"s": ["A"]}, {})
+    for _ in range(6):
+        b.project({"s": ["A"]}, {"A": ["B"]})
+    eng = b._engine
+    conn = eng._area_conns["A"]["B"]
+    w = np.asarray(conn.weights)
+    rows = min(int(eng._areas["A"].w), w.shape[0])
+    touched = np.asarray(eng._areas["B"].winners, dtype=int)
+    touched = touched[touched < w.shape[1]]
+    sums = w[:rows, touched].sum(axis=0)
+    fiber_setpoint = rows * 0.4
+    brain_setpoint = rows * 0.05
+    # Touched columns live at the fiber's scale (recruitment transients sit
+    # ABOVE the setpoint, never an 8x below it).
+    assert float(sums.min()) > 2.0 * brain_setpoint, (
+        sums, fiber_setpoint, brain_setpoint)
+    assert float(np.median(sums)) > 0.5 * fiber_setpoint, (
+        sums, fiber_setpoint)

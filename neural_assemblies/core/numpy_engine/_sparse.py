@@ -1986,7 +1986,16 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
                 continue
             sub = w[:rows, valid]
             sums = sub.sum(axis=0)
-            setpoint = max(float(rows) * self.p, 1e-12)
+            # THE FIBER'S p, NOT THE BRAIN'S -- third member of the defect
+            # class ([[pricing-law-implemented-twice]]; _norm_scale 79fba4f,
+            # the stimulus w_max clamp). The setpoint is the initial expected
+            # column sum OF THIS FIBER; pricing it at the global p renormalized
+            # every trained column of a p=0.40 organ fiber inside a p=0.05
+            # brain to 1/8 of its natural mass, while untouched columns kept
+            # full mass -- inverting learning exactly like substrate B did.
+            # Found by the substrate-C smoke run (every transition soft).
+            setpoint = max(
+                float(rows) * self._p_for(src_name, target), 1e-12)
             # Guard the denominator itself; xp.where evaluates both branches,
             # so dividing first would still emit divide-by-zero on empty cols.
             safe = xp.where(xp.abs(sums) > 1e-12, sums, 1.0)
