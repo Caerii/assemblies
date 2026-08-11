@@ -218,3 +218,66 @@ def test_mix32_default_does_not_consume_its_input():
     assert np.array_equal(h, before), "mix32(copy=True) mutated its argument"
     mix32(h, copy=False)
     assert not np.array_equal(h, before)
+
+
+class TestScatteredRowsKernel:
+    """`hash_area_weights_rows` must equal the contiguous kernel cell-for-cell.
+
+    The scattered kernel exists so `VirtualWeights.row_sum` can regenerate k
+    winner rows in one call instead of k; if the two spellings ever produce
+    different values for the same absolute cell, every virtual fiber silently
+    diverges from its dense twin.
+    """
+
+    def test_contiguous_rows_match_block_kernel(self):
+        from neural_assemblies.core.numpy_engine._seeding import (
+            hash_area_weights, hash_area_weights_rows)
+        import numpy as np
+        block = hash_area_weights(10, 40, 5, 90, 12345, 0.3, 0.1, -0.5)
+        rows = hash_area_weights_rows(np.arange(10, 40), 5, 90, 12345,
+                                      0.3, 0.1, -0.5)
+        assert np.array_equal(block, rows)
+
+    def test_scattered_rows_match_per_row_calls(self):
+        from neural_assemblies.core.numpy_engine._seeding import (
+            hash_area_weights, hash_area_weights_rows)
+        import numpy as np
+        ids = np.array([3, 999, 17, 250000, 0, 42], dtype=np.int64)
+        batched = hash_area_weights_rows(ids, 0, 120, 777, 0.4, 0.05, -1.0)
+        for i, r in enumerate(ids):
+            single = hash_area_weights(int(r), int(r) + 1, 0, 120, 777,
+                                       0.4, 0.05, -1.0)
+            assert np.array_equal(batched[i], single[0]), f"row {r}"
+
+    def test_no_inhibitory_branch_matches_too(self):
+        from neural_assemblies.core.numpy_engine._seeding import (
+            hash_area_weights, hash_area_weights_rows)
+        import numpy as np
+        ids = np.array([8, 1, 500], dtype=np.int64)
+        batched = hash_area_weights_rows(ids, 3, 60, 42, 0.4)
+        for i, r in enumerate(ids):
+            single = hash_area_weights(int(r), int(r) + 1, 3, 60, 42, 0.4)
+            assert np.array_equal(batched[i], single[0]), f"row {r}"
+
+    def test_numpy_fallback_equals_rust_for_scattered_rows(self):
+        """With rust wired into `hash_area_weights_rows`, the other tests in
+        this class compare rust to rust. This one pins the numpy SPECIFICATION
+        against the accelerator, per the module's contract that the numpy code
+        remains the spec."""
+        import os
+
+        import numpy as np
+
+        from neural_assemblies.core.numpy_engine import _seeding as SD
+        if SD.rust_kernels() is None:
+            import pytest
+            pytest.skip("accelerator not built")
+        ids = np.array([7, 123456, 0, 88, 41999], dtype=np.int64)
+        via_rust = SD.hash_area_weights_rows(ids, 2, 300, 991, 0.35, 0.1, -0.7)
+        os.environ["NEURAL_ASSEMBLIES_NO_RUST"] = "1"
+        try:
+            via_numpy = SD.hash_area_weights_rows(ids, 2, 300, 991, 0.35,
+                                                  0.1, -0.7)
+        finally:
+            os.environ.pop("NEURAL_ASSEMBLIES_NO_RUST", None)
+        assert np.array_equal(via_rust, via_numpy)

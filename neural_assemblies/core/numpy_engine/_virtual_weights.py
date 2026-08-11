@@ -29,6 +29,17 @@ WHAT A MATERIALISED FIBER ACTUALLY IS. Under content-addressed init
             never create a nonzero, so the SPARSITY pattern is
             base-plus-overrides, never the chain.
 
+VECTORISED, SECOND PASS. The first implementation was semantically exact and
+~5x SLOWER than dense: `row_sum` regenerated base rows one hash call at a
+time and walked per-cell dicts, `bump` incremented dict-of-dicts one cell at
+a time. This version stores per-row SORTED ARRAYS (cols, counts), generates
+all k rows in ONE `hash_area_weights_rows` call, applies deviations with one
+fancy-index scatter, and keeps a small LRU of raw base blocks -- the drive
+and the plasticity of one projection use the SAME winner rows, so the block
+is hashed once and read twice. The float32 summation order is unchanged
+(same rows, same `sum(axis=0)`), so byte identity is preserved; the tests
+that pin it did not change.
+
 WHAT THE REPRESENTATION REFUSES, structurally (`supports`):
 
   * homeostatic synaptic scaling -- per-column rescales interleave with
@@ -38,24 +49,18 @@ WHAT THE REPRESENTATION REFUSES, structurally (`supports`):
   * a CHANGED fiber beta after potentiation has begun -- one exponent count
     cannot carry two growth factors ([[same-name-two]]). `bump` raises; the
     engine's escape hatch is densify-and-swap, never silent mixing.
-
-Memory: the S5 organ's arc<->state pair is 2.69 GB dense; here it is the
-override and exponent stores, ~10-20 MB. Growth costs nothing: `resize` just
-raises the logical bounds, where the dense path's reallocation (new buffer
-live beside the old) is the 2x peak that OOM'd two studies today.
-
-Unwired until the engine integration lands behind
-`test_connectome_representation_fingerprint` -- whose golden, regenerated on
-the fixed `_norm_scale` engine, is the byte-identity target.
 """
 
 from __future__ import annotations
 
-from typing import Dict, Optional, Set
+from collections import OrderedDict
+from typing import Dict, Optional
 
 import numpy as np
 
-from ._seeding import hash_area_weights
+from ._seeding import hash_area_weights, hash_area_weights_rows
+
+_CACHE_BLOCKS = 4
 
 
 class VirtualWeights:
@@ -64,15 +69,11 @@ class VirtualWeights:
     All coordinates are ABSOLUTE row/column indices into the fiber's logical
     block -- the same indices the dense buffer would use -- so the engine's
     existing compact bookkeeping maps onto this unchanged.
-
-    Per-ROW dicts, because every hot operation (drive, bump) touches ~k rows:
-    `row_sum` then walks only the selected rows' deviations (~10^2 entries)
-    instead of the fiber's full store (~10^6).
     """
 
     __slots__ = ("n_rows", "n_cols", "pair_seed", "p", "beta",
                  "w_lo", "w_hi", "inhibitory_prob", "inhibitory_weight",
-                 "_exp", "_ovr", "_potentiated")
+                 "_exp", "_ovr", "_ovr_sorted", "_potentiated", "_cache")
 
     def __init__(self, n_rows: int, n_cols: int, pair_seed: int, p: float,
                  beta: float, w_lo: Optional[float], w_hi: Optional[float],
@@ -87,11 +88,17 @@ class VirtualWeights:
         self.w_hi = w_hi
         self.inhibitory_prob = float(inhibitory_prob)
         self.inhibitory_weight = float(inhibitory_weight)
-        #: row -> {col: event count}
-        self._exp: Dict[int, Dict[int, int]] = {}
-        #: row -> {col} forced to 1.0 at recruitment
-        self._ovr: Dict[int, Set[int]] = {}
+        #: row -> [sorted col ids (int64), event counts (int64)]
+        self._exp: Dict[int, list] = {}
+        #: row -> col ids forced to 1.0 at recruitment. WRITE side is a
+        #: python set (override storms during recruitment cost 5.2s of a
+        #: 16.9s training profile as sorted np.insert allocations); the READ
+        #: side sorts lazily via `_ovr_sorted`.
+        self._ovr: Dict[int, set] = {}
+        self._ovr_sorted: Dict[int, np.ndarray] = {}
         self._potentiated = False
+        #: LRU of RAW base blocks (no overrides): rows-bytes -> (rows, block)
+        self._cache: OrderedDict = OrderedDict()
 
     # -- capability gate ----------------------------------------------------
 
@@ -114,20 +121,19 @@ class VirtualWeights:
         """Logical cell count. TWO consumers branch on it, and its absence
         was a silent norm kill-switch: `_norm_scale` early-returns on
         ``getattr(w, 'size', 0) == 0``, so without this property every
-        virtual fiber skipped normalization -- measured as the *_norm
-        fingerprint configs diverging at round 1 while norm-off configs
-        matched. `clone` also branches on ``size > 0`` to decide
-        copy-vs-share."""
+        virtual fiber skipped normalization. `clone` also branches on
+        ``size > 0`` to decide copy-vs-share."""
         return self.n_rows * self.n_cols
 
     def copy(self) -> "VirtualWeights":
-        """Deep copy for `clone` -- sharing the dicts would alias two brains'
-        plasticity onto one store."""
+        """Deep copy for `clone` -- sharing the stores would alias two
+        brains' plasticity onto one fiber."""
         out = VirtualWeights(self.n_rows, self.n_cols, self.pair_seed,
                              self.p, self.beta, self.w_lo, self.w_hi,
                              self.inhibitory_prob, self.inhibitory_weight)
-        out._exp = {r: dict(d) for r, d in self._exp.items()}
-        out._ovr = {r: set(s) for r, s in self._ovr.items()}
+        out._exp = {r: [v[0].copy(), v[1].copy()]
+                    for r, v in self._exp.items()}
+        out._ovr = {r: set(v) for r, v in self._ovr.items()}
         out._potentiated = self._potentiated
         return out
 
@@ -135,28 +141,75 @@ class VirtualWeights:
         """Growth. The dense path's 2x-peak reallocation becomes two ints."""
         if n_rows < self.n_rows or n_cols < self.n_cols:
             raise ValueError("virtual fibers never shrink")
+        if n_cols > self.n_cols:
+            self._cache.clear()          # cached blocks are col_end-shaped
         self.n_rows, self.n_cols = int(n_rows), int(n_cols)
 
     # -- base ---------------------------------------------------------------
 
-    def _base_row(self, row: int, col_end: Optional[int] = None) -> np.ndarray:
-        cols = self.n_cols if col_end is None else col_end
-        out = hash_area_weights(row, row + 1, 0, cols, self.pair_seed,
-                                self.p, self.inhibitory_prob,
-                                self.inhibitory_weight)[0]
-        ovr = self._ovr.get(row)
-        if ovr:
-            idx = [c for c in ovr if c < cols]
-            if idx:
-                out[idx] = 1.0
-        return out
+    def _raw_rows(self, rows: np.ndarray) -> np.ndarray:
+        """RAW hash block for *rows* (no overrides), LRU-cached.
+
+        The drive (`row_sum`) and the plasticity (`bump`) of one training
+        projection use the SAME source winners, so the second call is a hit;
+        the returned array is shared and must be treated as read-only.
+        """
+        key = rows.tobytes()
+        hit = self._cache.get(key)
+        if hit is not None:
+            self._cache.move_to_end(key)
+            return hit
+        block = hash_area_weights_rows(rows, 0, self.n_cols, self.pair_seed,
+                                       self.p, self.inhibitory_prob,
+                                       self.inhibitory_weight)
+        self._cache[key] = block
+        if len(self._cache) > _CACHE_BLOCKS:
+            self._cache.popitem(last=False)
+        return block
+
+    def _deviation_triples(self, rows: np.ndarray, cols: int):
+        """Concatenated (local row idx, col, count) over the selected rows."""
+        loc, col_parts, cnt_parts = [], [], []
+        for i, r in enumerate(rows):
+            entry = self._exp.get(int(r))
+            if entry is None:
+                continue
+            c, n = entry
+            if len(c) and c[-1] >= cols:
+                keep = c < cols
+                c, n = c[keep], n[keep]
+            if len(c):
+                loc.append(np.full(len(c), i, dtype=np.int64))
+                col_parts.append(c)
+                cnt_parts.append(n)
+        if not loc:
+            return None
+        return (np.concatenate(loc), np.concatenate(col_parts),
+                np.concatenate(cnt_parts))
+
+    def _ovr_arr(self, r: int):
+        """Sorted override cols for row *r*, built lazily after writes."""
+        arr = self._ovr_sorted.get(r)
+        if arr is None:
+            src = self._ovr.get(r)
+            if not src:
+                return None
+            arr = np.fromiter(src, dtype=np.int64, count=len(src))
+            arr.sort()
+            self._ovr_sorted[r] = arr
+        return arr
+
+    def _apply_overrides(self, block: np.ndarray, rows: np.ndarray,
+                         cols: int) -> None:
+        for i, r in enumerate(rows):
+            ovr = self._ovr_arr(int(r))
+            if ovr is not None and len(ovr):
+                idx = ovr[ovr < cols] if ovr[-1] >= cols else ovr
+                if len(idx):
+                    block[i, idx] = 1.0
 
     def _chain(self, values: np.ndarray, counts: np.ndarray) -> np.ndarray:
-        """Replay the dense engine's per-event float32 multiply-then-clip.
-
-        Vectorised by round: cells with count >= r take round r. Bounded by
-        the maximum event count, ~presentations in practice.
-        """
+        """Replay the dense engine's per-event float32 multiply-then-clip."""
         v = values.astype(np.float32, copy=True)
         g = np.float32(1.0 + self.beta)
         rounds = int(counts.max()) if len(counts) else 0
@@ -167,52 +220,41 @@ class VirtualWeights:
                 np.clip(v, self.w_lo, self.w_hi, out=v)
         return v
 
+    def _materialize_rows(self, rows: np.ndarray, cols: int) -> np.ndarray:
+        """The (len(rows), cols) float32 block exactly as dense would hold it."""
+        block = self._raw_rows(rows)[:, :cols].copy()
+        self._apply_overrides(block, rows, cols)
+        dev = self._deviation_triples(rows, cols)
+        if dev is not None:
+            loc, c, n = dev
+            block[loc, c] = self._chain(block[loc, c], n)
+        return block
+
     # -- reads --------------------------------------------------------------
 
     def row_sum(self, rows, col_end: Optional[int] = None) -> np.ndarray:
         """``w[rows, :col_end].sum(axis=0)`` -- the drive kernel.
 
-        THE SUMMATION SEMANTICS ARE PART OF THE CONTRACT. The dense path
-        sums float32 rows with numpy's PAIRWISE reduction; a float64
-        sequential accumulation differs in ulps, and k-WTA turns an ulp into
-        a different winner ORDER on ties -- measured as same-set,
-        different-order winners on the p40_norm config. So the kernel builds
-        the k-row float32 block the dense path would have read (base plus
-        per-row chained deviations, in place) and lets the SAME
-        ``sum(axis=0)`` produce the result.
+        One batched hash for all k rows, one scatter for the deviations, and
+        the SAME float32 ``sum(axis=0)`` the dense path performs -- the
+        summation order is part of the contract (ulps flip k-WTA tie order).
         """
         rows = np.asarray(rows, dtype=np.int64)
         cols = self.n_cols if col_end is None else min(int(col_end),
                                                        self.n_cols)
-        block = np.empty((len(rows), cols), dtype=np.float32)
-        for i, r in enumerate(rows):
-            base = self._base_row(int(r), cols)
-            dev = self._exp.get(int(r))
-            if dev:
-                idx = np.fromiter((c for c in dev if c < cols),
-                                  dtype=np.int64)
-                if len(idx):
-                    counts = np.fromiter((dev[int(c)] for c in idx),
-                                         dtype=np.int64)
-                    base = base.copy()
-                    base[idx] = self._chain(base[idx], counts)
-            block[i] = base
-        return block.sum(axis=0)
+        return self._materialize_rows(rows, cols).sum(axis=0)
 
     def cell(self, row: int, col: int) -> float:
-        base = float(self._base_row(int(row), int(col) + 1)[int(col)])
-        n = self._exp.get(int(row), {}).get(int(col), 0)
-        if n == 0:
-            return base
-        return float(self._chain(np.asarray([base], dtype=np.float32),
-                                 np.asarray([n]))[0])
+        block = self._materialize_rows(np.asarray([row], dtype=np.int64),
+                                       int(col) + 1)
+        return float(block[0, col])
 
     def column_nnz(self, rows_known: Optional[int] = None) -> np.ndarray:
         """Per-column nonzero counts -- what `_norm_scale` divides by.
 
         A property of base-plus-overrides only: the chain never creates a
-        nonzero. Regenerated in chunks; overrides that landed on base-zero
-        cells add one each.
+        nonzero. Chunked contiguous regeneration; overrides that landed on
+        base-zero cells add one each.
         """
         rows_known = self.n_rows if rows_known is None else int(rows_known)
         counts = np.zeros(self.n_cols, dtype=np.int64)
@@ -225,11 +267,10 @@ class VirtualWeights:
                                       self.inhibitory_weight)
             counts += (block != 0).sum(axis=0)
             for r in range(start, end):
-                ovr = self._ovr.get(r)
-                if ovr:
-                    for c in ovr:
-                        if block[r - start, c] == 0:
-                            counts[c] += 1
+                ovr = self._ovr_arr(r)
+                if ovr is not None and len(ovr):
+                    zero_base = ovr[block[r - start, ovr] == 0]
+                    counts[zero_base] += 1
         return counts
 
     # -- writes -------------------------------------------------------------
@@ -237,67 +278,84 @@ class VirtualWeights:
     def override(self, rows, col: int) -> None:
         """The recruitment write: assign 1.0, CLOBBERING any history.
 
-        The first version refused an override on a potentiated cell, reasoning
-        a first-time winner's column has no events. The engine refuted it in
-        one run: within a recruitment round `_apply_plasticity` executes
-        BEFORE `_expand_connectomes`, so the new winner's column is
-        potentiated (from hash-base values) and THEN assigned 1.0. Dense
-        assignment erases that history, so the exponent count resets here --
-        future events chain from 1.0, which is exactly what the dense block
-        does.
+        Within a recruitment round `_apply_plasticity` executes BEFORE
+        `_expand_connectomes`, so the new winner's column is potentiated and
+        THEN assigned 1.0. Dense assignment erases that history, so the
+        exponent count resets here -- future events chain from 1.0.
         """
         col = int(col)
         for r in np.asarray(rows, dtype=np.int64):
-            row_exp = self._exp.get(int(r))
-            if row_exp is not None:
-                row_exp.pop(col, None)
-            self._ovr.setdefault(int(r), set()).add(col)
+            r = int(r)
+            entry = self._exp.get(r)
+            if entry is not None:
+                c, n = entry
+                pos = int(np.searchsorted(c, col))
+                if pos < len(c) and c[pos] == col:
+                    keep = np.ones(len(c), dtype=bool)
+                    keep[pos] = False
+                    self._exp[r] = [c[keep], n[keep]]
+            self._ovr.setdefault(r, set()).add(col)
+            self._ovr_sorted.pop(r, None)
 
     def bump(self, rows, cols, beta: float) -> None:
         """One Hebbian event on the co-firing block: count += 1 per nonzero.
 
         Base-zero, non-overridden cells are skipped -- multiplying zero is
         what the dense engine does, and an exponent there would claim a
-        synapse that does not exist.
+        synapse that does not exist. Vectorised: one (possibly cached) hash
+        block for the row set, one sorted-merge per row.
         """
         if float(beta) != self.beta:
             raise ValueError(
                 f"fiber constructed at beta={self.beta}, bump at {beta}: one "
                 f"exponent store cannot carry two growth factors -- densify")
         self._potentiated = True
-        cols = np.asarray(cols, dtype=np.int64)
-        for r in np.asarray(rows, dtype=np.int64):
-            base = self._base_row(int(r))
-            live = cols[base[cols] != 0]
-            if len(live):
-                row_exp = self._exp.setdefault(int(r), {})
-                for c in live:
-                    row_exp[int(c)] = row_exp.get(int(c), 0) + 1
+        rows = np.asarray(rows, dtype=np.int64)
+        cols_sorted = np.sort(np.asarray(cols, dtype=np.int64))
+        raw = self._raw_rows(rows)
+        for i, r in enumerate(rows):
+            r = int(r)
+            live = cols_sorted[raw[i, cols_sorted] != 0]
+            ovr = self._ovr_arr(r)
+            if ovr is not None and len(ovr):
+                extra = cols_sorted[np.isin(cols_sorted, ovr,
+                                            assume_unique=True)]
+                if len(extra):
+                    live = np.union1d(live, extra)
+            if not len(live):
+                continue
+            entry = self._exp.get(r)
+            if entry is None:
+                self._exp[r] = [live.copy(),
+                                np.ones(len(live), dtype=np.int64)]
+                continue
+            c, n = entry
+            merged = np.union1d(c, live)
+            counts = np.zeros(len(merged), dtype=np.int64)
+            counts[np.searchsorted(merged, c)] = n
+            counts[np.searchsorted(merged, live)] += 1
+            self._exp[r] = [merged, counts]
 
     # -- bookkeeping ---------------------------------------------------------
 
     @property
     def deviations(self) -> int:
-        return sum(len(d) for d in self._exp.values())
+        return sum(len(v[0]) for v in self._exp.values())
 
     @property
     def overrides(self) -> int:
-        return sum(len(s) for s in self._ovr.values())
+        return sum(len(v) for v in self._ovr.values())
 
     @property
     def nbytes(self) -> int:
-        return (self.deviations + self.overrides) * 24     # approximate
+        return (self.deviations * 16 + self.overrides * 8) + len(self._exp) * 64
 
     def todense(self) -> np.ndarray:
         """The full matrix, for VERIFICATION only."""
         out = np.empty((self.n_rows, self.n_cols), dtype=np.float32)
-        for r in range(self.n_rows):
-            base = self._base_row(r)
-            dev = self._exp.get(r)
-            if dev:
-                idx = np.fromiter(dev.keys(), dtype=np.int64)
-                counts = np.fromiter(dev.values(), dtype=np.int64)
-                base = base.copy()
-                base[idx] = self._chain(base[idx], counts)
-            out[r] = base
+        chunk = 2048
+        for start in range(0, self.n_rows, chunk):
+            end = min(start + chunk, self.n_rows)
+            rows = np.arange(start, end, dtype=np.int64)
+            out[start:end] = self._materialize_rows(rows, self.n_cols)
         return out

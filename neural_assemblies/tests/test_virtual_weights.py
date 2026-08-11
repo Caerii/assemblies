@@ -114,8 +114,11 @@ class TestBitIdentity(unittest.TestCase):
         claim (2.69 GB -> ~20 MB on the S5 organ) is a measurement in the
         integration work, not a toy assertion.
         """
-        self.assertEqual(self.vw.nbytes,
-                         24 * (self.vw.deviations + self.vw.overrides))
+        self.assertLessEqual(
+            self.vw.nbytes,
+            24 * (self.vw.deviations + self.vw.overrides)
+            + 64 * len(self.vw._exp),
+            "storage grew faster than deviations plus per-row overhead")
         empty = VirtualWeights(10**6, 10**6, 1, 0.4, 0.1, LO, HI)
         self.assertEqual(empty.nbytes, 0,
                          "an unpotentiated fiber must cost nothing")

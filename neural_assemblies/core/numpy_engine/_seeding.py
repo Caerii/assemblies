@@ -214,6 +214,55 @@ def hash_area_weights(row_start, row_end, col_start, col_end, pair_seed,
     return w
 
 
+def hash_area_weights_rows(row_ids, col_start, col_end, pair_seed,
+                           p: float, inhibitory_prob: float = 0.0,
+                           inhibitory_weight: float = -1.0,
+                           finalize: bool = True):
+    """`hash_area_weights` for a SCATTERED set of rows, one vectorised call.
+
+    A cell's value is a pure function of its absolute (row, col), so the
+    contiguous kernel's ``arange(row_start, row_end)`` is just a special case
+    of an arbitrary row-id vector -- the broadcasting and every elementwise op
+    are identical, and `test_seeding` asserts the equality rather than
+    trusting this sentence.
+
+    WHY IT EXISTS. `VirtualWeights.row_sum` regenerates the k WINNER rows of
+    a fiber per projection. Calling the contiguous kernel once per row cost k
+    Python-level round trips and made the virtual path ~5x slower than dense;
+    this replaces them with one call over a (k, n_cols) block. Kept in this
+    module so the two spellings share `_raw_hash`/`mix32` and cannot drift.
+    Rust path: `area_rows_block` (already in na-kernels, rayon over rows)
+    measured 15.6x over the numpy spelling at (70, 20000) on this box --
+    2.37 ms vs 37.1 ms -- and byte-identical, asserted in `test_seeding`.
+    """
+    rust = rust_kernels()
+    if rust is not None:
+        return rust.area_rows_block(
+            np.ascontiguousarray(row_ids, dtype=np.int64),
+            int(col_start), int(col_end), int(pair_seed) & 0xFFFFFFFF,
+            float(p), float(inhibitory_prob), float(inhibitory_weight),
+            bool(finalize))
+    row_ids = np.asarray(row_ids, dtype=np.uint32).reshape(-1, 1)
+    nc = int(col_end - col_start)
+    if len(row_ids) == 0 or nc <= 0:
+        return np.empty((len(row_ids), max(nc, 0)), dtype=np.float32)
+    cols = np.arange(col_start, col_end, dtype=np.uint32).reshape(1, nc)
+    h = _raw_hash(row_ids, cols, pair_seed)
+    if finalize:
+        h = mix32(h, copy=False)
+    u = (h & _MANTISSA).astype(np.float32) / _MANTISSA_SCALE
+    present = (u < p).astype(np.float32)
+    if inhibitory_prob <= 0.0:
+        return present
+    h2 = _raw_hash(row_ids, cols, np.uint32(pair_seed) ^ _INHIBITORY_SALT)
+    if finalize:
+        h2 = mix32(h2, copy=False)
+    u_inh = (h2 & _MANTISSA).astype(np.float32) / _MANTISSA_SCALE
+    w = present.copy()
+    w[(present > 0) & (u_inh < inhibitory_prob)] = inhibitory_weight
+    return w
+
+
 def hash_stim_counts(stim_size: int, neuron_start: int, neuron_end: int,
                      pair_seed, p: float, finalize: bool = True,
                      chunk: int = 1024):
