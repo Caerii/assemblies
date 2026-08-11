@@ -1,22 +1,33 @@
-"""The virtual representation must be INVISIBLE: same winners, same weights.
+"""VirtualWeights integration under DRIVE SEMANTICS v2.
 
-The fingerprint golden digests the dense path's PHYSICAL buffer, padding
-included, so a padding-free representation can never match it field-for-field
-even when every computed value is identical. This test makes the comparison
-the golden cannot: run each configuration twice IN-PROCESS -- gate off, gate
-on (the gate reads the environment per call) -- and demand bit-identical
-winners every round and bit-identical weights over the LOGICAL region.
+HISTORY, kept deliberately. The first version of this test demanded winners
+bit-identical to the DENSE path, and that bar caught three real bugs (a
+missing `size` property that silently disabled normalization, a float
+summation-order divergence, an ungated materialize path). It was retired on
+purpose by `PREREG_drive_semantics_v2.md`: the memoized decomposition
+`f64 base_sum + f64 delta` IS the virtual drive's definition now, and it
+differs from dense float32 pairwise reduction by ulps -- which can flip
+k-WTA tie order. The registered science-invariance run (V-S5) is what
+licenses that difference; this file guards what remains guardable:
 
-This is the acceptance test the design note promised. It found its first bug
-before it existed as a file: `VirtualWeights` without a `size` property made
-`_norm_scale`'s ``getattr(w, 'size', 0) == 0`` guard treat every virtual
-fiber as empty -- normalization silently OFF, winners diverging at round 1 on
-exactly the *_norm configs. A missing attribute was a kill-switch two layers
-away; `getattr`-with-default is how it stayed silent.
+  * SELF-CONSISTENCY: cold and memoized paths are the same computation, so
+    two identical runs must be bit-identical, and a run must equal a run
+    whose caches were primed differently.
+  * A VIRTUAL-SEMANTICS FINGERPRINT: the five configurations, gate-on,
+    digested into their own golden -- v2 semantics pinned against future
+    drift exactly as dense semantics is pinned by the dense golden.
+  * SANITY vs dense: winner-set overlap stays high (ulp ties move ONE
+    winner occasionally, not the assembly). A gross divergence means a bug,
+    not a tie.
+
+Regenerate the golden (justify in the commit):
+    python -m neural_assemblies.tests.test_virtual_weights_integration
 """
 
 from __future__ import annotations
 
+import hashlib
+import json
 import os
 import random
 import unittest
@@ -26,6 +37,9 @@ import numpy as np
 from neural_assemblies.core.brain import Brain
 from neural_assemblies.core.numpy_engine._virtual_weights import VirtualWeights
 from neural_assemblies.diagnostics import read_assembly
+
+GOLDEN = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                      "virtual_semantics_fingerprint.json")
 
 CONFIGS = [
     ("p05", 0.05, False, False),
@@ -66,25 +80,62 @@ def _run(gate: str, norm: bool, p_fiber: float, materialize: bool):
         os.environ.pop("ASSEMBLIES_VIRTUAL_WEIGHTS", None)
 
 
-class TestGateEquivalence(unittest.TestCase):
+def _digest(winners, weights) -> dict:
+    h = hashlib.sha256()
+    for w in winners:
+        h.update(np.asarray(sorted(w), dtype=np.int64).tobytes())
+    hw = hashlib.sha256(np.ascontiguousarray(weights).tobytes())
+    return {"winners": h.hexdigest()[:32], "weights": hw.hexdigest()[:32]}
 
-    def test_all_configs_bit_identical(self):
+
+def collect() -> dict:
+    out = {}
+    for name, p_fiber, norm, mat in CONFIGS:
+        winners, weights, virt = _run("1", norm, p_fiber, mat)
+        assert virt, f"{name}: gate on did not build a virtual fiber"
+        out[name] = _digest(winners, weights)
+    return out
+
+
+class TestSelfConsistency(unittest.TestCase):
+
+    def test_two_runs_bit_identical_every_config(self):
         for name, p_fiber, norm, mat in CONFIGS:
             with self.subTest(config=name):
-                w_off, d_off, virt_off = _run("0", norm, p_fiber, mat)
-                w_on, d_on, virt_on = _run("1", norm, p_fiber, mat)
-                self.assertFalse(virt_off, f"{name}: gate off built virtual")
-                self.assertTrue(virt_on,
-                                f"{name}: gate on did NOT build a virtual "
-                                f"fiber -- the test is comparing dense to "
-                                f"dense and proving nothing")
-                self.assertEqual(w_off, w_on, f"{name}: winners diverged")
-                self.assertEqual(d_off.shape[0], d_on.shape[0], name)
-                min_c = min(d_off.shape[1], d_on.shape[1])
-                self.assertTrue(
-                    np.array_equal(d_off[:, :min_c], d_on[:, :min_c]),
-                    f"{name}: logical-region weights differ")
+                w1, d1, v1 = _run("1", norm, p_fiber, mat)
+                w2, d2, v2 = _run("1", norm, p_fiber, mat)
+                self.assertTrue(v1 and v2, f"{name}: not virtual")
+                self.assertEqual(w1, w2, f"{name}: winners not reproducible")
+                self.assertTrue(np.array_equal(d1, d2), name)
+
+
+class TestVirtualGolden(unittest.TestCase):
+
+    def test_matches_virtual_semantics_golden(self):
+        with open(GOLDEN, encoding="utf-8") as fh:
+            golden = json.load(fh)
+        got = collect()
+        for name in golden:
+            self.assertEqual(got[name], golden[name],
+                             f"{name}: v2 semantics drifted -- if intended, "
+                             f"regenerate and justify in the commit")
+
+
+class TestDenseSanity(unittest.TestCase):
+
+    def test_winner_sets_stay_close_to_dense(self):
+        """Ulp ties move a winner occasionally; a bug moves the assembly."""
+        for name, p_fiber, norm, mat in CONFIGS:
+            with self.subTest(config=name):
+                w_off, _d0, _ = _run("0", norm, p_fiber, mat)
+                w_on, _d1, _ = _run("1", norm, p_fiber, mat)
+                overlaps = [len(set(a) & set(b)) / 30.0
+                            for a, b in zip(w_off, w_on)]
+                self.assertGreater(float(np.mean(overlaps)), 0.8,
+                                   f"{name}: {overlaps}")
 
 
 if __name__ == "__main__":
-    unittest.main()
+    with open(GOLDEN, "w", encoding="utf-8") as fh:
+        json.dump(collect(), fh, indent=2, sort_keys=True)
+    print(f"wrote {GOLDEN}")

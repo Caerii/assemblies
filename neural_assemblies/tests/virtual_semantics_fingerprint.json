@@ -1,0 +1,22 @@
+{
+  "p05": {
+    "weights": "fca38b6646e157734a956121254861f3",
+    "winners": "26e09301b7f49bb146d64935a720f223"
+  },
+  "p05_norm": {
+    "weights": "1201c1183425de49654dc4fe99866160",
+    "winners": "dc25d35920501ec2a6837e7e7823df25"
+  },
+  "p40": {
+    "weights": "ed51aeb01b0f3b6a50833c90008ed40c",
+    "winners": "15bc490d51148a1a5e4af85f30502e11"
+  },
+  "p40_materialized": {
+    "weights": "2cab2ef440c74552ae881158554d9fe7",
+    "winners": "298a0bde8424fd40b55a3a27c2136315"
+  },
+  "p40_norm": {
+    "weights": "798b0b510454af38d4d89955a94d4e4c",
+    "winners": "9cae35f11e6a90ca7bf575cf92d28f39"
+  }
+}

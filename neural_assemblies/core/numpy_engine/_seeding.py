@@ -263,6 +263,40 @@ def hash_area_weights_rows(row_ids, col_start, col_end, pair_seed,
     return w
 
 
+def hash_area_weights_at(row_ids, col_ids, pair_seed, p: float,
+                         inhibitory_prob: float = 0.0,
+                         inhibitory_weight: float = -1.0,
+                         finalize: bool = True):
+    """`hash_area_weights` at SCATTERED (row, col) PAIRS, elementwise.
+
+    `row_ids` and `col_ids` are equal-length vectors; element i gets the value
+    the block kernel would place at absolute cell (row_ids[i], col_ids[i]).
+    Same u32 ops, same finalizer, same mantissa — `test_seeding` asserts the
+    equality against block indexing rather than trusting the sentence.
+
+    WHY IT EXISTS. `VirtualWeights.bump` needs raw base values on the k x k
+    co-firing subgrid and `override` on ~k cells of one column; hashing a
+    full-width block for those was the recruitment-phase residue (a 70 x
+    20000 block to read 4900 cells).
+    """
+    r = np.asarray(row_ids, dtype=np.uint32)
+    c = np.asarray(col_ids, dtype=np.uint32)
+    h = _raw_hash(r, c, pair_seed)
+    if finalize:
+        h = mix32(h, copy=False)
+    u = (h & _MANTISSA).astype(np.float32) / _MANTISSA_SCALE
+    present = (u < p).astype(np.float32)
+    if inhibitory_prob <= 0.0:
+        return present
+    h2 = _raw_hash(r, c, np.uint32(pair_seed) ^ _INHIBITORY_SALT)
+    if finalize:
+        h2 = mix32(h2, copy=False)
+    u_inh = (h2 & _MANTISSA).astype(np.float32) / _MANTISSA_SCALE
+    w = present.copy()
+    w[(present > 0) & (u_inh < inhibitory_prob)] = inhibitory_weight
+    return w
+
+
 def hash_stim_counts(stim_size: int, neuron_start: int, neuron_end: int,
                      pair_seed, p: float, finalize: bool = True,
                      chunk: int = 1024):

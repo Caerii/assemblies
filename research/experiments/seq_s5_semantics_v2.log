@@ -1,0 +1,29 @@
+=== V-S5: semantics v2 invariance ===
+    trained arms, gate ON, judged against registered verdicts
+
+    [tier 0.67 GB/worker] 30 cells, 14 workers
+    [tier 2.69 GB/worker] 10 cells, 3 workers
+    CELL MOVED: Z60 L=500: 7/10 -> 10/10
+    Z60     L=10:10/10  L=50:10/10  L=100:10/10  L=500:10/10
+    CELL MOVED: A4xZ5 L=50: 9/10 -> 10/10
+    CELL MOVED: A4xZ5 L=500: 9/10 -> 7/10
+    A4xZ5   L=10:10/10  L=50:10/10  L=100: 9/10  L=500: 7/10
+    CELL MOVED: A5 L=10: 9/10 -> 8/10
+    CELL MOVED: A5 L=50: 9/10 -> 8/10
+    CELL MOVED: A5 L=100: 9/10 -> 7/10
+    CELL MOVED: A5 L=500: 7/10 -> 6/10
+    A5      L=10: 8/10  L=50: 8/10  L=100: 7/10  L=500: 6/10
+    CELL MOVED: S5 L=50: 9/10 -> 10/10
+    CELL MOVED: S5 L=100: 8/10 -> 10/10
+    CELL MOVED: S5 L=500: 5/10 -> 7/10
+    S5      L=10:10/10  L=50:10/10  L=100:10/10  L=500: 7/10
+
+=== BARS (registered verdicts: S1 PASS, S2 FAIL, S3 PASS) ===
+  S1: registered True, v2 False  [FLIPPED]
+  S2: registered False, v2 False  [UNCHANGED]
+  S3: registered True, v2 True  [UNCHANGED]
+
+  cells moved: 16
+  V-S5 FAIL
+
+wrote F:\Github\assemblies\research\experiments\seq_s5_semantics_v2_results.json

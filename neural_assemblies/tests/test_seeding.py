@@ -281,3 +281,19 @@ class TestScatteredRowsKernel:
         finally:
             os.environ.pop("NEURAL_ASSEMBLIES_NO_RUST", None)
         assert np.array_equal(via_rust, via_numpy)
+
+    def test_point_kernel_matches_block_indexing(self):
+        """`hash_area_weights_at` element i must equal block[row_i, col_i]."""
+        import numpy as np
+
+        from neural_assemblies.core.numpy_engine._seeding import (
+            hash_area_weights, hash_area_weights_at)
+        rng = np.random.default_rng(3)
+        rows = rng.integers(0, 400, 300)
+        cols = rng.integers(0, 250, 300)
+        block = hash_area_weights(0, 400, 0, 250, 991, 0.35, 0.1, -0.7)
+        pts = hash_area_weights_at(rows, cols, 991, 0.35, 0.1, -0.7)
+        assert np.array_equal(pts, block[rows, cols])
+        block2 = hash_area_weights(0, 400, 0, 250, 991, 0.35)
+        pts2 = hash_area_weights_at(rows, cols, 991, 0.35)
+        assert np.array_equal(pts2, block2[rows, cols])
