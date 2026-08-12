@@ -1270,7 +1270,15 @@ class TorchSparseEngine(ComputeEngine):
                 self._rng.integers(0, 2**32))
             src_winners_cpu = src.winners.cpu().numpy().astype(np.int64)
 
-            exp_rows, exp_cols = [], []
+            # VECTORISED PER NEW WINNER. The draws stay one-per-winner in the
+            # same order (they consume `local_rng`, so any reordering would
+            # change the connectome), but the chosen rows are kept as ARRAYS
+            # instead of appended element by element: the inner Python loop
+            # ran once per synapse -- 1.78M list appends in a 4-presentation
+            # build -- and then paid again handing a multi-million-element
+            # Python list to `torch.tensor`. Same values, same order, one
+            # host->device copy.
+            exp_rows_parts, exp_cols_parts = [], []
             for idx, win in enumerate(new_indices):
                 alloc = (
                     int(splits_per_new[idx][from_index])
@@ -1285,20 +1293,24 @@ class TorchSparseEngine(ComputeEngine):
                 col_idx = win - prior_w
                 if col_idx < 0 or col_idx >= needed_cols:
                     continue
-                for r in chosen:
-                    r_int = int(r)
-                    if r_int < 0 or r_int >= needed_rows:
-                        continue
-                    exp_rows.append(r_int)
-                    exp_cols.append(col_idx)
+                chosen = chosen[(chosen >= 0) & (chosen < needed_rows)]
+                if chosen.size == 0:
+                    continue
+                exp_rows_parts.append(chosen)
+                exp_cols_parts.append(
+                    np.full(chosen.size, col_idx, dtype=np.int64))
 
-            if exp_rows:
-                coo_r_parts.append(torch.tensor(
-                    exp_rows, dtype=torch.int32, device=self._device))
-                coo_c_parts.append(torch.tensor(
-                    exp_cols, dtype=torch.int32, device=self._device))
+            if exp_rows_parts:
+                exp_rows = np.concatenate(exp_rows_parts).astype(
+                    np.int32, copy=False)
+                exp_cols = np.concatenate(exp_cols_parts).astype(
+                    np.int32, copy=False)
+                coo_r_parts.append(
+                    torch.from_numpy(exp_rows).to(self._device))
+                coo_c_parts.append(
+                    torch.from_numpy(exp_cols).to(self._device))
                 coo_v_parts.append(torch.ones(
-                    len(exp_rows), dtype=WEIGHT_DTYPE,
+                    exp_rows.size, dtype=WEIGHT_DTYPE,
                     device=self._device))
 
             # Merge into CSR

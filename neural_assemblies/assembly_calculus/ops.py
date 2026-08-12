@@ -133,7 +133,48 @@ def _compact_index(engine, area_name: str):
     mapping = engine.get_neuron_id_mapping(area_name)
     if not mapping:
         return None
-    return {int(nid): i for i, nid in enumerate(mapping)}
+
+    # CACHED, because this is O(area size) and ran per PROJECTION: every
+    # `_cue_state` inverts the whole table to activate one k-neuron assembly.
+    # Measured on the Z60 organ (n_state=4200, arc n=20000) it was 0.81s of an
+    # 11.7s GPU build and 3.9s of a 93.9s numpy build -- pure Python dict
+    # construction, on both engines, for a table that rarely changes.
+    #
+    # WHY THE KEY IS SOUND, which is the whole difficulty. The mapping is NOT
+    # append-only: `materialize_area` and the explicit-dense bootstrap REPLACE
+    # the list wholesale (`compact_to_neuron_id = list(neuron_ids)`), and a
+    # stale inverse here is exactly the compact-vs-neuron-id confusion that has
+    # cost this project three results. So the entry keeps a STRONG REFERENCE to
+    # the list it was built from and validates with `is`. Holding the reference
+    # is what makes identity sound: the object cannot be freed while cached, so
+    # a new list cannot be allocated at the same address and compare equal.
+    # Length is checked too, which catches the append/extend growth paths
+    # (recruitment, `materialize_area`'s fill). No site mutates an element in
+    # place without changing the length -- the grep is `compact_to_neuron_id`
+    # in core/, and every writer appends, extends, or rebinds.
+    cache = getattr(engine, "_compact_index_cache", None)
+    if cache is None:
+        cache = {}
+        try:
+            engine._compact_index_cache = cache
+        except AttributeError:          # __slots__ engine: stay uncached
+            return {int(nid): i for i, nid in enumerate(mapping)}
+    hit = cache.get(area_name)
+    if hit is not None:
+        cached_mapping, cached_len, inverse = hit
+        if cached_mapping is mapping:
+            if cached_len == len(mapping):
+                return inverse
+            if cached_len < len(mapping):
+                # Same list, longer: growth is append-only, so the existing
+                # entries are still correct and only the tail is new.
+                for i in range(cached_len, len(mapping)):
+                    inverse[int(mapping[i])] = i
+                cache[area_name] = (mapping, len(mapping), inverse)
+                return inverse
+    inverse = {int(nid): i for i, nid in enumerate(mapping)}
+    cache[area_name] = (mapping, len(mapping), inverse)
+    return inverse
 
 
 def activate_assembly(brain, assembly: Assembly) -> None:
