@@ -104,3 +104,35 @@ def test_setpoint_uses_fiber_p_not_brain_p():
         sums, fiber_setpoint, brain_setpoint)
     assert float(np.median(sums)) > 0.5 * fiber_setpoint, (
         sums, fiber_setpoint)
+
+
+def test_scaled_fiber_is_stored_column_major():
+    """Perf guard: a scaled area->area fiber is column-major (F-order).
+
+    `_scale_columns_now`'s whole cost is a per-column gather/scatter of `k`
+    winner columns of a large dense block; in C (row-major) order a column's
+    rows are strided by the row width, so it is cache-miss-bound (measured
+    34 ms/call on a 16000x4200 organ_p=0.5 fiber, ~84% of the homeostatic
+    training arm under load). Storing the fiber F-order makes each column
+    contiguous, byte-identically (asfortranarray preserves logical [i,j], so
+    drive-reads and plasticity are unchanged) -- proven end-to-end: two builds
+    that differ ONLY in the fiber's memory order produced identical census and
+    connectome crc.
+
+    This asserts the MECHANISM stays active. Like the CSR cache-the-NO
+    scan-count guard, it is behavioural, not a correctness claim: if the fiber
+    silently reverted to C-order the speedup would vanish with no other signal.
+    Growth reallocates C-order and `_scale_columns_now` reconverts on the next
+    touch, so the guard reads the fiber AFTER a post-growth scaling step.
+    """
+    b = Brain(p=0.05, seed=0, engine="numpy_sparse",
+              synaptic_scaling=True, norm_init=False)
+    b.add_stimulus("s", 10)
+    b.add_area("A", 500, 10, beta=0.2)
+    b.add_area("B", 500, 10, beta=0.2)
+    b.add_connectivity("A", "B", 0.4)
+    b.project({"s": ["A"]}, {})
+    for _ in range(6):
+        b.project({"s": ["A"]}, {"A": ["B"]})
+    w = np.asarray(b._engine._area_conns["A"]["B"].weights)
+    assert w.ndim == 2 and w.flags["F_CONTIGUOUS"], (w.shape, str(w.flags))

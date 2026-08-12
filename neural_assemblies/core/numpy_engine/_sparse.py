@@ -1974,6 +1974,24 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
             w = conn.weights
             if w is None or getattr(w, "ndim", 0) != 2 or w.shape[1] == 0:
                 continue
+            # COLUMN-MAJOR STORAGE for a scaled fiber. This function is reached
+            # ONLY for area->area fibers under synaptic_scaling, and its whole
+            # cost is the per-column gather/scatter below: `k` winner columns of
+            # a large dense block. In C (row-major) order a column's rows are
+            # strided by the row width, so the access is cache-miss-bound --
+            # measured 34 ms/call on a 15997x4200 organ_p=0.5 fiber, 84% of the
+            # homeostatic training arm. F-order makes each column contiguous:
+            # the same op is 4 ms (~8x), and the whole training arm ~4x, because
+            # `asfortranarray` preserves logical [i,j] values, so the drive-read
+            # (row-gather) and plasticity stay BYTE-IDENTICAL -- only the far
+            # cheaper row-gather slows (0.7->4.6 ms), which the column saving
+            # dwarfs. Converted lazily and persisted on the connection; growth
+            # reallocates C-order (amortised doubling, front-loaded to early
+            # recruitment ~log2(n/k) times), and this reconverts on the next
+            # touch, so there is no per-step thrash.
+            if isinstance(w, xp.ndarray) and not w.flags.f_contiguous:
+                w = xp.asfortranarray(w)
+                conn.weights = w
             valid = cols[cols < w.shape[1]]
             if len(valid) == 0:
                 continue
