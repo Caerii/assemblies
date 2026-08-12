@@ -72,6 +72,37 @@ def test_dense_representation_selected_by_density():
     assert TorchDenseConn.DTYPE == torch.float32
 
 
+def test_dense_fiber_layout_follows_shape():
+    """Perf guard, the GPU half of the numpy layout rule.
+
+    `index_select(1, cols)` on a row-major (rows, cols) fiber reads each
+    column with a rows-sized stride -- uncoalesced, one memory transaction
+    per element. Measured on the organ's 20000x4200 fiber: 1195 us row-major
+    vs 537 us column-major for the scaling op. Layout preserves logical
+    [i, j], so it only moves time. Behavioural, like its numpy sibling.
+    """
+    from neural_assemblies.core.torch_engine._csr import TorchDenseConn
+    b = _brain()
+    b.add_area("A", 2000, 50, beta=0.1)   # tall fiber A->B (2000 > 200)
+    b.add_area("B", 200, 10, beta=0.1)
+    b.add_connectivity("A", "B", 0.4)
+    b.add_connectivity("B", "A", 0.4)     # wide fiber B->A
+    eng = b._engine
+    tall = eng._area_conns["A"]["B"]
+    wide = eng._area_conns["B"]["A"]
+    assert isinstance(tall, TorchDenseConn) and tall._col_major, "tall fiber"
+    assert isinstance(wide, TorchDenseConn) and not wide._col_major, "wide"
+    # And the allocated buffer really carries that order: column-major means
+    # stepping one ROW is one element (stride[0] == 1), i.e. a column is
+    # contiguous.
+    empty_i = torch.empty(0, dtype=torch.int32, device="cuda")
+    empty_v = torch.empty(0, dtype=TorchDenseConn.DTYPE, device="cuda")
+    tall.expand(64, 32, empty_i, empty_i.clone(), empty_v)
+    wide.expand(32, 64, empty_i, empty_i.clone(), empty_v)
+    assert tall._w.stride()[0] == 1, tall._w.stride()
+    assert wide._w.stride()[1] == 1, wide._w.stride()
+
+
 def test_scaling_setpoint_uses_fiber_p():
     """Aggregate signature, mirroring test_scoped_synaptic_scaling's numpy
     version: touched columns sit at the FIBER's scale (rows * 0.4), nowhere

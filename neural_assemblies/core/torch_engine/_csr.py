@@ -280,8 +280,7 @@ def densify(csr, device='cuda', max_rows=None, max_cols=None):
     """Convert a CSRConn to a TorchDenseConn with identical logical content."""
     dense = TorchDenseConn(device=device, max_rows=max_rows,
                            max_cols=max_cols)
-    dense._w = torch.zeros((csr._nrows, csr._ncols), dtype=TorchDenseConn.DTYPE,
-                           device=device)
+    dense._w = dense._new_buffer(csr._nrows, csr._ncols)
     if csr.nnz > 0:
         lengths = csr._crow[1:] - csr._crow[:-1]
         rows = torch.repeat_interleave(
@@ -333,7 +332,22 @@ class TorchDenseConn:
 
     def __init__(self, device='cuda', max_rows=None, max_cols=None):
         self._device = device
-        self._w = torch.zeros((0, 0), dtype=self.DTYPE, device=device)
+        # LAYOUT FOLLOWS SHAPE, exactly as on the numpy engine (see
+        # `_sparse._scale_columns_now`): a scaled fiber pays a column
+        # gather/scatter over rows x k and a drive row-gather over k x cols,
+        # and whichever slice is larger should own the contiguity. On GPU the
+        # penalty is uncoalescing rather than cache misses -- `index_select(1,
+        # cols)` on a row-major (20000, 4200) fiber reads each column with a
+        # 16.8 KB stride, so every element is its own memory transaction.
+        # Measured on this exact shape: 1195 us row-major vs 537 us
+        # column-major (2.2x) for the scaling op.
+        #
+        # Layout preserves logical [i, j], so this is byte-identical -- the
+        # same claim proven end-to-end on numpy (identical census and
+        # connectome crc across layouts); it only moves time.
+        self._col_major = (max_rows is not None and max_cols is not None
+                           and int(max_rows) > int(max_cols))
+        self._w = self._new_buffer(0, 0)
         # Physical-capacity caps: the areas' n. Amortised doubling MUST stop
         # here, like the numpy engine's `min(max(needed, phys*2, ...),
         # max(n, needed))` -- uncapped, per-projection growth doubled a
@@ -371,6 +385,20 @@ class TorchDenseConn:
         guard; a true nonzero count would scan 168 MB to answer a boolean.
         """
         return self._log_rows * self._log_cols
+
+    def _new_buffer(self, rows, cols):
+        """Zero buffer of the requested SHAPE in this fiber's memory order.
+
+        A column-major (rows, cols) tensor is a contiguous (cols, rows)
+        viewed transposed: stride becomes (1, rows), so a column is
+        contiguous. Logical [i, j] is unchanged, so every caller and every
+        stored value is identical either way.
+        """
+        if self._col_major:
+            return torch.zeros((cols, rows), dtype=self.DTYPE,
+                               device=self._device).t()
+        return torch.zeros((rows, cols), dtype=self.DTYPE,
+                           device=self._device)
 
     # -- Input accumulation (project_into hot path) -------------------------
 
@@ -426,8 +454,7 @@ class TorchDenseConn:
                 cap_r = min(cap_r, max(int(self._max_rows), nr))
             if self._max_cols is not None:
                 cap_c = min(cap_c, max(int(self._max_cols), nc))
-            buf = torch.zeros((cap_r, cap_c), dtype=self.DTYPE,
-                              device=self._device)
+            buf = self._new_buffer(cap_r, cap_c)
             if pr > 0 and pc > 0:
                 buf[:pr, :pc] = self._w
             self._w = buf
@@ -483,8 +510,7 @@ class TorchDenseConn:
     # -- Reset --------------------------------------------------------------
 
     def reset(self):
-        self._w = torch.zeros((0, 0), dtype=self.DTYPE,
-                              device=self._device)
+        self._w = self._new_buffer(0, 0)
         self._log_rows = 0
         self._log_cols = 0
         self._ext_rows = 0
