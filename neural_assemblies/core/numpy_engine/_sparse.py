@@ -1974,22 +1974,25 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
             w = conn.weights
             if w is None or getattr(w, "ndim", 0) != 2 or w.shape[1] == 0:
                 continue
-            # COLUMN-MAJOR STORAGE for a scaled fiber. This function is reached
-            # ONLY for area->area fibers under synaptic_scaling, and its whole
-            # cost is the per-column gather/scatter below: `k` winner columns of
-            # a large dense block. In C (row-major) order a column's rows are
-            # strided by the row width, so the access is cache-miss-bound --
-            # measured 34 ms/call on a 15997x4200 organ_p=0.5 fiber, 84% of the
-            # homeostatic training arm. F-order makes each column contiguous:
-            # the same op is 4 ms (~8x), and the whole training arm ~4x, because
-            # `asfortranarray` preserves logical [i,j] values, so the drive-read
-            # (row-gather) and plasticity stay BYTE-IDENTICAL -- only the far
-            # cheaper row-gather slows (0.7->4.6 ms), which the column saving
-            # dwarfs. Converted lazily and persisted on the connection; growth
+            # LAYOUT FOLLOWS THE FIBER'S SHAPE. A scaled fiber pays two strided
+            # ops per projection: this function's column gather/scatter over
+            # src_rows x k (wants columns contiguous, F-order) and
+            # `project_into`'s drive row-gather over k x tgt_cols (wants rows
+            # contiguous, C-order). Whichever slice is LARGER should own the
+            # contiguity: measured on the organ_p=0.5 pair, the tall 20000x4200
+            # arc->state fiber scales at 34 ms in C vs 4 ms in F (scaling
+            # dominates, 20000 > 4200), while the wide 4200x20000 state->arc
+            # fiber's drive-read was 57% of project_into under blanket F-order
+            # (drive dominates, 20000 > 4200 the other way). So: F-order iff
+            # rows > cols. `asfortranarray` preserves logical [i,j], so either
+            # layout is BYTE-IDENTICAL end-to-end -- proven by identical census
+            # and connectome crc at PRES=8 and PRES=24; layout only moves time.
+            # Converted lazily and persisted on the connection; growth
             # reallocates C-order (amortised doubling, front-loaded to early
             # recruitment ~log2(n/k) times), and this reconverts on the next
             # touch, so there is no per-step thrash.
-            if isinstance(w, xp.ndarray) and not w.flags.f_contiguous:
+            if (isinstance(w, xp.ndarray) and w.shape[0] > w.shape[1]
+                    and not w.flags.f_contiguous):
                 w = xp.asfortranarray(w)
                 conn.weights = w
             valid = cols[cols < w.shape[1]]

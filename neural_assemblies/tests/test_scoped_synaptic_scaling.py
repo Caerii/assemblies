@@ -106,33 +106,41 @@ def test_setpoint_uses_fiber_p_not_brain_p():
         sums, fiber_setpoint)
 
 
-def test_scaled_fiber_is_stored_column_major():
-    """Perf guard: a scaled area->area fiber is column-major (F-order).
+def test_scaled_fiber_layout_follows_shape():
+    """Perf guard: a scaled fiber's memory order matches its larger strided op.
 
-    `_scale_columns_now`'s whole cost is a per-column gather/scatter of `k`
-    winner columns of a large dense block; in C (row-major) order a column's
-    rows are strided by the row width, so it is cache-miss-bound (measured
-    34 ms/call on a 16000x4200 organ_p=0.5 fiber, ~84% of the homeostatic
-    training arm under load). Storing the fiber F-order makes each column
-    contiguous, byte-identically (asfortranarray preserves logical [i,j], so
-    drive-reads and plasticity are unchanged) -- proven end-to-end: two builds
-    that differ ONLY in the fiber's memory order produced identical census and
-    connectome crc.
+    A scaled fiber pays two strided ops per projection: `_scale_columns_now`'s
+    column gather/scatter over src_rows x k (wants F-order) and the drive
+    row-gather over k x tgt_cols (wants C-order). The layout rule gives the
+    contiguity to whichever slice is larger: F-order iff rows > cols. Measured
+    on the organ_p=0.5 pair: the tall 20000x4200 fiber scales at 34 ms in C vs
+    4 ms in F, while blanket F-order made the wide 4200x20000 fiber's
+    drive-read 57% of project_into. Either layout is byte-identical
+    (asfortranarray preserves logical [i,j]; identical census and connectome
+    crc end-to-end) -- layout only moves time.
 
-    This asserts the MECHANISM stays active. Like the CSR cache-the-NO
-    scan-count guard, it is behavioural, not a correctness claim: if the fiber
-    silently reverted to C-order the speedup would vanish with no other signal.
-    Growth reallocates C-order and `_scale_columns_now` reconverts on the next
-    touch, so the guard reads the fiber AFTER a post-growth scaling step.
+    This asserts the MECHANISM stays active, both ways. Like the CSR
+    cache-the-NO scan-count guard, it is behavioural, not a correctness claim:
+    if the tall fiber silently reverted to C-order (or the wide one started
+    converting) the time would move with no other signal. Growth reallocates
+    C-order and `_scale_columns_now` reconverts on the next touch, so the
+    guard reads the fibers AFTER post-growth scaling steps.
     """
     b = Brain(p=0.05, seed=0, engine="numpy_sparse",
               synaptic_scaling=True, norm_init=False)
-    b.add_stimulus("s", 10)
-    b.add_area("A", 500, 10, beta=0.2)
-    b.add_area("B", 500, 10, beta=0.2)
+    b.add_stimulus("s", 50)
+    # Shapes are MATERIALIZED sizes (recruitment-driven), so the asymmetry is
+    # forced through k: A recruits ~50/round, B ~10/round.
+    b.add_area("A", 2000, 50, beta=0.2)   # big source
+    b.add_area("B", 200, 10, beta=0.2)    # small target -> A->B is TALL
     b.add_connectivity("A", "B", 0.4)
+    b.add_connectivity("B", "A", 0.4)     # B->A is WIDE
     b.project({"s": ["A"]}, {})
     for _ in range(6):
-        b.project({"s": ["A"]}, {"A": ["B"]})
-    w = np.asarray(b._engine._area_conns["A"]["B"].weights)
-    assert w.ndim == 2 and w.flags["F_CONTIGUOUS"], (w.shape, str(w.flags))
+        b.project({"s": ["A"]}, {"A": ["B"], "B": ["A"]})
+    tall = np.asarray(b._engine._area_conns["A"]["B"].weights)
+    wide = np.asarray(b._engine._area_conns["B"]["A"].weights)
+    assert tall.ndim == 2 and tall.shape[0] > tall.shape[1], tall.shape
+    assert tall.flags["F_CONTIGUOUS"], (tall.shape, str(tall.flags))
+    assert wide.ndim == 2 and wide.shape[0] < wide.shape[1], wide.shape
+    assert wide.flags["C_CONTIGUOUS"], (wide.shape, str(wide.flags))
