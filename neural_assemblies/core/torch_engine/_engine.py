@@ -27,6 +27,12 @@ import torch
 from .._pricing import (
     area_fiber_activity, candidate_divisor, inverse_indegree,
 )
+# The fixed-target learning semantics and its A/B escape hatch have ONE
+# owner; both engines must read the same switch or an A/B on one engine
+# silently means something else on the other.
+from ..numpy_engine._sparse import (
+    _fixed_target_plasticity_enabled as _np_fixed_target_plasticity_enabled,
+)
 from .._refraction import refraction_increment
 from ..connectome import Connectome
 from ..engine import ComputeEngine, ProjectionResult
@@ -44,7 +50,10 @@ from ._hash import (
     WEIGHT_DTYPE, fnv1a_pair_seed, hash_stim_counts,
     hash_bernoulli_coo,
 )
-from ._csr import CSRConn
+from ._csr import (
+    CSRConn, DENSE_MIN_P, DENSIFY_MAX_BYTES, DENSIFY_MIN_NNZ,
+    TorchDenseConn, densify,
+)
 from ._state import (
     LAZY_ID_THRESHOLD, TorchAreaState, StimulusState, TorchConn,
 )
@@ -96,6 +105,35 @@ class TorchSparseEngine(ComputeEngine):
         # Inference should not mutate the brain; this also makes prediction
         # deterministic and gives a fixed connectome to batch over (BatchedLM).
         self.readonly = bool(kwargs.get("readonly", False))
+        # Per-fiber connection density (`add_connectivity`). Empty until set;
+        # every consumer must route through `_p_for` so homogeneous brains
+        # keep the scalar fast paths (mirrors NumpySparseEngine._fiber_p).
+        self._fiber_p: Dict[tuple, float] = {}
+        # Homeostatic synaptic scaling (CSRConn.scale_columns; the law and its
+        # measured failure modes live on NumpySparseEngine._normalize_area_
+        # columns). bool True scales every target; a collection scopes it to
+        # the listed target areas. This kwarg used to be SILENTLY SWALLOWED by
+        # **kwargs -- the same silent no-op that once ate norm_init (above),
+        # which would have run a homeostasis study with homeostasis off.
+        ss = kwargs.get("synaptic_scaling", False)
+        self.synaptic_scaling = (ss if isinstance(ss, bool)
+                                 else frozenset(ss))
+        if kwargs.get("synaptic_scaling_deferred", False):
+            raise NotImplementedError(
+                "synaptic_scaling_deferred is not implemented on "
+                "torch_sparse: per-update scaling only. Use engine="
+                "'numpy_sparse' for the deferred/flush mode.")
+        # READ-ONLY PROBE SUPPORT. `brain.read_only()` (and `probe()`, which
+        # every evaluation harness runs inside) gates recruitment by setting
+        # this flag -- but it discovers engines with `hasattr(engine,
+        # "_no_recruitment")` and SILENTLY SKIPS any engine lacking the
+        # attribute. Without it, probes recruited: a trained Z60 word-problem
+        # machine read back at 0.040 trajectory accuracy (chance 0.017)
+        # because every evaluation step grew the arc and moved the compact
+        # index space out from under the stored assemblies
+        # ([[probe-isolation-required]] -- recruitment, not plasticity, is
+        # the channel by which a readout changes what it is reading).
+        self._no_recruitment = False
         self._rng = np.random.default_rng(seed)
         # Device-side generator for candidate draws. Without it the samplers
         # fall through to torch's PROCESS-GLOBAL stream and Brain(seed=) stops
@@ -334,8 +372,60 @@ class TorchSparseEngine(ComputeEngine):
             self._stim_conns[name][area_name] = conn
             area.beta_by_source[name] = area.beta
 
+    def _p_for(self, source: str, target: str) -> float:
+        """This fiber's density; the brain's global `p` unless overridden."""
+        return self._fiber_p.get((source, target), self.p)
+
+    def heterogeneous(self) -> bool:
+        """True once any fiber's density differs from the global `p`."""
+        return bool(self._fiber_p)
+
     def add_connectivity(self, source: str, target: str, p: float) -> None:
-        pass  # connectivity created in add_area / add_stimulus
+        """Set one fiber's density. Mirrors NumpySparseEngine.add_connectivity.
+
+        STRUCTURAL, SO IT MUST PRECEDE TRAFFIC: `p` is baked into the hash
+        threshold that decides which synapses exist, so changing it once the
+        fiber has initialized entries would leave potentiation on synapses
+        that no longer exist. Requesting the value already in force is a
+        no-op.
+
+        This used to be `pass` -- a SILENT no-op, so an organ built with
+        `organ_p=0.5` inside a p=0.05 brain got p=0.05 fibers and no warning:
+        the whole anatomy was quietly wrong ([[silent-no-op-dead-fibers]]).
+        """
+        key = (source, target)
+        if float(p) == float(self._fiber_p.get(key, self.p)):
+            return
+        if source not in self._areas and source not in self._stimuli:
+            raise KeyError(f"unknown source {source!r}")
+        if target not in self._areas:
+            raise KeyError(f"unknown target area {target!r}")
+        if source in self._areas:
+            csr = self._area_conns.get(source, {}).get(target)
+            carried = csr is not None and (
+                csr.nnz > 0 or csr._log_rows > 0 or csr._log_cols > 0)
+        else:
+            conn = self._stim_conns.get(source, {}).get(target)
+            carried = (conn is not None and conn.weights is not None
+                       and int(conn.weights.numel()) > 0)
+        if carried:
+            raise RuntimeError(
+                f"add_connectivity({source!r}, {target!r}, p={p}) after the "
+                f"fiber has carried traffic. Connectivity is structural: "
+                f"changing it now would leave potentiation on synapses that "
+                f"no longer exist. Set it before the first projection.")
+        self._fiber_p[key] = float(p)
+        # Representation follows density: a fiber this dense stores as a
+        # plain tensor (`TorchDenseConn` -- see its docstring for the
+        # 13-minute CSR-rebuild failure this replaces). Safe exactly because
+        # of the guard above: the fiber is provably empty here.
+        if (source in self._areas and float(p) >= DENSE_MIN_P
+                and not isinstance(self._area_conns[source][target],
+                                   TorchDenseConn)):
+            self._area_conns[source][target] = TorchDenseConn(
+                device=self._device,
+                max_rows=int(self._areas[source].n),
+                max_cols=int(self._areas[target].n))
 
     # -- GPU truncated normal sampling --------------------------------------
 
@@ -488,8 +578,37 @@ class TorchSparseEngine(ComputeEngine):
             )
         ]
 
-        # Fixed assembly — short-circuit
+        # Fixed assembly -- the winners do not move, but the AFFERENTS learn.
+        # This used to be a bare short-circuit (inputs discarded, no
+        # plasticity), the exact footgun the numpy engine already fixed: a
+        # projection into a fixed area looked like training and wrote nothing.
+        # On this engine it presented as an EMPTY arc->state fiber after a
+        # full FSM training run -- the fiber is only materialized on demand,
+        # and the demand never came -- so every step read state 0. See
+        # NumpySparseEngine.project_into's fixed-target branch for the
+        # history and `_fixed_target_plasticity_enabled` for the A/B gate.
         if tgt.fixed_assembly:
+            learn = (plasticity_enabled and (from_stimuli or from_areas)
+                     and _np_fixed_target_plasticity_enabled())
+            if learn:
+                # Size any never-used source block FIRST -- a multiplicative
+                # `w *= 1 + beta` cannot touch entries that do not exist, and
+                # `hebbian_update` no-ops on an empty CSR.
+                for src_name in from_areas:
+                    csr = self._maybe_densify(src_name, target)
+                    src = self._areas[src_name]
+                    if int(src.w) > 0 and int(tgt.w) > 0:
+                        r, c, v = self._hash_grow_parts(
+                            csr, self._get_pair_seed(src_name, target),
+                            self._p_for(src_name, target),
+                            max(int(src.w), csr._log_rows),
+                            max(int(tgt.w), csr._log_cols))
+                        if r:
+                            csr.expand(csr._log_rows, csr._log_cols,
+                                       torch.cat(r), torch.cat(c),
+                                       torch.cat(v))
+                self._apply_plasticity(
+                    target, from_stimuli, from_areas, tgt.winners)
             return ProjectionResult(
                 winners=tgt.winners.cpu().numpy().astype(np.uint32),
                 num_first_winners=0,
@@ -614,29 +733,47 @@ class TorchSparseEngine(ComputeEngine):
             [tgt.n for _ in from_stimuli]
             + [self._areas[a].n for a in from_areas])
 
-        if self.readonly:
+        if self.readonly or (self._no_recruitment and tgt.w >= tgt.k):
             # No new candidates -> topk selects only among materialized neurons,
             # so the projection never grows the area (deterministic inference).
+            # The second arm is `brain.read_only()` / `probe()`: same
+            # semantics, scoped to the context manager instead of the
+            # engine's lifetime. Gated on w >= k exactly like the numpy
+            # engine -- below k there is nothing to select from, and a
+            # silently short assembly would be worse than growing.
             potential_new = torch.empty(0, dtype=torch.float32,
                                         device=self._device)
         elif self.dense_drive:
             # Score EVERY unmaterialized neuron, not just k order statistics, so
             # the subsequent topk over n is exact (Lever A). See
             # _sample_dense_candidates and docs/gpu_scale_design.md.
+            if self.heterogeneous():
+                raise NotImplementedError(
+                    "dense_drive prices candidates at the global p; this "
+                    "brain has per-fiber densities (add_connectivity). "
+                    "Refusing rather than sampling with the wrong statistics.")
             potential_new = self._sample_dense_candidates(
                 input_sizes, tgt.n - tgt.w, rng)
-        elif self._gpu_sampling:
+        elif self._gpu_sampling and not self.heterogeneous():
             potential_new = self._sample_truncated_normal_gpu(
                 input_sizes, tgt.n, tgt.w, tgt.k, self.p, rng)
         else:
+            # Heterogeneous brains take the SHARED CPU sampler: it already
+            # carries the per-fiber law (Poisson-binomial moment-matched by
+            # `_pricing.effective_binomial` -- see NumpySparseEngine.
+            # add_connectivity), and candidates are O(k), so there is no law
+            # duplicated on the GPU and nothing material lost off it.
+            input_ps = ([self._p_for(s, target) for s in from_stimuli]
+                        + [self._p_for(a, target) for a in from_areas]
+                        ) if self.heterogeneous() else self.p
             old_rng = self._sparse_sim.rng
             self._sparse_sim.rng = rng
             if self._deterministic:
                 potential_new_np = self._sparse_sim.sample_new_winner_inputs_legacy(
-                    input_sizes, tgt.n, tgt.w, tgt.k, self.p)
+                    input_sizes, tgt.n, tgt.w, tgt.k, input_ps)
             else:
                 potential_new_np = self._sparse_sim.sample_new_winner_inputs(
-                    input_sizes, tgt.n, tgt.w, tgt.k, self.p)
+                    input_sizes, tgt.n, tgt.w, tgt.k, input_ps)
             self._sparse_sim.rng = old_rng
             if hasattr(potential_new_np, 'get'):
                 potential_new_np = potential_new_np.get()
@@ -871,7 +1008,189 @@ class TorchSparseEngine(ComputeEngine):
             csr.hebbian_update(
                 src.winners.long(), winners_long, beta, self.w_max)
 
+        self._normalize_area_columns(target, from_areas, winners_long)
+
+    def _normalize_area_columns(self, target, from_areas, winners):
+        """Homeostatic synaptic scaling on area->area fibers (torch port).
+
+        The LAW and its measured failure modes live on
+        `NumpySparseEngine._normalize_area_columns`; this mirrors its
+        per-update form on CSR storage (`CSRConn.scale_columns`). The three
+        semantics that MUST match, each a past defect on the numpy side:
+
+        * setpoint priced at the FIBER's own density
+          ([[pricing-law-implemented-twice]] -- the global-p setpoint
+          renormalized a p=0.40 organ fiber to 1/8 of its natural mass and
+          inverted learning);
+        * mass summed over the source's LOGICAL rows only (rows past
+          ``src.w`` are unallocated bookkeeping);
+        * stimulus fibers excluded (1-D pre-summed: normalizing them drives
+          every neuron to the same value and erases the representation).
+
+        Explicit-dense bridges (`_dense_area_conns`) are NOT scaled -- the
+        numpy engine scales any 2-D block, so a brain using explicit sources
+        under scaling differs across engines; none of the scaling organs use
+        them, and this note is the tripwire if one ever does.
+        """
+        ss = self.synaptic_scaling
+        if not ss:
+            return
+        if ss is not True and target not in ss:
+            return
+        for src_name in from_areas:
+            csr = self._area_conns.get(src_name, {}).get(target)
+            if csr is None or csr.nnz == 0:
+                continue
+            rows = min(int(self._areas[src_name].w), int(csr._nrows))
+            if rows <= 0:
+                continue
+            setpoint = max(
+                float(rows) * self._p_for(src_name, target), 1e-12)
+            csr.scale_columns(winners, setpoint, nrows=rows)
+
     # -- Connectome expansion -----------------------------------------------
+
+    def _maybe_densify(self, src_name, target):
+        """Swap a rebuild-bound CSR fiber for dense storage; return the conn.
+
+        Call at every GROWTH site before touching the fiber. Density picks
+        the representation at `add_connectivity` time, but a low-density
+        fiber that grows every recruitment step (an area self-fiber during
+        training) is just as rebuild-bound once it is large -- see
+        DENSIFY_MIN_NNZ. Budgeted against the fiber's FINAL dense footprint
+        (n_src x n_tgt), not its current extent, so a fiber that will not
+        fit never starts migrating.
+        """
+        conn = self._area_conns[src_name][target]
+        if (isinstance(conn, CSRConn)
+                and conn.nnz >= DENSIFY_MIN_NNZ):
+            final_bytes = (int(self._areas[src_name].n)
+                           * int(self._areas[target].n) * 2)
+            if final_bytes <= DENSIFY_MAX_BYTES:
+                conn = densify(conn, device=self._device,
+                               max_rows=int(self._areas[src_name].n),
+                               max_cols=int(self._areas[target].n))
+                self._area_conns[src_name][target] = conn
+        return conn
+
+    def _hash_grow_parts(self, csr, pair_seed, fiber_p,
+                         needed_rows, needed_cols):
+        """L-shaped hash init of a CSR fiber's uncovered region, as COO parts.
+
+        The one canonical implementation of the grow-to-extent step (it was
+        inline in `_expand_connectomes`; `materialize_area` needs the same
+        mechanics, and two copies of an init path is how the numpy engine
+        got its self-fiber masking defects). Content-addressed: entries
+        depend only on (pair_seed, absolute position, fiber_p), so growing
+        in any order yields the same fiber. Updates the logical extents;
+        the caller merges the returned parts via ``csr.expand``.
+        """
+        log_rows = csr._log_rows
+        log_cols = csr._log_cols
+        coo_r, coo_c, coo_v = [], [], []
+        if needed_rows > log_rows or needed_cols > log_cols:
+            regions = []
+            # Block A: new rows x existing cols
+            if needed_rows > log_rows and log_cols > 0:
+                regions.append((log_rows, needed_rows, 0, log_cols))
+            # Block B: existing rows x new cols
+            if needed_cols > log_cols and log_rows > 0:
+                regions.append((0, log_rows, log_cols, needed_cols))
+            # Block C: new rows x new cols
+            if needed_rows > log_rows and needed_cols > log_cols:
+                regions.append((log_rows, needed_rows, log_cols, needed_cols))
+            for r0, r1, c0, c1 in regions:
+                r, c, v = hash_bernoulli_coo(
+                    r0, r1, c0, c1, pair_seed, fiber_p, device=self._device)
+                if len(r) > 0:
+                    coo_r.append(r)
+                    coo_c.append(c)
+                    coo_v.append(v)
+            csr._log_rows = max(log_rows, needed_rows)
+            csr._log_cols = max(log_cols, needed_cols)
+        return coo_r, coo_c, coo_v
+
+    def materialize_area(self, area: str, storage: str = "csr") -> int:
+        """Bring ALL ``n`` of an area's neurons into existence at once.
+
+        The torch port of `NumpySparseEngine.materialize_area` (see its
+        docstring for WHY this exists: any protocol that drives an area from
+        an arbitrary subset of ``n`` -- assigned blocks, uniform seeds --
+        silently reads zeros from neurons lazy materialization has not
+        created yet). Init is content-addressed by absolute position, so a
+        materialized-all-at-once area has exactly the weights it would have
+        had if the same neurons had been recruited one at a time.
+
+        ``storage`` is accepted for interface parity and ignored: CSR is
+        this engine's native representation (the numpy engine offers
+        dense/CSR because its callers index dense blocks in ways CSRWeights
+        refuses; nothing indexes a torch fiber that way).
+
+        Returns the number of neurons newly materialized.
+        """
+        tgt = self._areas[area]
+        prior_w = int(tgt.w)
+        n = int(tgt.n)
+        if prior_w >= n:
+            return 0
+        if tgt._lazy_ids:
+            raise NotImplementedError(
+                f"materialize_area({area!r}): lazy neuron-id mode "
+                f"(n > {LAZY_ID_THRESHOLD}) has no full-permutation pool to "
+                f"draw identities from.")
+
+        # 1. Compact ids for every remaining neuron, drawn from the same
+        #    shuffled pool the incremental path consumes, so identities match.
+        if tgt.neuron_id_pool is not None:
+            pool = np.asarray(tgt.neuron_id_pool)
+            need = n - len(tgt.compact_to_neuron_id)
+            ptr = int(tgt.neuron_id_pool_ptr)
+            take = pool[ptr:ptr + need]
+            tgt.compact_to_neuron_id.extend(int(x) for x in take)
+            tgt.neuron_id_pool_ptr = ptr + len(take)
+        while len(tgt.compact_to_neuron_id) < n:
+            tgt.compact_to_neuron_id.append(len(tgt.compact_to_neuron_id))
+
+        # 2. Stim -> area vectors out to n.
+        for stim_name, conns in self._stim_conns.items():
+            conn = conns.get(area)
+            if conn is None or not conn.sparse or conn.weights is None:
+                continue
+            old = int(conn.weights.numel())
+            if old < n:
+                add = hash_stim_counts(
+                    self._stimuli[stim_name].size, old, n,
+                    self._get_pair_seed(stim_name, area),
+                    self._p_for(stim_name, area), device=self._device)
+                conn.weights = torch.cat([conn.weights, add])
+
+        # 3. Area fibers: hash-grow every block touching this area to full
+        #    extent. IN-fibers gain columns; OUT-fibers gain rows; the self
+        #    fiber gains both (covered by the first loop, then skipped).
+        def _grow(csr, src_name, tgt_name, needed_rows, needed_cols):
+            r, c, v = self._hash_grow_parts(
+                csr, self._get_pair_seed(src_name, tgt_name),
+                self._p_for(src_name, tgt_name), needed_rows, needed_cols)
+            if r:
+                csr.expand(csr._log_rows, csr._log_cols,
+                           torch.cat(r), torch.cat(c), torch.cat(v))
+
+        for src_name, conns in self._area_conns.items():
+            csr = conns.get(area)
+            if csr is None:
+                continue
+            src_rows = (n if src_name == area
+                        else max(int(self._areas[src_name].w),
+                                 csr._log_rows))
+            _grow(csr, src_name, area, src_rows, n)
+        for tgt_name, csr in self._area_conns.get(area, {}).items():
+            if tgt_name == area:
+                continue  # self fiber handled above
+            tgt_cols = max(int(self._areas[tgt_name].w), csr._log_cols)
+            _grow(csr, area, tgt_name, n, tgt_cols)
+
+        tgt.w = n
+        return n - prior_w
 
     def _expand_connectomes(self, target, from_stimuli, from_areas,
                             input_sizes, winners, first_winner_inputs,
@@ -900,7 +1219,8 @@ class TorchSparseEngine(ComputeEngine):
                         pair_seed = self._get_pair_seed(stim_name, target)
                         add = hash_stim_counts(
                             self._stimuli[stim_name].size, old, new_w,
-                            pair_seed, self.p, device=self._device)
+                            pair_seed, self._p_for(stim_name, target),
+                            device=self._device)
                     else:
                         add = torch.zeros(add_len, dtype=WEIGHT_DTYPE,
                                           device=self._device)
@@ -923,7 +1243,7 @@ class TorchSparseEngine(ComputeEngine):
 
         # --- Expand area->area CSR matrices ---
         for src_name in area_names:
-            csr = self._area_conns[src_name][target]
+            csr = self._maybe_densify(src_name, target)
             src = self._areas[src_name]
             pair_seed = self._get_pair_seed(src_name, target)
 
@@ -940,45 +1260,9 @@ class TorchSparseEngine(ComputeEngine):
             )
             needed_cols = max(new_w, csr._ncols)
 
-            log_rows = csr._log_rows
-            log_cols = csr._log_cols
-            coo_r_parts, coo_c_parts, coo_v_parts = [], [], []
-
-            if needed_rows <= log_rows and needed_cols <= log_cols:
-                pass  # no hash expansion needed
-            else:
-                # Block A: new rows x existing cols
-                if needed_rows > log_rows and log_cols > 0:
-                    r, c, v = hash_bernoulli_coo(
-                        log_rows, needed_rows, 0, log_cols,
-                        pair_seed, self.p, device=self._device)
-                    if len(r) > 0:
-                        coo_r_parts.append(r)
-                        coo_c_parts.append(c)
-                        coo_v_parts.append(v)
-
-                # Block B: existing rows x new cols
-                if needed_cols > log_cols and log_rows > 0:
-                    r, c, v = hash_bernoulli_coo(
-                        0, log_rows, log_cols, needed_cols,
-                        pair_seed, self.p, device=self._device)
-                    if len(r) > 0:
-                        coo_r_parts.append(r)
-                        coo_c_parts.append(c)
-                        coo_v_parts.append(v)
-
-                # Block C: new rows x new cols
-                if needed_rows > log_rows and needed_cols > log_cols:
-                    r, c, v = hash_bernoulli_coo(
-                        log_rows, needed_rows, log_cols, needed_cols,
-                        pair_seed, self.p, device=self._device)
-                    if len(r) > 0:
-                        coo_r_parts.append(r)
-                        coo_c_parts.append(c)
-                        coo_v_parts.append(v)
-
-                csr._log_rows = max(getattr(csr, '_log_rows', 0), needed_rows)
-                csr._log_cols = max(getattr(csr, '_log_cols', 0), needed_cols)
+            coo_r_parts, coo_c_parts, coo_v_parts = self._hash_grow_parts(
+                csr, pair_seed, self._p_for(src_name, target),
+                needed_rows, needed_cols)
 
             # Explicit entries from first-timer allocations
             from_index = inputs_names.index(src_name)
