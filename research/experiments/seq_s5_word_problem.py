@@ -62,16 +62,21 @@ def sizes(group, n_symbols):
     return int(round(m * K / TARGET_LOAD)), group.order * K
 
 
-def build(group_name, seed, arm, norm_init=False, synaptic_scaling=False):
+_W_MAX_DEFAULT = object()   # sentinel: None is a meaningful w_max (unclamped)
+
+
+def build(group_name, seed, arm, norm_init=False, synaptic_scaling=False,
+          organ_p=None, presentations=None, w_max=_W_MAX_DEFAULT):
     """`norm_init` defaults to the REGISTERED substrate (False, A1 parity).
 
     The soft-transition census made the parity clause -- "norm_init exists
     only for self-fibers" -- an open question rather than a premise, so the
     intervention study passes True here. `synaptic_scaling=True` is
     substrate C (PREREG_substrate_c_homeostasis.md Amendment 1): per-round
-    write-time homeostasis, the theorems' stated hypothesis. Defaults stay
-    False so every registered result is reproduced by the call sites that
-    produced it.
+    write-time homeostasis, the theorems' stated hypothesis.
+    `organ_p` / `presentations` / `w_max` exist for PREREG_theorem_regime.md
+    (kp and T floors, unclamped weights). ALL defaults reproduce the
+    registered protocol byte-for-byte at every existing call site.
     """
     random.seed(seed)
     np.random.seed(seed)
@@ -80,11 +85,15 @@ def build(group_name, seed, arm, norm_init=False, synaptic_scaling=False):
     n_arc, n_state = sizes(group, len(symbols))
     beta = 0.0 if arm == "beta0" else BETA
 
+    brain_kw = {}
+    if w_max is not _W_MAX_DEFAULT:
+        brain_kw["w_max"] = w_max
     brain = Brain(p=0.05, save_winners=True, seed=seed, engine="numpy_sparse",
-                  norm_init=norm_init, synaptic_scaling=synaptic_scaling)
+                  norm_init=norm_init, synaptic_scaling=synaptic_scaling,
+                  **brain_kw)
     fsm = NemoArcFSM(brain, states=states, symbols=symbols,
                      transitions=transitions, n=n_arc, k=K, n_state=n_state,
-                     beta=beta, organ_p=ORGAN_P,
+                     beta=beta, organ_p=ORGAN_P if organ_p is None else organ_p,
                      refracted_strength=REFRACTED, prefix="_wp")
 
     if arm != "untrained":
@@ -98,7 +107,10 @@ def build(group_name, seed, arm, norm_init=False, synaptic_scaling=False):
             targets = [to for _s, _f, to in table]
             rng.shuffle(targets)
             table = [(s, f, t) for (s, f, _), t in zip(table, targets)]
-        fsm.train_from_list(table, presentations=PRESENTATIONS)
+        fsm.train_from_list(
+            table,
+            presentations=PRESENTATIONS if presentations is None
+            else presentations)
     return group, fsm, symbols
 
 
