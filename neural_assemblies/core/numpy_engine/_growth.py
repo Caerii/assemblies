@@ -508,6 +508,21 @@ class GrowthMixin:
             src_winners_cpu = np.asarray(
                 to_cpu(src.winners) if hasattr(src.winners, 'get') else src.winners
             )
+            # ACCUMULATED, then written ONCE. The draws stay exactly as they
+            # were -- same generator, same order, same `sample_size` -- so the
+            # cells chosen are identical; only the number of numpy calls
+            # changes. Every write is the same constant 1.0, so a cell covered
+            # twice lands on 1.0 either way and write order cannot matter.
+            #
+            # WHY IT IS WORTH IT. This loop runs once per RECRUITED NEURON:
+            # 19,999 times on the Z60 arc. Line-profiling the organ put
+            # `weights[chosen, col_idx] = 1.0` at 55 us per call for a write of
+            # ~3 cells -- advanced-index assignment into a 4200x20000 block
+            # pays a fixed cost per call that dwarfs the elements moved. One
+            # batched scatter pays it once per fiber per growth event (400)
+            # instead of once per neuron (19,999).
+            _rows_acc, _cols_acc, _dirty_cols = [], [], []
+            _norm_on = self.norm_init
             for idx, win in enumerate(new_indices):
                 alloc = int(splits_per_new[idx][from_index]) if idx < len(splits_per_new) else 0
                 if alloc <= 0 or src.w == 0:
@@ -516,13 +531,25 @@ class GrowthMixin:
                 if sample_size <= 0:
                     continue
                 chosen = local_rng.choice(src_winners_cpu, size=sample_size, replace=False)
-                col_idx = self._expansion_col(int(win), prior_w)
+                # `_expansion_col` inlined: it is a one-line branch on a value
+                # that cannot change inside this loop, and it was 1.7% of the
+                # function purely in call overhead at 19,999 hits.
+                col_idx = win if _norm_on else win - prior_w
                 if 0 <= col_idx < phys_cols:
-                    conn.weights[chosen, col_idx] = 1.0
-                    # `chosen` are EXISTING rows and `_expansion_col` can reuse
-                    # an already-materialised column, so this write can land
-                    # inside a region the degree counter has already tallied.
-                    self.mark_column_dirty(conn, col_idx)
+                    _rows_acc.append(chosen)
+                    _cols_acc.append(col_idx)
+                    _dirty_cols.append(col_idx)
+            if _rows_acc:
+                _lens = np.fromiter((len(c) for c in _rows_acc),
+                                    dtype=np.int64, count=len(_rows_acc))
+                _all_rows = np.concatenate(_rows_acc)
+                _all_cols = np.repeat(np.asarray(_cols_acc, dtype=np.int64),
+                                      _lens)
+                conn.weights[_all_rows, _all_cols] = 1.0
+                # `chosen` are EXISTING rows and the expansion column can reuse
+                # an already-materialised column, so these writes can land
+                # inside a region the degree counter has already tallied.
+                self.mark_columns_dirty(conn, _dirty_cols)
 
     # -- stim->area vector growth -------------------------------------------
 

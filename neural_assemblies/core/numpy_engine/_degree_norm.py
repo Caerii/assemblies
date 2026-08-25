@@ -83,6 +83,22 @@ class DegreeNormMixin:
         else:
             d.add(int(col_idx))
 
+    @staticmethod
+    def mark_columns_dirty(conn, col_indices) -> None:
+        """`mark_column_dirty` for many columns at once. Same semantics.
+
+        The single-column form was invoked once per RECRUITED NEURON -- 19,999
+        times on the Z60 arc -- purely to add integers to a set, and per-call
+        overhead at that count is not free.
+        """
+        if col_indices is None:
+            return
+        dirty = getattr(conn, "_deg_dirty", None)
+        if dirty is None:
+            conn._deg_dirty = {int(c) for c in col_indices}
+        else:
+            dirty.update(int(c) for c in col_indices)
+
     def _deg_counts(self, conn, w, rows: int, cols: int):
         """Per-column nonzero counts over ``w[:rows, :cols]``, maintained.
 
