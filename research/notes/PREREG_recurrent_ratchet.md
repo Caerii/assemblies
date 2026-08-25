@@ -327,3 +327,93 @@ and be worthless" -- is what caught it.
   mechanical and stands.
 * The whole M-ceiling comparison should be re-run IN REGIME with pairwise
   distinctness as a gating readout, not a reported one.
+
+---
+
+## Amendment 3 (post-data): WHY substrate C fails, and what the calculus says instead
+
+Chased the mechanism rather than the bar. Everything below is in regime on
+connectivity (p=0.5, kp=25 vs floor 22.8), M=8, recurrence on.
+
+### 1. It is a MARGIN failure, and a narrow one
+
+Half-cue drive separation, seed 42:
+
+    arm   missing member   non-member   gain    k-th competitor   completes
+    B          22.50          8.36      2.69x       17.00           yes
+    C          15.59          8.45      1.85x       16.85           no
+
+Completion needs the gain to beat the EXTREME VALUE of the non-member pool,
+here ~2.03x. B clears it by 32%; C misses by 7%. Column normalization pins
+the column total, so the only gain that survives is the RELATIVE SHARE
+increase, which is strictly smaller than the absolute potentiation. That is
+not a bug in the implementation -- it is what the rule DOES.
+
+### 2. Depth makes C catastrophically WORSE, refuting the obvious fix
+
+The theorems' depth floor here is (1/beta) ln(n/k) = 36.9, and we had run
+T=8. The obvious repair was more depth. Measured:
+
+    T      in regime?   rank1_half   pairwise (chance 0.025)
+     8       no           0.062        0.176
+    16       no           0.125        0.633
+    24       no           0.125        0.813
+    40       YES          0.125        0.980
+
+At T=40 the assemblies are 98% overlapping -- merged into ONE. Substrate C
+does not need more training; more training destroys it.
+
+**Mechanism.** Column normalization pins each neuron's incoming mass, so
+every potentiate-then-renormalize cycle redistributes that FIXED budget
+toward whichever assembly touched the neuron most recently, shrinking every
+earlier association. It is catastrophic forgetting by construction, and it
+compounds with T.
+
+### 3. Slow homeostasis helps but does not fix it
+
+The engine already implements the biological timescale separation
+(`synaptic_scaling_deferred`, E9 #138: scaling operates over hours-to-days,
+segregated from fast Hebbian). Measured, seeds 42-43:
+
+    mode    T=8 half-cue    T=24 half-cue    T=8 pairwise
+    FAST      0.062            0.125            0.176
+    SLOW      0.312            0.125            0.211
+
+5x better at T=8 and above chance, still far from B's 1.000, and gone by
+T=24. Partial mitigation, not a repair.
+
+### 4. What the calculus actually asks for
+
+The theorems' normalization exists to provide BOUNDEDNESS, and their proof
+setting forms ONE assembly. In that setting per-round renormalization is
+harmless -- there is nothing else stored to erase. For MULTI-ASSEMBLY storage
+it is destructive, because it cannot distinguish "consolidate the current
+assembly" from "erase the others".
+
+Boundedness and structure-preservation are separable, and the substrate
+already has tools for each:
+
+* **degree bias** -> `norm_init`, a ONE-TIME initial normalization that never
+  touches learned weights. Measured here: completion 1.000, pairwise at the
+  chance floor, to M=16.
+* **runaway** -> `w_max`, a clip that bounds growth WITHOUT redistributing
+  mass. `438d547` measured the unclipped control running to (1.1)^64 = 456x
+  and still scoring perfectly, so the clip is not even load-bearing at that
+  depth.
+
+**Per-round column renormalization is the wrong tool for a multi-assembly
+area**, and this is the measurement that says so. The repo's production
+default -- `norm_init=True`, `synaptic_scaling=False`, `w_max=20` -- is
+already the right combination; what was missing was the evidence for WHY,
+and a demonstration that the theorems' literal per-round rule does not
+transfer past their single-assembly setting.
+
+### What is still open
+
+* **Joint (across-fiber) normalization**, flagged in
+  `PREREG_substrate_c_homeostasis.md` as "the first suspect if substrate C
+  fails its bars", remains untested. It preserves the within-fiber ratio and
+  is the one variant that might bound mass without redistributing structure.
+  That is the next registration, not a conclusion here.
+* Whether C's higher `rank1_full` ceiling survives an in-regime re-run with
+  pairwise distinctness as a GATE rather than a report.
