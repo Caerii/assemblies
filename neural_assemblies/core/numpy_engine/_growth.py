@@ -381,6 +381,7 @@ class GrowthMixin:
                     if self._content_init
                     else self._rng.integers(0, 2**32))
                 src_winners_cpu = np.asarray(to_cpu(src.winners))
+                _ovr_rows, _ovr_cols = [], []
                 for idx, win in enumerate(new_indices):
                     alloc = (int(splits_per_new[idx][from_index])
                              if idx < len(splits_per_new) else 0)
@@ -394,7 +395,15 @@ class GrowthMixin:
                                               replace=False)
                     col_idx = self._expansion_col(int(win), prior_w)
                     if 0 <= col_idx < vw.n_cols:
-                        vw.override(chosen, col_idx)
+                        # ACCUMULATED, not written per column: see
+                        # `VirtualWeights.override_batch`. Same writes, same
+                        # order, one pass -- the per-column form ran a scalar
+                        # `searchsorted` per (row, column) pair and dominated
+                        # virtual-fiber builds.
+                        _ovr_rows.append(chosen)
+                        _ovr_cols.append(col_idx)
+                if _ovr_rows:
+                    vw.override_batch(_ovr_rows, _ovr_cols)
                 # Overrides can create nonzeros; drop the degree cache
                 # rather than patch it -- norm-on virtual fibers recount on
                 # demand.
@@ -714,6 +723,7 @@ class GrowthMixin:
         src_winners_cpu = np.asarray(
             to_cpu(src.winners) if hasattr(src.winners, 'get') else src.winners
         )
+        _ovr_rows, _ovr_cols = [], []
         for idx, win in enumerate(new_indices):
             alloc = int(splits_per_new[idx][from_index]) if idx < len(splits_per_new) else 0
             if alloc <= 0 or src.w == 0:
@@ -725,7 +735,10 @@ class GrowthMixin:
             col_idx = self._expansion_col(int(win), prior_w)
             if 0 <= col_idx < phys_cols:
                 if isinstance(conn.weights, VirtualWeights):
-                    conn.weights.override(chosen, col_idx)
+                    # Accumulated and flushed after the loop; see
+                    # `VirtualWeights.override_batch`.
+                    _ovr_rows.append(chosen)
+                    _ovr_cols.append(col_idx)
                     conn._deg_counts_arr = None
                     conn._deg_rows = 0
                 else:
@@ -733,6 +746,8 @@ class GrowthMixin:
                     # See the note at the other sampling site: this can
                     # write into an already-counted (row, column) region.
                     self.mark_column_dirty(conn, col_idx)
+        if _ovr_rows:
+            conn.weights.override_batch(_ovr_rows, _ovr_cols)
 
     def _expansion_col(self, win: int, prior_w: int) -> int:
         """Column to write a first-time winner's sampled afferents into.

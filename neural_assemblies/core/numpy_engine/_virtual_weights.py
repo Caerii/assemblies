@@ -189,6 +189,25 @@ class VirtualWeights:
             self._sum_bytes -= old.nbytes
         return s
 
+    @staticmethod
+    def _sorted_isin(needles, haystack):
+        """`np.isin(needles, haystack, assume_unique=True)` for SORTED inputs.
+
+        Same boolean, by binary search instead of isin's internal
+        sort-and-concatenate. `_ovr_arr` and the exponent column arrays are
+        both maintained sorted, so the precondition holds at every call site.
+        `np.isin` was 86,207 calls and ~3.0s of a 30.7s virtual build --
+        dispatch cost on tiny arrays, not arithmetic.
+        """
+        out = np.zeros(len(needles), dtype=bool)
+        if haystack is None or len(haystack) == 0 or len(needles) == 0:
+            return out
+        pos = np.searchsorted(haystack, needles)
+        inb = pos < len(haystack)
+        if inb.any():
+            out[inb] = haystack[pos[inb]] == needles[inb]
+        return out
+
     def _ovr_arr(self, r: int):
         """Sorted override cols for row *r*, built lazily after writes."""
         arr = self._ovr_sorted.get(r)
@@ -257,8 +276,7 @@ class VirtualWeights:
                 if oarr[-1] >= cols:
                     oarr = oarr[oarr < cols]
                 if exp_cols is not None and len(oarr):
-                    oarr = oarr[np.isin(oarr, exp_cols, assume_unique=True,
-                                        invert=True)]
+                    oarr = oarr[~self._sorted_isin(oarr, exp_cols)]
                 if len(oarr):
                     raws = np.fromiter((ovr[int(c)] for c in oarr),
                                        dtype=np.float64, count=len(oarr))
@@ -315,6 +333,74 @@ class VirtualWeights:
 
     # -- writes -------------------------------------------------------------
 
+    def override_batch(self, rows_list, cols_list) -> None:
+        """`override` for a WHOLE recruitment round, in one pass.
+
+        Final state is identical to calling `override(rows_list[i],
+        cols_list[i])` for each i in order -- this is a batching of the same
+        writes, not a change to what they do.
+
+        WHY. `override` takes ONE column, so recruitment called it once per
+        recruited neuron: 19,999 calls in a 6-presentation Z60 build, each
+        running a Python loop over its rows and a SCALAR `np.searchsorted`
+        per (row, col) pair. That is 813,858 numpy calls whose cost is
+        dispatch overhead, not arithmetic -- `override` was 9.5s of a 40s
+        virtual build while the rust hash kernel underneath it was 0.9s.
+
+        Batching collapses two axes at once:
+          * ONE `_raw_at` for every (row, col) pair in the round, instead of
+            one per column;
+          * grouping by row, so each row does ONE `searchsorted` over all the
+            columns it is overriding rather than one per column. Distinct
+            rows are bounded by the source area, so this is ~k times fewer
+            numpy calls.
+
+        ORDER IS PRESERVED where it can matter. The group-by uses a STABLE
+        sort, so writes within a row keep their original sequence and a
+        repeated (row, col) still ends on its last value. Across rows the
+        writes touch disjoint dict entries and commute. Removing a row's
+        exponent cells before writing all of its overrides (rather than
+        interleaving per column) reaches the same final state, and nothing
+        reads the intermediate.
+        """
+        parts_r, parts_c = [], []
+        for rows, col in zip(rows_list, cols_list):
+            rows = np.asarray(rows, dtype=np.int64)
+            if len(rows) == 0:
+                continue
+            parts_r.append(rows)
+            parts_c.append(np.full(len(rows), int(col), dtype=np.int64))
+        if not parts_r:
+            return
+        all_rows = np.concatenate(parts_r)
+        all_cols = np.concatenate(parts_c)
+        raws = self._raw_at(all_rows, all_cols)
+
+        order = np.argsort(all_rows, kind="stable")
+        sr, sc, sv = all_rows[order], all_cols[order], raws[order]
+        cuts = np.flatnonzero(np.diff(sr)) + 1
+        starts = np.concatenate(([0], cuts))
+        ends = np.concatenate((cuts, [len(sr)]))
+        for lo, hi in zip(starts.tolist(), ends.tolist()):
+            r = int(sr[lo])
+            cols_r = sc[lo:hi]
+            entry = self._exp.get(r)
+            if entry is not None and len(entry[0]):
+                c = entry[0]
+                pos = np.searchsorted(c, cols_r)
+                inb = pos < len(c)
+                hit = np.zeros(len(cols_r), dtype=bool)
+                if inb.any():
+                    hit[inb] = c[pos[inb]] == cols_r[inb]
+                if hit.any():
+                    keep = np.ones(len(c), dtype=bool)
+                    keep[pos[hit]] = False
+                    self._exp[r] = [a[keep] for a in entry]
+            d = self._ovr.setdefault(r, {})
+            for cc, vv in zip(cols_r.tolist(), sv[lo:hi].tolist()):
+                d[int(cc)] = float(vv)
+            self._ovr_sorted.pop(r, None)
+
     def override(self, rows, col: int) -> None:
         """The recruitment write: assign 1.0, CLOBBERING any history.
 
@@ -362,7 +448,7 @@ class VirtualWeights:
             ovr = self._ovr.get(r)
             if ovr:
                 oarr = self._ovr_arr(r)
-                is_ovr = np.isin(cols_sorted, oarr, assume_unique=True)
+                is_ovr = self._sorted_isin(cols_sorted, oarr)
             else:
                 is_ovr = np.zeros(len(cols_sorted), dtype=bool)
             alive = (raw_i != 0) | is_ovr
