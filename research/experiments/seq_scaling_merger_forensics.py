@@ -144,7 +144,12 @@ def _column_stats(brain):
     eng = brain._engine_for(brain.areas[AREA])
     conn = eng._area_conns[AREA][AREA]
     w = np.asarray(conn.weights)
-    rows = int(eng._areas[AREA].w)
+    # `materialized_count`, not `.w`: `.w` means neurons MATERIALIZED on the
+    # sparse engine but len(winners) == k on the explicit one, and every number
+    # in this study is a per-column statistic over the materialized population.
+    # Reading the ambiguous name here would silently become "k" on any engine
+    # but this one ([[two-index-spaces-compact-vs-neuron-id]]).
+    rows = int(eng.materialized_count(AREA) or 0)
     cols = min(rows, w.shape[1])
     sub = np.asarray(w[:rows, :cols], dtype=np.float64)
 
