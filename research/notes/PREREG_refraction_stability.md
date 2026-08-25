@@ -160,3 +160,60 @@ and their thresholds are untouched.
 This is the second time in this session that a mechanism read out of the code
 predicted the wrong thing (cf. the CUDA-graph hypothesis, refuted at 1.2x).
 Reading a mechanism is a hypothesis, not a measurement.
+
+---
+
+## Amendment 3 (pre-data): aggregation only -- bars judged on confidence bounds
+
+Recorded BEFORE the study has been run even once. No data from this design
+exists, so nothing here can have been chosen to suit a result.
+
+**Why.** `test_methodology_ratchet` flagged this experiment for six
+hand-rolled seed statistics. Four of them were load-bearing: `term()` and
+`acc()` returned a bare `np.mean` over seeds, and R1-R5 were judged on those
+point estimates. That is the exact pattern the ratchet exists to stop -- this
+project published a "conserved budget" law computed with `statistics.mean` over
+seeds and no interval, then retracted it.
+
+**What changed.** Only the aggregation across seeds:
+
+* `term()` and `acc()` now return `diagnostics.ensemble_from_values` -- mean,
+  95% CI, and the per-seed values -- instead of a float.
+* **R1** (threshold) is judged with `Ensemble.beats(0.90)`, i.e. the CI LOWER
+  BOUND must clear 0.90, not the mean.
+* **R2, R3, R4, R5** (all orderings) are judged with `paired_delta`, the
+  per-seed difference. That is what an A/B actually asks: comparing two
+  independent intervals is a different and weaker test, and comparing a
+  difference against a single arm's sd understates the spread by ~sqrt(2) --
+  which is how a 1.49-sd difference once got reported here as 2.10 sd.
+* The summary table prints mean +/- CI alongside the per-seed values it already
+  printed.
+
+**What did NOT change.** The cells, the per-cell statistic, the thresholds
+(0.90 for R1; strict ordering for R2/R3/R4/R5), the directions, the arms, the
+seeds, and which arm each bar reads. Nothing about what is measured moved.
+
+**This makes the bars STRICTER, and that is deliberate.** Tightening a bar
+before any data exists is always safe; the hazard pre-registration guards
+against is loosening one after seeing a result. Two consequences to state now
+rather than discover later:
+
+1. With 3 seeds the t multiplier is 4.303, so intervals are wide. A bar can now
+   read FAIL where a point estimate would have read PASS. **A delta whose
+   interval straddles zero prints INCONCLUSIVE**, which is reported as a
+   not-pass but is a different fact from a measured reversal, and the printed
+   delta +/- CI says which.
+2. If a bar comes back INCONCLUSIVE, the honest response is MORE SEEDS, not a
+   looser bar. Seed count is a sampling limit, not a statistic-choice problem.
+
+**One `np.mean` deliberately survives**, in `_stability_from_saved`: it
+averages assembly overlap over the TRANSITIONS of a single presentation of a
+single seed. It forms that seed's value, which the ensembles then aggregate.
+Putting a confidence interval over transitions inside one brain would be a
+different and wrong claim -- the "mean over CONDITIONS rather than over seeds"
+case the ratchet's own advice names.
+
+**Verification.** Both ratchets pass. The changed aggregation was executed
+end-to-end against synthetic per-cell results -- every ensemble, paired delta,
+verdict branch and the JSON dump -- so the edit is known to run without the
+study having been run. The synthetic numbers are meaningless and were discarded.

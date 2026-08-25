@@ -16,6 +16,21 @@ Amendment 1: stability is read from `saved_winners`, which training already
 records (the arc is the target of exactly one of the two projections per
 transition), so no probe pass is needed. One cell computes the probed form
 too, for validation.
+
+Amendment 3 (pre-data, aggregation only): every bar is judged on a CONFIDENCE
+BOUND rather than a point estimate. R1 tests `Ensemble.beats`; the four
+ordering bars R2/R3/R4/R5 test `paired_delta`, the per-seed difference, which
+is what an A/B actually asks -- comparing two independent intervals is a
+different and weaker test, and comparing a difference against a single arm's sd
+understates the spread by ~sqrt(2). WHAT IS MEASURED IS UNCHANGED: the same
+cells, the same statistic per cell, the same thresholds, the same directions.
+Only the aggregation across seeds changed, and it changed BEFORE any data
+existed. See the note's Amendment 3.
+
+The one surviving `np.mean` is a mean over TRANSITIONS inside a single
+presentation of a single seed -- it forms that seed's value, and putting a
+confidence interval over transitions within one brain would be a different and
+wrong claim.
 """
 from __future__ import annotations
 
@@ -25,6 +40,8 @@ import random
 import sys
 
 import numpy as np
+
+from neural_assemblies.diagnostics import ensemble_from_values, paired_delta
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, _HERE)
@@ -98,53 +115,94 @@ def main():
     print(f"    Z60 organ_p=0.5 T={T} w_max=None, seeds {SEEDS}\n")
     res = run_cells(worker, cells, max_workers=min(len(cells), 14))
 
-    print(f"\n  {'strength':>8} {'mode':>9}  {'terminal identical':>18} "
-          f"{'terminal overlap':>16} {'acc(L=100)':>11}")
+    print(f"\n  {'strength':>8} {'mode':>9}  {'terminal identical':>22} "
+          f"{'terminal overlap':>18} {'acc(L=100)':>18}")
     summary = {}
     for (s, c) in CONFIGS:
         ids = [res[(s, c, True, sd)]["terminal_identical"] for sd in SEEDS]
         ovs = [res[(s, c, True, sd)]["terminal_overlap"] for sd in SEEDS]
         accs = [res[(s, c, True, sd)]["acc"] for sd in SEEDS]
-        summary[f"{s}/{'const' if c else 'geom'}"] = {
-            "identical": ids, "overlap": ovs, "acc": accs}
+        tag = f"{s}/{'const' if c else 'geom'}"
+        e_id = ensemble_from_values(ids, f"{tag}/identical", keys=SEEDS)
+        e_ov = ensemble_from_values(ovs, f"{tag}/overlap", keys=SEEDS)
+        e_ac = ensemble_from_values(accs, f"{tag}/acc", keys=SEEDS)
+        summary[tag] = {"identical": ids, "overlap": ovs, "acc": accs,
+                        "identical_ci": e_id.ci, "overlap_ci": e_ov.ci,
+                        "acc_ci": e_ac.ci}
         print(f"  {s:8.2f} {'constant' if c else 'geometric':>9}  "
-              f"{np.mean(ids):8.3f} {str([round(x,2) for x in ids]):>9} "
-              f"{np.mean(ovs):8.3f}  {np.mean(accs):8.3f} "
+              f"{e_id.mean:.3f}+-{e_id.ci:.3f} {str([round(x,2) for x in ids]):>9} "
+              f"{e_ov.mean:.3f}+-{e_ov.ci:.3f}  "
+              f"{e_ac.mean:.3f}+-{e_ac.ci:.3f} "
               f"{str([round(a,2) for a in accs])}")
 
     def term(s, c, sc=True):
-        return float(np.mean([res[(s, c, sc, sd)]["terminal_identical"]
-                              for sd in SEEDS]))
+        """Terminal identical-assembly fraction as an ENSEMBLE over seeds.
+
+        Amendment 3: this returned a bare mean until the methodology ratchet
+        flagged it. A mean over seeds with no interval cannot support a
+        comparison, and every bar below is a comparison.
+        """
+        return ensemble_from_values(
+            [res[(s, c, sc, sd)]["terminal_identical"] for sd in SEEDS],
+            f"term/{s}/{'const' if c else 'geom'}/scal={sc}", keys=SEEDS)
 
     def acc(s, c, sc=True):
-        return float(np.mean([res[(s, c, sc, sd)]["acc"] for sd in SEEDS]))
+        return ensemble_from_values(
+            [res[(s, c, sc, sd)]["acc"] for sd in SEEDS],
+            f"acc/{s}/{'const' if c else 'geom'}/scal={sc}", keys=SEEDS)
+
+    def gt(a, b, label):
+        """Is `a` above `b`? Judged on the PAIRED per-seed difference.
+
+        Returns (verdict, text). A delta whose interval straddles zero is
+        INCONCLUSIVE, not a pass -- with 3 seeds the t multiplier is 4.303 and
+        the interval is wide, which is a fact about the sampling and belongs in
+        the output rather than hidden behind a point estimate.
+        """
+        d = paired_delta(a, b, label=label)
+        ok = d.beats(0.0)
+        tag = "PASS" if ok else (
+            "INCONCLUSIVE" if d.indistinguishable_from(0.0) else "FAIL")
+        return ok, (f"{a.mean:.3f} vs {b.mean:.3f}, paired delta "
+                    f"{d.mean:+.3f}+-{d.ci:.3f} [{tag}]")
 
     print("\n=== BARS ===")
-    r1 = term(0.0, False) > 0.90
+    print("    judged on CONFIDENCE BOUNDS (Amendment 3); orderings are "
+          "PAIRED per-seed deltas")
+    e0 = term(0.0, False)
+    r1 = e0.beats(0.90)
     print(f"  {'PASS' if r1 else 'FAIL'}  R1 strength=0 terminal identical "
-          f"{term(0.0, False):.3f} > 0.90")
-    r2 = term(0.0, False) > term(0.05, False) > term(0.10, False)
-    print(f"  {'PASS' if r2 else 'FAIL'}  R2 monotone in strength (geometric): "
-          f"{term(0.0, False):.3f} > {term(0.05, False):.3f} > "
-          f"{term(0.10, False):.3f}")
-    r3 = (term(0.05, True) > term(0.05, False)
-          and term(0.10, True) > term(0.10, False))
+          f"{e0.mean:.3f}+-{e0.ci:.3f}, CI-low {e0.low:.3f} > 0.90")
+
+    r2a, t2a = gt(e0, term(0.05, False), "R2 0>0.05")
+    r2b, t2b = gt(term(0.05, False), term(0.10, False), "R2 0.05>0.10")
+    r2 = r2a and r2b
+    print(f"  {'PASS' if r2 else 'FAIL'}  R2 monotone in strength (geometric)")
+    print(f"        0 > 0.05:     {t2a}")
+    print(f"        0.05 > 0.10:  {t2b}")
+
+    r3a, t3a = gt(term(0.05, True), term(0.05, False), "R3 const>geom @.05")
+    r3b, t3b = gt(term(0.10, True), term(0.10, False), "R3 const>geom @.10")
+    r3 = r3a and r3b
     print(f"  {'PASS' if r3 else 'FAIL'}  R3 constant > geometric at equal "
-          f"strength: {term(0.05, True):.3f}>{term(0.05, False):.3f}, "
-          f"{term(0.10, True):.3f}>{term(0.10, False):.3f}")
-    r4 = acc(0.0, False) < acc(0.10, False)
-    print(f"  {'PASS' if r4 else 'FAIL'}  R4 refraction earns its keep: "
-          f"acc(0)={acc(0.0, False):.3f} < acc(0.1)={acc(0.10, False):.3f}")
+          f"strength")
+    print(f"        strength 0.05: {t3a}")
+    print(f"        strength 0.10: {t3b}")
+
+    r4, t4 = gt(acc(0.10, False), acc(0.0, False), "R4 acc(.1)>acc(0)")
+    print(f"  {'PASS' if r4 else 'FAIL'}  R4 refraction earns its keep: {t4}")
     if not r4:
         print("        -> R4 FAILING is the bigger result: refraction costs "
               "stability and buys nothing measurable here.")
 
-    r5 = all(term(s, c, True) < term(s, c, False) for (s, c) in CONFIGS)
+    r5_each = [gt(term(s, c, False), term(s, c, True), f"R5 {s}/{c}")
+               for (s, c) in CONFIGS]
+    r5 = all(ok for ok, _ in r5_each)
     print(f"  {'PASS' if r5 else 'FAIL'}  R5 scaling ON is LESS stable than "
           f"OFF at equal refraction (Amendment 2)")
-    for (s, c) in CONFIGS:
+    for (s, c), (_, txt) in zip(CONFIGS, r5_each):
         print(f"        strength={s} {'const' if c else 'geom':>5}: "
-              f"scaling ON {term(s, c, True):.3f}  OFF {term(s, c, False):.3f}")
+              f"OFF {txt}")
 
     path = os.path.join(_HERE, "seq_refraction_stability_results.json")
     with open(path, "w") as fh:
