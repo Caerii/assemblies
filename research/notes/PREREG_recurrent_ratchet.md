@@ -122,3 +122,97 @@ reproduction of that trap.
 3. Per-seed values, never bare means
    ([[report-distributions-not-point-estimates]]).
 4. No default changes from this unit regardless of outcome.
+
+---
+
+## Result (2026-08-24, 81 cells)
+
+    RC1 FAIL  M=8 rank1: NONE 0.417, B 1.000, C 1.000
+    RC2 PASS  NONE at M=48 rank1 0.021 < 0.50
+    RC3 PASS  C ceiling 64 > B ceiling 48   (NONE 0)      <- THE CLAIM
+    RC4 FAIL  half-cue rank1 at C's ceiling 0.109 < 0.50
+    RC5 FAIL  M=16,T=20: C 0.167 < B 0.188
+
+### RC3 holds, and the effect is not marginal
+
+    arm   M=8    M=16   M=32   M=48   M=64
+    NONE  0.417  0.062  0.031  0.021  0.016
+    B     1.000  1.000  1.000  0.944  0.104     <- cliff between 48 and 64
+    C     1.000  1.000  1.000  0.993  0.896
+
+Per-seed at the decisive cell, M=64: B [0.094, 0.125, 0.094], C [1.000,
+1.000, 0.688]. The arms do not overlap. **Per-round mass renormalization
+lifts the ratchet ceiling that one-time initial normalization cannot** --
+which is what "norm_init normalizes INITIAL weights and says nothing about
+learned ones" predicted would be needed, and the parameter that addresses it
+did not exist as a working mechanism when that verdict was recorded.
+
+**C's ceiling is UNBRACKETED.** 64 was the top of the sweep and C had not
+collapsed there. The true ceiling is >= 64 and unmeasured; a wider sweep is
+the immediate follow-up, and no capacity NUMBER should be quoted from this
+study, only the ordering.
+
+### Two bars that fail without damaging RC3, and one that matters
+
+**RC1 FAIL is not an instrument failure.** B and C both reach 1.000 at M=8,
+so the instrument sees success fine. It is the NONE arm that collapses at
+trivial load (0.417, pairwise overlap 0.663 against a chance of 0.025 -- 26x).
+That is DEGREE BIAS, the first collapse mechanism, which norm_init exists to
+fix ([[recurrence-needs-norm-init]]). The bar was mis-specified: it assumed
+all three arms would work at trivial load, and without any normalization
+recurrence never works at all.
+
+**RC2 passes through the wrong mechanism.** It was registered to reproduce
+the RATCHET, a phenomenon past ~32 items. But NONE is already collapsed at
+M=8, so its failure at M=48 is degree bias continuing, not the ratchet. The
+ratchet is visible elsewhere in the table -- B's cliff from 0.944 at M=48 to
+0.104 at M=64 -- so the phenomenon DID reproduce, just not in the arm the bar
+pointed at. Reported as both, per the commitment.
+
+**RC5 FAIL is a real cost, in the opposite direction from RC3.** At M=16:
+
+    arm   T=5    T=8    T=12   T=20
+    B     1.000  1.000  1.000  0.188
+    C     1.000  1.000  0.458  0.167
+
+C NARROWS the training-depth window relative to B (0.458 vs 1.000 at T=12).
+So the two normalizations trade against each other: **C buys capacity in M, B
+buys depth in T.** Neither reaches the theorems' T floor (>= 56.6); both are
+collapsed by T=20. The tension between merge's shallow recurrent window and
+the theorems' depth requirement is unresolved and is now measured on both
+substrates.
+
+### RC4 is the one that matters most, and it fails everywhere
+
+Half-cue rank-1 identity, the pattern-completion property that DEFINES an
+assembly and is the source of noise robustness:
+
+    C:  0.042 (M=8)  0.083 (16)  0.052 (32)  0.083 (48)  0.109 (64)
+    B:  0.167         0.104       0.052       0.062       0.010
+
+Against a chance of 1/M, these are at or barely above chance in every arm at
+every load. **No substrate produces attractors.** Full-cue retrieval is
+excellent (1.000) while half-cue retrieval is chance -- so what these areas
+implement is a stimulus-keyed LOOKUP, not an attractor basin. Removing half
+the cue destroys it.
+
+That is the honest answer to "aren't assemblies supposed to be robust to
+noise": in this substrate, at these settings, they are not, and the failure
+is not about capacity or normalization. It survives every arm that fixes
+capacity.
+
+### Interpretation, applied as registered
+
+The rule for "RC3 passes but RC4 fails" was *C buys capacity without buying
+attractors -- report as capacity, never as robustness*. That is what
+happened and that is how it is reported. The multi-assembly recurrent regime
+reopens for CAPACITY; the robustness question is untouched by it and is now
+the sharper open problem, since it is the property the calculus is named for.
+
+Follow-ups this earns, in order:
+1. Bracket C's ceiling (sweep past M=64) -- cheap, and no number should be
+   quoted until it is done.
+2. Ask why pattern completion fails at ALL loads including M=8, where
+   capacity cannot be the explanation. That is a mechanism question about the
+   self-fiber, not a load question.
+3. The T-window/theorem-depth conflict, now measured on both substrates.

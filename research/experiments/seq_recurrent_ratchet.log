@@ -1,0 +1,118 @@
+=== recurrent ratchet: does per-round mass renorm lift the ceiling? ===
+    n=2000 k=50 beta=0.1 p=0.05, recurrence ON, chance overlap=0.0250
+
+[done ('NONE', 8, 8, 42)]
+[done ('NONE', 8, 8, 43)]
+[done ('B', 8, 8, 42)]
+[done ('B', 8, 8, 43)]
+[done ('B', 8, 8, 44)]
+[done ('NONE', 8, 8, 44)]
+[done ('NONE', 16, 8, 43)]
+[done ('NONE', 16, 8, 42)]
+[done ('NONE', 16, 8, 44)]
+[done ('NONE', 64, 8, 44)]
+[done ('B', 16, 8, 42)]
+[done ('B', 16, 8, 43)]
+[done ('B', 16, 8, 44)]
+[done ('NONE', 32, 8, 42)]
+[done ('NONE', 32, 8, 43)]
+[done ('NONE', 32, 8, 44)]
+[done ('B', 32, 8, 42)]
+[done ('B', 32, 8, 43)]
+[done ('NONE', 48, 8, 42)]
+[done ('NONE', 48, 8, 43)]
+[done ('C', 8, 8, 42)]
+[done ('C', 8, 8, 43)]
+[done ('NONE', 48, 8, 44)]
+[done ('B', 32, 8, 44)]
+[done ('C', 8, 8, 44)]
+[done ('NONE', 64, 8, 42)]
+[done ('NONE', 64, 8, 43)]
+[done ('B', 48, 8, 42)]
+[done ('B', 48, 8, 43)]
+[done ('B', 48, 8, 44)]
+[done ('C', 16, 8, 42)]
+[done ('C', 16, 8, 44)]
+[done ('C', 16, 8, 43)]
+[done ('B', 64, 8, 42)]
+[done ('B', 64, 8, 43)]
+[done ('B', 64, 8, 44)]
+[done ('NONE', 16, 5, 42)]
+[done ('NONE', 16, 5, 43)]
+[done ('NONE', 16, 5, 44)]
+[done ('NONE', 16, 12, 42)]
+[done ('C', 32, 8, 43)]
+[done ('NONE', 16, 12, 44)]
+[done ('C', 32, 8, 42)]
+[done ('NONE', 16, 12, 43)]
+[done ('C', 32, 8, 44)]
+[done ('NONE', 16, 20, 42)]
+[done ('NONE', 16, 20, 43)]
+[done ('B', 16, 5, 43)]
+[done ('B', 16, 5, 42)]
+[done ('NONE', 16, 20, 44)]
+[done ('B', 16, 5, 44)]
+[done ('B', 16, 12, 42)]
+[done ('B', 16, 12, 43)]
+[done ('B', 16, 12, 44)]
+[done ('C', 48, 8, 43)]
+[done ('C', 16, 5, 43)]
+[done ('C', 48, 8, 44)]
+[done ('C', 48, 8, 42)]
+[done ('C', 16, 5, 42)]
+[done ('C', 16, 5, 44)]
+[done ('B', 16, 20, 42)]
+[done ('B', 16, 20, 44)]
+[done ('B', 16, 20, 43)]
+[done ('C', 16, 12, 42)]
+[done ('C', 16, 12, 43)]
+[done ('C', 16, 12, 44)]
+[done ('C', 64, 8, 42)]
+[done ('C', 64, 8, 43)]
+[done ('C', 64, 8, 44)]
+[done ('C', 16, 20, 43)]
+[done ('C', 16, 20, 42)]
+[done ('C', 16, 20, 44)]
+
+--- Part A: M-ceiling at T=8  (rank1 full / half, self-ov, pairwise)
+    arm      M  rank1_full  rank1_half  self_ov  pairwise  flags
+    NONE     8       0.417       0.125    0.855    0.6631  
+    NONE    16       0.062       0.062    0.902    0.8267  SILENT x3
+    NONE    32       0.031       0.031    0.954    0.9130  SILENT x3
+    NONE    48       0.021       0.021    0.965    0.9322  SILENT x3
+    NONE    64       0.016       0.016    0.975    0.9512  SILENT x3
+    B        8       1.000       0.167    0.898    0.0214  
+    B       16       1.000       0.104    0.944    0.0276  
+    B       32       1.000       0.052    0.949    0.0288  
+    B       48       0.944       0.062    0.874    0.0355  
+    B       64       0.104       0.010    0.341    0.0933  
+    C        8       1.000       0.042    0.728    0.1614  
+    C       16       1.000       0.083    0.797    0.1409  
+    C       32       1.000       0.052    0.853    0.1078  
+    C       48       0.993       0.083    0.846    0.1030  
+    C       64       0.896       0.109    0.836    0.0905  
+
+--- Part B: T-window at M=16
+    arm      T  rank1_full  rank1_half
+    NONE     5       0.479       0.062
+    NONE     8       0.062       0.062
+    NONE    12       0.062       0.062
+    NONE    20       0.083       0.062
+    B        5       1.000       0.062
+    B        8       1.000       0.104
+    B       12       1.000       0.125
+    B       20       0.188       0.062
+    C        5       1.000       0.083
+    C        8       1.000       0.083
+    C       12       0.458       0.062
+    C       20       0.167       0.062
+
+=== BARS ===
+  FAIL  RC1 instrument sanity: M=8 rank1 > 0.90 all arms {'NONE': 0.417, 'B': 1.0, 'C': 1.0}
+  PASS  RC2 ratchet reproduces: NONE at M=48 rank1 0.021 < 0.50
+  PASS  RC3 THE CLAIM: C ceiling 64 > B ceiling 48  (NONE 0)
+  FAIL  RC4 pattern completion at C's ceiling M=64: half-cue rank1 0.109 > 0.50
+  FAIL  RC5 window at M=16,T=20: C 0.167 > B 0.188
+        -> C buys CAPACITY without buying ATTRACTORS; report as capacity, never as robustness.
+
+wrote F:\Github\assemblies\research\experiments\seq_recurrent_ratchet_results.json
