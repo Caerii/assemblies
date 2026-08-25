@@ -485,6 +485,19 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
         Eq. 3 potentiates inhibitory synapses too (they grow more negative),
         so the negative side gets the mirrored bound.
         """
+        if self.w_max is None:
+            # UNCLAMPED. `w_max=None` is a supported configuration and the one
+            # the theorems assume -- they have no clip, because homeostasis IS
+            # their boundedness mechanism (PREREG_theorem_regime.md). Every
+            # DENSE caller guards on `w_max is not None` before calling, so the
+            # only site that reaches here unclamped is `_new_virtual_fiber`,
+            # and `VirtualWeights` already treats `w_hi=None` as "no clip"
+            # (it guards the np.clip). Returning a bare `self.w_max * scale`
+            # raised TypeError there instead, so the virtual representation was
+            # unusable in exactly the regime it is most needed for -- the deep,
+            # unclipped runs where dense fibers are largest. `w_lo` is dead
+            # whenever `w_hi` is None, so it keeps its clamped meaning.
+            return 0.0, None
         hi = self.w_max * scale
         if self.inhibitory_prob <= 0.0:
             return 0.0, hi
