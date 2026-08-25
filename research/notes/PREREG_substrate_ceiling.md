@@ -109,3 +109,106 @@ the fact as confirmation.
   capacity. Report as distinctness, never as capacity.
 * CE6 fails at any point -> Amendment 5's mechanism does not generalize; narrow
   it to p=0.5 in that note and say so in the memory that cites it.
+
+---
+
+# RESULTS
+
+Run 2026-08-25, `seq_substrate_ceiling.py`, 450 cells. **All seven bars pass**,
+including CE6, which was written to be able to falsify Amendment 5, and CE7,
+which was registered as probably uninformative and was not.
+
+## Part A -- the ceiling
+
+    ceilings from the CURVE, each arm at its own best beta (all chose 0.10)
+      B  M* =  41.3  bracket [ 32,  64)  interior 1  [UNRESOLVED: 2.00x]
+      C  M* =   8.0  bracket [  8,   8)  interior 0  [CLIFF]
+      G  M* = 103.7  bracket [ 96, 128)  interior 3
+
+**The estimator refuses to let two of these be quoted, and that is the point.**
+B's bracket is a factor of 2 wide, so 41.3 is grid-dependent; C never had an
+interior point. Only G's estimate is both supported and resolved. What IS
+grid-independent is that **the brackets do not overlap**: G's ceiling lies
+above 96 and B's below 64. The ratio is therefore at least 96/64 = 1.5x and at
+most 128/32 = 4x; the point estimates say 2.5x.
+
+## The stronger comparison is at FIXED M, because saturation is controlled
+
+    n=2000 k=50 p=0.5 beta=0.10      half-cue (per seed)   pairw   dist  rows/n
+      B   M=32    0.792  (0.91 0.78 0.69)                  1.29x  1.000  0.967
+      B   M=64    0.016  (0.02 0.02 0.02)                  7.26x  0.724  0.994
+      G   M=32    0.927  (0.91 0.94 0.94)                  0.90x  1.000  0.969
+      G   M=64    0.938  (0.94 0.95 0.92)                  1.10x  1.000  0.997
+      G   M=96    0.684  (0.91 0.21 0.94)                  1.24x  1.000  0.999
+      G   M=128   0.284  (0.30 0.41 0.14)                  1.91x  0.969  0.999
+
+At **M=64 the two arms are at the same fill** (rows/n 0.994 vs 0.997), so
+saturation cannot be the explanation: B has collapsed -- completion 0.016,
+overlap 7.3x chance, and a distinct fraction of 0.724, i.e. **a quarter of its
+assemblies are exact duplicates** -- while G is intact at 0.938 with every
+assembly distinct. That is the result, and it needs no ceiling estimator.
+
+The duplicate fraction is only visible because this study reports it. Mean
+pairwise overlap alone is nearly blind to partial collapse, which is exactly
+why `_substrate.check_distinct` exists.
+
+**Saturation caveat, as registered.** Both ceilings sit at or past the tiling
+limit of an n=2000 area (rows/n 0.97-1.00). This is a capacity result for THIS
+area, not a scaling law. G's M=96 cell is 2 good seeds and 1 collapse
+(0.91/0.21/0.94), which is why its interval is +/-1.02 -- the ceiling really is
+near there, and 3 seeds cannot localise it. How the ceiling scales with n needs
+larger areas and more seeds; it is not claimed here.
+
+## Part B -- the mechanism survives, and CE7 was informative after all
+
+    M=16, beta=0.10                pairwise      xchance  rho(deg,mult)  deg_cv
+      n= 2000 k= 50 p=0.500  B   0.0213+-0.0030    0.85    +0.008         0.0250
+                             C   0.1505+-0.0309    6.02    +0.239         0.0704
+                             G   0.0177+-0.0017    0.71    -0.012         0.0247
+      n= 4000 k=100 p=0.280  B   0.0177+-0.0013    0.71    +0.028         0.0297
+                             C   0.3222+-0.0331   12.89    +0.284         0.1139
+                             G   0.0154+-0.0012    0.62    -0.007         0.0292
+      n=10000 k=250 p=0.124  B   0.0158+-0.0009    0.63    +0.032         0.0325
+                             C   0.3964+-0.0175   15.86    +0.287         0.1532
+                             G   0.0144+-0.0011    0.58    +0.006         0.0321
+
+**CE6 (the falsification test) passes at every point**: rho(in-degree,
+multiplicity) has a CI lower bound of at least +0.191 for C and an upper bound
+of at most +0.045 for G, at all three operating points and both betas.
+Amendment 5's mechanism is not an artifact of p=0.5.
+
+**CE7 passes, and I registered it as likely UNINFORMATIVE.** Measured degree
+heterogeneity rose 2.2x as p fell 4x (deg_cv 0.070 -> 0.114 -> 0.153), and C's
+overlap rose with it (6.0x -> 12.9x -> 15.9x chance). I could not derive the
+direction in advance and said so; the measurement supplies it. The merger
+tracks the degree heterogeneity of the candidate pool, which is what
+"uncancelled candidate in-degree" predicts.
+
+**A finding not asked for: substrate C gets much WORSE in the sparse regime.**
+Its overlap goes from 6.0x chance at p=0.5 to 15.9x at p=0.124 -- and p=0.124
+is far closer to what the organ actually runs. Amendment 5 measured C at its
+most flattering point. Anything that has used `synaptic_scaling` without
+`norm_init` on a sparse fiber is worse off than that note implied.
+
+## Bars
+
+    PASS  CE1  instrument: M=8 full-cue CI-low >= 0.90, all arms 1.000+-0.000
+    PASS  CE2  regime: asserted for all 450 cells before the run
+    PASS  CE3  THE CLAIM: G M*=103.7 > B M*=41.3, brackets disjoint
+    PASS  CE4  C alone does not lift it: C M*=8.0
+    PASS  CE5  generalization: G <= 1.04x chance and C >= 4.42x at EVERY point
+    PASS  CE6  mechanism invariant (FALSIFICATION TEST) at every point
+    PASS  CE7  direction: C's overlap tracks measured degree heterogeneity
+
+## Status of the original RC3
+
+The original ratchet study's RC3 asked whether per-round mass renormalization
+lifts the ceiling and answered NO. That answer was correct **about substrate C
+alone** -- re-measured here in regime, C's ceiling is 8, the worst of the three.
+It was wrong as a claim about homeostatic scaling, because it never tested the
+composition. With `norm_init`, scaling roughly doubles the ceiling of this area
+and keeps every assembly distinct at a fill where `norm_init` alone has already
+lost a quarter of them to duplicates.
+
+What is NOT established: how any of this scales with n. Both ceilings here are
+bounded by the tiling limit of a single 2000-neuron area.
