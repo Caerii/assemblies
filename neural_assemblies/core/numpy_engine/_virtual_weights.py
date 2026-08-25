@@ -208,17 +208,31 @@ class VirtualWeights:
             out[inb] = haystack[pos[inb]] == needles[inb]
         return out
 
-    def _ovr_arr(self, r: int):
-        """Sorted override cols for row *r*, built lazily after writes."""
-        arr = self._ovr_sorted.get(r)
-        if arr is None:
+    def _ovr_pair(self, r: int):
+        """Sorted override ``(cols, values)`` for row *r*, built lazily.
+
+        The VALUES are cached beside the columns because the drive path needs
+        both, and it used to re-derive them from the dict one key at a time --
+        `np.fromiter((ovr[int(c)] for c in oarr), ...)`, which was 2,943,863
+        generator iterations and 73,831 fromiter calls in a 6-presentation
+        build. dict preserves insertion order and `.keys()` / `.values()`
+        iterate in that same order, so ONE argsort pairs them correctly.
+        """
+        pair = self._ovr_sorted.get(r)
+        if pair is None:
             src = self._ovr.get(r)
             if not src:
-                return None
-            arr = np.fromiter(src.keys(), dtype=np.int64, count=len(src))
-            arr.sort()
-            self._ovr_sorted[r] = arr
-        return arr
+                return None, None
+            keys = np.fromiter(src.keys(), dtype=np.int64, count=len(src))
+            vals = np.fromiter(src.values(), dtype=np.float64, count=len(src))
+            order = np.argsort(keys)
+            pair = (keys[order], vals[order])
+            self._ovr_sorted[r] = pair
+        return pair
+
+    def _ovr_arr(self, r: int):
+        """Sorted override cols for row *r* (columns half of `_ovr_pair`)."""
+        return self._ovr_pair(r)[0]
 
     def _chain(self, values: np.ndarray, counts: np.ndarray) -> np.ndarray:
         """Replay the dense engine's per-event float32 multiply-then-clip."""
@@ -272,16 +286,16 @@ class VirtualWeights:
                     exp_cols = c
             ovr = self._ovr.get(r)
             if ovr:
-                oarr = self._ovr_arr(r)
+                oarr, ovals = self._ovr_pair(r)
                 if oarr[-1] >= cols:
-                    oarr = oarr[oarr < cols]
+                    keep = oarr < cols
+                    oarr, ovals = oarr[keep], ovals[keep]
                 if exp_cols is not None and len(oarr):
-                    oarr = oarr[~self._sorted_isin(oarr, exp_cols)]
+                    keep = ~self._sorted_isin(oarr, exp_cols)
+                    oarr, ovals = oarr[keep], ovals[keep]
                 if len(oarr):
-                    raws = np.fromiter((ovr[int(c)] for c in oarr),
-                                       dtype=np.float64, count=len(oarr))
                     col_parts.append(oarr)
-                    delta_parts.append(1.0 - raws)
+                    delta_parts.append(1.0 - ovals)
         if col_parts:
             np.add.at(out, np.concatenate(col_parts),
                       np.concatenate(delta_parts))
@@ -465,6 +479,28 @@ class VirtualWeights:
                                 live_eff, live_raw.astype(np.float32)]
                 continue
             c, n, eff, raw = entry
+            # REPEAT FAST PATH. A transition potentiates the SAME rectangle
+            # every presentation, so after the first visit `live` is almost
+            # always already a subset of this row's stored columns and the
+            # whole merge below is redundant work -- union1d, three zeros
+            # allocations, two searchsorteds and four array rebuilds, per row
+            # per bump. When the subset holds, the merge is provably the
+            # identity on everything except the counts:
+            #   merged = union1d(c, live) = c
+            #   old_pos = searchsorted(c, c) = arange, so counts/eff/raw
+            #     come back as n/eff/raw untouched
+            #   fresh = (counts[new_pos] == 1) is all False, because counts
+            #     enter at 1 and only ever increment, so eff/raw are never
+            #     rewritten
+            # leaving exactly `n[pos] += 1`. Byte-identical, in place, no
+            # allocation. This is the low-rank structure of the exponent
+            # matrix (N = sum of rank-1 rectangles) paying off without
+            # changing the representation.
+            pos_live = np.searchsorted(c, live)
+            if len(c) and pos_live[-1] < len(c):
+                if bool((c[pos_live] == live).all()):
+                    n[pos_live] += 1
+                    continue
             merged = np.union1d(c, live)
             counts = np.zeros(len(merged), dtype=np.int64)
             m_eff = np.zeros(len(merged), dtype=np.float32)
