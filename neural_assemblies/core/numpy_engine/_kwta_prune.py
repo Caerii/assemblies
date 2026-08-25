@@ -74,6 +74,27 @@ gain has to beat the extreme value of the untrained pool. A brain deep enough
 to complete a half cue is deep enough to prune, which is a pleasant place for
 an optimisation's precondition to sit.
 
+WHAT IS PRESERVED, EXACTLY, AND WHAT IS NOT. The winner SET and the resulting
+CONNECTOME are bit-identical -- measured over 20 rounds x 3 stimuli at three
+seeds, comparing the weight matrix itself rather than a summary. The ORDER of
+winners that are EXACTLY TIED is not preserved.
+
+The reason is that `heapq_select_top_k` uses `argpartition` followed by
+`argsort`, both unstable, so the position a tied index lands in depends on
+values ELSEWHERE in the array -- including the slots the prune left alone. Two
+columns measured at 738.114563 each came back in the opposite order, and no
+choice of filler value fixes that: an unstable partition reads the whole array.
+
+This is not a defect in the bound, and it does not change which neurons fire.
+It is stated here rather than buried because winner order reaches the
+connectome through the ROW ORDER of the next gather, so a future change could
+in principle turn a tie-order difference into a last-ulp value difference. It
+has not here. Making the selector's tie-break canonical would fix it properly
+and is a SCIENCE-AFFECTING change -- a tie-break change has already moved
+sixteen cells of an exact table in this project with no direction to it
+([[exact-tables-are-tie-fragile]]) -- so it needs its own registration and must
+not be smuggled in as an optimisation.
+
 GUARDS -- fall back, never guess. Each of these breaks the bound, so the
 caller must not prune when any holds:
 
@@ -109,89 +130,133 @@ class PotentiatedSupport:
     not their index -- finding them costs exactly the O(k*n) scan the prune is
     trying to avoid. Plasticity, on the other hand, knows precisely which cells
     it touched: `_apply_plasticity` multiplies the full cross product
-    `rows x cols`. Recording that costs O(k^2) against a drive read of O(k*n),
-    which for the Z60 organ is 4,900 against 1.4 million.
+    `rows x cols`. Recording that costs O(k^2) against a drive read of O(k*n).
 
-    The index is a SUPERSET of the potentiated set, because a touched cell
-    whose base was 0 stays 0. That is fine and is why `correction` re-checks
-    `> POTENTIATED` on the gathered values instead of trusting membership.
+    STORED CSR-STYLE, NOT AS A DICT OF ARRAYS. The first version kept a dict
+    and looped over active rows, doing one small fancy-index gather each --
+    which measured 6-10x SLOWER than the dense read it was meant to replace,
+    because k separate gathers plus k dict lookups cost more than one
+    contiguous pass. The row-pointer layout turns the whole read into a single
+    vectorised gather, which is the only shape that can win.
+
+    The index is a SUPERSET of the potentiated set: a touched cell whose base
+    was 0 stays 0. That is why `correction` re-checks `> POTENTIATED` on the
+    gathered VALUES rather than trusting membership.
     """
 
-    __slots__ = ("_rows", "_dirty")
+    __slots__ = ("_rows", "_dirty", "_ptr", "_cols", "_order")
 
     def __init__(self) -> None:
         self._rows: Dict[int, np.ndarray] = {}
         self._dirty: Dict[int, List[np.ndarray]] = {}
+        self._ptr: Optional[np.ndarray] = None      # compiled CSR
+        self._cols: Optional[np.ndarray] = None
+        self._order: Optional[np.ndarray] = None    # row id -> CSR slot
 
     def __len__(self) -> int:
-        return len(self._rows) + len(self._dirty)
+        return len(set(self._rows) | set(self._dirty))
 
     def note(self, rows: Iterable[int], cols: np.ndarray) -> None:
         """Record that every (row, col) pair in the cross product was touched.
 
-        Deferred: the per-row union is only materialised when it is READ. A
-        training loop notes far more often than it prunes, and doing the
-        sort/unique per event made maintenance the dominant cost.
+        Deferred: the per-row union is materialised only when READ. A training
+        loop notes far more often than it prunes, and doing the sort/unique per
+        event made maintenance the dominant cost.
         """
         cols = np.asarray(cols, dtype=np.int64)
         if cols.size == 0:
             return
         for r in rows:
             self._dirty.setdefault(int(r), []).append(cols)
-
-    def _resolve(self, r: int) -> Optional[np.ndarray]:
-        pend = self._dirty.pop(r, None)
-        if pend is not None:
-            have = self._rows.get(r)
-            parts = pend if have is None else [have] + pend
-            self._rows[r] = np.unique(np.concatenate(parts))
-        return self._rows.get(r)
+        self._ptr = None                     # invalidate the compiled form
 
     def clear(self) -> None:
-        """Drop everything. The caller MUST do this whenever the index space
-        it is keyed on is rebuilt -- consolidation renumbers compact indices
+        """Drop everything. The caller MUST do this whenever the index space it
+        is keyed on is rebuilt -- consolidation renumbers compact indices
         ([[consolidation-resets-the-index-space]]), and a stale row->col map
         would then point at other neurons' columns. Dropping the index only
         costs the prune; keeping a wrong one costs the science."""
         self._rows.clear()
         self._dirty.clear()
+        self._ptr = self._cols = self._order = None
+
+    def _compile(self) -> None:
+        """Fold pending events into per-row unions, then lay them out CSR."""
+        for r, pend in self._dirty.items():
+            have = self._rows.get(r)
+            parts = pend if have is None else [have] + pend
+            self._rows[r] = np.unique(np.concatenate(parts))
+        self._dirty.clear()
+        if not self._rows:
+            self._ptr = np.zeros(1, dtype=np.int64)
+            self._cols = np.empty(0, dtype=np.int64)
+            self._order = np.empty(0, dtype=np.int64)
+            return
+        ids = np.fromiter(sorted(self._rows), dtype=np.int64,
+                          count=len(self._rows))
+        lens = np.fromiter((len(self._rows[int(r)]) for r in ids),
+                           dtype=np.int64, count=len(ids))
+        self._ptr = np.concatenate([[0], np.cumsum(lens)])
+        self._cols = np.concatenate([self._rows[int(r)] for r in ids])
+        self._order = ids
 
     def correction(self, rows: Sequence[int], weights, n_cols: int
                    ) -> Tuple[np.ndarray, np.ndarray]:
         """``(corr, touched)`` for the active rows, in FLOAT64.
 
         `corr[c]` is the exact excess of column c above its unit base over the
-        active rows, and `touched` is the sorted set of columns with any
+        active rows; `touched` is the sorted set of columns with any
         potentiated cell there -- the columns the caller must evaluate.
 
-        float64 for the reason in note 2: the values stay float32, but summing
-        the correction in f32 drifts enough to produce spurious bound
-        violations, which turn a fast exact path into a slow one at random.
+        ONE vectorised gather, not one per row. float64 for the reason in the
+        module docstring: the values stay float32, but summing the correction
+        in f32 drifts enough to fire spurious bound violations, which turns a
+        fast exact path into a slow one at random.
         """
-        cols_acc: List[np.ndarray] = []
-        vals_acc: List[np.ndarray] = []
-        for r in rows:
-            cols = self._resolve(int(r))
-            if cols is None or cols.size == 0:
-                continue
-            if n_cols <= 0:
-                continue
-            cols = cols[cols < n_cols]
-            if cols.size == 0:
-                continue
-            vals = np.asarray(weights[int(r), cols], dtype=np.float64)
-            keep = vals > POTENTIATED
-            if not keep.any():
-                continue
-            cols_acc.append(cols[keep])
-            vals_acc.append(vals[keep] - POTENTIATED)
-        if not cols_acc:
-            return (np.zeros(n_cols, dtype=np.float64),
-                    np.empty(0, dtype=np.int64))
-        allc = np.concatenate(cols_acc)
-        allv = np.concatenate(vals_acc)
-        corr = np.bincount(allc, weights=allv, minlength=n_cols)
-        return corr[:n_cols], np.unique(allc)
+        empty = (np.zeros(n_cols, dtype=np.float64),
+                 np.empty(0, dtype=np.int64))
+        if n_cols <= 0:
+            return empty
+        if self._ptr is None:
+            self._compile()
+        if self._order is None or len(self._order) == 0:
+            return empty
+
+        want = np.asarray(rows, dtype=np.int64)
+        slot = np.searchsorted(self._order, want)
+        slot = slot[slot < len(self._order)]
+        if len(slot) == 0:
+            return empty
+        keep = self._order[slot] == want[:len(slot)]
+        slot = slot[keep]
+        if len(slot) == 0:
+            return empty
+
+        lens = self._ptr[slot + 1] - self._ptr[slot]
+        total = int(lens.sum())
+        if total == 0:
+            return empty
+        # Flat index into `_cols` for every (active row, touched col) pair,
+        # built without a Python loop: repeat each row's start, then add the
+        # within-row offset recovered from the running length total.
+        starts = np.repeat(self._ptr[slot], lens)
+        within = np.arange(total, dtype=np.int64) - np.repeat(
+            np.cumsum(lens) - lens, lens)
+        cols = self._cols[starts + within]
+        rrep = np.repeat(self._order[slot], lens)
+
+        live = cols < n_cols
+        if not live.all():
+            cols, rrep = cols[live], rrep[live]
+            if len(cols) == 0:
+                return empty
+        vals = np.asarray(weights[rrep, cols], dtype=np.float64)
+        pot = vals > POTENTIATED
+        if not pot.any():
+            return empty
+        cols, vals = cols[pot], vals[pot] - POTENTIATED
+        corr = np.bincount(cols, weights=vals, minlength=n_cols)
+        return corr[:n_cols], np.unique(cols)
 
 
 def evaluate_set(touched: np.ndarray, stim: Optional[np.ndarray], k: int,

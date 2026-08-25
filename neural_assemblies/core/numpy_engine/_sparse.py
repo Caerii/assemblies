@@ -40,6 +40,9 @@ except ImportError:
     from compute.winner_policies import TopKPolicy
 
 from ._growth import GrowthMixin, _self_fiber_deferred_init  # noqa: F401
+from ._kwta_prune import (
+    PotentiatedSupport, bound_outside, evaluate_set,
+)
 from ._degree_norm import DegreeNormMixin
 from ._drive_cache import (  # noqa: F401
     DriveCacheMixin, _csr_storage_available, _CSR_MIN_CELLS,
@@ -1317,6 +1320,13 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
                 else:
                     prev_winner_inputs[:end] += stim_w[:end] * nscale[:end]
 
+        # k-WTA BOUND-AND-PRUNE: which columns actually have to be gathered.
+        # Decided from the potentiated support alone, before any gather, so a
+        # declined prune costs one cheap pass and never a redundant one.
+        _cand_cols = self._prune_evaluate_set(
+            target, tgt, from_stimuli, from_areas, limit,
+            record_activation=record_activation)
+
         # Area inputs (2-D, vectorised fancy-index)
         # Track sources whose connectomes need deferred initialisation.
         _deferred_init_srcs = []
@@ -1441,9 +1451,22 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
                     # Stored sparse: answer natively, no mirror needed, and
                     # safe with plasticity ON because there is nothing cached.
                     contrib = conn.weights.row_sum(internal, col_end)
-                elif not plasticity_enabled:
+                elif not plasticity_enabled and _cand_cols is None:
                     contrib = self._csr_row_sum(
                         src_name, target, conn.weights, internal, col_end)
+                if contrib is None and _cand_cols is not None:
+                    # Gather ONLY the columns whose bound has not already lost.
+                    # Values stay bit-identical: taking a column subset never
+                    # reorders any column's row sum. Pruned slots keep 0, which
+                    # is below their true drive and far below tau, so they
+                    # cannot enter the top-k either way -- and leaving them at
+                    # 0 rather than -inf keeps every other consumer of this
+                    # vector (the zero-signal check, total_activation) honest.
+                    sub = _cand_cols[_cand_cols < col_end]
+                    if len(sub) > 0:
+                        prev_winner_inputs[sub] += conn.weights[
+                            xp.ix_(internal, sub)].sum(axis=0)
+                    continue
                 if contrib is None:
                     contrib = conn.weights[internal, :col_end].sum(axis=0)
                 nscale = self._norm_scale(
@@ -2008,6 +2031,120 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
             return
         self._scale_columns_now(target, from_areas, winners)
 
+    # -- k-WTA bound-and-prune ----------------------------------------------
+
+    def _support_for(self, src_name, target):
+        """Per-fiber index of the cells plasticity has touched. Lazy, so an
+        engine that never prunes never pays for one."""
+        m = getattr(self, "_pot_support", None)
+        if m is None:
+            m = self._pot_support = {}
+        key = (src_name, target)
+        sup = m.get(key)
+        if sup is None:
+            sup = m[key] = PotentiatedSupport()
+        return sup
+
+    def drop_potentiated_support(self):
+        """Forget every fiber's index.
+
+        MUST be called by anything that renumbers compact indices -- the index
+        is keyed on them, and a stale row->col map points at other neurons'
+        columns ([[consolidation-resets-the-index-space]]). Dropping it only
+        costs the prune; keeping a wrong one costs the science.
+        """
+        m = getattr(self, "_pot_support", None)
+        if m:
+            m.clear()
+
+    def _prune_evaluate_set(self, target, tgt, from_stimuli, from_areas,
+                            limit, record_activation=False):
+        """Columns that must be gathered exactly, or None to gather all.
+
+        THE DECISION IS MADE BEFORE ANY GATHER, which is what makes this safe
+        to wire in without a fallback path. `drive[c] >= stim[c] + corr[c]`
+        because the base term is non-negative, so the k-th largest of
+        `stim + corr` over the evaluated set is a LOWER bound on the true tau.
+        If that already clears `bound_outside`, pruning is provably valid and
+        nothing has been computed twice. It declines more often than a
+        gather-then-check would, and never guesses.
+        """
+        if not getattr(self, "kwta_prune", False) or limit <= 0:
+            return None
+        # `record_activation` snapshots the FULL drive vector, so a pruned one
+        # would hand the caller a partial vector that still looks like a
+        # measurement. Checked HERE rather than at the call site so the hit
+        # counter is not incremented for a projection that did not prune --
+        # a counter that lies makes the guard untestable, which is how a
+        # broken guard stays broken.
+        if record_activation:
+            return None
+        k = int(tgt.k)
+        if k <= 0:
+            return None
+        # GUARDS. Each breaks the bound; see `_kwta_prune`'s module docstring.
+        if self.norm_init or self.synaptic_scaling:
+            return None
+        if float(getattr(tgt, "input_noise_std", 0.0) or 0.0) > 0.0:
+            return None
+        if getattr(tgt, "winner_policy", None) not in (None, "topk"):
+            return None
+
+        xp = self._xp
+        stim_total = None
+        if from_stimuli:
+            stim_total = np.zeros(limit, dtype=np.float64)
+            for stim in from_stimuli:
+                sw = self._stim_conns[stim][target].weights
+                end = min(limit, len(sw))
+                if end > 0:
+                    stim_total[:end] += np.asarray(to_cpu(sw[:end]),
+                                                   dtype=np.float64)
+
+        corr = np.zeros(limit, dtype=np.float64)
+        touched = []
+        total_active = 0
+        for src_name in from_areas:
+            conn = self._area_conns[src_name][target]
+            w = conn.weights
+            # Only DENSE blocks carry a maintained index -- the sparse
+            # representations answer `row_sum` natively and were never noted.
+            if not isinstance(w, xp.ndarray) or getattr(w, "ndim", 0) != 2:
+                return None
+            src_w = xp.asarray(self._areas[src_name].winners)
+            internal = np.asarray(to_cpu(src_w[src_w < w.shape[0]]))
+            # COUNT EVERY ACTIVE ROW, not just the ones this block currently
+            # covers. `eager_fiber_init` can materialise or widen a block
+            # INSIDE the gather loop, after this decision has been taken, and
+            # those fresh rows contribute base drive to columns whose bound was
+            # computed without them. Counting `src.winners` is an upper bound
+            # and therefore always safe; clipping to `w.shape[0]` undercounts
+            # and makes the bound too low, which silently drops real winners.
+            total_active += int(len(src_w))
+            if len(internal) == 0:
+                continue
+            cols = min(limit, int(w.shape[1]))
+            c, t = self._support_for(src_name, target).correction(
+                internal, w, cols)
+            corr[:cols] += c
+            if len(t):
+                touched.append(t)
+        if total_active == 0:
+            return None
+
+        touch = (np.unique(np.concatenate(touched)) if touched
+                 else np.empty(0, dtype=np.int64))
+        ev = evaluate_set(touch, stim_total, k, limit)
+        if len(ev) < k or len(ev) >= limit:
+            return None                    # nothing to save
+        lo = corr[ev] + (stim_total[ev] if stim_total is not None else 0.0)
+        tau_lo = float(np.partition(lo, -k)[-k])
+        if tau_lo > bound_outside(stim_total, ev, limit, total_active):
+            self._prune_hits = getattr(self, "_prune_hits", 0) + 1
+            return ev.astype(np.int64)
+        self._prune_misses = getattr(self, "_prune_misses", 0) + 1
+        return None
+
     def _scale_columns_now(self, target, from_areas, winners):
         xp = self._xp
         cols = xp.asarray(winners, dtype=xp.int64)
@@ -2196,6 +2333,16 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
                 if len(valid_rows) > 0 and len(valid_cols) > 0:
                     ix = xp.ix_(valid_rows, valid_cols)
                     conn.weights[ix] *= (1 + beta)
+                    # Record the touched support for the k-WTA prune. This is
+                    # the ONLY place a dense fiber learns which cells are
+                    # potentiated -- the block stores their values but not
+                    # their index, and recovering it later would cost exactly
+                    # the O(k*n) scan the prune exists to avoid. O(k^2) here
+                    # against O(k*n) there.
+                    if getattr(self, "kwta_prune", False):
+                        self._support_for(src_name, target).note(
+                            np.asarray(to_cpu(valid_rows)),
+                            np.asarray(to_cpu(valid_cols)))
                     if self.w_max is not None:
                         sub = conn.weights[ix]
                         _lo, _hi = self._weight_bounds()
