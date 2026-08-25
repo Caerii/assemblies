@@ -186,7 +186,7 @@ def gated(cell):
 
 
 def main():
-    global MS
+    global MS, K
     ap = argparse.ArgumentParser()
     ap.add_argument("--smoke", action="store_true")
     ap.add_argument("--ns", type=str, default=None,
@@ -195,6 +195,10 @@ def main():
                     help="comma-separated M checkpoints")
     ap.add_argument("--brains", type=int, default=None)
     ap.add_argument("--arms", type=str, default=None)
+    ap.add_argument("--ksqrt", action="store_true",
+                    help="set k = round(sqrt(n)) per n, which holds the chance "
+                         "overlap k*k/n at 1 while n varies -- the probe that "
+                         "separates interference-limited from tiling-limited")
     args = ap.parse_args()
     ns = (1000, 2000) if args.smoke else NS
     ms = (4, 8) if args.smoke else MS
@@ -214,14 +218,20 @@ def main():
     if args.smoke:
         print("*** SMOKE: API only. THESE NUMBERS ARE VOID. ***")
 
-    print(f"k={K} p={P} T={T} beta={BETA} w_max={W_MAX} brains={nb}")
+    print(f"k={'sqrt(n)' if args.ksqrt else K} p={P} T={T} "
+          f"beta={BETA} w_max={W_MAX} brains={nb}")
     for n in ns:
-        print(f"  n={n:>6}  kp={K*P:.1f} vs floor 3ln n={3*math.log(n):.1f}"
-              f"  {'IN REGIME' if K*P >= 3*math.log(n) else 'OUT OF REGIME'}")
+        kk = int(round(math.sqrt(n))) if args.ksqrt else K
+        print(f"  n={n:>6} k={kk:>4} kp={kk*P:.1f} vs floor "
+              f"3ln n={3*math.log(n):.1f}  "
+              f"{'IN REGIME' if kk*P >= 3*math.log(n) else 'OUT OF REGIME'}"
+              f"   k*k/n={kk*kk/n:.2f}")
 
     res, t0 = {}, time.perf_counter()
+    k_base = K
     for arm in ARMS:
         for n in ns:
+            K = int(round(math.sqrt(n))) if args.ksqrt else k_base
             rng = np.random.default_rng(1234)
             try:
                 cells = run_cell(n, arm, max(ms), nb, rng)
@@ -243,15 +253,18 @@ def main():
                       f"pw/chance {x.mean:6.2f}  distinct {d.mean:.3f}  "
                       f"fill {np.mean(cells[M]['fill']):.3f}  gated {g:.3f}")
             c = ceiling_from_curve(curve, threshold=HALF_BAR)
+            alpha = (c.m_star * K / n) if c.m_star else float("nan")
             # CAP3 says rows/n AT THE CEILING, not at the largest M on the
             # grid. Taking it at max(M) censors every point, because the grid
             # deliberately runs past the ceiling to bracket it. Interpolated in
             # log2(M) to match `ceiling_from_curve`'s own interpolation.
             fill_at = _fill_at(cells, c.m_star)
-            print(f"    {arm} n={n:>5}  CEILING {c}  fill@max {fill_at:.3f}"
+            print(f"    {arm} n={n:>5} k={K:>4}  CEILING {c}  "
+                  f"fill@M* {fill_at:.3f}  M*k/n {alpha:.3f}"
                   f"  {'CENSORED' if fill_at >= 0.95 else 'ok'}")
             res[f"{arm}/{n}/ceiling"] = dict(
-                m_star=c.m_star, supported=bool(c.supported),
+                m_star=c.m_star, supported=bool(c.supported), k=int(K),
+                alpha=float(alpha),
                 fill=float(fill_at), censored=bool(fill_at >= 0.95))
     print(f"\n  elapsed {time.perf_counter()-t0:.1f}s")
 

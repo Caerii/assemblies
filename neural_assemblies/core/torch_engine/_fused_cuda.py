@@ -52,7 +52,11 @@ _CUDA_SRC = r'''
 
 #define NB    4096
 #define NTH   1024
-#define CAPS  1024
+// Shared candidate slots. 2048 keys x 8B = 16 KB, plus hist 16 KB and part
+// 4 KB = 36 KB, inside the 48 KB default. Raised from 1024 because k=sqrt(n)
+// at n=16000 (k=126) overflowed at 1551 candidates -- the guard refused rather
+// than truncating, which is correct, but it blocked the measurement.
+#define CAPS  2048
 #define CHB   (NB / NTH)
 
 // 2654435761u / 2246822519u below are _hash._HASH_A / _HASH_B as unsigned.
