@@ -352,6 +352,131 @@ _RESULTS: List[Result] = [
                "running a machine over a GIVEN alphabet, not about discovering "
                "one. Language needs the latter.",
     ),
+
+    # ------------------------------------------------- representation algebra
+    Result(
+        id="KWTA-TIE-FRAGILE",
+        status=Status.MEASURED,
+        claim="The k-WTA bar is routinely TIED, so anything that perturbs the "
+              "drive in its last bits -- a change of summation order, of "
+              "arithmetic, or of tie-break policy -- can change WHICH neurons "
+              "fire, not merely their order.",
+        source="The base drive is a Bernoulli COUNT, hence integer-valued, so "
+               "exact ties are the common case rather than an edge case. "
+               "Measured 5-18 columns tied at the bar per brain at n=4000-50000 "
+               "(research/experiments/gpu_radix_select_prototype.py). An ulp-level "
+               "change to a summation once moved sixteen cells of an exact "
+               "table with no direction to it.",
+        preconditions=("integer or near-integer drive, i.e. before heavy "
+                       "potentiation spreads the values",
+                       "k-WTA selecting at a bar that several columns reach"),
+        evidence=("research/experiments/gpu_radix_select_prototype.py",),
+        implemented_by=("neural_assemblies.core.numpy_engine._kwta_prune",),
+        caveat="`_kwta_prune` records the operational rule this implies: making "
+               "the selector's tie-break CANONICAL is a science-affecting "
+               "change needing its own registration, not an optimisation to "
+               "smuggle in. The fused selector folds the index into the sort "
+               "key so that ties break to the smallest index BY CONSTRUCTION, "
+               "which is exactly why it is a separate entry point.",
+    ),
+
+    Result(
+        id="HEBB-OUTER-PRODUCT",
+        status=Status.PROVED,
+        claim="The Hebbian co-firing count is a SUM OF RANK-1 OUTER PRODUCTS: "
+              "count = SUM_t x_{t-1} x_t^T, with x_t the 0/1 winner indicator "
+              "at round t. Restricted to the rows and columns a window of T "
+              "rounds touches it is a matrix product R^T C of two thin 0/1 "
+              "matrices; equivalently count[i,j] = popcount(rm[i] & cm[j]) "
+              "with rm, cm the per-neuron round bitmasks.",
+        source="Immediate from the update rule: `w[i,j] *= (1+beta)` fires "
+               "exactly when i is a source winner and j a target winner, so "
+               "the exponent counts co-firing rounds and nothing else.",
+        preconditions=("plasticity purely MULTIPLICATIVE, so the exponent is "
+                       "the whole state",
+                       "the pairing must match the engine: source winners x "
+                       "target winners, i.e. prev x new for a recurrent fiber"),
+        evidence=("research/experiments/gpu_writeback_gemm_prototype.py",),
+        implemented_by=("neural_assemblies.core.torch_engine._batched",
+                        "neural_assemblies.core.torch_engine._fused_cuda"),
+        caveat="An event carries 2k numbers, so materialising the k x k cross "
+               "product writes the same information k/2 times over -- a "
+               "redundancy created BEFORE any sort is reached, which is why "
+               "sorting strategies cannot recover it. The two forms answer "
+               "different questions: the GEMM materialises a block, the "
+               "popcount evaluates one cell. `batched_project_independent` "
+               "uses new x new rather than prev x new and is therefore NOT "
+               "interchangeable with the engine.",
+    ),
+    Result(
+        id="DRIVE-SPLIT",
+        status=Status.PROVED,
+        claim="With a Bernoulli 0/1 base B and G[i,j] = chain(1, count[i,j]), "
+              "the drive splits as "
+              "1_S^T (B (.) G) = 1_S^T B + SUM_{i in S, j} B[i,j] D[i,j] "
+              "where D = G - 1 is nonzero only on potentiated cells. The "
+              "correction is a SPARSE MATVEC over D restricted to |S| = k "
+              "rows, so its intrinsic cost is the number of stored deviations "
+              "in those rows and nothing else.",
+        source="Algebraic identity, given that the base is 0/1: an ABSENT cell "
+               "stays absent however often it is potentiated, and a present "
+               "one starts at exactly 1.0, so chain(base, c) = base * tab[c].",
+        preconditions=("base strictly 0/1 -- recruitment OVERRIDES cells, so "
+                       "the effective base is 1 wherever a cell was written",
+                       "tab replayed with the engine's own per-step "
+                       "multiply-and-clip, NOT min((1+beta)^c, w_max)"),
+        evidence=("research/experiments/gpu_hashed_deviations_prototype.py",),
+        implemented_by=("neural_assemblies.core.torch_engine._fused_cuda",),
+        caveat="A representation that cannot say WHICH cells are nonzero must "
+               "visit every (row, column) pair: the bitmask form costs "
+               "O(k n W) with W = ceil(rounds/64) against the intrinsic "
+               "O(sum_{i in S} nnz_i), a ratio n^2 T / (64 k^2) that is "
+               "INDEPENDENT of M -- 8894x at n=16000, k=60, T=8. Changing the "
+               "representation changes the SUMMATION ORDER, and float32 "
+               "addition is not associative, so ties at the k-WTA bar can "
+               "flip ([[KWTA-TIE-FRAGILE]]).",
+    ),
+    Result(
+        id="CAP-RATIO",
+        status=Status.MEASURED,
+        claim="The assembly-capacity ceiling M* is a function of n/k ALONE, "
+              "not of n and k separately.",
+        source="Held-out test registered in "
+               "research/notes/PREREG_capacity_nk_law.md (bar CS1) before the "
+               "data existed. Holding n/k = 66.67 while n varies four-fold "
+               "gives M* = 66.6 / 73.0 / 67.6 at n = 4000 / 8000 / 16000 -- "
+               "constant to +/-5%, where any law M* = f(n) predicts ~4x. All "
+               "three cells uncensored (fill 0.69-0.75).",
+        preconditions=("in regime, kp >= 3 ln n [[SEQ-REGIME]]",
+                       "ceiling read from the CURVE, gated on distinctness",
+                       "fill at the ceiling below 0.95, else the tiling limit "
+                       "is what is being measured"),
+        evidence=("research/experiments/seq_capacity_scaling.py",),
+        caveat="The EXPONENT is not established. `M* = C (n/k)^b` fits "
+               "b = 2.19 +/- 0.05 over twelve ceilings and the 95% CI excludes "
+               "2 in every subset, but bar CS2 FAILED (1 of 3 held-out bands) "
+               "and there is no mechanism, so b is reported and NOT quotable. "
+               "A synapse bound M ~ n^2 p / (k ln(n/k)) was proposed and is "
+               "REFUTED by CS1: it is not a function of n/k alone.",
+    ),
+    Result(
+        id="CAP-CLIFF",
+        status=Status.MEASURED,
+        claim="Capacity failure is a CLIFF, not a slope: past the ceiling the "
+              "assemblies shatter rather than degrading gracefully.",
+        source="research/experiments/seq_capacity_scaling.py. At n=8000, k=60: "
+               "M=256 gives rank-1 0.941 with pairwise overlap 1.30x chance "
+               "and every assembly distinct; M=512 gives rank-1 0.003, overlap "
+               "25.9x, distinct 0.657. One doubling.",
+        preconditions=("half-cue rank-1 readout against ALL M stored items",
+                       "distinctness gate applied, so a collapsed set scores 0"),
+        evidence=("research/experiments/seq_capacity_scaling.py",),
+        caveat="There is no soft capacity margin to trade against: a design "
+               "must know where the ceiling is and stay under it. Sharing "
+               "itself is healthy -- M*k/n reaches 4.96, about five assemblies "
+               "per neuron, with overlap still 1.3x chance -- so the cliff is "
+               "not caused by sharing.",
+    ),
 ]
 
 RESULTS: Dict[str, Result] = {r.id: r for r in _RESULTS}

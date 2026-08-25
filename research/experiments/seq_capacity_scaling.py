@@ -81,11 +81,7 @@ def _fill(state, n):
     CAP3's censoring guard reads this. `colmask` has a bit set for every round
     a neuron won, so a nonzero word means it fired at least once.
     """
-    cm = state.get("colmask")
-    if cm is None:
-        return float("nan")
-    ever = (cm != 0).any(dim=1)                 # [B, n] over the word axis
-    return (ever.sum(dim=1).float() / n).cpu().numpy()
+    return state["area"].fill.cpu().numpy()
 
 
 def run_cell(n, arm, m_max, nbrain, rng):

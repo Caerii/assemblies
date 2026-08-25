@@ -35,7 +35,7 @@ pytestmark = pytest.mark.skipif(not torch.cuda.is_available(),
 from neural_assemblies.core.brain import Brain                  # noqa: E402
 from neural_assemblies.core.numpy_engine import _seeding        # noqa: E402
 from neural_assemblies.core.torch_engine import _fused_cuda     # noqa: E402
-from neural_assemblies.core.torch_engine._batched import (      # noqa: E402
+from neural_assemblies.core.torch_engine._hashed import (        # noqa: E402
     _chain_table, _gain_table)
 
 AREA = "A"

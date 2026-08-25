@@ -339,6 +339,66 @@ __global__ void colmass_kernel(const int* __restrict__ cols,
     }
 }
 
+
+// ---- potentiation correction, CSR form --------------------------------
+// [[DRIVE-SPLIT]]: the correction is a sparse matvec over D restricted to the
+// |S| = k active rows, so its intrinsic cost is the number of stored
+// deviations in those rows. The bitmask form below cannot say WHICH cells are
+// nonzero, so it must visit every (row, column) pair: O(k n W) against this
+// O(sum nnz_i), a ratio n^2 T / (64 k^2) that is independent of M -- 8894x at
+// n=16000, k=60, T=8.
+//
+// The store is ONE globally sorted key array over all brains, packed as
+// b*n*n + i*n + j ([[HEBB-OUTER-PRODUCT]] gives the counts). A row is a
+// contiguous run, found by two binary searches.
+//
+// One BLOCK per (brain, active row); threads split that row's cells. B*k
+// blocks is ample parallelism and the walk is coalesced within a row.
+__device__ __forceinline__ long long lb(const long long* __restrict__ a,
+                                        long long n, long long v) {
+    long long lo = 0, hi = n;
+    while (lo < hi) {
+        long long mid = (lo + hi) >> 1;
+        if (a[mid] < v) lo = mid + 1; else hi = mid;
+    }
+    return lo;
+}
+
+__global__ void dev_csr_kernel(const int* __restrict__ S,
+                               const long long* __restrict__ keys,
+                               const int* __restrict__ cnts,
+                               const long long* __restrict__ offs, int nruns,
+                               const float* __restrict__ tab, int ntab,
+                               const int* __restrict__ seeds,
+                               int K, int N, int threshold,
+                               float* __restrict__ out) {
+    const int b = blockIdx.x / K, s = blockIdx.x - b * K;
+    const int i = S[(long long)b * K + s];
+    const long long base = (long long)b * N * N + (long long)i * N;
+    const unsigned int ch = ((unsigned int)i * 2654435761u)
+                            ^ (unsigned int)seeds[b];
+    float* ob = out + (long long)b * N;
+    // THE STORE IS A SET OF SORTED RUNS of geometrically increasing size, not
+    // one sorted array. Re-sorting the whole store on every episode is O(M^2)
+    // over a study -- 15e9 sorted elements at M=255, B=16 against 0.94e9 for
+    // O(M log M). A run is searched exactly like the single array was; there
+    // are only ~log2(M) of them.
+    for (int r = 0; r < nruns; ++r) {
+        const long long a = offs[r], z = offs[r + 1];
+        const long long lo = a + lb(keys + a, z - a, base);
+        const long long hi = a + lb(keys + a, z - a, base + N);
+        for (long long e = lo + threadIdx.x; e < hi; e += blockDim.x) {
+            const int j = (int)(keys[e] - base);
+            const int c = cnts[e];
+            const unsigned int h =
+                ac_fmix32(((unsigned int)j * 2246822519u) ^ ch);
+            if ((h & 0x00FFFFFFu) >= (unsigned int)threshold) continue;
+            const float v = (c < ntab) ? tab[c] : tab[ntab - 1];
+            atomicAdd(ob + j, v - 1.0f);
+        }
+    }
+}
+
 torch::Tensor hashed_drive(torch::Tensor rows, torch::Tensor seeds,
                            int64_t n, int64_t threshold) {
     TORCH_CHECK(rows.dim() == 2 && rows.is_cuda()
@@ -415,6 +475,22 @@ std::vector<torch::Tensor> column_mass(torch::Tensor cols,
     return {out, omax};
 }
 
+
+void dev_correct_csr(torch::Tensor S, torch::Tensor keys, torch::Tensor cnts,
+                     torch::Tensor offs, torch::Tensor tab,
+                     torch::Tensor seeds, int64_t threshold,
+                     torch::Tensor out) {
+    S = S.contiguous(); keys = keys.contiguous(); cnts = cnts.contiguous();
+    offs = offs.contiguous(); tab = tab.contiguous(); seeds = seeds.contiguous();
+    const int B = S.size(0), K = S.size(1), N = out.size(1);
+    if (K == 0 || keys.numel() == 0) return;
+    dev_csr_kernel<<<B * K, 128>>>(
+        S.data_ptr<int>(), keys.data_ptr<int64_t>(), cnts.data_ptr<int>(),
+        offs.data_ptr<int64_t>(), (int)offs.numel() - 1,
+        tab.data_ptr<float>(), (int)tab.numel(),
+        seeds.data_ptr<int>(), K, N, (int)threshold, out.data_ptr<float>());
+}
+
 std::vector<torch::Tensor> topk_select(torch::Tensor x, int64_t K) {
     TORCH_CHECK(x.dim() == 2 && x.is_cuda()
                 && x.scalar_type() == torch::kFloat32, "x: [B,N] f32 cuda");
@@ -436,6 +512,7 @@ torch::Tensor hashed_drive(torch::Tensor rows, torch::Tensor seeds, int64_t n, i
 torch::Tensor hashed_indegree(torch::Tensor seeds, int64_t n, int64_t threshold, double floor_);
 std::vector<torch::Tensor> column_mass(torch::Tensor cols, torch::Tensor rowmask, torch::Tensor colmask, torch::Tensor tab, torch::Tensor seeds, int64_t threshold);
 void dev_correct(torch::Tensor S, torch::Tensor rowmask, torch::Tensor colids, torch::Tensor colmask, torch::Tensor tab, torch::Tensor seeds, int64_t threshold, torch::Tensor out);
+void dev_correct_csr(torch::Tensor S, torch::Tensor keys, torch::Tensor cnts, torch::Tensor offs, torch::Tensor tab, torch::Tensor seeds, int64_t threshold, torch::Tensor out);
 std::vector<torch::Tensor> topk_select(torch::Tensor x, int64_t K);
 """
 
@@ -481,7 +558,7 @@ def load() -> object | None:
             _MODULE = load_inline(
                 name="na_fused_cuda", cpp_sources=[_CPP],
                 cuda_sources=[_CUDA_SRC],
-                functions=["hashed_drive", "hashed_indegree", "dev_correct",
+                functions=["hashed_drive", "hashed_indegree", "dev_correct", "dev_correct_csr",
                                   "column_mass", "topk_select"],
                 verbose=False, extra_cuda_cflags=["-O3"])
         except Exception as exc:                       # noqa: BLE001

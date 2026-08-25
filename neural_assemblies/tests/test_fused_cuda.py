@@ -261,8 +261,108 @@ def test_beta_actually_changes_the_trajectory(mod):
 
 def test_learning_rounds_are_bounded_by_the_mask_width(mod):
     from neural_assemblies.core.torch_engine._batched import (
-        batched_project_hashed, MAX_LEARNING_ROUNDS)
+        batched_project_hashed)
+    from neural_assemblies.core.torch_engine._hashed import AreaFiber
     w0 = torch.arange(8, device='cuda', dtype=torch.int64).view(1, 8)
-    with pytest.raises(ValueError, match="64 bits wide"):
+    with pytest.raises(ValueError, match="64-bit word"):
         batched_project_hashed(512, 8, P, [1], w0,
-                               MAX_LEARNING_ROUNDS + 1, beta=0.1)
+                               AreaFiber.MAX_EPISODE_ROUNDS + 1, beta=0.1)
+
+
+# -- the CSR deviation store, across EPISODES ------------------------------
+
+def _reference_episodes(Ws, cues, k, rounds, beta, w_max, norm_init=False):
+    """Multi-episode stored-connectome reference, ENGINE rule (prev x new).
+
+    Each episode starts from its own cue -- the area is inhibited between
+    assemblies -- and the connectome CARRIES OVER, which is the whole point:
+    it is what makes the assemblies compete, and what puts past episodes in
+    the store rather than in the live mask.
+    """
+    # norm_init's divisor is the BASE in-degree and is potentiation-invariant,
+    # so it is taken once, before any training.
+    djs = [np.maximum((W != 0).sum(axis=0), 1.0).astype(np.float64)
+           if norm_init else None for W in Ws]
+    Ws = [W.copy() for W in Ws]
+    finals = []
+    for cue in cues:
+        idx = [c.copy() for c in cue]
+        for _ in range(rounds):
+            nxt = []
+            for b, W in enumerate(Ws):
+                drive = W[idx[b]].sum(axis=0)
+                if djs[b] is not None:
+                    drive = drive / djs[b]
+                nxt.append(np.sort(np.argsort(-drive, kind='stable')[:k]))
+            for b, W in enumerate(Ws):
+                W[np.ix_(idx[b], nxt[b])] *= np.float32(1.0 + beta)
+                if w_max is not None:
+                    np.minimum(W, np.float32(w_max), out=W)
+            idx = nxt
+        finals.append([i.copy() for i in idx])
+    return finals
+
+
+@pytest.mark.parametrize("norm_init", [False, True])
+@pytest.mark.parametrize("episodes,rounds,beta,w_max", [
+    (2, 3, 0.10, None), (4, 3, 0.10, 20.0), (6, 2, 0.25, None),
+])
+def test_csr_store_matches_reference_across_episodes(mod, episodes, rounds,
+                                                     beta, w_max, norm_init):
+    """Exercises the CSR READ path, which a single-episode test never does.
+
+    Within an episode the correction comes from a one-word mask; everything
+    earlier comes from the store. A store that dropped, double-counted or
+    mis-keyed a cell shows up here and nowhere else.
+    """
+    from neural_assemblies.core.torch_engine._batched import (
+        batched_project_hashed)
+
+    n, k, B = 2048, 40, 4
+    seeds = [SEED + 17 * b for b in range(B)]
+    g = np.random.default_rng(5)
+    cues = [np.stack([np.sort(g.choice(n, k, replace=False))
+                      for _ in range(B)]) for _ in range(episodes)]
+
+    Ws = [t_hash.hash_bernoulli_2d(0, n, 0, n, s, P,
+                                   device='cuda').float().cpu().numpy()
+          for s in seeds]
+    ref = _reference_episodes(Ws, [list(c) for c in cues], k, rounds, beta,
+                              w_max, norm_init=norm_init)
+
+    state = None
+    got = []
+    for cue in cues:
+        out, state = batched_project_hashed(
+            n, k, P, [_to_i32(s) for s in seeds],
+            torch.from_numpy(cue).cuda(), rounds, beta=beta, w_max=w_max,
+            norm_init=norm_init, state=state,
+            max_rounds=episodes * rounds, return_state=True)
+        got.append(out.cpu().numpy())
+
+    for e in range(episodes):
+        for b in range(B):
+            assert np.array_equal(np.sort(got[e][b]), ref[e][b]), (
+                f"episode {e}, brain {b}: diverges from the reference "
+                f"(episodes={episodes} rounds={rounds} beta={beta} "
+                f"norm_init={norm_init})")
+
+
+def test_store_grows_and_is_read(mod):
+    """A store that stayed empty would pass every parity test vacuously."""
+    from neural_assemblies.core.torch_engine._batched import (
+        batched_project_hashed)
+    n, k, B, rounds = 2048, 40, 2, 3
+    seeds = [_to_i32(SEED + 17 * b) for b in range(B)]
+    g = np.random.default_rng(9)
+    state, sizes = None, []
+    for _ in range(4):
+        cue = torch.from_numpy(np.stack(
+            [np.sort(g.choice(n, k, replace=False)) for _ in range(B)])).cuda()
+        _, state = batched_project_hashed(
+            n, k, P, seeds, cue, rounds, beta=0.1, state=state,
+            max_rounds=12, return_state=True)
+        sizes.append(state["fiber"].nnz)
+    assert sizes[0] > 0, "store never populated"
+    assert sizes == sorted(sizes), f"store shrank across episodes: {sizes}"
+    assert sizes[-1] > sizes[0], f"store stopped growing: {sizes}"
