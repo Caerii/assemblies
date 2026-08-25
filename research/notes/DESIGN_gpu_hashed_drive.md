@@ -322,3 +322,99 @@ The stimulus term (a per-column vector add). And the block store's READ path is
 argued, not measured: a block is already `(row, col, count)` triples in dense
 form, which is what the deviation kernel consumes, but no measurement here
 substitutes for the CSR read of Amendment 1.
+
+---
+
+## Amendment 4: top-k -- selection is a histogram problem, 2-6x
+
+Prototype: `research/experiments/gpu_radix_select_prototype.py`.
+
+With write-back reduced to a GEMM, top-k became the binding constraint: 0.2997
+ms against the drive's 0.1494 at n=20000, B=64. `torch.topk` is a general
+comparison selector over arbitrary float32, but an assembly's drive is neither
+arbitrary nor really a float -- the base is a Bernoulli sum, an INTEGER in
+[0, k], and potentiation perturbs it slightly. Bounded, concentrated, and
+MASSIVELY TIED. Selection over such data is a counting problem.
+
+### The key, and why tie-breaking had to be designed first
+
+For x >= 0 the IEEE754 bit pattern is monotone in x, so the comparison becomes
+an integer one. But integer drives mean the k-th largest is routinely tied with
+5-18 other columns (measured), and a selector that breaks those ties differently
+from the engine returns a DIFFERENT ASSEMBLY -- the failure mode
+`exact-tables-are-tie-fragile` records. So the index is folded into the key:
+
+    key(j) = ( float_bits(x_j) << 16 ) | ( 65535 - j )
+
+Keys are now UNIQUE, and "largest key" means "largest value, ties to the
+smallest index" -- exactly stable argsort. **Tie-breaking stops being a policy
+and becomes an identity.** Verified exact against
+`np.argsort(-x, kind='stable')[:k]` -- the engine's semantics -- not against
+torch.topk, whose tie order is unspecified.
+
+### Three versions, and the profile that redirected the work
+
+**v1**, one block per brain, four radix passes of 12 bits: exact, but 2.4x, and
+**0.7x -- a LOSS -- at n=50000**. Not the algorithm: 64 blocks of 256 threads on
+68 SMs is 17% occupancy, so five passes over L2-resident data cost what
+seventeen should.
+
+**v2**, four kernels, compacting after pass 1 (the top 12 bits are sign +
+exponent + 3 mantissa bits, so ~56 buckets are occupied and one pass narrows
+n=20000 to ~180 candidates -- **38-194x** across configs). Exact, never a loss,
+but only 1.6-2.7x. The per-stage profile said why:
+
+      n     B     hist   thresh  collect   refine      sum
+  20000    64   0.0220   0.0286   0.0329   0.0408   0.1243
+
+**No stage dominates**, and `thresh` -- which touches 4096 buckets per brain and
+does nothing else -- costs as much as the stage that reads 5.1 MB. Launch and
+latency, not work. A four-kernel design has a floor near 4 x 0.025 ms however
+good its algorithm is. This is the third time this session a counter has
+overturned an argument about where time goes; the bandwidth reasoning was being
+applied inside a latency-bound regime.
+
+**v3**, ONE launch, one block per brain, 1024 threads, candidates staged in
+SHARED memory and refined by a block-resident bitonic sort. Two full-data passes,
+67% occupancy, no DRAM round trip for the refine.
+
+### It was fast and WRONG first
+
+v3 measured 5.3x on the first run and failed exactness on every configuration.
+The bitonic comparison direction was inverted -- it sorted descending while the
+tail extraction assumed ascending. A fast wrong answer is the only outcome worse
+than a slow right one, and it is caught here only because the exactness check
+runs against stable argsort BEFORE the timing table.
+
+### Measured, three runs, ranges not points
+
+    n=20000 k= 70 B=  64    4.6 - 6.3x
+    n=20000 k= 70 B= 256    1.5 - 3.6x
+    n=20000 k= 70 B=1024    2.5 - 2.9x
+    n=50000 k=100 B=  64    2.8 - 5.1x
+    n=50000 k=100 B=1024    2.8 - 3.3x
+
+**2-6x, typically ~3x** -- NOT the ~15x the two-pass bandwidth argument
+predicted, and the run-to-run spread is wide enough that a single measurement
+would have been misleading. The achieved bandwidth column says why: 170-560 GB/s
+against ~760 peak, because at B=64 there are only 64 blocks to hide latency
+with.
+
+### Constraints, stated because they are real
+
+* `n <= 65536` -- the key packs a 16-bit index. Larger n needs a wider key and
+  a fifth pass.
+* `K <= 1024`, the shared candidate buffer.
+* Candidate overflow beyond 1024 slots is **detected and reported**, never
+  silently truncated into a wrong assembly. Measured max was 269, a 3.8x margin,
+  but the margin is data-dependent and the check is not optional.
+* requires `x >= 0`, which holds for a sum of non-negative weights.
+
+### Where this leaves the read side
+
+At n=20000, B=64: drive 0.1494 + select ~0.056 against 0.1494 + 0.2997, so
+~0.0032 ms per brain per round against 0.0070. Combined with the GEMM
+write-back at 0.0034, **no single term dominates any more** -- drive, selection
+and plasticity are within a factor of ~2 of each other. That is the natural
+stopping point for this line of optimisation: further work should go into
+integrating the design, not into shaving any one of the three.
