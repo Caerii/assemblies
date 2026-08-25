@@ -217,3 +217,38 @@ case the ratchet's own advice names.
 end-to-end against synthetic per-cell results -- every ensemble, paired delta,
 verdict branch and the JSON dump -- so the edit is known to run without the
 study having been run. The synthetic numbers are meaningless and were discarded.
+
+---
+
+## Amendment 4 (pre-data for this note): R5 has already been answered elsewhere
+
+`seq_organ_substrate.py` varies the SUBSTRATE at the organ default refraction,
+and its NONE-vs-C contrast is exactly R5's comparison (`synaptic_scaling` ON
+against OFF at equal refraction, `norm_init=False`). That overlap was disclosed
+in `PREREG_organ_substrate.md` BEFORE that study ran, precisely so this could
+not later be presented as an independent confirmation.
+
+**R5 PASSES decisively.** Z60, organ_p=0.5 (kp 35.0 vs floor 29.7, in regime),
+presentations=15, seeds 42-45, terminal identical-assembly fraction:
+
+    scaling OFF  0.840 +/- 0.059      scaling ON  0.000 +/- 0.000
+    paired per-seed delta  +0.840 +/- 0.059   [PASS]
+
+Per that note's own stated interpretation, R5 passing means **the decay is a
+HOMEOSTASIS effect and this note's geometric-refraction mechanism is not the
+explanation** -- R1-R3 may still pass while the story that motivated them is
+wrong, and both must be reported.
+
+Two things this study should NOT re-score when it runs:
+
+1. **R5 itself.** It is answered. Re-running the same contrast and reporting it
+   again would be double-counting one measurement.
+2. **The premise that the decay exists.** `seq_organ_substrate.py` found that
+   substrate C never reaches a peak at all on numpy_sparse (0.010 +/- 0.017
+   over four seeds, at either `w_max`), so the climb-then-degrade shape from
+   [[arc-training-is-not-batchable]] did not reproduce off torch_sparse.
+   R1-R4 here are about how refraction moves stability, which is still a live
+   question; but if this study also finds no shape to move, that is the result.
+
+Note the settings differ: this note runs `organ_p=0.5, w_max=None` with
+`norm_init=False`, matching the substrate study's NONE and C arms exactly.
