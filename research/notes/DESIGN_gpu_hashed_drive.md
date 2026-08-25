@@ -116,3 +116,63 @@ A prototype that computes one well-defined quantity very fast and correctly.
 The path from here to a usable engine is the deviation store, the stimulus
 term, and plasticity write-back — each of which could erode the factor. Nothing
 here licenses a claim about end-to-end study throughput yet.
+
+---
+
+## Amendment 1: the deviation store, which was the open question
+
+Prototype: `research/experiments/gpu_hashed_deviations_prototype.py`.
+
+### It got the model wrong first, and the error is the interesting part
+
+The first attempt derived a deviation cell's starting value from the hash. That
+is not what a fiber holds. **Recruitment OVERRIDES cells** — it assigns 1.0 to
+a cell whose base may have been ABSENT — so `present(i, j)` is the wrong test,
+and the drive came out 23 units low on a mean of 26.7 with a different winner
+set. A fast wrong answer, caught only because it was checked against the CPU's
+`row_sum` rather than against a plausibility argument.
+
+### The correct decomposition, and why it makes the correction nearly free
+
+From `VirtualWeights.row_sum`:
+
+    w[i,j] = chain( eff[i,j], count[i,j] )     eff = 1.0 if overridden,
+                                                     else the raw base
+    drive  = base_drive + SUM over deviation cells of ( chain(eff,c) - raw )
+
+and the simplification that matters: **the base is Bernoulli 0/1**, so `eff`
+and `raw` are each 0 or 1. Therefore
+
+    chain(eff, c) = eff * tab[c]        tab[c] = chain(1.0, c)
+
+with `tab` replayed on the host using the dense engine's own per-step
+multiply-and-clip. A deviation cell is then `(col, count, eff_bit, raw_bit)`
+and **the kernel needs no hash at all for the correction** — two bits and a
+table lookup.
+
+### Verified against the CPU, not against an argument
+
+    M= 8   43,781 cells   max|GPU-CPU| = 3.8e-06   top-k set differs 0/8
+    M=32  116,647 cells   max|GPU-CPU| = 7.6e-06   top-k set differs 0/8
+
+That residual is float32 epsilon on drives of ~27 — the reduction order differs,
+which the v2 drive semantics already licenses — and **the winner set is
+identical on every assembly tested**, which is the property that matters.
+
+### Cost
+
+The deviation pass adds **1.05x to 4.2x** over base-only at real densities,
+giving **~0.003-0.007 ms per brain per round at n=20,000, B=64-256**. Against
+the CPU engine's ~1.5-5 ms per projection that is still **300-1000x**.
+
+One number in the earlier table was an artifact and is called out rather than
+quietly dropped: giving every one of 20,000 rows 208 deviations is a 4.3 GB
+store at B=256 and measures thrashing, not the kernel. The real store is
+44k-117k cells per brain.
+
+### Still not covered
+
+The stimulus term (a per-column vector add, cheap) and **plasticity
+write-back**, which needs a sparse insert-if-absent on device and is the one
+remaining piece that could genuinely erode the factor. Everything above is a
+READ-side result.
