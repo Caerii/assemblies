@@ -77,3 +77,46 @@ BOTH readouts every cell, because either alone is misleading:
 1. Bars before data; this file lands before any cell runs.
 2. Both readouts reported for every cell whatever they say.
 3. Per-seed values, never bare means ([[report-distributions-not-point-estimates]]).
+
+---
+
+## Amendment 1 (pre-data): the stability signal is already recorded
+
+Reading the harness before running found the probe pass is redundant. With
+`save_winners=True` (already set in `build`), every projection appends its
+winner set to `area.saved_winners`, and the arc is the TARGET of exactly one
+of the two projections per transition. Verified at T=4: the arc has 480
+entries = 120 transitions x 4 presentations, exactly, so
+
+    saved_winners[t*120 + i]  IS  the arc assembly for transition i at
+                                  presentation t
+
+and they are stored as NEURON IDs (mapped through `get_neuron_id_mapping`),
+which is the stable space -- no compact-index conversion, so
+[[two-index-spaces-compact-vs-neuron-id]] cannot bite.
+
+The registered design re-probed 120 transitions x 16 presentations = 1,920
+extra projections per cell inside `brain.probe()`, ~75s of a ~110s cell, to
+recompute quantities training had already produced.
+
+**Instrument change, stated before data.** Stability is now read from
+`saved_winners`. This is a DIFFERENT statistic from the registered one and
+the difference is not cosmetic:
+
+* PROBE (registered): all 120 transitions evaluated at ONE frozen weight
+  state, plasticity and recruitment off. Order-independent.
+* RECORDED (this amendment): transition i at presentation t sees weights
+  already updated by transitions 1..i-1 of that same presentation. Sequential.
+
+The recorded form is arguably the more faithful one -- it is the assembly the
+organ ACTUALLY formed, not a counterfactual read -- but it is not the same
+number, so the swap is documented rather than assumed.
+
+**Validation, run in the same script:** one cell (strength=0.1, geometric,
+seed 42) computes BOTH, and the per-presentation identical-assembly fractions
+are reported side by side. If they disagree materially the recorded
+instrument is reported as its own quantity and the probe numbers are the ones
+the bars are read against.
+
+Cost: ~110s -> ~35s per cell; 15 cells at 14 workers, ~1.5 min total.
+No bar changes.
