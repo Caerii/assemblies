@@ -1,0 +1,180 @@
+=== theorem regime: organ_p=0.5, T=64, w_max=None ===
+
+    [tier 0.67 GB/worker] 60 cells, 14 workers
+[done ('Z60', 42, 'raw')]
+[done ('Z60', 44, 'raw')]
+[done ('A4xZ5', 45, 'raw')]
+[done ('Z60', 46, 'raw')]
+[done ('A4xZ5', 42, 'raw')]
+[done ('Z60', 45, 'raw')]
+[done ('Z60', 50, 'raw')]
+[done ('Z60', 48, 'raw')]
+[done ('Z60', 47, 'raw')]
+[done ('Z60', 43, 'raw')]
+[done ('A4xZ5', 43, 'raw')]
+[done ('A4xZ5', 44, 'raw')]
+[done ('Z60', 51, 'raw')]
+[done ('Z60', 49, 'raw')]
+[done ('A4xZ5', 46, 'raw')]
+[done ('A4xZ5', 49, 'raw')]
+[done ('A4xZ5', 48, 'raw')]
+[done ('A4xZ5', 47, 'raw')]
+[done ('A4xZ5', 50, 'raw')]
+[done ('A4xZ5', 51, 'raw')]
+[done ('A5', 45, 'raw')]
+[done ('A5', 42, 'raw')]
+[done ('A5', 43, 'raw')]
+[done ('A5', 44, 'raw')]
+[done ('A5', 46, 'raw')]
+[done ('A5', 48, 'raw')]
+[done ('A5', 49, 'raw')]
+[done ('A5', 47, 'raw')]
+[done ('A5', 50, 'raw')]
+[done ('A5', 51, 'raw')]
+[done ('Z60', 42, 'homeo')]
+[done ('Z60', 43, 'homeo')]
+[done ('Z60', 45, 'homeo')]
+[done ('Z60', 48, 'homeo')]
+[done ('A4xZ5', 42, 'homeo')]
+[done ('Z60', 51, 'homeo')]
+[done ('Z60', 44, 'homeo')]
+[done ('Z60', 47, 'homeo')]
+[done ('Z60', 46, 'homeo')]
+[done ('Z60', 49, 'homeo')]
+[done ('Z60', 50, 'homeo')]
+[done ('A4xZ5', 43, 'homeo')]
+[done ('A4xZ5', 44, 'homeo')]
+[done ('A4xZ5', 45, 'homeo')]
+[done ('A4xZ5', 49, 'homeo')]
+[done ('A4xZ5', 50, 'homeo')]
+[done ('A4xZ5', 46, 'homeo')]
+[done ('A4xZ5', 51, 'homeo')]
+[done ('A4xZ5', 47, 'homeo')]
+[done ('A5', 43, 'homeo')]
+[done ('A5', 47, 'homeo')]
+[done ('A4xZ5', 48, 'homeo')]
+[done ('A5', 42, 'homeo')]
+[done ('A5', 46, 'homeo')]
+[done ('A5', 44, 'homeo')]
+[done ('A5', 45, 'homeo')]
+[done ('A5', 48, 'homeo')]
+[done ('A5', 49, 'homeo')]
+[done ('A5', 50, 'homeo')]
+[done ('A5', 51, 'homeo')]
+    [tier 2.69 GB/worker] 20 cells, 3 workers
+[done ('S5', 42, 'raw')]
+[done ('S5', 44, 'raw')]
+[done ('S5', 43, 'raw')]
+[done ('S5', 46, 'raw')]
+[done ('S5', 45, 'raw')]
+[done ('S5', 47, 'raw')]
+[done ('S5', 48, 'raw')]
+[done ('S5', 49, 'raw')]
+[done ('S5', 50, 'raw')]
+[done ('S5', 51, 'raw')]
+[done ('S5', 43, 'homeo')]
+[done ('S5', 42, 'homeo')]
+[done ('S5', 44, 'homeo')]
+[done ('S5', 45, 'homeo')]
+[done ('S5', 46, 'homeo')]
+[done ('S5', 47, 'homeo')]
+[done ('S5', 48, 'homeo')]
+[done ('S5', 49, 'homeo')]
+[done ('S5', 50, 'homeo')]
+[done ('S5', 51, 'homeo')]
+
+--- A' (raw, unbounded Hebbian)
+
+    group   seed  soft  hard first_bad e@500    w_max  colsum_med
+    Z60       42     0     0       500     T    490.4       34387
+    Z60       43     0     0       500     T    445.8       34485
+    Z60       44     0     0       500     T    445.8       34353
+    Z60       45     0     0       500     T    445.8       34341
+    Z60       46     0     0       500     T    445.8       34411
+    Z60       47     0     0       500     T    445.8       34422
+    Z60       48     0     0       500     T    490.4       34467
+    Z60       49     0     0       500     T    445.8       34495
+    Z60       50     0     0       500     T    445.8       34427
+    Z60       51     0     0       500     T    445.8       34401
+    A4xZ5     42     0     0       500     T    445.8       34445
+    A4xZ5     43     0     0       500     T    445.8       34367
+    A4xZ5     44     0     0       500     T    445.8       34297
+    A4xZ5     45     0     0       500     T    445.8       34357
+    A4xZ5     46     0     0       500     T    445.8       34481
+    A4xZ5     47     0     0       500     T    445.8       34366
+    A4xZ5     48     0     0       500     T    445.8       34426
+    A4xZ5     49     0     0       500     T    445.8       34464
+    A4xZ5     50     0     0       500     T    445.8       34393
+    A4xZ5     51     0     0       500     T    445.8       34391
+    A5        42     0     0       500     T    445.8       34385
+    A5        43     0     0       500     T    445.8       34448
+    A5        44     0     0       500     T    445.8       34365
+    A5        45     0     0       500     T    445.8       34458
+    A5        46     0     0       500     T    445.8       34394
+    A5        47     0     0       500     T    445.8       34320
+    A5        48     0     0       500     T    445.8       34412
+    A5        49     0     0       500     T    445.8       34399
+    A5        50     0     0       500     T    445.8       34486
+    A5        51     0     0       500     T    445.8       34435
+    S5        42     0     0       500     T    445.8       44189
+    S5        43     0     0       500     T    445.8       44176
+    S5        44     0     0       500     T    445.8       44158
+    S5        45     0     0       500     T    445.8       44023
+    S5        46     0     0       500     T    445.8       44124
+    S5        47     0     0       500     T    445.8       44109
+    S5        48     0     0       500     T    445.8       44086
+    S5        49     0     0       500     T    445.8       44100
+    S5        50     0     0       500     T    445.8       44102
+    S5        51     0     0       500     T    490.4       44115
+
+--- C' (homeostatic)
+
+    group   seed  soft  hard first_bad e@500    w_max  colsum_med
+    Z60       42     0     0       500     T     13.4        9999
+    Z60       43     0     0       500     T     13.9       10000
+    Z60       44     0     0       500     T     14.2        9999
+    Z60       45     0     0       500     T     13.7       10000
+    Z60       46     0     0       500     T     13.7       10000
+    Z60       47     0     0       500     T     13.3        9999
+    Z60       48     0     0       500     T     14.1        9999
+    Z60       49     0     0       500     T     14.9        9999
+    Z60       50     0     0       500     T     13.8       10000
+    Z60       51     0     0       500     T     14.0       10000
+    A4xZ5     42     0     0       500     T     13.2        9999
+    A4xZ5     43     0     0       500     T     13.7        9999
+    A4xZ5     44     0     0       500     T     13.9        9999
+    A4xZ5     45     0     0       500     T     13.8       10000
+    A4xZ5     46     0     0       500     T     13.7        9999
+    A4xZ5     47     0     0       500     T     13.2        9999
+    A4xZ5     48     0     0       500     T     14.8       10000
+    A4xZ5     49     0     0       500     T     14.8       10000
+    A4xZ5     50     0     0       500     T     13.8       10000
+    A4xZ5     51     0     0       500     T     13.9       10000
+    A5        42     0     0       500     T     13.4        9999
+    A5        43     0     0       500     T     13.7       10000
+    A5        44     0     0       500     T     14.1       10000
+    A5        45     0     0       500     T     14.6        9999
+    A5        46     0     0       500     T     13.7        9999
+    A5        47     0     0       500     T     14.1        9999
+    A5        48     0     0       500     T     14.7       10000
+    A5        49     0     0       500     T     13.6        9999
+    A5        50     0     0       500     T     13.7        9999
+    A5        51     0     0       500     T     15.7       10000
+    S5        42     0     0       500     T     14.5       19999
+    S5        43     0     0       500     T     15.0       20000
+    S5        44     0     0       500     T     14.7       19999
+    S5        45     0     0       500     T     14.8       19999
+    S5        46     0     0       500     T     14.8       19999
+    S5        47     0     0       500     T     14.7       20000
+    S5        48     0     0       500     T     14.8       19999
+    S5        49     0     0       500     T     14.5       20000
+    S5        50     0     0       500     T     14.9       20000
+    S5        51     0     0       500     T     14.7       19999
+
+=== BARS ===
+  PASS  TR1 zero hard defects (A' 0, C' 0)
+  PASS  TR2 C' soft 0 < registered A's 30
+  PASS  TR3 C' soft 0 <= A' soft 0
+  PASS  TR4 boundedness: A' max stored 490 (>100), C' max stored 15.7 (<60)
+
+wrote F:\Github\assemblies-run-e2\research\experiments\seq_s5_theorem_regime_results.json

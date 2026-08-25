@@ -85,3 +85,81 @@ column-mass distribution on the arc->state fiber.
    defaulting to the registered values) must leave every existing call
    site byte-identical -- guarded by the registered-defaults contract
    (defaults unchanged) and the goldens.
+
+---
+
+## Result (2026-08-24, 80/80 cells, all four bars PASS)
+
+    TR1 PASS  zero hard defects, both arms, all 40 organs
+    TR2 PASS  C' soft 0 < registered A's 30
+    TR3 PASS  C' soft 0 <= A' soft 0
+    TR4 PASS  A' max stored 445.8-490.4 (>100), C' max stored 13.2-15.7 (<60)
+
+Every one of the 80 cells is PERFECT: soft 0, hard 0, first_bad 500,
+exact@500 True. Both arms, all four groups, all ten seeds.
+
+### The finding is NOT "homeostasis works"
+
+**TR3 passes through a CEILING and the claim it operationalises dies.**
+It was registered as "C' soft <= A' soft" to test whether homeostasis helps
+in-regime. It passes as 0 <= 0 -- because the UNBOUNDED HEBBIAN CONTROL is
+equally perfect. A' needs no homeostasis at all. This is the E-series
+pattern again (a bar passing while its motivating claim dies), now on this
+registration, and it is reported as both per the commitment above.
+
+**What actually fixed the organ was being IN REGIME.** The registered S5
+protocol sits outside the theorems' preconditions on every axis (kp 28.0 vs
+floor 29.7; T=15 vs floor 56.6) and produced 30 soft pairs. Clearing both
+floors (organ_p=0.5 -> kp=35, T=64) produced ZERO -- with or without
+homeostasis. The preconditions were the whole story.
+
+### What homeostasis DID do, exactly as specified
+
+TR4 is unambiguous and mechanical:
+
+    A' (unbounded)   w_stored_max 445.8-490.4   ~ (1.1)^64 = 456, as predicted
+                     colsum_med   34297-44189
+    C' (homeostatic) w_stored_max  13.2- 15.7
+                     colsum_med    9999-20000   = the setpoint, rows * p
+
+C' holds column mass ON the setpoint to four figures. So homeostasis
+delivers precisely the boundedness it promises -- boundedness simply was not
+NEEDED for correctness at this depth on this task. That is a real result
+about scope, not a null.
+
+### The dissociation worth following
+
+Separately measured this session ([[arc-training-is-not-batchable]]): the
+arc's identical-assembly fraction decays to 0.12 by presentation 12, i.e.
+the assemblies DRIFT continuously during training. Yet every trajectory here
+is exact to 500 steps. **Training-time assembly instability does not imply
+functional failure.** The machine is right while its internals keep moving.
+
+That is a caution about the stability instrument, not a vindication of it:
+drift still blocks batching and the low-rank fast path (both need stability),
+but it does NOT predict dysfunction. Cf.
+[[distinctness-is-not-information]].
+
+### Registered interpretation, applied honestly
+
+The note's rule for "TR2+TR3 pass" was *the theorems' substrate is validated
+at its own preconditions; homeostasis becomes the default candidate for deep
+training*. That rule ASSUMED C' would beat A'. It tied at ceiling instead, so
+the rule does not apply as written and is not forced. The supported
+conclusions are narrower:
+
+1. In-regime training is sufficient for this organ; out-of-regime was the
+   defect. Register the floors as a build-time precondition.
+2. Homeostasis is mechanically correct and unnecessary here. Whether it is
+   necessary where A' would run away -- deeper T, higher load, or the
+   recurrent settings where w_max=None is genuinely dangerous -- is untested
+   and is the natural follow-up.
+3. No default changes, per commitment 3.
+
+### Confound registered AFTER the fact, stated plainly
+
+The arc carries refraction, whose bias accumulates GEOMETRICALLY and is never
+cleared (see PREREG_refraction_stability.md). The theorems have no refraction
+term. This run cannot separate "homeostasis is unnecessary" from "refraction
+dominated whatever homeostasis did". Noted as a limitation of this design,
+not repaired by it.
