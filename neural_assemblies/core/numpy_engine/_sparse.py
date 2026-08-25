@@ -1971,6 +1971,35 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
         # normalizes only at flush_synaptic_scaling() (called by trainers
         # at phase boundaries): fast Hebbian inside a slowly renormalized
         # envelope. Default False = per-update, byte-identical.
+        # RESEARCH KNOB, default "winners" = unchanged.
+        #
+        # THE ASYMMETRY. k-WTA selects among CANDIDATES. This rule only ever
+        # touches columns that have ALREADY WON, so it cannot influence the
+        # selection that produced them -- it arrives one step too late, every
+        # step. `norm_init` divides EVERY candidate by its own degree at read
+        # time, so a hub never gets its advantage in the first place; here a
+        # hub keeps its full raw mass right up to the moment it wins and is cut
+        # down only afterwards. Measured (`seq_scaling_merger_forensics`):
+        # substrate C's multiply-shared neurons are the highest-degree columns
+        # in the area (815 against a population 552) and the earliest recruited
+        # (mean compact rank 2.0), yet their drive AFTER training is only
+        # ~1.19x the population -- because normalization removed the advantage
+        # after it had already been spent.
+        #
+        # "all" rescales every materialized column each round, normalizing the
+        # candidates before the comparison instead of the winners after it.
+        # MEASURED: cuts pairwise overlap 0.188 -> 0.142 and quadruples
+        # half-cue completion 0.125 -> 0.500, on all three seeds. Real, and
+        # only PART of the story -- the sampled (not yet materialized)
+        # candidates cannot be rescaled at all, because they do not exist.
+        # The full repair is `norm_init` alongside this, which cancels every
+        # candidate's degree potentiation-invariantly at read time and takes
+        # the overlap to 0.018-0.027, i.e. the chance floor.
+        if getattr(self, "synaptic_scaling_scope", "winners") == "all":
+            tgt = self._areas.get(target)
+            if tgt is not None and int(tgt.w) > 0:
+                winners = self._xp.arange(int(tgt.w))
+
         if getattr(self, "synaptic_scaling_deferred", False):
             pending = self._pending_scaling
             for src_name in from_areas:
@@ -2030,6 +2059,28 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
             # Found by the substrate-C smoke run (every transition soft).
             setpoint = max(
                 float(rows) * self._p_for(src_name, target), 1e-12)
+            # RESEARCH KNOB, default "population" = the line above, unchanged.
+            # "degree" restores neuron j to the mass IT started with rather
+            # than to the mass an average neuron started with.
+            #
+            # MEASURED AND REFUTED -- kept because a refuted arm is evidence,
+            # and because the idea is the obvious one to re-try. It is not a
+            # near-miss, it is the worst arm ever measured on this substrate:
+            # `seq_scaling_merger_forensics` (n=2000 k=50 p=0.5 T=8 M=8, in
+            # regime) gives pairwise overlap 0.667 = 26.7x chance against the
+            # population setpoint's 0.188, and breaks retrieval from the FULL
+            # cue (rank-1 0.625, where every other arm scores 1.000).
+            #
+            # The reason is that it is not a normalization at all. Restoring a
+            # column to its own initial mass is a no-op on the structure and
+            # cancels only the potentiation, so the raw in-degree competition
+            # comes back undamped and the hubs win everything -- the collapse
+            # `norm_init` exists to prevent ([[recurrence-needs-norm-init]]),
+            # and the per-column form of the per-fiber failure this method's
+            # own docstring already records.
+            if getattr(self, "synaptic_scaling_setpoint", "population") == "degree":
+                deg = xp.count_nonzero(sub, axis=0).astype(sums.dtype)
+                setpoint = xp.where(deg > 0, deg, 1.0)
             # Guard the denominator itself; xp.where evaluates both branches,
             # so dividing first would still emit divide-by-zero on empty cols.
             safe = xp.where(xp.abs(sums) > 1e-12, sums, 1.0)

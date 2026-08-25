@@ -488,3 +488,133 @@ mechanism rather than an assembly mechanism until defect 2 is understood.
 that merges assemblies, given it is a per-column SCALAR multiply and
 therefore preserves within-column ratios exactly? That is the next question,
 and it is a mechanism question, not a parameter sweep.
+
+---
+
+## Amendment 5 -- defect 2 identified, and substrate C repaired
+
+Answering Amendment 4's open question. Experiment:
+`research/experiments/seq_scaling_merger_forensics.py`. Settings n=2000 k=50
+p=0.5 T=8 M=8, recurrence ON, seeds 42/43/44, kp=25 against the 3 ln n = 22.8
+floor -- **in regime**, unlike the original ratchet study at kp=2.5.
+
+### The question was wrongly posed, and the wrong half was mine
+
+"A per-column scalar preserves within-column ratios exactly" is true and
+irrelevant. **k-WTA never compares within a column.** It compares across
+columns, and a per-column scalar is precisely what is not preserved across
+columns. The real question is what SELECTS the scalar.
+
+Write the two substrates' divisors side by side and the difference is one line:
+
+    B  norm_init         drive_j / d_j        d_j = COUNT of present synapses
+                                              potentiation-INVARIANT, EVERY column
+    C  synaptic_scaling  w[:,j] *= S/mass_j   mass_j = SUM of current weights
+                                              potentiation-DEPENDENT, WINNERS only
+
+with `S = rows * p`, a POPULATION constant. On a uniform random graph these
+agree, because every column's degree IS the ambient one. This engine is not a
+uniform random graph: lazy recruitment materializes a neuron's afferents
+CONDITIONED ON IT HAVING WON.
+
+### What the merged neurons actually are
+
+    seed 42, multiplicity histogram (index = how many of the M=8 contain it)
+      B  [678, 356,  19,   2,  0,  0,  0,  0,  0]   max 3, union 377 ~ chance 367
+      C  [814, 229,  33,  10,  3,  4,  1,  3,  2]   max 8, union 285
+
+    C, by multiplicity:      mult=1   mult=2   mult=4   mult=6   mult=8
+      mean in-degree           560      642      755      940      939
+      mean recruitment rank    450      232       19        3        2
+      per-entry scalar       0.973    0.886    0.769    0.640    0.557
+
+They are the **highest-degree** columns in the area (939 against a population
+549) and the **earliest recruited** (mean compact rank 2.0). Under B the same
+table is dead flat: 541 / 543 / -- / -- (rho(deg,mult) +0.06 vs C's +0.25).
+
+**My inflation hypothesis was refuted by direction.** The scalar FALLS with
+multiplicity (0.998 -> 0.557), so it is a consequence of being merged, not its
+cause. Recorded because a refuted hypothesis registered before the run is
+worth more than a story fitted after it.
+
+### Two causal arms, both registered before running
+
+    D  setpoint = the column's OWN degree, not the population's
+    E  scope = EVERY materialized column each round, not only the winners
+
+    arm                          pairwise   xchance   half-cue   full-cue
+    B  norm_init                   0.0217      0.9      1.000      1.000
+    C  scaling                     0.1876      7.5      0.125      1.000
+    D  + own-degree setpoint       0.6669     26.7      0.125      0.625
+    E  + all columns               0.1421      5.7      0.500      1.000
+
+**D is refuted and is the worst arm ever measured here.** Restoring a column to
+its own initial mass is not a normalization at all -- it cancels only the
+potentiation, so raw in-degree competition returns undamped and the hubs win
+everything. It breaks retrieval from the FULL cue (0.625), which no other arm
+does. This is the per-column form of the per-fiber failure
+`_normalize_area_columns`'s own docstring already records.
+
+**E is confirmed but partial**, on all three seeds: pairwise 0.188 -> 0.142 and
+completion 0.125 -> 0.500. The mechanism: **k-WTA selects among CANDIDATES, and
+C only ever rescales columns that have ALREADY WON.** The correction arrives
+one step after the selection it should have influenced, every step. A hub keeps
+its full raw mass right up to the moment it wins and is cut down only
+afterwards -- which is why the elite's drive AFTER training is a mere 1.19x the
+population: normalization removed the advantage after it had been spent.
+
+E is partial because the SAMPLED candidates -- neurons not yet materialized --
+cannot be rescaled at all. They do not exist.
+
+### Beta is orthogonal to the merger
+
+Amendment 4 found beta repairs the gain deficit. It does nothing here, and now
+on two arms:
+
+    arm  beta=0.10 -> 0.30   pairwise           half-cue
+    C    0.1876 -> 0.1800    unmoved            0.125 -> 0.875
+    E    0.1421 -> 0.1445    unmoved            0.500 -> 0.833
+
+The two defects are independent, confirmed on a second substrate.
+
+### THE REPAIR: they are not rival substrates
+
+`norm_init` cancels each CANDIDATE's degree at read time, potentiation-
+invariantly. `synaptic_scaling` bounds LEARNED mass in the weights. These
+cancel different things and nothing in the engine ever required choosing.
+Arm G = both:
+
+    M=8      pairwise   xchance   half-cue   full-cue
+    C          0.1800      7.2      0.875      1.000
+    G          0.0269      1.1      1.000      1.000
+
+**The merger is gone -- 7.5x chance to 1.1x, the floor -- with completion
+1.000.** Every arm of this study and of Amendment 4 measured B against C as
+alternatives; that framing is what made C look unrepairable.
+
+### Under load, each arm at ITS OWN best beta
+
+Judging B at beta=0.3 would be judging it outside its known window
+([[beta-opposes-capacity-and-depth]]), so it is not done here.
+
+    M=32, SIX seeds 42-47      pairwise (mean +- sd)   full-cue   half-cue
+      B  beta=0.10               0.0307 +- 0.0019       1.000      0.854
+      B  beta=0.20               0.2792 +- 0.0816       0.318      0.062
+      G  beta=0.10               0.0229 +- 0.0012       1.000      0.906
+      G  beta=0.20               0.0315 +- 0.0047       0.995      0.802
+
+Per-seed distributions do not overlap at beta=0.10 (B min 0.029 > G max 0.025).
+The larger effect is the WINDOW: B's usable beta range narrows with load and is
+a single point by M=32, while G holds under 1.4x chance at both. That is a
+robustness claim, not a headline capacity claim, and it is stated as such.
+
+### Status
+
+Defect 1 (gain deficit): beta >= 0.2. Defect 2 (merger): **uncancelled
+candidate in-degree**, repaired by running `norm_init` alongside scaling.
+Substrate C alone remains a lookup mechanism. `norm_init` + `synaptic_scaling`
++ beta >= 0.2 is an assembly mechanism, at the chance floor, at M=32.
+
+Not yet done: whether G lifts the ratchet CEILING (M where retrieval fails) is
+a different measurement from these fixed-M points, and the original RC3 bar is
+not re-scored here on that basis.
