@@ -126,10 +126,29 @@ def batched_project_independent(
     vals = W.values().clone()
     offs = torch.arange(B, device=device).view(B, 1) * n
     idx_local = winners.to(torch.int64)
+
+    # THE TRANSPOSED PATTERN IS BUILT ONCE, NOT PER ROUND. Hebbian learning
+    # changes weight VALUES; it never adds or removes an edge, so the sparsity
+    # pattern of W^T is invariant across rounds. The previous form rebuilt it
+    # every round -- `sparse_coo_tensor(...).coalesce().to_sparse_csr()` is
+    # O(nnz log nnz) in a loop whose actual work is one O(nnz) SpMM -- and that
+    # rebuild, not the arithmetic, was what the batched path spent its time on.
+    #
+    # `perm` carries the mapping: coalescing the transpose of a UNIQUE index
+    # set cannot sum entries, so putting `arange` in the value slot recovers
+    # exactly where each original edge landed.
+    _t0 = torch.sparse_coo_tensor(
+        torch.stack([c, r]),
+        torch.arange(vals.numel(), dtype=torch.float64, device=device),
+        (B * n, B * n)).coalesce()
+    perm = _t0.values().to(torch.int64)
+    _tcsr = _t0.to_sparse_csr()
+    crow, tcol = _tcsr.crow_indices(), _tcsr.col_indices()
+
     for _ in range(rounds):
-        # transpose (swap r,c) so drive = act @ W; rebuild CSR from live weights
-        Wt = torch.sparse_coo_tensor(
-            torch.stack([c, r]), vals, (B * n, B * n)).coalesce().to_sparse_csr()
+        # transpose (swap r,c) so drive = act @ W; values only, pattern reused
+        Wt = torch.sparse_csr_tensor(crow, tcol, vals[perm],
+                                     size=(B * n, B * n))
         act = torch.zeros(B * n, 1, device=device)
         act[(idx_local + offs).reshape(-1)] = 1.0
         drive = torch.sparse.mm(Wt, act).view(B, n)

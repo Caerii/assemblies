@@ -459,17 +459,32 @@ class TorchSparseEngine(ComputeEngine):
         total_k = sum(input_sizes)
         effective_n = n - w
 
-        if effective_n <= k:
-            raise RuntimeError(
-                f"Remaining size of area too small to sample k new winners "
-                f"(effective_n={effective_n}, k={k}).")
+        # GRACEFUL SATURATION, ported from `sparse_simulation` where it has
+        # lived since the numpy engine hit this. `effective_n = n - w` counts
+        # the neurons that have never fired -- the only source of brand-new
+        # winners. When it drops to k or below the area cannot recruit a full
+        # k of fresh ones, so recruit as many as remain and let the caller
+        # complete the winner set from already-materialised incumbents (it
+        # top-k selects over `prev_winner_inputs` plus these).
+        #
+        # A biological area at capacity simply stops recruiting; it must not
+        # crash mid-training. This engine RAISED instead, which made every
+        # saturating workload unrunnable on GPU -- and saturation is not an
+        # edge case here, it is where the capacity studies live (an area at
+        # rows/n = 1.0 is the normal end state of storing many assemblies).
+        #
+        # `k_eff == k` whenever `effective_n > k`, so no non-saturated run
+        # changes.
+        k_eff = min(k, max(0, effective_n - 1))
+        if k_eff <= 0:
+            return torch.empty(0, dtype=torch.float32, device=self._device)
 
-        alpha = _binom_ppf_cached(effective_n - k, effective_n, total_k, p)
+        alpha = _binom_ppf_cached(effective_n - k_eff, effective_n, total_k, p)
 
         mu = total_k * p
         std = math.sqrt(total_k * p * (1.0 - p))
         if std == 0:
-            return torch.full((k,), mu, dtype=torch.float32,
+            return torch.full((k_eff,), mu, dtype=torch.float32,
                               device=self._device)
 
         a = (alpha - mu) / std
@@ -477,7 +492,7 @@ class TorchSparseEngine(ComputeEngine):
         _SQRT2 = math.sqrt(2.0)
         phi_a = 0.5 * (1.0 + math.erf(a / _SQRT2))
 
-        u = torch.rand(k, dtype=torch.float32, device=self._device,
+        u = torch.rand(k_eff, dtype=torch.float32, device=self._device,
                        generator=self._device_rng(rng))
         u = phi_a + (1.0 - phi_a) * u
         u.clamp_(phi_a + 1e-12, 1.0 - 1e-12)

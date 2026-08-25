@@ -286,7 +286,15 @@ def densify(csr, device='cuda', max_rows=None, max_cols=None):
         rows = torch.repeat_interleave(
             torch.arange(csr._nrows, dtype=torch.int64, device=device),
             lengths)
-        dense._w[rows, csr._col.long()] = csr._val
+        # `.to(DTYPE)` like EVERY other write into `_w`. CSR stores
+        # bfloat16 and dense stores float32 -- deliberately, because
+        # bf16's 7-bit mantissa randomised the Z60 readout margin -- so
+        # the conversion is the whole point of the boundary and this was
+        # the one write site in the file that skipped it. Torch refuses
+        # the mismatch outright (`Index put requires the source and
+        # destination dtypes match`), so every densify on a trained CSR
+        # fiber raised.
+        dense._w[rows, csr._col.long()] = csr._val.to(dense.DTYPE)
     dense._log_rows = csr._log_rows
     dense._log_cols = csr._log_cols
     dense._ext_rows = csr._nrows
