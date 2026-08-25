@@ -270,14 +270,16 @@ __global__ void colmass_kernel(const int* __restrict__ cols,
                                const float* __restrict__ tab, int ntab,
                                const int* __restrict__ seeds,
                                int K, int N, int W, int threshold,
-                               float* __restrict__ out) {
+                               float* __restrict__ out,
+                               float* __restrict__ outmax) {
     __shared__ float red[256];
+    __shared__ float rmx[256];
     const int b = blockIdx.x / K, s = blockIdx.x % K;
     const int j = cols[(long long)b * K + s];
     const unsigned int ch =
         ((unsigned int)j * 2246822519u) ^ (unsigned int)seeds[b];
 
-    float acc = 0.0f;
+    float acc = 0.0f, mx = 0.0f;
     for (int i = threadIdx.x; i < N; i += blockDim.x) {
         unsigned int h = ac_fmix32(((unsigned int)i * 2654435761u) ^ ch);
         if ((h & 0x00FFFFFFu) >= (unsigned int)threshold) continue;
@@ -289,15 +291,25 @@ __global__ void colmass_kernel(const int* __restrict__ cols,
             c += __popcll(rm & (unsigned long long)
                           colmask[((long long)b * W + w) * N + j]);
         }
-        acc += (c < ntab) ? tab[c] : tab[ntab - 1];
+        float v = (c < ntab) ? tab[c] : tab[ntab - 1];
+        acc += v;
+        if (v > mx) mx = v;              // the DEEPEST cell in this column
     }
     red[threadIdx.x] = acc;
+    rmx[threadIdx.x] = mx;
     __syncthreads();
     for (int st = blockDim.x >> 1; st > 0; st >>= 1) {
-        if (threadIdx.x < st) red[threadIdx.x] += red[threadIdx.x + st];
+        if (threadIdx.x < st) {
+            red[threadIdx.x] += red[threadIdx.x + st];
+            if (rmx[threadIdx.x + st] > rmx[threadIdx.x])
+                rmx[threadIdx.x] = rmx[threadIdx.x + st];
+        }
         __syncthreads();
     }
-    if (threadIdx.x == 0) out[(long long)b * K + s] = red[0];
+    if (threadIdx.x == 0) {
+        out[(long long)b * K + s] = red[0];
+        outmax[(long long)b * K + s] = rmx[0];
+    }
 }
 
 torch::Tensor hashed_drive(torch::Tensor rows, torch::Tensor seeds,
@@ -319,7 +331,7 @@ torch::Tensor hashed_drive(torch::Tensor rows, torch::Tensor seeds,
 
 
 torch::Tensor hashed_indegree(torch::Tensor seeds, int64_t n, int64_t threshold, double floor_);
-torch::Tensor column_mass(torch::Tensor cols, torch::Tensor rowmask, torch::Tensor colmask, torch::Tensor tab, torch::Tensor seeds, int64_t threshold);
+std::vector<torch::Tensor> column_mass(torch::Tensor cols, torch::Tensor rowmask, torch::Tensor colmask, torch::Tensor tab, torch::Tensor seeds, int64_t threshold);
 void dev_correct(torch::Tensor S, torch::Tensor rowmask, torch::Tensor colids,
                  torch::Tensor colmask, torch::Tensor tab,
                  torch::Tensor seeds, int64_t threshold, torch::Tensor out) {
@@ -355,7 +367,8 @@ torch::Tensor hashed_indegree(torch::Tensor seeds, int64_t n,
 }
 
 
-torch::Tensor column_mass(torch::Tensor cols, torch::Tensor rowmask,
+std::vector<torch::Tensor> column_mass(torch::Tensor cols,
+                          torch::Tensor rowmask,
                           torch::Tensor colmask, torch::Tensor tab,
                           torch::Tensor seeds, int64_t threshold) {
     cols = cols.contiguous(); rowmask = rowmask.contiguous();
@@ -364,14 +377,15 @@ torch::Tensor column_mass(torch::Tensor cols, torch::Tensor rowmask,
     const int B = cols.size(0), K = cols.size(1);
     const int N = (int)colmask.size(-1);
     const int W = (int)(rowmask.numel() / ((long long)B * N));
-    auto out = torch::empty({B, (int64_t)K},
-                            torch::dtype(torch::kFloat32).device(cols.device()));
+    auto opt = torch::dtype(torch::kFloat32).device(cols.device());
+    auto out = torch::empty({B, (int64_t)K}, opt);
+    auto omax = torch::empty({B, (int64_t)K}, opt);
     colmass_kernel<<<B * K, 256>>>(
         cols.data_ptr<int>(), rowmask.data_ptr<int64_t>(),
         colmask.data_ptr<int64_t>(), tab.data_ptr<float>(),
         (int)tab.numel(), seeds.data_ptr<int>(), K, N, W, (int)threshold,
-        out.data_ptr<float>());
-    return out;
+        out.data_ptr<float>(), omax.data_ptr<float>());
+    return {out, omax};
 }
 
 std::vector<torch::Tensor> topk_select(torch::Tensor x, int64_t K) {
@@ -393,7 +407,7 @@ std::vector<torch::Tensor> topk_select(torch::Tensor x, int64_t K) {
 _CPP = r"""
 torch::Tensor hashed_drive(torch::Tensor rows, torch::Tensor seeds, int64_t n, int64_t threshold);
 torch::Tensor hashed_indegree(torch::Tensor seeds, int64_t n, int64_t threshold, double floor_);
-torch::Tensor column_mass(torch::Tensor cols, torch::Tensor rowmask, torch::Tensor colmask, torch::Tensor tab, torch::Tensor seeds, int64_t threshold);
+std::vector<torch::Tensor> column_mass(torch::Tensor cols, torch::Tensor rowmask, torch::Tensor colmask, torch::Tensor tab, torch::Tensor seeds, int64_t threshold);
 void dev_correct(torch::Tensor S, torch::Tensor rowmask, torch::Tensor colids, torch::Tensor colmask, torch::Tensor tab, torch::Tensor seeds, int64_t threshold, torch::Tensor out);
 std::vector<torch::Tensor> topk_select(torch::Tensor x, int64_t K);
 """

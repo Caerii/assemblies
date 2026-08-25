@@ -158,3 +158,87 @@ Nothing measured is retracted: the substrate parity against `numpy_sparse`
 stands (`test_hashed_substrate_parity.py`, all four arms). What is retracted is
 the assumption that the capacity protocol could be run without a stimulus
 fiber. The registered bars stand unchanged and unevaluated.
+
+---
+
+## Result (2026-08-25): NOT ANSWERED, by the registered rule -- and why
+
+Run: `seq_capacity_scaling.py`, k=60, p=0.50, T=8, beta=0.10, w_max=20,
+16 independent brains per cell, M in {16, 32, 64, 128, 256, 512}, 117 s.
+Protocol as registered (stimulus fires every round; area inhibited between
+assemblies), on the hashed path verified against `numpy_sparse` on all four
+substrate arms.
+
+    arm  n      | M*      bracket      fill@M*  verdict
+    B    4000   |  80.7   [64, 128)     0.792   ok, but bracket is 2.00x -> UNRESOLVED
+    B    8000   | 354.6   [256, 512)    0.959   CENSORED (fill >= 0.95)
+    B   16000   | >= 512  never crossed 0.937   UNSUPPORTED (curve never crossed)
+    G    4000   | 241.8   [128, 256)    0.989   CENSORED
+    G    8000   | --                    --      UNMEASURABLE (see below)
+    G   16000   | --                    --      UNMEASURABLE
+
+**CAP2 is NOT evaluated.** One uncensored supported point for arm B, zero for
+G. The registered rule for that case is explicit -- "Report that, do not fit a
+line through two points" -- and it is followed. No exponent is quoted.
+
+### The reason is the finding
+
+At every n tested the ceiling arrives with the area **79% to 96% full**. That is
+the same censoring `PREREG_substrate_ceiling.md` flagged at n=2000
+(rows/n 0.97-1.00), now shown to PERSIST across a 4x range in n rather than
+being an artifact of one small area. Capacity and the tiling limit co-move over
+this whole range, so this design cannot separate them.
+
+There is a structural reason it is hard to escape. The regime condition
+`kp >= 3 ln n` with `p <= 0.5` forces `k >= 6 ln n`, so k cannot be held fixed
+while n grows: the tiling limit `n/k` grows like `n / ln n`, not like n. Any
+attempt to reach the ceiling with the area still empty has to fight that.
+
+### What the censored numbers nonetheless show, flagged as censored
+
+`M* k / n` -- assemblies per tiling slot -- is **1.21 at n=4000, 2.66 at
+n=8000**, and at least 1.92 at n=16000. Above 1 means assemblies SHARE neurons
+rather than tiling, which is the substrate working as intended; the rise is
+suggestive of super-tiling growth. It is measured inside the censored region and
+is NOT a capacity-scaling claim. CAP2's own note says a fit over censored points
+recovers the tiling limit's slope and calls it extensivity -- which is how this
+gets retracted a third time.
+
+One corroboration worth recording: at n=4000, **G's ceiling is 3.0x B's**
+(241.8 vs 80.7), against 2.5x (104 vs 41) at n=2000 in the registered ceiling
+study. Same direction, similar size, a different protocol and a 2x larger area.
+G's point is censored, so this is corroboration, not a measurement.
+
+### Arm G is UNMEASURABLE above n=4000, and that is a method limit
+
+`batched_project_hashed` refuses substrate C when the `w_max` clip could bind,
+because a column multiply does not commute with `min()` and the factored form
+(`S_j = setpoint / M_j`, old scale cancelling) stops being exact. The guard now
+uses the ACTUAL deepest cell in each scaled column times that column's new
+scale -- exact, not the two earlier conservative bounds -- and it still fires at
+n=8000 and n=16000 (bound 20.04 and 20.08 against w_max=20). So a cell really
+does reach the cap.
+
+That is a limit of the FACTORED method, not of substrate C: the engine handles
+it by storing weights. Running arm G here needs either `w_max=None` (a
+supported configuration, and the one `PREREG_theorem_regime.md` used) or an
+unfactored column-scaling path. Neither is a protocol change to make silently.
+
+### Two implementation errors found and fixed during the run
+
+* CAP3 was measuring `rows/n` at `max(M)` rather than AT the ceiling, which
+  censored every point -- the grid deliberately runs past the ceiling to
+  bracket it. Now interpolated at M* in log2(M), matching
+  `ceiling_from_curve`. At n=4000 that is 0.792 rather than 0.987, i.e. the
+  difference between reporting one usable point and reporting none.
+* n=1000 and n=2000 were in the grid at first and are dropped: with k=60 they
+  give `n/k` of 16.7 and 33.3, so M=8 already fills half the area (fill 0.46,
+  pairwise 6.7x chance). Those cells measure the tiling limit and nothing else.
+
+### What would answer it
+
+Not more n at this k. The measurement needs the ceiling to arrive while the area
+is still sparse, which means attacking the `k >= 6 ln n` floor -- a smaller k at
+higher p, or a readout that does not require the assemblies to be simultaneously
+resident. That is a design question, and it is now a measured one rather than a
+suspicion.

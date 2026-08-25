@@ -5,10 +5,18 @@ with n", blocked on compute. This runs the sweep on `batched_project_hashed`,
 which trains 16 independent brains at once with a generated connectome and is
 verified against `numpy_sparse` on all four substrate arms.
 
-PROTOCOL DIFFERENCE, restated here because the numbers must not be read as
-comparable to `PREREG_substrate_ceiling.md`: that study cued each assembly with
-a STIMULUS whose own fiber also learns. This path has no stimulus fiber, so the
-cue is a fixed initial winner set. The deliverable is the SCALING with n.
+PROTOCOL. As registered: the area is inhibited between assemblies, and each
+assembly is trained by firing its own STIMULUS every round alongside recurrence
+-- `project({s: [AREA]}, {AREA: [AREA]})`. An earlier version substituted a
+fixed initial winner set for the stimulus and that removed the ANCHOR, not just
+the fiber: rank1 was 0.19 at M=4 (Amendment 1). The stimulus fiber is now
+hash-generated and priced as the engine prices it.
+
+ONE REMAINING DIFFERENCE from `PREREG_substrate_ceiling.md`: the stimulus fiber
+here does not itself learn a per-cell connectome -- it stores pre-summed input,
+which is what the engine stores, but its base is generated rather than drawn in
+RNG order. Absolute ceilings are therefore not bit-comparable to that study's
+M* = 41 / 104 at n=2000; the SCALING with n is the deliverable.
 
     python research/experiments/seq_capacity_scaling.py [--smoke]
 
@@ -89,11 +97,16 @@ def run_cell(n, arm, m_max, nbrain, rng):
     stored = []
     out = {}
     for a in range(m_max):
-        cue = torch.from_numpy(np.stack(
-            [np.sort(rng.choice(n, K, replace=False)) for _ in range(nbrain)]
-        )).to(DEV)
+        # INHIBITED between assemblies: the area starts with no winners, so
+        # round 1 is stimulus-only and recurrence joins from round 2. That is
+        # `brain.inhibit_areas([AREA])` followed by T rounds of
+        # `project({s: [AREA]}, {AREA: [AREA]})`.
+        cue = torch.zeros(nbrain, 0, dtype=torch.int64, device=DEV)
+        ss = [to_i32(_seeding.fnv1a_pair_seed(42 + b, f"s{a}", "A"))
+              for b in range(nbrain)]
         res = batched_project_hashed(
             n, K, P, sd, cue, T, beta=BETA, w_max=W_MAX,
+            stim_seeds=ss, stim_size=K,
             state=state, max_rounds=total_rounds, return_state=True, **cfg)
         win, state = res
         stored.append(win)
@@ -147,6 +160,23 @@ def measure(n, arm, sd, state, stored, nbrain, rng, cfg):
                 distinct=dist, fill=_fill(state, n).tolist())
 
 
+def _fill_at(cells, m_star):
+    """rows/n interpolated at M*, in log2(M)."""
+    pts = sorted((M, float(np.mean(cells[M]["fill"]))) for M in cells)
+    if not pts or m_star is None or m_star <= 0:
+        return float("nan")
+    if m_star <= pts[0][0]:
+        return pts[0][1]
+    if m_star >= pts[-1][0]:
+        return pts[-1][1]
+    for (m0, f0), (m1, f1) in zip(pts, pts[1:]):
+        if m0 <= m_star <= m1:
+            t = ((math.log2(m_star) - math.log2(m0))
+                 / max(math.log2(m1) - math.log2(m0), 1e-12))
+            return f0 + t * (f1 - f0)
+    return pts[-1][1]
+
+
 def gated(cell):
     r = ensemble_from_values(cell["rank1"])
     x = ensemble_from_values(cell["pairwise_x"])
@@ -159,10 +189,27 @@ def main():
     global MS
     ap = argparse.ArgumentParser()
     ap.add_argument("--smoke", action="store_true")
+    ap.add_argument("--ns", type=str, default=None,
+                    help="comma-separated n values (default: the grid)")
+    ap.add_argument("--ms", type=str, default=None,
+                    help="comma-separated M checkpoints")
+    ap.add_argument("--brains", type=int, default=None)
+    ap.add_argument("--arms", type=str, default=None)
     args = ap.parse_args()
     ns = (1000, 2000) if args.smoke else NS
     ms = (4, 8) if args.smoke else MS
     nb = 4 if args.smoke else NBRAIN
+    if args.ns:
+        ns = tuple(int(x) for x in args.ns.split(","))
+    if args.ms:
+        ms = tuple(int(x) for x in args.ms.split(","))
+    if args.brains:
+        nb = args.brains
+    if args.arms:
+        keep = set(args.arms.split(","))
+        for kk in list(ARMS):
+            if kk not in keep:
+                del ARMS[kk]
     MS = ms
     if args.smoke:
         print("*** SMOKE: API only. THESE NUMBERS ARE VOID. ***")
@@ -176,7 +223,17 @@ def main():
     for arm in ARMS:
         for n in ns:
             rng = np.random.default_rng(1234)
-            cells = run_cell(n, arm, max(ms), nb, rng)
+            try:
+                cells = run_cell(n, arm, max(ms), nb, rng)
+            except RuntimeError as exc:
+                # `batched_project_hashed` REFUSES rather than diverging when
+                # the w_max clip could bind under column scaling. That is a
+                # cell this method cannot measure, not a cell that failed.
+                print(f"    {arm} n={n:>5}  UNMEASURABLE: {exc}")
+                res[f"{arm}/{n}/ceiling"] = dict(
+                    m_star=None, supported=False, fill=float("nan"),
+                    censored=False, unmeasurable=str(exc))
+                continue
             res[f"{arm}/{n}"] = cells
             curve = []
             for M in sorted(cells):
@@ -186,7 +243,11 @@ def main():
                       f"pw/chance {x.mean:6.2f}  distinct {d.mean:.3f}  "
                       f"fill {np.mean(cells[M]['fill']):.3f}  gated {g:.3f}")
             c = ceiling_from_curve(curve, threshold=HALF_BAR)
-            fill_at = np.mean(cells[max(cells)]["fill"])
+            # CAP3 says rows/n AT THE CEILING, not at the largest M on the
+            # grid. Taking it at max(M) censors every point, because the grid
+            # deliberately runs past the ceiling to bracket it. Interpolated in
+            # log2(M) to match `ceiling_from_curve`'s own interpolation.
+            fill_at = _fill_at(cells, c.m_star)
             print(f"    {arm} n={n:>5}  CEILING {c}  fill@max {fill_at:.3f}"
                   f"  {'CENSORED' if fill_at >= 0.95 else 'ok'}")
             res[f"{arm}/{n}/ceiling"] = dict(
@@ -199,7 +260,8 @@ def main():
         pts = [(n, res[f"{arm}/{n}/ceiling"]) for n in ns
                if f"{arm}/{n}/ceiling" in res]
         good = [(n, c["m_star"]) for n, c in pts
-                if c["supported"] and not c["censored"] and c["m_star"] > 0]
+                if c["supported"] and not c["censored"]
+                and c["m_star"] is not None and c["m_star"] > 0]
         if len(good) < 3:
             print(f"    {arm}: only {len(good)} uncensored supported n "
                   f"-- NOT ANSWERED at this k, p. No line is fitted.")

@@ -445,20 +445,24 @@ def batched_project_hashed(
         if scale is not None and not freeze:
             # Masks are updated FIRST: the engine scales after applying this
             # round's potentiation, so the mass must include it.
-            mass = mod.column_mass(sel.contiguous(), rowmask, colmask_d,
-                                   tab, seeds_t, threshold)
-            scale.scatter_(1, sel.long(), setpoint / mass.clamp_min(1e-12))
+            mass, cellmax = mod.column_mass(sel.contiguous(), rowmask,
+                                            colmask_d, tab, seeds_t,
+                                            threshold)
+            newscale = setpoint / mass.clamp_min(1e-12)
+            scale.scatter_(1, sel.long(), newscale)
             if w_max is not None:
-                # The factorisation assumes min() never fires. Conservative
-                # bound on any cell: deepest potentiation times the largest
-                # accumulated scale. Refuse rather than diverge quietly.
-                # Bound on the DEEPEST POSSIBLE count so far, not on the
-                # worst the table can hold: no cell can have been potentiated
-                # more times than rounds have elapsed. Using tab[-1] made the
-                # guard fire whenever the table itself saturated, which is
-                # always once max_rounds is large.
-                elapsed = min(state["t"] + t + 1, int(tab.numel()) - 1)
-                bound = float(tab[elapsed].item()) * float(scale.max().item())
+                # The factorisation assumes min() never fires, since a
+                # column multiply does not commute with a clip. The check uses
+                # the ACTUAL deepest cell in each scaled column -- which the
+                # mass kernel already computes -- times that column's NEW
+                # scale. Two earlier versions bounded by how deep the table
+                # COULD go (`tab[-1]`, then `tab[elapsed]`), i.e. assumed some
+                # cell had been potentiated on every round; both fired on data
+                # they had no business rejecting, because the table saturates
+                # at w_max and any scale above 1 then trips them. Cells in
+                # UNSCALED columns need no check: their scale is 1 and `tab` is
+                # already clipped.
+                bound = float((cellmax * newscale).max().item())
                 if bound >= float(w_max):
                     raise RuntimeError(
                         f"synaptic_scaling would cross w_max={w_max} (bound "

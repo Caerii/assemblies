@@ -90,8 +90,8 @@ def replay(n, k, p, beta, T, pair, prevs, news, norm_init, scaling, w_max):
         colmask.scatter_(1, sidx, colmask.gather(1, sidx) | bit)
         hist.append(sidx.to(torch.int32))
         if scale is not None:
-            mass = mod.column_mass(sidx.to(torch.int32).contiguous(), rowmask,
-                                   colmask, tab, seeds_t, thr)
+            mass, _ = mod.column_mass(sidx.to(torch.int32).contiguous(),
+                                      rowmask, colmask, tab, seeds_t, thr)
             scale.scatter_(1, sidx, setpoint / mass.clamp_min(1e-12))
     return out
 
