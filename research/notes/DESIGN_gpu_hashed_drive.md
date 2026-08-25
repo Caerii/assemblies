@@ -176,3 +176,69 @@ The stimulus term (a per-column vector add, cheap) and **plasticity
 write-back**, which needs a sparse insert-if-absent on device and is the one
 remaining piece that could genuinely erode the factor. Everything above is a
 READ-side result.
+
+---
+
+## Amendment 2: plasticity write-back — no insert-if-absent needed
+
+Prototype: `research/experiments/gpu_writeback_prototype.py`.
+
+This was the last risk: after k-WTA, training increments `count[i,j]` for every
+pair in `prev_winners x new_winners`, which reads like a sparse map update, and
+**insert-if-absent is the one access pattern a GPU is bad at**.
+
+### The structure that removes the problem
+
+Three facts, and the third is the one that matters:
+
+1. the update is a CROSS PRODUCT — `k x k` cells described by `2k` indices;
+2. `count[i,j]` is not state. It is `#{ rounds t : i in W[t-1], j in W[t] }`,
+   a pure function of the winner history;
+3. therefore **a write needs no knowledge of what is already stored**.
+   Appending the `k^2` keys is a complete record of the event.
+
+So: append-only writes, and a periodic compaction that sorts the buffer with
+the store and segment-reduces duplicates. Both halves are what a GPU is best at
+— a radix sort and a scan — and neither needs an atomic or a probe. Keys are
+packed globally as `b*n*n + i*n + j`, so ONE sort covers every brain at once and
+the batch dimension costs nothing extra.
+
+### Verified
+
+    521 unique cells, dict reference has 521 -> identical: True
+
+against a Python dict of counts built from the same events.
+
+### Cost, at realistic winner reuse
+
+Random winners make nearly every key unique — 20M distinct cells where a real
+M=32 run holds 117k — so a random-winner benchmark is a pessimistic bound by two
+orders of magnitude, not a measurement. Modelling stable cores with churn gives
+a per-brain store of ~189k cells against the real 117k, close enough to trust:
+
+    n=20000  k=50  B=64   store 12.1M cells (189k/brain)   0.039 ms/brain/round
+    n=20000  k=70  B=64   store 23.7M cells                0.042 ms/brain/round
+
+**B=256 does not fit**: the store plus sort workspace thrashes. Batch is capped
+near 64 at this store size, which is still ample.
+
+### An optimisation that measurement refused
+
+The store is already sorted, so re-sorting it on every compaction looked like
+obvious waste — sort only the buffers and merge once at the end. **Measured
+17x SLOWER** (12.58 s against 0.73 s), because eager compaction DEDUPES EARLY
+and keeps the working set small, while deferring accumulates 41M keys before
+the first dedupe. The naive design was already the right one.
+
+### What this does to the headline
+
+Write-back at 0.039 ms/brain/round DOMINATES the read side (0.003-0.007), so
+the honest end-to-end figure is **~0.045 ms per brain per round**, against the
+CPU engine's 1.5-5 ms per projection:
+
+    read side alone      300-1000x
+    including write-back    35-110x
+
+Still an order of magnitude and more, but the read-side number is not the one
+to quote. The last risk is retired: there is no insert-if-absent anywhere in
+the design.
