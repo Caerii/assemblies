@@ -212,6 +212,83 @@ __global__ void dev_correct_kernel(
     atomicAdd(out + (long long)b * N + j, v - 1.0f);
 }
 
+
+// ---- norm_init's divisor, EXACTLY ------------------------------------
+// `_pricing.inverse_indegree` computes  d_j = deg_j + p * (n_pre - rows_known)
+// because engines materialise neurons lazily and neuron j's full incoming
+// column does not exist yet; the second term is an unbiased estimate of the
+// rows that have not appeared. THAT TERM IS IDENTICALLY ZERO HERE. A generated
+// connectome has every row from the start, so rows_known == n_pre and
+//     d_j = #{ i in [0, n) : cell (i, j) is present }
+// is the TRUE in-degree, not an estimate. The whole defect class that lives on
+// the estimate -- pricing unknown rows at the brain's p instead of the fiber's
+// (79fba4f, a 6.15x over-scale) -- cannot occur in this path.
+//
+// One thread per (b, j), n hashes each. This is O(B * n^2) and is computed
+// ONCE per brain set, not per round: the connectome does not change.
+__global__ void indegree_kernel(const int* __restrict__ seeds, int B, int N,
+                                int threshold, float floor_,
+                                float* __restrict__ out) {
+    long long idx = blockIdx.x * (long long)blockDim.x + threadIdx.x;
+    if (idx >= (long long)B * N) return;
+    int b = (int)(idx / N), j = (int)(idx - (long long)b * N);
+    unsigned int ch = ((unsigned int)j * 2246822519u) ^ (unsigned int)seeds[b];
+    int d = 0;
+    for (int i = 0; i < N; ++i) {
+        unsigned int h = ac_fmix32(((unsigned int)i * 2654435761u) ^ ch);
+        if ((h & 0x00FFFFFFu) < (unsigned int)threshold) ++d;
+    }
+    out[idx] = (float)d < floor_ ? floor_ : (float)d;
+}
+
+
+// ---- substrate C: a scaled column's UNSCALED mass ---------------------
+// `_scale_columns_now` sets  w[:, j] *= setpoint / mass_j  on winner columns
+// each round, with setpoint = rows * p_fiber. Column scaling is per-COLUMN
+// multiplicative and potentiation is per-CELL multiplicative, so they commute
+// and the accumulated scale factors out of the sum:
+//     mass_j = S_j * M_j,   M_j = sum_i present(i,j) * chain(count[i,j])
+// hence  S_j^new = S_j^old * setpoint / (S_j^old * M_j) = setpoint / M_j.
+// The old scale CANCELS, so the state is one float per column and the drive
+// correction is a single elementwise multiply.
+//
+// That factorisation is exact only while the w_max CLIP never binds -- min()
+// does not commute with a column multiply. The caller checks a conservative
+// bound (tab[T] * max_j S_j) and refuses rather than silently diverging.
+//
+// One block per (b, winner), reduced over all n rows.
+__global__ void colmass_kernel(const int* __restrict__ cols,
+                               const long long* __restrict__ rowmask,
+                               const long long* __restrict__ colmask,
+                               const float* __restrict__ tab, int ntab,
+                               const int* __restrict__ seeds,
+                               int K, int N, int threshold,
+                               float* __restrict__ out) {
+    __shared__ float red[256];
+    const int b = blockIdx.x / K, s = blockIdx.x % K;
+    const int j = cols[(long long)b * K + s];
+    const unsigned long long cm =
+        (unsigned long long)colmask[(long long)b * N + j];
+    const unsigned int ch =
+        ((unsigned int)j * 2246822519u) ^ (unsigned int)seeds[b];
+    const long long rbase = (long long)b * N;
+
+    float acc = 0.0f;
+    for (int i = threadIdx.x; i < N; i += blockDim.x) {
+        unsigned int h = ac_fmix32(((unsigned int)i * 2654435761u) ^ ch);
+        if ((h & 0x00FFFFFFu) >= (unsigned int)threshold) continue;
+        int c = __popcll((unsigned long long)rowmask[rbase + i] & cm);
+        acc += (c < ntab) ? tab[c] : tab[ntab - 1];
+    }
+    red[threadIdx.x] = acc;
+    __syncthreads();
+    for (int st = blockDim.x >> 1; st > 0; st >>= 1) {
+        if (threadIdx.x < st) red[threadIdx.x] += red[threadIdx.x + st];
+        __syncthreads();
+    }
+    if (threadIdx.x == 0) out[(long long)b * K + s] = red[0];
+}
+
 torch::Tensor hashed_drive(torch::Tensor rows, torch::Tensor seeds,
                            int64_t n, int64_t threshold) {
     TORCH_CHECK(rows.dim() == 2 && rows.is_cuda()
@@ -230,6 +307,8 @@ torch::Tensor hashed_drive(torch::Tensor rows, torch::Tensor seeds,
 }
 
 
+torch::Tensor hashed_indegree(torch::Tensor seeds, int64_t n, int64_t threshold, double floor_);
+torch::Tensor column_mass(torch::Tensor cols, torch::Tensor rowmask, torch::Tensor colmask, torch::Tensor tab, torch::Tensor seeds, int64_t threshold);
 void dev_correct(torch::Tensor S, torch::Tensor rowmask, torch::Tensor colids,
                  torch::Tensor colmask, torch::Tensor tab,
                  torch::Tensor seeds, int64_t threshold, torch::Tensor out) {
@@ -246,6 +325,39 @@ void dev_correct(torch::Tensor S, torch::Tensor rowmask, torch::Tensor colids,
         colids.data_ptr<int>(), colmask.data_ptr<int64_t>(),
         tab.data_ptr<float>(), (int)tab.numel(), seeds.data_ptr<int>(),
         B, K, C, N, (int)threshold, out.data_ptr<float>());
+}
+
+
+torch::Tensor hashed_indegree(torch::Tensor seeds, int64_t n,
+                              int64_t threshold, double floor_) {
+    seeds = seeds.contiguous();
+    const int B = seeds.size(0);
+    auto out = torch::empty({B, (int64_t)n},
+                            torch::dtype(torch::kFloat32).device(seeds.device()));
+    const long long tot = (long long)B * n;
+    const int th = 256;
+    indegree_kernel<<<(tot + th - 1) / th, th>>>(
+        seeds.data_ptr<int>(), B, (int)n, (int)threshold, (float)floor_,
+        out.data_ptr<float>());
+    return out;
+}
+
+
+torch::Tensor column_mass(torch::Tensor cols, torch::Tensor rowmask,
+                          torch::Tensor colmask, torch::Tensor tab,
+                          torch::Tensor seeds, int64_t threshold) {
+    cols = cols.contiguous(); rowmask = rowmask.contiguous();
+    colmask = colmask.contiguous(); tab = tab.contiguous();
+    seeds = seeds.contiguous();
+    const int B = cols.size(0), K = cols.size(1), N = rowmask.size(1);
+    auto out = torch::empty({B, (int64_t)K},
+                            torch::dtype(torch::kFloat32).device(cols.device()));
+    colmass_kernel<<<B * K, 256>>>(
+        cols.data_ptr<int>(), rowmask.data_ptr<int64_t>(),
+        colmask.data_ptr<int64_t>(), tab.data_ptr<float>(),
+        (int)tab.numel(), seeds.data_ptr<int>(), K, N, (int)threshold,
+        out.data_ptr<float>());
+    return out;
 }
 
 std::vector<torch::Tensor> topk_select(torch::Tensor x, int64_t K) {
@@ -266,6 +378,8 @@ std::vector<torch::Tensor> topk_select(torch::Tensor x, int64_t K) {
 
 _CPP = r"""
 torch::Tensor hashed_drive(torch::Tensor rows, torch::Tensor seeds, int64_t n, int64_t threshold);
+torch::Tensor hashed_indegree(torch::Tensor seeds, int64_t n, int64_t threshold, double floor_);
+torch::Tensor column_mass(torch::Tensor cols, torch::Tensor rowmask, torch::Tensor colmask, torch::Tensor tab, torch::Tensor seeds, int64_t threshold);
 void dev_correct(torch::Tensor S, torch::Tensor rowmask, torch::Tensor colids, torch::Tensor colmask, torch::Tensor tab, torch::Tensor seeds, int64_t threshold, torch::Tensor out);
 std::vector<torch::Tensor> topk_select(torch::Tensor x, int64_t K);
 """
@@ -312,7 +426,8 @@ def load() -> object | None:
             _MODULE = load_inline(
                 name="na_fused_cuda", cpp_sources=[_CPP],
                 cuda_sources=[_CUDA_SRC],
-                functions=["hashed_drive", "dev_correct", "topk_select"],
+                functions=["hashed_drive", "hashed_indegree", "dev_correct",
+                                  "column_mass", "topk_select"],
                 verbose=False, extra_cuda_cflags=["-O3"])
         except Exception as exc:                       # noqa: BLE001
             _MODULE = None

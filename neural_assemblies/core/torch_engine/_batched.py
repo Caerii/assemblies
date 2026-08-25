@@ -225,7 +225,8 @@ MAX_LEARNING_ROUNDS = 64
 
 def batched_project_hashed(
     n, k, p, seeds, winners, rounds, *, beta=0.0, w_max=None,
-    stim_drive=None, return_drive=False,
+    norm_init=False, synaptic_scaling=False, stim_drive=None,
+    return_drive=False,
 ):
     """B INDEPENDENT connectomes, GENERATED rather than stored.
 
@@ -269,7 +270,13 @@ def batched_project_hashed(
         rounds: recurrent projection rounds.
         beta: Hebbian gain; 0 disables learning entirely.
         w_max: weight clip, or None for unbounded.
+        norm_init: substrate B -- divide each column's drive by its in-degree.
+            Here that divisor is EXACT rather than estimated; see below.
+        synaptic_scaling: substrate C -- renormalise each winner column's
+            mass to `n * p` every round.
         stim_drive: optional ``[n]`` or ``[B, n]`` additive drive each round.
+            Taken as already on the post-norm scale: this path does not
+            hash-generate stimuli, so it cannot price them.
         return_drive: also return the final ``[B, n]`` drive.
 
     Returns:
@@ -308,11 +315,34 @@ def batched_project_hashed(
     idx = winners.to(torch.int32)
     threshold = _fused_cuda.threshold_for(p)
 
-    rowmask = tab = None
+    track = learn or synaptic_scaling
+    rowmask = colmask_d = tab = scale = None
+    setpoint = 0.0
     hist = []
-    if learn:
+    if track:
         rowmask = torch.zeros(B, n, dtype=torch.int64, device=device)
+        colmask_d = torch.zeros(B, n, dtype=torch.int64, device=device)
         tab = torch.from_numpy(_chain_table(beta, w_max, rounds)).to(device)
+    if synaptic_scaling:
+        # Substrate C. `_scale_columns_now` renormalises each WINNER column to
+        # `setpoint = rows * p_fiber` -- the fiber's p, not the brain's, which
+        # is the third member of the pricing-law defect class. Every row exists
+        # here, so `rows` is n.
+        scale = torch.ones(B, n, dtype=torch.float32, device=device)
+        setpoint = max(float(n) * float(p), 1e-12)
+
+    # Substrate B. `_pricing.inverse_indegree` computes
+    # `d_j = deg_j + p * (n_pre - rows_known)` because engines materialise
+    # neurons lazily, so a column's full in-degree does not exist yet and the
+    # second term estimates the missing rows. HERE THAT TERM IS ZERO: a
+    # generated connectome has every row from the start, so `d_j` is the true
+    # in-degree. Computed once -- the connectome does not change -- and the
+    # divisor applies to the WHOLE drive, potentiation included, which is exact
+    # because plasticity is multiplicative:
+    #     (w_0 / d_j) * prod_t (1 + beta_t) == (w_0 * prod_t (1 + beta_t)) / d_j
+    dj = None
+    if norm_init:
+        dj = mod.hashed_indegree(seeds_t, n, threshold, 1.0)
 
     drive = None
     for t in range(rounds):
@@ -321,6 +351,10 @@ def batched_project_hashed(
             colids, colmask = _column_index(hist)
             mod.dev_correct(idx.contiguous(), rowmask, colids, colmask,
                             tab, seeds_t, threshold, drive)
+        if scale is not None:
+            drive = drive * scale
+        if dj is not None:
+            drive = drive / dj
         if stim_drive is not None:
             drive = drive + stim_drive
         sel, ovf = mod.topk_select(drive, min(k, n))
@@ -330,10 +364,30 @@ def batched_project_hashed(
                 f"k-WTA candidate set overflowed ({bad} candidates) -- the "
                 "drive is too flat for the histogram to narrow. Refusing to "
                 "return a truncated winner set.")
-        if learn:
-            pidx = idx.long()
-            rowmask.scatter_(1, pidx, rowmask.gather(1, pidx) | (1 << t))
-            hist.append(sel)
+        if track:
+            bit = 1 << t
+            pidx, sidx = idx.long(), sel.long()
+            rowmask.scatter_(1, pidx, rowmask.gather(1, pidx) | bit)
+            colmask_d.scatter_(1, sidx, colmask_d.gather(1, sidx) | bit)
+            if learn:
+                hist.append(sel)
+        if scale is not None:
+            # Masks are updated FIRST: the engine scales after applying this
+            # round's potentiation, so the mass must include it.
+            mass = mod.column_mass(sel.contiguous(), rowmask, colmask_d,
+                                   tab, seeds_t, threshold)
+            scale.scatter_(1, sel.long(), setpoint / mass.clamp_min(1e-12))
+            if w_max is not None:
+                # The factorisation assumes min() never fires. Conservative
+                # bound on any cell: deepest potentiation times the largest
+                # accumulated scale. Refuse rather than diverge quietly.
+                bound = float(tab[-1].item()) * float(scale.max().item())
+                if bound >= float(w_max):
+                    raise RuntimeError(
+                        f"synaptic_scaling would cross w_max={w_max} (bound "
+                        f"{bound:.4g} at round {t}): column scaling and the "
+                        "clip do not commute, so the factored form is no "
+                        "longer exact. Re-run with w_max=None or fewer rounds.")
         idx = sel
 
     out = idx.to(torch.int64)
