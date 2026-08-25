@@ -158,3 +158,48 @@ The exponent. b = 2.2 is stable across subsets and spans a 6.7x range in `n/k`,
 but has no mechanism, and the largest-`n/k` points are censored. A mechanism --
 or a third bar that discriminates 2.2 from 2 on uncensored points alone -- is
 what would make it a law.
+
+---
+
+## Amendment 1: the first run was CONTAMINATED; numbers superseded, structure survives
+
+Found while replacing the deviation store. The multi-episode correction the
+first run used -- a round mask carried ACROSS episodes -- had never been tested
+across episodes: every parity test at the time ran a SINGLE episode, so the
+store was written and never read. The replacement is verified against a
+stored-connectome reference over 2, 4 and 6 episodes, with and without
+`norm_init`, six configurations
+(`test_csr_store_matches_reference_across_episodes`).
+
+Re-run on the verified path:
+
+    cell                 first run   verified   M*(k/n)^2 verified
+    n= 4000 k= 60           66.6        88.3        0.01987
+    n= 8000 k=120           73.0        92.1        0.02072
+    n=16000 k=240           67.6        83.2        0.01872
+    n= 8000 k=200 (CS2)     21.8        26.9        0.01681
+    n=10000 k=100 (CS2)    175.4       238.4        0.02384
+
+**WHAT SURVIVES.** CS1's claim is that M* is CONSTANT at fixed n/k while n
+varies four-fold. It holds on both: spread +/-5% either way. The n/k dependence
+is not an artifact of the defect, and CAP-CLIFF is untouched.
+
+**WHAT DOES NOT.** The calibration. `C = M*(k/n)^2` moves 0.0155 -> ~0.0200
+(+27%) and the spread across cells widens from +/-11% to +/-18%. Every band in
+the section above came from the contaminated C, so **CS1 and CS2 are VOID as
+registered** -- not failed, VOID. A bar calibrated on bad data cannot be judged,
+and re-deriving the band from the new numbers to declare a pass would be
+fitting the test to the data.
+
+The exponent moves 2.19 -> ~2.3-2.5. Above 2 either way, still with no
+mechanism, still not quotable.
+
+**WHAT HAPPENS NEXT.** The law is re-registered from scratch: calibration from
+a DECLARED subset of the verified cells, bands tested on cells held out from
+that subset. Nothing above carries forward except the qualitative CS1 result,
+which does not depend on the calibration.
+
+**THE LESSON, stated cheaply because it will recur.** A store that is WRITTEN
+AND NEVER READ passes every single-episode test vacuously. The multi-episode
+test now exists, is parameterised over `norm_init`, and asserts against a
+reference rather than against the previous run.

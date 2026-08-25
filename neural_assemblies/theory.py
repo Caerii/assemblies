@@ -444,20 +444,28 @@ _RESULTS: List[Result] = [
         source="Held-out test registered in "
                "research/notes/PREREG_capacity_nk_law.md (bar CS1) before the "
                "data existed. Holding n/k = 66.67 while n varies four-fold "
-               "gives M* = 66.6 / 73.0 / 67.6 at n = 4000 / 8000 / 16000 -- "
+               "gives M* = 88.3 / 92.1 / 83.2 at n = 4000 / 8000 / 16000 -- "
                "constant to +/-5%, where any law M* = f(n) predicts ~4x. All "
-               "three cells uncensored (fill 0.69-0.75).",
+               "three cells uncensored (fill 0.76-0.83).",
         preconditions=("in regime, kp >= 3 ln n [[SEQ-REGIME]]",
                        "ceiling read from the CURVE, gated on distinctness",
                        "fill at the ceiling below 0.95, else the tiling limit "
                        "is what is being measured"),
         evidence=("research/experiments/seq_capacity_scaling.py",),
-        caveat="The EXPONENT is not established. `M* = C (n/k)^b` fits "
-               "b = 2.19 +/- 0.05 over twelve ceilings and the 95% CI excludes "
-               "2 in every subset, but bar CS2 FAILED (1 of 3 held-out bands) "
-               "and there is no mechanism, so b is reported and NOT quotable. "
-               "A synapse bound M ~ n^2 p / (k ln(n/k)) was proposed and is "
-               "REFUTED by CS1: it is not a function of n/k alone.",
+        caveat="THE FIRST RUN WAS CONTAMINATED and its numbers are "
+               "superseded: the multi-episode deviation correction it used had "
+               "never been tested across episodes, and the verified path gives "
+               "ceilings 25-35% higher (66.6/73.0/67.6 -> 88.3/92.1/83.2). The "
+               "CONSTANCY survives at +/-5% either way, which is what this "
+               "claim says; the calibration does not (C 0.0155 -> 0.0198). The "
+               "EXPONENT is not established: b = 2.19 on the contaminated data "
+               "and ~2.3-2.5 on the verified cells, above 2 either way, with "
+               "NO mechanism -- reported, never quoted. A synapse bound "
+               "M ~ n^2 p / (k ln(n/k)) was proposed and is REFUTED by CS1: it "
+               "is not a function of n/k alone. The bands registered in "
+               "PREREG_capacity_nk_law.md were calibrated on the contaminated "
+               "run and are VOID; the law needs re-registration before any "
+               "band is judged again.",
     ),
     Result(
         id="CAP-CLIFF",
