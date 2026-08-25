@@ -54,6 +54,46 @@ def _to_signed32(val):
     return val
 
 
+# Murmur3 fmix32 constants, as signed int32 for torch.
+_FMIX_M1 = _to_signed32(0x85EBCA6B)
+_FMIX_M2 = _to_signed32(0xC2B2AE35)
+
+
+def _fmix32(h):
+    """Murmur3's avalanche finalizer, on an int32 tensor of uint32 patterns.
+
+    THIS WAS MISSING, and its absence is not cosmetic. ``(r*A) ^ (c*B) ^ seed``
+    has low bits that are close to a function of the low bits of r and c alone,
+    and the Bernoulli test reads exactly those low 24 bits. Density comes out
+    right; the dependence structure does not. Measured here at 2048x2048,
+    p=0.05, reproducing the table in ``kernels/implicit.py``:
+
+        source                   density  row disp  col disp   corr(i)
+        numpy Generator (ref)    0.04998     0.969     0.926  -0.00009
+        raw hash (this file)     0.04999     3.794     0.015  -0.05262
+        + fmix32                 0.04995     0.930     0.925   0.00047
+
+    Column dispersion 0.015 means IN-DEGREE WAS NEARLY CONSTANT -- and
+    ``norm_init`` scales each neuron's incoming weights by its in-degree, so
+    the raw hash quietly degenerates that mechanism while every density check
+    stays green. ``_seeding.mix32`` (numpy), ``na-kernels`` (rust),
+    ``cuda_engine._fmix32`` and all four sites in ``kernels/implicit.py``
+    finalize; this file claimed to be the "same hash function as
+    cuda_engine._hash_bernoulli_2d" and was not, so the two engines disagreed
+    about 9.5% of cells -- see ``tests/test_torch_hash_finalizer.py``.
+
+    Torch's ``>>`` on int32 is ARITHMETIC, so each logical shift is masked back
+    to the bits a uint32 shift would keep. The multiplies wrap, which is
+    exactly uint32 arithmetic mod 2**32.
+    """
+    h = h ^ ((h >> 16) & 0xFFFF)
+    h = h * _FMIX_M1
+    h = h ^ ((h >> 13) & 0x7FFFF)
+    h = h * _FMIX_M2
+    h = h ^ ((h >> 16) & 0xFFFF)
+    return h
+
+
 # ---------------------------------------------------------------------------
 # Hash-based Bernoulli matrices
 # ---------------------------------------------------------------------------
@@ -62,8 +102,9 @@ def hash_bernoulli_2d(row_start, row_end, col_start, col_end,
                       pair_seed, p, device='cuda'):
     """Vectorized hash-based Bernoulli(p) matrix on GPU using PyTorch.
 
-    Same hash function as cuda_engine._hash_bernoulli_2d but using
-    torch ops instead of CuPy.  Returns torch tensor in WEIGHT_DTYPE.
+    Same hash function as cuda_engine._hash_bernoulli_2d -- INCLUDING the
+    fmix32 finalizer, whose absence here made that claim false and the two
+    engines disagree about 9.5% of cells. See `_fmix32`.
     """
     nr = row_end - row_start
     nc = col_end - col_start
@@ -79,6 +120,7 @@ def hash_bernoulli_2d(row_start, row_end, col_start, col_end,
     h = (r * ha) ^ (c * hb)
     seed_s32 = _to_signed32(pair_seed)
     h = h ^ torch.tensor(seed_s32, dtype=torch.int32, device=device)
+    h = _fmix32(h)
     threshold = int(p * 16777216.0)
     return ((h & 0xFFFFFF) < threshold).to(WEIGHT_DTYPE)
 
@@ -106,7 +148,7 @@ def hash_stim_counts(stim_size, neuron_start, neuron_end,
                                   dtype=torch.int32, device=device)
         s, n = torch.meshgrid(stim_ids, neuron_ids, indexing='ij')
         h = (s * ha) ^ (n * hb)
-        h = h ^ seed_t
+        h = _fmix32(h ^ seed_t)
         connected = (h & 0xFFFFFF) < threshold
         return connected.sum(dim=0).to(WEIGHT_DTYPE)
     else:
@@ -119,7 +161,7 @@ def hash_stim_counts(stim_size, neuron_start, neuron_end,
                                     dtype=torch.int32, device=device)
             s, n = torch.meshgrid(stim_ids, neuron_ids, indexing='ij')
             h = (s * ha) ^ (n * hb)
-            h = h ^ seed_t
+            h = _fmix32(h ^ seed_t)
             connected = (h & 0xFFFFFF) < threshold
             result += connected.sum(dim=0).to(WEIGHT_DTYPE)
         return result
