@@ -100,3 +100,61 @@ rather than fitting the surviving points -- the failure mode that produced the
 
 Protocol difference from the registered ceiling study is restated in the RESULT
 section, so the two sets of numbers cannot be read as comparable later.
+
+---
+
+## Amendment 1: the smoke run found the protocol substitution is NOT equivalent
+
+`--smoke` is an API check whose numbers are void by construction, but two of its
+observations are structural rather than statistical and are recorded here
+BEFORE any real run, because both change the registered protocol.
+
+### 1. Removing the stimulus removed the ANCHOR, not just the fiber
+
+The registered protocol trains with `project({s: [AREA]}, {AREA: [AREA]})` for T
+rounds -- the stimulus fires EVERY round. The substitution above applies the cue
+once, as the initial winner set, and lets recurrence run. Those are not the same
+protocol: without a persistent input the assembly has nothing to converge
+toward. Smoke (4 brains, void numbers, shape only):
+
+    B n=1000 M=4   rank1 0.188   fill 0.767
+    B n=2000 M=4   rank1 0.250   fill 0.600
+    B n=1000 M=8   rank1 0.125   fill 0.852   pw/chance 4.84
+
+Four assemblies are already barely retrievable and the area is 77-85% churned.
+A ceiling measured on this protocol would be a ceiling on a system that does not
+form stable assemblies, so **CAP1-CAP4 are not evaluated and no result is
+claimed**. This is the anchored regime the project has named before
+([[minibatch-training-equivalence]] calls it "the stable stim-anchored regime");
+the anchor was doing work the substitution silently dropped.
+
+**The study is BLOCKED on a hash-generated stimulus fiber**, which needs its own
+`norm_init` pricing to stay commensurable with the area drive -- adding a raw
+stimulus count (~k*p = 30) to an area drive divided by d_j (~0.06) would let the
+stimulus decide every winner, which is the documented failure mode of getting
+`_pricing` wrong.
+
+### 2. Substrate C's clip guard was too conservative, and is fixed
+
+`batched_project_hashed` refuses to run substrate C when the `w_max` clip could
+bind, because column scaling and `min()` do not commute. The first bound used
+`tab[-1]`, the deepest value the table can hold; the second used `tab[elapsed]`.
+Both are wrong in the same direction: they assume some cell was potentiated on
+EVERY round so far, so once `elapsed` passes ~31 at beta=0.10 the table
+saturates at `w_max` and the guard trips regardless of the data. Measured, the
+actual column scale is 1.10 and stays there:
+
+    t=0  mass min 450.30 max 563.20  scale max 1.1104
+    t=7  mass min 452.70 max 543.30  scale max 1.1045
+
+`column_mass` itself is exact -- on an untrained state it reproduces the
+in-degree with `max|diff| 0` at W=1 and W=2. The guard needs the ACTUAL maximum
+count among scaled columns, which the mass kernel already computes per cell and
+could return; that is the fix, and it is not done yet.
+
+### What this costs
+
+Nothing measured is retracted: the substrate parity against `numpy_sparse`
+stands (`test_hashed_substrate_parity.py`, all four arms). What is retracted is
+the assumption that the capacity protocol could be run without a stimulus
+fiber. The registered bars stand unchanged and unevaluated.

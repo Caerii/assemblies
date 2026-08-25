@@ -36,7 +36,7 @@ from neural_assemblies.core.brain import Brain                  # noqa: E402
 from neural_assemblies.core.numpy_engine import _seeding        # noqa: E402
 from neural_assemblies.core.torch_engine import _fused_cuda     # noqa: E402
 from neural_assemblies.core.torch_engine._batched import (      # noqa: E402
-    _chain_table, _column_index)
+    _chain_table)
 
 AREA = "A"
 DEV = "cuda"
@@ -87,14 +87,15 @@ def _replay(mod, n, p, beta, T, pair, prevs, news, norm_init, scaling, w_max):
              if scaling else None)
     setpoint = max(float(n) * float(p), 1e-12)
     dj = mod.hashed_indegree(seeds_t, n, thr, 1.0) if norm_init else None
+    colids = torch.arange(n, dtype=torch.int32, device=DEV).view(1, n)
     hist, out = [], []
     for t in range(T):
         rows = torch.from_numpy(
             prevs[t].astype(np.int32)).to(DEV).view(1, -1).contiguous()
         d = mod.hashed_drive(rows, seeds_t, n, thr)
         if hist:
-            cid, cmask = _column_index(hist)
-            mod.dev_correct(rows, rowmask, cid, cmask, tab, seeds_t, thr, d)
+            mod.dev_correct(rows, rowmask, colids, colmask, tab, seeds_t,
+                            thr, d)
         if scale is not None:
             d = d * scale
         if dj is not None:

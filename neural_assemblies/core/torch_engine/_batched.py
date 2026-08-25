@@ -187,46 +187,14 @@ def _chain_table(beta, w_max, rounds):
     return out
 
 
-def _column_index(hist):
-    """Compact the touched columns and their round-masks.
-
-    ``hist`` is the list of per-round winner sets (``[B, k]`` each). Returns
-    ``(colids, colmask)``, both ``[B, C]``, where bit t of ``colmask`` says
-    "this column fired at round t".
-
-    The OR is done with ``scatter_add_`` deliberately: a column appears at most
-    ONCE per round (winners are distinct within a round), so the bits landing
-    on a given column are distinct powers of two and their SUM IS their OR.
-    torch has no bitwise scatter-reduce; this identity avoids needing one.
-    """
-    T = len(hist)
-    B, k = hist[0].shape
-    device = hist[0].device
-    allc = torch.cat([h.long() for h in hist], dim=1)          # [B, T*k]
-    srt, order = torch.sort(allc, dim=1)
-    fresh = torch.ones_like(srt, dtype=torch.bool)
-    fresh[:, 1:] = srt[:, 1:] != srt[:, :-1]
-    loc = torch.cumsum(fresh, dim=1) - 1
-    C = int(fresh.sum(1).max())
-    colids = torch.zeros(B, C, dtype=torch.int64, device=device)
-    colids.scatter_(1, loc, srt)          # duplicates write the same value
-    bits = torch.cat(
-        [torch.full((B, k), 1 << t, dtype=torch.int64, device=device)
-         for t in range(T)], dim=1).gather(1, order)
-    colmask = torch.zeros(B, C, dtype=torch.int64, device=device)
-    colmask.scatter_add_(1, loc, bits)
-    # Padding slots keep colmask 0, so popcount(rowmask & 0) == 0 and the
-    # kernel skips them: a pad can never contribute a correction.
-    return colids.to(torch.int32), colmask
-
-
 MAX_LEARNING_ROUNDS = 64
 
 
 def batched_project_hashed(
     n, k, p, seeds, winners, rounds, *, beta=0.0, w_max=None,
     norm_init=False, synaptic_scaling=False, stim_drive=None,
-    return_drive=False,
+    return_drive=False, state=None, max_rounds=None, return_state=False,
+    freeze=False,
 ):
     """B INDEPENDENT connectomes, GENERATED rather than stored.
 
@@ -278,6 +246,17 @@ def batched_project_hashed(
             Taken as already on the post-norm scale: this path does not
             hash-generate stimuli, so it cannot price them.
         return_drive: also return the final ``[B, n]`` drive.
+        state: learned state from a previous call, to CONTINUE training. A
+            capacity protocol stores many assemblies in ONE area, so the
+            episodes must share a connectome; passing the returned state back
+            is what makes them compete instead of starting fresh.
+        max_rounds: total rounds this state will ever see. Sets the round-mask
+            width (one 64-bit word per 64 rounds); defaults to ``rounds``.
+        return_state: also return the state, for the next episode.
+        freeze: READ the learned state without writing to it -- the
+            equivalent of `brain.probe()`. A retrieval that quietly
+            trained on its own cue would score itself
+            ([[probe-isolation-required]]).
 
     Returns:
         ``[B, k]`` int64 winner indices.
@@ -316,20 +295,42 @@ def batched_project_hashed(
     threshold = _fused_cuda.threshold_for(p)
 
     track = learn or synaptic_scaling
-    rowmask = colmask_d = tab = scale = None
-    setpoint = 0.0
-    hist = []
-    if track:
-        rowmask = torch.zeros(B, n, dtype=torch.int64, device=device)
-        colmask_d = torch.zeros(B, n, dtype=torch.int64, device=device)
-        tab = torch.from_numpy(_chain_table(beta, w_max, rounds)).to(device)
-    if synaptic_scaling:
-        # Substrate C. `_scale_columns_now` renormalises each WINNER column to
-        # `setpoint = rows * p_fiber` -- the fiber's p, not the brain's, which
-        # is the third member of the pricing-law defect class. Every row exists
-        # here, so `rows` is n.
-        scale = torch.ones(B, n, dtype=torch.float32, device=device)
-        setpoint = max(float(n) * float(p), 1e-12)
+    if freeze and state is None:
+        raise ValueError("freeze=True reads a learned state; none was given")
+    total = int(max_rounds or rounds)
+    if state is None:
+        state = {"t": 0, "hist": [], "W": max(1, (total + 63) // 64)}
+        W = state["W"]
+        if track:
+            # Masks are [B, W, n]: W 64-bit words, so the history is not capped
+            # at 64 rounds. The word dimension is OUTER so that threads walking
+            # consecutive rows read coalesced memory for a fixed word.
+            state["rowmask"] = torch.zeros(B, W, n, dtype=torch.int64,
+                                           device=device)
+            state["colmask"] = torch.zeros(B, W, n, dtype=torch.int64,
+                                           device=device)
+            state["tab"] = torch.from_numpy(
+                _chain_table(beta, w_max, total)).to(device)
+            state["colids"] = torch.arange(n, dtype=torch.int32,
+                                           device=device).expand(B, n)
+        if synaptic_scaling:
+            # Substrate C. `_scale_columns_now` renormalises each WINNER column
+            # to `setpoint = rows * p_fiber` -- the fiber's p, not the brain's,
+            # which is the third member of the pricing-law defect class. Every
+            # row exists here, so `rows` is n.
+            state["scale"] = torch.ones(B, n, dtype=torch.float32,
+                                        device=device)
+    rowmask = state.get("rowmask")
+    colmask_d = state.get("colmask")
+    tab = state.get("tab")
+    scale = state.get("scale")
+    hist = state["hist"]
+    setpoint = max(float(n) * float(p), 1e-12)
+    if track and not freeze and state["t"] + rounds > state["W"] * 64:
+        raise ValueError(
+            f"round {state['t'] + rounds} exceeds the mask width "
+            f"({state['W']} words = {state['W'] * 64} rounds). Pass "
+            "max_rounds covering every episode this state will see.")
 
     # Substrate B. `_pricing.inverse_indegree` computes
     # `d_j = deg_j + p * (n_pre - rows_known)` because engines materialise
@@ -347,10 +348,10 @@ def batched_project_hashed(
     drive = None
     for t in range(rounds):
         drive = mod.hashed_drive(idx.contiguous(), seeds_t, n, threshold)
-        if learn and hist:
-            colids, colmask = _column_index(hist)
-            mod.dev_correct(idx.contiguous(), rowmask, colids, colmask,
-                            tab, seeds_t, threshold, drive)
+        if tab is not None and (state["t"] + t) > 0:
+            # The dense colmask IS the column index; `colids` is the identity.
+            mod.dev_correct(idx.contiguous(), rowmask, state["colids"],
+                            colmask_d, tab, seeds_t, threshold, drive)
         if scale is not None:
             drive = drive * scale
         if dj is not None:
@@ -364,14 +365,16 @@ def batched_project_hashed(
                 f"k-WTA candidate set overflowed ({bad} candidates) -- the "
                 "drive is too flat for the histogram to narrow. Refusing to "
                 "return a truncated winner set.")
-        if track:
-            bit = 1 << t
+        if track and not freeze:
+            gt = state["t"] + t
+            wrd, bit = gt // 64, 1 << (gt % 64)
             pidx, sidx = idx.long(), sel.long()
-            rowmask.scatter_(1, pidx, rowmask.gather(1, pidx) | bit)
-            colmask_d.scatter_(1, sidx, colmask_d.gather(1, sidx) | bit)
+            rw, cw = rowmask[:, wrd], colmask_d[:, wrd]
+            rw.scatter_(1, pidx, rw.gather(1, pidx) | bit)
+            cw.scatter_(1, sidx, cw.gather(1, sidx) | bit)
             if learn:
                 hist.append(sel)
-        if scale is not None:
+        if scale is not None and not freeze:
             # Masks are updated FIRST: the engine scales after applying this
             # round's potentiation, so the mass must include it.
             mass = mod.column_mass(sel.contiguous(), rowmask, colmask_d,
@@ -381,7 +384,13 @@ def batched_project_hashed(
                 # The factorisation assumes min() never fires. Conservative
                 # bound on any cell: deepest potentiation times the largest
                 # accumulated scale. Refuse rather than diverge quietly.
-                bound = float(tab[-1].item()) * float(scale.max().item())
+                # Bound on the DEEPEST POSSIBLE count so far, not on the
+                # worst the table can hold: no cell can have been potentiated
+                # more times than rounds have elapsed. Using tab[-1] made the
+                # guard fire whenever the table itself saturated, which is
+                # always once max_rounds is large.
+                elapsed = min(state["t"] + t + 1, int(tab.numel()) - 1)
+                bound = float(tab[elapsed].item()) * float(scale.max().item())
                 if bound >= float(w_max):
                     raise RuntimeError(
                         f"synaptic_scaling would cross w_max={w_max} (bound "
@@ -390,5 +399,11 @@ def batched_project_hashed(
                         "longer exact. Re-run with w_max=None or fewer rounds.")
         idx = sel
 
+    if track and not freeze:
+        state["t"] += rounds
     out = idx.to(torch.int64)
+    if return_drive and return_state:
+        return out, drive, state
+    if return_state:
+        return out, state
     return (out, drive) if return_drive else out

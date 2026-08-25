@@ -187,7 +187,7 @@ __global__ void dev_correct_kernel(
     const long long* __restrict__ colmask, // [B, C] bit t = fired at t
     const float* __restrict__ tab, int ntab,
     const int* __restrict__ seeds,
-    int B, int K, int C, int N, int threshold,
+    int B, int K, int C, int N, int W, int threshold,
     float* __restrict__ out)
 {
     long long idx = blockIdx.x * (long long)blockDim.x + threadIdx.x;
@@ -197,10 +197,17 @@ __global__ void dev_correct_kernel(
     int s = (int)(q % K), b = (int)(q / K);
 
     int i = S[(long long)b * K + s];
-    unsigned long long rm = (unsigned long long)rowmask[(long long)b * N + i];
-    if (rm == 0ULL) return;
-    unsigned long long cm = (unsigned long long)colmask[(long long)b * C + cj];
-    int c = __popcll(rm & cm);
+    // Masks are [B, W, n] / [B, W, C]: W 64-bit words per entry, so the
+    // history is not capped at 64 rounds. count[i,j] = sum_w popcount(&).
+    int c = 0;
+    for (int w = 0; w < W; ++w) {
+        unsigned long long rm =
+            (unsigned long long)rowmask[((long long)b * W + w) * N + i];
+        if (rm == 0ULL) continue;
+        unsigned long long cm =
+            (unsigned long long)colmask[((long long)b * W + w) * C + cj];
+        c += __popcll(rm & cm);
+    }
     if (c == 0) return;
 
     int j = colids[(long long)b * C + cj];
@@ -262,22 +269,26 @@ __global__ void colmass_kernel(const int* __restrict__ cols,
                                const long long* __restrict__ colmask,
                                const float* __restrict__ tab, int ntab,
                                const int* __restrict__ seeds,
-                               int K, int N, int threshold,
+                               int K, int N, int W, int threshold,
                                float* __restrict__ out) {
     __shared__ float red[256];
     const int b = blockIdx.x / K, s = blockIdx.x % K;
     const int j = cols[(long long)b * K + s];
-    const unsigned long long cm =
-        (unsigned long long)colmask[(long long)b * N + j];
     const unsigned int ch =
         ((unsigned int)j * 2246822519u) ^ (unsigned int)seeds[b];
-    const long long rbase = (long long)b * N;
 
     float acc = 0.0f;
     for (int i = threadIdx.x; i < N; i += blockDim.x) {
         unsigned int h = ac_fmix32(((unsigned int)i * 2654435761u) ^ ch);
         if ((h & 0x00FFFFFFu) >= (unsigned int)threshold) continue;
-        int c = __popcll((unsigned long long)rowmask[rbase + i] & cm);
+        int c = 0;
+        for (int w = 0; w < W; ++w) {
+            unsigned long long rm =
+                (unsigned long long)rowmask[((long long)b * W + w) * N + i];
+            if (rm == 0ULL) continue;
+            c += __popcll(rm & (unsigned long long)
+                          colmask[((long long)b * W + w) * N + j]);
+        }
         acc += (c < ntab) ? tab[c] : tab[ntab - 1];
     }
     red[threadIdx.x] = acc;
@@ -324,7 +335,8 @@ void dev_correct(torch::Tensor S, torch::Tensor rowmask, torch::Tensor colids,
         S.data_ptr<int>(), rowmask.data_ptr<int64_t>(),
         colids.data_ptr<int>(), colmask.data_ptr<int64_t>(),
         tab.data_ptr<float>(), (int)tab.numel(), seeds.data_ptr<int>(),
-        B, K, C, N, (int)threshold, out.data_ptr<float>());
+        B, K, C, N, (int)(rowmask.numel() / ((long long)B * N)),
+        (int)threshold, out.data_ptr<float>());
 }
 
 
@@ -349,13 +361,15 @@ torch::Tensor column_mass(torch::Tensor cols, torch::Tensor rowmask,
     cols = cols.contiguous(); rowmask = rowmask.contiguous();
     colmask = colmask.contiguous(); tab = tab.contiguous();
     seeds = seeds.contiguous();
-    const int B = cols.size(0), K = cols.size(1), N = rowmask.size(1);
+    const int B = cols.size(0), K = cols.size(1);
+    const int N = (int)colmask.size(-1);
+    const int W = (int)(rowmask.numel() / ((long long)B * N));
     auto out = torch::empty({B, (int64_t)K},
                             torch::dtype(torch::kFloat32).device(cols.device()));
     colmass_kernel<<<B * K, 256>>>(
         cols.data_ptr<int>(), rowmask.data_ptr<int64_t>(),
         colmask.data_ptr<int64_t>(), tab.data_ptr<float>(),
-        (int)tab.numel(), seeds.data_ptr<int>(), K, N, (int)threshold,
+        (int)tab.numel(), seeds.data_ptr<int>(), K, N, W, (int)threshold,
         out.data_ptr<float>());
     return out;
 }
