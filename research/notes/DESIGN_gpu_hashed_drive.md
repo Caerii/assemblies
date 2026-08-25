@@ -418,3 +418,88 @@ write-back at 0.0034, **no single term dominates any more** -- drive, selection
 and plasticity are within a factor of ~2 of each other. That is the natural
 stopping point for this line of optimisation: further work should go into
 integrating the design, not into shaving any one of the three.
+
+---
+
+## Amendment 5: integrated -- `batched_project_hashed`, and a hash defect found on the way
+
+Code: `neural_assemblies/core/torch_engine/_fused_cuda.py`,
+`_batched.batched_project_hashed`, `tests/test_fused_cuda.py`.
+Benchmark: `research/experiments/gpu_hashed_batched_bench.py`.
+
+### The integration point was already named in the codebase
+
+`_batched.py` says: "Batching across INDEPENDENT connectomes (data-parallel
+training of different brains) is Phase 3 -- it needs a block-diagonal CSR and is
+scoped separately." **It does not need a CSR at all.**
+`batched_project_independent` must materialise a `[B*n, B*n]` sparse matrix; at
+B=64, n=20000, p=0.05 that is 1.28e9 edges (~15 GB), so the
+independent-connectome case could not be run at organ scale. Regenerating the
+connectome inside the drive kernel leaves the `[B, n]` drive as the only memory.
+
+### A defect found before the integration could be built
+
+The kernel has to agree with the engine's hash, so the first step was to check
+it -- and `torch_engine/_hash.py` turned out to carry the docstring "Same hash
+function as cuda_engine._hash_bernoulli_2d" while containing **no fmix32
+finalizer**. Measured, reproducing the table in `kernels/implicit.py`:
+
+    source                   density  row disp  col disp   corr(i)
+    numpy Generator (ref)    0.04998     0.969     0.926  -0.00009
+    torch _hash.py (before)  0.04999     3.794     0.015  -0.05262
+    torch _hash.py (after)   0.04995     0.930     0.925   0.00047
+
+Column dispersion 0.015 means in-degree was nearly CONSTANT, and `norm_init`
+divides by in-degree -- so the raw hash quietly degenerated that mechanism while
+every density check stayed green. Agreement with the numpy/rust hash went
+0.905072 -> 1.000000. Fixed in `beb1372`; it does NOT close #98.
+
+### Verified against the engine, not against a transcription
+
+    hashed_drive == engine's stored W, summed over the row set : EXACT (torch.equal)
+    multi-round batched == stored-connectome reference          : EXACT, 1 and 3 rounds
+    selection == np.argsort(-x, kind='stable')[:k]              : EXACT
+
+The reference deliberately uses the SAME tie policy as the kernel, so the test
+isolates generated-vs-stored connectome from canonical-vs-unspecified tie order
+rather than conflating them.
+
+### Measured
+
+    where BOTH can run
+         n    k    B  rnds | blockdiag ms         nnz       MB | hashed ms    MB |  speed     mem
+      2048   40    8     3 |        4.862   1,677,168    168.7 |     0.808   0.1 |   6.0x  1238x
+      4096   60    8     3 |       18.521   6,708,907    671.9 |     0.801   0.3 |  23.1x  2495x
+      4096   60   16     3 |   53217. (*)  13,422,693   1342.4 |     0.831   0.5 |    (*)  2500x
+
+    (*) NOT a speedup figure. The block-diagonal path took 53 SECONDS here --
+    it is thrashing under 1.3 GB of CSR plus SpMM workspace. Reporting that
+    ratio as "64000x" would be quoting a memory collapse as arithmetic.
+
+    organ scale -- only the hashed path exists
+      n=20000 k= 70 B= 64:  1.12 ms,  10.3 MB | block-diagonal: 1.28e9 edges (~15 GB)
+      n=20000 k= 70 B=256:  3.17 ms,  42.2 MB | block-diagonal: 5.12e9 edges (~61 GB)
+      n=50000 k=100 B= 64:  3.18 ms,  25.7 MB | block-diagonal: 8.00e9 edges (~96 GB)
+
+**The memory ratio is the result, not the speed ratio.** 1238-2500x less memory
+is what converts "cannot run" into "runs in a millisecond".
+
+### What is NOT integrated, stated plainly
+
+* **Plasticity.** `batched_project_hashed` runs at beta=0. The GEMM write-back
+  (Amendment 3) and the deviation-corrected drive (Amendment 1) are verified as
+  prototypes but are not wired into this entry point, so this is the inference /
+  parse case, not training.
+* **The sequential engine is untouched.** `TorchSparseEngine.project_into`
+  selects over a 1-D array for one brain; a batched selector cannot help it, and
+  its k-WTA still goes through `torch.topk` / the CPU `WinnerSelector`.
+* **Tie order.** The selector is canonical (stable argsort by construction);
+  `torch.topk` and `heapq_select_top_k` are not. With 5-18 columns tied at the
+  bar this changes WHICH neurons fire. `_kwta_prune` records that making the
+  tie-break canonical is SCIENCE-AFFECTING and must not be smuggled in as an
+  optimisation -- so this is a SEPARATE entry point, never a faster path inside
+  an existing one, and nothing existing changed behaviour.
+* **Limits.** `n <= 65536` (the key packs a 16-bit index) and `k <= 1024`.
+  Candidate overflow raises rather than returning a truncated winner set.
+* The kernels need nvcc, a host compiler and ninja; absent those, `load()`
+  returns None, `available()` is False, and the tests skip.

@@ -164,3 +164,75 @@ def batched_project_independent(
     if return_weights:
         return idx_local, vals
     return idx_local
+
+
+def batched_project_hashed(
+    n, k, p, seeds, winners, rounds, *, stim_drive=None,
+    return_drive=False,
+):
+    """B INDEPENDENT connectomes, GENERATED rather than stored.
+
+    This is the case the module docstring calls Phase 3 and defers -- "it needs
+    a block-diagonal CSR and is scoped separately". It turns out not to need a
+    CSR at all. :func:`batched_project_independent` must materialise a
+    ``[B*n, B*n]`` sparse matrix, which at B=64, n=20000, p=0.05 is about 1.3
+    BILLION edges; the independent-connectome case simply cannot be run at
+    organ scale that way. Here the connectome is regenerated from its hash
+    inside the drive kernel, so the only memory is the ``[B, n]`` drive.
+
+    Each brain gets its own ``pair_seed``, which is what makes the connectomes
+    independent -- the same role the block offset plays in the block-diagonal
+    form.
+
+    Args:
+        n, k, p: area size, winners per round, connection probability.
+        seeds: ``[B]`` int32 pair seeds, one per brain (see
+            ``_hash.fnv1a_pair_seed``).
+        winners: ``[B, k]`` initial active set.
+        rounds: recurrent projection rounds.
+        stim_drive: optional ``[n]`` or ``[B, n]`` additive drive each round.
+        return_drive: also return the final ``[B, n]`` drive.
+
+    Returns:
+        ``[B, k]`` int64 winner indices.
+
+    Raises:
+        RuntimeError: if the fused kernels are unavailable, or if a brain's
+            candidate set overflows the selector's buffer. Neither is allowed
+            to degrade quietly into a wrong winner set.
+
+    NOTE ON TIES -- this does NOT reproduce :func:`batched_project_independent`
+    cell for cell. The selector here breaks ties to the smallest index (stable
+    argsort, by construction); ``torch.topk`` leaves tie order unspecified, and
+    the drive is an integer Bernoulli sum, so ties at the bar are the common
+    case rather than an edge case. That is a science-affecting difference and
+    is why this is a separate entry point rather than a faster path inside the
+    existing one. See ``_fused_cuda`` and ``_kwta_prune``.
+    """
+    from . import _fused_cuda
+
+    mod = _fused_cuda.load()
+    if mod is None:
+        raise RuntimeError(
+            "batched_project_hashed needs the fused CUDA kernels: "
+            f"{_fused_cuda.last_error()}")
+
+    device = winners.device
+    seeds_t = torch.as_tensor(seeds, dtype=torch.int32, device=device)
+    idx = winners.to(torch.int32)
+    threshold = _fused_cuda.threshold_for(p)
+    drive = None
+    for _ in range(rounds):
+        drive = mod.hashed_drive(idx.contiguous(), seeds_t, n, threshold)
+        if stim_drive is not None:
+            drive = drive + stim_drive
+        sel, ovf = mod.topk_select(drive, min(k, n))
+        bad = int(ovf.max())
+        if bad:
+            raise RuntimeError(
+                f"k-WTA candidate set overflowed ({bad} candidates) -- the "
+                "drive is too flat for the histogram to narrow. Refusing to "
+                "return a truncated winner set.")
+        idx = sel
+    out = idx.to(torch.int64)
+    return (out, drive) if return_drive else out
