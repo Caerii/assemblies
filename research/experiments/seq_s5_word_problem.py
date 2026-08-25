@@ -66,7 +66,8 @@ _W_MAX_DEFAULT = object()   # sentinel: None is a meaningful w_max (unclamped)
 
 
 def build(group_name, seed, arm, norm_init=False, synaptic_scaling=False,
-          organ_p=None, presentations=None, w_max=_W_MAX_DEFAULT):
+          organ_p=None, presentations=None, w_max=_W_MAX_DEFAULT,
+          refracted_strength=None):
     """`norm_init` defaults to the REGISTERED substrate (False, A1 parity).
 
     The soft-transition census made the parity clause -- "norm_init exists
@@ -94,7 +95,10 @@ def build(group_name, seed, arm, norm_init=False, synaptic_scaling=False,
     fsm = NemoArcFSM(brain, states=states, symbols=symbols,
                      transitions=transitions, n=n_arc, k=K, n_state=n_state,
                      beta=beta, organ_p=ORGAN_P if organ_p is None else organ_p,
-                     refracted_strength=REFRACTED, prefix="_wp")
+                     refracted_strength=(REFRACTED
+                                         if refracted_strength is None
+                                         else refracted_strength),
+                     prefix="_wp")
 
     if arm != "untrained":
         table = [(sym, fr, to) for fr, sym, to in transitions]

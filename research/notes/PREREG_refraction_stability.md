@@ -120,3 +120,43 @@ the bars are read against.
 
 Cost: ~110s -> ~35s per cell; 15 cells at 14 workers, ~1.5 min total.
 No bar changes.
+
+---
+
+## Amendment 2 (pre-data): the design did not reproduce its own phenomenon
+
+The API smoke exposed an error in this registration, not in the code.
+
+This note explains a decay measured in [[arc-training-is-not-batchable]]:
+identical-assembly fraction peaking ~0.57 at presentation 5-8 and falling to
+0.12 by 12. **That measurement ran with `synaptic_scaling=True`.** The design
+above registered `synaptic_scaling=False`. So as written the study could not
+reproduce the phenomenon it was built to explain -- and the smoke cell
+(strength=0.1, geometric, seed 42, scaling OFF) came back at terminal
+identical 0.842 and RISING, the opposite direction.
+
+Per the standing rule the smoke's numbers are VOID; what is not void is the
+structural fact that the registered factor set omits a variable already known
+to differ between the motivating measurement and this design.
+
+**Change:** `synaptic_scaling` becomes a FACTOR, {False, True}, crossed with
+the existing 5 refraction cells. 10 cells x 3 seeds = 30. Cost ~35s/cell at
+14 workers, ~2 min.
+
+**Bars R1-R4 now read against the scaling=True arm**, since that is the arm
+whose decay motivated them; the scaling=False arm is the control that says
+whether the phenomenon needs refraction at all. R1-R4 are otherwise unchanged
+and their thresholds are untouched.
+
+**New bar, stated now:**
+
+* **R5 (which mechanism):** terminal identical-assembly fraction is LOWER
+  with scaling ON than OFF, at equal refraction. *Prediction: PASSES (~70%)
+  on the smoke's direction.* If R5 passes, the decay is a HOMEOSTASIS effect
+  and this note's geometric-refraction mechanism is not the explanation --
+  in which case R1-R3 may well pass while the story that motivated them is
+  wrong, and both get reported.
+
+This is the second time in this session that a mechanism read out of the code
+predicted the wrong thing (cf. the CUDA-graph hypothesis, refuted at 1.2x).
+Reading a mechanism is a hypothesis, not a measurement.
