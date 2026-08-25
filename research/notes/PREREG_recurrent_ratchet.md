@@ -417,3 +417,74 @@ transfer past their single-assembly setting.
   That is the next registration, not a conclusion here.
 * Whether C's higher `rank1_full` ceiling survives an in-regime re-run with
   pairwise distinctness as a GATE rather than a report.
+
+---
+
+## Amendment 4 (post-data): the repair, and what it does NOT repair
+
+The proposed repair was JOINT (across-fiber) normalization, flagged in
+`PREREG_substrate_c_homeostasis.md` as the first suspect. Measuring the
+mechanism first ruled it out and pointed somewhere else.
+
+### The gain deficit is CONSTANT, not a dilution
+
+Half-cue drive gain (member / non-member), in regime, T=8:
+
+    arm   M=1    M=2    M=4    M=8    M=16
+    B     2.19   2.21   2.55   2.69   2.10
+    C     1.62   1.62   1.61   1.85   1.68
+
+**Flat in M for both arms.** C fails at M=1 -- one assembly, no competition,
+nothing to share a budget with. So the failure is not capacity, not
+catastrophic forgetting (secondary at most), and not budget-sharing across
+assemblies or fibers.
+
+**This kills the joint-normalization repair before it was built.** The loss
+does not come from splitting a neuron's mass across fibers or across stored
+items; it comes from rescaling the potentiated column AT ALL. Joint
+normalization rescales the same column by a common factor and would incur the
+same loss. Not worth implementing on this evidence.
+
+Quantitatively: Hebbian supplies (1.1)^8 = 2.14x. B banks 2.19x -- all of it.
+C banks ~1.7x, losing ~25% to the rescale, and the completion threshold set
+by the non-member extreme value is ~2.03x. C misses by a constant margin.
+
+### The repair that follows: supply more gain, via BETA not depth
+
+Depth is ruled out (Amendment 3: T=40 merges the assemblies at 0.980
+pairwise). Beta is the other gain knob, and recurrence is genuinely graded in
+it ([[rounds-buy-convergence-beta-buys-maintenance]]). Substrate C, M=8,
+T=8, in regime, seeds 42-43:
+
+    beta   (1+beta)^8   rank1_half   pairwise
+    0.10      2.14        0.062        0.176
+    0.20      4.30        0.812        0.169
+    0.30      8.16        0.875        0.174
+    0.40     14.76        0.688        0.180
+
+**Completion is repaired, 0.062 -> 0.875, a 14x improvement**, switching on
+exactly where the threshold arithmetic said it would: 2.14x fails, 4.30x
+clears. The optimum at 0.30 with decline at 0.40 matches
+[[beta-opposes-capacity-and-depth]].
+
+### What beta does NOT repair
+
+Pairwise overlap is ~0.17 at EVERY beta -- 7x the chance floor of 0.025 --
+against B's 0.022. **The assemblies stay merged.** Beta buys back the
+retrieval gain and does nothing for distinctness.
+
+So substrate C has TWO independent defects and this repair addresses one:
+
+1. **gain deficit** -- constant ~25% loss to the column rescale. FIXED by
+   beta >= 0.2.
+2. **assembly merger** -- pairwise 7x chance at every beta and every M.
+   NOT fixed, mechanism unidentified.
+
+`norm_init` has neither defect: gain 2.10-2.69, pairwise 0.022, completion
+1.000. It remains the right default, and substrate C remains a lookup
+mechanism rather than an assembly mechanism until defect 2 is understood.
+
+**Open, and now sharply posed:** what does per-round column normalization do
+that merges assemblies, given it is a per-column SCALAR multiply and
+therefore preserves within-column ratios exactly? That is the next question,
+and it is a mechanism question, not a parameter sweep.
