@@ -116,48 +116,85 @@ def run_cell(n, arm, m_max, nbrain, rng):
     return out
 
 
-def measure(n, arm, sd, state, stored, nbrain, rng, cfg):
-    M = len(stored)
-    St = torch.stack(stored)                    # [M, B, K]
+def _set_hash(X):
+    """One int64 per winner set, order-canonical. `X` is [M, B, K] SORTED."""
+    pos = torch.arange(X.shape[2], device=X.device,
+                       dtype=torch.int64).view(1, 1, -1)
+    z = (X * 0x9E3779B97F4A7C15) ^ (pos * 0xBF58476D1CE4E5B9)
+    z = z ^ (z >> 31)
+    z = z * 0x94D049BB133111EB
+    z = z ^ (z >> 29)
+    return z.sum(dim=2)
 
-    # -- distinctness: EXACT duplicates, which spread is nearly blind to
-    key = torch.sort(St, dim=2).values
-    dist = []
-    for b in range(nbrain):
-        rows = [tuple(key[a, b].tolist()) for a in range(M)]
-        dist.append(len(set(rows)) / M)
+
+def _overlaps(Ks, ia, ib):
+    """|A ∩ B| / K for sampled pairs, without leaving the GPU.
+
+    `Ks` is [M, B, K] sorted along K, so `searchsorted` finds each element of
+    one set in the other and a gather confirms equality. Winners are distinct
+    within a set, so no de-duplication is needed.
+    """
+    A, Bv = Ks[ia], Ks[ib]                          # [P, B, K]
+    K = Ks.shape[2]
+    idx = torch.searchsorted(A.contiguous(), Bv.contiguous()).clamp_(max=K - 1)
+    hit = torch.gather(A, 2, idx) == Bv
+    return hit.sum(2).float() / K                   # [P, B]
+
+
+def measure(n, arm, sd, state, stored, nbrain, rng, cfg):
+    """All four metrics on the GPU.
+
+    The earlier version did `M x B` `.tolist()` calls for distinctness, a
+    Python `set()` intersection per sampled pair, and an M-iteration gather
+    loop inside EVERY recall. That made the study measurement-bound rather than
+    GPU-bound: the kernels cost ~0.09 ms per brain-round and the study was
+    paying ~0.65.
+    """
+    M = len(stored)
+    St = torch.stack(stored).long()                 # [M, B, K]
+    K = St.shape[2]
+    Ks = torch.sort(St, dim=2).values                # canonical order
+
+    # -- distinctness: EXACT duplicates, which spread is nearly blind to.
+    # Hash each set to an int64, sort along M, count consecutive differences.
+    h = _set_hash(Ks)                                # [M, B]
+    sh, _ = torch.sort(h, dim=0)
+    fresh = torch.ones_like(sh, dtype=torch.bool)
+    fresh[1:] = sh[1:] != sh[:-1]
+    dist = (fresh.sum(0).double() / M).cpu().numpy()
 
     # -- pairwise overlap on a sample of pairs
-    npair = min(PAIR_SAMPLE, M * (M - 1) // 2) if M > 1 else 0
     pw = np.zeros(nbrain)
-    if npair:
+    if M > 1:
+        npair = min(PAIR_SAMPLE, M * (M - 1) // 2)
         ia = rng.integers(0, M, npair)
         ib = rng.integers(0, M, npair)
         keep = ia != ib
-        ia, ib = ia[keep], ib[keep]
-        for b in range(nbrain):
-            ov = [len(set(St[x, b].tolist()) & set(St[y, b].tolist())) / K
-                  for x, y in zip(ia, ib)]
-            pw[b] = float(np.mean(ov)) if ov else 0.0
-    chance = K / n
-    pw_x = pw / chance
+        if keep.any():
+            ia = torch.from_numpy(ia[keep]).to(DEV)
+            ib = torch.from_numpy(ib[keep]).to(DEV)
+            pw = _overlaps(Ks, ia, ib).mean(0).double().cpu().numpy()
+    pw_x = pw / (K / n)
 
     # -- half-cue rank-1, frozen (the probe equivalent)
     samp = rng.choice(M, min(RECALL_SAMPLE, M), replace=False)
-    hits = np.zeros(nbrain)
+    off = (torch.arange(nbrain, device=DEV, dtype=torch.int64)
+           * n).view(1, nbrain, 1)
+    flat = (St + off).reshape(-1)                    # [M*B*K], built once
+    hits = torch.zeros(nbrain, dtype=torch.int64, device=DEV)
     for a in samp:
-        half = St[a][:, : K // 2].contiguous()
+        half = St[a][:, : K // 2].to(torch.int32).contiguous()
         rec = batched_project_hashed(
             n, K, P, sd, half, T, beta=BETA, w_max=W_MAX, state=state,
             freeze=True, **cfg)
-        mask = torch.zeros(nbrain, n, dtype=torch.bool, device=DEV)
-        mask.scatter_(1, rec, True)
-        ov = torch.stack([mask.gather(1, St[x].long()).sum(1)
-                          for x in range(M)])          # [M, B]
-        hits += (ov.argmax(dim=0) == a).cpu().numpy()
-    rank1 = hits / len(samp)
+        mask = torch.zeros(nbrain * n, dtype=torch.bool, device=DEV)
+        mask[(rec + off[0]).reshape(-1)] = True
+        # ONE gather for all M stored assemblies, instead of M gathers.
+        ov = mask[flat].view(M, nbrain, K).sum(2)    # [M, B]
+        hits += (ov.argmax(dim=0) == int(a)).long()
+    rank1 = (hits.double() / len(samp)).cpu().numpy()
     return dict(rank1=rank1.tolist(), pairwise_x=pw_x.tolist(),
-                distinct=dist, fill=_fill(state, n).tolist())
+                distinct=dist.tolist(), fill=_fill(state, n).tolist())
 
 
 def _fill_at(cells, m_star):

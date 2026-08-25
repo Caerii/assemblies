@@ -1,0 +1,39 @@
+'vswhere.exe' is not recognized as an internal or external command,
+operable program or batch file.
+k=60 p=0.5 T=8 beta=0.1 w_max=20.0 brains=16
+  n=  4000 k=  60 kp=30.0 vs floor 3ln n=24.9  IN REGIME   k*k/n=0.90
+  n=  8000 k= 120 kp=60.0 vs floor 3ln n=27.0  IN REGIME   k*k/n=1.80
+  n= 16000 k= 240 kp=120.0 vs floor 3ln n=29.0  IN REGIME   k*k/n=3.60
+    B n= 4000 M=  32  rank1 1.000 pw/chance   1.37  distinct 1.000  fill 0.501  gated 1.000
+    B n= 4000 M=  48  rank1 1.000 pw/chance   1.50  distinct 1.000  fill 0.640  gated 1.000
+    B n= 4000 M=  64  rank1 0.758 pw/chance   1.84  distinct 0.999  fill 0.734  gated 0.758
+    B n= 4000 M=  72  rank1 0.322 pw/chance   2.55  distinct 0.987  fill 0.770  gated 0.000
+    B n= 4000 M=  80  rank1 0.039 pw/chance   3.85  distinct 0.955  fill 0.800  gated 0.000
+    B n= 4000 M=  88  rank1 0.016 pw/chance   5.88  distinct 0.895  fill 0.825  gated 0.000
+    B n= 4000 M=  96  rank1 0.023 pw/chance   9.13  distinct 0.822  fill 0.847  gated 0.000
+    B n= 4000 M= 128  rank1 0.002 pw/chance  18.18  distinct 0.617  fill 0.908  gated 0.000
+    B n= 4000 k=  60  CEILING M* = 66.6  bracket [64, 72)  interior 1  fill@M* 0.746  M*k/n 0.999  ok
+    B n= 8000 M=  32  rank1 1.000 pw/chance   1.40  distinct 1.000  fill 0.469  gated 1.000
+    B n= 8000 M=  48  rank1 1.000 pw/chance   1.42  distinct 1.000  fill 0.605  gated 1.000
+    B n= 8000 M=  64  rank1 1.000 pw/chance   1.58  distinct 1.000  fill 0.704  gated 1.000
+    B n= 8000 M=  72  rank1 0.574 pw/chance   1.88  distinct 1.000  fill 0.742  gated 0.574
+    B n= 8000 M=  80  rank1 0.188 pw/chance   2.88  distinct 0.977  fill 0.774  gated 0.000
+    B n= 8000 M=  88  rank1 0.012 pw/chance   4.26  distinct 0.914  fill 0.801  gated 0.000
+    B n= 8000 M=  96  rank1 0.018 pw/chance   7.67  distinct 0.838  fill 0.823  gated 0.000
+    B n= 8000 M= 128  rank1 0.010 pw/chance  16.77  distinct 0.628  fill 0.890  gated 0.000
+    B n= 8000 k= 120  CEILING M* = 73.0  bracket [72, 80)  interior 1  fill@M* 0.746  M*k/n 1.095  ok
+    B n=16000 M=  32  rank1 1.000 pw/chance   1.34  distinct 1.000  fill 0.440  gated 1.000
+    B n=16000 M=  48  rank1 1.000 pw/chance   1.41  distinct 1.000  fill 0.575  gated 1.000
+    B n=16000 M=  64  rank1 0.777 pw/chance   1.70  distinct 1.000  fill 0.674  gated 0.777
+    B n=16000 M=  72  rank1 0.186 pw/chance   2.46  distinct 0.981  fill 0.713  gated 0.186
+    B n=16000 M=  80  rank1 0.025 pw/chance   4.09  distinct 0.921  fill 0.746  gated 0.000
+    B n=16000 M=  88  rank1 0.014 pw/chance   6.25  distinct 0.839  fill 0.775  gated 0.000
+    B n=16000 M=  96  rank1 0.023 pw/chance   9.96  distinct 0.769  fill 0.800  gated 0.000
+    B n=16000 M= 128  rank1 0.008 pw/chance  19.01  distinct 0.577  fill 0.876  gated 0.000
+    B n=16000 k= 240  CEILING M* = 67.6  bracket [64, 72)  interior 2  fill@M* 0.692  M*k/n 1.014  ok
+
+  elapsed 46.6s
+
+--- CAP2: fit log M* = a + b log n over UNCENSORED n ---
+    B: b = 0.011 [-0.126, 0.148] over 3 points -> SUBLINEAR
+  wrote F:\Github\assemblies\research\experiments\capacity_scaling_results.json
