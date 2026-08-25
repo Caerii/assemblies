@@ -216,3 +216,53 @@ Follow-ups this earns, in order:
    capacity cannot be the explanation. That is a mechanism question about the
    self-fiber, not a load question.
 3. The T-window/theorem-depth conflict, now measured on both substrates.
+
+---
+
+## Amendment (post-data): RC4 IS NOT INTERPRETABLE AS WRITTEN
+
+Two defects in the RC4 reading, found while building the regime warning.
+
+**1. The whole study ran OUT OF REGIME.** n=2000, k=50, p=0.05 gives
+`kp = 2.5` against the [[SEQ-REGIME]] floor of `3 ln n = 22.8` -- **9.1x
+below**. The design section above asserted the sweep would "bracket the ~32
+ratchet ceiling", and it does, but it never checked the connectivity
+precondition. `regime_audit`'s own docstring says exactly what this costs: "a
+null there is not evidence about the mechanism." RC4 is a null. It was read
+as evidence about the substrate.
+
+This is the SECOND time in one session (the S5 organ was 1.06x below and that
+cost a whole study). The warning added alongside this amendment exists so it
+cannot be the third.
+
+**2. Raising kp into regime did NOT rescue completion, and the number is
+below chance.** Sweeping p at M=8, T=8, everything else fixed:
+
+    p     kp    reach    rank1_full   rank1_half
+    0.05   2.5  0.7226     1.000        0.125
+    0.15   7.5  0.9828     1.000        0.000
+    0.30  15.0  0.9999     1.000        0.000
+    0.50  25.0  1.0000     1.000        0.000     <- in regime
+
+Reachability goes to 1.0000 and half-cue rank-1 goes to ZERO. Chance is
+1/M = 0.125, so 0.000 is BELOW chance, systematically. A clean null sits AT
+chance; sitting below it, at every setting, is the signature of an instrument
+defect, not of an absent attractor -- the same shape as
+[[two-index-spaces-compact-vs-neuron-id]], where a broken comparison read as
+exactly chance and was mistaken for a real negative for months.
+
+**So the claim "these areas implement a stimulus-keyed lookup, not an
+attractor basin" is WITHDRAWN.** It may well be true; this study cannot
+support it. What stands is RC3, which is a comparison BETWEEN arms measured
+by the same instrument at the same settings, and is therefore robust to a
+constant instrument bias in a way an absolute null is not.
+
+**Before RC4 is re-read, in order:**
+1. Validate the half-cue probe against a positive control -- an assembly
+   formed and immediately half-cued with no competitors (M=1). If completion
+   fails at M=1 the probe is broken, full stop.
+2. Check whether `project({}, {AREA: [AREA]})` survives the `a != target`
+   filter under `recurrent_projection=True`, since a silently dropped
+   self-projection would produce exactly this reading
+   ([[silent-no-op-dead-fibers]]).
+3. Only then re-run in regime.

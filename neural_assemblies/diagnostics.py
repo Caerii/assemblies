@@ -964,7 +964,7 @@ class Regime:
 
 
 def regime_audit(brain, driven: Optional[Mapping[str, Sequence[str]]] = None,
-                 p: Optional[float] = None) -> List[Regime]:
+                 p: Optional[float] = None, warn: bool = True) -> List[Regime]:
     """Per-area afferent count against the ``k*p >= 3 ln n`` floor [[SEQ-REGIME]].
 
     Run this on any organ BEFORE concluding that a mechanism does not work.
@@ -1024,7 +1024,72 @@ def regime_audit(brain, driven: Optional[Mapping[str, Sequence[str]]] = None,
             out.append(Regime(name, n, int(getattr(area, "k", 0) or 0),
                               afferents, 3.0 * math.log(n),
                               None if driven is None else list(driven.get(name, ()))))
+
+    # WARN, do not merely report. This function has been called by four
+    # experiments for months and only ever PRINTED a table, which at the
+    # bottom of a run log is indistinguishable from silence: the S5 organ
+    # printed `kp 28.0 vs floor 29.7` on every single run and the violation
+    # went unacted-on until a study was built to explain the resulting
+    # defects, and a later recurrence study ran at kp 2.5 against a floor of
+    # 22.8 -- 9.1x below -- and read its own null as a fact about the
+    # mechanism. Both are exactly the mistake the docstring above warns about.
+    # A RuntimeWarning reaches stderr, survives into logs, and can be promoted
+    # to an error with -W; a printed row cannot do any of those.
+    if warn:
+        # An area the drive map does not mention is NOT being driven in this
+        # protocol, so it has nothing to be in or out of regime about.
+        # Flagging it reports a dead fiber for every bystander area and
+        # trains the reader to ignore the warning -- which is precisely the
+        # failure this warning exists to correct.
+        bad = [r for r in out if not r.in_regime
+               and (r.driven is None or len(r.driven) > 0)]
+        if bad:
+            import warnings
+            def _row(r):
+                kp = float(r.total) if r.total.defined else r.largest
+                # A zero-afferent area is not "10^10 x below floor" -- it is
+                # a fiber that delivers NOTHING, which is a different defect
+                # ([[silent-no-op-dead-fibers]]) and should read as one.
+                ratio = (f"{r.floor / kp:.1f}x below" if kp > 0
+                         else "NO AFFERENTS -- dead fiber, not a regime miss")
+                return f"{r.area}: kp={kp:.1f} vs floor {r.floor:.1f} ({ratio})"
+            rows = "; ".join(_row(r) for r in bad)
+            warnings.warn(
+                f"OUT OF REGIME [[SEQ-REGIME]]: {rows}. The sequence theorems "
+                f"assume k*p >= 3 ln n; below it winner selection is not "
+                f"repeatable and the theory predicts failure REGARDLESS of the "
+                f"mechanism under test -- a null measured here is not evidence "
+                f"about that mechanism. Raise the fiber density "
+                f"(`Brain.add_connectivity`) or k, or lower n. Pass "
+                f"warn=False to silence once you have decided out-of-regime is "
+                f"what you meant to measure.",
+                RuntimeWarning, stacklevel=2)
     return out
+
+
+def require_regime(brain, driven=None, p=None):
+    """`regime_audit` as a HARD GATE: raise unless every area clears its floor.
+
+    For experiments that should not start at all out of regime. The warning
+    emitted by `regime_audit` is the right default -- plenty of legitimate work
+    is deliberately below floor -- but a registered study whose conclusion
+    would be void out of regime should say so in code rather than in a note
+    nobody re-reads.
+
+    Returns the audit rows on success so the caller can still print them.
+    """
+    rows = regime_audit(brain, driven, p, warn=False)
+    bad = [r for r in rows if not r.in_regime
+           and (r.driven is None or len(r.driven) > 0)]
+    if bad:
+        detail = "; ".join(
+            f"{r.area}: kp="
+            f"{float(r.total) if r.total.defined else r.largest:.1f}"
+            f" vs floor {r.floor:.1f}" for r in bad)
+        raise RuntimeError(
+            f"refusing to run OUT OF REGIME [[SEQ-REGIME]]: {detail}. "
+            f"A null here is not evidence about the mechanism under test.")
+    return rows
 
 
 def collapse_scan(brain, stored_by_area: Mapping[str, Mapping]
