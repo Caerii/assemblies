@@ -130,28 +130,38 @@ class PotentiatedSupport:
     not their index -- finding them costs exactly the O(k*n) scan the prune is
     trying to avoid. Plasticity, on the other hand, knows precisely which cells
     it touched: `_apply_plasticity` multiplies the full cross product
-    `rows x cols`. Recording that costs O(k^2) against a drive read of O(k*n).
+    `rows x cols`. Recording that is O(k^2) against a drive read of O(k*n).
 
-    STORED CSR-STYLE, NOT AS A DICT OF ARRAYS. The first version kept a dict
-    and looped over active rows, doing one small fancy-index gather each --
-    which measured 6-10x SLOWER than the dense read it was meant to replace,
-    because k separate gathers plus k dict lookups cost more than one
-    contiguous pass. The row-pointer layout turns the whole read into a single
-    vectorised gather, which is the only shape that can win.
+    TWO SHAPES THIS GOT WRONG, both caught by measurement rather than review,
+    and both worth keeping written down because they are the whole difference
+    between a win and an 8x loss:
 
-    The index is a SUPERSET of the potentiated set: a touched cell whose base
-    was 0 stays 0. That is why `correction` re-checks `> POTENTIATED` on the
+    1. **A gather per active row.** The first version looped over the active
+       rows doing one small fancy-index gather each. k separate gathers plus k
+       dict lookups cost more than one contiguous pass, and it measured 6-10x
+       SLOWER than the dense read it replaces.
+    2. **A global compiled index invalidated by every write.** The second
+       version laid the whole support out CSR-style and rebuilt it whenever
+       `note` was called -- i.e. every projection. That is O(TOTAL support) per
+       projection where the read only needs O(ACTIVE support): at 17,000
+       materialised rows it rebuilt millions of entries to read tens of
+       thousands, and still measured 8x slower even while correctly discarding
+       97% of the columns.
+
+    So: per-row arrays, resolved LAZILY and only for the rows being read, then
+    ONE concatenate and ONE gather. Work is proportional to the active support
+    and to nothing else.
+
+    The index is a SUPERSET of the potentiated set -- a touched cell whose base
+    was 0 stays 0 -- which is why `correction` re-checks `> POTENTIATED` on the
     gathered VALUES rather than trusting membership.
     """
 
-    __slots__ = ("_rows", "_dirty", "_ptr", "_cols", "_order")
+    __slots__ = ("_rows", "_dirty")
 
     def __init__(self) -> None:
         self._rows: Dict[int, np.ndarray] = {}
         self._dirty: Dict[int, List[np.ndarray]] = {}
-        self._ptr: Optional[np.ndarray] = None      # compiled CSR
-        self._cols: Optional[np.ndarray] = None
-        self._order: Optional[np.ndarray] = None    # row id -> CSR slot
 
     def __len__(self) -> int:
         return len(set(self._rows) | set(self._dirty))
@@ -159,16 +169,25 @@ class PotentiatedSupport:
     def note(self, rows: Iterable[int], cols: np.ndarray) -> None:
         """Record that every (row, col) pair in the cross product was touched.
 
-        Deferred: the per-row union is materialised only when READ. A training
-        loop notes far more often than it prunes, and doing the sort/unique per
-        event made maintenance the dominant cost.
+        O(k) appends and nothing else: no sort, no unique, no global rebuild.
+        A training loop notes far more often than it prunes, so the per-row
+        union is deferred to whoever actually reads that row.
         """
         cols = np.asarray(cols, dtype=np.int64)
         if cols.size == 0:
             return
+        d = self._dirty
         for r in rows:
-            self._dirty.setdefault(int(r), []).append(cols)
-        self._ptr = None                     # invalidate the compiled form
+            d.setdefault(int(r), []).append(cols)
+
+    def _resolve(self, r: int) -> Optional[np.ndarray]:
+        """Fold pending writes for ONE row. Touches no other row."""
+        pend = self._dirty.pop(r, None)
+        if pend is not None:
+            have = self._rows.get(r)
+            parts = pend if have is None else [have] + pend
+            self._rows[r] = np.unique(np.concatenate(parts))
+        return self._rows.get(r)
 
     def clear(self) -> None:
         """Drop everything. The caller MUST do this whenever the index space it
@@ -178,27 +197,6 @@ class PotentiatedSupport:
         costs the prune; keeping a wrong one costs the science."""
         self._rows.clear()
         self._dirty.clear()
-        self._ptr = self._cols = self._order = None
-
-    def _compile(self) -> None:
-        """Fold pending events into per-row unions, then lay them out CSR."""
-        for r, pend in self._dirty.items():
-            have = self._rows.get(r)
-            parts = pend if have is None else [have] + pend
-            self._rows[r] = np.unique(np.concatenate(parts))
-        self._dirty.clear()
-        if not self._rows:
-            self._ptr = np.zeros(1, dtype=np.int64)
-            self._cols = np.empty(0, dtype=np.int64)
-            self._order = np.empty(0, dtype=np.int64)
-            return
-        ids = np.fromiter(sorted(self._rows), dtype=np.int64,
-                          count=len(self._rows))
-        lens = np.fromiter((len(self._rows[int(r)]) for r in ids),
-                           dtype=np.int64, count=len(ids))
-        self._ptr = np.concatenate([[0], np.cumsum(lens)])
-        self._cols = np.concatenate([self._rows[int(r)] for r in ids])
-        self._order = ids
 
     def correction(self, rows: Sequence[int], weights, n_cols: int
                    ) -> Tuple[np.ndarray, np.ndarray]:
@@ -208,47 +206,36 @@ class PotentiatedSupport:
         active rows; `touched` is the sorted set of columns with any
         potentiated cell there -- the columns the caller must evaluate.
 
-        ONE vectorised gather, not one per row. float64 for the reason in the
-        module docstring: the values stay float32, but summing the correction
-        in f32 drifts enough to fire spurious bound violations, which turns a
-        fast exact path into a slow one at random.
+        float64 for the reason in the module docstring: the values stay
+        float32, but summing the correction in f32 drifts enough to fire
+        spurious bound violations, turning a fast exact path slow at random.
         """
         empty = (np.zeros(n_cols, dtype=np.float64),
                  np.empty(0, dtype=np.int64))
         if n_cols <= 0:
             return empty
-        if self._ptr is None:
-            self._compile()
-        if self._order is None or len(self._order) == 0:
+
+        per_row: List[np.ndarray] = []
+        row_ids: List[int] = []
+        for r in rows:
+            ri = int(r)
+            cols = self._resolve(ri)
+            if cols is None or cols.size == 0:
+                continue
+            per_row.append(cols)
+            row_ids.append(ri)
+        if not per_row:
             return empty
 
-        want = np.asarray(rows, dtype=np.int64)
-        slot = np.searchsorted(self._order, want)
-        slot = slot[slot < len(self._order)]
-        if len(slot) == 0:
-            return empty
-        keep = self._order[slot] == want[:len(slot)]
-        slot = slot[keep]
-        if len(slot) == 0:
-            return empty
-
-        lens = self._ptr[slot + 1] - self._ptr[slot]
-        total = int(lens.sum())
-        if total == 0:
-            return empty
-        # Flat index into `_cols` for every (active row, touched col) pair,
-        # built without a Python loop: repeat each row's start, then add the
-        # within-row offset recovered from the running length total.
-        starts = np.repeat(self._ptr[slot], lens)
-        within = np.arange(total, dtype=np.int64) - np.repeat(
-            np.cumsum(lens) - lens, lens)
-        cols = self._cols[starts + within]
-        rrep = np.repeat(self._order[slot], lens)
+        lens = np.fromiter((len(c) for c in per_row), dtype=np.int64,
+                           count=len(per_row))
+        cols = np.concatenate(per_row)
+        rrep = np.repeat(np.asarray(row_ids, dtype=np.int64), lens)
 
         live = cols < n_cols
         if not live.all():
             cols, rrep = cols[live], rrep[live]
-            if len(cols) == 0:
+            if cols.size == 0:
                 return empty
         vals = np.asarray(weights[rrep, cols], dtype=np.float64)
         pot = vals > POTENTIATED

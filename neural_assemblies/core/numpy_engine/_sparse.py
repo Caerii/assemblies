@@ -43,6 +43,12 @@ from ._growth import GrowthMixin, _self_fiber_deferred_init  # noqa: F401
 from ._kwta_prune import (
     PotentiatedSupport, bound_outside, evaluate_set,
 )
+
+#: Above this share of the materialised columns the prune saves
+#: nothing and still pays for its own decision, so it declines.
+#: Not a tuning knob for accuracy -- the answer is exact at any
+#: value; it only decides when the fast path is worth taking.
+_PRUNE_MAX_FRACTION = 0.5
 from ._degree_norm import DegreeNormMixin
 from ._drive_cache import (  # noqa: F401
     DriveCacheMixin, _csr_storage_available, _CSR_MIN_CELLS,
@@ -2033,6 +2039,17 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
 
     # -- k-WTA bound-and-prune ----------------------------------------------
 
+    #: Opt-in from the environment as well as the attribute, so an experiment
+    #: can enable the prune on an organ whose Brain it does not construct
+    #: itself. Default OFF: every result in this repository was measured
+    #: without it, and it does not preserve the ORDER of exactly-tied winners.
+    _KWTA_PRUNE_ENV = "ASSEMBLIES_KWTA_PRUNE"
+
+    def _kwta_prune_on(self):
+        if getattr(self, "kwta_prune", False):
+            return True
+        return os.environ.get(self._KWTA_PRUNE_ENV, "") == "1"
+
     def _support_for(self, src_name, target):
         """Per-fiber index of the cells plasticity has touched. Lazy, so an
         engine that never prunes never pays for one."""
@@ -2069,7 +2086,7 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
         nothing has been computed twice. It declines more often than a
         gather-then-check would, and never guesses.
         """
-        if not getattr(self, "kwta_prune", False) or limit <= 0:
+        if not self._kwta_prune_on() or limit <= 0:
             return None
         # `record_activation` snapshots the FULL drive vector, so a pruned one
         # would hand the caller a partial vector that still looks like a
@@ -2135,10 +2152,41 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
         touch = (np.unique(np.concatenate(touched)) if touched
                  else np.empty(0, dtype=np.int64))
         ev = evaluate_set(touch, stim_total, k, limit)
-        if len(ev) < k or len(ev) >= limit:
-            return None                    # nothing to save
-        lo = corr[ev] + (stim_total[ev] if stim_total is not None else 0.0)
-        tau_lo = float(np.partition(lo, -k)[-k])
+        if len(ev) < k:
+            return None
+
+        def _tau(cand):
+            lo = corr[cand] + (stim_total[cand]
+                               if stim_total is not None else 0.0)
+            return float(np.partition(lo, -k)[-k])
+
+        tau_lo = _tau(ev)
+        # WIDEN BY THE STIMULUS BEFORE GIVING UP. The base term is bounded by
+        # |S| because it is Bernoulli 0/1; the STIMULUS term is not bounded by
+        # anything, and on a real organ one symbol drives thousands of columns
+        # hard. Evaluating only its top-k therefore leaves `bound_outside`
+        # enormous and the prune declines on exactly the workload it was built
+        # for -- measured on the Z60 arc: potentiated support 147 columns of
+        # 19,999 (0.7%), and it still declined 1,798 times out of 1,798.
+        #
+        # So take every column whose stimulus alone could still reach tau, in
+        # one pass. Widening can only help twice over: more candidates can only
+        # raise the k-th largest, and every column moved inside lowers the max
+        # left outside.
+        if stim_total is not None and tau_lo > total_active:
+            need = tau_lo - float(total_active)
+            extra = np.nonzero(stim_total[:limit] >= need)[0]
+            if len(extra):
+                ev = np.union1d(ev, extra.astype(np.int64))
+                if len(ev) >= k:
+                    tau_lo = _tau(ev)
+
+        # A prune that evaluates most of the area saves nothing and still pays
+        # for the decision. Checked AFTER widening, since widening is what
+        # decides how big the evaluated set really is.
+        if len(ev) >= _PRUNE_MAX_FRACTION * limit or len(ev) < k:
+            self._prune_misses = getattr(self, "_prune_misses", 0) + 1
+            return None
         if tau_lo > bound_outside(stim_total, ev, limit, total_active):
             self._prune_hits = getattr(self, "_prune_hits", 0) + 1
             return ev.astype(np.int64)
@@ -2339,7 +2387,7 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
                     # their index, and recovering it later would cost exactly
                     # the O(k*n) scan the prune exists to avoid. O(k^2) here
                     # against O(k*n) there.
-                    if getattr(self, "kwta_prune", False):
+                    if self._kwta_prune_on():
                         self._support_for(src_name, target).note(
                             np.asarray(to_cpu(valid_rows)),
                             np.asarray(to_cpu(valid_cols)))
