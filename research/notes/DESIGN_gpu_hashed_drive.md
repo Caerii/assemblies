@@ -242,3 +242,83 @@ CPU engine's 1.5-5 ms per projection:
 Still an order of magnitude and more, but the read-side number is not the one
 to quote. The last risk is retired: there is no insert-if-absent anywhere in
 the design.
+
+---
+
+## Amendment 3: the write-back is a GEMM — the sort was never necessary
+
+Prototype: `research/experiments/gpu_writeback_gemm_prototype.py`.
+
+Amendment 2 used the identity `count[i,j] = #{t : i in W[t-1], j in W[t]}` only
+to justify APPEND-ONLY writes. That was the weak reading of it. Written as
+algebra,
+
+    count = SUM_t  x_{t-1} x_t^T                                          (*)
+
+is a sum of T RANK-1 OUTER PRODUCTS, and two things follow that Amendment 2
+missed.
+
+### 1. The k^2 append is redundant by a factor of k/2, provably
+
+An event carries `2k` numbers. Writing the `k x k` cross product writes the same
+information `k/2` times over. That redundancy is created BEFORE the sort is
+reached, so no sorting strategy can recover it — which is why the deferred-merge
+experiment in Amendment 2 failed. It was optimising the wrong side of the pipe.
+
+### 2. Restricted to the touched rows and columns, (*) IS A MATRIX PRODUCT
+
+    count[i,j] = ( R^T C )[i,j],   R in {0,1}^{T x r},  C in {0,1}^{T x c}
+    R[t,i] = 1[i in W_{t-1}],      C[t,j] = 1[j in W_t]
+
+Both factors are THIN (T ~ 8, r,c ~ k). So the consolidation that the whole
+append-and-sort budget went into is a batched GEMM of 0/1 matrices — no keys, no
+radix sort, no segment reduce. Counts stay exact integers: 0/1 operands with
+T <= 255, so fp32 accumulation is exact and the result fits in uint8.
+
+### 3. There is no global store, because count is ADDITIVE
+
+Blocks are never merged with each other. Two items whose blocks collide in a
+cell are handled by the READER adding them, which is precisely what (*) says. So
+the store is a list of per-(brain, item) blocks `(rows, cols, counts)` and there
+is nothing to re-sort — which was the real cost centre: eager compaction
+re-sorted 189k stored cells to absorb 20k new ones, touching every element
+O(M) times.
+
+### Verified
+
+    462 nonzero cells, dict reference has 462 -> identical: True
+
+### Measured, same winner streams, same process
+
+     n    k    B    M   T |  sort s  ms/br/rd     MB |  gemm s  ms/br/rd    MB | speedup
+ 20000   50   64   32   8 |    0.45   0.02772  145.4 |   0.056   0.00341  17.1 |    8.1x
+ 20000   70   64   32   8 |    0.67   0.04118  284.0 |   0.056   0.00345  32.7 |   12.0x
+
+**The speedup column is not the finding.** The GEMM path is FLAT (0.00341 ->
+0.00345) while the baseline grows with the store (0.0277 -> 0.0412). Append+sort
+is O(store); the GEMM is O(k^2) per item regardless of accumulated history. A
+third row at M=64 would have shown exactly that divergence — the baseline
+reached 9.7 GB and was killed rather than allowed to thrash, so it is
+UNMEASURED and is not reported as a number.
+
+Memory falls 8.5x: a block is 2k indices plus a uint8 matrix, against int64 keys
+and int32 counts.
+
+### The headline, revised
+
+Write-back drops 0.039 -> 0.0034 ms/brain/round, which puts it BELOW the read
+side (0.003-0.007). It is no longer the bottleneck:
+
+    Amendment 2 end-to-end     35-110x
+    with the GEMM write-back  145-780x
+
+The read side is the binding constraint again, and within it top-k is a third to
+a half of the time — so a batched radix-select is now the next lever, as the
+original note predicted before write-back displaced it.
+
+### Still not covered
+
+The stimulus term (a per-column vector add). And the block store's READ path is
+argued, not measured: a block is already `(row, col, count)` triples in dense
+form, which is what the deviation kernel consumes, but no measurement here
+substitutes for the CSR read of Amendment 1.
