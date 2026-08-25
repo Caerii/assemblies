@@ -266,3 +266,64 @@ constant instrument bias in a way an absolute null is not.
    self-projection would produce exactly this reading
    ([[silent-no-op-dead-fibers]]).
 3. Only then re-run in regime.
+
+---
+
+## Amendment 2 (post-data): RC4's null is WRONG, and RC3 measured the wrong thing
+
+The two validations the previous amendment demanded were run. Both came back
+against my reading.
+
+### The probe was never broken -- completion WORKS
+
+Positive control at M=1, and then a sweep, all at p=0.5 so `kp = 25` clears
+the 22.8 floor. Half-cue rank-1 identity, seeds 42-44:
+
+    arm   M=8 per-seed          M=16 per-seed         pairwise (chance .025)
+    B     [1.000 1.000 1.000]   [1.000 0.938 1.000]   0.022
+    C     [0.000 0.125 0.250]   [0.125 0.375 0.250]   0.17-0.19
+
+**Assemblies in this substrate ARE noise-robust.** With `norm_init`, half a
+cue recovers the correct assembly essentially always, up to M=16, while
+pairwise overlap sits ON the chance floor. That is textbook assembly
+behaviour and it was available the whole time.
+
+RC4's null was wrong for TWO compounding reasons, either of which alone would
+have voided it: it was measured 9.1x out of regime, AND it was read off
+substrate C, the one substrate that destroys the property. The withdrawal in
+the previous amendment stands and is now replaced by a positive result.
+
+### RC3's metric cannot see what RC3 claimed
+
+`rank1_full` -- retrieval from the FULL stimulus cue -- is 1.000 for C at
+every M in this sweep. But C's pairwise overlap is 7x chance. A set of MERGED
+assemblies with distinct stimulus keys scores 1.000 on `rank1_full`, because
+the stimulus does the discriminating; the assemblies need not be distinct at
+all.
+
+So "C's M-ceiling exceeds B's" is not a statement about ASSEMBLY capacity.
+C sustains stimulus-keyed LOOKUP to higher M. Its assemblies are merged
+(7x chance) and cannot complete from a partial cue. B keeps assemblies
+distinct at the chance floor and completes perfectly.
+
+**The lookup-not-attractor reading was right about the phenomenon and wrong
+about where it lives.** It is not a property of this substrate; it is what
+substrate C does to it.
+
+This is the third bar in two studies to pass while the claim it
+operationalized died, and the first where the READOUT built to prevent
+exactly that -- pairwise distinctness, added because "a machine that is
+perfectly stable because it stopped discriminating would pass a stability bar
+and be worthless" -- is what caught it.
+
+### What now stands
+
+* Pattern completion, distinctness, and noise robustness: PRESENT, in regime,
+  under `norm_init`.
+* Substrate C: buys stimulus-keyed capacity, merges assemblies, destroys
+  completion. Report it as a lookup mechanism, never as an assembly mechanism.
+* Substrate C's earlier wins are unaffected where they did not depend on
+  distinctness -- the theorem-regime boundedness result (`438d547`) is
+  mechanical and stands.
+* The whole M-ceiling comparison should be re-run IN REGIME with pairwise
+  distinctness as a gating readout, not a reported one.
