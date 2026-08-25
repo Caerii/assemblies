@@ -54,9 +54,55 @@ mirror, the same shape as the finalizer itself. It cannot explain THESE numbers
 defect on any heterogeneous brain and should be fixed with whatever else is
 found here.
 
-## Status
+## Resolved: it was a DEAD FIBER, not pricing
 
-The three failures are LEFT FAILING on purpose. `test_engine_pricing.py`'s own
-docstring says it "asserts the law directly instead of asserting a threshold a
-degenerate state also passes"; loosening it to go green would discard the
-signal it was written to produce.
+The three failures were a real defect, and the test's own diagnosis ("sealed --
+candidates over-divided") was the wrong mechanism. Measured WITHIN one brain,
+which is what the docstring actually describes:
+
+    engine         n_src  n_tgt |  w@conv  +5 same   stab | after switch  delta
+    numpy_sparse   10000   1000 |     109      109  1.000 |         216   +107
+    torch_sparse   10000   1000 |     239      274  0.930 |         274     +0
+
+numpy converges (stability 1.000) then recruits +107 for the novel input; torch
+never converges and recruits EXACTLY +0. Those two do not both follow from a
+mispriced divisor -- churn means candidates win too easily, +0 means they
+cannot win at all. Inspecting the fiber settled it:
+
+    numpy_sparse  SRC2->TGT: ndarray shape=(514, 218) nnz=3837
+    torch_sparse  SRC2->TGT: CSRConn nrows=0 ncols=0 nnz=0
+
+`if csr.nnz == 0: continue` DEADLOCKS: an unmaterialised fiber delivers zero
+drive, so nothing is recruited, so `_expand_connectomes` never runs, so the
+fiber stays empty forever. The "Zero signal -- preserve current assembly"
+branch then freezes the winners, and the whole thing presents as a sealed area
+because a zero-drive projection still returns k winners
+([[silent-no-op-dead-fibers]]). Same defect the fixed-assembly branch in the
+same file already fixes -- that branch got it, the ordinary drive path did not.
+
+### Two wrong fixes before the right one
+
+Seeding empty fibers in the DRIVE LOOP made all 23 pricing tests pass and broke
+six others: it duplicates `_expand_connectomes`, which owns growth once the
+fiber exists, and areas stopped converging. Scoping to `nnz == 0` was not
+enough either.
+
+The discriminator is WHERE, not WHEN. Seed at the zero-signal branch, and only
+for CROSS-AREA fibers:
+
+* a SELF-fiber that is silent means the area has nothing to say to itself yet;
+  it still has the stimulus driving recruitment, so it never reaches that
+  branch, and seeding it mid-run replaces the assembly with a fresh random
+  draw -- measured at stability 0.010, which IS chance (k/n = 100/10000);
+* a CROSS-AREA fiber is the one nothing else will ever build.
+
+Full non-slow suite after the fix: **1610 passed, 0 failed** (was 3 failed,
+1606 passed).
+
+### Still open
+
+The fix does NOT close #98. Reciprocal recovery is unchanged at numpy 0.2320
+vs torch 0.6500, so that divergence is a third, separate thing. The candidate
+cause named above -- `_norm_scale_area` passing the brain's `self.p` where
+numpy passes the FIBER's p -- remains unfixed and unverified; it cannot explain
+a homogeneous-brain test but is live on any heterogeneous brain.

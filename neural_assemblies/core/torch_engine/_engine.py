@@ -640,6 +640,7 @@ class TorchSparseEngine(ComputeEngine):
         prev_winner_inputs = torch.zeros(
             tgt.w, dtype=torch.float32, device=self._device)
         explicit_dense_act = None
+        empty_fibers = []
 
         limit = tgt.w
         for stim in from_stimuli:
@@ -700,6 +701,14 @@ class TorchSparseEngine(ComputeEngine):
 
             csr = self._area_conns[src_name][target]
             if csr.nnz == 0:
+                # An unmaterialised fiber delivers zero drive. That is FINE as
+                # a transient -- a self-fiber is empty for the one round before
+                # recruitment builds it -- but it DEADLOCKS when nothing else
+                # drives the target: zero drive, so nothing is recruited, so
+                # `_expand_connectomes` never runs, so the fiber stays empty
+                # forever. Handled at the zero-signal branch below, which is
+                # exactly the condition that separates the two.
+                empty_fibers.append((src_name, csr))
                 continue
             contrib = csr.accumulate_rows(src.winners.long(), limit)
             end = min(limit, len(contrib))
@@ -729,6 +738,48 @@ class TorchSparseEngine(ComputeEngine):
 
         # Zero signal — preserve current assembly
         if prev_winner_inputs.numel() > 0 and not prev_winner_inputs.any():
+            # UNLESS the silence is a DEAD FIBER rather than a quiet source.
+            # Driving a converged target from a SECOND source left that
+            # fiber at nrows=0 ncols=0 nnz=0 for every round while numpy grew
+            # the same fiber to (514, 218) / 3837 entries and recruited
+            # 109 -> 218; this engine's `w` never moved off 239. It presents
+            # as a SEALED area, because a zero-drive projection still returns
+            # k winners ([[silent-no-op-dead-fibers]]) and this branch then
+            # freezes them.
+            #
+            # Seeding HERE rather than in the drive loop is what separates the
+            # deadlock from the harmless transient: a self-fiber that is empty
+            # for one round still has the stimulus driving recruitment, so it
+            # never reaches this branch and its construction order is left
+            # alone. Same defect the fixed-assembly branch above already fixes.
+            grew = False
+            for src_name, csr in empty_fibers:
+                src = self._areas[src_name]
+                if int(src.w) <= 0 or int(tgt.w) <= 0:
+                    continue
+                if src_name == target:
+                    # A SELF-fiber that is silent means the area has nothing
+                    # to say to itself yet; seeding it mid-run replaces the
+                    # assembly with a fresh random draw, measured at stability
+                    # 0.010 == chance (k/n). Preserving the assembly is the
+                    # correct answer there. The deadlock is a fiber from
+                    # ANOTHER area, which no other input will ever build.
+                    continue
+                r, c, v = self._hash_grow_parts(
+                    csr, self._get_pair_seed(src_name, target),
+                    self._p_for(src_name, target),
+                    max(int(src.w), csr._log_rows),
+                    max(int(tgt.w), csr._log_cols))
+                if r:
+                    csr.expand(csr._log_rows, csr._log_cols,
+                               torch.cat(r), torch.cat(c), torch.cat(v))
+                    grew = True
+            if grew:
+                # Once: the fibers are non-empty now, so this cannot recur.
+                return self.project_into(
+                    target, from_stimuli, from_areas,
+                    plasticity_enabled=plasticity_enabled,
+                    record_activation=record_activation)
             return ProjectionResult(
                 winners=tgt.winners.cpu().numpy().astype(np.uint32),
                 num_first_winners=0,
