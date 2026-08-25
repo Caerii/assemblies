@@ -195,6 +195,8 @@ def main():
                     help="comma-separated M checkpoints")
     ap.add_argument("--brains", type=int, default=None)
     ap.add_argument("--arms", type=str, default=None)
+    ap.add_argument("--nk", type=str, default=None,
+                    help="explicit n:k pairs, e.g. 4000:60,8000:120")
     ap.add_argument("--ksqrt", action="store_true",
                     help="set k = round(sqrt(n)) per n, which holds the chance "
                          "overlap k*k/n at 1 while n varies -- the probe that "
@@ -209,6 +211,11 @@ def main():
         ms = tuple(int(x) for x in args.ms.split(","))
     if args.brains:
         nb = args.brains
+    nk = None
+    if args.nk:
+        nk = [tuple(int(v) for v in pair.split(":"))
+              for pair in args.nk.split(",")]
+        ns = [a for a, _ in nk]
     if args.arms:
         keep = set(args.arms.split(","))
         for kk in list(ARMS):
@@ -220,8 +227,9 @@ def main():
 
     print(f"k={'sqrt(n)' if args.ksqrt else K} p={P} T={T} "
           f"beta={BETA} w_max={W_MAX} brains={nb}")
-    for n in ns:
-        kk = int(round(math.sqrt(n))) if args.ksqrt else K
+    for i, n in enumerate(ns):
+        kk = (nk[i][1] if nk else
+              (int(round(math.sqrt(n))) if args.ksqrt else K))
         print(f"  n={n:>6} k={kk:>4} kp={kk*P:.1f} vs floor "
               f"3ln n={3*math.log(n):.1f}  "
               f"{'IN REGIME' if kk*P >= 3*math.log(n) else 'OUT OF REGIME'}"
@@ -230,8 +238,11 @@ def main():
     res, t0 = {}, time.perf_counter()
     k_base = K
     for arm in ARMS:
-        for n in ns:
-            K = int(round(math.sqrt(n))) if args.ksqrt else k_base
+        for i, n in enumerate(ns):
+            if nk:
+                K = nk[i][1]
+            else:
+                K = int(round(math.sqrt(n))) if args.ksqrt else k_base
             rng = np.random.default_rng(1234)
             try:
                 cells = run_cell(n, arm, max(ms), nb, rng)

@@ -97,47 +97,70 @@ __global__ void select_kernel(const float* __restrict__ x, int N, int K,
     __shared__ unsigned part[NTH];
     __shared__ unsigned sup[32];
     __shared__ unsigned long long ck[CAPS];
-    __shared__ int s_d0;
+    __shared__ unsigned long long s_prefix;
+    __shared__ int s_rem;
     __shared__ int s_cnt;
 
     const int b = blockIdx.x;
     const long long base = (long long)b * N;
     const int tid = threadIdx.x;
 
-    for (int i = tid; i < NB; i += NTH) hist[i] = 0u;
+    // TWO radix levels, not one. A single 12-bit pass cannot narrow a drive
+    // whose values cluster on INTEGERS: the base is a Bernoulli count, so at
+    // k=240 every untouched column shares an exact value and lands in one
+    // bucket. Measured 3900 candidates at n=16000, k=240 against a 2048-slot
+    // buffer, and the buffer cannot grow past 48 KB of static shared memory.
+    // Two levels give 24 bits of discrimination and the boundary group
+    // collapses to tens.
+    if (tid == 0) { s_prefix = 0ULL; s_rem = K; }
     __syncthreads();
-    for (int j = tid; j < N; j += NTH)
-        atomicAdd(&hist[__float_as_uint(x[base + j]) >> 20], 1u);
+    for (int lvl = 0; lvl < 2; ++lvl) {
+        const int shift = 36 - 12 * lvl;
+        for (int i = tid; i < NB; i += NTH) hist[i] = 0u;
+        __syncthreads();
+        const unsigned long long pref = s_prefix;
+        for (int j = tid; j < N; j += NTH) {
+            const unsigned long long key = mkkey(x[base + j], j);
+            if ((key >> (shift + 12)) == pref)
+                atomicAdd(&hist[(unsigned)((key >> shift) & 4095ULL)], 1u);
+        }
+        __syncthreads();
+        unsigned local = 0u;
+        for (int i = 0; i < CHB; ++i) local += hist[tid * CHB + i];
+        part[tid] = local;
+        __syncthreads();
+        if (tid < 32) {
+            unsigned sm = 0u;
+            for (int i = 0; i < 32; ++i) sm += part[tid * 32 + i];
+            sup[tid] = sm;
+        }
+        __syncthreads();
+        if (tid == 0) {
+            const int rem = s_rem;
+            unsigned acc = 0u;
+            int w = 31;
+            for (; w > 0; --w) { if (acc + sup[w] >= (unsigned)rem) break; acc += sup[w]; }
+            int t = w * 32 + 31;
+            for (; t > w * 32; --t) { if (acc + part[t] >= (unsigned)rem) break; acc += part[t]; }
+            int d = t * CHB + CHB - 1;
+            for (; d > t * CHB; --d) { if (acc + hist[d] >= (unsigned)rem) break; acc += hist[d]; }
+            s_rem = rem - (int)acc;
+            s_prefix = (s_prefix << 12) | (unsigned long long)d;
+        }
+        __syncthreads();
+    }
+    if (tid == 0) s_cnt = 0;
     __syncthreads();
 
-    unsigned local = 0u;
-    for (int i = 0; i < CHB; ++i) local += hist[tid * CHB + i];
-    part[tid] = local;
-    __syncthreads();
-    if (tid < 32) {
-        unsigned s = 0u;
-        for (int i = 0; i < 32; ++i) s += part[tid * 32 + i];
-        sup[tid] = s;
-    }
-    __syncthreads();
-    if (tid == 0) {
-        unsigned acc = 0u;
-        int w = 31;
-        for (; w > 0; --w) { if (acc + sup[w] >= (unsigned)K) break; acc += sup[w]; }
-        int t = w * 32 + 31;
-        for (; t > w * 32; --t) { if (acc + part[t] >= (unsigned)K) break; acc += part[t]; }
-        int d = t * CHB + CHB - 1;
-        for (; d > t * CHB; --d) { if (acc + hist[d] >= (unsigned)K) break; acc += hist[d]; }
-        s_d0 = d;
-        s_cnt = 0;
-    }
-    __syncthreads();
-
-    const int thr = s_d0;
+    // At or above the 24-bit prefix: the definite winners plus the boundary
+    // group. Fewer than K are strictly above, so the total is K plus however
+    // many share the boundary prefix.
+    const unsigned long long pref24 = s_prefix;
     for (int j = tid; j < N; j += NTH) {
-        if ((int)(__float_as_uint(x[base + j]) >> 20) >= thr) {
+        const unsigned long long key = mkkey(x[base + j], j);
+        if ((key >> 24) >= pref24) {
             int s = atomicAdd(&s_cnt, 1);
-            if (s < CAPS) ck[s] = mkkey(x[base + j], j);
+            if (s < CAPS) ck[s] = key;
         }
     }
     __syncthreads();

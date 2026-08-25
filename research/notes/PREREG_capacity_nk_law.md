@@ -86,3 +86,75 @@ NOT MET regardless of where the numbers landed.
   The measured exponent is then reported WITHOUT a mechanism, and is not
   quotable until one exists -- the standing rule from the parent note.
 * No band is widened after seeing the data.
+
+---
+
+## Result (2026-08-25): CS1 PASSES, CS2 FAILS, and the mechanism I proposed is REFUTED
+
+Run with `seq_capacity_scaling.py --nk`, protocol as registered, 16 brains.
+
+### CS1 -- PASS. `n/k` is the controlling variable.
+
+    n/k = 66.67 held CONSTANT, n varied four-fold
+    n= 4000 k=  60  M* = 66.6  bracket [64, 72)  fill 0.746  ok   (in-fit check)
+    n= 8000 k= 120  M* = 73.0  bracket [72, 80)  fill 0.746  ok   HELD OUT
+    n=16000 k= 240  M* = 67.6  bracket [64, 72)  fill 0.692  ok   HELD OUT
+
+Both held-out cells land inside the registered band [66.7, 82.7]. M* is
+constant to **+/-5%** while n changes 4x; any law of the form `M* = f(n)`
+predicts these differ by about 4x. All three cells are UNCENSORED
+(fill 0.69-0.75), so CS3 is satisfied and the pass is a real one.
+
+Two things reported rather than rounded away: the in-fit consistency cell
+landed at 66.6 against a band floor of 66.7 (0.15% below), and it was
+registered as unable to count toward CS1 anyway; and the registered
+sub-condition "their brackets mutually overlap" is NOT strictly met -- the grid
+put (8000,120) in [72,80) and the others in [64,72), adjacent bins that do not
+intersect. The point estimates agree to 5%; the bracket condition was too tight
+for this grid resolution.
+
+### CS2 -- FAIL. The exponent is not 2.
+
+    n/k=  40  predicted  27.2 [ 24.0,  29.8]   measured  21.8   BELOW  (0.801x)
+    n/k= 100  predicted 170.0 [150.0, 186.0]   measured 175.4   IN BAND (1.032x)
+    n/k= 200  predicted 680.0 [600.0, 744.0]   measured 791.2   ABOVE  (1.164x)
+
+One of three, against a bar of two of three. The misses have a SYSTEMATIC SIGN
+-- low at small n/k, high at large n/k -- which is the signature the note said
+would name the wrong exponent. Fitting `M* = C (n/k)^b`:
+
+    ALL 12 ceilings                   n=12  b = 2.189 +/- 0.048   n/k 40..267
+    uncensored (fill < 0.95)          n= 9  b = 2.254 +/- 0.071   n/k 40..127
+    uncensored AND resolved bracket   n= 7  b = 2.336 +/- 0.151   n/k 63..100
+
+**The 95% CI excludes 2 in all three subsets.** Per the standing rule, the
+measured exponent is reported and is NOT quotable as a law: there is no
+mechanism for 2.2, and this project has retracted two capacity exponents that
+had none.
+
+### The mechanism I proposed is refuted BY CS1
+
+Before the test I suggested capacity might be SYNAPSE-bounded, `M ~ n^2 p /
+(k ln(n/k))`, which would explain a fixed-k exponent near 2. That form is not a
+function of `n/k` alone -- at constant `n/k` it is proportional to n, so it
+predicts a 4x rise across CS1. Measured: +/-5%. **Capacity is not
+synapse-bounded.** Whatever sets the ceiling reads only the ratio `n/k`.
+
+### What this settles about k = sqrt(n)
+
+It does NOT increase capacity; it reduces it, because M* rises steeply in `n/k`
+and raising k lowers that ratio. At n=16000:
+
+    k =  60  ->  M* = 1322.6      k = 126  ->  M* = 286.2      k = 240  ->  M* = 67.6
+
+What `k = sqrt(n)` buys is MEASURABILITY: it holds the chance overlap `k^2/n`
+at 1, so the ceiling arrives with the area 69-94% full instead of 99.8%, which
+is what turned one uncensored point into nine. For capacity alone, k should be
+as small as the regime allows, `k >= 3 ln n / p`.
+
+### Open
+
+The exponent. b = 2.2 is stable across subsets and spans a 6.7x range in `n/k`,
+but has no mechanism, and the largest-`n/k` points are censored. A mechanism --
+or a third bar that discriminates 2.2 from 2 on uncensored points alone -- is
+what would make it a law.
