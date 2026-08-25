@@ -780,6 +780,75 @@ fn area_indegree<'py>(
     Ok(out.into_pyarray_bound(py))
 }
 
+/// Replay `VirtualWeights._chain`: `n` float32 multiply-then-clip rounds.
+///
+/// The numpy spelling walks ROUNDS on the outside -- one masked multiply and
+/// one whole-array clip per round -- so a cell touched `n` times costs `n`
+/// numpy calls on an array of `len(values)`. The arrays are tiny (the
+/// deviation cells of one row), so that is dispatch cost, not arithmetic:
+/// measured 8,848 calls and 47,864 clips inside a single 32-assembly virtual
+/// build, together about a quarter of it.
+///
+/// EXACT, NOT EQUIVALENT. Two properties of the numpy form are semantics and
+/// are reproduced rather than optimised away:
+///
+///   * the multiply is repeated, never folded into `g^count`. Plasticity is
+///     float32 `w *= 1 + beta` applied one event at a time, and `powi` would
+///     round differently -- the dense engine's arithmetic is the contract.
+///   * the clip runs on EVERY element every round, including elements whose
+///     own count has already run out. That only matters for a value that
+///     starts outside the bounds, but it is what the dense engine does.
+///
+/// Walking cells on the outside and rounds on the inside is the same sequence
+/// of operations per element, so the result is bit-identical while the whole
+/// thing becomes one call over contiguous memory.
+#[pyfunction]
+#[pyo3(signature = (values, counts, g, lo, hi))]
+fn chain_clip<'py>(
+    py: Python<'py>,
+    values: numpy::PyReadonlyArray1<'py, f32>,
+    counts: numpy::PyReadonlyArray1<'py, i64>,
+    g: f32,
+    lo: Option<f32>,
+    hi: Option<f32>,
+) -> PyResult<Bound<'py, PyArray1<f32>>> {
+    let v = values.as_slice()?;
+    let c = counts.as_slice()?;
+    if v.len() != c.len() {
+        return Err(PyValueError::new_err(
+            "values and counts must have the same length",
+        ));
+    }
+    let out = py.allow_threads(|| {
+        let rounds = c.iter().copied().max().unwrap_or(0);
+        let mut out = vec![0.0f32; v.len()];
+        for (i, slot) in out.iter_mut().enumerate() {
+            let mut x = v[i];
+            let n = c[i];
+            for r in 1..=rounds {
+                if n >= r {
+                    x *= g;
+                }
+                // Gated on `hi` exactly as the python is: no upper bound
+                // means no clip at all, not a one-sided one.
+                if let Some(h) = hi {
+                    if let Some(l) = lo {
+                        if x < l {
+                            x = l;
+                        }
+                    }
+                    if x > h {
+                        x = h;
+                    }
+                }
+            }
+            *slot = x;
+        }
+        out
+    });
+    Ok(out.into_pyarray_bound(py))
+}
+
 #[pymodule]
 fn na_kernels(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(area_weights_block, m)?)?;
@@ -791,5 +860,6 @@ fn na_kernels(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(area_rows_csr, m)?)?;
     m.add_function(wrap_pyfunction!(csr_row_counts, m)?)?;
     m.add_function(wrap_pyfunction!(area_indegree, m)?)?;
+    m.add_function(wrap_pyfunction!(chain_clip, m)?)?;
     Ok(())
 }

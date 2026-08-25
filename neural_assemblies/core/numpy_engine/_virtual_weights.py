@@ -52,6 +52,7 @@ from typing import Dict, Optional
 import numpy as np
 
 from ._seeding import (
+    hash_area_indegree, rust_kernels,
     hash_area_weights, hash_area_weights_at, hash_area_weights_rows,
 )
 
@@ -70,7 +71,8 @@ class VirtualWeights:
     __slots__ = ("n_rows", "n_cols", "pair_seed", "p", "beta",
                  "w_lo", "w_hi", "inhibitory_prob", "inhibitory_weight",
                  "_exp", "_ovr", "_ovr_sorted", "_potentiated",
-                 "_cache", "_sum_cache", "_sum_bytes")
+                 "_cache", "_sum_cache", "_sum_bytes",
+                 "_nnz_base", "_nnz_rows", "_ovr_zero", "_ovr_max_row")
 
     def __init__(self, n_rows: int, n_cols: int, pair_seed: int, p: float,
                  beta: float, w_lo: Optional[float], w_hi: Optional[float],
@@ -101,6 +103,15 @@ class VirtualWeights:
         #: byte-budgeted memo of f64 base sums, keyed on the row-set bytes.
         self._sum_cache: OrderedDict = OrderedDict()
         self._sum_bytes = 0
+        #: MAINTAINED per-column nonzero count, split into the two parts
+        #: that change on different schedules. The base is a pure function
+        #: of position and rows only ever grow, so its contribution is
+        #: extended, never recomputed; the override correction is counted
+        #: at WRITE time, where the raw value is already in hand.
+        self._nnz_base: Optional[np.ndarray] = None
+        self._nnz_rows = 0
+        self._ovr_zero: Optional[np.ndarray] = None
+        self._ovr_max_row = -1
 
     # -- capability gate ----------------------------------------------------
 
@@ -134,6 +145,12 @@ class VirtualWeights:
         out._exp = {r: [a.copy() for a in v] for r, v in self._exp.items()}
         out._ovr = {r: dict(v) for r, v in self._ovr.items()}
         out._potentiated = self._potentiated
+        if self._nnz_base is not None:
+            out._nnz_base = self._nnz_base.copy()
+            out._nnz_rows = self._nnz_rows
+        if self._ovr_zero is not None:
+            out._ovr_zero = self._ovr_zero.copy()
+        out._ovr_max_row = self._ovr_max_row
         return out
 
     def resize(self, n_rows: int, n_cols: int) -> None:
@@ -145,6 +162,15 @@ class VirtualWeights:
             self._cache.clear()
             self._sum_cache.clear()
             self._sum_bytes = 0
+            # The base count is full-width too, so it is dropped; the
+            # override correction is PER COLUMN and stays valid for the
+            # columns that already existed, so it is padded instead.
+            self._nnz_base = None
+            self._nnz_rows = 0
+            if self._ovr_zero is not None:
+                grown = np.zeros(int(n_cols), dtype=np.int64)
+                grown[:len(self._ovr_zero)] = self._ovr_zero
+                self._ovr_zero = grown
         self.n_rows, self.n_cols = int(n_rows), int(n_cols)
 
     # -- base ---------------------------------------------------------------
@@ -235,9 +261,32 @@ class VirtualWeights:
         return self._ovr_pair(r)[0]
 
     def _chain(self, values: np.ndarray, counts: np.ndarray) -> np.ndarray:
-        """Replay the dense engine's per-event float32 multiply-then-clip."""
+        """Replay the dense engine's per-event float32 multiply-then-clip.
+
+        The numpy form walks ROUNDS on the outside: one masked multiply and one
+        whole-array clip per round, on arrays that hold the deviation cells of
+        a single row and are therefore tiny. That is dispatch cost rather than
+        arithmetic -- 8,848 calls and 47,864 clips inside one 32-assembly
+        virtual build, together about a quarter of it -- so the rust kernel
+        walks cells on the outside and rounds on the inside instead. Same
+        sequence of operations per element, hence bit-identical; one call
+        instead of `2 * rounds`.
+
+        Both spellings are kept and `test_rust_kernels` A/Bs them, because the
+        two properties that make this EXACT rather than merely equivalent are
+        easy to optimise away by accident: the multiply is repeated and never
+        folded into `g ** count` (float32 rounds differently), and the clip
+        runs on every element every round, not only on the ones still being
+        multiplied.
+        """
         v = values.astype(np.float32, copy=True)
         g = np.float32(1.0 + self.beta)
+        rust = rust_kernels()
+        if rust is not None and hasattr(rust, "chain_clip") and len(v):
+            return np.asarray(rust.chain_clip(
+                v, np.ascontiguousarray(counts, dtype=np.int64), g,
+                None if self.w_lo is None else float(self.w_lo),
+                None if self.w_hi is None else float(self.w_hi)))
         rounds = int(counts.max()) if len(counts) else 0
         for r in range(1, rounds + 1):
             mask = counts >= r
@@ -327,8 +376,62 @@ class VirtualWeights:
         return float(block[0, col])
 
     def column_nnz(self, rows_known: Optional[int] = None) -> np.ndarray:
-        """Per-column nonzero counts -- what `_norm_scale` divides by."""
+        """Per-column nonzero counts -- what `_norm_scale` divides by.
+
+        MAINTAINED, NOT RECOMPUTED, and that is the whole point. The previous
+        form hashed the entire fiber on every call: 89 calls on a 32-assembly
+        cell, 0.915s of a 3.28s virtual build, the single largest item, all of
+        it rebuilding a quantity whose inputs barely moved.
+
+        The dense engine learned this already -- `_deg_counts` maintains the
+        same statistic incrementally after recounting cost it 3.4 billion
+        element touches -- and the lesson never reached this sibling. The
+        split here is what makes it cheap:
+
+          * BASE is a pure function of position and rows only ever GROW, so
+            its contribution is EXTENDED by the new rows and never recomputed.
+          * The OVERRIDE correction is counted at WRITE time (`_note_override`),
+            where the raw base value is already in hand, so reading it costs
+            nothing and hashes nothing.
+
+        Falls back to the scanning form when inhibition is on (the rust
+        indegree kernel does not take the inhibitory parameters) or when asked
+        for FEWER rows than have been counted -- the maintained total cannot
+        be un-summed, and answering a narrower question with a wider count
+        would be silently wrong rather than merely slow.
+        """
         rows_known = self.n_rows if rows_known is None else int(rows_known)
+        if rows_known <= 0 or self.n_cols <= 0:
+            return np.zeros(max(self.n_cols, 0), dtype=np.int64)
+        if self.inhibitory_prob:
+            return self._column_nnz_materialized(rows_known)
+        # A narrower row window than the maintained one, or one that would cut
+        # through the overrides already folded in, has to be answered exactly.
+        if rows_known < self._nnz_rows or rows_known <= self._ovr_max_row:
+            return self._column_nnz_materialized(rows_known)
+
+        if self._nnz_base is None:
+            self._nnz_base = np.asarray(
+                hash_area_indegree(rows_known, self.n_cols, self.pair_seed,
+                                   self.p)).astype(np.int64)
+            self._nnz_rows = rows_known
+        elif rows_known > self._nnz_rows:
+            new_rows = np.arange(self._nnz_rows, rows_known, dtype=np.int64)
+            blk = np.asarray(hash_area_weights_rows(
+                new_rows, 0, self.n_cols, self.pair_seed, self.p,
+                self.inhibitory_prob, self.inhibitory_weight))
+            self._nnz_base = self._nnz_base + (blk != 0).sum(axis=0).astype(
+                np.int64)
+            self._nnz_rows = rows_known
+
+        counts = self._nnz_base.copy()
+        if self._ovr_zero is not None:
+            m = min(len(self._ovr_zero), len(counts))
+            counts[:m] += self._ovr_zero[:m]
+        return counts
+
+    def _column_nnz_materialized(self, rows_known: int) -> np.ndarray:
+        """The original slab-scanning count. Kept for the inhibitory case."""
         counts = np.zeros(self.n_cols, dtype=np.int64)
         chunk = 4096
         for start in range(0, rows_known, chunk):
@@ -412,8 +515,36 @@ class VirtualWeights:
                     self._exp[r] = [a[keep] for a in entry]
             d = self._ovr.setdefault(r, {})
             for cc, vv in zip(cols_r.tolist(), sv[lo:hi].tolist()):
-                d[int(cc)] = float(vv)
+                cc = int(cc)
+                was_new = cc not in d
+                d[cc] = float(vv)
+                self._note_override(r, cc, float(vv), was_new)
             self._ovr_sorted.pop(r, None)
+
+    def _note_override(self, r: int, col: int, raw: float, was_new: bool):
+        """Fold one override write into the maintained nonzero count.
+
+        Counted HERE because this is the only place the raw base value is
+        already known -- `_ovr` stores it precisely so the read paths never
+        hash. An override makes a cell present, so it changes the count only
+        when the base was ABSENT, and only the first time that cell is
+        written; re-overriding an existing cell changes its value, not its
+        presence.
+        """
+        if not was_new or raw != 0.0:
+            if was_new and r > self._ovr_max_row:
+                self._ovr_max_row = r
+            return
+        if self._ovr_zero is None:
+            self._ovr_zero = np.zeros(self.n_cols, dtype=np.int64)
+        elif len(self._ovr_zero) < self.n_cols:
+            grown = np.zeros(self.n_cols, dtype=np.int64)
+            grown[:len(self._ovr_zero)] = self._ovr_zero
+            self._ovr_zero = grown
+        if 0 <= col < len(self._ovr_zero):
+            self._ovr_zero[col] += 1
+        if r > self._ovr_max_row:
+            self._ovr_max_row = r
 
     def override(self, rows, col: int) -> None:
         """The recruitment write: assign 1.0, CLOBBERING any history.
@@ -435,7 +566,10 @@ class VirtualWeights:
                     keep = np.ones(len(c), dtype=bool)
                     keep[pos] = False
                     self._exp[r] = [a[keep] for a in entry]
-            self._ovr.setdefault(r, {})[col] = float(raws[i])
+            d = self._ovr.setdefault(r, {})
+            was_new = col not in d
+            d[col] = float(raws[i])
+            self._note_override(r, col, float(raws[i]), was_new)
             self._ovr_sorted.pop(r, None)
 
     def bump(self, rows, cols, beta: float) -> None:
