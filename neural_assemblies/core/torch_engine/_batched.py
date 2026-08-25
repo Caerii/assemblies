@@ -166,6 +166,23 @@ def batched_project_independent(
     return idx_local
 
 
+def _gain_table(beta, rounds):
+    """``(1 + beta)**c`` for c = 0..rounds, by repeated float32 multiply.
+
+    Separate from `_chain_table` because a stimulus weight does NOT start at
+    1.0 -- it starts at the pre-summed input count -- so the clip applies to
+    `base * gain` and cannot be folded into the table.
+    """
+    import numpy as np
+    g = np.float32(1.0 + beta)
+    out = np.ones(rounds + 1, dtype=np.float32)
+    v = np.float32(1.0)
+    for c in range(1, rounds + 1):
+        v = np.float32(v * g)
+        out[c] = v
+    return out
+
+
 def _chain_table(beta, w_max, rounds):
     """``chain(1.0, c)`` for c = 0..rounds, by the ENGINE's own arithmetic.
 
@@ -193,6 +210,7 @@ MAX_LEARNING_ROUNDS = 64
 def batched_project_hashed(
     n, k, p, seeds, winners, rounds, *, beta=0.0, w_max=None,
     norm_init=False, synaptic_scaling=False, stim_drive=None,
+    stim_seeds=None, stim_size=None,
     return_drive=False, state=None, max_rounds=None, return_state=False,
     freeze=False,
 ):
@@ -242,9 +260,13 @@ def batched_project_hashed(
             Here that divisor is EXACT rather than estimated; see below.
         synaptic_scaling: substrate C -- renormalise each winner column's
             mass to `n * p` every round.
-        stim_drive: optional ``[n]`` or ``[B, n]`` additive drive each round.
-            Taken as already on the post-norm scale: this path does not
-            hash-generate stimuli, so it cannot price them.
+        stim_seeds: ``[B]`` pair seeds for a hash-generated STIMULUS fiber,
+            fired every round -- the anchor the registered training
+            protocol relies on. Priced exactly as the engine prices it.
+        stim_size: the stimulus's neuron count. Required with stim_seeds.
+        stim_drive: optional ``[n]`` or ``[B, n]`` RAW additive drive each
+            round, taken as already on the post-norm scale. Prefer
+            ``stim_seeds``, which is priced.
         return_drive: also return the final ``[B, n]`` drive.
         state: learned state from a previous call, to CONTINUE training. A
             capacity protocol stores many assemblies in ONE area, so the
@@ -345,6 +367,42 @@ def batched_project_hashed(
     if norm_init:
         dj = mod.hashed_indegree(seeds_t, n, threshold, 1.0)
 
+    # ---- the stimulus fiber -------------------------------------------
+    # A stimulus connectome stores PRE-SUMMED input: one weight per TARGET
+    # neuron, equal to the number of stimulus neurons wired to it. So its base
+    # is `hashed_drive` over the stimulus's own rows, and potentiation
+    # multiplies that scalar.
+    #
+    # TWO PRICES THAT ARE EASY TO GET WRONG, both taken from the engine:
+    #
+    #  * norm_init divides by `d_j = deg_j + p * (tgt.n - stim_size)` -- note
+    #    `tgt.n`, NOT the stimulus size. That is deliberate: it puts the
+    #    stimulus on the SAME ~n*p divisor as the area fiber so the two are
+    #    commensurable. Dividing by the stimulus's own in-degree would make an
+    #    untrained stimulus contribute exactly 1.0 per touched neuron against
+    #    an area contribution of ~0.06, and the stimulus would decide every
+    #    winner -- the documented failure mode of getting `_pricing` wrong.
+    #  * w_max means "multiples of the INITIAL weight", and a stimulus weight
+    #    starts near `stim_size * p`, not at 1. The cap is therefore
+    #    `w_max * max(1, stim_size * p)`. Capping at a raw `w_max` clipped
+    #    every winner on the first update and pinned it there -- measured as a
+    #    flat 0.30 recovery for beta = 0.001, 0.01 and 0.1 alike.
+    stim_base = stim_pot = stim_dj = gpow = None
+    stim_hi = float("inf")
+    if stim_seeds is not None:
+        if stim_size is None:
+            raise ValueError("stim_seeds needs stim_size")
+        st = torch.as_tensor(stim_seeds, dtype=torch.int32, device=device)
+        srows = torch.arange(stim_size, dtype=torch.int32,
+                             device=device).expand(B, stim_size).contiguous()
+        stim_base = mod.hashed_drive(srows, st, n, threshold)
+        stim_pot = torch.zeros(B, n, dtype=torch.int64, device=device)
+        if norm_init:
+            stim_dj = (stim_base + float(p) * (n - stim_size)).clamp_min(1.0)
+        if w_max is not None:
+            stim_hi = float(w_max) * max(1.0, float(stim_size) * float(p))
+        gpow = torch.from_numpy(_gain_table(beta, rounds)).to(device)
+
     drive = None
     for t in range(rounds):
         drive = mod.hashed_drive(idx.contiguous(), seeds_t, n, threshold)
@@ -356,6 +414,13 @@ def batched_project_hashed(
             drive = drive * scale
         if dj is not None:
             drive = drive / dj
+        if stim_base is not None:
+            sd = stim_base * gpow[stim_pot.clamp_max(gpow.numel() - 1)]
+            if stim_hi != float("inf"):
+                sd = sd.clamp_max(stim_hi)
+            if stim_dj is not None:
+                sd = sd / stim_dj
+            drive = drive + sd
         if stim_drive is not None:
             drive = drive + stim_drive
         sel, ovf = mod.topk_select(drive, min(k, n))
@@ -374,6 +439,9 @@ def batched_project_hashed(
             cw.scatter_(1, sidx, cw.gather(1, sidx) | bit)
             if learn:
                 hist.append(sel)
+        if stim_pot is not None and not freeze and beta:
+            stim_pot.scatter_add_(1, sel.long(),
+                                  torch.ones_like(sel, dtype=torch.int64))
         if scale is not None and not freeze:
             # Masks are updated FIRST: the engine scales after applying this
             # round's potentiation, so the mass must include it.

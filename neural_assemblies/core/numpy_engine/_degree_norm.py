@@ -300,7 +300,21 @@ class DegreeNormMixin:
             base = getattr(conn, "_norm_deg_base", None)
             have = 0 if base is None else len(base)
             if have < cols:
-                add = xp.asarray(w[have:cols], dtype=xp.float32)
+                # COPY, not `asarray`. `w` is already float32, so `asarray`
+                # returns a VIEW -- the "snapshot" aliased the live weight
+                # vector and every potentiation silently moved the divisor
+                # with it (`np.shares_memory(base, weights)` was True). The
+                # divisor then cancelled the stimulus's own learning: the
+                # contribution `w / (w + unknown*p)` drifts toward 1, which is
+                # the exact failure this method's docstring warns about
+                # ("dividing by their own in-degree would set every neuron's
+                # stimulus drive to exactly 1.0 ... which erases the stimulus
+                # representation entirely"). Measured before the fix: the
+                # engine's drive diverged from a potentiation-invariant
+                # divisor on exactly the cells that had ever won -- 30 cells
+                # after one round, 71 after six, growing with training depth.
+                # Seventh member of the degree/scale defect class.
+                add = xp.array(w[have:cols], dtype=xp.float32, copy=True)
                 base = add if base is None or have == 0 else xp.concatenate(
                     [base, add])
                 conn._norm_deg_base = base

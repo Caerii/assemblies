@@ -36,7 +36,7 @@ from neural_assemblies.core.brain import Brain                  # noqa: E402
 from neural_assemblies.core.numpy_engine import _seeding        # noqa: E402
 from neural_assemblies.core.torch_engine import _fused_cuda     # noqa: E402
 from neural_assemblies.core.torch_engine._batched import (      # noqa: E402
-    _chain_table)
+    _chain_table, _gain_table)
 
 AREA = "A"
 DEV = "cuda"
@@ -170,3 +170,129 @@ def np_seed_indegree(n, p, seed):
     """Column in-degree straight from the numpy engine's own hash."""
     W = _seeding.hash_bernoulli_2d(0, n, 0, n, seed, p, finalize=True)
     return W.sum(axis=0)
+
+
+# -- the stimulus fiber ----------------------------------------------------
+
+STIM = "s0"
+
+
+def _engine_trace_stim(n, k, p, beta, T, seed, norm_init, w_max):
+    """Same replay method, with a stimulus firing every round.
+
+    The stimulus is the ANCHOR the registered training protocol relies on:
+    `project({s: [AREA]}, {AREA: [AREA]})` fires it on every round, and without
+    it an assembly has nothing to converge toward.
+    """
+    random.seed(seed)
+    np.random.seed(seed)
+    brain = Brain(p=p, seed=seed, engine="numpy_sparse", w_max=w_max,
+                  recurrent_projection=True, norm_init=norm_init,
+                  synaptic_scaling=False)
+    brain.add_area(AREA, n, k, beta)
+    brain.add_stimulus(STIM, k)
+    eng = brain._engine_for(brain.areas[AREA])
+    eng.materialize_area(AREA, storage="dense")
+    rng = np.random.default_rng(seed)
+    eng.set_winners(AREA, np.sort(
+        rng.choice(n, k, replace=False)).astype(np.uint32))
+    stim0 = np.asarray(eng._stim_conns[STIM][AREA].weights,
+                       dtype=np.float64).copy()
+    drives, prevs, news = [], [], []
+    for _ in range(T):
+        prevs.append(np.asarray(eng.get_winners(AREA), dtype=np.int64))
+        res = eng.project_into(AREA, [STIM], [AREA], plasticity_enabled=True,
+                               record_activation=True)
+        drives.append(np.asarray(res.pre_kwta_inputs, dtype=np.float64))
+        news.append(np.asarray(eng.get_winners(AREA), dtype=np.int64))
+    return (drives, prevs, news, stim0,
+            _seeding.fnv1a_pair_seed(seed, AREA, AREA))
+
+
+@pytest.mark.parametrize("norm_init", [False, True])
+@pytest.mark.parametrize("n,k,p", [(1024, 30, 0.1), (2048, 50, 0.5)])
+def test_stimulus_pricing_reproduces_numpy_sparse(mod, norm_init, n, k, p):
+    """The engine's own stim base is INJECTED, on purpose.
+
+    `_expand_stim_vectors_fast` draws stimulus weights from
+    `self._rng.binomial(...)` consumed in stimulus insertion order, so a
+    stimulus connectome is NOT a pure function of position and a generated one
+    cannot reproduce it. (`_seeding.hash_stim_counts` exists and is documented
+    as "the content-addressed replacement", but the growth path does not use
+    it.) Injecting the base isolates the question this CAN answer: is the
+    PRICING right -- the `tgt.n` divisor and the `w_max * stim_size * p` cap?
+    """
+    beta, T, w_max = 0.1, 6, 20.0
+    d_cpu, prevs, news, stim0, apair = _engine_trace_stim(
+        n, k, p, beta, T, 7, norm_init, w_max)
+
+    thr = _fused_cuda.threshold_for(p)
+    a_s = torch.tensor([_to_i32(apair)], dtype=torch.int32, device=DEV)
+    rowmask = torch.zeros(1, n, dtype=torch.int64, device=DEV)
+    colmask = torch.zeros(1, n, dtype=torch.int64, device=DEV)
+    tab = torch.from_numpy(_chain_table(beta, w_max, T)).to(DEV)
+    gpow = torch.from_numpy(_gain_table(beta, T)).to(DEV)
+    colids = torch.arange(n, dtype=torch.int32, device=DEV).view(1, n)
+    dj = mod.hashed_indegree(a_s, n, thr, 1.0) if norm_init else None
+    sbase = torch.from_numpy(stim0.astype(np.float32)).to(DEV).view(1, -1)
+    spot = torch.zeros(1, n, dtype=torch.int64, device=DEV)
+    sdj = (sbase + p * (n - k)).clamp_min(1.0) if norm_init else None
+    shi = w_max * max(1.0, k * p)
+
+    worst = 0.0
+    for t in range(T):
+        rows = torch.from_numpy(
+            prevs[t].astype(np.int32)).to(DEV).view(1, -1).contiguous()
+        d = mod.hashed_drive(rows, a_s, n, thr)
+        if t:
+            mod.dev_correct(rows, rowmask, colids, colmask, tab, a_s, thr, d)
+        if dj is not None:
+            d = d / dj
+        sd = (sbase * gpow[spot.clamp_max(gpow.numel() - 1)]).clamp_max(shi)
+        if sdj is not None:
+            sd = sd / sdj
+        d = d + sd
+        got = d[0].cpu().numpy().astype(np.float64)
+        m = min(len(d_cpu[t]), len(got))
+        worst = max(worst, float(np.abs(d_cpu[t][:m] - got[:m]).max())
+                    / max(float(np.abs(d_cpu[t][:m]).max()), 1e-12))
+        bit = 1 << t
+        pidx = torch.from_numpy(prevs[t]).to(DEV).view(1, -1)
+        sidx = torch.from_numpy(news[t]).to(DEV).view(1, -1)
+        rowmask.scatter_(1, pidx, rowmask.gather(1, pidx) | bit)
+        colmask.scatter_(1, sidx, colmask.gather(1, sidx) | bit)
+        spot.scatter_add_(1, sidx, torch.ones_like(sidx))
+    assert worst < 5e-6, f"norm_init={norm_init}: relative error {worst:.3g}"
+
+
+def test_norm_init_stim_divisor_is_potentiation_invariant():
+    """`_norm_scale`'s own contract, asserted directly.
+
+    Its docstring says "Present synapses are COUNTED, not summed, so the
+    divisor is potentiation-invariant". It was not: the snapshot was taken with
+    `xp.asarray(w[...], dtype=float32)`, which on an already-float32 array
+    returns a VIEW, so every potentiation moved the divisor with the weights.
+    The stimulus contribution `w / (w + unknown*p)` then drifts toward 1 --
+    exactly the failure the same docstring warns about.
+    """
+    n, k, p, seed = 1024, 30, 0.1, 7
+    random.seed(seed)
+    np.random.seed(seed)
+    brain = Brain(p=p, seed=seed, engine="numpy_sparse",
+                  recurrent_projection=True, norm_init=True,
+                  synaptic_scaling=False)
+    brain.add_area(AREA, n, k, 0.1)
+    brain.add_stimulus(STIM, k)
+    eng = brain._engine_for(brain.areas[AREA])
+    eng.materialize_area(AREA, storage="dense")
+    eng.set_winners(AREA, np.sort(np.random.default_rng(seed).choice(
+        n, k, replace=False)).astype(np.uint32))
+    conn = eng._stim_conns[STIM][AREA]
+    eng.project_into(AREA, [STIM], [AREA], plasticity_enabled=True,
+                     record_activation=True)
+    assert not np.shares_memory(conn._norm_deg_base, conn.weights)
+    before = np.asarray(conn._norm_deg_base, dtype=np.float64).copy()
+    conn.weights[:5] *= 3.0
+    after = np.asarray(conn._norm_deg_base, dtype=np.float64)
+    assert np.array_equal(before, after), (
+        "norm_init's stimulus divisor moved with the weights")
