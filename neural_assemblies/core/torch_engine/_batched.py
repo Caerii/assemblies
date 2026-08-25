@@ -166,9 +166,66 @@ def batched_project_independent(
     return idx_local
 
 
+def _chain_table(beta, w_max, rounds):
+    """``chain(1.0, c)`` for c = 0..rounds, by the ENGINE's own arithmetic.
+
+    The engine potentiates with ``w *= (1 + beta)`` and clamps at ``w_max``
+    every round, so a cell potentiated c times is a per-step
+    multiply-and-clip -- NOT ``min((1+beta)**c, w_max)``, which differs once
+    the clip binds. Replaying it in float32 on the host makes the kernel's job
+    a table lookup rather than a re-derivation.
+    """
+    import numpy as np
+    g = np.float32(1.0 + beta)
+    out = np.ones(rounds + 1, dtype=np.float32)
+    v = np.float32(1.0)
+    for c in range(1, rounds + 1):
+        v = np.float32(v * g)
+        if w_max is not None:
+            v = min(v, np.float32(w_max))
+        out[c] = v
+    return out
+
+
+def _column_index(hist):
+    """Compact the touched columns and their round-masks.
+
+    ``hist`` is the list of per-round winner sets (``[B, k]`` each). Returns
+    ``(colids, colmask)``, both ``[B, C]``, where bit t of ``colmask`` says
+    "this column fired at round t".
+
+    The OR is done with ``scatter_add_`` deliberately: a column appears at most
+    ONCE per round (winners are distinct within a round), so the bits landing
+    on a given column are distinct powers of two and their SUM IS their OR.
+    torch has no bitwise scatter-reduce; this identity avoids needing one.
+    """
+    T = len(hist)
+    B, k = hist[0].shape
+    device = hist[0].device
+    allc = torch.cat([h.long() for h in hist], dim=1)          # [B, T*k]
+    srt, order = torch.sort(allc, dim=1)
+    fresh = torch.ones_like(srt, dtype=torch.bool)
+    fresh[:, 1:] = srt[:, 1:] != srt[:, :-1]
+    loc = torch.cumsum(fresh, dim=1) - 1
+    C = int(fresh.sum(1).max())
+    colids = torch.zeros(B, C, dtype=torch.int64, device=device)
+    colids.scatter_(1, loc, srt)          # duplicates write the same value
+    bits = torch.cat(
+        [torch.full((B, k), 1 << t, dtype=torch.int64, device=device)
+         for t in range(T)], dim=1).gather(1, order)
+    colmask = torch.zeros(B, C, dtype=torch.int64, device=device)
+    colmask.scatter_add_(1, loc, bits)
+    # Padding slots keep colmask 0, so popcount(rowmask & 0) == 0 and the
+    # kernel skips them: a pad can never contribute a correction.
+    return colids.to(torch.int32), colmask
+
+
+MAX_LEARNING_ROUNDS = 64
+
+
 def batched_project_hashed(
-    n, k, p, seeds, winners, rounds, *, stim_drive=None,
-    return_drive=False,
+    n, k, p, seeds, winners, rounds, *, beta=0.0, w_max=None,
+    stim_drive=None, return_drive=False,
 ):
     """B INDEPENDENT connectomes, GENERATED rather than stored.
 
@@ -178,18 +235,40 @@ def batched_project_hashed(
     ``[B*n, B*n]`` sparse matrix, which at B=64, n=20000, p=0.05 is about 1.3
     BILLION edges; the independent-connectome case simply cannot be run at
     organ scale that way. Here the connectome is regenerated from its hash
-    inside the drive kernel, so the only memory is the ``[B, n]`` drive.
+    inside the drive kernel, so the only memory is the ``[B, n]`` drive plus,
+    when learning, a ``[B, n]`` int64 round-mask.
 
     Each brain gets its own ``pair_seed``, which is what makes the connectomes
-    independent -- the same role the block offset plays in the block-diagonal
-    form.
+    independent -- the role the block offset plays in the block-diagonal form.
+
+    PLASTICITY, AND WHY NOTHING IS STORED. With ``beta > 0`` this potentiates
+    ``w *= (1 + beta)`` on the pairs the ENGINE potentiates: source winners x
+    target winners, which for a recurrent fiber is ``prev x new`` (see
+    ``_engine._apply_plasticity``, where ``tgt.winners`` is assigned AFTER the
+    update). The learned state is never materialised as a weight matrix,
+    because
+
+        count = SUM_t x_{t-1} x_t^T   =>   count[i,j] = popcount(rm[i] & cm[j])
+
+    with bit t of ``rm[i]`` / ``cm[j]`` recording that i fired at t-1 / j fired
+    at t. The entire learned connectome is TWO BIT-MASKS, and its size does not
+    grow with the number of rounds.
+
+    ** `batched_project_independent` USES A DIFFERENT RULE. ** It builds one
+    mask from the NEW winners and applies it to both endpoints, i.e.
+    ``new x new``. Measured, not inferred: it reproduces a ``new x new``
+    reference exactly and differs from ``prev x new`` in 41 of 64x64 cells.
+    This function follows the ENGINE, so the two are NOT interchangeable and
+    results from them are not comparable. Which rule is right for that function
+    is a separate question, deliberately not decided here.
 
     Args:
         n, k, p: area size, winners per round, connection probability.
-        seeds: ``[B]`` int32 pair seeds, one per brain (see
-            ``_hash.fnv1a_pair_seed``).
+        seeds: ``[B]`` int32 pair seeds (see ``_hash.fnv1a_pair_seed``).
         winners: ``[B, k]`` initial active set.
         rounds: recurrent projection rounds.
+        beta: Hebbian gain; 0 disables learning entirely.
+        w_max: weight clip, or None for unbounded.
         stim_drive: optional ``[n]`` or ``[B, n]`` additive drive each round.
         return_drive: also return the final ``[B, n]`` drive.
 
@@ -197,17 +276,17 @@ def batched_project_hashed(
         ``[B, k]`` int64 winner indices.
 
     Raises:
-        RuntimeError: if the fused kernels are unavailable, or if a brain's
-            candidate set overflows the selector's buffer. Neither is allowed
-            to degrade quietly into a wrong winner set.
+        RuntimeError: fused kernels unavailable, or a brain's candidate set
+            overflowed the selector. Neither degrades quietly into a wrong
+            winner set.
+        ValueError: more than 64 learning rounds -- the round-mask is 64 bits.
 
-    NOTE ON TIES -- this does NOT reproduce :func:`batched_project_independent`
-    cell for cell. The selector here breaks ties to the smallest index (stable
-    argsort, by construction); ``torch.topk`` leaves tie order unspecified, and
-    the drive is an integer Bernoulli sum, so ties at the bar are the common
-    case rather than an edge case. That is a science-affecting difference and
-    is why this is a separate entry point rather than a faster path inside the
-    existing one. See ``_fused_cuda`` and ``_kwta_prune``.
+    NOTE ON TIES -- this does NOT reproduce
+    :func:`batched_project_independent` cell for cell. The selector breaks ties
+    to the smallest index (stable argsort, by construction) while
+    ``torch.topk`` leaves tie order unspecified, and the drive is an integer
+    Bernoulli sum, so ties at the bar are the common case. That is a
+    science-affecting difference and is why this is a separate entry point.
     """
     from . import _fused_cuda
 
@@ -217,13 +296,31 @@ def batched_project_hashed(
             "batched_project_hashed needs the fused CUDA kernels: "
             f"{_fused_cuda.last_error()}")
 
+    learn = bool(beta)
+    if learn and rounds > MAX_LEARNING_ROUNDS:
+        raise ValueError(
+            f"rounds={rounds} exceeds {MAX_LEARNING_ROUNDS}: the round-mask "
+            "that stands in for the weight matrix is 64 bits wide")
+
     device = winners.device
+    B = winners.shape[0]
     seeds_t = torch.as_tensor(seeds, dtype=torch.int32, device=device)
     idx = winners.to(torch.int32)
     threshold = _fused_cuda.threshold_for(p)
+
+    rowmask = tab = None
+    hist = []
+    if learn:
+        rowmask = torch.zeros(B, n, dtype=torch.int64, device=device)
+        tab = torch.from_numpy(_chain_table(beta, w_max, rounds)).to(device)
+
     drive = None
-    for _ in range(rounds):
+    for t in range(rounds):
         drive = mod.hashed_drive(idx.contiguous(), seeds_t, n, threshold)
+        if learn and hist:
+            colids, colmask = _column_index(hist)
+            mod.dev_correct(idx.contiguous(), rowmask, colids, colmask,
+                            tab, seeds_t, threshold, drive)
         if stim_drive is not None:
             drive = drive + stim_drive
         sel, ovf = mod.topk_select(drive, min(k, n))
@@ -233,6 +330,11 @@ def batched_project_hashed(
                 f"k-WTA candidate set overflowed ({bad} candidates) -- the "
                 "drive is too flat for the histogram to narrow. Refusing to "
                 "return a truncated winner set.")
+        if learn:
+            pidx = idx.long()
+            rowmask.scatter_(1, pidx, rowmask.gather(1, pidx) | (1 << t))
+            hist.append(sel)
         idx = sel
+
     out = idx.to(torch.int64)
     return (out, drive) if return_drive else out

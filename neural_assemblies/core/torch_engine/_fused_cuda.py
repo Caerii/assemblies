@@ -166,6 +166,52 @@ __global__ void select_kernel(const float* __restrict__ x, int N, int K,
         ob[s] = 65535 - (int)(ck[CAPS - 1 - s] & 0xFFFFULL);
 }
 
+
+// ---- potentiation correction ------------------------------------------
+// w[i,j] = present(i,j) * chain(1, count[i,j]), and the base is Bernoulli
+// 0/1, so a cell that is ABSENT stays absent however often it is potentiated
+// and a present one starts at exactly 1.0. The correction is therefore
+//     sum over deviation cells of ( tab[count] - 1 ) * present(i,j)
+// with tab[c] = chain(1.0, c) replayed on the host using the engine's own
+// per-step multiply-and-clip, so the arithmetic here is a LOOKUP.
+//
+// count[i,j] is not stored. From `count = SUM_t x_{t-1} x_t^T` it is
+//     count[i,j] = popcount( rowmask[i] & colmask[j] )
+// where bit t of rowmask[i] says "i fired at t-1" and bit t of colmask[j]
+// says "j fired at t". One 64-bit AND and one __popcll -- no block to
+// materialise, which is what keeps this independent of the round count.
+__global__ void dev_correct_kernel(
+    const int* __restrict__ S,             // [B, K] current row set
+    const long long* __restrict__ rowmask, // [B, N] bit t = fired at t-1
+    const int* __restrict__ colids,        // [B, C] touched columns
+    const long long* __restrict__ colmask, // [B, C] bit t = fired at t
+    const float* __restrict__ tab, int ntab,
+    const int* __restrict__ seeds,
+    int B, int K, int C, int N, int threshold,
+    float* __restrict__ out)
+{
+    long long idx = blockIdx.x * (long long)blockDim.x + threadIdx.x;
+    if (idx >= (long long)B * K * C) return;
+    int cj = (int)(idx % C);
+    long long q = idx / C;
+    int s = (int)(q % K), b = (int)(q / K);
+
+    int i = S[(long long)b * K + s];
+    unsigned long long rm = (unsigned long long)rowmask[(long long)b * N + i];
+    if (rm == 0ULL) return;
+    unsigned long long cm = (unsigned long long)colmask[(long long)b * C + cj];
+    int c = __popcll(rm & cm);
+    if (c == 0) return;
+
+    int j = colids[(long long)b * C + cj];
+    unsigned int h = ac_fmix32(((unsigned int)i * 2654435761u)
+                               ^ (((unsigned int)j * 2246822519u)
+                                  ^ (unsigned int)seeds[b]));
+    if ((h & 0x00FFFFFFu) >= (unsigned int)threshold) return;   // absent cell
+    float v = (c < ntab) ? tab[c] : tab[ntab - 1];
+    atomicAdd(out + (long long)b * N + j, v - 1.0f);
+}
+
 torch::Tensor hashed_drive(torch::Tensor rows, torch::Tensor seeds,
                            int64_t n, int64_t threshold) {
     TORCH_CHECK(rows.dim() == 2 && rows.is_cuda()
@@ -181,6 +227,25 @@ torch::Tensor hashed_drive(torch::Tensor rows, torch::Tensor seeds,
         rows.data_ptr<int>(), seeds.data_ptr<int>(), B, K, (int)n,
         (int)threshold, out.data_ptr<float>());
     return out;
+}
+
+
+void dev_correct(torch::Tensor S, torch::Tensor rowmask, torch::Tensor colids,
+                 torch::Tensor colmask, torch::Tensor tab,
+                 torch::Tensor seeds, int64_t threshold, torch::Tensor out) {
+    S = S.contiguous(); rowmask = rowmask.contiguous();
+    colids = colids.contiguous(); colmask = colmask.contiguous();
+    tab = tab.contiguous(); seeds = seeds.contiguous();
+    const int B = S.size(0), K = S.size(1), C = colids.size(1);
+    const int N = out.size(1);
+    if (C == 0 || K == 0) return;
+    const long long tot = (long long)B * K * C;
+    const int th = 256;
+    dev_correct_kernel<<<(tot + th - 1) / th, th>>>(
+        S.data_ptr<int>(), rowmask.data_ptr<int64_t>(),
+        colids.data_ptr<int>(), colmask.data_ptr<int64_t>(),
+        tab.data_ptr<float>(), (int)tab.numel(), seeds.data_ptr<int>(),
+        B, K, C, N, (int)threshold, out.data_ptr<float>());
 }
 
 std::vector<torch::Tensor> topk_select(torch::Tensor x, int64_t K) {
@@ -201,6 +266,7 @@ std::vector<torch::Tensor> topk_select(torch::Tensor x, int64_t K) {
 
 _CPP = r"""
 torch::Tensor hashed_drive(torch::Tensor rows, torch::Tensor seeds, int64_t n, int64_t threshold);
+void dev_correct(torch::Tensor S, torch::Tensor rowmask, torch::Tensor colids, torch::Tensor colmask, torch::Tensor tab, torch::Tensor seeds, int64_t threshold, torch::Tensor out);
 std::vector<torch::Tensor> topk_select(torch::Tensor x, int64_t K);
 """
 
@@ -246,7 +312,7 @@ def load() -> object | None:
             _MODULE = load_inline(
                 name="na_fused_cuda", cpp_sources=[_CPP],
                 cuda_sources=[_CUDA_SRC],
-                functions=["hashed_drive", "topk_select"],
+                functions=["hashed_drive", "dev_correct", "topk_select"],
                 verbose=False, extra_cuda_cflags=["-O3"])
         except Exception as exc:                       # noqa: BLE001
             _MODULE = None

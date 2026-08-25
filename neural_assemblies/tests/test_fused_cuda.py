@@ -190,3 +190,79 @@ def test_brains_stay_independent_across_rounds(mod):
     got = batched_project_hashed(
         n, k, P, [_to_i32(SEED), _to_i32(SEED + 1)], w0, 3).cpu().numpy()
     assert set(got[0].tolist()) != set(got[1].tolist())
+
+
+# -- plasticity ------------------------------------------------------------
+
+def _reference_rounds_beta(Ws, winners, k, rounds, beta, w_max):
+    """Stored-connectome reference using the ENGINE's rule: prev x new.
+
+    Potentiation multiplies existing cells; an ABSENT cell is 0 and stays 0
+    under `*= (1+beta)`, which is exactly what the kernel's present() test
+    encodes. Clipping is per-round, matching `conn.weights.clamp_`.
+    """
+    Ws = [W.copy() for W in Ws]
+    idx = [w.copy() for w in winners]
+    for _ in range(rounds):
+        nxt = []
+        for b, W in enumerate(Ws):
+            drive = W[idx[b]].sum(axis=0)
+            nxt.append(np.sort(np.argsort(-drive, kind='stable')[:k]))
+        for b, W in enumerate(Ws):
+            W[np.ix_(idx[b], nxt[b])] *= np.float32(1.0 + beta)
+            if w_max is not None:
+                np.minimum(W, np.float32(w_max), out=W)
+        idx = nxt
+    return idx
+
+
+@pytest.mark.parametrize("rounds,beta,w_max", [
+    (2, 0.10, None), (4, 0.10, None), (4, 0.50, 2.0), (6, 0.25, None),
+])
+def test_plasticity_matches_a_stored_connectome_reference(mod, rounds, beta,
+                                                          w_max):
+    from neural_assemblies.core.torch_engine._batched import (
+        batched_project_hashed)
+
+    n, k, B = 2048, 40, 4
+    seeds = [SEED + 17 * b for b in range(B)]
+    g = np.random.default_rng(11)
+    w0 = np.stack([np.sort(g.choice(n, k, replace=False)) for _ in range(B)])
+
+    Ws = [t_hash.hash_bernoulli_2d(0, n, 0, n, s, P,
+                                   device='cuda').float().cpu().numpy()
+          for s in seeds]
+    ref = _reference_rounds_beta(Ws, list(w0), k, rounds, beta, w_max)
+
+    got = batched_project_hashed(
+        n, k, P, [_to_i32(s) for s in seeds], torch.from_numpy(w0).cuda(),
+        rounds, beta=beta, w_max=w_max).cpu().numpy()
+
+    for b in range(B):
+        assert np.array_equal(np.sort(got[b]), ref[b]), (
+            f"brain {b}: {len(set(ref[b]) - set(got[b]))} of {k} winners "
+            f"differ at rounds={rounds} beta={beta} w_max={w_max}")
+
+
+def test_beta_actually_changes_the_trajectory(mod):
+    """A plasticity path that silently did nothing would pass every parity
+    test above against a reference that also did nothing. Pin that it moves."""
+    from neural_assemblies.core.torch_engine._batched import (
+        batched_project_hashed)
+    n, k, B, rounds = 2048, 40, 2, 5
+    seeds = [_to_i32(SEED + 17 * b) for b in range(B)]
+    g = np.random.default_rng(3)
+    w0 = torch.from_numpy(np.stack(
+        [np.sort(g.choice(n, k, replace=False)) for _ in range(B)])).cuda()
+    a = batched_project_hashed(n, k, P, seeds, w0, rounds, beta=0.0)
+    b_ = batched_project_hashed(n, k, P, seeds, w0, rounds, beta=0.5)
+    assert not torch.equal(a.sort(dim=1).values, b_.sort(dim=1).values)
+
+
+def test_learning_rounds_are_bounded_by_the_mask_width(mod):
+    from neural_assemblies.core.torch_engine._batched import (
+        batched_project_hashed, MAX_LEARNING_ROUNDS)
+    w0 = torch.arange(8, device='cuda', dtype=torch.int64).view(1, 8)
+    with pytest.raises(ValueError, match="64 bits wide"):
+        batched_project_hashed(512, 8, P, [1], w0,
+                               MAX_LEARNING_ROUNDS + 1, beta=0.1)

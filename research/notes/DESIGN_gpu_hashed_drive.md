@@ -503,3 +503,90 @@ is what converts "cannot run" into "runs in a millisecond".
   Candidate overflow raises rather than returning a truncated winner set.
 * The kernels need nvcc, a host compiler and ninja; absent those, `load()`
   returns None, `available()` is False, and the tests skip.
+
+---
+
+## Amendment 6: plasticity -- the learned connectome is two bit-masks
+
+Code: `_batched.batched_project_hashed(..., beta=, w_max=)`,
+`_fused_cuda.dev_correct`. Benchmark:
+`research/experiments/gpu_hashed_plasticity_bench.py`.
+
+Amendment 5 shipped the inference case. This closes it for TRAINING, which is
+what the blocked studies actually need.
+
+### The identity, in its other form
+
+Amendment 3 used `count = SUM_t x_{t-1} x_t^T` as a GEMM, which materialises the
+block. For a drive correction the block is never wanted -- only single cells,
+on demand -- and the same identity gives that directly:
+
+    count[i,j] = popcount( rowmask[i] & colmask[j] )
+
+with bit t of `rowmask[i]` recording "i fired at t-1" and bit t of
+`colmask[j]` "j fired at t". One 64-bit AND and one `__popcll`. **The entire
+learned connectome is two bit-masks**, `[B, n]` int64 plus a compacted column
+list, and its SIZE DOES NOT GROW WITH THE ROUND COUNT. The GEMM form and the
+popcount form are the same theorem answering different questions: materialise
+the block, or evaluate a cell.
+
+The correction itself is `(tab[count] - 1) * present(i,j)`, where `tab` is
+`chain(1.0, c)` replayed on the host with the engine's per-step
+multiply-and-clip -- NOT `min((1+beta)**c, w_max)`, which differs once the clip
+binds. The base is Bernoulli 0/1, so an absent cell stays absent however often
+it is potentiated, which is why the kernel needs one hash and a table lookup.
+
+A small identity that avoids a missing primitive: torch has no bitwise
+scatter-reduce, but a column appears at most ONCE per round, so the bits landing
+on it are distinct powers of two and `scatter_add_` IS the OR.
+
+### A fourth mirror divergence, measured not inferred
+
+The engine potentiates `hebbian_update(src.winners, winners_long, ...)` --
+source winners x target winners, i.e. `prev x new` for a recurrent fiber, since
+`tgt.winners` is assigned AFTER. `batched_project_independent` builds ONE mask
+from the NEW winners and applies it to both endpoints. Measured on a 64x64 case:
+
+    batched_project_independent == prev_x_new : False (41 cells differ)
+    batched_project_independent == new_x_new  : True  (0 cells differ)
+
+`batched_project_hashed` follows the ENGINE. The two functions are therefore
+NOT interchangeable and results from them are not comparable. Which rule is
+right for `batched_project_independent` is a separate, science-affecting
+question and is deliberately left open rather than silently resolved here --
+this is the fourth instance of `pricing-law-implemented-twice` found in two
+sessions.
+
+### Verified
+
+Exact winner-set equality against a stored-connectome reference implementing
+`prev x new`, across rounds 2/4/6 and beta 0.10/0.25/0.50, with and without
+`w_max`. The float-ordering hazard (GPU atomicAdd vs numpy summation, on drives
+where ties at the bar are the common case) did NOT materialise at these sizes;
+that is a measurement, not a guarantee, and is why the assertion is on the
+winner SET. A separate test pins that beta actually moves the trajectory -- a
+plasticity path that silently did nothing would pass every parity test against
+a reference that also did nothing.
+
+### Measured
+
+         n    k     B    T | beta=0 ms  beta>0 ms      x | per br/rd ms     MB
+     20000   70    64    8 |      3.33      10.81   3.2x |     0.02111   21.5
+     20000   70    64   32 |      8.95      80.31   9.0x |     0.03921   26.5
+     20000   70   256    8 |      7.34      15.45   2.1x |     0.00754   86.0
+     50000  100    64    8 |      5.21      12.57   2.4x |     0.02454   51.9
+
+Against the CPU engine's 1.5-5 ms per projection, TRAINING throughput is
+**71-238x at B=64 and 200-660x at B=256**.
+
+The T=32 row is the honest cost: the correction's work is `B*k*C` with C the
+union of winner sets so far, so it GROWS with the round count even though the
+stored state does not, and `_column_index` is rebuilt each round (O(T^2)
+overall). An incremental column index would remove that and is not done here.
+
+### Still not covered
+
+Stimulus drive is accepted as a caller-supplied vector but is not hash-generated;
+`norm_init` and `synaptic_scaling` are not applied in this path, so substrate
+studies that need B or C cannot use it yet; and the round-mask caps learning at
+64 rounds.
