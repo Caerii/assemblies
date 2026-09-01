@@ -121,9 +121,20 @@ class TestReciprocalParity:
         torch_sparse 0.7560 +/- 0.0678 (n=5, 0.67..0.82)
 
     and the level matches the 0.75 the reference implementation restores
-    (quoted in `reciprocal_project`'s docstring). So the IDIOM works; what
-    remains open is the narrower question of WHY plastic readout perturbs the
-    engines in opposite directions -- pinned below rather than lost.
+    (quoted in `reciprocal_project`'s docstring). So the IDIOM works.
+
+    THE PERTURBATION CHANNEL IS RECRUITMENT, not Hebbian updates. Measured
+    with plasticity ON but recruitment OFF (`_no_recruitment`), recovery is
+    IDENTICAL to frozen -- same mean, same per-seed range, both engines:
+
+        numpy  frozen 0.776 = norecruit 0.776  >>  plastic 0.232
+        torch  frozen 0.756 = norecruit 0.756  >   plastic 0.650
+
+    so weight growth along the recovered trajectory never flips a winner; what
+    diverges the engines is how aggressively CANDIDATES outbid the recovered
+    incumbents during the mixed rounds -- the same candidate-pricing surface
+    documented in research/notes/FINDING_torch_pricing_exposed.md. That is
+    what the plastic-gap assertion below is pinning.
     """
 
     SEEDS = (42, 1, 2, 3, 4)
