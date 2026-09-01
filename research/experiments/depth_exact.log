@@ -1,0 +1,13 @@
+'vswhere.exe' is not recognized as an internal or external command,
+operable program or batch file.
+n=16000 k=60 B=16 T=8  (CSR store)
+   after M  ms/brain/round   store nnz
+         1          0.1919            
+        64          0.2098            
+       256          0.2155            
+       512          0.1916            
+       768          0.2059            
+      1023          0.3287            
+  final store: 92,474,271 cells
+  PRIOR (mask carried across episodes), n=16000 M=1024: 0.4062 ms/brain/round
+  CPU numpy_sparse reference, one projection: ~1.5-5 ms

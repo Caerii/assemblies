@@ -267,3 +267,24 @@ structural diagnosis (`k >= 6 ln n` forces the tiling limit to chase the
 ceiling) is arithmetic, not measurement. The NUMBERS do not survive and must
 not be quoted. The `M*k/n` trend and the 3.0x G/B ratio are UNVERIFIED until
 re-measured; the G arm in particular has not been re-run at all.
+
+---
+
+## Amendment 3: Amendment 2's contamination marking is WITHDRAWN
+
+Amendment 2 marked the Result section contaminated. The direction was wrong:
+the Result was produced by the original multi-word-mask path, which summed the
+TOTAL co-firing count before applying the potentiation table -- exact with
+respect to split counts. The intermediate CSR-store path (whose numbers
+Amendment 2 treated as the trustworthy ones) carried the split-count cross-term
+error, since confirmed by multi-episode ENGINE parity and fixed by
+count-then-apply. See PREREG_capacity_nk_law.md Amendment 2.
+
+Status of the Result section: its numbers came from the original path, which
+the exact path corroborates at the three CS1 cells and the n=8000 cliff cell
+(agreement within bracket resolution). The fixed-k cells (80.7 / 354.6) were
+not individually re-measured; they are original-path measurements, restored
+from "contaminated" to "not individually re-verified". The G-arm value (241.8)
+likewise -- and the CURRENT code refuses multi-episode substrate C outright
+until its column mass gets the same count-then-apply treatment, so G cannot be
+re-measured yet.

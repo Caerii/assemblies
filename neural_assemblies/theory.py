@@ -444,49 +444,52 @@ _RESULTS: List[Result] = [
         source="Held-out test registered in "
                "research/notes/PREREG_capacity_nk_law.md (bar CS1) before the "
                "data existed. Holding n/k = 66.67 while n varies four-fold "
-               "gives M* = 88.3 / 92.1 / 83.2 at n = 4000 / 8000 / 16000 -- "
-               "constant to +/-5%, where any law M* = f(n) predicts ~4x. All "
-               "three cells uncensored (fill 0.76-0.83).",
+               "gives M* = 68.8 / 73.1 / 67.6 at n = 4000 / 8000 / 16000 on "
+               "the exact count-then-apply path (engine-parity verified) -- "
+               "constant to +/-4%, where any law M* = f(n) predicts ~4x. All "
+               "three cells uncensored (fill 0.69-0.76), and all inside the "
+               "band registered before the data existed.",
         preconditions=("in regime, kp >= 3 ln n [[SEQ-REGIME]]",
                        "ceiling read from the CURVE, gated on distinctness",
                        "fill at the ceiling below 0.95, else the tiling limit "
                        "is what is being measured"),
         evidence=("research/experiments/seq_capacity_scaling.py",),
-        caveat="THE FIRST RUN WAS CONTAMINATED and its numbers are "
-               "superseded: the multi-episode deviation correction it used had "
-               "never been tested across episodes, and the verified path gives "
-               "ceilings 25-35% higher (66.6/73.0/67.6 -> 88.3/92.1/83.2). The "
-               "CONSTANCY survives at +/-5% either way, which is what this "
-               "claim says; the calibration does not (C 0.0155 -> 0.0198). The "
-               "EXPONENT is not established: b = 2.19 on the contaminated data "
-               "and ~2.3-2.5 on the verified cells, above 2 either way, with "
-               "NO mechanism -- reported, never quoted. A synapse bound "
-               "M ~ n^2 p / (k ln(n/k)) was proposed and is REFUTED by CS1: it "
-               "is not a function of n/k alone. The bands registered in "
-               "PREREG_capacity_nk_law.md were calibrated on the contaminated "
-               "run and are VOID; the law needs re-registration before any "
-               "band is judged again.",
+        caveat="This result survived a WRONG RETRACTION: an intermediate "
+               "CSR deviation store applied the potentiation table per count "
+               "FRAGMENT, and (tab[c0]-1)+(tab[c1]-1) != tab[c0+c1]-1, "
+               "inflating ceilings ~25% (88.3/92.1/83.2); those numbers were "
+               "briefly recorded here as the verified ones. Multi-episode "
+               "ENGINE parity exposed it (rel 2e-3) and the exact path lands "
+               "back on the first run's values. The EXPONENT remains "
+               "unestablished: b = 2.19 +/- 0.05, above 2, NO mechanism -- "
+               "reported, never quoted. A synapse bound "
+               "M ~ n^2 p / (k ln(n/k)) is REFUTED by CS1: it is not a "
+               "function of n/k alone. Operational rule from the wrong "
+               "retraction: when two implementations disagree, a test they "
+               "BOTH pass verifies neither -- arbitrate with engine parity on "
+               "the DRIVE.",
     ),
     Result(
         id="CAP-CLIFF",
         status=Status.MEASURED,
         claim="Capacity failure is a CLIFF, not a slope: past the ceiling the "
               "assemblies shatter rather than degrading gracefully.",
-        source="research/experiments/seq_capacity_scaling.py, re-measured on "
-               "the VERIFIED deviation path after the contaminated first run. "
-               "At n=8000, k=60, 16 brains: M=320 gives rank-1 1.000 with "
-               "pairwise overlap 1.25x chance and every assembly distinct; "
-               "M=448 gives 0.406; M=512 gives 0.004 at overlap 4.22x. One "
-               "doubling (320 -> 640) takes rank-1 from 1.000 to 0.002.",
+        source="research/experiments/seq_capacity_scaling.py, on the exact "
+               "count-then-apply path (engine-parity verified). At n=8000, "
+               "k=60, 16 brains: M=256 gives rank-1 0.938 at pairwise overlap "
+               "1.37x chance with every assembly distinct; M=320 gives 0.486; "
+               "M=384 gives 0.014 at overlap 4.75x. One doubling (256 -> 512) "
+               "takes rank-1 from 0.938 to 0.000. Ceiling M* = 284 at fill "
+               "0.944, uncensored.",
         preconditions=("half-cue rank-1 readout against ALL M stored items",
                        "distinctness gate applied, so a collapsed set scores 0"),
         evidence=("research/experiments/seq_capacity_scaling.py",),
         caveat="There is no soft capacity margin to trade against: a design "
                "must know where the ceiling is and stay under it. Sharing "
-               "itself is healthy -- at M=320 the load M*k/n is 2.4, over two "
-               "assemblies per neuron, with overlap still 1.25x chance -- so "
-               "the cliff is not caused by sharing. The transition occupies "
-               "roughly one 1.4x step in M (384 -> 512).",
+               "itself is healthy -- at M=256 the load Mk/n is 1.9, nearly "
+               "two assemblies per neuron, with overlap still 1.37x chance -- "
+               "so the cliff is not caused by sharing. The transition occupies "
+               "roughly one 1.5x step in M (256 -> 384).",
     ),
 ]
 

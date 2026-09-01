@@ -203,3 +203,45 @@ which does not depend on the calibration.
 AND NEVER READ passes every single-episode test vacuously. The multi-episode
 test now exists, is parameterised over `norm_init`, and asserts against a
 reference rather than against the previous run.
+
+---
+
+## Amendment 2: the retraction had its DIRECTION BACKWARDS
+
+Amendment 1 declared the first run contaminated and the CSR-store numbers
+"verified". Engine parity for the full multi-episode capacity protocol -- the
+test Amendment 1 said should exist -- was then written, and it FAILED against
+the CSR path at relative drive error 2e-3. The cause is mathematical:
+potentiation is multiplicative, so the correction `tab[c]-1` is NOT additive
+across a split count -- a cell with c0 events in the store and c1 in the
+current episode needs `tab[c0+c1]-1`, and `(tab[c0]-1)+(tab[c1]-1)` misses the
+cross term. The reference-based tests shared that flawed structure at the
+winner level and passed anyway.
+
+The fix accumulates integer COUNTS (which are additive,
+[[HEBB-OUTER-PRODUCT]]) into a scratch per active cell and applies `tab` once.
+With it, engine parity passes -- and the ceilings land on the FIRST run's
+numbers, not Amendment 1's:
+
+    cell            first run   Amendment-1 "verified"   exact path
+    n= 4000 k= 60      66.6            88.3                 68.8
+    n= 8000 k=120      73.0            92.1                 73.1
+    n=16000 k=240      67.6            83.2                 67.6
+    cliff (n=8000, M=256/320/384):
+                    0.941/-/-       1.000/1.000/0.939    0.938/0.486/0.014
+
+The ORIGINAL multi-word mask summed the TOTAL count before applying `tab` --
+exact with respect to splits all along. What it lacked was a test; what the
+CSR path lacked was correctness.
+
+**REINSTATED:** the original run's judgments. CS1 PASS (the exact-path cells
+68.8/73.1/67.6 sit inside the registered band [66.7, 82.7]); CS2 FAIL as
+originally judged; b = 2.19 +/- 0.05 as the measured, unquotable exponent;
+C ~ 0.0155. Amendment 1's tables and its "VOID" verdict on the bands are
+themselves retracted.
+
+**Standing lesson, sharpened:** the first retraction trusted "new code + a
+passing reference test" over "old code, untested". The reference test was too
+weak to arbitrate (winner sets at small scale cannot see 2e-3 drive errors),
+and the arbiter that settled it was ENGINE parity on the DRIVE. When two
+implementations disagree, neither is verified by a test they both pass.

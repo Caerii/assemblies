@@ -223,23 +223,51 @@ class AreaFiber:
         self.setpoint = max(float(n_pre) * self.p, 1e-12)
         self.store = RunStore(device)
         self._rowmask = self._colmask = None    # this episode only
+        self._scratch = None                    # count accumulator, cached
         self._prevs, self._news = [], []
         self._t = 0
 
     # -- reading ---------------------------------------------------------
     def contribute(self, drive, rows):
-        """Add this fiber's drive for source winners ``rows`` [B, k_src]."""
+        """Add this fiber's drive for source winners ``rows`` [B, k_src].
+
+        THE CORRECTION IS NOT ADDITIVE ACROSS A SPLIT COUNT. Potentiation is
+        multiplicative, so a cell with c0 events in the store and c1 in the
+        current episode needs `tab[c0+c1]-1`, and `(tab[c0]-1)+(tab[c1]-1)` is
+        wrong by the cross term -- the same holds BETWEEN LSM runs. COUNTS are
+        additive ([[HEBB-OUTER-PRODUCT]]), so integer counts from every source
+        are accumulated into a scratch [B, k, n] first and `tab` is applied
+        ONCE per cell. Caught by engine parity at rel 2e-3; the
+        reference-based tests shared the flawed structure and passed.
+        """
         if rows.shape[1] == 0:
             return
         r = rows.to(torch.int32).contiguous()
         d = self.mod.hashed_drive(r, self.seeds, self.n, self.threshold)
-        if self.store.nnz:
-            sk, sc, so = self.store.view()
-            self.mod.dev_correct_csr(r, sk, sc, so, self.tab, self.seeds,
-                                     self.threshold, d)
-        if self._rowmask is not None and self._t > 0:
-            self.mod.dev_correct(r, self._rowmask, self.colids, self._colmask,
-                                 self.tab, self.seeds, self.threshold, d)
+        has_mask = self._rowmask is not None and self._t > 0
+        if self.store.nnz or has_mask:
+            k_src = int(r.shape[1])
+            need = self.B * k_src * self.n
+            if self._scratch is None or self._scratch.numel() < need:
+                self._scratch = torch.zeros(need, dtype=torch.int32,
+                                            device=self.device)
+            else:
+                self._scratch[:need].zero_()
+            sk, sc, so = (self.store.view() if self.store.nnz else
+                          (torch.zeros(0, dtype=torch.int64,
+                                       device=self.device),
+                           torch.zeros(0, dtype=torch.int32,
+                                       device=self.device),
+                           torch.zeros(1, dtype=torch.int64,
+                                       device=self.device)))
+            rm = (self._rowmask if has_mask else
+                  torch.zeros(0, dtype=torch.int64, device=self.device))
+            cm = (self._colmask if has_mask else
+                  torch.zeros(0, dtype=torch.int64, device=self.device))
+            self.mod.dev_correct_exact(r, sk, sc, so, rm, cm,
+                                       self._scratch[:need].view(
+                                           self.B, k_src, self.n),
+                                       self.tab, self.seeds, self.threshold, d)
         if self.scale is not None:
             d = d * self.scale
         if self.dj is not None:
@@ -293,6 +321,11 @@ class AreaFiber:
     def _rescale(self, cols):
         """`w[:, j] *= setpoint / mass_j` on winner columns.
 
+        MULTI-EPISODE IS NOT IMPLEMENTED for substrate C: `column_mass` reads
+        only the current episode's mask, so a mass with events in the store
+        would be wrong by the same split-count cross term the drive correction
+        had. Refused rather than silently wrong.
+
         Column scaling is per-COLUMN multiplicative and potentiation per-CELL,
         so they commute and the accumulated scale factors out of the sum:
         `mass = S_j M_j`, hence `S_j <- setpoint / M_j` with the old scale
@@ -300,6 +333,12 @@ class AreaFiber:
         column multiply does not commute with `min()` -- checked below against
         the ACTUAL deepest cell rather than a bound.
         """
+        if self.store.nnz:
+            raise NotImplementedError(
+                "synaptic_scaling across episodes: column_mass reads only the "
+                "current episode's mask, and a split count is not additive "
+                "through tab. Needs the same count-then-apply treatment as "
+                "the drive correction.")
         c = cols.to(torch.int32).contiguous()
         mass, cellmax = self.mod.column_mass(c, self._rowmask, self._colmask,
                                              self.tab, self.seeds,

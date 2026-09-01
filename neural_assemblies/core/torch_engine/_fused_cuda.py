@@ -399,6 +399,79 @@ __global__ void dev_csr_kernel(const int* __restrict__ S,
     }
 }
 
+
+// ---- exact split-count correction -------------------------------------
+// Potentiation is MULTIPLICATIVE, so the correction tab[c]-1 is NOT additive
+// across a split count: a cell with c0 events in the store and c1 in the
+// current episode needs tab[c0+c1]-1, and (tab[c0]-1)+(tab[c1]-1) is wrong by
+// the cross term. COUNTS are additive ([[HEBB-OUTER-PRODUCT]]), so the exact
+// scheme is: accumulate integer counts per active cell into a scratch
+// [B, K, n], then apply tab ONCE per cell. Caught by engine parity at
+// rel 2e-3 -- reference-based tests shared the flawed structure and passed.
+
+__global__ void devcnt_csr_kernel(const int* __restrict__ S,
+                                  const long long* __restrict__ keys,
+                                  const int* __restrict__ cnts,
+                                  const long long* __restrict__ offs,
+                                  int nruns, int K, int N,
+                                  int* __restrict__ scratch) {
+    const int b = blockIdx.x / K, sl = blockIdx.x - b * K;
+    const int i = S[(long long)b * K + sl];
+    const long long base = (long long)b * N * N + (long long)i * N;
+    int* sc = scratch + ((long long)b * K + sl) * N;
+    for (int r = 0; r < nruns; ++r) {
+        const long long a = offs[r], z = offs[r + 1];
+        const long long lo = a + lb(keys + a, z - a, base);
+        const long long hi = a + lb(keys + a, z - a, base + N);
+        for (long long e = lo + threadIdx.x; e < hi; e += blockDim.x)
+            atomicAdd(sc + (int)(keys[e] - base), cnts[e]);
+    }
+}
+
+__global__ void devcnt_mask_kernel(const int* __restrict__ S,
+                                   const long long* __restrict__ rowmask,
+                                   const long long* __restrict__ colmask,
+                                   int B, int K, int N, int W,
+                                   int* __restrict__ scratch) {
+    long long idx = blockIdx.x * (long long)blockDim.x + threadIdx.x;
+    if (idx >= (long long)B * K * N) return;
+    const int j = (int)(idx % N);
+    const long long q = idx / N;
+    const int sl = (int)(q % K), b = (int)(q / K);
+    const int i = S[(long long)b * K + sl];
+    int c = 0;
+    for (int w = 0; w < W; ++w) {
+        unsigned long long rm =
+            (unsigned long long)rowmask[((long long)b * W + w) * N + i];
+        if (rm == 0ULL) continue;
+        c += __popcll(rm & (unsigned long long)
+                      colmask[((long long)b * W + w) * N + j]);
+    }
+    if (c) atomicAdd(scratch + idx, c);
+}
+
+__global__ void devapply_kernel(const int* __restrict__ S,
+                                const int* __restrict__ scratch,
+                                const float* __restrict__ tab, int ntab,
+                                const int* __restrict__ seeds,
+                                int B, int K, int N, int threshold,
+                                float* __restrict__ out) {
+    long long idx = blockIdx.x * (long long)blockDim.x + threadIdx.x;
+    if (idx >= (long long)B * K * N) return;
+    const int c = scratch[idx];
+    if (c == 0) return;
+    const int j = (int)(idx % N);
+    const long long q = idx / N;
+    const int sl = (int)(q % K), b = (int)(q / K);
+    const int i = S[(long long)b * K + sl];
+    const unsigned int h = ac_fmix32(((unsigned int)i * 2654435761u)
+                                     ^ (((unsigned int)j * 2246822519u)
+                                        ^ (unsigned int)seeds[b]));
+    if ((h & 0x00FFFFFFu) >= (unsigned int)threshold) return;   // absent
+    const float v = (c < ntab) ? tab[c] : tab[ntab - 1];
+    atomicAdd(out + (long long)b * N + j, v - 1.0f);
+}
+
 torch::Tensor hashed_drive(torch::Tensor rows, torch::Tensor seeds,
                            int64_t n, int64_t threshold) {
     TORCH_CHECK(rows.dim() == 2 && rows.is_cuda()
@@ -491,6 +564,38 @@ void dev_correct_csr(torch::Tensor S, torch::Tensor keys, torch::Tensor cnts,
         seeds.data_ptr<int>(), K, N, (int)threshold, out.data_ptr<float>());
 }
 
+
+void dev_correct_exact(torch::Tensor S, torch::Tensor keys, torch::Tensor cnts,
+                       torch::Tensor offs, torch::Tensor rowmask,
+                       torch::Tensor colmask, torch::Tensor scratch,
+                       torch::Tensor tab, torch::Tensor seeds,
+                       int64_t threshold, torch::Tensor out) {
+    S = S.contiguous(); tab = tab.contiguous(); seeds = seeds.contiguous();
+    const int B = S.size(0), K = S.size(1), N = out.size(1);
+    if (K == 0) return;
+    const long long tot = (long long)B * K * N;
+    const int th = 256;
+    if (keys.numel() > 0) {
+        keys = keys.contiguous(); cnts = cnts.contiguous();
+        offs = offs.contiguous();
+        devcnt_csr_kernel<<<B * K, 128>>>(
+            S.data_ptr<int>(), keys.data_ptr<int64_t>(), cnts.data_ptr<int>(),
+            offs.data_ptr<int64_t>(), (int)offs.numel() - 1, K, N,
+            scratch.data_ptr<int>());
+    }
+    if (rowmask.numel() > 0) {
+        rowmask = rowmask.contiguous(); colmask = colmask.contiguous();
+        const int W = (int)(rowmask.numel() / ((long long)B * rowmask.size(-1)));
+        devcnt_mask_kernel<<<(tot + th - 1) / th, th>>>(
+            S.data_ptr<int>(), rowmask.data_ptr<int64_t>(),
+            colmask.data_ptr<int64_t>(), B, K, N, W, scratch.data_ptr<int>());
+    }
+    devapply_kernel<<<(tot + th - 1) / th, th>>>(
+        S.data_ptr<int>(), scratch.data_ptr<int>(), tab.data_ptr<float>(),
+        (int)tab.numel(), seeds.data_ptr<int>(), B, K, N, (int)threshold,
+        out.data_ptr<float>());
+}
+
 std::vector<torch::Tensor> topk_select(torch::Tensor x, int64_t K) {
     TORCH_CHECK(x.dim() == 2 && x.is_cuda()
                 && x.scalar_type() == torch::kFloat32, "x: [B,N] f32 cuda");
@@ -513,6 +618,7 @@ torch::Tensor hashed_indegree(torch::Tensor seeds, int64_t n, int64_t threshold,
 std::vector<torch::Tensor> column_mass(torch::Tensor cols, torch::Tensor rowmask, torch::Tensor colmask, torch::Tensor tab, torch::Tensor seeds, int64_t threshold);
 void dev_correct(torch::Tensor S, torch::Tensor rowmask, torch::Tensor colids, torch::Tensor colmask, torch::Tensor tab, torch::Tensor seeds, int64_t threshold, torch::Tensor out);
 void dev_correct_csr(torch::Tensor S, torch::Tensor keys, torch::Tensor cnts, torch::Tensor offs, torch::Tensor tab, torch::Tensor seeds, int64_t threshold, torch::Tensor out);
+void dev_correct_exact(torch::Tensor S, torch::Tensor keys, torch::Tensor cnts, torch::Tensor offs, torch::Tensor rowmask, torch::Tensor colmask, torch::Tensor scratch, torch::Tensor tab, torch::Tensor seeds, int64_t threshold, torch::Tensor out);
 std::vector<torch::Tensor> topk_select(torch::Tensor x, int64_t K);
 """
 
@@ -558,7 +664,7 @@ def load() -> object | None:
             _MODULE = load_inline(
                 name="na_fused_cuda", cpp_sources=[_CPP],
                 cuda_sources=[_CUDA_SRC],
-                functions=["hashed_drive", "hashed_indegree", "dev_correct", "dev_correct_csr",
+                functions=["hashed_drive", "hashed_indegree", "dev_correct", "dev_correct_csr", "dev_correct_exact",
                                   "column_mass", "topk_select"],
                 verbose=False, extra_cuda_cflags=["-O3"])
         except Exception as exc:                       # noqa: BLE001

@@ -296,3 +296,87 @@ def test_norm_init_stim_divisor_is_potentiation_invariant():
     after = np.asarray(conn._norm_deg_base, dtype=np.float64)
     assert np.array_equal(before, after), (
         "norm_init's stimulus divisor moved with the weights")
+
+
+# -- multi-episode, against the ENGINE -------------------------------------
+
+def test_capacity_protocol_reproduces_numpy_sparse_across_episodes(mod):
+    """The check that would have caught the contaminated capacity run.
+
+    The single-trajectory replays above never read learned state ACROSS
+    episodes, and the CSR store's own tests compare against a reference
+    written for the purpose. This replays the ENGINE running the capacity
+    protocol itself -- inhibit, then T rounds of stimulus+recurrence, per
+    assembly -- and compares the hashed path's drive at every round of every
+    episode. A store that dropped, double-counted or mis-keyed a cell across
+    the episode boundary diverges here against the engine, not against my
+    own arithmetic.
+
+    Stimulus bases are INJECTED from the engine (its stimulus connectomes are
+    drawn in RNG order, not content-addressed), which is the established
+    method from the stimulus-pricing test above.
+    """
+    from neural_assemblies.core.torch_engine._hashed import (
+        AreaFiber, StimulusFiber)
+
+    n, k, p, beta, T, M_eps, w_max, seed = 1024, 30, 0.1, 0.1, 4, 3, 20.0, 7
+    random.seed(seed)
+    np.random.seed(seed)
+    brain = Brain(p=p, seed=seed, engine="numpy_sparse", w_max=w_max,
+                  recurrent_projection=True, norm_init=True,
+                  synaptic_scaling=False)
+    brain.add_area(AREA, n, k, beta)
+    stims = []
+    for a in range(M_eps):
+        brain.add_stimulus(f"s{a}", k)
+        stims.append(f"s{a}")
+    eng = brain._engine_for(brain.areas[AREA])
+    eng.materialize_area(AREA, storage="dense")
+
+    # engine trace: per episode, per round -- drive, prev winners, new winners
+    trace = []
+    stim0 = {}
+    for a, sname in enumerate(stims):
+        stim0[a] = np.asarray(eng._stim_conns[sname][AREA].weights,
+                              dtype=np.float64).copy()
+        brain.inhibit_areas([AREA])
+        ep = []
+        for _ in range(T):
+            prev = np.asarray(eng.get_winners(AREA), dtype=np.int64)
+            res = eng.project_into(AREA, [sname], [AREA],
+                                   plasticity_enabled=True,
+                                   record_activation=True)
+            ep.append((prev,
+                       np.asarray(res.pre_kwta_inputs, dtype=np.float64),
+                       np.asarray(eng.get_winners(AREA), dtype=np.int64)))
+        trace.append(ep)
+
+    # hashed replay: same fiber pattern (the engine's own hash), same winners
+    pair = _seeding.fnv1a_pair_seed(seed, AREA, AREA)
+    fiber = AreaFiber([_to_i32(pair)], n, n, p, beta=beta, w_max=w_max,
+                      norm_init=True, max_rounds=M_eps * T)
+    worst = 0.0
+    for a, ep in enumerate(trace):
+        sf = StimulusFiber([0], k, n, p, beta=beta, w_max=w_max,
+                           norm_init=True, max_rounds=T)
+        sf.base = torch.from_numpy(
+            stim0[a].astype(np.float32)).cuda().view(1, -1)
+        sf.dj = (sf.base + p * (n - k)).clamp_min(1.0)
+        fiber.begin_episode()
+        for prev, d_cpu, new in ep:
+            drive = torch.zeros(1, n, dtype=torch.float32, device="cuda")
+            fiber.contribute(drive, torch.from_numpy(prev).cuda().view(1, -1))
+            sf.contribute(drive)
+            got = drive[0].cpu().numpy().astype(np.float64)
+            m = min(len(d_cpu), len(got))
+            worst = max(worst, float(np.abs(d_cpu[:m] - got[:m]).max())
+                        / max(float(np.abs(d_cpu[:m]).max()), 1e-12))
+            pt = torch.from_numpy(prev).cuda().view(1, -1)
+            nt = torch.from_numpy(new).cuda().view(1, -1)
+            fiber.observe(pt, nt)
+            sf.observe(pt, nt)
+        fiber.end_episode()
+    assert fiber.nnz > 0, "the store never populated -- the test is vacuous"
+    assert worst < 5e-6, (
+        f"hashed path diverges from numpy_sparse across episodes: "
+        f"relative drive error {worst:.3g}")
