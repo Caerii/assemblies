@@ -452,7 +452,12 @@ _RESULTS: List[Result] = [
         preconditions=("in regime, kp >= 3 ln n [[SEQ-REGIME]]",
                        "ceiling read from the CURVE, gated on distinctness",
                        "fill at the ceiling below 0.95, else the tiling limit "
-                       "is what is being measured"),
+                       "is what is being measured",
+                       "AT FIXED p AND beta: M* moved 1.6x across p in "
+                       "[0.3, 0.7] and ~6x across beta in [0.05, 0.20] at "
+                       "fixed n/k = 40 (PREREG_crosstalk_mechanism.md), so "
+                       "the ratio law holds within an operating point, not "
+                       "across them"),
         evidence=("research/experiments/seq_capacity_scaling.py",),
         caveat="This result survived a WRONG RETRACTION: an intermediate "
                "CSR deviation store applied the potentiation table per count "
@@ -464,7 +469,10 @@ _RESULTS: List[Result] = [
                "unestablished: b = 2.19 +/- 0.05, above 2, NO mechanism -- "
                "reported, never quoted. A synapse bound "
                "M ~ n^2 p / (k ln(n/k)) is REFUTED by CS1: it is not a "
-               "function of n/k alone. Operational rule from the wrong "
+               "function of n/k alone -- and so is plain second-order "
+               "CROSSTALK, refuted by registered test: the crosstalk ratio "
+               "cancels p and beta, but M* ~ p^-0.6 and ~ beta^-1.3 at fixed "
+               "n/k. No mechanism is adopted. Operational rule from the wrong "
                "retraction: when two implementations disagree, a test they "
                "BOTH pass verifies neither -- arbitrate with engine parity on "
                "the DRIVE.",

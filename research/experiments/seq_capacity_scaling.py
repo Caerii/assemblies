@@ -219,7 +219,7 @@ def gated(cell):
 
 
 def main():
-    global MS, K
+    global MS, K, P, BETA
     ap = argparse.ArgumentParser()
     ap.add_argument("--smoke", action="store_true")
     ap.add_argument("--ns", type=str, default=None,
@@ -228,6 +228,10 @@ def main():
                     help="comma-separated M checkpoints")
     ap.add_argument("--brains", type=int, default=None)
     ap.add_argument("--arms", type=str, default=None)
+    ap.add_argument("--p", type=float, default=None,
+                    help="connection probability override (PREREG_crosstalk X1)")
+    ap.add_argument("--beta", type=float, default=None,
+                    help="Hebbian gain override (PREREG_crosstalk X2)")
     ap.add_argument("--nk", type=str, default=None,
                     help="explicit n:k pairs, e.g. 4000:60,8000:120")
     ap.add_argument("--ksqrt", action="store_true",
@@ -244,6 +248,10 @@ def main():
         ms = tuple(int(x) for x in args.ms.split(","))
     if args.brains:
         nb = args.brains
+    if args.p is not None:
+        P = args.p
+    if args.beta is not None:
+        BETA = args.beta
     nk = None
     if args.nk:
         nk = [tuple(int(v) for v in pair.split(":"))

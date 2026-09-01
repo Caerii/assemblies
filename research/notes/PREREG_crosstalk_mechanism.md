@@ -56,3 +56,48 @@ the open residual stays open, and passing X1+X2 does not close it.
   reported and the mechanism is NOT adopted.
 * X2 alone fails outside the convergence caveat -> (g-1) does not cancel,
   pointing at the w_max clip or count-depth effects; reported, not adopted.
+
+---
+
+## Result (2026-08-25): X1 FAILS, X2 FAILS -- crosstalk is REFUTED, informatively
+
+All cells n=4000, k=100 (n/k = 40), T=8, w_max=20, 16 brains, arm B, exact
+path. Baseline (p=0.5, beta=0.10): M* = 23.5 [20, 24), fill 0.53 -- the
+C ~ 0.0155 calibration predicted 24.8.
+
+**X1 (p-invariance): FAIL.**
+
+    p=0.3  M* = 28.8  [28, 32)  fill 0.64
+    p=0.5  M* = 23.5  [20, 24)  fill 0.53
+    p=0.7  M* = 17.6  [16, 20)  fill 0.41
+
+max/min = 1.64 against the 1.25 bar, monotone FALLING in p (~ p^-0.6 over this
+range). The crosstalk ratio is p-free, so this is not a partial miss; the
+mechanism as stated is wrong. Note the direction also rules out the untrained-
+background term named in the FAIL clause: background fluctuation ~
+sqrt(k(1-p)/p)/n FALLS with p, which would push M* UP with p. Something that
+STRENGTHENS with p is binding.
+
+**X2 (beta-invariance): FAIL, outside the convergence caveat.**
+
+    beta=0.05  M* >= 48 (censored high: curve never crossed; grid to 48)
+    beta=0.10  M* = 23.5
+    beta=0.20  M* =  8.0 (pairwise 4.6x chance already at M=8)
+
+The caveat anticipated beta=0.05 might read LOW through non-convergence; it
+reads HIGH (rank1 1.000 at M=8..48). M* ~ beta^-1.3 over this range. (g-1)
+does not cancel.
+
+**Per the registered interpretation: the mechanism is NOT adopted.** The
+residual direction worth registering next -- as hypothesis, not claim -- is
+FORMATION-side interference: during training, recurrence pulls a new assembly
+toward stored ones through shared trained edges, a pull that strengthens with
+both beta and p; consistent with [[beta-opposes-capacity-and-depth]] and
+[[recurrence-is-the-collapse-channel]], and with the cliff (attractor merging
+is catastrophic, not gradual).
+
+**Consequence for CAP-RATIO, applied to the register:** "M* is a function of
+n/k alone" was established AT FIXED p = 0.5, beta = 0.10 and is now known to
+be conditional on both: M* moved 1.6x across p in [0.3, 0.7] and ~6x across
+beta in [0.05, 0.20] at fixed n/k. The claim's preconditions are sharpened
+accordingly; CS1 (n-invariance at fixed k/n ratio AND fixed p, beta) stands.
