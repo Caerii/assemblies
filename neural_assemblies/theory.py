@@ -472,18 +472,21 @@ _RESULTS: List[Result] = [
         status=Status.MEASURED,
         claim="Capacity failure is a CLIFF, not a slope: past the ceiling the "
               "assemblies shatter rather than degrading gracefully.",
-        source="research/experiments/seq_capacity_scaling.py. At n=8000, k=60: "
-               "M=256 gives rank-1 0.941 with pairwise overlap 1.30x chance "
-               "and every assembly distinct; M=512 gives rank-1 0.003, overlap "
-               "25.9x, distinct 0.657. One doubling.",
+        source="research/experiments/seq_capacity_scaling.py, re-measured on "
+               "the VERIFIED deviation path after the contaminated first run. "
+               "At n=8000, k=60, 16 brains: M=320 gives rank-1 1.000 with "
+               "pairwise overlap 1.25x chance and every assembly distinct; "
+               "M=448 gives 0.406; M=512 gives 0.004 at overlap 4.22x. One "
+               "doubling (320 -> 640) takes rank-1 from 1.000 to 0.002.",
         preconditions=("half-cue rank-1 readout against ALL M stored items",
                        "distinctness gate applied, so a collapsed set scores 0"),
         evidence=("research/experiments/seq_capacity_scaling.py",),
         caveat="There is no soft capacity margin to trade against: a design "
                "must know where the ceiling is and stay under it. Sharing "
-               "itself is healthy -- M*k/n reaches 4.96, about five assemblies "
-               "per neuron, with overlap still 1.3x chance -- so the cliff is "
-               "not caused by sharing.",
+               "itself is healthy -- at M=320 the load M*k/n is 2.4, over two "
+               "assemblies per neuron, with overlap still 1.25x chance -- so "
+               "the cliff is not caused by sharing. The transition occupies "
+               "roughly one 1.4x step in M (384 -> 512).",
     ),
 ]
 

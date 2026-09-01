@@ -242,3 +242,28 @@ is still sparse, which means attacking the `k >= 6 ln n` floor -- a smaller k at
 higher p, or a readout that does not require the assemblies to be simultaneously
 resident. That is a design question, and it is now a measured one rather than a
 suspicion.
+
+---
+
+## Amendment 2 (2026-08-25): the Result section above is CONTAMINATED
+
+Every number in the Result section -- M* = 80.7 / 354.6 / 241.8, the fills, the
+`M*k/n` figures 1.21 and 2.66, and the "G's ceiling is 3.0x B's" corroboration
+-- was produced by the multi-episode deviation path whose across-episode read
+had NEVER been exercised by a test (every parity test at the time ran a single
+episode, so the store was written and never read). See
+`PREREG_capacity_nk_law.md` Amendment 1 for the discovery and the verified
+replacement.
+
+What is known from re-measurement on the verified path (16 brains each):
+
+    B n= 4000 k= 60   M* = 88.3   fill 0.83   (was 80.7 here)
+    verified CS1 cells at n/k=66.67: 88.3 / 92.1 / 83.2, spread +/-5%
+
+The qualitative conclusions of the Result section SURVIVE in direction --
+"NOT ANSWERED by the registered rule" remains the verdict (for the additional
+reason that the run was contaminated), the censoring pattern is real, and the
+structural diagnosis (`k >= 6 ln n` forces the tiling limit to chase the
+ceiling) is arithmetic, not measurement. The NUMBERS do not survive and must
+not be quoted. The `M*k/n` trend and the 3.0x G/B ratio are UNVERIFIED until
+re-measured; the G arm in particular has not been re-run at all.

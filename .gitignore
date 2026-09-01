@@ -100,3 +100,4 @@ research/experiments/_parser_cache/
 
 # CHILDES transcripts (TalkBank terms: cite, never redistribute -- #150)
 data/childes/
+/*.log
