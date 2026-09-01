@@ -288,3 +288,19 @@ from "contaminated" to "not individually re-verified". The G-arm value (241.8)
 likewise -- and the CURRENT code refuses multi-episode substrate C outright
 until its column mass gets the same count-then-apply treatment, so G cannot be
 re-measured yet.
+
+### Addendum to Amendment 3: the G arm is now re-measured
+
+`column_mass_exact` (count-then-apply for the column mass) plus the
+fired-fiber scaling gate made multi-episode substrate C exact -- all four arms
+now reproduce `numpy_sparse` across episodes to < 5e-6 relative drive error.
+Re-run at n=4000, k=60, 16 brains, exact path:
+
+    G  M* = 246.3   bracket [224, 256)  interior 2   fill@M* 0.993  CENSORED
+
+against the original path's 241.8: CORROBORATED. With B's exact-path value of
+68.8 the ratio is ~3.6x, in line with the registered ceiling study's 2.5x at
+n=2000. G's cell is CENSORED -- at this n its ceiling sits at the tiling
+limit, so part of what norm_init+scaling buys is the ability to fill the area
+completely. The B row of the same run (M* = 96, no interior) is a grid
+artifact -- the grid began above B's ceiling -- and is not a measurement.
