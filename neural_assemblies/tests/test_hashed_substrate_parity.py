@@ -300,7 +300,12 @@ def test_norm_init_stim_divisor_is_potentiation_invariant():
 
 # -- multi-episode, against the ENGINE -------------------------------------
 
-def test_capacity_protocol_reproduces_numpy_sparse_across_episodes(mod):
+@pytest.mark.parametrize("arm,norm_init,scaling", [
+    ("NONE", False, False), ("B", True, False),
+    ("C", False, True), ("G", True, True),
+])
+def test_capacity_protocol_reproduces_numpy_sparse_across_episodes(
+        mod, arm, norm_init, scaling):
     """The check that would have caught the contaminated capacity run.
 
     The single-trajectory replays above never read learned state ACROSS
@@ -323,8 +328,8 @@ def test_capacity_protocol_reproduces_numpy_sparse_across_episodes(mod):
     random.seed(seed)
     np.random.seed(seed)
     brain = Brain(p=p, seed=seed, engine="numpy_sparse", w_max=w_max,
-                  recurrent_projection=True, norm_init=True,
-                  synaptic_scaling=False)
+                  recurrent_projection=True, norm_init=norm_init,
+                  synaptic_scaling=scaling)
     brain.add_area(AREA, n, k, beta)
     stims = []
     for a in range(M_eps):
@@ -354,14 +359,16 @@ def test_capacity_protocol_reproduces_numpy_sparse_across_episodes(mod):
     # hashed replay: same fiber pattern (the engine's own hash), same winners
     pair = _seeding.fnv1a_pair_seed(seed, AREA, AREA)
     fiber = AreaFiber([_to_i32(pair)], n, n, p, beta=beta, w_max=w_max,
-                      norm_init=True, max_rounds=M_eps * T)
+                      norm_init=norm_init, synaptic_scaling=scaling,
+                      max_rounds=M_eps * T)
     worst = 0.0
     for a, ep in enumerate(trace):
         sf = StimulusFiber([0], k, n, p, beta=beta, w_max=w_max,
-                           norm_init=True, max_rounds=T)
+                           norm_init=norm_init, max_rounds=T)
         sf.base = torch.from_numpy(
             stim0[a].astype(np.float32)).cuda().view(1, -1)
-        sf.dj = (sf.base + p * (n - k)).clamp_min(1.0)
+        if norm_init:
+            sf.dj = (sf.base + p * (n - k)).clamp_min(1.0)
         fiber.begin_episode()
         for prev, d_cpu, new in ep:
             drive = torch.zeros(1, n, dtype=torch.float32, device="cuda")
@@ -378,5 +385,5 @@ def test_capacity_protocol_reproduces_numpy_sparse_across_episodes(mod):
         fiber.end_episode()
     assert fiber.nnz > 0, "the store never populated -- the test is vacuous"
     assert worst < 5e-6, (
-        f"hashed path diverges from numpy_sparse across episodes: "
+        f"arm {arm}: hashed path diverges from numpy_sparse across episodes: "
         f"relative drive error {worst:.3g}")

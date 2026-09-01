@@ -224,6 +224,7 @@ class AreaFiber:
         self.store = RunStore(device)
         self._rowmask = self._colmask = None    # this episode only
         self._scratch = None                    # count accumulator, cached
+        self._cscratch = self._colmap = None    # column-mass accumulators
         self._prevs, self._news = [], []
         self._t = 0
 
@@ -307,7 +308,14 @@ class AreaFiber:
                 self._prevs.append(prev)
                 self._news.append(new)
         self._t += 1
-        if self.scale is not None and new.shape[1]:
+        # SCALING FIRES ONLY WHEN THIS FIBER FIRED. The engine filters
+        # sourceless areas out of `from_areas` before plasticity, so on a
+        # stimulus-only round (empty prev -- the first round after inhibition)
+        # `_scale_columns_now` never runs. Rescaling there anyway sets the new
+        # winners' columns to setpoint/in-degree (0.93-1.08 at p=0.1), an ~8%
+        # drive divergence on exactly those columns -- caught by the four-arm
+        # engine-parity capacity test at ep0 t1.
+        if self.scale is not None and new.shape[1] and prev.shape[1]:
             self._rescale(new)
 
     def end_episode(self):
@@ -321,28 +329,43 @@ class AreaFiber:
     def _rescale(self, cols):
         """`w[:, j] *= setpoint / mass_j` on winner columns.
 
-        MULTI-EPISODE IS NOT IMPLEMENTED for substrate C: `column_mass` reads
-        only the current episode's mask, so a mass with events in the store
-        would be wrong by the same split-count cross term the drive correction
-        had. Refused rather than silently wrong.
-
-        Column scaling is per-COLUMN multiplicative and potentiation per-CELL,
-        so they commute and the accumulated scale factors out of the sum:
-        `mass = S_j M_j`, hence `S_j <- setpoint / M_j` with the old scale
-        CANCELLING. Exact only while the `w_max` clip never binds, since a
-        column multiply does not commute with `min()` -- checked below against
-        the ACTUAL deepest cell rather than a bound.
+        mass_j needs the TOTAL count per cell -- the correction's lesson
+        applies verbatim: counts are additive, `tab` is not
+        ([[HEBB-OUTER-PRODUCT]]). Counts from the store (one linear pass with
+        a column -> slot map; the store is row-keyed so a column cannot be
+        binary-searched) and the current mask are accumulated per cell, and
+        `tab` applied once. Column scaling still commutes with per-cell
+        potentiation, so the factored scale `S_j = setpoint / M_j` is exact --
+        only while the `w_max` clip never binds, checked against the ACTUAL
+        deepest cell.
         """
-        if self.store.nnz:
-            raise NotImplementedError(
-                "synaptic_scaling across episodes: column_mass reads only the "
-                "current episode's mask, and a split count is not additive "
-                "through tab. Needs the same count-then-apply treatment as "
-                "the drive correction.")
         c = cols.to(torch.int32).contiguous()
-        mass, cellmax = self.mod.column_mass(c, self._rowmask, self._colmask,
-                                             self.tab, self.seeds,
-                                             self.threshold)
+        B, K = c.shape
+        need = B * K * self.n
+        if self._cscratch is None or self._cscratch.numel() < need:
+            self._cscratch = torch.zeros(need, dtype=torch.int32,
+                                         device=self.device)
+        else:
+            self._cscratch[:need].zero_()
+        if self.store.nnz:
+            if self._colmap is None:
+                self._colmap = torch.full((B, self.n), -1, dtype=torch.int32,
+                                          device=self.device)
+            else:
+                self._colmap.fill_(-1)
+            self._colmap.scatter_(
+                1, cols, torch.arange(K, dtype=torch.int32,
+                                      device=self.device).expand(B, K))
+            sk, sc, _ = self.store.view()
+        else:
+            sk = torch.zeros(0, dtype=torch.int64, device=self.device)
+            sc = torch.zeros(0, dtype=torch.int32, device=self.device)
+        mass, cellmax = self.mod.column_mass_exact(
+            c, sk, sc,
+            self._colmap if self.store.nnz else sk.to(torch.int32),
+            self._rowmask, self._colmask,
+            self._cscratch[:need].view(B, K, self.n),
+            self.tab, self.seeds, self.n, self.threshold)
         new = self.setpoint / mass.clamp_min(1e-12)
         self.scale.scatter_(1, cols, new)
         if self.w_max is not None:

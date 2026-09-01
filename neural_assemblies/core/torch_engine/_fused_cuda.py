@@ -472,6 +472,93 @@ __global__ void devapply_kernel(const int* __restrict__ S,
     atomicAdd(out + (long long)b * N + j, v - 1.0f);
 }
 
+
+// ---- exact column mass for substrate C --------------------------------
+// mass_j = SUM_i present(i,j) * tab[count_total(i,j)] needs the TOTAL count
+// per cell, and the correction's lesson applies verbatim: counts are additive,
+// tab is not. The store is ROW-keyed (b*n*n + i*n + j), so a column query
+// cannot binary-search it; instead ONE linear pass over the store filters by
+// a column -> slot map. Linear and coalesced, once per rescale.
+
+__global__ void colcnt_store_kernel(const long long* __restrict__ keys,
+                                    const int* __restrict__ cnts,
+                                    long long nnz,
+                                    const int* __restrict__ colmap,
+                                    int K, int N,
+                                    int* __restrict__ scratch) {
+    long long e = blockIdx.x * (long long)blockDim.x + threadIdx.x;
+    if (e >= nnz) return;
+    const long long key = keys[e];
+    const int b = (int)(key / ((long long)N * N));
+    const long long r = key - (long long)b * N * N;
+    const int i = (int)(r / N), j = (int)(r - (long long)i * N);
+    const int slot = colmap[(long long)b * N + j];
+    if (slot < 0) return;
+    atomicAdd(scratch + ((long long)b * K + slot) * N + i, cnts[e]);
+}
+
+__global__ void colcnt_mask_kernel(const int* __restrict__ cols,
+                                   const long long* __restrict__ rowmask,
+                                   const long long* __restrict__ colmask,
+                                   int B, int K, int N, int W,
+                                   int* __restrict__ scratch) {
+    long long idx = blockIdx.x * (long long)blockDim.x + threadIdx.x;
+    if (idx >= (long long)B * K * N) return;
+    const int i = (int)(idx % N);
+    const long long q = idx / N;
+    const int sl = (int)(q % K), b = (int)(q / K);
+    const int j = cols[(long long)b * K + sl];
+    int c = 0;
+    for (int w = 0; w < W; ++w) {
+        unsigned long long rm =
+            (unsigned long long)rowmask[((long long)b * W + w) * N + i];
+        if (rm == 0ULL) continue;
+        c += __popcll(rm & (unsigned long long)
+                      colmask[((long long)b * W + w) * N + j]);
+    }
+    if (c) atomicAdd(scratch + idx, c);
+}
+
+__global__ void colmass_apply_kernel(const int* __restrict__ cols,
+                                     const int* __restrict__ scratch,
+                                     const float* __restrict__ tab, int ntab,
+                                     const int* __restrict__ seeds,
+                                     int K, int N, int threshold,
+                                     float* __restrict__ out,
+                                     float* __restrict__ outmax) {
+    __shared__ float red[256];
+    __shared__ float rmx[256];
+    const int b = blockIdx.x / K, sl = blockIdx.x - b * K;
+    const int j = cols[(long long)b * K + sl];
+    const unsigned int ch = ((unsigned int)j * 2246822519u)
+                            ^ (unsigned int)seeds[b];
+    const int* sc = scratch + ((long long)b * K + sl) * N;
+    float acc = 0.0f, mx = 0.0f;
+    for (int i = threadIdx.x; i < N; i += blockDim.x) {
+        const unsigned int h =
+            ac_fmix32(((unsigned int)i * 2654435761u) ^ ch);
+        if ((h & 0x00FFFFFFu) >= (unsigned int)threshold) continue;
+        const int c = sc[i];
+        const float v = (c > 0) ? ((c < ntab) ? tab[c] : tab[ntab - 1]) : 1.0f;
+        acc += v;
+        if (v > mx) mx = v;
+    }
+    red[threadIdx.x] = acc; rmx[threadIdx.x] = mx;
+    __syncthreads();
+    for (int st = blockDim.x >> 1; st > 0; st >>= 1) {
+        if (threadIdx.x < st) {
+            red[threadIdx.x] += red[threadIdx.x + st];
+            if (rmx[threadIdx.x + st] > rmx[threadIdx.x])
+                rmx[threadIdx.x] = rmx[threadIdx.x + st];
+        }
+        __syncthreads();
+    }
+    if (threadIdx.x == 0) {
+        out[(long long)b * K + sl] = red[0];
+        outmax[(long long)b * K + sl] = rmx[0];
+    }
+}
+
 torch::Tensor hashed_drive(torch::Tensor rows, torch::Tensor seeds,
                            int64_t n, int64_t threshold) {
     TORCH_CHECK(rows.dim() == 2 && rows.is_cuda()
@@ -596,6 +683,41 @@ void dev_correct_exact(torch::Tensor S, torch::Tensor keys, torch::Tensor cnts,
         out.data_ptr<float>());
 }
 
+
+std::vector<torch::Tensor> column_mass_exact(
+        torch::Tensor cols, torch::Tensor keys, torch::Tensor cnts,
+        torch::Tensor colmap, torch::Tensor rowmask, torch::Tensor colmask,
+        torch::Tensor scratch, torch::Tensor tab, torch::Tensor seeds,
+        int64_t n, int64_t threshold) {
+    cols = cols.contiguous(); tab = tab.contiguous(); seeds = seeds.contiguous();
+    const int B = cols.size(0), K = cols.size(1), N = (int)n;
+    auto opt = torch::dtype(torch::kFloat32).device(cols.device());
+    auto out = torch::empty({B, (int64_t)K}, opt);
+    auto omax = torch::empty({B, (int64_t)K}, opt);
+    const long long tot = (long long)B * K * N;
+    const int th = 256;
+    if (keys.numel() > 0) {
+        keys = keys.contiguous(); cnts = cnts.contiguous();
+        colmap = colmap.contiguous();
+        const long long nnz = keys.numel();
+        colcnt_store_kernel<<<(nnz + th - 1) / th, th>>>(
+            keys.data_ptr<int64_t>(), cnts.data_ptr<int>(), nnz,
+            colmap.data_ptr<int>(), K, N, scratch.data_ptr<int>());
+    }
+    if (rowmask.numel() > 0) {
+        rowmask = rowmask.contiguous(); colmask = colmask.contiguous();
+        const int W = (int)(rowmask.numel() / ((long long)B * N));
+        colcnt_mask_kernel<<<(tot + th - 1) / th, th>>>(
+            cols.data_ptr<int>(), rowmask.data_ptr<int64_t>(),
+            colmask.data_ptr<int64_t>(), B, K, N, W, scratch.data_ptr<int>());
+    }
+    colmass_apply_kernel<<<B * K, 256>>>(
+        cols.data_ptr<int>(), scratch.data_ptr<int>(), tab.data_ptr<float>(),
+        (int)tab.numel(), seeds.data_ptr<int>(), K, N, (int)threshold,
+        out.data_ptr<float>(), omax.data_ptr<float>());
+    return {out, omax};
+}
+
 std::vector<torch::Tensor> topk_select(torch::Tensor x, int64_t K) {
     TORCH_CHECK(x.dim() == 2 && x.is_cuda()
                 && x.scalar_type() == torch::kFloat32, "x: [B,N] f32 cuda");
@@ -619,6 +741,7 @@ std::vector<torch::Tensor> column_mass(torch::Tensor cols, torch::Tensor rowmask
 void dev_correct(torch::Tensor S, torch::Tensor rowmask, torch::Tensor colids, torch::Tensor colmask, torch::Tensor tab, torch::Tensor seeds, int64_t threshold, torch::Tensor out);
 void dev_correct_csr(torch::Tensor S, torch::Tensor keys, torch::Tensor cnts, torch::Tensor offs, torch::Tensor tab, torch::Tensor seeds, int64_t threshold, torch::Tensor out);
 void dev_correct_exact(torch::Tensor S, torch::Tensor keys, torch::Tensor cnts, torch::Tensor offs, torch::Tensor rowmask, torch::Tensor colmask, torch::Tensor scratch, torch::Tensor tab, torch::Tensor seeds, int64_t threshold, torch::Tensor out);
+std::vector<torch::Tensor> column_mass_exact(torch::Tensor cols, torch::Tensor keys, torch::Tensor cnts, torch::Tensor colmap, torch::Tensor rowmask, torch::Tensor colmask, torch::Tensor scratch, torch::Tensor tab, torch::Tensor seeds, int64_t n, int64_t threshold);
 std::vector<torch::Tensor> topk_select(torch::Tensor x, int64_t K);
 """
 
@@ -664,7 +787,7 @@ def load() -> object | None:
             _MODULE = load_inline(
                 name="na_fused_cuda", cpp_sources=[_CPP],
                 cuda_sources=[_CUDA_SRC],
-                functions=["hashed_drive", "hashed_indegree", "dev_correct", "dev_correct_csr", "dev_correct_exact",
+                functions=["hashed_drive", "hashed_indegree", "dev_correct", "dev_correct_csr", "dev_correct_exact", "column_mass_exact",
                                   "column_mass", "topk_select"],
                 verbose=False, extra_cuda_cflags=["-O3"])
         except Exception as exc:                       # noqa: BLE001
