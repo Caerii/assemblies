@@ -53,3 +53,45 @@ other stored assembly.
   dropped, and the C2/C3 signs need another source.
 * F2 passes, F3 fails -> the anchor matters but failure is not concentrated
   capture; reported as partial support, not adopted.
+
+---
+
+## Result (2026-08-25): F2 PASSES 2.86x, F3 FAILS -- partial support, NOT adopted
+
+**F2 -- PASS, decisively.** Doubling the stimulus anchor (stim_size 100 -> 200,
+nothing else changed, retrieval still anchor-free):
+
+    M*(k anchor)  = 23.5   [20, 24)   fill 0.53
+    M*(2k anchor) = 67.1   [64, 80)   fill 0.83   uncensored
+
+Ratio 2.86 against a PASS bar of 1.3. A readout-side mechanism cannot produce
+this -- retrieval never sees the stimulus. The ceiling is set at FORMATION.
+
+**F3 -- FAIL as registered, and the failure shape is the finding.** At M = 32
+(1.36x M*, past the cliff), per-item forensics over 512 (item, brain) cells:
+
+    overall rank-1                    0.031
+    max-overlap median, FAILED items  0.190   (vs bar: >= 2x recalled)
+    max-overlap median, RECALLED      1.000
+    rank-1 by formation half          first 0.000   second 0.062
+
+Failure is DIFFUSE (median max-overlap 0.19 -- 7.6x the k/n chance floor of
+0.025, but nowhere near duplication), not concentrated capture. The registered
+capture direction INVERTS: EARLY items fail worse than late ones, and the only
+recalled cells are the EARLIER members of exact-duplicate pairs (their
+max-overlap is 1.000; argmax ties resolve to the lower index, so the earlier
+twin "wins" the readout). The partner-direction statistic is not over-read:
+failed items concentrate early, whose item-conditional null for an earlier
+partner is itself small.
+
+**Per the registered interpretation: partial support, NOT adopted.** What is
+established: the ceiling is FORMATION-side (F2), and the failure mode past the
+cliff is RETROACTIVE -- later training erodes earlier attractors diffusely,
+with occasional exact duplication whose earlier twin survives the argmax. What
+is not established: the one-shot capture picture, whose concentration
+signature is absent. Consistent with [[reinforcement-tradeoff]] (deep
+reinforcement MERGES multi-assembly areas) more than with prospective capture.
+
+Constraint ledger for the next mechanism attempt: C1-C3 as before, plus
+C4 (anchor strength raises M*, ratio ~2.9 at 2x anchor) and C5 (retroactive,
+diffuse, early-items-first).

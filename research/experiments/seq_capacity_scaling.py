@@ -60,6 +60,7 @@ NS = (1000, 2000, 4000, 8000)
 MS = (8, 16, 32, 64, 128, 256)
 NBRAIN = 16
 RECALL_SAMPLE = 32
+STIM_SIZE = None
 PAIR_SAMPLE = 200
 ARMS = {"B": dict(norm_init=True, synaptic_scaling=False),
         "G": dict(norm_init=True, synaptic_scaling=True)}
@@ -102,7 +103,7 @@ def run_cell(n, arm, m_max, nbrain, rng):
               for b in range(nbrain)]
         res = batched_project_hashed(
             n, K, P, sd, cue, T, beta=BETA, w_max=W_MAX,
-            stim_seeds=ss, stim_size=K,
+            stim_seeds=ss, stim_size=(STIM_SIZE or K),
             state=state, max_rounds=total_rounds, return_state=True, **cfg)
         win, state = res
         stored.append(win)
@@ -232,6 +233,9 @@ def main():
                     help="connection probability override (PREREG_crosstalk X1)")
     ap.add_argument("--beta", type=float, default=None,
                     help="Hebbian gain override (PREREG_crosstalk X2)")
+    ap.add_argument("--stim-size", type=int, default=None,
+                    help="stimulus size override; default k. Anchor-strength "
+                         "arm of PREREG_formation_interference F2")
     ap.add_argument("--nk", type=str, default=None,
                     help="explicit n:k pairs, e.g. 4000:60,8000:120")
     ap.add_argument("--ksqrt", action="store_true",
@@ -252,6 +256,9 @@ def main():
         P = args.p
     if args.beta is not None:
         BETA = args.beta
+    global STIM_SIZE
+    if args.stim_size is not None:
+        STIM_SIZE = args.stim_size
     nk = None
     if args.nk:
         nk = [tuple(int(v) for v in pair.split(":"))
