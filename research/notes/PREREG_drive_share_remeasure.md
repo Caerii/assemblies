@@ -41,3 +41,42 @@ share moves is an empirical question. Re-run, compare the ratio.
 a larger unit. Recorded as still-standing-on-biased-engine, with direction:
 head words received the most presentations, so their stimulus gains were damped
 MOST, and the frequency effect was understated.
+
+---
+
+## Result (2026-08-25)
+
+**R1 -- the finding SURVIVES; outcome (a) with a caveat on magnitudes.**
+Same script, same seeds, engine the only change:
+
+    beta/W        OLD (biased engine)                NEW (fixed divisor)
+    0.10 / 1.0    dup 0.317  ret 0.806/0.733  GRD 0.819    dup 0.287  ret 0.747/0.721  GRD 0.796
+    0.10 / 6.0    --                                        dup 0.115  ret 0.904/0.915  GRD 0.677
+    0.05 / 1.0    --                                        dup 0.333  ret 0.828/0.772  GRD 0.742
+    0.05 / 6.0    dup 0.063  ret 0.974/0.964  GRD 0.671    dup 0.086  ret 0.924/0.972  GRD 0.621
+
+The structure is identical: duplicates fall monotonically with W in both betas
+(0.287 -> 0.115 and 0.333 -> 0.086), retrieval rises (0.734 -> 0.910 and
+0.800 -> 0.948), grounding declines moderately, and the script's own registered
+reading fires the same clause both times -- "an INTERIOR optimum, report it
+with the trade-off, not alone". W = 6 at beta = 0.05 remains the adopted cell.
+Individual metrics shift by 0.02-0.08 at n=2 seeds, which does not clear seed
+noise; no direction is claimed for the shifts, and GROUND being uniformly
+slightly lower is noted as CONSISTENT with the fix strengthening the phon
+stimulus (a stronger identity channel leaves grounding a smaller share) without
+being established by it. The damping was NOT load-bearing for this result.
+
+**R2 -- resolved ANALYTICALLY, no run.** `mood-collapse-is-a-drive-ratio` ran
+on `WordOrderLearner`, which is `norm_init=False` by default (literature-
+reproduction convention, confirmed in the constructor) and drives every
+projection area-to-area with an EMPTY stimulus map. `_norm_scale` returns None
+before the 1-D branch when norm_init is off, so the buggy path never executed.
+The MOOD/SYN ~4% ratio stands because the bug was never on for it.
+
+**R3 -- exposure CONFIRMED, re-run deferred as registered.** `zipf_grammar.py`
+builds `Brain(p=P, seed=seed, synaptic_scaling=SCALING)` -- norm_init defaults
+True -- and fires stimuli per Zipf frequency: the bug's exact habitat, with
+head items fired most and therefore damped most. The standing claims are
+recorded as biased-engine measurements whose frequency effect is UNDERSTATED;
+the direction strengthens, not weakens, the qualitative conclusion. A full
+re-run (112 cells, hours) is its own unit.
