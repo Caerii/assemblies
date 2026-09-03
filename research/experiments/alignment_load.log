@@ -1,0 +1,88 @@
+ALIGNMENT UNDER LOAD AND ZIPF  (PREREG_alignment_load.md)
+  base scenes 198  word types 13  loads (2, 3, 5, 8)  zipf s=1.0  seeds [42, 1, 2, 3, 4]
+    flat P=2 scaling=True  seed 42: acc 0.909 (chance 0.500, n=396)  [12s]
+    flat P=2 scaling=True  seed  1: acc 1.000 (chance 0.500, n=396)  [20s]
+    flat P=2 scaling=True  seed  2: acc 1.000 (chance 0.500, n=396)  [23s]
+    flat P=2 scaling=True  seed  3: acc 1.000 (chance 0.500, n=396)  [14s]
+    flat P=2 scaling=True  seed  4: acc 0.977 (chance 0.500, n=396)  [11s]
+    flat P=3 scaling=True  seed 42: acc 0.970 (chance 0.333, n=594)  [18s]
+    flat P=3 scaling=True  seed  1: acc 1.000 (chance 0.333, n=594)  [26s]
+    flat P=3 scaling=True  seed  2: acc 1.000 (chance 0.333, n=594)  [31s]
+    flat P=3 scaling=True  seed  3: acc 1.000 (chance 0.333, n=594)  [25s]
+    flat P=3 scaling=True  seed  4: acc 1.000 (chance 0.333, n=594)  [27s]
+    flat P=3 scaling=False seed 42: acc 0.641 (chance 0.333, n=594)  [11s]
+    flat P=3 scaling=False seed  1: acc 0.692 (chance 0.333, n=594)  [10s]
+    flat P=3 scaling=False seed  2: acc 0.702 (chance 0.333, n=594)  [15s]
+    flat P=3 scaling=False seed  3: acc 0.672 (chance 0.333, n=594)  [18s]
+    flat P=3 scaling=False seed  4: acc 0.551 (chance 0.333, n=594)  [14s]
+    flat P=5 scaling=True  seed 42: acc 0.923 (chance 0.200, n=594)  [52s]
+    flat P=5 scaling=True  seed  1: acc 1.000 (chance 0.200, n=594)  [43s]
+    flat P=5 scaling=True  seed  2: acc 0.921 (chance 0.200, n=594)  [26s]
+    flat P=5 scaling=True  seed  3: acc 0.832 (chance 0.200, n=594)  [38s]
+    flat P=5 scaling=True  seed  4: acc 0.911 (chance 0.200, n=594)  [33s]
+    flat P=8 scaling=True  seed 42: acc 0.700 (chance 0.125, n=594)  [48s]
+    flat P=8 scaling=True  seed  1: acc 0.746 (chance 0.125, n=594)  [44s]
+    flat P=8 scaling=True  seed  2: acc 0.601 (chance 0.125, n=594)  [42s]
+    flat P=8 scaling=True  seed  3: acc 0.670 (chance 0.125, n=594)  [41s]
+    flat P=8 scaling=True  seed  4: acc 0.480 (chance 0.125, n=594)  [42s]
+    flat P=8 scaling=False seed 42: acc 0.140 (chance 0.125, n=594)  [20s]
+    flat P=8 scaling=False seed  1: acc 0.242 (chance 0.125, n=594)  [25s]
+    flat P=8 scaling=False seed  2: acc 0.089 (chance 0.125, n=594)  [44s]
+    flat P=8 scaling=False seed  3: acc 0.153 (chance 0.125, n=594)  [20s]
+    flat P=8 scaling=False seed  4: acc 0.173 (chance 0.125, n=594)  [34s]
+    zipf P=2 scaling=True  seed 42: acc 0.947 (chance 0.500, n=396)  [13s]
+    zipf P=2 scaling=True  seed  1: acc 1.000 (chance 0.500, n=396)  [16s]
+    zipf P=2 scaling=True  seed  2: acc 1.000 (chance 0.500, n=396)  [13s]
+    zipf P=2 scaling=True  seed  3: acc 1.000 (chance 0.500, n=396)  [13s]
+    zipf P=2 scaling=True  seed  4: acc 0.977 (chance 0.500, n=396)  [19s]
+    zipf P=3 scaling=True  seed 42: acc 1.000 (chance 0.333, n=594)  [28s]
+    zipf P=3 scaling=True  seed  1: acc 1.000 (chance 0.333, n=594)  [87s]
+    zipf P=3 scaling=True  seed  2: acc 0.965 (chance 0.333, n=594)  [23s]
+    zipf P=3 scaling=True  seed  3: acc 0.941 (chance 0.333, n=594)  [24s]
+    zipf P=3 scaling=True  seed  4: acc 0.887 (chance 0.333, n=594)  [11s]
+    zipf P=3 scaling=False seed 42: acc 0.347 (chance 0.333, n=594)  [8s]
+    zipf P=3 scaling=False seed  1: acc 0.515 (chance 0.333, n=594)  [8s]
+    zipf P=3 scaling=False seed  2: acc 0.636 (chance 0.333, n=594)  [8s]
+    zipf P=3 scaling=False seed  3: acc 0.582 (chance 0.333, n=594)  [8s]
+    zipf P=3 scaling=False seed  4: acc 0.614 (chance 0.333, n=594)  [9s]
+    zipf P=5 scaling=True  seed 42: acc 0.840 (chance 0.200, n=594)  [24s]
+    zipf P=5 scaling=True  seed  1: acc 0.754 (chance 0.200, n=594)  [24s]
+    zipf P=5 scaling=True  seed  2: acc 0.759 (chance 0.200, n=594)  [27s]
+    zipf P=5 scaling=True  seed  3: acc 0.717 (chance 0.200, n=594)  [24s]
+    zipf P=5 scaling=True  seed  4: acc 0.778 (chance 0.200, n=594)  [20s]
+    zipf P=8 scaling=True  seed 42: acc 0.574 (chance 0.125, n=594)  [29s]
+    zipf P=8 scaling=True  seed  1: acc 0.394 (chance 0.125, n=594)  [28s]
+    zipf P=8 scaling=True  seed  2: acc 0.606 (chance 0.125, n=594)  [30s]
+    zipf P=8 scaling=True  seed  3: acc 0.401 (chance 0.125, n=594)  [28s]
+    zipf P=8 scaling=True  seed  4: acc 0.488 (chance 0.125, n=594)  [28s]
+    zipf P=8 scaling=False seed 42: acc 0.170 (chance 0.125, n=594)  [17s]
+    zipf P=8 scaling=False seed  1: acc 0.316 (chance 0.125, n=594)  [16s]
+    zipf P=8 scaling=False seed  2: acc 0.106 (chance 0.125, n=594)  [16s]
+    zipf P=8 scaling=False seed  3: acc 0.172 (chance 0.125, n=594)  [16s]
+    zipf P=8 scaling=False seed  4: acc 0.130 (chance 0.125, n=594)  [22s]
+
+=== BARS ===
+  -- flat corpus, scaling ON
+    flat P=2: 0.9773 +/- 0.0489 (n=5, 0.9091..1.0000)   chance 0.500  x chance 1.95  lower bound > 2x chance: False
+    flat P=3: 0.9939 +/- 0.0168 (n=5, 0.9697..1.0000)   chance 0.333  x chance 2.98  lower bound > 2x chance: True
+    flat P=5: 0.9172 +/- 0.0741 (n=5, 0.8316..1.0000)   chance 0.200  x chance 4.59  lower bound > 2x chance: True
+    flat P=8: 0.6394 +/- 0.1286 (n=5, 0.4798..0.7458)   chance 0.125  x chance 5.12  lower bound > 2x chance: True
+  -- zipf corpus, scaling ON
+    zipf P=2: 0.9848 +/- 0.0290 (n=5, 0.9470..1.0000)   chance 0.500  x chance 1.97  lower bound > 2x chance: False
+    zipf P=3: 0.9586 +/- 0.0585 (n=5, 0.8872..1.0000)   chance 0.333  x chance 2.88  lower bound > 2x chance: True
+    zipf P=5: 0.7697 +/- 0.0560 (n=5, 0.7172..0.8401)   chance 0.200  x chance 3.85  lower bound > 2x chance: True
+    zipf P=8: 0.4926 +/- 0.1205 (n=5, 0.3939..0.6061)   chance 0.125  x chance 3.94  lower bound > 2x chance: True
+  FAIL  L1 graceful: every P above 2x chance on the bound, and P=8 >= 0.60
+  flat (add-only (3, 5, 8)): ['0.994', '0.917', '0.639']  monotone True  P3-P8 gap +0.355  exceeds pooled CI True
+  zipf (add-only (3, 5, 8)): ['0.959', '0.770', '0.493']  monotone True  P3-P8 gap +0.466  exceeds pooled CI True
+  PASS  L2 accuracy falls monotonically over the ADD-ONLY loads, lightest beating heaviest beyond seed noise (Amendment 1; P=2 is a trimmed cell, reported not judged)
+  -- L3 scaling ON minus OFF
+    flat P=3: ON 0.994  OFF 0.652  gap +0.342
+    flat P=8: ON 0.639  OFF 0.160  gap +0.480
+    zipf P=3: ON 0.959  OFF 0.539  gap +0.420
+    zipf P=8: ON 0.493  OFF 0.179  gap +0.314
+  FAIL  L3 gap positive everywhere and LARGER under Zipf at both loads
+  -- Z1 head vs tail under Zipf at P=3 (reported, no bar)
+    scaling=True   head 0.959  tail 0.977  head-tail -0.019
+    scaling=False  head 0.557  tail 0.394  head-tail +0.162
+EXIT=0

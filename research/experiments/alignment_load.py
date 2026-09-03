@@ -158,23 +158,40 @@ def main():
                 results[(corpus_kind, P, scaling)] = (accs, float(np.mean(chs)))
 
     print("\n=== BARS ===")
-    ok_l1 = True
-    means = {}
+    # L1 is a THREE-WAY as registered (pass / fail / neither), and one clause
+    # of it is ill-posed: at P=2, "lower bound above 2x chance" demands an
+    # accuracy above 1.000, which nothing can reach. Those cells are reported
+    # and excluded from the verdict rather than counted as failures. The
+    # earlier binary print called the whole bar FAIL on that clause alone.
+    means, l1_fail, l1_pass = {}, False, True
     for corpus_kind in ("flat", "zipf"):
         print(f"  -- {corpus_kind} corpus, scaling ON")
         for P in LOADS:
             accs, ch = results[(corpus_kind, P, True)]
             e = ensemble_from_values(accs, label=f"{corpus_kind} P={P}")
             means[(corpus_kind, P)] = e.mean
+            unreachable = 2 * ch >= 1.0
             beats = e.beats(2 * ch)
+            note = ("bar 2x chance is UNREACHABLE here (>= 1.0), excluded"
+                    if unreachable else
+                    f"lower bound > 2x chance: {beats}")
             print(f"    {e}   chance {ch:.3f}  x chance {e.mean / ch:.2f}  "
-                  f"lower bound > 2x chance: {beats}")
+                  f"{note}")
+            if unreachable:
+                continue
+            if e.mean <= 1.5 * ch:
+                l1_fail = True
             if not beats:
-                ok_l1 = False
-        if means[(corpus_kind, 8)] < 0.60:
-            ok_l1 = False
-    print(f"  {'PASS' if ok_l1 else 'FAIL'}  L1 graceful: every P above 2x "
-          f"chance on the bound, and P=8 >= 0.60")
+                l1_pass = False
+        heaviest = means[(corpus_kind, LOADS[-1])]
+        if heaviest < 0.35:
+            l1_fail = True
+        if heaviest < 0.60:
+            l1_pass = False
+    verdict = "FAIL" if l1_fail else ("PASS" if l1_pass else "INCONCLUSIVE")
+    print(f"  {verdict}  L1 graceful: reachable loads above 2x chance on the "
+          f"bound, heaviest load >= 0.60; FAIL zone is <= 1.5x chance or "
+          f"heaviest < 0.35")
 
     ok_l2 = True
     for corpus_kind in ("flat", "zipf"):

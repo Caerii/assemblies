@@ -96,3 +96,65 @@ and reported, labelled as a trimmed cell, because "less scene" is itself worth
 seeing -- but it is not evidence for or against the anchor law and cannot
 fail L2. L1 (above chance at every load) still includes it. L3 and Z1
 unchanged.
+
+---
+
+## Result (2026-09-03): L2 PASS, L1 INCONCLUSIVE (one clause was ill-posed), L3 half-passes, Z1 is the clean one
+
+Registered seeds, log `alignment_load.log`. Per-occurrence alignment:
+
+    corpus  P=2      P=3      P=5      P=8       (scaling ON)
+    flat    0.977    0.994    0.917    0.639
+    zipf    0.985    0.959    0.770    0.493
+    chance  0.500    0.333    0.200    0.125
+
+**L2 -- PASS, both corpora.** Over the add-only loads the means are
+0.994 / 0.917 / 0.639 (flat) and 0.959 / 0.770 / 0.493 (zipf): monotone
+decreasing, with P3-P8 gaps of +0.355 and +0.466, each larger than the pooled
+seed CI. **Alignment tracks the referent's share of grounding drive**, which
+is the anchor law's direction, now measured in word learning rather than in
+assembly formation.
+
+**L1 -- INCONCLUSIVE, and one clause of it was MY error.** The bar "lower
+bound above 2x chance" is unachievable at P=2, where 2x chance = 1.000; no
+accuracy can clear it. That clause was ill-posed at registration, and the P=2
+cells (0.977, 0.985) neither pass nor fail it -- they are the highest
+accuracies in the table. On the add-only loads every cell clears the bound.
+The second clause (P=8 mean >= 0.60) is met on the flat corpus (0.639) and
+missed under Zipf (0.493) -- but the registered FAIL zone was "P=8 below 0.35,
+or at/below 1.5x chance", and 0.493 is 3.94x chance, so that cell falls
+BETWEEN the bars. Reported as inconclusive rather than argued either way. The
+script printed a binary because it did not implement the registered three-way;
+that is a reporting bug and is fixed.
+
+**L3 -- first clause PASS, second clause FAIL.** The scaling ON-minus-OFF gap
+is positive in all four cells and large: flat +0.342 (P=3) and +0.480 (P=8),
+zipf +0.420 (P=3) and +0.314 (P=8). Homeostasis is load-bearing everywhere.
+But the prediction that the gap GROWS under Zipf holds only at P=3; at P=8 it
+shrinks. The reason is visible in the numbers and is a defect in how I framed
+the prediction: at P=8 the OFF arm is already near its floor (0.160 flat,
+0.179 zipf, chance 0.125), so the gap is bounded above by the ON arm, and the
+ON arm itself falls under Zipf (0.639 -> 0.493). A difference of two
+compressed quantities cannot test the claim. It needs a floor-independent
+statistic, which is what Z1 turns out to be.
+
+**Z1 -- reported without a bar, and it is the cleanest evidence in the run.**
+Head versus tail words under Zipf at P=3:
+
+    scaling ON    head 0.959   tail 0.977   head - tail  -0.019
+    scaling OFF   head 0.557   tail 0.394   head - tail  +0.162
+
+Without column normalization the learner is FREQUENCY-BIASED: common words are
+aligned far better than rare ones. With it the bias is gone, indeed slightly
+reversed within noise. That is the base-rate mechanism measured directly and
+independently of any floor: homeostasis is what makes a RARE word learnable
+from the same evidence as a common one.
+
+## What this establishes
+
+The anchor law reaches into word learning (L2), and homeostasis is the
+primitive that makes cross-situational learning work at all (L3 first clause,
+Z1) rather than a substrate flag. What is NOT established is the
+Zipf-amplification claim, framed as a difference of two quantities that both
+compress at high load. A future registration should test it as a head-tail
+statistic at fixed load, whose shape Z1 already suggests.
