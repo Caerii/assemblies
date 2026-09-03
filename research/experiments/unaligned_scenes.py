@@ -98,12 +98,33 @@ def shuffle_scenes(exp, seed):
 # ---------------------------------------------------------------------------
 
 class Aligner:
-    def __init__(self, seed, words, features):
+    def __init__(self, seed, words, features, scaling=True):
         random.seed(seed)
         np.random.seed(seed)
-        self.b = Brain(p=P, seed=seed, engine="numpy_sparse")
+        # SYNAPTIC SCALING ON THE FEATURE AREA (Amendment 5). Raw Hebbian mass
+        # follows the BASE RATE of a bundle, not its association with a word
+        # ([[hebbian-mass-follows-frequency]]): before this, every word's
+        # reconstruction pointed at the corpus's most frequent bundle
+        # (dog 0.28, ball 0.26, chases 0.28 -- all at ('ANIMAL','DOG')).
+        # Column renormalization divides each FEAT neuron's incoming mass by
+        # its own total, which is exactly the base-rate correction
+        # cross-situational learning needs. Scoped to FEAT; no refracted area
+        # exists here (AUDIT_refraction_scaling.md).
+        self.b = Brain(p=P, seed=seed, engine="numpy_sparse",
+                       synaptic_scaling=frozenset({FEAT}) if scaling else False)
         self.b.add_area(LEX, N, K, BETA)
         self.b.add_area(FEAT, N, K, BETA)
+        # MATERIALIZED, for the reason `NemoArcFSM` materializes its state
+        # area: while an area is nearly empty the lazy candidate sampler
+        # flattens DISJOINT inputs into overlapping winners
+        # ([[sampler-merges-at-low-load]]). Measured here before any bar was
+        # read -- every feature bundle's FEAT assembly was IDENTICAL (pairwise
+        # 1.00) although the bundles share no features at all, so alignment
+        # sat at exactly inventory chance with every word mapped to the
+        # alphabetically first bundle. Not sparsity: raising n does not fix
+        # it, materializing does ([[sampler-is-the-whole-discrepancy]]).
+        self.b.materialize_area(LEX)
+        self.b.materialize_area(FEAT)
         self.phon = {}
         for w in sorted(words):
             self.phon[w] = f"phon_{w}"
@@ -114,42 +135,67 @@ class Aligner:
             self.b.add_stimulus(self.feat[f], K)
 
     def train(self, exp, rng):
+        """One co-presentation per (word, PERCEIVED OBJECT) pair.
+
+        Amendment 3. Firing the whole scene's features at once made FEAT hold
+        one "scene soup" assembly, so nothing could bind a word to a
+        PARTICULAR participant and the cross-fiber learned the same thing for
+        every word in the sentence. Participants are distinct perceived
+        objects -- the scene already supplies them separately -- so each is
+        presented in its own step. Nothing about WHICH pairing is correct is
+        supplied: every word is paired with every bundle in its scene, and
+        only the cross-situational statistics separate them (a word's true
+        referent is in every one of its scenes; each distractor is in some).
+
+        ONE DIRECTION, LEX -> FEAT (Amendment 4). LEX must be driven by its
+        phonological stimulus ALONE, because that is the only cue the readout
+        has: with a FEAT -> LEX fiber in the loop the trained LEX assembly
+        overlapped the phon-cued one by 0.30, so the conjunction was written on
+        cells the readout never activates. Same lesson as
+        [[writer-and-reader-must-share-the-lookup]]. FEAT stays pinned by its
+        feature stimuli, so the write lands on LEX(word) x FEAT(bundle) and
+        the readout cues exactly those two sets.
+
+        FEEDFORWARD (Amendment 2): with LEX -> LEX and FEAT -> FEAT recurrence
+        both areas collapsed to a single attractor.
+        """
         order = list(range(len(exp)))
         rng.shuffle(order)
         for i in order:
             words, bundles = exp[i]
-            feats = sorted({f for b in bundles for f in b})
-            stim_feats = {self.feat[f]: [FEAT] for f in feats}
-            self.b.inhibit_areas([LEX, FEAT])
             for w in words:
-                self.b.inhibit_areas([LEX])
-                stim = dict(stim_feats)
-                stim[self.phon[w]] = [LEX]
-                for _ in range(ROUNDS_WORD):
-                    self.b.project(stim, {LEX: [LEX, FEAT], FEAT: [FEAT, LEX]})
+                for b in bundles:
+                    stim = {self.feat[f]: [FEAT] for f in b}
+                    stim[self.phon[w]] = [LEX]
+                    self.b.inhibit_areas([LEX, FEAT])
+                    self.b.project(stim, {})
+                    for _ in range(ROUNDS_WORD):
+                        self.b.project(stim, {LEX: [FEAT]})
 
     # -- probe-isolated readouts ------------------------------------------
+    # `probe()`, NOT `read_only()`: read_only freezes the winners, so every
+    # snapshot returns the same set and every overlap reads 1.000 -- the
+    # fake-perfect signature ([[fake-perfect-probe-signatures]]). Measured
+    # here first: 13 words, 13 bundles, all pairwise 1.00. probe() lets
+    # winners move without learning or recruitment.
     def bundle_assembly(self, bundle):
-        with self.b.read_only():
+        with self.b.probe():
             self.b.inhibit_areas([LEX, FEAT])
             stim = {self.feat[f]: [FEAT] for f in bundle}
-            for _ in range(ROUNDS_READ):
-                self.b.project(stim, {FEAT: [FEAT]})
+            self.b.project(stim, {})     # SAME cue the training step used
             return _snap(self.b, FEAT)
 
     def reconstruct(self, word):
         """Cue phon alone, let LEX settle, then LEX -> FEAT. Amendment 1."""
-        with self.b.read_only():
+        with self.b.probe():
             self.b.inhibit_areas([LEX, FEAT])
-            for _ in range(ROUNDS_READ):
-                self.b.project({self.phon[word]: [LEX]}, {LEX: [LEX]})
-            for _ in range(2):
-                self.b.project({}, {LEX: [FEAT], FEAT: [FEAT]})
+            self.b.project({self.phon[word]: [LEX]}, {})   # SAME LEX cue
+            self.b.project({}, {LEX: [FEAT]})
             return _snap(self.b, FEAT)
 
 
-def align(seed, exp, words, features):
-    al = Aligner(seed, words, features)
+def align(seed, exp, words, features, scaling=True):
+    al = Aligner(seed, words, features, scaling=scaling)
     al.train(exp, random.Random(seed + 11))
     inventory = sorted({b for _w, bs in exp for b in bs})
     inv_asm = {b: al.bundle_assembly(b) for b in inventory}

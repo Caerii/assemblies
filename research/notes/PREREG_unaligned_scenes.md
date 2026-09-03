@@ -121,3 +121,60 @@ with one stimulus per feature, LEX area) so that every drive is inspectable;
 U2 then hands the aligned bundles to `roles_from_scene` and the unchanged
 `word_order_induction` pipeline. U3's shuffle permutes scenes across sentences
 of the SAME length so the participant count per scene is preserved.
+
+## Amendment 2 (pre-bar, 2026-09-03): feedforward LEX and FEAT
+
+The first build had LEX -> LEX and FEAT -> FEAT recurrence "as the lexicon
+does". After 13 word types over ~990 presentations BOTH areas had collapsed
+into a single attractor: every phon cue read the same LEX assembly (pairwise
+overlap 1.00 across all words), every bundle the same FEAT assembly, and the
+alignment read exactly inventory chance (0.077 = 1/13) with every word
+"aligned" to the same bundle. A two-stimulus control on a fresh brain gave
+distinct assemblies (overlap 0.04-0.06), so the collapse is training-induced
+-- the recurrent Polya-urn channel ([[recurrence-is-the-collapse-channel]],
+[[self-recurrence-stability-window]]). No bar was read from that state; the
+0.077 is recorded here as the degenerate baseline.
+
+Both areas are now FEEDFORWARD with reciprocal cross-fibers only
+(LEX -> FEAT, FEAT -> LEX). The phon stimulus anchors the word; the scene
+features anchor FEAT; the alignment lives in the cross-fibers, which is where
+the registered mechanism said it would. Readouts become single-round. Bars
+unchanged. A first readout was also made under `read_only()`, which freezes
+winners and returns 1.000 everywhere ([[fake-perfect-probe-signatures]]);
+`probe()` is used, as the S5 studies do.
+
+## Amendments 3-5 (pre-bar, 2026-09-03): what the build had to fix
+
+Each was found by a diagnostic BEFORE any bar was read, and each is a known
+failure of this substrate rather than a tuning choice.
+
+**A3 -- one co-presentation per PERCEIVED OBJECT, not per scene.** Firing all
+of a scene's features at once left FEAT holding a single "scene soup"
+assembly, so nothing could bind a word to a PARTICULAR participant and the
+cross-fiber learned the same thing for every word in the sentence.
+Participants are separate perceived objects and the scene already supplies
+them separately, so each is presented in its own step. No information about
+WHICH pairing is right is added: every word is paired with every bundle in its
+scene.
+
+**A4 -- LEX is driven by its phonological stimulus ALONE.** With a FEAT -> LEX
+fiber the trained LEX assembly overlapped the phon-cued one by only 0.30, so
+the conjunction was written on cells the readout never activates
+([[writer-and-reader-must-share-the-lookup]]). One direction, LEX -> FEAT;
+cue overlap becomes 0.82.
+
+**A5 -- synaptic scaling on FEAT, and this is a RESULT, not a fix.** Raw
+Hebbian mass follows a bundle's BASE RATE, not its association with a word
+([[hebbian-mass-follows-frequency]]): before scaling, EVERY word's
+reconstruction pointed at the corpus's most frequent bundle (dog 0.28, ball
+0.26, chases 0.28, all at ('ANIMAL','DOG')). Column renormalization divides
+each FEAT neuron's incoming mass by its own total, which is exactly the
+base-rate correction cross-situational learning requires -- and with it
+dog -> DOG and ball -> BALL immediately became the maxima. **Cross-situational
+learning on this substrate NEEDS homeostasis**; it is not an optional
+substrate flag. Scoped to FEAT; no refracted area exists here
+(`AUDIT_refraction_scaling.md`).
+
+Also fixed before any bar: the readout used `read_only()`, which freezes
+winners and returns 1.000 for every pair ([[fake-perfect-probe-signatures]]);
+`probe()` is used instead.
