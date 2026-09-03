@@ -477,3 +477,44 @@ def test_relative_pricing_survives_deep_counts(mod):
     assert torch.isfinite(d).all()
     # the written columns carry (nearly) their whole setpoint from these rows
     assert float(d[cols[0]].min()) > 0.9 * f.setpoint
+
+
+def test_dense_fiber_equals_store_fiber(mod):
+    """`DenseAreaFiber` and `AreaFiber` (unclipped, scaled, relative) are the
+    same numbers on the same writes -- the dense one keeps the column mass
+    incrementally in float64 where the store one recomputes it."""
+    from neural_assemblies.core.torch_engine._hashed import (
+        AreaFiber, DenseAreaFiber)
+    n, p, beta = 256, 0.2, 0.1
+    seeds = [4242, 4243]
+    rows_a = torch.tensor([[1, 2, 3, 4, 5], [7, 8, 9, 10, 11]], device="cuda")
+    rows_b = torch.tensor([[6, 7, 8, 9, 10], [1, 2, 3, 4, 5]], device="cuda")
+    cols_a = torch.tensor([[10, 11, 12, 13, 14], [20, 21, 22, 23, 24]],
+                          device="cuda")
+    cols_b = torch.tensor([[12, 13, 14, 15, 16], [22, 23, 24, 25, 26]],
+                          device="cuda")
+    store = AreaFiber(seeds, n, n, p, beta=beta, w_max=None, norm_init=True,
+                      synaptic_scaling=True, max_rounds=64)
+    dense = DenseAreaFiber(seeds, n, n, p, beta=beta, norm_init=True,
+                           synaptic_scaling=True, max_rounds=64)
+    for f in (store, dense):
+        for _ in range(3):
+            f.begin_episode()
+            for _ in range(4):
+                f.observe(rows_a, cols_a)
+            f.observe(rows_b, cols_b)
+            f.end_episode()
+
+    def read(f, rows):
+        d = torch.zeros(2, n, device="cuda")
+        f.contribute(d, rows)
+        return d.cpu()
+
+    for rows in (rows_a, rows_b):
+        torch.testing.assert_close(read(dense, rows), read(store, rows),
+                                   rtol=1e-5, atol=1e-6)
+    torch.testing.assert_close(dense.cmax.cpu(), store.cmax.cpu())
+    # The store records every co-fired PAIR and checks for a synapse at apply
+    # time; the dense kernel counts only cells that have one. Same drive,
+    # different bookkeeping: dense.nnz is the present subset.
+    assert 0 < dense.nnz < store.nnz

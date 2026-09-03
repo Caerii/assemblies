@@ -83,7 +83,8 @@ def test_the_toy_is_identifiable():
     assert assert_identifiable(SCENES, BUNDLES)
 
 
-def test_hashed_aligner_reproduces_numpy_drive(mod):
+@pytest.mark.parametrize("store", ["csr", "dense"])
+def test_hashed_aligner_reproduces_numpy_drive(mod, store):
     from neural_assemblies.core.torch_engine._hashed_aligner import HashedAligner
 
     b = _numpy_learner()
@@ -135,7 +136,8 @@ def test_hashed_aligner_reproduces_numpy_drive(mod):
     al = HashedAligner([SEED], WORDS, FEATURES, n=N, k=K, feat_n=N, feat_k=K,
                        p=P, beta=BETA, w_max=W_MAX, rounds_word=ROUNDS,
                        stim_beta=BETA,      # the engine potentiates stimuli
-                       stim_gain=1.0)       # and has no anchor gain
+                       stim_gain=1.0,       # and has no anchor gain
+                       store=store)
     for name, sf in list(al.phon.items()) + list(al.featf.items()):
         key = (f"phon_{name}" if name in al.phon and sf is al.phon[name]
                else f"feat_{name}")

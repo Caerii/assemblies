@@ -740,6 +740,112 @@ __global__ void colmass_rel_kernel(const int* __restrict__ cols,
     }
 }
 
+
+// ---- DENSE cross fiber (DESIGN_dense_cross_fiber.md) ----------------------
+// Per-brain int32 count matrix C[b, i, j], per-column cmax and scale. Prices
+// are MAX-RELATIVE (see devapply_rel_kernel). One launch per drive, one per
+// write; the column mass is kept incrementally in float64 by the writer.
+
+// d[b, j] += scale[b, j] * invdj[b, j] * SUM_{sl} present(i_sl, j) * rel[cmax_j - C[b, i_sl, j]]
+__global__ void dense_drive_kernel(const int* __restrict__ S, int K,
+                                   const int* __restrict__ C,
+                                   const int* __restrict__ cmax,
+                                   const float* __restrict__ scale,
+                                   const float* __restrict__ invdj,
+                                   const float* __restrict__ rel, int nrel,
+                                   const int* __restrict__ seeds,
+                                   int B, int Npre, int N, int threshold,
+                                   float* __restrict__ out) {
+    long long idx = blockIdx.x * (long long)blockDim.x + threadIdx.x;
+    if (idx >= (long long)B * N) return;
+    const int j = (int)(idx % N), b = (int)(idx / N);
+    const unsigned int ch = ((unsigned int)j * 2246822519u) ^ (unsigned int)seeds[b];
+    const int cm = cmax[idx];
+    const int* Cb = C + (long long)b * Npre * N;
+    float acc = 0.0f;
+    for (int sl = 0; sl < K; ++sl) {
+        const int i = S[(long long)b * K + sl];
+        if (i < 0) continue;
+        const unsigned int h = ac_fmix32(((unsigned int)i * 2654435761u) ^ ch);
+        if ((h & 0x00FFFFFFu) >= (unsigned int)threshold) continue;
+        const int d = cm - Cb[(long long)i * N + j];
+        acc += (d < nrel) ? rel[d] : 0.0f;
+    }
+    float v = acc * scale[idx];
+    if (invdj != nullptr) v *= invdj[idx];
+    out[idx] += v;
+}
+
+// One block per (b, winner column j): counts the prev rows in, updates the
+// column max, the relative mass (float64, incremental) and the scale.
+__global__ void dense_write_kernel(const int* __restrict__ P, int KP,
+                                   const int* __restrict__ Wn, int KW,
+                                   int* __restrict__ C,
+                                   int* __restrict__ cmax,
+                                   double* __restrict__ mass,
+                                   float* __restrict__ scale,
+                                   const float* __restrict__ rel, int nrel,
+                                   const int* __restrict__ seeds,
+                                   int Npre, int N, int threshold,
+                                   float setpoint, int do_scale) {
+    __shared__ int rmx[128];
+    __shared__ double red[128];
+    const int b = blockIdx.x / KW, sw = blockIdx.x - b * KW;
+    const int j = Wn[(long long)b * KW + sw];
+    if (j < 0) return;
+    const unsigned int ch = ((unsigned int)j * 2246822519u) ^ (unsigned int)seeds[b];
+    int* Cb = C + (long long)b * Npre * N;
+    const long long cidx = (long long)b * N + j;
+    const int cm_old = cmax[cidx];
+    // pass 1: increment, find the new column max among the written cells
+    int mx = cm_old;
+    for (int sl = threadIdx.x; sl < KP; sl += blockDim.x) {
+        const int i = P[(long long)b * KP + sl];
+        if (i < 0) continue;
+        const unsigned int h = ac_fmix32(((unsigned int)i * 2654435761u) ^ ch);
+        if ((h & 0x00FFFFFFu) >= (unsigned int)threshold) continue;
+        const int c = Cb[(long long)i * N + j] + 1;
+        Cb[(long long)i * N + j] = c;
+        if (c > mx) mx = c;
+    }
+    rmx[threadIdx.x] = mx;
+    __syncthreads();
+    for (int st = blockDim.x >> 1; st > 0; st >>= 1) {
+        if (threadIdx.x < st && rmx[threadIdx.x + st] > rmx[threadIdx.x])
+            rmx[threadIdx.x] = rmx[threadIdx.x + st];
+        __syncthreads();
+    }
+    const int cm_new = rmx[0];
+    if (!do_scale) { if (threadIdx.x == 0) cmax[cidx] = cm_new; return; }
+    // pass 2: the written cells' change in relative price, at the NEW max
+    double acc = 0.0;
+    for (int sl = threadIdx.x; sl < KP; sl += blockDim.x) {
+        const int i = P[(long long)b * KP + sl];
+        if (i < 0) continue;
+        const unsigned int h = ac_fmix32(((unsigned int)i * 2654435761u) ^ ch);
+        if ((h & 0x00FFFFFFu) >= (unsigned int)threshold) continue;
+        const int c = Cb[(long long)i * N + j];          // already incremented
+        const int dn = cm_new - c, dold = cm_new - (c - 1);
+        const float rn = (dn < nrel) ? rel[dn] : 0.0f;
+        const float ro = (dold < nrel) ? rel[dold] : 0.0f;
+        acc += (double)rn - (double)ro;
+    }
+    red[threadIdx.x] = acc;
+    __syncthreads();
+    for (int st = blockDim.x >> 1; st > 0; st >>= 1) {
+        if (threadIdx.x < st) red[threadIdx.x] += red[threadIdx.x + st];
+        __syncthreads();
+    }
+    if (threadIdx.x == 0) {
+        const int dc = cm_new - cm_old;
+        const double shrink = (dc < nrel) ? (double)rel[dc] : 0.0;
+        double m = mass[cidx] * shrink + red[0];
+        mass[cidx] = m;
+        cmax[cidx] = cm_new;
+        scale[cidx] = (m > 1e-12) ? (float)((double)setpoint / m) : 1.0f;
+    }
+}
+
 void dev_correct_exact(torch::Tensor S, torch::Tensor keys, torch::Tensor cnts,
                        torch::Tensor offs, torch::Tensor rowmask,
                        torch::Tensor colmask, torch::Tensor scratch,
@@ -875,6 +981,39 @@ std::vector<torch::Tensor> column_mass_rel(
     return {out, omax};
 }
 
+
+void dense_drive(torch::Tensor S, torch::Tensor C, torch::Tensor cmax,
+                 torch::Tensor scale, torch::Tensor invdj, torch::Tensor rel,
+                 torch::Tensor seeds, int64_t threshold, torch::Tensor out) {
+    S = S.contiguous(); rel = rel.contiguous(); seeds = seeds.contiguous();
+    const int B = C.size(0), Npre = C.size(1), N = C.size(2), K = S.size(1);
+    if (K == 0) return;
+    const long long tot = (long long)B * N;
+    const int th = 256;
+    dense_drive_kernel<<<(tot + th - 1) / th, th>>>(
+        S.data_ptr<int>(), K, C.data_ptr<int>(), cmax.data_ptr<int>(),
+        scale.data_ptr<float>(),
+        invdj.numel() ? invdj.data_ptr<float>() : nullptr,
+        rel.data_ptr<float>(), (int)rel.numel(), seeds.data_ptr<int>(),
+        B, Npre, N, (int)threshold, out.data_ptr<float>());
+}
+
+void dense_write(torch::Tensor P, torch::Tensor Wn, torch::Tensor C,
+                 torch::Tensor cmax, torch::Tensor mass, torch::Tensor scale,
+                 torch::Tensor rel, torch::Tensor seeds, int64_t threshold,
+                 double setpoint, int64_t do_scale) {
+    P = P.contiguous(); Wn = Wn.contiguous(); rel = rel.contiguous();
+    seeds = seeds.contiguous();
+    const int B = C.size(0), Npre = C.size(1), N = C.size(2);
+    const int KP = P.size(1), KW = Wn.size(1);
+    if (KP == 0 || KW == 0) return;
+    dense_write_kernel<<<B * KW, 128>>>(
+        P.data_ptr<int>(), KP, Wn.data_ptr<int>(), KW, C.data_ptr<int>(),
+        cmax.data_ptr<int>(), mass.data_ptr<double>(), scale.data_ptr<float>(),
+        rel.data_ptr<float>(), (int)rel.numel(), seeds.data_ptr<int>(),
+        Npre, N, (int)threshold, (float)setpoint, (int)do_scale);
+}
+
 std::vector<torch::Tensor> topk_select(torch::Tensor x, int64_t K) {
     TORCH_CHECK(x.dim() == 2 && x.is_cuda()
                 && x.scalar_type() == torch::kFloat32, "x: [B,N] f32 cuda");
@@ -901,6 +1040,8 @@ void dev_correct_exact(torch::Tensor S, torch::Tensor keys, torch::Tensor cnts, 
 std::vector<torch::Tensor> column_mass_exact(torch::Tensor cols, torch::Tensor keys, torch::Tensor cnts, torch::Tensor colmap, torch::Tensor rowmask, torch::Tensor colmask, torch::Tensor scratch, torch::Tensor tab, torch::Tensor seeds, int64_t n, int64_t threshold);
 void dev_correct_rel(torch::Tensor S, torch::Tensor keys, torch::Tensor cnts, torch::Tensor offs, torch::Tensor rowmask, torch::Tensor colmask, torch::Tensor scratch, torch::Tensor rel, torch::Tensor cmax, torch::Tensor seeds, int64_t threshold, torch::Tensor out);
 std::vector<torch::Tensor> column_mass_rel(torch::Tensor cols, torch::Tensor keys, torch::Tensor cnts, torch::Tensor colmap, torch::Tensor rowmask, torch::Tensor colmask, torch::Tensor scratch, torch::Tensor rel, torch::Tensor seeds, int64_t n, int64_t threshold);
+void dense_drive(torch::Tensor S, torch::Tensor C, torch::Tensor cmax, torch::Tensor scale, torch::Tensor invdj, torch::Tensor rel, torch::Tensor seeds, int64_t threshold, torch::Tensor out);
+void dense_write(torch::Tensor P, torch::Tensor Wn, torch::Tensor C, torch::Tensor cmax, torch::Tensor mass, torch::Tensor scale, torch::Tensor rel, torch::Tensor seeds, int64_t threshold, double setpoint, int64_t do_scale);
 std::vector<torch::Tensor> topk_select(torch::Tensor x, int64_t K);
 """
 
@@ -949,7 +1090,8 @@ def load() -> object | None:
                 functions=["hashed_drive", "hashed_indegree", "dev_correct",
                            "dev_correct_csr", "dev_correct_exact",
                            "column_mass_exact", "dev_correct_rel",
-                           "column_mass_rel", "column_mass", "topk_select"],
+                           "column_mass_rel", "dense_drive", "dense_write",
+                           "column_mass", "topk_select"],
                 verbose=False, extra_cuda_cflags=["-O3"])
         except Exception as exc:                       # noqa: BLE001
             _MODULE = None

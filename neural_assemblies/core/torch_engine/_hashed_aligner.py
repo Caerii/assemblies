@@ -39,7 +39,7 @@ from __future__ import annotations
 import torch
 
 from ..numpy_engine import _seeding
-from ._hashed import AreaFiber, HashedArea, StimulusFiber
+from ._hashed import AreaFiber, DenseAreaFiber, HashedArea, StimulusFiber
 
 LEX, FEAT = "LEX", "FEAT"
 
@@ -62,7 +62,8 @@ class HashedAligner:
                  stim_size=None, p=0.05, beta=0.1, w_max=None,
                  norm_init=True, scaling=True, rounds_word=5,
                  max_potentiations=4096, device="cuda", track_pinned=False,
-                 tie_jitter=1e-6, stim_beta=0.0, stim_gain=None):
+                 tie_jitter=1e-6, stim_beta=0.0, stim_gain=None,
+                 store="dense"):
         self.seeds = [int(s) for s in brain_seeds]
         self.B = len(self.seeds)
         self.n, self.k, self.feat_n, self.feat_k = n, k, feat_n, feat_k
@@ -132,10 +133,29 @@ class HashedAligner:
         # One 1-round episode per training round keeps the mask narrow; the
         # store's LSM absorbs the appends. `max_rounds` here is the chain
         # table's reach in POTENTIATIONS (see above), not the episode.
-        self.cross = AreaFiber(pair_seeds(self.seeds, LEX, FEAT), n, feat_n,
-                               p, beta=beta, w_max=w_max, norm_init=norm_init,
-                               synaptic_scaling=scaling,
-                               max_rounds=max_potentiations, device=device)
+        if store == "dense":
+            # The count matrix fits at study sizes: one launch per drive, one
+            # per write, no store walk (DESIGN_dense_cross_fiber.md).
+            if w_max is not None:
+                raise ValueError("the dense fiber is the unclipped regime")
+            self.cross = DenseAreaFiber(pair_seeds(self.seeds, LEX, FEAT), n,
+                                        feat_n, p, beta=beta,
+                                        norm_init=norm_init,
+                                        synaptic_scaling=scaling,
+                                        max_rounds=max_potentiations,
+                                        device=device)
+        else:
+            self.cross = AreaFiber(pair_seeds(self.seeds, LEX, FEAT), n,
+                                   feat_n, p, beta=beta, w_max=w_max,
+                                   norm_init=norm_init,
+                                   synaptic_scaling=scaling,
+                                   max_rounds=max_potentiations,
+                                   device=device)
+        # ANCHORED ASSEMBLIES ARE CONSTANTS: a non-learning stimulus gives a
+        # constant drive and deterministic ties, so LEX(word) and FEAT's
+        # stimulus-only assembly for a bundle never change. Computed once.
+        self._lex_cache = {}
+        self._feat_cache = {}
         # THE ANCHOR SHARE. Perceived features must decide FEAT's winners
         # during training or the cross fiber binds each word to a FEAT set of
         # its own making: measured with gain 1, FEAT's winners overlapped the
@@ -153,28 +173,36 @@ class HashedAligner:
     def _stims(self, bundle):
         return [self.featf[f] for f in bundle]
 
+    def _anchored(self, area, cache, key, fibers):
+        """The area's winners under these non-learning stimuli, cached."""
+        w = cache.get(key)
+        if w is None:
+            area.inhibit()
+            w = area.project(1, fibers, freeze=True).clone()
+            cache[key] = w
+        area.winners = w
+        return w
+
     def step(self, word, bundle):
-        """One (word, bundle) co-presentation, rounds_word + 1 rounds."""
-        self.lex.inhibit()
-        self.feat.inhibit()
+        """One (word, bundle) co-presentation: its cross rounds.
+
+        Round 0 (stimuli only) and every LEX round are anchored constants
+        (see `_anchored`), so the step is exactly `rounds_word` FEAT rounds.
+        """
         phon = self.phon[word]
         stims = self._stims(bundle)
-        # round 0: stimuli only, both areas
-        self.lex.project(1, [phon])
-        self.feat.project(1, stims)
+        if phon.learns or any(s.learns for s in stims):
+            raise ValueError("cached anchors need non-learning stimuli")
+        self._anchored(self.lex, self._lex_cache, word, [phon])
+        self._anchored(self.feat, self._feat_cache, tuple(bundle), stims)
         # The cross rounds are ONE episode of the cross fiber (one mask, one
         # fold into the store), managed here because the rounds interleave
         # two areas; per-round episodes cost a store append and merge each.
         self.cross.begin_episode()
         for _ in range(self.rounds_word):
-            lex_prev = self.lex.winners                 # pre-round winners
+            lex_prev = self.lex.winners                 # anchored, constant
             if self.track_pinned:
-                d = torch.zeros(self.B, self.feat_n, dtype=torch.float32,
-                                device=self.device)
-                for s in stims:
-                    s.contribute(d)
-                pinned, _ = self.feat.mod.topk_select(d, self.feat_k)
-            self.lex.project(1, [phon])
+                pinned = self._feat_cache[tuple(bundle)]
             new = self.feat.project(1, stims + [self.cross],
                                     rows_for={id(self.cross): lex_prev},
                                     manage_episodes=False)
