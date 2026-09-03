@@ -178,3 +178,51 @@ substrate flag. Scoped to FEAT; no refracted area exists here
 Also fixed before any bar: the readout used `read_only()`, which freezes
 winners and returns 1.000 for every pair ([[fake-perfect-probe-signatures]]);
 `probe()` is used instead.
+
+---
+
+## Result (2026-09-03): U1 PASS, U2 PASS, U3 PASS, U4 reported -- reference and structure ARE solved together
+
+Registered seeds (42, 1, 2, 3, 4), 198-sentence corpus, 13 word types, 13
+distinct bundles, 3 bundles per scene. Log `unaligned_scenes.log`.
+
+    U1  scene-acc   0.9939 +/- 0.0168  (chance 0.333)   PASS  bar >= 0.85 and 2x chance
+        type-acc    0.9846 +/- 0.0427  (chance 0.077)
+    U2  word order  6/6 on 5/5 seeds                    PASS  bar >= 5/6 on >= 4/5
+    U3  shuffled    0.0923 +/- 0.1046  (chance 0.077)   PASS  bar <= 0.115
+    U4  two-person  0.9000 +/- 0.2776                   reported (no bar)
+
+The learner is given words and unlabelled feature bundles and NOTHING that
+says which word denotes which participant; word -> referent alignment is
+recovered at 0.99 per occurrence, and the word order induced from those
+learned alignments is 6/6 on every seed -- the same number the pipeline got
+when each word's referent was HANDED to it. The single alignment error across
+five seeds is `girl` -> ('BOY','PERSON') on seed 42, the two-person cell that
+U4 was registered to watch (0.90 mean); the superordinate PERSON is shared and
+the distinctive feature has to carry it.
+
+U3 is the control that makes U1 mean anything: with scenes permuted across
+same-length sentences the same learner and the same scorer read 0.092, i.e.
+chance. So the alignment is carried by word-scene co-occurrence, not by
+anything the scorer supplies.
+
+**The mechanism, stated as the amendments found it.** Alignment is a
+conjunction learned by frequency between a phon-anchored LEX assembly and a
+feature-anchored FEAT assembly, read by reconstruction. Three substrate
+conditions are REQUIRED, and each was a measured failure before it was a
+setting: the areas must be materialized (the lazy sampler otherwise merges
+disjoint bundles into one assembly), they must be feedforward (recurrence
+collapses both into one attractor), the writer and reader must share the cue
+(a reciprocal fiber moves LEX off its phon-cued assembly, 0.30 overlap), and
+-- the substantive one -- the fiber needs COLUMN NORMALIZATION, because raw
+Hebbian mass follows a bundle's base rate rather than its association with the
+word. Without it every word aligned to the corpus's most frequent bundle.
+
+**Cross-situational learning on this substrate requires homeostasis.** That is
+the finding worth carrying: base-rate correction is not a scoring trick
+applied afterwards, it is what synaptic scaling computes, at the fiber, during
+learning.
+
+**What is NOT claimed**, restating the registration: the scene still supplies
+causal order; nothing here is about syntax beyond word order, about function
+words, or about real corpora. Alignment is over 13 types with >= 3 exposures.

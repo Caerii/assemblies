@@ -1,0 +1,63 @@
+UNALIGNED SCENES  sentences with scenes 198/198  word types 13  features 19  alignable types 13  mean bundles/scene 3.00
+  n=1000 k=50 p=0.05 beta=0.1 rounds/word 5  min exposures 3  two-person words ['boy', 'girl']
+
+  seed 42: type-acc 0.923 (n=13, inventory chance 0.077)  scene-acc 0.970 (n=594, chance 0.333)  two-person 0.500 (n=2)  SHUFFLED type-acc 0.077  [97s]
+      miss 'girl': target ('GIRL', 'PERSON') -> got ('BOY', 'PERSON')
+    U2 prefs {'dog': 'AGENT', 'cat': 'AGENT', 'ball': 'PATIENT', 'book': 'PATIENT', 'food': 'PATIENT', 'table': 'PATIENT', 'car': 'PATIENT'}
+    U2 SVO   -> SVO                  YES
+    U2 SOV   -> SOV                  YES
+    U2 VSO   -> VSO                  YES
+    U2 VOS   -> VOS                  YES
+    U2 OSV   -> OSV                  YES
+    U2 OVS   -> OVS                  YES
+    U2 recovered 6/6   [294s]
+
+  seed 1: type-acc 1.000 (n=13, inventory chance 0.077)  scene-acc 1.000 (n=594, chance 0.333)  two-person 1.000 (n=2)  SHUFFLED type-acc 0.077  [31s]
+    U2 prefs {'dog': 'AGENT', 'cat': 'AGENT', 'ball': 'PATIENT', 'book': 'PATIENT', 'food': 'PATIENT', 'table': 'PATIENT', 'car': 'PATIENT'}
+    U2 SVO   -> SVO                  YES
+    U2 SOV   -> SOV                  YES
+    U2 VSO   -> VSO                  YES
+    U2 VOS   -> VOS                  YES
+    U2 OSV   -> OSV                  YES
+    U2 OVS   -> OVS                  YES
+    U2 recovered 6/6   [310s]
+
+  seed 2: type-acc 1.000 (n=13, inventory chance 0.077)  scene-acc 1.000 (n=594, chance 0.333)  two-person 1.000 (n=2)  SHUFFLED type-acc 0.231  [92s]
+    U2 prefs {'dog': 'AGENT', 'cat': 'AGENT', 'ball': 'PATIENT', 'book': 'PATIENT', 'food': 'PATIENT', 'table': 'PATIENT', 'car': 'PATIENT'}
+    U2 SVO   -> SVO                  YES
+    U2 SOV   -> SOV                  YES
+    U2 VSO   -> VSO                  YES
+    U2 VOS   -> VOS                  YES
+    U2 OSV   -> OSV                  YES
+    U2 OVS   -> OVS                  YES
+    U2 recovered 6/6   [283s]
+
+  seed 3: type-acc 1.000 (n=13, inventory chance 0.077)  scene-acc 1.000 (n=594, chance 0.333)  two-person 1.000 (n=2)  SHUFFLED type-acc 0.000  [46s]
+    U2 prefs {'dog': 'AGENT', 'cat': 'AGENT', 'ball': 'PATIENT', 'book': 'PATIENT', 'food': 'PATIENT', 'table': 'PATIENT', 'car': 'PATIENT'}
+    U2 SVO   -> SVO                  YES
+    U2 SOV   -> SOV                  YES
+    U2 VSO   -> VSO                  YES
+    U2 VOS   -> VOS                  YES
+    U2 OSV   -> OSV                  YES
+    U2 OVS   -> OVS                  YES
+    U2 recovered 6/6   [262s]
+
+  seed 4: type-acc 1.000 (n=13, inventory chance 0.077)  scene-acc 1.000 (n=594, chance 0.333)  two-person 1.000 (n=2)  SHUFFLED type-acc 0.077  [58s]
+    U2 prefs {'dog': 'AGENT', 'cat': 'AGENT', 'ball': 'PATIENT', 'book': 'PATIENT', 'food': 'PATIENT', 'table': 'PATIENT', 'car': 'PATIENT'}
+    U2 SVO   -> SVO                  YES
+    U2 SOV   -> SOV                  YES
+    U2 VSO   -> VSO                  YES
+    U2 VOS   -> VOS                  YES
+    U2 OSV   -> OSV                  YES
+    U2 OVS   -> OVS                  YES
+    U2 recovered 6/6   [292s]
+
+=== BARS (PREREG_unaligned_scenes.md) ===
+  U1 type-acc vs inventory: 0.9846 +/- 0.0427 (n=5, 0.9231..1.0000)   chance 0.077
+  U1 scene-acc (registered): 0.9939 +/- 0.0168 (n=5, 0.9697..1.0000)   chance 0.333
+  PASS  U1 scene-acc >= 0.85 and lower bound beats 2x chance
+  U3 shuffled type-acc: 0.0923 +/- 0.1046 (n=5, 0.0000..0.2308)   (must be <= 1.5x chance = 0.115)
+  PASS  U3 shuffled scenes fall to chance
+  U4 two-person words: 0.9000 +/- 0.2776 (n=5, 0.5000..1.0000)   U4 two-person words (reported, no bar)
+  U2 orders recovered per seed [6, 6, 6, 6, 6]; >=5/6 on 5/5 seeds  PASS
+EXIT=0

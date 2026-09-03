@@ -1,0 +1,96 @@
+=== substrate C: census under per-round homeostasis ===
+    norm_init=False, synaptic_scaling=frozenset({'_wp_state'}) (per-update)  [SCOPED to the state area -- Amendment 2]
+
+    [tier 0.67 GB/worker] 30 cells, 14 workers
+[done ('Z60', 42, 'homeo')]
+[done ('Z60', 46, 'homeo')]
+[done ('Z60', 49, 'homeo')]
+[done ('Z60', 51, 'homeo')]
+[done ('A4xZ5', 45, 'homeo')]
+[done ('Z60', 48, 'homeo')]
+[done ('Z60', 44, 'homeo')]
+[done ('A4xZ5', 43, 'homeo')]
+[done ('Z60', 45, 'homeo')]
+[done ('Z60', 50, 'homeo')]
+[done ('Z60', 43, 'homeo')]
+[done ('A4xZ5', 42, 'homeo')]
+[done ('Z60', 47, 'homeo')]
+[done ('A4xZ5', 44, 'homeo')]
+[done ('A4xZ5', 47, 'homeo')]
+[done ('A4xZ5', 50, 'homeo')]
+[done ('A4xZ5', 48, 'homeo')]
+[done ('A4xZ5', 49, 'homeo')]
+[done ('A4xZ5', 51, 'homeo')]
+[done ('A4xZ5', 46, 'homeo')]
+[done ('A5', 43, 'homeo')]
+[done ('A5', 46, 'homeo')]
+[done ('A5', 45, 'homeo')]
+[done ('A5', 42, 'homeo')]
+[done ('A5', 44, 'homeo')]
+[done ('A5', 49, 'homeo')]
+[done ('A5', 47, 'homeo')]
+[done ('A5', 48, 'homeo')]
+[done ('A5', 50, 'homeo')]
+[done ('A5', 51, 'homeo')]
+    [tier 2.69 GB/worker] 10 cells, 3 workers
+[done ('S5', 42, 'homeo')]
+[done ('S5', 44, 'homeo')]
+[done ('S5', 43, 'homeo')]
+[done ('S5', 45, 'homeo')]
+[done ('S5', 46, 'homeo')]
+[done ('S5', 47, 'homeo')]
+[done ('S5', 48, 'homeo')]
+[done ('S5', 50, 'homeo')]
+[done ('S5', 49, 'homeo')]
+[done ('S5', 51, 'homeo')]
+
+    group   seed  soft  hard first_bad exact@500
+    Z60       42     0     0       500      True
+    Z60       43     0     0       500      True
+    Z60       44     1     0       500      True
+    Z60       45     0     0       500      True
+    Z60       46     1     0       500      True
+    Z60       47     1     0       500      True
+    Z60       48     0     0       500      True
+    Z60       49     2     0       137     False
+    Z60       50     1     0       500      True
+    Z60       51     0     0       500      True
+    A4xZ5     42     0     0       500      True
+    A4xZ5     43     0     0       500      True
+    A4xZ5     44     0     0       500      True
+    A4xZ5     45     0     0       500      True
+    A4xZ5     46     0     0       500      True
+    A4xZ5     47     0     0       500      True
+    A4xZ5     48     0     0       500      True
+    A4xZ5     49     1     0        53     False
+    A4xZ5     50     2     0       500      True
+    A4xZ5     51     0     0       500      True
+    A5        42     0     0       500      True
+    A5        43     0     0       500      True
+    A5        44     1     0         3     False
+    A5        45     2     0       500      True
+    A5        46     1     0       500      True
+    A5        47     1     0       369     False
+    A5        48     2     0       276     False
+    A5        49     0     0       500      True
+    A5        50     0     0       500      True
+    A5        51     0     0       500      True
+    S5        42     1     0       500      True
+    S5        43     0     0       500      True
+    S5        44     1     0       500      True
+    S5        45     2     0        10     False
+    S5        46     3     0       299     False
+    S5        47     2     0        89     False
+    S5        48     2     0       219     False
+    S5        49     0     0       500      True
+    S5        50     3     0       391     False
+    S5        51     0     0       500      True
+
+=== BARS ===
+  PASS  HC1 zero hard defects (total 0)
+  FAIL  HC2 soft total 30 < registered 30
+  VOID  HC3 exact@500 >= registered per group  {'Z60': 9, 'A4xZ5': 9, 'A5': 7, 'S5': 5} vs {'Z60': 7, 'A4xZ5': 9, 'A5': 7, 'S5': 5}
+  HC4 soft anatomy: n=30 overlap min 0.986 med 0.986
+
+wrote F:\Github\assemblies-run-e2\research\experiments\seq_s5_substrate_c_results_scoped.json
+EXIT=0
