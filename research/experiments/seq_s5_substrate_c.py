@@ -120,9 +120,12 @@ def worker(group_name, seed, _arm="homeo"):
 
 
 def main():
-    seeds = SEEDS[:int(sys.argv[1])] if len(sys.argv) > 1 else SEEDS
+    argv = [a for a in sys.argv[1:] if not a.startswith("--")]
+    seeds = SEEDS[:int(argv[0])] if argv else SEEDS
     print("=== substrate C: census under per-round homeostasis ===")
-    print("    norm_init=False, synaptic_scaling=True (per-update)\n")
+    print(f"    norm_init=False, synaptic_scaling={SCALING!r} (per-update)"
+          + ("  [SCOPED to the state area -- Amendment 2]" if SCOPED else "")
+          + "\n")
     r = run_tiered([(g, s, "homeo") for g in GROUP_NAMES for s in seeds],
                    worker_fn=worker)
 
