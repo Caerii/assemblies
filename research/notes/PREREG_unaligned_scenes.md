@@ -98,3 +98,26 @@ exposures.
   (the anchor law predicts accuracy rises with the referent's share of
   grounding drive, i.e. with fewer participants per scene).
 * U3 fails -> the scorer leaks; nothing else is read.
+
+---
+
+## Amendment 1 (pre-data, 2026-09-03): RECONSTRUCTION readout, not overlap-in-LEX
+
+The alignment readout is changed BEFORE any data: cue phon(word) into LEX under
+a probe, then project LEX -> FEAT and read the FEATURE assembly it
+reconstructs; score each participant bundle by overlap between that
+reconstruction and the bundle's own feature-driven FEAT assembly (formed under
+the same probe). Argmax = aligned referent.
+
+Why: the registered overlap-in-LEX readout scores in LEX's index space, where
+a word assembly that merely shares neurons with a feature assembly reads as
+aligned; reconstruction makes the assembly DECIDE by what it drives downstream
+([[reconstruction-readout-makes-the-assembly-decide]]), which is what the
+parser's lexicon route already does. Both FEAT -> LEX and LEX -> FEAT fibers
+are trained (reciprocal), as the lexicon's are. Bars unchanged.
+
+Learner stage is a standalone three-population brain (phon stimuli, FEAT area
+with one stimulus per feature, LEX area) so that every drive is inspectable;
+U2 then hands the aligned bundles to `roles_from_scene` and the unchanged
+`word_order_induction` pipeline. U3's shuffle permutes scenes across sentences
+of the SAME length so the participant count per scene is preserved.
