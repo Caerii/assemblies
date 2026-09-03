@@ -114,6 +114,7 @@
     "research/experiments/seq_a1_step_accuracy.py": 6,
     "research/experiments/seq_a1_where_drift_starts.py": 2,
     "research/experiments/seq_arc_refraction_reference.py": 4,
+    "research/experiments/seq_s5_bar_tie.py": 1,
     "research/experiments/seq_s5_cliff_anatomy.py": 2,
     "research/experiments/seq_s5_word_problem.py": 6,
     "research/experiments/seq_state_refraction.py": 2,

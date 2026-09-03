@@ -109,6 +109,12 @@ over SCENES of one corpus and is descriptive. Everything judged in
 `alignment_load.judge` -- L1, L2, the L3 paired gap, Z1 -- is an ensemble over
 seeds read on its bound. The ratchet's catch on the first draft was real: L3
 compared two bare seed means, and was rewritten as a paired per-seed gap.
+
+RAISED 2026-09-03 for `seq_s5_bar_tie.py` (1 site). `np.mean(js)` averages
+Jaccard similarities over ORGANS x noisy readouts of one trained brain each;
+the verdict is a SET comparison (are the soft pairs identical under noise?)
+and its bars are thresholds on that descriptive mean plus exact counts (zero
+hard defects, count ratio). No seed-level interval is claimed or judged.
 """
 
 from __future__ import annotations
