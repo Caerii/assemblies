@@ -1,0 +1,40 @@
+'vswhere.exe' is not recognized as an internal or external command,
+operable program or batch file.
+WORD CAPACITY  engine hashed  cells A,B,C,D,E  V grid (16, 32, 64, 128, 256, 512)  seeds [42, 1, 2, 3, 4]  threshold 0.9
+    A n=1000 k=50 s=50 V=  16 hashed B=5: type-acc 0.938 1.000 1.000 1.000 1.000 (chance 0.062, n=16)  pinned min 0.728 mean 0.883  [7s]
+    A n=1000 k=50 s=50 V=  32 hashed B=5: type-acc 0.906 0.875 0.938 0.906 0.938 (chance 0.031, n=32)  pinned min 0.700 mean 0.880  [3s]
+    A n=1000 k=50 s=50 V=  64 hashed B=5: type-acc 0.891 0.859 0.906 0.828 0.797 (chance 0.016, n=64)  pinned min 0.652 mean 0.870  [7s]
+    A n=1000 k=50 s=50 V= 128 hashed B=5: type-acc 0.586 0.633 0.695 0.633 0.656 (chance 0.008, n=128)  pinned min 0.668 mean 0.854  [15s]
+    A n=1000 k=50 s=50 V= 256 hashed B=5: type-acc 0.273 0.320 0.402 0.289 0.316 (chance 0.004, n=256)  pinned min 0.604 mean 0.837  [28s]
+    B n=2000 k=50 s=50 V=  16 hashed B=5: type-acc 1.000 1.000 1.000 1.000 1.000 (chance 0.062, n=16)  pinned min 0.548 mean 0.841  [2s]
+    B n=2000 k=50 s=50 V=  32 hashed B=5: type-acc 1.000 1.000 0.938 0.938 0.938 (chance 0.031, n=32)  pinned min 0.528 mean 0.836  [3s]
+    B n=2000 k=50 s=50 V=  64 hashed B=5: type-acc 0.953 0.953 0.938 0.969 0.922 (chance 0.016, n=64)  pinned min 0.532 mean 0.827  [7s]
+    B n=2000 k=50 s=50 V= 128 hashed B=5: type-acc 0.750 0.820 0.820 0.781 0.836 (chance 0.008, n=128)  pinned min 0.456 mean 0.812  [13s]
+    B n=2000 k=50 s=50 V= 256 hashed B=5: type-acc 0.469 0.551 0.520 0.500 0.438 (chance 0.004, n=256)  pinned min 0.420 mean 0.790  [24s]
+    C n=4000 k=50 s=50 V=  16 hashed B=5: type-acc 1.000 1.000 1.000 1.000 1.000 (chance 0.062, n=16)  pinned min 0.344 mean 0.747  [2s]
+    C n=4000 k=50 s=50 V=  32 hashed B=5: type-acc 0.938 0.938 0.969 0.938 0.969 (chance 0.031, n=32)  pinned min 0.164 mean 0.746  [3s]
+    C n=4000 k=50 s=50 V=  64 hashed B=5: type-acc 0.875 0.891 0.938 0.922 0.938 (chance 0.016, n=64)  pinned min 0.272 mean 0.756  [6s]
+    C n=4000 k=50 s=50 V= 128 hashed B=5: type-acc 0.703 0.844 0.742 0.766 0.812 (chance 0.008, n=128)  pinned min 0.288 mean 0.764  [12s]
+    C n=4000 k=50 s=50 V= 256 hashed B=5: type-acc 0.402 0.551 0.484 0.500 0.500 (chance 0.004, n=256)  pinned min 0.332 mean 0.766  [38s]
+    D n=4000 k=100 s=100 V=  16 hashed B=5: type-acc 1.000 1.000 1.000 1.000 1.000 (chance 0.062, n=16)  pinned min 0.204 mean 0.671  [2s]
+    D n=4000 k=100 s=100 V=  32 hashed B=5: type-acc 0.969 1.000 1.000 0.938 0.969 (chance 0.031, n=32)  pinned min 0.108 mean 0.654  [5s]
+    D n=4000 k=100 s=100 V=  64 hashed B=5: type-acc 0.875 0.906 0.938 0.953 0.938 (chance 0.016, n=64)  pinned min 0.132 mean 0.661  [9s]
+    D n=4000 k=100 s=100 V= 128 hashed B=5: type-acc 0.664 0.727 0.703 0.727 0.742 (chance 0.008, n=128)  pinned min 0.120 mean 0.640  [16s]
+    D n=4000 k=100 s=100 V= 256 hashed B=5: type-acc 0.395 0.414 0.387 0.410 0.355 (chance 0.004, n=256)  pinned min 0.060 mean 0.614  [84s]
+    E n=2000 k=50 s=100 V=  16 hashed B=5: type-acc 1.000 1.000 1.000 1.000 1.000 (chance 0.062, n=16)  pinned min 0.580 mean 0.846  [5s]
+    E n=2000 k=50 s=100 V=  32 hashed B=5: type-acc 0.969 1.000 1.000 0.969 0.969 (chance 0.031, n=32)  pinned min 0.536 mean 0.837  [10s]
+    E n=2000 k=50 s=100 V=  64 hashed B=5: type-acc 0.922 0.922 0.938 0.922 0.938 (chance 0.016, n=64)  pinned min 0.548 mean 0.832  [20s]
+    E n=2000 k=50 s=100 V= 128 hashed B=5: type-acc 0.789 0.852 0.805 0.844 0.797 (chance 0.008, n=128)  pinned min 0.508 mean 0.814  [40s]
+    E n=2000 k=50 s=100 V= 256 hashed B=5: type-acc 0.492 0.535 0.570 0.496 0.453 (chance 0.004, n=256)  pinned min 0.420 mean 0.789  [92s]
+
+=== BARS (PREREG_word_capacity.md) ===
+  A n=1000 k=50 s=50 V*: 41.5463 +/- 17.8003 (n=5, 27.8576..65.3280)   n/k 20   censored seeds 0/5
+  B n=2000 k=50 s=50 V*: 79.9862 +/- 4.3994 (n=5, 76.3494..84.4485)   n/k 40   censored seeds 0/5
+  C n=4000 k=50 s=50 V*: 65.3287 +/- 15.7566 (n=5, 48.5029..78.7932)   n/k 80   censored seeds 0/5
+  D n=4000 k=100 s=100 V*: 67.7345 +/- 11.0393 (n=5, 53.1992..75.2950)   n/k 40   censored seeds 0/5
+  E n=2000 k=50 s=100 V*: 76.7360 +/- 3.6349 (n=5, 71.7400..79.4024)   n/k 40   censored seeds 0/5
+  FAIL  W1 V* rises with n/k: A<B True, B<C False (beyond pooled CI)
+  PASS  W2 ratio law: V*(D)/V*(B) = 0.85 at equal n/k
+  FAIL  W3 anchor: V*(E)/V*(B) = 0.96 (s doubled)
+wrote F:\Github\assemblies\research\experiments\word_capacity_results_hashed.json
+EXIT=0
