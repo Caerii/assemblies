@@ -99,12 +99,15 @@ def shuffle_scenes(exp, seed):
 
 class Aligner:
     def __init__(self, seed, words, features, scaling=True, *,
-                 n=None, k=None, stim_size=None):
-        # Area size and phon stimulus size are PARAMETERS so the capacity
-        # study (word_capacity.py) can sweep them; defaults reproduce U1-U3.
+                 n=None, k=None, stim_size=None, feat_n=None, feat_k=None):
+        # LEX size, phon stimulus size and FEAT size are PARAMETERS so the
+        # capacity study (word_capacity.py) can sweep LEX while holding FEAT
+        # fixed, as its registration requires; defaults reproduce U1-U3.
         n = N if n is None else int(n)
         k = K if k is None else int(k)
         stim_size = k if stim_size is None else int(stim_size)
+        feat_n = n if feat_n is None else int(feat_n)
+        feat_k = k if feat_k is None else int(feat_k)
         random.seed(seed)
         np.random.seed(seed)
         # SYNAPTIC SCALING ON THE FEATURE AREA (Amendment 5). Raw Hebbian mass
@@ -119,7 +122,7 @@ class Aligner:
         self.b = Brain(p=P, seed=seed, engine="numpy_sparse",
                        synaptic_scaling=frozenset({FEAT}) if scaling else False)
         self.b.add_area(LEX, n, k, BETA)
-        self.b.add_area(FEAT, n, k, BETA)
+        self.b.add_area(FEAT, feat_n, feat_k, BETA)
         # MATERIALIZED, for the reason `NemoArcFSM` materializes its state
         # area: while an area is nearly empty the lazy candidate sampler
         # flattens DISJOINT inputs into overlapping winners
@@ -138,7 +141,7 @@ class Aligner:
         self.feat = {}
         for f in sorted(features):
             self.feat[f] = f"feat_{f}"
-            self.b.add_stimulus(self.feat[f], k)
+            self.b.add_stimulus(self.feat[f], feat_k)
 
     def train(self, exp, rng):
         """One co-presentation per (word, PERCEIVED OBJECT) pair.

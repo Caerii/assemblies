@@ -87,3 +87,34 @@ The soft defects are SOURCE-SPECIFIC margins, invisible to a total-mass
 homeostat, and neither ties nor hubs.
 
 The registered 12-organ test is re-run with independent draws below.
+
+## Result (2026-09-03, independent draws): T2 PASS -- the soft defects are NOT bar ties
+
+Twelve organs, three independent noisy censuses each (`seq_s5_bar_tie.log`,
+`seq_s5_bar_tie_results.json`): four organs carry a soft defect, and in every
+one of the twelve noisy readouts the soft-pair set is IDENTICAL to the
+deterministic census -- mean Jaccard 1.000, count ratio 1.00, zero hard
+defects under noise. With the positive control above (noise reaches the
+k-WTA; at std 1.0 the intruder is displaced; at std 3 new pairs appear), T2
+is met and T1 is not.
+
+**Adopted: the intruders carry a real, SOURCE-SPECIFIC margin of about one
+integer count** over the displaced block neuron, from the particular arc
+assembly driving that transition. Consequences:
+
+* The bar-tie reading of the substrate-C null is dropped. Scoped column
+  scaling fires and moves mass and leaves these defects alone because it
+  equalizes each neuron's TOTAL incoming mass, and a one-count advantage from
+  one source survives any renormalization of totals. No total-mass homeostat
+  (A, B, C, G) should be expected to move this census; the earlier
+  "bar ties" hypothesis in `PREREG_substrate_c_homeostasis.md` is corrected
+  to "one-count source-specific margins".
+* A one-count margin is the resolution limit of integer drive. Per-neuron
+  noise of std ~1 count erases the defect (and, at higher std, creates
+  others): the soft census sits exactly at the edge of what integer drive can
+  resolve, which is the quantitative content of [[KWTA-TIE-FRAGILE]].
+* The soft count is therefore a property of the ARC -> STATE fiber's
+  fine structure -- which arc neurons happen to wire to which block neurons
+  -- and the mechanism that would address it is source-specific
+  (fiber-level) normalization, not a homeostat on the postsynaptic neuron.
+  Not registered here.

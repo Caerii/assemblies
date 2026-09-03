@@ -1,0 +1,37 @@
+=== S5 soft defects: bar ties or excess mass?  (PREREG_bar_tie.md)
+    state-area input noise 0.001 at census only, 3 repeats, seeds [42, 43, 44]
+
+    [tier 0.67 GB/worker] 9 cells, 9 workers
+[done ('Z60', 44, 'tie')]
+[done ('A4xZ5', 44, 'tie')]
+[done ('Z60', 42, 'tie')]
+[done ('A5', 42, 'tie')]
+[done ('A5', 43, 'tie')]
+[done ('A5', 44, 'tie')]
+[done ('Z60', 43, 'tie')]
+[done ('A4xZ5', 42, 'tie')]
+[done ('A4xZ5', 43, 'tie')]
+    [tier 2.69 GB/worker] 3 cells, 3 workers
+[done ('S5', 43, 'tie')]
+[done ('S5', 42, 'tie')]
+[done ('S5', 44, 'tie')]
+    group   seed soft0 hard0   noisy soft noisy hard           J(det,noisy)
+    Z60       42     0     0    [0, 0, 0]  [0, 0, 0]            nan nan nan
+    Z60       43     0     0    [0, 0, 0]  [0, 0, 0]            nan nan nan
+    Z60       44     1     0    [1, 1, 1]  [0, 0, 0]         1.00 1.00 1.00
+    A4xZ5     42     0     0    [0, 0, 0]  [0, 0, 0]            nan nan nan
+    A4xZ5     43     0     0    [0, 0, 0]  [0, 0, 0]            nan nan nan
+    A4xZ5     44     0     0    [0, 0, 0]  [0, 0, 0]            nan nan nan
+    A5        42     0     0    [0, 0, 0]  [0, 0, 0]            nan nan nan
+    A5        43     0     0    [0, 0, 0]  [0, 0, 0]            nan nan nan
+    A5        44     1     0    [1, 1, 1]  [0, 0, 0]         1.00 1.00 1.00
+    S5        42     1     0    [1, 1, 1]  [0, 0, 0]         1.00 1.00 1.00
+    S5        43     0     0    [0, 0, 0]  [0, 0, 0]            nan nan nan
+    S5        44     1     0    [1, 1, 1]  [0, 0, 0]         1.00 1.00 1.00
+
+  organs with soft0>0: 4   mean Jaccard(det, noisy) 1.000   noisy/det count ratio 1.00   hard under noise 0
+  no    T1 TIE: Jaccard <= 0.5, counts within [0.5x, 2x], zero hard
+  PASS  T2 MASS: Jaccard >= 0.9, counts unchanged
+
+wrote F:\Github\assemblies-run-e2\research\experiments\seq_s5_bar_tie_results.json
+EXIT=0

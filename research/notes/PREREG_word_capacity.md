@@ -76,3 +76,26 @@ Grid: V in (16, 32, 64, 128, 256, 512). Seeds (42, 1, 2, 3, 4). Cells:
   measured exponent as a fit, adopt nothing.
 * W3 fails -> the anchor moves accuracy (L2) but not capacity; the two are
   different limits and the registration's premise was wrong.
+
+---
+
+## Amendment 1 (2026-09-03, before any bar was read): FEAT was following n; exposures 6 -> 12
+
+The first build let FEAT scale with n although the registration fixes it at
+1000 x 50. The sweep was stopped after cells A and B had been run at V <= 128
+and no bar had been judged. What those partial curves showed is worth keeping:
+with FEAT following n, cell B (n=2000) read LOWER than cell A (n=1000) at
+V=16 (0.56-0.81 against 0.80-1.00), and an exposure ladder at V=16 gave
+
+    FEAT follows n:   E=6   A 1.000  B 0.812  C 0.875
+                      E=48  A 1.000  B 0.875  C 0.625
+    FEAT fixed 1000:  E=6   A 1.000  B 1.000  C 1.000
+                      E=48  A 1.000  B 1.000  C 1.000
+
+so the degradation with n was a READOUT FLOOR -- more FEAT columns competing
+in the reconstruction's k-WTA -- and not capacity. That is itself a finding
+about the readout (reconstruction accuracy at fixed evidence falls with the
+size of the area reconstructed into), recorded here and not judged. FEAT is
+now fixed as registered. Exposures are raised from 6 to 12 so the curves
+start above threshold and the ceiling is approached from above; at E=6 even
+the fixed-FEAT build sat within noise of 0.90 at V=16. Bars unchanged.

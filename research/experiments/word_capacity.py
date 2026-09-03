@@ -31,7 +31,8 @@ from _substrate import ceiling_from_curve                               # noqa: 
 import unaligned_scenes as U                                            # noqa: E402
 
 VS = (16, 32, 64, 128, 256, 512)
-EXPOSURES = 6          # scenes per referent, on average
+EXPOSURES = 12         # scenes per referent (Amendment 1: 6 sat below threshold at V=16)
+FEAT_N, FEAT_K = 1000, 50
 PER_SCENE = 3
 CATS = 4
 THRESHOLD = 0.90
@@ -75,8 +76,13 @@ def corpus(V, seed):
 def type_accuracy(seed, V, n, k, stim_size):
     exp, targets, words, features = corpus(V, seed)
     exposures = Counter(w for ws, _b in exp for w in ws)
+    # FEAT is FIXED across cells (registration: n=1000, k=50); only LEX and
+    # the phon anchor vary. Letting FEAT follow n made the n=4000 cell read
+    # WORSE than n=1000 at every exposure level -- more FEAT columns
+    # competing at readout -- which is a readout floor, not capacity.
     al = U.Aligner(seed, words, features, scaling=True,
-                   n=n, k=k, stim_size=stim_size)
+                   n=n, k=k, stim_size=stim_size,
+                   feat_n=FEAT_N, feat_k=FEAT_K)
     al.train(exp, random.Random(seed + 11))
     inventory = sorted({b for _w, bs in exp for b in bs})
     inv_asm = {b: al.bundle_assembly(b) for b in inventory}

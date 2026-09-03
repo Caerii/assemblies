@@ -1,0 +1,334 @@
+{
+  "seeds": [
+    42,
+    43,
+    44
+  ],
+  "noise": 0.001,
+  "cells": {
+    "Z60/42": {
+      "n_soft0": 0,
+      "n_hard0": 0,
+      "soft0": [],
+      "noisy_counts": [
+        0,
+        0,
+        0
+      ],
+      "noisy_hard": [
+        0,
+        0,
+        0
+      ],
+      "jaccard_vs_det": [
+        NaN,
+        NaN,
+        NaN
+      ],
+      "jaccard_noisy_pairs": [
+        NaN,
+        NaN,
+        NaN
+      ]
+    },
+    "Z60/43": {
+      "n_soft0": 0,
+      "n_hard0": 0,
+      "soft0": [],
+      "noisy_counts": [
+        0,
+        0,
+        0
+      ],
+      "noisy_hard": [
+        0,
+        0,
+        0
+      ],
+      "jaccard_vs_det": [
+        NaN,
+        NaN,
+        NaN
+      ],
+      "jaccard_noisy_pairs": [
+        NaN,
+        NaN,
+        NaN
+      ]
+    },
+    "Z60/44": {
+      "n_soft0": 1,
+      "n_hard0": 0,
+      "soft0": [
+        [
+          "4",
+          "g1"
+        ]
+      ],
+      "noisy_counts": [
+        1,
+        1,
+        1
+      ],
+      "noisy_hard": [
+        0,
+        0,
+        0
+      ],
+      "jaccard_vs_det": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "jaccard_noisy_pairs": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    "A4xZ5/42": {
+      "n_soft0": 0,
+      "n_hard0": 0,
+      "soft0": [],
+      "noisy_counts": [
+        0,
+        0,
+        0
+      ],
+      "noisy_hard": [
+        0,
+        0,
+        0
+      ],
+      "jaccard_vs_det": [
+        NaN,
+        NaN,
+        NaN
+      ],
+      "jaccard_noisy_pairs": [
+        NaN,
+        NaN,
+        NaN
+      ]
+    },
+    "A4xZ5/43": {
+      "n_soft0": 0,
+      "n_hard0": 0,
+      "soft0": [],
+      "noisy_counts": [
+        0,
+        0,
+        0
+      ],
+      "noisy_hard": [
+        0,
+        0,
+        0
+      ],
+      "jaccard_vs_det": [
+        NaN,
+        NaN,
+        NaN
+      ],
+      "jaccard_noisy_pairs": [
+        NaN,
+        NaN,
+        NaN
+      ]
+    },
+    "A4xZ5/44": {
+      "n_soft0": 0,
+      "n_hard0": 0,
+      "soft0": [],
+      "noisy_counts": [
+        0,
+        0,
+        0
+      ],
+      "noisy_hard": [
+        0,
+        0,
+        0
+      ],
+      "jaccard_vs_det": [
+        NaN,
+        NaN,
+        NaN
+      ],
+      "jaccard_noisy_pairs": [
+        NaN,
+        NaN,
+        NaN
+      ]
+    },
+    "A5/42": {
+      "n_soft0": 0,
+      "n_hard0": 0,
+      "soft0": [],
+      "noisy_counts": [
+        0,
+        0,
+        0
+      ],
+      "noisy_hard": [
+        0,
+        0,
+        0
+      ],
+      "jaccard_vs_det": [
+        NaN,
+        NaN,
+        NaN
+      ],
+      "jaccard_noisy_pairs": [
+        NaN,
+        NaN,
+        NaN
+      ]
+    },
+    "A5/43": {
+      "n_soft0": 0,
+      "n_hard0": 0,
+      "soft0": [],
+      "noisy_counts": [
+        0,
+        0,
+        0
+      ],
+      "noisy_hard": [
+        0,
+        0,
+        0
+      ],
+      "jaccard_vs_det": [
+        NaN,
+        NaN,
+        NaN
+      ],
+      "jaccard_noisy_pairs": [
+        NaN,
+        NaN,
+        NaN
+      ]
+    },
+    "A5/44": {
+      "n_soft0": 1,
+      "n_hard0": 0,
+      "soft0": [
+        [
+          "0",
+          "g0"
+        ]
+      ],
+      "noisy_counts": [
+        1,
+        1,
+        1
+      ],
+      "noisy_hard": [
+        0,
+        0,
+        0
+      ],
+      "jaccard_vs_det": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "jaccard_noisy_pairs": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    "S5/42": {
+      "n_soft0": 1,
+      "n_hard0": 0,
+      "soft0": [
+        [
+          "11",
+          "g1"
+        ]
+      ],
+      "noisy_counts": [
+        1,
+        1,
+        1
+      ],
+      "noisy_hard": [
+        0,
+        0,
+        0
+      ],
+      "jaccard_vs_det": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "jaccard_noisy_pairs": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    "S5/43": {
+      "n_soft0": 0,
+      "n_hard0": 0,
+      "soft0": [],
+      "noisy_counts": [
+        0,
+        0,
+        0
+      ],
+      "noisy_hard": [
+        0,
+        0,
+        0
+      ],
+      "jaccard_vs_det": [
+        NaN,
+        NaN,
+        NaN
+      ],
+      "jaccard_noisy_pairs": [
+        NaN,
+        NaN,
+        NaN
+      ]
+    },
+    "S5/44": {
+      "n_soft0": 1,
+      "n_hard0": 0,
+      "soft0": [
+        [
+          "17",
+          "g1"
+        ]
+      ],
+      "noisy_counts": [
+        1,
+        1,
+        1
+      ],
+      "noisy_hard": [
+        0,
+        0,
+        0
+      ],
+      "jaccard_vs_det": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "jaccard_noisy_pairs": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    }
+  },
+  "mean_jaccard": 1.0,
+  "count_ratio": 1.0,
+  "T1": false,
+  "T2": true
+}
