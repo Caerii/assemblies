@@ -1,0 +1,20 @@
+'vswhere.exe' is not recognized as an internal or external command,
+operable program or batch file.
+k=60 p=0.3 T=8 beta=0.1 w_max=20.0 brains=16
+  n=  4000 k= 100 kp=30.0 vs floor 3ln n=24.9  IN REGIME   k*k/n=2.50
+    B n= 4000 M=   8  rank1 1.000 pw/chance   1.49  distinct 1.000  fill 0.278  gated 1.000
+    B n= 4000 M=  12  rank1 1.000 pw/chance   1.40  distinct 1.000  fill 0.382  gated 1.000
+    B n= 4000 M=  16  rank1 0.992 pw/chance   1.66  distinct 1.000  fill 0.468  gated 0.992
+    B n= 4000 M=  20  rank1 0.928 pw/chance   1.70  distinct 1.000  fill 0.542  gated 0.928
+    B n= 4000 M=  24  rank1 0.766 pw/chance   2.04  distinct 1.000  fill 0.602  gated 0.766
+    B n= 4000 M=  28  rank1 0.404 pw/chance   2.86  distinct 0.993  fill 0.652  gated 0.000
+    B n= 4000 M=  32  rank1 0.141 pw/chance   4.07  distinct 0.967  fill 0.694  gated 0.000
+    B n= 4000 M=  40  rank1 0.031 pw/chance   7.16  distinct 0.841  fill 0.755  gated 0.000
+    B n= 4000 M=  48  rank1 0.025 pw/chance  11.08  distinct 0.703  fill 0.802  gated 0.000
+    B n= 4000 k= 100  CEILING M* = 25.3  bracket [24, 28)  interior 1  fill@M* 0.619  M*k/n 0.633  ok
+
+  elapsed 4.8s
+
+--- CAP2: fit log M* = a + b log n over UNCENSORED n ---
+    B: only 1 uncensored supported n -- NOT ANSWERED at this k, p. No line is fitted.
+  wrote F:\Github\assemblies\research\experiments\capacity_scaling_results.json

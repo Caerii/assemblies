@@ -478,6 +478,34 @@ _RESULTS: List[Result] = [
                "the DRIVE.",
     ),
     Result(
+        id="CAP-ANCHOR-RATIO",
+        status=Status.MEASURED,
+        claim="The capacity ceiling is set at FORMATION by the ratio of the "
+              "stimulus anchor to the trained recurrent pull. Density p and "
+              "gain beta enter through that ratio, so an excursion in either "
+              "is undone by a computed change in anchor size.",
+        source="This repository; PREREG_formation_interference.md (F2) and "
+               "PREREG_anchor_ratio.md (A1-A3).",
+        evidence=("F2: anchor 100 -> 200 lifts M* 23.5 -> 67.1 (2.86x), while "
+                  "retrieval never sees the stimulus",
+                  "A1-A3: beta 0.20 / p 0.7 / p 0.3 excursions with "
+                  "uncompensated M* 8.0 / 17.6 / 28.8 land at 29.4 / 25.0 / "
+                  "25.3 once the anchor is set from the measured exponents -- "
+                  "a 3.6x spread collapses to 1.18x, all within 25% of 23.5",
+                  "F3: past the cliff, erosion is retroactive and diffuse "
+                  "(early items fail worst), not one-shot capture"),
+        preconditions=("n=4000, k=100, T=8, w_max=20, arm B, 16 brains; "
+                       "one operating-point neighbourhood",
+                       "exponents s^1.52 p^-0.6 beta^-1.3 are two- and "
+                       "three-point fits used ONLY to place cells; none is "
+                       "adopted"),
+        caveat="A1 sits on the numeric band's edge (29.4 vs < 29.4) and "
+               "passes on the registered prose criterion; all three "
+               "compensated cells overshoot upward, so the anchor exponent is "
+               "probably slightly high. The (n/k)^2 dependence of CAP-RATIO is "
+               "the pull's chance-overlap term and is NOT derived here.",
+    ),
+    Result(
         id="CAP-CLIFF",
         status=Status.MEASURED,
         claim="Capacity failure is a CLIFF, not a slope: past the ceiling the "

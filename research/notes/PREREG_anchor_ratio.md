@@ -44,3 +44,37 @@ The exponents are two- and three-point fits and are used ONLY to place the
 compensated cells; no exponent is adopted from this test. What is adopted on
 PASS is the mechanism CLASS: capacity is set by the anchor-to-recurrence drive
 ratio at formation.
+
+---
+
+## Result (2026-09-03): PASS 3/3 -- the ratio law collapses the operating point
+
+    cell  excursion          uncompensated  anchor s'  compensated M*  bracket   fill
+    A1    beta 0.10 -> 0.20      8.0          200         29.4         [28,32)   0.53
+    A2    p    0.5  -> 0.7      17.6          121         25.0         [24,28)   0.50
+    A3    p    0.5  -> 0.3      28.8           87         25.3         [24,28)   0.62
+
+Uncompensated, the three excursions span 8.0-28.8 (3.6x). Compensated by an
+anchor computed ONLY from the previously measured exponents, they span
+25.0-29.4 (1.18x), all within 25% of the 23.5 baseline. Logs committed as
+`anchor_ratio_A{1,2,3}.log`.
+
+**Disclosure on A1.** Its interpolated M* = 29.4 sits exactly on the numeric
+band's upper edge ("within [17.6, 29.4)"). The registered prose criterion --
+closer to the baseline than to its own uncompensated value -- is met
+decisively (|29.4-23.5| = 5.9 vs |29.4-8.0| = 21.4), and a 16-brain ceiling
+interpolated inside a [28, 32) bracket cannot resolve a 0.05 edge either way
+([[exact-tables-are-tie-fragile]]). Judged PASS on the prose criterion, with
+the edge stated.
+
+**Direction of the residual.** All three compensated cells land ABOVE 23.5
+(+6%, +8%, +25%), and the largest overshoot is the largest anchor change. The
+anchor exponent 1.52 (a two-point fit) is therefore probably slightly high;
+no exponent is adopted, as registered.
+
+**Adopted: the mechanism CLASS.** Capacity is set at FORMATION by the ratio
+of the stimulus anchor to the trained recurrent pull; p and beta enter through
+that ratio and trade off against the anchor. Registered as `CAP-ANCHOR-RATIO`.
+Consistent with F2 (anchor 2x -> 2.86x), C5 (retroactive erosion: later
+training strengthens the pull on earlier attractors), and CS1 (the (n/k)
+dependence is the pull's second-order chance-overlap term, still unquoted).
