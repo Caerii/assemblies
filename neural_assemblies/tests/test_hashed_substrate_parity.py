@@ -387,3 +387,89 @@ def test_capacity_protocol_reproduces_numpy_sparse_across_episodes(
     assert worst < 5e-6, (
         f"arm {arm}: hashed path diverges from numpy_sparse across episodes: "
         f"relative drive error {worst:.3g}")
+
+
+def test_refracted_capacity_protocol_reproduces_numpy_sparse(mod):
+    """The engine's `refracted` mode, replayed on the hashed area.
+
+    Same multi-episode protocol as above with `set_refracted(AREA, True, beta)`
+    on the engine. The engine's `pre_kwta_inputs` snapshot is taken AFTER the
+    bias is subtracted, so the comparison is on the NET drive the k-WTA ranks;
+    the bias itself is charged from the raw drive at the engine's winners,
+    which is what `HashedArea.charge` does. Registered as the parity gate of
+    PREREG_refraction_capacity.md: no number there is read before this passes.
+    """
+    from neural_assemblies.core.torch_engine._hashed import (
+        AreaFiber, HashedArea, StimulusFiber)
+
+    n, k, p, beta, T, M_eps, w_max, seed = 1024, 30, 0.1, 0.1, 4, 3, 20.0, 7
+    random.seed(seed)
+    np.random.seed(seed)
+    brain = Brain(p=p, seed=seed, engine="numpy_sparse", w_max=w_max,
+                  recurrent_projection=True, norm_init=True,
+                  synaptic_scaling=False)
+    brain.add_area(AREA, n, k, beta)
+    stims = []
+    for a in range(M_eps):
+        brain.add_stimulus(f"s{a}", k)
+        stims.append(f"s{a}")
+    eng = brain._engine_for(brain.areas[AREA])
+    eng.materialize_area(AREA, storage="dense")
+    eng.set_refracted(AREA, True, beta)
+
+    trace, stim0 = [], {}
+    for a, sname in enumerate(stims):
+        stim0[a] = np.asarray(eng._stim_conns[sname][AREA].weights,
+                              dtype=np.float64).copy()
+        brain.inhibit_areas([AREA])
+        ep = []
+        for _ in range(T):
+            prev = np.asarray(eng.get_winners(AREA), dtype=np.int64)
+            res = eng.project_into(AREA, [sname], [AREA],
+                                   plasticity_enabled=True,
+                                   record_activation=True)
+            ep.append((prev,
+                       np.asarray(res.pre_kwta_inputs, dtype=np.float64),
+                       np.asarray(eng.get_winners(AREA), dtype=np.int64)))
+        trace.append(ep)
+    bias_engine = np.asarray(eng._areas[AREA]._cumulative_bias,
+                             dtype=np.float64)
+    assert float(np.abs(bias_engine).max()) > 0, "engine never charged"
+
+    pair = _seeding.fnv1a_pair_seed(seed, AREA, AREA)
+    area = HashedArea(n, k, [_to_i32(pair)], refracted_strength=beta)
+    fiber = AreaFiber([_to_i32(pair)], n, n, p, beta=beta, w_max=w_max,
+                      norm_init=True, synaptic_scaling=False,
+                      max_rounds=M_eps * T)
+    worst = 0.0
+    for a, ep in enumerate(trace):
+        sf = StimulusFiber([0], k, n, p, beta=beta, w_max=w_max,
+                           norm_init=True, max_rounds=T)
+        sf.base = torch.from_numpy(
+            stim0[a].astype(np.float32)).cuda().view(1, -1)
+        sf.dj = (sf.base + p * (n - k)).clamp_min(1.0)
+        fiber.begin_episode()
+        for prev, d_cpu, new in ep:
+            raw = torch.zeros(1, n, dtype=torch.float32, device="cuda")
+            pt = torch.from_numpy(prev).cuda().view(1, -1)
+            fiber.contribute(raw, pt)
+            sf.contribute(raw)
+            net = area.apply_bias(raw)
+            got = net[0].cpu().numpy().astype(np.float64)
+            m = min(len(d_cpu), len(got))
+            worst = max(worst, float(np.abs(d_cpu[:m] - got[:m]).max())
+                        / max(float(np.abs(d_cpu[:m]).max()), 1e-12))
+            nt = torch.from_numpy(new).cuda().view(1, -1)
+            fiber.observe(pt, nt)
+            sf.observe(pt, nt)
+            area.charge(raw, nt)
+        fiber.end_episode()
+    got_bias = area.bias[0].cpu().numpy().astype(np.float64)
+    m = min(len(bias_engine), len(got_bias))
+    bias_err = float(np.abs(bias_engine[:m] - got_bias[:m]).max()) / max(
+        float(np.abs(bias_engine[:m]).max()), 1e-12)
+    assert worst < 5e-6, (
+        f"refracted hashed path diverges from numpy_sparse on the NET drive: "
+        f"relative error {worst:.3g}")
+    assert bias_err < 5e-6, (
+        f"accumulated bias diverges from the engine's: {bias_err:.3g}")

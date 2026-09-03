@@ -188,6 +188,7 @@ def batched_project_hashed(
     norm_init=False, synaptic_scaling=False, stim_drive=None,
     stim_seeds=None, stim_size=None, return_drive=False, state=None,
     max_rounds=None, return_state=False, freeze=False,
+    refracted_strength=0.0, mask_bias=False,
 ):
     """B INDEPENDENT connectomes, GENERATED rather than stored.
 
@@ -229,6 +230,11 @@ def batched_project_hashed(
         state: carry from a previous call to CONTINUE training, which is what
             makes assemblies compete for one connectome.
         freeze: read the learned state without writing -- `brain.probe()`.
+        refracted_strength: the engine's `refracted` mode on the area (a
+            per-neuron bias, see `HashedArea`); only read when `state` is
+            created, since the bias is state.
+        mask_bias: with `freeze`, read the synaptic memory with the bias
+            neither subtracted nor charged (PREREG_refraction_capacity P1).
     """
     from ._hashed import AreaFiber, HashedArea, StimulusFiber
 
@@ -238,7 +244,8 @@ def batched_project_hashed(
         raise ValueError("freeze=True reads a learned state; none was given")
     if state is None:
         state = {
-            "area": HashedArea(n, k, seeds, device=device),
+            "area": HashedArea(n, k, seeds, device=device,
+                               refracted_strength=refracted_strength),
             "fiber": AreaFiber(seeds, n, n, p, beta=beta, w_max=w_max,
                                norm_init=norm_init,
                                synaptic_scaling=synaptic_scaling,
@@ -256,7 +263,7 @@ def batched_project_hashed(
             norm_init=norm_init, max_rounds=rounds, device=device))
 
     res = area.project(rounds, fibers, freeze=freeze, stim_drive=stim_drive,
-                       return_drive=return_drive)
+                       return_drive=return_drive, mask_bias=mask_bias)
     out, drive = res if return_drive else (res, None)
     if return_drive and return_state:
         return out, drive, state

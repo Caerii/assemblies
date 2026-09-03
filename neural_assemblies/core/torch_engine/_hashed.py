@@ -484,7 +484,7 @@ class HashedArea:
     adding a fiber rather than a flag.
     """
 
-    def __init__(self, n, k, seeds, device="cuda"):
+    def __init__(self, n, k, seeds, device="cuda", refracted_strength=0.0):
         self.mod = _fused_cuda.load()
         if self.mod is None:
             raise RuntimeError(f"fused kernels unavailable: "
@@ -496,6 +496,31 @@ class HashedArea:
         #: because the round masks are per-episode and get dropped.
         self.ever = torch.zeros(self.B, n, dtype=torch.bool, device=device)
         self.rounds_seen = 0
+        #: REFRACTION, the engine's `refracted` mode (`core/_refraction.py`).
+        #: A per-NEURON bias subtracted from drive before k-WTA and charged at
+        #: the winners as `raw_drive * strength`, gated on plasticity exactly
+        #: like the Hebbian write. It belongs to the area, not to a fiber: the
+        #: reference charges against the TOTAL raw input of the winner, and
+        #: the bias persists across `inhibit()` -- `RefractedArea.inhibit`
+        #: does not touch it, only `reset()` does. At strength == beta the
+        #: bias is the exact anti-Hebbian counterweight on a neuron's own
+        #: repeated input (net drive stays at its base value), and a handicap
+        #: on every other input; see PREREG_refraction_capacity.md.
+        self.refracted_strength = float(refracted_strength or 0.0)
+        self.bias = (torch.zeros(self.B, n, dtype=torch.float32, device=device)
+                     if self.refracted_strength > 0 else None)
+
+    def apply_bias(self, raw):
+        """Net drive the k-WTA ranks: raw minus the accumulated bias."""
+        return raw if self.bias is None else raw - self.bias
+
+    def charge(self, raw, new):
+        """Charge the winners `raw * strength`, as `refraction_increment` does
+        (it reconstructs raw as net + bias; here raw is still at hand)."""
+        if self.bias is None:
+            return
+        self.bias.scatter_add_(
+            1, new, torch.gather(raw, 1, new) * self.refracted_strength)
 
     def inhibit(self):
         """Clear the assembly. The next round is driven by afferents alone."""
@@ -503,24 +528,32 @@ class HashedArea:
                                    device=self.device)
 
     def project(self, rounds, fibers, *, rows_for=None, freeze=False,
-                stim_drive=None, return_drive=False):
+                stim_drive=None, return_drive=False, mask_bias=False):
         """Run ``rounds`` rounds with ``fibers`` afferent.
 
         ``rows_for`` maps a fiber to its source winners; a fiber absent from it
         is driven by THIS area's winners, i.e. recurrently.
+
+        ``mask_bias`` reads the SYNAPTIC memory alone: the refraction bias is
+        neither subtracted nor charged. Only meaningful with ``freeze`` -- it
+        is a probe of what the synapses hold with the intrinsic veto removed
+        (PREREG_refraction_capacity P1), not a mode the reference has.
         """
         rows_for = rows_for or {}
+        if mask_bias and not freeze:
+            raise ValueError("mask_bias is a READOUT option; pass freeze=True")
         if not freeze:
             for f in fibers:
                 f.begin_episode()
         drive = None
         for _ in range(rounds):
-            drive = torch.zeros(self.B, self.n, dtype=torch.float32,
-                                device=self.device)
+            raw = torch.zeros(self.B, self.n, dtype=torch.float32,
+                              device=self.device)
             for f in fibers:
-                f.contribute(drive, rows_for.get(id(f), self.winners))
+                f.contribute(raw, rows_for.get(id(f), self.winners))
             if stim_drive is not None:
-                drive = drive + stim_drive
+                raw = raw + stim_drive
+            drive = raw if mask_bias else self.apply_bias(raw)
             sel, ovf = self.mod.topk_select(drive, min(self.k, self.n))
             bad = int(ovf.max())
             if bad:
@@ -532,6 +565,7 @@ class HashedArea:
             if not freeze:
                 for f in fibers:
                     f.observe(rows_for.get(id(f), self.winners), new)
+                self.charge(raw, new)
                 self.ever.scatter_(1, new, True)
                 self.rounds_seen += 1
             self.winners = new
