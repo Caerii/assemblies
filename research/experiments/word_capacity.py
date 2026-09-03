@@ -117,7 +117,10 @@ def ceilings(curve, seeds):
     for i, _seed in enumerate(seeds):
         pts = [(V, accs[i]) for V, accs in curve.items()]
         c = ceiling_from_curve(pts, threshold=THRESHOLD)
-        if c.censored:
+        # Censored in EITHER direction: never crossed (high) or never above
+        # the threshold at all (low -- the standard returns the smallest V
+        # uncensored there, which would read as a value).
+        if c.censored or max(a for _v, a in pts) <= THRESHOLD:
             censored += 1
         stars.append(float(c.m_star))
     return stars, censored
