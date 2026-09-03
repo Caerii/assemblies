@@ -183,7 +183,7 @@ def run_cell_scheduled(name, seeds, vs):
                           n_features=Fmax, stim_size=stim, p=U.P, beta=U.BETA,
                           rounds_word=ROUNDS_HASHED)
     al.prepare(feats)
-    al.train(W, Bd)
+    al.train(W, Bd, device_loop=True)          # layer 3: one launch per cell
     acc, scored = al.type_accuracy(tgt, nb, expo, U.MIN_EXPOSURES)
     acc = acc.cpu().numpy()
     print(f"    {name} n={n} k={k} s={stim}: {B} brains (V x seed) in one "
