@@ -42,6 +42,13 @@ LONGEST = 500
 REGISTERED_SOFT_TOTAL = 30
 REGISTERED_EXACT500 = {"Z60": 7, "A4xZ5": 9, "A5": 7, "S5": 5}
 
+#: Amendment 2 (AUDIT_refraction_scaling.md): `synaptic_scaling=True` also
+#: scaled the REFRACTED arc, and refraction + scaling on one area destroys its
+#: assemblies within ~10 presentations. `--scoped` confines scaling to the
+#: state area, which is the only area substrate C was ever meant to act on.
+SCOPED = "--scoped" in sys.argv
+SCALING = frozenset({"_wp_state"}) if SCOPED else True
+
 
 def _ov(a, b):
     return assembly_overlap(np.asarray(a.winners), np.asarray(b.winners))
@@ -49,7 +56,7 @@ def _ov(a, b):
 
 def worker(group_name, seed, _arm="homeo"):
     group, fsm, symbols = build(group_name, seed, "trained",
-                                norm_init=False, synaptic_scaling=True)
+                                norm_init=False, synaptic_scaling=SCALING)
     b = fsm.brain
     rng = random.Random(seed + 4242)
     word = [rng.choice(symbols) for _ in range(LONGEST)]
@@ -159,7 +166,8 @@ def main():
     payload = {"seeds": seeds, "cells": out, "total_soft": total_soft,
                "total_hard": total_hard, "exact500": exact500,
                "verdicts": {"HC1": hc1, "HC2": hc2, "HC3": hc3}}
-    path = os.path.join(_HERE, "seq_s5_substrate_c_results.json")
+    path = os.path.join(_HERE, "seq_s5_substrate_c_results"
+                        + ("_scoped" if SCOPED else "") + ".json")
     with open(path, "w") as fh:
         json.dump(payload, fh, indent=2)
     print(f"\nwrote {path}")
