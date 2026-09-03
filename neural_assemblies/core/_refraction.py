@@ -53,8 +53,34 @@ Every call site in the repo already passes ``refracted_strength=0.1``, and 0.1
 is exactly the reference's ``plasticity``, so correcting the rule makes those
 call sites right without changing their arguments.
 
+WHAT THE RULE IS, ALGEBRAICALLY -- AND WHERE IT MUST NOT BE USED
+----------------------------------------------------------------
+With Hebbian potentiation ``w *= (1 + beta)``, a neuron winning repeatedly on
+the SAME input with base drive D has, after t wins::
+
+    raw_t  = D (1+beta)^t
+    bias_t = strength * D * sum_{s<t} (1+beta)^s
+    net_{t+1} - net_t = (beta - strength) * raw_t
+
+so at ``strength == beta`` -- every call site here, and the reference's own
+``plasticity`` -- the net drive is EXACTLY constant: refraction is the
+anti-Hebbian counterweight on a neuron's own repeated input, and a handicap on
+every other input (the orthogonalizer that keeps conjunctions apart).
+
+That is precisely what a FEEDFORWARD conjunction area wants, and it is the only
+place the reference uses ``RefractedArea``. In a RECURRENT area it removes the
+Hebbian convergence force, and a recurrent assembly converges only through
+rich-get-richer. Measured (n=4000 k=100 p=0.5 beta=0.1, 240 rounds): at
+``strength >= 0.8 beta`` the assembly NEVER converges and churns through the
+whole area (fill 1.000 -- a firing-rate equalizer, incompatible with attractor
+memory); at ``0.5-0.7 beta`` it converges ~10x slower, orthogonalizes stored
+assemblies to below-chance overlap, and still LOWERS capacity (M* 19.6 against
+23.5) because the slow convergence spends fill. Do not enable refraction on an
+area with self-recurrence. [[REFRACTION-CANCELS-CONVERGENCE]].
+
 Results: [[ARC-CONJUNCT-EXPOSURE]] (what refraction opposes),
-[[REFRACTION-PROPORTIONAL]] (why the rule is drive-proportional).
+[[REFRACTION-PROPORTIONAL]] (why the rule is drive-proportional),
+[[REFRACTION-CANCELS-CONVERGENCE]] (why it is feedforward-only).
 
 WHY IT LIVES HERE AND NOT IN AN ENGINE
 --------------------------------------

@@ -1,0 +1,44 @@
+'vswhere.exe' is not recognized as an internal or external command,
+operable program or batch file.
+n=4000 k=100 p=0.5 beta=0.1 w_max=20.0 rounds=240 brains=16   registered saturation prediction ~ 40.9
+  'conv' = first round after which consecutive-round overlap stays >= 0.95; 'late' = mean consecutive overlap over rounds 200-240
+
+  control (rec): converged 16/16, median conv round 4 [3, 4]; late 1.000; fill 0.034
+    round             10    20    30    40    60   100   150   200   240
+    vs round-10    1.000 1.000 1.000 1.000 1.000 1.000 1.000 1.000 1.000
+    consecutive    1.000 1.000 1.000 1.000 1.000 1.000 1.000 1.000 1.000
+
+  refracted FEEDFORWARD only: converged 14/16, median conv round 182 [122, 221]; late 0.993; fill 0.094
+    round             10    20    30    40    60   100   150   200   240
+    vs round-10    1.000 0.993 0.866 0.627 0.624 0.624 0.624 0.624 0.624
+    consecutive    1.000 1.000 0.874 1.000 0.876 1.000 0.918 0.972 0.978
+
+  refracted (rec) s = 0.50 beta: converged 16/16, median conv round 48 [48, 50]; late 1.000; fill 0.051
+    round             10    20    30    40    60   100   150   200   240
+    vs round-10    1.000 1.000 1.000 1.000 0.994 0.994 0.994 0.994 0.994
+    consecutive    1.000 1.000 1.000 1.000 1.000 1.000 1.000 1.000 1.000
+
+  refracted (rec) s = 0.70 beta: converged 16/16, median conv round 45 [43, 74]; late 1.000; fill 0.078
+    round             10    20    30    40    60   100   150   200   240
+    vs round-10    1.000 0.935 0.935 0.764 0.876 0.879 0.881 0.881 0.881
+    consecutive    0.842 1.000 1.000 0.856 1.000 0.998 0.999 1.000 1.000
+
+  refracted (rec) s = 0.80 beta: converged 1/16, median conv round 229 [229, 229]; late 0.221; fill 0.999
+    round             10    20    30    40    60   100   150   200   240
+    vs round-10    1.000 0.049 0.037 0.030 0.032 0.032 0.027 0.046 0.066
+    consecutive    0.048 0.027 0.020 0.011 0.011 0.012 0.018 0.076 0.439
+
+  refracted (rec) s = 0.90 beta: converged 0/16; late 0.008; fill 1.000
+    round             10    20    30    40    60   100   150   200   240
+    vs round-10    1.000 0.029 0.030 0.026 0.024 0.025 0.027 0.031 0.023
+    consecutive    0.020 0.011 0.009 0.009 0.008 0.007 0.010 0.004 0.009
+
+  refracted (rec) s = 0.95 beta: converged 0/16; late 0.006; fill 1.000
+    round             10    20    30    40    60   100   150   200   240
+    vs round-10    1.000 0.020 0.022 0.025 0.029 0.028 0.023 0.026 0.022
+    consecutive    0.018 0.010 0.007 0.008 0.004 0.006 0.008 0.006 0.004
+
+  refracted (rec) s = 1.00 beta: converged 0/16; late 0.005; fill 1.000
+    round             10    20    30    40    60   100   150   200   240
+    vs round-10    1.000 0.013 0.025 0.027 0.032 0.025 0.027 0.038 0.029
+    consecutive    0.019 0.003 0.004 0.003 0.005 0.006 0.001 0.007 0.005

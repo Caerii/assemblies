@@ -84,3 +84,94 @@ plasticity like the engine) and is verified against `numpy_sparse` with
   through the neurons refraction charges.
 * P2 fails with no departure -> the identity's saturation term is wrong; the
   clip interacts with the read-time 1/d differently than derived.
+
+---
+
+## Result (2026-09-03): P0 PASS, P1 FAIL, P2 FAIL-AS-REGISTERED -- and the failure is the finding
+
+Parity gate first: `test_refracted_capacity_protocol_reproduces_numpy_sparse`
+-- net drive and accumulated bias both < 5e-6 relative to `numpy_sparse`
+with `set_refracted`. Then, at n=4000 k=100 p=0.5 beta=0.10 w_max=20, 16
+brains (logs `refraction_P0_bias_on.log`, `refraction_P1_bias_masked.log`,
+`refraction_P2_strength_sweep.log`):
+
+**P0 -- PASS, for a stronger reason than derived.** Bias-on rank-1 at M=8 is
+0.133 (chance 0.125, bar <= 0.25). But fill at M=8 is 0.989: the area had
+been consumed. The derived readout veto was never the operative effect.
+
+**P1 -- FAIL.** Bias-masked rank-1 at M=8 is 0.141, M* = 8 CENSORED at fill
+0.989. There was no synaptic memory to protect: with refraction at strength
+beta the assemblies never formed.
+
+**P2 -- FAIL as registered, then explained.** The recurrent refracted arm
+departs at ROUND 11 (every brain, to below-chance overlap), not ~41; the
+feedforward refracted arm holds to ~20 and settles at 0.63 (1/16 ever below
+0.5). So the recurrent churn is not the clip. The identity itself says why:
+in the stable state net drive is CONSTANT under repetition, so refraction at
+strength = beta removes the Hebbian convergence force. A feedforward area needs
+none -- its input ranking is fixed, which is the reference's only use of
+`RefractedArea` -- but a recurrent assembly converges ONLY through
+rich-get-richer, and with the force cancelled the changing recurrent input
+reshuffles the winners every round.
+
+Strength sweep, consecutive-round stability, 240 rounds:
+
+    s/beta   converged   conv round   late stab   fill
+    0 (ctl)   16/16          4         1.000      0.034
+    0.5       16/16         48         1.000      0.051
+    0.7       16/16         45         1.000      0.078
+    0.8        1/16        229         0.221      0.999   <- transition
+    0.9        0/16         --         0.008      1.000
+    0.95       0/16         --         0.008      1.000
+    1.0        0/16         --         0.005      1.000
+    FF, 1.0   14/16        182         0.993      0.094
+
+A SHARP TRANSITION between 0.7 and 0.8 beta. Below it the assembly converges
+~10x slower than control, and the registered saturation arithmetic (~41
+rounds) reappears as a TRANSIENT re-ranking at rounds 44-48 that the assembly
+survives (at 0.7 beta one event permanently swaps ~12% of the assembly, then it
+re-locks). Above it the area churns through EVERY neuron: refraction at high
+strength is a firing-rate equalizer, and firing-rate homeostasis is
+incompatible with attractor memory in a recurrent k-WTA area. A rough estimate
+from the transient handicap (s * rec against (beta - s) * (stim + rec), stim ~
+rec here) puts the critical ratio near 2/3; measured in (0.7, 0.8). Approximate.
+
+**On representational drift** (raised while this ran): this mechanism gives
+EVENT-DRIVEN drift below the transition and total per-round turnover above it,
+never slow diffusive drift. Graded drift would need a decaying bias or noise.
+
+**Interpretation, per the registered clauses:** P1 fails -> "refraction does
+not oppose the pull as computed"; the specific reason is that at strength beta
+it also cancels formation. Whether refraction BELOW the transition protects
+formation is Amendment 1, below.
+
+---
+
+## Amendment 1 (2026-09-03, post hoc, labelled): refraction BELOW the transition
+
+Question: does refraction at a strength where the assembly still converges
+protect formation? Same protocol, `--refracted-factor` 0.5 and 0.7, both
+readouts (logs `refraction_amend1_*.log`).
+
+    factor  readout   rank-1 M=8 / 16 / 24     pw/chance M=8..16   fill M=16 / 24   M*
+    0.5     masked    0.984 / 0.992 / 0.258     0.00 - 0.05         0.887 / 0.977   19.6
+    0.5     net       0.250 / 0.062 / 0.042     (same training)                      8.0
+    0.7     masked    0.180 / 0.062 / 0.042     1.07 - 5.19         0.913 / 0.938    8.0
+    0.7     net       0.125 / 0.062 / 0.042                                          8.0
+    control (no refraction)                     ~1.5                0.47 / 0.60     23.5
+
+**The orthogonalizer is real:** at 0.5 beta the stored assemblies' pairwise
+overlap is 0.00-0.05x chance against the control's ~1.5x. **And it costs the
+area:** convergence is ~10x slower, so each item's T=8 rounds visit many more
+neurons, fill reaches 0.977 by M=24, and M* FALLS to 19.6 -- the ceiling turns
+from interference-limited into FILL-limited at a lower M. At 0.7 beta the
+item does not converge within T=8 at all. **P0's derived veto is confirmed
+where assemblies actually form:** same training, masked 0.984 vs net 0.250.
+
+**Conclusion, adopted:** refraction cannot protect formation in a RECURRENT
+area at any strength -- above ~0.75 beta it cancels formation, below it spends
+the substrate. The reference confining `RefractedArea` to FEEDFORWARD
+conjunction areas, driven by their full input at recall, is the correct
+design, not an omission. The protocol dependence (T=8) is noted: longer
+episodes would let low-strength items converge but at a still higher fill cost
+per item.

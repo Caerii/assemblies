@@ -270,6 +270,50 @@ _RESULTS: List[Result] = [
                "Bounds are approximate and from one task.",
     ),
     Result(
+        id="REFRACTION-CANCELS-CONVERGENCE",
+        status=Status.MEASURED,
+        claim="Refraction at strength s is the anti-Hebbian counterweight on a "
+              "neuron's own repeated input: raw*(1+beta)^t minus the charged "
+              "bias leaves net drive growing by (beta - s)*raw per win, so at "
+              "s = beta it is CONSTANT. A feedforward area needs no convergence "
+              "force (its input ranking is fixed) and holds; a RECURRENT "
+              "assembly converges only through rich-get-richer, and above "
+              "s ~ 0.75 beta it never converges and churns through the whole "
+              "area -- refraction there is a firing-rate equalizer, and "
+              "firing-rate homeostasis is incompatible with attractor memory "
+              "in a recurrent k-WTA area. Below the transition it converges "
+              "~10x slower and orthogonalizes stored assemblies to below "
+              "chance overlap, but spends fill and LOWERS capacity.",
+        source="This repository; PREREG_refraction_capacity.md.",
+        evidence=("seq_refraction_wander.py at n=4000 k=100 p=0.5 beta=0.1 "
+                  "w_max=20, 16 brains, 240 rounds: s/beta = 0.5, 0.7 converge "
+                  "(rounds 48, 45 vs control 4; late stability 1.000); 0.8, "
+                  "0.9, 0.95, 1.0 never converge (late stability <= 0.22, fill "
+                  "1.000); feedforward at s = beta holds (late 0.993)",
+                  "the w_max saturation arithmetic ln(w_max)/ln(1+beta) + "
+                  "(1-1/w_max)/beta ~ 41 appears as a transient re-ranking at "
+                  "rounds 44-48 below the transition, which the assembly "
+                  "survives",
+                  "capacity protocol at s = 0.5 beta: pairwise overlap "
+                  "0.00-0.05x chance (control ~1.5x) yet M* 19.6 vs 23.5, "
+                  "fill 0.977 at M=24 -- the ceiling becomes fill-limited",
+                  "bias-on partial-cue recall 0.250 vs bias-masked 0.984 at "
+                  "M=8, same training: the intrinsic bias vetoes recall from "
+                  "a partial cue, as the identity predicts"),
+        preconditions=("recurrent area; strength quoted relative to beta; "
+                       "T=8 rounds per item in the capacity protocol",
+                       "the reference uses RefractedArea only as a FEEDFORWARD "
+                       "conjunction area driven by its full input at recall, "
+                       "where none of this applies"),
+        implemented_by=("neural_assemblies/core/_refraction.py",
+                        "neural_assemblies/core/torch_engine/_hashed.py"),
+        caveat="The critical ratio is bracketed in (0.7, 0.8) at one operating "
+               "point; a transient-handicap estimate gives ~2/3. Whether "
+               "REFRACTION-NEEDS-LOAD's under-loaded non-convergence is this "
+               "mechanism (the arc's state input is itself changing) is "
+               "suggested, not established.",
+    ),
+    Result(
         id="AC-CAP",
         status=Status.MEASURED,
         claim="Assembly capacity is EXTENSIVE: about M_max ~ 1.15 n/k distinct "

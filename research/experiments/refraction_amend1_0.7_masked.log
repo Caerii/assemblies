@@ -1,0 +1,23 @@
+'vswhere.exe' is not recognized as an internal or external command,
+operable program or batch file.
+  REFRACTED strength=0.0700 (= 0.7 beta) readout=masked
+k=60 p=0.5 T=8 beta=0.1 w_max=20.0 brains=16
+  n=  4000 k= 100 kp=50.0 vs floor 3ln n=24.9  IN REGIME   k*k/n=2.50
+    B n= 4000 M=   8  rank1 0.180 pw/chance   1.07  distinct 1.000  fill 0.724  gated 0.180
+    B n= 4000 M=  12  rank1 0.135 pw/chance   2.88  distinct 1.000  fill 0.863  gated 0.000
+    B n= 4000 M=  16  rank1 0.062 pw/chance   5.19  distinct 1.000  fill 0.913  gated 0.000
+    B n= 4000 M=  20  rank1 0.047 pw/chance   7.07  distinct 1.000  fill 0.929  gated 0.000
+    B n= 4000 M=  24  rank1 0.042 pw/chance   9.42  distinct 1.000  fill 0.938  gated 0.000
+    B n= 4000 M=  28  rank1 0.036 pw/chance  11.77  distinct 1.000  fill 0.943  gated 0.000
+    B n= 4000 M=  32  rank1 0.031 pw/chance  13.63  distinct 1.000  fill 0.948  gated 0.000
+    B n= 4000 M=  40  rank1 0.016 pw/chance  16.47  distinct 1.000  fill 0.954  gated 0.000
+    B n= 4000 M=  48  rank1 0.027 pw/chance  18.26  distinct 1.000  fill 0.958  gated 0.000
+    B n= 4000 M=  64  rank1 0.012 pw/chance  23.12  distinct 1.000  fill 0.964  gated 0.000
+    B n= 4000 M=  80  rank1 0.012 pw/chance  25.67  distinct 1.000  fill 0.968  gated 0.000
+    B n= 4000 k= 100  CEILING M* = 8.0  bracket [8, 8)  interior 1  fill@M* 0.724  M*k/n 0.200  ok
+
+  elapsed 6.6s
+
+--- CAP2: fit log M* = a + b log n over UNCENSORED n ---
+    B: only 1 uncensored supported n -- NOT ANSWERED at this k, p. No line is fitted.
+  wrote F:\Github\assemblies\research\experiments\capacity_scaling_results.json

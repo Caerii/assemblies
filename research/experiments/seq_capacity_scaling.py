@@ -61,6 +61,9 @@ MS = (8, 16, 32, 64, 128, 256)
 NBRAIN = 16
 RECALL_SAMPLE = 32
 STIM_SIZE = None
+REFRACTED = False
+READOUT = "net"
+REFRACTED_FACTOR = 1.0
 PAIR_SAMPLE = 200
 ARMS = {"B": dict(norm_init=True, synaptic_scaling=False),
         "G": dict(norm_init=True, synaptic_scaling=True)}
@@ -104,7 +107,9 @@ def run_cell(n, arm, m_max, nbrain, rng):
         res = batched_project_hashed(
             n, K, P, sd, cue, T, beta=BETA, w_max=W_MAX,
             stim_seeds=ss, stim_size=(STIM_SIZE or K),
-            state=state, max_rounds=total_rounds, return_state=True, **cfg)
+            state=state, max_rounds=total_rounds, return_state=True,
+            refracted_strength=(BETA * REFRACTED_FACTOR if REFRACTED else 0.0),
+            **cfg)
         win, state = res
         stored.append(win)
         M = a + 1
@@ -183,7 +188,7 @@ def measure(n, arm, sd, state, stored, nbrain, rng, cfg):
         half = St[a][:, : K // 2].to(torch.int32).contiguous()
         rec = batched_project_hashed(
             n, K, P, sd, half, T, beta=BETA, w_max=W_MAX, state=state,
-            freeze=True, **cfg)
+            freeze=True, mask_bias=(REFRACTED and READOUT == "masked"), **cfg)
         mask = torch.zeros(nbrain * n, dtype=torch.bool, device=DEV)
         mask[(rec + off[0]).reshape(-1)] = True
         # ONE gather for all M stored assemblies, instead of M gathers.
@@ -233,6 +238,17 @@ def main():
                     help="connection probability override (PREREG_crosstalk X1)")
     ap.add_argument("--beta", type=float, default=None,
                     help="Hebbian gain override (PREREG_crosstalk X2)")
+    ap.add_argument("--refracted", action="store_true",
+                    help="train with the engine's refracted mode at strength "
+                         "BETA (PREREG_refraction_capacity)")
+    ap.add_argument("--refracted-factor", type=float, default=1.0,
+                    help="refraction strength as a multiple of BETA "
+                         "(Amendment 1 of PREREG_refraction_capacity: the "
+                         "recurrent convergence transition sits at ~0.7-0.8)")
+    ap.add_argument("--readout", choices=("net", "masked"), default="net",
+                    help="refracted readout: 'net' subtracts the bias as the "
+                         "reference does (P0); 'masked' reads the synaptic "
+                         "memory alone (P1)")
     ap.add_argument("--stim-size", type=int, default=None,
                     help="stimulus size override; default k. Anchor-strength "
                          "arm of PREREG_formation_interference F2")
@@ -256,9 +272,15 @@ def main():
         P = args.p
     if args.beta is not None:
         BETA = args.beta
-    global STIM_SIZE
+    global STIM_SIZE, REFRACTED, READOUT, REFRACTED_FACTOR
     if args.stim_size is not None:
         STIM_SIZE = args.stim_size
+    REFRACTED = bool(args.refracted)
+    READOUT = args.readout
+    REFRACTED_FACTOR = float(args.refracted_factor)
+    if REFRACTED:
+        print(f"  REFRACTED strength={BETA * REFRACTED_FACTOR:.4f} "
+              f"(= {REFRACTED_FACTOR} beta) readout={READOUT}")
     nk = None
     if args.nk:
         nk = [tuple(int(v) for v in pair.split(":"))
