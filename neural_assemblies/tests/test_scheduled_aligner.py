@@ -111,3 +111,34 @@ def test_a_different_schedule_in_the_same_launch_does_not_disturb(mod):
     together = run([schedule_of(exp, wi, bi, order),
                     schedule_of(exp, wi, bi, half)], [42, 7])
     torch.testing.assert_close(together[0], alone[0], rtol=0, atol=0)
+
+
+def test_device_loop_equals_python_loop(mod):
+    """Layer 3 gate: the persistent kernel gives IDENTICAL tables."""
+    from neural_assemblies.core.torch_engine._scheduled_aligner import (
+        ScheduledAligner, pad_schedules, schedule_of)
+    from unaligned_scenes import P, BETA
+
+    exp, words, features, inventory = _corpus()
+    wi = {w: i for i, w in enumerate(words)}
+    bi = {b: j for j, b in enumerate(inventory)}
+    order = list(range(len(exp)))
+    random.Random(53).shuffle(order)
+    seeds = [42, 1, 2]
+    W, Bd = pad_schedules([schedule_of(exp, wi, bi, order)] * len(seeds))
+
+    def run(device_loop):
+        al = ScheduledAligner(seeds, n=1000, k=50, feat_n=1000, feat_k=50,
+                              n_words=len(words), n_features=len(features),
+                              word_names=[f"phon_{w}" for w in words],
+                              feature_names=[f"feat_{f}" for f in features],
+                              p=P, beta=BETA, rounds_word=2)
+        al.prepare(_features_tensor(inventory, features, len(seeds)))
+        al.train(W, Bd, device_loop=device_loop)
+        return al.overlap_table(), al.cross.cmax.clone(), al.cross.C.clone()
+
+    tab_py, cmax_py, C_py = run(False)
+    tab_dev, cmax_dev, C_dev = run(True)
+    torch.testing.assert_close(C_dev, C_py, rtol=0, atol=0)
+    torch.testing.assert_close(cmax_dev, cmax_py, rtol=0, atol=0)
+    torch.testing.assert_close(tab_dev, tab_py, rtol=0, atol=0)

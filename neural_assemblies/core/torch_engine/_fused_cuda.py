@@ -846,6 +846,129 @@ __global__ void dense_write_kernel(const int* __restrict__ P, int KP,
     }
 }
 
+
+// ---- LAYER 3: the training loop on the device -----------------------------
+// One block per brain. Shared memory holds the round's drive as 64-bit keys
+// (float bits << 16 | (65535 - j)) -- the SAME key the histogram selector
+// uses, so ties break identically -- sorted descending by a bitonic network
+// over NPAD (a power of two >= N). The k winners are the first k keys. The
+// write is the dense_write_kernel's arithmetic, one thread per winner column.
+#define SCHED_MAXK 128
+
+__device__ __forceinline__ unsigned long long sched_key(float v, int j) {
+    unsigned int u = __float_as_uint(v);
+    // map float to an order-preserving unsigned key
+    u = (u & 0x80000000u) ? ~u : (u | 0x80000000u);
+    return ((unsigned long long)u << 16) | (unsigned long long)(65535 - (j & 0xFFFF));
+}
+
+__global__ void sched_train_kernel(const long long* __restrict__ words,
+                                   const long long* __restrict__ bundles, int S,
+                                   const long long* __restrict__ lex_cache, int V, int K,
+                                   const float* __restrict__ bundle_drive,
+                                   const float* __restrict__ jit, int I,
+                                   int* __restrict__ C, int* __restrict__ cmax,
+                                   double* __restrict__ mass, float* __restrict__ scale,
+                                   const float* __restrict__ invdj,
+                                   const float* __restrict__ rel, int nrel,
+                                   const int* __restrict__ seeds,
+                                   int Npre, int N, int NPAD, int threshold,
+                                   float setpoint, int rounds, int KW) {
+    extern __shared__ unsigned long long keys[];          // NPAD keys
+    __shared__ int rows[SCHED_MAXK];
+    __shared__ int win[SCHED_MAXK];
+    const int b = blockIdx.x;
+    const unsigned int seed = (unsigned int)seeds[b];
+    int* Cb = C + (long long)b * Npre * N;
+    const long long cbase = (long long)b * N;
+    for (int s = 0; s < S; ++s) {
+        const long long w = words[(long long)b * S + s];
+        const long long bid = bundles[(long long)b * S + s];
+        if (w < 0 || bid < 0) break;
+        if (threadIdx.x < K) {
+            long long r = lex_cache[((long long)b * V + w) * K + threadIdx.x];
+            rows[threadIdx.x] = (int)r;
+        }
+        __syncthreads();
+        const float* stim = bundle_drive + ((long long)b * I + bid) * N;
+        const float* jt = jit + ((long long)b * I + bid) * N;
+        for (int r = 0; r < rounds; ++r) {
+            // drive over columns -> keys
+            for (int j = threadIdx.x; j < NPAD; j += blockDim.x) {
+                if (j >= N) { keys[j] = 0ull; continue; }
+                const unsigned int ch = ((unsigned int)j * 2246822519u) ^ seed;
+                const int cm = cmax[cbase + j];
+                float acc = 0.0f;
+                for (int sl = 0; sl < K; ++sl) {
+                    const int i = rows[sl];
+                    if (i < 0) continue;
+                    const unsigned int h = ac_fmix32(((unsigned int)i * 2654435761u) ^ ch);
+                    if ((h & 0x00FFFFFFu) >= (unsigned int)threshold) continue;
+                    const int d = cm - Cb[(long long)i * N + j];
+                    acc += (d < nrel) ? rel[d] : 0.0f;
+                }
+                float v = acc * scale[cbase + j];
+                if (invdj != nullptr) v *= invdj[cbase + j];
+                // the python path: d = stim; d += v; ranked = d + jit
+                const float dd = stim[j] + v;
+                keys[j] = sched_key(dd + jt[j], j);
+            }
+            __syncthreads();
+            // bitonic sort, descending
+            for (int size = 2; size <= NPAD; size <<= 1) {
+                for (int stride = size >> 1; stride > 0; stride >>= 1) {
+                    for (int t = threadIdx.x; t < NPAD / 2; t += blockDim.x) {
+                        const int lo = 2 * t - (t & (stride - 1));
+                        const int hi = lo + stride;
+                        const bool up = ((lo & size) == 0);
+                        unsigned long long a = keys[lo], c = keys[hi];
+                        if ((a < c) == up) { keys[lo] = c; keys[hi] = a; }
+                    }
+                    __syncthreads();
+                }
+            }
+            if (threadIdx.x < KW) win[threadIdx.x] = 65535 - (int)(keys[threadIdx.x] & 0xFFFFull);
+            __syncthreads();
+            // write: one thread per winner column
+            if (threadIdx.x < KW) {
+                const int j = win[threadIdx.x];
+                const unsigned int ch = ((unsigned int)j * 2246822519u) ^ seed;
+                const int cm_old = cmax[cbase + j];
+                int mx = cm_old;
+                for (int sl = 0; sl < K; ++sl) {
+                    const int i = rows[sl];
+                    if (i < 0) continue;
+                    const unsigned int h = ac_fmix32(((unsigned int)i * 2654435761u) ^ ch);
+                    if ((h & 0x00FFFFFFu) >= (unsigned int)threshold) continue;
+                    const int c = Cb[(long long)i * N + j] + 1;
+                    Cb[(long long)i * N + j] = c;
+                    if (c > mx) mx = c;
+                }
+                const int cm_new = mx;
+                double acc = 0.0;
+                for (int sl = 0; sl < K; ++sl) {
+                    const int i = rows[sl];
+                    if (i < 0) continue;
+                    const unsigned int h = ac_fmix32(((unsigned int)i * 2654435761u) ^ ch);
+                    if ((h & 0x00FFFFFFu) >= (unsigned int)threshold) continue;
+                    const int c = Cb[(long long)i * N + j];
+                    const int dn = cm_new - c, dold = cm_new - (c - 1);
+                    const float rn = (dn < nrel) ? rel[dn] : 0.0f;
+                    const float ro = (dold < nrel) ? rel[dold] : 0.0f;
+                    acc += (double)rn - (double)ro;
+                }
+                const int dc = cm_new - cm_old;
+                const double shrink = (dc < nrel) ? (double)rel[dc] : 0.0;
+                const double m = mass[cbase + j] * shrink + acc;
+                mass[cbase + j] = m;
+                cmax[cbase + j] = cm_new;
+                scale[cbase + j] = (m > 1e-12) ? (float)((double)setpoint / m) : 1.0f;
+            }
+            __syncthreads();
+        }
+    }
+}
+
 void dev_correct_exact(torch::Tensor S, torch::Tensor keys, torch::Tensor cnts,
                        torch::Tensor offs, torch::Tensor rowmask,
                        torch::Tensor colmask, torch::Tensor scratch,
@@ -1014,6 +1137,35 @@ void dense_write(torch::Tensor P, torch::Tensor Wn, torch::Tensor C,
         Npre, N, (int)threshold, (float)setpoint, (int)do_scale);
 }
 
+
+void sched_train(torch::Tensor words, torch::Tensor bundles,
+                 torch::Tensor lex_cache, torch::Tensor bundle_drive,
+                 torch::Tensor jit, torch::Tensor C, torch::Tensor cmax,
+                 torch::Tensor mass, torch::Tensor scale, torch::Tensor invdj,
+                 torch::Tensor rel, torch::Tensor seeds, int64_t threshold,
+                 double setpoint, int64_t rounds, int64_t kw) {
+    words = words.contiguous(); bundles = bundles.contiguous();
+    lex_cache = lex_cache.contiguous(); bundle_drive = bundle_drive.contiguous();
+    jit = jit.contiguous(); rel = rel.contiguous(); seeds = seeds.contiguous();
+    const int B = C.size(0), Npre = C.size(1), N = C.size(2);
+    const int S = words.size(1), V = lex_cache.size(1), K = lex_cache.size(2);
+    const int I = bundle_drive.size(1);
+    TORCH_CHECK(K <= SCHED_MAXK && kw <= SCHED_MAXK, "k too large for the block");
+    int NPAD = 1; while (NPAD < N) NPAD <<= 1;
+    TORCH_CHECK(NPAD <= 8192, "N too large for shared-memory selection");
+    const size_t shm = (size_t)NPAD * sizeof(unsigned long long);
+    cudaFuncSetAttribute(sched_train_kernel, cudaFuncAttributeMaxDynamicSharedMemorySize, (int)shm);
+    sched_train_kernel<<<B, 512, shm>>>(
+        words.data_ptr<int64_t>(), bundles.data_ptr<int64_t>(), S,
+        lex_cache.data_ptr<int64_t>(), V, K,
+        bundle_drive.data_ptr<float>(), jit.data_ptr<float>(), I,
+        C.data_ptr<int>(), cmax.data_ptr<int>(), mass.data_ptr<double>(),
+        scale.data_ptr<float>(),
+        invdj.numel() ? invdj.data_ptr<float>() : nullptr,
+        rel.data_ptr<float>(), (int)rel.numel(), seeds.data_ptr<int>(),
+        Npre, N, NPAD, (int)threshold, (float)setpoint, (int)rounds, (int)kw);
+}
+
 std::vector<torch::Tensor> topk_select(torch::Tensor x, int64_t K) {
     TORCH_CHECK(x.dim() == 2 && x.is_cuda()
                 && x.scalar_type() == torch::kFloat32, "x: [B,N] f32 cuda");
@@ -1042,6 +1194,7 @@ void dev_correct_rel(torch::Tensor S, torch::Tensor keys, torch::Tensor cnts, to
 std::vector<torch::Tensor> column_mass_rel(torch::Tensor cols, torch::Tensor keys, torch::Tensor cnts, torch::Tensor colmap, torch::Tensor rowmask, torch::Tensor colmask, torch::Tensor scratch, torch::Tensor rel, torch::Tensor seeds, int64_t n, int64_t threshold);
 void dense_drive(torch::Tensor S, torch::Tensor C, torch::Tensor cmax, torch::Tensor scale, torch::Tensor invdj, torch::Tensor rel, torch::Tensor seeds, int64_t threshold, torch::Tensor out);
 void dense_write(torch::Tensor P, torch::Tensor Wn, torch::Tensor C, torch::Tensor cmax, torch::Tensor mass, torch::Tensor scale, torch::Tensor rel, torch::Tensor seeds, int64_t threshold, double setpoint, int64_t do_scale);
+void sched_train(torch::Tensor words, torch::Tensor bundles, torch::Tensor lex_cache, torch::Tensor bundle_drive, torch::Tensor jit, torch::Tensor C, torch::Tensor cmax, torch::Tensor mass, torch::Tensor scale, torch::Tensor invdj, torch::Tensor rel, torch::Tensor seeds, int64_t threshold, double setpoint, int64_t rounds, int64_t kw);
 std::vector<torch::Tensor> topk_select(torch::Tensor x, int64_t K);
 """
 
@@ -1091,7 +1244,7 @@ def load() -> object | None:
                            "dev_correct_csr", "dev_correct_exact",
                            "column_mass_exact", "dev_correct_rel",
                            "column_mass_rel", "dense_drive", "dense_write",
-                           "column_mass", "topk_select"],
+                           "sched_train", "column_mass", "topk_select"],
                 verbose=False, extra_cuda_cflags=["-O3"])
         except Exception as exc:                       # noqa: BLE001
             _MODULE = None

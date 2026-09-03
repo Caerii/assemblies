@@ -162,13 +162,29 @@ class ScheduledAligner:
         self._prepared = True
 
     # -- training ------------------------------------------------------------
-    def train(self, words, bundles):
-        """`words`, `bundles`: [B, S] int64 schedules, -1 past the end."""
+    def train(self, words, bundles, device_loop=False):
+        """`words`, `bundles`: [B, S] int64 schedules, -1 past the end.
+
+        ``device_loop=True`` runs the whole schedule in ONE launch
+        (layer 3, `sched_train_kernel`): one block per brain, the drive,
+        the selection (bitonic, same key scheme as `topk_select`) and the
+        write all on the device. Gated to give IDENTICAL tables to the
+        python loop below.
+        """
         assert self._prepared, "call prepare(features) first"
         B, dev = self.B, self.device
         S = words.shape[1]
         self.cross.ensure_depth(S * self.rounds_word)
         words, bundles = words.to(dev), bundles.to(dev)
+        if device_loop:
+            cf = self.cross
+            self.mod.sched_train(
+                words, bundles, self.lex_cache, self.bundle_drive,
+                self.jit_cross, cf.C, cf.cmax, cf.mass, cf.scale, cf.invdj,
+                cf.rel, cf.seeds, cf.threshold, float(cf.setpoint),
+                self.rounds_word, self.feat_k)
+            torch.cuda.synchronize()
+            return
         ar = torch.arange(B, device=dev)
         neg_rows = torch.full((B, self.k), -1, dtype=torch.int64, device=dev)
         neg_new = torch.full((B, self.feat_k), -1, dtype=torch.int64, device=dev)
