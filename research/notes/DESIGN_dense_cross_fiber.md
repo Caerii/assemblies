@@ -46,3 +46,28 @@ step is exactly its cross rounds.
 * dense equals store on the same writes (test);
 * U1 = 1.000 on five brains, unchanged;
 * target: <= 0.1 ms per brain-round, U1 (five brains) under 5 s.
+
+## Result (2026-09-03)
+
+Gate: dense equals the store fiber on the same writes (test), and the
+aligner's drive-replay parity against `numpy_sparse` passes at < 5e-6 with
+the dense fiber as it does with the store. U1 on five brains: 1.000 on every
+brain, shuffled at chance -- unchanged.
+
+    numpy learner             15-90 s per seed
+    store fiber, 5 rounds     103 s / 5 brains
+    + quick wins               73 s
+    + 2 rounds per step        31 s
+    dense fiber, 2 rounds       4 s / 5 brains        ~0.2 ms per brain-round
+    dense fiber, 1 round        4 s   (0.97-1.00)
+    dense fiber, 3 rounds       7 s   (1.000)
+
+Target was <= 0.1 ms per brain-round and U1 under 5 s; the second is met,
+the first is within 2x and what remains is `topk_select`, the area glue and
+launch count -- a fused "drive + select + write" round would be the next
+step, not more representation work.
+
+Two bookkeeping facts worth knowing: the dense kernel counts only cells that
+have a synapse (the store counts every co-fired pair and checks presence at
+apply time), so `nnz` differs while drives agree; and `cmax` agrees exactly
+because both take the max over present cells.
