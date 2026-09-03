@@ -1,0 +1,219 @@
+"""The aligner as a SCHEDULE: B independent tasks with identical area shapes.
+
+DESIGN_scheduled_training.md, layer 1. `HashedAligner` batches seeds of one
+corpus; here every brain carries its own vocabulary, its own bundle
+inventory and its own step schedule, and any tasks sharing (n, k, feat_n,
+feat_k, stim_size) run in one launch -- every V value and every seed of a
+capacity cell together. A round's cost is flat in B, so width is the first
+and cheapest lever.
+
+WHAT A BRAIN CARRIES (all padded with -1):
+
+    words     [B, S]          word index per step
+    bundles   [B, S]          bundle index per step
+    features  [B, I, F_per]   feature indices of bundle j
+    targets   [B, V]          the scorer's answer: bundle index of word i
+
+Word i of brain b is brain b's own word. Its phon fiber is seeded by
+(seed_b, name_i) where the name defaults to "phon_i"; a caller reproducing
+`HashedAligner` passes the same names so the connectomes are the same.
+
+ANCHORS ARE CONSTANTS. LEX winners per (brain, word) and FEAT's stimulus
+drive, jitter and winners per (brain, bundle) are computed once and gathered
+by the schedule. A step is exactly its cross rounds. The tie jitter follows
+`HashedArea._jitter` exactly: salted by the seeds of the fibers that fire,
+which for a cross round includes the cross fiber.
+"""
+from __future__ import annotations
+
+import torch
+
+from ._hashed import DenseAreaFiber, HashedArea, StimulusFiber, _fused_cuda
+from ._hashed_aligner import FEAT, LEX, pair_seeds
+
+
+def schedule_of(exp, word_index, bundle_index, order):
+    """One brain's schedule from its experience, in `HashedAligner.train`'s
+    order: sentences in `order`, then every word x every bundle."""
+    ws, bs = [], []
+    for i in order:
+        words, bundles = exp[i]
+        for w in words:
+            for b in bundles:
+                ws.append(word_index[w])
+                bs.append(bundle_index[b])
+    return ws, bs
+
+
+def pad_schedules(per_brain, device="cuda"):
+    """List of (words, bundles) lists -> [B, S] int64 tensors, -1 padded."""
+    S = max(len(w) for w, _ in per_brain)
+    B = len(per_brain)
+    W = torch.full((B, S), -1, dtype=torch.int64)
+    Bd = torch.full((B, S), -1, dtype=torch.int64)
+    for b, (w, bb) in enumerate(per_brain):
+        W[b, :len(w)] = torch.tensor(w)
+        Bd[b, :len(bb)] = torch.tensor(bb)
+    return W.to(device), Bd.to(device)
+
+
+def _hash_jitter(salt, n, jitter, device):
+    """`HashedArea._jitter`'s arithmetic on a [B, I] salt -> [B, I, n]."""
+    cols = torch.arange(n, dtype=torch.int64, device=device)
+    h = (cols.view(1, 1, -1) ^ salt.view(*salt.shape, 1)) * 0x9E3779B1
+    h = (h ^ (h >> 15)) * 0x85EBCA6B
+    h = (h ^ (h >> 13)) & 0xFFFFFFFF
+    return h.to(torch.float32) * (jitter / 4294967296.0)
+
+
+class ScheduledAligner:
+    def __init__(self, brain_seeds, *, n, k, feat_n, feat_k, n_words,
+                 n_features, word_names=None, feature_names=None,
+                 stim_size=None, p=0.05, beta=0.1, norm_init=True,
+                 scaling=True, rounds_word=2, stim_gain=None, tie_jitter=1e-6,
+                 max_potentiations=4096, device="cuda"):
+        self.mod = _fused_cuda.load()
+        self.seeds = [int(s) for s in brain_seeds]
+        self.B = len(self.seeds)
+        self.n, self.k, self.feat_n, self.feat_k = n, k, feat_n, feat_k
+        self.V, self.F = int(n_words), int(n_features)
+        self.p, self.beta = p, beta
+        self.rounds_word = rounds_word
+        self.device = device
+        self.tie_jitter = float(tie_jitter)
+        stim_size = k if stim_size is None else int(stim_size)
+        gain = (1.0 / p) if stim_gain is None else float(stim_gain)
+        wnames = word_names or [f"phon_{i}" for i in range(self.V)]
+        fnames = feature_names or [f"feat_{f}" for f in range(self.F)]
+        self.lex = HashedArea(n, k, pair_seeds(self.seeds, LEX, LEX),
+                              device=device, tie_jitter=tie_jitter)
+        self.feat = HashedArea(feat_n, feat_k,
+                               pair_seeds(self.seeds, FEAT, FEAT),
+                               device=device, tie_jitter=tie_jitter)
+        self.phon = [StimulusFiber(pair_seeds(self.seeds, wn, LEX), stim_size,
+                                   n, p, beta=0.0, w_max=None,
+                                   norm_init=norm_init, max_rounds=1,
+                                   device=device) for wn in wnames]
+        self.featf = [StimulusFiber(pair_seeds(self.seeds, fn, FEAT), feat_k,
+                                    feat_n, p, beta=0.0, w_max=None,
+                                    norm_init=norm_init, max_rounds=1,
+                                    device=device) for fn in fnames]
+        for f in self.phon + self.featf:
+            f.drive_gain = gain
+        self.cross = DenseAreaFiber(pair_seeds(self.seeds, LEX, FEAT), n,
+                                    feat_n, p, beta=beta, norm_init=norm_init,
+                                    synaptic_scaling=scaling,
+                                    max_rounds=max_potentiations,
+                                    device=device)
+        self._prepared = False
+
+    # -- anchors -------------------------------------------------------------
+    def _select(self, area, drive, fibers):
+        ranked = drive + area._jitter(fibers) if area.tie_jitter > 0 else drive
+        sel, ovf = self.mod.topk_select(ranked, area.k)
+        if int(ovf.max()):
+            raise RuntimeError("k-WTA candidate set overflowed")
+        return sel.to(torch.int64)
+
+    def prepare(self, features):
+        """Cache every anchor. `features`: [B, I, F_per] int64, -1 padded."""
+        B, dev = self.B, self.device
+        self.features = features.to(dev)
+        I, Fper = self.features.shape[1], self.features.shape[2]
+        ar = torch.arange(B, device=dev)
+        # LEX winners per (brain, word)
+        self.lex_cache = torch.full((B, self.V, self.k), -1, dtype=torch.int64,
+                                    device=dev)
+        for i, ph in enumerate(self.phon):
+            d = torch.zeros(B, self.n, device=dev)
+            ph.contribute(d)
+            self.lex_cache[:, i] = self._select(self.lex, d, [ph])
+        # feature constants [B, F+1, feat_n] (slot F is the zero pad) -> bundle drive
+        consts = torch.zeros(B, self.F + 1, self.feat_n, device=dev)
+        for f, ff in enumerate(self.featf):
+            ff.contribute(consts[:, f])
+        idx = torch.where(self.features < 0,
+                          torch.full_like(self.features, self.F),
+                          self.features)                     # [B, I, Fper]
+        self.bundle_drive = consts[ar.view(B, 1, 1), idx].sum(dim=2)
+        # salts: the seeds of the fibers that fire, XORed as HashedArea does
+        fseeds = torch.stack([ff.seeds.to(torch.int64) & 0xFFFFFFFF
+                              for ff in self.featf] +
+                             [torch.zeros(B, dtype=torch.int64, device=dev)],
+                             dim=1)                          # [B, F+1]
+        salt = torch.zeros(B, I, dtype=torch.int64, device=dev)
+        for s in range(Fper):
+            salt = salt ^ fseeds[ar.view(B, 1), idx[:, :, s]]
+        cross_salt = (self.cross.seeds.to(torch.int64) & 0xFFFFFFFF).view(B, 1)
+        self.jit_anchor = _hash_jitter(salt, self.feat_n, self.tie_jitter, dev)
+        self.jit_cross = _hash_jitter(salt ^ cross_salt, self.feat_n,
+                                      self.tie_jitter, dev)
+        # the reconstruction readout fires the cross fiber ALONE, so its ties
+        # break on a salt of the cross seeds only -- as HashedAligner's does
+        self.jit_recon = _hash_jitter(cross_salt.view(B, 1), self.feat_n,
+                                      self.tie_jitter, dev)[:, 0]   # [B, feat_n]
+        # FEAT winners per (brain, bundle) under the stimulus alone
+        self.feat_cache = torch.full((B, I, self.feat_k), -1,
+                                     dtype=torch.int64, device=dev)
+        for j in range(I):
+            ranked = self.bundle_drive[:, j] + self.jit_anchor[:, j]
+            sel, _ = self.mod.topk_select(ranked, self.feat_k)
+            self.feat_cache[:, j] = sel.to(torch.int64)
+        self._prepared = True
+
+    # -- training ------------------------------------------------------------
+    def train(self, words, bundles):
+        """`words`, `bundles`: [B, S] int64 schedules, -1 past the end."""
+        assert self._prepared, "call prepare(features) first"
+        B, dev = self.B, self.device
+        S = words.shape[1]
+        self.cross.ensure_depth(S * self.rounds_word)
+        words, bundles = words.to(dev), bundles.to(dev)
+        ar = torch.arange(B, device=dev)
+        neg_rows = torch.full((B, self.k), -1, dtype=torch.int64, device=dev)
+        neg_new = torch.full((B, self.feat_k), -1, dtype=torch.int64, device=dev)
+        for s in range(S):
+            w, bid = words[:, s], bundles[:, s]
+            live = ((w >= 0) & (bid >= 0)).view(B, 1)
+            if not bool(live.any()):
+                break
+            rows = torch.where(live, self.lex_cache[ar, w.clamp_min(0)], neg_rows)
+            stim = self.bundle_drive[ar, bid.clamp_min(0)]
+            jit = self.jit_cross[ar, bid.clamp_min(0)]
+            for _ in range(self.rounds_word):
+                d = stim.clone()
+                self.cross.contribute(d, rows)
+                sel, _ = self.mod.topk_select(d + jit, self.feat_k)
+                new = torch.where(live, sel.to(torch.int64), neg_new)
+                self.cross.observe(rows, new)
+
+    # -- readout -------------------------------------------------------------
+    def overlap_table(self):
+        """[B, V, I] overlaps between reconstruct(word) and each bundle's
+        stimulus-only assembly, per brain."""
+        B, dev = self.B, self.device
+        I = self.feat_cache.shape[1]
+        A = torch.zeros(B, I, self.feat_n, device=dev)
+        A.scatter_(2, self.feat_cache.clamp_min(0), (self.feat_cache >= 0).float())
+        R = torch.zeros(B, self.V, self.feat_n, device=dev)
+        for i in range(self.V):
+            d = torch.zeros(B, self.feat_n, device=dev)
+            self.cross.contribute(d, self.lex_cache[:, i])
+            sel, _ = self.mod.topk_select(d + self.jit_recon, self.feat_k)
+            R[:, i].scatter_(1, sel.to(torch.int64), 1.0)
+        return torch.einsum("bvn,bin->bvi", R, A) / self.feat_k
+
+    def type_accuracy(self, targets, n_bundles, exposures, min_exposures):
+        """Per-brain accuracy over words with enough exposures, argmax over
+        that brain's own bundles. `targets`: [B, V] bundle index or -1;
+        `n_bundles`: [B]; `exposures`: [B, V]."""
+        tab = self.overlap_table()                                  # [B, V, I]
+        B, V, I = tab.shape
+        dev = tab.device
+        valid = torch.arange(I, device=dev).view(1, 1, I) < n_bundles.view(B, 1, 1).to(dev)
+        best = tab.masked_fill(~valid, -1.0).argmax(dim=2)          # [B, V]
+        targets, exposures = targets.to(dev), exposures.to(dev)
+        scored = (targets >= 0) & (exposures >= min_exposures)
+        hit = (best == targets) & scored
+        return (hit.sum(1).float() / scored.sum(1).clamp_min(1).float(),
+                scored.sum(1))

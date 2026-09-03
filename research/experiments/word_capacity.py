@@ -133,7 +133,74 @@ def type_accuracy_hashed(seeds, V, n, k, stim_size, track_pinned=False):
     return acc, len(scored), al.pinned
 
 
+def run_cell_scheduled(name, seeds, vs):
+    """Every (V, seed) task of a cell in ONE launch (layer 1). Each brain has
+    its own corpus (seeded by its seed), vocabulary, bundle inventory and
+    schedule; only the area shape is shared. Returns the same curve record
+    as `run_cell` so `judge` cannot tell the difference."""
+    import torch
+    from neural_assemblies.core.torch_engine._scheduled_aligner import (
+        ScheduledAligner, pad_schedules, schedule_of)
+    n, k, stim = CELLS[name]
+    tasks = [(V, seed) for V in vs for seed in seeds]
+    per = []
+    for V, seed in tasks:
+        exp, targets, words, features = corpus(V, seed)
+        exposures = Counter(w for ws, _b in exp for w in ws)
+        inventory = sorted({b for _w, bs in exp for b in bs})
+        wi = {w: i for i, w in enumerate(words)}
+        bi = {b: j for j, b in enumerate(inventory)}
+        order = list(range(len(exp)))
+        random.Random(seed + 11).shuffle(order)
+        per.append(dict(V=V, seed=seed, words=words, features=features,
+                        inventory=inventory, targets=targets,
+                        exposures=exposures, sched=schedule_of(exp, wi, bi, order)))
+    Vmax = max(len(t["words"]) for t in per)
+    Fmax = max(len(t["features"]) for t in per)
+    Imax = max(len(t["inventory"]) for t in per)
+    Fper = max(len(b) for t in per for b in t["inventory"])
+    B = len(per)
+    feats = torch.full((B, Imax, Fper), -1, dtype=torch.int64)
+    tgt = torch.full((B, Vmax), -1, dtype=torch.int64)
+    expo = torch.zeros(B, Vmax, dtype=torch.int64)
+    nb = torch.zeros(B, dtype=torch.int64)
+    for b, t in enumerate(per):
+        fi = {f: i for i, f in enumerate(t["features"])}
+        bi = {bb: j for j, bb in enumerate(t["inventory"])}
+        for j, bb in enumerate(t["inventory"]):
+            for sl, f in enumerate(bb):
+                feats[b, j, sl] = fi[f]
+        for i, w in enumerate(t["words"]):
+            tgt[b, i] = bi[t["targets"][w]]
+            expo[b, i] = t["exposures"][w]
+        nb[b] = len(t["inventory"])
+    W, Bd = pad_schedules([t["sched"] for t in per])
+    t0 = time.perf_counter()
+    # word/feature INDEX i means brain b's own word i: every brain seeds its
+    # phon fibers by (seed_b, "phon_i"), so brains share nothing but shape
+    al = ScheduledAligner([t["seed"] * 1000 + t["V"] for t in per], n=n, k=k,
+                          feat_n=FEAT_N, feat_k=FEAT_K, n_words=Vmax,
+                          n_features=Fmax, stim_size=stim, p=U.P, beta=U.BETA,
+                          rounds_word=ROUNDS_HASHED)
+    al.prepare(feats)
+    al.train(W, Bd)
+    acc, scored = al.type_accuracy(tgt, nb, expo, U.MIN_EXPOSURES)
+    acc = acc.cpu().numpy()
+    print(f"    {name} n={n} k={k} s={stim}: {B} brains (V x seed) in one "
+          f"launch, {W.shape[1]} steps  [{time.perf_counter() - t0:.0f}s]",
+          flush=True)
+    curve = {V: [] for V in vs}
+    for b, t in enumerate(per):
+        curve[t["V"]].append(float(acc[b]))
+    for V in vs:
+        print(f"      V={V:4d}: type-acc {' '.join(f'{a:.3f}' for a in curve[V])}"
+              f"  (chance {1 / V:.3f})", flush=True)
+    return curve
+
+
 def run_cell(name, seeds, vs, engine="numpy", track_pinned=False):
+    if engine == "scheduled":
+        return run_cell_scheduled(name, seeds, vs)
     n, k, s = CELLS[name]
     curve = {}                                      # V -> [acc per seed]
     pinned = {}
@@ -225,7 +292,8 @@ def main():
     ap.add_argument("--seeds", default="42,1,2,3,4")
     ap.add_argument("--cells", default="A,B,C,D,E")
     ap.add_argument("--smoke", action="store_true")
-    ap.add_argument("--engine", choices=("numpy", "hashed"), default="numpy",
+    ap.add_argument("--engine", choices=("numpy", "hashed", "scheduled"),
+                    default="numpy",
                     help="hashed = all seeds batched on the generated-connectome "
                          "substrate (DESIGN_hashed_aligner.md)")
     ap.add_argument("--track-pinned", action="store_true",
