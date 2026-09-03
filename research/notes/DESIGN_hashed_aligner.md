@@ -135,3 +135,29 @@ per-round launch overhead; measured next, not guessed.
 The pinned fraction at gain 1/p is 0.75, not 1.0: the GEMM shortcut is NOT
 exact on this protocol and is not adopted. It would be exact only where
 FEAT's winners are fully pinned, which the anchor share does not guarantee.
+
+## Rounds per step (2026-09-03)
+
+    rounds_word   U1 scene-acc, 5 brains                 wall
+    1             0.985 1.000 1.000 0.970 0.985           25 s
+    2             1.000 1.000 1.000 1.000 1.000           31 s
+    3             1.000 1.000 1.000 1.000 1.000           39 s
+    5             1.000 1.000 1.000 1.000 1.000           73 s
+
+Two rounds adopted for the capacity sweep (PREREG_word_capacity Amendment 2).
+
+## Where the time goes now (5 brains, U1 size, 5 rounds, synchronized)
+
+    before quick wins   101 s   4.73 ms / area-round
+    _jitter cached, anchors constant   73 s   3.40 ms / area-round
+
+    _rescale     20%   walks the whole store (2.3M entries) to price k columns
+    _emit        15%   one fold per step: GEMM, local index, nonzero
+    contribute   15%   scratch zero + count + relative apply per round
+    append        8%
+    stimuli       6%   one add per stimulus per round
+    remainder    ~35%  topk_select, area glue, Python
+
+Per brain-round ~0.7 ms against the 0.1 ms the capacity kernels reach: the
+store-walking rescale and the per-round launch count are the next unit
+(incremental column mass; fewer, fatter launches), registered separately.

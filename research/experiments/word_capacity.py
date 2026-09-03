@@ -31,6 +31,11 @@ from _substrate import ceiling_from_curve                               # noqa: 
 import unaligned_scenes as U                                            # noqa: E402
 
 VS = (16, 32, 64, 128, 256, 512)
+#: Hashed path, Amendment 2: two cross rounds per (word, bundle) step. The
+#: registered five were measured not load-bearing -- U1 on the hashed learner
+#: reads 1.000 on all five brains at rounds 2, 3 and 5 (0.97-1.00 at 1) -- and
+#: the study's cost is linear in them.
+ROUNDS_HASHED = 2
 EXPOSURES = 12         # scenes per referent (Amendment 1: 6 sat below threshold at V=16)
 FEAT_N, FEAT_K = 1000, 50
 PER_SCENE = 3
@@ -112,9 +117,11 @@ def type_accuracy_hashed(seeds, V, n, k, stim_size, track_pinned=False):
     from neural_assemblies.core.torch_engine._hashed_aligner import HashedAligner
     exp, targets, words, features = corpus(V, seeds[0])
     exposures = Counter(w for ws, _b in exp for w in ws)
+    # Unclipped, max-relative pricing, anchors at gain 1/p -- the exact
+    # regime the parity gate verified (DESIGN_hashed_aligner.md).
     al = HashedAligner(seeds, words, features, n=n, k=k, feat_n=FEAT_N,
                        feat_k=FEAT_K, stim_size=stim_size, p=U.P, beta=U.BETA,
-                       rounds_word=U.ROUNDS_WORD, track_pinned=track_pinned)
+                       rounds_word=ROUNDS_HASHED, track_pinned=track_pinned)
     al.train(exp, random.Random(seeds[0] + 11))
     inventory = sorted({b for _w, bs in exp for b in bs})
     scored = [w for w in words if exposures[w] >= U.MIN_EXPOSURES]

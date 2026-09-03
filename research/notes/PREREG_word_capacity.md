@@ -99,3 +99,23 @@ size of the area reconstructed into), recorded here and not judged. FEAT is
 now fixed as registered. Exposures are raised from 6 to 12 so the curves
 start above threshold and the ceiling is approached from above; at E=6 even
 the fixed-FEAT build sat within noise of 0.90 at V=16. Bars unchanged.
+
+## Amendment 2 (2026-09-03, pre-bar): the sweep runs on the hashed substrate, unclipped, two rounds per step
+
+The numpy sweep was stopped by hand before any bar was judged (its partial
+curves are in Amendment 1). The registered cells now run on `HashedAligner`
+(`DESIGN_hashed_aligner.md`), whose gate is drive parity with the numpy
+learner at < 5e-6 and U1 = 1.000 on all five brains. Three protocol facts
+carried over from that gate, each measured:
+
+* UNCLIPPED (`w_max=None`): column scaling and a clip do not commute; the
+  numpy learner holds at w_max=None (0.985 / 1.000), so nothing rests on it.
+* ANCHOR GAIN 1/p on the stimulus fibers, stimuli non-learning: the numpy
+  learner's anchor by accident (0-or-size stimulus weights), made explicit.
+* TWO cross rounds per (word, bundle) step instead of five: U1 reads 1.000 on
+  every brain at 2, 3 and 5 rounds and 0.97-1.00 at 1; cost is linear in
+  rounds. The registered bars and cells are unchanged.
+
+One protocol difference from the numpy path is a nuisance, not a treatment:
+the five seeds are five brains trained on ONE corpus (seeded 42) rather than
+five corpora, because batched brains share a presentation sequence.
