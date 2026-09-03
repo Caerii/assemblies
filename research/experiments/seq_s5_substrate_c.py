@@ -32,7 +32,7 @@ from neural_assemblies.programs.word_problems import (
 _HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, _HERE)
 from seq_s5_word_problem import (  # noqa: E402
-    GROUP_NAMES, SEEDS, build, run_tiered,
+    GROUP_NAMES, SEEDS, build, run_tiered, soft_hard_census,
 )
 
 LONGEST = 500
@@ -78,28 +78,7 @@ def worker(group_name, seed, _arm="homeo"):
 
     _states, _syms, transitions = word_problem_fsm(group)
     table = {(fr, sym): to for fr, sym, to in transitions}
-    soft, hard = [], []
-    for st in fsm.states:
-        for sym in symbols:
-            with b.probe():
-                b.inhibit_areas([fsm.arc_area, fsm.state_area])
-                fsm._cue_state(st)
-                fsm._unfix_state()
-                label = fsm.step(sym)
-                live = _snap(b, fsm.state_area)
-            intended = fsm.state_assembly(table[(st, sym)])
-            if label != table[(st, sym)]:
-                hard.append((st, sym))
-                continue
-            got = set(np.asarray(live.winners).tolist())
-            want = set(np.asarray(intended.winners).tolist())
-            if got != want:
-                soft.append({
-                    "pair": [st, sym],
-                    "overlap": len(got & want) / len(want),
-                    "intruders": sorted(got - want),
-                    "displaced": sorted(want - got),
-                })
+    soft, hard = soft_hard_census(b, fsm, symbols, group)
 
     bad_pairs = {tuple(rec["pair"]) for rec in soft} | set(hard)
     prev, predicted = start, None

@@ -98,7 +98,13 @@ def shuffle_scenes(exp, seed):
 # ---------------------------------------------------------------------------
 
 class Aligner:
-    def __init__(self, seed, words, features, scaling=True):
+    def __init__(self, seed, words, features, scaling=True, *,
+                 n=None, k=None, stim_size=None):
+        # Area size and phon stimulus size are PARAMETERS so the capacity
+        # study (word_capacity.py) can sweep them; defaults reproduce U1-U3.
+        n = N if n is None else int(n)
+        k = K if k is None else int(k)
+        stim_size = k if stim_size is None else int(stim_size)
         random.seed(seed)
         np.random.seed(seed)
         # SYNAPTIC SCALING ON THE FEATURE AREA (Amendment 5). Raw Hebbian mass
@@ -112,8 +118,8 @@ class Aligner:
         # exists here (AUDIT_refraction_scaling.md).
         self.b = Brain(p=P, seed=seed, engine="numpy_sparse",
                        synaptic_scaling=frozenset({FEAT}) if scaling else False)
-        self.b.add_area(LEX, N, K, BETA)
-        self.b.add_area(FEAT, N, K, BETA)
+        self.b.add_area(LEX, n, k, BETA)
+        self.b.add_area(FEAT, n, k, BETA)
         # MATERIALIZED, for the reason `NemoArcFSM` materializes its state
         # area: while an area is nearly empty the lazy candidate sampler
         # flattens DISJOINT inputs into overlapping winners
@@ -128,11 +134,11 @@ class Aligner:
         self.phon = {}
         for w in sorted(words):
             self.phon[w] = f"phon_{w}"
-            self.b.add_stimulus(self.phon[w], K)
+            self.b.add_stimulus(self.phon[w], stim_size)
         self.feat = {}
         for f in sorted(features):
             self.feat[f] = f"feat_{f}"
-            self.b.add_stimulus(self.feat[f], K)
+            self.b.add_stimulus(self.feat[f], k)
 
     def train(self, exp, rng):
         """One co-presentation per (word, PERCEIVED OBJECT) pair.

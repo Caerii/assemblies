@@ -118,6 +118,46 @@ def build(group_name, seed, arm, norm_init=False, synaptic_scaling=False,
     return group, fsm, symbols
 
 
+def soft_hard_census(b, fsm, symbols, group):
+    """Every (state, symbol) transition, probed: HARD = wrong label; SOFT =
+    right label but the live state assembly is not the intended block.
+
+    ONE owner for the census that `seq_s5_substrate_c.py` and
+    `seq_s5_bar_tie.py` both judge -- the soft-pair SET is what the bar-tie
+    test compares across readouts, so it must be produced by the same code
+    that produced the registered counts. Returns (soft, hard); each soft
+    record carries the pair, overlap, intruders and displaced neuron ids.
+    """
+    import numpy as np
+    from neural_assemblies.assembly_calculus.ops import _snap
+    from neural_assemblies.programs.word_problems import word_problem_fsm
+    _states, _syms, transitions = word_problem_fsm(group)
+    table = {(fr, sym): to for fr, sym, to in transitions}
+    soft, hard = [], []
+    for st in fsm.states:
+        for sym in symbols:
+            with b.probe():
+                b.inhibit_areas([fsm.arc_area, fsm.state_area])
+                fsm._cue_state(st)
+                fsm._unfix_state()
+                label = fsm.step(sym)
+                live = _snap(b, fsm.state_area)
+            intended = fsm.state_assembly(table[(st, sym)])
+            if label != table[(st, sym)]:
+                hard.append((st, sym))
+                continue
+            got = set(np.asarray(live.winners).tolist())
+            want = set(np.asarray(intended.winners).tolist())
+            if got != want:
+                soft.append({
+                    "pair": [st, sym],
+                    "overlap": len(got & want) / len(want),
+                    "intruders": sorted(got - want),
+                    "displaced": sorted(want - got),
+                })
+    return soft, hard
+
+
 def evaluate(group, fsm, symbols, seed, lengths=LENGTHS):
     """Exact-trajectory accuracy, plus the per-step readout it is too coarse for.
 
