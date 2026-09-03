@@ -98,18 +98,61 @@ def type_accuracy(seed, V, n, k, stim_size):
     return hits / max(scored, 1), scored
 
 
-def run_cell(name, seeds, vs):
+def type_accuracy_hashed(seeds, V, n, k, stim_size, track_pinned=False):
+    """All seeds as ONE batch of brains on the hashed substrate.
+
+    The corpus is shared across the brains (seeded by the first seed): the
+    brains differ by connectome, which is what a seed varies in every other
+    hashed study. The numpy path draws a corpus per seed; that is the one
+    protocol difference between the engines here, and it is a nuisance
+    variable, not a treatment. Returns per-brain accuracies, and the
+    pinned-winner trace when asked (DESIGN_hashed_aligner.md).
+    """
+    import torch
+    from neural_assemblies.core.torch_engine._hashed_aligner import HashedAligner
+    exp, targets, words, features = corpus(V, seeds[0])
+    exposures = Counter(w for ws, _b in exp for w in ws)
+    al = HashedAligner(seeds, words, features, n=n, k=k, feat_n=FEAT_N,
+                       feat_k=FEAT_K, stim_size=stim_size, p=U.P, beta=U.BETA,
+                       rounds_word=U.ROUNDS_WORD, track_pinned=track_pinned)
+    al.train(exp, random.Random(seeds[0] + 11))
+    inventory = sorted({b for _w, bs in exp for b in bs})
+    scored = [w for w in words if exposures[w] >= U.MIN_EXPOSURES]
+    table = al.overlap_table(scored, inventory)            # [V, I, B]
+    best = table.argmax(dim=1)                             # [V, B]
+    tgt = torch.tensor([inventory.index(targets[w]) for w in scored],
+                       device=best.device).view(-1, 1)
+    acc = (best == tgt).float().mean(dim=0).cpu().numpy()  # per brain
+    return acc, len(scored), al.pinned
+
+
+def run_cell(name, seeds, vs, engine="numpy", track_pinned=False):
     n, k, s = CELLS[name]
     curve = {}                                      # V -> [acc per seed]
+    pinned = {}
     for V in vs:
         accs = []
-        for seed in seeds:
+        if engine == "hashed":
             t0 = time.perf_counter()
-            acc, scored = type_accuracy(seed, V, n, k, s)
-            accs.append(acc)
-            print(f"    {name} n={n} k={k} s={s} V={V:4d} seed {seed:2d}: "
-                  f"type-acc {acc:.3f} (chance {1 / V:.3f}, n={scored})  "
-                  f"[{time.perf_counter() - t0:.0f}s]", flush=True)
+            acc, scored, pin = type_accuracy_hashed(seeds, V, n, k, s,
+                                                     track_pinned)
+            accs = [float(a) for a in acc]
+            if pin:
+                pinned[V] = pin
+            print(f"    {name} n={n} k={k} s={s} V={V:4d} hashed B={len(seeds)}: "
+                  f"type-acc {' '.join(f'{a:.3f}' for a in accs)} "
+                  f"(chance {1 / V:.3f}, n={scored})"
+                  + (f"  pinned min {min(pin):.3f} mean "
+                     f"{sum(pin) / len(pin):.3f}" if pin else "")
+                  + f"  [{time.perf_counter() - t0:.0f}s]", flush=True)
+        else:
+            for seed in seeds:
+                t0 = time.perf_counter()
+                acc, scored = type_accuracy(seed, V, n, k, s)
+                accs.append(acc)
+                print(f"    {name} n={n} k={k} s={s} V={V:4d} seed {seed:2d}: "
+                      f"type-acc {acc:.3f} (chance {1 / V:.3f}, n={scored})  "
+                      f"[{time.perf_counter() - t0:.0f}s]", flush=True)
         curve[V] = accs
         # stop early once the curve is clearly below threshold on every seed
         if max(accs) < THRESHOLD - 0.3:
@@ -175,19 +218,25 @@ def main():
     ap.add_argument("--seeds", default="42,1,2,3,4")
     ap.add_argument("--cells", default="A,B,C,D,E")
     ap.add_argument("--smoke", action="store_true")
+    ap.add_argument("--engine", choices=("numpy", "hashed"), default="numpy",
+                    help="hashed = all seeds batched on the generated-connectome "
+                         "substrate (DESIGN_hashed_aligner.md)")
+    ap.add_argument("--track-pinned", action="store_true",
+                    help="hashed only: measure the GEMM-shortcut precondition")
     args = ap.parse_args()
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     seeds = [int(x) for x in args.seeds.split(",")]
     vs = (8, 16) if args.smoke else VS
     if args.smoke:
         print("SMOKE: API check only; numbers VOID")
-    print(f"WORD CAPACITY  cells {args.cells}  V grid {vs}  seeds {seeds}  "
-          f"threshold {THRESHOLD}")
+    print(f"WORD CAPACITY  engine {args.engine}  cells {args.cells}  "
+          f"V grid {vs}  seeds {seeds}  threshold {THRESHOLD}")
     results = {}
     for name in args.cells.split(","):
-        results[name] = run_cell(name, seeds, vs)
+        results[name] = run_cell(name, seeds, vs, engine=args.engine,
+                                 track_pinned=args.track_pinned)
     judge(results, seeds)
-    path = os.path.join(_HERE, "word_capacity_results.json")
+    path = os.path.join(_HERE, f"word_capacity_results_{args.engine}.json")
     with open(path, "w") as fh:
         json.dump({"seeds": seeds, "cells": {nm: {str(V): a for V, a in c.items()}
                                               for nm, c in results.items()}},

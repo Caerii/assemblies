@@ -78,6 +78,42 @@ def experience_of(corpus) -> List[Tuple[List[str], List[Tuple[str, ...]]]]:
     return out
 
 
+def assert_identifiable(exp, targets):
+    """Every word's own bundle must be the ONLY bundle whose features all
+    co-occur with it in every scene -- the property that makes the alignment
+    question well-posed, asserted rather than assumed.
+
+    THE CONFOUND THIS CATCHES. A toy in which every scene held one animal and
+    one object made ANIMAL co-occur with "ball" in 100% of its scenes, exactly
+    as BALL did, so "ball" -> (ANIMAL, CAT) was not an error the learner made
+    but one the corpus made. Real scenes are not balanced like that, and
+    neither is the lesion corpus; a synthetic corpus has to be built so that
+    only the referent's features are always present, and to say so.
+    """
+    from collections import defaultdict
+    seen = defaultdict(int)
+    with_feat = defaultdict(lambda: defaultdict(int))
+    for words, bundles in exp:
+        feats = {f for b in bundles for f in b}
+        for w in words:
+            seen[w] += 1
+            for f in feats:
+                with_feat[w][f] += 1
+    bad = []
+    for w, bundle in targets.items():
+        if seen[w] == 0:
+            continue
+        always = {f for f, c in with_feat[w].items() if c == seen[w]}
+        if always != set(bundle):
+            bad.append((w, sorted(always - set(bundle)),
+                        sorted(set(bundle) - always)))
+    assert not bad, (
+        "corpus is not identifiable -- features that ALWAYS co-occur with a "
+        "word beyond its own bundle (extra), or bundle features missing "
+        f"(missing): {bad[:6]}")
+    return True
+
+
 def shuffle_scenes(exp, seed):
     """U3: permute scenes across sentences with the SAME participant count."""
     rng = random.Random(seed + 777)
@@ -99,7 +135,8 @@ def shuffle_scenes(exp, seed):
 
 class Aligner:
     def __init__(self, seed, words, features, scaling=True, *,
-                 n=None, k=None, stim_size=None, feat_n=None, feat_k=None):
+                 n=None, k=None, stim_size=None, feat_n=None, feat_k=None,
+                 w_max=20.0):
         # LEX size, phon stimulus size and FEAT size are PARAMETERS so the
         # capacity study (word_capacity.py) can sweep LEX while holding FEAT
         # fixed, as its registration requires; defaults reproduce U1-U3.
@@ -119,7 +156,11 @@ class Aligner:
         # its own total, which is exactly the base-rate correction
         # cross-situational learning needs. Scoped to FEAT; no refracted area
         # exists here (AUDIT_refraction_scaling.md).
-        self.b = Brain(p=P, seed=seed, engine="numpy_sparse",
+        # `w_max` stays at the Brain default the registration ran with; the
+        # hashed port runs UNCLIPPED because column scaling and a clip do not
+        # commute in its factored form, and U1 re-verified at w_max=None reads
+        # 0.985 / 1.000 (seeds 42, 1) -- the clip is not load-bearing.
+        self.b = Brain(p=P, seed=seed, engine="numpy_sparse", w_max=w_max,
                        synaptic_scaling=frozenset({FEAT}) if scaling else False)
         self.b.add_area(LEX, n, k, BETA)
         self.b.add_area(FEAT, feat_n, feat_k, BETA)

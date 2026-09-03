@@ -652,6 +652,94 @@ void dev_correct_csr(torch::Tensor S, torch::Tensor keys, torch::Tensor cnts,
 }
 
 
+
+// ---- MAX-RELATIVE pricing (column scaling, no clip) ----------------------
+// With column scaling and no clip a weight is base * (1+beta)^c * s_j with
+// s_j a per-column scalar, so a column is a SHARE distribution and only count
+// DIFFERENCES within it matter. (1+beta)^c overflows float32 near c ~ 900,
+// which a long training run reaches routinely; (1+beta)^(c - cmax_j) lies in
+// (0, 1]. `rel[d]` = (1+beta)^(-d). The drive into column j from active rows
+// S is then  s_j * ( rel[cmax_j] * base_j(S) + SUM_touched base_ij *
+// (rel[cmax_j - c_ij] - rel[cmax_j]) ), and this kernel adds the second term
+// onto an `out` that already holds rel[cmax_j] * base_j(S).
+__global__ void devapply_rel_kernel(const int* __restrict__ S,
+                                    const int* __restrict__ scratch,
+                                    const float* __restrict__ rel, int nrel,
+                                    const int* __restrict__ cmax,
+                                    const int* __restrict__ seeds,
+                                    int B, int K, int N, int threshold,
+                                    float* __restrict__ out) {
+    long long idx = blockIdx.x * (long long)blockDim.x + threadIdx.x;
+    if (idx >= (long long)B * K * N) return;
+    const int c = scratch[idx];
+    if (c == 0) return;
+    const int j = (int)(idx % N);
+    const long long q = idx / N;
+    const int sl = (int)(q % K), b = (int)(q / K);
+    const int i = S[(long long)b * K + sl];
+    const unsigned int h = ac_fmix32(((unsigned int)i * 2654435761u)
+                                     ^ (((unsigned int)j * 2246822519u)
+                                        ^ (unsigned int)seeds[b]));
+    if ((h & 0x00FFFFFFu) >= (unsigned int)threshold) return;   // absent
+    const int cm = cmax[(long long)b * N + j];
+    const int d0 = cm, d1 = cm - c;                 // d1 >= 0 by construction
+    const float r0 = (d0 < nrel) ? rel[d0] : 0.0f;
+    const float r1 = (d1 < nrel) ? rel[d1] : 0.0f;
+    atomicAdd(out + (long long)b * N + j, r1 - r0);
+}
+
+// mass'_j = SUM_i present(i,j) * rel[cmax_j - c_ij], with cmax_j found in a
+// first pass over the same column. Returns the mass and cmax per winner col.
+__global__ void colmass_rel_kernel(const int* __restrict__ cols,
+                                   const int* __restrict__ scratch,
+                                   const float* __restrict__ rel, int nrel,
+                                   const int* __restrict__ seeds,
+                                   int K, int N, int threshold,
+                                   float* __restrict__ out,
+                                   int* __restrict__ outmax) {
+    __shared__ float red[256];
+    __shared__ int rmx[256];
+    const int b = blockIdx.x / K, sl = blockIdx.x - b * K;
+    const int j = cols[(long long)b * K + sl];
+    const unsigned int ch = ((unsigned int)j * 2246822519u)
+                            ^ (unsigned int)seeds[b];
+    const int* sc = scratch + ((long long)b * K + sl) * N;
+    int mx = 0;
+    for (int i = threadIdx.x; i < N; i += blockDim.x) {
+        const unsigned int h =
+            ac_fmix32(((unsigned int)i * 2654435761u) ^ ch);
+        if ((h & 0x00FFFFFFu) >= (unsigned int)threshold) continue;
+        const int c = sc[i];
+        if (c > mx) mx = c;
+    }
+    rmx[threadIdx.x] = mx;
+    __syncthreads();
+    for (int st = blockDim.x >> 1; st > 0; st >>= 1) {
+        if (threadIdx.x < st && rmx[threadIdx.x + st] > rmx[threadIdx.x])
+            rmx[threadIdx.x] = rmx[threadIdx.x + st];
+        __syncthreads();
+    }
+    const int cm = rmx[0];
+    float acc = 0.0f;
+    for (int i = threadIdx.x; i < N; i += blockDim.x) {
+        const unsigned int h =
+            ac_fmix32(((unsigned int)i * 2654435761u) ^ ch);
+        if ((h & 0x00FFFFFFu) >= (unsigned int)threshold) continue;
+        const int d = cm - sc[i];
+        acc += (d < nrel) ? rel[d] : 0.0f;
+    }
+    red[threadIdx.x] = acc;
+    __syncthreads();
+    for (int st = blockDim.x >> 1; st > 0; st >>= 1) {
+        if (threadIdx.x < st) red[threadIdx.x] += red[threadIdx.x + st];
+        __syncthreads();
+    }
+    if (threadIdx.x == 0) {
+        out[(long long)b * K + sl] = red[0];
+        outmax[(long long)b * K + sl] = cm;
+    }
+}
+
 void dev_correct_exact(torch::Tensor S, torch::Tensor keys, torch::Tensor cnts,
                        torch::Tensor offs, torch::Tensor rowmask,
                        torch::Tensor colmask, torch::Tensor scratch,
@@ -718,6 +806,75 @@ std::vector<torch::Tensor> column_mass_exact(
     return {out, omax};
 }
 
+
+void dev_correct_rel(torch::Tensor S, torch::Tensor keys, torch::Tensor cnts,
+                     torch::Tensor offs, torch::Tensor rowmask,
+                     torch::Tensor colmask, torch::Tensor scratch,
+                     torch::Tensor rel, torch::Tensor cmax, torch::Tensor seeds,
+                     int64_t threshold, torch::Tensor out) {
+    S = S.contiguous(); rel = rel.contiguous(); seeds = seeds.contiguous();
+    cmax = cmax.contiguous();
+    const int B = S.size(0), K = S.size(1), N = out.size(1);
+    if (K == 0) return;
+    const long long tot = (long long)B * K * N;
+    const int th = 256;
+    if (keys.numel() > 0) {
+        keys = keys.contiguous(); cnts = cnts.contiguous();
+        offs = offs.contiguous();
+        devcnt_csr_kernel<<<B * K, 128>>>(
+            S.data_ptr<int>(), keys.data_ptr<int64_t>(), cnts.data_ptr<int>(),
+            offs.data_ptr<int64_t>(), (int)offs.numel() - 1, K, N,
+            scratch.data_ptr<int>());
+    }
+    if (rowmask.numel() > 0) {
+        rowmask = rowmask.contiguous(); colmask = colmask.contiguous();
+        const int W = (int)(rowmask.numel() / ((long long)B * rowmask.size(-1)));
+        devcnt_mask_kernel<<<(tot + th - 1) / th, th>>>(
+            S.data_ptr<int>(), rowmask.data_ptr<int64_t>(),
+            colmask.data_ptr<int64_t>(), B, K, N, W, scratch.data_ptr<int>());
+    }
+    devapply_rel_kernel<<<(tot + th - 1) / th, th>>>(
+        S.data_ptr<int>(), scratch.data_ptr<int>(), rel.data_ptr<float>(),
+        (int)rel.numel(), cmax.data_ptr<int>(), seeds.data_ptr<int>(),
+        B, K, N, (int)threshold, out.data_ptr<float>());
+}
+
+
+std::vector<torch::Tensor> column_mass_rel(
+        torch::Tensor cols, torch::Tensor keys, torch::Tensor cnts,
+        torch::Tensor colmap, torch::Tensor rowmask, torch::Tensor colmask,
+        torch::Tensor scratch, torch::Tensor rel, torch::Tensor seeds,
+        int64_t n, int64_t threshold) {
+    cols = cols.contiguous(); rel = rel.contiguous(); seeds = seeds.contiguous();
+    const int B = cols.size(0), K = cols.size(1), N = (int)n;
+    auto optf = torch::dtype(torch::kFloat32).device(cols.device());
+    auto opti = torch::dtype(torch::kInt32).device(cols.device());
+    auto out = torch::empty({B, (int64_t)K}, optf);
+    auto omax = torch::empty({B, (int64_t)K}, opti);
+    const long long tot = (long long)B * K * N;
+    const int th = 256;
+    if (keys.numel() > 0) {
+        keys = keys.contiguous(); cnts = cnts.contiguous();
+        colmap = colmap.contiguous();
+        const long long nnz = keys.numel();
+        colcnt_store_kernel<<<(nnz + th - 1) / th, th>>>(
+            keys.data_ptr<int64_t>(), cnts.data_ptr<int>(), nnz,
+            colmap.data_ptr<int>(), K, N, scratch.data_ptr<int>());
+    }
+    if (rowmask.numel() > 0) {
+        rowmask = rowmask.contiguous(); colmask = colmask.contiguous();
+        const int W = (int)(rowmask.numel() / ((long long)B * N));
+        colcnt_mask_kernel<<<(tot + th - 1) / th, th>>>(
+            cols.data_ptr<int>(), rowmask.data_ptr<int64_t>(),
+            colmask.data_ptr<int64_t>(), B, K, N, W, scratch.data_ptr<int>());
+    }
+    colmass_rel_kernel<<<B * K, 256>>>(
+        cols.data_ptr<int>(), scratch.data_ptr<int>(), rel.data_ptr<float>(),
+        (int)rel.numel(), seeds.data_ptr<int>(), K, N, (int)threshold,
+        out.data_ptr<float>(), omax.data_ptr<int>());
+    return {out, omax};
+}
+
 std::vector<torch::Tensor> topk_select(torch::Tensor x, int64_t K) {
     TORCH_CHECK(x.dim() == 2 && x.is_cuda()
                 && x.scalar_type() == torch::kFloat32, "x: [B,N] f32 cuda");
@@ -742,6 +899,8 @@ void dev_correct(torch::Tensor S, torch::Tensor rowmask, torch::Tensor colids, t
 void dev_correct_csr(torch::Tensor S, torch::Tensor keys, torch::Tensor cnts, torch::Tensor offs, torch::Tensor tab, torch::Tensor seeds, int64_t threshold, torch::Tensor out);
 void dev_correct_exact(torch::Tensor S, torch::Tensor keys, torch::Tensor cnts, torch::Tensor offs, torch::Tensor rowmask, torch::Tensor colmask, torch::Tensor scratch, torch::Tensor tab, torch::Tensor seeds, int64_t threshold, torch::Tensor out);
 std::vector<torch::Tensor> column_mass_exact(torch::Tensor cols, torch::Tensor keys, torch::Tensor cnts, torch::Tensor colmap, torch::Tensor rowmask, torch::Tensor colmask, torch::Tensor scratch, torch::Tensor tab, torch::Tensor seeds, int64_t n, int64_t threshold);
+void dev_correct_rel(torch::Tensor S, torch::Tensor keys, torch::Tensor cnts, torch::Tensor offs, torch::Tensor rowmask, torch::Tensor colmask, torch::Tensor scratch, torch::Tensor rel, torch::Tensor cmax, torch::Tensor seeds, int64_t threshold, torch::Tensor out);
+std::vector<torch::Tensor> column_mass_rel(torch::Tensor cols, torch::Tensor keys, torch::Tensor cnts, torch::Tensor colmap, torch::Tensor rowmask, torch::Tensor colmask, torch::Tensor scratch, torch::Tensor rel, torch::Tensor seeds, int64_t n, int64_t threshold);
 std::vector<torch::Tensor> topk_select(torch::Tensor x, int64_t K);
 """
 
@@ -787,8 +946,10 @@ def load() -> object | None:
             _MODULE = load_inline(
                 name="na_fused_cuda", cpp_sources=[_CPP],
                 cuda_sources=[_CUDA_SRC],
-                functions=["hashed_drive", "hashed_indegree", "dev_correct", "dev_correct_csr", "dev_correct_exact", "column_mass_exact",
-                                  "column_mass", "topk_select"],
+                functions=["hashed_drive", "hashed_indegree", "dev_correct",
+                           "dev_correct_csr", "dev_correct_exact",
+                           "column_mass_exact", "dev_correct_rel",
+                           "column_mass_rel", "column_mass", "topk_select"],
                 verbose=False, extra_cuda_cflags=["-O3"])
         except Exception as exc:                       # noqa: BLE001
             _MODULE = None

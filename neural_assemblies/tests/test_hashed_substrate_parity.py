@@ -360,7 +360,7 @@ def test_capacity_protocol_reproduces_numpy_sparse_across_episodes(
     pair = _seeding.fnv1a_pair_seed(seed, AREA, AREA)
     fiber = AreaFiber([_to_i32(pair)], n, n, p, beta=beta, w_max=w_max,
                       norm_init=norm_init, synaptic_scaling=scaling,
-                      max_rounds=M_eps * T)
+                      max_rounds=M_eps * T, scaling_allows_clip=True)
     worst = 0.0
     for a, ep in enumerate(trace):
         sf = StimulusFiber([0], k, n, p, beta=beta, w_max=w_max,
@@ -440,7 +440,7 @@ def test_refracted_capacity_protocol_reproduces_numpy_sparse(mod):
     area = HashedArea(n, k, [_to_i32(pair)], refracted_strength=beta)
     fiber = AreaFiber([_to_i32(pair)], n, n, p, beta=beta, w_max=w_max,
                       norm_init=True, synaptic_scaling=False,
-                      max_rounds=M_eps * T)
+                      max_rounds=M_eps * T, scaling_allows_clip=True)
     worst = 0.0
     for a, ep in enumerate(trace):
         sf = StimulusFiber([0], k, n, p, beta=beta, w_max=w_max,

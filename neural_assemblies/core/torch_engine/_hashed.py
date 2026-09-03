@@ -63,6 +63,28 @@ def _chain_table(beta, w_max, rounds):
     return out
 
 
+def _rel_table(beta, depth):
+    """``(1 + beta)**(-d)`` for d = 0..depth, by repeated float32 division.
+
+    The MAX-RELATIVE price of a cell: with column scaling and no clip a
+    weight is ``base * (1+beta)^c * s_j`` with ``s_j`` a per-column scalar, so
+    every column is a SHARE distribution and only count DIFFERENCES within a
+    column matter. ``(1+beta)^c`` overflows float32 at c ~ 900 -- a cell that
+    co-fires 1325 times in a long training run is ordinary -- while
+    ``(1+beta)^(c - cmax_j)`` lies in (0, 1] and underflows only for cells
+    ~900 counts behind the column's leader, whose share is zero in the engine
+    as well. Underflow to 0 is therefore the right limit, not an error.
+    """
+    import numpy as np
+    g = np.float32(1.0 + beta)
+    out = np.ones(depth + 1, dtype=np.float32)
+    v = np.float32(1.0)
+    for d in range(1, depth + 1):
+        v = np.float32(v / g)
+        out[d] = v
+    return out
+
+
 def _gain_table(beta, rounds):
     """``(1 + beta)**c``, for a weight that does NOT start at 1.0.
 
@@ -123,6 +145,9 @@ class RunStore:
         self.keys = self.cnts = None
         self.used = 0
         self.offs = [0]
+        #: the largest per-cell count held anywhere in the store. A fiber's
+        #: chain table must extend past it; see `AreaFiber.end_episode`.
+        self.max_count = 0
 
     @property
     def nnz(self):
@@ -150,6 +175,7 @@ class RunStore:
         if nkey is None or nkey.numel() == 0:
             return
         order = torch.argsort(nkey)
+        self.max_count = max(self.max_count, int(ncnt.max()))
         self._reserve(nkey.numel())
         a = self.used
         self.keys[a:a + nkey.numel()] = nkey[order]
@@ -172,6 +198,7 @@ class RunStore:
                                               return_counts=True)
         uv = torch.zeros(uk.numel(), dtype=torch.int32, device=self.device)
         uv.scatter_add_(0, inv, sc)
+        self.max_count = max(self.max_count, int(uv.max()))
         m = uk.numel()
         self.keys[a:a + m] = uk
         self.cnts[a:a + m] = uv
@@ -196,7 +223,25 @@ class AreaFiber:
 
     def __init__(self, seeds, n_pre, n_post, p, *, beta=0.0, w_max=None,
                  norm_init=False, synaptic_scaling=False, max_rounds=64,
-                 device="cuda"):
+                 device="cuda", scaling_allows_clip=False):
+        # COLUMN SCALING AND A WEIGHT CLIP DO NOT COMMUTE. The factored scale
+        # S_j = setpoint / M_j is exact only while no cell has ever been
+        # clipped: the engine clips per cell and rescales per column in an
+        # interleaved order that the count-then-apply form cannot reproduce.
+        # `_rescale` checks the SCALED value against w_max, which is not the
+        # same thing -- measured on the aligner at w_max=20, 217k of 742k
+        # cells were clipped while that check never fired, and the learner's
+        # reconstructions inverted. So the pair is refused here. The capacity
+        # protocol (T <= 8 rounds per item, counts far below the ~31 at which
+        # a 1.1 gain reaches 20) opts in explicitly; its four-arm parity test
+        # is what licenses that.
+        if synaptic_scaling and w_max is not None and not scaling_allows_clip:
+            raise ValueError(
+                "synaptic_scaling with a finite w_max: column scaling and the "
+                "clip do not commute, so the factored scale is exact only "
+                "while no cell is ever clipped. Run with w_max=None (scaling "
+                "bounds the weights itself), or pass scaling_allows_clip=True "
+                "for a protocol whose counts provably stay below the clip.")
         self.mod = _fused_cuda.load()
         if self.mod is None:
             raise RuntimeError(f"fused kernels unavailable: "
@@ -221,6 +266,18 @@ class AreaFiber:
                    if norm_init else None)
         self.scale = (torch.ones(B, n_post, dtype=torch.float32, device=device)
                       if synaptic_scaling else None)
+        # MAX-RELATIVE PRICING (see `_rel_table`). With scaling and no clip
+        # the absolute chain overflows float32 on long training; the relative
+        # form is the same number, bounded. `cmax` is each column's leading
+        # count, updated wherever the column is rescaled -- which is every
+        # column whose counts changed, since scaling touches the winner
+        # columns of every write.
+        self.relative = bool(synaptic_scaling) and w_max is None
+        if self.relative:
+            self.rel = torch.from_numpy(_rel_table(beta, max_rounds)).to(device)
+            self.cmax = torch.zeros(B, n_post, dtype=torch.int32, device=device)
+        else:
+            self.rel = self.cmax = None
         self.setpoint = scaling_setpoint(n_pre, self.p)
         self.store = RunStore(device)
         self._rowmask = self._colmask = None    # this episode only
@@ -266,15 +323,47 @@ class AreaFiber:
                   torch.zeros(0, dtype=torch.int64, device=self.device))
             cm = (self._colmask if has_mask else
                   torch.zeros(0, dtype=torch.int64, device=self.device))
-            self.mod.dev_correct_exact(r, sk, sc, so, rm, cm,
-                                       self._scratch[:need].view(
-                                           self.B, k_src, self.n),
-                                       self.tab, self.seeds, self.threshold, d)
+            if self.relative:
+                # d <- rel[cmax] * base + SUM_touched base * (rel[cmax-c] - rel[cmax])
+                d = d * self.rel[self.cmax.long()]
+                self.mod.dev_correct_rel(r, sk, sc, so, rm, cm,
+                                         self._scratch[:need].view(
+                                             self.B, k_src, self.n),
+                                         self.rel, self.cmax, self.seeds,
+                                         self.threshold, d)
+            else:
+                self.mod.dev_correct_exact(r, sk, sc, so, rm, cm,
+                                           self._scratch[:need].view(
+                                               self.B, k_src, self.n),
+                                           self.tab, self.seeds,
+                                           self.threshold, d)
+        elif self.relative:
+            d = d * self.rel[self.cmax.long()]
         if self.scale is not None:
             d = d * self.scale
         if self.dj is not None:
             d = d / self.dj
         drive += d
+
+    def ensure_depth(self, depth):
+        """Extend the pricing tables to `depth` potentiations.
+
+        A cell can be potentiated once per round it co-fires in, so the depth a
+        training run needs is its TOTAL number of rounds -- a quantity the
+        fiber cannot know at construction and a learner only knows once it
+        sees its corpus. Measured on the aligner: a FEAT column in a frequent
+        bundle passed 2,000 co-firings inside one pass over 198 sentences and
+        walked off a 2,048-entry table. Cheap to extend (a few KB), and the
+        relative table underflows to 0 past ~900 anyway.
+        """
+        depth = int(depth)
+        if self.relative:
+            if self.rel.numel() < depth + 1:
+                self.rel = torch.from_numpy(
+                    _rel_table(self.beta, depth)).to(self.device)
+        elif self.tab.numel() < depth + 1:
+            self.tab = torch.from_numpy(
+                _chain_table(self.beta, self.w_max, depth)).to(self.device)
 
     # -- writing ---------------------------------------------------------
     def begin_episode(self):
@@ -320,9 +409,25 @@ class AreaFiber:
             self._rescale(new)
 
     def end_episode(self):
-        """Fold the episode into the store via a GEMM, then drop its mask."""
+        """Fold the episode into the store via a GEMM, then drop its mask.
+
+        THE TABLE MUST OUTRUN THE COUNTS. `max_rounds` sizes the chain table
+        -- the most potentiations one cell can ever receive -- NOT an episode.
+        `dev_correct_exact` clamps a count to the table's last entry, which is
+        silent: a fiber built with `max_rounds=1` and trained in 1-round
+        episodes read `tab[1]` for cells that had co-fired three times, and
+        its drive simply stopped growing (found by the aligner parity gate).
+        Refuse it here, where the store knows its largest count.
+        """
         if self.learns and self._prevs:
             self.store.append(*self._emit())
+            table = self.rel if self.relative else self.tab
+            if self.store.max_count >= table.numel():
+                raise ValueError(
+                    f"a cell has co-fired {self.store.max_count} times but "
+                    f"the chain table prices at most {table.numel() - 1}: "
+                    "size max_rounds by the TOTAL potentiations a cell can "
+                    "accumulate over training, not by the episode")
         self._rowmask = self._colmask = None
         self._prevs, self._news = [], []
 
@@ -361,6 +466,17 @@ class AreaFiber:
         else:
             sk = torch.zeros(0, dtype=torch.int64, device=self.device)
             sc = torch.zeros(0, dtype=torch.int32, device=self.device)
+        if self.relative:
+            mass, colmax = self.mod.column_mass_rel(
+                c, sk, sc,
+                self._colmap if self.store.nnz else sk.to(torch.int32),
+                self._rowmask, self._colmask,
+                self._cscratch[:need].view(B, K, self.n),
+                self.rel, self.seeds, self.n, self.threshold)
+            self.cmax.scatter_(1, cols, colmax)
+            new = column_scale(mass, self.setpoint)
+            self.scale.scatter_(1, cols, new)
+            return
         mass, cellmax = self.mod.column_mass_exact(
             c, sk, sc,
             self._colmap if self.store.nnz else sk.to(torch.int32),
@@ -451,12 +567,23 @@ class StimulusFiber:
         self.hi = (w_max * max(1.0, size * self.p)
                    if w_max is not None else float("inf"))
 
+    #: DRIVE GAIN: a multiplier on this stimulus's contribution, 1.0 by
+    #: default. It is the ANCHOR SHARE knob ([[capacity-is-an-anchor-ratio]],
+    #: [[semantic-drive-share-is-the-lever]]): what an area forms as is decided
+    #: by how much of its drive the stimulus supplies against learned fibers.
+    #: The numpy engine's stimulus into a materialized area is 0-or-size, i.e.
+    #: a full-size weight where this fiber generates a Binomial(size, p) count
+    #: -- an accidental gain of ~1/p. Set explicitly rather than inherited.
+    drive_gain = 1.0
+
     def contribute(self, drive, rows=None):
         d = self.base * self.gain[self.pot.clamp_max(self.gain.numel() - 1)]
         if self.hi != float("inf"):
             d = d.clamp_max(self.hi)
         if self.dj is not None:
             d = d / self.dj
+        if self.drive_gain != 1.0:
+            d = d * self.drive_gain
         drive += d
 
     def begin_episode(self):
@@ -485,7 +612,8 @@ class HashedArea:
     adding a fiber rather than a flag.
     """
 
-    def __init__(self, n, k, seeds, device="cuda", refracted_strength=0.0):
+    def __init__(self, n, k, seeds, device="cuda", refracted_strength=0.0,
+                 tie_jitter=0.0):
         self.mod = _fused_cuda.load()
         if self.mod is None:
             raise RuntimeError(f"fused kernels unavailable: "
@@ -510,6 +638,33 @@ class HashedArea:
         self.refracted_strength = float(refracted_strength or 0.0)
         self.bias = (torch.zeros(self.B, n, dtype=torch.float32, device=device)
                      if self.refracted_strength > 0 else None)
+        #: TIE JITTER, opt-in. The selector breaks exact ties by smallest
+        #: index -- canonical, and what every capacity result was measured
+        #: with. But a STIMULUS-driven area under norm_init has a drive with a
+        #: handful of distinct levels, so the k-WTA bar sits inside a tie
+        #: class ([[KWTA-TIE-FRAGILE]]): at n=1000 k=50 p=0.05 the numpy
+        #: engine's stimulus base leaves 41 neurons above the bar and 959 tied
+        #: at zero, so 9 of 50 winners are tie-fill. A canonical rule then
+        #: gives EVERY input the same low-index tie-fill, correlating assemblies
+        #: that should be independent -- measured on the aligner as word
+        #: assemblies that overlap across words and alignment that WORSENS with
+        #: training. With `tie_jitter > 0` the ranking adds a deterministic
+        #: per-(input pattern, column) offset below any real drive gap, so ties
+        #: break pseudo-randomly, differently for different inputs, and
+        #: reproducibly. The drive itself is untouched (parity replays still
+        #: compare the true drive); only the ORDER among exact ties changes.
+        self.tie_jitter = float(tie_jitter or 0.0)
+        self._cols = torch.arange(n, dtype=torch.int64, device=device)
+
+    def _jitter(self, fibers):
+        """[B, n] offsets in [0, tie_jitter), keyed by the active fibers."""
+        salt = torch.zeros(self.B, dtype=torch.int64, device=self.device)
+        for f in fibers:
+            salt = salt ^ (f.seeds.to(torch.int64) & 0xFFFFFFFF)
+        h = (self._cols.view(1, -1) ^ salt.view(-1, 1)) * 0x9E3779B1
+        h = (h ^ (h >> 15)) * 0x85EBCA6B
+        h = (h ^ (h >> 13)) & 0xFFFFFFFF
+        return h.to(torch.float32) * (self.tie_jitter / 4294967296.0)
 
     def apply_bias(self, raw):
         """Net drive the k-WTA ranks: raw minus the accumulated bias."""
@@ -529,7 +684,8 @@ class HashedArea:
                                    device=self.device)
 
     def project(self, rounds, fibers, *, rows_for=None, freeze=False,
-                stim_drive=None, return_drive=False, mask_bias=False):
+                stim_drive=None, return_drive=False, mask_bias=False,
+                manage_episodes=True):
         """Run ``rounds`` rounds with ``fibers`` afferent.
 
         ``rows_for`` maps a fiber to its source winners; a fiber absent from it
@@ -539,11 +695,17 @@ class HashedArea:
         neither subtracted nor charged. Only meaningful with ``freeze`` -- it
         is a probe of what the synapses hold with the intrinsic veto removed
         (PREREG_refraction_capacity P1), not a mode the reference has.
+
+        ``manage_episodes=False`` leaves the fibers' episodes to the caller,
+        so several one-round calls can share ONE episode (one mask, one GEMM
+        fold into the store) -- a training step whose rounds interleave two
+        areas cannot be a single multi-round call here, and per-round episodes
+        cost a store append and merge each. Observe/charge still happen.
         """
         rows_for = rows_for or {}
         if mask_bias and not freeze:
             raise ValueError("mask_bias is a READOUT option; pass freeze=True")
-        if not freeze:
+        if not freeze and manage_episodes:
             for f in fibers:
                 f.begin_episode()
         drive = None
@@ -555,7 +717,9 @@ class HashedArea:
             if stim_drive is not None:
                 raw = raw + stim_drive
             drive = raw if mask_bias else self.apply_bias(raw)
-            sel, ovf = self.mod.topk_select(drive, min(self.k, self.n))
+            ranked = (drive + self._jitter(fibers) if self.tie_jitter > 0
+                      else drive)
+            sel, ovf = self.mod.topk_select(ranked, min(self.k, self.n))
             bad = int(ovf.max())
             if bad:
                 raise RuntimeError(
@@ -570,7 +734,7 @@ class HashedArea:
                 self.ever.scatter_(1, new, True)
                 self.rounds_seen += 1
             self.winners = new
-        if not freeze:
+        if not freeze and manage_episodes:
             for f in fibers:
                 f.end_episode()
         return (self.winners, drive) if return_drive else self.winners

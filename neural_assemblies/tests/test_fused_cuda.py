@@ -366,3 +366,114 @@ def test_store_grows_and_is_read(mod):
     assert sizes[0] > 0, "store never populated"
     assert sizes == sorted(sizes), f"store shrank across episodes: {sizes}"
     assert sizes[-1] > sizes[0], f"store stopped growing: {sizes}"
+
+
+def test_one_round_episodes_equal_one_multi_round_episode(mod):
+    """Three 1-round episodes of the same co-firing must read as count 3.
+
+    The store's LSM merge sums counts across runs; the chain table must then
+    price count 3. A fiber whose table was sized by the EPISODE (max_rounds=1)
+    silently clamped to tab[1] and its drive stopped growing -- the aligner
+    parity gate caught it. Now the overrun raises, and the sized fiber agrees
+    with a single 3-round episode exactly.
+    """
+    from neural_assemblies.core.torch_engine._hashed import AreaFiber
+    n, p, beta = 256, 0.2, 0.1
+    seeds = [12345]
+    prev = torch.tensor([[1, 2, 3, 4, 5]], device="cuda")
+    new = torch.tensor([[10, 11, 12, 13, 14]], device="cuda")
+
+    def read(f):
+        d = torch.zeros(1, n, device="cuda")
+        f.contribute(d, prev)
+        return d[0, new[0]].cpu()
+
+    one = AreaFiber(seeds, n, n, p, beta=beta, w_max=20.0, max_rounds=3)
+    one.begin_episode()
+    for _ in range(3):
+        one.observe(prev, new)
+    one.end_episode()
+
+    three = AreaFiber(seeds, n, n, p, beta=beta, w_max=20.0, max_rounds=3)
+    for _ in range(3):
+        three.begin_episode()
+        three.observe(prev, new)
+        three.end_episode()
+    assert three.store.max_count == 3
+    torch.testing.assert_close(read(three), read(one), rtol=0, atol=0)
+
+    short = AreaFiber(seeds, n, n, p, beta=beta, w_max=20.0, max_rounds=1)
+    short.begin_episode()
+    short.observe(prev, new)
+    short.end_episode()
+    short.begin_episode()
+    short.observe(prev, new)
+    with pytest.raises(ValueError, match="chain table"):
+        short.end_episode()
+
+
+def test_relative_pricing_equals_absolute_where_both_are_exact(mod):
+    """Max-relative pricing is the same number as the absolute chain.
+
+    With column scaling and NO clip, a weight is base*(1+beta)^c*s_j, so a
+    column is a share distribution and only count differences matter. The
+    absolute form overflows float32 near c ~ 900; the relative form
+    (1+beta)^(c - cmax_j) is bounded. Where both are representable they must
+    agree: a fiber at w_max=None (relative) against one with a clip that can
+    never bind (absolute, opted in), same writes, same drive to 1e-5.
+    """
+    from neural_assemblies.core.torch_engine._hashed import AreaFiber
+    n, p, beta = 256, 0.2, 0.1
+    seeds = [777]
+    rows_a = torch.tensor([[1, 2, 3, 4, 5]], device="cuda")
+    rows_b = torch.tensor([[6, 7, 8, 9, 10]], device="cuda")
+    cols_a = torch.tensor([[10, 11, 12, 13, 14]], device="cuda")
+    cols_b = torch.tensor([[12, 13, 14, 15, 16]], device="cuda")
+    rel = AreaFiber(seeds, n, n, p, beta=beta, w_max=None, norm_init=True,
+                    synaptic_scaling=True, max_rounds=64)
+    absf = AreaFiber(seeds, n, n, p, beta=beta, w_max=1e9, norm_init=True,
+                     synaptic_scaling=True, max_rounds=64,
+                     scaling_allows_clip=True)
+    assert rel.relative and not absf.relative
+    for f in (rel, absf):
+        for _ in range(3):
+            f.begin_episode()
+            for _ in range(4):
+                f.observe(rows_a, cols_a)
+            f.observe(rows_b, cols_b)
+            f.end_episode()
+
+    def read(f, rows):
+        d = torch.zeros(1, n, device="cuda")
+        f.contribute(d, rows)
+        return d[0].cpu()
+
+    for rows in (rows_a, rows_b):
+        a, b = read(rel, rows), read(absf, rows)
+        torch.testing.assert_close(a, b, rtol=1e-5, atol=1e-6)
+    assert int(rel.cmax.max()) == 12
+
+
+def test_relative_pricing_survives_deep_counts(mod):
+    """A cell co-firing 1200 times must still price finitely and keep its
+    column a share distribution -- the case the absolute chain cannot hold."""
+    from neural_assemblies.core.torch_engine._hashed import AreaFiber
+    n, p, beta = 128, 0.3, 0.1
+    f = AreaFiber([99], n, n, p, beta=beta, w_max=None, norm_init=False,
+                  synaptic_scaling=True, max_rounds=2048)
+    # 24 source rows at p=0.3: every written column has several synapses
+    # from them, so its whole setpoint must come back from these rows.
+    rows = torch.arange(24, device="cuda").view(1, -1)
+    cols = torch.tensor([[7, 8, 9]], device="cuda")
+    for _ in range(20):
+        f.begin_episode()
+        for _ in range(60):
+            f.observe(rows, cols)
+        f.end_episode()
+    assert f.store.max_count == 1200
+    d = torch.zeros(1, n, device="cuda")
+    f.contribute(d, rows)
+    d = d[0]
+    assert torch.isfinite(d).all()
+    # the written columns carry (nearly) their whole setpoint from these rows
+    assert float(d[cols[0]].min()) > 0.9 * f.setpoint

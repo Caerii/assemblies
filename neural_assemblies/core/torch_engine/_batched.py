@@ -246,10 +246,14 @@ def batched_project_hashed(
         state = {
             "area": HashedArea(n, k, seeds, device=device,
                                refracted_strength=refracted_strength),
+            # The capacity protocol's counts stay far below the clip (T <= 8
+            # rounds per item); the four-arm engine-parity test licenses the
+            # opt-in. See AreaFiber for why the pair is otherwise refused.
             "fiber": AreaFiber(seeds, n, n, p, beta=beta, w_max=w_max,
                                norm_init=norm_init,
                                synaptic_scaling=synaptic_scaling,
-                               max_rounds=total, device=device),
+                               max_rounds=total, device=device,
+                               scaling_allows_clip=True),
         }
     area, fiber = state["area"], state["fiber"]
     area.winners = winners.to(torch.int64)
