@@ -79,3 +79,20 @@ was judged on. `x chance` means accuracy divided by 1/P.
   CAP-ANCHOR-RATIO's scope and is worth knowing before anything is built on it.
 * L3 fails -> base-rate correction is not the mechanism, or not the only one;
   re-examine what column normalization actually did in the flat toy.
+
+---
+
+## Amendment 1 (pre-data, 2026-09-03): P=2 TRIMS, so L2 is judged on the added-distractor loads
+
+The API smoke (one seed, numbers void) showed the flaw: P = 2 is reached by
+DELETING a bundle from a 3-bundle scene, while P = 5 and 8 are reached by
+ADDING distractors. Those are different manipulations -- trimming removes a
+real participant and with it the contrast that identifies the remaining ones,
+so a low P=2 cell would say nothing about drive share.
+
+L2's monotonicity is therefore judged over the ADD-ONLY loads, P = 3, 5, 8,
+whose only difference is the number of unnamed distractors. P = 2 is still run
+and reported, labelled as a trimmed cell, because "less scene" is itself worth
+seeing -- but it is not evidence for or against the anchor law and cannot
+fail L2. L1 (above chance at every load) still includes it. L3 and Z1
+unchanged.
