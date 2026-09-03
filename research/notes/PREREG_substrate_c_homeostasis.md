@@ -152,3 +152,49 @@ conjunctions. Arc-side readings are confounded; state-area readings are not
 automatically void but were produced downstream of that arc. Before quoting
 substrate C on the organ, re-run with `synaptic_scaling={state_area}` -- the
 scoped form the engine already accepts.
+
+---
+
+## Result under Amendment 2 (2026-09-03): scoped C FIRES, moves mass, and changes the census NOT AT ALL
+
+Full census re-run with `synaptic_scaling={_wp_state}` (log
+`seq_s5_substrate_c_scoped.log`, results
+`seq_s5_substrate_c_results_scoped.json`):
+
+    HC1  PASS   zero hard defects (0)
+    HC2  FAIL   soft total 30, bar was < 30 -- a TIE with substrate A's
+                registered 30
+    HC3  VOID   by the registered conditional on HC2. For the record the
+                per-group exact@500 is {Z60 9, A4xZ5 9, A5 7, S5 5} against
+                the registered {7, 9, 7, 5} -- Z60 improves by 2 seeds, the
+                rest are equal.
+    HC4  soft anatomy: n=30, overlap min 0.986 med 0.986 -- EVERY soft pair is
+         a single intruder (69/70), the same anatomy the registered census has.
+
+**The tie is a real negative, not a dormant selector.** A count identical to
+the control invites exactly that suspicion ([[dormant-selectors-hide-whole-
+phases]]), so it was measured rather than argued
+(`substrate_c_scaling_probe.log`):
+
+    scoped {state}   1800 calls   126k columns   |dw| 1.08e6   targets [state]
+    unscoped True    3600 calls   252k columns   |dw| 2.28e6   targets [arc, state]
+    off                 0 calls          0       |dw| 0
+
+Scoped homeostasis fires on every state-area projection and moves real weight
+mass; the arc accounts for exactly the other half of the unscoped calls, which
+is also the confound Amendment 2 removed.
+
+**So: per-round column homeostasis on the state area does not reduce the
+soft-defect census.** It is not inert -- it shifts trajectories enough to gain
+Z60 two seeds at exact@500 -- but the defects survive it unchanged in count and
+in anatomy.
+
+**Why, as a hypothesis with support and not a conclusion.** Every soft defect
+is ONE intruder out of 70, i.e. a single cell decided at the k-WTA bar.
+Column normalization equalizes total incoming MASS, which is the right
+medicine for a hub that wins by accumulated advantage; it does nothing for a
+near-tie between cells whose mass is already comparable
+([[KWTA-TIE-FRAGILE]]). If that is right, the intruder mechanism is a bar tie
+rather than a mass imbalance, and no mass-based homeostat -- A, B, C or G --
+will move this census. That is testable directly (perturb the tie-break, not
+the mass) and is registered nowhere yet.

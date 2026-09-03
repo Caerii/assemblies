@@ -1,0 +1,5 @@
+  SCOPED {state} : calls   1800  cols   126000  declined   1800  targets ['_wp_state']  |dw| 1.07569e+06
+  unscoped True  : calls   3600  cols   252000  declined      0  targets ['_wp_arc', '_wp_state']  |dw| 2.27634e+06
+  OFF            : calls      0  cols        0  declined      0  targets []  |dw| 0
+
+[exited with code 0]
