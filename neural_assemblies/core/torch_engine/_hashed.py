@@ -361,6 +361,7 @@ class AreaFiber:
             if self.rel.numel() < depth + 1:
                 self.rel = torch.from_numpy(
                     _rel_table(self.beta, depth)).to(self.device)
+                self.tab = self.rel          # the guard reads one table
         elif self.tab.numel() < depth + 1:
             self.tab = torch.from_numpy(
                 _chain_table(self.beta, self.w_max, depth)).to(self.device)
@@ -577,6 +578,23 @@ class StimulusFiber:
     drive_gain = 1.0
 
     def contribute(self, drive, rows=None):
+        if not self.learns:
+            # An anchor never potentiates, so its priced drive is a constant:
+            # one add per round instead of six launches (15% of a run).
+            const = self.__dict__.get("_const")
+            if const is None or const[0] != (self.drive_gain, id(self.base),
+                                             id(self.dj)):
+                d = self.base.clone()
+                if self.hi != float("inf"):
+                    d = d.clamp_max(self.hi)
+                if self.dj is not None:
+                    d = d / self.dj
+                if self.drive_gain != 1.0:
+                    d = d * self.drive_gain
+                const = ((self.drive_gain, id(self.base), id(self.dj)), d)
+                self._const = const
+            drive += const[1]
+            return
         d = self.base * self.gain[self.pot.clamp_max(self.gain.numel() - 1)]
         if self.hi != float("inf"):
             d = d.clamp_max(self.hi)
@@ -657,14 +675,26 @@ class HashedArea:
         self._cols = torch.arange(n, dtype=torch.int64, device=device)
 
     def _jitter(self, fibers):
-        """[B, n] offsets in [0, tie_jitter), keyed by the active fibers."""
+        """[B, n] offsets in [0, tie_jitter), keyed by the active fibers.
+
+        Cached per fiber combination: the value depends only on WHICH fibers
+        fire, and recomputing it was 24% of an aligner run (six launches per
+        round for a constant).
+        """
+        key = tuple(sorted(id(f) for f in fibers))
+        cache = self.__dict__.setdefault("_jitter_cache", {})
+        hit = cache.get(key)
+        if hit is not None:
+            return hit
         salt = torch.zeros(self.B, dtype=torch.int64, device=self.device)
         for f in fibers:
             salt = salt ^ (f.seeds.to(torch.int64) & 0xFFFFFFFF)
         h = (self._cols.view(1, -1) ^ salt.view(-1, 1)) * 0x9E3779B1
         h = (h ^ (h >> 15)) * 0x85EBCA6B
         h = (h ^ (h >> 13)) & 0xFFFFFFFF
-        return h.to(torch.float32) * (self.tie_jitter / 4294967296.0)
+        out = h.to(torch.float32) * (self.tie_jitter / 4294967296.0)
+        cache[key] = out
+        return out
 
     def apply_bias(self, raw):
         """Net drive the k-WTA ranks: raw minus the accumulated bias."""
