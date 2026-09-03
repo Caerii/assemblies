@@ -164,13 +164,13 @@ class TestRefractionRule(unittest.TestCase):
     The tests above assert thresholds ("the assembly shifted"), which a wrong
     rule also passes -- a constant increment shifts assemblies too, it just
     stops doing so once Hebbian growth outruns it. These assert the law from
-    `core/_refraction.py`, whose evidence is in
+    `core/_homeostasis.py`, whose evidence is in
     `research/experiments/seq_arc_refraction_reference.py`.
     """
 
     def test_increment_is_proportional_to_raw_drive(self):
         """Charge is (net + bias) * strength -- the RAW drive, pre-subtraction."""
-        from neural_assemblies.core._refraction import refraction_increment
+        from neural_assemblies.core._homeostasis import refraction_increment
 
         net = np.array([100.0, 10.0])
         bias = np.array([44.0, 0.0])
@@ -184,7 +184,7 @@ class TestRefractionRule(unittest.TestCase):
         every call, so engines that bound the function at import time honour it
         too. That is what makes the A/B usable from a running experiment.
         """
-        from neural_assemblies.core._refraction import refraction_increment
+        from neural_assemblies.core._homeostasis import refraction_increment
 
         with _constant_refraction():
             np.testing.assert_allclose(
@@ -207,7 +207,7 @@ class TestRefractionRule(unittest.TestCase):
         return self._bias_sum(b, "A") - before
 
     def test_engine_charges_via_the_shared_rule(self):
-        """The engine must call `_refraction`, not carry a private copy.
+        """The engine must call `_homeostasis`, not carry a private copy.
 
         Under the constant rule the charge is EXACTLY ``strength * k``, a value
         the drive-proportional rule cannot produce. Flipping the flag and

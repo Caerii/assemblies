@@ -40,6 +40,7 @@ from __future__ import annotations
 import torch
 
 from . import _fused_cuda
+from .._homeostasis import column_scale, scaling_setpoint
 
 
 def _chain_table(beta, w_max, rounds):
@@ -220,7 +221,7 @@ class AreaFiber:
                    if norm_init else None)
         self.scale = (torch.ones(B, n_post, dtype=torch.float32, device=device)
                       if synaptic_scaling else None)
-        self.setpoint = max(float(n_pre) * self.p, 1e-12)
+        self.setpoint = scaling_setpoint(n_pre, self.p)
         self.store = RunStore(device)
         self._rowmask = self._colmask = None    # this episode only
         self._scratch = None                    # count accumulator, cached
@@ -366,7 +367,7 @@ class AreaFiber:
             self._rowmask, self._colmask,
             self._cscratch[:need].view(B, K, self.n),
             self.tab, self.seeds, self.n, self.threshold)
-        new = self.setpoint / mass.clamp_min(1e-12)
+        new = column_scale(mass, self.setpoint)
         self.scale.scatter_(1, cols, new)
         if self.w_max is not None:
             bound = float((cellmax * new).max().item())
@@ -496,7 +497,7 @@ class HashedArea:
         #: because the round masks are per-episode and get dropped.
         self.ever = torch.zeros(self.B, n, dtype=torch.bool, device=device)
         self.rounds_seen = 0
-        #: REFRACTION, the engine's `refracted` mode (`core/_refraction.py`).
+        #: REFRACTION, the engine's `refracted` mode (`core/_homeostasis.py`).
         #: A per-NEURON bias subtracted from drive before k-WTA and charged at
         #: the winners as `raw_drive * strength`, gated on plasticity exactly
         #: like the Hebbian write. It belongs to the area, not to a fiber: the

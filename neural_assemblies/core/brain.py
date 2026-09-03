@@ -34,6 +34,7 @@ from collections import defaultdict
 
 from .backend import get_xp, to_cpu, detect_best_engine
 from .engine import ComputeEngine, create_engine
+from ._homeostasis import check_area_homeostasis
 
 from .area import Area
 from .stimulus import Stimulus
@@ -374,6 +375,13 @@ class Brain:
                               winner_policy=winner_policy,
                               input_noise_std=input_noise_std)
         if refracted:
+            # A refracted area must be EXCLUDED from column scaling, not
+            # silently scaled: the two homeostats destroy an area together
+            # (`core/_homeostasis.check_area_homeostasis`).
+            check_area_homeostasis(
+                area_name, refracted=True,
+                synaptic_scaling=getattr(self._engine, "synaptic_scaling",
+                                         False))
             self._engine.set_refracted(area_name, True, refracted_strength)
         # For explicit areas, ALSO register with a dedicated explicit engine
         # that handles full n×n weight matrices and plasticity correctly.
@@ -1036,6 +1044,11 @@ class Brain:
         fires, its bias grows, making it progressively harder to fire
         again.  Distinct from LRI (sliding-window penalty).
         """
+        if enabled:
+            check_area_homeostasis(
+                area_name, refracted=True,
+                synaptic_scaling=getattr(self._engine, "synaptic_scaling",
+                                         False))
         self.areas[area_name].refracted = enabled
         self.areas[area_name].refracted_strength = strength
         self._engine.set_refracted(area_name, enabled, strength)

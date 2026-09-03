@@ -2,7 +2,7 @@
 
 Implements `research/notes/PREREG_refraction_stability.md` (+ Amendment 1).
 
-`_refraction.refraction_increment` returns `(net_drive + current_bias) *
+`_homeostasis.refraction_increment` returns `(net_drive + current_bias) *
 strength` and the bias is never cleared, so a persistently winning arc neuron
 accumulates penalty GEOMETRICALLY (ratio 1+strength) and is burned out of its
 own assembly. That one mechanism predicts both measured facts: assemblies

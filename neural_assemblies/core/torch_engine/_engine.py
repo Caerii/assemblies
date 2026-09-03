@@ -33,7 +33,8 @@ from .._pricing import (
 from ..numpy_engine._sparse import (
     _fixed_target_plasticity_enabled as _np_fixed_target_plasticity_enabled,
 )
-from .._refraction import refraction_increment
+from .._homeostasis import (refraction_increment, scaling_applies,
+                            scaling_setpoint)
 from ..connectome import Connectome
 from ..engine import ComputeEngine, ProjectionResult
 
@@ -988,7 +989,7 @@ class TorchSparseEngine(ComputeEngine):
                 set(int(i) for i in new_winner_indices))
 
         # --- Update refracted cumulative bias ---
-        # Rule and gating live in `core._refraction`; see that module for why
+        # Rule and gating live in `core._homeostasis`; see that module for why
         # the increment is proportional to raw drive and why charging is tied
         # to the same condition as the Hebbian update.
         if (tgt.refracted and tgt.refracted_strength > 0
@@ -1098,10 +1099,7 @@ class TorchSparseEngine(ComputeEngine):
         under scaling differs across engines; none of the scaling organs use
         them, and this note is the tripwire if one ever does.
         """
-        ss = self.synaptic_scaling
-        if not ss:
-            return
-        if ss is not True and target not in ss:
+        if not scaling_applies(self.synaptic_scaling, target):
             return
         for src_name in from_areas:
             csr = self._area_conns.get(src_name, {}).get(target)
@@ -1110,8 +1108,7 @@ class TorchSparseEngine(ComputeEngine):
             rows = min(int(self._areas[src_name].w), int(csr._nrows))
             if rows <= 0:
                 continue
-            setpoint = max(
-                float(rows) * self._p_for(src_name, target), 1e-12)
+            setpoint = scaling_setpoint(rows, self._p_for(src_name, target))
             csr.scale_columns(winners, setpoint, nrows=rows)
 
     # -- Connectome expansion -----------------------------------------------

@@ -243,7 +243,7 @@ _RESULTS: List[Result] = [
         evidence=("research/experiments/seq_arc_refraction_reference.py: the "
                   "constant winning at 15 presentations fails at 30, while the "
                   "proportional rule passes both untouched",),
-        implemented_by=("neural_assemblies/core/_refraction.py",),
+        implemented_by=("neural_assemblies/core/_homeostasis.py",),
     ),
     Result(
         id="REFRACTION-NEEDS-LOAD",
@@ -305,7 +305,7 @@ _RESULTS: List[Result] = [
                        "the reference uses RefractedArea only as a FEEDFORWARD "
                        "conjunction area driven by its full input at recall, "
                        "where none of this applies"),
-        implemented_by=("neural_assemblies/core/_refraction.py",
+        implemented_by=("neural_assemblies/core/_homeostasis.py",
                         "neural_assemblies/core/torch_engine/_hashed.py"),
         caveat="The critical ratio is bracketed in (0.7, 0.8) at one operating "
                "point; a transient-handicap estimate gives ~2/3. Whether "

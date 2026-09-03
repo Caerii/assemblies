@@ -47,7 +47,7 @@ Requires: cupy (for GPU arrays; kernels in kernels/implicit.py are optional).
 import numpy as np
 from typing import Dict, List
 
-from ._refraction import refraction_increment
+from ._homeostasis import refraction_increment
 from .engine import ProjectionResult, register_engine
 from .backend import get_xp, to_cpu, to_xp
 
@@ -611,7 +611,7 @@ class CudaImplicitEngine(NumpySparseEngine):
                 set(int(i) for i in new_winner_indices))
 
         # --- Update refracted cumulative bias ---
-        # Rule and gating live in `core._refraction`; see that module for why
+        # Rule and gating live in `core._homeostasis`; see that module for why
         # the increment is proportional to raw drive and why charging is tied
         # to the same condition as the Hebbian update.
         if (tgt.refracted and tgt.refracted_strength > 0

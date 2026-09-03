@@ -10,16 +10,24 @@ a difference between cells cannot come from the model.
     FREQUENCY  Zipfian word-type frequencies by resampling sentences, total
                presentations held fixed.
 
+The bars are judged by `judge()`, which is fed either fresh cells or a
+committed log (``--replay alignment_load.log``): the verdict is a function of
+the per-seed numbers and nothing else, so it can be re-derived without
+re-running an hour of cells. Every seed-level comparison goes through
+`diagnostics.ensemble_from_values` and is judged on the confidence BOUND.
+
     python research/experiments/alignment_load.py [--seeds 42,1,2,3,4]
+    python research/experiments/alignment_load.py --replay research/experiments/alignment_load.log
 """
 from __future__ import annotations
 
 import argparse
 import os
 import random
+import re
 import sys
 import time
-from collections import Counter
+from collections import Counter, defaultdict
 
 import numpy as np
 
@@ -39,17 +47,20 @@ ZIPF_S = 1.0
 #: L3's gap is measured at these loads only -- the scaling-OFF arm doubles the
 #: cell count and the mechanism claim does not need every load.
 GAP_LOADS = (3, 8)
+CORPORA = ("flat", "zipf")
 
+
+# ---------------------------------------------------------------------------
+# the two manipulations
+# ---------------------------------------------------------------------------
 
 def set_load(exp, P, seed):
     """Force every scene to exactly P bundles: trim, or add DISTRACTORS.
 
     Distractors are drawn from the corpus's own bundle inventory, excluding
     the scene's own -- things present in the perceived situation that nobody
-    named. Trimming (P=2) keeps the ACTION bundle plus the first participant,
-    so a scene never loses the referent of a word it contains... which cannot
-    be guaranteed, so trimmed-away referents are handled by the scorer: a word
-    whose target is absent from its scene is excluded from that occurrence.
+    named. Trimming (P=2) keeps the first P bundles; a word whose referent was
+    trimmed away is excluded from that occurrence by the scorer.
     """
     rng = random.Random(seed + 313)
     inventory = sorted({b for _w, bs in exp for b in bs})
@@ -80,6 +91,10 @@ def zipfify(exp, seed, s=ZIPF_S):
     return [exp[i] for i in idx]
 
 
+# ---------------------------------------------------------------------------
+# one cell
+# ---------------------------------------------------------------------------
+
 def per_occurrence(scores, exp, targets, exposures):
     """Registered metric: argmax over the scene's OWN bundles."""
     occ = hit = 0
@@ -103,78 +118,83 @@ def per_occurrence(scores, exp, targets, exposures):
             {w: by_word[w] / seen[w] for w in seen})
 
 
-def cell(seed, exp, targets, words, features, scaling):
-    exposures = Counter(w for ws, _b in exp for w in ws)
-    scores, inventory = align(seed, exp, words, features, scaling=scaling)
-    acc, ch, occ, by_word = per_occurrence(scores, exp, targets, exposures)
-    return acc, ch, occ, by_word, exposures
+def head_tail(by_word, exposures):
+    """Mean per-word accuracy over the more- and less-exposed halves.
+
+    Averages over WORDS within one seed (a condition mean, not a seed mean);
+    the seed-level statistic is formed by `judge`.
+    """
+    ranked = sorted(by_word, key=lambda w: -exposures[w])
+    half = max(len(ranked) // 2, 1)
+    head = float(np.mean([by_word[w] for w in ranked[:half]]))
+    tail = float(np.mean([by_word[w] for w in ranked[half:]]
+                         or [float("nan")]))
+    return head, tail
 
 
-def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--seeds", default="42,1,2,3,4")
-    args = ap.parse_args()
-    seeds = [int(x) for x in args.seeds.split(",")]
-    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
-
-    from grounded_corpus import build
-    corpus = build()
-    base = experience_of(corpus)
-    targets = targets_of(corpus)
-    words = sorted({w for ws, _b in base for w in ws})
-    features = sorted({f for _w, bs in base for b in bs for f in b})
-
-    print("ALIGNMENT UNDER LOAD AND ZIPF  (PREREG_alignment_load.md)")
-    print(f"  base scenes {len(base)}  word types {len(words)}  "
-          f"loads {LOADS}  zipf s={ZIPF_S}  seeds {seeds}")
-
-    results = {}          # (corpus, P, scaling) -> [acc per seed]
-    tails = {}
-    for corpus_kind in ("flat", "zipf"):
+def run_cells(seeds, base, targets, words, features):
+    """Every registered cell. Returns the per-seed record `judge` consumes."""
+    acc = defaultdict(dict)        # (corpus, P, scaling) -> {seed: acc}
+    chance = defaultdict(dict)     # (corpus, P, scaling) -> {seed: chance}
+    tails = defaultdict(dict)      # scaling -> {seed: (head, tail)}
+    for corpus_kind in CORPORA:
         for P in LOADS:
             arms = [True] + ([False] if P in GAP_LOADS else [])
             for scaling in arms:
-                accs, chs = [], []
                 for seed in seeds:
                     t0 = time.perf_counter()
                     e = set_load(base, P, seed)
                     if corpus_kind == "zipf":
                         e = zipfify(e, seed)
-                    acc, ch, occ, by_word, exposures = cell(
-                        seed, e, targets, words, features, scaling)
-                    accs.append(acc)
-                    chs.append(ch)
+                    exposures = Counter(w for ws, _b in e for w in ws)
+                    scores, _inv = align(seed, e, words, features,
+                                         scaling=scaling)
+                    a, ch, occ, by_word = per_occurrence(
+                        scores, e, targets, exposures)
+                    acc[(corpus_kind, P, scaling)][seed] = a
+                    chance[(corpus_kind, P, scaling)][seed] = ch
                     if corpus_kind == "zipf" and P == 3:
-                        ranked = sorted(by_word, key=lambda w: -exposures[w])
-                        half = max(len(ranked) // 2, 1)
-                        head = float(np.mean([by_word[w] for w in ranked[:half]]))
-                        tail = float(np.mean([by_word[w] for w in ranked[half:]]
-                                             or [float("nan")]))
-                        tails.setdefault(scaling, []).append((head, tail))
+                        tails[scaling][seed] = head_tail(by_word, exposures)
                     print(f"    {corpus_kind:4s} P={P} scaling={str(scaling):5s} "
-                          f"seed {seed:2d}: acc {acc:.3f} (chance {ch:.3f}, "
+                          f"seed {seed:2d}: acc {a:.3f} (chance {ch:.3f}, "
                           f"n={occ})  [{time.perf_counter() - t0:.0f}s]",
                           flush=True)
-                results[(corpus_kind, P, scaling)] = (accs, float(np.mean(chs)))
+    return acc, chance, tails
+
+
+# ---------------------------------------------------------------------------
+# the bars
+# ---------------------------------------------------------------------------
+
+def judge(acc, chance, tails, seeds):
+    """The registered bars, from per-seed records only.
+
+    L1 is a THREE-WAY as registered (pass / fail / neither). One clause of it
+    is ill-posed: at P=2, "lower bound above 2x chance" demands an accuracy
+    above 1.000, which nothing can reach. Those cells are reported and
+    excluded from the verdict rather than counted as failures. L3's gap is
+    PAIRED (same seed, ON minus OFF) and judged on the bound; the first draft
+    compared two bare seed means, which the methodology ratchet caught.
+    """
+    def ens(key, label):
+        return ensemble_from_values([acc[key][s] for s in seeds], label=label)
+
+    def chance_of(key):
+        return ensemble_from_values([chance[key][s] for s in seeds],
+                                    label="chance").mean
 
     print("\n=== BARS ===")
-    # L1 is a THREE-WAY as registered (pass / fail / neither), and one clause
-    # of it is ill-posed: at P=2, "lower bound above 2x chance" demands an
-    # accuracy above 1.000, which nothing can reach. Those cells are reported
-    # and excluded from the verdict rather than counted as failures. The
-    # earlier binary print called the whole bar FAIL on that clause alone.
     means, l1_fail, l1_pass = {}, False, True
-    for corpus_kind in ("flat", "zipf"):
+    for corpus_kind in CORPORA:
         print(f"  -- {corpus_kind} corpus, scaling ON")
         for P in LOADS:
-            accs, ch = results[(corpus_kind, P, True)]
-            e = ensemble_from_values(accs, label=f"{corpus_kind} P={P}")
+            key = (corpus_kind, P, True)
+            e, ch = ens(key, f"{corpus_kind} P={P}"), chance_of(key)
             means[(corpus_kind, P)] = e.mean
             unreachable = 2 * ch >= 1.0
             beats = e.beats(2 * ch)
             note = ("bar 2x chance is UNREACHABLE here (>= 1.0), excluded"
-                    if unreachable else
-                    f"lower bound > 2x chance: {beats}")
+                    if unreachable else f"lower bound > 2x chance: {beats}")
             print(f"    {e}   chance {ch:.3f}  x chance {e.mean / ch:.2f}  "
                   f"{note}")
             if unreachable:
@@ -194,15 +214,13 @@ def main():
           f"heaviest < 0.35")
 
     ok_l2 = True
-    for corpus_kind in ("flat", "zipf"):
+    for corpus_kind in CORPORA:
         seq = [means[(corpus_kind, P)] for P in ADD_ONLY]
         mono = all(a >= b - 1e-9 for a, b in zip(seq, seq[1:]))
         gap = seq[0] - seq[-1]
-        e2 = ensemble_from_values(results[(corpus_kind, ADD_ONLY[0], True)][0],
-                                  label=f"P={ADD_ONLY[0]}")
-        e8 = ensemble_from_values(results[(corpus_kind, 8, True)][0],
-                                  label="P=8")
-        sep = gap > (e2.mean - e2.low) + (e8.high - e8.mean)
+        lo = ens((corpus_kind, ADD_ONLY[0], True), "lightest")
+        hi = ens((corpus_kind, ADD_ONLY[-1], True), "heaviest")
+        sep = gap > (lo.mean - lo.low) + (hi.high - hi.mean)
         print(f"  {corpus_kind} (add-only {ADD_ONLY}): "
               f"{[f'{x:.3f}' for x in seq]}  monotone {mono}  "
               f"P{ADD_ONLY[0]}-P{ADD_ONLY[-1]} gap {gap:+.3f}  "
@@ -212,27 +230,88 @@ def main():
           f"over the ADD-ONLY loads, lightest beating heaviest beyond seed "
           f"noise (Amendment 1; P=2 is a trimmed cell, reported not judged)")
 
-    gaps = {}
-    print("  -- L3 scaling ON minus OFF")
-    for corpus_kind in ("flat", "zipf"):
+    print("  -- L3 scaling ON minus OFF, PAIRED per seed, judged on the bound")
+    gaps, positive = {}, True
+    for corpus_kind in CORPORA:
         for P in GAP_LOADS:
-            on = float(np.mean(results[(corpus_kind, P, True)][0]))
-            off = float(np.mean(results[(corpus_kind, P, False)][0]))
-            gaps[(corpus_kind, P)] = on - off
-            print(f"    {corpus_kind} P={P}: ON {on:.3f}  OFF {off:.3f}  "
-                  f"gap {on - off:+.3f}")
-    ok_l3 = (all(g > 0 for g in gaps.values())
-             and all(gaps[("zipf", P)] > gaps[("flat", P)] for P in GAP_LOADS))
-    print(f"  {'PASS' if ok_l3 else 'FAIL'}  L3 gap positive everywhere and "
-          f"LARGER under Zipf at both loads")
+            g = ensemble_from_values(
+                [acc[(corpus_kind, P, True)][s] - acc[(corpus_kind, P, False)][s]
+                 for s in seeds], label=f"{corpus_kind} P={P} ON-OFF")
+            gaps[(corpus_kind, P)] = g.mean
+            positive = positive and g.beats(0.0)
+            print(f"    {g}   beats 0: {g.beats(0.0)}")
+    grows = all(gaps[("zipf", P)] > gaps[("flat", P)] for P in GAP_LOADS)
+    print(f"  {'PASS' if positive else 'FAIL'}  L3a gap positive on the bound "
+          f"in every cell")
+    print(f"  {'PASS' if grows else 'FAIL'}  L3b gap LARGER under Zipf at "
+          f"both loads (registered; see the Result for why this clause "
+          f"cannot test the claim)")
 
     if tails:
         print("  -- Z1 head vs tail under Zipf at P=3 (reported, no bar)")
-        for scaling, pairs in sorted(tails.items(), key=lambda kv: not kv[0]):
-            h = float(np.mean([a for a, _b in pairs]))
-            t = float(np.nanmean([b for _a, b in pairs]))
-            print(f"    scaling={str(scaling):5s}  head {h:.3f}  tail {t:.3f}"
-                  f"  head-tail {h - t:+.3f}")
+        for scaling in (True, False):
+            if scaling not in tails:
+                continue
+            h = ensemble_from_values([tails[scaling][s][0] for s in seeds],
+                                     label=f"scaling={scaling} head")
+            t = ensemble_from_values([tails[scaling][s][1] for s in seeds],
+                                     label=f"scaling={scaling} tail")
+            print(f"    {h}\n    {t}    head - tail {h.mean - t.mean:+.3f}")
+
+
+# ---------------------------------------------------------------------------
+# replay: the verdict from a committed log
+# ---------------------------------------------------------------------------
+
+_CELL = re.compile(r"\s+(flat|zipf) P=(\d) scaling=(True|False)\s+seed\s+(\d+):"
+                   r" acc ([\d.]+) \(chance ([\d.]+)")
+
+
+def replay(path):
+    """Per-seed records from a committed log. Z1's head/tail lines were not
+    logged per seed in the first run, so a replay judges L1-L3 only."""
+    acc, chance = defaultdict(dict), defaultdict(dict)
+    seeds = []
+    for line in open(path, encoding="utf-8", errors="replace"):
+        m = _CELL.match(line)
+        if not m:
+            continue
+        key = (m[1], int(m[2]), m[3] == "True")
+        seed = int(m[4])
+        acc[key][seed] = float(m[5])
+        chance[key][seed] = float(m[6])
+        if seed not in seeds:
+            seeds.append(seed)
+    return acc, chance, {}, seeds
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--seeds", default="42,1,2,3,4")
+    ap.add_argument("--replay", default=None,
+                    help="judge the bars from a committed log instead of running")
+    args = ap.parse_args()
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+
+    if args.replay:
+        acc, chance, tails, seeds = replay(args.replay)
+        print(f"REPLAY of {args.replay}: seeds {seeds}, "
+              f"{sum(len(v) for v in acc.values())} cells")
+        judge(acc, chance, tails, seeds)
+        return
+
+    seeds = [int(x) for x in args.seeds.split(",")]
+    from grounded_corpus import build
+    corpus = build()
+    base = experience_of(corpus)
+    targets = targets_of(corpus)
+    words = sorted({w for ws, _b in base for w in ws})
+    features = sorted({f for _w, bs in base for b in bs for f in b})
+    print("ALIGNMENT UNDER LOAD AND ZIPF  (PREREG_alignment_load.md)")
+    print(f"  base scenes {len(base)}  word types {len(words)}  "
+          f"loads {LOADS}  zipf s={ZIPF_S}  seeds {seeds}")
+    acc, chance, tails = run_cells(seeds, base, targets, words, features)
+    judge(acc, chance, tails, seeds)
 
 
 if __name__ == "__main__":

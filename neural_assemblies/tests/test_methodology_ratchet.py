@@ -100,6 +100,15 @@ correctness over the STEPS of one trajectory -- the per-seed statistic, which
 The solvable/non-solvable summary averages the four ARMS' ensemble means for a
 printed gap; no bar reads it, and the amendment's S5a/S5b verdicts were judged
 on the per-arm ensembles.
+
+RAISED 2026-09-03 for `alignment_load.py` (2 sites) and `unaligned_scenes.py`
+(1 site). `head_tail` averages per-word accuracy over the WORDS of one seed's
+head and tail halves -- the per-seed statistic, which `judge` then hands to
+`ensemble_from_values` across seeds; the bundles-per-scene figure averages
+over SCENES of one corpus and is descriptive. Everything judged in
+`alignment_load.judge` -- L1, L2, the L3 paired gap, Z1 -- is an ensemble over
+seeds read on its bound. The ratchet's catch on the first draft was real: L3
+compared two bare seed means, and was rewritten as a paired per-seed gap.
 """
 
 from __future__ import annotations

@@ -2,6 +2,7 @@
   "_comment": "Frozen baselines for test_methodology_ratchet.py. Generated, not hand-edited. Lower entries when a file is fixed; a NEW entry requires justification in the test file.",
   "hand_rolled_seed_stats": {
     "research/experiments/_substrate.py": 3,
+    "research/experiments/alignment_load.py": 2,
     "research/experiments/applications/test_agreement_number.py": 68,
     "research/experiments/applications/test_agreement_violations.py": 45,
     "research/experiments/applications/test_compositional_deep.py": 5,
@@ -113,6 +114,9 @@
     "research/experiments/seq_a1_step_accuracy.py": 6,
     "research/experiments/seq_a1_where_drift_starts.py": 2,
     "research/experiments/seq_arc_refraction_reference.py": 4,
+    "research/experiments/seq_s5_cliff_anatomy.py": 2,
+    "research/experiments/seq_s5_word_problem.py": 6,
+    "research/experiments/seq_state_refraction.py": 2,
     "research/experiments/slot_addressing_drift.py": 7,
     "research/experiments/slot_addressing_drive.py": 3,
     "research/experiments/stability/test_assembly_distinctiveness.py": 3,
@@ -129,10 +133,8 @@
     "research/experiments/task93_conjunction_budget.py": 4,
     "research/experiments/task95_readout_and_arc.py": 2,
     "research/experiments/two_phase_read.py": 5,
-    "research/experiments/universality_composition.py": 6,
-    "research/experiments/seq_state_refraction.py": 2,
-    "research/experiments/seq_s5_word_problem.py": 6,
-    "research/experiments/seq_s5_cliff_anatomy.py": 2
+    "research/experiments/unaligned_scenes.py": 1,
+    "research/experiments/universality_composition.py": 6
   },
   "unpinned_engine": {
     "research/experiments/_substrate.py": 4,

@@ -7,6 +7,8 @@ connection probability p=0.0005 this is ~2000x smaller than dense.
 
 import torch
 
+from .._homeostasis import column_scale
+
 from ._hash import WEIGHT_DTYPE, csr_flat_indices
 
 
@@ -225,8 +227,7 @@ class CSRConn:
         sums = torch.zeros(self._ncols, dtype=torch.float32,
                            device=self._device)
         sums.scatter_add_(0, ecols, evals)
-        factors = torch.where(sums.abs() > eps,
-                              setpoint / sums, torch.ones_like(sums))
+        factors = column_scale(sums, setpoint, eps=eps)
         self._val[idx] = (evals * factors[ecols]).to(WEIGHT_DTYPE)
 
     # -- Column normalisation -----------------------------------------------
@@ -502,8 +503,7 @@ class TorchDenseConn:
             return
         sub = self._w[:rows].index_select(1, cols).float()
         sums = sub.sum(dim=0)
-        factors = torch.where(sums.abs() > eps,
-                              setpoint / sums, torch.ones_like(sums))
+        factors = column_scale(sums, setpoint, eps=eps)
         self._w[:rows, cols] = (sub * factors).to(self.DTYPE)
 
     # -- Column normalisation -----------------------------------------------

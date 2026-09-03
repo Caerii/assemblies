@@ -158,3 +158,20 @@ Z1) rather than a substrate flag. What is NOT established is the
 Zipf-amplification claim, framed as a difference of two quantities that both
 compress at high load. A future registration should test it as a head-tail
 statistic at fixed load, whose shape Z1 already suggests.
+
+## Post-result note (2026-09-03): L3 re-judged on the repo's instrument
+
+The methodology ratchet caught the first draft of `alignment_load.py`
+comparing two bare seed MEANS for L3's gap. Re-judged as it should have been
+-- the PAIRED per-seed gap (same seed, scaling ON minus OFF) through
+`ensemble_from_values`, on the lower confidence bound -- from the committed
+per-seed log (`--replay`):
+
+    flat P=3   +0.342 +/- 0.076   (0.298..0.449)   beats 0
+    flat P=8   +0.480 +/- 0.123   (0.307..0.560)   beats 0
+    zipf P=3   +0.420 +/- 0.188   (0.273..0.653)   beats 0
+    zipf P=8   +0.314 +/- 0.204   (0.078..0.500)   beats 0
+
+Same verdict on the first clause, now on the bound rather than the mean. The
+bars now live in `judge()`, which a committed log can drive, so a verdict is a
+function of the per-seed numbers and can be re-derived without re-running.

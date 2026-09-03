@@ -25,7 +25,8 @@ from ..backend import get_xp, to_cpu, to_xp, xp_by_name, xp_name
 from .._pricing import (
     area_fiber_activity, candidate_divisor, inverse_indegree,
 )
-from .._refraction import refraction_increment
+from .._homeostasis import (column_scale, refraction_increment,
+                            scaling_applies, scaling_setpoint)
 from ..engine import ComputeEngine, ProjectionResult
 from ..connectome import Connectome
 from ..projection_fidelity import ProjectionFidelity
@@ -1987,10 +1988,8 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
         turn needs their 1-D pre-summed representation reconciled with the
         2-D per-synapse form the split is defined over.
         """
-        ss = self.synaptic_scaling
-        if not ss:
-            return
-        if ss is not True and target not in ss:
+        # The gate's spelling is interpreted ONCE, in the owner.
+        if not scaling_applies(self.synaptic_scaling, target):
             return
         # SLOW HOMEOSTASIS (E9, #138): biological synaptic scaling operates
         # over hours-to-days, segregated from fast Hebbian plasticity --
@@ -2242,8 +2241,7 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
             # brain to 1/8 of its natural mass, while untouched columns kept
             # full mass -- inverting learning exactly like substrate B did.
             # Found by the substrate-C smoke run (every transition soft).
-            setpoint = max(
-                float(rows) * self._p_for(src_name, target), 1e-12)
+            setpoint = scaling_setpoint(rows, self._p_for(src_name, target))
             # RESEARCH KNOB, default "population" = the line above, unchanged.
             # "degree" restores neuron j to the mass IT started with rather
             # than to the mass an average neuron started with.
@@ -2266,10 +2264,7 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
             if getattr(self, "synaptic_scaling_setpoint", "population") == "degree":
                 deg = xp.count_nonzero(sub, axis=0).astype(sums.dtype)
                 setpoint = xp.where(deg > 0, deg, 1.0)
-            # Guard the denominator itself; xp.where evaluates both branches,
-            # so dividing first would still emit divide-by-zero on empty cols.
-            safe = xp.where(xp.abs(sums) > 1e-12, sums, 1.0)
-            scale = xp.where(xp.abs(sums) > 1e-12, setpoint / safe, 1.0)
+            scale = column_scale(sums, setpoint, xp=xp)
             w[:rows, valid] = sub * scale
 
     def flush_synaptic_scaling(self) -> int:
