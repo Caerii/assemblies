@@ -1,0 +1,19 @@
+'vswhere.exe' is not recognized as an internal or external command,
+operable program or batch file.
+n=4000 k=100 p=0.5 beta=0.1 w_max=20.0 rounds=240 brains=16   registered saturation prediction ~ 40.9
+  'conv' = first round after which consecutive-round overlap stays >= 0.95; 'late' = mean consecutive overlap over rounds 200-240
+
+  AUDIT ff area-driven, s=beta, w_max=None, scaling OFF: converged 2/16, median conv round 238 [237, 239]; late 0.982; fill 0.058
+    round             10    20    30    40    60   100   150   200   240
+    vs round-10    1.000 0.999 1.000 0.999 0.999 0.970 0.022 0.001 0.087
+    consecutive    1.000 1.000 0.999 0.999 1.000 1.000 0.991 0.999 0.869
+
+  AUDIT ff area-driven, s=beta, w_max=None, scaling ON: converged 0/16; late 0.120; fill 0.618
+    round             10    20    30    40    60   100   150   200   240
+    vs round-10    1.000 0.154 0.094 0.062 0.038 0.019 0.009 0.010 0.009
+    consecutive    0.516 0.320 0.235 0.266 0.169 0.189 0.140 0.154 0.131
+
+  AUDIT ff area-driven, NO refraction, scaling ON: converged 16/16, median conv round 2 [2, 2]; late 1.000; fill 0.025
+    round             10    20    30    40    60   100   150   200   240
+    vs round-10    1.000 1.000 1.000 1.000 1.000 1.000 1.000 1.000 1.000
+    consecutive    1.000 1.000 1.000 1.000 1.000 1.000 1.000 1.000 1.000

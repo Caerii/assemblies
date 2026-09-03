@@ -311,7 +311,14 @@ _RESULTS: List[Result] = [
                "point; a transient-handicap estimate gives ~2/3. Whether "
                "REFRACTION-NEEDS-LOAD's under-loaded non-convergence is this "
                "mechanism (the arc's state input is itself changing) is "
-               "suggested, not established.",
+               "suggested, not established. TWO FURTHER LIMITS (AUDIT_"
+               "refraction_scaling.md): refraction + synaptic scaling on the "
+               "same area is INCOMPATIBLE -- a feedforward arc that holds "
+               "under either alone loses its assemblies within ~10 "
+               "presentations under both (late stability 0.12 vs 1.00), "
+               "because scaling moves the raw drive the bias is charged "
+               "against; and with no clip the identity dies of float32 "
+               "cancellation at ~100-150 wins. Never scale a refracted area.",
     ),
     Result(
         id="AC-CAP",

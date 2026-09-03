@@ -47,7 +47,12 @@ def to_i32(v):
     return v - 0x100000000 if v >= 0x80000000 else v
 
 
-def run(refracted, *, recurrent=True, strength_factor=1.0):
+def run(refracted, *, recurrent=True, strength_factor=1.0,
+        area_driven=False, scaling=False, w_max=W_MAX):
+    """`area_driven`: a FEEDFORWARD area fed by an AREA fiber whose source
+    winners are FIXED (the arc's situation), instead of by a stimulus, so that
+    synaptic scaling -- which touches only area fibers -- can act on it.
+    AUDIT of refraction + synaptic_scaling co-occurring in the S5 scripts."""
     sd = [to_i32(_seeding.fnv1a_pair_seed(42 + b, "A", "A"))
           for b in range(NBRAIN)]
     ss = [to_i32(_seeding.fnv1a_pair_seed(42 + b, "s0", "A"))
@@ -55,16 +60,24 @@ def run(refracted, *, recurrent=True, strength_factor=1.0):
     area = HashedArea(N, K, sd, device=DEV,
                       refracted_strength=(BETA * strength_factor
                                           if refracted else 0.0))
-    fiber = AreaFiber(sd, N, N, P, beta=BETA, w_max=W_MAX, norm_init=True,
-                      synaptic_scaling=False, max_rounds=ROUNDS, device=DEV)
-    stim = StimulusFiber(ss, K, N, P, beta=BETA, w_max=W_MAX, norm_init=True,
+    fiber = AreaFiber(sd, N, N, P, beta=BETA, w_max=w_max, norm_init=True,
+                      synaptic_scaling=scaling, max_rounds=ROUNDS, device=DEV)
+    stim = StimulusFiber(ss, K, N, P, beta=BETA, w_max=w_max, norm_init=True,
                          max_rounds=ROUNDS, device=DEV)
+    src = None
+    if area_driven:
+        g = torch.Generator(device="cpu").manual_seed(7)
+        src = torch.stack([torch.randperm(N, generator=g)[:K]
+                           for _ in range(NBRAIN)]).to(DEV)
     ref, overlaps, consec, prev = None, [], [], None
     for r in range(1, ROUNDS + 1):
         # one-round episodes so every round's winners are observable; the
         # stimulus fiber's potentiation counter and the area fiber's store
         # both persist across episodes.
-        w = area.project(1, [fiber, stim] if recurrent else [stim])
+        if area_driven:
+            w = area.project(1, [fiber], rows_for={id(fiber): src})
+        else:
+            w = area.project(1, [fiber, stim] if recurrent else [stim])
         if r == REF_ROUND:
             ref = torch.zeros(NBRAIN, N, dtype=torch.bool, device=DEV)
             ref.scatter_(1, w, True)
@@ -102,10 +115,23 @@ def main():
             ("refracted FEEDFORWARD only", True, False, 1.0)]
     arms += [(f"refracted (rec) s = {f:.2f} beta", True, True, f)
              for f in (0.5, 0.7, 0.8, 0.9, 0.95, 1.0)]
+    arms = [a + (dict(),) for a in arms]
+    # AUDIT: refraction + synaptic scaling, feedforward area-driven, no clip
+    arms += [("AUDIT ff area-driven, s=beta, w_max=None, scaling OFF",
+              True, False, 1.0, dict(area_driven=True, w_max=None)),
+             ("AUDIT ff area-driven, s=beta, w_max=None, scaling ON",
+              True, False, 1.0, dict(area_driven=True, w_max=None,
+                                     scaling=True)),
+             ("AUDIT ff area-driven, NO refraction, scaling ON",
+              False, False, 1.0, dict(area_driven=True, w_max=None,
+                                      scaling=True))]
+    only_audit = "--audit" in sys.argv
     marks = [10, 20, 30, 40, 60, 100, 150, 200, 240]
-    for name, refr, rec, sf in arms:
+    for name, refr, rec, sf, kw in arms:
+        if only_audit and not name.startswith("AUDIT"):
+            continue
         ov, first, cs, conv, fill = run(refr, recurrent=rec,
-                                        strength_factor=sf)
+                                        strength_factor=sf, **kw)
         cv = conv[conv >= 0]
         head = f"  {name}: converged {len(cv)}/{NBRAIN}"
         if len(cv):

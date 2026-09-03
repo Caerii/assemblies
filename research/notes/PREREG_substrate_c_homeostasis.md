@@ -136,3 +136,19 @@ Substrate C arm is therefore `Brain(norm_init=False, synaptic_scaling=True)`
 engine code. U1/U2 unit bars are void (nothing implemented); HC1-HC4 stand
 unchanged. Control-arm reproduction is cited from e73e493's fresh N1 PASS
 (same engine commit, nothing touched since) rather than re-run a third time.
+
+---
+
+## Amendment 2 (2026-09-03, post-data): the arc was scaled too, and that is a confound
+
+`AUDIT_refraction_scaling.md`: `Brain(synaptic_scaling=True)` unscoped also
+scales the REFRACTED arc, and refraction + synaptic scaling on one area
+destroys its assemblies within ~10 presentations (feedforward arc, fixed
+input, w_max=None: refraction alone stable ~100 rounds, scaling alone stable
+indefinitely, both together late stability 0.12). Every substrate-C cell of
+this study (`seq_s5_substrate_c.py`, and the C' arm of
+`seq_s5_theorem_regime.py`) therefore ran on an arc that could not hold its
+conjunctions. Arc-side readings are confounded; state-area readings are not
+automatically void but were produced downstream of that arc. Before quoting
+substrate C on the organ, re-run with `synaptic_scaling={state_area}` -- the
+scoped form the engine already accepts.

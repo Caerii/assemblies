@@ -78,9 +78,21 @@ assemblies to below-chance overlap, and still LOWERS capacity (M* 19.6 against
 23.5) because the slow convergence spends fill. Do not enable refraction on an
 area with self-recurrence. [[REFRACTION-CANCELS-CONVERGENCE]].
 
+NEVER SCALE A REFRACTED AREA. The bias is charged against RAW drive, so any
+mechanism that rescales raw between wins -- synaptic scaling, substrate C --
+denominates the ledger in a moving unit while the bias keeps compounding at
+``(1 + strength)``. Measured on a feedforward arc with fixed input, w_max=None
+(``research/notes/AUDIT_refraction_scaling.md``): refraction alone holds ~100
+rounds, scaling alone holds indefinitely, both together lose the assembly
+within ~10 presentations. ``Brain(synaptic_scaling=...)`` takes a set of area
+names; a refracted arc must not be in it. And with no clip at all the identity
+eventually dies of float32 cancellation (``raw - bias`` with both ~ 1.1^t) at
+~100-150 wins, which a clip pre-empts.
+
 Results: [[ARC-CONJUNCT-EXPOSURE]] (what refraction opposes),
 [[REFRACTION-PROPORTIONAL]] (why the rule is drive-proportional),
-[[REFRACTION-CANCELS-CONVERGENCE]] (why it is feedforward-only).
+[[REFRACTION-CANCELS-CONVERGENCE]] (why it is feedforward-only, and why it
+must not be scaled).
 
 WHY IT LIVES HERE AND NOT IN AN ENGINE
 --------------------------------------
