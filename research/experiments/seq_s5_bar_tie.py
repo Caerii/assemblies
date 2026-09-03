@@ -43,15 +43,21 @@ def worker(group_name, seed, _arm="tie"):
     soft0, hard0 = soft_hard_census(b, fsm, symbols, group)
     s0 = _pairs(soft0)
 
-    # Noise on the STATE area only, at census time only. The engine draws it
-    # from its own rng inside project_into, so three censuses are three
-    # independent tie resolutions of the same trained organ.
+    # Noise on the STATE area only, at census time only. `probe()` SAVES AND
+    # RESTORES the engine rng state on exit, so a census inside it redraws the
+    # same noise every time -- the first run of this test produced three
+    # identical "realizations" (Jaccard 1.00 between repeats, trivially). The
+    # rng state is therefore reset IN PLACE before each census (same object:
+    # the winner selector holds a reference to it), giving REPEATS independent
+    # tie resolutions of the same trained organ.
     eng = b._engine_for(b.areas[fsm.state_area])
     st = eng._areas[fsm.state_area]
     st.input_noise_std = NOISE
     b.areas[fsm.state_area].input_noise_std = NOISE
     noisy = []
-    for _ in range(REPEATS):
+    for i in range(REPEATS):
+        eng._rng.bit_generator.state = np.random.default_rng(
+            10_000 * seed + i).bit_generator.state
         soft_i, hard_i = soft_hard_census(b, fsm, symbols, group)
         noisy.append((sorted(_pairs(soft_i)), len(hard_i)))
     st.input_noise_std = 0.0

@@ -49,3 +49,41 @@ Organs with |S0| = 0 contribute only to the hard-defect and count clauses.
 * T2 -> the intruders carry real excess mass that scoped scaling somehow does
   not touch; substrate C's null then needs a different explanation and the
   bar-tie hypothesis is dropped.
+
+---
+
+## First run, and why it did not count (2026-09-03)
+
+The registered script read T2 (MASS) with Jaccard 1.000 -- but its three
+"independent" noisy censuses were ONE draw three times: `probe()` saves and
+restores the engine rng state on exit, so every census inside it redrew the
+same noise. Jaccard 1.00 between repeats was trivial. The comparison against
+the deterministic set rested on one realization per organ, which under the
+tie hypothesis has P ~ 1/2 of leaving a tied intruder in place. Not evidence.
+The script now resets the rng state in place before each census.
+
+**Positive control (the null needs one).** Z60/44 and S5/42, five
+INDEPENDENT realizations per noise level, soft pairs compared to the
+deterministic census:
+
+    noise   Z60/44 (det: [('4','g1')])         S5/42 (det: [('11','g1')])
+    1e-3    unchanged 5/5                      unchanged 5/5
+    0.3     unchanged 5/5                      unchanged 5/5
+    3.0     n = 3,3,2,0,5 (det pair kept 4/5)  n = 7,9,9,5,6 (det pair kept 5/5)
+
+and a ladder on Z60/44: at std 1.0 the soft pair DISAPPEARS (the intruder is
+displaced), at std 3 new pairs appear, at std 10 the census floods (117).
+So the noise reaches the k-WTA, the realizations are independent, and at the
+registered 1e-3 -- and at 300x that -- the intruder never moves. Under the tie
+hypothesis ten unchanged draws per organ is P ~ 1e-3.
+
+**The margin is ONE COUNT.** Surviving std 0.3 and losing at std 1.0 brackets
+the intruder's excess drive over the displaced block neuron at about one
+integer synapse count -- the smallest possible non-tie in integer drive. That
+is why per-round column scaling cannot touch it: scaling equalizes each
+neuron's TOTAL incoming mass, and a one-count advantage from the specific arc
+assembly that drives this transition survives any renormalization of totals.
+The soft defects are SOURCE-SPECIFIC margins, invisible to a total-mass
+homeostat, and neither ties nor hubs.
+
+The registered 12-organ test is re-run with independent draws below.
