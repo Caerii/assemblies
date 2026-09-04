@@ -88,3 +88,5 @@ faster instrument confirms rather than changes.
     The capacity sweep, five cells x 30 brains, device loop:   24 s total
     (numpy this morning: hours; hashed store: 7 min; layer 1: 3 min)
     V* identical to the layer-1 run, as gated.
+
+Continued in DESIGN_dense_floor.md: presence bitmask, radix select, int16 counts, 256-thread blocks -- 0.84 us at width 68, 0.45 at width 204, identical tables.

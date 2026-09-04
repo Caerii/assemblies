@@ -227,6 +227,8 @@ class HashedAligner:
             for w in words:
                 for b in bundles:
                     self.step(w, b)
+        if hasattr(self.cross, "check"):
+            self.cross.check()
 
     # -- frozen readouts -----------------------------------------------------
     def bundle_assembly(self, bundle):

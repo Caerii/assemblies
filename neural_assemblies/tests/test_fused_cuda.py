@@ -518,3 +518,42 @@ def test_dense_fiber_equals_store_fiber(mod):
     # time; the dense kernel counts only cells that have one. Same drive,
     # different bookkeeping: dense.nnz is the present subset.
     assert 0 < dense.nnz < store.nnz
+
+
+def test_presence_mask_is_the_hash(mod):
+    """GATE-4 (DESIGN_dense_floor.md): the bitmask's popcount drive equals
+    `hashed_drive` -- the same connectome, stored instead of re-derived."""
+    seeds = torch.tensor([11, 12, 13], dtype=torch.int32, device="cuda")
+    n_pre, n_post, p = 300, 1000, 0.05
+    thr = _fused_cuda.threshold_for(p)
+    pres = mod.hashed_presence(seeds, n_pre, n_post, thr)          # [B, n_pre, W]
+    assert pres.shape == (3, n_pre, (n_post + 31) // 32)
+    bits = ((pres.unsqueeze(-1) >> torch.arange(32, device="cuda")) & 1)
+    bits = bits.reshape(3, n_pre, -1)[:, :, :n_post].to(torch.float32)
+    g = torch.Generator(device="cpu").manual_seed(0)
+    rows = torch.randint(0, n_pre, (3, 40), generator=g).to("cuda")
+    want = mod.hashed_drive(rows.to(torch.int32), seeds, n_post, thr)
+    got = torch.stack([bits[b, rows[b]].sum(0) for b in range(3)])
+    torch.testing.assert_close(got, want, rtol=0, atol=0)
+    assert 0.03 < float(bits.mean()) < 0.07
+
+
+def test_dense_fiber_flags_count_overflow(mod):
+    """int16 counts refuse to wrap: the writer flags a count past 32767 and
+    `check` raises, instead of a silently negative count."""
+    from neural_assemblies.core.torch_engine._hashed import DenseAreaFiber
+    f = DenseAreaFiber([5], 64, 64, 0.5, beta=0.1, max_rounds=8)
+    rows = torch.arange(8, device="cuda").view(1, 8)
+    f.C[0, :8, :8] = f.MAX_COUNT                      # one increment from the edge
+    f.cmax[0, :8] = f.MAX_COUNT
+    f.observe(rows, rows)
+    with pytest.raises(OverflowError):
+        f.check()
+
+
+def test_stream_probe_runs(mod):
+    """The roofline probe reads the drive's lines and returns a finite sum."""
+    C = torch.randint(0, 5, (2, 200, 1000), dtype=torch.int16, device="cuda")
+    S = torch.randint(0, 200, (2, 50), dtype=torch.int32, device="cuda")
+    out = mod.stream_probe(C, S, 3)
+    assert out.shape == (2, 256) and torch.isfinite(out).all()
