@@ -656,3 +656,20 @@ def test_organ_fiber_equals_store_fiber(mod):
     org.observe(sets(), dead_rows)
     assert torch.equal(org.C, before)
     assert org.nnz > 0
+
+
+def test_topk_select_ranks_negative_drives(mod):
+    """A refracted area's net drive is raw - bias and goes NEGATIVE. The
+    selector's key must order floats, not their bit patterns: the most
+    negative values must never be chosen (they were, and the organ's arc
+    collapsed onto its most-biased neurons)."""
+    g = torch.Generator(device="cpu").manual_seed(2)
+    x = (torch.randn(3, 4000, generator=g) * 3).to("cuda")
+    x[0, :50] = -60.0                                  # heavily refracted
+    x[1, ::7] = -0.0
+    sel, ovf = mod.topk_select(x, 100)
+    assert int(ovf.max()) == 0
+    want = torch.topk(x, 100, dim=1).indices
+    for b in range(3):
+        assert set(sel[b].tolist()) == set(want[b].tolist())
+    assert not (sel[0] < 50).any()

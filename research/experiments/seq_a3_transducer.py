@@ -29,6 +29,7 @@ import json
 import os
 import random
 import sys
+import time
 
 import numpy as np
 
@@ -308,13 +309,186 @@ def main():
     _write(out)
 
 
-def _write(out):
+def _write(out, tag=""):
     path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                        "seq_a3_transducer_results.json")
+                        f"seq_a3_transducer_results{tag}.json")
     with open(path, "w") as fh:
         json.dump(out, fh, indent=2)
     print(f"\nwrote {path}")
 
 
+# ---------------------------------------------------------------------------
+# the hashed organ (PREREG amendment of 2026-09-04): every seed its own
+# corpus, brains in launches sized to memory, bars unchanged
+# ---------------------------------------------------------------------------
+
+HASHED_SEEDS = list(range(42, 62))
+LAUNCH_BYTES = 5 << 30
+
+
+def _schedules(per_brain, wi):
+    """[(words, targets, starts)] per brain from its sentences, padded."""
+    rows = []
+    for sents in per_brain:
+        W, T, St = [], [], []
+        for sent in sents:
+            for j, (a, nxt) in enumerate(zip(sent, sent[1:])):
+                W.append(wi[a]); T.append(wi[nxt]); St.append(j == 0)
+        rows.append((W, T, St))
+    S = max(len(r[0]) for r in rows)
+    import torch
+    W = torch.full((len(rows), S), -1, dtype=torch.int64)
+    T = torch.full((len(rows), S), -1, dtype=torch.int64)
+    St = torch.zeros(len(rows), S, dtype=torch.bool)
+    for b, (w, t, st) in enumerate(rows):
+        W[b, :len(w)] = torch.tensor(w); T[b, :len(t)] = torch.tensor(t)
+        St[b, :len(st)] = torch.tensor(st)
+    return W, T, St
+
+
+def _brains_per_launch(n_arc):
+    per = 2 * (2 * N * n_arc + 2 * n_arc * N) + 4 * (N * (n_arc // 32 + 1) * 2 + n_arc * (N // 32 + 1) * 2)
+    per += 2 * VOCAB_SIZE * N * 16
+    return max(1, int(LAUNCH_BYTES // per))
+
+
+def a3_hashed(seeds, *, n_arc, beta, state_blind=False, collect_state=False,
+              tie_seed=0):
+    """MRR per seed (and cross-prefix state overlap per seed when asked)."""
+    import torch
+    from neural_assemblies.core.torch_engine._hashed_transducer import HashedTransducer
+    words = ntp.vocabulary(VOCAB_SIZE)
+    wi = {w: i for i, w in enumerate(words)}
+    per = [(s,) + corpora(s)[1:] for s in seeds]                     # (seed, train, test)
+    mrr, ovl = {}, {}
+    chunk = _brains_per_launch(n_arc)
+    for g0 in range(0, len(per), chunk):
+        group = per[g0:g0 + chunk]
+        gseeds = [s for s, _, _ in group]
+        t0 = time.perf_counter()
+        t = HashedTransducer(gseeds, words, n=N, n_arc=n_arc, k=K, p=P, beta=beta,
+                             organ_p=ORGAN_P, w_max=20.0, norm_init=True,
+                             max_potentiations=64)
+        t.ground(rounds=GROUND_ROUNDS)
+        W, T, St = _schedules([tr for _, tr, _ in group], wi)
+        t.train_schedules(W, T, St, rounds=TRAIN_ROUNDS)
+        # scoring, frozen: each brain its own test sentences, positions aligned
+        rng = random.Random(tie_seed)
+        Wt, Tt, Stt = _schedules([te for _, _, te in group], wi)
+        rr = [0.0] * len(group); cnt = [0] * len(group)
+        states = [dict() for _ in group]
+        pos = [0] * len(group)
+        for step in range(Wt.shape[1]):
+            live = Wt[:, step] >= 0
+            if not bool(live.any()):
+                break
+            t.reset(Stt[:, step])
+            if state_blind:
+                t.state.inhibit_rows(live)
+            t.tick(Wt[:, step], rounds=TRAIN_ROUNDS, freeze=True)
+            if collect_state:
+                sw = t.state.winners.cpu()
+            emitted = t.emit()
+            ranked = t.rank(emitted, rng)
+            for b in range(len(group)):
+                if not bool(live[b]):
+                    continue
+                if bool(Stt[b, step]):
+                    pos[b] = 0
+                truth = words[int(Tt[b, step])]
+                rr[b] += 1.0 / (ranked[b].index(truth) + 1); cnt[b] += 1
+                if collect_state:
+                    states[b].setdefault(pos[b], []).append(set(sw[b].tolist()))
+                pos[b] += 1
+        for b, (seed, _, _) in enumerate(group):
+            mrr[seed] = rr[b] / max(cnt[b], 1)
+            if collect_state:
+                ovs = []
+                for _p, sets_ in states[b].items():
+                    m = min(len(sets_), 12)
+                    for i in range(m):
+                        for j in range(i + 1, m):
+                            ovs.append(len(sets_[i] & sets_[j]) / K)
+                ovl[seed] = float(np.mean(ovs)) if ovs else float("nan")
+        print(f"      n_arc={n_arc} beta={beta} seeds {gseeds[0]}..{gseeds[-1]} "
+              f"({len(group)} brains, {W.shape[1]} train steps)  "
+              f"[{time.perf_counter() - t0:.0f}s]", flush=True)
+        del t
+        torch.cuda.empty_cache()
+    return mrr, ovl
+
+
+def main_hashed(seeds, cells=N_ARC_SWEEP, with_context=True):
+    out = {"seeds": seeds, "organ_p": ORGAN_P, "n_arc_sweep": list(cells),
+           "substrate": "hashed (DESIGN_sequence_port.md)"}
+    print("=== A3 on the hashed organ (PREREG amendment 2026-09-04) ===")
+    print(f"    seeds {seeds[0]}..{seeds[-1]} ({len(seeds)})  n={N} k={K} p={P} "
+          f"organ_p={ORGAN_P}")
+    print("\n  [H5 null] beta = 0 -- must not beat the unigram baseline")
+    m, _ = a3_hashed(seeds, n_arc=10000, beta=0.0)
+    null = ensemble_from_values([m[s] for s in seeds], "null(beta=0)", keys=seeds)
+    print(f"    {null}", flush=True)
+    out["null"] = {"mean": null.mean, "ci": null.ci, "values": list(null.values)}
+    h5 = null.high < UNIGRAM
+    print(f"    H5 {'PASS' if h5 else 'FAIL'} (upper {null.high:.4f} vs unigram {UNIGRAM})")
+    if not h5:
+        print("\n  H5 FAILED: the study stops (bug hunt). Sweep NOT run.")
+        _write(out, "_hashed")
+        return
+    print("\n  [sweep] the n_arc curve, reported whole")
+    cells_e = {}
+    for na in cells:
+        m, _ = a3_hashed(seeds, n_arc=na, beta=BETA)
+        cells_e[na] = ensemble_from_values([m[s] for s in seeds], f"a3(n_arc={na})", keys=seeds)
+        print(f"    {cells_e[na]}", flush=True)
+    out["sweep"] = {str(na): {"mean": e.mean, "ci": e.ci, "values": list(e.values)}
+                    for na, e in cells_e.items()}
+    best_n = max(cells_e, key=lambda na: cells_e[na].mean)
+    best = cells_e[best_n]
+    print(f"\n    best cell by mean: n_arc={best_n}")
+    if with_context:
+        print("\n  [CONTEXT] #14's accumulator (numpy), the same seeds, in a pool")
+        r = run_cells(worker, [("context", s, 0, BETA) for s in seeds])
+        ctx = _arm(r, "context", seeds, 0, BETA, "context(#14)")
+        print(f"    {ctx}", flush=True)
+        out["context"] = {"mean": ctx.mean, "ci": ctx.ci, "values": list(ctx.values)}
+        delta = paired_delta(best, ctx, label=f"a3(n_arc={best_n}) - context")
+        print(f"    {delta}", flush=True)
+        out["h1_delta"] = {"mean": delta.mean, "ci": delta.ci, "values": list(delta.values)}
+    print("\n  [H4 + audit] state overlap at the best cell; state-blind arm")
+    m, ov = a3_hashed(seeds, n_arc=best_n, beta=BETA, collect_state=True)
+    h4 = ensemble_from_values([ov[s] for s in seeds], "state_overlap", keys=seeds)
+    print(f"    {h4}", flush=True)
+    out["h4"] = {"mean": h4.mean, "ci": h4.ci, "values": [ov[s] for s in seeds]}
+    mb, _ = a3_hashed(seeds, n_arc=best_n, beta=BETA, state_blind=True)
+    blind = ensemble_from_values([mb[s] for s in seeds], "state-blind", keys=seeds)
+    print(f"    {blind}", flush=True)
+    out["state_blind"] = {"mean": blind.mean, "ci": blind.ci, "values": list(blind.values)}
+    bd = paired_delta(best, blind, label="a3 - state-blind")
+    print(f"    {bd}", flush=True)
+    out["state_blind_delta"] = {"mean": bd.mean, "ci": bd.ci, "values": list(bd.values)}
+    out["load"] = "not measured on the hashed organ (amendment)"
+    print("\n=== BARS ===")
+    verdicts = {
+        "H2 beats no-context model": best.beats(NO_CONTEXT),
+        "H3 beats bigram optimum": best.beats(BIGRAM),
+        "H4 state does not collapse": h4.high < 0.5,
+    }
+    if with_context:
+        verdicts["H1 beats #14 CONTEXT (paired)"] = delta.low > 0.0
+    for name, ok in verdicts.items():
+        print(f"  {'PASS' if ok else 'FAIL'}  {name}")
+    out["verdicts"] = verdicts
+    out["best_n_arc"] = best_n
+    _write(out, "_hashed")
+
+
 if __name__ == "__main__":
-    main()
+    if "--engine" in sys.argv and sys.argv[sys.argv.index("--engine") + 1] == "hashed":
+        n_seeds = int(sys.argv[sys.argv.index("--seeds") + 1]) if "--seeds" in sys.argv else len(HASHED_SEEDS)
+        cells = ([int(x) for x in sys.argv[sys.argv.index("--cells") + 1].split(",")]
+                 if "--cells" in sys.argv else N_ARC_SWEEP)
+        main_hashed(HASHED_SEEDS[:n_seeds], cells=cells,
+                    with_context="--no-context" not in sys.argv)
+    else:
+        main()

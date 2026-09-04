@@ -51,10 +51,11 @@ class StackedStimuli:
     """
 
     def __init__(self, brain_seeds, names, size, n_post, p, *, beta, w_max,
-                 norm_init, max_rounds, device):
+                 norm_init, max_rounds, device, zero_or_size=True):
         fibers = [StimulusFiber(pair_seeds(brain_seeds, nm, nm), size, n_post, p,
                                 beta=beta, w_max=w_max, norm_init=norm_init,
-                                max_rounds=max_rounds, device=device)
+                                max_rounds=max_rounds, device=device,
+                                zero_or_size=zero_or_size)
                   for nm in names]
         self.V, self.B, self.n = len(fibers), len(brain_seeds), n_post
         # the area's tie-jitter salt XORs each afferent's per-brain seeds; a
@@ -111,7 +112,11 @@ class HashedTransducer:
                  state_refracted_strength: float = 0.0,
                  w_max: float | None = 20.0, norm_init: bool = True,
                  max_potentiations: int = 4096, prefix: str = "_seq",
-                 tie_jitter: float = 1e-6, device: str = "cuda"):
+                 tie_jitter: float = 1e-6, device: str = "cuda",
+                 zero_or_size: bool = True):
+        #: stimuli follow the ENGINE's zero-or-size model by default (see
+        #: StimulusFiber); False gives Binomial counts, the aligner's choice
+        self.zero_or_size = bool(zero_or_size)
         self.seeds = [int(s) for s in brain_seeds]
         self.B = len(self.seeds)
         self.vocab = list(vocab)
@@ -141,10 +146,12 @@ class HashedTransducer:
         # w_max like any weight
         self.S = StackedStimuli(S, [f"{prefix}_s_{w}" for w in self.vocab], k, n,
                                 self.p, beta=beta, w_max=w_max, norm_init=norm_init,
-                                max_rounds=max_potentiations, device=device)
+                                max_rounds=max_potentiations, device=device,
+                                zero_or_size=self.zero_or_size)
         self.G = StackedStimuli(S, [f"{prefix}_g_{w}" for w in self.vocab], k, n,
                                 self.p, beta=beta, w_max=w_max, norm_init=norm_init,
-                                max_rounds=max_potentiations, device=device)
+                                max_rounds=max_potentiations, device=device,
+                                zero_or_size=self.zero_or_size)
 
         def fiber(src, dst, n_pre, n_post):
             return DenseOrganFiber(pair_seeds(S, src, dst), n_pre, n_post, self.organ_p,
@@ -190,10 +197,13 @@ class HashedTransducer:
                 id(self.arc_state): self.arc.winners,
                 id(self.arc_out): self.arc.winners}
 
-    def tick(self, word, rounds: int = 3) -> None:
+    def tick(self, word, rounds: int = 3, freeze: bool = False) -> None:
+        """`freeze` is the numpy experiments' `probe()`: no plasticity, no
+        refraction charged, for scoring."""
         self.S.set_words(self._widx(word))
-        self.lex.project(rounds, [self.S])
-        self.arc.project(1, [self.lex_arc, self.state_arc], rows_for=self._rows())
+        self.lex.project(rounds, [self.S], freeze=freeze)
+        self.arc.project(1, [self.lex_arc, self.state_arc], rows_for=self._rows(),
+                         freeze=freeze)
 
     def write(self, target, rounds: int = 3) -> None:
         self.G.set_words(self._widx(target))

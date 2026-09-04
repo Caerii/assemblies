@@ -779,17 +779,31 @@ class StimulusFiber:
     """
 
     def __init__(self, seeds, size, n_post, p, *, beta=0.0, w_max=None,
-                 norm_init=False, max_rounds=64, device="cuda"):
+                 norm_init=False, max_rounds=64, device="cuda",
+                 zero_or_size=False):
         self.mod = _fused_cuda.load()
         B = len(seeds)
         self.B, self.size, self.n, self.p = B, size, n_post, float(p)
         self.seeds = torch.as_tensor(seeds, dtype=torch.int32, device=device)
         self.threshold = _fused_cuda.threshold_for(p)
         self.learns = bool(beta)
-        rows = torch.arange(size, dtype=torch.int32,
-                            device=device).expand(B, size).contiguous()
-        self.base = self.mod.hashed_drive(rows, self.seeds, n_post,
-                                          self.threshold)
+        if zero_or_size:
+            # THE ENGINE'S STIMULUS MODEL ([[add-stimulus-zero-or-size]]): a
+            # neuron's weight from a stimulus is `size` with probability p
+            # and 0 otherwise -- one Bernoulli draw, not a Binomial(size, p)
+            # count. A word's assembly is then the connected set, driven at
+            # `size` against fiber drives of ~k p w: the sharpness the organ's
+            # numbers rest on (materialized numpy 0.17-0.22 MRR on A3 against
+            # 0.12 with Binomial stimuli). The aligner's anchor gain 1/p is
+            # the same fact approximated by a scalar.
+            one = torch.zeros(B, 1, dtype=torch.int32, device=device)
+            self.base = self.mod.hashed_drive(one, self.seeds, n_post,
+                                              self.threshold) * float(size)
+        else:
+            rows = torch.arange(size, dtype=torch.int32,
+                                device=device).expand(B, size).contiguous()
+            self.base = self.mod.hashed_drive(rows, self.seeds, n_post,
+                                              self.threshold)
         # an ANCHOR (beta = 0) never potentiates: no counter, no table -- with
         # a fiber per word, the int64 counter was two thirds of the memory
         self.pot = (torch.zeros(B, n_post, dtype=torch.int64, device=device)

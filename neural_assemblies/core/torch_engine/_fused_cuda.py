@@ -86,9 +86,16 @@ __global__ void hashed_drive_kernel(
     out[idx] = (float)c;
 }
 
+// ORDER-PRESERVING: the raw float bits rank a NEGATIVE drive above every
+// positive one (sign bit set = largest unsigned). Drives are non-negative
+// everywhere but under refraction, where net = raw - bias, and there this
+// selector was never gated: a refracted area's most-biased neurons kept
+// winning, the bias grew without bound (66 against a drive of 0.6), and
+// the sequence organ's arc collapsed onto one assembly (DESIGN_sequence_port.md).
 __device__ __forceinline__ unsigned long long mkkey(float v, int j) {
-    return ((unsigned long long)__float_as_uint(v) << 16)
-           | (unsigned long long)(65535 - j);
+    unsigned int u = __float_as_uint(v);
+    u = (u & 0x80000000u) ? ~u : (u | 0x80000000u);
+    return ((unsigned long long)u << 16) | (unsigned long long)(65535 - j);
 }
 
 __global__ void select_kernel(const float* __restrict__ x, int N, int K,

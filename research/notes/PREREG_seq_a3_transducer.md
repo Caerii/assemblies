@@ -110,3 +110,32 @@ the transducer inherits #14's problem rather than solving it.
 4. A degenerate-arm audit accompanies any result at or above the bigram
    optimum, since a readout that can reach 0.2338 without using the state is
    the failure mode this architecture is most exposed to.
+
+---
+
+## Amendment (2026-09-04, before any bar is read on the new substrate): the hashed organ, 20 seeds
+
+The registered run (seeds 42..51) was executed on THREE seeds (42, 43, 44)
+because a cell cost ~1 minute of numpy per seed; its verdicts stand on a
+bound three seeds cannot support. The study is re-run, bars UNCHANGED, on:
+
+* SUBSTRATE: `HashedTransducer` (DESIGN_sequence_port.md) -- the organ's
+  areas, fibers and clock on the hashed substrate, gated to reproduce the
+  numpy organ's net drive and ARC refraction bias within 5e-6 per
+  projection (GATE-1) and to be identical across launch width (GATE-4).
+  Connectomes are the engine's pair seeds; stimulus connectomes are hashed
+  rather than RNG-drawn, so per-seed values are not the numpy run's, the
+  distribution is.
+* SEEDS: 42..61 (20). Each seed keeps its own corpus (`corpora(seed)`);
+  brains run in launches sized to memory (one brain per launch at
+  n_arc = 50,000, where a fiber is 1 GB).
+* The CONTEXT arm (#14's accumulator) is numpy and is re-run on the same 20
+  seeds in a process pool, so H1 stays paired.
+* NOT PORTED, reported as not measured: the achieved arc LOAD (greedy count
+  of distinct arc assemblies). H4 (cross-prefix state overlap) is measured
+  on the hashed organ's state winners at the same positions.
+* Ties in the readout's k-WTA break by the substrate's deterministic
+  jitter (1e-6), not the engine's; the `rank` tie rule (random, seeded) is
+  the registered one.
+
+Reading order as registered: H5 first; the whole n_arc curve; H1..H4.
