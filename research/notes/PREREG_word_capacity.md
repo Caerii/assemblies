@@ -153,3 +153,89 @@ registered question -- does the LEX-side ceiling follow the anchor law --
 needs FEAT scaled with the cells (or held large enough not to bind), which
 is Amendment 3 to register before running. On the dense fiber the whole
 sweep took seven minutes, so that is an afternoon, not a week.
+
+---
+
+## Amendment 3 (2026-09-04, registered before running): the LEX-side ceiling, with FEAT measured not to bind
+
+The Result above answered a FEAT-side question. The registered question is
+LEX-side, and needs FEAT "scaled with the cells or held large enough not to
+bind". Amendment 1 showed the other constraint: a LARGER feature area lowers
+reconstruction accuracy at fixed evidence (a readout floor). "Large enough"
+is therefore an empirical size, found first. Two parts, bars for each.
+
+### Part 1 -- the FEAT ladder
+
+Cells A (n/k = 20) and C (n/k = 80), LEX exactly as registered, FEAT on a
+ladder held IDENTICAL across cells at each rung:
+
+    FEAT  (n, k):  (1000, 50)  (2000, 50)  (4000, 50)  (8000, 50)  (4000, 100)  (8000, 100)
+
+V grid (16 .. 1024), 10 seeds per (cell, rung), each seed its own corpus
+(the scheduled learner gives every brain its own). V* by the registered
+curve reading; censored rungs reported as bounds.
+
+    F1  PLATEAU.  For cell C, V* is non-decreasing along the ladder at fixed
+        k until a plateau: F* = the smallest rung whose V* lies within the
+        pooled seed CI of the ladder's maximum. F* is then the "non-binding"
+        FEAT for Part 2.
+        FAIL (a): V* still rising at the last rung -- FEAT binds throughout;
+        Part 2 is void and the ceiling is a FEAT law, reported as such.
+        FAIL (b): V* FALLS along the ladder -- the readout floor dominates and
+        this readout cannot ask the LEX question; reported, nothing adopted.
+
+    F2  LEX VISIBLE.  V*(A) plateaus at a LOWER value than V*(C) (beyond the
+        pooled CI): the LEX side is the binding limit once FEAT is not.
+        FAIL: A and C plateau together -- the limit is still not LEX.
+
+### Part 2 -- the registered cells at F*
+
+All five cells at FEAT = F*, 20 seeds, V grid (16 .. 1024). Bars W1, W2, W3
+EXACTLY as registered, judged on these curves; Part 1's rungs are not
+reused as cells.
+
+### What changes and what does not
+
+The learner, the corpus, the exposure count (12), the two cross rounds and
+the anchor gain are unchanged from Amendment 2. The substrate is the
+present-only fiber (DESIGN_present_only.md), gated identical to the dense
+and hashed paths and to the committed sweep tables. Seeds go from 5 to 20
+for the judged cells because the instrument now affords it; the bars' CI
+terms use the 20.
+
+### Part 1 -- Result (2026-09-04, present-only substrate, 10 seeds per rung, V grid 16..1024)
+
+    FEAT (n, k)     A (n/k = 20)                       C (n/k = 80)
+    1000 x 50       51.9 +/- 11.5   (0/10 censored)    78.2 +/-  4.1
+    2000 x 50       51.5 +/-  8.5                      166.4 +/- 11.2
+    4000 x 50       31.3 +/- 10.9   (3/10 censored)    152.9 +/- 30.4
+    8000 x 50       <= 16           (10/10 censored)   117.7 +/- 29.4
+    4000 x 100      80.4 +/- 22.9                      327.2 +/- 41.1
+    8000 x 100      32.3 +/- 16.9   (5/10 censored)    272.0 +/- 36.9
+
+    F1  NO PLATEAU. At k = 50, V*(C) rises 78 -> 166 from FEAT 1000 to 2000
+        and then FALLS (153, 118); at k = 100 it falls from 4000 to 8000.
+        Neither of the registered FAIL branches alone: the ladder rises,
+        peaks, and falls -- Amendment 1's readout floor (more feature
+        columns competing in the reconstruction's k-WTA) takes over past a
+        FEAT size that depends on k. Read as F1 FAIL (b) past the peak, with
+        F* = the rung of maximal V*, (4000, 100), the same for both cells.
+    F2  PASS at F*: A 80 +/- 23 against C 327 +/- 41, a gap of 247 against
+        a pooled CI of 64; already at 2000 x 50, A 52 against C 166. The
+        LEX side is the binding limit once FEAT is not.
+
+Two things the ladder found that were not asked:
+
+* The FEAT-side ceiling is NOT a ratio law. At equal feat_n / feat_k = 40,
+  2000 x 50 gives V*(C) = 166 and 4000 x 100 gives 327: doubling both
+  doubles the ceiling. What the readout needs is EVIDENCE -- k winners to
+  separate assemblies whose overlap grows with V -- not a ratio; the same
+  reading as Amendment 1's floor, now with its scaling.
+* Cell A's V* is not fixed either: 52 at k = 50 rungs, 80 at 4000 x 100.
+  The word ceiling is a CONJUNCTION of a LEX limit and a FEAT/readout
+  limit, and F* only moves the second far enough for the first to show.
+
+Part 2 therefore runs at F* = (4000, 100), as registered, with the caveat
+stated now: FEAT still moves V* at F*, so cells whose LEX ceiling
+approaches ~330 (the FEAT ceiling read on cell C) may be FEAT-bound there,
+and a censored or converging top of the grid is reported as such.

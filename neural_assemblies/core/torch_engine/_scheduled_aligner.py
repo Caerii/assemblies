@@ -57,13 +57,21 @@ def pad_schedules(per_brain, device="cuda"):
     return W.to(device), Bd.to(device)
 
 
-def _hash_jitter(salt, n, jitter, device):
-    """`HashedArea._jitter`'s arithmetic on a [B, I] salt -> [B, I, n]."""
+def _hash_jitter(salt, n, jitter, device, slab=16):
+    """`HashedArea._jitter`'s arithmetic on a [B, I] salt -> [B, I, n].
+
+    Computed `slab` bundles at a time: the int64 temporaries of the whole
+    [B, I, n] block were three times the result and, at V = 1024 and a
+    wide FEAT, most of the card. Same ops per element, so the same floats."""
     cols = torch.arange(n, dtype=torch.int64, device=device)
-    h = (cols.view(1, 1, -1) ^ salt.view(*salt.shape, 1)) * 0x9E3779B1
-    h = (h ^ (h >> 15)) * 0x85EBCA6B
-    h = (h ^ (h >> 13)) & 0xFFFFFFFF
-    return h.to(torch.float32) * (jitter / 4294967296.0)
+    B, I = salt.shape
+    out = torch.empty(B, I, n, dtype=torch.float32, device=device)
+    for i0 in range(0, I, slab):
+        h = (cols.view(1, 1, -1) ^ salt[:, i0:i0 + slab].view(B, -1, 1)) * 0x9E3779B1
+        h = (h ^ (h >> 15)) * 0x85EBCA6B
+        h = (h ^ (h >> 13)) & 0xFFFFFFFF
+        out[:, i0:i0 + slab] = h.to(torch.float32) * (jitter / 4294967296.0)
+    return out
 
 
 class ScheduledAligner:
@@ -106,8 +114,20 @@ class ScheduledAligner:
                                   max_rounds=max_potentiations,
                                   device=device)
         self._prepared = False
-        #: brains per block in the persistent kernel (a warp each)
-        self.warps_per_block = 4
+        #: brains per block in the persistent kernel (a warp each); None picks
+        #: the most that fit the kernel's shared-memory budget
+        self.warps_per_block = None
+
+    def _warps_per_block(self):
+        """Mirror of the kernel's per-warp shared bytes (pr_warp_bytes)."""
+        if self.warps_per_block is not None:
+            return int(self.warps_per_block)
+        N, K, KW = self.feat_n, self.k, self.feat_k
+        W = (N + 31) // 32
+        per = KW * 8 + N * 4 + 256 * 4 + KW * 4 + K * 4 + KW * 4 + 16 + W * 4 + 512 * 4 + N * 2 + N * 2
+        per = (per + 7) & ~7
+        budget = 96 * 1024 - 4 * 1024                  # minus the staged prices
+        return max(1, min(4, budget // per))
 
     # -- anchors -------------------------------------------------------------
     def _select(self, area, drive, fibers):
@@ -137,7 +157,7 @@ class ScheduledAligner:
         idx = torch.where(self.features < 0,
                           torch.full_like(self.features, self.F),
                           self.features)                     # [B, I, Fper]
-        self.bundle_drive = consts[ar.view(B, 1, 1), idx].sum(dim=2)
+        self.bundle_drive = consts[ar.view(B, 1, 1), idx].sum(dim=2)   # [B, I, feat_n]
         # salts: the seeds of the fibers that fire, XORed as HashedArea does
         fseeds = torch.stack([ff.seeds.to(torch.int64) & 0xFFFFFFFF
                               for ff in self.featf] +
@@ -161,6 +181,12 @@ class ScheduledAligner:
             ranked = self.bundle_drive[:, j] + self.jit_anchor[:, j]
             sel, _ = self.mod.topk_select(ranked, self.feat_k)
             self.feat_cache[:, j] = sel.to(torch.int64)
+        # the anchors are cached: the fibers (one per word and per feature)
+        # and the prepare-time tensors are dead -- at V = 1024 and a wide
+        # FEAT they were most of the card
+        del consts, idx, fseeds, salt
+        self.phon, self.featf, self.jit_anchor = None, None, None
+        torch.cuda.empty_cache()
         self._prepared = True
 
     # -- training ------------------------------------------------------------
@@ -186,7 +212,7 @@ class ScheduledAligner:
                 words, bundles, self.lex_cache, self.bundle_drive,
                 self.jit_cross, cf.ent, cf.cmax, cf.mass, cf.scale,
                 cf.invdj, cf.rel, float(cf.setpoint), self.rounds_word,
-                self.feat_k, cf.err, nsh, nnz, self.warps_per_block)
+                self.feat_k, cf.err, nsh, nnz, self._warps_per_block())
             torch.cuda.synchronize()
             cf.check()
             return

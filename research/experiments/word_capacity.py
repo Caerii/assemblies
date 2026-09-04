@@ -31,6 +31,10 @@ from _substrate import ceiling_from_curve                               # noqa: 
 import unaligned_scenes as U                                            # noqa: E402
 
 VS = (16, 32, 64, 128, 256, 512)
+#: Amendment 3: the grid extends to 1024 once FEAT no longer binds.
+VS_WIDE = VS + (1024,)
+#: Amendment 3, Part 1: the FEAT ladder (n, k), identical across cells per rung.
+LADDER = ((1000, 50), (2000, 50), (4000, 50), (8000, 50), (4000, 100), (8000, 100))
 #: Hashed path, Amendment 2: two cross rounds per (word, bundle) step. The
 #: registered five were measured not load-bearing -- U1 on the hashed learner
 #: reads 1.000 on all five brains at rounds 2, 3 and 5 (0.97-1.00 at 1) -- and
@@ -133,16 +137,55 @@ def type_accuracy_hashed(seeds, V, n, k, stim_size, track_pinned=False):
     return acc, len(scored), al.pinned
 
 
-def run_cell_scheduled(name, seeds, vs):
-    """Every (V, seed) task of a cell in ONE launch (layer 1). Each brain has
-    its own corpus (seeded by its seed), vocabulary, bundle inventory and
-    schedule; only the area shape is shared. Returns the same curve record
-    as `run_cell` so `judge` cannot tell the difference."""
+#: bytes of GPU memory a launch may plan for (the card has 10 GiB; the
+#: fiber and the persistent kernel's own state are small next to the
+#: per-bundle drive and jitter tensors of a wide vocabulary)
+LAUNCH_BUDGET = 4 << 30
+
+
+def _bytes_per_brain(V, n, feat_n):
+    """The aligner's per-brain tensors at vocabulary V: per-bundle drive and
+    two jitters [I, feat_n], the prepare-time constants [F + 1, feat_n] and
+    the per-word / per-feature stimulus bases, all float32."""
+    I, F = V, V + CATS
+    return 4 * (3 * I * feat_n + (F + 1) * feat_n + V * n + F * feat_n)
+
+
+def run_cell_scheduled(name, seeds, vs, feat=(FEAT_N, FEAT_K)):
+    """Every (V, seed) task of a cell in as few launches as the memory budget
+    allows (layer 1). Each brain has its own corpus (seeded by its seed),
+    vocabulary, bundle inventory and schedule; only the area shape is
+    shared. Returns the same curve record as `run_cell` so `judge` cannot
+    tell the difference."""
+    n, k, stim = CELLS[name]
+    feat_n, feat_k = feat
+    tasks = [(V, seed) for V in vs for seed in seeds]
+    per_task = {t: _bytes_per_brain(t[0], n, feat_n) for t in tasks}
+    curve = {V: [] for V in vs}
+    # a chunk holds ONE vocabulary size: every brain's bundle tensors are
+    # padded to the chunk's largest V, so mixing sizes pays the largest for all
+    for V in vs:
+        chunk, used = [], 0
+        for t in (t for t in tasks if t[0] == V):
+            if chunk and used + per_task[t] > LAUNCH_BUDGET:
+                _run_chunk(name, chunk, feat, curve)
+                chunk, used = [], 0
+            chunk.append(t)
+            used += per_task[t]
+        if chunk:
+            _run_chunk(name, chunk, feat, curve)
+    for V in vs:
+        print(f"      V={V:4d}: type-acc {' '.join(f'{a:.3f}' for a in curve[V])}"
+              f"  (chance {1 / V:.3f})", flush=True)
+    return curve
+
+
+def _run_chunk(name, tasks, feat, curve):
     import torch
     from neural_assemblies.core.torch_engine._scheduled_aligner import (
         ScheduledAligner, pad_schedules, schedule_of)
     n, k, stim = CELLS[name]
-    tasks = [(V, seed) for V in vs for seed in seeds]
+    feat_n, feat_k = feat
     per = []
     for V, seed in tasks:
         exp, targets, words, features = corpus(V, seed)
@@ -179,28 +222,28 @@ def run_cell_scheduled(name, seeds, vs):
     # word/feature INDEX i means brain b's own word i: every brain seeds its
     # phon fibers by (seed_b, "phon_i"), so brains share nothing but shape
     al = ScheduledAligner([t["seed"] * 1000 + t["V"] for t in per], n=n, k=k,
-                          feat_n=FEAT_N, feat_k=FEAT_K, n_words=Vmax,
+                          feat_n=feat_n, feat_k=feat_k, n_words=Vmax,
                           n_features=Fmax, stim_size=stim, p=U.P, beta=U.BETA,
                           rounds_word=ROUNDS_HASHED)
     al.prepare(feats)
-    al.train(W, Bd, device_loop=True)          # layer 3: one launch per cell
+    al.train(W, Bd, device_loop=True)          # layer 3: one launch per chunk
     acc, scored = al.type_accuracy(tgt, nb, expo, U.MIN_EXPOSURES)
     acc = acc.cpu().numpy()
-    print(f"    {name} n={n} k={k} s={stim}: {B} brains (V x seed) in one "
-          f"launch, {W.shape[1]} steps  [{time.perf_counter() - t0:.0f}s]",
-          flush=True)
-    curve = {V: [] for V in vs}
+    print(f"    {name} n={n} k={k} s={stim} FEAT {feat_n}x{feat_k}: {B} brains "
+          f"(V x seed) in one launch, {W.shape[1]} steps  "
+          f"[{time.perf_counter() - t0:.0f}s]", flush=True)
     for b, t in enumerate(per):
         curve[t["V"]].append(float(acc[b]))
-    for V in vs:
-        print(f"      V={V:4d}: type-acc {' '.join(f'{a:.3f}' for a in curve[V])}"
-              f"  (chance {1 / V:.3f})", flush=True)
-    return curve
+    del al
+    torch.cuda.empty_cache()
 
 
-def run_cell(name, seeds, vs, engine="numpy", track_pinned=False):
+def run_cell(name, seeds, vs, engine="numpy", track_pinned=False,
+             feat=(FEAT_N, FEAT_K)):
     if engine == "scheduled":
-        return run_cell_scheduled(name, seeds, vs)
+        return run_cell_scheduled(name, seeds, vs, feat=feat)
+    if feat != (FEAT_N, FEAT_K):
+        raise ValueError("FEAT is a parameter of the scheduled engine only")
     n, k, s = CELLS[name]
     curve = {}                                      # V -> [acc per seed]
     pinned = {}
@@ -251,6 +294,22 @@ def ceilings(curve, seeds):
 
 # ---------------------------------------------------------------------------
 
+def ladder(cells, seeds, vs):
+    """Amendment 3, Part 1: V* of each cell along the FEAT ladder. F1 and F2
+    are judged on the printed V* ensembles; the curves are saved."""
+    print("\n=== FEAT LADDER (PREREG_word_capacity.md, Amendment 3, Part 1) ===")
+    out = {}
+    for name in cells:
+        n, k, s_ = CELLS[name]
+        for feat in LADDER:
+            curve = run_cell_scheduled(name, seeds, vs, feat=feat)
+            stars, c = ceilings(curve, seeds)
+            e = ensemble_from_values(stars, label=f"{name} n/k={n // k} FEAT {feat[0]}x{feat[1]} V*")
+            print(f"  {e}   censored {c}/{len(seeds)}", flush=True)
+            out[f"{name}:{feat[0]}x{feat[1]}"] = {str(V): a for V, a in curve.items()}
+    return out
+
+
 def judge(results, seeds):
     print("\n=== BARS (PREREG_word_capacity.md) ===")
     ens, cens = {}, {}
@@ -298,20 +357,35 @@ def main():
                          "substrate (DESIGN_hashed_aligner.md)")
     ap.add_argument("--track-pinned", action="store_true",
                     help="hashed only: measure the GEMM-shortcut precondition")
+    ap.add_argument("--feat", default=f"{FEAT_N},{FEAT_K}",
+                    help="Amendment 3: FEAT (n,k) for the scheduled engine")
+    ap.add_argument("--wide", action="store_true",
+                    help="Amendment 3: V grid to 1024")
+    ap.add_argument("--ladder", action="store_true",
+                    help="Amendment 3, Part 1: the FEAT ladder on --cells")
+    ap.add_argument("--tag", default="", help="suffix for the results file")
     args = ap.parse_args()
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     seeds = [int(x) for x in args.seeds.split(",")]
-    vs = (8, 16) if args.smoke else VS
+    vs = (8, 16) if args.smoke else (VS_WIDE if args.wide else VS)
+    feat = tuple(int(x) for x in args.feat.split(","))
     if args.smoke:
         print("SMOKE: API check only; numbers VOID")
+    if args.ladder:
+        out = ladder(args.cells.split(","), seeds, vs)
+        path = os.path.join(_HERE, f"word_capacity_ladder{args.tag}.json")
+        with open(path, "w") as fh:
+            json.dump({"seeds": seeds, "curves": out}, fh, indent=2)
+        print(f"wrote {path}")
+        return
     print(f"WORD CAPACITY  engine {args.engine}  cells {args.cells}  "
-          f"V grid {vs}  seeds {seeds}  threshold {THRESHOLD}")
+          f"V grid {vs}  seeds {seeds}  threshold {THRESHOLD}  FEAT {feat}")
     results = {}
     for name in args.cells.split(","):
         results[name] = run_cell(name, seeds, vs, engine=args.engine,
-                                 track_pinned=args.track_pinned)
+                                 track_pinned=args.track_pinned, feat=feat)
     judge(results, seeds)
-    path = os.path.join(_HERE, f"word_capacity_results_{args.engine}.json")
+    path = os.path.join(_HERE, f"word_capacity_results_{args.engine}{args.tag}.json")
     with open(path, "w") as fh:
         json.dump({"seeds": seeds, "cells": {nm: {str(V): a for V, a in c.items()}
                                               for nm, c in results.items()}},

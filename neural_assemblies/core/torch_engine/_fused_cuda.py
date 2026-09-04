@@ -1610,34 +1610,49 @@ __device__ bool pr_write(unsigned int* __restrict__ eb, int DMAX, int K, const P
         int maxk = cnt;
 #pragma unroll
         for (int o = 16; o > 0; o >>= 1) maxk = max(maxk, __shfl_xor_sync(0xFFFFFFFFu, maxk, o));
-        const int j0 = (lane < nw) ? s.win[lane] : -1, j1 = (lane + 32 < nw) ? s.win[lane + 32] : -1;
-        int mx0 = (j0 >= 0) ? (int)s.cmx[j0] : 0, mx1 = (j1 >= 0) ? (int)s.cmx[j1] : 0;
+        // a lane owns slots lane, lane+32, lane+64, lane+96 (KW <= SCHED_MAXK)
+        int mx[4];
+        double dm[4];
+#pragma unroll
+        for (int m = 0; m < 4; ++m) {
+            const int jq = (lane + 32 * m < nw) ? s.win[lane + 32 * m] : -1;
+            mx[m] = (jq >= 0) ? (int)s.cmx[jq] : 0;
+            dm[m] = 0.0;
+        }
         for (int q = 0; q < maxk; ++q) {
             const unsigned int e = (q < cnt) ? scratch[off + q] : 0u;
-            const int c = (int)(e & 0xFFFFu), sl_ = (int)(e >> 16);
-            if (q < cnt) { if (sl_ < 32) mx0 = max(mx0, c); else mx1 = max(mx1, c); }
+            const int c = (int)(e & 0xFFFFu), m_ = (int)(e >> 21);
+#pragma unroll
+            for (int m = 0; m < 4; ++m) if (q < cnt && m_ == m) mx[m] = max(mx[m], c);
         }
-        double d0 = 0.0, d1 = 0.0;
         if (do_scale) {
             for (int q = 0; q < maxk; ++q) {
                 const unsigned int e = (q < cnt) ? scratch[off + q] : 0u;
-                const int c = (int)(e & 0xFFFFu), sl_ = (int)(e >> 16);
-                const int cm_new = (sl_ < 32) ? mx0 : mx1;
+                const int c = (int)(e & 0xFFFFu), m_ = (int)(e >> 21);
+                int cm_new = mx[0];
+#pragma unroll
+                for (int m = 1; m < 4; ++m) if (m_ == m) cm_new = mx[m];
                 const int dn = cm_new - c, dold = cm_new - (c - 1);
                 const float rn = sched_price(dn, srel, nsh, rel, nnz);
                 const float ro = sched_price(dold, srel, nsh, rel, nnz);
                 const double term = (double)rn - (double)ro;
-                if (q < cnt) { if (sl_ < 32) d0 += term; else d1 += term; }
+#pragma unroll
+                for (int m = 0; m < 4; ++m) if (q < cnt && m_ == m) dm[m] += term;
             }
         }
         // ---- finalize the owned slots (slot q is owned by lane q & 31)
         for (int q = lane; q < nw; q += 32) {
             const int j = s.win[q];
-            const int cm_old = (int)s.cmx[j], cm_new = (q < 32) ? mx0 : mx1;
+            const int m_ = q >> 5;
+            int cm_new = mx[0];
+            double dsum = dm[0];
+#pragma unroll
+            for (int m = 1; m < 4; ++m) if (m_ == m) { cm_new = mx[m]; dsum = dm[m]; }
+            const int cm_old = (int)s.cmx[j];
             if (do_scale) {
                 const int dc = cm_new - cm_old;
-                const double shrink = (dc < nrel) ? (double)rel[dc] : 0.0;
-                const double m = mass_b[j] * shrink + ((q < 32) ? d0 : d1);
+                const double shrink = (dc >= 0 && dc < nrel) ? (double)rel[dc] : 0.0;
+                const double m = mass_b[j] * shrink + dsum;
                 mass_b[j] = m;
                 scale_b[j] = (m > 1e-12) ? (float)((double)setpoint / m) : 1.0f;
             }
@@ -1691,7 +1706,7 @@ __device__ bool pr_write(unsigned int* __restrict__ eb, int DMAX, int K, const P
         const int cm_old = (int)s.cmx[j], cm_new = s.cmx2[q];
         if (do_scale) {
             const int dc = cm_new - cm_old;
-            const double shrink = (dc < nrel) ? (double)rel[dc] : 0.0;
+            const double shrink = (dc >= 0 && dc < nrel) ? (double)rel[dc] : 0.0;
             const double m = mass_b[j] * shrink + s.dmass[q];
             mass_b[j] = m;
             scale_b[j] = (m > 1e-12) ? (float)((double)setpoint / m) : 1.0f;

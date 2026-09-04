@@ -113,8 +113,10 @@ def test_a_different_schedule_in_the_same_launch_does_not_disturb(mod):
     torch.testing.assert_close(together[0], alone[0], rtol=0, atol=0)
 
 
-def test_device_loop_equals_python_loop(mod):
-    """Layer 3 gate: the persistent kernel gives IDENTICAL tables."""
+@pytest.mark.parametrize("feat_k", [50, 100])
+def test_device_loop_equals_python_loop(mod, feat_k):
+    """Layer 3 gate: the persistent kernel gives IDENTICAL tables -- at 50
+    winner columns and at 100 (a lane then owns four slots)."""
     from neural_assemblies.core.torch_engine._scheduled_aligner import (
         ScheduledAligner, pad_schedules, schedule_of)
     from unaligned_scenes import P, BETA
@@ -128,7 +130,7 @@ def test_device_loop_equals_python_loop(mod):
     W, Bd = pad_schedules([schedule_of(exp, wi, bi, order)] * len(seeds))
 
     def run(device_loop):
-        al = ScheduledAligner(seeds, n=1000, k=50, feat_n=1000, feat_k=50,
+        al = ScheduledAligner(seeds, n=1000, k=50, feat_n=1000, feat_k=feat_k,
                               n_words=len(words), n_features=len(features),
                               word_names=[f"phon_{w}" for w in words],
                               feature_names=[f"feat_{f}" for f in features],

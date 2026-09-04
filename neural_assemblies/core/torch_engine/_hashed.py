@@ -791,7 +791,10 @@ class StimulusFiber:
                             device=device).expand(B, size).contiguous()
         self.base = self.mod.hashed_drive(rows, self.seeds, n_post,
                                           self.threshold)
-        self.pot = torch.zeros(B, n_post, dtype=torch.int64, device=device)
+        # an ANCHOR (beta = 0) never potentiates: no counter, no table -- with
+        # a fiber per word, the int64 counter was two thirds of the memory
+        self.pot = (torch.zeros(B, n_post, dtype=torch.int64, device=device)
+                    if self.learns else None)
         self.gain = torch.from_numpy(_gain_table(beta, max_rounds)).to(device)
         self.dj = ((self.base + self.p * (n_post - size)).clamp_min(1.0)
                    if norm_init else None)
