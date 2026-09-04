@@ -77,3 +77,51 @@ candidates are named now so a discrepancy is recognised, not debugged:
 The parser and the census (their organs stack on this one); the
 `NemoArcFSM` unification the transducer's docstring owes; any change to
 the organ's clock, densities or refraction strengths -- those are protocol.
+
+## Progress (2026-09-04, evening)
+
+**GATE-1 PASSED on the first run** (`test_hashed_transducer_parity.py`):
+`HashedTransducer` replays the engine's winners through the four fibers and
+matches the net drive within 5e-6 on every projection into LEX, ARC, STATE
+and OUT, and the accumulated ARC refraction bias within 5e-6. The substrate
+already carried refraction parity from the capacity work; the organ
+inherits it. Committed 3d4aca6.
+
+**The present fiber gained an ABSOLUTE mode** (5fccbae): the organ's
+regime -- weight clip, no column scaling -- priced by count from the
+engine's chain table on the same kernels, gated equal to the store fiber.
+
+**And then the regime, in numbers.** A3's registered parameters are
+n = 10000, k = 200, organ_p = 0.2, n_arc in (2000, 10000, 50000):
+
+    n_arc     LEX->ARC row degree   drive vector (shared)   dense int16 counts / brain   visits per ARC projection
+    2,000        400 entries            8 KB                    38 MB                        0.1 M
+    10,000     2,000                   39 KB                   191 MB                        0.4 M
+    50,000    10,000                  195 KB                   954 MB                        2.0 M
+
+The present-only warp kernel was built for the aligner's regime (p = 0.05,
+n <= ~8000): its per-row lists cap at 512 entries and its drive vector
+lives in shared memory. At organ_p = 0.2 a row has 2,000-10,000 present
+columns and an n_arc = 50,000 drive vector is 195 KB. So the organ's
+registered protocol does not fit the layout that carries the aligner --
+and at 20% density the DENSE count layout (predicated loads, ~full sector
+utilisation) that was deleted today as dead code is the right one, priced
+absolutely, with K = 200 rows and a global-memory drive. "One canonical
+representation" turned out to be one per density regime: present-only
+below ~10%, dense above. That is a substrate fact worth the day.
+
+**Decision to register before building (next):**
+
+* A dense-count kernel for the organ's regime: int16 counts [n_pre, n_post]
+  per fiber per brain (191 MB at n_arc = 10,000; the 50,000 cell needs 1 GB
+  per fiber and a smaller width), K up to 256 rows, absolute chain pricing
+  with clip, norm_init, refraction on the target; the drive as a global
+  [B, N] vector written by a block per brain in row order per column (a
+  thread per column keeps that order for free -- the deleted kernel's
+  structure).
+* Per-brain schedules for the organ (each seed its own corpus): stacked
+  stimuli indexed by word, -1 words and -1 rows as the dead-brain
+  convention (the kernels skip them; a per-brain inhibit sets rows to -1).
+* Then A3 at 20 seeds, paired against the numpy JSON's three, as the
+  first width measurement; GATE-3 (the horizon hitting time) needs the FSM
+  organ's assigned-state core on the same kernel.
