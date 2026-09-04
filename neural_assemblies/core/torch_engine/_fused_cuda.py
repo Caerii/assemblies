@@ -790,6 +790,78 @@ __device__ __forceinline__ unsigned long long sched_key(float v, int j) {
     return ((unsigned long long)u << 16) | (unsigned long long)(65535 - (j & 0xFFFF));
 }
 
+// ---- DENSE ORGAN fiber (DESIGN_sequence_port.md) ---------------------------
+// The organ's regime: organ_p ~ 0.2, k = 200, n to 50,000. Present-only
+// lists do not fit (2,000-10,000 entries per row); at this density the count
+// MATRIX does: int16 counts [n_pre, n_post] per brain, the connectome as the
+// presence bitmask, ABSOLUTE pricing by the engine's chain table (clip
+// included), norm_init, no column scaling. A thread per column sums its K
+// rows IN ROW ORDER -- the store fiber's sequence -- with presence-
+// predicated loads (a predicated-off load fetches nothing, the loads stay in
+// flight: DESIGN_dense_floor.md lessons 2 and 7). The write is a block per
+// winner column. Rows and winners of -1 are skipped: the dead-brain and
+// per-brain-inhibit convention of the scheduled organ.
+#define ORGAN_CH 8
+
+__global__ void organ_drive_kernel(const int* __restrict__ S, int K,
+                                   const short* __restrict__ C,
+                                   const unsigned int* __restrict__ pres, int W,
+                                   const float* __restrict__ invdj,
+                                   const float* __restrict__ tab, int ntab,
+                                   int B, int Npre, int N, float* __restrict__ out) {
+    const long long idx = blockIdx.x * (long long)blockDim.x + threadIdx.x;
+    if (idx >= (long long)B * N) return;
+    const int j = (int)(idx % N), b = (int)(idx / N);
+    const short* Cb = C + (long long)b * Npre * N;
+    const unsigned int* Pb = pres + (long long)b * Npre * W;
+    const int* Sb = S + (long long)b * K;
+    const int wj = j >> 5, bj = j & 31;
+    float acc = 0.0f;
+    for (int s0 = 0; s0 < K; s0 += ORGAN_CH) {
+        int cs[ORGAN_CH];
+        unsigned int pm = 0u;
+#pragma unroll
+        for (int u = 0; u < ORGAN_CH; ++u) {
+            const int sl = s0 + u;
+            const int i = (sl < K) ? Sb[sl] : -1;
+            const unsigned int pw = (i >= 0) ? Pb[(long long)i * W + wj] : 0u;
+            const bool pr = (pw >> bj) & 1u;
+            pm |= (pr ? 1u : 0u) << u;
+            cs[u] = pr ? (int)Cb[(long long)i * N + j] : 0;      // predicated
+        }
+#pragma unroll
+        for (int u = 0; u < ORGAN_CH; ++u) {
+            const int c = cs[u] < ntab ? cs[u] : ntab - 1;       // the chain saturates at the clip
+            acc += ((pm >> u) & 1u) ? tab[c] : 0.0f;
+        }
+    }
+    float v = acc;
+    if (invdj != nullptr) v *= invdj[idx];
+    out[idx] += v;
+}
+
+// one block per (brain, winner column): count the present rows in
+__global__ void organ_write_kernel(const int* __restrict__ P, int KP,
+                                   const int* __restrict__ Wn, int KW,
+                                   short* __restrict__ C,
+                                   const unsigned int* __restrict__ pres, int W,
+                                   int Npre, int N, int* __restrict__ err) {
+    const int b = blockIdx.x / KW, sw = blockIdx.x - b * KW;
+    const int j = Wn[(long long)b * KW + sw];
+    if (j < 0) return;
+    short* Cb = C + (long long)b * Npre * N;
+    const unsigned int* Pb = pres + (long long)b * Npre * W;
+    const int wj = j >> 5, bj = j & 31;
+    for (int sl = threadIdx.x; sl < KP; sl += blockDim.x) {
+        const int i = P[(long long)b * KP + sl];
+        if (i < 0) continue;
+        if (!((Pb[(long long)i * W + wj] >> bj) & 1u)) continue;
+        const int c = (int)Cb[(long long)i * N + j] + 1;
+        if (c > DENSE_CMAX) { atomicExch(err, 1); continue; }
+        Cb[(long long)i * N + j] = (short)c;
+    }
+}
+
 // ---- PRESENT-ONLY cross fiber (DESIGN_present_only.md) --------------------
 // The connectome is FIXED; store only what exists. Per (brain, row): the
 // present columns with their counts, one packed 32-bit entry each (column
@@ -1606,6 +1678,34 @@ torch::Tensor hashed_presence(torch::Tensor seeds, int64_t n_pre, int64_t n_post
     return out;
 }
 
+void organ_drive(torch::Tensor S, torch::Tensor C, torch::Tensor pres, torch::Tensor invdj,
+                 torch::Tensor tab, torch::Tensor out) {
+    S = S.contiguous(); tab = tab.contiguous();
+    TORCH_CHECK(C.scalar_type() == torch::kInt16, "counts are int16");
+    const int B = C.size(0), Npre = C.size(1), N = C.size(2), K = S.size(1), W = pres.size(2);
+    if (K == 0) return;
+    const long long tot = (long long)B * N;
+    const int th = 256;
+    organ_drive_kernel<<<(tot + th - 1) / th, th>>>(
+        S.data_ptr<int>(), K, C.data_ptr<short>(),
+        reinterpret_cast<const unsigned int*>(pres.data_ptr<int>()), W,
+        invdj.numel() ? invdj.data_ptr<float>() : nullptr,
+        tab.data_ptr<float>(), (int)tab.numel(), B, Npre, N, out.data_ptr<float>());
+}
+
+void organ_write(torch::Tensor P, torch::Tensor Wn, torch::Tensor C, torch::Tensor pres,
+                 torch::Tensor err) {
+    P = P.contiguous(); Wn = Wn.contiguous();
+    TORCH_CHECK(C.scalar_type() == torch::kInt16, "counts are int16");
+    const int B = C.size(0), Npre = C.size(1), N = C.size(2), W = pres.size(2);
+    const int KP = P.size(1), KW = Wn.size(1);
+    if (KP == 0 || KW == 0) return;
+    organ_write_kernel<<<B * KW, 128>>>(
+        P.data_ptr<int>(), KP, Wn.data_ptr<int>(), KW, C.data_ptr<short>(),
+        reinterpret_cast<const unsigned int*>(pres.data_ptr<int>()), W,
+        Npre, N, err.data_ptr<int>());
+}
+
 torch::Tensor present_degree(torch::Tensor pres) {
     pres = pres.contiguous();
     const int B = pres.size(0), Npre = pres.size(1), W = pres.size(2);
@@ -1741,6 +1841,8 @@ void dev_correct_rel(torch::Tensor S, torch::Tensor keys, torch::Tensor cnts, to
 std::vector<torch::Tensor> column_mass_rel(torch::Tensor cols, torch::Tensor keys, torch::Tensor cnts, torch::Tensor colmap, torch::Tensor rowmask, torch::Tensor colmask, torch::Tensor scratch, torch::Tensor rel, torch::Tensor seeds, int64_t n, int64_t threshold);
 torch::Tensor hashed_presence(torch::Tensor seeds, int64_t n_pre, int64_t n_post, int64_t threshold);
 torch::Tensor present_degree(torch::Tensor pres);
+void organ_drive(torch::Tensor S, torch::Tensor C, torch::Tensor pres, torch::Tensor invdj, torch::Tensor tab, torch::Tensor out);
+void organ_write(torch::Tensor P, torch::Tensor Wn, torch::Tensor C, torch::Tensor pres, torch::Tensor err);
 torch::Tensor present_fill(torch::Tensor pres, int64_t n_post, int64_t dmax);
 void present_drive(torch::Tensor ent, torch::Tensor S, torch::Tensor cmax, torch::Tensor scale, torch::Tensor invdj, torch::Tensor rel, int64_t nnz, torch::Tensor out, int64_t absolute);
 void present_write(torch::Tensor P, torch::Tensor Wn, torch::Tensor ent, torch::Tensor cmax, torch::Tensor mass, torch::Tensor scale, torch::Tensor rel, int64_t nnz, double setpoint, int64_t do_scale, torch::Tensor err);
@@ -1795,6 +1897,7 @@ def load() -> object | None:
                            "dev_correct_csr", "dev_correct_exact",
                            "column_mass_exact", "dev_correct_rel",
                            "column_mass_rel", "hashed_presence",
+                           "organ_drive", "organ_write",
                            "present_degree", "present_fill", "present_drive",
                            "present_write", "present_train", "present_probe",
                            "column_mass", "topk_select"],

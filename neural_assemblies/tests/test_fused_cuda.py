@@ -610,3 +610,49 @@ def test_present_fiber_absolute_equals_store_fiber(mod):
         torch.testing.assert_close(read(pf, rows), read(store, rows),
                                    rtol=1e-5, atol=1e-6)
     assert int(pf.counts().max()) == 36
+
+
+def test_organ_fiber_equals_store_fiber(mod):
+    """DESIGN_sequence_port.md: the dense organ fiber (p = 0.2, K = 40 rows,
+    clip, norm_init, no scaling) equals `AreaFiber`, and skips -1 rows and
+    winners as the dead-brain convention requires."""
+    from neural_assemblies.core.torch_engine._hashed import (
+        AreaFiber, DenseOrganFiber)
+    n, p, beta, w_max = 512, 0.2, 0.1, 20.0
+    seeds = [4242, 4243]
+    g = torch.Generator(device="cpu").manual_seed(9)
+    store = AreaFiber(seeds, n, n, p, beta=beta, w_max=w_max, norm_init=True,
+                      synaptic_scaling=False, max_rounds=64)
+    org = DenseOrganFiber(seeds, n, n, p, beta=beta, w_max=w_max, norm_init=True,
+                          max_rounds=64)
+
+    def sets():
+        return torch.stack([torch.randperm(n, generator=g)[:40] for _ in range(2)]).to("cuda")
+
+    for _ in range(6):
+        rows, cols = sets(), sets()
+        for f in (store, org):
+            f.begin_episode()
+            for _ in range(5):
+                f.observe(rows, cols)
+            f.end_episode()
+
+    def read(f, rows):
+        d = torch.zeros(2, n, device="cuda")
+        f.contribute(d, rows)
+        return d.cpu()
+
+    rows = sets()
+    torch.testing.assert_close(read(org, rows), read(store, rows), rtol=1e-5, atol=1e-6)
+    # -1 rows are skipped: a half-dead row set reads like the live half alone
+    half = rows.clone()
+    half[:, 20:] = -1
+    live = rows[:, :20]
+    torch.testing.assert_close(read(org, half), read(store, live), rtol=1e-5, atol=1e-6)
+    # a dead brain's write is a no-op
+    before = org.C.clone()
+    dead_rows = torch.full((2, 40), -1, dtype=torch.int64, device="cuda")
+    org.observe(dead_rows, sets())
+    org.observe(sets(), dead_rows)
+    assert torch.equal(org.C, before)
+    assert org.nnz > 0

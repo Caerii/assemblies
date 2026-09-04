@@ -676,6 +676,92 @@ class PresentFiber:
         pass
 
 
+class DenseOrganFiber:
+    """An area -> area fiber in the ORGAN's regime (DESIGN_sequence_port.md):
+    organ_p ~ 0.2, k ~ 200, n to 50,000. Present-only lists do not fit a row
+    of thousands of synapses; the int16 count MATRIX does, and at this
+    density its predicated loads use their sectors. Absolute pricing by the
+    engine's chain table (clip included), norm_init, no column scaling --
+    the same numbers as `AreaFiber` there. Rows and winners of -1 are
+    skipped: the dead-brain and per-brain-inhibit convention.
+    """
+
+    MAX_BYTES = 6 << 30
+    MAX_COUNT = 32767
+
+    def __init__(self, seeds, n_pre, n_post, p, *, beta=0.1, w_max=20.0,
+                 norm_init=True, max_rounds=4096, device="cuda"):
+        self.mod = _fused_cuda.load()
+        if self.mod is None:
+            raise RuntimeError(f"fused kernels unavailable: "
+                               f"{_fused_cuda.last_error()}")
+        B = len(seeds)
+        need = B * n_pre * (n_post * 2 + ((n_post + 31) // 32) * 4)
+        if need > self.MAX_BYTES:
+            raise ValueError(f"organ count matrices would be {need / 2**30:.1f} "
+                             "GiB; fewer brains per launch")
+        self.B, self.n_pre, self.n, self.p = B, n_pre, n_post, float(p)
+        self.beta, self.w_max = float(beta), w_max
+        self.seeds = torch.as_tensor(seeds, dtype=torch.int32, device=device)
+        self.threshold = _fused_cuda.threshold_for(p)
+        self.device = device
+        self.learns = bool(beta)
+        self.relative, self.absolute = False, True
+        self.pres = self.mod.hashed_presence(self.seeds, n_pre, n_post, self.threshold)
+        self.C = torch.zeros(B, n_pre, n_post, dtype=torch.int16, device=device)
+        self.err = torch.zeros(1, dtype=torch.int32, device=device)
+        self.max_rounds = int(max_rounds)
+        self.tab = torch.from_numpy(_chain_table(beta, w_max, self.max_rounds)).to(device)
+        deg = self.mod.hashed_indegree(self.seeds, n_post, self.threshold, 1.0)
+        self.dj = deg if norm_init else None
+        self.invdj = (1.0 / deg) if norm_init else torch.zeros(
+            0, dtype=torch.float32, device=device)
+
+    def counts(self):
+        return self.C
+
+    @property
+    def nnz(self):
+        return int((self.C > 0).sum())
+
+    @property
+    def store(self):
+        self.check()
+        class _S:
+            max_count = int(self.C.max())
+        return _S()
+
+    def check(self):
+        code = int(self.err.item())
+        if code == 1:
+            raise OverflowError(f"a count passed {self.MAX_COUNT}")
+        if code:
+            raise RuntimeError(f"organ fiber kernel error {code}")
+
+    def ensure_depth(self, depth):
+        depth = int(depth)
+        if self.tab.numel() < depth + 1:
+            self.tab = torch.from_numpy(_chain_table(self.beta, self.w_max, depth)).to(self.device)
+
+    def contribute(self, drive, rows):
+        if rows.shape[1] == 0:
+            return
+        self.mod.organ_drive(rows.to(torch.int32), self.C, self.pres, self.invdj,
+                             self.tab, drive)
+
+    def begin_episode(self):
+        pass
+
+    def observe(self, prev, new):
+        if not (self.learns and prev.shape[1] and new.shape[1]):
+            return
+        self.mod.organ_write(prev.to(torch.int32), new.to(torch.int32), self.C,
+                             self.pres, self.err)
+
+    def end_episode(self):
+        pass
+
+
 class StimulusFiber:
     """A stimulus -> area projection. PRE-SUMMED: one weight per target.
 
@@ -858,6 +944,15 @@ class HashedArea:
         """Clear the assembly. The next round is driven by afferents alone."""
         self.winners = torch.zeros(self.B, 0, dtype=torch.int64,
                                    device=self.device)
+
+    def inhibit_rows(self, mask):
+        """Clear the assembly of the brains in `mask` [B] only: their winner
+        rows become -1, which every fiber reads as "no source" -- the
+        per-brain sentence boundary of a scheduled organ."""
+        if self.winners.shape[1] == 0:
+            return
+        mask = torch.as_tensor(mask, dtype=torch.bool, device=self.device)
+        self.winners = self.winners.masked_fill(mask.view(-1, 1), -1)
 
     def project(self, rounds, fibers, *, rows_for=None, freeze=False,
                 stim_drive=None, return_drive=False, mask_bias=False,
