@@ -1202,6 +1202,446 @@ __global__ void sched_train_kernel(const long long* __restrict__ words,
     }
 }
 
+// ---- PRESENT-ONLY cross fiber (DESIGN_present_only.md) --------------------
+// The connectome is FIXED; store only what exists. Per (brain, row): the
+// present columns with their counts, one packed 32-bit entry each (column
+// in the low 16 bits, int16 count in the high 16), padded to DMAX with
+// PR_PAD. A round reads K row lists (~200 B each) instead of K x N counts.
+//
+// ONE WARP PER BRAIN, ROWS IN ORDER. Lanes walk a row's entries; a row's
+// columns are distinct, so `drive[j] += price` is a plain shared add with no
+// race, and every column's sum accumulates in row order -- the SAME float
+// sequence as dense_drive_kernel's per-column loop, hence identical drives.
+// The write's two passes walk rows the same way into per-slot shared
+// accumulators (max, then price change at the new max). Selection is the
+// radix select at warp level. No block barrier inside a round.
+#define PR_PAD 0xFFFFFFFFu
+#define PR_ROWS 4                      // rows whose entries are loaded together
+
+__device__ __forceinline__ int pr_col(unsigned int e) { return (int)(e & 0xFFFFu); }
+__device__ __forceinline__ int pr_cnt(unsigned int e) { return (int)(short)(e >> 16); }
+__device__ __forceinline__ unsigned int pr_pack(int col, int cnt) {
+    return ((unsigned int)(cnt & 0xFFFF) << 16) | ((unsigned int)col & 0xFFFFu);
+}
+
+__global__ void present_degree_kernel(const unsigned int* __restrict__ pres, int W,
+                                      long long rows_total, int* __restrict__ deg) {
+    const long long r = blockIdx.x * (long long)blockDim.x + threadIdx.x;
+    if (r >= rows_total) return;
+    const unsigned int* p = pres + r * W;
+    int d = 0;
+    for (int w = 0; w < W; ++w) d += __popc(p[w]);
+    deg[r] = d;
+}
+
+// a row's set bits, ascending, count 0; then PR_PAD
+__global__ void present_fill_kernel(const unsigned int* __restrict__ pres, int W, int N,
+                                    long long rows_total, int DMAX,
+                                    unsigned int* __restrict__ ent) {
+    const long long r = blockIdx.x * (long long)blockDim.x + threadIdx.x;
+    if (r >= rows_total) return;
+    const unsigned int* p = pres + r * W;
+    unsigned int* e = ent + r * DMAX;
+    int k = 0;
+    for (int w = 0; w < W; ++w) {
+        unsigned int word = p[w];
+        while (word) {
+            const int t = __ffs(word) - 1;
+            word &= word - 1;
+            const int j = (w << 5) + t;
+            if (j < N && k < DMAX) e[k++] = pr_pack(j, 0);
+        }
+    }
+    for (; k < DMAX; ++k) e[k] = PR_PAD;
+}
+
+// per-warp shared buffers
+struct PrShared {
+    double* dmass;        // KW   price-change accumulator per winner slot
+    float* drive;         // N    the round's drive, then its keys in place
+    int* hist;            // 256
+    int* cmx2;            // KW   new column max per slot
+    int* rows;            // K
+    int* win;             // KW
+    int* misc;            // 4    [0] winners found
+    unsigned int* wmask;  // W    winner-column bitmap
+    short* cmx;           // N    staged column max
+    short* slot;          // N    winner column -> slot
+};
+
+__host__ __device__ __forceinline__ size_t pr_warp_bytes(int N, int W, int K, int KW) {
+    size_t b = (size_t)KW * 8 + (size_t)N * 4 + 256 * 4 + (size_t)KW * 4 + (size_t)K * 4
+             + (size_t)KW * 4 + 16 + (size_t)W * 4 + (size_t)N * 2 + (size_t)N * 2;
+    return (b + 7) & ~(size_t)7;
+}
+
+__device__ __forceinline__ PrShared pr_carve(unsigned char* base, int N, int W, int K, int KW) {
+    PrShared s;
+    s.dmass = reinterpret_cast<double*>(base);            base += (size_t)KW * 8;
+    s.drive = reinterpret_cast<float*>(base);             base += (size_t)N * 4;
+    s.hist = reinterpret_cast<int*>(base);                base += 256 * 4;
+    s.cmx2 = reinterpret_cast<int*>(base);                base += (size_t)KW * 4;
+    s.rows = reinterpret_cast<int*>(base);                base += (size_t)K * 4;
+    s.win = reinterpret_cast<int*>(base);                 base += (size_t)KW * 4;
+    s.misc = reinterpret_cast<int*>(base);                base += 16;
+    s.wmask = reinterpret_cast<unsigned int*>(base);      base += (size_t)W * 4;
+    s.cmx = reinterpret_cast<short*>(base);               base += (size_t)N * 2;
+    s.slot = reinterpret_cast<short*>(base);
+    return s;
+}
+
+// drive[j] = SUM over rows in order of price(cmax_j - count_ij), present cells
+template <int MAXIT>
+__device__ void pr_drive(const unsigned int* __restrict__ eb, int DMAX, int K,
+                         const PrShared& s, int N, const float* srel, int nsh,
+                         const float* __restrict__ rel, int nnz) {
+    const int lane = threadIdx.x & 31;
+    for (int j = lane; j < N; j += 32) s.drive[j] = 0.0f;
+    __syncwarp();
+    for (int s0 = 0; s0 < K; s0 += PR_ROWS) {
+        unsigned int e[PR_ROWS][MAXIT];
+#pragma unroll
+        for (int r = 0; r < PR_ROWS; ++r) {                 // PR_ROWS x MAXIT loads in flight
+            const int sl = s0 + r;
+            const int i = (sl < K) ? s.rows[sl] : -1;
+            const unsigned int* re = eb + (long long)(i < 0 ? 0 : i) * DMAX;
+#pragma unroll
+            for (int t = 0; t < MAXIT; ++t) {
+                const int p = lane + 32 * t;
+                e[r][t] = (i >= 0 && p < DMAX) ? re[p] : PR_PAD;
+            }
+        }
+#pragma unroll
+        for (int r = 0; r < PR_ROWS; ++r) {
+#pragma unroll
+            for (int t = 0; t < MAXIT; ++t) {
+                const unsigned int v = e[r][t];
+                if (v != PR_PAD) {
+                    const int j = pr_col(v);
+                    s.drive[j] += sched_price((int)s.cmx[j] - pr_cnt(v), srel, nsh, rel, nnz);
+                }
+            }
+            __syncwarp();                                   // row order
+        }
+    }
+}
+
+// the python path: d = stim; d += drive * scale [* invdj]; ranked = d + jit
+__device__ void pr_keys(const PrShared& s, int N, const float* __restrict__ scale_b,
+                        const float* __restrict__ invdj_b, const float* __restrict__ stim,
+                        const float* __restrict__ jt, unsigned int& kand, unsigned int& kor) {
+    const int lane = threadIdx.x & 31;
+    unsigned int* uk = reinterpret_cast<unsigned int*>(s.drive);
+    unsigned int a = 0xFFFFFFFFu, o = 0u;
+#pragma unroll 4
+    for (int j = lane; j < N; j += 32) {
+        float v = s.drive[j] * scale_b[j];
+        if (invdj_b != nullptr) v *= invdj_b[j];
+        const float dd = stim[j] + v;
+        unsigned int u = __float_as_uint(dd + jt[j]);
+        u = (u & 0x80000000u) ? ~u : (u | 0x80000000u);
+        uk[j] = u; a &= u; o |= u;
+    }
+    kand = __reduce_and_sync(0xFFFFFFFFu, a);
+    kor = __reduce_or_sync(0xFFFFFFFFu, o);
+    __syncwarp();
+}
+
+// the KW largest of the 48-bit keys (key32 << 16 | 65535 - j), warp-level
+// radix select; then the winners into win/wmask/slot, cmx2 and dmass reset.
+__device__ unsigned long long pr_select(const PrShared& s, int N, int W, int KW,
+                                        unsigned int kand, unsigned int kor, int& nfound) {
+    const int lane = threadIdx.x & 31;
+    const unsigned int* uk = reinterpret_cast<const unsigned int*>(s.drive);
+    const int lead = (kand ^ kor) ? __clz(kand ^ kor) : 32;
+    const unsigned long long lmask = lead ? (~0ull << (48 - lead)) : 0ull;
+    unsigned long long prefix = (((unsigned long long)kand) << 16) & lmask, pmask = lmask;
+    int rem = KW;
+    int shift = 40 - lead; if (shift < 0) shift = 0;
+    for (; shift >= 0; shift = (shift >= 8) ? shift - 8 : (shift > 0 ? 0 : -1)) {
+        for (int t = lane; t < 256; t += 32) s.hist[t] = 0;
+        __syncwarp();
+        for (int base = 0; base < N; base += 32) {
+            const int j = base + lane;
+            unsigned long long key = 0ull;
+            bool valid = false;
+            if (j < N) {
+                key = (((unsigned long long)uk[j]) << 16) | (unsigned long long)(65535 - j);
+                valid = ((key & pmask) == prefix);
+            }
+            const unsigned int d = valid ? (unsigned int)((key >> shift) & 0xFFull) : 0u;
+            const unsigned int act = __ballot_sync(0xFFFFFFFFu, valid);
+            if (valid) {
+                const unsigned int m = __match_any_sync(act, d);
+                if ((__ffs(m) - 1) == lane) atomicAdd(&s.hist[d], __popc(m));
+            }
+        }
+        __syncwarp();
+        int sum = 0;
+#pragma unroll
+        for (int t = 0; t < 8; ++t) sum += s.hist[255 - 8 * lane - t];
+        int incl = sum;
+#pragma unroll
+        for (int o = 1; o < 32; o <<= 1) {
+            const int v = __shfl_up_sync(0xFFFFFFFFu, incl, o);
+            if (lane >= o) incl += v;
+        }
+        const int excl = incl - sum;
+        const bool here = (excl < rem) && (rem <= incl);
+        const unsigned int bal = __ballot_sync(0xFFFFFFFFu, here);
+        const int L = __ffs(bal) - 1;
+        int digit = 0, nrem = 0, cnt = 0;
+        if (lane == L) {
+            int acc = excl;
+            for (int t = 0; t < 8; ++t) {
+                const int bin = 255 - 8 * lane - t;
+                const int c = s.hist[bin];
+                if (acc + c >= rem) { digit = bin; nrem = rem - acc; cnt = c; break; }
+                acc += c;
+            }
+        }
+        digit = __shfl_sync(0xFFFFFFFFu, digit, L);
+        nrem = __shfl_sync(0xFFFFFFFFu, nrem, L);
+        cnt = __shfl_sync(0xFFFFFFFFu, cnt, L);
+        prefix |= ((unsigned long long)digit) << shift;
+        pmask |= 0xFFull << shift;
+        rem = nrem;
+        __syncwarp();
+        if (cnt == rem) break;                              // every key with this prefix wins
+    }
+    if (lane == 0) s.misc[0] = 0;
+    for (int w = lane; w < W; w += 32) s.wmask[w] = 0u;
+    __syncwarp();
+    for (int j = lane; j < N; j += 32) {
+        const unsigned long long key = (((unsigned long long)uk[j]) << 16) | (unsigned long long)(65535 - j);
+        if (key >= prefix) {
+            const int pos = atomicAdd(&s.misc[0], 1);
+            if (pos < KW) {
+                s.win[pos] = j; s.slot[j] = (short)pos;
+                s.cmx2[pos] = (int)s.cmx[j]; s.dmass[pos] = 0.0;
+            }
+            atomicOr(&s.wmask[j >> 5], 1u << (j & 31));
+        }
+    }
+    __syncwarp();
+    nfound = s.misc[0];
+    return prefix;
+}
+
+// winners given (win/wmask/slot/cmx2/dmass prepared): count the rows in,
+// then price the change at the new max -- dense_write_kernel's arithmetic
+template <int MAXIT>
+__device__ bool pr_write(unsigned int* __restrict__ eb, int DMAX, int K, const PrShared& s,
+                         int N, const float* srel, int nsh, const float* __restrict__ rel,
+                         int nnz, int nrel, int* __restrict__ cmax_b, double* __restrict__ mass_b,
+                         float* __restrict__ scale_b, float setpoint, int do_scale, int nw) {
+    const int lane = threadIdx.x & 31;
+    bool over = false;
+    for (int pass = 0; pass < (do_scale ? 2 : 1); ++pass) {
+        for (int s0 = 0; s0 < K; s0 += PR_ROWS) {
+            unsigned int e[PR_ROWS][MAXIT];
+#pragma unroll
+            for (int r = 0; r < PR_ROWS; ++r) {
+                const int sl = s0 + r;
+                const int i = (sl < K) ? s.rows[sl] : -1;
+                const unsigned int* re = eb + (long long)(i < 0 ? 0 : i) * DMAX;
+#pragma unroll
+                for (int t = 0; t < MAXIT; ++t) {
+                    const int p = lane + 32 * t;
+                    e[r][t] = (i >= 0 && p < DMAX) ? re[p] : PR_PAD;
+                }
+            }
+#pragma unroll
+            for (int r = 0; r < PR_ROWS; ++r) {
+                const int sl = s0 + r;
+                const int i = (sl < K) ? s.rows[sl] : -1;
+                unsigned int* re = eb + (long long)(i < 0 ? 0 : i) * DMAX;
+#pragma unroll
+                for (int t = 0; t < MAXIT; ++t) {
+                    const unsigned int v = e[r][t];
+                    if (v == PR_PAD) continue;
+                    const int j = pr_col(v);
+                    if (!((s.wmask[j >> 5] >> (j & 31)) & 1u)) continue;
+                    const int sl_ = (int)s.slot[j];
+                    if (pass == 0) {
+                        const int c = pr_cnt(v) + 1;
+                        if (c > DENSE_CMAX) { over = true; continue; }
+                        re[lane + 32 * t] = pr_pack(j, c);
+                        if (c > s.cmx2[sl_]) s.cmx2[sl_] = c;       // distinct slots within a row
+                    } else {
+                        const int c = pr_cnt(v);                     // already incremented
+                        const int cm_new = s.cmx2[sl_];
+                        const int dn = cm_new - c, dold = cm_new - (c - 1);
+                        const float rn = sched_price(dn, srel, nsh, rel, nnz);
+                        const float ro = sched_price(dold, srel, nsh, rel, nnz);
+                        s.dmass[sl_] += (double)rn - (double)ro;     // row order
+                    }
+                }
+                __syncwarp();
+            }
+        }
+    }
+    for (int q = lane; q < nw; q += 32) {
+        const int j = s.win[q];
+        const int cm_old = (int)s.cmx[j], cm_new = s.cmx2[q];
+        if (do_scale) {
+            const int dc = cm_new - cm_old;
+            const double shrink = (dc < nrel) ? (double)rel[dc] : 0.0;
+            const double m = mass_b[j] * shrink + s.dmass[q];
+            mass_b[j] = m;
+            scale_b[j] = (m > 1e-12) ? (float)((double)setpoint / m) : 1.0f;
+        }
+        cmax_b[j] = cm_new;
+        s.cmx[j] = (short)cm_new;
+    }
+    __syncwarp();
+    return over;
+}
+
+// LAYER 3 on the present-only fiber: a warp per brain walks its schedule.
+template <int MAXIT>
+__global__ void present_train_kernel(const long long* __restrict__ words,
+                                     const long long* __restrict__ bundles, int S,
+                                     const long long* __restrict__ lex_cache, int V, int K,
+                                     const float* __restrict__ bundle_drive,
+                                     const float* __restrict__ jit, int I,
+                                     unsigned int* __restrict__ ent, int DMAX,
+                                     int* __restrict__ cmax, double* __restrict__ mass,
+                                     float* __restrict__ scale, const float* __restrict__ invdj,
+                                     const float* __restrict__ rel, int nrel, int nsh, int nnz,
+                                     int Npre, int N, float setpoint, int rounds, int KW, int B,
+                                     int* __restrict__ err) {
+    extern __shared__ unsigned char smem_raw[];
+    const int W = (N + 31) / 32;
+    const int warp = threadIdx.x >> 5, lane = threadIdx.x & 31, WPB = blockDim.x >> 5;
+    float* srel = reinterpret_cast<float*>(smem_raw);
+    const size_t srel_bytes = ((size_t)nsh * 4 + 7) & ~(size_t)7;
+    PrShared s = pr_carve(smem_raw + srel_bytes + (size_t)warp * pr_warp_bytes(N, W, K, KW), N, W, K, KW);
+    for (int t = threadIdx.x; t < nsh; t += blockDim.x) srel[t] = rel[t];
+    __syncthreads();                                        // the only block barrier
+    const int b = blockIdx.x * WPB + warp;
+    if (b >= B) return;
+    unsigned int* eb = ent + (long long)b * Npre * DMAX;
+    int* cmax_b = cmax + (long long)b * N;
+    double* mass_b = mass + (long long)b * N;
+    float* scale_b = scale + (long long)b * N;
+    const float* invdj_b = (invdj != nullptr) ? invdj + (long long)b * N : nullptr;
+    for (int j = lane; j < N; j += 32) s.cmx[j] = (short)cmax_b[j];
+    __syncwarp();
+    for (int st = 0; st < S; ++st) {
+        const long long w = words[(long long)b * S + st];
+        const long long bid = bundles[(long long)b * S + st];
+        if (w < 0 || bid < 0) break;
+        for (int t = lane; t < K; t += 32)
+            s.rows[t] = (int)lex_cache[((long long)b * V + w) * K + t];
+        __syncwarp();
+        const float* stim = bundle_drive + ((long long)b * I + bid) * N;
+        const float* jt = jit + ((long long)b * I + bid) * N;
+        for (int r = 0; r < rounds; ++r) {
+            pr_drive<MAXIT>(eb, DMAX, K, s, N, srel, nsh, rel, nnz);
+            unsigned int kand, kor;
+            pr_keys(s, N, scale_b, invdj_b, stim, jt, kand, kor);
+            int nfound;
+            pr_select(s, N, W, KW, kand, kor, nfound);
+            if (nfound != KW) { if (lane == 0) atomicExch(err, 2); return; }
+            const bool over = pr_write<MAXIT>(eb, DMAX, K, s, N, srel, nsh, rel, nnz, nrel,
+                                              cmax_b, mass_b, scale_b, setpoint, 1, KW);
+            if (__any_sync(0xFFFFFFFFu, over) && lane == 0) atomicExch(err, 1);
+        }
+    }
+}
+
+// the python path's drive: out[b, j] += scale * invdj * SUM_rows price
+template <int MAXIT>
+__global__ void present_drive_kernel(const unsigned int* __restrict__ ent, int DMAX,
+                                     const int* __restrict__ S, int K,
+                                     const int* __restrict__ cmax, const float* __restrict__ scale,
+                                     const float* __restrict__ invdj, const float* __restrict__ rel,
+                                     int nnz, int Npre, int N, float* __restrict__ out) {
+    extern __shared__ unsigned char smem_raw[];
+    __shared__ float dummy[1];
+    const int W = (N + 31) / 32, lane = threadIdx.x & 31, b = blockIdx.x;
+    PrShared s = pr_carve(smem_raw, N, W, K, 1);
+    for (int j = lane; j < N; j += 32) s.cmx[j] = (short)cmax[(long long)b * N + j];
+    for (int t = lane; t < K; t += 32) s.rows[t] = S[(long long)b * K + t];
+    __syncwarp();
+    pr_drive<MAXIT>(ent + (long long)b * Npre * DMAX, DMAX, K, s, N, dummy, 0, rel, nnz);
+    for (int j = lane; j < N; j += 32) {
+        float v = s.drive[j] * scale[(long long)b * N + j];
+        if (invdj != nullptr) v *= invdj[(long long)b * N + j];
+        out[(long long)b * N + j] += v;
+    }
+}
+
+// the python path's write: winners GIVEN
+template <int MAXIT>
+__global__ void present_write_kernel(const int* __restrict__ P, int KP,
+                                     const int* __restrict__ Wn, int KW,
+                                     unsigned int* __restrict__ ent, int DMAX,
+                                     int* __restrict__ cmax, double* __restrict__ mass,
+                                     float* __restrict__ scale, const float* __restrict__ rel,
+                                     int nrel, int nnz, int Npre, int N, float setpoint,
+                                     int do_scale, int* __restrict__ err) {
+    extern __shared__ unsigned char smem_raw[];
+    __shared__ float dummy[1];
+    const int W = (N + 31) / 32, lane = threadIdx.x & 31, b = blockIdx.x;
+    PrShared s = pr_carve(smem_raw, N, W, KP, KW);
+    for (int j = lane; j < N; j += 32) s.cmx[j] = (short)cmax[(long long)b * N + j];
+    for (int t = lane; t < KP; t += 32) s.rows[t] = P[(long long)b * KP + t];
+    for (int w = lane; w < W; w += 32) s.wmask[w] = 0u;
+    if (lane == 0) s.misc[0] = 0;
+    __syncwarp();
+    for (int t = lane; t < KW; t += 32) {
+        const int j = Wn[(long long)b * KW + t];
+        if (j < 0) continue;
+        const int pos = atomicAdd(&s.misc[0], 1);
+        s.win[pos] = j; s.slot[j] = (short)pos;
+        s.cmx2[pos] = (int)s.cmx[j]; s.dmass[pos] = 0.0;
+        atomicOr(&s.wmask[j >> 5], 1u << (j & 31));
+    }
+    __syncwarp();
+    const int nw = s.misc[0];
+    if (nw == 0) return;
+    const bool over = pr_write<MAXIT>(ent + (long long)b * Npre * DMAX, DMAX, KP, s, N, dummy, 0,
+                                      rel, nnz, nrel, cmax + (long long)b * N,
+                                      mass + (long long)b * N, scale + (long long)b * N,
+                                      setpoint, do_scale, nw);
+    if (__any_sync(0xFFFFFFFFu, over) && lane == 0) atomicExch(err, 1);
+}
+
+// the roofline probe for this layout: K row lists per round, a warp per
+// brain, rows shifting each round -- the drive's reads and nothing else
+template <int MAXIT>
+__global__ void present_probe_kernel(const unsigned int* __restrict__ ent, int DMAX,
+                                     const int* __restrict__ S, int K, int Npre,
+                                     int rounds, float* __restrict__ out) {
+    const int warp = threadIdx.x >> 5, lane = threadIdx.x & 31, WPB = blockDim.x >> 5;
+    const int b = blockIdx.x * WPB + warp;
+    const unsigned int* eb = ent + (long long)b * Npre * DMAX;
+    float acc = 0.0f;
+    for (int r = 0; r < rounds; ++r) {
+        for (int s0 = 0; s0 < K; s0 += PR_ROWS) {
+            unsigned int e[PR_ROWS][MAXIT];
+#pragma unroll
+            for (int q = 0; q < PR_ROWS; ++q) {
+                const int sl = s0 + q;
+                const int i = (sl < K) ? (S[(long long)b * K + sl] + r) % Npre : -1;
+                const unsigned int* re = eb + (long long)(i < 0 ? 0 : i) * DMAX;
+#pragma unroll
+                for (int t = 0; t < MAXIT; ++t) {
+                    const int p = lane + 32 * t;
+                    e[q][t] = (i >= 0 && p < DMAX) ? re[p] : PR_PAD;
+                }
+            }
+#pragma unroll
+            for (int q = 0; q < PR_ROWS; ++q)
+#pragma unroll
+                for (int t = 0; t < MAXIT; ++t) acc += (float)(e[q][t] & 0xFFu);
+        }
+    }
+    out[(long long)b * 32 + lane] = acc;
+}
+
 // The ROOFLINE PROBE (DESIGN_dense_floor.md): the drive's reads -- K rows of
 // int16 counts across N columns per round, the row set shifting each round
 // so the lines are not the same ones -- and nothing else, in the training
@@ -1454,6 +1894,112 @@ void sched_train(torch::Tensor words, torch::Tensor bundles,
         Npre, N, (float)setpoint, (int)rounds, (int)kw, err.data_ptr<int>(), sms);
 }
 
+torch::Tensor present_degree(torch::Tensor pres) {
+    pres = pres.contiguous();
+    const int B = pres.size(0), Npre = pres.size(1), W = pres.size(2);
+    auto out = torch::empty({B, Npre}, torch::dtype(torch::kInt32).device(pres.device()));
+    const long long tot = (long long)B * Npre;
+    const int th = 256;
+    present_degree_kernel<<<(tot + th - 1) / th, th>>>(
+        reinterpret_cast<const unsigned int*>(pres.data_ptr<int>()), W, tot, out.data_ptr<int>());
+    return out;
+}
+
+torch::Tensor present_fill(torch::Tensor pres, int64_t n_post, int64_t dmax) {
+    pres = pres.contiguous();
+    const int B = pres.size(0), Npre = pres.size(1), W = pres.size(2);
+    auto out = torch::empty({B, Npre, dmax}, torch::dtype(torch::kInt32).device(pres.device()));
+    const long long tot = (long long)B * Npre;
+    const int th = 256;
+    present_fill_kernel<<<(tot + th - 1) / th, th>>>(
+        reinterpret_cast<const unsigned int*>(pres.data_ptr<int>()), W, (int)n_post, tot,
+        (int)dmax, reinterpret_cast<unsigned int*>(out.data_ptr<int>()));
+    return out;
+}
+
+template <typename F>
+static void pr_dispatch(int dmax, F&& f) {
+    if (dmax <= 128) f(std::integral_constant<int, 4>{});
+    else if (dmax <= 512) f(std::integral_constant<int, 16>{});
+    else TORCH_CHECK(false, "row degree too large for the present-only kernels");
+}
+
+void present_drive(torch::Tensor ent, torch::Tensor S, torch::Tensor cmax,
+                   torch::Tensor scale, torch::Tensor invdj, torch::Tensor rel,
+                   int64_t nnz, torch::Tensor out) {
+    S = S.contiguous(); rel = rel.contiguous();
+    const int B = ent.size(0), Npre = ent.size(1), DMAX = ent.size(2);
+    const int K = S.size(1), N = out.size(1), W = (N + 31) / 32;
+    if (K == 0) return;
+    const size_t shm = pr_warp_bytes(N, W, K, 1);
+    pr_dispatch(DMAX, [&](auto tag) { constexpr int MAXIT = decltype(tag)::value;
+        cudaFuncSetAttribute(present_drive_kernel<MAXIT>, cudaFuncAttributeMaxDynamicSharedMemorySize, (int)shm);
+        present_drive_kernel<MAXIT><<<B, 32, shm>>>(
+            reinterpret_cast<const unsigned int*>(ent.data_ptr<int>()), DMAX,
+            S.data_ptr<int>(), K, cmax.data_ptr<int>(), scale.data_ptr<float>(),
+            invdj.numel() ? invdj.data_ptr<float>() : nullptr, rel.data_ptr<float>(),
+            (int)nnz, Npre, N, out.data_ptr<float>()); });
+}
+
+void present_write(torch::Tensor P, torch::Tensor Wn, torch::Tensor ent, torch::Tensor cmax,
+                   torch::Tensor mass, torch::Tensor scale, torch::Tensor rel, int64_t nnz,
+                   double setpoint, int64_t do_scale, torch::Tensor err) {
+    P = P.contiguous(); Wn = Wn.contiguous(); rel = rel.contiguous();
+    const int B = ent.size(0), Npre = ent.size(1), DMAX = ent.size(2);
+    const int KP = P.size(1), KW = Wn.size(1), N = cmax.size(1), W = (N + 31) / 32;
+    if (KP == 0 || KW == 0) return;
+    const size_t shm = pr_warp_bytes(N, W, KP, KW);
+    pr_dispatch(DMAX, [&](auto tag) { constexpr int MAXIT = decltype(tag)::value;
+        cudaFuncSetAttribute(present_write_kernel<MAXIT>, cudaFuncAttributeMaxDynamicSharedMemorySize, (int)shm);
+        present_write_kernel<MAXIT><<<B, 32, shm>>>(
+            P.data_ptr<int>(), KP, Wn.data_ptr<int>(), KW,
+            reinterpret_cast<unsigned int*>(ent.data_ptr<int>()), DMAX,
+            cmax.data_ptr<int>(), mass.data_ptr<double>(), scale.data_ptr<float>(),
+            rel.data_ptr<float>(), (int)rel.numel(), (int)nnz, Npre, N, (float)setpoint,
+            (int)do_scale, err.data_ptr<int>()); });
+}
+
+void present_train(torch::Tensor words, torch::Tensor bundles, torch::Tensor lex_cache,
+                   torch::Tensor bundle_drive, torch::Tensor jit, torch::Tensor ent,
+                   torch::Tensor cmax, torch::Tensor mass, torch::Tensor scale,
+                   torch::Tensor invdj, torch::Tensor rel, double setpoint, int64_t rounds,
+                   int64_t kw, torch::Tensor err, int64_t nsh, int64_t nnz, int64_t wpb) {
+    words = words.contiguous(); bundles = bundles.contiguous();
+    lex_cache = lex_cache.contiguous(); bundle_drive = bundle_drive.contiguous();
+    jit = jit.contiguous(); rel = rel.contiguous();
+    const int B = ent.size(0), Npre = ent.size(1), DMAX = ent.size(2);
+    const int S = words.size(1), V = lex_cache.size(1), K = lex_cache.size(2);
+    const int I = bundle_drive.size(1), N = bundle_drive.size(2), W = (N + 31) / 32;
+    TORCH_CHECK(N <= 65535, "N must fit the 16-bit column field");
+    TORCH_CHECK(nsh >= 0 && nsh <= nnz && nnz <= rel.numel(), "nsh/nnz");
+    TORCH_CHECK(wpb >= 1 && wpb <= 32, "warps per block");
+    const size_t shm = (((size_t)nsh * 4 + 7) & ~(size_t)7) + (size_t)wpb * pr_warp_bytes(N, W, K, (int)kw);
+    TORCH_CHECK(shm <= 96 * 1024, "per-warp buffers exceed shared memory; fewer warps per block");
+    const int blocks = (B + (int)wpb - 1) / (int)wpb;
+    pr_dispatch(DMAX, [&](auto tag) { constexpr int MAXIT = decltype(tag)::value;
+        cudaFuncSetAttribute(present_train_kernel<MAXIT>, cudaFuncAttributeMaxDynamicSharedMemorySize, (int)shm);
+        present_train_kernel<MAXIT><<<blocks, 32 * (int)wpb, shm>>>(
+            words.data_ptr<int64_t>(), bundles.data_ptr<int64_t>(), S,
+            lex_cache.data_ptr<int64_t>(), V, K, bundle_drive.data_ptr<float>(),
+            jit.data_ptr<float>(), I, reinterpret_cast<unsigned int*>(ent.data_ptr<int>()), DMAX,
+            cmax.data_ptr<int>(), mass.data_ptr<double>(), scale.data_ptr<float>(),
+            invdj.numel() ? invdj.data_ptr<float>() : nullptr, rel.data_ptr<float>(),
+            (int)rel.numel(), (int)nsh, (int)nnz, Npre, N, (float)setpoint, (int)rounds,
+            (int)kw, B, err.data_ptr<int>()); });
+}
+
+torch::Tensor present_probe(torch::Tensor ent, torch::Tensor S, int64_t rounds, int64_t wpb) {
+    S = S.contiguous();
+    const int B = ent.size(0), Npre = ent.size(1), DMAX = ent.size(2), K = S.size(1);
+    TORCH_CHECK(B % wpb == 0, "B must be a multiple of warps per block");
+    auto out = torch::zeros({B, 32}, torch::dtype(torch::kFloat32).device(ent.device()));
+    pr_dispatch(DMAX, [&](auto tag) { constexpr int MAXIT = decltype(tag)::value;
+        present_probe_kernel<MAXIT><<<B / (int)wpb, 32 * (int)wpb>>>(
+            reinterpret_cast<const unsigned int*>(ent.data_ptr<int>()), DMAX,
+            S.data_ptr<int>(), K, Npre, (int)rounds, out.data_ptr<float>()); });
+    return out;
+}
+
 torch::Tensor stream_probe(torch::Tensor C, torch::Tensor S, int64_t rounds) {
     S = S.contiguous();
     TORCH_CHECK(C.scalar_type() == torch::kInt16, "counts are int16");
@@ -1498,6 +2044,12 @@ void dense_drive(torch::Tensor S, torch::Tensor C, torch::Tensor pres, torch::Te
 void dense_write(torch::Tensor P, torch::Tensor Wn, torch::Tensor C, torch::Tensor pres, torch::Tensor cmax, torch::Tensor mass, torch::Tensor scale, torch::Tensor rel, double setpoint, int64_t do_scale, torch::Tensor err);
 void sched_train(torch::Tensor words, torch::Tensor bundles, torch::Tensor lex_cache, torch::Tensor bundle_drive, torch::Tensor jit, torch::Tensor C, torch::Tensor pres, torch::Tensor cmax, torch::Tensor mass, torch::Tensor scale, torch::Tensor invdj, torch::Tensor rel, double setpoint, int64_t rounds, int64_t kw, torch::Tensor err, int64_t nsh, int64_t nnz);
 torch::Tensor stream_probe(torch::Tensor C, torch::Tensor S, int64_t rounds);
+torch::Tensor present_degree(torch::Tensor pres);
+torch::Tensor present_fill(torch::Tensor pres, int64_t n_post, int64_t dmax);
+void present_drive(torch::Tensor ent, torch::Tensor S, torch::Tensor cmax, torch::Tensor scale, torch::Tensor invdj, torch::Tensor rel, int64_t nnz, torch::Tensor out);
+void present_write(torch::Tensor P, torch::Tensor Wn, torch::Tensor ent, torch::Tensor cmax, torch::Tensor mass, torch::Tensor scale, torch::Tensor rel, int64_t nnz, double setpoint, int64_t do_scale, torch::Tensor err);
+void present_train(torch::Tensor words, torch::Tensor bundles, torch::Tensor lex_cache, torch::Tensor bundle_drive, torch::Tensor jit, torch::Tensor ent, torch::Tensor cmax, torch::Tensor mass, torch::Tensor scale, torch::Tensor invdj, torch::Tensor rel, double setpoint, int64_t rounds, int64_t kw, torch::Tensor err, int64_t nsh, int64_t nnz, int64_t wpb);
+torch::Tensor present_probe(torch::Tensor ent, torch::Tensor S, int64_t rounds, int64_t wpb);
 std::vector<torch::Tensor> topk_select(torch::Tensor x, int64_t K);
 """
 
@@ -1548,6 +2100,8 @@ def load() -> object | None:
                            "column_mass_exact", "dev_correct_rel",
                            "column_mass_rel", "hashed_presence", "dense_drive",
                            "dense_write", "sched_train", "stream_probe",
+                           "present_degree", "present_fill", "present_drive",
+                           "present_write", "present_train", "present_probe",
                            "column_mass", "topk_select"],
                 verbose=False, extra_cuda_cflags=["-O3"])
         except Exception as exc:                       # noqa: BLE001

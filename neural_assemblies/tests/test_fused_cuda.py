@@ -557,3 +557,103 @@ def test_stream_probe_runs(mod):
     S = torch.randint(0, 200, (2, 50), dtype=torch.int32, device="cuda")
     out = mod.stream_probe(C, S, 3)
     assert out.shape == (2, 256) and torch.isfinite(out).all()
+
+
+def test_present_lists_are_the_mask(mod):
+    """GATE-4b (DESIGN_present_only.md): every row's entries are exactly its
+    set bits, ascending, count 0; the rest is padding."""
+    from neural_assemblies.core.torch_engine._hashed import PresentFiber
+    f = PresentFiber([11, 12], 300, 1000, 0.05)
+    pres = mod.hashed_presence(f.seeds, 300, 1000, f.threshold)
+    bits = ((pres.unsqueeze(-1) >> torch.arange(32, device="cuda")) & 1)
+    bits = bits.reshape(2, 300, -1)[:, :, :1000].bool()
+    cols = f.columns()
+    for b in range(2):
+        for i in (0, 7, 150, 299):
+            want = torch.nonzero(bits[b, i]).flatten()
+            got = cols[b, i]
+            got = got[got >= 0]
+            assert torch.equal(got, want)
+    assert int(f.counts().sum()) == 0 and f.DMAX == int(bits.sum(2).max())
+
+
+def test_present_fiber_equals_store_fiber(mod):
+    """GATE-3 (DESIGN_present_only.md): `PresentFiber` and `AreaFiber`
+    (unclipped, scaled, relative) are the same numbers on the same writes."""
+    from neural_assemblies.core.torch_engine._hashed import (
+        AreaFiber, PresentFiber)
+    n, p, beta = 256, 0.2, 0.1
+    seeds = [4242, 4243]
+    rows_a = torch.tensor([[1, 2, 3, 4, 5], [7, 8, 9, 10, 11]], device="cuda")
+    rows_b = torch.tensor([[6, 7, 8, 9, 10], [1, 2, 3, 4, 5]], device="cuda")
+    cols_a = torch.tensor([[10, 11, 12, 13, 14], [20, 21, 22, 23, 24]],
+                          device="cuda")
+    cols_b = torch.tensor([[12, 13, 14, 15, 16], [22, 23, 24, 25, 26]],
+                          device="cuda")
+    store = AreaFiber(seeds, n, n, p, beta=beta, w_max=None, norm_init=True,
+                      synaptic_scaling=True, max_rounds=64)
+    pf = PresentFiber(seeds, n, n, p, beta=beta, norm_init=True,
+                      synaptic_scaling=True, max_rounds=64)
+    for f in (store, pf):
+        for _ in range(3):
+            f.begin_episode()
+            for _ in range(4):
+                f.observe(rows_a, cols_a)
+            f.observe(rows_b, cols_b)
+            f.end_episode()
+
+    def read(f, rows):
+        d = torch.zeros(2, n, device="cuda")
+        f.contribute(d, rows)
+        return d.cpu()
+
+    for rows in (rows_a, rows_b):
+        torch.testing.assert_close(read(pf, rows), read(store, rows),
+                                   rtol=1e-5, atol=1e-6)
+    torch.testing.assert_close(pf.cmax.cpu(), store.cmax.cpu())
+    assert 0 < pf.nnz < store.nnz
+
+
+def test_present_fiber_equals_dense_fiber_exactly(mod):
+    """The two layouts sum in the same row order: drives IDENTICAL (atol 0)."""
+    from neural_assemblies.core.torch_engine._hashed import (
+        DenseAreaFiber, PresentFiber)
+    n, p, beta = 512, 0.05, 0.1
+    seeds = [7, 8, 9]
+    g = torch.Generator(device="cpu").manual_seed(3)
+    dense = DenseAreaFiber(seeds, n, n, p, beta=beta, norm_init=True, max_rounds=64)
+    pf = PresentFiber(seeds, n, n, p, beta=beta, norm_init=True, max_rounds=64)
+    # winners are DISTINCT (k-WTA); the dense write gives a column a block,
+    # so a duplicated column would be counted twice there and once here
+    def sets():
+        return torch.stack([torch.randperm(n, generator=g)[:20] for _ in range(3)]).to("cuda")
+    for _ in range(12):
+        rows, cols = sets(), sets()
+        for f in (dense, pf):
+            f.observe(rows, cols)
+    rows = sets()
+    d1 = torch.zeros(3, n, device="cuda"); dense.contribute(d1, rows)
+    d2 = torch.zeros(3, n, device="cuda"); pf.contribute(d2, rows)
+    torch.testing.assert_close(d2, d1, rtol=0, atol=0)
+    torch.testing.assert_close(pf.cmax, dense.cmax, rtol=0, atol=0)
+    torch.testing.assert_close(pf.mass, dense.mass, rtol=0, atol=0)
+
+
+def test_present_fiber_flags_count_overflow(mod):
+    from neural_assemblies.core.torch_engine._hashed import PresentFiber
+    f = PresentFiber([5], 64, 64, 0.5, beta=0.1, max_rounds=8)
+    rows = torch.arange(8, device="cuda").view(1, 8)
+    edge = (f.ent & 0xFFFF) | (f.MAX_COUNT << 16)
+    f.ent = torch.where(f.ent == -1, f.ent, edge)
+    f.cmax.fill_(f.MAX_COUNT)
+    f.observe(rows, rows)
+    with pytest.raises(OverflowError):
+        f.check()
+
+
+def test_present_probe_runs(mod):
+    from neural_assemblies.core.torch_engine._hashed import PresentFiber
+    f = PresentFiber([1, 2, 3, 4], 200, 1000, 0.05)
+    S = torch.randint(0, 200, (4, 50), dtype=torch.int32, device="cuda")
+    out = mod.present_probe(f.ent, S, 3, 4)
+    assert out.shape == (4, 32) and torch.isfinite(out).all()

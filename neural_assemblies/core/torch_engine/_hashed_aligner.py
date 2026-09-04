@@ -39,7 +39,7 @@ from __future__ import annotations
 import torch
 
 from ..numpy_engine import _seeding
-from ._hashed import AreaFiber, DenseAreaFiber, HashedArea, StimulusFiber
+from ._hashed import AreaFiber, DenseAreaFiber, HashedArea, PresentFiber, StimulusFiber
 
 LEX, FEAT = "LEX", "FEAT"
 
@@ -63,7 +63,7 @@ class HashedAligner:
                  norm_init=True, scaling=True, rounds_word=5,
                  max_potentiations=4096, device="cuda", track_pinned=False,
                  tie_jitter=1e-6, stim_beta=0.0, stim_gain=None,
-                 store="dense"):
+                 store="present"):
         self.seeds = [int(s) for s in brain_seeds]
         self.B = len(self.seeds)
         self.n, self.k, self.feat_n, self.feat_k = n, k, feat_n, feat_k
@@ -133,7 +133,15 @@ class HashedAligner:
         # One 1-round episode per training round keeps the mask narrow; the
         # store's LSM absorbs the appends. `max_rounds` here is the chain
         # table's reach in POTENTIATIONS (see above), not the episode.
-        if store == "dense":
+        if store == "present":
+            # store only what exists; a warp per brain (DESIGN_present_only.md)
+            if w_max is not None:
+                raise ValueError("the present-only fiber is the unclipped regime")
+            self.cross = PresentFiber(pair_seeds(self.seeds, LEX, FEAT), n,
+                                      feat_n, p, beta=beta, norm_init=norm_init,
+                                      synaptic_scaling=scaling,
+                                      max_rounds=max_potentiations, device=device)
+        elif store == "dense":
             # The count matrix fits at study sizes: one launch per drive, one
             # per write, no store walk (DESIGN_dense_cross_fiber.md).
             if w_max is not None:

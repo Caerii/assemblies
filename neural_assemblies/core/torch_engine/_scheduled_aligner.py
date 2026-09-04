@@ -28,7 +28,7 @@ from __future__ import annotations
 
 import torch
 
-from ._hashed import DenseAreaFiber, HashedArea, StimulusFiber, _fused_cuda
+from ._hashed import HashedArea, PresentFiber, StimulusFiber, _fused_cuda
 from ._hashed_aligner import FEAT, LEX, pair_seeds
 
 
@@ -100,12 +100,14 @@ class ScheduledAligner:
                                     device=device) for fn in fnames]
         for f in self.phon + self.featf:
             f.drive_gain = gain
-        self.cross = DenseAreaFiber(pair_seeds(self.seeds, LEX, FEAT), n,
-                                    feat_n, p, beta=beta, norm_init=norm_init,
-                                    synaptic_scaling=scaling,
-                                    max_rounds=max_potentiations,
-                                    device=device)
+        self.cross = PresentFiber(pair_seeds(self.seeds, LEX, FEAT), n,
+                                  feat_n, p, beta=beta, norm_init=norm_init,
+                                  synaptic_scaling=scaling,
+                                  max_rounds=max_potentiations,
+                                  device=device)
         self._prepared = False
+        #: brains per block in the persistent kernel (a warp each)
+        self.warps_per_block = 4
 
     # -- anchors -------------------------------------------------------------
     def _select(self, area, drive, fibers):
@@ -166,10 +168,11 @@ class ScheduledAligner:
         """`words`, `bundles`: [B, S] int64 schedules, -1 past the end.
 
         ``device_loop=True`` runs the whole schedule in ONE launch
-        (layer 3, `sched_train_kernel`): one 256-thread block per brain,
-        the drive over the presence bitmask, the selection (radix select on
-        `topk_select`'s own key) and the write all on the device. Gated to
-        give IDENTICAL tables to the python loop below.
+        (`present_train_kernel`, DESIGN_present_only.md): one WARP per
+        brain walks its rows in order over the present-only lists; the
+        selection is a warp-level radix select on `topk_select`'s own key;
+        no block barrier inside a round. Gated to give IDENTICAL tables to
+        the python loop below.
         """
         assert self._prepared, "call prepare(features) first"
         B, dev = self.B, self.device
@@ -178,16 +181,12 @@ class ScheduledAligner:
         words, bundles = words.to(dev), bundles.to(dev)
         if device_loop:
             cf = self.cross
-            # the price table is staged in shared memory up to its first
-            # exact zero (it is monotone; the tail IS zero), capped at the
-            # kernel's slot count -- deeper indices read the global table
-            nnz = int((cf.rel > 0).sum())
-            nsh = min(nnz, 1024)
-            self.mod.sched_train(
+            nnz, nsh = cf.price_head()
+            self.mod.present_train(
                 words, bundles, self.lex_cache, self.bundle_drive,
-                self.jit_cross, cf.C, cf.pres, cf.cmax, cf.mass, cf.scale,
+                self.jit_cross, cf.ent, cf.cmax, cf.mass, cf.scale,
                 cf.invdj, cf.rel, float(cf.setpoint), self.rounds_word,
-                self.feat_k, cf.err, nsh, nnz)
+                self.feat_k, cf.err, nsh, nnz, self.warps_per_block)
             torch.cuda.synchronize()
             cf.check()
             return

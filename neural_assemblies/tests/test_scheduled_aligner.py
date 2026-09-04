@@ -135,7 +135,7 @@ def test_device_loop_equals_python_loop(mod):
                               p=P, beta=BETA, rounds_word=2)
         al.prepare(_features_tensor(inventory, features, len(seeds)))
         al.train(W, Bd, device_loop=device_loop)
-        return al.overlap_table(), al.cross.cmax.clone(), al.cross.C.clone()
+        return al.overlap_table(), al.cross.cmax.clone(), al.cross.counts().clone()
 
     tab_py, cmax_py, C_py = run(False)
     tab_dev, cmax_dev, C_dev = run(True)
