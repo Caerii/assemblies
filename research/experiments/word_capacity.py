@@ -214,7 +214,9 @@ def _run_chunk(name, tasks, feat, curve):
             for sl, f in enumerate(bb):
                 feats[b, j, sl] = fi[f]
         for i, w in enumerate(t["words"]):
-            tgt[b, i] = bi[t["targets"][w]]
+            # a referent that never entered a scene has no bundle; its word
+            # is below MIN_EXPOSURES and unscored (target -1)
+            tgt[b, i] = bi.get(t["targets"][w], -1)
             expo[b, i] = t["exposures"][w]
         nb[b] = len(t["inventory"])
     W, Bd = pad_schedules([t["sched"] for t in per])

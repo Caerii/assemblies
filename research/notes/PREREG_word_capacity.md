@@ -239,3 +239,49 @@ Part 2 therefore runs at F* = (4000, 100), as registered, with the caveat
 stated now: FEAT still moves V* at F*, so cells whose LEX ceiling
 approaches ~330 (the FEAT ceiling read on cell C) may be FEAT-bound there,
 and a censored or converging top of the grid is reported as such.
+
+### Part 2 -- Result (2026-09-04, FEAT = F* = 4000 x 100, 20 seeds per cell, V grid 16..1024)
+
+    cell  n     k    s    n/k   V*                        censored
+    A     1000  50   50   20    73.8 +/- 12.5 (16..135)    1/20 (one seed below the grid)
+    B     2000  50   50   40    166.4 +/- 16.3 (99..231)   0/20
+    C     4000  50   50   80    324.4 +/- 20.6 (239..383)  0/20
+    D     4000  100  100  40    294.9 +/-  4.0 (276..310)  0/20
+    E     2000  50   100  40    158.4 +/-  9.3 (118..184)  0/20
+
+    W1  VOID by the letter (one censored seed of 20 in cell A). The
+        direction is unambiguous for ANY value that seed could take:
+        A 74 < B 166 < C 324, steps of 92 and 158 against pooled CIs of 29
+        and 37. Reported, not judged.
+    W2  FAIL. V*(D) / V*(B) = 1.77 at equal n/k = 40 (bar: within 25%;
+        fail past 40%). Robust to the Part 1 caveat: D reads within a few
+        percent of the FEAT ceiling with a seed CI of +/- 4, so it is
+        plausibly FEAT-bound there -- which makes 295 a LOWER bound on its
+        LEX ceiling, and the ratio can only be larger.
+    W3  FAIL. V*(E) / V*(B) = 0.95: doubling the phon anchor moves nothing.
+        B is far from the FEAT ceiling (166 against ~330), so the fail is
+        informative: the anchor law does not govern word capacity.
+
+**Reading.** Word capacity is NOT a ratio law and NOT an anchor law. At
+fixed k = 50, V* is proportional to n: 74, 166, 324 for n = 1000, 2000,
+4000 (a fit of n^1.07 over the 4x range); at fixed n = 4000, doubling k
+leaves V* unchanged within the FEAT-ceiling caveat (295 at k = 100 against
+324 at k = 50). One LEX area of n neurons holds about n / 12 word types at
+this readout and corpus, whatever k in 50..100 and whatever the anchor.
+This is the registration's own "W2 fails" branch: the lexical fiber has
+its own scaling, the anchor law's scope stops at assembly formation
+([[capacity-depends-on-n-over-k]] is about assemblies and stands), and
+the fit is reported and nothing adopted.
+
+**Why n and not n/k** (a hypothesis for the next registration, not a
+claim): a word is a LEX assembly of k neurons projecting through one
+fiber into FEAT; what limits separability at readout is how many
+distinct k-subsets of n project to separable FEAT patterns, which grows
+with the number of neurons available to differ in, n, while a larger k
+adds evidence per word and interference per word in the same proportion.
+The assembly-formation ceiling (M* in n/k) counts how many assemblies an
+area can HOLD; the word ceiling counts how many an area can be READ from
+through a fiber, and those are different quantities.
+
+**Instrument.** Five cells, 140 brains each, in ~4 minutes of GPU time on
+the present-only kernel; the same sweep was hours on numpy two days ago.
