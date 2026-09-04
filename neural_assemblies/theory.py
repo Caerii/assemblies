@@ -272,10 +272,13 @@ _RESULTS: List[Result] = [
     Result(
         id="REFRACTION-CANCELS-CONVERGENCE",
         status=Status.MEASURED,
-        claim="[EMPIRICAL CLAUSES SUSPENDED 2026-09-04: measured through a "
-              "selector that ranked negative net drives above positive ones "
-              "(fixed 1b475fc); re-measurement pending -- PREREG_refraction_"
-              "capacity.md CAVEAT. The identity below is algebra and stands.] "
+        claim="[RE-MEASURED 2026-09-04 with the selector fixed (1b475fc): the "
+              "churn above ~0.75 beta stands; the intermediate-strength rows "
+              "were a selector artefact -- at 0.5 beta the recurrent assembly "
+              "converges, relocates once when the clip binds (~round 40-60, "
+              "the registered P2 prediction) and holds; at 0.7 beta most "
+              "brains no longer converge. The transition lies in 0.5-0.7 "
+              "beta. PREREG_refraction_capacity.md, Re-measurement.] "
               "Refraction at strength s is the anti-Hebbian counterweight on a "
               "neuron's own repeated input: raw*(1+beta)^t minus the charged "
               "bias leaves net drive growing by (beta - s)*raw per win, so at "

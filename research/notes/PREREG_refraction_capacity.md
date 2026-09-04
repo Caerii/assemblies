@@ -195,3 +195,38 @@ net_{t+1} - net_t = (beta - s) raw_t is algebra and stands.
 Fixed in 1b475fc (order-preserving key; unit test with negatives). The
 sweep is re-run with the fixed selector; until then
 `REFRACTION-CANCELS-CONVERGENCE`'s empirical clauses are SUSPENDED.
+
+## Re-measurement with the fixed selector (2026-09-04): P2's strength sweep
+
+`seq_refraction_wander.py`, same protocol (n=4000, k=100, p=0.5, beta=0.1,
+w_max=20, 240 rounds, 16 brains), `topk_select` order-preserving:
+
+    s/beta     converged   conv round   late stab   fill      vs round-10 at 40 / 60
+    0 (ctl)    16/16           4         1.000      0.034     1.000 / 1.000
+    0.5        16/16         218         0.921      0.279     1.000 / 0.000   <- relocates ONCE near the clip, then holds
+    0.7         6/16         237         0.821      0.911     0.009 / 0.002
+    0.8         0/16          --         0.116      1.000
+    0.9         0/16          --         0.008      1.000
+    0.95        0/16          --         0.006      1.000
+    1.0         0/16          --         0.005      1.000
+    FF, 1.0     9/16         237         0.928      0.236     0.007 / 0.000   <- drifts, consecutive ~0.9-1.0
+
+What survives: at s >= 0.8 beta a recurrent refracted assembly never
+converges and churns through the whole area (fill 1.000) -- the churn was
+not the defect. What changes: the intermediate rows. The old "converges
+~10x slower at 0.5-0.7 beta with low fill" was the DEFECT locking the
+assembly: recent winners carried the largest bias, ranked first, and won
+again. With the selector fixed, 0.7 beta already fails to converge for
+most brains (6/16, fill 0.91), and 0.5 beta converges, then RELOCATES once
+around round 40-60 -- which is the registered P2 prediction (wander when
+w_max binds at ~41 rounds) that the defective run had "refuted" at round
+11. The feedforward arm drifts slowly rather than holding at 0.63.
+
+Standing: the identity (algebra); the churn above ~0.75 beta (re-measured,
+with the transition now somewhere in 0.5-0.7 beta rather than 0.7-0.8);
+the P2 registered prediction, now SUPPORTED at 0.5 beta. Retracted: the
+"~10x slower convergence, low fill" reading of the intermediate strengths
+and the "below the transition it spends the substrate" clause -- Amendment
+1's capacity table is being re-run (logs `refcap_*.log`) before any
+conclusion there is restated. The theory register entry is revised to this
+reading.
