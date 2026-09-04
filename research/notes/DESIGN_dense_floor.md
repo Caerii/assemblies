@@ -162,3 +162,68 @@ and E took 5 s and 3 s.
 the driver's admin permission (ERR_NVGPUCTRPERM); `clock64()` per phase from
 block 0 into a global buffer, in a scratch build of the same source, was the
 instrument that found every one of the four lessons.
+
+## Profiler iteration (2026-09-04, counters enabled)
+
+With performance counters enabled (NVIDIA Control Panel > Desktop > Enable
+Developer Settings > Developer > Manage GPU Performance Counters > all
+users), `ncu` on one launch, 150 steps.
+
+**Stalls per issued instruction** (share of the total):
+
+    width 5     long_scoreboard 1.76 (22%)  barrier 1.69 (21%)  wait 1.62 (21%)
+                short_scoreboard 0.77 (10%) branch 0.49 (6%)   -- 7.85 total
+    width 204   long_scoreboard 6.04 (43%)  barrier 2.42 (17%)  wait 1.65 (12%)
+                short_scoreboard 1.02 (7%)                     -- 14.1 total
+
+After the batching fix the narrow kernel is no longer memory-dominated:
+barriers cost as much as loads (phases where one warp works and seven
+wait). At width it is memory-latency-bound with DRAM at 60% of peak --
+and occupancy capped at 3 blocks per SM by shared memory (27.6 KB per
+block: keys 8 + presence 6.4 + prices 8 + staged counts 5, plus 4.6 static
+and driver).
+
+**Two changes from the profile, both gated identical:**
+
+1. *Four blocks per SM.* The staged counts are live only in the write,
+   after the keys are dead, so they alias the keys' space; the staged price
+   head is capped at 1024 entries (4 KB) and lookups past the table's
+   nonzero head skip the load (the price IS zero there). 22.6 -> 18.4 KB;
+   ncu: Block Limit Shared Mem 4, achieved occupancy 65%, DRAM 65%.
+   Wall time barely moved -- which said the bottleneck was not warps in
+   flight.
+2. *Sector traffic.* DRAM at the probe's fraction of peak while taking 2x
+   the probe's time means 2x the probe's BYTES: a 2-byte count costs a
+   32-byte sector, and the write's column-wise reads and writes of 2,500
+   cells were ~160 KB of sectors per brain-round against the drive's 100.
+   Presence is known from shared memory before any load, so the loads are
+   PREDICATED per cell: straight-line, still ten in flight, but a
+   predicated-off load fetches nothing and a warp-row fetches only sectors
+   holding a present lane. SASS: 20 of 20 count loads predicated and still
+   grouped. This also trims the drive below the probe's bytes (a sector of
+   16 lanes has a present cell with probability 0.56).
+
+**Timing, best of three** (the GPU is shared with a screen encoder,
+RustDesk, whose load follows screen activity; the minimum is the
+least-contended read; width 272 stayed contended and is not reported):
+
+    width   before unit   v4      v5 (occupancy + predicated)   probe    ratio
+    B=68    1.33          0.84    0.60                          0.33     1.8
+    B=136     --          0.52    0.41                          0.23     1.8
+    B=204     --          0.45    0.39                          0.23     1.7
+
+    BAR-T  0.39 us at width 204                      FAIL (<= 0.30)
+    BAR-R  1.66 at width 204                         PASS (<= 2.0)
+    BAR-M                                            PASS
+
+Against the layer-3 kernel: 2.2x at width 68, 3.4x at width 204. Full
+suite 58 passed; sweep tables byte-identical.
+
+**What the profiler adds to the lessons.** (5) Read the SECTORS, not the
+bytes: at 2-byte cells the unit of traffic is 32 bytes, and a "scattered
+write of 5% of cells" moves more than a coalesced read of all of them.
+(6) Occupancy is only a lever when the stall is latency; at width the
+kernel had become bandwidth-bound on inflated traffic, so a fourth block
+per SM bought nothing until the bytes were cut. (7) Predication keeps loads
+in flight where a branch serializes them; the compiler honours a per-cell
+select on a load when the loaded value has an unconditional use.

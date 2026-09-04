@@ -909,15 +909,17 @@ __global__ void dense_write_kernel(const int* __restrict__ P, int KP,
 // bit-for-bit here: acc is a sum of non-negative prices from +0, never -0.
 #define SCHED_MAXK 128
 #define SCHED_TH 256
-#define SCHED_RELSH 2048          // staged price entries (the rest are read from global)
+#define SCHED_RELSH 1024          // staged price entries: 4 KB, so four blocks fit an SM
 #define SCHED_CH 10               // count loads in flight per thread
 
-// rel[d], from the staged head when it is there; 0 past the table; d < 0 is
-// not a valid depth and prices at 0 (the write's guard).
+// rel[d]: from the staged head when it is there; from global for
+// nsh <= d < nnz (nnz = the table's nonzero head -- it is monotone, and past
+// it the price IS zero, so no load); d < 0 is not a valid depth and prices
+// at 0 (the write's guard).
 __device__ __forceinline__ float sched_price(int d, const float* srel, int nsh,
-                                             const float* __restrict__ rel, int nrel) {
+                                             const float* __restrict__ rel, int nnz) {
     float v = srel[(d >= 0 && d < nsh) ? d : 0];
-    if (d < 0 || d >= nsh) v = (d >= 0 && d < nrel) ? rel[d] : 0.0f;
+    if (d < 0 || d >= nsh) v = (d >= 0 && d < nnz) ? rel[d] : 0.0f;
     return v;
 }
 
@@ -1016,7 +1018,7 @@ __global__ void sched_train_kernel(const long long* __restrict__ words,
                                    int* __restrict__ cmax,
                                    double* __restrict__ mass, float* __restrict__ scale,
                                    const float* __restrict__ invdj,
-                                   const float* __restrict__ rel, int nrel, int nsh,
+                                   const float* __restrict__ rel, int nrel, int nsh, int nnz,
                                    int Npre, int N,
                                    float setpoint, int rounds, int KW,
                                    int* __restrict__ err, int sms) {
@@ -1025,7 +1027,12 @@ __global__ void sched_train_kernel(const long long* __restrict__ words,
     extern __shared__ unsigned long long keys[];          // N keys, then ...
     unsigned int* spres = reinterpret_cast<unsigned int*>(keys + N);   // K x W words
     float* srel = reinterpret_cast<float*>(spres + K * W);             // nsh prices
-    short* wcnt = reinterpret_cast<short*>(srel + nsh);                // KW x K counts
+    // OCCUPANCY: the staged counts live only in the write, after the keys
+    // are dead (winners sit in win[]), so they ALIAS the keys' space; that
+    // is the difference between three and four blocks per SM (ncu: DRAM at
+    // 60% of peak with 43% of stalls on load latency -- more warps in
+    // flight is the lever).
+    short* wcnt = reinterpret_cast<short*>(keys);                      // KW x K counts
     __shared__ int hist[512];
     __shared__ int sh[6];
     __shared__ int rows[SCHED_MAXK];
@@ -1067,20 +1074,27 @@ __global__ void sched_train_kernel(const long long* __restrict__ words,
                 const int cm = cmax[cbase + j];
                 const int wj = j >> 5, bj = j & 31;
                 float acc = 0.0f;
+                // SECTORS: a 2-byte count costs a 32-byte sector; presence is
+                // known from shared memory BEFORE the load, so the loads are
+                // PREDICATED per cell -- straight-line, still SCHED_CH in
+                // flight, but a predicated-off load fetches nothing, and a
+                // warp-row's sectors are fetched only where a lane is present
                 for (int s0 = 0; s0 < K; s0 += SCHED_CH) {
                     int cs[SCHED_CH];
+                    unsigned int pm = 0u;
 #pragma unroll
                     for (int u = 0; u < SCHED_CH; ++u) {           // SCHED_CH loads in flight
                         const int sl = s0 + u;
                         const int i = (sl < K) ? rows[sl] : 0;
-                        cs[u] = (sl < K) ? (int)Cb[(long long)(i < 0 ? 0 : i) * N + j] : 0;
+                        const unsigned int pw = (sl < K) ? spres[sl * W + wj] : 0u;
+                        const bool pr = (pw >> bj) & 1u;
+                        pm |= (pr ? 1u : 0u) << u;
+                        cs[u] = pr ? (int)Cb[(long long)(i < 0 ? 0 : i) * N + j] : 0;
                     }
 #pragma unroll
                     for (int u = 0; u < SCHED_CH; ++u) {
-                        const int sl = s0 + u;
-                        const unsigned int pw = (sl < K) ? spres[sl * W + wj] : 0u;
-                        const float v = sched_price(cm - cs[u], srel, nsh, rel, nrel);
-                        acc += ((pw >> bj) & 1u) ? v : 0.0f;
+                        const float v = sched_price(cm - cs[u], srel, nsh, rel, nnz);
+                        acc += ((pm >> u) & 1u) ? v : 0.0f;
                     }
                 }
                 float v = acc * scale[cbase + j];
@@ -1120,18 +1134,21 @@ __global__ void sched_train_kernel(const long long* __restrict__ words,
                 const int wj = j >> 5, bj = j & 31;
                 int mx = (s0 == 0) ? cmax[cbase + j] : 0;
                 int cs[SCHED_CH];
-#pragma unroll
-                for (int u = 0; u < SCHED_CH; ++u) {
-                    const int sl = s0 + u;
-                    const int i = (sl < K) ? rows[sl] : 0;
-                    cs[u] = (sl < K) ? (int)Cb[(long long)(i < 0 ? 0 : i) * N + j] : 0;
-                }
+                unsigned int pm = 0u;
 #pragma unroll
                 for (int u = 0; u < SCHED_CH; ++u) {
                     const int sl = s0 + u;
                     const int i = (sl < K) ? rows[sl] : 0;
                     const unsigned int pw = (sl < K) ? spres[sl * W + wj] : 0u;
-                    const bool present = (pw >> bj) & 1u;
+                    const bool pr = (pw >> bj) & 1u;
+                    pm |= (pr ? 1u : 0u) << u;
+                    cs[u] = pr ? (int)Cb[(long long)(i < 0 ? 0 : i) * N + j] : 0;   // predicated
+                }
+#pragma unroll
+                for (int u = 0; u < SCHED_CH; ++u) {
+                    const int sl = s0 + u;
+                    const int i = (sl < K) ? rows[sl] : 0;
+                    const bool present = (pm >> u) & 1u;
                     const int c = cs[u] + 1;
                     const bool ok = present && c <= DENSE_CMAX;
                     over |= present && !ok;
@@ -1157,8 +1174,8 @@ __global__ void sched_train_kernel(const long long* __restrict__ words,
                 for (int sl = 0; sl < K; ++sl) {
                     if (!((spres[sl * W + wj] >> bj) & 1u)) continue;
                     const int c = (int)wc[sl];
-                    const float rn = sched_price(cm_new - c, srel, nsh, rel, nrel);
-                    const float ro = sched_price(cm_new - (c - 1), srel, nsh, rel, nrel);
+                    const float rn = sched_price(cm_new - c, srel, nsh, rel, nnz);
+                    const float ro = sched_price(cm_new - (c - 1), srel, nsh, rel, nnz);
                     acc += (double)rn - (double)ro;
                 }
                 const int dc = cm_new - cm_old;
@@ -1402,7 +1419,7 @@ void sched_train(torch::Tensor words, torch::Tensor bundles,
                  torch::Tensor jit, torch::Tensor C, torch::Tensor pres,
                  torch::Tensor cmax, torch::Tensor mass, torch::Tensor scale,
                  torch::Tensor invdj, torch::Tensor rel, double setpoint,
-                 int64_t rounds, int64_t kw, torch::Tensor err, int64_t nsh) {
+                 int64_t rounds, int64_t kw, torch::Tensor err, int64_t nsh, int64_t nnz) {
     words = words.contiguous(); bundles = bundles.contiguous();
     lex_cache = lex_cache.contiguous(); bundle_drive = bundle_drive.contiguous();
     jit = jit.contiguous(); rel = rel.contiguous();
@@ -1413,12 +1430,13 @@ void sched_train(torch::Tensor words, torch::Tensor bundles,
     const int I = bundle_drive.size(1);
     TORCH_CHECK(K <= SCHED_MAXK && kw <= SCHED_MAXK, "k too large for the block");
     TORCH_CHECK(N <= 8192, "N too large for shared-memory selection");
-    TORCH_CHECK(nsh >= 0 && nsh <= SCHED_RELSH && nsh <= rel.numel(), "nsh");
+    TORCH_CHECK(nsh >= 0 && nsh <= SCHED_RELSH && nsh <= nnz && nnz <= rel.numel(), "nsh/nnz");
+    TORCH_CHECK((size_t)kw * K * sizeof(short) <= (size_t)N * sizeof(unsigned long long),
+                "staged counts must fit the keys' space they alias");
     const size_t shm = (size_t)N * sizeof(unsigned long long)
                      + (size_t)K * W * sizeof(unsigned int)
-                     + (size_t)nsh * sizeof(float)
-                     + (size_t)kw * K * sizeof(short);
-    TORCH_CHECK(shm <= 96 * 1024, "keys + staged presence + prices + counts exceed shared memory");
+                     + (size_t)nsh * sizeof(float);
+    TORCH_CHECK(shm <= 96 * 1024, "keys + staged presence + prices exceed shared memory");
     cudaFuncSetAttribute(sched_train_kernel, cudaFuncAttributeMaxDynamicSharedMemorySize, (int)shm);
     int dev = 0, sms = 1;
     cudaGetDevice(&dev);
@@ -1432,7 +1450,7 @@ void sched_train(torch::Tensor words, torch::Tensor bundles,
         cmax.data_ptr<int>(), mass.data_ptr<double>(),
         scale.data_ptr<float>(),
         invdj.numel() ? invdj.data_ptr<float>() : nullptr,
-        rel.data_ptr<float>(), (int)rel.numel(), (int)nsh,
+        rel.data_ptr<float>(), (int)rel.numel(), (int)nsh, (int)nnz,
         Npre, N, (float)setpoint, (int)rounds, (int)kw, err.data_ptr<int>(), sms);
 }
 
@@ -1478,7 +1496,7 @@ std::vector<torch::Tensor> column_mass_rel(torch::Tensor cols, torch::Tensor key
 torch::Tensor hashed_presence(torch::Tensor seeds, int64_t n_pre, int64_t n_post, int64_t threshold);
 void dense_drive(torch::Tensor S, torch::Tensor C, torch::Tensor pres, torch::Tensor cmax, torch::Tensor scale, torch::Tensor invdj, torch::Tensor rel, torch::Tensor out);
 void dense_write(torch::Tensor P, torch::Tensor Wn, torch::Tensor C, torch::Tensor pres, torch::Tensor cmax, torch::Tensor mass, torch::Tensor scale, torch::Tensor rel, double setpoint, int64_t do_scale, torch::Tensor err);
-void sched_train(torch::Tensor words, torch::Tensor bundles, torch::Tensor lex_cache, torch::Tensor bundle_drive, torch::Tensor jit, torch::Tensor C, torch::Tensor pres, torch::Tensor cmax, torch::Tensor mass, torch::Tensor scale, torch::Tensor invdj, torch::Tensor rel, double setpoint, int64_t rounds, int64_t kw, torch::Tensor err, int64_t nsh);
+void sched_train(torch::Tensor words, torch::Tensor bundles, torch::Tensor lex_cache, torch::Tensor bundle_drive, torch::Tensor jit, torch::Tensor C, torch::Tensor pres, torch::Tensor cmax, torch::Tensor mass, torch::Tensor scale, torch::Tensor invdj, torch::Tensor rel, double setpoint, int64_t rounds, int64_t kw, torch::Tensor err, int64_t nsh, int64_t nnz);
 torch::Tensor stream_probe(torch::Tensor C, torch::Tensor S, int64_t rounds);
 std::vector<torch::Tensor> topk_select(torch::Tensor x, int64_t K);
 """

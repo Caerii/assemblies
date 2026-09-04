@@ -181,12 +181,13 @@ class ScheduledAligner:
             # the price table is staged in shared memory up to its first
             # exact zero (it is monotone; the tail IS zero), capped at the
             # kernel's slot count -- deeper indices read the global table
-            nsh = min(int((cf.rel > 0).sum()), 2048)
+            nnz = int((cf.rel > 0).sum())
+            nsh = min(nnz, 1024)
             self.mod.sched_train(
                 words, bundles, self.lex_cache, self.bundle_drive,
                 self.jit_cross, cf.C, cf.pres, cf.cmax, cf.mass, cf.scale,
                 cf.invdj, cf.rel, float(cf.setpoint), self.rounds_word,
-                self.feat_k, cf.err, nsh)
+                self.feat_k, cf.err, nsh, nnz)
             torch.cuda.synchronize()
             cf.check()
             return
