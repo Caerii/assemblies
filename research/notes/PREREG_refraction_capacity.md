@@ -230,3 +230,40 @@ and the "below the transition it spends the substrate" clause -- Amendment
 1's capacity table is being re-run (logs `refcap_*.log`) before any
 conclusion there is restated. The theory register entry is revised to this
 reading.
+
+## Re-measurement of Amendment 1 with the fixed selector (2026-09-04, POST HOC, labelled)
+
+Same protocol (`seq_capacity_scaling.py --refracted --refracted-factor f
+--readout r`), cell G n = 4000, k = 60, T = 8:
+
+    factor  readout   rank-1 M = 8 / 16 / 32     pw/chance     fill M = 16 / 32   M*
+    1.0     masked    0.172 / 0.055 / 0.039      0.04 -> 0.74  1.000 / 1.000      8.0   (churn; as before)
+    1.0     net       0.102 / 0.059 / 0.029                                        8.0
+    0.5     masked    1.000 / 1.000 / 1.000      0.00          0.497 / 0.876      >= 256 CENSORED HIGH (never crossed 0.9)
+    0.5     net       0.125 / 0.062 / 0.031      0.00                             8.0   (P0's veto: net cannot read it)
+    0.7     masked    0.320 / 0.457 / 0.684      0.01 -> 0.11  0.789 / 1.000      below the bar throughout, RISING with M
+    0.7     net       0.133 / 0.066 / 0.035                                        8.0
+    control (no refraction, from the registration)     ~1.5 x chance   0.47 / 0.60     23.5
+
+**Amendment 1's conclusion is OVERTURNED.** "Below the transition it spends
+the substrate; M* falls to 19.6" was the selector defect. With the selector
+fixed, refraction at 0.5 beta with the bias-masked readout stores EVERY
+assembly of the grid -- rank-1 1.000 at M = 8, 16, 32 and above the bar to
+M = 256 -- with pairwise overlap 0.00 x chance, against a Hebbian control
+that ceilings at 23.5. The cost is fill (0.88 at M = 32, 1.0 by M*): the
+ceiling is fill-limited far above where interference limits the control.
+The net readout (bias subtracted) reads chance at every M: P0's derived
+veto stands, and the masked readout -- what the synapses hold with the
+intrinsic veto removed -- is the only way to read a refracted memory.
+At 0.7 beta the items do not converge within T = 8 (rank-1 rises with M
+because later items see a fuller, more refracted area), a regime of its
+own.
+
+**Status.** This is a re-measurement of a post-hoc amendment and is
+labelled so. It reverses an ADOPTED conclusion ("refraction cannot protect
+formation in a recurrent area at any strength"), so nothing is adopted
+here; a fresh registration is owed: 20 brains, the M grid extended past
+256 to find the fill-limited ceiling, T swept (the converge-within-T
+question), and the control on the same run. The register entry's clause
+is revised to "below the transition, with the masked readout, capacity is
+fill-limited far above the Hebbian ceiling (post hoc; registration owed)".
