@@ -551,7 +551,8 @@ class PresentFiber:
     MAX_COUNT = 32767
 
     def __init__(self, seeds, n_pre, n_post, p, *, beta=0.1, norm_init=False,
-                 synaptic_scaling=True, max_rounds=4096, device="cuda"):
+                 synaptic_scaling=True, w_max=None, max_rounds=4096,
+                 device="cuda"):
         self.mod = _fused_cuda.load()
         if self.mod is None:
             raise RuntimeError(f"fused kernels unavailable: "
@@ -559,8 +560,17 @@ class PresentFiber:
         B = len(seeds)
         if n_post > 65535:
             raise ValueError("n_post must fit the 16-bit column field")
+        # TWO REGIMES, one representation. With column scaling and no clip
+        # the price is MAX-RELATIVE (`_rel_table`, index cmax_j - c); without
+        # scaling it is ABSOLUTE by the engine's chain (`_chain_table`, clip
+        # included, index c). Scaling with a finite clip is refused as in
+        # `AreaFiber`: the two do not commute.
+        if synaptic_scaling and w_max is not None:
+            raise ValueError("synaptic_scaling with a finite w_max: column "
+                             "scaling and the clip do not commute (see AreaFiber)")
+        self.absolute = not synaptic_scaling
         self.B, self.n_pre, self.n, self.p = B, n_pre, n_post, float(p)
-        self.beta, self.w_max = float(beta), None
+        self.beta, self.w_max = float(beta), w_max
         self.seeds = torch.as_tensor(seeds, dtype=torch.int32, device=device)
         self.threshold = _fused_cuda.threshold_for(p)
         self.device = device
@@ -576,7 +586,8 @@ class PresentFiber:
         self.ent = self.mod.present_fill(pres, n_post, self.DMAX)    # [B, n_pre, DMAX]
         del pres
         self.err = torch.zeros(1, dtype=torch.int32, device=device)
-        self.rel = torch.from_numpy(_rel_table(beta, max_rounds)).to(device)
+        self.max_rounds = int(max_rounds)
+        self.rel = self._table(self.max_rounds)
         self.tab = self.rel
         self._nnz_of = None
         self.cmax = torch.zeros(B, n_post, dtype=torch.int32, device=device)
@@ -621,10 +632,15 @@ class PresentFiber:
         if code:
             raise RuntimeError(f"present fiber kernel error {code}")
 
+    def _table(self, depth):
+        if self.absolute:
+            return torch.from_numpy(_chain_table(self.beta, self.w_max, depth)).to(self.device)
+        return torch.from_numpy(_rel_table(self.beta, depth)).to(self.device)
+
     def ensure_depth(self, depth):
         depth = int(depth)
         if self.rel.numel() < depth + 1:
-            self.rel = torch.from_numpy(_rel_table(self.beta, depth)).to(self.device)
+            self.rel = self._table(depth)
             self.tab = self.rel
             self._nnz_of = None
 
@@ -641,7 +657,8 @@ class PresentFiber:
             return
         nnz, _ = self.price_head()
         self.mod.present_drive(self.ent, rows.to(torch.int32), self.cmax,
-                               self.scale, self.invdj, self.rel, nnz, drive)
+                               self.scale, self.invdj, self.rel, nnz, drive,
+                               1 if self.absolute else 0)
 
     def begin_episode(self):
         pass

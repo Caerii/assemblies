@@ -212,7 +212,8 @@ class ScheduledAligner:
                 words, bundles, self.lex_cache, self.bundle_drive,
                 self.jit_cross, cf.ent, cf.cmax, cf.mass, cf.scale,
                 cf.invdj, cf.rel, float(cf.setpoint), self.rounds_word,
-                self.feat_k, cf.err, nsh, nnz, self._warps_per_block())
+                self.feat_k, cf.err, nsh, nnz, self._warps_per_block(),
+                1 if cf.absolute else 0)
             torch.cuda.synchronize()
             cf.check()
             return

@@ -574,3 +574,39 @@ def test_present_probe_runs(mod):
     S = torch.randint(0, 200, (4, 50), dtype=torch.int32, device="cuda")
     out = mod.present_probe(f.ent, S, 3, 4)
     assert out.shape == (4, 32) and torch.isfinite(out).all()
+
+
+def test_present_fiber_absolute_equals_store_fiber(mod):
+    """The organ's regime -- clip, no scaling, norm_init -- priced by count
+    from the chain table: `PresentFiber(absolute)` equals `AreaFiber`."""
+    from neural_assemblies.core.torch_engine._hashed import (
+        AreaFiber, PresentFiber)
+    n, p, beta, w_max = 512, 0.1, 0.1, 20.0
+    seeds = [4242, 4243]
+    g = torch.Generator(device="cpu").manual_seed(5)
+    store = AreaFiber(seeds, n, n, p, beta=beta, w_max=w_max, norm_init=True,
+                      synaptic_scaling=False, max_rounds=64)
+    pf = PresentFiber(seeds, n, n, p, beta=beta, norm_init=True,
+                      synaptic_scaling=False, w_max=w_max, max_rounds=64)
+    assert pf.absolute
+
+    def sets():
+        return torch.stack([torch.randperm(n, generator=g)[:20] for _ in range(2)]).to("cuda")
+
+    rows_a, cols_a = sets(), sets()
+    for f in (store, pf):
+        for _ in range(3):
+            f.begin_episode()
+            for _ in range(12):                       # past the clip at c ~ 31? no: 36 rounds
+                f.observe(rows_a, cols_a)
+            f.end_episode()
+
+    def read(f, rows):
+        d = torch.zeros(2, n, device="cuda")
+        f.contribute(d, rows)
+        return d.cpu()
+
+    for rows in (rows_a, sets()):
+        torch.testing.assert_close(read(pf, rows), read(store, rows),
+                                   rtol=1e-5, atol=1e-6)
+    assert int(pf.counts().max()) == 36

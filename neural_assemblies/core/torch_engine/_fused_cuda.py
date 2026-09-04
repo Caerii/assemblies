@@ -884,10 +884,13 @@ __device__ __forceinline__ PrShared pr_carve(unsigned char* base, int N, int W, 
 }
 
 // drive[j] = SUM over rows in order of price(cmax_j - count_ij), present cells
+// `absolute`: the price index is the COUNT itself (the engine's chain table,
+// clip included) instead of (column max - count) -- the regime without
+// column scaling, which the max-relative form does not price.
 template <int MAXIT>
 __device__ void pr_drive(const unsigned int* __restrict__ eb, int DMAX, int K,
                          const PrShared& s, int N, const float* srel, int nsh,
-                         const float* __restrict__ rel, int nnz) {
+                         const float* __restrict__ rel, int nnz, int absolute) {
     const int lane = threadIdx.x & 31;
     for (int j = lane; j < N; j += 32) s.drive[j] = 0.0f;
     __syncwarp();
@@ -911,7 +914,8 @@ __device__ void pr_drive(const unsigned int* __restrict__ eb, int DMAX, int K,
                 const unsigned int v = e[r][t];
                 if (v != PR_PAD) {
                     const int j = pr_col(v);
-                    s.drive[j] += sched_price((int)s.cmx[j] - pr_cnt(v), srel, nsh, rel, nnz);
+                    const int d = absolute ? pr_cnt(v) : (int)s.cmx[j] - pr_cnt(v);
+                    s.drive[j] += sched_price(d, srel, nsh, rel, nnz);
                 }
             }
             __syncwarp();                                   // row order
@@ -1319,7 +1323,7 @@ __global__ void present_train_kernel(const long long* __restrict__ words,
                                      float* __restrict__ scale, const float* __restrict__ invdj,
                                      const float* __restrict__ rel, int nrel, int nsh, int nnz,
                                      int Npre, int N, float setpoint, int rounds, int KW, int B,
-                                     int* __restrict__ err) {
+                                     int* __restrict__ err, int absolute) {
     extern __shared__ unsigned char smem_raw[];
     const int W = (N + 31) / 32;
     const int warp = threadIdx.x >> 5, lane = threadIdx.x & 31, WPB = blockDim.x >> 5;
@@ -1347,7 +1351,7 @@ __global__ void present_train_kernel(const long long* __restrict__ words,
         const float* stim = bundle_drive + ((long long)b * I + bid) * N;
         const float* jt = jit + ((long long)b * I + bid) * N;
         for (int r = 0; r < rounds; ++r) {
-            pr_drive<MAXIT>(eb, DMAX, K, s, N, srel, nsh, rel, nnz);
+            pr_drive<MAXIT>(eb, DMAX, K, s, N, srel, nsh, rel, nnz, absolute);
             unsigned int kand, kor;
             pr_keys(s, N, scale_b, invdj_b, stim, jt, kand, kor);
             int nfound;
@@ -1366,7 +1370,8 @@ __global__ void present_drive_kernel(const unsigned int* __restrict__ ent, int D
                                      const int* __restrict__ S, int K,
                                      const int* __restrict__ cmax, const float* __restrict__ scale,
                                      const float* __restrict__ invdj, const float* __restrict__ rel,
-                                     int nnz, int Npre, int N, float* __restrict__ out) {
+                                     int nnz, int Npre, int N, float* __restrict__ out,
+                                     int absolute) {
     extern __shared__ unsigned char smem_raw[];
     __shared__ float dummy[1];
     const int W = (N + 31) / 32, lane = threadIdx.x & 31, b = blockIdx.x;
@@ -1374,7 +1379,7 @@ __global__ void present_drive_kernel(const unsigned int* __restrict__ ent, int D
     for (int j = lane; j < N; j += 32) s.cmx[j] = (short)cmax[(long long)b * N + j];
     for (int t = lane; t < K; t += 32) s.rows[t] = S[(long long)b * K + t];
     __syncwarp();
-    pr_drive<MAXIT>(ent + (long long)b * Npre * DMAX, DMAX, K, s, N, dummy, 0, rel, nnz);
+    pr_drive<MAXIT>(ent + (long long)b * Npre * DMAX, DMAX, K, s, N, dummy, 0, rel, nnz, absolute);
     for (int j = lane; j < N; j += 32) {
         float v = s.drive[j] * scale[(long long)b * N + j];
         if (invdj != nullptr) v *= invdj[(long long)b * N + j];
@@ -1633,7 +1638,7 @@ static void pr_dispatch(int dmax, F&& f) {
 
 void present_drive(torch::Tensor ent, torch::Tensor S, torch::Tensor cmax,
                    torch::Tensor scale, torch::Tensor invdj, torch::Tensor rel,
-                   int64_t nnz, torch::Tensor out) {
+                   int64_t nnz, torch::Tensor out, int64_t absolute) {
     S = S.contiguous(); rel = rel.contiguous();
     const int B = ent.size(0), Npre = ent.size(1), DMAX = ent.size(2);
     const int K = S.size(1), N = out.size(1), W = (N + 31) / 32;
@@ -1645,7 +1650,7 @@ void present_drive(torch::Tensor ent, torch::Tensor S, torch::Tensor cmax,
             reinterpret_cast<const unsigned int*>(ent.data_ptr<int>()), DMAX,
             S.data_ptr<int>(), K, cmax.data_ptr<int>(), scale.data_ptr<float>(),
             invdj.numel() ? invdj.data_ptr<float>() : nullptr, rel.data_ptr<float>(),
-            (int)nnz, Npre, N, out.data_ptr<float>()); });
+            (int)nnz, Npre, N, out.data_ptr<float>(), (int)absolute); });
 }
 
 void present_write(torch::Tensor P, torch::Tensor Wn, torch::Tensor ent, torch::Tensor cmax,
@@ -1670,7 +1675,8 @@ void present_train(torch::Tensor words, torch::Tensor bundles, torch::Tensor lex
                    torch::Tensor bundle_drive, torch::Tensor jit, torch::Tensor ent,
                    torch::Tensor cmax, torch::Tensor mass, torch::Tensor scale,
                    torch::Tensor invdj, torch::Tensor rel, double setpoint, int64_t rounds,
-                   int64_t kw, torch::Tensor err, int64_t nsh, int64_t nnz, int64_t wpb) {
+                   int64_t kw, torch::Tensor err, int64_t nsh, int64_t nnz, int64_t wpb,
+                   int64_t absolute) {
     words = words.contiguous(); bundles = bundles.contiguous();
     lex_cache = lex_cache.contiguous(); bundle_drive = bundle_drive.contiguous();
     jit = jit.contiguous(); rel = rel.contiguous();
@@ -1692,7 +1698,7 @@ void present_train(torch::Tensor words, torch::Tensor bundles, torch::Tensor lex
             cmax.data_ptr<int>(), mass.data_ptr<double>(), scale.data_ptr<float>(),
             invdj.numel() ? invdj.data_ptr<float>() : nullptr, rel.data_ptr<float>(),
             (int)rel.numel(), (int)nsh, (int)nnz, Npre, N, (float)setpoint, (int)rounds,
-            (int)kw, B, err.data_ptr<int>()); });
+            (int)kw, B, err.data_ptr<int>(), (int)absolute); });
 }
 
 torch::Tensor present_probe(torch::Tensor ent, torch::Tensor S, int64_t rounds, int64_t wpb) {
@@ -1736,9 +1742,9 @@ std::vector<torch::Tensor> column_mass_rel(torch::Tensor cols, torch::Tensor key
 torch::Tensor hashed_presence(torch::Tensor seeds, int64_t n_pre, int64_t n_post, int64_t threshold);
 torch::Tensor present_degree(torch::Tensor pres);
 torch::Tensor present_fill(torch::Tensor pres, int64_t n_post, int64_t dmax);
-void present_drive(torch::Tensor ent, torch::Tensor S, torch::Tensor cmax, torch::Tensor scale, torch::Tensor invdj, torch::Tensor rel, int64_t nnz, torch::Tensor out);
+void present_drive(torch::Tensor ent, torch::Tensor S, torch::Tensor cmax, torch::Tensor scale, torch::Tensor invdj, torch::Tensor rel, int64_t nnz, torch::Tensor out, int64_t absolute);
 void present_write(torch::Tensor P, torch::Tensor Wn, torch::Tensor ent, torch::Tensor cmax, torch::Tensor mass, torch::Tensor scale, torch::Tensor rel, int64_t nnz, double setpoint, int64_t do_scale, torch::Tensor err);
-void present_train(torch::Tensor words, torch::Tensor bundles, torch::Tensor lex_cache, torch::Tensor bundle_drive, torch::Tensor jit, torch::Tensor ent, torch::Tensor cmax, torch::Tensor mass, torch::Tensor scale, torch::Tensor invdj, torch::Tensor rel, double setpoint, int64_t rounds, int64_t kw, torch::Tensor err, int64_t nsh, int64_t nnz, int64_t wpb);
+void present_train(torch::Tensor words, torch::Tensor bundles, torch::Tensor lex_cache, torch::Tensor bundle_drive, torch::Tensor jit, torch::Tensor ent, torch::Tensor cmax, torch::Tensor mass, torch::Tensor scale, torch::Tensor invdj, torch::Tensor rel, double setpoint, int64_t rounds, int64_t kw, torch::Tensor err, int64_t nsh, int64_t nnz, int64_t wpb, int64_t absolute);
 torch::Tensor present_probe(torch::Tensor ent, torch::Tensor S, int64_t rounds, int64_t wpb);
 std::vector<torch::Tensor> topk_select(torch::Tensor x, int64_t K);
 """
