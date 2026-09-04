@@ -125,3 +125,27 @@ below ~10%, dense above. That is a substrate fact worth the day.
 * Then A3 at 20 seeds, paired against the numpy JSON's three, as the
   first width measurement; GATE-3 (the horizon hitting time) needs the FSM
   organ's assigned-state core on the same kernel.
+
+## Built (2026-09-04, night): the organ at width, and what its first run found
+
+* `DenseOrganFiber` (int16 counts, presence mask, absolute chain pricing,
+  gated == store fiber; -1 rows/winners skipped) and the batched
+  `HashedTransducer` (stacked per-word stimuli, per-brain schedules with
+  idle steps and per-brain resets). GATE-1 (drive + refraction, 5e-6) and
+  GATE-4 (identity across width, exact) pass. GATE-2 was superseded by the
+  A3 study itself; GATE-3 (the FSM horizon) awaits the assigned-state core.
+* A3 (PREREG_seq_a3_transducer.md) at 20 seeds in ~45 minutes: H5 pass,
+  H1 PASS (+0.10 paired against #14, which three numpy seeds had judged the
+  other way), H4 pass (0.07), H2/H3 fail, state-blind delta zero -- the
+  state is distinct and uninformative.
+* THE SUBSTRATE DEFECT the run found: `topk_select` ranked negative net
+  drives above positives (raw float bits as key). Refraction is the only
+  producer of negative drives, and the selector had only been gated on
+  replayed winners; the organ's arc collapsed onto its most-biased neurons
+  (bias 66 against a drive of 0.6, cross-prefix overlap 1.0). Fixed in
+  1b475fc with a negatives unit test. Lesson for every port to come: a
+  drive-replay gate cannot see a selection defect -- add a SELECTION gate
+  on drives that go negative. The refraction registration's hashed numbers
+  are suspended and re-running (PREREG_refraction_capacity.md CAVEAT).
+* Also adopted: `StimulusFiber(zero_or_size=True)`, the engine's stimulus
+  model, as the organ's default (not the cause, but the model).

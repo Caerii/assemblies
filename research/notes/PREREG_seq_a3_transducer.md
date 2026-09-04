@@ -139,3 +139,44 @@ bound three seeds cannot support. The study is re-run, bars UNCHANGED, on:
   the registered one.
 
 Reading order as registered: H5 first; the whole n_arc curve; H1..H4.
+
+## Result on the hashed organ (2026-09-04, 20 seeds, bars unchanged)
+
+    H5 null (beta = 0)      0.0885 +/- 0.0052   upper 0.0937 < unigram 0.1178      PASS
+    a3(n_arc = 2000)        0.1801 +/- 0.0089
+    a3(n_arc = 10000)       0.2054 +/- 0.0092
+    a3(n_arc = 50000)       0.2075 +/- 0.0106   best cell by mean
+    CONTEXT (#14, numpy)    0.1099 +/- 0.0085   the same 20 seeds
+    H1  a3 - CONTEXT        +0.0976 +/- 0.0158  lower bound 0.029 > 0            PASS
+    H2  beats no-context    lower 0.197 vs 0.2074                                FAIL
+    H3  beats bigram        0.2338                                               FAIL
+    H4  state overlap       0.0728 +/- 0.0060   upper 0.079 < 0.5                PASS
+    state-blind audit       0.2144 +/- 0.0107;  a3 - blind = -0.0068 +/- 0.0079
+
+**Reading.** With power, H1 flips: the induced-state organ beats #14's
+recurrent accumulator by a paired 0.10 MRR on every seed's own corpus
+(three numpy seeds had left the bound below zero). The state does NOT
+collapse (H4: 0.07, against #14's 0.76 and the numpy organ's 0.17). And
+yet the state carries no information the current word does not: with the
+state held EMPTY the readout scores the same or better (-0.007 +/- 0.008),
+and the best cell sits exactly on the no-context model's 0.2074 -- the
+organ is a bigram model by construction, as the registration predicted for
+H3 ([[SEQ-STATE-CODE-EMERGENT]] unproven), and its distinctness is not
+information ([[distinctness-is-not-information]], again). The n_arc curve
+is flat above 10,000: the arc's load is not what binds.
+
+**What the run found on the way (substrate):** the first width run read
+0.12 with the state collapsed at 0.82 and an arc bias of 66. The cause was
+`topk_select` ranking NEGATIVE net drives above positives -- refraction is
+the only producer of negative drives, and the selector had only ever been
+gated on replayed winners. Fixed in 1b475fc; GATE-1 could not have caught
+it (it replays winners). A stimulus-model difference found first
+(Binomial counts vs the engine's zero-or-size draw) was NOT the cause but
+is now the organ's default, as the engine's model. The Binomial-stimuli
+run's file is kept (`..._hashed_binomial_stimuli.json`): with the selector
+defect it also read a state-blind delta of exactly zero.
+
+**Instrument.** 20 seeds x (null + 3 cells + H4 + blind) = 120 organ
+trainings of ~1,060 steps plus the numpy CONTEXT pool: ~45 minutes wall,
+the 50,000-neuron arc one brain per launch. The numpy run of three seeds
+had cost about the same.
