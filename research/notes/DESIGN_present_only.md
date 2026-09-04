@@ -124,3 +124,52 @@ chain itself: fewer dependent shared accesses per entry (price index from
 the staged max in one load; the row barrier replaced by a per-row-group
 ordering only where columns collide). Per-phase cycle counts decide
 which, next unit.
+
+## v2/v3: the lockstep lesson (2026-09-04, same day)
+
+Per-phase cycle counts, warp 0, one round (K = 50, N = 1000, KW = 50):
+
+    version                                    drive   keys   select   write   total
+    v1  row walk x2, per-column atomics         30.6k   5.2k   45.2k    99.7k  181.7k
+    v2  list-priced pass 2, compacted select    29.6k   5.1k   41.8k   104.7k  182.1k
+    v3  ballot append, per-lane buckets,
+        all lanes price at once; rank finish    32.0k   5.1k   45.2k    58.3k  141.5k
+    v3b plain atomics; rank finish <= 128       30.1k   4.8k   27.2k    57.0k  120.1k
+
+Finer ticks inside v2 (write 105k = pass 1 53k + pass 2 62k; select 42k =
+first pass 12.6k + compaction 5k + three compacted passes 16.7k) found the
+mechanism, which the profiler's "wait / short_scoreboard" only named:
+
+*Lockstep.* v2's pass 2 walked a 200-entry list where each entry had ONE
+owning lane; the owner's ~300-cycle chain (three dependent shared loads,
+two float64 conversions and an add) masked the other 31 lanes but still
+cost the warp the chain -- 200 chains in series. The fix is not fewer
+operations but SIMULTANEOUS ones: bucket the list by owner lane, then let
+every lane price ITS k-th entry in the same instruction (v3: 62k -> ~10k
+for pass 2). The same lockstep fact makes the compacted select passes
+expensive (their fixed cost per pass, not their key count) -- so a rank
+finish replaces them once <= 128 candidates remain (four keys per lane,
+shuffled compares), and the match-any aggregation of histogram atomics
+cost more than the contention it prevented (v3b: 45k -> 27k).
+
+*Exactness held throughout* because every restructuring kept, per column,
+the row-order sequence: appends grow with rows, buckets keep list order,
+each slot's max and double sum live in one lane's registers.
+
+Timing, best of three, is NOT reported for v3 at width: the screen
+encoder's share of the GPU varied between runs by more than the change
+(width 272 read 27% better, width 544 35% worse, on the same kernel). The
+cycle table stands: 1.5x fewer cycles per warp-round than v1, which at
+v1's measured 0.20 us predicts ~0.13 us per brain-round at width.
+
+**What is left, by the cycles:** the write's row walk (pass 1 ~40k of
+57k: 13 load waves plus a divergent winner branch per lane-iteration),
+the drive's row walk (30k: three dependent shared loads per entry and a
+barrier per row), and the select's first full pass (12k). Two structural
+levers remain, both registered as the next unit: an INCREMENTAL drive --
+within a word the rows are fixed and only the ~50 winner columns' sums
+change, and pass 2 already computes each winner column's new sum in row
+order, so the drive of every round but the first of a word is free (drive
+-> ~6k averaged; costs 4 KB shared per warp to keep the previous drive,
+which trades against warps per SM and must be measured, not assumed) --
+and fusing the write's row walk with the next word's first drive.

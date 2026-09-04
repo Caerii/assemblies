@@ -1217,6 +1217,7 @@ __global__ void sched_train_kernel(const long long* __restrict__ words,
 // radix select at warp level. No block barrier inside a round.
 #define PR_PAD 0xFFFFFFFFu
 #define PR_ROWS 4                      // rows whose entries are loaded together
+#define PR_LMAX 512                    // winner cells the write remembers (typ. ~K*KW*p)
 
 __device__ __forceinline__ int pr_col(unsigned int e) { return (int)(e & 0xFFFFu); }
 __device__ __forceinline__ int pr_cnt(unsigned int e) { return (int)(short)(e >> 16); }
@@ -1265,13 +1266,15 @@ struct PrShared {
     int* win;             // KW
     int* misc;            // 4    [0] winners found
     unsigned int* wmask;  // W    winner-column bitmap
+    unsigned int* wl;     // PR_LMAX  winner cells (col << 16 | new count), row order
     short* cmx;           // N    staged column max
-    short* slot;          // N    winner column -> slot
+    short* slot;          // N    winner column -> slot; the select's candidate list before that
 };
 
 __host__ __device__ __forceinline__ size_t pr_warp_bytes(int N, int W, int K, int KW) {
     size_t b = (size_t)KW * 8 + (size_t)N * 4 + 256 * 4 + (size_t)KW * 4 + (size_t)K * 4
-             + (size_t)KW * 4 + 16 + (size_t)W * 4 + (size_t)N * 2 + (size_t)N * 2;
+             + (size_t)KW * 4 + 16 + (size_t)W * 4 + (size_t)PR_LMAX * 4
+             + (size_t)N * 2 + (size_t)N * 2;
     return (b + 7) & ~(size_t)7;
 }
 
@@ -1285,6 +1288,7 @@ __device__ __forceinline__ PrShared pr_carve(unsigned char* base, int N, int W, 
     s.win = reinterpret_cast<int*>(base);                 base += (size_t)KW * 4;
     s.misc = reinterpret_cast<int*>(base);                base += 16;
     s.wmask = reinterpret_cast<unsigned int*>(base);      base += (size_t)W * 4;
+    s.wl = reinterpret_cast<unsigned int*>(base);         base += (size_t)PR_LMAX * 4;
     s.cmx = reinterpret_cast<short*>(base);               base += (size_t)N * 2;
     s.slot = reinterpret_cast<short*>(base);
     return s;
@@ -1347,34 +1351,103 @@ __device__ void pr_keys(const PrShared& s, int N, const float* __restrict__ scal
     __syncwarp();
 }
 
+// RANK FINISH: once the candidates fit four per lane (<= 128), the rem-th
+// largest of them (keys are unique) is the threshold, by shuffled compares
+// instead of up to three more passes. Valid right after a compaction, when the list holds
+// exactly the keys matching the prefix and `rem` counts the winners among them.
+__device__ __forceinline__ unsigned long long pr_rank_finish(const short* cand, const unsigned int* uk,
+                                                             int ncand, int rem) {
+    const int lane = threadIdx.x & 31;
+    unsigned long long key[4];
+    int rank[4];
+#pragma unroll
+    for (int m = 0; m < 4; ++m) {
+        const int q = lane + 32 * m;
+        const int j = (q < ncand) ? (int)cand[q] : -1;
+        key[m] = (j >= 0) ? ((((unsigned long long)uk[j]) << 16) | (unsigned long long)(65535 - j)) : 0ull;
+        rank[m] = 0;
+    }
+    for (int o = 0; o < ncand; ++o) {
+        unsigned long long other;
+        switch (o >> 5) {                                   // uniform
+            case 0: other = __shfl_sync(0xFFFFFFFFu, key[0], o & 31); break;
+            case 1: other = __shfl_sync(0xFFFFFFFFu, key[1], o & 31); break;
+            case 2: other = __shfl_sync(0xFFFFFFFFu, key[2], o & 31); break;
+            default: other = __shfl_sync(0xFFFFFFFFu, key[3], o & 31); break;
+        }
+#pragma unroll
+        for (int m = 0; m < 4; ++m) rank[m] += (other > key[m]) ? 1 : 0;
+    }
+    unsigned long long found = 0ull;
+#pragma unroll
+    for (int m = 0; m < 4; ++m) {
+        const bool hit = (lane + 32 * m < ncand) && (rank[m] == rem - 1);
+        const unsigned int bal = __ballot_sync(0xFFFFFFFFu, hit);
+        if (bal) found = __shfl_sync(0xFFFFFFFFu, key[m], __ffs(bal) - 1);
+    }
+    return found;
+}
+
 // the KW largest of the 48-bit keys (key32 << 16 | 65535 - j), warp-level
 // radix select; then the winners into win/wmask/slot, cmx2 and dmass reset.
+//
+// After the first pass only the keys in the crossing bin can still decide
+// the threshold, so they are COMPACTED into a candidate list (the slot map's
+// space, dead until the winners are known) and later passes scan tens of
+// keys instead of a thousand; the compaction pass histograms the next digit
+// as it goes, so it costs no extra pass.
 __device__ unsigned long long pr_select(const PrShared& s, int N, int W, int KW,
                                         unsigned int kand, unsigned int kor, int& nfound) {
     const int lane = threadIdx.x & 31;
     const unsigned int* uk = reinterpret_cast<const unsigned int*>(s.drive);
+    short* cand = s.slot;
     const int lead = (kand ^ kor) ? __clz(kand ^ kor) : 32;
     const unsigned long long lmask = lead ? (~0ull << (48 - lead)) : 0ull;
     unsigned long long prefix = (((unsigned long long)kand) << 16) & lmask, pmask = lmask;
-    int rem = KW;
+    int rem = KW, ncand = -1;                                 // -1: not compacted yet
     int shift = 40 - lead; if (shift < 0) shift = 0;
+    for (int t = lane; t < 256; t += 32) s.hist[t] = 0;
+    __syncwarp();
     for (; shift >= 0; shift = (shift >= 8) ? shift - 8 : (shift > 0 ? 0 : -1)) {
-        for (int t = lane; t < 256; t += 32) s.hist[t] = 0;
-        __syncwarp();
-        for (int base = 0; base < N; base += 32) {
-            const int j = base + lane;
-            unsigned long long key = 0ull;
-            bool valid = false;
-            if (j < N) {
-                key = (((unsigned long long)uk[j]) << 16) | (unsigned long long)(65535 - j);
-                valid = ((key & pmask) == prefix);
+        // histogram of this digit over the keys still matching the prefix;
+        // on the pass after the first, compact them as well
+        if (ncand < 0) {
+            for (int base = 0; base < N; base += 32) {
+                const int j = base + lane;
+                unsigned long long key = 0ull;
+                bool valid = false;
+                if (j < N) {
+                    key = (((unsigned long long)uk[j]) << 16) | (unsigned long long)(65535 - j);
+                    valid = ((key & pmask) == prefix);
+                }
+                const unsigned int d = valid ? (unsigned int)((key >> shift) & 0xFFull) : 0u;
+                if (valid) atomicAdd(&s.hist[d], 1);    // plain: a warp's digits mostly differ
             }
-            const unsigned int d = valid ? (unsigned int)((key >> shift) & 0xFFull) : 0u;
-            const unsigned int act = __ballot_sync(0xFFFFFFFFu, valid);
-            if (valid) {
-                const unsigned int m = __match_any_sync(act, d);
-                if ((__ffs(m) - 1) == lane) atomicAdd(&s.hist[d], __popc(m));
+        } else {
+            int kept = 0;
+            for (int base = 0; base < ncand; base += 32) {
+                const int q = base + lane;
+                int j = -1;
+                unsigned long long key = 0ull;
+                bool valid = false;
+                if (q < ncand) {
+                    j = (int)cand[q];
+                    key = (((unsigned long long)uk[j]) << 16) | (unsigned long long)(65535 - j);
+                    valid = ((key & pmask) == prefix);
+                }
+                const unsigned int act = __ballot_sync(0xFFFFFFFFu, valid);
+                __syncwarp();                                   // everyone has read this chunk
+                if (valid) {
+                    const int pos = kept + __popc(act & ((1u << lane) - 1u));
+                    cand[pos] = (short)j;                       // pos <= q: in place is safe
+                    const unsigned int d = (unsigned int)((key >> shift) & 0xFFull);
+                    atomicAdd(&s.hist[d], 1);
+                }
+                kept += __popc(act);
+                __syncwarp();
             }
+            ncand = kept;
+            if (ncand <= 128) { prefix = pr_rank_finish(cand, uk, ncand, rem); break; }
         }
         __syncwarp();
         int sum = 0;
@@ -1407,7 +1480,27 @@ __device__ unsigned long long pr_select(const PrShared& s, int N, int W, int KW,
         pmask |= 0xFFull << shift;
         rem = nrem;
         __syncwarp();
+        for (int t = lane; t < 256; t += 32) s.hist[t] = 0;
+        __syncwarp();
         if (cnt == rem) break;                              // every key with this prefix wins
+        if (ncand < 0) {
+            // compact the crossing bin's keys for the passes to come
+            int kept = 0;
+            for (int base = 0; base < N; base += 32) {
+                const int j = base + lane;
+                bool valid = false;
+                if (j < N) {
+                    const unsigned long long key = (((unsigned long long)uk[j]) << 16) | (unsigned long long)(65535 - j);
+                    valid = ((key & pmask) == prefix);
+                }
+                const unsigned int act = __ballot_sync(0xFFFFFFFFu, valid);
+                if (valid) cand[kept + __popc(act & ((1u << lane) - 1u))] = (short)j;
+                kept += __popc(act);
+            }
+            ncand = kept;
+            __syncwarp();
+            if (ncand <= 128) { prefix = pr_rank_finish(cand, uk, ncand, rem); break; }
+        }
     }
     if (lane == 0) s.misc[0] = 0;
     for (int w = lane; w < W; w += 32) s.wmask[w] = 0u;
@@ -1429,14 +1522,132 @@ __device__ unsigned long long pr_select(const PrShared& s, int N, int W, int KW,
 }
 
 // winners given (win/wmask/slot/cmx2/dmass prepared): count the rows in,
-// then price the change at the new max -- dense_write_kernel's arithmetic
+// then price the change at the new max -- dense_write_kernel's arithmetic.
+//
+// LOCKSTEP. A warp executes one instruction stream: a chain of shared loads
+// and double-precision ops done by ONE lane while the others are masked
+// costs the whole warp that chain, and a loop over ~200 winner cells with
+// one owner each ran 200 chains in series (62k cycles). So:
+//   pass 1   walks the rows in order, stores the incremented counts, and
+//            APPENDS each winner cell (slot, new count) to a shared list by
+//            ballot -- no atomics, no lookups beyond the slot, no per-row
+//            barrier (positions grow with rows, so the list is in row order)
+//   bucket   each lane collects the entries of the slots it owns
+//            (slot mod 32) into its own region, in list order
+//   pass 2   ALL lanes at once: lane l prices its k-th entry while every
+//            other lane prices its own; per slot the entries are met in
+//            list = row order, the max first and then the price change,
+//            both in registers -- the row walk's exact double sequence
+// If the list overflows, the original two-pass row walk runs instead.
 template <int MAXIT>
 __device__ bool pr_write(unsigned int* __restrict__ eb, int DMAX, int K, const PrShared& s,
                          int N, const float* srel, int nsh, const float* __restrict__ rel,
                          int nnz, int nrel, int* __restrict__ cmax_b, double* __restrict__ mass_b,
                          float* __restrict__ scale_b, float setpoint, int do_scale, int nw) {
     const int lane = threadIdx.x & 31;
+    const unsigned int lt = (1u << lane) - 1u;
     bool over = false;
+    int nl = 0;
+    // ---- pass 1
+    for (int s0 = 0; s0 < K; s0 += PR_ROWS) {
+        unsigned int e[PR_ROWS][MAXIT];
+#pragma unroll
+        for (int r = 0; r < PR_ROWS; ++r) {
+            const int sl = s0 + r;
+            const int i = (sl < K) ? s.rows[sl] : -1;
+            const unsigned int* re = eb + (long long)(i < 0 ? 0 : i) * DMAX;
+#pragma unroll
+            for (int t = 0; t < MAXIT; ++t) {
+                const int p = lane + 32 * t;
+                e[r][t] = (i >= 0 && p < DMAX) ? re[p] : PR_PAD;
+            }
+        }
+#pragma unroll
+        for (int r = 0; r < PR_ROWS; ++r) {
+            const int sl = s0 + r;
+            const int i = (sl < K) ? s.rows[sl] : -1;
+            unsigned int* re = eb + (long long)(i < 0 ? 0 : i) * DMAX;
+#pragma unroll
+            for (int t = 0; t < MAXIT; ++t) {
+                const unsigned int v = e[r][t];
+                const int j = pr_col(v);
+                const bool hit = (v != PR_PAD) && ((s.wmask[j >> 5] >> (j & 31)) & 1u);
+                const int c = pr_cnt(v) + 1;
+                const bool ok = hit && (c <= DENSE_CMAX);
+                over |= hit && !ok;
+                const unsigned int act = __ballot_sync(0xFFFFFFFFu, ok);
+                if (ok) {
+                    re[lane + 32 * t] = pr_pack(j, c);
+                    const int pos = nl + __popc(act & lt);
+                    if (pos < PR_LMAX) s.wl[pos] = ((unsigned int)s.slot[j] << 16) | (unsigned int)c;
+                }
+                nl += __popc(act);
+            }
+        }
+    }
+    __syncwarp();
+    const int cap = (N < PR_LMAX) ? N : PR_LMAX;              // the bucket scratch is the keys' space
+    if (nl <= cap) {
+        // ---- bucket by owner lane (slot & 31), list order kept
+        unsigned int* scratch = reinterpret_cast<unsigned int*>(s.drive);
+        int cnt = 0;
+        for (int q = 0; q < nl; ++q) cnt += (((s.wl[q] >> 16) & 31u) == (unsigned int)lane);
+        int incl = cnt;
+#pragma unroll
+        for (int o = 1; o < 32; o <<= 1) {
+            const int v = __shfl_up_sync(0xFFFFFFFFu, incl, o);
+            if (lane >= o) incl += v;
+        }
+        const int off = incl - cnt;
+        int k = 0;
+        for (int q = 0; q < nl; ++q) {
+            const unsigned int e = s.wl[q];
+            if (((e >> 16) & 31u) == (unsigned int)lane) scratch[off + k++] = e;
+        }
+        __syncwarp();
+        // ---- pass 2, all lanes at once: the max of each owned slot, then
+        // the price change, per slot in list order
+        int maxk = cnt;
+#pragma unroll
+        for (int o = 16; o > 0; o >>= 1) maxk = max(maxk, __shfl_xor_sync(0xFFFFFFFFu, maxk, o));
+        const int j0 = (lane < nw) ? s.win[lane] : -1, j1 = (lane + 32 < nw) ? s.win[lane + 32] : -1;
+        int mx0 = (j0 >= 0) ? (int)s.cmx[j0] : 0, mx1 = (j1 >= 0) ? (int)s.cmx[j1] : 0;
+        for (int q = 0; q < maxk; ++q) {
+            const unsigned int e = (q < cnt) ? scratch[off + q] : 0u;
+            const int c = (int)(e & 0xFFFFu), sl_ = (int)(e >> 16);
+            if (q < cnt) { if (sl_ < 32) mx0 = max(mx0, c); else mx1 = max(mx1, c); }
+        }
+        double d0 = 0.0, d1 = 0.0;
+        if (do_scale) {
+            for (int q = 0; q < maxk; ++q) {
+                const unsigned int e = (q < cnt) ? scratch[off + q] : 0u;
+                const int c = (int)(e & 0xFFFFu), sl_ = (int)(e >> 16);
+                const int cm_new = (sl_ < 32) ? mx0 : mx1;
+                const int dn = cm_new - c, dold = cm_new - (c - 1);
+                const float rn = sched_price(dn, srel, nsh, rel, nnz);
+                const float ro = sched_price(dold, srel, nsh, rel, nnz);
+                const double term = (double)rn - (double)ro;
+                if (q < cnt) { if (sl_ < 32) d0 += term; else d1 += term; }
+            }
+        }
+        // ---- finalize the owned slots (slot q is owned by lane q & 31)
+        for (int q = lane; q < nw; q += 32) {
+            const int j = s.win[q];
+            const int cm_old = (int)s.cmx[j], cm_new = (q < 32) ? mx0 : mx1;
+            if (do_scale) {
+                const int dc = cm_new - cm_old;
+                const double shrink = (dc < nrel) ? (double)rel[dc] : 0.0;
+                const double m = mass_b[j] * shrink + ((q < 32) ? d0 : d1);
+                mass_b[j] = m;
+                scale_b[j] = (m > 1e-12) ? (float)((double)setpoint / m) : 1.0f;
+            }
+            cmax_b[j] = cm_new;
+            s.cmx[j] = (short)cm_new;
+        }
+        __syncwarp();
+        return over;
+    }
+    // ---- overflow fallback: the row walk, twice (max, then price change)
     for (int pass = 0; pass < (do_scale ? 2 : 1); ++pass) {
         for (int s0 = 0; s0 < K; s0 += PR_ROWS) {
             unsigned int e[PR_ROWS][MAXIT];
@@ -1453,9 +1664,6 @@ __device__ bool pr_write(unsigned int* __restrict__ eb, int DMAX, int K, const P
             }
 #pragma unroll
             for (int r = 0; r < PR_ROWS; ++r) {
-                const int sl = s0 + r;
-                const int i = (sl < K) ? s.rows[sl] : -1;
-                unsigned int* re = eb + (long long)(i < 0 ? 0 : i) * DMAX;
 #pragma unroll
                 for (int t = 0; t < MAXIT; ++t) {
                     const unsigned int v = e[r][t];
@@ -1463,18 +1671,15 @@ __device__ bool pr_write(unsigned int* __restrict__ eb, int DMAX, int K, const P
                     const int j = pr_col(v);
                     if (!((s.wmask[j >> 5] >> (j & 31)) & 1u)) continue;
                     const int sl_ = (int)s.slot[j];
+                    const int c = pr_cnt(v);                         // already incremented
                     if (pass == 0) {
-                        const int c = pr_cnt(v) + 1;
-                        if (c > DENSE_CMAX) { over = true; continue; }
-                        re[lane + 32 * t] = pr_pack(j, c);
-                        if (c > s.cmx2[sl_]) s.cmx2[sl_] = c;       // distinct slots within a row
+                        if (c > s.cmx2[sl_]) s.cmx2[sl_] = c;
                     } else {
-                        const int c = pr_cnt(v);                     // already incremented
                         const int cm_new = s.cmx2[sl_];
                         const int dn = cm_new - c, dold = cm_new - (c - 1);
                         const float rn = sched_price(dn, srel, nsh, rel, nnz);
                         const float ro = sched_price(dold, srel, nsh, rel, nnz);
-                        s.dmass[sl_] += (double)rn - (double)ro;     // row order
+                        s.dmass[sl_] += (double)rn - (double)ro;
                     }
                 }
                 __syncwarp();
