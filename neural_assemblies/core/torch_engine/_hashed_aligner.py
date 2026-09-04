@@ -39,7 +39,7 @@ from __future__ import annotations
 import torch
 
 from ..numpy_engine import _seeding
-from ._hashed import AreaFiber, DenseAreaFiber, HashedArea, PresentFiber, StimulusFiber
+from ._hashed import AreaFiber, HashedArea, PresentFiber, StimulusFiber
 
 LEX, FEAT = "LEX", "FEAT"
 
@@ -141,17 +141,6 @@ class HashedAligner:
                                       feat_n, p, beta=beta, norm_init=norm_init,
                                       synaptic_scaling=scaling,
                                       max_rounds=max_potentiations, device=device)
-        elif store == "dense":
-            # The count matrix fits at study sizes: one launch per drive, one
-            # per write, no store walk (DESIGN_dense_cross_fiber.md).
-            if w_max is not None:
-                raise ValueError("the dense fiber is the unclipped regime")
-            self.cross = DenseAreaFiber(pair_seeds(self.seeds, LEX, FEAT), n,
-                                        feat_n, p, beta=beta,
-                                        norm_init=norm_init,
-                                        synaptic_scaling=scaling,
-                                        max_rounds=max_potentiations,
-                                        device=device)
         else:
             self.cross = AreaFiber(pair_seeds(self.seeds, LEX, FEAT), n,
                                    feat_n, p, beta=beta, w_max=w_max,

@@ -83,7 +83,7 @@ def test_the_toy_is_identifiable():
     assert assert_identifiable(SCENES, BUNDLES)
 
 
-@pytest.mark.parametrize("store", ["csr", "dense", "present"])
+@pytest.mark.parametrize("store", ["csr", "present"])
 def test_hashed_aligner_reproduces_numpy_drive(mod, store):
     from neural_assemblies.core.torch_engine._hashed_aligner import HashedAligner
 

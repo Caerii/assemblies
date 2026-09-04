@@ -741,14 +741,11 @@ __global__ void colmass_rel_kernel(const int* __restrict__ cols,
 }
 
 
-// ---- DENSE cross fiber (DESIGN_dense_cross_fiber.md, DESIGN_dense_floor.md)
-// Per-brain int16 count matrix C[b, i, j], per-column cmax and scale, and the
-// connectome as a PRESENCE BITMASK pres[b, i, j/32] built ONCE by the same
-// hash the store fiber tests at apply time: a warp reads one word for 32
-// columns of a row instead of hashing 32 times. Prices are MAX-RELATIVE (see
-// devapply_rel_kernel). The column mass is kept incrementally in float64 by
-// the writer. Counts are int16: the writer flags a count that would pass
-// 32767 in `err` rather than wrap.
+// ---- PRESENCE BITMASK (DESIGN_dense_floor.md) ------------------------------
+// The connectome as bits, pres[b, i, j/32], built ONCE by the same hash the
+// store fiber tests at apply time. It is the hash's stored form (GATE-4) and
+// the source of the present-only lists below. Counts are int16 everywhere:
+// a writer flags a count that would pass 32767 in `err` rather than wrap.
 
 #define DENSE_CMAX 32767
 
@@ -773,144 +770,7 @@ __global__ void presence_kernel(const int* __restrict__ seeds, int B, int Npre,
     pres[idx] = word;
 }
 
-// d[b, j] += scale[b, j] * invdj[b, j] * SUM_{sl} present(i_sl, j) * rel[cmax_j - C[b, i_sl, j]]
-__global__ void dense_drive_kernel(const int* __restrict__ S, int K,
-                                   const short* __restrict__ C,
-                                   const unsigned int* __restrict__ pres, int W,
-                                   const int* __restrict__ cmax,
-                                   const float* __restrict__ scale,
-                                   const float* __restrict__ invdj,
-                                   const float* __restrict__ rel, int nrel,
-                                   int B, int Npre, int N,
-                                   float* __restrict__ out) {
-    long long idx = blockIdx.x * (long long)blockDim.x + threadIdx.x;
-    if (idx >= (long long)B * N) return;
-    const int j = (int)(idx % N), b = (int)(idx / N);
-    const int cm = cmax[idx];
-    const short* Cb = C + (long long)b * Npre * N;
-    const unsigned int* Pb = pres + (long long)b * Npre * W;
-    const int wj = j >> 5, bj = j & 31;
-    float acc = 0.0f;
-    for (int sl = 0; sl < K; ++sl) {
-        const int i = S[(long long)b * K + sl];
-        if (i < 0) continue;
-        if (!((Pb[(long long)i * W + wj] >> bj) & 1u)) continue;
-        const int d = cm - (int)Cb[(long long)i * N + j];
-        acc += (d < nrel) ? rel[d] : 0.0f;
-    }
-    float v = acc * scale[idx];
-    if (invdj != nullptr) v *= invdj[idx];
-    out[idx] += v;
-}
-
-// One block per (b, winner column j): counts the prev rows in, updates the
-// column max, the relative mass (float64, incremental) and the scale.
-__global__ void dense_write_kernel(const int* __restrict__ P, int KP,
-                                   const int* __restrict__ Wn, int KW,
-                                   short* __restrict__ C,
-                                   const unsigned int* __restrict__ pres, int W,
-                                   int* __restrict__ cmax,
-                                   double* __restrict__ mass,
-                                   float* __restrict__ scale,
-                                   const float* __restrict__ rel, int nrel,
-                                   int Npre, int N,
-                                   float setpoint, int do_scale,
-                                   int* __restrict__ err) {
-    __shared__ int rmx[128];
-    __shared__ double red[128];
-    const int b = blockIdx.x / KW, sw = blockIdx.x - b * KW;
-    const int j = Wn[(long long)b * KW + sw];
-    if (j < 0) return;
-    short* Cb = C + (long long)b * Npre * N;
-    const unsigned int* Pb = pres + (long long)b * Npre * W;
-    const int wj = j >> 5, bj = j & 31;
-    const long long cidx = (long long)b * N + j;
-    const int cm_old = cmax[cidx];
-    // pass 1: increment, find the new column max among the written cells
-    int mx = cm_old;
-    for (int sl = threadIdx.x; sl < KP; sl += blockDim.x) {
-        const int i = P[(long long)b * KP + sl];
-        if (i < 0) continue;
-        if (!((Pb[(long long)i * W + wj] >> bj) & 1u)) continue;
-        const int c = (int)Cb[(long long)i * N + j] + 1;
-        if (c > DENSE_CMAX) { atomicExch(err, 1); continue; }
-        Cb[(long long)i * N + j] = (short)c;
-        if (c > mx) mx = c;
-    }
-    rmx[threadIdx.x] = mx;
-    __syncthreads();
-    for (int st = blockDim.x >> 1; st > 0; st >>= 1) {
-        if (threadIdx.x < st && rmx[threadIdx.x + st] > rmx[threadIdx.x])
-            rmx[threadIdx.x] = rmx[threadIdx.x + st];
-        __syncthreads();
-    }
-    const int cm_new = rmx[0];
-    if (!do_scale) { if (threadIdx.x == 0) cmax[cidx] = cm_new; return; }
-    // pass 2: the written cells' change in relative price, at the NEW max
-    double acc = 0.0;
-    for (int sl = threadIdx.x; sl < KP; sl += blockDim.x) {
-        const int i = P[(long long)b * KP + sl];
-        if (i < 0) continue;
-        if (!((Pb[(long long)i * W + wj] >> bj) & 1u)) continue;
-        const int c = (int)Cb[(long long)i * N + j];     // already incremented
-        const int dn = cm_new - c, dold = cm_new - (c - 1);
-        const float rn = (dn >= 0 && dn < nrel) ? rel[dn] : 0.0f;
-        const float ro = (dold >= 0 && dold < nrel) ? rel[dold] : 0.0f;
-        acc += (double)rn - (double)ro;
-    }
-    red[threadIdx.x] = acc;
-    __syncthreads();
-    for (int st = blockDim.x >> 1; st > 0; st >>= 1) {
-        if (threadIdx.x < st) red[threadIdx.x] += red[threadIdx.x + st];
-        __syncthreads();
-    }
-    if (threadIdx.x == 0) {
-        const int dc = cm_new - cm_old;
-        const double shrink = (dc < nrel) ? (double)rel[dc] : 0.0;
-        double m = mass[cidx] * shrink + red[0];
-        mass[cidx] = m;
-        cmax[cidx] = cm_new;
-        scale[cidx] = (m > 1e-12) ? (float)((double)setpoint / m) : 1.0f;
-    }
-}
-
-
-// ---- LAYER 3 (DESIGN_scheduled_training.md, DESIGN_dense_floor.md): the
-// training loop on the device. One 256-thread block per brain -- three or
-// four blocks share an SM.
-//
-// LATENCY, NOT BANDWIDTH. Measured by cycle counter: a drive that tested
-// presence first and loaded a count only for present cells cost 84k cycles
-// a round, the same as the hash version it replaced. A warp waits on a load
-// whenever ANY of its 32 lanes has a present cell -- 81% of rows at p=0.05
-// -- and the branch made the loads issue one at a time, so a round was ~160
-// serialized memory round-trips per warp. The count loads are independent:
-// issue them UNCONDITIONALLY, unrolled, ten in flight, and multiply by the
-// presence bit. The bytes are the probe's bytes (the lines are touched
-// either way); the time is one round-trip per ten rows. The price table is
-// staged in shared memory so the dependent lookup costs a shared load.
-//
-// Shared memory holds the round's drive as 64-bit keys (float bits << 16 |
-// (65535 - j)) -- the SAME key the histogram selector uses, so ties break
-// identically. The k winners are the keys at or above the k-th largest,
-// found by RADIX SELECT (8-bit digits from the top, a 256-bin histogram per
-// pass -- double-buffered, so a pass is two barriers -- early exit when a
-// bin's count equals the remainder); keys are unique, so exactly k qualify,
-// and the winner set is the sort's first k. Winners are collected UNORDERED:
-// the write is per column and commutative. The write is dense_write_kernel's
-// arithmetic, one thread per winner column, its loads pipelined the same way.
-//
-// HOW THE LOADS ARE KEPT IN FLIGHT. nvcc sinks a load whose only use is under
-// a condition INTO that condition (it saw "if (present) use(c)" and made the
-// load conditional again, serializing them -- read the SASS, not the source).
-// So: a chunk of SCHED_CH counts is loaded into registers by one unrolled
-// loop, and consumed by a second whose adds are SELECTS, `acc += present ?
-// v : 0`, so every loaded value has an unconditional use. `x + 0.0f == x`
-// bit-for-bit here: acc is a sum of non-negative prices from +0, never -0.
-#define SCHED_MAXK 128
-#define SCHED_TH 256
-#define SCHED_RELSH 1024          // staged price entries: 4 KB, so four blocks fit an SM
-#define SCHED_CH 10               // count loads in flight per thread
+#define SCHED_MAXK 128            // rows / winner columns a warp-per-brain kernel accepts
 
 // rel[d]: from the staged head when it is there; from global for
 // nsh <= d < nnz (nnz = the table's nonzero head -- it is monotone, and past
@@ -930,278 +790,6 @@ __device__ __forceinline__ unsigned long long sched_key(float v, int j) {
     return ((unsigned long long)u << 16) | (unsigned long long)(65535 - (j & 0xFFFF));
 }
 
-// The KW-th largest of keys[0..N) (unique keys). Block-wide; every thread
-// returns the same threshold. `hist`: 2 x 256 ints, both ZERO at entry and
-// left zero at exit; `sh`: 2 x 3 ints. Two barriers per pass.
-//
-// `kand`/`kor` are the AND and OR of every key's float half: the bits where
-// they agree are shared by ALL keys and need no pass. Positive drives within
-// a few binades share sign and most of the exponent, so the first digit
-// starts ~9 bits down and the float's 32 bits are decided in three passes
-// instead of four; identical floats (rare, jitter) fall through to the
-// column bits like any other tie.
-__device__ unsigned long long sched_select(const unsigned long long* keys, int N,
-                                           int KW, int* hist, int* sh,
-                                           unsigned int kand, unsigned int kor) {
-    const int lead = (kand ^ kor) ? __clz(kand ^ kor) : 32;      // shared top bits
-    const unsigned long long lmask = lead ? (~0ull << (64 - lead)) : 0ull;
-    unsigned long long prefix = ((unsigned long long)kand << 32) & lmask, pmask = lmask;
-    int rem = KW, pass = 0, last = 0;
-    const int lane = threadIdx.x & 31, warp = threadIdx.x >> 5;
-    int shift = 56 - lead; if (shift < 0) shift = 0;
-    // the last digit clamps to bit 0 (overlapping decided bits is harmless:
-    // they are equal in every valid key) so the column bits are always covered
-    for (; shift >= 0; shift = (shift >= 8) ? shift - 8 : (shift > 0 ? 0 : -1), ++pass) {
-        int* h = hist + (pass & 1) * 256;
-        int* out = sh + (pass & 1) * 3;
-        for (int base = 0; base < N; base += blockDim.x) {
-            const int j = base + threadIdx.x;
-            unsigned long long key = 0ull;
-            bool valid = false;
-            if (j < N) { key = keys[j]; valid = ((key & pmask) == prefix); }
-            const unsigned int d = valid ? (unsigned int)((key >> shift) & 0xFFull) : 0u;
-            const unsigned int act = __ballot_sync(0xFFFFFFFFu, valid);
-            if (valid) {
-                // one shared atomic per distinct digit per warp
-                const unsigned int m = __match_any_sync(act, d);
-                if ((__ffs(m) - 1) == lane) atomicAdd(&h[d], __popc(m));
-            }
-        }
-        __syncthreads();
-        if (warp == 0) {
-            // lane l owns bins 255-8l .. 248-8l; suffix scan from the top
-            int s = 0;
-#pragma unroll
-            for (int t = 0; t < 8; ++t) s += h[255 - 8 * lane - t];
-            int incl = s;
-#pragma unroll
-            for (int o = 1; o < 32; o <<= 1) {
-                const int v = __shfl_up_sync(0xFFFFFFFFu, incl, o);
-                if (lane >= o) incl += v;
-            }
-            const int excl = incl - s;
-            const bool here = (excl < rem) && (rem <= incl);
-            const unsigned int bal = __ballot_sync(0xFFFFFFFFu, here);
-            if (lane == (__ffs(bal) - 1)) {
-                int acc = excl;
-                for (int t = 0; t < 8; ++t) {
-                    const int bin = 255 - 8 * lane - t;
-                    const int c = h[bin];
-                    if (acc + c >= rem) { out[0] = bin; out[1] = rem - acc; out[2] = c; break; }
-                    acc += c;
-                }
-            }
-        } else {
-            // meanwhile: zero the other buffer for the next pass
-            int* o = hist + ((pass + 1) & 1) * 256;
-            for (int t = threadIdx.x - 32; t < 256; t += blockDim.x - 32) o[t] = 0;
-        }
-        __syncthreads();
-        prefix |= ((unsigned long long)out[0]) << shift;
-        pmask |= 0xFFull << shift;
-        rem = out[1];
-        last = pass;
-        if (out[2] == rem) break;       // every key with this prefix wins
-    }
-    // leave the dirty buffer zero for the next call (no reader remains)
-    for (int t = threadIdx.x; t < 256; t += blockDim.x) hist[(last & 1) * 256 + t] = 0;
-    return prefix;
-}
-
-__global__ void sched_train_kernel(const long long* __restrict__ words,
-                                   const long long* __restrict__ bundles, int S,
-                                   const long long* __restrict__ lex_cache, int V, int K,
-                                   const float* __restrict__ bundle_drive,
-                                   const float* __restrict__ jit, int I,
-                                   short* __restrict__ C,
-                                   const unsigned int* __restrict__ pres, int W,
-                                   int* __restrict__ cmax,
-                                   double* __restrict__ mass, float* __restrict__ scale,
-                                   const float* __restrict__ invdj,
-                                   const float* __restrict__ rel, int nrel, int nsh, int nnz,
-                                   int Npre, int N,
-                                   float setpoint, int rounds, int KW,
-                                   int* __restrict__ err, int sms) {
-    const long long t_start = clock64();
-    const int q = blockIdx.x / sms, nq = (gridDim.x + sms - 1) / sms;
-    extern __shared__ unsigned long long keys[];          // N keys, then ...
-    unsigned int* spres = reinterpret_cast<unsigned int*>(keys + N);   // K x W words
-    float* srel = reinterpret_cast<float*>(spres + K * W);             // nsh prices
-    // OCCUPANCY: the staged counts live only in the write, after the keys
-    // are dead (winners sit in win[]), so they ALIAS the keys' space; that
-    // is the difference between three and four blocks per SM (ncu: DRAM at
-    // 60% of peak with 43% of stalls on load latency -- more warps in
-    // flight is the lever).
-    short* wcnt = reinterpret_cast<short*>(keys);                      // KW x K counts
-    __shared__ int hist[512];
-    __shared__ int sh[6];
-    __shared__ int rows[SCHED_MAXK];
-    __shared__ int win[SCHED_MAXK];
-    __shared__ int colmax[SCHED_MAXK];
-    __shared__ unsigned int kbits[2];
-    __shared__ int nwin;
-    const int nch = (K + SCHED_CH - 1) / SCHED_CH;
-    if (threadIdx.x == 0) { kbits[0] = 0xFFFFFFFFu; kbits[1] = 0u; }
-    const int b = blockIdx.x;
-    short* Cb = C + (long long)b * Npre * N;
-    const unsigned int* Pb = pres + (long long)b * Npre * W;
-    const long long cbase = (long long)b * N;
-    for (int t = threadIdx.x; t < 512; t += blockDim.x) hist[t] = 0;
-    for (int t = threadIdx.x; t < nsh; t += blockDim.x) srel[t] = rel[t];
-    for (int s = 0; s < S; ++s) {
-        const long long w = words[(long long)b * S + s];
-        const long long bid = bundles[(long long)b * S + s];
-        if (w < 0 || bid < 0) break;
-        if (threadIdx.x < K) {
-            long long r = lex_cache[((long long)b * V + w) * K + threadIdx.x];
-            rows[threadIdx.x] = (int)r;
-        }
-        __syncthreads();
-        // LOCALITY: the step's rows are fixed for its rounds, so their
-        // presence words are staged in shared memory once (coalesced, a
-        // row's words are contiguous) and tested there by drive and write.
-        for (int t = threadIdx.x; t < K * W; t += blockDim.x) {
-            const int i = rows[t / W];
-            spres[t] = (i >= 0) ? Pb[(long long)i * W + (t % W)] : 0u;
-        }
-        __syncthreads();
-        const float* stim = bundle_drive + ((long long)b * I + bid) * N;
-        const float* jt = jit + ((long long)b * I + bid) * N;
-        for (int r = 0; r < rounds; ++r) {
-            // drive over columns -> keys
-            unsigned int kand = 0xFFFFFFFFu, kor = 0u;
-            for (int j = threadIdx.x; j < N; j += blockDim.x) {
-                const int cm = cmax[cbase + j];
-                const int wj = j >> 5, bj = j & 31;
-                float acc = 0.0f;
-                // SECTORS: a 2-byte count costs a 32-byte sector; presence is
-                // known from shared memory BEFORE the load, so the loads are
-                // PREDICATED per cell -- straight-line, still SCHED_CH in
-                // flight, but a predicated-off load fetches nothing, and a
-                // warp-row's sectors are fetched only where a lane is present
-                for (int s0 = 0; s0 < K; s0 += SCHED_CH) {
-                    int cs[SCHED_CH];
-                    unsigned int pm = 0u;
-#pragma unroll
-                    for (int u = 0; u < SCHED_CH; ++u) {           // SCHED_CH loads in flight
-                        const int sl = s0 + u;
-                        const int i = (sl < K) ? rows[sl] : 0;
-                        const unsigned int pw = (sl < K) ? spres[sl * W + wj] : 0u;
-                        const bool pr = (pw >> bj) & 1u;
-                        pm |= (pr ? 1u : 0u) << u;
-                        cs[u] = pr ? (int)Cb[(long long)(i < 0 ? 0 : i) * N + j] : 0;
-                    }
-#pragma unroll
-                    for (int u = 0; u < SCHED_CH; ++u) {
-                        const float v = sched_price(cm - cs[u], srel, nsh, rel, nnz);
-                        acc += ((pm >> u) & 1u) ? v : 0.0f;
-                    }
-                }
-                float v = acc * scale[cbase + j];
-                if (invdj != nullptr) v *= invdj[cbase + j];
-                // the python path: d = stim; d += v; ranked = d + jit
-                const float dd = stim[j] + v;
-                const unsigned long long key = sched_key(dd + jt[j], j);
-                keys[j] = key;
-                kand &= (unsigned int)(key >> 32); kor |= (unsigned int)(key >> 32);
-            }
-            kand = __reduce_and_sync(0xFFFFFFFFu, kand);
-            kor = __reduce_or_sync(0xFFFFFFFFu, kor);
-            if ((threadIdx.x & 31) == 0) { atomicAnd(&kbits[0], kand); atomicOr(&kbits[1], kor); }
-            if (threadIdx.x == 0) nwin = 0;
-            if (threadIdx.x < KW) colmax[threadIdx.x] = 0;
-            __syncthreads();
-            const unsigned long long T = sched_select(keys, N, KW, hist, sh, kbits[0], kbits[1]);
-            for (int j = threadIdx.x; j < N; j += blockDim.x) {
-                if (keys[j] >= T) {
-                    const int pos = atomicAdd(&nwin, 1);
-                    if (pos < SCHED_MAXK) win[pos] = j;
-                }
-            }
-            __syncthreads();
-            if (nwin != KW) { if (threadIdx.x == 0) atomicExch(err, 2); return; }
-            // every thread has read kbits (before the barrier above); reset
-            // for the next drive, two barriers away
-            if (threadIdx.x == 0) { kbits[0] = 0xFFFFFFFFu; kbits[1] = 0u; }
-            // write, phase A (the whole block): (column, chunk) per thread --
-            // KW x nch of them -- loads in flight, present cells incremented
-            // and stored, the new counts staged in shared, column maxima by
-            // shared atomicMax (commutative, so the old max joins unordered)
-            bool over = false;
-            for (int t = threadIdx.x; t < KW * nch; t += blockDim.x) {
-                const int col = t / nch, s0 = (t - col * nch) * SCHED_CH;
-                const int j = win[col];
-                const int wj = j >> 5, bj = j & 31;
-                int mx = (s0 == 0) ? cmax[cbase + j] : 0;
-                int cs[SCHED_CH];
-                unsigned int pm = 0u;
-#pragma unroll
-                for (int u = 0; u < SCHED_CH; ++u) {
-                    const int sl = s0 + u;
-                    const int i = (sl < K) ? rows[sl] : 0;
-                    const unsigned int pw = (sl < K) ? spres[sl * W + wj] : 0u;
-                    const bool pr = (pw >> bj) & 1u;
-                    pm |= (pr ? 1u : 0u) << u;
-                    cs[u] = pr ? (int)Cb[(long long)(i < 0 ? 0 : i) * N + j] : 0;   // predicated
-                }
-#pragma unroll
-                for (int u = 0; u < SCHED_CH; ++u) {
-                    const int sl = s0 + u;
-                    const int i = (sl < K) ? rows[sl] : 0;
-                    const bool present = (pm >> u) & 1u;
-                    const int c = cs[u] + 1;
-                    const bool ok = present && c <= DENSE_CMAX;
-                    over |= present && !ok;
-                    if (ok) Cb[(long long)(i < 0 ? 0 : i) * N + j] = (short)c;
-                    if (sl < K) wcnt[col * K + sl] = (short)(ok ? c : cs[u]);
-                    mx = ok ? (c > mx ? c : mx) : mx;
-                }
-                atomicMax(&colmax[col], mx);
-            }
-            if (over) atomicExch(err, 1);
-            __syncthreads();
-            // write, phase B (one thread per winner column): the change in
-            // relative price at the NEW max, summed in row order from the
-            // staged counts, then mass, max and scale -- dense_write_kernel's
-            // arithmetic
-            if (threadIdx.x < KW) {
-                const int j = win[threadIdx.x];
-                const int wj = j >> 5, bj = j & 31;
-                const int cm_old = cmax[cbase + j];
-                const int cm_new = colmax[threadIdx.x];
-                const short* wc = wcnt + threadIdx.x * K;
-                double acc = 0.0;
-                for (int sl = 0; sl < K; ++sl) {
-                    if (!((spres[sl * W + wj] >> bj) & 1u)) continue;
-                    const int c = (int)wc[sl];
-                    const float rn = sched_price(cm_new - c, srel, nsh, rel, nnz);
-                    const float ro = sched_price(cm_new - (c - 1), srel, nsh, rel, nnz);
-                    acc += (double)rn - (double)ro;
-                }
-                const int dc = cm_new - cm_old;
-                const double shrink = (dc < nrel) ? (double)rel[dc] : 0.0;
-                const double m = mass[cbase + j] * shrink + acc;
-                mass[cbase + j] = m;
-                cmax[cbase + j] = cm_new;
-                scale[cbase + j] = (m > 1e-12) ? (float)((double)setpoint / m) : 1.0f;
-            }
-            __syncthreads();
-            // DE-PHASE (once, after the first round): blocks run identical
-            // schedules and stay in lockstep, so every block on an SM streams
-            // its drive at once and then selects at once -- memory time and
-            // compute time ADD. Block q of the `nq` sharing an SM waits q/nq
-            // of its own measured first round, after which its select and
-            // write overlap its neighbours' drives.
-            if (s == 0 && r == 0 && nq > 1) {
-                const long long t1 = clock64();
-                const long long wait = ((t1 - t_start) * (long long)q) / nq;
-                while (clock64() - t1 < wait) { }
-                __syncthreads();
-            }
-        }
-    }
-}
-
 // ---- PRESENT-ONLY cross fiber (DESIGN_present_only.md) --------------------
 // The connectome is FIXED; store only what exists. Per (brain, row): the
 // present columns with their counts, one packed 32-bit entry each (column
@@ -1211,7 +799,8 @@ __global__ void sched_train_kernel(const long long* __restrict__ words,
 // ONE WARP PER BRAIN, ROWS IN ORDER. Lanes walk a row's entries; a row's
 // columns are distinct, so `drive[j] += price` is a plain shared add with no
 // race, and every column's sum accumulates in row order -- the SAME float
-// sequence as dense_drive_kernel's per-column loop, hence identical drives.
+// sequence as the retired dense kernel's per-column loop (DESIGN_present_only.md
+// gated them identical), hence identical drives.
 // The write's two passes walk rows the same way into per-slot shared
 // accumulators (max, then price change at the new max). Selection is the
 // radix select at warp level. No block barrier inside a round.
@@ -1862,30 +1451,6 @@ __global__ void present_probe_kernel(const unsigned int* __restrict__ ent, int D
     out[(long long)b * 32 + lane] = acc;
 }
 
-// The ROOFLINE PROBE (DESIGN_dense_floor.md): the drive's reads -- K rows of
-// int16 counts across N columns per round, the row set shifting each round
-// so the lines are not the same ones -- and nothing else, in the training
-// kernel's block shape. Its time is the streamed-lines floor the kernel is
-// measured against.
-__global__ void stream_probe_kernel(const short* __restrict__ C,
-                                    const int* __restrict__ S, int K,
-                                    int Npre, int N, int rounds,
-                                    float* __restrict__ out) {
-    __shared__ int rows[SCHED_MAXK];
-    const int b = blockIdx.x;
-    const short* Cb = C + (long long)b * Npre * N;
-    float acc = 0.0f;
-    for (int r = 0; r < rounds; ++r) {
-        if (threadIdx.x < K) rows[threadIdx.x] = (S[(long long)b * K + threadIdx.x] + r) % Npre;
-        __syncthreads();
-        for (int j = threadIdx.x; j < N; j += blockDim.x)
-            for (int sl = 0; sl < K; ++sl)
-                acc += (float)Cb[(long long)rows[sl] * N + j];
-        __syncthreads();
-    }
-    out[(long long)b * blockDim.x + threadIdx.x] = acc;
-}
-
 void dev_correct_exact(torch::Tensor S, torch::Tensor keys, torch::Tensor cnts,
                        torch::Tensor offs, torch::Tensor rowmask,
                        torch::Tensor colmask, torch::Tensor scratch,
@@ -2036,84 +1601,6 @@ torch::Tensor hashed_presence(torch::Tensor seeds, int64_t n_pre, int64_t n_post
     return out;
 }
 
-void dense_drive(torch::Tensor S, torch::Tensor C, torch::Tensor pres,
-                 torch::Tensor cmax, torch::Tensor scale, torch::Tensor invdj,
-                 torch::Tensor rel, torch::Tensor out) {
-    S = S.contiguous(); rel = rel.contiguous();
-    TORCH_CHECK(C.scalar_type() == torch::kInt16, "counts are int16");
-    const int B = C.size(0), Npre = C.size(1), N = C.size(2), K = S.size(1);
-    const int W = pres.size(2);
-    if (K == 0) return;
-    const long long tot = (long long)B * N;
-    const int th = 256;
-    dense_drive_kernel<<<(tot + th - 1) / th, th>>>(
-        S.data_ptr<int>(), K, C.data_ptr<short>(),
-        reinterpret_cast<const unsigned int*>(pres.data_ptr<int>()), W,
-        cmax.data_ptr<int>(), scale.data_ptr<float>(),
-        invdj.numel() ? invdj.data_ptr<float>() : nullptr,
-        rel.data_ptr<float>(), (int)rel.numel(),
-        B, Npre, N, out.data_ptr<float>());
-}
-
-void dense_write(torch::Tensor P, torch::Tensor Wn, torch::Tensor C,
-                 torch::Tensor pres, torch::Tensor cmax, torch::Tensor mass,
-                 torch::Tensor scale, torch::Tensor rel, double setpoint,
-                 int64_t do_scale, torch::Tensor err) {
-    P = P.contiguous(); Wn = Wn.contiguous(); rel = rel.contiguous();
-    TORCH_CHECK(C.scalar_type() == torch::kInt16, "counts are int16");
-    const int B = C.size(0), Npre = C.size(1), N = C.size(2);
-    const int W = pres.size(2);
-    const int KP = P.size(1), KW = Wn.size(1);
-    if (KP == 0 || KW == 0) return;
-    dense_write_kernel<<<B * KW, 128>>>(
-        P.data_ptr<int>(), KP, Wn.data_ptr<int>(), KW, C.data_ptr<short>(),
-        reinterpret_cast<const unsigned int*>(pres.data_ptr<int>()), W,
-        cmax.data_ptr<int>(), mass.data_ptr<double>(), scale.data_ptr<float>(),
-        rel.data_ptr<float>(), (int)rel.numel(),
-        Npre, N, (float)setpoint, (int)do_scale, err.data_ptr<int>());
-}
-
-
-void sched_train(torch::Tensor words, torch::Tensor bundles,
-                 torch::Tensor lex_cache, torch::Tensor bundle_drive,
-                 torch::Tensor jit, torch::Tensor C, torch::Tensor pres,
-                 torch::Tensor cmax, torch::Tensor mass, torch::Tensor scale,
-                 torch::Tensor invdj, torch::Tensor rel, double setpoint,
-                 int64_t rounds, int64_t kw, torch::Tensor err, int64_t nsh, int64_t nnz) {
-    words = words.contiguous(); bundles = bundles.contiguous();
-    lex_cache = lex_cache.contiguous(); bundle_drive = bundle_drive.contiguous();
-    jit = jit.contiguous(); rel = rel.contiguous();
-    TORCH_CHECK(C.scalar_type() == torch::kInt16, "counts are int16");
-    const int B = C.size(0), Npre = C.size(1), N = C.size(2);
-    const int W = pres.size(2);
-    const int S = words.size(1), V = lex_cache.size(1), K = lex_cache.size(2);
-    const int I = bundle_drive.size(1);
-    TORCH_CHECK(K <= SCHED_MAXK && kw <= SCHED_MAXK, "k too large for the block");
-    TORCH_CHECK(N <= 8192, "N too large for shared-memory selection");
-    TORCH_CHECK(nsh >= 0 && nsh <= SCHED_RELSH && nsh <= nnz && nnz <= rel.numel(), "nsh/nnz");
-    TORCH_CHECK((size_t)kw * K * sizeof(short) <= (size_t)N * sizeof(unsigned long long),
-                "staged counts must fit the keys' space they alias");
-    const size_t shm = (size_t)N * sizeof(unsigned long long)
-                     + (size_t)K * W * sizeof(unsigned int)
-                     + (size_t)nsh * sizeof(float);
-    TORCH_CHECK(shm <= 96 * 1024, "keys + staged presence + prices exceed shared memory");
-    cudaFuncSetAttribute(sched_train_kernel, cudaFuncAttributeMaxDynamicSharedMemorySize, (int)shm);
-    int dev = 0, sms = 1;
-    cudaGetDevice(&dev);
-    cudaDeviceGetAttribute(&sms, cudaDevAttrMultiProcessorCount, dev);
-    sched_train_kernel<<<B, SCHED_TH, shm>>>(
-        words.data_ptr<int64_t>(), bundles.data_ptr<int64_t>(), S,
-        lex_cache.data_ptr<int64_t>(), V, K,
-        bundle_drive.data_ptr<float>(), jit.data_ptr<float>(), I,
-        C.data_ptr<short>(),
-        reinterpret_cast<const unsigned int*>(pres.data_ptr<int>()), W,
-        cmax.data_ptr<int>(), mass.data_ptr<double>(),
-        scale.data_ptr<float>(),
-        invdj.numel() ? invdj.data_ptr<float>() : nullptr,
-        rel.data_ptr<float>(), (int)rel.numel(), (int)nsh, (int)nnz,
-        Npre, N, (float)setpoint, (int)rounds, (int)kw, err.data_ptr<int>(), sms);
-}
-
 torch::Tensor present_degree(torch::Tensor pres) {
     pres = pres.contiguous();
     const int B = pres.size(0), Npre = pres.size(1), W = pres.size(2);
@@ -2220,19 +1707,6 @@ torch::Tensor present_probe(torch::Tensor ent, torch::Tensor S, int64_t rounds, 
     return out;
 }
 
-torch::Tensor stream_probe(torch::Tensor C, torch::Tensor S, int64_t rounds) {
-    S = S.contiguous();
-    TORCH_CHECK(C.scalar_type() == torch::kInt16, "counts are int16");
-    const int B = C.size(0), Npre = C.size(1), N = C.size(2), K = S.size(1);
-    TORCH_CHECK(K <= SCHED_MAXK, "k too large for the block");
-    auto out = torch::zeros({B, SCHED_TH},
-                            torch::dtype(torch::kFloat32).device(C.device()));
-    stream_probe_kernel<<<B, SCHED_TH>>>(
-        C.data_ptr<short>(), S.data_ptr<int>(), K, Npre, N, (int)rounds,
-        out.data_ptr<float>());
-    return out;
-}
-
 std::vector<torch::Tensor> topk_select(torch::Tensor x, int64_t K) {
     TORCH_CHECK(x.dim() == 2 && x.is_cuda()
                 && x.scalar_type() == torch::kFloat32, "x: [B,N] f32 cuda");
@@ -2260,10 +1734,6 @@ std::vector<torch::Tensor> column_mass_exact(torch::Tensor cols, torch::Tensor k
 void dev_correct_rel(torch::Tensor S, torch::Tensor keys, torch::Tensor cnts, torch::Tensor offs, torch::Tensor rowmask, torch::Tensor colmask, torch::Tensor scratch, torch::Tensor rel, torch::Tensor cmax, torch::Tensor seeds, int64_t threshold, torch::Tensor out);
 std::vector<torch::Tensor> column_mass_rel(torch::Tensor cols, torch::Tensor keys, torch::Tensor cnts, torch::Tensor colmap, torch::Tensor rowmask, torch::Tensor colmask, torch::Tensor scratch, torch::Tensor rel, torch::Tensor seeds, int64_t n, int64_t threshold);
 torch::Tensor hashed_presence(torch::Tensor seeds, int64_t n_pre, int64_t n_post, int64_t threshold);
-void dense_drive(torch::Tensor S, torch::Tensor C, torch::Tensor pres, torch::Tensor cmax, torch::Tensor scale, torch::Tensor invdj, torch::Tensor rel, torch::Tensor out);
-void dense_write(torch::Tensor P, torch::Tensor Wn, torch::Tensor C, torch::Tensor pres, torch::Tensor cmax, torch::Tensor mass, torch::Tensor scale, torch::Tensor rel, double setpoint, int64_t do_scale, torch::Tensor err);
-void sched_train(torch::Tensor words, torch::Tensor bundles, torch::Tensor lex_cache, torch::Tensor bundle_drive, torch::Tensor jit, torch::Tensor C, torch::Tensor pres, torch::Tensor cmax, torch::Tensor mass, torch::Tensor scale, torch::Tensor invdj, torch::Tensor rel, double setpoint, int64_t rounds, int64_t kw, torch::Tensor err, int64_t nsh, int64_t nnz);
-torch::Tensor stream_probe(torch::Tensor C, torch::Tensor S, int64_t rounds);
 torch::Tensor present_degree(torch::Tensor pres);
 torch::Tensor present_fill(torch::Tensor pres, int64_t n_post, int64_t dmax);
 void present_drive(torch::Tensor ent, torch::Tensor S, torch::Tensor cmax, torch::Tensor scale, torch::Tensor invdj, torch::Tensor rel, int64_t nnz, torch::Tensor out);
@@ -2318,8 +1788,7 @@ def load() -> object | None:
                 functions=["hashed_drive", "hashed_indegree", "dev_correct",
                            "dev_correct_csr", "dev_correct_exact",
                            "column_mass_exact", "dev_correct_rel",
-                           "column_mass_rel", "hashed_presence", "dense_drive",
-                           "dense_write", "sched_train", "stream_probe",
+                           "column_mass_rel", "hashed_presence",
                            "present_degree", "present_fill", "present_drive",
                            "present_write", "present_train", "present_probe",
                            "column_mass", "topk_select"],

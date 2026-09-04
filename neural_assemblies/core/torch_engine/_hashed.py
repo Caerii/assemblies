@@ -533,116 +533,12 @@ class AreaFiber:
         return self.store.nnz
 
 
-class DenseAreaFiber:
-    """An area -> area fiber whose count matrix FITS: one launch per drive,
-    one per write, no store, no masks, no fold (DESIGN_dense_cross_fiber.md).
-
-    Same numbers as `AreaFiber` in its unclipped max-relative regime -- a
-    weight is ``base * rel[cmax_j - C_ij] * S_j`` -- with the column mass kept
-    incrementally in float64 by the write kernel instead of recomputed from a
-    store walk.
-
-    REPRESENTATION (DESIGN_dense_floor.md): counts are int16 -- a count is
-    bounded by the rounds a cell co-fires in, and the writer flags a count
-    that would pass 32,767 (`check`) rather than wrap -- and the connectome
-    is a PRESENCE BITMASK ``pres[b, i, j // 32]`` built once by the same hash
-    the store fiber evaluates per apply. Memory is ``B * n_pre * (2 n_post +
-    n_post / 8)`` bytes; refuse anything that does not fit rather than page.
-    """
-
-    MAX_BYTES = 4 << 30
-    MAX_COUNT = 32767
-
-    def __init__(self, seeds, n_pre, n_post, p, *, beta=0.1, norm_init=False,
-                 synaptic_scaling=True, max_rounds=4096, device="cuda"):
-        self.mod = _fused_cuda.load()
-        if self.mod is None:
-            raise RuntimeError(f"fused kernels unavailable: "
-                               f"{_fused_cuda.last_error()}")
-        B = len(seeds)
-        words = (n_post + 31) // 32
-        need = B * n_pre * (n_post * 2 + words * 4)
-        if need > self.MAX_BYTES:
-            raise ValueError(f"dense count matrix would be {need / 2**30:.1f} "
-                             "GiB; use AreaFiber (the store) at this size")
-        self.B, self.n_pre, self.n, self.p = B, n_pre, n_post, float(p)
-        self.beta, self.w_max = float(beta), None
-        self.seeds = torch.as_tensor(seeds, dtype=torch.int32, device=device)
-        self.threshold = _fused_cuda.threshold_for(p)
-        self.device = device
-        self.learns = bool(beta)
-        self.relative = True
-        self.rel = torch.from_numpy(_rel_table(beta, max_rounds)).to(device)
-        self.tab = self.rel
-        self.C = torch.zeros(B, n_pre, n_post, dtype=torch.int16, device=device)
-        self.pres = self.mod.hashed_presence(self.seeds, n_pre, n_post,
-                                             self.threshold)
-        self.err = torch.zeros(1, dtype=torch.int32, device=device)
-        self.cmax = torch.zeros(B, n_post, dtype=torch.int32, device=device)
-        deg = self.mod.hashed_indegree(self.seeds, n_post, self.threshold, 1.0)
-        self.dj = deg if norm_init else None
-        self.invdj = (1.0 / deg) if norm_init else torch.zeros(
-            0, dtype=torch.float32, device=device)
-        self.scaling = bool(synaptic_scaling)
-        self.setpoint = scaling_setpoint(n_pre, self.p)
-        # the first rescale of a column would price it at its base in-degree
-        self.mass = deg.to(torch.float64).clone()
-        self.scale = torch.ones(B, n_post, dtype=torch.float32, device=device)
-
-    @property
-    def nnz(self):
-        return int((self.C > 0).sum())
-
-    @property
-    def store(self):
-        self.check()
-        class _S:                                   # the guard's interface
-            max_count = int(self.C.max())
-        return _S()
-
-    def check(self):
-        """Raise if a write kernel flagged an int16 count overflow (1) or a
-        selection that did not return k winners (2). One sync; call it at
-        the end of a training run, not per round."""
-        code = int(self.err.item())
-        if code == 1:
-            raise OverflowError(f"a count passed {self.MAX_COUNT}: int16 counts "
-                                "cannot hold this schedule")
-        if code:
-            raise RuntimeError(f"dense fiber kernel error {code}")
-
-    def ensure_depth(self, depth):
-        depth = int(depth)
-        if self.rel.numel() < depth + 1:
-            self.rel = torch.from_numpy(_rel_table(self.beta, depth)).to(self.device)
-            self.tab = self.rel
-
-    def contribute(self, drive, rows):
-        if rows.shape[1] == 0:
-            return
-        self.mod.dense_drive(rows.to(torch.int32), self.C, self.pres, self.cmax,
-                             self.scale, self.invdj, self.rel, drive)
-
-    def begin_episode(self):
-        pass
-
-    def observe(self, prev, new):
-        if not (self.learns and prev.shape[1] and new.shape[1]):
-            return
-        self.mod.dense_write(prev.to(torch.int32), new.to(torch.int32),
-                             self.C, self.pres, self.cmax, self.mass,
-                             self.scale, self.rel, float(self.setpoint),
-                             1 if self.scaling else 0, self.err)
-
-    def end_episode(self):
-        pass
-
-
 class PresentFiber:
     """An area -> area fiber that stores only what EXISTS (DESIGN_present_only.md).
 
-    Same numbers as `DenseAreaFiber` and as `AreaFiber` in its unclipped
-    max-relative regime. Per (brain, row): the present columns with their
+    Same numbers as `AreaFiber` in its unclipped max-relative regime (and
+    as the retired dense-matrix fiber, gated identical at atol 0 before its
+    deletion -- DESIGN_present_only.md). Per (brain, row): the present columns with their
     int16 counts, one packed 32-bit entry (column low, count high), padded
     to ``DMAX`` -- the largest row degree -- with -1. Built once from the
     presence bitmask (the hash's stored form). A round reads K row lists
