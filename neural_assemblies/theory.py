@@ -272,7 +272,11 @@ _RESULTS: List[Result] = [
     Result(
         id="REFRACTION-CANCELS-CONVERGENCE",
         status=Status.MEASURED,
-        claim="Refraction at strength s is the anti-Hebbian counterweight on a "
+        claim="[EMPIRICAL CLAUSES SUSPENDED 2026-09-04: measured through a "
+              "selector that ranked negative net drives above positive ones "
+              "(fixed 1b475fc); re-measurement pending -- PREREG_refraction_"
+              "capacity.md CAVEAT. The identity below is algebra and stands.] "
+              "Refraction at strength s is the anti-Hebbian counterweight on a "
               "neuron's own repeated input: raw*(1+beta)^t minus the charged "
               "bias leaves net drive growing by (beta - s)*raw per win, so at "
               "s = beta it is CONSTANT. A feedforward area needs no convergence "

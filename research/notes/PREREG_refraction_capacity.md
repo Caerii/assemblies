@@ -175,3 +175,23 @@ conjunction areas, driven by their full input at recall, is the correct
 design, not an omission. The protocol dependence (T=8) is noted: longer
 episodes would let low-strength items converge but at a still higher fill cost
 per item.
+
+---
+
+## CAVEAT (2026-09-04): the hashed selector mis-ranked NEGATIVE drives -- P1/P2 re-measurement pending
+
+The sequence port's first width run found that `topk_select`'s key was the
+raw float bits without a sign flip: a NEGATIVE net drive (raw - bias, which
+refraction produces) ranked ABOVE every positive one, so a refracted area's
+most-biased neurons kept winning and the bias grew without bound. Every
+hashed-substrate number in this registration that SELECTED on a refracted
+area (P1's bias-masked ranks, P2's wander/churn sweep, the fill-1.0 and
+"churns through every neuron above s ~ 0.75 beta" readings, the refracted
+capacity-scaling arm) was measured through that defect. The drive-parity
+gate passed because it replayed the engine's winners and compared drives;
+it never selected. P0 (no refraction) is unaffected. The identity
+net_{t+1} - net_t = (beta - s) raw_t is algebra and stands.
+
+Fixed in 1b475fc (order-preserving key; unit test with negatives). The
+sweep is re-run with the fixed selector; until then
+`REFRACTION-CANCELS-CONVERGENCE`'s empirical clauses are SUSPENDED.
