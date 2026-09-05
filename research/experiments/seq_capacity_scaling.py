@@ -249,6 +249,8 @@ def main():
                     help="refracted readout: 'net' subtracts the bias as the "
                          "reference does (P0); 'masked' reads the synaptic "
                          "memory alone (P1)")
+    ap.add_argument("--rounds", type=int, default=None,
+                    help="rounds per assembly T (PREREG_refraction_memory R5)")
     ap.add_argument("--stim-size", type=int, default=None,
                     help="stimulus size override; default k. Anchor-strength "
                          "arm of PREREG_formation_interference F2")
@@ -272,9 +274,11 @@ def main():
         P = args.p
     if args.beta is not None:
         BETA = args.beta
-    global STIM_SIZE, REFRACTED, READOUT, REFRACTED_FACTOR
+    global STIM_SIZE, REFRACTED, READOUT, REFRACTED_FACTOR, T
     if args.stim_size is not None:
         STIM_SIZE = args.stim_size
+    if args.rounds is not None:
+        T = int(args.rounds)
     REFRACTED = bool(args.refracted)
     READOUT = args.readout
     REFRACTED_FACTOR = float(args.refracted_factor)
