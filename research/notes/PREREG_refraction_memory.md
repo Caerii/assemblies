@@ -184,3 +184,32 @@ all stored assemblies; distinctness by exact duplicates. 5 brains, M grid
         substrates differ in the stimulus model (the engine's stimuli into
         a materialized area are zero-or-size, the harness's are Binomial
         counts), so the number is not expected to match; the CLAIM is.
+
+### Amendment 2 -- Result (2026-09-05, 20 brains, arm B, grid to 4096)
+
+    n/k    cell          CTL M*              REF M*                 REF / CTL
+     33    (2000,  60)   11.3  [8, 16)        431   [384, 512)        38x
+     33    (4000, 120)   11.3  [8, 16)        383   [256, 384)        34x
+     67    (4000,  60)   83.4  [64, 128)     1978   [1536, 2048)      24x
+     67    (2000,  30)   64.3  [64, 128)     1589   [1536, 2048)      25x
+     67    (8000, 120)   88.9  [64, 128)     2230   [2048, 3072)      25x
+    133    (8000,  60)  306.8  [256, 384)  >= 4096  censored high   >= 13x
+    133    (4000,  30)  262.8  [256, 384)  >= 4096  censored high   >= 16x
+
+    R6  CONTROL LAW.   n/k-matched cells within +/- 25% of each other:
+        64 / 83 = 0.77, 89 / 83 = 1.07, 263 / 307 = 0.86, 11.3 / 11.3      PASS
+    R7  REFRACTED LAW. 1589 / 1978 = 0.80, 2230 / 1978 = 1.13,
+        383 / 431 = 0.89; the n/k = 133 pair both censored at 4096,
+        consistent                                                        PASS
+
+**Reading.** BOTH ceilings are functions of n/k alone -- the assembly law
+([[capacity-depends-on-n-over-k]]) holds for the refracted memory too --
+and refraction multiplies it by a factor that is roughly constant in n/k:
+~36x at n/k = 33, ~25x at 67, >= 13-16x at 133 (a bound; the multiplier
+may fall slowly with n/k or not, the grid must reach past 4096 to say).
+The "superlinearity in n" of the fixed-k sweep was n/k rising: over
+n/k = 33 -> 67 -> 133 the control goes 11 -> 83 -> 307 (x7.4, x3.7) and
+the refracted 431 -> 1978 -> >= 4096 (x4.6, >= x2.1). Fill is 1.000 at
+every REF ceiling and 0.36-0.95 at the control's: the control dies of
+merging before the area is full, the refracted memory fills the area and
+goes on to a ceiling ~25x higher, distinct 1.000 throughout.

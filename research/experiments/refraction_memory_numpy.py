@@ -32,6 +32,18 @@ from neural_assemblies.diagnostics import ensemble_from_values              # no
 from _substrate import ceiling_from_curve                                   # noqa: E402
 
 N, K, P, T, BETA, W_MAX, STRENGTH = 2000, 60, 0.5, 8, 0.10, 20.0, 0.05
+#: THE STIMULUS MODEL. The engine's stimulus into a materialized area is
+#: zero-or-size ([[add-stimulus-zero-or-size]]): one stimulus of size 60 at
+#: p = 0.5 hands half the area weight 60 and the rest nothing, every item is
+#: the same tie, and the control collapses to ONE assembly (measured:
+#: distinct 0.018 at M = 512); at p = 0.05 an item is its ~100 connected
+#: neurons tied at 60, and under refraction it ROTATES through them each
+#: round, spreading its potentiation thin (masked half-cue recall 0.5-0.75
+#: at M = 4-8 against the harness's 1.000). The harness's stimulus is a
+#: Binomial(60, 0.5) count per neuron -- GRADED. The mirror sums STIM_PARTS
+#: stimuli of size K / STIM_PARTS per item: drive = (K / parts) x
+#: Binomial(parts, p), the same mean and a graded, item-specific ranking.
+STIM_PARTS = 10
 MS = (8, 16, 32, 64, 128, 256, 512)
 RECALL_SAMPLE, PAIR_SAMPLE, THRESHOLD = 32, 200, 0.90
 AREA = "A"
@@ -57,20 +69,22 @@ def half_cue_rank1(b, eng, stored, rng, masked):
     M = len(stored)
     samp = rng.choice(M, min(RECALL_SAMPLE, M), replace=False)
     st = eng._areas[AREA]
-    saved = None
-    if masked and st.refracted and st._cumulative_bias is not None:
-        saved = st._cumulative_bias.copy()
-        st._cumulative_bias = np.zeros_like(saved)
+    # the engine is driven DIRECTLY (as the parity tests do): the Brain-level
+    # call reads its own cached winners, not the half cue set on the engine.
+    # The bias is saved and restored around every recall; masked zeroes it.
+    saved = (st._cumulative_bias.copy()
+             if st.refracted and st._cumulative_bias is not None else None)
     hits = 0
-    with b.probe():
-        for a in samp:
-            eng.set_winners(AREA, np.asarray(stored[a][: K // 2], dtype=np.int64))
-            for _ in range(T):
-                b.project({}, {AREA: [AREA]})
-            rec = set(int(x) for x in eng.get_winners(AREA))
-            ov = [len(rec & s) for s in stored_sets(stored)]
-            if int(np.argmax(ov)) == int(a):
-                hits += 1
+    for a in samp:
+        if saved is not None:
+            st._cumulative_bias = (np.zeros_like(saved) if masked else saved.copy())
+        eng.set_winners(AREA, np.asarray(stored[a][: K // 2], dtype=np.int64))
+        for _ in range(T):
+            eng.project_into(AREA, [], [AREA], plasticity_enabled=False)
+        rec = set(int(x) for x in eng.get_winners(AREA))
+        ov = [len(rec & s) for s in stored_sets(stored)]
+        if int(np.argmax(ov)) == int(a):
+            hits += 1
     if saved is not None:
         st._cumulative_bias = saved
     return hits / len(samp)
@@ -108,10 +122,12 @@ def run_brain(seed, refracted, masked):
     stored, out = [], {}
     t0 = time.perf_counter()
     for a in range(max(MS)):
-        b.add_stimulus(f"s{a}", K)
+        parts = [f"s{a}_{j}" for j in range(STIM_PARTS)]
+        for nm in parts:
+            b.add_stimulus(nm, K // STIM_PARTS)
         b.inhibit_areas([AREA])
         for _ in range(T):
-            b.project({f"s{a}": [AREA]}, {AREA: [AREA]})
+            eng.project_into(AREA, parts, [AREA], plasticity_enabled=True)
         stored.append(np.asarray(eng.get_winners(AREA), dtype=np.int64).copy())
         M = a + 1
         if M in MS:
@@ -137,7 +153,7 @@ def main():
     seeds = list(range(42, 42 + args.brains))
     results = {}
     for arm in (("ref", "ctl") if args.arm == "both" else (args.arm,)):
-        print(f"=== numpy {arm.upper()}  n={N} k={K} p={P} T={T} beta={BETA} "
+        print(f"=== numpy {arm.upper()}  n={N} k={K} p={P} stimulus {STIM_PARTS}x{K // STIM_PARTS} T={T} beta={BETA} "
               f"{'strength ' + str(STRENGTH) + ' masked' if arm == 'ref' else ''}")
         per = {s: run_brain(s, arm == "ref", masked=True) for s in seeds}
         stars = []
