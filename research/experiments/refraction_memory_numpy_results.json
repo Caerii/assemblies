@@ -1,0 +1,464 @@
+{
+  "ref": {
+    "per_seed": {
+      "42": {
+        "8": {
+          "rank1": 1.0,
+          "pairwise_x": 0.0,
+          "distinct": 1.0,
+          "fill": 0.24
+        },
+        "16": {
+          "rank1": 1.0,
+          "pairwise_x": 0.0,
+          "distinct": 1.0,
+          "fill": 0.48
+        },
+        "32": {
+          "rank1": 1.0,
+          "pairwise_x": 0.0,
+          "distinct": 1.0,
+          "fill": 0.96
+        },
+        "64": {
+          "rank1": 1.0,
+          "pairwise_x": 0.42777777777777776,
+          "distinct": 1.0,
+          "fill": 1.0
+        },
+        "128": {
+          "rank1": 1.0,
+          "pairwise_x": 0.7111111111111111,
+          "distinct": 1.0,
+          "fill": 1.0
+        },
+        "256": {
+          "rank1": 1.0,
+          "pairwise_x": 0.9416666666666667,
+          "distinct": 1.0,
+          "fill": 1.0
+        },
+        "512": {
+          "rank1": 1.0,
+          "pairwise_x": 0.9111111111111112,
+          "distinct": 1.0,
+          "fill": 1.0
+        }
+      },
+      "43": {
+        "8": {
+          "rank1": 1.0,
+          "pairwise_x": 0.0,
+          "distinct": 1.0,
+          "fill": 0.24
+        },
+        "16": {
+          "rank1": 1.0,
+          "pairwise_x": 0.0,
+          "distinct": 1.0,
+          "fill": 0.48
+        },
+        "32": {
+          "rank1": 1.0,
+          "pairwise_x": 0.0,
+          "distinct": 1.0,
+          "fill": 0.96
+        },
+        "64": {
+          "rank1": 1.0,
+          "pairwise_x": 0.5083333333333333,
+          "distinct": 1.0,
+          "fill": 1.0
+        },
+        "128": {
+          "rank1": 1.0,
+          "pairwise_x": 0.8083333333333332,
+          "distinct": 1.0,
+          "fill": 1.0
+        },
+        "256": {
+          "rank1": 1.0,
+          "pairwise_x": 0.8083333333333332,
+          "distinct": 1.0,
+          "fill": 1.0
+        },
+        "512": {
+          "rank1": 1.0,
+          "pairwise_x": 0.9944444444444444,
+          "distinct": 1.0,
+          "fill": 1.0
+        }
+      },
+      "44": {
+        "8": {
+          "rank1": 1.0,
+          "pairwise_x": 0.0,
+          "distinct": 1.0,
+          "fill": 0.24
+        },
+        "16": {
+          "rank1": 1.0,
+          "pairwise_x": 0.0,
+          "distinct": 1.0,
+          "fill": 0.48
+        },
+        "32": {
+          "rank1": 1.0,
+          "pairwise_x": 0.002777777777777778,
+          "distinct": 1.0,
+          "fill": 0.9595
+        },
+        "64": {
+          "rank1": 1.0,
+          "pairwise_x": 0.525,
+          "distinct": 1.0,
+          "fill": 1.0
+        },
+        "128": {
+          "rank1": 1.0,
+          "pairwise_x": 0.7138888888888889,
+          "distinct": 1.0,
+          "fill": 1.0
+        },
+        "256": {
+          "rank1": 1.0,
+          "pairwise_x": 0.7972222222222223,
+          "distinct": 1.0,
+          "fill": 1.0
+        },
+        "512": {
+          "rank1": 1.0,
+          "pairwise_x": 0.9138888888888888,
+          "distinct": 1.0,
+          "fill": 1.0
+        }
+      },
+      "45": {
+        "8": {
+          "rank1": 1.0,
+          "pairwise_x": 0.0,
+          "distinct": 1.0,
+          "fill": 0.24
+        },
+        "16": {
+          "rank1": 1.0,
+          "pairwise_x": 0.0,
+          "distinct": 1.0,
+          "fill": 0.48
+        },
+        "32": {
+          "rank1": 1.0,
+          "pairwise_x": 0.0,
+          "distinct": 1.0,
+          "fill": 0.96
+        },
+        "64": {
+          "rank1": 1.0,
+          "pairwise_x": 0.5861111111111112,
+          "distinct": 1.0,
+          "fill": 1.0
+        },
+        "128": {
+          "rank1": 1.0,
+          "pairwise_x": 0.8138888888888888,
+          "distinct": 1.0,
+          "fill": 1.0
+        },
+        "256": {
+          "rank1": 1.0,
+          "pairwise_x": 0.875,
+          "distinct": 1.0,
+          "fill": 1.0
+        },
+        "512": {
+          "rank1": 1.0,
+          "pairwise_x": 1.0388888888888888,
+          "distinct": 1.0,
+          "fill": 1.0
+        }
+      },
+      "46": {
+        "8": {
+          "rank1": 1.0,
+          "pairwise_x": 0.0,
+          "distinct": 1.0,
+          "fill": 0.24
+        },
+        "16": {
+          "rank1": 1.0,
+          "pairwise_x": 0.0,
+          "distinct": 1.0,
+          "fill": 0.48
+        },
+        "32": {
+          "rank1": 1.0,
+          "pairwise_x": 0.0,
+          "distinct": 1.0,
+          "fill": 0.96
+        },
+        "64": {
+          "rank1": 1.0,
+          "pairwise_x": 0.5194444444444445,
+          "distinct": 1.0,
+          "fill": 1.0
+        },
+        "128": {
+          "rank1": 1.0,
+          "pairwise_x": 0.8111111111111111,
+          "distinct": 1.0,
+          "fill": 1.0
+        },
+        "256": {
+          "rank1": 1.0,
+          "pairwise_x": 0.9361111111111111,
+          "distinct": 1.0,
+          "fill": 1.0
+        },
+        "512": {
+          "rank1": 1.0,
+          "pairwise_x": 0.986111111111111,
+          "distinct": 1.0,
+          "fill": 1.0
+        }
+      }
+    },
+    "ceilings": [
+      "M* >= 512 (CENSORED: curve never crossed)",
+      "M* >= 512 (CENSORED: curve never crossed)",
+      "M* >= 512 (CENSORED: curve never crossed)",
+      "M* >= 512 (CENSORED: curve never crossed)",
+      "M* >= 512 (CENSORED: curve never crossed)"
+    ]
+  },
+  "ctl": {
+    "per_seed": {
+      "42": {
+        "8": {
+          "rank1": 1.0,
+          "pairwise_x": 1.3293650793650795,
+          "distinct": 1.0,
+          "fill": 0.21
+        },
+        "16": {
+          "rank1": 1.0,
+          "pairwise_x": 1.203703703703704,
+          "distinct": 1.0,
+          "fill": 0.3695
+        },
+        "32": {
+          "rank1": 1.0,
+          "pairwise_x": 1.3805555555555555,
+          "distinct": 1.0,
+          "fill": 0.5855
+        },
+        "64": {
+          "rank1": 0.0,
+          "pairwise_x": 1.9472222222222222,
+          "distinct": 1.0,
+          "fill": 0.7725
+        },
+        "128": {
+          "rank1": 0.0,
+          "pairwise_x": 10.35,
+          "distinct": 0.546875,
+          "fill": 0.773
+        },
+        "256": {
+          "rank1": 0.0,
+          "pairwise_x": 18.96944444444444,
+          "distinct": 0.2734375,
+          "fill": 0.773
+        },
+        "512": {
+          "rank1": 0.0,
+          "pairwise_x": 26.297222222222224,
+          "distinct": 0.13671875,
+          "fill": 0.773
+        }
+      },
+      "43": {
+        "8": {
+          "rank1": 1.0,
+          "pairwise_x": 1.1111111111111114,
+          "distinct": 1.0,
+          "fill": 0.2085
+        },
+        "16": {
+          "rank1": 1.0,
+          "pairwise_x": 1.0740740740740742,
+          "distinct": 1.0,
+          "fill": 0.367
+        },
+        "32": {
+          "rank1": 1.0,
+          "pairwise_x": 1.2833333333333334,
+          "distinct": 1.0,
+          "fill": 0.5675
+        },
+        "64": {
+          "rank1": 0.0,
+          "pairwise_x": 1.5555555555555554,
+          "distinct": 1.0,
+          "fill": 0.764
+        },
+        "128": {
+          "rank1": 0.0,
+          "pairwise_x": 10.747222222222224,
+          "distinct": 0.5625,
+          "fill": 0.7695
+        },
+        "256": {
+          "rank1": 0.0,
+          "pairwise_x": 19.355555555555558,
+          "distinct": 0.28125,
+          "fill": 0.7695
+        },
+        "512": {
+          "rank1": 0.0,
+          "pairwise_x": 25.508333333333336,
+          "distinct": 0.140625,
+          "fill": 0.7695
+        }
+      },
+      "44": {
+        "8": {
+          "rank1": 1.0,
+          "pairwise_x": 1.2301587301587302,
+          "distinct": 1.0,
+          "fill": 0.205
+        },
+        "16": {
+          "rank1": 1.0,
+          "pairwise_x": 1.2546296296296298,
+          "distinct": 1.0,
+          "fill": 0.376
+        },
+        "32": {
+          "rank1": 1.0,
+          "pairwise_x": 1.3111111111111111,
+          "distinct": 1.0,
+          "fill": 0.5805
+        },
+        "64": {
+          "rank1": 0.03125,
+          "pairwise_x": 2.1277777777777787,
+          "distinct": 1.0,
+          "fill": 0.759
+        },
+        "128": {
+          "rank1": 0.0,
+          "pairwise_x": 10.769444444444447,
+          "distinct": 0.546875,
+          "fill": 0.759
+        },
+        "256": {
+          "rank1": 0.0,
+          "pairwise_x": 20.7,
+          "distinct": 0.2734375,
+          "fill": 0.759
+        },
+        "512": {
+          "rank1": 0.0,
+          "pairwise_x": 26.772222222222222,
+          "distinct": 0.13671875,
+          "fill": 0.759
+        }
+      },
+      "45": {
+        "8": {
+          "rank1": 1.0,
+          "pairwise_x": 0.9126984126984126,
+          "distinct": 1.0,
+          "fill": 0.212
+        },
+        "16": {
+          "rank1": 1.0,
+          "pairwise_x": 1.087962962962963,
+          "distinct": 1.0,
+          "fill": 0.373
+        },
+        "32": {
+          "rank1": 1.0,
+          "pairwise_x": 1.347222222222222,
+          "distinct": 1.0,
+          "fill": 0.575
+        },
+        "64": {
+          "rank1": 0.0,
+          "pairwise_x": 1.8583333333333332,
+          "distinct": 1.0,
+          "fill": 0.772
+        },
+        "128": {
+          "rank1": 0.0,
+          "pairwise_x": 11.608333333333333,
+          "distinct": 0.546875,
+          "fill": 0.772
+        },
+        "256": {
+          "rank1": 0.03125,
+          "pairwise_x": 20.741666666666667,
+          "distinct": 0.2734375,
+          "fill": 0.772
+        },
+        "512": {
+          "rank1": 0.0,
+          "pairwise_x": 26.163888888888888,
+          "distinct": 0.13671875,
+          "fill": 0.772
+        }
+      },
+      "46": {
+        "8": {
+          "rank1": 1.0,
+          "pairwise_x": 1.5277777777777781,
+          "distinct": 1.0,
+          "fill": 0.2085
+        },
+        "16": {
+          "rank1": 1.0,
+          "pairwise_x": 1.3425925925925928,
+          "distinct": 1.0,
+          "fill": 0.369
+        },
+        "32": {
+          "rank1": 1.0,
+          "pairwise_x": 1.2694444444444444,
+          "distinct": 1.0,
+          "fill": 0.572
+        },
+        "64": {
+          "rank1": 0.03125,
+          "pairwise_x": 1.5583333333333333,
+          "distinct": 1.0,
+          "fill": 0.7775
+        },
+        "128": {
+          "rank1": 0.0,
+          "pairwise_x": 9.838888888888889,
+          "distinct": 0.578125,
+          "fill": 0.781
+        },
+        "256": {
+          "rank1": 0.0,
+          "pairwise_x": 19.852777777777778,
+          "distinct": 0.2890625,
+          "fill": 0.781
+        },
+        "512": {
+          "rank1": 0.0,
+          "pairwise_x": 25.316666666666663,
+          "distinct": 0.14453125,
+          "fill": 0.781
+        }
+      }
+    },
+    "ceilings": [
+      "M* = 34.3  bracket [32, 64)  interior 0  [CLIFF: no interior point, m_star is interpolation only]",
+      "M* = 34.3  bracket [32, 64)  interior 0  [CLIFF: no interior point, m_star is interpolation only]",
+      "M* = 34.4  bracket [32, 64)  interior 0  [CLIFF: no interior point, m_star is interpolation only]",
+      "M* = 34.3  bracket [32, 64)  interior 0  [CLIFF: no interior point, m_star is interpolation only]",
+      "M* = 34.4  bracket [32, 64)  interior 0  [CLIFF: no interior point, m_star is interpolation only]"
+    ]
+  }
+}

@@ -270,6 +270,56 @@ _RESULTS: List[Result] = [
                "Bounds are approximate and from one task.",
     ),
     Result(
+        id="REFRACTION-ANTI-MERGING",
+        status=Status.MEASURED,
+        claim="A recurrent k-WTA area refracted at HALF beta and read with the "
+              "refraction bias MASKED holds ~25x the Hebbian ceiling: at n/k = 67 "
+              "M* ~ 1600-2200 stored assemblies against 64-89 for the control, "
+              "x34-38 at n/k = 33, >= x13-16 at n/k = 133 (censored). Both "
+              "ceilings are functions of n/k ALONE (n/k-matched cells agree "
+              "within 25%), so refraction multiplies the assembly capacity law "
+              "[[AC-CAP]] rather than changing its form. The mechanism is "
+              "ANTI-MERGING, not orthogonalization: the stored assemblies are "
+              "orthogonal (0.00x chance) only while the area has unvisited "
+              "neurons; past fill 1.0 they overlap at chance like random subsets, "
+              "yet remain DISTINCT (1.000) and recoverable from a half cue, where "
+              "the Hebbian control collapses into hubs (distinct 0.63, overlap "
+              "15x chance) long before the area is full. The intrinsic bias "
+              "vetoes recall (the net readout reads chance): a refracted memory "
+              "is read through the veto or not at all. Fewer rounds per item "
+              "raise the ceiling (T = 8 > T = 16) while the items still "
+              "converge; refraction's benefit requires GRADED stimulus drive.",
+        source="This repository; PREREG_refraction_memory.md (bars R1-R7, N1-N3).",
+        evidence=("seq_capacity_scaling.py, arm B on the organ fiber, 20 brains, "
+                  "M grid to 4096, s = 0.5 beta masked vs control: n/k = 33: "
+                  "431 / 383 vs 11.3; n/k = 67: 1978 / 1589 / 2230 vs 83 / 64 / "
+                  "89; n/k = 133: >= 4096 vs 307 / 263",
+                  "distinct 1.000 at every refracted ceiling; control 0.63 at "
+                  "M = 128 (n = 4000), pairwise 15x chance",
+                  "net readout at n = 4000: M* = 8 (chance at every M)",
+                  "T = 16: M* = 203 against T = 8's >= 1024 (n = 4000); T = 4 "
+                  "does not converge at low load and does at high load",
+                  "numpy_sparse gate (refraction_memory_numpy.py, materialized, "
+                  "5 brains, summed Binomial stimuli): refracted >= 512 "
+                  "(censored, rank-1 1.000 throughout, distinct 1.000) vs "
+                  "control 34 -- the claim holds on the engine whose k-WTA has "
+                  "no selector defect"),
+        preconditions=("recurrent k-WTA area, weight clip, norm_init, no column "
+                       "scaling (arm B); refraction strength 0.5 beta; T = 8 "
+                       "rounds per item from an inhibited area; readout = "
+                       "half-cue recall with the bias masked",
+                       "GRADED stimulus drive: a zero-or-size stimulus (the "
+                       "engine's into a materialized area, at one Bernoulli "
+                       "draw) makes the refracted item rotate through its tied "
+                       "connected set and the benefit vanishes"),
+        caveat="Found by re-measuring PREREG_refraction_capacity.md after the "
+               "hashed selector's sign defect (1b475fc) -- its Amendment 1 "
+               "('spends the substrate') was that defect. The n/k = 133 cells "
+               "are censored at 4096; whether the ~25x multiplier holds or falls "
+               "there is open. The multiplier is at 0.5 beta; 0.7 beta converges "
+               "only given T = 16 and holds ~185 at n/k = 67.",
+    ),
+    Result(
         id="REFRACTION-CANCELS-CONVERGENCE",
         status=Status.MEASURED,
         claim="[RE-MEASURED 2026-09-04 with the selector fixed (1b475fc): the "
@@ -294,9 +344,9 @@ _RESULTS: List[Result] = [
               "s ~ 0.75 beta it never converges and churns through the whole "
               "area -- refraction there is a firing-rate equalizer, and "
               "firing-rate homeostasis is incompatible with attractor memory "
-              "in a recurrent k-WTA area. Below the transition it converges "
-              "~10x slower and orthogonalizes stored assemblies to below "
-              "chance overlap, but spends fill and LOWERS capacity.",
+              "in a recurrent k-WTA area. Below the transition it is the "
+              "anti-merging force of [[REFRACTION-ANTI-MERGING]]: ~25x the "
+              "Hebbian ceiling, read with the bias masked.",
         source="This repository; PREREG_refraction_capacity.md.",
         evidence=("seq_refraction_wander.py at n=4000 k=100 p=0.5 beta=0.1 "
                   "w_max=20, 16 brains, 240 rounds: s/beta = 0.5, 0.7 converge "
@@ -307,9 +357,9 @@ _RESULTS: List[Result] = [
                   "(1-1/w_max)/beta ~ 41 appears as a transient re-ranking at "
                   "rounds 44-48 below the transition, which the assembly "
                   "survives",
-                  "capacity protocol at s = 0.5 beta: pairwise overlap "
-                  "0.00-0.05x chance (control ~1.5x) yet M* 19.6 vs 23.5, "
-                  "fill 0.977 at M=24 -- the ceiling becomes fill-limited",
+                  "capacity protocol at s = 0.5 beta, re-measured with the "
+                  "selector fixed: see [[REFRACTION-ANTI-MERGING]] (the "
+                  "earlier 'M* 19.6 vs 23.5' reading was the defect)",
                   "bias-on partial-cue recall 0.250 vs bias-masked 0.984 at "
                   "M=8, same training: the intrinsic bias vetoes recall from "
                   "a partial cue, as the identity predicts"),

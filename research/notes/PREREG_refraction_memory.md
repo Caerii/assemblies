@@ -213,3 +213,36 @@ the refracted 431 -> 1978 -> >= 4096 (x4.6, >= x2.1). Fill is 1.000 at
 every REF ceiling and 0.36-0.95 at the control's: the control dies of
 merging before the area is full, the refracted memory fills the area and
 goes on to a ceiling ~25x higher, distinct 1.000 throughout.
+
+### Amendment 3 -- Result (2026-09-05, numpy_sparse, materialized, 5 brains, M grid to 512)
+
+    numpy REF (0.5 beta, masked)   rank-1 1.000 at EVERY M to 512 on all 5 brains;
+                                   distinct 1.000; fill 1.000 from M = 64; pw/chance 0.9-1.0 at 512
+                                   M* >= 512 (censored high, all brains)
+    numpy CTL                      M* = 34.3 [32, 64) on all 5 brains; distinct 0.55 at 128,
+                                   0.14 at 512; pw/chance 10 -> 26 (hub collapse)
+    N1  >= 512 / 34 = >= 15x                                                   PASS
+    N2  distinct 1.000 at M*(REF)                                             PASS
+    N3  reported: numpy REF >= 512 against the hashed 431 (consistent as a
+        bound); numpy CTL 34 against the hashed 11 -- the mirror's summed
+        stimulus (10 x 6, sd 9.5) is more graded than the harness's
+        Binomial(60, 0.5) (sd 3.9), which helps the Hebbian control.
+
+Two things the mirror taught before it passed, both recorded in the script:
+the engine's ZERO-OR-SIZE stimulus collapses the control at p = 0.5 (one
+tie for every item) and, at p = 0.05, makes the refracted item ROTATE
+through its tied connected set (recall 0.5-0.75) -- refraction's benefit
+requires GRADED stimulus drive; and a Brain-level projection reads its own
+cached winners, so a half-cue recall must drive the engine directly.
+
+## Adopted (2026-09-05)
+
+R1, R4, R5 (where judgeable), R3 as restated (distinctness), R6, R7, N1
+and N2 pass; R2 as a ratio law at fixed k fails and is superseded by R6/R7
+(the law is in n/k). Register entry `REFRACTION-ANTI-MERGING` (MEASURED):
+a recurrent k-WTA area refracted at half beta and read with the bias
+masked holds ~25x the Hebbian ceiling; both ceilings are functions of
+n/k alone; the mechanism is anti-merging (distinct 1.000 where the
+control forms hubs), not orthogonalization (overlap returns to chance past
+fill 1.0); the net readout reads chance; fewer rounds per item raise the
+ceiling while the items still converge; graded stimulus drive is required.
