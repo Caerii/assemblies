@@ -236,24 +236,35 @@ def batched_project_hashed(
         mask_bias: with `freeze`, read the synaptic memory with the bias
             neither subtracted nor charged (PREREG_refraction_capacity P1).
     """
-    from ._hashed import AreaFiber, HashedArea, StimulusFiber
+    from ._hashed import AreaFiber, DenseOrganFiber, HashedArea, StimulusFiber
 
     device = str(winners.device)
     total = int(max_rounds or rounds)
     if freeze and state is None:
         raise ValueError("freeze=True reads a learned state; none was given")
     if state is None:
-        state = {
-            "area": HashedArea(n, k, seeds, device=device,
-                               refracted_strength=refracted_strength),
+        if not synaptic_scaling and w_max is not None:
+            # The organ's regime (clip, no scaling): the count-matrix fiber,
+            # O(1) per round in stored episodes where the store fiber grows
+            # with them (a 1024-item capacity grid stalled the store at
+            # 10 GB). Same numbers (gated == AreaFiber); the chain table
+            # saturates at the clip, so its depth need not follow `total`.
+            fiber = DenseOrganFiber(seeds, n, n, p, beta=beta, w_max=w_max,
+                                    norm_init=norm_init,
+                                    max_rounds=min(total, 256), device=device)
+        else:
             # The capacity protocol's counts stay far below the clip (T <= 8
             # rounds per item); the four-arm engine-parity test licenses the
             # opt-in. See AreaFiber for why the pair is otherwise refused.
-            "fiber": AreaFiber(seeds, n, n, p, beta=beta, w_max=w_max,
-                               norm_init=norm_init,
-                               synaptic_scaling=synaptic_scaling,
-                               max_rounds=total, device=device,
-                               scaling_allows_clip=True),
+            fiber = AreaFiber(seeds, n, n, p, beta=beta, w_max=w_max,
+                              norm_init=norm_init,
+                              synaptic_scaling=synaptic_scaling,
+                              max_rounds=total, device=device,
+                              scaling_allows_clip=True)
+        state = {
+            "area": HashedArea(n, k, seeds, device=device,
+                               refracted_strength=refracted_strength),
+            "fiber": fiber,
         }
     area, fiber = state["area"], state["fiber"]
     area.winners = winners.to(torch.int64)
