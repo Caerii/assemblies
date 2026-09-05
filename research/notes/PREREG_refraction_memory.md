@@ -66,3 +66,61 @@ column scaling) is the judged arm; arm G (with scaling) is reported.
 * R2 fails while R1 passes -> the ceiling is not tiling; fit and report.
 * R5 inverted (M* rising with T) -> the ceiling is convergence-limited,
   not fill-limited; the mechanism claim is wrong as stated.
+
+## Result (2026-09-04, arm B on the organ fiber, 20 brains, M grid 8..1024)
+
+    cell            n      M*                      fill@M*   M*k/n    distinct@1024   pw/chance near M*
+    CTL  T=8     2000     11.3   [8, 16)            0.39      0.34     (0.63 at M=128 for n=4000)   1.8-2.6
+    CTL  T=8     4000     83.4   [64, 128)          0.80      1.25                                  1.8 -> 15
+    CTL  T=8     8000    306.8   [256, 384)         0.95      2.30                                  1.4 -> 9
+    REF  T=8     2000    431.3   [384, 512)         1.00     12.94     1.000 (0.98 at 1024)         0.89 (M=384)
+    REF  T=8     4000  >= 1024   censored high      1.00   >= 15.36    1.000 (rank-1 0.994 at 1024) 0.94 (M=1024)
+    REF  T=8     8000  >= 1024   censored high      1.00   >=  7.68    1.000 (rank-1 1.000 at 1024) 0.94 (M=1024)
+    NET  T=8     4000      8.0   chance (0.125 at M=8)
+    T4   T=8->4  4000  does not converge: rank-1 0.225 at M=8, RISING to 1.000 at M >= 768
+    T16  T=16    4000    203.2   [192, 256)         1.00      3.05     0.94
+    S7   0.7b,16 4000    185.0   [128, 192)         1.00      2.78     0.98     converges: 0.97 at M=8
+
+    R1  CAPACITY     REF(4000) >= 1024 against CTL(4000) 83.4: >= 12x       PASS (as a bound)
+                     (n=2000: 431 / 11.3 = 38x, both resolved)
+    R2  FILL LAW     fill@M* = 1.00 in every REF cell (first clause holds);
+                     M*k/n across n: 12.9 / >=15.4 / >=7.7 -- two cells
+                     censored, the ratio cannot be judged                 UNRESOLVED
+    R3  ORTHOGONAL   pw/chance 0.89 at the largest uncensored M below
+                     M*(2000); 0.94 at M=1024 for the censored cells     FAIL as written
+    R4  THE VETO     NET M* = 8, chance at every M                          PASS
+    R5  ROUNDS       M*(T8) >= 1024 > M*(T16) = 203, beyond CI              PASS for T8 > T16
+                     T4 does not converge (0.225 at M=8): void, reported
+    S7  0.7 beta converges given T=16 and holds ~185, above CTL's 83.
+
+**Reading.** R1 and R4 are decisive, R5 holds where it can be judged, R2
+is not yet judgeable, and R3 FAILS -- and the failure corrects the
+mechanism claim. The stored assemblies are orthogonal (0.00 x chance)
+only while the area still has unvisited neurons (M <= 64 at n = 4000);
+past fill 1.0 their pairwise overlap returns to chance (0.9 x) -- and
+recovery stays perfect anyway. What refraction preserves is not
+orthogonality but DISTINCTNESS: `distinct` reads 1.000 through M = 1024
+for every REF cell where the control collapses to 0.63 by M = 128 with
+pairwise overlap 15 x chance (hub formation, rich-get-richer). Refraction
+at half beta is an ANTI-MERGING force, not an orthogonalizer: it stops
+repeat winners from becoming hubs, so items overlap at chance like
+random subsets yet remain separately recoverable from their cues through
+the intrinsic veto. The ceiling that remains is set by something other
+than fill or overlap -- at n = 2000 it is 431 = 13 n/k -- and finding it
+at n >= 4000 needs the grid extended. Fewer rounds per item raises the
+ceiling (T8 > T16) as long as the items still converge; T = 4 does not,
+and its curve rising with load says items formed in a fully-visited,
+fully-refracted area converge where the first ones did not.
+
+Per the interpretation stated above: R3 failed, so NOTHING IS ADOPTED
+from this run; the mechanism claim is rewritten and re-registered below.
+
+## Amendment 1 (2026-09-04, before the extension runs): the grid to 4096, and R3 restated
+
+* R2 needs the censored cells resolved: n = 4000 and 8000 re-run with
+  M checkpoints (1024, 1536, 2048, 3072, 4096), 20 brains, T = 8, arm B,
+  masked. R2's ratio clause is judged on the resolved values.
+* R3 is restated as DISTINCTNESS: `distinct` >= 0.99 at M*(REF) in every
+  REF cell, against the control's < 0.7 at its own M*. The orthogonality
+  clause is dropped as measured false past fill 1.0.
+* Bars R1, R4, R5 stand as read.
