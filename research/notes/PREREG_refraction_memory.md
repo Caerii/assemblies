@@ -331,3 +331,124 @@ against CTL T = 8 (83).
 Adoption if G1 and G2 pass: the register entry's "fewer rounds per item
 raise the ceiling" becomes "an item's rounds should end at convergence";
 the harness default stays T = 8 (the registered protocol), gating opt-in.
+
+### Amendment 4 -- Result (2026-09-07, 20 brains, arm B, grid to 16384, 299 s)
+
+    cell          regime (k p vs 3 ln n)   REF M*   bracket          M*/(n/k)^2   CTL    REF/CTL
+    (8000, 60)    IN  (30.0 vs 27.0)        6995    [6144, 8192)       0.395      307     23x
+    (4000, 30)    OUT (15.0 vs 24.9)        4749    [4096, 6144)       0.27       263     18x
+
+    Q1  QUADRATIC.   (8000, 60): 0.395 in [0.35, 0.50]                    PASS
+                     (4000, 30): 0.27, below the window                   FAIL LOW
+                     As registered ("BOTH cells"): FAIL LOW.
+                     Doubling exponents 67 -> 133: 1.82 in regime
+                     ((4000,60) -> (8000,60)), 1.58 out of regime
+                     ((2000,30) -> (4000,30)); 33 -> 67 they were 2.05-2.2.
+    Q2  MULTIPLIER.  23x and 18x at n/k = 133 against 24-25x at 67 and
+                     34-38x at 33: the multiplier does NOT rise; the control
+                     is ~quadratic too from 67 on (307 / 83 = x3.7, exponent
+                     1.9; CTL / (n/k)^2 = 0.018, 0.017). The reading stated
+                     in the amendment ("the control is the sub-quadratic
+                     one") was wrong and is withdrawn.
+    Q3  RESOLUTION.  [6144, 8192) 1.33x, interior 2; [4096, 6144) 1.50x,
+                     interior 10 (at the 1.5x edge)                       PASS
+    Q4  DISTINCT.    1.000 at the last M below M*, both cells             PASS
+
+**Reading.** The law in n/k has a REGIME PRECONDITION that the k sweep's
++/- 25% criterion could not see while the pair was censored: the k = 30
+cells sit below the harness's own in-degree floor (k p = 15 against
+3 ln n = 23-25), and they are the low cells at both ratios ((2000, 30)
+0.80 of its pair, (4000, 30) 0.68). In regime the refracted ceiling is
+~0.40 (n/k)^2 at n/k = 67 and 133 with a doubling exponent of 1.8-2.2 --
+Willshaw-like, and NOT adopted as a power law: the exponent is falling
+slowly, and three ratios do not fix it. The out-of-regime cell shows the
+T = 4 signature (rank-1 0.49 at M = 8 rising to 1.000 by M = 768): the
+recurrent in-degree is too small to converge in 8 rounds at low load.
+Nothing adopted; the register entry's "~25x" stands (23x in regime here)
+and gains the precondition k p >= 3 ln n once G5 below has run.
+
+R7 restated by this: the n/k = 133 pair, both now resolved, disagree by
+0.68 -- R7 holds only within the regime; recorded against the Amendment 2
+result, which counted the censored pair as consistent.
+
+### Amendment 5, addendum (2026-09-07, before running): G5, the out-of-regime cell under the gate
+
+If the (4000, 30) cell is convergence-limited from below, then rounds
+gated on convergence with a higher ceiling should give its items the
+rounds they need at low load without the T = 16 damage at high load.
+
+    G5  (4000, 30), REF gated, T_max = 16, grid to 8192:
+        rank-1 at M = 8 >= 0.9 (it converges)  AND  M* within +/- 25% of
+        6995 (the in-regime pair) -> the n/k law holds with convergence
+        as the precondition, stated as such in the register.
+        rank-1 at M = 8 >= 0.9 but M* stays near 4749 -> the cell is
+        below the law for a reason other than convergence (in-degree
+        itself); k p >= 3 ln n becomes the precondition.
+        rank-1 at M = 8 < 0.9 -> 16 rounds do not converge it either;
+        report, nothing adopted.
+
+### Amendment 5 -- Result (2026-09-07, (4000, 60) unless stated, 20 brains, arm B)
+
+    arm                  M*      bracket           rank-1 @ M=8   rounds/item (M<=64 | M>=1024)   conv < T_max
+    REF gated, T_max 8   2645    [2560, 2816) i4      1.000         7.1 | 7.7  (min 5.8 at M~400)   0.4 -> 0.99 -> 0.00 at M >= 2048
+    REF T = 8 (R1)       1978    [1536, 2048)         0.994         8 | 8                            --
+    CTL gated, T_max 8   (484)   see G4               0.319         4.4 | 4.0                        1.00 everywhere
+    CTL T = 8            83      [64, 128)            ~1.0          8 | 8                            --
+    G5 (4000, 30) gated, T_max 16
+                          362    [256, 384)           0.956        10.1 | 9-12                       0.99 -> 0.6-0.8
+    (4000, 30) T = 8     4749    [4096, 6144)         0.494         8 | 8                            --
+
+    G1  NOT WORSE.   2645 >= 1536 and rank-1 1.000 at M = 8                PASS
+    G2  BETTER.      2645 > 2048; bracket [2560, 2816) resolved (four
+                     interior points, refined post hoc from [2048, 3072))  PASS  (+34%)
+    G3  ROUNDS FALL WITH LOAD.  7.1 at M <= 64 against 7.7 at M >= 1024   FAIL
+                     -- the shape is a U: rounds fall to 5.8 at M ~ 400
+                     (99% of items converge inside 8) and RISE back to 8
+                     past M ~ 1500, where the fraction converging inside
+                     8 rounds falls to 0.25 at 1536, 0.01 at 2048 and 0
+                     at 3072. The ceiling (2645) sits where items STOP
+                     converging: past it an item wanders for all 8 rounds.
+    G4  CONTROL.     reported: the gated control converges every item in
+                     ~4.4 rounds and does NOT form a recallable memory --
+                     rank-1 0.32 at M = 8, 0.20-0.25 to M = 128, rising to
+                     0.92 at M = 384 and collapsing after; the "M* = 484"
+                     is the downward crossing of a curve that only crossed
+                     upward at 384, not a ceiling. Winner convergence is
+                     not a formed memory: the control needs the rounds
+                     after convergence to potentiate the recurrent weights
+                     a half cue completes on.
+    G5  (4000, 30), T_max = 16 gated: rank-1 0.956 at M = 8 (it converges,
+                     10 rounds per item) and M* = 362 -- NEITHER
+                     registered branch: converging the low-load items
+                     costs the ceiling 13x (4749 -> 362), the T = 16
+                     damage in a new form. The k = 30 cell is not
+                     convergence-limited in a way rounds can repair;
+                     k p >= 3 ln n stands as the precondition of the n/k
+                     law. Nothing adopted for that cell.
+
+**Reading.** Rounds per item are the memory's WRITE BUDGET. Under
+refraction each round charges bias and potentiates; the rounds after an
+item's winners settle buy nothing for that item and spend the area's
+budget (the T = 16 result, and G5). Ending an item at convergence returns
+that budget: +34% at n/k = 67, resolved. But convergence inside T_max is
+itself load-dependent -- a U in load -- and the ceiling is where it is
+lost, so the gate cannot move the ceiling past the point where items no
+longer settle in 8 rounds. The control is the opposite regime: its
+winners settle in 4 rounds and its memory is not yet written; gating
+starves it. So "fewer rounds per item raise the ceiling" is replaced by:
+end an item's rounds at convergence under a ceiling T_max the memory
+still forms under (8 for the refracted memory; the control has no such
+gate).
+
+## Adopted (2026-09-07), Amendments 4 and 5
+
+Register entry `REFRACTION-ANTI-MERGING` gains: the regime precondition
+k p >= 3 ln n for the n/k law (the k = 30 cells fall 20-32% below their
+pairs); in regime the refracted ceiling is ~0.40 (n/k)^2 at n/k = 67 and
+133 with doubling exponents 2.1 -> 1.8 (Willshaw-like; NOT a power law
+claim); the multiplier over the control is 23-25x at n/k >= 67 (36x at
+33), the control being ~quadratic too from 67 on; convergence-gated
+rounds with T_max = 8 raise the ceiling +34% (2645 vs 1978, resolved)
+and the ceiling is where items stop converging inside T_max; gating
+starves the Hebbian control. Harness default stays T = 8 ungated (the
+registered protocol); `--converge` is opt-in.

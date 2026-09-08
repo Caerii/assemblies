@@ -288,8 +288,22 @@ _RESULTS: List[Result] = [
               "vetoes recall (the net readout reads chance): a refracted memory "
               "is read through the veto or not at all. Fewer rounds per item "
               "raise the ceiling (T = 8 > T = 16) while the items still "
-              "converge; refraction's benefit requires GRADED stimulus drive.",
-        source="This repository; PREREG_refraction_memory.md (bars R1-R7, N1-N3).",
+              "converge; refraction's benefit requires GRADED stimulus drive. "
+              "SHAPE OF THE LAW (Amendment 4): in regime (k p >= 3 ln n) the "
+              "refracted ceiling is ~0.40 (n/k)^2 at n/k = 67 and 133 (6995 at "
+              "(8000, 60)), doubling exponents 2.1 then 1.8 -- Willshaw-like, "
+              "not adopted as a power law; the control is ~0.017 (n/k)^2 from "
+              "n/k = 67 on, so the multiplier is ~23-25x there. Out of regime "
+              "(k p = 15 < 3 ln n) the cells fall 20-32% below their n/k pairs "
+              "and do not converge at low load. GATED ROUNDS (Amendment 5): "
+              "ending an item's rounds at its first repeated winner set under "
+              "T_max = 8 raises the ceiling +34% (2645 vs 1978, resolved); the "
+              "ceiling sits where items stop converging inside T_max (a U in "
+              "load); the same gate STARVES the Hebbian control, whose winners "
+              "settle in ~4 rounds before its memory is written; T_max = 16 "
+              "under the gate costs the out-of-regime cell 13x.",
+        source="This repository; PREREG_refraction_memory.md (bars R1-R7, N1-N3, "
+               "Q1-Q4, G1-G5).",
         evidence=("seq_capacity_scaling.py, arm B on the organ fiber, 20 brains, "
                   "M grid to 4096, s = 0.5 beta masked vs control: n/k = 33: "
                   "431 / 383 vs 11.3; n/k = 67: 1978 / 1589 / 2230 vs 83 / 64 / "
@@ -303,7 +317,13 @@ _RESULTS: List[Result] = [
                   "5 brains, summed Binomial stimuli): refracted >= 512 "
                   "(censored, rank-1 1.000 throughout, distinct 1.000) vs "
                   "control 34 -- the claim holds on the engine whose k-WTA has "
-                  "no selector defect"),
+                  "no selector defect",
+                  "grid to 16384, 20 brains: (8000, 60) REF 6995 [6144, 8192) = "
+                  "0.395 (n/k)^2, CTL 307; (4000, 30) REF 4749 [4096, 6144), "
+                  "CTL 263 (out of regime)",
+                  "(4000, 60) gated T_max 8: REF 2645 [2560, 2816) vs 1978; CTL "
+                  "gated rank-1 0.32 at M = 8 (no memory formed); (4000, 30) "
+                  "gated T_max 16: 362 vs 4749"),
         preconditions=("recurrent k-WTA area, weight clip, norm_init, no column "
                        "scaling (arm B); refraction strength 0.5 beta; T = 8 "
                        "rounds per item from an inhibited area; readout = "
@@ -314,10 +334,14 @@ _RESULTS: List[Result] = [
                        "connected set and the benefit vanishes"),
         caveat="Found by re-measuring PREREG_refraction_capacity.md after the "
                "hashed selector's sign defect (1b475fc) -- its Amendment 1 "
-               "('spends the substrate') was that defect. The n/k = 133 cells "
-               "are censored at 4096; whether the ~25x multiplier holds or falls "
-               "there is open. The multiplier is at 0.5 beta; 0.7 beta converges "
-               "only given T = 16 and holds ~185 at n/k = 67.",
+               "('spends the substrate') was that defect. The n/k law was "
+               "counted as holding at n/k = 133 while both cells were censored; "
+               "resolved, they disagree by 0.68 and the k = 30 one is out of "
+               "regime -- k p >= 3 ln n is a precondition, not a footnote. Three "
+               "ratios do not fix an exponent that is falling (2.1 -> 1.8). The "
+               "multiplier is at 0.5 beta; 0.7 beta converges only given T = 16 "
+               "and holds ~185 at n/k = 67. The gating result is one cell "
+               "(n/k = 67).",
     ),
     Result(
         id="REFRACTION-CANCELS-CONVERGENCE",
