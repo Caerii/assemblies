@@ -855,7 +855,9 @@ class StimulusFiber:
 
     def observe(self, prev, new):
         if self.learns and new.shape[1]:
-            self.pot.scatter_add_(1, new, torch.ones_like(new))
+            # -1 winners are a brain whose rounds are over (a converged
+            # brain under `stop_when_stable`, a dead brain): no potentiation
+            self.pot.scatter_add_(1, new.clamp_min(0), (new >= 0).to(torch.int64))
 
     def end_episode(self):
         pass
@@ -970,7 +972,7 @@ class HashedArea:
 
     def project(self, rounds, fibers, *, rows_for=None, freeze=False,
                 stim_drive=None, return_drive=False, mask_bias=False,
-                manage_episodes=True):
+                manage_episodes=True, stop_when_stable=False):
         """Run ``rounds`` rounds with ``fibers`` afferent.
 
         ``rows_for`` maps a fiber to its source winners; a fiber absent from it
@@ -986,6 +988,18 @@ class HashedArea:
         fold into the store) -- a training step whose rounds interleave two
         areas cannot be a single multi-round call here, and per-round episodes
         cost a store append and merge each. Observe/charge still happen.
+
+        ``stop_when_stable`` gates the rounds PER BRAIN on convergence
+        (PREREG_refraction_memory.md Amendment 5): a brain's item is over at
+        the first round whose winner set equals the previous round's; that
+        round is written like any other, and from then on the brain keeps
+        its winners and writes nothing -- its rows and winners go to the
+        fibers as -1, the dead-brain convention, so the fibers must accept
+        -1 (the organ and stimulus fibers do; the store fibers do not). The
+        loop ends early when no brain is active. ``rounds`` is then the
+        CEILING T_max, and ``self.rounds_used`` [B] the rounds each brain
+        spent. A brain's rounds up to its convergence are bit-identical to
+        the ungated run's (tested).
         """
         rows_for = rows_for or {}
         if mask_bias and not freeze:
@@ -994,6 +1008,11 @@ class HashedArea:
             for f in fibers:
                 f.begin_episode()
         drive = None
+        active = None
+        if stop_when_stable:
+            active = torch.ones(self.B, dtype=torch.bool, device=self.device)
+            self.rounds_used = torch.zeros(self.B, dtype=torch.int64,
+                                           device=self.device)
         for _ in range(rounds):
             raw = torch.zeros(self.B, self.n, dtype=torch.float32,
                               device=self.device)
@@ -1012,13 +1031,37 @@ class HashedArea:
                     "drive is too flat for the histogram to narrow. Refusing "
                     "to return a truncated winner set.")
             new = sel.to(torch.int64)
+            prev = self.winners
+            if active is not None and prev.shape[1] == new.shape[1]:
+                # a converged brain keeps its winners
+                new = torch.where(active.view(-1, 1), new, prev)
             if not freeze:
-                for f in fibers:
-                    f.observe(rows_for.get(id(f), self.winners), new)
-                self.charge(raw, new)
+                if active is None:
+                    for f in fibers:
+                        f.observe(rows_for.get(id(f), prev), new)
+                    self.charge(raw, new)
+                else:
+                    off = ~active.view(-1, 1)
+                    new_m = new.masked_fill(off, -1)
+                    for f in fibers:
+                        src = rows_for.get(id(f), prev)
+                        f.observe(src.masked_fill(off, -1) if src.shape[1] else src,
+                                  new_m)
+                    if self.bias is not None:
+                        self.bias.scatter_add_(
+                            1, new, torch.gather(raw, 1, new)
+                            * (self.refracted_strength * active.view(-1, 1)))
+                    self.rounds_used += active.to(torch.int64)
                 self.ever.scatter_(1, new, True)
                 self.rounds_seen += 1
             self.winners = new
+            if active is not None:
+                if prev.shape[1] == new.shape[1]:
+                    same = (torch.sort(new, dim=1).values
+                            == torch.sort(prev, dim=1).values).all(dim=1)
+                    active = active & ~same
+                if not bool(active.any()):
+                    break
         if not freeze and manage_episodes:
             for f in fibers:
                 f.end_episode()

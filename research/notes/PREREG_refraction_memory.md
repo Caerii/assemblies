@@ -294,3 +294,40 @@ these cells is already resolved (307, 263).
 Nothing is adopted from this amendment alone: if Q1 passes, the register
 entry's claim gains the sentence "the refracted ceiling is ~0.4 (n/k)^2"
 and the constant is quoted with its range across the seven cells.
+
+## Amendment 5 (2026-09-07, before running): convergence-gated rounds
+
+R5 found the ceiling convergence-limited from above and below: T = 16
+holds 203 where T = 8 holds 1978, and T = 4 does not converge at low load
+(rank-1 0.225 at M = 8) yet does at high load (1.000 from M = 768). The
+mechanism named there -- an item's rounds past convergence only charge
+bias and potentiate what is already formed -- suggests the knob is not T
+but WHEN TO STOP: run each item until its winner set repeats, T_max = 8.
+
+Built as `stop_when_stable` on `HashedArea.project` (per brain; the
+converged brain's rows go to the fibers as -1, the dead-brain convention;
+a brain's rounds up to convergence are bit-identical to the ungated run's,
+tested). Harness flag `--converge`; `rounds_used` reported per M.
+
+Cells: (4000, 60), n/k = 67, 20 brains, arm B, grid to 4096: REF gated
+(0.5 beta, masked) against REF T = 8 (1978, [1536, 2048)); CTL gated
+against CTL T = 8 (83).
+
+    G1  NOT WORSE.  M*(REF gated) >= 1536, the lower edge of the T = 8
+        bracket, and rank-1 at M = 8 >= 0.9 (the items converge).
+        PREDICTION: PASSES.
+    G2  BETTER.  M*(REF gated) > 2048 (above the T = 8 bracket).
+        PREDICTION: uncertain -- passes only if items converge in fewer
+        than 8 rounds at high load; that is exactly what T = 4's late
+        success says, and what G3 measures.
+    G3  ROUNDS FALL WITH LOAD.  Mean rounds used per item at M <= 64
+        exceeds the mean at M >= 1024. Reported with the fraction of items
+        that converge before T_max at each M.
+        NULL: if items rarely repeat a winner set inside 8 rounds the gate
+        never fires, the gated run equals T = 8 EXACTLY, and this
+        amendment is a null -- reported as such, nothing adopted.
+    G4  CONTROL, reported: M*(CTL gated) against 83.
+
+Adoption if G1 and G2 pass: the register entry's "fewer rounds per item
+raise the ceiling" becomes "an item's rounds should end at convergence";
+the harness default stays T = 8 (the registered protocol), gating opt-in.

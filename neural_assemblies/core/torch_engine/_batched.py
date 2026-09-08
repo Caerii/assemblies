@@ -188,7 +188,7 @@ def batched_project_hashed(
     norm_init=False, synaptic_scaling=False, stim_drive=None,
     stim_seeds=None, stim_size=None, return_drive=False, state=None,
     max_rounds=None, return_state=False, freeze=False,
-    refracted_strength=0.0, mask_bias=False,
+    refracted_strength=0.0, mask_bias=False, stop_when_stable=False,
 ):
     """B INDEPENDENT connectomes, GENERATED rather than stored.
 
@@ -235,6 +235,9 @@ def batched_project_hashed(
             created, since the bias is state.
         mask_bias: with `freeze`, read the synaptic memory with the bias
             neither subtracted nor charged (PREREG_refraction_capacity P1).
+        stop_when_stable: gate the rounds per brain on convergence, `rounds`
+            becoming the ceiling; see `HashedArea.project`. The rounds each
+            brain spent are `state["area"].rounds_used`. Organ fiber only.
     """
     from ._hashed import AreaFiber, DenseOrganFiber, HashedArea, StimulusFiber
 
@@ -277,8 +280,12 @@ def batched_project_hashed(
             stim_seeds, stim_size, n, p, beta=beta, w_max=w_max,
             norm_init=norm_init, max_rounds=rounds, device=device))
 
+    if stop_when_stable and not isinstance(fiber, DenseOrganFiber):
+        raise ValueError("stop_when_stable needs the organ fiber (-1 rows); "
+                         "this cell built the store fiber")
     res = area.project(rounds, fibers, freeze=freeze, stim_drive=stim_drive,
-                       return_drive=return_drive, mask_bias=mask_bias)
+                       return_drive=return_drive, mask_bias=mask_bias,
+                       stop_when_stable=stop_when_stable)
     out, drive = res if return_drive else (res, None)
     if return_drive and return_state:
         return out, drive, state

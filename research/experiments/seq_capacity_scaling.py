@@ -63,6 +63,7 @@ RECALL_SAMPLE = 32
 STIM_SIZE = None
 REFRACTED = False
 READOUT = "net"
+CONVERGE = False
 REFRACTED_FACTOR = 1.0
 PAIR_SAMPLE = 200
 ARMS = {"B": dict(norm_init=True, synaptic_scaling=False),
@@ -94,7 +95,7 @@ def run_cell(n, arm, m_max, nbrain, rng):
     sd = seeds_for(nbrain)
     total_rounds = m_max * T
     state = None
-    stored = []
+    stored, used = [], []
     out = {}
     for a in range(m_max):
         # INHIBITED between assemblies: the area starts with no winners, so
@@ -109,12 +110,21 @@ def run_cell(n, arm, m_max, nbrain, rng):
             stim_seeds=ss, stim_size=(STIM_SIZE or K),
             state=state, max_rounds=total_rounds, return_state=True,
             refracted_strength=(BETA * REFRACTED_FACTOR if REFRACTED else 0.0),
-            **cfg)
+            stop_when_stable=CONVERGE, **cfg)
         win, state = res
         stored.append(win)
+        if CONVERGE:
+            used.append(state["area"].rounds_used.clone())
         M = a + 1
         if M in MS:
             out[M] = measure(n, arm, sd, state, stored, nbrain, rng, cfg)
+            if CONVERGE:
+                # Amendment 5, G3: rounds spent per item since the last
+                # checkpoint, and the fraction that converged before T_max
+                u = torch.stack(used).float()                    # [items, B]
+                out[M]["rounds_used"] = u.mean(0).tolist()
+                out[M]["converged"] = (u < T).float().mean(0).tolist()
+                used.clear()
     return out
 
 
@@ -256,6 +266,9 @@ def main():
                          "arm of PREREG_formation_interference F2")
     ap.add_argument("--nk", type=str, default=None,
                     help="explicit n:k pairs, e.g. 4000:60,8000:120")
+    ap.add_argument("--converge", action="store_true",
+                    help="end each item's rounds at convergence, T the "
+                         "ceiling (PREREG_refraction_memory Amendment 5)")
     ap.add_argument("--tag", type=str, default="",
                     help="suffix for the results file, so a run does not "
                          "overwrite the previous one's evidence")
@@ -277,7 +290,8 @@ def main():
         P = args.p
     if args.beta is not None:
         BETA = args.beta
-    global STIM_SIZE, REFRACTED, READOUT, REFRACTED_FACTOR, T
+    global STIM_SIZE, REFRACTED, READOUT, REFRACTED_FACTOR, T, CONVERGE
+    CONVERGE = bool(args.converge)
     if args.stim_size is not None:
         STIM_SIZE = args.stim_size
     if args.rounds is not None:
@@ -337,9 +351,12 @@ def main():
             for M in sorted(cells):
                 g, r, x, d = gated(cells[M])
                 curve.append((M, g))
+                conv = ("" if "rounds_used" not in cells[M] else
+                        f"  rounds {np.mean(cells[M]['rounds_used']):.2f}"
+                        f" conv {np.mean(cells[M]['converged']):.2f}")
                 print(f"    {arm} n={n:>5} M={M:>4}  rank1 {r.mean:.3f} "
                       f"pw/chance {x.mean:6.2f}  distinct {d.mean:.3f}  "
-                      f"fill {np.mean(cells[M]['fill']):.3f}  gated {g:.3f}")
+                      f"fill {np.mean(cells[M]['fill']):.3f}  gated {g:.3f}{conv}")
             c = ceiling_from_curve(curve, threshold=HALF_BAR)
             alpha = (c.m_star * K / n) if c.m_star else float("nan")
             # CAP3 says rows/n AT THE CEILING, not at the largest M on the

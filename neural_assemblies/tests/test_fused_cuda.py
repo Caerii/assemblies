@@ -673,3 +673,44 @@ def test_topk_select_ranks_negative_drives(mod):
     for b in range(3):
         assert set(sel[b].tolist()) == set(want[b].tolist())
     assert not (sel[0] < 50).any()
+
+
+def test_stop_when_stable_equals_ungated_prefix(mod):
+    """PREREG_refraction_memory.md Amendment 5: gating the rounds per brain
+    on convergence writes exactly what the ungated run writes up to each
+    brain's convergence round, and nothing after -- the count matrix and the
+    refraction bias after ONE item, against an ungated run of the same item
+    cut at that brain's own round count (each brain re-run alone)."""
+    from neural_assemblies.core.torch_engine._batched import batched_project_hashed
+    from neural_assemblies.core.numpy_engine import _seeding
+    n, k, p, beta, w_max = 1000, 40, 0.5, 0.1, 20.0
+
+    def i32(v):
+        v &= 0xFFFFFFFF
+        return v - 0x100000000 if v >= 0x80000000 else v
+
+    def run(brains, rounds, gate):
+        sd = [i32(_seeding.fnv1a_pair_seed(42 + b, "A", "A")) for b in brains]
+        ss = [i32(_seeding.fnv1a_pair_seed(42 + b, "s0", "A")) for b in brains]
+        cue = torch.zeros(len(brains), 0, dtype=torch.int64, device="cuda")
+        win, st = batched_project_hashed(
+            n, k, p, sd, cue, rounds, beta=beta, w_max=w_max, norm_init=True,
+            synaptic_scaling=False, stim_seeds=ss, stim_size=k,
+            max_rounds=64, return_state=True, refracted_strength=0.5 * beta,
+            stop_when_stable=gate)
+        return win, st
+
+    brains = list(range(6))
+    win_g, st_g = run(brains, 8, True)
+    used = st_g["area"].rounds_used.tolist()
+    assert min(used) >= 2 and max(used) <= 8
+    assert any(u < 8 for u in used), "no brain converged before T_max; vacuous"
+    for b, u in zip(brains, used):
+        win_u, st_u = run([b], u, False)
+        assert torch.equal(win_u[0], win_g[b])
+        assert torch.equal(st_u["fiber"].C[0], st_g["fiber"].C[b])
+        assert torch.equal(st_u["area"].bias[0], st_g["area"].bias[b])
+        if u < 8:
+            # one more ungated round would have written something more
+            _, st_x = run([b], u + 1, False)
+            assert not torch.equal(st_x["fiber"].C[0], st_g["fiber"].C[b])
