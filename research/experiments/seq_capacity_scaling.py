@@ -256,6 +256,9 @@ def main():
                          "arm of PREREG_formation_interference F2")
     ap.add_argument("--nk", type=str, default=None,
                     help="explicit n:k pairs, e.g. 4000:60,8000:120")
+    ap.add_argument("--tag", type=str, default="",
+                    help="suffix for the results file, so a run does not "
+                         "overwrite the previous one's evidence")
     ap.add_argument("--ksqrt", action="store_true",
                     help="set k = round(sqrt(n)) per n, which holds the chance "
                          "overlap k*k/n at 1 while n varies -- the probe that "
@@ -378,7 +381,7 @@ def main():
 
     if not args.smoke:
         out = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                           "capacity_scaling_results.json")
+                           f"capacity_scaling_results{args.tag}.json")
         with open(out, "w") as f:
             json.dump(res, f, indent=1)
         print(f"  wrote {out}")

@@ -246,3 +246,51 @@ n/k alone; the mechanism is anti-merging (distinct 1.000 where the
 control forms hubs), not orthogonalization (overlap returns to chance past
 fill 1.0); the net readout reads chance; fewer rounds per item raise the
 ceiling while the items still converge; graded stimulus drive is required.
+
+## Amendment 4 (2026-09-07, before running): the LAW in n/k, and the censored pair
+
+The k sweep established that both ceilings are functions of n/k alone; it
+did not say WHAT function. The resolved refracted cells give
+
+    n/k   cell          REF M*    M* / (n/k)^2
+     33   (2000,  60)     431       0.40
+     33   (4000, 120)     383       0.35
+     67   (4000,  60)    1978       0.44
+     67   (2000,  30)    1589       0.35
+     67   (8000, 120)    2230       0.50
+
+i.e. an exponent of 2.05-2.2 over the doubling 33 -> 67, and a nearly
+constant M* / (n/k)^2 of 0.35-0.50. A LINEAR law in n/k (constant
+multiplier on a linear assembly law) would put the n/k = 133 cells at
+~3,950; both already exceed 4,096, so linear is dead before this run. The
+quadratic reading is a Willshaw-type store: a sparse associative memory
+over n^2 synapses with k active per pattern holds ~c (n/k)^2 patterns.
+
+Cells: REF (0.5 beta, masked, T = 8), 20 brains, arm B, (8000, 60) and
+(4000, 30), M grid (..., 3072, 4096, 6144, 8192, 12288, 16384). CTL at
+these cells is already resolved (307, 263).
+
+    Q1  QUADRATIC.  M*(REF) at BOTH n/k = 133 cells lies in
+        [0.35, 0.50] x 133^2 = [6,200, 8,850]; equivalently the exponent
+        of the doubling 67 -> 133 lies in [1.65, 2.35].
+        PREDICTION: PASSES.
+        FAIL LOW  (M* < 6,200 but > 4,096): the exponent falls with n/k --
+        the multiplier over the control decays, and the law is sub-quadratic
+        at scale; report the exponent, do not fit a power law through three
+        points as if it were one.
+        FAIL HIGH (M* > 8,850): the exponent rises -- fill-limited effects
+        at small n/k depressed the low cells; report.
+        CENSORED at 16,384: report the bound; the grid was the limit.
+    Q2  MULTIPLIER.  REF / CTL at n/k = 133, both cells, reported against
+        the 34-38x at n/k = 33 and 24-25x at n/k = 67. If Q1 passes the
+        control is the sub-quadratic one (11 -> 83 -> 307 is x7.4, x3.7) and
+        the multiplier RISES with n/k; that is stated now as the reading,
+        not as a bar.
+    Q3  RESOLUTION.  Both ceilings resolved to a bracket <= 1.5x with an
+        interior point; a cliff (no interior point) is reported as such.
+    Q4  DISTINCTNESS AT THE CEILING (R3 restated) holds at both cells:
+        distinct >= 0.99 at the last M below M*.
+
+Nothing is adopted from this amendment alone: if Q1 passes, the register
+entry's claim gains the sentence "the refracted ceiling is ~0.4 (n/k)^2"
+and the constant is quoted with its range across the seven cells.
