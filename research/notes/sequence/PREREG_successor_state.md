@@ -89,3 +89,32 @@ at gain 0.3; the state-blind audit at h = 3 and at h = 0.
 
 SR-2' is the bar the construction lives on; the h = 0 arm is what it
 must beat, since the induced state is not the null on this corpus.
+
+## Result (2026-09-09, chain corpus, gap 2, 20 seeds, n_arc 10,000)
+
+    arm                     MRR       - bigram (paired)      state overlap   full - blind
+    bigram (per seed)       0.1221
+    oracle (phase+number)   0.3360    +0.2139 +/- 0.0066
+    h = 0, induced          0.1328    +0.0107 +/- 0.0048     0.18            +0.0070 +/- 0.0038
+    h = 1, gain 1.0         0.1151    -0.0070 +/- 0.0044     0.26
+    h = 3, gain 1.0         0.1222    +0.0001 +/- 0.0044     0.20            +0.0008 +/- 0.0021
+    h = 3, gain 0.3         0.1251    +0.0030 +/- 0.0059     0.32
+
+    SR-0'  reported: the induced state carries 0.011 of a 0.214 gap across two distractors
+    SR-1'  h = 1 does not help                                            PASS
+    SR-2'  h = 3 closes >= 40% of the gap at one gain                     FAIL at both
+    SR-3'  state informative at h = 3                                     FAIL
+    SR-4'  no collapse at h = 3                                           PASS
+
+**Reading.** The construction is sound as a control (h = 1 behaves as
+derived) and does nothing as a mechanism: teacher-forcing the state
+toward its successors' groundings gives arc -> state no copy it can learn,
+so at test the state carries nothing the current word does not. The
+induced state is the same. On this substrate no local rule tried so far
+merges prefixes by their future, which agrees with the temporal-memory
+literature (PAM, DHTM, the spiking model of Bouhadjar et al.): local
+rules split contexts by their past; merging by future has been done only
+with EM (clone-structured graphs) or gradients. Recorded as a negative
+result; nothing adopted. The next construction
+(PREREG_temporal_memory.md) takes the literature's design instead: the
+state is the previous arc and predicted arc neurons win.
