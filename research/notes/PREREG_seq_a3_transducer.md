@@ -1,5 +1,15 @@
 # PREREG A3: a transducer state instead of a recurrent accumulator
 
+> **Status (2026-09-09).** Run at width (20 seeds, hashed organ): H1 PASS
+> (beats #14's accumulator by a paired 0.10 MRR), H4 PASS (the state does
+> not collapse, overlap 0.07), H2 and H3 FAIL, and the state carries no
+> information the current word does not (state-blind delta ~0). Two
+> amendments close the question on this corpus: half beta makes the organ
+> worse on every count (Amendment 2), and a computed oracle state adds
+> only +0.019 MRR over the bigram (Amendment 3), so the organ's loss is in
+> its readout and the state-induction question needs a corpus with a
+> larger oracle gap. Read the hashed Result, then Amendments 2 and 3.
+
 Registered before implementing or running. Successor to
 `PREREG_context_beyond_bigram.md` (#14), whose parameters and reference values
 are inherited unchanged so the arms are comparable.

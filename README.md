@@ -56,7 +56,10 @@ The repository also carries active research on language learning, vocabulary
 curricula, biological plausibility, scaling behavior, and multimodal or
 embodied extensions. Some of that work is promising; some of it is deliberately
 unfinished. Research results live under `research/` and are indexed by
-question, experiment suite, and claim status.
+question, experiment suite, and claim status; the reading map for the
+registrations and design notes is
+[research/notes/README.md](research/notes/README.md), and adopted results
+are cited by ID from `neural_assemblies/theory.py`.
 
 Historical root scripts, old image-learning artifacts, MATLAB prototypes, and
 checkout-era modules have been moved under `legacy/`. The root files that
