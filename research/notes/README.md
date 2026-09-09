@@ -52,7 +52,8 @@ sections of the notes use variants.
 | Aligner | measured | word capacity scales with the lexicon's n | [PREREG_word_capacity.md](aligner/PREREG_word_capacity.md) |
 | Substrate | built | two kernel layouts, one per density regime, gated on the drive | [DESIGN_present_only.md](substrate/DESIGN_present_only.md) |
 | Sampler audit | measured | two of three audited entries stand materialized; the load window's lower edge was the sampler's | [PREREG_sampler_audit.md](sequence/PREREG_sampler_audit.md) |
-| Successor state | running | a state teacher-forced toward its next h words, on a corpus with a 0.21 oracle gap | [PREREG_successor_state.md](sequence/PREREG_successor_state.md) |
+| Successor state | closed, negative | a state teacher-forced toward its next h words carries nothing across two distractors (+0.000 and +0.003 over a bigram) | [PREREG_successor_state.md](sequence/PREREG_successor_state.md) |
+| Temporal memory | running | the transducer rebuilt as the literature's temporal memory: state = previous arc, predicted neurons win | [PREREG_temporal_memory.md](sequence/PREREG_temporal_memory.md) |
 
 ## Refracted memory
 
@@ -131,10 +132,14 @@ its own gate closed it.
 sets an acceptance criterion for a corpus in which history is worth
 something (an oracle state must beat a bigram by 0.10) and accepts a
 chain corpus with two distractors between agreeing words (gap 0.21).
-[PREREG_successor_state.md](sequence/PREREG_successor_state.md) registers
+[PREREG_successor_state.md](sequence/PREREG_successor_state.md) registered
 a construction that teacher-forces the state toward the groundings of the
-next h words, so prefixes with the same future share a code, and tests it
-on that corpus against the induced state.
+next h words, so prefixes with the same future share a code; on that
+corpus it carries nothing (a recorded negative result, in agreement with
+the temporal-memory literature, which merges contexts by their future
+only with EM or gradients). [PREREG_temporal_memory.md](sequence/PREREG_temporal_memory.md)
+takes the design every local-rule sequence model converged on instead:
+the state is the previous arc and predicted arc neurons win.
 
 **Code.** `HashedTransducer` in `core/torch_engine/_hashed_transducer.py`.
 
