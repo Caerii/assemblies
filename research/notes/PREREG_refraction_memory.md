@@ -519,3 +519,31 @@ without crossing the churn transition gives the same memory. 0.5 beta
 stands as the protocol's value, now as the middle of a measured plateau
 rather than a chosen point. The gate is NOT re-run at another strength
 (there is no other strength).
+
+### Amendment 6 -- Gate result (2026-09-09, (8000, 60), 20 brains, arm B, T_max = 8, grid to 16384, 305 s)
+
+    arm                  M*      bracket             ratio    rounds/item (min)   conv < 8: peak -> at M*
+    REF gated            8666    [8192, 10240) i2    1.24     5.9 at M ~ 1024     0.98 at 1024 -> 0.00 at 8192
+    REF T = 8 (A4)       6995    [6144, 8192)  i2      --     8                   --
+
+    G6  GAIN IS CONSTANT.  8666 / 6995 = 1.24 in [1.15, 1.55]          PASS
+        (1.34 at n/k = 67, 1.24 at 133: constant within the bar, and
+        the lower of the two at the larger area.)
+    The convergence U replicates: 98% of items settle inside 8 rounds at
+    M ~ 1024, none at 8192, and the ceiling (8666) sits where they stop
+    settling -- as at n/k = 67. Stated in the entry as the mechanism.
+    Gated ceilings over (n/k)^2: 0.59 at 67, 0.49 at 133 (doubling
+    exponent 1.71); the ungated 0.44, 0.40 (1.82).
+
+## Adopted (2026-09-09), Amendment 6
+
+G6 passes: the gate's gain is constant in n/k (two cells, +34% and +24%),
+and its ceiling is where items stop converging inside T_max at both.
+S8 fails: strength is a switch (0.3-0.6 beta a plateau at ~1950; the
+transition in (0.6, 0.7] at T = 8). Both go into the register entry;
+the harness default stays T = 8 ungated at 0.5 beta.
+
+What is NOT established, stated now: the gate at n/k = 33 (small areas)
+and out of regime; the plateau's lower edge (below 0.3 beta the force
+must fail somewhere between 0 and 0.3); and whether the gated ceiling's
+exponent (1.71) keeps falling.

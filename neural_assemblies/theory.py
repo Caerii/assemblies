@@ -297,13 +297,21 @@ _RESULTS: List[Result] = [
               "(k p = 15 < 3 ln n) the cells fall 20-32% below their n/k pairs "
               "and do not converge at low load. GATED ROUNDS (Amendment 5): "
               "ending an item's rounds at its first repeated winner set under "
-              "T_max = 8 raises the ceiling +34% (2645 vs 1978, resolved); the "
-              "ceiling sits where items stop converging inside T_max (a U in "
-              "load); the same gate STARVES the Hebbian control, whose winners "
-              "settle in ~4 rounds before its memory is written; T_max = 16 "
-              "under the gate costs the out-of-regime cell 13x.",
+              "T_max = 8 raises the ceiling by a CONSTANT fraction of n/k: +34% at "
+              "n/k = 67 (2645 vs 1978) and +24% at 133 (8666 vs 6995), both "
+              "resolved; at both cells the ceiling sits where items stop "
+              "converging inside T_max (the fraction converging is a U in load, "
+              "0.98 at mid load, 0 at the ceiling); the same gate STARVES the "
+              "Hebbian control, whose winners settle in ~4 rounds before its "
+              "memory is written; T_max = 16 under the gate costs the "
+              "out-of-regime cell 13x. STRENGTH IS A SWITCH, NOT A DIAL "
+              "(Amendment 6): 0.3, 0.4, 0.5 and 0.6 beta give the same ceiling "
+              "(1919-1993, one bracket) at n/k = 67 -- the ceiling is the "
+              "synaptic memory's, refraction only has to prevent merging while "
+              "it is written; the churn transition is in (0.6, 0.7] beta at "
+              "T = 8.",
         source="This repository; PREREG_refraction_memory.md (bars R1-R7, N1-N3, "
-               "Q1-Q4, G1-G5).",
+               "Q1-Q4, G1-G6, S8-S9).",
         evidence=("seq_capacity_scaling.py, arm B on the organ fiber, 20 brains, "
                   "M grid to 4096, s = 0.5 beta masked vs control: n/k = 33: "
                   "431 / 383 vs 11.3; n/k = 67: 1978 / 1589 / 2230 vs 83 / 64 / "
@@ -323,7 +331,10 @@ _RESULTS: List[Result] = [
                   "CTL 263 (out of regime)",
                   "(4000, 60) gated T_max 8: REF 2645 [2560, 2816) vs 1978; CTL "
                   "gated rank-1 0.32 at M = 8 (no memory formed); (4000, 30) "
-                  "gated T_max 16: 362 vs 4749"),
+                  "gated T_max 16: 362 vs 4749",
+                  "(8000, 60) gated T_max 8: 8666 [8192, 10240) vs 6995 (x1.24)",
+                  "strength 0.3 / 0.4 / 0.5 / 0.6 beta at (4000, 60): 1986 / "
+                  "1919 / 1978 / 1993, all [1536, 2048)"),
         preconditions=("recurrent k-WTA area, weight clip, norm_init, no column "
                        "scaling (arm B); refraction strength 0.5 beta; T = 8 "
                        "rounds per item from an inhibited area; readout = "
@@ -340,8 +351,11 @@ _RESULTS: List[Result] = [
                "regime -- k p >= 3 ln n is a precondition, not a footnote. Three "
                "ratios do not fix an exponent that is falling (2.1 -> 1.8). The "
                "multiplier is at 0.5 beta; 0.7 beta converges only given T = 16 "
-               "and holds ~185 at n/k = 67. The gating result is one cell "
-               "(n/k = 67).",
+               "and holds ~185 at n/k = 67, but strength is otherwise a plateau "
+               "whose lower edge (below 0.3 beta) is unmeasured. The gate is "
+               "two in-regime cells (n/k = 67, 133); n/k = 33 and out of regime "
+               "are unmeasured, and the gated ceiling's doubling exponent (1.71) "
+               "may keep falling.",
     ),
     Result(
         id="REFRACTION-CANCELS-CONVERGENCE",
