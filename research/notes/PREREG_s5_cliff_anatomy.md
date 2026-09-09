@@ -434,3 +434,31 @@ base) / ln(1 + beta) for the best-connected members, ~28-30 here; 15
 presentations sit at half of it. Below the clip the arc never relocates at
 s <= beta. Refraction alone does not set the edge; refraction AND the clip
 do, and the neurons that relocate are the arc's best-connected ones.
+
+## Addendum 6 (2026-09-09, before running): strength below beta
+
+Diagnostic 2 derived that at s = beta a member's net drive is pinned at
+its base value, with no margin over the best outsider beyond its base
+rank; at s < beta the net grows as R (1 + beta)^c (1 - s/beta) and the
+margin opens geometrically. Refraction is also what keeps the arc a
+conjunction (A1's P-CONJ: across-state and across-symbol arc overlap both
+< 0.15; the null at s = 0 collapsed to > 0.5). S5, 100 seeds, 15
+presentations, at s = 0.08, 0.05 and 0.0, against the registered 0.10.
+
+    X1  MARGIN KILLS THE SOFT PAIRS.  At s = 0.05 the soft rate is <= 1/3
+        of 0.062% (<= 5 events in 24,000).  PREDICTION: PASSES, near 0.
+    X2  THE CONJUNCTION SURVIVES.  At s = 0.05 across-symbol and
+        across-state arc overlap both < 0.15 (P-CONJ).  PREDICTION: PASSES
+        -- the anti-collapse force is a bias on repeatedly-exposed neurons
+        and half beta still charges it; the capacity work found 0.3-0.6
+        beta one plateau.  FAIL: strength trades soft pairs for collapse,
+        and the organ's 0.1 was a compromise, not an accident.
+    X3  THE NULL.  s = 0: across-symbol overlap > 0.5 (the A1 null,
+        reproduced at width) -- reported, the instrument's check.
+    X4  WORDS: derailments <= 2% at 0.05 and 0.08.
+
+Adoption if X1 and X2 pass: the organ's registered strength is re-scoped
+in the register as "beta, the pinned point; below beta the arc gains a
+geometric margin at no cost to the conjunction", and s = 0.5 beta becomes
+the recommended organ value (a protocol change for future studies, not a
+re-run of past ones).

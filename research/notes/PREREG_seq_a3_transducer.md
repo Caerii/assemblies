@@ -180,3 +180,31 @@ defect it also read a state-blind delta of exactly zero.
 trainings of ~1,060 steps plus the numpy CONTEXT pool: ~45 minutes wall,
 the 50,000-neuron arc one brain per launch. The numpy run of three seeds
 had cost about the same.
+
+## Amendment 2 (2026-09-09, before running): the arc at half beta
+
+The hashed organ's arc runs at strength 0.1 = beta. PREREG_s5_cliff_anatomy.md
+Addendum 5's diagnostics derived that at s = beta refraction cancels
+potentiation exactly, so an arc member's net drive is pinned at its base
+value with no margin over the best outsider, and relocates when a weight
+clips. A state written from an arc on that edge may be unable to
+accumulate information -- a candidate for the A3 null (state distinct but
+uninformative; a3 - state-blind = -0.007 +/- 0.008).
+
+Cell n_arc = 10,000 (the curve is flat above it), the same 20 seeds and
+corpora, strength 0.05, paired against the recorded 0.1 cell
+(0.2054 +/- 0.0092, per-seed values in the results JSON). The arc's
+MEMBER MARGIN (min winner net minus max outsider net, over the outsider's
+drive) is measured at both strengths during scoring.
+
+    A2-1  MRR ABOVE THE BETA CELL, paired: lower bound of a3(0.05) - a3(0.1)
+          > 0.  PREDICTION: PASSES, modestly (the arc gains margin; the
+          readout is still through the same OUT fiber).
+    A2-2  STATE INFORMATIVE: a3(0.05) - state-blind(0.05) lower bound > 0.
+          PREDICTION: uncertain. Passing would locate the A3 null in the
+          arc's pinned margin; failing (with A2-1 passing) says the state's
+          uninformativeness is structural ([[SEQ-STATE-CODE-EMERGENT]]),
+          not a strength artifact.
+    A2-3  STATE DOES NOT COLLAPSE (H4 restated): overlap upper bound < 0.5.
+    Reported: the arc margin at 0.05 vs 0.1 (prediction: ~0 at 0.1, > 0.2
+    at 0.05 -- the diagnostic's mechanism, measured in the transducer).
