@@ -1,19 +1,22 @@
 # PREREG: anatomy of the cliff
 
-> **Status (2026-09-09).** Closed. The step-500 cliff had two causes.
-> Derailment came from the numpy sampler; on the explicit substrate no
-> word derails (Addendum 3). The remaining soft transitions are ties
-> between the target block's least-connected neuron and the most-connected
-> neuron outside it (Addendum 4). Their rate is the same across three
-> groups of order 60, rises with the state area's size, and does not
-> depend on the Cayley graph. The mechanism proposed in Addendum 5 was
-> wrong. Its two post hoc diagnostics show that at strength beta
-> refraction cancels potentiation exactly, so a member's net drive stays
-> at its base value until its weight reaches the clip, and the
-> best-connected members leave the arc first. Strength cannot be moved
-> from beta in either direction (Addendum 6). Training for 20 to 24
-> presentations, below the clip, gives 0 soft pairs in 84,000 across 500
-> organs (Addenda 7 and 8). Register entry: `[[SEQ-EXACT-RECOVERY]]`.
+> **Status (2026-09-09): closed, result adopted.**
+> **Finding.** A soft transition is a tie between the target block's
+> least-connected neuron and the most-connected neuron outside the block
+> (Addendum 4). Its rate is the same across three groups of order 60,
+> rises with the state area's size, and does not depend on the Cayley
+> graph. Training each transition for 20 to 24 presentations instead of 15
+> removes it: 0 soft pairs in 84,000 across 500 organs (Addenda 7 and 8).
+> **What changed from the registration.** The cliff this note set out to
+> explain had two causes. Derailment came from the numpy sampler; on the
+> explicit substrate no word derails (Addendum 3). The mechanism proposed
+> in Addendum 5 was wrong; its two post hoc diagnostics show that at
+> strength beta refraction cancels potentiation exactly, so a member's net
+> drive stays at its base value until its weight reaches the clip, and the
+> best-connected members leave the arc first. Strength cannot be moved from
+> beta in either direction (Addendum 6).
+> **Read.** Addenda 3, 4, 5, 6, 7, 8, in that order.
+> **Cite.** `[[SEQ-EXACT-RECOVERY]]`.
 
 Registered before implementing or running. Follows `6276685`, where the S5
 per-step readout falsified both amendment bars and showed the failure mode is

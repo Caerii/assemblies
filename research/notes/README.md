@@ -1,98 +1,136 @@
 # Research notes
 
-The `PREREG_*` files are registrations. Each one lists its hypotheses and
-pass conditions, then appends the results under the same labels. Later
-changes are marked as amendments when they were registered before a run and
-as post hoc when they were decided after seeing data. The `DESIGN_*` files
-describe substrate work and the gates it passed. Adopted results are
-recorded in `neural_assemblies/theory.py`, and other documents cite those
-IDs.
+The `PREREG_*` files are registrations: each lists its hypotheses and pass
+conditions, then appends the results under the same labels. A change
+registered before a run is an amendment; a change decided after seeing data
+is marked post hoc and is never adopted on its own. The `DESIGN_*` files
+describe substrate work and the gates it passed. Adopted results live in
+`neural_assemblies/theory.py` as entries with IDs such as
+`REFRACTION-ANTI-MERGING`; other documents cite the ID.
 
-The long notes begin with a quoted Status paragraph that summarises the
-outcome and names the sections to read.
+Each long note opens with a quoted Status paragraph. It states the outcome,
+the numbers that carry it, what changed from the original registration, and
+which sections to read.
+
+## Symbols used below
+
+| Symbol | Meaning |
+|--------|---------|
+| n, k | neurons in an area, and winners per round (the assembly size) |
+| p | connection probability |
+| beta | Hebbian gain: a synapse between co-active neurons grows by (1 + beta) |
+| strength | refraction: a winner's bias grows by strength × its drive; net drive is drive minus bias |
+| in regime | k p ≥ 3 ln n, the recurrent in-degree the theorems assume |
+| M* | capacity: the number of stored assemblies at which half-cue recall drops below the bar |
+| rounds, presentations | projections per stored item; presentations of each transition to the machine |
+| MRR | mean reciprocal rank of the true next word, ties broken at random |
+
+## Index
+
+| Line | Status | Result | Start with |
+|------|--------|--------|------------|
+| Refracted memory | adopted | ~0.40 (n/k)² assemblies, 25× the Hebbian ceiling | [PREREG_refraction_memory.md](PREREG_refraction_memory.md) |
+| Sequence organ | adopted | exact over 2000 steps; soft transitions removed by training below the clip | [DESIGN_sequence_port.md](DESIGN_sequence_port.md) |
+| Transducer | closed, null | the induced state carries no information on this corpus | [PREREG_seq_a3_transducer.md](PREREG_seq_a3_transducer.md) |
+| Aligner | measured | word capacity scales with the lexicon's n | [PREREG_word_capacity.md](PREREG_word_capacity.md) |
+| Substrate | built | two kernel layouts, one per density regime, gated on the drive | [DESIGN_present_only.md](DESIGN_present_only.md) |
 
 ## Refracted memory
 
-A recurrent k-WTA area refracted at half beta, with its bias masked at
-readout, stores about 0.40 (n/k)² assemblies in regime. The Hebbian control
-stores about one twenty-fifth of that. Items remain distinct after the area
-fills, and they overlap at chance, so refraction prevents merging during
-writing and does not orthogonalize the stored set. Strength between 0.3 and
-0.6 beta gives the same ceiling. Ending each item's write when its winner
-set repeats raises the ceiling by 24 to 34 percent.
+**Result.** A recurrent k-WTA area refracted at strength 0.5 beta, read
+from a half cue with its bias masked, stores about 0.40 (n/k)² assemblies
+in regime. The Hebbian control stores one twenty-fifth of that. Stored
+items stay distinct after the area fills and overlap at chance, so
+refraction prevents merging during writing and does not orthogonalize the
+set. Strength from 0.3 to 0.6 beta gives the same ceiling. Ending an item's
+write when its winner set repeats raises the ceiling by 24 to 34 percent.
 
-Registration: [PREREG_refraction_memory.md](PREREG_refraction_memory.md).
-The question came from [PREREG_refraction_capacity.md](PREREG_refraction_capacity.md),
-whose first answer was wrong because of a selector bug. The class is
-`AssemblyMemory` in `core/torch_engine/_memory.py`.
+**Evidence.** Twenty brains per cell, grids to 16,384 items, seven (n, k)
+cells; [PREREG_refraction_memory.md](PREREG_refraction_memory.md), Result
+and Amendments 4 to 6. The question came from
+[PREREG_refraction_capacity.md](PREREG_refraction_capacity.md), whose
+first answer was wrong because of a selector bug (commit 1b475fc).
+
+**Code.** `AssemblyMemory` in `core/torch_engine/_memory.py`.
 
 ## Sequence organ
 
-The refracted-arc transition machine, ported to the hashed substrate, runs
-2000 random digits without an error on 40 of 40 brains at p = 0.3 and
-p = 0.4. The earlier five-seed numpy result had one short horizon at
-p = 0.3. That seed runs the full 2000 steps once its arc area is
-materialized, so the short horizon came from the sampler.
+**Result, exactness.** The refracted-arc transition machine runs 2000
+random digits without an error on 40 of 40 brains at p = 0.3 and p = 0.4.
+The earlier five-seed numpy run had one short horizon at p = 0.3; that
+seed runs all 2000 steps once its arc area is materialized, so the short
+horizon came from the sampler.
 
-The soft transitions measured in the S5 census are ties between the target
-block's least-connected neuron and the most-connected neuron outside the
-block. Their rate is the same across three groups of order 60, rises with
-the state area's size, and does not depend on the group's Cayley graph.
-Training for 20 to 24 presentations instead of 15 removes them: 0 soft
-pairs in 84,000 across 500 organs. The arc's refraction strength has to stay
-at beta. Lower values collapse the arc onto the state conjunct, and higher
-values relocate its members before training finishes.
+**Result, soft transitions.** In the S5 word-problem census a soft
+transition is a tie between the target block's least-connected neuron and
+the most-connected neuron outside the block. The rate is the same across
+three groups of order 60, rises with the state area's size, and does not
+depend on the group's Cayley graph. Training each transition for 20 to 24
+presentations instead of 15 removes them: 0 soft pairs in 84,000 across
+500 organs. The arc's refraction strength has to stay at beta; lower
+values collapse the arc onto the state conjunct, and higher values relocate
+its members before training finishes.
 
-Read [DESIGN_sequence_port.md](DESIGN_sequence_port.md), then
-[PREREG_s5_cliff_anatomy.md](PREREG_s5_cliff_anatomy.md). The numpy studies
-these correct are [PREREG_seq_a1_fsm_parity.md](PREREG_seq_a1_fsm_parity.md),
-[PREREG_s5_word_problem.md](PREREG_s5_word_problem.md) and
+**Evidence.** [DESIGN_sequence_port.md](DESIGN_sequence_port.md) for the
+port and its gates; [PREREG_s5_cliff_anatomy.md](PREREG_s5_cliff_anatomy.md),
+Addenda 3 to 8, for the census. The numpy studies these correct:
+[PREREG_seq_a1_fsm_parity.md](PREREG_seq_a1_fsm_parity.md),
+[PREREG_s5_word_problem.md](PREREG_s5_word_problem.md),
 [the_arc_is_a_conjunction_and_the_state_drifts.md](the_arc_is_a_conjunction_and_the_state_drifts.md).
+
+**Code.** `HashedArcFSM` in `core/torch_engine/_hashed_fsm.py`, on
+`HashedArcCore` in `_arc_core.py`.
 
 ## Transducer
 
-The induced-state transducer
-([PREREG_seq_a3_transducer.md](PREREG_seq_a3_transducer.md)) beats the
-recurrent accumulator of #14 by 0.10 MRR, and its state does not collapse.
-Scoring with the state area empty gives the same MRR, so the state
-contributes no information beyond the current word. Amendment 2 shows that
-lowering the arc's strength makes the organ worse. Amendment 3 computes the
-corpus's oracle ceiling: a state that knew the generating grammar's phase
-would add 0.019 MRR over a bigram. The corpus cannot show a state effect
-larger than that, and further work on this organ needs a corpus with a
-larger oracle gap.
-[PREREG_state_refraction.md](PREREG_state_refraction.md) addressed a state
-collapse that occurs only on the sampled numpy engine, and its gate closed
-it.
+**Result.** The induced-state transducer beats the recurrent accumulator
+of study #14 ([PREREG_context_beyond_bigram.md](PREREG_context_beyond_bigram.md))
+by a paired 0.10 MRR, and its state does not collapse. Scoring with the
+state area empty gives the same MRR, so the state contributes no
+information beyond the current word. Lowering the arc's strength makes
+the organ worse (Amendment 2). An oracle state that knew the generating
+grammar's phase would add 0.019 MRR over a bigram on this corpus
+(Amendment 3), which bounds any state effect measurable here.
+
+**Evidence.** [PREREG_seq_a3_transducer.md](PREREG_seq_a3_transducer.md),
+20 seeds. [PREREG_state_refraction.md](PREREG_state_refraction.md)
+addressed a state collapse that occurs only on the sampled numpy engine;
+its own gate closed it.
+
+**Code.** `HashedTransducer` in `core/torch_engine/_hashed_transducer.py`.
 
 ## Aligner
 
-Word capacity in the cross-situational learner scales with the lexicon's n
-and does not change with k or with the anchor
-([PREREG_word_capacity.md](PREREG_word_capacity.md)). The lexicon has no
-recurrent fiber, so the refracted-memory result does not apply to it. The
-port is described in [DESIGN_hashed_aligner.md](DESIGN_hashed_aligner.md)
-and [DESIGN_present_only.md](DESIGN_present_only.md).
+**Result.** Word capacity in the cross-situational learner scales with the
+lexicon's n and does not change with k or with the anchor. The lexicon has
+no recurrent fiber, so the refracted-memory result does not apply to it.
+
+**Evidence.** [PREREG_word_capacity.md](PREREG_word_capacity.md). The port:
+[DESIGN_hashed_aligner.md](DESIGN_hashed_aligner.md), then
+[DESIGN_present_only.md](DESIGN_present_only.md).
+
+**Code.** `ScheduledAligner` in `core/torch_engine/_scheduled_aligner.py`.
 
 ## Substrate
 
-There are two kernel layouts: dense int16 counts for connectivity above
-about ten percent ([DESIGN_dense_floor.md](DESIGN_dense_floor.md)) and
-present-only lists below it
-([DESIGN_present_only.md](DESIGN_present_only.md)). The regime conditions
-the theorems require are measured in
+Two kernel layouts: dense int16 counts for connectivity above about ten
+percent ([DESIGN_dense_floor.md](DESIGN_dense_floor.md)) and present-only
+lists below it ([DESIGN_present_only.md](DESIGN_present_only.md)). Every
+unit passes a drive replay against the numpy engine to a relative 5e-6 and
+an identity-across-width check before its numbers are used. The regime
+conditions the theorems require are measured in
 [PREREG_theorem_regime.md](PREREG_theorem_regime.md),
 [PREREG_substrate_c_homeostasis.md](PREREG_substrate_c_homeostasis.md) and
 [PREREG_crosstalk_mechanism.md](PREREG_crosstalk_mechanism.md).
 
-## Practices these notes established
+## Working rules
 
 - Materialize an area, or use the hashed substrate, before measuring
   sequence dynamics. The sampled numpy engine produced a false horizon, a
   soft-transition rate five times too high, and every derailment in the
   earlier sequence results.
 - Gate a selector on drives that go negative. The k-WTA sign bug passed the
-  drive-replay gates because those gates replay recorded winners.
+  drive-replay gates, which replay recorded winners.
 - Leave refraction strength on a conjunction at beta
   ([PREREG_s5_cliff_anatomy.md](PREREG_s5_cliff_anatomy.md), Addendum 6).
 - Report at least three seeds. `ensemble_from_values` refuses fewer.

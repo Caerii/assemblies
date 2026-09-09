@@ -1,14 +1,19 @@
 # PREREG A3: a transducer state instead of a recurrent accumulator
 
-> **Status (2026-09-09).** H1 and H4 pass at width (20 seeds): the organ
-> beats #14's accumulator by a paired 0.10 MRR, and its state overlap is
-> 0.07. H2 and H3 fail. Scoring with the state area empty gives the same
-> MRR, so the induced state carries no information beyond the current
-> word. Amendment 2: strength 0.05 on the arc lowers MRR by 0.017 and
-> doubles state overlap. Amendment 3: an oracle phase state computed from
-> the grammar adds 0.019 MRR over a bigram on this corpus, which bounds
-> any state effect measurable here. Further work needs a corpus with a
+> **Status (2026-09-09): closed, null.**
+> **Finding.** At width (20 seeds) the organ beats the recurrent
+> accumulator of study #14 by a paired 0.10 MRR (H1) and its state overlap
+> is 0.07 (H4). H2 and H3 fail. Scoring with the state area empty gives
+> the same MRR, so the induced state carries no information beyond the
+> current word.
+> **What changed from the registration.** Two amendments bound the null.
+> Strength 0.05 on the arc lowers MRR by 0.017 and doubles state overlap
+> (Amendment 2). An oracle phase state computed from the grammar adds
+> 0.019 MRR over a bigram on this corpus (Amendment 3), so no state effect
+> larger than that is measurable here; further work needs a corpus with a
 > larger oracle gap.
+> **Read.** The hashed Result, then Amendments 2 and 3.
+> **Cite.** `[[SEQ-STATE-CODE-EMERGENT]]` remains unproven.
 
 Registered before implementing or running. Successor to
 `PREREG_context_beyond_bigram.md` (#14), whose parameters and reference values
