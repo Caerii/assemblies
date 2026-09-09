@@ -223,3 +223,33 @@ sampler), so seeds pair by protocol, not by trajectory.
 If W1 passes, [[SEQ-EXACT-RECOVERY]]'s "AND THE MAP HAS SOFT SPOTS at
 scale" is re-scoped to the sampled engine in the register; the hitting-time
 mechanism is kept as the account of what a soft pair does when one exists.
+
+### Addendum 3 -- Result (2026-09-09, HashedArcFSM, 4 groups x 10 seeds, 53 s in all)
+
+    group    organs with a soft pair   soft pairs / pairs   soft overlap   first_bad   V2
+    Z60      0 / 10                    0 / 1200             --             500 x 10    vacuous
+    A4xZ5    1 / 10 (seed 42)          1 / 1200             0.9857         500 x 10    1/1
+    A5       0 / 10                    0 / 1200             --             500 x 10    vacuous
+    S5       3 / 10 (42, 43, 49)       3 / 2400             0.9857 x 3     500 x 10    3/3
+    all      4 / 40                    4 / 6000 = 0.067%    always 69/70   40/40 clean labels   4/4
+    E7 (sampled arc)  16 / 40          22 / 6000 = 0.37%    always 69/70   first_bad < 500 on 14/40
+
+    W1  >= 90% of organs clean: 36/40 = 90.0%                          PASS (at the bar)
+    W2  first_dev == first true-path visit to a bad pair, 4/4         PASS
+    W3  every soft overlap 0.9857 = 69/70: ONE intruder, as in E7
+
+**Reading, more careful than the prediction.** The soft map is NOT the
+sampler's alone. On the explicit substrate soft pairs persist -- at a
+rate 5.5x lower (0.067% against 0.37%), with the identical signature (one
+intruder neuron, every case), only in the non-abelian-or-product groups,
+and the zero-parameter law holds on every organ that has one: the word
+deviates at exactly its first visit to the soft pair. What the sampler
+added was the RATE (5.5x) and the DERAILMENTS: on the sampled arc 14 of 40
+words went to a wrong label within 500 steps; on the explicit substrate
+none did -- all four seeded deviations were corrected by the next
+quantization ([[SEQ-EXACT-RECOVERY]]'s expansion-quantization pair doing
+its job). So: soft spots are substrate-intrinsic and rare; hitting a soft
+pair seeds a deviation (the hitting-time mechanism stands, 4/4); whether
+the deviation derails depends on the substrate, and on the explicit one it
+did not in 500 steps. The register entry is re-scoped accordingly. W1's
+pass at exactly the bar is reported as such, not as a margin.

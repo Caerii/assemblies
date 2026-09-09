@@ -207,7 +207,12 @@ _RESULTS: List[Result] = [
                   "research/experiments/seq_s5_soft_census.py: at 60-120 "
                   "states, ~0.25-0.6% of transitions are SOFT (correct label, "
                   "one intruder neuron); first lattice exit equals first "
-                  "soft-pair visit, 40/40 seeds, zero parameters"),
+                  "soft-pair visit, 40/40 seeds, zero parameters (SAMPLED arc)",
+                  "seq_s5_soft_census_hashed.py (explicit substrate, 40 "
+                  "organs): soft pairs persist at 0.067% (4/6000, one intruder "
+                  "each, non-abelian/product groups only), the zero-parameter "
+                  "law 4/4 -- and none of the four deviations derailed in 500 "
+                  "steps, where the sampled arc derailed 14/40 words"),
         caveat="Expansion and quantization are a PAIR. Amplification alone is "
                "chaos; it is only benign because a quantizing area follows it. "
                "Composition steps without a re-quantizing stage should be "
@@ -218,7 +223,11 @@ _RESULTS: List[Result] = [
                "first-hitting time, not a decay constant. Post-visit, "
                "trajectories recover (6/18), wander metastably for up to "
                "~330 steps, or derail into an absorbing off-lattice regime "
-               "(12/18). Apparent group differences at fixed L were the "
+               "(12/18) -- ON THE SAMPLED ARC; on the explicit substrate the "
+               "soft rate is 5.5x lower and no deviation derailed in 500 steps "
+               "(Addendum 3 of PREREG_s5_cliff_anatomy.md), so the derailment "
+               "regime is the sampler's and the soft spots are the "
+               "substrate's. Apparent group differences at fixed L were the "
                "pair-count |G|x|gens| at a FLAT per-pair rate, not "
                "solvability. Intruder mechanism open; norm_init=False (the "
                "parity substrate) leaves state-area hubs unchecked and is "
