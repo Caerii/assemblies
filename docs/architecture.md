@@ -94,11 +94,10 @@ That heuristic is a convenience, not a benchmark result.
 
 `neural_assemblies/core/torch_engine/` also holds a second GPU path that
 does not go through `Brain`. It runs many independent brains in one launch
-and regenerates each connectome from a hash inside the kernel instead of
-storing it. This is where the research now happens, at twenty to a hundred
-brains per cell, and it is gated against the numpy engine on the drive
-rather than on winners, because two implementations can agree on winners
-while computing different drives.
+and regenerates each connectome from a hash inside the kernel. Research at
+twenty to a hundred brains per cell runs here. Its gates compare drives
+against the numpy engine, since two implementations can select the same
+winners from different drives.
 
 | Unit | File | Role |
 |------|------|------|
@@ -110,11 +109,11 @@ while computing different drives.
 | `ScheduledAligner` | `_scheduled_aligner.py` | The cross-situational word learner, whole schedule in one launch. |
 | kernels | `_fused_cuda.py` | Presence hashing, drive, selection, write-back, and the persistent present-only kernel. |
 
-No unit's numbers count until it passes two gates: a drive replay against
-the numpy engine to a relative 5e-6 with refraction included, and identity
-across width, meaning a brain in a launch equals that brain alone. The
-design notes are `research/notes/DESIGN_*.md`; start from
-[../research/notes/README.md](../research/notes/README.md).
+A unit's numbers are used only after it passes two gates: a drive replay
+against the numpy engine to a relative 5e-6 with refraction included, and
+identity across width, meaning a brain in a launch equals the same brain
+run alone. The design notes are `research/notes/DESIGN_*.md`;
+[../research/notes/README.md](../research/notes/README.md) lists them.
 
 ## Automata Helpers
 

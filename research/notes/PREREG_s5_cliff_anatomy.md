@@ -1,22 +1,19 @@
 # PREREG: anatomy of the cliff
 
-> **Status (2026-09-09).** Closed, and the "cliff" is dead. What looked
-> like a machine that runs perfectly for two hundred steps and then falls
-> off a cliff was two unrelated things. The falling off was the numpy
-> sampler, full stop (Addendum 3): on the explicit substrate no word ever
-> derails. What remains is a rare soft transition, and Addendum 4 says
-> exactly what it is: the target block's weakest neuron losing a tie to
-> the area's best-connected outsider, a Binomial tail, the same rate in
-> three groups of the same order, indifferent to the Cayley graph. My
-> first mechanism for it (Addendum 5) was wrong, and the two post hoc
-> diagnostics there are worth reading for why: refraction at strength beta
-> cancels potentiation exactly, so a member sits at its base drive until
-> its weight clips, and the best-connected members fall first. Strength is
-> pinned at beta (Addendum 6, both directions fail). The fix is the gain:
-> train just under the clip and the organ is exact, zero soft pairs in
-> 24,000, zero derailments in 100 words (Addendum 7). Cite
-> `[[SEQ-EXACT-RECOVERY]]`. Addendum 8 checks generality and the onset of
-> relocation.
+> **Status (2026-09-09).** Closed. The step-500 cliff had two causes.
+> Derailment came from the numpy sampler; on the explicit substrate no
+> word derails (Addendum 3). The remaining soft transitions are ties
+> between the target block's least-connected neuron and the most-connected
+> neuron outside it (Addendum 4). Their rate is the same across three
+> groups of order 60, rises with the state area's size, and does not
+> depend on the Cayley graph. The mechanism proposed in Addendum 5 was
+> wrong. Its two post hoc diagnostics show that at strength beta
+> refraction cancels potentiation exactly, so a member's net drive stays
+> at its base value until its weight reaches the clip, and the
+> best-connected members leave the arc first. Strength cannot be moved
+> from beta in either direction (Addendum 6). Training for 20 to 24
+> presentations, below the clip, gives 0 soft pairs in 84,000 across 500
+> organs (Addenda 7 and 8). Register entry: `[[SEQ-EXACT-RECOVERY]]`.
 
 Registered before implementing or running. Follows `6276685`, where the S5
 per-step readout falsified both amendment bars and showed the failure mode is

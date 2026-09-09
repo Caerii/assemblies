@@ -1,18 +1,17 @@
 # PREREG: refraction below the transition as an orthogonalizing memory
 
-> **Status (2026-09-09).** Adopted as `[[REFRACTION-ANTI-MERGING]]`, and
-> the title is wrong. Refraction does not orthogonalize anything; stored
-> items overlap at chance once the area is full. What it does is stop
-> items merging while they are written, and that alone buys twenty-five
-> times the Hebbian ceiling: about 0.40 (n/k)² assemblies in regime,
-> recalled from half a cue with the bias masked. Three things I did not
-> expect and now trust: strength is a switch, not a dial (0.3 to 0.6 beta
-> is one plateau, Amendment 6); ending each item's write at convergence
-> adds a constant quarter to a third, and the ceiling sits exactly where
-> items stop converging (Amendments 5 and 6); the Hebbian control's own
-> rounds window is attractor dominance, which refraction only delays (the
-> T = 16 post hoc). Read the Result, then Amendments 4 to 6, and ignore
-> Amendments 1 to 3 unless you want the history.
+> **Status (2026-09-09).** Adopted as `[[REFRACTION-ANTI-MERGING]]`.
+> Stored items overlap at chance once the area is full, so the word
+> "orthogonalizing" in the title is inaccurate; refraction prevents items
+> from merging while they are written. In regime the ceiling is about
+> 0.40 (n/k)² assemblies, 25 times the Hebbian control's, read from a
+> half cue with the bias masked. Strength between 0.3 and 0.6 beta gives
+> one plateau (Amendment 6). Ending each item's write when its winner set
+> repeats raises the ceiling by 24 to 34 percent, and the ceiling sits
+> where items stop converging within the round budget (Amendments 5 and
+> 6). The Hebbian control at T = 16 collapses to M* = 8, so its rounds
+> window is attractor dominance (post hoc). Read the Result section and
+> Amendments 4 to 6.
 
 Registered before running. Owed by PREREG_refraction_capacity.md's
 re-measurement (2026-09-04): with the substrate's selector fixed
