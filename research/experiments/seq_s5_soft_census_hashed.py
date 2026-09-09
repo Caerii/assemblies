@@ -88,7 +88,9 @@ def census_at_width(group_name, seeds, longest=LONGEST, presentations=PRESENTATI
     # -- the census: every (state, symbol) once, frozen, from the cued state
     soft = [[] for _ in seeds]
     hard = [[] for _ in seeds]
+    relations = [[] for _ in seeds]
     ov_all = []
+    idx_of = {v: k_ for k_, v in si.items()}
     for st in states:
         for sym in symbols:
             fsm.arc.inhibit()
@@ -98,11 +100,33 @@ def census_at_width(group_name, seeds, longest=LONGEST, presentations=PRESENTATI
             ov = onblock(torch.full((B,), target, device="cuda", dtype=torch.int64))
             ov_all.append(ov)
             lab, ovc = label.cpu().numpy(), ov.cpu().numpy()
+            wins = None
             for b in range(B):
                 if int(lab[b]) != target:
                     hard[b].append((st, sym))
                 elif ovc[b] < 1.0:
                     soft[b].append(((st, sym), float(ovc[b])))
+                    # WHO is the intruder: its block, and that block's
+                    # relation to the pair in the Cayley graph
+                    if wins is None:
+                        wins = (fsm.state.winners // K).cpu().numpy()
+                    intr = sorted(set(int(x) for x in wins[b] if int(x) != target))
+                    to = table[(st, sym)]
+                    rel = []
+                    for blk in intr:
+                        name = idx_of[blk]
+                        if name == st:
+                            rel.append("from")
+                        elif any(table[(st, g)] == name for g in symbols if g != sym):
+                            rel.append("other_gen")
+                        elif any(table[(to, g)] == name for g in symbols):
+                            rel.append("next")
+                        elif any(table[(name, g)] == to for g in symbols):
+                            rel.append("co_parent")
+                        else:
+                            rel.append("other")
+                    relations[b].append({"pair": [st, sym], "to": to,
+                                         "intruder_blocks": intr, "relation": rel})
     ov_all = torch.stack(ov_all).cpu().numpy()                    # [pairs, B]
 
     rows = []
@@ -128,6 +152,7 @@ def census_at_width(group_name, seeds, longest=LONGEST, presentations=PRESENTATI
             "census_ov_varies": bool(ov_all[:, b].min() < ov_all[:, b].max()),
             "onblock_min": float(onb[b].min()),
             "n_pairs": len(states) * len(symbols),
+            "relations": relations[b],
         })
     print(f"    {group_name}: {B} brains, n_arc {n_arc}, n_state {n_state}, "
           f"{len(states) * len(symbols)} pairs, word {longest}  "
@@ -141,9 +166,11 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--seeds", type=int, default=len(SEEDS))
     ap.add_argument("--groups", type=str, default=",".join(GROUP_NAMES))
+    ap.add_argument("--tag", type=str, default="")
     ap.add_argument("--smoke", action="store_true")
     args = ap.parse_args()
-    seeds = SEEDS[: (2 if args.smoke else args.seeds)]
+    # seeds continue the registered ten (42..51) upward
+    seeds = list(range(SEEDS[0], SEEDS[0] + (2 if args.smoke else args.seeds)))
     groups = args.groups.split(",")
     longest = 20 if args.smoke else LONGEST
     pres = 2 if args.smoke else PRESENTATIONS
@@ -172,6 +199,17 @@ def main():
               f"{pred:>8s} {str(v['v2_exact'])[0]:>3s} {v['n_soft']:5d} "
               f"{v['n_hard']:5d} {v['census_ov_min']:7.4f}", flush=True)
     n = len(out)
+    from collections import Counter
+    rel = Counter(r_ for v in out for x in v["relations"] for r_ in x["relation"])
+    per_group = {}
+    for v in out:
+        g_ = per_group.setdefault(v["group"], [0, 0, 0])
+        g_[0] += v["n_soft"] + v["n_hard"]; g_[1] += v["n_pairs"]
+        g_[2] += v["first_bad"] < longest
+    print("\n    per group: bad pairs / pairs (rate)   words derailing")
+    for g_, (nb, np_, nd) in per_group.items():
+        print(f"      {g_:7s} {nb:4d} / {np_:6d} ({100.0 * nb / np_:.3f}%)   {nd}")
+    print(f"    intruder relations: {dict(rel)}")
     pairs = sum(v["n_pairs"] for v in out)
     n_soft = sum(v["n_soft"] for v in out)
     n_hard = sum(v["n_hard"] for v in out)
@@ -186,7 +224,7 @@ def main():
     print(f"  {'PASS' if v2 else 'FAIL'}  W2 first_dev == first true-path visit to "
           f"a bad pair, every organ (vacuous where none)")
     if not args.smoke:
-        path = os.path.join(_HERE, "seq_s5_soft_census_results_hashed.json")
+        path = os.path.join(_HERE, f"seq_s5_soft_census_results_hashed{args.tag}.json")
         with open(path, "w") as fh:
             json.dump(out, fh, indent=1)
         print(f"\nwrote {path}")

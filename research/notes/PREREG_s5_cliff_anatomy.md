@@ -253,3 +253,40 @@ pair seeds a deviation (the hitting-time mechanism stands, 4/4); whether
 the deviation derails depends on the substrate, and on the explicit one it
 did not in 500 steps. The register entry is re-scoped accordingly. W1's
 pass at exactly the bar is reported as such, not as a margin.
+
+## Addendum 4 (2026-09-09, before running): what a soft pair IS -- structure, size, and the intruder
+
+Addendum 3 left four soft pairs in 6000 on the explicit substrate: too few
+to explain, enough to say they exist. At width the census is cheap, so it
+is run at 100 seeds per group (seeds 42..141), on the four registered
+groups plus Z120 -- cyclic, order 120, abelian: S5's SIZE (n_arc 40,000,
+n_state 8,400) without its structure. Every soft pair's INTRUDER is
+recorded: the block the extra neuron belongs to, and that block's relation
+to the pair in the Cayley graph -- `from` (the cued state's own block),
+`other_gen` (the target of the same state under the OTHER generator),
+`next` (a successor of the target), `co_parent` (another state that also
+maps to the target), or `other`.
+
+    C1  RATE.  Pooled soft + hard rate over 60,000 pairs, with a Wilson
+        interval; reported. Addendum 3 read 0.067% [0.02, 0.17].
+    C2  SIZE OR STRUCTURE.  If S5's higher rate is SIZE, Z120's rate is
+        within 2x of S5's and above the order-60 groups'; if it is
+        STRUCTURE, Z120 sits with Z60 (near 0) and S5 stays high.
+        PREDICTION: SIZE -- the organ fibers are sized to a fixed load, so a
+        larger area at the same load has more chances for a one-neuron
+        tie; group structure enters only through which pairs are soft.
+    C3  THE INTRUDER'S RELATION.  The intruder's block is `other_gen` in
+        >= 60% of soft pairs (chance ~1/|G| per relation): the arc's two
+        assemblies for (s, g0) and (s, g1) share the state conjunct, so
+        the conjunction leaks a little of the OTHER target's drive
+        ([[ARC-CONJUNCT-EXPOSURE]] in one neuron). PREDICTION: PASSES.
+        FAIL with `from` dominant: the leak is the cued state's echo through
+        arc -> state. FAIL with `other` dominant: the intruder is a chance
+        neighbour of the connectome and the Cayley graph is irrelevant.
+    C4  ZERO-PARAMETER LAW at scale: every organ with a bad pair deviates
+        at its first true-path visit to one (V2), 100% of organs.
+    C5  DERAILMENT.  Words reaching a wrong label within 500 steps: <= 2%
+        of organs (Addendum 3: 0/40).
+
+Nothing is adopted from C1/C2 alone; C3 passing puts the intruder's
+mechanism into [[SEQ-EXACT-RECOVERY]]'s caveat as a named leak.

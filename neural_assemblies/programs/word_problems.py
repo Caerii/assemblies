@@ -113,6 +113,17 @@ def cyclic_group_60() -> Group:
     return Group("Z60", elements, gens, compose, 0, solvable=True)
 
 
+def cyclic_group_120() -> Group:
+    """Z120 = <1, 7>. Order 120, abelian: S5's SIZE without its structure
+    (PREREG_s5_cliff_anatomy.md Addendum 4)."""
+    def compose(a, b):
+        return (a + b) % 120
+    gens = (1, 7)
+    elements = closure(gens, compose, 0)
+    assert len(elements) == 120, f"Z120 closure gave {len(elements)}"
+    return Group("Z120", elements, gens, compose, 0, solvable=True)
+
+
 def a4_times_z5() -> Group:
     """A4 x Z5. Order 60, SOLVABLE but non-abelian -- the middle arm.
 
@@ -137,6 +148,7 @@ GROUPS = {
     "A4xZ5": a4_times_z5,
     "A5": alternating_group_5,
     "S5": symmetric_group_5,
+    "Z120": cyclic_group_120,
 }
 
 
