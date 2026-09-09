@@ -310,8 +310,8 @@ def main():
 
 
 def _write(out, tag=""):
-    path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                        f"seq_a3_transducer_results{tag}.json")
+    from _results import results_path
+    path = results_path("sequence", f"seq_a3_transducer_results{tag}.json")
     with open(path, "w") as fh:
         json.dump(out, fh, indent=2)
     print(f"\nwrote {path}")
@@ -505,8 +505,8 @@ def main_strength(seeds, strength, n_arc=10000):
     beta, paired against the recorded beta cell; the state-blind audit and
     the arc's member margin at both."""
     print(f"=== A3 hashed, strength {strength} (Amendment 2) ===")
-    with open(os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                           "seq_a3_transducer_results_hashed.json")) as fh:
+    from _results import results_path
+    with open(results_path("sequence", "seq_a3_transducer_results_hashed.json")) as fh:
         base = json.load(fh)["sweep"][str(n_arc)]["values"]
     m, ov = a3_hashed(seeds, n_arc=n_arc, beta=BETA, strength=strength,
                       collect_state=True, collect_margin=True)

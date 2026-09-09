@@ -37,6 +37,7 @@ from neural_assemblies.core.torch_engine._hashed_fsm import HashedArcFSM  # noqa
 from neural_assemblies.programs.mod3_fsm import (                         # noqa: E402
     ALL_STATES, ALL_SYMBOLS, mod3_transition_table)
 from seq_a1_fsm_parity import BETA, K, N_ARC, N_STATE, PRESENTATIONS      # noqa: E402
+from _results import results_path  # noqa: E402
 
 LENGTH = 2000
 P_VALUES = (0.3, 0.4)
@@ -114,7 +115,7 @@ def main():
     seeds = list(range(1, 1 + (3 if args.smoke else args.brains)))
     if args.smoke:
         print("*** SMOKE: API only. THESE NUMBERS ARE VOID. ***")
-    with open(os.path.join(_HERE, "seq_a1_horizon_results.json")) as fh:
+    with open(results_path("sequence", "seq_a1_horizon_results.json")) as fh:
         numpy_rows = json.load(fh)
     print(f"=== GATE-3: the horizon at width ({len(seeds)} brains, {length} digits) ===")
     rows, out = [], {"brains": seeds, "length": length, "rows": []}
@@ -140,7 +141,7 @@ def main():
     print(f"\n  GATE-3 {'PASS' if allok else 'FAIL'}"
           + ("" if not args.smoke else "  (SMOKE: VOID)"))
     if not args.smoke:
-        path = os.path.join(_HERE, "seq_a1_horizon_results_hashed.json")
+        path = results_path("sequence", "seq_a1_horizon_results_hashed.json")
         with open(path, "w") as fh:
             json.dump(out, fh, indent=1)
         print(f"  wrote {path}")

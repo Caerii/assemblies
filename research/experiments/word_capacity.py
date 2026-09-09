@@ -375,7 +375,8 @@ def main():
         print("SMOKE: API check only; numbers VOID")
     if args.ladder:
         out = ladder(args.cells.split(","), seeds, vs)
-        path = os.path.join(_HERE, f"word_capacity_ladder{args.tag}.json")
+        from _results import results_path
+        path = results_path("aligner", f"word_capacity_ladder{args.tag}.json")
         with open(path, "w") as fh:
             json.dump({"seeds": seeds, "curves": out}, fh, indent=2)
         print(f"wrote {path}")
@@ -387,7 +388,8 @@ def main():
         results[name] = run_cell(name, seeds, vs, engine=args.engine,
                                  track_pinned=args.track_pinned, feat=feat)
     judge(results, seeds)
-    path = os.path.join(_HERE, f"word_capacity_results_{args.engine}{args.tag}.json")
+    from _results import results_path
+    path = results_path("aligner", f"word_capacity_results_{args.engine}{args.tag}.json")
     with open(path, "w") as fh:
         json.dump({"seeds": seeds, "cells": {nm: {str(V): a for V, a in c.items()}
                                               for nm, c in results.items()}},

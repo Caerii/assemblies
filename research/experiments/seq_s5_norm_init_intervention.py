@@ -141,7 +141,8 @@ def main():
     seeds = SEEDS[:int(sys.argv[1])] if len(sys.argv) > 1 else SEEDS
     print("=== norm_init intervention on the S5 soft transitions ===\n")
 
-    with open(os.path.join(_HERE, "seq_s5_soft_census_results.json"),
+    from _results import results_path
+    with open(results_path("sequence", "seq_s5_soft_census_results.json"),
               encoding="utf-8") as fh:
         registered = {(v["group"], v["seed"]): v["n_soft"]
                       for v in json.load(fh)}

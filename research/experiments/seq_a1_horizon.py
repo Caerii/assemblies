@@ -111,8 +111,8 @@ def main():
             n_ok = sum(r["prefix_correct"].get(c, False) for r in got)
             print(f"       first {c:>5} steps perfect: {n_ok}/{len(got)}")
 
-    out = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                       "seq_a1_horizon_results.json")
+    from _results import results_path
+    out = results_path("sequence", "seq_a1_horizon_results.json")
     with open(out, "w") as fh:
         json.dump(rows, fh, indent=2)
     print(f"\nwrote {out}")

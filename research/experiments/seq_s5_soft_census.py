@@ -31,6 +31,7 @@ sys.path.insert(0, _HERE)
 from seq_s5_word_problem import (  # noqa: E402
     GROUP_NAMES, SEEDS, build, run_tiered,
 )
+from _results import results_path  # noqa: E402
 
 LONGEST = 500
 
@@ -141,7 +142,7 @@ def main():
     print(f"  {'PASS' if v2 else 'FAIL'}  V2 first_dev == first true-path "
           f"visit to a bad pair, every seed")
 
-    path = os.path.join(_HERE, "seq_s5_soft_census_results.json")
+    path = results_path("sequence", "seq_s5_soft_census_results.json")
     with open(path, "w") as fh:
         json.dump(out, fh, indent=2)
     print(f"\nwrote {path}")

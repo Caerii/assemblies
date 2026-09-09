@@ -46,6 +46,7 @@ from neural_assemblies.core.numpy_engine import _seeding                # noqa: 
 from neural_assemblies.core.torch_engine._memory import AssemblyMemory   # noqa: E402
 from neural_assemblies.diagnostics import ensemble_from_values          # noqa: E402
 from _substrate import ceiling_from_curve                               # noqa: E402
+from _results import results_path  # noqa: E402
 
 DEV = "cuda"
 K = 60
@@ -386,8 +387,7 @@ def main():
               f"{len(good)} points -> {verdict}")
 
     if not args.smoke:
-        out = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                           f"capacity_scaling_results{args.tag}.json")
+        out = results_path("memory", f"capacity_scaling_results{args.tag}.json")
         with open(out, "w") as f:
             json.dump(res, f, indent=1)
         print(f"  wrote {out}")

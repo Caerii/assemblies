@@ -30,6 +30,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from neural_assemblies.core.brain import Brain                              # noqa: E402
 from neural_assemblies.diagnostics import ensemble_from_values              # noqa: E402
 from _substrate import ceiling_from_curve                                   # noqa: E402
+from _results import results_path  # noqa: E402
 
 N, K, P, T, BETA, W_MAX, STRENGTH = 2000, 60, 0.5, 8, 0.10, 20.0, 0.05
 #: THE STIMULUS MODEL. The engine's stimulus into a materialized area is
@@ -164,7 +165,7 @@ def main():
         results[arm] = {"per_seed": {str(s): {str(M): v for M, v in per[s].items()} for s in seeds},
                         "ceilings": [str(c) for c in stars]}
         print(f"    ceilings: {stars}")
-    path = os.path.join(_HERE, "refraction_memory_numpy_results.json")
+    path = results_path("memory", "refraction_memory_numpy_results.json")
     with open(path, "w") as fh:
         json.dump(results, fh, indent=2, default=str)
     print(f"wrote {path}")
