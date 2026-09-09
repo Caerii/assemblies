@@ -596,3 +596,17 @@ was that choice.
     E1  GENERALITY                                                        PASS
     With S5 (Addendum 7) that is 500 organs and 84,000 pairs exact at
     20 presentations, against 33 soft pairs at 15 on the same organs.
+
+### Addendum 8 -- E2 result (2026-09-09, S5, 28 presentations, 100 seeds)
+
+    28 presentations (g 14.4)   0 soft, 0 hard / 24,000    0 words derailing    P-CONJ 0.001 / 0.000
+    30 presentations (A5)      32 soft / 24,000           12 / 100 derailing
+
+    E2  THE ONSET                                                          FAIL
+        Predicted a rising edge at 28 (rate above 0, below 30's 0.133%);
+        measured zero. The edge is a cliff between 28 and 30 presentations,
+        later than the median-base formula (c* 27.7 for base 40) and
+        consistent with the p10 base of the lost neurons at 30 being 33
+        (c* = 29.7). The safe window is therefore 20 to 28 presentations at
+        this organ, and the formula's base should be read at the members'
+        upper tail, which it was not.
