@@ -331,3 +331,16 @@ simplifies norm_init + retires the pool-exhaustion class of bugs); the fixed `[n
 drive it produces then makes **batching across areas/brains** trivial, which is
 the real throughput multiplier for curriculum training. That is where
 GPU-driven assembly dynamics at scale actually lives.
+
+
+## 8. Where this stands (2026-09)
+
+Levers A and B landed and were then superseded for research use by the
+hashed substrate (`core/torch_engine/_hashed.py` and its units), which
+regenerates each brain's connectome inside the kernel and batches brains
+rather than items. Its layouts and measured floors are in
+`research/notes/DESIGN_dense_floor.md` (dense counts, organ density) and
+`research/notes/DESIGN_present_only.md` (present-only lists, sparse
+density); the ports that run on it are in `DESIGN_hashed_aligner.md` and
+`DESIGN_sequence_port.md`. Sections 1-7 above describe the earlier design
+and remain accurate for the `Brain`-level engines.

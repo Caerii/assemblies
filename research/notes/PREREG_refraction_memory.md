@@ -1,5 +1,17 @@
 # PREREG: refraction below the transition as an orthogonalizing memory
 
+> **Status (2026-09-09).** Adopted as `[[REFRACTION-ANTI-MERGING]]`. A
+> recurrent k-WTA area refracted at half beta and read with its bias
+> masked holds about 25 times the Hebbian ceiling; in regime (k p >= 3 ln n)
+> the ceiling is ~0.40 (n/k)^2 (Amendment 4); strength is a switch, one
+> plateau from 0.3 to 0.6 beta (Amendment 6); ending each item's rounds
+> at convergence raises the ceiling by a constant 24-34% and the ceiling
+> sits where items stop converging (Amendments 5-6); the Hebbian
+> control's own rounds window is attractor dominance (post hoc, T = 16).
+> The title's "orthogonalizing" was wrong: the mechanism is anti-merging,
+> and stored items overlap at chance once the area is full.
+> Read the Result section, then Amendments 4, 5, 6.
+
 Registered before running. Owed by PREREG_refraction_capacity.md's
 re-measurement (2026-09-04): with the substrate's selector fixed
 (1b475fc), a recurrent k-WTA area refracted at 0.5 beta and read with the

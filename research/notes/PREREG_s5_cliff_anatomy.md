@@ -1,5 +1,21 @@
 # PREREG: anatomy of the cliff
 
+> **Status (2026-09-09).** Closed, with an adopted result. The "cliff" was
+> two things: a rare SOFT transition (correct label, one intruder neuron)
+> that seeds a deviation at the word's first visit to it, and a
+> derailment regime that turned out to be the numpy engine's sampler
+> (Addendum 3). On the explicit substrate a soft pair is a collision
+> between the target block's weakest member and the area's best-connected
+> outsider, a Binomial tail with no relation to the group's structure
+> (Addendum 4). The arc's refraction strength is pinned at beta by two
+> opposite constraints (Addendum 6), and the free lever is the potentiated
+> gain: trained just below the weight clip (20-24 presentations here), the
+> organ is EXACT, zero soft pairs in 24,000 and zero derailments on 100
+> organs (Addendum 7). Register entry: `[[SEQ-EXACT-RECOVERY]]`.
+> Read Addenda 3, 4, 5 (with its two post hoc diagnostics), 6, 7 in that
+> order; Addendum 8 (generality and the onset of relocation) is the last
+> open run.
+
 Registered before implementing or running. Follows `6276685`, where the S5
 per-step readout falsified both amendment bars and showed the failure mode is
 a CLIFF: `step@500` equals `first_bad/500` to within 0.004 on every group --

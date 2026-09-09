@@ -90,6 +90,30 @@ Known engine names:
 
 That heuristic is a convenience, not a benchmark result.
 
+### The hashed substrate
+
+`neural_assemblies/core/torch_engine/` also holds a second GPU path that
+does not go through `Brain`: many independent brains in one launch, each
+connectome regenerated from a hash inside the kernel rather than stored.
+It exists for research at width (20 to 100 brains per cell) and is gated
+against the numpy engine on the drive, not on winners.
+
+| Unit | File | Role |
+|------|------|------|
+| `HashedArea` | `_hashed.py` | One area: winners, refraction bias, the k-WTA (`topk_select`), an optional per-brain convergence gate. |
+| `DenseOrganFiber`, `PresentFiber`, `AreaFiber`, `StimulusFiber` | `_hashed.py` | Afferent fibers, one per density regime: dense int16 counts above ~10% density, present-only lists below. |
+| `AssemblyMemory` | `_memory.py` | The refracted associative memory as a unit: store, gated write, masked half-cue recall. |
+| `HashedArcCore` | `_arc_core.py` | The refracted arc-and-state core shared by the two sequence organs. |
+| `HashedArcFSM`, `HashedTransducer` | `_hashed_fsm.py`, `_hashed_transducer.py` | The assigned-state machine and the induced-state transducer at width. |
+| `ScheduledAligner` | `_scheduled_aligner.py` | The cross-situational word learner, whole schedule in one launch. |
+| kernels | `_fused_cuda.py` | Presence hashing, drive, selection, write-back, and the persistent present-only kernel. |
+
+Every unit passes two gates before its numbers count: a drive replay
+against the numpy engine to a relative 5e-6, refraction included, and
+identity across width (a brain in a launch equals the brain alone). The
+design notes are `research/notes/DESIGN_*.md`; the reading map is
+[../research/notes/README.md](../research/notes/README.md).
+
 ## Automata Helpers
 
 FSM and PFA code use typed transitions:

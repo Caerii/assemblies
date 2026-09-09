@@ -34,6 +34,20 @@ parameters, hardware, or result links.
 - Language-learning results should name the exact task, corpus, curriculum, or
   synthetic setting being measured.
 
+## Measured At Width
+
+These are registered results on the hashed GPU substrate, 20 or more brains
+per cell, adopted into `neural_assemblies/theory.py`. Cite the register ID.
+
+| Register ID | Claim, in one sentence | Where |
+|-------------|------------------------|-------|
+| `REFRACTION-ANTI-MERGING` | A recurrent k-WTA area refracted at half beta and read with its bias masked stores ~0.40 (n/k)^2 assemblies, about 25x the Hebbian ceiling, because refraction stops items merging while they are written. | [../research/notes/PREREG_refraction_memory.md](../research/notes/PREREG_refraction_memory.md) |
+| `SEQ-EXACT-RECOVERY` | The refracted-arc transition machine is exact over thousands of steps on the explicit substrate; its rare soft transitions are Binomial tail collisions and vanish when training stops just below the weight clip. | [../research/notes/PREREG_s5_cliff_anatomy.md](../research/notes/PREREG_s5_cliff_anatomy.md) |
+| (caveat on both) | The numpy engine's sampled areas produced a false horizon and every derailment in the earlier sequence results; sequence claims measured on sampled areas are provisional until re-run materialized or on the hashed substrate. | [../research/notes/DESIGN_sequence_port.md](../research/notes/DESIGN_sequence_port.md) |
+
+The reading map for the notes is
+[../research/notes/README.md](../research/notes/README.md).
+
 ## Research Claims
 
 These belong in `research/` until they are narrowed and defended:
