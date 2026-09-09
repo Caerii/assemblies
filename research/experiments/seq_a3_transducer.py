@@ -59,7 +59,27 @@ N_ARC_SWEEP = [2000, 10000, 50000]
 UNIGRAM, NO_CONTEXT, BIGRAM, CONTEXT_14 = 0.1178, 0.2074, 0.2338, 0.1046
 
 
+CORPUS = "study4"      # or "chain" (PREREG_agreement_corpus.md)
+
+
+def _gen():
+    if CORPUS == "chain":
+        import ntp_agree
+        ntp_agree.use_chain(True)
+        return ntp_agree
+    return ntp
+
+
 def corpora(seed):
+    g = _gen()
+    words = g.vocabulary(VOCAB_SIZE)
+    keep = set(words)
+    tr = [[w for w in s if w in keep] for s in g.generate(N_TRAIN, seed)]
+    te = [[w for w in s if w in keep] for s in g.generate(N_TEST, seed + 500)]
+    return words, tr, te
+
+
+def _corpora_study4(seed):
     words = ntp.vocabulary(VOCAB_SIZE)
     keep = set(words)
     tr = [[w for w in s if w in keep] for s in ntp.generate(N_TRAIN, seed)]
@@ -353,11 +373,11 @@ def _brains_per_launch(n_arc):
 
 
 def a3_hashed(seeds, *, n_arc, beta, state_blind=False, collect_state=False,
-              tie_seed=0, strength=0.1, collect_margin=False):
+              tie_seed=0, strength=0.1, collect_margin=False, horizon=0):
     """MRR per seed (and cross-prefix state overlap per seed when asked)."""
     import torch
     from neural_assemblies.core.torch_engine._hashed_transducer import HashedTransducer
-    words = ntp.vocabulary(VOCAB_SIZE)
+    words = _gen().vocabulary(VOCAB_SIZE)
     wi = {w: i for i, w in enumerate(words)}
     per = [(s,) + corpora(s)[1:] for s in seeds]                     # (seed, train, test)
     mrr, ovl = {}, {}
@@ -368,7 +388,8 @@ def a3_hashed(seeds, *, n_arc, beta, state_blind=False, collect_state=False,
         t0 = time.perf_counter()
         t = HashedTransducer(gseeds, words, n=N, n_arc=n_arc, k=K, p=P, beta=beta,
                              organ_p=ORGAN_P, w_max=20.0, norm_init=True,
-                             max_potentiations=64, refracted_strength=strength)
+                             max_potentiations=64, refracted_strength=strength,
+                             horizon=horizon)
         margins = [[] for _ in group]
         t.ground(rounds=GROUND_ROUNDS)
         W, T, St = _schedules([tr for _, tr, _ in group], wi)
@@ -540,8 +561,65 @@ def main_strength(seeds, strength, n_arc=10000):
     _write(out, f"_hashed_s{strength}")
 
 
+def main_successor(seeds, horizons=(0, 1, 2), n_arc=10000):
+    """PREREG_successor_state.md on the chain corpus: h in {0, 1, 2}, the
+    state-blind audit at the largest h, paired against each seed's own
+    bigram and oracle (ntp_agree.oracle_gap)."""
+    global CORPUS
+    CORPUS = "chain"
+    import ntp_agree
+    ntp_agree.use_chain(True)
+    print("=== successor state on the chain corpus (PREREG_successor_state.md) ===")
+    base = {s: ntp_agree.oracle_gap(s) for s in seeds}
+    bigram = ensemble_from_values([base[s][1] for s in seeds], "bigram", keys=seeds)
+    oracle = ensemble_from_values([base[s][3] for s in seeds], "oracle", keys=seeds)
+    print(f"    {bigram}\n    {oracle}", flush=True)
+    out = {"corpus": "chain", "seeds": seeds, "n_arc": n_arc,
+           "bigram": {"mean": bigram.mean, "ci": bigram.ci, "values": list(bigram.values)},
+           "oracle": {"mean": oracle.mean, "ci": oracle.ci, "values": list(oracle.values)}}
+    cells = {}
+    for h in horizons:
+        m, ov = a3_hashed(seeds, n_arc=n_arc, beta=BETA, horizon=h, collect_state=True)
+        cell = ensemble_from_values([m[s] for s in seeds], f"a3(h={h})", keys=seeds)
+        d = paired_delta(cell, bigram, label=f"a3(h={h}) - bigram")
+        h4 = ensemble_from_values([ov[s] for s in seeds], f"state_overlap(h={h})", keys=seeds)
+        print(f"    {cell}\n    {d}\n    {h4}", flush=True)
+        cells[h] = (cell, d, h4)
+        out[f"h{h}"] = {"mrr": {"mean": cell.mean, "ci": cell.ci, "values": list(cell.values)},
+                        "delta_bigram": {"mean": d.mean, "ci": d.ci, "values": list(d.values)},
+                        "state_overlap": {"mean": h4.mean, "ci": h4.ci}}
+    hmax = max(horizons)
+    mb, _ = a3_hashed(seeds, n_arc=n_arc, beta=BETA, horizon=hmax, state_blind=True)
+    blind = ensemble_from_values([mb[s] for s in seeds], f"state-blind(h={hmax})", keys=seeds)
+    bd = paired_delta(cells[hmax][0], blind, label=f"a3(h={hmax}) - blind")
+    m0b, _ = a3_hashed(seeds, n_arc=n_arc, beta=BETA, horizon=0, state_blind=True)
+    blind0 = ensemble_from_values([m0b[s] for s in seeds], "state-blind(h=0)", keys=seeds)
+    bd0 = paired_delta(cells[0][0], blind0, label="a3(h=0) - blind")
+    print(f"    {blind}\n    {bd}\n    {blind0}\n    {bd0}", flush=True)
+    out["state_blind_delta"] = {"mean": bd.mean, "ci": bd.ci, "values": list(bd.values)}
+    out["state_blind_delta_h0"] = {"mean": bd0.mean, "ci": bd0.ci, "values": list(bd0.values)}
+    print("\n=== BARS ===")
+    verdicts = {
+        "SR-0 h=0 within 0.03 of bigram and blind delta contains 0":
+            abs(cells[0][1].mean) <= 0.03 and bd0.low <= 0.0 <= bd0.high,
+        "SR-1 h=1 does not help (lower bound < 0.05)": (1 in cells) and cells[1][1].low < 0.05,
+        f"SR-2 h={hmax} closes >= 40% of the gap (lower bound >= 0.10)": cells[hmax][1].low >= 0.10,
+        f"SR-3 state informative at h={hmax}": bd.low > 0.0,
+        f"SR-4 state does not collapse at h={hmax}": cells[hmax][2].high < 0.5,
+    }
+    for name, ok in verdicts.items():
+        print(f"  {'PASS' if ok else 'FAIL'}  {name}")
+    out["verdicts"] = verdicts
+    _write(out, "_successor_chain")
+
+
 if __name__ == "__main__":
-    if "--strength" in sys.argv:
+    if "--successor" in sys.argv:
+        n_seeds = int(sys.argv[sys.argv.index("--seeds") + 1]) if "--seeds" in sys.argv else len(HASHED_SEEDS)
+        hs = ([int(x) for x in sys.argv[sys.argv.index("--horizons") + 1].split(",")]
+              if "--horizons" in sys.argv else (0, 1, 2))
+        main_successor(HASHED_SEEDS[:n_seeds], horizons=tuple(hs))
+    elif "--strength" in sys.argv:
         n_seeds = int(sys.argv[sys.argv.index("--seeds") + 1]) if "--seeds" in sys.argv else len(HASHED_SEEDS)
         main_strength(HASHED_SEEDS[:n_seeds], float(sys.argv[sys.argv.index("--strength") + 1]))
     elif "--engine" in sys.argv and sys.argv[sys.argv.index("--engine") + 1] == "hashed":

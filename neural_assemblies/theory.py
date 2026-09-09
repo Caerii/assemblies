@@ -289,26 +289,32 @@ _RESULTS: List[Result] = [
     Result(
         id="REFRACTION-NEEDS-LOAD",
         status=Status.MEASURED,
-        claim="A refracted conjunction area has an operating WINDOW in load "
-              "M*k/n: below ~0.2 its assemblies never converge, above ~1.15 "
-              "they do not fit. An arc must be SIZED to the number of "
-              "conjunctions it holds.",
+        claim="A refracted conjunction area has a CEILING in load M*k/n: "
+              "above ~1.3 its conjunctions do not fit (10/10 correct at load "
+              "1.26, 0/10 at 1.80). RE-SCOPED 2026-09-09 (PREREG_sampler_audit.md): "
+              "the lower edge this entry was named for -- 'below ~0.2 its "
+              "assemblies never converge' -- was the numpy sampler's; with the "
+              "arc materialized a 3-conjunction arc is 10/10 correct at every "
+              "load from 0.04 to 0.60. An arc must be sized so its conjunctions "
+              "fit; it need not be filled.",
         source="This repository.",
-        evidence=("research/experiments/seq_a2_refraction_load.py: sweeping arc "
-                  "size at fixed content, a 3-conjunction arc goes 1/10 at load "
-                  "0.04 to 10/10 at 0.21; a 9-conjunction arc holds 10/10 from "
-                  "0.32 to 1.26 and collapses to 1/10 at 1.80",
+        evidence=("research/experiments/seq_a2_refraction_load.py, SAMPLED arc: "
+                  "a 3-conjunction arc goes 1/10 at load 0.04 to 10/10 at 0.21; "
+                  "a 9-conjunction arc holds 10/10 from 0.32 to 1.26 and "
+                  "collapses to 1/10 at 1.80",
+                  "the same script with the arc MATERIALIZED (NEMO_MATERIALIZE=1, "
+                  "10 seeds): 3-conjunction arc 10/10 at every load 0.04-0.60; "
+                  "9-conjunction arc 10/10 to 1.26, 0/10 at 1.80",
                   "arc assembly stability across training: 0.286 from "
                   "presentation 5 to 15 under-loaded, 0.957 from 10 to 15 loaded"),
         preconditions=("refraction active -- this is a statement about what "
                        "refraction needs, not about k-WTA generally",),
-        caveat="A NEW SILENT-FAILURE MODE. Under-loaded, every local diagnostic "
-               "reads healthy -- the conjunction is clean, every area is "
-               "in-regime, refraction is charging -- while the organ fails, "
-               "because the assemblies never stopped moving. `regime_audit` "
-               "cannot see it; assembly stability across training can. The "
-               "upper bound is [[AC-CAP]] and is not independent of it. "
-               "Bounds are approximate and from one task.",
+        caveat="The 'silent failure under load' this entry once described -- "
+               "assemblies that never stop moving while every diagnostic reads "
+               "healthy -- was measured on the sampled engine and does not occur "
+               "materialized; treat it as a property of lazily drawn areas, not "
+               "of refraction. The ceiling is [[AC-CAP]]'s and is not independent "
+               "of it. One task, 10 seeds.",
     ),
     Result(
         id="REFRACTION-ANTI-MERGING",

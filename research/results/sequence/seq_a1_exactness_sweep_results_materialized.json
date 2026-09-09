@@ -1,0 +1,438 @@
+{
+  "summary": [
+    {
+      "p": 0.2,
+      "exact_frac": 0.22,
+      "trajectory_correct": 10,
+      "decided": 10,
+      "mean_overlap": 0.9662857142857144,
+      "n": 10
+    },
+    {
+      "p": 0.3,
+      "exact_frac": 0.98,
+      "trajectory_correct": 10,
+      "decided": 10,
+      "mean_overlap": 0.9997142857142857,
+      "n": 10
+    },
+    {
+      "p": 0.4,
+      "exact_frac": 1.0,
+      "trajectory_correct": 10,
+      "decided": 10,
+      "mean_overlap": 1.0,
+      "n": 10
+    },
+    {
+      "p": 0.5,
+      "exact_frac": 1.0,
+      "trajectory_correct": 10,
+      "decided": 10,
+      "mean_overlap": 1.0,
+      "n": 10
+    }
+  ],
+  "rows": [
+    {
+      "seed": 1,
+      "p": 0.2,
+      "trajectory_correct": true,
+      "decided": true,
+      "exact_steps": 0,
+      "total_steps": 10,
+      "mean_overlap": 0.9685714285714286,
+      "first_step_exact": false
+    },
+    {
+      "seed": 2,
+      "p": 0.2,
+      "trajectory_correct": true,
+      "decided": true,
+      "exact_steps": 3,
+      "total_steps": 10,
+      "mean_overlap": 0.9871428571428572,
+      "first_step_exact": true
+    },
+    {
+      "seed": 3,
+      "p": 0.2,
+      "trajectory_correct": true,
+      "decided": true,
+      "exact_steps": 6,
+      "total_steps": 10,
+      "mean_overlap": 0.9942857142857143,
+      "first_step_exact": false
+    },
+    {
+      "seed": 4,
+      "p": 0.2,
+      "trajectory_correct": true,
+      "decided": true,
+      "exact_steps": 1,
+      "total_steps": 10,
+      "mean_overlap": 0.9771428571428572,
+      "first_step_exact": false
+    },
+    {
+      "seed": 5,
+      "p": 0.2,
+      "trajectory_correct": true,
+      "decided": true,
+      "exact_steps": 0,
+      "total_steps": 10,
+      "mean_overlap": 0.9685714285714286,
+      "first_step_exact": false
+    },
+    {
+      "seed": 6,
+      "p": 0.2,
+      "trajectory_correct": true,
+      "decided": true,
+      "exact_steps": 1,
+      "total_steps": 10,
+      "mean_overlap": 0.9742857142857144,
+      "first_step_exact": true
+    },
+    {
+      "seed": 7,
+      "p": 0.2,
+      "trajectory_correct": true,
+      "decided": true,
+      "exact_steps": 0,
+      "total_steps": 10,
+      "mean_overlap": 0.8757142857142858,
+      "first_step_exact": false
+    },
+    {
+      "seed": 8,
+      "p": 0.2,
+      "trajectory_correct": true,
+      "decided": true,
+      "exact_steps": 4,
+      "total_steps": 10,
+      "mean_overlap": 0.9885714285714287,
+      "first_step_exact": true
+    },
+    {
+      "seed": 9,
+      "p": 0.2,
+      "trajectory_correct": true,
+      "decided": true,
+      "exact_steps": 4,
+      "total_steps": 10,
+      "mean_overlap": 0.9814285714285715,
+      "first_step_exact": true
+    },
+    {
+      "seed": 10,
+      "p": 0.2,
+      "trajectory_correct": true,
+      "decided": true,
+      "exact_steps": 3,
+      "total_steps": 10,
+      "mean_overlap": 0.9471428571428572,
+      "first_step_exact": false
+    },
+    {
+      "seed": 1,
+      "p": 0.3,
+      "trajectory_correct": true,
+      "decided": true,
+      "exact_steps": 10,
+      "total_steps": 10,
+      "mean_overlap": 1.0,
+      "first_step_exact": true
+    },
+    {
+      "seed": 2,
+      "p": 0.3,
+      "trajectory_correct": true,
+      "decided": true,
+      "exact_steps": 10,
+      "total_steps": 10,
+      "mean_overlap": 1.0,
+      "first_step_exact": true
+    },
+    {
+      "seed": 3,
+      "p": 0.3,
+      "trajectory_correct": true,
+      "decided": true,
+      "exact_steps": 10,
+      "total_steps": 10,
+      "mean_overlap": 1.0,
+      "first_step_exact": true
+    },
+    {
+      "seed": 4,
+      "p": 0.3,
+      "trajectory_correct": true,
+      "decided": true,
+      "exact_steps": 10,
+      "total_steps": 10,
+      "mean_overlap": 1.0,
+      "first_step_exact": true
+    },
+    {
+      "seed": 5,
+      "p": 0.3,
+      "trajectory_correct": true,
+      "decided": true,
+      "exact_steps": 10,
+      "total_steps": 10,
+      "mean_overlap": 1.0,
+      "first_step_exact": true
+    },
+    {
+      "seed": 6,
+      "p": 0.3,
+      "trajectory_correct": true,
+      "decided": true,
+      "exact_steps": 10,
+      "total_steps": 10,
+      "mean_overlap": 1.0,
+      "first_step_exact": true
+    },
+    {
+      "seed": 7,
+      "p": 0.3,
+      "trajectory_correct": true,
+      "decided": true,
+      "exact_steps": 10,
+      "total_steps": 10,
+      "mean_overlap": 1.0,
+      "first_step_exact": true
+    },
+    {
+      "seed": 8,
+      "p": 0.3,
+      "trajectory_correct": true,
+      "decided": true,
+      "exact_steps": 10,
+      "total_steps": 10,
+      "mean_overlap": 1.0,
+      "first_step_exact": true
+    },
+    {
+      "seed": 9,
+      "p": 0.3,
+      "trajectory_correct": true,
+      "decided": true,
+      "exact_steps": 10,
+      "total_steps": 10,
+      "mean_overlap": 1.0,
+      "first_step_exact": true
+    },
+    {
+      "seed": 10,
+      "p": 0.3,
+      "trajectory_correct": true,
+      "decided": true,
+      "exact_steps": 8,
+      "total_steps": 10,
+      "mean_overlap": 0.9971428571428571,
+      "first_step_exact": true
+    },
+    {
+      "seed": 1,
+      "p": 0.4,
+      "trajectory_correct": true,
+      "decided": true,
+      "exact_steps": 10,
+      "total_steps": 10,
+      "mean_overlap": 1.0,
+      "first_step_exact": true
+    },
+    {
+      "seed": 2,
+      "p": 0.4,
+      "trajectory_correct": true,
+      "decided": true,
+      "exact_steps": 10,
+      "total_steps": 10,
+      "mean_overlap": 1.0,
+      "first_step_exact": true
+    },
+    {
+      "seed": 3,
+      "p": 0.4,
+      "trajectory_correct": true,
+      "decided": true,
+      "exact_steps": 10,
+      "total_steps": 10,
+      "mean_overlap": 1.0,
+      "first_step_exact": true
+    },
+    {
+      "seed": 4,
+      "p": 0.4,
+      "trajectory_correct": true,
+      "decided": true,
+      "exact_steps": 10,
+      "total_steps": 10,
+      "mean_overlap": 1.0,
+      "first_step_exact": true
+    },
+    {
+      "seed": 5,
+      "p": 0.4,
+      "trajectory_correct": true,
+      "decided": true,
+      "exact_steps": 10,
+      "total_steps": 10,
+      "mean_overlap": 1.0,
+      "first_step_exact": true
+    },
+    {
+      "seed": 6,
+      "p": 0.4,
+      "trajectory_correct": true,
+      "decided": true,
+      "exact_steps": 10,
+      "total_steps": 10,
+      "mean_overlap": 1.0,
+      "first_step_exact": true
+    },
+    {
+      "seed": 7,
+      "p": 0.4,
+      "trajectory_correct": true,
+      "decided": true,
+      "exact_steps": 10,
+      "total_steps": 10,
+      "mean_overlap": 1.0,
+      "first_step_exact": true
+    },
+    {
+      "seed": 8,
+      "p": 0.4,
+      "trajectory_correct": true,
+      "decided": true,
+      "exact_steps": 10,
+      "total_steps": 10,
+      "mean_overlap": 1.0,
+      "first_step_exact": true
+    },
+    {
+      "seed": 9,
+      "p": 0.4,
+      "trajectory_correct": true,
+      "decided": true,
+      "exact_steps": 10,
+      "total_steps": 10,
+      "mean_overlap": 1.0,
+      "first_step_exact": true
+    },
+    {
+      "seed": 10,
+      "p": 0.4,
+      "trajectory_correct": true,
+      "decided": true,
+      "exact_steps": 10,
+      "total_steps": 10,
+      "mean_overlap": 1.0,
+      "first_step_exact": true
+    },
+    {
+      "seed": 1,
+      "p": 0.5,
+      "trajectory_correct": true,
+      "decided": true,
+      "exact_steps": 10,
+      "total_steps": 10,
+      "mean_overlap": 1.0,
+      "first_step_exact": true
+    },
+    {
+      "seed": 2,
+      "p": 0.5,
+      "trajectory_correct": true,
+      "decided": true,
+      "exact_steps": 10,
+      "total_steps": 10,
+      "mean_overlap": 1.0,
+      "first_step_exact": true
+    },
+    {
+      "seed": 3,
+      "p": 0.5,
+      "trajectory_correct": true,
+      "decided": true,
+      "exact_steps": 10,
+      "total_steps": 10,
+      "mean_overlap": 1.0,
+      "first_step_exact": true
+    },
+    {
+      "seed": 4,
+      "p": 0.5,
+      "trajectory_correct": true,
+      "decided": true,
+      "exact_steps": 10,
+      "total_steps": 10,
+      "mean_overlap": 1.0,
+      "first_step_exact": true
+    },
+    {
+      "seed": 5,
+      "p": 0.5,
+      "trajectory_correct": true,
+      "decided": true,
+      "exact_steps": 10,
+      "total_steps": 10,
+      "mean_overlap": 1.0,
+      "first_step_exact": true
+    },
+    {
+      "seed": 6,
+      "p": 0.5,
+      "trajectory_correct": true,
+      "decided": true,
+      "exact_steps": 10,
+      "total_steps": 10,
+      "mean_overlap": 1.0,
+      "first_step_exact": true
+    },
+    {
+      "seed": 7,
+      "p": 0.5,
+      "trajectory_correct": true,
+      "decided": true,
+      "exact_steps": 10,
+      "total_steps": 10,
+      "mean_overlap": 1.0,
+      "first_step_exact": true
+    },
+    {
+      "seed": 8,
+      "p": 0.5,
+      "trajectory_correct": true,
+      "decided": true,
+      "exact_steps": 10,
+      "total_steps": 10,
+      "mean_overlap": 1.0,
+      "first_step_exact": true
+    },
+    {
+      "seed": 9,
+      "p": 0.5,
+      "trajectory_correct": true,
+      "decided": true,
+      "exact_steps": 10,
+      "total_steps": 10,
+      "mean_overlap": 1.0,
+      "first_step_exact": true
+    },
+    {
+      "seed": 10,
+      "p": 0.5,
+      "trajectory_correct": true,
+      "decided": true,
+      "exact_steps": 10,
+      "total_steps": 10,
+      "mean_overlap": 1.0,
+      "first_step_exact": true
+    }
+  ]
+}

@@ -1,0 +1,142 @@
+{
+  "ambient_p": 0.05,
+  "organ_p": 0.4,
+  "arms": [
+    {
+      "arm": "local_regime",
+      "organ_p": 0.4,
+      "correct": 10,
+      "n": 10,
+      "rows": [
+        {
+          "seed": 1,
+          "positive": true,
+          "negative": true,
+          "both": true
+        },
+        {
+          "seed": 2,
+          "positive": true,
+          "negative": true,
+          "both": true
+        },
+        {
+          "seed": 3,
+          "positive": true,
+          "negative": true,
+          "both": true
+        },
+        {
+          "seed": 4,
+          "positive": true,
+          "negative": true,
+          "both": true
+        },
+        {
+          "seed": 5,
+          "positive": true,
+          "negative": true,
+          "both": true
+        },
+        {
+          "seed": 6,
+          "positive": true,
+          "negative": true,
+          "both": true
+        },
+        {
+          "seed": 7,
+          "positive": true,
+          "negative": true,
+          "both": true
+        },
+        {
+          "seed": 8,
+          "positive": true,
+          "negative": true,
+          "both": true
+        },
+        {
+          "seed": 9,
+          "positive": true,
+          "negative": true,
+          "both": true
+        },
+        {
+          "seed": 10,
+          "positive": true,
+          "negative": true,
+          "both": true
+        }
+      ]
+    },
+    {
+      "arm": "ambient_only",
+      "organ_p": null,
+      "correct": 0,
+      "n": 10,
+      "rows": [
+        {
+          "seed": 1,
+          "positive": false,
+          "negative": false,
+          "both": false
+        },
+        {
+          "seed": 2,
+          "positive": false,
+          "negative": false,
+          "both": false
+        },
+        {
+          "seed": 3,
+          "positive": false,
+          "negative": false,
+          "both": false
+        },
+        {
+          "seed": 4,
+          "positive": false,
+          "negative": false,
+          "both": false
+        },
+        {
+          "seed": 5,
+          "positive": false,
+          "negative": true,
+          "both": false
+        },
+        {
+          "seed": 6,
+          "positive": false,
+          "negative": true,
+          "both": false
+        },
+        {
+          "seed": 7,
+          "positive": false,
+          "negative": false,
+          "both": false
+        },
+        {
+          "seed": 8,
+          "positive": false,
+          "negative": false,
+          "both": false
+        },
+        {
+          "seed": 9,
+          "positive": false,
+          "negative": false,
+          "both": false
+        },
+        {
+          "seed": 10,
+          "positive": false,
+          "negative": false,
+          "both": false
+        }
+      ]
+    }
+  ]
+}
