@@ -290,3 +290,72 @@ maps to the target), or `other`.
 
 Nothing is adopted from C1/C2 alone; C3 passing puts the intruder's
 mechanism into [[SEQ-EXACT-RECOVERY]]'s caveat as a named leak.
+
+### Addendum 4 -- Result (2026-09-09, 500 organs, 84,000 pairs, 8 min)
+
+    group   order   n_state   soft / pairs      rate      organs affected   words derailing
+    Z60      60      4,200     3 / 12,000      0.025%      3 / 100           0
+    A4xZ5    60      4,200     3 / 12,000      0.025%      3 / 100           0
+    A5       60      4,200     3 / 12,000      0.025%      3 / 100           0
+    Z120    120      8,400     9 / 24,000      0.037%      9 / 100           0
+    S5      120      8,400    15 / 24,000      0.062%     14 / 100           0
+    all                       33 / 84,000      0.039%  Wilson [0.028, 0.055]%
+    hard pairs: 0.  Every soft overlap 69/70.  Intruder relations: other 31, next 2.
+
+    C1  RATE reported: 0.039% [0.028, 0.055]%, inside Addendum 3's interval.
+    C2  SIZE.  The three order-60 groups are IDENTICAL (3, 3, 3 -- abelian,
+        solvable, simple alike); Z120 sits above them and within 2x of S5
+        (0.037 vs 0.062, 9 vs 15 events, Poisson intervals overlapping).
+        SIZE as predicted                                                  PASS
+        A residual structure effect (S5 1.7x Z120) is not separable at
+        these counts; reported, not claimed.
+    C3  THE INTRUDER'S RELATION.  other 31/33, next 2/33 (2/33 is chance
+        for a relation that covers ~2/120 of the blocks).                 FAIL
+        The Cayley graph is IRRELEVANT to who intrudes.
+    C4  ZERO-PARAMETER LAW: 32/32 organs with a soft pair deviate at the
+        first true-path visit                                             PASS
+    C5  DERAILMENT: 0 / 500 words                                         PASS
+
+**Reading.** A soft pair is a CONNECTOME-STATISTICS event, not a structural
+one. The evidence: the rate is the same across three groups of the same
+order whatever their structure, rises with n_state, and the intruder is a
+random block. The mechanism this implies is a tail coincidence in the
+arc -> state fiber: after 15 presentations every potentiated synapse
+carries (1 + beta)^15 = 4.18, so a block neuron's drive is 4.18 x (its
+present rows from the arc assembly, Binomial(70, 0.4), mean 28, sd 4.1),
+and an outsider's is its present rows x 1. The outsider wins when the
+block's WEAKEST member has c_b present rows and some outsider has
+c_o >= 4.18 c_b -- c_b <= 10-14 against c_o >= 45-60, both several sd out;
+the product of the two tails, times ~n_state outsiders, is of order 1e-4
+per pair, which is the measured rate, and it explains one intruder (the
+second-best outsider is far rarer) and the n_state dependence. It
+predicts the rate is set by the GAIN (1 + beta)^presentations, which
+Addendum 5 tests.
+
+## Addendum 5 (2026-09-09, before running): the tail-tie mechanism, tested through the gain
+
+If a soft pair is the tail tie above, the soft rate is a steep function
+of the potentiated gain g = (1 + beta)^presentations and of nothing in
+the group. S5, 100 seeds, at presentations 8 (g = 2.14), 15 (g = 4.18,
+the registered protocol, re-run with the drives recorded) and 30
+(g = 17.4). For every soft pair the STATE drive is recomputed from the
+arc assembly and two numbers recorded: the intruder's present-row count
+c_o (its drive, gain 1) and the weakest block member's c_b (its drive / g).
+
+    T1  MORE GAIN KILLS IT.  presentations 30: soft rate <= 1 / 24,000
+        (the tie needs c_b <= c_o / 17.4 <= 4, a 1e-9 tail).
+        PREDICTION: PASSES (0 events).
+    T2  LESS GAIN MULTIPLIES IT.  presentations 8: soft rate >= 3x the
+        15-presentation rate (>= 0.19%; the tie needs only c_b <= c_o / 2.14,
+        a shoulder, not a tail).  PREDICTION: PASSES, likely >> 3x.
+    T3  THE TWO TAILS.  At 15 presentations, in >= 80% of soft pairs the
+        weakest block member has c_b <= 14 and the intruder c_o >= 35.
+        PREDICTION: PASSES.
+    FAIL of T1 or T2: the rate does not follow the gain, the mechanism is
+    something else (report the drives). FAIL of T3 alone: the tie is
+    real but the arithmetic is not the Binomial one (report c_b, c_o).
+
+Adoption if T1-T3 pass: [[SEQ-EXACT-RECOVERY]]'s soft spots become "tail
+ties in the arc -> state fiber at low gain, rate ~ n_state x P(tails);
+gone at g >= 17", and the S5 protocol's 15 presentations is recorded as
+sitting on the shoulder of that curve.
