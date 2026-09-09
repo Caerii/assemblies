@@ -714,3 +714,47 @@ def test_stop_when_stable_equals_ungated_prefix(mod):
             # one more ungated round would have written something more
             _, st_x = run([b], u + 1, False)
             assert not torch.equal(st_x["fiber"].C[0], st_g["fiber"].C[b])
+
+
+@pytest.mark.parametrize("strength,gate", [(0.0, False), (0.5, False), (0.5, True)])
+def test_assembly_memory_equals_batched_wrapper(mod, strength, gate):
+    """AssemblyMemory is the capacity harness's protocol, named: store =
+    inhibit + T rounds of stimulus + recurrence, recall = frozen half-cue
+    with the bias masked. Bit-identical to the `batched_project_hashed`
+    sequence the harness ran on: stored assemblies, counts, bias, recall."""
+    from neural_assemblies.core.torch_engine._batched import batched_project_hashed
+    from neural_assemblies.core.torch_engine._memory import AssemblyMemory
+    from neural_assemblies.core.numpy_engine import _seeding
+    n, k, p, beta, w_max, T, B = 1000, 40, 0.5, 0.1, 20.0, 8, 4
+
+    def i32(v):
+        v &= 0xFFFFFFFF
+        return v - 0x100000000 if v >= 0x80000000 else v
+
+    sd = [i32(_seeding.fnv1a_pair_seed(42 + b, "A", "A")) for b in range(B)]
+    mem = AssemblyMemory(sd, n, k, p, beta=beta, w_max=w_max, norm_init=True,
+                         rounds=T, strength=strength, gate=gate, max_items=64)
+    state, stored_w, stored_m = None, [], []
+    for a in range(12):
+        ss = [i32(_seeding.fnv1a_pair_seed(42 + b, f"s{a}", "A")) for b in range(B)]
+        cue = torch.zeros(B, 0, dtype=torch.int64, device="cuda")
+        win, state = batched_project_hashed(
+            n, k, p, sd, cue, T, beta=beta, w_max=w_max, norm_init=True,
+            synaptic_scaling=False, stim_seeds=ss, stim_size=k, state=state,
+            max_rounds=64 * T, return_state=True,
+            refracted_strength=strength * beta, stop_when_stable=gate)
+        stored_w.append(win)
+        stored_m.append(mem.store(ss))
+        assert torch.equal(win, stored_m[-1])
+    assert torch.equal(state["fiber"].C, mem.fiber.C)
+    if strength:
+        assert torch.equal(state["area"].bias, mem.bias)
+    for a in (0, 5, 11):
+        half = stored_w[a][:, : k // 2].to(torch.int32).contiguous()
+        rec_w = batched_project_hashed(
+            n, k, p, sd, half, T, beta=beta, w_max=w_max, norm_init=True,
+            synaptic_scaling=False, state=state, freeze=True,
+            mask_bias=bool(strength))
+        rec_m = mem.recall(stored_m[a][:, : k // 2])
+        assert torch.equal(rec_w, rec_m)
+    assert torch.equal(state["fiber"].C, mem.fiber.C), "recall wrote"

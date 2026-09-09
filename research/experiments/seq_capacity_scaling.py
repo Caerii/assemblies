@@ -43,8 +43,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from neural_assemblies.core.numpy_engine import _seeding                # noqa: E402
-from neural_assemblies.core.torch_engine._batched import (              # noqa: E402
-    batched_project_hashed)
+from neural_assemblies.core.torch_engine._memory import AssemblyMemory   # noqa: E402
 from neural_assemblies.diagnostics import ensemble_from_values          # noqa: E402
 from _substrate import ceiling_from_curve                               # noqa: E402
 
@@ -80,44 +79,36 @@ def seeds_for(nbrain):
             for b in range(nbrain)]
 
 
-def _fill(state, n):
-    """rows/n -- the fraction of the area that has EVER fired.
-
-    CAP3's censoring guard reads this. `colmask` has a bit set for every round
-    a neuron won, so a nonzero word means it fired at least once.
-    """
-    return state["area"].fill.cpu().numpy()
+def _fill(mem):
+    """rows/n -- the fraction of the area that has EVER fired (CAP3's
+    censoring guard reads this)."""
+    return mem.fill.cpu().numpy()
 
 
 def run_cell(n, arm, m_max, nbrain, rng):
-    """Train up to `m_max` assemblies, checkpointing at every M in MS."""
+    """Train up to `m_max` assemblies, checkpointing at every M in MS.
+
+    The protocol is `AssemblyMemory`: INHIBITED between assemblies, each
+    written by T rounds of its own stimulus alongside recurrence
+    (`brain.inhibit_areas([AREA])`, then `project({s: [AREA]}, {AREA:
+    [AREA]})` x T); the class is the harness's numbers, bit-identical to
+    the wrapper sequence this ran on before it (tested)."""
     cfg = ARMS[arm]
     sd = seeds_for(nbrain)
-    total_rounds = m_max * T
-    state = None
+    mem = AssemblyMemory(sd, n, K, P, beta=BETA, w_max=W_MAX, rounds=T,
+                         strength=(REFRACTED_FACTOR if REFRACTED else 0.0),
+                         gate=CONVERGE, max_items=m_max, device=DEV, **cfg)
     stored, used = [], []
     out = {}
     for a in range(m_max):
-        # INHIBITED between assemblies: the area starts with no winners, so
-        # round 1 is stimulus-only and recurrence joins from round 2. That is
-        # `brain.inhibit_areas([AREA])` followed by T rounds of
-        # `project({s: [AREA]}, {AREA: [AREA]})`.
-        cue = torch.zeros(nbrain, 0, dtype=torch.int64, device=DEV)
         ss = [to_i32(_seeding.fnv1a_pair_seed(42 + b, f"s{a}", "A"))
               for b in range(nbrain)]
-        res = batched_project_hashed(
-            n, K, P, sd, cue, T, beta=BETA, w_max=W_MAX,
-            stim_seeds=ss, stim_size=(STIM_SIZE or K),
-            state=state, max_rounds=total_rounds, return_state=True,
-            refracted_strength=(BETA * REFRACTED_FACTOR if REFRACTED else 0.0),
-            stop_when_stable=CONVERGE, **cfg)
-        win, state = res
-        stored.append(win)
+        stored.append(mem.store(ss, stim_size=(STIM_SIZE or K)))
         if CONVERGE:
-            used.append(state["area"].rounds_used.clone())
+            used.append(mem.rounds_used.clone())
         M = a + 1
         if M in MS:
-            out[M] = measure(n, arm, sd, state, stored, nbrain, rng, cfg)
+            out[M] = measure(n, arm, mem, stored, nbrain, rng)
             if CONVERGE:
                 # Amendment 5, G3: rounds spent per item since the last
                 # checkpoint, and the fraction that converged before T_max
@@ -153,7 +144,7 @@ def _overlaps(Ks, ia, ib):
     return hit.sum(2).float() / K                   # [P, B]
 
 
-def measure(n, arm, sd, state, stored, nbrain, rng, cfg):
+def measure(n, arm, mem, stored, nbrain, rng):
     """All four metrics on the GPU.
 
     The earlier version did `M x B` `.tolist()` calls for distinctness, a
@@ -195,10 +186,8 @@ def measure(n, arm, sd, state, stored, nbrain, rng, cfg):
     flat = (St + off).reshape(-1)                    # [M*B*K], built once
     hits = torch.zeros(nbrain, dtype=torch.int64, device=DEV)
     for a in samp:
-        half = St[a][:, : K // 2].to(torch.int32).contiguous()
-        rec = batched_project_hashed(
-            n, K, P, sd, half, T, beta=BETA, w_max=W_MAX, state=state,
-            freeze=True, mask_bias=(REFRACTED and READOUT == "masked"), **cfg)
+        rec = mem.recall(St[a][:, : K // 2],
+                         masked=(REFRACTED and READOUT == "masked"))
         mask = torch.zeros(nbrain * n, dtype=torch.bool, device=DEV)
         mask[(rec + off[0]).reshape(-1)] = True
         # ONE gather for all M stored assemblies, instead of M gathers.
@@ -206,7 +195,7 @@ def measure(n, arm, sd, state, stored, nbrain, rng, cfg):
         hits += (ov.argmax(dim=0) == int(a)).long()
     rank1 = (hits.double() / len(samp)).cpu().numpy()
     return dict(rank1=rank1.tolist(), pairwise_x=pw_x.tolist(),
-                distinct=dist.tolist(), fill=_fill(state, n).tolist())
+                distinct=dist.tolist(), fill=_fill(mem).tolist())
 
 
 def _fill_at(cells, m_star):
