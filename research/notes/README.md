@@ -51,6 +51,8 @@ sections of the notes use variants.
 | Transducer | closed, null | the induced state carries no information on this corpus | [PREREG_seq_a3_transducer.md](sequence/PREREG_seq_a3_transducer.md) |
 | Aligner | measured | word capacity scales with the lexicon's n | [PREREG_word_capacity.md](aligner/PREREG_word_capacity.md) |
 | Substrate | built | two kernel layouts, one per density regime, gated on the drive | [DESIGN_present_only.md](substrate/DESIGN_present_only.md) |
+| Sampler audit | measured | two of three audited entries stand materialized; the load window's lower edge was the sampler's | [PREREG_sampler_audit.md](sequence/PREREG_sampler_audit.md) |
+| Successor state | running | a state teacher-forced toward its next h words, on a corpus with a 0.21 oracle gap | [PREREG_successor_state.md](sequence/PREREG_successor_state.md) |
 
 ## Refracted memory
 
@@ -125,6 +127,15 @@ grammar's phase would add 0.019 MRR over a bigram on this corpus
 addressed a state collapse that occurs only on the sampled numpy engine;
 its own gate closed it.
 
+**What follows.** [PREREG_agreement_corpus.md](sequence/PREREG_agreement_corpus.md)
+sets an acceptance criterion for a corpus in which history is worth
+something (an oracle state must beat a bigram by 0.10) and accepts a
+chain corpus with two distractors between agreeing words (gap 0.21).
+[PREREG_successor_state.md](sequence/PREREG_successor_state.md) registers
+a construction that teacher-forces the state toward the groundings of the
+next h words, so prefixes with the same future share a code, and tests it
+on that corpus against the induced state.
+
 **Code.** `HashedTransducer` in `core/torch_engine/_hashed_transducer.py`.
 
 ## Aligner
@@ -141,7 +152,10 @@ no recurrent fiber, so the refracted-memory result does not apply to it.
 
 ## Substrate
 
-Two kernel layouts: dense int16 counts for connectivity above about ten
+The masked readout is a mode on both engines
+([DESIGN_readout_mode.md](substrate/DESIGN_readout_mode.md)): a refracted
+area is read with its bias skipped when its `masked_readout` flag is set
+and plasticity is off; writes always see the bias. Two kernel layouts: dense int16 counts for connectivity above about ten
 percent ([DESIGN_dense_floor.md](substrate/DESIGN_dense_floor.md)) and present-only
 lists below it ([DESIGN_present_only.md](substrate/DESIGN_present_only.md)). Every
 unit passes a drive replay against the numpy engine to a relative 5e-6 and
@@ -161,6 +175,9 @@ conditions the theorems require are measured in
   drive-replay gates, which replay recorded winners.
 - Leave refraction strength on a conjunction at beta
   ([PREREG_s5_cliff_anatomy.md](sequence/PREREG_s5_cliff_anatomy.md), Addendum 6).
+- Do not cite the load window's lower edge. Materialized, a refracted
+  conjunction converges at any load below the ceiling
+  ([PREREG_sampler_audit.md](sequence/PREREG_sampler_audit.md)).
 - Report at least three seeds. `ensemble_from_values` refuses fewer.
 - Record failed bars with their numbers. Four of the six predictions
   registered in the week of 2026-09-05 failed, and each failure identified
