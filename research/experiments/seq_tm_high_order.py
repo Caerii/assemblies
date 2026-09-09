@@ -115,9 +115,12 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--brains", type=int, default=len(SEEDS))
     ap.add_argument("--smoke", action="store_true")
+    ap.add_argument("--presentations", type=int, default=PRESENTATIONS,
+                    help="Amendment 1: 20 sits inside the clip window")
+    ap.add_argument("--tag", type=str, default="")
     args = ap.parse_args()
     seeds = SEEDS[: (3 if args.smoke else args.brains)]
-    pres = 3 if args.smoke else PRESENTATIONS
+    pres = 3 if args.smoke else args.presentations
     if args.smoke:
         print("*** SMOKE: API only. THESE NUMBERS ARE VOID. ***")
     print(f"=== temporal memory, high-order sequences: {len(seeds)} brains, n {N}, k {K}, "
@@ -138,7 +141,7 @@ def main():
     r1 = next(x for x in rows if x["set"] == "I" and x["mode"] == "copy" and x["gain"] == 4.0)
     print(f"  TM-6 set I first perfect presentation, g=4: {sorted(x for x in r1['first_perfect'] if x)}")
     if not args.smoke:
-        path = results_path("sequence", "seq_tm_high_order_results.json")
+        path = results_path("sequence", f"seq_tm_high_order_results{args.tag}.json")
         with open(path, "w") as fh:
             json.dump({"seeds": seeds, "n": N, "k": K, "presentations": pres, "rows": rows,
                        "tm4": tm4, "tm5": tm5}, fh, indent=1)
