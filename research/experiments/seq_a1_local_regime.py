@@ -55,6 +55,8 @@ def build(seed, *, organ_p, ambient_p=AMBIENT_P, with_neighbours=True):
                   seed=seed, norm_init=False)
     fsm = build_mod3_fsm(brain, n=N_ARC, k=K, n_state=N_STATE, beta=BETA,
                          organ_p=organ_p)
+    if os.environ.get("NEMO_MATERIALIZE"):          # PREREG_sampler_audit.md
+        brain.materialize_area(fsm.arc_area)
     if with_neighbours:
         # Unrelated traffic at the AMBIENT density, so the organ is embedded in
         # a working brain rather than alone in one that merely has a low `p`.
@@ -115,8 +117,9 @@ def main():
                and arms[1]["correct"] <= 0.2 * arms[1]["n"])
     print(f"\n  SEQ-ORGAN-EMBEDS: {'SUPPORTED' if verdict else 'NOT SUPPORTED'}")
 
-    out = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                       "seq_a1_local_regime_results.json")
+    from _results import results_path
+    out = results_path("sequence", "seq_a1_local_regime_results"
+                       + ("_materialized" if os.environ.get("NEMO_MATERIALIZE") else "") + ".json")
     with open(out, "w") as fh:
         json.dump({"ambient_p": AMBIENT_P, "organ_p": ORGAN_P, "arms": arms},
                   fh, indent=2)

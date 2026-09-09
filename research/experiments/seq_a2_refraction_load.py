@@ -53,6 +53,8 @@ def build(seed, moods, n_arc):
                      transitions=transitions_for(moods), n=n_arc, k=K,
                      n_state=N_STATE, beta=BETA, organ_p=ORGAN_P,
                      prefix="_a2load")
+    if os.environ.get("NEMO_MATERIALIZE"):          # PREREG_sampler_audit.md
+        brain.materialize_area(fsm.arc_area)
     fsm.train_from_list([(m, q, r) for q, m, r in transitions_for(moods)],
                         presentations=PRESENTATIONS)
     return brain, fsm
@@ -81,8 +83,9 @@ def main():
                   f"{ok}/{len(seeds)} correct", flush=True)
         print()
 
-    out = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                       "seq_a2_refraction_load_results.json")
+    from _results import results_path
+    out = results_path("sequence", "seq_a2_refraction_load_results"
+                       + ("_materialized" if os.environ.get("NEMO_MATERIALIZE") else "") + ".json")
     with open(out, "w") as fh:
         json.dump(rows, fh, indent=2)
     print(f"wrote {out}")

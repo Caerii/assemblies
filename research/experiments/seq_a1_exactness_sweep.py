@@ -57,6 +57,8 @@ def trial(seed, p):
     brain = Brain(p=p, save_winners=True, seed=seed, engine="numpy_sparse",
                   norm_init=False)
     fsm = build_mod3_fsm(brain, n=N_ARC, k=K, n_state=N_STATE, beta=BETA)
+    if os.environ.get("NEMO_MATERIALIZE"):          # PREREG_sampler_audit.md
+        brain.materialize_area(fsm.arc_area)
     train_mod3_fsm(fsm, presentations=PRESENTATIONS)
 
     out = {}
@@ -112,8 +114,9 @@ def main():
               f"{s['decided']:>5d}/{len(got):<2d} {s['mean_overlap']:>8.3f}",
               flush=True)
 
-    out = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                       "seq_a1_exactness_sweep_results.json")
+    from _results import results_path
+    out = results_path("sequence", "seq_a1_exactness_sweep_results"
+                       + ("_materialized" if os.environ.get("NEMO_MATERIALIZE") else "") + ".json")
     with open(out, "w") as fh:
         json.dump({"summary": summary, "rows": rows}, fh, indent=2)
     print(f"\nwrote {out}")
