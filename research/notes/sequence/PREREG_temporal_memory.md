@@ -85,3 +85,56 @@ by context-specific arc cells selected by prediction, learned by local
 rules -- with its measured order and speed, and the statement that it is
 episodic (TM-2's outcome) alongside. TM-2 passing would be a larger
 result and would be re-registered before being claimed.
+
+## Result, cells B (2026-09-09, 20 brains, n = n_arc = 4000, k = 100, 40 presentations)
+
+    set   arm                 rank-1 all   ambiguous positions   brains perfect at 40   first perfect
+    I     induced (registered)  1.000        1.000 (2 positions)    20/20                  1
+    I     copy, g = 0           1.000        1.000                  20/20                  1
+    I     copy, g = 4           1.000        1.000                  20/20                  1
+    II    induced               0.998        0.995 (10 positions)   19/20                  1
+    II    copy, g = 0           0.998        0.995                  19/20                  2
+    II    copy, g = 4           0.858        0.770                   0/20                  2-4
+    III   induced               0.957        0.525 (2 positions)     1/20                  1-2
+    III   copy, g = 0           0.966        0.625                   5/20                  2-6
+    III   copy, g = 4           0.957        0.525                   1/20                  13-16
+
+    TM-4  set I at g = 4: 20/20                                        PASS
+    TM-5  set III at g = 4, scored at presentation 40: 1/20            FAIL
+    TM-6  set I first perfect: presentation 1 on every brain
+
+**What the per-presentation curves show, and what the bar missed.** The
+order-10 accuracy at the ambiguous positions, by presentation:
+
+    induced        0.60 then 1.00 from presentation 2 through 31, then 0.42-0.53 (chance) from 32
+    copy, g = 0    rises to 1.00 by presentation 7, holds to 26, decays from 29
+    copy, g = 4    rises from 13, peaks 0.97 at 20, decays from 24
+
+The registered transducer predicts an order-10 sequence exactly for
+thirty consecutive presentations and loses it at presentation 32. That is
+the clip edge measured on the S5 organ (PREREG_s5_cliff_anatomy.md,
+Addenda 5 and 8: relocation between 28 and 30 presentations, c* =
+ln(w_max) / ln(1 + beta) = 31.4 for a synapse potentiated once per
+presentation); here each transition is potentiated once per presentation
+and the collapse lands at 31-32. The registration fixed 40 presentations
+from the spiking model's convergence time, which was the wrong number for
+this substrate, and TM-5 fails for that reason alone. Scored inside the
+window the induced state carries order 10 on every brain, and the
+predicted-win rule adds nothing at order 2 or 10 and costs accuracy on
+set II. The prefix hash is a temporal memory of unbounded order for
+memorized sequences; what it cannot do is generalize across contexts
+(cells A, the chain corpus), which is the same statement the literature
+makes about its own models.
+
+Nothing is adopted from cells B as registered. An amendment with the
+presentation count inside the window (20) is registered below before
+any re-run.
+
+## Amendment 1 (2026-09-09, before re-running): presentations inside the window
+
+    TM-5'  set III at 20 presentations, induced state and copy g = 0:
+           order-10 disambiguation on >= 15/20 brains at the final
+           presentation. PREDICTION: PASSES on both (the curves above hold
+           1.00 from presentation 7 to 26). The re-run is the same script
+           with PRESENTATIONS = 20 and is a confirmation of the window, not
+           a new claim; TM-5 as registered stays FAIL.
