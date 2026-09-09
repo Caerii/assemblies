@@ -1057,6 +1057,23 @@ class Brain:
         """Reset accumulated refracted bias to zero for an area."""
         self._engine.clear_refracted_bias(area_name)
 
+    def set_masked_readout(self, area_name: str, enabled: bool = True) -> None:
+        """Read a refracted area with its bias MASKED.
+
+        A refracted memory is read through the veto or not at all: with the
+        bias subtracted a half-cue recall reads chance, with it masked the
+        stored assembly returns ([[REFRACTION-ANTI-MERGING]]). The flag is
+        honoured only on reads -- projections with plasticity off, as under
+        ``probe()`` or ``frozen()``; a write always sees and charges the
+        bias, because the bias is what keeps items apart while they are
+        written. This is the mode switch the memory needs; nothing in the
+        substrate flips it on its own.
+        """
+        st = self._engine._areas.get(area_name) if hasattr(self._engine, "_areas") else None
+        if st is None:
+            raise KeyError(f"unknown area {area_name!r}")
+        st.masked_readout = bool(enabled)
+
     def materialize_area(self, area_name: str, storage: str = "csr") -> int:
         """Bring all ``n`` neurons into existence AND resync the descriptor.
 

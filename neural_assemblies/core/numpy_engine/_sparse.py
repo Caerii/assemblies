@@ -1725,7 +1725,10 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
                         all_inputs[cidx] -= penalty
 
         # --- Refracted mode: cumulative bias penalty ---
-        if tgt.refracted and tgt._cumulative_bias is not None:
+        # A MASKED READ ranks the raw drive: the bias is skipped on a read
+        # (no plasticity) when the area asks for it. Never on a write.
+        masked_read = bool(getattr(tgt, "masked_readout", False)) and not plasticity_enabled
+        if tgt.refracted and tgt._cumulative_bias is not None and not masked_read:
             bias = tgt._cumulative_bias
             end = min(len(bias), len(all_inputs))
             if end > 0:

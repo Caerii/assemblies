@@ -69,16 +69,13 @@ def half_cue_rank1(b, eng, stored, rng, masked):
     half-cue recall, frozen."""
     M = len(stored)
     samp = rng.choice(M, min(RECALL_SAMPLE, M), replace=False)
-    st = eng._areas[AREA]
     # the engine is driven DIRECTLY (as the parity tests do): the Brain-level
     # call reads its own cached winners, not the half cue set on the engine.
-    # The bias is saved and restored around every recall; masked zeroes it.
-    saved = (st._cumulative_bias.copy()
-             if st.refracted and st._cumulative_bias is not None else None)
+    # The masked read is the engine's own mode (`Brain.set_masked_readout`),
+    # honoured on reads only.
+    b.set_masked_readout(AREA, bool(masked))
     hits = 0
     for a in samp:
-        if saved is not None:
-            st._cumulative_bias = (np.zeros_like(saved) if masked else saved.copy())
         eng.set_winners(AREA, np.asarray(stored[a][: K // 2], dtype=np.int64))
         for _ in range(T):
             eng.project_into(AREA, [], [AREA], plasticity_enabled=False)
@@ -86,8 +83,7 @@ def half_cue_rank1(b, eng, stored, rng, masked):
         ov = [len(rec & s) for s in stored_sets(stored)]
         if int(np.argmax(ov)) == int(a):
             hits += 1
-    if saved is not None:
-        st._cumulative_bias = saved
+    b.set_masked_readout(AREA, False)
     return hits / len(samp)
 
 

@@ -473,3 +473,34 @@ def test_refracted_capacity_protocol_reproduces_numpy_sparse(mod):
         f"relative error {worst:.3g}")
     assert bias_err < 5e-6, (
         f"accumulated bias diverges from the engine's: {bias_err:.3g}")
+
+    # THE MASKED READ, as a mode on both engines: a frozen half-cue
+    # projection with `masked_readout` set ranks the RAW drive. The engine's
+    # snapshot must equal the hashed raw drive (bias skipped), and the same
+    # read with the flag off must equal the net drive.
+    last_new = trace[-1][-1][2]
+    half = last_new[: k // 2]
+    for masked in (True, False):
+        brain.set_masked_readout(AREA, masked)
+        eng.set_winners(AREA, half.astype(np.int64))
+        res = eng.project_into(AREA, [], [AREA], plasticity_enabled=False,
+                               record_activation=True)
+        d_ref = np.asarray(res.pre_kwta_inputs, dtype=np.float64)
+        raw = torch.zeros(1, n, dtype=torch.float32, device="cuda")
+        fiber.contribute(raw, torch.from_numpy(half).cuda().view(1, -1))
+        area.masked_readout = masked
+        got = (raw if masked else area.apply_bias(raw))[0].cpu().numpy().astype(np.float64)
+        m = min(len(d_ref), len(got))
+        err = float(np.abs(d_ref[:m] - got[:m]).max()) / max(float(np.abs(d_ref[:m]).max()), 1e-12)
+        assert err < 5e-6, f"masked_readout={masked}: read diverges, rel {err:.3g}"
+    # and the flag never masks a WRITE: a plastic projection with the flag on
+    # still ranks the NET drive (the hashed net, computed before the write)
+    net_before = area.apply_bias(raw)[0].cpu().numpy().astype(np.float64)
+    brain.set_masked_readout(AREA, True)
+    eng.set_winners(AREA, half.astype(np.int64))
+    res_w = eng.project_into(AREA, [], [AREA], plasticity_enabled=True, record_activation=True)
+    d_w = np.asarray(res_w.pre_kwta_inputs, dtype=np.float64)
+    m = min(len(d_w), len(net_before))
+    err = float(np.abs(d_w[:m] - net_before[:m]).max()) / max(float(np.abs(net_before[:m]).max()), 1e-12)
+    assert err < 5e-6, f"a WRITE was masked: rel {err:.3g}"
+    brain.set_masked_readout(AREA, False)

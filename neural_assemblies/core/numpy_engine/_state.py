@@ -27,6 +27,11 @@ class SparseAreaState:
     refracted: bool = False
     refracted_strength: float = 0.0
     _cumulative_bias: object = None         # xp float32 array, length w
+    #: MASKED READOUT ([[REFRACTION-ANTI-MERGING]]): a read (no plasticity)
+    #: ranks the raw drive, the bias neither subtracted nor charged. Writes
+    #: are never masked -- the bias is what keeps items apart while they
+    #: are written -- so the flag is honoured only when plasticity is off.
+    masked_readout: bool = False
     winner_policy: object = None
     input_noise_std: float = 0.0
     explicit_source: bool = False  # winners are real neuron IDs (explicit area)

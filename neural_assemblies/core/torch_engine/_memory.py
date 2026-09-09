@@ -72,6 +72,9 @@ class AssemblyMemory:
                              "(-1 rows); column scaling takes the store fiber")
         self.area = HashedArea(self.n, self.k, self.seeds, device=device,
                                refracted_strength=self.strength * self.beta)
+        # the memory's reads are masked by default: the store is read through
+        # the veto or not at all
+        self.area.masked_readout = self.strength > 0
         self.fiber = recurrent_fiber(self.seeds, self.n, self.p, beta=self.beta,
                                      w_max=w_max, norm_init=norm_init,
                                      synaptic_scaling=synaptic_scaling,
@@ -123,10 +126,10 @@ class AssemblyMemory:
         and no bias is charged. ``masked`` (default: whenever refracted)
         reads the synaptic memory with the bias zeroed; ``masked=False`` is
         the net readout, which reads chance on a refracted memory."""
-        masked = self.refracted if masked is None else bool(masked)
         self.area.winners = cue.to(torch.int64)
         return self.area.project(self.rounds, [self.fiber], freeze=True,
-                                 mask_bias=(masked and self.refracted))
+                                 mask_bias=(None if masked is None
+                                            else bool(masked) and self.refracted))
 
     # -- state ------------------------------------------------------------------
     @property

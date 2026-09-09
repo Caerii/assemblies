@@ -904,6 +904,9 @@ class HashedArea:
         self.refracted_strength = float(refracted_strength or 0.0)
         self.bias = (torch.zeros(self.B, n, dtype=torch.float32, device=device)
                      if self.refracted_strength > 0 else None)
+        #: MASKED READOUT, the engine's `masked_readout`: a frozen projection
+        #: ranks the raw drive. `project(mask_bias=...)` overrides per call.
+        self.masked_readout = False
         #: TIE JITTER, opt-in. The selector breaks exact ties by smallest
         #: index -- canonical, and what every capacity result was measured
         #: with. But a STIMULUS-driven area under norm_init has a drive with a
@@ -971,7 +974,7 @@ class HashedArea:
         self.winners = self.winners.masked_fill(mask.view(-1, 1), -1)
 
     def project(self, rounds, fibers, *, rows_for=None, freeze=False,
-                stim_drive=None, return_drive=False, mask_bias=False,
+                stim_drive=None, return_drive=False, mask_bias=None,
                 manage_episodes=True, stop_when_stable=False):
         """Run ``rounds`` rounds with ``fibers`` afferent.
 
@@ -1002,6 +1005,8 @@ class HashedArea:
         the ungated run's (tested).
         """
         rows_for = rows_for or {}
+        if mask_bias is None:
+            mask_bias = bool(self.masked_readout) and freeze
         if mask_bias and not freeze:
             raise ValueError("mask_bias is a READOUT option; pass freeze=True")
         if not freeze and manage_episodes:
