@@ -492,3 +492,30 @@ Adoption: G6 pass -> the entry's gating sentence gains "constant in n/k
 (two cells)". S8 pass -> the entry's strength is restated with the
 measured optimum, and the gate is re-run at that strength (post hoc,
 labelled). Neither changes the harness default.
+
+### Amendment 6 -- Strength result (2026-09-09, (4000, 60), 20 brains, arm B, T = 8, grid to 4096)
+
+    strength (x beta)   M*      bracket          rank-1 @ M=8   distinct @ M*
+    0.3                 1986    [1536, 2048) i3     1.000          1.000
+    0.4                 1919    [1536, 2048) i3     1.000          1.000
+    0.5 (R1)            1978    [1536, 2048) i3     0.994          1.000
+    0.6                 1993    [1536, 2048) i3     0.975          1.000
+    0.7 (S7)            does not converge at T = 8; 185 given T = 16
+
+    S8  STRENGTH IS A LEVER.  No strength reaches 2275; the four cells
+        agree within 4%                                              FAIL
+    S9  CONVERGENCE.  All four converge at M = 8 (0.975-1.000); the
+        rank-1 at M = 8 falls with strength (1.000 -> 0.975) and 0.7 is
+        past the transition: the churn transition sits in (0.6, 0.7]
+        beta at T = 8, one step above S7's bracket.
+
+**Reading.** Refraction is a SWITCH, not a dial. From 0.3 beta to 0.6
+beta the ceiling is a plateau at ~1950 -- the same bracket, the same
+interior points, the same curves -- while the Hebbian control holds 83.
+The ceiling is therefore set by the synaptic memory (the Willshaw-like
+~0.40 (n/k)^2 of Amendment 4), and refraction's only job is to keep the
+items from merging while it is written; any strength that does that
+without crossing the churn transition gives the same memory. 0.5 beta
+stands as the protocol's value, now as the middle of a measured plateau
+rather than a chosen point. The gate is NOT re-run at another strength
+(there is no other strength).
