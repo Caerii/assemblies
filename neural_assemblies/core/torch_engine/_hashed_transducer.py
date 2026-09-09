@@ -116,7 +116,7 @@ class HashedTransducer:
                  tie_jitter: float = 1e-6, device: str = "cuda",
                  zero_or_size: bool = True, horizon: int = 0,
                  successor_gain: float = 1.0, state_mode: str = "induced",
-                 predict_gain: float = 0.0):
+                 predict_gain: float = 0.0, features=None, feature_of=None):
         #: stimuli follow the ENGINE's zero-or-size model by default (see
         #: StimulusFiber); False gives Binomial counts, the aligner's choice
         self.zero_or_size = bool(zero_or_size)
@@ -198,9 +198,30 @@ class HashedTransducer:
                                    beta=beta, w_max=w_max, norm_init=norm_init,
                                    max_rounds=max_potentiations, device=device)
 
+        #: FEATURE REGISTER (PREREG_feature_register.md): `features` names the
+        #: feature stimuli (e.g. ["sg", "pl"]); `feature_of` maps a word to a
+        #: feature index or -1. A word with a feature writes REG from that
+        #: feature's stimulus on its tick; a word without one leaves REG as
+        #: it is. REG -> ARC is an organ fiber, learned like the others, so
+        #: the arc is the conjunction of LEX, STATE and REG.
+        self.features = list(features) if features else []
+        self.reg = None
+        if self.features:
+            self.reg_area = f"{prefix}_reg"
+            self.reg = area(self.reg_area, n)
+            self.F = StackedStimuli(S, [f"{prefix}_f_{f}" for f in self.features], k, n,
+                                    self.p, beta=beta, w_max=w_max, norm_init=norm_init,
+                                    max_rounds=max_potentiations, device=device,
+                                    zero_or_size=self.zero_or_size)
+            fo = [int(feature_of.get(w, -1)) for w in self.vocab]
+            self.feature_of = torch.tensor(fo, dtype=torch.int64, device=device)
+            self.reg_gate = True          # False: every word with a feature writes (FR-4)
+            self.reg_blind = False        # True: REG held empty at test (FR-3)
         self.lex_arc = fiber(self.lex_area, self.arc_area, n, self.n_arc)
         self.state_arc, self.arc_state = self.core.state_arc, self.core.arc_state
         self.arc_out = fiber(self.arc_area, self.out_area, self.n_arc, n)
+        self.reg_arc = (fiber(self.reg_area, self.arc_area, n, self.n_arc)
+                        if self.reg is not None else None)
         self.out_signature: Dict[str, torch.Tensor] = {}
 
     # -- words as tensors -----------------------------------------------------
@@ -224,17 +245,41 @@ class HashedTransducer:
     # -- the clock ------------------------------------------------------------
     def reset(self, mask=None) -> None:
         """Sentence boundary for every brain, or for the brains in `mask`."""
-        for a in (self.lex, self.arc, self.state, self.out):
+        for a in ((self.lex, self.arc, self.state, self.out)
+                  + ((self.reg,) if self.reg is not None else ())):
             if mask is None:
                 a.inhibit()
             else:
                 a.inhibit_rows(mask)
 
     def _rows(self):
-        return {id(self.lex_arc): self.lex.winners,
+        rows = {id(self.lex_arc): self.lex.winners,
                 id(self.state_arc): self.state.winners,
                 id(self.arc_state): self.arc.winners,
                 id(self.arc_out): self.arc.winners}
+        if self.reg is not None:
+            rows[id(self.reg_arc)] = self.reg.winners
+        return rows
+
+    def _write_register(self, widx, freeze):
+        """Words with a feature write REG from the feature's stimulus; the
+        others leave it. Ungated (FR-4): the write is the word's own feature
+        for every word that has one, which is the same table -- gating is
+        expressed in `feature_of` (nouns -1 gated, their number ungated)."""
+        f = self.feature_of[widx.clamp_min(0)]
+        f = torch.where(widx >= 0, f, torch.full_like(f, -1))
+        if self.reg_blind or not bool((f >= 0).any()):
+            return
+        old = self.reg.winners
+        self.F.set_words(f)
+        new = self.reg.project(1, [self.F], freeze=freeze)
+        if old.shape[1] == new.shape[1]:
+            keep = (f < 0).view(-1, 1)
+            self.reg.winners = torch.where(keep, old, new)
+        elif old.shape[1] == 0:
+            # brains without a feature this tick and no register yet: a
+            # register that means nothing is worse than none; blank them
+            self.reg.winners = new.masked_fill((f < 0).view(-1, 1), -1)
 
     def _predicted_bonus(self):
         """[B, n_arc] additive term making predicted neurons win: g x the
@@ -255,13 +300,18 @@ class HashedTransducer:
     def tick(self, word, rounds: int = 3, freeze: bool = False) -> None:
         """`freeze` is the numpy experiments' `probe()`: no plasticity, no
         refraction charged, for scoring."""
-        self.S.set_words(self._widx(word))
+        widx = self._widx(word)
+        self.S.set_words(widx)
         self.lex.project(rounds, [self.S], freeze=freeze)
+        fibers = [self.lex_arc, self.state_arc]
+        rows = {id(self.lex_arc): self.lex.winners, id(self.state_arc): self.state.winners}
+        if self.reg is not None:
+            self._write_register(widx, freeze)
+            if self.reg.winners.shape[1]:
+                fibers.append(self.reg_arc)
+                rows[id(self.reg_arc)] = self.reg.winners
         bonus = self._predicted_bonus()
-        self.arc.project(1, [self.lex_arc, self.state_arc],
-                         rows_for={id(self.lex_arc): self.lex.winners,
-                                   id(self.state_arc): self.state.winners},
-                         freeze=freeze, stim_drive=bonus)
+        self.arc.project(1, fibers, rows_for=rows, freeze=freeze, stim_drive=bonus)
 
     def write(self, target, rounds: int = 3, ahead=None) -> None:
         """Teacher-force OUT toward `target` (the next word) and, with a

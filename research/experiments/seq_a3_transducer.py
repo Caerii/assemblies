@@ -64,6 +64,8 @@ CHAIN_GAP = 1
 SUCCESSOR_GAIN = 1.0
 STATE_MODE = "induced"  # or "copy" (PREREG_temporal_memory.md)
 PREDICT_GAIN = 0.0
+REGISTER = None         # (features, feature_of) for PREREG_feature_register.md
+REGISTER_BLIND = False
 
 
 def _gen():
@@ -395,7 +397,11 @@ def a3_hashed(seeds, *, n_arc, beta, state_blind=False, collect_state=False,
                              max_potentiations=64, refracted_strength=strength,
                              horizon=horizon, successor_gain=SUCCESSOR_GAIN,
                              state_mode=STATE_MODE, predict_gain=PREDICT_GAIN,
-                             n_state=(n_arc if STATE_MODE == "copy" else None))
+                             n_state=(n_arc if STATE_MODE == "copy" else None),
+                             features=(REGISTER[0] if REGISTER else None),
+                             feature_of=(REGISTER[1] if REGISTER else None))
+        if REGISTER and REGISTER_BLIND:
+            t.reg_blind = True
         margins = [[] for _ in group]
         t.ground(rounds=GROUND_ROUNDS)
         W, T, St = _schedules([tr for _, tr, _ in group], wi)
@@ -663,8 +669,70 @@ def main_temporal(seeds, gains=(0.0, 1.0, 4.0), n_arc=10000, gap=2):
     _write(out, f"_temporal_chain_gap{CHAIN_GAP}")
 
 
+def _feature_tables(words):
+    """(gated, ungated) feature_of tables on the chain corpus: gated writes
+    only from the agreeing classes; ungated from every number-marked word."""
+    import ntp_agree
+    gated, ungated = {}, {}
+    for w in words:
+        c = ntp_agree.CLASS[w]
+        base, num = c.split("_")
+        idx = {"sg": 0, "pl": 1}[num]
+        ungated[w] = idx
+        gated[w] = idx if base in ("AUX", "VERB", "PRON", "TAG") else -1
+    return gated, ungated
+
+
+def main_register(seeds, n_arc=10000, gap=2):
+    """PREREG_feature_register.md: gated register, state-blind with the
+    register, register-blind, and the ungated register."""
+    global CORPUS, CHAIN_GAP, REGISTER, REGISTER_BLIND
+    CORPUS, CHAIN_GAP = "chain", int(gap)
+    import ntp_agree
+    ntp_agree.use_chain(True, gap=CHAIN_GAP)
+    words = ntp_agree.vocabulary(VOCAB_SIZE)
+    gated, ungated = _feature_tables(words)
+    print(f"=== feature register on the chain corpus, gap {CHAIN_GAP} (PREREG_feature_register.md) ===")
+    base = {s: ntp_agree.oracle_gap(s) for s in seeds}
+    bigram = ensemble_from_values([base[s][1] for s in seeds], "bigram", keys=seeds)
+    oracle = ensemble_from_values([base[s][3] for s in seeds], "oracle", keys=seeds)
+    print(f"    {bigram}\n    {oracle}", flush=True)
+    out = {"corpus": "chain", "gap": CHAIN_GAP, "seeds": seeds, "n_arc": n_arc,
+           "bigram": {"mean": bigram.mean, "ci": bigram.ci, "values": list(bigram.values)},
+           "oracle": {"mean": oracle.mean, "ci": oracle.ci, "values": list(oracle.values)}}
+    cells = {}
+    for name, table, blind_reg, blind_state in (("gated", gated, False, False),
+                                                ("gated_state_blind", gated, False, True),
+                                                ("gated_register_blind", gated, True, False),
+                                                ("ungated", ungated, False, False)):
+        REGISTER, REGISTER_BLIND = (["sg", "pl"], table), blind_reg
+        m, ov = a3_hashed(seeds, n_arc=n_arc, beta=BETA, state_blind=blind_state, collect_state=True)
+        cell = ensemble_from_values([m[s] for s in seeds], f"reg({name})", keys=seeds)
+        d = paired_delta(cell, bigram, label=f"reg({name}) - bigram")
+        print(f"    {cell}\n    {d}", flush=True)
+        cells[name] = d
+        out[name] = {"mrr": {"mean": cell.mean, "ci": cell.ci, "values": list(cell.values)},
+                     "delta_bigram": {"mean": d.mean, "ci": d.ci, "values": list(d.values)}}
+    REGISTER, REGISTER_BLIND = None, False
+    print("\n=== BARS ===")
+    verdicts = {
+        "FR-1 gated register closes the gap (lower bound >= 0.15)": cells["gated"].low >= 0.15,
+        "FR-2 register carries it with the state empty (lower bound >= 0.15)": cells["gated_state_blind"].low >= 0.15,
+        "FR-3 register-blind falls back (upper bound <= 0.05)": cells["gated_register_blind"].high <= 0.05,
+        "FR-4 ungated register fails (upper bound <= 0.05)": cells["ungated"].high <= 0.05,
+    }
+    for name, ok in verdicts.items():
+        print(f"  {'PASS' if ok else 'FAIL'}  {name}")
+    out["verdicts"] = verdicts
+    _write(out, f"_register_chain_gap{CHAIN_GAP}")
+
+
 if __name__ == "__main__":
-    if "--temporal" in sys.argv:
+    if "--register" in sys.argv:
+        n_seeds = int(sys.argv[sys.argv.index("--seeds") + 1]) if "--seeds" in sys.argv else len(HASHED_SEEDS)
+        gap = int(sys.argv[sys.argv.index("--gap") + 1]) if "--gap" in sys.argv else 2
+        main_register(HASHED_SEEDS[:n_seeds], gap=gap)
+    elif "--temporal" in sys.argv:
         n_seeds = int(sys.argv[sys.argv.index("--seeds") + 1]) if "--seeds" in sys.argv else len(HASHED_SEEDS)
         gs = ([float(x) for x in sys.argv[sys.argv.index("--gains") + 1].split(",")]
               if "--gains" in sys.argv else (0.0, 1.0, 4.0))
