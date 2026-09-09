@@ -115,7 +115,8 @@ class HashedTransducer:
                  max_potentiations: int = 4096, prefix: str = "_seq",
                  tie_jitter: float = 1e-6, device: str = "cuda",
                  zero_or_size: bool = True, horizon: int = 0,
-                 successor_gain: float = 1.0):
+                 successor_gain: float = 1.0, state_mode: str = "induced",
+                 predict_gain: float = 0.0):
         #: stimuli follow the ENGINE's zero-or-size model by default (see
         #: StimulusFiber); False gives Binomial counts, the aligner's choice
         self.zero_or_size = bool(zero_or_size)
@@ -126,6 +127,20 @@ class HashedTransducer:
         self.k, self.n = k, n
         self.n_arc = n_arc or n
         self.n_state = n_state or n
+        #: TEMPORAL MEMORY (PREREG_temporal_memory.md). `state_mode="copy"`:
+        #: the state is the PREVIOUS ARC (its winners copied after each
+        #: tick; no arc -> state projection), so the state -> arc fiber is a
+        #: lateral arc(t-1) -> arc(t) fiber learned Hebbian prev x new.
+        #: `predict_gain` g > 0: before the arc's k-WTA the lateral drive
+        #: alone names a predicted set (its top k above half its maximum)
+        #: and those neurons' arc drive is multiplied by (1 + g) -- the
+        #: temporal-memory rule that predicted cells win.
+        self.state_mode = state_mode
+        self.predict_gain = float(predict_gain)
+        if state_mode not in ("induced", "copy"):
+            raise ValueError(state_mode)
+        if state_mode == "copy" and self.n_state != self.n_arc:
+            raise ValueError("state_mode='copy' needs n_state == n_arc")
         self.p, self.beta, self.w_max = float(p), float(beta), w_max
         self.organ_p = float(organ_p) if organ_p is not None else float(p)
         self.device = device
@@ -221,13 +236,32 @@ class HashedTransducer:
                 id(self.arc_state): self.arc.winners,
                 id(self.arc_out): self.arc.winners}
 
+    def _predicted_bonus(self):
+        """[B, n_arc] additive term making predicted neurons win: g x the
+        full raw arc drive on the lateral fiber's top-k set (above half its
+        maximum). None when nothing is predicted (an empty state)."""
+        if self.predict_gain <= 0 or self.state.winners.shape[1] == 0:
+            return None
+        lat = torch.zeros(self.B, self.n_arc, device=self.device)
+        self.state_arc.contribute(lat, self.state.winners)
+        top = torch.topk(lat, self.k, dim=1)
+        thresh = (0.5 * top.values[:, :1]).clamp_min(1e-12)
+        mask = torch.zeros_like(lat, dtype=torch.bool)
+        mask.scatter_(1, top.indices, top.values >= thresh)
+        raw = lat
+        self.lex_arc.contribute(raw, self.lex.winners)     # lat + lex = full raw drive
+        return raw * mask.to(raw.dtype) * self.predict_gain
+
     def tick(self, word, rounds: int = 3, freeze: bool = False) -> None:
         """`freeze` is the numpy experiments' `probe()`: no plasticity, no
         refraction charged, for scoring."""
         self.S.set_words(self._widx(word))
         self.lex.project(rounds, [self.S], freeze=freeze)
-        self.core.conjoin([self.lex_arc, self.state_arc], freeze=freeze,
-                          rows_for={id(self.lex_arc): self.lex.winners})
+        bonus = self._predicted_bonus()
+        self.arc.project(1, [self.lex_arc, self.state_arc],
+                         rows_for={id(self.lex_arc): self.lex.winners,
+                                   id(self.state_arc): self.state.winners},
+                         freeze=freeze, stim_drive=bonus)
 
     def write(self, target, rounds: int = 3, ahead=None) -> None:
         """Teacher-force OUT toward `target` (the next word) and, with a
@@ -246,14 +280,22 @@ class HashedTransducer:
         for _ in range(rounds):
             # both targets read the SAME arc: the numpy organ's simultaneous
             # update, done in sequence
-            if self.horizon:
+            if self.state_mode == "copy":
+                pass                                   # the state is set by emit/copy below
+            elif self.horizon:
                 self.state.project(1, state_fibers, rows_for=self.core.rows())
             else:
                 self.core.advance()
             self.out.project(1, [self.arc_out, self.G], rows_for=rows)
+        if self.state_mode == "copy":
+            self.state.winners = self.arc.winners.clone()
 
     def emit(self) -> torch.Tensor:
         """Update the state and read OUT with no teacher, FROZEN."""
+        if self.state_mode == "copy":
+            out = self.out.project(1, [self.arc_out], rows_for=self._rows(), freeze=True)
+            self.state.winners = self.arc.winners.clone()
+            return out
         self.core.advance(freeze=True)
         return self.out.project(1, [self.arc_out], rows_for=self._rows(), freeze=True)
 

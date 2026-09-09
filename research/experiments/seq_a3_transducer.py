@@ -62,6 +62,8 @@ UNIGRAM, NO_CONTEXT, BIGRAM, CONTEXT_14 = 0.1178, 0.2074, 0.2338, 0.1046
 CORPUS = "study4"      # or "chain" (PREREG_agreement_corpus.md)
 CHAIN_GAP = 1
 SUCCESSOR_GAIN = 1.0
+STATE_MODE = "induced"  # or "copy" (PREREG_temporal_memory.md)
+PREDICT_GAIN = 0.0
 
 
 def _gen():
@@ -391,7 +393,9 @@ def a3_hashed(seeds, *, n_arc, beta, state_blind=False, collect_state=False,
         t = HashedTransducer(gseeds, words, n=N, n_arc=n_arc, k=K, p=P, beta=beta,
                              organ_p=ORGAN_P, w_max=20.0, norm_init=True,
                              max_potentiations=64, refracted_strength=strength,
-                             horizon=horizon, successor_gain=SUCCESSOR_GAIN)
+                             horizon=horizon, successor_gain=SUCCESSOR_GAIN,
+                             state_mode=STATE_MODE, predict_gain=PREDICT_GAIN,
+                             n_state=(n_arc if STATE_MODE == "copy" else None))
         margins = [[] for _ in group]
         t.ground(rounds=GROUND_ROUNDS)
         W, T, St = _schedules([tr for _, tr, _ in group], wi)
@@ -617,8 +621,56 @@ def main_successor(seeds, horizons=(0, 1, 2), n_arc=10000, gap=1, gain=1.0):
     _write(out, f"_successor_chain_gap{CHAIN_GAP}_g{SUCCESSOR_GAIN}")
 
 
+def main_temporal(seeds, gains=(0.0, 1.0, 4.0), n_arc=10000, gap=2):
+    """PREREG_temporal_memory.md, cells A: state = previous arc, predicted
+    neurons win at gain g, on the chain corpus; state-blind audit per g."""
+    global CORPUS, CHAIN_GAP, STATE_MODE, PREDICT_GAIN
+    CORPUS, CHAIN_GAP, STATE_MODE = "chain", int(gap), "copy"
+    import ntp_agree
+    ntp_agree.use_chain(True, gap=CHAIN_GAP)
+    print(f"=== temporal memory on the chain corpus, gap {CHAIN_GAP} (PREREG_temporal_memory.md) ===")
+    base = {s: ntp_agree.oracle_gap(s) for s in seeds}
+    bigram = ensemble_from_values([base[s][1] for s in seeds], "bigram", keys=seeds)
+    oracle = ensemble_from_values([base[s][3] for s in seeds], "oracle", keys=seeds)
+    print(f"    {bigram}\n    {oracle}", flush=True)
+    out = {"corpus": "chain", "gap": CHAIN_GAP, "state_mode": "copy", "seeds": seeds, "n_arc": n_arc,
+           "bigram": {"mean": bigram.mean, "ci": bigram.ci, "values": list(bigram.values)},
+           "oracle": {"mean": oracle.mean, "ci": oracle.ci, "values": list(oracle.values)}}
+    verdicts = {}
+    for g in gains:
+        PREDICT_GAIN = float(g)
+        m, ov = a3_hashed(seeds, n_arc=n_arc, beta=BETA, collect_state=True)
+        cell = ensemble_from_values([m[s] for s in seeds], f"tm(g={g})", keys=seeds)
+        d = paired_delta(cell, bigram, label=f"tm(g={g}) - bigram")
+        h4 = ensemble_from_values([ov[s] for s in seeds], f"arc_overlap(g={g})", keys=seeds)
+        mb, _ = a3_hashed(seeds, n_arc=n_arc, beta=BETA, state_blind=True)
+        blind = ensemble_from_values([mb[s] for s in seeds], f"blind(g={g})", keys=seeds)
+        bd = paired_delta(cell, blind, label=f"tm(g={g}) - blind")
+        print(f"    {cell}\n    {d}\n    {h4}\n    {blind}\n    {bd}", flush=True)
+        out[f"g{g}"] = {"mrr": {"mean": cell.mean, "ci": cell.ci, "values": list(cell.values)},
+                        "delta_bigram": {"mean": d.mean, "ci": d.ci, "values": list(d.values)},
+                        "overlap": {"mean": h4.mean, "ci": h4.ci},
+                        "blind_delta": {"mean": bd.mean, "ci": bd.ci, "values": list(bd.values)}}
+        if g == 0.0:
+            verdicts["TM-1 copy-state alone: reported"] = True
+        else:
+            verdicts[f"TM-2 g={g} closes >= 40% of the gap (lower bound >= 0.085)"] = d.low >= 0.085
+            verdicts[f"TM-3 g={g} state informative"] = bd.low > 0.0
+    print("\n=== BARS ===")
+    for name, ok in verdicts.items():
+        print(f"  {'PASS' if ok else 'FAIL'}  {name}")
+    out["verdicts"] = verdicts
+    _write(out, f"_temporal_chain_gap{CHAIN_GAP}")
+
+
 if __name__ == "__main__":
-    if "--successor" in sys.argv:
+    if "--temporal" in sys.argv:
+        n_seeds = int(sys.argv[sys.argv.index("--seeds") + 1]) if "--seeds" in sys.argv else len(HASHED_SEEDS)
+        gs = ([float(x) for x in sys.argv[sys.argv.index("--gains") + 1].split(",")]
+              if "--gains" in sys.argv else (0.0, 1.0, 4.0))
+        gap = int(sys.argv[sys.argv.index("--gap") + 1]) if "--gap" in sys.argv else 2
+        main_temporal(HASHED_SEEDS[:n_seeds], gains=tuple(gs), gap=gap)
+    elif "--successor" in sys.argv:
         n_seeds = int(sys.argv[sys.argv.index("--seeds") + 1]) if "--seeds" in sys.argv else len(HASHED_SEEDS)
         hs = ([int(x) for x in sys.argv[sys.argv.index("--horizons") + 1].split(",")]
               if "--horizons" in sys.argv else (0, 1, 2))
