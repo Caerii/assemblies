@@ -149,3 +149,26 @@ below ~10%, dense above. That is a substrate fact worth the day.
   are suspended and re-running (PREREG_refraction_capacity.md CAVEAT).
 * Also adopted: `StimulusFiber(zero_or_size=True)`, the engine's stimulus
   model, as the organ's default (not the cause, but the model).
+
+## Built (2026-09-09): the assigned-state core, and GATE-3 before its data
+
+`HashedArcFSM` (`_hashed_fsm.py`): `NemoArcFSM` on the hashed substrate,
+B brains a launch -- symbols as stacked stimuli into a refracted ARC,
+STATE -> ARC and ARC -> STATE organ fibers, the state alphabet ASSIGNED as
+disjoint compact blocks, the teacher-forced write as an `observe` onto the
+pinned block (the engine's fixed-target plasticity), running frozen.
+
+* FSM-1 (drive replay, 5e-6, refraction bias included): PASS on the first
+  run once the fibers were seeded by the engine's area NAMES -- the
+  engine's pair seeds are content-addressed by name, so a port must carry
+  the prefix ([[writer-and-reader-must-share-the-lookup]]).
+* FSM-4 (identity across width): PASS.
+
+GATE-3 is run next, with one thing said first. A1's five numpy seeds ran
+on the SAMPLED engine (only STATE materialized); the hashed organ equals
+the MATERIALIZED engine ([[sampler-is-the-whole-discrepancy]]). If the
+numpy seeds fall outside the hashed central 90%, the sampler is the first
+suspect, and the check is the numpy organ re-run materialized on the same
+five seeds -- not a kernel hunt. The bar is unchanged: at p = 0.3 and
+p = 0.4, 20 brains, 2000 digits, the five numpy first-error indices
+(NEVER = censored at 2000) inside the hashed [5th, 95th] percentile.
