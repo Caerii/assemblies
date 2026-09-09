@@ -60,12 +60,14 @@ UNIGRAM, NO_CONTEXT, BIGRAM, CONTEXT_14 = 0.1178, 0.2074, 0.2338, 0.1046
 
 
 CORPUS = "study4"      # or "chain" (PREREG_agreement_corpus.md)
+CHAIN_GAP = 1
+SUCCESSOR_GAIN = 1.0
 
 
 def _gen():
     if CORPUS == "chain":
         import ntp_agree
-        ntp_agree.use_chain(True)
+        ntp_agree.use_chain(True, gap=CHAIN_GAP)
         return ntp_agree
     return ntp
 
@@ -389,7 +391,7 @@ def a3_hashed(seeds, *, n_arc, beta, state_blind=False, collect_state=False,
         t = HashedTransducer(gseeds, words, n=N, n_arc=n_arc, k=K, p=P, beta=beta,
                              organ_p=ORGAN_P, w_max=20.0, norm_init=True,
                              max_potentiations=64, refracted_strength=strength,
-                             horizon=horizon)
+                             horizon=horizon, successor_gain=SUCCESSOR_GAIN)
         margins = [[] for _ in group]
         t.ground(rounds=GROUND_ROUNDS)
         W, T, St = _schedules([tr for _, tr, _ in group], wi)
@@ -561,20 +563,22 @@ def main_strength(seeds, strength, n_arc=10000):
     _write(out, f"_hashed_s{strength}")
 
 
-def main_successor(seeds, horizons=(0, 1, 2), n_arc=10000):
+def main_successor(seeds, horizons=(0, 1, 2), n_arc=10000, gap=1, gain=1.0):
     """PREREG_successor_state.md on the chain corpus: h in {0, 1, 2}, the
     state-blind audit at the largest h, paired against each seed's own
     bigram and oracle (ntp_agree.oracle_gap)."""
-    global CORPUS
-    CORPUS = "chain"
+    global CORPUS, CHAIN_GAP, SUCCESSOR_GAIN
+    CORPUS, CHAIN_GAP, SUCCESSOR_GAIN = "chain", int(gap), float(gain)
     import ntp_agree
-    ntp_agree.use_chain(True)
+    ntp_agree.use_chain(True, gap=CHAIN_GAP)
+    print(f"    gap {CHAIN_GAP}, successor gain {SUCCESSOR_GAIN}")
     print("=== successor state on the chain corpus (PREREG_successor_state.md) ===")
     base = {s: ntp_agree.oracle_gap(s) for s in seeds}
     bigram = ensemble_from_values([base[s][1] for s in seeds], "bigram", keys=seeds)
     oracle = ensemble_from_values([base[s][3] for s in seeds], "oracle", keys=seeds)
     print(f"    {bigram}\n    {oracle}", flush=True)
-    out = {"corpus": "chain", "seeds": seeds, "n_arc": n_arc,
+    out = {"corpus": "chain", "gap": CHAIN_GAP, "successor_gain": SUCCESSOR_GAIN,
+           "seeds": seeds, "n_arc": n_arc,
            "bigram": {"mean": bigram.mean, "ci": bigram.ci, "values": list(bigram.values)},
            "oracle": {"mean": oracle.mean, "ci": oracle.ci, "values": list(oracle.values)}}
     cells = {}
@@ -610,7 +614,7 @@ def main_successor(seeds, horizons=(0, 1, 2), n_arc=10000):
     for name, ok in verdicts.items():
         print(f"  {'PASS' if ok else 'FAIL'}  {name}")
     out["verdicts"] = verdicts
-    _write(out, "_successor_chain")
+    _write(out, f"_successor_chain_gap{CHAIN_GAP}_g{SUCCESSOR_GAIN}")
 
 
 if __name__ == "__main__":
@@ -618,7 +622,9 @@ if __name__ == "__main__":
         n_seeds = int(sys.argv[sys.argv.index("--seeds") + 1]) if "--seeds" in sys.argv else len(HASHED_SEEDS)
         hs = ([int(x) for x in sys.argv[sys.argv.index("--horizons") + 1].split(",")]
               if "--horizons" in sys.argv else (0, 1, 2))
-        main_successor(HASHED_SEEDS[:n_seeds], horizons=tuple(hs))
+        gap = int(sys.argv[sys.argv.index("--gap") + 1]) if "--gap" in sys.argv else 1
+        gain = float(sys.argv[sys.argv.index("--gain") + 1]) if "--gain" in sys.argv else 1.0
+        main_successor(HASHED_SEEDS[:n_seeds], horizons=tuple(hs), gap=gap, gain=gain)
     elif "--strength" in sys.argv:
         n_seeds = int(sys.argv[sys.argv.index("--seeds") + 1]) if "--seeds" in sys.argv else len(HASHED_SEEDS)
         main_strength(HASHED_SEEDS[:n_seeds], float(sys.argv[sys.argv.index("--strength") + 1]))

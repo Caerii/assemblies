@@ -60,3 +60,32 @@ predicted future. FAIL of SR-2 with SR-1 passing: the construction is
 sound in principle and the arc -> state map does not learn the copy;
 report the site accuracy and the state overlap and stop. FAIL of SR-1
 (h = 1 helps): the account of why is wrong; report before anything else.
+
+## Amendment 1 (2026-09-09, before the full run): gap 2, and a forcing gain
+
+A three-seed API smoke on the gap-1 chain (numbers void by rule) showed
+two things that change the design, not the question. First, at horizon 0
+the induced state already carries the number across one distractor, so
+SR-0 as written cannot hold there; the corpus moves to gap 2
+(PREREG_agreement_corpus.md, Amendment 1), where the induced state must
+carry the bit across two steps. Second, full-strength forcing appeared to
+replace the arc's induced content in the state rather than add to it,
+so the forcing gets a gain: the successor stimuli's drive scaled by
+`successor_gain` (1.0 is a full stimulus; 0.3 leaves the arc's drive in
+charge with the successors as a bias).
+
+Cells, gap 2, 20 seeds: horizons {0, 1, 3} at gain 1.0; horizons {0, 3}
+at gain 0.3; the state-blind audit at h = 3 and at h = 0.
+
+    SR-0'  h = 0 at gap 2: MRR - bigram and the state-blind delta, REPORTED
+           (the induced state's own carry across two steps; no bar).
+    SR-1'  h = 1 does not help: MRR(h=1) - MRR(h=0) paired, upper bound
+           <= 0.02.  PREDICTION: PASSES.
+    SR-2'  h = 3 closes the gap: at one of the two gains, MRR(h=3) - bigram
+           lower bound >= 0.085 (40% of 0.214) AND MRR(h=3) - MRR(h=0) paired
+           lower bound > 0.  PREDICTION: PASSES at gain 0.3; uncertain at 1.0.
+    SR-3'  state informative at h = 3: full minus blind, lower bound > 0.
+    SR-4'  no collapse at h = 3: cross-prefix state overlap upper bound < 0.5.
+
+SR-2' is the bar the construction lives on; the h = 0 arm is what it
+must beat, since the induced state is not the null on this corpus.

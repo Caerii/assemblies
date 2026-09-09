@@ -114,7 +114,8 @@ class HashedTransducer:
                  w_max: float | None = 20.0, norm_init: bool = True,
                  max_potentiations: int = 4096, prefix: str = "_seq",
                  tie_jitter: float = 1e-6, device: str = "cuda",
-                 zero_or_size: bool = True):
+                 zero_or_size: bool = True, horizon: int = 0,
+                 successor_gain: float = 1.0):
         #: stimuli follow the ENGINE's zero-or-size model by default (see
         #: StimulusFiber); False gives Binomial counts, the aligner's choice
         self.zero_or_size = bool(zero_or_size)
@@ -160,6 +161,22 @@ class HashedTransducer:
                                 self.p, beta=beta, w_max=w_max, norm_init=norm_init,
                                 max_rounds=max_potentiations, device=device,
                                 zero_or_size=self.zero_or_size)
+        #: SUCCESSOR STATE (PREREG_successor_state.md): with `horizon` h > 0
+        #: the state area is teacher-forced, during the write, toward the
+        #: groundings of the next h words -- one stacked stimulus per offset
+        #: into STATE -- so two prefixes with the same next h words are pushed
+        #: to the same state code. h = 0 is the registered transducer: the
+        #: state is induced by the arc alone.
+        self.horizon = int(horizon)
+        self.Gs = [StackedStimuli(S, [f"{prefix}_gs{j}_{w}" for w in self.vocab], k,
+                                  self.n_state, self.p, beta=beta, w_max=w_max,
+                                  norm_init=norm_init, max_rounds=max_potentiations,
+                                  device=device, zero_or_size=self.zero_or_size)
+                   for j in range(self.horizon)]
+        #: the forcing's weight against the arc's own drive into STATE; 1.0
+        #: is a full stimulus, below it the induced content survives
+        for g in self.Gs:
+            g.base = g.base * float(successor_gain)
 
         def fiber(src, dst, n_pre, n_post):
             return DenseOrganFiber(pair_seeds(S, src, dst), n_pre, n_post, self.organ_p,
@@ -212,13 +229,27 @@ class HashedTransducer:
         self.core.conjoin([self.lex_arc, self.state_arc], freeze=freeze,
                           rows_for={id(self.lex_arc): self.lex.winners})
 
-    def write(self, target, rounds: int = 3) -> None:
+    def write(self, target, rounds: int = 3, ahead=None) -> None:
+        """Teacher-force OUT toward `target` (the next word) and, with a
+        horizon, STATE toward `ahead` [B, h] (the next h words, -1 past the
+        sentence's end)."""
         self.G.set_words(self._widx(target))
         rows = self._rows()
+        state_fibers = [self.arc_state]
+        if self.horizon:
+            if ahead is None:
+                raise ValueError("a transducer with a horizon needs `ahead`")
+            ahead = self._widx(ahead)
+            for j, g in enumerate(self.Gs):
+                g.set_words(ahead[:, j])
+            state_fibers = state_fibers + self.Gs
         for _ in range(rounds):
             # both targets read the SAME arc: the numpy organ's simultaneous
             # update, done in sequence
-            self.core.advance()
+            if self.horizon:
+                self.state.project(1, state_fibers, rows_for=self.core.rows())
+            else:
+                self.core.advance()
             self.out.project(1, [self.arc_out, self.G], rows_for=rows)
 
     def emit(self) -> torch.Tensor:
@@ -262,9 +293,24 @@ class HashedTransducer:
         idle), `starts` [B, S] bool -- a sentence begins at this step."""
         words, targets = self._widx(words), self._widx(targets)
         starts = starts.to(self.device)
-        for s in range(words.shape[1]):
+        S_ = words.shape[1]
+        ahead_all = None
+        if self.horizon:
+            # word s + j, or -1 when a sentence starts in (s, s + j]
+            ahead_all = torch.full((self.B, S_, self.horizon), -1, dtype=torch.int64,
+                                   device=self.device)
+            for j in range(1, self.horizon + 1):
+                if j >= S_:
+                    break
+                blocked = torch.zeros(self.B, S_ - j, dtype=torch.bool, device=self.device)
+                for d in range(1, j + 1):
+                    blocked |= starts[:, d:S_ - j + d]
+                ahead_all[:, :S_ - j, j - 1] = torch.where(blocked, torch.full_like(words[:, j:], -1),
+                                                           words[:, j:])
+        for s in range(S_):
             if not bool((words[:, s] >= 0).any()):
                 break
             self.reset(starts[:, s])
             self.tick(words[:, s], rounds=rounds)
-            self.write(targets[:, s], rounds=rounds)
+            self.write(targets[:, s], rounds=rounds,
+                       ahead=(ahead_all[:, s] if ahead_all is not None else None))

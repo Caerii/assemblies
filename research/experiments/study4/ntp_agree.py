@@ -57,11 +57,13 @@ GAP_BAR = 0.10
 
 
 CHAIN = False   # set by `use_chain()`
+GAP = 1         # distractor nouns between agreeing words (Amendment 1: 2)
 
 
-def use_chain(on: bool = True) -> None:
-    global CHAIN, CLASS
+def use_chain(on: bool = True, gap: int = 1) -> None:
+    global CHAIN, CLASS, GAP
     CHAIN = on
+    GAP = int(gap)
     CLASS = {w: c for c, ws in (CHAIN_CLASSES if on else WORD_CLASSES).items() for w in ws}
 
 
@@ -83,7 +85,8 @@ def generate_chain(n: int, seed: int) -> List[List[str]]:
         for j, cls in enumerate(CHAIN_ORDER):
             s.append(rng.choice(C[f"{cls}_{subj}"]))
             if j < len(CHAIN_ORDER) - 1:
-                s.append(rng.choice(C[f"NOUN_{rng.choice(('sg', 'pl'))}"]))
+                for _g in range(GAP):
+                    s.append(rng.choice(C[f"NOUN_{rng.choice(('sg', 'pl'))}"]))
         out.append(s)
     return out
 
@@ -179,8 +182,9 @@ if __name__ == "__main__":
     import numpy as np
     import sys
     if "--chain" in sys.argv:
-        use_chain(True)
-        print("CHAIN variant")
+        gap = int(sys.argv[sys.argv.index("--gap") + 1]) if "--gap" in sys.argv else 1
+        use_chain(True, gap=gap)
+        print(f"CHAIN variant, gap {gap}")
     rows = [oracle_gap(s) for s in range(42, 62)]
     for name, col in zip(("unigram", "bigram", "phase oracle", "phase+number oracle"), zip(*rows)):
         v = np.array(col)

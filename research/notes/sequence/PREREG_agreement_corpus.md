@@ -46,3 +46,17 @@ The chain is the corpus for PREREG_successor_state.md. It is a probe, not
 English: what it isolates is whether an induced state can carry one bit
 across a distractor, which is the capacity the template also needs and
 cannot measure.
+
+## Amendment 1 (2026-09-09): a gap of two distractors
+
+The chain with one distractor between agreeing words is accepted, but a
+three-seed API smoke of the transducer on it (numbers void by rule; the
+shape is design information) showed the induced state at horizon 0
+already at the oracle: the state after an agreeing word is a function of
+that word, so one bit survives one distractor with no construction at
+all. The chain therefore gains a `gap` parameter, the number of
+distractor nouns between agreeing words, and the state study runs at
+gap = 2: the state must carry the number across two steps.
+
+    corpus          unigram   bigram   phase oracle   phase+number oracle   oracle - bigram
+    chain, gap 2    0.107     0.122    0.250          0.336                 +0.214 +/- 0.007   ACCEPTED
