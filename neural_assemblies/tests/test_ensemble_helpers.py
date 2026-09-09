@@ -68,7 +68,7 @@ def test_paired_delta_requires_matching_seeds():
 class TestLoadAudit:
     """Both cases are CONSTRUCTED, because a flag that never says no has no
     measured power. The true positive is the A/B whose answer is already known
-    from `research/notes/recurrence_ceiling_on_exact_drive.md` (norm_init on vs
+    from `research/notes/memory/recurrence_ceiling_on_exact_drive.md` (norm_init on vs
     off reads an 8.0x capacity gain on the sampler and 1.0x on exact drive);
     the true negative is the same protocol at a different seed, which must NOT
     be flagged or the check is just noise.
@@ -135,7 +135,7 @@ class TestGainStability:
     what needs pinning here is the DECISION RULE, and a closed-form effect
     makes the true-positive and true-negative cases exact rather than sampled.
     The measured case it encodes is in
-    `research/notes/ceiling_n_scaling_on_exact_drive.md`.
+    `research/notes/memory/ceiling_n_scaling_on_exact_drive.md`.
     """
 
     #: The measured capacity exponent at three gains (2026-08-02). The design

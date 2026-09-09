@@ -42,13 +42,13 @@ brains per cell on the hashed GPU substrate, and adopted into
 
 | Register ID | Claim | Key numbers | Where |
 |-------------|-------|-------------|-------|
-| `REFRACTION-ANTI-MERGING` | A recurrent k-WTA area refracted at half beta, read with its bias masked, is an associative memory; refraction prevents items from merging while they are written. | ~0.40 (n/k)² stored assemblies in regime; 25× the Hebbian control; strength 0.3 to 0.6 beta one plateau; convergence-gated writes +24 to 34% | [PREREG_refraction_memory.md](../research/notes/PREREG_refraction_memory.md) |
-| `SEQ-EXACT-RECOVERY` | The refracted-arc transition machine is exact on the explicit substrate; its rare soft transitions are ties between a block's least-connected neuron and the best-connected outsider, and training just below the weight clip removes them. | 40 of 40 brains error-free over 2000 steps; 0 soft pairs in 84,000 across 500 organs at 20 presentations; arc strength fixed at beta | [PREREG_s5_cliff_anatomy.md](../research/notes/PREREG_s5_cliff_anatomy.md) |
+| `REFRACTION-ANTI-MERGING` | A recurrent k-WTA area refracted at half beta, read with its bias masked, is an associative memory; refraction prevents items from merging while they are written. | ~0.40 (n/k)² stored assemblies in regime; 25× the Hebbian control; strength 0.3 to 0.6 beta one plateau; convergence-gated writes +24 to 34% | [PREREG_refraction_memory.md](../research/notes/memory/PREREG_refraction_memory.md) |
+| `SEQ-EXACT-RECOVERY` | The refracted-arc transition machine is exact on the explicit substrate; its rare soft transitions are ties between a block's least-connected neuron and the best-connected outsider, and training just below the weight clip removes them. | 40 of 40 brains error-free over 2000 steps; 0 soft pairs in 84,000 across 500 organs at 20 presentations; arc strength fixed at beta | [PREREG_s5_cliff_anatomy.md](../research/notes/sequence/PREREG_s5_cliff_anatomy.md) |
 
 A caveat applies to sequence results measured before the port: the numpy
 engine's sampler produced a false horizon and every derailment in them.
 Re-run such a claim materialized, or on the hashed substrate, before using
-it ([DESIGN_sequence_port.md](../research/notes/DESIGN_sequence_port.md)).
+it ([DESIGN_sequence_port.md](../research/notes/sequence/DESIGN_sequence_port.md)).
 
 The reading map for the notes is
 [../research/notes/README.md](../research/notes/README.md).

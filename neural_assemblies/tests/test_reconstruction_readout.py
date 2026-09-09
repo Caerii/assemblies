@@ -1,7 +1,7 @@
 """The reconstruction readout: roles from THIS parse, and the event invariants.
 
 WHAT IS PINNED, and why each is a claim about the SUBSTRATE rather than the
-gate (`research/notes/the_assembly_now_decides.md`; measured in
+gate (`research/notes/categories/the_assembly_now_decides.md`; measured in
 `research/experiments/sentence_conditioned_readout.py` before wiring):
 
   * Both voices read correctly through `parse_roles_by_reconstruction` --

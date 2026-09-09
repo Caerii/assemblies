@@ -6,7 +6,7 @@ rather than *which assembly*" -- and the P600 was built on it anyway, to answer
 a which-assembly question. Two full investigations were spent concluding that
 role binding was dormant, inverted, or capacity-bound before the real answer
 turned out to be that the instrument cannot express the question
-(research/notes/role_binding_works_the_metric_cannot_see_it.md).
+(research/notes/language/role_binding_works_the_metric_cannot_see_it.md).
 
 Documentation demonstrably failed here, so this is the executable form. It also
 guards the reverse: if someone later "fixes" `input_drive` to be

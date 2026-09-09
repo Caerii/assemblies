@@ -120,7 +120,7 @@ scaled vs 0.513 unscaled, causal by intervention). Until the per-form
 normalization unit lands, deferred scaling on feature value areas is
 recommended ONLY for corpora near the synthetic 70/30 imbalance; on
 natural-imbalance corpora run scaling OFF. See
-research/notes/the_real_corpus_inverts_the_collapse.md.**
+research/notes/language/the_real_corpus_inverts_the_collapse.md.**
 
 The corpus default stays
 `SUBJECT_SAMPLING="uniform"` because zipf at the default 50-frame budget
@@ -146,7 +146,7 @@ under a real corpus, whose statistics are Zipfian by nature (#30/#150).
   ROLE_AGENT words — frequency swamping, not margin) and buys nothing
   at n=1e5 (gain-1 retrieval is 1.000 ± 0.000; interaction
   −0.007 ± 0.008). Adopt-only-if bar not met; see
-  research/notes/the_margin_lever_only_pays_below_the_margin.md.
+  research/notes/categories/the_margin_lever_only_pays_below_the_margin.md.
 - Scale is free on this axis: at fixed k=30, role retrieval and parse
   are both at ceiling at n=1e5 (collision load falls faster than the
   margin demand rises). No per-scale retuning.

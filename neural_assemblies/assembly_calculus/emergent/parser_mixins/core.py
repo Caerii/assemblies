@@ -246,7 +246,7 @@ class CoreParserMixin(
         #: 0.727 is overlap's) -- single-step drive comparison saturates
         #: early (#24's weak primitive). "mi" is measured-best at the
         #: default corpus; production at scale sets "overlap" -- see
-        #: research/notes/production_configuration.md. Both answers always
+        #: research/notes/language/production_configuration.md. Both answers always
         #: ride in diag regardless of this switch.
         self.morph_readout: str = "mi"
         #: #151 (paper-regime axes; what_the_papers_actually_prescribe.md).

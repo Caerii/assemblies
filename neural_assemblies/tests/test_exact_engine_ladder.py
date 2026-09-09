@@ -220,7 +220,7 @@ class TestL3GradedSimilarity:
 
     `numpy_sparse` gives 0.906 overlap for FULLY DISJOINT inputs at low area
     load where the exact substrate gives chance (measured 18.0x chance +/-
-    0.0231 at 8 seeds, `research/notes/graded_similarity_and_sampler_load.md`).
+    0.0231 at 8 seeds, `research/notes/substrate/graded_similarity_and_sampler_load.md`).
     L0-L2 can all pass on an engine that still does that.
     """
 
@@ -268,7 +268,7 @@ class TestL3GradedSimilarity:
 # -- the equivalences the proof sketches claim -----------------------------
 
 class TestSelectionEquivalences:
-    """`research/notes/exact_drive_equivalences.md` argues these hold in
+    """`research/notes/substrate/exact_drive_equivalences.md` argues these hold in
     general; these pin the cases a proof cannot catch (an off-by-one in the
     refinement, a tie-break that stops being index-ascending)."""
 

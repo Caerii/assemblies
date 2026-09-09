@@ -52,7 +52,7 @@ class ProjectionResult:
     #: That one mis-guess sets the entire scale of the P600 (#104): `w` grows
     #: 7.8x across probe arms and the measured gap falls 12.5x. Same defect
     #: class as `.w` meaning two things -- see
-    #: research/notes/erp_scale_is_an_implementation_detail.md.
+    #: research/notes/language/erp_scale_is_an_implementation_detail.md.
     pre_kwta_count: int = 0
 
 

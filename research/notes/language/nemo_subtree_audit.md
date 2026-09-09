@@ -24,7 +24,7 @@ category map**:
 
 That is the annotation-driven design [[categories-are-annotation-driven]]
 measured as circular: the category is GIVEN by the modality tag, not learned.
-It is also the map that `research/notes/literature_clues_for_the_three_obstacles.md`
+It is also the map that `research/notes/language/literature_clues_for_the_three_obstacles.md`
 records as citing Mitropolsky & Papadimitriou 2025 for something the paper does
 not contain.
 

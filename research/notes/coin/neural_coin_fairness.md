@@ -26,7 +26,7 @@ that returns pure noise scores near 0.5, because the readout's tie-break lands
 arbitrarily. Every number below is therefore reported with `decisive` next to
 it, and the untrained control is the proof that this matters:
 
-![null contrast](figures/coin_null_contrast.png)
+![null contrast](../figures/coin_null_contrast.png)
 
 At β=0 — nothing learned, same everything else — the coin looks **six times
 fairer** than the trained one: `heads` 0.535 at across-brain `sd` **0.037**,
@@ -120,7 +120,7 @@ matter:
 
 ## The result: fairness is a finite-size effect
 
-![finite size](figures/coin_finite_size.png)
+![finite size](../figures/coin_finite_size.png)
 
 Holding `k/n = 0.1` and growing the area over a 32× range in `k`:
 
@@ -154,7 +154,7 @@ The mechanism is the asymmetry. Perfectly symmetric training still leaves a
 residual, because the two assemblies wire to *themselves* slightly differently
 by chance; that residual is a fluctuation, so it self-averages.
 
-![mechanism](figures/coin_mechanism.png)
+![mechanism](../figures/coin_mechanism.png)
 
 **This figure has a ceiling and must be read with it in mind.** `tilt` is
 `|heads − 0.5|`, so a brain that always answers the same way sits at exactly
@@ -175,8 +175,8 @@ A mean of 0.5 can hide anything. At small `n` the per-brain distribution is
 averaging over that produces a fair-looking number describing no brain that
 exists.
 
-![distribution](figures/coin_distribution.png)
-![per brain](figures/coin_per_brain.png)
+![distribution](../figures/coin_distribution.png)
+![per brain](../figures/coin_per_brain.png)
 
 The transition from *bimodal* to *one peak at 0.5* is the actual result. No
 summary statistic shows it — and note that `heads` is near 0.5 at **every**
@@ -185,7 +185,7 @@ near-deterministic coin. The pooled mean is the one number that never moves.
 
 ## Two knobs, and what they cost
 
-![settling](figures/coin_settling.png)
+![settling](../figures/coin_settling.png)
 
 Recurrence has to run long enough to complete an assembly and no longer.
 Decisiveness climbs 0.571 → 0.607 → 0.648 → 0.765 → 0.952 → 0.985 over
@@ -197,7 +197,7 @@ opportunity to capture the state regardless of the seed. **Decisiveness and
 fairness are traded against each other by this knob**, which is why a study
 reporting only one of them can make any settle length look correct.
 
-![cap density](figures/coin_cap_density.png)
+![cap density](../figures/coin_cap_density.png)
 
 | `k/n` | heads | sd | decisive | overlap(a0,a1) |
 |---|---|---|---|---|

@@ -32,7 +32,7 @@ WHAT EACH THEOREM CLAIMS, and which of them our engine satisfies:
     our implementation.** Overlap is AMPLIFIED, with beta as the gain, and
     raising beta past ``b0`` does not restore it. That divergence is pinned by
     a test rather than asserted away; see
-    ``research/notes/kwta_amplifies_input_overlap.md``.
+    ``research/notes/substrate/kwta_amplifies_input_overlap.md``.
 
 WHY THE DIVERGENCE IS NOT OBVIOUSLY A BUG. Every practical beta is far below
 ``b0``, so the theorem's hypothesis never holds in any regime that has been

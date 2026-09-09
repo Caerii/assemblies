@@ -15,7 +15,7 @@ could see, because both produce plausible numbers rather than errors:
    category differs from the expected one -- so the violation arm reads a
    different area from its control in every frame set at every seed. Area
    identity alone reproduces the headline AUC with the condition held constant
-   (research/notes/p600_is_confounded_with_area_identity.md).
+   (research/notes/language/p600_is_confounded_with_area_identity.md).
 
 These are STRUCTURAL assertions on purpose. They do not pin a magnitude, so they
 survive the metric changing -- which it is expected to, and has, twice.
@@ -148,7 +148,7 @@ def test_the_older_frame_sets_are_known_to_be_untrained(sentences_parser):
     effect. When they are repaired or retired, THIS TEST FAILS, which is
     exactly the notification wanted.
 
-    See research/notes/the_calibration_frames_are_untrained.md.
+    See research/notes/language/the_calibration_frames_are_untrained.md.
     """
     holdouts = default_holdout_set()
     for name, frames in (("DEFAULT", DEFAULT_CALIBRATION_FRAMES),

@@ -1,7 +1,7 @@
 """A connectome that stores DEVIATIONS from a recomputable base, not weights.
 
-Implements `research/notes/DESIGN_virtual_connectome.md` and, as of the third
-pass, `research/notes/PREREG_drive_semantics_v2.md`. A cell's value is
+Implements `research/notes/substrate/DESIGN_virtual_connectome.md` and, as of the third
+pass, `research/notes/substrate/PREREG_drive_semantics_v2.md`. A cell's value is
 
     w[i, j] = CHAIN( OVERRIDE(i, j) ? 1.0 : BASE(i, j),  n[i, j] )
 

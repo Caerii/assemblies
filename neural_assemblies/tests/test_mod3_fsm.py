@@ -26,7 +26,7 @@ class TestMod3Fsm(unittest.TestCase):
 
         Left as an expected failure rather than weakened, so it converts back
         into a passing test the moment drift is fixed. See
-        `research/notes/the_arc_is_a_conjunction_and_the_state_drifts.md` and
+        `research/notes/sequence/the_arc_is_a_conjunction_and_the_state_drifts.md` and
         the retraction block in
         `research/literature/parity/golden/nemo2025_fsm_mod3.json`.
         """

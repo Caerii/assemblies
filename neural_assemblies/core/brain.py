@@ -1071,7 +1071,7 @@ class Brain:
         `area.w`, so on a fully materialised area it divided a sum over 3000
         candidates by 42 -- inflating the number ~70x in precisely the arm that
         is supposed to be ground truth (#104,
-        research/notes/erp_scale_is_an_implementation_detail.md).
+        research/notes/language/erp_scale_is_an_implementation_detail.md).
 
         Returns the number of neurons newly materialised.
         """
@@ -1308,7 +1308,7 @@ class Brain:
         # THE TABLE ABOVE IS THE SAMPLER'S, NOT THE SUBSTRATE'S -- re-derived
         # 2026-08-02 on `numpy_exact`, which computes the drive instead of
         # inventing one for neurons that have not fired
-        # (research/notes/recurrence_ceiling_on_exact_drive.md):
+        # (research/notes/memory/recurrence_ceiling_on_exact_drive.md):
         #
         #     ceiling (acc > 0.90)      numpy_sparse   numpy_exact
         #     recurrent, norm_init ON       M=32          M=16
@@ -1323,7 +1323,7 @@ class Brain:
         # fast the area recruits.  The two arms did not share the error.
         #
         # The "ceiling scales with n" inference was re-run on exact drive
-        # (research/notes/ceiling_n_scaling_on_exact_drive.md) and the GROWTH
+        # (research/notes/memory/ceiling_n_scaling_on_exact_drive.md) and the GROWTH
         # is real -- the sampler did not produce it, inflation is 2.0x/1.0x/1.0x
         # across n.  But the SHAPE of that growth is still not established, and
         # the exponent measured there (1.70) is WITHDRAWN: both that sweep and

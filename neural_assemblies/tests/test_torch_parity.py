@@ -133,7 +133,7 @@ class TestReciprocalParity:
     so weight growth along the recovered trajectory never flips a winner; what
     diverges the engines is how aggressively CANDIDATES outbid the recovered
     incumbents during the mixed rounds -- the same candidate-pricing surface
-    documented in research/notes/FINDING_torch_pricing_exposed.md. That is
+    documented in research/notes/substrate/FINDING_torch_pricing_exposed.md. That is
     what the plastic-gap assertion below is pinning.
     """
 

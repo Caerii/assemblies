@@ -25,7 +25,7 @@ TWO INDEPENDENT PROBLEMS, both measured.
 The separation is REAL and the direction is right. These tests do not dispute
 that. They pin the fact that its magnitude cannot be read off a Cohen's d.
 
-See research/notes/erp_metric_is_clipped.md.
+See research/notes/language/erp_metric_is_clipped.md.
 """
 
 from __future__ import annotations
@@ -124,7 +124,7 @@ class TestRawQuantityIsSaturated:
         "1 - normalized_energy, so the role area receives ~1% of its "
         "normalizing scale throughout. Not fixed by making the parse "
         "read-only -- both arms sit at ~0.99. See "
-        "research/notes/erp_metric_is_clipped.md"))
+        "research/notes/language/erp_metric_is_clipped.md"))
     def test_raw_p600_uses_a_reasonable_fraction_of_its_range(
         self, forked_parser,
     ):

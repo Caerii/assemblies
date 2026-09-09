@@ -3,7 +3,7 @@
 WHAT THESE TESTS ARE FOR. Our shipped P600 detector is a continuous quantity
 compared against a fixed margin, and it is DEAD -- the margin sits 11.9x above
 the largest excess ever observed, because the underlying quantity was redefined
-and the constant was not (#104, research/notes/erp_metric_is_clipped.md). The
+and the constant was not (#104, research/notes/language/erp_metric_is_clipped.md). The
 detectors in `parse_errors` cannot fail that way: two are boolean and the third
 is a set comparison, and every threshold is DERIVED from (n, k).
 

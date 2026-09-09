@@ -612,7 +612,7 @@ class TestColtMultiAssembly:
 
         IF THIS TEST FAILS, overlap preservation started holding -- which is a
         fix worth knowing about, not a regression. Update the golden and
-        research/notes/kwta_amplifies_input_overlap.md rather than silencing it.
+        research/notes/substrate/kwta_amplifies_input_overlap.md rather than silencing it.
         """
         offenders = [
             (a, o) for a, o, c in zip(result.alphas, result.overlaps,

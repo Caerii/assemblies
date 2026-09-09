@@ -25,7 +25,7 @@ parse advance under `read_only()` makes it idempotent from the second read
 (+0 growth, bit-identical probes). But it would mean a word with no existing
 assembly can no longer form one mid-sentence, and whether the
 grammatical/violation separation survives that is unmeasured. See
-research/notes/erp_probe_isolation.md.
+research/notes/language/erp_probe_isolation.md.
 """
 
 from __future__ import annotations
@@ -75,7 +75,7 @@ class TestParseIsNotIdempotent:
         "parses of the SAME sentence return different ERP values (first-word "
         "P600 0.434 -> 0.988 -> 0.9868 -> 0.9865). Every ERP number therefore "
         "depends on read order. Fix is measured but unadopted -- see "
-        "research/notes/erp_probe_isolation.md"))
+        "research/notes/language/erp_probe_isolation.md"))
     def test_repeated_parses_agree(self, forked_parser):
         parser = forked_parser("SENTENCES", seed=42)
         runs = [_probe(parser) for _ in range(3)]

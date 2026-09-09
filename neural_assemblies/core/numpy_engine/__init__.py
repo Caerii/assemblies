@@ -11,7 +11,7 @@ lives and therefore in what they can afford:
 - ``NumpyExactEngine``:    Exact drive with NO stored substrate -- the random
   factor is recomputed from a content-addressed hash and only potentiation is
   kept, so it is exact at large n. See ``_exact`` and
-  ``research/notes/exact_drive_equivalences.md``.
+  ``research/notes/substrate/exact_drive_equivalences.md``.
 
 Sub-modules:
 

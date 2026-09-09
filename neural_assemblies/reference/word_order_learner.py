@@ -53,7 +53,7 @@ always. It CANNOT be biased by recruited size. The 391-vs-449 measurement was of
 function of recruited size by construction. Measured on the trained model, the
 mood-dependent part of the score was ~15% while the constant per-helper spread
 was ~63%, with helper sizes 432 / 658 / 484 -- the competition was decided by
-recruitment rather than by learning (research/notes/conjunctive_arc_measured.md).
+recruitment rather than by learning (research/notes/sequence/conjunctive_arc_measured.md).
 
 ``scoring="winners"`` is therefore the DEFAULT and the faithful reading of both
 the reference and the paper's "the role area with the most synaptic input will

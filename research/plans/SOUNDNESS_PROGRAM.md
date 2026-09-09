@@ -277,7 +277,7 @@ uniform `k`-subset of `n` still addressed mostly nothing (82% of the seed at
 
 Measured through the shipped API at `n=2000, k=200`: overlap with the winning
 attractor **0.985** vs `legacy`'s **0.159**, against a `k/n = 0.100` floor. The
-standalone ladder (`research/notes/neural_coin_fairness.md`) takes it to 1.000
+standalone ladder (`research/notes/coin/neural_coin_fairness.md`) takes it to 1.000
 by `n=8000` and finds basin asymmetry scaling as **`k^-1.01`, log-log
 r = -0.997** over a 32× range in `k`.
 

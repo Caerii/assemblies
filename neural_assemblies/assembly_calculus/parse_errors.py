@@ -20,7 +20,7 @@ categorical, and one primitive that underpins both:
 WHY THIS MODULE EXISTS. Our shipped P600 detector is ``1 - normalized_energy``
 compared against a fixed margin. Measured, the raw quantity occupies 0.7% of
 [0,1] in every condition and the margin sits 11.9x above the largest excess ever
-observed, so the detector cannot fire -- see research/notes/erp_metric_is_clipped.md
+observed, so the detector cannot fire -- see research/notes/language/erp_metric_is_clipped.md
 and #104. A continuous quantity acquired a scale, the scale changed, and the
 threshold did not. The three signals here cannot suffer that failure: two are
 boolean and the third is a set comparison.

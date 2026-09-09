@@ -1,7 +1,7 @@
 """Morph-feature recall: the readout the detect/train pairs never had.
 
 Pinned from task #129 (`research/experiments/what_variation_buys.py`,
-`research/notes/what_the_variation_bought.md`). What is asserted here is
+`research/notes/language/what_the_variation_bought.md`). What is asserted here is
 chosen by MARGIN, per the paper-parity process:
 
   * WIRING: the "tense"/"number" phases are scheduled ("number" was the

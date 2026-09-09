@@ -193,7 +193,7 @@ class TestStageWiseCalibration:
         #    is not the standard deviation of anything -- which is why
         #    `CalibrationReport.summary()` already demotes Cohen's d to a
         #    bracketed suffix behind the AUC. See
-        #    research/notes/erp_metric_is_clipped.md.
+        #    research/notes/language/erp_metric_is_clipped.md.
         # 2. `deep_d >= shallow_d * 0.5` INVERTS ON NEGATIVE VALUES. For
         #    shallow_d = -0.02 the bar becomes -0.01, i.e. it demands the deep
         #    parser beat the shallow one outright while reading as a 50%

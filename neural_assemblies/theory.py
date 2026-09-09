@@ -468,8 +468,8 @@ _RESULTS: List[Result] = [
         claim="Assembly capacity is EXTENSIVE: about M_max ~ 1.15 n/k distinct "
               "assemblies per area.",
         source="This repository (critical-load measurement).",
-        evidence=("research/notes/capacity_is_not_the_constraint_separation_is.md",
-                  "research/notes/graded_similarity_and_sampler_load.md"),
+        evidence=("research/notes/categories/capacity_is_not_the_constraint_separation_is.md",
+                  "research/notes/substrate/graded_similarity_and_sampler_load.md"),
         caveat="This is why k and p are not interchangeable routes to a regime: "
                "raising k to reach kp spends capacity and forces n up with it.",
     ),
@@ -635,7 +635,7 @@ _RESULTS: List[Result] = [
         claim="The assembly-capacity ceiling M* is a function of n/k ALONE, "
               "not of n and k separately.",
         source="Held-out test registered in "
-               "research/notes/PREREG_capacity_nk_law.md (bar CS1) before the "
+               "research/notes/memory/PREREG_capacity_nk_law.md (bar CS1) before the "
                "data existed. Holding n/k = 66.67 while n varies four-fold "
                "gives M* = 68.8 / 73.1 / 67.6 at n = 4000 / 8000 / 16000 on "
                "the exact count-then-apply path (engine-parity verified) -- "

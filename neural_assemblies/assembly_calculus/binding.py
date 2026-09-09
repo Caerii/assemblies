@@ -274,7 +274,7 @@ def input_drive(
     RATIOS BETWEEN AREAS MEASURED IN ONE CALL ARE STILL FINE -- that is what
     this function is for, and it is why the defect stayed invisible. It is
     absolute magnitudes, and thresholds on them, that do not survive.
-    See research/notes/erp_scale_is_an_implementation_detail.md.
+    See research/notes/language/erp_scale_is_an_implementation_detail.md.
 
     The distinction is not cosmetic. This repository's N400 work found global
     pre-k-WTA energy to be the robust quantity (Cohen's d = -25.2) while

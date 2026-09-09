@@ -2,7 +2,7 @@
 
 WHAT THIS IS FOR. `numpy_sparse` invents a drive for neurons that have not
 fired (`sample_new_winner_inputs`), and that approximation is the entire
-accuracy gap. Measured (`research/notes/graded_similarity_and_sampler_load.md`):
+accuracy gap. Measured (`research/notes/substrate/graded_similarity_and_sampler_load.md`):
 the exact substrate maps similar inputs to similar assemblies -- chance overlap
 for disjoint inputs, rising monotonically to 1.0 -- while the sampler flattens
 that to **0.906 for fully disjoint inputs** at low area load. Every graded

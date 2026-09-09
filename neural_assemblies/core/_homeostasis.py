@@ -57,7 +57,7 @@ drive between wins. Together the bias ledger is denominated in a moving unit
 while it compounds at ``(1 + s)``: a feedforward arc that holds ~100 rounds
 under refraction alone and indefinitely under scaling alone loses its
 assembly within ~10 presentations under both (late stability 0.12 against
-1.00; `research/notes/AUDIT_refraction_scaling.md`). Three S5 studies ran
+1.00; `research/notes/memory/AUDIT_refraction_scaling.md`). Three S5 studies ran
 that combination unscoped and their arc-side results are confounded.
 `check_area_homeostasis` makes the combination unspellable at `Brain`.
 
@@ -237,5 +237,5 @@ def check_area_homeostasis(area_name: str, *, refracted: bool,
             "moving unit: measured, a feedforward arc that holds ~100 rounds "
             "under refraction alone and indefinitely under scaling alone "
             "loses its assembly within ~10 presentations under both "
-            "(research/notes/AUDIT_refraction_scaling.md). Scope scaling to "
+            "(research/notes/memory/AUDIT_refraction_scaling.md). Scope scaling to "
             "the other areas: Brain(synaptic_scaling={...names...}).")

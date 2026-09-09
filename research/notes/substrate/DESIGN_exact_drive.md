@@ -6,7 +6,7 @@ dissolves under the right architecture.
 
 ## Why this is now the highest-value item
 
-`research/notes/graded_similarity_and_sampler_load.md`: the exact substrate maps
+`research/notes/substrate/graded_similarity_and_sampler_load.md`: the exact substrate maps
 similar inputs to similar assemblies (chance at f=0, monotone to 1.0). The
 sampler flattens that to **0.906 for fully disjoint inputs** — 18× chance — at
 low area load, with the error decaying and inverting as the area fills.

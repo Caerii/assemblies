@@ -3,7 +3,7 @@
 Two kernels, both optional -- everything here degrades to ``None`` if nvcc, a
 host compiler or ninja is missing, and callers must check :func:`available`.
 
-WHY THESE EXIST. See ``research/notes/DESIGN_gpu_hashed_drive.md``. A cell's
+WHY THESE EXIST. See ``research/notes/substrate/DESIGN_gpu_hashed_drive.md``. A cell's
 weight is a pure function of its position, and on a card with a ~100:1
 arithmetic-to-bandwidth ratio, computing it is cheaper than reading it -- but
 only if the intermediates never reach memory, which is why this is a fused

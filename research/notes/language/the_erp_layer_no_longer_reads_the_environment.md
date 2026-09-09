@@ -26,7 +26,7 @@ have looked threaded while leaving the door open — the shape rule 3 in
 comes from `os.environ` is exactly the shape `protocol.py` exists to remove. Its
 long docstring was a research record, and records do not belong on a function
 that should not exist; it lives in
-`research/notes/p600_the_honest_number_is_0717.md` and, condensed, on
+`research/notes/language/p600_the_honest_number_is_0717.md` and, condensed, on
 `ErpProtocol.expected_slot`.
 
 **`_ERP_DEBUG` — the one that was actually broken.** A MODULE-LEVEL read,

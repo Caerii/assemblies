@@ -548,7 +548,7 @@ def collect_frame_samples(
     `require_known_vocabulary` raises when a frame contains a word this parser
     neither trained nor declared a holdout. OFF by default because the shipped
     default frames DO NOT PASS IT -- see
-    `research/notes/the_calibration_frames_are_untrained.md` -- and turning it
+    `research/notes/language/the_calibration_frames_are_untrained.md` -- and turning it
     on as a side effect of an unrelated change would break every ERP caller
     rather than answering the question. On for the frame sets that claim to be
     clean, and for the guard test that keeps them that way.

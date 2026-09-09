@@ -135,7 +135,7 @@ def _self_recurrent_energy(brain, area: str) -> Measured:
     ``pre_kwta_pool_ratio`` below: a number read at pool/k ~ 1.4 is not a
     measurement, and this package's history is of exactly such numbers being
     reported as results. See
-    research/notes/erp_scale_is_an_implementation_detail.md.
+    research/notes/language/erp_scale_is_an_implementation_detail.md.
 
     RETURNS `Measured`, AND THAT IS THE POINT OF THIS FUNCTION'S HISTORY. Four
     different conditions used to return the bare float 0.0 -- area absent, no
@@ -284,7 +284,7 @@ def afferent_energy(brain, area: str) -> Measured:
     It spreads the conditions ~1.9x further apart WITHOUT ordering them better.
     The wider span does not rescue the graded detector either: that needs a
     margin of 0.0760, which is 11.9x the self-recurrent span and still 6.2x the
-    afferent one (research/notes/erp_metric_is_clipped.md).
+    afferent one (research/notes/language/erp_metric_is_clipped.md).
 
     The ORIGINAL rejection -- AUC 0.000, zero variance over four seeds -- is
     VOID, not confirmed: it was measured while the arms probed different areas,
@@ -386,7 +386,7 @@ def structural_role_area(category: str, *, verb_seen: bool) -> str:
     grammatical -> ROLE_PATIENT x3, category_violation -> VP x3.
 
     Area identity alone reproduces the headline AUC with the condition held
-    constant (research/notes/p600_is_confounded_with_area_identity.md), which is
+    constant (research/notes/language/p600_is_confounded_with_area_identity.md), which is
     why `_self_recurrent_energy` reads a constant 1.0 on VP and `afferent_energy`
     reads AUC exactly 0.000 with ZERO seed variance. Both are the same fact.
 
@@ -437,7 +437,7 @@ def expected_role_area(
 #: a result can be attributed to an arm from the call site.
 #:
 #: The research record it carried is NOT lost. It is in
-#: `research/notes/p600_the_honest_number_is_0717.md` (the cold 10-seed
+#: `research/notes/language/p600_the_honest_number_is_0717.md` (the cold 10-seed
 #: re-measurement, 0.9056 -> 0.7167, the 1/9 granularity caveat, and the wrong
 #: "IT IS THE BACKBONE CACHE" diagnosis with its real cause in 7e8c61b), and
 #: condensed on `ErpProtocol.expected_slot`. A docstring on a function that
@@ -917,7 +917,7 @@ def measure_lexical_surprise(
     Each undefined branch carries its legacy fallback in `detail["legacy"]` so
     callers can reproduce the old arithmetic EXACTLY while making the choice
     visible -- see `measurement.Measured.or_else` and the Phase 2 note in
-    research/notes/canonical_refactor_plan.md.
+    research/notes/substrate/canonical_refactor_plan.md.
     """
     if not prefix:
         return Measured.undefined(

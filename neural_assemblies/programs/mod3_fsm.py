@@ -113,7 +113,7 @@ def run_mod3_fsm_demo(
     paper requires. That was survivable only because the readout was a table
     lookup and the dynamics could not affect the answer. At the reference's
     n=5000, k=70, p=0.2 the arc sits at kp = 28 against 25.6 and is a clean
-    conjunction (`research/notes/the_arc_is_a_conjunction_and_the_state_drifts.md`).
+    conjunction (`research/notes/sequence/the_arc_is_a_conjunction_and_the_state_drifts.md`).
 
     `norm_init=False` pins the reference substrate; neither area here has a
     self fiber, which is the only thing norm_init exists to stabilise.

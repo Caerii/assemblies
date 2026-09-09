@@ -4,7 +4,7 @@ WHY THIS EXISTS.  ``materialize_area`` allocates the whole ``n x n`` recurrent
 block so that a protocol can drive an area from an arbitrary subset of ``n``
 (the reference NEMO coin does exactly that). Dense, that is ``O(n^2)`` float32:
 16 MB at ``n=2000``, **1.0 GB at ``n=16,000``** -- which is what bounds how far
-the finite-size ladder in ``research/notes/neural_coin_fairness.md`` can run.
+the finite-size ladder in ``research/notes/coin/neural_coin_fairness.md`` can run.
 
 But the block is only ``~p`` occupied -- measured **4.99% at ``p=0.05``** -- so
 95% of those bytes are zeros. CSR stores 8 bytes per nonzero (float32 value +

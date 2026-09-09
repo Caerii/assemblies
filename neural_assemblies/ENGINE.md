@@ -51,7 +51,7 @@ only if a neuron's synapses are a fixed fact. An invented drive has discarded
 that. Four offset policies were tried (per-key, correlation-discounted,
 derived-by-rank, and none); each traded one protocol against another, because
 none had the information. Do not re-derive them -- see
-`research/notes/candidate_sampler_ground_truth.md`.
+`research/notes/substrate/candidate_sampler_ground_truth.md`.
 
 Measured directly on `pnas2020_scaling` (n=10000, k=100, p=0.01), where the
 trade is visible in one table -- `chance = k/n = 0.0100`:
@@ -77,7 +77,7 @@ without it.
 
 **Measured, and the error goes toward MERGING.** `overlap(DST(P_f), DST(P_1))`
 as inputs share a fraction `f` of their neurons (n=2000, k=100, p=0.1, chance
-0.0500) -- `research/notes/graded_similarity_and_sampler_load.md`:
+0.0500) -- `research/notes/substrate/graded_similarity_and_sampler_load.md`:
 
 | f | 0.0 | 0.2 | 0.4 | 0.6 | 0.8 | 1.0 |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |

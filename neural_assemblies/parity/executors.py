@@ -216,7 +216,7 @@ def execute_nemo2025_fsm_mod3() -> dict:
     Raising rather than returning numbers, because a parity executor that
     quietly reports SOMETHING is how a retracted golden comes back. See the
     RETRACTED block in the golden and
-    `research/notes/the_arc_is_a_conjunction_and_the_state_drifts.md`; the
+    `research/notes/sequence/the_arc_is_a_conjunction_and_the_state_drifts.md`; the
     condition for re-recording is P-GOLD passing in seq_a1_fsm_parity.py.
     """
     raise RetractedProtocol(

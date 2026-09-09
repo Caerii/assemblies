@@ -119,7 +119,7 @@ class RandomChoiceArea:
     comparable across-brain spread. Anything that validates this class must
     assert on overlap-with-the-winner against ``k/n``, never on the head rate;
     ``tests/test_coin_construction.py`` pins that distinction, and
-    ``research/notes/neural_coin_fairness.md`` has the full analysis.
+    ``research/notes/coin/neural_coin_fairness.md`` has the full analysis.
 
     Args:
         brain: Brain instance.
@@ -217,7 +217,7 @@ class RandomChoiceArea:
                             rounds=rounds_train)
 
     def _build_attractor(self, fires: int) -> None:
-        """The construction validated in ``research/notes/neural_coin_fairness.md``.
+        """The construction validated in ``research/notes/coin/neural_coin_fairness.md``.
 
         Three things the legacy path gets wrong, each of which was individually
         load-bearing:
@@ -311,7 +311,7 @@ class RandomChoiceArea:
 
         Under ``construction="attractor"`` the same loop is the whole
         mechanism: 0.985 on that measurement. The ladder in
-        ``research/notes/neural_coin_fairness.md`` -- same construction, run
+        ``research/notes/coin/neural_coin_fairness.md`` -- same construction, run
         standalone -- takes it to 1.000 by ``n=8000``, and shows decisiveness
         climbing monotonically over ``rounds`` (0.571 at 1, 0.952 at 10, 0.985
         at 20) then flat at 40: a fixed point, not a slow drift.

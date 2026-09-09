@@ -1648,11 +1648,11 @@ def load_audit(brains: Dict[str, Any], threshold: float = 0.05
     and therefore share its error. They share the engine. They share the error
     only if they share the LOAD -- and the sampler's error is a steep function
     of load (disjoint-input overlap 0.90 at low load, 0.19 once the area fills;
-    `research/notes/graded_similarity_and_sampler_load.md`).
+    `research/notes/substrate/graded_similarity_and_sampler_load.md`).
 
     Measured counterexample: norm_init on vs off under recurrence reads an 8.0x
     capacity gain on `numpy_sparse` and 1.0x on `numpy_exact`
-    (`research/notes/recurrence_ceiling_on_exact_drive.md`). norm_init changes
+    (`research/notes/memory/recurrence_ceiling_on_exact_drive.md`). norm_init changes
     which neurons win, so it changes how fast the area recruits, so the two
     arms carried DIFFERENT sampler errors and the difference between them was
     partly the difference between two errors.
@@ -1765,7 +1765,7 @@ def gain_stability(run, gains: Sequence[float], noise_floor: float,
     7%. Every internal check passed and the result was still an artifact:
     re-measured at beta = 0.05 / 0.10 / 0.20 the exponent read
     1.55 / 1.65 / **0.87**, going SUB-linear at high gain
-    (`research/notes/ceiling_n_scaling_on_exact_drive.md`).
+    (`research/notes/memory/ceiling_n_scaling_on_exact_drive.md`).
 
     Knowing `g_c` is not required to detect this, which is the point. If an
     effect is a property of the substrate it is the same at every gain; if it

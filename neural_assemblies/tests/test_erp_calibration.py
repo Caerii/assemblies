@@ -25,7 +25,7 @@ d is also not an effect size here even when it is stable: it is computed on
 its own median onto a 0.0 floor, so reducing measurement noise inflates d
 without the effect growing. Across four encodings of one IDENTICAL ordering it
 spanned 2.241 to 24.754 while AUC stayed 1.000. See
-research/notes/erp_metric_is_clipped.md and `diagnostics.separation`.
+research/notes/language/erp_metric_is_clipped.md and `diagnostics.separation`.
 
 WHY THE THRESHOLD IS ONLY "ABOVE CHANCE". Measured p600 AUC at SENTENCES depth:
 
@@ -143,7 +143,7 @@ class TestErpCalibration:
         `p600_excess`, where the grammatical arm is crushed onto a 0.0 floor, so
         it can report a healthy positive separation while the RAW ordering is
         reversed. The statistic did not merely lose precision; it disagreed with
-        the data in sign. See research/notes/erp_metric_is_clipped.md.
+        the data in sign. See research/notes/language/erp_metric_is_clipped.md.
         """
         parser = forked_parser("SENTENCES", seed=42)
         fast = calibrate_erp_thresholds(parser, fast=True)

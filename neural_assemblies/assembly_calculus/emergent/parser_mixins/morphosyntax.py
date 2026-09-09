@@ -706,7 +706,7 @@ class MorphosyntaxMixin:
         RETURNED answer therefore follows `self.morph_readout` ("mi" |
         "overlap", #149): "mi" is measured-best at the default corpus,
         "overlap" is the production readout at scale -- see
-        research/notes/production_configuration.md. Both answers are
+        research/notes/language/production_configuration.md. Both answers are
         always in diag; systematic disagreement between them is a finding
         to report, not to average.
         """

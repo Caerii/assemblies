@@ -102,7 +102,7 @@ PLURAL_RATE = 0.30
 #: the uniform-50 corpus is the substrate of every non-morph arc's
 #: standing measurement. The production configuration adopts zipf JOINTLY
 #: with FRAMES_PER_STAGE=200 -- see
-#: research/notes/production_configuration.md. The real resolution is the
+#: research/notes/language/production_configuration.md. The real resolution is the
 #: CHILDES corpus (#30/#150), whose statistics are Zipfian without this
 #: knob existing at all. Experiments patch this module attribute in
 #: their workers.

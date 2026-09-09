@@ -13,7 +13,7 @@ trained coin, because with nothing stored there is no basin to be lopsided.
 Every test here therefore checks how close the settled state lands to an
 attractor, against the ``k/n`` chance floor.
 
-Full analysis: ``research/notes/neural_coin_fairness.md``.
+Full analysis: ``research/notes/coin/neural_coin_fairness.md``.
 """
 
 import numpy as np

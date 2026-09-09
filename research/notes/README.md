@@ -29,11 +29,11 @@ which sections to read.
 
 | Line | Status | Result | Start with |
 |------|--------|--------|------------|
-| Refracted memory | adopted | ~0.40 (n/k)² assemblies, 25× the Hebbian ceiling | [PREREG_refraction_memory.md](PREREG_refraction_memory.md) |
-| Sequence organ | adopted | exact over 2000 steps; soft transitions removed by training below the clip | [DESIGN_sequence_port.md](DESIGN_sequence_port.md) |
-| Transducer | closed, null | the induced state carries no information on this corpus | [PREREG_seq_a3_transducer.md](PREREG_seq_a3_transducer.md) |
-| Aligner | measured | word capacity scales with the lexicon's n | [PREREG_word_capacity.md](PREREG_word_capacity.md) |
-| Substrate | built | two kernel layouts, one per density regime, gated on the drive | [DESIGN_present_only.md](DESIGN_present_only.md) |
+| Refracted memory | adopted | ~0.40 (n/k)² assemblies, 25× the Hebbian ceiling | [PREREG_refraction_memory.md](memory/PREREG_refraction_memory.md) |
+| Sequence organ | adopted | exact over 2000 steps; soft transitions removed by training below the clip | [DESIGN_sequence_port.md](sequence/DESIGN_sequence_port.md) |
+| Transducer | closed, null | the induced state carries no information on this corpus | [PREREG_seq_a3_transducer.md](sequence/PREREG_seq_a3_transducer.md) |
+| Aligner | measured | word capacity scales with the lexicon's n | [PREREG_word_capacity.md](aligner/PREREG_word_capacity.md) |
+| Substrate | built | two kernel layouts, one per density regime, gated on the drive | [DESIGN_present_only.md](substrate/DESIGN_present_only.md) |
 
 ## Refracted memory
 
@@ -46,9 +46,9 @@ set. Strength from 0.3 to 0.6 beta gives the same ceiling. Ending an item's
 write when its winner set repeats raises the ceiling by 24 to 34 percent.
 
 **Evidence.** Twenty brains per cell, grids to 16,384 items, seven (n, k)
-cells; [PREREG_refraction_memory.md](PREREG_refraction_memory.md), Result
+cells; [PREREG_refraction_memory.md](memory/PREREG_refraction_memory.md), Result
 and Amendments 4 to 6. The question came from
-[PREREG_refraction_capacity.md](PREREG_refraction_capacity.md), whose
+[PREREG_refraction_capacity.md](memory/PREREG_refraction_capacity.md), whose
 first answer was wrong because of a selector bug (commit 1b475fc).
 
 **Code.** `AssemblyMemory` in `core/torch_engine/_memory.py`.
@@ -71,12 +71,12 @@ presentations instead of 15 removes them: 0 soft pairs in 84,000 across
 values collapse the arc onto the state conjunct, and higher values relocate
 its members before training finishes.
 
-**Evidence.** [DESIGN_sequence_port.md](DESIGN_sequence_port.md) for the
-port and its gates; [PREREG_s5_cliff_anatomy.md](PREREG_s5_cliff_anatomy.md),
+**Evidence.** [DESIGN_sequence_port.md](sequence/DESIGN_sequence_port.md) for the
+port and its gates; [PREREG_s5_cliff_anatomy.md](sequence/PREREG_s5_cliff_anatomy.md),
 Addenda 3 to 8, for the census. The numpy studies these correct:
-[PREREG_seq_a1_fsm_parity.md](PREREG_seq_a1_fsm_parity.md),
-[PREREG_s5_word_problem.md](PREREG_s5_word_problem.md),
-[the_arc_is_a_conjunction_and_the_state_drifts.md](the_arc_is_a_conjunction_and_the_state_drifts.md).
+[PREREG_seq_a1_fsm_parity.md](sequence/PREREG_seq_a1_fsm_parity.md),
+[PREREG_s5_word_problem.md](sequence/PREREG_s5_word_problem.md),
+[the_arc_is_a_conjunction_and_the_state_drifts.md](sequence/the_arc_is_a_conjunction_and_the_state_drifts.md).
 
 **Code.** `HashedArcFSM` in `core/torch_engine/_hashed_fsm.py`, on
 `HashedArcCore` in `_arc_core.py`.
@@ -84,7 +84,7 @@ Addenda 3 to 8, for the census. The numpy studies these correct:
 ## Transducer
 
 **Result.** The induced-state transducer beats the recurrent accumulator
-of study #14 ([PREREG_context_beyond_bigram.md](PREREG_context_beyond_bigram.md))
+of study #14 ([PREREG_context_beyond_bigram.md](sequence/PREREG_context_beyond_bigram.md))
 by a paired 0.10 MRR, and its state does not collapse. Scoring with the
 state area empty gives the same MRR, so the state contributes no
 information beyond the current word. Lowering the arc's strength makes
@@ -92,8 +92,8 @@ the organ worse (Amendment 2). An oracle state that knew the generating
 grammar's phase would add 0.019 MRR over a bigram on this corpus
 (Amendment 3), which bounds any state effect measurable here.
 
-**Evidence.** [PREREG_seq_a3_transducer.md](PREREG_seq_a3_transducer.md),
-20 seeds. [PREREG_state_refraction.md](PREREG_state_refraction.md)
+**Evidence.** [PREREG_seq_a3_transducer.md](sequence/PREREG_seq_a3_transducer.md),
+20 seeds. [PREREG_state_refraction.md](sequence/PREREG_state_refraction.md)
 addressed a state collapse that occurs only on the sampled numpy engine;
 its own gate closed it.
 
@@ -105,23 +105,23 @@ its own gate closed it.
 lexicon's n and does not change with k or with the anchor. The lexicon has
 no recurrent fiber, so the refracted-memory result does not apply to it.
 
-**Evidence.** [PREREG_word_capacity.md](PREREG_word_capacity.md). The port:
-[DESIGN_hashed_aligner.md](DESIGN_hashed_aligner.md), then
-[DESIGN_present_only.md](DESIGN_present_only.md).
+**Evidence.** [PREREG_word_capacity.md](aligner/PREREG_word_capacity.md). The port:
+[DESIGN_hashed_aligner.md](aligner/DESIGN_hashed_aligner.md), then
+[DESIGN_present_only.md](substrate/DESIGN_present_only.md).
 
 **Code.** `ScheduledAligner` in `core/torch_engine/_scheduled_aligner.py`.
 
 ## Substrate
 
 Two kernel layouts: dense int16 counts for connectivity above about ten
-percent ([DESIGN_dense_floor.md](DESIGN_dense_floor.md)) and present-only
-lists below it ([DESIGN_present_only.md](DESIGN_present_only.md)). Every
+percent ([DESIGN_dense_floor.md](substrate/DESIGN_dense_floor.md)) and present-only
+lists below it ([DESIGN_present_only.md](substrate/DESIGN_present_only.md)). Every
 unit passes a drive replay against the numpy engine to a relative 5e-6 and
 an identity-across-width check before its numbers are used. The regime
 conditions the theorems require are measured in
-[PREREG_theorem_regime.md](PREREG_theorem_regime.md),
-[PREREG_substrate_c_homeostasis.md](PREREG_substrate_c_homeostasis.md) and
-[PREREG_crosstalk_mechanism.md](PREREG_crosstalk_mechanism.md).
+[PREREG_theorem_regime.md](substrate/PREREG_theorem_regime.md),
+[PREREG_substrate_c_homeostasis.md](substrate/PREREG_substrate_c_homeostasis.md) and
+[PREREG_crosstalk_mechanism.md](memory/PREREG_crosstalk_mechanism.md).
 
 ## Working rules
 
@@ -132,7 +132,7 @@ conditions the theorems require are measured in
 - Gate a selector on drives that go negative. The k-WTA sign bug passed the
   drive-replay gates, which replay recorded winners.
 - Leave refraction strength on a conjunction at beta
-  ([PREREG_s5_cliff_anatomy.md](PREREG_s5_cliff_anatomy.md), Addendum 6).
+  ([PREREG_s5_cliff_anatomy.md](sequence/PREREG_s5_cliff_anatomy.md), Addendum 6).
 - Report at least three seeds. `ensemble_from_values` refuses fewer.
 - Record failed bars with their numbers. Four of the six predictions
   registered in the week of 2026-09-05 failed, and each failure identified

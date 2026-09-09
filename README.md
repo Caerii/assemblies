@@ -104,7 +104,7 @@ so the collapse is not an artifact of area size or flip count. And the two
 dissociation, not a trend.
 
 Full analysis, seven figures, and the two defects in
-[research/notes/neural_coin_fairness.md](research/notes/neural_coin_fairness.md).
+[research/notes/coin/neural_coin_fairness.md](research/notes/coin/neural_coin_fairness.md).
 Reproduce with:
 
 ```bash

@@ -205,5 +205,5 @@ class ErpProtocol:
 #: 10-seed study says it shrinks the effect rather than inverting it.
 #: `afferent_energy` stays OFF -- RE-measured cold on area-matched arms
 #: (2026-08-06) and its AUC delta's CI spans zero, so it does not discriminate
-#: better; see research/notes/afferent_energy_is_not_adopted.md.
+#: better; see research/notes/categories/afferent_energy_is_not_adopted.md.
 DEFAULT_PROTOCOL = ErpProtocol()
