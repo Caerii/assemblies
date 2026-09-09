@@ -1,5 +1,8 @@
-"""POST HOC diagnostic (Addendum 5 of PREREG_s5_cliff_anatomy.md; labelled): relocation is the CLIP.
-
+"""POST HOC diagnostic (Addendum 5 of PREREG_s5_cliff_anatomy.md; labelled):
+relocation is the CLIP. Z60, 4 brains, 30 presentations: the arc at
+presentation 15 vs the frozen test arc; neurons LOST vs KEPT by their symbol
+stimulus potentiation count, base (present rows), clip status, bias, and
+net drive at test."""
 import inspect, sys
 sys.path.insert(0, 'F:/Github/assemblies'); sys.path.insert(0, 'F:/Github/assemblies/research/experiments')
 import numpy as np, torch

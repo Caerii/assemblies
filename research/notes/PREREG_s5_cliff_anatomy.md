@@ -408,3 +408,29 @@ relocation of the arc; at 8 the block is not yet written. So presentations
 have a WINDOW: 8 unformed, 15 in the window (the S5 protocol's value, at
 the point where the two tails just touch, 0.06%), 30 relocated (0.13%,
 12% of words derail). Nothing in the Cayley graph enters.
+
+**Post hoc diagnostic 2 (labelled; `seq_s5_arc_clip.py`, Z60, 4 brains, 30
+presentations): relocation is the CLIP, and the strongest members fall first.**
+The derivation: with bias charged as s x raw at every winning round and
+raw growing as R (1 + beta)^c, a member's net is R (1 + beta)^c (1 - s/beta)
++ R s/beta; at s = beta (the organ's strength) it is R, its BASE drive,
+at every presentation -- refraction cancels potentiation exactly, and the
+arc is stable because the members were the top-k of base. The
+cancellation ends when a weight hits the clip (stimulus: base x 1.1^c >=
+w_max x k p = 560): raw stops, bias keeps charging s x raw_clip = 56 per
+presentation, and the member falls under the outsiders (net ~56) within a
+presentation or two. Members with the LARGEST base clip first
+(c* = ln(560 / base) / ln 1.1: base 32 -> 30.0, base 40 -> 27.7).
+
+    presentation-15 arc neurons at P = 30:   lost 17,448   kept 16,152
+    stimulus potentiation count              30 | 30        (identical: no sharing)
+    state -> arc count, accumulated bias     16 | 16, 1151 | 1135   (identical)
+    stimulus BASE (present rows)             median 34 (p10 33) | median 31 (p90 33)
+    clipped at P = 30 (base >= 32.1)         99.1% | 12.0%
+    net drive at test (raw - bias)           41 | 70   (outsiders ~56)
+
+So the window's upper edge is a formula: c_reloc = ln(w_max x max(1, k p) /
+base) / ln(1 + beta) for the best-connected members, ~28-30 here; 15
+presentations sit at half of it. Below the clip the arc never relocates at
+s <= beta. Refraction alone does not set the edge; refraction AND the clip
+do, and the neurons that relocate are the arc's best-connected ones.

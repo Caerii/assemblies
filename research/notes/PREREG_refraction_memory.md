@@ -547,3 +547,21 @@ What is NOT established, stated now: the gate at n/k = 33 (small areas)
 and out of regime; the plateau's lower edge (below 0.3 beta the force
 must fail somewhere between 0 and 0.3); and whether the gated ceiling's
 exponent (1.71) keeps falling.
+
+### Post hoc (2026-09-09, labelled): the CONTROL at T = 16
+
+To separate the memory's rounds window from the sequence organ's (which
+is refraction + clip, PREREG_s5_cliff_anatomy.md Addendum 5), the Hebbian
+control was run at T = 16 on (4000, 60), 20 brains, grid to 512:
+
+    CTL T = 8    M* = 83   [64, 128)
+    CTL T = 16   M* = 8    (cliff: rank-1 below the bar from the first grid point)
+
+The control collapses far harder than the refracted memory did (1978 ->
+203). So the memory's window is NOT refraction's: it is the Hebbian
+store's own -- more rounds per item potentiate the item's synapses
+further, the hub collapse arrives sooner, and refraction only delays it.
+Two windows, two physics: the memory's is synaptic (potentiation per item
+against the store's crosstalk, which the convergence gate trims); the
+organ's is intrinsic (bias against the clip). The "one mechanism, two
+faces" reading offered in conversation is withdrawn in favour of this.
