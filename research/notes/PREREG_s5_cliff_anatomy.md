@@ -359,3 +359,52 @@ Adoption if T1-T3 pass: [[SEQ-EXACT-RECOVERY]]'s soft spots become "tail
 ties in the arc -> state fiber at low gain, rate ~ n_state x P(tails);
 gone at g >= 17", and the S5 protocol's 15 presentations is recorded as
 sitting on the shoulder of that curve.
+
+### Addendum 5 -- Result (2026-09-09, S5, 100 seeds each, 24,000 pairs per arm)
+
+    presentations   gain g   soft / pairs         organs affected   words derailing   c_o (intruder)   c_b = drive_weakest / g
+     8               2.14    22,699 / 24,000      100 / 100         100 / 100         41+              --   (unformed)
+    15               4.18        15 / 24,000      14 / 100            0 / 100         43-46            8.0-10.8   (drive 33-45)
+    30              17.45        32 / 24,000      24 / 100           12 / 100         43-46            1.3-2.5    (drive 23-44)
+
+    T1  MORE GAIN KILLS IT.  30 presentations: 0.133%, 2.1x the rate at
+        15, and 12 derailments where 15 gave none                         FAIL
+    T2  LESS GAIN MULTIPLIES IT.  8 presentations: 94.6%                   PASS as a bar;
+        the reading ("a shoulder of the tie") is WITHDRAWN -- at 8 the
+        machine is not formed (every word derails), not softly tied.
+    T3  THE TWO TAILS at 15: c_b <= 14 and c_o >= 35 in 15/15             PASS
+        c_o 43-46 of 70 rows (Binomial(70, 0.4) upper tail, +3.7-4.4 sd);
+        c_b 8-11 (lower tail, -4 sd): the collision is exactly the
+        registered arithmetic AT 15 PRESENTATIONS.
+
+**Post hoc diagnostic (labelled; `seq_s5_arc_drift.py`, Z60, 4 brains).**
+Why 30 presentations are worse than 15: the overlap of a pair's TEST-TIME
+arc with the arc it produced at each training presentation --
+
+    P = 15  (g 4.2):   0.79 0.97 0.97 ... 0.99   (one arc, from the 2nd presentation on)
+    P = 30  (g 17.4):  0.27 0.47 0.48 ... 0.48 0.49 0.51 0.59 0.69   (RELOCATED late)
+
+    block weakest member's drive   P = 15: mean 74, min 50   P = 30: mean 122, min 34
+    best outsider's drive          P = 15: mean 43, max 50   P = 30: mean 43, max 49
+    pairs with outsider >= weakest P = 15: 0.00%             P = 30: 0.21%
+
+The refraction bias on ARC accrues with every presentation, and past
+~20 presentations it RELOCATES the arc ([[REFRACTION-CANCELS-CONVERGENCE]]:
+relocation once the clip binds). The test-time arc is then half made of
+neurons whose synapses onto the target block were never potentiated, so
+the block's weakest member can fall to a drive of ~34 against outsiders at
+43-49 -- and the rate DOUBLES while the mean block drive rises. Training
+longer hurts the sequence organ, through refraction, not through the
+weights.
+
+**Reading, adopted.** A soft pair is the COLLISION of the target block's
+weakest member with the area's best-connected outsider. The outsider side
+is a Binomial(k, p) upper tail (43-50 present rows of 70 at p = 0.4),
+independent of the group and proportional in count to n_state (Addendum
+4). The block side is how much of the test-time arc was potentiated onto
+the block: at 15 presentations it is a lower tail of present rows (8-11
+of 70, the registered arithmetic); at 30 it is set by refraction's
+relocation of the arc; at 8 the block is not yet written. So presentations
+have a WINDOW: 8 unformed, 15 in the window (the S5 protocol's value, at
+the point where the two tails just touch, 0.06%), 30 relocated (0.13%,
+12% of words derail). Nothing in the Cayley graph enters.
