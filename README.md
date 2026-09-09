@@ -59,7 +59,8 @@ unfinished. Research results live under `research/` and are indexed by
 question, experiment suite, and claim status; the reading map for the
 registrations and design notes is
 [research/notes/README.md](research/notes/README.md), and adopted results
-are cited by ID from `neural_assemblies/theory.py`.
+are cited by ID from `neural_assemblies/theory.py`, rendered as
+[docs/register.md](docs/register.md).
 
 Historical root scripts, old image-learning artifacts, MATLAB prototypes, and
 checkout-era modules have been moved under `legacy/`. The root files that

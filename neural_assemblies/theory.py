@@ -777,5 +777,67 @@ def format_index(results: Sequence[Result] = ()) -> str:
                        sorted(items, key=lambda r: (order[r.status], r.id)))
 
 
+# ---------------------------------------------------------------------------
+# rendering
+# ---------------------------------------------------------------------------
+
+def _split_findings(text: str) -> List[str]:
+    """A caveat written as '(1) ... (2) ...' becomes one item per number;
+    any other caveat is one item."""
+    parts = re.split(r"\s*\(\d+\)\s+", text.strip())
+    parts = [x.strip() for x in parts if x.strip()]
+    return parts if len(parts) > 1 else [text.strip()]
+
+
+def render_markdown() -> str:
+    """The register as Markdown: one section per entry, in file order."""
+    out = ["# Register of results", "",
+           "Rendered from `neural_assemblies/theory.py` by "
+           "`python -m neural_assemblies.theory --render`; do not edit by hand. "
+           "Each entry is cited elsewhere by its ID in double brackets. Statuses: PROVED (in the "
+           "cited source, inside its preconditions), MEASURED (in this repository, "
+           "in the regime named), EXTENSION (relied on beyond either).", ""]
+    by_status: Dict[str, List[Result]] = {}
+    for r in _RESULTS:
+        by_status.setdefault(r.status, []).append(r)
+    out.append("| ID | Status | Claim |")
+    out.append("|----|--------|-------|")
+    for r in _RESULTS:
+        first = r.claim.split(". ")[0].rstrip(".") + "."
+        out.append(f"| [`{r.id}`](#{r.id.lower()}) | {r.status} | {first} |")
+    out.append("")
+    for r in _RESULTS:
+        out.append(f"## {r.id}")
+        out.append("")
+        out.append(f"**Status.** {r.status}. **Source.** {r.source}")
+        out.append("")
+        out.append(f"**Claim.** {r.claim}")
+        out.append("")
+        if r.preconditions:
+            out.append("**Requires.**")
+            out.extend(f"- {x}" for x in r.preconditions)
+            out.append("")
+        if r.evidence:
+            out.append("**Evidence.**")
+            out.extend(f"- {x}" for x in r.evidence)
+            out.append("")
+        if r.implemented_by:
+            out.append("**Used by.** " + "; ".join(f"`{x}`" for x in r.implemented_by))
+            out.append("")
+        if r.caveat:
+            items = _split_findings(r.caveat)
+            if len(items) > 1:
+                out.append("**Findings and caveats.**")
+                out.extend(f"{i}. {x}" for i, x in enumerate(items, 1))
+            else:
+                out.append(f"**Caveat.** {items[0]}")
+            out.append("")
+    return "\n".join(out).rstrip("\n") + "\n"
+
+
 if __name__ == "__main__":
-    print(format_index())
+    import sys as _sys
+    if "--render" in _sys.argv:
+        _sys.stdout.write(render_markdown())
+    else:
+        print(format_index())

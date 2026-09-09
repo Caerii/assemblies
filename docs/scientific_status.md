@@ -50,6 +50,7 @@ engine's sampler produced a false horizon and every derailment in them.
 Re-run such a claim materialized, or on the hashed substrate, before using
 it ([DESIGN_sequence_port.md](../research/notes/sequence/DESIGN_sequence_port.md)).
 
+The full register, rendered from `theory.py`, is [register.md](register.md).
 The reading map for the notes is
 [../research/notes/README.md](../research/notes/README.md).
 

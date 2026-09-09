@@ -69,3 +69,17 @@ class TestTheoryCitations(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+def test_register_rendering_is_current():
+    """docs/register.md is the rendering of theory.py; regenerate it with
+    `python -m neural_assemblies.theory --render > docs/register.md`."""
+    import os
+    from neural_assemblies import theory
+    here = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    path = os.path.join(here, "docs", "register.md")
+    with open(path, encoding="utf-8") as fh:
+        on_disk = fh.read().replace("\r\n", "\n")
+    assert on_disk == theory.render_markdown(), (
+        "docs/register.md is stale: run `python -m neural_assemblies.theory "
+        "--render > docs/register.md`")

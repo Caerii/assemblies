@@ -6,7 +6,8 @@ registered before a run is an amendment; a change decided after seeing data
 is marked post hoc and is never adopted on its own. The `DESIGN_*` files
 describe substrate work and the gates it passed. Adopted results live in
 `neural_assemblies/theory.py` as entries with IDs such as
-`REFRACTION-ANTI-MERGING`; other documents cite the ID.
+`REFRACTION-ANTI-MERGING`; other documents cite the ID. The register is
+rendered to [../../docs/register.md](../../docs/register.md).
 
 Each long note opens with a quoted Status paragraph. It states the outcome,
 the numbers that carry it, what changed from the original registration, and
