@@ -196,3 +196,30 @@ Bars, stated before running:
 * **V3 (dynamics, exploratory):** whether a seeded deviation derails or
   recovers is NOT barred here; if V2 passes it becomes the next question
   (correction-radius curve).
+
+## Addendum 3 (2026-09-09, before running): the census at width, on the EXPLICIT substrate
+
+E7 ran on the SAMPLED arc (only STATE is materialized in `build`). GATE-3
+of the sequence port (DESIGN_sequence_port.md) then found that A1's one
+short horizon at p = 0.3 was the sampler's: the same seed materialized runs
+2000 digits exact. The soft defect -- correct label, one intruder neuron --
+is exactly the kind of one-neuron event a sampled arc could seed. So E7 is
+re-run on `HashedArcFSM` (== the materialized engine), same four groups,
+same ten seeds, same census and the same 500-symbol words, brains batched.
+The hashed organ is not the numpy organ bit for bit (stimulus model,
+sampler), so seeds pair by protocol, not by trajectory.
+
+    W1  THE SOFT PAIRS WERE THE SAMPLER'S.  >= 90% of the 40 organs have no
+        soft and no hard pair and run their word 500 steps without a wrong
+        label.  PREDICTION: PASSES (GATE-3's reading).
+        FAIL: soft pairs persist at ~0.25-0.6% of pairs -> the soft map is
+        substrate-intrinsic, the hitting-time law stands as measured, and
+        the hashed organ inherits it; report the rate against E7's.
+    W2  V2 RESTATED (zero-parameter).  On every organ with a bad pair, the
+        word's first deviation equals its first true-path visit to a bad
+        pair; vacuous on clean organs.
+    W3  reported: the soft overlap values (E7: always 69/70 = 0.986).
+
+If W1 passes, [[SEQ-EXACT-RECOVERY]]'s "AND THE MAP HAS SOFT SPOTS at
+scale" is re-scoped to the sampled engine in the register; the hitting-time
+mechanism is kept as the account of what a soft pair does when one exists.
