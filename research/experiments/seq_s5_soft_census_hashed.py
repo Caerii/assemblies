@@ -51,6 +51,7 @@ def census_at_width(group_name, seeds, longest=LONGEST, presentations=PRESENTATI
     n_arc, n_state = sizes(group, len(symbols))
     table = {(fr, sym): to for fr, sym, to in transitions}
     w_max = inspect.signature(Brain).parameters["w_max"].default
+    gain = min((1.0 + BETA) ** presentations, w_max)
     t0 = time.perf_counter()
     fsm = HashedArcFSM(seeds, states, symbols, transitions, n_arc=n_arc,
                        n_state=n_state, k=K, p=ORGAN_P, beta=BETA,
@@ -101,6 +102,7 @@ def census_at_width(group_name, seeds, longest=LONGEST, presentations=PRESENTATI
             ov_all.append(ov)
             lab, ovc = label.cpu().numpy(), ov.cpu().numpy()
             wins = None
+            drive = None
             for b in range(B):
                 if int(lab[b]) != target:
                     hard[b].append((st, sym))
@@ -110,7 +112,19 @@ def census_at_width(group_name, seeds, longest=LONGEST, presentations=PRESENTATI
                     # relation to the pair in the Cayley graph
                     if wins is None:
                         wins = (fsm.state.winners // K).cpu().numpy()
+                        # the STATE drive this step, recomputed from the arc
+                        # assembly (Addendum 5): the intruder's drive is its
+                        # present-row count at gain 1; a block member's is
+                        # its count x g
+                        drive = torch.zeros(B, n_state, device="cuda")
+                        fsm.arc_state.contribute(drive, fsm.arc.winners)
+                        drive = drive.cpu().numpy()
                     intr = sorted(set(int(x) for x in wins[b] if int(x) != target))
+                    win_b = fsm.state.winners[b].cpu().numpy()
+                    intr_neurons = [int(x) for x in win_b if int(x) // K != target]
+                    c_o = max(float(drive[b, j]) for j in intr_neurons)
+                    blk = drive[b, target * K:(target + 1) * K]
+                    c_b = float(blk.min()) / gain
                     to = table[(st, sym)]
                     rel = []
                     for blk in intr:
@@ -126,7 +140,8 @@ def census_at_width(group_name, seeds, longest=LONGEST, presentations=PRESENTATI
                         else:
                             rel.append("other")
                     relations[b].append({"pair": [st, sym], "to": to,
-                                         "intruder_blocks": intr, "relation": rel})
+                                         "intruder_blocks": intr, "relation": rel,
+                                         "c_o": c_o, "c_b": c_b})
     ov_all = torch.stack(ov_all).cpu().numpy()                    # [pairs, B]
 
     rows = []
@@ -167,13 +182,15 @@ def main():
     ap.add_argument("--seeds", type=int, default=len(SEEDS))
     ap.add_argument("--groups", type=str, default=",".join(GROUP_NAMES))
     ap.add_argument("--tag", type=str, default="")
+    ap.add_argument("--presentations", type=int, default=PRESENTATIONS,
+                    help="Addendum 5: the potentiated gain (1 + beta)^P")
     ap.add_argument("--smoke", action="store_true")
     args = ap.parse_args()
     # seeds continue the registered ten (42..51) upward
     seeds = list(range(SEEDS[0], SEEDS[0] + (2 if args.smoke else args.seeds)))
     groups = args.groups.split(",")
     longest = 20 if args.smoke else LONGEST
-    pres = 2 if args.smoke else PRESENTATIONS
+    pres = 2 if args.smoke else args.presentations
     if args.smoke:
         print("*** SMOKE: API only. THESE NUMBERS ARE VOID. ***")
     print("=== E7 at width: the soft census on the explicit substrate ===\n")
@@ -210,6 +227,13 @@ def main():
     for g_, (nb, np_, nd) in per_group.items():
         print(f"      {g_:7s} {nb:4d} / {np_:6d} ({100.0 * nb / np_:.3f}%)   {nd}")
     print(f"    intruder relations: {dict(rel)}")
+    cs = [(x["c_o"], x["c_b"]) for v in out for x in v["relations"] if "c_o" in x]
+    if cs:
+        t3 = sum(1 for co, cb in cs if cb <= 14 and co >= 35)
+        print(f"    tails (presentations {pres}, gain {min((1 + BETA) ** pres, 20.0):.2f}): "
+              f"c_o (intruder) {sorted(round(c, 1) for c, _ in cs)}; "
+              f"c_b (weakest block member) {sorted(round(c, 1) for _, c in cs)}; "
+              f"T3 (c_b <= 14 and c_o >= 35): {t3}/{len(cs)}")
     pairs = sum(v["n_pairs"] for v in out)
     n_soft = sum(v["n_soft"] for v in out)
     n_hard = sum(v["n_hard"] for v in out)
