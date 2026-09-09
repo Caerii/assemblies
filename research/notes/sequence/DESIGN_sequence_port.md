@@ -10,6 +10,11 @@
 > exposed a sign bug in the k-WTA selector (commit 1b475fc) that no
 > drive-replay gate could see.
 > **Read.** In order; the first section was written before the port existed.
+> **Reproduce.** The gates: `pytest neural_assemblies/tests/test_hashed_fsm_parity.py
+> neural_assemblies/tests/test_hashed_transducer_parity.py` (about 20 s on
+> one GPU). GATE-3: `python research/experiments/seq_a1_horizon_hashed.py
+> --brains 20` (9 s); the materialized check is
+> `research/results/sequence/seq_a1_horizon_materialized_check.json`.
 > **Cite.** `[[SEQ-EXACT-RECOVERY]]` for the machine's exactness.
 
 The aligner's port (DESIGN_hashed_aligner.md -> DESIGN_present_only.md) took

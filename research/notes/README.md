@@ -26,11 +26,27 @@ which sections to read.
 | rounds, presentations | projections per stored item; presentations of each transition to the machine |
 | MRR | mean reciprocal rank of the true next word, ties broken at random |
 
+## Terms
+
+One name per concept, used in the Status blocks and in this map; older
+sections of the notes use variants.
+
+| Term | Meaning | Variants seen in older text |
+|------|---------|-----------------------------|
+| hashed substrate | the GPU path that regenerates each brain's connectome from a hash and batches brains | explicit substrate, width |
+| materialized engine | the numpy engine with an area's connectome drawn in full | explicit engine |
+| sampled engine | the numpy engine drawing an area's connectome lazily as neurons recruit | sampler, lazy |
+| transition machine | the assigned-state organ (`NemoArcFSM`, `HashedArcFSM`) | FSM, the machine, the organ |
+| transducer | the induced-state organ (`SequenceTransducer`, `HashedTransducer`) | A3 organ |
+| soft pair | a transition whose label is correct and whose output assembly has one intruder neuron | soft transition, soft spot, soft defect |
+| relocation | an assembly's members leaving it under accumulated refraction bias | churn, drift |
+| gate | a pass condition a unit must meet before its numbers are used | bar (used for hypotheses) |
+
 ## Index
 
 | Line | Status | Result | Start with |
 |------|--------|--------|------------|
-| Refracted memory | adopted | ~0.40 (n/k)² assemblies, 25× the Hebbian ceiling | [PREREG_refraction_memory.md](memory/PREREG_refraction_memory.md) |
+| Refracted memory | adopted | 0.35 to 0.50 (n/k)² assemblies, 23 to 38× the Hebbian ceiling | [PREREG_refraction_memory.md](memory/PREREG_refraction_memory.md) |
 | Sequence organ | adopted | exact over 2000 steps; soft transitions removed by training below the clip | [DESIGN_sequence_port.md](sequence/DESIGN_sequence_port.md) |
 | Transducer | closed, null | the induced state carries no information on this corpus | [PREREG_seq_a3_transducer.md](sequence/PREREG_seq_a3_transducer.md) |
 | Aligner | measured | word capacity scales with the lexicon's n | [PREREG_word_capacity.md](aligner/PREREG_word_capacity.md) |
@@ -39,12 +55,18 @@ which sections to read.
 ## Refracted memory
 
 **Result.** A recurrent k-WTA area refracted at strength 0.5 beta, read
-from a half cue with its bias masked, stores about 0.40 (n/k)² assemblies
-in regime. The Hebbian control stores one twenty-fifth of that. Stored
+from a half cue with its bias masked, stores 0.35 to 0.50 (n/k)² assemblies
+in regime (0.395 at the largest cell). The Hebbian control stores between
+one twenty-third and one thirty-eighth of that. Stored
 items stay distinct after the area fills and overlap at chance, so
 refraction prevents merging during writing and does not orthogonalize the
-set. Strength from 0.3 to 0.6 beta gives the same ceiling. Ending an item's
-write when its winner set repeats raises the ceiling by 24 to 34 percent.
+set. Strength from 0.3 to 0.6 beta gives the same ceiling (1919 to 1993 at
+one cell). Ending an item's write when its winner set repeats raises the
+ceiling by 24 to 34 percent (two cells).
+
+![half-cue recall against stored items: control, refracted, gated](figures/memory_recall_vs_M.png)
+
+![ceiling against n/k with the 0.40 (n/k)² line](figures/memory_ceiling_vs_nk.png)
 
 **Evidence.** Twenty brains per cell, grids to 16,384 items, seven (n, k)
 cells; [PREREG_refraction_memory.md](memory/PREREG_refraction_memory.md), Result
@@ -64,13 +86,18 @@ horizon came from the sampler.
 
 **Result, soft transitions.** In the S5 word-problem census a soft
 transition is a tie between the target block's least-connected neuron and
-the most-connected neuron outside the block. The rate is the same across
-three groups of order 60, rises with the state area's size, and does not
-depend on the group's Cayley graph. Training each transition for 20 to 24
+the most-connected neuron outside the block. At 15 presentations the rate is
+0.039% with a 95% interval of 0.028 to 0.055% over 84,000 pairs; it is the
+same across three groups of order 60, rises with the state area's size,
+and does not depend on the group's Cayley graph. Training each transition for 20 to 24
 presentations instead of 15 removes them: 0 soft pairs in 84,000 across
 500 organs. The arc's refraction strength has to stay at beta; lower
 values collapse the arc onto the state conjunct, and higher values relocate
 its members before training finishes.
+
+![soft-transition rate against presentations and against strength](figures/organ_soft_rate.png)
+
+![overlap of the test-time arc with the arc at each presentation](figures/organ_arc_drift.png)
 
 **Evidence.** [DESIGN_sequence_port.md](sequence/DESIGN_sequence_port.md) for the
 port and its gates; [PREREG_s5_cliff_anatomy.md](sequence/PREREG_s5_cliff_anatomy.md),

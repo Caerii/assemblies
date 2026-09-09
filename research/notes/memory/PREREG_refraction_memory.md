@@ -15,7 +15,18 @@
 > rounds window is attractor dominance rather than anything refraction
 > adds (post hoc).
 > **Read.** The Result section, then Amendments 4, 5 and 6.
+> **Reproduce.** `python research/experiments/seq_capacity_scaling.py --nk 4000:60
+> --arms B --brains 20 --refracted --refracted-factor 0.5 --readout masked
+> --ms 8,16,32,64,128,192,256,384,512,768,1024,1536,2048,3072,4096 --tag X`
+> gives the 1978 cell in about 35 s on one GPU; add `--converge` for the
+> gated 2645; drop `--refracted` for the control's 83. Results land in
+> `research/results/memory/`. The fused kernels need the CUDA build
+> environment (see `research/experiments/README.md`).
 > **Cite.** `[[REFRACTION-ANTI-MERGING]]`.
+
+![half-cue recall against stored items at n = 4000, k = 60: Hebbian control, refracted, refracted with the convergence gate](../figures/memory_recall_vs_M.png)
+
+![ceiling M* against n/k for both arms, with the 0.40 (n/k)² and 0.017 (n/k)² lines; open markers are out-of-regime cells](../figures/memory_ceiling_vs_nk.png)
 
 Registered before running. Owed by PREREG_refraction_capacity.md's
 re-measurement (2026-09-04): with the substrate's selector fixed
@@ -582,3 +593,32 @@ Two windows, two physics: the memory's is synaptic (potentiation per item
 against the store's crosstalk, which the convergence gate trims); the
 organ's is intrinsic (bias against the clip). The "one mechanism, two
 faces" reading offered in conversation is withdrawn in favour of this.
+
+## Scorecard
+
+Every bar in this registration and its amendments, with the number that
+decided it. Cells are (n, k); 20 brains unless stated.
+
+| Bar | Registered | Verdict | Deciding number |
+|-----|-----------|---------|-----------------|
+| R1 capacity | REF >= 4x CTL at (4000, 60) | PASS | 1978 vs 83, 24x |
+| R2 ratio law at fixed k | M*(n)/n constant | FAIL | superseded by R6/R7: the law is in n/k |
+| R3 orthogonalization | pairwise overlap below chance at M* | FAIL as stated, PASS restated | overlap at chance past fill 1.0; distinct 1.000 |
+| R4 masked readout | net readout at chance | PASS | net M* = 8 |
+| R5 rounds | T = 16 raises the ceiling | FAIL (inverted) | 203 at T = 16 vs 1978 at T = 8 |
+| R6 control law in n/k | matched cells within 25% | PASS | 64/83, 89/83, 263/307, 11.3/11.3 |
+| R7 refracted law in n/k | matched cells within 25% | PASS at 33 and 67 | 1589/1978, 2230/1978, 383/431; at 133 the pair disagrees by 0.68 (one cell out of regime) |
+| N1 numpy engine | REF >= 3x CTL | PASS | >= 512 vs 34 (5 brains) |
+| N2 numpy distinct | distinct 1.000 at M* | PASS | 1.000 |
+| Q1 quadratic | M*/(n/k)^2 in [0.35, 0.50] at both n/k = 133 cells | PASS at (8000, 60), FAIL LOW at (4000, 30) | 0.395; 0.27 (out of regime) |
+| Q2 multiplier | reported | -- | 23x and 18x at n/k = 133; the control is quadratic too from n/k = 67 |
+| Q3 resolution | bracket <= 1.5x | PASS | [6144, 8192); [4096, 6144) |
+| Q4 distinct | distinct >= 0.99 below M* | PASS | 1.000 |
+| G1 gate not worse | gated M* >= 1536 | PASS | 2645 |
+| G2 gate better | gated M* > 2048 | PASS | 2645 [2560, 2816) |
+| G3 rounds fall with load | fewer rounds at high load | FAIL | a U: 5.8 rounds at M ~ 400, 8 at M >= 2048 |
+| G4 gated control | reported | -- | no memory forms: rank-1 0.32 at M = 8 |
+| G5 out-of-regime cell, T_max 16 | converges and reaches the pair | FAIL | converges (0.956) and M* falls 13x to 362 |
+| G6 gain constant in n/k | ratio in [1.15, 1.55] at (8000, 60) | PASS | 1.24 (8666 vs 6995) |
+| S8 strength a lever | some strength >= 2275 | FAIL | 1986, 1919, 1978, 1993 at 0.3 to 0.6 beta |
+| S9 convergence | reported | -- | all converge; transition in (0.6, 0.7] beta |

@@ -13,6 +13,11 @@
 > larger than that is measurable here; further work needs a corpus with a
 > larger oracle gap.
 > **Read.** The hashed Result, then Amendments 2 and 3.
+> **Reproduce.** `python research/experiments/seq_a3_transducer.py --engine
+> hashed` runs the registered study (about 45 min on one GPU);
+> `--strength 0.05` runs Amendment 2 (about 10 min);
+> `python research/experiments/seq_a3_oracle_ceiling.py` computes Amendment
+> 3 in seconds. Results land in `research/results/sequence/`.
 > **Cite.** `[[SEQ-STATE-CODE-EMERGENT]]` remains unproven.
 
 Registered before implementing or running. Successor to

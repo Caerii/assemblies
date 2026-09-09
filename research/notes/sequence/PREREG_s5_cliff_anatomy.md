@@ -16,7 +16,16 @@
 > best-connected members leave the arc first. Strength cannot be moved from
 > beta in either direction (Addendum 6).
 > **Read.** Addenda 3, 4, 5, 6, 7, 8, in that order.
+> **Reproduce.** `python research/experiments/seq_s5_soft_census_hashed.py
+> --seeds 100 --groups S5 --presentations 20 --tag X` gives 0 soft pairs in
+> 24,000 in about 6 min on one GPU; `--presentations 15` gives the 15 of
+> Addendum 4; `--strength 0.05` the collapse of Addendum 6. Results land
+> in `research/results/sequence/`.
 > **Cite.** `[[SEQ-EXACT-RECOVERY]]`.
+
+![soft-transition rate and derailments against presentations per transition, and against refraction strength; S5, 100 organs per point](../figures/organ_soft_rate.png)
+
+![overlap of the test-time arc with the arc at each training presentation, 15 versus 30 presentations](../figures/organ_arc_drift.png)
 
 Registered before implementing or running. Follows `6276685`, where the S5
 per-step readout falsified both amendment bars and showed the failure mode is
@@ -610,3 +619,30 @@ was that choice.
         (c* = 29.7). The safe window is therefore 20 to 28 presentations at
         this organ, and the formula's base should be read at the members'
         upper tail, which it was not.
+
+## Scorecard
+
+Every bar from Addendum 3 on (the explicit substrate), with the number
+that decided it. S5, 100 organs per arm, unless stated.
+
+| Bar | Registered | Verdict | Deciding number |
+|-----|-----------|---------|-----------------|
+| W1 soft pairs were the sampler's | >= 90% of 40 organs clean | PASS at the bar | 36/40; rate 0.067% vs 0.37% sampled |
+| W2 zero-parameter law | first deviation = first soft-pair visit | PASS | 4/4 |
+| W3 overlap | reported | -- | always 69/70 |
+| C1 rate | reported | -- | 0.039% [0.028, 0.055], 84,000 pairs |
+| C2 size or structure | Z120 within 2x of S5 and above order 60 | PASS (size) | 0.037% vs 0.062%; order-60 groups 3/3/3 |
+| C3 intruder relation | other_gen >= 60% | FAIL | other 31/33 |
+| C4 zero-parameter law at scale | every affected organ | PASS | 32/32 |
+| C5 derailment | <= 2% of organs | PASS | 0/500 |
+| T1 more gain kills it | 30 presentations <= 1/24,000 | FAIL | 0.133%, 12 derailments |
+| T2 less gain multiplies it | 8 presentations >= 3x | PASS as a bar, reading withdrawn | 94.6%: unformed |
+| T3 the two tails at 15 | c_b <= 14 and c_o >= 35 in >= 80% | PASS | 15/15 |
+| X1 margin below beta kills soft pairs | 0.05 beta <= 1/3 of 0.062% | FAIL | 100% of pairs bad |
+| X2 conjunction survives below beta | overlaps < 0.15 at 0.05 | FAIL | across-symbol 0.63 |
+| X3 null at 0 | reported | -- | across-state 1.000 |
+| X4 words at 0.05 and 0.08 | <= 2% derail | FAIL at 0.05, PASS at 0.08 | 83%; 0% |
+| N1 normalisation does nothing | within 2x of 0.062% | FAIL | 0.017%, 3.7x lower |
+| N2 gain just below the clip | 20 presentations <= 1/3 of 0.062%; 24 lower | PASS | 0 and 0 in 24,000 |
+| E1 generality at 20 | 0 soft pairs on four other groups | PASS | 0 in 60,000, 400 organs |
+| E2 onset at 28 | a rising edge below 30's rate | FAIL | 0 in 24,000: a cliff between 28 and 30 |
