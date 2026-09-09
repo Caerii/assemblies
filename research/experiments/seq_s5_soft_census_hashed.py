@@ -46,7 +46,7 @@ def _bytes_per_brain(n_arc, n_state):
 
 
 def census_at_width(group_name, seeds, longest=LONGEST, presentations=PRESENTATIONS,
-                    strength=REFRACTED):
+                    strength=REFRACTED, norm_init=False):
     group = GROUPS[group_name]()
     states, symbols, transitions = word_problem_fsm(group)
     n_arc, n_state = sizes(group, len(symbols))
@@ -56,7 +56,7 @@ def census_at_width(group_name, seeds, longest=LONGEST, presentations=PRESENTATI
     t0 = time.perf_counter()
     fsm = HashedArcFSM(seeds, states, symbols, transitions, n_arc=n_arc,
                        n_state=n_state, k=K, p=ORGAN_P, beta=BETA,
-                       refracted_strength=strength, w_max=w_max, norm_init=False,
+                       refracted_strength=strength, w_max=w_max, norm_init=norm_init,
                        max_potentiations=256, prefix="_wp", zero_or_size=False)
     fsm.train(presentations)
     fsm.check()
@@ -205,6 +205,8 @@ def main():
     ap.add_argument("--tag", type=str, default="")
     ap.add_argument("--presentations", type=int, default=PRESENTATIONS,
                     help="Addendum 5: the potentiated gain (1 + beta)^P")
+    ap.add_argument("--norm-init", action="store_true",
+                    help="Addendum 7 N1: in-degree normalisation on the organ")
     ap.add_argument("--strength", type=float, default=REFRACTED,
                     help="Addendum 6: the arc's refraction strength (absolute; "
                          "the registered organ is 0.1 = beta)")
@@ -224,7 +226,8 @@ def main():
         n_arc, n_state = sizes(G, len(G.generators))
         per = max(1, LAUNCH_BYTES // _bytes_per_brain(n_arc, n_state))
         for i in range(0, len(seeds), per):
-            out += census_at_width(g, seeds[i:i + per], longest, pres, args.strength)
+            out += census_at_width(g, seeds[i:i + per], longest, pres, args.strength,
+                                   args.norm_init)
 
     print(f"\n    {'group':7s} {'seed':>4s} {'first_bad':>9s} {'dev':>5s} "
           f"{'pred_dev':>8s} {'V2':>3s} {'soft':>5s} {'hard':>5s} {'min_ov':>7s}")

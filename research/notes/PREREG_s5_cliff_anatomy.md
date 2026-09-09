@@ -497,3 +497,33 @@ later relocation edge), a leaky bias (accumulation without decay is what
 pins the point), or balancing the two conjuncts' exposure
 ([[ARC-CONJUNCT-EXPOSURE]]). Nothing is adopted; the register entry's
 caveat records the pinning.
+
+## Addendum 7 (2026-09-09, before running): the collision's arithmetic, used constructively
+
+Two tests of the mechanism, one predicted to do nothing and one to work,
+both derived from the same arithmetic (a soft pair = the block's weakest
+member, drive g x c_b with c_b a lower tail of Binomial(k, p) present
+rows, tying the best outsider, drive c_o an upper tail of the same).
+
+    N1  IN-DEGREE NORMALISATION does NOTHING.  norm_init on the organ
+        divides a neuron's drive by its TOTAL in-degree, Binomial(n_arc,
+        p) = 16,000 +/- 98 at S5 -- a 0.6% spread. The collision is in the
+        70 rows from the ARC ASSEMBLY, which the total in-degree does not
+        see. S5, 100 seeds, 15 presentations, norm_init=True: soft rate
+        within 2x of 0.062%, conjunction intact.  PREDICTION: PASSES
+        (i.e. no effect). This is the negative control on the account
+        offered in conversation, where normalisation was named a lever.
+    N2  GAIN JUST BELOW THE CLIP works.  The relocation edge is at
+        c* = ln(560 / base) / ln 1.1 ~ 28-30 presentations for the
+        best-connected members; the collision needs g c_b <= c_o. At 20
+        presentations g = 6.7 (block weakest ~10 rows -> 67 > outsider
+        44); at 24, g = 9.8. S5, 100 seeds: soft rate at 20 <= 1/3 of
+        0.062%; at 24 lower still, with NO derailments (the edge not
+        reached).  PREDICTION: PASSES at both; the organ's registered 15
+        was inside the window but not at its best point.
+        FAIL at 24 with derailments: the edge is nearer than the formula
+        (the formula uses the median base; the tail bases clip earlier).
+
+Adoption if N2 passes: the organ's protocol value becomes "presentations
+just below the clip edge, ~0.8 c*" with the formula in the entry, and the
+soft pairs are reduced by the gain rather than accepted as the price.
