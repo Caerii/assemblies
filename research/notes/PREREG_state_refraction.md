@@ -101,3 +101,18 @@ n_state is swept at all.
    cells that lose. A separation number alone is not a result here.
 4. If R1 passes, the winning cell is re-run at A3's full corpus (n_train=200)
    before any claim leaves this note. A mechanism-scale result is a lead.
+
+## Closed at width (2026-09-09), by its own gate
+
+G0 requires the control to exhibit the collapse (separation upper bound
+< 0.2). On the hashed organ, which equals the MATERIALIZED engine, A3's
+20-seed control reads state overlap 0.0728 +/- 0.0060 -- separation 0.93
+(PREREG_seq_a3_transducer.md, hashed result, H4). The collapse this study
+was built to rescue (0.985 on the numpy organ) does not exist on the
+explicit substrate, and the sequence port has since found two other
+numpy-organ fragilities to be the SAMPLER's (A1's short horizon; E7's
+derailments). By the registration's own rule -- "the mechanism scale does
+not exhibit the thing being studied and the study stops" -- G0 fails and
+the study is closed without running R1-R3. What the induced state lacks
+is not separation but information (A3 Amendments 2-3), and no strength
+on the state addresses that.
