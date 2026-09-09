@@ -30,8 +30,7 @@ from typing import Dict, Sequence, Tuple
 
 import torch
 
-from ._hashed import DenseOrganFiber, HashedArea
-from ._hashed_aligner import pair_seeds
+from ._arc_core import HashedArcCore
 from ._hashed_transducer import StackedStimuli
 
 
@@ -56,11 +55,14 @@ class HashedArcFSM:
         self.state_area = f"{prefix}_state"
         self.arc_area = f"{prefix}_arc"
         S = self.seeds
-        self.arc = HashedArea(self.n_arc, k, pair_seeds(S, self.arc_area, self.arc_area),
-                              device=device, refracted_strength=refracted_strength,
-                              tie_jitter=tie_jitter)
-        self.state = HashedArea(self.n_state, k, pair_seeds(S, self.state_area, self.state_area),
-                                device=device, tie_jitter=tie_jitter)
+        # the refracted arc-and-state core is shared with HashedTransducer
+        self.core = HashedArcCore(S, prefix=prefix, n_arc=self.n_arc, n_state=self.n_state,
+                                  k=k, p=p, beta=beta, refracted_strength=refracted_strength,
+                                  w_max=w_max, norm_init=norm_init,
+                                  max_potentiations=max_potentiations,
+                                  tie_jitter=tie_jitter, device=device)
+        self.arc, self.state = self.core.arc, self.core.state
+        self.state_arc, self.arc_state = self.core.state_arc, self.core.arc_state
         # symbols are stimuli of size k into ARC (the reference's disjoint
         # row blocks of one symbol matrix); the engine's stimulus into a
         # SAMPLED area is a Binomial count, so Binomial is the default here
@@ -68,14 +70,6 @@ class HashedArcFSM:
                                   self.n_arc, p, beta=beta, w_max=w_max,
                                   norm_init=norm_init, max_rounds=max_potentiations,
                                   device=device, zero_or_size=zero_or_size)
-        self.state_arc = DenseOrganFiber(pair_seeds(S, self.state_area, self.arc_area),
-                                         self.n_state, self.n_arc, p, beta=beta,
-                                         w_max=w_max, norm_init=norm_init,
-                                         max_rounds=max_potentiations, device=device)
-        self.arc_state = DenseOrganFiber(pair_seeds(S, self.arc_area, self.state_area),
-                                         self.n_arc, self.n_state, p, beta=beta,
-                                         w_max=w_max, norm_init=norm_init,
-                                         max_rounds=max_potentiations, device=device)
         # the assigned code: [n_states, k] compact indices, one block per state
         self.blocks = torch.arange(len(self.states) * self.k, device=device,
                                    dtype=torch.int64).view(len(self.states), self.k)
@@ -106,14 +100,9 @@ class HashedArcFSM:
         self.arc.inhibit()
         self.cue_state(from_state)
         self.sym.set_words(self._idx(symbol, self.symbol_index))
-        self.arc.project(1, [self.state_arc, self.sym],
-                         rows_for={id(self.state_arc): self.state.winners})
+        self.core.conjoin([self.state_arc, self.sym])
         # teacher-forced: ARC -> STATE onto the pinned target block
-        self.cue_state(to_state)
-        self.arc_state.begin_episode()
-        self.arc_state.observe(self.arc.winners, self.state.winners)
-        self.arc_state.end_episode()
-        self.state.ever.scatter_(1, self.state.winners, True)
+        self.core.teach(self.blocks[self._idx(to_state, self.state_index)])
 
     def train(self, presentations: int = 1) -> None:
         for _ in range(presentations):
@@ -125,10 +114,8 @@ class HashedArcFSM:
         """Advance one symbol ([B] indices or a name) from whatever STATE
         holds; returns [B] state indices read out of the assembly."""
         self.sym.set_words(self._idx(symbol, self.symbol_index))
-        self.arc.project(1, [self.state_arc, self.sym],
-                         rows_for={id(self.state_arc): self.state.winners}, freeze=freeze)
-        self.state.project(1, [self.arc_state],
-                           rows_for={id(self.arc_state): self.arc.winners}, freeze=freeze)
+        self.core.conjoin([self.state_arc, self.sym], freeze=freeze)
+        self.core.advance(freeze=freeze)
         return self.read_state()
 
     def run(self, symbols: torch.Tensor, start_state) -> torch.Tensor:
@@ -144,5 +131,4 @@ class HashedArcFSM:
         return out
 
     def check(self) -> None:
-        self.state_arc.check()
-        self.arc_state.check()
+        self.core.check()

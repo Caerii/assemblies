@@ -39,6 +39,7 @@ from typing import Dict, List, Sequence
 
 import torch
 
+from ._arc_core import HashedArcCore
 from ._hashed import DenseOrganFiber, HashedArea, StimulusFiber, _gain_table
 from ._hashed_aligner import pair_seeds
 
@@ -138,8 +139,15 @@ class HashedTransducer:
                               refracted_strength=strength, tie_jitter=tie_jitter)
 
         self.lex = area(self.lex_area, n)
-        self.arc = area(self.arc_area, self.n_arc, refracted_strength)
-        self.state = area(self.state_area, self.n_state, state_refracted_strength)
+        # the refracted arc-and-state core is shared with HashedArcFSM
+        self.core = HashedArcCore(S, prefix=prefix, n_arc=self.n_arc, n_state=self.n_state,
+                                  k=k, p=self.organ_p, beta=beta,
+                                  refracted_strength=refracted_strength,
+                                  state_refracted_strength=state_refracted_strength,
+                                  w_max=w_max, norm_init=norm_init,
+                                  max_potentiations=max_potentiations,
+                                  tie_jitter=tie_jitter, device=device)
+        self.arc, self.state = self.core.arc, self.core.state
         self.out = area(self.out_area, n)
         # stimuli keep the AMBIENT density and the area's beta (the engine
         # potentiates stimulus weights with the target's beta) and clip at
@@ -159,8 +167,7 @@ class HashedTransducer:
                                    max_rounds=max_potentiations, device=device)
 
         self.lex_arc = fiber(self.lex_area, self.arc_area, n, self.n_arc)
-        self.state_arc = fiber(self.state_area, self.arc_area, self.n_state, self.n_arc)
-        self.arc_state = fiber(self.arc_area, self.state_area, self.n_arc, self.n_state)
+        self.state_arc, self.arc_state = self.core.state_arc, self.core.arc_state
         self.arc_out = fiber(self.arc_area, self.out_area, self.n_arc, n)
         self.out_signature: Dict[str, torch.Tensor] = {}
 
@@ -202,8 +209,8 @@ class HashedTransducer:
         refraction charged, for scoring."""
         self.S.set_words(self._widx(word))
         self.lex.project(rounds, [self.S], freeze=freeze)
-        self.arc.project(1, [self.lex_arc, self.state_arc], rows_for=self._rows(),
-                         freeze=freeze)
+        self.core.conjoin([self.lex_arc, self.state_arc], freeze=freeze,
+                          rows_for={id(self.lex_arc): self.lex.winners})
 
     def write(self, target, rounds: int = 3) -> None:
         self.G.set_words(self._widx(target))
@@ -211,14 +218,13 @@ class HashedTransducer:
         for _ in range(rounds):
             # both targets read the SAME arc: the numpy organ's simultaneous
             # update, done in sequence
-            self.state.project(1, [self.arc_state], rows_for=rows)
+            self.core.advance()
             self.out.project(1, [self.arc_out, self.G], rows_for=rows)
 
     def emit(self) -> torch.Tensor:
         """Update the state and read OUT with no teacher, FROZEN."""
-        rows = self._rows()
-        self.state.project(1, [self.arc_state], rows_for=rows, freeze=True)
-        return self.out.project(1, [self.arc_out], rows_for=rows, freeze=True)
+        self.core.advance(freeze=True)
+        return self.out.project(1, [self.arc_out], rows_for=self._rows(), freeze=True)
 
     # -- readout --------------------------------------------------------------
     def overlaps(self, emitted: torch.Tensor) -> torch.Tensor:

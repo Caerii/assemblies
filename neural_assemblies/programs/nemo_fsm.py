@@ -17,6 +17,7 @@ from neural_assemblies.assembly_calculus.ops import (
 )
 from neural_assemblies.core.index_spaces import NeuronIds
 from neural_assemblies.assembly_calculus.pfa import RandomChoiceArea
+from neural_assemblies.programs.arc_core import add_arc_state_core
 from neural_assemblies.assembly_calculus.transitions import TransitionLike, TransitionMap
 
 
@@ -84,21 +85,13 @@ class NemoArcFSM:
         self.transition_map = TransitionMap(transitions)
         self.prefix = prefix
 
-        self.state_area = f"{prefix}_state"
-        self.arc_area = f"{prefix}_arc"
-
         n_state = max(n_state or n, len(self.states) * k)
-        brain.add_area(self.state_area, n_state, k, beta)
-        brain.add_area(
-            self.arc_area, n, k, beta,
-            refracted=True, refracted_strength=refracted_strength,
-        )
-
-        # LOCAL REGIME. `organ_p` sets this organ's OWN density, so it can sit
-        # above its kp >= 3 ln n floor ([[SEQ-REGIME]]) inside a brain whose
-        # ambient density is far lower -- the arrangement [[SEQ-ORGAN-EMBEDS]]
-        # describes. Applied to every fiber the organ drives, and applied HERE,
-        # before any traffic, because connectivity is structural.
+        # the refracted arc-and-state core, shared with SequenceTransducer;
+        # LOCAL REGIME: `organ_p` is this organ's OWN density
+        # ([[SEQ-REGIME]], [[SEQ-ORGAN-EMBEDS]]), structural, set before traffic
+        self.state_area, self.arc_area = add_arc_state_core(
+            brain, prefix, n_arc=n, n_state=n_state, k=k, beta=beta,
+            refracted_strength=refracted_strength, organ_p=organ_p)
         self.organ_p = organ_p
 
         # Symbols are stimuli. The reference's symbol area is a single
@@ -129,8 +122,6 @@ class NemoArcFSM:
         if organ_p is not None:
             for sym_stim in self._sym_stim.values():
                 brain.add_connectivity(sym_stim, self.arc_area, organ_p)
-            brain.add_connectivity(self.state_area, self.arc_area, organ_p)
-            brain.add_connectivity(self.arc_area, self.state_area, organ_p)
 
         brain.materialize_area(self.state_area)
         self._state_asm: Dict[str, Assembly] = {

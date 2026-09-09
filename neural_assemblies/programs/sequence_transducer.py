@@ -34,12 +34,10 @@ this class exists to measure. A class whose states are induced cannot share the
 constructor of one whose states are assigned.
 
 The two DO share an arc-and-state core (refracted conjunction, per-fiber
-density, one conjunction tick per input symbol). That duplication is real and
-is deliberately left standing for one commit: unifying it is a behaviour-
-preserving refactor, and mixing it into the commit that first runs the science
-would make a regression indistinguishable from a result. See
-[[prefer-unifying-existing-infra]] and [[one-canonical-way]] -- the follow-up is
-owed, not optional.
+density, one conjunction tick per input symbol), and since 2026-09-09 they
+share it in code: `programs/arc_core.add_arc_state_core` here, and
+`HashedArcCore` on the hashed substrate ([[one-canonical-way]]). The
+refactor was gated on the drive-replay parity of both organs.
 
 THE CLOCK. One tick == one input word. ``tick`` recomputes the arc from
 (LEX, SEQ_STATE); everything after it reads a FIXED arc, so repeating the write
@@ -54,6 +52,7 @@ from typing import Dict, List, Sequence
 
 from neural_assemblies.assembly_calculus.assembly import Assembly, overlap
 from neural_assemblies.assembly_calculus.ops import _snap
+from neural_assemblies.programs.arc_core import add_arc_state_core
 
 
 class SequenceTransducer:
@@ -91,26 +90,15 @@ class SequenceTransducer:
         self.out_area = f"{prefix}_out"
 
         brain.add_area(self.lex_area, n, k, beta)
-        # THE STATE MAY BE REFRACTED TOO, and by default is not -- which is the
-        # configuration A3 measured collapsing (state overlap 0.985 +/- 0.028
-        # beside an arc at 0.035). The engine applies refraction as
-        # `all_inputs -= bias` with bias accruing on recent winners, so it is a
-        # usage-balancing rule and hub formation on arc -> state is exactly
-        # what it opposes. Off by default because turning it on is a
-        # RE-MEASUREMENT, not a fix: see PREREG_state_refraction.md, which
-        # requires separation and DETERMINISM together, since a state that
-        # emitted noise every step would win on separation alone.
-        if state_refracted_strength > 0:
-            brain.add_area(self.state_area, self.n_state, k, beta,
-                           refracted=True,
-                           refracted_strength=state_refracted_strength)
-        else:
-            brain.add_area(self.state_area, self.n_state, k, beta)
+        # The refracted arc-and-state core, shared with NemoArcFSM. THE STATE
+        # MAY BE REFRACTED TOO, and by default is not -- the configuration A3
+        # measured collapsing (state overlap 0.985 +/- 0.028 beside an arc at
+        # 0.035); turning it on is a RE-MEASUREMENT, PREREG_state_refraction.md.
+        add_arc_state_core(brain, prefix, n_arc=self.n_arc, n_state=self.n_state,
+                           k=k, beta=beta, refracted_strength=refracted_strength,
+                           state_refracted_strength=state_refracted_strength,
+                           organ_p=organ_p)
         brain.add_area(self.out_area, n, k, beta)
-        brain.add_area(
-            self.arc_area, self.n_arc, k, beta,
-            refracted=True, refracted_strength=refracted_strength,
-        )
 
         # Stimuli keep #14's parameters EXACTLY, including their ambient
         # density. `organ_p` is applied to the four fibers the organ itself
@@ -131,8 +119,6 @@ class SequenceTransducer:
         self.organ_p = organ_p
         if organ_p is not None:
             brain.add_connectivity(self.lex_area, self.arc_area, organ_p)
-            brain.add_connectivity(self.state_area, self.arc_area, organ_p)
-            brain.add_connectivity(self.arc_area, self.state_area, organ_p)
             brain.add_connectivity(self.arc_area, self.out_area, organ_p)
 
         self.out_signature: Dict[str, Assembly] = {}
