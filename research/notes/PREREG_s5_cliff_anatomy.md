@@ -527,3 +527,45 @@ rows, tying the best outsider, drive c_o an upper tail of the same).
 Adoption if N2 passes: the organ's protocol value becomes "presentations
 just below the clip edge, ~0.8 c*" with the formula in the entry, and the
 soft pairs are reduced by the gain rather than accepted as the price.
+
+### Addendum 7 -- Result (2026-09-09, S5, 100 seeds each)
+
+    arm                          soft + hard / 24,000   organs affected   words derailing   P-CONJ
+    15 presentations (A4)        15 / 24,000 (0.062%)   14 / 100          0                 PASS
+    15, norm_init=True           4 / 24,000 (0.017%)     4 / 100          0                 PASS
+    20 presentations (g 6.7)     0 / 24,000              0 / 100          0                 PASS
+    24 presentations (g 9.8)     0 / 24,000              0 / 100          0                 PASS
+
+    N1  NORMALISATION DOES NOTHING: 4 against 15, a 3.7x fall (Poisson
+        intervals [1.1, 10.2] vs [8.4, 24.7])                           FAIL
+        The account missed a route: with norm_init the STATE -> ARC fiber
+        is divided by the arc neuron's in-degree from STATE (8,400 x 0.4 =
+        3,360) while the symbol stimulus is divided by ~16,000, so the
+        state conjunct is weighted ~4.8x more in the arc; the arc's
+        composition changes, and the collision statistics with it. The
+        drives the instrument prints under norm_init are on that scale
+        and are not comparable to the unnormalised ones.
+    N2  GAIN JUST BELOW THE CLIP: 0 soft pairs at 20 and at 24, no
+        derailments                                                      PASS
+        The organ is EXACT on 100 S5 organs x 240 pairs x 500-symbol
+        words at both values.
+
+**Adopted.** The organ's protocol value is presentations just below the
+clip edge -- 20-24 here, ~0.7-0.85 of c* = ln(w_max max(1, k p) / base) /
+ln(1 + beta) -- and the soft pairs are removed by the gain, not accepted.
+The registered 15 was inside the window but at the point where the two
+tails just touch; the S5 census's entire soft-pair phenomenon at width
+was that choice.
+
+## Addendum 8 (2026-09-09, before running): generality, and the onset
+
+    E1  GENERALITY.  Z60, A4xZ5, A5, Z120 at 20 presentations, 100 seeds:
+        0 soft pairs on every group (Addendum 4 read 3, 3, 3, 9 at 15).
+        PREDICTION: PASSES.
+    E2  THE ONSET.  S5 at 28 presentations (g 14.4): the formula puts
+        the best-connected members' clip at c* = 27.7-30; relocation
+        should be BEGINNING -- soft rate above 0 and below 30's 0.133%,
+        derailments between 0 and 12.  PREDICTION: PASSES (a rising
+        edge, not a cliff). FAIL with 0 soft pairs: the edge is later than
+        the median-base formula (the tail bases matter); FAIL with >=
+        30's rate: earlier.
