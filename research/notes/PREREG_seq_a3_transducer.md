@@ -234,3 +234,32 @@ a state that is distinct and carries nothing the current word does not --
 is NOT the arc's pinned margin. It is structural, the branch the amendment
 named: [[SEQ-STATE-CODE-EMERGENT]] stays unproven, and the induced state
 is a bigram model's state by construction.
+
+## Amendment 3 (2026-09-09): the corpus's ORACLE-STATE ceiling -- a computation, not a run
+
+Before building an assigned-state transducer to measure what a perfect
+state could add, the ceiling was computed directly (`seq_a3_oracle_ceiling.py`,
+labelled analysis: no bars were set for it). The corpus is a template
+grammar -- DET [ADJ] NOUN VERB (PREP DET NOUN | DET [ADJ] NOUN) -- i.e. a
+nine-phase machine; history beats a bigram only at a DET after PREP
+(NOUN certain, against ADJ/NOUN at 50/50 elsewhere) and at sentence-final
+NOUNs. In the study's units (MRR, random tie-break, each seed's own
+200/25 corpora, 20 seeds):
+
+    unigram        0.1265 +/- 0.0061
+    bigram         0.2299 +/- 0.0083     (the registered optimum, 0.2338 at 2000 sentences)
+    class-bigram   0.2330 +/- 0.0072
+    PHASE (learned) 0.2487 +/- 0.0084    the oracle state, estimated from train
+    PHASE (exact)   0.2596 +/- 0.0094    the generator's own distribution
+    phase - bigram, paired:  +0.0188 +/- 0.0136
+
+**Reading.** A perfect state adds 0.02-0.03 MRR over the bigram on this
+corpus. The hashed organ sits 0.024 BELOW the bigram (0.2054). So H3 was
+close to ill-posed here: the gain available to any state induction is the
+size of the organ's readout loss, and a pass would have been a 1.4-sigma
+event even for an oracle. No assigned-state transducer is built on this
+corpus; the state-induction question needs a corpus in which history
+carries more than 0.02 of MRR -- long-range dependencies (agreement,
+nesting) with a computed oracle gap of >= 0.1 -- and the organ first
+needs to reach the bigram it already has the information for (its loss
+is in the readout, not the state).
