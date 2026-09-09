@@ -1,6 +1,6 @@
 """A3: does an INDUCED state help next-token prediction? [[SEQ-TRANSDUCER]]
 
-Implements `research/notes/PREREG_seq_a3_transducer.md`. Parameters inherited
+Implements `research/notes/sequence/PREREG_seq_a3_transducer.md`. Parameters inherited
 from #14 are FIXED and must not be tuned here; `n_arc` is swept as a design
 axis and the WHOLE CURVE is reported, per the pre-registration.
 

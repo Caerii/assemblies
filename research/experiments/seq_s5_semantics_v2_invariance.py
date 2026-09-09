@@ -1,7 +1,7 @@
 """V-S5: are the S5 findings invariant under drive semantics v2?
 
 Implements the science-invariance bar of
-`research/notes/PREREG_drive_semantics_v2.md`. The registered S5 study's
+`research/notes/substrate/PREREG_drive_semantics_v2.md`. The registered S5 study's
 trained arms re-run with ASSEMBLIES_VIRTUAL_WEIGHTS=1 (same builds, seeds,
 words); the bar is that the four REGISTERED VERDICTS are unchanged. Per-seed
 exact flags may differ in isolated cells -- ulp ties are real -- and every

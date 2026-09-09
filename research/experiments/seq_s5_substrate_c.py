@@ -1,6 +1,6 @@
 """Substrate C: the census under the theorems' actual homeostasis hypothesis.
 
-Implements `research/notes/PREREG_substrate_c_homeostasis.md` (Amendment 1):
+Implements `research/notes/substrate/PREREG_substrate_c_homeostasis.md` (Amendment 1):
 `Brain(norm_init=False, synaptic_scaling=True)` -- per-update write-time
 column renormalization, the existing engine mechanism, no new code. Same
 organs, seeds, words, census instrument as the registered S5 study and

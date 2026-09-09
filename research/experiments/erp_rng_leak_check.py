@@ -2,7 +2,7 @@
 
 The ERP suite has order-dependent failures: 4 tests fail under `-k erp` and pass
 alone, in pairs, and in a cold process (see
-research/notes/p600_is_confounded_with_area_identity.md). `fork()` already
+research/notes/language/p600_is_confounded_with_area_identity.md). `fork()` already
 clones a pristine deepcopy (#103), so PARSER state is not the channel.
 
 The remaining process-global that parsing touches is the RNG. If calibration

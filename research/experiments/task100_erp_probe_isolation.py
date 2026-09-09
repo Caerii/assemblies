@@ -44,7 +44,7 @@ FLAG = "NEURAL_ASSEMBLIES_ISOLATED_PROBES"
 #: clips the grammatical arm against its own median onto a 0.0 floor, so it
 #: inflates when measurement noise FALLS. `*_auc` is a rank statistic on the raw
 #: value and is invariant under that clipping. See
-#: research/notes/erp_metric_is_clipped.md.
+#: research/notes/language/erp_metric_is_clipped.md.
 KEYS = ("p600_auc", "n400_auc", "p600_span",
         "p600_cohens_d", "n400_cohens_d", "p600_gap")
 

@@ -5,7 +5,7 @@ THE DEFECT
 `WordOrderLearner` scored the "which constituent comes next" competition with
 `input_drive(metric="pre_kwta")` -- a mean over every candidate neuron, hence a
 function of how much substrate each helper area recruited. Measured on a trained
-model (research/notes/conjunctive_arc_measured.md):
+model (research/notes/sequence/conjunctive_arc_measured.md):
 
                       agent  action  patient   picks  wanted
     mood0 (SVO)        8.26    5.72     9.34       O       V

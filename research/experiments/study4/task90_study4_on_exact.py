@@ -2,7 +2,7 @@
 
 WHY THIS FILE EXISTS AT ALL, AND THE FIRST FINDING
 --------------------------------------------------
-`research/notes/PREREG_gated_recurrence.md` records study IV's results. Its
+`research/notes/memory/PREREG_gated_recurrence.md` records study IV's results. Its
 HARNESS was never committed -- `ntp.py` and `ntp_ctx.py` lived only in a session
 scratchpad, so the numbers in that note could not be reproduced from the
 repository by anyone, including me. They are now in `research/experiments/

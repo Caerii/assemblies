@@ -18,7 +18,7 @@ TWO CANDIDATE EXPLANATIONS, and this script separates them.
     obs arm FIRST and the exp arm SECOND in the SAME process. The first two
     probes of a COLD process read p600 ~0.43 with phrase_stability 1.0000 (the
     empty-phrase-areas fallback) where the same frame warm reads ~0.998
-    (measured, research/notes/p600_is_confounded_with_area_identity.md). So the
+    (measured, research/notes/language/p600_is_confounded_with_area_identity.md). So the
     exp arm was only ever measured WARM, and the test measures it COLD. On this
     account the A/B never isolated the dispatch at all.
 

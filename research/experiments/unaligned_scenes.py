@@ -1,6 +1,6 @@
 """Cross-situational learning: reference and structure solved together.
 
-Implements `research/notes/PREREG_unaligned_scenes.md` (+ Amendment 1).
+Implements `research/notes/aligner/PREREG_unaligned_scenes.md` (+ Amendment 1).
 
 TODAY the grounded pipeline gives each word its own feature bundle, so word ->
 referent alignment is a given and only the role mapping is learned. HERE the

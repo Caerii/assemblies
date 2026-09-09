@@ -1,6 +1,6 @@
 """Does norm_init delete the soft transitions? [[SEQ-EXACT-RECOVERY]]
 
-Implements `research/notes/PREREG_s5_norm_init_intervention.md`. Two arms on
+Implements `research/notes/sequence/PREREG_s5_norm_init_intervention.md`. Two arms on
 the registered S5 protocol -- norm_init=False (control, re-establishing the
 baseline in-study) and norm_init=True (intervention) -- with the soft census
 now recording IDENTITIES: intruder and displaced neuron per soft pair, plus

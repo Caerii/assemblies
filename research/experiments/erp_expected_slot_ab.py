@@ -6,7 +6,7 @@ word's category -- and a category violation IS a word whose observed category
 differs from the expected one. The mismatch is therefore structural: it holds in
 every frame set, at every seed, under every definition of energy. Measured in
 `erp_which_area_per_arm.py`; the confound is written up in
-`research/notes/p600_is_confounded_with_area_identity.md`.
+`research/notes/language/p600_is_confounded_with_area_identity.md`.
 
 `ERP_EXPECTED_SLOT=1` dispatches on the slot the PARSE PREDICTS instead: after a
 verb that licenses an object, the next content word is expected in ROLE_PATIENT

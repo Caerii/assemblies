@@ -117,7 +117,7 @@ def area_sizes(parser, areas):
     directly when restoring outer state, and that setter clobbers `w` to
     `len(winners)`. Both arms would be clobbered alike so the COMPARISON
     survived, but the absolute numbers did not. See
-    research/notes/w_alias_back_catalogue.md.
+    research/notes/substrate/w_alias_back_catalogue.md.
     """
     return {a: parser.brain.areas[a].get_num_ever_fired()
             for a in areas if a in parser.brain.areas}

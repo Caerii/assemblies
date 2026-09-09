@@ -1,6 +1,6 @@
 """Is the word-problem arc's assembly DECAY the substrate-C merger?
 
-Implements `research/notes/PREREG_organ_substrate.md`; bars registered there
+Implements `research/notes/substrate/PREREG_organ_substrate.md`; bars registered there
 before this ran.
 
 [[arc-training-is-not-batchable]] recorded the Z60 arc's identical-assembly

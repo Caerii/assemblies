@@ -1,6 +1,6 @@
 """PROTOTYPE: generate the connectome on the GPU instead of fetching it.
 
-Implements and measures `research/notes/DESIGN_gpu_hashed_drive.md`. NOT wired
+Implements and measures `research/notes/substrate/DESIGN_gpu_hashed_drive.md`. NOT wired
 into any engine -- this computes one well-defined quantity (the base drive of a
 row-set, for a batch of independent brains) and checks it against the rust
 kernel the numpy engine actually uses.

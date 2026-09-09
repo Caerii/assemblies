@@ -1,6 +1,6 @@
 """E7: the soft census, with a LIVE instrument. [[SEQ-EXACT-RECOVERY]]
 
-Implements Addendum 2 of `research/notes/PREREG_s5_cliff_anatomy.md`. The
+Implements Addendum 2 of `research/notes/sequence/PREREG_s5_cliff_anatomy.md`. The
 previous census snapped AFTER `fsm.run`'s internal probe returned; `probe()`
 restores winners on exit, so it read the same residue 240 times (margin
 1.0000, constant -- the dead-probe signature). Here every snap happens INSIDE

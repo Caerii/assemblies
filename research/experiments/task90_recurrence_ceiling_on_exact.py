@@ -18,7 +18,7 @@ Every one of those numbers was measured on `numpy_sparse`, which invents a drive
 for neurons that have never fired. That approximation was since measured to be
 LOAD-DEPENDENT: it merges fully disjoint inputs at 18x chance when few neurons
 have fired, and the error decays as the area fills
-(`research/notes/graded_similarity_and_sampler_load.md`).
+(`research/notes/substrate/graded_similarity_and_sampler_load.md`).
 
 A ceiling that "scales with n" is exactly the shape a load-dependent instrument
 would manufacture, because larger n at fixed k means lower load at every M. So

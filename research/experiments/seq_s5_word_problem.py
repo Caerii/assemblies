@@ -1,6 +1,6 @@
 """Does a constant-size assembly organ solve an NC1-complete word problem?
 
-Implements `research/notes/PREREG_s5_word_problem.md`, including Amendment 1
+Implements `research/notes/sequence/PREREG_s5_word_problem.md`, including Amendment 1
 (`n_arc` matches arc LOAD, not size, so solvability is the only variable).
 
     Z60      order  60  abelian                TC0    -- easy for SSMs

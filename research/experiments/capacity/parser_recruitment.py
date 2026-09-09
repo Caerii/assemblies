@@ -104,7 +104,7 @@ def analyse_area(parser, core_area: str, k: int, n: int) -> Dict:
     # `_restore_outer_state` assigns `area.winners` directly, and that setter
     # overwrites `w` with `len(winners)`. Reading `.w` here reported `k`, so
     # `tiling_ratio` came out at 1/len(words). See
-    # research/notes/w_alias_back_catalogue.md.
+    # research/notes/substrate/w_alias_back_catalogue.md.
     area_w = int(parser.brain.areas[core_area].get_num_ever_fired())
 
     # Pairwise overlap among stored assemblies (subsample if large)

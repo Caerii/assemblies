@@ -4,7 +4,7 @@
     uv run python research/experiments/coin_fairness_study.py --quick    # fast
 
 Writes `research/results/coin_fairness/*.json` and the figures embedded in
-`research/notes/neural_coin_fairness.md`.
+`research/notes/coin/neural_coin_fairness.md`.
 
 
 THE QUESTION

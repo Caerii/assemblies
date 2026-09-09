@@ -1,6 +1,6 @@
 """Does refracting the STATE area stop the induced-state collapse?
 
-Implements `research/notes/PREREG_state_refraction.md`. Parameters inherited
+Implements `research/notes/sequence/PREREG_state_refraction.md`. Parameters inherited
 from A3 are FIXED; `state_refracted_strength` and `n_state` are swept as design
 axes and the WHOLE GRID is reported.
 

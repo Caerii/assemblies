@@ -1,6 +1,6 @@
 """The theorem regime: homeostasis where its preconditions actually hold.
 
-Implements `research/notes/PREREG_theorem_regime.md`. Matched pair at
+Implements `research/notes/substrate/PREREG_theorem_regime.md`. Matched pair at
 organ_p=0.5 (kp=35 clears 3 ln n), presentations=64 (clears (1/b)ln(n/k)),
 w_max=None (the theorems have no clip; homeostasis is their boundedness):
 

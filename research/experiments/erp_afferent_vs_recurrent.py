@@ -32,7 +32,7 @@ actually occurred.
     aff   [CANDIDATE] ERP_AFFERENT_ENERGY=1 -> afferent_energy
 
 Read the AUC rows. Cohen's d is computed on a clipped excess and is not an
-effect size here (research/notes/erp_metric_is_clipped.md).
+effect size here (research/notes/language/erp_metric_is_clipped.md).
 """
 import os
 import sys

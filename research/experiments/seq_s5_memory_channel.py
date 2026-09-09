@@ -1,6 +1,6 @@
 """E6: name the step's undeclared memory channel. [[SEQ-EXACT-RECOVERY]]
 
-Implements the Addendum in `research/notes/PREREG_s5_cliff_anatomy.md`. The
+Implements the Addendum in `research/notes/sequence/PREREG_s5_cliff_anatomy.md`. The
 census proved exact-in -> exact-out for every (state, symbol) pair, yet
 trajectories deviate -- so the step is not memoryless, and the only structural
 difference between the two contexts is RESIDUAL CONTENT: the census inhibits

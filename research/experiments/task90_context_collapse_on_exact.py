@@ -2,7 +2,7 @@
 
 THE CLAIM
 ---------
-`research/notes/PREREG_context_recurrence_off.md` and `PREREG_gated_recurrence.md`
+`research/notes/sequence/PREREG_context_recurrence_off.md` and `PREREG_gated_recurrence.md`
 record study II: adding a recurrent CONTEXT area HALVES next-token accuracy, and
 CONTEXT assemblies across DIFFERENT prefixes overlap **0.7566 +/- 0.0958** --
 "collapsed to one attractor". `graded_similarity_and_sampler_load.md` already

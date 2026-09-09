@@ -1,6 +1,6 @@
 """Refraction as the stability/conjunctivity tradeoff.
 
-Implements `research/notes/PREREG_refraction_stability.md` (+ Amendment 1).
+Implements `research/notes/memory/PREREG_refraction_stability.md` (+ Amendment 1).
 
 `_homeostasis.refraction_increment` returns `(net_drive + current_bias) *
 strength` and the bias is never cleared, so a persistently winning arc neuron

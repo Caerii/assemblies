@@ -1,7 +1,7 @@
 """Does `norm_init` + `synaptic_scaling` lift the M-ceiling, and does the
 mechanism survive off the single point it was measured at?
 
-Implements `research/notes/PREREG_substrate_ceiling.md`; bars registered there
+Implements `research/notes/memory/PREREG_substrate_ceiling.md`; bars registered there
 before this ran.
 
 Part A re-asks the original ratchet study's question. That study answered NO --

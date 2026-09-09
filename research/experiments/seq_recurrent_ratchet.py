@@ -1,6 +1,6 @@
 """Does per-round mass renormalization lift the RATCHET ceiling?
 
-Implements `research/notes/PREREG_recurrent_ratchet.md`.
+Implements `research/notes/memory/PREREG_recurrent_ratchet.md`.
 
 Recurrence ON, because self-recurrence is the DEFINITION of an assembly. Three
 substrates: NONE (no normalization), B (`norm_init`, INITIAL weights only), C

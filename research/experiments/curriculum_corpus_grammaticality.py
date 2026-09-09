@@ -10,7 +10,7 @@ like
 transitivity, and subject/object drawn uniformly over all nouns including
 abstract ones. `dog` received its ONLY role binding from that one sentence, as
 its object, which is why the curriculum golden asks for dog=AGENT and can never
-get it (research/notes/the_curriculum_role_golden_never_measured_the_substrate.md).
+get it (research/notes/language/the_curriculum_role_golden_never_measured_the_substrate.md).
 
 THREE CHECKS, each mechanical and each derived from the lexicon rather than from
 my judgement about English:

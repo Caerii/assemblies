@@ -1,8 +1,8 @@
 """A1: the transition organ, end-to-end, on our Brain, against the golden.
 
-Pre-registered in `research/notes/PREREG_seq_a1_fsm_parity.md` (commit 040f201,
+Pre-registered in `research/notes/sequence/PREREG_seq_a1_fsm_parity.md` (commit 040f201,
 amended before data with n_state=5000 and the reason). Design evidence is
-`research/notes/the_arc_collapses_onto_whichever_conjunct_fires_more.md`
+`research/notes/sequence/the_arc_collapses_onto_whichever_conjunct_fires_more.md`
 (d5e64f8). Enabling fixes: de7a32d (engine), 7588a44 (program).
 
 BARS, restated here so a reader of the output does not have to fetch the note:

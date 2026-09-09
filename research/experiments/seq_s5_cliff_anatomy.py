@@ -1,6 +1,6 @@
 """Anatomy of the cliff: defect set or drift? [[SEQ-EXACT-RECOVERY]]
 
-Implements `research/notes/PREREG_s5_cliff_anatomy.md`. The trained organs are
+Implements `research/notes/sequence/PREREG_s5_cliff_anatomy.md`. The trained organs are
 IDENTICAL to the registered S5 study -- same `build`, same seeds, same words --
 and only READOUTS are added, all inside `probe()`.
 

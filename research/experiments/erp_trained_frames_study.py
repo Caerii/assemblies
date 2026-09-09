@@ -5,7 +5,7 @@ THE DEFECT BEING TESTED. On the parser every ERP number here is measured on,
 `chases` -- the main verb of five of nine items -- occurs ZERO times in that
 corpus and classifies NOUN, so "the dog chases cat" parses DET NOUN NOUN NOUN:
 no verb, and a "category violation" that violates nothing that was parsed.
-See research/notes/the_calibration_frames_are_untrained.md.
+See research/notes/language/the_calibration_frames_are_untrained.md.
 
 `TRAINED_AREA_MATCHED_CALIBRATION_FRAMES` fixes TWO things at once, and that is
 a weakness of this design that has to be stated rather than hidden:

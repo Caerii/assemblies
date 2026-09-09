@@ -1,6 +1,6 @@
 """Does word learning obey the anchor law, and does Zipf attack the corrector?
 
-Implements `research/notes/PREREG_alignment_load.md`. Reuses the learner from
+Implements `research/notes/aligner/PREREG_alignment_load.md`. Reuses the learner from
 `unaligned_scenes.py` unchanged -- only the EXPERIENCE it is given changes, so
 a difference between cells cannot come from the model.
 
