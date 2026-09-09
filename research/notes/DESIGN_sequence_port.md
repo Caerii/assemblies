@@ -1,12 +1,14 @@
 # DESIGN: the sequence organ on the hashed substrate
 
-> **Status (2026-09-09).** Built and gated. The transducer (`HashedTransducer`)
-> and the assigned-state machine (`HashedArcFSM`) share one core
-> (`HashedArcCore`); both pass the drive replay (5e-6, refraction included)
-> and identity across width; the machine also passes its registered curve
-> (GATE-3) against the numpy engine MATERIALIZED, which is where the port
-> found that A1's short horizon had been the sampler's. Read the sections
-> in order; the first was written before anything was built.
+> **Status (2026-09-09).** Built, gated, and it found things. Both organs
+> share one core (`HashedArcCore`) and both reproduce the numpy engine's
+> drives to 5e-6 with refraction included; a brain in a launch of twenty
+> equals the brain alone. The machine's registered curve (GATE-3) failed
+> as written and passed against the materialized engine, which is how we
+> learned that A1's short horizon at p = 0.3 was the sampler's. That
+> lesson, and the k-WTA sign bug the first width run exposed, are worth
+> more than the speed-up. The first section below was written before a
+> line of the port existed; read it as a prediction.
 
 The aligner's port (DESIGN_hashed_aligner.md -> DESIGN_present_only.md) took
 a five-cell sweep from hours to a minute and, on the way, found four

@@ -1,102 +1,86 @@
-# Research notes: a reading map
+# Research notes
 
-This directory holds registrations (`PREREG_*`), design notes (`DESIGN_*`),
-audits and mechanism write-ups. A registration states its bars before the
-data and then records the result under them, so most files read as a log.
-This map says where each active line stands and which file to open first.
+These are lab notebooks, not documentation. Every `PREREG_*` file writes its
+pass conditions down before the data arrive and then reports against them,
+so the files are long, dated, and wrong in the middle more often than not.
+That is deliberate. If you want what we currently believe, read the register
+in `neural_assemblies/theory.py` and cite its IDs. If you want to know why we
+believe it, or why we stopped believing something, read the note.
 
-The register of adopted results is `neural_assemblies/theory.py`; cite its
-IDs (for example `[[REFRACTION-ANTI-MERGING]]`) rather than a note.
+Each long note opens with a quoted **Status** block. Read that, then the
+amendments it names, and skip the rest unless you are checking our work.
 
-## Conventions
+## The four lines, and where I stand on each
 
-- **Bars before data.** Every `PREREG_*` file lists its hypotheses and pass
-  conditions before the run. Results are appended under the same labels,
-  with PASS or FAIL and the numbers.
-- **Amendments are labelled.** A change registered before its run is an
-  *Amendment* or *Addendum*; anything decided after seeing data is marked
-  *post hoc* and never adopted on its own.
-- **Distributions, never bare means.** Twenty or more brains per cell on the
-  hashed substrate; means carry a 95% interval; ceilings are read from a
-  curve with a bracket, not from one grid point.
-- **Failed bars are kept.** A failed prediction is committed with its
-  numbers and, where possible, the mechanism the failure located.
+**The refracted memory is the strongest result in this repo.** Refract a
+recurrent k-WTA area at half beta, read it with the bias masked, and it
+stores about 0.4 (n/k)² assemblies, twenty-five times what Hebbian
+plasticity alone manages, with every item still distinct when the area is
+full. It is a Willshaw store with a homeostat bolted on, and it does
+continual learning without replay. I would build on it. Start with
+[PREREG_refraction_memory.md](PREREG_refraction_memory.md); the earlier
+[PREREG_refraction_capacity.md](PREREG_refraction_capacity.md) is where the
+question came from, after a selector bug made its first answer wrong. The
+unit is `AssemblyMemory` in `core/torch_engine/_memory.py`.
 
-## The refracted memory (adopted)
+**The sequence organ is exact, and its failures are arithmetic.** The
+refracted-arc machine runs thousands of steps without an error on the
+explicit substrate. Its rare soft transitions are collisions between a
+target block's weakest neuron and the area's best-connected outsider, a
+Binomial tail that has nothing to do with the group's structure, and they
+vanish when you stop training just below the weight clip. Refraction
+strength is not a knob here: it is pinned at beta by two opposite
+constraints, and sweeping it in either direction breaks the organ. Read
+[DESIGN_sequence_port.md](DESIGN_sequence_port.md) for the port and its
+gates, then [PREREG_s5_cliff_anatomy.md](PREREG_s5_cliff_anatomy.md) for the
+anatomy. The numpy-era studies it corrects are
+[PREREG_seq_a1_fsm_parity.md](PREREG_seq_a1_fsm_parity.md),
+[PREREG_s5_word_problem.md](PREREG_s5_word_problem.md) and
+[the_arc_is_a_conjunction_and_the_state_drifts.md](the_arc_is_a_conjunction_and_the_state_drifts.md).
 
-A recurrent k-WTA area refracted at half beta, read with its bias masked,
-is an associative memory with about 25 times the Hebbian capacity.
+**The transducer is an honest null.** Its induced state is distinct,
+deterministic, and useless: it carries nothing the current word does not.
+That is not a tuning problem. A state that is unique per prefix is a hash,
+not a memory, and nothing in assembly calculus as built here merges
+contexts by what they predict. On this corpus even a perfect state would
+add 0.02 MRR over a bigram, so stop tuning the organ and change the
+corpus. [PREREG_seq_a3_transducer.md](PREREG_seq_a3_transducer.md) has the
+whole arc, including the two amendments that closed it.
+[PREREG_state_refraction.md](PREREG_state_refraction.md) was built to
+rescue a collapse that does not exist on the explicit substrate; its own
+gate closed it.
 
-1. [PREREG_refraction_memory.md](PREREG_refraction_memory.md): the
-   registration, six amendments, and the adoption. Read the *Status*
-   block at the top first.
-2. [PREREG_refraction_capacity.md](PREREG_refraction_capacity.md): the
-   earlier study whose re-measurement, after a selector defect was fixed,
-   produced the question.
-3. [PREREG_capacity_scaling.md](PREREG_capacity_scaling.md) and
-   [PREREG_substrate_ceiling.md](PREREG_substrate_ceiling.md): the Hebbian
-   capacity harness the memory study runs on.
+**The aligner works, and its capacity is the lexicon's size.** Word
+capacity scales with n and ignores n/k and the anchor. It is not a
+recurrent memory, so the refraction result does not apply to it; I tried
+to make that analogy and it does not survive reading the code.
+[DESIGN_hashed_aligner.md](DESIGN_hashed_aligner.md),
+[DESIGN_present_only.md](DESIGN_present_only.md), then
+[PREREG_word_capacity.md](PREREG_word_capacity.md).
 
-The unit is `neural_assemblies/core/torch_engine/_memory.py`
-(`AssemblyMemory`).
+## The substrate
 
-## The sequence organ (ported, exact)
+Two kernel layouts, one per density regime, and no third:
+[DESIGN_dense_floor.md](DESIGN_dense_floor.md) for dense int16 counts above
+about ten percent connectivity, [DESIGN_present_only.md](DESIGN_present_only.md)
+for present-only lists below it. The regime conditions the theorems need
+are measured in [PREREG_theorem_regime.md](PREREG_theorem_regime.md),
+[PREREG_substrate_c_homeostasis.md](PREREG_substrate_c_homeostasis.md) and
+[PREREG_crosstalk_mechanism.md](PREREG_crosstalk_mechanism.md).
 
-The refracted-arc transition machine and the induced-state transducer, on
-the hashed substrate at width.
+## Rules I would not break again
 
-1. [DESIGN_sequence_port.md](DESIGN_sequence_port.md): what was ported,
-   the four gates, and their results, including the finding that the
-   numpy engine's sampler produced the earlier short horizons.
-2. [PREREG_s5_cliff_anatomy.md](PREREG_s5_cliff_anatomy.md): the soft
-   transition census, eight addenda, and the result that the organ is
-   exact when trained just below the weight clip. Read its *Status* block
-   first.
-3. [PREREG_seq_a3_transducer.md](PREREG_seq_a3_transducer.md): the
-   transducer at width, and why its induced state carries no information
-   on this corpus (Amendments 2 and 3).
-4. [PREREG_seq_a1_fsm_parity.md](PREREG_seq_a1_fsm_parity.md),
-   [PREREG_s5_word_problem.md](PREREG_s5_word_problem.md),
-   [the_arc_is_a_conjunction_and_the_state_drifts.md](the_arc_is_a_conjunction_and_the_state_drifts.md):
-   the numpy-era studies the port reproduces or corrects.
-5. [PREREG_state_refraction.md](PREREG_state_refraction.md): closed at
-   width by its own gate.
-
-The units are `_arc_core.py` (`HashedArcCore`), `_hashed_fsm.py`
-(`HashedArcFSM`) and `_hashed_transducer.py` (`HashedTransducer`) under
-`neural_assemblies/core/torch_engine/`.
-
-## The aligner and word capacity
-
-Cross-situational word learning on the hashed substrate.
-
-1. [DESIGN_hashed_aligner.md](DESIGN_hashed_aligner.md) then
-   [DESIGN_present_only.md](DESIGN_present_only.md): the port and the
-   present-only kernel that carries it.
-2. [PREREG_word_capacity.md](PREREG_word_capacity.md): capacity scales
-   with the lexicon's size, not with n/k.
-
-## The substrate itself
-
-- [DESIGN_dense_floor.md](DESIGN_dense_floor.md),
-  [DESIGN_present_only.md](DESIGN_present_only.md): the two kernel layouts,
-  one per density regime, and their measured floors.
-- [PREREG_substrate_c_homeostasis.md](PREREG_substrate_c_homeostasis.md),
-  [PREREG_theorem_regime.md](PREREG_theorem_regime.md),
-  [PREREG_crosstalk_mechanism.md](PREREG_crosstalk_mechanism.md): the
-  substrate's regime conditions.
-
-## Three lessons that recur
-
-- **Materialize before measuring.** The numpy engine's sampled areas
-  produced a false horizon, a five-fold inflated soft-transition rate, and
-  every derailment in the sequence studies. The hashed substrate equals
-  the materialized engine and is the reference for sequence work.
-- **A drive-replay gate cannot see a selection defect.** The selector's
-  sign bug passed every replay gate; add a selection gate on drives that
-  go negative.
-- **Refraction is two tools.** In a store with disjoint items its strength
-  is a switch across a wide plateau. In a conjunction whose neurons are
-  shared across contexts its strength is pinned at beta by two opposite
-  constraints, and the free lever is the potentiated gain, kept below the
-  weight clip.
+- **Do not measure sequence dynamics on a sampled area.** The numpy engine's
+  sampler gave us a false horizon, a five-fold inflated soft-transition
+  rate, and every derailment we ever recorded. Materialize, or use the
+  hashed substrate, which equals the materialized engine.
+- **Do not gate a selector on replayed winners.** The k-WTA sign bug passed
+  every drive-replay gate we had. Gate selection on drives that go negative.
+- **Do not sweep refraction strength on a conjunction.** Below beta the arc
+  collapses onto the state; above it the members relocate. The lever is the
+  potentiated gain, kept under the clip.
+- **Do not report a mean from fewer than three seeds.** The code refuses,
+  and it is right to.
+- **Keep the failed bars.** Four of six registered predictions failed this
+  week, and each failure located a mechanism within the hour. A note that
+  only records passes is a press release.

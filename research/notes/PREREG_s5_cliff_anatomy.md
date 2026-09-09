@@ -1,20 +1,22 @@
 # PREREG: anatomy of the cliff
 
-> **Status (2026-09-09).** Closed, with an adopted result. The "cliff" was
-> two things: a rare SOFT transition (correct label, one intruder neuron)
-> that seeds a deviation at the word's first visit to it, and a
-> derailment regime that turned out to be the numpy engine's sampler
-> (Addendum 3). On the explicit substrate a soft pair is a collision
-> between the target block's weakest member and the area's best-connected
-> outsider, a Binomial tail with no relation to the group's structure
-> (Addendum 4). The arc's refraction strength is pinned at beta by two
-> opposite constraints (Addendum 6), and the free lever is the potentiated
-> gain: trained just below the weight clip (20-24 presentations here), the
-> organ is EXACT, zero soft pairs in 24,000 and zero derailments on 100
-> organs (Addendum 7). Register entry: `[[SEQ-EXACT-RECOVERY]]`.
-> Read Addenda 3, 4, 5 (with its two post hoc diagnostics), 6, 7 in that
-> order; Addendum 8 (generality and the onset of relocation) is the last
-> open run.
+> **Status (2026-09-09).** Closed, and the "cliff" is dead. What looked
+> like a machine that runs perfectly for two hundred steps and then falls
+> off a cliff was two unrelated things. The falling off was the numpy
+> sampler, full stop (Addendum 3): on the explicit substrate no word ever
+> derails. What remains is a rare soft transition, and Addendum 4 says
+> exactly what it is: the target block's weakest neuron losing a tie to
+> the area's best-connected outsider, a Binomial tail, the same rate in
+> three groups of the same order, indifferent to the Cayley graph. My
+> first mechanism for it (Addendum 5) was wrong, and the two post hoc
+> diagnostics there are worth reading for why: refraction at strength beta
+> cancels potentiation exactly, so a member sits at its base drive until
+> its weight clips, and the best-connected members fall first. Strength is
+> pinned at beta (Addendum 6, both directions fail). The fix is the gain:
+> train just under the clip and the organ is exact, zero soft pairs in
+> 24,000, zero derailments in 100 words (Addendum 7). Cite
+> `[[SEQ-EXACT-RECOVERY]]`. Addendum 8 checks generality and the onset of
+> relocation.
 
 Registered before implementing or running. Follows `6276685`, where the S5
 per-step readout falsified both amendment bars and showed the failure mode is

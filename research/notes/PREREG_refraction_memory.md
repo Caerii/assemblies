@@ -1,16 +1,18 @@
 # PREREG: refraction below the transition as an orthogonalizing memory
 
-> **Status (2026-09-09).** Adopted as `[[REFRACTION-ANTI-MERGING]]`. A
-> recurrent k-WTA area refracted at half beta and read with its bias
-> masked holds about 25 times the Hebbian ceiling; in regime (k p >= 3 ln n)
-> the ceiling is ~0.40 (n/k)^2 (Amendment 4); strength is a switch, one
-> plateau from 0.3 to 0.6 beta (Amendment 6); ending each item's rounds
-> at convergence raises the ceiling by a constant 24-34% and the ceiling
-> sits where items stop converging (Amendments 5-6); the Hebbian
-> control's own rounds window is attractor dominance (post hoc, T = 16).
-> The title's "orthogonalizing" was wrong: the mechanism is anti-merging,
-> and stored items overlap at chance once the area is full.
-> Read the Result section, then Amendments 4, 5, 6.
+> **Status (2026-09-09).** Adopted as `[[REFRACTION-ANTI-MERGING]]`, and
+> the title is wrong. Refraction does not orthogonalize anything; stored
+> items overlap at chance once the area is full. What it does is stop
+> items merging while they are written, and that alone buys twenty-five
+> times the Hebbian ceiling: about 0.40 (n/k)² assemblies in regime,
+> recalled from half a cue with the bias masked. Three things I did not
+> expect and now trust: strength is a switch, not a dial (0.3 to 0.6 beta
+> is one plateau, Amendment 6); ending each item's write at convergence
+> adds a constant quarter to a third, and the ceiling sits exactly where
+> items stop converging (Amendments 5 and 6); the Hebbian control's own
+> rounds window is attractor dominance, which refraction only delays (the
+> T = 16 post hoc). Read the Result, then Amendments 4 to 6, and ignore
+> Amendments 1 to 3 unless you want the history.
 
 Registered before running. Owed by PREREG_refraction_capacity.md's
 re-measurement (2026-09-04): with the substrate's selector fixed
