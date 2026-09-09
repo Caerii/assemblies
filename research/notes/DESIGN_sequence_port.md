@@ -172,3 +172,34 @@ suspect, and the check is the numpy organ re-run materialized on the same
 five seeds -- not a kernel hunt. The bar is unchanged: at p = 0.3 and
 p = 0.4, 20 brains, 2000 digits, the five numpy first-error indices
 (NEVER = censored at 2000) inside the hashed [5th, 95th] percentile.
+
+### GATE-3 result (2026-09-09, 20 brains, 2000 digits, both p)
+
+    hashed, p = 0.3:  20/20 brains NEVER err; exact-recovery fraction 0.92-1.00 (mean 0.98)
+    hashed, p = 0.4:  20/20 NEVER; exact 1.000 on every brain
+    numpy A1 (sampled): p = 0.3 seed 1 first error 759 (4/5 NEVER); p = 0.4 5/5 NEVER
+
+    GATE-3 as registered (numpy seeds inside the hashed [5th, 95th]):
+        p = 0.4 PASS; p = 0.3 FAIL -- seed 1's 759 has no hashed counterpart.
+    The registered check, run before anything else: the numpy machine
+    MATERIALIZED (ARC too) on the same five seeds at p = 0.3:
+        seed 1 sampled       first error 759, accuracy 0.552, exact 0.335   (reproduced)
+        seed 1 materialized  NEVER, accuracy 1.000, exact 1.000
+        seeds 2-5 materialized  NEVER, exact 0.96-1.00
+    Against the materialized engine GATE-3 PASSES at both p: 5/5 NEVER
+    inside 20/20 NEVER.
+
+**Reading.** A1's one short horizon was the SAMPLER's, not the machine's
+([[sampler-is-the-whole-discrepancy]] again): on the explicit engine the
+mod-3 machine at p = 0.3 runs 2000 digits without an error on 25 of 25
+brains across the two engines. The registered A1 prediction ("p = 0.3
+should show a SHORT horizon") rested on the sampled sweep's 80/100 exact
+recoveries; on the explicit substrate recovery is exact and the horizon is
+unbounded to 2000 at both p. The hitting-time reading
+([[horizon-is-a-hitting-time]]) stands as a mechanism; its p = 0.3 instance
+was an artifact. T1 met: the five-seed, two-p experiment ran in 9 s; the
+20-brain one in the same 9 s.
+
+The organ is now ported end to end: transducer (A3) and assigned-state
+machine (A1) on one substrate, both gated on the drive to 5e-6 and on
+identity across width, the second also on its registered curve.

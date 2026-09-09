@@ -194,7 +194,14 @@ _RESULTS: List[Result] = [
         evidence=("research/experiments/seq_a1_arc_transfer.py: "
                   "d(output loss)/d(input loss) = 8.17 ours, 10.33 reference",
                   "research/experiments/seq_a1_horizon.py: 2000 steps, 5/5 "
-                  "seeds, zero errors, exact recovery every step",
+                  "seeds, zero errors, exact recovery every step (p = 0.4); at "
+                  "p = 0.3 the one short horizon (seed 1, step 759) was the "
+                  "SAMPLER's: materialized, that seed runs 2000 steps exact",
+                  "research/experiments/seq_a1_horizon_hashed.py (GATE-3 of "
+                  "DESIGN_sequence_port.md): the hashed organ, 20 brains, 2000 "
+                  "digits, p = 0.3 and 0.4: 40/40 brains never err; exact "
+                  "recovery 0.92-1.00 at p = 0.3, 1.000 at 0.4; the numpy "
+                  "machine materialized agrees 5/5",
                   "research/experiments/seq_a1_limit_cycle.py: constant input "
                   "gives an orbit closing bit-identically, 30/30",
                   "research/experiments/seq_s5_soft_census.py: at 60-120 "

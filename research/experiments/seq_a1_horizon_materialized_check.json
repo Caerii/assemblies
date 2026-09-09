@@ -1,0 +1,56 @@
+[
+ {
+  "seed": 1,
+  "p": 0.3,
+  "materialized": false,
+  "first_error": 759,
+  "accuracy": 0.552,
+  "exact_fraction": 0.335,
+  "secs": 4
+ },
+ {
+  "seed": 1,
+  "p": 0.3,
+  "materialized": true,
+  "first_error": null,
+  "accuracy": 1.0,
+  "exact_fraction": 1.0,
+  "secs": 3
+ },
+ {
+  "seed": 2,
+  "p": 0.3,
+  "materialized": true,
+  "first_error": null,
+  "accuracy": 1.0,
+  "exact_fraction": 0.959,
+  "secs": 4
+ },
+ {
+  "seed": 3,
+  "p": 0.3,
+  "materialized": true,
+  "first_error": null,
+  "accuracy": 1.0,
+  "exact_fraction": 1.0,
+  "secs": 3
+ },
+ {
+  "seed": 4,
+  "p": 0.3,
+  "materialized": true,
+  "first_error": null,
+  "accuracy": 1.0,
+  "exact_fraction": 1.0,
+  "secs": 3
+ },
+ {
+  "seed": 5,
+  "p": 0.3,
+  "materialized": true,
+  "first_error": null,
+  "accuracy": 1.0,
+  "exact_fraction": 1.0,
+  "secs": 3
+ }
+]
