@@ -208,3 +208,29 @@ drive) is measured at both strengths during scoring.
     A2-3  STATE DOES NOT COLLAPSE (H4 restated): overlap upper bound < 0.5.
     Reported: the arc margin at 0.05 vs 0.1 (prediction: ~0 at 0.1, > 0.2
     at 0.05 -- the diagnostic's mechanism, measured in the transducer).
+
+### Amendment 2 -- Result (2026-09-09, n_arc = 10,000, 20 seeds)
+
+    a3(s = 0.05)          0.1883 +/- 0.0085
+    a3(s = 0.1)           0.2054 +/- 0.0092   (recorded)
+    paired difference    -0.0171 +/- 0.0078   every-seed range -0.044..+0.023
+    state overlap (H4)    0.1532 +/- 0.0129   (0.0728 at s = 0.1)
+    a3 - state-blind     -0.0178 +/- 0.0071
+    arc margin (s=0.05)   0.17 +/- 0.05;  (s=0.1) 88.7 +/- 8.7 -- the ratio
+                          is not interpretable as registered: at s = beta the
+                          best OUTSIDER's net is near zero (every neuron that
+                          ever won carries bias), so the normaliser vanishes;
+                          reported, not read.
+
+    A2-1  MRR above the beta cell        FAIL (significantly BELOW: -0.017)
+    A2-2  state informative              FAIL (-0.018 +/- 0.007: the blind
+                                          readout is BETTER)
+    A2-3  state does not collapse        PASS (0.15; doubled from 0.07)
+
+**Reading.** Half beta makes the transducer WORSE on every count, as it
+makes the assigned-state organ worse (PREREG_s5_cliff_anatomy.md Addendum
+6: at s < beta the arc collapses onto the state conjunct). The A3 null --
+a state that is distinct and carries nothing the current word does not --
+is NOT the arc's pinned margin. It is structural, the branch the amendment
+named: [[SEQ-STATE-CODE-EMERGENT]] stays unproven, and the induced state
+is a bigram model's state by construction.

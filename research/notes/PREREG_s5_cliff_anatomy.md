@@ -462,3 +462,38 @@ in the register as "beta, the pinned point; below beta the arc gains a
 geometric margin at no cost to the conjunction", and s = 0.5 beta becomes
 the recommended organ value (a protocol change for future studies, not a
 re-run of past ones).
+
+### Addendum 6 -- Result (2026-09-09, S5, 100 seeds each, 15 presentations)
+
+    strength   soft + hard / pairs      organs affected   words derailing   across-symbol   across-state   P-CONJ
+    0.00       200 + 23,800 / 24,000    100 / 100         100 / 100         0.043           1.000          FAIL (the null)
+    0.05       23,249 + 751 / 24,000    100 / 100          83 / 100         0.632           0.079          FAIL
+    0.08       269 + 0 / 24,000          95 / 100           0 / 100         0.052           0.000          PASS
+    0.10       15 + 0 / 24,000           14 / 100           0 / 100         (Addendum 4)                   PASS (A1)
+
+    X1  MARGIN KILLS THE SOFT PAIRS at 0.05: 100% of pairs are bad         FAIL
+    X2  THE CONJUNCTION SURVIVES at 0.05: across-symbol 0.632              FAIL
+    X3  THE NULL at 0: the arc collapses -- onto the SYMBOL here
+        (across-state 1.000; A1's numpy null collapsed onto the state:
+        the Binomial stimulus of this port is the stronger conjunct)     reported
+    X4  words: 83% derail at 0.05, 0% at 0.08                              FAIL at 0.05
+
+**Reading, and the retraction of the derivation's conclusion.** The
+derivation was right about a member's net drive in ONE context and wrong
+about what refraction is for. The arc is a conjunction only because the
+neurons the STATE drives in every symbol context are charged bias in
+every one of them, and at s < beta that cross-context bias no longer
+cancels their potentiation: the state-shared neurons take the arc, and
+the two symbols' arcs merge (across-symbol 0.632). So the conjunction
+needs s >= beta. Stability needs s <= beta (above it a member's net
+decays as R (1 + beta)^c (1 - s/beta) + R s/beta and relocates before 15
+presentations). The organ's strength is therefore PINNED AT BETA by two
+opposite constraints, with zero margin by necessity, and the soft pairs
+are the price of the conjunction: 0.08 already costs 18x the soft rate
+(1.12%), 0.05 the conjunction itself. Strength is not a lever here in
+either direction. What could be: the outsider tail (in-degree
+normalisation, which the registered substrate has OFF), the clip (a
+later relocation edge), a leaky bias (accumulation without decay is what
+pins the point), or balancing the two conjuncts' exposure
+([[ARC-CONJUNCT-EXPOSURE]]). Nothing is adopted; the register entry's
+caveat records the pinning.
