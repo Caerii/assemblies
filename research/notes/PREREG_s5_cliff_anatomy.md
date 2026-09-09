@@ -587,3 +587,12 @@ was that choice.
         edge, not a cliff). FAIL with 0 soft pairs: the edge is later than
         the median-base formula (the tail bases matter); FAIL with >=
         30's rate: earlier.
+
+### Addendum 8 -- E1 result (2026-09-09, 20 presentations, 100 seeds per group)
+
+    Z60      0 / 12,000     A4xZ5   0 / 12,000     A5   0 / 12,000     Z120   0 / 24,000
+    400 organs, 60,000 pairs, 0 soft, 0 hard, 0 words derailing; P-CONJ 0.000 / 0.000
+
+    E1  GENERALITY                                                        PASS
+    With S5 (Addendum 7) that is 500 organs and 84,000 pairs exact at
+    20 presentations, against 33 soft pairs at 15 on the same organs.
