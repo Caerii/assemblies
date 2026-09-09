@@ -452,3 +452,43 @@ rounds with T_max = 8 raise the ceiling +34% (2645 vs 1978, resolved)
 and the ceiling is where items stop converging inside T_max; gating
 starves the Hebbian control. Harness default stays T = 8 ungated (the
 registered protocol); `--converge` is opt-in.
+
+## Amendment 6 (2026-09-09, before running): is the gate's gain a constant, and is strength a lever
+
+Two questions left open by Amendments 4-5, both one cell each.
+
+**The gate at a second n/k.** (8000, 60), n/k = 133, in regime; ungated
+T = 8 gives 6995 [6144, 8192). REF gated T_max = 8, 20 brains, grid
+(..., 4096, 6144, 8192, 10240, 12288, 16384). A constant +34% predicts
+~9,400.
+
+    G6  GAIN IS CONSTANT.  M*(gated) / 6995 in [1.15, 1.55].
+        PREDICTION: PASSES (the gate returns the same fraction of the
+        write budget at every load scale).
+        FAIL LOW  (< 1.15): the gain shrinks with n/k -- the rounds past
+        convergence matter less when the area is larger; report the ratio.
+        FAIL HIGH (> 1.55): the gain grows; report.
+        The convergence-fraction U (G3) is reported at this cell too: if
+        the ceiling again sits where items stop converging inside 8, that
+        mechanism is stated in the entry as general.
+
+**Strength.** (4000, 60), n/k = 67, ungated T = 8, 20 brains, grid to
+4096, masked readout, at 0.3, 0.4, 0.6 beta against the 0.5 beta cell
+(1978 [1536, 2048)); 0.7 beta is known not to converge at T = 8 (S7).
+
+    S8  STRENGTH IS A LEVER.  Some strength other than 0.5 has M* >= 1.15
+        x 1978 = 2275 with rank-1 at M = 8 >= 0.9.
+        PREDICTION: uncertain. 0.5 beta was chosen from a grid of 0.5,
+        0.7, 1.0 (PREREG_refraction_capacity); the interior between 0.3
+        and 0.7 is unmeasured. Below 0.5 the anti-merging force weakens
+        (toward the Hebbian 83); above it the churn transition approaches
+        (0.7 does not converge at T = 8). Either monotone shape or an
+        interior peak at 0.5 is a FAIL: 0.5 stands, stated as measured.
+    S9  CONVERGENCE, reported: rank-1 at M = 8 per strength; the strength
+        at which T = 8 stops converging brackets the churn transition
+        from below (S7 put it at 0.5-0.7).
+
+Adoption: G6 pass -> the entry's gating sentence gains "constant in n/k
+(two cells)". S8 pass -> the entry's strength is restated with the
+measured optimum, and the gate is re-run at that strength (post hoc,
+labelled). Neither changes the harness default.
