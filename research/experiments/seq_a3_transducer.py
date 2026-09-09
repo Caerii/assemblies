@@ -353,7 +353,7 @@ def _brains_per_launch(n_arc):
 
 
 def a3_hashed(seeds, *, n_arc, beta, state_blind=False, collect_state=False,
-              tie_seed=0):
+              tie_seed=0, strength=0.1, collect_margin=False):
     """MRR per seed (and cross-prefix state overlap per seed when asked)."""
     import torch
     from neural_assemblies.core.torch_engine._hashed_transducer import HashedTransducer
@@ -368,7 +368,8 @@ def a3_hashed(seeds, *, n_arc, beta, state_blind=False, collect_state=False,
         t0 = time.perf_counter()
         t = HashedTransducer(gseeds, words, n=N, n_arc=n_arc, k=K, p=P, beta=beta,
                              organ_p=ORGAN_P, w_max=20.0, norm_init=True,
-                             max_potentiations=64)
+                             max_potentiations=64, refracted_strength=strength)
+        margins = [[] for _ in group]
         t.ground(rounds=GROUND_ROUNDS)
         W, T, St = _schedules([tr for _, tr, _ in group], wi)
         t.train_schedules(W, T, St, rounds=TRAIN_ROUNDS)
@@ -386,6 +387,20 @@ def a3_hashed(seeds, *, n_arc, beta, state_blind=False, collect_state=False,
             if state_blind:
                 t.state.inhibit_rows(live)
             t.tick(Wt[:, step], rounds=TRAIN_ROUNDS, freeze=True)
+            if collect_margin:
+                # the arc's MEMBER MARGIN: min net drive of a winner minus max
+                # net drive of a non-winner, over the best outsider's drive
+                raw = torch.zeros(len(group), t.n_arc, device="cuda")
+                t.lex_arc.contribute(raw, t.lex.winners)
+                t.state_arc.contribute(raw, t.state.winners)
+                net = t.arc.apply_bias(raw)
+                w = t.arc.winners.clamp_min(0)
+                wmin = net.gather(1, w).min(1).values
+                mask = torch.zeros_like(net, dtype=torch.bool).scatter_(1, w, True)
+                omax = net.masked_fill(mask, -1e9).max(1).values
+                for b in range(len(group)):
+                    if bool(live[b]):
+                        margins[b].append(float((wmin[b] - omax[b]) / omax[b].clamp_min(1e-6)))
             if collect_state:
                 sw = t.state.winners.cpu()
             emitted = t.emit()
@@ -402,6 +417,8 @@ def a3_hashed(seeds, *, n_arc, beta, state_blind=False, collect_state=False,
                 pos[b] += 1
         for b, (seed, _, _) in enumerate(group):
             mrr[seed] = rr[b] / max(cnt[b], 1)
+            if collect_margin:
+                ovl[("margin", seed)] = float(np.mean(margins[b])) if margins[b] else float("nan")
             if collect_state:
                 ovs = []
                 for _p, sets_ in states[b].items():
@@ -483,8 +500,51 @@ def main_hashed(seeds, cells=N_ARC_SWEEP, with_context=True):
     _write(out, "_hashed")
 
 
+def main_strength(seeds, strength, n_arc=10000):
+    """PREREG_seq_a3_transducer.md Amendment 2: the organ at a strength below
+    beta, paired against the recorded beta cell; the state-blind audit and
+    the arc's member margin at both."""
+    print(f"=== A3 hashed, strength {strength} (Amendment 2) ===")
+    with open(os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                           "seq_a3_transducer_results_hashed.json")) as fh:
+        base = json.load(fh)["sweep"][str(n_arc)]["values"]
+    m, ov = a3_hashed(seeds, n_arc=n_arc, beta=BETA, strength=strength,
+                      collect_state=True, collect_margin=True)
+    cell = ensemble_from_values([m[s] for s in seeds], f"a3(s={strength})", keys=seeds)
+    ref = ensemble_from_values(base, f"a3(s=0.1)", keys=seeds)
+    delta = paired_delta(cell, ref, label=f"a3(s={strength}) - a3(s=0.1)")
+    h4 = ensemble_from_values([ov[s] for s in seeds], "state_overlap", keys=seeds)
+    marg = ensemble_from_values([ov[("margin", s)] for s in seeds], "arc_margin", keys=seeds)
+    mb, _ = a3_hashed(seeds, n_arc=n_arc, beta=BETA, strength=strength, state_blind=True)
+    blind = ensemble_from_values([mb[s] for s in seeds], "state-blind", keys=seeds)
+    bd = paired_delta(cell, blind, label="a3 - state-blind")
+    _, ovb = a3_hashed(seeds, n_arc=n_arc, beta=BETA, strength=0.1, collect_margin=True)
+    marg0 = ensemble_from_values([ovb[("margin", s)] for s in seeds], "arc_margin(s=0.1)", keys=seeds)
+    for e in (cell, ref, delta, h4, blind, bd, marg, marg0):
+        print(f"    {e}", flush=True)
+    out = {"strength": strength, "n_arc": n_arc, "seeds": seeds,
+           "mrr": {"mean": cell.mean, "ci": cell.ci, "values": list(cell.values)},
+           "delta_vs_beta": {"mean": delta.mean, "ci": delta.ci, "values": list(delta.values)},
+           "h4": {"mean": h4.mean, "ci": h4.ci},
+           "state_blind": {"mean": blind.mean, "ci": blind.ci},
+           "state_blind_delta": {"mean": bd.mean, "ci": bd.ci, "values": list(bd.values)},
+           "arc_margin": {"mean": marg.mean, "ci": marg.ci},
+           "arc_margin_beta": {"mean": marg0.mean, "ci": marg0.ci}}
+    verdicts = {"A2-1 MRR above the beta cell (paired)": delta.low > 0.0,
+                "A2-2 state informative (a3 - blind > 0)": bd.low > 0.0,
+                "A2-3 state does not collapse": h4.high < 0.5}
+    print("\n=== BARS ===")
+    for name, ok in verdicts.items():
+        print(f"  {'PASS' if ok else 'FAIL'}  {name}")
+    out["verdicts"] = verdicts
+    _write(out, f"_hashed_s{strength}")
+
+
 if __name__ == "__main__":
-    if "--engine" in sys.argv and sys.argv[sys.argv.index("--engine") + 1] == "hashed":
+    if "--strength" in sys.argv:
+        n_seeds = int(sys.argv[sys.argv.index("--seeds") + 1]) if "--seeds" in sys.argv else len(HASHED_SEEDS)
+        main_strength(HASHED_SEEDS[:n_seeds], float(sys.argv[sys.argv.index("--strength") + 1]))
+    elif "--engine" in sys.argv and sys.argv[sys.argv.index("--engine") + 1] == "hashed":
         n_seeds = int(sys.argv[sys.argv.index("--seeds") + 1]) if "--seeds" in sys.argv else len(HASHED_SEEDS)
         cells = ([int(x) for x in sys.argv[sys.argv.index("--cells") + 1].split(",")]
                  if "--cells" in sys.argv else N_ARC_SWEEP)

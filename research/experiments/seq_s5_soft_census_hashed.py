@@ -45,7 +45,8 @@ def _bytes_per_brain(n_arc, n_state):
     return int(2 * n_arc * n_state * (2 + 4 / 32) + 4 * n_arc * 64)
 
 
-def census_at_width(group_name, seeds, longest=LONGEST, presentations=PRESENTATIONS):
+def census_at_width(group_name, seeds, longest=LONGEST, presentations=PRESENTATIONS,
+                    strength=REFRACTED):
     group = GROUPS[group_name]()
     states, symbols, transitions = word_problem_fsm(group)
     n_arc, n_state = sizes(group, len(symbols))
@@ -55,7 +56,7 @@ def census_at_width(group_name, seeds, longest=LONGEST, presentations=PRESENTATI
     t0 = time.perf_counter()
     fsm = HashedArcFSM(seeds, states, symbols, transitions, n_arc=n_arc,
                        n_state=n_state, k=K, p=ORGAN_P, beta=BETA,
-                       refracted_strength=REFRACTED, w_max=w_max, norm_init=False,
+                       refracted_strength=strength, w_max=w_max, norm_init=False,
                        max_potentiations=256, prefix="_wp", zero_or_size=False)
     fsm.train(presentations)
     fsm.check()
@@ -91,12 +92,14 @@ def census_at_width(group_name, seeds, longest=LONGEST, presentations=PRESENTATI
     hard = [[] for _ in seeds]
     relations = [[] for _ in seeds]
     ov_all = []
+    arcs = {}                      # (state, symbol) -> [B, k] test-time arc
     idx_of = {v: k_ for k_, v in si.items()}
     for st in states:
         for sym in symbols:
             fsm.arc.inhibit()
             fsm.cue_state(st)
             label = fsm.step(sym)
+            arcs[(st, sym)] = fsm.arc.winners.clone()
             target = si[table[(st, sym)]]
             ov = onblock(torch.full((B,), target, device="cuda", dtype=torch.int64))
             ov_all.append(ov)
@@ -144,6 +147,21 @@ def census_at_width(group_name, seeds, longest=LONGEST, presentations=PRESENTATI
                                          "c_o": c_o, "c_b": c_b})
     ov_all = torch.stack(ov_all).cpu().numpy()                    # [pairs, B]
 
+    # -- the conjunction (A1's P-CONJ): across-SYMBOL overlap (same state,
+    # the two generators) and across-STATE overlap (same symbol, another
+    # state), per brain; chance is k / n_arc
+    def _ov(a, b_):
+        return (a.unsqueeze(2) == b_.unsqueeze(1)).any(2).float().mean(1)   # [B]
+    xs, xt = [], []
+    rng_ = random.Random(7)
+    for st in states:
+        xs.append(_ov(arcs[(st, symbols[0])], arcs[(st, symbols[1])]))
+        for sym in symbols:
+            other = rng_.choice([x for x in states if x != st])
+            xt.append(_ov(arcs[(st, sym)], arcs[(other, sym)]))
+    across_symbol = torch.stack(xs).mean(0).cpu().numpy()
+    across_state = torch.stack(xt).mean(0).cpu().numpy()
+
     rows = []
     for b, seed in enumerate(seeds):
         bad_pairs = set(p for p, _ in soft[b]) | set(hard[b])
@@ -168,6 +186,9 @@ def census_at_width(group_name, seeds, longest=LONGEST, presentations=PRESENTATI
             "onblock_min": float(onb[b].min()),
             "n_pairs": len(states) * len(symbols),
             "relations": relations[b],
+            "across_symbol": float(across_symbol[b]),
+            "across_state": float(across_state[b]),
+            "strength": strength,
         })
     print(f"    {group_name}: {B} brains, n_arc {n_arc}, n_state {n_state}, "
           f"{len(states) * len(symbols)} pairs, word {longest}  "
@@ -184,6 +205,9 @@ def main():
     ap.add_argument("--tag", type=str, default="")
     ap.add_argument("--presentations", type=int, default=PRESENTATIONS,
                     help="Addendum 5: the potentiated gain (1 + beta)^P")
+    ap.add_argument("--strength", type=float, default=REFRACTED,
+                    help="Addendum 6: the arc's refraction strength (absolute; "
+                         "the registered organ is 0.1 = beta)")
     ap.add_argument("--smoke", action="store_true")
     args = ap.parse_args()
     # seeds continue the registered ten (42..51) upward
@@ -200,7 +224,7 @@ def main():
         n_arc, n_state = sizes(G, len(G.generators))
         per = max(1, LAUNCH_BYTES // _bytes_per_brain(n_arc, n_state))
         for i in range(0, len(seeds), per):
-            out += census_at_width(g, seeds[i:i + per], longest, pres)
+            out += census_at_width(g, seeds[i:i + per], longest, pres, args.strength)
 
     print(f"\n    {'group':7s} {'seed':>4s} {'first_bad':>9s} {'dev':>5s} "
           f"{'pred_dev':>8s} {'V2':>3s} {'soft':>5s} {'hard':>5s} {'min_ov':>7s}")
@@ -227,6 +251,11 @@ def main():
     for g_, (nb, np_, nd) in per_group.items():
         print(f"      {g_:7s} {nb:4d} / {np_:6d} ({100.0 * nb / np_:.3f}%)   {nd}")
     print(f"    intruder relations: {dict(rel)}")
+    xs_ = np.array([v["across_symbol"] for v in out]); xt_ = np.array([v["across_state"] for v in out])
+    print(f"    conjunction (strength {args.strength}): across-symbol overlap "
+          f"{xs_.mean():.3f} (max {xs_.max():.3f}), across-state {xt_.mean():.3f} "
+          f"(max {xt_.max():.3f}); P-CONJ both < 0.15: "
+          f"{'PASS' if xs_.mean() < 0.15 and xt_.mean() < 0.15 else 'FAIL'}")
     cs = [(x["c_o"], x["c_b"]) for v in out for x in v["relations"] if "c_o" in x]
     if cs:
         t3 = sum(1 for co, cb in cs if cb <= 14 and co >= 35)
