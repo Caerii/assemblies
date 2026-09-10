@@ -2121,3 +2121,39 @@ The outer study also rejects invalid or fewer-than-three seed counts before its
 timer or compute methods are accessed. After this guard, all 33 focused tests
 passed in 2.09s. Final Ruff and git diff --check pass. No backend implementation
 changed, so the CUDA suites were not rerun for this CPU research-script change.
+
+
+## Shared exclusive result storage (2026-09-10)
+
+ExperimentResult.save previously opened in overwrite mode and used default=str,
+which could replace same-second results and serialize arrays/unsupported objects
+as text. Both the migrated runner and legacy saves now call the same
+research.json_documents.write_new_document. It validates encoding before creating
+a parent or output, uses exclusive UTF-8 creation, and preserves existing bytes.
+Legacy loading now uses the same duplicate-key/nonfinite/overflow-aware decoder.
+This does not recover missing provenance or validate a study's scientific claims.
+
+Common t-test helpers now return native boolean significance flags. Previously
+NumPy booleans reached default=str and could become strings. The historical noise
+study explicitly serializes its already-marked degenerate t/p/d statistics as null,
+retaining the reason and significant=False, and logs the undefined reason instead
+of formatting it as a number. Finite statistics and neural trial trajectories are
+unchanged. Other legacy experiments must explicitly resolve unsupported arrays or
+nonfinite statistics; the writer does not infer their meaning or rewrite old files.
+
+The initial combined storage/runner check had 1 failed,71 passed in 21.05s: the
+new fake clock lacked isoformat, before any collision was exercised. The corrected
+fixture uses a fixed real datetime. Final focused storage/runner/historical replay
+suite: 108 passed in 19.51s, including a saved zero-variance noise-study result,
+boolean round-trips, duplicate/nonfinite read rejection, same-second collision
+preservation and pre-filesystem serialization failures. Ruff and diff checks pass.
+
+Full workflow-selected contract gate: 1446 passed, 1 skipped, 6 warnings in
+162.54s (.cache/shared-result-storage-contract-gate.log), exit 0. This includes
+source archives, existing runner artifacts, legacy storage, numerical trial replay,
+specification links, theory rendering and both ratchets. It is not a full-package
+audit or proof of historical scientific reproducibility.
+
+Dedicated fused/CUDA gate: 122 passed, 11 warnings in 35.25s, exit 0
+(.cache/shared-result-storage-gpu-gate.log), with fused build loaded on RTX 3080.
+No implementation changed after these gates.

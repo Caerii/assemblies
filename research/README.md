@@ -210,3 +210,15 @@ Declared input artifacts retain their separate digests; datasets, installed bina
 ignored files and external dependencies are not bundled. Keep those limits distinct
 from the scientific pass conditions. The archive is evidence to inspect, not a
 promise that executing it elsewhere reproduces a study.
+
+
+### Legacy result storage
+
+`ExperimentResult.save` now uses the runner's strict exclusive JSON writer. Existing
+paths raise FileExistsError; arrays and unsupported objects must be represented
+explicitly by their producing experiment, and nonfinite numbers are rejected before
+creating output. Do not stringify a failed statistic: record an explicit undefined
+value and its reason. The historical noise study uses null plus its existing
+`degenerate` reason and `significant: false`. Loading rejects duplicate keys and
+nonfinite numeric encodings. These safeguards do not add the missing run provenance
+of an unmigrated experiment or turn its completion into scientific adoption.

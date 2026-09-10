@@ -1234,3 +1234,23 @@ Final checks: 39 replay/retention/ratchet tests passed, followed by 33 focused t
 including the new minimum-seed guard. Raw comparisons use canonical stable-ID
 snapshots. Both obsolete ratchet allowances were removed; none were raised.
 No backend code or historical scientific artifact changed.
+
+
+## Shared result storage (2026-09-10)
+
+Legacy ExperimentResult and the migrated runner now share strict exclusive JSON
+storage; same-second saves refuse to overwrite, and unsupported/nonfinite data
+cannot silently become strings or nonstandard JSON. Loads use the loss-aware
+reader. Statistical flags remain booleans; the noise study represents explicitly
+undefined tests as null plus their reason, with significant=False.
+See [validation and compatibility limits](VALIDATION.md#shared-exclusive-result-storage-2026-09-10).
+The focused storage/runner/historical replay suite passed 108 tests. Missing legacy
+provenance and full experiment-runner migration remain separate obligations.
+
+The full workflow-selected contract gate passed 1446 tests (one skip). Legacy
+experiments with unresolved nonfinite statistics now stop at storage rather than
+silently writing invalid evidence; the historical noise study has an explicit
+undefined-statistic representation. Historical files remain unchanged.
+
+The final fused/CUDA gate passed 122 tests in 35.25s. No implementation changed
+after the gates. Full-package closure and legacy provenance migration remain open.

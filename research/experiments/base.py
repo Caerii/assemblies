@@ -7,7 +7,6 @@ Provides:
 - Utilities for reproducibility, logging, and result storage
 """
 
-import json
 import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field, asdict
@@ -17,6 +16,8 @@ from typing import Any, Dict, List, Optional
 
 import numpy as np
 from scipy import stats
+
+from research.json_documents import load_document, write_new_document
 
 
 @dataclass
@@ -37,17 +38,17 @@ class ExperimentResult:
         return asdict(self)
     
     def save(self, path: Path) -> None:
-        """Save result to JSON file."""
-        path.parent.mkdir(parents=True, exist_ok=True)
-        with open(path, 'w') as f:
-            json.dump(self.to_dict(), f, indent=2, default=str)
-    
+        """Specification: neural_assemblies/ir/VERIFICATION.md#contract-evidence-json
+
+        Preserve existing evidence; unsupported or nonfinite values must be resolved
+        by the experiment instead of silently converted to strings.
+        """
+        write_new_document(path, self.to_dict())
+
     @classmethod
     def load(cls, path: Path) -> 'ExperimentResult':
-        """Load result from JSON file."""
-        with open(path, 'r') as f:
-            data = json.load(f)
-        return cls(**data)
+        """Specification: neural_assemblies/ir/VERIFICATION.md#contract-evidence-json"""
+        return cls(**load_document(path))
 
 
 class ExperimentBase(ABC):
@@ -243,7 +244,7 @@ def ttest_vs_null(values: List[float], null_mean: float) -> Dict[str, Any]:
     t_stat, p_val = stats.ttest_1samp(arr, null_mean)
     d = (np.mean(arr) - null_mean) / np.std(arr, ddof=1)
     return {"t": float(t_stat), "p": float(p_val), "d": float(d),
-            "significant": p_val < 0.05}
+            "significant": bool(p_val < 0.05)}
 
 
 def paired_ttest(values1: List[float], values2: List[float]) -> Dict[str, Any]:
@@ -256,5 +257,5 @@ def paired_ttest(values1: List[float], values2: List[float]) -> Dict[str, Any]:
     t_stat, p_val = stats.ttest_rel(arr1, arr2)
     d = float(np.mean(diff) / np.std(diff, ddof=1))
     return {"t": float(t_stat), "p": float(p_val), "d": d,
-            "significant": p_val < 0.05}
+            "significant": bool(p_val < 0.05)}
 

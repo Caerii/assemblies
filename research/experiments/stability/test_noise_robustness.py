@@ -151,6 +151,18 @@ def run_association_recovery_trial(cfg: NoiseConfig, noise_frac: float, seed: in
             'a_intact': measure_overlap(trained_a, Assembly.from_area(b, 'A').neuron_ids)}
 
 
+def _chance_test(values, null):
+    """Keep undefined test statistics explicit and serializable, never significant."""
+    result = ttest_vs_null(values, null)
+    if result.get('degenerate'):
+        return {**result, 't': None, 'p': None, 'd': None}
+    return result
+
+
+def _effect_text(test):
+    return f"undefined ({test['degenerate']})" if test['d'] is None else f"{test['d']:.1f}"
+
+
 # -- Main experiment -----------------------------------------------------------
 
 
@@ -211,7 +223,7 @@ class NoiseRobustnessExperiment(ExperimentBase):
             row = {
                 "noise_frac": nf,
                 "final_overlap": summarize(vals),
-                "test_vs_chance": ttest_vs_null(vals, null),
+                "test_vs_chance": _chance_test(vals, null),
             }
             h1_results.append(row)
             raw_data["cells"].append(dict(arm="h1", n=n, k=k, noise_frac=nf, values=vals))
@@ -219,7 +231,7 @@ class NoiseRobustnessExperiment(ExperimentBase):
             self.log(
                 f"  noise={nf:.1f}: "
                 f"{row['final_overlap']['mean']:.3f}+/-{row['final_overlap']['sem']:.3f}  "
-                f"d={row['test_vs_chance']['d']:.1f}"
+                f"d={_effect_text(row['test_vs_chance'])}"
             )
 
         metrics["h1_stimulus_recovery"] = h1_results
@@ -238,7 +250,7 @@ class NoiseRobustnessExperiment(ExperimentBase):
             row = {
                 "noise_frac": nf,
                 "final_overlap": summarize(vals),
-                "test_vs_chance": ttest_vs_null(vals, null),
+                "test_vs_chance": _chance_test(vals, null),
             }
             h2_results.append(row)
             raw_data["cells"].append(dict(arm="h2", n=n, k=k, noise_frac=nf, values=vals))
@@ -246,7 +258,7 @@ class NoiseRobustnessExperiment(ExperimentBase):
             self.log(
                 f"  noise={nf:.1f}: "
                 f"{row['final_overlap']['mean']:.3f}+/-{row['final_overlap']['sem']:.3f}  "
-                f"d={row['test_vs_chance']['d']:.1f}"
+                f"d={_effect_text(row['test_vs_chance'])}"
             )
 
         metrics["h2_autonomous_recovery"] = h2_results
@@ -269,7 +281,7 @@ class NoiseRobustnessExperiment(ExperimentBase):
                 "noise_frac": nf,
                 "final_overlap": summarize(b_vals),
                 "a_intact": summarize(a_vals),
-                "test_vs_chance": ttest_vs_null(b_vals, null),
+                "test_vs_chance": _chance_test(b_vals, null),
             }
             h3_results.append(row)
             raw_data["cells"].append(dict(arm="h3", n=n, k=k, noise_frac=nf,
@@ -279,7 +291,7 @@ class NoiseRobustnessExperiment(ExperimentBase):
                 f"  noise={nf:.1f}: "
                 f"B={row['final_overlap']['mean']:.3f}  "
                 f"A={row['a_intact']['mean']:.3f}  "
-                f"d={row['test_vs_chance']['d']:.1f}"
+                f"d={_effect_text(row['test_vs_chance'])}"
             )
 
         metrics["h3_association_recovery"] = h3_results
@@ -309,7 +321,7 @@ class NoiseRobustnessExperiment(ExperimentBase):
                 entry = {
                     "noise_frac": nf,
                     "final_overlap": summarize(vals),
-                    "test_vs_chance": ttest_vs_null(vals, null_h4),
+                    "test_vs_chance": _chance_test(vals, null_h4),
                 }
                 noise_entries.append(entry)
                 raw_data["cells"].append(dict(arm="h4", n=n_val, k=k_val, noise_frac=nf, values=vals))

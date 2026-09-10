@@ -34,3 +34,15 @@ def load_document(path):
 def encode_document(value):
     """Deterministic encoding also preserves JSON numeric and boolean types."""
     return json.dumps(value, indent=2, allow_nan=False, sort_keys=True) + "\n"
+
+
+def write_new_document(path, value):
+    """Specification: neural_assemblies/ir/VERIFICATION.md#contract-evidence-json
+
+    Validate before filesystem mutation; exclusively create a UTF-8 document.
+    """
+    text = encode_document(value)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open('x', encoding='utf-8') as stream:
+        stream.write(text)
+        stream.flush()

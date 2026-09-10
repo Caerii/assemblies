@@ -1555,3 +1555,25 @@ recovered IDs in the same area, and neither set larger than the reference. Inval
 observations cannot reach score computation. Empty cues/results remain valid failed
 observations against a nonempty reference; negative improvement is retained. The
 same validation runs before activating the cue and again on the returned snapshot.
+
+
+### Shared legacy and runner document storage
+
+The contract-evidence-json boundary also owns write_new_document. Encode and validate
+before creating directories or opening the output, then create exclusively with
+UTF-8 and flush. Existing files are never replaced. The migrated runner and legacy
+ExperimentResult.save use the same function; legacy loads use load_document.
+Unsupported objects/arrays and nonfinite numbers raise instead of default=str or
+nonstandard JSON. Experiments must explicitly represent their arrays and undefined
+statistics; historical files are not silently repaired. Same-second legacy filename
+collisions therefore fail without modifying the first result. This storage change
+does not add missing run provenance or certify scientific validity of legacy data.
+
+
+Common legacy t-test significance flags are native booleans. For the historical
+noise study, a test already classified as degenerate retains that classification
+and false significance, and represents undefined t/p/d as JSON null. Its display
+names the reason. The underlying statistical helpers retain their computational
+NaN convention for existing analysis callers; other producers must explicitly
+resolve that representation before strict storage. No undefined statistic is
+converted into zero, a significant result, or a fabricated numeric value.

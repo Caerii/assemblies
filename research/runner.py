@@ -17,7 +17,7 @@ from typing import Callable, Mapping
 from zipfile import ZIP_DEFLATED, ZipFile, ZipInfo
 
 from neural_assemblies.core.environment import environment_record
-from research.json_documents import encode_document
+from research.json_documents import write_new_document as _write_new
 from research.source_archive import validate_source_archive
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -79,15 +79,6 @@ def _source_identity(archive: ZipFile | None = None) -> dict:
         if archive is not None:
             _archive_bytes(archive, 'source/' + name, data)
     return {'git_commit': commit, 'source_sha256': digest.hexdigest()}
-
-
-def _write_new(path: Path, value: object) -> None:
-    # Validate serialization before creating the file. Never stringify unknown
-    # objects or permit NaN/Infinity: that silently loses measurement meaning.
-    text = encode_document(value)
-    with path.open('x', encoding='utf-8') as stream:
-        stream.write(text)
-        stream.flush()
 
 
 def run_experiment(*, script: str | Path, protocol: str, protocol_version: str,
