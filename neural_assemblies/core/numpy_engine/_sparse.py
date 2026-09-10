@@ -2627,91 +2627,14 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
                 _norm_conn(self._area_conns[src_name][target])
 
     def clone(self) -> "NumpySparseEngine":
-        """Structural clone for sweep forks — copies numpy state, not Python graph walk."""
+        """Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-brain-clone
+
+        Copy the state graph, preserving internal aliases without reconstructing
+        configuration from defaults. Specialized copies must meet this contract.
+        """
         import copy
-        from collections import deque
 
-        new = NumpySparseEngine(
-            self.p,
-            seed=0,
-            w_max=self.w_max,
-            deterministic=self._deterministic,
-            projection_fidelity=self._projection_fidelity.value,
-            inhibitory_prob=self.inhibitory_prob,
-            inhibitory_weight=self.inhibitory_weight,
-            synaptic_scaling=self.synaptic_scaling,
-            norm_init=self.norm_init,
-        )
-        new._rng = copy.deepcopy(self._rng)
-        new._plasticity_enabled_global = self._plasticity_enabled_global
-        new._stim_fastpath = self._stim_fastpath
-        new._dense_stim_threshold = self._dense_stim_threshold
-
-        for name, stim in self._stimuli.items():
-            new.add_stimulus(name, stim.size)
-        for name, area in self._areas.items():
-            new.add_area(
-                name,
-                area.n,
-                area.k,
-                area.beta,
-                refractory_period=area.refractory_period,
-                inhibition_strength=area.inhibition_strength,
-                winner_policy=area.winner_policy,
-                input_noise_std=area.input_noise_std,
-            )
-
-        def _copy_conn(src_conn: Connectome, dst_conn: Connectome) -> None:
-            dst_conn.source_size = src_conn.source_size
-            dst_conn.target_size = src_conn.target_size
-            dst_conn.sparse = src_conn.sparse
-            if src_conn.weights is not None and getattr(src_conn.weights, "size", 0) > 0:
-                dst_conn.weights = src_conn.weights.copy()
-            else:
-                dst_conn.weights = src_conn.weights
-            # norm_init per-neuron scales are part of the network's identity,
-            # not derived state -- a clone must inherit them.
-            base = getattr(src_conn, "_norm_deg_base", None)
-            if base is not None:
-                dst_conn._norm_deg_base = base.copy()
-
-        for stim_name, area_map in self._stim_conns.items():
-            for area_name, conn in area_map.items():
-                _copy_conn(conn, new._stim_conns[stim_name][area_name])
-
-        for src_name, tgt_map in self._area_conns.items():
-            for tgt_name, conn in tgt_map.items():
-                _copy_conn(conn, new._area_conns[src_name][tgt_name])
-
-        xp = self._xp
-        for name, src in self._areas.items():
-            dst = new._areas[name]
-            dst.w = src.w
-            dst.winners = src.winners.copy()
-            dst.compact_to_neuron_id = list(src.compact_to_neuron_id)
-            if src.neuron_id_pool is not None:
-                dst.neuron_id_pool = src.neuron_id_pool.copy()
-            dst.neuron_id_pool_ptr = src.neuron_id_pool_ptr
-            dst.fixed_assembly = src.fixed_assembly
-            dst.beta_by_source = dict(src.beta_by_source)
-            dst.refractory_period = src.refractory_period
-            dst.inhibition_strength = src.inhibition_strength
-            dst.refracted = src.refracted
-            dst.refracted_strength = src.refracted_strength
-            dst.explicit_source = src.explicit_source
-            dst.winner_policy = src.winner_policy
-            dst.input_noise_std = src.input_noise_std
-            if src._refractory_history is not None:
-                dst._refractory_history = deque(
-                    (set(h) for h in src._refractory_history),
-                    maxlen=src._refractory_history.maxlen,
-                )
-            if src._cumulative_bias is not None and len(src._cumulative_bias) > 0:
-                dst._cumulative_bias = src._cumulative_bias.copy()
-            else:
-                dst._cumulative_bias = xp.zeros(max(dst.w, 0), dtype=xp.float32)
-
-        return new
+        return copy.deepcopy(self)
 
     # -- Identity -----------------------------------------------------------
 

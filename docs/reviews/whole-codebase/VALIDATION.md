@@ -272,3 +272,54 @@ comes from a fresh completed run saved in `.cache/midspiral-contract-gate.log`.
 After extending source-link validation to Lean module documentation, the focused
 specification-link/research-contract suite passed 25 tests. The final link audit
 resolved 19 links with no errors. Ruff and `git diff --check` passed.
+
+## Classification evidence provenance
+
+`ClassificationEvidence` validates and retains source-specific score domains;
+`classify_word_evidence` owns dispatch, with the legacy tuple exposed as a view.
+Bootstrap fusion and decomposition now consume the typed result. Fallback
+distributional scores retain their values and source, and cannot be credited
+as correct neural readout. The erroneous weak-readout diagnostic expression is
+replaced by an explicit maximum with a default.
+
+Three new controls failed with the `c43a988` inference module loaded in an
+isolated Python process and pass with the repaired module. This is a module
+comparison, not a historical study replay. Two additional controls exposed AUX
+leaking into POS scores in grounded/low-confidence distributional branches;
+the high-confidence ungrounded branch was already correct. All now use the
+existing function-subcategory-to-core mapping before score accumulation.
+
+Focused evidence/observation/source-link checks: **29 passed**. The complete
+workflow-listed CPU contract gate: **295 passed, 1 skipped**. Ruff passed for
+the changed runtime and test modules. No fusion weights or neural readout formula
+were tuned to the heldout fixture. This change does not close the outstanding
+historical replay, GPU or concrete backend-proof gates.
+
+The trained bootstrap/performance run initially returned **61 passed, 1 failed,
+1 xfailed**. The failing SENTENCES-depth fork lacked `recurrent_projection`.
+Replacing classification/distributional methods and the inference module with
+their `c43a988` versions reproduced the same AttributeError. The independent
+grounded-verb check was also rerun and still fails with PREP instead of VERB.
+
+## Clone preservation
+
+Tracing the fork failure found two hand-maintained copy implementations. Brain
+clone omitted recurrence, normalization, mixed-connectome RNG and diagnostics,
+and discarded its secondary engine. Sparse-engine clone reconstructed default
+state, including deferred scaling=False even when the source had it enabled.
+Four constructed controls failed before repair. Both clone methods now use
+graph-preserving deepcopy, retaining internal aliases and mutable independence.
+This removes the parallel lists of fields that had to track each new feature.
+
+Focused clone/inhibition controls passed 23 tests; the added mixed explicit/
+sampled case preserves both engines and their next projection. The final
+workflow-listed CPU contract gate passed **300 tests, 1 skipped**, with two
+sampled-engine warnings. Runtime/test Ruff and diff checks passed. No speedup
+or GPU clone preservation is claimed; clone performance remains unbenchmarked.
+Parser-level shallow copies and selective lexicon sharing still need their own
+ownership review.
+
+The subsequent clone + formerly failing SENTENCES-bootstrap + checkpoint-fork
+suite passed **18 tests** in 171.06 seconds. This verifies the fork AttributeError
+is repaired and the existing bootstrap floor passes; it does not supersede the
+separate grounded-verb failure. No test expectations were changed.

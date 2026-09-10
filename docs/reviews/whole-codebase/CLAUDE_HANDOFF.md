@@ -177,3 +177,28 @@ learning or tune the metric against this fixture to call the migration clean.
 Explicit training-time population preparation and typed readout provenance are
 the next obligations. This branch is not ready to merge; hardware gates and
 historical numerical replays also remain open.
+
+### Typed classification evidence and complete clone state
+
+Classification fusion/decomposition now use `ClassificationEvidence`, which
+validates source-specific score keys and preserves provenance through explicit
+conversion. The old tuple remains a compatibility view. Distributional fallback
+is no longer reported as neural recognition; function subcategory scores are
+mapped to POS using the existing central mapping in every branch. A diagnostic
+precedence error that called any positive wrong neural signal weak is repaired.
+Three inference controls and two frame-domain controls failed before these fixes.
+
+The broader test run exposed an older clone defect: a fork lacked recurrence
+configuration. It reproduces with pre-change classification/inference code.
+Brain and numpy_sparse clones now use graph-preserving deep copies, replacing
+two incomplete field lists. Controls cover configuration, deferred scaling, RNG,
+mutable independence, internal connection aliases, mixed explicit/sampled engines
+and identical next projection. The final CPU contract gate passes 300 tests with
+1 skip. This is not a GPU gate or a full-package acceptance claim.
+
+The grounded heldout-verb failure was rerun and remains PREP versus expected VERB.
+Explicit population preparation and metric comparability remain open; no neural
+score formula was tuned. Parser cache provenance and fork-level shared lexicons
+are distinct remaining ownership work. Clone speed has not been benchmarked.
+The clone/checkpoint suite also passed 18 tests, including the previously failing
+SENTENCES-bootstrap floor. The fork crash is resolved.

@@ -52,7 +52,7 @@ from typing import Dict, List, Optional, Set, Tuple, TYPE_CHECKING
 from neural_assemblies.assembly_calculus.ops import _snap
 from ..core.areas import (
     CORE_TO_CATEGORY, CATEGORY_TO_CORE, GROUNDING_TO_CORE,
-    FUNC_DET, FUNC_AUX, FUNC_COMP, FUNC_CONJ, FUNC_MARKER,
+    FUNC_DET, FUNC_AUX, FUNC_COMP, FUNC_CONJ, FUNC_MARKER, FUNC_SUBCAT_TO_CORE,
 )
 from ..core.grounding import GroundingContext
 from ..core.word_order import (
@@ -408,19 +408,11 @@ class DistributionalMixin:
 
         # Stage 1: Frame-based classification (always computed)
         frame_cat, frame_conf = self.classify_by_frame(word)
+        pos_cat = CORE_TO_CATEGORY.get(FUNC_SUBCAT_TO_CORE.get(frame_cat), frame_cat)
 
         # For ungrounded words, frame classification is authoritative
         # (analogous to ELAN rapid categorization)
         if is_ungrounded and frame_cat is not None and frame_conf > 0.3:
-            # Map function sub-categories to standard POS for backward compat
-            pos_cat = frame_cat
-            if frame_cat in (FUNC_DET, FUNC_AUX, FUNC_COMP):
-                pos_cat = "DET"
-            elif frame_cat == FUNC_CONJ:
-                pos_cat = "CONJ"
-            elif frame_cat == FUNC_MARKER:
-                pos_cat = "PREP"
-
             # Store the sub-category for gating purposes
             if not hasattr(self, '_func_subcategories'):
                 self._func_subcategories: Dict[str, str] = {}
@@ -434,7 +426,7 @@ class DistributionalMixin:
         if frame_cat is not None:
             # Get all frame scores by re-running frame analysis
             # and using the confidence as a feature
-            scores[frame_cat] = frame_conf * 2.0
+            scores[pos_cat] = frame_conf * 2.0
 
         # 2. Verb-relative position scores
         pre = stats.word_as_pre_verb.get(word, 0)

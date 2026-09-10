@@ -513,13 +513,10 @@ projection. Category/subcategory cache writes remain distinct from neural state.
 The preparatory neural mutation defect recorded in the preceding role card is
 resolved by this shared classifier path; broader parser cache purity is not claimed.
 
-Still unresolved: the legacy tuple API changes score-key space on distributional
-fallback. `acquisition.pos_inference._area_scores_to_categories` expects area
-keys, while callers can receive category-keyed fallback scores from classify_word.
-Some callers then label that outcome `lexicon_readout` or `phon`. A typed evidence
-result and explicit conversion are needed before those sources can be fused
-without dropping or misattributing fallback evidence. This is not repaired merely
-by making the query preserve its neural state.
+The legacy tuple API changes score-key space on distributional fallback. The
+typed evidence contract below now resolves this for fusion and decomposition;
+other tuple consumers and parser caches still require an explicit provenance
+migration. Neural state isolation alone did not solve that distinction.
 
 
 ### Heldout regression retained: query-driven population growth was hidden training
@@ -547,3 +544,60 @@ classifier, and its expected VERB label has not been weakened. The noun holdout
 passes. Explicit population preparation and comparability of overlaps across
 unequal candidate populations are the next scientific/protocol obligations.
 Changing a score formula to fit this one observed fixture would not discharge them.
+
+<a id="contract-classification-evidence"></a>
+
+## Classification evidence and conversion
+
+`core.classification.ClassificationEvidence` carries category, source and raw
+scores. `classify_word_evidence` owns query dispatch; `classify_word` is its legacy
+tuple view. Neural results retain core-area keys, distributional results retain
+POS keys, and absent evidence supplies UNKNOWN with no scores. Construction
+rejects unknown domains, mismatched keys and nonfinite/negative scores. Scores
+are copied and read-only; conversion to POS keys returns a fresh dictionary.
+These strengths are not calibrated probabilities or comparable by construction.
+
+Fusion reads the source before converting. A distributional fallback cannot
+be renamed `lexicon_readout` or `phon`, counted as an independent neural signal,
+or credited as correct neural readout by the decomposition report. The legacy
+tuple still loses source information and must not be used for new evidence
+fusion. Three constructed controls failed using the pre-change inference module:
+fallback source/score loss, fallback credited to neural readout, and a strong
+wrong neural answer classified as weak because of conditional-expression precedence.
+
+Inspection found another score-domain discrepancy: function subcategories were
+converted to POS only in the high-confidence ungrounded distributional branch.
+Other branches could return AUX/COMP/MARKER beside ordinary POS scores. All
+branches now use the existing `FUNC_SUBCAT_TO_CORE` and `CORE_TO_CATEGORY` maps
+before accumulating distributional scores. Frame fusion uses those same maps.
+Two controls (grounded AUX and low-confidence ungrounded AUX) failed before the
+repair; the existing high-confidence ungrounded case is a positive control.
+Original function-subcategory metadata remains separate for gating.
+
+This changes mislabeled reports and mixed-domain scores. It does not establish
+neural generalization, tune fusion weights, or close the population-preparation
+regression above. Cache results and whole-pipeline mutation remain separate work.
+
+<a id="contract-brain-clone"></a>
+
+## Brain and sparse-engine cloning
+
+Forking reads the complete instrument state: configuration, primary/secondary
+engine, populations, connectomes, RNGs, activity, inhibition, refraction, scaling
+and diagnostic state. It must not project, reconstruct from constructor defaults,
+or consume random draws. The returned object retains internal ownership aliases
+(facade connectomes refer to the fork's engine connectomes) while mutable state
+is independent of the parent. Identical next inputs must produce identical next
+transitions before either copy is independently changed.
+
+The old Brain clone enumerated attributes and omitted recurrence/normalization,
+the mixed-connectome RNG, and diagnostic counts; it also discarded the secondary
+engine. Sparse-engine clone reconstructed through its constructor and copied a
+second hand-maintained field list, omitting deferred scaling and other runtime
+state. Thus identical winners at fork time did not imply identical instruments.
+
+The clone contract uses graph-preserving deep copy for the current Python state
+objects. Any future specialized copy must prove these ownership and next-step
+properties before replacing it. No speedup, GPU clone conformance or full parser
+fork isolation is implied: parser-level shallow copies and selective lexicon
+sharing are distinct remaining contracts.

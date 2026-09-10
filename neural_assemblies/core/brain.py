@@ -1472,45 +1472,15 @@ class Brain:
         area.w = len(area.winners)
 
     def clone(self) -> "Brain":
-        """Fast structural clone for sweep forks (numpy_sparse engine)."""
+        """Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-brain-clone
+
+        Copy the state graph, preserving internal aliases without reconstructing
+        configuration from defaults. Specialized copies must meet this contract.
+        """
         import copy
 
-        eng = self._engine
-        if not hasattr(eng, "clone"):
-            return copy.deepcopy(self)
+        return copy.deepcopy(self)
 
-        cloned = object.__new__(Brain)
-        cloned.p = self.p
-        cloned.w_max = self.w_max
-        cloned.save_size = self.save_size
-        cloned.save_winners = self.save_winners
-        cloned.deterministic = self.deterministic
-        cloned.areas = copy.deepcopy(self.areas)
-        cloned.stimuli = copy.deepcopy(self.stimuli)
-        cloned.connectomes = {}
-        cloned.connectomes_by_stimulus = {}
-        cloned.rng = copy.deepcopy(self.rng)
-        cloned.disable_plasticity = self.disable_plasticity
-        cloned.plasticity_mask = dict(self.plasticity_mask)
-        cloned._mutual_inhibition_groups = copy.deepcopy(self._mutual_inhibition_groups)
-        # Gating state travels with the clone. A fork that silently reopened
-        # every fiber would parse the next word differently from its parent
-        # while looking identical -- the #103 shape, one level up.
-        cloned._inhibition = copy.deepcopy(self._inhibition)
-        # NOTE: clone() bypasses __init__ via object.__new__, so every Brain
-        # attribute must be copied explicitly here or forks lose it.
-        cloned.last_activation_scores = dict(
-            getattr(self, "last_activation_scores", {}))
-        cloned.record_activation = getattr(self, "record_activation", False)
-        cloned.last_pre_kwta_totals = dict(
-            getattr(self, "last_pre_kwta_totals", {}))
-        cloned._seed = self._seed
-        cloned._engine = eng.clone()
-        cloned._explicit_engine = None
-        cloned.image_activation_engine = ImageActivationEngine()
-        cloned._sync_engine_connectomes()
-        return cloned
-    
     # Comprehensive usage example
     @staticmethod
     def example_assembly_calculus_demo():

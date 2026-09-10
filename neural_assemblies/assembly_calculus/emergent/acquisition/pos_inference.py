@@ -38,7 +38,7 @@ import math
 from collections import defaultdict
 from typing import Dict, List, Optional, Set, Tuple, TYPE_CHECKING
 
-from ..core.areas import ADV_CORE, CORE_TO_CATEGORY, GROUNDING_TO_CORE
+from ..core.areas import ADV_CORE, CORE_TO_CATEGORY, GROUNDING_TO_CORE, FUNC_SUBCAT_TO_CORE
 
 if TYPE_CHECKING:
     from ..parser_mixins.core import CoreParserMixin
@@ -63,17 +63,6 @@ def is_word_in_lexicon(parser: "CoreParserMixin", word: str) -> bool:
         if word in lex:
             return True
     return False
-
-
-def _area_scores_to_categories(
-    area_scores: Dict[str, float],
-) -> Dict[str, float]:
-    out: Dict[str, float] = defaultdict(float)
-    for area, score in area_scores.items():
-        cat = CORE_TO_CATEGORY.get(area)
-        if cat:
-            out[cat] += score
-    return dict(out)
 
 
 def _clean_category_scores(scores: Dict[str, float]) -> Dict[str, float]:
@@ -250,19 +239,9 @@ def _frame_pos_scores(
     if not frame_cat or frame_conf <= 0:
         return {}
 
-    from ..core.areas import FUNC_AUX, FUNC_COMP, FUNC_CONJ, FUNC_DET, FUNC_MARKER
-
-    mapping = {
-        FUNC_DET: "DET",
-        FUNC_AUX: "DET",
-        FUNC_COMP: "DET",
-        FUNC_CONJ: "CONJ",
-        FUNC_MARKER: "PREP",
-    }
-    if frame_cat in mapping:
-        return {mapping[frame_cat]: frame_conf}
-    if frame_cat in ("NOUN", "VERB", "ADJ", "ADV", "PREP", "PRON", "DET", "CONJ"):
-        return {frame_cat: frame_conf}
+    category = CORE_TO_CATEGORY.get(FUNC_SUBCAT_TO_CORE.get(frame_cat), frame_cat)
+    if category in CORE_TO_CATEGORY.values():
+        return {category: frame_conf}
     return {}
 
 
@@ -283,12 +262,12 @@ def classify_word_bootstrapped(
     exposure = parser.dist_stats.word_count.get(word, 0)
 
     if is_word_in_lexicon(parser, word):
-        cat, scores = parser.classify_word(word, grounding=ctx)
-        neural = _area_scores_to_categories(scores)
-        return cat, {
-            "_source": "lexicon_readout",
-            **neural,
-            "_confidence": signal_confidence(neural),
+        evidence = parser.classify_word_evidence(word, grounding=ctx)
+        scores = evidence.category_scores()
+        return evidence.category, {
+            "_source": "lexicon_readout" if evidence.source == "neural" else evidence.source,
+            **scores,
+            "_confidence": signal_confidence(scores),
         }
 
     dist_scores: Dict[str, float] = {}
@@ -316,12 +295,17 @@ def classify_word_bootstrapped(
             cat, fused = emergent_fuse_signals(signals)
             fused["_source"] = "distributional+frame"
             return cat, fused
-        cat, scores = parser.classify_word(word, grounding=None)
-        phon = _area_scores_to_categories(scores)
-        return cat, {"_source": "phon", **phon, "_confidence": signal_confidence(phon)}
+        evidence = parser.classify_word_evidence(word, grounding=None)
+        scores = evidence.category_scores()
+        source = "phon" if evidence.source == "neural" else evidence.source
+        return evidence.category, {"_source": source, **scores,
+                                   "_confidence": signal_confidence(scores)}
 
-    neural_cat, area_scores = parser.classify_word(word, grounding=ctx)
-    neural_by_cat = _area_scores_to_categories(area_scores)
+    evidence = parser.classify_word_evidence(word, grounding=ctx)
+    neural_cat = evidence.category if evidence.source == "neural" else "UNKNOWN"
+    neural_by_cat = evidence.category_scores() if evidence.source == "neural" else {}
+    # Distributional evidence was already added above; a fallback is not a
+    # second independent neural signal.
     if neural_by_cat:
         signals.append(("neural", neural_by_cat, exposure))
 
@@ -520,7 +504,9 @@ def infer_holdout_categories(
         # sorted(): THIS IS THE LOOP THAT MADE TRAINING IRREPRODUCIBLE ACROSS
         # PROCESSES (#80). `targets` is a set of strings, so its iteration order
         # is randomized per process (PEP 456), and `classify_word_bootstrapped`
-        # PROJECTS -- it recruits neurons. Different order, different brain.
+        # historically recruited neurons during classification. Isolated neural
+        # queries now prevent that mutation; keep deterministic ordering for
+        # parser caches and metadata as well.
         #
         # Measured on `train_parser_to_depth("SENTENCES", seed=42)` before the
         # fix: 16564 / 16572 / 16638 materialized neurons in three processes,
@@ -555,10 +541,9 @@ def decompose_word_classification(
     in_lex = is_word_in_lexicon(parser, word)
     dist_n = parser.dist_stats.word_count.get(word, 0)
 
-    neural_cat, area_scores = (
-        parser.classify_word(word, grounding=ctx) if ctx else ("UNKNOWN", {})
-    )
-    neural_by_cat = _area_scores_to_categories(area_scores)
+    evidence = parser.classify_word_evidence(word, grounding=ctx) if ctx else None
+    neural_cat = evidence.category if evidence and evidence.source == "neural" else "UNKNOWN"
+    neural_by_cat = evidence.category_scores() if evidence and evidence.source == "neural" else {}
 
     dist_cat, dist_scores = (
         parser.classify_distributional(word) if dist_n > 0 else ("UNKNOWN", {})
@@ -584,7 +569,7 @@ def decompose_word_classification(
     if not correct:
         if dist_n == 0:
             failure_mode = "no_distributional_exposure"
-        elif max(neural_by_cat.values()) if neural_by_cat else 0.0 < 0.2:
+        elif max(neural_by_cat.values(), default=0.0) < 0.2:
             failure_mode = "weak_grounding_readout"
         elif dist_cat != expected and neural_cat != expected:
             failure_mode = "both_signals_wrong"
@@ -606,6 +591,7 @@ def decompose_word_classification(
         "active_grounding_stims": active_stims,
         "dist_count": dist_n,
         "verb_relative": {"pre_verb": pre, "post_verb": post, "action": action},
+        "classification_source": evidence.source if evidence else "none",
         "neural_readout": neural_cat,
         "neural_by_category": neural_by_cat,
         "distributional": dist_cat,

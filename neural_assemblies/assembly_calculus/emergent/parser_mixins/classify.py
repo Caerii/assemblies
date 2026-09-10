@@ -7,6 +7,7 @@ from neural_assemblies.assembly_calculus.readout import readout_all
 
 from ..core.areas import CORE_AREAS, CORE_TO_CATEGORY
 from ..core.grounding import GroundingContext
+from ..core.classification import ClassificationEvidence
 
 
 class CategoryClassificationMixin:
@@ -65,11 +66,19 @@ class CategoryClassificationMixin:
     # Classification
     # ==================================================================
 
-    def classify_word(
+    def classify_word(self, word: str, grounding: Optional[GroundingContext] = None
+                      ) -> Tuple[str, Dict[str, float]]:
+        """Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-word-classification
+
+        Legacy tuple view; use classify_word_evidence to retain score provenance.
+        """
+        return self.classify_word_evidence(word, grounding).as_legacy_tuple()
+
+    def classify_word_evidence(
         self,
         word: str,
         grounding: Optional[GroundingContext] = None,
-    ) -> Tuple[str, Dict[str, float]]:
+    ) -> ClassificationEvidence:
         """Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-word-classification
 
         Read existing core lexicons without neural learning or construction.
@@ -88,8 +97,9 @@ class CategoryClassificationMixin:
         phon = self.stim_map.get(word)
         if phon is None and grounding is None:
             if self.dist_stats.word_count.get(word, 0) > 0:
-                return self.classify_distributional(word)
-            return "UNKNOWN", {}
+                category, scores = self.classify_distributional(word)
+                return ClassificationEvidence(category, "distributional", scores)
+            return ClassificationEvidence("UNKNOWN", "none", {})
 
         cues = [phon] if phon is not None else []
         if grounding is not None:
@@ -113,9 +123,10 @@ class CategoryClassificationMixin:
         if not scores or max(scores.values()) == 0.0:
             # Fall back to distributional classification
             if self.dist_stats.word_count.get(word, 0) > 0:
-                return self.classify_distributional(word)
-            return "UNKNOWN", scores
+                category, scores = self.classify_distributional(word)
+                return ClassificationEvidence(category, "distributional", scores)
+            return ClassificationEvidence("UNKNOWN", "neural", scores)
 
         best_area = max(scores, key=scores.get)
-        return CORE_TO_CATEGORY[best_area], scores
+        return ClassificationEvidence(CORE_TO_CATEGORY[best_area], "neural", scores)
 

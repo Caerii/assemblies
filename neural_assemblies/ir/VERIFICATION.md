@@ -245,7 +245,11 @@ readiness alone does not certify a whole pipeline's mutation or provenance rules
 The source-linked classification contract uses existing neural populations and
 an explicit stimulus-only schedule. It has constructed inhibition, exception and
 subsequent-learning controls. No backend preservation theorem is inferred from
-those tests. The legacy result tuple still combines two score domains: core-area
-overlap and distributional category scores. A future typed observation result
-must identify its source and score domain before any conversion or fusion;
-state-preserving execution does not by itself make those metrics interchangeable.
+those tests. `ClassificationEvidence` now identifies source and validates its
+score-key domain before fusion or decomposition. Conversion from core-area keys
+to category keys is explicit; a distributional fallback cannot become neural
+evidence merely by passing through the classifier. Source-specific strengths
+remain distinct metrics. The legacy tuple and parser caches still lose source
+information and require further migration. A future IR observation consumer must
+retain the typed source distinction together with its model and protocol identity;
+state-preserving execution does not by itself make metrics interchangeable.
