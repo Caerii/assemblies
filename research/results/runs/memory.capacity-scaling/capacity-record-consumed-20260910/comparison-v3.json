@@ -1,0 +1,15 @@
+{
+  "numerical_match": true,
+  "comparisons": 885,
+  "errors": [],
+  "scope": "observation comparison only; no scientific adoption or protocol-equivalence verdict",
+  "comparison_version": 3,
+  "comparator_source": {
+    "inventory": "source-inputs-v3",
+    "git_commit": "4f09122f2110aa0aa5ef00aba77171b9a8415d24",
+    "source_sha256": "04bbec76675e04b10a7b9b9f8c8ff478ee44d76718b9826dad1318949e54aac3"
+  },
+  "comparator_sha256": "7f07398f2d716619be3abcedcb7f210f43c6dd0ccccfbe0bfb66282c592077d1",
+  "candidate_sha256": "9086ab61959efc79836ac21dbef1a4d79997f0422d069a5140cf4620bee9197a",
+  "reference_sha256": "4de0c70164df47ab1309578b4ca75fa634376a11b114bc346bcb379b1b767b66"
+}

@@ -1510,6 +1510,11 @@ subnormals and large integers round-trip. Record equality preserves JSON types.
 
 Comparison version3 additionally records the shared source inventory fingerprint,
 covering helper dependencies as well as the comparator file digest. Focused
-runner/comparator/spec controls:72 passed in11.83s; Ruff passed. Historical
-artifacts and full contract gates are rechecked next. This is document integrity,
-not authentication of historical execution or scientific adoption.
+runner/comparator/spec controls: 72 passed in 11.83s; Ruff passed. The full
+contract workflow passed 1101 tests with one skip and two expected warnings in
+100.02s (.cache/evidence-json-contract-gate.log). All five recorded run artifacts
+pass the shared decoder and artifact validator. Version 3 comparison receipts,
+produced at 4f09122, preserve the A1 40-cell match and capacity 885-value match
+for the record-consumed replays. Earlier receipts and results remain intact.
+This is document integrity, not authentication of historical execution or
+scientific adoption. No new GPU run was needed for these decoding-only changes.
