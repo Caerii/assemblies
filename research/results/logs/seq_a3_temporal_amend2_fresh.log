@@ -1,0 +1,42 @@
+'vswhere.exe' is not recognized as an internal or external command,
+operable program or batch file.
+=== temporal memory on the chain corpus, gap 2 (PREREG_temporal_memory.md) ===
+    bigram: 0.1232 +/- 0.0042 (n=20, 0.1083..0.1392)
+    oracle: 0.3302 +/- 0.0069 (n=20, 0.3048..0.3577)
+      n_arc=10000 beta=0.1 seeds 62..70 (9 brains, 1800 train steps)  [175s]
+      n_arc=10000 beta=0.1 seeds 71..79 (9 brains, 1800 train steps)  [25s]
+      n_arc=10000 beta=0.1 seeds 80..81 (2 brains, 1800 train steps)  [26s]
+      n_arc=10000 beta=0.1 seeds 62..70 (9 brains, 1800 train steps)  [24s]
+      n_arc=10000 beta=0.1 seeds 71..79 (9 brains, 1800 train steps)  [25s]
+      n_arc=10000 beta=0.1 seeds 80..81 (2 brains, 1800 train steps)  [24s]
+    tm(g=0.0): 0.1212 +/- 0.0048 (n=20, 0.0923..0.1382)
+    tm(g=0.0) - bigram: -0.0019 +/- 0.0049 (n=20, -0.0234..0.0162)
+    arc_overlap(g=0.0): 0.1151 +/- 0.0087 (n=20, 0.0939..0.1651)
+    blind(g=0.0): 0.1201 +/- 0.0049 (n=20, 0.0890..0.1404)
+    tm(g=0.0) - blind: 0.0012 +/- 0.0012 (n=20, -0.0042..0.0044)
+    same-number arc overlap(g=0.0): 0.1538 +/- 0.0028 (n=20, 0.1413..0.1664)
+    different-number arc overlap(g=0.0): 0.0433 +/- 0.0025 (n=20, 0.0321..0.0531)
+    same - different (g=0.0): 0.1105 +/- 0.0033 (n=20, 0.0985..0.1252)
+      n_arc=10000 beta=0.1 seeds 62..70 (9 brains, 1800 train steps)  [23s]
+      n_arc=10000 beta=0.1 seeds 71..79 (9 brains, 1800 train steps)  [19s]
+      n_arc=10000 beta=0.1 seeds 80..81 (2 brains, 1800 train steps)  [24s]
+      n_arc=10000 beta=0.1 seeds 62..70 (9 brains, 1800 train steps)  [26s]
+      n_arc=10000 beta=0.1 seeds 71..79 (9 brains, 1800 train steps)  [25s]
+      n_arc=10000 beta=0.1 seeds 80..81 (2 brains, 1800 train steps)  [28s]
+    tm(g=1.0): 0.2725 +/- 0.0083 (n=20, 0.2405..0.3029)
+    tm(g=1.0) - bigram: 0.1493 +/- 0.0086 (n=20, 0.1165..0.1923)
+    arc_overlap(g=1.0): 0.1435 +/- 0.0130 (n=20, 0.1122..0.2296)
+    blind(g=1.0): 0.1264 +/- 0.0047 (n=20, 0.1089..0.1549)
+    tm(g=1.0) - blind: 0.1461 +/- 0.0082 (n=20, 0.1047..0.1797)
+    same-number arc overlap(g=1.0): 0.2526 +/- 0.0189 (n=20, 0.2089..0.3951)
+    different-number arc overlap(g=1.0): 0.0328 +/- 0.0039 (n=20, 0.0182..0.0586)
+    same - different (g=1.0): 0.2198 +/- 0.0205 (n=20, 0.1654..0.3714)
+
+=== BARS ===
+  FAIL  TM-9 g=0.0: same-number minus different-number arc overlap within 0.02
+  PASS  TM-1 copy-state alone: reported
+  PASS  TM-9 g=1.0: same-number minus different-number arc overlap >= 0.10
+  PASS  TM-2 g=1.0 closes >= 40% of the gap (lower bound >= 0.085)
+  PASS  TM-3 g=1.0 state informative
+
+wrote C:\Users\locke\AppData\Local\Temp\claude\F--Github-assemblies\a968bc04-8bed-4a5d-9219-07986a97c5ba\scratchpad\wt_dev\research\results\sequence\seq_a3_transducer_results_temporal_chain_gap2_amend2_fresh.json

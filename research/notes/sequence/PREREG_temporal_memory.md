@@ -222,3 +222,62 @@ that combination, with the measured share of the oracle gap, the
 mechanism of TM-9, and TM-8's outcome as its scope. Fail of TM-7 voids
 the result; fail of TM-9 with TM-7 passing means the carry is real and
 the mechanism is not the one named, to be reported as such.
+
+### Amendment 2 -- Result, TM-7 and TM-9 (2026-09-09, seeds 62..81, gap 2, 20 brains, n = n_arc = 10,000)
+
+Run: `seq_a3_transducer.py --engine hashed --temporal --gap 2 --gains 0,1
+--seed-start 62 --seeds 20 --mechanism --tag _amend2_fresh`; results in
+`research/results/sequence/seq_a3_transducer_results_temporal_chain_gap2_amend2_fresh.json`,
+log in `research/results/logs/seq_a3_temporal_amend2_fresh.log`. Run from
+a worktree pinned at 62ac158 (the int8 build), because the main checkout's
+engine files were being edited by another session at the time.
+
+| Quantity | g = 0 | g = 1 |
+|----------|-------|-------|
+| bigram | 0.1232 +/- 0.0042 | same |
+| oracle | 0.3302 +/- 0.0069 | same |
+| MRR | 0.1212 +/- 0.0048 | 0.2725 +/- 0.0083 |
+| MRR - bigram | -0.0019 +/- 0.0049 | +0.1493 +/- 0.0086 (per seed 0.117 to 0.192) |
+| full - state-blind | +0.0012 +/- 0.0012 | +0.1461 +/- 0.0082 |
+| same-number arc overlap at distractors | 0.154 +/- 0.003 | 0.253 +/- 0.019 |
+| different-number arc overlap at distractors | 0.043 +/- 0.003 | 0.033 +/- 0.004 |
+| same minus different | 0.111 +/- 0.003 | 0.220 +/- 0.020 (lower bound 0.199) |
+
+**TM-7 PASS.** On twenty seeds never used before, with their own corpora,
+the predicted-win arm beats the bigram by 0.149 (lower bound 0.141, bar
+0.085), which is 72 percent of the oracle gap of 0.207, and beats its own
+state-blind reading by 0.146. The cells-A result (+0.148) replicates to
+the third digit.
+
+**TM-9: the g = 1 clause PASSES, the g = 0 clause FAILS.** At g = 1 the
+arc at a distractor position shares 0.25 of k with the arc of a test
+sentence of the same subject number and a different distractor, against
+0.03 for a sentence of the other number: number-specific,
+distractor-invariant cells, as registered, and by twice the bar. But at
+g = 0 the same contrast is already 0.11, not within 0.02 of zero. The
+registered mechanism said the predicted set MAKES the arc a function of
+the agreeing word's arc; the measurement says the copy state alone
+already puts number-specific cells into the arc at a distractor (the
+state conjunct is the previous arc, whose chain leads back to the subject
+noun), and predicted-win doubles their share. What predicted-win adds is
+therefore not the existence of those cells but their weight in the arc,
+and with it their reach into the ARC -> OUT readout: at g = 0 the readout
+extracts nothing from an 0.11 contrast (MRR - bigram = -0.002), at g = 1
+it extracts 0.149 from a 0.22 contrast.
+
+**Reading, per the adoption rule.** The carry is real (TM-7). The
+mechanism as named is half right: the cells are number-specific and
+distractor-invariant at g = 1, but they are not created by predicted-win.
+Adoption waits for TM-8 (gap 3, running) and a re-worded mechanism; the
+entry, if written, will state the g = 0 contrast alongside the g = 1
+contrast rather than the registered "within 0.02".
+
+**What the g = 0 half says about the substrate (interpretation, not a
+claim).** A conjunction inherits part of its state conjunct, so a chain
+of conjunctions carries an early feature forward at a decaying share; the
+copy state carries the subject's number to the distractor arcs without any
+help. The readout cannot use it because the inherited share sits below
+what the ARC -> OUT fiber separates. Predicted-win raises the share above
+that line. A measurement of the contrast against position in the sentence,
+at g = 0 and g = 1, would show the decay and the floor directly; it is not
+registered here.
