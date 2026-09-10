@@ -107,3 +107,27 @@ crate's public-field document construction is replaced by a validated immutable
 wrapper. Cargo package verification succeeds with the schema included. Python's
 legacy IR writer refuses overwrites; use a new tagged path. This establishes
 wire-format agreement, not compiler or numerical equivalence.
+
+
+### Multi-round dispatch and probe isolation follow-up
+
+The IR-contracts branch now resolves `Brain.project_rounds` into ordinary
+single-target Brain projections, so inhibition/clamps/recording/history cannot
+be bypassed by a second facade implementation. Legacy recurrence selection is
+retained and documented; saved history now has one entry per executed round.
+Torch/CUDA/CuPy inherited engine loops replace identical copies (CuPy's zero-count
+success path now raises like the shared contract). No GPU suite was run.
+
+The sampled numpy eager/deferred fiber initialization paths now honor
+no-recruitment. A previously unused fiber could be allocated by a read-only
+probe and change the next learning step; four controls exposed this. Public
+empty source winners now clear backend activity rather than reusing a stale
+assembly. Final workflow CPU gate: 262 passed, 1 skipped.
+
+Broader parser checks retain three failures, reproduced using pre-change methods:
+ROLE_AGENT probes before role population construction (two tests), and a context
+reset/ring mapping with out-of-range compact winners (one test). These are the
+next semantic repair targets; do not interpret the green selected gate as a
+clean full package suite. Torch's zero-drive fiber repair also needs a dedicated
+read-only hardware control. GPU parity and historical A1/capacity replay gates
+remain open, and the original `astra/refactor-1` branch remains pinned.

@@ -106,54 +106,19 @@ class Brain:
                    ``engine="auto"``, this guides engine selection: n >= 1M
                    with GPU available selects ``torch_sparse`` (CSR, GPU),
                    otherwise ``numpy_sparse`` (CPU).
-            projection_fidelity (str): ``"exact"`` for full microscopic
-                   sparse simulation, or ``"compiled"`` / ``"fuzzy"`` for
-                   top-k-only dynamics on frozen pregrown connectomes.
-            norm_init (bool): One-time normalization of each postsynaptic
-                   neuron's incoming weights, per fiber, to sum 1 -- the
-                   reference implementation's ``norm_init``
-                   (``.reference/mdabagia-nemo/brain.py``).  ON by default.
-                   Literature and parity reproductions must pin it FALSE to
-                   match un-normalized paper goldens.  It is the prerequisite
-                   for ``recurrent_projection``: without it, self-recurrence
-                   collapses independent assemblies into a shared attractor
-                   (see ``project_rounds``).  ``numpy_sparse`` only; see
-                   ``NumpySparseEngine._norm_scale`` for how it is realized
-                   under lazy neuron materialization.
-            recurrent_projection (bool): Apply target self-recurrence in the
-                   ``project_rounds`` fast path.  Gated on ``norm_init``:
-                   with ``norm_init=False`` it is ignored, so parity
-                   reproductions are unaffected either way.
-
-                   OFF by default, and that default is a KNOWN-WRONG
-                   COMPROMISE rather than a modelling choice.  Off, this path
-                   diverges from the documented ``project()`` protocol: it runs
-                   stimulus-only projection with NO target self-recurrence, so
-                   nothing built through it is an assembly in the defining
-                   sense (Dabagia et al. 2024: a set of k neurons whose
-                   INTERNAL weights have been strengthened).  ``ops.project``
-                   used to route through here and therefore inherited that; it
-                   no longer does, and runs the protocol directly.
-
-                   Turning this ON is still the right end state and is blocked
-                   on a real bug, not on taste.  Measured 2026-07-28, flipping
-                   the default to True gives 10 test failures AND TWO HARD
-                   SEGFAULTS (Windows access violation) in the batched
-                   subsystem -- ``batched_next_token._scores`` and
-                   ``batched_trainer._rec`` -- which evidently assume the
-                   recurrence-free projection map.  That is a latent
-                   memory-safety bug this flag merely exposes.  Fix it there
-                   first, then flip this.
-
-                   Parity when it IS on, parents re-cued by their own stimulus
-                   (3 seeds x 8 items, rank-1 ID chance 0.125)::
-
-                       n=2000 k=45 p=0.01   SELF 0.6426  ID 1.0000
-                       n=1000 k=50 p=0.05   SELF 0.8992  ID 1.0000
-
-                   matching an explicit per-round loop EXACTLY (0.6426 and
-                   0.8992), which is what confirms the dropped self-recurrence
-                   is the ONLY divergence between fast path and protocol.
+            projection_fidelity (str): Legacy selection mode: "exact" or
+                   "compiled" / "fuzzy". "exact" does not select a fixed
+                   connectome; see core.projection_fidelity for backend behavior.
+            norm_init (bool): Request per-fiber initialization normalization.
+                   Implementations differ between sampled and fixed-connectome
+                   engines. Pin it in protocols; no scientific equivalence or
+                   recurrence-safety claim follows from enabling it.
+            recurrent_projection (bool): Legacy project_rounds schedule flag,
+                   False by default. Non-explicit targets keep a supplied
+                   self-edge only when this and either norm_init or full
+                   synaptic_scaling are enabled. Explicit targets keep it.
+                   Ordinary project calls use their supplied edge maps directly.
+                   ops.project selects recurrence with its own argument.
         """
         self.p = p
         self.w_max = w_max
@@ -218,12 +183,11 @@ class Brain:
         #: inhibited, so a Brain that never gates pays nothing for it.
         self._inhibition = None
         # One-time incoming-weight normalization (reference `norm_init`).
-        # Prerequisite for self-recurrence; see project_rounds.
+        # Legacy schedule inputs; see project_rounds's source-linked contract.
         self.norm_init: bool = norm_init
         self._synaptic_scaling: bool = synaptic_scaling
         self._synaptic_scaling_deferred: bool = synaptic_scaling_deferred
-        # Apply target self-recurrence in the project_rounds fast path.
-        # Only safe together with norm_init (see project_rounds).
+        # Select target self-recurrence in the legacy project_rounds schedule.
         self.recurrent_projection: bool = recurrent_projection
         # Total synaptic drive per target from the most recent projection,
         # summed over the SELECTED winners.
@@ -785,15 +749,8 @@ class Brain:
         else:
             raise ValueError("Must provide either legacy API parameters or new API parameters")
 
-    def _project_impl(self, areas_by_stim, dst_areas_by_src_area, verbose=0,
-                      external_drive=None):
-        """
-        Core projection implementation.
-
-        Builds input mappings from stimuli and areas, then delegates to the
-        compute engine for all projection, winner selection, and plasticity.
-        """
-        external_drive = external_drive or {}
+    def _projection_inputs(self, areas_by_stim, dst_areas_by_src_area):
+        """Validate names and resolve incoming edges without mutating state."""
         stim_in = defaultdict(list)
         area_in = defaultdict(list)
 
@@ -812,6 +769,20 @@ class Brain:
                 if to_area_name not in self.areas:
                     raise IndexError(f"Not in brain.areas: {to_area_name}")
                 area_in[to_area_name].append(from_area_name)
+
+        return stim_in, area_in
+
+    def _project_impl(self, areas_by_stim, dst_areas_by_src_area, verbose=0,
+                      external_drive=None):
+        """
+        Core projection implementation.
+
+        Builds input mappings from stimuli and areas, then delegates to the
+        compute engine for all projection, winner selection, and plasticity.
+        """
+        external_drive = external_drive or {}
+        stim_in, area_in = self._projection_inputs(
+            areas_by_stim, dst_areas_by_src_area)
 
         # AC AREA/FIBER INHIBITION. The calculus has exactly two control
         # primitives and this is where they act: an inhibited area neither
@@ -846,18 +817,15 @@ class Brain:
         )
         for area_name in all_source_areas:
             area = self.areas[area_name]
-            if len(area.winners) > 0:
-                winners_arr = np.asarray(to_cpu(area.winners), dtype=np.uint32)
-                self._engine.set_winners(area_name, winners_arr)
-                eng_st = self._engine._areas.get(area_name)
-                if eng_st is not None:
-                    eng_st.explicit_source = area.explicit
-                if self._engine is not self._explicit_engine:
-                    torch_st = getattr(self._engine, "_areas", {}).get(area_name)
-                    if torch_st is not None and hasattr(torch_st, "explicit_source"):
-                        torch_st.explicit_source = area.explicit
-                if self._explicit_engine is not None and area.explicit:
-                    self._explicit_engine.set_winners(area_name, winners_arr)
+            # Empty activity is a state update too; otherwise a cleared public
+            # source silently reuses its previous backend winners.
+            winners_arr = np.asarray(to_cpu(area.winners), dtype=np.uint32)
+            self._engine.set_winners(area_name, winners_arr)
+            eng_st = self._engine._areas.get(area_name)
+            if eng_st is not None:
+                eng_st.explicit_source = area.explicit
+            if self._explicit_engine is not None and area.explicit:
+                self._explicit_engine.set_winners(area_name, winners_arr)
 
         # Sync fixed_assembly state from Area descriptors to engine
         for area_name in to_update_area_names:
@@ -1247,154 +1215,37 @@ class Brain:
         self._engine.normalize_weights(target, source)
 
     def project_rounds(self, target, areas_by_stim, dst_areas_by_src_area, rounds):
-        """Multi-round projection with engine fast path.
+        """Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-projection-rounds
 
-        Executes *rounds* projection steps into *target*.  When the engine
-        supports ``project_rounds`` (CUDA), the entire loop runs in a tight
-        GPU-side path with pre-resolved references and no per-round Brain
-        dispatch.  Otherwise falls back to sequential ``self.project()`` calls.
+        Repeat the resolved inputs to one target through ordinary projection.
+
+        All supplied names must exist. Other destinations are excluded; no
+        effective inputs and nonpositive/noninteger rounds are errors before
+        execution. Every round obeys inhibition, clamp/plasticity state,
+        read-only preflight, activation recording and per-round history rules.
+
+        Legacy schedule policy: non-explicit targets drop their self-edge unless
+        recurrent_projection and (norm_init or full synaptic_scaling) are set.
+        Explicit targets retain supplied self-edges. To specify recurrence
+        independently of this compatibility policy, use ordinary project calls
+        or assembly_calculus.ops.project's explicit recurrent argument.
         """
-        area = self.areas[target]
-        if area.explicit:
-            for _ in range(rounds):
-                self.project(areas_by_stim, dst_areas_by_src_area)
-            return
-
-        # Resolve which stimuli / areas project into target
-        from_stims = [s for s, areas in areas_by_stim.items()
-                      if target in areas]
-        # NOTE: `a != target` drops target self-recurrence in this fast path.
-        # That is a real divergence from the documented project() protocol,
-        # which specifies (stimulus + target->target) recurrence on rounds
-        # 2..T, and from Assembly Calculus itself -- Dabagia et al. 2024 define
-        # an assembly as a set of k neurons whose INTERNAL synaptic weights
-        # have been strengthened, so dropping recurrence removes the defining
-        # property.  It was left in because recurrence measurably collapsed
-        # assemblies: two INDEPENDENT stimuli projected into one area
-        # (n=2000, k=50, p=0.05, beta=0.1, 5 seeds) reached overlap 0.240 at
-        # 5 rounds and 0.940 at 15 rounds, against a chance level of 0.025.
-        #
-        # HISTORY, CORRECTED.  The original diagnosis blamed the absence of
-        # ongoing homeostatic normalization, and `synaptic_scaling` was written
-        # to supply it.  That was wrong on both counts.  Running the reference
-        # implementation (.reference/mdabagia-nemo/brain.py, `RecurrentArea`)
-        # shows recurrence is ALWAYS on there, with the same multiplicative
-        # plasticity and no weight clipping, and that `normalize()` is called
-        # ONLY from `reset()` under `norm_init` -- it is a ONE-TIME
-        # INITIALIZATION, not ongoing homeostasis.  With norm_init the
-        # reference holds chance overlap (0.024 at 15 rounds); without it, it
-        # drifts up (0.112).
-        #
-        # The real mechanism is degree bias.  With every weight initialized to
-        # 1, a neuron's drive is essentially its number of active afferents, so
-        # k-cap systematically elects the random graph's high-in-degree hubs;
-        # recurrence compounds that, and every stimulus converges on the same
-        # hubs.  Measured here, the winners' recurrent in-degree z-score rose
-        # to +1.66 by round 15.  Normalizing each postsynaptic neuron's
-        # incoming weights per fiber to sum 1 removes the degree advantage,
-        # after which recurrence is safe (see NumpySparseEngine._norm_scale).
-        #
-        # Self-recurrence is therefore enabled only when that normalization is
-        # active.  `synaptic_scaling` is still accepted as a gate for backward
-        # compatibility, but norm_init is the validated one.
-        #
-        # HOW FAR THAT GENERALISES -- measured 2026-07-28,
-        # research/experiments/norm_init_recurrence_limit.py, n=1000 k=50
-        # beta=0.1, M items sharing one area, rank-1 identity across all M:
-        #
-        #     M           2      4      8     16     32     64    128
-        #     rec RAW  1.000  1.000  0.667  0.188  0.031  0.016  0.009
-        #     rec norm 1.000  1.000  1.000  1.000  1.000  0.039  0.018
-        #     ff  norm 1.000  1.000  1.000  1.000  1.000  1.000  1.000
-        #
-        # THE TABLE ABOVE IS THE SAMPLER'S, NOT THE SUBSTRATE'S -- re-derived
-        # 2026-08-02 on `numpy_exact`, which computes the drive instead of
-        # inventing one for neurons that have not fired
-        # (research/notes/memory/recurrence_ceiling_on_exact_drive.md):
-        #
-        #     ceiling (acc > 0.90)      numpy_sparse   numpy_exact
-        #     recurrent, norm_init ON       M=32          M=16
-        #     recurrent, norm_init OFF      M= 4          M=16
-        #     feed-forward,        ON       M=64          M=64
-        #
-        # So norm_init's capacity gain under recurrence is 8.0x on the sampler
-        # and 1.0x on exact drive.  It still does something (acc 0.73 vs 0.44
-        # at M=32) but it does not move the ceiling, and "moves the ceiling
-        # from M=4 to M=32" was an artifact: the sampler's error is a function
-        # of LOAD, and norm_init changes which neurons win and therefore how
-        # fast the area recruits.  The two arms did not share the error.
-        #
-        # The "ceiling scales with n" inference was re-run on exact drive
-        # (research/notes/memory/ceiling_n_scaling_on_exact_drive.md) and the GROWTH
-        # is real -- the sampler did not produce it, inflation is 2.0x/1.0x/1.0x
-        # across n.  But the SHAPE of that growth is still not established, and
-        # the exponent measured there (1.70) is WITHDRAWN: both that sweep and
-        # the original table hold beta and T fixed while n varies, i.e. they
-        # compare along the n axis at fixed ABSOLUTE gain, which is the design
-        # that produced this repo's withdrawn n^1.49.  The controlled version
-        # of that measurement is EXTENSIVE (exponent 1.01, M_max ~ 1.15 n/k).
-        # So "accumulated potentiation rather than degree bias" may well be
-        # right, but the numbers here do not establish it.
-        #
-        # WHAT DID NOT CHANGE, and is why this gate stays: recurrence is the
-        # collapse channel and is far worse than feed-forward on BOTH engines
-        # at every M, and the exact ceiling with norm_init on is LOWER (16, not
-        # 32) than the sampler claimed.  The gate was right; the stated reason
-        # was not.
-        #
-        # SO DO NOT FLIP `recurrent_projection` ON GLOBALLY.  The production
-        # lexicon trains through this exact path -- training/batch.py
-        # `apply_lexicon_word` passes {core_area: [core_area]}, which the
-        # `a != target` filter below silently strips -- with dozens of words
-        # per core area.  Enabling self-recurrence there collapses the lexicon
-        # into one assembly, and it fails SILENTLY: at M=128 each word still
-        # re-cues to overlap 0.68 with what was stored (so any probe reading
-        # only self-overlap reports success) while rank-1 identity across the
-        # lexicon is 0.018 against a chance of 0.008.
-        #
-        # Feed-forward has no measured ceiling at all -- 1.0000 up to M=256 in
-        # n=1000, i.e. 12.8x oversubscription, with pairwise overlap 0.0510
-        # against a random-pair floor of 0.0500 (lexicon_capacity_law.py).  For
-        # areas holding many items, that is the regime to be in.
-        # `is True` deliberately: scoped scaling (a set of feature-area
-        # names) normalizes only those targets, which cannot license
-        # GLOBAL self-recurrence -- only full scaling or norm_init can.
-        allow_self = getattr(self, "recurrent_projection", False) and (
-            getattr(self, "norm_init", False)
-            or getattr(self, "_synaptic_scaling", False) is True
-        )
-        from_areas_list = [a for a, tgts in dst_areas_by_src_area.items()
-                           if target in tgts and (allow_self or a != target)]
-
-        # Sync source area winners to engine ONCE
-        for area_name in from_areas_list:
-            src_area = self.areas[area_name]
-            if len(src_area.winners) > 0:
-                self._engine.set_winners(
-                    area_name, np.asarray(to_cpu(src_area.winners), dtype=np.uint32))
-
-        # Sync target area winners (needed for recurrence / Hebbian prev)
-        if area.winners is not None and len(area.winners) > 0:
-            self._engine.set_winners(
-                target, np.asarray(to_cpu(area.winners), dtype=np.uint32))
-
-        result = self._engine.project_rounds(
-            target=target,
-            from_stimuli=from_stims,
-            from_areas=from_areas_list,
-            rounds=rounds,
-            plasticity_enabled=not self.disable_plasticity,
-        )
-
-        area.winners = result.winners
-        area.w = result.num_ever_fired
-        # Keep the recruitment reading alive across a later `winners`
-        # assignment, which clobbers `w`. See Area.get_num_ever_fired.
-        area._num_ever_fired = int(result.num_ever_fired)
-        if self.save_winners:
-            area.saved_winners.append(result.winners.copy())
-        if self.save_size:
-            area.saved_w.append(result.num_ever_fired)
+        if isinstance(rounds, bool) or not isinstance(rounds, (int, np.integer)) or rounds < 1:
+            raise ValueError("rounds must be a positive integer")
+        if target not in self.areas:
+            raise IndexError(f"Not in brain.areas: {target}")
+        stim_in, area_in = self._projection_inputs(
+            areas_by_stim, dst_areas_by_src_area)
+        # Preserve legacy caller schedules; this gate is not a scientific
+        # assertion that normalization makes recurrence safe. See the card.
+        allow_self = self.areas[target].explicit or (
+            self.recurrent_projection and (self.norm_init or self._synaptic_scaling is True))
+        stimuli = {s: [target] for s in stim_in[target]}
+        sources = {s: [target] for s in area_in[target] if allow_self or s != target}
+        if not stimuli and not sources:
+            raise ValueError(f"no inputs remain for target {target!r} after schedule selection")
+        for _ in range(rounds):
+            self.project(stimuli, sources)
 
     def project_legacy(self, areas_by_stim, dst_areas_by_src_area, verbose=0):
         """Alias for backward compatibility."""

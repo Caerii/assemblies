@@ -140,3 +140,44 @@ No new Lean theorem or executable compiler lowering is claimed by this follow-up
 No GPU gates or historical numerical replays were run. The changed combination
 needs a new protocol revision for newly measured evidence; old artifacts are
 unchanged. Direct legacy `Brain.project_rounds` callers retain their old schedule.
+
+
+## Shared multi-round execution and unused-fiber observation
+
+Source baseline: `9cf2c3b`. The initial multi-round contract suite produced
+19 failures and 1 pass: mismatched histories, ignored inhibition/clamps,
+backend-dependent target selection, accepted empty schedules, and invalid counts.
+The helper now validates/resolves one target then uses ordinary Brain projection
+for each round. Legacy self-edge selection remains documented and unchanged.
+Repeated engine calls now have one base implementation; copied Torch/CUDA/CuPy
+loops are removed. Raw engine calls still do not apply Brain controls.
+
+The expanded tests found stale backend winners after a public source was cleared
+(2 failures before repair), and unused sampled fibers created inside read-only
+(4 eager/deferred and stimulus/no-stimulus failures before repair). Both ordinary
+and multi-round paths now propagate empty source activity. Eager and deferred
+sampled-fiber construction honor no-recruitment. The observation tests compare
+later learning against an unobserved brain and retain a frozen-plasticity
+construction control.
+
+Validation:
+
+- Focused operation/probe tests: 67 passed before adding raw engine-loop cases.
+- Final workflow-listed CPU gate: 262 passed, 1 skipped, expected sampled warning.
+- Broader consolidation, inhibition and training-performance run: 92 passed,
+  1 xfailed, 3 failed. All three failures reproduced after restoring all four
+  then-changed executable methods from `9cf2c3b` in a separate Python process.
+  This is a controlled method-level baseline, not a full historical checkout run.
+- The three open failures are `test_parse_incremental_uses_category_cache` and
+  `test_build_context_incremental_light` (cold ROLE_AGENT read-only probe), and
+  `test_context_ring_reduces_expand_during_bridges` (compact index outside a
+  mapping of length 176). No failure was skipped or reclassified as passing.
+- Ruff and diff checks passed. Modified GPU modules compile syntactically;
+  no GPU suite, extension build, historical numerical replay or performance
+  benchmark was run. Unused GPU-module imports were removed after the CPU gate;
+  that cleanup passed Ruff and Python compilation.
+
+Inspection also found Torch's zero-drive fiber-repair branch without the
+corresponding read-only guard. It remains an explicit hardware regression task;
+this follow-up must not be cited as proof of universal backend probe isolation.
+The unchanged generic Lean theorems are not backend preservation certificates.

@@ -159,7 +159,8 @@ class GrowthMixin:
         unreachable whenever the new source was the only source, which is
         exactly when it is needed.
         """
-        if not src_names:
+        # A probe observes existing fibers; it cannot construct absent ones.
+        if self._no_recruitment or not src_names:
             return
         for src_name in src_names:
             conn = self._area_conns[src_name][target]

@@ -284,11 +284,16 @@ class ComputeEngine(ABC):
         plasticity_enabled: bool = True,
         record_activation: bool = False,
     ) -> "ProjectionResult":
-        """Execute multiple projection rounds in a tight loop.
+        """Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-engine-rounds
 
-        Default calls :meth:`project_into` sequentially.  GPU engines
-        override to keep state on-device between rounds.
+        Repeat project_into sequentially and return its last ProjectionResult.
+
+        Requires a positive integer count. Edges and plasticity/recording flags
+        are forwarded unchanged on every step. This engine-level API does not
+        apply Brain routing, inhibition, facade synchronization or histories.
         """
+        if isinstance(rounds, bool) or not isinstance(rounds, (int, np.integer)) or rounds < 1:
+            raise ValueError("rounds must be a positive integer")
         result = None
         for _ in range(rounds):
             result = self.project_into(

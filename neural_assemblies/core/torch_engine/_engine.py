@@ -1501,17 +1501,6 @@ class TorchSparseEngine(ComputeEngine):
             if target in self._area_conns[src_name]:
                 self._area_conns[src_name][target].normalize_columns(eps)
 
-    # -- Tight projection loop ----------------------------------------------
-
-    def project_rounds(self, target, from_stimuli, from_areas,
-                       rounds, plasticity_enabled=True,
-                       record_activation=False):
-        result = None
-        for _ in range(rounds):
-            result = self.project_into(
-                target, from_stimuli, from_areas, plasticity_enabled,
-                record_activation=record_activation)
-        return result
 
     # -- Identity -----------------------------------------------------------
 

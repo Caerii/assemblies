@@ -1407,7 +1407,8 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
                 # unpotentiated afferent plus the same recurrent term. Deferred,
                 # the recurrent half simply is not there on the round that
                 # decides y2, so the comparison is not the paper's.
-                if (self.eager_fiber_init and conn.sparse
+                if (self.eager_fiber_init and not self._no_recruitment
+                        and conn.sparse
                         and (src_name != target
                              or _self_fiber_deferred_init())
                         and self._areas[src_name].w > 0 and tgt.w > 0):

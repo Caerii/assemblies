@@ -328,3 +328,90 @@ recurrence and normalization flags. The old path fails when False encounters
 both global flags enabled. Comparing final winners alone would miss this error.
 This intentionally changes that previously ambiguous operation configuration;
 results produced with it need a new protocol revision and a rerun.
+
+
+<a id="contract-projection-rounds"></a>
+
+## Multi-round projection: dispatch card and obligations
+
+Source baseline: `9cf2c3b`, `Brain.project_rounds`, `Brain._project_impl`,
+`ComputeEngine.project_rounds`, and the torch/CUDA/CuPy overrides.
+
+- **Reads:** target, incoming stimulus/area maps, live source/target winners,
+  clamp flags, plasticity, recurrence/normalization settings and backend state.
+- **Selects:** the sparse path keeps only edges to the named target and removes
+  its self-edge unless global recurrence and (norm_init or full scaling) allow
+  it. The explicit path previously executed the entire supplied map, without
+  the self-edge filter. Lexicon callers intentionally rely on sparse filtering.
+- **Mutates:** the backend runs several projections; the sparse facade receives
+  only the final result. It appends one history entry, using compact indices
+  directly, instead of the ordinary path's per-round neuron-ID history.
+- **Bypasses:** sparse rounds skip Brain inhibition, facade-to-engine clamp sync,
+  activation recording and the normal result application helper. The docstring's
+  claim to fall back to repeated `self.project` calls is false for sparse areas.
+- **Other invalid inputs:** zero rounds returns None from most engines and fails
+  after dispatch; some backends instead accept it. Extraneous destinations are
+  ignored for sparse targets and executed for explicit targets. Empty resolved
+  inputs can produce backend-dependent zero-drive behavior.
+
+Acceptance: select one target schedule, validate it before mutation, then use
+ordinary projection semantics for each round. Preserve the existing self-edge
+selection as an explicitly documented legacy policy while callers migrate.
+Known destinations outside the named target are excluded on every backend;
+unknown names and empty resolved schedules are rejected. Positive integer rounds
+are required. Inhibition, clamps, read-only preflight, final activation summaries,
+per-round histories and learned state must match executing the resolved schedule
+through ordinary projection. Construct controls with a closed target/fiber and
+with an unsynchronized target clamp; final-winner agreement alone is insufficient.
+
+The previous embedded historical capacity narrative is available in git and in
+`research/notes/memory/recurrence_ceiling_on_exact_drive.md` and
+`research/notes/memory/ceiling_n_scaling_on_exact_drive.md`. It does not prove that
+normalization licenses recurrence or that any backend loop is a valid lowering.
+
+
+### Multi-round resolution and additional observation defect
+
+The named-target helper now resolves and validates its inputs without mutation,
+then executes each round through `Brain.project`. Its legacy self-edge policy is
+unchanged, including explicit targets retaining supplied self-edges. Each result
+uses the shared application path; history therefore contains one entry per
+executed round in the same index space as ordinary projection. Inhibited rounds
+execute no target transition. The helper no longer claims to be a fused kernel.
+
+Testing a later learning step after a probe exposed two further problems:
+
+- Empty facade source winners were not synchronized, so the old backend assembly
+  could still deliver drive and learn. Empty activity now propagates through the
+  shared source synchronization path; a duplicated source-flag assignment was
+  removed.
+- The sampled numpy engine's eager and deferred initialization could construct
+  an unused fiber under `read_only`. Both now honor `_no_recruitment`. A probe
+  reads the currently materialized fiber, including a missing fiber's zero
+  contribution; it does not fill in missing structure. The frozen-plasticity
+  control still constructs the fiber, and a subsequent learning step after the
+  read-only probe is compared with an unobserved brain.
+
+This does not certify all GPU read-only paths. Inspection found a separate
+zero-drive fiber-repair branch in `TorchSparseEngine.project_into` that needs
+its own hardware regression; it has not been exercised or changed here.
+Existing measured results are not re-adopted by these software regressions.
+
+
+<a id="contract-engine-rounds"></a>
+
+### Engine-level repetition
+
+`ComputeEngine.project_rounds` owns the sequential backend loop. It requires a
+positive integer count before calling `project_into`. Every step receives the
+same target, source lists, plasticity flag and activation-recording flag; the
+last result is returned. An exception stops the loop and does not roll back
+previous steps. Brain-level controls are not part of this low-level API.
+
+Torch and CUDA overrides repeated this exact loop. CuPy did too for positive
+counts, with an additional zero-round success path. Those copies are removed;
+all inherit the base method. Invalid counts now raise consistently. The old
+comments claiming only the final result was copied to CPU did not describe the
+loop: each iteration already called the ordinary `project_into` method.
+CPU checks cover repeated-step equivalence and invalid-count rejection; hardware
+parity suites remain required for the GPU implementations.

@@ -154,3 +154,19 @@ stimulus-only first round. It must separately discharge the neural transition
 simulation obligation in `Simulates`; the schedule regression does not supply
 that proof. Other direct users of `Brain.project_rounds` still have legacy
 filtering and cannot be declared equivalent to the explicit operation contract.
+
+
+## Repetition shares the ordinary transition boundary
+
+`Brain.project_rounds` now executes the selected named-target schedule through
+`Brain.project`, preserving inhibition, clamp synchronization, recording and
+history handling at that boundary. Its source-linked contract records the
+legacy recurrence selector separately from execution. This is still a Python
+compatibility API, not a projection-JSON interpreter or a formally certified
+backend lowering.
+
+A future fused lowering must preserve the entire observed transition, including
+per-round history when enabled and observation isolation. The new controls
+exposed a sampled fiber being allocated during a probe even though its final
+winners were restored. Thus neither final-winner equality nor the absence of
+Hebbian updates suffices to discharge the state relation in `Simulates`.

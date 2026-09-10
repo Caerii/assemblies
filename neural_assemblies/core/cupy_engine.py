@@ -14,21 +14,16 @@ Key optimizations over numpy_sparse on CPU:
   - Bernoulli sampling for connectome expansion uses CuPy RNG (GPU-native)
   - Top-k winner selection via cupy.argpartition (GPU-native)
   - Hebbian plasticity via GPU fancy indexing
-  - project_rounds() keeps all state on GPU between rounds
   - Stim→area binomial approximated on GPU for large allocations
 
 Requires: cupy (``pip install cupy-cuda12x`` or appropriate variant).
 Falls back gracefully: module loads but engine is not registered without CuPy.
 """
 
-import math
 import numpy as np
-from dataclasses import dataclass, field
-from typing import Dict, List, Optional
-from collections import defaultdict
+from typing import Dict, List
 
-from .engine import ComputeEngine, ProjectionResult, register_engine
-from .connectome import Connectome
+from .engine import ProjectionResult, register_engine
 
 try:
     import cupy as cp
@@ -37,20 +32,7 @@ except ImportError:
     _HAS_CUPY = False
 
 if _HAS_CUPY:
-    # Only import parent and compute primitives if CuPy is available,
-    # since we need CuPy backend active for proper initialization.
-    from .numpy_engine import (
-        NumpySparseEngine,
-        _SparseAreaState,
-        _StimulusState,
-    )
-    try:
-        from ..compute.sparse_simulation import SparseSimulationEngine
-        from ..compute.winner_selection import WinnerSelector
-    except ImportError:
-        from compute.sparse_simulation import SparseSimulationEngine
-        from compute.winner_selection import WinnerSelector
-
+    from .numpy_engine import NumpySparseEngine
 
     class CupySparseEngine(NumpySparseEngine):
         """GPU engine using CuPy with statistical sparse simulation.
@@ -292,45 +274,6 @@ if _HAS_CUPY:
                         < self.p
                     ).astype(cp.float32)
 
-        # -----------------------------------------------------------------
-        # Override: Tight project_rounds with no per-round CPU copies
-        # -----------------------------------------------------------------
-
-        def project_rounds(
-            self,
-            target: str,
-            from_stimuli: List[str],
-            from_areas: List[str],
-            rounds: int,
-            plasticity_enabled: bool = True,
-            record_activation: bool = False,
-        ) -> ProjectionResult:
-            """Multi-round projection keeping all state on GPU.
-
-            Only the final round's result is converted to CPU for the
-            ProjectionResult return.  Intermediate rounds skip the
-            CPU copy, reducing GPU sync overhead.
-            """
-            if rounds <= 0:
-                tgt = self._areas[target]
-                return ProjectionResult(
-                    winners=np.array(
-                        tgt.winners.get()
-                        if hasattr(tgt.winners, 'get')
-                        else tgt.winners,
-                        dtype=np.uint32,
-                    ),
-                    num_first_winners=0,
-                    num_ever_fired=tgt.w,
-                )
-            # Run all rounds via parent's project_into (state stays on GPU
-            # between rounds since tgt.winners is a CuPy array)
-            result = None
-            for _ in range(rounds):
-                result = self.project_into(
-                    target, from_stimuli, from_areas, plasticity_enabled,
-                    record_activation=record_activation)
-            return result
 
         # -----------------------------------------------------------------
         # Override: Batch projection

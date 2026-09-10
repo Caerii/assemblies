@@ -45,11 +45,11 @@ Requires: cupy (for GPU arrays; kernels in kernels/implicit.py are optional).
 """
 
 import numpy as np
-from typing import Dict, List
+from typing import Dict
 
 from ._homeostasis import refraction_increment
 from .engine import ProjectionResult, register_engine
-from .backend import get_xp, to_cpu, to_xp
+from .backend import to_cpu, to_xp
 
 # Guard — this module is only loaded if cupy is available
 import cupy as cp
@@ -689,22 +689,6 @@ class CudaImplicitEngine(NumpySparseEngine):
                 if len(valid) > 0:
                     apply_hebbian_1d(conn.weights, valid, beta, self.w_max)
 
-    # -- Override: tight project_rounds loop ---------------------------------
-
-    def project_rounds(self, target, from_stimuli, from_areas,
-                       rounds, plasticity_enabled=True,
-                       record_activation=False):
-        """Execute multiple projection rounds with minimal overhead.
-
-        Pre-resolves references, runs optimized project_into per round,
-        only returns final ProjectionResult.
-        """
-        result = None
-        for _ in range(rounds):
-            result = self.project_into(
-                target, from_stimuli, from_areas, plasticity_enabled,
-                record_activation=record_activation)
-        return result
 
     # -- Override: hash-based connection reset ------------------------------
 

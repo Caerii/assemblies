@@ -80,3 +80,30 @@ def test_nested_probe_restores_the_outer_state_and_buffer_references():
     assert backend.ever_fired is mask
     assert area.saved_winners is history
     np.testing.assert_array_equal(mask, saved_mask)
+
+
+@pytest.mark.parametrize("eager", [False, True])
+@pytest.mark.parametrize("with_stimulus", [False, True])
+def test_read_only_cannot_initialize_an_unused_fiber(eager, with_stimulus):
+    brain = brain_for("numpy_sparse")
+    brain.add_area("B", 300, 20, .1)
+    brain.project({"s": ["B"]}, {})
+    brain._engine.eager_fiber_init = eager
+    unobserved = copy.deepcopy(brain)
+    frozen_control = copy.deepcopy(brain)
+    fiber = brain._engine._area_conns["A"]["B"]
+    before = fiber.weights.copy()
+    assert before.shape == (0, 0)
+    stims = {"t": ["B"]} if with_stimulus else {}
+    with brain.read_only():
+        brain.project(stims, {"A": ["B"]})
+        np.testing.assert_array_equal(fiber.weights, before)
+    # Freezing plasticity alone still permits this construction.
+    with frozen_control.frozen():
+        frozen_control.project(stims, {"A": ["B"]})
+    assert frozen_control._engine._area_conns["A"]["B"].weights.size > 0
+    brain.project(stims, {"A": ["B"]})
+    unobserved.project(stims, {"A": ["B"]})
+    np.testing.assert_array_equal(brain.areas["B"].winners, unobserved.areas["B"].winners)
+    np.testing.assert_array_equal(fiber.weights,
+                                  unobserved._engine._area_conns["A"]["B"].weights)
