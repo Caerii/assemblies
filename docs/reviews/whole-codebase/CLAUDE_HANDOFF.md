@@ -758,7 +758,19 @@ historical baseline reject before GPU execution instead of producing an empty
 comparison that passes all(). Version2 records checkpoints and device explicitly;
 version1 evidence remains readable but needs those fields for execution.
 
-Focused protocol/runner/specification controls:66 passed in21.43s; Ruff passed.
+Focused protocol/runner/specification controls: 66 passed in 21.43s; Ruff passed.
 Controls check copied configuration, malformed inputs, constructor arguments,
 recorded grid selection and missing-baseline rejection. Full historical replay
 follows before claiming numerical preservation.
+
+
+A1 full replay at ae8c548 reproduces all 40 historical rows after protocol
+consumption, with no smoke reduction: seeds 1..20, p=.3/.4, length 2000. Artifacts
+and the version2 comparison receipt are retained under
+research/results/runs/sequence.a1-horizon/horizon-record-consumed-20260910/.
+The registration links them. The independent historical Gate3 remains FAIL;
+this migration result does not establish an unlimited horizon or sampled validity.
+
+Final contract gate: 1082 passed, 1 skipped, two expected warnings in158.12s
+(.cache/horizon-consumed-contract-gate.log). No full-system completion or new
+scientific adoption is claimed.

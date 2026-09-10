@@ -231,3 +231,10 @@ records both artifact hashes. The historical Gate3 remains FAIL against sampled
 NumPy seed1 at p=.3 (first error 759); no sampled-dynamics validity or unlimited
 horizon follows from the hashed replay. This closes numerical reproduction for
 this migrated A1 artifact, not the entire sequence-port soundness program.
+
+
+The [protocol-consumption replay](../../results/runs/sequence.a1-horizon/horizon-record-consumed-20260910/results.json)
+([comparison receipt](../../results/runs/sequence.a1-horizon/horizon-record-consumed-20260910/comparison-v2.json))
+reproduces the same 40 rows after A1's model and schedule were moved from implicit
+global reads to a validated recorded protocol. This version explicitly records
+checkpoints and device. The historical sampled-baseline Gate3 remains FAIL.
