@@ -182,6 +182,21 @@ class HomeostasisConfig:
     def as_kwargs(self):
         return dict(vars(self))
 
+    def to_document(self):
+        """Specification: neural_assemblies/ir/VERIFICATION.md#contract-homeostasis-wire"""
+        scope = self.synaptic_scaling
+        return {"profile": "homeostasis-v1", "norm_init": self.norm_init,
+                "synaptic_scaling": scope if type(scope) is bool else sorted(scope),
+                "synaptic_scaling_deferred": self.synaptic_scaling_deferred}
+
+    @classmethod
+    def from_document(cls, document):
+        from ..ir.protocol import validate_schema_document
+        errors = validate_schema_document(document, "homeostasis.schema.json")
+        if errors:
+            raise ValueError(f"invalid homeostasis document: {errors}")
+        return cls(**{name: document[name] for name in cls.__dataclass_fields__})
+
 
 def scaling_applies(synaptic_scaling: ScalingSpec, target: str) -> bool:
     """Does column scaling act on ``target``?

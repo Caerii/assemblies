@@ -21,15 +21,15 @@ def schema_path(name: str) -> Path:
     return Path(__file__).resolve().parent / "v1" / name
 
 
-@lru_cache(maxsize=1)
-def _validator():
-    schema = json.loads(schema_path("protocol.schema.json").read_text(encoding="utf-8"))
+@lru_cache(maxsize=None)
+def _validator(schema_name):
+    schema = json.loads(schema_path(schema_name).read_text(encoding="utf-8"))
     Draft202012Validator.check_schema(schema)
     # `format` remains an annotation in v1, consistently with the Rust bridge.
     return Draft202012Validator(schema)
 
 
-def validate_protocol_document(doc: dict[str, Any]) -> list[str]:
+def validate_schema_document(doc: dict[str, Any], schema_name: str) -> list[str]:
     """Validate JSON representability and the authoritative packaged v1 schema."""
     try:
         encoded = json.dumps(doc, allow_nan=False)
@@ -38,7 +38,11 @@ def validate_protocol_document(doc: dict[str, Any]) -> list[str]:
     except (TypeError, ValueError, OverflowError) as exc:
         return [f"document is not finite JSON: {exc}"]
     return [f"{error.json_path}: {error.message}"
-            for error in _validator().iter_errors(doc)]
+            for error in _validator(schema_name).iter_errors(doc)]
+
+
+def validate_protocol_document(doc: dict[str, Any]) -> list[str]:
+    return validate_schema_document(doc, "protocol.schema.json")
 
 
 def load_protocol_document(path: str | Path) -> dict[str, Any]:

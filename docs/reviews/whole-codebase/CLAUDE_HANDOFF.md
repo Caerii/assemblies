@@ -429,3 +429,12 @@ Malformed scopes no longer become character sets, and caller mutation cannot alt
 Brain's scope. Initial controls reproduced 21 failures; expanded CPU gate 670 passed,
 3 skipped; final export checks 68 passed. Torch uses the same configuration but
 still needs CUDA verification. See [validation](VALIDATION.md).
+
+
+### Homeostasis Python/Rust wire contract
+
+HomeostasisConfig now has strict `to_document`/`from_document` methods. Python
+and Rust use one packaged schema and 19-case corpus; the runner control compares
+recorded configuration with the instantiated engine. CPU gate: 679 passed,
+1 skipped; both Rust corpus tests passed. This is configuration transport, not
+Rust execution or a Lean backend proof. See [validation](VALIDATION.md).

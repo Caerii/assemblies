@@ -12,9 +12,12 @@ neural_assemblies/ir/
   protocol.py              Python validation, loading and exclusive writing
   Cargo.toml               assembly-ir crate (member of crates/ workspace)
   rust/lib.rs              validated, lossless Rust protocol wrapper
+  rust/homeostasis.rs      validated homeostasis configuration transport
   v1/
     protocol.schema.json   canonical protocol contract for both languages
     protocol.cases.json    shared acceptance and round-trip corpus
+    homeostasis.schema.json strict runtime configuration contract
+    homeostasis.cases.json shared configuration acceptance corpus
     brain.schema.json      brain payload description
     projection.schema.json projection payload description
 ```
@@ -70,3 +73,11 @@ array. See the [Brain lowering contract](VERIFICATION.md#contract-brain-round).
 values stay unchanged across schedules, while allowed writes and activity keep
 their specified meaning. Its [contract and instantiation limits](VERIFICATION.md#contract-learning-frame)
 distinguish this checked model from a proof of a concrete numerical backend.
+
+
+Homeostasis configuration now has a shared Python/Rust wire contract:
+`HomeostasisConfig.to_document()` produces `homeostasis-v1`; `from_document()`
+validates it and reconstructs the runtime configuration. Rust exposes
+`assembly_ir::homeostasis::HomeostasisDocument`. Both consume the packaged schema
+and acceptance corpus. See [the exact contract](VERIFICATION.md#contract-homeostasis-wire)
+for canonical scope encoding and the limits of this configuration-only bridge.

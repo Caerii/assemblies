@@ -242,3 +242,17 @@ def test_unrelated_environment_change_does_not_invalidate_run(run, monkeypatch):
         monkeypatch.setenv('UNRELATED_APPLICATION_SETTING', 'changed')
         return {'values': [1, 2, 3]}
     assert run(measure=measure).exists()
+
+
+
+def test_run_retains_the_configuration_consumed_by_measurement(run):
+    from neural_assemblies import HomeostasisConfig, Brain
+    config = HomeostasisConfig(norm_init=True, synaptic_scaling={'B', 'A'})
+    def measure(record):
+        consumed = HomeostasisConfig.from_document(record['parameters']['homeostasis'])
+        brain = Brain(p=.1, engine='numpy_sparse', **consumed.as_kwargs())
+        return {'executed_homeostasis': HomeostasisConfig.from_engine(brain._engine).to_document()}
+    path = run(parameters={'homeostasis': config.to_document()}, measure=measure)
+    payload = json.loads(path.read_text())
+    assert payload['observations']['executed_homeostasis'] == payload['run']['parameters']['homeostasis']
+    assert payload['run']['parameters']['homeostasis'] == config.to_document()

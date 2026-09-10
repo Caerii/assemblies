@@ -55,3 +55,32 @@ def test_committed_parity_documents_still_validate():
             assert not validate_protocol_document(document), path
             checked += 1
     assert checked > 0
+
+
+HOMEOSTASIS_CASES = json.loads(schema_path("homeostasis.cases.json").read_text(encoding="utf-8"))
+
+
+@pytest.mark.parametrize("case", HOMEOSTASIS_CASES, ids=lambda case: case["name"])
+def test_shared_homeostasis_wire(case):
+    from neural_assemblies import HomeostasisConfig
+    if not case["valid"]:
+        with pytest.raises(ValueError):
+            HomeostasisConfig.from_document(case["document"])
+        return
+    config = HomeostasisConfig.from_document(case["document"])
+    document = config.to_document()
+    assert HomeostasisConfig.from_document(json.loads(json.dumps(document))) == config
+    expected = dict(case["document"])
+    if isinstance(expected['synaptic_scaling'], list):
+        expected['synaptic_scaling'] = sorted(expected['synaptic_scaling'])
+    assert document == expected
+
+
+def test_homeostasis_document_controls_the_actual_engine():
+    from neural_assemblies import HomeostasisConfig, Brain
+    document = next(c['document'] for c in HOMEOSTASIS_CASES if c['name'] == 'deferred')
+    config = HomeostasisConfig.from_document(document)
+    brain = Brain(p=.1, engine='numpy_sparse', **config.as_kwargs())
+    assert HomeostasisConfig.from_engine(brain._engine).to_document() == config.to_document()
+    assert brain._engine.synaptic_scaling == frozenset({'A'})
+    assert brain._engine.synaptic_scaling_deferred is True

@@ -678,3 +678,30 @@ This does not lock legacy fields against subsequent direct assignment, reconcile
 all backend switches, or prove that normalization/scaling are appropriate for a
 scientific protocol. The separate refraction incompatibility and learning-mask
 contracts still apply. GPU verification remains a required external gate.
+
+
+<a id="contract-homeostasis-wire"></a>
+
+## Homeostasis wire contract
+
+`HomeostasisConfig.to_document()` and `from_document()` connect the runtime object
+to the packaged `v1/homeostasis.schema.json`. Rust's `HomeostasisDocument` uses the
+same schema and the same `homeostasis.cases.json` acceptance corpus. Both reject
+unknown/missing fields, wrong versions, nonboolean flags, malformed scopes and
+inactive deferred scaling. The profile is `homeostasis-v1`; all settings are required.
+
+On the wire, scaling is boolean or a nonempty array of unique nonempty names.
+Unlike convenient Python constructor inputs, empty arrays and duplicates are
+rejected rather than normalized. Valid unsorted scopes are accepted and serialized
+in sorted order. Disabled scaling has one wire spelling, False. The Python object
+retains a frozenset; serializers produce a detached JSON list.
+
+A runner can store `config.to_document()` in its parameters and reconstruct it
+inside `measure(record)` before constructing a Brain. The integration control
+compares the resulting engine configuration with the reserved run parameters.
+The runner does not automatically validate arbitrary parameter subdocuments;
+protocol adapters must explicitly decode the configuration they consume.
+
+Rust provides validated configuration transport, not model execution. There is
+no Lean lowering, backend refinement proof or complete assembly-program schema
+implied by this bridge. Historical protocol documents retain their existing schema.

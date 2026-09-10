@@ -788,3 +788,31 @@ passed. The immutable object does not freeze subsequent direct assignments to
 legacy engine fields or establish cross-backend arithmetic equivalence. Remaining
 model switches, GPU gates, historical replays and the grounded-verb regression
 remain open.
+
+
+## Shared homeostasis wire schema and Rust bridge (2026-09-10)
+
+HomeostasisConfig now round-trips through a strict `homeostasis-v1` document,
+validated with the packaged JSON schema. Python schema validation and Rust schema
+compilation reuse the protocol bridge's machinery; both languages consume one
+19-case configuration corpus. Rust exposes an opaque validated document rather
+than claiming a numerical implementation.
+
+The wire rejects missing/unknown fields, wrong versions, nonboolean flags,
+malformed/empty/duplicate scopes and inactive deferral. It accepts unordered unique
+scopes and serializes them sorted. Python constructor conveniences remain distinct:
+empty collections normalize to False there, but have no second spelling on the
+wire. No field rules are duplicated in Rust/Python parsing code.
+
+Twenty new wire/integration checks initially failed because this API was absent
+(31 existing passes). After implementation, focused wire and runtime configuration
+checks passed 100 tests. The additional runner control reconstructs the recorded
+configuration before creating a Brain and compares its effective configuration
+with the reserved parameters.
+
+Final CPU workflow gate: 679 passed, 1 skipped, two expected sampled-engine
+warnings in 86.52 seconds (`.cache/homeostasis-wire-gate.log`). Rust `cargo test
+--locked --manifest-path crates/Cargo.toml -p assembly-ir` passed both corpus tests
+and doc-test processing. Rustfmt, Ruff and diff checks passed. No GPU run,
+registered replay, full-package verdict or Lean configuration/backend simulation
+proof is claimed. The broader IR/compiler and research migrations remain open.

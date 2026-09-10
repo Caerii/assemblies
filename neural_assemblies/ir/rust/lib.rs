@@ -6,15 +6,19 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::sync::LazyLock;
 
+pub mod homeostasis;
+
 pub const IR_VERSION: &str = "1";
-static VALIDATOR: LazyLock<jsonschema::Validator> = LazyLock::new(|| {
-    let schema: Value = serde_json::from_str(include_str!("../v1/protocol.schema.json"))
-        .expect("packaged protocol schema is valid JSON");
+fn schema_validator(source: &str) -> jsonschema::Validator {
+    let schema: Value = serde_json::from_str(source).expect("packaged schema is valid JSON");
     jsonschema::draft202012::options()
         .should_validate_formats(false)
         .build(&schema)
-        .expect("packaged protocol schema is valid")
-});
+        .expect("packaged schema is valid")
+}
+
+static VALIDATOR: LazyLock<jsonschema::Validator> =
+    LazyLock::new(|| schema_validator(include_str!("../v1/protocol.schema.json")));
 
 /// Validated, lossless protocol document; construction cannot bypass validation.
 /// Retaining the entire object preserves extension fields and omitted properties.

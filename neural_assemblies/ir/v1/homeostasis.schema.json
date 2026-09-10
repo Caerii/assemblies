@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Homeostasis configuration v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "profile",
+    "norm_init",
+    "synaptic_scaling",
+    "synaptic_scaling_deferred"
+  ],
+  "properties": {
+    "profile": {
+      "const": "homeostasis-v1"
+    },
+    "norm_init": {
+      "type": "boolean"
+    },
+    "synaptic_scaling": {
+      "oneOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      ]
+    },
+    "synaptic_scaling_deferred": {
+      "type": "boolean"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "synaptic_scaling_deferred": {
+            "const": true
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "synaptic_scaling": {
+            "not": {
+              "const": false
+            }
+          }
+        }
+      }
+    }
+  ]
+}
