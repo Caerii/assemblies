@@ -1172,3 +1172,23 @@ The diagnostic does not certify future steps, arbitrary backend tie policies,
 biological meaning or scientific adoption. Exact integer conversion is an audit
 cost outside the projection hot path. Lack of a certificate is inconclusive,
 not proof of disagreement. No probabilistic confidence interval is implied.
+
+
+<a id="contract-migration-identity"></a>
+## Migration comparison identity
+
+`research.compare_migration` compares integer-valued historical fields exactly,
+with matching integer type: seed identities, lengths and error positions are not
+continuous measurements. Float-valued observations retain the existing fixed
+5e-6 relative / 1e-7 absolute tolerance. Booleans remain distinct, including in
+nested arrays. Historical A1 rows must have unique (seed,p) keys. JSON input must
+have unique object keys; neither duplicate rows nor duplicate object members may
+silently replace conflicting evidence. Ambiguous inputs reject the comparison.
+
+These checks establish numerical comparison scope, not validity of a historical
+protocol or its provenance. Run records, protocol review and true negatives remain
+independent obligations. Tests include duplicate conflicting references and integer
+changes small enough that the former floating tolerance accepted them.
+
+Comparison version 2 receipts also record the comparator source SHA-256, alongside
+both artifact hashes. Earlier unversioned receipts retain their historical scope.

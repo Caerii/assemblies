@@ -13,24 +13,49 @@ from pathlib import Path
 from research.evidence import validate_artifact
 
 
+def _unique_pairs(pairs):
+    """Reject ambiguous evidence before constructing an index or JSON object."""
+    result = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError(f"duplicate evidence key: {key!r}")
+        result[key] = value
+    return result
+
+
+def _load_json(path):
+    return json.loads(path.read_text(encoding="utf-8"), object_pairs_hook=_unique_pairs)
+
+
 def _equal(actual, expected):
     if isinstance(expected, bool) or expected is None:
         return actual is expected
-    if isinstance(expected, (int, float)):
+    if isinstance(expected, int):
+        return type(actual) is int and actual == expected
+    if isinstance(expected, float):
         return (isinstance(actual, (int, float)) and not isinstance(actual, bool)
                 and math.isfinite(actual) and math.isfinite(expected)
                 and math.isclose(actual, expected, rel_tol=5e-6, abs_tol=1e-7))
     if isinstance(expected, dict):
         return isinstance(actual, dict) and actual.keys() == expected.keys() and all(
             _equal(actual[k], v) for k, v in expected.items())
+    if isinstance(expected, list):
+        return (isinstance(actual, list) and len(actual) == len(expected)
+                and all(_equal(a, b) for a, b in zip(actual, expected)))
     return actual == expected
 
 
 def compare(candidate, baseline, kind, reference_seeds=None):
+    # Specification: neural_assemblies/ir/VERIFICATION.md#contract-migration-identity
     errors, checked = [], 0
     observations, record = candidate["observations"], candidate["run"]
     if kind == "a1":
-        old = {(r["seed"], r["p"]): r for r in baseline["rows"]}
+        for row in baseline["rows"]:
+            for field in ("seed", "length", "first_error"):
+                value = row.get(field)
+                if value is not None and type(value) is not int:
+                    raise ValueError(f"historical A1 {field} must be an integer")
+        old = _unique_pairs(((r["seed"], r["p"]), r) for r in baseline["rows"])
         rows = observations["rows"]
         expected_keys = {(s, p) for s in record["seeds"] for p in record["parameters"]["p_values"]}
         actual_keys = [(r["seed"], r["p"]) for r in rows]
@@ -42,7 +67,8 @@ def compare(candidate, baseline, kind, reference_seeds=None):
                 errors.append(f"A1 cell {key} differs (including length and exactness)")
             checked += 1
     elif kind == "capacity":
-        if not reference_seeds or len(set(reference_seeds)) != len(reference_seeds):
+        if (not reference_seeds or any(type(seed) is not int for seed in reference_seeds)
+                or len(set(reference_seeds)) != len(reference_seeds)):
             raise ValueError("capacity requires independently verified, unique reference seed order")
         indices = {seed: i for i, seed in enumerate(reference_seeds)}
         if any(seed not in indices for seed in record["seeds"]):
@@ -55,7 +81,7 @@ def compare(candidate, baseline, kind, reference_seeds=None):
             errors.append("missing, extra, or duplicate capacity cells")
         for c in cells:
             key = f'{c["arm"]}/{c["n"]}'
-            if key not in baseline or baseline.get(key + "/ceiling", {}).get("k") != c["k"]:
+            if key not in baseline or not _equal(c["k"], baseline.get(key + "/ceiling", {}).get("k")):
                 errors.append(f"{key}: missing reference or ambiguous k")
                 continue
             expected_ms = {str(m) for m in record["parameters"]["configuration"]["checkpoints"]}
@@ -107,9 +133,15 @@ def main():
     if errors:
         print(json.dumps({"numerical_match": False, "errors": errors}, indent=2))
         return 1
-    candidate = json.loads(args.candidate.read_text(encoding="utf-8"))
-    baseline = json.loads(args.reference.read_text(encoding="utf-8"))
-    result = compare(candidate, baseline, args.kind, args.reference_seeds)
+    try:
+        candidate = _load_json(args.candidate)
+        baseline = _load_json(args.reference)
+        result = compare(candidate, baseline, args.kind, args.reference_seeds)
+    except ValueError as exc:
+        print(json.dumps({"numerical_match": False, "errors": [str(exc)]}, indent=2))
+        return 1
+    result["comparison_version"] = 2
+    result["comparator_sha256"] = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
     result["candidate_sha256"] = hashlib.sha256(args.candidate.read_bytes()).hexdigest()
     result["reference_sha256"] = hashlib.sha256(args.reference.read_bytes()).hexdigest()
     print(json.dumps(result, indent=2))

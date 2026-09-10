@@ -1387,3 +1387,21 @@ Final contract gate: 1049 passed, 1 skipped, two expected warnings in 104.29s.
 GPU substrate rerun after exact mixed-value handling: 20 passed in 7.33s.
 Log: .cache/margin-final-gates-native.log. Lean build and standalone leanchecker
 passed; Ruff and diff whitespace checks passed. No projection kernel changed.
+
+
+## Migration comparison identity hardening
+
+Comparator version2 rejects duplicate historical A1 keys and duplicate JSON
+members instead of silently replacing evidence. Integer identities, lengths,
+error positions and capacity k compare exactly with integer type, while float
+measurements retain their fixed tolerance. Nested booleans remain distinct from
+integers; historical A1 integer fields and capacity reference seed keys reject
+float/bool identities. Invalid reference input produces a failed CLI comparison.
+
+Focused runner/comparator/specification checks:63 passed in11.68s. The final
+capacity-coordinate check:12 comparator tests passed in0.36s. Ruff and whitespace
+checks passed. Both committed replays were rechecked without running the GPU:
+A1 remains40 matches, capacity885. New comparison-v2.json receipts beside each
+run record version2 plus the comparator source SHA256; original receipts and
+observations remain unchanged. This does not supply missing historical protocol
+provenance or broader scientific validation.

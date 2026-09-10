@@ -1,0 +1,10 @@
+{
+  "numerical_match": true,
+  "comparisons": 40,
+  "errors": [],
+  "scope": "observation comparison only; no scientific adoption or protocol-equivalence verdict",
+  "comparison_version": 2,
+  "comparator_sha256": "8cfe79a6464aaf43d6d08739554ac7c0278bc85ff96a0f6c6919bd60fc7870f2",
+  "candidate_sha256": "dac4fb101137561de9013ac3d7297b9b98b5c471fc53bac574430265cfd6cb3b",
+  "reference_sha256": "f6110a9d9e4372f6908d04e6ab4eec933678a6974a37a75b2d2db77f8d2fba00"
+}
