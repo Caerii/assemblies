@@ -14,6 +14,8 @@ from pathlib import Path
 import re
 import subprocess
 
+from neural_assemblies.core.environment import ENVIRONMENT_POLICY, ENVIRONMENT_PREFIXES
+
 ROOT = Path(__file__).resolve().parents[1]
 _FILE_REF = re.compile(r'(?<![\w/])(?:[\w.-]+/)*[\w.-]+\.(?:py|md|json|csv|ipynb)(?![\w])')
 
@@ -35,8 +37,19 @@ def validate_artifact(path: Path, *, root: Path = ROOT) -> list[str]:
     missing = required - record.keys()
     if missing:
         return [f'missing run fields: {sorted(missing)}']
-    if record['schema_version'] != 1:
+    if type(record['schema_version']) is not int or record['schema_version'] not in (1, 2):
         errors.append('unsupported run schema version')
+    if record['schema_version'] == 2 or 'environment' in record:
+        environment = record.get('environment')
+        if (not isinstance(environment, dict)
+                or set(environment) != {'policy', 'variables_sha256'}
+                or environment['policy'] != ENVIRONMENT_POLICY
+                or not isinstance(environment['variables_sha256'], dict)):
+            errors.append('environment must contain the supported policy and variable digests')
+        elif any(not name.startswith(ENVIRONMENT_PREFIXES)
+                 or not isinstance(digest, str) or not re.fullmatch('[a-f0-9]{64}', digest)
+                 for name, digest in environment['variables_sha256'].items()):
+            errors.append('environment variables must name repository settings with SHA-256 digests')
     if any(not isinstance(record[field], str) or not record[field]
            for field in ('script', 'registration', 'engine', 'protocol', 'protocol_version',
                          'tag', 'mode', 'scientific_status')):

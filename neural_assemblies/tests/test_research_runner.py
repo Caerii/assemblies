@@ -182,3 +182,63 @@ def test_specification_mutation_fails_run_and_preserves_reservation(source_repo)
     assert (directory / 'run.json').exists()
     assert not (directory / 'results.json').exists()
     assert json.loads((directory / 'failure.json').read_text())['status'] == 'failed'
+
+
+@pytest.mark.parametrize('name', ['ASSEMBLIES_STREAM_INIT', 'EMERGENT_DEV_CURRICULUM',
+                                  'NEURAL_ASSEMBLIES_NO_RUST'])
+def test_environment_change_prevents_completed_results(run, monkeypatch, tmp_path, name):
+    monkeypatch.setenv(name, 'before')
+    def measure(record):
+        monkeypatch.setenv(name, 'after')
+        return {'values': [1, 2, 3]}
+    with pytest.raises(RuntimeError, match='environment changed'):
+        run(measure=measure)
+    directory = tmp_path / 'audit.fixture/fixture'
+    assert not (directory / 'results.json').exists()
+    failure = json.loads((directory / 'failure.json').read_text())
+    assert failure['status'] == 'failed'
+    assert failure['run'] == json.loads((directory / 'run.json').read_text())
+
+
+def test_record_carries_shared_environment_fingerprint_without_raw_values(run, monkeypatch):
+    from neural_assemblies.assembly_calculus.emergent.evaluation import sweep
+    monkeypatch.setenv('NEURAL_ASSEMBLIES_NO_RUST', 'private-test-value')
+    path = run()
+    record = json.loads(path.read_text())['run']
+    assert record['schema_version'] == 2
+    fingerprint = record['environment']['variables_sha256']
+    assert fingerprint['NEURAL_ASSEMBLIES_NO_RUST'] == dict(
+        sweep._training_env_signature())['NEURAL_ASSEMBLIES_NO_RUST']
+    assert 'private-test-value' not in path.read_text()
+
+
+@pytest.mark.parametrize('environment', [None, [], {},
+    {'policy': 'unknown', 'variables_sha256': {}},
+    {'policy': 'repository-environment-v1', 'variables_sha256': {'NEURAL_ASSEMBLIES_NO_RUST': 'raw'}},
+])
+def test_validator_rejects_malformed_environment(run, environment):
+    from research.evidence import validate_artifact
+    path = run()
+    payload = json.loads(path.read_text())
+    payload['run']['environment'] = environment
+    path.write_text(json.dumps(payload), encoding='utf-8')
+    (path.parent / 'run.json').write_text(json.dumps(payload['run']), encoding='utf-8')
+    assert any('environment' in error for error in validate_artifact(path))
+
+
+def test_validator_keeps_historical_schema_one_readable(run):
+    from research.evidence import validate_artifact
+    path = run()
+    payload = json.loads(path.read_text())
+    payload['run']['schema_version'] = 1
+    payload['run'].pop('environment', None)
+    path.write_text(json.dumps(payload), encoding='utf-8')
+    (path.parent / 'run.json').write_text(json.dumps(payload['run']), encoding='utf-8')
+    assert validate_artifact(path) == []
+
+
+def test_unrelated_environment_change_does_not_invalidate_run(run, monkeypatch):
+    def measure(record):
+        monkeypatch.setenv('UNRELATED_APPLICATION_SETTING', 'changed')
+        return {'values': [1, 2, 3]}
+    assert run(measure=measure).exists()

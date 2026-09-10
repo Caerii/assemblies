@@ -151,7 +151,7 @@ Results JSON is excluded so publishing observations does not invalidate its own
 run. Registrations and explicitly declared `input_artifacts` are hashed separately.
 Other data/configuration JSON must be declared as an input artifact. This is a
 start/end repository-content guard, not a hermetic execution certificate: it does
-not capture installed binaries, environment variables, ignored sources, external
+not capture installed binaries, ignored sources, external
 data, or changes made and reverted between the two checks. A completed record
 remains UNJUDGED (or VOID for smoke), never automatically adopted evidence.
 
@@ -160,3 +160,26 @@ The constructed negative in
 changes a Lean file during measurement and requires a retained failure record
 with no completed results artifact. Separate cases cover added/modified compiler
 and verification inputs and show that emitting results leaves identity unchanged.
+
+
+## Environment identity
+
+[The shared fingerprint](../neural_assemblies/core/environment.py) covers exact current
+values of `ASSEMBLIES_*`, `NEURAL_ASSEMBLIES_*`, and `EMERGENT_*`. Run schema 2
+requires an `environment` record naming `repository-environment-v1` and mapping
+variable names to SHA-256 digests. No raw environment values are persisted. The
+runner compares this snapshot after measurement and retains failure if it changed.
+The evidence validator checks its structure; schema 1 remains readable as historical
+records that did not require environment identity.
+
+The parser training cache consumes the same fingerprint, excluding only its cache
+location (`ASSEMBLIES_BACKBONE_CACHE`) and separately keyed calibration mode
+(`EMERGENT_ERP_FAST`). Backend switches under `NEURAL_ASSEMBLIES_*` now invalidate
+both memory and disk reuse. Experiment records exclude neither of those settings.
+
+This fingerprint establishes equality, not reconstruction or secrecy of low-entropy
+settings. Reproduction still requires explicit resolved protocol parameters.
+It describes the current process environment, not values previously captured at
+module import, external thread/CUDA settings, installed binary versions, or changes
+reverted before the final check. Resolving every semantic switch into an immutable
+model configuration remains open; this guard does not substitute for that work.

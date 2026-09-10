@@ -218,13 +218,9 @@ def _training_env_signature() -> Tuple:
     Calibration mode has its own key; cache location does not change training.
     Hash exact values: preserve case distinctions without persisting raw values.
     """
-    import hashlib
+    from neural_assemblies.core.environment import environment_signature
 
-    excluded = {"ASSEMBLIES_BACKBONE_CACHE", "EMERGENT_ERP_FAST"}
-    return tuple(sorted((name, hashlib.sha256(value.encode("utf-8")).hexdigest())
-                        for name, value in os.environ.items()
-                        if name.startswith(("ASSEMBLIES_", "EMERGENT_"))
-                        and name not in excluded))
+    return environment_signature(exclude={"ASSEMBLIES_BACKBONE_CACHE", "EMERGENT_ERP_FAST"})
 
 
 def _backbone_disk_path(depth, *, seed, n, k, holdout, params):

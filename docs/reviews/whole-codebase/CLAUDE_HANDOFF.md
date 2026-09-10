@@ -389,3 +389,13 @@ headers/configuration under a recorded `source-inputs-v2` policy. Changing a Lea
 file during measurement now retains failure instead of completed results. Nine
 failures reproduced before the fix; runner checks 29 passed; CPU gate 594 passed,
 1 skipped. Environment/binary identity is still open. See [validation](VALIDATION.md).
+
+
+### Shared environment identity
+
+Runner schema 2 and parser-cache identity now share a fingerprint covering
+`ASSEMBLIES_*`, `NEURAL_ASSEMBLIES_*` and `EMERGENT_*`. Cache-specific exclusions
+remain explicit; changed run configuration retains failure. Historical schema 1
+stays readable. Eleven failures reproduced before the fix; CPU gate 609 passed,
+1 skipped; final focused checks 61 passed. Resolved model/binary identity remains
+open. See [validation](VALIDATION.md) and the contract in `research/README.md`.

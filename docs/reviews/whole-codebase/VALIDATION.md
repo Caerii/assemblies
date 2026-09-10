@@ -674,3 +674,36 @@ Runner checks: 29 passed. Complete workflow CPU contract gate: 594 passed,
 historical replay, full package suite, or scientific adoption is claimed. Runtime
 environment capture, remaining runner migrations and the grounded-verb regression
 remain open.
+
+
+## Shared environment identity (2026-09-10)
+
+The training cache omitted `NEURAL_ASSEMBLIES_*`, despite that namespace controlling
+Rust seeding and stable-candidate behavior. The runner recorded no environment
+identity and accepted observations after repository switches changed. Initial
+checks reproduced 11 failures, with 39 passes.
+
+`core/environment.py` now supplies exact-value SHA-256 fingerprints for all three
+repository namespaces to both consumers. The cache preserves its explicit location
+and separately keyed calibration exclusions. New run schema 2 requires the shared
+policy/digest record, checks it after measurement, and retains failure on change.
+The evidence validator rejects malformed records and continues to read historical
+schema 1 without inventing missing environment identity.
+
+Acceptance exercises actual memory and disk cache misses after backend switches,
+cache exclusions, raw-value omission, failed-run retention, unrelated-variable
+noninterference, malformed evidence and historical compatibility. The shared helper
+lives within the cache's recursively fingerprinted core package; a coverage check
+ensures changes to its policy also invalidate cached training sources.
+
+CPU workflow gate: 609 passed, 1 skipped, 2 expected sampled-engine warnings,
+85.54 seconds (`.cache/environment-gate.log`). After relocating the helper into
+core and adding the source-coverage check, runner/cache/training-fingerprint checks
+passed 61 tests with one expected sampled-engine warning. Ruff and diff checks
+passed. No numerical kernel changed and no GPU gate or historical replay ran.
+
+This is current-process repository-environment equality, not a resolved model
+configuration, installed-binary identity, or a reconstruction recipe. Imported
+modules can retain earlier settings; external CUDA/thread settings and transient
+changes reverted between checks are outside this contract. Those gaps and the
+known grounded-verb regression remain open.

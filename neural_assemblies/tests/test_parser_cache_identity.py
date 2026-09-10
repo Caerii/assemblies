@@ -123,3 +123,37 @@ def test_environment_identity_hashes_exact_values(monkeypatch):
     assert len(dict(first)["ASSEMBLIES_TEST_OPTION"]) == 64
     monkeypatch.setenv("ASSEMBLIES_TEST_OPTION", "casesensitivevalue")
     assert sweep._training_env_signature() != first
+
+
+@pytest.mark.parametrize("name", ["NEURAL_ASSEMBLIES_NO_RUST",
+                                  "NEURAL_ASSEMBLIES_STABLE_CANDIDATES"])
+def test_backend_environment_switch_invalidates_training_cache(monkeypatch, harness, name):
+    monkeypatch.setenv(name, "0")
+    before = sweep._training_env_signature()
+    cache = sweep.ParserCache()
+    first = cache.get("TWO_WORD")
+    monkeypatch.setenv(name, "1")
+    assert sweep._training_env_signature() != before
+    second = cache.get("TWO_WORD")
+    assert second is not first
+    assert len(harness) == 2
+    assert sweep.ParserCache().get("TWO_WORD").request == second.request
+    assert len(harness) == 2
+
+
+@pytest.mark.parametrize("name", ["ASSEMBLIES_BACKBONE_CACHE", "EMERGENT_ERP_FAST"])
+def test_training_identity_excludes_location_and_separately_keyed_calibration(monkeypatch, name):
+    monkeypatch.setenv(name, "before")
+    before = sweep._training_env_signature()
+    monkeypatch.setenv(name, "after")
+    assert sweep._training_env_signature() == before
+
+
+
+def test_shared_environment_policy_is_in_training_source_fingerprint():
+    from pathlib import Path
+    import neural_assemblies
+    from neural_assemblies.core import environment
+    relative = Path(environment.__file__).relative_to(
+        Path(neural_assemblies.__file__).parent).as_posix()
+    assert relative in sweep.fingerprint_source_files()

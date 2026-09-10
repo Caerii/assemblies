@@ -15,6 +15,8 @@ import re
 import subprocess
 from typing import Callable, Mapping
 
+from neural_assemblies.core.environment import environment_record
+
 ROOT = Path(__file__).resolve().parents[1]
 # Source-linked specification: research/README.md#source-identity
 SOURCE_INVENTORY = 'source-inputs-v2'
@@ -105,7 +107,7 @@ def run_experiment(*, script: str | Path, protocol: str, protocol_version: str,
     registration_path = _repo_file(registration)
     inputs = {path: hashlib.sha256(_repo_file(path).read_bytes()).hexdigest()
               for path in input_artifacts}
-    record = dict(schema_version=1, source_inventory=SOURCE_INVENTORY, protocol=protocol, protocol_version=protocol_version,
+    record = dict(schema_version=2, environment=environment_record(), source_inventory=SOURCE_INVENTORY, protocol=protocol, protocol_version=protocol_version,
                   script=script_path.relative_to(ROOT).as_posix(),
                   script_sha256=hashlib.sha256(script_path.read_bytes()).hexdigest(),
                   registration=registration_path.relative_to(ROOT).as_posix(),
@@ -124,6 +126,8 @@ def run_experiment(*, script: str | Path, protocol: str, protocol_version: str,
         observations = measure(json.loads(json.dumps(record)))
         if not isinstance(observations, Mapping):
             raise ValueError('experiment must return an observations mapping')
+        if environment_record() != record['environment']:
+            raise RuntimeError('repository environment changed during the run; observations cannot be adopted')
         if _source_identity() != {k: record[k] for k in ('git_commit', 'source_sha256')}:
             raise RuntimeError('source changed during the run; observations cannot be adopted')
         if hashlib.sha256(registration_path.read_bytes()).hexdigest() != record['registration_sha256']:
