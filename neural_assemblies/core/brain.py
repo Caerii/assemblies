@@ -774,9 +774,9 @@ class Brain:
     def _project_impl(self, areas_by_stim, dst_areas_by_src_area, verbose=0,
                       external_drive=None):
         """
-        Core projection implementation.
+        Specification: neural_assemblies/ir/VERIFICATION.md#contract-explicit-inputs
 
-        Builds input mappings from stimuli and areas, then delegates to the
+        Core projection implementation. Builds input mappings from stimuli and areas, then delegates to the
         compute engine for all projection, winner selection, and plasticity.
         """
         external_drive = external_drive or {}
@@ -802,6 +802,14 @@ class Brain:
         to_update_area_names = dict.fromkeys(
             list(stim_in.keys()) + list(area_in.keys())
         )
+        if external_drive:
+            from .numpy_engine import NumpyExplicitEngine
+            for name in external_drive:
+                if name not in to_update_area_names:
+                    raise ValueError(f"External drive target {name!r} is not scheduled")
+                if not isinstance(self._engine_for(self.areas[name]), NumpyExplicitEngine):
+                    raise ValueError("External drive requires a dense explicit engine")
+
         # Preflight every target before any projection in a batched probe.
         for name in to_update_area_names:
             self._engine_for(self.areas[name]).validate_probe_target(name)
@@ -843,7 +851,7 @@ class Brain:
         # Batched path: process multiple targets in one kernel launch
         # (only for non-explicit areas on the main engine)
         non_explicit = [n for n in to_update_area_names
-                        if not self.areas[n].explicit]
+                        if not self.areas[n].explicit and n not in external_drive]
         if len(non_explicit) > 1:
             configs = [(name, stim_in[name], area_in[name])
                        for name in non_explicit]
@@ -877,23 +885,16 @@ class Brain:
                 external_drive_vec = self._sparse_sources_drive_to_explicit(
                     area_name, cross_sparse,
                 )
-            if external_drive_vec is not None and engine is self._explicit_engine:
-                result = engine.project_into(
-                    area_name,
-                    from_stimuli=stim_in[area_name],
-                    from_areas=from_area_list,
-                    plasticity_enabled=not self.disable_plasticity,
-                    external_drive=external_drive_vec,
-                    record_activation=getattr(self, 'record_activation', False),
-                )
-            else:
-                result = engine.project_into(
-                    area_name,
-                    from_stimuli=stim_in[area_name],
-                    from_areas=from_area_list,
-                    plasticity_enabled=not self.disable_plasticity,
-                    record_activation=getattr(self, 'record_activation', False),
-                )
+            drive_kwargs = ({"external_drive": external_drive_vec}
+                            if external_drive_vec is not None else {})
+            result = engine.project_into(
+                area_name,
+                from_stimuli=stim_in[area_name],
+                from_areas=from_area_list,
+                plasticity_enabled=not self.disable_plasticity,
+                record_activation=getattr(self, 'record_activation', False),
+                **drive_kwargs,
+            )
             self._apply_result(area_name, result, stim_in, area_in)
             activation_scores[area_name] = result.total_activation
             if getattr(self, 'record_activation', False):

@@ -460,3 +460,25 @@ lowering, GPU gate, or historical evidence replay. Direct legacy engine calls
 still bypass this stricter boundary. Multi-step rollback and absence of floating
 overflow are not guaranteed. The earlier grounded-verb regression remains open.
 This is the first restricted execution lowering, not completed IR unification.
+
+### Shared explicit inputs and Brain drive forwarding (2026-09-10)
+
+The direct-engine controls initially returned 19 failed, 4 passed: wrong-shaped
+drive was ignored, clamped targets skipped validation, and winner assignment
+could truncate fractions or accept invalid/duplicate IDs. Validation now belongs
+to the engine, including rechecking mutable winners before projection. The IR
+adapter delegates these checks instead of maintaining a second implementation.
+Selected IDs are checked before learning; silent filtering in Hebbian updates
+was replaced with validated indexing.
+
+Four further controls exposed Brain dropping explicit drive on its primary dense
+engine and on batched targets, plus ignored unsupported/unscheduled requests.
+Brain now forwards drive to either dense engine, excludes driven targets from the
+batch interface that cannot carry drive, and rejects unsupported/unscheduled
+requests. The duplicated dispatch branches were collapsed into one call.
+
+Focused explicit/IR/mixed-drive/schedule suite: 126 passed. The earlier full gate
+before the Brain forwarding fix passed 400 tests with 1 skipped. Final workflow-listed CPU gate: **404 passed, 1 skipped**. Ruff and diff
+checks passed. These CPU checks do not prove numerical overflow
+safety, all-state rollback, GPU behavior, or the Lean/backend relation. The known
+grounded-verb regression and historical evidence replays remain open.

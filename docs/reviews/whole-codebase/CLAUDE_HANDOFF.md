@@ -315,3 +315,11 @@ lowering, GPU gate, or historical evidence replay. Direct legacy engine calls
 still bypass this stricter boundary. Multi-step rollback and absence of floating
 overflow are not guaranteed. The earlier grounded-verb regression remains open.
 This is the first restricted execution lowering, not completed IR unification.
+
+### Shared explicit boundary
+
+Moved index/drive checks from the IR adapter into the explicit engine so legacy
+calls receive them too. Fixed Brain dropping drive on the primary dense engine
+and its batch path. Final CPU gate: 404 passed, 1 skipped; focused integration:
+126 passed. See [validation](VALIDATION.md) for the failing controls and remaining
+obligations. No GPU gate or merge is claimed.

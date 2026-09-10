@@ -338,8 +338,8 @@ that payload cannot silently become an executable program.
 
 The adapter validates inputs and relevant state before calling the existing
 `NumpyExplicitEngine.project_into`. It contains no second implementation of
-summation, winner selection or Hebbian learning. Direct engine calls remain a
-legacy path and do not inherit these checks. This engine-level entry must not be
+summation, winner selection or Hebbian learning. Direct engine calls now share index/source/drive validation. The stricter
+profile restrictions (such as nonnegative weights and no clamps) stay in the IR. This engine-level entry must not be
 used to mutate a Brain's private engine behind its facade; a coherent Brain
 lowering is still required.
 
@@ -361,3 +361,36 @@ formalize the numerical profile and its state/readout relation, then prove the
 local `Simulates` obligation and identity of the normalized input consumed by
 the proof. No generated Lean schedule or proof of Python/NumPy arithmetic is
 claimed here. Rust currently consumes the protocol wire schema only.
+
+
+<a id="contract-explicit-inputs"></a>
+
+## Shared explicit-engine input contract
+
+`NumpyExplicitEngine.project_into` validates distinct registered sources,
+valid target/source winner IDs, and the external drive before the clamped-target
+return or numerical work. `set_winners` uses the same winner validator and checks
+before replacing winners or counts. IDs are one-dimensional integral, unique and
+within the area's population; partial and empty caps remain allowed. Projection
+rechecks mutable winner buffers so in-place edits cannot bypass validation.
+
+External drive must have shape `(target.n,)`, a real numeric dtype and finite
+float32 representation. A missing drive is `None`; a supplied empty vector for a
+nonempty area is an error. Signed additive drive remains supported. Clamping is
+not an exemption from argument validity. Selected winner IDs are checked before
+plasticity; validated source and selected IDs replace silent filtering in updates.
+
+Both legacy calls and `ExplicitRound` use these checks; the adapter no longer
+maintains its own copy of winner/drive checks. Feature eligibility (no clamps,
+slots or custom policies) belongs only to the restricted IR profile. This does
+not assert complete engine-state validation or rollback for arbitrary backend
+errors. Valid inputs can still overflow during arithmetic; no performance or GPU
+claim follows from these CPU tests.
+
+`Brain.project` forwards explicit drive to either the primary dense engine or the
+auxiliary dense engine. Targets with supplied drive bypass the batch API, whose
+configuration cannot carry drive. Requests for unscheduled targets or unsupported
+engines raise rather than silently dropping the supplied input. This does not
+add external-drive-only scheduling or change the existing mixed sparse-source
+versus supplied-drive rule. Brain's broader descriptor synchronization and
+multi-target failure atomicity remain separate obligations.

@@ -12,6 +12,7 @@ from collections import defaultdict
 from ..backend import get_xp, to_cpu
 from ..engine import ComputeEngine, ProjectionResult
 from ..connectome import Connectome
+from ..index_spaces import validated_indices
 
 try:
     from ...compute.winner_selection import WinnerSelector, select_slot_winners
@@ -165,12 +166,32 @@ class NumpyExplicitEngine(ComputeEngine):
         record_activation: bool = False,
         external_drive: np.ndarray | None = None,
     ) -> ProjectionResult:
-        xp = get_xp()
-        tgt = self._areas[target]
+        """Specification: neural_assemblies/ir/VERIFICATION.md#contract-explicit-inputs
 
-        # Filter sourceless areas
-        from_areas = [a for a in from_areas
-                      if self._areas[a].winners.size > 0]
+        Validate numerical inputs even when the target is clamped. IR and legacy
+        callers share this boundary; profile restrictions remain with the IR.
+        """
+        xp = get_xp()
+        if target not in self._areas:
+            raise ValueError(f"Unknown target area {target!r}")
+        tgt = self._areas[target]
+        for names, registry in ((from_areas, self._areas), (from_stimuli, self._stimuli)):
+            if len(set(names)) != len(names) or any(name not in registry for name in names):
+                raise ValueError("Projection sources must be distinct registered names")
+        self._validated_winners(target, tgt.winners)
+        source_winners = {name: self._validated_winners(name, self._areas[name].winners)
+                          for name in from_areas}
+        if external_drive is not None:
+            external_drive = xp.asarray(external_drive)
+            if external_drive.shape != (tgt.n,) or external_drive.dtype.kind not in "fiu":
+                raise ValueError("External drive must be a real vector of target population length")
+            with np.errstate(over="ignore"):
+                external_drive = external_drive.astype(xp.float32, copy=False)
+            if not bool(xp.isfinite(external_drive).all()):
+                raise ValueError("External drive must be finite and representable as float32")
+
+        # Empty sources contribute neither drive nor learning.
+        from_areas = [name for name in from_areas if source_winners[name].size > 0]
 
         if tgt.fixed_assembly:
             return ProjectionResult(
@@ -191,16 +212,16 @@ class NumpyExplicitEngine(ComputeEngine):
 
         for src_name in from_areas:
             conn = self._area_conns[src_name][target]
-            src = self._areas[src_name]
-            if src.winners.size > 0 and int(xp.max(src.winners)) >= conn.weights.shape[0]:
+            winners_in = source_winners[src_name]
+            if winners_in.size > 0 and int(xp.max(winners_in)) >= conn.weights.shape[0]:
                 raise IndexError(
                     f"Source area {src_name!r} has winner index "
-                    f"{int(xp.max(src.winners))} exceeding connectome "
+                    f"{int(xp.max(winners_in))} exceeding connectome "
                     f"rows ({conn.weights.shape[0]})")
-            if src.winners.size > 0:
-                prev_winner_inputs += conn.weights[src.winners].sum(axis=0)
+            if winners_in.size > 0:
+                prev_winner_inputs += conn.weights[winners_in].sum(axis=0)
 
-        if external_drive is not None and len(external_drive) == tgt.n:
+        if external_drive is not None:
             prev_winner_inputs += xp.asarray(
                 external_drive, dtype=xp.float32,
             )
@@ -214,15 +235,15 @@ class NumpyExplicitEngine(ComputeEngine):
         else:
             winners = self._select_winners(prev_winner_inputs, tgt)
 
+        winners = self._validated_winners(target, winners)
+
         # Apply plasticity
         if plasticity_enabled and self._plasticity_enabled_global:
             for stim_name in from_stimuli:
                 conn = self._stim_conns[stim_name][target]
                 beta = tgt.beta_by_source.get(stim_name, tgt.beta)
                 if beta != 0:
-                    valid = xp.array([int(w) for w in winners if int(w) < conn.weights.shape[1]])
-                    if len(valid) > 0:
-                        conn.weights[:, valid] *= (1 + beta)
+                    conn.weights[:, winners] *= (1 + beta)
                     if self.w_max is not None:
                         xp.clip(conn.weights, 0, self.w_max, out=conn.weights)
 
@@ -230,18 +251,12 @@ class NumpyExplicitEngine(ComputeEngine):
                 conn = self._area_conns[src_name][target]
                 beta = tgt.beta_by_source.get(src_name, tgt.beta)
                 if beta != 0:
-                    src = self._areas[src_name]
-                    valid_rows = xp.array([int(fw) for fw in src.winners
-                                           if int(fw) < conn.weights.shape[0]])
-                    valid_cols = xp.array([int(w) for w in winners
-                                           if int(w) < conn.weights.shape[1]])
-                    if len(valid_rows) > 0 and len(valid_cols) > 0:
-                        ix = xp.ix_(valid_rows, valid_cols)
-                        conn.weights[ix] *= (1 + beta)
-                        if self.w_max is not None:
-                            sub = conn.weights[ix]
-                            xp.clip(sub, 0, self.w_max, out=sub)
-                            conn.weights[ix] = sub
+                    ix = xp.ix_(source_winners[src_name], winners)
+                    conn.weights[ix] *= (1 + beta)
+                    if self.w_max is not None:
+                        sub = conn.weights[ix]
+                        xp.clip(sub, 0, self.w_max, out=sub)
+                        conn.weights[ix] = sub
 
         # Update state
         winners = xp.asarray(winners, dtype=xp.uint32)
@@ -287,11 +302,22 @@ class NumpyExplicitEngine(ComputeEngine):
         st = self._areas[area]
         return np.array(to_cpu(st.winners), dtype=np.uint32)
 
-    def set_winners(self, area: str, winners: np.ndarray) -> None:
+    def _validated_winners(self, area: str, winners):
         xp = get_xp()
         st = self._areas[area]
-        st.winners = xp.asarray(winners, dtype=xp.uint32)
-        st.w = len(st.winners)
+        if not 0 < st.k <= st.n:
+            raise ValueError("Area requires 0 < k <= n")
+        ids = validated_indices(winners, upper=st.n, label=f"{area} neuron IDs", xp=xp)
+        if xp.unique(ids).size != ids.size:
+            raise ValueError("Duplicate winners are not an assembly")
+        return ids
+
+    def set_winners(self, area: str, winners: np.ndarray) -> None:
+        """Specification: neural_assemblies/ir/VERIFICATION.md#contract-explicit-inputs"""
+        ids = self._validated_winners(area, winners)
+        st = self._areas[area]
+        st.winners = ids
+        st.w = len(ids)
 
     def get_num_ever_fired(self, area: str) -> int:
         return self._areas[area].num_ever_fired

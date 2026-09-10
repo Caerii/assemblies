@@ -8,8 +8,6 @@ import math
 
 import numpy as np
 
-from ..core.index_spaces import validated_indices
-
 
 @dataclass(frozen=True)
 class ExplicitRound:
@@ -75,17 +73,10 @@ class ExplicitRound:
             area = engine._areas[name]
             if area.fixed_assembly or area.slot_count or area.winner_policy is not None:
                 raise ValueError("clamps, slots and custom winner policies are unsupported")
-            if not 0 < area.k <= area.n:
-                raise ValueError("area requires 0 < k <= n")
-            ids = validated_indices(area.winners, upper=area.n, label=f"{name} neuron IDs")
-            if len(np.unique(ids)) != len(ids):
-                raise ValueError("duplicate winners are not an assembly")
         if self.plasticity and not engine._plasticity_enabled_global:
             raise ValueError("global plasticity disable contradicts instruction")
         if engine.w_max is not None and (not math.isfinite(engine.w_max) or engine.w_max <= 0):
             raise ValueError("weight clip must be finite and positive or None")
-        if self.external_drive and len(self.external_drive) != target.n:
-            raise ValueError("external drive length must equal target population")
         for name in self.from_areas:
             conn = engine._area_conns.get(name, {}).get(self.target)
             if conn is None:
@@ -98,11 +89,6 @@ class ExplicitRound:
             beta = engine.get_beta(self.target, name)
             if not math.isfinite(beta) or beta < 0:
                 raise ValueError("Hebbian beta must be finite and nonnegative")
-        drive = None
-        if self.external_drive:
-            with np.errstate(over="ignore"):
-                drive = np.asarray(self.external_drive, dtype=np.float32)
-            if not np.isfinite(drive).all():
-                raise ValueError("external drive is not representable as float32")
         return engine.project_into(self.target, [], list(self.from_areas),
-                                   plasticity_enabled=self.plasticity, external_drive=drive)
+                                   plasticity_enabled=self.plasticity,
+                                   external_drive=self.external_drive or None)
