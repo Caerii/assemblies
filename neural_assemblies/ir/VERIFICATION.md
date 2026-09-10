@@ -493,3 +493,33 @@ learning nulls, malformed posts even when frozen, invalid beta, sampled source
 mapping, unsupported compact storage, unbounded overflow and teacher source-state
 preservation. No historical study is re-adopted from these software checks; this
 operation is not yet an executable IR instruction or a Lean-proved lowering.
+
+
+<a id="contract-fiber-learning"></a>
+
+## Scoped fiber learning control
+
+A Brain fiber mask disables learning on one directed area or stimulus fiber;
+it does not remove that fiber's drive. Dense projection now implements this
+control at the learning loops through `fiber_learning_allowed`. Brain scopes
+active masked fibers onto their owning engines using `suppress_fiber_learning`
+before dispatch. Both primary and auxiliary dense engines are covered. Nested
+scopes accumulate suppression and restore the exact prior scope on exit,
+including exceptions. Persistent Brain configuration is not modified by a scope.
+
+`ComputeEngine.supports_fiber_learning_masks` defaults false. Only the dense
+NumPy engine opts in currently. A learning-enabled projection requesting an
+active mask on another backend raises before projection, rather than silently
+ignoring the mask. Disabled global Brain learning needs no per-fiber suppression.
+Masks on inactive routes are not forwarded. No sampled/GPU mask support is claimed.
+
+Supervised reinforcement checks the same scoped engine predicate as well as
+Brain's global/fiber gates and the target engine's global learning flag. An IR
+instruction explicitly requesting learning rejects a contradictory engine mask;
+it cannot claim to have executed its requested learning rule after suppressing it.
+
+Controls preserve the blocked fiber's full weight matrix while showing its drive
+changes the selected cap, show another fiber learns, re-enable learning, cover
+stimulus fibers, nested scopes, exception cleanup, supervised writes, and IR
+contradiction rejection. These are learning masks, not recruitment guards,
+thread-safe transactions, or normalization/scaling guarantees on other engines.

@@ -31,6 +31,8 @@ class NumpyExplicitEngine(ComputeEngine):
     where full fidelity is required.
     """
 
+    supports_fiber_learning_masks = True
+
     def __init__(self, p: float, seed: int = 0, w_max: float = 20.0,
                  deterministic: bool = False):
         self.p = p
@@ -242,7 +244,7 @@ class NumpyExplicitEngine(ComputeEngine):
             for stim_name in from_stimuli:
                 conn = self._stim_conns[stim_name][target]
                 beta = tgt.beta_by_source.get(stim_name, tgt.beta)
-                if beta != 0:
+                if beta != 0 and self.fiber_learning_allowed(stim_name, target):
                     conn.weights[:, winners] *= (1 + beta)
                     if self.w_max is not None:
                         xp.clip(conn.weights, 0, self.w_max, out=conn.weights)
@@ -250,7 +252,7 @@ class NumpyExplicitEngine(ComputeEngine):
             for src_name in from_areas:
                 conn = self._area_conns[src_name][target]
                 beta = tgt.beta_by_source.get(src_name, tgt.beta)
-                if beta != 0:
+                if beta != 0 and self.fiber_learning_allowed(src_name, target):
                     ix = xp.ix_(source_winners[src_name], winners)
                     conn.weights[ix] *= (1 + beta)
                     if self.w_max is not None:

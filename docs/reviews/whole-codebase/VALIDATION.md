@@ -553,3 +553,29 @@ these are software checks, not a replay of adopted scientific evidence.
 Ruff and diff checks passed. Final workflow-listed CPU gate: **555 passed,
 1 skipped**. GPU gates, historical replays, the grounded-verb regression and
 formal backend proofs remain open.
+
+### Shared fiber learning scopes (2026-09-10)
+
+Inspection found Brain's fiber masks were honored by reinforcement but not
+ordinary projection. The initial control run returned 3 failed, 2 passed: both
+dense arrangements learned on the masked fiber and the sampled backend silently
+ignored its unsupported request. ComputeEngine now owns a nested, exception-safe
+suppression scope with explicit backend capability. Dense area and stimulus
+plasticity loops consume the predicate without removing drive. Brain scopes
+only active masked routes before dispatch. Unsupported learning-enabled backend
+requests raise; globally frozen Brain calls need no per-fiber scope.
+
+Additional controls exposed two API bypasses (4 failed, 7 passed): reinforcement
+ignored the new scope and the IR promised learning while the scope suppressed it.
+Reinforcement now checks scoped/global engine controls too; IR validation rejects
+contradictory learning intent. Final focused checks: 107 passed. Controls include
+full-matrix preservation, retained drive, learning on another fiber, re-enabling,
+nested scope restoration, exception cleanup and stimulus masks.
+
+Ruff and diff checks passed. Only dense NumPy projection opts into the new
+capability. Sampled, exact and GPU implementations remain work to do; this scope
+does not promise recruitment isolation, normalization preservation on those
+backends, thread safety, or a formal proof. Historical replays and the known
+grounded-verb regression remain open.
+
+Final workflow-listed CPU gate: **566 passed, 1 skipped**.

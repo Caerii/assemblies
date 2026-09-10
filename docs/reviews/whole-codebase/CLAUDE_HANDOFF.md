@@ -349,3 +349,11 @@ the selected block. Removed the patch teacher's stable-to-compact reassignment.
 CPU gate: 555 passed, 1 skipped; caller integration: 47 passed, 1 skipped.
 See [validation](VALIDATION.md) and the source-linked IR contract. This is not
 an adopted research replay, a new IR opcode, or a formal/backend/GPU proof.
+
+### Fiber learning control
+
+Dense projection now honors Brain fiber learning masks while retaining drive.
+A scoped engine interface restores nested suppression on exceptions; reinforcement
+shares it and the IR rejects contradictory learning requests. Unsupported backends
+raise instead of ignoring active masks. Focused checks: 107 passed; full CPU gate:
+566 passed, 1 skipped. See [validation](VALIDATION.md) for controls and limits.

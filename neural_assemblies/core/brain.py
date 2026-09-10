@@ -557,7 +557,11 @@ class Brain:
         w = conn.weights
         if w.shape != (src.n, dst.n) or w.dtype.kind != "f":
             raise ValueError("Supervised fiber must have full-population floating-point axes")
-        if not self.fiber_plasticity_enabled(src_area, dst_area) or b == 0 or not pre.size or not post.size:
+        engine = self._engine_for(dst)
+        if (not self.fiber_plasticity_enabled(src_area, dst_area)
+                or not engine.fiber_learning_allowed(src_area, dst_area)
+                or not getattr(engine, "_plasticity_enabled_global", True)
+                or b == 0 or not pre.size or not post.size):
             return
         ix = np.ix_(pre, post)
         block = w[ix]
@@ -795,6 +799,25 @@ class Brain:
 
     def _project_impl(self, areas_by_stim, dst_areas_by_src_area, verbose=0,
                       external_drive=None):
+        """Specification: neural_assemblies/ir/VERIFICATION.md#contract-fiber-learning"""
+        with contextlib.ExitStack() as stack:
+            if not self.disable_plasticity and any(not value for value in self.plasticity_mask.values()):
+                stim_in, area_in = self._projection_inputs(areas_by_stim, dst_areas_by_src_area)
+                if self._inhibition is not None and self._inhibition.any_closed():
+                    stim_in, area_in = self._apply_inhibition(stim_in, area_in)
+                by_engine = defaultdict(set)
+                for incoming in (stim_in, area_in):
+                    for target, sources in incoming.items():
+                        engine = self._engine_for(self.areas[target])
+                        for source in sources:
+                            if not self.fiber_plasticity_enabled(source, target):
+                                by_engine[engine].add((source, target))
+                for engine, fibers in by_engine.items():
+                    stack.enter_context(engine.suppress_fiber_learning(fibers))
+            return self._project_unscoped(areas_by_stim, dst_areas_by_src_area, verbose, external_drive)
+
+    def _project_unscoped(self, areas_by_stim, dst_areas_by_src_area, verbose=0,
+                          external_drive=None):
         """
         Specification: neural_assemblies/ir/VERIFICATION.md#contract-explicit-inputs
 

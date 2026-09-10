@@ -74,6 +74,8 @@ class ExplicitRound:
         if engine.w_max is not None and (not math.isfinite(engine.w_max) or engine.w_max <= 0):
             raise ValueError("weight clip must be finite and positive or None")
         for name in self.from_areas:
+            if self.plasticity and not engine.fiber_learning_allowed(name, self.target):
+                raise ValueError("Engine learning mask contradicts instruction")
             conn = engine._area_conns.get(name, {}).get(self.target)
             if conn is None:
                 raise ValueError("instruction references a missing fiber")

@@ -22,6 +22,7 @@ Usage::
 """
 
 from abc import ABC, abstractmethod
+from contextlib import contextmanager
 from dataclasses import dataclass
 from typing import Dict, List, Optional
 
@@ -70,6 +71,31 @@ class ComputeEngine(ABC):
     """
 
     # -- Area / stimulus registration --
+
+    supports_fiber_learning_masks = False
+
+    @contextmanager
+    def suppress_fiber_learning(self, fibers):
+        """Specification: neural_assemblies/ir/VERIFICATION.md#contract-fiber-learning
+
+        Scoped suppression is additive under nesting and never changes drive.
+        Backends must opt in after implementing the learning-only predicate.
+        """
+        fibers = frozenset(fibers)
+        if fibers and not self.supports_fiber_learning_masks:
+            raise NotImplementedError(f"{type(self).__name__} does not support fiber learning masks")
+        previous = getattr(self, "_suppressed_learning_fibers", None)
+        self._suppressed_learning_fibers = (previous or frozenset()) | fibers
+        try:
+            yield self
+        finally:
+            if previous is None:
+                del self._suppressed_learning_fibers
+            else:
+                self._suppressed_learning_fibers = previous
+
+    def fiber_learning_allowed(self, source, target):
+        return (source, target) not in getattr(self, "_suppressed_learning_fibers", ())
 
     @abstractmethod
     def add_area(self, name: str, n: int, k: int, beta: float,
