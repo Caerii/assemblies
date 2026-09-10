@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import sys
 
 from .registry import list_protocols
 from .runner import run_claim, run_protocol, verify_protocol, write_manifest
@@ -54,7 +53,13 @@ def main(argv: list[str] | None = None) -> int:
         return 0 if result.passed else 1
 
     if args.command == "verify":
-        result = verify_protocol(args.protocol_id)
+        from neural_assemblies.programs.colt_mnist_data import DatasetUnavailable
+        try:
+            result = verify_protocol(args.protocol_id)
+        except DatasetUnavailable as exc:
+            print(json.dumps({'protocol_id': args.protocol_id, 'status': 'unavailable',
+                              'passed': False, 'message': str(exc)}))
+            return 2
         print(json.dumps(result.to_manifest(), indent=2))
         if args.manifest:
             write_manifest(result, args.manifest)

@@ -29,6 +29,11 @@ def test_mnist_brain_explicit_within_protocol_tolerance():
 
 def test_mnist_protocol_matches_golden_tolerance():
     from neural_assemblies.parity.runner import verify_protocol
+    from neural_assemblies.programs.colt_mnist_data import DatasetUnavailable
+    import pytest
 
-    result = verify_protocol("colt2022_mnist_notebook")
+    try:
+        result = verify_protocol("colt2022_mnist_notebook")
+    except DatasetUnavailable as exc:
+        pytest.skip(str(exc))
     assert result.passed, result.diffs

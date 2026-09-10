@@ -40,14 +40,17 @@ def test_readme_nemo_imports_smoke() -> None:
 def test_basic_example_script_runs() -> None:
     example = REPO_ROOT / "examples" / "01_basic_assembly_calculus.py"
     result = subprocess.run(
-        [sys.executable, str(example)],
+        [sys.executable, '-c',
+         "import sys, runpy; sys.path.insert(0, sys.argv[1]); runpy.run_path(sys.argv[2], run_name='__main__')",
+         str(REPO_ROOT), str(example)],
         cwd=REPO_ROOT,
         capture_output=True,
         text=True,
         check=False,
     )
     assert result.returncode == 0, result.stderr
-    assert "Merged assembly size:" in result.stdout
+    assert "learning disabled:" in result.stdout
+    assert "training minus null:" in result.stdout
 
 
 def test_example_notebooks_are_valid_json() -> None:

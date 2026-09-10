@@ -29,7 +29,7 @@ import numpy as np
 from dataclasses import dataclass
 from typing import overload
 
-from ..core.index_spaces import CompactIdx, NeuronIds, SameSpace
+from ..core.index_spaces import NeuronIds, SameSpace, validated_indices
 
 
 @dataclass(frozen=True)
@@ -72,7 +72,7 @@ class Assembly:
         # reassignment but ndarray contents are still mutable, so we
         # copy on construction.
         object.__setattr__(
-            self, "winners", np.array(self.winners, dtype=np.uint32, copy=True)
+            self, "winners", validated_indices(self.winners, label='assembly neuron IDs').copy()
         )
         self.winners.flags.writeable = False
 

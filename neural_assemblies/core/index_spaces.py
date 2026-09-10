@@ -49,6 +49,19 @@ NeuronIds = NewType("NeuronIds", np.ndarray)
 SameSpace = TypeVar("SameSpace", CompactIdx, NeuronIds)
 
 
+def validated_indices(values, *, upper: int | None = None, label: str = 'indices') -> np.ndarray:
+    """Validate before uint32 conversion; never truncate floats or wrap negatives."""
+    arr = np.asarray(values)
+    if arr.ndim != 1:
+        raise ValueError(f'{label} must be a one-dimensional index array')
+    if arr.size and arr.dtype.kind not in 'iu':
+        raise ValueError(f'{label} must contain integer indices')
+    limit = 2 ** 32 if upper is None else min(upper, 2 ** 32)
+    if arr.size and (np.any(arr < 0) or np.any(arr >= limit)):
+        raise ValueError(f'{label} outside valid range [0, {limit})')
+    return arr.astype(np.uint32, copy=False)
+
+
 def to_neuron_ids(
     compact: CompactIdx,
     compact_to_neuron_id: List[int],
@@ -60,16 +73,15 @@ def to_neuron_ids(
     why this cannot simply index the list: on an explicit area there is nothing
     to index into, and raising there would break every explicit-engine caller.
 
-    Out-of-range compact indices are dropped rather than clamped. Clamping would
-    invent membership in a neuron that never fired, which is precisely the
-    silent-plausible-number failure this module exists to prevent.
+    Invalid indices raise. Dropping or passing them through would silently change
+    assembly membership and turn an invalid readout into a plausible number.
     """
-    arr = np.asarray(compact, dtype=np.uint32)
-    if not compact_to_neuron_id:
+    arr = validated_indices(compact, label='compact indices')
+    if len(compact_to_neuron_id) == 0:
         return NeuronIds(arr)
-    table = np.asarray(compact_to_neuron_id, dtype=np.uint32)
-    in_range = arr < len(table)
-    return NeuronIds(table[arr[in_range]])
+    table = validated_indices(compact_to_neuron_id, label='neuron ID mapping')
+    arr = validated_indices(arr, upper=len(table), label='compact indices')
+    return NeuronIds(table[arr])
 
 
 def same_space(a: np.ndarray, b: np.ndarray) -> bool:

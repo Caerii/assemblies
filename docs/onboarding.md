@@ -7,6 +7,12 @@ have cost us results when broken.
 
 ## Read in this order
 
+First run [the CPU investigation](../examples/01_basic_assembly_calculus.py):
+`uv run python examples/01_basic_assembly_calculus.py`. Follow the fixed graph,
+explicit recurrent training, partial-cue readout, and learning-disabled control.
+Explain why the probe uses `read_only()` and why a demonstration is not adopted
+evidence. Then follow the reading order below.
+
 1. [../README.md](../README.md). The model in four terms (area, assembly,
    Hebbian plasticity, refraction) and the headline results with their
    figures. Everything else assumes these terms.
@@ -116,6 +122,11 @@ Each of these has data in hand and a registration to extend.
   or column-normalize a refracted area (`REFRACTION-CANCELS-CONVERGENCE`).
 
 ## Running things
+
+The shared experiment entry and its current migration limits are documented in
+[research_workflow.md](research_workflow.md). For the maintained CUDA extension,
+use [cuda_toolchain.md](cuda_toolchain.md); it includes a checker that does not
+compile or use the GPU.
 
 ```bash
 uv sync --extra gpu

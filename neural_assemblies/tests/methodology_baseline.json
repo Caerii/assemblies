@@ -1,7 +1,7 @@
 {
   "_comment": "Frozen baselines for test_methodology_ratchet.py. Generated, not hand-edited. Lower entries when a file is fixed; a NEW entry requires justification in the test file.",
   "hand_rolled_seed_stats": {
-    "research/experiments/_substrate.py": 3,
+    "research/experiments/_substrate.py": 2,
     "research/experiments/alignment_load.py": 2,
     "research/experiments/applications/test_agreement_number.py": 68,
     "research/experiments/applications/test_agreement_violations.py": 45,

@@ -1,0 +1,994 @@
+kind	source	reference	reason_or_candidates
+reference	.reference/README.md	Halfspace.ipynb	unresolved:
+reference	.reference/README.md	MNIST.ipynb	unresolved:
+reference	.reference/README.md	Stimulus-Classes.ipynb	unresolved:
+reference	.reference/README.md	brain.py	ambiguous: legacy/root_shims/brain.py,neural_assemblies/nemo/language/emergent/brain.py,neural_assemblies/core/brain.py,neural_assemblies/nemo/core/brain.py
+reference	.reference/README.md	calc_converge_value.py	unresolved:
+reference	.reference/README.md	heuristics.py	unresolved:
+reference	.reference/README.md	nemo-demo.ipynb	unresolved:
+reference	.reference/README.md	nemo.py	unresolved:
+reference	.reference/README.md	parser.py	ambiguous: legacy/root_shims/parser.py,neural_assemblies/assembly_calculus/parser.py,legacy/root_modules/parser.py,neural_assemblies/assembly_calculus/emergent/parser.py,neural_assemblies/language/parser.py
+reference	.reference/README.md	recursive_parser.py	ambiguous: legacy/root_shims/recursive_parser.py,legacy/root_modules/recursive_parser.py
+reference	cpp/README.md	setup.py	unresolved:
+reference	cpp/python_implementations/README_ORGANIZATION.md	advanced_profiler.py	unresolved:
+reference	cpp/python_implementations/README_ORGANIZATION.md	core_implementations/universal_brain_simulator.py	unresolved:
+reference	cpp/python_implementations/README_ORGANIZATION.md	cuda_brain_python.py	unresolved:
+reference	cpp/python_implementations/README_ORGANIZATION.md	fixed_memory_profiler.py	unresolved:
+reference	cpp/python_implementations/README_ORGANIZATION.md	hybrid_gpu_brain.py	unresolved:
+reference	cpp/python_implementations/README_ORGANIZATION.md	memory_efficient_cupy_brain.py	unresolved:
+reference	cpp/python_implementations/README_ORGANIZATION.md	memory_profiler_billion_scale.py	unresolved:
+reference	cpp/python_implementations/README_ORGANIZATION.md	optimized_cuda_brain.py	unresolved:
+reference	cpp/python_implementations/README_ORGANIZATION.md	simple_memory_analyzer.py	unresolved:
+reference	cpp/python_implementations/README_ORGANIZATION.md	test_dll_path.py	unresolved:
+reference	cpp/python_implementations/README_ORGANIZATION.md	ultra_fast_cuda_brain.py	unresolved:
+reference	cpp/python_implementations/README_ORGANIZATION.md	ultra_optimized_cuda_brain_v2.py	unresolved:
+reference	cpp/python_implementations/README_ORGANIZATION.md	ultra_sparse_cupy_brain.py	unresolved:
+reference	cpp/python_implementations/README_ORGANIZATION.md	universal_brain_simulator.py	ambiguous: cpp/python_implementations/core_implementations/universal_brain_simulator/monolithic_old/universal_brain_simulator.py,cpp/python_implementations/core_implementations/universal_brain_simulator/universal_brain_simulator.py
+reference	cpp/python_implementations/README_ORGANIZATION.md	working_cuda_brain_v14_39.py	unresolved:
+reference	cpp/python_implementations/README_ORGANIZATION.md	working_cupy_brain.py	unresolved:
+reference	cpp/python_implementations/analysis_tools/universal_analysis_suite.py	universal_analysis_results.json	unresolved:
+reference	cpp/python_implementations/billion_scale/working_gpu_billion_scale.py	fixed_cupy_billion_scale.py	unresolved:
+reference	cpp/python_implementations/core_implementations/README.md	config.py	ambiguous: neural_assemblies/parity/config.py,cpp/python_implementations/core_implementations/universal_brain_simulator/config.py
+reference	cpp/python_implementations/core_implementations/README.md	test_cuda_kernels.py	ambiguous: neural_assemblies/tests/test_cuda_kernels.py,cpp/python_implementations/core_implementations/tests/test_cuda_kernels.py
+reference	cpp/python_implementations/core_implementations/analysis/cuda_manager_refactor_example.md	__init__.py	ambiguous: neural_assemblies/compute/__init__.py,neural_assemblies/core/torch_engine/__init__.py,legacy/__init__.py,research/nemo/__init__.py,legacy/scripts/visualization/__init__.py,legacy/root_modules/__init__.py,neural_assemblies/assembly_calculus/emergent/__init__.py,neural_assemblies/nemo/__init__.py,neural_assemblies/nemo/language/emergent/generation/__init__.py,neural_assemblies/assembly_calculus/emergent/acquisition/wobbly/__init__.py,neural_assemblies/__init__.py,neural_assemblies/core/__init__.py,research/experiments/information_theory/__init__.py,neural_assemblies/core/numpy_engine/__init__.py,research/experiments/stability/__init__.py,neural_assemblies/constants/__init__.py,neural_assemblies/nemo/core/__init__.py,neural_assemblies/visualization/__init__.py,legacy/scripts/__init__.py,research/experiments/metrics/__init__.py,neural_assemblies/assembly_calculus/emergent/core/__init__.py,neural_assemblies/assembly_calculus/emergent/evaluation/erp/__init__.py,neural_assemblies/simulation/__init__.py,neural_assemblies/nemo/language/emergent/curriculum/vocabulary/__init__.py,neural_assemblies/reference/nemo_numpy/__init__.py,neural_assemblies/assembly_calculus/tracing/__init__.py,research/experiments/epwta_capacity/__init__.py,research/experiments/lib/__init__.py,legacy/scripts/simulations/__init__.py,neural_assemblies/nemo/language/emergent/curriculum/__init__.py,neural_assemblies/assembly_calculus/emergent/training/__init__.py,research/experiments/capacity/__init__.py,neural_assemblies/assembly_calculus/emergent/session/__init__.py,neural_assemblies/nemo/language/emergent/curriculum/dialogue/__init__.py,research/literature/cross_lang/__init__.py,neural_assemblies/assembly_calculus/emergent/curriculum/__init__.py,neural_assemblies/reference/__init__.py,neural_assemblies/lexicon/curriculum/__init__.py,neural_assemblies/nemo/archive/__init__.py,neural_assemblies/utils/__init__.py,neural_assemblies/tests/__init__.py,neural_assemblies/nemo/language/emergent/tests/__init__.py,research/experiments/biological_validation/__init__.py,neural_assemblies/lexicon/__init__.py,neural_assemblies/nemo/language/emergent/__init__.py,neural_assemblies/core/kernels/__init__.py,neural_assemblies/lexicon/data/__init__.py,neural_assemblies/programs/__init__.py,research/experiments/distinctiveness/__init__.py,neural_assemblies/assembly_calculus/emergent/evaluation/__init__.py,neural_assemblies/language/__init__.py,neural_assemblies/assembly_calculus/emergent/acquisition/__init__.py,research/experiments/applications/__init__.py,research/experiments/vocab/__init__.py,neural_assemblies/assembly_calculus/metrics/__init__.py,research/experiments/infrastructure/__init__.py,neural_assemblies/nemo/language/emergent/curriculum/stages/__init__.py,neural_assemblies/benchmarks/__init__.py,research/experiments/primitives/__init__.py,neural_assemblies/nemo/language/__init__.py,legacy/scripts/tooling/__init__.py,cpp/python_implementations/core_implementations/universal_brain_simulator/__init__.py,neural_assemblies/models/__init__.py,neural_assemblies/viz/tracing/__init__.py,research/experiments/recruitment/__init__.py,neural_assemblies/nemo/language/emergent/parser/__init__.py,research/experiments/__init__.py,neural_assemblies/viz/__init__.py,neural_assemblies/assembly_calculus/__init__.py,neural_assemblies/nemo/language/emergent/interactive/__init__.py,neural_assemblies/assembly_calculus/emergent/parser_mixins/__init__.py,neural_assemblies/nemo/language/emergent/curriculum/generators/__init__.py,neural_assemblies/ir/__init__.py,neural_assemblies/parity/__init__.py
+reference	cpp/python_implementations/core_implementations/analysis/cuda_manager_refactor_example.md	brain_instance.py	unresolved:
+reference	cpp/python_implementations/core_implementations/analysis/cuda_manager_refactor_example.md	cuda_manager/__init__.py	unresolved:
+reference	cpp/python_implementations/core_implementations/analysis/cuda_manager_refactor_example.md	cuda_manager/brain_instance.py	unresolved:
+reference	cpp/python_implementations/core_implementations/analysis/cuda_manager_refactor_example.md	cuda_manager/dll_loader.py	unresolved:
+reference	cpp/python_implementations/core_implementations/analysis/cuda_manager_refactor_example.md	cuda_manager/error_handler.py	unresolved:
+reference	cpp/python_implementations/core_implementations/analysis/cuda_manager_refactor_example.md	cuda_manager/kernel_executor.py	unresolved:
+reference	cpp/python_implementations/core_implementations/analysis/cuda_manager_refactor_example.md	cuda_manager/signature_manager.py	unresolved:
+reference	cpp/python_implementations/core_implementations/analysis/cuda_manager_refactor_example.md	dll_loader.py	unresolved:
+reference	cpp/python_implementations/core_implementations/analysis/cuda_manager_refactor_example.md	error_handler.py	unresolved:
+reference	cpp/python_implementations/core_implementations/analysis/cuda_manager_refactor_example.md	kernel_executor.py	unresolved:
+reference	cpp/python_implementations/core_implementations/analysis/cuda_manager_refactor_example.md	signature_manager.py	unresolved:
+reference	cpp/python_implementations/core_implementations/analysis/implementation_plan.md	universal_brain_simulator/unified_simulator.py	unresolved:
+reference	cpp/python_implementations/core_implementations/analysis/modularization_analysis.md	__init__.py	ambiguous: neural_assemblies/compute/__init__.py,neural_assemblies/core/torch_engine/__init__.py,legacy/__init__.py,research/nemo/__init__.py,legacy/scripts/visualization/__init__.py,legacy/root_modules/__init__.py,neural_assemblies/assembly_calculus/emergent/__init__.py,neural_assemblies/nemo/__init__.py,neural_assemblies/nemo/language/emergent/generation/__init__.py,neural_assemblies/assembly_calculus/emergent/acquisition/wobbly/__init__.py,neural_assemblies/__init__.py,neural_assemblies/core/__init__.py,research/experiments/information_theory/__init__.py,neural_assemblies/core/numpy_engine/__init__.py,research/experiments/stability/__init__.py,neural_assemblies/constants/__init__.py,neural_assemblies/nemo/core/__init__.py,neural_assemblies/visualization/__init__.py,legacy/scripts/__init__.py,research/experiments/metrics/__init__.py,neural_assemblies/assembly_calculus/emergent/core/__init__.py,neural_assemblies/assembly_calculus/emergent/evaluation/erp/__init__.py,neural_assemblies/simulation/__init__.py,neural_assemblies/nemo/language/emergent/curriculum/vocabulary/__init__.py,neural_assemblies/reference/nemo_numpy/__init__.py,neural_assemblies/assembly_calculus/tracing/__init__.py,research/experiments/epwta_capacity/__init__.py,research/experiments/lib/__init__.py,legacy/scripts/simulations/__init__.py,neural_assemblies/nemo/language/emergent/curriculum/__init__.py,neural_assemblies/assembly_calculus/emergent/training/__init__.py,research/experiments/capacity/__init__.py,neural_assemblies/assembly_calculus/emergent/session/__init__.py,neural_assemblies/nemo/language/emergent/curriculum/dialogue/__init__.py,research/literature/cross_lang/__init__.py,neural_assemblies/assembly_calculus/emergent/curriculum/__init__.py,neural_assemblies/reference/__init__.py,neural_assemblies/lexicon/curriculum/__init__.py,neural_assemblies/nemo/archive/__init__.py,neural_assemblies/utils/__init__.py,neural_assemblies/tests/__init__.py,neural_assemblies/nemo/language/emergent/tests/__init__.py,research/experiments/biological_validation/__init__.py,neural_assemblies/lexicon/__init__.py,neural_assemblies/nemo/language/emergent/__init__.py,neural_assemblies/core/kernels/__init__.py,neural_assemblies/lexicon/data/__init__.py,neural_assemblies/programs/__init__.py,research/experiments/distinctiveness/__init__.py,neural_assemblies/assembly_calculus/emergent/evaluation/__init__.py,neural_assemblies/language/__init__.py,neural_assemblies/assembly_calculus/emergent/acquisition/__init__.py,research/experiments/applications/__init__.py,research/experiments/vocab/__init__.py,neural_assemblies/assembly_calculus/metrics/__init__.py,research/experiments/infrastructure/__init__.py,neural_assemblies/nemo/language/emergent/curriculum/stages/__init__.py,neural_assemblies/benchmarks/__init__.py,research/experiments/primitives/__init__.py,neural_assemblies/nemo/language/__init__.py,legacy/scripts/tooling/__init__.py,cpp/python_implementations/core_implementations/universal_brain_simulator/__init__.py,neural_assemblies/models/__init__.py,neural_assemblies/viz/tracing/__init__.py,research/experiments/recruitment/__init__.py,neural_assemblies/nemo/language/emergent/parser/__init__.py,research/experiments/__init__.py,neural_assemblies/viz/__init__.py,neural_assemblies/assembly_calculus/__init__.py,neural_assemblies/nemo/language/emergent/interactive/__init__.py,neural_assemblies/assembly_calculus/emergent/parser_mixins/__init__.py,neural_assemblies/nemo/language/emergent/curriculum/generators/__init__.py,neural_assemblies/ir/__init__.py,neural_assemblies/parity/__init__.py
+reference	cpp/python_implementations/core_implementations/analysis/modularization_analysis.md	allocator.py	unresolved:
+reference	cpp/python_implementations/core_implementations/analysis/modularization_analysis.md	area_coordinator.py	unresolved:
+reference	cpp/python_implementations/core_implementations/analysis/modularization_analysis.md	area_data.py	unresolved:
+reference	cpp/python_implementations/core_implementations/analysis/modularization_analysis.md	benchmark_runner.py	unresolved:
+reference	cpp/python_implementations/core_implementations/analysis/modularization_analysis.md	benchmarker.py	unresolved:
+reference	cpp/python_implementations/core_implementations/analysis/modularization_analysis.md	brain_instance.py	unresolved:
+reference	cpp/python_implementations/core_implementations/analysis/modularization_analysis.md	callback_handler.py	unresolved:
+reference	cpp/python_implementations/core_implementations/analysis/modularization_analysis.md	candidate_generator.py	unresolved:
+reference	cpp/python_implementations/core_implementations/analysis/modularization_analysis.md	cleanup_manager.py	unresolved:
+reference	cpp/python_implementations/core_implementations/analysis/modularization_analysis.md	comparison_engine.py	unresolved:
+reference	cpp/python_implementations/core_implementations/analysis/modularization_analysis.md	config.py	ambiguous: neural_assemblies/parity/config.py,cpp/python_implementations/core_implementations/universal_brain_simulator/config.py
+reference	cpp/python_implementations/core_implementations/analysis/modularization_analysis.md	config_builder.py	unresolved:
+reference	cpp/python_implementations/core_implementations/analysis/modularization_analysis.md	dll_loader.py	unresolved:
+reference	cpp/python_implementations/core_implementations/analysis/modularization_analysis.md	error_handler.py	unresolved:
+reference	cpp/python_implementations/core_implementations/analysis/modularization_analysis.md	kernel_executor.py	unresolved:
+reference	cpp/python_implementations/core_implementations/analysis/modularization_analysis.md	loop_manager.py	unresolved:
+reference	cpp/python_implementations/core_implementations/analysis/modularization_analysis.md	monitor.py	unresolved:
+reference	cpp/python_implementations/core_implementations/analysis/modularization_analysis.md	pool_manager.py	unresolved:
+reference	cpp/python_implementations/core_implementations/analysis/modularization_analysis.md	result_processor.py	unresolved:
+reference	cpp/python_implementations/core_implementations/analysis/modularization_analysis.md	signature_manager.py	unresolved:
+reference	cpp/python_implementations/core_implementations/analysis/modularization_analysis.md	simulation_coordinator.py	unresolved:
+reference	cpp/python_implementations/core_implementations/analysis/modularization_analysis.md	simulation_runner.py	unresolved:
+reference	cpp/python_implementations/core_implementations/analysis/modularization_analysis.md	step_executor.py	unresolved:
+reference	cpp/python_implementations/core_implementations/analysis/modularization_analysis.md	top_k_selector.py	unresolved:
+reference	cpp/python_implementations/core_implementations/analysis/modularization_analysis.md	transfer_manager.py	unresolved:
+reference	cpp/python_implementations/core_implementations/analysis/modularization_analysis.md	utils.py	ambiguous: neural_assemblies/compute/utils.py,cpp/python_implementations/core_implementations/universal_brain_simulator/utils.py
+reference	cpp/python_implementations/core_implementations/analysis/modularization_analysis.md	weight_updater.py	unresolved:
+reference	cpp/python_implementations/core_implementations/analysis/refactoring_summary.md	config.py	ambiguous: neural_assemblies/parity/config.py,cpp/python_implementations/core_implementations/universal_brain_simulator/config.py
+reference	cpp/python_implementations/core_implementations/analysis/refactoring_summary.md	universal_brain_simulator.py	ambiguous: cpp/python_implementations/core_implementations/universal_brain_simulator/monolithic_old/universal_brain_simulator.py,cpp/python_implementations/core_implementations/universal_brain_simulator/universal_brain_simulator.py
+reference	cpp/python_implementations/core_implementations/analysis/refactoring_summary.md	utils.py	ambiguous: neural_assemblies/compute/utils.py,cpp/python_implementations/core_implementations/universal_brain_simulator/utils.py
+reference	cpp/python_implementations/core_implementations/analysis/smarter_refactoring_analysis.md	__init__.py	ambiguous: neural_assemblies/compute/__init__.py,neural_assemblies/core/torch_engine/__init__.py,legacy/__init__.py,research/nemo/__init__.py,legacy/scripts/visualization/__init__.py,legacy/root_modules/__init__.py,neural_assemblies/assembly_calculus/emergent/__init__.py,neural_assemblies/nemo/__init__.py,neural_assemblies/nemo/language/emergent/generation/__init__.py,neural_assemblies/assembly_calculus/emergent/acquisition/wobbly/__init__.py,neural_assemblies/__init__.py,neural_assemblies/core/__init__.py,research/experiments/information_theory/__init__.py,neural_assemblies/core/numpy_engine/__init__.py,research/experiments/stability/__init__.py,neural_assemblies/constants/__init__.py,neural_assemblies/nemo/core/__init__.py,neural_assemblies/visualization/__init__.py,legacy/scripts/__init__.py,research/experiments/metrics/__init__.py,neural_assemblies/assembly_calculus/emergent/core/__init__.py,neural_assemblies/assembly_calculus/emergent/evaluation/erp/__init__.py,neural_assemblies/simulation/__init__.py,neural_assemblies/nemo/language/emergent/curriculum/vocabulary/__init__.py,neural_assemblies/reference/nemo_numpy/__init__.py,neural_assemblies/assembly_calculus/tracing/__init__.py,research/experiments/epwta_capacity/__init__.py,research/experiments/lib/__init__.py,legacy/scripts/simulations/__init__.py,neural_assemblies/nemo/language/emergent/curriculum/__init__.py,neural_assemblies/assembly_calculus/emergent/training/__init__.py,research/experiments/capacity/__init__.py,neural_assemblies/assembly_calculus/emergent/session/__init__.py,neural_assemblies/nemo/language/emergent/curriculum/dialogue/__init__.py,research/literature/cross_lang/__init__.py,neural_assemblies/assembly_calculus/emergent/curriculum/__init__.py,neural_assemblies/reference/__init__.py,neural_assemblies/lexicon/curriculum/__init__.py,neural_assemblies/nemo/archive/__init__.py,neural_assemblies/utils/__init__.py,neural_assemblies/tests/__init__.py,neural_assemblies/nemo/language/emergent/tests/__init__.py,research/experiments/biological_validation/__init__.py,neural_assemblies/lexicon/__init__.py,neural_assemblies/nemo/language/emergent/__init__.py,neural_assemblies/core/kernels/__init__.py,neural_assemblies/lexicon/data/__init__.py,neural_assemblies/programs/__init__.py,research/experiments/distinctiveness/__init__.py,neural_assemblies/assembly_calculus/emergent/evaluation/__init__.py,neural_assemblies/language/__init__.py,neural_assemblies/assembly_calculus/emergent/acquisition/__init__.py,research/experiments/applications/__init__.py,research/experiments/vocab/__init__.py,neural_assemblies/assembly_calculus/metrics/__init__.py,research/experiments/infrastructure/__init__.py,neural_assemblies/nemo/language/emergent/curriculum/stages/__init__.py,neural_assemblies/benchmarks/__init__.py,research/experiments/primitives/__init__.py,neural_assemblies/nemo/language/__init__.py,legacy/scripts/tooling/__init__.py,cpp/python_implementations/core_implementations/universal_brain_simulator/__init__.py,neural_assemblies/models/__init__.py,neural_assemblies/viz/tracing/__init__.py,research/experiments/recruitment/__init__.py,neural_assemblies/nemo/language/emergent/parser/__init__.py,research/experiments/__init__.py,neural_assemblies/viz/__init__.py,neural_assemblies/assembly_calculus/__init__.py,neural_assemblies/nemo/language/emergent/interactive/__init__.py,neural_assemblies/assembly_calculus/emergent/parser_mixins/__init__.py,neural_assemblies/nemo/language/emergent/curriculum/generators/__init__.py,neural_assemblies/ir/__init__.py,neural_assemblies/parity/__init__.py
+reference	cpp/python_implementations/core_implementations/analysis/smarter_refactoring_analysis.md	config.py	ambiguous: neural_assemblies/parity/config.py,cpp/python_implementations/core_implementations/universal_brain_simulator/config.py
+reference	cpp/python_implementations/core_implementations/analysis/smarter_refactoring_analysis.md	universal_brain_simulator.py	ambiguous: cpp/python_implementations/core_implementations/universal_brain_simulator/monolithic_old/universal_brain_simulator.py,cpp/python_implementations/core_implementations/universal_brain_simulator/universal_brain_simulator.py
+reference	cpp/python_implementations/core_implementations/analysis/smarter_refactoring_analysis.md	utils.py	ambiguous: neural_assemblies/compute/utils.py,cpp/python_implementations/core_implementations/universal_brain_simulator/utils.py
+reference	cpp/python_implementations/core_implementations/experiments/README.md	experiments/bottleneck_analysis.py	unresolved:
+reference	cpp/python_implementations/core_implementations/experiments/README.md	experiments/extreme_scale_sweep.py	unresolved:
+reference	cpp/python_implementations/core_implementations/experiments/README.md	experiments/oscillation_demo.py	unresolved:
+reference	cpp/python_implementations/core_implementations/experiments/README.md	experiments/quantization_baseline_test.py	unresolved:
+reference	cpp/python_implementations/core_implementations/optimized_implementations/billion_scale_comparison_test.py	universal_brain_simulator.py	ambiguous: cpp/python_implementations/core_implementations/universal_brain_simulator/monolithic_old/universal_brain_simulator.py,cpp/python_implementations/core_implementations/universal_brain_simulator/universal_brain_simulator.py
+reference	cpp/python_implementations/core_implementations/optimized_implementations/simple_billion_scale_test.py	universal_brain_simulator.py	ambiguous: cpp/python_implementations/core_implementations/universal_brain_simulator/monolithic_old/universal_brain_simulator.py,cpp/python_implementations/core_implementations/universal_brain_simulator/universal_brain_simulator.py
+reference	cpp/python_implementations/core_implementations/optimized_implementations/test_optimized_vs_original.py	universal_brain_simulator.py	ambiguous: cpp/python_implementations/core_implementations/universal_brain_simulator/monolithic_old/universal_brain_simulator.py,cpp/python_implementations/core_implementations/universal_brain_simulator/universal_brain_simulator.py
+reference	cpp/python_implementations/core_implementations/optimized_implementations/universal_brain_simulator_optimized.py	universal_brain_simulator.py	ambiguous: cpp/python_implementations/core_implementations/universal_brain_simulator/monolithic_old/universal_brain_simulator.py,cpp/python_implementations/core_implementations/universal_brain_simulator/universal_brain_simulator.py
+reference	cpp/python_implementations/core_implementations/results/README.md	results/large_scale_test_results_20250924_034444.json	unresolved:
+reference	cpp/python_implementations/core_implementations/universal_brain_simulator/README.md	universal_brain_simulator/examples/advanced_example.py	unresolved:
+reference	cpp/python_implementations/core_implementations/universal_brain_simulator/README.md	universal_brain_simulator/examples/benchmark_example.py	unresolved:
+reference	cpp/python_implementations/core_implementations/universal_brain_simulator/README.md	universal_brain_simulator/examples/performance_comparison.py	unresolved:
+reference	cpp/python_implementations/core_implementations/universal_brain_simulator/README.md	universal_brain_simulator/examples/profiling_example.py	unresolved:
+reference	cpp/python_implementations/core_implementations/universal_brain_simulator/README.md	universal_brain_simulator/examples/quick_start.py	unresolved:
+reference	cpp/python_implementations/core_implementations/universal_brain_simulator/README.md	universal_brain_simulator/examples/scaling_example.py	unresolved:
+reference	cpp/python_implementations/core_implementations/universal_brain_simulator/examples/advanced_example.py	advanced_profile.json	unresolved:
+reference	cpp/python_implementations/core_implementations/universal_brain_simulator/examples/advanced_example.py	advanced_simulation_results.json	unresolved:
+reference	cpp/python_implementations/core_implementations/universal_brain_simulator/examples/profiling_example.py	profile_results.json	unresolved:
+reference	cpp/python_implementations/core_implementations/universal_brain_simulator/monolithic_old/universal_brain_simulator.py	cuda_brain_python.py	unresolved:
+reference	cpp/python_implementations/core_implementations/universal_brain_simulator/monolithic_old/universal_brain_simulator.py	hybrid_gpu_brain.py	unresolved:
+reference	cpp/python_implementations/core_implementations/universal_brain_simulator/monolithic_old/universal_brain_simulator.py	memory_efficient_cupy_brain.py	unresolved:
+reference	cpp/python_implementations/core_implementations/universal_brain_simulator/monolithic_old/universal_brain_simulator.py	optimized_cuda_brain.py	unresolved:
+reference	cpp/python_implementations/core_implementations/universal_brain_simulator/monolithic_old/universal_brain_simulator.py	ultra_fast_cuda_brain.py	unresolved:
+reference	cpp/python_implementations/core_implementations/universal_brain_simulator/monolithic_old/universal_brain_simulator.py	ultra_optimized_cuda_brain_v2.py	unresolved:
+reference	cpp/python_implementations/core_implementations/universal_brain_simulator/monolithic_old/universal_brain_simulator.py	ultra_sparse_cupy_brain.py	unresolved:
+reference	cpp/python_implementations/core_implementations/universal_brain_simulator/monolithic_old/universal_brain_simulator.py	working_cuda_brain_v14_39.py	unresolved:
+reference	cpp/python_implementations/core_implementations/universal_brain_simulator/monolithic_old/universal_brain_simulator.py	working_cupy_brain.py	unresolved:
+reference	cpp/python_implementations/optimizations/ultimate_optimization_suite.py	test_dll_path.py	unresolved:
+reference	cpp/python_implementations/optimizations/ultimate_optimization_suite.py	ultimate_optimization_results.json	unresolved:
+reference	cpp/python_implementations/profilers/universal_profiler.py	advanced_profiler.py	unresolved:
+reference	cpp/python_implementations/profilers/universal_profiler.py	fixed_memory_profiler.py	unresolved:
+reference	cpp/python_implementations/profilers/universal_profiler.py	memory_profiler_billion_scale.py	unresolved:
+reference	cpp/python_implementations/profilers/universal_profiler.py	simple_memory_analyzer.py	unresolved:
+reference	docs/RUST_KERNELS.md	tests/test_rust_kernels.py	unresolved:
+reference	docs/api.md	core/area.py	unresolved:
+reference	docs/api.md	core/brain.py	unresolved:
+reference	docs/api.md	core/connectome.py	unresolved:
+reference	docs/api.md	core/engine.py	unresolved:
+reference	docs/api.md	core/stimulus.py	unresolved:
+reference	docs/architecture.md	brain.py	ambiguous: legacy/root_shims/brain.py,neural_assemblies/nemo/language/emergent/brain.py,neural_assemblies/core/brain.py,neural_assemblies/nemo/core/brain.py
+reference	docs/claim_audit.md	_p600_metrics_quick.json	unresolved:
+reference	docs/claim_audit.md	assembly_calculus/emergent/parser_mixins/core.py	unresolved:
+reference	docs/claim_audit.md	assembly_calculus/next_token.py	unresolved:
+reference	docs/claim_audit.md	assembly_calculus/parser.py	unresolved:
+reference	docs/claim_audit.md	core.py	ambiguous: neural_assemblies/assembly_calculus/emergent/parser_mixins/core.py,neural_assemblies/nemo/language/emergent/parser/core.py
+reference	docs/claim_audit.md	emergent/.../generation.py	unresolved:
+reference	docs/claim_audit.md	emergent/core/word_order.py	unresolved:
+reference	docs/claim_audit.md	emergent/parser_mixins/core.py	unresolved:
+reference	docs/claim_audit.md	emergent/parser_mixins/generation.py	unresolved:
+reference	docs/claim_audit.md	examples/notebooks/volume-03-language/01_...ipynb	unresolved:
+reference	docs/claim_audit.md	generation.py	ambiguous: neural_assemblies/assembly_calculus/emergent/parser_mixins/generation.py,neural_assemblies/assembly_calculus/emergent/curriculum/generation.py,research/experiments/lib/generation.py
+reference	docs/claim_audit.md	parser.py	ambiguous: legacy/root_shims/parser.py,neural_assemblies/assembly_calculus/parser.py,legacy/root_modules/parser.py,neural_assemblies/assembly_calculus/emergent/parser.py,neural_assemblies/language/parser.py
+reference	docs/claim_audit.md	tests/test_ac_conformance.py	unresolved:
+reference	docs/claim_audit.md	volume-02.../README.md	unresolved:
+reference	docs/gpu_scale_design.md	assembly_calculus/batched_next_token.py	unresolved:
+reference	docs/gpu_scale_design.md	assembly_calculus/batched_trainer.py	unresolved:
+reference	docs/gpu_scale_design.md	consolidation.py	ambiguous: research/experiments/infrastructure/consolidation.py,neural_assemblies/assembly_calculus/consolidation.py,neural_assemblies/assembly_calculus/emergent/consolidation.py,neural_assemblies/assembly_calculus/emergent/training/consolidation.py
+reference	docs/gpu_scale_design.md	core/torch_engine/_hashed.py	unresolved:
+reference	docs/gpu_scale_design.md	torch_engine/_engine.py	unresolved:
+reference	docs/literature.md	assembly_calculus/ops.py	unresolved:
+reference	docs/literature.md	parser.py	ambiguous: legacy/root_shims/parser.py,neural_assemblies/assembly_calculus/parser.py,legacy/root_modules/parser.py,neural_assemblies/assembly_calculus/emergent/parser.py,neural_assemblies/language/parser.py
+reference	docs/literature.md	programs/direct.py	unresolved:
+reference	docs/literature.md	programs/fsm_learn.py	unresolved:
+reference	docs/literature.md	programs/learn.py	unresolved:
+reference	docs/literature.md	programs/markov_coin.py	unresolved:
+reference	docs/literature.md	programs/planning.py	unresolved:
+reference	docs/literature.md	programs/tm_demo.py	unresolved:
+reference	docs/literature.md	simulation/turing_simulations.py	unresolved:
+reference	docs/literature.md	tests/test_assembly_calculus.py	unresolved:
+reference	docs/literature.md	tests/test_cross_repo_parity.py	unresolved:
+reference	docs/literature.md	tests/test_emergent_agent.py	unresolved:
+reference	docs/literature.md	tests/test_literature_parity.py	unresolved:
+reference	docs/literature.md	tests/test_lri.py	unresolved:
+reference	docs/literature.md	tests/test_sequences.py	unresolved:
+reference	docs/register.md	results_temporal_chain_gap2.json	unresolved:
+reference	docs/reviews/2026-09-09-codebase-and-research-organization.md	lexicon/true_assembly_learner.py	unresolved:
+reference	docs/reviews/2026-09-09-codebase-and-research-organization.md	tests/test_brain_core.py	unresolved:
+reference	docs/supported_surfaces.md	brain.py	ambiguous: legacy/root_shims/brain.py,neural_assemblies/nemo/language/emergent/brain.py,neural_assemblies/core/brain.py,neural_assemblies/nemo/core/brain.py
+reference	docs/supported_surfaces.md	brain_util.py	ambiguous: legacy/root_shims/brain_util.py,legacy/root_modules/brain_util.py
+reference	docs/supported_surfaces.md	image_learner.py	ambiguous: legacy/root_shims/image_learner.py,legacy/root_modules/image_learner.py
+reference	docs/supported_surfaces.md	learner.py	ambiguous: legacy/root_shims/learner.py,legacy/root_modules/learner.py,neural_assemblies/nemo/language/emergent/learner.py,neural_assemblies/nemo/language/learner.py
+reference	docs/supported_surfaces.md	parser.py	ambiguous: legacy/root_shims/parser.py,neural_assemblies/assembly_calculus/parser.py,legacy/root_modules/parser.py,neural_assemblies/assembly_calculus/emergent/parser.py,neural_assemblies/language/parser.py
+reference	docs/supported_surfaces.md	recursive_parser.py	ambiguous: legacy/root_shims/recursive_parser.py,legacy/root_modules/recursive_parser.py
+reference	docs/supported_surfaces.md	simulations.py	ambiguous: legacy/root_shims/simulations.py,legacy/root_modules/simulations.py
+reference	examples/notebooks/NOTEBOOK_PEDAGOGY_ROADMAP.md	viz/__init__.py	unresolved:
+reference	examples/train_developmental.py	metrics.json	unresolved:
+reference	legacy/README.md	brain.py	ambiguous: legacy/root_shims/brain.py,neural_assemblies/nemo/language/emergent/brain.py,neural_assemblies/core/brain.py,neural_assemblies/nemo/core/brain.py
+reference	legacy/README.md	brain_util.py	ambiguous: legacy/root_shims/brain_util.py,legacy/root_modules/brain_util.py
+reference	legacy/README.md	image_learner.py	ambiguous: legacy/root_shims/image_learner.py,legacy/root_modules/image_learner.py
+reference	legacy/README.md	learner.py	ambiguous: legacy/root_shims/learner.py,legacy/root_modules/learner.py,neural_assemblies/nemo/language/emergent/learner.py,neural_assemblies/nemo/language/learner.py
+reference	legacy/README.md	parser.py	ambiguous: legacy/root_shims/parser.py,neural_assemblies/assembly_calculus/parser.py,legacy/root_modules/parser.py,neural_assemblies/assembly_calculus/emergent/parser.py,neural_assemblies/language/parser.py
+reference	legacy/README.md	recursive_parser.py	ambiguous: legacy/root_shims/recursive_parser.py,legacy/root_modules/recursive_parser.py
+reference	legacy/README.md	simulations.py	ambiguous: legacy/root_shims/simulations.py,legacy/root_modules/simulations.py
+reference	legacy/experiments/README.md	assembly_hdc_investigation.py	unresolved:
+reference	legacy/experiments/README.md	experiments/hyperdimensional_assemblies/assembly_hdc_investigation.py	unresolved:
+reference	legacy/root_modules/learner.py	brain.py	ambiguous: legacy/root_shims/brain.py,neural_assemblies/nemo/language/emergent/brain.py,neural_assemblies/core/brain.py,neural_assemblies/nemo/core/brain.py
+reference	legacy/root_modules/parser.py	brain.py	ambiguous: legacy/root_shims/brain.py,neural_assemblies/nemo/language/emergent/brain.py,neural_assemblies/core/brain.py,neural_assemblies/nemo/core/brain.py
+reference	legacy/root_modules/recursive_parser.py	brain.py	ambiguous: legacy/root_shims/brain.py,neural_assemblies/nemo/language/emergent/brain.py,neural_assemblies/core/brain.py,neural_assemblies/nemo/core/brain.py
+reference	neural_assemblies/ENGINE.md	parser.py	ambiguous: legacy/root_shims/parser.py,neural_assemblies/assembly_calculus/parser.py,legacy/root_modules/parser.py,neural_assemblies/assembly_calculus/emergent/parser.py,neural_assemblies/language/parser.py
+reference	neural_assemblies/assembly_calculus/batched_next_token.py	core/torch_engine/_batched.py	unresolved:
+reference	neural_assemblies/assembly_calculus/emergent/ROADMAP.md	training_perf.py	unresolved:
+reference	neural_assemblies/assembly_calculus/emergent/core/areas.py	src/nemo/language/emergent/areas.py	unresolved:
+reference	neural_assemblies/assembly_calculus/emergent/core/corpus_index.py	unsupervised.py	ambiguous: research/experiments/lib/unsupervised.py,neural_assemblies/assembly_calculus/emergent/parser_mixins/unsupervised.py
+reference	neural_assemblies/assembly_calculus/emergent/core/sentence.py	core/scene.py	unresolved:
+reference	neural_assemblies/assembly_calculus/emergent/curriculum/generation.py	core/sentence.py	unresolved:
+reference	neural_assemblies/assembly_calculus/emergent/curriculum/trainer.py	src/lexicon/curriculum.py	unresolved:
+reference	neural_assemblies/assembly_calculus/emergent/evaluation/erp/frames.py	core/grounding.py	unresolved:
+reference	neural_assemblies/assembly_calculus/emergent/evaluation/erp/frames.py	curriculum/generation.py	unresolved:
+reference	neural_assemblies/assembly_calculus/emergent/evaluation/erp/frames.py	research/notes/the_calibration_frame_set_was_never_wrong.md	unresolved:
+reference	neural_assemblies/assembly_calculus/emergent/evaluation/erp/protocol.py	erp/adapters.py	unresolved:
+reference	neural_assemblies/assembly_calculus/emergent/evaluation/sweep.py	acquisition/pos_inference.py	unresolved:
+reference	neural_assemblies/assembly_calculus/emergent/evaluation/sweep.py	core/_pricing.py	unresolved:
+reference	neural_assemblies/assembly_calculus/emergent/evaluation/sweep.py	core/numpy_engine/_seeding.py	unresolved:
+reference	neural_assemblies/assembly_calculus/emergent/evaluation/sweep.py	evaluation/generalization.py	unresolved:
+reference	neural_assemblies/assembly_calculus/emergent/evaluation/sweep.py	parser_mixins/prediction.py	unresolved:
+reference	neural_assemblies/assembly_calculus/emergent/evaluation/sweep.py	tests/test_acquisition.py	unresolved:
+reference	neural_assemblies/assembly_calculus/emergent/evaluation/sweep.py	tests/test_training_fingerprint.py	unresolved:
+reference	neural_assemblies/assembly_calculus/emergent/nemo_rules.py	.reference/dmitropolsky-assemblies/parser.py	unresolved:
+reference	neural_assemblies/assembly_calculus/emergent/parser_mixins/_shared.py	core/word_order.py	unresolved:
+reference	neural_assemblies/assembly_calculus/emergent/parser_mixins/_shared.py	learner.py	ambiguous: legacy/root_shims/learner.py,legacy/root_modules/learner.py,neural_assemblies/nemo/language/emergent/learner.py,neural_assemblies/nemo/language/learner.py
+reference	neural_assemblies/assembly_calculus/emergent/parser_mixins/core.py	core/areas.py	unresolved:
+reference	neural_assemblies/assembly_calculus/emergent/parser_mixins/core.py	core/word_order.py	unresolved:
+reference	neural_assemblies/assembly_calculus/emergent/parser_mixins/core.py	training_data.py	ambiguous: neural_assemblies/nemo/language/emergent/training_data.py,neural_assemblies/assembly_calculus/emergent/training_data.py
+reference	neural_assemblies/assembly_calculus/emergent/parser_mixins/incremental.py	recursive_parser.py	ambiguous: legacy/root_shims/recursive_parser.py,legacy/root_modules/recursive_parser.py
+reference	neural_assemblies/assembly_calculus/emergent/parser_mixins/morphosyntax.py	brain.py	ambiguous: legacy/root_shims/brain.py,neural_assemblies/nemo/language/emergent/brain.py,neural_assemblies/core/brain.py,neural_assemblies/nemo/core/brain.py
+reference	neural_assemblies/assembly_calculus/emergent/parser_mixins/roles.py	parser.py	ambiguous: legacy/root_shims/parser.py,neural_assemblies/assembly_calculus/parser.py,legacy/root_modules/parser.py,neural_assemblies/assembly_calculus/emergent/parser.py,neural_assemblies/language/parser.py
+reference	neural_assemblies/assembly_calculus/ops.py	core/brain.py	unresolved:
+reference	neural_assemblies/assembly_calculus/ops.py	tests/test_ac_conformance.py	unresolved:
+reference	neural_assemblies/assembly_calculus/ops.py	tests/test_assembly_calculus.py	unresolved:
+reference	neural_assemblies/assembly_calculus/ops.py	tests/test_literature_index.py	unresolved:
+reference	neural_assemblies/assembly_calculus/ops.py	training/batch.py	unresolved:
+reference	neural_assemblies/assembly_calculus/ops.py	validate_index.py	ambiguous: research/claims/validate_index.py,research/literature/validate_index.py,research/core_questions/validate_index.py
+reference	neural_assemblies/assembly_calculus/parser.py	core/brain.py	unresolved:
+reference	neural_assemblies/assembly_calculus/parser.py	training/batch.py	unresolved:
+reference	neural_assemblies/assembly_calculus/pfa.py	.reference/mdabagia-nemo/brain.py	unresolved:
+reference	neural_assemblies/assembly_calculus/pfa.py	tests/test_coin_construction.py	unresolved:
+reference	neural_assemblies/assembly_calculus/scaffold.py	nemo-demo.ipynb	unresolved:
+reference	neural_assemblies/compute/explicit_projection.py	brain.py	ambiguous: legacy/root_shims/brain.py,neural_assemblies/nemo/language/emergent/brain.py,neural_assemblies/core/brain.py,neural_assemblies/nemo/core/brain.py
+reference	neural_assemblies/compute/hyperdimensional.py	final_fixed_hyperdimensional_assembly.py	unresolved:
+reference	neural_assemblies/compute/image_activation.py	brain.py	ambiguous: legacy/root_shims/brain.py,neural_assemblies/nemo/language/emergent/brain.py,neural_assemblies/core/brain.py,neural_assemblies/nemo/core/brain.py
+reference	neural_assemblies/compute/neural_computation.py	brain.py	ambiguous: legacy/root_shims/brain.py,neural_assemblies/nemo/language/emergent/brain.py,neural_assemblies/core/brain.py,neural_assemblies/nemo/core/brain.py
+reference	neural_assemblies/compute/sparse_simulation.py	brain.py	ambiguous: legacy/root_shims/brain.py,neural_assemblies/nemo/language/emergent/brain.py,neural_assemblies/core/brain.py,neural_assemblies/nemo/core/brain.py
+reference	neural_assemblies/compute/statistics.py	brain.py	ambiguous: legacy/root_shims/brain.py,neural_assemblies/nemo/language/emergent/brain.py,neural_assemblies/core/brain.py,neural_assemblies/nemo/core/brain.py
+reference	neural_assemblies/constants/default_params.py	core/kernels/implicit.py	unresolved:
+reference	neural_assemblies/core/_homeostasis.py	_refraction.py	unresolved:
+reference	neural_assemblies/core/_homeostasis.py	core/_pricing.py	unresolved:
+reference	neural_assemblies/core/_pricing.py	.reference/mdabagia-nemo/brain.py	unresolved:
+reference	neural_assemblies/core/brain.py	.reference/mdabagia-nemo/brain.py	unresolved:
+reference	neural_assemblies/core/brain.py	erp/adapters.py	unresolved:
+reference	neural_assemblies/core/brain.py	simulations.py	ambiguous: legacy/root_shims/simulations.py,legacy/root_modules/simulations.py
+reference	neural_assemblies/core/brain.py	training/batch.py	unresolved:
+reference	neural_assemblies/core/inhibition.py	.reference/dmitropolsky-assemblies/parser.py	unresolved:
+reference	neural_assemblies/core/kernels/implicit.py	src/constants/default_params.py	unresolved:
+reference	neural_assemblies/core/kernels/implicit.py	tests/test_seeding.py	unresolved:
+reference	neural_assemblies/core/numpy_engine/_degree_norm.py	.reference/mdabagia-nemo/brain.py	unresolved:
+reference	neural_assemblies/core/numpy_engine/_exact.py	brain.py	ambiguous: legacy/root_shims/brain.py,neural_assemblies/nemo/language/emergent/brain.py,neural_assemblies/core/brain.py,neural_assemblies/nemo/core/brain.py
+reference	neural_assemblies/core/numpy_engine/_exact.py	parser_mixins/incremental.py	unresolved:
+reference	neural_assemblies/core/numpy_engine/_exact.py	research/notes/exact_drive_precision.md	unresolved:
+reference	neural_assemblies/core/numpy_engine/_seeding.py	tests/test_rust_kernels.py	unresolved:
+reference	neural_assemblies/core/numpy_engine/_seeding.py	tests/test_seeding.py	unresolved:
+reference	neural_assemblies/core/numpy_engine/_sparse.py	.reference/dmitropolsky-assemblies/brain.py	unresolved:
+reference	neural_assemblies/core/numpy_engine/_sparse.py	brain.py	ambiguous: legacy/root_shims/brain.py,neural_assemblies/nemo/language/emergent/brain.py,neural_assemblies/core/brain.py,neural_assemblies/nemo/core/brain.py
+reference	neural_assemblies/core/numpy_engine/_sparse.py	core/_pricing.py	unresolved:
+reference	neural_assemblies/core/numpy_engine/_sparse.py	parser.py	ambiguous: legacy/root_shims/parser.py,neural_assemblies/assembly_calculus/parser.py,legacy/root_modules/parser.py,neural_assemblies/assembly_calculus/emergent/parser.py,neural_assemblies/language/parser.py
+reference	neural_assemblies/core/numpy_engine/_sparse.py	reference/nemo_numpy/areas.py	unresolved:
+reference	neural_assemblies/core/numpy_engine/_sparse.py	tests/test_assembly_calculus.py	unresolved:
+reference	neural_assemblies/core/torch_engine/_arc_core.py	programs/arc_core.py	unresolved:
+reference	neural_assemblies/core/torch_engine/_engine.py	core/_pricing.py	unresolved:
+reference	neural_assemblies/core/torch_engine/_fused_cuda.py	tests/test_fused_cuda.py	unresolved:
+reference	neural_assemblies/core/torch_engine/_hash.py	kernels/implicit.py	unresolved:
+reference	neural_assemblies/core/torch_engine/_hash.py	tests/test_torch_hash_finalizer.py	unresolved:
+reference	neural_assemblies/core/torch_engine/_hashed.py	core/_homeostasis.py	unresolved:
+reference	neural_assemblies/lexicon/build_lexicon.py	full_lexicon.json	unresolved:
+reference	neural_assemblies/lexicon/build_lexicon.py	word_statistics.json	unresolved:
+reference	neural_assemblies/lexicon/gpu_assembly_learner.py	brain.py	ambiguous: legacy/root_shims/brain.py,neural_assemblies/nemo/language/emergent/brain.py,neural_assemblies/core/brain.py,neural_assemblies/nemo/core/brain.py
+reference	neural_assemblies/lexicon/lexicon_manager.py	lexicon.json	unresolved:
+reference	neural_assemblies/lexicon/statistics.py	statistics.json	unresolved:
+reference	neural_assemblies/nemo/archive/__init__.py	emergent_learner_v1.py	unresolved:
+reference	neural_assemblies/nemo/archive/__init__.py	nemo/language/emergent_learner.py	unresolved:
+reference	neural_assemblies/nemo/language/emergent/areas.py	parser.py	ambiguous: legacy/root_shims/parser.py,neural_assemblies/assembly_calculus/parser.py,legacy/root_modules/parser.py,neural_assemblies/assembly_calculus/emergent/parser.py,neural_assemblies/language/parser.py
+reference	neural_assemblies/nemo/language/emergent/curriculum/__init__.py	base.py	ambiguous: research/experiments/base.py,neural_assemblies/nemo/language/emergent/curriculum/generators/base.py
+reference	neural_assemblies/nemo/language/emergent/curriculum/__init__.py	grounding.py	ambiguous: research/experiments/lib/grounding.py,neural_assemblies/nemo/language/emergent/interactive/grounding.py,neural_assemblies/nemo/language/emergent/curriculum/vocabulary/grounding.py,neural_assemblies/assembly_calculus/emergent/grounding.py,neural_assemblies/assembly_calculus/emergent/core/grounding.py
+reference	neural_assemblies/nemo/language/emergent/curriculum/dialogue/__init__.py	qa_patterns.py	unresolved:
+reference	neural_assemblies/nemo/language/emergent/curriculum/dialogue/__init__.py	response_patterns.py	unresolved:
+reference	neural_assemblies/nemo/language/emergent/parser/__init__.py	parser.py	ambiguous: legacy/root_shims/parser.py,neural_assemblies/assembly_calculus/parser.py,legacy/root_modules/parser.py,neural_assemblies/assembly_calculus/emergent/parser.py,neural_assemblies/language/parser.py
+reference	neural_assemblies/nemo/language/emergent/parser/__init__.py	rules.py	unresolved:
+reference	neural_assemblies/nemo/language/emergent/parser/core.py	parser.py	ambiguous: legacy/root_shims/parser.py,neural_assemblies/assembly_calculus/parser.py,legacy/root_modules/parser.py,neural_assemblies/assembly_calculus/emergent/parser.py,neural_assemblies/language/parser.py
+reference	neural_assemblies/nemo/language/emergent/tests/generation/test_original_pattern_completion.py	simulations.py	ambiguous: legacy/root_shims/simulations.py,legacy/root_modules/simulations.py
+reference	neural_assemblies/parity/cli.py	args.json	unresolved:
+reference	neural_assemblies/parity/paths.py	registry.json	ambiguous: research/registry.json,research/literature/parity/registry.json
+reference	neural_assemblies/parity/registry.py	parity/registry.json	unresolved:
+reference	neural_assemblies/programs/arc_core.py	core/torch_engine/_arc_core.py	unresolved:
+reference	neural_assemblies/programs/colt_halfspace_numpy.py	.reference/mdabagia-learning-with-assemblies/Halfspace.ipynb	unresolved:
+reference	neural_assemblies/programs/colt_halfspace_numpy.py	.reference/mdabagia-nemo/brain.py	unresolved:
+reference	neural_assemblies/programs/colt_mnist_brain_explicit.py	MNIST.ipynb	unresolved:
+reference	neural_assemblies/programs/colt_mnist_data.py	mnist_test.csv	unresolved:
+reference	neural_assemblies/programs/colt_mnist_data.py	mnist_train.csv	unresolved:
+reference	neural_assemblies/programs/colt_mnist_engine_roadmap.py	assembly_calculus/assembly.py	unresolved:
+reference	neural_assemblies/programs/colt_mnist_engine_roadmap.py	assembly_calculus/fiber.py	unresolved:
+reference	neural_assemblies/programs/colt_mnist_engine_roadmap.py	assembly_calculus/ops.py	unresolved:
+reference	neural_assemblies/programs/colt_mnist_engine_roadmap.py	core/brain.py	unresolved:
+reference	neural_assemblies/programs/colt_mnist_engine_roadmap.py	core/numpy_engine/_sparse.py	unresolved:
+reference	neural_assemblies/programs/colt_mnist_engine_roadmap.py	numpy_engine/_sparse.py	unresolved:
+reference	neural_assemblies/programs/colt_mnist_engine_roadmap.py	parity/executors.py	unresolved:
+reference	neural_assemblies/programs/colt_mnist_engine_roadmap.py	programs/colt_mnist_attractor.py	unresolved:
+reference	neural_assemblies/programs/colt_mnist_engine_roadmap.py	programs/colt_mnist_brain_util.py	unresolved:
+reference	neural_assemblies/programs/colt_mnist_engine_roadmap.py	programs/colt_mnist_forward_completion.py	unresolved:
+reference	neural_assemblies/programs/colt_mnist_engine_roadmap.py	programs/colt_mnist_spatial_connectome.py	unresolved:
+reference	neural_assemblies/programs/colt_mnist_numpy.py	learning-with-assemblies/MNIST.ipynb	unresolved:
+reference	neural_assemblies/programs/colt_mnist_protocol.py	MNIST.ipynb	unresolved:
+reference	neural_assemblies/programs/colt_mnist_protocol.py	learning-with-assemblies/MNIST.ipynb	unresolved:
+reference	neural_assemblies/programs/colt_mnist_ventral_theory.py	MNIST.ipynb	unresolved:
+reference	neural_assemblies/programs/mod3_fsm.py	nemo-demo.ipynb	unresolved:
+reference	neural_assemblies/programs/nemo_fsm.py	.reference/mdabagia-nemo/brain.py	unresolved:
+reference	neural_assemblies/programs/pnas_extended.py	.reference/dmitropolsky-assemblies/overlap_sim.py	unresolved:
+reference	neural_assemblies/programs/sequence_transducer.py	study4/ntp.py	unresolved:
+reference	neural_assemblies/programs/vision_data.py	fashion_mnist_test.csv	unresolved:
+reference	neural_assemblies/programs/vision_data.py	fashion_mnist_train.csv	unresolved:
+reference	neural_assemblies/provenance.py	research/literature/parity/audit_golden_provenance.py	unresolved:
+reference	neural_assemblies/reference/nemo_numpy/areas.py	brain.py	ambiguous: legacy/root_shims/brain.py,neural_assemblies/nemo/language/emergent/brain.py,neural_assemblies/core/brain.py,neural_assemblies/nemo/core/brain.py
+reference	neural_assemblies/reference/nemo_numpy/fsm_network.py	brain.py	ambiguous: legacy/root_shims/brain.py,neural_assemblies/nemo/language/emergent/brain.py,neural_assemblies/core/brain.py,neural_assemblies/nemo/core/brain.py
+reference	neural_assemblies/reference/nemo_numpy/scaffold_demo.py	nemo-demo.ipynb	unresolved:
+reference	neural_assemblies/reference/word_order_learner.py	.reference/dmitropolsky-assemblies/word_order_int.py	unresolved:
+reference	neural_assemblies/simulation/_util.py	brain_util.py	ambiguous: legacy/root_shims/brain_util.py,legacy/root_modules/brain_util.py
+reference	neural_assemblies/simulation/advanced_simulations.py	simulations.py	ambiguous: legacy/root_shims/simulations.py,legacy/root_modules/simulations.py
+reference	neural_assemblies/tests/test_ac_conformance.py	.reference/dmitropolsky-assemblies/simulations_test.py	unresolved:
+reference	neural_assemblies/tests/test_ac_conformance.py	.reference/mdabagia-nemo/brain.py	unresolved:
+reference	neural_assemblies/tests/test_ac_conformance.py	core/brain.py	unresolved:
+reference	neural_assemblies/tests/test_brain.py	brain.py	ambiguous: legacy/root_shims/brain.py,neural_assemblies/nemo/language/emergent/brain.py,neural_assemblies/core/brain.py,neural_assemblies/nemo/core/brain.py
+reference	neural_assemblies/tests/test_brain.py	simulations.py	ambiguous: legacy/root_shims/simulations.py,legacy/root_modules/simulations.py
+reference	neural_assemblies/tests/test_cross_repo_parity.py	brain.py	ambiguous: legacy/root_shims/brain.py,neural_assemblies/nemo/language/emergent/brain.py,neural_assemblies/core/brain.py,neural_assemblies/nemo/core/brain.py
+reference	neural_assemblies/tests/test_cuda_kernels.py	core/engine.py	unresolved:
+reference	neural_assemblies/tests/test_erp_area_matching.py	core/grounding.py	unresolved:
+reference	neural_assemblies/tests/test_exact_engine_ladder.py	parity/executors.py	unresolved:
+reference	neural_assemblies/tests/test_exact_engine_ladder.py	programs/markov_coin.py	unresolved:
+reference	neural_assemblies/tests/test_inhibition_primitive.py	.reference/dmitropolsky-assemblies/parser.py	unresolved:
+reference	neural_assemblies/tests/test_inhibition_primitive.py	parser.py	ambiguous: legacy/root_shims/parser.py,neural_assemblies/assembly_calculus/parser.py,legacy/root_modules/parser.py,neural_assemblies/assembly_calculus/emergent/parser.py,neural_assemblies/language/parser.py
+reference	neural_assemblies/tests/test_literature_index.py	index.json	ambiguous: research/literature/index.json,research/claims/index.json,research/core_questions/index.json
+reference	neural_assemblies/tests/test_literature_index.py	mod.py	unresolved:
+reference	neural_assemblies/tests/test_literature_index.py	neural_assemblies/mod.py	unresolved:
+reference	neural_assemblies/tests/test_literature_index.py	validate_index.py	ambiguous: research/claims/validate_index.py,research/literature/validate_index.py,research/core_questions/validate_index.py
+reference	neural_assemblies/tests/test_literature_parity.py	.reference/mdabagia-learning-with-assemblies/Halfspace.ipynb	unresolved:
+reference	neural_assemblies/tests/test_morph_recall.py	evaluation/morph_features.py	unresolved:
+reference	neural_assemblies/tests/test_nemo_patterns_core.py	src/nemo/language/nemo_learner.py	unresolved:
+reference	neural_assemblies/tests/test_parse_idempotence.py	runner.py	ambiguous: research/literature/cross_lang/runner.py,neural_assemblies/parity/runner.py,neural_assemblies/assembly_calculus/emergent/evaluation/erp/runner.py
+reference	neural_assemblies/tests/test_projection_parity.py	brain.py	ambiguous: legacy/root_shims/brain.py,neural_assemblies/nemo/language/emergent/brain.py,neural_assemblies/core/brain.py,neural_assemblies/nemo/core/brain.py
+reference	neural_assemblies/tests/test_refracted.py	core/_homeostasis.py	unresolved:
+reference	neural_assemblies/tests/test_scene_derived_roles.py	core/scene.py	unresolved:
+reference	neural_assemblies/tests/test_seeding.py	kernels/implicit.py	unresolved:
+reference	neural_assemblies/tests/test_sparse_simulation.py	brain.py	ambiguous: legacy/root_shims/brain.py,neural_assemblies/nemo/language/emergent/brain.py,neural_assemblies/core/brain.py,neural_assemblies/nemo/core/brain.py
+reference	neural_assemblies/tests/test_sparse_simulation_integration.py	brain.py	ambiguous: legacy/root_shims/brain.py,neural_assemblies/nemo/language/emergent/brain.py,neural_assemblies/core/brain.py,neural_assemblies/nemo/core/brain.py
+reference	neural_assemblies/tests/test_statistics.py	brain.py	ambiguous: legacy/root_shims/brain.py,neural_assemblies/nemo/language/emergent/brain.py,neural_assemblies/core/brain.py,neural_assemblies/nemo/core/brain.py
+reference	neural_assemblies/tests/test_stim_init_engine_parity.py	numpy_engine/_seeding.py	unresolved:
+reference	neural_assemblies/tests/test_stim_init_engine_parity.py	numpy_engine/_sparse.py	unresolved:
+reference	neural_assemblies/tests/test_stim_init_engine_parity.py	torch_engine/_engine.py	unresolved:
+reference	neural_assemblies/tests/test_torch_hash_finalizer.py	kernels/implicit.py	unresolved:
+reference	neural_assemblies/tests/test_torch_hash_finalizer.py	torch_engine/_hash.py	unresolved:
+reference	neural_assemblies/tests/test_training_fingerprint.py	acquisition/pos_inference.py	unresolved:
+reference	neural_assemblies/tests/test_training_fingerprint.py	compute/sparse_simulation.py	unresolved:
+reference	neural_assemblies/tests/test_training_fingerprint.py	compute/winner_selection.py	unresolved:
+reference	neural_assemblies/tests/test_training_fingerprint.py	core/_pricing.py	unresolved:
+reference	neural_assemblies/tests/test_training_fingerprint.py	core/numpy_engine/_seeding.py	unresolved:
+reference	neural_assemblies/tests/test_training_fingerprint.py	core/numpy_engine/_sparse.py	unresolved:
+reference	neural_assemblies/tests/test_training_fingerprint.py	parser_mixins/prediction.py	unresolved:
+reference	neural_assemblies/tests/test_word_order_learner.py	.reference/dmitropolsky-assemblies/word_order_int.py	unresolved:
+reference	neural_assemblies/text_generation/assembly_text_generator.py	brain.py	ambiguous: legacy/root_shims/brain.py,neural_assemblies/nemo/language/emergent/brain.py,neural_assemblies/core/brain.py,neural_assemblies/nemo/core/brain.py
+reference	neural_assemblies/text_generation/grammatical_assembly_brain.py	brain.py	ambiguous: legacy/root_shims/brain.py,neural_assemblies/nemo/language/emergent/brain.py,neural_assemblies/core/brain.py,neural_assemblies/nemo/core/brain.py
+reference	neural_assemblies/text_generation/grammatical_assembly_brain.py	learner.py	ambiguous: legacy/root_shims/learner.py,legacy/root_modules/learner.py,neural_assemblies/nemo/language/emergent/learner.py,neural_assemblies/nemo/language/learner.py
+reference	neural_assemblies/text_generation/grammatical_assembly_brain.py	parser.py	ambiguous: legacy/root_shims/parser.py,neural_assemblies/assembly_calculus/parser.py,legacy/root_modules/parser.py,neural_assemblies/assembly_calculus/emergent/parser.py,neural_assemblies/language/parser.py
+reference	neural_assemblies/text_generation/grammatical_assembly_brain.py	recursive_parser.py	ambiguous: legacy/root_shims/recursive_parser.py,legacy/root_modules/recursive_parser.py
+reference	neural_assemblies/text_generation/robust_grammatical_brain.py	language_brain_simulation.md	unresolved:
+reference	neural_assemblies/text_generation/robust_grammatical_brain.py	learner.py	ambiguous: legacy/root_shims/learner.py,legacy/root_modules/learner.py,neural_assemblies/nemo/language/emergent/learner.py,neural_assemblies/nemo/language/learner.py
+reference	neural_assemblies/text_generation/robust_grammatical_brain.py	parser.py	ambiguous: legacy/root_shims/parser.py,neural_assemblies/assembly_calculus/parser.py,legacy/root_modules/parser.py,neural_assemblies/assembly_calculus/emergent/parser.py,neural_assemblies/language/parser.py
+reference	neural_assemblies/text_generation/robust_grammatical_brain.py	recursive_parser.py	ambiguous: legacy/root_shims/recursive_parser.py,legacy/root_modules/recursive_parser.py
+reference	neural_assemblies/theory.py	refraction_scaling.md	unresolved:
+reference	neural_assemblies/theory.py	results_temporal_chain_gap2.json	unresolved:
+reference	research/PRIMITIVES_AUDIT.md	.reference/dmitropolsky-assemblies/brain.py	unresolved:
+reference	research/PRIMITIVES_AUDIT.md	parser.py	ambiguous: legacy/root_shims/parser.py,neural_assemblies/assembly_calculus/parser.py,legacy/root_modules/parser.py,neural_assemblies/assembly_calculus/emergent/parser.py,neural_assemblies/language/parser.py
+reference	research/README.md	analysis.md	ambiguous: research/core_questions/Q01_assembly_stability/analysis.md,research/core_questions/Q22_n400_global_energy/analysis.md,research/core_questions/Q03_scaling_laws/analysis.md,research/core_questions/Q20_competition_distinctiveness/analysis.md
+reference	research/README.md	conclusions.md	ambiguous: research/core_questions/Q20_competition_distinctiveness/conclusions.md,research/core_questions/Q22_n400_global_energy/conclusions.md,research/core_questions/Q01_assembly_stability/conclusions.md,research/core_questions/Q03_scaling_laws/conclusions.md
+reference	research/README.md	experiments.md	ambiguous: research/core_questions/Q22_n400_global_energy/experiments.md,research/core_questions/Q03_scaling_laws/experiments.md,research/core_questions/Q01_assembly_stability/experiments.md,research/core_questions/Q20_competition_distinctiveness/experiments.md
+reference	research/README.md	hypothesis.md	ambiguous: research/core_questions/Q20_competition_distinctiveness/hypothesis.md,research/core_questions/Q03_scaling_laws/hypothesis.md,research/core_questions/Q01_assembly_stability/hypothesis.md,research/core_questions/Q22_n400_global_energy/hypothesis.md
+reference	research/README.md	results.md	ambiguous: research/core_questions/Q20_competition_distinctiveness/results.md,research/core_questions/Q01_assembly_stability/results.md,research/core_questions/Q22_n400_global_energy/results.md,research/core_questions/Q03_scaling_laws/results.md
+reference	research/README.md	theoretical_basis.md	ambiguous: research/core_questions/Q22_n400_global_energy/theoretical_basis.md,research/core_questions/Q01_assembly_stability/theoretical_basis.md,research/core_questions/Q03_scaling_laws/theoretical_basis.md,research/core_questions/Q20_competition_distinctiveness/theoretical_basis.md
+reference	research/claims/N400_GLOBAL_ENERGY.md	src/core/engine.py	unresolved:
+reference	research/claims/N400_GLOBAL_ENERGY.md	src/core/numpy_engine/_sparse.py	unresolved:
+reference	research/claims/N400_GLOBAL_ENERGY.md	src/core/torch_engine/_engine.py	unresolved:
+reference	research/core_questions/Q22_n400_global_energy/experiments.md	core_questions/index.json	unresolved:
+reference	research/core_questions/README.md	analysis.md	ambiguous: research/core_questions/Q01_assembly_stability/analysis.md,research/core_questions/Q22_n400_global_energy/analysis.md,research/core_questions/Q03_scaling_laws/analysis.md,research/core_questions/Q20_competition_distinctiveness/analysis.md
+reference	research/core_questions/README.md	conclusions.md	ambiguous: research/core_questions/Q20_competition_distinctiveness/conclusions.md,research/core_questions/Q22_n400_global_energy/conclusions.md,research/core_questions/Q01_assembly_stability/conclusions.md,research/core_questions/Q03_scaling_laws/conclusions.md
+reference	research/core_questions/README.md	experiments.md	ambiguous: research/core_questions/Q22_n400_global_energy/experiments.md,research/core_questions/Q03_scaling_laws/experiments.md,research/core_questions/Q01_assembly_stability/experiments.md,research/core_questions/Q20_competition_distinctiveness/experiments.md
+reference	research/core_questions/README.md	hypothesis.md	ambiguous: research/core_questions/Q20_competition_distinctiveness/hypothesis.md,research/core_questions/Q03_scaling_laws/hypothesis.md,research/core_questions/Q01_assembly_stability/hypothesis.md,research/core_questions/Q22_n400_global_energy/hypothesis.md
+reference	research/core_questions/README.md	results.md	ambiguous: research/core_questions/Q20_competition_distinctiveness/results.md,research/core_questions/Q01_assembly_stability/results.md,research/core_questions/Q22_n400_global_energy/results.md,research/core_questions/Q03_scaling_laws/results.md
+reference	research/core_questions/README.md	theoretical_basis.md	ambiguous: research/core_questions/Q22_n400_global_energy/theoretical_basis.md,research/core_questions/Q01_assembly_stability/theoretical_basis.md,research/core_questions/Q03_scaling_laws/theoretical_basis.md,research/core_questions/Q20_competition_distinctiveness/theoretical_basis.md
+reference	research/core_questions/validate_index.py	analysis.md	ambiguous: research/core_questions/Q01_assembly_stability/analysis.md,research/core_questions/Q22_n400_global_energy/analysis.md,research/core_questions/Q03_scaling_laws/analysis.md,research/core_questions/Q20_competition_distinctiveness/analysis.md
+reference	research/core_questions/validate_index.py	conclusions.md	ambiguous: research/core_questions/Q20_competition_distinctiveness/conclusions.md,research/core_questions/Q22_n400_global_energy/conclusions.md,research/core_questions/Q01_assembly_stability/conclusions.md,research/core_questions/Q03_scaling_laws/conclusions.md
+reference	research/core_questions/validate_index.py	core_questions/index.json	unresolved:
+reference	research/core_questions/validate_index.py	experiments.md	ambiguous: research/core_questions/Q22_n400_global_energy/experiments.md,research/core_questions/Q03_scaling_laws/experiments.md,research/core_questions/Q01_assembly_stability/experiments.md,research/core_questions/Q20_competition_distinctiveness/experiments.md
+reference	research/core_questions/validate_index.py	hypothesis.md	ambiguous: research/core_questions/Q20_competition_distinctiveness/hypothesis.md,research/core_questions/Q03_scaling_laws/hypothesis.md,research/core_questions/Q01_assembly_stability/hypothesis.md,research/core_questions/Q22_n400_global_energy/hypothesis.md
+reference	research/core_questions/validate_index.py	results.md	ambiguous: research/core_questions/Q20_competition_distinctiveness/results.md,research/core_questions/Q01_assembly_stability/results.md,research/core_questions/Q22_n400_global_energy/results.md,research/core_questions/Q03_scaling_laws/results.md
+reference	research/core_questions/validate_index.py	theoretical_basis.md	ambiguous: research/core_questions/Q22_n400_global_energy/theoretical_basis.md,research/core_questions/Q01_assembly_stability/theoretical_basis.md,research/core_questions/Q03_scaling_laws/theoretical_basis.md,research/core_questions/Q20_competition_distinctiveness/theoretical_basis.md
+reference	research/experiments/ablate_developmental.py	args.csv	unresolved:
+reference	research/experiments/ablate_developmental.py	research/results/dev_runs/ablate_developmental.json	unresolved:
+reference	research/experiments/bound_pathway_drive_minimal.py	erp/adapters.py	unresolved:
+reference	research/experiments/capacity/lexicon_capacity.py	results_quick.json	unresolved:
+reference	research/experiments/capacity/parser_recruitment.py	results_parser_quick.json	unresolved:
+reference	research/experiments/childes_graduation.py	curriculum/childes.py	unresolved:
+reference	research/experiments/coin_fairness_study.py	.reference/mdabagia-nemo/brain.py	unresolved:
+reference	research/experiments/compare_training_paths.py	args.csv	unresolved:
+reference	research/experiments/dead_fiber_hunt.py	dead_fiber_hunt_results.json	unresolved:
+reference	research/experiments/depth_role_slots.py	recursive_parser.py	ambiguous: legacy/root_shims/recursive_parser.py,legacy/root_modules/recursive_parser.py
+reference	research/experiments/dormant_mechanism_sweep.py	test_cuda_kernels.py	ambiguous: neural_assemblies/tests/test_cuda_kernels.py,cpp/python_implementations/core_implementations/tests/test_cuda_kernels.py
+reference	research/experiments/epwta_capacity/PROSE.md	capacity/REPORT.md	unresolved:
+reference	research/experiments/epwta_capacity/REPORT.md	capacity/REPORT.md	unresolved:
+reference	research/experiments/erp_frame_candidate_selection.py	curriculum/generation.py	unresolved:
+reference	research/experiments/erp_frame_candidate_selection.py	generation.py	ambiguous: neural_assemblies/assembly_calculus/emergent/parser_mixins/generation.py,neural_assemblies/assembly_calculus/emergent/curriculum/generation.py,research/experiments/lib/generation.py
+reference	research/experiments/erp_or_else_census.py	erp/adapters.py	unresolved:
+reference	research/experiments/erp_or_else_census.py	erp/frames.py	unresolved:
+reference	research/experiments/erp_or_else_census.py	erp/runner.py	unresolved:
+reference	research/experiments/erp_or_else_census.py	parser_mixins/roles.py	unresolved:
+reference	research/experiments/erp_or_else_census.py	runner.py	ambiguous: research/literature/cross_lang/runner.py,neural_assemblies/parity/runner.py,neural_assemblies/assembly_calculus/emergent/evaluation/erp/runner.py
+reference	research/experiments/erp_or_else_impact.py	erp/adapters.py	unresolved:
+reference	research/experiments/erp_or_else_impact.py	runner.py	ambiguous: research/literature/cross_lang/runner.py,neural_assemblies/parity/runner.py,neural_assemblies/assembly_calculus/emergent/evaluation/erp/runner.py
+reference	research/experiments/erp_pathway_vs_area_binding.py	erp/adapters.py	unresolved:
+reference	research/experiments/erp_stability_aggregation_study.py	erp/adapters.py	unresolved:
+reference	research/experiments/erp_which_area_per_arm.py	runner.py	ambiguous: research/literature/cross_lang/runner.py,neural_assemblies/parity/runner.py,neural_assemblies/assembly_calculus/emergent/evaluation/erp/runner.py
+reference	research/experiments/fetch_childes_brown.py	brown_adult.meta.json	unresolved:
+reference	research/experiments/fetch_childes_brown.py	data/childes/brown_adult.meta.json	unresolved:
+reference	research/experiments/fetch_childes_brown.py	github.io/childes-db-website/childes-db.json	unresolved:
+reference	research/experiments/fetch_childes_brown.py	langcog.github.io/childes-db-website/childes-db.json	unresolved:
+reference	research/experiments/gated_role_binding.py	core/inhibition.py	unresolved:
+reference	research/experiments/golden_coverage_audit.py	registry.json	ambiguous: research/registry.json,research/literature/parity/registry.json
+reference	research/experiments/golden_coverage_audit.py	runner.py	ambiguous: research/literature/cross_lang/runner.py,neural_assemblies/parity/runner.py,neural_assemblies/assembly_calculus/emergent/evaluation/erp/runner.py
+reference	research/experiments/golden_readkey_audit.py	registry.json	ambiguous: research/registry.json,research/literature/parity/registry.json
+reference	research/experiments/golden_readkey_audit.py	runner.py	ambiguous: research/literature/cross_lang/runner.py,neural_assemblies/parity/runner.py,neural_assemblies/assembly_calculus/emergent/evaluation/erp/runner.py
+reference	research/experiments/grounding_lesion.py	core/grounding.py	unresolved:
+reference	research/experiments/infrastructure/validate_registry.py	registry.json	ambiguous: research/registry.json,research/literature/parity/registry.json
+reference	research/experiments/lesion_aphasia.py	core.py	ambiguous: neural_assemblies/assembly_calculus/emergent/parser_mixins/core.py,neural_assemblies/nemo/language/emergent/parser/core.py
+reference	research/experiments/merge_backproj_gated.py	core/inhibition.py	unresolved:
+reference	research/experiments/merge_gated_target.py	core/inhibition.py	unresolved:
+reference	research/experiments/merge_gated_target.py	parser_mixins/phrases.py	unresolved:
+reference	research/experiments/merge_gated_target.py	simulations.py	ambiguous: legacy/root_shims/simulations.py,legacy/root_modules/simulations.py
+reference	research/experiments/merge_recall_control.py	parser_mixins/phrases.py	unresolved:
+reference	research/experiments/merge_regime.py	.reference/dmitropolsky-assemblies/simulations.py	unresolved:
+reference	research/experiments/n400_landing_2x2.py	erp/adapters.py	unresolved:
+reference	research/experiments/norm_init_recurrence_limit.py	core/brain.py	unresolved:
+reference	research/experiments/p600_metric_comparison.py	.reference/dmitropolsky-assemblies/parser.py	unresolved:
+reference	research/experiments/p600_metric_comparison.py	parser_mixins/core.py	unresolved:
+reference	research/experiments/per_seed_pl_attribution.py	the_papers_regime_works...md	unresolved:
+reference	research/experiments/projection_idempotence.py	brain.py	ambiguous: legacy/root_shims/brain.py,neural_assemblies/nemo/language/emergent/brain.py,neural_assemblies/core/brain.py,neural_assemblies/nemo/core/brain.py
+reference	research/experiments/recruitment/PROSE.md	capacity/lexicon_capacity.py	unresolved:
+reference	research/experiments/recruitment/REPORT.md	capacity/REPORT.md	unresolved:
+reference	research/experiments/recruitment/REPORT.md	capacity/lexicon_capacity.py	unresolved:
+reference	research/experiments/recruitment/analyze.py	capacity/REPORT.md	unresolved:
+reference	research/experiments/recruitment/analyze.py	results_recruitment.json	unresolved:
+reference	research/experiments/recruitment/recruitment_mechanisms.py	capacity/REPORT.md	unresolved:
+reference	research/experiments/recruitment/recruitment_mechanisms.py	capacity/lexicon_capacity.py	unresolved:
+reference	research/experiments/recruitment/recruitment_mechanisms.py	results_quick.json	unresolved:
+reference	research/experiments/recruitment/recruitment_mechanisms.py	results_recruitment.json	unresolved:
+reference	research/experiments/rich_corpus.py	core/scene.py	unresolved:
+reference	research/experiments/round_resolved_read.py	core/inhibition.py	unresolved:
+reference	research/experiments/seq_refraction_stability.py	seq_refraction_stability_results.json	unresolved:
+reference	research/experiments/seq_s5_memory_channel.py	seq_s5_memory_channel_results.json	unresolved:
+reference	research/experiments/shared_lexical_area.py	brain.py	ambiguous: legacy/root_shims/brain.py,neural_assemblies/nemo/language/emergent/brain.py,neural_assemblies/core/brain.py,neural_assemblies/nemo/core/brain.py
+reference	research/experiments/slot_addressing_drive.py	core/inhibition.py	unresolved:
+reference	research/experiments/stored_assemblies_still_current.py	training/schedule.py	unresolved:
+reference	research/experiments/supervised_vs_unsupervised_roles.py	training/batch.py	unresolved:
+reference	research/experiments/supervised_vs_unsupervised_roles.py	unsupervised.py	ambiguous: research/experiments/lib/unsupervised.py,neural_assemblies/assembly_calculus/emergent/parser_mixins/unsupervised.py
+reference	research/experiments/surprise_gain_recall.py	evaluation/morph_features.py	unresolved:
+reference	research/experiments/sweep_dynamics.py	research/results/sweeps/dynamics.csv	unresolved:
+reference	research/experiments/sweep_dynamics.py	research/results/sweeps/explore.csv	unresolved:
+reference	research/experiments/task90_ceiling_n_scaling.py	brain.py	ambiguous: legacy/root_shims/brain.py,neural_assemblies/nemo/language/emergent/brain.py,neural_assemblies/core/brain.py,neural_assemblies/nemo/core/brain.py
+reference	research/experiments/task90_ceiling_n_scaling.py	core/brain.py	unresolved:
+reference	research/experiments/task90_recurrence_ceiling_on_exact.py	brain.py	ambiguous: legacy/root_shims/brain.py,neural_assemblies/nemo/language/emergent/brain.py,neural_assemblies/core/brain.py,neural_assemblies/nemo/core/brain.py
+reference	research/experiments/task90_recurrence_ceiling_on_exact.py	core/brain.py	unresolved:
+reference	research/experiments/task91_emergent_noun_verb.py	emergent/core/grounding.py	unresolved:
+reference	research/experiments/task91_emergent_noun_verb.py	grounding.py	ambiguous: research/experiments/lib/grounding.py,neural_assemblies/nemo/language/emergent/interactive/grounding.py,neural_assemblies/nemo/language/emergent/curriculum/vocabulary/grounding.py,neural_assemblies/assembly_calculus/emergent/grounding.py,neural_assemblies/assembly_calculus/emergent/core/grounding.py
+reference	research/experiments/task98_multimood_on_exact.py	.reference/dmitropolsky-assemblies/word_order_int.py	unresolved:
+reference	research/experiments/universality_composition.py	parser_mixins/phrases.py	unresolved:
+reference	research/experiments/what_variation_buys.py	curriculum/generation.py	unresolved:
+reference	research/experiments/what_variation_buys.py	evaluation/morph_features.py	unresolved:
+reference	research/experiments/word_order_typology.py	parser_mixins/constituent_order.py	unresolved:
+reference	research/literature/REPRODUCTION_MATRIX.md	assembly_calculus/parser.py	unresolved:
+reference	research/literature/REPRODUCTION_MATRIX.md	brain.py	ambiguous: legacy/root_shims/brain.py,neural_assemblies/nemo/language/emergent/brain.py,neural_assemblies/core/brain.py,neural_assemblies/nemo/core/brain.py
+reference	research/literature/REPRODUCTION_MATRIX.md	compute/dendritic.py	unresolved:
+reference	research/literature/REPRODUCTION_MATRIX.md	core/brain.py	unresolved:
+reference	research/literature/REPRODUCTION_MATRIX.md	emergent/blocks_bridge.py	unresolved:
+reference	research/literature/REPRODUCTION_MATRIX.md	encoders/speech.py	unresolved:
+reference	research/literature/REPRODUCTION_MATRIX.md	language/parser.py	unresolved:
+reference	research/literature/REPRODUCTION_MATRIX.md	parity/coin2024_demo.json	unresolved:
+reference	research/literature/REPRODUCTION_MATRIX.md	parity/hoff2026_size_dist.json	unresolved:
+reference	research/literature/REPRODUCTION_MATRIX.md	parity/tacl2021_benchmark.json	unresolved:
+reference	research/literature/REPRODUCTION_MATRIX.md	parser.py	ambiguous: legacy/root_shims/parser.py,neural_assemblies/assembly_calculus/parser.py,legacy/root_modules/parser.py,neural_assemblies/assembly_calculus/emergent/parser.py,neural_assemblies/language/parser.py
+reference	research/literature/REPRODUCTION_MATRIX.md	programs/direct.py	unresolved:
+reference	research/literature/REPRODUCTION_MATRIX.md	programs/learn.py	unresolved:
+reference	research/literature/REPRODUCTION_MATRIX.md	simulation/turing_simulations.py	unresolved:
+reference	research/literature/audit_matrix_status.py	registry.json	ambiguous: research/registry.json,research/literature/parity/registry.json
+reference	research/literature/build_matrix_supplement.py	.reference/mdabagia-learning-with-assemblies/MNIST.ipynb	unresolved:
+reference	research/literature/build_matrix_supplement.py	learner.py	ambiguous: legacy/root_shims/learner.py,legacy/root_modules/learner.py,neural_assemblies/nemo/language/emergent/learner.py,neural_assemblies/nemo/language/learner.py
+reference	research/literature/papers/README.md	index.json	ambiguous: research/literature/index.json,research/claims/index.json,research/core_questions/index.json
+reference	research/literature/parity/PROTOCOLS.md	assembly_calculus/emergent/ROADMAP.md	unresolved:
+reference	research/literature/parity/PROTOCOLS.md	brain.py	ambiguous: legacy/root_shims/brain.py,neural_assemblies/nemo/language/emergent/brain.py,neural_assemblies/core/brain.py,neural_assemblies/nemo/core/brain.py
+reference	research/literature/parity/PROTOCOLS.md	tests/test_cross_engine_projection.py	unresolved:
+reference	research/literature/parity/PROTOCOLS.md	tests/test_cross_repo_parity.py	unresolved:
+reference	research/literature/parity/PROTOCOLS.md	tests/test_emergent_agent.py	unresolved:
+reference	research/literature/parity/pnas2020_paper_claims.py	a.json	unresolved:
+reference	research/literature/parity/record_colt_halfspace.py	.reference/mdabagia-learning-with-assemblies/Halfspace.ipynb	unresolved:
+reference	research/literature/parity/record_colt_halfspace.py	learning-with-assemblies/Halfspace.ipynb	unresolved:
+reference	research/literature/parity/record_colt_mnist_notebook.py	learning-with-assemblies/MNIST.ipynb	unresolved:
+reference	research/literature/parity/record_colt_mnist_notebook.py	mnist_test.csv	unresolved:
+reference	research/literature/parity/record_colt_mnist_notebook.py	mnist_train.csv	unresolved:
+reference	research/literature/parity/record_pnas_golden.py	.reference/dmitropolsky-assemblies/brain.py	unresolved:
+reference	research/literature/parity/record_pnas_golden.py	tests/test_cross_repo_parity.py	unresolved:
+reference	research/literature/parity/record_scaffold_sequence.py	nemo-demo.ipynb	unresolved:
+reference	research/literature/sync_matrix_repro.py	registry.json	ambiguous: research/registry.json,research/literature/parity/registry.json
+reference	research/literature/validate_index.py	tests/test_literature_index.py	unresolved:
+reference	research/nemo/nemo_hierarchical.py	nemo_fastest.py	unresolved:
+reference	research/notes/README.md	core/torch_engine/_hashed_fsm.py	unresolved:
+reference	research/notes/README.md	core/torch_engine/_hashed_transducer.py	unresolved:
+reference	research/notes/README.md	core/torch_engine/_memory.py	unresolved:
+reference	research/notes/README.md	core/torch_engine/_scheduled_aligner.py	unresolved:
+reference	research/notes/aligner/DESIGN_hashed_aligner.md	core/torch_engine/_hashed_aligner.py	unresolved:
+reference	research/notes/aligner/PREREG_unaligned_scenes.md	core/scene.py	unresolved:
+reference	research/notes/categories/the_stability_probe_was_saturated_not_the_split.md	grounding.py	ambiguous: research/experiments/lib/grounding.py,neural_assemblies/nemo/language/emergent/interactive/grounding.py,neural_assemblies/nemo/language/emergent/curriculum/vocabulary/grounding.py,neural_assemblies/assembly_calculus/emergent/grounding.py,neural_assemblies/assembly_calculus/emergent/core/grounding.py
+reference	research/notes/categories/the_stability_probe_was_saturated_not_the_split.md	numpy_engine/_exact.py	unresolved:
+reference	research/notes/categories/the_substituted_value_carries_the_novel_arm.md	erp/adapters.py	unresolved:
+reference	research/notes/language/README.md	erp/adapters.py	unresolved:
+reference	research/notes/language/erp_probe_isolation.md	runner.py	ambiguous: research/literature/cross_lang/runner.py,neural_assemblies/parity/runner.py,neural_assemblies/assembly_calculus/emergent/evaluation/erp/runner.py
+reference	research/notes/language/erp_scale_is_an_implementation_detail.md	erp/adapters.py	unresolved:
+reference	research/notes/language/erp_scale_is_an_implementation_detail.md	tests/test_erp_probe_is_alive.py	unresolved:
+reference	research/notes/language/literature_clues_for_the_three_obstacles.md	assembly_calculus/metrics/instability.py	unresolved:
+reference	research/notes/language/literature_clues_for_the_three_obstacles.md	emergent/core/grounding.py	unresolved:
+reference	research/notes/language/literature_clues_for_the_three_obstacles.md	reference/word_order_learner.py	unresolved:
+reference	research/notes/language/n400_saturated_because_prediction_has_no_signal.md	erp/adapters.py	unresolved:
+reference	research/notes/language/n400_saturated_because_prediction_has_no_signal.md	the_calibration_frame_set_was_never_wrong.md	unresolved:
+reference	research/notes/language/nemo_subtree_audit.md	_v1.py	unresolved:
+reference	research/notes/language/nemo_subtree_audit.md	assembly_calculus/emergent/core/scene.py	unresolved:
+reference	research/notes/language/nemo_subtree_audit.md	assembly_calculus/emergent/curriculum/data.py	unresolved:
+reference	research/notes/language/nemo_subtree_audit.md	assembly_calculus/emergent/parser.py	unresolved:
+reference	research/notes/language/nemo_subtree_audit.md	assembly_calculus/emergent/training_data.py	unresolved:
+reference	research/notes/language/nemo_subtree_audit.md	core/areas.py	unresolved:
+reference	research/notes/language/nemo_subtree_audit.md	generation/hopfield_memory.py	unresolved:
+reference	research/notes/language/nemo_subtree_audit.md	language/emergent/params.py	unresolved:
+reference	research/notes/language/nemo_subtree_audit.md	learner.py	ambiguous: legacy/root_shims/learner.py,legacy/root_modules/learner.py,neural_assemblies/nemo/language/emergent/learner.py,neural_assemblies/nemo/language/learner.py
+reference	research/notes/language/nemo_subtree_audit.md	nemo/language/emergent/profiler.py	unresolved:
+reference	research/notes/language/nemo_subtree_audit.md	parser.py	ambiguous: legacy/root_shims/parser.py,neural_assemblies/assembly_calculus/parser.py,legacy/root_modules/parser.py,neural_assemblies/assembly_calculus/emergent/parser.py,neural_assemblies/language/parser.py
+reference	research/notes/language/nemo_subtree_audit.md	recursive_parser.py	ambiguous: legacy/root_shims/recursive_parser.py,legacy/root_modules/recursive_parser.py
+reference	research/notes/language/nemo_subtree_audit.md	reference/word_order_learner.py	unresolved:
+reference	research/notes/language/p600_is_confounded_with_area_identity.md	runner.py	ambiguous: research/literature/cross_lang/runner.py,neural_assemblies/parity/runner.py,neural_assemblies/assembly_calculus/emergent/evaluation/erp/runner.py
+reference	research/notes/language/the_erp_layer_no_longer_reads_the_environment.md	erp/adapters.py	unresolved:
+reference	research/notes/language/the_erp_layer_no_longer_reads_the_environment.md	protocol.py	ambiguous: neural_assemblies/ir/protocol.py,neural_assemblies/parity/protocol.py,neural_assemblies/assembly_calculus/emergent/evaluation/erp/protocol.py
+reference	research/notes/language/the_p600_needed_the_where_channel.md	erp/adapters.py	unresolved:
+reference	research/notes/language/the_scene_route_is_more_accurate_than_position.md	consolidation.py	ambiguous: research/experiments/infrastructure/consolidation.py,neural_assemblies/assembly_calculus/consolidation.py,neural_assemblies/assembly_calculus/emergent/consolidation.py,neural_assemblies/assembly_calculus/emergent/training/consolidation.py
+reference	research/notes/language/the_scene_route_is_more_accurate_than_position.md	evaluation/parity.py	unresolved:
+reference	research/notes/language/what_the_variation_bought.md	parser_mixins/morphosyntax.py	unresolved:
+reference	research/notes/memory/PREREG_gated_recurrence.md	.reference/.../recursive_parser.py	unresolved:
+reference	research/notes/memory/PREREG_gated_recurrence.md	.reference/dmitropolsky-assemblies/parser.py	unresolved:
+reference	research/notes/memory/PREREG_recurrent_ratchet.md	brain.py	ambiguous: legacy/root_shims/brain.py,neural_assemblies/nemo/language/emergent/brain.py,neural_assemblies/core/brain.py,neural_assemblies/nemo/core/brain.py
+reference	research/notes/memory/PREREG_refraction_capacity.md	core/_refraction.py	unresolved:
+reference	research/notes/memory/ceiling_n_scaling_on_exact_drive.md	brain.py	ambiguous: legacy/root_shims/brain.py,neural_assemblies/nemo/language/emergent/brain.py,neural_assemblies/core/brain.py,neural_assemblies/nemo/core/brain.py
+reference	research/notes/memory/ceiling_n_scaling_on_exact_drive.md	core/brain.py	unresolved:
+reference	research/notes/memory/recurrence_ceiling_on_exact_drive.md	core/brain.py	unresolved:
+reference	research/notes/sequence/DESIGN_sequence_port.md	programs/sequence_transducer.py	unresolved:
+reference	research/notes/sequence/PREREG_seq_a1_fsm_parity.md	assembly_calculus/fsm.py	unresolved:
+reference	research/notes/sequence/PREREG_seq_a1_fsm_parity.md	reference/nemo_numpy/fsm_network.py	unresolved:
+reference	research/notes/sequence/PREREG_seq_a3_transducer.md	..._hashed_binomial_stimuli.json	unresolved:
+reference	research/notes/sequence/conjunctive_arc_measured.md	reference/word_order_learner.py	unresolved:
+reference	research/notes/substrate/DESIGN_gpu_hashed_drive.md	kernels/implicit.py	unresolved:
+reference	research/notes/substrate/DESIGN_gpu_hashed_drive.md	tests/test_fused_cuda.py	unresolved:
+reference	research/notes/substrate/DESIGN_gpu_hashed_drive.md	torch_engine/_hash.py	unresolved:
+reference	research/notes/substrate/FINDING_torch_pricing_exposed.md	torch_engine/_hash.py	unresolved:
+reference	research/notes/substrate/canonical_refactor_plan.md	brain.py	ambiguous: legacy/root_shims/brain.py,neural_assemblies/nemo/language/emergent/brain.py,neural_assemblies/core/brain.py,neural_assemblies/nemo/core/brain.py
+reference	research/notes/substrate/canonical_refactor_plan.md	core/index_spaces.py	unresolved:
+reference	research/notes/substrate/canonical_refactor_plan.md	core/measurement.py	unresolved:
+reference	research/notes/substrate/canonical_refactor_plan.md	erp/protocol.py	unresolved:
+reference	research/notes/substrate/canonical_refactor_plan.md	generation/neural_decoder.py	unresolved:
+reference	research/notes/substrate/canonical_refactor_plan.md	nemo/language/emergent_learner.py	unresolved:
+reference	research/notes/substrate/canonical_refactor_plan.md	programs/colt_mnist_forward_completion.py	unresolved:
+reference	research/notes/substrate/canonical_refactor_plan.md	programs/colt_mnist_tier_a.py	unresolved:
+reference	research/notes/substrate/canonical_refactor_plan.md	tests/test_assembly_calculus.py	unresolved:
+reference	research/notes/substrate/canonical_refactor_plan.md	tests/test_engine_e2_overlap.py	unresolved:
+reference	research/notes/substrate/canonical_refactor_plan.md	tests/test_metrics_kernels.py	unresolved:
+reference	research/notes/substrate/engine_pricing_unification.md	numpy_engine/_sparse.py	unresolved:
+reference	research/notes/substrate/epercent_wta_was_measuring_recruitment.md	assembly_calculus/epwta.py	unresolved:
+reference	research/notes/substrate/epercent_wta_was_measuring_recruitment.md	parity/executors.py	unresolved:
+reference	research/notes/substrate/epercent_wta_was_measuring_recruitment.md	programs/markov_coin.py	unresolved:
+reference	research/notes/substrate/graded_similarity_and_sampler_load.md	graded_control.py	unresolved:
+reference	research/notes/substrate/graded_similarity_and_sampler_load.md	graded_pool.py	unresolved:
+reference	research/notes/substrate/graded_similarity_and_sampler_load.md	scratchpad/graded.py	unresolved:
+reference	research/notes/substrate/w_alias_back_catalogue.md	MEMORY.md	unresolved:
+reference	research/notes/substrate/w_alias_back_catalogue.md	_state.py	ambiguous: neural_assemblies/core/torch_engine/_state.py,neural_assemblies/core/numpy_engine/_state.py
+reference	research/notes/substrate/w_alias_back_catalogue.md	analyze.py	ambiguous: research/experiments/epwta_capacity/analyze.py,research/experiments/recruitment/analyze.py,research/experiments/capacity/analyze.py
+reference	research/notes/substrate/w_alias_back_catalogue.md	brain.py	ambiguous: legacy/root_shims/brain.py,neural_assemblies/nemo/language/emergent/brain.py,neural_assemblies/core/brain.py,neural_assemblies/nemo/core/brain.py
+reference	research/notes/substrate/w_alias_back_catalogue.md	capacity/analyze.py	unresolved:
+reference	research/notes/substrate/w_alias_back_catalogue.md	capacity/lexicon_capacity.py	unresolved:
+reference	research/notes/substrate/w_alias_back_catalogue.md	capacity/parser_recruitment.py	unresolved:
+reference	research/notes/substrate/w_alias_back_catalogue.md	distinctiveness/test_competition_mechanisms.py	unresolved:
+reference	research/notes/substrate/w_alias_back_catalogue.md	metrics/instability.py	unresolved:
+reference	research/notes/substrate/w_alias_back_catalogue.md	metrics/measurement.py	unresolved:
+reference	research/notes/substrate/w_alias_back_catalogue.md	metrics/settling.py	unresolved:
+reference	research/notes/substrate/w_alias_back_catalogue.md	primitives/diagnose_erp_dynamics.py	unresolved:
+reference	research/notes/substrate/w_alias_back_catalogue.md	recruitment/recruitment_mechanisms.py	unresolved:
+reference	research/notes/substrate/w_alias_back_catalogue.md	scratchpad/w_clobber_probe.py	unresolved:
+reference	research/open_questions.md	research/CRITICAL_ANALYSIS.md	unresolved:
+reference	research/open_questions.md	research/experiments/stability/test_noise_robustness_v2.py	unresolved:
+reference	research/papers/_latex_infrastructure/README.md	.vscode/settings.json	unresolved:
+reference	research/plans/GPU_ENGINE_UNIFICATION.md	conftest.py	ambiguous: tests/conftest.py,neural_assemblies/tests/conftest.py
+reference	research/plans/GPU_ENGINE_UNIFICATION.md	nemo/core/brain.py	unresolved:
+reference	research/plans/GPU_ENGINE_UNIFICATION.md	nemo/emergent/cuda_backend.py	unresolved:
+reference	research/plans/GPU_ENGINE_UNIFICATION.md	numpy_engine.py	unresolved:
+reference	research/plans/GPU_ENGINE_UNIFICATION.md	src/core/cuda_engine.py	unresolved:
+reference	research/plans/GPU_ENGINE_UNIFICATION.md	src/nemo/core/brain.py	unresolved:
+reference	research/plans/GPU_ENGINE_UNIFICATION.md	src/nemo/language/emergent/cuda_backend.py	unresolved:
+reference	research/plans/GPU_ENGINE_UNIFICATION.md	test_assembly.py	unresolved:
+reference	research/plans/GPU_ENGINE_UNIFICATION.md	test_noise_robustness.py	ambiguous: research/experiments/stability/test_noise_robustness.py,neural_assemblies/tests/test_noise_robustness.py
+reference	research/plans/IMPLICATIONS_AND_PREDICTIONS.md	training.py	ambiguous: research/experiments/lib/training.py,research/experiments/vocab/training.py
+reference	research/plans/N400_NEXT_STEPS.md	research/experiments/applications/test_n400_sentence_context.py	unresolved:
+reference	research/plans/PRIORITIES_AND_GAPS.md	claim.md	unresolved:
+reference	research/plans/PRIORITIES_AND_GAPS.md	evidence.md	unresolved:
+reference	research/plans/PRIORITIES_AND_GAPS.md	limitations.md	unresolved:
+reference	research/plans/PRIORITIES_AND_GAPS.md	suitable_venues.md	unresolved:
+reference	research/plans/SOUNDNESS_PROGRAM.md	brain.py	ambiguous: legacy/root_shims/brain.py,neural_assemblies/nemo/language/emergent/brain.py,neural_assemblies/core/brain.py,neural_assemblies/nemo/core/brain.py
+reference	research/plans/SOUNDNESS_PROGRAM.md	core/_pricing.py	unresolved:
+reference	research/plans/SOUNDNESS_PROGRAM.md	numpy_engine/_sparse.py	unresolved:
+reference	research/plans/SOUNDNESS_PROGRAM.md	test_cuda_kernels.py	ambiguous: neural_assemblies/tests/test_cuda_kernels.py,cpp/python_implementations/core_implementations/tests/test_cuda_kernels.py
+reference	research/plans/control/CONTROL_SPEED_FROM_CUDA.md	src/lexicon/cupy_assembly_kernels.py	unresolved:
+reference	research/plans/control/CONTROL_SPEED_FROM_CUDA.md	src/lexicon/cupy_assembly_kernels_batched.py	unresolved:
+reference	research/plans/robotics_embodiment/ISAAC_LAB_ASSEMBLY_BRAINSTORM.md	brain.py	ambiguous: legacy/root_shims/brain.py,neural_assemblies/nemo/language/emergent/brain.py,neural_assemblies/core/brain.py,neural_assemblies/nemo/core/brain.py
+reference	research/theory/role_binding_design.md	assembly_calculus/parser.py	unresolved:
+reference	research/theory/role_binding_design.md	language/parser.py	unresolved:
+reference	tests/test_legacy_archived_layout.py	assembly_ir/v1/protocol.schema.json	unresolved:
+reference	tests/test_legacy_archived_layout.py	benchmarks/profile_operations.py	unresolved:
+reference	tests/test_legacy_archived_layout.py	brain.py	ambiguous: legacy/root_shims/brain.py,neural_assemblies/nemo/language/emergent/brain.py,neural_assemblies/core/brain.py,neural_assemblies/nemo/core/brain.py
+reference	tests/test_legacy_archived_layout.py	scripts/animator.py	unresolved:
+reference	tests/test_legacy_archived_layout.py	scripts/build_cuda_simple.py	unresolved:
+reference	tests/test_legacy_archived_layout.py	scripts/overlap_sim.py	unresolved:
+reference	tests/test_legacy_archived_layout.py	scripts/project.py	unresolved:
+reference	tests/test_legacy_archived_layout.py	scripts/run_turing_sim.py	unresolved:
+reference	tests/test_legacy_archived_layout.py	scripts/turing_sim.py	unresolved:
+reference	tests/test_legacy_archived_layout.py	tests/test_brain_core.py	unresolved:
+reference	tests/test_legacy_root_shims.py	brain.py	ambiguous: legacy/root_shims/brain.py,neural_assemblies/nemo/language/emergent/brain.py,neural_assemblies/core/brain.py,neural_assemblies/nemo/core/brain.py
+candidate_orphan	research/experiments/mass_readout_gate_results_raw.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/experiments/recruitment/results_recruitment_shard0of8.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/experiments/recruitment/results_recruitment_shard1of8.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/experiments/recruitment/results_recruitment_shard2of8.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/experiments/recruitment/results_recruitment_shard3of8.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/experiments/recruitment/results_recruitment_shard4of8.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/experiments/recruitment/results_recruitment_shard5of8.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/experiments/recruitment/results_recruitment_shard6of8.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/experiments/recruitment/results_recruitment_shard7of8.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/experiments/seq_a1_fsm_parity_p040_results.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/aligner/word_capacity_ladder.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/aligner/word_capacity_results.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/aligner/word_capacity_results_hashed.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/aligner/word_capacity_results_scheduled.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/aligner/word_capacity_results_scheduled_feat4000x100.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/agreement_exploration_20260218_060224_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/agreement_number_20260217_190403.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/agreement_number_20260217_190852.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/agreement_number_20260217_191250.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/agreement_number_20260217_191647.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/agreement_number_20260217_192546.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/agreement_number_20260217_193752.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/agreement_number_20260217_194002.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/agreement_number_20260217_194454.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/agreement_number_20260217_195018.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/agreement_number_20260217_195217.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/agreement_number_20260217_195546.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/agreement_number_20260217_195704.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/agreement_number_20260218_005851.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/agreement_number_20260218_010107.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/agreement_number_20260218_010244.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/agreement_number_20260218_010406.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/agreement_number_20260218_010503.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/agreement_number_20260218_060223.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/agreement_number_20260218_060508.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/agreement_number_20260218_060851.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/agreement_number_20260218_121517.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/agreement_number_20260218_121619.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/agreement_number_20260218_121731.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/agreement_number_20260218_121817.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/agreement_number_20260218_121907.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/agreement_number_20260221_203759.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/agreement_violations_20260217_180842.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/agreement_violations_20260217_183723.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/compositional_deep_20260211_004612.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/compositional_deep_20260211_004749.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/compositional_deep_20260211_010236.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/compositional_deep_20260211_010740.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/compositional_generalization_20260209_203519.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/cross_linguistic_20260217_180920.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/developmental_curves_20260210_230904_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/developmental_trajectory_20260217_180643.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/function_word_discovery_20260210_235753.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/garden_path_20260210_232020.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/garden_path_20260210_235401.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/garden_path_20260211_002525.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/garden_path_20260211_010345.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/garden_path_20260211_010813.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/l2_processing_20260217_180633.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/language_syntax_20251129_155811_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/learned_gating_20260211_002809.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/morphological_agreement_20260210_230833.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/multiclause_coordination_20260210_230849_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/n400_amplification_20260211_011310.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/n400_cloze_20260211_133136.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/n400_context_20260211_012458.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/n400_context_20260211_013031.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/n400_context_20260211_013515.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/n400_controls_20260211_131815.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/n400_controls_20260211_132144.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/n400_controls_20260212_113926.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/n400_controls_20260217_180457.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/n400_diagnostic_20260211_004212.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/n400_diagnostic_20260211_004616.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/n400_diagnostic_20260211_004716.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/n400_graded_20260211_133137.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/n400_graded_20260217_180949.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/n400_parameter_sweep_20260211_131909.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/n400_parameter_sweep_20260212_114001.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/n400_pre_kwta_20260211_124000.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/n400_pre_kwta_20260211_124300.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/n400_pre_kwta_20260211_124720.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/n400_pre_kwta_20260212_113859.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/n400_vocab_scaling_20260211_133254.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/n400_vocab_scaling_20260217_181140.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/nemo_benchmark_20260210_231640.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/p600_syntactic_20260211_140623.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/p600_syntactic_20260211_141438.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/p600_syntactic_20260211_175627.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/p600_syntactic_20260211_180235.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/p600_syntactic_20260211_195009.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/p600_syntactic_20260211_195202.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/p600_syntactic_20260211_195615.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/p600_syntactic_20260212_113907.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/p600_syntactic_20260217_180101.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/p600_syntactic_20260217_195815.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/parser_scaling_laws_20260209_204104_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/relative_clauses_20260210_232018.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/relative_clauses_20260210_235354.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/relative_clauses_20260211_002458.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/relative_clauses_20260211_010316.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/relative_clauses_20260211_010720.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/semantic_priming_20260210_232033.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/semantic_priming_20260210_235402.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/applications/structural_ambiguity_20260210_230840.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/biological_validation/biological_parameters_20251128_231133_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/biological_validation/biological_parameters_20251128_231237_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/biological_validation/neural_data_comparison_20251129_155913_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/center_embedded_baseline_20260222_230130_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/center_embedded_baseline_20260223_012035_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/dev_runs/ablate_seed42.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/dev_runs/ablate_seed43.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/dev_runs/ablate_seed44.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/dev_runs/compare_battery_v2.csv		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/dev_runs/compare_battery_v2.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/dev_runs/compare_battery_v2_dev42.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/dev_runs/compare_battery_v3.csv		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/dev_runs/compare_battery_v3.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/dev_runs/compare_battery_v4.csv		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/dev_runs/compare_battery_v4.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/dev_runs/compare_battery_v5.csv		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/dev_runs/compare_battery_v5.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/dev_runs/compare_battery_v5b_seed42.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/dev_runs/compare_dev_only_v2.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/dev_runs/compare_paths_seed42.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/dev_runs/dev_sentences_42.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/freeform_rc_20260222_221420_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/freeform_rc_20260222_223615.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/freeform_rc_20260223_000019_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/freeform_rc_20260223_000253_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/information_theory/coding_capacity_20251128_231126_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/information_theory/coding_capacity_20251128_231237_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/master_summary_20251128_231237.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/memory/capacity_scaling_results_amend4_ref133.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/memory/capacity_scaling_results_amend5_ctl_gated.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/memory/capacity_scaling_results_amend5_g5.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/memory/capacity_scaling_results_amend6_g6_gated133.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/memory/capacity_scaling_results_amend6_s0.3.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/memory/capacity_scaling_results_amend6_s0.4.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/memory/capacity_scaling_results_amend6_s0.6.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/memory/capacity_scaling_results_ctl_T16.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/memory/capacity_scaling_results_ksweep_ctl.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/agreement_attraction_20260222_023338_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/area_self_organization_20260221_213857_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/area_self_organization_20260221_214456_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/area_self_organization_20260221_215521.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/association_20260206_130337.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/association_20260206_135711.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/association_20260206_142212.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/association_20260206_142833.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/association_binding_20251128_230322_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/association_binding_20251128_230356_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/association_binding_20251128_230403_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/association_binding_20251128_230714_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/association_binding_20251128_230730_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/association_binding_20251128_231225_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/association_binding_20260207_161937_full.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/association_chain_20260206_170239.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/binding_exploration_20260221_235841_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/binding_p600_20260222_003337_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/binding_p600_20260222_003745_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/binding_p600_20260222_012517_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/binding_retrieval_20260221_232045_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/binding_retrieval_20260221_232206_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/binding_retrieval_20260221_232423_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/binding_retrieval_20260221_234919_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/binding_retrieval_20260221_235214_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/binding_retrieval_20260221_235350.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/cloze_probability_20260222_030223_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/composed_erp_20260222_003923_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/composed_erp_20260222_012511_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/composed_erp_20260222_014937_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/composed_erp_20260222_020014_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/composed_erp_20260222_020856_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/composed_erp_exploration_20260222_004110_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/composed_erp_exploration_20260222_012732_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/curriculum_ablation_20260222_035503_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/depth_generalization_20260222_035402_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/depth_generalization_20260222_035611_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/developmental_curriculum_20260222_033157_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/developmental_curriculum_20260222_035647_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/developmental_curriculum_20260222_041714_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/diagnose_erp_dynamics_20260222_010608_geometry_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/diagnose_erp_dynamics_20260222_010621_signal_flow_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/diagnose_erp_dynamics_20260222_010629_p600_metrics_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/diagnose_erp_dynamics_20260222_010647_exposure_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/diagnose_erp_dynamics_20260222_010654_settling_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/forward_prediction_20260221_231311_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/forward_prediction_20260221_231404.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/forward_prediction_20260221_234854_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/forward_prediction_exploration_20260221_231854_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/freeform_adj_20260222_160136_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/freeform_adj_20260222_161255.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/freeform_adj_20260222_163832_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/freeform_adj_20260222_221852_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/freeform_adj_20260222_235946_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/freeform_adj_20260223_000602_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/freeform_det_20260222_150342_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/freeform_det_20260222_150901.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/freeform_det_20260222_151059_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/freeform_det_20260222_151253_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/freeform_det_20260222_151514_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/freeform_det_20260222_151646_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/freeform_det_20260222_151804_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/freeform_det_20260222_152237.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/freeform_det_20260222_152429_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/freeform_det_20260222_152543_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/freeform_det_20260222_152725_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/freeform_det_20260222_153403.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/freeform_det_20260222_160229_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/freeform_det_20260222_161355_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/freeform_det_20260222_221656_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/freeform_det_20260222_235909_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/freeform_learner_20260222_131302_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/freeform_learner_20260222_131808.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/freeform_learner_20260222_132445_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/freeform_learner_20260222_133505_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/freeform_learner_20260222_133713_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/freeform_learner_20260222_134015_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/freeform_learner_20260222_134505.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/freeform_learner_20260222_135235_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/freeform_learner_20260222_140604.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/freeform_learner_20260222_141333_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/freeform_learner_20260222_141610_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/freeform_learner_20260222_141759_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/freeform_learner_20260222_142152_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/freeform_learner_20260222_142537.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/freeform_learner_20260222_143031.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/freeform_learner_20260222_143904.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/freeform_learner_20260222_153436_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/freeform_learner_20260222_221543_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/freeform_learner_20260222_235855_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/freeform_learner_20260223_001052_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/freeform_opt_adj_20260222_163457_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/freeform_opt_adj_20260222_164339_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/freeform_opt_adj_20260222_170428.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/freeform_opt_adj_20260222_170449.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/freeform_opt_adj_20260222_222024_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/garden_path_erp_20260222_023128_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/generalization_20260222_030305_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/grammaticality_judgment_20260222_051811_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/grounded_language_20260222_041652_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/incremental_erp_20260222_012535_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/incremental_erp_20260222_020021_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/inhibition_20260206_200256.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/inhibition_20260210_192246_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/integrated_learner_20260222_043703_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/integrated_learner_20260222_043934_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/integrated_learner_20260222_044607_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/integrated_learner_20260222_044913_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/integrated_learner_20260222_045347_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/merge_composition_20251128_230503_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/merge_composition_20251128_230521_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/merge_composition_20251128_230715_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/merge_composition_20251128_230731_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/merge_composition_20251128_231227_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/merge_composition_20260206_145449_full.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/merge_composition_20260206_150119.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/merge_composition_20260207_162041_full.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/online_word_acquisition_20260222_051750_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/p600_informativeness_20260222_051811_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/parameter_robustness_20260222_031430_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/prediction_n400_20260222_003336_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/prediction_n400_20260222_003744_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/projection_20260206_130128.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/projection_20260206_135502.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/projection_convergence_20251128_230228_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/projection_convergence_20251128_230713_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/projection_convergence_20251128_230728_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/projection_convergence_20251128_231224_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/rc_asymmetry_20260222_023233_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/recursive_structure_20260222_020806_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/recursive_structure_20260222_023508_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/recursive_structure_20260222_031536_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/role_discovery_exploration_20260221_225808_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/role_discovery_exploration_20260221_230159_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/role_reuse_20260222_051854_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/role_self_organization_20260221_224933_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/role_self_organization_20260221_225029.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/self_org_exploration_20260221_220649_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/semantic_similarity_20260222_030808_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/semantic_similarity_20260222_030934_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/sentence_generation_20260222_033150_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/subgrammar_decomposition_20260222_035327_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/unified_phenomena_20260222_030824_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/unsupervised_binding_20260222_041626_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/unsupervised_binding_20260222_044036_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/variable_incremental_20260222_020000_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/variable_incremental_20260222_020840_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/variable_length_20260222_015945_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/variable_length_20260222_020831_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/primitives/vocabulary_scaling_20260222_051825_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/sequence/seq_a1_exactness_sweep_results.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/sequence/seq_a1_exactness_sweep_results_materialized.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/sequence/seq_a1_local_regime_results.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/sequence/seq_a1_local_regime_results_materialized.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/sequence/seq_a3_transducer_results.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/sequence/seq_a3_transducer_results_hashed_binomial_stimuli.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/sequence/seq_a3_transducer_results_hashed_s0.05.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/sequence/seq_a3_transducer_results_successor_chain.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/sequence/seq_a3_transducer_results_successor_chain_gap2_g0.3.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/sequence/seq_a3_transducer_results_successor_chain_gap2_g1.0.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/sequence/seq_a3_transducer_results_temporal_chain_gap2.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/sequence/seq_s5_soft_census_results_hashed_amend4_100.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/sequence/seq_s5_soft_census_results_hashed_amend5_p15.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/sequence/seq_s5_soft_census_results_hashed_amend5_p30.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/sequence/seq_s5_soft_census_results_hashed_amend5_p8.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/sequence/seq_s5_soft_census_results_hashed_amend6_s0.0.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/sequence/seq_s5_soft_census_results_hashed_amend6_s0.05.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/sequence/seq_s5_soft_census_results_hashed_amend6_s0.08.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/sequence/seq_s5_soft_census_results_hashed_amend6_s0.1.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/sequence/seq_s5_soft_census_results_hashed_amend7_norm.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/sequence/seq_s5_soft_census_results_hashed_amend7_p20.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/sequence/seq_s5_soft_census_results_hashed_amend7_p24.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/sequence/seq_s5_soft_census_results_hashed_amend8_p20_groups.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/sequence/seq_s5_soft_census_results_hashed_amend8_p28.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/sequence/seq_tm_high_order_results_p20.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/stability/assembly_distinctiveness_20251128_232403_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/stability/assembly_distinctiveness_20260206_124740.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/stability/assembly_distinctiveness_20260206_131609.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/stability/assembly_distinctiveness_20260206_132152.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/stability/assembly_distinctiveness_20260206_135322.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/stability/loop_switching_20260206_174736.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/stability/loop_switching_20260210_194639_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/stability/loop_switching_20260210_194930_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/stability/noise_robustness_20251128_231117_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/stability/noise_robustness_20251128_231235_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/stability/noise_robustness_20260206_154726_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/stability/noise_robustness_20260206_155043_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/stability/noise_robustness_v2_20251128_232255_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/stability/phase_diagram_20251128_230642_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/stability/phase_diagram_20251128_231227_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/stability/phase_diagram_20260206_123808.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/stability/scaling_laws_20251128_231109_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/stability/scaling_laws_20251128_231235_quick.json		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/sweeps/_vis_smoke.csv		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/sweeps/_vis_smoke_fast.csv		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/sweeps/dynamics_n300.csv		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/sweeps/dynamics_n300_two_word.csv		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/sweeps/dynamics_smoke.csv		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/sweeps/explore_checkpoint.csv		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/sweeps/explore_perf2.csv		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/sweeps/explore_perf3.csv		No tracked literal incoming reference; dynamic consumers not ruled out
+candidate_orphan	research/results/sweeps/gpu.csv		No tracked literal incoming reference; dynamic consumers not ruled out
+preregistration	research/notes/aligner/PREREG_alignment_load.md		No resolved literal result link; may be unrun
+preregistration	research/notes/aligner/PREREG_drive_share_remeasure.md		No resolved literal result link; may be unrun
+preregistration	research/notes/aligner/PREREG_unaligned_scenes.md		No resolved literal result link; may be unrun
+preregistration	research/notes/aligner/PREREG_word_capacity.md		No resolved literal result link; may be unrun
+preregistration	research/notes/memory/PREREG_anchor_ratio.md		No resolved literal result link; may be unrun
+preregistration	research/notes/memory/PREREG_capacity_nk_law.md		No resolved literal result link; may be unrun
+preregistration	research/notes/memory/PREREG_capacity_scaling.md		No resolved literal result link; may be unrun
+preregistration	research/notes/memory/PREREG_crosstalk_mechanism.md		No resolved literal result link; may be unrun
+preregistration	research/notes/memory/PREREG_formation_interference.md		No resolved literal result link; may be unrun
+preregistration	research/notes/memory/PREREG_gated_recurrence.md		No resolved literal result link; may be unrun
+preregistration	research/notes/memory/PREREG_recurrent_ratchet.md		No resolved literal result link; may be unrun
+preregistration	research/notes/memory/PREREG_refraction_capacity.md		No resolved literal result link; may be unrun
+preregistration	research/notes/memory/PREREG_refraction_memory.md		No resolved literal result link; may be unrun
+preregistration	research/notes/memory/PREREG_refraction_stability.md		No resolved literal result link; may be unrun
+preregistration	research/notes/memory/PREREG_substrate_ceiling.md		No resolved literal result link; may be unrun
+preregistration	research/notes/sequence/PREREG_agreement_corpus.md		No resolved literal result link; may be unrun
+preregistration	research/notes/sequence/PREREG_context_beyond_bigram.md		No resolved literal result link; may be unrun
+preregistration	research/notes/sequence/PREREG_context_recurrence_off.md		No resolved literal result link; may be unrun
+preregistration	research/notes/sequence/PREREG_next_token_predictive.md		No resolved literal result link; may be unrun
+preregistration	research/notes/sequence/PREREG_s5_norm_init_intervention.md		No resolved literal result link; may be unrun
+preregistration	research/notes/sequence/PREREG_s5_word_problem.md		No resolved literal result link; may be unrun
+preregistration	research/notes/sequence/PREREG_sampler_audit.md		No resolved literal result link; may be unrun
+preregistration	research/notes/sequence/PREREG_seq_a1_fsm_parity.md		No resolved literal result link; may be unrun
+preregistration	research/notes/sequence/PREREG_seq_a3_transducer.md		No resolved literal result link; may be unrun
+preregistration	research/notes/sequence/PREREG_state_refraction.md		No resolved literal result link; may be unrun
+preregistration	research/notes/sequence/PREREG_successor_state.md		No resolved literal result link; may be unrun
+preregistration	research/notes/substrate/PREREG_drive_semantics_v2.md		No resolved literal result link; may be unrun
+preregistration	research/notes/substrate/PREREG_organ_substrate.md		No resolved literal result link; may be unrun
+preregistration	research/notes/substrate/PREREG_theorem_regime.md		No resolved literal result link; may be unrun

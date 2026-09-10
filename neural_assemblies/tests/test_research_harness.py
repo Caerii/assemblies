@@ -106,7 +106,10 @@ class TestItAcceptsWhatItShould:
             arms={"control": _const(0.9), "candidate": _const(0.1)},
             seeds=SEEDS, criteria={},
         )
-        assert res.passed
+        assert not res.passed
+        assert res.verdict == "UNJUDGED"
+        assert res.metrics["auc"].verdict == "UNJUDGED"
+        assert not res.metrics["auc"].failures
         assert "auc" in res.metrics
 
 

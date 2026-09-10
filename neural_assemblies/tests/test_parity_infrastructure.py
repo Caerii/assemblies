@@ -62,10 +62,11 @@ def test_inprocess_verify(protocol_id: str):
     # a discrepancy would be meaningless. Skipping keeps the protocol visible
     # in the run -- deleting it is how a retraction gets quietly forgotten.
     from neural_assemblies.parity.executors import RetractedProtocol
+    from neural_assemblies.programs.colt_mnist_data import DatasetUnavailable
 
     try:
         result = verify_protocol(protocol_id)
-    except RetractedProtocol as exc:
+    except (RetractedProtocol, DatasetUnavailable) as exc:
         pytest.skip(str(exc))
     assert result.passed, f"{protocol_id}: {result.diffs or result.message}"
 

@@ -2,33 +2,33 @@
 
 Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theory --render`; do not edit by hand. Each entry is cited elsewhere by its ID in double brackets. Statuses: PROVED (in the cited source, inside its preconditions), MEASURED (in this repository, in the regime named), EXTENSION (relied on beyond either).
 
-| ID | Status | Claim |
-|----|--------|-------|
-| [`SEQ-TIME-IN-WEIGHTS`](#seq-time-in-weights) | PROVED | Sequence/temporal structure is carried by DIRECTED inter-assembly weights, not by an accumulator or a decaying trace. |
-| [`SEQ-REGIME`](#seq-regime) | PROVED | The sequence theorems ASSUME that a target neuron receives kp >= 3 ln n synapses FROM THE DRIVING ASSEMBLY: with it, the expected drive separates the intended winners from the rest by a margin the concentration bounds can use. |
-| [`SEQ-BETA-WINDOW`](#seq-beta-window) | PROVED | Sequence learning needs beta in a WINDOW: large enough to write a transition in finite presentations, small enough that the assemblies formed on presentation 1 do not move. |
-| [`SEQ-FSM`](#seq-fsm) | PROVED | A finite-state machine is simulable by three areas: input, state, and a CONJUNCTION arc that fires for (state, symbol) and projects to the next state. |
-| [`SEQ-TRANSDUCER`](#seq-transducer) | PROVED | Prediction/output is an FSM with one more area, fired together with the state update during training -- a transducer. |
-| [`SEQ-TM`](#seq-tm) | PROVED | A Turing machine is simulable by an FSM plus three-area tape cycles, about ten areas in total. |
-| [`SEQ-REGIME-CLIFF`](#seq-regime-cliff) | MEASURED | Crossing the kp >= 3 ln n floor is a CLIFF, not a slope: below it recovery is almost never exact and the machine fails; above it every seed runs correctly. |
-| [`SEQ-EXACT-RECOVERY`](#seq-exact-recovery) | MEASURED | The state area is a DISCRETE attractor: k-WTA maps a whole neighbourhood onto exactly one stored assembly in one step. |
-| [`SEQ-TEMPORAL-CARRY`](#seq-temporal-carry) | MEASURED | A transducer whose STATE is its previous arc (state_mode='copy') and whose PREDICTED arc neurons win (the lateral ARC -> ARC fiber's top-k above half its maximum get (1 + g) x drive, g = 1) carries a feature across distractors by local rules alone. |
-| [`ARC-CONJUNCT-EXPOSURE`](#arc-conjunct-exposure) | MEASURED | A conjunction area collapses onto whichever conjunct is exposed more often, unless an opposing force (refraction) is present. |
-| [`REFRACTION-PROPORTIONAL`](#refraction-proportional) | MEASURED | Refraction must charge in proportion to the winner's raw drive. |
-| [`REFRACTION-NEEDS-LOAD`](#refraction-needs-load) | MEASURED | A refracted conjunction area has a CEILING in load M*k/n: above ~1.3 its conjunctions do not fit (10/10 correct at load 1.26, 0/10 at 1.80). |
-| [`REFRACTION-ANTI-MERGING`](#refraction-anti-merging) | MEASURED | A recurrent k-WTA area refracted at HALF beta and read with the refraction bias MASKED holds ~25x the Hebbian ceiling: at n/k = 67 M* ~ 1600-2200 stored assemblies against 64-89 for the control, x34-38 at n/k = 33, >= x13-16 at n/k = 133 (censored). |
-| [`REFRACTION-CANCELS-CONVERGENCE`](#refraction-cancels-convergence) | MEASURED | [RE-MEASURED 2026-09-04 with the selector fixed (1b475fc): the churn above ~0.75 beta stands; the intermediate-strength rows were a selector artefact -- at 0.5 beta the recurrent assembly converges, relocates once when the clip binds (~round 40-60, the registered P2 prediction) and holds; at 0.7 beta most brains no longer converge. |
-| [`AC-CAP`](#ac-cap) | MEASURED | Assembly capacity is EXTENSIVE: about M_max ~ 1.15 n/k distinct assemblies per area. |
-| [`RATE-HETEROGENEITY`](#rate-heterogeneity) | MEASURED | Learning rate is settable PER FIBER and genuinely bites: two fibers into the same area, driven by the same projections, diverge by more than an order of magnitude in weight. |
-| [`DUAL-RATE`](#dual-rate) | EXTENSION | Running fast and slow pathways at once is FUNCTIONALLY useful: a high-beta fiber binds in one shot (episodic) while a low-beta fiber accumulates statistics (semantic), and a system with both does something neither does alone. |
-| [`SEQ-ORGAN-EMBEDS`](#seq-organ-embeds) | MEASURED | A sequence organ runs at its own regime INSIDE a brain whose ambient density is far lower, given per-fiber p. |
-| [`SEQ-STATE-CODE-EMERGENT`](#seq-state-code-emergent) | EXTENSION | The state alphabet can be INDUCED from data rather than assigned. |
-| [`KWTA-TIE-FRAGILE`](#kwta-tie-fragile) | MEASURED | The k-WTA bar is routinely TIED, so anything that perturbs the drive in its last bits -- a change of summation order, of arithmetic, or of tie-break policy -- can change WHICH neurons fire, not merely their order. |
-| [`HEBB-OUTER-PRODUCT`](#hebb-outer-product) | PROVED | The Hebbian co-firing count is a SUM OF RANK-1 OUTER PRODUCTS: count = SUM_t x_{t-1} x_t^T, with x_t the 0/1 winner indicator at round t. |
-| [`DRIVE-SPLIT`](#drive-split) | PROVED | With a Bernoulli 0/1 base B and G[i,j] = chain(1, count[i,j]), the drive splits as 1_S^T (B (.) G) = 1_S^T B + SUM_{i in S, j} B[i,j] D[i,j] where D = G - 1 is nonzero only on potentiated cells. |
-| [`CAP-RATIO`](#cap-ratio) | MEASURED | The assembly-capacity ceiling M* is a function of n/k ALONE, not of n and k separately. |
-| [`CAP-ANCHOR-RATIO`](#cap-anchor-ratio) | MEASURED | The capacity ceiling is set at FORMATION by the ratio of the stimulus anchor to the trained recurrent pull. |
-| [`CAP-CLIFF`](#cap-cliff) | MEASURED | Capacity failure is a CLIFF, not a slope: past the ceiling the assemblies shatter rather than degrading gracefully. |
+| ID | Status | Engine / substrate | Claim |
+|----|--------|--------------------|-------|
+| [`SEQ-TIME-IN-WEIGHTS`](#seq-time-in-weights) | PROVED | Not an empirical entry | Sequence/temporal structure is carried by DIRECTED inter-assembly weights, not by an accumulator or a decaying trace. |
+| [`SEQ-REGIME`](#seq-regime) | PROVED | Not an empirical entry | The sequence theorems ASSUME that a target neuron receives kp >= 3 ln n synapses FROM THE DRIVING ASSEMBLY: with it, the expected drive separates the intended winners from the rest by a margin the concentration bounds can use. |
+| [`SEQ-BETA-WINDOW`](#seq-beta-window) | PROVED | Not an empirical entry | Sequence learning needs beta in a WINDOW: large enough to write a transition in finite presentations, small enough that the assemblies formed on presentation 1 do not move. |
+| [`SEQ-FSM`](#seq-fsm) | PROVED | Not an empirical entry | A finite-state machine is simulable by three areas: input, state, and a CONJUNCTION arc that fires for (state, symbol) and projects to the next state. |
+| [`SEQ-TRANSDUCER`](#seq-transducer) | PROVED | Not an empirical entry | Prediction/output is an FSM with one more area, fired together with the state update during training -- a transducer. |
+| [`SEQ-TM`](#seq-tm) | PROVED | Not an empirical entry | A Turing machine is simulable by an FSM plus three-area tape cycles, about ten areas in total. |
+| [`SEQ-REGIME-CLIFF`](#seq-regime-cliff) | MEASURED | numpy_sparse; sampled arc in the original sweep; materialized reruns require their own artifact provenance | Crossing the kp >= 3 ln n floor is a CLIFF, not a slope: below it recovery is almost never exact and the machine fails; above it every seed runs correctly. |
+| [`SEQ-EXACT-RECOVERY`](#seq-exact-recovery) | MEASURED | mixed: vendored nemo_numpy reference, numpy_sparse sampled/materialized, hashed ArcFSM and soft-census organs; see per-evidence caveats | The state area is a DISCRETE attractor: k-WTA maps a whole neighbourhood onto exactly one stored assembly in one step. |
+| [`SEQ-TEMPORAL-CARRY`](#seq-temporal-carry) | MEASURED | hashed transducer / temporal organ (20 brains per cell) | A transducer whose STATE is its previous arc (state_mode='copy') and whose PREDICTED arc neurons win (the lateral ARC -> ARC fiber's top-k above half its maximum get (1 + g) x drive, g = 1) carries a feature across distractors by local rules alone. |
+| [`ARC-CONJUNCT-EXPOSURE`](#arc-conjunct-exposure) | MEASURED | vendored reference/nemo_numpy (explicit NumPy matrices) | A conjunction area collapses onto whichever conjunct is exposed more often, unless an opposing force (refraction) is present. |
+| [`REFRACTION-PROPORTIONAL`](#refraction-proportional) | MEASURED | vendored reference/nemo_numpy (explicit NumPy matrices) | Refraction must charge in proportion to the winner's raw drive. |
+| [`REFRACTION-NEEDS-LOAD`](#refraction-needs-load) | MEASURED | numpy_sparse, sampled versus explicitly materialized arc; sampled load floor is retracted | A refracted conjunction area has a CEILING in load M*k/n: above ~1.3 its conjunctions do not fit (10/10 correct at load 1.26, 0/10 at 1.80). |
+| [`REFRACTION-ANTI-MERGING`](#refraction-anti-merging) | MEASURED | hashed AssemblyMemory; materialized numpy_sparse mirror with summed stimulus parts (not an identical stimulus protocol) | A recurrent k-WTA area refracted at HALF beta and read with the refraction bias MASKED holds ~25x the Hebbian ceiling: at n/k = 67 M* ~ 1600-2200 stored assemblies against 64-89 for the control, x34-38 at n/k = 33, >= x13-16 at n/k = 133 (censored). |
+| [`REFRACTION-CANCELS-CONVERGENCE`](#refraction-cancels-convergence) | MEASURED | hashed substrate (HashedArea with AreaFiber/StimulusFiber) | [RE-MEASURED 2026-09-04 with the selector fixed (1b475fc): the churn above ~0.75 beta stands; the intermediate-strength rows were a selector artefact -- at 0.5 beta the recurrent assembly converges, relocates once when the clip binds (~round 40-60, the registered P2 prediction) and holds; at 0.7 beta most brains no longer converge. |
+| [`AC-CAP`](#ac-cap) | MEASURED | incompletely recorded: graded-similarity evidence compares explicit, materialized and sampled numpy_sparse; capacity-note run provenance remains unresolved | Assembly capacity is EXTENSIVE: about M_max ~ 1.15 n/k distinct assemblies per area. |
+| [`RATE-HETEROGENEITY`](#rate-heterogeneity) | MEASURED | UNRECORDED: evidence contains numbers but no identifiable run or engine | Learning rate is settable PER FIBER and genuinely bites: two fibers into the same area, driven by the same projections, diverge by more than an order of magnitude in weight. |
+| [`DUAL-RATE`](#dual-rate) | EXTENSION | Not an empirical entry | Running fast and slow pathways at once is FUNCTIONALLY useful: a high-beta fiber binds in one shot (episodic) while a low-beta fiber accumulates statistics (semantic), and a system with both does something neither does alone. |
+| [`SEQ-ORGAN-EMBEDS`](#seq-organ-embeds) | MEASURED | numpy_sparse (original organ-density experiment; sampled-arc provenance limitation) | A sequence organ runs at its own regime INSIDE a brain whose ambient density is far lower, given per-fiber p. |
+| [`SEQ-STATE-CODE-EMERGENT`](#seq-state-code-emergent) | EXTENSION | Not an empirical entry | The state alphabet can be INDUCED from data rather than assigned. |
+| [`KWTA-TIE-FRAGILE`](#kwta-tie-fragile) | MEASURED | torch/CUDA selector prototype; not a Brain-engine conformance claim | The k-WTA bar is routinely TIED, so anything that perturbs the drive in its last bits -- a change of summation order, of arithmetic, or of tie-break policy -- can change WHICH neurons fire, not merely their order. |
+| [`HEBB-OUTER-PRODUCT`](#hebb-outer-product) | PROVED | Not an empirical entry | The Hebbian co-firing count is a SUM OF RANK-1 OUTER PRODUCTS: count = SUM_t x_{t-1} x_t^T, with x_t the 0/1 winner indicator at round t. |
+| [`DRIVE-SPLIT`](#drive-split) | PROVED | Not an empirical entry | With a Bernoulli 0/1 base B and G[i,j] = chain(1, count[i,j]), the drive splits as 1_S^T (B (.) G) = 1_S^T B + SUM_{i in S, j} B[i,j] D[i,j] where D = G - 1 is nonzero only on potentiated cells. |
+| [`CAP-RATIO`](#cap-ratio) | MEASURED | hashed AssemblyMemory / exact count-then-apply path | The assembly-capacity ceiling M* is a function of n/k ALONE, not of n and k separately. |
+| [`CAP-ANCHOR-RATIO`](#cap-anchor-ratio) | MEASURED | hashed AssemblyMemory / capacity-scaling protocol | The capacity ceiling is set at FORMATION by the ratio of the stimulus anchor to the trained recurrent pull. |
+| [`CAP-CLIFF`](#cap-cliff) | MEASURED | hashed AssemblyMemory / exact count-then-apply path | Capacity failure is a CLIFF, not a slope: past the ceiling the assemblies shatter rather than degrading gracefully. |
 
 ## SEQ-TIME-IN-WEIGHTS
 
@@ -116,6 +116,8 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 
 **Status.** MEASURED. **Source.** This repository.
 
+**Engine / substrate.** numpy_sparse; sampled arc in the original sweep; materialized reruns require their own artifact provenance
+
 **Claim.** Crossing the kp >= 3 ln n floor is a CLIFF, not a slope: below it recovery is almost never exact and the machine fails; above it every seed runs correctly.
 
 **Evidence.**
@@ -128,6 +130,8 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 ## SEQ-EXACT-RECOVERY
 
 **Status.** MEASURED. **Source.** This repository.
+
+**Engine / substrate.** mixed: vendored nemo_numpy reference, numpy_sparse sampled/materialized, hashed ArcFSM and soft-census organs; see per-evidence caveats
 
 **Claim.** The state area is a DISCRETE attractor: k-WTA maps a whole neighbourhood onto exactly one stored assembly in one step. Recovery must be EXACT -- 69 of 70 neurons is a failure, not a near-miss -- because the arc amplifies any residual ~8x per step.
 
@@ -152,6 +156,8 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 
 **Status.** MEASURED. **Source.** This repository; PREREG_temporal_memory.md (cells A and B, Amendments 1-2, bars TM-1 to TM-9); the design is the literature's temporal memory (predictive cells win) rebuilt on the refracted-arc transducer.
 
+**Engine / substrate.** hashed transducer / temporal organ (20 brains per cell)
+
 **Claim.** A transducer whose STATE is its previous arc (state_mode='copy') and whose PREDICTED arc neurons win (the lateral ARC -> ARC fiber's top-k above half its maximum get (1 + g) x drive, g = 1) carries a feature across distractors by local rules alone. On the agreement chain corpus it beats a bigram by 0.149 MRR with two distractors between the agreeing words (72% of the oracle gap; twenty fresh seeds replicate +0.148 to the third digit) and by 0.106 with three (60%); the copy state alone carries nothing (-0.002), and reading with the state area empty loses the whole gain (+0.146 full minus blind). MECHANISM AS MEASURED: at a distractor position the arc shares 0.25 of k with a sentence of the same subject number and another distractor, against 0.03 for the other number -- number-specific, distractor-invariant cells; that contrast is already 0.11 at g = 0, so the copy state puts the cells there (a conjunction inherits part of its state conjunct) and predicted-win doubles their share and brings them within the ARC -> OUT readout's reach. ORDER: two twelve-word sequences sharing ten words are continued correctly on 20 of 20 brains by the induced state and by the copy state at 20 presentations (19 of 20 with predicted-win at g = 4), and forgotten past the clip edge c* = ln(20) / ln(1.1) = 31.4 presentations, where the sequence stimuli relocate the arcs.
 
 **Requires.**
@@ -173,6 +179,8 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 
 **Status.** MEASURED. **Source.** This repository; the same law as the role-binding gain result.
 
+**Engine / substrate.** vendored reference/nemo_numpy (explicit NumPy matrices)
+
 **Claim.** A conjunction area collapses onto whichever conjunct is exposed more often, unless an opposing force (refraction) is present.
 
 **Requires.**
@@ -187,6 +195,8 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 
 **Status.** MEASURED. **Source.** This repository.
 
+**Engine / substrate.** vendored reference/nemo_numpy (explicit NumPy matrices)
+
 **Claim.** Refraction must charge in proportion to the winner's raw drive. A constant increment is not an equivalent parameterization: Hebbian growth multiplies drive while a constant grows linearly, so its operating point MOVES with training duration.
 
 **Evidence.**
@@ -197,6 +207,8 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 ## REFRACTION-NEEDS-LOAD
 
 **Status.** MEASURED. **Source.** This repository.
+
+**Engine / substrate.** numpy_sparse, sampled versus explicitly materialized arc; sampled load floor is retracted
 
 **Claim.** A refracted conjunction area has a CEILING in load M*k/n: above ~1.3 its conjunctions do not fit (10/10 correct at load 1.26, 0/10 at 1.80). RE-SCOPED 2026-09-09 (PREREG_sampler_audit.md): the lower edge this entry was named for -- 'below ~0.2 its assemblies never converge' -- was the numpy sampler's; with the arc materialized a 3-conjunction arc is 10/10 correct at every load from 0.04 to 0.60. An arc must be sized so its conjunctions fit; it need not be filled.
 
@@ -213,6 +225,8 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 ## REFRACTION-ANTI-MERGING
 
 **Status.** MEASURED. **Source.** This repository; PREREG_refraction_memory.md (bars R1-R7, N1-N3, Q1-Q4, G1-G6, S8-S9).
+
+**Engine / substrate.** hashed AssemblyMemory; materialized numpy_sparse mirror with summed stimulus parts (not an identical stimulus protocol)
 
 **Claim.** A recurrent k-WTA area refracted at HALF beta and read with the refraction bias MASKED holds ~25x the Hebbian ceiling: at n/k = 67 M* ~ 1600-2200 stored assemblies against 64-89 for the control, x34-38 at n/k = 33, >= x13-16 at n/k = 133 (censored). Both ceilings are functions of n/k ALONE (n/k-matched cells agree within 25%), so refraction multiplies the assembly capacity law [[AC-CAP]] rather than changing its form. The mechanism is ANTI-MERGING, not orthogonalization: the stored assemblies are orthogonal (0.00x chance) only while the area has unvisited neurons; past fill 1.0 they overlap at chance like random subsets, yet remain DISTINCT (1.000) and recoverable from a half cue, where the Hebbian control collapses into hubs (distinct 0.63, overlap 15x chance) long before the area is full. The intrinsic bias vetoes recall (the net readout reads chance): a refracted memory is read through the veto or not at all. Fewer rounds per item raise the ceiling (T = 8 > T = 16) while the items still converge; refraction's benefit requires GRADED stimulus drive. SHAPE OF THE LAW (Amendment 4): in regime (k p >= 3 ln n) the refracted ceiling is ~0.40 (n/k)^2 at n/k = 67 and 133 (6995 at (8000, 60)), doubling exponents 2.1 then 1.8 -- Willshaw-like, not adopted as a power law; the control is ~0.017 (n/k)^2 from n/k = 67 on, so the multiplier is ~23-25x there. Out of regime (k p = 15 < 3 ln n) the cells fall 20-32% below their n/k pairs and do not converge at low load. GATED ROUNDS (Amendment 5): ending an item's rounds at its first repeated winner set under T_max = 8 raises the ceiling by a CONSTANT fraction of n/k: +34% at n/k = 67 (2645 vs 1978) and +24% at 133 (8666 vs 6995), both resolved; at both cells the ceiling sits where items stop converging inside T_max (the fraction converging is a U in load, 0.98 at mid load, 0 at the ceiling); the same gate STARVES the Hebbian control, whose winners settle in ~4 rounds before its memory is written; T_max = 16 under the gate costs the out-of-regime cell 13x. STRENGTH IS A SWITCH, NOT A DIAL (Amendment 6): 0.3, 0.4, 0.5 and 0.6 beta give the same ceiling (1919-1993, one bracket) at n/k = 67 -- the ceiling is the synaptic memory's, refraction only has to prevent merging while it is written; the churn transition is in (0.6, 0.7] beta at T = 8.
 
@@ -237,6 +251,8 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 
 **Status.** MEASURED. **Source.** This repository; PREREG_refraction_capacity.md.
 
+**Engine / substrate.** hashed substrate (HashedArea with AreaFiber/StimulusFiber)
+
 **Claim.** [RE-MEASURED 2026-09-04 with the selector fixed (1b475fc): the churn above ~0.75 beta stands; the intermediate-strength rows were a selector artefact -- at 0.5 beta the recurrent assembly converges, relocates once when the clip binds (~round 40-60, the registered P2 prediction) and holds; at 0.7 beta most brains no longer converge. The transition lies in 0.5-0.7 beta. And BELOW it, with the bias-MASKED readout, a refracted recurrent area at 0.5 beta stored every assembly of the grid (rank-1 1.000 to M = 32, above the bar to 256, pairwise 0.00 x chance) against a Hebbian ceiling of 23.5 -- capacity becomes FILL-limited far above the interference limit; the earlier 'spends the substrate' reading was the defect. Post hoc; a registration is owed. PREREG_refraction_capacity.md.] Refraction at strength s is the anti-Hebbian counterweight on a neuron's own repeated input: raw*(1+beta)^t minus the charged bias leaves net drive growing by (beta - s)*raw per win, so at s = beta it is CONSTANT. A feedforward area needs no convergence force (its input ranking is fixed) and holds; a RECURRENT assembly converges only through rich-get-richer, and above s ~ 0.75 beta it never converges and churns through the whole area -- refraction there is a firing-rate equalizer, and firing-rate homeostasis is incompatible with attractor memory in a recurrent k-WTA area. Below the transition it is the anti-merging force of [[REFRACTION-ANTI-MERGING]]: ~25x the Hebbian ceiling, read with the bias masked.
 
 **Requires.**
@@ -257,6 +273,8 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 
 **Status.** MEASURED. **Source.** This repository (critical-load measurement).
 
+**Engine / substrate.** incompletely recorded: graded-similarity evidence compares explicit, materialized and sampled numpy_sparse; capacity-note run provenance remains unresolved
+
 **Claim.** Assembly capacity is EXTENSIVE: about M_max ~ 1.15 n/k distinct assemblies per area.
 
 **Evidence.**
@@ -268,6 +286,8 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 ## RATE-HETEROGENEITY
 
 **Status.** MEASURED. **Source.** This repository.
+
+**Engine / substrate.** UNRECORDED: evidence contains numbers but no identifiable run or engine
 
 **Claim.** Learning rate is settable PER FIBER and genuinely bites: two fibers into the same area, driven by the same projections, diverge by more than an order of magnitude in weight.
 
@@ -294,6 +314,8 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 
 **Status.** MEASURED. **Source.** This repository.
 
+**Engine / substrate.** numpy_sparse (original organ-density experiment; sampled-arc provenance limitation)
+
 **Claim.** A sequence organ runs at its own regime INSIDE a brain whose ambient density is far lower, given per-fiber p.
 
 **Requires.**
@@ -316,6 +338,8 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 ## KWTA-TIE-FRAGILE
 
 **Status.** MEASURED. **Source.** The base drive is a Bernoulli COUNT, hence integer-valued, so exact ties are the common case rather than an edge case. Measured 5-18 columns tied at the bar per brain at n=4000-50000 (research/experiments/gpu_radix_select_prototype.py). An ulp-level change to a summation once moved sixteen cells of an exact table with no direction to it.
+
+**Engine / substrate.** torch/CUDA selector prototype; not a Brain-engine conformance claim
 
 **Claim.** The k-WTA bar is routinely TIED, so anything that perturbs the drive in its last bits -- a change of summation order, of arithmetic, or of tie-break policy -- can change WHICH neurons fire, not merely their order.
 
@@ -368,6 +392,8 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 
 **Status.** MEASURED. **Source.** Held-out test registered in research/notes/memory/PREREG_capacity_nk_law.md (bar CS1) before the data existed. Holding n/k = 66.67 while n varies four-fold gives M* = 68.8 / 73.1 / 67.6 at n = 4000 / 8000 / 16000 on the exact count-then-apply path (engine-parity verified) -- constant to +/-4%, where any law M* = f(n) predicts ~4x. All three cells uncensored (fill 0.69-0.76), and all inside the band registered before the data existed.
 
+**Engine / substrate.** hashed AssemblyMemory / exact count-then-apply path
+
 **Claim.** The assembly-capacity ceiling M* is a function of n/k ALONE, not of n and k separately.
 
 **Requires.**
@@ -385,6 +411,8 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 
 **Status.** MEASURED. **Source.** This repository; PREREG_formation_interference.md (F2) and PREREG_anchor_ratio.md (A1-A3).
 
+**Engine / substrate.** hashed AssemblyMemory / capacity-scaling protocol
+
 **Claim.** The capacity ceiling is set at FORMATION by the ratio of the stimulus anchor to the trained recurrent pull. Density p and gain beta enter through that ratio, so an excursion in either is undone by a computed change in anchor size.
 
 **Requires.**
@@ -401,6 +429,8 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 ## CAP-CLIFF
 
 **Status.** MEASURED. **Source.** research/experiments/seq_capacity_scaling.py, on the exact count-then-apply path (engine-parity verified). At n=8000, k=60, 16 brains: M=256 gives rank-1 0.938 at pairwise overlap 1.37x chance with every assembly distinct; M=320 gives 0.486; M=384 gives 0.014 at overlap 4.75x. One doubling (256 -> 512) takes rank-1 from 0.938 to 0.000. Ceiling M* = 284 at fill 0.944, uncensored.
+
+**Engine / substrate.** hashed AssemblyMemory / exact count-then-apply path
 
 **Claim.** Capacity failure is a CLIFF, not a slope: past the ceiling the assemblies shatter rather than degrading gracefully.
 

@@ -1,0 +1,10 @@
+{
+  "scope": "literal-reference inventory, not semantic validity or exhaustive dynamic reachability",
+  "tracked_files": 2501,
+  "resolved_edges": 2608,
+  "unresolved_references": 620,
+  "candidate_orphan_results": 344,
+  "preregistrations_without_resolved_result_links": 29,
+  "snapshot": "Tracked files at 3334876, read during the isolated migration; literal references only.",
+  "regenerate": "python -m research.evidence audit"
+}

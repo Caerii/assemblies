@@ -8,6 +8,20 @@ from typing import Tuple
 import numpy as np
 
 
+class DatasetUnavailable(RuntimeError):
+    """A requested real dataset is absent; a synthetic substitute is not evidence."""
+
+
+def require_mnist_dir() -> Path:
+    directory = find_mnist_dir()
+    if directory is None:
+        raise DatasetUnavailable(
+            'MNIST golden requires mnist_train.csv and mnist_test.csv in '
+            'data/mnist (or the reference data directory). Real data is absent; '
+            'synthetic fallback cannot reproduce this golden.')
+    return directory
+
+
 def k_cap(input_arr: np.ndarray, cap_size: int) -> np.ndarray:
     output = np.zeros_like(input_arr)
     if input_arr.ndim == 1:

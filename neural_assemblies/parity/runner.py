@@ -10,7 +10,7 @@ from typing import Any
 
 from .executors import EXECUTORS, verify_against_golden
 from .protocol import Protocol, ProtocolResult
-from .registry import get_protocol, get_protocol_by_claim, list_protocols, resolve_golden_path
+from .registry import get_protocol, get_protocol_by_claim, resolve_golden_path
 from .paths import repo_root
 
 
@@ -52,11 +52,17 @@ def verify_protocol(protocol_id: str) -> ProtocolResult:
         return result
 
     golden = load_golden(proto)
+    if golden.get('metrics', {}).get('data_source') == 'mnist_csv':
+        from neural_assemblies.programs.colt_mnist_data import require_mnist_dir
+        require_mnist_dir()  # refuse before invoking a potentially expensive executor
     metrics = EXECUTORS[protocol_id]()
+    expected_source = golden.get('metrics', {}).get('data_source')
+    if expected_source is not None and metrics.get('data_source') != expected_source:
+        raise ValueError(f'dataset mismatch: expected {expected_source!r}, got {metrics.get("data_source")!r}')
     result.metrics = metrics
     result.golden_metrics = golden.get("metrics", golden.get("regimes", {}))
 
-    if protocol_id == "pnas2020_scaling":
+    if protocol_id in ("pnas2020_scaling", "cross_lang.pnas_scaling"):
         passed, diffs = _verify_pnas_scaling(metrics, golden)
     elif protocol_id == "hoff2026_size_dist":
         passed, diffs = _verify_hoff_smoke(metrics, golden)
@@ -80,16 +86,19 @@ def verify_protocol(protocol_id: str) -> ProtocolResult:
 
 def _verify_pnas_scaling(metrics: dict, golden: dict) -> tuple[bool, dict]:
     diffs = {}
+    checked = 0
     for regime, expected in golden.get("regimes", {}).items():
         actual = metrics.get(regime, {})
-        for key in ("project_persistence", "separate_overlap", "chance_overlap"):
-            if key not in expected:
-                continue
-            if abs(actual.get(key, -1) - expected[key]) > 0.05:
-                diffs[f"{regime}.{key}"] = {
-                    "actual": actual.get(key),
-                    "expected": expected[key],
-                }
+        required = {key: expected[key] for key in
+                    ("project_persistence", "separate_overlap", "chance_overlap")
+                    if key in expected}
+        _, mismatches = verify_against_golden(
+            regime, actual, {"expected": required,
+                             "tolerance": golden.get("thresholds", {}).get("metric_tolerance", 0.05)})
+        checked += len(required)
+        diffs.update({f"{regime}.{key}": value for key, value in mismatches.items()})
+    if not checked:
+        diffs["criteria"] = {"error": "no scaling acceptance criteria"}
     return len(diffs) == 0, diffs
 
 

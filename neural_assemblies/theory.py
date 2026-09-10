@@ -70,10 +70,13 @@ class Result:
     evidence: Sequence[str] = field(default_factory=tuple)
     implemented_by: Sequence[str] = field(default_factory=tuple)
     caveat: str = ""
+    engine: str = ""  # measurement substrate; empty for non-empirical entries
 
     def __str__(self) -> str:
         head = f"[{self.status}] {self.id}: {self.claim}"
         bits = [f"    source: {self.source}"]
+        if self.engine:
+            bits.append(f"    engine: {self.engine}")
         if self.preconditions:
             bits.append("    requires: " + "; ".join(self.preconditions))
         if self.evidence:
@@ -181,6 +184,7 @@ _RESULTS: List[Result] = [
     # ------------------------------------------------- measured in this repo
     Result(
         id="SEQ-REGIME-CLIFF",
+        engine="numpy_sparse; sampled arc in the original sweep; materialized reruns require their own artifact provenance",
         status=Status.MEASURED,
         claim="Crossing the kp >= 3 ln n floor is a CLIFF, not a slope: below it "
               "recovery is almost never exact and the machine fails; above it "
@@ -196,6 +200,7 @@ _RESULTS: List[Result] = [
     ),
     Result(
         id="SEQ-EXACT-RECOVERY",
+        engine="mixed: vendored nemo_numpy reference, numpy_sparse sampled/materialized, hashed ArcFSM and soft-census organs; see per-evidence caveats",
         status=Status.MEASURED,
         claim="The state area is a DISCRETE attractor: k-WTA maps a whole "
               "neighbourhood onto exactly one stored assembly in one step. "
@@ -271,6 +276,7 @@ _RESULTS: List[Result] = [
     ),
     Result(
         id="SEQ-TEMPORAL-CARRY",
+        engine="hashed transducer / temporal organ (20 brains per cell)",
         status=Status.MEASURED,
         claim="A transducer whose STATE is its previous arc (state_mode='copy') "
               "and whose PREDICTED arc neurons win (the lateral ARC -> ARC "
@@ -330,6 +336,7 @@ _RESULTS: List[Result] = [
     ),
     Result(
         id="ARC-CONJUNCT-EXPOSURE",
+        engine="vendored reference/nemo_numpy (explicit NumPy matrices)",
         status=Status.MEASURED,
         claim="A conjunction area collapses onto whichever conjunct is exposed "
               "more often, unless an opposing force (refraction) is present.",
@@ -345,6 +352,7 @@ _RESULTS: List[Result] = [
     ),
     Result(
         id="REFRACTION-PROPORTIONAL",
+        engine="vendored reference/nemo_numpy (explicit NumPy matrices)",
         status=Status.MEASURED,
         claim="Refraction must charge in proportion to the winner's raw drive. "
               "A constant increment is not an equivalent parameterization: "
@@ -358,6 +366,7 @@ _RESULTS: List[Result] = [
     ),
     Result(
         id="REFRACTION-NEEDS-LOAD",
+        engine="numpy_sparse, sampled versus explicitly materialized arc; sampled load floor is retracted",
         status=Status.MEASURED,
         claim="A refracted conjunction area has a CEILING in load M*k/n: "
               "above ~1.3 its conjunctions do not fit (10/10 correct at load "
@@ -388,6 +397,7 @@ _RESULTS: List[Result] = [
     ),
     Result(
         id="REFRACTION-ANTI-MERGING",
+        engine="hashed AssemblyMemory; materialized numpy_sparse mirror with summed stimulus parts (not an identical stimulus protocol)",
         status=Status.MEASURED,
         claim="A recurrent k-WTA area refracted at HALF beta and read with the "
               "refraction bias MASKED holds ~25x the Hebbian ceiling: at n/k = 67 "
@@ -476,6 +486,7 @@ _RESULTS: List[Result] = [
     ),
     Result(
         id="REFRACTION-CANCELS-CONVERGENCE",
+        engine="hashed substrate (HashedArea with AreaFiber/StimulusFiber)",
         status=Status.MEASURED,
         claim="[RE-MEASURED 2026-09-04 with the selector fixed (1b475fc): the "
               "churn above ~0.75 beta stands; the intermediate-strength rows "
@@ -540,6 +551,7 @@ _RESULTS: List[Result] = [
     ),
     Result(
         id="AC-CAP",
+        engine="incompletely recorded: graded-similarity evidence compares explicit, materialized and sampled numpy_sparse; capacity-note run provenance remains unresolved",
         status=Status.MEASURED,
         claim="Assembly capacity is EXTENSIVE: about M_max ~ 1.15 n/k distinct "
               "assemblies per area.",
@@ -552,6 +564,7 @@ _RESULTS: List[Result] = [
 
     Result(
         id="RATE-HETEROGENEITY",
+        engine="UNRECORDED: evidence contains numbers but no identifiable run or engine",
         status=Status.MEASURED,
         claim="Learning rate is settable PER FIBER and genuinely bites: two "
               "fibers into the same area, driven by the same projections, "
@@ -588,6 +601,7 @@ _RESULTS: List[Result] = [
     ),
     Result(
         id="SEQ-ORGAN-EMBEDS",
+        engine="numpy_sparse (original organ-density experiment; sampled-arc provenance limitation)",
         status=Status.MEASURED,
         claim="A sequence organ runs at its own regime INSIDE a brain whose "
               "ambient density is far lower, given per-fiber p.",
@@ -625,6 +639,7 @@ _RESULTS: List[Result] = [
     # ------------------------------------------------- representation algebra
     Result(
         id="KWTA-TIE-FRAGILE",
+        engine="torch/CUDA selector prototype; not a Brain-engine conformance claim",
         status=Status.MEASURED,
         claim="The k-WTA bar is routinely TIED, so anything that perturbs the "
               "drive in its last bits -- a change of summation order, of "
@@ -707,6 +722,7 @@ _RESULTS: List[Result] = [
     ),
     Result(
         id="CAP-RATIO",
+        engine="hashed AssemblyMemory / exact count-then-apply path",
         status=Status.MEASURED,
         claim="The assembly-capacity ceiling M* is a function of n/k ALONE, "
               "not of n and k separately.",
@@ -748,6 +764,7 @@ _RESULTS: List[Result] = [
     ),
     Result(
         id="CAP-ANCHOR-RATIO",
+        engine="hashed AssemblyMemory / capacity-scaling protocol",
         status=Status.MEASURED,
         claim="The capacity ceiling is set at FORMATION by the ratio of the "
               "stimulus anchor to the trained recurrent pull. Density p and "
@@ -776,6 +793,7 @@ _RESULTS: List[Result] = [
     ),
     Result(
         id="CAP-CLIFF",
+        engine="hashed AssemblyMemory / exact count-then-apply path",
         status=Status.MEASURED,
         claim="Capacity failure is a CLIFF, not a slope: past the ceiling the "
               "assemblies shatter rather than degrading gracefully.",
@@ -876,17 +894,20 @@ def render_markdown() -> str:
     by_status: Dict[str, List[Result]] = {}
     for r in _RESULTS:
         by_status.setdefault(r.status, []).append(r)
-    out.append("| ID | Status | Claim |")
-    out.append("|----|--------|-------|")
+    out.append("| ID | Status | Engine / substrate | Claim |")
+    out.append("|----|--------|--------------------|-------|")
     for r in _RESULTS:
         first = r.claim.split(". ")[0].rstrip(".") + "."
-        out.append(f"| [`{r.id}`](#{r.id.lower()}) | {r.status} | {first} |")
+        out.append(f"| [`{r.id}`](#{r.id.lower()}) | {r.status} | {r.engine or 'Not an empirical entry'} | {first} |")
     out.append("")
     for r in _RESULTS:
         out.append(f"## {r.id}")
         out.append("")
         out.append(f"**Status.** {r.status}. **Source.** {r.source}")
         out.append("")
+        if r.engine:
+            out.append(f"**Engine / substrate.** {r.engine}")
+            out.append("")
         out.append(f"**Claim.** {r.claim}")
         out.append("")
         if r.preconditions:

@@ -38,12 +38,12 @@ def resolve_engine(requested: str = "auto", n_hint: int = 0) -> str:
 
     Install GPU stack: ``uv sync --extra gpu`` (CUDA torch on Linux/Windows).
   """
+    if requested and requested != "auto":
+        return requested
+
     explicit = os.environ.get("ASSEMBLIES_ENGINE", "").strip()
     if explicit:
         return explicit
-
-    if requested and requested != "auto":
-        return requested
 
     from neural_assemblies.core.backend import detect_best_engine
     from neural_assemblies.core.engine import ensure_engine, list_engines

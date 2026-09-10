@@ -128,10 +128,14 @@ class MetricResult:
 
     @property
     def passed(self) -> bool:
-        return not self.failures
+        return self.criteria is not None and not self.failures
+
+    @property
+    def verdict(self) -> str:
+        return "UNJUDGED" if self.criteria is None else ("PASS" if self.passed else "FAIL")
 
     def __str__(self) -> str:  # pragma: no cover - display only
-        verdict = "PASS" if self.passed else "FAIL"
+        verdict = self.verdict
         head = (f"{self.metric:12s} {self.control.mean:8.4f}+/-{self.control.ci:<8.4f}"
                 f" -> {self.candidate.mean:8.4f}+/-{self.candidate.ci:<8.4f}"
                 f"  delta {self.delta.mean:+.4f}+/-{self.delta.ci:.4f}"
@@ -148,13 +152,20 @@ class StudyResult:
 
     @property
     def passed(self) -> bool:
-        return all(m.passed for m in self.metrics.values())
+        judged = [m for m in self.metrics.values() if m.criteria is not None]
+        return bool(judged) and all(m.passed for m in judged)
+
+    @property
+    def verdict(self) -> str:
+        if not any(m.criteria is not None for m in self.metrics.values()):
+            return "UNJUDGED"
+        return "PASS" if self.passed else "FAIL"
 
     def __str__(self) -> str:  # pragma: no cover - display only
         lines = [f"study over {len(self.seeds)} seeds {self.seeds} (order={self.order})",
                  f"  {self.provenance}"]
         lines += ["  " + str(m) for m in self.metrics.values()]
-        lines.append(f"  VERDICT: {'PASS' if self.passed else 'FAIL'}")
+        lines.append(f"  VERDICT: {self.verdict}")
         return "\n".join(lines)
 
 
@@ -163,10 +174,9 @@ def _provenance_snapshot() -> tuple:
     fingerprint, stats = "", {}
     try:
         from neural_assemblies.assembly_calculus.emergent.evaluation.sweep import (
-            fingerprint_source_files, get_parser_cache,
+            training_code_fingerprint, get_parser_cache,
         )
-        files = fingerprint_source_files()
-        fingerprint = f"{len(files)}files"
+        fingerprint = training_code_fingerprint()
         stats = dict(get_parser_cache().stats())
     except Exception:                                        # noqa: BLE001
         pass
@@ -241,6 +251,12 @@ def study(
             f"(see [[report-distributions-not-point-estimates]])")
     if order not in ("counterbalance", "as_given"):
         raise ValueError(f"unknown order {order!r}")
+    if len(set(seeds)) != len(seeds):
+        raise ValueError("study seeds must be unique; duplicate seeds are not independent replicates")
+    for metric, crit in (criteria or {}).items():
+        if (crit.above is None and not crit.must_vary and
+                not crit.delta_excludes_zero and crit.allow_decrease):
+            raise ValueError(f"criteria for {metric!r} contain no evaluable condition")
 
     names = list(arms)
     ctrl_name = control or names[0]
@@ -268,6 +284,11 @@ def study(
         k for per_seed in readings.values()
         for vals in per_seed.values() for k in vals
     })
+    if not metric_names:
+        raise ValueError("study arms reported no metrics")
+    absent_criteria = set(criteria or {}) - set(metric_names)
+    if absent_criteria:
+        raise ValueError(f"registered criteria have no reported metrics: {sorted(absent_criteria)}")
     missing = [
         f"{name}/seed {seed}: {sorted(set(metric_names) - set(vals))}"
         for name, per_seed in readings.items()

@@ -2,7 +2,7 @@
 
 The ceiling study closed with "What is NOT established: how any of this scales
 with n", blocked on compute. This runs the sweep on `batched_project_hashed`,
-which trains 16 independent brains at once with a generated connectome and is
+which historically trained 16 independent brains at once with a generated connectome and is
 verified against `numpy_sparse` on all four substrate arms.
 
 PROTOCOL. As registered: the area is inhibited between assemblies, and each
@@ -18,35 +18,28 @@ which is what the engine stores, but its base is generated rather than drawn in
 RNG order. Absolute ceilings are therefore not bit-comparable to that study's
 M* = 41 / 104 at n=2000; the SCALING with n is the deliverable.
 
-    python research/experiments/seq_capacity_scaling.py [--smoke]
+    python -m research.runner capacity-scaling --tag NAME --registration PATH [--smoke]
 
-`--smoke` checks the API only. Its numbers are VOID.
+`--smoke` checks the API only. Its numbers are VOID. Protocol version 2
+records full (arm,n,k,seed) coordinates through the shared runner. Historical
+flat JSON and its automatic slope verdict are not produced by this version.
 """
 from __future__ import annotations
 
-import argparse
-import json
+from dataclasses import asdict, dataclass
 import math
 import os
 import sys
-import time
-
-os.environ.setdefault(
-    "CUDA_HOME",
-    r"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v13.1")
 
 import numpy as np
-import torch
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))))
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from neural_assemblies.core.numpy_engine import _seeding                # noqa: E402
-from neural_assemblies.core.torch_engine._memory import AssemblyMemory   # noqa: E402
 from neural_assemblies.diagnostics import ensemble_from_values          # noqa: E402
-from _substrate import ceiling_from_curve                               # noqa: E402
-from _results import results_path  # noqa: E402
+from research.experiments._substrate import ceiling_from_curve          # noqa: E402
+from research.runner import experiment_parser, run_experiment           # noqa: E402
 
 DEV = "cuda"
 K = 60
@@ -58,16 +51,44 @@ HALF_BAR = 0.50
 DISTINCT_GATE = 3.0
 NS = (1000, 2000, 4000, 8000)
 MS = (8, 16, 32, 64, 128, 256)
-NBRAIN = 16
 RECALL_SAMPLE = 32
-STIM_SIZE = None
-REFRACTED = False
-READOUT = "net"
-CONVERGE = False
-REFRACTED_FACTOR = 1.0
 PAIR_SAMPLE = 200
 ARMS = {"B": dict(norm_init=True, synaptic_scaling=False),
         "G": dict(norm_init=True, synaptic_scaling=True)}
+
+
+@dataclass(frozen=True)
+class CapacityProtocol:
+    checkpoints: tuple[int, ...] = MS
+    p: float = P
+    beta: float = BETA
+    rounds: int = T
+    stim_size: int | None = None
+    refracted: bool = False
+    readout: str = "net"
+    converge: bool = False
+    refracted_factor: float = 1.0
+    w_max: float = W_MAX
+    recall_sample: int = RECALL_SAMPLE
+    pair_sample: int = PAIR_SAMPLE
+
+    def __post_init__(self):
+        if (not self.checkpoints or any(type(m) is not int or m < 2 for m in self.checkpoints)
+                or tuple(sorted(set(self.checkpoints))) != self.checkpoints):
+            raise ValueError("checkpoints must be strictly increasing integers >= 2")
+        if not 0 < self.p <= 1 or not math.isfinite(self.beta) or self.beta < 0:
+            raise ValueError("p must be in (0, 1] and beta finite and nonnegative")
+        if (type(self.rounds) is not int or self.rounds < 1
+                or (self.stim_size is not None and
+                    (type(self.stim_size) is not int or self.stim_size < 1))):
+            raise ValueError("rounds and stimulus size must be positive")
+        if (not math.isfinite(self.w_max) or self.w_max < 1
+                or any(type(v) is not int or v < 1 for v in (self.recall_sample, self.pair_sample))):
+            raise ValueError("weight clip and measurement sample counts must be positive")
+        if not math.isfinite(self.refracted_factor) or self.refracted_factor < 0:
+            raise ValueError("refraction factor must be finite and nonnegative")
+        if self.readout not in {"net", "masked"}:
+            raise ValueError("unknown readout")
 
 
 def to_i32(v):
@@ -75,9 +96,8 @@ def to_i32(v):
     return v - 0x100000000 if v >= 0x80000000 else v
 
 
-def seeds_for(nbrain):
-    return [to_i32(_seeding.fnv1a_pair_seed(42 + b, "A", "A"))
-            for b in range(nbrain)]
+def seeds_for(seeds):
+    return [to_i32(_seeding.fnv1a_pair_seed(seed, "A", "A")) for seed in seeds]
 
 
 def _fill(mem):
@@ -86,7 +106,7 @@ def _fill(mem):
     return mem.fill.cpu().numpy()
 
 
-def run_cell(n, arm, m_max, nbrain, rng):
+def run_cell(n, k, arm, protocol, seeds, rng):
     """Train up to `m_max` assemblies, checkpointing at every M in MS.
 
     The protocol is `AssemblyMemory`: INHIBITED between assemblies, each
@@ -94,34 +114,40 @@ def run_cell(n, arm, m_max, nbrain, rng):
     (`brain.inhibit_areas([AREA])`, then `project({s: [AREA]}, {AREA:
     [AREA]})` x T); the class is the harness's numbers, bit-identical to
     the wrapper sequence this ran on before it (tested)."""
+    import torch
+    from neural_assemblies.core.torch_engine._memory import AssemblyMemory
+
     cfg = ARMS[arm]
-    sd = seeds_for(nbrain)
-    mem = AssemblyMemory(sd, n, K, P, beta=BETA, w_max=W_MAX, rounds=T,
-                         strength=(REFRACTED_FACTOR if REFRACTED else 0.0),
-                         gate=CONVERGE, max_items=m_max, device=DEV, **cfg)
+    sd = seeds_for(seeds)
+    m_max = max(protocol.checkpoints)
+    mem = AssemblyMemory(sd, n, k, protocol.p, beta=protocol.beta,
+                         w_max=protocol.w_max, rounds=protocol.rounds,
+                         strength=(protocol.refracted_factor if protocol.refracted else 0.0),
+                         gate=protocol.converge, max_items=m_max, device=DEV, **cfg)
     stored, used = [], []
     out = {}
     for a in range(m_max):
-        ss = [to_i32(_seeding.fnv1a_pair_seed(42 + b, f"s{a}", "A"))
-              for b in range(nbrain)]
-        stored.append(mem.store(ss, stim_size=(STIM_SIZE or K)))
-        if CONVERGE:
+        ss = [to_i32(_seeding.fnv1a_pair_seed(seed, f"s{a}", "A")) for seed in seeds]
+        stored.append(mem.store(ss, stim_size=(protocol.stim_size or k)))
+        if protocol.converge:
             used.append(mem.rounds_used.clone())
         M = a + 1
-        if M in MS:
-            out[M] = measure(n, arm, mem, stored, nbrain, rng)
-            if CONVERGE:
+        if M in protocol.checkpoints:
+            out[M] = measure(n, arm, mem, stored, len(seeds), rng, protocol)
+            if protocol.converge:
                 # Amendment 5, G3: rounds spent per item since the last
                 # checkpoint, and the fraction that converged before T_max
                 u = torch.stack(used).float()                    # [items, B]
                 out[M]["rounds_used"] = u.mean(0).tolist()
-                out[M]["converged"] = (u < T).float().mean(0).tolist()
+                out[M]["converged"] = (u < protocol.rounds).float().mean(0).tolist()
                 used.clear()
     return out
 
 
 def _set_hash(X):
     """One int64 per winner set, order-canonical. `X` is [M, B, K] SORTED."""
+    import torch
+
     pos = torch.arange(X.shape[2], device=X.device,
                        dtype=torch.int64).view(1, 1, -1)
     z = (X * 0x9E3779B97F4A7C15) ^ (pos * 0xBF58476D1CE4E5B9)
@@ -138,6 +164,8 @@ def _overlaps(Ks, ia, ib):
     one set in the other and a gather confirms equality. Winners are distinct
     within a set, so no de-duplication is needed.
     """
+    import torch
+
     A, Bv = Ks[ia], Ks[ib]                          # [P, B, K]
     K = Ks.shape[2]
     idx = torch.searchsorted(A.contiguous(), Bv.contiguous()).clamp_(max=K - 1)
@@ -145,7 +173,7 @@ def _overlaps(Ks, ia, ib):
     return hit.sum(2).float() / K                   # [P, B]
 
 
-def measure(n, arm, mem, stored, nbrain, rng):
+def measure(n, arm, mem, stored, nbrain, rng, protocol):
     """All four metrics on the GPU.
 
     The earlier version did `M x B` `.tolist()` calls for distinctness, a
@@ -154,12 +182,14 @@ def measure(n, arm, mem, stored, nbrain, rng):
     GPU-bound: the kernels cost ~0.09 ms per brain-round and the study was
     paying ~0.65.
     """
+    import torch
+
     M = len(stored)
     St = torch.stack(stored).long()                 # [M, B, K]
     K = St.shape[2]
     Ks = torch.sort(St, dim=2).values                # canonical order
 
-    # -- distinctness: EXACT duplicates, which spread is nearly blind to.
+    # -- distinctness by a 64-bit set hash (possible collisions).
     # Hash each set to an int64, sort along M, count consecutive differences.
     h = _set_hash(Ks)                                # [M, B]
     sh, _ = torch.sort(h, dim=0)
@@ -170,7 +200,7 @@ def measure(n, arm, mem, stored, nbrain, rng):
     # -- pairwise overlap on a sample of pairs
     pw = np.zeros(nbrain)
     if M > 1:
-        npair = min(PAIR_SAMPLE, M * (M - 1) // 2)
+        npair = min(protocol.pair_sample, M * (M - 1) // 2)
         ia = rng.integers(0, M, npair)
         ib = rng.integers(0, M, npair)
         keep = ia != ib
@@ -181,14 +211,14 @@ def measure(n, arm, mem, stored, nbrain, rng):
     pw_x = pw / (K / n)
 
     # -- half-cue rank-1, frozen (the probe equivalent)
-    samp = rng.choice(M, min(RECALL_SAMPLE, M), replace=False)
+    samp = rng.choice(M, min(protocol.recall_sample, M), replace=False)
     off = (torch.arange(nbrain, device=DEV, dtype=torch.int64)
            * n).view(1, nbrain, 1)
     flat = (St + off).reshape(-1)                    # [M*B*K], built once
     hits = torch.zeros(nbrain, dtype=torch.int64, device=DEV)
     for a in samp:
         rec = mem.recall(St[a][:, : K // 2],
-                         masked=(REFRACTED and READOUT == "masked"))
+                         masked=(protocol.refracted and protocol.readout == "masked"))
         mask = torch.zeros(nbrain * n, dtype=torch.bool, device=DEV)
         mask[(rec + off[0]).reshape(-1)] = True
         # ONE gather for all M stored assemblies, instead of M gathers.
@@ -201,9 +231,9 @@ def measure(n, arm, mem, stored, nbrain, rng):
 
 def _fill_at(cells, m_star):
     """rows/n interpolated at M*, in log2(M)."""
-    pts = sorted((M, float(np.mean(cells[M]["fill"]))) for M in cells)
+    pts = sorted((M, ensemble_from_values(cells[M]["fill"]).mean) for M in cells)
     if not pts or m_star is None or m_star <= 0:
-        return float("nan")
+        return None
     if m_star <= pts[0][0]:
         return pts[0][1]
     if m_star >= pts[-1][0]:
@@ -216,181 +246,100 @@ def _fill_at(cells, m_star):
     return pts[-1][1]
 
 
-def gated(cell):
-    r = ensemble_from_values(cell["rank1"])
-    x = ensemble_from_values(cell["pairwise_x"])
-    d = ensemble_from_values(cell["distinct"])
+def gated(cell, seeds):
+    r = ensemble_from_values(cell["rank1"], keys=seeds)
+    x = ensemble_from_values(cell["pairwise_x"], keys=seeds)
+    d = ensemble_from_values(cell["distinct"], keys=seeds)
     ok = (x.high <= DISTINCT_GATE and d.low >= 0.9)
     return (r.mean if ok else 0.0), r, x, d
 
 
-def main():
-    global MS, K, P, BETA
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--smoke", action="store_true")
-    ap.add_argument("--ns", type=str, default=None,
-                    help="comma-separated n values (default: the grid)")
-    ap.add_argument("--ms", type=str, default=None,
-                    help="comma-separated M checkpoints")
-    ap.add_argument("--brains", type=int, default=None)
-    ap.add_argument("--arms", type=str, default=None)
-    ap.add_argument("--p", type=float, default=None,
-                    help="connection probability override (PREREG_crosstalk X1)")
-    ap.add_argument("--beta", type=float, default=None,
-                    help="Hebbian gain override (PREREG_crosstalk X2)")
-    ap.add_argument("--refracted", action="store_true",
-                    help="train with the engine's refracted mode at strength "
-                         "BETA (PREREG_refraction_capacity)")
-    ap.add_argument("--refracted-factor", type=float, default=1.0,
-                    help="refraction strength as a multiple of BETA "
-                         "(Amendment 1 of PREREG_refraction_capacity: the "
-                         "recurrent convergence transition sits at ~0.7-0.8)")
-    ap.add_argument("--readout", choices=("net", "masked"), default="net",
-                    help="refracted readout: 'net' subtracts the bias as the "
-                         "reference does (P0); 'masked' reads the synaptic "
-                         "memory alone (P1)")
-    ap.add_argument("--rounds", type=int, default=None,
-                    help="rounds per assembly T (PREREG_refraction_memory R5)")
-    ap.add_argument("--stim-size", type=int, default=None,
-                    help="stimulus size override; default k. Anchor-strength "
-                         "arm of PREREG_formation_interference F2")
-    ap.add_argument("--nk", type=str, default=None,
-                    help="explicit n:k pairs, e.g. 4000:60,8000:120")
-    ap.add_argument("--converge", action="store_true",
-                    help="end each item's rounds at convergence, T the "
-                         "ceiling (PREREG_refraction_memory Amendment 5)")
-    ap.add_argument("--tag", type=str, default="",
-                    help="suffix for the results file, so a run does not "
-                         "overwrite the previous one's evidence")
-    ap.add_argument("--ksqrt", action="store_true",
-                    help="set k = round(sqrt(n)) per n, which holds the chance "
-                         "overlap k*k/n at 1 while n varies -- the probe that "
-                         "separates interference-limited from tiling-limited")
-    args = ap.parse_args()
-    ns = (1000, 2000) if args.smoke else NS
-    ms = (4, 8) if args.smoke else MS
-    nb = 4 if args.smoke else NBRAIN
-    if args.ns:
-        ns = tuple(int(x) for x in args.ns.split(","))
-    if args.ms:
-        ms = tuple(int(x) for x in args.ms.split(","))
-    if args.brains:
-        nb = args.brains
-    if args.p is not None:
-        P = args.p
-    if args.beta is not None:
-        BETA = args.beta
-    global STIM_SIZE, REFRACTED, READOUT, REFRACTED_FACTOR, T, CONVERGE
-    CONVERGE = bool(args.converge)
-    if args.stim_size is not None:
-        STIM_SIZE = args.stim_size
-    if args.rounds is not None:
-        T = int(args.rounds)
-    REFRACTED = bool(args.refracted)
-    READOUT = args.readout
-    REFRACTED_FACTOR = float(args.refracted_factor)
-    if REFRACTED:
-        print(f"  REFRACTED strength={BETA * REFRACTED_FACTOR:.4f} "
-              f"(= {REFRACTED_FACTOR} beta) readout={READOUT}")
-    nk = None
-    if args.nk:
-        nk = [tuple(int(v) for v in pair.split(":"))
-              for pair in args.nk.split(",")]
-        ns = [a for a, _ in nk]
-    if args.arms:
-        keep = set(args.arms.split(","))
-        for kk in list(ARMS):
-            if kk not in keep:
-                del ARMS[kk]
-    MS = ms
-    if args.smoke:
-        print("*** SMOKE: API only. THESE NUMBERS ARE VOID. ***")
+def experiment(record):
+    """Evaluate explicitly identified cells; completion leaves adoption UNJUDGED."""
+    parameters = record["parameters"]
+    values = dict(parameters["configuration"])
+    values["checkpoints"] = tuple(values["checkpoints"])
+    protocol = CapacityProtocol(**values)
+    seeds = record["seeds"]
+    results = []
+    for arm in parameters["arms"]:
+        for n, k in parameters["nk"]:
+            # The measurement sample stream is separate from brain identities,
+            # and restarted per cell as in the historical protocol.
+            cells = run_cell(n, k, arm, protocol, seeds,
+                             np.random.default_rng(parameters["measurement_seed"]))
+            curve = [(m, gated(cell, seeds)[0]) for m, cell in sorted(cells.items())]
+            ceiling = ceiling_from_curve(curve, threshold=parameters["half_bar"])
+            fill = _fill_at(cells, ceiling.m_star)
+            results.append({
+                "arm": arm, "n": n, "k": k, "seeds": seeds,
+                "checkpoints": cells,
+                "ensembles": {m: {name: asdict(ensemble_from_values(values, keys=seeds, label=name))
+                                  for name, values in cell.items()}
+                              for m, cell in cells.items()},
+                "ceiling": {"m_star": ceiling.m_star, "supported": bool(ceiling.supported),
+                            "grid_lo": ceiling.lo, "grid_hi": ceiling.hi,
+                            "grid_censored": bool(ceiling.censored),
+                            "interior_points": ceiling.n_interior,
+                            "fill_at_ceiling": fill,
+                            "fill_censored": fill is not None and fill >= 0.95,
+                            "alpha": ceiling.m_star * k / n if ceiling.m_star else None},
+            })
+            print(f"{arm} n={n} k={k}: {ceiling}")
+    return {"cells": results, "verdict": "VOID" if record["mode"] == "smoke" else "UNJUDGED",
+            "fit_status": "not evaluated; fit requires a separately specified estimand and uncertainty protocol"}
 
-    print(f"k={'sqrt(n)' if args.ksqrt else K} p={P} T={T} "
-          f"beta={BETA} w_max={W_MAX} brains={nb}")
-    for i, n in enumerate(ns):
-        kk = (nk[i][1] if nk else
-              (int(round(math.sqrt(n))) if args.ksqrt else K))
-        print(f"  n={n:>6} k={kk:>4} kp={kk*P:.1f} vs floor "
-              f"3ln n={3*math.log(n):.1f}  "
-              f"{'IN REGIME' if kk*P >= 3*math.log(n) else 'OUT OF REGIME'}"
-              f"   k*k/n={kk*kk/n:.2f}")
 
-    res, t0 = {}, time.perf_counter()
-    k_base = K
-    for arm in ARMS:
-        for i, n in enumerate(ns):
-            if nk:
-                K = nk[i][1]
-            else:
-                K = int(round(math.sqrt(n))) if args.ksqrt else k_base
-            rng = np.random.default_rng(1234)
-            try:
-                cells = run_cell(n, arm, max(ms), nb, rng)
-            except RuntimeError as exc:
-                # `batched_project_hashed` REFUSES rather than diverging when
-                # the w_max clip could bind under column scaling. That is a
-                # cell this method cannot measure, not a cell that failed.
-                print(f"    {arm} n={n:>5}  UNMEASURABLE: {exc}")
-                res[f"{arm}/{n}/ceiling"] = dict(
-                    m_star=None, supported=False, fill=float("nan"),
-                    censored=False, unmeasurable=str(exc))
-                continue
-            res[f"{arm}/{n}"] = cells
-            curve = []
-            for M in sorted(cells):
-                g, r, x, d = gated(cells[M])
-                curve.append((M, g))
-                conv = ("" if "rounds_used" not in cells[M] else
-                        f"  rounds {np.mean(cells[M]['rounds_used']):.2f}"
-                        f" conv {np.mean(cells[M]['converged']):.2f}")
-                print(f"    {arm} n={n:>5} M={M:>4}  rank1 {r.mean:.3f} "
-                      f"pw/chance {x.mean:6.2f}  distinct {d.mean:.3f}  "
-                      f"fill {np.mean(cells[M]['fill']):.3f}  gated {g:.3f}{conv}")
-            c = ceiling_from_curve(curve, threshold=HALF_BAR)
-            alpha = (c.m_star * K / n) if c.m_star else float("nan")
-            # CAP3 says rows/n AT THE CEILING, not at the largest M on the
-            # grid. Taking it at max(M) censors every point, because the grid
-            # deliberately runs past the ceiling to bracket it. Interpolated in
-            # log2(M) to match `ceiling_from_curve`'s own interpolation.
-            fill_at = _fill_at(cells, c.m_star)
-            print(f"    {arm} n={n:>5} k={K:>4}  CEILING {c}  "
-                  f"fill@M* {fill_at:.3f}  M*k/n {alpha:.3f}"
-                  f"  {'CENSORED' if fill_at >= 0.95 else 'ok'}")
-            res[f"{arm}/{n}/ceiling"] = dict(
-                m_star=c.m_star, supported=bool(c.supported), k=int(K),
-                alpha=float(alpha),
-                fill=float(fill_at), censored=bool(fill_at >= 0.95))
-    print(f"\n  elapsed {time.perf_counter()-t0:.1f}s")
-
-    print("\n--- CAP2: fit log M* = a + b log n over UNCENSORED n ---")
-    for arm in ARMS:
-        pts = [(n, res[f"{arm}/{n}/ceiling"]) for n in ns
-               if f"{arm}/{n}/ceiling" in res]
-        good = [(n, c["m_star"]) for n, c in pts
-                if c["supported"] and not c["censored"]
-                and c["m_star"] is not None and c["m_star"] > 0]
-        if len(good) < 3:
-            print(f"    {arm}: only {len(good)} uncensored supported n "
-                  f"-- NOT ANSWERED at this k, p. No line is fitted.")
-            continue
-        x = np.log(np.array([g[0] for g in good], dtype=float))
-        y = np.log(np.array([g[1] for g in good], dtype=float))
-        b, a = np.polyfit(x, y, 1)
-        resid = y - (a + b * x)
-        se = (np.sqrt((resid**2).sum() / max(len(x) - 2, 1))
-              / max(np.sqrt(((x - x.mean())**2).sum()), 1e-12))
-        lo, hi = b - 1.96 * se, b + 1.96 * se
-        verdict = ("EXTENSIVE (CI contains 1)" if lo <= 1.0 <= hi
-                   else ("SUBLINEAR" if hi < 1.0 else "SUPERLINEAR"))
-        print(f"    {arm}: b = {b:.3f} [{lo:.3f}, {hi:.3f}] over "
-              f"{len(good)} points -> {verdict}")
-
-    if not args.smoke:
-        out = results_path("memory", f"capacity_scaling_results{args.tag}.json")
-        with open(out, "w") as f:
-            json.dump(res, f, indent=1)
-        print(f"  wrote {out}")
+def main(argv=None):
+    ap = experiment_parser(__doc__, engines=("hashed_assembly_memory",),
+                           default_seeds=tuple(range(42, 62)))
+    ap.add_argument("--registration", required=True,
+                    help="repository path to the registration/amendment for this exact protocol")
+    grid = ap.add_mutually_exclusive_group()
+    grid.add_argument("--ns", help="comma-separated n values at k=60 (or --ksqrt)")
+    grid.add_argument("--nk", help="explicit n:k pairs, including multiple k at the same n")
+    ap.add_argument("--ksqrt", action="store_true")
+    ap.add_argument("--ms", help="comma-separated, increasing M checkpoints")
+    ap.add_argument("--arms", default="B,G")
+    ap.add_argument("--p", type=float, default=P)
+    ap.add_argument("--beta", type=float, default=BETA)
+    ap.add_argument("--rounds", type=int, default=T)
+    ap.add_argument("--stim-size", type=int)
+    ap.add_argument("--refracted", action="store_true")
+    ap.add_argument("--refracted-factor", type=float, default=1.0)
+    ap.add_argument("--readout", choices=("net", "masked"), default="net")
+    ap.add_argument("--converge", action="store_true")
+    args = ap.parse_args(argv)
+    try:
+        if args.nk and args.ksqrt:
+            raise ValueError("--nk already supplies k; do not combine it with --ksqrt")
+        ns = tuple(int(v) for v in args.ns.split(",")) if args.ns else ((1000, 2000) if args.smoke else NS)
+        nk = ([tuple(int(v) for v in pair.split(":")) for pair in args.nk.split(",")]
+              if args.nk else [(n, round(math.sqrt(n)) if args.ksqrt else K) for n in ns])
+        if (not nk or any(len(pair) != 2 or not 2 <= pair[1] <= pair[0] for pair in nk)
+                or len(set(nk)) != len(nk)):
+            raise ValueError("grid needs unique (n,k) pairs with 2 <= k <= n")
+        arms = args.arms.split(",")
+        if not arms or len(set(arms)) != len(arms) or any(a not in ARMS for a in arms):
+            raise ValueError("arms must be a unique subset of B,G")
+        checkpoints = tuple(int(v) for v in args.ms.split(",")) if args.ms else ((4, 8) if args.smoke else MS)
+        config = CapacityProtocol(checkpoints=checkpoints, p=args.p, beta=args.beta,
+                                  rounds=args.rounds, stim_size=args.stim_size,
+                                  refracted=args.refracted, readout=args.readout,
+                                  converge=args.converge, refracted_factor=args.refracted_factor)
+    except ValueError as exc:
+        ap.error(str(exc))
+    path = run_experiment(
+        script=__file__, protocol="memory.capacity-scaling", protocol_version="2",
+        registration=args.registration, engine=args.engine, seeds=args.seeds, tag=args.tag,
+        smoke=args.smoke, measure=experiment,
+        parameters={"configuration": asdict(config), "nk": nk, "arms": arms,
+                    "arm_settings": {arm: ARMS[arm] for arm in arms},
+                    "measurement_seed": 1234, "half_bar": HALF_BAR,
+                    "distinct_gate": DISTINCT_GATE, "distinct_low_bar": 0.9,
+                    "device": DEV, "distinctness": "64-bit set hash; collisions possible"},
+    )
+    print(f"wrote {path}")
 
 
 if __name__ == "__main__":

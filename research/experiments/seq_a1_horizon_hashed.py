@@ -12,11 +12,10 @@ numpy seeds 1..5 among the hashed 1..20 so a paired reading is possible.
     If it fails: the sampler is the first suspect (the numpy seeds ran on
     the sampled engine; the hashed organ equals the materialized one).
 
-    python research/experiments/seq_a1_horizon_hashed.py [--brains 20] [--smoke]
+    python -m research.runner a1-horizon --tag horizon-01 [--smoke]
 """
 from __future__ import annotations
 
-import argparse
 import inspect
 import json
 import os
@@ -30,14 +29,12 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))))
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-import torch                                                              # noqa: E402
-
 from neural_assemblies.core.brain import Brain                            # noqa: E402
-from neural_assemblies.core.torch_engine._hashed_fsm import HashedArcFSM  # noqa: E402
 from neural_assemblies.programs.mod3_fsm import (                         # noqa: E402
     ALL_STATES, ALL_SYMBOLS, mod3_transition_table)
 from seq_a1_fsm_parity import BETA, K, N_ARC, N_STATE, PRESENTATIONS      # noqa: E402
 from _results import results_path  # noqa: E402
+from research.runner import experiment_parser, run_experiment  # noqa: E402
 
 LENGTH = 2000
 P_VALUES = (0.3, 0.4)
@@ -47,6 +44,7 @@ _HERE = os.path.dirname(os.path.abspath(__file__))
 
 
 def digit_strings(seeds, length):
+    import torch
     out = torch.zeros(len(seeds), length, dtype=torch.int64)
     for b, seed in enumerate(seeds):
         rng = random.Random(seed * 7919)
@@ -55,6 +53,8 @@ def digit_strings(seeds, length):
 
 
 def run_width(seeds, p, length=LENGTH):
+    import torch
+    from neural_assemblies.core.torch_engine._hashed_fsm import HashedArcFSM
     w_max = inspect.signature(Brain).parameters["w_max"].default
     fsm = HashedArcFSM(seeds, ALL_STATES, ALL_SYMBOLS, mod3_transition_table(),
                        n_arc=N_ARC, n_state=N_STATE, k=K, p=p, beta=BETA,
@@ -106,16 +106,12 @@ def gate3(hashed_rows, numpy_rows, p, length=LENGTH):
     return lo, hi, verdicts
 
 
-def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--brains", type=int, default=20)
-    ap.add_argument("--smoke", action="store_true")
-    ap.add_argument("--tag", type=str, default="",
-                    help="suffix on the results file, so a rerun keeps the previous run's evidence")
-    args = ap.parse_args()
-    length = 50 if args.smoke else LENGTH
-    seeds = list(range(1, 1 + (3 if args.smoke else args.brains)))
-    if args.smoke:
+def experiment(record):
+    """Run the registered horizon measurement from resolved runner inputs."""
+    smoke = record['mode'] == 'smoke'
+    length = record['parameters']['length']
+    seeds = record['seeds']
+    if smoke:
         print("*** SMOKE: API only. THESE NUMBERS ARE VOID. ***")
     with open(results_path("sequence", "seq_a1_horizon_results.json")) as fh:
         numpy_rows = json.load(fh)
@@ -141,12 +137,30 @@ def main():
     out["rows"] = rows
     allok = all(ok for p in P_VALUES for _, _, ok in out[f"gate3_p{p}"]["verdicts"])
     print(f"\n  GATE-3 {'PASS' if allok else 'FAIL'}"
-          + ("" if not args.smoke else "  (SMOKE: VOID)"))
-    if not args.smoke:
-        path = results_path("sequence", f"seq_a1_horizon_results_hashed{args.tag}.json")
-        with open(path, "w") as fh:
-            json.dump(out, fh, indent=1)
-        print(f"  wrote {path}")
+          + ("" if not smoke else "  (SMOKE: VOID)"))
+    out['verdict'] = 'VOID' if smoke else ('PASS' if allok else 'FAIL')
+    return out
+
+
+def main(argv=None):
+    ap = experiment_parser(__doc__, engines=('hashed_arc_fsm',),
+                           default_seeds=tuple(range(1, 21)))
+    args = ap.parse_args(argv)
+    path = run_experiment(
+        script=__file__, protocol='sequence.a1-horizon', protocol_version='1',
+        registration='research/notes/sequence/DESIGN_sequence_port.md',
+        engine=args.engine, seeds=args.seeds, tag=args.tag, smoke=args.smoke,
+        minimum_study_seeds=20,
+        input_artifacts=('research/results/sequence/seq_a1_horizon_results.json',),
+        parameters=dict(length=50 if args.smoke else LENGTH, p_values=P_VALUES,
+                        n_arc=N_ARC, n_state=N_STATE, k=K, beta=BETA,
+                        presentations=PRESENTATIONS, strength=STRENGTH,
+                        norm_init=False,
+                        w_max=inspect.signature(Brain).parameters['w_max'].default,
+                        comparison='historical sampled numpy; not valid sequence evidence'),
+        measure=experiment,
+    )
+    print(f'  wrote {path}')
 
 
 if __name__ == "__main__":

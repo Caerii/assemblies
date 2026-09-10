@@ -10,7 +10,7 @@ import os
 import time
 from pathlib import Path
 from dataclasses import dataclass, field
-from typing import Dict, FrozenSet, List, Optional, Set, Tuple, TYPE_CHECKING
+from typing import Dict, List, Optional, Set, Tuple, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from ..parser import EmergentParser
@@ -152,8 +152,10 @@ def training_code_fingerprint() -> str:
     thing measured was not the thing under test. Both are silent, and both
     produce a plausible number rather than an error.
 
-    Hashes size and mtime rather than contents -- enough to notice an edit,
-    cheap enough to run on every lookup. Set ``ASSEMBLIES_IGNORE_CODE_FINGERPRINT=1``
+    Hashes relative paths and contents, once per process. This detects same-size
+    edits with preserved timestamps and identifies identical source across
+    checkouts. Run from an immutable checkout; restart after source changes.
+    Set ``ASSEMBLIES_IGNORE_CODE_FINGERPRINT=1``
     to opt out when deliberately reusing a backbone across a known-irrelevant
     change.
 
@@ -173,12 +175,13 @@ def training_code_fingerprint() -> str:
     import hashlib
 
     pkg = Path(__file__).resolve().parents[3]
-    h = hashlib.blake2b(digest_size=6)
+    h = hashlib.sha256()
     for rel in fingerprint_source_files():
         p = pkg / rel
         try:
-            st = p.stat()
-            h.update(f"{rel}:{st.st_size}:{int(st.st_mtime)}".encode())
+            content = p.read_bytes()
+            h.update(rel.encode() + b"\0")
+            h.update(hashlib.sha256(content).digest())
         except OSError:
             h.update(f"{rel}:missing".encode())
     _CODE_FINGERPRINT = h.hexdigest()

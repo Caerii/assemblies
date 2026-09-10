@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
+import math
 from typing import Any, Callable, Dict
 
 from neural_assemblies.reference.nemo_numpy import compare_scaffold_vs_simple
@@ -469,13 +469,23 @@ def verify_against_golden(
     th = golden.get("thresholds", {})
     exp = golden.get("expected", {})
     passed = True
+    checked = 0
 
     for key, expected in exp.items():
+        # Older goldens repeat a bound under "expected". Interpret the
+        # suffix as a bound, rather than looking for a fictitious metric.
+        if key.endswith(("_min", "_max")):
+            if key in th and th[key] != expected:
+                diffs[key] = {"error": "conflicting expected and threshold"}
+            th = {**th, key: expected}
+            continue
+        checked += 1
         if key not in metrics:
+            diffs[key] = {"error": "missing required metric", "expected": expected}
             continue
         actual = metrics[key]
         if isinstance(expected, bool):
-            ok = actual == expected
+            ok = actual is expected
         elif isinstance(expected, (int, float)):
             t = tol.get(key, default_tol) if isinstance(tol, dict) else default_tol
             ok = _metrics_close(actual, expected, t)
@@ -486,32 +496,42 @@ def verify_against_golden(
             diffs[key] = {"actual": actual, "expected": expected}
 
     for key, bound in th.items():
-        if key.endswith("_min") and key.replace("_min", "") in metrics:
-            mkey = key.replace("_min", "")
-            actual = metrics[mkey]
-            if actual < bound:
-                passed = False
-                diffs[key] = {"actual": actual, "min": bound}
-        elif key.endswith("_max") and key.replace("_max", "") in metrics:
-            mkey = key.replace("_max", "")
-            actual = metrics[mkey]
-            if actual > bound:
-                passed = False
-                diffs[key] = {"actual": actual, "max": bound}
-        elif key == "metrics_match_tolerance":
+        if key == "metrics_match_tolerance":
             continue
-        elif key in metrics and isinstance(bound, bool):
-            if metrics[key] != bound:
-                passed = False
-                diffs[key] = {"actual": metrics[key], "expected": bound}
+        checked += 1
+        if key.endswith(("_min", "_max")):
+            mkey = key[:-4]
+            actual = metrics.get(mkey)
+            numeric = (
+                isinstance(actual, (int, float)) and not isinstance(actual, bool)
+                and math.isfinite(actual)
+                and isinstance(bound, (int, float)) and not isinstance(bound, bool)
+                and math.isfinite(bound)
+            )
+            ok = numeric and (actual >= bound if key.endswith("_min") else actual <= bound)
+            if not ok:
+                diffs[key] = {"actual": actual, "bound": bound,
+                              "error": "missing, nonfinite, or outside bound"}
+        elif isinstance(bound, bool):
+            if metrics.get(key) is not bound:
+                diffs[key] = {"actual": metrics.get(key), "expected": bound}
+        else:
+            diffs[key] = {"error": "unsupported threshold; needs an explicit comparator"}
 
     for key, gval in gm.items():
         if key in metrics and isinstance(gval, (int, float)):
-            if key not in exp and key not in th:
+            if key not in exp and key not in th and "metrics_match_tolerance" not in th:
                 continue
-            t = tol.get(key, default_tol) if isinstance(tol, dict) else default_tol
+            checked += 1
+            t = th.get("metrics_match_tolerance",
+                       tol.get(key, default_tol) if isinstance(tol, dict) else default_tol)
             if not _metrics_close(metrics[key], gval, t):
                 if key not in diffs:
                     diffs[f"golden.{key}"] = {"actual": metrics[key], "golden": gval}
+        elif isinstance(gval, (int, float)) and "metrics_match_tolerance" in th:
+            checked += 1
+            diffs[f"golden.{key}"] = {"error": "missing required metric"}
 
+    if checked == 0:
+        diffs["criteria"] = {"error": f"{protocol_id}: no evaluable acceptance criteria"}
     return passed and len(diffs) == 0, diffs

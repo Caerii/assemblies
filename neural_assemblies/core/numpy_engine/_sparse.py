@@ -21,9 +21,9 @@ from collections import OrderedDict, defaultdict
 
 
 
-from ..backend import get_xp, to_cpu, to_xp, xp_by_name, xp_name
+from ..backend import to_cpu, xp_by_name, xp_name
 from .._pricing import (
-    area_fiber_activity, candidate_divisor, inverse_indegree,
+    area_fiber_activity,
 )
 from .._homeostasis import (column_scale, refraction_increment,
                             scaling_applies, scaling_setpoint)
@@ -460,6 +460,7 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
 
         # Internal state
         self._areas: Dict[str, SparseAreaState] = {}
+        self._sampled_recurrence_warned = False
         self._stimuli: Dict[str, StimulusState] = {}
 
         # Connectivity: stim_name -> area_name -> Connectome (1-D weights)
@@ -923,7 +924,6 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
         """Select winner indices using area policy (default top-k)."""
         from ...compute.winner_policies import TopKPolicy
 
-        xp = self._xp
         inputs = all_inputs
         if getattr(tgt, "input_noise_std", 0.0) > 0:
             noise = rng.normal(0, tgt.input_noise_std, size=len(inputs))
@@ -1299,6 +1299,19 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
                 num_first_winners=0,
                 num_ever_fired=tgt.w,
             )
+
+        if (target in from_areas and tgt.w < tgt.n
+                and not getattr(self, '_sampled_recurrence_warned', False)):
+            import warnings
+            warnings.warn(
+                f'Recurrent projection into {target!r} uses the sampled numpy connectome. '
+                'Sequence-dynamics numbers are void until rerun materialized or on a '
+                'fixed-connectome engine (numpy_exact or the hashed substrate). '
+                'See research/notes/sequence/PREREG_sampler_audit.md. '
+                'Use Brain.materialize_area before training if materialized semantics are intended.',
+                RuntimeWarning, stacklevel=3,
+            )
+            self._sampled_recurrence_warned = True
 
         # No inputs -> keep assembly unchanged
         if len(from_stimuli) == 0 and len(from_areas) == 0:

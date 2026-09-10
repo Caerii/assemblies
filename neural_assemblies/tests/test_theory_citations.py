@@ -66,6 +66,11 @@ class TestTheoryCitations(unittest.TestCase):
                 self.assertIn(rid, theory.RESULTS,
                               f"{result.id} cites unknown result {rid}")
 
+    def test_measured_results_state_engine_or_explicit_provenance_gap(self):
+        for result in theory.RESULTS.values():
+            if result.status == theory.Status.MEASURED:
+                self.assertTrue(result.engine.strip(), f"{result.id} has no engine provenance")
+
 
 if __name__ == "__main__":
     unittest.main()

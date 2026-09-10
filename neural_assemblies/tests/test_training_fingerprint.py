@@ -20,7 +20,6 @@ test traces a real projection run and asserts every module that actually
 executed is covered by the fingerprint.
 """
 
-import os
 import sys
 from pathlib import Path
 
@@ -181,7 +180,7 @@ def test_fingerprint_is_order_independent(monkeypatch):
 
 
 def test_fingerprint_changes_when_a_covered_file_changes(monkeypatch):
-    """The mechanism, not just the list: touching a covered file must move it.
+    """Changing covered source contents must move the fingerprint.
 
     Guards against the fingerprint silently degrading to a constant -- which
     would make every check above pass while restoring the original bug.
@@ -192,18 +191,17 @@ def test_fingerprint_changes_when_a_covered_file_changes(monkeypatch):
     before = training_code_fingerprint()
 
     target = PKG / "core" / "numpy_engine" / "_seeding.py"
-    st = target.stat()
+    read_bytes = Path.read_bytes
+    original = target.read_bytes()
+    # Simulate an edit without touching engine files or filesystem metadata.
+    monkeypatch.setattr(Path, 'read_bytes', lambda path:
+                        original + b'\n# fingerprint test\n' if path == target
+                        else read_bytes(path))
     monkeypatch.setattr(SW, "_CODE_FINGERPRINT", None)
-    try:
-        # Move mtime forward; the fingerprint hashes size and mtime.
-        os.utime(target, (st.st_atime, st.st_mtime + 120))
-        after = training_code_fingerprint()
-    finally:
-        os.utime(target, (st.st_atime, st.st_mtime))
-        monkeypatch.setattr(SW, "_CODE_FINGERPRINT", None)
+    after = training_code_fingerprint()
 
     assert before != after, (
-        "touching _seeding.py did not change the fingerprint -- the cache "
+        "editing _seeding.py did not change the fingerprint -- the cache "
         "would serve a backbone trained before the edit")
 
 

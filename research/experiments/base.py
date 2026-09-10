@@ -206,13 +206,20 @@ def chance_overlap(k: int, n: int) -> float:
 
 
 def summarize(values: List[float]) -> Dict[str, float]:
-    """Compute mean, SEM, 95% CI, and range across seeds."""
-    arr = np.array(values)
-    n = len(arr)
-    mean = float(np.mean(arr))
-    std = float(np.std(arr, ddof=1)) if n > 1 else 0.0
-    sem = std / np.sqrt(n) if n > 1 else 0.0
-    ci95 = 1.96 * sem
+    """Compatibility shape for the canonical per-seed Student-t ensemble.
+
+    Requires at least three finite values, like diagnostics.ensemble_from_values.
+    Historical artifacts used a normal interval here; they are not rewritten.
+    """
+    from neural_assemblies.diagnostics import ensemble_from_values
+
+    result = ensemble_from_values(values)
+    arr = np.asarray(result.values)
+    n = len(result.values)
+    mean = result.mean
+    std = float(np.std(arr, ddof=1))
+    sem = std / np.sqrt(n)
+    ci95 = result.ci
     return {
         "mean": mean, "std": std, "sem": sem,
         "ci95_lo": mean - ci95, "ci95_hi": mean + ci95,

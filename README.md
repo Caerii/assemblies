@@ -229,25 +229,28 @@ The import name is always `neural_assemblies`.
 
 ```python
 from neural_assemblies.core.brain import Brain
-from neural_assemblies.assembly_calculus import merge, project
+from neural_assemblies.assembly_calculus import project, pattern_complete
 
-b = Brain(p=0.05, save_winners=True, seed=42, engine="numpy_sparse")
-b.add_stimulus("s1", 80)
-b.add_stimulus("s2", 80)
-b.add_area("A1", n=5000, k=80, beta=0.08)
-b.add_area("A2", n=5000, k=80, beta=0.08)
-b.add_area("B", n=5000, k=80, beta=0.08)
+def recovery(beta, seed=1):
+    b = Brain(p=0.1, seed=seed, engine="numpy_exact", norm_init=False)
+    b.add_stimulus("cue", 30)
+    b.add_area("memory", n=1000, k=30, beta=beta)
+    project(b, "cue", "memory", rounds=12, recurrent=True)
+    with b.read_only():
+        _, score = pattern_complete(b, "memory", fraction=0.5, rounds=5, seed=seed)
+    return score
 
-a1 = project(b, "s1", "A1", rounds=8)
-a2 = project(b, "s2", "A2", rounds=8)
-merged = merge(b, "A1", "A2", "B", rounds=5)
-
-print("Source assembly sizes:", len(a1), len(a2))
-print("Merged assembly size:", len(merged))
-print("Merged assembly area:", merged.area)
+print("Learning disabled:", recovery(beta=0))
+print("Recurrent training:", recovery(beta=0.2))
 ```
 
-Run the packaged example:
+This asks whether learned recurrent connections recover a partial cue. The CPU
+engine regenerates a fixed connectome, uses Binomial stimulus counts, and resolves
+ties by lowest neuron index. The null disables learning; `read_only()` prevents
+the probe from changing the brain. This is an instructional demonstration, not
+a preregistered result or a measurement of capacity.
+
+Run the complete example over three paired seeds, with intervals:
 
 ```bash
 uv run python examples/01_basic_assembly_calculus.py

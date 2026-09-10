@@ -43,10 +43,6 @@ import numpy as np
 #: separate 0.125 from 0.375. Trials = items x seeds.
 MIN_TRIALS = 96
 
-#: 95% two-sided t multipliers for small seed counts.
-_T95 = {2: 12.706, 3: 4.303, 4: 3.182, 5: 2.776, 6: 2.571, 7: 2.447,
-        8: 2.365, 9: 2.306, 10: 2.262}
-
 
 # --------------------------------------------------------------------------
 # Readout -- the single sanctioned door between the two index spaces
@@ -500,14 +496,10 @@ def assert_machine_idle(threshold: float = 40.0) -> None:
 # --------------------------------------------------------------------------
 
 def mean_ci(values: Sequence[float]) -> Tuple[float, float]:
-    """Mean and 95% half-width across seeds; half-width nan for n < 2."""
-    n = len(values)
-    if n == 0:
-        return float("nan"), float("nan")
-    if n < 2:
-        return values[0], float("nan")
-    t = _T95.get(n, 1.96)
-    return statistics.mean(values), t * statistics.stdev(values) / (n ** 0.5)
+    """Canonical per-seed mean and Student-t half-width; requires >=3 seeds."""
+    from neural_assemblies.diagnostics import ensemble_from_values
+    result = ensemble_from_values(values)
+    return result.mean, result.ci
 
 
 def report_rate(label: str, hits: int, trials: int, chance: float) -> str:

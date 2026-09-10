@@ -1,0 +1,34 @@
+name: Research contracts
+
+on:
+  pull_request:
+  push:
+    branches: [dev, master]
+
+permissions:
+  contents: read
+
+jobs:
+  cpu-contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: astral-sh/setup-uv@v4
+      - run: uv sync --frozen
+      - name: Reject unsafe research invocations and dead verification
+        run: >-
+          uv run pytest -q
+          neural_assemblies/tests/test_research_contracts.py
+          neural_assemblies/tests/test_research_runner.py
+          neural_assemblies/tests/test_capacity_runner_contract.py
+          neural_assemblies/tests/test_research_harness.py
+          neural_assemblies/tests/test_public_model_boundaries.py
+          neural_assemblies/tests/test_golden_comparator_contract.py
+          neural_assemblies/tests/test_theory_citations.py
+          neural_assemblies/tests/test_methodology_ratchet.py
+          neural_assemblies/tests/test_index_space_ratchet.py
+          neural_assemblies/tests/test_docs_examples_smoke.py

@@ -60,7 +60,7 @@ import random
 import numpy as np
 
 from .assembly import Assembly, overlap
-from ..core.index_spaces import NeuronIds
+from ..core.index_spaces import NeuronIds, to_neuron_ids, validated_indices
 
 
 # ---------------------------------------------------------------------------
@@ -92,9 +92,7 @@ def _snap(brain, area_name) -> Assembly:
     Explicit areas materialise all ``n`` neurons up front, so compact index
     and neuron ID coincide and no remapping is applied.
 
-    The ``int(idx) < len(mapping)`` guard passes through indices past the end
-    of the mapping unchanged.  That should not happen -- a winner always has a
-    compact slot -- so it is a defensive fallback, not a modelled case.
+    Invalid compact indices raise; passing them through would invent a neuron ID.
     """
     area = brain.areas[area_name]
     winners = area.winners
@@ -105,11 +103,7 @@ def _snap(brain, area_name) -> Assembly:
         engine, "get_neuron_id_mapping",
     ) else None
     if mapping is not None and len(mapping) > 0:
-        mapped = np.array(
-            [mapping[int(idx)] if int(idx) < len(mapping) else int(idx)
-             for idx in winners],
-            dtype=np.uint32,
-        )
+        mapped = to_neuron_ids(winners, mapping)
         # THE one-way door between the index spaces: compact -> neuron IDs.
         return Assembly(area_name, NeuronIds(mapped))
     # No mapping table means an EXPLICIT area, where the index already IS the
@@ -200,6 +194,7 @@ def activate_assembly(brain, assembly: Assembly) -> None:
 
     neuron_ids = np.asarray(assembly.winners, dtype=np.uint32)
     area = brain.areas[area_name]
+    neuron_ids = validated_indices(neuron_ids, upper=area.n, label='assembly neuron IDs')
     if area.explicit:
         area.winners = neuron_ids.copy()
         brain._engine_for(area).set_winners(area_name, neuron_ids)
@@ -1001,10 +996,10 @@ def pattern_complete(brain, area, fraction=0.5, rounds=5, seed=None):
         well-trained assemblies.
 
     Caveat on interpreting the score:
-        The kept half of the assembly is *itself* part of the reference, so
-        the arithmetic floor of the returned overlap is ``fraction`` (0.5 by
-        default) even if completion recruits nothing but noise.  Only the
-        excess above ``fraction`` is evidence of attractor dynamics.
+        The initial cue overlaps the reference by ``fraction``, but subsequent
+        winners are free to change: this is not a floor on the final score.
+        Compare against a matched learning-disabled or mechanism-lesioned
+        control before interpreting recovery as evidence of learned recurrence.
 
     Note:
         Because plasticity is on, measuring pattern completion also

@@ -1374,6 +1374,7 @@ class Ensemble:
     values: Tuple[float, ...]
     mean: float
     ci: float          # half-width of the 95% interval
+    keys: Optional[Tuple[Any, ...]] = None  # seed/cell identity, in values order
 
     @property
     def low(self) -> float:
@@ -1414,8 +1415,20 @@ def ensemble(run, seeds: Sequence[int], label: str = "arm") -> Ensemble:
             f"{len(seeds)} seeds cannot support a confidence interval. "
             f"Seed-to-seed sd is routinely as large as the effects measured "
             f"here, so 1-2 seeds is a draw, not a measurement.")
+    _validate_ensemble_keys(seeds, len(seeds))
     return ensemble_from_values([float(run(s)) for s in seeds], label,
                                 keys=seeds)
+
+
+def _validate_ensemble_keys(keys: Sequence[Any], count: int) -> None:
+    if len(keys) != count:
+        raise ValueError("ensemble keys must match the number of values")
+    try:
+        unique = set(keys)
+    except TypeError as exc:
+        raise ValueError("ensemble keys must be hashable seed/cell identities") from exc
+    if len(unique) != len(keys):
+        raise ValueError("ensemble keys must be unique; duplicate seeds are not independent replicates")
 
 
 def _t_interval(vals: Sequence[float]) -> float:
@@ -1445,7 +1458,8 @@ def ensemble_from_values(values: Sequence[float], label: str = "arm",
     `test_methodology_ratchet` exists to stop, so the sanctioned path has to
     cover the parallel case too or the ratchet just pushes work off a cliff.
 
-    `keys` names the cells for the NaN message; it defaults to positions.
+    `keys` records unique seed/cell identities for pairing and error messages.
+    Without keys, values can only be paired positionally with another unkeyed ensemble.
     """
     vals = [float(v) for v in values]
     if len(vals) < 3:
@@ -1453,7 +1467,9 @@ def ensemble_from_values(values: Sequence[float], label: str = "arm",
             f"{len(vals)} seeds cannot support a confidence interval. "
             f"Seed-to-seed sd is routinely as large as the effects measured "
             f"here, so 1-2 seeds is a draw, not a measurement.")
-    keys = list(keys) if keys is not None else list(range(len(vals)))
+    identities = tuple(keys) if keys is not None else None
+    keys = list(identities) if identities is not None else list(range(len(vals)))
+    _validate_ensemble_keys(keys, len(vals))
     bad = [s for s, v in zip(keys, vals) if math.isnan(v)]
     if bad:
         # Refuse LOUDLY rather than let statistics.stdev die with a cryptic
@@ -1468,9 +1484,12 @@ def ensemble_from_values(values: Sequence[float], label: str = "arm",
             f"means the per-seed statistic is UNDEFINED there (constant "
             f"outcomes, empty selection). Handle those seeds explicitly "
             f"-- do not silently filter them.")
+    infinite = [s for s, v in zip(keys, vals) if not math.isfinite(v)]
+    if infinite:
+        raise ValueError(f"ensemble '{label}': non-finite values from seeds {infinite}")
     mean = statistics.mean(vals)
     ci = _t_interval(vals)
-    return Ensemble(label, tuple(vals), mean, ci)
+    return Ensemble(label, tuple(vals), mean, ci, identities)
 
 
 def compare_arms(arms: Dict[str, Any], seeds: Sequence[int],
@@ -1526,10 +1545,10 @@ def paired_delta(a: Ensemble, b: Ensemble, label: str = "delta") -> Ensemble:
     """
     if len(a.values) != len(b.values):
         raise ValueError("paired_delta needs the same seeds in both arms")
+    if a.keys != b.keys:
+        raise ValueError("paired_delta needs the same seed keys in the same order in both arms")
     diffs = [x - y for x, y in zip(a.values, b.values)]
-    mean = statistics.mean(diffs)
-    ci = _t_interval(diffs)
-    return Ensemble(label, tuple(diffs), mean, ci)
+    return ensemble_from_values(diffs, label, keys=a.keys)
 
 
 # --------------------------------------------------------------------------

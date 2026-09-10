@@ -1,0 +1,146 @@
+"""Validate runner artifacts and inventory unresolved historical evidence links.
+
+Run `python -m research.evidence audit` to list candidate orphan results and
+unresolved references. The audit is an inventory, not a validity verdict.
+Run `python -m research.evidence validate PATH` for a runner results file.
+"""
+from __future__ import annotations
+
+import argparse
+from collections import defaultdict
+import json
+from pathlib import Path
+import re
+import subprocess
+
+ROOT = Path(__file__).resolve().parents[1]
+_FILE_REF = re.compile(r'(?<![\w/])(?:[\w.-]+/)*[\w.-]+\.(?:py|md|json|csv|ipynb)(?![\w])')
+
+
+def validate_artifact(path: Path, *, root: Path = ROOT) -> list[str]:
+    """Validate run identity and file edges without mistaking completion for adoption."""
+    errors = []
+    try:
+        payload = json.loads(path.read_text(encoding='utf-8'))
+        record = payload['run']
+        original = json.loads((path.parent / 'run.json').read_text(encoding='utf-8'))
+    except (OSError, ValueError, KeyError, TypeError) as exc:
+        return [f'{path}: unreadable run artifact: {exc}']
+    if not isinstance(record, dict) or record != original:
+        return ['embedded run record differs from the reserved run.json']
+    required = {'schema_version', 'script', 'script_sha256', 'git_commit', 'source_sha256',
+                'registration', 'registration_sha256', 'protocol', 'protocol_version',
+                'engine', 'seeds', 'tag', 'parameters', 'mode', 'scientific_status'}
+    missing = required - record.keys()
+    if missing:
+        return [f'missing run fields: {sorted(missing)}']
+    if record['schema_version'] != 1:
+        errors.append('unsupported run schema version')
+    if any(not isinstance(record[field], str) or not record[field]
+           for field in ('script', 'registration', 'engine', 'protocol', 'protocol_version',
+                         'tag', 'mode', 'scientific_status')):
+        return errors + ['file references and run identities must be nonempty strings']
+    if not re.fullmatch('[a-f0-9]{40}|[a-f0-9]{64}', str(record['git_commit'])):
+        errors.append('git_commit must be a full commit identity')
+    if not isinstance(record['parameters'], dict):
+        errors.append('parameters must be a mapping')
+    if record['engine'] == 'auto':
+        errors.append('engine must be resolved, not auto')
+    if path.parent.name != record['tag'] or path.parent.parent.name != record['protocol']:
+        errors.append('artifact directory does not match protocol and tag')
+    for field in ('script', 'registration'):
+        target = (root / record[field]).resolve()
+        if not target.is_relative_to(root.resolve()) or not target.is_file():
+            errors.append(f'dangling {field} edge: {record[field]}')
+    for field in ('script_sha256', 'source_sha256', 'registration_sha256'):
+        if not re.fullmatch('[a-f0-9]{64}', str(record[field])):
+            errors.append(f'{field} is not a SHA-256 digest')
+    inputs = record.get('input_artifacts', {})
+    if not isinstance(inputs, dict):
+        errors.append('input_artifacts must map file paths to content digests')
+    else:
+        for name, digest in inputs.items():
+            target = (root / name).resolve()
+            if not target.is_relative_to(root.resolve()) or not target.is_file():
+                errors.append(f'dangling input artifact edge: {name}')
+            if not re.fullmatch('[a-f0-9]{64}', str(digest)):
+                errors.append(f'invalid input artifact digest: {name}')
+    seeds = record['seeds']
+    if not isinstance(seeds, list) or any(type(s) is not int for s in seeds):
+        errors.append('seeds must be a list of integer identities')
+    elif len(seeds) < 3 or len(set(seeds)) != len(seeds):
+        errors.append('run needs at least three unique seeds')
+    elif record['mode'] == 'study' and record['engine'].startswith('hashed') and len(seeds) < 20:
+        errors.append('hashed studies need at least twenty unique seeds')
+    expected_status = {'smoke': 'VOID', 'study': 'UNJUDGED'}.get(record['mode'])
+    if expected_status is None or record['scientific_status'] != expected_status:
+        errors.append('run mode and scientific status are inconsistent')
+    if payload.get('status') != 'complete' or not isinstance(payload.get('observations'), dict):
+        errors.append('artifact is not a completed observation record')
+    return errors
+
+
+def audit_history(root: Path = ROOT) -> dict:
+    """Resolve literal references; ambiguous/dynamic names remain review items.
+
+    A candidate orphan has no literal incoming reference in tracked Python or
+    Markdown. This does not establish that no dynamic consumer exists.
+    """
+    names = subprocess.check_output(['git', 'ls-files', '-z'], cwd=root).decode().split('\0')
+    files = {name for name in names if name and (root / name).is_file()}
+    by_basename = defaultdict(list)
+    for name in files:
+        by_basename[Path(name).name].append(name)
+    edges, unresolved = [], []
+    incoming = set()
+    for source in sorted(files):
+        if Path(source).suffix not in {'.md', '.py'}:
+            continue
+        content = (root / source).read_text(encoding='utf-8-sig', errors='replace')
+        for ref in sorted(set(_FILE_REF.findall(content))):
+            candidates = []
+            if ref in files:
+                candidates = [ref]
+            else:
+                target = (root / Path(source).parent / ref).resolve()
+                relative = target.relative_to(root.resolve()).as_posix() if target.is_relative_to(root.resolve()) else ''
+                if relative in files:
+                    candidates = [relative]
+                elif '/' not in ref:
+                    candidates = by_basename.get(ref, [])
+            if len(candidates) == 1:
+                edges.append({'from': source, 'to': candidates[0], 'literal': ref})
+                incoming.add(candidates[0])
+            else:
+                unresolved.append({'from': source, 'literal': ref,
+                                   'reason': 'ambiguous' if candidates else 'unresolved',
+                                   'candidates': candidates})
+    results = sorted(name for name in files if name.startswith('research/')
+                     and Path(name).suffix in {'.json', '.csv'}
+                     and ('/results/' in name or 'result' in Path(name).name))
+    preregs = sorted(name for name in files if Path(name).name.startswith('PREREG_')
+                     and Path(name).suffix == '.md')
+    reports_results = {edge['from'] for edge in edges if edge['to'] in results}
+    return {'scope': 'literal-reference inventory, not semantic validity or exhaustive dynamic reachability',
+            'tracked_files': len(files), 'resolved_edges': edges, 'unresolved_references': unresolved,
+            'candidate_orphan_results': [name for name in results if name not in incoming],
+            'preregistrations_without_resolved_result_links': [name for name in preregs if name not in reports_results]}
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__)
+    commands = parser.add_subparsers(dest='command', required=True)
+    commands.add_parser('audit')
+    validate = commands.add_parser('validate')
+    validate.add_argument('path', type=Path)
+    args = parser.parse_args(argv)
+    if args.command == 'audit':
+        print(json.dumps(audit_history(), indent=2))
+        return 0
+    errors = validate_artifact(args.path)
+    print(json.dumps({'path': str(args.path), 'valid_run_record': not errors, 'errors': errors}, indent=2))
+    return 1 if errors else 0
+
+
+if __name__ == '__main__':
+    raise SystemExit(main())
