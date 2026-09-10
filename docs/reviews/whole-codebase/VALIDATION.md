@@ -2075,3 +2075,49 @@ new recovery API as a numerical reproduction of the old study.
 Specification links, register rendering and both ratchets: 27 passed in 39.78s.
 Changed-Python Ruff and git diff --check passed. No new full-package or standalone
 noise-study execution is claimed for this boundary correction.
+
+
+## Historical noise trial consolidation and raw retention (2026-09-10)
+
+Before editing, captured 27 trials from 5206558: stimulus/autonomous/association
+schedules, three seeds1/2/3, corruption fractions0/.5/1; n60,k6,p.2,beta.1,clip20,
+establishment3 plus the original initial stimulus round, recovery3. Captured each
+projection's arguments and all area winner arrays, every final explicit area/stimulus
+weight-array SHA-256, final outputs and actual engine owners. Scratch before/after
+files are .cache/noise-trial-before.json and .cache/noise-trial-after.json; all 27
+records match exactly. The pre-change fixtures are retained in
+neural_assemblies/tests/data/historical_noise_trials.jsonl and replayed by tests.
+These are development migration fixtures, not registered scientific measurements.
+
+The three functions now share construction, establishment and corruption; the
+single-area schedules differ only in whether the recovery stimulus is present.
+Registration order, initial stimulus rounds, association ordering, original RNG
+draws and learning during recovery are preserved. The injector computes its
+non-winner membership set once instead of rebuilding it per candidate. The default
+primary engine is pinned to its verified numpy_sparse resolution; actual explicit
+areas are owned by numpy_explicit, also checked in each replay.
+
+The outer study now retains exact ordered seed identities and raw values for all
+43 cells: 9 H1,9 H2,9 H3,16 H4. H3 retains both B recovery and A integrity. Parameters
+state primary/area engines, recovery_learning=True and pre_association reference.
+A synthetic outer-runner test verifies every cell and ordered value, without
+rerunning the scientific grid. All 28 focused tests passed in 1.97s; Ruff passed.
+
+The committed 20260206 historical artifact was inspected: its parameters omit seed
+identities/source commit and raw_data is empty. This refactor proves equality with
+the captured current implementation, not reproduction of that older scientific
+artifact. No historical evidence is rewritten or adopted. Shared-runner integration,
+exclusive output storage and a separate frozen-observation registration are still
+required before claiming that the standalone experiment is fully migrated.
+
+The initial specification/register/ratchet run reported 2 failures and 25 passes:
+engine pinning made the old allowance stale, and the refactor exposed one more raw
+index comparison. Comparisons now read canonical Assembly neuron-ID snapshots;
+all 27 original replay cases remain identical. Both obsolete allowances were
+removed (three unpinned constructions and two raw comparisons), not raised. The
+combined replay/retention/ratchet suite then passed 39 tests in 45.72s.
+
+The outer study also rejects invalid or fewer-than-three seed counts before its
+timer or compute methods are accessed. After this guard, all 33 focused tests
+passed in 2.09s. Final Ruff and git diff --check pass. No backend implementation
+changed, so the CUDA suites were not rerun for this CPU research-script change.

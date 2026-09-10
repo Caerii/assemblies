@@ -816,3 +816,22 @@ per-seed and delivered-cue values, name actual backend owners, separate pre/post
 association references, and supply initialized learning/no-dynamics controls. A
 simple replacement of its recovery loop would change what the study measures.
 No standalone-study migration or new scientific adoption occurred in this audit.
+
+
+### Historical noise trial consolidation (2026-09-10)
+
+The three historical trial functions now share brain construction, recurrent
+establishment and corruption helpers; H1/H2 differ by the recovery stimulus
+schedule. H3 retains its original ordering and pre-association references.
+The primary engine is pinned to numpy_sparse; actual explicit area ownership is
+numpy_explicit, verified by replay. Recovery still learns. Results now retain the
+ordered seed identities and values for every cell, with owner/learning/reference
+metadata. The old card's raw_data={} describes the pre-change implementation.
+
+The mutation protocol has not been replaced by observe_recovery. Full shared-runner
+migration, no-overwrite storage and frozen-protocol registration remain open. The
+current implementation's replay fixture does not reconstruct missing historical
+seed/source provenance or certify the old scientific artifacts.
+
+The outer historical study now refuses fewer than three seeds before computation.
+This does not replace the pending shared-runner and scientific-protocol migration.

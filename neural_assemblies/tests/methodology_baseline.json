@@ -201,7 +201,6 @@
     "research/experiments/stability/test_assembly_distinctiveness.py": 2,
     "research/experiments/stability/test_attractor_dynamics.py": 2,
     "research/experiments/stability/test_loop_switching.py": 1,
-    "research/experiments/stability/test_noise_robustness.py": 3,
     "research/experiments/stability/test_phase_diagram.py": 1,
     "research/experiments/stability/test_recurrent_loops.py": 1,
     "research/experiments/stability/test_scaling_laws.py": 1,

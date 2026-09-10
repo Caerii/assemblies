@@ -69,7 +69,6 @@ BASELINE = {
     "neural_assemblies/assembly_calculus/metrics/instability.py": 2,
     "research/experiments/metrics/measurement.py": 2,
     "research/experiments/primitives/test_merge.py": 2,
-    "research/experiments/stability/test_noise_robustness.py": 2,
     "legacy/scripts/simulations/overlap_sim.py": 1,
     "neural_assemblies/nemo/language/emergent/tests/generation/"
     "test_original_pattern_completion.py": 1,

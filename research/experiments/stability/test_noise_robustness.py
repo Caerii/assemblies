@@ -41,7 +41,8 @@ sys.path.insert(0, str(project_root))
 
 import numpy as np
 from dataclasses import dataclass
-from typing import Dict, List, Any
+from numbers import Integral
+from typing import Dict, Any
 from research.experiments.base import (
     ExperimentBase,
     ExperimentResult,
@@ -52,6 +53,7 @@ from research.experiments.base import (
 )
 
 from neural_assemblies.core.brain import Brain
+from neural_assemblies.assembly_calculus import Assembly
 
 N_SEEDS = 10
 
@@ -79,7 +81,8 @@ def inject_noise(
 
     noisy = winners.copy()
     replace_idx = rng.choice(k, n_replace, replace=False)
-    non_winners = np.array([i for i in range(n_neurons) if i not in set(winners.tolist())])
+    winner_set = set(winners.tolist())
+    non_winners = np.array([i for i in range(n_neurons) if i not in winner_set])
     new_neurons = rng.choice(non_winners, n_replace, replace=False)
     noisy[replace_idx] = new_neurons.astype(np.uint32)
     return noisy
@@ -88,111 +91,64 @@ def inject_noise(
 # -- Core trial runners --------------------------------------------------------
 
 
-def run_stimulus_recovery_trial(
-    cfg: NoiseConfig, noise_frac: float, seed: int,
-) -> float:
-    """
-    Establish via stim+self, inject noise, recover via stim+self.
-    Returns final overlap with trained assembly.
-    """
-    b = Brain(p=cfg.p, seed=seed, w_max=cfg.w_max)
-    b.add_area("A", cfg.n, cfg.k, cfg.beta, explicit=True)
-    b.add_stimulus("s", cfg.k)
+def _new_trial_brain(cfg, seed, areas, stimuli):
+    b = Brain(p=cfg.p, seed=seed, w_max=cfg.w_max, engine="numpy_sparse")
+    for area in areas:
+        b.add_area(area, cfg.n, cfg.k, cfg.beta, explicit=True)
+    for stimulus in stimuli:
+        b.add_stimulus(stimulus, cfg.k)
+    return b
 
-    # Establish
-    b.project({"s": ["A"]}, {})
+
+def _establish(b, cfg, area, stimulus):
+    """Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-historical-noise-study"""
+    inputs = {stimulus: [area]}
+    b.project(inputs, {})
     for _ in range(cfg.establish_rounds):
-        b.project({"s": ["A"]}, {"A": ["A"]})
-    trained = np.array(b.areas["A"].winners, dtype=np.uint32)
+        b.project(inputs, {area: [area]})
+    return Assembly.from_area(b, area).neuron_ids.copy()
 
-    # Inject noise
-    rng = np.random.default_rng(seed + 77777)
-    noisy = inject_noise(trained, cfg.n, noise_frac, rng)
-    b.areas["A"].winners = noisy
 
-    # Recovery via stim+self
+def _corrupt(b, cfg, area, trained, fraction, seed):
+    b.areas[area].winners = inject_noise(trained, cfg.n, fraction, np.random.default_rng(seed + 77777))
+
+
+def _single_area_trial(cfg, noise_frac, seed, *, stimulus_driven):
+    """Historical learning-on-recovery schedule; not the frozen recovery API."""
+    b = _new_trial_brain(cfg, seed, ('A',), ('s',))
+    trained = _establish(b, cfg, 'A', 's')
+    _corrupt(b, cfg, 'A', trained, noise_frac, seed)
+    inputs = {'s': ['A']} if stimulus_driven else {}
     for _ in range(cfg.recovery_rounds):
-        b.project({"s": ["A"]}, {"A": ["A"]})
+        b.project(inputs, {'A': ['A']})
+    return measure_overlap(trained, Assembly.from_area(b, 'A').neuron_ids)
 
-    return measure_overlap(trained, np.array(b.areas["A"].winners, dtype=np.uint32))
+
+def run_stimulus_recovery_trial(cfg: NoiseConfig, noise_frac: float, seed: int) -> float:
+    """Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-historical-noise-study"""
+    return _single_area_trial(cfg, noise_frac, seed, stimulus_driven=True)
 
 
-def run_autonomous_recovery_trial(
-    cfg: NoiseConfig, noise_frac: float, seed: int,
-) -> float:
+def run_autonomous_recovery_trial(cfg: NoiseConfig, noise_frac: float, seed: int) -> float:
+    """Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-historical-noise-study"""
+    return _single_area_trial(cfg, noise_frac, seed, stimulus_driven=False)
+
+
+def run_association_recovery_trial(cfg: NoiseConfig, noise_frac: float, seed: int) -> Dict[str, float]:
+    """Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-historical-noise-study
+
+    Retains the historical PRE-association references and learning during recovery.
     """
-    Establish via stim+self, inject noise, recover via self-only.
-    Returns final overlap with trained assembly.
-    """
-    b = Brain(p=cfg.p, seed=seed, w_max=cfg.w_max)
-    b.add_area("A", cfg.n, cfg.k, cfg.beta, explicit=True)
-    b.add_stimulus("s", cfg.k)
-
-    # Establish
-    b.project({"s": ["A"]}, {})
+    b = _new_trial_brain(cfg, seed, ('A', 'B'), ('sa', 'sb'))
+    trained_a = _establish(b, cfg, 'A', 'sa')
+    trained_b = _establish(b, cfg, 'B', 'sb')
     for _ in range(cfg.establish_rounds):
-        b.project({"s": ["A"]}, {"A": ["A"]})
-    trained = np.array(b.areas["A"].winners, dtype=np.uint32)
-
-    # Inject noise
-    rng = np.random.default_rng(seed + 77777)
-    noisy = inject_noise(trained, cfg.n, noise_frac, rng)
-    b.areas["A"].winners = noisy
-
-    # Recovery via self-only (autonomous)
+        b.project({'sa': ['A'], 'sb': ['B']}, {'A': ['B']})
+    _corrupt(b, cfg, 'B', trained_b, noise_frac, seed)
     for _ in range(cfg.recovery_rounds):
-        b.project({}, {"A": ["A"]})
-
-    return measure_overlap(trained, np.array(b.areas["A"].winners, dtype=np.uint32))
-
-
-def run_association_recovery_trial(
-    cfg: NoiseConfig, noise_frac: float, seed: int,
-) -> Dict[str, float]:
-    """
-    Establish A and B via stim+self, associate via co-stimulation,
-    corrupt B, recover via A->B projection.
-    Returns B recovery overlap and A integrity.
-    """
-    b = Brain(p=cfg.p, seed=seed, w_max=cfg.w_max)
-    b.add_area("A", cfg.n, cfg.k, cfg.beta, explicit=True)
-    b.add_area("B", cfg.n, cfg.k, cfg.beta, explicit=True)
-    b.add_stimulus("sa", cfg.k)
-    b.add_stimulus("sb", cfg.k)
-
-    # Establish A via stim+self
-    b.project({"sa": ["A"]}, {})
-    for _ in range(cfg.establish_rounds):
-        b.project({"sa": ["A"]}, {"A": ["A"]})
-    trained_a = np.array(b.areas["A"].winners, dtype=np.uint32)
-
-    # Establish B via stim+self
-    b.project({"sb": ["B"]}, {})
-    for _ in range(cfg.establish_rounds):
-        b.project({"sb": ["B"]}, {"B": ["B"]})
-    trained_b = np.array(b.areas["B"].winners, dtype=np.uint32)
-
-    # Associate via co-stimulation: A->B
-    for _ in range(cfg.establish_rounds):
-        b.project({"sa": ["A"], "sb": ["B"]}, {"A": ["B"]})
-
-    # Corrupt B
-    rng = np.random.default_rng(seed + 77777)
-    noisy_b = inject_noise(trained_b, cfg.n, noise_frac, rng)
-    b.areas["B"].winners = noisy_b
-
-    # Recovery: project A->B (stimulus keeps A intact)
-    for _ in range(cfg.recovery_rounds):
-        b.project({"sa": ["A"]}, {"A": ["B"]})
-
-    b_recovery = measure_overlap(
-        trained_b, np.array(b.areas["B"].winners, dtype=np.uint32)
-    )
-    a_intact = measure_overlap(
-        trained_a, np.array(b.areas["A"].winners, dtype=np.uint32)
-    )
-
-    return {"b_recovery": b_recovery, "a_intact": a_intact}
+        b.project({'sa': ['A']}, {'A': ['B']})
+    return {'b_recovery': measure_overlap(trained_b, Assembly.from_area(b, 'B').neuron_ids),
+            'a_intact': measure_overlap(trained_a, Assembly.from_area(b, 'A').neuron_ids)}
 
 
 # -- Main experiment -----------------------------------------------------------
@@ -219,6 +175,9 @@ class NoiseRobustnessExperiment(ExperimentBase):
         n_seeds: int = N_SEEDS,
         **kwargs,
     ) -> ExperimentResult:
+        """Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-historical-noise-study"""
+        if isinstance(n_seeds, bool) or not isinstance(n_seeds, Integral) or n_seeds < 3:
+            raise ValueError('historical study summaries require at least three integer seed identities')
         self._start_timer()
         seeds = list(range(n_seeds))
 
@@ -236,6 +195,7 @@ class NoiseRobustnessExperiment(ExperimentBase):
         self.log("=" * 60)
 
         metrics: Dict[str, Any] = {}
+        raw_data = {"seeds": [self.seed + s for s in seeds], "cells": []}
 
         # ================================================================
         # H1: Stimulus-Driven Recovery
@@ -254,6 +214,7 @@ class NoiseRobustnessExperiment(ExperimentBase):
                 "test_vs_chance": ttest_vs_null(vals, null),
             }
             h1_results.append(row)
+            raw_data["cells"].append(dict(arm="h1", n=n, k=k, noise_frac=nf, values=vals))
 
             self.log(
                 f"  noise={nf:.1f}: "
@@ -280,6 +241,7 @@ class NoiseRobustnessExperiment(ExperimentBase):
                 "test_vs_chance": ttest_vs_null(vals, null),
             }
             h2_results.append(row)
+            raw_data["cells"].append(dict(arm="h2", n=n, k=k, noise_frac=nf, values=vals))
 
             self.log(
                 f"  noise={nf:.1f}: "
@@ -310,6 +272,8 @@ class NoiseRobustnessExperiment(ExperimentBase):
                 "test_vs_chance": ttest_vs_null(b_vals, null),
             }
             h3_results.append(row)
+            raw_data["cells"].append(dict(arm="h3", n=n, k=k, noise_frac=nf,
+                                           values={"b_recovery": b_vals, "a_intact": a_vals}))
 
             self.log(
                 f"  noise={nf:.1f}: "
@@ -348,6 +312,7 @@ class NoiseRobustnessExperiment(ExperimentBase):
                     "test_vs_chance": ttest_vs_null(vals, null_h4),
                 }
                 noise_entries.append(entry)
+                raw_data["cells"].append(dict(arm="h4", n=n_val, k=k_val, noise_frac=nf, values=vals))
 
             h4_results.append({
                 "n": n_val,
@@ -374,9 +339,11 @@ class NoiseRobustnessExperiment(ExperimentBase):
                 "recovery_rounds": cfg.recovery_rounds,
                 "noise_fracs": noise_fracs,
                 "n_seeds": n_seeds,
+                "primary_engine": "numpy_sparse", "area_engine": "numpy_explicit",
+                "recovery_learning": True, "association_reference": "pre_association",
             },
             metrics=metrics,
-            raw_data={},
+            raw_data=raw_data,
             duration_seconds=duration,
         )
 

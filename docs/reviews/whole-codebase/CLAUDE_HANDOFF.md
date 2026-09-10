@@ -1217,3 +1217,20 @@ See [validation](VALIDATION.md#recovery-observation-construction-invariant-2026-
 The standalone historical noise study now has a complete source-derived card;
 it retains learning during recovery and drops raw per-seed observations. Its
 migration remains distinct from the package's new frozen-observation controls.
+
+
+## Historical noise trial consolidation (2026-09-10)
+
+Consolidated the three standalone trial schedules while preserving their historical
+learning behavior and pre-association references. All 27 pre-change replay cases
+match complete schedules, winner trajectories, outputs, final weight digests and
+engine ownership. The study now retains per-seed values for every one of its 43
+cells, and names its primary/area engines and recovery/reference semantics.
+See [validation and the remaining historical provenance limitation](VALIDATION.md#historical-noise-trial-consolidation-and-raw-retention-2026-09-10).
+This is a numerically checked consolidation, not yet full shared-runner migration
+or scientific validation of the older artifacts. The focused suite passed 28 tests.
+
+Final checks: 39 replay/retention/ratchet tests passed, followed by 33 focused tests
+including the new minimum-seed guard. Raw comparisons use canonical stable-ID
+snapshots. Both obsolete ratchet allowances were removed; none were raised.
+No backend code or historical scientific artifact changed.
