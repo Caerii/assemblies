@@ -1,5 +1,6 @@
 """Shared population registration contract, independent of numerical storage."""
-from numbers import Integral
+import math
+from numbers import Integral, Real
 
 
 def validate_area_registration(name, n, k, *, existing=(), reserved=()) -> tuple[int, int]:
@@ -42,3 +43,16 @@ def validate_stimulus_registration(name, size, *, existing=(), reserved=()) -> i
     if isinstance(size, bool) or not isinstance(size, Integral) or not 0 <= size <= 2**32:
         raise ValueError("stimulus size must be a nonboolean integer in [0, 2**32]")
     return int(size)
+
+
+def validate_input_noise(std) -> float:
+    """Specification: neural_assemblies/ir/VERIFICATION.md#contract-input-noise"""
+    if isinstance(std, bool) or not isinstance(std, Real):
+        raise ValueError("input noise std must be a finite nonnegative real number")
+    try:
+        value = float(std)
+    except OverflowError as exc:
+        raise ValueError("input noise std must fit a finite float") from exc
+    if not math.isfinite(value) or value < 0:
+        raise ValueError("input noise std must be a finite nonnegative real number")
+    return value

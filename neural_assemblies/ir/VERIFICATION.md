@@ -932,5 +932,31 @@ setters and rejected slot combinations are covered too.
 
 This contract preserves routing and existing selection semantics. It does not
 validate every parameter inside policy objects, certify GPU execution, or protect
-direct assignment to legacy state fields. Input-noise controls are a separate
-remaining ownership and capability task.
+direct assignment to legacy state fields. Input-noise controls follow the separate contract below.
+
+
+<a id="contract-input-noise"></a>
+
+## Input-noise value, capability and owner
+
+`core.registration.validate_input_noise` defines a standard deviation as a
+nonboolean real number convertible to a finite, nonnegative Python float. Zero
+disables noise. Area construction, direct NumPy/Torch registration and runtime
+setters use this validator. Invalid values raise before changing registered state
+or consuming randomness; they cannot silently behave like disabled noise because
+NaN or a negative value fails a later `std > 0` branch.
+
+Brain checks the executing owner's capability before registering a noisy area.
+NumPy sparse and Torch declare support. Dense and content-addressed NumPy engines
+reject nonzero noise; the engine default accepts the disabled value only. Runtime
+changes pass through the executing engine before publishing the descriptor, so an
+auxiliary dense area cannot acquire a noise setting only on its primary mirror.
+This does not introduce noise into an engine that previously lacked it.
+
+Controls cover invalid numeric values on public/direct NumPy paths, state/RNG
+preservation, unsupported registration and runtime updates, and enabling/disabling
+supported noise. A seeded materialized all-connected area changes its selected
+neurons under noise compared with an otherwise identical clone. This is a software
+execution control, not statistical validation of a noise law. Finite configuration
+does not guarantee finite arithmetic at every extreme scale, and GPU execution
+and direct legacy-field mutation remain separate verification tasks.

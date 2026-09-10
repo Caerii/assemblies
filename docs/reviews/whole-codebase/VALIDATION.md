@@ -1028,3 +1028,27 @@ Focused checks before the readout correction: 149 passed. Final CPU workflow gat
 (`.cache/runtime-policy-gate-final.log`). Ruff and diff checks passed. GPU execution,
 policy-object parameter validation, input-noise ownership and direct legacy-field
 mutation remain open; these controls do not adopt a scientific result.
+
+
+## Input-noise configuration and ownership (2026-09-10)
+
+The initial controls failed in 35 cases (149 passes): invalid runtime values,
+unsupported owner configurations, absent direct setters, and noncanonical values.
+A shared validator now requires a finite, nonnegative, nonboolean real standard
+deviation and canonicalizes it to float. Area construction and NumPy/Torch
+registration use it. Brain checks noise capability before registration and routes
+runtime changes to the executing owner before publishing its descriptor. Sparse
+NumPy and Torch implement the setter; unsupported engines accept only zero.
+
+Additional controls check invalid registration on every NumPy entry path and
+selection changes on otherwise identical materialized all-connected brains with
+noise enabled versus disabled. The first execution fixture attempted unsupported
+sparse external drive and was corrected to use stimulus input. Focused checks:
+203 passed. No statistical noise-law result is claimed from this seeded control.
+
+The first CPU gate had one diagnostic mismatch (946 passed, 1 skipped): the new
+early error omitted input_noise_std. It now names the owner and parameter. Final
+CPU workflow gate: 947 passed, 1 skipped, two expected sampled-engine warnings in
+69.47 seconds (`.cache/input-noise-gate-final.log`). Ruff and diff checks passed.
+GPU execution, arbitrary-scale arithmetic, policy-parameter validation and direct
+legacy-field mutation remain unverified or open.

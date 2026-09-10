@@ -102,7 +102,7 @@ class Area(ActivityState):
             refracted_strength (float): Magnitude of the per-firing
                 bias increment in refracted mode.
         """
-        from .registration import validate_area_registration, validate_slot_configuration
+        from .registration import validate_area_registration, validate_slot_configuration, validate_input_noise
         n, k = validate_area_registration(name, n, k)
         from ._homeostasis import validate_lri_parameters
         refractory_period, inhibition_strength = validate_lri_parameters(
@@ -117,7 +117,7 @@ class Area(ActivityState):
         self.refracted = refracted
         self.refracted_strength = refracted_strength
         self.winner_policy = winner_policy
-        self.input_noise_std = input_noise_std
+        self.input_noise_std = validate_input_noise(input_noise_std)
         self.slot_count = validate_slot_configuration(n, slot_count, winner_policy)
 
         # Captured once, like the engine's `_xp`. Re-reading the global here

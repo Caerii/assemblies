@@ -35,7 +35,7 @@ from collections import defaultdict
 
 from .backend import get_xp, to_cpu, detect_best_engine
 from .engine import ComputeEngine, create_engine
-from .registration import validate_area_registration, validate_stimulus_registration
+from .registration import validate_input_noise, validate_area_registration, validate_stimulus_registration
 from ._homeostasis import HomeostasisConfig, check_area_homeostasis, validate_lri_parameters
 from .index_spaces import CompactIdx, to_neuron_ids, validated_indices
 
@@ -329,6 +329,10 @@ class Brain:
                 increment in refracted mode.
         """
         n, k = validate_area_registration(area_name, n, k, existing=self.areas, reserved=self.stimuli)
+        input_noise_std = validate_input_noise(input_noise_std)
+        if input_noise_std and (explicit or not self._engine.supports_input_noise):
+            owner_name = "NumpyExplicitEngine" if explicit else type(self._engine).__name__
+            raise NotImplementedError(f"{owner_name} does not implement input_noise_std")
         # Specification: neural_assemblies/ir/VERIFICATION.md#contract-refraction-registration
         if refracted:
             owner_type = type(self._engine)
@@ -1514,11 +1518,14 @@ class Brain:
         area.winner_policy = policy
 
     def set_input_noise(self, area_name: str, std: float) -> None:
-        """Add Gaussian noise to pre-k-WTA inputs (coin-flip / sampling)."""
-        self.areas[area_name].input_noise_std = std
-        eng_areas = getattr(self._engine, "_areas", None)
-        if eng_areas is not None and area_name in eng_areas:
-            eng_areas[area_name].input_noise_std = std
+        """Set Gaussian pre-selection noise on the executing owner.
+
+        Specification: neural_assemblies/ir/VERIFICATION.md#contract-input-noise
+        """
+        area = self.areas[area_name]
+        std = validate_input_noise(std)
+        self._engine_for(area).set_input_noise(area_name, std)
+        area.input_noise_std = std
 
     def activate(self, area_name: str, index: int):
         """

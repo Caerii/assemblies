@@ -37,7 +37,7 @@ from .._homeostasis import (HomeostasisConfig, check_area_homeostasis, validate_
                             scaling_setpoint)
 from ..connectome import Connectome
 from ..engine import ComputeEngine, ProjectionResult
-from ..registration import validate_stimulus_registration, validate_area_registration
+from ..registration import validate_input_noise, validate_stimulus_registration, validate_area_registration
 
 try:
     from ...compute.sparse_simulation import SparseSimulationEngine
@@ -82,6 +82,7 @@ class TorchSparseEngine(ComputeEngine):
                        back to CPU path when deterministic=True.
     """
 
+    supports_input_noise = True
     supports_refraction = True
 
     def __init__(self, p: float, seed: int = 0, w_max: float = 20.0,
@@ -331,6 +332,7 @@ class TorchSparseEngine(ComputeEngine):
                  inhibition_strength: float = 0.0,
                  winner_policy=None,
                  input_noise_std: float = 0.0) -> None:
+        input_noise_std = validate_input_noise(input_noise_std)
         n, k = validate_area_registration(name, n, k, existing=self._areas, reserved=self._stimuli)
         refractory_period, inhibition_strength = validate_lri_parameters(
             refractory_period, inhibition_strength)
@@ -1425,6 +1427,10 @@ class TorchSparseEngine(ComputeEngine):
         return self._areas[area].compact_to_neuron_id
 
     # -- Plasticity control -------------------------------------------------
+
+    def set_input_noise(self, area: str, std: float) -> None:
+        """Specification: neural_assemblies/ir/VERIFICATION.md#contract-input-noise"""
+        self._areas[area].input_noise_std = validate_input_noise(std)
 
     def set_competition_policy(self, area: str, policy) -> None:
         """Specification: neural_assemblies/ir/VERIFICATION.md#contract-runtime-policy"""

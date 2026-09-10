@@ -11,7 +11,7 @@ from collections import defaultdict
 
 from ..backend import get_xp, to_cpu
 from ..engine import ComputeEngine, ProjectionResult
-from ..registration import validate_stimulus_registration, validate_area_registration, validate_slot_configuration
+from ..registration import validate_input_noise, validate_stimulus_registration, validate_area_registration, validate_slot_configuration
 from ..connectome import Connectome
 from ..index_spaces import validated_indices
 
@@ -102,6 +102,7 @@ class NumpyExplicitEngine(ComputeEngine):
         cannot run on the exact-drive engine is a rule whose results cannot be
         checked (#94). `input_noise_std` is refused loudly instead of ignored.
         """
+        input_noise_std = validate_input_noise(input_noise_std)
         n, k = validate_area_registration(name, n, k, existing=self._areas, reserved=self._stimuli)
         slot_count = validate_slot_configuration(n, slot_count, winner_policy)
         _reject_unsupported(

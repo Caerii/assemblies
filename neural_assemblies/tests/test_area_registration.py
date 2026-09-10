@@ -237,3 +237,71 @@ def test_runtime_policy_cannot_bypass_slot_contract(path):
         caller.set_competition_policy('A', ThresholdPolicy(k=2, threshold=5))
     assert brain.areas['A'].winner_policy is None
     assert owner._areas['A'].winner_policy is None
+
+
+
+@pytest.mark.parametrize('std', [-1, float('nan'), float('inf'), True, '0.5'])
+def test_invalid_runtime_noise_preserves_descriptor_and_owner(surface, std):
+    brain, caller = surface
+    owner = brain._engine
+    before = rng_states(brain)
+    with pytest.raises(ValueError):
+        caller.set_input_noise('A', std)
+    assert brain.areas['A'].input_noise_std == 0
+    assert getattr(owner._areas['A'], 'input_noise_std', 0) == 0
+    assert rng_states(brain) == before
+
+
+@pytest.mark.parametrize('engine,explicit', [('numpy_exact', False),
+                                            ('numpy_explicit', False), ('numpy_sparse', True)])
+def test_unsupported_noise_preserves_registration_and_runtime_state(engine, explicit):
+    brain = Brain(p=.1, seed=31, norm_init=False, engine=engine)
+    brain.add_area('A', 20, 2, explicit=explicit)
+    before = rng_states(brain)
+    with pytest.raises(NotImplementedError):
+        brain.set_input_noise('A', .5)
+    assert brain.areas['A'].input_noise_std == 0
+    with pytest.raises(NotImplementedError):
+        brain.add_area('B', 20, 2, explicit=explicit, input_noise_std=.5)
+    assert 'B' not in brain.areas and 'B' not in brain._engine._areas
+    assert rng_states(brain) == before
+    brain.set_input_noise('A', 0)
+
+
+@pytest.mark.parametrize('direct', [False, True])
+def test_supported_noise_can_be_enabled_and_disabled(direct):
+    brain = Brain(p=.1, seed=31, norm_init=False)
+    brain.add_area('A', 20, 2)
+    caller = brain._engine if direct else brain
+    caller.set_input_noise('A', np.float64(.5))
+    assert brain._engine._areas['A'].input_noise_std == .5
+    assert type(brain._engine._areas['A'].input_noise_std) is float
+    caller.set_input_noise('A', 0)
+    assert brain._engine._areas['A'].input_noise_std == 0
+
+
+
+def test_runtime_noise_changes_materialized_selection():
+    from neural_assemblies.diagnostics import read_assembly
+    brain = Brain(p=1, seed=31, norm_init=False)
+    brain.add_stimulus('s', 2)
+    brain.add_area('A', 20, 2)
+    brain.materialize_area('A')
+    noisy = brain.clone()
+    noisy.set_input_noise('A', 100)
+    brain.project({'s': ['A']}, {})
+    noisy.project({'s': ['A']}, {})
+    baseline = read_assembly(brain, 'A')
+    perturbed = read_assembly(noisy, 'A')
+    assert len(baseline) == len(perturbed) == 2
+    assert set(perturbed) != set(baseline)
+
+
+@pytest.mark.parametrize('std', [-1, float('nan'), True])
+def test_invalid_noise_registration_is_nonmutating(surface, std):
+    brain, caller = surface
+    before = rng_states(brain)
+    with pytest.raises(ValueError):
+        caller.add_area('B', 20, 2, .1, input_noise_std=std)
+    assert 'B' not in brain.areas and 'B' not in brain._engine._areas
+    assert rng_states(brain) == before

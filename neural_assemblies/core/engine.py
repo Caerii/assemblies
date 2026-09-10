@@ -97,6 +97,7 @@ class ComputeEngine(ABC):
 
     # -- Area / stimulus registration --
 
+    supports_input_noise = False
     supports_slots = False
     supports_refraction = False
     supports_fiber_learning_masks = False
@@ -252,6 +253,12 @@ class ComputeEngine(ABC):
         or between independent trials.  Default is a no-op (suitable for
         engines without LRI support).
         """
+
+    def set_input_noise(self, area: str, std: float) -> None:
+        """Specification: neural_assemblies/ir/VERIFICATION.md#contract-input-noise"""
+        from .registration import validate_input_noise
+        if validate_input_noise(std) != 0:
+            raise NotImplementedError(f"{type(self).__name__} does not implement input noise")
 
     def set_competition_policy(self, area: str, policy) -> None:
         """Specification: neural_assemblies/ir/VERIFICATION.md#contract-runtime-policy

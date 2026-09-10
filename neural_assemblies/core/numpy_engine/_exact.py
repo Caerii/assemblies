@@ -49,7 +49,7 @@ from ..index_spaces import validated_indices
 
 from ..backend import to_cpu
 from ..engine import ComputeEngine, ProjectionResult
-from ..registration import validate_stimulus_registration, validate_area_registration
+from ..registration import validate_input_noise, validate_stimulus_registration, validate_area_registration
 from ..activity import ActivityState
 from .._pricing import inverse_indegree
 from ._seeding import (fnv1a_pair_seed, hash_area_cells, hash_area_indegree,
@@ -515,6 +515,7 @@ class NumpyExactEngine(ComputeEngine):
         an RNG stream, and this engine deliberately has none -- that is what
         makes it reproducible by content-addressing rather than by seeding.
         """
+        validate_input_noise(kwargs.get("input_noise_std", 0))
         n, k = validate_area_registration(name, n, k, existing=self._areas, reserved=self._stimuli)
         _reject_unsupported(
             f"NumpyExactEngine.add_area({name!r})", self._UNSUPPORTED_AREA,

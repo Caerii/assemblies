@@ -67,6 +67,12 @@ the change before the Area descriptor updates; dense areas with multiple slots
 reject a custom policy. See the
 [runtime policy contract](../neural_assemblies/ir/VERIFICATION.md#contract-runtime-policy).
 
+`set_input_noise(area_name, std)` uses the same finite, nonnegative standard
+deviation contract as registration. Zero disables noise; nonzero noise requires
+backend support and is rejected for explicit dense areas. The setting is published
+only after the executing engine accepts it. See the
+[input-noise contract](../neural_assemblies/ir/VERIFICATION.md#contract-input-noise).
+
 Main objects:
 
 | Object | Location | Role |

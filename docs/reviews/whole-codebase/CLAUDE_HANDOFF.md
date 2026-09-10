@@ -532,3 +532,14 @@ The initial gate caught a raw-index comparison in the new test; it was changed
 to the stable-ID readout without raising the ratchet baseline. Final CPU gate:
 893 passed, 1 skipped. GPU and input-noise control checks remain open. See
 [validation](VALIDATION.md).
+
+
+### Input-noise controls
+
+Noise values share one finite/nonnegative numeric validator across construction
+and runtime updates. Brain rejects unsupported noise before registration and
+routes updates to the executing owner before descriptor publication. NumPy sparse
+and Torch implement the setter; dense/exact owners reject nonzero values. A
+materialized stimulus-driven control confirms that enabling noise changes winners.
+Focused checks 203 passed; final CPU gate 947 passed, 1 skipped. GPU execution
+remains open. See [validation](VALIDATION.md).
