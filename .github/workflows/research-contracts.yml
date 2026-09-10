@@ -70,6 +70,7 @@ jobs:
           neural_assemblies/tests/test_coin_seed_contract.py
           neural_assemblies/tests/test_coin_construction.py
           neural_assemblies/tests/test_pfa_choice_contract.py
+          neural_assemblies/tests/test_pnas_roundtrip_contract.py
           neural_assemblies/tests/test_pfa.py
           neural_assemblies/tests/test_transitions.py
           neural_assemblies/tests/test_docs_examples_smoke.py

@@ -948,3 +948,26 @@ A future source snapshot must preserve recoverable bytes as well as identities.
 
 No source was changed during the audit. No historical scientific artifacts,
 thresholds or expected-failure markers were altered to improve the result.
+
+
+## Reciprocal protocol duplication repaired
+
+The full-audit reciprocal mismatch was reproduced: the cross-repository test
+requested Brain(recurrent_projection=True) but invoked ops.project without its
+explicit recurrent=True argument. The operation contract supplies no recurrence
+by default. The canonical run_pnas_reciprocal already supplied the intended flag.
+The test now delegates to that function; its golden and tolerance are unchanged.
+Both PNAS program parameter records now retain recurrence and engine identity.
+The reciprocal source-linked contract explicitly calls the score a training
+round trip: both reciprocal legs retain plasticity, so this is not frozen recall.
+
+Software diagnostics on sampled NumPy, seeds 42/43/44, n=5000, k=80, p=.05,
+beta=.1, rounds=20: explicit source recurrence yielded .975/.9875/1.0;
+without it .8125/.8625/.7625; beta-zero yielded 0/0/0. These are instrument
+checks, not a registered study or fixed-connectome sequence evidence. New
+mechanism-disabled controls and recurrence metadata checks enter the CPU workflow.
+Targeted validation: 12 passed, 3 reference-dependent skips, 6 sampled-engine
+warnings in 1.63s. Specification links, theory rendering/citations and both
+ratchets: 27 passed in 40.57s. Ruff passed changed program/new tests. No engine,
+golden, adoption bar or historical result was changed. The full package audit
+was not repeated; only this identified failure is verified repaired here.

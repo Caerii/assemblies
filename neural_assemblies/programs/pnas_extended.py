@@ -36,7 +36,10 @@ def run_pnas_reciprocal(
     rounds: int = 20,
     recurrent: bool = True,
 ) -> PnasReciprocalResult:
-    """PNAS20-M04: A -> B -> A restores A's original assembly.
+    """Specification: neural_assemblies/ir/VERIFICATION.md#contract-pnas-roundtrip
+
+    PNAS20-M04: overlap with A after an A -> B -> A training round trip.
+    Both reciprocal legs retain plasticity. This is not a frozen recall test.
 
     SAME PROTOCOL DEFECT as ``run_pnas_pattern_complete``, found the same day.
     This called ``project(...)`` with ``ops.project``'s default
@@ -72,7 +75,8 @@ def run_pnas_reciprocal(
     reciprocal_project(brain, "A", "B", rounds=rounds)
     reciprocal_project(brain, "B", "A", rounds=rounds)
     recip_ov = overlap(orig, _snap(brain, "A"))
-    params = {"seed": seed, "n": n, "k": k, "p": p, "beta": beta, "rounds": rounds}
+    params = {"seed": seed, "n": n, "k": k, "p": p, "beta": beta, "rounds": rounds,
+              "recurrent": recurrent, "engine": "numpy_sparse"}
     return PnasReciprocalResult(
         reciprocal_restore_overlap=float(recip_ov),
         parameters=params,
@@ -139,6 +143,7 @@ def run_pnas_pattern_complete(
     params = {
         "seed": seed, "n": n, "k": k, "p": p, "beta": beta,
         "rounds": rounds, "cue_fraction": cue_fraction,
+        "recurrent": recurrent, "engine": "numpy_sparse",
     }
     return PnasPatternCompleteResult(
         pattern_complete_50pct_overlap=float(pc_ov),

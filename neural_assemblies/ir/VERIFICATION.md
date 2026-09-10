@@ -1307,3 +1307,17 @@ compatibility, with no claim that measured transition frequencies equal them.
 The context coin additionally learns during its read and overwrites context-driven
 activity. NemoMarkovPFA copies coin IDs into the arc and ignores transition weights.
 Neither is certified by this PFA migration; both require separate schedule redesign.
+
+
+<a id="contract-pnas-roundtrip"></a>
+### PNAS reciprocal round-trip protocol
+
+`programs.pnas_extended.run_pnas_reciprocal` owns the parity protocol: source
+training supplies recurrence explicitly, followed by two plasticity-enabled
+reciprocal projections and a stable-ID overlap against the original source.
+The score is measured after bidirectional training, not a frozen recall. Its
+parameter record names the recurrence option and sampled NumPy engine. The
+cross-repository test delegates to this function instead of rebuilding a schedule
+under a Brain-level default. Golden values and tolerances remain unchanged.
+A beta-zero control must move the score; it does not certify theorem equivalence
+or fixed-connectome sequence behavior.
