@@ -102,3 +102,18 @@ def same_space(a: np.ndarray, b: np.ndarray) -> bool:
     if a.size == 0 or b.size == 0:
         return True
     return not (int(a.max()) < b.min() or int(b.max()) < a.min())
+
+
+
+def reserve_initial_neuron_ids(pool, selected, *, n: int) -> np.ndarray:
+    """Specification: neural_assemblies/ir/VERIFICATION.md#contract-initial-recruitment
+
+    Return selected IDs followed by the remaining permutation in its old order.
+    This is initialization, not a reset of an already recruited population.
+    """
+    chosen = validated_indices(selected, upper=n, label='initial neuron IDs', unique=True)
+    pending = np.arange(n, dtype=np.uint32) if pool is None else validated_indices(
+        pool, upper=n, label='recruitment pool', unique=True)
+    if len(pending) != n:
+        raise ValueError('initial recruitment pool must cover the complete population')
+    return np.concatenate((chosen, pending[~np.isin(pending, chosen)]))

@@ -10,7 +10,7 @@ import os
 import zlib
 
 import numpy as np
-from ..index_spaces import validated_indices
+from ..index_spaces import validated_indices, reserve_initial_neuron_ids
 from typing import Dict, List
 from collections import OrderedDict, defaultdict
 
@@ -983,9 +983,10 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
         )
         neuron_ids = [int(i) for i in to_cpu(neuron_ids)]
         compact = list(range(len(neuron_ids)))
+        pool = reserve_initial_neuron_ids(tgt.neuron_id_pool, neuron_ids, n=tgt.n)
         tgt.compact_to_neuron_id = list(neuron_ids)
-        if tgt.neuron_id_pool is not None:
-            tgt.neuron_id_pool_ptr = len(neuron_ids)
+        tgt.neuron_id_pool = pool
+        tgt.neuron_id_pool_ptr = len(neuron_ids)
 
         if plasticity_enabled and self._plasticity_enabled_global:
             for src_name in from_areas:

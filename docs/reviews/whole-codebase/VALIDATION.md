@@ -1193,3 +1193,39 @@ sampled-engine warnings in 76.73 seconds
 General invalidation after training or in-place stored-context mutation remains
 open. This does not resolve the default combined-cue holdout failures or establish
 new scientific performance.
+
+
+## Second broad audit and initial recruitment identity (2026-09-10)
+
+The second non-slow/non-GPU package audit used two loadfile workers and
+--maxfail=12 at 90fad60. It stopped with 14 failed, 1317 passed, 73 skipped,
+4 xfailed and 1 xpassed in 312.69 seconds (`.cache/package-cpu-audit-second.log`).
+Two extra failures came from tests already in flight after the limit. It had no
+collection errors but was still an incomplete package audit.
+
+Failure groups: three known combined-cue classifier checks; eight coin/PFA/parity
+paths rejecting invalid compact indices; two rule-parser paths rejecting duplicate
+stable IDs; one stability test expecting a cold population to yield a vacuous
+perfect result instead of the current probe error. Legacy coin code explicitly
+preserves invalid old seed/index behavior; those goldens must not be restored by
+weakening index validation. The cold-probe expectation requires contract review.
+
+The duplicate-ID failure traced to dense-source initialization of sparse areas in
+both NumPy and Torch. Selected stable neuron IDs were stored, but the cursor merely
+advanced into an unrelated random pool. Later recruitment could select those IDs
+again and skip other neurons. Both backends now share reserve_initial_neuron_ids:
+selected IDs become the reserved prefix; unselected IDs retain their original order.
+Validation consumes no RNG and does not mutate inputs on failure.
+
+Two controls failed before repair (15 passes), including a 20-neuron materialized
+population with only 18 distinct IDs. After repair, the focused index suite plus
+center-embedding check passed (18 tests); expanded reservation controls plus the
+formerly failing TACL F1 smoke passed (23 tests). These smoke passes are not
+adoption of syntax/sequence scientific evidence on the sampled engine.
+
+CPU workflow gate: 1001 passed, 1 skipped, two expected sampled-engine warnings in
+71.36 seconds (`.cache/initial-recruitment-gate.log`). Ruff and diff checks passed.
+Torch uses the shared helper but was not executed. Future recruited identities and
+downstream numbers can change on affected paths; old corrupted mappings are not
+repaired and historical parity remains unproven. Remaining broad-audit failures
+were not suppressed, and no full-package completion is claimed.

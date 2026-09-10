@@ -37,6 +37,7 @@ from .._homeostasis import (HomeostasisConfig, check_area_homeostasis, validate_
                             scaling_setpoint)
 from ..connectome import Connectome
 from ..engine import ComputeEngine, ProjectionResult
+from ..index_spaces import reserve_initial_neuron_ids
 from ..registration import validate_input_noise, validate_stimulus_registration, validate_area_registration
 
 try:
@@ -545,9 +546,10 @@ class TorchSparseEngine(ComputeEngine):
         neuron_ids = self._winner_sel.select_with_policy(act_cpu, policy)
         neuron_ids = [int(i) for i in neuron_ids]
         compact = list(range(len(neuron_ids)))
+        pool = reserve_initial_neuron_ids(tgt.neuron_id_pool, neuron_ids, n=tgt.n)
         tgt.compact_to_neuron_id = list(neuron_ids)
-        if tgt.neuron_id_pool is not None:
-            tgt.neuron_id_pool_ptr = len(neuron_ids)
+        tgt.neuron_id_pool = pool
+        tgt.neuron_id_pool_ptr = len(neuron_ids)
 
         if plasticity_enabled and self._plasticity_enabled_global:
             for src_name in from_areas:

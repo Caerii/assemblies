@@ -603,3 +603,18 @@ context retains the fast path. Three failures reproduced; focused checks 37 pass
 including the existing performance test; CPU gate 994 passed, 1 skipped. General
 cache invalidation and combined-cue holdout failures remain open. See
 [validation](VALIDATION.md).
+
+
+### Recruitment identity defect found by broader tests
+
+The second broad CPU audit stopped with 14 failures and 1317 passes, without
+collection errors. Two rule-parser failures came from duplicate neuron IDs:
+dense-source bootstrap stored selected IDs but advanced an unrelated pool pointer.
+NumPy and Torch now share reservation that removes those IDs from future recruitment
+while retaining the remaining order. A 20-neuron control previously had 18 distinct
+IDs. Both center-embedding and TACL F1 smoke now pass; CPU gate 1001 passed, 1 skipped.
+
+Eight legacy coin paths, three classifier checks and one cold-stability expectation
+remain unresolved from that audit. Do not restore corrupted-index goldens by relaxing
+the boundaries. Torch execution and historical numerical parity remain open. See
+[validation](VALIDATION.md).

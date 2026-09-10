@@ -1079,3 +1079,28 @@ A trained-parser control compares against uncached inference and preserves neura
 state. This is a cache routing repair, not a change to fusion or neural selection.
 It does not provide general cache invalidation after training or in-place mutation
 of stored grounding, and it does not introduce cue variants into the word-only key.
+
+
+<a id="contract-initial-recruitment"></a>
+
+## Initial dense selection and recruitment identity
+
+When dense explicit-source input initializes a sparse population, selected winners
+are stable neuron IDs. NumPy and Torch use `index_spaces.reserve_initial_neuron_ids`
+to reserve those IDs before later lazy recruitment. The resulting pool has the
+selected IDs as its prefix, in selection order, followed by the original pool's
+unselected IDs in their original order. The pointer then advances past that prefix.
+No random draw is added. With no original pool, the remainder uses identity order.
+
+The old implementation advanced a pointer into an unrelated random permutation.
+It could recruit selected IDs again while permanently skipping other neurons,
+so compact positions no longer mapped injectively to neuron identities. Controls
+force initial selection from the end of the pool, check disjoint selected/pending
+sets, and materialize the remaining population to verify all n IDs remain unique.
+Invalid reservations reject before modifying input arrays. The helper is for
+initial population construction, not resetting learned mappings.
+
+This corrects future recruitment identities and can change downstream numerical
+results from affected paths. It does not repair persisted corrupted mappings or
+establish historical result parity. Source-based training-cache invalidation still
+applies; GPU execution is a separate gate.
