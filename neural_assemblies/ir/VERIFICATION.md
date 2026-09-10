@@ -1307,7 +1307,7 @@ compatibility, with no claim that measured transition frequencies equal them.
 The context coin additionally learns during its read and overwrites context-driven
 activity. The historical NemoMarkovPFA copied coin IDs into the arc and ignored
 transition weights; it is now retired. The distinct ArcMarkovNetwork composition
-has its own contract below. The context coin remains unresolved.
+has its own contract below. The context replacement has its own contract below.
 
 
 <a id="contract-pnas-roundtrip"></a>
@@ -1446,4 +1446,64 @@ sampler, a proof of a softmax law, or evidence for arbitrary long sequences. Tes
 must distinguish three boundaries: conditional-weight consumption, genuine arc
 readout instead of target lookup, and sensitivity to disabled transition teaching.
 A perfect small untrained fixture is possible and must be retained when observed.
-The separate legacy SoftmaxContextCoin remains unresolved.
+The separate legacy SoftmaxContextCoin is retired; see contract-context-choice below.
+
+
+<a id="contract-seeded-observation"></a>
+### Seeded read-only observation
+
+Brain.read_only(seed=...) preserves the existing no-learning/no-recruitment and
+activity/RNG restoration scope. An optional nonnegative integer seed creates a
+NumPy SeedSequence and one child stream for each distinct backend RNG, in owner
+enumeration order. Each child's state is installed using that RNG's bit-generator
+type. Original generator objects and states are restored even after exceptions;
+nested scopes restore the enclosing stream. None preserves the original behavior.
+The policy is read-only-seed-v1. It controls backend observation randomness, including
+native input noise, not global process RNGs or a new connectome seed. Different
+backends need not share identical trajectories or noise laws. This strict API does
+not use the legacy probe-isolation environment escape hatch.
+
+<a id="contract-noise-only-observation"></a>
+### Materialized noise-only observation
+
+The NumPy sparse and Torch sparse engines previously preserved the incumbent assembly
+whenever accumulated synaptic drive was zero, even with positive configured input
+noise. That discarded the independent noise contribution before winner selection.
+The zero-signal shortcut now applies only at zero noise. Positive-noise zero-signal
+selection requires a fully materialized population; a partial population raises
+instead of pretending to sample the absent population. Existing no-input scheduling
+semantics are unchanged: a zero-sized stimulus can explicitly schedule this read.
+Compiled NumPy selection uses the same noise/competition selector as ordinary
+selection, retaining its existing-column candidate population. Noiseless zero-drive preservation is retained. The fixed-target teaching path is
+unchanged. These are backend selection semantics, not a claim that noise calibrates
+an attractor's outcome frequencies.
+
+<a id="contract-context-choice"></a>
+### Context-conditioned attractor readout
+
+Historical card: SoftmaxContextCoin coupled context to an outcome area without
+clamping the intended target, learned during flip, then overwrote context-driven
+activity with a random seed and ran outcome-only recurrence. It also used stable
+IDs as compact positions. Those operations did not implement the advertised
+context-dependent softmax law. The class now raises before brain mutation and names
+the separate replacement; historical numerical artifacts remain unchanged.
+
+AttractorConfig owns only two-attractor construction. SeedMixtureChoice extends it
+with the existing mixture/read schedule, preserving that API and numerical replay.
+ContextChoiceProtocol instead specifies assigned disjoint context codes, an integer
+presentation count for each context/outcome pair, a separate coupling beta, read
+rounds and native noise amplitude. It takes AttractorConfig, rejecting unused
+seed-mixture settings. Teacher forcing clamps the actual context and target assembly
+while potentiating context->outcome; no recurrence is included in these coupling
+writes. Noise is enabled only after teaching. Zero counts and zero coupling beta
+are valid controls. Context and outcome populations are fully materialized.
+
+ContextAttractorChoice.observe clears activity inside seeded read_only, cues the
+chosen context and holds it throughout the requested context-plus-recurrence rounds.
+A zero-sized stimulus schedules outcome updates even in source-disabled controls.
+The context is never overwritten by a new random seed, and reading does not teach.
+Context and recurrence gates are explicit boolean controls. The observation reports
+both stored-attractor overlaps, their absolute margin and a label; tied overlaps
+produce None, including silence. These are similarity scores, not probabilities,
+and arbitrary parameter choices need not produce useful attractors or readouts.
+This is context-attractor-v1, not numerical reproduction of historical softmax goldens.

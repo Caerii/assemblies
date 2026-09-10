@@ -82,6 +82,21 @@ or an implementation of the historical alternating-area architecture.
 
 `NemoMarkovPFA` and `AlternatingMarkovNetwork` are retired and raise before brain
 mutation. Their old numerical artifacts are not relabelled as the new protocol.
-`SoftmaxContextCoin` remains an unresolved legacy instrument. See the
+`SoftmaxContextCoin` is also retired with an explicit migration error. See the
 [contract and scope](../neural_assemblies/ir/VERIFICATION.md#contract-arc-markov)
 and [construction example](api.md#explicit-arc-markov-experiment).
+
+
+## Context readout experiment boundary
+
+`assembly_calculus.ContextAttractorChoice` requires `ContextChoiceProtocol` and a
+construction-only `AttractorConfig`. It teaches assigned disjoint context codes
+against clamped output attractors, then observes without learning. Each read exposes
+both overlaps and an optional label (ties have no label), with independent context
+and recurrence controls and reproducible native noise. Positive noise requires a
+backend supporting it; `numpy_exact` refuses it before allocation.
+
+This is a new experiment, not the old softmax law or a calibrated probability
+sampler. Endpoint diagnostics establish sensitivity to noise, not a robustness
+range. See the [contract](../neural_assemblies/ir/VERIFICATION.md#contract-context-choice)
+and [example](api.md#context-conditioned-attractor-observation).

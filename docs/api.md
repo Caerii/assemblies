@@ -406,3 +406,40 @@ The historical `NemoMarkovPFA` and `AlternatingMarkovNetwork` now raise with mig
 guidance; their old goldens do not describe this new protocol.
 
 [Source-linked contract](../neural_assemblies/ir/VERIFICATION.md#contract-arc-markov).
+
+
+## Context-conditioned attractor observation
+
+Use a recorded teaching schedule; do not interpret overlaps as probabilities.
+This small CPU example explicitly materializes both populations.
+
+```python
+from neural_assemblies import Brain
+from neural_assemblies.assembly_calculus import (
+    AttractorConfig, ContextAttractorChoice, ContextChoiceProtocol,
+)
+
+protocol = ContextChoiceProtocol(
+    n=400, k=100, contexts=("left", "right"),
+    presentations=((4, 0), (0, 4)),
+    attractors=AttractorConfig(n=2000, k=200, beta=3., rounds_train=10),
+    coupling_beta=1., read_rounds=3, noise_std=0.,
+)
+model = ContextAttractorChoice(Brain(p=.05, seed=1, engine="numpy_sparse"),
+                               protocol=protocol)
+observed = model.observe("left", seed=700)
+null = model.observe("left", seed=700, context_enabled=False)
+print(observed.overlaps, observed.label, null.overlaps, null.label)
+print(model.parameters)
+```
+
+`Brain.read_only(seed=...)` temporarily seeds distinct backend generators and
+restores their objects/states and activity on exit, including exceptions and nested
+scopes. It does not reseed the connectome or global process RNGs. The recorded policy
+is `read-only-seed-v1`; different backends need not produce identical trajectories.
+
+Native noise is enabled after teaching. A zero-sized stimulus schedules even a
+noise-only control when context and recurrence are disabled. Zero synaptic drive
+with positive noise requires a fully materialized population. These controls test
+whether the measurement responds; a useful noise-tolerance range still requires a
+registered sweep. See the [source-linked contract](../neural_assemblies/ir/VERIFICATION.md#contract-context-choice).

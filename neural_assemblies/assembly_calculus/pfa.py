@@ -24,9 +24,9 @@ Three variants exist here and they differ in what supplies the entropy:
                       decided by which attractor happens to be better
                       represented in the random draw.  This is the reference
                       NEMO coin (mdabagia/nemo ``RandomChoiceArea.flip``).
-    SoftmaxContextCoin -- unresolved legacy context wrapper: it learns during
-                      reads and overwrites context-driven activity. Its name
-                      does not establish a softmax law or a calibrated sampler.
+    ContextAttractorChoice -- a separately configured context-driven readout.
+                      It reports overlap and undecided ties, not probabilities.
+                      The invalid SoftmaxContextCoin wrapper is retired.
 
 PFANetwork extends FSMNetwork with probabilistic transitions.  When
 multiple transitions exist for the same (state, symbol), uses
@@ -387,146 +387,18 @@ class RandomChoiceArea:
 
 
 class SoftmaxContextCoin:
-    """Context area → outcome area coin (dabagia.org coinflipping architecture).
+    """Retired context instrument; its name did not establish a softmax law.
 
-    Trains a context assembly that projects into a two-outcome area with
-    i.i.d. input noise and compete-mode attractor dynamics (softmax-like
-    weight-dependent probabilities per site description).
+    Specification: neural_assemblies/ir/VERIFICATION.md#contract-context-choice
+    The old read learned, discarded context-driven activity, and confused index
+    spaces. Historical goldens are not measurements of the replacement protocol.
     """
-
-    def __init__(
-        self,
-        brain,
-        *,
-        n: int = 5000,
-        k: int = 50,
-        beta: float = 0.08,
-        noise_std: float = 0.02,
-        coupling_rounds: int = 12,
-        prefix: str = "_ctx_coin",
-    ):
-        from neural_assemblies.compute import EPercentPolicy
-
-        self.brain = brain
-        self.k = k
-        self.context_area = f"{prefix}_context"
-        ctx_stim = f"{prefix}_ctx"
-        self._ctx_stim = ctx_stim
-
-        brain.add_area(self.context_area, n, k, beta)
-        brain.add_stimulus(ctx_stim, k)
-        project(brain, ctx_stim, self.context_area, rounds=8)
-
-        self.coin = RandomChoiceArea(
-            brain, area_name="out", n=n, k=k, beta=beta, prefix=prefix,
-        )
-        self.outcome_area = self.coin.area_name
-
-        if noise_std > 0:
-            brain.set_input_noise(self.outcome_area, noise_std)
-            brain.set_competition_policy(
-                self.outcome_area,
-                EPercentPolicy(fraction_of_max=0.5, min_winners=1),
-            )
-
-        for _ in range(coupling_rounds):
-            brain.project(
-                {ctx_stim: [self.context_area]},
-                {self.context_area: [self.outcome_area]},
-            )
-            project(brain, self.coin._stim0, self.outcome_area, rounds=4)
-            project(brain, self.coin._stim1, self.outcome_area, rounds=4)
-
-    def flip(self, bias: float = 0.5, seed: int | None = None, rounds: int = 10) -> int:
-        from neural_assemblies.assembly_calculus.ops import _snap
-        from neural_assemblies.assembly_calculus.assembly import overlap
-
-        b = self.brain
-        area_name = self.outcome_area
-        area = b.areas[area_name]
-        area.unfix_assembly()
-        b._engine.set_winners(area_name, np.array([], dtype=np.uint32))
-
-        project(b, self._ctx_stim, self.context_area, rounds=1)
-        b.project({}, {self.context_area: [area_name]})
-
-        rng = np.random.default_rng(seed)
-        if abs(bias - 0.5) < 1e-9:
-            initial = rng.choice(self.coin.n, size=self.k, replace=False)
-        else:
-            w0 = self.coin.asm0.winners.copy()
-            w1 = self.coin.asm1.winners.copy()
-            n0 = int(self.k * bias)
-            n1 = self.k - n0
-            n0 = min(n0, len(w0))
-            n1 = min(n1, len(w1))
-            chosen0 = rng.choice(w0, size=n0, replace=False) if n0 else np.array([], dtype=w0.dtype)
-            chosen1 = rng.choice(w1, size=n1, replace=False) if n1 else np.array([], dtype=w1.dtype)
-            initial = np.unique(np.concatenate([chosen0, chosen1]))
-            if len(initial) == 0:
-                initial = rng.choice(self.coin.n, size=self.k, replace=False)
-            elif len(initial) > self.k:
-                initial = rng.choice(initial, size=self.k, replace=False)
-
-        initial = initial.astype(np.uint32)
-        b.areas[area_name]._winners = initial
-        b._engine.set_winners(area_name, initial)
-
-        with b.frozen():
-            for _ in range(rounds):
-                b.project({}, {area_name: [area_name]})
-
-        result = _snap(b, area_name)
-        ov0 = overlap(result, self.coin.asm0)
-        ov1 = overlap(result, self.coin.asm1)
-        return 0 if ov0 >= ov1 else 1
-
-    def train_bias(self, bias: float, *, rounds: int = 20) -> None:
-        """Skew outcome weights via asymmetric Hebbian coupling."""
-        stim = self.coin._stim0 if bias >= 0.5 else self.coin._stim1
-        alt = self.coin._stim1 if bias >= 0.5 else self.coin._stim0
-        major = max(int(rounds * abs(bias - 0.5) * 2 + rounds * 0.5), 1)
-        minor = max(rounds - major, 1)
-        for _ in range(major):
-            project(self.brain, self._ctx_stim, self.context_area, rounds=1)
-            self.brain.project({}, {self.context_area: [self.outcome_area]})
-            project(self.brain, stim, self.outcome_area, rounds=4)
-        for _ in range(minor):
-            project(self.brain, self._ctx_stim, self.context_area, rounds=1)
-            self.brain.project({}, {self.context_area: [self.outcome_area]})
-            project(self.brain, alt, self.outcome_area, rounds=2)
-
-    def learn_from_frequencies(
-        self,
-        freq0: float,
-        freq1: float,
-        *,
-        rounds_per_unit: int = 8,
-    ) -> None:
-        """Hebbian coupling rounds proportional to target outcome frequencies."""
-        total = max(freq0 + freq1, 1e-9)
-        p0, p1 = freq0 / total, freq1 / total
-        n0 = max(1, int(round(rounds_per_unit * 10 * p0)))
-        n1 = max(1, int(round(rounds_per_unit * 10 * p1)))
-        for _ in range(n0):
-            project(self.brain, self._ctx_stim, self.context_area, rounds=1)
-            self.brain.project({}, {self.context_area: [self.outcome_area]})
-            project(self.brain, self.coin._stim0, self.outcome_area, rounds=4)
-        for _ in range(n1):
-            project(self.brain, self._ctx_stim, self.context_area, rounds=1)
-            self.brain.project({}, {self.context_area: [self.outcome_area]})
-            project(self.brain, self.coin._stim1, self.outcome_area, rounds=4)
-
-    def empirical_flip_counts(
-        self,
-        n_flips: int,
-        bias: float = 0.5,
-        seed_base: int = 0,
-    ) -> tuple[int, int]:
-        counts = {0: 0, 1: 0}
-        for i in range(n_flips):
-            counts[self.flip(bias=bias, seed=seed_base + i * 17)] += 1
-        return counts[0], counts[1]
+    def __init__(self, *args, **kwargs):
+        raise NotImplementedError(
+            'SoftmaxContextCoin is an invalid legacy instrument. Use '
+            'ContextAttractorChoice with explicit ContextChoiceProtocol. '
+            'It reports neural overlaps and undecided ties, not softmax probabilities. '
+            'See neural_assemblies/ir/VERIFICATION.md#contract-context-choice')
 
 
 class PFANetwork:

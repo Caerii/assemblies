@@ -28,6 +28,7 @@ Mathematical Foundation:
 
 import contextlib
 from copy import deepcopy
+from numbers import Integral
 import os
 import numpy as np
 from typing import Dict, List, Tuple
@@ -709,10 +710,13 @@ class Brain:
             yield self
 
     @contextlib.contextmanager
-    def read_only(self):
+    def read_only(self, *, seed: int | None = None):
         """Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-read-only
 
         Probe without retaining activity, recruitment, learning, or RNG draws.
+        Optional seed contract: neural_assemblies/ir/VERIFICATION.md#contract-seeded-observation
+        A supplied seed temporarily installs one child stream per distinct backend
+        generator. Original generator objects and states are restored on exit.
 
         Winners move inside the block. On exit, including exceptions, each
         area restores its declared activity state (including firing counts,
@@ -724,17 +728,22 @@ class Brain:
         or materialize its connectome. A sampled probe selects only from its
         recruited population; that is not full-connectome selection.
         """
+        if seed is not None and (isinstance(seed, bool) or not isinstance(seed, Integral) or seed < 0):
+            raise ValueError('observation seed must be a nonnegative integer or None')
         engines = self._all_engines()
         snapshots = [area.snapshot_activity() for area in self.areas.values()]
         for engine in engines:
             snapshots.extend(engine.snapshot_activity())
-        generators = [(engine._rng, deepcopy(engine._rng.bit_generator.state))
-                      for engine in engines if hasattr(engine, "_rng")]
+        distinct_rngs = {id(engine._rng): engine._rng for engine in engines if hasattr(engine, '_rng')}
+        generators = [(rng, deepcopy(rng.bit_generator.state)) for rng in distinct_rngs.values()]
+        streams = np.random.SeedSequence(int(seed)).spawn(len(generators)) if seed is not None else []
         flags = [(engine, engine._no_recruitment) for engine in engines
                  if hasattr(engine, "_no_recruitment")]
         try:
             for engine, _ in flags:
                 engine._no_recruitment = True
+            for (rng, _), stream in zip(generators, streams):
+                rng.bit_generator.state = type(rng.bit_generator)(stream).state
             with self.frozen():
                 yield self
         finally:

@@ -1524,7 +1524,11 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
             )
 
         # Zero signal -> preserve current assembly
-        if len(prev_winner_inputs) > 0 and float(xp.sum(prev_winner_inputs)) == 0.0:
+        # Specification: neural_assemblies/ir/VERIFICATION.md#contract-noise-only-observation
+        zero_signal = len(prev_winner_inputs) > 0 and float(xp.sum(prev_winner_inputs)) == 0.0
+        if zero_signal and tgt.input_noise_std > 0 and tgt.w < tgt.n:
+            raise ValueError('noise-only projection requires a fully materialized population')
+        if zero_signal and tgt.input_noise_std == 0:
             # RUN THE DEFERRED INIT BEFORE RETURNING. Without this the
             # mechanism is UNREACHABLE in the one case it exists for: a source
             # area projecting into an already-grown target for the first time.
@@ -1577,9 +1581,9 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
         if self._use_compiled_projection(tgt):
             limit = int(tgt.w)
             inputs_slice = prev_winner_inputs[:limit]
-            new_winner_indices = self._winner_sel.heapq_select_top_k(
-                inputs_slice, tgt.k,
-            )
+            # Same noise and competition contract as ordinary selection; only
+            # the candidate population is restricted by compiled topology.
+            new_winner_indices = self._select_winner_indices(tgt, inputs_slice, rng)
             new_winner_indices = xp.asarray(new_winner_indices, dtype=xp.uint32)
             if plasticity_enabled and self._plasticity_enabled_global:
                 self._apply_plasticity(

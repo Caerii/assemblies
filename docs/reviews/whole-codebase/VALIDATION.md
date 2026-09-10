@@ -1862,3 +1862,84 @@ CUDA placement, then exercise trained and initialized-null arc readout on three 
 They skip explicitly without CUDA and are included in the workflow-selected test file.
 Only test code changed after the broad gates. Ruff on changed Python and git diff
 --check pass. The full-package audit was not rerun or declared clean.
+
+
+## Context readout, seeded observation and native noise (2026-09-10)
+
+The historical SoftmaxContextCoin was not context-conditioned softmax: it did not
+clamp the intended target during coupling, learned during reads, overwrote the
+context-driven activity with a new seed, and confused stable IDs with compact
+positions. Its body is retired with a migration error before brain access. No old
+golden or adopted result is relabelled as the new protocol.
+
+The replacement separates construction-only AttractorConfig from SeedMixtureChoice
+and ContextChoiceProtocol. ContextAttractorChoice teaches assigned disjoint codes
+against clamped outcome assemblies; coupling beta and recurrent training beta are
+separate. Reads clear activity inside strict seeded read_only, hold the cue, and
+report both overlaps and an optional label. Ties, including silence, have no label.
+Native noise is enabled only after teaching; context and recurrence gates are
+independent. Protocol parameters are serialized without unused mixture settings.
+
+The initial external-drive approach was rejected by the existing sparse-backend
+capability boundary. Instead, read_only(seed=...) now supplies temporary child RNG
+streams per distinct backend owner, restoring objects/states on normal, exceptional
+and nested exits. This covers backend observation randomness, not global RNGs or
+connectome generation. Positive-noise construction on numpy_exact fails before
+allocation because that backend does not support native input noise.
+
+Constructed source-disabled controls exposed a real defect: both sparse engines
+returned their incumbent assembly at zero synaptic drive before adding noise. The
+shortcut now applies only at zero noise. A noise-only partial population raises;
+materialized populations select from the native noisy drive. NumPy's compiled path
+also bypassed noise; it now calls the shared noise/competition selector on its
+existing-column population. A regression explicitly confirms entry to that path.
+No-input scheduling semantics remain unchanged; the experiment uses a zero-sized
+stimulus to schedule the otherwise source-disabled target.
+
+Development diagnostics (not preregistered scientific adoption): context n=400,
+k=100; outcome n=2000, k=200, beta=3, train rounds=10, fires=2; p=.05; coupling
+beta=1, presentations=((4,0),(0,4)), read rounds=3; brain seeds 1/2/3 and read seed
+700. At noise zero, NumPy target overlap was 1 for both contexts in all three
+brains. CUDA target overlap was 1 except seed 3's right context at .995. Disabling
+context at zero noise returned silence and no label. At noise std=1000, NumPy
+overlaps lay in [.075,.1] and CUDA in [.06,.13], with outputs independent of context.
+These endpoints establish a responsive measurement, not a useful robustness range,
+probability calibration, softmax law, or general library noise tolerance.
+
+Scratch diagnostics: .cache/context-choice-diagnostic.json and
+.cache/context-choice-torch-diagnostic.json; CUDA diagnostic exited 0. The shared
+AttractorConfig refactor retained all 36 saved PFA labels and complete winner arrays
+(three brain seeds, binary/threeway tables, two mixture modes, three flip seeds).
+No sampled-engine sequence result is adopted from that software replay.
+
+Permanent tests exercise context sensitivity, large-noise sensitivity and weight/
+activity isolation on NumPy and CUDA, same-seed replay after intervening reads,
+noise-only replay and partial-population refusal, mixed-owner RNG isolation,
+nested/exceptional restoration, invalid configurations, and legacy migration errors.
+Initial focused run: 52 passed. Extending to CUDA first revealed a test snapshot
+using the NumPy weight attribute on CUDA CSR (3 failed, 56 passed); the helper now
+reads the actual CUDA value tensor. This failure did not change a scientific bar.
+
+The broad workflow gate completed with 1346 passed, 1 skipped, 6 warnings and
+3 failed in 152.77s (.cache/context-choice-contract-gate.log). All three failures
+were the new CUDA snapshot's unsupported bfloat16-to-NumPy conversion. The test
+helper now losslessly widens bfloat16 to float32 before taking a CPU snapshot;
+all 29 context tests then passed in 8.62s. No production code changed after the
+broad gate. The final 36-trajectory PFA replay also matches all saved labels and
+complete winner arrays (.cache/attractor-config-final-pfa.json).
+
+Dedicated fused/CUDA gate: 122 passed, 11 warnings in 42.61s, exit 0
+(.cache/context-choice-gpu-gate.log), with the fused build loaded on RTX 3080.
+The final focused suite passed 71 tests in 13.09s, exit 0
+(.cache/context-choice-final-focused.log), including subsequently added zero-beta
+and zero-presentation learning nulls across three seeds on both backends. Those
+nulls must fail the same joint label/target-overlap/margin criterion used for the
+trained readout; successful guessing of one label is not sufficient. In the CPU
+zero-beta diagnostic both contexts selected label 0 in each brain (target overlaps
+for the right context .365/.435/.37), retained as development evidence.
+
+Changed-Python Ruff and git diff --check pass. The broad gate was not repeated
+after the test-only snapshot correction and added nulls; its exact result and the
+focused correction are reported separately above. Existing full-package legacy
+golden/classifier failures are not declared resolved. Moderate-noise robustness,
+frequency calibration and concrete Lean/backend equivalence remain unproved.

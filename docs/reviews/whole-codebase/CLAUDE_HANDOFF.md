@@ -1128,3 +1128,23 @@ Validation: 1305 broad contract tests passed (one skip); 122 dedicated CUDA test
 passed; three subsequently added direct CUDA learning-null controls passed. No
 production implementation changed after those broad gates. See the linked validation
 section for per-seed counts, exact scope and logs. The full package is not declared clean.
+
+
+## Context readout and noise contract (2026-09-10)
+
+SoftmaxContextCoin is retired before brain mutation. Its explicit replacement,
+ContextAttractorChoice, separates attractor construction, context teaching and
+seeded read-only observation; overlap scores are not probabilities. Fixed teaching
+and source-disabled controls expose real learning/context sensitivity. Both sparse
+backends now consume positive noise at zero synaptic drive, and NumPy compiled
+selection uses the shared noise/competition selector. Noise-only reads require a
+materialized population. Native-noise capability is checked before construction.
+
+See [the complete validation and limitations](VALIDATION.md#context-readout-seeded-observation-and-native-noise-2026-09-10).
+Broad gate: 1346 passed, one skip, three test-helper failures (CUDA bfloat16 snapshot).
+After correcting that helper, the final focused suite passed 71 tests, including
+three-seed CPU/CUDA learning nulls. Dedicated fused/CUDA gate: 122 passed. All 36
+saved PFA labels and full winner arrays replay unchanged. No production code changed
+after the broad gate. No historical goldens or adopted numerical claims changed.
+A useful noise-tolerance range is still unmeasured; the extreme-noise endpoints are
+development diagnostics. Full-package and concrete proof obligations remain open.

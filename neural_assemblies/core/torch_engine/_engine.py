@@ -752,7 +752,11 @@ class TorchSparseEngine(ComputeEngine):
             )
 
         # Zero signal — preserve current assembly
-        if prev_winner_inputs.numel() > 0 and not prev_winner_inputs.any():
+        # Specification: neural_assemblies/ir/VERIFICATION.md#contract-noise-only-observation
+        zero_signal = prev_winner_inputs.numel() > 0 and not prev_winner_inputs.any()
+        if zero_signal and tgt.input_noise_std > 0 and tgt.w < tgt.n:
+            raise ValueError('noise-only projection requires a fully materialized population')
+        if zero_signal and tgt.input_noise_std == 0:
             # UNLESS the silence is a DEAD FIBER rather than a quiet source.
             # Driving a converged target from a SECOND source left that
             # fiber at nrows=0 ncols=0 nnz=0 for every round while numpy grew
