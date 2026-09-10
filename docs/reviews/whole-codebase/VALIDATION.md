@@ -1943,3 +1943,15 @@ after the test-only snapshot correction and added nulls; its exact result and th
 focused correction are reported separately above. Existing full-package legacy
 golden/classifier failures are not declared resolved. Moderate-noise robustness,
 frequency calibration and concrete Lean/backend equivalence remain unproved.
+
+
+## Registered context noise sweep (2026-09-10)
+
+The next experiment uses the shared runner and a committed pre-run protocol:
+[registration](../../../research/notes/memory/PREREG_context_noise.md). It separates
+a fixed primary noise-1 hypothesis from a descriptive noise grid, groups repeated
+reads within brain, retains two mechanism controls, and runs backends independently.
+The analysis has constructed perfect-null, failed-primary, identity and interval
+tests. No intermediate-noise observations have been generated at registration time.
+
+Pre-run validation: 36 analysis/specification/register/ratchet tests passed in 55.86s; changed-Python Ruff and git diff --check passed.

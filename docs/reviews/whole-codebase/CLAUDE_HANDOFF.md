@@ -1148,3 +1148,13 @@ saved PFA labels and full winner arrays replay unchanged. No production code cha
 after the broad gate. No historical goldens or adopted numerical claims changed.
 A useful noise-tolerance range is still unmeasured; the extreme-noise endpoints are
 development diagnostics. Full-package and concrete proof obligations remain open.
+
+
+## Noise study registration (2026-09-10)
+
+A shared-runner context-noise experiment now records the complete grid and per-read
+observations. Its primary std=1 hypothesis is fixed in
+[the registration](../../../research/notes/memory/PREREG_context_noise.md); other
+levels are descriptive, with no selected robustness-range claim. New brain seeds
+101..120, independent backend reports, within-brain repeats and explicit nulls are
+required. This registration checkpoint precedes measurement.
