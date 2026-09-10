@@ -54,12 +54,8 @@ class ExplicitRound:
             raise ValueError("expected a complete explicit-area-round-v1 instruction")
         return cls(**{key: value for key, value in document.items() if key != "profile"})
 
-    def execute(self, engine):
-        """Validate this instruction, then use the existing dense CPU kernel.
-
-        This is an engine-level API: it does not synchronize a Brain facade.
-        No program-level rollback or formal backend certification is implied.
-        """
+    def validate(self, engine):
+        """Check profile eligibility without executing or synchronizing state."""
         from ..core.backend import get_xp
         from ..core.numpy_engine import NumpyExplicitEngine
 
@@ -89,6 +85,46 @@ class ExplicitRound:
             beta = engine.get_beta(self.target, name)
             if not math.isfinite(beta) or beta < 0:
                 raise ValueError("Hebbian beta must be finite and nonnegative")
+    def execute(self, engine):
+        """Execute on a standalone engine; use execute_on_brain for a Brain."""
+        self.validate(engine)
         return engine.project_into(self.target, [], list(self.from_areas),
                                    plasticity_enabled=self.plasticity,
                                    external_drive=self.external_drive or None)
+
+    def execute_on_brain(self, brain):
+        """Specification: neural_assemblies/ir/VERIFICATION.md#contract-brain-round
+
+        Lower through ordinary projection so descriptors and history stay coherent.
+        Returns a detached winner array. No full-program rollback is promised.
+        """
+        names = (self.target, *self.from_areas)
+        if any(name not in brain.areas for name in names):
+            raise ValueError("instruction references an unregistered Brain area")
+        if (brain._mutual_inhibition_groups or brain.plasticity_mask
+                or (brain._inhibition is not None and brain._inhibition.any_closed())):
+            raise ValueError("Brain inhibition and fiber plasticity overrides are unsupported")
+        if self.plasticity and brain.disable_plasticity:
+            raise ValueError("Brain learning disable contradicts instruction")
+        engine = brain._engine_for(brain.areas[self.target])
+        self.validate(engine)
+        for name in names:
+            area = brain.areas[name]
+            if brain._engine_for(area) is not engine:
+                raise ValueError("all instruction areas must use the same dense engine")
+            if (area.fixed_assembly or area.slot_count or area.winner_policy is not None
+                    or area.n != engine._areas[name].n or area.k != engine._areas[name].k):
+                raise ValueError("Brain area configuration differs from the supported profile")
+            engine._validated_winners(name, area.winners)
+        for name in self.from_areas:
+            if brain.connectomes[name][self.target] is not engine._area_conns[name][self.target]:
+                raise ValueError("Brain and engine disagree on fiber ownership")
+        saved = brain.disable_plasticity
+        brain.disable_plasticity = not self.plasticity
+        try:
+            brain.project({}, {name: [self.target] for name in self.from_areas},
+                          external_drive=({self.target: self.external_drive}
+                                          if self.external_drive else None))
+        finally:
+            brain.disable_plasticity = saved
+        return brain.areas[self.target].winners.copy()

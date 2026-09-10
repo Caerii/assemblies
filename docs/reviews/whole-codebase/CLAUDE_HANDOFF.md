@@ -323,3 +323,12 @@ calls receive them too. Fixed Brain dropping drive on the primary dense engine
 and its batch path. Final CPU gate: 404 passed, 1 skipped; focused integration:
 126 passed. See [validation](VALIDATION.md) for the failing controls and remaining
 obligations. No GPU gate or merge is claimed.
+
+### Brain IR lowering
+
+Use `ExplicitRound.execute_on_brain(brain)` for normal descriptor/history
+synchronization; standalone `execute(engine)` remains available. Drive-only
+rounds now use ordinary Brain scheduling. The full CPU run had 425 passes and
+one new-test index-ratchet failure; the assertion was corrected through the
+canonical readout, then 37 focused checks passed. See [validation](VALIDATION.md)
+for exact scope and remaining gates. No merge or GPU proof is claimed.

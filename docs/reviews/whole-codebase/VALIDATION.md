@@ -482,3 +482,27 @@ before the Brain forwarding fix passed 400 tests with 1 skipped. Final workflow-
 checks passed. These CPU checks do not prove numerical overflow
 safety, all-state rollback, GPU behavior, or the Lean/backend relation. The known
 grounded-verb regression and historical evidence replays remain open.
+
+### Brain execution of the explicit IR (2026-09-10)
+
+`ExplicitRound.execute_on_brain` shares profile validation with standalone
+execution and lowers into ordinary Brain projection. It checks descriptor/engine
+ownership and unsupported controls, scopes and restores the learning flag, and
+returns detached winners. Source synchronization, histories, counts and activation
+remain owned by Brain. Primary dense and auxiliary dense arrangements are tested.
+
+The initial adapter run passed 14 cases and failed both external-only cases,
+exposing absent scheduling support. Brain now schedules explicitly driven areas
+without inventing source edges, saves their winner histories, and rejects unknown
+or inhibited targets. The extended focused run passed 113 tests.
+
+The workflow-listed CPU run returned 425 passed, 1 failed, 1 skipped. The failure
+was the index-space ratchet on a new test's raw set comparison of Area.winners.
+The assertion now uses `diagnostics.read_assembly`; the baseline was not relaxed.
+The final targeted integration/index-ratchet/source-link run passed 37 tests,
+including all 22 new Brain IR cases. No runtime code changed after the full run.
+Ruff and diff checks passed. This is not reported as a second full-suite rerun.
+
+The lowering is tested, not formally certified. No GPU gate, mixed-engine IR,
+whole-program rollback, or historical evidence replay is claimed. The known
+grounded-verb regression and the broader semantic unification remain open.

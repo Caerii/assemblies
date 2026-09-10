@@ -736,7 +736,7 @@ class Brain:
         drive = external_drive or {}
         if areas_by_stim is not None or dst_areas_by_src_area is not None:
             self._project_impl(areas_by_stim or {}, dst_areas_by_src_area or {}, verbose, drive)
-        elif external_inputs is not None or projections is not None:
+        elif external_inputs is not None or projections is not None or external_drive is not None:
             # Inject external activations, then route through the same projection path
             xp = get_xp()
             for area_name, input_winners in (external_inputs or {}).items():
@@ -800,13 +800,15 @@ class Brain:
         # being perfectly stable within one run. dict.fromkeys dedupes while
         # keeping the deterministic insertion order of the two dicts.
         to_update_area_names = dict.fromkeys(
-            list(stim_in.keys()) + list(area_in.keys())
+            list(stim_in.keys()) + list(area_in.keys()) + list(external_drive)
         )
         if external_drive:
             from .numpy_engine import NumpyExplicitEngine
             for name in external_drive:
-                if name not in to_update_area_names:
-                    raise ValueError(f"External drive target {name!r} is not scheduled")
+                if name not in self.areas:
+                    raise ValueError(f"Unknown external drive target {name!r}")
+                if self._inhibition is not None and not self._inhibition.area_open(name):
+                    raise ValueError(f"External drive target {name!r} is inhibited")
                 if not isinstance(self._engine_for(self.areas[name]), NumpyExplicitEngine):
                     raise ValueError("External drive requires a dense explicit engine")
 
@@ -895,7 +897,8 @@ class Brain:
                 record_activation=getattr(self, 'record_activation', False),
                 **drive_kwargs,
             )
-            self._apply_result(area_name, result, stim_in, area_in)
+            self._apply_result(area_name, result, stim_in, area_in,
+                               had_external_drive=external_drive_vec is not None)
             activation_scores[area_name] = result.total_activation
             if getattr(self, 'record_activation', False):
                 pre_kwta[area_name] = float(result.pre_kwta_total or 0.0)
@@ -937,13 +940,13 @@ class Brain:
                         self._engine.set_winners(
                             name, np.array([], dtype=np.uint32))
 
-    def _apply_result(self, area_name, result, stim_in, area_in):
+    def _apply_result(self, area_name, result, stim_in, area_in, *, had_external_drive=False):
         """Apply a ProjectionResult back to the Area descriptor and save history."""
         area = self.areas[area_name]
         area._new_winners = result.winners
         area._new_w = result.num_ever_fired
         area.num_first_winners = result.num_first_winners
-        had_inputs = bool(stim_in[area_name] or area_in[area_name])
+        had_inputs = bool(stim_in[area_name] or area_in[area_name] or had_external_drive)
 
         if self.save_winners and had_inputs:
             mapping = self._engine.get_neuron_id_mapping(area_name)

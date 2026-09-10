@@ -340,8 +340,8 @@ The adapter validates inputs and relevant state before calling the existing
 `NumpyExplicitEngine.project_into`. It contains no second implementation of
 summation, winner selection or Hebbian learning. Direct engine calls now share index/source/drive validation. The stricter
 profile restrictions (such as nonnegative weights and no clamps) stay in the IR. This engine-level entry must not be
-used to mutate a Brain's private engine behind its facade; a coherent Brain
-lowering is still required.
+used to mutate a Brain's private engine behind its facade. Use `execute_on_brain`
+for the coherent Brain lowering described below.
 
 Construction and preflight rejection do not mutate engine state. This does not
 promise rollback after an unexpected backend failure or across a multi-round
@@ -389,8 +389,40 @@ claim follows from these CPU tests.
 
 `Brain.project` forwards explicit drive to either the primary dense engine or the
 auxiliary dense engine. Targets with supplied drive bypass the batch API, whose
-configuration cannot carry drive. Requests for unscheduled targets or unsupported
-engines raise rather than silently dropping the supplied input. This does not
-add external-drive-only scheduling or change the existing mixed sparse-source
+configuration cannot carry drive. Requests for unknown/inhibited targets or unsupported engines raise rather
+than silently dropping the supplied input. Named external-drive targets now
+participate in scheduling even without source edges, and drive-only projections
+save winner history. This does not change the existing mixed sparse-source
 versus supplied-drive rule. Brain's broader descriptor synchronization and
 multi-target failure atomicity remain separate obligations.
+
+
+<a id="contract-brain-round"></a>
+
+## Brain lowering for the explicit round
+
+`ExplicitRound.execute_on_brain` reuses profile eligibility validation, then
+lowers the same instruction to `Brain.project`. Named areas must share one dense
+engine, whether primary or auxiliary. Their descriptor dimensions must match
+engine dimensions, winner IDs must be valid, and fibers must have shared object
+ownership. Clamps, custom policies, slots, active inhibition, mutual inhibition
+and fiber plasticity overrides are rejected for this profile. A requested
+learning step cannot silently override a disabled Brain or engine learning flag.
+
+The instruction temporarily sets Brain's learning flag, restoring its prior value
+in `finally`. Ordinary Brain projection synchronizes source winners, applies the
+backend result to descriptors, saves histories and records activation. Returned
+winner arrays are detached from live state. Drive-only instructions now use
+ordinary Brain scheduling and history recording as well. They do not invent a
+source edge or recurrent input to make the target execute.
+
+Controls compare ordinary projection with IR execution on primary dense and
+auxiliary dense engines, including full weight matrices, winner history, counts,
+activation and returned-array independence. Further cases cover recurrence,
+drive-only scheduling, inhibited-target rejection, malformed public winner
+buffers, unsupported learning masks and restoring the learning flag on failure.
+
+This is a tested lowering, not a Lean simulation proof. Profile checks do not
+prove entire Brain state consistency, failure atomicity of a multi-target program,
+or thread safety of temporarily scoped flags. Mixed-engine IR rounds remain
+unsupported; ordinary mixed projection retains its existing behavior.

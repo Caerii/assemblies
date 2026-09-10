@@ -59,3 +59,8 @@ All named areas and their initial state must already exist. Decode persisted
 instructions with `ExplicitRound.from_document`; unknown features are errors.
 See the [profile contract](VERIFICATION.md#contract-explicit-round) for numerical
 semantics, constructed controls, and the remaining Lean/backend bridge.
+
+For a Brain, call `instruction.execute_on_brain(brain)` instead of passing its
+private engine to `execute`. This uses normal projection synchronization and
+history, supports primary or auxiliary dense areas, and returns a detached winner
+array. See the [Brain lowering contract](VERIFICATION.md#contract-brain-round).
