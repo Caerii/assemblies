@@ -15,7 +15,7 @@ import sys
 
 os.environ.setdefault("EMERGENT_FAST_TRAINING", "1")
 os.environ.setdefault("TRAIN_PROGRESS", "0")
-sys.path.insert(0, "F:/Github/assemblies-run-e2/research/experiments")
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from childes_graduation import build_number_slice, load_corpus  # noqa: E402
 import childes_graduation as cg  # noqa: E402

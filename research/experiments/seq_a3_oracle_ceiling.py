@@ -11,12 +11,13 @@ Predictors (all estimated from the seed's TRAIN corpus unless 'exact'):
                uniform words within a class -- the true ceiling
 """
 import random
+import os
 import sys
 from collections import Counter, defaultdict
 
 import numpy as np
 
-sys.path.insert(0, 'F:/Github/assemblies/research/experiments/study4')
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'study4'))
 import ntp  # noqa: E402
 
 VOCAB, N_TRAIN, N_TEST = 50, 200, 25

@@ -19,7 +19,7 @@ import numpy as np                                          # noqa: E402
 import torch                                                # noqa: E402
 
 import sys                                                  # noqa: E402
-sys.path.insert(0, 'F:/Github/assemblies')
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 from neural_assemblies.core.brain import Brain               # noqa: E402
 from neural_assemblies.core.numpy_engine import _seeding     # noqa: E402
 from neural_assemblies.core.torch_engine import _fused_cuda  # noqa: E402
