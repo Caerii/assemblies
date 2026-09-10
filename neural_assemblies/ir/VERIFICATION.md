@@ -987,3 +987,32 @@ Controls reject malformed policies before selection and preserve null/signed
 boundary behavior. This does not validate every feature vector, certify backend
 tie parity or GPU execution, or validate arbitrary objects reconstructed by
 bypassing constructors (including legacy pickle state).
+
+
+<a id="contract-competition-wire"></a>
+
+## Competition configuration transport and reconstruction
+
+`ir.competition.policy_to_document` and `policy_from_document` implement the
+`competition-v1` profile for all four supported policy classes. Its shared schema
+is `ir/v1/competition.schema.json`; Rust embeds that exact file in its opaque,
+validated `CompetitionDocument`. Every default is explicit. Unknown fields, modes,
+profiles and omitted settings fail instead of acquiring reader-specific defaults.
+
+Counts must use JSON integer values, with arbitrary precision; floating-point
+encodings of counts are rejected even if mathematically integral. Continuous
+parameters must fit finite binary64. Besides the schema, both readers enforce
+`max_winners >= min_winners` and these numerical representation requirements.
+Rust compares exact integer spellings for bounds, retaining adjacent counts beyond
+u64/binary64 precision. Python reconstructs through the validated policy classes.
+The shared corpus includes all four policies, large adjacent bounds, null maximum,
+unknown/missing fields and invalid parameter values. Valid Rust documents preserve
+the original JSON value; Python normalizes continuous scalars to floats while
+preserving the represented values.
+
+Selection controls compare each policy before and after Python reconstruction.
+A runner integration records the document, reconstructs it inside measurement and
+executes threshold selection for each recorded fixture seed. The expected one
+winner distinguishes the policy from default top-k. These checks establish
+transport/reconstruction and one CPU execution path, not Rust or Lean selection
+refinement, GPU parity, or migration of existing experiment artifacts.

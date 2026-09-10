@@ -1074,3 +1074,28 @@ regressions: 11 passed. The policy suite is now in the CPU workflow gate, whose
 final result is 975 passed, 1 skipped, two expected sampled-engine warnings in
 69.83 seconds (`.cache/policy-values-gate.log`). Ruff and diff checks passed.
 These are software checks, not scientific adoption or GPU/backend parity proof.
+
+
+## Competition configuration IR (2026-09-10)
+
+All four policy types now have explicit versioned documents under competition-v1.
+Python exports/reconstructs policies and Rust exposes an opaque validated document,
+both using the packaged competition.schema.json and shared acceptance corpus.
+Continuous settings must fit finite binary64; count fields retain arbitrary integer
+precision and reject floating encodings. Cross-field minimum/maximum ordering is
+validated by both readers, including adjacent counts above u64 range. Unknown
+fields, missing defaults and misspelled modes are rejected.
+
+The shared corpus contains 20 cases. Python round-trip selection controls cover
+all policy classes; a runner integration consumes the recorded policy for each
+fixture seed and obtains one threshold winner instead of default top-k's two.
+This is configuration transport and reconstruction, not a Rust execution backend,
+a Lean refinement proof, or adoption of a scientific result.
+
+Focused policy/runner checks: 72 passed. Cargo format and locked assembly-ir tests
+passed (three corpus tests, including existing protocol and homeostasis corpora).
+CPU workflow gate: 978 passed, 1 skipped, two expected sampled-engine warnings in
+74.82 seconds (`.cache/competition-wire-gate.log`). Ruff and diff checks passed.
+Historical artifact migration, general compiler integration and GPU gates remain
+open. The negative cases validate the new boundary; no pre-existing API failure
+count is claimed for this newly introduced document format.

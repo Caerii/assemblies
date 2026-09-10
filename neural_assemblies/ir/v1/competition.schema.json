@@ -1,0 +1,152 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Competition policy v1",
+  "oneOf": [
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "profile",
+        "kind",
+        "tie_policy",
+        "k"
+      ],
+      "properties": {
+        "profile": {
+          "const": "competition-v1"
+        },
+        "kind": {
+          "const": "top-k"
+        },
+        "tie_policy": {
+          "const": "value_then_index"
+        },
+        "k": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "profile",
+        "kind",
+        "tie_policy",
+        "k",
+        "threshold"
+      ],
+      "properties": {
+        "profile": {
+          "const": "competition-v1"
+        },
+        "kind": {
+          "const": "threshold"
+        },
+        "tie_policy": {
+          "const": "value_then_index"
+        },
+        "k": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "threshold": {
+          "type": "number"
+        }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "profile",
+        "kind",
+        "tie_policy",
+        "fraction_of_max",
+        "min_winners",
+        "max_winners"
+      ],
+      "properties": {
+        "profile": {
+          "const": "competition-v1"
+        },
+        "kind": {
+          "const": "relative-threshold"
+        },
+        "tie_policy": {
+          "const": "value_then_index"
+        },
+        "fraction_of_max": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "min_winners": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "max_winners": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "profile",
+        "kind",
+        "tie_policy",
+        "fraction_of_max",
+        "e_fraction",
+        "min_winners",
+        "window",
+        "sigma_c"
+      ],
+      "properties": {
+        "profile": {
+          "const": "competition-v1"
+        },
+        "kind": {
+          "const": "e-percent"
+        },
+        "tie_policy": {
+          "const": "value_then_index"
+        },
+        "fraction_of_max": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "e_fraction": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "min_winners": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "window": {
+          "enum": [
+            "epsilon",
+            "sigma"
+          ]
+        },
+        "sigma_c": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    }
+  ]
+}

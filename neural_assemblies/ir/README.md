@@ -8,14 +8,18 @@ compiler. See [verification obligations](VERIFICATION.md).
 
 ```text
 neural_assemblies/ir/
+  competition.py           policy configuration export and reconstruction
   projection.py            restricted executable dense CPU round
   protocol.py              Python validation, loading and exclusive writing
   Cargo.toml               assembly-ir crate (member of crates/ workspace)
   rust/lib.rs              validated, lossless Rust protocol wrapper
   rust/homeostasis.rs      validated homeostasis configuration transport
+  rust/competition.rs      validated competition policy transport
   v1/
     protocol.schema.json   canonical protocol contract for both languages
     protocol.cases.json    shared acceptance and round-trip corpus
+    competition.schema.json strict competition configuration contract
+    competition.cases.json shared Python/Rust acceptance corpus
     homeostasis.schema.json strict runtime configuration contract
     homeostasis.cases.json shared configuration acceptance corpus
     brain.schema.json      brain payload description
@@ -81,3 +85,12 @@ validates it and reconstructs the runtime configuration. Rust exposes
 `assembly_ir::homeostasis::HomeostasisDocument`. Both consume the packaged schema
 and acceptance corpus. See [the exact contract](VERIFICATION.md#contract-homeostasis-wire)
 for canonical scope encoding and the limits of this configuration-only bridge.
+
+
+Competition settings are exported with `competition.policy_to_document(policy)`
+and reconstructed with `competition.policy_from_document(document)`. The
+`competition-v1` profile includes every setting explicitly. Store that document
+in a runner parameter and reconstruct the policy from the recorded parameter in
+the measurement function. Rust's `CompetitionDocument` validates transport; it
+does not execute selection. See the
+[wire contract](VERIFICATION.md#contract-competition-wire).

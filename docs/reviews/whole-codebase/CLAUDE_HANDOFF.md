@@ -554,3 +554,13 @@ constructor contract instead of duplicating its checks. Twenty initial failures;
 focused checks 231 passed, standalone selection 11 passed, CPU gate 975 passed,
 1 skipped. The policy suite is now in CI. Legacy pickle validation and GPU parity
 remain open. See [validation](VALIDATION.md).
+
+
+### Competition configuration IR
+
+All four policies now export/reconstruct via competition-v1. Python and Rust share
+one schema and a 20-case corpus, including exact large counts and reversed bounds.
+A runner fixture records and executes its reconstructed policy. Focused checks:
+72 passed; locked Rust crate tests: three passed; CPU gate: 978 passed, 1 skipped.
+This is transport/reconstruction, not Rust/Lean selection execution or historical
+artifact migration. See [validation](VALIDATION.md).

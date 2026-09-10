@@ -256,3 +256,23 @@ def test_run_retains_the_configuration_consumed_by_measurement(run):
     payload = json.loads(path.read_text())
     assert payload['observations']['executed_homeostasis'] == payload['run']['parameters']['homeostasis']
     assert payload['run']['parameters']['homeostasis'] == config.to_document()
+
+
+
+def test_run_records_and_executes_competition_document(run):
+    from neural_assemblies import Brain, ThresholdPolicy
+    from neural_assemblies.diagnostics import read_assembly
+    from neural_assemblies.ir.competition import policy_from_document, policy_to_document
+    document = policy_to_document(ThresholdPolicy(k=2, threshold=5))
+    def measure(record):
+        winners = []
+        for seed in record['seeds']:
+            brain = Brain(p=.1, seed=seed, engine=record['engine'], norm_init=False)
+            brain.add_area('A', 4, 2, winner_policy=policy_from_document(record['parameters']['competition']))
+            brain.project({}, {}, external_drive={'A': [9, 4, 3, 1]})
+            winners.append(read_assembly(brain, 'A').tolist())
+        return {'winners': winners}
+    path = run(engine='numpy_explicit', parameters={'competition': document}, measure=measure)
+    payload = json.loads(path.read_text())
+    assert payload['run']['parameters']['competition'] == document
+    assert payload['observations']['winners'] == [[0], [0], [0]]

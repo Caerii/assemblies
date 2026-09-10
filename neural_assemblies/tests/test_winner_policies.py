@@ -131,3 +131,28 @@ def test_policy_boundaries_preserve_null_and_signed_thresholds():
     np.testing.assert_array_equal(selector.select_with_policy(np.array([0, -2]), policy), [0])
     assert EPercentPolicy.from_gamma(d_ms=0).fraction_of_max == 1
     assert EPercentPolicy.from_gamma(d_ms=30).fraction_of_max == 0
+
+
+
+def test_shared_competition_wire_corpus():
+    import json
+    from neural_assemblies.ir.protocol import schema_path
+    from neural_assemblies.ir.competition import policy_from_document, policy_to_document
+    for case in json.loads(schema_path('competition.cases.json').read_text()):
+        if case['valid']:
+            policy = policy_from_document(case['document'])
+            assert policy_to_document(policy) == case['document'], case['name']
+        else:
+            with pytest.raises(ValueError):
+                policy_from_document(case['document'])
+
+
+def test_policy_wire_roundtrip_preserves_selection():
+    from neural_assemblies.ir.competition import policy_from_document, policy_to_document
+    selector = WinnerSelector(np.random.default_rng(0))
+    values = np.array([9, 4, 3, 1], dtype=float)
+    for policy in [TopKPolicy(2), ThresholdPolicy(2, 5),
+                   RelativeThresholdPolicy(.5), EPercentPolicy(window='sigma')]:
+        restored = policy_from_document(policy_to_document(policy))
+        np.testing.assert_array_equal(selector.select_with_policy(values, restored),
+                                      selector.select_with_policy(values, policy))

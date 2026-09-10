@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::sync::LazyLock;
 
+pub mod competition;
 pub mod homeostasis;
 
 pub const IR_VERSION: &str = "1";
