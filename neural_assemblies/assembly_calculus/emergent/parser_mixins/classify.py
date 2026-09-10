@@ -66,24 +66,27 @@ class CategoryClassificationMixin:
     # Classification
     # ==================================================================
 
-    def classify_word(self, word: str, grounding: Optional[GroundingContext] = None
-                      ) -> Tuple[str, Dict[str, float]]:
+    def classify_word(self, word: str, grounding: Optional[GroundingContext] = None,
+                      *, cue_mode: str = "combined") -> Tuple[str, Dict[str, float]]:
         """Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-word-classification
 
         Legacy tuple view; use classify_word_evidence to retain score provenance.
         """
-        return self.classify_word_evidence(word, grounding).as_legacy_tuple()
+        return self.classify_word_evidence(word, grounding, cue_mode=cue_mode).as_legacy_tuple()
 
     def classify_word_evidence(
         self,
         word: str,
         grounding: Optional[GroundingContext] = None,
+        *, cue_mode: str = "combined",
     ) -> ClassificationEvidence:
         """Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-word-classification
 
         Read existing core lexicons without neural learning or construction.
 
-        Phon and explicitly supplied, registered grounding cues drive a
+        cue_mode selects combined (default), phon_only or grounding_only inputs.
+        Only registered phon and explicitly supplied grounding cues are resolved;
+        the evidence retains the mode and resolved stimulus names. These drive a
         stimulus-only schedule for self.rounds steps. Each target is temporarily
         cleared and unclamped inside read_only; fibers, activity and RNG are
         preserved. A nonempty lexicon requires a population usable for probing.
@@ -94,17 +97,26 @@ class CategoryClassificationMixin:
         statistics exist, otherwise UNKNOWN. Distributional scores have category
         keys and may update parser subcategory metadata, not neural weights.
         """
-        phon = self.stim_map.get(word)
-        if phon is None and grounding is None:
+        # Specification: neural_assemblies/ir/VERIFICATION.md#contract-classification-cues
+        if cue_mode not in ("combined", "phon_only", "grounding_only"):
+            raise ValueError("cue_mode must be combined, phon_only or grounding_only")
+        phon = self.stim_map.get(word) if cue_mode != "grounding_only" else None
+        supplied_grounding = grounding if cue_mode != "phon_only" else None
+        cues = [phon] if phon is not None else []
+        if supplied_grounding is not None:
+            cues.extend(gs for gs in self._grounding_stim_names(supplied_grounding)
+                        if gs in self._grounding_stim_names_set)
+        cues = tuple(dict.fromkeys(cues))
+
+        def evidence(category, source, scores):
+            return ClassificationEvidence(category, source, scores, cue_mode=cue_mode, cues=cues)
+
+        if phon is None and supplied_grounding is None:
             if self.dist_stats.word_count.get(word, 0) > 0:
                 category, scores = self.classify_distributional(word)
-                return ClassificationEvidence(category, "distributional", scores)
-            return ClassificationEvidence("UNKNOWN", "none", {})
+                return evidence(category, "distributional", scores)
+            return evidence("UNKNOWN", "none", {})
 
-        cues = [phon] if phon is not None else []
-        if grounding is not None:
-            cues.extend(gs for gs in self._grounding_stim_names(grounding)
-                        if gs in self._grounding_stim_names_set)
         scores: Dict[str, float] = {}
         brain = self.brain
         with brain.read_only():
@@ -124,9 +136,9 @@ class CategoryClassificationMixin:
             # Fall back to distributional classification
             if self.dist_stats.word_count.get(word, 0) > 0:
                 category, scores = self.classify_distributional(word)
-                return ClassificationEvidence(category, "distributional", scores)
-            return ClassificationEvidence("UNKNOWN", "neural", scores)
+                return evidence(category, "distributional", scores)
+            return evidence("UNKNOWN", "neural", scores)
 
         best_area = max(scores, key=scores.get)
-        return ClassificationEvidence(CORE_TO_CATEGORY[best_area], "neural", scores)
+        return evidence(CORE_TO_CATEGORY[best_area], "neural", scores)
 

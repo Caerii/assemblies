@@ -1035,3 +1035,28 @@ stimulus identity and a customized source beta on reuse. Corpus vocabulary and
 scaled-vocabulary integration tests exercise the formerly failing call paths.
 This does not make grounding-context replacement transactional or establish
 classification/generalization quality.
+
+
+<a id="contract-classification-cues"></a>
+
+## Explicit classification cue selection
+
+`classify_word` and `classify_word_evidence` accept keyword-only cue_mode with
+values combined (the unchanged default), phon_only, and grounding_only. Selection
+occurs before observing neural state. Phon cues must already be registered;
+grounding cues come only from the explicitly supplied context and registered
+feature names. Resolved names are deduplicated in schedule order. No mode adds
+stimuli, consults category labels to choose input, or learns during observation.
+Unknown modes raise before entering the neural observation context.
+
+ClassificationEvidence retains cue_mode and an immutable tuple of resolved cues,
+alongside its existing source and score domains. Legacy tuples intentionally lose
+this metadata. Manually constructed older evidence may leave mode unspecified only
+with no cue names. The word-only category cache continues to use the default query;
+explicit cue variants are not cached under that ambiguous key. Existing neural
+zero-evidence distributional fallback remains source-labeled in every mode.
+
+Controls trace actual projection inputs, preserve weights/activity/RNG for all
+three modes, and check immutable cue provenance. This makes alternative queries
+composable and inspectable. It does not claim their scores are calibrated across
+unequally recruited areas or silently replace the existing combined-cue protocol.

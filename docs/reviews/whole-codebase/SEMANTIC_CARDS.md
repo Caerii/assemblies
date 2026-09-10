@@ -549,8 +549,8 @@ Changing a score formula to fit this one observed fixture would not discharge th
 
 ## Classification evidence and conversion
 
-`core.classification.ClassificationEvidence` carries category, source and raw
-scores. `classify_word_evidence` owns query dispatch; `classify_word` is its legacy
+`core.classification.ClassificationEvidence` carries category, source, raw
+scores, cue mode and resolved stimulus names. `classify_word_evidence` owns query dispatch; `classify_word` is its legacy
 tuple view. Neural results retain core-area keys, distributional results retain
 POS keys, and absent evidence supplies UNKNOWN with no scores. Construction
 rejects unknown domains, mismatched keys and nonfinite/negative scores. Scores
@@ -560,7 +560,7 @@ These strengths are not calibrated probabilities or comparable by construction.
 Fusion reads the source before converting. A distributional fallback cannot
 be renamed `lexicon_readout` or `phon`, counted as an independent neural signal,
 or credited as correct neural readout by the decomposition report. The legacy
-tuple still loses source information and must not be used for new evidence
+tuple still loses source and cue information and must not be used for new evidence
 fusion. Three constructed controls failed using the pre-change inference module:
 fallback source/score loss, fallback credited to neural readout, and a strong
 wrong neural answer classified as weak because of conditional-expression precedence.
@@ -722,3 +722,14 @@ engine/mapping establishes that stronger bound. Existing mutable winner buffers
 and the legacy meaning change of `.w` remain separate ownership/count work.
 Five setter controls verify rejection leaves the previous activity unchanged.
 No GPU validation/performance claim follows from the CPU checks.
+
+
+### Classification cue protocol resolution
+
+The default combined-cue behavior remains unchanged. Explicit phon_only and
+grounding_only modes now resolve inputs before read-only observation and retain
+the mode/names in evidence. A word having a registered phonological stimulus does
+not establish that those inputs were learned. The held-out fixture diagnosed in
+VALIDATION.md distinguishes grounding-only success from combined-cue failures;
+this is not an automatic reason to change the default or adopt new accuracy claims.
+See [the cue contract](../../../neural_assemblies/ir/VERIFICATION.md#contract-classification-cues).

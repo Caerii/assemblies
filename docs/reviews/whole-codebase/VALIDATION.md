@@ -1134,3 +1134,43 @@ Ruff. The parser core has 30 existing F401 findings on both committed and workin
 versions; no blanket clean-lint claim is made. Diff checks pass. The migration plan
 now consolidates implemented boundaries and remaining acceptance work. Full-package
 completion, GPU gates and scientific adoption remain unproven.
+
+
+## Classification cue diagnosis and explicit query modes (2026-09-10)
+
+A single-seed software diagnosis reproduced the parser fixture at n=10000, k=100,
+p=.05, beta=.1, seed=42, rounds=10, holding out bird/finds/small. The fixture
+training environment used EMERGENT_FAST_TRAINING=1, EMERGENT_ERP_FAST=1 and
+TRAIN_PROGRESS=0. This is not preregistered research or an adopted accuracy result.
+
+| Word | Combined | Phon only | Grounding only |
+|---|---|---|---|
+| bird | ADV | ADV | NOUN |
+| finds | ADV | ADV | VERB |
+| small | ADJ | ADV | ADJ |
+
+Grounding-only target-core overlaps were .27, .40 and .42; combined target-core
+overlaps were .03, .03 and .24. Recruited populations also differed: NOUN 2782,
+VERB 2348, ADJ 1159 and ADV 817. These counts identify a score-comparability concern;
+no chance correction or causal conclusion about population size is established.
+The contrast shows that registered, untrained phon input can obscure the feature
+readout in this fixture. It does not prove a general decay or generalization law.
+
+The first diagnostic expressed grounding-only by querying an unregistered word.
+The new keyword-only cue_mode parameter represents the contrast directly:
+combined (unchanged default), phon_only, grounding_only. Evidence retains the mode
+and immutable resolved cue names. The word-only category cache is not reused for
+explicit variants. Four initial new-interface controls failed; after implementation,
+26 observation/evidence checks passed, then five provenance validation controls
+were added. All modes trace their actual schedule and preserve neural state.
+
+A direct rerun through the new API reproduced the table and exited successfully
+(`.cache/classification-cue-audit.json`). To reproduce, construct/train the fixture
+with the parameters above and call classify_word_evidence(word,
+parser.word_grounding[word], cue_mode=mode) for each listed word and mode.
+The default combined-cue classification failures have not been fixed or hidden.
+
+CPU workflow gate: 989 passed, 1 skipped, two expected sampled-engine warnings in
+87.86 seconds (`.cache/classification-cues-gate.log`). Ruff and diff checks passed.
+Protocol choice, cross-population score calibration, GPU verification and full
+package completion remain open; no training rule or test expectation was changed.

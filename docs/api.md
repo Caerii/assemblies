@@ -290,3 +290,14 @@ uv run pytest neural_assemblies/tests -q
 uv run pytest neural_assemblies/tests/test_docs_examples_smoke.py -q
 uv run pytest tests/test_legacy_root_shims.py tests/test_legacy_archived_layout.py -q
 ```
+
+
+## Classification cues and evidence
+
+`parser.classify_word_evidence(word, grounding, cue_mode="grounding_only")`
+queries registered grounding features without adding the word's phonological
+stimulus. The other modes are `phon_only` and `combined` (the unchanged default).
+Use the returned `source`, `scores`, `cue_mode`, and `cues` together: an overlap is
+not a calibrated probability, and registered phonological input is not necessarily
+learned input. Queries remain read-only. See the
+[cue contract](../neural_assemblies/ir/VERIFICATION.md#contract-classification-cues).

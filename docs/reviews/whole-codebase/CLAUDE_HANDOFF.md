@@ -579,3 +579,17 @@ Complete parser file: 149 passed, 3 failed. Bird and finds classify as ADV;
 generalization is 33% against 66%. These remain open. CPU contract gate: 980 passed,
 1 skipped. This does not establish a clean full package. The migration plan now
 consolidates current integration boundaries. See [validation](VALIDATION.md).
+
+
+### Held-out classification diagnosis and cue modes
+
+The failing fixture returns the expected NOUN/VERB/ADJ for grounding-only queries;
+combined input still returns ADV/ADV/ADJ. Phon-only returns ADV for all three.
+This single-seed diagnostic is not adopted research. Unequal recruited populations
+also make raw-score comparability a remaining concern.
+
+Classification now accepts explicit combined/phon_only/grounding_only modes and
+retains resolved cues in immutable evidence. The default, training rule and failing
+combined-cue expectations are unchanged. All modes preserve neural observation
+state. CPU gate: 989 passed, 1 skipped. See [validation](VALIDATION.md) for exact
+fixture parameters, values and limits.

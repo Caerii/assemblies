@@ -19,8 +19,18 @@ class ClassificationEvidence:
     category: str
     source: Literal["neural", "distributional", "none"]
     scores: Mapping[str, float]
+    cue_mode: Literal["combined", "phon_only", "grounding_only"] | None = None
+    cues: tuple[str, ...] = ()
 
     def __post_init__(self):
+        if self.cue_mode not in (None, "combined", "phon_only", "grounding_only"):
+            raise ValueError("Unknown classification cue_mode")
+        if type(self.cues) not in (tuple, list) or any(not isinstance(c, str) or not c for c in self.cues):
+            raise ValueError("Classification cues must be nonempty stimulus names")
+        cues = tuple(self.cues)
+        if len(set(cues)) != len(cues) or (cues and self.cue_mode is None):
+            raise ValueError("Classification cues require a mode and distinct names")
+        object.__setattr__(self, "cues", cues)
         domains = {"neural": CORE_TO_CATEGORY,
                    "distributional": set(CORE_TO_CATEGORY.values()), "none": set()}
         if self.source not in domains:

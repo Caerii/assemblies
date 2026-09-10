@@ -102,3 +102,20 @@ def test_frame_subcategory_is_converted_before_distributional_scoring(grounded, 
     category, scores = DistributionalMixin.classify_distributional(parser, "word")
     assert category == "DET"
     assert set(scores) == {"DET"}
+
+
+
+def test_cue_provenance_is_immutable_and_legacy_view_stays_compatible():
+    cues = ['phon_word']
+    evidence = ClassificationEvidence('NOUN', 'neural', {'NOUN_CORE': .5},
+                                      cue_mode='phon_only', cues=cues)
+    cues.clear()
+    assert evidence.cues == ('phon_word',)
+    assert evidence.as_legacy_tuple() == ('NOUN', {'NOUN_CORE': .5})
+
+
+@pytest.mark.parametrize('mode,cues', [(None, ['phon_word']), ('typo', []),
+                                      ('combined', ['s', 's']), ('combined', 's')])
+def test_malformed_cue_provenance_is_rejected(mode, cues):
+    with pytest.raises(ValueError):
+        ClassificationEvidence('UNKNOWN', 'neural', {}, cue_mode=mode, cues=cues)

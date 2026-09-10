@@ -106,3 +106,32 @@ def test_stale_lexicon_cannot_initialize_a_cold_population(parser):
     with pytest.raises(ValueError, match="materializ"):
         parser.classify_word("dog")
     assert_brain_unchanged(parser.brain, before)
+
+
+
+@pytest.mark.parametrize('mode', ['combined', 'phon_only', 'grounding_only'])
+def test_explicit_cue_modes_retain_actual_schedule_and_readonly_state(parser, monkeypatch, mode):
+    ctx = parser.word_grounding['dog']
+    expected = [] if mode == 'grounding_only' else [parser.stim_map['dog']]
+    if mode != 'phon_only':
+        expected += parser._grounding_stim_names(ctx)
+    observed = []
+    project = parser.brain.project_rounds
+    def traced(target, stimuli, areas, rounds):
+        observed.append(tuple(stimuli))
+        return project(target, stimuli, areas, rounds)
+    monkeypatch.setattr(parser.brain, 'project_rounds', traced)
+    before = copy.deepcopy(parser.brain)
+    evidence = parser.classify_word_evidence('dog', ctx, cue_mode=mode)
+    assert evidence.cue_mode == mode
+    assert evidence.cues == tuple(expected)
+    assert observed and all(cues == tuple(expected) for cues in observed)
+    assert_brain_unchanged(parser.brain, before)
+
+
+def test_invalid_cue_mode_fails_before_neural_observation(parser, monkeypatch):
+    def fail():
+        pytest.fail('invalid query reached neural observation')
+    monkeypatch.setattr(parser.brain, 'read_only', fail)
+    with pytest.raises(ValueError, match='cue_mode'):
+        parser.classify_word_evidence('dog', cue_mode='groundng')
