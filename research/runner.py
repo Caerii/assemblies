@@ -19,11 +19,11 @@ from neural_assemblies.core.environment import environment_record
 
 ROOT = Path(__file__).resolve().parents[1]
 # Source-linked specification: research/README.md#source-identity
-SOURCE_INVENTORY = 'source-inputs-v2'
+SOURCE_INVENTORY = 'source-inputs-v3'
 _SOURCE_SUFFIXES = frozenset({
     '.py', '.rs', '.cu', '.cuh', '.c', '.cc', '.cpp', '.h', '.hpp',
     '.lean', '.dfy', '.ts', '.tsx', '.js', '.mjs', '.toml', '.lock',
-    '.yaml', '.yml', '.cmake', '.ps1', '.bat', '.sh',
+    '.yaml', '.yml', '.cmake', '.ps1', '.bat', '.cmd', '.sh',
 })
 _SOURCE_NAMES = frozenset({'lean-toolchain', 'CMakeLists.txt', 'Makefile'})
 

@@ -140,7 +140,7 @@ inventory, and the practical workflow.
 
 [The shared runner](runner.py) records `git_commit`, `source_sha256`, and
 `source_inventory` before measurement and rejects a changed identity afterward.
-`source-inputs-v2` hashes Git-discovered tracked and nonignored untracked code,
+`source-inputs-v3` hashes Git-discovered tracked and nonignored untracked code,
 compiler headers, build scripts/configuration, Lean/Dafny specifications, the
 Lean toolchain pin and manifest, and JSON contracts under `neural_assemblies/ir`.
 The inventory policy identifier is also included in the digest. Older records
@@ -183,3 +183,6 @@ It describes the current process environment, not values previously captured at
 module import, external thread/CUDA settings, installed binary versions, or changes
 reverted before the final check. Resolving every semantic switch into an immutable
 model configuration remains open; this guard does not substitute for that work.
+
+Version 3 adds Windows `.cmd` build scripts to the source inventory. Earlier
+version 2 records remain historical records with that coverage limitation.

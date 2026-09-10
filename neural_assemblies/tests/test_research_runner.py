@@ -142,6 +142,7 @@ def source_repo(tmp_path, monkeypatch):
 
 @pytest.mark.parametrize('name', [
     'formal/AssemblyIR/Learning.lean', 'formal/lean-toolchain',
+    'scripts/cuda-dev.cmd',
     'formal/lake-manifest.json', 'neural_assemblies/ir/v1/projection.schema.json',
     'cpp/kernel.cuh', 'cpp/kernel.hpp', 'cpp/kernel.c',
     '.github/workflows/research-contracts.yml',

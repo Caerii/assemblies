@@ -657,3 +657,9 @@ Final contract gate with CUDA installed: 1029 passed, 1 skipped, two expected
 warnings in 116.23s. Compiler selection tests now run in CI. Next empirical gates
 remain historical migration replay and broader GPU coverage; next semantic gate
 is explicit target arithmetic and winner-margin certification.
+
+
+Before A1 migration replay, source inventory v3 adds Windows .cmd build scripts
+(the CUDA setup entry point was previously omitted). The existing source-mutation
+control now includes scripts/cuda-dev.cmd; runner and migration suites: 45 passed,
+8.85s. Ruff passed. Version2 historical records retain their original meaning.

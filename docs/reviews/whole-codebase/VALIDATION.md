@@ -1306,3 +1306,9 @@ Final contract workflow rerun in the CUDA-enabled environment: 1029 passed,
 (`.cache/contracts-with-cuda.log`). Compiler-discovery tests are now in that
 workflow. Changed Python files pass Ruff; git diff --check passes. No full-package
 clean claim, scientific adoption, historical replay or performance speedup is made.
+
+
+Before A1 migration replay, source inventory v3 adds Windows .cmd build scripts
+(the CUDA setup entry point was previously omitted). The existing source-mutation
+control now includes scripts/cuda-dev.cmd; runner and migration suites: 45 passed,
+8.85s. Ruff passed. Version2 historical records retain their original meaning.
