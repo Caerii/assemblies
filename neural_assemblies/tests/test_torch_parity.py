@@ -10,13 +10,10 @@ for each assembly calculus operation, not bit-identical results.
 """
 
 import copy
-import numpy as np
 import pytest
 
 from neural_assemblies.core.brain import Brain
 from neural_assemblies.assembly_calculus import (
-    Assembly,
-    overlap,
     chance_overlap,
     project,
     reciprocal_project,
@@ -444,7 +441,7 @@ class TestNormInitParity:
             b.add_area("B", N, K, BETA)
             project(b, "stim", "A", rounds=ROUNDS)
             b.areas["A"].fix_assembly()
-            asm_b = project(b, "stim", "B", rounds=1)
+            project(b, "stim", "B", rounds=1)
             for _ in range(ROUNDS):
                 b.project({}, {"A": ["B"], "B": ["B"]})
             b.areas["A"].unfix_assembly()
@@ -474,7 +471,8 @@ class TestDenseDriveParity:
     @pytest.mark.parametrize("norm_init", [True, False])
     def test_dense_assembly_forms_and_stabilizes(self, norm_init):
         eng = _torch_engine(norm_init=norm_init, dense_drive=True)
-        b = Brain(engine=eng, save_winners=True)
+        b = Brain(engine=eng, p=eng.p, seed=eng.seed, w_max=eng.w_max,
+                  norm_init=eng.norm_init, save_winners=True)
         b.add_stimulus("stim", K)
         b.add_area("A", N, K, BETA)
         asm = project(b, "stim", "A", rounds=ROUNDS)
@@ -486,7 +484,8 @@ class TestDenseDriveParity:
 
     def test_dense_separates_and_recovers(self):
         eng = _torch_engine(norm_init=True, dense_drive=True)
-        b = Brain(engine=eng, save_winners=True)
+        b = Brain(engine=eng, p=eng.p, seed=eng.seed, w_max=eng.w_max,
+                  norm_init=eng.norm_init, save_winners=True)
         b.add_stimulus("s1", K)
         b.add_stimulus("s2", K)
         b.add_area("A", N, K, 0.1)

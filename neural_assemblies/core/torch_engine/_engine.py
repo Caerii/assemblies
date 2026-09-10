@@ -85,6 +85,7 @@ class TorchSparseEngine(ComputeEngine):
                  deterministic: bool = False, gpu_sampling: bool = True,
                  **kwargs):
         self.p = p
+        self.seed = int(seed)  # Shared construction identity when adopted by Brain.
         self.w_max = w_max
         self._deterministic = deterministic
         self._gpu_sampling = gpu_sampling and not deterministic

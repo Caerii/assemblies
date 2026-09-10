@@ -70,6 +70,26 @@ class ComputeEngine(ABC):
     - The engine is responsible for its own memory management.
     """
 
+    def validate_brain_identity(self, *, p, seed, w_max) -> None:
+        """Specification: neural_assemblies/ir/VERIFICATION.md#contract-engine-identity
+
+        Reject conflicting parameters before an existing engine is adopted.
+        Backends with other seed storage must override this nonmutating check.
+        This checks shared construction identity, not all model semantics.
+        """
+        missing = object()
+        actual = {"p": getattr(self, "p", missing),
+                  "seed": getattr(self, "seed", getattr(self, "_seed", missing)),
+                  "w_max": getattr(self, "w_max", missing)}
+        requested = {"p": p, "seed": seed, "w_max": w_max}
+        for name, value in actual.items():
+            if value is missing:
+                raise ValueError(f"{type(self).__name__} cannot validate Brain {name}; "
+                                 "implement validate_brain_identity for this backend")
+            if requested[name] != value:
+                raise ValueError(f"Brain {name}={requested[name]!r} conflicts with supplied "
+                                 f"engine {name}={value!r}; pass matching parameters")
+
     # -- Area / stimulus registration --
 
     supports_fiber_learning_masks = False

@@ -729,3 +729,33 @@ Focused input/IR checks: 79 passed. Complete workflow CPU contract gate: 618 pas
 `.cache/ir-preflight-gate.log`. Ruff and diff checks passed. No GPU gate, registered
 scientific replay, complete package pass, or Lean backend-simulation proof is claimed.
 Resolved model semantics and the known grounded-verb regression remain open.
+
+
+## Supplied-engine identity consistency (2026-09-10)
+
+Brain previously ignored conflicts between its p/seed/clip arguments and an
+already-constructed engine. Auxiliary dense engines and mixed fibers could then
+use a different identity from the primary engine. After correcting a test fixture
+that assumed every engine had `clone`, all nine intended mismatch controls
+reproduced failure across the three NumPy engines (12 passes).
+
+ComputeEngine now supplies a nonmutating `validate_brain_identity` boundary,
+called before Brain adopts or changes a supplied engine. Missing identity also
+raises. Matching cases exercise both finite and absent clips and the identity of
+auxiliary engines. The source-linked contract recommends one shared parameter
+mapping rather than two copies of the same configuration values.
+
+Torch now retains the constructor seed for the identity check. Two existing
+dense-drive GPU test callers explicitly pass the engine's identity and normalization
+setting to Brain; no numerical assertions were relaxed. Four pre-existing unused
+imports/assignment lint findings in that touched test file were removed while
+preserving its projection call. GPU execution remains unverified and requires
+Claude's CUDA gates before merge.
+
+Focused checks: 25 passed. CPU workflow gate: 634 passed, 1 skipped, two expected
+sampled-engine warnings in 90.68 seconds (`.cache/engine-identity-gate.log`). Ruff
+and diff checks passed. This is an intentional fail-fast compatibility change for
+mismatched preconstructed-engine calls. It does not resolve normalization/scaling,
+other model semantics, post-construction mutation or prepopulated-engine adoption.
+Historical replay, complete package validation and the grounded-verb regression
+remain open.

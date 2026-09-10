@@ -408,3 +408,13 @@ synchronization. Invalid dimensions, float32 overflow and malformed winner buffe
 are caught by `validate`; rejected drives retain deliberately unsynchronized engine
 caps. Eight failures reproduced; focused checks 79 passed; CPU gate 618 passed,
 1 skipped. No numerical kernel change or general rollback claim. See [validation](VALIDATION.md).
+
+
+### Supplied-engine identity check
+
+Brain now rejects conflicting p/seed/w_max before adopting a preconstructed engine.
+Pass matching values, preferably from one shared mapping. Missing identity also
+raises; Torch retains its constructor seed. The two dense-drive parity callers now
+pass engine identity and norm_init explicitly; please run their CUDA gates.
+NumPy controls: 25 passed; CPU gate 634 passed, 1 skipped. This does not yet reconcile
+all model settings. See [validation](VALIDATION.md).

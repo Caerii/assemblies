@@ -610,3 +610,40 @@ would be an invalid instantiation. No backend simulation is claimed here.
 Run `lake build` and `lake env leanchecker AssemblyIR.Learning` from `formal/`.
 The printed dependencies contain only `propext` (and none for the activity
 projection theorem); there are no admitted proof holes in these theorems.
+
+
+<a id="contract-engine-identity"></a>
+
+## Supplied-engine construction identity
+
+Before adopting a `ComputeEngine` instance, `Brain` calls the engine's nonmutating
+`validate_brain_identity(p, seed, w_max)` check. Each parameter must match the
+engine's value, including when the caller omitted it and Brain used a default.
+Conflicts raise before projection fidelity is changed or any area/fiber is added.
+This prevents a primary engine using one identity while Brain creates auxiliary
+engines or mixed fibers using another. `None` remains a valid matching weight clip.
+
+The default backend implementation reads `p`, `w_max`, and `seed` (or the legacy
+`_seed` storage). Missing identity is rejected. A backend with different storage
+must override the check, not guess a seed. Torch now retains its constructor seed
+for this purpose. Engine-name construction still forwards the requested parameters
+through the factory and is unaffected.
+
+For example, a caller supplying an engine created with `p=.1, seed=41, w_max=8`
+must supply the same three parameters to `Brain`. Keep them in one mapping to
+avoid maintaining two symbolic copies:
+
+```python
+identity = dict(p=.1, seed=41, w_max=8)
+engine = create_engine("numpy_sparse", **identity)
+brain = Brain(engine=engine, norm_init=False, **identity)
+```
+
+Backend-only switches stay on the supplied engine. This is deliberately a construction-identity check, not a
+complete model configuration: normalization, scaling, determinism, stimulus laws,
+tie rules, mutable post-construction settings and prepopulated-engine adoption
+remain separate obligations. GPU parity must still be verified on the CUDA setup.
+
+Controls reject each mismatch on every NumPy engine before a fidelity setter can
+run, reject unavailable identity, and check matching identity in newly created
+auxiliary dense engines with both finite and absent clips.

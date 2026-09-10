@@ -66,3 +66,41 @@ def test_teaching_example_has_a_working_learning_disabled_control():
     trained = recovery(1, beta=.2)
     assert null < .3
     assert trained > .8
+
+
+@pytest.mark.parametrize('engine_name', ['numpy_sparse', 'numpy_exact', 'numpy_explicit'])
+@pytest.mark.parametrize('field,value', [('p', .2), ('seed', 42), ('w_max', 9)])
+def test_supplied_engine_identity_conflict_stops_before_adoption(engine_name, field, value, monkeypatch):
+    from neural_assemblies.core.engine import create_engine
+    engine = create_engine(engine_name, p=.1, seed=41, w_max=8)
+    requested = dict(p=.1, seed=41, w_max=8, norm_init=False, engine=engine)
+    requested[field] = value
+    calls = []
+    monkeypatch.setattr(engine, "set_projection_fidelity", lambda value: calls.append(value), raising=False)
+    with pytest.raises(ValueError, match=field):
+        Brain(**requested)
+    assert calls == []
+    assert not engine._areas
+
+
+@pytest.mark.parametrize('engine_name', ['numpy_sparse', 'numpy_exact', 'numpy_explicit'])
+@pytest.mark.parametrize("clip", [8, None])
+def test_supplied_matching_engine_uses_the_same_auxiliary_identity(engine_name, clip):
+    from neural_assemblies.core.engine import create_engine
+    engine = create_engine(engine_name, p=.1, seed=41, w_max=clip)
+    brain = Brain(p=.1, seed=41, w_max=clip, norm_init=False, engine=engine)
+    assert brain._engine is engine
+    brain.add_area('A', 20, 2, explicit=True)
+    owner = brain._engine_for(brain.areas['A'])
+    assert owner.p == brain.p == .1
+    assert owner.w_max == brain.w_max == clip
+    assert owner.seed == brain._seed == 41
+
+
+
+def test_supplied_engine_with_unavailable_seed_cannot_claim_identity(monkeypatch):
+    from neural_assemblies.core.numpy_engine import NumpyExactEngine
+    engine = NumpyExactEngine(p=.1, seed=41, w_max=8)
+    monkeypatch.delattr(engine, 'seed')
+    with pytest.raises(ValueError, match='cannot validate Brain seed'):
+        Brain(p=.1, seed=41, w_max=8, norm_init=False, engine=engine)

@@ -96,7 +96,10 @@ class Brain:
             engine: ComputeEngine instance, engine name string, or ``"auto"``
                    (default) to select the best available backend.
                    Examples: ``"numpy_sparse"``, ``"cuda_implicit"``, or a
-                   pre-constructed ComputeEngine instance.
+                   pre-constructed ComputeEngine instance. With an instance,
+                   p, seed and w_max must explicitly match its values (including
+                   when Brain defaults are used). Conflicts raise before adoption;
+                   see ir/VERIFICATION.md#contract-engine-identity.
             deterministic (bool): If True, use legacy code paths that preserve
                    bit-identical RNG sequences for a given seed. Slower (~1.5-2x)
                    but ensures exact reproducibility across code versions.
@@ -121,6 +124,8 @@ class Brain:
                    Ordinary project calls use their supplied edge maps directly.
                    ops.project selects recurrence with its own argument.
         """
+        if isinstance(engine, ComputeEngine):
+            engine.validate_brain_identity(p=p, seed=seed, w_max=w_max)
         self.p = p
         self.w_max = w_max
         self.save_size = save_size
