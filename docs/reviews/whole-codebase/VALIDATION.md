@@ -122,3 +122,21 @@ discovery (tracked plus nonignored new Python files), preserving tracked ignored
 source while excluding generated copies. The dedicated source-inventory test and
 both ratchets passed (12 tests); no baseline counts were raised. The final 211-test
 run includes this repair and still runs with build artifacts present.
+
+
+## Explicit operation recurrence follow-up
+
+The P3 control on the previous commit failed for `ops.project(recurrent=False)`
+with global recurrence and initialization normalization both enabled (20 passed,
+1 failed). The operation now passes no self-edge in its False branch. All eight
+flag combinations inspect backend calls and recurrent potentiation; this is a
+schedule/learning regression, not a statistical study or a recovery measurement.
+The focused operation/specification/example checks passed 30 tests, with 1 skip.
+The complete workflow-listed CPU gate passed 214 tests, with 1 skip and the
+expected sampled-connectome warning. Ruff and `git diff --check` passed.
+
+The IR verification document links this obligation to the shared proof workflow.
+No new Lean theorem or executable compiler lowering is claimed by this follow-up.
+No GPU gates or historical numerical replays were run. The changed combination
+needs a new protocol revision for newly measured evidence; old artifacts are
+unchanged. Direct legacy `Brain.project_rounds` callers retain their old schedule.

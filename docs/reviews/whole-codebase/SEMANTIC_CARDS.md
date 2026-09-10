@@ -311,3 +311,20 @@ The generic `_reset_area_activity` helper had only one caller and duplicated the
 CONTEXT winner/ID reset. It is removed; sentence construction now composes that
 shared reset with a count reset. Disposal of learned context fibers is not part
 of either operation.
+
+
+## P3 resolution: operation recurrence is explicit
+
+`ops.project(recurrent=False)` now passes no self-edge to the multi-round
+helper. `True` still supplies self-edges on rounds 2 through T, via ordinary
+projection. Global `Brain.recurrent_projection`, `norm_init`, and legacy scaling
+gates cannot introduce a self-edge into the False operation. The helper's
+historical filtering remains for its other callers; this is not a migration of
+lexicon training or a claim that its fast path preserves every Brain side effect.
+
+The regression observes actual `numpy_exact` backend source edges and the
+recurrent potentiation store, for both operation values crossed with both global
+recurrence and normalization flags. The old path fails when False encounters
+both global flags enabled. Comparing final winners alone would miss this error.
+This intentionally changes that previously ambiguous operation configuration;
+results produced with it need a new protocol revision and a rerun.

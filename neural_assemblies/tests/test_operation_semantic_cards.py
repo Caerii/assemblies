@@ -44,3 +44,30 @@ def test_p2_zero_rounds_is_rejected_before_projection(brain, monkeypatch):
     with pytest.raises(ValueError, match="rounds"):
         ops.project(brain, "s", "T", rounds=0)
     assert not calls
+
+
+@pytest.mark.parametrize("recurrent", [False, True])
+@pytest.mark.parametrize("global_recurrence", [False, True])
+@pytest.mark.parametrize("norm_init", [False, True])
+def test_p3_operation_owns_recurrence_schedule(monkeypatch, recurrent,
+                                               global_recurrence, norm_init):
+    """Observe actual backend calls and learning, not just returned winners."""
+    b = Brain(engine="numpy_exact", seed=17, norm_init=norm_init,
+              recurrent_projection=global_recurrence)
+    b.add_area("T", 100, 10, beta=0.1)
+    b.add_stimulus("s", 10)
+    calls = []
+    original = b._engine.project_into
+
+    def observed(target, from_stimuli, from_areas, *args, **kwargs):
+        calls.append((target, tuple(from_stimuli), tuple(from_areas)))
+        return original(target, from_stimuli, from_areas, *args, **kwargs)
+
+    monkeypatch.setattr(b._engine, "project_into", observed)
+    ops.project(b, "s", "T", rounds=3, recurrent=recurrent)
+    tail_sources = ("T",) if recurrent else ()
+    assert calls == [("T", ("s",), ()),
+                     ("T", ("s",), tail_sources),
+                     ("T", ("s",), tail_sources)]
+    # A source-edge trace must correspond to learned state, not a dead probe.
+    assert bool(b._engine._area_pot.get(("T", "T"))) is recurrent

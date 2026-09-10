@@ -137,3 +137,20 @@ fields, missing requirements, metadata retention and a large integer. The Rust
 crate now lives beside the schemas (`Cargo.toml`, `rust/lib.rs`) and remains a
 member of the workspace at `crates/`. Cargo and wheel packaging can therefore
 include the same canonical schema without generating or maintaining a second copy.
+
+
+## Executable schedule obligation: projection recurrence
+
+The source-linked projection card's P3 regression is a concrete instance of the
+intent-to-proof workflow: the operation's recurrence argument determines the
+source-edge schedule before execution. Disabling recurrence must remove every
+self-edge, including when a backend helper has legacy recurrence enabled. The
+regression checks dispatched edges and learned recurrent state on `numpy_exact`,
+with the recurrent configuration as a positive control. No recovery claim is
+inferred from this test.
+
+An eventual projection lowering must preserve this schedule, including its
+stimulus-only first round. It must separately discharge the neural transition
+simulation obligation in `Simulates`; the schedule regression does not supply
+that proof. Other direct users of `Brain.project_rounds` still have legacy
+filtering and cannot be declared equivalent to the explicit operation contract.

@@ -379,9 +379,9 @@ def project(brain, stimulus, target, rounds=10, recurrent=False) -> Assembly:
 
     ``stimulus`` and ``target`` must already exist; ``rounds`` is a positive
     integer. The first round is stimulus-only. ``recurrent=True`` explicitly
-    adds target recurrence on later rounds. Otherwise the tail delegates to
-    Brain.project_rounds, whose recurrence also depends on Brain configuration.
-    The compatibility default is False; it can train no recurrent structure.
+    adds target recurrence on later rounds. ``recurrent=False`` supplies no
+    self-edge, regardless of Brain's legacy fast-path recurrence settings.
+    The compatibility default is False; it trains no recurrent structure.
 
     Plasticity follows the brain/backend settings. This operation evaluates
     neither stability nor partial-cue recovery. Use a registered training
@@ -399,7 +399,7 @@ def project(brain, stimulus, target, rounds=10, recurrent=False) -> Assembly:
         brain.project_rounds(
             target=target,
             areas_by_stim={stimulus: [target]},
-            dst_areas_by_src_area={target: [target]},
+            dst_areas_by_src_area={},
             rounds=rounds - 1,
         )
     return _snap(brain, target)
