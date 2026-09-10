@@ -663,3 +663,11 @@ Before A1 migration replay, source inventory v3 adds Windows .cmd build scripts
 (the CUDA setup entry point was previously omitted). The existing source-mutation
 control now includes scripts/cuda-dev.cmd; runner and migration suites: 45 passed,
 8.85s. Ruff passed. Version2 historical records retain their original meaning.
+
+
+A1 migration replay now passes numerical comparison for all40 full-length rows
+at b350953. Artifacts and hash-bearing comparison receipt are committed under
+research/results/runs/sequence.a1-horizon/migration-a1-20260910-v3/.
+The separate historical Gate3 remains FAIL against the sampled NumPy baseline.
+Capacity's figure-control inputs are recovered as a reconstruction candidate
+from its registration and producer-commit source; full comparison follows.

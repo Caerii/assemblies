@@ -1312,3 +1312,33 @@ Before A1 migration replay, source inventory v3 adds Windows .cmd build scripts
 (the CUDA setup entry point was previously omitted). The existing source-mutation
 control now includes scripts/cuda-dev.cmd; runner and migration suites: 45 passed,
 8.85s. Ruff passed. Version2 historical records retain their original meaning.
+
+
+## A1 historical migration replay
+
+At b350953, the shared runner completed the full registered A1 length (2000),
+20 seeds 1..20 at p=.3 and .4. The immutable run/results and comparator receipt
+are committed under research/results/runs/sequence.a1-horizon/
+migration-a1-20260910-v3/. All40 rows match
+research/results/sequence/seq_a1_horizon_results_hashed_int8_timing.json,
+including exact_fraction, accuracy, first_error and all prefixes. The comparator
+records both artifact hashes. Source inventory3 includes the CUDA setup script.
+
+All40 brain/parameter cells were error-free to the finite 2000-step horizon.
+The run's historical Gate3 remains FAIL: sampled NumPy seed1 at p=.3 first
+errs at759 while the hashed interval is censored at2000. This result is preserved,
+not replaced with migration success. The replay does not establish an unlimited
+horizon, independent scientific adoption, or validity of sampled dynamics.
+
+## Capacity replay inputs recovered before running
+
+The figure control artifact is memory/capacity_scaling_results_figure_ctl.json,
+introduced in fb934463e62e9fbf23338f4ee0b8170e177f9333. Its cell is B/4000,k60,
+20 values per metric, M=8,16,32,64,128,192,256,384,512,768,1024. The registration's
+Reproduce block gives T8,20 brains, masked readout, and dropping refraction for
+the control83. The producer script at that commit defines brain identities
+42+b in array order, measurement RNG1234 reset per cell, p.5,beta.1,clip20,
+recall sample32,pair sample200,stim_sizeNone,no convergence gate. These sources
+supply the reconstruction candidate; the historical file itself lacks a run
+record, so original execution provenance is not authenticated by reconstruction.
+The replay will compare all per-seed metrics and aggregate ceiling fields.

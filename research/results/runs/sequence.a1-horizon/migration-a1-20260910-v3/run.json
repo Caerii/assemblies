@@ -1,0 +1,65 @@
+{
+  "engine": "hashed_arc_fsm",
+  "environment": {
+    "policy": "repository-environment-v1",
+    "variables_sha256": {
+      "ASSEMBLIES_VCVARS64": "4f8e42768dc92e11e4f32efb495020ad43e49e2dfca1322a4928d7f4dedfd1a2",
+      "ASSEMBLIES_VSWHERE": "44564d56dfa6c2af8c632137228d0b7d773445fdce24fdec8da14ca0030615f5"
+    }
+  },
+  "git_commit": "b350953e4360eb0178fec4619cd11f40403bf99e",
+  "input_artifacts": {
+    "research/results/sequence/seq_a1_horizon_results.json": "6443f4f5fd83342877d63e348bb433fe514e0523fbee2024b793c9039ee5bf3c"
+  },
+  "mode": "study",
+  "parameters": {
+    "beta": 0.1,
+    "comparison": "historical sampled numpy; not valid sequence evidence",
+    "k": 70,
+    "length": 2000,
+    "n_arc": 5000,
+    "n_state": 500,
+    "norm_init": false,
+    "p_values": [
+      0.3,
+      0.4
+    ],
+    "presentations": 15,
+    "strength": 0.1,
+    "w_max": 20.0
+  },
+  "protocol": "sequence.a1-horizon",
+  "protocol_version": "1",
+  "registration": "research/notes/sequence/DESIGN_sequence_port.md",
+  "registration_sha256": "bf42800df6ef077cbccd16e3e8f1e4326a6577c3d522462579707ac9af89d5eb",
+  "schema_version": 2,
+  "scientific_status": "UNJUDGED",
+  "script": "research/experiments/seq_a1_horizon_hashed.py",
+  "script_sha256": "946f8403b117c94695506d6ce2ea2345350ce9602e747806d1b35218235f0ea3",
+  "seeds": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20
+  ],
+  "source_inventory": "source-inputs-v3",
+  "source_sha256": "3fd47a7de3bdb81a5df38152d864f6765b42a98e586444c3380e068007e3408a",
+  "started_utc": "2026-09-10T19:57:00.658114+00:00",
+  "tag": "migration-a1-20260910-v3"
+}
