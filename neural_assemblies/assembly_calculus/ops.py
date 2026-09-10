@@ -56,6 +56,7 @@ citation cannot quietly become a dead string.
 """
 
 import random
+from contextlib import contextmanager
 
 import numpy as np
 
@@ -337,10 +338,9 @@ def _fix(brain, *area_names):
     disables the learning entirely.  ``assembly_calculus.binding.bind``
     documents a measured instance of this (weight sum unchanged, 315 -> 315).
 
-    Fixing is also not scoped: it persists until ``_unfix``.  Every caller
-    here pairs them, but note that none use try/finally, so an exception
-    mid-operation leaves the source areas fixed and every later projection out
-    of them quietly wrong.
+    This low-level helper does not scope its mutation. Reciprocal projection,
+    association and merge use ``_fixed_sources`` to restore the caller's
+    facade and engine clamp flags, including after exceptions.
     """
     for name in area_names:
         brain.areas[name].fix_assembly()
@@ -356,8 +356,26 @@ def _unfix(brain, *area_names):
 # Primitive operations
 # ---------------------------------------------------------------------------
 
+@contextmanager
+def _fixed_sources(brain, *names):
+    """Borrow source clamps; restore facade and engine state even on error."""
+    saved = [(name, brain.areas[name].fixed_assembly,
+              brain._engine_for(brain.areas[name]).is_fixed(name)) for name in names]
+    try:
+        _fix(brain, *names)
+        yield
+    finally:
+        for name, fixed, engine_fixed in saved:
+            area = brain.areas[name]
+            area.fixed_assembly = fixed
+            engine = brain._engine_for(area)
+            (engine.fix_assembly if engine_fixed else engine.unfix_assembly)(name)
+
+
 def project(brain, stimulus, target, rounds=10, recurrent=False) -> Assembly:
-    """Project a stimulus into a target area, forming a stable assembly.
+    """Run a stimulus projection schedule and return its final winner snapshot.
+
+    Completion of the schedule does not certify stability or attractor formation.
 
     ``recurrent`` OPTS IN TO THE PROTOCOL AS DOCUMENTED BELOW, and defaults
     False because the default path does NOT implement it. ``Brain.project_rounds``
@@ -415,6 +433,8 @@ def project(brain, stimulus, target, rounds=10, recurrent=False) -> Assembly:
         winners converges to a fixed set with overlap > 0.95 between
         consecutive rounds.
     """
+    if isinstance(rounds, bool) or not isinstance(rounds, (int, np.integer)) or rounds < 1:
+        raise ValueError("rounds must be a positive integer")
     brain.project({stimulus: [target]}, {})
     if recurrent:
         # Driven directly rather than through project_rounds, whose `a != target`
@@ -600,9 +620,7 @@ def reciprocal_project(brain, source, target, rounds=10, *,
     Returns:
         Assembly snapshot of the new assembly in target.
     """
-    if fix_source:
-        brain.areas[source].fix_assembly()
-    try:
+    with _fixed_sources(brain, *((source,) if fix_source else ())):
         brain.project({}, {source: [target]})
         for _ in range(max(0, rounds - 1)):
             # Not `project_rounds`: that helper stabilises a SINGLE named
@@ -610,9 +628,6 @@ def reciprocal_project(brain, source, target, rounds=10, *,
             # via the return edge, the source.
             brain.project({}, {source: [target], target: [target, source]})
         return _snap(brain, target)
-    finally:
-        if fix_source:
-            brain.areas[source].unfix_assembly()
 
 
 def consolidate_pair(
@@ -713,21 +728,11 @@ def associate(brain, source_a, source_b, target,
         merge_cue_overlap of 1.0. That value is not association.
     """
     use_fix = (stim_a is None and stim_b is None)
-    if use_fix:
-        _fix(brain, source_a, source_b)
-
-    try:
+    with _fixed_sources(brain, *((source_a, source_b) if use_fix else ())):
         _associate_body(
             brain, source_a, source_b, target, stim_a, stim_b, rounds, use_fix,
             cofire_rounds,
         )
-    finally:
-        # A raise mid-projection must not leave the sources fixed: the areas
-        # would stay pinned for the rest of the session and every later
-        # projection out of them would be silently wrong (a projection INTO a
-        # fixed area is short-circuited before plasticity; see _fix).
-        if use_fix:
-            _unfix(brain, source_a, source_b)
 
     return _snap(brain, target)
 
@@ -934,8 +939,6 @@ def merge(brain, source_a, source_b, target,
     # writable. The forward direction still works fixed, so the stimulus-less
     # path remains valid for a one-way merge.
     use_fix = (stim_a is None and stim_b is None)
-    if use_fix:
-        _fix(brain, source_a, source_b)
 
     stim_dict = {}
     if stim_a:
@@ -950,7 +953,7 @@ def merge(brain, source_a, source_b, target,
     tgt_list = (([target] if target_self else [])
                 + ([source_a, source_b] if back_project else []))
 
-    try:
+    with _fixed_sources(brain, *((source_a, source_b) if use_fix else ())):
         # Step 1: Simultaneous projection (no target recurrence yet)
         brain.project(stim_dict, dict(src_map))
 
@@ -960,11 +963,6 @@ def merge(brain, source_a, source_b, target,
                 stim_dict,
                 {**src_map, **({target: tgt_list} if tgt_list else {})},
             )
-    finally:
-        # See associate: a raise must not leave the sources fixed for the rest
-        # of the session.
-        if use_fix:
-            _unfix(brain, source_a, source_b)
 
     return _snap(brain, target)
 
@@ -992,8 +990,9 @@ def pattern_complete(brain, area, fraction=0.5, rounds=5, seed=None):
     Theory:
         A well-trained assembly is an attractor: partial activation
         flows back to the full assembly through strengthened recurrent
-        connections. At fraction=0.5, recovery should exceed 0.8 for
-        well-trained assemblies.
+        connections. This function does not establish that the assembly was
+        well trained or enforce a recovery threshold; those require a stated
+        regime and a matched control.
 
     Caveat on interpreting the score:
         The initial cue overlaps the reference by ``fraction``, but subsequent

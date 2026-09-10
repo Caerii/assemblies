@@ -27,6 +27,8 @@ jobs:
           neural_assemblies/tests/test_capacity_runner_contract.py
           neural_assemblies/tests/test_research_harness.py
           neural_assemblies/tests/test_public_model_boundaries.py
+          neural_assemblies/tests/test_operation_semantic_cards.py
+          neural_assemblies/tests/test_migration_comparison.py
           neural_assemblies/tests/test_golden_comparator_contract.py
           neural_assemblies/tests/test_theory_citations.py
           neural_assemblies/tests/test_methodology_ratchet.py

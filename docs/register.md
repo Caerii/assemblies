@@ -125,7 +125,7 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 
 **Used by.** `neural_assemblies.diagnostics.regime_audit`
 
-**Caveat.** Mean overlap read 0.812 at the failing point while exactness was 4/100 -- the mean hides this mechanism entirely.
+**Caveat.** The original sweep used the sampled numpy arc; its sequence-dynamics numbers are void under PREREG_sampler_audit.md until reproduced on a materialized or hashed substrate. Mean overlap read 0.812 at the failing point while exactness was 4/100 -- the mean hides this mechanism entirely.
 
 ## SEQ-EXACT-RECOVERY
 
@@ -281,7 +281,7 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 - research/notes/categories/capacity_is_not_the_constraint_separation_is.md
 - research/notes/substrate/graded_similarity_and_sampler_load.md
 
-**Caveat.** This is why k and p are not interchangeable routes to a regime: raising k to reach kp spends capacity and forces n up with it.
+**Caveat.** The capacity-note run's engine provenance remains unresolved; this entry does not certify the numerical capacity claim. This is why k and p are not interchangeable routes to a regime: raising k to reach kp spends capacity and forces n up with it.
 
 ## RATE-HETEROGENEITY
 
@@ -296,7 +296,7 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 
 **Used by.** `neural_assemblies.core.brain.Brain.update_plasticity`
 
-**Caveat.** Density is NOT yet settable per fiber on the production engine -- see [[SEQ-ORGAN-EMBEDS]]. And a fast fiber saturates against w_max, so 'fast' has a ceiling that 'slow' does not: an A/B across rates is confounded unless w_max is checked.
+**Caveat.** The numerical evidence has no identified run or engine; provenance must be recovered before adopting it as a reproduced measurement. Density is NOT yet settable per fiber on the production engine -- see [[SEQ-ORGAN-EMBEDS]]. And a fast fiber saturates against w_max, so 'fast' has a ceiling that 'slow' does not: an A/B across rates is confounded unless w_max is checked.
 
 ## DUAL-RATE
 
@@ -325,7 +325,7 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 **Evidence.**
 - research/experiments/seq_a1_local_regime.py: ambient p=0.05 with organ fibers at p=0.4 gives 10/10 correct trajectories, matching the uniform p=0.4 result, while the same organ left at the ambient density gives 0/10
 
-**Caveat.** The heterogeneous path found a defect that the regime audit could NOT see: the stimulus weight clamp was scaled by the global p while the weights were drawn at the fiber's p, so a dense fiber in a sparse brain saturated at a sparse ceiling. The organ read 1/10 while every area reported comfortably in-regime. Any NEW per-fiber quantity is a candidate for the same class. The pooled candidate draw also remains moment-matched -- exact in the first two moments, an approximation beyond them.
+**Caveat.** The original organ-density experiment used the sampled numpy arc; its sequence-dynamics numbers are void under PREREG_sampler_audit.md until reproduced materialized or hashed. The heterogeneous path found a defect that the regime audit could NOT see: the stimulus weight clamp was scaled by the global p while the weights were drawn at the fiber's p, so a dense fiber in a sparse brain saturated at a sparse ceiling. The organ read 1/10 while every area reported comfortably in-regime. Any NEW per-fiber quantity is a candidate for the same class. The pooled candidate draw also remains moment-matched -- exact in the first two moments, an approximation beyond them.
 
 ## SEQ-STATE-CODE-EMERGENT
 

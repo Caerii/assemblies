@@ -195,7 +195,9 @@ _RESULTS: List[Result] = [
                   "80/100 and 10/10; kp 28 -> 100/100 and 10/10, with the "
                   "transition at the predicted p = 18.6/70 = 0.266",),
         implemented_by=("neural_assemblies.diagnostics.regime_audit",),
-        caveat="Mean overlap read 0.812 at the failing point while exactness "
+        caveat="The original sweep used the sampled numpy arc; its sequence-dynamics "
+               "numbers are void under PREREG_sampler_audit.md until reproduced "
+               "on a materialized or hashed substrate. Mean overlap read 0.812 at the failing point while exactness "
                "was 4/100 -- the mean hides this mechanism entirely.",
     ),
     Result(
@@ -558,7 +560,9 @@ _RESULTS: List[Result] = [
         source="This repository (critical-load measurement).",
         evidence=("research/notes/categories/capacity_is_not_the_constraint_separation_is.md",
                   "research/notes/substrate/graded_similarity_and_sampler_load.md"),
-        caveat="This is why k and p are not interchangeable routes to a regime: "
+        caveat="The capacity-note run's engine provenance remains unresolved; "
+               "this entry does not certify the numerical capacity claim. "
+               "This is why k and p are not interchangeable routes to a regime: "
                "raising k to reach kp spends capacity and forces n up with it.",
     ),
 
@@ -573,7 +577,9 @@ _RESULTS: List[Result] = [
         evidence=("beta=0.5 vs beta=0.01 into one target over 10 rounds: max "
                   "weight 20.000 (at the w_max clamp) vs 1.094",),
         implemented_by=("neural_assemblies.core.brain.Brain.update_plasticity",),
-        caveat="Density is NOT yet settable per fiber on the production engine "
+        caveat="The numerical evidence has no identified run or engine; provenance "
+               "must be recovered before adopting it as a reproduced measurement. "
+               "Density is NOT yet settable per fiber on the production engine "
                "-- see [[SEQ-ORGAN-EMBEDS]]. And a fast fiber saturates against "
                "w_max, so 'fast' has a ceiling that 'slow' does not: an A/B "
                "across rates is confounded unless w_max is checked.",
@@ -614,7 +620,10 @@ _RESULTS: List[Result] = [
                   "with organ fibers at p=0.4 gives 10/10 correct trajectories, "
                   "matching the uniform p=0.4 result, while the same organ left "
                   "at the ambient density gives 0/10",),
-        caveat="The heterogeneous path found a defect that the regime audit "
+        caveat="The original organ-density experiment used the sampled numpy arc; "
+               "its sequence-dynamics numbers are void under PREREG_sampler_audit.md "
+               "until reproduced materialized or hashed. "
+               "The heterogeneous path found a defect that the regime audit "
                "could NOT see: the stimulus weight clamp was scaled by the "
                "global p while the weights were drawn at the fiber's p, so a "
                "dense fiber in a sparse brain saturated at a sparse ceiling. "

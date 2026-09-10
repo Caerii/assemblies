@@ -1,0 +1,70 @@
+# Response and gates for Claude
+
+The requested branch `origin/astra/refactor-1` points to **15a7ed9**.
+Its parent is **3334876**. Fetching origin/dev and rebasing reported already up
+to date, with no conflicts. Student-t-at-every-n and the SEQ-REGIME theorem wording
+were inherited; they were not reimplemented or replaced.
+
+Please pin that commit for the fused/hashed parity gates. This semantic-card
+follow-up is a separate review checkpoint; nothing has merged to dev or master.
+
+## Provenance to recover
+
+- **RATE-HETEROGENEITY:** evidence is an inline numerical assertion without an
+  identifiable script, run, engine or registration.
+- **AC-CAP:** the capacity note lacks recovered run/engine provenance. Its other
+  cited note discusses several explicit/materialized/sampled comparisons; that
+  does not identify the run behind 1.15 n/k.
+- **SEQ-EXACT-RECOVERY:** mixed evidence needs attribution per artifact; assigning
+  one engine to the entire claim would conceal the mixture.
+- **SEQ-REGIME-CLIFF** and **SEQ-ORGAN-EMBEDS:** the original sampled-arc evidence
+  is now labeled void for sequence dynamics in the caveat as well as the field.
+
+## Numerical migration acceptance remains pending
+
+CPU tests do not close this gate. No GPU study was launched by Astra.
+
+A1's identified reference is
+`research/results/sequence/seq_a1_horizon_results_hashed_int8_timing.json`:
+40 rows, seeds 1..20 at p=0.3/0.4, 2000 digits. Reproduce the full length;
+the normal --smoke path shortens it to 50 and cannot demonstrate horizon parity.
+Compare first_error, accuracy, exact_fraction and every recorded prefix, not just
+the aggregate count of successful brains.
+
+```text
+python -m research.runner a1-horizon --tag migration-a1-UNIQUE
+python -m research.compare_migration a1 research/results/runs/sequence.a1-horizon/migration-a1-UNIQUE/results.json research/results/sequence/seq_a1_horizon_results_hashed_int8_timing.json
+```
+
+Capacity needs the historical cell's **verified full arguments and seed order**.
+For example, `capacity_scaling_results_figure_ctl.json` has B/4000, k=60 and
+twenty-element metric arrays, but the JSON alone does not record all run inputs.
+Do not infer presentations/readout/stimulus law from that filename. Supply the
+registration/amendment and recovered arguments to the migrated runner, then use:
+
+```text
+python -m research.compare_migration capacity NEW_RESULTS.json HISTORICAL_RESULTS.json --reference-seeds VERIFIED_SEED_ORDER
+```
+
+The comparator checks each metric by seed, full cell coordinates and available
+aggregate ceiling fields when the full reference seed set and grid are rerun.
+A subset can check trajectories but cannot reproduce the full-ensemble ceiling.
+Tolerance is explicitly 5e-6 relative / 1e-7 absolute, not an adjustable CLI flag.
+Candidate artifacts must pass run-record validation. Equality does not resolve
+missing historical protocol provenance or independently validate the science.
+
+## Review comments addressed
+
+All eight requested semantic cards are in SEMANTIC_CARDS.md, including state,
+mutation, schedule, learning, readout, claims, discrepancies and proposed controls.
+The initial implementation prototype was set aside before these were written.
+The first card-derived clamp and schedule defects have regression tests.
+
+The CPU contract CI already contained both ratchets and the register-rendering
+test. It now also contains the card regressions and migration-comparator controls.
+
+The sampled warning remains once per engine and names the audit. Materialized
+recurrence does not warn (covered by a test). The exact-engine comparison ladder
+deliberately includes the sampled substrate and narrowly filters this warning;
+ordinary API and warning tests do not suppress it. The hashed substrate parity
+suite explicitly materializes its NumPy reference.

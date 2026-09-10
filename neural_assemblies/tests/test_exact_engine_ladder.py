@@ -15,6 +15,12 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
+# This suite deliberately compares sampled and fixed substrates. Suppress only
+# the known sampler warning here; ordinary API and warning-contract tests retain it.
+pytestmark = pytest.mark.filterwarnings(
+    "ignore:Recurrent projection.*uses the sampled numpy connectome:RuntimeWarning"
+)
+
 from neural_assemblies.core.brain import Brain
 from neural_assemblies.core.numpy_engine._exact import NumpyExactEngine
 from neural_assemblies.core.numpy_engine._explicit import NumpyExplicitEngine
