@@ -46,8 +46,8 @@ class TestTheShippedDefault:
         """A study that recorded no flags must not look like one that recorded
         nothing at all -- and the description must name what was ON, not the
         delta from a default that changes over time."""
-        assert DEFAULT_PROTOCOL.describe() == "expected_slot"
-        assert ErpProtocol(expected_slot=False).describe() == "no-flags"
+        assert DEFAULT_PROTOCOL.describe() == "expected_slot;context_reset=construction"
+        assert ErpProtocol(expected_slot=False).describe() == "no-flags;context_reset=construction"
 
 
 class TestAnArmIsAValue:

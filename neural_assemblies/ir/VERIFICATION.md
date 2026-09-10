@@ -1335,3 +1335,19 @@ before training changes the sampled construction and needs its own evidence.
 The separate test_nemo_arc_contract.py covers cold rejection, initialized untrained
 readout, trained behavior, unchanged readout bias, and accumulated training bias.
 The Markov PFA controls remain separate and unresolved.
+
+
+<a id="contract-erp-context-reset"></a>
+### ERP context reset and observation scope
+
+ErpProtocol.context_reset selects construction (legacy default) or activity.
+The runner executes that choice and includes it in erp_protocol; descriptions name
+it even at the default. Activity reset preserves context IDs through the existing
+_reset_context_winners(preserve_mapping=True) boundary. It neither disables other
+recruitment nor restores other areas' activity. Read-only prohibits learning and
+population changes but permits activity evolution. Separate brain.probe scopes
+restore the initial brain state for repeated observations of an initialized parser.
+No cold-read exemption or automatic initialization is introduced. The isolated
+fixture's repeatability does not establish ERP discrimination, calibration, or
+whole-parser purity outside the brain. Tests: test_erp_context_reset_contract.py
+and test_parse_idempotence.py::test_isolated_activity_reset_parse_is_idempotent.

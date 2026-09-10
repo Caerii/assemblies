@@ -1,5 +1,9 @@
 """Parsing the same sentence twice does not give the same answer.
 
+The measurements below are historical. The current isolated control explicitly
+preserves context identities and uses separate brain.probe scopes; read_only
+alone allows activity changes and no longer admits a cold recruitment exemption.
+
 #100 / #80. Pinned as a KNOWN DEFECT, not asserted away, because the fix is a
 change to what parsing MEANS and has not been measured yet.
 
@@ -53,8 +57,8 @@ def _materialized(brain):
     return total
 
 
-def _probe(parser):
-    out = run_incremental_erp_probes(parser, SENT, apply_calibration=False)
+def _probe(parser, *, protocol=None):
+    out = run_incremental_erp_probes(parser, SENT, apply_calibration=False, protocol=protocol)
     probes = out[1] if isinstance(out, tuple) else out
     return [(round(float(p.n400), 6), round(float(p.p600), 6)) for p in probes]
 
@@ -81,21 +85,22 @@ class TestParseIsNotIdempotent:
         runs = [_probe(parser) for _ in range(3)]
         assert runs[0] == runs[1] == runs[2]
 
-    def test_a_fully_read_only_parse_IS_idempotent(self, forked_parser):
-        """The fix works -- which is why the defect above is a choice, not a
-        limitation. An outer read_only() subsumes runner.py's inner frozen(),
-        so this needs no production edit to demonstrate.
+    def test_isolated_activity_reset_parse_is_idempotent(self, forked_parser):
+        """Separate probes restore the same initial activity and population.
 
-        The FIRST pass is excluded: `read_only()` deliberately exempts areas
-        still below `k` materialized neurons, since there is nothing there to
-        select from, so one warm-up pass can still grow.
+        read_only alone allows activity to evolve and does not promise identical
+        results across sequential reads. Initialize outside the observation scope.
         """
+        from neural_assemblies.assembly_calculus.emergent.evaluation.erp.protocol import ErpProtocol
         parser = forked_parser("SENTENCES", seed=42)
-        with parser.brain.read_only():
-            _probe(parser)                       # warm-up, may still grow
-            before = _materialized(parser.brain)
-            a, b = _probe(parser), _probe(parser)
-        assert a == b, f"read-only parses still disagree:\n{a}\n{b}"
+        protocol = ErpProtocol(context_reset="activity")
+        _probe(parser, protocol=protocol)  # explicit construction outside read_only
+        before = _materialized(parser.brain)
+        with parser.brain.probe():
+            a = _probe(parser, protocol=protocol)
+        with parser.brain.probe():
+            b = _probe(parser, protocol=protocol)
+        assert a == b, f"isolated parses still disagree:\n{a}\n{b}"
         assert _materialized(parser.brain) == before, (
             "a read-only parse still recruited")
 

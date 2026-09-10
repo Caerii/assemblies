@@ -340,3 +340,19 @@ sampling coins; its input-noise option applies only to the latter. Serialize the
 configuration with `dataclasses.asdict(choice)` when recording a protocol.
 Legacy coin goldens remain historical artifacts. They are not automatically
 reinterpreted as measurements of this construction.
+
+
+### ERP context initialization and isolated reads
+
+`ErpProtocol(context_reset="construction")` retains the existing sentence-building
+reset. `context_reset="activity"` clears context activity while preserving its
+neuron identities, and the runner records this choice in `erp_protocol`.
+Activity reset alone does not prohibit recruitment or restore the rest of the brain.
+
+For an already initialized parser, use a separate `parser.brain.probe()` scope
+around each `run_incremental_erp_probes(..., protocol=ErpProtocol(context_reset="activity"))`
+call to restore the same starting brain state. Initialize outside that scope:
+read-only observations do not recruit missing populations. `read_only()` alone
+allows activity evolution, so sequential reads need not agree. This compositional
+pattern passed the existing sentence fixture; it does not validate ERP
+calibration/discrimination or promise isolation of all Python-side parser state.

@@ -63,6 +63,7 @@ jobs:
           neural_assemblies/tests/test_parse_errors.py
           neural_assemblies/tests/test_read_only_probes.py
           neural_assemblies/tests/test_specification_links.py
+          neural_assemblies/tests/test_erp_context_reset_contract.py
           neural_assemblies/tests/test_migration_comparison.py
           neural_assemblies/tests/test_golden_comparator_contract.py
           neural_assemblies/tests/test_theory_citations.py

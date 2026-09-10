@@ -1686,3 +1686,28 @@ Five focused controls passed in 2.19s; Ruff passed. Full contract workflow,
 including the preceding reciprocal controls: 1170 passed, one skipped, six
 sampled-engine warnings in 108.78s (.cache/nemo-null-contract-gate.log).
 The full package audit was not repeated and broader failures remain open.
+
+
+## Explicit ERP context reset and isolated observation
+
+The old idempotence test assumed read_only could reset context identities and
+recruit cold areas. Its first failure was correct rejection. ErpProtocol now names
+context_reset: construction (unchanged default) or activity (preserve context IDs).
+The runner consumes and records that immutable choice; descriptions name it at
+either value. No automatic switch based on ambient scope was introduced.
+
+Using activity reset under a single read_only scope got past the identity reset
+but still differed: first-word P600 .9971 versus .9993. This diagnostic failure
+is retained here. read_only permits activity changes; it is not a state-restoring
+observation. Separate brain.probe scopes produced identical repeated fixture
+results. The former test is renamed test_isolated_activity_reset_parse_is_idempotent,
+initializes outside observation, and retains strict equality/population assertions.
+The original non-isolated repeatability case remains xfailed, not hidden.
+
+Focused ERP/reset/idempotence coverage: 29 passed, one expected failure in18.87s.
+Full contract workflow:1177 passed, one skipped, six sampled-engine warnings in
+113.70s (.cache/erp-reset-contract-gate.log). Ruff passed. Removed a duplicate
+ERP protocol file argument from the workflow after that run; pytest already
+collapsed that duplicate. No engine, scientific threshold, or historical result
+changed. The result demonstrates fixture-level isolation, not ERP discrimination
+or complete Python-side parser purity. Broader package failures remain open.

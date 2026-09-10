@@ -137,6 +137,10 @@ class ErpProtocol:
             original "AUC 0.000, zero variance" rejection is void -- taken while
             the arms probed different areas.)
         debug: print per-probe diagnostics.
+        context_reset: "construction" resets context recruitment (legacy default);
+            "activity" clears context activity while retaining neuron identities.
+            The latter permits an initialized parse in a read-only/probe scope.
+            It does not independently disable recruitment or restore activity.
     """
 
     # Fixed implementation identity: cannot select the old leaking read path.
@@ -145,6 +149,11 @@ class ErpProtocol:
     expected_slot_source_core: bool = False
     afferent_energy: bool = False
     debug: bool = False
+    context_reset: str = "construction"
+
+    def __post_init__(self):
+        if self.context_reset not in ("construction", "activity"):
+            raise ValueError("context_reset must be 'construction' or 'activity'")
 
     @classmethod
     def from_environment(cls, env=None) -> "ErpProtocol":
@@ -199,7 +208,8 @@ class ErpProtocol:
         on = [f for f in ("expected_slot", "expected_slot_source_core",
                           "afferent_energy", "debug")
               if getattr(self, f)]
-        return "+".join(on) if on else "no-flags"
+        flags = "+".join(on) if on else "no-flags"
+        return f"{flags};context_reset={self.context_reset}"
 
 
 #: The shipped protocol. `expected_slot` is ON -- it area-matches the

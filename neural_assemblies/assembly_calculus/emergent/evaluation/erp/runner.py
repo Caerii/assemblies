@@ -66,7 +66,12 @@ def run_incremental_erp_probes(
     finalize_parse: bool = True,
     protocol: Optional[ErpProtocol] = None,
 ) -> Tuple[dict, List[ErpProbeResult]]:
-    """Full incremental parse with per-word N400/P600 probes.
+    """Specification: neural_assemblies/ir/VERIFICATION.md#contract-erp-context-reset
+
+    Full incremental parse with per-word N400/P600 probes.
+    The protocol records construction versus activity-only context reset. Use
+    separate brain.probe scopes for isolated reads of an initialized parser;
+    activity-only reset itself does not make this entire operation read-only.
 
     When *probe_positions* is set, only those indices produce probe records
     (parse still runs through *stop_at_position* or sentence end).
@@ -84,7 +89,10 @@ def run_incremental_erp_probes(
     baseline = baseline if baseline is not None else parser_erp_baseline(parser)
     thresholds = thresholds or parser_erp_thresholds(parser)
 
-    parser._reset_context_state()
+    if protocol.context_reset == "activity":
+        parser._reset_context_winners(preserve_mapping=True)
+    else:
+        parser._reset_context_state()
     circuit = parser._get_incremental_circuit(reset=True)
     result: dict = {
         "erp_protocol": asdict(protocol),
