@@ -301,3 +301,9 @@ Use the returned `source`, `scores`, `cue_mode`, and `cues` together: an overlap
 not a calibrated probability, and registered phonological input is not necessarily
 learned input. Queries remain read-only. See the
 [cue contract](../neural_assemblies/ir/VERIFICATION.md#contract-classification-cues).
+
+
+`classify_word_cached` retains its fast path for the word's stored grounding.
+Explicitly different grounding runs uncached inference and does not replace the
+word's cached category. Use `classify_word_evidence` for an explicit neural cue
+mode and retained score/cue provenance.

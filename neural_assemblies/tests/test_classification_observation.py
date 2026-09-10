@@ -135,3 +135,16 @@ def test_invalid_cue_mode_fails_before_neural_observation(parser, monkeypatch):
     monkeypatch.setattr(parser.brain, 'read_only', fail)
     with pytest.raises(ValueError, match='cue_mode'):
         parser.classify_word_evidence('dog', cue_mode='groundng')
+
+
+
+def test_alternate_grounding_cache_path_matches_inference_without_neural_mutation(parser):
+    from neural_assemblies.assembly_calculus.emergent.acquisition.pos_inference import classify_word_bootstrapped
+    context = parser.word_grounding['sees']
+    expected = classify_word_bootstrapped(parser, 'dog', context)
+    before = copy.deepcopy(parser.brain)
+    cached = dict(parser._category_cache)
+    actual = parser.classify_word_cached('dog', grounding=context)
+    assert actual == expected and actual[1]
+    assert parser._category_cache == cached
+    assert_brain_unchanged(parser.brain, before)

@@ -18,7 +18,13 @@ class CategoryClassificationMixin:
         word: str,
         grounding: Optional[GroundingContext] = None,
     ) -> Tuple[str, Dict[str, float]]:
-        """Fast classification with lexicon-grounding-distributional cache."""
+        """Fast default-context classification; alternate grounding is uncached.
+
+        Specification: neural_assemblies/ir/VERIFICATION.md#contract-classification-cache-context
+        """
+        if grounding is not None and grounding != self.word_grounding.get(word):
+            from ..acquisition.pos_inference import classify_word_bootstrapped
+            return classify_word_bootstrapped(self, word, grounding)
         cached = self._category_cache.get(word)
         if cached is not None:
             return cached, {}

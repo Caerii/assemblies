@@ -119,3 +119,29 @@ def test_cue_provenance_is_immutable_and_legacy_view_stays_compatible():
 def test_malformed_cue_provenance_is_rejected(mode, cues):
     with pytest.raises(ValueError):
         ClassificationEvidence('UNKNOWN', 'neural', {}, cue_mode=mode, cues=cues)
+
+
+
+@pytest.mark.parametrize('cache_name', ['_category_cache', '_bootstrap_categories', '_dist_categories'])
+def test_alternate_grounding_cannot_reuse_or_overwrite_word_category(cache_name, monkeypatch):
+    parser = FallbackParser()
+    parser._category_cache = {}
+    setattr(parser, cache_name, {'word': 'NOUN'})
+    alternate = GroundingContext(motor=['MOTION'])
+    observed = []
+    def classify(p, word, grounding):
+        observed.append((word, grounding))
+        return 'VERB', {'VERB': .9}
+    monkeypatch.setattr(
+        'neural_assemblies.assembly_calculus.emergent.acquisition.pos_inference.classify_word_bootstrapped',
+        classify)
+    assert parser.classify_word_cached('word', grounding=alternate) == ('VERB', {'VERB': .9})
+    assert observed == [('word', alternate)]
+    assert getattr(parser, cache_name) == {'word': 'NOUN'}
+    assert parser.classify_word_cached('word')[0] == 'NOUN'
+
+
+def test_matching_grounding_retains_the_word_cache_fast_path():
+    parser = FallbackParser()
+    parser._category_cache = {'word': 'NOUN'}
+    assert parser.classify_word_cached('word', GroundingContext(visual=['ANIMAL'])) == ('NOUN', {})

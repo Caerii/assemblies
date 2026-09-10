@@ -1060,3 +1060,22 @@ Controls trace actual projection inputs, preserve weights/activity/RNG for all
 three modes, and check immutable cue provenance. This makes alternative queries
 composable and inspectable. It does not claim their scores are calibrated across
 unequally recruited areas or silently replace the existing combined-cue protocol.
+
+
+<a id="contract-classification-cache-context"></a>
+
+## Classification cache context
+
+`classify_word_cached` uses word-only category, bootstrap and distributional caches
+only for the default context: no explicit grounding, or grounding equal to the
+word's stored GroundingContext. An explicitly different context goes through the
+existing classify_word_bootstrapped inference path before any word-only shortcut.
+Its answer is not written into those word-only caches. Thus a one-off context
+cannot inherit or replace a category cached for the default context.
+
+Controls construct stale answers in all three shortcut maps, trace the supplied
+context to inference, preserve the maps, and retain the matching-context fast path.
+A trained-parser control compares against uncached inference and preserves neural
+state. This is a cache routing repair, not a change to fusion or neural selection.
+It does not provide general cache invalidation after training or in-place mutation
+of stored grounding, and it does not introduce cue variants into the word-only key.

@@ -593,3 +593,13 @@ retains resolved cues in immutable evidence. The default, training rule and fail
 combined-cue expectations are unchanged. All modes preserve neural observation
 state. CPU gate: 989 passed, 1 skipped. See [validation](VALIDATION.md) for exact
 fixture parameters, values and limits.
+
+
+### Grounding-aware cache routing
+
+Explicit context differing from stored grounding bypasses all word-only category
+shortcuts and runs existing inference without overwriting those caches. Matching
+context retains the fast path. Three failures reproduced; focused checks 37 passed,
+including the existing performance test; CPU gate 994 passed, 1 skipped. General
+cache invalidation and combined-cue holdout failures remain open. See
+[validation](VALIDATION.md).

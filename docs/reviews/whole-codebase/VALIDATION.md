@@ -1174,3 +1174,22 @@ CPU workflow gate: 989 passed, 1 skipped, two expected sampled-engine warnings i
 87.86 seconds (`.cache/classification-cues-gate.log`). Ruff and diff checks passed.
 Protocol choice, cross-population score calibration, GPU verification and full
 package completion remain open; no training rule or test expectation was changed.
+
+
+## Explicit grounding and word-cache identity (2026-09-10)
+
+Three controls reproduced category, bootstrap and distributional shortcut maps
+returning an old word-only answer for explicitly different grounding (20 passes).
+classify_word_cached now sends alternate context through existing bootstrapped
+inference before these shortcuts and does not write its result into word-only
+caches. No explicit context, or context equal to the stored GroundingContext,
+retains the original fast path. No fusion formula or neural selection rule changed.
+
+A trained-parser control matches uncached inference and preserves neural state;
+the existing cached-classification performance test still passes. Focused checks:
+37 passed in 11.04 seconds. CPU workflow gate: 994 passed, 1 skipped, two expected
+sampled-engine warnings in 76.73 seconds
+(`.cache/classification-cache-context-gate.log`). Ruff and diff checks passed.
+General invalidation after training or in-place stored-context mutation remains
+open. This does not resolve the default combined-cue holdout failures or establish
+new scientific performance.
