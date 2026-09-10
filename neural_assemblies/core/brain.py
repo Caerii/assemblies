@@ -340,6 +340,8 @@ class Brain:
                 raise NotImplementedError(f"{owner_type.__name__} does not implement refraction")
             check_area_homeostasis(area_name, refracted=True,
                                    synaptic_scaling=getattr(self._engine, "synaptic_scaling", False))
+        if slot_count and not explicit and not self._engine.supports_slots:
+            raise NotImplementedError(f"{type(self._engine).__name__} does not implement slots")
         area = Area(area_name, n, k, beta, explicit,
                     refractory_period=refractory_period,
                     inhibition_strength=inhibition_strength,
@@ -362,7 +364,8 @@ class Brain:
                               refractory_period=refractory_period,
                               inhibition_strength=inhibition_strength,
                               winner_policy=winner_policy,
-                              input_noise_std=input_noise_std)
+                              input_noise_std=input_noise_std,
+                              **({"slot_count": area.slot_count} if not explicit and area.slot_count else {}))
         if refracted:
             self._engine.set_refracted(area_name, True, refracted_strength)
         # For explicit areas, ALSO register with a dedicated explicit engine

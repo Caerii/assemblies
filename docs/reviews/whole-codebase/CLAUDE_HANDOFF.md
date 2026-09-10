@@ -491,3 +491,11 @@ requested winner policy. Threshold controls previously returned two winners wher
 one or none was required. Three failures reproduced; focused checks 114 passed;
 CPU gate 805 passed, 1 skipped. No selection kernel was duplicated or changed.
 See [validation](VALIDATION.md).
+
+
+### Slot layout and policy compatibility
+
+Primary dense areas now receive their slot count. Shared validation rejects
+uneven partitions, malformed counts and unsupported multi-slot/custom-policy
+combinations before registration. Fourteen failures reproduced; focused checks
+103 passed; CPU gate 821 passed, 1 skipped. See [validation](VALIDATION.md).

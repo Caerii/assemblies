@@ -11,7 +11,7 @@ from collections import defaultdict
 
 from ..backend import get_xp, to_cpu
 from ..engine import ComputeEngine, ProjectionResult
-from ..registration import validate_area_registration
+from ..registration import validate_area_registration, validate_slot_configuration
 from ..connectome import Connectome
 from ..index_spaces import validated_indices
 
@@ -32,6 +32,7 @@ class NumpyExplicitEngine(ComputeEngine):
     where full fidelity is required.
     """
 
+    supports_slots = True
     supports_fiber_learning_masks = True
 
     def __init__(self, p: float, seed: int = 0, w_max: float = 20.0,
@@ -102,6 +103,7 @@ class NumpyExplicitEngine(ComputeEngine):
         checked (#94). `input_noise_std` is refused loudly instead of ignored.
         """
         n, k = validate_area_registration(name, n, k, existing=self._areas)
+        slot_count = validate_slot_configuration(n, slot_count, winner_policy)
         _reject_unsupported(
             f"NumpyExplicitEngine.add_area({name!r})", self._UNSUPPORTED_AREA,
             dict(refractory_period=refractory_period,

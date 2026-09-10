@@ -939,3 +939,23 @@ Focused registration/IR/input checks: 114 passed. CPU workflow gate: 805 passed,
 behavior correction for callers whose policy was previously ignored, not adoption
 of a scientific result. Complete option-combination validation, general registration
 transactionality, GPU gates and historical replays remain open.
+
+
+## Slot layout and policy compatibility (2026-09-10)
+
+Fourteen controls reproduced ignored primary-dense slot counts, accepted malformed
+layouts and multi-slot execution bypassing custom policies (62 passes). Area and
+dense-engine registration now share slot validation, also used by the standalone
+selector. Counts are integral; partitions cover the complete population; custom
+policies with multiple slots raise because their composition is not implemented.
+Brain forwards supported slots to primary dense owners and rejects unsupported
+primary backends before registration.
+
+Controls distinguish best-slot selection from global top-k on the same drive,
+exercise every dense entry path and reject a layout that previously discarded a
+high-drive trailing neuron. Focused checks: 103 passed. CPU workflow gate:
+821 passed, 1 skipped, two expected sampled-engine warnings in 75.72 seconds
+(`.cache/slot-contract-gate.log`). Ruff and diff checks passed. No new numerical
+selection algorithm, GPU verification, historical replay or backend proof is
+claimed. General option transactionality and direct legacy-field mutation remain
+open with the broader unification work.

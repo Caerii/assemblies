@@ -36,6 +36,8 @@ def select_slot_winners(
     inputs = np.asarray(to_cpu(all_inputs), dtype=np.float64)
     if slot_count < 1:
         raise ValueError("slot_count must be >= 1")
+    from ..core.registration import validate_slot_configuration
+    slot_count = validate_slot_configuration(inputs.size, slot_count)
     slot_size = inputs.size // slot_count
     if slot_size < 1:
         raise ValueError("slot_count too large for area size")

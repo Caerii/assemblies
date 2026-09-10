@@ -95,3 +95,46 @@ def test_lazy_explicit_registration_preserves_descriptor_policy():
     result = owner.project_into('T', [], [], external_drive=[9, 4, 3, 1])
     assert result.winners.tolist() == [0]
     assert owner._areas['T'].winner_policy == policy
+
+
+@pytest.mark.parametrize('surface', ['primary', 'auxiliary', 'direct'])
+@pytest.mark.parametrize('fault', ['policy', 'fractional', 'uneven', 'too_many'])
+def test_invalid_slot_configuration_stops_before_registration(surface, fault):
+    from neural_assemblies import ThresholdPolicy
+    from neural_assemblies.core.numpy_engine import NumpyExplicitEngine
+    n, slots = (5, 2) if fault == 'uneven' else (4, 1.5) if fault == 'fractional' else (4, 5) if fault == 'too_many' else (4, 2)
+    policy = ThresholdPolicy(k=2, threshold=5) if fault == 'policy' else None
+    if surface == 'direct':
+        caller = NumpyExplicitEngine(p=.1)
+        kwargs = {}
+    else:
+        caller = Brain(p=.1, norm_init=False, engine='numpy_sparse' if surface == 'auxiliary' else 'numpy_explicit')
+        kwargs = {'explicit': surface == 'auxiliary'}
+    with pytest.raises((ValueError, NotImplementedError)):
+        caller.add_area('T', n, 2, .1, slot_count=slots, winner_policy=policy, **kwargs)
+    assert not (caller.areas if isinstance(caller, Brain) else caller._areas)
+    if isinstance(caller, Brain):
+        assert not caller._engine._areas and caller._explicit_engine is None
+
+
+@pytest.mark.parametrize('explicit', [False, True])
+def test_slot_selection_uses_best_partition_on_both_dense_paths(explicit):
+    brain = Brain(p=.1, norm_init=False, engine='numpy_sparse' if explicit else 'numpy_explicit')
+    brain.add_area('T', 4, 2, explicit=explicit, slot_count=2)
+    brain.project(external_drive={'T': [10, 0, 6, 5]})
+    # Global top-k would pick {0, 2}; the best whole slot is {2, 3}.
+    assert brain.areas['T'].winners.tolist() == [2, 3]
+
+
+def test_sparse_owner_cannot_silently_ignore_slots():
+    brain = Brain(p=.1, norm_init=False, engine='numpy_sparse')
+    with pytest.raises(NotImplementedError, match='slot'):
+        brain.add_area('T', 4, 2, slot_count=2)
+    assert not brain.areas
+
+
+
+def test_standalone_slot_selection_cannot_discard_trailing_neurons():
+    from neural_assemblies.compute.winner_selection import select_slot_winners
+    with pytest.raises(ValueError, match='partition'):
+        select_slot_winners(np.array([0, 0, 0, 0, 100]), 2, 2)

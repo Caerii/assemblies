@@ -839,3 +839,26 @@ and auxiliary dense paths agree; the lazy-registration branch is checked too.
 This preserves option meaning at registration. It does not establish complete
 failure transactionality, checkpoint restoration, or support for every combination
 of options. Numerical selection remains implemented by the existing dense engine.
+
+
+<a id="contract-slot-options"></a>
+
+## Slot layout and winner-policy compatibility
+
+`core.registration.validate_slot_configuration` is shared by Area construction,
+dense engine registration and the standalone slot selector. Counts are nonboolean
+integers from zero (disabled) to the population size. Multiple slots must divide
+the population evenly; a remainder cannot silently become unreachable neurons.
+Multiple slots combined with a custom winner policy are rejected because the
+current selection kernel implements slot top-k, not a composition of the two rules.
+Zero/one slots retain ordinary policy selection in the dense engine.
+
+Brain forwards slot counts to primary dense owners as well as auxiliary dense
+owners. Other primary backends declare no slot support and reject the request
+before registration. Controls distinguish best-slot selection from global top-k
+on `[10, 0, 6, 5]`, cover invalid layouts/combinations on all dense entry paths,
+and reject a trailing-neuron layout even through the standalone selector.
+
+This changes previously ignored or ambiguous requests into errors; it does not
+add a new selection algorithm or make direct mutation of registered legacy fields
+safe. General option preflight and GPU conformance remain open.
