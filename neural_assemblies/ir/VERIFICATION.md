@@ -367,7 +367,8 @@ claimed here. Rust currently consumes the protocol wire schema only.
 
 ## Shared explicit-engine input contract
 
-`NumpyExplicitEngine.project_into` validates distinct registered sources,
+`NumpyExplicitEngine.validate_projection_inputs` is the shared nonmutating
+preflight for `project_into` and `ExplicitRound.validate`. It checks distinct registered sources,
 valid target/source winner IDs, and the external drive before the clamped-target
 return or numerical work. `set_winners` uses the same winner validator and checks
 before replacing winners or counts. IDs are one-dimensional integral, unique and
@@ -401,7 +402,7 @@ multi-target failure atomicity remain separate obligations.
 
 ## Brain lowering for the explicit round
 
-`ExplicitRound.execute_on_brain` reuses profile eligibility validation, then
+`ExplicitRound.execute_on_brain` reuses profile and numerical input validation, then
 lowers the same instruction to `Brain.project`. Named areas must share one dense
 engine, whether primary or auxiliary. Their descriptor dimensions must match
 engine dimensions, winner IDs must be valid, and fibers must have shared object
@@ -421,6 +422,12 @@ auxiliary dense engines, including full weight matrices, winner history, counts,
 activation and returned-array independence. Further cases cover recurrence,
 drive-only scheduling, inhibited-target rejection, malformed public winner
 buffers, unsupported learning masks and restoring the learning flag on failure.
+Malformed-length and float32-overflow drives must reject before synchronizing
+source caps: controls deliberately give the engine a different cap from its Brain
+descriptor and require the original engine cap to survive rejection. Standalone
+`validate` rejects the same drive errors and malformed mutable engine winner
+buffers without requiring an execution attempt. This covers input preflight,
+not rollback after numerical work begins.
 
 This is a tested lowering, not a Lean simulation proof. Profile checks do not
 prove entire Brain state consistency, failure atomicity of a multi-target program,

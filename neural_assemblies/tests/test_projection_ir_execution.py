@@ -123,3 +123,13 @@ def test_instruction_copies_mutable_configuration():
     drive[0] = 99
     assert instruction.from_areas == ("S",)
     assert instruction.external_drive == (1, 2, 3, 4)
+
+
+@pytest.mark.parametrize("fault", ["length", "overflow", "source_indices", "target_indices"])
+def test_validate_rejects_numerically_invalid_round_without_execution(engine, fault):
+    drive = [1] if fault == "length" else [1e100, 0, 0, 0] if fault == "overflow" else []
+    if fault.endswith("indices"):
+        name = "S" if fault == "source_indices" else "T"
+        engine._areas[name].winners = np.array([.5])
+    with pytest.raises(ValueError):
+        ExplicitRound("T", ["S"], False, drive).validate(engine)

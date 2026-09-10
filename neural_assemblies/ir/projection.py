@@ -55,7 +55,7 @@ class ExplicitRound:
         return cls(**{key: value for key, value in document.items() if key != "profile"})
 
     def validate(self, engine):
-        """Check profile eligibility without executing or synchronizing state."""
+        """Check profile and numerical inputs without executing or synchronizing state."""
         from ..core.backend import get_xp
         from ..core.numpy_engine import NumpyExplicitEngine
 
@@ -64,6 +64,8 @@ class ExplicitRound:
         names = (self.target, *self.from_areas)
         if any(name not in engine._areas for name in names):
             raise ValueError("instruction references an unregistered area")
+        engine.validate_projection_inputs(self.target, [], self.from_areas,
+                                          self.external_drive or None)
         target = engine._areas[self.target]
         for name in names:
             area = engine._areas[name]

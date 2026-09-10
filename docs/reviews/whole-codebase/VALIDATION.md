@@ -707,3 +707,25 @@ configuration, installed-binary identity, or a reconstruction recipe. Imported
 modules can retain earlier settings; external CUDA/thread settings and transient
 changes reverted between checks are outside this contract. Those gaps and the
 known grounded-verb regression remain open.
+
+
+## Shared numerical preflight before IR lowering (2026-09-10)
+
+`ExplicitRound.validate` previously accepted malformed drive dimensions,
+float32-overflow drives and corrupted mutable winner buffers. Execution eventually
+rejected them, but Brain lowering had already synchronized public source caps into
+the engine. Eight constructed failures reproduced this gap (44 passes): deliberately
+unequal facade/engine caps changed despite rejected instructions on both primary
+and auxiliary dense engines.
+
+The explicit engine's existing numerical checks are now extracted into
+`validate_projection_inputs`, reused by direct execution and IR validation. No
+winner-selection or learning arithmetic is duplicated or changed. The source-linked
+input and Brain-lowering contracts distinguish this preflight from execution-time
+rollback and whole-program failure atomicity.
+
+Focused input/IR checks: 79 passed. Complete workflow CPU contract gate: 618 passed,
+1 skipped, 2 expected sampled-engine warnings in 66.26 seconds, with local log
+`.cache/ir-preflight-gate.log`. Ruff and diff checks passed. No GPU gate, registered
+scientific replay, complete package pass, or Lean backend-simulation proof is claimed.
+Resolved model semantics and the known grounded-verb regression remain open.

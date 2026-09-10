@@ -159,19 +159,12 @@ class NumpyExplicitEngine(ComputeEngine):
                 f"the engine's p={self.p}. Use numpy_exact, which implements "
                 f"it, rather than assuming this call took effect.")
 
-    def project_into(
-        self,
-        target: str,
-        from_stimuli: List[str],
-        from_areas: List[str],
-        plasticity_enabled: bool = True,
-        record_activation: bool = False,
-        external_drive: np.ndarray | None = None,
-    ) -> ProjectionResult:
-        """Specification: neural_assemblies/ir/VERIFICATION.md#contract-explicit-inputs
+    def validate_projection_inputs(self, target, from_stimuli, from_areas, external_drive=None):
+        """Nonmutating numerical preflight shared by execution and IR lowering.
 
-        Validate numerical inputs even when the target is clamped. IR and legacy
-        callers share this boundary; profile restrictions remain with the IR.
+        Specification: neural_assemblies/ir/VERIFICATION.md#contract-explicit-inputs
+        Returns validated source caps and the float32 drive, without publishing
+        either into engine state. Profile and fiber restrictions remain in IR.
         """
         xp = get_xp()
         if target not in self._areas:
@@ -191,6 +184,27 @@ class NumpyExplicitEngine(ComputeEngine):
                 external_drive = external_drive.astype(xp.float32, copy=False)
             if not bool(xp.isfinite(external_drive).all()):
                 raise ValueError("External drive must be finite and representable as float32")
+
+        return source_winners, external_drive
+
+    def project_into(
+        self,
+        target: str,
+        from_stimuli: List[str],
+        from_areas: List[str],
+        plasticity_enabled: bool = True,
+        record_activation: bool = False,
+        external_drive: np.ndarray | None = None,
+    ) -> ProjectionResult:
+        """Specification: neural_assemblies/ir/VERIFICATION.md#contract-explicit-inputs
+
+        Validate numerical inputs even when the target is clamped. IR and legacy
+        callers share this boundary; profile restrictions remain with the IR.
+        """
+        xp = get_xp()
+        source_winners, external_drive = self.validate_projection_inputs(
+            target, from_stimuli, from_areas, external_drive)
+        tgt = self._areas[target]
 
         # Empty sources contribute neither drive nor learning.
         from_areas = [name for name in from_areas if source_winners[name].size > 0]

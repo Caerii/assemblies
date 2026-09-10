@@ -88,3 +88,17 @@ def test_recurrent_brain_round_reads_the_last_public_cap(brain):
     assert set(instruction.execute_on_brain(brain)) == {1, 2}
     assert set(instruction.execute_on_brain(brain)) == {0, 3}
     assert len(brain.areas["T"].saved_winners) == 2
+
+
+@pytest.mark.parametrize("drive", [[1], [1e100, 0, 0, 0]])
+def test_bad_round_preserves_unsynchronized_engine_state(brain, drive):
+    engine = brain._engine_for(brain.areas["S"])
+    engine.set_winners("S", np.array([3], dtype=np.uint32))
+    before = engine.get_winners("S").copy()
+    weights = brain.connectomes["S"]["T"].weights.copy()
+    with pytest.raises(ValueError):
+        ExplicitRound("T", ["S"], False, drive).execute_on_brain(brain)
+    np.testing.assert_array_equal(engine.get_winners("S"), before)
+    np.testing.assert_array_equal(brain.connectomes["S"]["T"].weights, weights)
+    assert not brain.areas["T"].saved_winners
+    assert not brain.disable_plasticity

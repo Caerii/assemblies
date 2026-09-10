@@ -399,3 +399,12 @@ remain explicit; changed run configuration retains failure. Historical schema 1
 stays readable. Eleven failures reproduced before the fix; CPU gate 609 passed,
 1 skipped; final focused checks 61 passed. Resolved model/binary identity remains
 open. See [validation](VALIDATION.md) and the contract in `research/README.md`.
+
+
+### IR numerical preflight
+
+The explicit engine and IR now share numerical preflight before Brain source
+synchronization. Invalid dimensions, float32 overflow and malformed winner buffers
+are caught by `validate`; rejected drives retain deliberately unsynchronized engine
+caps. Eight failures reproduced; focused checks 79 passed; CPU gate 618 passed,
+1 skipped. No numerical kernel change or general rollback claim. See [validation](VALIDATION.md).
