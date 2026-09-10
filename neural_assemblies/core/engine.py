@@ -253,6 +253,14 @@ class ComputeEngine(ABC):
         engines without LRI support).
         """
 
+    def set_competition_policy(self, area: str, policy) -> None:
+        """Specification: neural_assemblies/ir/VERIFICATION.md#contract-runtime-policy
+
+        Backends must opt into runtime competition changes. A facade must not
+        attach a field to backend storage and assume the selector consumes it.
+        """
+        raise NotImplementedError(f"{type(self).__name__} does not implement runtime competition policies")
+
     def set_lri(self, area: str, refractory_period: int,
                 inhibition_strength: float) -> None:
         """Update LRI parameters for an area at runtime.

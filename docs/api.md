@@ -61,6 +61,12 @@ an allocation fits in memory. See the source-linked
 [probability contract](../neural_assemblies/ir/VERIFICATION.md#contract-explicit-probability)
 for the affected prototype and the missing heterogeneous-connectivity semantics.
 
+Use `set_competition_policy(area_name, policy)` to change an existing area's
+winner selection, or pass `None` to restore top-k. The executing engine accepts
+the change before the Area descriptor updates; dense areas with multiple slots
+reject a custom policy. See the
+[runtime policy contract](../neural_assemblies/ir/VERIFICATION.md#contract-runtime-policy).
+
 Main objects:
 
 | Object | Location | Role |

@@ -1004,3 +1004,27 @@ Focused checks: 138 passed. CPU workflow gate: 882 passed, 1 skipped, two expect
 sampled-engine warnings in 74.48 seconds (`.cache/custom-probability-gate.log`).
 Ruff and diff checks passed. The prototype itself was not executed, and neither
 GPU conformance nor scientific evidence was established by these software checks.
+
+
+## Runtime competition-policy ownership (2026-09-10)
+
+The baseline controls exposed three existing behavioral failures: an auxiliary
+dense area's threshold policy remained top-k, and both Brain dense registration
+paths allowed a runtime policy to bypass the slot restriction. Four additional
+failures identified the absent direct backend setter (142 passes). Brain now
+calls the executing owner's explicit method before publishing the descriptor.
+NumPy and Torch implementations own their storage updates; the default engine
+method rejects unsupported runtime policy changes. Dense updates reuse the
+registration slot/policy validator.
+
+Controls distinguish one threshold winner from two top-k winners, reset the
+policy to None, cover direct NumPy setters, and preserve state on rejected slot
+combinations. The initial full gate caught a raw winner-index comparison in the
+new test (1 failed, 892 passed, 1 skipped); the test now reads stable neuron IDs
+through diagnostics.read_assembly. No ratchet baseline was changed.
+
+Focused checks before the readout correction: 149 passed. Final CPU workflow gate:
+893 passed, 1 skipped, two expected sampled-engine warnings in 84.06 seconds
+(`.cache/runtime-policy-gate-final.log`). Ruff and diff checks passed. GPU execution,
+policy-object parameter validation, input-noise ownership and direct legacy-field
+mutation remain open; these controls do not adopt a scientific result.

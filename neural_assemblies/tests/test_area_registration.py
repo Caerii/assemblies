@@ -198,3 +198,42 @@ def test_explicit_area_default_probability_uses_brain_configuration():
     owner = brain._engine_for(brain.areas['B'])
     assert owner.p == brain.p
     assert np.all(owner._area_conns['B']['B'].weights == 1)
+
+
+
+def test_runtime_policy_reaches_registered_engine(surface):
+    from neural_assemblies import ThresholdPolicy
+    brain, caller = surface
+    policy = ThresholdPolicy(k=2, threshold=5)
+    caller.set_competition_policy('A', policy)
+    assert brain._engine._areas['A'].winner_policy is policy
+
+
+@pytest.mark.parametrize('explicit', [False, True])
+def test_runtime_policy_changes_dense_selection_and_can_be_reset(explicit):
+    from neural_assemblies import ThresholdPolicy
+    from neural_assemblies.diagnostics import read_assembly
+    brain = Brain(p=.1, norm_init=False,
+                  engine='numpy_sparse' if explicit else 'numpy_explicit')
+    brain.add_area('A', 4, 2, explicit=explicit)
+    drive = {'A': np.array([9, 4, 3, 1], dtype=np.float32)}
+    brain.set_competition_policy('A', ThresholdPolicy(k=2, threshold=5))
+    brain.project({}, {}, external_drive=drive)
+    assert list(read_assembly(brain, 'A')) == [0]
+    brain.set_competition_policy('A', None)
+    brain.project({}, {}, external_drive=drive)
+    assert set(read_assembly(brain, 'A')) == {0, 1}
+
+
+@pytest.mark.parametrize('path', ['primary', 'auxiliary', 'direct'])
+def test_runtime_policy_cannot_bypass_slot_contract(path):
+    from neural_assemblies import ThresholdPolicy
+    brain = Brain(p=.1, norm_init=False,
+                  engine='numpy_sparse' if path == 'auxiliary' else 'numpy_explicit')
+    brain.add_area('A', 4, 2, explicit=path == 'auxiliary', slot_count=2)
+    owner = brain._engine_for(brain.areas['A'])
+    caller = owner if path == 'direct' else brain
+    with pytest.raises(NotImplementedError):
+        caller.set_competition_policy('A', ThresholdPolicy(k=2, threshold=5))
+    assert brain.areas['A'].winner_policy is None
+    assert owner._areas['A'].winner_policy is None

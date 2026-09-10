@@ -2540,6 +2540,10 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
 
     # -- Plasticity control -------------------------------------------------
 
+    def set_competition_policy(self, area: str, policy) -> None:
+        """Specification: neural_assemblies/ir/VERIFICATION.md#contract-runtime-policy"""
+        self._areas[area].winner_policy = policy
+
     def set_beta(self, target: str, source: str, beta: float) -> None:
         self._areas[target].beta_by_source[source] = beta
 

@@ -1505,11 +1505,13 @@ class Brain:
                     self._explicit_engine.set_beta(area_name, stim_name, new_beta)
 
     def set_competition_policy(self, area_name: str, policy) -> None:
-        """Set the winner-selection policy for an area (sparse engine path)."""
-        self.areas[area_name].winner_policy = policy
-        eng_areas = getattr(self._engine, "_areas", None)
-        if eng_areas is not None and area_name in eng_areas:
-            eng_areas[area_name].winner_policy = policy
+        """Set the executing owner's policy, then publish the accepted setting.
+
+        Specification: neural_assemblies/ir/VERIFICATION.md#contract-runtime-policy
+        """
+        area = self.areas[area_name]
+        self._engine_for(area).set_competition_policy(area_name, policy)
+        area.winner_policy = policy
 
     def set_input_noise(self, area_name: str, std: float) -> None:
         """Add Gaussian noise to pre-k-WTA inputs (coin-flip / sampling)."""

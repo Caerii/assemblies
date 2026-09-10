@@ -342,6 +342,12 @@ class NumpyExplicitEngine(ComputeEngine):
     def get_num_ever_fired(self, area: str) -> int:
         return self._areas[area].num_ever_fired
 
+    def set_competition_policy(self, area: str, policy) -> None:
+        """Specification: neural_assemblies/ir/VERIFICATION.md#contract-runtime-policy"""
+        state = self._areas[area]
+        validate_slot_configuration(state.n, state.slot_count, policy)
+        state.winner_policy = policy
+
     def set_beta(self, target: str, source: str, beta: float) -> None:
         self._areas[target].beta_by_source[source] = beta
 

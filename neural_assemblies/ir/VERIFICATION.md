@@ -908,3 +908,29 @@ mirror/owner consistency need a common connection-policy specification first.
 The checkout-oriented `text_generation/robust_grammatical_brain.py` prototype
 requests these overrides for its CORE areas and cannot use the maintained Brain
 with that configuration. Its old silent fallback is not evidence for that model.
+
+
+<a id="contract-runtime-policy"></a>
+
+## Runtime competition-policy ownership
+
+`Brain.set_competition_policy` resolves the area's executing owner and calls its
+`ComputeEngine.set_competition_policy` method before publishing the accepted
+policy on the Area descriptor. The default engine method rejects the operation;
+NumPy sparse, fixed-connectome and dense engines, and Torch, explicitly implement
+it. Storage remains backend-owned. An auxiliary area's primary mirror supplies
+source activity; it does not select that area's winners and is not configured as
+if it were the owner.
+
+Dense runtime updates use the same slot/policy compatibility validator as dense
+registration. Multiple slots with a custom policy must raise before either owner
+or descriptor changes. Passing None restores the existing top-k selector on a
+supported backend. Controls change a dense area's drive `[9, 4, 3, 1]` from two
+winners to one under threshold five, then restore two winners by clearing the
+policy. Both primary and auxiliary owners execute this behavior; direct NumPy
+setters and rejected slot combinations are covered too.
+
+This contract preserves routing and existing selection semantics. It does not
+validate every parameter inside policy objects, certify GPU execution, or protect
+direct assignment to legacy state fields. Input-noise controls are a separate
+remaining ownership and capability task.

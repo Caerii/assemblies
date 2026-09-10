@@ -520,3 +520,15 @@ gate 882 passed, 1 skipped. The robust grammatical-brain prototype requests thes
 unsupported overrides through the legacy shim; the supported-surface guide now
 records that limitation. Restoring its intended model needs heterogeneous dense
 connectivity semantics. See [validation](VALIDATION.md).
+
+
+### Runtime competition policies
+
+Brain now delegates policy changes to the executing owner before publishing the
+descriptor. Auxiliary dense selection previously ignored the runtime change;
+primary and auxiliary dense paths also bypassed the slot restriction. Backend
+setters make acceptance explicit and dense setters reuse the slot validator.
+The initial gate caught a raw-index comparison in the new test; it was changed
+to the stable-ID readout without raising the ratchet baseline. Final CPU gate:
+893 passed, 1 skipped. GPU and input-noise control checks remain open. See
+[validation](VALIDATION.md).
