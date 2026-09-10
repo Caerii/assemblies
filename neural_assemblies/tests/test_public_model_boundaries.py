@@ -319,3 +319,40 @@ def test_unsupported_lri_backend_still_validates_numeric_inputs(engine_name, per
     engine.add_area('A', 20, 2, .1)
     with pytest.raises(ValueError):
         engine.set_lri('A', period, strength)
+
+
+@pytest.mark.parametrize('engine_name,explicit,scaling', [
+    ('numpy_sparse', False, True), ('numpy_sparse', False, {'B'}),
+    ('numpy_sparse', True, False), ('numpy_exact', False, False),
+    ('numpy_explicit', False, False),
+])
+def test_rejected_refraction_creation_leaves_no_registration(engine_name, explicit, scaling):
+    brain = Brain(p=.1, norm_init=False, engine=engine_name, synaptic_scaling=scaling)
+    brain.add_stimulus('s', 2)
+    brain.add_area('A', 20, 2)
+    before = brain.clone()
+    with pytest.raises((ValueError, NotImplementedError)):
+        brain.add_area('B', 20, 2, explicit=explicit, refracted=True, refracted_strength=.1)
+    assert set(brain.areas) == set(before.areas)
+    assert set(brain._engine._areas) == set(before._engine._areas)
+    assert {src: set(dsts) for src, dsts in brain.connectomes.items()} == {
+        src: set(dsts) for src, dsts in before.connectomes.items()}
+    assert {src: set(dsts) for src, dsts in brain.connectomes_by_stimulus.items()} == {
+        src: set(dsts) for src, dsts in before.connectomes_by_stimulus.items()}
+    assert brain._explicit_engine is None
+    assert brain.rng.bit_generator.state == before.rng.bit_generator.state
+    assert brain._conn_rng.bit_generator.state == before._conn_rng.bit_generator.state
+    if hasattr(brain._engine, '_rng'):
+        assert brain._engine._rng.bit_generator.state == before._engine._rng.bit_generator.state
+    # Rejection does not consume the name; a supported retry works.
+    brain.add_area('B', 20, 2)
+    assert 'B' in brain.areas
+
+
+def test_declared_refraction_support_has_a_working_bias_update():
+    brain = Brain(p=.2, norm_init=False, engine='numpy_sparse')
+    assert brain._engine.supports_refraction
+    brain.add_stimulus('s', 10)
+    brain.add_area('A', 100, 5, refracted=True, refracted_strength=.1)
+    brain.project({'s': ['A']}, {})
+    assert np.any(brain._engine._areas['A']._cumulative_bias > 0)

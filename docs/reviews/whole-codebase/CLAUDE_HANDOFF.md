@@ -464,3 +464,12 @@ mutate state. Invalid periods/strengths retain parameters, populated history and
 RNG state; NumPy scalar inputs work. Initial controls reproduced 41 failures;
 CPU gate 738 passed, 1 skipped; six existing LRI behavior tests passed. Torch still
 needs CUDA verification. See [validation](VALIDATION.md).
+
+
+### Refraction preflight before registration
+
+Refraction support/scaling conflicts now reject before Brain registers or wires
+an area. Explicit areas cannot borrow their primary mirror's capability. Tests
+preserve registration/RNG state and show real bias on the supported path.
+CPU gate: 744 passed, 1 skipped; general registration transactionality and CUDA
+verification remain open. See [validation](VALIDATION.md).

@@ -322,6 +322,7 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
     Parameters mirror ``Brain.__init__``.
     """
 
+    supports_refraction = True
     supports_fiber_learning_masks = True
 
     def __init__(self, p: float, seed: int = 0, w_max: float = 20.0,

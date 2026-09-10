@@ -81,6 +81,8 @@ class TorchSparseEngine(ComputeEngine):
                        back to CPU path when deterministic=True.
     """
 
+    supports_refraction = True
+
     def __init__(self, p: float, seed: int = 0, w_max: float = 20.0,
                  deterministic: bool = False, gpu_sampling: bool = True,
                  **kwargs):

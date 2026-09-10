@@ -771,3 +771,26 @@ applies after numeric validation; valid input does not create an LRI implementat
 This is input rejection, not a guarantee of rollback after arbitrary allocation or
 backend failure. Legacy fields can still be mutated directly. Torch uses the shared
 validator, but its CUDA execution remains a separate unverified gate.
+
+
+<a id="contract-refraction-registration"></a>
+
+## Refraction preflight before area registration
+
+`Brain.add_area` checks refraction support and scaling compatibility before
+creating the descriptor, consuming RNG draws, registering a population or wiring
+fibers. `ComputeEngine.supports_refraction` defaults to False; sampled NumPy and
+Torch declare support (CUDA inherits the sampled declaration). Explicit Brain
+areas are owned by NumpyExplicitEngine, whose unsupported declaration is checked
+without constructing the auxiliary engine. A primary mirror's refraction support
+cannot make an auxiliary area implement the mechanism.
+
+Controls reject scaled sampled areas, exact/dense areas and auxiliary dense areas,
+then compare registrations, connectivity maps and all relevant NumPy RNG states.
+The same name can be used in a supported retry. A positive control projects input
+into a refracted sampled area and observes nonzero accumulated bias.
+
+This closes refraction support/compatibility rejection, not all possible failures
+of `add_area`. Other option preflight, duplicate names, allocation failures and
+misdeclared custom-backend capabilities remain separate obligations. GPU support
+is declared from the implementation but still requires the external CUDA gates.

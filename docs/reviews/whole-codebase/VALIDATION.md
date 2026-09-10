@@ -878,3 +878,23 @@ Ruff and diff checks passed. Torch calls the validator but CUDA execution remain
 unverified. Arbitrary allocation-failure rollback, direct legacy-field mutation,
 historical replays, the grounded-verb regression and wider model/IR unification
 remain open.
+
+
+## Refraction registration preflight (2026-09-10)
+
+Five controls reproduced rejected refraction leaving populations/wiring registered
+or an explicit area accepting a mechanism its dense owner did not implement.
+A sixth check exposed the absent capability declaration (107 existing passes).
+Brain now checks the declared owner capability and shared scaling incompatibility
+before descriptor construction, RNG use, registration or wiring. The explicit
+owner's capability is checked without constructing an auxiliary engine.
+
+Controls compare registrations, public connectivity maps and all relevant NumPy
+RNG states, then retry the same name successfully. A positive control confirms
+that the supported sampled engine accumulates refraction bias. Focused checks:
+113 passed. CPU workflow gate: 744 passed, 1 skipped, two expected sampled-engine
+warnings in 65.73 seconds (`.cache/refraction-registration-gate.log`). Ruff and
+diff checks passed. Torch/CUDA capability declarations still require CUDA gates.
+This is not general add_area transactionality: other options, duplicate names,
+allocation failures and incorrect custom-backend declarations remain open, along
+with the broader model/IR, research migrations and grounded-verb regression.

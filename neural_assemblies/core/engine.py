@@ -97,6 +97,7 @@ class ComputeEngine(ABC):
 
     # -- Area / stimulus registration --
 
+    supports_refraction = False
     supports_fiber_learning_masks = False
 
     @contextmanager

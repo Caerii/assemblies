@@ -327,6 +327,17 @@ class Brain:
             refracted_strength (float): Magnitude of per-firing bias
                 increment in refracted mode.
         """
+        # Specification: neural_assemblies/ir/VERIFICATION.md#contract-refraction-registration
+        if refracted:
+            owner_type = type(self._engine)
+            if explicit:
+                # Determine capability without creating/registering the auxiliary engine.
+                from .numpy_engine import NumpyExplicitEngine
+                owner_type = NumpyExplicitEngine
+            if not owner_type.supports_refraction:
+                raise NotImplementedError(f"{owner_type.__name__} does not implement refraction")
+            check_area_homeostasis(area_name, refracted=True,
+                                   synaptic_scaling=getattr(self._engine, "synaptic_scaling", False))
         area = Area(area_name, n, k, beta, explicit,
                     refractory_period=refractory_period,
                     inhibition_strength=inhibition_strength,
@@ -351,13 +362,6 @@ class Brain:
                               winner_policy=winner_policy,
                               input_noise_std=input_noise_std)
         if refracted:
-            # A refracted area must be EXCLUDED from column scaling, not
-            # silently scaled: the two homeostats destroy an area together
-            # (`core/_homeostasis.check_area_homeostasis`).
-            check_area_homeostasis(
-                area_name, refracted=True,
-                synaptic_scaling=getattr(self._engine, "synaptic_scaling",
-                                         False))
             self._engine.set_refracted(area_name, True, refracted_strength)
         # For explicit areas, ALSO register with a dedicated explicit engine
         # that handles full n×n weight matrices and plasticity correctly.
