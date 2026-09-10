@@ -357,3 +357,11 @@ A scoped engine interface restores nested suppression on exceptions; reinforceme
 shares it and the IR rejects contradictory learning requests. Unsupported backends
 raise instead of ignoring active masks. Focused checks: 107 passed; full CPU gate:
 566 passed, 1 skipped. See [validation](VALIDATION.md) for controls and limits.
+
+### Exact-engine learning masks
+
+The shared scope now works on `numpy_exact` as well as dense NumPy. It skips new
+potentiation while preserving beta and existing learned drive; beta-zero negative
+controls demonstrate the distinction. Fixed-target and stimulus paths are covered.
+CPU gate: 572 passed, 1 skipped. Sampled/GPU implementation and formal proofs
+remain open; see [validation](VALIDATION.md).

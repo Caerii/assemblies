@@ -579,3 +579,25 @@ backends, thread safety, or a formal proof. Historical replays and the known
 grounded-verb regression remain open.
 
 Final workflow-listed CPU gate: **566 passed, 1 skipped**.
+
+### Exact-engine fiber learning masks (2026-09-10)
+
+`numpy_exact` now implements the shared scoped learning predicate in its single
+plasticity function, covering ordinary and fixed-target projection, area fibers
+and stimulus fibers. Drive evaluation, beta, normalization and stored learned
+weights are unchanged; only new potentiation counts/outer products are blocked.
+
+All six new cases initially failed because this backend correctly rejected the
+unsupported mask. After implementation, the exact ladder plus dense mask checks
+passed 63 tests. Additional constructed beta-zero controls show why temporarily
+zeroing beta would be incorrect: it removes previously learned activation. The
+six focused cases pass with those controls, at both normalization settings and
+with fixed/unfixed targets. Re-enabling restores learning, and an unmasked fiber
+continues learning while the masked effective matrix stays unchanged.
+
+Ruff and diff checks passed. Sampled/GPU mask support and formal backend proofs
+remain open. Fixed-target behavior remains engine-specific; this change does not
+claim dense and exact engines have identical clamp semantics or certify a
+historical scientific result.
+
+Final workflow-listed CPU gate: **572 passed, 1 skipped**.

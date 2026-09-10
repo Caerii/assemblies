@@ -421,6 +421,8 @@ class NumpyExactEngine(ComputeEngine):
     #: asking for one is an ERROR and not a mechanism that silently never runs
     #: -- the repo's dominant defect class, see [[silent-no-op-dead-fibers]].
     #: Each maps to the only value that means "not requested".
+    supports_fiber_learning_masks = True
+
     _UNSUPPORTED_INIT = {
         "synaptic_scaling": False,
         "deterministic": False,   # this engine has no RNG stream to stabilise
@@ -893,7 +895,9 @@ class NumpyExactEngine(ComputeEngine):
 
     def _apply_plasticity(self, target: str, from_stimuli: List[str],
                           from_areas: List[str], winners: np.ndarray) -> None:
-        """Potentiate every afferent of `winners` in `target`.
+        """Specification: neural_assemblies/ir/VERIFICATION.md#contract-fiber-learning
+
+        Potentiate permitted afferents of `winners` in `target`.
 
         Extracted so the ordinary path and the FIXED-TARGET path share one
         implementation. They previously did not share anything -- the fixed
@@ -907,10 +911,12 @@ class NumpyExactEngine(ComputeEngine):
         """
         tgt = self._areas[target]
         for stim in from_stimuli:
-            if tgt.beta_by_source.get(stim, tgt.beta) != 0:
+            if (tgt.beta_by_source.get(stim, tgt.beta) != 0
+                    and self.fiber_learning_allowed(stim, target)):
                 self._stim_pot[stim][target][winners] += 1.0
         for src_name in from_areas:
-            if tgt.beta_by_source.get(src_name, tgt.beta) == 0:
+            if (tgt.beta_by_source.get(src_name, tgt.beta) == 0
+                    or not self.fiber_learning_allowed(src_name, target)):
                 continue
             key = (src_name, target)
             store = self._area_pot.get(key)

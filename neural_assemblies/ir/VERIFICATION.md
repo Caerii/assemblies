@@ -507,8 +507,7 @@ before dispatch. Both primary and auxiliary dense engines are covered. Nested
 scopes accumulate suppression and restore the exact prior scope on exit,
 including exceptions. Persistent Brain configuration is not modified by a scope.
 
-`ComputeEngine.supports_fiber_learning_masks` defaults false. Only the dense
-NumPy engine opts in currently. A learning-enabled projection requesting an
+`ComputeEngine.supports_fiber_learning_masks` defaults false. The dense NumPy and fixed-connectome `numpy_exact` engines opt in. A learning-enabled projection requesting an
 active mask on another backend raises before projection, rather than silently
 ignoring the mask. Disabled global Brain learning needs no per-fiber suppression.
 Masks on inactive routes are not forwarded. No sampled/GPU mask support is claimed.
@@ -523,3 +522,19 @@ changes the selected cap, show another fiber learns, re-enable learning, cover
 stimulus fibers, nested scopes, exception cleanup, supervised writes, and IR
 contradiction rejection. These are learning masks, not recruitment guards,
 thread-safe transactions, or normalization/scaling guarantees on other engines.
+
+
+The `numpy_exact` implementation applies the shared predicate in its single
+`_apply_plasticity` function, used by both ordinary and fixed-target projection.
+It suppresses only new stimulus exponents and area outer-product updates. It does
+not change beta: this engine interprets stored potentiation through beta at read
+time, so setting beta to zero would erase the contribution of existing learning.
+Normalization remains the existing read-time scale; the mask does not alter it.
+
+Controls pretrain fibers, then compare masked execution with a learning-disabled
+reference at both normalization settings. Masked effective weights remain exactly
+unchanged while an unmasked fiber increases, and re-enabling restores learning.
+Stimulus exponents receive the same checks. A deliberately broken beta-zero
+implementation loses previously learned activation and fails the observation
+contract. Fixed-target cases preserve this engine's existing fixed-target learning
+policy; this does not assert that all backends have the same clamp semantics.
