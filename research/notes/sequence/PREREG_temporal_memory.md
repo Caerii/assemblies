@@ -147,3 +147,18 @@ synapse potentiated once per presentation reaches the clip.*
            1.00 from presentation 7 to 26). The re-run is the same script
            with PRESENTATIONS = 20 and is a confirmation of the window, not
            a new claim; TM-5 as registered stays FAIL.
+
+### Amendment 1 -- Result (2026-09-09, 20 presentations, 20 brains)
+
+    set III at 20 presentations     order-10 positions   brains perfect
+    induced state                   1.000                20/20
+    copy, g = 0                     1.000                20/20
+    copy, g = 4                     0.975                19/20
+
+    TM-5'  >= 15/20 on the induced state and copy g = 0                  PASS
+    Sets I and II at 20 presentations: 20/20 on every arm.
+
+The window confirmed: what failed at 40 presentations is exact at 20, on
+every brain, for all three constructions. The registered transducer is a
+temporal memory of order at least 10 for memorized sequences, inside the
+presentation window set by the clip.
