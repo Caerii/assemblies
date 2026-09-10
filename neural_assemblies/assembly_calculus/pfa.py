@@ -637,17 +637,8 @@ class PFANetwork:
                     self._fsm.state_area, rounds=self._fsm.rounds)
             new_state = self._fsm.step(symbol)
         else:
-            # Preserve the historical seed stream: binary uses the supplied seed;
-            # a multiway schedule draws one seed per attempted conditional choice.
-            rng = np.random.default_rng(seed) if len(schedule) > 2 else None
-            new_state = schedule[-1][0]
-            for target, weight in schedule[:-1]:
-                branch_seed = int(rng.integers(0, 2**31)) if rng is not None else seed
-                result = self._coin.flip(bias=weight, rounds=self.choice.rounds,
-                                         seed=branch_seed, mode=self.choice.mode)
-                if result == 0:
-                    new_state = target
-                    break
+            index = self.choice.select_index(self._coin, (weight for _, weight in schedule), seed=seed)
+            new_state = schedule[index][0]
 
         self._current_state = new_state
         return new_state

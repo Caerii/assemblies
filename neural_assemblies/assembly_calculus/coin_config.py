@@ -47,3 +47,27 @@ class SeedMixtureChoice:
                                 n=self.n, k=self.k, beta=self.beta,
                                 rounds_train=self.rounds_train, fires=self.fires,
                                 construction="attractor")
+
+
+    def select_index(self, coin, conditional_weights, *, seed=None) -> int:
+        """Execute a validated ordered branch schedule; last index is fallback.
+
+        Specification: neural_assemblies/ir/VERIFICATION.md#contract-branch-schedule
+        Binary schedules use the caller seed; multiway schedules draw a seed per
+        attempted choice. Labels are neural observations, not calibrated draws.
+        """
+        import numpy as np
+        weights = tuple(conditional_weights)
+        if (not weights or weights[-1] != 1.0
+                or any(isinstance(w, bool) or not isinstance(w, Real)
+                       or not math.isfinite(w) or not 0 <= w <= 1 for w in weights)):
+            raise ValueError('conditional weights must be finite in [0, 1] with a final fallback 1')
+        rng = np.random.default_rng(seed) if len(weights) > 2 else None
+        for index, weight in enumerate(weights[:-1]):
+            branch_seed = int(rng.integers(0, 2**31)) if rng is not None else seed
+            label = coin.flip(bias=weight, rounds=self.rounds, seed=branch_seed, mode=self.mode)
+            if isinstance(label, bool) or not isinstance(label, Integral) or label not in (0, 1):
+                raise ValueError('neural branch selector must return label zero or one')
+            if label == 0:
+                return index
+        return len(weights) - 1

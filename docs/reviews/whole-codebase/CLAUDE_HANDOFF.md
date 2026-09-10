@@ -1111,3 +1111,20 @@ Full workflow-selected contract suite: 1261 passed, 1 skipped, 6 warnings in 121
 rendering and both ratchets. Ruff on changed Python and git diff --check pass.
 No historical numerical artifacts or adoption thresholds changed. The unresolved
 full-package failures and neural Markov/context-coin redesign remain open.
+
+
+## Arc Markov composition (2026-09-10)
+
+The invalid NemoMarkovPFA/AlternatingMarkovNetwork bodies are retired with explicit
+migration errors. ArcMarkovNetwork composes the shared selector with NemoArcFSM's
+actual readout under an explicit decoded-state feedback protocol. MarkovChainModel
+requires that protocol. The historical alternating architecture is not reproduced.
+See [validation, including the perfect untrained two-state case and the subsequent
+three-state controls](VALIDATION.md#arc-markov-composition-and-retired-invalid-instrument-2026-09-10).
+SoftmaxContextCoin and probability calibration remain open. Historical goldens and
+adopted result records are unchanged.
+
+Validation: 1305 broad contract tests passed (one skip); 122 dedicated CUDA tests
+passed; three subsequently added direct CUDA learning-null controls passed. No
+production implementation changed after those broad gates. See the linked validation
+section for per-seed counts, exact scope and logs. The full package is not declared clean.

@@ -70,3 +70,18 @@ Put experiments in `research/`.
 Put historical material in `legacy/`.
 
 Keep root-level code limited to compatibility and project metadata.
+
+
+## Markov experiment boundary
+
+`programs.ArcMarkovNetwork` and `ArcMarkovProtocol` expose an explicitly configured
+experiment composing the existing arc readout with the shared seed-mixture selector.
+`MarkovChainModel` is its trace-frequency wrapper. This surface is tested for neural
+readout, initialized nulls and probe isolation; it is not a calibrated Markov sampler
+or an implementation of the historical alternating-area architecture.
+
+`NemoMarkovPFA` and `AlternatingMarkovNetwork` are retired and raise before brain
+mutation. Their old numerical artifacts are not relabelled as the new protocol.
+`SoftmaxContextCoin` remains an unresolved legacy instrument. See the
+[contract and scope](../neural_assemblies/ir/VERIFICATION.md#contract-arc-markov)
+and [construction example](api.md#explicit-arc-markov-experiment).

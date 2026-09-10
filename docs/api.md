@@ -367,3 +367,42 @@ that only generates a proper subgroup raises instead of silently creating an eas
 benchmark. Existing `cyclic_group_60()` and `cyclic_group_120()` wrappers retain
 their state labels and transition tables. This constructs symbolic ground truth;
 it does not establish that a neural network learns the resulting word problem.
+
+
+### Explicit arc Markov experiment
+
+`ArcMarkovNetwork` composes the shared neural seed-mixture selector with the learned
+`NemoArcFSM` transition readout. `ArcMarkovProtocol` explicitly fixes organ geometry,
+local density, plasticity, refraction and training presentations; `SeedMixtureChoice`
+independently configures the coin. Example construction (parameters for exploration,
+not a general scientific guarantee):
+
+```python
+from neural_assemblies import Brain
+from neural_assemblies.assembly_calculus import SeedMixtureChoice
+from neural_assemblies.programs import ArcMarkovNetwork, ArcMarkovProtocol
+
+brain = Brain(p=0.3, seed=1, engine="numpy_sparse")
+network = ArcMarkovNetwork(
+    brain, ["q0", "q1"],
+    [("q0", "flip", "q0", .25), ("q0", "flip", "q1", .75),
+     ("q1", "flip", "q0", .75), ("q1", "flip", "q1", .25)],
+    "q0",
+    protocol=ArcMarkovProtocol(n=1000, k=50, beta=.1, organ_p=.3,
+                              refracted_strength=.1, presentations=20),
+    choice=SeedMixtureChoice(n=500, k=50, beta=3., rounds_train=5, rounds=5),
+)
+next_state = network.sample_step(seed=11)
+parameters = network.parameters  # Resolved table, organ and coin settings.
+```
+
+Each step feeds the decoded state label back as a canonical cue. Coin labels select
+branch stimuli; the neural arc readout supplies the successor. Target weights control
+seed mixtures and do not imply calibrated outcome frequencies. Both state and arc
+populations are materialized; engine stimulus and tie semantics still matter. Compare
+with `presentations=0` before treating an apparently successful task as learning.
+`MarkovChainModel(..., protocol=..., choice=...)` provides the trace-frequency wrapper.
+The historical `NemoMarkovPFA` and `AlternatingMarkovNetwork` now raise with migration
+guidance; their old goldens do not describe this new protocol.
+
+[Source-linked contract](../neural_assemblies/ir/VERIFICATION.md#contract-arc-markov).

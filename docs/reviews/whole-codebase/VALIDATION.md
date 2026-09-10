@@ -1799,3 +1799,66 @@ Full workflow-selected contract suite: 1261 passed, 1 skipped, 6 warnings in 121
 rendering and both ratchets. Ruff on changed Python and git diff --check pass.
 No historical numerical artifacts or adoption thresholds changed. The unresolved
 full-package failures and neural Markov/context-coin redesign remain open.
+
+
+## Arc Markov composition and retired invalid instrument (2026-09-10)
+
+At c6151aa the historical NemoMarkovPFA still copied stable coin IDs into unrelated
+arc compact slots, reused current-area state IDs in the next area, ignored weights,
+cleared refraction and returned a table-selected target. That implementation and its
+alternating wrapper are now retired with errors before brain access. Their two
+both-label tests and reset-only test are replaced by explicit migration controls;
+this is not numerical reproduction of their historical protocol or goldens.
+
+ArcMarkovNetwork instead composes NemoArcFSM with the shared SeedMixtureChoice
+conditional selector. The protocol explicitly trains branch-symbol transitions and
+fully materializes the arc. The state population is max(n, number_of_states*k), as
+in NemoArcFSM, with assigned disjoint codes. A coin label selects a stimulus; the
+arc's actual nearest-overlap readout supplies the next state. Each step is isolated
+by brain.probe and retains only decoded-state feedback. This is explicitly a new
+arc-symbol-feedback-v1 experiment, not alternating areas or continuous neural carry.
+MarkovChainModel now requires that protocol; deterministic graphs allocate no coin.
+Both FSM constructors validate full domains before brain allocation. Configuration
+records include the table, initial state, geometry, learning/coin schedules and the
+feedback interpretation. Public protocol/choice references cannot be relabelled
+after training. No target weights are claimed to be calibrated probabilities.
+
+Development diagnostics (not preregistered scientific evidence):
+- Three seeds, 1/2/3, two-state XOR: trained 20 presentations decoded 4/4 each;
+  initialized zero-presentation controls decoded 3/4, 4/4, 3/4. The perfect null on
+  seed 2 is retained, not explained away or converted into a passed science bar.
+- A subsequent three-state cycle with no self-transitions requires both branch and
+  current state: trained 20 presentations decoded 6/6 each; initialized controls
+  decoded 0/6, 3/6, 1/6. This fixture was selected during development after observing
+  the simpler null. It is a regression control, not confirmatory adoption evidence.
+- Local diagnostic files retain all labels: .cache/arc-markov-diagnostic.json,
+  .cache/arc-markov-xor-diagnostic.json, .cache/arc-markov-cycle-diagnostic.json.
+  Both state and arc were materialized on the NumPy sparse engine, n=1000, k=50,
+  organ_p=.3, beta=.1, refraction=.1; independent coin n=500, k=50, beta=3, train=5, settle=5.
+
+67 focused tests passed in 13.78s, covering three-seed learning nulls, genuine
+selector-to-arc execution, probe activity/bias preservation, reset, readout
+contradiction, closed domains, frozen configuration and malformed selector output.
+The existing PFA's 36 pre/post labels and full winner arrays remain byte-identical
+across three brain seeds, binary/three-way schedules and both selector modes after
+sharing its selector. Source-linked specifications, API example and maintained-surface
+boundaries are updated. SoftmaxContextCoin, calibrated probabilities, long-horizon
+Markov behavior and the other full-package audit failures remain open.
+
+
+Full workflow-selected gates: 1305 passed, 1 skipped, 6 warnings in 137.06s
+(.cache/arc-markov-contract-gate.log), including specifications, register rendering
+and both ratchets. Dedicated CUDA suite: 122 passed, 11 warnings in 37.95s with the
+fused extension loaded (.cache/arc-markov-gpu-gate.log). No kernel arithmetic changed.
+A direct torch_sparse run of the new three-state composition then decoded 6/6 trained
+transitions for seeds 1/2/3, versus 3/6, 2/6, 3/6 in initialized untrained controls.
+Its complete development observations remain in
+.cache/arc-markov-torch-cycle-diagnostic.json. These are backend-specific diagnostic
+outcomes, not bitwise NumPy/Torch parity or calibrated-probability evidence.
+
+Three permanent CUDA controls were added after the broad gate and passed in 11.50s
+(41 other cases deselected, .cache/arc-markov-cuda-controls.log). They assert actual
+CUDA placement, then exercise trained and initialized-null arc readout on three seeds.
+They skip explicitly without CUDA and are included in the workflow-selected test file.
+Only test code changed after the broad gates. Ruff on changed Python and git diff
+--check pass. The full-package audit was not rerun or declared clean.

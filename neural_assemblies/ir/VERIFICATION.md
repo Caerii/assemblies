@@ -1305,8 +1305,9 @@ are rejected. Existing probability fields are retained as target weights for
 compatibility, with no claim that measured transition frequencies equal them.
 
 The context coin additionally learns during its read and overwrites context-driven
-activity. NemoMarkovPFA copies coin IDs into the arc and ignores transition weights.
-Neither is certified by this PFA migration; both require separate schedule redesign.
+activity. The historical NemoMarkovPFA copied coin IDs into the arc and ignored
+transition weights; it is now retired. The distinct ArcMarkovNetwork composition
+has its own contract below. The context coin remains unresolved.
 
 
 <a id="contract-pnas-roundtrip"></a>
@@ -1334,7 +1335,8 @@ initialization is not proof of learned transitions. In particular, materializing
 before training changes the sampled construction and needs its own evidence.
 The separate test_nemo_arc_contract.py covers cold rejection, initialized untrained
 readout, trained behavior, unchanged readout bias, and accumulated training bias.
-The Markov PFA controls remain separate and unresolved.
+The distinct ArcMarkovNetwork controls are specified separately below; they do not
+validate the retired historical Markov PFA.
 
 
 <a id="contract-erp-context-reset"></a>
@@ -1406,3 +1408,42 @@ PFANetwork consumes this schedule through one loop for binary and multiway branc
 Binary choice retains the caller seed; multiway choice retains one generated seed
 per attempted decision. Deterministic transitions allocate no coin. Branch schedules
 are symbolic data, not evidence of a learned neural transition circuit or softmax law.
+
+
+<a id="contract-arc-markov"></a>
+### Decoded-state arc Markov experiment
+
+Historical card: NemoMarkovPFA built two state areas, a symbol area, a refracted
+arc and a legacy coin. It copied the coin's stable IDs directly into the arc's
+compact winners, reused one area's state IDs in another, ignored transition weights,
+and returned a table-selected successor after discarding the neural output. Clearing
+refraction repeatedly also erased the proposed accumulated mechanism. Those bodies
+are retired. NemoMarkovPFA and AlternatingMarkovNetwork now raise before touching a
+brain and name the replacement; Git history retains the invalid instrument.
+
+ArcMarkovNetwork is a different explicit protocol, arc-symbol-feedback-v1. A validated
+closed transition domain compiles each outgoing target's ordinal into a branch symbol
+for NemoArcFSM. Each state has at least one declared outgoing group; no missing row
+silently becomes a self-loop. Training constructs the assigned state code and fully
+materializes the arc, then executes the recorded number of teacher-forced presentations.
+The zero-presentation control has the same initialized population and no transition
+teaching. Protocol geometry, local density, beta, refraction and presentations are
+immutable, explicit and JSON-serializable. Branching independently requires
+SeedMixtureChoice; deterministic graphs allocate no coin.
+
+At sampling, the shared conditional selector supplies a branch index. That index
+selects a stimulus, not a successor label. NemoArcFSM.run observes the learned
+transition, returning its nearest-overlap state readout. The enclosing brain.probe
+restores neural activity, recruitment, RNG and learning state. Only the decoded
+label advances outside the probe and becomes the next step's canonical state cue.
+Reset changes this feedback label only; it does not clear learned refraction.
+No stable ID crosses an area boundary. MarkovChainModel compiles trace frequencies
+through this same implementation and requires the explicit protocol.
+
+This is decoded-state feedback with branch-symbol inputs. It is not the historical
+alternating-area architecture, continuous neural state carry, a calibrated Markov
+sampler, a proof of a softmax law, or evidence for arbitrary long sequences. Tests
+must distinguish three boundaries: conditional-weight consumption, genuine arc
+readout instead of target lookup, and sensitivity to disabled transition teaching.
+A perfect small untrained fixture is possible and must be retained when observed.
+The separate legacy SoftmaxContextCoin remains unresolved.

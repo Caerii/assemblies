@@ -18,6 +18,7 @@ from .colt_mnist_numpy import ColtMnistResult, run_colt_mnist_numpy
 from .colt_mnist_brain import ColtMnistBrainResult, run_colt_mnist_brain
 from .mod3_fsm import Mod3FsmResult, run_mod3_fsm_demo
 from .nemo_fsm import AlternatingMarkovNetwork, NemoArcFSM, NemoMarkovPFA
+from .arc_markov import ArcMarkovNetwork, ArcMarkovProtocol
 from .direct import direct_bind, measure_directional_asymmetry, validate_direct_do_calculus
 from .planning import (
     BlocksWorldAC,
@@ -47,6 +48,8 @@ __all__ = [
     "Mod3FsmResult",
     "run_mod3_fsm_demo",
     "NemoArcFSM",
+    "ArcMarkovNetwork",
+    "ArcMarkovProtocol",
     "NemoMarkovPFA",
     "AlternatingMarkovNetwork",
     "direct_bind",

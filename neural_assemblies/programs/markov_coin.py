@@ -1,8 +1,7 @@
-"""
-Coin-flipping / Markov protocols (Dabagia et al. 2024).
+"""Coin and Markov experiment wrappers with explicit neural selector settings.
 
-Trains a ``PFANetwork`` from observed transition frequencies and exposes
-``RandomChoiceArea`` for binary sampling with optional input noise.
+Trace frequencies configure seed mixtures, not calibrated outcome laws. The new
+arc Markov composition does not reproduce historical coin2024 parity protocols.
 """
 
 from __future__ import annotations
@@ -110,36 +109,28 @@ class CoinFlipModel:
 
 
 class MarkovChainModel:
-    """Markov chain via refracted arc + alternating state areas (NEMO coinflipping).
+    """Trace-frequency wrapper for the explicit decoded-state arc experiment.
 
-    Uses ``NemoMarkovPFA`` instead of ``PFANetwork`` — closer to dabagia.org/nemo
-    Markov architecture (refracted arc, current/next inhibition schedule).
+    Specification: neural_assemblies/ir/VERIFICATION.md#contract-arc-markov
+    Frequency weights become neural seed mixtures, not calibrated probabilities.
     """
 
-    def __init__(
-        self,
-        brain,
-        traces: Sequence[TransitionTrace],
-        initial_state: str,
-        *,
-        symbol: str = "flip",
-        n: int = 5000,
-        k: int = 80,
-        beta: float = 0.1,
-        refracted_strength: float = 0.1,
-        flip_mode: FlipMode = "compete",
-        prefix: str = "_markov_chain",
-    ):
-        from neural_assemblies.programs.nemo_fsm import NemoMarkovPFA
-
+    def __init__(self, brain, traces: Sequence[TransitionTrace], initial_state: str, *,
+                 protocol=None, choice: SeedMixtureChoice | None = None,
+                 symbol: str = 'flip', prefix: str = '_markov_chain'):
+        from .arc_markov import ArcMarkovNetwork, ArcMarkovProtocol
+        if not isinstance(protocol, ArcMarkovProtocol):
+            raise ValueError('MarkovChainModel requires an explicit ArcMarkovProtocol; '
+                             'historical alternating-area results are not reproduced')
+        traces = tuple(traces)
         transitions = train_markov_from_sequences(traces)
         states = sorted({s for fr, _, to in traces for s in (fr, to)})
-        self._pfa = NemoMarkovPFA(
-            brain, states, transitions, initial_state,
-            symbol=symbol, n=n, k=k, beta=beta,
-            refracted_strength=refracted_strength,
-            flip_mode=flip_mode, prefix=prefix,
-        )
+        self._pfa = ArcMarkovNetwork(brain, states, transitions, initial_state,
+                                    symbol=symbol, protocol=protocol, choice=choice, prefix=prefix)
+
+    @property
+    def parameters(self):
+        return self._pfa.parameters
 
     @property
     def current_state(self) -> str:
