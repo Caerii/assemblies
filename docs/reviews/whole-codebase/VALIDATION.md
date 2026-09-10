@@ -2052,3 +2052,26 @@ these two validation guards; no backend code changed after them. Final Ruff and
 git diff --check pass. Across the changed Python files, the new reusable API and
 stronger controls reduce the line total by 21 (2004 to1983); evidence/docs are
 additional. Full-package and scientific corruption-tolerance validation remain open.
+
+
+## Recovery observation construction invariant (2026-09-10)
+
+Direct construction of RecoveryObservation previously bypassed the observation
+function's membership checks. Empty references could divide by zero; duplicate IDs,
+cross-area snapshots and oversized sets could produce misleading coverage values.
+Membership validation is now shared by the pre-activation boundary and the result
+constructor, so invalid observations cannot reach score computation. Empty results
+and negative improvement remain valid evidence of failure against a nonempty
+reference. The focused suite passed 28 tests in 12.27s, including CPU/CUDA recovery
+and exception-restoration controls. No backend or scientific protocol changed.
+
+The full standalone historical noise experiment was also read and mapped in
+[its semantic card](SEMANTIC_CARDS.md#contract-historical-noise-study). Unlike the
+old package tests, it requests explicit areas and trains recurrence, but recovery
+learns, H3 compares against a pre-association reference, and raw_data is empty.
+Its migration therefore requires a distinct protocol rather than relabelling the
+new recovery API as a numerical reproduction of the old study.
+
+Specification links, register rendering and both ratchets: 27 passed in 39.78s.
+Changed-Python Ruff and git diff --check passed. No new full-package or standalone
+noise-study execution is claimed for this boundary correction.

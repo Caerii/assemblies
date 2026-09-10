@@ -1205,3 +1205,15 @@ Validation: 1389 broad contract tests passed (one skip), 122 fused/CUDA parity
 tests passed. The final wrapper guards against oversized cues/results then passed
 19 focused tests. See the linked validation for exact ordering and scope. The new
 API plus replacement tests use 21 fewer Python lines across changed files.
+
+
+## Recovery result construction (2026-09-10)
+
+RecoveryObservation now enforces membership invariants even when constructed
+directly: nonempty unique reference, same-area unique cue/output, bounded sizes.
+The observer shares that validator before activation. Valid failures remain
+representable. All 28 focused tests pass; no backend code changed.
+See [validation](VALIDATION.md#recovery-observation-construction-invariant-2026-09-10).
+The standalone historical noise study now has a complete source-derived card;
+it retains learning during recovery and drops raw per-seed observations. Its
+migration remains distinct from the package's new frozen-observation controls.

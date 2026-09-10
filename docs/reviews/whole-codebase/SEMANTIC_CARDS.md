@@ -783,3 +783,36 @@ observation, reference-denominated scores and initialized learning/no-dynamics
 controls replace its former implicit protocol. Increasing corruption uses nested
 permutation prefixes at a fixed seed; input ordering does not alter the draw.
 The standalone historical research experiments have not been migrated by this change.
+
+
+<a id="contract-historical-noise-study"></a>
+### Standalone historical noise study
+
+Source reviewed: `research/experiments/stability/test_noise_robustness.py` at a3d2b4e.
+It is distinct from the package tests replaced above. Its three trial functions
+request explicit areas and therefore must not be described simply as lazy-area
+experiments from the Brain constructor's default engine.
+
+- Training is one stimulus-only round plus establish_rounds stimulus/self rounds.
+  H1 then corrupts the current winners and reapplies stimulus/self; H2 uses self
+  only. Both recovery loops retain ordinary plasticity. They measure a combination
+  of restoration and further learning, not strict observation of an attractor.
+- H3 trains A and B separately, stores their references, then co-stimulates A/B
+  with A->B for establish_rounds. The stored B reference predates association;
+  corruption is generated from that reference, not the post-association assembly.
+  Recovery re-stimulates A and projects A->B, with learning available. Its scores
+  therefore conflate association drift, driven recovery and ongoing learning.
+- Perturbation samples distinct non-winners from range(n), replacing floor(k*f).
+  It uses an explicit per-trial generator, unlike the old package hash(word) case.
+- H4 reuses H2 with k=floor(sqrt(n)). The outer runner sweeps noise and sizes,
+  reports summaries, one-sample chance tests and effect sizes. It returns
+  raw_data={}, losing the per-seed observations needed to audit those summaries.
+- CLI exposes only --quick; seed count changes to five without the shared runner's
+  VOID status. Results do not use the new immutable run/source/protocol envelope.
+
+Migration must preserve this historical protocol for numerical reproduction while
+introducing a separately registered frozen-observation protocol. It must retain
+per-seed and delivered-cue values, name actual backend owners, separate pre/post-
+association references, and supply initialized learning/no-dynamics controls. A
+simple replacement of its recovery loop would change what the study measures.
+No standalone-study migration or new scientific adoption occurred in this audit.

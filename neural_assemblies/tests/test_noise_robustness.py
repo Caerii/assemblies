@@ -9,7 +9,7 @@ import pytest
 
 from neural_assemblies import Brain
 from neural_assemblies.assembly_calculus import (
-    Assembly, AttractorConfig, replace_neurons, observe_recovery,
+    Assembly, AttractorConfig, RecoveryObservation, replace_neurons, observe_recovery,
 )
 from neural_assemblies.core.index_spaces import NeuronIds
 
@@ -145,3 +145,26 @@ def test_oversized_recovery_cannot_manufacture_full_reference_coverage():
     with pytest.raises(ValueError, match='recovery winner count'):
         observe_recovery(brain, reference, reference, rounds=1)
     np.testing.assert_array_equal(brain.areas['A'].winners, before)
+
+
+@pytest.mark.parametrize('reference, cue, recovered', [
+    ([], [], []), ([0, 0], [0], [0]), ([0, 1], [0, 0], [0]),
+    ([0, 1], [0], [0, 0]), ([0], [0, 1], [0]), ([0], [0], [0, 1]),
+])
+def test_direct_observation_rejects_invalid_members(reference, cue, recovered):
+    with pytest.raises(ValueError):
+        RecoveryObservation(*(Assembly('A', ids(values)) for values in (reference, cue, recovered)))
+
+
+@pytest.mark.parametrize('field', ['cue', 'recovered'])
+def test_direct_observation_never_compares_different_areas(field):
+    values = {name: Assembly('A', ids([1, 2])) for name in ('reference', 'cue', 'recovered')}
+    values[field] = Assembly('B', ids([1, 2]))
+    with pytest.raises(ValueError, match='reference area'):
+        RecoveryObservation(**values)
+
+
+def test_direct_valid_observation_can_represent_failed_recovery():
+    reference = Assembly('A', ids([0, 1, 2, 3]))
+    result = RecoveryObservation(reference, Assembly('A', ids([0, 1])), Assembly('A', ids([])))
+    assert result.cue_overlap == .5 and result.recovered_overlap == 0 and result.improvement == -.5

@@ -33,12 +33,27 @@ def replace_neurons(reference: Assembly, *, population: NeuronIds, count: int, s
     return Assembly(reference.area, NeuronIds(np.sort(cue)))
 
 
+def _validate_recovery_members(reference, **snapshots):
+    if not isinstance(reference, Assembly) or not len(reference):
+        raise ValueError('recovery requires a nonempty Assembly reference')
+    validated_indices(reference.neuron_ids, unique=True)
+    for label, snapshot in snapshots.items():
+        if not isinstance(snapshot, Assembly) or snapshot.area != reference.area:
+            raise ValueError(f'{label} must be an Assembly in the reference area')
+        if len(snapshot) > len(reference):
+            raise ValueError(f'{label} winner count exceeds reference size')
+        validated_indices(snapshot.neuron_ids, unique=True)
+
+
 @dataclass(frozen=True)
 class RecoveryObservation:
     """Specification: neural_assemblies/ir/VERIFICATION.md#contract-cue-recovery"""
     reference: Assembly
     cue: Assembly
     recovered: Assembly
+
+    def __post_init__(self):
+        _validate_recovery_members(self.reference, cue=self.cue, recovery=self.recovered)
 
     @property
     def cue_overlap(self):
@@ -63,10 +78,7 @@ def observe_recovery(brain, reference: Assembly, cue: Assembly, *, rounds: int,
     rounds = validate_round_count(rounds)
     if type(recurrence_enabled) is not bool:
         raise ValueError('recurrence_enabled must be boolean')
-    if reference.area != cue.area or not len(reference):
-        raise ValueError('reference and cue require the same area and a nonempty reference')
-    if len(cue) > len(reference):
-        raise ValueError('cue winner count exceeds reference size')
+    _validate_recovery_members(reference, cue=cue)
     area = brain.areas[reference.area]
     for assembly in (reference, cue):
         validated_indices(assembly.neuron_ids, upper=area.n, unique=True)
@@ -82,6 +94,4 @@ def observe_recovery(brain, reference: Assembly, cue: Assembly, *, rounds: int,
             for _ in range(rounds):
                 brain.project({}, {reference.area: [reference.area]})
         recovered = _snap(brain, reference.area)
-        if len(recovered) > len(reference):
-            raise ValueError('recovery winner count exceeds reference size')
         return RecoveryObservation(reference, cue, recovered)

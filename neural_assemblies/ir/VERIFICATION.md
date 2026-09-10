@@ -1548,3 +1548,10 @@ Reference-denominated overlap is coverage, not precision: an oversized set could
 otherwise score 1 despite extra winners. Variable-cardinality readout requiring
 precision/recall analysis must use a separate explicitly defined measurement.
 An oversized result raises inside read_only so state is still restored.
+
+RecoveryObservation validates these membership invariants on direct construction
+as well as through observe_recovery: a nonempty unique reference, unique cue and
+recovered IDs in the same area, and neither set larger than the reference. Invalid
+observations cannot reach score computation. Empty cues/results remain valid failed
+observations against a nonempty reference; negative improvement is retained. The
+same validation runs before activating the cue and again on the returned snapshot.
