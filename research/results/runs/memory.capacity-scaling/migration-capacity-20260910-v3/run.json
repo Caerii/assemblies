@@ -1,0 +1,96 @@
+{
+  "engine": "hashed_assembly_memory",
+  "environment": {
+    "policy": "repository-environment-v1",
+    "variables_sha256": {
+      "ASSEMBLIES_VCVARS64": "4f8e42768dc92e11e4f32efb495020ad43e49e2dfca1322a4928d7f4dedfd1a2",
+      "ASSEMBLIES_VSWHERE": "44564d56dfa6c2af8c632137228d0b7d773445fdce24fdec8da14ca0030615f5"
+    }
+  },
+  "git_commit": "5b26d646e6560a666af23072a1695404d7046f8d",
+  "input_artifacts": {},
+  "mode": "study",
+  "parameters": {
+    "arm_settings": {
+      "B": {
+        "norm_init": true,
+        "synaptic_scaling": false
+      }
+    },
+    "arms": [
+      "B"
+    ],
+    "configuration": {
+      "beta": 0.1,
+      "checkpoints": [
+        8,
+        16,
+        32,
+        64,
+        128,
+        192,
+        256,
+        384,
+        512,
+        768,
+        1024
+      ],
+      "converge": false,
+      "p": 0.5,
+      "pair_sample": 200,
+      "readout": "masked",
+      "recall_sample": 32,
+      "refracted": false,
+      "refracted_factor": 1.0,
+      "rounds": 8,
+      "stim_size": null,
+      "w_max": 20.0
+    },
+    "device": "cuda",
+    "distinct_gate": 3.0,
+    "distinct_low_bar": 0.9,
+    "distinctness": "64-bit set hash; collisions possible",
+    "half_bar": 0.5,
+    "measurement_seed": 1234,
+    "nk": [
+      [
+        4000,
+        60
+      ]
+    ]
+  },
+  "protocol": "memory.capacity-scaling",
+  "protocol_version": "2",
+  "registration": "research/notes/memory/PREREG_refraction_memory.md",
+  "registration_sha256": "d2be763ec240af23cd7ca572ffe878d1638d690aa18ff0637154ab140918654f",
+  "schema_version": 2,
+  "scientific_status": "UNJUDGED",
+  "script": "research/experiments/seq_capacity_scaling.py",
+  "script_sha256": "517e49df40c07ddf33915ce0ff62aa6c48942fad49f8ac5721a393c0cf319556",
+  "seeds": [
+    42,
+    43,
+    44,
+    45,
+    46,
+    47,
+    48,
+    49,
+    50,
+    51,
+    52,
+    53,
+    54,
+    55,
+    56,
+    57,
+    58,
+    59,
+    60,
+    61
+  ],
+  "source_inventory": "source-inputs-v3",
+  "source_sha256": "3fd47a7de3bdb81a5df38152d864f6765b42a98e586444c3380e068007e3408a",
+  "started_utc": "2026-09-10T19:59:23.588715+00:00",
+  "tag": "migration-capacity-20260910-v3"
+}

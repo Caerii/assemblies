@@ -15,7 +15,11 @@ All 1,183 Python files parse; 23 notebooks contain 133 code cells. The source
 inventory is about 309,000 lines, including historical implementations. Structural
 coverage is not semantic certification. The manifest marks selected source
 inspection conservatively; those marks do not imply every line was reviewed.
-No GPU study, dataset download, or historical result regeneration was performed.
+At the baseline inventory checkpoint, no GPU study, dataset download, or
+historical result regeneration had been performed. On 2026-09-10, the fused
+build and 122 scoped GPU tests passed; full A1 replay matched 40 historical
+rows and the B/4000,k60 capacity control matched 885 scalar observations.
+See VALIDATION.md and the committed comparison receipts for scope and caveats.
 
 The earlier report at `../2026-09-09-codebase-and-research-organization.md` is a
 historical review. Claude's corrections at this baseline supersede its interval,
@@ -78,10 +82,10 @@ contract suite establishes only the behavior those controls exercise.
 | Configuration transport | Protocol, homeostasis and competition schemas share Python/Rust acceptance corpora; runner fixtures reconstruct recorded configuration | Production experiment adoption; full model document; toolchain/executable identities and legacy document migration |
 | Proofs | Lean composition/domain/frame rules and masked-update invariants; source links name implemented contracts | Concrete backend step simulation and readout compatibility; no abstract theorem certifies a numerical backend by itself |
 | Observation and persistence | Isolated cloning/readouts; shared environment/source fingerprints; atomic checkpoint publication | The held-out classification regression and readout comparability; remaining parser state composition and old checkpoint compatibility |
-| Research workflow | Two experiment adapters, immutable tagged runs, source/environment identity and explicit evidence status | Remaining experiment migrations; full historical replay of the two adapters; complete typed evidence graph and mechanism-specific negative controls |
+| Research workflow | Two experiment adapters, immutable tagged runs, source/environment identity and explicit evidence status | Remaining experiment migrations and capacity variants beyond the replayed control cell; complete typed evidence graph and mechanism-specific negative controls |
 
 The primary next gates are the broader CPU package audit, semantic repair of its
-failures, and GPU/historical replay on the review branches. More passing contract
+failures, broader GPU coverage and historical capacity variants on the review branches. More passing contract
 tests cannot substitute for those gates. No change has been merged to dev/master
 as part of this isolated migration.
 

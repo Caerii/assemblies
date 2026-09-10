@@ -220,3 +220,14 @@ was an artifact. T1 met: the five-seed, two-p experiment ran in 9 s; the
 The organ is now ported end to end: transducer (A3) and assigned-state
 machine (A1) on one substrate, both gated on the drive to 5e-6 and on
 identity across width, the second also on its registered curve.
+
+
+## Shared-runner replay (2026-09-10)
+
+The [A1 replay](../../results/runs/sequence.a1-horizon/migration-a1-20260910-v3/results.json)
+reproduced all 40 seed/parameter rows of the committed hashed horizon artifact,
+including all prefixes and exactness over 2000 digits. The [comparison receipt](../../results/runs/sequence.a1-horizon/migration-a1-20260910-v3/comparison.json)
+records both artifact hashes. The historical Gate3 remains FAIL against sampled
+NumPy seed1 at p=.3 (first error 759); no sampled-dynamics validity or unlimited
+horizon follows from the hashed replay. This closes numerical reproduction for
+this migrated A1 artifact, not the entire sequence-port soundness program.

@@ -1319,12 +1319,12 @@ control now includes scripts/cuda-dev.cmd; runner and migration suites: 45 passe
 At b350953, the shared runner completed the full registered A1 length (2000),
 20 seeds 1..20 at p=.3 and .4. The immutable run/results and comparator receipt
 are committed under research/results/runs/sequence.a1-horizon/
-migration-a1-20260910-v3/. All40 rows match
+migration-a1-20260910-v3/. All 40 rows match
 research/results/sequence/seq_a1_horizon_results_hashed_int8_timing.json,
 including exact_fraction, accuracy, first_error and all prefixes. The comparator
 records both artifact hashes. Source inventory3 includes the CUDA setup script.
 
-All40 brain/parameter cells were error-free to the finite 2000-step horizon.
+All 40 brain/parameter cells were error-free to the finite 2000-step horizon.
 The run's historical Gate3 remains FAIL: sampled NumPy seed1 at p=.3 first
 errs at759 while the hashed interval is censored at2000. This result is preserved,
 not replaced with migration success. The replay does not establish an unlimited
@@ -1342,3 +1342,15 @@ recall sample32,pair sample200,stim_sizeNone,no convergence gate. These sources
 supply the reconstruction candidate; the historical file itself lacks a run
 record, so original execution provenance is not authenticated by reconstruction.
 The replay will compare all per-seed metrics and aggregate ceiling fields.
+
+
+Capacity control replay at 5b26d64 completed under the shared runner. All 885
+comparisons match the historical figure control: 11 checkpoints x 4 metrics x 20
+seeds, plus 5 aggregate fields. The bracket remains [64,128), and the runner
+explicitly refuses to treat interpolated 83.4 as resolved at that grid. The run,
+results and hash-bearing comparison receipt are retained under
+research/results/runs/memory.capacity-scaling/migration-capacity-20260910-v3/.
+Both registrations now link to their replay evidence; the capacity Reproduce
+command uses the maintained runner. A1 and this capacity cell have numerical
+reproduction evidence, without authenticated historical execution provenance or
+new scientific adoption. Further capacity variants and full-system gates remain.

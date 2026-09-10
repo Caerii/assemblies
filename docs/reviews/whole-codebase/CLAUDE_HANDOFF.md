@@ -665,9 +665,21 @@ control now includes scripts/cuda-dev.cmd; runner and migration suites: 45 passe
 8.85s. Ruff passed. Version2 historical records retain their original meaning.
 
 
-A1 migration replay now passes numerical comparison for all40 full-length rows
+A1 migration replay now passes numerical comparison for all 40 full-length rows
 at b350953. Artifacts and hash-bearing comparison receipt are committed under
 research/results/runs/sequence.a1-horizon/migration-a1-20260910-v3/.
 The separate historical Gate3 remains FAIL against the sampled NumPy baseline.
 Capacity's figure-control inputs are recovered as a reconstruction candidate
 from its registration and producer-commit source; full comparison follows.
+
+
+Capacity control replay at 5b26d64 completed under the shared runner. All 885
+comparisons match the historical figure control: 11 checkpoints x 4 metrics x 20
+seeds, plus 5 aggregate fields. The bracket remains [64,128), and the runner
+explicitly refuses to treat interpolated 83.4 as resolved at that grid. The run,
+results and hash-bearing comparison receipt are retained under
+research/results/runs/memory.capacity-scaling/migration-capacity-20260910-v3/.
+Both registrations now link to their replay evidence; the capacity Reproduce
+command uses the maintained runner. A1 and this capacity cell have numerical
+reproduction evidence, without authenticated historical execution provenance or
+new scientific adoption. Further capacity variants and full-system gates remain.

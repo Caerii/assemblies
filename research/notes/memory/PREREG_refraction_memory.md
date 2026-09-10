@@ -15,12 +15,14 @@
 > rounds window is attractor dominance rather than anything refraction
 > adds (post hoc).
 > **Read.** The Result section, then Amendments 4, 5 and 6.
-> **Reproduce.** `python research/experiments/seq_capacity_scaling.py --nk 4000:60
-> --arms B --brains 20 --refracted --refracted-factor 0.5 --readout masked
+> **Reproduce.** `python -m research.runner capacity-scaling
+> --registration research/notes/memory/PREREG_refraction_memory.md --nk 4000:60
+> --arms B --refracted --refracted-factor 0.5 --readout masked
 > --ms 8,16,32,64,128,192,256,384,512,768,1024,1536,2048,3072,4096 --tag X`
 > gives the 1978 cell in about 35 s on one GPU; add `--converge` for the
 > gated 2645; drop `--refracted` for the control's 83. Results land in
-> `research/results/memory/`. The fused kernels need the CUDA build
+> `research/results/runs/memory.capacity-scaling/TAG/` with a run record;
+> the default seed list is 42..61 (20 brains). The fused kernels need the CUDA build
 > environment (see `research/experiments/README.md`).
 > **Cite.** `[[REFRACTION-ANTI-MERGING]]`.
 
@@ -635,3 +637,15 @@ decided it. Cells are (n, k); 20 brains unless stated.
 | G6 gain constant in n/k | ratio in [1.15, 1.55] at (8000, 60) | PASS | 1.24 (8666 vs 6995) |
 | S8 strength a lever | some strength >= 2275 | FAIL | 1986, 1919, 1978, 1993 at 0.3 to 0.6 beta |
 | S9 convergence | reported | -- | all converge; transition in (0.6, 0.7] beta |
+
+
+## Runner migration reproduction (2026-09-10)
+
+The shared runner reproduced the figure control at (4000,60), B, T8,20 seeds,
+all 11 recorded load checkpoints. Its [results](../../results/runs/memory.capacity-scaling/migration-capacity-20260910-v3/results.json)
+and [comparison receipt](../../results/runs/memory.capacity-scaling/migration-capacity-20260910-v3/comparison.json)
+match all 885 compared scalar values, including per-seed metrics and aggregate
+ceiling fields. The bracket remains [64,128), too broad to treat interpolated
+83.4 as a resolved ceiling. This is migration evidence, not a new adoption.
+The original artifact has no run record; reconstruction inputs and their source
+are documented in docs/reviews/whole-codebase/VALIDATION.md.
