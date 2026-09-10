@@ -774,3 +774,16 @@ this migration result does not establish an unlimited horizon or sampled validit
 Final contract gate: 1082 passed, 1 skipped, two expected warnings in158.12s
 (.cache/horizon-consumed-contract-gate.log). No full-system completion or new
 scientific adoption is claimed.
+
+
+## Preregistered A1 combined-learning null
+
+The new a1-learning-null adapter reuses HorizonProtocol/run_width, fresh brains,
+the shared runner and existing paired Student-t statistics. Registration:
+research/notes/sequence/PREREG_a1_learning_null.md. Null changes only beta and
+strength to zero; the unchanged training/teacher-forcing schedule is retained.
+20 paired seeds and both probabilities are required for study mode. The bars
+and arm schedule are recorded; smoke results remain VOID. Initial software
+controls caught missing serialized interval endpoints (2 failures), corrected
+before any GPU run. Final focused controls:65 passed in10.29s. No null data has
+yet been observed at this preregistration checkpoint.
