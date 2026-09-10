@@ -3,7 +3,7 @@
 import unittest
 import numpy as np
 
-from brain import Brain
+from neural_assemblies import Brain
 
 
 class TestImageActivation(unittest.TestCase):

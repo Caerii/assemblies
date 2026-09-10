@@ -12,7 +12,9 @@ import random
 import sys
 
 import pytest
-import torch
+
+torch = pytest.importorskip("torch", reason="scheduled aligner requires the optional GPU dependencies")
+pytestmark = pytest.mark.gpu
 
 from neural_assemblies.core.torch_engine import _fused_cuda
 

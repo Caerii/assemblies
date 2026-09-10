@@ -44,7 +44,8 @@ identity is the issue, not an undocumented change.
   RATE-HETEROGENEITY remains UNRECORDED; parts of AC-CAP remain unresolved.
 - Sampled recurrent projection warns once per engine and names the sampler audit.
   Compact-to-neuron conversion and public activation reject invalid indices.
-  Runtime ownership wrappers and complete model-semantics configuration remain open.
+  Public injected winners and supervision validate index spaces before mutation.
+  Complete owned-index migration and full model-semantics configuration remain open.
 - The CPU teaching example trains with recurrence on a fixed connectome, probes
   without learning, and includes a learning-disabled control across paired seeds.
 - Real-data MNIST goldens refuse synthetic substitution. Missing expected golden
@@ -62,6 +63,27 @@ scientific results. The full migration below remains open: most experiments stil
 have legacy entry points, operations lack complete constructed-control contracts,
 parser state ownership is still fragmented, and cpp/legacy disposition is not
 finished. No files were deleted merely because static imports did not reach them.
+
+## Current integration boundaries (2026-09-10)
+
+This table consolidates the later implementation increments. Detailed controls and
+limitations live in [VALIDATION.md](VALIDATION.md), while source-linked contracts
+live in [IR verification](../../../neural_assemblies/ir/VERIFICATION.md). A passing
+contract suite establishes only the behavior those controls exercise.
+
+| Boundary | Implemented and checked | Remaining acceptance work |
+|---|---|---|
+| Runtime configuration | Immutable homeostasis and competition policies; explicit area/stimulus identity; shared numeric and slot validation; executing-owner LRI, refraction, policy and noise controls | Complete model definition including graph/stimulus/tie/arithmetic semantics; remaining topology/plasticity controls; general registration transactionality |
+| Execution IR | Sequential `ExplicitRound` validates and executes a restricted dense CPU profile; public Brain execution follows the same owner | Broader operation schedules and organs; backend adapters with explicit state relations; complete cross-compiler integration |
+| Configuration transport | Protocol, homeostasis and competition schemas share Python/Rust acceptance corpora; runner fixtures reconstruct recorded configuration | Production experiment adoption; full model document; toolchain/executable identities and legacy document migration |
+| Proofs | Lean composition/domain/frame rules and masked-update invariants; source links name implemented contracts | Concrete backend step simulation and readout compatibility; no abstract theorem certifies a numerical backend by itself |
+| Observation and persistence | Isolated cloning/readouts; shared environment/source fingerprints; atomic checkpoint publication | The held-out classification regression and readout comparability; remaining parser state composition and old checkpoint compatibility |
+| Research workflow | Two experiment adapters, immutable tagged runs, source/environment identity and explicit evidence status | Remaining experiment migrations; full historical replay of the two adapters; complete typed evidence graph and mechanism-specific negative controls |
+
+The primary next gates are the broader CPU package audit, semantic repair of its
+failures, and GPU/historical replay on the review branches. More passing contract
+tests cannot substitute for those gates. No change has been merged to dev/master
+as part of this isolated migration.
 
 ## What is actually in this repository
 

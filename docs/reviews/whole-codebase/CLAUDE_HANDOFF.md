@@ -564,3 +564,18 @@ A runner fixture records and executes its reconstructed policy. Focused checks:
 72 passed; locked Rust crate tests: three passed; CPU gate: 978 passed, 1 skipped.
 This is transport/reconstruction, not Rust/Lean selection execution or historical
 artifact migration. See [validation](VALIDATION.md).
+
+
+### Broader audit: vocabulary integration and remaining classification failures
+
+The broader CPU run stopped at eight failures/errors: two phon registration
+issues, three classification failures and three collection problems. Phon reuse
+now preserves connections/rates when sizes agree and rejects resizing; both affected
+integration tests pass. Package/GPU test imports were repaired, and the isolated
+locked Matplotlib install was restored offline. The affected collection files:
+10 passed, 2 skipped. No test expectations were weakened.
+
+Complete parser file: 149 passed, 3 failed. Bird and finds classify as ADV;
+generalization is 33% against 66%. These remain open. CPU contract gate: 980 passed,
+1 skipped. This does not establish a clean full package. The migration plan now
+consolidates current integration boundaries. See [validation](VALIDATION.md).

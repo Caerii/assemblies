@@ -1099,3 +1099,38 @@ CPU workflow gate: 978 passed, 1 skipped, two expected sampled-engine warnings i
 Historical artifact migration, general compiler integration and GPU gates remain
 open. The negative cases validate the new boundary; no pre-existing API failure
 count is claimed for this newly introduced document format.
+
+
+## Broader CPU audit and phonological registration (2026-09-10)
+
+At aabff18 the wider package invocation was:
+`uv run pytest neural_assemblies/tests -q -m "not slow and not gpu" -n 2 --dist loadfile --maxfail=8`.
+It stopped after 135.61 seconds with 4 failed, 475 passed, 8 skipped, 1 xfailed
+and 4 errors (`.cache/package-cpu-audit.log`). This was an early-stopped audit,
+not complete package coverage. Two failures/errors came from repeated phonological
+registration; three were classification failures; three were collection errors.
+
+`add_phon_stimulus` now reuses a same-sized existing stimulus and rejects a changed
+size, preserving Brain's strict duplicate registration contract. This keeps corpus
+vocabulary discovery from replacing connections or source learning rates. Two
+focused controls initially failed (reuse and mismatch diagnostic); both pass after
+repair. The formerly failing corpus-word and scaled-vocabulary integration checks
+also pass: 4 checks total, 27.24 seconds. The new focused suite is in CPU CI.
+
+Collection repairs: image activation imports the maintained Brain; the scheduled
+GPU aligner uses importorskip before importing its optional backend and declares
+its GPU marker. The isolated Matplotlib install lacked animation.py; reinstalling
+the locked 3.10.8 package offline repaired it, without dependency-file changes.
+The three affected files then yielded 10 passed, 2 skipped in 2.72 seconds.
+
+Complete non-slow/non-GPU test_emergent_parser.py: 149 passed, 3 failed in 270.10
+seconds (`.cache/parser-broad-audit.log`). The held-out bird and finds both classify
+as ADV, and generalization is 1/3 against the fixture's 0.66 bar. These tests were
+not weakened or skipped. Readout/representation diagnosis remains required.
+
+CPU workflow gate: 980 passed, 1 skipped, two expected sampled-engine warnings in
+86.32 seconds (`.cache/phon-registration-gate.log`). Changed/new test files pass
+Ruff. The parser core has 30 existing F401 findings on both committed and working
+versions; no blanket clean-lint claim is made. Diff checks pass. The migration plan
+now consolidates implemented boundaries and remaining acceptance work. Full-package
+completion, GPU gates and scientific adoption remain unproven.

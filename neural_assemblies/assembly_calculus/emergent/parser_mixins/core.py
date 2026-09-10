@@ -497,7 +497,12 @@ class CoreParserMixin(
         """
         phon = f"phon_{word}"
         size = max(1, int(round(float(getattr(self, "phon_weight", 1.0)) * self.k)))
-        self.brain.add_stimulus(phon, size)
+        # Specification: neural_assemblies/ir/VERIFICATION.md#contract-phon-registration
+        existing = self.brain.stimuli.get(phon)
+        if existing is None:
+            self.brain.add_stimulus(phon, size)
+        elif existing.size != size:
+            raise ValueError(f"phonological stimulus {phon!r} has size {existing.size}, requested {size}")
         self.stim_map[word] = phon
         return phon
 

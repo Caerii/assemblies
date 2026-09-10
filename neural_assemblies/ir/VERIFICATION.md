@@ -1016,3 +1016,22 @@ executes threshold selection for each recorded fixture seed. The expected one
 winner distinguishes the policy from default top-k. These checks establish
 transport/reconstruction and one CPU execution path, not Rust or Lean selection
 refinement, GPU parity, or migration of existing experiment artifacts.
+
+
+<a id="contract-phon-registration"></a>
+
+## Phonological stimulus reuse
+
+`CoreParserMixin.add_phon_stimulus` is the shared word-input registration path.
+Multiple vocabulary sources may encounter the same word. If its named stimulus
+already exists with the requested size, reuse it and bind the word mapping without
+rewiring fibers, resetting source learning rates or consuming connectome RNG.
+If the requested size differs, raise before replacing the stimulus. Changing
+phon_weight after registration is not an implicit resize operation.
+
+This parser-level ensure operation is distinct from Brain.add_stimulus, whose
+strict duplicate rejection remains intact. Controls preserve original connections,
+stimulus identity and a customized source beta on reuse. Corpus vocabulary and
+scaled-vocabulary integration tests exercise the formerly failing call paths.
+This does not make grounding-context replacement transactional or establish
+classification/generalization quality.
