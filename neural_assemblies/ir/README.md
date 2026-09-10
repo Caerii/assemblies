@@ -43,7 +43,9 @@ still require concrete backend simulation proofs.
 
 `formal/AssemblyIR/Domain.lean` adds a checked domain interface: state-dependent
 preconditions, one transition definition shared by execution and proof, and
-invariant preservation for accepted schedules. See the
+invariant preservation for accepted schedules. Its `checkedExecute` entry also
+validates the initial invariant and proves exact acceptance, including empty
+schedules. See the
 [checked domain contract](VERIFICATION.md#contract-checked-domain) for its
 Midspiral/Dafny and LemmaScript integration, negative controls, and remaining
 translation obligations. Check the kernel with `lake build` from `formal/`.

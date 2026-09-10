@@ -688,3 +688,36 @@ Constructed controls cover incomplete/unsupported pickle streams, partial
 serialization, replacement failure, and synchronized concurrent writers. The
 previous implementation used one fixed `.pkl.tmp` name, retained failed temp
 files, and did not handle EOF or unsupported-protocol exceptions as misses.
+
+<a id="contract-mixed-drive-indices"></a>
+
+## Sparse-source drive into an explicit target
+
+The source winners are compact indices; rows of the dense mixed connectome are
+stable source neuron IDs. `_sparse_sources_drive_to_explicit` reads winners,
+the engine's mapping and dense weights, and returns the sum of the corresponding
+rows without changing neural state. The shared index validators and conversion
+define the boundary. A backend mapping of None declares identity indexing; an
+empty sampled mapping is not permission to reinterpret nonempty winners as IDs.
+
+Negative, fractional, multidimensional, oversized or unmapped compact winners
+raise before conversion. Mapped IDs must fit the source population and selected
+matrix rows. No index is passed through as a fallback or silently dropped.
+Empty sources contribute zero. Missing/non-dense fibers retain the legacy zero
+contribution behavior; explicit capability/topology validation remains separate.
+
+Eight invalid-input controls failed before repair. A non-identity mapping with
+deliberately different compact-row weights is the positive control, and an empty
+source is the zero control. Supervised `reinforce_connectome` still has a separate
+index/mutation contract to reconcile; this read-only drive repair does not certify
+that write path or other backends.
+
+The same investigation exposed an earlier coercion in `Area.winners`: fractions
+and large integers were already truncated/wrapped before the drive function saw
+them. The setter now validates one-dimensional integer positions in [0, n) using
+the shared validator on the area's array backend, before changing winners or
+counts. It does not assert that a position has been materialized; the consuming
+engine/mapping establishes that stronger bound. Existing mutable winner buffers
+and the legacy meaning change of `.w` remain separate ownership/count work.
+Five setter controls verify rejection leaves the previous activity unchanged.
+No GPU validation/performance claim follows from the CPU checks.

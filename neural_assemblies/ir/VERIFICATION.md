@@ -69,6 +69,21 @@ execution preserves the invariant **provided it holds initially**. Construction
 of a `Domain` requires its local preservation proof; it cannot be replaced by
 a Boolean assertion that the domain is verified.
 
+`Domain.checkedExecute` is the external entry boundary when the invariant
+has a decision procedure. It checks the initial state before delegating to
+`execute`. `checkedExecute_iff` proves acceptance exactly when the initial
+invariant and all intermediate preconditions hold, with the same final state
+as `run`. Thus an implementation that rejects every program would not satisfy
+the contract. `checkedExecute_preserves` needs no initial-state premise from
+the caller. The lower-level `execute` remains available for already-established
+initial invariants and for domains without a decidable invariant.
+
+A constructed boundary control rejects the empty program starting at allocation
+four under capacity three; the lower-level interpreter accepts that state.
+It also accepts the empty program starting at capacity three. These controls
+expose the difference between checking transitions and checking the entire
+entry contract. They do not constitute a backend refinement proof.
+
 The constructed allocation controls admit `[1, 2]` under capacity three and
 reject `[2, 2]` at its second instruction. The unchecked interpreter reaches
 four and violates that invariant. This distinguishes a meaningful guard from

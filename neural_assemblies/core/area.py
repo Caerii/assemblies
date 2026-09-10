@@ -29,7 +29,7 @@ import numpy as np
 from typing import Dict, List, Optional
 
 from .backend import get_xp, xp_by_name, xp_name
-from .index_spaces import CompactIdx
+from .index_spaces import CompactIdx, validated_indices
 from .activity import ActivityState
 
 
@@ -193,8 +193,13 @@ class Area(ActivityState):
 
     @winners.setter
     def winners(self, value):
+        """Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-mixed-drive-indices
+
+        Validate compact positions before conversion or activity-count mutation.
+        """
         xp = self._xp
-        self._winners = xp.asarray(value, dtype=xp.uint32)
+        self._winners = validated_indices(value, upper=self.n,
+                                          label=f"{self.name} compact winners", xp=xp)
         # CLOBBERS the num-ever-fired meaning of `w`. Preserved because the
         # projection loop and several callers depend on `w` tracking the cap
         # between engine syncs; use `num_ever_fired` / `active_count` to say

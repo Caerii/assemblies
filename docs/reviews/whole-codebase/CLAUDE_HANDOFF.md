@@ -262,3 +262,34 @@ Final CPU gate: 336 passed, 1 skipped. Trained roundtrip/calibration integration
 fix. Storage/source obligations are linked from code and distinguished from pure
 IR execution and no-overwrite research evidence. This does not resolve scientific
 generalization, full target identity, GPU parity or historical evidence replays.
+
+### Mixed index boundary and checked IR entry (2026-09-10)
+
+Mixed sparse-to-explicit drive now validates compact positions against the
+materialized mapping, translates through the shared index helper, and validates
+stable IDs against population and fiber rows. Invalid indices no longer fall
+back to identity or disappear. Area assignment validates before uint32 conversion
+and mutation, preventing fractional truncation and overflow. Fifteen controls
+include wrong-space trap rows and failed-assignment state preservation. GPU array
+validation/performance remains untested; mutable buffers, `.w` ownership and the
+reinforcement write contract remain open.
+
+The legacy explicit-projection test used a removed top-level import and a
+potentially empty private-winner loop. It now uses the package API, asserts a
+nonempty selected cap, checks the complete expected weight matrix and runs a
+beta-zero control. The CPU workflow includes both boundary test files.
+
+After reading both Midspiral articles, the existing IR integration was extended
+with `Domain.checkedExecute`: check the initial invariant, then every intermediate
+precondition using the existing interpreter. Lean proves exact acceptance and
+invariant preservation without an initial-state premise from the caller. Controls
+include an invalid initial state with an empty schedule that the lower-level
+interpreter accepts. `lake build` and `lake env leanchecker AssemblyIR.Domain`
+passed; new theorem axioms contain only `propext`. This is a reusable formal
+kernel, not a Python/CUDA translation proof or an installed LemmaScript bridge.
+
+Final workflow-listed CPU gate: **355 passed, 1 skipped**, including the two
+ratchets and register-rendering checks. Separate IR/explicit/index integration:
+**24 passed, 1 skipped**. Ruff and diff checks passed. This is not the full package
+suite; the previously identified grounded-verb/readout regression remains open.
+GPU gates and historical numerical migration replays have not been performed.

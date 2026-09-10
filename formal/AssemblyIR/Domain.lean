@@ -73,6 +73,44 @@ theorem Domain.execute_preserves {Op : Type u} {S : Type v}
   rw [← same]
   exact domain.admissible_preserves program state initial allowed
 
+/-- Validate the initial invariant as well as every operation precondition.
+Specification: neural_assemblies/ir/VERIFICATION.md#contract-checked-domain
+
+The decision procedure is an explicit boundary dependency. Keeping it outside
+`Domain` preserves domains whose invariant is not computationally decidable. -/
+def Domain.checkedExecute {Op : Type u} {S : Type v} (domain : Domain Op S)
+    (decideInvariant : (state : S) -> Decidable (domain.invariant state))
+    (program : List Op) (state : S) : Option S :=
+  if @decide (domain.invariant state) (decideInvariant state) then
+    domain.execute program state
+  else none
+
+/-- The boundary accepts exactly valid initial states and admissible schedules,
+with the same result as the ordinary interpreter. This includes completeness:
+a boundary that rejects everything cannot satisfy this contract. -/
+theorem Domain.checkedExecute_iff {Op : Type u} {S : Type v} (domain : Domain Op S)
+    (decideInvariant : (state : S) -> Decidable (domain.invariant state))
+    (program : List Op) (state result : S) :
+    domain.checkedExecute decideInvariant program state = some result <->
+      domain.invariant state /\ domain.admissible program state /\
+        run domain.step program state = result := by
+  letI := decideInvariant state
+  by_cases initial : domain.invariant state
+  case pos => simp [checkedExecute, initial, domain.execute_iff]
+  case neg => simp [checkedExecute, initial]
+
+/-- Unlike `execute_preserves`, callers need no separate initial-state premise. -/
+theorem Domain.checkedExecute_preserves {Op : Type u} {S : Type v}
+    (domain : Domain Op S)
+    (decideInvariant : (state : S) -> Decidable (domain.invariant state))
+    (program : List Op) (state result : S)
+    (accepted : domain.checkedExecute decideInvariant program state = some result) :
+    domain.invariant result := by
+  obtain ⟨initial, allowed, same⟩ :=
+    (domain.checkedExecute_iff decideInvariant program state result).mp accepted
+  rw [← same]
+  exact domain.admissible_preserves program state initial allowed
+
 /- Constructed controls: bounded allocation, including invalid second steps.
 The theorem is about this small domain, not actual assembly recruitment. -/
 private def allocation : Domain Nat Nat where
@@ -89,6 +127,19 @@ example : ¬ allocation.invariant (run allocation.step [2, 2] 0) := by
   change ¬ (4 ≤ 3)
   decide
 
+-- Boundary controls include an empty schedule on an invalid initial state:
+-- the lower-level interpreter accepts it, the checked boundary rejects it.
+private def allocationDecidable (used : Nat) :
+    Decidable (allocation.invariant used) := inferInstanceAs (Decidable (used <= 3))
+
+example : allocation.checkedExecute allocationDecidable [1, 2] 0 = some 3 := by decide
+example : allocation.checkedExecute allocationDecidable [2, 2] 0 = none := by decide
+example : allocation.checkedExecute allocationDecidable [] 3 = some 3 := by decide
+example : allocation.checkedExecute allocationDecidable [] 4 = none := by decide
+example : allocation.execute [] 4 = some 4 := by decide
+
+#print axioms Domain.checkedExecute_iff
+#print axioms Domain.checkedExecute_preserves
 #print axioms Domain.execute_iff
 #print axioms Domain.admissible_preserves
 #print axioms Domain.execute_preserves

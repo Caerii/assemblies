@@ -36,6 +36,7 @@ from collections import defaultdict
 from .backend import get_xp, to_cpu, detect_best_engine
 from .engine import ComputeEngine, create_engine
 from ._homeostasis import check_area_homeostasis
+from .index_spaces import CompactIdx, to_neuron_ids, validated_indices
 
 from .area import Area
 from .stimulus import Stimulus
@@ -464,7 +465,10 @@ class Brain:
     def _sparse_sources_drive_to_explicit(
         self, target_name: str, sparse_source_names: List[str],
     ) -> np.ndarray:
-        """Sum dense drive from sparse source assemblies into an explicit target."""
+        """Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-mixed-drive-indices
+
+        Sum stable-neuron rows, rejecting invalid compact indices and mappings.
+        """
         xp = get_xp()
         tgt = self.areas[target_name]
         drive = xp.zeros(tgt.n, dtype=xp.float32)
@@ -472,30 +476,25 @@ class Brain:
 
         for src_name in sparse_source_names:
             src = self.areas[src_name]
-            if len(src.winners) == 0:
+            compact = validated_indices(to_cpu(src.winners), upper=src.n,
+                                        label=f"{src_name} compact winners")
+            if compact.size == 0:
                 continue
+            neuron_map = mapping_fn(src_name) if mapping_fn is not None else None
+            if neuron_map is not None:
+                compact = validated_indices(compact, upper=len(neuron_map),
+                                            label=f"{src_name} compact winners")
+                real_ids = to_neuron_ids(CompactIdx(compact), neuron_map)
+            else:
+                real_ids = compact
+            real_ids = validated_indices(real_ids, upper=src.n,
+                                         label=f"{src_name} neuron IDs")
             conn = self.connectomes.get(src_name, {}).get(target_name)
             if not is_dense_connectome(conn):
                 continue
-            compact = np.asarray(to_cpu(src.winners), dtype=np.int64)
-            if mapping_fn is not None:
-                neuron_map = mapping_fn(src_name)
-                if neuron_map:
-                    real_ids = np.array(
-                        [
-                            int(neuron_map[c]) if c < len(neuron_map) else int(c)
-                            for c in compact
-                        ],
-                        dtype=np.int64,
-                    )
-                else:
-                    real_ids = compact
-            else:
-                real_ids = compact
-            valid = real_ids[real_ids < conn.weights.shape[0]]
-            if len(valid) == 0:
-                continue
-            drive += conn.weights[valid].sum(axis=0).astype(xp.float32, copy=False)
+            rows = validated_indices(real_ids, upper=conn.weights.shape[0],
+                                     label=f"{src_name}->{target_name} neuron rows")
+            drive += conn.weights[rows].sum(axis=0).astype(xp.float32, copy=False)
         return np.array(to_cpu(drive), dtype=np.float32)
 
     def _sync_engine_connectomes(self):

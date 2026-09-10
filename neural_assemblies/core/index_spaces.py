@@ -49,17 +49,21 @@ NeuronIds = NewType("NeuronIds", np.ndarray)
 SameSpace = TypeVar("SameSpace", CompactIdx, NeuronIds)
 
 
-def validated_indices(values, *, upper: int | None = None, label: str = 'indices') -> np.ndarray:
-    """Validate before uint32 conversion; never truncate floats or wrap negatives."""
-    arr = np.asarray(values)
+def validated_indices(values, *, upper: int | None = None, label: str = 'indices', xp=np) -> np.ndarray:
+    """Validate before uint32 conversion on the supplied array backend.
+
+    Never truncate floats or wrap negatives. NumPy is the default; an Area uses
+    its own array module so validation need not copy a device array to the CPU.
+    """
+    arr = xp.asarray(values)
     if arr.ndim != 1:
         raise ValueError(f'{label} must be a one-dimensional index array')
     if arr.size and arr.dtype.kind not in 'iu':
         raise ValueError(f'{label} must contain integer indices')
     limit = 2 ** 32 if upper is None else min(upper, 2 ** 32)
-    if arr.size and (np.any(arr < 0) or np.any(arr >= limit)):
+    if arr.size and (xp.any(arr < 0) or xp.any(arr >= limit)):
         raise ValueError(f'{label} outside valid range [0, {limit})')
-    return arr.astype(np.uint32, copy=False)
+    return arr.astype(xp.uint32, copy=False)
 
 
 def to_neuron_ids(
