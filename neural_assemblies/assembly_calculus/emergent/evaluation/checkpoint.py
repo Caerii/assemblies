@@ -31,7 +31,7 @@ if TYPE_CHECKING:
 
 @dataclass
 class ParserCheckpoint:
-    """Frozen parser state after backbone training + optional calibration."""
+    """Backbone plus training/calibration metadata; fork before mutation."""
 
     parser: "EmergentParser"
     depth: str
@@ -50,7 +50,11 @@ class ParserCheckpoint:
 
 
 def _reset_ephemeral_parser_state(parser: "EmergentParser") -> None:
-    """Clear incremental-parse caches that must not leak across forks."""
+    """Prepare a copied parser for a new cell using the legacy cursor reset.
+
+    Besides caches, this resets CONTEXT construction counts/IDs while retaining
+    learned fibers. It is not an activity-only reset or exact checkpoint restore.
+    """
     parser._incremental_circuit = None
     if hasattr(parser, "_wobbly_memory"):
         del parser._wobbly_memory
@@ -58,50 +62,17 @@ def _reset_ephemeral_parser_state(parser: "EmergentParser") -> None:
         parser._reset_context_state()
 
 
-# Mutable per-parser dicts that ``copy.copy`` would leave SHARED between a
-# fork and its source, so one fork's learning silently corrupts every other.
-# These are cheap (small dicts of assemblies/floats) relative to the brain, so
-# they are always isolated rather than gated behind *wobbly*.
-_FORK_ISOLATED_ATTRS = (
-    "prediction_lexicon",
-    "learned_gating",
-    "word_grounding",
-    "stim_map",
-)
-
-# Assembly snapshots. Only deep-copied when *wobbly* replay may rewrite them,
-# since these are the expensive ones.
-_FORK_WOBBLY_ATTRS = ("core_lexicons", "role_lexicons", "vp_assemblies")
-
-
 def fork_parser_instance(
     src: "EmergentParser",
     *,
     wobbly: bool = False,
 ) -> "EmergentParser":
-    """Return an independent copy of a trained parser.
+    """Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-parser-fork
 
-    Uses ``Brain.clone()`` (numpy array copy) when available — much faster than
-    ``deepcopy`` for large sparse engines.  When *wobbly* replay may update
-    lexicons, deep-copy assembly snapshots too.
+    Copy the complete parser graph, then prepare its sentence-construction state.
+    The legacy wobbly flag no longer weakens isolation of any mutable state.
     """
-    eng = src.brain._engine
-    if not hasattr(eng, "clone"):
-        parser = copy.deepcopy(src)
-        _reset_ephemeral_parser_state(parser)
-        return parser
-
-    parser = copy.copy(src)
-    parser.brain = src.brain.clone()
-    parser.dist_stats = copy.deepcopy(src.dist_stats)
-    parser._category_cache = dict(src._category_cache)
-    for attr in _FORK_ISOLATED_ATTRS:
-        value = getattr(src, attr, None)
-        if isinstance(value, dict):
-            setattr(parser, attr, copy.deepcopy(value))
-    if wobbly:
-        for attr in _FORK_WOBBLY_ATTRS:
-            setattr(parser, attr, copy.deepcopy(getattr(src, attr)))
+    parser = copy.deepcopy(src)
     _reset_ephemeral_parser_state(parser)
     return parser
 

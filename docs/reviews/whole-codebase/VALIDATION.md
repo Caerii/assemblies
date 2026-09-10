@@ -323,3 +323,34 @@ The subsequent clone + formerly failing SENTENCES-bootstrap + checkpoint-fork
 suite passed **18 tests** in 171.06 seconds. This verifies the fork AttributeError
 is repaired and the existing bootstrap floor passes; it does not supersede the
 separate grounded-verb failure. No test expectations were changed.
+
+## Parser graph ownership and calibration publication
+
+Parser forks previously used a shallow copy plus selective field lists. Ordinary
+forks shared lexicons, and both wobbly settings shared bootstrap categories,
+function metadata and nested exposure logs. Twelve controls initially failed
+(three already-isolated wobbly lexicon controls passed), also exposing suppressed
+snapshot errors and a cache fallback to live state. Forking now deep-copies the
+whole parser graph, retaining internal aliases without sharing mutable state
+with the source. The legacy post-copy sentence preparation remains explicit in
+the contract; it still resets CONTEXT construction counts/IDs on the copy.
+
+The pristine snapshot helper raises with its original exception cause, and
+`ParserCache.fork` refuses a missing snapshot. Calibration previously modified
+the live cache object and left the pristine snapshot uncalibrated. Four controls
+failed on contaminated inputs, partial mutation during a failing calibration,
+failure to snapshot, and mismatched live/pristine calibration. Calibration now
+works on an isolated pristine copy and publishes both objects after success.
+This is failure isolation in the existing single-threaded cache, not a new
+thread-safety guarantee.
+
+Focused parser-fork/source-link checks: **26 passed**. Runtime/test Ruff passed.
+No GPU work, scientific rerun, or modification of the heldout-verb expected
+label was performed. That separate neural-population/readout regression remains
+outside the ownership repair.
+
+Final workflow-listed CPU contract gate: **319 passed, 1 skipped**. The trained
+checkpoint/shared-cache isolation/bootstrap suite passed **14 tests**. A separate
+new real calibration-to-cache-fork check passed, confirming empirical thresholds
+reach the fork as an independent copy. No metric threshold assertions were
+weakened. Runtime/test Ruff and `git diff --check` passed.

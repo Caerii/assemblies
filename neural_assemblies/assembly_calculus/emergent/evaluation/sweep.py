@@ -269,18 +269,15 @@ def _backbone_disk_path(depth, *, seed, n, k, holdout, params):
 
 
 def _pristine_copy(parser):
-    """Untouched snapshot for `ParserCache.fork` to clone.
+    """Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-parser-fork
 
-    Taken the moment a parser enters the cache and never handed out, so no
-    amount of mutation through `get()` can reach it. `None` on failure -- a
-    cache that cannot snapshot must degrade to the old behaviour rather than
-    break the run.
+    Snapshot failure cannot degrade to a fork of mutable shared state.
     """
     try:
         import copy
         return copy.deepcopy(parser)
-    except Exception:                                        # noqa: BLE001
-        return None
+    except Exception as exc:
+        raise RuntimeError("Cannot create pristine parser snapshot") from exc
 
 
 @dataclass
@@ -429,7 +426,7 @@ class ParserCache:
         self._entries[key] = entry
         if calibrate:
             self._calibrate(entry)
-        return parser
+        return entry.parser
 
     def fork(
         self,
@@ -446,7 +443,7 @@ class ParserCache:
         expensive curriculum training is still amortized across the session,
         but each caller gets its own copy to scribble on.
 
-        Pass ``wobbly=True`` when replay may rewrite the assembly lexicons.
+        All mutable parser state is isolated for either value of ``wobbly``.
 
         CLONES THE PRISTINE SNAPSHOT, not the live cached object. `get()` hands
         out a shared parser, and PARSING MUTATES IT (#102: one 5-word sentence
@@ -460,21 +457,31 @@ class ParserCache:
         parser = self.get(depth, **kwargs)
         # `get` has just populated the entry; find it by identity rather than
         # by rebuilding the key, so the two cannot drift apart.
-        source = parser
         for entry in self._entries.values():
-            if entry.parser is parser and entry.pristine is not None:
-                source = entry.pristine
-                break
-        return fork_parser_instance(source, wobbly=wobbly)
+            if entry.parser is parser:
+                if entry.pristine is None:
+                    raise RuntimeError("Cannot fork without a pristine parser snapshot")
+                return fork_parser_instance(entry.pristine, wobbly=wobbly)
+        raise RuntimeError("Cannot locate pristine parser snapshot for cached parser")
 
     def _calibrate(self, entry: ParserCacheEntry) -> None:
+        """Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-parser-fork
+
+        Publish calibrated live/pristine state together, after all work succeeds.
+        """
         from .erp import ensure_parser_erp_calibration
 
+        if entry.pristine is None:
+            raise RuntimeError("Cannot calibrate without a pristine parser snapshot")
         t0 = time.perf_counter()
+        calibrated = _pristine_copy(entry.pristine)
         ensure_parser_erp_calibration(
-            entry.parser,
+            calibrated,
             fast=erp_fast_calibration_enabled(),
         )
+        pristine = _pristine_copy(calibrated)
+        entry.parser = calibrated
+        entry.pristine = pristine
         entry.calibration_seconds = time.perf_counter() - t0
         entry.calibrated = True
 

@@ -598,6 +598,43 @@ state. Thus identical winners at fork time did not imply identical instruments.
 
 The clone contract uses graph-preserving deep copy for the current Python state
 objects. Any future specialized copy must prove these ownership and next-step
-properties before replacing it. No speedup, GPU clone conformance or full parser
-fork isolation is implied: parser-level shallow copies and selective lexicon
-sharing are distinct remaining contracts.
+properties before replacing it. No speedup or GPU clone conformance is implied.
+Parser ownership and its post-copy preparation are specified separately below.
+
+<a id="contract-parser-fork"></a>
+
+## Parser forks and pristine cache ownership
+
+`fork_parser_instance` reads the complete parser graph and creates independent
+mutable state, retaining aliases within the copy (including objects that refer
+to the copied brain). This includes lexicons, bootstrap/distributional categories,
+function metadata and nested exposure logs. The `wobbly` compatibility argument
+selects no weaker ownership policy: whether a later protocol replays episodes
+does not determine which state it is allowed to contaminate in another cell.
+
+After copying, the existing preparation step clears the fork's incremental
+circuit and wobbly memory, and resets its CONTEXT construction cursor/IDs while
+retaining fibers. This is a prepared fork, not an exact all-state checkpoint
+restore; the reset occurs only on the copy. Separating this legacy preparation
+schedule from fork construction remains part of the protocol/IR migration.
+
+`ParserCache.fork` must copy the pristine snapshot, never the publicly returned
+mutable parser. Failure to create a snapshot, or a missing snapshot at fork time,
+raises an error. No silent fallback to the live parser is allowed. Snapshot
+failure preserves its original exception as a cause for diagnosis.
+
+The old selective-copy implementation let mutations reach the source and sibling
+forks. Constructed controls cover both wobbly settings, six mutable state groups,
+internal aliases, an uncopyable snapshot, and an absent pristine cache entry.
+Cache calibration operates on a private copy of the pristine training snapshot.
+Only after calibration and a fresh snapshot both succeed does it publish matching
+live/pristine calibrated objects. Previously it calibrated the publicly mutable
+object and left the pristine snapshot uncalibrated; an earlier caller's mutations
+could therefore determine the thresholds, while forks received different state.
+Failures must leave both original cache objects and calibration status intact.
+Existing external references to the old live parser are not modified by this
+replacement. Tests cover contaminated live state, calibration/snapshot failures,
+and the first calibrated `get` returning the new published object.
+
+The semantics of post-copy preparation remain a separate protocol obligation;
+successful copying or calibration does not prove the ERP measurement informative.

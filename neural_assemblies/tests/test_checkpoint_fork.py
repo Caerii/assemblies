@@ -54,6 +54,22 @@ def test_fork_preserves_erp_calibration():
     assert fork._erp_thresholds.n400_excess_margin == backbone.parser._erp_thresholds.n400_excess_margin
 
 
+def test_cache_fork_preserves_real_calibration(monkeypatch):
+    from neural_assemblies.assembly_calculus.emergent.evaluation import sweep
+
+    # Exercise training and the real calibration implementation, without disk
+    # reuse or changing the numerical protocol's assertions to fit a fixture.
+    monkeypatch.setattr(sweep, "_backbone_disk_path", lambda *args, **kwargs: None)
+    monkeypatch.setattr(sweep, "erp_fast_calibration_enabled", lambda: True)
+    cache = sweep.ParserCache()
+    kwargs = dict(seed=24, n=300, k=8, calibrate=True)
+    live = cache.get("TWO_WORD", **kwargs)
+    fork = cache.fork("TWO_WORD", **kwargs)
+    assert live._erp_thresholds.source == "empirical"
+    assert fork._erp_thresholds == live._erp_thresholds
+    assert fork._erp_thresholds is not live._erp_thresholds
+
+
 def test_fork_isolation_after_ingest():
     """Mutations on fork do not affect backbone."""
     n, k, seed = 300, 8, 42

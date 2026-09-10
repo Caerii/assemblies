@@ -253,3 +253,19 @@ remain distinct metrics. The legacy tuple and parser caches still lose source
 information and require further migration. A future IR observation consumer must
 retain the typed source distinction together with its model and protocol identity;
 state-preserving execution does not by itself make metrics interchangeable.
+
+## Snapshot ownership and prepared forks
+
+Brain/engine clones retain their state graph and internal aliases. Parser forks
+now copy the entire parser graph too, so lexicons and category metadata cannot
+silently remain shared between cells. Pristine cache snapshot failure is an
+error, and calibration publishes matching live/pristine state only after both
+calibration and copying succeed.
+
+The parser's legacy post-copy preparation still resets CONTEXT construction
+counts/IDs and discards selected caches while retaining fibers. An IR bridge
+must therefore represent copying and this preparation as separate effects;
+it cannot claim the prepared parser is an exact state-preserving clone. These
+Python controls establish tested ownership behavior, not a Lean simulation
+proof or a certification of the calibration measurement. See the source-linked
+parser-fork card for exact mutation and failure obligations.

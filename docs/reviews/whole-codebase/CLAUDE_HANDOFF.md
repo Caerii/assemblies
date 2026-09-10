@@ -202,3 +202,26 @@ score formula was tuned. Parser cache provenance and fork-level shared lexicons
 are distinct remaining ownership work. Clone speed has not been benchmarked.
 The clone/checkpoint suite also passed 18 tests, including the previously failing
 SENTENCES-bootstrap floor. The fork crash is resolved.
+
+### Parser ownership and pristine calibration
+
+Parser forks now deep-copy the full graph for either wobbly setting. The removed
+selective field lists had left bootstrap categories, function metadata and nested
+exposure logs shared even with wobbly=True, and lexicons shared in ordinary forks.
+Pristine snapshot failures now raise with their cause; a cache cannot fall back
+to the publicly mutable parser when a pristine snapshot is absent.
+
+Cache calibration now uses an isolated pristine copy and publishes matching live
+and pristine calibrated objects after calibration and copying both succeed. This
+prevents prior mutations of the public cache object from setting thresholds and
+prevents partial updates on failure. Existing external live references are left
+untouched. Twelve ownership/failure controls and four calibration controls exposed
+the old behavior. Final CPU gate: 319 passed, 1 skipped; trained checkpoint/cache/
+bootstrap integration: 14 passed; real calibration-to-fork integration: 1 passed.
+
+The legacy post-copy CONTEXT cursor/ID reset remains a preparation operation,
+explicitly distinguished from exact checkpoint restoration in the card and IR
+contract. Calibration-mode/model identity in cache keys and scientific validity
+of calibration need separate review; these ownership tests do not certify them.
+The grounded-verb population/readout regression, GPU gates, historical evidence
+replays and concrete IR backend simulation proofs remain open. No merge to dev.

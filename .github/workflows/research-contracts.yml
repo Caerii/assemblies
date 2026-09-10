@@ -37,6 +37,7 @@ jobs:
           neural_assemblies/tests/test_classification_observation.py
           neural_assemblies/tests/test_classification_evidence.py
           neural_assemblies/tests/test_clone_contract.py
+          neural_assemblies/tests/test_parser_fork_contract.py
           neural_assemblies/tests/test_erp_protocol.py
           neural_assemblies/tests/test_read_only_probes.py
           neural_assemblies/tests/test_specification_links.py
