@@ -247,3 +247,18 @@ checks: 35 passed. Ruff/diff checks passed. Library/toolchain/hardware identity
 is not yet complete, and ParserCache.get still returns its documented shared
 live object; experiments should use forks. The broader model/IR unification and
 the grounded-verb regression remain open. No merge to dev or GPU gate is claimed.
+
+### Checkpoint storage publication
+
+Checkpoint saves now use independent temporary files, flush/close before replacing
+the destination, and clean up after serialization or replacement failure. The
+loader treats truncated/unsupported/incompatible trusted local pickles as misses.
+The full suite exposed transient Windows replacement denial despite private temp
+files; errors 5/32/33 now receive six bounded attempts with 310 ms total backoff.
+Persistent failure still raises and retains the prior checkpoint.
+
+Final CPU gate: 336 passed, 1 skipped. Trained roundtrip/calibration integration:
+2 passed. Twenty synchronized two-writer iterations passed after the contention
+fix. Storage/source obligations are linked from code and distinguished from pure
+IR execution and no-overwrite research evidence. This does not resolve scientific
+generalization, full target identity, GPU parity or historical evidence replays.

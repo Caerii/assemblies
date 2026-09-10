@@ -661,3 +661,30 @@ Uncalibrated training entries remain unchanged. Fast/full calibration variants
 are derived independently from their pristine snapshot and cached separately.
 Requesting an uncalibrated parser must not return a previously calibrated variant.
 Calibration publication preserves the parser-fork failure-isolation contract.
+
+<a id="contract-checkpoint-storage"></a>
+
+## Checkpoint storage publication
+
+These files are replaceable, trusted local Python caches, not adopted result
+artifacts or language-neutral IR programs. Each save owns a unique temporary
+file in the destination directory, serializes and flushes the complete checkpoint,
+closes the file, then replaces the destination. Serialization or replacement
+failure preserves the previous destination and cleans up that save's temporary
+file. Concurrent successful writers may publish either complete checkpoint;
+neither may write into the other's temporary file.
+Windows replacement errors 5/32/33 receive at most six attempts and 310 ms of
+total backoff. Other errors fail immediately. Persistent denial propagates after
+cleanup; this policy does not promise publication when a destination stays locked.
+
+The loader treats missing, truncated, unsupported or structurally incompatible
+pickle caches as misses. A decoded object must be a ParserCheckpoint, and the
+cache caller separately checks its request metadata. This is not validation of
+untrusted pickle input, numerical evidence, or scientific claims. File flushing
+and replacement do not establish directory durability across arbitrary power
+loss. Research results retain their separate exclusive/no-overwrite policy.
+
+Constructed controls cover incomplete/unsupported pickle streams, partial
+serialization, replacement failure, and synchronized concurrent writers. The
+previous implementation used one fixed `.pkl.tmp` name, retained failed temp
+files, and did not handle EOF or unsupported-protocol exceptions as misses.

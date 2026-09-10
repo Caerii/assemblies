@@ -18,6 +18,7 @@ def test_reviewed_operations_keep_their_specification_links():
             "clone",
             "fork_parser_instance", "_pristine_copy", "_calibrate",
             "resolve_holdout_set",
+            "load_backbone_cache", "save_backbone_cache",
             "_reset_context_for_bridge", "AssemblyMemory", "HashedArcFSM", "HashedTransducer"} <= linked
 
 

@@ -383,3 +383,27 @@ follow-up, cache/fork/source-link checks passed **35 tests**, including disk reu
 and mode separation. Final Ruff and diff checks passed. Full target/dependency
 identity, scientific calibration validity, and the heldout-verb regression remain
 open; no GPU jobs or historical numerical replays were run.
+
+## Checkpoint storage failure and publication
+
+Storage controls exposed EOF/unsupported-protocol exceptions escaping cache load,
+failed serialization/replacement leaving temporary files, and both concurrent
+writers opening the same temporary pathname. Each writer now owns a unique file
+in the destination directory, flushes the completed serialization, closes it,
+then replaces the destination. Its temporary file is cleaned on failure.
+Truncated/incompatible trusted local pickle caches produce misses.
+
+Focused storage/cache/source-link checks initially passed 22 tests. The first
+full gate returned 333 passed, 1 failed, 1 skipped: Windows denied one concurrent
+replacement with WinError 5. A synthetic transient-sharing control reproduced
+the missing retry. Windows errors 5/32/33 now receive bounded backoff (six
+attempts, at most 310 ms waiting); permanent denial still propagates with the
+old file preserved. Storage/cache checks then passed 17 tests. Twenty actual
+synchronized two-writer iterations passed; an earlier attempt to repeat node IDs
+through pytest collected only one test and is not counted as the stress run.
+
+The real trained checkpoint roundtrip and cache-calibration integration both
+passed. These checks concern local storage behavior, not scientific evidence
+adoption, pickle security, crash durability across all filesystems, or GPU parity.
+Final workflow-listed CPU contract rerun: **336 passed, 1 skipped**. The grounded
+verb/readout regression and broader IR/backend obligations remain open.

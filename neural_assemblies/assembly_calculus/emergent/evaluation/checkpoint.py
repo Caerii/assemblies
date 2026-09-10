@@ -321,7 +321,10 @@ def backbone_cache_filename(
 
 
 def load_backbone_cache(path) -> Optional[ParserCheckpoint]:
-    """Load a cached backbone if present and readable."""
+    """Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-checkpoint-storage
+
+    Load a trusted local checkpoint; incompatible or incomplete caches miss.
+    """
     import pickle
     from pathlib import Path
 
@@ -331,7 +334,7 @@ def load_backbone_cache(path) -> Optional[ParserCheckpoint]:
     try:
         with p.open("rb") as f:
             cp = pickle.load(f)
-    except (OSError, pickle.PickleError, AttributeError, TypeError):
+    except (OSError, pickle.PickleError, EOFError, ImportError, AttributeError, TypeError, ValueError):
         return None
     if not isinstance(cp, ParserCheckpoint):
         return None
@@ -339,16 +342,39 @@ def load_backbone_cache(path) -> Optional[ParserCheckpoint]:
 
 
 def save_backbone_cache(checkpoint: ParserCheckpoint, path) -> None:
-    """Persist backbone checkpoint for sweep resume."""
+    """Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-checkpoint-storage
+
+    Publish a complete cache using a private temporary file on the same volume.
+    """
+    import os
     import pickle
     from pathlib import Path
+    from tempfile import NamedTemporaryFile
 
     p = Path(path)
     p.parent.mkdir(parents=True, exist_ok=True)
-    tmp = p.with_suffix(".pkl.tmp")
-    with tmp.open("wb") as f:
-        pickle.dump(checkpoint, f, protocol=pickle.HIGHEST_PROTOCOL)
-    tmp.replace(p)
+    tmp = None
+    try:
+        with NamedTemporaryFile(mode="wb", dir=p.parent, prefix=f".{p.name}.",
+                                suffix=".tmp", delete=False) as f:
+            tmp = Path(f.name)
+            pickle.dump(checkpoint, f, protocol=pickle.HIGHEST_PROTOCOL)
+            f.flush()
+            os.fsync(f.fileno())
+        # Windows can briefly deny replacement while another publisher closes
+        # the destination. Retry only its contention-capable error codes, with
+        # at most 310 ms total backoff; permanent failure still propagates.
+        for attempt in range(6):
+            try:
+                tmp.replace(p)
+                break
+            except PermissionError as exc:
+                if getattr(exc, "winerror", None) not in (5, 32, 33) or attempt == 5:
+                    raise
+                time.sleep(0.01 * 2 ** attempt)
+    finally:
+        if tmp is not None:
+            tmp.unlink(missing_ok=True)
 
 
 def backbone_cache_path(

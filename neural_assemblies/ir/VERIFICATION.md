@@ -284,3 +284,12 @@ identities. It is not yet the complete target identity: external dependency,
 hardware and arithmetic semantics still need the declared ModelSemantics/target
 profile. A matching cache request cannot substitute for a scientific run record
 or a preservation proof.
+
+## Cache publication is a separate effect
+
+Checkpoint persistence now writes and flushes a private temporary file before
+replacement, with bounded handling of Windows replacement contention and cleanup
+on failure. This is an external I/O effect, not the pure failure behavior of
+`Domain.execute`. Any verification bridge claiming persistence guarantees must
+model publication and failures separately. Replaceable trusted Python caches
+remain distinct from exclusive scientific evidence artifacts and IR wire data.
