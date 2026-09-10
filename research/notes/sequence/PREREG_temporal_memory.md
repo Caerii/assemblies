@@ -162,3 +162,63 @@ The window confirmed: what failed at 40 presentations is exact at 20, on
 every brain, for all three constructions. The registered transducer is a
 temporal memory of order at least 10 for memorized sequences, inside the
 presentation window set by the clip.
+
+## Result, cells A (2026-09-09, chain corpus, gap 2, 20 seeds, n = n_arc = 10,000)
+
+    arm                          MRR       - bigram (paired)      arc overlap   full - blind
+    bigram (per seed)            0.1221
+    oracle (phase + number)      0.3360    +0.2139 +/- 0.0066
+    copy-state, g = 0            0.1328    +0.0107 +/- 0.0048     0.18          +0.0016 +/- 0.0023
+    predicted win, g = 1         0.2699    +0.1477 +/- 0.0121     0.15          +0.1498 +/- 0.0113
+    predicted win, g = 4         0.2621    +0.1400 +/- 0.0113     0.15          +0.1465 +/- 0.0116
+
+    TM-1  copy-state alone, reported: carries nothing across two distractors
+    TM-2  g = 1: lower bound 0.136 >= 0.085                               PASS
+          g = 4: lower bound 0.129 >= 0.085                               PASS
+    TM-3  state informative, g = 1 and g = 4                              PASS
+
+**What this is, and what it is not yet.** The predicted-win rule carries
+the subject's number across two distractor nouns to agreement sites in
+sentences whose distractor combinations were not in the training set,
+closing 65-70% of the oracle gap. The copy-state without the rule carries
+nothing, and the induced state carried 0.011, so the rule is the
+mechanism. This is the outcome the registration marked as the larger one
+and said would be re-registered before being claimed; it contradicts the
+prediction stated above ("leaning FAIL: the literature's models are
+episodic"). Nothing is adopted from it. Amendment 2 registers the
+confirmation.
+
+## Amendment 2 (2026-09-09, before running): the confirmation, and the mechanism
+
+Three checks, bars first.
+
+    TM-7  FRESH SEEDS. Seeds 62..81, their own corpora, g = 1: MRR - bigram
+          lower bound >= 0.085 and full minus blind lower bound > 0.
+          PREDICTION: PASSES (the result is on 20 seeds with a 0.012
+          interval; a seed effect is unlikely, but this is the check).
+    TM-8  A LONGER GAP. gap 3 (three distractors between agreeing words),
+          seeds 42..61, g = 1, against the corpus's own oracle gap computed
+          by ntp_agree: closes >= 40% of it.  PREDICTION: uncertain. If the
+          carry is the previous arc's predicted set persisting, it should
+          survive one more distractor; if it is a two-step coincidence of
+          the corpus, it will not.
+    TM-9  THE MECHANISM. At a distractor position, the arc assembly's
+          overlap between two test sentences with the SAME subject number
+          and DIFFERENT distractors, minus the overlap between sentences
+          with different numbers, at g = 1 against g = 0. PREDICTION: at
+          g = 1 the same-number overlap exceeds the different-number
+          overlap by at least 0.1 of k; at g = 0 the two are within 0.02.
+          This is the claim that the predicted set makes the arc at a
+          distractor a function of the agreeing word's arc rather than of
+          the distractor: number-specific, distractor-invariant cells.
+    TM-10 THE STRUCTURED ROUTE, for comparison: the feature register
+          (PREREG_feature_register.md) on the same seeds and corpus.
+          Reported side by side; no bar here (the register has its own).
+
+Adoption if TM-7 and TM-9 pass: a register entry stating that an arc
+whose predicted neurons win, with the previous arc as its context, learns
+by local rules to carry a feature across distractors it has not seen in
+that combination, with the measured share of the oracle gap, the
+mechanism of TM-9, and TM-8's outcome as its scope. Fail of TM-7 voids
+the result; fail of TM-9 with TM-7 passing means the carry is real and
+the mechanism is not the one named, to be reported as such.
