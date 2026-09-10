@@ -13,7 +13,7 @@ authors = [
     { name = "Alif Jakir" },
 ]
 maintainers = [
-    { name = "Superintelligent Group", email = "contact@superintelligent.group" },
+    { name = "Superintelligent Group", email = "Alif@superintelligent.group" },
 ]
 keywords = [
     "neural-assemblies",
