@@ -1518,3 +1518,25 @@ produced at 4f09122, preserve the A1 40-cell match and capacity 885-value match
 for the record-consumed replays. Earlier receipts and results remain intact.
 This is document integrity, not authentication of historical execution or
 scientific adoption. No new GPU run was needed for these decoding-only changes.
+
+
+## Coin seed identity consolidation
+
+The coin helper duplicated activation mapping, silently discarded unmapped IDs,
+and dispatched through the primary engine. Attractor construction also carried
+its own filtering map. Both now delegate to activate_assembly, preserving complete
+membership and the area owner. The historical remap=False bypass explicitly
+raises before mutation instead of installing stable IDs as compact positions.
+The source links contract-coin-seed in IR/VERIFICATION.md.
+
+Seven boundary controls cover nonidentity mapping, owner dispatch, returned-array
+isolation, malformed and missing IDs, and rejection of the legacy bypass. Existing
+attractor settling, membership, rounds-zero contrast, and beta-zero null tests
+also pass (11 passed with three legacy/fairness selections excluded; all seven
+new boundary controls separately passed). Full contract workflow: 1108 passed,
+one skipped, two expected warnings in 119.53s, recorded locally in
+.cache/coin-seed-contract-gate.log. Ruff and diff whitespace checks pass.
+
+This does not repair legacy defaults or uniform compact seeding, recalibrate coin
+bias, or validate old coin/PFA goldens. Those known failures remain open; their
+numerical artifacts were not rewritten. Core owned-index migration is incomplete.

@@ -1243,3 +1243,17 @@ This is document integrity checking, not a signature or scientific validity proo
 Historical source/registration hashes are not authenticated by this JSON check.
 Comparison version3 also records the shared source-inventory fingerprint, so
 comparison helper dependencies are covered alongside the comparator file digest.
+
+
+<a id="contract-coin-seed"></a>
+### Coin seed identity
+
+`assembly_calculus.pfa._seed_winners` reads stable neuron IDs and the target
+area mapping. It delegates to `activate_assembly`, mutating only activity in the
+area and its owning engine. It does not recruit, learn, or discard unmapped IDs.
+Malformed or missing IDs fail before activation. `remap=False` is rejected:
+legacy numerical artifacts do not authorize treating identities as positions.
+Attractor training and mixed-seed flips use this same boundary. This contract
+neither validates legacy uniform seeding nor proves coin fairness or settling.
+Controls: `tests/test_coin_seed_contract.py`, including a missing-ID seed and a
+primary engine that raises if called instead of the actual owner.

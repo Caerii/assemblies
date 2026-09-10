@@ -44,8 +44,8 @@ from collections import defaultdict
 
 import numpy as np
 
-from .assembly import overlap
-from .ops import project, _snap, _compact_index
+from .assembly import Assembly, overlap
+from .ops import activate_assembly, project, _snap
 from .fsm import FSMNetwork
 from .transitions import TransitionLike, TransitionMap
 
@@ -55,44 +55,18 @@ Construction = Literal["legacy", "attractor"]
 
 def _seed_winners(brain, area_name: str, neuron_ids,
                   remap: bool = True) -> np.ndarray:
-    """Install *neuron_ids* as the active winners of *area_name*.
+    """Specification: neural_assemblies/ir/VERIFICATION.md#contract-coin-seed
 
-    THIS FUNCTION EXISTS BECAUSE THE TWO INDEX SPACES SILENTLY MIX HERE.
-    ``Assembly.winners`` holds NEURON IDs; ``set_winners`` expects COMPACT
-    engine indices (see ``ops._snap``). They are different numbers, and the
-    engine does not range-check, so handing it neuron IDs is accepted without
-    error and addresses whatever compact slots happen to share those integers.
-
-    Measured on the shipped legacy coin at ``n=2000, k=50``: the area had
-    ``w=357`` materialised neurons, and only **7 of 50** ids in ``asm0`` (8 of
-    50 in ``asm1``) fell inside it. 86% of each stored attractor addressed
-    nothing. ``_snap`` then passes indices past the end of the mapping back
-    through verbatim, so the round trip produced plausible integers at every
-    step and never raised.
-
-    Ids with no compact slot are DROPPED rather than passed through: a seed
-    that silently shrinks is recoverable and visible in ``len()``, whereas a
-    seed carrying non-neurons is indistinguishable from a working one. Call
-    ``engine.materialize_area`` first if every id must survive.
-
-    ``remap=False`` restores the un-translated behaviour and exists ONLY for
-    ``construction="legacy"``, whose whole purpose is reproducing recorded
-    ``coin2024_*`` goldens byte-for-byte. Translating there would shrink a
-    ``k=50`` seed to the 7 ids that happen to have slots, which is *more*
-    correct and still not a coin -- it changes the recorded numbers without
-    fixing anything. The real fix is ``construction="attractor"``, which
-    materialises the area so nothing needs dropping.
+    Install stable IDs through the shared activation boundary. Missing IDs and
+    malformed inputs fail before activity changes; no membership is dropped.
+    The old untranslatable legacy path is retained only as an explicit error.
     """
-    ids = np.asarray(neuron_ids, dtype=np.int64).ravel()
-    inv = (_compact_index(brain._engine_for(brain.areas[area_name]), area_name)
-           if remap else None)
-    if inv:
-        ids = np.asarray([inv[i] for i in (int(x) for x in ids) if i in inv],
-                         dtype=np.int64)
-    compact = np.unique(ids).astype(np.uint32)
-    brain.areas[area_name]._winners = compact
-    brain._engine.set_winners(area_name, compact)
-    return compact
+    if not remap:
+        raise ValueError("Legacy coin seeding confuses neuron IDs with compact indices; "
+                         "use construction='attractor'. Historical goldens are not valid coins.")
+    activate_assembly(brain, Assembly(area_name, neuron_ids))
+    return brain.areas[area_name].winners.copy()
+
 
 
 class RandomChoiceArea:
@@ -256,17 +230,9 @@ class RandomChoiceArea:
                 f"cannot. Use engine='numpy_sparse'.")
         materialize(self.area_name)
 
-        # Map both snapshots into compact space ONCE, after materialising, so
-        # every stored neuron has a slot. Done before any firing because
-        # _seed_winners drops unmapped ids and we want that to be a no-op here.
-        inv = _compact_index(engine, self.area_name) or {}
-
-        def _compact(asm):
-            return np.asarray(
-                [inv[i] for i in (int(x) for x in asm.winners) if i in inv],
-                dtype=np.uint32)
-
-        c0, c1 = _compact(self.asm0), _compact(self.asm1)
+        # Resolve complete snapshots through the same boundary used for flips.
+        c0 = _seed_winners(brain, self.area_name, self.asm0.winners)
+        c1 = _seed_winners(brain, self.area_name, self.asm1.winners)
         self._compact0, self._compact1 = c0, c1
 
         for _ in range(fires):
@@ -360,10 +326,8 @@ class RandomChoiceArea:
         if len(mixed) > self.k:
             mixed = rng.choice(mixed, size=self.k, replace=False)
 
-        # asm0/asm1 hold NEURON IDs; set_winners wants COMPACT indices. See
-        # _seed_winners -- under the legacy construction 86% of these ids have
-        # no compact slot at all, and are passed through untranslated so the
-        # recorded goldens still reproduce.
+        # Snapshots contain stable IDs. The shared activation boundary maps
+        # all members or rejects the seed; legacy positional aliasing is an error.
         _seed_winners(b, self.area_name, mixed,
                       remap=self.construction != "legacy")
         return self._settle_and_read(rounds)
