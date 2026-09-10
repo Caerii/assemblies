@@ -7,6 +7,7 @@ research artifacts.
 
 | Document | Read it for |
 |----------|-------------|
+| [onboarding.md](onboarding.md) | Start here to contribute: reading order, the rules every result meets, open problems, and the process constraints that have cost results. |
 | [api.md](api.md) | Imports, public objects, compatibility shims, and common commands. |
 | [architecture.md](architecture.md) | Runtime layers, engines, automata helpers, language modules, and archive layout. |
 | [scientific_status.md](scientific_status.md) | Which claims are tested in the package, which are experimental, and which belong to the literature. |

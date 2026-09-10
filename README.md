@@ -252,6 +252,9 @@ uv run python examples/01_basic_assembly_calculus.py
 
 ## Where to read next
 
+- [docs/onboarding.md](docs/onboarding.md): how to work here, for a new
+  collaborator: reading order, the rules every result meets, the open
+  problems, the process constraints.
 - [research/notes/README.md](research/notes/README.md): the reading map for
   the registrations and design notes, what each line concluded, which file
   to open first.

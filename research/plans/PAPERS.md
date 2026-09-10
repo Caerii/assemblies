@@ -263,3 +263,9 @@ figure reruns for P2 have landed so the GPU is not contended.
   the register describe the same substrate with different vocabularies. P4
   merges them; until then, the register is authoritative.
 - `research/papers/drafts/` does not exist yet. It is created with P1.
+- The register does not say, per entry, which engine measured it. Of the
+  fifteen MEASURED entries only four name the engine in their source or
+  evidence text; after the sampler audit that column is load-bearing (a
+  number from the sampled numpy engine is void for sequence dynamics until
+  re-run materialized or hashed). Owed: an `engine` field on `Result`,
+  filled from each entry's registration, before any of P1 to P4 quotes it.
