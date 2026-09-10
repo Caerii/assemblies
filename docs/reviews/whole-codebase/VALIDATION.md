@@ -839,3 +839,20 @@ Focused boundary/deferred checks: 68 passed. CPU workflow plus homeostasis suite
 has the guard but its CUDA execution is unverified. Whole-queue rollback, arbitrary
 legacy-field mutation, historical replays, backend proofs and the grounded-verb
 regression remain open.
+
+
+## Runtime LRI and history-control ownership (2026-09-10)
+
+Five controls reproduced silent unsupported LRI and history resets dispatched to
+the primary mirror instead of the auxiliary area's owner (57 passes). Brain now
+routes LRI/reset controls through ownership and publishes LRI fields only after
+backend acceptance. ComputeEngine rejects nondefault unsupported LRI; `(0, 0)`
+remains the supported disabled request. A sampled-engine control exercises actual
+parameter changes and clearing populated history.
+
+Focused checks: 62 passed. CPU workflow gate: 693 passed, 1 skipped, two expected
+sampled-engine warnings in 83.10 seconds (`.cache/area-controls-gate.log`). Ruff
+and diff checks passed. The preceding turn's 695 count included extra homeostasis
+tests; this run used the workflow's own list. No GPU execution, historical replay,
+full-package verdict or backend proof is claimed. Numeric LRI validation and
+arbitrary backend-failure rollback remain outside this contract.

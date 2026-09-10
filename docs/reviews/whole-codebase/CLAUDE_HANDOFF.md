@@ -447,3 +447,11 @@ Brain routes through area ownership and publishes refraction after acceptance;
 deferred scaling retains rejected work. Six failures reproduced; focused checks
 68 passed; expanded CPU gate 695 passed, 3 skipped. Torch guard changes need CUDA
 gates; no whole-queue rollback claim. See [validation](VALIDATION.md).
+
+
+### LRI and history-control ownership
+
+Unsupported runtime LRI now raises before Brain publishes parameters; history
+clearing and LRI changes use the area's owner. Five failures reproduced; focused
+checks 62 passed; workflow CPU gate 693 passed, 1 skipped. GPU verification and
+numeric parameter validation remain open. See [validation](VALIDATION.md).

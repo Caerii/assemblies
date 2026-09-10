@@ -231,3 +231,40 @@ def test_unscaled_refraction_and_nonrefracted_normalization_remain_available():
     brain.connectomes['A']['A'].weights = weights
     brain.normalize_weights('A')
     np.testing.assert_allclose(brain.connectomes['A']['A'].weights.sum(axis=0), 1, atol=1e-6)
+
+
+@pytest.mark.parametrize('engine_name,explicit', [('numpy_exact', False), ('numpy_explicit', False), ('numpy_sparse', True)])
+def test_unsupported_runtime_lri_leaves_descriptor_unchanged(engine_name, explicit):
+    brain = Brain(engine=engine_name, norm_init=False)
+    brain.add_area('A', 20, 2, explicit=explicit)
+    with pytest.raises(NotImplementedError, match='LRI'):
+        brain.set_lri('A', 3, .2)
+    assert brain.areas['A'].refractory_period == 0
+    assert brain.areas['A'].inhibition_strength == 0
+    brain.set_lri('A', 0, 0)
+
+
+@pytest.mark.parametrize('method', ['clear_refractory', 'clear_refracted_bias'])
+def test_history_clear_reaches_area_owner(method, monkeypatch):
+    brain = Brain(engine='numpy_sparse', norm_init=False)
+    brain.add_area('A', 20, 2, explicit=True)
+    calls = []
+    owner = brain._engine_for(brain.areas['A'])
+    monkeypatch.setattr(owner, method, lambda name: calls.append(name))
+    def wrong_owner(name):
+        pytest.fail('history clear reached primary mirror instead of owner')
+    monkeypatch.setattr(brain._engine, method, wrong_owner)
+    getattr(brain, method)('A')
+    assert calls == ['A']
+
+
+def test_supported_lri_updates_both_states_and_resets_history():
+    brain = Brain(engine='numpy_sparse', norm_init=False)
+    brain.add_area('A', 20, 2)
+    state = brain._engine._areas['A']
+    brain.set_lri('A', 3, .2)
+    assert state.refractory_period == brain.areas['A'].refractory_period == 3
+    assert state.inhibition_strength == brain.areas['A'].inhibition_strength == .2
+    state._refractory_history.append([1])
+    brain.clear_refractory('A')
+    assert not state._refractory_history

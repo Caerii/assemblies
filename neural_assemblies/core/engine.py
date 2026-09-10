@@ -257,8 +257,11 @@ class ComputeEngine(ABC):
 
         Enables or disables Long-Range Inhibition after area creation.
         Useful for enabling LRI only during recall while keeping it
-        disabled during memorization.  Default is a no-op.
+        disabled during memorization. Unsupported nondefault requests raise.
+        Specification: neural_assemblies/ir/VERIFICATION.md#contract-area-controls
         """
+        if refractory_period != 0 or inhibition_strength != 0:
+            raise NotImplementedError(f"{type(self).__name__} does not implement LRI")
 
     def set_refracted(self, area: str, enabled: bool,
                       strength: float = 0.0) -> None:

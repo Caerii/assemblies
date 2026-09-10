@@ -1036,7 +1036,7 @@ class Brain:
         suppression penalty.  Call between memorization and recall phases,
         or between independent trials.
         """
-        self._engine.clear_refractory(area_name)
+        self._engine_for(self.areas[area_name]).clear_refractory(area_name)
 
     def set_lri(self, area_name: str, refractory_period: int,
                 inhibition_strength: float) -> None:
@@ -1046,9 +1046,10 @@ class Brain:
         Typical workflow: add area without LRI, memorize sequences,
         then enable LRI for recall.
         """
-        self.areas[area_name].refractory_period = refractory_period
-        self.areas[area_name].inhibition_strength = inhibition_strength
-        self._engine.set_lri(area_name, refractory_period, inhibition_strength)
+        area = self.areas[area_name]
+        self._engine_for(area).set_lri(area_name, refractory_period, inhibition_strength)
+        area.refractory_period = refractory_period
+        area.inhibition_strength = inhibition_strength
 
     def set_refracted(self, area_name: str, enabled: bool,
                       strength: float = 0.0) -> None:
@@ -1068,7 +1069,7 @@ class Brain:
 
     def clear_refracted_bias(self, area_name: str) -> None:
         """Reset accumulated refracted bias to zero for an area."""
-        self._engine.clear_refracted_bias(area_name)
+        self._engine_for(self.areas[area_name]).clear_refracted_bias(area_name)
 
     def set_masked_readout(self, area_name: str, enabled: bool = True) -> None:
         """Read a refracted area with its bias MASKED.

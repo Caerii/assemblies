@@ -728,3 +728,21 @@ Controls exercise direct and facade rejection, unchanged weights and descriptors
 queued-work retention, and legal normalization after disabling refraction. GPU
 execution remains unverified. These boundaries do not make arbitrary direct
 mutation of legacy fields safe or provide rollback for unrelated backend failures.
+
+
+<a id="contract-area-controls"></a>
+
+## Runtime area controls and ownership
+
+`Brain.set_lri`, `clear_refractory` and `clear_refracted_bias` dispatch to the
+area's owning engine, including auxiliary dense areas. LRI descriptor fields are
+published only after backend acceptance. The base backend rejects nondefault LRI
+requests instead of silently ignoring them; disabling with `(0, 0)` remains a
+no-op on backends without LRI. History clearing remains a no-op where that history
+does not exist, but it must reach the correct owner.
+
+Controls reject unsupported LRI on exact/dense and auxiliary dense areas, check
+unchanged descriptors, and exercise actual sampled LRI/history reset. Ownership
+spies ensure clearing cannot operate on the primary engine's auxiliary-area mirror.
+This does not promise rollback of arbitrary backend errors or validate every
+numeric LRI parameter; it establishes dispatch and unsupported-feature behavior.
