@@ -1,8 +1,9 @@
 # Experiments
 
-Scripts only. Results of the active lines are written to
-`../results/<line>/` through `_results.results_path`; older scripts still
-write beside themselves. Logs of runs are under `../results/logs/`.
+Shared-runner experiments write immutable tagged records under
+`../results/runs/<protocol>/<tag>/`. Other active scripts use
+`../results/<line>/` through `_results.results_path`; some older scripts still
+write beside themselves. Logs of older runs are under `../results/logs/`.
 
 GPU scripts need the CUDA build environment for the fused kernels (an
 MSVC developer shell on Windows, `CUDA_HOME` set); the first run compiles
@@ -12,9 +13,10 @@ them.
 
 | Line | Script | What it measures | Typical run |
 |------|--------|------------------|-------------|
-| memory | `seq_capacity_scaling.py` | capacity M* of a recurrent area, Hebbian or refracted, with gating and readout options | `--nk 4000:60 --arms B --brains 20 --refracted --refracted-factor 0.5 --readout masked --ms 8,...,4096`, ~35 s |
+| memory | `seq_capacity_scaling.py` | capacity M* of a recurrent area, Hebbian or refracted, with gating and readout options | `python -m research.runner capacity-scaling --tag UNIQUE --registration research/notes/memory/PREREG_refraction_memory.md --nk 4000:60 --arms B`; see registration for the full load grid |
 | memory | `refraction_memory_numpy.py` | the same protocol on the numpy engine, 5 brains | ~10 min |
-| sequence | `seq_a1_horizon_hashed.py` | the mod-3 machine's horizon at width, paired to the numpy seeds | `--brains 20`, 9 s |
+| sequence | `seq_a1_horizon_hashed.py` | the mod-3 machine's horizon at width, paired to the numpy seeds | `python -m research.runner a1-horizon --tag UNIQUE` (20 seeds by default) |
+| sequence | `seq_a1_learning_null.py` | preregistered paired sensitivity control, beta/strength disabled | `python -m research.runner a1-learning-null --tag UNIQUE` |
 | sequence | `seq_s5_soft_census_hashed.py` | soft transitions in the word-problem organs at width | `--seeds 100 --groups S5 --presentations 20`, ~6 min |
 | sequence | `seq_s5_arc_drift.py`, `seq_s5_arc_clip.py` | post hoc diagnostics: arc relocation across presentations, and its cause | ~1 min each |
 | sequence | `seq_a3_transducer.py --engine hashed` | the induced-state transducer at width (`--strength` for Amendment 2) | ~45 min |

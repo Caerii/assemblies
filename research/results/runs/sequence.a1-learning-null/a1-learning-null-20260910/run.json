@@ -1,0 +1,123 @@
+{
+  "engine": "hashed_arc_fsm",
+  "environment": {
+    "policy": "repository-environment-v1",
+    "variables_sha256": {
+      "ASSEMBLIES_VCVARS64": "4f8e42768dc92e11e4f32efb495020ad43e49e2dfca1322a4928d7f4dedfd1a2",
+      "ASSEMBLIES_VSWHERE": "44564d56dfa6c2af8c632137228d0b7d773445fdce24fdec8da14ca0030615f5"
+    }
+  },
+  "git_commit": "4e7e927a80218543876f00a33a7ec59e99e556a5",
+  "input_artifacts": {
+    "research/results/runs/sequence.a1-horizon/horizon-record-consumed-20260910/run.json": "668e96cb8a0abe3e825dbe6d217b2393bd37e976eb647bff02684465d341517e"
+  },
+  "mode": "study",
+  "parameters": {
+    "bars": {
+      "accuracy_delta_low": 0.1,
+      "exact_delta_low": 0.1,
+      "null_accuracy_high": 0.9,
+      "trained_accuracy_low": 0.99
+    },
+    "protocols": {
+      "null": {
+        "beta": 0.0,
+        "checkpoints": [
+          10,
+          50,
+          100,
+          500,
+          1000,
+          2000
+        ],
+        "device": "cuda",
+        "k": 70,
+        "length": 2000,
+        "n_arc": 5000,
+        "n_state": 500,
+        "norm_init": false,
+        "p_values": [
+          0.3,
+          0.4
+        ],
+        "presentations": 15,
+        "strength": 0.0,
+        "w_max": 20.0
+      },
+      "trained": {
+        "beta": 0.1,
+        "checkpoints": [
+          10,
+          50,
+          100,
+          500,
+          1000,
+          2000
+        ],
+        "device": "cuda",
+        "k": 70,
+        "length": 2000,
+        "n_arc": 5000,
+        "n_state": 500,
+        "norm_init": false,
+        "p_values": [
+          0.3,
+          0.4
+        ],
+        "presentations": 15,
+        "strength": 0.1,
+        "w_max": 20.0
+      }
+    },
+    "schedule": [
+      {
+        "order": [
+          "trained",
+          "null"
+        ],
+        "p": 0.3
+      },
+      {
+        "order": [
+          "null",
+          "trained"
+        ],
+        "p": 0.4
+      }
+    ]
+  },
+  "protocol": "sequence.a1-learning-null",
+  "protocol_version": "1",
+  "registration": "research/notes/sequence/PREREG_a1_learning_null.md",
+  "registration_sha256": "f7feaf3f015323c6ed94b318e6f6a0672cd96271688affb8f9cf3b22af94b498",
+  "schema_version": 2,
+  "scientific_status": "UNJUDGED",
+  "script": "research/experiments/seq_a1_learning_null.py",
+  "script_sha256": "be142aac741f1b4a4a17bbbbd76dac37ce7d52cb2352547936f99fa9f5860331",
+  "seeds": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20
+  ],
+  "source_inventory": "source-inputs-v3",
+  "source_sha256": "795fc0c7f67f4c85c4d1a0a59a9db6924105f9f0e1b5a1fb887db75af7fc500f",
+  "started_utc": "2026-09-10T20:33:23.892528+00:00",
+  "tag": "a1-learning-null-20260910"
+}

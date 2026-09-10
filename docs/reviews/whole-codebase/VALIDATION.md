@@ -1473,5 +1473,25 @@ strength to zero; the unchanged training/teacher-forcing schedule is retained.
 20 paired seeds and both probabilities are required for study mode. The bars
 and arm schedule are recorded; smoke results remain VOID. Initial software
 controls caught missing serialized interval endpoints (2 failures), corrected
-before any GPU run. Final focused controls:65 passed in10.29s. No null data has
+before any GPU run. Final focused controls: 65 passed in 10.29s. No null data has
 yet been observed at this preregistration checkpoint.
+
+
+The preregistered A1 null ran at 4e7e927 with 20 paired seeds at each p, fresh
+arms, full 2000-step inputs. All four bars passed at both probabilities. Trained
+accuracy was 1.0; null means were .27155 [.26380,.27930] at p=.3 and .25490
+[.24680,.26300] at p=.4. Paired accuracy drops were .72845 [.72070,.73620]
+and .74510 [.73700,.75320]. Paired exact-state drops were .97985
+[.96646,.99324] and 1.0 [1,1]. These are nominal Student-t intervals over brains,
+not independent timestep samples. Perfect label accuracy at p=.3 coexists with
+imperfect exact-state recovery; the distinction is retained.
+
+The run and raw rows are under research/results/runs/sequence.a1-learning-null/
+a1-learning-null-20260910/. Artifact validation passed. This establishes this
+instrument's sensitivity to the combined mechanism, not a new assembly theorem,
+a component-wise causal effect, or an unlimited horizon. The active script guide
+now includes this runner and removes obsolete --brains examples for migrated paths.
+
+Final contract workflow: 1092 passed, 1 skipped, two expected warnings in101.51s
+(.cache/null-final-contract-gate.log). The 40 freshly trained control rows also
+match the historical A1 artifact. No projection kernel or prior evidence changed.

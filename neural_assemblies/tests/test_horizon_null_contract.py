@@ -32,3 +32,21 @@ def test_reordered_arm_rejects_before_pairing():
 def test_non_probability_observations_reject(value):
     with pytest.raises(ValueError,match="probabilities"):
         score_pair({"trained":rows([value]*3,[1.]*3),"null":rows([.3]*3,[0.]*3)},[1,2,3],BARS)
+
+
+@pytest.mark.parametrize("change", ["missing_probability", "duplicate_arm", "different_model"])
+def test_invalid_control_design_rejects_before_neural_execution(monkeypatch,change):
+    from dataclasses import asdict, replace
+    import json
+    from research.experiments import seq_a1_learning_null as null
+    from research.experiments.seq_a1_horizon_hashed import HorizonProtocol
+    trained=HorizonProtocol.from_parameters(json.loads((null.ROOT/null.REFERENCE).read_text())["parameters"])
+    disabled=replace(trained,beta=0.,strength=0.)
+    parameters={"protocols":{"trained":asdict(trained),"null":asdict(disabled)},
+                "schedule":[{"p":p,"order":["trained","null"]} for p in trained.p_values]}
+    if change == "missing_probability":parameters["schedule"].pop()
+    elif change == "duplicate_arm":parameters["schedule"][0]["order"]=["trained","trained"]
+    else:parameters["protocols"]["null"]["length"]=50
+    def fail(*args,**kwargs):pytest.fail("invalid control reached neural execution")
+    monkeypatch.setattr(null,"run_width",fail)
+    with pytest.raises(ValueError):null.experiment({"parameters":parameters,"seeds":list(range(1,21))})

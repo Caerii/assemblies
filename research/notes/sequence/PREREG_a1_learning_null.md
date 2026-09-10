@@ -31,3 +31,23 @@ measurement sensitivity in this fixture; it does not prove neural implementation
 correctness, biological plausibility or a new scientific theorem. Execution uses
 python -m research.runner a1-learning-null --tag UNIQUE. Results belong under
 research/results/runs/sequence.a1-learning-null/ with automatic run provenance.
+
+
+## Result (2026-09-10)
+
+All registered bars passed at both probabilities. The registration and analysis
+were committed at 4e7e927 before the run. [Results and per-seed observations](../../results/runs/sequence.a1-learning-null/a1-learning-null-20260910/results.json)
+retain the full configuration, criteria, intervals and run identity.
+
+| p | Trained accuracy | Null accuracy, 95% interval | Paired accuracy drop, 95% interval | Paired exact-state drop, 95% interval |
+|---|---|---|---|---|
+| .3 | 1.00000 | .27155 [.26380,.27930] | .72845 [.72070,.73620] | .97985 [.96646,.99324] |
+| .4 | 1.00000 | .25490 [.24680,.26300] | .74510 [.73700,.75320] | 1.00000 [1.00000,1.00000] |
+
+Each interval uses 20 paired brain identities at its own p. Both null exact-state
+fractions were zero. Trained exact-state fraction at p=.3 was .97985, so perfect
+label accuracy must not be described as perfect state-block recovery.
+The result supports sensitivity of this readout to the combined learning/bias
+mechanism under this finite protocol. It neither separates the mechanisms nor
+calibrates a chance baseline, and it does not establish an unlimited horizon.
+The software control explicitly requires a perfect null to fail these criteria.
