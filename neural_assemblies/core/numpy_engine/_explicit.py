@@ -307,10 +307,8 @@ class NumpyExplicitEngine(ComputeEngine):
         st = self._areas[area]
         if not 0 < st.k <= st.n:
             raise ValueError("Area requires 0 < k <= n")
-        ids = validated_indices(winners, upper=st.n, label=f"{area} neuron IDs", xp=xp)
-        if xp.unique(ids).size != ids.size:
-            raise ValueError("Duplicate winners are not an assembly")
-        return ids
+        return validated_indices(winners, upper=st.n, label=f"{area} neuron IDs",
+                                 xp=xp, unique=True)
 
     def set_winners(self, area: str, winners: np.ndarray) -> None:
         """Specification: neural_assemblies/ir/VERIFICATION.md#contract-explicit-inputs"""

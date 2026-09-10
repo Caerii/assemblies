@@ -506,3 +506,27 @@ Ruff and diff checks passed. This is not reported as a second full-suite rerun.
 The lowering is tested, not formally certified. No GPU gate, mixed-engine IR,
 whole-program rollback, or historical evidence replay is claimed. The known
 grounded-verb regression and the broader semantic unification remain open.
+
+### Raw winner injection and source synchronization (2026-09-10)
+
+The initial cross-engine controls returned 51 failed, 9 passed. Brain cast raw
+winner buffers before validating them and could mutate the first injected area
+before rejecting a later input. Sampled/exact setters differed from explicit
+setter validation. `validated_indices` now has an explicit uniqueness option;
+Area and all three NumPy setters use it before mutation. Brain validates the
+complete raw injection and route, or complete source-sync map, before applying
+winner updates. The typed-space/materialization-watermark obligation remains
+open; numerical range validity alone cannot establish index ownership.
+
+Focused injection/IR/explicit checks: 109 passed. CPU workflow gate before adding
+the exact-engine ladder: 486 passed, 1 skipped. Broader exact/materialization/index
+integration first returned 4 failed, 67 passed, 1 xfailed. Its parity fixture
+seeded only Brain's private engine; public-source synchronization then cleared it.
+The fixture now seeds the public Area. Numerical drive and multi-round parity
+assertions are unchanged. Rerun: 71 passed, 1 xfailed. The existing xfail is retained.
+The exact-engine ladder is now included in CPU CI. No second combined run after
+that workflow-list addition is claimed. Ruff and diff checks passed.
+
+These CPU controls do not certify GPU setters, sampled index ownership, full
+failure rollback or historical scientific evidence. The grounded-verb regression,
+formal backend bridges and complete experiment migration remain open.

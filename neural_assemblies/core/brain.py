@@ -737,16 +737,29 @@ class Brain:
         if areas_by_stim is not None or dst_areas_by_src_area is not None:
             self._project_impl(areas_by_stim or {}, dst_areas_by_src_area or {}, verbose, drive)
         elif external_inputs is not None or projections is not None or external_drive is not None:
-            # Inject external activations, then route through the same projection path
-            xp = get_xp()
-            for area_name, input_winners in (external_inputs or {}).items():
+            # Validate the complete injection and route before changing any winner state.
+            self._projection_inputs({}, projections or {})
+            injections = self._validated_winner_inputs(external_inputs or {})
+            for area_name, winners in injections.items():
                 area = self.areas[area_name]
-                area.winners = xp.asarray(input_winners, dtype=xp.uint32)
-                self._engine_for(area).set_winners(
-                    area_name, np.asarray(to_cpu(input_winners), dtype=np.uint32))
+                area.winners = winners
+                self._engine_for(area).set_winners(area_name, winners)
             self._project_impl({}, projections or {}, verbose, drive)
         else:
             raise ValueError("Must provide either legacy API parameters or new API parameters")
+
+    def _validated_winner_inputs(self, inputs):
+        """Specification: neural_assemblies/ir/VERIFICATION.md#contract-winner-inputs
+
+        Validate every raw buffer before casting or synchronizing any area.
+        """
+        validated = {}
+        for name, winners in inputs.items():
+            if name not in self.areas:
+                raise IndexError(f"Unknown winner input area {name!r}")
+            validated[name] = validated_indices(to_cpu(winners), upper=self.areas[name].n,
+                                                label=f"{name} winners", unique=True)
+        return validated
 
     def _projection_inputs(self, areas_by_stim, dst_areas_by_src_area):
         """Validate names and resolve incoming edges without mutating state."""
@@ -824,11 +837,12 @@ class Brain:
         all_source_areas = dict.fromkeys(
             src for sources in area_in.values() for src in sources
         )
-        for area_name in all_source_areas:
+        source_winners = self._validated_winner_inputs(
+            {name: self.areas[name].winners for name in all_source_areas})
+        for area_name, winners_arr in source_winners.items():
             area = self.areas[area_name]
             # Empty activity is a state update too; otherwise a cleared public
             # source silently reuses its previous backend winners.
-            winners_arr = np.asarray(to_cpu(area.winners), dtype=np.uint32)
             self._engine.set_winners(area_name, winners_arr)
             eng_st = self._engine._areas.get(area_name)
             if eng_st is not None:

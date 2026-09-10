@@ -124,7 +124,8 @@ def _seed_source(b, e, pattern):
     the engines index that fiber's rows the same way -- which is exactly what
     `test_area_fiber_rows_are_identical` establishes.
     """
-    b._engine.set_winners("A", np.asarray(pattern, dtype=np.uint32))
+    # Brain owns the public source; project synchronizes it to the backend.
+    b.areas["A"].winners = np.asarray(pattern, dtype=np.uint32)
     e.set_winners("A", np.asarray(pattern, dtype=np.uint32))
 
 

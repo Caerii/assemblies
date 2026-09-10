@@ -49,7 +49,7 @@ NeuronIds = NewType("NeuronIds", np.ndarray)
 SameSpace = TypeVar("SameSpace", CompactIdx, NeuronIds)
 
 
-def validated_indices(values, *, upper: int | None = None, label: str = 'indices', xp=np) -> np.ndarray:
+def validated_indices(values, *, upper: int | None = None, label: str = 'indices', xp=np, unique: bool = False) -> np.ndarray:
     """Validate before uint32 conversion on the supplied array backend.
 
     Never truncate floats or wrap negatives. NumPy is the default; an Area uses
@@ -63,6 +63,8 @@ def validated_indices(values, *, upper: int | None = None, label: str = 'indices
     limit = 2 ** 32 if upper is None else min(upper, 2 ** 32)
     if arr.size and (xp.any(arr < 0) or xp.any(arr >= limit)):
         raise ValueError(f'{label} outside valid range [0, {limit})')
+    if unique and xp.unique(arr).size != arr.size:
+        raise ValueError(f'{label} must not contain duplicates')
     return arr.astype(xp.uint32, copy=False)
 
 

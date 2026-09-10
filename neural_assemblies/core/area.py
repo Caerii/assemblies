@@ -199,7 +199,7 @@ class Area(ActivityState):
         """
         xp = self._xp
         self._winners = validated_indices(value, upper=self.n,
-                                          label=f"{self.name} compact winners", xp=xp)
+                                          label=f"{self.name} compact winners", xp=xp, unique=True)
         # CLOBBERS the num-ever-fired meaning of `w`. Preserved because the
         # projection loop and several callers depend on `w` tracking the cap
         # between engine syncs; use `num_ever_fired` / `active_count` to say

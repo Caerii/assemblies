@@ -332,3 +332,11 @@ rounds now use ordinary Brain scheduling. The full CPU run had 425 passes and
 one new-test index-ratchet failure; the assertion was corrected through the
 canonical readout, then 37 focused checks passed. See [validation](VALIDATION.md)
 for exact scope and remaining gates. No merge or GPU proof is claimed.
+
+### Winner-input unification
+
+Brain raw injection/source sync and all three NumPy setters now share validation
+before conversion/mutation. CPU gate: 486 passed, 1 skipped before the ladder was
+added to CI; expanded exact/materialization integration: 71 passed, 1 xfailed
+after correcting a private-engine-only seeding fixture. Numerical bars were kept.
+See [validation](VALIDATION.md) for reproduced failures and remaining boundaries.

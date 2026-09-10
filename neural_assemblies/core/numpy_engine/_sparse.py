@@ -10,6 +10,7 @@ import os
 import zlib
 
 import numpy as np
+from ..index_spaces import validated_indices
 from typing import Dict, List
 from collections import OrderedDict, defaultdict
 
@@ -2438,9 +2439,11 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
         return np.array(to_cpu(st.winners), dtype=np.uint32)
 
     def set_winners(self, area: str, winners: np.ndarray) -> None:
+        """Specification: neural_assemblies/ir/VERIFICATION.md#contract-winner-inputs"""
         xp = self._xp
         st = self._areas[area]
-        st.winners = xp.asarray(winners, dtype=xp.uint32)
+        st.winners = validated_indices(winners, upper=st.n, label=f"{area} winners",
+                                       xp=xp, unique=True)
 
     def get_num_ever_fired(self, area: str) -> int:
         return self._areas[area].w

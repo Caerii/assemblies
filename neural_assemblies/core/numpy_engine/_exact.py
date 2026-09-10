@@ -45,6 +45,7 @@ from collections import OrderedDict, defaultdict
 from typing import Dict, List, Mapping, Optional
 
 import numpy as np
+from ..index_spaces import validated_indices
 
 from ..backend import to_cpu
 from ..engine import ComputeEngine, ProjectionResult
@@ -1030,8 +1031,10 @@ class NumpyExactEngine(ComputeEngine):
         return np.array(to_cpu(self._areas[area].winners), dtype=np.uint32)
 
     def set_winners(self, area: str, winners: np.ndarray) -> None:
+        """Specification: neural_assemblies/ir/VERIFICATION.md#contract-winner-inputs"""
         st = self._areas[area]
-        st.winners = np.asarray(winners, dtype=np.uint32)
+        st.winners = validated_indices(winners, upper=st.n, label=f"{area} winners",
+                                       xp=np, unique=True)
         if st.winners.size:
             st.ever_fired[np.asarray(st.winners, dtype=np.int64)] = True
 

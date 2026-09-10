@@ -23,6 +23,8 @@ jobs:
         run: >-
           uv run pytest -q
           neural_assemblies/tests/test_research_contracts.py
+          neural_assemblies/tests/test_exact_engine_ladder.py
+          neural_assemblies/tests/test_winner_injection_contract.py
           neural_assemblies/tests/test_brain_ir_execution.py
           neural_assemblies/tests/test_projection_ir_execution.py
           neural_assemblies/tests/test_protocol_wire.py

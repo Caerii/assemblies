@@ -426,3 +426,34 @@ This is a tested lowering, not a Lean simulation proof. Profile checks do not
 prove entire Brain state consistency, failure atomicity of a multi-target program,
 or thread safety of temporarily scoped flags. Mixed-engine IR rounds remain
 unsupported; ordinary mixed projection retains its existing behavior.
+
+
+<a id="contract-winner-inputs"></a>
+
+## Shared winner input boundary
+
+`validated_indices(..., unique=True)` is the common numerical boundary for
+assembly winner buffers: one-dimensional integers, distinct, nonnegative, below
+the declared population and representable in uint32. Empty and partial caps are
+valid. Generic index conversion leaves uniqueness optional because not every
+index sequence represents an assembly.
+
+Area assignment and the sampled, exact and explicit NumPy engine setters use
+this boundary before mutation. Exact-engine ever-fired bookkeeping occurs only
+after valid assignment. The explicit engine also rechecks buffers at projection.
+Brain validates raw direct injections before dtype conversion, checks routing
+names, and validates the whole injection map before applying any entry. Ordinary
+projection similarly validates every source buffer before synchronizing any
+source, so a mutated public buffer cannot be silently truncated by synchronization.
+
+These guards establish numerical index validity, not ownership of an index space.
+A compact position below n can still be beyond the sampled area's materialization
+watermark; stable-neuron versus compact ownership remains a distinct obligation.
+The sampled setter must also serve explicit-source mirrors, so n cannot simply
+be replaced by its own compact-map length without resolving that ownership.
+GPU-native setters are not certified by these CPU controls.
+
+Failure-before-mutation applies to malformed winner values and unknown injection
+routing names. This is not rollback for a later backend failure, invalid external
+drive, inhibition change or multi-target execution. Existing partial-cue injection
+and explicit clearing remain supported.
