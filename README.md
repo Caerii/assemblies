@@ -73,7 +73,10 @@ curve ends each item's write as soon as its winners stop changing.
 
 How to read it: each point is one `(n, k)` cell's ceiling, the number of
 items at which recall crosses one half. Both arms fall on straight lines
-of slope two in log-log, so capacity goes as `(n/k)²` for both, with
+of slope two in log-log, so capacity goes close to `(n/k)²` for both
+(the measured doubling exponents run from 2.1 to 1.8 across the grid, so
+the register records the form as Willshaw-like and declines to call it a
+power law), with
 refraction multiplying it by a constant near 25. Hollow points are cells
 where each neuron receives too few inputs from the assembly for the
 theory's regime, and they sit below the line.
@@ -87,7 +90,7 @@ strength is a switch, one plateau from 0.3 to 0.6 `beta`. Register entry
 bar and verdict in
 [the registration](research/notes/memory/PREREG_refraction_memory.md).
 
-### The transition machine is exact, and it remembers sequences of any order
+### The transition machine is exact, and it remembers sequences of order ten
 
 A refracted arc area conjoins the current symbol with the current state
 and drives the next state. On the explicit substrate it runs 2000 random

@@ -5,7 +5,7 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 | ID | Status | Claim |
 |----|--------|-------|
 | [`SEQ-TIME-IN-WEIGHTS`](#seq-time-in-weights) | PROVED | Sequence/temporal structure is carried by DIRECTED inter-assembly weights, not by an accumulator or a decaying trace. |
-| [`SEQ-REGIME`](#seq-regime) | PROVED | Winner selection is reliable only when a target neuron receives kp >= 3 ln n synapses FROM THE DRIVING ASSEMBLY. |
+| [`SEQ-REGIME`](#seq-regime) | PROVED | The sequence theorems ASSUME that a target neuron receives kp >= 3 ln n synapses FROM THE DRIVING ASSEMBLY: with it, the expected drive separates the intended winners from the rest by a margin the concentration bounds can use. |
 | [`SEQ-BETA-WINDOW`](#seq-beta-window) | PROVED | Sequence learning needs beta in a WINDOW: large enough to write a transition in finite presentations, small enough that the assemblies formed on presentation 1 do not move. |
 | [`SEQ-FSM`](#seq-fsm) | PROVED | A finite-state machine is simulable by three areas: input, state, and a CONJUNCTION arc that fires for (state, symbol) and projects to the next state. |
 | [`SEQ-TRANSDUCER`](#seq-transducer) | PROVED | Prediction/output is an FSM with one more area, fired together with the state update during training -- a transducer. |
@@ -46,9 +46,9 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 
 ## SEQ-REGIME
 
-**Status.** PROVED. **Source.** Dabagia et al. (arXiv:2306.03812); assumed by every theorem in the paper, and satisfied by its own FSM demo at n=5000, k=70, p=0.4 (kp=28 per conjunct pair vs floor 25.6).
+**Status.** PROVED. **Source.** Dabagia et al. (arXiv:2306.03812); assumed by every theorem in the paper, and satisfied by its own FSM demo at n=5000, k=70, p=0.4 (kp=28 per conjunct pair vs floor 25.6). Wording corrected 2026-09-09 after an external review noted the earlier 'reliable only when' promoted a sufficient condition to a necessary one.
 
-**Claim.** Winner selection is reliable only when a target neuron receives kp >= 3 ln n synapses FROM THE DRIVING ASSEMBLY.
+**Claim.** The sequence theorems ASSUME that a target neuron receives kp >= 3 ln n synapses FROM THE DRIVING ASSEMBLY: with it, the expected drive separates the intended winners from the rest by a margin the concentration bounds can use. It is a SUFFICIENT condition inside the proofs, one hypothesis among several: the theorems also bound the sequence length and the overlap between stored assemblies, take beta inside a window ([[SEQ-BETA-WINDOW]]) and assume a normalization schedule on the weights. That crossing the floor FAILS in practice is this repository's measurement ([[SEQ-REGIME-CLIFF]]), not a theorem: necessity is measured, sufficiency is proved.
 
 **Requires.**
 - counted PER AREA, over the sources that co-fire

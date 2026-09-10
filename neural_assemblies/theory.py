@@ -104,11 +104,22 @@ _RESULTS: List[Result] = [
     Result(
         id="SEQ-REGIME",
         status=Status.PROVED,
-        claim="Winner selection is reliable only when a target neuron receives "
-              "kp >= 3 ln n synapses FROM THE DRIVING ASSEMBLY.",
+        claim="The sequence theorems ASSUME that a target neuron receives "
+              "kp >= 3 ln n synapses FROM THE DRIVING ASSEMBLY: with it, the "
+              "expected drive separates the intended winners from the rest by a "
+              "margin the concentration bounds can use. It is a SUFFICIENT "
+              "condition inside the proofs, one hypothesis among several: the "
+              "theorems also bound the sequence length and the overlap between "
+              "stored assemblies, take beta inside a window ([[SEQ-BETA-WINDOW]]) "
+              "and assume a normalization schedule on the weights. That crossing "
+              "the floor FAILS in practice is this repository's measurement "
+              "([[SEQ-REGIME-CLIFF]]), not a theorem: necessity is measured, "
+              "sufficiency is proved.",
         source="Dabagia et al. (arXiv:2306.03812); assumed by every theorem in "
                "the paper, and satisfied by its own FSM demo at n=5000, k=70, "
-               "p=0.4 (kp=28 per conjunct pair vs floor 25.6).",
+               "p=0.4 (kp=28 per conjunct pair vs floor 25.6). Wording corrected "
+               "2026-09-09 after an external review noted the earlier 'reliable "
+               "only when' promoted a sufficient condition to a necessary one.",
         preconditions=("counted PER AREA, over the sources that co-fire",
                        "k is the SOURCE assembly's size, not the target's"),
         evidence=("research/experiments/seq_a1_exactness_sweep.py",),

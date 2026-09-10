@@ -135,7 +135,8 @@
     "research/experiments/task95_readout_and_arc.py": 2,
     "research/experiments/two_phase_read.py": 5,
     "research/experiments/unaligned_scenes.py": 1,
-    "research/experiments/universality_composition.py": 6
+    "research/experiments/universality_composition.py": 6,
+    "research/experiments/refraction_memory_numpy.py": 1
   },
   "unpinned_engine": {
     "research/experiments/_substrate.py": 4,

@@ -177,6 +177,13 @@ _ENGINE_ADVICE = (
 )
 
 
+# Baseline notes (why an entry is above zero):
+#   research/experiments/refraction_memory_numpy.py: 1 -- `np.mean(pw)` is a
+#   mean over sampled PAIRS of stored assemblies within one brain (a
+#   crosstalk statistic), not over seeds; the per-brain values go through
+#   the ensemble helpers downstream.
+
+
 def _load_baseline():
     with open(BASELINE_PATH, encoding="utf-8") as fh:
         data = json.load(fh)

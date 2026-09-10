@@ -110,6 +110,8 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--brains", type=int, default=20)
     ap.add_argument("--smoke", action="store_true")
+    ap.add_argument("--tag", type=str, default="",
+                    help="suffix on the results file, so a rerun keeps the previous run's evidence")
     args = ap.parse_args()
     length = 50 if args.smoke else LENGTH
     seeds = list(range(1, 1 + (3 if args.smoke else args.brains)))
@@ -141,7 +143,7 @@ def main():
     print(f"\n  GATE-3 {'PASS' if allok else 'FAIL'}"
           + ("" if not args.smoke else "  (SMOKE: VOID)"))
     if not args.smoke:
-        path = results_path("sequence", "seq_a1_horizon_results_hashed.json")
+        path = results_path("sequence", f"seq_a1_horizon_results_hashed{args.tag}.json")
         with open(path, "w") as fh:
             json.dump(out, fh, indent=1)
         print(f"  wrote {path}")

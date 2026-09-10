@@ -1,0 +1,34 @@
+'vswhere.exe' is not recognized as an internal or external command,
+operable program or batch file.
+=== GATE-3: the horizon at width (20 brains, 2000 digits) ===
+    p=0.3: 20 brains, 2000 steps  [7s]
+      first errors: []  NEVER: 20/20
+         first    10 steps perfect: 20/20
+         first    50 steps perfect: 20/20
+         first   100 steps perfect: 20/20
+         first   500 steps perfect: 20/20
+         first  1000 steps perfect: 20/20
+         first  2000 steps perfect: 20/20
+      hashed [5th, 95th] = [2001, 2001]
+        numpy seed 1: first error    759  OUTSIDE
+        numpy seed 2: first error  NEVER  inside
+        numpy seed 3: first error  NEVER  inside
+        numpy seed 4: first error  NEVER  inside
+        numpy seed 5: first error  NEVER  inside
+    p=0.4: 20 brains, 2000 steps  [5s]
+      first errors: []  NEVER: 20/20
+         first    10 steps perfect: 20/20
+         first    50 steps perfect: 20/20
+         first   100 steps perfect: 20/20
+         first   500 steps perfect: 20/20
+         first  1000 steps perfect: 20/20
+         first  2000 steps perfect: 20/20
+      hashed [5th, 95th] = [2001, 2001]
+        numpy seed 1: first error  NEVER  inside
+        numpy seed 2: first error  NEVER  inside
+        numpy seed 3: first error  NEVER  inside
+        numpy seed 4: first error  NEVER  inside
+        numpy seed 5: first error  NEVER  inside
+
+  GATE-3 FAIL
+  wrote C:\Github\assemblies\research\results\sequence\seq_a1_horizon_results_hashed_int8_timing.json

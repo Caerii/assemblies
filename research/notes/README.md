@@ -228,7 +228,12 @@ and plasticity is off; writes always see the bias. Two kernel layouts: dense int
 percent ([DESIGN_dense_floor.md](substrate/DESIGN_dense_floor.md)) and present-only
 lists below it ([DESIGN_present_only.md](substrate/DESIGN_present_only.md)). Every
 unit passes a drive replay against the numpy engine to a relative 5e-6 and
-an identity-across-width check before its numbers are used.
+an identity-across-width check before its numbers are used. The organ
+fibers hold their counts in int8 (the chain table saturates near count
+31), which halves the organ matrices and doubles the brains one launch
+holds; at twenty brains the wall time is unchanged (7 s and 5 s for 2000
+steps at p = 0.3 and 0.4, the same as the int16 build) and every brain
+still runs error-free (`seq_a1_horizon_results_hashed_int8_timing.json`).
 
 ![worst relative drive error per parity gate, against the 5e-6 bar](figures/parity_gates.png)
 

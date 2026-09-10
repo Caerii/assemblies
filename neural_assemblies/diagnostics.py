@@ -1418,6 +1418,22 @@ def ensemble(run, seeds: Sequence[int], label: str = "arm") -> Ensemble:
                                 keys=seeds)
 
 
+def _t_interval(vals: Sequence[float]) -> float:
+    """Half-width of the two-sided 95% Student-t interval of the mean.
+
+    The critical value comes from the t distribution at n - 1 degrees of
+    freedom for EVERY n. Until 2026-09-09 a table stopped at n = 12 and
+    fell back to the normal 1.96 above it, which made every twenty-seed
+    interval 6.4% too narrow (2.093 is the right value at n = 20); an
+    external review caught it. No adopted verdict flips under the
+    correction (each registered bar was cleared by more than that margin),
+    but the intervals printed before that date are narrower than stated.
+    """
+    from scipy.stats import t as _t
+    n = len(vals)
+    return float(_t.ppf(0.975, n - 1)) * statistics.stdev(vals) / n ** 0.5
+
+
 def ensemble_from_values(values: Sequence[float], label: str = "arm",
                          keys: Optional[Sequence[Any]] = None) -> Ensemble:
     """Summarise ALREADY-COMPUTED per-seed values as mean +/- 95% CI.
@@ -1453,10 +1469,7 @@ def ensemble_from_values(values: Sequence[float], label: str = "arm",
             f"outcomes, empty selection). Handle those seeds explicitly "
             f"-- do not silently filter them.")
     mean = statistics.mean(vals)
-    # t critical value, two-sided 95%, for the small n used in practice.
-    tcrit = {3: 4.303, 4: 3.182, 5: 2.776, 6: 2.571, 7: 2.447, 8: 2.365,
-             9: 2.306, 10: 2.262, 11: 2.228, 12: 2.201}.get(len(vals), 1.96)
-    ci = tcrit * statistics.stdev(vals) / len(vals) ** 0.5
+    ci = _t_interval(vals)
     return Ensemble(label, tuple(vals), mean, ci)
 
 
@@ -1515,9 +1528,7 @@ def paired_delta(a: Ensemble, b: Ensemble, label: str = "delta") -> Ensemble:
         raise ValueError("paired_delta needs the same seeds in both arms")
     diffs = [x - y for x, y in zip(a.values, b.values)]
     mean = statistics.mean(diffs)
-    tcrit = {3: 4.303, 4: 3.182, 5: 2.776, 6: 2.571, 7: 2.447, 8: 2.365,
-             9: 2.306, 10: 2.262, 11: 2.228, 12: 2.201}.get(len(diffs), 1.96)
-    ci = tcrit * statistics.stdev(diffs) / len(diffs) ** 0.5
+    ci = _t_interval(diffs)
     return Ensemble(label, tuple(diffs), mean, ci)
 
 

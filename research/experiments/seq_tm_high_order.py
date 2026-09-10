@@ -35,6 +35,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import torch                                                              # noqa: E402
 
 from neural_assemblies.core.torch_engine._hashed_transducer import HashedTransducer  # noqa: E402
+from neural_assemblies.diagnostics import ensemble_from_values                 # noqa: E402
 from _results import results_path                                         # noqa: E402
 
 N, N_ARC, K, P, ORGAN_P, BETA = 4000, 4000, 100, 0.05, 0.2, 0.10
@@ -100,8 +101,10 @@ def run_set(name, seqs, seeds, gain, mode, presentations):
             if first_perfect[b] is None and acc_all[b] >= 1.0:
                 first_perfect[b] = pres + 1
     last = per_pres[-1]
-    print(f"    set {name:3s} mode {mode:7s} g {gain:<3}: rank-1 all {np.mean(last['acc_all']):.3f}, "
-          f"ambiguous {np.mean(last['acc_ambiguous']):.3f} on {n_amb} positions; brains perfect "
+    e_all = ensemble_from_values(last['acc_all'], "rank-1 all")
+    e_amb = ensemble_from_values(last['acc_ambiguous'], "rank-1 ambiguous")
+    print(f"    set {name:3s} mode {mode:7s} g {gain:<3}: rank-1 all {e_all.mean:.3f} +/- {e_all.ci:.3f}, "
+          f"ambiguous {e_amb.mean:.3f} +/- {e_amb.ci:.3f} on {n_amb} positions; brains perfect "
           f"{sum(a >= 1.0 for a in last['acc_all'])}/{B}; first perfect at "
           f"{sorted(x for x in first_perfect if x)}  [{time.perf_counter() - t0:.0f}s]", flush=True)
     del tr
