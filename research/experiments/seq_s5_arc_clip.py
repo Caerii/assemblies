@@ -3,8 +3,10 @@ relocation is the CLIP. Z60, 4 brains, 30 presentations: the arc at
 presentation 15 vs the frozen test arc; neurons LOST vs KEPT by their symbol
 stimulus potentiation count, base (present rows), clip status, bias, and
 net drive at test."""
+import os
 import inspect, json, sys
-sys.path.insert(0, 'F:/Github/assemblies'); sys.path.insert(0, 'F:/Github/assemblies/research/experiments')
+_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+sys.path.insert(0, _ROOT); sys.path.insert(0, os.path.join(_ROOT, 'research', 'experiments'))
 import numpy as np, torch
 from neural_assemblies.core.brain import Brain
 from neural_assemblies.core.torch_engine._hashed_fsm import HashedArcFSM

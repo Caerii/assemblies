@@ -7,7 +7,8 @@ Z60, 4 brains, presentations 15 and 30: overlap of the frozen test-time arc
 with the arc at each training presentation of the same pair, plus the
 STATE drive of the block's weakest member and of the best outsider."""
 import inspect, json, os, sys
-sys.path.insert(0, 'F:/Github/assemblies'); sys.path.insert(0, 'F:/Github/assemblies/research/experiments')
+_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+sys.path.insert(0, _ROOT); sys.path.insert(0, os.path.join(_ROOT, 'research', 'experiments'))
 import numpy as np, torch
 from neural_assemblies.core.brain import Brain
 from neural_assemblies.core.torch_engine._hashed_fsm import HashedArcFSM
