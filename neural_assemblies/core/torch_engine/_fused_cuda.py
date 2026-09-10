@@ -755,6 +755,7 @@ __global__ void colmass_rel_kernel(const int* __restrict__ cols,
 // a writer flags a count that would pass 32767 in `err` rather than wrap.
 
 #define DENSE_CMAX 32767
+#define ORGAN_CMAX 127      // int8 counts in the dense organ fiber; the chain table saturates near 31
 
 __global__ void presence_kernel(const int* __restrict__ seeds, int B, int Npre,
                                 int N, int W, int threshold,
@@ -811,7 +812,7 @@ __device__ __forceinline__ unsigned long long sched_key(float v, int j) {
 #define ORGAN_CH 8
 
 __global__ void organ_drive_kernel(const int* __restrict__ S, int K,
-                                   const short* __restrict__ C,
+                                   const signed char* __restrict__ C,
                                    const unsigned int* __restrict__ pres, int W,
                                    const float* __restrict__ invdj,
                                    const float* __restrict__ tab, int ntab,
@@ -819,7 +820,7 @@ __global__ void organ_drive_kernel(const int* __restrict__ S, int K,
     const long long idx = blockIdx.x * (long long)blockDim.x + threadIdx.x;
     if (idx >= (long long)B * N) return;
     const int j = (int)(idx % N), b = (int)(idx / N);
-    const short* Cb = C + (long long)b * Npre * N;
+    const signed char* Cb = C + (long long)b * Npre * N;
     const unsigned int* Pb = pres + (long long)b * Npre * W;
     const int* Sb = S + (long long)b * K;
     const int wj = j >> 5, bj = j & 31;
@@ -850,13 +851,13 @@ __global__ void organ_drive_kernel(const int* __restrict__ S, int K,
 // one block per (brain, winner column): count the present rows in
 __global__ void organ_write_kernel(const int* __restrict__ P, int KP,
                                    const int* __restrict__ Wn, int KW,
-                                   short* __restrict__ C,
+                                   signed char* __restrict__ C,
                                    const unsigned int* __restrict__ pres, int W,
                                    int Npre, int N, int* __restrict__ err) {
     const int b = blockIdx.x / KW, sw = blockIdx.x - b * KW;
     const int j = Wn[(long long)b * KW + sw];
     if (j < 0) return;
-    short* Cb = C + (long long)b * Npre * N;
+    signed char* Cb = C + (long long)b * Npre * N;
     const unsigned int* Pb = pres + (long long)b * Npre * W;
     const int wj = j >> 5, bj = j & 31;
     for (int sl = threadIdx.x; sl < KP; sl += blockDim.x) {
@@ -864,8 +865,8 @@ __global__ void organ_write_kernel(const int* __restrict__ P, int KP,
         if (i < 0) continue;
         if (!((Pb[(long long)i * W + wj] >> bj) & 1u)) continue;
         const int c = (int)Cb[(long long)i * N + j] + 1;
-        if (c > DENSE_CMAX) { atomicExch(err, 1); continue; }
-        Cb[(long long)i * N + j] = (short)c;
+        if (c > ORGAN_CMAX) { atomicExch(err, 1); continue; }
+        Cb[(long long)i * N + j] = (signed char)c;
     }
 }
 
@@ -1688,13 +1689,13 @@ torch::Tensor hashed_presence(torch::Tensor seeds, int64_t n_pre, int64_t n_post
 void organ_drive(torch::Tensor S, torch::Tensor C, torch::Tensor pres, torch::Tensor invdj,
                  torch::Tensor tab, torch::Tensor out) {
     S = S.contiguous(); tab = tab.contiguous();
-    TORCH_CHECK(C.scalar_type() == torch::kInt16, "counts are int16");
+    TORCH_CHECK(C.scalar_type() == torch::kInt8, "counts are int8");
     const int B = C.size(0), Npre = C.size(1), N = C.size(2), K = S.size(1), W = pres.size(2);
     if (K == 0) return;
     const long long tot = (long long)B * N;
     const int th = 256;
     organ_drive_kernel<<<(tot + th - 1) / th, th>>>(
-        S.data_ptr<int>(), K, C.data_ptr<short>(),
+        S.data_ptr<int>(), K, C.data_ptr<signed char>(),
         reinterpret_cast<const unsigned int*>(pres.data_ptr<int>()), W,
         invdj.numel() ? invdj.data_ptr<float>() : nullptr,
         tab.data_ptr<float>(), (int)tab.numel(), B, Npre, N, out.data_ptr<float>());
@@ -1703,12 +1704,12 @@ void organ_drive(torch::Tensor S, torch::Tensor C, torch::Tensor pres, torch::Te
 void organ_write(torch::Tensor P, torch::Tensor Wn, torch::Tensor C, torch::Tensor pres,
                  torch::Tensor err) {
     P = P.contiguous(); Wn = Wn.contiguous();
-    TORCH_CHECK(C.scalar_type() == torch::kInt16, "counts are int16");
+    TORCH_CHECK(C.scalar_type() == torch::kInt8, "counts are int8");
     const int B = C.size(0), Npre = C.size(1), N = C.size(2), W = pres.size(2);
     const int KP = P.size(1), KW = Wn.size(1);
     if (KP == 0 || KW == 0) return;
     organ_write_kernel<<<B * KW, 128>>>(
-        P.data_ptr<int>(), KP, Wn.data_ptr<int>(), KW, C.data_ptr<short>(),
+        P.data_ptr<int>(), KP, Wn.data_ptr<int>(), KW, C.data_ptr<signed char>(),
         reinterpret_cast<const unsigned int*>(pres.data_ptr<int>()), W,
         Npre, N, err.data_ptr<int>());
 }

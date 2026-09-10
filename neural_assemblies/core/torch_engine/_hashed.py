@@ -687,7 +687,11 @@ class DenseOrganFiber:
     """
 
     MAX_BYTES = 6 << 30
-    MAX_COUNT = 32767
+    #: int8 counts: the chain table saturates at the clip (count ~31 at
+    #: beta 0.1, w_max 20), so a count never needs more than 7 bits, and
+    #: the matrix is half the size it was at int16 -- twice the brains per
+    #: launch at n = 10,000.
+    MAX_COUNT = 127
 
     def __init__(self, seeds, n_pre, n_post, p, *, beta=0.1, w_max=20.0,
                  norm_init=True, max_rounds=4096, device="cuda"):
@@ -696,7 +700,7 @@ class DenseOrganFiber:
             raise RuntimeError(f"fused kernels unavailable: "
                                f"{_fused_cuda.last_error()}")
         B = len(seeds)
-        need = B * n_pre * (n_post * 2 + ((n_post + 31) // 32) * 4)
+        need = B * n_pre * (n_post * 1 + ((n_post + 31) // 32) * 4)
         if need > self.MAX_BYTES:
             raise ValueError(f"organ count matrices would be {need / 2**30:.1f} "
                              "GiB; fewer brains per launch")
@@ -708,7 +712,7 @@ class DenseOrganFiber:
         self.learns = bool(beta)
         self.relative, self.absolute = False, True
         self.pres = self.mod.hashed_presence(self.seeds, n_pre, n_post, self.threshold)
-        self.C = torch.zeros(B, n_pre, n_post, dtype=torch.int16, device=device)
+        self.C = torch.zeros(B, n_pre, n_post, dtype=torch.int8, device=device)
         self.err = torch.zeros(1, dtype=torch.int32, device=device)
         self.max_rounds = int(max_rounds)
         self.tab = torch.from_numpy(_chain_table(beta, w_max, self.max_rounds)).to(device)
@@ -1014,6 +1018,7 @@ class HashedArea:
                 f.begin_episode()
         drive = None
         active = None
+        ovf_acc = None
         if stop_when_stable:
             active = torch.ones(self.B, dtype=torch.bool, device=self.device)
             self.rounds_used = torch.zeros(self.B, dtype=torch.int64,
@@ -1029,12 +1034,9 @@ class HashedArea:
             ranked = (drive + self._jitter(fibers) if self.tie_jitter > 0
                       else drive)
             sel, ovf = self.mod.topk_select(ranked, min(self.k, self.n))
-            bad = int(ovf.max())
-            if bad:
-                raise RuntimeError(
-                    f"k-WTA candidate set overflowed ({bad} candidates) -- the "
-                    "drive is too flat for the histogram to narrow. Refusing "
-                    "to return a truncated winner set.")
+            # the overflow flag is accumulated on the device and read ONCE
+            # after the rounds: a host sync per round was most of a step
+            ovf_acc = ovf if ovf_acc is None else torch.maximum(ovf_acc, ovf)
             new = sel.to(torch.int64)
             prev = self.winners
             if active is not None and prev.shape[1] == new.shape[1]:
@@ -1067,6 +1069,13 @@ class HashedArea:
                     active = active & ~same
                 if not bool(active.any()):
                     break
+        if ovf_acc is not None:
+            bad = int(ovf_acc.max())
+            if bad:
+                raise RuntimeError(
+                    f"k-WTA candidate set overflowed ({bad} candidates) -- the "
+                    "drive is too flat for the histogram to narrow. Refusing "
+                    "to return a truncated winner set.")
         if not freeze and manage_episodes:
             for f in fibers:
                 f.end_episode()

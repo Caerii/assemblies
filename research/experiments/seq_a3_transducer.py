@@ -373,13 +373,15 @@ def _schedules(per_brain, wi):
 
 
 def _brains_per_launch(n_arc):
-    per = 2 * (2 * N * n_arc + 2 * n_arc * N) + 4 * (N * (n_arc // 32 + 1) * 2 + n_arc * (N // 32 + 1) * 2)
+    # five organ fibers of int8 counts plus their presence masks, per brain
+    per = 1 * (3 * N * n_arc + 2 * n_arc * N) + 4 * (N * (n_arc // 32 + 1) * 3 + n_arc * (N // 32 + 1) * 2)
     per += 2 * VOCAB_SIZE * N * 16
     return max(1, int(LAUNCH_BYTES // per))
 
 
 def a3_hashed(seeds, *, n_arc, beta, state_blind=False, collect_state=False,
-              tie_seed=0, strength=0.1, collect_margin=False, horizon=0):
+              tie_seed=0, strength=0.1, collect_margin=False, horizon=0,
+              collect_arcs=False):
     """MRR per seed (and cross-prefix state overlap per seed when asked)."""
     import torch
     from neural_assemblies.core.torch_engine._hashed_transducer import HashedTransducer
@@ -412,6 +414,9 @@ def a3_hashed(seeds, *, n_arc, beta, state_blind=False, collect_state=False,
         rr = [0.0] * len(group); cnt = [0] * len(group)
         states = [dict() for _ in group]
         pos = [0] * len(group)
+        # TM-9: arc winners at each position, with the sentence's subject
+        # number, per brain: {position: [(number, set(arc))]}
+        arcs_by_pos = [dict() for _ in group]
         for step in range(Wt.shape[1]):
             live = Wt[:, step] >= 0
             if not bool(live.any()):
@@ -447,9 +452,16 @@ def a3_hashed(seeds, *, n_arc, beta, state_blind=False, collect_state=False,
                 rr[b] += 1.0 / (ranked[b].index(truth) + 1); cnt[b] += 1
                 if collect_state:
                     states[b].setdefault(pos[b], []).append(set(sw[b].tolist()))
+                if collect_arcs:
+                    w = words[int(Wt[b, step])]
+                    num = _number_of(w)
+                    arcs_by_pos[b].setdefault(pos[b], []).append(
+                        (num, set(t.arc.winners[b].tolist())))
                 pos[b] += 1
         for b, (seed, _, _) in enumerate(group):
             mrr[seed] = rr[b] / max(cnt[b], 1)
+            if collect_arcs:
+                ovl[("mechanism", seed)] = _distractor_overlaps(arcs_by_pos[b])
             if collect_margin:
                 ovl[("margin", seed)] = float(np.mean(margins[b])) if margins[b] else float("nan")
             if collect_state:
@@ -627,7 +639,7 @@ def main_successor(seeds, horizons=(0, 1, 2), n_arc=10000, gap=1, gain=1.0):
     _write(out, f"_successor_chain_gap{CHAIN_GAP}_g{SUCCESSOR_GAIN}")
 
 
-def main_temporal(seeds, gains=(0.0, 1.0, 4.0), n_arc=10000, gap=2):
+def main_temporal(seeds, gains=(0.0, 1.0, 4.0), n_arc=10000, gap=2, mechanism=False, tag=""):
     """PREREG_temporal_memory.md, cells A: state = previous arc, predicted
     neurons win at gain g, on the chain corpus; state-blind audit per g."""
     global CORPUS, CHAIN_GAP, STATE_MODE, PREDICT_GAIN
@@ -645,7 +657,8 @@ def main_temporal(seeds, gains=(0.0, 1.0, 4.0), n_arc=10000, gap=2):
     verdicts = {}
     for g in gains:
         PREDICT_GAIN = float(g)
-        m, ov = a3_hashed(seeds, n_arc=n_arc, beta=BETA, collect_state=True)
+        m, ov = a3_hashed(seeds, n_arc=n_arc, beta=BETA, collect_state=True,
+                          collect_arcs=mechanism)
         cell = ensemble_from_values([m[s] for s in seeds], f"tm(g={g})", keys=seeds)
         d = paired_delta(cell, bigram, label=f"tm(g={g}) - bigram")
         h4 = ensemble_from_values([ov[s] for s in seeds], f"arc_overlap(g={g})", keys=seeds)
@@ -657,6 +670,15 @@ def main_temporal(seeds, gains=(0.0, 1.0, 4.0), n_arc=10000, gap=2):
                         "delta_bigram": {"mean": d.mean, "ci": d.ci, "values": list(d.values)},
                         "overlap": {"mean": h4.mean, "ci": h4.ci},
                         "blind_delta": {"mean": bd.mean, "ci": bd.ci, "values": list(bd.values)}}
+        if mechanism:
+            same = ensemble_from_values([ov[("mechanism", s_)]["same"] for s_ in seeds], f"same-number arc overlap(g={g})", keys=seeds)
+            diff = ensemble_from_values([ov[("mechanism", s_)]["diff"] for s_ in seeds], f"different-number arc overlap(g={g})", keys=seeds)
+            gapd = paired_delta(same, diff, label=f"same - different (g={g})")
+            print(f"    {same}\n    {diff}\n    {gapd}", flush=True)
+            out[f"g{g}"]["mechanism"] = {"same": same.mean, "diff": diff.mean,
+                                         "delta": {"mean": gapd.mean, "ci": gapd.ci, "low": gapd.low}}
+            verdicts[f"TM-9 g={g}: same-number minus different-number arc overlap "
+                     f"{'>= 0.10' if g > 0 else 'within 0.02'}"] = (gapd.low >= 0.10) if g > 0 else (abs(gapd.mean) <= 0.02)
         if g == 0.0:
             verdicts["TM-1 copy-state alone: reported"] = True
         else:
@@ -666,7 +688,38 @@ def main_temporal(seeds, gains=(0.0, 1.0, 4.0), n_arc=10000, gap=2):
     for name, ok in verdicts.items():
         print(f"  {'PASS' if ok else 'FAIL'}  {name}")
     out["verdicts"] = verdicts
-    _write(out, f"_temporal_chain_gap{CHAIN_GAP}")
+    _write(out, f"_temporal_chain_gap{CHAIN_GAP}{tag}")
+
+
+def _number_of(word):
+    """The chain corpus's number of a word's sentence: every word carries
+    the subject's number except the distractor nouns, whose number is their
+    own; the SUBJECT number of a sentence is read from its first word."""
+    import ntp_agree
+    return ntp_agree.CLASS[word].split("_")[1]
+
+
+def _distractor_overlaps(arcs_by_pos):
+    """At each distractor position (odd positions in the chain: 1, 3, 5 with
+    gap 1; 1, 2, 4, 5, ... with gap 2 -- every position whose word is a
+    NOUN), the mean arc overlap (fraction of k) between pairs of test
+    sentences with the same subject number and with different numbers.
+    The subject number is that of the sentence's FIRST word, which the
+    caller records at position 0."""
+    same, diff = [], []
+    # the subject number per sentence: position 0's entries, in order
+    subj = [num for num, _ in arcs_by_pos.get(0, [])]
+    for p_, entries in arcs_by_pos.items():
+        if p_ == 0 or len(entries) != len(subj):
+            continue
+        sets = [a for _, a in entries]
+        for i in range(len(sets)):
+            for j in range(i + 1, len(sets)):
+                k_ = max(len(sets[i]), 1)
+                ov = len(sets[i] & sets[j]) / k_
+                (same if subj[i] == subj[j] else diff).append(ov)
+    return {"same": float(np.mean(same)) if same else float("nan"),
+            "diff": float(np.mean(diff)) if diff else float("nan")}
 
 
 def _feature_tables(words):
@@ -737,7 +790,10 @@ if __name__ == "__main__":
         gs = ([float(x) for x in sys.argv[sys.argv.index("--gains") + 1].split(",")]
               if "--gains" in sys.argv else (0.0, 1.0, 4.0))
         gap = int(sys.argv[sys.argv.index("--gap") + 1]) if "--gap" in sys.argv else 2
-        main_temporal(HASHED_SEEDS[:n_seeds], gains=tuple(gs), gap=gap)
+        start = int(sys.argv[sys.argv.index("--seed-start") + 1]) if "--seed-start" in sys.argv else HASHED_SEEDS[0]
+        tag = sys.argv[sys.argv.index("--tag") + 1] if "--tag" in sys.argv else ""
+        main_temporal(list(range(start, start + n_seeds)), gains=tuple(gs), gap=gap,
+                      mechanism="--mechanism" in sys.argv, tag=tag)
     elif "--successor" in sys.argv:
         n_seeds = int(sys.argv[sys.argv.index("--seeds") + 1]) if "--seeds" in sys.argv else len(HASHED_SEEDS)
         hs = ([int(x) for x in sys.argv[sys.argv.index("--horizons") + 1].split(",")]
