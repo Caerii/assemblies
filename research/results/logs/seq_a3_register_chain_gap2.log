@@ -1,0 +1,33 @@
+'vswhere.exe' is not recognized as an internal or external command,
+operable program or batch file.
+=== feature register on the chain corpus, gap 2 (PREREG_feature_register.md) ===
+    bigram: 0.1221 +/- 0.0043 (n=20, 0.0999..0.1367)
+    oracle: 0.3360 +/- 0.0061 (n=20, 0.2993..0.3630)
+      n_arc=10000 beta=0.1 seeds 42..50 (9 brains, 1800 train steps)  [31s]
+      n_arc=10000 beta=0.1 seeds 51..59 (9 brains, 1800 train steps)  [28s]
+      n_arc=10000 beta=0.1 seeds 60..61 (2 brains, 1800 train steps)  [29s]
+    reg(gated): 0.2398 +/- 0.0108 (n=20, 0.1899..0.2771)
+    reg(gated) - bigram: 0.1177 +/- 0.0108 (n=20, 0.0721..0.1610)
+      n_arc=10000 beta=0.1 seeds 42..50 (9 brains, 1800 train steps)  [29s]
+      n_arc=10000 beta=0.1 seeds 51..59 (9 brains, 1800 train steps)  [34s]
+      n_arc=10000 beta=0.1 seeds 60..61 (2 brains, 1800 train steps)  [30s]
+    reg(gated_state_blind): 0.1632 +/- 0.0075 (n=20, 0.1238..0.1863)
+    reg(gated_state_blind) - bigram: 0.0410 +/- 0.0082 (n=20, 0.0041..0.0749)
+      n_arc=10000 beta=0.1 seeds 42..50 (9 brains, 1800 train steps)  [27s]
+      n_arc=10000 beta=0.1 seeds 51..59 (9 brains, 1800 train steps)  [29s]
+      n_arc=10000 beta=0.1 seeds 60..61 (2 brains, 1800 train steps)  [27s]
+    reg(gated_register_blind): 0.1333 +/- 0.0049 (n=20, 0.1102..0.1542)
+    reg(gated_register_blind) - bigram: 0.0111 +/- 0.0047 (n=20, -0.0045..0.0311)
+      n_arc=10000 beta=0.1 seeds 42..50 (9 brains, 1800 train steps)  [28s]
+      n_arc=10000 beta=0.1 seeds 51..59 (9 brains, 1800 train steps)  [26s]
+      n_arc=10000 beta=0.1 seeds 60..61 (2 brains, 1800 train steps)  [23s]
+    reg(ungated): 0.1220 +/- 0.0040 (n=20, 0.1057..0.1405)
+    reg(ungated) - bigram: -0.0001 +/- 0.0034 (n=20, -0.0157..0.0106)
+
+=== BARS ===
+  FAIL  FR-1 gated register closes the gap (lower bound >= 0.15)
+  FAIL  FR-2 register carries it with the state empty (lower bound >= 0.15)
+  PASS  FR-3 register-blind falls back (upper bound <= 0.05)
+  PASS  FR-4 ungated register fails (upper bound <= 0.05)
+
+wrote C:\Users\locke\AppData\Local\Temp\claude\F--Github-assemblies\a968bc04-8bed-4a5d-9219-07986a97c5ba\scratchpad\wt_dev\research\results\sequence\seq_a3_transducer_results_register_chain_gap2.json

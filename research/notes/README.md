@@ -54,7 +54,7 @@ sections of the notes use variants.
 | Sampler audit | measured | two of three audited entries stand materialized; the load window's lower edge was the sampler's | [PREREG_sampler_audit.md](sequence/PREREG_sampler_audit.md) |
 | Successor state | closed, negative | a state teacher-forced toward its next h words carries nothing across two distractors (+0.000 and +0.003 over a bigram) | [PREREG_successor_state.md](sequence/PREREG_successor_state.md) |
 | Temporal memory | adopted | with the previous arc as state and predicted neurons winning, the transducer carries agreement across two and three distractors (+0.149 and +0.106 over a bigram) and predicts order-10 sequences exactly inside the clip window | [PREREG_temporal_memory.md](sequence/PREREG_temporal_memory.md) |
-| Feature register | running | a structured slot (REG area written by gated words) beside the temporal memory, same corpus and seeds | [PREREG_feature_register.md](sequence/PREREG_feature_register.md) |
+| Feature register | closed, not adopted | a category-gated slot carries 55% of the oracle gap (+0.118), needs the state beside it, and loses to the local-rule temporal memory (+0.148) on the same seeds | [PREREG_feature_register.md](sequence/PREREG_feature_register.md) |
 
 ## Refracted memory
 

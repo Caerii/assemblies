@@ -60,3 +60,42 @@ substrate where three learning-rule constructions did not, and that the
 gate, not the memory, is what the substrate lacks. FR-1 passing with FR-4
 failing would mean the arc reads the register's LAST write regardless of
 gating, which would be a different mechanism and is reported as such.
+
+## Result (2026-09-09, chain corpus gap 2, seeds 42..61, 20 brains, n = n_arc = n_reg = 10,000, k = 200)
+
+Run: `seq_a3_transducer.py --engine hashed --register --seeds 20`; results
+in `research/results/sequence/seq_a3_transducer_results_register_chain_gap2.json`,
+log in `research/results/logs/seq_a3_register_chain_gap2.log`; run from a
+worktree pinned at 62ac158 (the int8 build).
+
+| Arm | MRR | MRR - bigram (paired) | bar | verdict |
+|-----|-----|-----------------------|-----|---------|
+| bigram | 0.1221 +/- 0.0043 | | | |
+| oracle | 0.3360 +/- 0.0061 | (gap 0.214) | | |
+| gated register | 0.2398 +/- 0.0108 | +0.1177 +/- 0.0108, lower bound 0.107 | FR-1 lower bound >= 0.15 | FAIL |
+| gated, state held empty | 0.1632 +/- 0.0075 | +0.0410 +/- 0.0082 | FR-2 lower bound >= 0.15 | FAIL |
+| gated, register held empty | 0.1333 +/- 0.0049 | +0.0111 +/- 0.0047, upper bound 0.016 | FR-3 upper bound <= 0.05 | PASS |
+| ungated register | 0.1220 +/- 0.0040 | -0.0001 +/- 0.0034 | FR-4 upper bound <= 0.05 | PASS |
+
+FR-5 (agreement-site accuracy) was not produced: the harness reports MRR
+only. It is owed if this line is reopened.
+
+**Not adopted.** Adoption needed FR-1, FR-3 and FR-4; FR-1 fails. The
+gated register carries 55 percent of the oracle gap, not the 70 registered,
+and it does not carry it alone: with the state area empty the gain falls
+to 0.041, with the register empty to 0.011, so the register and the
+induced state are complementary (the register holds the number, the state
+the phase), which is the opposite of FR-2's prediction that the register
+would suffice. FR-3 and FR-4 hold as predicted: without the register the
+transducer is the registered null (+0.011, the A3 result), and an ungated
+register that every noun overwrites carries nothing (-0.000). The gate
+does the work; the memory without the gate is worthless here.
+
+**TM-10, side by side.** On the same corpus and seeds the local-rule
+temporal memory (`SEQ-TEMPORAL-CARRY`, copy state with predicted-win, no
+gate supplied by structure) gives +0.148; the hand-gated structured slot
+gives +0.118. The learning-rule construction beats the slot that was built
+to show what the substrate lacked. The register's remaining case is a
+feature the arc chain cannot carry across a long gap; that has not been
+measured (the temporal memory's decay law has two points, 72 and 60
+percent at gaps 2 and 3).
