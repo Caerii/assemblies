@@ -971,3 +971,30 @@ warnings in 1.63s. Specification links, theory rendering/citations and both
 ratchets: 27 passed in 40.57s. Ruff passed changed program/new tests. No engine,
 golden, adoption bar or historical result was changed. The full package audit
 was not repeated; only this identified failure is verified repaired here.
+
+
+## Readable untrained arc control
+
+The full-audit NemoArcFSM null attempted to observe an arc with fewer than k
+materialized neurons. Read-only rejection was correct; that state is not a valid
+learning-disabled observation. The test now explicitly materializes the arc before
+its untrained read and checks population preservation. A separate cold-read case
+asserts rejection without recruitment. The five arc-organ controls moved intact
+(apart from this correction/new case) into test_nemo_arc_contract.py and now enter
+the CPU contract workflow independently of unresolved Markov PFA tests.
+NemoArcFSM.run links the initialization specification and documents the precondition.
+No engine or run behavior changed.
+
+Diagnostic, not a registered study: seeds 42/43/44, p=.05, n=2000, k=40,
+beta=.1, full arc materialized before any transition teaching. For four a symbols
+from q0, the untrained trajectories were q0/q1/q1/q0, q0/q0/q0/q0,
+and q0/q0/q0/q1; ten trained presentations gave q1/q0/q1/q0,
+q1/q1/q0/q0, and q1/q0/q1/q0. Seed 43 did not recover the target sequence;
+this is retained rather than claiming reliability from the test fixture. Changing
+the initialization changes the sampled construction and needs separate scientific
+evidence before adoption.
+
+Five focused controls passed in 2.19s; Ruff passed. Full contract workflow,
+including the preceding reciprocal controls: 1170 passed, one skipped, six
+sampled-engine warnings in 108.78s (.cache/nemo-null-contract-gate.log).
+The full package audit was not repeated and broader failures remain open.

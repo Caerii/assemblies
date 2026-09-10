@@ -194,7 +194,9 @@ class NemoArcFSM:
         return self.read_state()
 
     def run(self, symbols: Sequence[str], start_state: str) -> List[str]:
-        """Run a symbol string from *start_state*; return the state trajectory.
+        """Specification: neural_assemblies/ir/VERIFICATION.md#contract-nemo-arc-observation
+
+        Run a symbol string from *start_state*; return the state trajectory.
 
         Runs inside ``brain.probe()``, the sanctioned read context. Turning
         plasticity off is NOT sufficient: projection still RECRUITS, which
@@ -204,6 +206,12 @@ class NemoArcFSM:
         and the refraction bias provably unchanged. See
         [[probe-isolation-required]] -- recruitment, not plasticity, is the
         channel by which a readout changes what it is reading.
+
+        The arc must already have at least k materialized neurons. Training
+        can establish that population; for an untrained control, explicitly call
+        brain.materialize_area(fsm.arc_area) before run(). A cold area raises
+        rather than recruiting during observation. Materialization is not learning
+        and does not establish correct transitions.
 
         ``probe()`` also implies ``frozen()``, so the arc charges no refraction
         bias here, matching the reference's ``update=False``: one step of a

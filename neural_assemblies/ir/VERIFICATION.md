@@ -1321,3 +1321,17 @@ cross-repository test delegates to this function instead of rebuilding a schedul
 under a Brain-level default. Golden values and tolerances remain unchanged.
 A beta-zero control must move the score; it does not certify theorem equivalence
 or fixed-connectome sequence behavior.
+
+
+<a id="contract-nemo-arc-observation"></a>
+### Refracted-arc observation initialization
+
+NemoArcFSM.run reads inside brain.probe: learning, bias charging and recruitment
+are prohibited. A cold arc with fewer than k materialized neurons cannot be read.
+A mechanism-disabled control must instead initialize a population before observing
+it, e.g. brain.materialize_area(fsm.arc_area) without transition teaching. This
+initialization is not proof of learned transitions. In particular, materializing
+before training changes the sampled construction and needs its own evidence.
+The separate test_nemo_arc_contract.py covers cold rejection, initialized untrained
+readout, trained behavior, unchanged readout bias, and accumulated training bias.
+The Markov PFA controls remain separate and unresolved.
