@@ -1980,3 +1980,31 @@ vertical marker identifies the preregistered primary level.
 Final shared-runner and context analysis suite: 71 passed in 22.35s. Both artifacts
 also passed the standalone evidence validator after the registration result was
 appended; original pre-run registration bytes remain preserved in source.zip.
+
+
+## Signed zero-drive semantics (2026-09-10)
+
+A constructed balanced input vector has +1 on neurons 0..9, -1 on 10..19,
+zero elsewhere, and old winners 90..99. Its total is zero but it is not silent.
+Before the fix, NumPy retained 90..99 while CUDA selected 0..9: one failed and
+one passed analytical control in 5.42s. NumPy now detects zero drive with an
+all-zero check, matching CUDA's existing rule. The source-linked noise contract
+states the distinction. No threshold, noise protocol, or historical result changed.
+
+Focused seeded-observation/context suite: 55 passed in 13.91s, including both
+backend signed-drive controls and learning/noise nulls. Changed-Python Ruff and
+git diff --check passed. The full workflow contract gate is being checked separately.
+
+A source audit also produced the
+[legacy cue-corruption card](SEMANTIC_CARDS.md#contract-legacy-cue-corruption).
+That older test file is a different perturbation protocol with unresolved training,
+readout, mutation, sampling-population and randomness discrepancies. Its behavior
+is not covered by the new registered Gaussian-drive result.
+
+Full workflow-selected contract suite: 1372 passed, 1 skipped, 6 warnings in
+163.38s (.cache/signed-drive-contract-gate.log), exit 0. This includes both ratchets,
+register rendering, specification links, the new context/noise protocol tests and
+previously corrected CUDA snapshots. This is not a full-package audit.
+
+Dedicated fused/CUDA parity suite: 122 passed, 11 warnings in 38.57s, exit 0
+(.cache/signed-drive-gpu-gate.log), with fused build loaded on RTX 3080.

@@ -1168,3 +1168,22 @@ while overlap falls to about 46.7% and joint recovery to zero.
 See [the result, intervals and statistical limits](../../../research/notes/memory/PREREG_context_noise.md#results-2026-09-10)
 and [curve](context-noise.svg). This is scoped noise-1 evidence, not a general
 robustness range or population-perfect accuracy guarantee.
+
+
+## Signed drive and distinct noise protocols (2026-09-10)
+
+A balanced positive/negative drive is not silence. A constructed NumPy/CUDA control
+failed on NumPy (old winners retained) and passed on CUDA (positive-drive winners).
+NumPy now uses an all-zero predicate instead of testing the sum. The focused suite
+passed 55 tests; the full workflow contract gate passed 1372, with one skip.
+See [validation](VALIDATION.md#signed-zero-drive-semantics-2026-09-10).
+
+The next semantic gap is the old cue-corruption suite, which is separate from the
+new additive-noise study. The
+[source-derived card](SEMANTIC_CARDS.md#contract-legacy-cue-corruption) records missing
+recurrent training, mutable recovery, silently reduced corruption, process-dependent
+seeds and a recovery bar weaker than the retained cue. Those tests have not yet
+been rewritten or claimed as valid scientific evidence.
+
+The final dedicated fused/CUDA gate also passed 122 tests in 38.57s. No production
+source changed after either broad gate; full-package closure remains open.

@@ -733,3 +733,41 @@ not establish that those inputs were learned. The held-out fixture diagnosed in
 VALIDATION.md distinguishes grounding-only success from combined-cue failures;
 this is not an automatic reason to change the default or adopt new accuracy claims.
 See [the cue contract](../../../neural_assemblies/ir/VERIFICATION.md#contract-classification-cues).
+
+
+<a id="contract-legacy-cue-corruption"></a>
+### Legacy cue-corruption tests: observed code, not an adopted robustness claim
+
+Source: `neural_assemblies/tests/test_noise_robustness.py` (reviewed at ea871be).
+This file is not the additive-drive experiment in PREREG_context_noise.md.
+
+- State read: one sampled NumPy brain at seed 42; a stimulus-trained assembly;
+  the current compact winners and the recruited population count.
+- Training mutation: `project(..., rounds=10)` omits `recurrent=True`, despite the
+  module's stated recurrent-training protocol. The helper's default does not train
+  recurrent structure. Lexicon cases also re-project before each corruption.
+- Perturbation: replace floor(k*fraction) current positions with other recruited
+  compact positions, using Python random.Random. If fewer alternatives exist,
+  silently reduce the replacement count. The requested fraction is not guaranteed
+  to be the delivered fraction. This is neither full-population corruption nor
+  independent Gaussian input noise.
+- Recovery mutation: eight ordinary A->A projections, with learning/recruitment
+  available. These are not frozen measurements of the trained attractor.
+- Readout: overlap with the pre-corruption snapshot, or a fuzzy lexicon label.
+  The mild-corruption case only checks final overlap >.6 after retaining roughly
+  .8 of the cue; that bar does not require improvement over the corrupted input.
+  The chance comparisons use k/n despite replacement from the recruited population.
+- Randomness: the lexicon case uses hash(word), so the same explicit seed need not
+  reproduce its perturbation across processes. Different corruption fractions use
+  different seed streams rather than nested corruptions of one cue.
+- Claim discrepancy: monotonicity of these single-seed readouts, even if a test
+  passes, cannot establish a basin of attraction, frozen recovery, a noise law or
+  the robustness of the library. No mechanism-disabled recovery control is present.
+
+Required successor contract: record the perturbation space and actual replaced
+count; reject impossible requested corruption; use stable explicit seed identities;
+train recurrence explicitly on a materialized population; separate learning from
+read-only recovery; measure improvement relative to the delivered cue and construct
+an initialized no-recurrence/no-learning control before selecting acceptance bars.
+Do not relabel old numerical outcomes as this successor. This card records pending
+work; the legacy tests have not been rewritten or empirically revalidated here.

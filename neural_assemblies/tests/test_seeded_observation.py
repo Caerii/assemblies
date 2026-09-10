@@ -94,3 +94,19 @@ def test_mixed_owner_streams_are_distinct_and_restored():
         values = [rng.integers(0, 2**31, size=5) for rng in generators]
         assert not np.array_equal(values[0], values[1])
     assert [pickle.dumps(rng.bit_generator.state) for rng in generators] == before
+
+
+@pytest.mark.parametrize('engine', ['numpy_sparse', 'torch_sparse'])
+def test_balanced_signed_drive_is_not_silence(engine):
+    brain = make(engine)
+    brain.set_input_noise('A', 0.)
+    brain._engine.norm_init = False
+    connection = brain._engine._stim_conns['zero']['A']
+    connection.weights[:] = 0.
+    connection.weights[:10] = 1.
+    connection.weights[10:20] = -1.
+    brain._engine.set_winners('A', np.arange(90, 100, dtype=np.uint32))
+    # The sum is zero, but positive-drive neurons must beat both zero and negative.
+    with brain.read_only(seed=1):
+        brain.project({'zero': ['A']}, {})
+        np.testing.assert_array_equal(np.sort(brain.areas['A'].winners), np.arange(10))

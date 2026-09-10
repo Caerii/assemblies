@@ -443,3 +443,9 @@ noise-only control when context and recurrence are disabled. Zero synaptic drive
 with positive noise requires a fully materialized population. These controls test
 whether the measurement responds; a useful noise-tolerance range still requires a
 registered sweep. See the [source-linked contract](../neural_assemblies/ir/VERIFICATION.md#contract-context-choice).
+
+The [registered additive-noise study](../research/notes/memory/PREREG_context_noise.md)
+now reports the preselected noise-1 result on both backends. At noise 3, correct
+labels persisted while assembly overlap fell sharply; inspect both readout values.
+Replacing active neurons is a different perturbation, covered by the pending
+[cue-corruption contract](reviews/whole-codebase/SEMANTIC_CARDS.md#contract-legacy-cue-corruption).

@@ -1525,7 +1525,7 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
 
         # Zero signal -> preserve current assembly
         # Specification: neural_assemblies/ir/VERIFICATION.md#contract-noise-only-observation
-        zero_signal = len(prev_winner_inputs) > 0 and float(xp.sum(prev_winner_inputs)) == 0.0
+        zero_signal = len(prev_winner_inputs) > 0 and not bool(xp.any(prev_winner_inputs))
         if zero_signal and tgt.input_noise_std > 0 and tgt.w < tgt.n:
             raise ValueError('noise-only projection requires a fully materialized population')
         if zero_signal and tgt.input_noise_std == 0:

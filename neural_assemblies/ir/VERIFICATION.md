@@ -1469,7 +1469,9 @@ not use the legacy probe-isolation environment escape hatch.
 The NumPy sparse and Torch sparse engines previously preserved the incumbent assembly
 whenever accumulated synaptic drive was zero, even with positive configured input
 noise. That discarded the independent noise contribution before winner selection.
-The zero-signal shortcut now applies only at zero noise. Positive-noise zero-signal
+Zero signal means every accumulated drive entry is zero, not that signed entries
+cancel in their sum. A balanced positive/negative vector must still undergo
+selection. The zero-signal shortcut now applies only at zero noise. Positive-noise zero-signal
 selection requires a fully materialized population; a partial population raises
 instead of pretending to sample the absent population. Existing no-input scheduling
 semantics are unchanged: a zero-sized stimulus can explicitly schedule this read.
