@@ -33,7 +33,7 @@ from .._pricing import (
 from ..numpy_engine._sparse import (
     _fixed_target_plasticity_enabled as _np_fixed_target_plasticity_enabled,
 )
-from .._homeostasis import (HomeostasisConfig, check_area_homeostasis, refraction_increment, scaling_applies,
+from .._homeostasis import (HomeostasisConfig, check_area_homeostasis, validate_lri_parameters, refraction_increment, scaling_applies,
                             scaling_setpoint)
 from ..connectome import Connectome
 from ..engine import ComputeEngine, ProjectionResult
@@ -328,6 +328,8 @@ class TorchSparseEngine(ComputeEngine):
                  inhibition_strength: float = 0.0,
                  winner_policy=None,
                  input_noise_std: float = 0.0) -> None:
+        refractory_period, inhibition_strength = validate_lri_parameters(
+            refractory_period, inhibition_strength)
         area = TorchAreaState(
             name=name, n=n, k=k, beta=beta,
             refractory_period=refractory_period,
@@ -1454,6 +1456,8 @@ class TorchSparseEngine(ComputeEngine):
 
     def set_lri(self, area: str, refractory_period: int,
                 inhibition_strength: float) -> None:
+        refractory_period, inhibition_strength = validate_lri_parameters(
+            refractory_period, inhibition_strength)
         st = self._areas[area]
         st.refractory_period = refractory_period
         st.inhibition_strength = inhibition_strength

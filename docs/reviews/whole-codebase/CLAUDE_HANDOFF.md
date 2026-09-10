@@ -455,3 +455,12 @@ Unsupported runtime LRI now raises before Brain publishes parameters; history
 clearing and LRI changes use the area's owner. Five failures reproduced; focused
 checks 62 passed; workflow CPU gate 693 passed, 1 skipped. GPU verification and
 numeric parameter validation remain open. See [validation](VALIDATION.md).
+
+
+### LRI numeric validation
+
+One validator now checks/canonicalizes LRI inputs before constructors and setters
+mutate state. Invalid periods/strengths retain parameters, populated history and
+RNG state; NumPy scalar inputs work. Initial controls reproduced 41 failures;
+CPU gate 738 passed, 1 skipped; six existing LRI behavior tests passed. Torch still
+needs CUDA verification. See [validation](VALIDATION.md).

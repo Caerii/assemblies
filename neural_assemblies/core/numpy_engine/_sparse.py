@@ -27,7 +27,7 @@ from .._pricing import (
     area_fiber_activity,
 )
 from .._homeostasis import (column_scale, refraction_increment,
-                            scaling_applies, scaling_setpoint, HomeostasisConfig, check_area_homeostasis)
+                            scaling_applies, scaling_setpoint, HomeostasisConfig, check_area_homeostasis, validate_lri_parameters)
 from ..engine import ComputeEngine, ProjectionResult
 from ..connectome import Connectome
 from ..projection_fidelity import ProjectionFidelity
@@ -672,6 +672,8 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
                  inhibition_strength: float = 0.0,
                  winner_policy=None,
                  input_noise_std: float = 0.0) -> None:
+        refractory_period, inhibition_strength = validate_lri_parameters(
+            refractory_period, inhibition_strength)
         xp = self._xp
         area = SparseAreaState(name=name, n=n, k=k, beta=beta,
                                refractory_period=refractory_period,
@@ -2587,6 +2589,8 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
                 inhibition_strength: float) -> None:
         """Update LRI parameters for an area at runtime."""
         from collections import deque
+        refractory_period, inhibition_strength = validate_lri_parameters(
+            refractory_period, inhibition_strength)
         st = self._areas[area]
         st.refractory_period = refractory_period
         st.inhibition_strength = inhibition_strength

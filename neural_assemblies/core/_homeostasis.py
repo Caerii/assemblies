@@ -78,6 +78,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import os
+import math
+import sys
+from numbers import Integral, Real
 from typing import Any, Collection, Union
 
 __all__ = [
@@ -85,6 +88,7 @@ __all__ = [
     "refraction_increment",
     "scaling_applies",
     "HomeostasisConfig",
+    "validate_lri_parameters",
     "scaling_setpoint",
     "column_scale",
     "check_area_homeostasis",
@@ -92,6 +96,27 @@ __all__ = [
 ]
 
 ScalingSpec = Union[bool, Collection[str]]
+
+
+
+def validate_lri_parameters(refractory_period, inhibition_strength) -> tuple[int, float]:
+    """Specification: neural_assemblies/ir/VERIFICATION.md#contract-lri-parameters
+
+    Canonicalize accepted scalars before constructing history or publishing state.
+    The period must fit the backend's Python deque length representation.
+    """
+    if (isinstance(refractory_period, bool) or not isinstance(refractory_period, Integral)
+            or not 0 <= refractory_period <= sys.maxsize):
+        raise ValueError("LRI refractory_period must be a nonnegative platform-sized integer")
+    if isinstance(inhibition_strength, bool) or not isinstance(inhibition_strength, Real):
+        raise ValueError("LRI inhibition_strength must be a finite nonnegative real number")
+    try:
+        strength = float(inhibition_strength)
+    except OverflowError as exc:
+        raise ValueError("LRI inhibition_strength must be representable as a finite float") from exc
+    if not math.isfinite(strength) or strength < 0:
+        raise ValueError("LRI inhibition_strength must be a finite nonnegative real number")
+    return int(refractory_period), strength
 
 
 # ---------------------------------------------------------------------------

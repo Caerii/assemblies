@@ -268,3 +268,54 @@ def test_supported_lri_updates_both_states_and_resets_history():
     state._refractory_history.append([1])
     brain.clear_refractory('A')
     assert not state._refractory_history
+
+
+@pytest.mark.parametrize('period,strength', [
+    (-1, .2), (1.5, .2), (True, .2), ('3', .2), (2**100, .2),
+    (2, -.1), (2, float('nan')), (2, float('inf')), (2, True), (2, '.2'),
+])
+@pytest.mark.parametrize('surface', ['brain_set', 'engine_set', 'brain_add', 'engine_add'])
+def test_invalid_lri_parameters_preserve_state(period, strength, surface):
+    brain = Brain(p=.1, engine='numpy_sparse', norm_init=False)
+    brain.add_area('A', 20, 2)
+    brain.set_lri('A', 3, .2)
+    engine = brain._engine
+    state = engine._areas['A']
+    history = state._refractory_history
+    history.append({1})
+    rng_before = repr(engine._rng.bit_generator.state)
+    with pytest.raises(ValueError):
+        if surface == 'brain_set':
+            brain.set_lri('A', period, strength)
+        elif surface == 'engine_set':
+            engine.set_lri('A', period, strength)
+        elif surface == 'brain_add':
+            brain.add_area('B', 20, 2, refractory_period=period, inhibition_strength=strength)
+        else:
+            engine.add_area('B', 20, 2, .1, refractory_period=period, inhibition_strength=strength)
+    assert state.refractory_period == brain.areas['A'].refractory_period == 3
+    assert state.inhibition_strength == brain.areas['A'].inhibition_strength == .2
+    assert state._refractory_history is history and list(history) == [{1}]
+    assert 'B' not in brain.areas and 'B' not in engine._areas
+    assert repr(engine._rng.bit_generator.state) == rng_before
+
+
+def test_numpy_lri_scalars_are_canonicalized_without_changing_window():
+    brain = Brain(p=.1, engine='numpy_sparse', norm_init=False)
+    brain.add_area('A', 20, 2)
+    brain.set_lri('A', np.int64(2), np.float64(.25))
+    state = brain._engine._areas['A']
+    assert type(state.refractory_period) is int
+    assert type(brain.areas['A'].refractory_period) is int
+    state._refractory_history.extend([{1}, {2}, {3}])
+    assert list(state._refractory_history) == [{2}, {3}]
+
+
+@pytest.mark.parametrize('engine_name', ['numpy_exact', 'numpy_explicit'])
+@pytest.mark.parametrize('period,strength', [(False, 0), (0, float('nan'))])
+def test_unsupported_lri_backend_still_validates_numeric_inputs(engine_name, period, strength):
+    from neural_assemblies.core.engine import create_engine
+    engine = create_engine(engine_name, p=.1)
+    engine.add_area('A', 20, 2, .1)
+    with pytest.raises(ValueError):
+        engine.set_lri('A', period, strength)

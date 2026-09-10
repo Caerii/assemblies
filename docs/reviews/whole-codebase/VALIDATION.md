@@ -856,3 +856,25 @@ and diff checks passed. The preceding turn's 695 count included extra homeostasi
 tests; this run used the workflow's own list. No GPU execution, historical replay,
 full-package verdict or backend proof is claimed. Numeric LRI validation and
 arbitrary backend-failure rollback remain outside this contract.
+
+
+## Shared LRI numeric validation (2026-09-10)
+
+Forty-one controls reproduced invalid values being accepted or rejected only after
+parameter/history mutation, and a NumPy integer failing deque construction
+(62 existing passes). The shared `validate_lri_parameters` now runs before Area
+construction, supported engine registration/update, Brain update and the base
+unsupported-backend check. It canonicalizes nonboolean integral periods and finite
+nonnegative real strengths to Python scalars. Periods must fit the platform deque
+length; invalid inputs preserve existing history identity/content, parameter values,
+registrations and RNG state.
+
+Focused initial post-fix checks passed 103 tests; four additional unsupported-backend
+numeric cases are included in the final CPU workflow gate: 738 passed, 1 skipped,
+two expected sampled-engine warnings in 71.19 seconds (`.cache/lri-numeric-gate.log`).
+All six existing LRI behavior tests also passed, with expected sampled-engine
+warnings. Those tests are regression checks, not adopted sequence measurements.
+Ruff and diff checks passed. Torch calls the validator but CUDA execution remains
+unverified. Arbitrary allocation-failure rollback, direct legacy-field mutation,
+historical replays, the grounded-verb regression and wider model/IR unification
+remain open.

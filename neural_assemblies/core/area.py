@@ -102,6 +102,9 @@ class Area(ActivityState):
             refracted_strength (float): Magnitude of the per-firing
                 bias increment in refracted mode.
         """
+        from ._homeostasis import validate_lri_parameters
+        refractory_period, inhibition_strength = validate_lri_parameters(
+            refractory_period, inhibition_strength)
         self.name = name
         self.n = n
         self.k = k

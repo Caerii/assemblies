@@ -260,6 +260,9 @@ class ComputeEngine(ABC):
         disabled during memorization. Unsupported nondefault requests raise.
         Specification: neural_assemblies/ir/VERIFICATION.md#contract-area-controls
         """
+        from ._homeostasis import validate_lri_parameters
+        refractory_period, inhibition_strength = validate_lri_parameters(
+            refractory_period, inhibition_strength)
         if refractory_period != 0 or inhibition_strength != 0:
             raise NotImplementedError(f"{type(self).__name__} does not implement LRI")
 

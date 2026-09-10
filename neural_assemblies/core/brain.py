@@ -35,7 +35,7 @@ from collections import defaultdict
 
 from .backend import get_xp, to_cpu, detect_best_engine
 from .engine import ComputeEngine, create_engine
-from ._homeostasis import HomeostasisConfig, check_area_homeostasis
+from ._homeostasis import HomeostasisConfig, check_area_homeostasis, validate_lri_parameters
 from .index_spaces import CompactIdx, to_neuron_ids, validated_indices
 
 from .area import Area
@@ -1046,6 +1046,8 @@ class Brain:
         Typical workflow: add area without LRI, memorize sequences,
         then enable LRI for recall.
         """
+        refractory_period, inhibition_strength = validate_lri_parameters(
+            refractory_period, inhibition_strength)
         area = self.areas[area_name]
         self._engine_for(area).set_lri(area_name, refractory_period, inhibition_strength)
         area.refractory_period = refractory_period

@@ -744,5 +744,30 @@ does not exist, but it must reach the correct owner.
 Controls reject unsupported LRI on exact/dense and auxiliary dense areas, check
 unchanged descriptors, and exercise actual sampled LRI/history reset. Ownership
 spies ensure clearing cannot operate on the primary engine's auxiliary-area mirror.
-This does not promise rollback of arbitrary backend errors or validate every
-numeric LRI parameter; it establishes dispatch and unsupported-feature behavior.
+This does not promise rollback of arbitrary backend errors. Numeric input
+requirements are given by the shared LRI parameter contract below.
+
+
+<a id="contract-lri-parameters"></a>
+
+## LRI numeric input contract
+
+`core._homeostasis.validate_lri_parameters` is shared by public Area construction,
+Brain runtime updates, sampled/Torch area construction and setters, and the base
+unsupported-backend boundary. The refractory period is a nonboolean integral value
+in `[0, sys.maxsize]`, the representable deque-window range. Strength is a
+nonboolean real value convertible to a finite nonnegative Python float. NumPy
+integer/real scalars are accepted and canonicalized to Python int/float; strings,
+fractional periods, negative values, nonfinite strengths and booleans raise.
+Zero period remains a disabled window; it does not force stored strength to zero.
+
+Validation precedes parameter publication, history replacement, area registration
+and RNG-consuming population initialization. Controls preserve an existing populated
+history object, both descriptor/backend parameters and RNG state on rejected
+construction/update requests. An accepted NumPy-scalar control retains exactly
+the last two entries in a two-step window. Backend capability rejection still
+applies after numeric validation; valid input does not create an LRI implementation.
+
+This is input rejection, not a guarantee of rollback after arbitrary allocation or
+backend failure. Legacy fields can still be mutated directly. Torch uses the shared
+validator, but its CUDA execution remains a separate unverified gate.
