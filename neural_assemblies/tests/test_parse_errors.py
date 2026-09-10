@@ -291,22 +291,35 @@ class TestTryProjectOnARealBrain:
             f"arbitrary top-k")
 
     def test_an_UNDER_MATERIALIZED_target_refuses_to_answer(self):
-        """pool <= k must be an error, not a confident True.
-
-        Without materialisation an untouched area holds ~k neurons, every one
-        of them wins, and the cap cannot move -- so the untrained pathway reads
-        stable=True at jaccard 1.0000. That is the vacuous pass this guard
-        exists to convert into a loud failure.
-        """
-        from neural_assemblies.assembly_calculus.parse_errors import (
-            assembly_stability, try_project,
-        )
-
+        """A cold target cannot produce a measured Stability result."""
+        from neural_assemblies.assembly_calculus.parse_errors import assembly_stability, try_project
         b = self._brain(materialize=False)
-        st = assembly_stability(b, "A", "C")
-        assert not st.trustworthy, (
-            f"expected a starved pool, got {st.pool} for k={st.k}; if lazy "
-            f"materialisation now fills areas eagerly this guard is obsolete")
-        assert st.stable, "the vacuous case is precisely that it reads stable"
-        with pytest.raises(ValueError, match="vacuous"):
-            try_project(b, "A", "C")
+        pool = b._engine.materialized_count('C')
+        for probe in (assembly_stability, try_project):
+            with pytest.raises(ValueError, match='materialized'):
+                probe(b, 'A', 'C')
+            assert b._engine.materialized_count('C') == pool
+
+    def test_full_but_no_alternatives_is_measured_and_untrustworthy(self):
+        """pool == k can run, but a perfect score is still not evidence."""
+        from neural_assemblies import Brain
+        from neural_assemblies.assembly_calculus.parse_errors import assembly_stability, try_project
+        b = Brain(p=1, engine='numpy_explicit', norm_init=False)
+        for name in ('A', 'C'):
+            b.add_area(name, 4, 4)
+        b.areas['A'].winners = np.arange(4, dtype=np.uint32)
+        st = assembly_stability(b, 'A', 'C')
+        assert st.stable and st.jaccard == 1
+        assert st.pool == st.k == 4 and not st.trustworthy
+        with pytest.raises(ValueError, match='vacuous'):
+            try_project(b, 'A', 'C')
+
+
+@pytest.mark.parametrize('rounds', [0, -1, True, 1.5])
+def test_stability_rejects_invalid_rounds_before_observation(rounds):
+    from types import SimpleNamespace
+    from neural_assemblies.assembly_calculus.parse_errors import assembly_stability
+    def fail():
+        pytest.fail('invalid rounds reached neural observation')
+    with pytest.raises(ValueError, match='rounds'):
+        assembly_stability(SimpleNamespace(read_only=fail), 'A', 'C', rounds=rounds)

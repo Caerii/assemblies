@@ -35,7 +35,7 @@ from collections import defaultdict
 
 from .backend import get_xp, to_cpu, detect_best_engine
 from .engine import ComputeEngine, create_engine
-from .registration import validate_input_noise, validate_area_registration, validate_stimulus_registration
+from .registration import validate_round_count, validate_input_noise, validate_area_registration, validate_stimulus_registration
 from ._homeostasis import HomeostasisConfig, check_area_homeostasis, validate_lri_parameters
 from .index_spaces import CompactIdx, to_neuron_ids, validated_indices
 
@@ -1321,8 +1321,7 @@ class Brain:
         independently of this compatibility policy, use ordinary project calls
         or assembly_calculus.ops.project's explicit recurrent argument.
         """
-        if isinstance(rounds, bool) or not isinstance(rounds, (int, np.integer)) or rounds < 1:
-            raise ValueError("rounds must be a positive integer")
+        rounds = validate_round_count(rounds)
         if target not in self.areas:
             raise IndexError(f"Not in brain.areas: {target}")
         stim_in, area_in = self._projection_inputs(

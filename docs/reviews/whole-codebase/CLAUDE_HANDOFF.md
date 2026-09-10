@@ -618,3 +618,16 @@ Eight legacy coin paths, three classifier checks and one cold-stability expectat
 remain unresolved from that audit. Do not restore corrupted-index goldens by relaxing
 the boundaries. Torch execution and historical numerical parity remain open. See
 [validation](VALIDATION.md).
+
+
+## Stability gate and expanded GPU scope
+
+Cold targets now have an explicit error test, alongside an exactly-k vacuous
+control and trained/untrained contrast. Invalid round counts reject before
+observation; shared validation preserves the stability probe's explicit recurrence.
+The stability file joins CI: 1026 passed, 1 skipped, two expected warnings.
+
+The user has now authorized Astra to build and run GPU verification. The former
+Claude-only GPU allocation no longer applies; work stays in this checkout with
+an isolated extension cache and one GPU job at a time. GPU parity and historical
+replay remain open until measured. No merge to dev/master has occurred.

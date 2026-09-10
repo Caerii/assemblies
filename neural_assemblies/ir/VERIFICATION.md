@@ -1104,3 +1104,20 @@ This corrects future recruitment identities and can change downstream numerical
 results from affected paths. It does not repair persisted corrupted mappings or
 establish historical result parity. Source-based training-cache invalidation still
 applies; GPU execution is a separate gate.
+
+
+<a id="contract-observation-rounds"></a>
+## Observation round counts and stability
+
+`validate_round_count` accepts positive nonboolean integral counts and returns
+an integer. Both `Brain.project_rounds` and `assembly_stability` reject invalid
+counts before neural observation or mutation. Stability executes ordinary
+projection calls: the second observation includes target recurrence regardless
+of the compatibility schedule in `project_rounds`.
+
+A read-only target with fewer than k materialized neurons is unmeasurable and
+raises. Exactly k permits measurement but yields an untrustworthy stability
+score: there are no alternative winners. A larger pool permits a meaningful
+contrast, without guaranteeing an assembly. `test_parse_errors.py` checks cold
+rejection, the exactly-k vacuous control, and trained versus untrained separation.
+These are executable software contracts, not a formal proof or research adoption.

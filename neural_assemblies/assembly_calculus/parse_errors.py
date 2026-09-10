@@ -186,8 +186,9 @@ def assembly_stability(brain, source_area: str, target_area: str,
     projection under plasticity converges to a stable cap by construction.
 
     AND THE POOL MUST BE BIGGER THAN k -- check ``result.trustworthy``. Under
-    lazy materialisation an untouched area may hold fewer than ``k`` neurons,
-    in which case every one of them wins and stability is vacuous. Materialise
+    lazy materialisation a target with fewer than ``k`` neurons cannot be
+    probed and raises ValueError. With exactly ``k``, a measurement can run
+    but all neurons must win, so its stability is vacuous. Materialise
     the target first (``engine.materialize_area``) for the substrate the AC
     actually specifies: a fixed n neurons, all competing.
 
@@ -201,12 +202,15 @@ def assembly_stability(brain, source_area: str, target_area: str,
         Stability. Read ``trustworthy`` before ``stable``.
     """
     from .ops import _snap
+    from ..core.registration import validate_round_count
 
+    # Specification: neural_assemblies/ir/VERIFICATION.md#contract-observation-rounds
+    rounds = validate_round_count(rounds)
     with brain.read_only():
-        for _ in range(max(1, rounds)):
+        for _ in range(rounds):
             brain.project({}, {source_area: [target_area]})
         first = _snap(brain, target_area)
-        for _ in range(max(1, rounds)):
+        for _ in range(rounds):
             brain.project({}, {source_area: [target_area],
                                target_area: [target_area]})
         second = _snap(brain, target_area)

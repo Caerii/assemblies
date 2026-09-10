@@ -1229,3 +1229,23 @@ Torch uses the shared helper but was not executed. Future recruited identities a
 downstream numbers can change on affected paths; old corrupted mappings are not
 repaired and historical parity remains unproven. Remaining broad-audit failures
 were not suppressed, and no full-package completion is claimed.
+
+
+## Stability observation contract and GPU authorization
+
+Stability now shares positive nonboolean integral round validation with
+Brain.project_rounds, before entering read-only observation. It retains ordinary
+projection calls so the second observation cannot lose its recurrent self-edge.
+The cold-target expectation now matches the existing no-recruitment contract:
+pool < k raises, pool == k measures but is untrustworthy. The exactly-k control
+and trained/untrained contrast are retained in the CPU CI gate.
+
+Focused stability suite: 25 passed. CPU workflow gate: 1026 passed, 1 skipped,
+two expected sampled warnings in 85.70 seconds (`.cache/stability-gate.log`).
+Changed Python files pass Ruff; diff whitespace check passes. No research result
+or full-package completion follows from these software controls.
+
+The user explicitly authorized GPU builds, execution, empirical validation and
+performance work. This supersedes the earlier allocation of all GPU work to
+Claude. Execution remains serial with an isolated extension cache; main/dev and
+other sessions remain untouched. CUDA validation is pending at this checkpoint.

@@ -56,3 +56,10 @@ def validate_input_noise(std) -> float:
     if not math.isfinite(value) or value < 0:
         raise ValueError("input noise std must be a finite nonnegative real number")
     return value
+
+
+def validate_round_count(rounds) -> int:
+    """Specification: neural_assemblies/ir/VERIFICATION.md#contract-observation-rounds"""
+    if isinstance(rounds, bool) or not isinstance(rounds, Integral) or rounds < 1:
+        raise ValueError("rounds must be a positive integer")
+    return int(rounds)
