@@ -226,3 +226,22 @@ The remaining work is substantial. This plan does not authorize indiscriminate
 deletion or promise zero unknown defects. Its completion criterion is that the
 supported research path enforces the distinctions above and every retained
 alternative has a named role, evidence boundary and maintenance owner.
+
+## Maintenance and proof direction added 2026-09-10
+
+Keep model and protocol choices in immutable, validated configuration, with a
+single environment/CLI adapter and resolved values in the run record. Avoid
+creating switches for broken invariants. Keep compilation target descriptions
+separate from scientific model choices, even where both affect performance.
+
+The existing Assembly IR is the integration point for execution and verification
+bridges. See `neural_assemblies/ir/VERIFICATION.md` for the executable-vs-evidence
+boundary, generic Lean proof rules, and target schema requirements. Each bridge
+must supply its state relation, step simulation and readout compatibility; a
+shared file format alone does not establish semantic equivalence.
+
+Prioritize actual duplicate behavior after its semantic card is written:
+parser context resets, repeated training schedules, state synchronization and
+parallel configuration adapters. Track maintained production lines separately
+from tests, proofs and historical evidence. Retire old routes only after their
+consumers migrate; moving code to another directory is not a reduction.

@@ -48,6 +48,7 @@ import numpy as np
 
 from ..backend import to_cpu
 from ..engine import ComputeEngine, ProjectionResult
+from ..activity import ActivityState
 from .._pricing import inverse_indegree
 from ._seeding import (fnv1a_pair_seed, hash_area_cells, hash_area_indegree,
                        hash_area_rows, hash_stim_counts)
@@ -358,8 +359,9 @@ class _Potentiation:
         return applied
 
 
-class ExactAreaState:
+class ExactAreaState(ActivityState):
     """Per-area state. No `compact_to_neuron_id`: the index IS the neuron id."""
+    _activity_fields = ("winners", "w", "ever_fired", "fixed_assembly", "explicit_source")
 
     __slots__ = ("name", "n", "k", "beta", "winners", "fixed_assembly",
                  "beta_by_source", "ever_fired", "w", "explicit_source",
@@ -885,6 +887,7 @@ class NumpyExactEngine(ComputeEngine):
             result.pre_kwta_inputs = np.array(drive, dtype=np.float32, copy=True)
             result.pre_kwta_prev_only = np.zeros(0, dtype=np.float32)
             result.pre_kwta_total = float(drive.sum())
+            result.pre_kwta_count = int(drive.size)
         return result
 
     def _apply_plasticity(self, target: str, from_stimuli: List[str],

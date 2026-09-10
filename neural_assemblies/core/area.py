@@ -28,11 +28,12 @@ Mathematical Foundation:
 import numpy as np
 from typing import Dict, List, Optional
 
-from .backend import get_xp, to_cpu, xp_by_name, xp_name
+from .backend import get_xp, xp_by_name, xp_name
 from .index_spaces import CompactIdx
+from .activity import ActivityState
 
 
-class Area:
+class Area(ActivityState):
     """
     Neural Area for Assembly Simulation
     
@@ -62,6 +63,10 @@ class Area:
     - Mitropolsky, D., et al. "The Architecture of a Biologically Plausible 
       Language Organ." 2023.
     """
+
+    _activity_fields = ("_winners", "w", "_num_ever_fired", "_new_winners", "_new_w",
+                        "num_first_winners", "fixed_assembly", "ever_fired", "num_ever_fired")
+    _activity_history_fields = ("saved_winners", "saved_w")
 
     def __init__(
         self,

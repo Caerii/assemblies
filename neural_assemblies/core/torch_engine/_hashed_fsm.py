@@ -35,6 +35,8 @@ from ._hashed_transducer import StackedStimuli
 
 
 class HashedArcFSM:
+    """Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-transition-machine"""
+
     def __init__(self, brain_seeds, states: Sequence[str], symbols: Sequence[str],
                  transitions: Sequence[Tuple[str, str, str]], *, n_arc: int,
                  k: int, p: float, n_state: int | None = None, beta: float = 0.1,

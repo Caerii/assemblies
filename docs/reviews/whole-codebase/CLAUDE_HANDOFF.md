@@ -68,3 +68,22 @@ recurrence does not warn (covered by a test). The exact-engine comparison ladder
 deliberately includes the sampled substrate and narrowly filters this warning;
 ordinary API and warning tests do not suppress it. The hashed substrate parity
 suite explicitly materializes its NumPy reference.
+
+## Follow-up: observation semantics and IR formalization
+
+The next review checkpoint is `astra/ir-contracts`; `astra/refactor-1` stays pinned
+for the originally requested GPU gates. The new checkpoint changes per-area
+activity snapshots and rejects cold sampled projections inside `read_only`.
+GPU state restoration needs its own check in addition to the original parity
+suite. No GPU job or extension rebuild was launched here.
+
+Blocking compatibility finding: ERP calibration resets CONTEXT's count and ID
+mapping during observation. Three existing liveness-test setups now reject that
+path; see VALIDATION.md. No dev/master merge is ready. The caller's disposable
+context construction needs a separate contract before changing its numbers.
+
+The IR direction now includes a checked generic Lean refinement kernel and
+versioned target/verification obligations, described in
+`neural_assemblies/ir/VERIFICATION.md`. This is not a completed compiler or a
+formal proof of Python/Rust/CUDA. Source-to-specification links are mechanically
+checked and operation API prose is shortened around those contracts.

@@ -1,4 +1,7 @@
-"""Protocol document validation and export for cross-language parity."""
+"""Specification: neural_assemblies/ir/VERIFICATION.md#contract-ir-verification
+
+Protocol document validation and export for cross-language parity.
+"""
 
 from __future__ import annotations
 

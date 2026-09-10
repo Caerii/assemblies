@@ -105,6 +105,8 @@ class StackedStimuli:
 
 
 class HashedTransducer:
+    """Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-transducer"""
+
     def __init__(self, brain_seeds, vocab: Sequence[str], *, n: int,
                  n_arc: int | None = None, n_state: int | None = None,
                  k: int, p: float, beta: float = 0.10,

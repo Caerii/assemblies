@@ -1,0 +1,7 @@
+name = "assembly-contracts"
+version = "0.1.0"
+defaultTargets = ["AssemblyIR"]
+
+[[lean_lib]]
+name = "AssemblyIR"
+moreLeanArgs = ["-DwarningAsError=true"]

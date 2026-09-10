@@ -53,3 +53,8 @@ Clone Julia package:
 ```bash
 git clone https://github.com/Caerii/AssemblyCalculus.jl.git .reference/AssemblyCalculus.jl
 ```
+
+## Verification and compiler obligations
+
+See [the verification boundary](VERIFICATION.md) for the shared IR direction,
+checked Lean composition rules, target profiles, and remaining translation gaps.

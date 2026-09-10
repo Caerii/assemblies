@@ -37,3 +37,38 @@ audit's unresolved work without treating candidate orphans as proven dead files.
 See [REFACTOR_PLAN.md](REFACTOR_PLAN.md) for remaining migration and scientific
 gates. The run records remain UNJUDGED or VOID; this migration adopts no new
 assembly-calculus result.
+
+## 2026-09-10: observation state and IR proof obligations
+
+The new probe regressions first produced five failures: firing-count/history
+leaks, refractory-state leakage, cold-population materialization, and a missing
+exact-drive denominator. The targeted probe/link suite now passes 20 tests,
+including explicit NumPy, nested restoration and retained buffer references.
+
+A broader run passed 151 tests, xfailed one, and had three setup errors in
+`test_erp_probe_is_alive.py`. Its ERP path calls `_reset_area_activity`, which
+zeros CONTEXT's population and clears neuron mappings during a read. The stricter
+cold-population gate rejects that path. This is an unresolved caller migration,
+not a green full-suite result. Do not suppress it or automatically train inside
+a probe. First specify whether CONTEXT is a disposable construction or a trained
+population being observed, then give that choice its own protocol/control.
+The initial broad collection also exposed `test_explicit_projection.py` importing
+the removed root `brain` module; it was excluded from the subsequent run, not
+represented as passing.
+
+Lean 4.31.0 (installed) builds the generic schedule/refinement kernel. Local
+`lake env leanchecker AssemblyIR` succeeds. Printed theorem dependencies are
+empty or `propext`, with no `sorryAx`. The library builds with warnings as errors.
+This establishes conditional mathematical proof rules only: no backend simulation
+or Python-to-Lean extraction theorem has been implemented. The IR verification
+boundary records that gap. CI now includes the source-link/probe checks and a
+separate Lean job; GitHub execution remains unverified.
+
+The operations module loses 257 lines of repeated/contradictory API prose and
+historical narrative. This is a documentation-maintenance reduction, not a claim
+that execution became faster or that 257 lines of duplicate algorithms vanished.
+The activity repair adds explicit state declarations and stronger tests.
+
+The final selected CPU gate (all workflow-listed tests plus operation conformance)
+passed **164 tests**, skipped **1**, with expected sampled-engine warnings. This
+selected pass does not include or resolve the ERP setup failures above.

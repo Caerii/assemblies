@@ -582,6 +582,7 @@ class TorchSparseEngine(ComputeEngine):
     def project_into(self, target, from_stimuli, from_areas,
                      plasticity_enabled=True, record_activation=False):
         tgt = self._areas[target]
+        self.validate_probe_target(target)
         rng = np.random.default_rng(self._rng.integers(0, 2**32))
 
         # Filter sourceless areas

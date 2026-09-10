@@ -2,8 +2,10 @@
 
 Code baseline: 15a7ed9, parent 3334876. These cards were derived from executable
 bodies and their called helpers, then compared with prose and the register.
-They describe current behavior, not desired behavior or independently reproduced
-science. CUDA arithmetic is followed through the Python dispatch; kernel-level
+The original cards describe baseline behavior, not desired behavior or independently
+reproduced science. Resolution sections below record subsequent changes. Source
+docstrings link stable contract IDs; `python -m research.evidence specifications`
+checks their destinations without importing CUDA modules. CUDA arithmetic is followed through the Python dispatch; kernel-level
 equivalence still requires Claude's hardware gates.
 
 Each discrepancy has an ID. A future contract must resolve the discrepancy with
@@ -17,6 +19,8 @@ The memory card relates to REFRACTION-ANTI-MERGING and
 REFRACTION-CANCELS-CONVERGENCE; the FSM card to SEQ-EXACT-RECOVERY and
 SEQ-REGIME-CLIFF; the transducer card to SEQ-TEMPORAL-CARRY. Those entries'
 preconditions and provenance caveats remain part of any claim made from a run.
+
+<a id="contract-projection"></a>
 
 ## P: projection
 
@@ -43,6 +47,8 @@ Code: `assembly_calculus/ops.py:project`, `core/brain.py:project_rounds`.
   compare stimulus-only and recurrent training. Matching final winners alone is
   insufficient to demonstrate learned recurrence.
 
+<a id="contract-reciprocal-projection"></a>
+
 ## R: reciprocal projection
 
 Code: `ops.py:reciprocal_project`; fixed-target paths in numpy engines.
@@ -63,6 +69,8 @@ Code: `ops.py:reciprocal_project`; fixed-target paths in numpy engines.
   experiment and must not be treated as this function's postcondition.
 - **Control:** disable the reverse learning fiber while leaving forward training
   and forward recall live; reverse recovery must distinguish that intervention.
+
+<a id="contract-association"></a>
 
 ## A: association
 
@@ -87,6 +95,8 @@ Code: `ops.py:associate` and `_associate_body`.
 - **Control:** cofire_rounds=0 retains single-parent training while removing the
   association phase. Confirm the readout distinguishes it before claiming success.
 
+<a id="contract-merge"></a>
+
 ## M: merge
 
 Code: `ops.py:merge`.
@@ -105,6 +115,8 @@ Code: `ops.py:merge`.
 - **M2:** shares the preexisting-clamp restoration defect with R/A.
 - **Control:** disable back_project for parent-recovery claims; remove one parent
   for conjunction claims. A single beta-zero null does not answer both.
+
+<a id="contract-completion"></a>
 
 ## C: completion
 
@@ -127,6 +139,8 @@ Code: `ops.py:pattern_complete`, `Brain.read_only`, `Assembly.overlap`.
   protocol. Its retained-cue overlap floor does not apply here.
 - **Control:** same reference/cue construction on a matched learning-disabled
   brain; test that a frozen target cannot masquerade as successful free recall.
+
+<a id="contract-memory"></a>
 
 ## H: refracted associative memory
 
@@ -155,6 +169,8 @@ Code: `core/torch_engine/_memory.py:AssemblyMemory`, `recurrent_fiber`;
 - **Control:** strength=0 with matched cue and readout, plus masked/net readout
   contrast. Preserve the distinction between representation and accessibility.
 
+<a id="contract-transition-machine"></a>
+
 ## F: assigned-state transition machine
 
 Code: `_hashed_fsm.py:HashedArcFSM`, `_arc_core.py:HashedArcCore`,
@@ -177,6 +193,8 @@ Code: `_hashed_fsm.py:HashedArcFSM`, `_arc_core.py:HashedArcCore`,
   not be assumed to skip state transitions without tracing StackedStimuli.
 - **Control:** disable arc->state learning while preserving the symbol/state
   conjunction; compare label accuracy and exact_fraction against trained controls.
+
+<a id="contract-transducer"></a>
 
 ## T: transducer
 
@@ -226,3 +244,38 @@ thirteen passed after repair. Other discrepancies above remain open.
 
 No new operation-protocol classes were introduced by this follow-up. The earlier
 uncommitted prototype remains outside the package in the worktree's ignored cache.
+
+<a id="contract-read-only"></a>
+
+## Read-only observation: executable obligations
+
+Implementation: `Brain.read_only`, `ComputeEngine.validate_probe_target`, and
+owner-declared `ActivityState` fields. This contract concerns projection inside
+an observation scope; arbitrary user mutation, adding areas, changing policies,
+or directly editing fibers inside the scope is not a supported transaction.
+
+- **Requires:** each sampled target already has at least k materialized neurons.
+  Reject a cold target before projection, including in a multi-target step.
+- **During:** plasticity and recruitment are disabled; winners may respond.
+  A sampled backend selects from its recruited population. This is a different
+  candidate set from a full fixed connectome, and must be named in the protocol.
+- **Restores on normal exit and exception:** facade and backend winners, clamp
+  flags, population/firing counts, ever-fired masks, refractory/refraction
+  activity, saved activity histories, local generator state and nesting flags.
+  Restore existing mutable buffers so references held by callers remain valid.
+- **Returns observational outputs:** latest drive scores and their population
+  denominator remain available; they are measurements, not retained learning.
+- **Control:** `frozen()` may deliberately initialize a sampled population.
+  A read-only probe must still change winners inside its scope when the drive
+  warrants it; retaining every winner would be a dead measurement.
+- **Evidence:** `test_probe_state_contract.py` exposed five failures before this
+  repair; `test_read_only_probes.py` checks nesting, exceptions, weights and
+  probe order. CPU checks cover sparse and fixed NumPy paths; GPU state support
+  still needs hardware gates. These are software obligations, not a scientific
+  result or proof that every caller uses an informative readout.
+
+C4 resolution: the previous cold-area exemption restored only visible counts,
+leaving a materialized backend behind. Cold read-only projection now raises.
+Initialize explicitly before probing; do not catch the error and call training
+inside the observation scope. Exact pre-kWTA measurements now report the number
+of candidates over which the summed drive was measured.

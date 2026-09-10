@@ -6,6 +6,7 @@ from typing import Optional
 
 import numpy as np
 import torch
+from ..activity import ActivityState
 
 # Threshold above which we use lazy ID generation instead of
 # pre-computing a full permutation of n neuron IDs.
@@ -13,8 +14,10 @@ LAZY_ID_THRESHOLD = 1_000_000
 
 
 @dataclass
-class TorchAreaState:
+class TorchAreaState(ActivityState):
     """Per-area state for TorchSparseEngine."""
+    _activity_fields = ("winners", "w", "fixed_assembly", "explicit_source",
+                        "_refractory_history", "_cumulative_bias")
     name: str
     n: int
     k: int

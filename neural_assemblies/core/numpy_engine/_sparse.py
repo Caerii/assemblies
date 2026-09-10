@@ -1242,6 +1242,7 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
     ) -> ProjectionResult:
         xp = self._xp
         tgt = self._areas[target]
+        self.validate_probe_target(target)
         rng = np.random.default_rng(self._rng.integers(0, 2**32))
 
         # A learning round may rewrite any block, so no CSR mirror survives it.

@@ -25,7 +25,7 @@ pytestmark = pytest.mark.filterwarnings("ignore::RuntimeWarning")
 
 
 def _brain(seed=42, n=2000, k=50):
-    b = Brain(p=0.05, seed=seed)
+    b = Brain(p=0.05, seed=seed, engine="numpy_sparse")
     for area in ("A", "B"):
         b.add_area(area, n=n, k=k, beta=0.1)
     b.add_stimulus("s", k)
@@ -152,23 +152,15 @@ def test_winners_still_move_inside_the_block():
     assert during.size == brain.areas["B"].k
 
 
-def test_an_area_below_k_recruits_inside_the_block_but_not_outside_it():
-    """The exemption for empty areas, and the limit of that exemption.
-
-    An area with nothing materialised has nothing to select from, so it is
-    allowed to recruit -- a silently short assembly would be a worse failure
-    than growth. But the exemption is about what the probe can SEE, not about
-    what the host keeps: the growth is rolled back on exit like everything
-    else, because "the host is unchanged" is the entire contract.
-
-    Both halves are asserted. Checking only the outside would pass on a probe
-    that measured nothing; checking only the inside would pass on a leak.
-    """
-    brain = Brain(p=0.05, seed=7)
+def test_cold_population_requires_initialization_before_read_only():
+    brain = Brain(p=0.05, seed=7, engine="numpy_sparse")
     brain.add_area("C", n=1000, k=50, beta=0.1)
     brain.add_stimulus("u", 50)
-    assert brain.areas["C"].w == 0
-    with brain.read_only():
+    with pytest.raises(ValueError, match="materialized"):
+        with brain.read_only():
+            brain.project({"u": ["C"]}, {})
+    assert brain.areas["C"].w == brain._engine._areas["C"].w == 0
+    # Frozen learning still allows deliberate population initialization.
+    with brain.frozen():
         brain.project({"u": ["C"]}, {})
-        assert brain.areas["C"].w >= brain.areas["C"].k
-    assert brain.areas["C"].w == 0
+    assert brain._engine._areas["C"].w >= 50

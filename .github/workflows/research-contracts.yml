@@ -28,9 +28,23 @@ jobs:
           neural_assemblies/tests/test_research_harness.py
           neural_assemblies/tests/test_public_model_boundaries.py
           neural_assemblies/tests/test_operation_semantic_cards.py
+          neural_assemblies/tests/test_probe_state_contract.py
+          neural_assemblies/tests/test_read_only_probes.py
+          neural_assemblies/tests/test_specification_links.py
           neural_assemblies/tests/test_migration_comparison.py
           neural_assemblies/tests/test_golden_comparator_contract.py
           neural_assemblies/tests/test_theory_citations.py
           neural_assemblies/tests/test_methodology_ratchet.py
           neural_assemblies/tests/test_index_space_ratchet.py
           neural_assemblies/tests/test_docs_examples_smoke.py
+
+  lean-contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: leanprover/lean-action@v1
+        with:
+          lake-package-directory: formal
+          use-mathlib-cache: "false"
+          leanchecker: "true"

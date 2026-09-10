@@ -58,6 +58,8 @@ def recurrent_fiber(seeds, n, p, *, beta, w_max, norm_init, synaptic_scaling,
 
 
 class AssemblyMemory:
+    """Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-memory"""
+
     def __init__(self, seeds, n, k, p, *, beta=0.1, w_max=20.0, norm_init=True,
                  synaptic_scaling=False, rounds=8, strength=0.5, gate=False,
                  max_items=4096, device="cuda"):

@@ -162,6 +162,19 @@ class ComputeEngine(ABC):
 
     # -- Optional overrides (concrete defaults) --
 
+    def snapshot_activity(self):
+        """Snapshot declared per-area dynamics, without copying learned fibers."""
+        return [state.snapshot_activity() for state in self._areas.values()]
+
+    def validate_probe_target(self, name):
+        """A sampled read cannot initialize a population as a side effect."""
+        if getattr(self, "_no_recruitment", False):
+            state = self._areas[name]
+            if state.w < state.k:
+                raise ValueError(
+                    f"{name}: read_only requires at least k materialized neurons; "
+                    "initialize/train the area or materialize it before probing")
+
     def get_neuron_id_mapping(self, area: str) -> Optional[list]:
         """Return compact-index-to-neuron-ID mapping, or None.
 

@@ -373,65 +373,19 @@ def _fixed_sources(brain, *names):
 
 
 def project(brain, stimulus, target, rounds=10, recurrent=False) -> Assembly:
-    """Run a stimulus projection schedule and return its final winner snapshot.
+    """Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-projection
 
-    Completion of the schedule does not certify stability or attractor formation.
+    Execute a stimulus schedule and return the final neuron-ID Assembly.
 
-    ``recurrent`` OPTS IN TO THE PROTOCOL AS DOCUMENTED BELOW, and defaults
-    False because the default path does NOT implement it. ``Brain.project_rounds``
-    filters the projection map with ``a != target`` unless
-    ``Brain(recurrent_projection=True)``, which itself defaults False -- so by
-    default this function runs stimulus-only on every round, with no
-    ``target -> target`` recurrence at all. What that builds is not an assembly
-    in the defining sense: [COIN24] §2 defines an assembly as "sets of k neurons
-    in a single brain area ... when the internal synaptic weights of the set have
-    been suf[f]iciently strengthened", and stimulus-only projection strengthens
-    no internal weight at all.
+    ``stimulus`` and ``target`` must already exist; ``rounds`` is a positive
+    integer. The first round is stimulus-only. ``recurrent=True`` explicitly
+    adds target recurrence on later rounds. Otherwise the tail delegates to
+    Brain.project_rounds, whose recurrence also depends on Brain configuration.
+    The compatibility default is False; it can train no recurrent structure.
 
-    The default is kept WRONG on purpose. The repository -- goldens, the parser,
-    and ~40 tests -- is calibrated on the stimulus-only path; flipping it is a
-    migration with its own re-baseline, not a bug fix. Measured when it was
-    flipped: ~40 test failures and the "not slow" suite hanging at 54%, because
-    below the stability threshold recurrence recruits without bound, ``w`` grows
-    every step, and projection cost scales with ``w`` -- callers do not fail,
-    they crawl.
-
-    PASS ``recurrent=True`` FOR NEW WORK, and mind the training window, which
-    has two walls pointing opposite ways
-    (``research/experiments/recurrent_assembly_decay.py``):
-
-    * a lone assembly re-selecting itself needs ``(1+beta)^rounds`` ABOVE the
-      population maximum -- roughly 6 at n=1e4, and the threshold RISES with n
-      (overlap 0.630 / 0.150 / 0.007 at n=2000 / 1e4 / 5e4 for a fixed 2.6);
-    * many assemblies sharing one target need the incumbent BELOW the level
-      where it dominates the k-cap -- past about 3, the first assembly stored
-      wins every later merge.
-
-    Use ``research/experiments/_substrate.py`` rather than calling this
-    directly: it wires the opt-in, the correct readout, and the window together.
-
-    This branch is bit-identical to ``project_rounds`` run with
-    ``Brain(recurrent_projection=True)``; it is the same fast-path recurrent
-    mode, reached without changing a global default.
-
-    Protocol::
-
-        1. stimulus → target                          (initial activation)
-        2. (stimulus → target) + (target → target)    × (rounds - 1)
-
-    Args:
-        brain: Brain instance with stimulus and target already added.
-        stimulus: Name of the stimulus.
-        target: Name of the target area.
-        rounds: Number of projection rounds (default 10).
-
-    Returns:
-        Assembly snapshot of the stabilized assembly in target.
-
-    Theory (Papadimitriou 2020, §2):
-        After O(log n) rounds, the assembly stabilizes: the set of
-        winners converges to a fixed set with overlap > 0.95 between
-        consecutive rounds.
+    Plasticity follows the brain/backend settings. This operation evaluates
+    neither stability nor partial-cue recovery. Use a registered training
+    schedule and a matched negative control before claiming assembly formation.
     """
     if isinstance(rounds, bool) or not isinstance(rounds, (int, np.integer)) or rounds < 1:
         raise ValueError("rounds must be a positive integer")
@@ -573,52 +527,18 @@ def read_binding(brain, source_area, target_area, source_assembly=None, *,
 
 def reciprocal_project(brain, source, target, rounds=10, *,
                        fix_source=True) -> Assembly:
-    """Project source into target, and train the RETURN path while doing it.
+    """Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-reciprocal-projection
 
-    Protocol (the reference's [ACREF], ``simulations.fixed_assembly_recip_proj``)::
+    Project ``source`` into ``target`` with a return edge on later rounds.
 
-        source is held fixed
-        1. source → target                                        (feed-forward)
-        2. (source → target) + (target → [target, source])         × (rounds - 1)
+    The first round is source -> target. Subsequent rounds also project target
+    to itself and source. ``source`` must have an established assembly.
+    With ``fix_source=True`` its winners are held steady for the schedule;
+    its original clamp flags are restored, including on exception.
 
-    THE ``target → source`` EDGE IS THE WHOLE POINT, and it was missing. Without
-    it this function was a plain one-way ``project`` with target recurrence, so
-    nothing ever wrote the target→source synapses -- while its own docstring
-    promised "the source assembly can be recovered by projecting back". It could
-    not be: there was nothing there to recover it with.
-
-    Holding the source fixed is what makes the return path meaningful rather
-    than merely present. The back-projection is written against a STATIONARY
-    source assembly, so those synapses encode the pattern that is to be
-    restored; if the source drifts under its own recurrence meanwhile, each
-    round potentiates toward a different target and the sum restores nothing.
-    (This depends on projections into a fixed area still applying plasticity,
-    which is the reference's behaviour -- see the sparse engine's
-    ``_fixed_target_plasticity_enabled``. It did not hold here until it was
-    fixed alongside this function, which is why adding the edge alone was not
-    enough.)
-
-    MEASURED against [ACREF]. Restoration overlap after projecting back, at
-    ``tests/test_assembly_calculus.py``'s parameters (n=1e4, k=100, p=0.05,
-    beta=0.1, rounds=10) -- reference implementation 0.75, this function 0.00
-    before the fix. At the reference's own defaults (n=1e5, k=317, p=0.01,
-    beta=0.05) the reference restores 0.246 on the first back-projection rising
-    to 0.344, matching the expectation written into that function's header
-    comment. Restoration is PARTIAL by nature: perfect restoration is the
-    signature of a dead fiber, not of a working one, and three of this repo's
-    conformance tests were green for exactly that reason.
-
-    Args:
-        brain: Brain instance.
-        source: Name of the source area (must have an established assembly).
-        target: Name of the target area.
-        rounds: Number of projection rounds (default 10).
-        fix_source: hold the source steady for the duration, so the return path
-            is written against one pattern. Leave True unless the source is
-            stimulus-driven and you are keeping it live yourself.
-
-    Returns:
-        Assembly snapshot of the new assembly in target.
+    Return a final neuron-ID Assembly in target. Return-edge learning depends
+    on the backend's fixed-target plasticity policy; the edge's presence does
+    not certify source recovery. Measure that separately with free winners.
     """
     with _fixed_sources(brain, *((source,) if fix_source else ())):
         brain.project({}, {source: [target]})
@@ -662,70 +582,21 @@ def consolidate_pair(
 def associate(brain, source_a, source_b, target,
               stim_a=None, stim_b=None, rounds=10, *,
               cofire_rounds=None) -> Assembly:
-    """Associate two source assemblies through a shared target area.
+    """Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-association
 
-    Protocol::
+    Train two pathways sequentially, then coactivate them into ``target``.
 
-        Phase 1: source_a → target         (rounds steps, with recurrence)
-        Phase 2: source_b → target         (rounds steps, with recurrence)
-        Phase 3: both sources → target     (rounds steps, simultaneous)
+    Each source receives ``rounds`` pathway-training steps. Joint activation
+    receives ``cofire_rounds`` steps, defaulting to rounds; zero is the
+    no-coactivation control. Excessive joint training can collapse the two
+    pathways into one representation, so the schedule is part of the claim.
 
-    Phase 3 is what does the associating.  Phases 1 and 2 only carve out the
-    two pathways; it is the co-firing in Phase 3 -- both sources driving the
-    same winners at the same time -- that potentiates a→target and b→target
-    synapses onto a SHARED winner set, pulling the two target assemblies
-    toward each other.  Note that this is a partial pull, not a merge: the
-    result is elevated overlap between the two, not identity.
+    ``stim_a`` and ``stim_b`` drive their respective sources when provided.
+    If both are absent, source clamps are scoped and restored. Providing only
+    one stimulus leaves both sources unclamped; do not assume the other is held.
 
-    If ``stim_a`` / ``stim_b`` are provided, stimuli remain active during
-    their respective phases to maintain source assemblies. Otherwise, source
-    assemblies are fixed before projection to prevent drift.
-
-    Args:
-        brain: Brain instance.
-        source_a: Name of the first source area.
-        source_b: Name of the second source area.
-        target: Name of the target area.
-        stim_a: Optional stimulus name that drives source_a.
-        stim_b: Optional stimulus name that drives source_b.
-        rounds: Number of rounds per phase (default 10).
-        cofire_rounds: Number of CO-ACTIVATIONS in phase 3, defaulting to
-            ``rounds``. This is [PNAS20]'s own independent variable -- it says
-            post-association overlap "increases with the extent of cooccurrence
-            (the number of consecutive simultaneous activations of the two
-            parents)" -- and it could not be varied before, because ``rounds``
-            moved the pathway training and the co-firing together. ``0`` gives
-            the natural control: both pathways trained, nothing associated.
-
-    Returns:
-        Assembly snapshot of the associated assembly in target.
-
-    Theory [PNAS20] §3:
-        After association, activating source_a alone and projecting to target
-        produces an assembly that significantly overlaps with the one source_b
-        alone produces -- "an overlap between associated assemblies in the MTL of
-        about 8 to 10% of the size of an assembly".
-
-        ASSOCIATION IS PARTIAL BY DEFINITION, and there is a budget past which
-        this operation stops being association at all. [PNAS20] treats associate
-        and merge as different operations: association leaves a partial overlap,
-        merge yields one assembly with both parents. Measured at n=1e4, k=50,
-        p=0.05, beta=0.1, as overlap between the two singly-cued readouts
-        (chance 0.005, 12 seeds; see tests/test_ac_conformance.py):
-
-            cofire_rounds      0   0.0167     5   0.0200
-                               1   0.0167    10   0.1217   <- the paper's band
-                               2   0.0167    20   0.9317   <- a merge
-                               3   0.0183
-
-        and against merge at the same parameters: rounds=10 gives associate
-        0.1425 vs merge 1.0000 (separated), rounds=20 gives 0.9850 vs 1.0000
-        (indistinguishable). So the default of 10 sits in the regime the paper
-        describes, and raising it does not "associate harder" -- it merges.
-
-        Consequence worth knowing: research/literature/parity records its goldens
-        at rounds=20, so associate_cue_overlap is pinned at 0.9875 against a
-        merge_cue_overlap of 1.0. That value is not association.
+    Return the final joint neuron-ID Assembly. No before/after singly-cued
+    comparison is performed; this function alone does not measure association.
     """
     use_fix = (stim_a is None and stim_b is None)
     with _fixed_sources(brain, *((source_a, source_b) if use_fix else ())):
@@ -814,130 +685,25 @@ def _associate_body(brain, source_a, source_b, target,
 def merge(brain, source_a, source_b, target,
           stim_a=None, stim_b=None, rounds=10, *,
           parent_self=True, target_self=True, back_project=True) -> Assembly:
-    """Merge assemblies from two source areas into a target area.
+    """Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-merge
 
-    Protocol::
+    Coactivate ``source_a`` and ``source_b`` into ``target`` from the first round.
 
-        1. (source_a → target) + (source_b → target)       (simultaneous)
-        2. Same + (target → target) + (target → sources)    × (rounds - 1)
+    ``parent_self`` enables source recurrence from the first round.
+    ``target_self`` and ``back_project`` enable target recurrence and return
+    edges on subsequent rounds. All default True. Record all three switches:
+    conjunction formation, forward retrieval and parent recovery are distinct
+    claims with different controls, particularly when many items share an area.
 
-    Key difference from associate: merge projects both sources
-    SIMULTANEOUSLY from step 1, and feeds the target back to sources
-    to create a single conjunctive assembly.
+    ``stim_a`` and ``stim_b`` drive their respective sources. When both are
+    absent, both sources are clamped temporarily; providing only one stimulus
+    leaves both unclamped. Return-edge learning also depends on the backend's
+    fixed-target plasticity policy. Existing clamp flags are restored on exit.
 
-    If ``stim_a`` / ``stim_b`` are provided, stimuli remain active to
-    maintain source assemblies. Otherwise, sources are fixed.
-
-    Args:
-        brain: Brain instance.
-        source_a: Name of the first source area.
-        source_b: Name of the second source area.
-        target: Name of the target area.
-        stim_a: Optional stimulus name that drives source_a.
-        stim_b: Optional stimulus name that drives source_b.
-        rounds: Number of projection rounds (default 10).
-        parent_self: Keep ``source -> source`` (default True).
-        target_self: Keep ``target -> target`` (default True).
-        back_project: Keep ``target -> sources`` (default True).
-
-    Returns:
-        Assembly snapshot of the merged assembly in target.
-
-    THE THREE RECURRENT CHANNELS, and when to gate them:
-        The defaults reproduce the protocol above exactly and are correct for
-        what this operation ports -- ONE merge, of one pair, as in
-        ``.reference/dmitropolsky-assemblies simulations.merge_sim``.
-
-        They are wrong for MANY merges through shared areas, which is this
-        project's extension and not the reference's. Each channel accumulates
-        potentiation across merges until it beats the next item's stimulus in
-        k-WTA, and all three collapse their areas at different points.
-        Measured n=1000 k=50 beta=0.1, 16 merges into one shared target, at
-        the merge round T where each first bites (mean pairwise overlap of the
-        16 items, against a random-pair floor of 0.0500; recall is rank-1
-        identity from cueing one parent):
-
-            channel                gates           collapses      by T
-            parent_self  source -> source          the PARENTS       5
-            target_self  target -> target          the TARGET       10
-            back_project target -> sources         the parents      20
-
-        parent_self is by far the strongest: gating it alone takes parent
-        overlap from 0.9431 to 0.0518 at T=5. back_project -- the channel this
-        docstring spends the most words on, and the one [PNAS20]'s "two-way
-        connectivity" refers to -- is the weakest, and gating it changed parent
-        overlap only from 0.9431 to 0.8266. The 3.47x parent potentiation
-        measured above is a genuine SINGLE-merge property; it does not survive
-        contact with sixteen of them.
-
-        With all three gated -- repeated stimulus-driven feed-forward
-        projection -- recall is 1.0000 and fidelity 0.9069 at T=10, against
-        0.9271 / 0.3825 for the defaults at their own best setting (T=2).
-        The merge CRITERION still holds without the back-projection: the
-        composed assembly is returned from EITHER parent alone, acc 1.0000
-        cueing source_b. So the two-way connectivity is not what the criterion
-        needs, at least for retrieval from a partial cue.
-
-        Rule of thumb: gate all three when the target holds MANY composed items;
-        keep the defaults when the areas hold one thing at a time. Same law as
-        ``core/brain.py:project_rounds`` documents for the lexicon -- the
-        potentiation that makes ONE assembly persist is what makes MANY
-        assemblies merge. See ``research/experiments/merge_recurrence_channels``
-        and ``merge_capacity_ladder``.
-
-    Theory (Papadimitriou 2020, §3):
-        The merged assembly in target responds to EITHER source alone.
-        This differs from association where two separate pathways are
-        created sequentially.
-
-    Why the feedback ``target -> [source_a, source_b]`` matters:
-        Without it the sources would be inert inputs and the target would
-        just be a downstream readout.  With it, all three areas settle
-        jointly: the target reshapes its own sources, and the fixed point is
-        a mutually-consistent triple.  This is the structural difference from
-        :func:`associate`, which never projects back, and it is what makes
-        merge the calculus's binding operation (the parser uses it to attach
-        a modifier to a head).
+    Return the final target neuron-ID Assembly, without a retrieval test.
     """
-    # DO NOT use _fix here to hold the parents steady, even though that is what
-    # every other operation in this file does. The engine SHORT-CIRCUITS a
-    # projection into a fixed area, returning before plasticity is applied (see
-    # _fix). Merge is the one operation that projects BACK into its sources --
-    # `target: [..., source_a, source_b]` below -- so fixing them silently
-    # discards exactly the two-way connectivity merge exists to create.
-    # Measured: weight potentiation between the merged assembly and its parents
-    # is 0.000 with fixed parents and 3.19x when they are driven.
-    #
-    # The reference (.reference/dmitropolsky-assemblies simulations.merge_sim)
-    # keeps the parent STIMULI firing on every round instead of pinning:
-    #     project({stimA:[A], stimB:[B]}, {A:[A,C], B:[B,C], C:[C,A,B]})
-    # When callers supply stimuli we do the same. When they do not, we
-    # reproduce the effect by re-activating the parent assemblies after each
-    # round -- stable like _fix, but still writable.
-    # PASS stim_a AND stim_b IF YOU NEED THE TWO-WAY CONNECTIVITY.
-    #
-    # Merge is the only operation here that projects BACK into its sources
-    # (`target: [..., source_a, source_b]` below), and that back-projection is
-    # what [PNAS20] means by "strong two-way synaptic connectivity between x
-    # and z". The engine short-circuits a projection into a FIXED area before
-    # plasticity is applied (see _fix), so the stimulus-less path cannot write
-    # those synapses. Measured potentiation between the merged assembly and its
-    # parents, n=10000 k=100 p=0.01 beta=0.05, 50 rounds:
-    #
-    #     stimulus-driven parents   B->A 3.47  A->B 2.52  C->A 3.52  A->C 2.75
-    #     fixed parents             no potentiation on the back-projection
-    #
-    # The reference (.reference/dmitropolsky-assemblies simulations.merge_sim)
-    # always drives the parents:
-    #     project({stimA:[A], stimB:[B]}, {A:[A,C], B:[B,C], C:[C,A,B]})
-    #
-    # Holding the parents steady by re-activating their assemblies each round
-    # instead of fixing them does NOT rescue this -- it is worse (ratios
-    # 0.64-1.38, i.e. none). Plasticity follows the winners the projection
-    # actually selects, so overwriting them afterwards potentiates the wrong
-    # cells. Driving the parents is the only way to keep them stable AND
-    # writable. The forward direction still works fixed, so the stimulus-less
-    # path remains valid for a one-way merge.
+    # Fixed versus stimulus-driven sources have different learning semantics;
+    # see the linked contract and the backend fixed-target plasticity policy.
     use_fix = (stim_a is None and stim_b is None)
 
     stim_dict = {}
@@ -968,42 +734,19 @@ def merge(brain, source_a, source_b, target,
 
 
 def pattern_complete(brain, area, fraction=0.5, rounds=5, seed=None):
-    """Test pattern completion from partial activation.
+    """Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-completion
 
-    Protocol::
+    Return ``(recovered_assembly, overlap_with_entry_assembly)`` after a partial cue.
 
-        1. Record current assembly as reference
-        2. Randomly subsample ``fraction`` of winners
-        3. Set subsampled winners, project area → area for ``rounds``
-        4. Measure overlap with reference
+    Snapshot the current winners of ``area`` as the reference; retain
+    floor(len(reference) * fraction) winners using ``random.Random(seed)``,
+    then perform ``rounds`` recurrent projections. The cue is not clamped.
+    Its initial overlap is therefore not a floor on the final score.
 
-    Args:
-        brain: Brain instance.
-        area: Name of the area with an established assembly.
-        fraction: Fraction of assembly neurons to keep (default 0.5).
-        rounds: Number of recurrent completion rounds (default 5).
-        seed: Optional random seed for reproducible subsampling.
-
-    Returns:
-        (recovered_assembly, overlap_with_original) tuple.
-
-    Theory:
-        A well-trained assembly is an attractor: partial activation
-        flows back to the full assembly through strengthened recurrent
-        connections. This function does not establish that the assembly was
-        well trained or enforce a recovery threshold; those require a stated
-        regime and a matched control.
-
-    Caveat on interpreting the score:
-        The initial cue overlaps the reference by ``fraction``, but subsequent
-        winners are free to change: this is not a floor on the final score.
-        Compare against a matched learning-disabled or mechanism-lesioned
-        control before interpreting recovery as evidence of learned recurrence.
-
-    Note:
-        Because plasticity is on, measuring pattern completion also
-        strengthens the assembly being measured.  Repeated calls report
-        rising recovery partly because of the earlier calls.
+    Plasticity follows brain settings: repeated calls can train the measured
+    assembly. Use ``brain.read_only()`` for a nondestructive probe of an already
+    initialized population. Neither this schedule nor its score establishes
+    learned recovery without a stated regime and matched negative control.
     """
     reference = _snap(brain, area)
     k = len(reference)

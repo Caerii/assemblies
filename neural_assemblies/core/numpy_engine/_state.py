@@ -3,11 +3,14 @@
 from dataclasses import dataclass, field
 
 from ..backend import get_xp
+from ..activity import ActivityState
 
 
 @dataclass
-class SparseAreaState:
+class SparseAreaState(ActivityState):
     """Internal per-area state for sparse simulation."""
+    _activity_fields = ("winners", "w", "fixed_assembly", "explicit_source",
+                        "_refractory_history", "_cumulative_bias")
     name: str
     n: int
     k: int
@@ -50,8 +53,9 @@ class SparseAreaState:
 
 
 @dataclass
-class ExplicitAreaState:
+class ExplicitAreaState(ActivityState):
     """Internal per-area state for explicit simulation."""
+    _activity_fields = ("winners", "w", "ever_fired", "num_ever_fired", "fixed_assembly")
     name: str
     n: int
     k: int

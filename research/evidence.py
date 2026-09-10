@@ -7,6 +7,7 @@ Run `python -m research.evidence validate PATH` for a runner results file.
 from __future__ import annotations
 
 import argparse
+import ast
 from collections import defaultdict
 import json
 from pathlib import Path
@@ -127,13 +128,50 @@ def audit_history(root: Path = ROOT) -> dict:
             'preregistrations_without_resolved_result_links': [name for name in preregs if name not in reports_results]}
 
 
+def specification_links(root: Path = ROOT) -> tuple[list[dict], list[str]]:
+    """Check source docstring links to explicit Markdown specification anchors.
+
+    This checks navigation, not whether an implementation satisfies its spec.
+    Stable explicit anchors survive prose-heading edits. No package imports are
+    needed, including for implementations requiring unavailable GPU hardware.
+    """
+    root = root.resolve()
+    edges, errors = [], []
+    for source in sorted((root / 'neural_assemblies').rglob('*.py')):
+        text = source.read_text(encoding='utf-8-sig')
+        if 'Specification:' not in text:
+            continue
+        tree = ast.parse(text, filename=str(source))
+        for node in ast.walk(tree):
+            if not isinstance(node, (ast.Module, ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef)):
+                continue
+            doc = ast.get_docstring(node) or ''
+            for ref in re.findall(r'^\s*Specification:\s*(\S+)', doc, re.MULTILINE):
+                name, separator, anchor = ref.partition('#')
+                target = (root / name).resolve()
+                origin = f"{source.relative_to(root).as_posix()}:{getattr(node, 'name', '<module>')}"
+                edges.append({'from': origin, 'to': ref})
+                if not separator or not anchor or not name.endswith('.md'):
+                    errors.append(f'{origin}: specification needs a Markdown path and anchor: {ref}')
+                elif not target.is_relative_to(root) or not target.is_file():
+                    errors.append(f'{origin}: dangling specification file: {ref}')
+                elif f'<a id="{anchor}"></a>' not in target.read_text(encoding='utf-8'):
+                    errors.append(f'{origin}: dangling specification anchor: {ref}')
+    return edges, errors
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest='command', required=True)
     commands.add_parser('audit')
+    commands.add_parser('specifications')
     validate = commands.add_parser('validate')
     validate.add_argument('path', type=Path)
     args = parser.parse_args(argv)
+    if args.command == 'specifications':
+        edges, errors = specification_links()
+        print(json.dumps({'edges': edges, 'errors': errors}, indent=2))
+        return 1 if errors else 0
     if args.command == 'audit':
         print(json.dumps(audit_history(), indent=2))
         return 0

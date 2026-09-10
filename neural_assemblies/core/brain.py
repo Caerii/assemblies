@@ -27,6 +27,7 @@ Mathematical Foundation:
 """
 
 import contextlib
+from copy import deepcopy
 import os
 import numpy as np
 from typing import Dict, List, Tuple
@@ -695,59 +696,40 @@ class Brain:
 
     @contextlib.contextmanager
     def read_only(self):
-        """``frozen()`` plus no RECRUITMENT and no RNG advance.
+        """Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-read-only
 
-        ``frozen()`` stops weights from changing. It does not stop the area
-        from GROWING, and growth turned out to be the channel that actually
-        made measurement change the measured. Parsing three items as [X,Y,Z]
-        and as [Z,Y,X] under ``frozen()`` left ROLE_ACTION at w=647 in one and
-        w=650 in the other -- structurally different brains, whose later
-        synapses cannot agree however init is seeded. That is the mechanism
-        behind probes contaminating each other.
+        Probe without retaining activity, recruitment, learning, or RNG draws.
 
-        Inside this block an area answers "which of the neurons I already have
-        respond best?" rather than "what would I become?" -- which is the
-        semantics a READOUT wants anyway: measure the trained brain, not one
-        that grows while being read. Areas still below ``k`` materialised
-        neurons are exempt, since there is nothing there to select from.
+        Winners move inside the block. On exit, including exceptions, each
+        area restores its declared activity state (including firing counts,
+        refractory history and saved winners). Latest drive measurements remain
+        available. Plasticity is disabled separately by ``frozen()``.
 
-        The generator's state and the areas' winners are restored too, so
-        dynamics draws (input noise, tie-breaks, subsampling) cost the host
-        nothing either. Winners still MOVE inside the block -- a probe that
-        could not respond would be measuring nothing -- but the host is
-        unchanged on exit, which is the whole contract.
-
-        Restoring winners here rather than at each call site is deliberate.
-        ``frozen()`` exists because its save/set/restore had been hand-rolled
-        about sixty times and one missing ``finally`` poisons the rest of the
-        session; a winners snapshot every caller must remember is the same
-        trap one level up.
+        Sampled areas must already have at least k materialized neurons: probing
+        an empty population raises before projection. Initialize/train it first,
+        or materialize its connectome. A sampled probe selects only from its
+        recruited population; that is not full-connectome selection.
         """
-        engines, saved_flags, saved_states = [], [], []
-        for engine in self._all_engines():
-            if not hasattr(engine, "_no_recruitment"):
-                continue
-            engines.append(engine)
-            saved_flags.append(engine._no_recruitment)
-            saved_states.append(engine._rng.bit_generator.state)
-            engine._no_recruitment = True
-        winners = {name: (area.winners.copy(), area.w, area.fixed_assembly)
-                   for name, area in self.areas.items()}
+        engines = self._all_engines()
+        snapshots = [area.snapshot_activity() for area in self.areas.values()]
+        for engine in engines:
+            snapshots.extend(engine.snapshot_activity())
+        generators = [(engine._rng, deepcopy(engine._rng.bit_generator.state))
+                      for engine in engines if hasattr(engine, "_rng")]
+        flags = [(engine, engine._no_recruitment) for engine in engines
+                 if hasattr(engine, "_no_recruitment")]
         try:
+            for engine, _ in flags:
+                engine._no_recruitment = True
             with self.frozen():
                 yield self
         finally:
-            for engine, flag, state in zip(engines, saved_flags, saved_states):
+            for snapshot in snapshots:
+                snapshot.restore()
+            for rng, state in generators:
+                rng.bit_generator.state = state
+            for engine, flag in flags:
                 engine._no_recruitment = flag
-                engine._rng.bit_generator.state = state
-            for name, (won, w, fixed) in winners.items():
-                area = self.areas[name]
-                area.unfix_assembly()
-                area.winners = won.copy()
-                area.w = w
-                if fixed:
-                    area.fix_assembly()
-                self._engine_for(area).set_winners(name, won.copy())
 
     def _all_engines(self):
         """Every compute engine backing this brain, primary first."""
@@ -850,6 +832,9 @@ class Brain:
         to_update_area_names = dict.fromkeys(
             list(stim_in.keys()) + list(area_in.keys())
         )
+        # Preflight every target before any projection in a batched probe.
+        for name in to_update_area_names:
+            self._engine_for(self.areas[name]).validate_probe_target(name)
 
         # Sync winner state from Area descriptors to ALL engines for source
         # areas.  This is needed for two reasons:
