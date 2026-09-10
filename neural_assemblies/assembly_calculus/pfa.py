@@ -11,8 +11,8 @@ The construction here is the standard one: train TWO attractor assemblies into
 a single area, then start the area from a state that lies between them and let
 the winners-take-all competition run.  Which basin the trajectory falls into
 depends on the fine detail of the mixed initial condition, so seeding the mix
-differently gives a different outcome -- a coin whose bias is set by how much
-of each attractor goes into the seed.
+differently can give a different outcome. The seed mixture controls the initial
+condition; it is not a calibrated probability for the returned label.
 
 Three variants exist here and they differ in what supplies the entropy:
 
@@ -41,6 +41,11 @@ Reference:
 
 from typing import Dict, List, Literal, Tuple
 from collections import defaultdict
+import math
+from numbers import Integral, Real
+
+from ..core.registration import validate_round_count
+from ..core.index_spaces import validated_indices
 
 import numpy as np
 
@@ -70,7 +75,9 @@ def _seed_winners(brain, area_name: str, neuron_ids,
 
 
 class RandomChoiceArea:
-    """Neural coin-flip: two attractor assemblies compete stochastically.
+    """Specification: neural_assemblies/ir/VERIFICATION.md#contract-coin-operation
+
+    Neural coin-flip: two attractor assemblies compete stochastically.
 
     Creates a brain area with two trained assemblies (attractors). ``flip()``
     seeds the area, lets recurrence settle, and reads which attractor won.
@@ -85,9 +92,10 @@ class RandomChoiceArea:
     ``construction="legacy"`` (the default, for now) scores **0.159** on that
     same measurement -- barely off the floor. Its recurrent fiber is never
     allocated, so the settle loop delivers zero drive and the returned 0/1
-    comes from the seed RNG. It is kept as the default only because the
-    recorded ``coin2024_*`` goldens were produced against it; see
-    ``_build_legacy`` for the two defects and #70 for the migration.
+    came from the seed RNG. Its construction remains available for inspection,
+    but flip() now rejects it before changing activity. The old default therefore
+    requires callers to select construction="attractor" explicitly. Historical
+    ``coin2024_*`` goldens describe the invalid instrument; see ``_build_legacy``.
 
     THE TWO ARE INDISTINGUISHABLE ON FAIRNESS. Both read ~0.5 heads with
     comparable across-brain spread. Anything that validates this class must
@@ -104,7 +112,7 @@ class RandomChoiceArea:
             this HIGH (~3.0); an assembly must survive its own recurrence.
         rounds_train: Training rounds per attractor (default 15).
         prefix: Namespace prefix (default "_coin").
-        construction: "legacy" (default, broken, golden-compatible) or
+        construction: "legacy" (default, inspectable but flips rejected) or
             "attractor" (validated). See above.
         fires: attractor construction only -- how many times each assembly is
             force-fired into the shared connectome (default 2). Symmetric by
@@ -123,6 +131,11 @@ class RandomChoiceArea:
         construction: Construction = "legacy",
         fires: int = 2,
     ):
+        if construction not in ("legacy", "attractor"):
+            raise ValueError("construction must be 'legacy' or 'attractor'")
+        rounds_train = validate_round_count(rounds_train)
+        if isinstance(fires, bool) or not isinstance(fires, Integral) or fires < 0:
+            raise ValueError("fires must be a nonnegative integer")
         self.brain = brain
         self.area_name = f"{prefix}_{area_name}"
         self.n = n
@@ -145,10 +158,10 @@ class RandomChoiceArea:
         # the coin degenerate (always the same answer).
         self.asm0 = project(brain, self._stim0, self.area_name,
                             rounds=rounds_train)
-        brain._engine.reset_area_connections(self.area_name)
+        brain._engine_for(brain.areas[self.area_name]).reset_area_connections(self.area_name)
         self.asm1 = project(brain, self._stim1, self.area_name,
                             rounds=rounds_train)
-        brain._engine.reset_area_connections(self.area_name)
+        brain._engine_for(brain.areas[self.area_name]).reset_area_connections(self.area_name)
 
         if construction == "attractor":
             self._build_attractor(fires)
@@ -158,7 +171,9 @@ class RandomChoiceArea:
     def _build_legacy(self, rounds_train: int) -> None:
         """The shipped construction. IT DOES NOT BUILD A COIN -- see `flip`.
 
-        Retained only so recorded ``coin2024_*`` goldens stay reproducible.
+        Retained for inspection of the historical ``coin2024_*`` instrument.
+        Its flips are rejected; historical numerical reproduction is not a
+        supported path through the current strict identity boundaries.
         Two independent defects, both measured 2026-07-30 at ``n=2000, k=50``:
 
         1. The loop below is meant to deepen both basins in ONE shared
@@ -237,11 +252,14 @@ class RandomChoiceArea:
 
         for _ in range(fires):
             for compact in (c0, c1):
-                area._winners = compact
+                area.winners = compact.copy()
                 engine.set_winners(self.area_name, compact)
-                area.fix_assembly()
-                brain.project({}, {self.area_name: [self.area_name]})
-                area.unfix_assembly()
+                was_fixed = area.fixed_assembly
+                try:
+                    area.fix_assembly()
+                    brain.project({}, {self.area_name: [self.area_name]})
+                finally:
+                    area.fixed_assembly = was_fixed
 
     def flip(
         self,
@@ -258,10 +276,10 @@ class RandomChoiceArea:
         Both return 0 or 1 by asking which trained attractor the settled state
         overlaps more; ties go to 0.
 
-        WHAT THE SETTLE LOOP ACTUALLY DOES DEPENDS ON ``construction``, and
-        under the default it does nothing at all.
+        Legacy construction is rejected before seeding. The following numbers
+        describe the historical invalid instrument, not executable compatibility.
 
-        Under ``construction="legacy"`` the loop is inert: the ``area -> area``
+        Under the historical ``construction="legacy"`` the loop was inert: the ``area -> area``
         block is never allocated (self fibers are excluded from deferred init
         -- see ``_self_fiber_deferred_init`` in the numpy engine), so it
         delivers zero drive and ``project_into`` hands back the incumbent
@@ -294,85 +312,59 @@ class RandomChoiceArea:
         bias rises). If you want a biased coin, bias the BASINS (asymmetric
         ``fires``), not the seed.
 
-        Both modes disable plasticity for the duration of the flip, so a flip
-        is a pure read: flipping the same coin a thousand times leaves it
-        exactly as it was. Prefer ``compete`` when measuring a distribution --
+        Both modes disable plasticity while settling. A flip changes activity
+        but does not train the stored attractors. Prefer ``compete`` when measuring a distribution --
         it is the reference protocol. ``k_split`` remains the package default
         because published numbers in this repo were produced with it.
         """
+        if mode not in ("k_split", "compete"):
+            raise ValueError("mode must be 'k_split' or 'compete'")
+        if (isinstance(bias, bool) or not isinstance(bias, Real)
+                or not math.isfinite(bias) or not 0 <= bias <= 1):
+            raise ValueError("bias must be a finite real number in [0, 1]")
+        if isinstance(rounds, bool) or not isinstance(rounds, Integral) or rounds < 0:
+            raise ValueError("rounds must be a nonnegative integer")
+        if self.construction == "legacy":
+            raise ValueError("Legacy coin construction does not form recurrent attractors; "
+                             "use construction='attractor' and validate its training regime.")
         if mode == "compete":
             return self._flip_compete(bias=bias, rounds=rounds, seed=seed)
         return self._flip_k_split(bias=bias, rounds=rounds, seed=seed)
 
-    def _flip_k_split(self, bias: float, rounds: int, seed: int | None) -> int:
-        b = self.brain
-        rng = np.random.default_rng(seed)
-
-        w0 = self.asm0.winners.copy()
-        w1 = self.asm1.winners.copy()
-
+    def _mixed_seed(self, rng, bias: float) -> np.ndarray:
         n0 = int(self.k * bias)
-        n1 = self.k - n0
+        chosen = [rng.choice(asm.winners, size=min(count, len(asm.winners)), replace=False)
+                  for asm, count in ((self.asm0, n0), (self.asm1, self.k - n0))]
+        return np.unique(np.concatenate(chosen))
 
-        if n0 > len(w0):
-            n0 = len(w0)
-        if n1 > len(w1):
-            n1 = len(w1)
+    def _seed_uniform(self, rng) -> None:
+        area = self.brain.areas[self.area_name]
+        engine = self.brain._engine_for(area)
+        count = engine.materialized_count(self.area_name)
+        if count is not None and count != area.n:
+            raise ValueError("uniform coin seeding requires the complete materialized population")
+        compact = validated_indices(rng.choice(area.n, size=self.k, replace=False),
+                                    upper=area.n, label="uniform coin seed", unique=True)
+        area.winners = compact
+        engine.set_winners(self.area_name, compact)
 
-        chosen0 = rng.choice(w0, size=n0, replace=False)
-        chosen1 = rng.choice(w1, size=n1, replace=False)
-
-        mixed = np.unique(np.concatenate([chosen0, chosen1]))
-        if len(mixed) > self.k:
-            mixed = rng.choice(mixed, size=self.k, replace=False)
-
-        # Snapshots contain stable IDs. The shared activation boundary maps
-        # all members or rejects the seed; legacy positional aliasing is an error.
-        _seed_winners(b, self.area_name, mixed,
-                      remap=self.construction != "legacy")
+    def _flip_k_split(self, bias: float, rounds: int, seed: int | None) -> int:
+        rng = np.random.default_rng(seed)
+        _seed_winners(self.brain, self.area_name, self._mixed_seed(rng, bias))
         return self._settle_and_read(rounds)
 
     def _flip_compete(self, bias: float, rounds: int, seed: int | None) -> int:
-        """Reference NEMO coin: random/noisy seed then attractor competition."""
-        b = self.brain
+        """Uniform compact seed at neutral bias; mixed stable IDs otherwise."""
         rng = np.random.default_rng(seed)
-        area = b.areas[self.area_name]
-        noise_std = getattr(area, "input_noise_std", 0.0)
-
-        # THE UNIFORM BRANCH IS ALREADY IN COMPACT SPACE and must not be
-        # remapped: it draws from the whole area, and after materialising, the
-        # compact indices are a permutation of 0..n-1, so a uniform subset of
-        # compact slots is distributionally identical to one of neuron ids.
-        # Without materialising, indices past `w` name nothing -- which is the
-        # defect that made this the reference coin in name only.
-        if abs(bias - 0.5) < 1e-9 and noise_std <= 0:
-            initial = rng.choice(self.n, size=self.k, replace=False)
-            initial = initial.astype(np.uint32)
-            b.areas[self.area_name]._winners = initial
-            b._engine.set_winners(self.area_name, initial)
-            return self._settle_and_read(rounds)
+        area = self.brain.areas[self.area_name]
+        if abs(bias - 0.5) < 1e-9 and getattr(area, "input_noise_std", 0.0) <= 0:
+            self._seed_uniform(rng)
         else:
-            w0 = self.asm0.winners.copy()
-            w1 = self.asm1.winners.copy()
-            n0 = int(self.k * bias)
-            n1 = self.k - n0
-            n0 = min(n0, len(w0))
-            n1 = min(n1, len(w1))
-            chosen0 = rng.choice(w0, size=n0, replace=False) if n0 else np.array([], dtype=w0.dtype)
-            chosen1 = rng.choice(w1, size=n1, replace=False) if n1 else np.array([], dtype=w1.dtype)
-            if len(chosen0) + len(chosen1) == 0:
-                initial = rng.choice(self.n, size=self.k, replace=False)
-                initial = initial.astype(np.uint32)
-                b.areas[self.area_name]._winners = initial
-                b._engine.set_winners(self.area_name, initial)
-                return self._settle_and_read(rounds)
-            initial = np.unique(np.concatenate([chosen0, chosen1]))
-            if len(initial) > self.k:
-                initial = rng.choice(initial, size=self.k, replace=False)
-
-        # Mixed seeds come from asm0/asm1, i.e. NEURON IDs -- remap them.
-        _seed_winners(b, self.area_name, initial,
-                      remap=self.construction != "legacy")
+            mixed = self._mixed_seed(rng, bias)
+            if len(mixed):
+                _seed_winners(self.brain, self.area_name, mixed)
+            else:
+                self._seed_uniform(rng)
         return self._settle_and_read(rounds)
 
     def _settle_and_read(self, rounds: int) -> int:

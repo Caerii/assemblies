@@ -68,6 +68,7 @@ jobs:
           neural_assemblies/tests/test_methodology_ratchet.py
           neural_assemblies/tests/test_index_space_ratchet.py
           neural_assemblies/tests/test_coin_seed_contract.py
+          neural_assemblies/tests/test_coin_construction.py
           neural_assemblies/tests/test_docs_examples_smoke.py
 
   lean-contracts:

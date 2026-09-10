@@ -1540,3 +1540,32 @@ one skipped, two expected warnings in 119.53s, recorded locally in
 This does not repair legacy defaults or uniform compact seeding, recalibrate coin
 bias, or validate old coin/PFA goldens. Those known failures remain open; their
 numerical artifacts were not rewritten. Core owned-index migration is incomplete.
+
+
+## Coin operation schedule and shared seed generation
+
+The operation card now describes construction, owner-specific connection resets,
+force-firing, both seed spaces, frozen settling and overlap readout. Mixed seeding
+has one implementation; redundant oversize truncation was unreachable because the
+two draws sum to at most k. Uniform seeding checks the owning engine's materialized
+count before RNG consumption or activity writes. Training restores the previous
+fixed flag even when projection raises. Invalid construction/control counts and
+invalid flip modes, bias or round counts fail before their respective mutations.
+Zero fires and zero settling rounds remain available as scientific controls.
+
+Both legacy flip modes now reject before activity changes. The old default remains
+inspectable but cannot emit new results; caller migration remains open in
+SoftmaxContextCoin, PFANetwork, CoinFlipModel and NemoMarkovPFA. Historical coin
+artifacts have not been overwritten or relabeled. Two obsolete legacy numerical
+tests now assert explicit rejection; trained-attractor and beta-zero controls remain.
+
+A local software replay compared pre-change e1c19e2 against this implementation:
+180 exact matches of labels and complete winner-ID arrays (three brain seeds,
+two modes, five biases, zero/ten rounds, three flip seeds). Local script and paired
+outputs: .cache/coin-operation-replay.py and .cache/coin-operation-{before,after}.json.
+This is refactor equivalence evidence, not a registered scientific measurement or
+claim of calibrated fairness. No kernel or stored scientific evidence changed.
+
+All 34 coin controls pass. The workflow now includes the whole coin construction
+suite: 1135 passed, one skipped, two expected warnings in 102.15s
+(.cache/coin-operation-contract-gate.log). Ruff and git diff --check pass.

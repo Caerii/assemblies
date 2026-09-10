@@ -1257,3 +1257,29 @@ Attractor training and mixed-seed flips use this same boundary. This contract
 neither validates legacy uniform seeding nor proves coin fairness or settling.
 Controls: `tests/test_coin_seed_contract.py`, including a missing-ID seed and a
 primary engine that raises if called instead of the actual owner.
+
+
+<a id="contract-coin-operation"></a>
+### Random-choice operation schedule
+
+Code-derived card: construction forms two stimulus-cued snapshots with a recurrent
+connection reset after each; attractor construction then materializes the population
+and force-fires each snapshot equally. Resets and activation address the actual
+area owner. A force-fire temporarily fixes winners, restoring the prior fixed flag
+on success or failure. Construction mode and training/firing counts are checked
+before population registration. Zero force-fires is a valid untrained control.
+
+A flip reads the snapshots, bias, mode, seed, area noise configuration and owning
+engine population extent. `k_split` seeds sampled stable IDs. `compete` at neutral
+bias without input noise seeds a uniform compact k-subset of the complete population;
+otherwise it uses the same mixed-ID seed, falling back to uniform only if empty.
+Uniform seeding requires a full population and never interprets unrecruited positions
+as neurons. Mode, finite bias in [0,1], and nonnegative integer rounds are checked
+before mutation. Zero rounds is a seed-only control. Legacy construction flips are
+rejected, since the historical path lacks a valid recurrent attractor instrument.
+
+Settling disables plasticity, performs the requested recurrent projections, then
+compares stable-ID overlap against both stored snapshots; ties select label zero.
+Activity changes are intentional. This is not a calibrated Bernoulli probability,
+a claim of fairness, or a guarantee that arbitrary training settings form attractors.
+Controls live in test_coin_seed_contract.py and test_coin_construction.py.

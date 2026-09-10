@@ -56,38 +56,15 @@ def test_attractor_construction_settles_onto_a_stored_assembly():
         f"so the 0/1 it returns comes from the seed, not the dynamics")
 
 
-def test_legacy_construction_is_near_chance():
-    """Pin the defect, so a fix cannot land without this file noticing.
-
-    If this starts failing because ``legacy`` got better, that is good news --
-    but the recorded ``coin2024_*`` goldens were produced against this
-    behaviour and must be re-recorded in the same change.
-    """
+@pytest.mark.parametrize("mode", ["k_split", "compete"])
+def test_legacy_construction_is_rejected_before_flipping(mode):
+    """The historical broken instrument cannot manufacture new fairness data."""
     b, coin = _coin("legacy")
-    dec = _decisiveness(b, coin)
-    assert dec < 0.4, (
-        f"legacy decisiveness is {dec:.3f}, expected near the {CHANCE:.3f} "
-        f"chance floor -- has the construction been fixed?")
-
-
-def test_fairness_cannot_tell_the_two_apart():
-    """The trap, asserted: ``heads`` does NOT separate working from broken.
-
-    This is the test that justifies every other assertion in the file being
-    written against ``decisive``. If someone later "simplifies" those to a
-    fairness check, this documents why that is not a test.
-    """
-    heads = {}
-    for construction in ("legacy", "attractor"):
-        b, coin = _coin(construction)
-        r = [coin.flip(seed=700 + i, rounds=SETTLE, mode="compete")
-             for i in range(40)]
-        heads[construction] = sum(x == 0 for x in r) / len(r)
-
-    assert abs(heads["legacy"] - 0.5) < 0.25
-    assert abs(heads["attractor"] - 0.5) < 0.25, (
-        f"both constructions look fair: {heads} -- which is the point. "
-        f"Fairness is not evidence that the coin works.")
+    area = b.areas[coin.area_name]
+    prior = area.winners.copy()
+    with pytest.raises(ValueError, match="Legacy coin construction"):
+        coin.flip(seed=700, mode=mode)
+    np.testing.assert_array_equal(area.winners, prior)
 
 
 def test_attractor_construction_materialises_the_area():
