@@ -12,3 +12,10 @@ Evidence files, written by the scripts in `../experiments/` through
 
 Older result folders (`applications/`, `coin_fairness/`, ...) belong to
 their own studies. Registrations in `../notes/` cite the file they read.
+
+
+Shared-runner artifacts live under `runs/<protocol>/<tag>/`: `run.json`,
+`results.json` and a verified source archive. The registered context-noise study
+is under `runs/memory.context-noise/`; its
+[registration and result interpretation](../notes/memory/PREREG_context_noise.md)
+distinguish label accuracy from assembly recovery.

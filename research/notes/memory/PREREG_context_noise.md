@@ -57,3 +57,38 @@ linked here after completion without rewriting the pre-run criteria.
 This concerns finite readout performance of assigned-context, trained-attractor
 fixtures. It does not establish biological noise tolerance, probability calibration,
 a softmax law, general assembly-calculus robustness, or a formal backend proof.
+
+
+## Results (2026-09-10)
+
+Both independent backend runs passed all seven predeclared checks. Registration and
+analysis were committed at f83413a before either run; each run captured that source
+and registration in its own validated archive. [NumPy raw observations and record](../../results/runs/memory.context-noise/context-noise-numpy-20260910/results.json)
+and [CUDA raw observations and record](../../results/runs/memory.context-noise/context-noise-torch-20260910/results.json)
+retain all 20 brain identities, 11 cells and 20 repeated reads per brain/cell.
+
+At the preselected noise standard deviation 1:
+
+| Backend | Accuracy, nominal 95% interval | Target overlap, nominal 95% interval | Registered verdict |
+|---|---|---|---|
+| NumPy materialized | 1.0000 [1.0000, 1.0000] | 0.92635 [0.92312, 0.92958] | PASS |
+| Torch hashed CUDA | 1.0000 [1.0000, 1.0000] | 0.92606 [0.92305, 0.92907] | PASS |
+
+Each zero-coupling and context-disabled control had joint_success=0 in all 20
+brains on both backends. Extreme-noise target overlap was .10081 [.09985,.10178]
+on NumPy and .09840 [.09721,.09959] on CUDA, below the registered .40 upper-bound
+bar. Zero-noise target overlap was .99900 [.99830,.99970] and .99925
+[.99858,.99992], respectively. All raw failures/incorrect labels remain in the data.
+
+The descriptive grid reveals a distinction hidden by label accuracy: at std=3,
+accuracy remained 1 in both runs, while target overlap was .46746 [.46303,.47190]
+on NumPy and .46675 [.46298,.47052] on CUDA. Joint success was zero for every brain.
+A correct argmax label therefore does not imply recovery of the stored assembly.
+[Curve of both measurements](../../../docs/reviews/whole-codebase/context-noise.svg).
+
+This is finite evidence for the registered noise-1 criterion in this fixture.
+Zero-width accuracy intervals reflect no observed between-brain variance; they do
+not prove perfect population accuracy or exact coverage. The unbounded Student-t
+interval at CUDA std=10 extends above 1 and is retained unmodified. No continuous
+noise range, selected maximum tolerance, formal backend equivalence, biological
+interpretation or calibrated outcome probability is adopted from these results.

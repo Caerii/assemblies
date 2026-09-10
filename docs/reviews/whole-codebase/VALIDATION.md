@@ -1955,3 +1955,28 @@ The analysis has constructed perfect-null, failed-primary, identity and interval
 tests. No intermediate-noise observations have been generated at registration time.
 
 Pre-run validation: 36 analysis/specification/register/ratchet tests passed in 55.86s; changed-Python Ruff and git diff --check passed.
+
+
+Both context-noise study processes completed with exit 0 at source f83413a.
+Each recorded 4400 observations (20 brains x 11 cells x 20 reads); every raw metric
+was independently recomputed from the stored labels/overlaps, all ensembles and
+verdicts recomputed, and both source archives passed research.evidence validation.
+Both backends passed all seven registered criteria. See
+[the registered result and caveats](../../../research/notes/memory/PREREG_context_noise.md#results-2026-09-10).
+
+At std=1, target overlap was .92635 [.92312,.92958] on NumPy and .92606
+[.92305,.92907] on CUDA; observed label accuracy was 1 in both. At std=3, label
+accuracy remained 1 but overlap fell to about .467 and joint recovery success to 0.
+This is direct evidence that label accuracy alone overstates assembly recovery.
+Both null controls failed the trained joint criterion. These are nominal marginal
+Student-t intervals over brains, not exact finite-sample guarantees; [1,1] from
+zero observed variance must not be described as proof of population-perfect behavior.
+
+The [standalone curve](context-noise.svg) was generated directly from the two
+committed result documents using Matplotlib error bars and visually inspected as
+a rendered PNG. It shows the nine trained noise levels, not the null arms; the
+vertical marker identifies the preregistered primary level.
+
+Final shared-runner and context analysis suite: 71 passed in 22.35s. Both artifacts
+also passed the standalone evidence validator after the registration result was
+appended; original pre-run registration bytes remain preserved in source.zip.

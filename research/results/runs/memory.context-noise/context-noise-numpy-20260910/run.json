@@ -1,0 +1,165 @@
+{
+  "engine": "numpy_sparse",
+  "environment": {
+    "policy": "repository-environment-v1",
+    "variables_sha256": {}
+  },
+  "git_commit": "f83413a5d727b821c78269895385c1ee8b142303",
+  "input_artifacts": {},
+  "mode": "study",
+  "parameters": {
+    "bars": {
+      "accuracy_low": 0.9,
+      "extreme_overlap_high": 0.4,
+      "null_joint_high": 0.9,
+      "overlap_low": 0.8
+    },
+    "cells": [
+      {
+        "context_enabled": true,
+        "coupling_beta": 1.0,
+        "id": "noise-0",
+        "noise": 0.0
+      },
+      {
+        "context_enabled": true,
+        "coupling_beta": 1.0,
+        "id": "noise-0.1",
+        "noise": 0.1
+      },
+      {
+        "context_enabled": true,
+        "coupling_beta": 1.0,
+        "id": "noise-0.3",
+        "noise": 0.3
+      },
+      {
+        "context_enabled": true,
+        "coupling_beta": 1.0,
+        "id": "noise-1",
+        "noise": 1.0
+      },
+      {
+        "context_enabled": true,
+        "coupling_beta": 1.0,
+        "id": "noise-3",
+        "noise": 3.0
+      },
+      {
+        "context_enabled": true,
+        "coupling_beta": 1.0,
+        "id": "noise-10",
+        "noise": 10.0
+      },
+      {
+        "context_enabled": true,
+        "coupling_beta": 1.0,
+        "id": "noise-30",
+        "noise": 30.0
+      },
+      {
+        "context_enabled": true,
+        "coupling_beta": 1.0,
+        "id": "noise-100",
+        "noise": 100.0
+      },
+      {
+        "context_enabled": true,
+        "coupling_beta": 1.0,
+        "id": "noise-1000",
+        "noise": 1000.0
+      },
+      {
+        "context_enabled": true,
+        "coupling_beta": 0.0,
+        "id": "zero-coupling",
+        "noise": 0.0
+      },
+      {
+        "context_enabled": false,
+        "coupling_beta": 1.0,
+        "id": "context-disabled",
+        "noise": 0.0
+      }
+    ],
+    "p": 0.05,
+    "protocol": {
+      "attractors": {
+        "beta": 3.0,
+        "fires": 2,
+        "k": 200,
+        "n": 2000,
+        "rounds_train": 10
+      },
+      "contexts": [
+        "left",
+        "right"
+      ],
+      "coupling_beta": 1.0,
+      "k": 100,
+      "n": 400,
+      "noise_std": 0.0,
+      "presentations": [
+        [
+          4,
+          0
+        ],
+        [
+          0,
+          4
+        ]
+      ],
+      "read_rounds": 3
+    },
+    "read_seeds": [
+      700,
+      701,
+      702,
+      703,
+      704,
+      705,
+      706,
+      707,
+      708,
+      709
+    ]
+  },
+  "protocol": "memory.context-noise",
+  "protocol_version": "1",
+  "registration": "research/notes/memory/PREREG_context_noise.md",
+  "registration_sha256": "bfe387b8eabbfb965706b4da221c376cdce500aa9def2da675ccb1713bb6a84b",
+  "schema_version": 3,
+  "scientific_status": "UNJUDGED",
+  "script": "research/experiments/context_noise.py",
+  "script_sha256": "8327592efab0ba49db05fb5bcc30d46765d4151c6c829e4069eb01fc9406b04c",
+  "seeds": [
+    101,
+    102,
+    103,
+    104,
+    105,
+    106,
+    107,
+    108,
+    109,
+    110,
+    111,
+    112,
+    113,
+    114,
+    115,
+    116,
+    117,
+    118,
+    119,
+    120
+  ],
+  "source_archive": {
+    "file": "source.zip",
+    "sha256": "8a97af0d6a664d6caa1b740312fec9f99f1d11c1b41c20511dad3c792c9211ba"
+  },
+  "source_inventory": "source-inputs-v3",
+  "source_sha256": "22f9a842a9af59c27ca9fe4a9ed73d74b6045b245a9477bdf07b3675450706de",
+  "started_utc": "2026-09-10T23:13:32.738247+00:00",
+  "tag": "context-noise-numpy-20260910"
+}

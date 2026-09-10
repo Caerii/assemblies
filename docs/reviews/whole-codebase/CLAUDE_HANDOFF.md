@@ -1158,3 +1158,13 @@ observations. Its primary std=1 hypothesis is fixed in
 levels are descriptive, with no selected robustness-range claim. New brain seeds
 101..120, independent backend reports, within-brain repeats and explicit nulls are
 required. This registration checkpoint precedes measurement.
+
+
+The registered study subsequently completed on both backends: all seven bars pass,
+with 20 new brain seeds per backend. The 8800 raw observations, per-brain metrics,
+ensembles, verdicts and source archives were checked. At std=1, both backends retain
+about 92.6% target overlap and all observed labels; at std=3, labels remain perfect
+while overlap falls to about 46.7% and joint recovery to zero.
+See [the result, intervals and statistical limits](../../../research/notes/memory/PREREG_context_noise.md#results-2026-09-10)
+and [curve](context-noise.svg). This is scoped noise-1 evidence, not a general
+robustness range or population-perfect accuracy guarantee.
