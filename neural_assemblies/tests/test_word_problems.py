@@ -15,13 +15,15 @@ from neural_assemblies.programs.word_problems import (
     GROUPS, true_trajectory, word_problem_fsm,
 )
 
-EXPECTED_ORDER = {"Z60": 60, "A4xZ5": 60, "A5": 60, "S5": 120}
-EXPECTED_SOLVABLE = {"Z60": True, "A4xZ5": True, "A5": False, "S5": False}
+EXPECTED_ORDER = {"Z60": 60, "A4xZ5": 60, "A5": 60, "S5": 120, "Z120": 120}
+EXPECTED_SOLVABLE = {"Z60": True, "A4xZ5": True, "A5": False, "S5": False, "Z120": True}
 
 
 class TestGroups(unittest.TestCase):
 
     def test_orders_and_solvability(self):
+        self.assertEqual(set(GROUPS), set(EXPECTED_ORDER))
+        self.assertEqual(set(GROUPS), set(EXPECTED_SOLVABLE))
         for name, factory in GROUPS.items():
             g = factory()
             self.assertEqual(g.order, EXPECTED_ORDER[name], name)

@@ -33,6 +33,8 @@ otherwise show up as an easier task reported under a harder name.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from math import gcd
+from numbers import Integral
 from typing import Callable, Dict, Hashable, List, Sequence, Tuple
 
 
@@ -103,25 +105,39 @@ def alternating_group_5() -> Group:
     return Group("A5", elements, gens, _perm_compose, ident, solvable=False)
 
 
-def cyclic_group_60() -> Group:
-    """Z60 = <1, 7>. Order 60, abelian, and the easy control."""
+def cyclic_group(order: int, generators: Sequence[int] = (1, 7)) -> Group:
+    """Specification: neural_assemblies/ir/VERIFICATION.md#contract-cyclic-group
+
+    Additive residues modulo order, with a generating alphabet chosen explicitly.
+    Reject a proper subgroup before constructing a benchmark under the wrong name.
+    """
+    if isinstance(order, bool) or not isinstance(order, Integral) or order < 1:
+        raise ValueError("cyclic group order must be a positive integer")
+    order = int(order)
+    generators = tuple(generators)
+    if any(isinstance(g, bool) or not isinstance(g, Integral) for g in generators):
+        raise ValueError("cyclic generators must be integer residues")
+    gens = tuple(int(g) % order for g in generators)
+    if gcd(order, *gens) != 1:
+        raise ValueError("cyclic generators span a proper subgroup of the requested order")
+
     def compose(a, b):
-        return (a + b) % 60
-    gens = (1, 7)
+        return (a + b) % order
+
     elements = closure(gens, compose, 0)
-    assert len(elements) == 60, f"Z60 closure gave {len(elements)}"
-    return Group("Z60", elements, gens, compose, 0, solvable=True)
+    if len(elements) != order:
+        raise ValueError("cyclic closure does not match the requested order")
+    return Group(f"Z{order}", elements, gens, compose, 0, solvable=True)
+
+
+def cyclic_group_60() -> Group:
+    """Z60 = <1, 7>, the order-60 abelian control."""
+    return cyclic_group(60)
 
 
 def cyclic_group_120() -> Group:
-    """Z120 = <1, 7>. Order 120, abelian: S5's SIZE without its structure
-    (PREREG_s5_cliff_anatomy.md Addendum 4)."""
-    def compose(a, b):
-        return (a + b) % 120
-    gens = (1, 7)
-    elements = closure(gens, compose, 0)
-    assert len(elements) == 120, f"Z120 closure gave {len(elements)}"
-    return Group("Z120", elements, gens, compose, 0, solvable=True)
+    """Z120 = <1, 7>, S5's size control (cliff-anatomy Addendum 4)."""
+    return cyclic_group(120)
 
 
 def a4_times_z5() -> Group:

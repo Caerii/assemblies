@@ -1711,3 +1711,27 @@ ERP protocol file argument from the workflow after that run; pytest already
 collapsed that duplicate. No engine, scientific threshold, or historical result
 changed. The result demonstrates fixture-level isolation, not ERP discrimination
 or complete Python-side parser purity. Broader package failures remain open.
+
+
+## Configurable cyclic benchmark and Z120 inventory
+
+The group audit failure was a stale test table: GROUPS already contained Z120,
+but its expected-order/solvability dictionaries did not. The test now covers that
+control and checks complete registry-key agreement explicitly. The duplicated Z60
+and Z120 constructors delegate to cyclic_group(order, generators), retaining both
+named wrappers, repr-sorted elements, generator order, state labels and transitions.
+Complete pre/post state-symbol-transition JSON tables for both wrappers matched.
+
+The constructor rejects invalid integer controls and proper subgroups using the
+gcd criterion, then independently verifies closure cardinality with a runtime
+exception. Thus Python optimization cannot remove that final cyclic-group check.
+All 650 generator pairs over orders 1 through 12 were compared with an independent
+finite linear-combination oracle, including rejected subgroups. Additional controls
+cover the trivial group, empty alphabets, normalized residues and malformed inputs.
+These finite checks are not a Lean proof of the arbitrary-order implementation.
+
+19 group tests passed in1.22s. Specification links, theory rendering/citations and
+both ratchets:27 passed in41.53s. Ruff and git diff --check pass. Group controls
+are now in the CPU workflow. No neural engine, study, golden artifact or scientific
+threshold changed; no full-package rerun was needed for this symbolic-table-preserving
+refactor. The other full-audit failures remain open.

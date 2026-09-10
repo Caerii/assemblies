@@ -1351,3 +1351,20 @@ No cold-read exemption or automatic initialization is introduced. The isolated
 fixture's repeatability does not establish ERP discrimination, calibration, or
 whole-parser purity outside the brain. Tests: test_erp_context_reset_contract.py
 and test_parse_idempotence.py::test_isolated_activity_reset_parse_is_idempotent.
+
+
+<a id="contract-cyclic-group"></a>
+### Configurable cyclic benchmark
+
+word_problems.cyclic_group builds the additive residues modulo a positive integer
+order. Integer generators are normalized modulo that order without reordering the
+alphabet. The gcd of the order and generators must be one; otherwise they generate
+a proper subgroup and construction raises. A closure enumeration independently
+checks the requested cardinality, with a runtime exception rather than an assert
+that optimization can remove. Identity is zero, composition is modular addition,
+and the group is abelian (hence solvable). Closure's existing repr-sorted element
+order is preserved so Z60/Z120 state labels and transition tables remain unchanged.
+The named wrappers remain compatible. Controls include a 60-state request with
+only even generators and exhaustive pairs of residues for orders 1 through 12,
+compared against all linear combinations. These finite tests do not constitute a
+Lean proof of the general constructor or a neural word-problem result.

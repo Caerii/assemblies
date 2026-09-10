@@ -356,3 +356,14 @@ read-only observations do not recruit missing populations. `read_only()` alone
 allows activity evolution, so sequential reads need not agree. This compositional
 pattern passed the existing sentence fixture; it does not validate ERP
 calibration/discrimination or promise isolation of all Python-side parser state.
+
+
+### Cyclic word-problem controls
+
+Use `neural_assemblies.programs.word_problems.cyclic_group(order, generators)` to
+configure an additive cyclic benchmark, for example `cyclic_group(30, (7, 11))`.
+Generators are normalized modulo the order and keep their alphabet order. A set
+that only generates a proper subgroup raises instead of silently creating an easier
+benchmark. Existing `cyclic_group_60()` and `cyclic_group_120()` wrappers retain
+their state labels and transition tables. This constructs symbolic ground truth;
+it does not establish that a neural network learns the resulting word problem.
