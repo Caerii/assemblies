@@ -861,16 +861,18 @@ class Brain:
         for name in to_update_area_names:
             self._engine_for(self.areas[name]).validate_probe_target(name)
 
-        # Sync winner state from Area descriptors to ALL engines for source
-        # areas.  This is needed for two reasons:
+        # Sync source and held-target caps from public descriptors to engines.
+        # A held target must use the requested cap, not a stale backend cap.
+        # Source synchronization is needed for two reasons:
         # 1. External code may set area.winners directly (pattern completion)
         # 2. Cross-engine projections: an explicit area's winners must be
         #    visible to the sparse engine when used as a source.
-        all_source_areas = dict.fromkeys(
-            src for sources in area_in.values() for src in sources
+        sync_areas = dict.fromkeys(
+            [src for sources in area_in.values() for src in sources]
+            + [name for name in to_update_area_names if self.areas[name].fixed_assembly]
         )
         source_winners = self._validated_winner_inputs(
-            {name: self.areas[name].winners for name in all_source_areas})
+            {name: self.areas[name].winners for name in sync_areas})
         for area_name, winners_arr in source_winners.items():
             area = self.areas[area_name]
             # Empty activity is a state update too; otherwise a cleared public

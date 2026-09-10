@@ -365,3 +365,11 @@ potentiation while preserving beta and existing learned drive; beta-zero negativ
 controls demonstrate the distinction. Fixed-target and stimulus paths are covered.
 CPU gate: 572 passed, 1 skipped. Sampled/GPU implementation and formal proofs
 remain open; see [validation](VALIDATION.md).
+
+### Sampled-engine masks
+
+All three NumPy engines now consume the shared mask interface. Sampled masks
+block Hebbian/triggered scaling updates, retain deferred masked work, and leave
+recruitment/refraction distinct. Brain now synchronizes held public caps before
+fixing targets. Focused checks: 76 passed; CPU gate: 583 passed, 1 skipped.
+See [validation](VALIDATION.md); no GPU proof or historical replay is claimed.

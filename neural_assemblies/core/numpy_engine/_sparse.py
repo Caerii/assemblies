@@ -322,6 +322,8 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
     Parameters mirror ``Brain.__init__``.
     """
 
+    supports_fiber_learning_masks = True
+
     def __init__(self, p: float, seed: int = 0, w_max: float = 20.0,
                  deterministic: bool = False,
                  projection_fidelity: str = ProjectionFidelity.EXACT.value,
@@ -980,6 +982,8 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
 
         if plasticity_enabled and self._plasticity_enabled_global:
             for src_name in from_areas:
+                if not self.fiber_learning_allowed(src_name, target):
+                    continue
                 conn = self._area_conns[src_name][target]
                 src = self._areas[src_name]
                 if not conn.sparse and getattr(src, "explicit_source", False):
@@ -2140,6 +2144,8 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
         touched = []
         total_active = 0
         for src_name in from_areas:
+            if not self.fiber_learning_allowed(src_name, target):
+                continue
             conn = self._area_conns[src_name][target]
             w = conn.weights
             # Only DENSE blocks carry a maintained index -- the sparse
@@ -2299,14 +2305,23 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
         if not pending:
             return 0
         n = 0
-        for (src_name, target), cols in pending.items():
+        for (src_name, target), cols in list(pending.items()):
+            if not self.fiber_learning_allowed(src_name, target):
+                continue
             self._scale_columns_now(target, [src_name], sorted(cols))
+            del pending[(src_name, target)]
             n += 1
-        pending.clear()
         return n
 
     def _apply_plasticity(self, target, from_stimuli, from_areas, winners):
-        """Hebbian learning: w *= (1 + beta), clamped at w_max."""
+        """Specification: neural_assemblies/ir/VERIFICATION.md#contract-fiber-learning
+
+        Hebbian learning and triggered scaling on permitted fibers only.
+        """
+        if not self._plasticity_enabled_global:
+            return
+        from_stimuli = [s for s in from_stimuli if self.fiber_learning_allowed(s, target)]
+        from_areas = [s for s in from_areas if self.fiber_learning_allowed(s, target)]
         xp = self._xp
         tgt = self._areas[target]
         winners_arr = xp.asarray(winners, dtype=xp.int64)

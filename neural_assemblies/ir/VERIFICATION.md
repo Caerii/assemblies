@@ -507,10 +507,11 @@ before dispatch. Both primary and auxiliary dense engines are covered. Nested
 scopes accumulate suppression and restore the exact prior scope on exit,
 including exceptions. Persistent Brain configuration is not modified by a scope.
 
-`ComputeEngine.supports_fiber_learning_masks` defaults false. The dense NumPy and fixed-connectome `numpy_exact` engines opt in. A learning-enabled projection requesting an
+`ComputeEngine.supports_fiber_learning_masks` defaults false. All three NumPy engines opt in: dense, fixed-connectome `numpy_exact`, and
+sampled `numpy_sparse`. A learning-enabled projection requesting an
 active mask on another backend raises before projection, rather than silently
 ignoring the mask. Disabled global Brain learning needs no per-fiber suppression.
-Masks on inactive routes are not forwarded. No sampled/GPU mask support is claimed.
+Masks on inactive routes are not forwarded. GPU-native mask support is not implemented.
 
 Supervised reinforcement checks the same scoped engine predicate as well as
 Brain's global/fiber gates and the target engine's global learning flag. An IR
@@ -538,3 +539,25 @@ Stimulus exponents receive the same checks. A deliberately broken beta-zero
 implementation loses previously learned activation and fails the observation
 contract. Fixed-target cases preserve this engine's existing fixed-target learning
 policy; this does not assert that all backends have the same clamp semantics.
+
+
+The sampled engine filters permitted sources only at its learning boundary,
+including the compiled and fixed-target callers, and separately guards the
+explicit-source bootstrap update. Its global engine learning flag is checked at
+that shared boundary too; the fixed-target caller previously bypassed it.
+Triggered normalization receives only permitted area fibers. Deferred flushes
+retain suppressed work in the queue, process permitted work, and apply retained
+work after the scope ends instead of silently discarding it.
+
+Recruitment, newly initialized connectivity, RNG consumption and area-level
+refraction are not disabled by a fiber mask. Tests deliberately show recruitment
+with a masked stimulus and use materialized populations when asserting whole-fiber
+byte equality. Do not interpret masking as a read-only probe or reuse a learning
+claim for the structural effects of recruitment.
+
+Brain synchronizes public fixed-target caps alongside source winners before
+fixing an engine target. This prevents a requested held cap from being replaced
+by an empty/stale backend cap. Ordinary, fixed, compiled and explicit-bootstrap
+paths, scaling on/off, deferred retention, recruitment and stale-cap controls are
+covered by CPU tests. Native GPU backends and formal preservation proofs remain
+open; no scientific sequence result from the sampler is adopted by these checks.

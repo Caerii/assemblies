@@ -601,3 +601,32 @@ claim dense and exact engines have identical clamp semantics or certify a
 historical scientific result.
 
 Final workflow-listed CPU gate: **572 passed, 1 skipped**.
+
+### Sampled-engine learning masks and held-target synchronization (2026-09-10)
+
+The first seven controls failed: six reached unsupported masks, and the held-target
+case exposed a Brain synchronization defect before it could test learning. Brain
+synced only source winners, so fixing a public target could use an empty or stale
+engine cap. Held targets now join the validated synchronization set. The shared
+sampled learning function also checks the global engine learning flag, which the
+fixed-target caller did not check.
+
+`numpy_sparse` now filters masked sources at its shared Hebbian/scaling boundary,
+with a separate predicate at explicit-source bootstrap. Deferred scaling retains
+masked pending work instead of applying or discarding it, then processes it after
+the scope ends. Recruitment and area-level refraction remain separate effects;
+a masked stimulus still recruits, so a mask is not a read-only probe.
+
+Focused masks/scaling/round-schedule checks: 76 passed. Controls cover ordinary,
+fixed, compiled and explicit-bootstrap paths; full masked-fiber equality on a
+materialized population; another fiber changing; scaling enabled/disabled;
+deferred queue retention; recruitment; and replacing a stale fixed-target cap.
+The unsupported-capability control now explicitly disables the capability on its
+test engine rather than assuming the sampled implementation remains unsupported.
+Ruff and diff checks passed.
+
+GPU-native masks, formal backend proofs and historical evidence replays remain
+open. No sampled sequence result is adopted from these tests. The broader
+unification and known grounded-verb/readout regression remain unfinished.
+
+Final workflow-listed CPU gate: **583 passed, 1 skipped**.

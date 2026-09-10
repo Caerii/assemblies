@@ -41,10 +41,11 @@ def test_failed_projection_does_not_leave_engine_mask(brain):
     assert not getattr(engine, "_suppressed_learning_fibers", ())
 
 
-def test_sampled_backend_cannot_silently_ignore_mask():
+def test_backend_without_capability_cannot_silently_ignore_mask(monkeypatch):
     brain = Brain(engine="numpy_sparse", norm_init=False, seed=83)
     brain.add_area("A", 8, 2, .1)
     brain.add_area("T", 8, 2, .1)
+    monkeypatch.setattr(brain._engine, "supports_fiber_learning_masks", False)
     brain.set_fiber_plasticity("A", "T", False)
     with pytest.raises(NotImplementedError, match="fiber"):
         brain.project({}, {"A": ["T"]})
