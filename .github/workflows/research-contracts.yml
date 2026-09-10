@@ -55,6 +55,7 @@ jobs:
           neural_assemblies/tests/test_explicit_input_contract.py
           neural_assemblies/tests/test_explicit_projection.py
           neural_assemblies/tests/test_erp_protocol.py
+          neural_assemblies/tests/test_cuda_toolchain.py
           neural_assemblies/tests/test_parse_errors.py
           neural_assemblies/tests/test_read_only_probes.py
           neural_assemblies/tests/test_specification_links.py

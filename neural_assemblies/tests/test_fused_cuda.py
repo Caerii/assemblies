@@ -269,9 +269,10 @@ def test_learning_rounds_are_bounded_by_the_mask_width(mod):
                                AreaFiber.MAX_EPISODE_ROUNDS + 1, beta=0.1)
 
 
-# -- the CSR deviation store, across EPISODES ------------------------------
+# -- explicit storage and arithmetic, across EPISODES ------------------------------
 
-def _reference_episodes(Ws, cues, k, rounds, beta, w_max, norm_init=False):
+def _reference_episodes(Ws, cues, k, rounds, beta, w_max, norm_init=False,
+                        normalization="divide64"):
     """Multi-episode stored-connectome reference, ENGINE rule (prev x new).
 
     Each episode starts from its own cue -- the area is inhibited between
@@ -281,7 +282,8 @@ def _reference_episodes(Ws, cues, k, rounds, beta, w_max, norm_init=False):
     """
     # norm_init's divisor is the BASE in-degree and is potentiation-invariant,
     # so it is taken once, before any training.
-    djs = [np.maximum((W != 0).sum(axis=0), 1.0).astype(np.float64)
+    dtype = np.float64 if normalization == "divide64" else np.float32
+    djs = [np.maximum((W != 0).sum(axis=0), 1.0).astype(dtype)
            if norm_init else None for W in Ws]
     Ws = [W.copy() for W in Ws]
     finals = []
@@ -292,7 +294,8 @@ def _reference_episodes(Ws, cues, k, rounds, beta, w_max, norm_init=False):
             for b, W in enumerate(Ws):
                 drive = W[idx[b]].sum(axis=0)
                 if djs[b] is not None:
-                    drive = drive / djs[b]
+                    drive = (drive * (np.float32(1) / djs[b])
+                             if normalization == "reciprocal32" else drive / djs[b])
                 nxt.append(np.sort(np.argsort(-drive, kind='stable')[:k]))
             for b, W in enumerate(Ws):
                 W[np.ix_(idx[b], nxt[b])] *= np.float32(1.0 + beta)
@@ -303,17 +306,20 @@ def _reference_episodes(Ws, cues, k, rounds, beta, w_max, norm_init=False):
     return finals
 
 
+@pytest.mark.parametrize("fiber_kind,normalization", [
+    ("csr", "divide32"), ("organ", "reciprocal32"),
+])
 @pytest.mark.parametrize("norm_init", [False, True])
 @pytest.mark.parametrize("episodes,rounds,beta,w_max", [
     (2, 3, 0.10, None), (4, 3, 0.10, 20.0), (6, 2, 0.25, None),
 ])
-def test_csr_store_matches_reference_across_episodes(mod, episodes, rounds,
-                                                     beta, w_max, norm_init):
-    """Exercises the CSR READ path, which a single-episode test never does.
+def test_fiber_matches_its_arithmetic_reference_across_episodes(
+        mod, episodes, rounds, beta, w_max, norm_init, fiber_kind, normalization):
+    """Exercises explicitly selected storage and normalization arithmetic.
 
-    Within an episode the correction comes from a one-word mask; everything
-    earlier comes from the store. A store that dropped, double-counted or
-    mis-keyed a cell shows up here and nowhere else.
+    CSR uses an episode mask plus persisted deviations; the organ uses a
+    dense count matrix. Both must preserve previous episodes and price each
+    learned cell according to their declared arithmetic.
     """
     from neural_assemblies.core.torch_engine._batched import (
         batched_project_hashed)
@@ -328,9 +334,16 @@ def test_csr_store_matches_reference_across_episodes(mod, episodes, rounds,
                                    device='cuda').float().cpu().numpy()
           for s in seeds]
     ref = _reference_episodes(Ws, [list(c) for c in cues], k, rounds, beta,
-                              w_max, norm_init=norm_init)
+                              w_max, norm_init=norm_init, normalization=normalization)
 
-    state = None
+    from neural_assemblies.core.torch_engine._hashed import (
+        AreaFiber, DenseOrganFiber, HashedArea)
+    fiber_type = AreaFiber if fiber_kind == "csr" else DenseOrganFiber
+    state = {
+        "area": HashedArea(n, k, seeds),
+        "fiber": fiber_type(seeds, n, n, P, beta=beta, w_max=w_max,
+                            norm_init=norm_init, max_rounds=episodes * rounds),
+    }
     got = []
     for cue in cues:
         out, state = batched_project_hashed(
@@ -345,7 +358,14 @@ def test_csr_store_matches_reference_across_episodes(mod, episodes, rounds,
             assert np.array_equal(np.sort(got[e][b]), ref[e][b]), (
                 f"episode {e}, brain {b}: diverges from the reference "
                 f"(episodes={episodes} rounds={rounds} beta={beta} "
-                f"norm_init={norm_init})")
+                f"norm_init={norm_init} fiber={fiber_kind} arithmetic={normalization})")
+
+    if fiber_kind == "organ" and norm_init and episodes == 4:
+        # Constructed negative: substituting division changes this trajectory.
+        # Close drives do not license exact winner parity at a fragile boundary.
+        divided = _reference_episodes(Ws, [list(c) for c in cues], k, rounds,
+                                     beta, w_max, norm_init=True)
+        assert not np.array_equal(np.sort(got[1][2]), divided[1][2])
 
 
 def test_store_grows_and_is_read(mod):

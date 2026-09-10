@@ -42,7 +42,10 @@ def recurrent_fiber(seeds, n, p, *, beta, w_max, norm_init, synaptic_scaling,
 
     The organ's regime (clip, no scaling) takes the count-matrix fiber:
     O(1) per round in stored episodes, where the store fiber grows with them
-    (a 1024-item grid stalled it at 10 GB); gated equal to the store fiber.
+    (a 1024-item grid stalled it at 10 GB); drive parity is tolerance-based.
+    Storage selection also selects normalization arithmetic; see
+    neural_assemblies/ir/VERIFICATION.md#contract-hashed-normalization.
+    Close drives do not guarantee identical winner trajectories.
     Column scaling takes the store fiber (the four-arm parity test licenses
     the scaling + clip opt-in there).
     """

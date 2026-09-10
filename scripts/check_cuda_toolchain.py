@@ -16,6 +16,9 @@ import subprocess
 import sys
 
 
+DEFAULT_VS_VERSION = "[16.0,18.0)"
+
+
 def find_vcvars64() -> Path | None:
     vswhere = Path(os.environ.get("ProgramFiles(x86)", r"C:\Program Files (x86)")) / (
         "Microsoft Visual Studio/Installer/vswhere.exe"
@@ -23,7 +26,9 @@ def find_vcvars64() -> Path | None:
     if not vswhere.is_file():
         return None
     result = subprocess.run(
-        [str(vswhere), "-latest", "-products", "*", "-requires",
+        [str(vswhere), "-latest", "-version",
+         os.environ.get("ASSEMBLIES_VS_VERSION", DEFAULT_VS_VERSION),
+         "-products", "*", "-requires",
          "Microsoft.VisualStudio.Component.VC.Tools.x86.x64",
          "-property", "installationPath"],
         capture_output=True, text=True, check=False,
@@ -64,6 +69,7 @@ def check() -> dict:
         "ninja": ninja,
         "compiler": compiler,
         "vcvars64": str(vcvars) if vcvars else None,
+        "vs_version_range": os.environ.get("ASSEMBLIES_VS_VERSION", DEFAULT_VS_VERSION),
         "issues": issues,
         "scope": "Tools only. No CUDA import, build, device probe, or parity run performed.",
     }
@@ -72,7 +78,15 @@ def check() -> dict:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--json", action="store_true")
+    parser.add_argument("--print-vcvars64", action="store_true",
+                        help="Print the selected compiler setup path for cuda-dev.cmd.")
     args = parser.parse_args()
+    if args.print_vcvars64:
+        path = find_vcvars64()
+        if path is None:
+            return 1
+        print(path)
+        return 0
     result = check()
     if args.json:
         print(json.dumps(result, indent=2))

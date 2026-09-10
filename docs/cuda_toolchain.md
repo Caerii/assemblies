@@ -17,6 +17,23 @@ Run subsequent commands in that shell: a child command shell cannot change the
 environment of its parent PowerShell session. If already in cmd.exe, use
 `call scripts\cuda-dev.cmd`.
 
+Discovery defaults to Visual Studio versions `[16.0,18.0)` (2019/2022), since
+this machine's CUDA 13.1 rejects the newer VS 2026 compiler. The batch helper
+uses the Python checker's discovery function, so both select the same range.
+Set `ASSEMBLIES_VS_VERSION` before setup to choose a different vswhere version
+range for another verified toolkit; tool discovery alone does not prove that
+combination compiles. The actual compiler in PATH is reported separately.
+
+For an isolated checkout, set an isolated extension cache in the prepared shell.
+Include the compiler version: Ninja can otherwise reuse objects compiled by a
+different cl.exe after PATH changes. Choose a fresh cache when changing other
+toolchain components as well:
+
+```cmd
+set "TORCH_EXTENSIONS_DIR=%CD%\.cache\torch-extensions-msvc-%VCToolsVersion%"
+```
+
+
 The checker identifies missing `vcvars64.bat`, `cl.exe`, `ninja`, torch,
 and `CUDA_HOME`/`CUDA_PATH` with its `bin/nvcc.exe`. If ninja is missing,
 install it in the environment used for the build. Set CUDA_HOME to the installed
@@ -36,9 +53,12 @@ After all active GPU studies have finished, run the extension tests in the
 prepared shell:
 
 ```cmd
+uv run python -c "from neural_assemblies.core.torch_engine import _fused_cuda as f; assert f.load() is not None, f.last_error()"
 uv run pytest neural_assemblies/tests/test_fused_cuda.py neural_assemblies/tests/test_hashed_substrate_parity.py -q
 ```
 
-These may compile the extension. Do not rebuild it while a process holds it,
+The first command must succeed before treating the tests as a GPU gate: the
+test fixtures otherwise skip when the extension cannot compile. These commands
+may compile the extension. Do not rebuild it while a process holds it,
 and do not run these tests beside a GPU study. Hardware parity is a separate
 gate from the fast CPU research-contract tests.

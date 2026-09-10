@@ -631,3 +631,29 @@ The user has now authorized Astra to build and run GPU verification. The former
 Claude-only GPU allocation no longer applies; work stays in this checkout with
 an isolated extension cache and one GPU job at a time. GPU parity and historical
 replay remain open until measured. No merge to dev/master has occurred.
+
+
+## Astra GPU execution and arithmetic boundary
+
+GPU work is now authorized and was run serially in this isolated checkout.
+The extension built with RTX3080, torch2.12.1+cu130, CUDA toolkit13.1,
+VS2022/MSVC14.44 after repairing setup's automatic selection of unsupported
+VS2026. Compiler discovery is shared and configurable. Use a compiler-specific
+extension cache: Ninja reused a VS2026 object on the first VS2022 attempt.
+
+First executable gate: 115 passed, 1 failed. The nominal CSR test actually used
+the dense organ for clipped cells; reciprocal multiplication and division caused
+different winner trajectories. The diagnostic matched all outputs only with the
+organ's float32 reciprocal arithmetic. Both fibers are now tested explicitly
+against their own arithmetic reference, and the division mismatch is retained
+as a negative. No kernel or historical result was changed to make this pass.
+
+Expanded fused/substrate/FSM/transducer/aligner/Torch/index gate: 122 passed,
+no skips, 11 warnings,31.04s. This does not establish cross-target trajectory
+identity or historical A1/capacity replay. See VALIDATION.md for the failure,
+diagnostic, exact scope and remaining gates.
+
+Final contract gate with CUDA installed: 1029 passed, 1 skipped, two expected
+warnings in 116.23s. Compiler selection tests now run in CI. Next empirical gates
+remain historical migration replay and broader GPU coverage; next semantic gate
+is explicit target arithmetic and winner-margin certification.

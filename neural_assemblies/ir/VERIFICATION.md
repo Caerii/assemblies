@@ -1121,3 +1121,27 @@ score: there are no alternative winners. A larger pool permits a meaningful
 contrast, without guaranteeing an assembly. `test_parse_errors.py` checks cold
 rejection, the exactly-k vacuous control, and trained versus untrained separation.
 These are executable software contracts, not a formal proof or research adoption.
+
+
+<a id="contract-hashed-normalization"></a>
+## Hashed fiber normalization is part of the execution target
+
+AreaFiber uses float32 division by in-degree. DenseOrganFiber precomputes a
+float32 reciprocal and multiplies by it in organ_drive_kernel. These expressions
+are equal over real numbers but need not round identically. Canonical tie-breaking
+resolves equal computed drives; it cannot make different rounded drives equal.
+The recurrent_fiber factory selects DenseOrganFiber for a finite clip without
+column scaling, so storage selection can change winner trajectories.
+
+The multi-episode fused test explicitly constructs both fiber classes and compares
+them to stored-weight references with their declared normalization arithmetic.
+It retains a constructed negative: four episodes, three rounds, beta .1, clip20,
+n2048, k40, seeds 0x5EED1234+17*b, normalized, cue RNG5. For brain2 in episode1,
+substituting division for reciprocal multiplication changes final winners.
+The original division-reference failure is not historical parity acceptance.
+
+For a general cross-target winner guarantee, drive-error bounds alone are
+insufficient: a separating k/k+1 gap greater than twice a uniform error bound is
+a sufficient mathematical condition for preserving the winner set. This bound
+is not yet implemented as a runtime certificate or proved for these kernels.
+Neither exact CPU/GPU trajectory equivalence nor historical replay is claimed.

@@ -1249,3 +1249,60 @@ The user explicitly authorized GPU builds, execution, empirical validation and
 performance work. This supersedes the earlier allocation of all GPU work to
 Claude. Execution remains serial with an isolated extension cache; main/dev and
 other sessions remain untouched. CUDA validation is pending at this checkpoint.
+
+
+## CUDA compiler discovery repair
+
+The first authorized GPU attempt used torch 2.12.1+cu130 on the RTX 3080,
+CUDA toolkit 13.1, and automatically selected VS 2026/MSVC 14.50. CUDA rejected
+that host compiler before tests ran (`.cache/gpu-gates-20260910.log`).
+
+Compiler discovery now filters a configurable ASSEMBLIES_VS_VERSION range,
+default [16.0,18.0), and the batch helper calls the Python discovery function.
+The setup command then selected installed VS 2022/MSVC 14.44 successfully.
+Three unit controls cover the default range, override, and no-match rejection.
+The setup guide explicitly requires a successful fused load before pytest,
+because the existing fixtures skip unavailable builds.
+
+Reusing the first cache compiled CUDA successfully but failed linking main.o
+built by VS 2026 (`.cache/gpu-gates-vs2022.log`): Ninja did not invalidate that
+object after the compiler in PATH changed. A fresh worktree-local VS 2022 cache
+built and loaded the fused extension. The guide now includes the MSVC version
+in the cache path and requires fresh caches for other toolchain changes.
+GPU parity results are recorded separately below; successful build is not parity.
+
+
+## GPU gate: explicit storage and normalization arithmetic
+
+The first executable gate returned 115 passed, 1 failed, 11 warnings in 45.30s
+(`.cache/gpu-gates-vs2022-clean.log`), no skips. The failing case was named CSR
+store parity, but its clipped, unscaled factory path actually selected
+DenseOrganFiber. That kernel multiplies by a float32 reciprocal; the stored
+reference divided by float64 degree. A diagnostic reran the same four brains:
+both float64 and float32 division diverged, while float32 reciprocal multiplication
+reproduced every final winner set (`.cache/normalized-parity-diagnostic.log`).
+For brain2, episode1, division differed on 19 of 40 winners; later differences
+were 25 and 18. This is a software counterexample, not a scientific estimate.
+
+The gate now constructs CSR and dense-organ fibers explicitly, each against a
+stored-weight reference with its actual arithmetic. The original division
+mismatch remains a constructed negative in the normalized organ case. No kernel,
+selector, learning rule, tolerance, or historical artifact was changed. The
+factory documentation now disclaims identical trajectories from close drives;
+VERIFICATION.md records the distinction and the missing margin-certificate gate.
+
+Expanded gate: 122 passed, no skips, 11 warnings in 31.04 seconds
+(`.cache/gpu-gates-arithmetic.log`). Files: test_fused_cuda,
+test_hashed_substrate_parity, test_hashed_fsm_parity,
+test_hashed_transducer_parity, test_hashed_aligner_parity, test_torch_parity,
+and test_mixed_drive_indices. Warnings include the existing deep-count overflow
+and sampled NumPy warnings; they were not suppressed. Tests include drive replay,
+arithmetic-scoped trajectories and qualitative operations, not a uniform claim
+of exact trajectories across all backends. Historical A1/capacity replay remains
+open, as does the previously recorded broader package audit.
+
+Final contract workflow rerun in the CUDA-enabled environment: 1029 passed,
+1 skipped, two expected sampled warnings in 116.23 seconds
+(`.cache/contracts-with-cuda.log`). Compiler-discovery tests are now in that
+workflow. Changed Python files pass Ruff; git diff --check passes. No full-package
+clean claim, scientific adoption, historical replay or performance speedup is made.
