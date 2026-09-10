@@ -1,4 +1,6 @@
 import numpy as np
+import pytest
+from neural_assemblies.compute.winner_policies import EPercentPolicy
 
 from neural_assemblies.compute import (
     RelativeThresholdPolicy,
@@ -95,3 +97,37 @@ class TestWinnerPolicies:
             assert "fraction_of_max" in str(exc)
         else:
             raise AssertionError("Expected ValueError for invalid fraction_of_max")
+
+
+@pytest.mark.parametrize('factory,kwargs', [
+    (TopKPolicy, {'k': -1}), (TopKPolicy, {'k': 1.5}),
+    (TopKPolicy, {'k': True}), (TopKPolicy, {'k': 2, 'tie_policy': 'typo'}),
+    (ThresholdPolicy, {'k': 2, 'threshold': float('nan')}),
+    (ThresholdPolicy, {'k': 2, 'threshold': float('inf')}),
+    (RelativeThresholdPolicy, {'fraction_of_max': 1.2}),
+    (RelativeThresholdPolicy, {'fraction_of_max': .5, 'min_winners': True}),
+    (RelativeThresholdPolicy, {'fraction_of_max': .5, 'min_winners': 2, 'max_winners': 1}),
+    (EPercentPolicy, {'window': 'sigam'}),
+    (EPercentPolicy, {'e_fraction': -1}), (EPercentPolicy, {'e_fraction': 1.1}),
+    (EPercentPolicy, {'sigma_c': -1}), (EPercentPolicy, {'sigma_c': float('nan')}),
+    (EPercentPolicy, {'min_winners': 1.5}),
+])
+def test_invalid_policy_fails_at_construction(factory, kwargs):
+    with pytest.raises(ValueError):
+        factory(**kwargs)
+
+
+@pytest.mark.parametrize('d,tau', [(1, 0), (-1, 30), (31, 30), (True, 30)])
+def test_invalid_gamma_constants_fail_at_boundary(d, tau):
+    with pytest.raises(ValueError):
+        EPercentPolicy.from_gamma(d_ms=d, tau_m_ms=tau)
+
+
+def test_policy_boundaries_preserve_null_and_signed_thresholds():
+    selector = WinnerSelector(np.random.default_rng(0))
+    assert len(selector.select_with_policy(np.array([2, 1]), TopKPolicy(k=0))) == 0
+    policy = ThresholdPolicy(k=np.int64(2), threshold=np.float64(-1))
+    assert type(policy.k) is int and type(policy.threshold) is float
+    np.testing.assert_array_equal(selector.select_with_policy(np.array([0, -2]), policy), [0])
+    assert EPercentPolicy.from_gamma(d_ms=0).fraction_of_max == 1
+    assert EPercentPolicy.from_gamma(d_ms=30).fraction_of_max == 0

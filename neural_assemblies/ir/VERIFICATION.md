@@ -960,3 +960,30 @@ neurons under noise compared with an otherwise identical clone. This is a softwa
 execution control, not statistical validation of a noise law. Finite configuration
 does not guarantee finite arithmetic at every extreme scale, and GPU execution
 and direct legacy-field mutation remain separate verification tasks.
+
+
+<a id="contract-policy-values"></a>
+
+## Competition-policy values
+
+The frozen dataclasses in `compute.winner_policies` validate and canonicalize their
+parameters at construction through `_validate_fields`. Counts are nonboolean,
+nonnegative integers; scalar parameters are finite nonboolean reals. Accepted
+NumPy scalar values become Python ints/floats. Fraction parameters lie in `[0, 1]`;
+relative maximum counts cannot be below minimum counts. Thresholds may be signed,
+and zero winner counts remain valid null policies.
+
+The supported tie rule is `value_then_index`. An arbitrary string previously
+selected a fallback sort without describing its tie semantics; it now raises.
+E%-WTA windows are exactly `epsilon` and `sigma`, with nonnegative sigma_c. Gamma
+construction requires finite `0 <= d_ms <= tau_m_ms` and `tau_m_ms > 0`, including
+zero delay and the full-delay boundary. A window typo can no longer silently run
+the epsilon mechanism.
+
+Parameter validation is owned by policy construction rather than duplicated in
+the selection branches. The policies do not promise k winners if fewer candidates
+exist, and E%-WTA's existing silent-input and minimum/cap rules remain unchanged.
+Controls reject malformed policies before selection and preserve null/signed
+boundary behavior. This does not validate every feature vector, certify backend
+tie parity or GPU execution, or validate arbitrary objects reconstructed by
+bypassing constructors (including legacy pickle state).

@@ -543,3 +543,14 @@ and Torch implement the setter; dense/exact owners reject nonzero values. A
 materialized stimulus-driven control confirms that enabling noise changes winners.
 Focused checks 203 passed; final CPU gate 947 passed, 1 skipped. GPU execution
 remains open. See [validation](VALIDATION.md).
+
+
+### Immutable competition-policy values
+
+Policy constructors validate counts, finite scalars, fractions and supported mode
+names; gamma constants are checked before division. Misspelled windows and tie
+rules can no longer silently select another path. Selection branches reuse the
+constructor contract instead of duplicating its checks. Twenty initial failures;
+focused checks 231 passed, standalone selection 11 passed, CPU gate 975 passed,
+1 skipped. The policy suite is now in CI. Legacy pickle validation and GPU parity
+remain open. See [validation](VALIDATION.md).

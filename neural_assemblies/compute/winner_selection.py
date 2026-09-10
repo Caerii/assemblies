@@ -177,13 +177,6 @@ class WinnerSelector:
             )
 
         if isinstance(policy, RelativeThresholdPolicy):
-            if not 0.0 <= policy.fraction_of_max <= 1.0:
-                raise ValueError("fraction_of_max must be between 0 and 1")
-            if policy.min_winners < 0:
-                raise ValueError("min_winners must be non-negative")
-            if policy.max_winners is not None and policy.max_winners < policy.min_winners:
-                raise ValueError("max_winners must be >= min_winners")
-
             max_value = float(xp.max(features))
             threshold = max_value * policy.fraction_of_max
             above_threshold = xp.where(features >= threshold)[0]
@@ -213,9 +206,6 @@ class WinnerSelector:
             return xp.asarray(chosen, dtype=int)
 
         if isinstance(policy, EPercentPolicy):
-            if not 0.0 <= policy.fraction_of_max <= 1.0:
-                raise ValueError("fraction_of_max must be between 0 and 1")
-
             # Eq. 5 defines the firing set as h_j in [(1-eps) h_max, h_max].
             # For h_max < 0 -- reachable once feedforward inhibition allows
             # negative weights -- that interval is empty, because (1-eps)h_max

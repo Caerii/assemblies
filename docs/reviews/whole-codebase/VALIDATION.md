@@ -1052,3 +1052,25 @@ CPU workflow gate: 947 passed, 1 skipped, two expected sampled-engine warnings i
 69.47 seconds (`.cache/input-noise-gate-final.log`). Ruff and diff checks passed.
 GPU execution, arbitrary-scale arithmetic, policy-parameter validation and direct
 legacy-field mutation remain unverified or open.
+
+
+## Immutable competition-policy values (2026-09-10)
+
+Twenty initial control failures (8 passes) exposed unchecked constructor values,
+invalid gamma constants and uncanonicalized NumPy scalars. Policies now validate
+count, real, fraction and mode fields during frozen-dataclass construction using
+shared helpers. Misspelled E%-WTA windows previously selected epsilon silently;
+arbitrary tie strings selected an unnamed fallback sort. Both now raise. Gamma
+constants have an explicit domain before division. Signed finite thresholds, zero
+winner counts and zero-delay/full-delay boundaries remain supported.
+
+Relative and E%-WTA selection branches no longer duplicate policy-parameter
+validation. Policy construction owns that contract. Existing selection arithmetic
+and E%-WTA population-dependent floors/caps are unchanged. Legacy pickle state or
+objects created by bypassing constructors do not acquire this guarantee.
+
+Focused policy/registration suites: 231 passed. Standalone winner-selection
+regressions: 11 passed. The policy suite is now in the CPU workflow gate, whose
+final result is 975 passed, 1 skipped, two expected sampled-engine warnings in
+69.83 seconds (`.cache/policy-values-gate.log`). Ruff and diff checks passed.
+These are software checks, not scientific adoption or GPU/backend parity proof.

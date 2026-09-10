@@ -73,6 +73,12 @@ backend support and is rejected for explicit dense areas. The setting is publish
 only after the executing engine accepts it. See the
 [input-noise contract](../neural_assemblies/ir/VERIFICATION.md#contract-input-noise).
 
+Competition policies validate their parameters when constructed. Winner counts
+are nonnegative integers; real parameters must be finite. The supported tie rule
+is `value_then_index`, and E%-WTA windows are `epsilon` or `sigma`. Invalid strings
+raise instead of selecting a fallback. See the
+[policy-value contract](../neural_assemblies/ir/VERIFICATION.md#contract-policy-values).
+
 Main objects:
 
 | Object | Location | Role |
