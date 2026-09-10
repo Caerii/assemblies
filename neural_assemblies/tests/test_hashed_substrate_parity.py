@@ -37,6 +37,7 @@ from neural_assemblies.core.numpy_engine import _seeding        # noqa: E402
 from neural_assemblies.core.torch_engine import _fused_cuda     # noqa: E402
 from neural_assemblies.core.torch_engine._hashed import (        # noqa: E402
     _chain_table, _gain_table)
+from neural_assemblies.tests import _parity_dump
 
 AREA = "A"
 DEV = "cuda"
@@ -137,6 +138,7 @@ def test_substrate_arm_reproduces_numpy_sparse(mod, arm, norm_init, scaling,
     # bit-identical once plasticity runs, and a study on this path inherits
     # that. Without plasticity arm NONE IS bit-identical (see
     # test_single_round_no_plasticity_is_bit_identical).
+    _parity_dump.record(f"area fiber, arm {arm}", worst)
     assert worst < 5e-6, f"arm {arm}: relative drive error {worst:.3g}"
 
 
@@ -262,6 +264,7 @@ def test_stimulus_pricing_reproduces_numpy_sparse(mod, norm_init, n, k, p):
         rowmask.scatter_(1, pidx, rowmask.gather(1, pidx) | bit)
         colmask.scatter_(1, sidx, colmask.gather(1, sidx) | bit)
         spot.scatter_add_(1, sidx, torch.ones_like(sidx))
+    _parity_dump.record(f"stimulus fiber, norm_init={norm_init}", worst)
     assert worst < 5e-6, f"norm_init={norm_init}: relative error {worst:.3g}"
 
 
@@ -384,6 +387,7 @@ def test_capacity_protocol_reproduces_numpy_sparse_across_episodes(
             sf.observe(pt, nt)
         fiber.end_episode()
     assert fiber.nnz > 0, "the store never populated -- the test is vacuous"
+    _parity_dump.record(f"capacity protocol, arm {arm}", worst)
     assert worst < 5e-6, (
         f"arm {arm}: hashed path diverges from numpy_sparse across episodes: "
         f"relative drive error {worst:.3g}")
@@ -471,6 +475,8 @@ def test_refracted_capacity_protocol_reproduces_numpy_sparse(mod):
     assert worst < 5e-6, (
         f"refracted hashed path diverges from numpy_sparse on the NET drive: "
         f"relative error {worst:.3g}")
+    _parity_dump.record("refracted capacity protocol, drive", worst)
+    _parity_dump.record("refracted capacity protocol, bias", bias_err)
     assert bias_err < 5e-6, (
         f"accumulated bias diverges from the engine's: {bias_err:.3g}")
 
@@ -492,6 +498,7 @@ def test_refracted_capacity_protocol_reproduces_numpy_sparse(mod):
         got = (raw if masked else area.apply_bias(raw))[0].cpu().numpy().astype(np.float64)
         m = min(len(d_ref), len(got))
         err = float(np.abs(d_ref[:m] - got[:m]).max()) / max(float(np.abs(d_ref[:m]).max()), 1e-12)
+        _parity_dump.record(f"masked readout, masked={masked}", err)
         assert err < 5e-6, f"masked_readout={masked}: read diverges, rel {err:.3g}"
     # and the flag never masks a WRITE: a plastic projection with the flag on
     # still ranks the NET drive (the hashed net, computed before the write)
@@ -502,5 +509,6 @@ def test_refracted_capacity_protocol_reproduces_numpy_sparse(mod):
     d_w = np.asarray(res_w.pre_kwta_inputs, dtype=np.float64)
     m = min(len(d_w), len(net_before))
     err = float(np.abs(d_w[:m] - net_before[:m]).max()) / max(float(np.abs(net_before[:m]).max()), 1e-12)
+    _parity_dump.record("masked readout, write unmasked", err)
     assert err < 5e-6, f"a WRITE was masked: rel {err:.3g}"
     brain.set_masked_readout(AREA, False)

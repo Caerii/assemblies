@@ -128,6 +128,18 @@ presentation. Blue, trained for 15 presentations: the test arc matches
 every presentation from the second on. Red, trained for 30: it matches
 none of them well, because the arc relocated late in training.*
 
+![arc neurons kept and lost at 30 presentations, by their symbol stimulus's base](figures/organ_clip_relocation.png)
+
+*How to read it: one organ (Z60, four brains), trained for 30
+presentations; every neuron of the arc it had at presentation 15 is
+binned by how many of its symbol's 70 stimulus rows are present, which is
+the neuron's base drive. Blue neurons are still in the arc at test, red
+ones have left. The dotted line is the base at which a synapse
+potentiated once per presentation hits the weight clip by presentation
+30: almost every lost neuron sits to its right. The best-connected
+neurons leave first, because their weights stop growing while the rest
+catch up.*
+
 ![order-10 prediction against presentation, with the clip edge](figures/organ_order10_window.png)
 
 *How to read it: two twelve-word sequences share their middle ten words;
@@ -216,7 +228,17 @@ and plasticity is off; writes always see the bias. Two kernel layouts: dense int
 percent ([DESIGN_dense_floor.md](substrate/DESIGN_dense_floor.md)) and present-only
 lists below it ([DESIGN_present_only.md](substrate/DESIGN_present_only.md)). Every
 unit passes a drive replay against the numpy engine to a relative 5e-6 and
-an identity-across-width check before its numbers are used. The regime
+an identity-across-width check before its numbers are used.
+
+![worst relative drive error per parity gate, against the 5e-6 bar](figures/parity_gates.png)
+
+*How to read it: each bar is one parity gate, a test that replays the
+numpy engine's winners through a hashed unit and compares the drive it
+computes with the engine's; the bar's length is the worst relative error
+over every projection and parameter case in that test, on a log scale.
+The dotted line is the gate. Every unit sits one to two decades under
+it, between 6e-8 and 6e-7; the errors are float32 rounding. Produced by running the parity
+suites with `NEMO_PARITY_DUMP=1`.* The regime
 conditions the theorems require are measured in
 [PREREG_theorem_regime.md](substrate/PREREG_theorem_regime.md),
 [PREREG_substrate_c_homeostasis.md](substrate/PREREG_substrate_c_homeostasis.md) and

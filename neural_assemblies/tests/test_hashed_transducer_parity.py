@@ -27,6 +27,7 @@ torch = pytest.importorskip("torch")
 from neural_assemblies.core.brain import Brain                             # noqa: E402
 from neural_assemblies.core.torch_engine import _fused_cuda                # noqa: E402
 from neural_assemblies.programs.sequence_transducer import SequenceTransducer  # noqa: E402
+from neural_assemblies.tests import _parity_dump
 
 
 @pytest.fixture(scope="module")
@@ -154,6 +155,8 @@ def test_hashed_transducer_reproduces_numpy_drive(mod):
     bias_err = float(np.abs(bias_engine[:m] - got_bias[:m]).max()) / max(
         float(np.abs(bias_engine[:m]).max()), 1e-12)
     assert h.arc_state.store.max_count > 0, "ARC -> STATE never learned -- vacuous"
+    _parity_dump.record("transducer, drive", worst)
+    _parity_dump.record("transducer, bias", bias_err)
     assert worst < 5e-6, ("hashed transducer diverges from numpy_sparse on the "
                           f"drive: relative error {worst:.3g}; first: " + " | ".join(first))
     assert bias_err < 5e-6, f"ARC refraction bias diverges: {bias_err:.3g}"

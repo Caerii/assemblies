@@ -1,0 +1,9 @@
+'vswhere.exe' is not recognized as an internal or external command,
+operable program or batch file.
+P=30: lost 17448 kept 16152 (of 33600 presentation-15 arc neurons)
+  symbol-stimulus potentiation count: lost median 30 p10 29  |  kept median 30 p90 30  |  lost with count >= 31 (clip): 0.7%  kept >= 31: 0.0%
+  state->arc mean count from the block: lost 15.9  kept 16.3
+  accumulated bias: lost median 1151.5  kept median 1135.0
+  stimulus BASE (present rows): lost median 34.0 p10 33.0 | kept median 31.0 p90 33.0
+  clipped at P=30 (base * 1.1^30 >= 560, i.e. base >= 32.1): lost 99.1%  kept 12.0%
+  test-time raw drive: lost median 1188  kept median 1204;  net (raw - bias): lost 41  kept 70

@@ -1,0 +1,21 @@
+{
+  "area fiber, arm B": 2.02538147300526e-07,
+  "area fiber, arm C": 4.76837158203125e-07,
+  "area fiber, arm G": 4.962767334350767e-07,
+  "area fiber, arm NONE": 2.1798270089285714e-07,
+  "capacity protocol, arm B": 1.9669358090498717e-07,
+  "capacity protocol, arm C": 2.2527809454380962e-07,
+  "capacity protocol, arm G": 1.839086547780756e-07,
+  "capacity protocol, arm NONE": 1.8016517182622684e-07,
+  "masked readout, masked=False": 6.705522487271409e-08,
+  "masked readout, masked=True": 6.705522487271409e-08,
+  "masked readout, write unmasked": 6.705522487271409e-08,
+  "refracted capacity protocol, bias": 6.689798652447098e-08,
+  "refracted capacity protocol, drive": 1.1578142504704199e-07,
+  "stimulus fiber, norm_init=False": 6.044350682174052e-07,
+  "stimulus fiber, norm_init=True": 6.008650224538967e-07,
+  "transducer, bias": 6.652303899061666e-08,
+  "transducer, drive": 1.9927207902253858e-07,
+  "transition machine, bias": 6.448613673808098e-08,
+  "transition machine, drive": 3.3314192478965697e-07
+}

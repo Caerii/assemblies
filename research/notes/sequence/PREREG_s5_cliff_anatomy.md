@@ -32,6 +32,14 @@ the arc it produced at each training presentation: trained for 15, the
 test arc matches every presentation from the second on; trained for 30, it
 matches none well, because the arc relocated late in training.*
 
+![arc neurons kept and lost at 30 presentations by symbol base, with the clip line (Addendum 5)](../figures/organ_clip_relocation.png)
+
+*Z60, four brains, 30 presentations: the presentation-15 arc's neurons
+binned by their symbol's present rows (base drive), kept in blue and lost
+in red; the dotted line is the base whose synapse reaches the clip by
+presentation 30. 99 percent of the lost neurons are past it, 12 percent of
+the kept ones.*
+
 ![across-symbol and across-state arc overlap against refraction strength (Addendum 6)](../figures/organ_strength_pinned.png)
 
 *The arc should be a conjunction: assemblies for the same state under
@@ -511,7 +519,7 @@ re-run of past ones).
     0.00       200 + 23,800 / 24,000    100 / 100         100 / 100         0.043           1.000          FAIL (the null)
     0.05       23,249 + 751 / 24,000    100 / 100          83 / 100         0.632           0.079          FAIL
     0.08       269 + 0 / 24,000          95 / 100           0 / 100         0.052           0.000          PASS
-    0.10       15 + 0 / 24,000           14 / 100           0 / 100         (Addendum 4)                   PASS (A1)
+    0.10       15 + 0 / 24,000           14 / 100           0 / 100         0.000           0.000          PASS (rerun 2026-09-09, _amend6_s0.1: the same 15 pairs as Addendum 4; the conjunction overlaps measured)
 
     X1  MARGIN KILLS THE SOFT PAIRS at 0.05: 100% of pairs are bad         FAIL
     X2  THE CONJUNCTION SURVIVES at 0.05: across-symbol 0.632              FAIL

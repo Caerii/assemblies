@@ -1,0 +1,153 @@
+'vswhere.exe' is not recognized as an internal or external command,
+operable program or batch file.
+=== E7 at width: the soft census on the explicit substrate ===
+
+    S5: 3 brains, n_arc 40000, n_state 8400, 240 pairs, word 500  [14s]
+    S5: 3 brains, n_arc 40000, n_state 8400, 240 pairs, word 500  [11s]
+    S5: 3 brains, n_arc 40000, n_state 8400, 240 pairs, word 500  [11s]
+    S5: 3 brains, n_arc 40000, n_state 8400, 240 pairs, word 500  [11s]
+    S5: 3 brains, n_arc 40000, n_state 8400, 240 pairs, word 500  [9s]
+    S5: 3 brains, n_arc 40000, n_state 8400, 240 pairs, word 500  [9s]
+    S5: 3 brains, n_arc 40000, n_state 8400, 240 pairs, word 500  [10s]
+    S5: 3 brains, n_arc 40000, n_state 8400, 240 pairs, word 500  [9s]
+    S5: 3 brains, n_arc 40000, n_state 8400, 240 pairs, word 500  [8s]
+    S5: 3 brains, n_arc 40000, n_state 8400, 240 pairs, word 500  [9s]
+    S5: 3 brains, n_arc 40000, n_state 8400, 240 pairs, word 500  [10s]
+    S5: 3 brains, n_arc 40000, n_state 8400, 240 pairs, word 500  [9s]
+    S5: 3 brains, n_arc 40000, n_state 8400, 240 pairs, word 500  [8s]
+    S5: 3 brains, n_arc 40000, n_state 8400, 240 pairs, word 500  [8s]
+    S5: 3 brains, n_arc 40000, n_state 8400, 240 pairs, word 500  [9s]
+    S5: 3 brains, n_arc 40000, n_state 8400, 240 pairs, word 500  [9s]
+    S5: 3 brains, n_arc 40000, n_state 8400, 240 pairs, word 500  [12s]
+    S5: 3 brains, n_arc 40000, n_state 8400, 240 pairs, word 500  [11s]
+    S5: 3 brains, n_arc 40000, n_state 8400, 240 pairs, word 500  [10s]
+    S5: 3 brains, n_arc 40000, n_state 8400, 240 pairs, word 500  [12s]
+    S5: 3 brains, n_arc 40000, n_state 8400, 240 pairs, word 500  [10s]
+    S5: 3 brains, n_arc 40000, n_state 8400, 240 pairs, word 500  [9s]
+    S5: 3 brains, n_arc 40000, n_state 8400, 240 pairs, word 500  [9s]
+    S5: 3 brains, n_arc 40000, n_state 8400, 240 pairs, word 500  [11s]
+    S5: 3 brains, n_arc 40000, n_state 8400, 240 pairs, word 500  [11s]
+    S5: 3 brains, n_arc 40000, n_state 8400, 240 pairs, word 500  [10s]
+    S5: 3 brains, n_arc 40000, n_state 8400, 240 pairs, word 500  [13s]
+    S5: 3 brains, n_arc 40000, n_state 8400, 240 pairs, word 500  [12s]
+    S5: 3 brains, n_arc 40000, n_state 8400, 240 pairs, word 500  [12s]
+    S5: 3 brains, n_arc 40000, n_state 8400, 240 pairs, word 500  [10s]
+    S5: 3 brains, n_arc 40000, n_state 8400, 240 pairs, word 500  [10s]
+    S5: 3 brains, n_arc 40000, n_state 8400, 240 pairs, word 500  [10s]
+    S5: 3 brains, n_arc 40000, n_state 8400, 240 pairs, word 500  [10s]
+    S5: 1 brains, n_arc 40000, n_state 8400, 240 pairs, word 500  [9s]
+
+    group   seed first_bad   dev pred_dev  V2  soft  hard  min_ov
+    S5        42       500    38       38   T     1     0  0.9857
+    S5        43       500   297      297   T     1     0  0.9857
+    S5        44       500     -        -   T     0     0  1.0000
+    S5        45       500     -        -   T     0     0  1.0000
+    S5        46       500     -        -   T     0     0  1.0000
+    S5        47       500     -        -   T     0     0  1.0000
+    S5        48       500     -        -   T     0     0  1.0000
+    S5        49       500   136      136   T     1     0  0.9857
+    S5        50       500     -        -   T     0     0  1.0000
+    S5        51       500     -        -   T     0     0  1.0000
+    S5        52       500     -        -   T     0     0  1.0000
+    S5        53       500   422      422   T     1     0  0.9857
+    S5        54       500     -        -   T     0     0  1.0000
+    S5        55       500     -        -   T     0     0  1.0000
+    S5        56       500     -        -   T     0     0  1.0000
+    S5        57       500     -        -   T     0     0  1.0000
+    S5        58       500     -        -   T     0     0  1.0000
+    S5        59       500     -        -   T     0     0  1.0000
+    S5        60       500     -        -   T     0     0  1.0000
+    S5        61       500     -        -   T     0     0  1.0000
+    S5        62       500     -        -   T     0     0  1.0000
+    S5        63       500     -        -   T     0     0  1.0000
+    S5        64       500     -        -   T     0     0  1.0000
+    S5        65       500     -        -   T     0     0  1.0000
+    S5        66       500     -        -   T     0     0  1.0000
+    S5        67       500     -        -   T     0     0  1.0000
+    S5        68       500     -        -   T     0     0  1.0000
+    S5        69       500     -        -   T     0     0  1.0000
+    S5        70       500     -        -   T     0     0  1.0000
+    S5        71       500     -        -   T     0     0  1.0000
+    S5        72       500     -        -   T     0     0  1.0000
+    S5        73       500   192      192   T     1     0  0.9857
+    S5        74       500     -        -   T     0     0  1.0000
+    S5        75       500     -        -   T     0     0  1.0000
+    S5        76       500     -        -   T     0     0  1.0000
+    S5        77       500     -        -   T     0     0  1.0000
+    S5        78       500     -        -   T     0     0  1.0000
+    S5        79       500     -        -   T     0     0  1.0000
+    S5        80       500    60       60   T     1     0  0.9857
+    S5        81       500     -        -   T     0     0  1.0000
+    S5        82       500     -        -   T     0     0  1.0000
+    S5        83       500     -        -   T     0     0  1.0000
+    S5        84       500     -        -   T     0     0  1.0000
+    S5        85       500     -        -   T     0     0  1.0000
+    S5        86       500    27       27   T     1     0  0.9857
+    S5        87       500     -        -   T     0     0  1.0000
+    S5        88       500     -        -   T     0     0  1.0000
+    S5        89       500     -        -   T     0     0  1.0000
+    S5        90       500     -        -   T     0     0  1.0000
+    S5        91       500     -        -   T     0     0  1.0000
+    S5        92       500     -        -   T     0     0  1.0000
+    S5        93       500     -        -   T     0     0  1.0000
+    S5        94       500     -        -   T     0     0  1.0000
+    S5        95       500     -        -   T     0     0  1.0000
+    S5        96       500   176      176   T     1     0  0.9857
+    S5        97       500     -        -   T     0     0  1.0000
+    S5        98       500    21       21   T     2     0  0.9857
+    S5        99       500     -        -   T     0     0  1.0000
+    S5       100       500     -        -   T     0     0  1.0000
+    S5       101       500     -        -   T     0     0  1.0000
+    S5       102       500     -        -   T     0     0  1.0000
+    S5       103       500     -        -   T     0     0  1.0000
+    S5       104       500     -        -   T     0     0  1.0000
+    S5       105       500     -        -   T     0     0  1.0000
+    S5       106       500     -        -   T     0     0  1.0000
+    S5       107       500     -        -   T     0     0  1.0000
+    S5       108       500     -        -   T     0     0  1.0000
+    S5       109       500     -        -   T     0     0  1.0000
+    S5       110       500     -        -   T     1     0  0.9857
+    S5       111       500     -        -   T     0     0  1.0000
+    S5       112       500     -        -   T     0     0  1.0000
+    S5       113       500     -        -   T     0     0  1.0000
+    S5       114       500     -        -   T     0     0  1.0000
+    S5       115       500     -        -   T     0     0  1.0000
+    S5       116       500   147      147   T     1     0  0.9857
+    S5       117       500     -        -   T     0     0  1.0000
+    S5       118       500   210      210   T     1     0  0.9857
+    S5       119       500     -        -   T     0     0  1.0000
+    S5       120       500     -        -   T     0     0  1.0000
+    S5       121       500     -        -   T     0     0  1.0000
+    S5       122       500     -        -   T     0     0  1.0000
+    S5       123       500    39       39   T     1     0  0.9857
+    S5       124       500     -        -   T     0     0  1.0000
+    S5       125       500     -        -   T     0     0  1.0000
+    S5       126       500     -        -   T     0     0  1.0000
+    S5       127       500   355      355   T     1     0  0.9857
+    S5       128       500     -        -   T     0     0  1.0000
+    S5       129       500     -        -   T     0     0  1.0000
+    S5       130       500     -        -   T     0     0  1.0000
+    S5       131       500     -        -   T     0     0  1.0000
+    S5       132       500     -        -   T     0     0  1.0000
+    S5       133       500     -        -   T     0     0  1.0000
+    S5       134       500     -        -   T     0     0  1.0000
+    S5       135       500     -        -   T     0     0  1.0000
+    S5       136       500     -        -   T     0     0  1.0000
+    S5       137       500     -        -   T     0     0  1.0000
+    S5       138       500     -        -   T     0     0  1.0000
+    S5       139       500     -        -   T     0     0  1.0000
+    S5       140       500     -        -   T     0     0  1.0000
+    S5       141       500     -        -   T     0     0  1.0000
+
+    per group: bad pairs / pairs (rate)   words derailing
+      S5        15 /  24000 (0.062%)   0
+    intruder relations: {'other': 15}
+    conjunction (strength 0.1): across-symbol overlap 0.000 (max 0.000), across-state 0.000 (max 0.000); P-CONJ both < 0.15: PASS
+    tails (presentations 15, gain 4.18): c_o (intruder) [43.0, 43.0, 44.0, 44.0, 44.0, 45.0, 45.0, 45.0, 45.0, 45.0, 45.0, 45.0, 45.0, 46.0, 46.0]; c_b (weakest block member) [8.0, 9.1, 9.1, 9.2, 9.4, 9.4, 9.9, 10.4, 10.4, 10.5, 10.5, 10.6, 10.6, 10.7, 10.8]; T3 (c_b <= 14 and c_o >= 35): 15/15
+
+=== BARS (Addendum 3) ===
+  soft 15 + hard 0 of 24000 pairs (0.062%); organs with any bad pair: 14/100; clean organs (no bad pair, word runs 500): 86/100
+  FAIL  W1 the soft pairs were the sampler's (>= 90% of organs clean)
+  PASS  W2 first_dev == first true-path visit to a bad pair, every organ (vacuous where none)
+
+wrote C:\Github\assemblies\research\results\sequence\seq_s5_soft_census_results_hashed_amend6_s0.1.json
