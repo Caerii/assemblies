@@ -9,7 +9,7 @@ repository root.
   Old root implementations.
 - `root_shims/`
   The re-export files that used to sit at the repository root
-  (`parser.py`, `simulations.py`, `learner.py`, `brain_util.py`,
+  (`brain.py`, `parser.py`, `simulations.py`, `learner.py`, `brain_util.py`,
   `image_learner.py`, `recursive_parser.py`). Put the directory on
   `PYTHONPATH` to use the old imports; see its README.
 - `scripts/`
@@ -25,5 +25,5 @@ repository root.
 
 Put new runtime code in `neural_assemblies/`.
 Put new scientific workflows in `research/`.
-Keep the repository root to `brain.py` (the package's entry shim) and
-project metadata.
+Keep the repository root to project metadata; no Python module lives
+there.

@@ -28,3 +28,18 @@ def test_stale_requirements_file_is_not_tracked():
 
 def test_uv_lock_is_tracked_for_reproducible_dev_environment():
     assert _tracked_paths("uv.lock") == ["uv.lock"]
+
+
+def test_root_holds_only_metadata():
+    """Code lives in neural_assemblies/, research/, legacy/, cpp/, crates/,
+    examples/, scripts/ and tests/. The root has project metadata only: no
+    Python module, no schema directory, no benchmark directory."""
+    tracked_root_files = sorted(
+        p for p in _tracked_paths(".") if "/" not in p
+    )
+    assert tracked_root_files == [
+        ".gitignore", ".python-version", "CITATION.cff", "LICENSE",
+        "MANIFEST.in", "README.md", "pyproject.toml", "uv.lock",
+    ], tracked_root_files
+    assert _tracked_paths("assembly_ir") == []
+    assert _tracked_paths("benchmarks") == []

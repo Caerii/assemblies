@@ -139,9 +139,9 @@ in view.
 
 ## Compatibility And Archive
 
-`brain.py` at the root routes `import brain` to the package; the other
-historical shims live in `legacy/root_shims/` and work with that directory
-on `PYTHONPATH`.
+The historical shims, `brain.py` included, live in `legacy/root_shims/`
+and work with that directory on `PYTHONPATH`; the repository root holds no
+Python module.
 
 Historical material lives under `legacy/`:
 

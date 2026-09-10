@@ -10,12 +10,9 @@ IR_VERSION = "1"
 _REQUIRED_ROOT = frozenset({"ir_version", "protocol", "metrics"})
 
 
-def _repo_root() -> Path:
-    return Path(__file__).resolve().parents[2]
-
-
 def schema_path(name: str) -> Path:
-    return _repo_root() / "assembly_ir" / "v1" / name
+    """A v1 schema file; the schemas are package data under ``ir/v1/``."""
+    return Path(__file__).resolve().parent / "v1" / name
 
 
 def validate_protocol_document(doc: dict[str, Any]) -> list[str]:

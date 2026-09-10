@@ -268,7 +268,7 @@ uv run python examples/01_basic_assembly_calculus.py
 
 ```text
 .
-|-- neural_assemblies/        # Installable package
+|-- neural_assemblies/        # Installable package (engines, programs, ir/ schemas, benchmarks/)
 |-- docs/                     # API, architecture, status, register, release docs
 |-- examples/                 # Runnable examples and notebooks
 |-- research/
@@ -279,8 +279,8 @@ uv run python examples/01_basic_assembly_calculus.py
 |-- legacy/                   # Archived root modules, their shims, scripts, artifacts
 |-- tests/                    # Legacy compatibility and optional perf tests
 |-- cpp/, crates/             # Accelerator kernels
-|-- brain.py                  # `import brain` -> the package (the only root module)
-`-- pyproject.toml            # Package metadata
+|-- CITATION.cff, LICENSE     # How to cite; MIT
+`-- pyproject.toml            # Package metadata (no Python module sits at the root)
 ```
 
 ## Citation

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/Caerii/assemblies/assembly_ir/v1/projection.schema.json",
+  "$id": "https://github.com/Caerii/assemblies/neural_assemblies/ir/v1/projection.schema.json",
   "title": "AssemblyProjectionStep",
   "description": "Single projection round (possibly fused multi-source)",
   "type": "object",

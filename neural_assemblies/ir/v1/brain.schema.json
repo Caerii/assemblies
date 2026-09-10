@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/Caerii/assemblies/assembly_ir/v1/brain.schema.json",
+  "$id": "https://github.com/Caerii/assemblies/neural_assemblies/ir/v1/brain.schema.json",
   "title": "AssemblyBrain",
   "description": "Serialized brain topology for cross-language replay",
   "type": "object",

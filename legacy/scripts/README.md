@@ -17,7 +17,9 @@ root under `scripts/`.
 ## Current equivalents
 
 - Prefer `neural_assemblies.simulation` for supported simulation runners.
-- Prefer `benchmarks/` and `tests/performance/` for active profiling and CUDA
-  checks.
+- Prefer `neural_assemblies/benchmarks/` and `tests/performance/` for active
+  profiling and CUDA checks.
+- `simulations/test_brain_core.py` is the original repository's Python 2
+  test script (`xrange`), kept for reference; it is not collected.
 - `legacy.root_modules.image_learner` still depends on
   `legacy.scripts.visualization.animator`.

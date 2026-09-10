@@ -1,6 +1,6 @@
 # Cross-language Assembly Calculus parity
 
-Compare metrics across Python, Julia ([AssemblyCalculus.jl](https://github.com/Caerii/AssemblyCalculus.jl)), and Rust backends using [assembly_ir/v1](../../assembly_ir/v1/) documents.
+Compare metrics across Python, Julia ([AssemblyCalculus.jl](https://github.com/Caerii/AssemblyCalculus.jl)), and Rust backends using [neural_assemblies/ir/v1](../../../neural_assemblies/ir/v1/) documents.
 
 ## Python baseline
 
@@ -18,7 +18,7 @@ python -m research.literature.cross_lang.runner --export /tmp/pnas_scaling_pytho
 
 1. Vendor or clone [Caerii/AssemblyCalculus.jl](https://github.com/Caerii/AssemblyCalculus.jl).
 2. Run capacity/scaling experiment with `n=5000, k=80, p=0.05, beta=0.1, seed=42`.
-3. Emit JSON matching `assembly_ir/v1/protocol.schema.json` (see `julia/export_metrics.jl.example`).
+3. Emit JSON matching `neural_assemblies/ir/v1/protocol.schema.json` (see `julia/export_metrics.jl.example`).
 
 ## Rust
 

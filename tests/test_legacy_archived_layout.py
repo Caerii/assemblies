@@ -12,6 +12,10 @@ def test_historical_scripts_are_archived_under_legacy():
         "scripts/project.py": "legacy/scripts/simulations/project.py",
         "scripts/build_cuda_simple.py": "legacy/scripts/tooling/build_cuda_simple.py",
         "scripts/animator.py": "legacy/scripts/visualization/animator.py",
+        "tests/test_brain_core.py": "legacy/scripts/simulations/test_brain_core.py",
+        "brain.py": "legacy/root_shims/brain.py",
+        "assembly_ir/v1/protocol.schema.json": "neural_assemblies/ir/v1/protocol.schema.json",
+        "benchmarks/profile_operations.py": "neural_assemblies/benchmarks/profile_operations.py",
     }
 
     for old_path, archived_path in archived_paths.items():

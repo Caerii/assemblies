@@ -6,11 +6,17 @@ steps, and literature parity protocols. Enables cross-language golden tests
 
 ## Layout
 
+The schemas are package data, next to the Python that validates against
+them (`neural_assemblies.ir.protocol.schema_path`). They lived at the
+repository root as `assembly_ir/` until 2026-09-09.
+
 ```
-assembly_ir/v1/
-  protocol.schema.json   # parity golden + thresholds
-  brain.schema.json      # areas, connectomes, stimuli
-  projection.schema.json # fused projection step (sources, drive, renorm, slots)
+neural_assemblies/ir/
+  protocol.py            # validate + export protocol documents
+  v1/
+    protocol.schema.json   # parity golden + thresholds
+    brain.schema.json      # areas, connectomes, stimuli
+    projection.schema.json # fused projection step (sources, drive, renorm, slots)
 
 .reference/
   AssemblyCalculus.jl/   # vendored Julia reference (git clone)

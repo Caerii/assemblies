@@ -244,9 +244,10 @@ Common imports from `neural_assemblies.nemo.language` include:
 
 ## Compatibility Imports
 
-Root files such as `brain.py`, `parser.py`, and `simulations.py` remain as
-compatibility shims. The historical implementations live under
-`legacy/root_modules/`.
+The historical imports (`import brain`, `import parser`, `import
+simulations`, and the rest) work with `legacy/root_shims/` on `PYTHONPATH`.
+`brain` routes to the package; the others to the archived implementations
+under `legacy/root_modules/`. The repository root holds no Python module.
 
 Prefer package imports for new code.
 

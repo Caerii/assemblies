@@ -14,9 +14,6 @@ import os
 import copy
 import numpy as np
 
-# Add project root to path
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 from neural_assemblies.core.brain import Brain
 from neural_assemblies.assembly_calculus import (
     project, reciprocal_project, associate, merge,
