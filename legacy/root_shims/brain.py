@@ -1,9 +1,12 @@
 """Historical ``import brain`` shim.
 
-Daniel Mitropolsky's original library was a single ``brain.py`` at the
-repository root, and the archived scripts and simulations import it by that
-name. This re-export keeps those imports working with ``legacy/root_shims``
-on ``PYTHONPATH``. The supported API is the package:
+Daniel Mitropolsky's original library lived at the repository root:
+``brain.py`` (the engine), ``brain_util.py``, ``learner.py``, ``parser.py``,
+``recursive_parser.py``, ``simulations.py`` and the MATLAB prototypes, with
+every script reaching the engine by ``import brain``. Those modules are
+archived under ``legacy/root_modules/``; this re-export keeps ``import
+brain`` working with ``legacy/root_shims`` on ``PYTHONPATH``. The supported
+API is the package:
 
     from neural_assemblies.core import Brain, Area
 """
