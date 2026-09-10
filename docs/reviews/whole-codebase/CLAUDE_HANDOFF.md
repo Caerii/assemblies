@@ -745,3 +745,20 @@ its recorded inputs.
 Final contract workflow: 1067 passed, 1 skipped, two expected sampled warnings
 in 121.43s (.cache/capacity-consumed-contract-gate.log). Full-system completion
 and further experiment migrations remain open.
+
+
+## A1 consumes its recorded model and schedule
+
+HorizonProtocol now freezes and validates the recorded sizes, k, probabilities,
+learning/clip/refraction settings, presentations, length, checkpoints and device.
+The FSM constructor, schedule and exact-state readout consume that object rather
+than imported globals. It rejects implicit enlargement of the state arena by
+requiring room for all assigned blocks. Requested probabilities absent from the
+historical baseline reject before GPU execution instead of producing an empty
+comparison that passes all(). Version2 records checkpoints and device explicitly;
+version1 evidence remains readable but needs those fields for execution.
+
+Focused protocol/runner/specification controls:66 passed in21.43s; Ruff passed.
+Controls check copied configuration, malformed inputs, constructor arguments,
+recorded grid selection and missing-baseline rejection. Full historical replay
+follows before claiming numerical preservation.

@@ -1210,3 +1210,19 @@ change acceptance, and invalid recorded settings never reach measurement. This
 contract does not adopt a changed threshold scientifically: registration and
 adoption remain separate obligations. Existing version2 records already contain
 these fields; their historical values are preserved.
+
+
+<a id="contract-horizon-execution"></a>
+## A1 horizon execution inputs
+
+HorizonProtocol freezes and validates recorded model sizes, learning parameters,
+probability grid, schedule, checkpoints and device before GPU construction.
+run_width consumes this object, including k for the state-block readout. The
+experiment cannot silently substitute global probabilities or learning defaults.
+A requested probability absent from the historical comparison rejects before
+execution, instead of allowing an empty all() comparison to claim PASS.
+
+Protocol version2 adds explicit checkpoints and device. Version1 artifacts remain
+readable evidence but require those fields to be supplied when reconstructing an
+executable configuration. The digit generator and mod3 machine remain fixed
+protocol semantics. Software controls do not adopt alternate scientific settings.

@@ -34,6 +34,7 @@ jobs:
           neural_assemblies/tests/test_protocol_wire.py
           neural_assemblies/tests/test_source_inventory.py
           neural_assemblies/tests/test_research_runner.py
+          neural_assemblies/tests/test_horizon_runner_contract.py
           neural_assemblies/tests/test_capacity_runner_contract.py
           neural_assemblies/tests/test_research_harness.py
           neural_assemblies/tests/test_winner_margin.py
