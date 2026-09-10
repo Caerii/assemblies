@@ -1192,3 +1192,21 @@ changes small enough that the former floating tolerance accepted them.
 
 Comparison version 2 receipts also record the comparator source SHA-256, alongside
 both artifact hashes. Earlier unversioned receipts retain their historical scope.
+
+
+<a id="contract-capacity-execution"></a>
+## Recorded capacity settings are execution inputs
+
+The capacity experiment consumes arm_settings, device, distinct_gate and
+ distinct_low_bar from the run record. These values do not fall back to module
+constants during execution. Arm settings must cover exactly the requested arms
+and explicitly name boolean norm_init and synaptic_scaling. Distinctness bars
+must be finite nonnegative numbers, with the fractional lower bar at most one.
+Invalid settings fail before constructing neural state. Measurement allocations
+follow the actual stored tensors' device. Constants remain CLI defaults only.
+
+Tests verify altered arm/device settings reach the cell, distinctness thresholds
+change acceptance, and invalid recorded settings never reach measurement. This
+contract does not adopt a changed threshold scientifically: registration and
+adoption remain separate obligations. Existing version2 records already contain
+these fields; their historical values are preserved.

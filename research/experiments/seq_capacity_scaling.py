@@ -106,7 +106,7 @@ def _fill(mem):
     return mem.fill.cpu().numpy()
 
 
-def run_cell(n, k, arm, protocol, seeds, rng):
+def run_cell(n, k, protocol, seeds, rng, *, arm_settings, device):
     """Train up to `m_max` assemblies, checkpointing at every M in MS.
 
     The protocol is `AssemblyMemory`: INHIBITED between assemblies, each
@@ -117,13 +117,12 @@ def run_cell(n, k, arm, protocol, seeds, rng):
     import torch
     from neural_assemblies.core.torch_engine._memory import AssemblyMemory
 
-    cfg = ARMS[arm]
     sd = seeds_for(seeds)
     m_max = max(protocol.checkpoints)
     mem = AssemblyMemory(sd, n, k, protocol.p, beta=protocol.beta,
                          w_max=protocol.w_max, rounds=protocol.rounds,
                          strength=(protocol.refracted_factor if protocol.refracted else 0.0),
-                         gate=protocol.converge, max_items=m_max, device=DEV, **cfg)
+                         gate=protocol.converge, max_items=m_max, device=device, **arm_settings)
     stored, used = [], []
     out = {}
     for a in range(m_max):
@@ -133,7 +132,7 @@ def run_cell(n, k, arm, protocol, seeds, rng):
             used.append(mem.rounds_used.clone())
         M = a + 1
         if M in protocol.checkpoints:
-            out[M] = measure(n, arm, mem, stored, len(seeds), rng, protocol)
+            out[M] = measure(n, mem, stored, len(seeds), rng, protocol)
             if protocol.converge:
                 # Amendment 5, G3: rounds spent per item since the last
                 # checkpoint, and the fraction that converged before T_max
@@ -173,7 +172,7 @@ def _overlaps(Ks, ia, ib):
     return hit.sum(2).float() / K                   # [P, B]
 
 
-def measure(n, arm, mem, stored, nbrain, rng, protocol):
+def measure(n, mem, stored, nbrain, rng, protocol):
     """All four metrics on the GPU.
 
     The earlier version did `M x B` `.tolist()` calls for distinctness, a
@@ -187,6 +186,7 @@ def measure(n, arm, mem, stored, nbrain, rng, protocol):
     M = len(stored)
     St = torch.stack(stored).long()                 # [M, B, K]
     K = St.shape[2]
+    device = St.device
     Ks = torch.sort(St, dim=2).values                # canonical order
 
     # -- distinctness by a 64-bit set hash (possible collisions).
@@ -205,21 +205,21 @@ def measure(n, arm, mem, stored, nbrain, rng, protocol):
         ib = rng.integers(0, M, npair)
         keep = ia != ib
         if keep.any():
-            ia = torch.from_numpy(ia[keep]).to(DEV)
-            ib = torch.from_numpy(ib[keep]).to(DEV)
+            ia = torch.from_numpy(ia[keep]).to(device)
+            ib = torch.from_numpy(ib[keep]).to(device)
             pw = _overlaps(Ks, ia, ib).mean(0).double().cpu().numpy()
     pw_x = pw / (K / n)
 
     # -- half-cue rank-1, frozen (the probe equivalent)
     samp = rng.choice(M, min(protocol.recall_sample, M), replace=False)
-    off = (torch.arange(nbrain, device=DEV, dtype=torch.int64)
+    off = (torch.arange(nbrain, device=device, dtype=torch.int64)
            * n).view(1, nbrain, 1)
     flat = (St + off).reshape(-1)                    # [M*B*K], built once
-    hits = torch.zeros(nbrain, dtype=torch.int64, device=DEV)
+    hits = torch.zeros(nbrain, dtype=torch.int64, device=device)
     for a in samp:
         rec = mem.recall(St[a][:, : K // 2],
                          masked=(protocol.refracted and protocol.readout == "masked"))
-        mask = torch.zeros(nbrain * n, dtype=torch.bool, device=DEV)
+        mask = torch.zeros(nbrain * n, dtype=torch.bool, device=device)
         mask[(rec + off[0]).reshape(-1)] = True
         # ONE gather for all M stored assemblies, instead of M gathers.
         ov = mask[flat].view(M, nbrain, K).sum(2)    # [M, B]
@@ -246,17 +246,34 @@ def _fill_at(cells, m_star):
     return pts[-1][1]
 
 
-def gated(cell, seeds):
+def gated(cell, seeds, *, distinct_gate, distinct_low_bar):
     r = ensemble_from_values(cell["rank1"], keys=seeds)
     x = ensemble_from_values(cell["pairwise_x"], keys=seeds)
     d = ensemble_from_values(cell["distinct"], keys=seeds)
-    ok = (x.high <= DISTINCT_GATE and d.low >= 0.9)
+    ok = (x.high <= distinct_gate and d.low >= distinct_low_bar)
     return (r.mean if ok else 0.0), r, x, d
 
 
 def experiment(record):
     """Evaluate explicitly identified cells; completion leaves adoption UNJUDGED."""
     parameters = record["parameters"]
+    # Specification: neural_assemblies/ir/VERIFICATION.md#contract-capacity-execution
+    for name in ("distinct_gate", "distinct_low_bar"):
+        value = parameters[name]
+        if type(value) not in (int, float) or not math.isfinite(value) or value < 0:
+            raise ValueError(f"{name} must be a finite nonnegative number")
+    if parameters["distinct_low_bar"] > 1:
+        raise ValueError("distinct_low_bar must be at most one")
+    settings = parameters["arm_settings"]
+    if set(settings) != set(parameters["arms"]):
+        raise ValueError("arm_settings must describe exactly the requested arms")
+    for cfg in settings.values():
+        if (set(cfg) != {"norm_init", "synaptic_scaling"}
+                or any(type(value) is not bool for value in cfg.values())):
+            raise ValueError("each arm must explicitly specify boolean normalization and scaling")
+    device = parameters["device"]
+    if not isinstance(device, str) or not device:
+        raise ValueError("device must be an explicit nonempty name")
     values = dict(parameters["configuration"])
     values["checkpoints"] = tuple(values["checkpoints"])
     protocol = CapacityProtocol(**values)
@@ -266,9 +283,12 @@ def experiment(record):
         for n, k in parameters["nk"]:
             # The measurement sample stream is separate from brain identities,
             # and restarted per cell as in the historical protocol.
-            cells = run_cell(n, k, arm, protocol, seeds,
-                             np.random.default_rng(parameters["measurement_seed"]))
-            curve = [(m, gated(cell, seeds)[0]) for m, cell in sorted(cells.items())]
+            cells = run_cell(n, k, protocol, seeds,
+                             np.random.default_rng(parameters["measurement_seed"]),
+                             arm_settings=settings[arm], device=device)
+            curve = [(m, gated(cell, seeds, distinct_gate=parameters["distinct_gate"],
+                               distinct_low_bar=parameters["distinct_low_bar"])[0])
+                     for m, cell in sorted(cells.items())]
             ceiling = ceiling_from_curve(curve, threshold=parameters["half_bar"])
             fill = _fill_at(cells, ceiling.m_star)
             results.append({
@@ -309,6 +329,9 @@ def main(argv=None):
     ap.add_argument("--refracted-factor", type=float, default=1.0)
     ap.add_argument("--readout", choices=("net", "masked"), default="net")
     ap.add_argument("--converge", action="store_true")
+    ap.add_argument("--device", default=DEV)
+    ap.add_argument("--distinct-gate", type=float, default=DISTINCT_GATE)
+    ap.add_argument("--distinct-low-bar", type=float, default=0.9)
     args = ap.parse_args(argv)
     try:
         if args.nk and args.ksqrt:
@@ -336,8 +359,8 @@ def main(argv=None):
         parameters={"configuration": asdict(config), "nk": nk, "arms": arms,
                     "arm_settings": {arm: ARMS[arm] for arm in arms},
                     "measurement_seed": 1234, "half_bar": HALF_BAR,
-                    "distinct_gate": DISTINCT_GATE, "distinct_low_bar": 0.9,
-                    "device": DEV, "distinctness": "64-bit set hash; collisions possible"},
+                    "distinct_gate": args.distinct_gate, "distinct_low_bar": args.distinct_low_bar,
+                    "device": args.device, "distinctness": "64-bit set hash; collisions possible"},
     )
     print(f"wrote {path}")
 

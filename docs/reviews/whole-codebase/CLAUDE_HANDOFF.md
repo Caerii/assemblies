@@ -717,3 +717,18 @@ A1 remains40 matches, capacity885. New comparison-v2.json receipts beside each
 run record version2 plus the comparator source SHA256; original receipts and
 observations remain unchanged. This does not supply missing historical protocol
 provenance or broader scientific validation.
+
+
+## Capacity consumes its recorded execution settings
+
+Capacity recorded arm_settings, device and distinctness bars but read module
+ARMS/DEV/DISTINCT_GATE and literal .9 at execution. Those hidden lookups are
+removed: cell execution requires arm settings and device, measurement allocates
+on its stored tensors' device, and gating consumes both recorded thresholds.
+Settings validate before neural construction. CLI options expose device and both
+bars; changing bars still requires registration before scientific adoption.
+
+Controls vary arm/device settings, demonstrate threshold-dependent acceptance,
+and reject malformed settings before measurement. Focused capacity/runner/spec
+checks: 69 passed in27.14s. Ruff passed. Full historical control replay follows
+before numerical equivalence is claimed for this change.
