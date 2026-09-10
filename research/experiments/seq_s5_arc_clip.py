@@ -3,7 +3,7 @@ relocation is the CLIP. Z60, 4 brains, 30 presentations: the arc at
 presentation 15 vs the frozen test arc; neurons LOST vs KEPT by their symbol
 stimulus potentiation count, base (present rows), clip status, bias, and
 net drive at test."""
-import inspect, sys
+import inspect, json, sys
 sys.path.insert(0, 'F:/Github/assemblies'); sys.path.insert(0, 'F:/Github/assemblies/research/experiments')
 import numpy as np, torch
 from neural_assemblies.core.brain import Brain
@@ -61,3 +61,8 @@ hi = 20.0 * max(1.0, K * ORGAN_P)
 print(f'  stimulus BASE (present rows): lost median {np.median(lb):.1f} p10 {np.percentile(lb,10):.1f} | kept median {np.median(kb):.1f} p90 {np.percentile(kb,90):.1f}')
 print(f'  clipped at P=30 (base * 1.1^30 >= {hi:.0f}, i.e. base >= {hi/1.1**30:.1f}): lost {(lb*1.1**30>=hi).mean()*100:.1f}%  kept {(kb*1.1**30>=hi).mean()*100:.1f}%')
 print(f'  test-time raw drive: lost median {np.median(lr):.0f}  kept median {np.median(kr):.0f};  net (raw - bias): lost {np.median(lr-np.array(lost_bias)):.0f}  kept {np.median(kr-np.array(kept_bias)):.0f}')
+from _results import results_path
+json.dump({'presentations': P, 'clip_base': float(hi / 1.1 ** P), 'lost_base': [float(x) for x in lb],
+           'kept_base': [float(x) for x in kb], 'lost_pot': [int(x) for x in lp], 'kept_pot': [int(x) for x in kp],
+           'lost_net': [float(x) for x in (lr - np.array(lost_bias))], 'kept_net': [float(x) for x in (kr - np.array(kept_bias))]},
+          open(results_path('sequence', 'seq_s5_arc_clip.json'), 'w'))

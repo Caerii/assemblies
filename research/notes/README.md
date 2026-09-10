@@ -174,7 +174,7 @@ conditions the theorems require are measured in
 
 - Materialize an area, or use the hashed substrate, before measuring
   sequence dynamics. The sampled numpy engine produced a false horizon, a
-  soft-transition rate five times too high, and every derailment in the
+  soft-transition rate seven times too high, and every derailment in the
   earlier sequence results.
 - Gate a selector on drives that go negative. The k-WTA sign bug passed the
   drive-replay gates, which replay recorded winners.

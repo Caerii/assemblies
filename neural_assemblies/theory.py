@@ -212,7 +212,7 @@ _RESULTS: List[Result] = [
                   "organs): soft pairs persist at 0.067% (4/6000, one intruder "
                   "each, non-abelian/product groups only), the zero-parameter "
                   "law 4/4 -- and none of the four deviations derailed in 500 "
-                  "steps, where the sampled arc derailed 14/40 words"),
+                  "steps, where the sampled arc derailed 12/40 words"),
         caveat="(1) Expansion and quantization are a PAIR: amplification alone "
                "is chaos, benign only because a quantizing area follows it; "
                "composition steps without a re-quantizing stage drift. "
@@ -223,8 +223,8 @@ _RESULTS: List[Result] = [
                "40/40 numpy seeds and 36/36 hashed organs). "
                "(3) THE DERAILMENTS WERE THE SAMPLER'S: on the sampled arc "
                "post-visit trajectories derailed into an absorbing off-lattice "
-               "regime (12/18) and 14/40 words went wrong within 500 steps; on "
-               "the explicit substrate the soft rate is 5.5x lower and no "
+               "regime (12/18) and 12/40 words went wrong within 500 steps; on "
+               "the explicit substrate the soft rate is 7.5x lower and no "
                "deviation derailed (Addendum 3 of PREREG_s5_cliff_anatomy.md). "
                "Apparent group differences at fixed L were the pair count "
                "|G| x |gens| at a flat per-pair rate, not solvability. "

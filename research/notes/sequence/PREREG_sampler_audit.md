@@ -2,7 +2,7 @@
 
 Registered 2026-09-09, before running. The sequence port found that the
 numpy engine's lazily drawn areas produced a false horizon (A1, p = 0.3),
-a soft-transition rate five times too high, and every derailment in the
+a soft-transition rate seven times too high, and every derailment in the
 S5 census (DESIGN_sequence_port.md; PREREG_s5_cliff_anatomy.md Addendum 3).
 Three register entries rest on experiments that ran with the arc area
 drawn lazily. Each is re-run with the arc area materialized, the only

@@ -259,7 +259,10 @@ mechanism is kept as the account of what a soft pair does when one exists.
     A5       0 / 10                    0 / 1200             --             500 x 10    vacuous
     S5       3 / 10 (42, 43, 49)       3 / 2400             0.9857 x 3     500 x 10    3/3
     all      4 / 40                    4 / 6000 = 0.067%    always 69/70   40/40 clean labels   4/4
-    E7 (sampled arc)  16 / 40          22 / 6000 = 0.37%    always 69/70   first_bad < 500 on 14/40
+    E7 (sampled arc)  19 / 40          30 / 6000 = 0.50%    always 69/70   first_bad < 500 on 12/40
+    (E7's row corrected 2026-09-09 from its results file,
+    research/results/sequence/seq_s5_soft_census_results.json; the table
+    first quoted 16 / 22 / 14 from the run's console summary)
 
     W1  >= 90% of organs clean: 36/40 = 90.0%                          PASS (at the bar)
     W2  first_dev == first true-path visit to a bad pair, 4/4         PASS
@@ -267,11 +270,11 @@ mechanism is kept as the account of what a soft pair does when one exists.
 
 **Reading, more careful than the prediction.** The soft map is NOT the
 sampler's alone. On the explicit substrate soft pairs persist -- at a
-rate 5.5x lower (0.067% against 0.37%), with the identical signature (one
+rate 7.5x lower (0.067% against 0.50%), with the identical signature (one
 intruder neuron, every case), only in the non-abelian-or-product groups,
 and the zero-parameter law holds on every organ that has one: the word
 deviates at exactly its first visit to the soft pair. What the sampler
-added was the RATE (5.5x) and the DERAILMENTS: on the sampled arc 14 of 40
+added was the RATE (7.5x) and the DERAILMENTS: on the sampled arc 12 of 40
 words went to a wrong label within 500 steps; on the explicit substrate
 none did -- all four seeded deviations were corrected by the next
 quantization ([[SEQ-EXACT-RECOVERY]]'s expansion-quantization pair doing
