@@ -1,6 +1,8 @@
 /-!
 # Assembly IR lowering obligations
 
+Specification: neural_assemblies/ir/VERIFICATION.md#contract-ir-verification
+
 A lowering may expand one source operation into several target instructions.
 Preserving a relation at each instruction boundary suffices for preserving it
 for an entire sequential program. Observations require a separate compatibility

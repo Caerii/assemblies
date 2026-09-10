@@ -222,3 +222,53 @@ That existing configuration mismatch remains part of the model/backend API work.
 
 Final workflow rerun after tightening the ratchet: **271 passed, 1 skipped**.
 Ruff and diff checks passed. No GPU jobs or historical evidence reruns were performed.
+
+## Classification isolation and retained generalization regression
+
+Classification now runs its explicit stimulus-only schedule inside `read_only`;
+it neither resets core fibers nor inherits the legacy recurrence switch. Eight
+controls cover direct/cached queries, inhibition, exceptions, ordering, grounding
+availability, cold populations, and subsequent learning. The initial five controls
+failed before the repair and passed afterward.
+
+The broader classification/training/selected-holdout run returned **59 passed,
+1 failed, 18 deselected, 1 xfailed**. The retained failure is
+`TestGeneralizationMetrics.test_holdout_verb_classifies_via_grounding`: seed 74's
+heldout `finds` returns PREP instead of VERB. Replacing only the classifier method
+with the version at `c578f20` makes that test pass. This is a method-level baseline,
+not a full historical-checkout replay.
+
+The four-cell diagnostic recorded in the classification semantic card separates
+training with old/new classification from observing with old/new classification.
+The isolated observer still returns VERB on the legacy-trained brain. PREP's
+population is 1965 there, versus 136 on the isolated-trained brain before any
+legacy query. Hidden query-time recruitment therefore changed the trained
+instrument too. This is a single-seed software diagnostic, not an adopted result
+or justification for tuning a readout. The expected heldout label remains VERB;
+the failing test is neither weakened nor marked xfail. Explicit population
+preparation and typed score provenance remain open.
+
+## Midspiral integration: checked domain kernel
+
+`formal/AssemblyIR/Domain.lean` packages transition, invariant, admissibility,
+its executable decision, and local preservation proof. Accepted execution is
+proved equivalent to an admissible schedule in the existing interpreter, and
+preserves an initially true invariant. Allocation controls prove acceptance of
+`[1, 2]` and rejection of `[2, 2]` under capacity three; unchecked execution of
+the latter violates the invariant. These are kernel controls, not neural proofs.
+
+`lake build` and `lake env leanchecker AssemblyIR.Domain` passed on the pinned
+Lean 4.31.0 toolchain. New theorem dependencies are either empty or `propext`;
+no admitted proof or new axiom was introduced. The IR contract names the remaining
+shared-program translation, source/proof identity, drift review and differential
+boundary obligations. No Python/CUDA verification lowering, Dafny installation,
+GPU gate or historical A1/capacity numerical replay is claimed.
+
+The combined workflow CPU contract gate plus trained reconstruction suite passed
+**289 tests, 1 skipped**, with three expected sampled-engine warnings. This
+does not include or supersede the separate heldout generalization failure above.
+The earlier two process outputs were unavailable after continuation; this count
+comes from a fresh completed run saved in `.cache/midspiral-contract-gate.log`.
+After extending source-link validation to Lean module documentation, the focused
+specification-link/research-contract suite passed 25 tests. The final link audit
+resolved 19 links with no errors. Ruff and `git diff --check` passed.

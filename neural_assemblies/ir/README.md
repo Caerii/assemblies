@@ -40,3 +40,10 @@ The Julia command requires Julia and the reference environment. Rust currently
 checks the wire contract; it does not execute the Julia/Python numerical protocol.
 Lean's reusable lowering rules live in `formal/AssemblyIR/Refinement.lean` and
 still require concrete backend simulation proofs.
+
+`formal/AssemblyIR/Domain.lean` adds a checked domain interface: state-dependent
+preconditions, one transition definition shared by execution and proof, and
+invariant preservation for accepted schedules. See the
+[checked domain contract](VERIFICATION.md#contract-checked-domain) for its
+Midspiral/Dafny and LemmaScript integration, negative controls, and remaining
+translation obligations. Check the kernel with `lake build` from `formal/`.

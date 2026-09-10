@@ -138,12 +138,17 @@ def specification_links(root: Path = ROOT) -> tuple[list[dict], list[str]]:
     root = root.resolve()
     edges, errors = [], []
     package = root / 'neural_assemblies'
-    sources = sorted([*package.rglob('*.py'), *package.rglob('*.rs')])
+    sources = sorted([*package.rglob('*.py'), *package.rglob('*.rs'),
+                      *(root / 'formal' / 'AssemblyIR').rglob('*.lean')])
     for source in sources:
         text = source.read_text(encoding='utf-8-sig')
         if 'Specification:' not in text:
             continue
-        if source.suffix == '.rs':
+        if source.suffix == '.lean':
+            # Only module documentation blocks, not arbitrary proof/source text.
+            docs = [("<module>", doc) for doc in
+                    re.findall(r'^/-!\s*\n(.*?)^-/', text, re.MULTILINE | re.DOTALL)]
+        elif source.suffix == '.rs':
             docs = [("<module>", "\n".join(
                 line[3:] for line in text.splitlines() if line.startswith(("//!", "///"))))]
         else:

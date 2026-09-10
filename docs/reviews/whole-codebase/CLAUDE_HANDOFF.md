@@ -152,3 +152,28 @@ GPU parity, Torch zero-drive probe repair, historical numerical replays and the
 larger IR/backend semantics work remain open.
 
 The final CPU contract gate passed 271 tests with 1 skip after the ratchet reduction.
+
+### Checked IR domains and classifier isolation
+
+Midspiral's two articles are integrated into the IR verification contract and
+the checked Lean `Domain` interface. One transition definition supplies both
+execution and proof; state-dependent guards are checked at each step. Accepted
+execution is equivalent to the existing interpreter on admissible schedules,
+and preserves an initially true invariant. Positive and invalid-second-step
+allocation controls are checked. Source links include Lean module contracts.
+The shared normalized-program translator and concrete backend proofs remain
+unimplemented; no Dafny/LemmaScript installation is implied.
+
+Preparatory classification now owns its read-only neural observation scope.
+Eight controls protect weights, population, activity, RNG, exception restoration
+and subsequent learning. The combined CPU contract and trained reconstruction
+gate passes 289 tests with 1 skip. However, the broader training/holdout run
+retains one failure: seed 74's grounded heldout `finds` returns PREP, expected
+VERB. The old classifier method passes that test. The four-cell diagnostic in
+the semantic card shows legacy classification also recruited during training:
+the legacy-trained PREP population is 1965 versus 136 with isolated queries.
+Isolated readout succeeds on the legacy-trained brain. Do not restore hidden
+learning or tune the metric against this fixture to call the migration clean.
+Explicit training-time population preparation and typed readout provenance are
+the next obligations. This branch is not ready to merge; hardware gates and
+historical numerical replays also remain open.

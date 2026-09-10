@@ -51,6 +51,56 @@ no-overwrite, index validity, missing-evidence rejection or proof obligations.
 Changing a scientific rule requires a named model/protocol revision in the run
 record, even if the source code change is only one parameter.
 
+<a id="contract-checked-domain"></a>
+
+## Checked domain contract
+
+[Domain.lean](../../formal/AssemblyIR/Domain.lean) implements the reusable
+kernel/domain boundary described by the Dafny article. A `Domain` packages
+`step`, `invariant`, state-dependent `valid`, an executable decision procedure
+for `valid`, and a proof that allowed transitions preserve the invariant.
+The interpreter and proofs use the same definitions and operation list.
+
+`Domain.execute` checks each precondition against the intermediate state and
+returns `none` on rejection. `execute_iff` proves both directions: execution
+returns a result exactly when every step is admissible and the result agrees
+with the existing `run` interpreter. `execute_preserves` proves that successful
+execution preserves the invariant **provided it holds initially**. Construction
+of a `Domain` requires its local preservation proof; it cannot be replaced by
+a Boolean assertion that the domain is verified.
+
+The constructed allocation controls admit `[1, 2]` under capacity three and
+reject `[2, 2]` at its second instruction. The unchecked interpreter reaches
+four and violates that invariant. This distinguishes a meaningful guard from
+one that always accepts. This small domain is a kernel control, not a proof of
+neural population allocation.
+
+The interpreter is pure. Returning `none` does not promise rollback of external
+effects. Mutable backend implementations must establish their own state and
+failure relation, including RNG, allocation, clamps and learning. These proofs
+do not certify JSON decoding, a Python-to-Lean translation, or backend execution.
+
+The LemmaScript-inspired next bridge must consume the very same normalized
+assembly program as execution. It must preserve instruction order, intermediate
+preconditions and observations, and retain source locations for failures.
+Until that bridge exists, the Lean domain is an executable specification kernel;
+the Python/Rust wire validators are separate checked boundaries. No Dafny or
+LemmaScript translator is installed or implied by this integration.
+
+Acceptance of a future bridge requires all of the following:
+
+- Source, normalized program, model profile, specification, target and toolchain
+  identities accompany the proof artifact. A changed identity makes an old proof
+  inapplicable; a passing parity report cannot replace it.
+- Every supported instruction has an explicit state relation and local
+  preservation obligation; unsupported semantics fail before execution.
+- A shared corpus covers accepted and rejected schedules, with an intentionally
+  broken translation or mechanism shown to fail. Differential tests remain
+  evidence about the bridge, not a universal translation proof.
+- Changed preconditions, invariants or observations appear in the review diff.
+  Weakening the specification to make a proof pass changes the contract and
+  cannot be represented as an implementation-only repair.
+
 ## What preservation means
 
 A fixed-connectome integer lowering can seek bit equality. Floating arithmetic
@@ -74,7 +124,8 @@ Benchmark time and memory separately after preservation gates pass.
 
 Definitions use `Specification: repository/path.md#stable-anchor` in docstrings.
 `python -m research.evidence specifications` validates those links without
-importing hardware backends. The links identify obligations; they are not badges
+importing hardware backends, including Rust documentation and the Lean kernel's
+module documentation. The links identify obligations; they are not badges
 claiming the implementation is formally verified. Existing operation cards retain
 unresolved discrepancies explicitly.
 
@@ -184,5 +235,17 @@ without recruitment. It does not certify trained fibers, nonzero drive, or an
 informative readout. Unavailable role observations retain explicit diagnostics,
 including for inner clauses. Future IR observation consumers must preserve that
 unavailability instead of interpreting it as a measured zero or successful label.
-Preparatory classification still has a separate, documented mutation defect;
-these readiness checks do not certify that entire pipeline as observational.
+Preparatory neural classification now has its own read-only scope. Parser
+category caches and distributional subcategory metadata may still be populated;
+readiness alone does not certify a whole pipeline's mutation or provenance rules.
+
+
+## Classification observations and score provenance
+
+The source-linked classification contract uses existing neural populations and
+an explicit stimulus-only schedule. It has constructed inhibition, exception and
+subsequent-learning controls. No backend preservation theorem is inferred from
+those tests. The legacy result tuple still combines two score domains: core-area
+overlap and distributional category scores. A future typed observation result
+must identify its source and score domain before any conversion or fusion;
+state-preserving execution does not by itself make those metrics interchangeable.

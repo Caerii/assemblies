@@ -1,12 +1,8 @@
-"""CategoryClassificationMixin -- Which category area holds a word's assembly.
-
-Split out of the CoreParserMixin monolith. Bodies are unchanged;
-only their address is.
-"""
+"""Category queries with an explicit neural observation boundary."""
 
 
-from typing import Dict, List, Optional, Tuple
-from neural_assemblies.assembly_calculus.ops import project, _snap
+from typing import Dict, Optional, Tuple
+from neural_assemblies.assembly_calculus.ops import _snap
 from neural_assemblies.assembly_calculus.readout import readout_all
 
 from ..core.areas import CORE_AREAS, CORE_TO_CATEGORY
@@ -74,102 +70,45 @@ class CategoryClassificationMixin:
         word: str,
         grounding: Optional[GroundingContext] = None,
     ) -> Tuple[str, Dict[str, float]]:
-        """Classify a word by differential readout across all core areas.
+        """Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-word-classification
 
-        Projects available stimuli (phon and/or grounding features) into
-        each core area independently and measures overlap against that
-        area's lexicon.  The core area with the highest top-1 readout
-        score determines the word's category.
+        Read existing core lexicons without neural learning or construction.
 
-        WHY "DIFFERENTIAL".  There is no classifier and no decision boundary.
-        The same input is offered to all eight core areas, each of which was
-        shaped by a different grounding modality during training, and the
-        category is simply whichever area RECOGNISES it -- produces an
-        assembly overlapping something it already stores.  Categorisation is
-        thus a competition between populations, which is why it degrades
-        gracefully (scores tail off) rather than flipping at a threshold.
+        Phon and explicitly supplied, registered grounding cues drive a
+        stimulus-only schedule for self.rounds steps. Each target is temporarily
+        cleared and unclamped inside read_only; fibers, activity and RNG are
+        preserved. A nonempty lexicon requires a population usable for probing.
 
-        Two details that look like implementation noise but are not:
-
-        * ``reset_area_connections`` is called on each core area before its
-          probe.  Without it, whichever area was probed first would still be
-          holding its recurrent attractor and would answer to anything;
-          resetting makes the eight probes independent and therefore
-          comparable.  It also means classification is DESTRUCTIVE of
-          recurrent weights in every core area -- do not interleave it with
-          training and expect training to be unaffected.
-        * The score compared is ``overlaps[0][1]``, the single best matching
-          word in that area, not a mean over the lexicon.  The question being
-          asked is "does this area contain something this looks like?", and
-          an average would be dominated by the many unrelated words each area
-          holds.
-
-        A zero across all areas is not "no category" but "no evidence" --
-        hence the fall back to distributional classification, which asks a
-        different question (what does this word's CONTEXT look like) and can
-        answer for words that were never grounded at all.
-
-        When grounding is provided, grounding feature stimuli are projected
-        alongside phon.  This enables generalization: even for unseen words
-        whose phon stimulus was never trained, shared grounding features
-        (e.g. "visual_ANIMAL") drive assemblies toward the correct core area.
-
-        Args:
-            word: Word string to classify.
-            grounding: Optional grounding context.  If None and the word is
-                in word_grounding, no grounding features are used (phon-only,
-                backward-compatible).  Pass explicitly for generalization.
-
-        Returns:
-            (category_label, {core_area: best_overlap_score})
+        Neural scores are maximum stored-word overlaps keyed by core area,
+        not probabilities. CORE_AREAS order resolves positive ties. No positive
+        neural evidence falls back to distributional classification when corpus
+        statistics exist, otherwise UNKNOWN. Distributional scores have category
+        keys and may update parser subcategory metadata, not neural weights.
         """
         phon = self.stim_map.get(word)
         if phon is None and grounding is None:
-            # Fall back to distributional classification if available
             if self.dist_stats.word_count.get(word, 0) > 0:
                 return self.classify_distributional(word)
             return "UNKNOWN", {}
 
+        cues = [phon] if phon is not None else []
+        if grounding is not None:
+            cues.extend(gs for gs in self._grounding_stim_names(grounding)
+                        if gs in self._grounding_stim_names_set)
         scores: Dict[str, float] = {}
-
-        for core_area in CORE_AREAS:
-            lexicon = self.core_lexicons.get(core_area, {})
-            if not lexicon:
-                scores[core_area] = 0.0
-                continue
-
-            self.brain._engine.reset_area_connections(core_area)
-
-            # Build stimulus dict: phon + grounding features
-            stim_dict: Dict[str, List[str]] = {}
-            if phon:
-                stim_dict[phon] = [core_area]
-            if grounding:
-                for gs in self._grounding_stim_names(grounding):
-                    if gs in self._grounding_stim_names_set:
-                        stim_dict[gs] = [core_area]
-
-            if not stim_dict:
-                scores[core_area] = 0.0
-                continue
-
-            # Project stimuli into core area with recurrence.
-            # Use project_rounds fast path (saves one winner set, not one
-            # per round) to avoid exhausting the area's neuron pool.
-            self.brain.project(stim_dict, {})
-            if self.rounds > 1:
-                self.brain.project_rounds(
-                    target=core_area,
-                    areas_by_stim=stim_dict,
-                    dst_areas_by_src_area={core_area: [core_area]},
-                    rounds=self.rounds - 1,
-                )
-
-            asm = _snap(self.brain, core_area)
-
-            # Readout against this area's lexicon
-            overlaps = readout_all(asm, lexicon)
-            scores[core_area] = overlaps[0][1] if overlaps else 0.0
+        brain = self.brain
+        with brain.read_only():
+            for core_area in CORE_AREAS:
+                lexicon = self.core_lexicons.get(core_area, {})
+                if not lexicon or not cues:
+                    scores[core_area] = 0.0
+                    continue
+                brain.clear_activity([core_area])
+                brain.areas[core_area].unfix_assembly()
+                brain.project_rounds(
+                    core_area, {cue: [core_area] for cue in cues}, {}, self.rounds)
+                overlaps = readout_all(_snap(brain, core_area), lexicon)
+                scores[core_area] = overlaps[0][1] if overlaps else 0.0
 
         if not scores or max(scores.values()) == 0.0:
             # Fall back to distributional classification
@@ -179,8 +118,4 @@ class CategoryClassificationMixin:
 
         best_area = max(scores, key=scores.get)
         return CORE_TO_CATEGORY[best_area], scores
-
-    # ==================================================================
-    # Parsing
-    # ==================================================================
 

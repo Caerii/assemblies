@@ -156,9 +156,9 @@ class RoleBindingMixin:
         substrate supplies identity.
 
         Traversal and recall run under ``brain.read_only()`` and restore their
-        dynamical state on exit. Preparatory classification precedes that scope:
-        an uncached legacy classifier can still reset fibers and learn, so the
-        entire method is not yet an isolated observation. The answer rests on the substrate's
+        dynamical state on exit. Preparatory neural classification has its own
+        read-only scope; parser classification/subcategory caches may still be
+        populated. The answer rests on the substrate's
         image separation (occupant gap 0.87+ at current defaults; at
         phon_weight=1 it collapsed to ties), which is what makes parsing
         accuracy a measurement OF the substrate.

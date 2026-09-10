@@ -470,3 +470,80 @@ from 2660.16748046875 to 2994.654296875. This is an instrument counterexample,
 not a multi-seed scientific result. The populated role harness uses fixed
 category inputs and therefore does not certify classifier isolation. The next
 repair must separate classification observation from learning and construction.
+
+
+<a id="contract-word-classification"></a>
+
+## Word classification: neural query without training
+
+Source baseline `c578f20`: `CategoryClassificationMixin.classify_word`,
+`classify_word_cached`, and `classify_distributional`.
+
+The direct neural classifier resets each nonempty core lexicon's area fibers,
+then projects phon/grounding cues with the Brain's current plasticity setting.
+Its tail uses legacy recurrence selection. Maximum overlap with any stored word
+in that core is the score; this is not a mean or a probability. The first maximum
+in CORE_AREAS order wins ties. No positive score triggers distributional fallback
+when corpus statistics exist, otherwise UNKNOWN. The fallback returns category
+scores, whereas neural scores are keyed by core area; this legacy distinction
+must not be mistaken for one calibrated metric.
+
+Acceptance: neural classification must preserve fibers, neuron identities,
+activity, clamp flags, RNG and subsequent training behavior. It uses an explicit
+stimulus-only schedule over existing populations, clearing temporary activity
+and releasing target clamps inside read-only. It cannot initialize a cold
+population with a nonempty lexicon. Grounding names are resolved without adding
+stimuli. Constructed inhibited-area and zero-evidence controls must return no
+neural recognition; familiar words and grounded holdouts remain positive checks.
+
+Cache writes and distributional subcategory metadata are parser bookkeeping,
+not neural learning. Their provenance/invalidation remains a separate contract.
+This repair does not certify category accuracy or statistical equivalence of
+engines, and historical numbers using the mutating classifier require a rerun.
+
+
+### Classification observation resolution
+
+The neural branch now resolves registered cues once, clears temporary target
+activity and clamps, and repeats stimulus-only projection inside one read-only
+scope. It does not reset fibers, add stimuli, recruit or potentiate. The initial
+five controls failed on `c578f20` and pass after repair, including inhibited
+populations that previously returned stale recognition and an exception after
+projection. Category/subcategory cache writes remain distinct from neural state.
+The preparatory neural mutation defect recorded in the preceding role card is
+resolved by this shared classifier path; broader parser cache purity is not claimed.
+
+Still unresolved: the legacy tuple API changes score-key space on distributional
+fallback. `acquisition.pos_inference._area_scores_to_categories` expects area
+keys, while callers can receive category-keyed fallback scores from classify_word.
+Some callers then label that outcome `lexicon_readout` or `phon`. A typed evidence
+result and explicit conversion are needed before those sources can be fused
+without dropping or misattributing fallback evidence. This is not repaired merely
+by making the query preserve its neural state.
+
+
+### Heldout regression retained: query-driven population growth was hidden training
+
+An exploratory software diagnostic crossed legacy/isolated classification during
+training with legacy/isolated observation, on copies of each trained brain
+(n=3000, k=30, seed=74, compiled dialogue fixture). The held-out verb was `finds`.
+These are single-fixture debugging results, not adopted scientific evidence.
+
+| Training classifier | Observation | Label | VERB overlap | PREP overlap | PREP population after query |
+| --- | --- | --- | --- | --- | --- |
+| isolated | isolated | PREP | 0.166667 | 0.333333 | 136 |
+| isolated | legacy | VERB | 0.166667 | 0.033333 | 206 |
+| legacy | isolated | VERB | 0.166667 | 0.033333 | 1965 |
+| legacy | legacy | VERB | 0.166667 | 0.033333 | 1965 |
+
+On the isolated-trained brain, the legacy observation also increased the queried
+VERB stimulus weight sum from 25860 to 25971.201171875; isolated observation left
+it at 25860. The legacy-trained brain was already altered by classification calls
+during its training pipeline. Thus the old successful check depended on a
+construction history that its explicit training schedule did not state.
+
+`test_holdout_verb_classifies_via_grounding` remains failing with the isolated
+classifier, and its expected VERB label has not been weakened. The noun holdout
+passes. Explicit population preparation and comparability of overlaps across
+unequal candidate populations are the next scientific/protocol obligations.
+Changing a score formula to fit this one observed fixture would not discharge them.

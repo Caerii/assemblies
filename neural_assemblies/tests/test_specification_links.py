@@ -13,7 +13,7 @@ def test_reviewed_operations_keep_their_specification_links():
     assert not errors, errors
     linked = {edge["from"].rsplit(":", 1)[-1] for edge in edges}
     assert {"project", "reciprocal_project", "associate", "merge", "pattern_complete",
-            "read_only", "project_rounds", "parse_roles_by_reconstruction",
+            "read_only", "project_rounds", "parse_roles_by_reconstruction", "classify_word",
             "_reset_context_for_bridge", "AssemblyMemory", "HashedArcFSM", "HashedTransducer"} <= linked
 
 
@@ -33,3 +33,20 @@ def test_rust_ir_source_links_its_wire_contract():
     assert not errors, errors
     assert any(edge["from"] == "neural_assemblies/ir/rust/lib.rs:<module>"
                and edge["to"].endswith("#contract-protocol-wire") for edge in edges)
+
+
+def test_lean_domain_links_its_checked_execution_contract():
+    edges, errors = specification_links(ROOT)
+    assert not errors, errors
+    assert {"from": "formal/AssemblyIR/Domain.lean:<module>",
+            "to": "neural_assemblies/ir/VERIFICATION.md#contract-checked-domain"} in edges
+
+
+def test_dangling_lean_contract_is_rejected(tmp_path):
+    formal = tmp_path / "formal" / "AssemblyIR"
+    formal.mkdir(parents=True)
+    (formal / "Domain.lean").write_text(
+        "/-!\nSpecification: missing.md#contract-domain\n-/\n", encoding="utf-8")
+    edges, errors = specification_links(tmp_path)
+    assert len(edges) == len(errors) == 1
+    assert "dangling specification file" in errors[0]
