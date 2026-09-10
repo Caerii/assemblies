@@ -45,6 +45,14 @@ operations:
   refracted dynamics
 - FSM and PFA helpers built on typed transitions
 - CPU engines, engine parity checks, and optional accelerator smoke tests
+- the hashed GPU substrate under `neural_assemblies/core/torch_engine/`:
+  many independent brains per launch, each connectome regenerated from a
+  hash inside the kernel, gated against the numpy engine on the drive to a
+  relative 5e-6 with refraction included. Its units are `AssemblyMemory`
+  (the refracted associative memory), `HashedArcFSM` (the assigned-state
+  transition machine), `HashedTransducer` (the induced-state transducer)
+  and `ScheduledAligner` (the word learner); see
+  [docs/architecture.md](docs/architecture.md)
 - narrow NEMO and emergent-parser behaviors in controlled synthetic settings
 
 For the exact boundary between package facts, measured research results, and
@@ -65,6 +73,47 @@ are cited by ID from `neural_assemblies/theory.py`, rendered as
 Historical root scripts, old image-learning artifacts, MATLAB prototypes, and
 checkout-era modules have been moved under `legacy/`. The root files that
 remain, such as `brain.py` and `parser.py`, are compatibility shims.
+
+## A Worked Result: The Refracted Memory
+
+A recurrent k-WTA area with Hebbian plasticity stores assemblies until they
+merge into hubs. Refract it, so that each winner accumulates a bias
+proportional to its own drive, and read it with that bias masked, and it
+stores about 0.4 (n/k)² assemblies, twenty-five times the Hebbian ceiling,
+with every item still distinct after the area is full.
+
+![half-cue recall against stored items: Hebbian control, refracted, refracted with a convergence-gated write](research/notes/figures/memory_recall_vs_M.png)
+
+![the ceiling against n/k for both arms, with the 0.40 (n/k)² and 0.017 (n/k)² lines](research/notes/figures/memory_ceiling_vs_nk.png)
+
+The law holds at three values of n/k on twenty brains per cell; refraction
+strength is a switch, one plateau from 0.3 to 0.6 beta; ending each item's
+write when its winner set repeats adds a constant quarter to a third. The
+mechanism is anti-merging, not orthogonalization: stored items overlap at
+chance once the area is full. Register entry `REFRACTION-ANTI-MERGING` in
+[docs/register.md](docs/register.md); the registration with every bar and
+its verdict is
+[research/notes/memory/PREREG_refraction_memory.md](research/notes/memory/PREREG_refraction_memory.md).
+
+The same substrate runs the refracted-arc transition machine exactly:
+2000 random digits without an error on 40 of 40 brains, and, trained just
+below the weight clip, zero soft transitions in 84,000 across 500
+word-problem organs. Its rare failures are Binomial tail ties with a
+computable rate, and the earlier reports of derailment came from the numpy
+engine's lazily drawn areas
+([research/notes/sequence/PREREG_s5_cliff_anatomy.md](research/notes/sequence/PREREG_s5_cliff_anatomy.md)).
+
+![soft-transition rate against presentations and against refraction strength, S5, 100 organs per point](research/notes/figures/organ_soft_rate.png)
+
+Reproduce on one GPU (the fused kernels compile at first import; see Install):
+
+```bash
+python research/experiments/seq_capacity_scaling.py --nk 4000:60 --arms B --brains 20 --refracted --refracted-factor 0.5 --readout masked --ms 8,16,32,64,128,192,256,384,512,768,1024,1536,2048,3072,4096 --tag mine
+```
+
+```bash
+python research/experiments/seq_s5_soft_census_hashed.py --seeds 100 --groups S5 --presentations 20 --tag mine
+```
 
 ## A Worked Result: The Neural Coin
 
@@ -146,6 +195,13 @@ Optional GPU dependencies:
 ```bash
 uv sync --group gpu
 ```
+
+The hashed substrate's fused CUDA kernels compile at first import through
+PyTorch's inline extension loader. They need a CUDA toolkit on the path
+(`CUDA_HOME`) and a host compiler; on Windows that means running from a
+Visual Studio developer shell. The first import takes a few minutes, later
+ones use the cache. The numpy engine is the specification and needs none of
+this.
 
 Optional notebook and interactive visualization dependencies:
 
@@ -230,6 +286,14 @@ Notebooks:
 
 Research entry points:
 
+- [research/notes/README.md](research/notes/README.md), the reading map for
+  the registrations and design notes: what each line concluded and which
+  file to open first
+- [docs/register.md](docs/register.md), every adopted result with its
+  evidence and caveats, rendered from `neural_assemblies/theory.py`
+- [research/experiments/README.md](research/experiments/README.md), the
+  active scripts by line with typical runs; results land in
+  [research/results/](research/results/README.md)
 - [research/README.md](research/README.md)
 - [research/literature/index.json](research/literature/index.json)
 - [research/claims/index.json](research/claims/index.json)
@@ -252,6 +316,13 @@ uv run python research/literature/validate_index.py
 uv run python research/experiments/infrastructure/validate_registry.py
 uv run python research/claims/validate_index.py
 uv run python research/core_questions/validate_index.py
+
+# The register of results: re-render after editing theory.py (a test fails when stale)
+uv run python -m neural_assemblies.theory --render > docs/register.md
+uv run pytest neural_assemblies/tests/test_theory_citations.py -q
+
+# The hashed substrate's gates (GPU; CUDA build environment)
+uv run pytest neural_assemblies/tests/test_hashed_substrate_parity.py neural_assemblies/tests/test_hashed_fsm_parity.py neural_assemblies/tests/test_hashed_transducer_parity.py -q
 ```
 
 ## Repository Layout
@@ -261,7 +332,11 @@ uv run python research/core_questions/validate_index.py
 |-- neural_assemblies/        # Installable package
 |-- docs/                     # API, architecture, status, release docs
 |-- examples/                 # Runnable examples and notebooks
-|-- research/                 # Questions, experiments, results, claims
+|-- research/
+|   |-- notes/                # Registrations and design notes, by line (README.md is the map)
+|   |-- experiments/          # Scripts (README.md lists the active ones)
+|   |-- results/              # Evidence files the scripts write, by line
+|   `-- claims/, literature/, core_questions/   # Indexes
 |-- legacy/                   # Archived root modules, scripts, artifacts
 |-- tests/                    # Legacy compatibility and optional perf tests
 |-- cpp/                      # Accelerator kernels and build tooling
