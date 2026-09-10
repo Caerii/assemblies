@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from collections import OrderedDict
 
-import brain_util as bu
+from neural_assemblies.simulation import _util as bu
 
 def plot_project_sim(show=True, save="", show_legend=False, use_text_font=True):
     """

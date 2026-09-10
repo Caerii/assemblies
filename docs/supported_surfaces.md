@@ -22,12 +22,14 @@ Package facts:
 
 ## Compatibility Shims
 
-Root files such as `brain.py`, `parser.py`, `simulations.py`, `learner.py`,
-`image_learner.py`, `recursive_parser.py`, and `brain_util.py` remain for old
-checkout workflows.
+`brain.py` at the repository root routes `import brain` to the package.
+The other historical shims (`parser.py`, `simulations.py`, `learner.py`,
+`image_learner.py`, `recursive_parser.py`, `brain_util.py`) live in
+`legacy/root_shims/` and work with that directory on `PYTHONPATH`.
 
-They should stay thin. Their job is to route old imports to maintained package
-code or archived implementations, not to grow new behavior.
+They should stay thin. Their job is to route old imports to archived
+implementations, not to grow new behavior. Package code does not import
+them.
 
 ## Research Code
 

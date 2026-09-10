@@ -6,13 +6,8 @@ simulations.py but not yet modularized, including fixed assembly simulations
 and specialized experimental setups.
 """
 
-try:
-    from neural_assemblies.core.brain import Brain
-    import brain_util as bu
-except ImportError:
-    import brain
-    import brain_util as bu
-    Brain = brain.Brain
+from neural_assemblies.core.brain import Brain
+from neural_assemblies.simulation import _util as bu
 
 def fixed_assembly_recip_proj(n=100000, k=317, p=0.01, beta=0.05):
     """

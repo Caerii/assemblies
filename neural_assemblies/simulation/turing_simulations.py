@@ -7,13 +7,8 @@ computational ingredients, but it should not be read as a complete
 Turing-machine construction.
 """
 
-try:
-    from neural_assemblies.core.brain import Brain
-    import brain_util as bu
-except ImportError:
-    import brain
-    import brain_util as bu
-    Brain = brain.Brain
+from neural_assemblies.core.brain import Brain
+from neural_assemblies.simulation import _util as bu
 import time
 
 def larger_k(n=10000, k=100, p=0.01, beta=0.05, bigger_factor=10):

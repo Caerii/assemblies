@@ -5,13 +5,8 @@ This module contains simulation functions for studying pattern completion,
 including basic pattern completion and parameter sweeps.
 """
 
-try:
-    from neural_assemblies.core.brain import Brain
-    import brain_util as bu
-except ImportError:
-    import brain
-    import brain_util as bu
-    Brain = brain.Brain
+from neural_assemblies.core.brain import Brain
+from neural_assemblies.simulation import _util as bu
 import random
 import copy
 import numpy as np

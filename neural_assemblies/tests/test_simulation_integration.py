@@ -31,7 +31,7 @@ from neural_assemblies.simulation.association_simulator import association_sim
 from neural_assemblies.simulation.merge_simulator import merge_sim
 from neural_assemblies.simulation.pattern_completion import pattern_com
 from neural_assemblies.provenance import golden
-import brain_util as bu
+from neural_assemblies.simulation import _util as bu
 
 class TestSimulationIntegration(unittest.TestCase):
     """Test integration of simulation modules with extracted math primitives."""

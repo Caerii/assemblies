@@ -6,8 +6,12 @@ repository root.
 ## Layout
 
 - `root_modules/`
-  Old root implementations. Root files such as `parser.py` and
-  `simulations.py` now import from here or from maintained package code.
+  Old root implementations.
+- `root_shims/`
+  The re-export files that used to sit at the repository root
+  (`parser.py`, `simulations.py`, `learner.py`, `brain_util.py`,
+  `image_learner.py`, `recursive_parser.py`). Put the directory on
+  `PYTHONPATH` to use the old imports; see its README.
 - `scripts/`
   Standalone scripts from the pre-package layout.
 - `artifacts/image_learning/`
@@ -21,4 +25,5 @@ repository root.
 
 Put new runtime code in `neural_assemblies/`.
 Put new scientific workflows in `research/`.
-Put only compatibility shims and project metadata at the repository root.
+Keep the repository root to `brain.py` (the package's entry shim) and
+project metadata.

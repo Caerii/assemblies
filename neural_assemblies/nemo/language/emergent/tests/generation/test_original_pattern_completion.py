@@ -18,9 +18,10 @@ import numpy as np
 import random
 import copy
 
-# Import the ORIGINAL brain implementation
-import brain
-import brain_util as bu
+# The ORIGINAL brain implementation, from the archive (the root shims that
+# once exposed these live in legacy/root_shims/)
+from neural_assemblies.core import brain
+from legacy.root_modules import brain_util as bu
 
 def test_original_pattern_completion():
     """

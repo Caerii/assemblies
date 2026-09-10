@@ -139,12 +139,14 @@ in view.
 
 ## Compatibility And Archive
 
-Root files such as `brain.py`, `parser.py`, and `simulations.py` remain for old
-checkout workflows. They route to package code or archived implementations.
+`brain.py` at the root routes `import brain` to the package; the other
+historical shims live in `legacy/root_shims/` and work with that directory
+on `PYTHONPATH`.
 
 Historical material lives under `legacy/`:
 
-- `legacy/root_modules/`
+- `legacy/root_modules/` (the old implementations) and
+  `legacy/root_shims/` (their re-exports)
 - `legacy/scripts/`
 - `legacy/artifacts/`
 - `legacy/experiments/`

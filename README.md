@@ -70,9 +70,9 @@ registrations and design notes is
 are cited by ID from `neural_assemblies/theory.py`, rendered as
 [docs/register.md](docs/register.md).
 
-Historical root scripts, old image-learning artifacts, MATLAB prototypes, and
-checkout-era modules have been moved under `legacy/`. The root files that
-remain, such as `brain.py` and `parser.py`, are compatibility shims.
+Historical root scripts, old image-learning artifacts, MATLAB prototypes,
+checkout-era modules and their import shims live under `legacy/`. The one
+root module that remains, `brain.py`, routes `import brain` to the package.
 
 ## A Worked Result: The Refracted Memory
 
@@ -340,9 +340,7 @@ uv run pytest neural_assemblies/tests/test_hashed_substrate_parity.py neural_ass
 |-- legacy/                   # Archived root modules, scripts, artifacts
 |-- tests/                    # Legacy compatibility and optional perf tests
 |-- cpp/                      # Accelerator kernels and build tooling
-|-- brain.py                  # Root compatibility shim
-|-- parser.py                 # Root compatibility shim
-|-- simulations.py            # Root compatibility shim
+|-- brain.py                  # `import brain` -> the package (the only root module)
 `-- pyproject.toml            # Package metadata
 ```
 
