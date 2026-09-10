@@ -652,3 +652,25 @@ growth is not an invariant learned value and cannot be silently substituted into
 the theorem. Exception restoration remains a runtime-tested property, not a theorem
 of this pure kernel. GPU gates, historical replays, complete IR lowering and the
 known grounded-verb regression remain open.
+
+
+## Runner specification and build provenance (2026-09-10)
+
+The runner source inventory previously omitted Lean source/toolchain manifests,
+IR JSON contracts, CUDA/C headers and workflow configuration. Constructed
+mutation tests reproduced 9 failures (20 existing/control passes), including a
+completed artifact after a Lean file changed during measurement.
+
+`source-inputs-v2` now fingerprints these inputs, records the policy name and
+includes it in the digest. The negative now requires a retained failure record
+and no completed observations; emitting results JSON leaves identity unchanged.
+The source links to the explicit inventory contract in `research/README.md`.
+This is repository-content provenance, not environment/binary identity or proof
+of backend refinement. Historical artifacts retain their old inventory meaning.
+
+Runner checks: 29 passed. Complete workflow CPU contract gate: 594 passed,
+1 skipped, 2 expected sampled-engine warnings (79.68 s), recorded locally in
+`.cache/runner-source-gate.log`. Ruff and `git diff --check` passed. No GPU run,
+historical replay, full package suite, or scientific adoption is claimed. Runtime
+environment capture, remaining runner migrations and the grounded-verb regression
+remain open.

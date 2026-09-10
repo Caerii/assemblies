@@ -380,3 +380,12 @@ See [validation](VALIDATION.md); no GPU proof or historical replay is claimed.
 and nested masks, with non-vacuity/drive controls. Lean build and leanchecker pass;
 36 runtime/source-link checks pass. This is a source-linked contract, not a proof
 that Python/CUDA implements it. See [validation](VALIDATION.md) for exact scope.
+
+
+### Runner verification-source provenance
+
+The runner now fingerprints Lean/toolchain inputs, IR JSON contracts and build
+headers/configuration under a recorded `source-inputs-v2` policy. Changing a Lean
+file during measurement now retains failure instead of completed results. Nine
+failures reproduced before the fix; runner checks 29 passed; CPU gate 594 passed,
+1 skipped. Environment/binary identity is still open. See [validation](VALIDATION.md).

@@ -134,3 +134,29 @@ If you are new to this tree:
 
 That order gives you the broad tracker, the curated subset, the claim
 inventory, and the practical workflow.
+
+
+## Source identity
+
+[The shared runner](runner.py) records `git_commit`, `source_sha256`, and
+`source_inventory` before measurement and rejects a changed identity afterward.
+`source-inputs-v2` hashes Git-discovered tracked and nonignored untracked code,
+compiler headers, build scripts/configuration, Lean/Dafny specifications, the
+Lean toolchain pin and manifest, and JSON contracts under `neural_assemblies/ir`.
+The inventory policy identifier is also included in the digest. Older records
+without `source_inventory` used the narrower original suffix inventory; their
+hashes must not be interpreted as covering these additional inputs.
+
+Results JSON is excluded so publishing observations does not invalidate its own
+run. Registrations and explicitly declared `input_artifacts` are hashed separately.
+Other data/configuration JSON must be declared as an input artifact. This is a
+start/end repository-content guard, not a hermetic execution certificate: it does
+not capture installed binaries, environment variables, ignored sources, external
+data, or changes made and reverted between the two checks. A completed record
+remains UNJUDGED (or VOID for smoke), never automatically adopted evidence.
+
+The constructed negative in
+[test_research_runner.py](../neural_assemblies/tests/test_research_runner.py)
+changes a Lean file during measurement and requires a retained failure record
+with no completed results artifact. Separate cases cover added/modified compiler
+and verification inputs and show that emitting results leaves identity unchanged.

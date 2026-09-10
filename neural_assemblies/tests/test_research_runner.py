@@ -123,3 +123,62 @@ def test_malformed_record_is_reported_without_crashing(run, field, value):
     path.write_text(json.dumps(payload), encoding='utf-8')
     (path.parent / 'run.json').write_text(json.dumps(payload['run']), encoding='utf-8')
     assert validate_artifact(path)
+
+
+@pytest.fixture
+def source_repo(tmp_path, monkeypatch):
+    """Real Git discovery, including untracked source; no actual studies."""
+    import subprocess
+    root = tmp_path / 'source'
+    root.mkdir()
+    subprocess.run(['git', 'init', '-q', str(root)], check=True)
+    (root / 'study.py').write_text('# initial source')
+    subprocess.run(['git', 'add', 'study.py'], cwd=root, check=True)
+    subprocess.run(['git', '-c', 'user.name=Test', '-c', 'user.email=test@example.invalid',
+                    'commit', '-qm', 'fixture'], cwd=root, check=True)
+    monkeypatch.setattr(runner, 'ROOT', root)
+    return root
+
+
+@pytest.mark.parametrize('name', [
+    'formal/AssemblyIR/Learning.lean', 'formal/lean-toolchain',
+    'formal/lake-manifest.json', 'neural_assemblies/ir/v1/projection.schema.json',
+    'cpp/kernel.cuh', 'cpp/kernel.hpp', 'cpp/kernel.c',
+    '.github/workflows/research-contracts.yml',
+])
+def test_source_identity_covers_verification_and_build_inputs(source_repo, name):
+    path = source_repo / name
+    path.parent.mkdir(parents=True, exist_ok=True)
+    before = runner._source_identity()
+    path.write_text('initial')
+    added = runner._source_identity()
+    path.write_text('changed')
+    changed = runner._source_identity()
+    assert before['git_commit'] == added['git_commit'] == changed['git_commit']
+    assert len({item['source_sha256'] for item in (before, added, changed)}) == 3
+
+
+def test_result_output_does_not_change_source_identity(source_repo):
+    before = runner._source_identity()
+    path = source_repo / 'research/results/runs/test/tag/results.json'
+    path.parent.mkdir(parents=True)
+    path.write_text('{"observations": {}}')
+    assert runner._source_identity() == before
+
+
+def test_specification_mutation_fails_run_and_preserves_reservation(source_repo):
+    spec = source_repo / 'formal/AssemblyIR.lean'
+    spec.parent.mkdir()
+    spec.write_text('-- before')
+    (source_repo / 'registration.md').write_text('fixture protocol')
+    def measure(record):
+        spec.write_text('-- changed during measurement')
+        return {'values': [1, 2, 3]}
+    with pytest.raises(RuntimeError, match='source changed'):
+        runner.run_experiment(script='study.py', protocol='fixture', protocol_version='1',
+                              registration='registration.md', engine='numpy_exact',
+                              seeds=[1, 2, 3], tag='mutation', parameters={}, measure=measure)
+    directory = source_repo / 'research/results/runs/fixture/mutation'
+    assert (directory / 'run.json').exists()
+    assert not (directory / 'results.json').exists()
+    assert json.loads((directory / 'failure.json').read_text())['status'] == 'failed'

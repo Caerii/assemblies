@@ -16,6 +16,22 @@ import subprocess
 from typing import Callable, Mapping
 
 ROOT = Path(__file__).resolve().parents[1]
+# Source-linked specification: research/README.md#source-identity
+SOURCE_INVENTORY = 'source-inputs-v2'
+_SOURCE_SUFFIXES = frozenset({
+    '.py', '.rs', '.cu', '.cuh', '.c', '.cc', '.cpp', '.h', '.hpp',
+    '.lean', '.dfy', '.ts', '.tsx', '.js', '.mjs', '.toml', '.lock',
+    '.yaml', '.yml', '.cmake', '.ps1', '.bat', '.sh',
+})
+_SOURCE_NAMES = frozenset({'lean-toolchain', 'CMakeLists.txt', 'Makefile'})
+
+
+def _is_source_input(path: Path) -> bool:
+    return (path.suffix in _SOURCE_SUFFIXES or path.name in _SOURCE_NAMES
+            or (path.suffix == '.json' and path.parts[:1] == ('formal',))
+            or (path.suffix == '.json' and path.parts[:2] == ('neural_assemblies', 'ir')))
+
+
 _NAME = re.compile(r'[A-Za-z0-9][A-Za-z0-9_.-]*\Z')
 
 
@@ -40,10 +56,10 @@ def _repo_file(path: str | Path) -> Path:
 def _source_identity() -> dict:
     commit = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip()
     paths = subprocess.check_output(['git', 'ls-files', '--cached', '--others', '--exclude-standard', '-z'], cwd=ROOT).decode().split('\0')
-    digest = hashlib.sha256()
+    digest = hashlib.sha256(SOURCE_INVENTORY.encode() + b'\0')
     for name in sorted(filter(None, paths)):
         path = ROOT / name
-        if path.suffix not in {'.py', '.rs', '.cu', '.cc', '.cpp', '.h', '.toml', '.lock'}:
+        if not _is_source_input(Path(name)):
             continue
         digest.update(name.encode() + b'\0')
         digest.update(hashlib.sha256(path.read_bytes()).digest())
@@ -89,7 +105,7 @@ def run_experiment(*, script: str | Path, protocol: str, protocol_version: str,
     registration_path = _repo_file(registration)
     inputs = {path: hashlib.sha256(_repo_file(path).read_bytes()).hexdigest()
               for path in input_artifacts}
-    record = dict(schema_version=1, protocol=protocol, protocol_version=protocol_version,
+    record = dict(schema_version=1, source_inventory=SOURCE_INVENTORY, protocol=protocol, protocol_version=protocol_version,
                   script=script_path.relative_to(ROOT).as_posix(),
                   script_sha256=hashlib.sha256(script_path.read_bytes()).hexdigest(),
                   registration=registration_path.relative_to(ROOT).as_posix(),
