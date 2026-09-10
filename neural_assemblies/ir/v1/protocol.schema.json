@@ -12,6 +12,7 @@
     },
     "protocol": {
       "type": "string",
+      "minLength": 1,
       "description": "Registry protocol_id"
     },
     "source": { "type": "string" },

@@ -5,7 +5,8 @@
 ## Status and ownership
 
 The current v1 JSON schemas describe brain/projection payloads and parity
-reports. Python and Rust validate only parts of those documents today. They do
+reports. Python and Rust now validate protocol documents against the same packaged schema.
+Brain and projection schemas do not yet have equivalent executable consumers. They do
 not yet define one executable projection semantics or a complete cross compiler.
 Historical metric documents remain evidence artifacts, not executable programs.
 
@@ -101,3 +102,38 @@ No LemmaScript dependency or translator has been installed here.
 [Rust's custom-target interface](https://doc.rust-lang.org/rustc/targets/custom.html)
 inform versioned target descriptions. Rust's target schema is compiler-version
 specific; assembly targets likewise need a pinned semantic/schema identity.
+
+<a id="contract-protocol-wire"></a>
+
+## Protocol wire boundary
+
+The authoritative schema is `v1/protocol.schema.json`. Both Python and Rust use
+Draft 2020-12 validators compiled once from that file. Protocol IDs are nonempty
+strings; required metrics cannot be silently supplied. Optional fields must have
+their declared types. The schema's `format` remains an annotation in v1, so a
+`recorded` string is not certified to be a valid date. Extension fields remain
+allowed, and this permissiveness must not be interpreted as scientific validation.
+
+Accepted documents round-trip as decoded JSON values without dropping metadata
+or adding null properties. Rust uses arbitrary-precision JSON numbers to avoid
+rounding large integer identities. Decimal/exponent numbers must fit finite
+binary64 at both boundaries; exact decimal arithmetic is not promised. Python rejects nonfinite numbers and values
+that cannot round-trip as JSON (including non-string object keys and tuples).
+This is a decoded-value contract, not preservation of whitespace or original
+numeric spelling; JSON duplicate-key detection is not implemented by this change.
+
+The Rust `ProtocolDocument` is an immutable validated wrapper. Access the complete
+payload with `as_value()` and its ID with `protocol()`. Construction and Serde
+loading both validate; direct public-field construction from the former 0.1 API
+is retired. A valid wire object still needs separate run provenance, metric
+meaning and scientific acceptance checks.
+
+`write_protocol_document` uses exclusive creation. Existing files raise
+`FileExistsError`; choose a new tagged path for new evidence. It does not synthesize
+a study run record. Studies should use the shared research runner.
+
+Python and Rust tests consume `v1/protocol.cases.json`, including malformed
+fields, missing requirements, metadata retention and a large integer. The Rust
+crate now lives beside the schemas (`Cargo.toml`, `rust/lib.rs`) and remains a
+member of the workspace at `crates/`. Cargo and wheel packaging can therefore
+include the same canonical schema without generating or maintaining a second copy.

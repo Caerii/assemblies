@@ -26,6 +26,8 @@ scan working, minus the prose.
 from __future__ import annotations
 
 import io
+from pathlib import Path
+import subprocess
 import re
 import tokenize
 
@@ -95,3 +97,17 @@ def count_attribute_reads(text: str, attr: str) -> int:
             n += 1
         prev_op_dot = False
     return n
+
+
+def python_sources(root):
+    """Maintained Python files plus nonignored new files, never build copies.
+
+    Git includes tracked files even when an ignore rule matches them. This is
+    a checkout audit; do not silently fall back to scanning an installed wheel.
+    """
+    root = Path(root)
+    names = subprocess.check_output(
+        ["git", "ls-files", "--cached", "--others", "--exclude-standard", "-z", "--", "*.py"],
+        cwd=root,
+    ).decode("utf-8").split("\0")
+    return [root / name for name in sorted(set(names)) if name and (root / name).is_file()]

@@ -1,16 +1,19 @@
-"""Specification: neural_assemblies/ir/VERIFICATION.md#contract-ir-verification
+"""Specification: neural_assemblies/ir/VERIFICATION.md#contract-protocol-wire
 
 Protocol document validation and export for cross-language parity.
 """
 
 from __future__ import annotations
 
+from functools import lru_cache
+
+from jsonschema import Draft202012Validator
+
 import json
 from pathlib import Path
 from typing import Any
 
 IR_VERSION = "1"
-_REQUIRED_ROOT = frozenset({"ir_version", "protocol", "metrics"})
 
 
 def schema_path(name: str) -> Path:
@@ -18,21 +21,24 @@ def schema_path(name: str) -> Path:
     return Path(__file__).resolve().parent / "v1" / name
 
 
+@lru_cache(maxsize=1)
+def _validator():
+    schema = json.loads(schema_path("protocol.schema.json").read_text(encoding="utf-8"))
+    Draft202012Validator.check_schema(schema)
+    # `format` remains an annotation in v1, consistently with the Rust bridge.
+    return Draft202012Validator(schema)
+
+
 def validate_protocol_document(doc: dict[str, Any]) -> list[str]:
-    """Lightweight validation without jsonschema dependency."""
-    errors: list[str] = []
-    if not isinstance(doc, dict):
-        return ["document must be a JSON object"]
-    missing = _REQUIRED_ROOT - doc.keys()
-    if missing:
-        errors.append(f"missing required keys: {sorted(missing)}")
-    if doc.get("ir_version") != IR_VERSION:
-        errors.append(f"ir_version must be {IR_VERSION!r}")
-    if "metrics" in doc and not isinstance(doc["metrics"], dict):
-        errors.append("metrics must be an object")
-    if "regimes" in doc and not isinstance(doc["regimes"], dict):
-        errors.append("regimes must be an object")
-    return errors
+    """Validate JSON representability and the authoritative packaged v1 schema."""
+    try:
+        encoded = json.dumps(doc, allow_nan=False)
+        if json.loads(encoded) != doc:
+            return ["document contains non-JSON containers or object keys"]
+    except (TypeError, ValueError, OverflowError) as exc:
+        return [f"document is not finite JSON: {exc}"]
+    return [f"{error.json_path}: {error.message}"
+            for error in _validator().iter_errors(doc)]
 
 
 def load_protocol_document(path: str | Path) -> dict[str, Any]:
@@ -85,4 +91,6 @@ def write_protocol_document(path: str | Path, doc: dict[str, Any]) -> None:
         raise ValueError(errors)
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(doc, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    text = json.dumps(doc, indent=2, ensure_ascii=False, allow_nan=False) + "\n"
+    with path.open("x", encoding="utf-8") as stream:
+        stream.write(text)

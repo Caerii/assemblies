@@ -137,19 +137,25 @@ def specification_links(root: Path = ROOT) -> tuple[list[dict], list[str]]:
     """
     root = root.resolve()
     edges, errors = [], []
-    for source in sorted((root / 'neural_assemblies').rglob('*.py')):
+    package = root / 'neural_assemblies'
+    sources = sorted([*package.rglob('*.py'), *package.rglob('*.rs')])
+    for source in sources:
         text = source.read_text(encoding='utf-8-sig')
         if 'Specification:' not in text:
             continue
-        tree = ast.parse(text, filename=str(source))
-        for node in ast.walk(tree):
-            if not isinstance(node, (ast.Module, ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef)):
-                continue
-            doc = ast.get_docstring(node) or ''
+        if source.suffix == '.rs':
+            docs = [("<module>", "\n".join(
+                line[3:] for line in text.splitlines() if line.startswith(("//!", "///"))))]
+        else:
+            tree = ast.parse(text, filename=str(source))
+            docs = [(getattr(node, 'name', '<module>'), ast.get_docstring(node) or '')
+                    for node in ast.walk(tree)
+                    if isinstance(node, (ast.Module, ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef))]
+        for owner, doc in docs:
             for ref in re.findall(r'^\s*Specification:\s*(\S+)', doc, re.MULTILINE):
                 name, separator, anchor = ref.partition('#')
                 target = (root / name).resolve()
-                origin = f"{source.relative_to(root).as_posix()}:{getattr(node, 'name', '<module>')}"
+                origin = f"{source.relative_to(root).as_posix()}:{owner}"
                 edges.append({'from': origin, 'to': ref})
                 if not separator or not anchor or not name.endswith('.md'):
                     errors.append(f'{origin}: specification needs a Markdown path and anchor: {ref}')

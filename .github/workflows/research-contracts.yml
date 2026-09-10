@@ -23,6 +23,8 @@ jobs:
         run: >-
           uv run pytest -q
           neural_assemblies/tests/test_research_contracts.py
+          neural_assemblies/tests/test_protocol_wire.py
+          neural_assemblies/tests/test_source_inventory.py
           neural_assemblies/tests/test_research_runner.py
           neural_assemblies/tests/test_capacity_runner_contract.py
           neural_assemblies/tests/test_research_harness.py
@@ -50,3 +52,12 @@ jobs:
           lake-package-directory: formal
           use-mathlib-cache: "false"
           leanchecker: "true"
+
+  rust-ir:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate the shared protocol corpus
+        working-directory: crates
+        run: cargo test --locked -p assembly-ir

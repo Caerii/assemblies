@@ -25,3 +25,10 @@ def test_dangling_specifications_are_rejected(tmp_path, reference):
     (tmp_path / "spec.md").write_text('<a id="contract-test"></a>', encoding="utf-8")
     edges, errors = specification_links(tmp_path)
     assert len(edges) == len(errors) == 1
+
+
+def test_rust_ir_source_links_its_wire_contract():
+    edges, errors = specification_links(ROOT)
+    assert not errors, errors
+    assert any(edge["from"] == "neural_assemblies/ir/rust/lib.rs:<module>"
+               and edge["to"].endswith("#contract-protocol-wire") for edge in edges)

@@ -97,3 +97,13 @@ its existing behavior. ERP outputs record `existing-context-v1`, so this must
 not be claimed numerically equivalent to old N400 artifacts without a rerun.
 The combined targeted run passed 69 tests with the preexisting VP-liveness xfail.
 GPU and historical evidence replay gates remain open.
+
+### Protocol IR consumer unification
+
+Python and Rust now validate the same schema and shared wire corpus. Rust IR
+moved beside that schema into `neural_assemblies/ir/` but remains in the Rust
+workspace (`cargo test --manifest-path crates/Cargo.toml -p assembly-ir`). The
+crate's public-field document construction is replaced by a validated immutable
+wrapper. Cargo package verification succeeds with the schema included. Python's
+legacy IR writer refuses overwrites; use a new tagged path. This establishes
+wire-format agreement, not compiler or numerical equivalence.

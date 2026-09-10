@@ -1,0 +1,234 @@
+[
+  {
+    "name": "minimal",
+    "document": {
+      "ir_version": "1",
+      "protocol": "test.wire",
+      "metrics": {}
+    },
+    "valid": true
+  },
+  {
+    "name": "metadata-preserved",
+    "document": {
+      "ir_version": "1",
+      "protocol": "test.wire",
+      "metrics": {},
+      "source": "paper",
+      "notes": {
+        "caveat": "unjudged"
+      },
+      "expected": {
+        "x": 1
+      },
+      "extension": {
+        "seeds": [
+          1,
+          2,
+          3
+        ]
+      },
+      "regimes": {
+        "custom": 2
+      }
+    },
+    "valid": true
+  },
+  {
+    "name": "missing-ir_version",
+    "document": {
+      "protocol": "test.wire",
+      "metrics": {}
+    },
+    "valid": false
+  },
+  {
+    "name": "missing-protocol",
+    "document": {
+      "ir_version": "1",
+      "metrics": {}
+    },
+    "valid": false
+  },
+  {
+    "name": "missing-metrics",
+    "document": {
+      "ir_version": "1",
+      "protocol": "test.wire"
+    },
+    "valid": false
+  },
+  {
+    "name": "bad-ir_version-2",
+    "document": {
+      "ir_version": "2",
+      "protocol": "test.wire",
+      "metrics": {}
+    },
+    "valid": false
+  },
+  {
+    "name": "bad-protocol-False",
+    "document": {
+      "ir_version": "1",
+      "protocol": false,
+      "metrics": {}
+    },
+    "valid": false
+  },
+  {
+    "name": "bad-protocol-",
+    "document": {
+      "ir_version": "1",
+      "protocol": "",
+      "metrics": {}
+    },
+    "valid": false
+  },
+  {
+    "name": "bad-metrics-[]",
+    "document": {
+      "ir_version": "1",
+      "protocol": "test.wire",
+      "metrics": []
+    },
+    "valid": false
+  },
+  {
+    "name": "bad-metrics-None",
+    "document": {
+      "ir_version": "1",
+      "protocol": "test.wire",
+      "metrics": null
+    },
+    "valid": false
+  },
+  {
+    "name": "bad-notes-2",
+    "document": {
+      "ir_version": "1",
+      "protocol": "test.wire",
+      "metrics": {},
+      "notes": 2
+    },
+    "valid": false
+  },
+  {
+    "name": "bad-backend-None",
+    "document": {
+      "ir_version": "1",
+      "protocol": "test.wire",
+      "metrics": {},
+      "backend": null
+    },
+    "valid": false
+  },
+  {
+    "name": "bad-parameters-None",
+    "document": {
+      "ir_version": "1",
+      "protocol": "test.wire",
+      "metrics": {},
+      "parameters": null
+    },
+    "valid": false
+  },
+  {
+    "name": "bad-regimes-[]",
+    "document": {
+      "ir_version": "1",
+      "protocol": "test.wire",
+      "metrics": {},
+      "regimes": []
+    },
+    "valid": false
+  },
+  {
+    "name": "bad-thresholds-False",
+    "document": {
+      "ir_version": "1",
+      "protocol": "test.wire",
+      "metrics": {},
+      "thresholds": false
+    },
+    "valid": false
+  },
+  {
+    "name": "bad-source-{}",
+    "document": {
+      "ir_version": "1",
+      "protocol": "test.wire",
+      "metrics": {},
+      "source": {}
+    },
+    "valid": false
+  },
+  {
+    "name": "bad-expected-[]",
+    "document": {
+      "ir_version": "1",
+      "protocol": "test.wire",
+      "metrics": {},
+      "expected": []
+    },
+    "valid": false
+  },
+  {
+    "name": "bad-recorded-42",
+    "document": {
+      "ir_version": "1",
+      "protocol": "test.wire",
+      "metrics": {},
+      "recorded": 42
+    },
+    "valid": false
+  },
+  {
+    "name": "root-array",
+    "document": [],
+    "valid": false
+  },
+  {
+    "name": "format-is-annotation",
+    "document": {
+      "ir_version": "1",
+      "protocol": "test.wire",
+      "metrics": {},
+      "recorded": "date format is annotation in v1"
+    },
+    "valid": true
+  },
+  {
+    "name": "large-integer-preserved",
+    "document": {
+      "ir_version": "1",
+      "protocol": "wire",
+      "metrics": {
+        "integer": 1267650600228229401496703205376
+      }
+    },
+    "valid": true
+  },
+  {
+    "name": "finite-decimals",
+    "document": {
+      "ir_version": "1",
+      "protocol": "x",
+      "metrics": {
+        "x": 0.125,
+        "y": -1.5
+      }
+    },
+    "valid": true
+  },
+  {
+    "name": "overflow-decimal",
+    "raw_json": "{\"ir_version\":\"1\",\"protocol\":\"x\",\"metrics\":{\"x\":1e400}}",
+    "valid": false
+  },
+  {
+    "name": "non-json-nan",
+    "raw_json": "{\"ir_version\":\"1\",\"protocol\":\"x\",\"metrics\":{\"x\":NaN}}",
+    "valid": false
+  }
+]

@@ -42,7 +42,7 @@ from __future__ import annotations
 import os
 import re
 
-from ._source_scan import code_lines, count_attribute_reads
+from ._source_scan import code_lines, count_attribute_reads, python_sources
 
 REPO = os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__))))
@@ -105,31 +105,24 @@ _ADVICE = (
 
 def _scan():
     found = {}
-    for root, dirs, files in os.walk(REPO):
-        dirs[:] = [d for d in dirs if d not in
-                   (".git", "__pycache__", ".venv", "node_modules",
-                    ".reference", ".pytest_cache")]
-        for fn in files:
-            if not fn.endswith(".py"):
-                continue
-            full = os.path.join(root, fn)
-            rel = os.path.relpath(full, REPO).replace(os.sep, "/")
-            if any(x in rel for x in _EXEMPT):
-                continue
-            try:
-                text = open(full, encoding="utf-8").read()
-            except Exception:                                # noqa: BLE001
-                continue
-            # CODE ONLY. `_count_w_reads` below was moved off raw text in
-            # 2026-08 for counting prose, but THIS scanner was left on it --
-            # so a docstring naming `area.winners` next to the word "overlap"
-            # still inflated a baseline. Third door on the same defect (the
-            # methodology ratchet was the second). `_source_scan` exists so the
-            # next one cannot be fixed alone.
-            n = sum(1 for line in code_lines(text)
-                    if _ACCESS.search(line) and _COMPARE.search(line))
-            if n:
-                found[rel] = n
+    for full in python_sources(REPO):
+        rel = os.path.relpath(full, REPO).replace(os.sep, "/")
+        if any(x in rel for x in _EXEMPT):
+            continue
+        try:
+            text = open(full, encoding="utf-8").read()
+        except Exception:                                # noqa: BLE001
+            continue
+        # CODE ONLY. `_count_w_reads` below was moved off raw text in
+        # 2026-08 for counting prose, but THIS scanner was left on it --
+        # so a docstring naming `area.winners` next to the word "overlap"
+        # still inflated a baseline. Third door on the same defect (the
+        # methodology ratchet was the second). `_source_scan` exists so the
+        # next one cannot be fixed alone.
+        n = sum(1 for line in code_lines(text)
+                if _ACCESS.search(line) and _COMPARE.search(line))
+        if n:
+            found[rel] = n
     return found
 
 
@@ -309,26 +302,19 @@ def _count_w_reads(text: str) -> int:
 
 def _scan_w():
     found = {}
-    for root, dirs, files in os.walk(REPO):
-        dirs[:] = [d for d in dirs if d not in
-                   (".git", "__pycache__", ".venv", "node_modules",
-                    ".reference", ".pytest_cache")]
-        for fn in files:
-            if not fn.endswith(".py"):
-                continue
-            full = os.path.join(root, fn)
-            rel = os.path.relpath(full, REPO).replace(os.sep, "/")
-            # `/tests/` excluded as well as the engine: a test that pins the
-            # ambiguity deliberately (there are several) must not be flagged.
-            if any(x in rel for x in _EXEMPT) or "/tests/" in rel:
-                continue
-            try:
-                text = open(full, encoding="utf-8").read()
-            except Exception:                                # noqa: BLE001
-                continue
-            n = _count_w_reads(text)
-            if n:
-                found[rel] = n
+    for full in python_sources(REPO):
+        rel = os.path.relpath(full, REPO).replace(os.sep, "/")
+        # `/tests/` excluded as well as the engine: a test that pins the
+        # ambiguity deliberately (there are several) must not be flagged.
+        if any(x in rel for x in _EXEMPT) or "/tests/" in rel:
+            continue
+        try:
+            text = open(full, encoding="utf-8").read()
+        except Exception:                                # noqa: BLE001
+            continue
+        n = _count_w_reads(text)
+        if n:
+            found[rel] = n
     return found
 
 

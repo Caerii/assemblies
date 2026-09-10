@@ -1,0 +1,17 @@
+[package]
+name = "assembly-ir"
+version = "0.1.0"
+edition = "2021"
+workspace = "../../crates"
+include = ["Cargo.toml", "rust/**", "v1/*.json", "README.md", "VERIFICATION.md"]
+description = "Assembly Calculus IR v1 types and JSON validation"
+license = "MIT"
+repository = "https://github.com/Caerii/assemblies"
+
+[lib]
+path = "rust/lib.rs"
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["arbitrary_precision"] }
+jsonschema = { version = "0.55.1", default-features = false }

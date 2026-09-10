@@ -23,7 +23,7 @@ python -m research.literature.cross_lang.runner --export /tmp/pnas_scaling_pytho
 ## Rust
 
 ```bash
-cd crates/assembly-ir
+cd neural_assemblies/ir
 cargo test
 ```
 

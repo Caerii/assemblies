@@ -1,5 +1,5 @@
 [workspace]
-members = ["assembly-ir", "na-kernels"]
+members = ["../neural_assemblies/ir", "na-kernels"]
 resolver = "2"
 
 # The kernels are memory-bandwidth-bound integer loops. Cross-crate LTO and a

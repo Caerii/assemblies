@@ -87,3 +87,38 @@ and xfailed the same one. These runs overlap; do not add the counts. Protocol
 outputs now include resolved settings and `existing-context-v1`. Historical
 N400 numerical equivalence is neither assumed nor demonstrated; this is a
 measurement-protocol correction. No GPU study, model adoption or merge occurred.
+
+## Protocol IR schema unification
+
+The shared wire corpus exposes nine acceptance disagreements in the old Python
+validator. Both Python and Rust now consume the canonical Draft 2020-12 schema.
+Rust validates on construction/deserialization and preserves the entire decoded
+object instead of discarding metadata or introducing absent null properties.
+Large integer identities are preserved. Nonfinite/non-JSON Python values and
+existing output paths are rejected before writing.
+
+The final focused Python run passed 46 tests (Julia deselected in that run);
+the shared Rust corpus passed, including round-trip checks. `cargo package
+-p assembly-ir --allow-dirty` successfully compiled the packaged crate, not just
+the workspace version. A built Python wheel was inspected and contains the
+canonical schema and shared corpus. These checks do not certify execution
+parity between the languages or formal refinement of a backend.
+
+Rust IR ownership moved to `neural_assemblies/ir/Cargo.toml` and `rust/lib.rs`,
+remaining in the `crates/` workspace. This avoids an external schema path that
+would break Cargo packaging, without creating a maintained schema copy.
+The isolated worktree now has its own `.venv` from `uv sync --group dev`; no main
+checkout environment was changed. The new runtime dependency is jsonschema;
+existing uv lock resolutions otherwise remain unchanged. No GPU job was run.
+
+The final workflow-listed CPU checks plus the cross-language runner tests passed
+**211 tests**, with **2 skips**. Rust's single shared-corpus test checks 24 cases;
+it passed. Both final distribution artifacts contain schema/corpus bytes identical
+to the canonical files. Ruff and diff checks passed.
+
+The initial wider run exposed two index-ratchet failures because a wheel build
+left generated `build/lib` source copies. Both ratchets now share Git-based source
+discovery (tracked plus nonignored new Python files), preserving tracked ignored
+source while excluding generated copies. The dedicated source-inventory test and
+both ratchets passed (12 tests); no baseline counts were raised. The final 211-test
+run includes this repair and still runs with build artifacts present.
