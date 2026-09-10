@@ -28,8 +28,14 @@ live in `legacy/root_shims/` and work with that directory on `PYTHONPATH`.
 `brain` routes to the package; the others to the archived implementations.
 
 They should stay thin. Their job is to route old imports to archived
-implementations, not to grow new behavior. Package code does not import
-them.
+implementations, not to grow new behavior. New maintained code must not import
+them. A known exception remains in the checkout-oriented
+`neural_assemblies/text_generation/robust_grammatical_brain.py` prototype: it imports
+`brain` and requests unimplemented per-area connection probabilities for its CORE
+areas. The maintained Brain rejects those overrides. This prototype is not a
+supported runnable model through that shim; porting it requires implementing and
+validating its intended connectivity, not deleting the overrides. See the
+[contract](../neural_assemblies/ir/VERIFICATION.md#contract-explicit-probability).
 
 ## Research Code
 

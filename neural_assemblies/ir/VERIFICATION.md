@@ -886,3 +886,25 @@ This intentionally rejects formerly accepted ambiguous names and replacement
 calls. It does not make allocation failures transactional or validate mutations
 made directly to legacy dictionaries. Torch uses the same preflight, but GPU
 execution conformance remains a separate gate.
+
+
+<a id="contract-explicit-probability"></a>
+
+## Explicit-area connection probability
+
+`Brain.add_explicit_area` constructs an auxiliary dense area using the brain-wide
+connection probability. Its legacy `custom_inner_p`, `custom_out_p` and
+`custom_in_p` arguments have never reached connectivity construction in this API.
+Any non-None override now raises `NotImplementedError` before allocation, registry
+mutation or RNG consumption. Zero is a requested override, not a default sentinel.
+The error names every requested option. Callers must not omit these options unless
+the brain-wide probability is the intended model.
+
+Controls reject both zero and nonzero values for each override, preserve state
+and RNG, and show the supported default path builds all-one connectivity at p=1.
+This does not implement heterogeneous dense connectivity: precedence between one
+area's outgoing default and another's incoming default, future fibers, and primary
+mirror/owner consistency need a common connection-policy specification first.
+The checkout-oriented `text_generation/robust_grammatical_brain.py` prototype
+requests these overrides for its CORE areas and cannot use the maintained Brain
+with that configuration. Its old silent fallback is not evidence for that model.

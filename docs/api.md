@@ -55,6 +55,12 @@ stimulus is allowed as a null input. These logical limits do not guarantee that
 an allocation fits in memory. See the source-linked
 [registration contract](../neural_assemblies/ir/VERIFICATION.md#contract-stimulus-registration).
 
+`add_explicit_area` uses the brain-wide connection probability. Its legacy
+`custom_inner_p`, `custom_out_p` and `custom_in_p` overrides raise
+`NotImplementedError` when supplied; they previously had no effect. See the
+[probability contract](../neural_assemblies/ir/VERIFICATION.md#contract-explicit-probability)
+for the affected prototype and the missing heterogeneous-connectivity semantics.
+
 Main objects:
 
 | Object | Location | Role |

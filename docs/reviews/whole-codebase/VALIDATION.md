@@ -981,3 +981,26 @@ sampled-engine warnings in 108.23 seconds (`.cache/stimulus-contract-gate.log`).
 Ruff and diff checks passed. No scientific result, historical replay or GPU
 conformance is adopted. General allocation rollback and direct legacy dictionary
 mutation remain outside this preflight contract.
+
+
+## Explicit-area probability overrides (2026-09-10)
+
+Six controls reproduced `add_explicit_area` accepting and ignoring each of
+`custom_inner_p`, `custom_out_p`, and `custom_in_p`, including zero-valued requests
+(132 passes). The wrapper now rejects non-None overrides before registration,
+allocation or RNG consumption and names the unsupported options. Default dense
+construction is checked at p=1 against all-one weights. No heterogeneous dense
+connectivity implementation is claimed.
+
+The sole package caller found requesting these overrides is the checkout-oriented
+`text_generation/robust_grammatical_brain.py` prototype. Its `brain` import resolves
+through `legacy/root_shims/brain.py` to the maintained implementation. Its requested
+CORE connectivity was previously ignored; the same configuration now fails. The
+API, supported-surface guide and source-linked specification record that limitation.
+Porting it requires a connection policy with incoming/outgoing precedence and
+future-fiber semantics, not removing the parameters to restore a green run.
+
+Focused checks: 138 passed. CPU workflow gate: 882 passed, 1 skipped, two expected
+sampled-engine warnings in 74.48 seconds (`.cache/custom-probability-gate.log`).
+Ruff and diff checks passed. The prototype itself was not executed, and neither
+GPU conformance nor scientific evidence was established by these software checks.

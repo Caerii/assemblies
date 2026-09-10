@@ -402,10 +402,20 @@ class Brain:
                           custom_inner_p=None, custom_out_p=None, custom_in_p=None):
         """Add an explicitly-simulated brain area.
 
-        Convenience wrapper around ``add_area(explicit=True)``.  Accepts
-        (and currently ignores) ``custom_*_p`` parameters for backward
-        compatibility with legacy callers such as the parser.
+        Convenience wrapper around ``add_area(explicit=True)`` using this
+        brain's connection probability. Non-None ``custom_*_p`` overrides
+        are unsupported and rejected before registering or allocating an area.
+
+        Specification: neural_assemblies/ir/VERIFICATION.md#contract-explicit-probability
         """
+        overrides = {"custom_inner_p": custom_inner_p, "custom_out_p": custom_out_p,
+                     "custom_in_p": custom_in_p}
+        requested = [name for name, value in overrides.items() if value is not None]
+        if requested:
+            raise NotImplementedError(
+                "add_explicit_area does not implement probability overrides: "
+                + ", ".join(requested)
+                + ". Omit them only if the brain-wide p is the intended model.")
         self.add_area(area_name, n, k, beta, explicit=True)
 
     @staticmethod

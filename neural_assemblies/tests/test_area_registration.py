@@ -176,3 +176,25 @@ def test_empty_stimulus_is_valid_and_numpy_size_is_canonical(surface):
     caller.add_stimulus('empty', np.int64(0))
     assert type(brain._engine._stimuli['empty'].size) is int
     assert brain._engine._stimuli['empty'].size == 0
+
+
+@pytest.mark.parametrize('option', ['custom_inner_p', 'custom_out_p', 'custom_in_p'])
+@pytest.mark.parametrize('probability', [0.0, 0.9])
+def test_explicit_probability_override_cannot_be_silently_ignored(option, probability):
+    brain = Brain(p=.1, seed=31, norm_init=False)
+    brain.add_area('A', 20, 2)
+    before = rng_states(brain)
+    with pytest.raises(NotImplementedError, match=option):
+        brain.add_explicit_area('B', 20, 2, **{option: probability})
+    assert list(brain.areas) == list(brain._engine._areas) == ['A']
+    assert brain._explicit_engine is None
+    assert 'B' not in brain.connectomes
+    assert rng_states(brain) == before
+
+
+def test_explicit_area_default_probability_uses_brain_configuration():
+    brain = Brain(p=1.0, seed=31, norm_init=False)
+    brain.add_explicit_area('B', 4, 2)
+    owner = brain._engine_for(brain.areas['B'])
+    assert owner.p == brain.p
+    assert np.all(owner._area_conns['B']['B'].weights == 1)

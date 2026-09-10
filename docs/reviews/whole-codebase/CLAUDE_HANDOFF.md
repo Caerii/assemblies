@@ -510,3 +510,13 @@ representation. Zero-sized null stimuli remain valid. Fifty-four failures
 reproduced; focused checks 131 passed; CPU gate 875 passed, 1 skipped.
 Torch shares the preflight; its execution gate remains yours. See
 [validation](VALIDATION.md) and the API guide for the compatibility change.
+
+
+### Explicit-area probability overrides
+
+The three `custom_*_p` arguments now raise before mutation instead of silently
+using the brain-wide p. Six failures reproduced; focused checks 138 passed; CPU
+gate 882 passed, 1 skipped. The robust grammatical-brain prototype requests these
+unsupported overrides through the legacy shim; the supported-surface guide now
+records that limitation. Restoring its intended model needs heterogeneous dense
+connectivity semantics. See [validation](VALIDATION.md).
