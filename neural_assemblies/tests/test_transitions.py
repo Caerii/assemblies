@@ -1,6 +1,6 @@
 import unittest
 
-from neural_assemblies.assembly_calculus import FSMNetwork, PFANetwork, Transition, TransitionMap
+from neural_assemblies.assembly_calculus import FSMNetwork, PFANetwork, SeedMixtureChoice, Transition, TransitionMap
 from neural_assemblies.core.brain import Brain
 
 
@@ -82,6 +82,7 @@ class TestTransitionIntegration(unittest.TestCase):
             k=K,
             beta=BETA,
             rounds=ROUNDS,
+            choice=SeedMixtureChoice(2000, 200, 3., rounds_train=10),
         )
 
         self.assertIn(pfa.step("a", seed=1), {"q1", "q2"})

@@ -19,9 +19,9 @@ The two validators encode the FSM/PFA distinction:
         This is what FSMNetwork consumes; ambiguity is an error, not a
         coin-flip.
     validate_probability_mass() several targets per key summing to 1.  This is
-        what PFANetwork consumes, and the sum condition is what makes the
-        RandomChoiceArea selection in ``pfa.py`` a valid sample rather than an
-        arbitrary pick.
+        what PFANetwork consumes as target weights. The sum condition validates
+        the symbolic table; it does not calibrate the neural branch selector or
+        establish that observed transition frequencies match these weights.
 """
 
 from __future__ import annotations

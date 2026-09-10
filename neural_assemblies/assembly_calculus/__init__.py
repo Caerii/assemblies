@@ -143,6 +143,7 @@ from .tracing import (
 from .fiber import FiberCircuit
 from .readout import fuzzy_readout, readout_all, build_lexicon, Lexicon
 from .fsm import FSMNetwork
+from .coin_config import SeedMixtureChoice
 from .pfa import PFANetwork, RandomChoiceArea, FlipMode, SoftmaxContextCoin
 from .scaffold import (
     ScaffoldNetwork,
@@ -183,7 +184,7 @@ __all__ = [
     # Readout
     "fuzzy_readout", "readout_all", "build_lexicon",
     # Structured computation
-    "FSMNetwork", "PFANetwork", "RandomChoiceArea", "FlipMode", "SoftmaxContextCoin",
+    "FSMNetwork", "PFANetwork", "SeedMixtureChoice", "RandomChoiceArea", "FlipMode", "SoftmaxContextCoin",
     "ScaffoldNetwork", "ScaffoldRecallResult", "compare_scaffold_vs_simple",
     "sequence_memorize_scaffold",
     "Transition", "TransitionMap",

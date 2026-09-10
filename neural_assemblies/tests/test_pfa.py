@@ -1,5 +1,8 @@
 """
-Tests for RandomChoiceArea and PFANetwork.
+PFANetwork routing tests. Coin mechanism/null controls live in
+ test_coin_construction.py. Legacy fairness and seed-bias frequency assertions
+ were removed: they described an invalid instrument and do not establish
+ calibration for the explicit attractor construction.
 
 Based on:
     Dabagia, Papadimitriou, Vempala (2023).
@@ -7,10 +10,9 @@ Based on:
 """
 
 import unittest
-from collections import Counter
 
 from neural_assemblies.core.brain import Brain
-from neural_assemblies.assembly_calculus.pfa import RandomChoiceArea, PFANetwork
+from neural_assemblies.assembly_calculus.pfa import PFANetwork, SeedMixtureChoice
 
 
 N = 10000
@@ -25,57 +27,6 @@ def _make_brain(**kwargs):
     defaults = dict(p=P, save_winners=True, seed=SEED, engine="numpy_sparse")
     defaults.update(kwargs)
     return Brain(**defaults)
-
-
-class TestRandomChoiceArea(unittest.TestCase):
-    """Test RandomChoiceArea (neural coin-flip)."""
-
-    def test_coin_flip_binary_output(self):
-        """flip() should return 0 or 1."""
-        b = _make_brain()
-        coin = RandomChoiceArea(b, n=N, k=K, beta=BETA)
-        result = coin.flip(bias=0.5, rounds=10, seed=0)
-        self.assertIn(result, [0, 1])
-
-    def test_fair_coin_roughly_balanced(self):
-        """A fair coin (bias=0.5) should produce roughly 50/50 over
-        many flips.  We use a wide tolerance since neural competition
-        is inherently noisy."""
-        b = _make_brain()
-        coin = RandomChoiceArea(b, n=N, k=K, beta=BETA)
-
-        counts = Counter()
-        for i in range(40):
-            result = coin.flip(bias=0.5, rounds=10, seed=i * 7)
-            counts[result] += 1
-
-        # Should have both outcomes
-        self.assertGreater(counts[0], 0,
-                           "Fair coin should produce some 0s.")
-        self.assertGreater(counts[1], 0,
-                           "Fair coin should produce some 1s.")
-
-    def test_biased_coin_favors_one(self):
-        """A strongly biased coin (bias=0.9) should mostly produce 0."""
-        b = _make_brain()
-        coin = RandomChoiceArea(b, n=N, k=K, beta=BETA)
-
-        counts = Counter()
-        for i in range(30):
-            result = coin.flip(bias=0.9, rounds=10, seed=i * 13)
-            counts[result] += 1
-
-        # 0 should appear significantly more often
-        self.assertGreater(counts[0], counts[1],
-                           f"Biased coin should favor 0: got {dict(counts)}.")
-
-    def test_compete_mode_binary_output(self):
-        """compete mode matches reference RandomChoiceArea.flip (random k init)."""
-        b = _make_brain()
-        coin = RandomChoiceArea(b, n=N, k=K, beta=BETA)
-        for mode in ("k_split", "compete"):
-            result = coin.flip(bias=0.5, rounds=10, seed=0, mode=mode)
-            self.assertIn(result, [0, 1])
 
 
 class TestPFANetwork(unittest.TestCase):
@@ -98,9 +49,8 @@ class TestPFANetwork(unittest.TestCase):
         self.assertEqual(result, "q1",
                          f"Deterministic PFA should go to q1, got {result}")
 
-    def test_pfa_probabilistic_both_states(self):
-        """When a transition is probabilistic (50/50), both target
-        states should appear over many runs."""
+    def test_pfa_explicit_seed_mixture_returns_a_declared_target(self):
+        """This tests routing only; seed weights do not certify outcome frequencies."""
         b = _make_brain()
         states = ["q0", "q1", "q2"]
         symbols = ["a"]
@@ -110,19 +60,12 @@ class TestPFANetwork(unittest.TestCase):
         ]
 
         pfa = PFANetwork(b, states, symbols, transitions, "q0",
-                         n=N, k=K, beta=BETA, rounds=ROUNDS)
+                         n=N, k=K, beta=BETA, rounds=ROUNDS,
+                         choice=SeedMixtureChoice(2000, 200, 3., rounds_train=10))
 
-        results = Counter()
-        for i in range(40):
+        for seed in range(3):
             pfa.reset()
-            result = pfa.step("a", seed=i * 11)
-            results[result] += 1
-
-        # Both q1 and q2 should appear
-        self.assertGreater(results.get("q1", 0), 0,
-                           f"q1 should appear in results: {dict(results)}")
-        self.assertGreater(results.get("q2", 0), 0,
-                           f"q2 should appear in results: {dict(results)}")
+            self.assertIn(pfa.step("a", seed=seed), {"q1", "q2"})
 
 
 if __name__ == '__main__':

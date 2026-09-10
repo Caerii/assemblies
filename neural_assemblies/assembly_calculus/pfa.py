@@ -53,6 +53,7 @@ from .assembly import Assembly, overlap
 from .ops import activate_assembly, project, _snap
 from .fsm import FSMNetwork
 from .transitions import TransitionLike, TransitionMap
+from .coin_config import SeedMixtureChoice
 
 FlipMode = Literal["k_split", "compete"]
 Construction = Literal["legacy", "attractor"]
@@ -531,7 +532,14 @@ class SoftmaxContextCoin:
 
 
 class PFANetwork:
-    """Probabilistic finite automaton over neural assemblies.
+    """Specification: neural_assemblies/ir/VERIFICATION.md#contract-pfa-choice
+
+    Symbolic state machine with an experimental neural branch selector.
+
+    Branch weights set seed mixtures; output probabilities are not calibrated.
+    A branch successor is selected symbolically from coin labels, not decoded
+    from a learned transition circuit. Supply SeedMixtureChoice explicitly when
+    branching. Deterministic machines need no coin.
 
     Extends FSMNetwork with probabilistic transitions.  When multiple
     transitions exist for the same (state, symbol), uses
@@ -561,12 +569,19 @@ class PFANetwork:
         beta: float = 0.05,
         rounds: int = 10,
         prefix: str = "_pfa",
-        flip_mode: FlipMode = "k_split",
+        flip_mode: FlipMode | None = None,
+        *,
+        choice: SeedMixtureChoice | None = None,
     ):
         self.brain = brain
         self.initial_state = initial_state
         self.prefix = prefix
-        self.flip_mode: FlipMode = flip_mode
+        if choice is not None and not isinstance(choice, SeedMixtureChoice):
+            raise TypeError("choice must be a SeedMixtureChoice configuration")
+        if flip_mode is not None and (choice is None or flip_mode != choice.mode):
+            raise ValueError("flip_mode requires and must agree with choice.mode")
+        self.choice = choice
+        self.flip_mode = choice.mode if choice is not None else None
 
         self.transition_map = TransitionMap(transitions).validate_probability_mass()
 
@@ -589,17 +604,18 @@ class PFANetwork:
                 # Probabilistic transitions are handled by the coin flip,
                 # NOT by the FSM.  Only add deterministic transitions.
 
+        if self._prob_keys and choice is None:
+            raise ValueError("Branching requires explicit SeedMixtureChoice: transition weights "
+                             "control seed mixtures, not calibrated outcome probabilities")
+
         # Build the underlying FSM with deterministic transitions only
         self._fsm = FSMNetwork(
             brain, states, symbols, det_transitions, initial_state,
             n=n, k=k, beta=beta, rounds=rounds, prefix=f"{prefix}_fsm",
         )
 
-        # Build coin flip area for probabilistic selections
-        self._coin = RandomChoiceArea(
-            brain, area_name="flip", n=n, k=k, beta=beta,
-            prefix=f"{prefix}_coin",
-        )
+        # A deterministic machine has no random-choice population or training.
+        self._coin = choice.build(brain, prefix=f"{prefix}_coin") if self._prob_keys else None
 
         self._current_state = initial_state
 
@@ -642,7 +658,7 @@ class PFANetwork:
             to_st_0, prob_0 = targets[0]
             to_st_1, prob_1 = targets[1]
             result = self._coin.flip(
-                bias=prob_0, rounds=10, seed=seed, mode=self.flip_mode,
+                bias=prob_0, rounds=self.choice.rounds, seed=seed, mode=self.choice.mode,
             )
             new_state = to_st_0 if result == 0 else to_st_1
         else:
@@ -658,9 +674,9 @@ class PFANetwork:
                     break
                 coin_bias = min(prob / remaining_prob, 1.0)
                 result = self._coin.flip(
-                    bias=coin_bias, rounds=10,
+                    bias=coin_bias, rounds=self.choice.rounds,
                     seed=int(rng.integers(0, 2**31)),
-                    mode=self.flip_mode,
+                    mode=self.choice.mode,
                 )
                 if result == 0:
                     new_state = to_st

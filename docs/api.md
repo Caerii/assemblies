@@ -307,3 +307,36 @@ learned input. Queries remain read-only. See the
 Explicitly different grounding runs uncached inference and does not replace the
 word's cached category. Use `classify_word_evidence` for an explicit neural cue
 mode and retained score/cue provenance.
+
+
+### Explicit experimental PFA choice
+
+A deterministic `PFANetwork` builds no coin. Branching requires an immutable
+`SeedMixtureChoice`; the FSM's population and learning settings do not configure
+its coin implicitly. This is an **uncalibrated seed-mixture experiment**: transition
+weights set initial seed fractions, not measured outcome probabilities. Successors
+are selected symbolically from coin labels, not decoded from a learned transition
+network. See [the source-linked contract](../neural_assemblies/ir/VERIFICATION.md#contract-pfa-choice).
+
+```python
+from neural_assemblies.core.brain import Brain
+from neural_assemblies.assembly_calculus import PFANetwork, SeedMixtureChoice
+
+brain = Brain(p=0.05, seed=1, engine="numpy_sparse")
+choice = SeedMixtureChoice(n=2000, k=200, beta=3.0,
+                          rounds_train=10, fires=2, rounds=10, mode="k_split")
+machine = PFANetwork(
+    brain, states=["q0", "q1"], symbols=["a"],
+    transitions=[("q0", "a", "q0", 0.25), ("q0", "a", "q1", 0.75)],
+    initial_state="q0", n=500, k=20, beta=0.1, rounds=3, choice=choice,
+)
+state = machine.step("a", seed=701)
+```
+
+The coin materializes its own population during construction. FSM state encoding
+still uses the specified NumPy engine; this example is API usage, not sequence
+validation. `CoinFlipModel` accepts the same `choice` and builds separate PFA and
+sampling coins; its input-noise option applies only to the latter. Serialize the
+configuration with `dataclasses.asdict(choice)` when recording a protocol.
+Legacy coin goldens remain historical artifacts. They are not automatically
+reinterpreted as measurements of this construction.

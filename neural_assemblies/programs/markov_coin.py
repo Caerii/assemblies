@@ -10,7 +10,8 @@ from __future__ import annotations
 from collections import Counter, defaultdict
 from typing import Dict, List, Sequence, Tuple
 
-from neural_assemblies.assembly_calculus.pfa import FlipMode, PFANetwork, RandomChoiceArea
+from neural_assemblies.assembly_calculus.pfa import FlipMode, PFANetwork
+from neural_assemblies.assembly_calculus.coin_config import SeedMixtureChoice
 from neural_assemblies.compute import EPercentPolicy
 
 
@@ -44,7 +45,12 @@ def train_markov_from_sequences(
 
 
 class CoinFlipModel:
-    """Markov coin model: PFA for state evolution + neural coin for branches."""
+    """PFA seed-mixture experiment plus an independently trained sampling coin.
+
+    Specification: neural_assemblies/ir/VERIFICATION.md#contract-pfa-choice
+    Trace frequencies set seed mixtures; neither coin is probability-calibrated.
+    input_noise_std affects the separate sampling coin, not the PFA selector.
+    """
 
     def __init__(
         self,
@@ -56,18 +62,26 @@ class CoinFlipModel:
         beta: float = 0.08,
         rounds: int = 8,
         input_noise_std: float = 0.0,
-        flip_mode: FlipMode = "k_split",
+        flip_mode: FlipMode | None = None,
+        *,
+        choice: SeedMixtureChoice | None = None,
     ):
+        if not isinstance(choice, SeedMixtureChoice):
+            raise ValueError("CoinFlipModel requires explicit SeedMixtureChoice; "
+                             "trace frequencies are not calibrated neural probabilities")
+        if flip_mode is not None and flip_mode != choice.mode:
+            raise ValueError("flip_mode must agree with choice.mode")
+        self.choice = choice
         transitions = train_markov_from_sequences(traces)
         states = sorted({s for fr, _, to in traces for s in (fr, to)})
         symbols = sorted({sym for _, sym, _ in traces})
-        self.flip_mode = flip_mode
+        self.flip_mode = choice.mode
         self.pfa = PFANetwork(
             brain, states, symbols, transitions, initial_state,
             n=n, k=k, beta=beta, rounds=rounds, prefix="_coin_pfa",
-            flip_mode=flip_mode,
+            choice=choice,
         )
-        self.coin = RandomChoiceArea(brain, n=n, k=k, beta=beta, prefix="_coin_rc")
+        self.coin = choice.build(brain, prefix="_coin_rc", area_name="_coin")
         self.input_noise_std = input_noise_std
         if input_noise_std > 0:
             brain.set_input_noise(self.coin.area_name, input_noise_std)
@@ -76,7 +90,8 @@ class CoinFlipModel:
             )
 
     def sample_branch(self, bias: float = 0.5, seed: int | None = None) -> int:
-        return self.coin.flip(bias=bias, seed=seed, mode=self.flip_mode)
+        return self.coin.flip(bias=bias, seed=seed, mode=self.choice.mode,
+                              rounds=self.choice.rounds)
 
     def empirical_flip_counts(
         self,

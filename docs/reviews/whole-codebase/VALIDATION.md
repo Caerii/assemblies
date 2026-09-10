@@ -1569,3 +1569,36 @@ claim of calibrated fairness. No kernel or stored scientific evidence changed.
 All 34 coin controls pass. The workflow now includes the whole coin construction
 suite: 1135 passed, one skipped, two expected warnings in 102.15s
 (.cache/coin-operation-contract-gate.log). Ruff and git diff --check pass.
+
+
+## Explicit PFA seed-mixture configuration
+
+Code inspection found four distinct caller problems: PFANetwork treats initial
+seed fractions as probabilities; CoinFlipModel inherits that assumption; the
+context coin learns during flip then overwrites context-driven activity; and
+NemoMarkovPFA ignores probability weights and injects IDs across areas. The card
+contract-pfa-choice records these differences. This increment migrates only PFA
+and its CoinFlipModel wrapper, without certifying the other instruments.
+
+SeedMixtureChoice is an immutable, JSON-serializable record for the independent
+coin population, beta, training rounds, force-fires, settling rounds and seed mode.
+PFA branching requires explicit configuration before constructing any populations.
+The older flip_mode argument must agree with the configuration. Deterministic
+PFA allocates no coin. The wrapper builds separate PFA and sampling coins from the
+same configuration; its noise option still affects only the sampling coin.
+
+API documentation includes a runnable example and explicitly disclaims calibrated
+outcome probabilities and learned neural transition decoding. TransitionMap's
+incorrect implication that normalized weights certify neural sampling was removed.
+Old API tests now opt into the explicit construction. Four old direct-coin tests,
+including unsupported fairness/seed-bias frequency assertions, were retired in
+favor of the existing trained-attractor and true-null suite. Golden artifacts
+were not changed or automatically reinterpreted. These are API/contract changes,
+not reproduction or adoption of historical PFA probability measurements.
+
+Focused coverage: 58 passed before the final serialization/cascade controls;
+final PFA/configuration/transition subset: 26 passed in 3.94s. Full contract workflow:
+1161 passed, one skipped, two expected warnings in 125.03s
+(.cache/pfa-choice-contract-gate.log). Ruff and git diff --check pass. Full-package
+legacy literature/computation callers still need explicit migration and scientific
+reassessment. SoftmaxContextCoin and NemoMarkovPFA remain structurally unresolved.

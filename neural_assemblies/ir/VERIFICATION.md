@@ -1283,3 +1283,27 @@ compares stable-ID overlap against both stored snapshots; ties select label zero
 Activity changes are intentional. This is not a calibrated Bernoulli probability,
 a claim of fairness, or a guarantee that arbitrary training settings form attractors.
 Controls live in test_coin_seed_contract.py and test_coin_construction.py.
+
+
+<a id="contract-pfa-choice"></a>
+### PFA branch experiment
+
+Code-derived card: PFANetwork delegates single-target transitions to FSMNetwork's
+symbolic table and neural state encoding. For branching transitions it chooses a
+binary coin label, or cascades binary labels, and assigns a symbolic successor.
+It does not decode that successor from a learned transition network. Transition
+weights currently parameterize initial seed mixtures, not calibrated outcome laws.
+Normalizing those weights alone cannot make the neural choice a valid PFA sample.
+
+SeedMixtureChoice makes this experimental interpretation explicit and binds coin
+population, plasticity, training/firing schedule, settling rounds and seed mode.
+PFA branching requires this immutable configuration before constructing any areas;
+FSM n/k/beta/rounds do not silently configure the independent coin. Deterministic
+PFA construction allocates no coin and requires no choice configuration. Legacy
+flip_mode arguments may only agree with the explicit choice; conflicting schedules
+are rejected. Existing probability fields are retained as target weights for
+compatibility, with no claim that measured transition frequencies equal them.
+
+The context coin additionally learns during its read and overwrites context-driven
+activity. NemoMarkovPFA copies coin IDs into the arc and ignores transition weights.
+Neither is certified by this PFA migration; both require separate schedule redesign.
