@@ -771,3 +771,15 @@ read-only recovery; measure improvement relative to the delivered cue and constr
 an initialized no-recurrence/no-learning control before selecting acceptance bars.
 Do not relabel old numerical outcomes as this successor. This card records pending
 work; the legacy tests have not been rewritten or empirically revalidated here.
+
+
+### Cue-corruption successor (2026-09-10)
+
+The historical card above remains the record of the pre-refactor tests. The package
+test file now uses pure replace_neurons and strict observe_recovery, specified in
+[the new contract](../../../neural_assemblies/ir/VERIFICATION.md#contract-cue-recovery).
+Exact membership replacement, explicit recurrent attractor construction, frozen
+observation, reference-denominated scores and initialized learning/no-dynamics
+controls replace its former implicit protocol. Increasing corruption uses nested
+permutation prefixes at a fixed seed; input ordering does not alter the draw.
+The standalone historical research experiments have not been migrated by this change.

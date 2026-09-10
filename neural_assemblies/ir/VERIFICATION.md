@@ -1509,3 +1509,42 @@ both stored-attractor overlaps, their absolute margin and a label; tied overlaps
 produce None, including silence. These are similarity scores, not probabilities,
 and arbitrary parameter choices need not produce useful attractors or readouts.
 This is context-attractor-v1, not numerical reproduction of historical softmax goldens.
+
+
+<a id="contract-cue-recovery"></a>
+### Cue replacement and recurrent recovery
+
+replace_neurons is pure: a nonempty unique stable-ID reference, explicit unique
+population containing it, exact nonnegative integer replacement count and explicit
+nonnegative integer seed produce an immutable cue in the same area. Replacements
+are distinct and outside the reference. Impossible counts raise, never clamp.
+Sorted IDs and one NumPy generator make input order irrelevant. Permutation prefixes
+make increasing replacement counts nested at a fixed seed and population. This
+changes active membership; it is not additive input noise or independent dropout.
+
+observe_recovery accepts a separate reference and cue, validates their area/IDs,
+requires a fully materialized population and performs explicit recurrent rounds
+inside strict seeded read_only. It temporarily releases a fixed target, activates
+the cue through the stable-to-compact boundary, and restores activity, clamps,
+learning and RNG ownership on exit. Disabling recurrence returns the delivered cue
+as a no-dynamics control. No stimulus, training or materialization is performed.
+Existing configured native noise remains in force and must be named in experiments.
+
+The observation retains reference, delivered cue and recovered snapshot. Both
+scores divide intersection size by REFERENCE size, unlike min-size overlap, so an
+uncorrupted subset does not score as full recovery. Improvement is final minus cue
+score. Tests must show improvement and fail an initialized learning-disabled or
+no-dynamics control; correct labels alone do not establish recovery. No general
+corruption tolerance or biological basin claim follows from this API.
+
+TorchSparseEngine.materialized_count now reports its compact population size,
+including zero before growth and n after materialization. Its previous inherited
+None incorrectly advertised the dense-engine convention. Dense engines retain
+None (full population allocated by construction); an unknown sparse area also
+returns None, so callers validate area identity first.
+
+This observer rejects cues and recovered winner sets larger than the reference.
+Reference-denominated overlap is coverage, not precision: an oversized set could
+otherwise score 1 despite extra winners. Variable-cardinality readout requiring
+precision/recall analysis must use a separate explicitly defined measurement.
+An oversized result raises inside read_only so state is still restored.

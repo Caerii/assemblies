@@ -1187,3 +1187,21 @@ been rewritten or claimed as valid scientific evidence.
 
 The final dedicated fused/CUDA gate also passed 122 tests in 38.57s. No production
 source changed after either broad gate; full-package closure remains open.
+
+
+## Cue recovery successor (2026-09-10)
+
+The package's legacy cue-noise tests now exercise pure exact replacement and strict
+read-only recovery, with reference-denominated overlap and an improvement score.
+They require learned recovery to beat the delivered cue and fail zero-learning
+and no-dynamics controls on CPU/CUDA. The sparse CUDA materialization count accessor
+was missing; it now distinguishes cold and full populations.
+See [validation and development-only scope](VALIDATION.md#explicit-cue-recovery-and-sparse-population-counts-2026-09-10)
+and [the composable API example](../../api.md#explicit-cue-replacement-and-recovery).
+Standalone historical noise experiments and scientific tolerance curves remain
+separate work; old numerical claims are not relabelled as this protocol.
+
+Validation: 1389 broad contract tests passed (one skip), 122 fused/CUDA parity
+tests passed. The final wrapper guards against oversized cues/results then passed
+19 focused tests. See the linked validation for exact ordering and scope. The new
+API plus replacement tests use 21 fewer Python lines across changed files.

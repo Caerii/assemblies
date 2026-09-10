@@ -2008,3 +2008,47 @@ previously corrected CUDA snapshots. This is not a full-package audit.
 
 Dedicated fused/CUDA parity suite: 122 passed, 11 warnings in 38.57s, exit 0
 (.cache/signed-drive-gpu-gate.log), with fused build loaded on RTX 3080.
+
+
+## Explicit cue recovery and sparse population counts (2026-09-10)
+
+The package's old test_noise_robustness.py is replaced with contract controls for
+replace_neurons and observe_recovery. These are separate composable operations:
+exact pure replacement in an explicit stable-ID population, then strict read-only
+recurrence with reference, cue and final snapshots retained. Recovery scores divide
+by reference size; partial membership cannot score as full recovery. Both scores
+and improvement are exposed. Impossible counts raise instead of silently reducing
+the delivered perturbation. Ordering does not change seeded draws, and increasing
+counts follow nested replacement prefixes. No old tolerance claim is transferred.
+
+The development fixture builds two recurrent attractors through AttractorConfig
+(n=2000,k=200,beta=3,train rounds=10,fires=2,p=.05), replaces 100 members of asm0
+using seed700, and observes five rounds at seed701 on brain seeds1/2/3. NumPy
+recovery overlaps were .985/.985/.980 from a .5 cue; beta-zero controls gave
+.115/.065/.105. These are development diagnostics, not a registered population
+robustness claim. CPU and CUDA tests require final overlap >.9 and improvement
+>.4, while beta-zero improvement must be nonpositive. No-dynamics improvement is
+exactly zero. Tests also preserve recurrent weights, activity, clamps and RNG state.
+
+Initial CUDA cases failed the population precondition (3 failed,12 passed), revealing
+that TorchSparseEngine inherited materialized_count=None, the dense-engine default.
+It now reports actual compact population size, matching NumPy sparse: zero before
+growth, n after full materialization, None for an unknown area. Dense engines keep
+their documented None convention; the recovery operation first validates area
+identity. With this interface repaired, all 17 focused tests passed in 7.81s.
+Changed-Python Ruff and git diff --check pass.
+
+The full workflow-selected suite passed 1389 tests, 1 skipped, 6 warnings in
+170.72s (.cache/cue-recovery-contract-gate.log). Dedicated fused/CUDA parity
+passed 122 tests, 11 warnings in 38.55s (.cache/cue-recovery-gpu-gate.log), both
+exit 0. The CUDA count accessor was included in both gates.
+
+A subsequent wrapper-only guard rejects cues/results larger than the reference:
+reference coverage alone cannot measure precision of an oversized winner set.
+A constructed k=10 readout against a 5-member reference now raises and restores
+activity, instead of reporting full reference coverage as recovery. The final
+focused suite passed all 19 tests in 8.62s. Broad gates were not repeated after
+these two validation guards; no backend code changed after them. Final Ruff and
+git diff --check pass. Across the changed Python files, the new reusable API and
+stronger controls reduce the line total by 21 (2004 to1983); evidence/docs are
+additional. Full-package and scientific corruption-tolerance validation remain open.

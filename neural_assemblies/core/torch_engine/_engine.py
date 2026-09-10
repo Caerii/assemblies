@@ -1426,6 +1426,11 @@ class TorchSparseEngine(ComputeEngine):
         st.winners = torch.from_numpy(arr).to(
             self._device, dtype=torch.int32, non_blocking=True)
 
+    def materialized_count(self, area: str):
+        """Specification: neural_assemblies/ir/VERIFICATION.md#contract-cue-recovery"""
+        state = self._areas.get(area)
+        return None if state is None else int(state.w)
+
     def get_num_ever_fired(self, area: str) -> int:
         return self._areas[area].w
 

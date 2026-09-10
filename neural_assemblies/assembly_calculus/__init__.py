@@ -84,6 +84,7 @@ Control:
     FiberCircuit       Declarative gating of projection channels
 """
 
+from .recovery import replace_neurons, observe_recovery, RecoveryObservation
 from .assembly import Assembly, overlap, chance_overlap, overlap_from_binary
 from .metrics import (
     compute_anchored_instability,
@@ -182,6 +183,7 @@ __all__ = [
     "consolidate", "replay_pathway", "replay_merge",
     "inhibit_all_areas", "prepare_area_for_replay",
     "accumulate_context", "accumulate_context_step", "build_context_word_steps",
+    "replace_neurons", "observe_recovery", "RecoveryObservation",
     # Readout
     "fuzzy_readout", "readout_all", "build_lexicon",
     # Structured computation

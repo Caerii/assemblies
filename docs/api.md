@@ -449,3 +449,39 @@ now reports the preselected noise-1 result on both backends. At noise 3, correct
 labels persisted while assembly overlap fell sharply; inspect both readout values.
 Replacing active neurons is a different perturbation, covered by the pending
 [cue-corruption contract](reviews/whole-codebase/SEMANTIC_CARDS.md#contract-legacy-cue-corruption).
+
+
+## Explicit cue replacement and recovery
+
+Choose the perturbation population and an exact replacement count. Recovery reports
+both the delivered cue score and the final score against the full reference.
+
+```python
+import numpy as np
+from neural_assemblies import Brain
+from neural_assemblies.core.index_spaces import NeuronIds
+from neural_assemblies.assembly_calculus import (
+    AttractorConfig, replace_neurons, observe_recovery,
+)
+
+brain = Brain(p=.05, seed=1, engine="numpy_sparse")
+attractors = AttractorConfig(2000, 200, 3., rounds_train=10).build(brain, prefix="recovery")
+reference = attractors.asm0
+cue = replace_neurons(reference, population=NeuronIds(np.arange(2000, dtype=np.uint32)),
+                      count=100, seed=700)
+observed = observe_recovery(brain, reference, cue, rounds=5, seed=701)
+null = observe_recovery(brain, reference, cue, rounds=5, seed=701, recurrence_enabled=False)
+print(observed.cue_overlap, observed.recovered_overlap, observed.improvement)
+print(null.improvement)  # zero: retaining a cue is not recovery
+```
+
+The observation requires a fully materialized population and restores activity,
+clamps, learning and RNG state. Replacement is pure and raises if the supplied
+population cannot deliver the count. Stable IDs are mapped only when activating the
+cue. A surviving half-sized subset scores .5 against the reference, not 1.
+Existing input noise remains a separate configured mechanism. These software
+controls are not a registered corruption-tolerance curve; see the
+[source-linked contract](../neural_assemblies/ir/VERIFICATION.md#contract-cue-recovery).
+
+Cue recovery rejects cues or outputs larger than the reference; reference coverage
+alone cannot certify the precision of an oversized winner set.
