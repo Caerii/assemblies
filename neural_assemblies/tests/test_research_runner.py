@@ -277,3 +277,39 @@ def test_run_records_and_executes_competition_document(run):
     payload = json.loads(path.read_text())
     assert payload['run']['parameters']['competition'] == document
     assert payload['observations']['winners'] == [[0], [0], [0]]
+
+
+@pytest.mark.parametrize("token", ["NaN", "Infinity", "-Infinity", "1e999", "1e-999"])
+def test_nonrepresentable_observation_json_is_not_valid_evidence(run, token):
+    from research.evidence import validate_artifact
+    path = run()
+    payload = json.loads(path.read_text())
+    payload["observations"] = {"value": "TOKEN"}
+    path.write_text(json.dumps(payload).replace('"TOKEN"', token))
+    assert any("JSON" in error or "binary64" in error for error in validate_artifact(path))
+
+
+def test_duplicate_document_members_cannot_replace_evidence(run):
+    from research.evidence import validate_artifact
+    path = run()
+    text = path.read_text().rstrip()
+    path.write_text(text[:-1] + ', "observations": {"verdict": "PASS"}}')
+    assert any("duplicate evidence" in error for error in validate_artifact(path))
+
+
+@pytest.mark.parametrize("replacement", [True, 1.0])
+def test_embedded_record_types_must_match_reserved_identity(run, replacement):
+    from research.evidence import validate_artifact
+    path = run(parameters={"count": 1})
+    payload = json.loads(path.read_text())
+    payload["run"]["parameters"]["count"] = replacement
+    path.write_text(json.dumps(payload))
+    assert any("differs" in error for error in validate_artifact(path))
+
+
+def test_strict_document_roundtrip_keeps_subnormals_and_large_integers(tmp_path):
+    from research.json_documents import encode_document, load_document
+    value = {"tiny": 5e-324, "large": 2**80, "zero": -0.0, "flag": False}
+    path = tmp_path/"document.json"
+    path.write_text(encode_document(value))
+    assert encode_document(load_document(path)) == encode_document(value)

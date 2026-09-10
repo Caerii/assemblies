@@ -16,6 +16,7 @@ import subprocess
 from typing import Callable, Mapping
 
 from neural_assemblies.core.environment import environment_record
+from research.json_documents import encode_document
 
 ROOT = Path(__file__).resolve().parents[1]
 # Source-linked specification: research/README.md#source-identity
@@ -71,7 +72,7 @@ def _source_identity() -> dict:
 def _write_new(path: Path, value: object) -> None:
     # Validate serialization before creating the file. Never stringify unknown
     # objects or permit NaN/Infinity: that silently loses measurement meaning.
-    text = json.dumps(value, indent=2, allow_nan=False, sort_keys=True) + '\n'
+    text = encode_document(value)
     with path.open('x', encoding='utf-8') as stream:
         stream.write(text)
         stream.flush()

@@ -1226,3 +1226,20 @@ Protocol version2 adds explicit checkpoints and device. Version1 artifacts remai
 readable evidence but require those fields to be supplied when reconstructing an
 executable configuration. The digit generator and mod3 machine remain fixed
 protocol semantics. Software controls do not adopt alternate scientific settings.
+
+
+<a id="contract-evidence-json"></a>
+## Evidence document decoding and record identity
+
+research.json_documents supplies shared encoding and decoding for the runner,
+artifact validator and migration comparator. Reading rejects duplicate object
+members, nonfinite constants, float overflow and nonzero float underflow to zero.
+Finite representable subnormals and arbitrary JSON integers remain supported.
+Encoding is deterministic and refuses nonfinite floating values.
+
+Embedded and reserved run records compare their deterministic encodings, so
+boolean/integer/float substitutions do not pass Python's coercive equality.
+This is document integrity checking, not a signature or scientific validity proof.
+Historical source/registration hashes are not authenticated by this JSON check.
+Comparison version3 also records the shared source-inventory fingerprint, so
+comparison helper dependencies are covered alongside the comparator file digest.

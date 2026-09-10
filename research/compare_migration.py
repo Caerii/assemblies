@@ -11,20 +11,7 @@ import math
 from pathlib import Path
 
 from research.evidence import validate_artifact
-
-
-def _unique_pairs(pairs):
-    """Reject ambiguous evidence before constructing an index or JSON object."""
-    result = {}
-    for key, value in pairs:
-        if key in result:
-            raise ValueError(f"duplicate evidence key: {key!r}")
-        result[key] = value
-    return result
-
-
-def _load_json(path):
-    return json.loads(path.read_text(encoding="utf-8"), object_pairs_hook=_unique_pairs)
+from research.json_documents import load_document as _load_json, unique_pairs as _unique_pairs
 
 
 def _equal(actual, expected):
@@ -140,7 +127,9 @@ def main():
     except ValueError as exc:
         print(json.dumps({"numerical_match": False, "errors": [str(exc)]}, indent=2))
         return 1
-    result["comparison_version"] = 2
+    from research.runner import SOURCE_INVENTORY, _source_identity
+    result["comparison_version"] = 3
+    result["comparator_source"] = {"inventory": SOURCE_INVENTORY, **_source_identity()}
     result["comparator_sha256"] = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
     result["candidate_sha256"] = hashlib.sha256(args.candidate.read_bytes()).hexdigest()
     result["reference_sha256"] = hashlib.sha256(args.reference.read_bytes()).hexdigest()

@@ -1495,3 +1495,21 @@ now includes this runner and removes obsolete --brains examples for migrated pat
 Final contract workflow: 1092 passed, 1 skipped, two expected warnings in101.51s
 (.cache/null-final-contract-gate.log). The 40 freshly trained control rows also
 match the historical A1 artifact. No projection kernel or prior evidence changed.
+
+
+## Shared evidence JSON policy
+
+Publication state checks already distinguished complete observations from
+scientific adoption. Decoding and identity equality were weaker: duplicate JSON
+fields could replace evidence, NaN/overflow could enter observations, and Python
+equality could equate embedded boolean/float settings with reserved integers.
+research.json_documents now owns strict decoding and deterministic encoding for
+runner storage, artifact validation and migration comparison. It rejects duplicate
+members, nonfinite values, overflow and nonzero underflow to zero; representable
+subnormals and large integers round-trip. Record equality preserves JSON types.
+
+Comparison version3 additionally records the shared source inventory fingerprint,
+covering helper dependencies as well as the comparator file digest. Focused
+runner/comparator/spec controls:72 passed in11.83s; Ruff passed. Historical
+artifacts and full contract gates are rechecked next. This is document integrity,
+not authentication of historical execution or scientific adoption.

@@ -16,6 +16,8 @@ import subprocess
 
 from neural_assemblies.core.environment import ENVIRONMENT_POLICY, ENVIRONMENT_PREFIXES
 
+from research.json_documents import encode_document, load_document
+
 ROOT = Path(__file__).resolve().parents[1]
 _FILE_REF = re.compile(r'(?<![\w/])(?:[\w.-]+/)*[\w.-]+\.(?:py|md|json|csv|ipynb)(?![\w])')
 
@@ -24,12 +26,12 @@ def validate_artifact(path: Path, *, root: Path = ROOT) -> list[str]:
     """Validate run identity and file edges without mistaking completion for adoption."""
     errors = []
     try:
-        payload = json.loads(path.read_text(encoding='utf-8'))
+        payload = load_document(path)
         record = payload['run']
-        original = json.loads((path.parent / 'run.json').read_text(encoding='utf-8'))
+        original = load_document(path.parent / 'run.json')
     except (OSError, ValueError, KeyError, TypeError) as exc:
         return [f'{path}: unreadable run artifact: {exc}']
-    if not isinstance(record, dict) or record != original:
+    if not isinstance(record, dict) or encode_document(record) != encode_document(original):
         return ['embedded run record differs from the reserved run.json']
     required = {'schema_version', 'script', 'script_sha256', 'git_commit', 'source_sha256',
                 'registration', 'registration_sha256', 'protocol', 'protocol_version',
