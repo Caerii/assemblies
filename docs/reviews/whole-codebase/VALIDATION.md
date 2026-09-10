@@ -898,3 +898,27 @@ diff checks passed. Torch/CUDA capability declarations still require CUDA gates.
 This is not general add_area transactionality: other options, duplicate names,
 allocation failures and incorrect custom-backend declarations remain open, along
 with the broader model/IR, research migrations and grounded-verb regression.
+
+
+## Shared area identity/dimension preflight (2026-09-10)
+
+All 54 new registration controls initially failed: invalid names/dimensions were
+accepted or left state behind, duplicate names replaced populations, and NumPy
+integer dimensions remained inconsistent scalar types. A single pure
+`core.registration.validate_area_registration` now runs before Brain, standalone
+Area and supported backend registration paths mutate state or consume RNG draws.
+It enforces unique nonempty area names, nonboolean integer dimensions, positive
+cap/population ordering and the shared uint32 neuron-ID limit.
+
+Controls cover Brain/direct registration on all three NumPy engines, preserve
+population and descriptor identities and random streams, and check canonical
+accepted NumPy counts. Two additional checks cover standalone Area and the logical
+population limit without large allocations. The new registration suite is in CI.
+Focused registration/IR checks: 80 passed. Final CPU workflow gate: 800 passed,
+1 skipped, two expected sampled-engine warnings in 92.39 seconds
+(`.cache/registration-gate.log`). Ruff and diff checks passed.
+
+This intentionally rejects duplicate-as-reset callers; no numerical kernel or
+scientific threshold changed. GPU execution, backend-specific option preflight,
+stimulus namespace rules, general transactionality, historical replays and broader
+model/compiler unification remain open.

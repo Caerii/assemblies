@@ -35,6 +35,7 @@ from collections import defaultdict
 
 from .backend import get_xp, to_cpu, detect_best_engine
 from .engine import ComputeEngine, create_engine
+from .registration import validate_area_registration
 from ._homeostasis import HomeostasisConfig, check_area_homeostasis, validate_lri_parameters
 from .index_spaces import CompactIdx, to_neuron_ids, validated_indices
 
@@ -327,6 +328,7 @@ class Brain:
             refracted_strength (float): Magnitude of per-firing bias
                 increment in refracted mode.
         """
+        n, k = validate_area_registration(area_name, n, k, existing=self.areas)
         # Specification: neural_assemblies/ir/VERIFICATION.md#contract-refraction-registration
         if refracted:
             owner_type = type(self._engine)

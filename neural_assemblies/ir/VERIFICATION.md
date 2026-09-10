@@ -794,3 +794,27 @@ This closes refraction support/compatibility rejection, not all possible failure
 of `add_area`. Other option preflight, duplicate names, allocation failures and
 misdeclared custom-backend capabilities remain separate obligations. GPU support
 is declared from the implementation but still requires the external CUDA gates.
+
+
+<a id="contract-area-registration"></a>
+
+## Shared area registration identity and dimensions
+
+`core.registration.validate_area_registration` is the nonmutating preflight used
+by Brain, standalone Area construction and NumPy/Torch area-registration methods.
+Names must be nonempty strings and absent from the applicable area registry.
+Population size and cap size must be nonboolean integers with
+`0 < k <= n <= 2**32`; the upper population limit keeps every neuron ID representable
+at the shared uint32 boundary. Accepted NumPy integer scalars become Python ints.
+
+Validation occurs before population replacement, wiring or random initialization.
+Duplicate registration is an error, not a way to reset or resize a learned area.
+Controls preserve the existing population/descriptor identities and RNG streams
+across Brain and direct calls on all three NumPy engines. Standalone construction
+and the logical ID-width limit are checked without allocating a huge population.
+The requested size may still exceed available memory or a backend's tighter limit.
+
+The check does not validate every area option, make registration generally
+transactional, or establish GPU conformance. Stimulus namespaces and dynamic
+resizing are separate contracts. Existing failures unrelated to identity/dimensions
+may still require broader option preflight or rollback.

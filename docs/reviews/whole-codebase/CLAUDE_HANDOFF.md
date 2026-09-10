@@ -473,3 +473,12 @@ an area. Explicit areas cannot borrow their primary mirror's capability. Tests
 preserve registration/RNG state and show real bias on the supported path.
 CPU gate: 744 passed, 1 skipped; general registration transactionality and CUDA
 verification remain open. See [validation](VALIDATION.md).
+
+
+### Shared area registration preflight
+
+Brain, Area and backend registration now share name/dimension validation. Duplicate
+names raise before replacing populations; invalid counts preserve RNG/state; NumPy
+integer counts canonicalize. The new suite is in CPU CI. Initial controls: 54
+failures; final workflow gate: 800 passed, 1 skipped. CUDA and other registration
+options remain open. See [validation](VALIDATION.md).

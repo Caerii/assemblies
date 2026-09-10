@@ -11,6 +11,7 @@ from collections import defaultdict
 
 from ..backend import get_xp, to_cpu
 from ..engine import ComputeEngine, ProjectionResult
+from ..registration import validate_area_registration
 from ..connectome import Connectome
 from ..index_spaces import validated_indices
 
@@ -100,6 +101,7 @@ class NumpyExplicitEngine(ComputeEngine):
         cannot run on the exact-drive engine is a rule whose results cannot be
         checked (#94). `input_noise_std` is refused loudly instead of ignored.
         """
+        n, k = validate_area_registration(name, n, k, existing=self._areas)
         _reject_unsupported(
             f"NumpyExplicitEngine.add_area({name!r})", self._UNSUPPORTED_AREA,
             dict(refractory_period=refractory_period,

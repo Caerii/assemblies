@@ -49,6 +49,7 @@ from ..index_spaces import validated_indices
 
 from ..backend import to_cpu
 from ..engine import ComputeEngine, ProjectionResult
+from ..registration import validate_area_registration
 from ..activity import ActivityState
 from .._pricing import inverse_indegree
 from ._seeding import (fnv1a_pair_seed, hash_area_cells, hash_area_indegree,
@@ -514,6 +515,7 @@ class NumpyExactEngine(ComputeEngine):
         an RNG stream, and this engine deliberately has none -- that is what
         makes it reproducible by content-addressing rather than by seeding.
         """
+        n, k = validate_area_registration(name, n, k, existing=self._areas)
         _reject_unsupported(
             f"NumpyExactEngine.add_area({name!r})", self._UNSUPPORTED_AREA,
             dict(kwargs, refractory_period=refractory_period,
