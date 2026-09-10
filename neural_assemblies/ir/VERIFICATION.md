@@ -499,6 +499,9 @@ operation is not yet an executable IR instruction or a Lean-proved lowering.
 
 ## Scoped fiber learning control
 
+The [formal frame contract](#contract-learning-frame) specifies protected learned
+values and permitted updates; concrete backend refinement remains unproved.
+
 A Brain fiber mask disables learning on one directed area or stimulus fiber;
 it does not remove that fiber's drive. Dense projection now implements this
 control at the learning loops through `fiber_learning_allowed`. Brain scopes
@@ -561,3 +564,42 @@ by an empty/stale backend cap. Ordinary, fixed, compiled and explicit-bootstrap
 paths, scaling on/off, deferred retention, recruitment and stale-cap controls are
 covered by CPU tests. Native GPU backends and formal preservation proofs remain
 open; no scientific sequence result from the sampler is adopted by these checks.
+
+
+<a id="contract-learning-frame"></a>
+
+## Formal learning-mask frame
+
+[Learning.lean](../../formal/AssemblyIR/Learning.lean) states the common mask
+contract independently of numerical representation. `LearningState` separates
+per-fiber learned values from activity. `maskedStep` computes a proposed transition
+on the original state, retains blocked weights, applies unblocked writes exactly,
+and preserves the proposed activity result. It reuses `Refinement.run` for schedules.
+
+| Theorem | Exact guarantee |
+| --- | --- |
+| `maskedStep_blocked` | A blocked learned value is unchanged by one step |
+| `maskedStep_allowed` | An unblocked write equals the proposed write |
+| `maskedStep_activity` | Activity uses the proposed transition on the original state |
+| `masked_run_frame` | Blocked values are unchanged across any finite schedule under a fixed mask |
+| `masked_scope_extension` | Adding an inner mask cannot release an outer protected fiber |
+
+Together these properties prevent conflating masking with removal of input,
+freezing all state, or replacing the proposed update with a no-op. Concrete
+controls retain weight ten on the blocked fiber, increase an unblocked fiber to
+eleven/twelve, and advance activity using the retained weight to ten/twenty.
+Bypassing the mask changes the protected value; zeroing it before the proposal
+loses its contribution to activity.
+
+This is a pure, fixed-fiber frame contract. It does not prove exception unwinding,
+thread safety, floating-point arithmetic, or any Python-to-Lean lowering. The
+runtime scope's restoration is covered by Python controls, not this theorem.
+A concrete backend must identify its learned-value representation, separate base
+connectivity/recruitment, and discharge the simulation and observation obligations
+in `Refinement.lean`. In particular, a sampled fiber's full physical matrix can
+grow under a learning mask; treating that matrix as an invariant learned value
+would be an invalid instantiation. No backend simulation is claimed here.
+
+Run `lake build` and `lake env leanchecker AssemblyIR.Learning` from `formal/`.
+The printed dependencies contain only `propext` (and none for the activity
+projection theorem); there are no admitted proof holes in these theorems.

@@ -41,11 +41,14 @@ def test_rust_ir_source_links_its_wire_contract():
                and edge["to"].endswith("#contract-protocol-wire") for edge in edges)
 
 
-def test_lean_domain_links_its_checked_execution_contract():
+@pytest.mark.parametrize("module, anchor", [
+    ("Domain", "contract-checked-domain"), ("Learning", "contract-learning-frame"),
+])
+def test_lean_module_links_its_contract(module, anchor):
     edges, errors = specification_links(ROOT)
     assert not errors, errors
-    assert {"from": "formal/AssemblyIR/Domain.lean:<module>",
-            "to": "neural_assemblies/ir/VERIFICATION.md#contract-checked-domain"} in edges
+    assert {"from": f"formal/AssemblyIR/{module}.lean:<module>",
+            "to": f"neural_assemblies/ir/VERIFICATION.md#{anchor}"} in edges
 
 
 def test_dangling_lean_contract_is_rejected(tmp_path):

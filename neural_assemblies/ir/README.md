@@ -64,3 +64,9 @@ For a Brain, call `instruction.execute_on_brain(brain)` instead of passing its
 private engine to `execute`. This uses normal projection synchronization and
 history, supports primary or auxiliary dense areas, and returns a detached winner
 array. See the [Brain lowering contract](VERIFICATION.md#contract-brain-round).
+
+
+`formal/AssemblyIR/Learning.lean` gives the shared mask frame: protected learned
+values stay unchanged across schedules, while allowed writes and activity keep
+their specified meaning. Its [contract and instantiation limits](VERIFICATION.md#contract-learning-frame)
+distinguish this checked model from a proof of a concrete numerical backend.

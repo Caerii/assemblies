@@ -373,3 +373,10 @@ block Hebbian/triggered scaling updates, retain deferred masked work, and leave
 recruitment/refraction distinct. Brain now synchronizes held public caps before
 fixing targets. Focused checks: 76 passed; CPU gate: 583 passed, 1 skipped.
 See [validation](VALIDATION.md); no GPU proof or historical replay is claimed.
+
+### Formal learning frame
+
+`AssemblyIR.Learning` now proves the abstract masked-update frame across schedules
+and nested masks, with non-vacuity/drive controls. Lean build and leanchecker pass;
+36 runtime/source-link checks pass. This is a source-linked contract, not a proof
+that Python/CUDA implements it. See [validation](VALIDATION.md) for exact scope.

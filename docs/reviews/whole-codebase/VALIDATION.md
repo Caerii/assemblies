@@ -630,3 +630,25 @@ open. No sampled sequence result is adopted from these tests. The broader
 unification and known grounded-verb/readout regression remain unfinished.
 
 Final workflow-listed CPU gate: **583 passed, 1 skipped**.
+
+### Lean learning-mask frame contract (2026-09-10)
+
+Added `formal/AssemblyIR/Learning.lean`, imported by the normal Lean build. The
+pure model separates per-fiber learned values from activity and reuses the existing
+schedule interpreter. It proves blocked-value preservation, exact permitted
+writes, preservation of proposed activity, the frame across arbitrary finite
+schedules, and monotonic protection under nested mask union. Concrete controls
+show why bypassing suppression, zeroing input weights, and freezing all activity
+are different behaviors.
+
+`lake build` and `lake env leanchecker AssemblyIR.Learning` passed. Printed theorem
+dependencies contain only `propext`, with no axioms for the activity projection.
+Source-link and runtime mask checks: 36 passed. Ruff and diff checks passed. No
+runtime implementation changed, so the complete CPU suite was not repeated.
+
+The source-linked IR documentation now distinguishes this proved abstract frame
+from unproved concrete backend simulation. In particular, physical sampled-fiber
+growth is not an invariant learned value and cannot be silently substituted into
+the theorem. Exception restoration remains a runtime-tested property, not a theorem
+of this pure kernel. GPU gates, historical replays, complete IR lowering and the
+known grounded-verb regression remain open.
