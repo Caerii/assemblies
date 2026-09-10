@@ -1368,3 +1368,41 @@ The named wrappers remain compatible. Controls include a 60-state request with
 only even generators and exhaustive pairs of residues for orders 1 through 12,
 compared against all linear combinations. These finite tests do not constitute a
 Lean proof of the general constructor or a neural word-problem result.
+
+
+<a id="contract-transition-domain"></a>
+### Transition domain before neural construction
+
+Code-derived card: FSMNetwork stores a symbolic transition table and trains state
+and symbol encodings; PFANetwork delegates only its deterministic edges to that
+FSM and selects branching successors from coin labels. Previously neither checked
+that all edge endpoints and symbols were declared; invalid branching targets could
+escape the FSM's subset entirely. A missing deterministic edge could stimulate a
+symbol before raising KeyError. These are bookkeeping failures, not failed neural
+learning, and must be detected before changing brain state.
+
+TransitionMap now requires nonempty string edge labels and finite positive real
+weights at most one (booleans and numeric strings are not weights). Duplicate edges
+are rejected rather than silently interpreted as distinct choices. validate_domain
+checks unique named state/symbol declarations, initial-state membership and every
+edge. Both constructors consume this validation before allocating any area or
+stimulus. Empty alphabets and partial tables are allowed; states must include the
+initial state. Step on an absent edge raises before neural activity changes.
+
+<a id="contract-branch-schedule"></a>
+### Conditional branch schedule
+
+TransitionMap.branch_schedule preserves declared target order and returns immutable
+(target, conditional weight) pairs. Each weight is its positive target mass divided
+by math.fsum of remaining masses; the final target has weight one and serves as the
+fallback. This factorization accepts positive relative masses; PFANetwork separately
+requires each complete group to sum to one within its explicit tolerance. Summing
+the tail directly avoids catastrophic cancellation in 1 minus a rounded prefix.
+In exact arithmetic, calibrated conditional Bernoulli choices would reproduce the
+normalized target masses. That conditional statement does not calibrate the neural
+seed-mixture selector; its observed outcome law remains an empirical question.
+
+PFANetwork consumes this schedule through one loop for binary and multiway branches.
+Binary choice retains the caller seed; multiway choice retains one generated seed
+per attempted decision. Deterministic transitions allocate no coin. Branch schedules
+are symbolic data, not evidence of a learned neural transition circuit or softmax law.

@@ -1763,3 +1763,39 @@ script digests. The full-package audit's unresolved failures remain open.
 Dedicated CUDA gates: 122 passed, 11 warnings in 36.05s, with the fused extension
 loaded on the RTX 3080 (.cache/source-archive-gpu-gate.log). No kernel or
 engine arithmetic changed. These gates do not replace the unresolved full-package audit.
+
+
+## Shared transition domains and conditional schedules (2026-09-10)
+
+FSMNetwork and PFANetwork now validate complete state/symbol declarations and all
+transition endpoints before allocating brain infrastructure. Duplicate edges,
+malformed labels, boolean/string/nonfinite/nonpositive weights and invalid mass
+tolerances fail explicitly. Positive exact weights that underflow during binary64
+conversion also fail. Partial tables remain supported; missing-edge steps now raise
+before projecting or changing the symbolic state. Single-pass domain inputs are
+snapshotted before validation so generators cannot vanish before construction.
+
+TransitionMap owns the immutable ordered conditional branch schedule. PFANetwork
+consumes it with one loop for binary and multiway choices, preserving their respective
+seed streams. Direct remaining-mass sums replace subtraction from a rounded prefix.
+The PFA module shrank by 36 net lines in this change, while the shared validation and
+schedule layer grew. This is not a claim of net repository-wide line reduction.
+Source-linked specs and code-derived cards are in IR/VERIFICATION.md under
+contract-transition-domain and contract-branch-schedule. The misleading module-level
+claim that SoftmaxContextCoin establishes smooth context-dependent probabilities was
+removed; its implementation and NemoMarkovPFA remain unresolved, not certified here.
+
+79 focused tests passed in 2.16s. The branch factorization was checked against exact
+rational path masses for all 81 four-target integer-weight vectors over 1..3, alongside
+a rounded-prefix cancellation control. These are finite mathematical checks, not a
+Lean proof of arbitrary floating-point tables or a neural calibration claim.
+Before/after replay matched all 36 labels and full winner arrays across three brain
+seeds, binary/three-way branches, two selection modes and three flip seeds. Replay
+inputs and outputs are local .cache/pfa-schedule-{replay.py,before.json,after.json};
+these are sampled NumPy software diagnostics, not registered scientific evidence.
+
+Full workflow-selected contract suite: 1261 passed, 1 skipped, 6 warnings in 121.11s
+(.cache/transition-domain-contract-gate.log), including specification links, theory
+rendering and both ratchets. Ruff on changed Python and git diff --check pass.
+No historical numerical artifacts or adoption thresholds changed. The unresolved
+full-package failures and neural Markov/context-coin redesign remain open.

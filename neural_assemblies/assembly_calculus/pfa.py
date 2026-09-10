@@ -24,10 +24,9 @@ Three variants exist here and they differ in what supplies the entropy:
                       decided by which attractor happens to be better
                       represented in the random draw.  This is the reference
                       NEMO coin (mdabagia/nemo ``RandomChoiceArea.flip``).
-    SoftmaxContextCoin -- adds per-neuron i.i.d. input noise and E%-WTA, so
-                      entropy is injected into the dynamics rather than only
-                      the initial condition, and the probability becomes a
-                      smooth function of the trained context->outcome weights.
+    SoftmaxContextCoin -- unresolved legacy context wrapper: it learns during
+                      reads and overwrites context-driven activity. Its name
+                      does not establish a softmax law or a calibrated sampler.
 
 PFANetwork extends FSMNetwork with probabilistic transitions.  When
 multiple transitions exist for the same (state, symbol), uses
@@ -39,8 +38,7 @@ Reference:
     arXiv:2306.03812.
 """
 
-from typing import Dict, List, Literal, Tuple
-from collections import defaultdict
+from typing import List, Literal
 import math
 from numbers import Integral, Real
 
@@ -583,28 +581,17 @@ class PFANetwork:
         self.choice = choice
         self.flip_mode = choice.mode if choice is not None else None
 
-        self.transition_map = TransitionMap(transitions).validate_probability_mass()
-
-        # Group transitions by (from_state, symbol)
-        self._trans_map: Dict[Tuple[str, str], List[Tuple[str, float]]] = defaultdict(list)
-        for transition in self.transition_map:
-            self._trans_map[transition.key].append(
-                (transition.to_state, transition.probability)
-            )
-
-        # Split into deterministic and probabilistic
-        det_transitions = []
-        self._prob_keys: List[Tuple[str, str]] = []
-
-        for (from_st, sym), targets in self._trans_map.items():
-            if len(targets) == 1:
-                det_transitions.append((from_st, sym, targets[0][0]))
-            else:
-                self._prob_keys.append((from_st, sym))
-                # Probabilistic transitions are handled by the coin flip,
-                # NOT by the FSM.  Only add deterministic transitions.
-
-        if self._prob_keys and choice is None:
+        states = states if isinstance(states, (str, bytes)) else tuple(states)
+        symbols = symbols if isinstance(symbols, (str, bytes)) else tuple(symbols)
+        self.transition_map = TransitionMap(transitions).validate_domain(
+            states, symbols, initial_state).validate_probability_mass()
+        self._branch_schedules = {key: self.transition_map.branch_schedule(*key)
+                                  for key in self.transition_map.keys()}
+        det_transitions = [(state, symbol, schedule[0][0])
+                           for (state, symbol), schedule in self._branch_schedules.items()
+                           if len(schedule) == 1]
+        branching = any(len(schedule) > 1 for schedule in self._branch_schedules.values())
+        if branching and choice is None:
             raise ValueError("Branching requires explicit SeedMixtureChoice: transition weights "
                              "control seed mixtures, not calibrated outcome probabilities")
 
@@ -615,7 +602,7 @@ class PFANetwork:
         )
 
         # A deterministic machine has no random-choice population or training.
-        self._coin = choice.build(brain, prefix=f"{prefix}_coin") if self._prob_keys else None
+        self._coin = choice.build(brain, prefix=f"{prefix}_coin") if branching else None
 
         self._current_state = initial_state
 
@@ -642,48 +629,25 @@ class PFANetwork:
             New state name.
         """
         key = (self._current_state, symbol)
-        targets = self._trans_map.get(key, [])
+        schedule = self._branch_schedules[key]  # Missing edge fails before activity changes.
 
-        if len(targets) <= 1:
-            # Deterministic: delegate to FSM
-            # Ensure FSM state matches our state
+        if len(schedule) == 1:
             self._fsm._current_state = self._current_state
-            project(self.brain,
-                    self._fsm._st_stim[self._current_state],
-                    self._fsm.state_area,
-                    rounds=self._fsm.rounds)
+            project(self.brain, self._fsm._st_stim[self._current_state],
+                    self._fsm.state_area, rounds=self._fsm.rounds)
             new_state = self._fsm.step(symbol)
-        elif len(targets) == 2:
-            # Binary probabilistic: use coin flip
-            to_st_0, prob_0 = targets[0]
-            to_st_1, prob_1 = targets[1]
-            result = self._coin.flip(
-                bias=prob_0, rounds=self.choice.rounds, seed=seed, mode=self.choice.mode,
-            )
-            new_state = to_st_0 if result == 0 else to_st_1
         else:
-            # Multi-way: cascade of binary choices
-            rng = np.random.default_rng(seed)
-            remaining = list(targets)
-            new_state = remaining[-1][0]  # default fallback
-            cum_prob = 0.0
-            for to_st, prob in remaining[:-1]:
-                # Coin bias: prob / (1 - cum_prob)
-                remaining_prob = 1.0 - cum_prob
-                if remaining_prob <= 0:
-                    break
-                coin_bias = min(prob / remaining_prob, 1.0)
-                result = self._coin.flip(
-                    bias=coin_bias, rounds=self.choice.rounds,
-                    seed=int(rng.integers(0, 2**31)),
-                    mode=self.choice.mode,
-                )
+            # Preserve the historical seed stream: binary uses the supplied seed;
+            # a multiway schedule draws one seed per attempted conditional choice.
+            rng = np.random.default_rng(seed) if len(schedule) > 2 else None
+            new_state = schedule[-1][0]
+            for target, weight in schedule[:-1]:
+                branch_seed = int(rng.integers(0, 2**31)) if rng is not None else seed
+                result = self._coin.flip(bias=weight, rounds=self.choice.rounds,
+                                         seed=branch_seed, mode=self.choice.mode)
                 if result == 0:
-                    new_state = to_st
+                    new_state = target
                     break
-                cum_prob += prob
-            else:
-                new_state = remaining[-1][0]
 
         self._current_state = new_state
         return new_state

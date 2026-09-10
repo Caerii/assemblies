@@ -57,6 +57,8 @@ from .transitions import TransitionLike, TransitionMap
 class FSMNetwork:
     """Deterministic finite state machine over neural assemblies.
 
+    Specification: neural_assemblies/ir/VERIFICATION.md#contract-transition-domain
+
     States and symbols are encoded as neural assemblies with full
     assembly calculus support (pattern completion, readout, merge).
     Transitions use an explicit table — the neural computation provides
@@ -89,9 +91,11 @@ class FSMNetwork:
         prefix: str = "_fsm",
     ):
         self.brain = brain
+        states = states if isinstance(states, (str, bytes)) else tuple(states)
+        symbols = symbols if isinstance(symbols, (str, bytes)) else tuple(symbols)
+        self.transition_map = TransitionMap(transitions).validate_domain(states, symbols, initial_state)
         self.states = list(states)
         self.symbols = list(symbols)
-        self.transition_map = TransitionMap(transitions)
         self.transitions = self.transition_map.as_tuples()
         self.initial_state = initial_state
         self.n = n
@@ -196,12 +200,14 @@ class FSMNetwork:
         """
         b = self.brain
 
+        # Resolve first: a missing edge must not alter the neural representation.
+        new_state = self._transition_table[(self._current_state, symbol)]
+
         # 1. Activate symbol via stimulus (maintains neural representation)
         project(b, self._sym_stim[symbol], self.symbol_area,
                 rounds=self.rounds)
 
         # 2. Look up transition
-        new_state = self._transition_table[(self._current_state, symbol)]
         self._current_state = new_state
 
         # 3. Project target state from stimulus for clean representation
