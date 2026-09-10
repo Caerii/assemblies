@@ -1735,3 +1735,31 @@ both ratchets:27 passed in41.53s. Ruff and git diff --check pass. Group controls
 are now in the CPU workflow. No neural engine, study, golden artifact or scientific
 threshold changed; no full-package rerun was needed for this symbolic-table-preserving
 refactor. The other full-audit failures remain open.
+
+
+## Recoverable runner source (2026-09-10)
+
+Run schema 3 now reserves and writes a source ZIP before measurement. It retains
+exact source-inventory bytes plus the entry script and registration, binds the ZIP
+to run.json, and validates the archived inventory and individual digests before
+publishing completion. Evidence validation checks the same contract without
+extracting or importing code. Missing, corrupted, duplicate, unsafe and altered
+archive contents are constructed negatives; schema 1/2 remain readable unchanged.
+Specification: research/README.md#recoverable-source, linked from both implementations.
+
+62 focused runner tests passed in 17.63s. Full workflow-selected contract gates:
+1206 passed, 1 skipped, 6 warnings in 116.14s (.cache/source-archive-contract-gate.log).
+Ruff on changed Python and git diff --check pass. All five committed runner
+artifacts still validate. No historical records or scientific thresholds changed.
+
+A real repository storage-only smoke (VOID) captured 1327 source files, 13786708
+uncompressed bytes into 4389401 archive bytes in 6.754s, with successful validation.
+Local artifact: .cache/source-capture/audit.source-capture/source-capture-20260910.
+This single timing is diagnostic, not a benchmark or scientific result. Source
+capture excludes datasets, ignored files, installed binaries and external dependencies;
+it does not establish hermetic execution or repair the two historical unrecovered
+script digests. The full-package audit's unresolved failures remain open.
+
+Dedicated CUDA gates: 122 passed, 11 warnings in 36.05s, with the fused extension
+loaded on the RTX 3080 (.cache/source-archive-gpu-gate.log). No kernel or
+engine arithmetic changed. These gates do not replace the unresolved full-package audit.

@@ -14,9 +14,11 @@ from pathlib import Path
 import re
 import subprocess
 from typing import Callable, Mapping
+from zipfile import ZIP_DEFLATED, ZipFile, ZipInfo
 
 from neural_assemblies.core.environment import environment_record
 from research.json_documents import encode_document
+from research.source_archive import validate_source_archive
 
 ROOT = Path(__file__).resolve().parents[1]
 # Source-linked specification: research/README.md#source-identity
@@ -56,16 +58,26 @@ def _repo_file(path: str | Path) -> Path:
     return resolved
 
 
-def _source_identity() -> dict:
-    commit = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip()
+def _source_paths() -> list[str]:
     paths = subprocess.check_output(['git', 'ls-files', '--cached', '--others', '--exclude-standard', '-z'], cwd=ROOT).decode().split('\0')
+    return sorted({name for name in paths if name and _is_source_input(Path(name))})
+
+
+def _archive_bytes(archive: ZipFile, name: str, data: bytes) -> None:
+    entry = ZipInfo(name)  # Fixed timestamp; preserve bytes, not checkout metadata.
+    entry.compress_type = ZIP_DEFLATED
+    archive.writestr(entry, data)
+
+
+def _source_identity(archive: ZipFile | None = None) -> dict:
+    commit = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip()
     digest = hashlib.sha256(SOURCE_INVENTORY.encode() + b'\0')
-    for name in sorted(filter(None, paths)):
-        path = ROOT / name
-        if not _is_source_input(Path(name)):
-            continue
+    for name in _source_paths():
+        data = _repo_file(name).read_bytes()
         digest.update(name.encode() + b'\0')
-        digest.update(hashlib.sha256(path.read_bytes()).digest())
+        digest.update(hashlib.sha256(data).digest())
+        if archive is not None:
+            _archive_bytes(archive, 'source/' + name, data)
     return {'git_commit': commit, 'source_sha256': digest.hexdigest()}
 
 
@@ -108,7 +120,7 @@ def run_experiment(*, script: str | Path, protocol: str, protocol_version: str,
     registration_path = _repo_file(registration)
     inputs = {path: hashlib.sha256(_repo_file(path).read_bytes()).hexdigest()
               for path in input_artifacts}
-    record = dict(schema_version=2, environment=environment_record(), source_inventory=SOURCE_INVENTORY, protocol=protocol, protocol_version=protocol_version,
+    record = dict(schema_version=3, environment=environment_record(), source_inventory=SOURCE_INVENTORY, protocol=protocol, protocol_version=protocol_version,
                   script=script_path.relative_to(ROOT).as_posix(),
                   script_sha256=hashlib.sha256(script_path.read_bytes()).hexdigest(),
                   registration=registration_path.relative_to(ROOT).as_posix(),
@@ -122,6 +134,20 @@ def run_experiment(*, script: str | Path, protocol: str, protocol_version: str,
     parent.mkdir(parents=True, exist_ok=True)
     directory = parent / tag
     directory.mkdir()  # atomic reservation; raises FileExistsError before measure
+    # Source-linked specification: research/README.md#recoverable-source
+    # Reserve first; no measurement may run without a complete source capture.
+    archive_path = directory / 'source.zip'
+    with ZipFile(archive_path, 'x') as archive:
+        captured = _source_identity(archive)
+        for field, path in [('script', script_path), ('registration', registration_path)]:
+            data = path.read_bytes()
+            if hashlib.sha256(data).hexdigest() != record[field + '_sha256']:
+                raise RuntimeError(f'{field} changed while capturing source')
+            _archive_bytes(archive, field, data)
+    if captured != {k: record[k] for k in ('git_commit', 'source_sha256')}:
+        raise RuntimeError('source changed while capturing source')
+    record['source_archive'] = {'file': 'source.zip',
+                                'sha256': hashlib.sha256(archive_path.read_bytes()).hexdigest()}
     _write_new(directory / 'run.json', record)
     try:
         observations = measure(json.loads(json.dumps(record)))
@@ -136,6 +162,9 @@ def run_experiment(*, script: str | Path, protocol: str, protocol_version: str,
         if any(hashlib.sha256(_repo_file(path).read_bytes()).hexdigest() != digest
                for path, digest in inputs.items()):
             raise RuntimeError('input artifact changed during the run')
+        archive_errors = validate_source_archive(directory, record)
+        if archive_errors:
+            raise RuntimeError('; '.join(archive_errors))
         path = directory / 'results.json'
         _write_new(path, {'run': record, 'status': 'complete', 'observations': dict(observations)})
         return path

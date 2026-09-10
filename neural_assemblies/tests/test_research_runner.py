@@ -11,7 +11,7 @@ from research import runner
 def run(tmp_path, monkeypatch):
     # Exercise storage and protocol validation without scanning the whole repo
     # per test or invoking an actual experiment.
-    monkeypatch.setattr(runner, '_source_identity', lambda: {'git_commit': 'b' * 40, 'source_sha256': 'a' * 64})
+    monkeypatch.setattr(runner, '_source_paths', lambda: [Path(__file__).relative_to(runner.ROOT).as_posix()])
     def execute(**kwargs):
         values = dict(script=Path(__file__), protocol='audit.fixture', protocol_version='1',
                       registration='research/notes/sequence/DESIGN_sequence_port.md',
@@ -206,7 +206,7 @@ def test_record_carries_shared_environment_fingerprint_without_raw_values(run, m
     monkeypatch.setenv('NEURAL_ASSEMBLIES_NO_RUST', 'private-test-value')
     path = run()
     record = json.loads(path.read_text())['run']
-    assert record['schema_version'] == 2
+    assert record['schema_version'] == 3
     fingerprint = record['environment']['variables_sha256']
     assert fingerprint['NEURAL_ASSEMBLIES_NO_RUST'] == dict(
         sweep._training_env_signature())['NEURAL_ASSEMBLIES_NO_RUST']
@@ -313,3 +313,82 @@ def test_strict_document_roundtrip_keeps_subnormals_and_large_integers(tmp_path)
     path = tmp_path/"document.json"
     path.write_text(encode_document(value))
     assert encode_document(load_document(path)) == encode_document(value)
+
+
+def test_source_archive_preserves_checkout_bytes_and_untracked_code(source_repo):
+    from zipfile import ZipFile
+    from research.evidence import validate_artifact
+    script = b'# mixed endings\r\n# exact bytes\n'
+    registration = b'protocol\r\n'
+    (source_repo / 'study.py').write_bytes(script)
+    (source_repo / 'registration.md').write_bytes(registration)
+    (source_repo / 'untracked.py').write_bytes(b'# uncommitted\r\n')
+    path = runner.run_experiment(
+        script='study.py', registration='registration.md', protocol='fixture',
+        protocol_version='1', engine='numpy_exact', seeds=[1, 2, 3], tag='capture',
+        parameters={}, measure=lambda record: {'value': 0})
+    with ZipFile(path.parent / 'source.zip') as archive:
+        assert archive.read('source/study.py') == script
+        assert archive.read('script') == script
+        assert archive.read('registration') == registration
+        assert archive.read('source/untracked.py') == b'# uncommitted\r\n'
+    # Later checkout changes cannot rewrite the captured evidence.
+    (source_repo / 'study.py').write_bytes(b'# later version')
+    assert validate_artifact(path, root=source_repo) == []
+
+
+@pytest.mark.parametrize('damage', ['missing', 'bytes', 'source', 'registration', 'duplicate', 'escape'])
+def test_source_archive_damage_is_rejected_even_with_updated_container_digest(run, damage):
+    import hashlib
+    import warnings
+    from zipfile import ZipFile
+    from research.evidence import validate_artifact
+    path = run()
+    archive_path = path.parent / 'source.zip'
+    payload = json.loads(path.read_text())
+    if damage == 'missing':
+        archive_path.unlink()
+    elif damage == 'bytes':
+        archive_path.write_bytes(b'not a zip')
+    else:
+        with ZipFile(archive_path) as archive:
+            entries = [(name, archive.read(name)) for name in archive.namelist()]
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', UserWarning)
+            with ZipFile(archive_path, 'w') as archive:
+                for name, data in entries:
+                    changed = (damage == 'source' and name.startswith('source/')
+                               or damage == 'registration' and name == 'registration')
+                    archive.writestr(name, b'changed' if changed else data)
+                if damage == 'duplicate':
+                    archive.writestr(*entries[0])
+                if damage == 'escape':
+                    archive.writestr('source/../escape.py', b'bad')
+        payload['run']['source_archive']['sha256'] = hashlib.sha256(archive_path.read_bytes()).hexdigest()
+        path.write_text(json.dumps(payload))
+        (path.parent / 'run.json').write_text(json.dumps(payload['run']))
+    assert any('archive' in error or 'archived' in error for error in validate_artifact(path))
+
+
+def test_archive_mutation_during_measurement_prevents_completion(run, tmp_path):
+    def measure(record):
+        (tmp_path / 'audit.fixture/fixture/source.zip').write_bytes(b'changed')
+        return {'value': 1}
+    with pytest.raises(RuntimeError, match='archive digest mismatch'):
+        run(measure=measure)
+    directory = tmp_path / 'audit.fixture/fixture'
+    assert (directory / 'failure.json').exists()
+    assert not (directory / 'results.json').exists()
+
+
+@pytest.mark.parametrize('version', [1, 2])
+def test_historical_records_do_not_require_source_capture(run, version):
+    from research.evidence import validate_artifact
+    path = run()
+    payload = json.loads(path.read_text())
+    payload['run']['schema_version'] = version
+    payload['run'].pop('source_archive')
+    (path.parent / 'source.zip').unlink()
+    path.write_text(json.dumps(payload))
+    (path.parent / 'run.json').write_text(json.dumps(payload['run']))
+    assert validate_artifact(path) == []

@@ -186,3 +186,27 @@ model configuration remains open; this guard does not substitute for that work.
 
 Version 3 adds Windows `.cmd` build scripts to the source inventory. Earlier
 version 2 records remain historical records with that coverage limitation.
+
+
+## Recoverable source
+
+The [runner](runner.py) writes schema 3 records with a sibling `source.zip` before
+calling measurement. The archive preserves exact checkout bytes, including mixed
+line endings and Git-discovered nonignored untracked source. Its `source/` members
+use the same inventory and ordering as `source_sha256`; `script` and `registration`
+preserve the separately hashed entry point and preregistration. ZIP timestamps are
+fixed. The run record binds the archive by SHA-256. Existing tags remain reserved
+if capture fails, and measurement does not start.
+
+[Archive validation](source_archive.py) recomputes the inventory digest and both
+individual digests from archived bytes, rejects duplicate or unsafe member names,
+and never extracts or executes code. The runner also validates the archive before
+publishing completion; the evidence validator checks it for every schema 3 record.
+Schema 1 and 2 records remain readable without an archive. Their historical byte
+recovery gaps are not repaired by this change.
+
+This captures repository source, not a hermetic execution environment or all data.
+Declared input artifacts retain their separate digests; datasets, installed binaries,
+ignored files and external dependencies are not bundled. Keep those limits distinct
+from the scientific pass conditions. The archive is evidence to inspect, not a
+promise that executing it elsewhere reproduces a study.

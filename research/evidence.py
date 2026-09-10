@@ -17,6 +17,7 @@ import subprocess
 from neural_assemblies.core.environment import ENVIRONMENT_POLICY, ENVIRONMENT_PREFIXES
 
 from research.json_documents import encode_document, load_document
+from research.source_archive import validate_source_archive
 
 ROOT = Path(__file__).resolve().parents[1]
 _FILE_REF = re.compile(r'(?<![\w/])(?:[\w.-]+/)*[\w.-]+\.(?:py|md|json|csv|ipynb)(?![\w])')
@@ -39,9 +40,9 @@ def validate_artifact(path: Path, *, root: Path = ROOT) -> list[str]:
     missing = required - record.keys()
     if missing:
         return [f'missing run fields: {sorted(missing)}']
-    if type(record['schema_version']) is not int or record['schema_version'] not in (1, 2):
+    if type(record['schema_version']) is not int or record['schema_version'] not in (1, 2, 3):
         errors.append('unsupported run schema version')
-    if record['schema_version'] == 2 or 'environment' in record:
+    if record['schema_version'] in (2, 3) or 'environment' in record:
         environment = record.get('environment')
         if (not isinstance(environment, dict)
                 or set(environment) != {'policy', 'variables_sha256'}
@@ -81,6 +82,8 @@ def validate_artifact(path: Path, *, root: Path = ROOT) -> list[str]:
                 errors.append(f'dangling input artifact edge: {name}')
             if not re.fullmatch('[a-f0-9]{64}', str(digest)):
                 errors.append(f'invalid input artifact digest: {name}')
+    if record['schema_version'] == 3 or 'source_archive' in record:
+        errors.extend(validate_source_archive(path.parent, record))
     seeds = record['seeds']
     if not isinstance(seeds, list) or any(type(s) is not int for s in seeds):
         errors.append('seeds must be a list of integer identities')
