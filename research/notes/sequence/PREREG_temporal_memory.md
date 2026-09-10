@@ -281,3 +281,36 @@ what the ARC -> OUT fiber separates. Predicted-win raises the share above
 that line. A measurement of the contrast against position in the sentence,
 at g = 0 and g = 1, would show the decay and the floor directly; it is not
 registered here.
+
+### Amendment 2 -- Result, TM-8 (2026-09-09, gap 3, seeds 42..61, 20 brains, n = n_arc = 10,000)
+
+Run: `seq_a3_transducer.py --engine hashed --temporal --gap 3 --gains 1
+--seeds 20 --tag _amend2_gap3`; results in
+`research/results/sequence/seq_a3_transducer_results_temporal_chain_gap3_amend2_gap3.json`,
+log in `research/results/logs/seq_a3_temporal_amend2_gap3.log`; same
+pinned worktree as TM-7.
+
+| Quantity | gap 3, g = 1 |
+|----------|--------------|
+| bigram | 0.0984 +/- 0.0036 |
+| oracle | 0.2737 +/- 0.0061 (oracle gap 0.175; 40 percent bar 0.070) |
+| MRR | 0.2039 +/- 0.0126 |
+| MRR - bigram | +0.1055 +/- 0.0110 (lower bound 0.095; per seed 0.052 to 0.141) |
+| full - state-blind | +0.1053 +/- 0.0126 |
+| share of the oracle gap | 60 percent |
+
+**TM-8 PASS.** With three distractors between the agreeing words the
+carry survives: 60 percent of the oracle gap against 72 percent at gap 2,
+lower bound 0.095 against the 0.070 bar. Of the two readings the
+registration offered, the first holds: the carry is the previous arc's
+predicted set persisting, not a two-step coincidence of the corpus. The
+share falls with the gap, as a decaying carry should; the decay law is
+not measured here (two points).
+
+**Amendment 2 outcome.** TM-7 PASS, TM-8 PASS, TM-9 half: the g = 1
+clause passes by twice the bar, the g = 0 clause fails because the copy
+state already carries number-specific cells at 0.11 of k. The carry is
+adopted as `SEQ-TEMPORAL-CARRY` with the mechanism stated as measured
+(cells present at g = 0, doubled and made readable by predicted-win),
+not as registered. TM-10 (the feature register, side by side) is reported
+under PREREG_feature_register.md.

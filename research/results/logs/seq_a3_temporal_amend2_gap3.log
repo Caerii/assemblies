@@ -1,0 +1,22 @@
+'vswhere.exe' is not recognized as an internal or external command,
+operable program or batch file.
+=== temporal memory on the chain corpus, gap 3 (PREREG_temporal_memory.md) ===
+    bigram: 0.0984 +/- 0.0036 (n=20, 0.0787..0.1108)
+    oracle: 0.2737 +/- 0.0061 (n=20, 0.2549..0.3022)
+      n_arc=10000 beta=0.1 seeds 42..50 (9 brains, 2400 train steps)  [42s]
+      n_arc=10000 beta=0.1 seeds 51..59 (9 brains, 2400 train steps)  [40s]
+      n_arc=10000 beta=0.1 seeds 60..61 (2 brains, 2400 train steps)  [31s]
+      n_arc=10000 beta=0.1 seeds 42..50 (9 brains, 2400 train steps)  [27s]
+      n_arc=10000 beta=0.1 seeds 51..59 (9 brains, 2400 train steps)  [31s]
+      n_arc=10000 beta=0.1 seeds 60..61 (2 brains, 2400 train steps)  [34s]
+    tm(g=1.0): 0.2039 +/- 0.0126 (n=20, 0.1418..0.2450)
+    tm(g=1.0) - bigram: 0.1055 +/- 0.0110 (n=20, 0.0519..0.1415)
+    arc_overlap(g=1.0): 0.1677 +/- 0.0176 (n=20, 0.1117..0.2472)
+    blind(g=1.0): 0.0987 +/- 0.0048 (n=20, 0.0747..0.1180)
+    tm(g=1.0) - blind: 0.1053 +/- 0.0126 (n=20, 0.0527..0.1528)
+
+=== BARS ===
+  PASS  TM-2 g=1.0 closes >= 40% of the gap (lower bound >= 0.085)
+  PASS  TM-3 g=1.0 state informative
+
+wrote C:\Users\locke\AppData\Local\Temp\claude\F--Github-assemblies\a968bc04-8bed-4a5d-9219-07986a97c5ba\scratchpad\wt_dev\research\results\sequence\seq_a3_transducer_results_temporal_chain_gap3_amend2_gap3.json
