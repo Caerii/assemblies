@@ -340,3 +340,12 @@ before conversion/mutation. CPU gate: 486 passed, 1 skipped before the ladder wa
 added to CI; expanded exact/materialization integration: 71 passed, 1 xfailed
 after correcting a private-engine-only seeding fixture. Numerical bars were kept.
 See [validation](VALIDATION.md) for reproduced failures and remaining boundaries.
+
+### Supervised reinforcement
+
+Dense reinforcement and mixed drive share stable source-ID conversion. Supervision
+keeps its zero-edge seeding rule, validates disabled calls, and mutates/clips only
+the selected block. Removed the patch teacher's stable-to-compact reassignment.
+CPU gate: 555 passed, 1 skipped; caller integration: 47 passed, 1 skipped.
+See [validation](VALIDATION.md) and the source-linked IR contract. This is not
+an adopted research replay, a new IR opcode, or a formal/backend/GPU proof.

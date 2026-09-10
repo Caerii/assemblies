@@ -100,10 +100,7 @@ def _teacher_align_high_to_mid(
         return
     post = np.flatnonzero(teacher_high > 0).astype(np.uint32)
     if post.size and mid_area in brain.areas:
-        snap = _snap(brain, mid_area)
-        if snap.winners.size:
-            brain.areas[mid_area].winners = np.asarray(snap.winners, dtype=np.uint32)
-            brain.reinforce_connectome(mid_area, HIGH, post, beta=teacher_beta)
+        brain.reinforce_connectome(mid_area, HIGH, post, beta=teacher_beta)
 
 
 def _patch_merge_chain_step(

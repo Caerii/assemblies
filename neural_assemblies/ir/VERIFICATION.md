@@ -457,3 +457,39 @@ Failure-before-mutation applies to malformed winner values and unknown injection
 routing names. This is not rollback for a later backend failure, invalid external
 drive, inhibition change or multi-target execution. Existing partial-cue injection
 and explicit clearing remain supported.
+
+
+<a id="contract-supervised-reinforcement"></a>
+
+## Supervised reinforcement is a distinct operation
+
+`Brain.reinforce_connectome` reads the active source assembly and stable target
+neuron IDs. It supports writable dense NumPy fibers whose axes span both full
+populations. A sampled source's compact winners are mapped to stable IDs before
+indexing dense rows. `_source_neuron_ids` owns this conversion and is shared with
+mixed sparse-to-explicit drive. Empty mapping means no materialized neurons for
+a sampled source; `None` means identity for a fixed-connectome engine.
+
+The operation validates names, indices, beta and storage before its disabled or
+empty-input no-op. Beta must be finite and nonnegative. A clip is finite and
+positive or absent. Sparse/virtual/GPU storage is explicitly unsupported until
+its writable coordinate semantics are specified; shape alone is insufficient.
+
+At positive beta with learning enabled, selected zero synapses are seeded to one,
+then selected weights are multiplied by `1+beta` and clipped. This is supervised
+edge creation, not ordinary multiplicative Hebbian projection. Beta zero, the
+global learning disable, or a fiber mask leaves zero edges zero. Only the selected
+block changes; the old implementation clipped unrelated entries across the whole
+matrix. Unclipped overflow is rejected before committing the updated block.
+Malformed indices still raise when learning is disabled.
+
+The patch teacher calls this operation using existing source winners. It no longer
+writes `_snap` stable neuron IDs back into the compact winner field. Its current
+all-explicit configurations had identity coordinates, but the helper was unsafe
+to compose with sampled sources.
+
+Controls cover full expected matrices, an unrelated over-clip sentinel, all three
+learning nulls, malformed posts even when frozen, invalid beta, sampled source
+mapping, unsupported compact storage, unbounded overflow and teacher source-state
+preservation. No historical study is re-adopted from these software checks; this
+operation is not yet an executable IR instruction or a Lean-proved lowering.

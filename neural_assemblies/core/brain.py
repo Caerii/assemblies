@@ -462,6 +462,24 @@ class Brain:
                         self._explicit_engine._area_conns[src_name] = {}
                     self._explicit_engine._area_conns[src_name][tgt_name] = dense
 
+    def _source_neuron_ids(self, source_name):
+        """Specification: neural_assemblies/ir/VERIFICATION.md#contract-supervised-reinforcement
+
+        Resolve active source positions to stable IDs for full-population fibers.
+        """
+        source = self.areas[source_name]
+        compact = validated_indices(to_cpu(source.winners), upper=source.n,
+                                    label=f"{source_name} winners", unique=True)
+        mapping = self._engine_for(source).get_neuron_id_mapping(source_name)
+        if mapping is not None:
+            compact = validated_indices(compact, upper=len(mapping),
+                                        label=f"{source_name} compact winners")
+            ids = to_neuron_ids(CompactIdx(compact), mapping)
+        else:
+            ids = compact
+        return validated_indices(ids, upper=source.n, label=f"{source_name} neuron IDs",
+                                 unique=True)
+
     def _sparse_sources_drive_to_explicit(
         self, target_name: str, sparse_source_names: List[str],
     ) -> np.ndarray:
@@ -472,23 +490,11 @@ class Brain:
         xp = get_xp()
         tgt = self.areas[target_name]
         drive = xp.zeros(tgt.n, dtype=xp.float32)
-        mapping_fn = getattr(self._engine, "get_neuron_id_mapping", None)
 
         for src_name in sparse_source_names:
-            src = self.areas[src_name]
-            compact = validated_indices(to_cpu(src.winners), upper=src.n,
-                                        label=f"{src_name} compact winners")
-            if compact.size == 0:
+            real_ids = self._source_neuron_ids(src_name)
+            if real_ids.size == 0:
                 continue
-            neuron_map = mapping_fn(src_name) if mapping_fn is not None else None
-            if neuron_map is not None:
-                compact = validated_indices(compact, upper=len(neuron_map),
-                                            label=f"{src_name} compact winners")
-                real_ids = to_neuron_ids(CompactIdx(compact), neuron_map)
-            else:
-                real_ids = compact
-            real_ids = validated_indices(real_ids, upper=src.n,
-                                         label=f"{src_name} neuron IDs")
             conn = self.connectomes.get(src_name, {}).get(target_name)
             if not is_dense_connectome(conn):
                 continue
@@ -529,45 +535,48 @@ class Brain:
         *,
         beta: float | None = None,
     ) -> None:
-        """Supervised Hebbian update: strengthen active src winners → post neurons.
+        """Specification: neural_assemblies/ir/VERIFICATION.md#contract-supervised-reinforcement
 
-        Used for fixed slot targets (e.g. CLASS digit slots) without fixing the
-        target assembly during ``project`` (which would skip plasticity).
+        Supervised dense-fiber update, with stable post IDs and explicit zero seeding.
+        Only selected synapses are mutated, including clipping.
         """
-        if not self.fiber_plasticity_enabled(src_area, dst_area):
-            return
         if src_area not in self.areas or dst_area not in self.areas:
             raise KeyError(f"unknown area in reinforce_connectome: {src_area!r} -> {dst_area!r}")
-        src = self.areas[src_area]
-        dst = self.areas[dst_area]
-        pre = np.asarray(to_cpu(src.winners), dtype=np.intp)
-        post = np.asarray(to_cpu(post_neurons), dtype=np.intp)
-        if pre.size == 0 or post.size == 0:
-            return
+        src, dst = self.areas[src_area], self.areas[dst_area]
+        pre = self._source_neuron_ids(src_area)
+        post = validated_indices(to_cpu(post_neurons), upper=dst.n,
+                                 label=f"{dst_area} post neuron IDs", unique=True)
         b = beta if beta is not None else dst.beta_by_area.get(src_area, dst.beta)
-        if b == 0:
-            return
-        conn = self.connectomes[src_area][dst_area]
+        if not np.isfinite(b) or b < 0:
+            raise ValueError("Supervised beta must be finite and nonnegative")
+        if self.w_max is not None and (not np.isfinite(self.w_max) or self.w_max <= 0):
+            raise ValueError("Weight clip must be finite and positive or None")
+        conn = self.connectomes.get(src_area, {}).get(dst_area)
+        if not is_dense_connectome(conn) or not isinstance(conn.weights, np.ndarray):
+            raise NotImplementedError("Supervised reinforcement requires a dense NumPy fiber")
         w = conn.weights
-        valid_pre = pre[pre < w.shape[0]]
-        valid_post = post[post < w.shape[1]]
-        if valid_pre.size == 0 or valid_post.size == 0:
+        if w.shape != (src.n, dst.n) or w.dtype.kind != "f":
+            raise ValueError("Supervised fiber must have full-population floating-point axes")
+        if not self.fiber_plasticity_enabled(src_area, dst_area) or b == 0 or not pre.size or not post.size:
             return
-        ix = np.ix_(valid_pre, valid_post)
+        ix = np.ix_(pre, post)
         block = w[ix]
-        # Zero-init connectomes (supervised slots) need a non-zero seed before *= (1+b).
-        unset = block == 0
-        if np.any(unset):
-            block = block.copy()
-            block[unset] = 1.0
-        block *= (1 + b)
-        w[ix] = block
+        if not np.isfinite(block).all() or (block < 0).any():
+            raise ValueError("Selected weights must be finite and nonnegative")
+        # Supervision can create an edge; ordinary Hebbian projection cannot.
+        block[block == 0] = 1.0
+        with np.errstate(over="ignore", invalid="ignore"):
+            block *= (1 + b)
         if self.w_max is not None:
-            np.clip(w, 0, self.w_max, out=w)
+            np.clip(block, 0, self.w_max, out=block)
+        if not np.isfinite(block).all():
+            raise ValueError("Supervised update is not representable in the fiber dtype")
+        w[ix] = block
         if self._explicit_engine is not None:
             econn = self._explicit_engine._area_conns.get(src_area, {}).get(dst_area)
             if econn is not None:
                 econn.weights = w
+
 
     @contextlib.contextmanager
     def frozen(self):

@@ -708,9 +708,10 @@ contribution behavior; explicit capability/topology validation remains separate.
 
 Eight invalid-input controls failed before repair. A non-identity mapping with
 deliberately different compact-row weights is the positive control, and an empty
-source is the zero control. Supervised `reinforce_connectome` still has a separate
-index/mutation contract to reconcile; this read-only drive repair does not certify
-that write path or other backends.
+source is the zero control. Supervised `reinforce_connectome` now shares source
+coordinate conversion, with its distinct zero-seeding and selected-block mutation
+specified in the [reinforcement contract](../../../neural_assemblies/ir/VERIFICATION.md#contract-supervised-reinforcement).
+That write path has separate controls; neither path is certified on other backends.
 
 The same investigation exposed an earlier coercion in `Area.winners`: fractions
 and large integers were already truncated/wrapped before the drive function saw

@@ -530,3 +530,26 @@ that workflow-list addition is claimed. Ruff and diff checks passed.
 These CPU controls do not certify GPU setters, sampled index ownership, full
 failure rollback or historical scientific evidence. The grounded-verb regression,
 formal backend bridges and complete experiment migration remain open.
+
+### Supervised reinforcement coordinates and mutation extent (2026-09-10)
+
+Initial controls: 17 failed, 3 passed. Dense reinforcement indexed sampled source
+positions as stable rows, accepted malformed posts when learning was disabled,
+and clipped unrelated matrix entries. Source coordinate resolution is now shared
+with mixed drive. Stable post IDs and beta/clip/storage are validated. Zero-to-one
+seeding remains explicit supervised edge creation; beta-zero/global-disable/fiber
+mask nulls do not seed. Only the selected block is updated and clipped. Compact,
+virtual and GPU storage is rejected until its writable coordinate contract exists.
+
+The patch teacher had an additional coordinate bug: it copied stable snapshot IDs
+back into compact winners. After correcting a test import, the constructed sampled
+case reproduced that failure; removing the redundant source rewrite fixed it.
+Unbounded arithmetic overflow is also rejected without committing the block.
+
+Focused reinforcement/mixed-drive/IR checks: 40 passed, 1 skipped before the final
+three controls and teacher repair. Caller/mixed-drive/reinforcement integration:
+47 passed, 1 skipped. The MNIST golden skip does not establish data-based accuracy;
+these are software checks, not a replay of adopted scientific evidence.
+Ruff and diff checks passed. Final workflow-listed CPU gate: **555 passed,
+1 skipped**. GPU gates, historical replays, the grounded-verb regression and
+formal backend proofs remain open.
