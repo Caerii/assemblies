@@ -1,0 +1,253 @@
+{
+  "commit": "54164a8",
+  "scope": "Full non-slow package audit, serial execution with prepared CUDA toolchain; not the slow suite or scientific adoption",
+  "command": ".venv/Scripts/python.exe -X utf8 -u -m pytest neural_assemblies/tests -q -m \"not slow\" -o addopts= --maxfail=0 --junitxml=.cache/full-audit-54164a8.xml --basetemp=.cache/full-audit-54164a8",
+  "exit_code": 1,
+  "summary": {
+    "passed": 2617,
+    "failed": 24,
+    "skipped": 59,
+    "deselected": 143,
+    "xfailed": 11,
+    "xpassed": 5,
+    "warnings": 328,
+    "subtests_passed": 10,
+    "seconds": 1649.37
+  },
+  "failure_categories": {
+    "coin_migration_or_instrument_defect": 17,
+    "reciprocal_golden": 1,
+    "classifier_readout": 3,
+    "obsolete_read_only_assumption": 2,
+    "group_test_inventory": 1
+  },
+  "failures": [
+    {
+      "nodeid": "neural_assemblies/tests/test_computation_value.py::TestPFAGeneration::test_coin_flip_is_genuinely_random",
+      "category": "coin_migration_or_instrument_defect",
+      "message": "ValueError: Legacy coin construction does not form recurrent attractors; use construction='attractor' and validate its training regime.",
+      "seconds": 0.089
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_computation_value.py::TestPFAGeneration::test_pfa_deterministic_path_always_works",
+      "category": "coin_migration_or_instrument_defect",
+      "message": "ValueError: Branching requires explicit SeedMixtureChoice: transition weights control seed mixtures, not calibrated outcome probabilities",
+      "seconds": 0.002
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_computation_value.py::TestPFAGeneration::test_pfa_generates_both_paths",
+      "category": "coin_migration_or_instrument_defect",
+      "message": "ValueError: Branching requires explicit SeedMixtureChoice: transition weights control seed mixtures, not calibrated outcome probabilities",
+      "seconds": 0.002
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_cross_repo_parity.py::TestCrossRepoExtendedPNAS::test_reciprocal_golden",
+      "category": "reciprocal_golden",
+      "message": "AssertionError: reciprocal_restore_overlap: got 0.8125, expected 1.0000 \u00b1 0.05\nassert 0.1875 <= 0.05\n +  where 0.1875 = abs((0.8125 - 1.0))",
+      "seconds": 0.002
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_emergent_parser.py::TestGeneralization::test_held_out_noun_classifies_correctly",
+      "category": "classifier_readout",
+      "message": "AssertionError: 'bird' classified as 'ADV', expected NOUN\nassert 'ADV' == 'NOUN'\n  \n  - NOUN\n  + ADV",
+      "seconds": 10.011
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_emergent_parser.py::TestGeneralization::test_held_out_verb_classifies_correctly",
+      "category": "classifier_readout",
+      "message": "AssertionError: 'finds' classified as 'ADV', expected VERB\nassert 'ADV' == 'VERB'\n  \n  - VERB\n  + ADV",
+      "seconds": 0.029
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_emergent_parser.py::TestGeneralization::test_generalization_accuracy",
+      "category": "classifier_readout",
+      "message": "AssertionError: Generalization accuracy 33% < 66%\nassert 0.3333333333333333 >= 0.66",
+      "seconds": 0.061
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_literature_golden.py::TestCoin2024DemoGolden::test_fair_and_markov_freq_match_golden",
+      "category": "coin_migration_or_instrument_defect",
+      "message": "ValueError: CoinFlipModel requires explicit SeedMixtureChoice; trace frequencies are not calibrated neural probabilities",
+      "seconds": 0.01
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_literature_golden.py::TestCoin2024CompeteGolden::test_compete_mode_fair_and_biased",
+      "category": "coin_migration_or_instrument_defect",
+      "message": "ValueError: CoinFlipModel requires explicit SeedMixtureChoice; trace frequencies are not calibrated neural probabilities",
+      "seconds": 0.008
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_literature_golden.py::TestCoin2024SoftmaxGolden::test_context_softmax_coin",
+      "category": "coin_migration_or_instrument_defect",
+      "message": "ValueError: compact indices outside valid range [0, 499)",
+      "seconds": 0.177
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_literature_golden.py::TestCoin2024MarkovArcGolden::test_markov_chain_both_states",
+      "category": "coin_migration_or_instrument_defect",
+      "message": "ValueError: Legacy coin construction does not form recurrent attractors; use construction='attractor' and validate its training regime.",
+      "seconds": 0.269
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_literature_parity.py::TestLiteratureParity::test_coin_flip_markov_protocol",
+      "category": "coin_migration_or_instrument_defect",
+      "message": "ValueError: CoinFlipModel requires explicit SeedMixtureChoice; trace frequencies are not calibrated neural probabilities",
+      "seconds": 0.001
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_literature_parity.py::TestLiteratureParity::test_coin_ambient_noise_epwta_wiring",
+      "category": "coin_migration_or_instrument_defect",
+      "message": "ValueError: CoinFlipModel requires explicit SeedMixtureChoice; trace frequencies are not calibrated neural probabilities",
+      "seconds": 0.001
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_literature_parity.py::TestLiteratureParity::test_coin_empirical_fair_and_biased",
+      "category": "coin_migration_or_instrument_defect",
+      "message": "ValueError: CoinFlipModel requires explicit SeedMixtureChoice; trace frequencies are not calibrated neural probabilities",
+      "seconds": 0.001
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_literature_parity.py::TestLiteratureParity::test_pfa_stochastic_both_targets",
+      "category": "coin_migration_or_instrument_defect",
+      "message": "ValueError: Branching requires explicit SeedMixtureChoice: transition weights control seed mixtures, not calibrated outcome probabilities",
+      "seconds": 0.001
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_nemo_fsm.py::TestNemoArcFSM::test_untrained_fsm_does_not_decide",
+      "category": "obsolete_read_only_assumption",
+      "message": "ValueError: _nemo_fsm_arc: read_only requires at least k materialized neurons; initialize/train the area or materialize it before probing",
+      "seconds": 0.134
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_nemo_fsm.py::TestNemoMarkovPFA::test_alternating_markov_samples_both_states",
+      "category": "coin_migration_or_instrument_defect",
+      "message": "ValueError: Legacy coin construction does not form recurrent attractors; use construction='attractor' and validate its training regime.",
+      "seconds": 0.113
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_nemo_fsm.py::TestMarkovChainModel::test_samples_both_states",
+      "category": "coin_migration_or_instrument_defect",
+      "message": "ValueError: Legacy coin construction does not form recurrent attractors; use construction='attractor' and validate its training regime.",
+      "seconds": 0.112
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_parity_infrastructure.py::test_inprocess_verify[coin2024_compete]",
+      "category": "coin_migration_or_instrument_defect",
+      "message": "ValueError: CoinFlipModel requires explicit SeedMixtureChoice; trace frequencies are not calibrated neural probabilities",
+      "seconds": 0.079
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_parity_infrastructure.py::test_inprocess_verify[coin2024_demo]",
+      "category": "coin_migration_or_instrument_defect",
+      "message": "ValueError: CoinFlipModel requires explicit SeedMixtureChoice; trace frequencies are not calibrated neural probabilities",
+      "seconds": 0.058
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_parity_infrastructure.py::test_inprocess_verify[coin2024_markov_arc]",
+      "category": "coin_migration_or_instrument_defect",
+      "message": "ValueError: Legacy coin construction does not form recurrent attractors; use construction='attractor' and validate its training regime.",
+      "seconds": 0.22
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_parity_infrastructure.py::test_inprocess_verify[coin2024_softmax]",
+      "category": "coin_migration_or_instrument_defect",
+      "message": "ValueError: compact indices outside valid range [0, 499)",
+      "seconds": 0.208
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_parse_idempotence.py::TestParseIsNotIdempotent::test_a_fully_read_only_parse_IS_idempotent",
+      "category": "obsolete_read_only_assumption",
+      "message": "ValueError: read_only cannot reset CONTEXT population or neuron identities; use build_context_incremental(..., preserve_topology=True)",
+      "seconds": 1.71
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_word_problems.py::TestGroups::test_orders_and_solvability",
+      "category": "group_test_inventory",
+      "message": "KeyError: 'Z120'",
+      "seconds": 0.002
+    }
+  ],
+  "unexpected_passes": [
+    {
+      "nodeid": "neural_assemblies/tests/test_erp_calibration.py::TestErpCalibration::test_fast_calibration_preserves_the_ordering",
+      "reason": "MEASURED DEFECT, not a flaky threshold: `fast=True` calibration does not preserve the P600 ordering. On one parser, full p600_auc = 0.889 while fast = 0.444 -- BELOW CHANCE, i.e. inverted, with fast grammatical [0.9938, 0.9954, 0.9939] scoring ABOVE violation [0.9924, 0.9943, 0.9944]. Across other trainings fast measured 0.889, 0.889, 0.722, so it is unstable rather than uniformly broken -- which is why strict=False. Tracked with #80/#104.",
+      "strict": false,
+      "run": true
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_erp_metric_range.py::TestExcessIsClippedAtItsOwnNull::test_grammatical_excess_is_crushed_against_the_floor",
+      "reason": "REALIZATION-FRAGILE pending #121. The legacy p600 metric's whole span is ~0.0013 (the #104 saturation defect), so its 3v3 AUC coin-flips under any corpus perturbation: after the corpus-realism pass the fixture path at seed 11 reads AUC 0.500 while direct 4-stage training reads 1.0/0.89/0.83/0.78 across seeds 11/23/37/42 -- the mechanism is alive, this instrument cannot reliably see it. #121 rebuilds the ERP readout on reconstruction quantities and retires this route.",
+      "strict": false,
+      "run": true
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_erp_metric_range.py::TestRawQuantityIsSaturated::test_the_separation_itself_is_real_and_correctly_signed",
+      "reason": "Same realization-fragility as the excess test above: span ~0.0013, 3v3 samples, fixture path at seed 11 reads AUC 0.500 after the corpus-realism pass while direct training reads 0.78-1.0 across four seeds. Pending #121.",
+      "strict": false,
+      "run": true
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_erp_probe_is_alive.py::TestTheProbedAreasAreReal::test_the_violation_arm_is_alive_too",
+      "reason": "ORDER-DEPENDENT, which is itself the finding. Waking `train_phrases` (it had never run -- every curriculum sentence carried roles=[None]) gives VP 72 merges and self-fiber extent 2061, and the probe reads 0.001172 IN ISOLATION against 0.000000 before. Run after the sibling ERP tests it reads 0.000000 again, with 1920 columns and 30 winners -- fiber exists, winners exist, drive zero, the original signature. So phrase training was NECESSARY and is NOT SUFFICIENT, and the self-block/recruitment defect (#32, #104) is still open. Non-strict because the outcome varies with test order; a strict marker would flip-flop instead of reporting. ROLE_PATIENT is the live control at 0.010442 and passes in both orders.",
+      "strict": false,
+      "run": true
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_literature_parity.py::TestLiteratureParity::test_direct_binding_asymmetry",
+      "reason": "DIRECT directional binding is vacuous: forward/reverse/do metrics are provably insensitive to the learned CAUSE->BIND connectome (wipe-test + cue-swap + feedforward probes); pre-norm_init values measured degree-hub substrate overlap, not binding. Not re-baselined -- that would pin the artifact.",
+      "strict": false,
+      "run": true
+    }
+  ],
+  "slowest_cases": [
+    {
+      "nodeid": "neural_assemblies/tests/test_training_perf.py::TestTrainingPerf::test_dual_metric_learnability_gate",
+      "seconds": 91.002
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_emergent_parser.py::TestCurriculumLearning::test_stage2_expands_vocab",
+      "seconds": 88.133
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_erp_metric_range.py::TestExcessIsClippedAtItsOwnNull::test_grammatical_excess_is_crushed_against_the_floor",
+      "seconds": 82.415
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_bootstrap.py::TestHoldoutBootstrap::test_sentences_depth_holdout_bootstrap_floor",
+      "seconds": 77.737
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_conversation_curriculum.py::TestConversationTraining::test_session_bootstrap_conversation_smoke",
+      "seconds": 45.75
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_conversation_curriculum.py::TestConversationTraining::test_unknown_word_registered_on_interact",
+      "seconds": 44.552
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_conversation_curriculum.py::TestConversationTraining::test_train_for_conversation_registers_prediction",
+      "seconds": 41.662
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_conversation_curriculum.py::TestConversationTraining::test_dialogue_stage_runs_dialogue_phase",
+      "seconds": 39.432
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_emergent_parser.py::TestScaledVocabulary::test_scaled_vocabulary_builds",
+      "seconds": 37.063
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_batched_next_token.py::test_score_corpus_matches_reset_sequential",
+      "seconds": 29.847
+    }
+  ],
+  "local_raw_artifacts": {
+    ".cache/full-audit-54164a8.log": "74d19a4d2c937c0461f9be2738e73f2f1f4480fe032a13b60edaf8d4321f99a2",
+    ".cache/full-audit-54164a8.xml": "dcfe61df19f236f1762332acb7651e51069db2003c5185712d3927310bc1f487"
+  },
+  "limitations": [
+    "Unexpected passes retain their existing unresolved methodological caveats.",
+    "Coin failures do not authorize rebaselining historical goldens.",
+    "Failure grouping is triage from messages and source inspection, not completed root-cause repair."
+  ]
+}

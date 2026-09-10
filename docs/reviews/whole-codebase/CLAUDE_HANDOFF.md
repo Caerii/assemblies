@@ -914,3 +914,37 @@ final PFA/configuration/transition subset: 26 passed in 3.94s. Full contract wor
 (.cache/pfa-choice-contract-gate.log). Ruff and git diff --check pass. Full-package
 legacy literature/computation callers still need explicit migration and scientific
 reassessment. SoftmaxContextCoin and NemoMarkovPFA remain structurally unresolved.
+
+
+## Complete non-slow package audit at 54164a8
+
+The serial audit completed with the prepared CUDA environment and no early failure
+limit: 2617 passed, 24 failed, 59 skipped, 143 deselected, 11 xfailed, 5 xpassed,
+328 warnings and 10 passed subtests in 1649.37s (27m29s), exit code 1. This is the
+non-slow package scope, not an all-tests or scientific-reproduction verdict.
+package-audit-54164a8.json records the exact invocation, all failed nodes/messages,
+active expected-failure markers corresponding to the five unexpected passes,
+ten slowest cases, and SHA-256 identities for the local raw log and JUnit report.
+
+Initial triage: 17 coin caller/instrument failures; two obsolete read-only
+assumptions (cold NemoArcFSM and topology-resetting parse); three held-out
+classifier failures; reciprocal restore overlap 0.8125 against the 1.0 golden;
+and a stale group test table missing Z120. These categories guide investigation,
+not test deletion or automatic rebaselining. The five unexpected passes cover
+ERP calibration/range/aliveness and direct binding; their existing order-sensitive,
+fragile or dead-probe caveats remain unresolved. A green observation alone does
+not remove those caveats.
+
+Read-only evidence audit at the same commit: 2602 tracked files, 2782 resolved
+literal edges, 688 unresolved literals, 352 candidate orphan result files and
+28 preregistrations without a resolved result link. These are syntax-based review
+candidates: sibling run records and comparison receipts can be falsely flagged.
+Typed graph relationships remain required. Source-byte checks recovered eight
+of ten script/registration digests via CRLF conversion of Git blobs; the first A1
+and capacity migration script digests remain unresolved under LF, CRLF and one
+edit-based mixed-line-ending reconstruction. All three recorded input-artifact
+hash checks matched current files. No inference of semantic source drift is made.
+A future source snapshot must preserve recoverable bytes as well as identities.
+
+No source was changed during the audit. No historical scientific artifacts,
+thresholds or expected-failure markers were altered to improve the result.
