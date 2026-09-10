@@ -2,11 +2,13 @@
 
 One directory owns the language-neutral schemas and their Python/Rust protocol
 consumers. Protocol documents carry parity evidence; they are not executable
-assembly programs. Brain and projection schemas describe payloads but do not yet
-have a unified compiler. See [verification obligations](VERIFICATION.md).
+assembly programs. A separate `ExplicitRound` now executes a restricted dense
+CPU projection profile; the legacy brain/projection payloads still lack a unified
+compiler. See [verification obligations](VERIFICATION.md).
 
 ```text
 neural_assemblies/ir/
+  projection.py            restricted executable dense CPU round
   protocol.py              Python validation, loading and exclusive writing
   Cargo.toml               assembly-ir crate (member of crates/ workspace)
   rust/lib.rs              validated, lossless Rust protocol wrapper
@@ -49,3 +51,11 @@ schedules. See the
 [checked domain contract](VERIFICATION.md#contract-checked-domain) for its
 Midspiral/Dafny and LemmaScript integration, negative controls, and remaining
 translation obligations. Check the kernel with `lake build` from `formal/`.
+
+
+For the first executable profile, use a standalone `NumpyExplicitEngine` and
+`ExplicitRound(target="T", from_areas=("S",), plasticity=False).execute(engine)`.
+All named areas and their initial state must already exist. Decode persisted
+instructions with `ExplicitRound.from_document`; unknown features are errors.
+See the [profile contract](VERIFICATION.md#contract-explicit-round) for numerical
+semantics, constructed controls, and the remaining Lean/backend bridge.

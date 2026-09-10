@@ -15,7 +15,7 @@ def test_reviewed_operations_keep_their_specification_links():
     assert {"project", "reciprocal_project", "associate", "merge", "pattern_complete",
             "read_only", "project_rounds", "parse_roles_by_reconstruction", "classify_word",
             "classify_word_evidence", "ClassificationEvidence",
-            "clone",
+            "clone", "ExplicitRound",
             "fork_parser_instance", "_pristine_copy", "_calibrate",
             "resolve_holdout_set",
             "load_backbone_cache", "save_backbone_cache",

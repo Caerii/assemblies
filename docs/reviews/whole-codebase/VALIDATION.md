@@ -438,3 +438,25 @@ ratchets and register-rendering checks. Separate IR/explicit/index integration:
 **24 passed, 1 skipped**. Ruff and diff checks passed. This is not the full package
 suite; the previously identified grounded-verb/readout regression remains open.
 GPU gates and historical numerical migration replays have not been performed.
+
+### Restricted executable projection IR (2026-09-10)
+
+Added `ExplicitRound`, an immutable, strictly decoded instruction for a standalone
+NumPy explicit CPU engine. It supports one target, ordered distinct area sources,
+explicit plasticity and optional additive drive. It validates relevant state and
+rejects unsupported profiles/features before dispatching to the existing kernel;
+it does not duplicate winner selection or Hebbian arithmetic. The historical
+projection payload is not automatically executable.
+
+Twenty-two new cases cover hand-computed caps and full weight updates, disabled
+learning, dead-fiber sensitivity, sequential recurrence, ties/clipping, copied
+configuration, malformed wire/state rejection without mutation, and direct-kernel
+agreement. Focused IR/wire/source checks: 60 passed. Final workflow-listed CPU
+gate: 377 passed, 1 skipped, including source-link, methodology/index ratchets and
+register checks. Ruff and diff checks passed.
+
+Limits: no Lean numerical simulation proof, Rust execution consumer, Brain-facade
+lowering, GPU gate, or historical evidence replay. Direct legacy engine calls
+still bypass this stricter boundary. Multi-step rollback and absence of floating
+overflow are not guaranteed. The earlier grounded-verb regression remains open.
+This is the first restricted execution lowering, not completed IR unification.

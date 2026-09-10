@@ -6,8 +6,9 @@
 
 The current v1 JSON schemas describe brain/projection payloads and parity
 reports. Python and Rust now validate protocol documents against the same packaged schema.
-Brain and projection schemas do not yet have equivalent executable consumers. They do
-not yet define one executable projection semantics or a complete cross compiler.
+The legacy brain and projection schemas do not have equivalent executable
+consumers. The separate `explicit-area-round-v1` profile below now lowers one
+restricted instruction into the dense CPU engine; it is not a complete cross compiler.
 Historical metric documents remain evidence artifacts, not executable programs.
 
 The checked Lean kernel in [Refinement.lean](../../formal/AssemblyIR/Refinement.lean)
@@ -33,7 +34,8 @@ lowerings and verification lowerings. A target description declares capabilities
 and supported semantic profiles; it does not redefine an operation. Unsupported
 instructions or profiles must be rejected before execution. The verification
 side must come from the same normalized program, rather than a second handwritten
-schedule that can drift. This next integration is still to be implemented.
+schedule that can drift. The restricted dense CPU execution lowering below is
+a first step; a shared execution/verification consumer is still to be implemented.
 
 Separate the following versioned inputs:
 
@@ -308,3 +310,54 @@ on failure. This is an external I/O effect, not the pure failure behavior of
 `Domain.execute`. Any verification bridge claiming persistence guarantees must
 model publication and failures separately. Replaceable trusted Python caches
 remain distinct from exclusive scientific evidence artifacts and IR wire data.
+
+
+<a id="contract-explicit-round"></a>
+
+## First executable projection profile
+
+`projection.ExplicitRound` owns the normalized `explicit-area-round-v1`
+instruction. Its strict document decoder requires every field, rejects extra
+fields and other profiles, and copies source and drive sequences into immutable
+tuples. This is separate from the permissive historical v1 projection payload;
+that payload cannot silently become an executable program.
+
+| Component | Meaning in this profile |
+| --- | --- |
+| Target | One registered area in a standalone NumPy explicit CPU engine |
+| Sources | Ordered distinct area names; self-source explicitly requests recurrence |
+| Index space | Stable neuron IDs in `[0,n)`, with no duplicate winners |
+| Connectome | Existing finite nonnegative dense float32 source-by-target matrices |
+| Drive | Sum active source rows in source order, then optional float32 additive vector |
+| Stimulus law | No stimulus inputs supported; external drive is supplied, not sampled |
+| Competition | Dense k-WTA, descending drive and increasing neuron ID for ties; when k=n the backend returns neuron order |
+| Learning | Explicit instruction Boolean, per-fiber beta, active pre/post pairs multiplied by `1+beta`, optional engine clip |
+| Mutation | Selected fibers when learning; target winners, ever-fired flags and counts |
+| Schedule | One target per instruction; a later invocation reads the preceding result |
+| Unsupported | Stimuli, sampled/GPU engines, slots, custom policies, clamps, normalization and supervised slots |
+
+The adapter validates inputs and relevant state before calling the existing
+`NumpyExplicitEngine.project_into`. It contains no second implementation of
+summation, winner selection or Hebbian learning. Direct engine calls remain a
+legacy path and do not inherit these checks. This engine-level entry must not be
+used to mutate a Brain's private engine behind its facade; a coherent Brain
+lowering is still required.
+
+Construction and preflight rejection do not mutate engine state. This does not
+promise rollback after an unexpected backend failure or across a multi-round
+program. Finite inputs do not prove absence of intermediate floating overflow.
+The profile does not define connectome initialization or replace run records:
+reproduction still needs initial state, beta/clip settings, code and NumPy identity.
+
+Acceptance tests check hand-computed caps and full weight matrices, an explicit
+learning-disabled null, dead-fiber versus intact observations, two recurrent
+rounds, tie ordering and clipping, malformed wire/state rejection, and direct
+backend agreement. Agreement alone is insufficient: the null and hand-computed
+cases establish that the observation reacts to the tested mechanism.
+
+This is the first execution lowering, not a formal translation certificate.
+`Domain.checkedExecute` remains the reusable Lean obligation. To connect it,
+formalize the numerical profile and its state/readout relation, then prove the
+local `Simulates` obligation and identity of the normalized input consumed by
+the proof. No generated Lean schedule or proof of Python/NumPy arithmetic is
+claimed here. Rust currently consumes the protocol wire schema only.
