@@ -36,6 +36,7 @@ jobs:
           neural_assemblies/tests/test_research_runner.py
           neural_assemblies/tests/test_capacity_runner_contract.py
           neural_assemblies/tests/test_research_harness.py
+          neural_assemblies/tests/test_winner_margin.py
           neural_assemblies/tests/test_winner_policies.py
           neural_assemblies/tests/test_phon_registration.py
           neural_assemblies/tests/test_area_registration.py

@@ -1354,3 +1354,36 @@ Both registrations now link to their replay evidence; the capacity Reproduce
 command uses the maintained runner. A1 and this capacity cell have numerical
 reproduction evidence, without authenticated historical execution provenance or
 new scientific adoption. Further capacity variants and full-system gates remain.
+
+
+## Winner margin: numerical agreement versus readout agreement
+
+The capacity substrate gate formerly truncated to the shorter score vector and
+reported only relative drive error. It now requires matching complete shapes and
+records canonical winner agreement and margin-certified counts as JUnit properties.
+The numerical tolerance remains separate; engine-selected trajectories are still
+replayed rather than replaced with the diagnostic's canonical selection.
+
+ir.selection.compare_winner_selection represents each finite binary-float or
+integer input exactly with a common power-of-two scale, including mixed Python
+lists without lossy NumPy coercion. Its sufficient condition is strict gap > 2E,
+where E is the maximum observed absolute error. Empty/full selections are trivial
+certificates, not assembly evidence. This is not a future-round error bound.
+
+Nineteen controls cover allclose with changed winners, agreement without a margin,
+equality at 2E, overflow/subnormals/uint64/mixed inputs, malformed shapes and counts,
+and exhaustive small integer pairs. Together with specification links: 27 passed.
+Lean build and leanchecker AssemblyIR.Selection passed: a pairwise separation
+theorem and lifting to all selected/outsider pairs. Neither proves Python sorting,
+input conversion, CUDA kernels or biological claims.
+
+First GPU substrate audit: 20 passed in 8.64s. Across 12 observations per arm,
+canonical agreements/certificates were NONE 11/2, B 12/9, C 12/4, G 12/9. Thus one
+of 48 drive comparisons passed tolerance while canonical winners differed; only
+24 had a separation certificate. These are diagnostic counts at a fixed test
+fixture, not an ensemble result or a statistical confidence claim.
+
+Final contract gate: 1049 passed, 1 skipped, two expected warnings in 104.29s.
+GPU substrate rerun after exact mixed-value handling: 20 passed in 7.33s.
+Log: .cache/margin-final-gates-native.log. Lean build and standalone leanchecker
+passed; Ruff and diff whitespace checks passed. No projection kernel changed.

@@ -683,3 +683,19 @@ Both registrations now link to their replay evidence; the capacity Reproduce
 command uses the maintained runner. A1 and this capacity cell have numerical
 reproduction evidence, without authenticated historical execution provenance or
 new scientific adoption. Further capacity variants and full-system gates remain.
+
+
+## Numerical winner certificate
+
+The new ir.selection diagnostic separates observed canonical winner agreement
+from strict margin certification, using exact dyadic integers so rounding and
+overflow in the audit cannot invent a gap. Lean proves the pairwise separation
+condition and its lifting to selected/outsider sets; Python conversion/sorting
+and concrete backend error bounds are not formally verified.
+
+Capacity substrate replay now rejects shape mismatch and emits JUnit counts.
+Across 48 fixture observations, 47 canonical winner sets agree but only 24 have
+certified margins. The drive tolerance passes even on the disagreeing pair.
+This is a concrete limitation of inferring readout parity from numerical closeness.
+Contract gate: 1049 passed, 1 skipped; GPU substrate: 20 passed. Lean build and
+leanchecker passed. No projection kernel or scientific result was changed.

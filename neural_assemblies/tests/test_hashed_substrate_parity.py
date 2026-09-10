@@ -308,7 +308,7 @@ def test_norm_init_stim_divisor_is_potentiation_invariant():
     ("C", False, True), ("G", True, True),
 ])
 def test_capacity_protocol_reproduces_numpy_sparse_across_episodes(
-        mod, arm, norm_init, scaling):
+        mod, arm, norm_init, scaling, record_property):
     """The check that would have caught the contaminated capacity run.
 
     The single-trajectory replays above never read learned state ACROSS
@@ -364,6 +364,8 @@ def test_capacity_protocol_reproduces_numpy_sparse_across_episodes(
     fiber = AreaFiber([_to_i32(pair)], n, n, p, beta=beta, w_max=w_max,
                       norm_init=norm_init, synaptic_scaling=scaling,
                       max_rounds=M_eps * T, scaling_allows_clip=True)
+    from neural_assemblies.ir.selection import compare_winner_selection
+    certified = agreed = observations = 0
     worst = 0.0
     for a, ep in enumerate(trace):
         sf = StimulusFiber([0], k, n, p, beta=beta, w_max=w_max,
@@ -378,14 +380,21 @@ def test_capacity_protocol_reproduces_numpy_sparse_across_episodes(
             fiber.contribute(drive, torch.from_numpy(prev).cuda().view(1, -1))
             sf.contribute(drive)
             got = drive[0].cpu().numpy().astype(np.float64)
-            m = min(len(d_cpu), len(got))
-            worst = max(worst, float(np.abs(d_cpu[:m] - got[:m]).max())
-                        / max(float(np.abs(d_cpu[:m]).max()), 1e-12))
+            selection = compare_winner_selection(d_cpu, got, k)
+            observations += 1
+            certified += selection.margin_certified
+            agreed += selection.winners_agree
+            assert not selection.margin_certified or selection.winners_agree
+            worst = max(worst, float(np.abs(d_cpu - got).max())
+                        / max(float(np.abs(d_cpu).max()), 1e-12))
             pt = torch.from_numpy(prev).cuda().view(1, -1)
             nt = torch.from_numpy(new).cuda().view(1, -1)
             fiber.observe(pt, nt)
             sf.observe(pt, nt)
         fiber.end_episode()
+    record_property("selection_observations", observations)
+    record_property("canonical_winner_agreements", agreed)
+    record_property("margin_certified_observations", certified)
     assert fiber.nnz > 0, "the store never populated -- the test is vacuous"
     _parity_dump.record(f"capacity protocol, arm {arm}", worst)
     assert worst < 5e-6, (

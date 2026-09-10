@@ -94,3 +94,15 @@ in a runner parameter and reconstruct the policy from the recorded parameter in
 the measurement function. Rust's `CompetitionDocument` validates transport; it
 does not execute selection. See the
 [wire contract](VERIFICATION.md#contract-competition-wire).
+
+
+For numerical readout audits, use
+`selection.compare_winner_selection(reference_scores, candidate_scores, k)`.
+`winners_agree` describes the observed canonical sets; `margin_certified` means
+the reference boundary gap exceeds twice the observed error (or the selected
+set is empty/full). A failed certificate is inconclusive. Exact integer units
+preserve binary-float and integer inputs, including subnormals and mixed Python
+values, without overflowing score subtraction. This is an offline diagnostic,
+not a projection backend or an assurance about future rounds. Its
+[source-linked contract](VERIFICATION.md#contract-winner-margin) explains the
+Lean theorem and the unproved implementation bridge.

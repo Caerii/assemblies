@@ -1142,6 +1142,33 @@ The original division-reference failure is not historical parity acceptance.
 
 For a general cross-target winner guarantee, drive-error bounds alone are
 insufficient: a separating k/k+1 gap greater than twice a uniform error bound is
-a sufficient mathematical condition for preserving the winner set. This bound
-is not yet implemented as a runtime certificate or proved for these kernels.
-Neither exact CPU/GPU trajectory equivalence nor historical replay is claimed.
+a sufficient mathematical condition for preserving the winner set. The diagnostic below checks this bound for observed score pairs; uniform
+backend error bounds and concrete kernel proofs remain open. Exact CPU/GPU
+trajectory equivalence does not follow.
+
+
+<a id="contract-winner-margin"></a>
+## Numerical winner separation
+
+`ir.selection.compare_winner_selection` audits one pair of equal-length finite
+score vectors under descending-score/ascending-index selection. Returned indices
+address those vectors, not Assembly neuron IDs. It converts
+binary floats and integers to exact integers with one common power-of-two
+scale. The result records observed winner agreement separately from certification:
+reference boundary gap > twice the maximum observed absolute error. Equality is
+insufficient. Ties can agree without certification. Empty or all-selected sets
+have no competing index and certify only that trivial selection.
+
+`formal/AssemblyIR/Selection.lean` proves that a strict pairwise gap and error
+bounds preserve separation, then lifts the statement to every selected/outsider
+pair. This is not a proof of Python conversion/sorting or the CUDA kernels.
+Executable tests cover an allclose-but-different counterexample, boundary equality,
+subnormals, overflowing float differences, exact uint64 values, invalid inputs,
+and exhaustive small integer vectors. The capacity substrate replay reports
+agreement and certified counts in JUnit properties; its drive tolerance remains
+a separate gate. It rejects mismatched vector sizes instead of truncating.
+
+The diagnostic does not certify future steps, arbitrary backend tie policies,
+biological meaning or scientific adoption. Exact integer conversion is an audit
+cost outside the projection hot path. Lack of a certificate is inconclusive,
+not proof of disagreement. No probabilistic confidence interval is implied.
