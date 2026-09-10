@@ -50,7 +50,7 @@ environment and is intended to be numerically inert.
 from __future__ import annotations
 
 import os
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 from typing import Optional
 
 
@@ -139,6 +139,8 @@ class ErpProtocol:
         debug: print per-probe diagnostics.
     """
 
+    # Fixed implementation identity: cannot select the old leaking read path.
+    observation_version: str = field(default="existing-context-v1", init=False)
     expected_slot: bool = True
     expected_slot_source_core: bool = False
     afferent_energy: bool = False

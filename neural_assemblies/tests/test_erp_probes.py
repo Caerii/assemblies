@@ -52,3 +52,5 @@ class TestErpProbes:
         assert all(isinstance(p, ErpProbeResult) for p in probes)
         assert "roles" in result
         assert result["wobbly_probes"] is probes
+
+        assert result["erp_protocol"]["observation_version"] == "existing-context-v1"

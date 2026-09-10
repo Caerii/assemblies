@@ -279,3 +279,35 @@ leaving a materialized backend behind. Cold read-only projection now raises.
 Initialize explicitly before probing; do not catch the error and call training
 inside the observation scope. Exact pre-kWTA measurements now report the number
 of candidates over which the summed drive was measured.
+
+<a id="contract-context-observation"></a>
+
+## CONTEXT: construction versus prefix observation
+
+Code: `IncrementalMixin.build_context_incremental`, `_reset_context_state`,
+`erp.adapters._settle_context_into_prediction`, `ErpProtocol`.
+
+- **Construction:** the outer incremental parser resets the recruitment cursor
+  and ID mapping, retains learned fibers, then accumulates each word. This is
+  legacy disposable-context construction, not a read of a fixed population.
+- **Nested observation:** prefix surprise is measured after the outer parser has
+  accumulated context. The prefix loop clears activity and reuses the existing
+  population/IDs (`preserve_topology=True`), inside the caller's read-only scope.
+- **Requires:** initialized sampled target populations, including PREDICTION;
+  the observation may not bootstrap an absent population as a side effect.
+- **Mutation:** winners move during the prefix computation. Population count,
+  mapping and allocation cursor remain unchanged. Read-only restores activity.
+- **Rejected misuse:** a population/ID reset inside read-only raises before any
+  clearing, including when the caller catches the exception inside the scope.
+- **Protocol revision:** ERP outputs carry `ErpProtocol.observation_version =
+  existing-context-v1` plus the resolved configuration. This change is not a
+  claim of numerical equivalence with historical N400 artifacts.
+- **Evidence:** `test_context_observation.py` exercises the real prefix loop and
+  projection engine with initialized fibers, checks identities during/after the
+  probe, and keeps an explicit construction-reset control. The ERP subset's
+  three setup errors disappear; its preexisting VP-liveness xfail remains.
+
+The generic `_reset_area_activity` helper had only one caller and duplicated the
+CONTEXT winner/ID reset. It is removed; sentence construction now composes that
+shared reset with a count reset. Disposal of learned context fibers is not part
+of either operation.

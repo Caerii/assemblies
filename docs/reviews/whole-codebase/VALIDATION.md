@@ -72,3 +72,18 @@ The activity repair adds explicit state declarations and stronger tests.
 The final selected CPU gate (all workflow-listed tests plus operation conformance)
 passed **164 tests**, skipped **1**, with expected sampled-engine warnings. This
 selected pass does not include or resolve the ERP setup failures above.
+
+## Follow-up: CONTEXT ownership in ERP probes
+
+The three ERP setup errors above are resolved. The outer parser still constructs
+its disposable context; the nested prefix probe now explicitly preserves the
+existing population and ID mapping. Population/cursor resets reject read-only
+scopes before mutation, including the bridge-reset route. One duplicated reset
+helper and an unused category-map computation were removed.
+
+The combined ERP/protocol/probe/specification/ratchet/register run passed **69**
+tests with **1 existing xfail** (VP liveness). The narrower ERP run passed eight
+and xfailed the same one. These runs overlap; do not add the counts. Protocol
+outputs now include resolved settings and `existing-context-v1`. Historical
+N400 numerical equivalence is neither assumed nor demonstrated; this is a
+measurement-protocol correction. No GPU study, model adoption or merge occurred.

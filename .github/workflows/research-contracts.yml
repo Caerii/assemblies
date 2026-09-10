@@ -29,6 +29,8 @@ jobs:
           neural_assemblies/tests/test_public_model_boundaries.py
           neural_assemblies/tests/test_operation_semantic_cards.py
           neural_assemblies/tests/test_probe_state_contract.py
+          neural_assemblies/tests/test_context_observation.py
+          neural_assemblies/tests/test_erp_protocol.py
           neural_assemblies/tests/test_read_only_probes.py
           neural_assemblies/tests/test_specification_links.py
           neural_assemblies/tests/test_migration_comparison.py

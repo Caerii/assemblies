@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from typing import List, Optional, Set, Tuple, TYPE_CHECKING
 
 from .protocol import ErpProtocol
@@ -78,7 +78,7 @@ def run_incremental_erp_probes(
     """
     protocol = ErpProtocol.from_environment() if protocol is None else protocol
     if not words:
-        return {"categories": {}, "roles": {}, "phrases": {}, "wobbly_probes": []}, []
+        return {"categories": {}, "roles": {}, "phrases": {}, "wobbly_probes": [], "erp_protocol": asdict(protocol)}, []
 
     readiness = readiness or assess_erp_readiness(parser)
     baseline = baseline if baseline is not None else parser_erp_baseline(parser)
@@ -87,6 +87,7 @@ def run_incremental_erp_probes(
     parser._reset_context_state()
     circuit = parser._get_incremental_circuit(reset=True)
     result: dict = {
+        "erp_protocol": asdict(protocol),
         "categories": {},
         "roles": {},
         "phrases": {},

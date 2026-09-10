@@ -87,3 +87,13 @@ versioned target/verification obligations, described in
 `neural_assemblies/ir/VERIFICATION.md`. This is not a completed compiler or a
 formal proof of Python/Rust/CUDA. Source-to-specification links are mechanically
 checked and operation API prose is shortened around those contracts.
+
+### CONTEXT follow-up on the same IR-contracts branch
+
+The previously blocking ERP setup errors are resolved by an explicit
+`preserve_topology=True` prefix observation. The legacy population reset is now
+rejected before mutation inside read-only; outer sentence construction retains
+its existing behavior. ERP outputs record `existing-context-v1`, so this must
+not be claimed numerically equivalent to old N400 artifacts without a rerun.
+The combined targeted run passed 69 tests with the preexisting VP-liveness xfail.
+GPU and historical evidence replay gates remain open.

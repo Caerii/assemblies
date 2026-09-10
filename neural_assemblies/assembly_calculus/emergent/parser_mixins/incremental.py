@@ -283,7 +283,8 @@ class IncrementalMixin:
             )
 
     def _reset_context_winners(self, *, preserve_mapping: bool = False) -> None:
-        """Clear CONTEXT winners; optionally preserve neuron ID mapping."""
+        """Clear CONTEXT activity; ID remapping is forbidden during observation."""
+        self._check_context_reset(preserve_mapping=preserve_mapping)
         self.brain.inhibit_areas([CONTEXT])
         if not preserve_mapping:
             area = self.brain.areas[CONTEXT]
@@ -300,28 +301,22 @@ class IncrementalMixin:
                 if getattr(st, "neuron_id_pool", None) is not None:
                     st.neuron_id_pool_ptr = 0
 
-    def _reset_area_activity(self, area_name: str) -> None:
-        """Clear winners and ever-fired count for a fresh sentence context."""
-        self.brain.inhibit_areas([area_name])
-        area = self.brain.areas[area_name]
-        area.w = 0
-        area.compact_to_neuron_id = []
-        if area.neuron_id_pool is not None:
-            area.neuron_id_pool_ptr = 0
-        if self.brain._engine.is_fixed(area_name):
-            self.brain._engine.unfix_assembly(area_name)
-
-        engine = self.brain._engine
-        if hasattr(engine, "_areas") and area_name in engine._areas:
-            st = engine._areas[area_name]
-            st.w = 0
-            st.compact_to_neuron_id = []
-            if getattr(st, "neuron_id_pool", None) is not None:
-                st.neuron_id_pool_ptr = 0
+    def _check_context_reset(self, *, preserve_mapping: bool) -> None:
+        engine = self.brain._engine_for(self.brain.areas[CONTEXT])
+        if not preserve_mapping and getattr(engine, "_no_recruitment", False):
+            raise ValueError(
+                "read_only cannot reset CONTEXT population or neuron identities; "
+                "use build_context_incremental(..., preserve_topology=True)")
 
     def _reset_context_state(self) -> None:
-        """Reset CONTEXT for a new incremental sentence."""
-        self._reset_area_activity(CONTEXT)
+        """Reset recruitment for sentence construction, retaining learned fibers.
+
+        This legacy cursor reset is distinct from an activity-only probe reset.
+        The shared winner/ID reset rejects it before mutation in read_only.
+        """
+        self._reset_context_winners(preserve_mapping=False)
+        self.brain.areas[CONTEXT].w = 0
+        self.brain._engine._areas[CONTEXT].w = 0
 
     def _reset_context_for_bridge(self, *, preserve_topology: bool = False) -> None:
         """Reset CONTEXT winners between bridge prefixes; keep pregrown connectomes.
@@ -330,6 +325,7 @@ class IncrementalMixin:
         ``w`` at the pregrown ring capacity so every prefix word can use the
         fixed-topology projection fast path.
         """
+        self._check_context_reset(preserve_mapping=False)
         self._reset_context_winners(preserve_mapping=preserve_topology)
         if preserve_topology and self._context_ring_capacity_cols > 0:
             w = self._context_ring_capacity_cols
@@ -681,13 +677,19 @@ class IncrementalMixin:
         *,
         reset: bool = True,
         direct: bool = False,
+        preserve_topology: bool = False,
     ) -> dict:
-        """Lightweight incremental parse: CONTEXT + categories only.
+        """Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-context-observation
+
+        Lightweight incremental parse: CONTEXT + categories only.
 
         Skips role assignment, phrase detection, and morphosyntax — used
         by prediction and dialogue hot paths.
 
         When ``direct=True``, skips FiberCircuit gating (faster hot path).
+        ``preserve_topology=True`` resets activity while retaining the existing
+        population and neuron mapping. Required for read-only prefix probes.
+        The legacy default resets recruitment and can construct new neurons.
         """
         result: dict = {
             "categories": {},
@@ -695,7 +697,10 @@ class IncrementalMixin:
         }
 
         if reset:
-            self._reset_context_state()
+            if preserve_topology:
+                self._reset_context_winners(preserve_mapping=True)
+            else:
+                self._reset_context_state()
 
         verb_seen = False
         noun_count = 0
@@ -1036,9 +1041,6 @@ class IncrementalMixin:
         result["clauses"]["main"] = main_words
 
         # Assign roles for main clause words
-        main_cats = {w: result["categories"][w]
-                     for w in main_words
-                     if w in result["categories"]}
         result["roles"], result["role_diagnostics"] = (
             self.parse_roles_by_reconstruction(main_words))
 

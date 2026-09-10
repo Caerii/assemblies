@@ -797,7 +797,8 @@ def _settle_context_into_prediction(parser: "EmergentParser",
     """
     brain = parser.brain
     parser._bootstrap_prediction_connectivity()
-    parser.build_context_incremental(list(prefix), reset=True, direct=True)
+    parser.build_context_incremental(
+        list(prefix), reset=True, direct=True, preserve_topology=True)
     parser._clear_prediction_activity()
     infer = parser.inference_rounds
     brain.project({}, {CONTEXT: [PREDICTION]})
