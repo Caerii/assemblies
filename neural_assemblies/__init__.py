@@ -28,6 +28,7 @@ _LAZY_EXPORTS = {
         "ComputeEngine", "ProjectionResult", "create_engine", "list_engines",
     )
 }
+_LAZY_EXPORTS["HomeostasisConfig"] = ".core._homeostasis"
 _LAZY_EXPORTS.update({
     name: ".compute" for name in (
         "StatisticalEngine", "NeuralComputationEngine",
@@ -93,6 +94,7 @@ def __dir__():
 from typing import TYPE_CHECKING  # noqa: E402
 
 if TYPE_CHECKING:  # pragma: no cover
+    from .core._homeostasis import HomeostasisConfig
     from .assembly_calculus import (
         Assembly, AssemblyTrace, FiberCircuit, PatternCompletionDiagnostic,
         ResponseDiagnostic, ResponseTrace, TraceStep, associate,
@@ -148,7 +150,7 @@ __author__ = "Superintelligent Group"
 
 __all__ = [
     # Core classes
-    'Brain', 'Area', 'Stimulus', 'Connectome',
+    'Brain', 'Area', 'Stimulus', 'Connectome', 'HomeostasisConfig',
 
     # Compute engine API
     'ComputeEngine', 'ProjectionResult', 'create_engine', 'list_engines',

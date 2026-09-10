@@ -33,7 +33,7 @@ from .._pricing import (
 from ..numpy_engine._sparse import (
     _fixed_target_plasticity_enabled as _np_fixed_target_plasticity_enabled,
 )
-from .._homeostasis import (refraction_increment, scaling_applies,
+from .._homeostasis import (HomeostasisConfig, refraction_increment, scaling_applies,
                             scaling_setpoint)
 from ..connectome import Connectome
 from ..engine import ComputeEngine, ProjectionResult
@@ -93,7 +93,9 @@ class TorchSparseEngine(ComputeEngine):
         # read-time per-postsynaptic 1/d_j scale, ported from NumpySparseEngine.
         # Previously this kwarg was silently swallowed by **kwargs and ignored,
         # so a Brain(norm_init=True, engine="torch_sparse") got NO normalization.
-        self.norm_init = bool(kwargs.get("norm_init", False))
+        homeostasis = HomeostasisConfig(**{name: kwargs.get(name, False)
+                                           for name in HomeostasisConfig.__dataclass_fields__})
+        self.norm_init = homeostasis.norm_init
         # Dense-drive mode (see docs/gpu_scale_design.md, Lever A): score ALL n
         # candidate neurons each round instead of sampling ~k order statistics.
         # Materialized neurons keep their real CSR drive; the (n-w) unmaterialized
@@ -117,9 +119,7 @@ class TorchSparseEngine(ComputeEngine):
         # the listed target areas. This kwarg used to be SILENTLY SWALLOWED by
         # **kwargs -- the same silent no-op that once ate norm_init (above),
         # which would have run a homeostasis study with homeostasis off.
-        ss = kwargs.get("synaptic_scaling", False)
-        self.synaptic_scaling = (ss if isinstance(ss, bool)
-                                 else frozenset(ss))
+        self.synaptic_scaling = homeostasis.synaptic_scaling
         if kwargs.get("synaptic_scaling_deferred", False):
             raise NotImplementedError(
                 "synaptic_scaling_deferred is not implemented on "

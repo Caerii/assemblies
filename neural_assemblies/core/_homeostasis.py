@@ -76,6 +76,7 @@ everything that is ARITHMETIC or a GATE is here, and every engine calls it.
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 import os
 from typing import Any, Collection, Union
 
@@ -83,6 +84,7 @@ __all__ = [
     "constant_refraction_enabled",
     "refraction_increment",
     "scaling_applies",
+    "HomeostasisConfig",
     "scaling_setpoint",
     "column_scale",
     "check_area_homeostasis",
@@ -150,6 +152,37 @@ def refraction_increment(net_drive_at_winners, current_bias_at_winners,
 # Column scaling (substrate C)
 # ---------------------------------------------------------------------------
 
+@dataclass(frozen=True)
+class HomeostasisConfig:
+    """Specification: neural_assemblies/ir/VERIFICATION.md#contract-homeostasis-config"""
+
+    norm_init: bool = False
+    synaptic_scaling: bool | frozenset[str] = False
+    synaptic_scaling_deferred: bool = False
+
+    def __post_init__(self):
+        if type(self.norm_init) is not bool or type(self.synaptic_scaling_deferred) is not bool:
+            raise ValueError("homeostasis flags must be explicit booleans")
+        scope = self.synaptic_scaling
+        if type(scope) is not bool:
+            if not isinstance(scope, (set, frozenset, tuple, list)) or any(
+                    not isinstance(name, str) or not name for name in scope):
+                raise ValueError("synaptic_scaling must be boolean or a collection of nonempty area names")
+            scope = frozenset(scope) or False
+        object.__setattr__(self, "synaptic_scaling", scope)
+        if self.synaptic_scaling_deferred and not scope:
+            raise ValueError("deferred scaling requires an enabled scaling scope")
+
+    @classmethod
+    def from_engine(cls, engine):
+        # An absent mechanism is disabled; backends with different storage must
+        # override validate_brain_identity rather than claiming this convention.
+        return cls(**{name: getattr(engine, name, False) for name in cls.__dataclass_fields__})
+
+    def as_kwargs(self):
+        return dict(vars(self))
+
+
 def scaling_applies(synaptic_scaling: ScalingSpec, target: str) -> bool:
     """Does column scaling act on ``target``?
 
@@ -157,7 +190,7 @@ def scaling_applies(synaptic_scaling: ScalingSpec, target: str) -> bool:
     area names scopes it to those targets only. Scoping is not cosmetic: it is
     how the sequence organ's refracted arc is kept OUT of scaling (see
     `check_area_homeostasis`), and `Brain` passes the collection through
-    unchanged so this is the one place the spelling is interpreted.
+    as an immutable canonical scope through `HomeostasisConfig`.
     """
     if not synaptic_scaling:
         return False

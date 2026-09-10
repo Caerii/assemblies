@@ -759,3 +759,32 @@ mismatched preconstructed-engine calls. It does not resolve normalization/scalin
 other model semantics, post-construction mutation or prepopulated-engine adoption.
 Historical replay, complete package validation and the grounded-verb regression
 remain open.
+
+
+## Immutable shared homeostasis configuration (2026-09-10)
+
+Brain retained mutable caller scopes while NumPy/Torch froze their own copies,
+and string scopes became character sets. Supplied engines could disagree with
+Brain on normalization, scope or deferral while Brain's recurrence schedule used
+its own values. Twenty-one controls reproduced these discrepancies (25 passes).
+
+The public, lazily exported `HomeostasisConfig` now owns boolean validation,
+canonical immutable named scopes and the requirement that deferred scaling have
+an enabled scope. Brain, sampled NumPy and Torch consume it; exact NumPy also
+uses its normalization validation. Supplied-engine adoption compares canonical
+homeostasis before changing the engine. `as_kwargs` supplies one configuration
+to both constructors. Backend capability restrictions remain in force.
+
+Controls cover malformed settings, frozen/copy semantics, equivalent scope
+spellings, matching and conflicting supplied engines, empty scope equivalence,
+and public export/type-checker consistency. Existing arithmetic, refraction,
+scaling and learning-mask controls remain unchanged. No GPU execution is claimed.
+
+CPU workflow gate plus homeostasis/scoped-scaling suites: 670 passed, 3 skipped,
+3 expected sampled-engine warnings in 77.32 seconds, logged in
+`.cache/homeostasis-config-gate.log`. After adding the lazy public export and its
+documentation, 68 export/boundary/specification checks passed. Ruff and diff checks
+passed. The immutable object does not freeze subsequent direct assignments to
+legacy engine fields or establish cross-backend arithmetic equivalence. Remaining
+model switches, GPU gates, historical replays and the grounded-verb regression
+remain open.

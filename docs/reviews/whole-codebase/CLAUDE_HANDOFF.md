@@ -418,3 +418,14 @@ raises; Torch retains its constructor seed. The two dense-drive parity callers n
 pass engine identity and norm_init explicitly; please run their CUDA gates.
 NumPy controls: 25 passed; CPU gate 634 passed, 1 skipped. This does not yet reconcile
 all model settings. See [validation](VALIDATION.md).
+
+
+### Canonical homeostasis configuration
+
+`from neural_assemblies import HomeostasisConfig` now provides one immutable
+configuration for normalization, scaling scope and deferral, reusable via
+`as_kwargs()`. Brain and engines share validation; supplied-engine conflicts raise.
+Malformed scopes no longer become character sets, and caller mutation cannot alter
+Brain's scope. Initial controls reproduced 21 failures; expanded CPU gate 670 passed,
+3 skipped; final export checks 68 passed. Torch uses the same configuration but
+still needs CUDA verification. See [validation](VALIDATION.md).

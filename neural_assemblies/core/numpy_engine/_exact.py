@@ -446,7 +446,8 @@ class NumpyExactEngine(ComputeEngine):
         self.p = float(p)
         self.seed = int(seed)
         self.w_max = w_max
-        self.norm_init = bool(norm_init)
+        from .._homeostasis import HomeostasisConfig
+        self.norm_init = HomeostasisConfig(norm_init=norm_init).norm_init
         self.dtype = np.dtype(dtype) if dtype is not None else self.DEFAULT_DTYPE
         self.inhibitory_prob = float(inhibitory_prob)
         self.inhibitory_weight = float(inhibitory_weight)

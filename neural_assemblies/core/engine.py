@@ -70,7 +70,7 @@ class ComputeEngine(ABC):
     - The engine is responsible for its own memory management.
     """
 
-    def validate_brain_identity(self, *, p, seed, w_max) -> None:
+    def validate_brain_identity(self, *, p, seed, w_max, homeostasis=None) -> None:
         """Specification: neural_assemblies/ir/VERIFICATION.md#contract-engine-identity
 
         Reject conflicting parameters before an existing engine is adopted.
@@ -89,6 +89,11 @@ class ComputeEngine(ABC):
             if requested[name] != value:
                 raise ValueError(f"Brain {name}={requested[name]!r} conflicts with supplied "
                                  f"engine {name}={value!r}; pass matching parameters")
+
+        if homeostasis is not None:
+            from ._homeostasis import HomeostasisConfig
+            if HomeostasisConfig.from_engine(self) != homeostasis:
+                raise ValueError("Brain homeostasis conflicts with supplied engine; pass matching settings")
 
     # -- Area / stimulus registration --
 

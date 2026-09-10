@@ -27,7 +27,7 @@ from .._pricing import (
     area_fiber_activity,
 )
 from .._homeostasis import (column_scale, refraction_increment,
-                            scaling_applies, scaling_setpoint)
+                            scaling_applies, scaling_setpoint, HomeostasisConfig)
 from ..engine import ComputeEngine, ProjectionResult
 from ..connectome import Connectome
 from ..projection_fidelity import ProjectionFidelity
@@ -356,10 +356,8 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
         # the afferent fiber to be DISCRIMINATIVE, not self-sustaining -- the
         # per-fiber objection does not apply where no attractor is required
         # (task #130).
-        self.synaptic_scaling = (
-            synaptic_scaling if isinstance(synaptic_scaling, bool)
-            else frozenset(synaptic_scaling)
-        )
+        homeostasis = HomeostasisConfig(norm_init, synaptic_scaling, synaptic_scaling_deferred)
+        self.synaptic_scaling = homeostasis.synaptic_scaling
         # E9 (#138): defer scaling to flush_synaptic_scaling() at phase
         # boundaries -- fast Hebbian inside a slowly renormalized envelope.
         self.synaptic_scaling_deferred = synaptic_scaling_deferred

@@ -640,10 +640,41 @@ brain = Brain(engine=engine, norm_init=False, **identity)
 ```
 
 Backend-only switches stay on the supplied engine. This is deliberately a construction-identity check, not a
-complete model configuration: normalization, scaling, determinism, stimulus laws,
+complete model configuration: determinism, stimulus laws,
 tie rules, mutable post-construction settings and prepopulated-engine adoption
 remain separate obligations. GPU parity must still be verified on the CUDA setup.
 
 Controls reject each mismatch on every NumPy engine before a fidelity setter can
 run, reject unavailable identity, and check matching identity in newly created
 auxiliary dense engines with both finite and absent clips.
+
+
+<a id="contract-homeostasis-config"></a>
+
+## Shared homeostasis configuration
+
+`core._homeostasis.HomeostasisConfig` is the immutable construction contract for
+normalization, column-scaling scope and deferred scaling. It is consumed by Brain,
+NumPy sampled/exact constructors as applicable, and Torch's supported homeostasis
+settings. It describes configuration, not equivalence of backend arithmetic.
+
+`norm_init` and `synaptic_scaling_deferred` require booleans. Scaling is a boolean
+or a list/tuple/set/frozenset of nonempty area names. Named scopes are copied into
+frozensets; duplicates/order have no meaning and an empty scope canonicalizes to
+False. Strings, dictionaries and non-name entries raise. Deferred scaling with no
+enabled scope raises instead of becoming an ignored request. Backend restrictions
+still apply: this object does not make deferred scaling available on Torch or
+column scaling available on the exact engine.
+
+Brain compares the supplied engine's homeostasis with this normalized request,
+before adoption. Missing mechanism attributes mean disabled in the default
+backend check; custom storage requires overriding `validate_brain_identity`.
+Import `HomeostasisConfig` from `neural_assemblies`; a single
+`config.as_kwargs()` can be supplied to both constructors. Legacy fields
+remain available, but mutable caller collections cannot change Brain's scope after
+construction or disagree with the engine's snapshot.
+
+This does not lock legacy fields against subsequent direct assignment, reconcile
+all backend switches, or prove that normalization/scaling are appropriate for a
+scientific protocol. The separate refraction incompatibility and learning-mask
+contracts still apply. GPU verification remains a required external gate.

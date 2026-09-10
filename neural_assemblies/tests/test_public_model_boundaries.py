@@ -104,3 +104,78 @@ def test_supplied_engine_with_unavailable_seed_cannot_claim_identity(monkeypatch
     monkeypatch.delattr(engine, 'seed')
     with pytest.raises(ValueError, match='cannot validate Brain seed'):
         Brain(p=.1, seed=41, w_max=8, norm_init=False, engine=engine)
+
+
+@pytest.mark.parametrize('settings', [
+    {'synaptic_scaling': 'AREA'}, {'synaptic_scaling': {'AREA': True}},
+    {'synaptic_scaling': [1]}, {'synaptic_scaling': ['']},
+    {'norm_init': 'false'}, {'synaptic_scaling_deferred': 'false'},
+    {'synaptic_scaling_deferred': True},
+])
+@pytest.mark.parametrize('surface', ['brain', 'engine'])
+def test_invalid_homeostasis_stops_at_construction(settings, surface):
+    from neural_assemblies.core.numpy_engine import NumpySparseEngine
+    constructor = Brain if surface == 'brain' else NumpySparseEngine
+    with pytest.raises(ValueError):
+        constructor(p=.1, **settings)
+
+
+def test_scaling_scope_is_detached_from_callers_collection():
+    scope = {'AREA'}
+    brain = Brain(p=.1, engine='numpy_sparse', synaptic_scaling=scope)
+    scope.clear()
+    assert brain._synaptic_scaling == brain._engine.synaptic_scaling == frozenset({'AREA'})
+
+
+@pytest.mark.parametrize('engine_settings,brain_settings', [
+    ({'norm_init': True}, {'norm_init': False}),
+    ({'norm_init': False}, {'norm_init': True}),
+    ({'synaptic_scaling': True}, {'synaptic_scaling': False}),
+    ({'synaptic_scaling': {'A'}}, {'synaptic_scaling': {'B'}}),
+    ({'synaptic_scaling': True, 'synaptic_scaling_deferred': True},
+     {'synaptic_scaling': True, 'synaptic_scaling_deferred': False}),
+])
+def test_supplied_engine_rejects_conflicting_homeostasis(engine_settings, brain_settings):
+    from neural_assemblies.core.numpy_engine import NumpySparseEngine
+    identity = dict(p=.1, seed=41, w_max=8)
+    engine = NumpySparseEngine(**identity, **engine_settings)
+    request = dict(norm_init=False, **identity)
+    request.update(brain_settings)
+    with pytest.raises(ValueError, match='homeostasis'):
+        Brain(engine=engine, **request)
+
+
+def test_supplied_engine_accepts_equivalent_scope_spellings():
+    from neural_assemblies.core.numpy_engine import NumpySparseEngine
+    identity = dict(p=.1, seed=41, w_max=8)
+    engine = NumpySparseEngine(**identity, synaptic_scaling={'A', 'B'})
+    brain = Brain(engine=engine, **identity, norm_init=False, synaptic_scaling=['B', 'A', 'A'])
+    assert brain._synaptic_scaling == engine.synaptic_scaling == frozenset({'A', 'B'})
+
+
+
+def test_exact_engine_normalization_uses_the_shared_boolean_contract():
+    from neural_assemblies.core.numpy_engine import NumpyExactEngine
+    with pytest.raises(ValueError, match='booleans'):
+        NumpyExactEngine(p=.1, norm_init='false')
+
+
+def test_homeostasis_config_is_immutable_and_composes_with_constructors():
+    from dataclasses import FrozenInstanceError
+    from neural_assemblies import HomeostasisConfig
+    from neural_assemblies.core.numpy_engine import NumpySparseEngine
+    scope = ['A']
+    config = HomeostasisConfig(norm_init=True, synaptic_scaling=scope, synaptic_scaling_deferred=True)
+    scope.append('B')
+    with pytest.raises(FrozenInstanceError):
+        config.norm_init = False
+    identity = dict(p=.1, seed=41, w_max=8)
+    engine = NumpySparseEngine(**identity, **config.as_kwargs())
+    brain = Brain(engine=engine, **identity, **config.as_kwargs())
+    assert HomeostasisConfig.from_engine(engine) == config
+    assert brain._synaptic_scaling == frozenset({'A'})
+
+
+def test_empty_scaling_scope_canonicalizes_to_disabled():
+    from neural_assemblies import HomeostasisConfig
+    assert HomeostasisConfig(synaptic_scaling=[]) == HomeostasisConfig(synaptic_scaling=False)

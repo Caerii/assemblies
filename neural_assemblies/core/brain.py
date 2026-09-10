@@ -35,7 +35,7 @@ from collections import defaultdict
 
 from .backend import get_xp, to_cpu, detect_best_engine
 from .engine import ComputeEngine, create_engine
-from ._homeostasis import check_area_homeostasis
+from ._homeostasis import HomeostasisConfig, check_area_homeostasis
 from .index_spaces import CompactIdx, to_neuron_ids, validated_indices
 
 from .area import Area
@@ -99,7 +99,9 @@ class Brain:
                    pre-constructed ComputeEngine instance. With an instance,
                    p, seed and w_max must explicitly match its values (including
                    when Brain defaults are used). Conflicts raise before adoption;
-                   see ir/VERIFICATION.md#contract-engine-identity.
+                   normalization and scaling settings must match too. Use
+                   HomeostasisConfig.as_kwargs() to share those settings.
+                   See ir/VERIFICATION.md#contract-engine-identity.
             deterministic (bool): If True, use legacy code paths that preserve
                    bit-identical RNG sequences for a given seed. Slower (~1.5-2x)
                    but ensures exact reproducibility across code versions.
@@ -124,8 +126,11 @@ class Brain:
                    Ordinary project calls use their supplied edge maps directly.
                    ops.project selects recurrence with its own argument.
         """
+        homeostasis = HomeostasisConfig(norm_init, synaptic_scaling, synaptic_scaling_deferred)
+        synaptic_scaling = homeostasis.synaptic_scaling
         if isinstance(engine, ComputeEngine):
-            engine.validate_brain_identity(p=p, seed=seed, w_max=w_max)
+            engine.validate_brain_identity(p=p, seed=seed, w_max=w_max,
+                                           homeostasis=homeostasis)
         self.p = p
         self.w_max = w_max
         self.save_size = save_size
