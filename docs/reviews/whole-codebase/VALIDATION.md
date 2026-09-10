@@ -181,3 +181,44 @@ Inspection also found Torch's zero-drive fiber-repair branch without the
 corresponding read-only guard. It remains an explicit hardware regression task;
 this follow-up must not be cited as proof of universal backend probe isolation.
 The unchanged generic Lean theorems are not backend preservation certificates.
+
+
+## Role availability and context population preservation
+
+Baseline `9d58bdd` had three verified parser failures. Two attempted role readout
+before a sampled role population existed. The shared `probe_target_ready` predicate
+now drives both readout availability and the low-level cold-probe guard. Missing
+populations return None labels with `unavailable_areas`, without construction.
+Readiness does not assert informative drive or successful recall. Recursive
+parsing now retains inner-clause diagnostics alongside its role results.
+
+The remaining failure came from `_reset_context_for_bridge`: requested ring
+capacity replaced the actual population count while retaining a shorter neuron
+ID mapping. The preserving path now retains the backend count and IDs. Three
+new controls (requested capacity 0, 1, and 80 around a real population of 20)
+failed before this repair and pass afterward, including a subsequent projection
+and neuron-ID snapshot. Destructive reset remains separate and rejected in probes.
+
+The same broader consolidation/inhibition/training-performance suite that had
+three failures now passed 95 tests with 1 existing xfail. The focused role and
+full trained reconstruction suite passed 16 tests, including positive margins,
+voice invariance and event separation. These are software regressions, not new
+adopted multi-seed research results. The original final CPU workflow run had
+269 passes, 1 skip and two stale-ratchet failures: incremental.py's ambiguous
+`.w` allowance was 7 while actual usage fell to 5. The allowance was lowered,
+not waived or raised.
+
+Further verified defect: uncached `CategoryClassificationMixin.classify_word`
+resets fibers and projects with learning enabled. A small local diagnostic
+(n=1000, k=20, seed=13, rounds=3) changed the queried stimulus weight sum from
+2660.16748046875 to 2994.654296875. Classification precedes role reconstruction's
+read-only scope; therefore the entire method is not yet isolated. The code and
+semantic card now state that limit explicitly. Classifier observation is the
+next repair target, followed by the already-open GPU probe/parity gates.
+
+The readiness fixture explicitly sets norm_init=False for numpy_explicit;
+Brain's default norm_init=True is not accepted by that backend's constructor.
+That existing configuration mismatch remains part of the model/backend API work.
+
+Final workflow rerun after tightening the ratchet: **271 passed, 1 skipped**.
+Ruff and diff checks passed. No GPU jobs or historical evidence reruns were performed.

@@ -128,7 +128,9 @@ class RoleBindingMixin:
             filler_word: Optional[str] = None,
             filler_role: Optional[str] = None,
     ) -> "tuple[Dict[str, Optional[str]], dict]":
-        """Gate -> record -> recall: the role readout that consults THIS parse.
+        """Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-role-reconstruction
+
+        Gate -> record -> recall using existing role populations.
 
         The 2021 parser paper's division of labor, from parts this parser
         already had (promoted here from
@@ -153,8 +155,10 @@ class RoleBindingMixin:
         corpus effect flows entirely through the learned control, and the
         substrate supplies identity.
 
-        A READOUT, not a learning step: runs under ``brain.read_only()`` and
-        restores all state on exit. The whole answer rests on the substrate's
+        Traversal and recall run under ``brain.read_only()`` and restore their
+        dynamical state on exit. Preparatory classification precedes that scope:
+        an uncached legacy classifier can still reset fibers and learn, so the
+        entire method is not yet an isolated observation. The answer rests on the substrate's
         image separation (occupant gap 0.87+ at current defaults; at
         phon_weight=1 it collapsed to ties), which is what makes parsing
         accuracy a measurement OF the substrate.
@@ -162,7 +166,9 @@ class RoleBindingMixin:
         Returns ({word: role_label_or_None}, diagnostics). Diagnostics carry
         `is_passive`, per-area winners, and (role, occupant, top, runner, gap)
         tuples -- the GAP is the substrate-dependence metric and callers
-        asserting only the labels are measuring the gate.
+        asserting only the labels are measuring the gate. `unavailable_areas`
+        records missing areas/populations; an unavailable traversal returns no
+        role evidence and never initializes a population during observation.
         """
         from neural_assemblies.assembly_calculus.ops import (
             project as _ops_project,
@@ -175,7 +181,7 @@ class RoleBindingMixin:
                     else (ROLE_AGENT, ROLE_PATIENT))
 
         diag: dict = {"is_passive": bool(is_passive), "gaps": [],
-                      "winners": {}}
+                      "winners": {}, "unavailable_areas": {}}
         out: Dict[str, Optional[str]] = {w: None for w in words}
 
         # FILLER-GAP (relative clauses): the antecedent has already claimed a
@@ -193,6 +199,14 @@ class RoleBindingMixin:
             core = self._word_core_area(word)
             if core is None or core not in brain.areas:
                 return False
+            for name in (core, role):
+                area = brain.areas.get(name)
+                if area is None:
+                    diag["unavailable_areas"][name] = "area_missing"
+                    return False
+                if not brain._engine_for(area).probe_target_ready(name):
+                    diag["unavailable_areas"][name] = "population_not_materialized"
+                    return False
             stored = self.core_lexicons.get(core, {}).get(word)
             if stored is not None:
                 activate_assembly(brain, stored)

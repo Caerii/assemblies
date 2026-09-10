@@ -415,3 +415,58 @@ comments claiming only the final result was copied to CPU did not describe the
 loop: each iteration already called the ordinary `project_into` method.
 CPU checks cover repeated-step equivalence and invalid-count rejection; hardware
 parity suites remain required for the GPU implementations.
+
+
+<a id="contract-role-reconstruction"></a>
+
+## Role reconstruction: availability before observation
+
+Source baseline `9d58bdd`: `RoleBindingMixin.parse_roles_by_reconstruction`.
+Classification and learned voice gating select role slots. Inside read-only,
+core assemblies are projected into those slots to record temporary winners;
+replaying noun candidates is scored against those winners. Only a strict
+occupant-versus-runner margin assigns a noun role. The ACTION assignment follows
+successful verb traversal, not a noun-style reconstruction margin. Caller-supplied
+filler roles are external inputs, not newly recovered evidence.
+
+The method assumed role populations already existed. Lexicon-only parsers
+therefore raised the cold-probe guard, while older behavior silently recruited
+during readout. Acceptance: unavailable populations produce None for attempted
+readouts and explicit per-area diagnostics without construction. One engine
+readiness predicate must also drive the low-level guard, so the two cannot drift.
+A populated role control must still yield readout evidence; suppressing every
+traversal is not a fix. Unknown input failures must not be swallowed as generic
+unavailability. The traversal/recall observation scope restores dynamical state.
+
+
+<a id="contract-context-bridge-reset"></a>
+
+### Bridge reset: requested capacity is not allocated population
+
+At `9d58bdd`, `_reset_context_for_bridge(preserve_topology=True)` assigned the
+requested ring capacity to both facade and backend `w` while retaining the old
+ID mapping. Pre-growth can allocate fewer neurons than requested; disabling the
+ring optimization exposed winners outside a 176-entry map. Requests smaller
+than the current population could also shrink its count without changing IDs.
+
+Acceptance: a topology-preserving reset clears activity and retains the actual
+backend population and mapping, independently of requested capacity. It cannot
+allocate or discard neurons by assigning a configuration value to a count.
+The explicitly destructive reset remains a separate path, forbidden inside
+read-only. A subsequent projection and neuron-ID snapshot must remain valid.
+
+
+Resolution: role availability is checked through `ComputeEngine.probe_target_ready`,
+also used by the low-level guard. Diagnostics include `unavailable_areas`; recursive
+parsing retains `inner_role_diagnostics` rather than discarding them. Bridge reset
+preserves actual population and IDs, with requested capacities below/above the
+population covered by regression tests.
+
+Remaining preparation defect: role classification occurs before the read-only
+scope. `CategoryClassificationMixin.classify_word` resets core fibers and projects with
+plasticity enabled unless its caller has disabled it. A diagnostic at n=1000,
+k=20, seed=13, three rounds increased the queried phon->NOUN_CORE weight sum
+from 2660.16748046875 to 2994.654296875. This is an instrument counterexample,
+not a multi-seed scientific result. The populated role harness uses fixed
+category inputs and therefore does not certify classifier isolation. The next
+repair must separate classification observation from learning and construction.

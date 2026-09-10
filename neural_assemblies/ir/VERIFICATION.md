@@ -170,3 +170,19 @@ per-round history when enabled and observation isolation. The new controls
 exposed a sampled fiber being allocated during a probe even though its final
 winners were restored. Thus neither final-winner equality nor the absence of
 Hebbian updates suffices to discharge the state relation in `Simulates`.
+
+
+## Population readiness is separate from measurement validity
+
+The source-linked role and bridge-reset contracts distinguish requested capacity
+from an allocated population. A target configuration cannot establish that
+neurons and their ID mapping exist by assigning its requested size to a runtime
+count. A preserving reset retains the actual population and identity mapping.
+
+`ComputeEngine.probe_target_ready` checks whether a target can be projected into
+without recruitment. It does not certify trained fibers, nonzero drive, or an
+informative readout. Unavailable role observations retain explicit diagnostics,
+including for inner clauses. Future IR observation consumers must preserve that
+unavailability instead of interpreting it as a measured zero or successful label.
+Preparatory classification still has a separate, documented mutation defect;
+these readiness checks do not certify that entire pipeline as observational.

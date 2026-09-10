@@ -13,7 +13,8 @@ def test_reviewed_operations_keep_their_specification_links():
     assert not errors, errors
     linked = {edge["from"].rsplit(":", 1)[-1] for edge in edges}
     assert {"project", "reciprocal_project", "associate", "merge", "pattern_complete",
-            "read_only", "project_rounds", "AssemblyMemory", "HashedArcFSM", "HashedTransducer"} <= linked
+            "read_only", "project_rounds", "parse_roles_by_reconstruction",
+            "_reset_context_for_bridge", "AssemblyMemory", "HashedArcFSM", "HashedTransducer"} <= linked
 
 
 @pytest.mark.parametrize("reference", ["missing.md#contract-test", "spec.md#missing", "../outside.md#x"])

@@ -219,7 +219,7 @@ W_BASELINE = {
     "legacy/root_modules/simulations.py": 13,
     "neural_assemblies/simulation/advanced_simulations.py": 12,
     "legacy/root_modules/image_learner.py": 8,
-    "neural_assemblies/assembly_calculus/emergent/parser_mixins/incremental.py": 7,
+    "neural_assemblies/assembly_calculus/emergent/parser_mixins/incremental.py": 5,
     "neural_assemblies/assembly_calculus/emergent/training/linker.py": 6,
     "research/experiments/capacity/lexicon_capacity.py": 6,
     "research/experiments/metrics/measurement.py": 4,

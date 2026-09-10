@@ -131,3 +131,24 @@ next semantic repair targets; do not interpret the green selected gate as a
 clean full package suite. Torch's zero-drive fiber repair also needs a dedicated
 read-only hardware control. GPU parity and historical A1/capacity replay gates
 remain open, and the original `astra/refactor-1` branch remains pinned.
+
+
+### Role availability and bridge population follow-up
+
+The three previously recorded parser failures are repaired. Missing sampled
+role populations produce explicit unavailable diagnostics and None readouts;
+a shared engine readiness check prevents disagreement with the cold-probe guard.
+Recursive parsing preserves inner-clause diagnostics. Bridge topology preservation
+retains the actual population and ID mapping rather than overwriting the count
+with requested ring capacity. The `.w` ratchet allowance falls from 7 to 5 for
+incremental.py. The broader suite passes 95 tests with its existing xfail, and
+the focused role plus trained reconstruction suite passes 16.
+
+The next confirmed isolation defect is preparatory classification: classify_word
+clears fibers and learns during an uncached query, before role reconstruction's
+read-only scope. The role traversal tests do not certify that preparation phase.
+Keep this distinction when reviewing role diagnostics or claiming probe isolation.
+GPU parity, Torch zero-drive probe repair, historical numerical replays and the
+larger IR/backend semantics work remain open.
+
+The final CPU contract gate passed 271 tests with 1 skip after the ratchet reduction.

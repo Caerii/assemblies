@@ -69,3 +69,21 @@ def test_construction_reset_remains_explicitly_destructive_outside_observation()
     assert state.w == 0
     assert state.compact_to_neuron_id == []
     assert state.neuron_id_pool_ptr == 0
+
+
+@pytest.mark.parametrize("requested_capacity", [0, 1, 80])
+def test_bridge_reset_preserves_actual_population_not_requested_capacity(requested_capacity):
+    parser = ContextHarness()
+    state = parser.brain._engine._areas[CONTEXT]
+    identities = list(state.compact_to_neuron_id)
+    count = state.w
+    parser._context_ring_capacity_cols = requested_capacity
+    parser._reset_context_for_bridge(preserve_topology=True)
+    assert state.w == count
+    assert parser.brain.areas[CONTEXT].w == count
+    assert state.compact_to_neuron_id == identities
+    assert not len(state.winners)
+    parser._advance_context_direct("word")
+    from neural_assemblies.assembly_calculus.ops import _snap
+    snapshot = _snap(parser.brain, CONTEXT)
+    assert len(snapshot.winners) == parser.brain.areas[CONTEXT].k

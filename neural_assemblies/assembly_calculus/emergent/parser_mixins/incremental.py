@@ -319,26 +319,20 @@ class IncrementalMixin:
         self.brain._engine._areas[CONTEXT].w = 0
 
     def _reset_context_for_bridge(self, *, preserve_topology: bool = False) -> None:
-        """Reset CONTEXT winners between bridge prefixes; keep pregrown connectomes.
+        """Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-context-bridge-reset
 
-        When ``preserve_topology`` is True (compiled bridge training), retain
-        ``w`` at the pregrown ring capacity so every prefix word can use the
-        fixed-topology projection fast path.
+        Clear bridge activity, optionally preserving the allocated population.
+
+        Requested ring capacity is configuration, not evidence that its neurons
+        exist. Preserve the backend count and IDs; never replace the count with
+        that request. Construction resets remain forbidden during observation.
         """
         self._check_context_reset(preserve_mapping=False)
-        self._reset_context_winners(preserve_mapping=preserve_topology)
-        if preserve_topology and self._context_ring_capacity_cols > 0:
-            w = self._context_ring_capacity_cols
-            self.brain.areas[CONTEXT].w = w
-            engine = self.brain._engine
-            if hasattr(engine, "_areas") and CONTEXT in engine._areas:
-                engine._areas[CONTEXT].w = w
+        if not preserve_topology:
+            self._reset_context_state()
             return
-        area = self.brain.areas[CONTEXT]
-        area.w = 0
-        engine = self.brain._engine
-        if hasattr(engine, "_areas") and CONTEXT in engine._areas:
-            engine._areas[CONTEXT].w = 0
+        self._reset_context_winners(preserve_mapping=True)
+        self.brain.areas[CONTEXT].w = self.brain._engine._areas[CONTEXT].w
 
     def _build_circuit(self) -> FiberCircuit:
         """Build a FiberCircuit with all projection channels initially inhibited.
@@ -1075,7 +1069,7 @@ class IncrementalMixin:
                 else:
                     filler_r = "AGENT"
 
-            inner_roles, _inner_diag = self.parse_roles_by_reconstruction(
+            inner_roles, inner_diag = self.parse_roles_by_reconstruction(
                 inner_words,
                 filler_word=filler_w,
                 filler_role=filler_r,
@@ -1087,6 +1081,7 @@ class IncrementalMixin:
             # keeps the main-clause role for the filler; consumers that
             # need the inner-clause role can read ``inner_roles``.
             result["inner_roles"] = dict(inner_roles)
+            result["inner_role_diagnostics"] = inner_diag
             for word, role in inner_roles.items():
                 if word == filler_w:
                     continue  # keep main-clause role for filler

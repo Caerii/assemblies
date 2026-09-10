@@ -166,14 +166,22 @@ class ComputeEngine(ABC):
         """Snapshot declared per-area dynamics, without copying learned fibers."""
         return [state.snapshot_activity() for state in self._areas.values()]
 
+    def probe_target_ready(self, name) -> bool:
+        """Whether the target has a population usable without recruitment.
+
+        Engines with a no-recruitment mode need at least k materialized neurons.
+        Full-population engines need no such initialization. Readiness says
+        nothing about learned fibers, informative drive or successful recall.
+        """
+        state = self._areas[name]
+        return not hasattr(self, "_no_recruitment") or bool(state.w >= state.k)
+
     def validate_probe_target(self, name):
         """A sampled read cannot initialize a population as a side effect."""
-        if getattr(self, "_no_recruitment", False):
-            state = self._areas[name]
-            if state.w < state.k:
-                raise ValueError(
-                    f"{name}: read_only requires at least k materialized neurons; "
-                    "initialize/train the area or materialize it before probing")
+        if getattr(self, "_no_recruitment", False) and not self.probe_target_ready(name):
+            raise ValueError(
+                f"{name}: read_only requires at least k materialized neurons; "
+                "initialize/train the area or materialize it before probing")
 
     def get_neuron_id_mapping(self, area: str) -> Optional[list]:
         """Return compact-index-to-neuron-ID mapping, or None.
