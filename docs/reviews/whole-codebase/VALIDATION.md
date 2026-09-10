@@ -816,3 +816,26 @@ warnings in 86.52 seconds (`.cache/homeostasis-wire-gate.log`). Rust `cargo test
 and doc-test processing. Rustfmt, Ruff and diff checks passed. No GPU run,
 registered replay, full-package verdict or Lean configuration/backend simulation
 proof is claimed. The broader IR/compiler and research migrations remain open.
+
+
+## Refraction compatibility at mutation boundaries (2026-09-10)
+
+Direct sampled-engine calls bypassed Brain's refraction/scaling guard; explicit
+normalization could rescale refracted weights. Brain also published refraction
+before a dense engine rejected it and routed auxiliary-area changes to the primary
+engine. After correcting fixtures for CSR assignment and replacement-style
+normalization, six intended negative controls failed with 50 passes.
+
+The existing shared guard now protects sampled/Torch refraction setters, explicit
+normalization and scaling writes. Brain dispatches refraction and normalization
+to the owning engine and publishes refraction only after backend acceptance.
+Deferred sampled scaling checks current target state and retains a rejected fiber's
+pending work. A legal control disables refraction and completes normalization;
+no arithmetic rule was replaced.
+
+Focused boundary/deferred checks: 68 passed. CPU workflow plus homeostasis suite:
+695 passed, 3 skipped, three expected sampled-engine warnings in 68.42 seconds
+(`.cache/refraction-boundary-gate.log`). Ruff and diff checks passed. Torch code
+has the guard but its CUDA execution is unverified. Whole-queue rollback, arbitrary
+legacy-field mutation, historical replays, backend proofs and the grounded-verb
+regression remain open.

@@ -33,7 +33,7 @@ from .._pricing import (
 from ..numpy_engine._sparse import (
     _fixed_target_plasticity_enabled as _np_fixed_target_plasticity_enabled,
 )
-from .._homeostasis import (HomeostasisConfig, refraction_increment, scaling_applies,
+from .._homeostasis import (HomeostasisConfig, check_area_homeostasis, refraction_increment, scaling_applies,
                             scaling_setpoint)
 from ..connectome import Connectome
 from ..engine import ComputeEngine, ProjectionResult
@@ -1103,6 +1103,8 @@ class TorchSparseEngine(ComputeEngine):
         """
         if not scaling_applies(self.synaptic_scaling, target):
             return
+        check_area_homeostasis(target, refracted=self._areas[target].refracted,
+                               synaptic_scaling=True)
         for src_name in from_areas:
             csr = self._area_conns.get(src_name, {}).get(target)
             if csr is None or csr.nnz == 0:
@@ -1463,6 +1465,7 @@ class TorchSparseEngine(ComputeEngine):
     def set_refracted(self, area: str, enabled: bool,
                       strength: float = 0.0) -> None:
         st = self._areas[area]
+        check_area_homeostasis(area, refracted=enabled, synaptic_scaling=self.synaptic_scaling)
         st.refracted = enabled
         st.refracted_strength = strength
         if enabled and st._cumulative_bias.numel() == 0:
@@ -1477,6 +1480,8 @@ class TorchSparseEngine(ComputeEngine):
     # -- Weight normalization -----------------------------------------------
 
     def normalize_weights(self, target: str, source: str = None) -> None:
+        check_area_homeostasis(target, refracted=self._areas[target].refracted,
+                               synaptic_scaling=True)
         eps = 1e-8
 
         def _norm_stim(conn):

@@ -27,7 +27,7 @@ from .._pricing import (
     area_fiber_activity,
 )
 from .._homeostasis import (column_scale, refraction_increment,
-                            scaling_applies, scaling_setpoint, HomeostasisConfig)
+                            scaling_applies, scaling_setpoint, HomeostasisConfig, check_area_homeostasis)
 from ..engine import ComputeEngine, ProjectionResult
 from ..connectome import Connectome
 from ..projection_fidelity import ProjectionFidelity
@@ -2216,6 +2216,8 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
         return None
 
     def _scale_columns_now(self, target, from_areas, winners):
+        check_area_homeostasis(target, refracted=self._areas[target].refracted,
+                               synaptic_scaling=True)
         xp = self._xp
         cols = xp.asarray(winners, dtype=xp.int64)
         for src_name in from_areas:
@@ -2597,6 +2599,7 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
                       strength: float = 0.0) -> None:
         """Enable or disable refracted mode for an area."""
         st = self._areas[area]
+        check_area_homeostasis(area, refracted=enabled, synaptic_scaling=self.synaptic_scaling)
         st.refracted = enabled
         st.refracted_strength = strength
         if enabled and len(st._cumulative_bias) == 0:
@@ -2613,6 +2616,8 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
 
     def normalize_weights(self, target: str, source: str = None) -> None:
         """Column-normalize weights into *target* so each neuron sums to 1.0."""
+        check_area_homeostasis(target, refracted=self._areas[target].refracted,
+                               synaptic_scaling=True)
         self.invalidate_csr_drive()
         xp = self._xp
         eps = 1e-8

@@ -705,3 +705,26 @@ protocol adapters must explicitly decode the configuration they consume.
 Rust provides validated configuration transport, not model execution. There is
 no Lean lowering, backend refinement proof or complete assembly-program schema
 implied by this bridge. Historical protocol documents retain their existing schema.
+
+
+<a id="contract-refraction-boundary"></a>
+
+## Refraction and normalization mutation boundaries
+
+`core._homeostasis.check_area_homeostasis` guards direct sampled-NumPy and Torch
+refraction setters and normalization operations as well as Brain configuration.
+A refracted target rejects explicit column normalization regardless of its configured
+scaling scope. The sampled scaling primitive rechecks current target state, so
+previously queued work cannot normalize a target made refracted after scheduling.
+A rejected queued fiber remains pending; this does not promise whole-queue rollback.
+
+`Brain.set_refracted` dispatches to the area's owning engine and updates public
+state only after backend acceptance. Unsupported primary/auxiliary dense-engine
+requests therefore leave the descriptor unchanged. `Brain.normalize_weights`
+also routes to the owning engine. No new normalization capability is implied for
+backends that do not implement it.
+
+Controls exercise direct and facade rejection, unchanged weights and descriptors,
+queued-work retention, and legal normalization after disabling refraction. GPU
+execution remains unverified. These boundaries do not make arbitrary direct
+mutation of legacy fields safe or provide rollback for unrelated backend failures.

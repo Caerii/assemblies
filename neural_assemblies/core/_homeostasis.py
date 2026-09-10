@@ -273,7 +273,9 @@ def check_area_homeostasis(area_name: str, *, refracted: bool,
                            synaptic_scaling: ScalingSpec) -> None:
     """Refuse the one combination the audit showed destroys an area.
 
-    Raised from `Brain.add_area` and `Brain.set_refracted`, so a refracted
+    Specification: neural_assemblies/ir/VERIFICATION.md#contract-refraction-boundary
+
+    Used at Brain configuration and backend mutation boundaries, so a refracted
     area inside a scaled brain has to be excluded from scaling EXPLICITLY
     (``synaptic_scaling={other areas}``) rather than silently confounded.
     """

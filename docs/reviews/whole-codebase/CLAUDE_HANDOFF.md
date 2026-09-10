@@ -438,3 +438,12 @@ and Rust use one packaged schema and 19-case corpus; the runner control compares
 recorded configuration with the instantiated engine. CPU gate: 679 passed,
 1 skipped; both Rust corpus tests passed. This is configuration transport, not
 Rust execution or a Lean backend proof. See [validation](VALIDATION.md).
+
+
+### Refraction mutation guards
+
+Direct engine setters/normalizers now share the refraction/scaling conflict guard.
+Brain routes through area ownership and publishes refraction after acceptance;
+deferred scaling retains rejected work. Six failures reproduced; focused checks
+68 passed; expanded CPU gate 695 passed, 3 skipped. Torch guard changes need CUDA
+gates; no whole-queue rollback claim. See [validation](VALIDATION.md).

@@ -179,3 +179,55 @@ def test_homeostasis_config_is_immutable_and_composes_with_constructors():
 def test_empty_scaling_scope_canonicalizes_to_disabled():
     from neural_assemblies import HomeostasisConfig
     assert HomeostasisConfig(synaptic_scaling=[]) == HomeostasisConfig(synaptic_scaling=False)
+
+
+@pytest.mark.parametrize('scope', [True, {'A'}])
+def test_direct_engine_refraction_cannot_bypass_scaling_conflict(scope):
+    from neural_assemblies.core.numpy_engine import NumpySparseEngine
+    from neural_assemblies.core._homeostasis import HomeostasisConflict
+    engine = NumpySparseEngine(p=.1, synaptic_scaling=scope)
+    engine.add_area('A', 20, 2, .1)
+    with pytest.raises(HomeostasisConflict):
+        engine.set_refracted('A', True, .1)
+    assert not engine._areas['A'].refracted
+    assert engine._areas['A'].refracted_strength == 0
+
+
+@pytest.mark.parametrize('surface', ['brain', 'engine'])
+def test_refracted_target_rejects_explicit_normalization(surface):
+    from neural_assemblies.core._homeostasis import HomeostasisConflict
+    brain = Brain(p=.1, norm_init=False, engine='numpy_sparse')
+    brain.add_area('A', 20, 2, .1)
+    brain.materialize_area('A')
+    weights = np.full((20, 20), 2, dtype=np.float32)
+    brain.connectomes['A']['A'].weights = weights
+    brain.set_refracted('A', True, .1)
+    before = weights.copy()
+    caller = brain if surface == 'brain' else brain._engine
+    with pytest.raises(HomeostasisConflict):
+        caller.normalize_weights('A')
+    np.testing.assert_array_equal(brain.connectomes['A']['A'].weights, before)
+
+
+@pytest.mark.parametrize('primary', ['numpy_explicit', 'numpy_sparse'])
+def test_unsupported_refraction_does_not_change_brain_descriptor(primary):
+    brain = Brain(p=.1, norm_init=False, engine=primary)
+    brain.add_area('A', 20, 2, .1, explicit=True)
+    with pytest.raises(NotImplementedError):
+        brain.set_refracted('A', True, .1)
+    assert not brain.areas['A'].refracted
+    assert brain.areas['A'].refracted_strength == 0
+
+
+def test_unscaled_refraction_and_nonrefracted_normalization_remain_available():
+    brain = Brain(p=.1, norm_init=False, engine='numpy_sparse', synaptic_scaling={'B'})
+    brain.add_area('A', 20, 2, .1)
+    brain.add_area('B', 20, 2, .1)
+    brain.materialize_area('A')
+    brain.set_refracted('A', True, .1)
+    assert brain._engine._areas['A'].refracted
+    brain.set_refracted('A', False)
+    weights = np.full((20, 20), 2, dtype=np.float32)
+    brain.connectomes['A']['A'].weights = weights
+    brain.normalize_weights('A')
+    np.testing.assert_allclose(brain.connectomes['A']['A'].weights.sum(axis=0), 1, atol=1e-6)

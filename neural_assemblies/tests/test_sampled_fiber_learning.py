@@ -105,3 +105,23 @@ def test_fixed_target_uses_public_cap_instead_of_stale_backend_cap():
     b.project({}, {"A": ["T"]})
     np.testing.assert_array_equal(b._engine.get_winners("T"), [6, 7])
     np.testing.assert_array_equal(b.areas["T"].winners, [6, 7])
+
+
+
+def test_deferred_scaling_cannot_normalize_a_now_refracted_target():
+    from neural_assemblies.core._homeostasis import HomeostasisConflict
+    b = make_brain(scaling=True, deferred=True)
+    b.project({}, {"A": ["T"]})
+    engine = b._engine
+    before = b.connectomes["A"]["T"].weights.copy()
+    pending = set(engine._pending_scaling[("A", "T")])
+    # Reconfiguration leaves earlier work queued. It must not bypass the
+    # incompatibility merely because the operation was scheduled earlier.
+    engine.synaptic_scaling = False
+    engine.set_refracted("T", True, .1)
+    with pytest.raises(HomeostasisConflict):
+        engine.flush_synaptic_scaling()
+    np.testing.assert_array_equal(b.connectomes["A"]["T"].weights, before)
+    assert engine._pending_scaling[("A", "T")] == pending
+    engine.set_refracted("T", False)
+    assert engine.flush_synaptic_scaling() == 1

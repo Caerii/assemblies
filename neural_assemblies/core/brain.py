@@ -1058,14 +1058,13 @@ class Brain:
         fires, its bias grows, making it progressively harder to fire
         again.  Distinct from LRI (sliding-window penalty).
         """
-        if enabled:
-            check_area_homeostasis(
-                area_name, refracted=True,
-                synaptic_scaling=getattr(self._engine, "synaptic_scaling",
-                                         False))
-        self.areas[area_name].refracted = enabled
-        self.areas[area_name].refracted_strength = strength
-        self._engine.set_refracted(area_name, enabled, strength)
+        area = self.areas[area_name]
+        engine = self._engine_for(area)
+        check_area_homeostasis(area_name, refracted=enabled,
+                               synaptic_scaling=getattr(engine, "synaptic_scaling", False))
+        engine.set_refracted(area_name, enabled, strength)
+        area.refracted = enabled
+        area.refracted_strength = strength
 
     def clear_refracted_bias(self, area_name: str) -> None:
         """Reset accumulated refracted bias to zero for an area."""
@@ -1273,7 +1272,7 @@ class Brain:
         If *source* is given, only that connection is normalized.
         Otherwise all connections into *target* are normalized.
         """
-        self._engine.normalize_weights(target, source)
+        self._engine_for(self.areas[target]).normalize_weights(target, source)
 
     def project_rounds(self, target, areas_by_stim, dst_areas_by_src_area, rounds):
         """Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-projection-rounds
