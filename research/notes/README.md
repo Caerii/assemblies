@@ -53,7 +53,8 @@ sections of the notes use variants.
 | Substrate | built | two kernel layouts, one per density regime, gated on the drive | [DESIGN_present_only.md](substrate/DESIGN_present_only.md) |
 | Sampler audit | measured | two of three audited entries stand materialized; the load window's lower edge was the sampler's | [PREREG_sampler_audit.md](sequence/PREREG_sampler_audit.md) |
 | Successor state | closed, negative | a state teacher-forced toward its next h words carries nothing across two distractors (+0.000 and +0.003 over a bigram) | [PREREG_successor_state.md](sequence/PREREG_successor_state.md) |
-| Temporal memory | running | the transducer rebuilt as the literature's temporal memory: state = previous arc, predicted neurons win | [PREREG_temporal_memory.md](sequence/PREREG_temporal_memory.md) |
+| Temporal memory | adopted | with the previous arc as state and predicted neurons winning, the transducer carries agreement across two and three distractors (+0.149 and +0.106 over a bigram) and predicts order-10 sequences exactly inside the clip window | [PREREG_temporal_memory.md](sequence/PREREG_temporal_memory.md) |
+| Feature register | running | a structured slot (REG area written by gated words) beside the temporal memory, same corpus and seeds | [PREREG_feature_register.md](sequence/PREREG_feature_register.md) |
 
 ## Refracted memory
 
@@ -180,7 +181,17 @@ corpus it carries nothing (a recorded negative result, in agreement with
 the temporal-memory literature, which merges contexts by their future
 only with EM or gradients). [PREREG_temporal_memory.md](sequence/PREREG_temporal_memory.md)
 takes the design every local-rule sequence model converged on instead:
-the state is the previous arc and predicted arc neurons win.
+the state is the previous arc and predicted arc neurons win. That one
+works and is adopted as `SEQ-TEMPORAL-CARRY`: +0.149 over the bigram at
+two distractors (72 percent of the oracle gap), +0.106 at three (60
+percent), replicated on twenty fresh seeds; the copy state alone carries
+nothing. The mechanism came out half as registered: the arc at a
+distractor holds number-specific, distractor-invariant cells (0.25 of k
+shared with same-number sentences against 0.03 for the other number at
+g = 1), but those cells are already there at g = 0 (contrast 0.11);
+predicted-win doubles their share and puts them within the readout's
+reach. Inside the presentation window (20 of the clip edge 31.4) the
+transducer also continues order-10 sequences exactly on every brain.
 
 **Code.** `HashedTransducer` in `core/torch_engine/_hashed_transducer.py`.
 

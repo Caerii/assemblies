@@ -12,6 +12,7 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 | [`SEQ-TM`](#seq-tm) | PROVED | A Turing machine is simulable by an FSM plus three-area tape cycles, about ten areas in total. |
 | [`SEQ-REGIME-CLIFF`](#seq-regime-cliff) | MEASURED | Crossing the kp >= 3 ln n floor is a CLIFF, not a slope: below it recovery is almost never exact and the machine fails; above it every seed runs correctly. |
 | [`SEQ-EXACT-RECOVERY`](#seq-exact-recovery) | MEASURED | The state area is a DISCRETE attractor: k-WTA maps a whole neighbourhood onto exactly one stored assembly in one step. |
+| [`SEQ-TEMPORAL-CARRY`](#seq-temporal-carry) | MEASURED | A transducer whose STATE is its previous arc (state_mode='copy') and whose PREDICTED arc neurons win (the lateral ARC -> ARC fiber's top-k above half its maximum get (1 + g) x drive, g = 1) carries a feature across distractors by local rules alone. |
 | [`ARC-CONJUNCT-EXPOSURE`](#arc-conjunct-exposure) | MEASURED | A conjunction area collapses onto whichever conjunct is exposed more often, unless an opposing force (refraction) is present. |
 | [`REFRACTION-PROPORTIONAL`](#refraction-proportional) | MEASURED | Refraction must charge in proportion to the winner's raw drive. |
 | [`REFRACTION-NEEDS-LOAD`](#refraction-needs-load) | MEASURED | A refracted conjunction area has a CEILING in load M*k/n: above ~1.3 its conjunctions do not fit (10/10 correct at load 1.26, 0/10 at 1.80). |
@@ -146,6 +147,27 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 5. PRESENTATIONS HAVE A WINDOW: 8 unformed (95% soft), 15 in the window (0.06%, the two tails just touching), 30 RELOCATED (soft rate doubled, 12% of words derail). Relocation is the CLIP: at strength = beta refraction cancels potentiation exactly, a member's net drive is pinned at its base value, and the cancellation ends when its weight clips -- the best-connected members fall first (99% of lost arc neurons clipped vs 12% of kept); c* = ln(w_max max(1, k p) / base) / ln(1 + beta) ~ 28-30 here.
 6. STRENGTH IS PINNED AT BETA (Addendum 6, 300 organs): below it the cross-context bias no longer cancels the state-shared neurons' potentiation and the arc collapses onto the state conjunct (0.05: across-symbol overlap 0.63; 0.08: soft rate 18x); above it a member's net decays and relocates. The transducer at half beta is worse on every count (A3 Amendment 2), so its null is structural.
 7. THE FIX IS THE GAIN (Addendum 7): trained just below the clip edge (20 and 24 presentations, ~0.7-0.85 c*) the organ is EXACT -- 0 soft pairs in 24,000 and 0 derailments on 100 S5 organs at each. In-degree normalisation cut the 15-presentation rate 3.7x by reweighting the conjuncts (STATE -> ARC in-degree 3,360 vs the stimulus's 16,000), not through the tail.
+
+## SEQ-TEMPORAL-CARRY
+
+**Status.** MEASURED. **Source.** This repository; PREREG_temporal_memory.md (cells A and B, Amendments 1-2, bars TM-1 to TM-9); the design is the literature's temporal memory (predictive cells win) rebuilt on the refracted-arc transducer.
+
+**Claim.** A transducer whose STATE is its previous arc (state_mode='copy') and whose PREDICTED arc neurons win (the lateral ARC -> ARC fiber's top-k above half its maximum get (1 + g) x drive, g = 1) carries a feature across distractors by local rules alone. On the agreement chain corpus it beats a bigram by 0.149 MRR with two distractors between the agreeing words (72% of the oracle gap; twenty fresh seeds replicate +0.148 to the third digit) and by 0.106 with three (60%); the copy state alone carries nothing (-0.002), and reading with the state area empty loses the whole gain (+0.146 full minus blind). MECHANISM AS MEASURED: at a distractor position the arc shares 0.25 of k with a sentence of the same subject number and another distractor, against 0.03 for the other number -- number-specific, distractor-invariant cells; that contrast is already 0.11 at g = 0, so the copy state puts the cells there (a conjunction inherits part of its state conjunct) and predicted-win doubles their share and brings them within the ARC -> OUT readout's reach. ORDER: two twelve-word sequences sharing ten words are continued correctly on 20 of 20 brains by the induced state and by the copy state at 20 presentations (19 of 20 with predicted-win at g = 4), and forgotten past the clip edge c* = ln(20) / ln(1.1) = 31.4 presentations, where the sequence stimuli relocate the arcs.
+
+**Requires.**
+- hashed substrate, twenty brains per cell, n = n_arc = 10,000, k = 200, organ_p = 0.2, beta = 0.1, arc strength at beta
+- presentations inside the clip window for the order result (20 of c* = 31.4)
+- a corpus whose oracle gap is large enough to measure: 0.21 at gap 2, 0.18 at gap 3 (PREREG_agreement_corpus.md)
+
+**Evidence.**
+- seq_a3_transducer.py --temporal, gap 2, seeds 42-61: g = 1 +0.148 +/- 0.009, g = 4 +0.140, g = 0 -0.001 (results_temporal_chain_gap2.json)
+- fresh seeds 62-81 (_amend2_fresh): +0.149 +/- 0.009, lower bound 0.141 against the 0.085 bar; same-number minus different-number arc overlap 0.220 +/- 0.020 at g = 1 (bar 0.10), 0.111 +/- 0.003 at g = 0 (registered 'within 0.02': FAIL)
+- gap 3, seeds 42-61 (_amend2_gap3): +0.106 +/- 0.011, lower bound 0.095 against the 0.070 bar
+- seq_tm_high_order.py --presentations 20: sets I-III exact on the induced and copy arms; at 40 presentations set III falls to 1 of 20 on every arm (results in research/results/sequence/)
+
+**Used by.** `neural_assemblies/core/torch_engine/_hashed_transducer.py`
+
+**Caveat.** A mechanism result on a synthetic corpus, not a language model: no baseline beyond bigram and oracle, no scaling curve in n, and the carry's decay with the gap has two points (72%, 60%). The registered mechanism clause said the predicted set CREATES the number-specific cells; it does not (they exist at g = 0), it amplifies them -- the entry states the measured version. The predicted-win rule is a gain on a lateral fiber applied at selection, not a plasticity rule. The successor-state construction (state teacher-forced toward the next h words) carries nothing on the same corpus (PREREG_successor_state.md).
 
 ## ARC-CONJUNCT-EXPOSURE
 
