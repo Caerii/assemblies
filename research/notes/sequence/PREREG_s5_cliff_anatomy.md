@@ -27,6 +27,18 @@
 
 ![overlap of the test-time arc with the arc at each training presentation, 15 versus 30 presentations](../figures/organ_arc_drift.png)
 
+*For one transition, the arc the trained organ produces at test against
+the arc it produced at each training presentation: trained for 15, the
+test arc matches every presentation from the second on; trained for 30, it
+matches none well, because the arc relocated late in training.*
+
+![across-symbol and across-state arc overlap against refraction strength (Addendum 6)](../figures/organ_strength_pinned.png)
+
+*The arc should be a conjunction: assemblies for the same state under
+different symbols should not overlap (red), nor for the same symbol under
+different states (blue). Mean over 100 organs against strength; both are
+small only at beta.*
+
 Registered before implementing or running. Follows `6276685`, where the S5
 per-step readout falsified both amendment bars and showed the failure mode is
 a CLIFF: `step@500` equals `first_bad/500` to within 0.004 on every group --

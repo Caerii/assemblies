@@ -28,6 +28,19 @@
 
 ![ceiling M* against n/k for both arms, with the 0.40 (n/k)² and 0.017 (n/k)² lines; open markers are out-of-regime cells](../figures/memory_ceiling_vs_nk.png)
 
+*Each point is one (n, k) cell's ceiling on log axes; slope two is a
+square law; hollow points are cells below k p >= 3 ln n.*
+
+![recall, the fraction of items converging within the write, and the rounds each write took, against stored items, with the convergence gate on](../figures/memory_gate_U.png)
+
+*How to read it (Amendments 5 and 6): with the gate on, an item's write
+ends as soon as its winners stop changing, within a budget of eight
+rounds. Top: recall from a half cue. Middle: the fraction of items whose
+winners did stop changing within the budget. Bottom: the mean number of
+rounds a write took, eight meaning it never settled. Recall fails where
+the middle curve falls: the ceiling is the load at which items no longer
+converge within the budget.*
+
 Registered before running. Owed by PREREG_refraction_capacity.md's
 re-measurement (2026-09-04): with the substrate's selector fixed
 (1b475fc), a recurrent k-WTA area refracted at 0.5 beta and read with the

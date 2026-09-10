@@ -69,7 +69,19 @@ ceiling by 24 to 34 percent (two cells).
 
 ![half-cue recall against stored items: control, refracted, gated](figures/memory_recall_vs_M.png)
 
+*How to read it: horizontal, how many assemblies have been stored (log
+scale); vertical, the fraction of sampled items that return from half a
+cue; bands, the 10th to 90th percentile over twenty brains. Grey is
+Hebbian plasticity alone; blue the same area refracted at half beta; red
+the refracted area with each write ended as soon as its winners stop
+changing.*
+
 ![ceiling against n/k with the 0.40 (n/k)² line](figures/memory_ceiling_vs_nk.png)
+
+*How to read it: each point is one (n, k) cell's ceiling, the number of
+stored items at which recall crosses one half; both axes are logarithmic,
+so a straight line of slope two is a square law. Hollow points are cells
+below the regime floor k p >= 3 ln n.*
 
 **Evidence.** Twenty brains per cell, grids to 16,384 items, seven (n, k)
 cells; [PREREG_refraction_memory.md](memory/PREREG_refraction_memory.md), Result
@@ -100,7 +112,36 @@ its members before training finishes.
 
 ![soft-transition rate against presentations and against strength](figures/organ_soft_rate.png)
 
+*How to read it: a soft transition is one whose label is right but whose
+output assembly has one wrong neuron. Left, the rate against how many
+times each transition was presented during training, at strength beta;
+right, against refraction strength at 15 presentations. Blue is the rate
+on a log scale, with zeros marked; red bars count the test words of 100
+that went to a wrong label within 500 steps.*
+
 ![overlap of the test-time arc with the arc at each presentation](figures/organ_arc_drift.png)
+
+*How to read it: for one transition, the arc assembly the trained organ
+produces at test is compared with the arc it produced at each training
+presentation. Blue, trained for 15 presentations: the test arc matches
+every presentation from the second on. Red, trained for 30: it matches
+none of them well, because the arc relocated late in training.*
+
+![order-10 prediction against presentation, with the clip edge](figures/organ_order10_window.png)
+
+*How to read it: two twelve-word sequences share their middle ten words;
+the vertical axis is the fraction of twenty brains that predict the right
+continuation at those ambiguous positions, against how many times the
+pair was presented. The dotted line is the presentation at which a
+synapse potentiated once per presentation reaches the weight ceiling.*
+
+![the conjunction's two collapses against refraction strength](figures/organ_strength_pinned.png)
+
+*How to read it: the arc is meant to be a conjunction of state and
+symbol, so its assemblies for the same state under different symbols
+should not overlap (red), nor its assemblies for the same symbol under
+different states (blue). Each curve is the mean overlap over 100 organs
+against the arc's refraction strength; beta is 0.1.*
 
 **Evidence.** [DESIGN_sequence_port.md](sequence/DESIGN_sequence_port.md) for the
 port and its gates; [PREREG_s5_cliff_anatomy.md](sequence/PREREG_s5_cliff_anatomy.md),

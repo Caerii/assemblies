@@ -50,6 +50,15 @@ sampled engine and records the materialized numbers beside it.
           ceiling.
     SA-3  SEQ-ORGAN-EMBEDS.  organ at organ_p: 10/10; ambient only: 0/10.     PASS
 
+![sampled against explicit: the horizon's first error per seed, the soft-transition rate with derailments, and correctness against arc load](../figures/sampler_artifacts.png)
+
+*How to read it: red is the lazily drawn engine, blue the explicit one
+(materialized numpy, or the hashed substrate). Left, the first wrong step
+per brain over 2000 digits, 2001 meaning none. Middle, the fraction of
+transitions that are soft, with the number of test words of 40 that went
+wrong written above. Right, correct seeds of ten against arc load in the
+single-mood arm: the red rise was the load window's lower edge.*
+
 **Reading.** Two of three entries stand and are sharper materialized. The
 third loses half its claim: the low-load failures that named the entry
 were convergence failures of the sampled engine, and on the explicit

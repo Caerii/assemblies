@@ -17,6 +17,9 @@ research artifacts.
 | [packaging.md](packaging.md) | Release workflow for the `neural-assemblies` PyPI package. |
 | [contributing.md](contributing.md) | Contributor setup and expected checks. |
 | [documentation_style.md](documentation_style.md) | Writing standards for docs in this repo. |
+| [register.md](register.md) | Every adopted result with its evidence and caveats, rendered from `neural_assemblies/theory.py`. |
+| [../research/notes/README.md](../research/notes/README.md) | The reading map for the registrations and design notes: what each line concluded, which file to open first. |
+| [../research/experiments/README.md](../research/experiments/README.md) | The active experiment scripts by line, with typical runs; results are in [../research/results/](../research/results/README.md). |
 
 ## Package Sections
 

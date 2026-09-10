@@ -130,6 +130,15 @@ Nothing is adopted from cells B as registered. An amendment with the
 presentation count inside the window (20) is registered below before
 any re-run.
 
+![accuracy at the order-10 positions against presentation, three arms, with the clip edge](../figures/organ_order10_window.png)
+
+*How to read it: the fraction of twenty brains predicting the right
+continuation after the ten shared words, against how many times the two
+sequences were presented. Blue is the registered transducer, green the
+state-as-previous-arc variant, red that variant with predicted neurons
+winning at gain 4. The dotted line is c* = ln(20) / ln(1.1) = 31.4, where a
+synapse potentiated once per presentation reaches the clip.*
+
 ## Amendment 1 (2026-09-09, before re-running): presentations inside the window
 
     TM-5'  set III at 20 presentations, induced state and copy g = 0:
