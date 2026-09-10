@@ -1418,5 +1418,18 @@ bars; changing bars still requires registration before scientific adoption.
 
 Controls vary arm/device settings, demonstrate threshold-dependent acceptance,
 and reject malformed settings before measurement. Focused capacity/runner/spec
-checks: 69 passed in27.14s. Ruff passed. Full historical control replay follows
+checks: 69 passed in 27.14s. Ruff passed. Full historical control replay follows
 before numerical equivalence is claimed for this change.
+
+
+The full capacity control reran at 1b89ac1: all 885 comparisons match the historical
+figure control, including every per-seed metric and aggregate fields. Its run,
+results and version2 comparator receipt are retained under
+research/results/runs/memory.capacity-scaling/capacity-record-consumed-20260910/.
+The registration links this replay. The [64,128) bracket remains unresolved;
+no changed scientific bars or new adoption follows from making execution consume
+its recorded inputs.
+
+Final contract workflow: 1067 passed, 1 skipped, two expected sampled warnings
+in 121.43s (.cache/capacity-consumed-contract-gate.log). Full-system completion
+and further experiment migrations remain open.

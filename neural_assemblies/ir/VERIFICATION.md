@@ -1198,7 +1198,7 @@ both artifact hashes. Earlier unversioned receipts retain their historical scope
 ## Recorded capacity settings are execution inputs
 
 The capacity experiment consumes arm_settings, device, distinct_gate and
- distinct_low_bar from the run record. These values do not fall back to module
+distinct_low_bar from the run record. These values do not fall back to module
 constants during execution. Arm settings must cover exactly the requested arms
 and explicitly name boolean norm_init and synaptic_scaling. Distinctness bars
 must be finite nonnegative numbers, with the fractional lower bar at most one.

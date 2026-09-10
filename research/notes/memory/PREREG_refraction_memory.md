@@ -649,3 +649,10 @@ ceiling fields. The bracket remains [64,128), too broad to treat interpolated
 83.4 as a resolved ceiling. This is migration evidence, not a new adoption.
 The original artifact has no run record; reconstruction inputs and their source
 are documented in docs/reviews/whole-codebase/VALIDATION.md.
+
+
+The subsequent [record-consumption replay](../../results/runs/memory.capacity-scaling/capacity-record-consumed-20260910/results.json)
+([comparison](../../results/runs/memory.capacity-scaling/capacity-record-consumed-20260910/comparison-v2.json))
+also matched all 885 comparisons after arm settings, device and distinctness bars
+were changed from implicit globals to required execution inputs from the run
+record. The registered defaults and scientific interpretation are unchanged.

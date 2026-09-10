@@ -1,0 +1,96 @@
+{
+  "engine": "hashed_assembly_memory",
+  "environment": {
+    "policy": "repository-environment-v1",
+    "variables_sha256": {
+      "ASSEMBLIES_VCVARS64": "4f8e42768dc92e11e4f32efb495020ad43e49e2dfca1322a4928d7f4dedfd1a2",
+      "ASSEMBLIES_VSWHERE": "44564d56dfa6c2af8c632137228d0b7d773445fdce24fdec8da14ca0030615f5"
+    }
+  },
+  "git_commit": "1b89ac10917ce8550fd964af1974265c0f06da3b",
+  "input_artifacts": {},
+  "mode": "study",
+  "parameters": {
+    "arm_settings": {
+      "B": {
+        "norm_init": true,
+        "synaptic_scaling": false
+      }
+    },
+    "arms": [
+      "B"
+    ],
+    "configuration": {
+      "beta": 0.1,
+      "checkpoints": [
+        8,
+        16,
+        32,
+        64,
+        128,
+        192,
+        256,
+        384,
+        512,
+        768,
+        1024
+      ],
+      "converge": false,
+      "p": 0.5,
+      "pair_sample": 200,
+      "readout": "masked",
+      "recall_sample": 32,
+      "refracted": false,
+      "refracted_factor": 1.0,
+      "rounds": 8,
+      "stim_size": null,
+      "w_max": 20.0
+    },
+    "device": "cuda",
+    "distinct_gate": 3.0,
+    "distinct_low_bar": 0.9,
+    "distinctness": "64-bit set hash; collisions possible",
+    "half_bar": 0.5,
+    "measurement_seed": 1234,
+    "nk": [
+      [
+        4000,
+        60
+      ]
+    ]
+  },
+  "protocol": "memory.capacity-scaling",
+  "protocol_version": "2",
+  "registration": "research/notes/memory/PREREG_refraction_memory.md",
+  "registration_sha256": "ce35be2590c90d9533456995be64e340666d3f382263b5129a5674a293baaebc",
+  "schema_version": 2,
+  "scientific_status": "UNJUDGED",
+  "script": "research/experiments/seq_capacity_scaling.py",
+  "script_sha256": "f9c25cc6d8ffeca1b1ecb4e36e24630e8c95d8928e959aa4143e90c86db259ba",
+  "seeds": [
+    42,
+    43,
+    44,
+    45,
+    46,
+    47,
+    48,
+    49,
+    50,
+    51,
+    52,
+    53,
+    54,
+    55,
+    56,
+    57,
+    58,
+    59,
+    60,
+    61
+  ],
+  "source_inventory": "source-inputs-v3",
+  "source_sha256": "2232bfcc26ecff4dbb904cb4c2ad1a7e1f15d77fa11f2937288b7d18ffc1e4a8",
+  "started_utc": "2026-09-10T20:17:28.610530+00:00",
+  "tag": "capacity-record-consumed-20260910"
+}
