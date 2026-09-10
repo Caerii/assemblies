@@ -922,3 +922,20 @@ This intentionally rejects duplicate-as-reset callers; no numerical kernel or
 scientific threshold changed. GPU execution, backend-specific option preflight,
 stimulus namespace rules, general transactionality, historical replays and broader
 model/compiler unification remain open.
+
+
+## Explicit winner-policy forwarding (2026-09-10)
+
+Three controls reproduced auxiliary registration dropping the descriptor's winner
+policy in both initial and lazy paths (58 passes). A shared registration helper
+now forwards dimensions, beta, LRI settings, slots, policy and input-noise setting
+to the owner. The controls distinguish threshold selection (one or zero winners)
+from the previous unconditional two-winner fallback and compare primary/auxiliary
+dense behavior. Selection arithmetic remains in the existing engine.
+
+Focused registration/IR/input checks: 114 passed. CPU workflow gate: 805 passed,
+1 skipped, two expected sampled-engine warnings in 91.79 seconds
+(`.cache/area-policy-gate.log`). Ruff and diff checks passed. This is an intentional
+behavior correction for callers whose policy was previously ignored, not adoption
+of a scientific result. Complete option-combination validation, general registration
+transactionality, GPU gates and historical replays remain open.

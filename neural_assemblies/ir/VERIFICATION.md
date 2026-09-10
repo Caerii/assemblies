@@ -818,3 +818,24 @@ The check does not validate every area option, make registration generally
 transactional, or establish GPU conformance. Stimulus namespaces and dynamic
 resizing are separate contracts. Existing failures unrelated to identity/dimensions
 may still require broader option preflight or rollback.
+
+
+<a id="contract-explicit-registration"></a>
+
+## Explicit area option forwarding
+
+Brain's initial and lazy auxiliary registration paths share
+`_register_explicit_area`. It forwards the descriptor's dimensions, beta, LRI
+settings, slots, winner policy and input noise setting to the owning dense engine.
+Backend restrictions remain authoritative; a primary mirror accepting an option
+does not establish support on the owner.
+
+Previously both paths omitted the winner policy, so a recorded threshold policy
+executed as ordinary top-k. Controls use a drive of `[9, 4, 3, 1]` with `k=2`:
+threshold five requires one winner and threshold twelve requires none. These
+outcomes distinguish policy execution from the old two-winner fallback. Primary
+and auxiliary dense paths agree; the lazy-registration branch is checked too.
+
+This preserves option meaning at registration. It does not establish complete
+failure transactionality, checkpoint restoration, or support for every combination
+of options. Numerical selection remains implemented by the existing dense engine.

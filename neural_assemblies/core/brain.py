@@ -369,10 +369,7 @@ class Brain:
         # that handles full n×n weight matrices and plasticity correctly.
         if explicit:
             explicit_eng = self._engine_for(area)  # lazily creates it
-            explicit_eng.add_area(area_name, n, k, beta,
-                                  refractory_period=refractory_period,
-                                  inhibition_strength=inhibition_strength,
-                                  slot_count=slot_count)
+            self._register_explicit_area(explicit_eng, area)
         # Share engine's connectome objects so b.connectomes[x][y] is the
         # actual object the engine reads/writes during projection.
         self._sync_engine_connectomes()
@@ -406,6 +403,15 @@ class Brain:
         """
         self.add_area(area_name, n, k, beta, explicit=True)
 
+    @staticmethod
+    def _register_explicit_area(engine, area):
+        """Specification: neural_assemblies/ir/VERIFICATION.md#contract-explicit-registration"""
+        engine.add_area(area.name, area.n, area.k, area.beta,
+                        refractory_period=area.refractory_period,
+                        inhibition_strength=area.inhibition_strength,
+                        slot_count=area.slot_count, winner_policy=area.winner_policy,
+                        input_noise_std=area.input_noise_std)
+
     def _engine_for(self, area: Area) -> ComputeEngine:
         """Return the correct engine for an area.
 
@@ -424,10 +430,7 @@ class Brain:
                 # before the first explicit area triggers engine creation)
                 for existing_name, existing_area in self.areas.items():
                     if existing_area.explicit and existing_name != area.name:
-                        self._explicit_engine.add_area(
-                            existing_name, existing_area.n, existing_area.k, existing_area.beta,
-                            slot_count=getattr(existing_area, "slot_count", 0),
-                        )
+                        self._register_explicit_area(self._explicit_engine, existing_area)
             return self._explicit_engine
         return self._engine
 

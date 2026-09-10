@@ -482,3 +482,12 @@ names raise before replacing populations; invalid counts preserve RNG/state; Num
 integer counts canonicalize. The new suite is in CPU CI. Initial controls: 54
 failures; final workflow gate: 800 passed, 1 skipped. CUDA and other registration
 options remain open. See [validation](VALIDATION.md).
+
+
+### Explicit winner-policy forwarding
+
+Initial and lazy auxiliary registration now share one helper and retain the
+requested winner policy. Threshold controls previously returned two winners where
+one or none was required. Three failures reproduced; focused checks 114 passed;
+CPU gate 805 passed, 1 skipped. No selection kernel was duplicated or changed.
+See [validation](VALIDATION.md).

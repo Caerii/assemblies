@@ -70,3 +70,28 @@ def test_standalone_area_uses_the_same_dimension_contract():
         Area('A', 2, 3, .1)
     area = Area('A', np.int64(20), np.int64(2), .1)
     assert type(area.n) is int and type(area.k) is int
+
+
+@pytest.mark.parametrize('explicit', [False, True])
+@pytest.mark.parametrize('threshold,expected', [(5, [0]), (12, [])])
+def test_winner_policy_controls_primary_and_auxiliary_dense_selection(explicit, threshold, expected):
+    from neural_assemblies import ThresholdPolicy
+    policy = ThresholdPolicy(k=2, threshold=threshold)
+    brain = Brain(p=.1, norm_init=False, engine='numpy_sparse' if explicit else 'numpy_explicit')
+    brain.add_area('T', 4, 2, explicit=explicit, winner_policy=policy)
+    brain.project(external_drive={'T': [9, 4, 3, 1]})
+    assert brain.areas['T'].winners.tolist() == expected
+    assert brain._engine_for(brain.areas['T'])._areas['T'].winner_policy == policy
+
+
+def test_lazy_explicit_registration_preserves_descriptor_policy():
+    from neural_assemblies import Area, ThresholdPolicy
+    policy = ThresholdPolicy(k=2, threshold=5)
+    brain = Brain(p=.1, norm_init=False, engine='numpy_sparse')
+    # Exercise the existing lazy-registration branch for pending descriptors.
+    brain.areas['T'] = Area('T', 4, 2, .1, explicit=True, winner_policy=policy)
+    pending = Area('new', 4, 2, .1, explicit=True)
+    owner = brain._engine_for(pending)
+    result = owner.project_into('T', [], [], external_drive=[9, 4, 3, 1])
+    assert result.winners.tolist() == [0]
+    assert owner._areas['T'].winner_policy == policy
