@@ -35,7 +35,7 @@ from collections import defaultdict
 
 from .backend import get_xp, to_cpu, detect_best_engine
 from .engine import ComputeEngine, create_engine
-from .registration import validate_area_registration
+from .registration import validate_area_registration, validate_stimulus_registration
 from ._homeostasis import HomeostasisConfig, check_area_homeostasis, validate_lri_parameters
 from .index_spaces import CompactIdx, to_neuron_ids, validated_indices
 
@@ -328,7 +328,7 @@ class Brain:
             refracted_strength (float): Magnitude of per-firing bias
                 increment in refracted mode.
         """
-        n, k = validate_area_registration(area_name, n, k, existing=self.areas)
+        n, k = validate_area_registration(area_name, n, k, existing=self.areas, reserved=self.stimuli)
         # Specification: neural_assemblies/ir/VERIFICATION.md#contract-refraction-registration
         if refracted:
             owner_type = type(self._engine)
@@ -385,6 +385,8 @@ class Brain:
             stimulus_name (str): Name of the stimulus.
             size (int): Number of firing neurons in the stimulus.
         """
+        size = validate_stimulus_registration(stimulus_name, size,
+                                             existing=self.stimuli, reserved=self.areas)
         stimulus = Stimulus(stimulus_name, size)
         self.stimuli[stimulus_name] = stimulus
         self.connectomes_by_stimulus[stimulus_name] = {}

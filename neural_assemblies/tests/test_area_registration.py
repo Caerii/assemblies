@@ -138,3 +138,41 @@ def test_standalone_slot_selection_cannot_discard_trailing_neurons():
     from neural_assemblies.compute.winner_selection import select_slot_winners
     with pytest.raises(ValueError, match='partition'):
         select_slot_winners(np.array([0, 0, 0, 0, 100]), 2, 2)
+
+
+@pytest.mark.parametrize('name,size', [('', 2), ('B', -1), ('B', 1.5), ('B', True), ('B', '2'), ('A', 2)])
+def test_invalid_stimulus_registration_preserves_state(surface, name, size):
+    brain, caller = surface
+    before = rng_states(brain)
+    with pytest.raises(ValueError):
+        caller.add_stimulus(name, size)
+    assert not brain.stimuli and not brain._engine._stimuli
+    assert rng_states(brain) == before
+
+
+def test_duplicate_stimulus_preserves_source_learning_rate(surface):
+    brain, caller = surface
+    caller.add_stimulus('s', 2)
+    state = brain._engine._stimuli['s']
+    brain._engine.set_beta('A', 's', .37)
+    before = rng_states(brain)
+    with pytest.raises(ValueError, match='already registered'):
+        caller.add_stimulus('s', 3)
+    assert brain._engine._stimuli['s'] is state
+    assert brain._engine.get_beta('A', 's') == .37
+    assert rng_states(brain) == before
+
+
+def test_stimulus_name_cannot_be_reused_for_an_area(surface):
+    brain, caller = surface
+    caller.add_stimulus('s', 2)
+    with pytest.raises(ValueError):
+        caller.add_area('s', 20, 2, .1)
+    assert 's' not in brain.areas and 's' not in brain._engine._areas
+
+
+def test_empty_stimulus_is_valid_and_numpy_size_is_canonical(surface):
+    brain, caller = surface
+    caller.add_stimulus('empty', np.int64(0))
+    assert type(brain._engine._stimuli['empty'].size) is int
+    assert brain._engine._stimuli['empty'].size == 0

@@ -802,7 +802,7 @@ is declared from the implementation but still requires the external CUDA gates.
 
 `core.registration.validate_area_registration` is the nonmutating preflight used
 by Brain, standalone Area construction and NumPy/Torch area-registration methods.
-Names must be nonempty strings and absent from the applicable area registry.
+Names must be nonempty strings and absent from both node registries.
 Population size and cap size must be nonboolean integers with
 `0 < k <= n <= 2**32`; the upper population limit keeps every neuron ID representable
 at the shared uint32 boundary. Accepted NumPy integer scalars become Python ints.
@@ -815,8 +815,8 @@ and the logical ID-width limit are checked without allocating a huge population.
 The requested size may still exceed available memory or a backend's tighter limit.
 
 The check does not validate every area option, make registration generally
-transactional, or establish GPU conformance. Stimulus namespaces and dynamic
-resizing are separate contracts. Existing failures unrelated to identity/dimensions
+transactional, or establish GPU conformance. Stimulus registration is specified
+below; dynamic resizing remains a separate contract. Existing failures unrelated to identity/dimensions
 may still require broader option preflight or rollback.
 
 
@@ -862,3 +862,27 @@ and reject a trailing-neuron layout even through the standalone selector.
 This changes previously ignored or ambiguous requests into errors; it does not
 add a new selection algorithm or make direct mutation of registered legacy fields
 safe. General option preflight and GPU conformance remain open.
+
+
+<a id="contract-stimulus-registration"></a>
+
+## Stimulus registration and shared source names
+
+`core.registration.validate_stimulus_registration` is the nonmutating preflight
+used by Brain, standalone Stimulus construction and NumPy/Torch registration.
+Stimulus sizes are nonboolean integers in `[0, 2**32]`, canonicalized to Python
+ints. Zero is a valid null stimulus; the upper limit matches the uint32 ID space
+and does not promise that an allocation of that size will fit in memory.
+
+Area and stimulus names must be nonempty strings and disjoint. Backend learning
+rates and connection-probability overrides are keyed by source name, so allowing
+the same name for both node kinds cannot represent independent source settings.
+Duplicate registration raises rather than replacing connectivity or resetting a
+learned source's rate. Validation precedes descriptor publication, wiring and RNG
+consumption. Controls cover Brain and direct calls on all three NumPy engines,
+including preservation of a previously customized source rate and RNG streams.
+
+This intentionally rejects formerly accepted ambiguous names and replacement
+calls. It does not make allocation failures transactional or validate mutations
+made directly to legacy dictionaries. Torch uses the same preflight, but GPU
+execution conformance remains a separate gate.

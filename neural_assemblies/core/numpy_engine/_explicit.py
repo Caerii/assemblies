@@ -11,7 +11,7 @@ from collections import defaultdict
 
 from ..backend import get_xp, to_cpu
 from ..engine import ComputeEngine, ProjectionResult
-from ..registration import validate_area_registration, validate_slot_configuration
+from ..registration import validate_stimulus_registration, validate_area_registration, validate_slot_configuration
 from ..connectome import Connectome
 from ..index_spaces import validated_indices
 
@@ -102,7 +102,7 @@ class NumpyExplicitEngine(ComputeEngine):
         cannot run on the exact-drive engine is a rule whose results cannot be
         checked (#94). `input_noise_std` is refused loudly instead of ignored.
         """
-        n, k = validate_area_registration(name, n, k, existing=self._areas)
+        n, k = validate_area_registration(name, n, k, existing=self._areas, reserved=self._stimuli)
         slot_count = validate_slot_configuration(n, slot_count, winner_policy)
         _reject_unsupported(
             f"NumpyExplicitEngine.add_area({name!r})", self._UNSUPPORTED_AREA,
@@ -137,6 +137,8 @@ class NumpyExplicitEngine(ComputeEngine):
                 other.beta_by_source[name] = beta
 
     def add_stimulus(self, name: str, size: int) -> None:
+        size = validate_stimulus_registration(name, size, existing=self._stimuli,
+                                             reserved=self._areas)
         self._stimuli[name] = StimulusState(name=name, size=size)
         for area_name, area in self._areas.items():
             conn = Connectome(size, area.n, self.p, sparse=False,

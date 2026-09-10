@@ -29,7 +29,7 @@ from .._pricing import (
 from .._homeostasis import (column_scale, refraction_increment,
                             scaling_applies, scaling_setpoint, HomeostasisConfig, check_area_homeostasis, validate_lri_parameters)
 from ..engine import ComputeEngine, ProjectionResult
-from ..registration import validate_area_registration
+from ..registration import validate_stimulus_registration, validate_area_registration
 from ..connectome import Connectome
 from ..projection_fidelity import ProjectionFidelity
 
@@ -674,7 +674,7 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
                  inhibition_strength: float = 0.0,
                  winner_policy=None,
                  input_noise_std: float = 0.0) -> None:
-        n, k = validate_area_registration(name, n, k, existing=self._areas)
+        n, k = validate_area_registration(name, n, k, existing=self._areas, reserved=self._stimuli)
         refractory_period, inhibition_strength = validate_lri_parameters(
             refractory_period, inhibition_strength)
         xp = self._xp
@@ -720,6 +720,8 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
                 other.beta_by_source[name] = beta
 
     def add_stimulus(self, name: str, size: int) -> None:
+        size = validate_stimulus_registration(name, size, existing=self._stimuli,
+                                             reserved=self._areas)
         xp = self._xp
         self._stimuli[name] = StimulusState(name=name, size=size)
         self._stim_conn_version += 1

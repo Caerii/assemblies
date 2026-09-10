@@ -499,3 +499,14 @@ Primary dense areas now receive their slot count. Shared validation rejects
 uneven partitions, malformed counts and unsupported multi-slot/custom-policy
 combinations before registration. Fourteen failures reproduced; focused checks
 103 passed; CPU gate 821 passed, 1 skipped. See [validation](VALIDATION.md).
+
+
+### Stimulus registration and shared source names
+
+Brain and backend registration now reject duplicate stimuli, invalid sizes and
+area/stimulus name collisions before wiring or RNG use. Source learning rates
+share a name-keyed map, making the disjoint namespace necessary with the current
+representation. Zero-sized null stimuli remain valid. Fifty-four failures
+reproduced; focused checks 131 passed; CPU gate 875 passed, 1 skipped.
+Torch shares the preflight; its execution gate remains yours. See
+[validation](VALIDATION.md) and the API guide for the compatibility change.

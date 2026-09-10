@@ -37,7 +37,7 @@ from .._homeostasis import (HomeostasisConfig, check_area_homeostasis, validate_
                             scaling_setpoint)
 from ..connectome import Connectome
 from ..engine import ComputeEngine, ProjectionResult
-from ..registration import validate_area_registration
+from ..registration import validate_stimulus_registration, validate_area_registration
 
 try:
     from ...compute.sparse_simulation import SparseSimulationEngine
@@ -331,7 +331,7 @@ class TorchSparseEngine(ComputeEngine):
                  inhibition_strength: float = 0.0,
                  winner_policy=None,
                  input_noise_std: float = 0.0) -> None:
-        n, k = validate_area_registration(name, n, k, existing=self._areas)
+        n, k = validate_area_registration(name, n, k, existing=self._areas, reserved=self._stimuli)
         refractory_period, inhibition_strength = validate_lri_parameters(
             refractory_period, inhibition_strength)
         area = TorchAreaState(
@@ -372,6 +372,8 @@ class TorchSparseEngine(ComputeEngine):
                 other.beta_by_source[name] = beta
 
     def add_stimulus(self, name: str, size: int) -> None:
+        size = validate_stimulus_registration(name, size, existing=self._stimuli,
+                                             reserved=self._areas)
         self._stimuli[name] = StimulusState(name=name, size=size)
         for area_name, area in self._areas.items():
             conn = TorchConn(

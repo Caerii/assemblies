@@ -47,6 +47,14 @@ b.add_area("A", n=10_000, k=100, beta=0.05)
 b.project({"stim": ["A"]}, {})
 ```
 
+Registration requires unique, nonempty names across both areas and stimuli.
+Registering an existing name raises `ValueError`; it does not reset or resize a
+population. Area dimensions require integer `0 < k <= n <= 2**32`; stimulus sizes
+require integer `0 <= size <= 2**32`. Boolean counts are rejected. A zero-sized
+stimulus is allowed as a null input. These logical limits do not guarantee that
+an allocation fits in memory. See the source-linked
+[registration contract](../neural_assemblies/ir/VERIFICATION.md#contract-stimulus-registration).
+
 Main objects:
 
 | Object | Location | Role |

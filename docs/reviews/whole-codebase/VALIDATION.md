@@ -959,3 +959,25 @@ high-drive trailing neuron. Focused checks: 103 passed. CPU workflow gate:
 selection algorithm, GPU verification, historical replay or backend proof is
 claimed. General option transactionality and direct legacy-field mutation remain
 open with the broader unification work.
+
+
+## Stimulus registration and source namespace (2026-09-10)
+
+Fifty-four controls reproduced duplicate stimulus replacement, invalid sizes,
+ambiguous area/stimulus names and uncanonicalized NumPy sizes (77 passes).
+Shared registration preflight now rejects duplicate/conflicting names and invalid
+sizes before wiring or RNG consumption on Brain and all three NumPy engines;
+Torch calls the same validator but remains unexecuted here. Standalone Stimulus
+construction validates too. Zero-sized stimuli remain valid null inputs.
+
+The namespace restriction follows the implementation: source learning rates and
+connection-probability overrides use names without a node-kind discriminator.
+Controls preserve a customized source rate and the original stimulus object on
+rejected replacement, and exercise both orders of cross-kind name collision.
+The source-linked specification and API guide record this compatibility change.
+
+Focused checks: 131 passed. CPU workflow gate: 875 passed, 1 skipped, two expected
+sampled-engine warnings in 108.23 seconds (`.cache/stimulus-contract-gate.log`).
+Ruff and diff checks passed. No scientific result, historical replay or GPU
+conformance is adopted. General allocation rollback and direct legacy dictionary
+mutation remain outside this preflight contract.
