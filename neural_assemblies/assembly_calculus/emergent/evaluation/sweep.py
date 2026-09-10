@@ -210,37 +210,21 @@ def fingerprint_source_files() -> Tuple[str, ...]:
     return tuple(sorted(found))
 
 
-#: Environment variables that change WHAT GETS TRAINED, not merely how fast.
-#: They must be part of the cache identity: two parsers that differ in any of
-#: these are different parsers, however equal their (depth, seed, n, k) look.
-#:
-#: THE BUG THIS CLOSES. `EMERGENT_DEV_CURRICULUM` turns off the preset skip so
-#: babble + early grammar always run -- a different training corpus. It was
-#: absent from the key, so a parser trained under it was stored under the SAME
-#: key as one trained without, in memory AND on disk. One full-suite run
-#: therefore poisoned the on-disk backbone for every later run.
-#:
-#: It reached the suite by import, not by intent: `tests/test_acquisition.py`
-#: set it at MODULE level, and pytest imports every collected module before
-#: running anything. So `pytest tests/` silently retrained every parser on a
-#: different corpus, while `pytest <explicit files>` did not -- which is exactly
-#: the pattern that looked like cross-test leakage and then like a cache defect.
-#: Measured: adding `EMERGENT_DEV_CURRICULUM=1` to an otherwise-passing cold run
-#: reproduces its 4 ERP failures precisely.
-_TRAINING_ENV_VARS = ("EMERGENT_DEV_CURRICULUM",)
-
-
+# Curriculum and connectome switches both affect cache identity. The previous
+# one-variable list covered EMERGENT_DEV_CURRICULUM but missed engine switches.
 def _training_env_signature() -> Tuple:
-    """The training-affecting environment, as part of the cache identity.
+    """Capture repository-controlled training switches at request time.
 
-    Read at call time rather than import time on purpose: a process may legally
-    change these between studies, and a signature captured at import would go
-    stale in exactly the way this exists to prevent.
+    Calibration mode has its own key; cache location does not change training.
+    Hash exact values: preserve case distinctions without persisting raw values.
     """
-    return tuple(
-        (name, os.environ.get(name, "").strip().lower())
-        for name in _TRAINING_ENV_VARS
-    )
+    import hashlib
+
+    excluded = {"ASSEMBLIES_BACKBONE_CACHE", "EMERGENT_ERP_FAST"}
+    return tuple(sorted((name, hashlib.sha256(value.encode("utf-8")).hexdigest())
+                        for name, value in os.environ.items()
+                        if name.startswith(("ASSEMBLIES_", "EMERGENT_"))
+                        and name not in excluded))
 
 
 def _backbone_disk_path(depth, *, seed, n, k, holdout, params):
@@ -262,7 +246,8 @@ def _backbone_disk_path(depth, *, seed, n, k, holdout, params):
     # different backbone, and must miss rather than load. Without this, one
     # `pytest tests/` run wrote a dev-curriculum parser over the normal one and
     # every later warm run silently used it.
-    env = "".join(v for _n, v in _training_env_signature() if v)
+    from .checkpoint import training_params_digest
+    env = training_params_digest(dict(_training_env_signature()))
     suffix = f".code{fp}" + (f".env{env}" if env else "")
     name = f"{Path(name).stem}{suffix}{Path(name).suffix or '.pkl'}"
     return root / name
@@ -321,7 +306,8 @@ class ParserCache:
         fast_training: bool,
         params: Tuple,
     ) -> Tuple:
-        holdout = frozenset(holdout_words or ())
+        from .generalization import resolve_holdout_set
+        holdout = frozenset(resolve_holdout_set(holdout_words))
         return (depth, seed, holdout, n, k, fast_training, params,
                 _training_env_signature())
 
@@ -339,94 +325,68 @@ class ParserCache:
         phon_weight: float = DEFAULT_PHON_WEIGHT,
         fast_training: bool = True,
         calibrate: bool = False,
+        engine: str = "auto",
     ) -> "EmergentParser":
-        """Return a trained parser, building and caching on first access.
+        """Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-parser-cache-identity
 
-        `beta`, `p` and `rounds` are part of BOTH cache keys. They were in
-        neither, so a study that varied one of them re-used the other arm's
-        parser -- in-memory within a run, and via the pickled backbone across
-        runs. Neither raises, and warm runs do not train, so the only symptom
-        was a zero effect.
+        Resolve the training request once; derive calibrated variants separately.
         """
-        params = (("beta", beta), ("p", p), ("rounds", rounds),
-                  ("phon_weight", phon_weight))
-        key = self._key(
-            depth, seed=seed, holdout_words=holdout_words,
-            n=n, k=k, fast_training=fast_training, params=params,
-        )
+        from .generalization import resolve_holdout_set
+        from ..training.perf import resolve_engine
+
+        holdout = frozenset(resolve_holdout_set(holdout_words))
+        params = dict(beta=beta, p=p, rounds=rounds, phon_weight=phon_weight,
+                      fast_training=fast_training, engine=resolve_engine(engine, n_hint=n))
+        training = dict(params, n=n, k=k, seed=seed, holdout_words=holdout)
+        base_key = self._key(depth, seed=seed, holdout_words=holdout, n=n, k=k,
+                             fast_training=fast_training, params=tuple(sorted(params.items())))
+        fast = erp_fast_calibration_enabled() if calibrate else None
+        key = (*base_key, "calibration-v1", fast) if calibrate else base_key
         if key in self._entries:
             self.hits += 1
-            entry = self._entries[key]
-            if calibrate and not entry.calibrated:
-                self._calibrate(entry)
-            return entry.parser
-
+            return self._entries[key].parser
         self.misses += 1
-        from .generalization import default_holdout_set, train_parser_to_depth
+        if base_key not in self._entries:
+            self._entries[base_key] = self._training_entry(depth, training, params, base_key)
+        entry = self._entries[base_key]
+        if calibrate:
+            entry = ParserCacheEntry(parser=entry.parser, pristine=entry.pristine,
+                                     train_seconds=entry.train_seconds)
+            self._calibrate(entry, fast=fast)
+            self._entries[key] = entry
+        return entry.parser
 
-        holdout = holdout_words if holdout_words is not None else default_holdout_set()
+    def _training_entry(self, depth, training, params, identity):
+        from .generalization import train_parser_to_depth
+        from .checkpoint import ParserCheckpoint, load_backbone_cache, save_backbone_cache
 
-        # Second and later PROCESSES reuse the pickled backbone instead of
-        # retraining: the in-memory dict above only amortizes within one run.
         disk_path = _backbone_disk_path(
-            depth, seed=seed, n=n, k=k, holdout=frozenset(holdout),
-            params=dict(params),
-        )
+            depth, seed=training["seed"], n=training["n"], k=training["k"],
+            holdout=training["holdout_words"], params=params)
         if disk_path is not None:
-            from .checkpoint import load_backbone_cache
-
             cached = load_backbone_cache(disk_path)
-            if cached is not None:
+            if (cached is not None and not cached.calibrated
+                    and isinstance(cached.meta, dict)
+                    and cached.meta.get("cache_identity") == identity):
                 self.disk_hits += 1
-                entry = ParserCacheEntry(
-                    parser=cached.parser,
-                    train_seconds=cached.train_seconds,
-                    calibrated=cached.calibrated,
-                    calibration_seconds=cached.calibration_seconds,
-                    pristine=_pristine_copy(cached.parser),
-                )
-                self._entries[key] = entry
-                if calibrate and not entry.calibrated:
-                    self._calibrate(entry)
-                return entry.parser
+                return ParserCacheEntry(parser=cached.parser, train_seconds=cached.train_seconds,
+                                        pristine=_pristine_copy(cached.parser))
 
         t0 = time.perf_counter()
-        parser = train_parser_to_depth(
-            depth,
-            n=n,
-            k=k,
-            beta=beta,
-            p=p,
-            rounds=rounds,
-            phon_weight=phon_weight,
-            seed=seed,
-            holdout_words=holdout,
-            fast_training=fast_training,
-        )
+        parser = train_parser_to_depth(depth, **training)
         train_seconds = time.perf_counter() - t0
-
-        if disk_path is not None:
-            from .checkpoint import ParserCheckpoint, save_backbone_cache
-
-            try:
-                save_backbone_cache(
-                    ParserCheckpoint(
-                        parser=parser, depth=depth, seed=seed, n=n, k=k,
-                        holdout_words=frozenset(holdout),
-                        train_seconds=train_seconds,
-                    ),
-                    disk_path,
-                )
-            except (OSError, TypeError, ValueError, AttributeError):
-                # A cache that cannot be written must never fail the run.
-                pass
-
         entry = ParserCacheEntry(parser=parser, train_seconds=train_seconds,
                                  pristine=_pristine_copy(parser))
-        self._entries[key] = entry
-        if calibrate:
-            self._calibrate(entry)
-        return entry.parser
+        if disk_path is not None:
+            try:
+                save_backbone_cache(ParserCheckpoint(
+                    parser=parser, depth=depth, seed=training["seed"], n=training["n"],
+                    k=training["k"], holdout_words=training["holdout_words"],
+                    train_seconds=train_seconds, meta={"cache_identity": identity}), disk_path)
+            except (OSError, TypeError, ValueError, AttributeError):
+                # Cache persistence is optional; snapshot isolation is mandatory.
+                pass
+        return entry
 
     def fork(
         self,
@@ -464,7 +424,7 @@ class ParserCache:
                 return fork_parser_instance(entry.pristine, wobbly=wobbly)
         raise RuntimeError("Cannot locate pristine parser snapshot for cached parser")
 
-    def _calibrate(self, entry: ParserCacheEntry) -> None:
+    def _calibrate(self, entry: ParserCacheEntry, *, fast: Optional[bool] = None) -> None:
         """Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-parser-fork
 
         Publish calibrated live/pristine state together, after all work succeeds.
@@ -477,7 +437,7 @@ class ParserCache:
         calibrated = _pristine_copy(entry.pristine)
         ensure_parser_erp_calibration(
             calibrated,
-            fast=erp_fast_calibration_enabled(),
+            fast=erp_fast_calibration_enabled() if fast is None else fast,
         )
         pristine = _pristine_copy(calibrated)
         entry.parser = calibrated

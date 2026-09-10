@@ -62,10 +62,11 @@ def test_cache_fork_preserves_real_calibration(monkeypatch):
     monkeypatch.setattr(sweep, "_backbone_disk_path", lambda *args, **kwargs: None)
     monkeypatch.setattr(sweep, "erp_fast_calibration_enabled", lambda: True)
     cache = sweep.ParserCache()
-    kwargs = dict(seed=24, n=300, k=8, calibrate=True)
+    kwargs = dict(seed=24, n=300, k=8, calibrate=True, engine="numpy_sparse")
     live = cache.get("TWO_WORD", **kwargs)
     fork = cache.fork("TWO_WORD", **kwargs)
     assert live._erp_thresholds.source == "empirical"
+    assert live.brain._engine.name == "numpy_sparse"
     assert fork._erp_thresholds == live._erp_thresholds
     assert fork._erp_thresholds is not live._erp_thresholds
 

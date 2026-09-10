@@ -638,3 +638,26 @@ and the first calibrated `get` returning the new published object.
 
 The semantics of post-copy preparation remain a separate protocol obligation;
 successful copying or calibration does not prove the ERP measurement informative.
+
+<a id="contract-parser-cache-identity"></a>
+
+## Resolved parser cache requests
+
+Cache lookup and training must consume the same resolved engine, holdout set,
+fast-training choice and numerical parameters. None selects default holdouts;
+an empty set means no holdouts. Engine resolution occurs before lookup and the
+resolved name is passed to the trainer. The memory key and disk path include
+these choices and a named environment signature, with disk checkpoint metadata
+checked against the requested identity before reuse.
+
+Repository-controlled ASSEMBLIES_/EMERGENT_ environment values are hashed exactly,
+retaining case distinctions without persisting raw values. Cache location and
+ERP-fast calibration mode are excluded from training identity; calibration mode
+has its own key. Extra training cache misses are preferable to merging distinct
+instruments. This does not yet capture arbitrary external library/toolchain or
+hardware changes; a complete model/target identity remains an IR obligation.
+
+Uncalibrated training entries remain unchanged. Fast/full calibration variants
+are derived independently from their pristine snapshot and cached separately.
+Requesting an uncalibrated parser must not return a previously calibrated variant.
+Calibration publication preserves the parser-fork failure-isolation contract.

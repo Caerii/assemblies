@@ -17,6 +17,7 @@ def test_reviewed_operations_keep_their_specification_links():
             "classify_word_evidence", "ClassificationEvidence",
             "clone",
             "fork_parser_instance", "_pristine_copy", "_calibrate",
+            "resolve_holdout_set",
             "_reset_context_for_bridge", "AssemblyMemory", "HashedArcFSM", "HashedTransducer"} <= linked
 
 

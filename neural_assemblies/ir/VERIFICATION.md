@@ -269,3 +269,18 @@ it cannot claim the prepared parser is an exact state-preserving clone. These
 Python controls establish tested ownership behavior, not a Lean simulation
 proof or a certification of the calibration measurement. See the source-linked
 parser-fork card for exact mutation and failure obligations.
+
+## Training identity precedes reuse
+
+Parser cache requests now resolve the engine and holdouts before lookup and pass
+the same resolved values to training. Engine, fast-training mode and numerical
+parameters enter memory/disk identity; disk metadata must also match before reuse.
+Calibration variants have their own mode key and derive from an unchanged
+uncalibrated training snapshot. Explicit empty holdouts remain empty through
+the trainer and dialogue helper.
+
+This is a concrete reuse boundary for the eventual model/program/observation
+identities. It is not yet the complete target identity: external dependency,
+hardware and arithmetic semantics still need the declared ModelSemantics/target
+profile. A matching cache request cannot substitute for a scientific run record
+or a preservation proof.

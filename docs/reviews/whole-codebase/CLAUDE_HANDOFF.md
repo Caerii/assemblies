@@ -225,3 +225,25 @@ contract. Calibration-mode/model identity in cache keys and scientific validity
 of calibration need separate review; these ownership tests do not certify them.
 The grounded-verb population/readout regression, GPU gates, historical evidence
 replays and concrete IR backend simulation proofs remain open. No merge to dev.
+
+### Cache identity and separate calibration variants
+
+Cache lookup now resolves engine and holdouts before training and passes those
+same values to the trainer. Engine, fast-training mode and numerical options
+enter both memory and disk identity. ASSEMBLIES_/EMERGENT_ controls are captured
+conservatively as names plus exact-value digests, excluding cache location and
+the separately keyed ERP-fast mode. Disk metadata must match the request.
+
+Uncalibrated training snapshots remain available unchanged; fast/full calibration
+variants derive from them independently. Changing calibration mode reuses training
+without reusing another mode's thresholds. None/default holdouts share a key,
+while explicit empty holdouts stay empty through the cache, trainer and dialogue
+helper. Five initial identity controls and the dialogue-empty control failed on
+the old paths. No metric weights or expected scientific labels were adjusted.
+
+CPU contract gate: 327 passed, 1 skipped before the final environment-digest
+follow-up; trained integration: 15 passed; final focused cache/fork/source-link
+checks: 35 passed. Ruff/diff checks passed. Library/toolchain/hardware identity
+is not yet complete, and ParserCache.get still returns its documented shared
+live object; experiments should use forks. The broader model/IR unification and
+the grounded-verb regression remain open. No merge to dev or GPU gate is claimed.

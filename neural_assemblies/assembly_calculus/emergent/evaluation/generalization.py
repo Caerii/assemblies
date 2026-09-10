@@ -88,6 +88,14 @@ def default_holdout_set() -> Set[str]:
     return set(DEFAULT_LEXICON_HOLDOUTS)
 
 
+def resolve_holdout_set(words: Optional[Set[str]]) -> Set[str]:
+    """Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-parser-cache-identity
+
+    None selects defaults; an explicitly empty collection stays empty.
+    """
+    return default_holdout_set() if words is None else set(words)
+
+
 def is_word_in_lexicon(parser: "EmergentParser", word: str) -> bool:
     for lex in parser.core_lexicons.values():
         if word in lex:
@@ -266,7 +274,7 @@ def train_dialogue_with_holdouts(
     """Run a DIALOGUE schedule while skipping holdout words in lexicon training."""
     from ..evaluation.parity import run_dialogue_stage
 
-    schedule.holdout_words = holdout_words or default_holdout_set()
+    schedule.holdout_words = resolve_holdout_set(holdout_words)
     run_dialogue_stage(parser, schedule)
 
 
@@ -384,6 +392,7 @@ def train_parser_to_depth(
     holdout_words: Optional[Set[str]] = None,
     vocabulary: Optional[dict] = None,
     fast_training: bool = True,
+    engine: str = "auto",
 ) -> "EmergentParser":
     """Train a fresh parser to a named curriculum checkpoint.
 
@@ -400,11 +409,11 @@ def train_parser_to_depth(
     from ..curriculum.data import create_training_sentences
     from ..evaluation.parity import build_dialogue_stage_schedule
 
-    holdout = holdout_words or default_holdout_set()
+    holdout = resolve_holdout_set(holdout_words)
     vocab = vocabulary if vocabulary is not None else build_vocabulary_preset("medium")
     parser = EmergentParser(
         n=n, k=k, beta=beta, p=p, rounds=rounds, phon_weight=phon_weight,
-        seed=seed, vocabulary=vocab, fast_training=fast_training,
+        seed=seed, vocabulary=vocab, fast_training=fast_training, engine=engine,
     )
 
     if depth == "FULL_TRAIN":

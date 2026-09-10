@@ -117,7 +117,7 @@ def test_first_calibrated_get_returns_the_published_parser(monkeypatch, parser):
         lambda target, **kwargs: setattr(target, "calibration_marker", "ready"))
     cache = ParserCache()
     result = cache.get("TWO_WORD", calibrate=True)
-    entry = next(iter(cache._entries.values()))
+    entry = next(entry for entry in cache._entries.values() if entry.calibrated)
     assert result is entry.parser
     assert result.calibration_marker == entry.pristine.calibration_marker == "ready"
     assert not hasattr(parser, "calibration_marker")

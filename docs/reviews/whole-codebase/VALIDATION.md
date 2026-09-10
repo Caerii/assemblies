@@ -354,3 +354,32 @@ checkpoint/shared-cache isolation/bootstrap suite passed **14 tests**. A separat
 new real calibration-to-cache-fork check passed, confirming empirical thresholds
 reach the fork as an independent copy. No metric threshold assertions were
 weakened. Runtime/test Ruff and `git diff --check` passed.
+
+## Resolved cache requests and calibration variants
+
+Five controls failed before the repair: engine/environment changes reused live
+entries, disk reuse ignored fast-training mode, default/explicit holdouts were
+inconsistently keyed, and fast/full calibration shared one Boolean state. Engine
+resolution now occurs before lookup and the same request values reach training.
+Disk entries must carry matching request metadata; an unmatched entry retrains.
+Calibration variants derive independently from a retained uncalibrated snapshot,
+so switching modes does not retrain the backbone or reuse the wrong thresholds.
+
+Holdout resolution now has one helper for the cache, trainer and dialogue path:
+None selects defaults and an empty collection stays empty. The dialogue helper's
+empty-set control also failed before repair. The earlier publication test now
+selects the calibrated entry explicitly because the cache retains the separate
+training entry; its matching live/pristine assertions remain intact.
+
+Focused cache/fork checks passed 27 tests; the workflow CPU contract gate passed
+**327 tests, 1 skipped** before the final environment-digest follow-up. The real
+cache calibration integration explicitly requests numpy_sparse and checks the
+constructed backend. These are software contracts, not new generalization data.
+
+The trained checkpoint/cache-isolation/bootstrap integration suite passed
+**15 tests**. The final environment signature stores SHA-256 digests of exact
+values, preserving case distinctions without persisting raw values. After that
+follow-up, cache/fork/source-link checks passed **35 tests**, including disk reuse
+and mode separation. Final Ruff and diff checks passed. Full target/dependency
+identity, scientific calibration validity, and the heldout-verb regression remain
+open; no GPU jobs or historical numerical replays were run.
