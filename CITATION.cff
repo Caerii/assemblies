@@ -1,0 +1,83 @@
+cff-version: 1.2.0
+message: >-
+  If you use this software, cite it as below. Cite the assembly-calculus
+  papers, not this package, for the theoretical results the package
+  implements.
+type: software
+title: "Assemblies: a Python package and research workspace for the neural assembly calculus"
+abstract: >-
+  An implementation of the neural assembly calculus (sparse k-winner-take-all
+  areas with Hebbian plasticity; projection, association, merge, sequence
+  memory, inhibition, refraction) with numpy and hashed-CUDA engines, a
+  pre-registered research record, and a register of measured results.
+authors:
+  - family-names: Jakir
+    given-names: Alif
+    orcid: "https://orcid.org/0009-0000-6337-5174"
+    affiliation: Massachusetts Institute of Technology and Superintelligent Group
+  - family-names: Mitropolsky
+    given-names: Daniel
+    affiliation: Massachusetts Institute of Technology
+version: 0.0.1a1
+date-released: "2026-09-09"
+license: MIT
+repository-code: "https://github.com/Caerii/assemblies"
+url: "https://github.com/Caerii/assemblies"
+keywords:
+  - assembly calculus
+  - neural assemblies
+  - computational neuroscience
+  - Hebbian plasticity
+  - k-winner-take-all
+  - NEMO
+  - brain simulation
+notes: >-
+  Daniel Mitropolsky wrote the original library (2018 to 2019) from which this
+  repository grew. Alif Jakir developed it into the present package, GPU
+  substrate, and research record.
+references:
+  - type: article
+    title: "Brain Computation by Assemblies of Neurons"
+    authors:
+      - family-names: Papadimitriou
+        given-names: Christos H.
+      - family-names: Vempala
+        given-names: Santosh S.
+      - family-names: Mitropolsky
+        given-names: Daniel
+      - family-names: Collins
+        given-names: Michael
+      - family-names: Maass
+        given-names: Wolfgang
+    journal: Proceedings of the National Academy of Sciences
+    volume: 117
+    issue: 25
+    start: 14464
+    end: 14472
+    year: 2020
+    doi: 10.1073/pnas.2001893117
+  - type: article
+    title: "Computation with Sequences of Assemblies in a Model of the Brain"
+    authors:
+      - family-names: Dabagia
+        given-names: Max
+      - family-names: Papadimitriou
+        given-names: Christos H.
+      - family-names: Vempala
+        given-names: Santosh S.
+    journal: Neural Computation
+    volume: 37
+    issue: 1
+    start: 193
+    end: 233
+    year: 2025
+    url: "https://arxiv.org/abs/2306.03812"
+  - type: article
+    title: "Simulated Language Acquisition in a Biologically Realistic Model of the Brain"
+    authors:
+      - family-names: Mitropolsky
+        given-names: Daniel
+      - family-names: Papadimitriou
+        given-names: Christos H.
+    year: 2025
+    url: "https://arxiv.org/abs/2507.11788"

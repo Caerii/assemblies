@@ -18,6 +18,7 @@ research artifacts.
 | [contributing.md](contributing.md) | Contributor setup and expected checks. |
 | [documentation_style.md](documentation_style.md) | Writing standards for docs in this repo. |
 | [register.md](register.md) | Every adopted result with its evidence and caveats, rendered from `neural_assemblies/theory.py`. |
+| [../research/plans/PAPERS.md](../research/plans/PAPERS.md) | The papers the register supports, in order of readiness, and what each still needs. |
 | [../research/notes/README.md](../research/notes/README.md) | The reading map for the registrations and design notes: what each line concluded, which file to open first. |
 | [../research/experiments/README.md](../research/experiments/README.md) | The active experiment scripts by line, with typical runs; results are in [../research/results/](../research/results/README.md). |
 

@@ -14,11 +14,13 @@ The package is alpha software. The core APIs are tested, but research-facing
 modules and accelerator paths may move as experiments clarify what belongs in
 the library.
 
-This repo is maintained by Alif Jakir. It grew out of MIT's Projects in the
-Science of Intelligence course and later work extending the assembly-calculus
-and language-organ line, including collaboration with Daniel Mitropolsky
-(MIT Poggio Lab). For the longer history, read
-[docs/project_context.md](docs/project_context.md).
+Assemblies is developed by Alif Jakir. Daniel Mitropolsky wrote the original
+library (2018 to 2019) that this repository grew out of; the package, the GPU
+substrate, and the research record as they stand are Alif Jakir's work, begun
+in MIT's Projects in the Science of Intelligence course and continued in
+collaboration with Daniel Mitropolsky (MIT Poggio Lab). For the longer
+history, read [docs/project_context.md](docs/project_context.md). To cite the
+software, see [Citation](#citation).
 
 ## The model in four terms
 
@@ -283,8 +285,26 @@ uv run python examples/01_basic_assembly_calculus.py
 
 ## Citation
 
-If you build on this code or the underlying ideas, cite the relevant source
-work rather than citing the package as proof of a theoretical result.
+Cite the software as:
+
+```bibtex
+@software{jakir2026assemblies,
+  author  = {Jakir, Alif and Mitropolsky, Daniel},
+  title   = {Assemblies: a Python package and research workspace for the
+             neural assembly calculus},
+  year    = {2026},
+  version = {0.0.1a1},
+  url     = {https://github.com/Caerii/assemblies},
+  note    = {Alif Jakir (MIT and Superintelligent Group, ORCID
+             0009-0000-6337-5174) developed the package from the original
+             2018--2019 library by Daniel Mitropolsky (MIT). MIT license.}
+}
+```
+
+The same record is in [CITATION.cff](CITATION.cff), which GitHub renders
+under "Cite this repository".
+
+Cite the papers, not the package, for the theory the package implements:
 
 - Papadimitriou et al. (2020), *Brain Computation by Assemblies of Neurons*
 - Dabagia et al. (2024/2025), *Computation with Sequences of Assemblies in a
@@ -293,7 +313,10 @@ work rather than citing the package as proof of a theoretical result.
   simulated language acquisition
 
 The complete bibliography with implementation status is
-[docs/literature.md](docs/literature.md).
+[docs/literature.md](docs/literature.md). Results measured here are cited
+by their register ID ([docs/register.md](docs/register.md)); the plan for
+the papers those results support is
+[research/plans/PAPERS.md](research/plans/PAPERS.md).
 
 ## Contributing and license
 

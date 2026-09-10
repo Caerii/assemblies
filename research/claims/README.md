@@ -2,6 +2,15 @@
 
 Use this directory for statements the research tree can defend.
 
+> **Status (2026-09-09).** The register in `neural_assemblies/theory.py`
+> ([../../docs/register.md](../../docs/register.md)) is the claim layer for
+> everything measured since mid-2026; new claims go there with a
+> registration behind them. Of the six evidence summaries indexed below
+> (February 2026), the Phase 3 audit in
+> [../plans/SOUNDNESS_PROGRAM.md](../plans/SOUNDNESS_PROGRAM.md) voided the
+> reactivation and retrieval protocols as dead probes; treat the remaining
+> summaries as leads, not evidence, until re-measured under a registered bar.
+
 The canonical inventory is [index.json](index.json). It separates two states:
 
 - `formalized_claim`

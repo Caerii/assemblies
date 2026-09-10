@@ -1,5 +1,14 @@
 # What else would be most valuable?
 
+> **Status (2026-09-09).** Item 1 (autonomous recurrence) closed as a
+> documentation gap. Item 2 (one derived result) has the clip window
+> c* in the sequence line; the square capacity law is still empirical.
+> Item 3 (claims pipeline) was overtaken by the register in
+> `neural_assemblies/theory.py`. Item 4 (biological comparison) not
+> started. Item 5 (forgetting) answered by `REFRACTION-ANTI-MERGING`.
+> Item 6 (falsifiability) is the registration discipline. Details in
+> [PAPERS.md](PAPERS.md) section 1.
+
 Beyond the theoretical throughlines (SM, ML/linear algebra, complex systems) and the existing plans (control, robotics, curriculum), these additions would add the **most value** to the research program — by strengthening theory, unblocking validation, or turning results into publishable claims.
 
 ---

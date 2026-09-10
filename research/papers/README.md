@@ -8,7 +8,10 @@ settled, or at least sharply bounded, before a draft starts here.
 
 ## Principle
 
-Papers come after claims, not before them.
+Papers come after claims, not before them. Which papers the measured
+results support, in what order, and what each still needs is
+[../plans/PAPERS.md](../plans/PAPERS.md); the claim layer it draws on is the
+register, [../../docs/register.md](../../docs/register.md).
 
 The intended flow is:
 

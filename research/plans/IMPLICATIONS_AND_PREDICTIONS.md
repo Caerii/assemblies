@@ -1,5 +1,13 @@
 # Implications and Predictions: N400/P600 Triple Dissociation in Assembly Calculus
 
+> **Status (2026-09-09).** Overtaken. The language notes since found the
+> N400 effect saturated upstream of the prediction signal and the P600
+> contrast confounded with area identity; only rank claims survive. Read
+> [../notes/language/README.md](../notes/language/README.md) first, and
+> [PAPERS.md](PAPERS.md) section 2 (P6) for what the language line can
+> still support. The text below is kept as the record of the predictions
+> as they were made.
+
 ## 1. Triple Dissociation: Significance
 
 Three independent neural metrics emerge from a **single architecture** with

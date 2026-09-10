@@ -5,6 +5,17 @@ Questions are organized by theme and status.
 
 Last Updated: 2026-04-22
 
+> **Status note (2026-09-09).** This tracker predates the pre-registered
+> lines and the register. The Phase 3 audit in
+> [plans/SOUNDNESS_PROGRAM.md](plans/SOUNDNESS_PROGRAM.md) found the
+> protocols behind the Q12 and Q20 "Completed" entries to be dead probes
+> (winner sets fixed from round one, independent of beta), so those
+> results are not citable as written. Adopted results now live in
+> `neural_assemblies/theory.py` ([../docs/register.md](../docs/register.md));
+> the reading map for the registered lines is
+> [notes/README.md](notes/README.md); the paper plan is
+> [plans/PAPERS.md](plans/PAPERS.md).
+
 ---
 
 ## Fundamental Theory

@@ -9,10 +9,16 @@ research artifacts under `research/`.
 
 ## Provenance
 
-Alif Jakir maintains Assemblies. He began this implementation work after
-encountering the assembly calculus and the language-organ model in MIT's
-Projects in the Science of Intelligence course, then continued it through
-research extensions and collaboration with Daniel Mitropolsky (MIT Poggio Lab).
+Daniel Mitropolsky wrote the original library in 2018 and 2019 (the
+repository's first commits: an explicit simulation of projection and its
+randomized variants, then the Python assemblies library). Alif Jakir made it
+into what it is today: the `neural_assemblies` package, the numpy and hashed
+CUDA engines, the language and sequence organs, and the pre-registered
+research record. That work began after encountering the assembly calculus
+and the language-organ model in MIT's Projects in the Science of
+Intelligence course, and continued through research extensions and
+collaboration with Daniel Mitropolsky (MIT Poggio Lab). The citation record
+is [../CITATION.cff](../CITATION.cff).
 
 The aim is practical: make assembly-calculus ideas runnable enough to inspect,
 modify, test, and use in new experiments.
