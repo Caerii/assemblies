@@ -4369,3 +4369,10 @@ operational timing probe, not sequence evidence. Its scaling/deepcopy cases use
 the same constructor helper, and the synthetic plasticity loop uses a bounded
 multiplier to avoid overflow warnings. The complete profiling command exits
 successfully with no RuntimeWarning output and prints `DONE`.
+
+## Contract/formal gate after profiling changes (2026-09-11)
+
+The focused maintained gate passed 16 tests covering source/specification links,
+runner registry, throughput provenance, and index-space typing. `lake build` in
+`formal/` also completed successfully (9 jobs); Lean reported no `sorryAx`
+introduction in the AssemblyIR modules.
