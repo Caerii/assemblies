@@ -12,6 +12,8 @@ References:
     "Simulated Language Acquisition with Neural Assemblies."
 """
 
+from typing import TYPE_CHECKING, Optional
+
 from .core import CorpusIndex, compile_corpus
 from .curriculum import CurriculumTrainer, StageResult, _STAGE_CONFIG
 from .evaluation import (
@@ -62,6 +64,10 @@ from .training import (
     topology_needs_link,
 )
 
+if TYPE_CHECKING:
+    from .evaluation.erp.calibration import ErpCalibrationReport
+    from .evaluation.erp.gates import ErpBaseline, ErpThresholds
+
 
 class EmergentParser(
     PlansMixin,
@@ -80,7 +86,12 @@ class EmergentParser(
     CoreParserMixin,
 ):
     """48-area emergent NEMO parser composed from feature mixins."""
-    pass
+    # Calibration is an optional, lazily populated observation cache.  Keeping
+    # its shape on the composed parser makes the cache contract visible to
+    # static checkers as well as to the runtime mixin that owns it.
+    _erp_thresholds: Optional["ErpThresholds"]
+    _erp_baseline: Optional["ErpBaseline"]
+    _erp_report: Optional["ErpCalibrationReport"]
 
 
 __all__ = [
