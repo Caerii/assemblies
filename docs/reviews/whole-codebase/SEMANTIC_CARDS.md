@@ -12,9 +12,9 @@ Each discrepancy has an ID. A future contract must resolve the discrepancy with
 a regression test or corrected claim; renaming the function is not resolution.
 The uncommitted protocol-class prototype was set aside until these cards existed.
 
-The attention card below is a **design target**, not an implemented operation
-or an adopted result. It exists to keep the proposed transformer analogue
-distinct from the current projection and sequence APIs.
+The attention card below separates the implemented pure snapshot readout from
+the still-unimplemented learned Brain-backed operation. It exists to keep the
+transformer analogue distinct from the current projection and sequence APIs.
 
 Register crosswalk: the five legacy operation functions do not each have an
 adopted Result entry certifying their whole postcondition. Their mathematical
@@ -26,10 +26,15 @@ preconditions and provenance caveats remain part of any claim made from a run.
 
 <a id="contract-assembly-attention"></a>
 
-## D: typed assembly attention (design target)
+## D: typed assembly attention (snapshot readout implemented; learned path is a design target)
 
-There is no `Attend` implementation in the package yet. The intended operator
-must make the following state and choices explicit before code is accepted:
+`neural_assemblies.assembly_calculus.attention.attend` is a pure readout over
+immutable snapshots. It computes overlap compatibility, stable softmax
+weights, deterministic top-k key selection, and a bounded weighted value
+assembly. It does not mutate a `Brain` or claim to learn query-key fibers.
+
+The learned Brain-backed operator remains a design target. It must make the
+following state and choices explicit before code is accepted:
 
 - **Inputs:** a query assembly, a key population or key assemblies, a value
   population or value assemblies, a target area, head count, rounds, and a

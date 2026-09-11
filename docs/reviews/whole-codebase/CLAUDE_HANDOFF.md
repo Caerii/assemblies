@@ -2543,3 +2543,5 @@ ERP pre-k-WTA energy now rejects partial neuron-ID to compact-index mappings as 
 Next-token scaling now materializes LEX before training; the full module passes 7 tests with 1 intentional xfail. The prior failure was caused by a lazy sampled substrate, not a readout algorithm change.
 
 The synchronized CUDA non-slow audit collected 3,723 tests and reached 1,908 passed, 91 skipped, 4 expected xfails, and 6 failures before the cap. Five are the known sampled-engine ERP inversion; the next-token failure was repaired by materializing LEX in its scaling fixture.
+
+Implemented the first typed attention operator as a pure snapshot readout: overlap compatibility, stable softmax weights, deterministic top-k selection, and bounded weighted value assembly. 22 attention/specification/docs tests pass; Brain-backed learning remains a separate design target.

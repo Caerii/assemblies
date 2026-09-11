@@ -4569,3 +4569,12 @@ expected xfails, and 6 failures** before the configured failure cap. Five
 failures reproduce the registered sampled-engine ERP inversion/saturation; the
 sixth was the lazy-connectome next-token ranking defect fixed above. The ERP
 failures remain visible pending a fixed-connectome replay or amendment.
+
+## Typed snapshot attention (2026-09-11)
+
+`assembly_calculus.attend` is now an immutable, non-mutating sparse attention
+readout. It exposes overlap compatibility, stable softmax weights,
+deterministic top-k key selection, and a bounded weighted value assembly. The
+attention, specification-link, and documentation smoke gates pass **22 tests
+with 1 expected skip**; the learned Brain-backed path remains explicitly
+unimplemented.

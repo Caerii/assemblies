@@ -308,6 +308,7 @@ areas use compact indices internally.
 | `separate(brain, stimulus_a, stimulus_b, target, rounds)` | two stimuli and target area | Forms two assemblies and reports their overlap against the configured chance baseline. |
 | `sequence_memorize` / `ordered_recall` | ordered stimuli and a sequence configuration | Trains and reads a sequence schedule; engine provenance is part of every result. |
 | `fuzzy_readout` / `readout_all` | assembly snapshot and lexicon | Decodes overlap with deterministic tie handling; a label is not a probability. |
+| `attend` | query assembly plus keyed key/value snapshots | Pure sparse attention readout: exposes compatibility weights, selects top-k keys, and returns a bounded value assembly without mutating the brain. |
 
 The full signatures, plans, and failure conditions are in
 [docs/api.md](docs/api.md) and the discoverable

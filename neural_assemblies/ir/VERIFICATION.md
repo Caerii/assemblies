@@ -2324,7 +2324,8 @@ explicit areas.
 <a id="contract-assembly-attention"></a>
 ### Typed assembly attention (design target)
 
-The package does not yet implement `Attend`. Its future IR node must represent
+The package implements a pure snapshot `attend` readout; it does not mutate a
+Brain or learn query-key fibers. Its future Brain-backed IR node must represent
 query, key, value, target, compatibility projection, sparse selection,
 optional recurrent refinement, and causality as distinct fields. Multihead
 composition is an explicit product of independent heads followed by a merge.

@@ -149,6 +149,7 @@ from .tracing import (
 )
 from .fiber import FiberCircuit
 from .readout import fuzzy_readout, readout_all, build_lexicon, Lexicon
+from .attention import AttentionCandidate, AttentionResult, attend
 from .fsm import FSMNetwork
 from .coin_config import AttractorConfig, SeedMixtureChoice
 from .context_choice import ContextAttractorChoice, ContextChoiceProtocol, ContextChoiceObservation
@@ -198,6 +199,7 @@ __all__ = [
     "replace_neurons", "observe_recovery", "RecoveryObservation",
     # Readout
     "fuzzy_readout", "readout_all", "build_lexicon",
+    "AttentionCandidate", "AttentionResult", "attend",
     # Structured computation
     "AttractorConfig", "ContextAttractorChoice", "ContextChoiceProtocol", "ContextChoiceObservation",
     "FSMNetwork", "PFANetwork", "SeedMixtureChoice", "RandomChoiceArea", "FlipMode", "SoftmaxContextCoin",
