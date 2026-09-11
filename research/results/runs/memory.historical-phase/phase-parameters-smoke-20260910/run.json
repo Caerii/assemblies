@@ -1,0 +1,56 @@
+{
+  "engine": "numpy_explicit",
+  "environment": {
+    "policy": "repository-environment-v1",
+    "variables_sha256": {}
+  },
+  "git_commit": "a1cbecd3abb3db75db4878ab0f35dd33260bc4c6",
+  "input_artifacts": {
+    "research/experiments/configs/phase_one_round.json": "cddb04d7e9ddd5140bb4736f46c231c453208d37ed546ade6d1a17ba75d69f83"
+  },
+  "mode": "smoke",
+  "parameters": {
+    "betas": [
+      0.0,
+      0.1
+    ],
+    "initial_stimulus_rounds": 1,
+    "n": 60,
+    "p": 0.2,
+    "p_effect_beta": 0.1,
+    "p_effect_k": 6,
+    "p_values": [
+      0.1,
+      0.2
+    ],
+    "persistence_threshold": 0.95,
+    "sparsities": [
+      0.1,
+      0.2
+    ],
+    "test_rounds": 1,
+    "train_rounds": 3,
+    "w_max": 20.0
+  },
+  "protocol": "memory.historical-phase",
+  "protocol_version": "1",
+  "registration": "research/notes/memory/PREREG_historical_phase_migration.md",
+  "registration_sha256": "d00c4e3a482aca2eaacc3831f4b974cd204b09de08cf8b70f212b274e830f6d7",
+  "schema_version": 4,
+  "scientific_status": "VOID",
+  "script": "research/experiments/historical_phase.py",
+  "script_sha256": "8d53821e094434cff6421d7e391dce4928c6e74cd12c7c2fb57d5bbefdf3274c",
+  "seeds": [
+    1,
+    2,
+    3
+  ],
+  "source_archive": {
+    "file": "source.zip",
+    "sha256": "22d5fa911510836d7538d3d689ea9d9d43ae4231ae254d7e94e2b2df3c8b285c"
+  },
+  "source_inventory": "source-inputs-v3",
+  "source_sha256": "c187917af5022d760e3c3ae407b817e117433a2004da64b410ac92fecf31b58a",
+  "started_utc": "2026-09-11T01:46:24.745522+00:00",
+  "tag": "phase-parameters-smoke-20260910"
+}

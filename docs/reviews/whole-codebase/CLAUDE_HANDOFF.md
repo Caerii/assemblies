@@ -1434,3 +1434,9 @@ Overrides retain exact file bytes and all resolved values; stale parse/capture h
 fail before reservation. 93 adapter/runner checks pass. Domain checks remain in the
 producers and customized runs remain VOID/UNADOPTED. Registered a phase smoke for
 CLI/direct equivalence before running it. See VALIDATION.md#historical-cli-parameter-files-2026-09-10.
+
+
+The configured phase smoke now passes direct/CLI equivalence and archive checks:
+six cells, seeds1/2/3, only test_rounds overridden to 1. Exact configuration bytes
+are retained; evidence source is a1cbecd and status VOID. The additional 200
+historical/storage/specification/ratchet checks pass. Defaults are unchanged.

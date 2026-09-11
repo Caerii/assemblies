@@ -52,3 +52,14 @@ not a new persistence hypothesis. Before running, commit the adapter, file and t
 extension. Compare metrics/raw_data/parameters/success exactly against direct
 execution of the recorded inputs, ignoring timestamps/duration only; validate the
 source archive and exact input-file bytes. Do not rewrite the original smoke.
+
+
+### Parameter-file migration result (2026-09-10)
+
+Implementation, configuration and extension committed at a1cbecd before the
+[configured smoke](../../results/runs/memory.historical-phase/phase-parameters-smoke-20260910/results.json).
+The six-cell run retains seeds1/2/3 and changes only test_rounds to 1. Metrics,
+raw_data, parameters and success match direct execution exactly, excluding only
+timestamps/duration. Evidence validation passes and inputs/ in source.zip preserves
+the exact configuration file bytes. Status remains VOID; this is CLI migration
+acceptance, not scientific adoption or evidence that one round is sufficient.

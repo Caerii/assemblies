@@ -2646,3 +2646,12 @@ A one-evaluation-round phase smoke and direct equivalence check are registered
 before execution in PREREG_historical_phase_migration.md.
 
 The four historical trial suites, legacy JSON storage, specification links and both ratchets pass: 200 tests in 57.36s. CLI help exposes --parameters; Ruff and diff checks pass.
+
+
+The registered configured smoke ran after commit a1cbecd and is stored at
+research/results/runs/memory.historical-phase/phase-parameters-smoke-20260910.
+It overrides only test_rounds=1 and retains six cells and seeds1/2/3. Direct
+PhaseDiagramExperiment.run using recorded parameters exactly matches metrics,
+raw_data, parameters and success. Exact input bytes and the full source archive
+validate. The registration links this VOID software check; the original smoke is
+untouched. No scientific adoption, GPU rerun or whole-package green claim is made.

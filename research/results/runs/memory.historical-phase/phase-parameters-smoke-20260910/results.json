@@ -1,0 +1,341 @@
+{
+  "observations": {
+    "result": {
+      "duration_seconds": 0.11112349998438731,
+      "error_message": null,
+      "experiment_name": "phase_diagram",
+      "metrics": {
+        "p_effect": [
+          {
+            "p": 0.1,
+            "persistence": {
+              "ci95_hi": 1.0768749500439043,
+              "ci95_lo": -0.18798606115501548,
+              "max": 0.6666666666666666,
+              "mean": 0.4444444444444444,
+              "min": 0.16666666666666666,
+              "n": 3,
+              "sem": 0.14698618394803284,
+              "std": 0.2545875386086578
+            },
+            "test_vs_null": {
+              "d": 1.3529509194631526,
+              "p": 0.14382932616753344,
+              "significant": false,
+              "t": 2.343379732657209
+            }
+          },
+          {
+            "p": 0.2,
+            "persistence": {
+              "ci95_hi": 1.4729686132014883,
+              "ci95_lo": -0.250746390979266,
+              "max": 1.0,
+              "mean": 0.6111111111111112,
+              "min": 0.3333333333333333,
+              "n": 3,
+              "sem": 0.20030840419244386,
+              "std": 0.3469443332443555
+            },
+            "test_vs_null": {
+              "d": 1.4731790150068014,
+              "p": 0.12535514902962192,
+              "significant": false,
+              "t": 2.5516209026360537
+            }
+          }
+        ],
+        "sampled_threshold_crossings": {
+          "0.1": {
+            "beta": null,
+            "status": "not_observed"
+          },
+          "0.2": {
+            "beta": null,
+            "status": "not_observed"
+          }
+        },
+        "sparsity_beta_grid": [
+          {
+            "actual_sparsity": 0.1,
+            "beta": 0.0,
+            "interval_status": "unresolved",
+            "k": 6,
+            "null_overlap": 0.1,
+            "persistence": {
+              "ci95_hi": 1.0504421216249102,
+              "ci95_lo": -0.38377545495824367,
+              "max": 0.5,
+              "mean": 0.3333333333333333,
+              "min": 0.0,
+              "n": 3,
+              "sem": 0.16666666666666669,
+              "std": 0.2886751345948129
+            },
+            "sparsity": 0.1,
+            "test_vs_null": {
+              "d": 0.8082903768654759,
+              "p": 0.29647352931855164,
+              "significant": false,
+              "t": 1.3999999999999997
+            }
+          },
+          {
+            "actual_sparsity": 0.1,
+            "beta": 0.1,
+            "interval_status": "unresolved",
+            "k": 6,
+            "null_overlap": 0.1,
+            "persistence": {
+              "ci95_hi": 1.4729686132014883,
+              "ci95_lo": -0.250746390979266,
+              "max": 1.0,
+              "mean": 0.6111111111111112,
+              "min": 0.3333333333333333,
+              "n": 3,
+              "sem": 0.20030840419244386,
+              "std": 0.3469443332443555
+            },
+            "sparsity": 0.1,
+            "test_vs_null": {
+              "d": 1.4731790150068014,
+              "p": 0.12535514902962192,
+              "significant": false,
+              "t": 2.5516209026360537
+            }
+          },
+          {
+            "actual_sparsity": 0.2,
+            "beta": 0.0,
+            "interval_status": "below_threshold",
+            "k": 12,
+            "null_overlap": 0.2,
+            "persistence": {
+              "ci95_hi": 0.5403448093125275,
+              "ci95_lo": 0.12632185735413912,
+              "max": 0.4166666666666667,
+              "mean": 0.3333333333333333,
+              "min": 0.25,
+              "n": 3,
+              "sem": 0.04811252243246882,
+              "std": 0.08333333333333334
+            },
+            "sparsity": 0.2,
+            "test_vs_null": {
+              "d": 1.5999999999999994,
+              "p": 0.10927645716975347,
+              "significant": false,
+              "t": 2.771281292110203
+            }
+          },
+          {
+            "actual_sparsity": 0.2,
+            "beta": 0.1,
+            "interval_status": "below_threshold",
+            "k": 12,
+            "null_overlap": 0.2,
+            "persistence": {
+              "ci95_hi": 0.9273263639108411,
+              "ci95_lo": 0.2948958583113812,
+              "max": 0.75,
+              "mean": 0.6111111111111112,
+              "min": 0.5,
+              "n": 3,
+              "sem": 0.07349309197401642,
+              "std": 0.1272937693043289
+            },
+            "sparsity": 0.2,
+            "test_vs_null": {
+              "d": 3.2296247754926872,
+              "p": 0.030502977578206445,
+              "significant": true,
+              "t": 5.593874200536564
+            }
+          }
+        ]
+      },
+      "parameters": {
+        "area_engine": "numpy_explicit",
+        "base_n": 60,
+        "base_p": 0.2,
+        "base_wmax": 20.0,
+        "betas": [
+          0.0,
+          0.1
+        ],
+        "evaluation_learning": true,
+        "initial_stimulus_rounds": 1,
+        "n_seeds": 3,
+        "p_effect_beta": 0.1,
+        "p_effect_k": 6,
+        "p_values": [
+          0.1,
+          0.2
+        ],
+        "persistence_threshold": 0.95,
+        "primary_engine": "numpy_sparse",
+        "resolved_assembly_sizes": [
+          6,
+          12
+        ],
+        "seed_ids": [
+          1,
+          2,
+          3
+        ],
+        "sparsities": [
+          0.1,
+          0.2
+        ],
+        "test_rounds": 1,
+        "train_rounds": 3
+      },
+      "raw_data": {
+        "cells": [
+          {
+            "arm": "sparsity_beta",
+            "beta": 0.0,
+            "k": 6,
+            "n": 60,
+            "p": 0.2,
+            "sparsity": 0.1,
+            "values": [
+              0.0,
+              0.5,
+              0.5
+            ]
+          },
+          {
+            "arm": "sparsity_beta",
+            "beta": 0.1,
+            "k": 6,
+            "n": 60,
+            "p": 0.2,
+            "sparsity": 0.1,
+            "values": [
+              0.3333333333333333,
+              0.5,
+              1.0
+            ]
+          },
+          {
+            "arm": "sparsity_beta",
+            "beta": 0.0,
+            "k": 12,
+            "n": 60,
+            "p": 0.2,
+            "sparsity": 0.2,
+            "values": [
+              0.3333333333333333,
+              0.25,
+              0.4166666666666667
+            ]
+          },
+          {
+            "arm": "sparsity_beta",
+            "beta": 0.1,
+            "k": 12,
+            "n": 60,
+            "p": 0.2,
+            "sparsity": 0.2,
+            "values": [
+              0.5833333333333334,
+              0.75,
+              0.5
+            ]
+          },
+          {
+            "arm": "p_effect",
+            "beta": 0.1,
+            "k": 6,
+            "n": 60,
+            "p": 0.1,
+            "values": [
+              0.16666666666666666,
+              0.5,
+              0.6666666666666666
+            ]
+          },
+          {
+            "arm": "p_effect",
+            "beta": 0.1,
+            "k": 6,
+            "n": 60,
+            "p": 0.2,
+            "values": [
+              0.3333333333333333,
+              0.5,
+              1.0
+            ]
+          }
+        ],
+        "seeds": [
+          1,
+          2,
+          3
+        ]
+      },
+      "success": true,
+      "timestamp": "2026-09-10T21:46:30.153893"
+    },
+    "scope": "learning-on persistence and sampled crossings; not a physical phase boundary",
+    "verdict": "VOID"
+  },
+  "run": {
+    "engine": "numpy_explicit",
+    "environment": {
+      "policy": "repository-environment-v1",
+      "variables_sha256": {}
+    },
+    "git_commit": "a1cbecd3abb3db75db4878ab0f35dd33260bc4c6",
+    "input_artifacts": {
+      "research/experiments/configs/phase_one_round.json": "cddb04d7e9ddd5140bb4736f46c231c453208d37ed546ade6d1a17ba75d69f83"
+    },
+    "mode": "smoke",
+    "parameters": {
+      "betas": [
+        0.0,
+        0.1
+      ],
+      "initial_stimulus_rounds": 1,
+      "n": 60,
+      "p": 0.2,
+      "p_effect_beta": 0.1,
+      "p_effect_k": 6,
+      "p_values": [
+        0.1,
+        0.2
+      ],
+      "persistence_threshold": 0.95,
+      "sparsities": [
+        0.1,
+        0.2
+      ],
+      "test_rounds": 1,
+      "train_rounds": 3,
+      "w_max": 20.0
+    },
+    "protocol": "memory.historical-phase",
+    "protocol_version": "1",
+    "registration": "research/notes/memory/PREREG_historical_phase_migration.md",
+    "registration_sha256": "d00c4e3a482aca2eaacc3831f4b974cd204b09de08cf8b70f212b274e830f6d7",
+    "schema_version": 4,
+    "scientific_status": "VOID",
+    "script": "research/experiments/historical_phase.py",
+    "script_sha256": "8d53821e094434cff6421d7e391dce4928c6e74cd12c7c2fb57d5bbefdf3274c",
+    "seeds": [
+      1,
+      2,
+      3
+    ],
+    "source_archive": {
+      "file": "source.zip",
+      "sha256": "22d5fa911510836d7538d3d689ea9d9d43ae4231ae254d7e94e2b2df3c8b285c"
+    },
+    "source_inventory": "source-inputs-v3",
+    "source_sha256": "c187917af5022d760e3c3ae407b817e117433a2004da64b410ac92fecf31b58a",
+    "started_utc": "2026-09-11T01:46:24.745522+00:00",
+    "tag": "phase-parameters-smoke-20260910"
+  },
+  "status": "complete"
+}
