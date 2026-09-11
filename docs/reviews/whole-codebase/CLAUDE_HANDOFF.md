@@ -1474,3 +1474,8 @@ Projection and association share the canonical keyed paired-difference report.
 Projection becomes version 4 because its old constant-difference p=1 output changes;
 association must remain exact. Other legacy paired_ttest callers remain open.
 111 focused checks pass. See VALIDATION.md#shared-paired-reporting-2026-09-10.
+
+
+Version 4 projection smoke passes the specified version 3 comparison and independent
+paired-report recomputation. Association replay is exact. Archive source2fb207d;
+48 final contract/register/ratchet gates pass. Other legacy paired callers remain open.

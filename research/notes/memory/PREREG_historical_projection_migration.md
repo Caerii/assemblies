@@ -99,3 +99,15 @@ H2 paired-report fields exactly to the committed version 3 smoke. Independently
 recompute those two fields from the retained H2 per-seed vectors. Validate the source
 archive. Status remains VOID; no old artifact is rewritten or scientific hypothesis
 adopted. Association's existing smoke must replay exactly through the shared helper.
+
+
+### Version 4 migration result (2026-09-10)
+
+Committed at 2fb207d before the
+[version 4 smoke](../../results/runs/memory.historical-projection/historical-projection-v4-smoke-20260910/results.json).
+All raw_data, parameters, success and metrics outside H2's two paired-report fields
+match the version 3 artifact exactly. Independently recomputing differences, the
+Student-t interval and SciPy paired t-test confirms the new report. This smoke's
+differences are nonconstant; constructed constant-effect tests cover the corrected
+undefined case. The archive validates. Association's existing smoke also replays
+exactly through the shared helper. Both remain VOID software evidence.

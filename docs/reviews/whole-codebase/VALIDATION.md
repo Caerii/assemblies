@@ -2732,3 +2732,12 @@ constant-effect failures, invalid pairing and an independent SciPy comparison.
 A version 4 smoke and version 3 evidence comparison are registered before execution.
 
 The strengthened projection suite passes all 45 checks; the adapter/specification/register/two-ratchet gate passes 48 in 84.21s. Ruff and diff checks pass.
+
+
+Version 4 smoke at source2fb207d validates and matches the version 3 artifact exactly
+for raw_data, parameters, success and all metrics except the designated H2 paired
+fields. Independent SciPy/Student-t recomputation confirms those fields. Its observed
+differences are nonconstant; constructed tests cover the formerly fake constant-effect
+p=1. Association's archived smoke remains exact. Evidence lives at
+research/results/runs/memory.historical-projection/historical-projection-v4-smoke-20260910.
+No GPU, full-package or scientific adoption claim is made.
