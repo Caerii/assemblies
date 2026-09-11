@@ -1537,3 +1537,14 @@ reports each position separately.45 checks pass, including the confounded negati
 positive signal and generated corpora at gaps1/2/3/6. It is not yet wired to GPU
 collection; TM-9 remains suspended pending a registered rerun. See
 VALIDATION.md#position-specific-temporal-observation-boundary-2026-09-10.
+
+## Frozen temporal capture (2026-09-10)
+
+capture_chain_arcs now records complete position-labelled frames, resets sentence
+boundaries and advances frozen carry. Preflight rejects invalid corpus/seed inputs;
+endpoint learned-tensor fingerprints reject plasticity or refraction mutation.
+54 CPU checks and two real CUDA copy/induced schedule comparisons pass, no CUDA
+skips. See VALIDATION.md#frozen-temporal-capture-2026-09-10 for scope and limitations.
+This is instrument validation only. Next: integrate a versioned run artifact and
+commit a replacement registration before collecting scientific g=0/g=1 data.
+No suspended temporal mechanism claim is restored, and no dev/master merge occurs.

@@ -58,5 +58,22 @@ Frame ordering may change without changing results because identities are explic
 Constructed agreement-only signal must yield zero contrast at every distractor;
 subject-specific distractor arcs must change those contrasts. This validates the
 instrument on known cases, not its scientific conclusion on trained neural systems.
-GPU frame capture, learning-state checks, registration and empirical reruns remain
-required. The old pooled collector stays blocked until that new path is validated.
+capture_chain_arcs implements frozen capture for one corpus per unique brain seed.
+Validate corpus roles, vocabulary and both comparison groups before any neural tick.
+Reset each brain at every sentence boundary, tick with freeze=True and emit to advance
+carry without teacher forcing. Preserve ragged corpus lengths with unobserved idle
+rows. Attach manifest identities to the arc snapshot at each processed input.
+
+Before returning, require endpoint equality of all organ count tensors, stimulus
+potentiations and area refraction biases, including optional register/horizon state.
+Check organ kernel error flags too. Hash one tensor at a time to bound host memory.
+Runtime winners and stimulus cursors change intentionally. This is an endpoint check
+of learned tensors, not a hermetic execution proof or detection of writes undone
+before the final check. A failed capture returns no dataset and does not roll back
+the transducer; discard the failed run. Raw frames still pass the complete analyzer.
+
+Constructed mutation controls must fail for counts, stimuli and refraction. A small
+trained CUDA transducer in copy and induced modes must match an independently written
+sentence-at-a-time frozen schedule, including unequal corpus lengths. These checks
+establish software behavior only. Registration, artifact integration and empirical
+reruns remain required. The old pooled collector stays blocked.

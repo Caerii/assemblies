@@ -2871,3 +2871,23 @@ These are within-brain pair summaries, not seed-level uncertainty or neural evid
 specification links and both ratchets. Ruff and diff checks pass; tests enter CPU CI.
 GPU frame collection, frozen-state validation, preregistration and empirical reruns
 remain open. Old TM-9 stays blocked and no suspended scientific claim is restored.
+
+## Frozen temporal capture (2026-09-10)
+
+The replacement observation module now captures batched transducer arcs against
+the complete corpus manifest. It validates seeds, vocabulary and comparison groups
+before ticking, resets sentence boundaries, advances carry with frozen emit, and
+supports unequal corpus lengths without recording idle rows. It checks organ error
+flags and hashes learned counts, stimulus potentiations and refraction charges at
+both endpoints. Runtime winners intentionally change; this is not a hermetic proof
+or a rollback facility. Failed captures return no dataset.
+
+54 CPU checks pass in47.81s across observation/capture, the original confound,
+specification links and both ratchets. Constructed count, stimulus and bias mutations
+fail; invalid input fails before any tick. Two additional real CUDA checks pass
+without skips in7.69s under VS2022/CUDA13.1 on RTX3080: trained copy and induced
+transducers match an independent sentence-at-a-time frozen evaluation with ragged
+corpora. These are small software fixtures, not registered scientific measurements.
+Ruff and diff checks pass. The existing observation module is already in CPU CI;
+its CUDA tests carry the gpu marker. Artifact integration, preregistration and a
+position-specific scientific rerun remain open. TM-9 stays suspended.

@@ -3,6 +3,7 @@
 Specification: research/notes/sequence/AUDIT_temporal_position_pooling.md#replacement-observation-contract
 """
 from itertools import combinations
+from hashlib import sha256
 from math import fsum
 
 from neural_assemblies.core.registration import validate_area_registration, validate_round_count
@@ -11,6 +12,96 @@ from research.experiments.study4.ntp_agree import CHAIN_CLASSES
 
 TOKEN_CLASSES = {word: name.split('_') for name, words in CHAIN_CLASSES.items() for word in words}
 FRAME_FIELDS = {'sentence_id', 'position', 'token', 'subject_number', 'neurons'}
+
+
+def _learned_state_digest(transducer):
+    """Hash count matrices, stimulus potentiations and refraction charges.
+
+    This checks endpoint equality of learned tensors, not hermetic execution or
+    transient writes later undone. Winner state and stimulus cursors must advance.
+    Transfer one tensor at a time; do not duplicate the whole brain on the host.
+    """
+    digest = sha256()
+    tensors = []
+    for name in ('lex_arc', 'state_arc', 'arc_state', 'arc_out', 'reg_arc'):
+        fiber = getattr(transducer, name)
+        if fiber is not None:
+            fiber.check()
+            tensors.append((name, fiber.counts()))
+    for name in ('lex', 'arc', 'state', 'out', 'reg'):
+        area = getattr(transducer, name)
+        if area is not None:
+            tensors.append((name, area.bias))
+    stimuli = [('S', transducer.S), ('G', transducer.G)]
+    stimuli += [(f'Gs.{i}', item) for i, item in enumerate(transducer.Gs)]
+    if transducer.reg is not None:
+        stimuli.append(('F', transducer.F))
+    tensors += [(name, stimulus.pot) for name, stimulus in stimuli]
+    for name, tensor in tensors:
+        digest.update(name.encode('utf-8') + b'\0')
+        if tensor is None:
+            digest.update(b'none\0')
+        else:
+            digest.update(f'{tensor.dtype}:{tuple(tensor.shape)}\0'.encode('ascii'))
+            host = tensor.detach().cpu().contiguous().numpy()
+            digest.update(memoryview(host).cast('B'))
+            del host
+    return digest.hexdigest()
+
+
+def capture_chain_arcs(transducer, corpora, *, gap, rounds):
+    """Capture complete, position-labelled arcs under frozen transducer readout.
+
+    Specification: research/notes/sequence/AUDIT_temporal_position_pooling.md#replacement-observation-contract
+
+    One corpus per brain, in seed order. Reset at each sentence boundary, then
+    tick and emit (which advances carry). No teacher forcing. Unequal corpus
+    lengths use idle rows; idle winners are not observations. This leaves runtime
+    winner state changed and checks learned tensor equality before returning.
+    """
+    import torch
+
+    rounds = validate_round_count(rounds)
+    n, k = validate_area_registration('ARC', transducer.n_arc, transducer.k)
+    seeds = list(transducer.seeds)
+    if (len(corpora) != transducer.B or len(seeds) != transducer.B or not seeds
+            or any(type(seed) is not int or seed < 0 for seed in seeds)
+            or len(set(seeds)) != len(seeds)):
+        raise ValueError('capture needs one corpus per unique nonnegative brain seed')
+    schedules = []
+    for sentences in corpora:
+        manifest = chain_observation_manifest(sentences, gap=gap)
+        labels = [manifest[(i, 0)]['subject_number'] for i in range(len(sentences))]
+        if len(set(labels)) < 2 or len(labels) == len(set(labels)):
+            raise ValueError('capture needs same- and different-subject sentence pairs')
+        if any(word not in transducer.word_index for sentence in sentences for word in sentence):
+            raise ValueError('capture corpus contains tokens outside the transducer vocabulary')
+        schedules.append(list(manifest.values()))
+    before = _learned_state_digest(transducer)
+    frames = [[] for _ in seeds]
+    with torch.no_grad():
+        for step in range(max(map(len, schedules))):
+            active = [schedule[step] if step < len(schedule) else None for schedule in schedules]
+            boundary = torch.tensor([item is not None and item['position'] == 0 for item in active],
+                                    dtype=torch.bool, device=transducer.device)
+            if bool(boundary.any()):
+                transducer.reset(boundary)
+            words = [transducer.word_index[item['token']] if item is not None else -1 for item in active]
+            transducer.tick(words, rounds=rounds, freeze=True)
+            # Snapshot before emit so carry advancement cannot rewrite this frame.
+            winners = transducer.arc.winners.detach().cpu().tolist()
+            transducer.emit()
+            for brain, item in enumerate(active):
+                if item is not None:
+                    frame = {key: value for key, value in item.items() if key != 'role'}
+                    frame['neurons'] = winners[brain]
+                    frames[brain].append(frame)
+    if _learned_state_digest(transducer) != before:
+        raise RuntimeError('frozen temporal capture changed learned tensors; discard this run')
+    return [{'seed': seed, 'frames': observed,
+             'analysis': chain_arc_contrasts(sentences, observed, gap=gap, n=n, k=k),
+             'learned_state_digest': before}
+            for seed, sentences, observed in zip(seeds, corpora, frames)]
 
 
 def chain_observation_manifest(sentences, *, gap):
