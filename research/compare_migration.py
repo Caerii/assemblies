@@ -32,7 +32,70 @@ def _equal(actual, expected):
     return actual == expected
 
 
-def compare(candidate, baseline, kind, reference_seeds=None):
+def _compare_capacity(candidate, baseline, reference_seeds, *, condition=None,
+                      allow_extra_checkpoints=False):
+    observations, record = candidate["observations"], candidate["run"]
+    indices = {seed: i for i, seed in enumerate(reference_seeds)}
+    if any(seed not in indices for seed in record["seeds"]):
+        raise ValueError("candidate seed is absent from the reference seed order")
+    expected_keys = {(a, n, k) for a in record["parameters"]["arms"]
+                     for n, k in record["parameters"]["nk"]}
+    if condition is None:
+        cells = observations["cells"]
+        checkpoints = record["parameters"]["configuration"]["checkpoints"]
+    else:
+        mapped = observations["conditions"][condition]["cells"]
+        cells = list(mapped.values())
+        checkpoints = record["parameters"]["conditions"][condition]["checkpoints"]
+        expected_names = {f"{arm}/{n}/{k}" for arm, n, k in expected_keys}
+        if set(mapped) != expected_names:
+            return [f"{condition}: missing, extra, or duplicate keyed capacity cells"], 0
+    errors, checked = [], 0
+    actual_keys = [(c["arm"], c["n"], c["k"]) for c in cells]
+    if len(set(actual_keys)) != len(actual_keys) or set(actual_keys) != expected_keys:
+        errors.append("missing, extra, or duplicate capacity cells")
+    for c in cells:
+        key = f'{c["arm"]}/{c["n"]}'
+        if key not in baseline or not _equal(c["k"], baseline.get(key + "/ceiling", {}).get("k")):
+            errors.append(f"{key}: missing reference or ambiguous k")
+            continue
+        expected_ms = {str(m) for m in checkpoints}
+        actual_ms = set(c["checkpoints"])
+        reference_ms = set(baseline[key])
+        if actual_ms != expected_ms:
+            errors.append(f"{key}: output disagrees with recorded checkpoints")
+        if ((allow_extra_checkpoints and not reference_ms <= actual_ms)
+                or (not allow_extra_checkpoints and actual_ms != reference_ms)):
+            errors.append(f"{key}: missing or extra checkpoints")
+        for m in sorted(reference_ms & actual_ms, key=int):
+            metrics = c["checkpoints"][m]
+            old = baseline[key][m]
+            if set(metrics) != set(old):
+                errors.append(f"{key}/{m}: missing checkpoint metric")
+                continue
+            for metric, values in metrics.items():
+                prior = old[metric]
+                if len(prior) != len(reference_seeds):
+                    raise ValueError("reference seed order does not match observation count")
+                expected = [prior[indices[s]] for s in record["seeds"]]
+                if len(values) != len(expected) or any(
+                        not _equal(a, b) for a, b in zip(values, expected)):
+                    errors.append(f"{key}/{m}/{metric}: per-seed values differ")
+                checked += len(expected)
+        if set(record["seeds"]) == set(reference_seeds):
+            aliases = {"m_star": "m_star", "supported": "supported", "alpha": "alpha",
+                       "fill": "fill_at_ceiling", "censored": "fill_censored"}
+            for old_name, new_name in aliases.items():
+                prior = baseline[key + "/ceiling"]
+                if old_name in prior:
+                    actual = c.get("ceiling", {}).get(new_name)
+                    if not _equal(actual, prior[old_name]):
+                        errors.append(f"{key}/ceiling/{old_name}: aggregate differs")
+                    checked += 1
+    return errors, checked
+
+
+def compare(candidate, baseline, kind, reference_seeds=None, treatment_baseline=None):
     # Specification: neural_assemblies/ir/VERIFICATION.md#contract-migration-identity
     errors, checked = [], 0
     observations, record = candidate["observations"], candidate["run"]
@@ -53,54 +116,26 @@ def compare(candidate, baseline, kind, reference_seeds=None):
             if key not in old or not _equal(r, old[key]):
                 errors.append(f"A1 cell {key} differs (including length and exactness)")
             checked += 1
-    elif kind == "capacity":
+    elif kind in {"capacity", "capacity-paired"}:
         if (not reference_seeds or any(type(seed) is not int for seed in reference_seeds)
                 or len(set(reference_seeds)) != len(reference_seeds)):
             raise ValueError("capacity requires independently verified, unique reference seed order")
-        indices = {seed: i for i, seed in enumerate(reference_seeds)}
-        if any(seed not in indices for seed in record["seeds"]):
-            raise ValueError("candidate seed is absent from the reference seed order")
-        expected_keys = {(a, n, k) for a in record["parameters"]["arms"]
-                         for n, k in record["parameters"]["nk"]}
-        cells = observations["cells"]
-        actual_keys = [(c["arm"], c["n"], c["k"]) for c in cells]
-        if len(set(actual_keys)) != len(actual_keys) or set(actual_keys) != expected_keys:
-            errors.append("missing, extra, or duplicate capacity cells")
-        for c in cells:
-            key = f'{c["arm"]}/{c["n"]}'
-            if key not in baseline or not _equal(c["k"], baseline.get(key + "/ceiling", {}).get("k")):
-                errors.append(f"{key}: missing reference or ambiguous k")
-                continue
-            expected_ms = {str(m) for m in record["parameters"]["configuration"]["checkpoints"]}
-            if set(c["checkpoints"]) != expected_ms:
-                errors.append(f"{key}: missing or extra checkpoints")
-            for m, metrics in c["checkpoints"].items():
-                old = baseline[key].get(str(m))
-                if old is None or set(metrics) != set(old):
-                    errors.append(f"{key}/{m}: missing checkpoint or metric")
-                    continue
-                for metric, values in metrics.items():
-                    prior = old[metric]
-                    if len(prior) != len(reference_seeds):
-                        raise ValueError("reference seed order does not match observation count")
-                    expected = [prior[indices[s]] for s in record["seeds"]]
-                    if len(values) != len(expected) or any(
-                            not _equal(a, b) for a, b in zip(values, expected)):
-                        errors.append(f"{key}/{m}/{metric}: per-seed values differ")
-                    checked += len(expected)
-            # A subset of brains cannot reproduce a full-ensemble ceiling.
-            # Compare aggregate values only when both seeds and grid match.
-            if (set(record["seeds"]) == set(reference_seeds)
-                    and set(c["checkpoints"]) == set(baseline[key])):
-                aliases = {"m_star": "m_star", "supported": "supported", "alpha": "alpha",
-                           "fill": "fill_at_ceiling", "censored": "fill_censored"}
-                for old_name, new_name in aliases.items():
-                    prior = baseline[key + "/ceiling"]
-                    if old_name in prior:
-                        actual = c.get("ceiling", {}).get(new_name)
-                        if not _equal(actual, prior[old_name]):
-                            errors.append(f"{key}/ceiling/{old_name}: aggregate differs")
-                        checked += 1
+        if kind == "capacity":
+            errors, checked = _compare_capacity(candidate, baseline, reference_seeds)
+        else:
+            if treatment_baseline is None:
+                raise ValueError("capacity-paired requires a treatment reference")
+            if set(observations.get("conditions", {})) != {"control", "refracted"}:
+                errors.append("paired candidate must contain control and refracted conditions")
+            else:
+                for condition, reference, allow_extra in (
+                        ("control", baseline, True),
+                        ("refracted", treatment_baseline, False)):
+                    found, count = _compare_capacity(
+                        candidate, reference, reference_seeds,
+                        condition=condition, allow_extra_checkpoints=allow_extra)
+                    errors.extend(f"{condition}: {error}" for error in found)
+                    checked += count
     else:
         raise ValueError(f"unknown comparison: {kind}")
     if not checked:
@@ -111,10 +146,11 @@ def compare(candidate, baseline, kind, reference_seeds=None):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("kind", choices=("a1", "capacity"))
+    parser.add_argument("kind", choices=("a1", "capacity", "capacity-paired"))
     parser.add_argument("candidate", type=Path)
     parser.add_argument("reference", type=Path)
     parser.add_argument("--reference-seeds", nargs="+", type=int)
+    parser.add_argument("--treatment-reference", type=Path)
     args = parser.parse_args()
     errors = validate_artifact(args.candidate)
     if errors:
@@ -123,7 +159,10 @@ def main():
     try:
         candidate = _load_json(args.candidate)
         baseline = _load_json(args.reference)
-        result = compare(candidate, baseline, args.kind, args.reference_seeds)
+        treatment = (_load_json(args.treatment_reference)
+                     if args.treatment_reference is not None else None)
+        result = compare(candidate, baseline, args.kind, args.reference_seeds,
+                         treatment_baseline=treatment)
     except ValueError as exc:
         print(json.dumps({"numerical_match": False, "errors": [str(exc)]}, indent=2))
         return 1
@@ -133,6 +172,9 @@ def main():
     result["comparator_sha256"] = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
     result["candidate_sha256"] = hashlib.sha256(args.candidate.read_bytes()).hexdigest()
     result["reference_sha256"] = hashlib.sha256(args.reference.read_bytes()).hexdigest()
+    if args.treatment_reference is not None:
+        result["treatment_reference_sha256"] = hashlib.sha256(
+            args.treatment_reference.read_bytes()).hexdigest()
     print(json.dumps(result, indent=2))
     return 0 if result["numerical_match"] else 1
 

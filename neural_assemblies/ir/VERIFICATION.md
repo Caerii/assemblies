@@ -1508,6 +1508,15 @@ changes small enough that the former floating tolerance accepted them.
 Comparison version 2 receipts also record the comparator source SHA-256, alongside
 both artifact hashes. Earlier unversioned receipts retain their historical scope.
 
+The `capacity-paired` comparator projects a version-3 run into its explicitly keyed
+control and refracted cells, then compares each against its own historical artifact
+using one independently supplied seed order. Treatment must cover exactly its
+historical checkpoint grid. Control may contain later checkpoints, but every legacy
+checkpoint must be present; this permits one paired run to use the treatment's
+larger grid without discarding control observations. Both aggregate ceilings are
+still compared when every reference seed is present. The receipt binds both
+reference hashes. A missing condition, reference, cell key or per-seed value fails.
+
 
 <a id="contract-capacity-execution"></a>
 ## Recorded capacity settings are execution inputs

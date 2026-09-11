@@ -78,3 +78,43 @@ def test_capacity_reference_seed_keys_are_integer_identities():
     candidate = {"run": {}, "observations": {}}
     with pytest.raises(ValueError, match="reference seed order"):
         compare(candidate, {}, "capacity", [True, 2, 3])
+
+
+def test_paired_capacity_comparison_checks_both_named_conditions():
+    def baseline(values, *, checkpoints=(8,)):
+        return {"B/100": {str(m): {"rank1": values[m]} for m in checkpoints},
+                "B/100/ceiling": {"k": 10}}
+
+    control = baseline({8: [.1, .2, .3]})
+    treatment = baseline({8: [.7, .8, .9], 16: [.6, .7, .8]}, checkpoints=(8, 16))
+    conditions = {
+        "control": {"checkpoints": [8, 16]},
+        "refracted": {"checkpoints": [8, 16]},
+    }
+    candidate = {
+        "run": {"seeds": [13, 7, 19], "parameters": {
+            "arms": ["B"], "nk": [[100, 10]], "conditions": conditions}},
+        "observations": {"conditions": {
+            "control": {"cells": {"B/100/10": {
+                "arm": "B", "n": 100, "k": 10,
+                "checkpoints": {"8": {"rank1": [.2, .1, .3]},
+                                "16": {"rank1": [.2, .1, .3]}}}}},
+            "refracted": {"cells": {"B/100/10": {
+                "arm": "B", "n": 100, "k": 10,
+                "checkpoints": {"8": {"rank1": [.8, .7, .9]},
+                                "16": {"rank1": [.7, .6, .8]}}}}},
+        }},
+    }
+    result = compare(candidate, control, "capacity-paired", [7, 13, 19],
+                     treatment_baseline=treatment)
+    assert result["numerical_match"] and result["comparisons"] == 9
+    candidate["observations"]["conditions"]["refracted"]["cells"][
+        "B/100/10"]["checkpoints"]["16"]["rank1"][0] = 0.0
+    assert not compare(candidate, control, "capacity-paired", [7, 13, 19],
+                       treatment_baseline=treatment)["numerical_match"]
+
+
+def test_paired_capacity_comparison_requires_both_references():
+    candidate = {"run": {"seeds": [1, 2, 3]}, "observations": {}}
+    with pytest.raises(ValueError, match="treatment reference"):
+        compare(candidate, {}, "capacity-paired", [1, 2, 3])
