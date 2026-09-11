@@ -4811,3 +4811,11 @@ The assembly-calculus `__all__` manifest now includes every operation plan and c
 ## Separation semantic card completion (2026-09-11)
 
 Added the missing `contract-separation` semantic card required by `SeparationPlan` and `SEPARATION_CONTRACT`. It records the destructive recurrent-reset schedule, output meaning, scope limits, and true-negative/null controls. Specification-link and operation-contract tests pass **169 tests**.
+
+## Maintained evidence and specification gate (2026-09-11)
+
+Added `python -m research.evidence check` as the single strict gate for the
+maintained research surface. It validates shared-runner artifacts, registration
+and source-archive edges, comparison receipts, and source-to-specification links
+in one invocation; the broader `audit` command remains an explicitly non-blocking
+legacy/reference inventory. The gate passes with `valid_maintained_graph: true`.

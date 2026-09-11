@@ -343,12 +343,22 @@ def main(argv=None):
     commands = parser.add_subparsers(dest='command', required=True)
     commands.add_parser('audit')
     commands.add_parser('specifications')
+    commands.add_parser(
+        'check',
+        help='fail if maintained evidence artifacts or code-to-spec links are invalid',
+    )
     validate = commands.add_parser('validate')
     validate.add_argument('path', type=Path)
     args = parser.parse_args(argv)
     if args.command == 'specifications':
         edges, errors = specification_links()
         print(json.dumps({'edges': edges, 'errors': errors}, indent=2))
+        return 1 if errors else 0
+    if args.command == 'check':
+        specification_edges, specification_errors = specification_links()
+        del specification_edges
+        errors = [*validate_active_evidence_graph(), *specification_errors]
+        print(json.dumps({'valid_maintained_graph': not errors, 'errors': errors}, indent=2))
         return 1 if errors else 0
     if args.command == 'audit':
         print(json.dumps(audit_history(), indent=2))

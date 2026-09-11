@@ -88,6 +88,17 @@ tracked Python and Markdown. It reports candidate orphan results, unresolved
 references and preregistrations without resolved result links. Dynamic consumers,
 unrun preregistrations and descriptive example paths require human review.
 
+The maintained boundary has a strict gate:
+
+```powershell
+uv run python -m research.evidence check
+```
+
+This validates every shared-runner result, its recorded registration and source
+archive, every comparison receipt, and every source-to-specification link. The
+broader `audit` report remains an inventory because legacy and reference trees
+contain descriptive paths that are not executable evidence edges.
+
 Historical artifacts are not rewritten to manufacture missing provenance.
 The full claim-to-registration-to-run graph, remaining experiment migrations,
 runtime index wrappers, model configuration and operation contracts are tracked
