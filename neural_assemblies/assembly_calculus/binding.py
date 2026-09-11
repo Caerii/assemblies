@@ -334,8 +334,6 @@ def input_drive(
         raise KeyError(f"input_drive target area(s) are unknown: {unknown_targets!r}")
     if not sources or not targets:
         raise ValueError("input_drive requires at least one source and target area")
-    if not sources or not targets:
-        return {}
 
     _activate_all(brain, source_assemblies)
     live = [a for a in sources if len(brain.areas[a].winners) > 0]

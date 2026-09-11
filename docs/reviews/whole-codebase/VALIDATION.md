@@ -4910,3 +4910,5 @@ The audit found two intentionally different functions named bind: package-level 
 Added BindingRecallPlan and BINDING_RECALL_CONTRACT for the parser-facing recall helper, which is distinct from package-level read_binding and from ops.bind. The recall source and target topology is now preflighted before entering the read-only scope, and the semantic card/docstring/registry/public export are linked. Focused binding and operation-contract tests pass (168 tests); Ruff is clean.
 
 Strengthened SourceBindingPlan admission: target areas must be distinct from all source and teacher areas, preventing backend-dependent self-binding schedules. Added a true-negative test; focused binding/contract tests pass (166), Ruff clean.
+
+Removed an unreachable duplicate empty-input branch in binding.input_drive. Its validation and pre-k-WTA metric behavior remain covered; focused binding/metric tests pass (18), Ruff clean.
