@@ -41,7 +41,8 @@ sys.path.insert(0, str(project_root))
 
 import numpy as np
 from dataclasses import dataclass
-from numbers import Integral
+from numbers import Integral, Real
+import math
 from typing import Dict, Any
 from research.experiments.base import (
     ExperimentBase,
@@ -54,6 +55,7 @@ from research.experiments.base import (
 
 from neural_assemblies.core.brain import Brain
 from neural_assemblies.assembly_calculus import Assembly
+from neural_assemblies.core.registration import validate_area_registration, validate_round_count
 
 N_SEEDS = 10
 
@@ -184,17 +186,37 @@ class NoiseRobustnessExperiment(ExperimentBase):
         p: float = 0.05,
         beta: float = 0.10,
         w_max: float = 20.0,
-        n_seeds: int = N_SEEDS,
-        **kwargs,
+        n_seeds: int | None = None,
+        *, seed_ids=None, establish_rounds=30, recovery_rounds=20,
+        noise_fracs=(0., .1, .2, .3, .4, .5, .6, .8, 1.),
+        h4_sizes=(200, 500, 1000, 2000), h4_noise_fracs=(.3, .5, .7, 1.),
     ) -> ExperimentResult:
         """Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-historical-noise-study"""
+        if n_seeds is None:
+            n_seeds = len(seed_ids) if seed_ids is not None else N_SEEDS
         if isinstance(n_seeds, bool) or not isinstance(n_seeds, Integral) or n_seeds < 3:
             raise ValueError('historical study summaries require at least three integer seed identities')
+        seeds = list(seed_ids) if seed_ids is not None else [self.seed + i for i in range(n_seeds)]
+        if (len(seeds) != n_seeds or any(isinstance(s, bool) or not isinstance(s, Integral) or s < 0 for s in seeds)
+                or len(set(seeds)) != len(seeds)):
+            raise ValueError('seed identities must be unique nonnegative integers matching n_seeds')
+        seeds = [int(s) for s in seeds]
+        n, k = validate_area_registration('A', n, k)
+        establish_rounds = validate_round_count(establish_rounds)
+        recovery_rounds = validate_round_count(recovery_rounds)
+        noise_fracs, h4_noise_fracs = tuple(noise_fracs), tuple(h4_noise_fracs)
+        h4_sizes = tuple(h4_sizes)
+        for grid in (noise_fracs, h4_noise_fracs):
+            if (not grid or any(isinstance(x, bool) or not isinstance(x, Real) or not math.isfinite(x)
+                                or not 0 <= x <= 1 for x in grid) or len(set(grid)) != len(grid)):
+                raise ValueError('noise grids require unique finite fractions in [0, 1]')
+        if (not h4_sizes or any(isinstance(x, bool) or not isinstance(x, Integral) or x < 2 for x in h4_sizes)
+                or len(set(h4_sizes)) != len(h4_sizes)):
+            raise ValueError('H4 requires unique integer population sizes of at least two')
+        cfg = NoiseConfig(n=n, k=k, p=p, beta=beta, w_max=w_max,
+                          establish_rounds=establish_rounds, recovery_rounds=recovery_rounds)
         self._start_timer()
-        seeds = list(range(n_seeds))
 
-        noise_fracs = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.8, 1.0]
-        cfg = NoiseConfig(n=n, k=k, p=p, beta=beta, w_max=w_max)
         null = chance_overlap(k, n)
 
         self.log("=" * 60)
@@ -207,7 +229,7 @@ class NoiseRobustnessExperiment(ExperimentBase):
         self.log("=" * 60)
 
         metrics: Dict[str, Any] = {}
-        raw_data = {"seeds": [self.seed + s for s in seeds], "cells": []}
+        raw_data = {"seeds": seeds, "cells": []}
 
         # ================================================================
         # H1: Stimulus-Driven Recovery
@@ -218,7 +240,7 @@ class NoiseRobustnessExperiment(ExperimentBase):
         for nf in noise_fracs:
             vals = []
             for s in seeds:
-                vals.append(run_stimulus_recovery_trial(cfg, nf, seed=self.seed + s))
+                vals.append(run_stimulus_recovery_trial(cfg, nf, seed=s))
 
             row = {
                 "noise_frac": nf,
@@ -245,7 +267,7 @@ class NoiseRobustnessExperiment(ExperimentBase):
         for nf in noise_fracs:
             vals = []
             for s in seeds:
-                vals.append(run_autonomous_recovery_trial(cfg, nf, seed=self.seed + s))
+                vals.append(run_autonomous_recovery_trial(cfg, nf, seed=s))
 
             row = {
                 "noise_frac": nf,
@@ -273,7 +295,7 @@ class NoiseRobustnessExperiment(ExperimentBase):
             b_vals = []
             a_vals = []
             for s in seeds:
-                trial = run_association_recovery_trial(cfg, nf, seed=self.seed + s)
+                trial = run_association_recovery_trial(cfg, nf, seed=s)
                 b_vals.append(trial["b_recovery"])
                 a_vals.append(trial["a_intact"])
 
@@ -301,21 +323,20 @@ class NoiseRobustnessExperiment(ExperimentBase):
         # ================================================================
         self.log("\nH4: Autonomous Recovery vs Network Size (k=sqrt(n))")
 
-        h4_sizes = [200, 500, 1000, 2000]
-        h4_noise_fracs = [0.3, 0.5, 0.7, 1.0]
         h4_results = []
 
         for n_val in h4_sizes:
             k_val = int(np.sqrt(n_val))
             null_h4 = chance_overlap(k_val, n_val)
-            cfg_h4 = NoiseConfig(n=n_val, k=k_val, p=p, beta=beta, w_max=w_max)
+            cfg_h4 = NoiseConfig(n=n_val, k=k_val, p=p, beta=beta, w_max=w_max,
+                                establish_rounds=establish_rounds, recovery_rounds=recovery_rounds)
 
             noise_entries = []
             for nf in h4_noise_fracs:
                 vals = []
                 for s in seeds:
                     vals.append(
-                        run_autonomous_recovery_trial(cfg_h4, nf, seed=self.seed + s)
+                        run_autonomous_recovery_trial(cfg_h4, nf, seed=s)
                     )
 
                 entry = {
@@ -350,7 +371,8 @@ class NoiseRobustnessExperiment(ExperimentBase):
                 "establish_rounds": cfg.establish_rounds,
                 "recovery_rounds": cfg.recovery_rounds,
                 "noise_fracs": noise_fracs,
-                "n_seeds": n_seeds,
+                "n_seeds": int(n_seeds), "seed_ids": seeds,
+                "h4_sizes": list(h4_sizes), "h4_noise_fracs": list(h4_noise_fracs),
                 "primary_engine": "numpy_sparse", "area_engine": "numpy_explicit",
                 "recovery_learning": True, "association_reference": "pre_association",
             },
@@ -360,24 +382,10 @@ class NoiseRobustnessExperiment(ExperimentBase):
         )
 
 
-def main():
-    import argparse
-
-    parser = argparse.ArgumentParser(description="Noise Robustness Experiment")
-    parser.add_argument("--quick", action="store_true", help="Quick run (fewer seeds)")
-
-    args = parser.parse_args()
-
-    exp = NoiseRobustnessExperiment(verbose=True)
-
-    if args.quick:
-        result = exp.run(n_seeds=5)
-        exp.save_result(result, "_quick")
-    else:
-        result = exp.run()
-        exp.save_result(result)
-
-    print(f"\nTotal time: {result.duration_seconds:.1f}s")
+def main(argv=None):
+    # The old CLI now requires the same explicit tag and immutable run envelope.
+    from research.experiments.historical_noise import main as run_registered
+    run_registered(argv)
 
 
 if __name__ == "__main__":

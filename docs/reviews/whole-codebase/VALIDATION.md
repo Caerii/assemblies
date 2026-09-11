@@ -2180,3 +2180,21 @@ both ratchets passed 27 tests in 55.83s before the final missing-status guard.
 Final combined legacy-storage/runner/historical-replay suite: 120 passed in 23.33s,
 including the missing-status guard. Ruff and git diff --check pass. No GPU rerun
 was required for this record-validation change; no backend code changed.
+
+
+## Historical noise shared-runner migration (2026-09-10)
+
+The study now consumes explicit seed identities, noise grids, H4 sizes and round
+counts. Defaults retain the historical protocol; arbitrary seed order is preserved
+without adding the ExperimentBase seed again. The adapter records those inputs
+before compute, uses the actual numpy_explicit area owner, preserves raw cells and
+returns UNADOPTED for historical study outputs. Smoke/legacy --quick outputs are
+VOID. The old CLI forwards to the same adapter and now requires a unique --tag.
+The migration registration is research/notes/memory/PREREG_historical_noise_migration.md.
+It requires existing trajectory fixtures and direct/adapter smoke equivalence;
+it registers no new scientific adoption. Historical provenance gaps are not filled
+by inference. No shared-runner smoke has executed at this pre-run checkpoint.
+
+Pre-run checks: 51 historical replay/grid/CLI/ratchet tests passed in 48.70s;
+Ruff and git diff --check passed. The earlier legacy result/replay check passed
+58 tests in 2.65s.

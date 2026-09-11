@@ -165,7 +165,8 @@ def run_experiment(*, script: str | Path, protocol: str, protocol_version: str,
         raise
 
 
-EXPERIMENTS = {'context-noise': 'research.experiments.context_noise',
+EXPERIMENTS = {'historical-noise': 'research.experiments.historical_noise',
+               'context-noise': 'research.experiments.context_noise',
                'a1-learning-null': 'research.experiments.seq_a1_learning_null',
                'a1-horizon': 'research.experiments.seq_a1_horizon_hashed',
                'capacity-scaling': 'research.experiments.seq_capacity_scaling'}

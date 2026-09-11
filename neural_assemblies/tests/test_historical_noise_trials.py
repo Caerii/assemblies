@@ -65,3 +65,46 @@ def test_too_few_seeds_fail_before_timer_or_compute(count):
     experiment = object.__new__(study.NoiseRobustnessExperiment)
     with pytest.raises(ValueError, match='at least three'):
         experiment.run(n_seeds=count)
+
+
+
+def test_explicit_seeds_and_grid_are_consumed_without_offsets(monkeypatch, tmp_path):
+    from research.experiments.historical_noise import parameters
+    calls = []
+    def scalar(cfg, noise_frac, seed):
+        calls.append((cfg.n, cfg.k, cfg.establish_rounds, cfg.recovery_rounds, noise_frac, seed))
+        return seed / 10
+    monkeypatch.setattr(study, 'run_stimulus_recovery_trial', scalar)
+    monkeypatch.setattr(study, 'run_autonomous_recovery_trial', scalar)
+    monkeypatch.setattr(study, 'run_association_recovery_trial', lambda cfg, noise_frac, seed:
+                        {'b_recovery': scalar(cfg, noise_frac, seed), 'a_intact': 1.})
+    result = study.NoiseRobustnessExperiment(results_dir=tmp_path, seed=999, verbose=False).run(seed_ids=[9, 2, 7], **parameters(True))
+    assert result.raw_data['seeds'] == [9, 2, 7]
+    assert len(result.raw_data['cells']) == 12
+    assert all(call[2:4] == (3, 3) for call in calls)
+    assert {call[:2] for call in calls} == {(60, 6), (60, 7)}
+    assert [call[-1] for call in calls] == [9, 2, 7] * 12
+
+
+@pytest.mark.parametrize('kwargs', [
+    {'seed_ids': [1, 1, 2]}, {'seed_ids': [1, 2, 3], 'n_seeds': 4},
+    {'noise_fracs': [0., 0.]}, {'h4_sizes': [60, 60]}, {'h4_noise_fracs': [-.1]},
+])
+def test_invalid_registered_inputs_fail_before_timer(kwargs, tmp_path):
+    experiment = study.NoiseRobustnessExperiment(results_dir=tmp_path, verbose=False)
+    with pytest.raises(ValueError):
+        experiment.run(**kwargs)
+    assert experiment._start_time is None
+
+
+def test_legacy_cli_requires_tag_and_quick_is_void(monkeypatch):
+    from research.experiments import historical_noise as adapter
+    with pytest.raises(SystemExit):
+        study.main([])
+    captured = []
+    monkeypatch.setattr(adapter, 'run_experiment', lambda **kw: captured.append(kw) or Path('unused'))
+    study.main(['--quick', '--seeds', '9', '2', '7', '--tag', 'fixture'])
+    assert captured[0]['smoke'] is True
+    assert captured[0]['seeds'] == [9, 2, 7]
+    assert captured[0]['engine'] == 'numpy_explicit'
+    assert captured[0]['parameters']['establish_rounds'] == 3

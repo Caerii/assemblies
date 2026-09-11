@@ -1267,3 +1267,12 @@ No backend or numerical experiment code changed.
 
 The final combined suite passed 120 tests in 23.33s. The 27 specification/register/
 ratchet checks also passed; exact ordering is retained in validation.
+
+
+## Historical noise runner adapter (2026-09-10)
+
+The old CLI now forwards to research.runner's historical-noise adapter and requires
+--tag; --quick aliases VOID smoke. Seeds, grids and round counts are recorded and
+consumed explicitly. Historical study verdicts are UNADOPTED, not scientific PASS.
+The source-linked migration registration and validation precede the smoke run;
+see VALIDATION.md#historical-noise-shared-runner-migration-2026-09-10.
