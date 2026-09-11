@@ -93,8 +93,8 @@ class LexiconTrainingMixin:
     def _clear_core_activity(self, core_area: str) -> None:
         """Clear core winners without wiping learned connectomes or ID mapping."""
         self.brain.inhibit_areas([core_area])
-        if self.brain._engine.is_fixed(core_area):
-            self.brain._engine.unfix_assembly(core_area)
+        if self.brain.is_fixed(core_area):
+            self.brain.unfix_assembly(core_area)
 
     def train_lexicon(
         self,

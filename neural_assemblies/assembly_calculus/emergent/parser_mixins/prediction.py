@@ -73,8 +73,8 @@ class PredictionMixin:
         """Clear PREDICTION winners without wiping learned connectomes."""
         if PREDICTION in self.brain.areas:
             self.brain.inhibit_areas([PREDICTION])
-            if self.brain._engine.is_fixed(PREDICTION):
-                self.brain._engine.unfix_assembly(PREDICTION)
+            if self.brain.is_fixed(PREDICTION):
+                self.brain.unfix_assembly(PREDICTION)
 
     def _bootstrap_prediction_connectivity(self) -> None:
         """Materialize baseline CONTEXT/PREDICTION pathways once (plasticity off)."""

@@ -215,14 +215,11 @@ def prepare_area_for_replay(brain, area_name: str) -> None:
     brain.inhibit_areas([area_name])
     area = brain.areas[area_name]
     area.w = 0
-    area.unfix_assembly()
+    brain.unfix_assembly(area_name)
     area.compact_to_neuron_id = []
     if area.neuron_id_pool is not None:
         area.neuron_id_pool_ptr = 0
-    if brain._engine.is_fixed(area_name):
-        brain._engine.unfix_assembly(area_name)
-
-    engine = brain._engine
+    engine = brain._engine_for(area)
     if hasattr(engine, "_areas") and area_name in engine._areas:
         st = engine._areas[area_name]
         st.w = 0

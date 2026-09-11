@@ -2431,6 +2431,13 @@ gate is 27 passed, including an explicit-area negative/positive control.
 The migration also removed the remaining direct resets in PFA and readout, so
 the owner facade is now the single public route for this mutation.
 
+The same mixed-owner issue existed for fixed assemblies and masked readout.
+`Brain.is_fixed`, `fix_assembly`, `unfix_assembly`, and
+`set_masked_readout` now resolve the target area's owner; consolidation and
+emergent parser code use those façade controls. The broad focused gate passed
+171 tests (19 skips, one expected xfail) across parser, consolidation, hash
+parity, and specification links.
+
 `build_lexicon` had a transaction and ownership gap: it could mutate earlier
 words before discovering an invalid mapping, and it reset through the primary
 engine even when the target area was explicit. It now preflights all inputs and

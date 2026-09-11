@@ -4176,3 +4176,15 @@ pass. Ruff and whitespace checks pass.
 
 The reset migration also covers the remaining PFA and readout call sites, so
 the calculus no longer reaches into a primary engine for this operation.
+
+## Area controls route through owners (2026-09-11)
+
+Fixed-state controls now have the same ownership boundary as connection resets.
+`Brain.is_fixed`, `fix_assembly`, `unfix_assembly`, and masked-readout state
+resolve the area's executing engine. Consolidation and emergent parser code no
+longer query or mutate fixed state through the primary engine. Unsupported
+masked-readout state fails explicitly.
+
+Validation: 171 owner-routing, consolidation, emergent-parser, hash-parity and
+specification tests passed; 19 expected tests were skipped and one remained
+an expected xfail. Ruff and whitespace checks passed.

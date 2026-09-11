@@ -1317,6 +1317,32 @@ class Brain:
             raise KeyError(f"unknown area {area_name!r}") from None
         self._engine_for(area).reset_area_connections(area_name)
 
+    def is_fixed(self, area_name: str) -> bool:
+        """Return the executing owner's fixed-assembly state."""
+        try:
+            area = self.areas[area_name]
+        except KeyError:
+            raise KeyError(f"unknown area {area_name!r}") from None
+        return bool(self._engine_for(area).is_fixed(area_name))
+
+    def fix_assembly(self, area_name: str) -> None:
+        """Fix an area's assembly in both its descriptor and owning engine."""
+        try:
+            area = self.areas[area_name]
+        except KeyError:
+            raise KeyError(f"unknown area {area_name!r}") from None
+        area.fix_assembly()
+        self._engine_for(area).fix_assembly(area_name)
+
+    def unfix_assembly(self, area_name: str) -> None:
+        """Release an area's fixed assembly through its owning engine."""
+        try:
+            area = self.areas[area_name]
+        except KeyError:
+            raise KeyError(f"unknown area {area_name!r}") from None
+        area.unfix_assembly()
+        self._engine_for(area).unfix_assembly(area_name)
+
     def set_lri(self, area_name: str, refractory_period: int,
                 inhibition_strength: float) -> None:
         """Update LRI parameters for an area at runtime.
@@ -1364,9 +1390,14 @@ class Brain:
         written. This is the mode switch the memory needs; nothing in the
         substrate flips it on its own.
         """
-        st = self._engine._areas.get(area_name) if hasattr(self._engine, "_areas") else None
-        if st is None:
+        if area_name not in self.areas:
             raise KeyError(f"unknown area {area_name!r}")
+        owner = self._engine_for(self.areas[area_name])
+        st = getattr(owner, "_areas", {}).get(area_name)
+        if st is None:
+            raise NotImplementedError(
+                f"{type(owner).__name__} does not expose masked readout state"
+            )
         st.masked_readout = bool(enabled)
 
     def materialize_area(self, area_name: str, storage: str = "csr") -> int:

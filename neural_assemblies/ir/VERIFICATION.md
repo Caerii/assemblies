@@ -2297,3 +2297,13 @@ stimulus-to-area fibers according to that engine's reset contract. Code using a
 mixed sparse/explicit brain must call this facade rather than reaching through
 the primary engine; otherwise a successful call can mutate unrelated storage
 or leave the intended owner unchanged.
+
+
+<a id="contract-area-fix"></a>
+### Area fixed-assembly ownership
+
+`Brain.is_fixed`, `fix_assembly`, and `unfix_assembly` resolve the named area's
+execution owner and keep the public `Area` descriptor synchronized with that
+owner. Per-area code must use these façade methods rather than calling a
+primary engine directly; this is required when one Brain mixes sparse and
+explicit areas.

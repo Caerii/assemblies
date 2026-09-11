@@ -71,8 +71,8 @@ class UnsupervisedMixin:
         unfix, leaving the history intact for the next projection to reuse.
         """
         self.brain.inhibit_areas([role_area])
-        if self.brain._engine.is_fixed(role_area):
-            self.brain._engine.unfix_assembly(role_area)
+        if self.brain.is_fixed(role_area):
+            self.brain.unfix_assembly(role_area)
         if getattr(self, "_compiled_training_enabled", True):
             area = self.brain.areas[role_area]
             area.w = 0

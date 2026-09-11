@@ -291,8 +291,8 @@ class IncrementalMixin:
             area.compact_to_neuron_id = []
             if area.neuron_id_pool is not None:
                 area.neuron_id_pool_ptr = 0
-        if self.brain._engine.is_fixed(CONTEXT):
-            self.brain._engine.unfix_assembly(CONTEXT)
+        if self.brain.is_fixed(CONTEXT):
+            self.brain.unfix_assembly(CONTEXT)
         engine = self.brain._engine
         if hasattr(engine, "_areas") and CONTEXT in engine._areas:
             st = engine._areas[CONTEXT]
