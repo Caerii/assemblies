@@ -97,7 +97,6 @@ def _forward_high(
 def _set_high_from_vector(brain, high_vec: np.ndarray) -> None:
     winners = np.flatnonzero(high_vec > 0).astype(np.uint32)
     brain.areas[HIGH].winners = winners
-    brain.areas[HIGH].w = len(winners)
     if brain._explicit_engine is not None:
         brain._explicit_engine.set_winners(HIGH, winners)
 

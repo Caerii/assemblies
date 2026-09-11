@@ -3932,3 +3932,10 @@ The full patch-merge and ventral Tier-A smoke suite, plus specification and coun
 ratchets, passes 38 tests with 2 data-dependent skips in 879.89 seconds. Ruff and
 whitespace checks pass. This is a routing correction only; it makes no new MNIST
 accuracy claim.
+
+Three public descriptor writes were redundant with `Area.winners` assignment:
+two MNIST HIGH-vector injection paths rewrote `w = len(winners)`, and the legacy
+language parser rewrote `w = 0` after clearing winners. The validated setter
+already performs that synchronization. Removing the duplicates leaves one state
+transition per operation and lowers three more ratchet baselines. Area, routing,
+specification and ratchet controls pass 23 tests; Ruff and whitespace checks pass.

@@ -123,7 +123,6 @@ class ParserBrain(Brain):
         area.unfix_assembly()
         empty = np.array([], dtype=np.uint32)
         area.winners = empty
-        area.w = 0
         self._engine.set_winners(area_name, empty)
         if area.explicit and self._explicit_engine is not None:
             self._explicit_engine.set_winners(area_name, empty)

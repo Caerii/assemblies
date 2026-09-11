@@ -2275,3 +2275,8 @@ eligibility checks, so they now route through `area_has_active_winners` and its
 Assembly IR contract. The counterexample reverses historical population and
 current activity. The full slow program gate passes 38 tests with 2
 data-dependent skips; no accuracy result is inferred from this refactor.
+
+I also removed three redundant descriptor mutations after `Area.winners`
+assignment in the two MNIST HIGH injection paths and the legacy language parser.
+The setter is the single transition now; the `.w` ratchet entries disappear.
+The focused setter/routing/specification gate is 23 passed.

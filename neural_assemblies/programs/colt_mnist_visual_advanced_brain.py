@@ -256,7 +256,6 @@ def _predict(
 
     winners = np.flatnonzero(high_vec > 0).astype(np.uint32)
     brain.areas[HIGH].winners = winners
-    brain.areas[HIGH].w = len(winners)
     if brain._explicit_engine is not None:
         brain._explicit_engine.set_winners(HIGH, winners)
     clear_area_winners(brain, CLASS)
