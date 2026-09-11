@@ -1365,3 +1365,12 @@ one skip after the accumulated convergence/runner changes. Both smoke cells reta
 three timeouts each and remain VOID. Old aggregate-grid translation remains open.
 
 Dedicated fused/CUDA parity also passed 122 tests in 58.38s.
+
+
+## Convergence boundary checks (2026-09-10)
+
+Fit inputs reject Boolean/fractional populations even when censored. Direct stopping
+records reject ambiguous truthy statuses and invalid elapsed counts. Bounded
+exhaustive checks cover 1024 history/window combinations; both archived projection
+and scaling smoke outputs remain exact. Eighty-eight focused tests pass. See
+VALIDATION.md#convergence-record-boundaries-and-bounded-equivalence-2026-09-10.

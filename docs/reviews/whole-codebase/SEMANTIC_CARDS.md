@@ -997,3 +997,13 @@ k=floor(sqrt(n)), and forwards the old CLI to a tagged shared-runner adapter.
 Default initialization remains one separate stimulus-only round. This closes the
 new-run grid/configuration/provenance migration noted above; it does not repair
 old artifacts or the obsolete aggregate grid. Full outputs remain UNADOPTED.
+
+
+Shared convergence boundary checks: population sizes and observed event times are
+positive integer counts (booleans are invalid). Validate every cell before deciding
+that censoring makes a fit unavailable. Direct ConvergenceObservation construction
+requires an Assembly, positive elapsed count and an explicit native boolean; a
+string "False" may never become a convergence event by truthiness. Normalize valid
+integer counts for serialization. Exhaustive tests compare the streak implementation
+to the window definition for every eight-comparison Boolean history and windows1..4;
+this is bounded equivalence evidence, not an unbounded formal proof.

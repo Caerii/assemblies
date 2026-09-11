@@ -146,3 +146,59 @@ def test_old_cli_requires_tag_and_records_smoke_parameters(monkeypatch, capsys):
     assert calls[0]["engine"] == "numpy_explicit"
     assert calls[0]["seeds"] == [9, 2, 7]
     assert calls[0]["parameters"] == adapter.parameters(True)
+
+
+@pytest.mark.parametrize("size", [True, 1.5, 0, -2, float("nan"), float("inf")])
+def test_censoring_does_not_hide_invalid_population_sizes(size):
+    with pytest.raises(ValueError):
+        convergence_scaling_fit([size, 100], [[None, None, None], [4, 4, 4]])
+
+
+@pytest.mark.parametrize("time", [True, 0, -1, 1.5, float("nan"), float("inf")])
+def test_censoring_does_not_hide_invalid_event_times(time):
+    with pytest.raises(ValueError):
+        convergence_scaling_fit([10, 100], [[None, 4, 4], [time, 4, 4]])
+
+
+@pytest.mark.parametrize("status", ["False", "True", 0, 1, None, np.bool_(True)])
+def test_direct_stopping_record_rejects_ambiguous_status(status):
+    from research.experiments._convergence import ConvergenceObservation
+    from neural_assemblies.assembly_calculus.assembly import Assembly
+    with pytest.raises(ValueError, match="boolean"):
+        ConvergenceObservation(Assembly("A", [1, 2]), 4, status)
+
+
+def test_direct_stopping_record_normalizes_integer_rounds_and_requires_snapshot():
+    from research.experiments._convergence import ConvergenceObservation
+    from neural_assemblies.assembly_calculus.assembly import Assembly
+    observation = ConvergenceObservation(Assembly("A", [1, 2]), np.int64(4), False)
+    assert observation.record() == {"training_rounds": 4, "converged": False, "convergence_time": None}
+    assert type(observation.training_rounds) is int
+    with pytest.raises(ValueError, match="snapshot"):
+        ConvergenceObservation(None, 4, False)
+    with pytest.raises(ValueError, match="positive integer"):
+        ConvergenceObservation(Assembly("A", [1, 2]), 0, True)
+
+
+def test_streak_matches_window_rule_for_all_eight_comparison_patterns():
+    from itertools import product
+    from types import SimpleNamespace
+
+    # Exhaustive bounded equivalence, not a claim of a formal unbounded proof.
+    for passes in product((False, True), repeat=8):
+        sequence = [[0, 1]]
+        for agrees in passes:
+            sequence.append(sequence[-1] if agrees else ([2, 3] if sequence[-1] == [0, 1] else [0, 1]))
+        for window in range(1, 5):
+            brain = SimpleNamespace(areas={"A": SimpleNamespace(explicit=True, winners=np.array([], dtype=int))})
+            count = 0
+            def project(stimuli, fibers):
+                nonlocal count
+                brain.areas["A"].winners = np.array(sequence[count])
+                count += 1
+            brain.project = project
+            expected = next((i+2 for i in range(window-1, 8) if all(passes[i-window+1:i+1])), None)
+            observed = run_convergence_phase(brain, stimulus="s", area="A", max_rounds=9, window=window)
+            assert observed.record() == {"training_rounds": expected or 9,
+                                          "converged": expected is not None,
+                                          "convergence_time": expected}

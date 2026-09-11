@@ -2461,3 +2461,29 @@ selected package contracts; it is not the entire package suite. Local log:
 Dedicated fused/CUDA parity suite passed 122 tests, 11 warnings in 58.38s on
 RTX3080, with the fused extension loaded. Local log: .cache/historical-scaling-gpu-gate.log.
 Ruff and git diff --check also pass.
+
+
+## Convergence record boundaries and bounded equivalence (2026-09-10)
+
+The shared fit previously accepted Boolean/fractional population sizes; it now
+requires positive integer counts before handling censoring. Negative/nonfinite/
+fractional event times are also checked across all cells before a censored return,
+so an unavailable fit cannot hide another malformed cell. ConvergenceObservation
+construction requires an Assembly snapshot, positive integer elapsed work and a
+native Boolean status; strings/numeric truthiness cannot manufacture an event.
+Valid NumPy integer counts normalize to native ints for serialization.
+
+An exhaustive bounded check compares the streaming phase with the prior window
+rule for all 256 eight-comparison Boolean histories and windows1..4 (1024 cases).
+It includes interrupted streaks, early success, final-round success and timeout.
+This is bounded executable equivalence evidence, not an unbounded formal proof.
+
+Combined scaling/projection tests passed 88 tests in 3.79s, including all trajectory
+fixtures and invalid/censored input controls. Direct projection-v3 and scaling-v1
+runs exactly match their archived metrics/raw_data/parameters/success after these
+boundary changes. No archived artifacts were changed and no new science is adopted.
+Ruff passes. No backend code changed.
+
+Specification links and both ratchets passed 19 tests in 75.93s. Diff checks
+also pass. No whole-package or new GPU verification is claimed for these
+validation-only changes; archived numerical replay remains exact.

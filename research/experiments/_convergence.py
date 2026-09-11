@@ -25,6 +25,14 @@ class ConvergenceObservation:
     training_rounds: int
     converged: bool
 
+    def __post_init__(self):
+        """Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#shared-convergence-phase"""
+        if not isinstance(self.assembly, Assembly):
+            raise ValueError("convergence observation requires an Assembly snapshot")
+        if type(self.converged) is not bool:
+            raise ValueError("converged must be an explicit boolean stopping status")
+        object.__setattr__(self, "training_rounds", validate_round_count(self.training_rounds))
+
     def record(self):
         return {"training_rounds": self.training_rounds, "converged": self.converged,
                 "convergence_time": self.training_rounds if self.converged else None}
@@ -54,8 +62,9 @@ def convergence_scaling_fit(sizes, event_times):
     """
     if len(sizes) < 2 or len(sizes) != len(event_times) or len(set(sizes)) != len(sizes):
         raise ValueError("fit requires at least two distinct matched sizes")
-    for size, times in zip(sizes, event_times):
-        if size <= 0 or not math.isfinite(size) or len(times) < 3:
+    sizes = [validate_round_count(size) for size in sizes]
+    for times in event_times:
+        if len(times) < 3:
             raise ValueError("fit requires positive sizes and at least three observations per size")
         for time in times:
             if time is not None:
