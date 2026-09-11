@@ -4242,3 +4242,9 @@ connectome surgery by design and remain a separate disposition task.
 
 Validation: 39 cross-engine projection, mixed-drive, and clone tests passed;
 the four existing backend warnings are unchanged.
+
+A static ownership ratchet now scans calculus and program namespaces for direct
+primary-engine mutations (`reset_area_connections`, beta/connectivity writes,
+and fixed-state controls). New bypasses fail in the specification-link gate.
+
+Validation: all 10 specification-link and ownership-ratchet tests passed.

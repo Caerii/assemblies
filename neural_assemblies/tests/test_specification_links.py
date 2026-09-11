@@ -1,11 +1,29 @@
 """Source-to-spec navigation is checked independently of semantic correctness."""
 from pathlib import Path
+import re
 
 import pytest
 
 from research.evidence import specification_links
 
 ROOT = Path(__file__).resolve().parents[2]
+
+
+def test_calculus_and_programs_do_not_bypass_brain_owner_facades():
+    """Keep area mutations on Brain's owner-aware public boundary."""
+    forbidden = re.compile(
+        r"(?:brain|self\.brain)\._engine\.(?:reset_area_connections|set_beta|"
+        r"add_connectivity|is_fixed|fix_assembly|unfix_assembly)"
+    )
+    roots = (ROOT / "neural_assemblies" / "assembly_calculus",
+             ROOT / "neural_assemblies" / "programs")
+    violations = []
+    for base in roots:
+        for path in base.rglob("*.py"):
+            for line_number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+                if forbidden.search(line):
+                    violations.append(f"{path.relative_to(ROOT)}:{line_number}: {line.strip()}")
+    assert not violations, "owner facade bypasses:\n" + "\n".join(violations)
 
 
 def test_reviewed_operations_keep_their_specification_links():

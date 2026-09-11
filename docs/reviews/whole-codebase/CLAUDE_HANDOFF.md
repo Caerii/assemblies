@@ -2465,6 +2465,10 @@ changes: 39 cross-engine projection, mixed-drive, and clone tests pass. The
 specialized MNIST connectome surgery paths still need an explicit disposition;
 they were not silently reclassified as public owner APIs.
 
+The ownership rule is now mechanically guarded: a specification-link test
+scans calculus and program code for direct primary-engine reset, beta,
+connectivity, and fixed-state mutations. Ten specification-link tests pass.
+
 The owner negative test found a second issue: explicit areas could receive the
 same beta/connectivity write twice because the explicit mirror was also the
 resolved owner. Identity-guarded mirroring now enforces one write per owner;
