@@ -92,6 +92,7 @@ jobs:
           neural_assemblies/tests/test_theory_citations.py
           neural_assemblies/tests/test_methodology_ratchet.py
           neural_assemblies/tests/test_index_space_ratchet.py
+          neural_assemblies/tests/test_index_space_types.py
           neural_assemblies/tests/test_coin_seed_contract.py
           neural_assemblies/tests/test_coin_construction.py
           neural_assemblies/tests/test_pfa_choice_contract.py
