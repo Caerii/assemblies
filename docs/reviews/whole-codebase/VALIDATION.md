@@ -4635,3 +4635,7 @@ The legacy `assembly_calculus.binding.bind` now rejects unknown area names and n
 ## Explicit ordered-recall protocol (2026-09-11)
 
 `ordered_recall` now preflights its area, cue, step budgets, cycle threshold, and novelty threshold before clearing refractory state. The previous hardcoded `0.3` novelty cutoff is now a named, validated parameter, so sequence termination is reproducible and configurable. Ordered-recall and sequence regressions pass **25 tests**.
+
+## Sequence memorization schedule admission (2026-09-11)
+
+`sequence_memorize` now snapshots and validates the full stimulus sequence, target, rounds, repetitions, Phase-B ratio, and beta boost before changing the connectome. Missing later stimuli can no longer leave an earlier item trained. Sequence, trace, and contract regressions pass **38 tests**.
