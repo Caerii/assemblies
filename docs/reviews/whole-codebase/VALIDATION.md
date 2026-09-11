@@ -3806,6 +3806,13 @@ The composite register entry also retains explicit gaps for the masked/net veto,
 convergence gate, strength plateau and cross-engine mirror; one live contrast does
 not silently certify every sentence in the entry.
 
+The same retained-control path now covers `CAP-CLIFF`. A preregistered 20-brain
+exact-path reproduction at `(8000,60)` returned rank-1 `0.909 / 0.433 / 0.0188`
+at `M=256 / 320 / 384`, close to the historical `0.938 / 0.486 / 0.014`.
+Every seed moved from 1.0 at M=192 to 0.0 at M=512, and the constructed
+treatment-equals-control check fails. The shape reproduces; `M*=310.1` remains
+fill-censored at 0.955.
+
 This revealed that the registration's 1977.6 value was unsupported by its
 retained curve. The curve, legacy figure aggregate and exact rerun all yield
 1961.4004. Current summaries now use that value: 23.51x control and about +35%

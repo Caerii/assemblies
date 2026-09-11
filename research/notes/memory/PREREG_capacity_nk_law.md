@@ -287,3 +287,26 @@ of A3-C1 means the cliff shape does not reproduce. Failure of A3-S1 means the
 readout does not move reliably across the tested load range, so this artifact
 cannot close the register sensitivity gap. No threshold will be changed after
 the run.
+
+### Amendment 3 result (2026-09-11): all bars pass; the ceiling remains censored
+
+[Immutable results](../../results/runs/memory.capacity-scaling/capacity-cliff-sensitivity-20260911/results.json),
+with its run record and source archive, were produced from preregistration commit
+`c3a3f0f`. The maintained exact count-then-apply path returned:
+
+    M                 192       256       320       384       512
+    mean rank-1     1.000     0.909     0.433     0.0188     0.000
+    historical                 0.938     0.486     0.014
+    abs difference             0.029     0.053     0.0048
+
+* **A3-R1 PASS:** all three aggregate differences clear their frozen tolerances.
+* **A3-C1 PASS:** the M=256 to M=384 mean drop is 0.891, above 0.75.
+* **A3-S1 PASS:** every one of 20 paired brains drops from 1.0 at M=192 to
+  0.0 at M=512; the minimum per-seed difference is 1.0, above 0.50.
+* **A3-S0 PASS:** replacing the M=192 vector with M=512 gives zero movement
+  and fails the retained sensitivity check.
+
+The interpolated `M* = 310.1`, bracketed by `[256, 320)`, occurs at estimated
+fill 0.955 and is therefore **CENSORED** by the standing 0.95 rule. This run
+reproduces the cliff shape and makes its readout sensitivity executable. It does
+not turn the interpolated ceiling into an uncensored capacity estimate.

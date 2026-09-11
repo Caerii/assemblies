@@ -2188,6 +2188,12 @@ explicit seed identity and its constructed treatment-equals-control case fails.
 The entry keeps named gaps for its other mechanism facets, because check/gap
 coverage is additive for composite results rather than mutually exclusive.
 
+`CAP-CLIFF` is now independently retained too. Its preregistered exact-path
+reproduction at `(8000,60)` passes all aggregate and sensitivity bars: the
+256-to-384 mean drop is 0.891, while every brain moves by 1.0 between M=192
+and M=512. The run preserves the fill-censoring caveat instead of promoting
+the interpolated M*=310.1 to an uncensored capacity estimate.
+
 The rerun caught a real documentation error. Retained data and both computations
 give M*=1961.400398770613, while prose said 1977.6. The corrected multiplier is
 23.51x over 83.41525726478883 and the gated 2645 result is about +35%. R1, the

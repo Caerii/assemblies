@@ -1006,8 +1006,15 @@ _RESULTS: List[Result] = [
         id="CAP-CLIFF",
         engine="hashed AssemblyMemory / exact count-then-apply path",
         status=Status.MEASURED,
-        sensitivity_gap="The retained replay brackets the cliff but does not "
-                        "encode a mechanism-disabled paired control.",
+        sensitivity_checks=(SensitivityCheck(
+            artifact="research/results/runs/memory.capacity-scaling/"
+                     "capacity-cliff-sensitivity-20260911/results.json",
+            sample_path="observations/cells/*/seeds",
+            treatment_path="observations/cells/*/checkpoints/192/rank1",
+            control_path="observations/cells/*/checkpoints/512/rank1",
+            relation="all-greater", minimum_effect=0.5,
+            mechanism="safe-load versus overloaded capacity readout",
+        ),),
         claim="Capacity failure is a CLIFF, not a slope: past the ceiling the "
               "assemblies shatter rather than degrading gracefully.",
         source="research/experiments/seq_capacity_scaling.py, on the exact "
@@ -1021,7 +1028,10 @@ _RESULTS: List[Result] = [
                        "distinctness gate applied, so a collapsed set scores 0"),
         evidence=("research/experiments/seq_capacity_scaling.py",),
         evidence_refs=(
-            EvidenceRef("research/results/runs/memory.capacity-scaling/capacity-record-consumed-20260910/results.json", "artifact"),
+            EvidenceRef("research/results/runs/memory.capacity-scaling/capacity-record-consumed-20260910/results.json", "artifact",
+                        "maintained-run replay at (4000,60), not the registered cliff cell"),
+            EvidenceRef("research/results/runs/memory.capacity-scaling/capacity-cliff-sensitivity-20260911/results.json", "artifact",
+                        "fresh exact-path reproduction and retained sensitivity vectors"),
             EvidenceRef("research/experiments/seq_capacity_scaling.py", "producer"),
         ),
         caveat="There is no soft capacity margin to trade against: a design "
@@ -1029,7 +1039,9 @@ _RESULTS: List[Result] = [
                "itself is healthy -- at M=256 the load Mk/n is 1.9, nearly "
                "two assemblies per neuron, with overlap still 1.37x chance -- "
                "so the cliff is not caused by sharing. The transition occupies "
-               "roughly one 1.5x step in M (256 -> 384).",
+               "roughly one 1.5x step in M (256 -> 384). A 20-brain maintained-"
+               "path reproduction gave 0.909 / 0.433 / 0.0188 at those three "
+               "checkpoints; its interpolated M* = 310.1 remains fill-censored.",
     ),
 ]
 

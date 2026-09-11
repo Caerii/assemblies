@@ -574,9 +574,11 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 - research/experiments/seq_capacity_scaling.py
 
 **Evidence files.**
-- [research/results/runs/memory.capacity-scaling/capacity-record-consumed-20260910/results.json](../research/results/runs/memory.capacity-scaling/capacity-record-consumed-20260910/results.json) (artifact)
+- [research/results/runs/memory.capacity-scaling/capacity-record-consumed-20260910/results.json](../research/results/runs/memory.capacity-scaling/capacity-record-consumed-20260910/results.json) (artifact) — maintained-run replay at (4000,60), not the registered cliff cell
+- [research/results/runs/memory.capacity-scaling/capacity-cliff-sensitivity-20260911/results.json](../research/results/runs/memory.capacity-scaling/capacity-cliff-sensitivity-20260911/results.json) (artifact) — fresh exact-path reproduction and retained sensitivity vectors
 - [research/experiments/seq_capacity_scaling.py](../research/experiments/seq_capacity_scaling.py) (producer)
 
-**Sensitivity gap.** The retained replay brackets the cliff but does not encode a mechanism-disabled paired control.
+**Mechanism sensitivity.**
+- safe-load versus overloaded capacity readout: `observations/cells/*/checkpoints/192/rank1` all-greater `observations/cells/*/checkpoints/512/rank1` by at least 0.5, retained in [research/results/runs/memory.capacity-scaling/capacity-cliff-sensitivity-20260911/results.json](../research/results/runs/memory.capacity-scaling/capacity-cliff-sensitivity-20260911/results.json) and paired by `observations/cells/*/seeds`.
 
-**Caveat.** There is no soft capacity margin to trade against: a design must know where the ceiling is and stay under it. Sharing itself is healthy -- at M=256 the load Mk/n is 1.9, nearly two assemblies per neuron, with overlap still 1.37x chance -- so the cliff is not caused by sharing. The transition occupies roughly one 1.5x step in M (256 -> 384).
+**Caveat.** There is no soft capacity margin to trade against: a design must know where the ceiling is and stay under it. Sharing itself is healthy -- at M=256 the load Mk/n is 1.9, nearly two assemblies per neuron, with overlap still 1.37x chance -- so the cliff is not caused by sharing. The transition occupies roughly one 1.5x step in M (256 -> 384). A 20-brain maintained-path reproduction gave 0.909 / 0.433 / 0.0188 at those three checkpoints; its interpolated M* = 310.1 remains fill-censored.

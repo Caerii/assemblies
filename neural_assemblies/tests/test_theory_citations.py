@@ -181,7 +181,7 @@ class TestTheoryCitations(unittest.TestCase):
         checked = {result.id for result in theory.RESULTS.values()
                    if result.sensitivity_checks}
         self.assertEqual(checked, {
-            "RATE-HETEROGENEITY", "REFRACTION-ANTI-MERGING",
+            "CAP-CLIFF", "RATE-HETEROGENEITY", "REFRACTION-ANTI-MERGING",
             "SEQ-TEMPORAL-CARRY",
         })
 
@@ -201,6 +201,14 @@ class TestTheoryCitations(unittest.TestCase):
             "no retained sensitivity check or explicit gap" in error
             for error in theory.evidence_reference_errors(REPO)
         ))
+
+    def test_capacity_cliff_sensitivity_fails_its_constructed_true_negative(self):
+        result = theory.cite("CAP-CLIFF")
+        check = result.sensitivity_checks[0]
+        dead = replace(check, treatment_path=check.control_path)
+        errors = theory._sensitivity_errors(result, dead, REPO)
+        self.assertTrue(any("minimum retained effect is 0" in error
+                            for error in errors), errors)
 
 
 if __name__ == "__main__":
