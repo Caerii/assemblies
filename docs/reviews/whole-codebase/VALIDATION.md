@@ -4916,3 +4916,5 @@ Removed an unreachable duplicate empty-input branch in binding.input_drive. Its 
 ## Generic consolidation contract (2026-09-11)
 
 The generic consolidate replay entry point now consumes ConsolidationProtocolPlan and is registered as CONSOLIDATION_PROTOCOL_CONTRACT. Empty protocols and nonpositive passes fail before mutation; clear_activity and prepare_areas must be explicit booleans. Its source docstring and semantic card are linked, and registry/decorator/source-link plus consolidation tests pass (168 tests); Ruff is clean.
+
+Strengthened generic consolidation admission: every replay step is now checked before mutation and must be PathwayReplay, MergeReplay, or MultiProjectReplay. Added malformed-step true-negative coverage; consolidation/contract tests pass (168), Ruff clean.

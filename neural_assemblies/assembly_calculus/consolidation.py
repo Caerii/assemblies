@@ -324,6 +324,13 @@ def consolidate(
         IMPLICATIONS_AND_PREDICTIONS.md §2 — consolidation as cortical replay.
     """
     plan = ConsolidationProtocolPlan(tuple(steps), passes, clear_activity, prepare_areas)
+    invalid = [type(step).__name__ for step in plan.steps
+               if not isinstance(step, (PathwayReplay, MergeReplay, MultiProjectReplay))]
+    if invalid:
+        raise TypeError(
+            "consolidation steps must be PathwayReplay, MergeReplay, or "
+            f"MultiProjectReplay; got {invalid!r}"
+        )
     steps = plan.steps
     passes = plan.passes
     clear_activity = plan.clear_activity

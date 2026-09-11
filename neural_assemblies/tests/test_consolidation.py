@@ -38,6 +38,8 @@ def test_consolidate_rejects_empty_protocol_or_invalid_passes():
         ConsolidationProtocolPlan(())
     with pytest.raises(ValueError, match="positive integer"):
         ConsolidationProtocolPlan((PathwayReplay("A", "B"),), passes=0)
+    with pytest.raises(TypeError, match="PathwayReplay"):
+        consolidate(_minimal_brain(), [object()])
 
 
 def _minimal_brain(seed=SEED):
