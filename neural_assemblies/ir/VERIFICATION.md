@@ -396,13 +396,36 @@ clears the learning bit retains the old weight, so the proof suite distinguishes
 the omitted mechanism. Short drive, duplicate-source and invalid-selector cases
 all reject.
 
-The formal drive uses arbitrary-precision integers. A future translation must
-prove how finite JSON numbers become scaled integers and how NumPy float32
-addition, multiplication and clipping refine them under stated error bounds.
-Area-name decoding, fiber existence, Python exceptions, Rust/CUDA execution and
-the identity of a schema-validated document with the Lean value remain open.
+The formal drive uses arbitrary-precision integers. A translation must still
+prove how NumPy float32 addition, multiplication and clipping refine them under
+stated error bounds. Fiber existence, Python exceptions and Rust/CUDA execution
+remain open.
 `lake build` checks warnings as errors; `lake env leanchecker
 AssemblyIR.Projection` independently checks the compiled declarations.
+
+
+<a id="contract-formal-round-wire"></a>
+
+## Formal explicit-round wire admission
+
+`AssemblyIR.Wire.decodeRound` is Lean's decoder for the complete
+`explicit-area-round-v1` object. It checks the exact field set and profile,
+nonempty names, ordered unique sources, explicit Boolean plasticity, numeric drive
+items, and the requirement for at least one input. It retains drive values as exact
+JSON decimals. `scaleNumber` converts each decimal to integer units at an explicit
+base-10 scale and rejects any value that would require rounding.
+
+`normalizeRound_identity` proves that successful numerical normalization preserves
+target, source order and plasticity. The `check-wire-cases` executable reads the
+same packaged 12-case corpus used by Python and Rust; changing one expected verdict
+makes it exit unsuccessfully and name the mismatched case. Lean therefore shares
+the wire acceptance examples rather than duplicating them as theorem literals.
+
+This closes Lean wire-field identity for one instruction. The schema remains the
+transport authority in Python and Rust; Lean's independent decoder is a conformance
+consumer. This does not prove that arbitrary JSON-schema behavior is reproduced,
+choose a scientific fixed-point scale, or relate scaled integers to NumPy float32,
+clipping, Rust execution or CUDA arithmetic.
 
 
 <a id="contract-explicit-inputs"></a>

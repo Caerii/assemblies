@@ -3291,3 +3291,26 @@ Fresh-process controls show that root import exposes both booleans without loadi
 CuPy, then the runtime predicate returns false on this machine without leaving CuPy
 loaded. The lazy-import, backend, engine-admission and spec-link gate reports
 35 passed; Ruff, compilation and diff checks pass.
+
+## Lean wire-to-round bridge (2026-09-11)
+
+Python and Rust shared the strict `explicit-area-round-v1` schema and case corpus,
+while Lean began at an already normalized integer `Round`. `AssemblyIR.Wire` now
+fills that identity gap with an independent JSON decoder and an explicit exact
+decimal-to-integer scaling step. It rejects missing/unknown fields, profile drift,
+blank names, duplicate sources, implicit plasticity, nonnumeric drive and no-input
+rounds before normalization. Decimal values that cannot be represented at the
+chosen base-10 scale reject instead of rounding.
+
+`normalizeRound_identity` proves that every accepted normalization preserves the
+target, ordered source list and plasticity bit. The new `check-wire-cases` executable
+reads the same 12-case file as Python and Rust; the CI Lean job runs it after the
+warning-as-error build. Flipping the expected verdict of `area-source` in a temporary
+corpus makes the executable exit 1 and name that case.
+
+`lake build`, `leanchecker AssemblyIR.Wire`, and the shared corpus executable pass.
+Python's projection/spec gate reports 46 passed; Rust reports 4 passed with fmt and
+Clippy clean. The theorem dependencies are `propext`, `Classical.choice` and
+`Quot.sound`, with no `sorryAx`. This establishes wire-field identity and exact
+scaling admission. It does not choose a scientific scale or prove NumPy float32,
+clipping, Rust execution, CUDA arithmetic, or arbitrary JSON-schema equivalence.

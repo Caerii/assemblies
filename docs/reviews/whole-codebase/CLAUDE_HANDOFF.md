@@ -1767,3 +1767,19 @@ memory sufficiency and extension compilation.
 A fresh process confirms that root import loads no CuPy and that runtime availability
 is false on this machine. The focused lazy-import/backend/admission/spec gate is
 35 passed; Ruff, compilation and diff checks pass.
+
+## Lean now consumes the shared round corpus (2026-09-11)
+
+`AssemblyIR.Wire` independently decodes `explicit-area-round-v1`, retains exact
+JSON decimals, and rejects lossy conversion to the caller's chosen integer scale.
+`normalizeRound_identity` proves that successful conversion preserves target,
+ordered sources and plasticity. Decoder cases are not copied into Lean: the
+`check-wire-cases` executable consumes the same 12-case corpus as Python and Rust,
+and the Lean CI job now executes it. A deliberately flipped verdict exits 1 and
+names `area-source`.
+
+Lean build, `leanchecker AssemblyIR.Wire`, and corpus execution pass. Python's
+focused gate is 46 passed; Rust is 4 passed with fmt and Clippy clean. There is no
+`sorryAx`. The remaining bridge is numerical: selecting a scientific scale and
+relating integer semantics to float32 addition, multiplication, clipping, Rust
+execution and CUDA arithmetic.

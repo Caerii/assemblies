@@ -31,6 +31,7 @@ jobs:
           neural_assemblies/tests/test_winner_injection_contract.py
           neural_assemblies/tests/test_brain_ir_execution.py
           neural_assemblies/tests/test_projection_ir_execution.py
+          neural_assemblies/tests/test_engine_availability.py
           neural_assemblies/tests/test_protocol_wire.py
           neural_assemblies/tests/test_source_inventory.py
           neural_assemblies/tests/test_legacy_result_storage.py
@@ -109,6 +110,11 @@ jobs:
           lake-package-directory: formal
           use-mathlib-cache: "false"
           leanchecker: "true"
+      - name: Validate the shared explicit-round corpus in Lean
+        working-directory: formal
+        run: >-
+          lake exe check-wire-cases
+          ../neural_assemblies/ir/v1/explicit-round.cases.json
 
   rust-ir:
     runs-on: ubuntu-latest
