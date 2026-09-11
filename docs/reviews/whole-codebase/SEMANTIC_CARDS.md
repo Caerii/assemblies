@@ -264,6 +264,45 @@ Code: `_hashed_aligner.py:HashedAligner`,
   CUDA loading. A mechanism null must also move the alignment statistic; backend
   agreement alone is insufficient.
 
+<a id="contract-word-capacity-protocol"></a>
+
+## A2: word-capacity protocol value
+
+Code: `word_capacity_protocol.py:WordCapacityProtocol`,
+`word_capacity_run.py:measure`, `word_capacity.py:corpus`, `run_cell` and
+`capacity_report`. Registration: `PREREG_word_capacity.md`.
+
+- **Inputs:** selected lexical cells, their `(n, k, stimulus_size)` definitions,
+  vocabulary grid, FEAT geometry, connection probability, plasticity, rounds,
+  corpus composition, exposure filter, readout threshold, seed transforms,
+  corpus seed scope, early-stop margin, interpolation band, W2/W3 thresholds,
+  launch budget and the registered FEAT ladder. The value is frozen and
+  round-trips to the complete JSON parameter record; unknown or missing fields
+  are invalid.
+- **Schedule:** `corpus_seed_offset` selects each synthetic experience and
+  `training_seed_offset` selects its presentation order. Every sentence trains
+  each word against each perceived bundle for `rounds_per_pair`. Scheduled runs
+  may batch brains up to `launch_budget_bytes`; batching does not alter their
+  logical schedules. Protocol 3.3 is per-brain and therefore admits the
+  scheduled backend only; the lower hashed batch path requires a distinct
+  `shared-batch` protocol.
+- **Mutation:** corpus construction is pure. Training mutates only the aligner's
+  cross-fiber counts under the separately recorded `AlignerSemantics`; reporting
+  reads frozen reconstructions and does not train.
+- **Readout:** words below `minimum_exposures` are excluded. Every remaining word
+  chooses the bundle with maximum FEAT overlap. A per-seed interpolated crossing
+  of `threshold` gives V*, and Student-t ensembles plus censoring produce W1-W3.
+- **Admission:** protocol 3.3 permits cell, vocabulary-grid and FEAT selections
+  from the registered design. Changing its other fields requires a new protocol
+  version. Invalid dimensions, duplicate cells, unordered grids, impossible
+  exposure rules, nonfinite values, incomplete records, malformed curves,
+  unselected cells and unknown engine names fail before CUDA.
+- **Control:** a changed category count must change the generated category
+  inventory; changed `p` and `beta` must reach the actual NumPy aligner; a full
+  scheduled-CUDA cell-A replay must remain exactly equal across all 140 committed
+  observations. These controls distinguish a live parameter from recorded
+  decoration.
+
 ## Consequences for the architecture
 
 The shared units are immutable model semantics, executable schedules, explicit

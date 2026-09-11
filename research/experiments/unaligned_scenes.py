@@ -35,7 +35,7 @@ import random
 import sys
 import time
 from collections import Counter, defaultdict
-from typing import Dict, List, Optional, Sequence, Tuple
+from typing import Dict, List, Sequence, Tuple
 
 import numpy as np
 
@@ -136,7 +136,7 @@ def shuffle_scenes(exp, seed):
 class Aligner:
     def __init__(self, seed, words, features, scaling=True, *,
                  n=None, k=None, stim_size=None, feat_n=None, feat_k=None,
-                 w_max=20.0):
+                 w_max=20.0, p=P, beta=BETA):
         # LEX size, phon stimulus size and FEAT size are PARAMETERS so the
         # capacity study (word_capacity.py) can sweep LEX while holding FEAT
         # fixed, as its registration requires; defaults reproduce U1-U3.
@@ -160,10 +160,10 @@ class Aligner:
         # hashed port runs UNCLIPPED because column scaling and a clip do not
         # commute in its factored form, and U1 re-verified at w_max=None reads
         # 0.985 / 1.000 (seeds 42, 1) -- the clip is not load-bearing.
-        self.b = Brain(p=P, seed=seed, engine="numpy_sparse", w_max=w_max,
+        self.b = Brain(p=p, seed=seed, engine="numpy_sparse", w_max=w_max,
                        synaptic_scaling=frozenset({FEAT}) if scaling else False)
-        self.b.add_area(LEX, n, k, BETA)
-        self.b.add_area(FEAT, feat_n, feat_k, BETA)
+        self.b.add_area(LEX, n, k, beta)
+        self.b.add_area(FEAT, feat_n, feat_k, beta)
         # MATERIALIZED, for the reason `NemoArcFSM` materializes its state
         # area: while an area is nearly empty the lazy candidate sampler
         # flattens DISJOINT inputs into overlapping winners

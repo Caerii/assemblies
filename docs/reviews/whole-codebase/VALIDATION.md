@@ -3674,7 +3674,7 @@ schema-8 runner artifact validates cleanly.
 ## Word-capacity consumes schema-8 alignment semantics (2026-09-11)
 
 The registered word-capacity study now enters through
-`research.experiments.word_capacity_run`. Its version-3.2 record names every
+`research.experiments.word_capacity_run`. Its version-3.3 record names every
 cell, vocabulary size, feature-area shape, corpus constant, threshold, seed and
 the complete two-family aligner profile. Missing fields, duplicate or unordered
 grids, changed fixed constants, invalid areas and a feature shape unsupported by
@@ -3691,8 +3691,8 @@ replay of one cell. A three-seed CUDA smoke also validated before being removed.
 
 This closes provenance for the maintained Part-2 entry and proves numerical
 preservation for cell A. The FEAT ladder remains a separate historical callable,
-and the fixed version-3.2 corpus constants are validated rather than exposed as
-new protocol knobs; either change requires its own versioned adapter and bars.
+while every Part-2 constant now lives in the version-3.3 protocol value. Varying
+a registered fixed field requires a new version and bars.
 
 The combined methodology gate also exposed a false positive in its engine
 ratchet: it inspected only the line containing `Brain(`, so an explicit
@@ -3707,3 +3707,31 @@ The migration run also found a smaller DX ambiguity: `validate_artifact` was
 named for an artifact but accepted only its `results.json` leaf. It now accepts
 either that file or the containing run directory, and attachment loading uses
 the same canonical path resolution. A runner test exercises both spellings.
+
+Protocol 3.3 then removed the remaining split source of truth. A frozen
+`WordCapacityProtocol` owns all corpus, learner, sweep, readout, seed-transform,
+corpus-scope, interpolation, bar, early-stop and launch-partition values. The
+JSON run parameters are its complete
+serialization, and `measure` reconstructs that value before dispatching it into
+the actual corpus and backend. A changed category count changes generated
+features; changed `p` and `beta` reach the NumPy aligner; malformed and nonfinite
+values fail construction. The code links directly to the A2 semantic card.
+
+The second scheduled-CUDA replay at
+`research/results/runs/aligner.word-capacity/word-capacity-protocol33-cell-a-replay-20260911/`
+again matches all 140 historical observations exactly and validates as schema 8.
+This supersedes 3.2 as the maintained protocol without changing the scientific
+result; both replay artifacts remain VOID provenance evidence.
+
+This exposed another formerly implicit protocol difference: the old hashed path
+shares the first seed's corpus across a batch, while the registered scheduled
+path constructs one corpus per brain. Version 3.3 now records `per-brain` and
+admits only `scheduled_aligner`; lower-level hashed execution requires an
+explicit `shared-batch` protocol. Curve grids, seed uniqueness, per-seed vector
+lengths and finite probability ranges are checked before interpolation.
+
+Validation: 151 combined runner, semantics, evidence, specification and
+methodology tests pass. The real hashed/scheduled CUDA conformance gate is 8
+passed with one pre-existing float32 overflow warning. Unknown engines and cells
+outside the selected protocol have explicit negative tests and fail before a
+backend is imported.

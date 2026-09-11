@@ -2067,7 +2067,7 @@ register gate is 30 passed.
 ## Word-capacity schema-8 replay (2026-09-11)
 
 The remaining acceptance step is complete. `word_capacity_run.py` is the
-maintained tag-required entry point; it records the full version-3.2 protocol and
+maintained tag-required entry point; it records the full version-3.3 protocol and
 canonical alignment profile, passes that profile into the actual scheduled or
 hashed constructor, and rejects protocol or backend drift before CUDA work. The
 legacy module delegates to it, so its former optional-tag overwrite path is gone.
@@ -2080,8 +2080,8 @@ ceiling is 73.82614696009215 with one censored seed and its schema-8 evidence
 validation is clean. The registration links it as a VOID software reproduction.
 
 Remaining scope is explicit: migrate the Part-1 FEAT ladder under a separately
-versioned protocol if it must be rerun, turn currently fixed corpus constants
-into a protocol object before varying them, and migrate the other experiment
+versioned protocol if it must be rerun, expose changes to registered corpus
+constants only through a new protocol version, and migrate the other experiment
 families. Do not infer full five-cell reproduction or new adoption from this
 one-cell preservation gate.
 
@@ -2095,3 +2095,29 @@ actually unpinned constructors.
 `research.evidence.validate_artifact` now accepts either `results.json` or its
 run directory. This matches its artifact-level name and the CLI's PATH wording;
 attachment reads canonicalize through the same boundary.
+
+The deferred protocol-object step is also complete for this study. Version 3.3
+defines one frozen `WordCapacityProtocol` containing every corpus, model, sweep,
+readout, seed-transform, corpus-scope, interpolation, bar, early-stop and
+batching value. Its complete JSON form is the run record, and the decoded object
+drives the actual corpus and backend.
+Constructed tests prove category count changes the generated inventory and `p`
+and `beta` reach the NumPy aligner. The code points to the A2 semantic card.
+
+The 3.3 scheduled-CUDA replay at
+`research/results/runs/aligner.word-capacity/word-capacity-protocol33-cell-a-replay-20260911/`
+matches the same 140 committed cell-A observations exactly and validates cleanly.
+The older 3.2 artifact remains a valid migration checkpoint; 3.3 is now the
+maintained protocol. The remaining aligner work is a separate versioned adapter
+for the Part-1 ladder and conformance for any newly exposed scientific knobs.
+
+The refactor made the hashed/scheduled corpus mismatch executable: hashed batches
+share one corpus, while the registered scheduled study uses one corpus per brain.
+Version 3.3 records `per-brain` and rejects the hashed backend. A future hashed
+capacity study needs a distinct `shared-batch` protocol or a backend capable of
+per-brain corpora. Curve-shape validation now rejects wrong grids, duplicate
+seeds, missing per-seed values and nonfinite accuracies before statistics.
+
+The final gate is 151 combined CPU contract/evidence/specification tests and 8
+real CUDA aligner conformance tests. Unknown engines and cells outside the
+selected protocol now raise at the public execution boundary.

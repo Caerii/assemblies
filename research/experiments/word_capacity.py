@@ -17,6 +17,7 @@ twenty-seed invocation.
 from __future__ import annotations
 
 import os
+import math
 import random
 import sys
 import time
@@ -29,49 +30,31 @@ sys.path.insert(0, _HERE)
 from neural_assemblies.diagnostics import ensemble_from_values           # noqa: E402
 from _substrate import ceiling_from_curve                               # noqa: E402
 import unaligned_scenes as U                                            # noqa: E402
-
-VS = (16, 32, 64, 128, 256, 512)
-#: Amendment 3: the grid extends to 1024 once FEAT no longer binds.
-VS_WIDE = VS + (1024,)
-#: Amendment 3, Part 1: the FEAT ladder (n, k), identical across cells per rung.
-LADDER = ((1000, 50), (2000, 50), (4000, 50), (8000, 50), (4000, 100), (8000, 100))
-#: Hashed path, Amendment 2: two cross rounds per (word, bundle) step. The
-#: registered five were measured not load-bearing -- U1 on the hashed learner
-#: reads 1.000 on all five brains at rounds 2, 3 and 5 (0.97-1.00 at 1) -- and
-#: the study's cost is linear in them.
-ROUNDS_HASHED = 2
-EXPOSURES = 12         # scenes per referent (Amendment 1: 6 sat below threshold at V=16)
-FEAT_N, FEAT_K = 1000, 50
-PER_SCENE = 3
-CATS = 4
-THRESHOLD = 0.90
-#: (n, k, stim_size) per registered cell. D pairs with B on n/k; E pairs with
-#: B on the anchor.
-CELLS = {
-    "A": (1000, 50, 50),
-    "B": (2000, 50, 50),
-    "C": (4000, 50, 50),
-    "D": (4000, 100, 100),
-    "E": (2000, 50, 100),
-}
+from research.experiments.word_capacity_protocol import REGISTERED_PROTOCOL  # noqa: E402
 
 
 # ---------------------------------------------------------------------------
 # synthetic grounded experience
 # ---------------------------------------------------------------------------
 
-def corpus(V, seed):
-    """V referents (IDENT_i, CAT_{i mod CATS}); scenes of PER_SCENE referents;
-    the sentence names them. Returns (experience, targets, words, features)
+def corpus(V, seed, *, protocol=REGISTERED_PROTOCOL):
+    """Build the synthetic experience from the explicit protocol value.
+
+    V referents (IDENT_i, CAT_{i mod category_count}); scenes contain
+    referents_per_scene referents; the sentence names them. Returns
+    (experience, targets, words, features)
     in the learner's own shapes."""
-    rng = random.Random(seed + 9001)
-    bundles = [tuple(sorted((f"IDENT_{i}", f"CAT_{i % CATS}")))
+    rng = random.Random(seed + protocol.corpus_seed_offset)
+    bundles = [tuple(sorted((f"IDENT_{i}", f"CAT_{i % protocol.category_count}")))
                for i in range(V)]
     words = [f"w{i}" for i in range(V)]
-    n_scenes = max(V * EXPOSURES // PER_SCENE, PER_SCENE)
+    n_scenes = max(
+        V * protocol.exposures_per_referent // protocol.referents_per_scene,
+        protocol.referents_per_scene,
+    )
     exp = []
     for _ in range(n_scenes):
-        idx = rng.sample(range(V), PER_SCENE)
+        idx = rng.sample(range(V), protocol.referents_per_scene)
         exp.append(([words[i] for i in idx], [bundles[i] for i in idx]))
     targets = {words[i]: bundles[i] for i in range(V)}
     features = sorted({f for b in bundles for f in b})
@@ -82,8 +65,8 @@ def corpus(V, seed):
 # one cell
 # ---------------------------------------------------------------------------
 
-def type_accuracy(seed, V, n, k, stim_size):
-    exp, targets, words, features = corpus(V, seed)
+def type_accuracy(seed, V, n, k, stim_size, *, protocol=REGISTERED_PROTOCOL):
+    exp, targets, words, features = corpus(V, seed, protocol=protocol)
     exposures = Counter(w for ws, _b in exp for w in ws)
     # FEAT is FIXED across cells (registration: n=1000, k=50); only LEX and
     # the phon anchor vary. Letting FEAT follow n made the n=4000 cell read
@@ -91,14 +74,15 @@ def type_accuracy(seed, V, n, k, stim_size):
     # competing at readout -- which is a readout floor, not capacity.
     al = U.Aligner(seed, words, features, scaling=True,
                    n=n, k=k, stim_size=stim_size,
-                   feat_n=FEAT_N, feat_k=FEAT_K)
-    al.train(exp, random.Random(seed + 11))
+                   feat_n=protocol.feature_area[0], feat_k=protocol.feature_area[1],
+                   p=protocol.connection_probability, beta=protocol.plasticity)
+    al.train(exp, random.Random(seed + protocol.training_seed_offset))
     inventory = sorted({b for _w, bs in exp for b in bs})
     inv_asm = {b: al.bundle_assembly(b) for b in inventory}
     hits = 0
     scored = 0
     for w in words:
-        if exposures[w] < U.MIN_EXPOSURES:
+        if exposures[w] < protocol.minimum_exposures:
             continue
         rec = al.reconstruct(w)
         best = max(inventory, key=lambda b: rec.overlap(inv_asm[b]))
@@ -108,7 +92,8 @@ def type_accuracy(seed, V, n, k, stim_size):
 
 
 def type_accuracy_hashed(
-    seeds, V, n, k, stim_size, track_pinned=False, *, aligner_semantics=None,
+    seeds, V, n, k, stim_size, track_pinned=False, *,
+    protocol=REGISTERED_PROTOCOL, aligner_semantics=None,
 ):
     """All seeds as ONE batch of brains on the hashed substrate.
 
@@ -119,19 +104,24 @@ def type_accuracy_hashed(
     variable, not a treatment. Returns per-brain accuracies, and the
     pinned-winner trace when asked (DESIGN_hashed_aligner.md).
     """
+    if protocol.corpus_seed_scope != "shared-batch":
+        raise ValueError("hashed alignment requires a shared-batch corpus protocol")
     import torch
     from neural_assemblies.core.torch_engine._hashed_aligner import HashedAligner
-    exp, targets, words, features = corpus(V, seeds[0])
+    exp, targets, words, features = corpus(V, seeds[0], protocol=protocol)
     exposures = Counter(w for ws, _b in exp for w in ws)
     # Unclipped, max-relative pricing, anchors at gain 1/p -- the exact
     # regime the parity gate verified (DESIGN_hashed_aligner.md).
-    al = HashedAligner(seeds, words, features, n=n, k=k, feat_n=FEAT_N,
-                       feat_k=FEAT_K, stim_size=stim_size, p=U.P, beta=U.BETA,
-                       rounds_word=ROUNDS_HASHED, track_pinned=track_pinned,
+    al = HashedAligner(seeds, words, features, n=n, k=k,
+                       feat_n=protocol.feature_area[0],
+                       feat_k=protocol.feature_area[1], stim_size=stim_size,
+                       p=protocol.connection_probability, beta=protocol.plasticity,
+                       rounds_word=protocol.rounds_per_pair,
+                       track_pinned=track_pinned,
                        aligner_semantics=aligner_semantics)
-    al.train(exp, random.Random(seeds[0] + 11))
+    al.train(exp, random.Random(seeds[0] + protocol.training_seed_offset))
     inventory = sorted({b for _w, bs in exp for b in bs})
-    scored = [w for w in words if exposures[w] >= U.MIN_EXPOSURES]
+    scored = [w for w in words if exposures[w] >= protocol.minimum_exposures]
     table = al.overlap_table(scored, inventory)            # [V, I, B]
     best = table.argmax(dim=1)                             # [V, B]
     tgt = torch.tensor([inventory.index(targets[w]) for w in scored],
@@ -140,66 +130,71 @@ def type_accuracy_hashed(
     return acc, len(scored), al.pinned
 
 
-#: bytes of GPU memory a launch may plan for (the card has 10 GiB; the
-#: fiber and the persistent kernel's own state are small next to the
-#: per-bundle drive and jitter tensors of a wide vocabulary)
-LAUNCH_BUDGET = 4 << 30
-
-
-def _bytes_per_brain(V, n, feat_n):
+def _bytes_per_brain(V, n, feat_n, *, protocol=REGISTERED_PROTOCOL):
     """The aligner's per-brain tensors at vocabulary V: per-bundle drive and
     two jitters [I, feat_n], the prepare-time constants [F + 1, feat_n] and
     the per-word / per-feature stimulus bases, all float32."""
-    I, F = V, V + CATS
+    I, F = V, V + protocol.category_count
     return 4 * (3 * I * feat_n + (F + 1) * feat_n + V * n + F * feat_n)
 
 
 def run_cell_scheduled(
-    name, seeds, vs, feat=(FEAT_N, FEAT_K), *, aligner_semantics=None,
+    name, seeds, vs, feat=None, *, protocol=REGISTERED_PROTOCOL,
+    aligner_semantics=None,
 ):
     """Every (V, seed) task of a cell in as few launches as the memory budget
     allows (layer 1). Each brain has its own corpus (seeded by its seed),
     vocabulary, bundle inventory and schedule; only the area shape is
     shared. Returns the same curve record as `run_cell` so `judge` cannot
     tell the difference."""
-    n, k, stim = CELLS[name]
+    if protocol.corpus_seed_scope != "per-brain":
+        raise ValueError("scheduled alignment requires a per-brain corpus protocol")
+    cell = protocol.cell(name)
+    n = cell.n
+    if feat is not None and tuple(feat) != protocol.feature_area:
+        raise ValueError("feature area must come from the selected protocol")
+    feat = protocol.feature_area
     feat_n, feat_k = feat
     tasks = [(V, seed) for V in vs for seed in seeds]
-    per_task = {t: _bytes_per_brain(t[0], n, feat_n) for t in tasks}
+    per_task = {
+        task: _bytes_per_brain(task[0], n, feat_n, protocol=protocol)
+        for task in tasks
+    }
     curve = {V: [] for V in vs}
     # a chunk holds ONE vocabulary size: every brain's bundle tensors are
     # padded to the chunk's largest V, so mixing sizes pays the largest for all
     for V in vs:
         chunk, used = [], 0
         for t in (t for t in tasks if t[0] == V):
-            if chunk and used + per_task[t] > LAUNCH_BUDGET:
-                _run_chunk(name, chunk, feat, curve, aligner_semantics)
+            if chunk and used + per_task[t] > protocol.launch_budget_bytes:
+                _run_chunk(name, chunk, feat, curve, protocol, aligner_semantics)
                 chunk, used = [], 0
             chunk.append(t)
             used += per_task[t]
         if chunk:
-            _run_chunk(name, chunk, feat, curve, aligner_semantics)
+            _run_chunk(name, chunk, feat, curve, protocol, aligner_semantics)
     for V in vs:
         print(f"      V={V:4d}: type-acc {' '.join(f'{a:.3f}' for a in curve[V])}"
               f"  (chance {1 / V:.3f})", flush=True)
     return curve
 
 
-def _run_chunk(name, tasks, feat, curve, aligner_semantics=None):
+def _run_chunk(name, tasks, feat, curve, protocol, aligner_semantics=None):
     import torch
     from neural_assemblies.core.torch_engine._scheduled_aligner import (
         ScheduledAligner, pad_schedules, schedule_of)
-    n, k, stim = CELLS[name]
+    cell = protocol.cell(name)
+    n, k, stim = cell.n, cell.k, cell.stimulus_size
     feat_n, feat_k = feat
     per = []
     for V, seed in tasks:
-        exp, targets, words, features = corpus(V, seed)
+        exp, targets, words, features = corpus(V, seed, protocol=protocol)
         exposures = Counter(w for ws, _b in exp for w in ws)
         inventory = sorted({b for _w, bs in exp for b in bs})
         wi = {w: i for i, w in enumerate(words)}
         bi = {b: j for j, b in enumerate(inventory)}
         order = list(range(len(exp)))
-        random.Random(seed + 11).shuffle(order)
+        random.Random(seed + protocol.training_seed_offset).shuffle(order)
         per.append(dict(V=V, seed=seed, words=words, features=features,
                         inventory=inventory, targets=targets,
                         exposures=exposures, sched=schedule_of(exp, wi, bi, order)))
@@ -228,14 +223,18 @@ def _run_chunk(name, tasks, feat, curve, aligner_semantics=None):
     t0 = time.perf_counter()
     # word/feature INDEX i means brain b's own word i: every brain seeds its
     # phon fibers by (seed_b, "phon_i"), so brains share nothing but shape
-    al = ScheduledAligner([t["seed"] * 1000 + t["V"] for t in per], n=n, k=k,
+    al = ScheduledAligner([
+        t["seed"] * protocol.connectome_seed_stride + t["V"] for t in per
+    ], n=n, k=k,
                           feat_n=feat_n, feat_k=feat_k, n_words=Vmax,
-                          n_features=Fmax, stim_size=stim, p=U.P, beta=U.BETA,
-                          rounds_word=ROUNDS_HASHED,
+                          n_features=Fmax, stim_size=stim,
+                          p=protocol.connection_probability,
+                          beta=protocol.plasticity,
+                          rounds_word=protocol.rounds_per_pair,
                           aligner_semantics=aligner_semantics)
     al.prepare(feats)
     al.train(W, Bd, device_loop=True)          # layer 3: one launch per chunk
-    acc, scored = al.type_accuracy(tgt, nb, expo, U.MIN_EXPOSURES)
+    acc, scored = al.type_accuracy(tgt, nb, expo, protocol.minimum_exposures)
     acc = acc.cpu().numpy()
     print(f"    {name} n={n} k={k} s={stim} FEAT {feat_n}x{feat_k}: {B} brains "
           f"(V x seed) in one launch, {W.shape[1]} steps  "
@@ -247,14 +246,26 @@ def _run_chunk(name, tasks, feat, curve, aligner_semantics=None):
 
 
 def run_cell(name, seeds, vs, engine="numpy", track_pinned=False,
-             feat=(FEAT_N, FEAT_K), *, aligner_semantics=None):
+             feat=None, *, protocol=REGISTERED_PROTOCOL, aligner_semantics=None):
+    if engine not in {"numpy", "hashed", "scheduled"}:
+        raise ValueError(f"unknown word-capacity engine: {engine}")
+    expected_scope = "shared-batch" if engine == "hashed" else "per-brain"
+    if protocol.corpus_seed_scope != expected_scope:
+        raise ValueError(
+            f"{engine} requires a {expected_scope} corpus protocol",
+        )
+    if tuple(vs) != protocol.vocabulary_sizes:
+        raise ValueError("vocabulary sizes must come from the selected protocol")
+    if feat is not None and tuple(feat) != protocol.feature_area:
+        raise ValueError("feature area must come from the selected protocol")
+    feat = protocol.feature_area
     if engine == "scheduled":
         return run_cell_scheduled(
-            name, seeds, vs, feat=feat, aligner_semantics=aligner_semantics,
+            name, seeds, vs, feat=feat, protocol=protocol,
+            aligner_semantics=aligner_semantics,
         )
-    if feat != (FEAT_N, FEAT_K):
-        raise ValueError("FEAT is a parameter of the scheduled engine only")
-    n, k, s = CELLS[name]
+    cell = protocol.cell(name)
+    n, k, s = cell.n, cell.k, cell.stimulus_size
     curve = {}                                      # V -> [acc per seed]
     pinned = {}
     for V in vs:
@@ -263,6 +274,7 @@ def run_cell(name, seeds, vs, engine="numpy", track_pinned=False,
             t0 = time.perf_counter()
             acc, scored, pin = type_accuracy_hashed(seeds, V, n, k, s,
                                                      track_pinned,
+                                                     protocol=protocol,
                                                      aligner_semantics=aligner_semantics)
             accs = [float(a) for a in acc]
             if pin:
@@ -276,41 +288,60 @@ def run_cell(name, seeds, vs, engine="numpy", track_pinned=False,
         else:
             for seed in seeds:
                 t0 = time.perf_counter()
-                acc, scored = type_accuracy(seed, V, n, k, s)
+                acc, scored = type_accuracy(
+                    seed, V, n, k, s, protocol=protocol,
+                )
                 accs.append(acc)
                 print(f"    {name} n={n} k={k} s={s} V={V:4d} seed {seed:2d}: "
                       f"type-acc {acc:.3f} (chance {1 / V:.3f}, n={scored})  "
                       f"[{time.perf_counter() - t0:.0f}s]", flush=True)
         curve[V] = accs
         # stop early once the curve is clearly below threshold on every seed
-        if max(accs) < THRESHOLD - 0.3:
+        if max(accs) < protocol.threshold - protocol.early_stop_margin:
             break
     return curve
 
 
-def ceilings(curve, seeds, threshold=THRESHOLD):
+def ceilings(curve, seeds, threshold=None, *, protocol=REGISTERED_PROTOCOL):
     """Per-seed V* by the shared standard; ensemble across seeds."""
+    threshold = protocol.threshold if threshold is None else threshold
+    sizes = tuple(curve)
+    if not sizes or sizes != protocol.vocabulary_sizes[:len(sizes)]:
+        raise ValueError("capacity curve must follow a nonempty protocol-grid prefix")
+    if len(seeds) != len(set(seeds)):
+        raise ValueError("capacity seeds must be unique")
+    if any(len(values) != len(seeds) for values in curve.values()):
+        raise ValueError("every capacity point must contain one value per seed")
+    if any(
+        type(value) not in (int, float) or not math.isfinite(value) or not 0 <= value <= 1
+        for values in curve.values() for value in values
+    ):
+        raise ValueError("capacity accuracies must be finite probabilities")
     stars, censored = [], 0
     for i, _seed in enumerate(seeds):
         pts = [(V, accs[i]) for V, accs in curve.items()]
-        c = ceiling_from_curve(pts, threshold=threshold)
+        c = ceiling_from_curve(
+            pts, threshold=threshold,
+            interior_band=protocol.ceiling_interior_band,
+        )
         # Censored in EITHER direction: never crossed (high) or never above
         # the threshold at all (low -- the standard returns the smallest V
         # uncensored there, which would read as a value).
-        if c.censored or max(a for _v, a in pts) <= THRESHOLD:
+        if c.censored or max(a for _v, a in pts) <= threshold:
             censored += 1
         stars.append(float(c.m_star))
     return stars, censored
 
 
-def capacity_report(results, seeds, threshold=THRESHOLD):
+def capacity_report(results, seeds, threshold=None, *, protocol=REGISTERED_PROTOCOL):
     """Return the registered curve summaries and bars as strict JSON values."""
     cells = {}
     ensembles = {}
     censored = {}
     for name, curve in results.items():
-        stars, count = ceilings(curve, seeds, threshold)
-        n, k, stim = CELLS[name]
+        stars, count = ceilings(curve, seeds, threshold, protocol=protocol)
+        cell = protocol.cell(name)
+        n, k, stim = cell.n, cell.k, cell.stimulus_size
         ensemble = ensemble_from_values(
             stars, label=f"{name} n={n} k={k} s={stim} V*", keys=seeds,
         )
@@ -340,16 +371,17 @@ def capacity_report(results, seeds, threshold=THRESHOLD):
         bars["W1"] = {"status": "VOID", "reason": "missing or censored cell"}
     if available("B", "D"):
         ratio = ensembles["D"].mean / ensembles["B"].mean
-        status = "PASS" if abs(ratio - 1) <= .25 else (
-            "FAIL" if abs(ratio - 1) > .40 else "INCONCLUSIVE"
+        status = "PASS" if abs(ratio - 1) <= protocol.w2_pass_tolerance else (
+            "FAIL" if abs(ratio - 1) > protocol.w2_fail_tolerance
+            else "INCONCLUSIVE"
         )
         bars["W2"] = {"status": status, "d_over_b": ratio}
     else:
         bars["W2"] = {"status": "VOID", "reason": "missing or censored cell"}
     if available("B", "E"):
         ratio = ensembles["E"].mean / ensembles["B"].mean
-        status = "PASS" if ratio >= 1.3 else (
-            "FAIL" if ratio <= 1.1 else "INCONCLUSIVE"
+        status = "PASS" if ratio >= protocol.w3_pass_ratio else (
+            "FAIL" if ratio <= protocol.w3_fail_ratio else "INCONCLUSIVE"
         )
         bars["W3"] = {"status": status, "e_over_b": ratio}
     else:
@@ -359,25 +391,30 @@ def capacity_report(results, seeds, threshold=THRESHOLD):
 
 # ---------------------------------------------------------------------------
 
-def ladder(cells, seeds, vs):
+def ladder(cells, seeds, vs, *, protocol=REGISTERED_PROTOCOL):
     """Amendment 3, Part 1: V* of each cell along the FEAT ladder. F1 and F2
     are judged on the printed V* ensembles; the curves are saved."""
     print("\n=== FEAT LADDER (PREREG_word_capacity.md, Amendment 3, Part 1) ===")
     out = {}
     for name in cells:
-        n, k, s_ = CELLS[name]
-        for feat in LADDER:
-            curve = run_cell_scheduled(name, seeds, vs, feat=feat)
-            stars, c = ceilings(curve, seeds)
+        cell = protocol.cell(name)
+        n, k = cell.n, cell.k
+        for feat in protocol.feature_ladder:
+            selected = protocol.select(cells=(name,), vocabulary_sizes=tuple(vs),
+                                       feature_area=feat)
+            curve = run_cell_scheduled(
+                name, seeds, vs, feat=feat, protocol=selected,
+            )
+            stars, c = ceilings(curve, seeds, protocol=selected)
             e = ensemble_from_values(stars, label=f"{name} n/k={n // k} FEAT {feat[0]}x{feat[1]} V*")
             print(f"  {e}   censored {c}/{len(seeds)}", flush=True)
             out[f"{name}:{feat[0]}x{feat[1]}"] = {str(V): a for V, a in curve.items()}
     return out
 
 
-def judge(results, seeds):
+def judge(results, seeds, *, protocol=REGISTERED_PROTOCOL):
     print("\n=== BARS (PREREG_word_capacity.md) ===")
-    report = capacity_report(results, seeds)
+    report = capacity_report(results, seeds, protocol=protocol)
     for name, cell in report["cells"].items():
         ceiling = cell["ceiling"]
         print(f"  {name}: {ceiling['mean']:.4f} +/- {ceiling['ci95_half_width']:.4f} "

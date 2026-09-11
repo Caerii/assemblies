@@ -294,7 +294,7 @@ The maintained entry point is now:
 python -m research.experiments.word_capacity_run --tag UNIQUE
 ```
 
-It requires a unique tag, records the complete version-3.2 protocol and the
+It requires a unique tag, records the complete version-3.3 protocol and the
 scheduled aligner's two-family execution semantics, rejects incomplete or
 changed fixed parameters before CUDA work, and writes an immutable run record.
 The legacy `word_capacity.py` entry delegates to this same boundary.
@@ -306,3 +306,15 @@ the original twenty seeds. All 140 accuracy values are exactly equal to
 `word_capacity_results_scheduled_feat4000x100.json`; the recomputed ceiling is
 73.826 with one censored seed. This is a VOID software reproduction of one
 registered cell, not new scientific evidence.
+
+Protocol 3.3 replaces the parallel module constants behind that first schema-8
+replay with one frozen `WordCapacityProtocol`. Its JSON form now also records the
+corpus and training seed offsets, per-brain corpus scope, connectome-seed stride,
+early-stop margin, interpolation band, bar thresholds, launch budget and FEAT
+ladder. Corpus generation, scheduled alignment and the readout consume the
+decoded value. Protocol 3.3 admits only `scheduled_aligner`; the lower hashed
+path requires an explicitly different shared-batch corpus protocol. The
+follow-up artifact at
+[`word-capacity-protocol33-cell-a-replay-20260911`](../../results/runs/aligner.word-capacity/word-capacity-protocol33-cell-a-replay-20260911/results.json)
+again matches all 140 original cell-A accuracy values exactly and recomputes the
+same 73.826 ceiling with one censored seed. It too is a VOID migration check.
