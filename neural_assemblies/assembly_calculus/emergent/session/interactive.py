@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import os
 import re
+import warnings
 from dataclasses import dataclass, field
 from typing import List, Optional
 
@@ -360,8 +361,13 @@ class EmergentSession:
                 generated = self.parser.generate(sem)
                 if generated and len(generated) >= 2:
                     return " ".join(generated)
-            except Exception:
-                pass
+            except (KeyError, RuntimeError, TypeError, ValueError) as error:
+                warnings.warn(
+                    "interactive semantic description fell back to surface "
+                    f"words because generation failed ({error!r})",
+                    RuntimeWarning,
+                    stacklevel=2,
+                )
 
         prefix = list(frame.raw_words) if frame.raw_words else []
         if prefix and hasattr(self.parser, "continue_sentence"):

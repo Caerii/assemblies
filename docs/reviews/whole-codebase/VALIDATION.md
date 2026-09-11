@@ -4483,3 +4483,10 @@ Ruff pass.
 booleans, non-integers, negative values, and out-of-range values with an
 explicit `ValueError`. The simulation utility contract suite now has six
 passing tests.
+
+## Interactive generation fallback visibility (2026-09-11)
+
+The interactive semantic-description path no longer swallows generation failures
+at the public boundary. Expected model/input errors now emit a warning that
+identifies the surface-word fallback; normal descriptions remain unchanged.
+The ERP protocol/session suite passes 19 tests and Ruff is clean.
