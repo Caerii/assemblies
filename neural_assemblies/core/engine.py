@@ -572,20 +572,21 @@ def _ensure_engines_loaded():
     _ENGINES_LOADED = True
     try:
         from . import numpy_engine  # noqa: F401 — numpy_sparse, numpy_explicit, numpy_exact
-    except ImportError:
-        pass
+    except ImportError as error:
+        for name in ("numpy_sparse", "numpy_explicit", "numpy_exact"):
+            _ENGINE_LOAD_ERRORS[name] = error
     try:
         from . import cuda_engine  # noqa: F401 — registers cuda_implicit (if cupy available)
-    except ImportError:
-        pass
+    except ImportError as error:
+        _ENGINE_LOAD_ERRORS["cuda_implicit"] = error
     try:
         from . import cupy_engine  # noqa: F401 — registers cupy_sparse (if cupy available)
-    except ImportError:
-        pass
+    except ImportError as error:
+        _ENGINE_LOAD_ERRORS["cupy_sparse"] = error
     try:
         from . import torch_engine  # noqa: F401 — registers torch_sparse (if torch+CUDA available)
-    except ImportError:
-        pass
+    except ImportError as error:
+        _ENGINE_LOAD_ERRORS["torch_sparse"] = error
 
 
 def register_engine(engine_name: str, cls: type) -> None:

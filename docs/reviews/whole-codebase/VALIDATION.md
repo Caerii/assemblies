@@ -4398,3 +4398,11 @@ The backward-compatible path that reconstructs a report from an older
 threshold-only cache now also records the parser's active engine. Two focused
 regressions cover complete-report and legacy-cache paths; both pass with Ruff
 clean.
+
+## Engine loader diagnostics (2026-09-11)
+
+Built-in engine discovery no longer swallows module import failures without a
+record. If an optional engine module cannot load, its known engine names now
+retain the underlying `ImportError`, so the existing unavailable-engine error
+surface can explain the missing dependency or broken module. Engine availability
+regressions (3 tests) and Ruff pass.
