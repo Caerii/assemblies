@@ -2567,3 +2567,5 @@ The lower-level binding helper now validates resolved area names and requires an
 `separate` now preflights its complete two-arm schedule before any mutation. Unknown stimuli/target, identical stimuli, and invalid rounds fail at admission; the existing assembly-calculus behavior remains green (29 tests).
 
 `learn_assembly` now admits only meaningful convergence schedules: positive integer budgets, a window of at least two observations, and a finite threshold in [0,1]. Invalid schedules fail before mutation; focused learning and calculus tests pass (38 tests).
+
+`input_drive` now requires at least one source and target area, preventing an empty mapping from being mistaken for a scientific zero-result. Focused binding diagnostic tests pass (20 tests).

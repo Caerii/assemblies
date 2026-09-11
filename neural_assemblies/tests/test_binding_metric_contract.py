@@ -12,3 +12,13 @@ def test_input_drive_rejects_unknown_metric_instead_of_using_winners_path():
     brain.add_area("DST", 100, 10, 0.1)
     with pytest.raises(ValueError, match="metric must be"):
         input_drive(brain, sources=["SRC"], target_areas=["DST"], metric="energy")
+
+
+def test_input_drive_rejects_empty_measurement_domains():
+    brain = Brain(p=0.05, seed=13, engine="numpy_sparse")
+    brain.add_area("SRC", 100, 10, 0.1)
+    brain.add_area("DST", 100, 10, 0.1)
+    with pytest.raises(ValueError, match="at least one"):
+        input_drive(brain, sources=[], target_areas=["DST"])
+    with pytest.raises(ValueError, match="at least one"):
+        input_drive(brain, sources=["SRC"], target_areas=[])

@@ -4627,3 +4627,7 @@ The legacy `assembly_calculus.binding.bind` now rejects unknown area names and n
 ## Learning-loop schedule admission (2026-09-11)
 
 `learn_assembly` now validates epoch counts, projection rounds, convergence-window size, and finite convergence thresholds before entering the mutation loop. A one-sample window can no longer be mistaken for convergence, and malformed values cannot fail after partial training. Learning and assembly-calculus regressions pass **38 tests**.
+
+## Nonvacuous input-drive domains (2026-09-11)
+
+`input_drive` now rejects empty source or target collections rather than returning `{}` as if no competition had been observed. Unknown areas and unsupported metrics remain distinct admission errors. Binding diagnostic tests pass **20 tests** with Ruff clean.
