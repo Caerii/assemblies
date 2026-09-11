@@ -152,7 +152,7 @@ from .tracing import (
 from .fiber import FiberCircuit
 from .readout import fuzzy_readout, readout_all, build_lexicon, Lexicon
 from .attention import AttentionCandidate, AttentionResult, attend
-from .binding import binding_strength
+from .binding import bind_strength, binding_strength
 from .fsm import FSMNetwork
 from .coin_config import AttractorConfig, SeedMixtureChoice
 from .context_choice import ContextAttractorChoice, ContextChoiceProtocol, ContextChoiceObservation
@@ -189,7 +189,7 @@ __all__ = [
     "compute_anchored_instability", "compute_jaccard_instability",
     "mean_jaccard_instability", "measure_n400",
     # Operations
-    "project", "bind", "read_binding", "binding_strength", "reciprocal_project",
+    "project", "bind", "read_binding", "bind_strength", "binding_strength", "reciprocal_project",
     "associate", "merge",
     "pattern_complete", "separate", "learn_assembly", "learn_assembly_from_pattern",
     "consolidate_pair",

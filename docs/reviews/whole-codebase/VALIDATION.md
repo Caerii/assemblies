@@ -4934,3 +4934,5 @@ Added InputDrivePlan and INPUT_DRIVE_CONTRACT for the ERP/area-comparison diagno
 ## Binding-strength contract (2026-09-11)
 
 Added BindingStrengthPlan and BINDING_STRENGTH_CONTRACT for the overlap readout that scores active-source recovery against a stored target Assembly. The implementation keeps bind_strength compatibility and adds the descriptive binding_strength alias, both resolving to the same contract-decorated function. Source links, registry/export ratchets, and focused tests pass (175); Ruff is clean.
+
+Exported both bind_strength (compatibility) and binding_strength (descriptive canonical spelling) from the binding module and package __all__. Lazy-import and binding-strength tests pass (13); Ruff and evidence checks are clean.

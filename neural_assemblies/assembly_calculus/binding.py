@@ -61,7 +61,7 @@ from .contracts import (
 TAU = 2
 
 __all__ = [
-    "TAU", "materialize_fiber", "bind", "recall", "bind_strength",
+    "TAU", "materialize_fiber", "bind", "recall", "bind_strength", "binding_strength",
     "input_drive",
 ]
 
