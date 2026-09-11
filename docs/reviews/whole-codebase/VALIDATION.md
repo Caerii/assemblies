@@ -4110,3 +4110,14 @@ an independent parity measurement.
 Validation: 13 batched-admission, specification-link and batched-predictor tests
 pass, with the two existing PyTorch sparse warnings. Ruff and whitespace checks
 pass.
+
+## Mixed Assembly/raw overlap is rejected (2026-09-11)
+
+The overlap docstring promised a runtime rejection for an `Assembly` paired
+with a raw winner array, but the implementation converted both operands and
+returned a number. It now rejects that ambiguous object/raw combination while
+preserving Assembly-to-Assembly and raw same-space calls. Static `CompactIdx`
+and `NeuronIds` checking remains the stronger guard for two raw arrays.
+
+Validation: 34 overlap, index-space, assembly-calculus and specification-link
+tests pass. Ruff and whitespace checks pass.

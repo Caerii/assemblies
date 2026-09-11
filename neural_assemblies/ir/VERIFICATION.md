@@ -2233,6 +2233,18 @@ operation changes capacity only; it does not train weights, change winners, or
 establish a scientific result.
 
 
+<a id="contract-overlap-space"></a>
+### Overlap index-space boundary
+
+`overlap` accepts two `Assembly` snapshots or two explicitly same-space winner
+arrays. Mixing an `Assembly` with a raw array is rejected at runtime because
+the raw array's compact-versus-neuron-ID space is otherwise unstated. Static
+`CompactIdx`/`NeuronIds` annotations provide the stronger check for two raw
+arrays; those `NewType` markers are erased at runtime and cannot certify a
+mixed pair by themselves. Cross-area `Assembly` overlap remains allowed when
+the caller intentionally compares stable neuron IDs.
+
+
 <a id="contract-batched-next-token"></a>
 ### Batched next-token inference
 

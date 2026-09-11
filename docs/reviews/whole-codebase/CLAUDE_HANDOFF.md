@@ -2397,3 +2397,10 @@ missing device or incompatible connection. The IR now names batched next-token
 inference as an explicit capability; Torch opts in and the constructor rejects
 unsupported engines before backend-specific imports. The focused gate is 13
 passed, including the real CUDA predictor tests and specification links.
+
+The index-space audit then found a concrete contract mismatch: `overlap` said
+mixed `Assembly`/raw-array calls were rejected, but they were accepted and
+scored. The runtime guard now rejects those ambiguous calls, with tests for the
+negative and valid Assembly-to-Assembly/raw-pair controls. The stronger
+compact-versus-neuron-ID distinction remains a static type-checker boundary;
+runtime-erased `NewType` arrays need a later branded-array migration.

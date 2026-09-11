@@ -117,6 +117,8 @@ def overlap(a: SameSpace, b: SameSpace) -> float: ...
 def overlap(a, b) -> float:
     """Overlap ratio between two winner arrays or Assemblies.
 
+    Specification: neural_assemblies/ir/VERIFICATION.md#contract-overlap-space
+
     THE OVERLOADS ARE THE POINT, and they encode a rule prose could not enforce:
     both arguments must be in the SAME index space. ``SameSpace`` is a
     value-restricted TypeVar, so it binds to ONE of ``CompactIdx``/``NeuronIds``
@@ -155,8 +157,15 @@ def overlap(a, b) -> float:
         a: numpy array of neuron indices, list, or Assembly.
         b: numpy array of neuron indices, list, or Assembly.
     """
-    winners_a = a.winners if isinstance(a, Assembly) else np.asarray(a)
-    winners_b = b.winners if isinstance(b, Assembly) else np.asarray(b)
+    assembly_a = isinstance(a, Assembly)
+    assembly_b = isinstance(b, Assembly)
+    if assembly_a != assembly_b:
+        raise TypeError(
+            "overlap requires two Assembly snapshots or two same-space arrays; "
+            "name the raw array's index space explicitly"
+        )
+    winners_a = a.winners if assembly_a else np.asarray(a)
+    winners_b = b.winners if assembly_b else np.asarray(b)
 
     if len(winners_a) == 0 or len(winners_b) == 0:
         return 0.0
