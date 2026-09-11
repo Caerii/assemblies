@@ -197,11 +197,13 @@ the state is the previous arc and predicted arc neurons win. That one
 works and is adopted as `SEQ-TEMPORAL-CARRY`: +0.149 over the bigram at
 two distractors (72 percent of the oracle gap), +0.106 at three (60
 percent), replicated on twenty fresh seeds; the native readout with copy state
-alone shows no improvement. The distractor-specific mechanism is unresolved:
-[the position-pooling audit](sequence/AUDIT_temporal_position_pooling.md) found that
-the 0.11/0.22 contrasts included agreement words whose input encodes subject number.
-They do not establish pre-existing distractor features or amplification of those
-features. A position-specific rerun is required. Inside the presentation window (20 of the clip edge 31.4) the
+alone shows no improvement. The old pooled mechanism values are void, but the
+replacement [position-specific registration](sequence/PREREG_temporal_positions.md)
+resolves the question on twenty further seeds. Mean distractor contrast is 0.026 at
+g=0, 0.185 at g=1 and 0.002 state-blind. The g=0 curve is 0.048 after the first
+distractor and 0.004 after the second; g=1 preserves 0.203 then 0.167. Thus
+predicted-win amplifies and extends a state-dependent representation through the
+second distractor. Inside the presentation window (20 of the clip edge 31.4) the
 transducer also continues order-10 sequences exactly on every brain.
 
 **Code.** `HashedTransducer` in `core/torch_engine/_hashed_transducer.py`.

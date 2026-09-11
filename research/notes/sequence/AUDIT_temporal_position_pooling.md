@@ -77,3 +77,9 @@ trained CUDA transducer in copy and induced modes must match an independently wr
 sentence-at-a-time frozen schedule, including unequal corpus lengths. These checks
 establish software behavior only. Registration, artifact integration and empirical
 reruns remain required. The old pooled collector stays blocked.
+
+The replacement registered run is now complete; see
+[PREREG_temporal_positions.md](PREREG_temporal_positions.md). All four registered
+bars pass. The corrected curve finds small g=0 carry only at the first distractor,
+zero at the second, and large state-dependent g=1 carry at both. This supersedes the
+void pooled mechanism interpretation; it does not make the historical values valid.

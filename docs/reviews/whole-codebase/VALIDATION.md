@@ -2908,3 +2908,27 @@ The artifact contains run.json, results.json and source.zip. Reusing its tag fai
 before GPU construction.79 runner/source/position checks also pass. This establishes
 the executable evidence path, not the scientific hypothesis. The fixed twenty-seed
 study and register adjudication remain open.
+
+## Position-specific temporal result (2026-09-10)
+
+The preregistered study ran from clean commit65cd4fd on seeds82..101. Its artifact
+validates and contains13,500 raw frames:20 brains x3 arms x25 sentences x9 positions.
+Independent replay of every frame through the analyzer reproduces every stored
+position report and summary. Corpora match across paired arms. For all20 seeds, g1
+and state-blind post-training learned-state digests match exactly, isolating the
+negative intervention to frozen evaluation.
+
+All registered bars pass. Mean distractor contrast D is0.0258 [0.0226,0.0290] at
+g0,0.1849 [0.1660,0.2038] at g1 and0.0022 [-0.0003,0.0046] state-blind. Paired
+g1-g0 is0.1591 [0.1400,0.1781]; paired g1-blind is0.1827 [0.1636,0.2019].
+The unbarred distance curve is decisive: g0 falls from0.0479 at the first distractor
+to0.0037 at the second, whereas g1 remains0.2032 then0.1666. Direct agreement-token
+controls remain strong and every blind distractor interval includes zero.
+
+The scientific interpretation is now narrower and stronger: plain conjunction
+briefly inherits subject structure, predicted-win amplifies it and preserves it
+through the second distractor, and this representation depends on temporal state.
+The previous pooled values remain void. The g0 native readout has no latent signal
+at the gap2 prediction site for an alternative readout to recover. The register,
+onboarding and research map now state this; longer-gap decay, natural language,
+alternative readouts and arbitrary noise remain unmeasured.

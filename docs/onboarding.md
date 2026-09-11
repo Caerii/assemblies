@@ -69,14 +69,15 @@ evidence. Then follow the reading order below.
 
 Each of these has data in hand and a registration to extend.
 
-1. **Is the readout the bottleneck of the temporal carry?** First establish
-   whether subject-number information survives at actual distractor positions.
-   The old 0.11/0.22 contrasts pooled agreement words with distractors and are
-   void for that claim; see [the audit](../research/notes/sequence/AUDIT_temporal_position_pooling.md).
-   Re-measure by position at g = 0 and g = 1, retain raw sentence/word identities,
-   then fit a second readout with held-out evaluation and controls for leakage.
-   The native readout's prediction gain remains measured; its mechanism is open.
-   See `SEQ-TEMPORAL-CARRY`.
+1. **The temporal carry's decay law.** The corrected position-specific run finds
+   that plain copy-state conjunction carries subject number through the first
+   distractor (contrast 0.048) but reaches zero at the second (0.004). Predicted-win
+   preserves 0.203 then 0.167, while a state-blind negative is zero; all registered
+   bars pass. The old pooled 0.11/0.22 values remain void. Extend the registered
+   instrument to gaps 3 through 6 before fitting a decay law. A held-out readout at
+   the first distractor is secondary: the gap-2 g=0 prediction site has no hidden
+   representation for a readout to recover. See `PREREG_temporal_positions.md` and
+   `SEQ-TEMPORAL-CARRY`.
 2. **The clip window.** Every organ result holds between about 20 and 28
    presentations and collapses past 31, because the weight clip lets a
    synapse potentiated once per presentation relocate the arc. A weight

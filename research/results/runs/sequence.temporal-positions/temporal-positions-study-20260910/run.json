@@ -1,0 +1,108 @@
+{
+  "engine": "hashed_arc_fsm",
+  "environment": {
+    "policy": "repository-environment-v1",
+    "variables_sha256": {
+      "ASSEMBLIES_VCVARS64": "4f8e42768dc92e11e4f32efb495020ad43e49e2dfca1322a4928d7f4dedfd1a2",
+      "ASSEMBLIES_VSWHERE": "44564d56dfa6c2af8c632137228d0b7d773445fdce24fdec8da14ca0030615f5"
+    }
+  },
+  "git_commit": "65cd4fdbd962028e89702a9073de0b1f4a6c05ed",
+  "input_artifacts": {},
+  "mode": "study",
+  "parameters": {
+    "arms": {
+      "blind_g1": {
+        "predict_gain": 1.0,
+        "state_blind": true
+      },
+      "g0": {
+        "predict_gain": 0.0,
+        "state_blind": false
+      },
+      "g1": {
+        "predict_gain": 1.0,
+        "state_blind": false
+      }
+    },
+    "bars": {
+      "amplification": 0.05,
+      "blind_upper": 0.02,
+      "plain_carry": 0.02,
+      "state_dependence": 0.05
+    },
+    "batch_size": 5,
+    "beta": 0.1,
+    "distractor_positions": [
+      1,
+      2,
+      4,
+      5,
+      7,
+      8
+    ],
+    "first_positions": [
+      1,
+      4,
+      7
+    ],
+    "gap": 2,
+    "ground_rounds": 5,
+    "k": 200,
+    "max_potentiations": 64,
+    "n": 10000,
+    "n_arc": 10000,
+    "norm_init": true,
+    "organ_p": 0.2,
+    "p": 0.05,
+    "refracted_strength": 0.1,
+    "second_positions": [
+      2,
+      5,
+      8
+    ],
+    "state_mode": "copy",
+    "test_sentences": 25,
+    "train_rounds": 3,
+    "train_sentences": 200,
+    "w_max": 20.0
+  },
+  "protocol": "sequence.temporal-positions",
+  "protocol_version": "1",
+  "registration": "research/notes/sequence/PREREG_temporal_positions.md",
+  "registration_sha256": "d79f6c9855345a8aadfa08de3f8d8e0aab4a49db9860c60e962883cd2ee9c549",
+  "schema_version": 4,
+  "scientific_status": "UNJUDGED",
+  "script": "research/experiments/seq_temporal_positions.py",
+  "script_sha256": "8a06f2e2f198bbd63443e6273dd94adc88781bd51c3f4ac5340b4647a3502ddd",
+  "seeds": [
+    82,
+    83,
+    84,
+    85,
+    86,
+    87,
+    88,
+    89,
+    90,
+    91,
+    92,
+    93,
+    94,
+    95,
+    96,
+    97,
+    98,
+    99,
+    100,
+    101
+  ],
+  "source_archive": {
+    "file": "source.zip",
+    "sha256": "24989855282ac6b5832135f088e96d96ed7dd4ed7736b6d1f5b3d493f03a6dc0"
+  },
+  "source_inventory": "source-inputs-v3",
+  "source_sha256": "60f0623adebfc0683d2d0648f5c0ed2a37c0e8d6abc86288391c6e015d650a6f",
+  "started_utc": "2026-09-11T02:49:09.633209+00:00",
+  "tag": "temporal-positions-study-20260910"
+}

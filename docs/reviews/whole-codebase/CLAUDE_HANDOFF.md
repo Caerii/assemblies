@@ -1558,3 +1558,15 @@ smoke on three seeds completed with108 frames per seed/arm; archive validation i
 clean, duplicate tag reuse is refused, and the result is correctly VOID. The smoke
 artifact is linked from PREREG_temporal_positions.md. Next run the fixed seeds82..101
 study under the one-GPU rule, then adjudicate every bar before any register change.
+
+## Position-specific temporal result (2026-09-10)
+
+The fixed20-seed CUDA run completed from65cd4fd and its archive validates. All13,500
+raw frames recompute exactly; paired corpora and g1/blind training fingerprints match.
+TP-1 through TP-4 pass. D is.0258 g0,.1849 g1,.0022 blind; paired amplification is
+.1591 [.1400,.1781]. g0 drops from.0479 at distractor1 to.0037 at distractor2; g1
+retains.2032 then.1666. This answers the former readout-bottleneck premise: at gap2,
+g0 has no representation at the second distractor immediately before agreement.
+Register/onboarding/research notes now use the corrected mechanism while preserving
+the historical pooled values as void. Next scientific task is registered gaps3..6
+decay, then clip-window retention/new-learning and matched sequence baselines.

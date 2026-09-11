@@ -111,3 +111,48 @@ and its scientific verdict is `VOID` as required. Reusing the tag was refused
 before model construction. The smoke's bar outcomes have no scientific meaning.
 
 Evidence: [immutable smoke result](../../results/runs/sequence.temporal-positions/temporal-positions-smoke-20260910/results.json).
+
+## Result (2026-09-10, fixed seeds 82 through 101)
+
+The registered run completed all 20 paired brains on the hashed CUDA substrate.
+The source archive validates. All 13,500 raw frames (20 brains x 3 arms x 25
+sentences x 9 positions) independently re-run through the analyzer reproduce the
+stored position reports and summaries. Test corpora are identical across arms for
+each seed. The g=1 and state-blind arms have identical post-training learned-state
+digests for every seed, confirming that the negative differs during frozen
+evaluation rather than training.
+
+| Brain-level estimand | mean | 95% interval |
+|---|---:|---:|
+| D, g=0 | 0.0258 | [0.0226, 0.0290] |
+| D, g=1 | 0.1849 | [0.1660, 0.2038] |
+| D, state-blind g=1 | 0.0022 | [-0.0003, 0.0046] |
+| paired D(g=1) - D(g=0) | 0.1591 | [0.1400, 0.1781] |
+| paired D(g=1) - D(blind g=1) | 0.1827 | [0.1636, 0.2019] |
+
+    TP-1  amplification lower bound 0.1400 > 0.05                 PASS
+    TP-2  state-dependence lower bound 0.1636 > 0.05             PASS
+    TP-3  g=0 D lower bound 0.0226 > 0.02                        PASS
+    TP-4  blind D upper bound 0.0046 < 0.02                      PASS
+
+The unbarred distance summaries locate the effect. At g=0, D1 is 0.0479
+[0.0427, 0.0531], while D2 is 0.0037 [-0.0009, 0.0084]; paired D1-D2 is
+0.0441 [0.0366, 0.0516]. Thus the plain conjunction carries subject-number
+structure into the first distractor but it is absent at the second. At g=1, D1 is
+0.2032 [0.1859, 0.2204] and D2 is 0.1666 [0.1455, 0.1877], with D1-D2 0.0365
+[0.0291, 0.0440]. Predicted-win both amplifies the first step and preserves a large
+representation through the second distractor. The blind arm has no distance effect.
+
+The direct agreement-token controls are strong in every arm (position means about
+0.35 to 0.50), while all six blind distractor intervals include zero. This is the
+constructed separation the invalid pooled measurement lacked.
+
+**Reading.** The temporal representation is state-dependent, is amplified by
+predicted-win, and remains present after two distractors at g=1. The g=0 native
+readout's failure at gap 2 is not evidence of a hidden representation immediately
+before the agreement site: its D2 curve is at zero. The earlier pooled 0.11/0.22
+values remain void and are not rehabilitated. This result does not measure an
+alternative readout, gaps beyond two, natural language, or resistance to arbitrary
+noise.
+
+Evidence: [immutable registered result](../../results/runs/sequence.temporal-positions/temporal-positions-study-20260910/results.json).
