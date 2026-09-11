@@ -2563,3 +2563,5 @@ Binding diagnostics now preserve area-name semantics: `recall` and `input_drive`
 `input_drive` now admits only its two declared measurements (`pre_kwta` and `winners`); an unknown metric raises instead of silently changing the scientific quantity. Focused binding diagnostics pass (19 tests).
 
 The lower-level binding helper now validates resolved area names and requires an explicit positive integer round count. Misspelled areas and ambiguous schedules fail before execution; focused binding regressions pass (14 tests).
+
+`separate` now preflights its complete two-arm schedule before any mutation. Unknown stimuli/target, identical stimuli, and invalid rounds fail at admission; the existing assembly-calculus behavior remains green (29 tests).

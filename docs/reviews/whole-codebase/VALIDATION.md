@@ -4619,3 +4619,7 @@ provenance signals.
 ## Low-level binding schedule admission (2026-09-11)
 
 The legacy `assembly_calculus.binding.bind` now rejects unknown area names and nonpositive/nonintegral `rounds` instead of filtering names or allowing an ambiguous schedule to reach execution. Fourteen binding/operator regressions pass; Ruff remains clean.
+
+## Transactional separation preflight (2026-09-11)
+
+`separate` now validates both stimuli, the target area, stimulus distinctness, and the positive integer schedule before projecting either arm. A malformed second arm can no longer leave the brain partially trained. The separation and assembly-calculus suites pass **29 tests**; sampled-engine warnings remain visible.

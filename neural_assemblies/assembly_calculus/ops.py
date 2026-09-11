@@ -56,6 +56,7 @@ citation cannot quietly become a dead string.
 """
 
 from contextlib import contextmanager
+from numbers import Integral
 
 import numpy as np
 
@@ -709,6 +710,20 @@ def separate(brain, stim_a, stim_b, target, rounds=10):
         comes back has no recurrent trace of stimulus A, so do not call it on
         a brain you intend to keep using.
     """
+    # Validate the complete schedule before the first projection. Otherwise a
+    # bad second stimulus trains A and then raises while training B, leaving a
+    # partially mutated brain with no result tuple to identify it.
+    if stim_a not in brain.stimuli:
+        raise KeyError(f"separate stimulus is unknown: {stim_a!r}")
+    if stim_b not in brain.stimuli:
+        raise KeyError(f"separate stimulus is unknown: {stim_b!r}")
+    if stim_a == stim_b:
+        raise ValueError("separate requires distinct stimuli")
+    if target not in brain.areas:
+        raise KeyError(f"separate target area is unknown: {target!r}")
+    if isinstance(rounds, bool) or not isinstance(rounds, Integral) or rounds < 1:
+        raise ValueError("separate rounds must be a positive integer")
+
     # Project stimulus A
     assembly_a = project(brain, stim_a, target, rounds=rounds)
 
