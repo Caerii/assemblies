@@ -79,8 +79,10 @@ def materialize_fiber(
     source area is empty allocates nothing, which is failure mode 1 above, so
     this refuses to pretend it succeeded.
     """
-    if src_area not in brain.areas or dst_area not in brain.areas:
-        return False
+    if src_area not in brain.areas:
+        raise KeyError(f"materialize_fiber source area is unknown: {src_area!r}")
+    if dst_area not in brain.areas:
+        raise KeyError(f"materialize_fiber target area is unknown: {dst_area!r}")
     if src_assembly is not None:
         activate_assembly(brain, src_assembly)
     if len(brain.areas[src_area].winners) == 0:

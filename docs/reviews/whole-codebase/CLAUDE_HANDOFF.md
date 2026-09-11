@@ -2579,3 +2579,5 @@ The lower-level binding helper now validates resolved area names and requires an
 Temporary sequence beta boosts are now exception-safe: recurrent projection failures restore the original target plasticity before propagating. Focused failure, contract, and sequence tests pass (26 tests).
 
 `input_drive` now requires at least one active source assembly; a resolved but inactive cue raises instead of producing an empty measurement. Focused binding diagnostics pass (21 tests).
+
+`materialize_fiber` now distinguishes unknown topology (`KeyError`) from a valid inactive source (`False`). Focused fiber, binding, and sequence regressions pass (12 tests).

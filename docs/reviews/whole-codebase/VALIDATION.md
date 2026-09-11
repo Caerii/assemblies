@@ -4651,3 +4651,7 @@ The legacy `assembly_calculus.binding.bind` now rejects unknown area names and n
 ## Active-source input-drive admission (2026-09-11)
 
 `input_drive` now rejects a resolved but inactive source set instead of returning an empty mapping. A missing source, an inactive source, and a measured zero drive are now distinct states. Binding diagnostic tests pass **21 tests**.
+
+## Fiber topology admission (2026-09-11)
+
+`materialize_fiber` now raises for unknown source or target areas while retaining `False` for a valid but inactive source. Topology mistakes and absent activity are no longer collapsed into one status. Focused fiber and binding regressions pass **12 tests**.
