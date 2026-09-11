@@ -2891,3 +2891,20 @@ corpora. These are small software fixtures, not registered scientific measuremen
 Ruff and diff checks pass. The existing observation module is already in CPU CI;
 its CUDA tests carry the gpu marker. Artifact integration, preregistration and a
 position-specific scientific rerun remain open. TM-9 stays suspended.
+
+## Registered temporal-position runner and smoke (2026-09-10)
+
+Committed the hypothesis first at2f9f584, before the runner existed or any corrected
+position data was observed. The registration fixes fresh seeds82..101, three paired
+arms, six distractor positions, brain-level intervals, state-blind negative control,
+bars and adoption limits. Implementation45b44ab uses the shared immutable runner,
+pure explicit gap generation, fixed parameter records and complete corpus/frames.
+Seed, arm, parameter and position drift fail. The new runner test is in CPU CI.
+
+42 focused CPU checks and19 specification/ratchet checks pass. The first real CUDA
+smoke completed all three arms on seeds1/2/3, retained108 frames per seed/arm, and
+is correctly VOID. `validate_artifact` reports no errors; source commit is45b44ab.
+The artifact contains run.json, results.json and source.zip. Reusing its tag fails
+before GPU construction.79 runner/source/position checks also pass. This establishes
+the executable evidence path, not the scientific hypothesis. The fixed twenty-seed
+study and register adjudication remain open.

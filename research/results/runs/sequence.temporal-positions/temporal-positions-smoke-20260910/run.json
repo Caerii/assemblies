@@ -1,0 +1,91 @@
+{
+  "engine": "hashed_arc_fsm",
+  "environment": {
+    "policy": "repository-environment-v1",
+    "variables_sha256": {
+      "ASSEMBLIES_VCVARS64": "4f8e42768dc92e11e4f32efb495020ad43e49e2dfca1322a4928d7f4dedfd1a2",
+      "ASSEMBLIES_VSWHERE": "44564d56dfa6c2af8c632137228d0b7d773445fdce24fdec8da14ca0030615f5"
+    }
+  },
+  "git_commit": "45b44abb9c21f2d26d81da039854640c175fb775",
+  "input_artifacts": {},
+  "mode": "smoke",
+  "parameters": {
+    "arms": {
+      "blind_g1": {
+        "predict_gain": 1.0,
+        "state_blind": true
+      },
+      "g0": {
+        "predict_gain": 0.0,
+        "state_blind": false
+      },
+      "g1": {
+        "predict_gain": 1.0,
+        "state_blind": false
+      }
+    },
+    "bars": {
+      "amplification": 0.05,
+      "blind_upper": 0.02,
+      "plain_carry": 0.02,
+      "state_dependence": 0.05
+    },
+    "batch_size": 3,
+    "beta": 0.1,
+    "distractor_positions": [
+      1,
+      2,
+      4,
+      5,
+      7,
+      8
+    ],
+    "first_positions": [
+      1,
+      4,
+      7
+    ],
+    "gap": 2,
+    "ground_rounds": 2,
+    "k": 8,
+    "max_potentiations": 256,
+    "n": 128,
+    "n_arc": 128,
+    "norm_init": true,
+    "organ_p": 0.3,
+    "p": 0.2,
+    "refracted_strength": 0.1,
+    "second_positions": [
+      2,
+      5,
+      8
+    ],
+    "state_mode": "copy",
+    "test_sentences": 12,
+    "train_rounds": 2,
+    "train_sentences": 8,
+    "w_max": 20.0
+  },
+  "protocol": "sequence.temporal-positions",
+  "protocol_version": "1",
+  "registration": "research/notes/sequence/PREREG_temporal_positions.md",
+  "registration_sha256": "5d0dd66ec25de028253755566d5b1b787ba1e7a042e641941ee47cc47ec7fb18",
+  "schema_version": 4,
+  "scientific_status": "VOID",
+  "script": "research/experiments/seq_temporal_positions.py",
+  "script_sha256": "8a06f2e2f198bbd63443e6273dd94adc88781bd51c3f4ac5340b4647a3502ddd",
+  "seeds": [
+    1,
+    2,
+    3
+  ],
+  "source_archive": {
+    "file": "source.zip",
+    "sha256": "9e5d042f056a0ae69edd414a3df76d00c41290e8afeeb299f20cebe06d449750"
+  },
+  "source_inventory": "source-inputs-v3",
+  "source_sha256": "60f0623adebfc0683d2d0648f5c0ed2a37c0e8d6abc86288391c6e015d650a6f",
+  "started_utc": "2026-09-11T02:44:22.927640+00:00",
+  "tag": "temporal-positions-smoke-20260910"
+}

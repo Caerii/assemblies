@@ -19,3 +19,6 @@ Shared-runner artifacts live under `runs/<protocol>/<tag>/`: `run.json`,
 is under `runs/memory.context-noise/`; its
 [registration and result interpretation](../notes/memory/PREREG_context_noise.md)
 distinguish label accuracy from assembly recovery.
+The corrected temporal-position protocol is under
+`runs/sequence.temporal-positions/`; its registration separates within-brain
+sentence-pair summaries from the twenty independent brain-seed replicates.

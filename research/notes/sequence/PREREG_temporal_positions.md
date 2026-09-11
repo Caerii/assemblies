@@ -101,3 +101,13 @@ carry under the plain conjunction. None of these outcomes alone proves that ARC 
 OUT reads the representation, general sequence learning, robustness to arbitrary
 noise, or a decay law. `SEQ-TEMPORAL-CARRY` remains scientifically suspended until
 this result is incorporated through an explicit register amendment.
+
+## Smoke validation (2026-09-10, after registration)
+
+The first end-to-end smoke used seeds 1, 2 and 3 with the declared reduced smoke
+configuration. It completed all three arms and retained 108 validated frames per
+seed per arm. Its source archive validates, its run is tied to commit `45b44ab`,
+and its scientific verdict is `VOID` as required. Reusing the tag was refused
+before model construction. The smoke's bar outcomes have no scientific meaning.
+
+Evidence: [immutable smoke result](../../results/runs/sequence.temporal-positions/temporal-positions-smoke-20260910/results.json).

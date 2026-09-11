@@ -1548,3 +1548,13 @@ skips. See VALIDATION.md#frozen-temporal-capture-2026-09-10 for scope and limita
 This is instrument validation only. Next: integrate a versioned run artifact and
 commit a replacement registration before collecting scientific g=0/g=1 data.
 No suspended temporal mechanism claim is restored, and no dev/master merge occurs.
+
+## Registered temporal-position runner and smoke (2026-09-10)
+
+Preregistration commit2f9f584 precedes implementation45b44ab. The shared runner now
+owns a fixed, fresh-seed position protocol with g0/g1/state-blind arms and raw frames.
+42 focused CPU,19 ratchet/specification, and79 runner/source checks pass. A real CUDA
+smoke on three seeds completed with108 frames per seed/arm; archive validation is
+clean, duplicate tag reuse is refused, and the result is correctly VOID. The smoke
+artifact is linked from PREREG_temporal_positions.md. Next run the fixed seeds82..101
+study under the one-GPU rule, then adjudicate every bar before any register change.
