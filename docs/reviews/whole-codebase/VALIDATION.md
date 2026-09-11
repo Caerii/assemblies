@@ -2597,3 +2597,31 @@ No backend code changed.
 Final shared-adapter/specification/two-ratchet checks passed 26 tests in 49.59s.
 Diff checks pass. No new whole-package or GPU run is claimed for this adapter
 consolidation; all four archived numerical replays remain exact.
+
+
+## Recoverable declared run inputs (2026-09-10)
+
+Inspection before adding CLI parameter files found that `input_artifacts` held
+only hashes: source.zip did not preserve their bytes. Run schema 4 now captures
+those exact bytes under `inputs/`, separately from the source inventory. Canonical
+repository-relative names reject duplicate aliases before reservation. Archive
+validation checks exact membership and every content digest; missing, changed or
+extra inputs fail even when the outer ZIP digest is recomputed. Schema 3 remains
+readable without claiming input recovery, and no historical artifact is rewritten.
+
+The source-linked contract is research/README.md#recoverable-source. Tests cover
+byte recovery after checkout changes, deliberate archive damage, duplicate aliases,
+legacy schema 3, and input mutation during measurement retaining original bytes and
+a failure record. This is recoverable declared input provenance, not a hermetic
+environment, input authenticity, or a guarantee against mutate-and-restore races.
+The evidence graph continues to report absent repository paths independently of
+archive integrity. CLI parameter-file overrides remain the next integration step.
+
+Six existing artifacts (the four historical smokes and both registered context-noise
+runs) validate unchanged. This is archive/graph validation, not numerical reruns.
+
+Validation: 139 passed in 78.82s across research-runner, A1 horizon and null,
+capacity runner, specification links, theory citations, methodology and index-space
+ratchets. Ruff on all four changed Python files and git diff --check pass. No GPU
+kernel, numerical protocol or adopted scientific result changed; no GPU rerun or
+whole-package green claim is made for this checkpoint.

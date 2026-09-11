@@ -190,7 +190,7 @@ version 2 records remain historical records with that coverage limitation.
 
 ## Recoverable source
 
-The [runner](runner.py) writes schema 3 records with a sibling `source.zip` before
+The [runner](runner.py) writes schema 4 records with a sibling `source.zip` before
 calling measurement. The archive preserves exact checkout bytes, including mixed
 line endings and Git-discovered nonignored untracked source. Its `source/` members
 use the same inventory and ordering as `source_sha256`; `script` and `registration`
@@ -201,13 +201,21 @@ if capture fails, and measurement does not start.
 [Archive validation](source_archive.py) recomputes the inventory digest and both
 individual digests from archived bytes, rejects duplicate or unsafe member names,
 and never extracts or executes code. The runner also validates the archive before
-publishing completion; the evidence validator checks it for every schema 3 record.
+publishing completion; the evidence validator checks it for every schema 3 or 4 record.
 Schema 1 and 2 records remain readable without an archive. Their historical byte
 recovery gaps are not repaired by this change.
 
 This captures repository source, not a hermetic execution environment or all data.
-Declared input artifacts retain their separate digests; datasets, installed binaries,
-ignored files and external dependencies are not bundled. Keep those limits distinct
+Schema 4 additionally preserves every declared repository input artifact under
+`inputs/`, bound to its separately recorded SHA-256. Input aliases resolve to one
+repository-relative name; duplicates fail before reservation. Missing, extra or
+changed archived inputs invalidate the archive even if its ZIP digest is updated.
+Schema 3 archives do not guarantee input recovery; their separate input hashes
+remain readable without retroactively claiming the bytes were captured. Later
+checkout changes do not change captured bytes. The evidence graph still checks
+that referenced repository paths exist; archive integrity and a dangling graph
+edge are distinct checks. Mutation during measurement prevents completed output.
+Undeclared datasets, installed binaries and external dependencies are not bundled. Keep those limits distinct
 from the scientific pass conditions. The archive is evidence to inspect, not a
 promise that executing it elsewhere reproduces a study.
 

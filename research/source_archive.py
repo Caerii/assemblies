@@ -28,7 +28,7 @@ def validate_source_archive(directory: Path, record: dict) -> list[str]:
                 if (not parts or '\\' in name or ':' in name
                         or any(part in {'.', '..'} for part in name.split('/'))
                         or PurePosixPath(name).is_absolute()
-                        or name not in {'script', 'registration'} and not name.startswith('source/')):
+                        or name not in {'script', 'registration'} and not name.startswith(('source/', 'inputs/'))):
                     return ['invalid source archive member']
             inventory = record.get('source_inventory')
             if not isinstance(inventory, str) or not inventory:
@@ -43,6 +43,17 @@ def validate_source_archive(directory: Path, record: dict) -> list[str]:
             for field in ('script', 'registration'):
                 if hashlib.sha256(archive.read(field)).hexdigest() != record[field + '_sha256']:
                     errors.append(f'archived {field} digest mismatch')
+            archived_inputs = {name[len('inputs/'):] for name in names if name.startswith('inputs/')}
+            if record.get('schema_version') == 4 or archived_inputs:
+                inputs = record.get('input_artifacts')
+                if not isinstance(inputs, dict):
+                    errors.append('archived inputs need an input_artifacts mapping')
+                elif archived_inputs != set(inputs):
+                    errors.append('archived input inventory differs from input_artifacts')
+                else:
+                    for name, expected in inputs.items():
+                        if hashlib.sha256(archive.read('inputs/' + name)).hexdigest() != expected:
+                            errors.append(f'archived input digest mismatch: {name}')
             return errors
     except (OSError, ValueError, KeyError, BadZipFile, RuntimeError) as exc:
         return [f'unreadable source archive: {exc}']

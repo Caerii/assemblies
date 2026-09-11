@@ -109,9 +109,15 @@ def run_experiment(*, script: str | Path, protocol: str, protocol_version: str,
         raise ValueError(f'{engine} {"smoke" if smoke else "study"} requires at least {minimum} unique seeds')
     script_path = _repo_file(script)
     registration_path = _repo_file(registration)
-    inputs = {path: hashlib.sha256(_repo_file(path).read_bytes()).hexdigest()
-              for path in input_artifacts}
-    record = dict(schema_version=3, environment=environment_record(), source_inventory=SOURCE_INVENTORY, protocol=protocol, protocol_version=protocol_version,
+    input_bytes = {}
+    for path in input_artifacts:
+        resolved = _repo_file(path)
+        name = resolved.relative_to(ROOT).as_posix()
+        if name in input_bytes:
+            raise ValueError(f'duplicate input artifact: {name}')
+        input_bytes[name] = resolved.read_bytes()
+    inputs = {name: hashlib.sha256(data).hexdigest() for name, data in input_bytes.items()}
+    record = dict(schema_version=4, environment=environment_record(), source_inventory=SOURCE_INVENTORY, protocol=protocol, protocol_version=protocol_version,
                   script=script_path.relative_to(ROOT).as_posix(),
                   script_sha256=hashlib.sha256(script_path.read_bytes()).hexdigest(),
                   registration=registration_path.relative_to(ROOT).as_posix(),
@@ -130,6 +136,8 @@ def run_experiment(*, script: str | Path, protocol: str, protocol_version: str,
     archive_path = directory / 'source.zip'
     with ZipFile(archive_path, 'x') as archive:
         captured = _source_identity(archive)
+        for name, data in input_bytes.items():
+            _archive_bytes(archive, 'inputs/' + name, data)
         for field, path in [('script', script_path), ('registration', registration_path)]:
             data = path.read_bytes()
             if hashlib.sha256(data).hexdigest() != record[field + '_sha256']:

@@ -1414,3 +1414,14 @@ CLI logic. Record identity/version/engine/mode are checked before construction.
 All four archived smokes retain their exact observations, verdict and scope;
 156 existing and seven new focused controls pass. Protocol parameter factories and
 source/registration identities stay separate. See VALIDATION.md#historical-adapter-composition-2026-09-10.
+
+
+## Recoverable declared run inputs (2026-09-10)
+
+Before CLI parameter-file integration, fixed a runner provenance gap: input hashes
+had no archived bytes. Schema 4 captures and validates the complete declared input
+inventory; duplicate aliases fail before computation. Older archives remain readable
+without retroactive recovery claims. Six existing study artifacts validate unchanged.
+See VALIDATION.md#recoverable-declared-run-inputs-2026-09-10. CLI overrides remain open.
+
+139 targeted checks pass, including both ratchets and register/specification gates; Ruff and diff checks pass. No new numerical or GPU claims.

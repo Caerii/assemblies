@@ -206,7 +206,7 @@ def test_record_carries_shared_environment_fingerprint_without_raw_values(run, m
     monkeypatch.setenv('NEURAL_ASSEMBLIES_NO_RUST', 'private-test-value')
     path = run()
     record = json.loads(path.read_text())['run']
-    assert record['schema_version'] == 3
+    assert record['schema_version'] == 4
     fingerprint = record['environment']['variables_sha256']
     assert fingerprint['NEURAL_ASSEMBLIES_NO_RUST'] == dict(
         sweep._training_env_signature())['NEURAL_ASSEMBLIES_NO_RUST']
@@ -392,3 +392,89 @@ def test_historical_records_do_not_require_source_capture(run, version):
     path.write_text(json.dumps(payload))
     (path.parent / 'run.json').write_text(json.dumps(payload['run']))
     assert validate_artifact(path) == []
+
+
+@pytest.mark.parametrize('damage', [None, 'changed', 'missing', 'extra'])
+def test_run_inputs_are_recoverable_and_bound_to_record(source_repo, damage):
+    import hashlib
+    from zipfile import ZipFile
+    from research.evidence import validate_artifact
+    data = b'{"size": 60}\r\n'
+    (source_repo / 'parameters.json').write_bytes(data)
+    (source_repo / 'registration.md').write_text('fixture protocol')
+    path = runner.run_experiment(
+        script='study.py', registration='registration.md', protocol='fixture',
+        protocol_version='1', engine='numpy_exact', seeds=[1, 2, 3], tag='capture',
+        parameters={'size': 60}, input_artifacts=('./parameters.json',),
+        measure=lambda record: {'value': 0})
+    payload = json.loads(path.read_text())
+    assert payload['run']['input_artifacts'] == {'parameters.json': hashlib.sha256(data).hexdigest()}
+    archive_path = path.parent / 'source.zip'
+    with ZipFile(archive_path) as archive:
+        assert archive.read('inputs/parameters.json') == data
+        entries = {name: archive.read(name) for name in archive.namelist()}
+    # Later checkout edits do not alter the original captured input.
+    (source_repo / 'parameters.json').write_text('{"size": 80}')
+    assert validate_artifact(path, root=source_repo) == []
+    if damage is None:
+        return
+    if damage == 'changed':
+        entries['inputs/parameters.json'] = b'changed'
+    elif damage == 'missing':
+        del entries['inputs/parameters.json']
+    else:
+        entries['inputs/unrecorded.json'] = b'{}'
+    with ZipFile(archive_path, 'w') as archive:
+        for name, content in entries.items():
+            archive.writestr(name, content)
+    payload['run']['source_archive']['sha256'] = hashlib.sha256(archive_path.read_bytes()).hexdigest()
+    path.write_text(json.dumps(payload))
+    (path.parent / 'run.json').write_text(json.dumps(payload['run']))
+    assert any('archived input' in error for error in validate_artifact(path, root=source_repo))
+
+
+def test_duplicate_input_aliases_fail_before_measurement(source_repo):
+    (source_repo / 'registration.md').write_text('fixture protocol')
+    (source_repo / 'parameters.json').write_text('{}')
+    with pytest.raises(ValueError, match='duplicate input artifact'):
+        runner.run_experiment(
+            script='study.py', registration='registration.md', protocol='fixture',
+            protocol_version='1', engine='numpy_exact', seeds=[1, 2, 3], tag='duplicate',
+            parameters={}, input_artifacts=('parameters.json', './parameters.json'),
+            measure=lambda record: pytest.fail('duplicate inputs reached computation'))
+    assert not (source_repo / 'research/results/runs').exists()
+
+
+def test_historical_schema_three_inputs_are_not_claimed_recoverable(run):
+    from zipfile import ZipFile
+    from research.evidence import validate_artifact
+    path = run()
+    payload = json.loads(path.read_text())
+    payload['run']['schema_version'] = 3
+    name = 'research/notes/sequence/DESIGN_sequence_port.md'
+    payload['run']['input_artifacts'] = {name: 'a' * 64}
+    path.write_text(json.dumps(payload))
+    (path.parent / 'run.json').write_text(json.dumps(payload['run']))
+    with ZipFile(path.parent / 'source.zip') as archive:
+        assert not any(name.startswith('inputs/') for name in archive.namelist())
+    assert validate_artifact(path) == []
+
+
+def test_input_mutation_keeps_original_bytes_and_records_failure(source_repo):
+    from zipfile import ZipFile
+    (source_repo / 'registration.md').write_text('fixture protocol')
+    input_path = source_repo / 'parameters.json'
+    input_path.write_bytes(b'{"size": 60}')
+    def measure(record):
+        input_path.write_bytes(b'{"size": 80}')
+        return {'value': 1}
+    with pytest.raises(RuntimeError, match='input artifact changed'):
+        runner.run_experiment(
+            script='study.py', registration='registration.md', protocol='fixture',
+            protocol_version='1', engine='numpy_exact', seeds=[1, 2, 3], tag='mutation',
+            parameters={}, input_artifacts=('parameters.json',), measure=measure)
+    directory = source_repo / 'research/results/runs/fixture/mutation'
+    assert (directory / 'failure.json').exists()
+    assert not (directory / 'results.json').exists()
+    with ZipFile(directory / 'source.zip') as archive:
+        assert archive.read('inputs/parameters.json') == b'{"size": 60}'
