@@ -4324,3 +4324,15 @@ Validation: 8 index-space ratchet/type tests passed.
 The pinned Lean package was rebuilt with `formal\lake build`; all six AssemblyIR leaf modules compile and the printed theorem dependencies contain no `sorryAx`.
 The source-link ratchet now requires every leaf module under `formal/AssemblyIR` to carry a `Specification:` edge, rather than checking only a hand-maintained pair of module names.
 The focused specification-link gate passes 11 tests. This catches a disconnected proof file at review time; it does not claim that the Lean rules refine a Python, Rust or CUDA backend.
+
+## Shared runner registry and refraction study
+
+`refraction_memory_numpy.py` now uses the shared parser and immutable
+`run_experiment` writer, records the NumPy model profile, and is exposed as
+`python -m research.runner refraction-memory-numpy`. Its CPU smoke path ran
+successfully with three seeds; the generated VOID artifact was removed after
+validation. A registry ratchet requires every command in `runner.EXPERIMENTS`
+to delegate through the shared parser and writer. The S5 hashed census remains
+unmigrated because its registered ten-seed protocol conflicts with the runner's
+mandatory twenty-seed hashed-study floor; changing that requires a named
+preregistration amendment and evidence replay.
