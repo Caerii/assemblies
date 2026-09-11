@@ -1313,3 +1313,13 @@ The corrected projection protocol is now configurable and retains per-seed cells
 its old CLI forwards to a tagged shared-runner adapter. Source-linked version-2
 migration registration precedes the smoke. Seed resolution and undefined-null
 records are shared with historical noise. See VALIDATION.md#configurable-projection-migration-2026-09-10.
+
+
+The projection migration smoke now has an archived source record and exact
+direct/runner equivalence for six cells. Shared seed configuration is separated
+from statistics in research/experiment_config.py. The full contract gate had 1516
+passes plus one scanner-classification failure, resolved with an 80-test rerun;
+no baseline relaxation or existing t-test implementation change. Scientific status
+remains VOID and old provenance gaps remain open. Details in VALIDATION.md.
+
+The dedicated fused/CUDA parity suite also passed 122 tests (84.41s).

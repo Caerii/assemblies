@@ -62,8 +62,9 @@ from dataclasses import dataclass
 from typing import Dict, Any
 from scipy import stats
 
+from research.experiment_config import resolve_seed_ids
 from research.experiments.base import (
-    resolve_seed_ids, reported_null_test, effect_text,
+    reported_null_test, effect_text,
     ExperimentBase,
     ExperimentResult,
     measure_overlap,

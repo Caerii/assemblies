@@ -44,8 +44,9 @@ from dataclasses import dataclass
 from numbers import Integral, Real
 import math
 from typing import Dict, Any
+from research.experiment_config import resolve_seed_ids
 from research.experiments.base import (
-    resolve_seed_ids, reported_null_test as _chance_test, effect_text as _effect_text,
+    reported_null_test as _chance_test, effect_text as _effect_text,
     ExperimentBase,
     ExperimentResult,
     measure_overlap,

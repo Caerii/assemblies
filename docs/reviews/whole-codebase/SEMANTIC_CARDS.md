@@ -920,3 +920,20 @@ This correction changes H4's dead observable but preserves all trial projections
 winner trajectories and final weights. Fifteen pre-change development fixtures
 cover three seeds and five schedules; old ratio=1 values are retained as evidence
 of the defect, not accepted as the corrected measurement's expected answer.
+
+
+### Projection configuration and evidence migration (2026-09-10)
+
+The historical projection outer study now accepts H1/H3 size grids, H4 training
+counts, train/test/max rounds and explicit ordered seed identities. Defaults retain
+the corrected version-2 protocol. It retains every per-seed cell and records engine
+owners, learning-on evaluation and the weight-ratio definition. Both historical
+noise and projection use one seed resolver and one undefined-null record adapter.
+A constant convergence-time response yields explicit undefined fit statistics.
+
+The CLI now forwards to the tagged shared runner. The source-linked registration
+research/notes/memory/PREREG_historical_projection_migration.md was committed before
+the smoke. Its six cells match the direct path exactly; smoke is VOID, full outputs
+UNADOPTED. This closes the outer configuration/raw-retention/provenance migration
+listed above for new runs, not the timeout ambiguity, frozen-readout distinction,
+old paired-test interpretation, or obsolete aggregate grid translation.

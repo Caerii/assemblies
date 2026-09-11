@@ -2330,3 +2330,28 @@ count before constructing identities. The next combined run passed 75 tests in
 No tagged projection smoke has executed at this pre-run checkpoint. Convergence
 scalar timeout ambiguity and the legacy paired-test treatment of zero variance
 remain explicitly outside adoption claims; this is a software migration.
+
+
+Pre-run combined projection/noise/aggregate checks: 92 passed in 3.05s; Ruff and
+diff checks pass. Committed registration/adapter c5ef5e7 before the tagged smoke.
+The run completed and its record/archive validated. Direct execution using saved
+parameters matched metrics/raw_data/parameters/success exactly under canonical
+JSON comparison. Six cells, seeds[1,2,3], VOID; timestamps/duration excluded.
+Artifact: research/results/runs/memory.historical-projection/historical-projection-smoke-20260910/.
+
+
+The full configured contract gate completed with 1516 passed, 1 skipped and one
+methodology-ratchet failure in 204.07s. Moving seed resolution into base.py caused
+that module to newly match the scanner's experiment-seed heuristic, exposing four
+existing t-test mean calls. Seed configuration now lives in research/experiment_config.py,
+separate from measurement/reporting. No ratchet baseline was raised. AST comparison
+against 37772eb confirms summarize, ttest_vs_null and paired_ttest are unchanged.
+
+After that separation, 80 projection/noise/methodology tests passed in 14.44s.
+Direct execution still exactly matched the archived smoke. Ruff and diff checks
+pass. The full gate was not repeated after this import-only separation; its sole
+failed check passed in the targeted rerun. No whole-package success is claimed.
+
+Dedicated fused/CUDA parity suite: 122 passed, 11 warnings in 84.41s on RTX3080;
+fused extension loaded. Local logs: .cache/historical-projection-contract-gate.log
+and .cache/historical-projection-gpu-gate.log. No backend code changed.

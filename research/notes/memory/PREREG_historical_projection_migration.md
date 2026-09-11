@@ -36,3 +36,14 @@ reconstruct missing historical source/seed provenance, justify old statistical
 nulls, or repair historical scientific artifacts. It does not migrate the obsolete
 aggregate parameter grid. Existing paired-test behavior remains descriptive and
 must not be treated as independent evidence of adoption.
+
+
+## Migration result (2026-09-10)
+
+Registration and adapter were committed at c5ef5e7 before execution. The
+[archived smoke](../../results/runs/memory.historical-projection/historical-projection-smoke-20260910/results.json)
+contains six cells with seed identities1/2/3. Direct execution using the saved
+parameters exactly matched metrics, raw_data, parameters and success under the
+canonical JSON comparison; only timestamps/duration were excluded. The run record
+and source archive validate. Verdict remains VOID, with no full-grid scientific
+adoption or claim of reconstructing older artifacts.

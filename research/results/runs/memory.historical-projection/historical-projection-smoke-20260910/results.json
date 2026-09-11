@@ -1,0 +1,394 @@
+{
+  "observations": {
+    "result": {
+      "duration_seconds": 0.13069829999585636,
+      "error_message": null,
+      "experiment_name": "projection",
+      "metrics": {
+        "convergence_vs_size": [
+          {
+            "convergence_time": {
+              "ci95_hi": 8.0,
+              "ci95_lo": 8.0,
+              "max": 8.0,
+              "mean": 8.0,
+              "min": 8.0,
+              "n": 3,
+              "sem": 0.0,
+              "std": 0.0
+            },
+            "k": 7,
+            "k_over_n": 0.11666666666666667,
+            "n": 60,
+            "persistence": {
+              "ci95_hi": 0.8754166238471561,
+              "ci95_lo": -0.20874995718048944,
+              "max": 0.5714285714285714,
+              "mean": 0.3333333333333333,
+              "min": 0.14285714285714285,
+              "n": 3,
+              "sem": 0.12598815766974242,
+              "std": 0.21821789023599236
+            },
+            "test_vs_null": {
+              "d": 0.9928914005737653,
+              "p": 0.22762000786913536,
+              "significant": false,
+              "t": 1.7197383521919836
+            }
+          },
+          {
+            "convergence_time": {
+              "ci95_hi": 8.0,
+              "ci95_lo": 8.0,
+              "max": 8.0,
+              "mean": 8.0,
+              "min": 8.0,
+              "n": 3,
+              "sem": 0.0,
+              "std": 0.0
+            },
+            "k": 8,
+            "k_over_n": 0.1,
+            "n": 80,
+            "persistence": {
+              "ci95_hi": 0.9002210608124551,
+              "ci95_lo": 0.18311227252087814,
+              "max": 0.625,
+              "mean": 0.5416666666666666,
+              "min": 0.375,
+              "n": 3,
+              "sem": 0.08333333333333334,
+              "std": 0.14433756729740646
+            },
+            "test_vs_null": {
+              "d": 3.059956426705016,
+              "p": 0.03380502219896141,
+              "significant": true,
+              "t": 5.299999999999999
+            }
+          }
+        ],
+        "crossarea_fidelity": [
+          {
+            "k": 7,
+            "n": 60,
+            "recovery": {
+              "ci95_hi": 1.0,
+              "ci95_lo": 1.0,
+              "max": 1.0,
+              "mean": 1.0,
+              "min": 1.0,
+              "n": 3,
+              "sem": 0.0,
+              "std": 0.0
+            },
+            "test_vs_null": {
+              "d": null,
+              "degenerate": "zero_variance",
+              "p": null,
+              "significant": false,
+              "t": null
+            }
+          }
+        ],
+        "scaling_fit": {
+          "degenerate": "constant_response",
+          "equation": "T = 8.00",
+          "intercept": 8.0,
+          "p_value": null,
+          "r_squared": null,
+          "slope": 0.0
+        },
+        "training_mode_comparison": {
+          "paired_test": {
+            "d": 0.49999999999999994,
+            "p": 0.4777670321329065,
+            "significant": false,
+            "t": 0.8660254037844386
+          },
+          "stim_only": {
+            "persistence": {
+              "ci95_hi": 0.7473562852917217,
+              "ci95_lo": -0.08068961862505508,
+              "max": 0.5,
+              "mean": 0.3333333333333333,
+              "min": 0.16666666666666666,
+              "n": 3,
+              "sem": 0.09622504486493764,
+              "std": 0.16666666666666669
+            },
+            "test_vs_null": {
+              "d": 1.3999999999999997,
+              "p": 0.13617542672078659,
+              "significant": false,
+              "t": 2.424871130596428
+            }
+          },
+          "stim_self": {
+            "persistence": {
+              "ci95_hi": 1.5954017679547379,
+              "ci95_lo": -0.5954017679547379,
+              "max": 1.0,
+              "mean": 0.5,
+              "min": 0.16666666666666666,
+              "n": 3,
+              "sem": 0.25458753860865785,
+              "std": 0.4409585518440985
+            },
+            "test_vs_null": {
+              "d": 0.9071147352221453,
+              "p": 0.2567438748861994,
+              "significant": false,
+              "t": 1.5711688096991452
+            }
+          }
+        },
+        "weight_dynamics": [
+          {
+            "persistence": {
+              "ci95_hi": 0.7473562852917217,
+              "ci95_lo": -0.08068961862505508,
+              "max": 0.5,
+              "mean": 0.3333333333333333,
+              "min": 0.16666666666666666,
+              "n": 3,
+              "sem": 0.09622504486493764,
+              "std": 0.16666666666666669
+            },
+            "train_rounds": 1,
+            "weight_ratio": {
+              "ci95_hi": 2.469369281773637,
+              "ci95_lo": -0.007749669741123233,
+              "max": 1.7167381974248928,
+              "mean": 1.2308098060162567,
+              "min": 0.7204610951008646,
+              "n": 3,
+              "sem": 0.2878595028582518,
+              "std": 0.4985872843920105
+            },
+            "weight_ratio_interpretation": "descriptive; no registered learning null"
+          },
+          {
+            "persistence": {
+              "ci95_hi": 1.5954017679547379,
+              "ci95_lo": -0.5954017679547379,
+              "max": 1.0,
+              "mean": 0.5,
+              "min": 0.16666666666666666,
+              "n": 3,
+              "sem": 0.25458753860865785,
+              "std": 0.4409585518440985
+            },
+            "train_rounds": 3,
+            "weight_ratio": {
+              "ci95_hi": 3.150818576867885,
+              "ci95_lo": 1.1944849441702086,
+              "max": 2.4782795097041355,
+              "mean": 2.172651760519047,
+              "min": 1.7282993136448175,
+              "n": 3,
+              "sem": 0.22734040550974138,
+              "std": 0.3937651329561836
+            },
+            "weight_ratio_interpretation": "descriptive; no registered learning null"
+          }
+        ]
+      },
+      "parameters": {
+        "area_engine": "numpy_explicit",
+        "base_beta": 0.1,
+        "base_k": 6,
+        "base_n": 60,
+        "base_p": 0.2,
+        "base_wmax": 20.0,
+        "evaluation_learning": true,
+        "h1_sizes": [
+          60,
+          80
+        ],
+        "h3_sizes": [
+          60
+        ],
+        "max_train_rounds": 8,
+        "n_seeds": 3,
+        "primary_engine": "numpy_sparse",
+        "round_values": [
+          1,
+          3
+        ],
+        "seed_ids": [
+          1,
+          2,
+          3
+        ],
+        "test_rounds": 3,
+        "train_rounds": 3,
+        "weight_ratio_definition": "selected-pairs-over-all-pairs-v2"
+      },
+      "raw_data": {
+        "cells": [
+          {
+            "arm": "h1",
+            "k": 7,
+            "n": 60,
+            "values": {
+              "convergence_time": [
+                8.0,
+                8.0,
+                8.0
+              ],
+              "persistence": [
+                0.14285714285714285,
+                0.2857142857142857,
+                0.5714285714285714
+              ]
+            }
+          },
+          {
+            "arm": "h1",
+            "k": 8,
+            "n": 80,
+            "values": {
+              "convergence_time": [
+                8.0,
+                8.0,
+                8.0
+              ],
+              "persistence": [
+                0.375,
+                0.625,
+                0.625
+              ]
+            }
+          },
+          {
+            "arm": "h2",
+            "k": 6,
+            "n": 60,
+            "values": {
+              "stim_only": [
+                0.16666666666666666,
+                0.3333333333333333,
+                0.5
+              ],
+              "stim_self": [
+                0.3333333333333333,
+                0.16666666666666666,
+                1.0
+              ]
+            }
+          },
+          {
+            "arm": "h3",
+            "k": 7,
+            "n": 60,
+            "values": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          {
+            "arm": "h4",
+            "k": 6,
+            "n": 60,
+            "train_rounds": 1,
+            "values": {
+              "persistence": [
+                0.16666666666666666,
+                0.3333333333333333,
+                0.5
+              ],
+              "weight_ratio": [
+                0.7204610951008646,
+                1.2552301255230125,
+                1.7167381974248928
+              ]
+            }
+          },
+          {
+            "arm": "h4",
+            "k": 6,
+            "n": 60,
+            "train_rounds": 3,
+            "values": {
+              "persistence": [
+                0.3333333333333333,
+                0.16666666666666666,
+                1.0
+              ],
+              "weight_ratio": [
+                1.7282993136448175,
+                2.311376458208188,
+                2.4782795097041355
+              ]
+            }
+          }
+        ],
+        "seeds": [
+          1,
+          2,
+          3
+        ]
+      },
+      "success": true,
+      "timestamp": "2026-09-10T20:36:18.585915"
+    },
+    "scope": "learning-on persistence and A-driven regeneration; not frozen completion",
+    "verdict": "VOID"
+  },
+  "run": {
+    "engine": "numpy_explicit",
+    "environment": {
+      "policy": "repository-environment-v1",
+      "variables_sha256": {}
+    },
+    "git_commit": "c5ef5e7c0de6ae64fc9a6e0f53715e722e350070",
+    "input_artifacts": {},
+    "mode": "smoke",
+    "parameters": {
+      "beta": 0.1,
+      "h1_sizes": [
+        60,
+        80
+      ],
+      "h3_sizes": [
+        60
+      ],
+      "k": 6,
+      "max_train_rounds": 8,
+      "n": 60,
+      "p": 0.2,
+      "round_values": [
+        1,
+        3
+      ],
+      "test_rounds": 3,
+      "train_rounds": 3,
+      "w_max": 20.0
+    },
+    "protocol": "memory.historical-projection",
+    "protocol_version": "2",
+    "registration": "research/notes/memory/PREREG_historical_projection_migration.md",
+    "registration_sha256": "0a8a0a5b913ca7e6fad1d12092a8ec7528fcdbda0cb7686c361f8fb43e9a98ac",
+    "schema_version": 3,
+    "scientific_status": "VOID",
+    "script": "research/experiments/historical_projection.py",
+    "script_sha256": "78671a4ddaaf625f70b81aea9607e345c57083ce3914504bfca1f836f6e84b67",
+    "seeds": [
+      1,
+      2,
+      3
+    ],
+    "source_archive": {
+      "file": "source.zip",
+      "sha256": "49fc48e45597d9d1d977f82c64302e1a1e16825f00b95b3475a7d20676e675dd"
+    },
+    "source_inventory": "source-inputs-v3",
+    "source_sha256": "430de3ef8ae0f245c4a1b972a351301dd660dea36ec0b80649331281fcbbcea6",
+    "started_utc": "2026-09-11T00:36:13.700880+00:00",
+    "tag": "historical-projection-smoke-20260910"
+  },
+  "status": "complete"
+}

@@ -14,6 +14,7 @@ them.
 | Line | Script | What it measures | Typical run |
 |------|--------|------------------|-------------|
 | memory | `seq_capacity_scaling.py` | capacity M* of a recurrent area, Hebbian or refracted, with gating and readout options | `python -m research.runner capacity-scaling --tag UNIQUE --registration research/notes/memory/PREREG_refraction_memory.md --nk 4000:60 --arms B`; see registration for the full load grid |
+| memory | `historical_projection.py` | corrected historical learning-on projection study; smoke VOID, full UNADOPTED | `python -m research.runner historical-projection --smoke --seeds 1 2 3 --tag UNIQUE` |
 | memory | `historical_noise.py` | preserved learning-on-recovery protocol; smoke is VOID, full output UNADOPTED | `python -m research.runner historical-noise --smoke --seeds 1 2 3 --tag UNIQUE` |
 | memory | `refraction_memory_numpy.py` | the same protocol on the numpy engine, 5 brains | ~10 min |
 | sequence | `seq_a1_horizon_hashed.py` | the mod-3 machine's horizon at width, paired to the numpy seeds | `python -m research.runner a1-horizon --tag UNIQUE` (20 seeds by default) |
@@ -59,4 +60,5 @@ The historical projection study's H4 weight-ratio probe was corrected after
 not weight measurements. Its H3 readout is A-driven regeneration while learning,
 not autonomous completion of a corrupted B cue. See the source-linked
 [measurement card](../../docs/reviews/whole-codebase/SEMANTIC_CARDS.md#historical-projection-measurement)
-before interpreting this study; shared-runner migration remains pending.
+before interpreting this study. The corrected version now has the shared runner
+entry above; earlier source-less artifacts are not thereby reproduced.
