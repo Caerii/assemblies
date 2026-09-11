@@ -448,7 +448,10 @@ class CompletionPlan:
 
 @dataclass(frozen=True)
 class OrderedRecallPlan:
-    """Validated schedule for recurrent sequence readout with LRI."""
+    """Validated schedule for recurrent sequence readout with LRI.
+
+    Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-sequence-memory
+    """
 
     area: str
     cue: str
@@ -487,7 +490,10 @@ class OrderedRecallPlan:
 
 @dataclass(frozen=True)
 class SequenceMemorizePlan:
-    """Validated ordered-stimulus training schedule."""
+    """Validated ordered-stimulus training schedule.
+
+    Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-sequence-memory
+    """
 
     stimuli: tuple[str, ...]
     target: str

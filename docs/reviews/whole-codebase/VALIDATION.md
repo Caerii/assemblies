@@ -4787,3 +4787,7 @@ Added direct tests for `SequenceMemorizePlan`: malformed stimulus tuples and unk
 ## Dedicated sequence semantic card (2026-09-11)
 
 Added `contract-sequence-memory` to the semantic-card specification and retargeted both sequence operation contracts to it. The card states the actual plan-owned state, write/read schedules, termination conditions, outcomes, and required null controls. Specification-link and operation-contract tests pass **166 tests**.
+
+## Local sequence plan specification links (2026-09-11)
+
+`OrderedRecallPlan` and `SequenceMemorizePlan` docstrings now link directly to the dedicated sequence semantic card. The contract is discoverable from the declaration itself, enabling static code-to-spec tooling without traversing registry metadata. Specification-link tests pass **11 tests**; Ruff is clean.
