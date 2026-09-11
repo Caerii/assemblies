@@ -4469,3 +4469,10 @@ separate type-safety refactor and do not affect the runtime gate.
 `StabilitySnapshot.prediction_lexicon_size` now has integer count semantics
 instead of a floating-point field. The capture path stores the discrete lexicon
 length directly; Ruff and bytecode compilation pass.
+
+## Simulation overlap ratio contract (2026-09-11)
+
+`simulation._util.get_overlaps(..., percentage=True)` now rejects an empty
+base winner set with an explicit `ValueError` instead of leaking division by
+zero. Count overlap remains defined for an empty base. Two focused tests and
+Ruff pass.

@@ -1,0 +1,14 @@
+"""Simulation utility boundaries fail explicitly on undefined ratios."""
+
+import pytest
+
+from neural_assemblies.simulation._util import get_overlaps
+
+
+def test_percentage_overlap_rejects_empty_base():
+    with pytest.raises(ValueError, match="non-empty base"):
+        get_overlaps([[], [1, 2]], 0, percentage=True)
+
+
+def test_count_overlap_allows_empty_base():
+    assert get_overlaps([[], [1, 2]], 0) == [0, 0]

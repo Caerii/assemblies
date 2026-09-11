@@ -34,6 +34,8 @@ def get_overlaps(winners_list: Sequence, base: int, percentage: bool = False):
     ``winners_list[base]``."""
     base_winners = winners_list[base]
     k = len(base_winners)
+    if percentage and k == 0:
+        raise ValueError("percentage overlap requires a non-empty base winner set")
     out = []
     for w in winners_list:
         o = overlap(w, base_winners)
