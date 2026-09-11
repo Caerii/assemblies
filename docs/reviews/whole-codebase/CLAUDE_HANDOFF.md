@@ -1357,3 +1357,11 @@ The corrected scaling study now exposes its grid, seed identities, initializatio
 evaluation and stopping schedule through a tagged adapter. Old CLI requires --tag;
 --quick is VOID and full output UNADOPTED. Registration precedes smoke execution.
 See VALIDATION.md#configurable-scaling-runner-migration-2026-09-10.
+
+
+Scaling's recorded smoke now matches direct execution exactly, and its source
+archive validates. The full configured contract workflow passed 1548 tests with
+one skip after the accumulated convergence/runner changes. Both smoke cells retain
+three timeouts each and remain VOID. Old aggregate-grid translation remains open.
+
+Dedicated fused/CUDA parity also passed 122 tests in 58.38s.

@@ -14,6 +14,7 @@ them.
 | Line | Script | What it measures | Typical run |
 |------|--------|------------------|-------------|
 | memory | `seq_capacity_scaling.py` | capacity M* of a recurrent area, Hebbian or refracted, with gating and readout options | `python -m research.runner capacity-scaling --tag UNIQUE --registration research/notes/memory/PREREG_refraction_memory.md --nk 4000:60 --arms B`; see registration for the full load grid |
+| memory | `historical_scaling.py` | learning-on persistence and censored convergence times; no asymptotic classification | `python -m research.runner historical-scaling --smoke --seeds 1 2 3 --tag UNIQUE` |
 | memory | `historical_projection.py` | corrected historical learning-on projection study; smoke VOID, full UNADOPTED | `python -m research.runner historical-projection --smoke --seeds 1 2 3 --tag UNIQUE` |
 | memory | `historical_noise.py` | preserved learning-on-recovery protocol; smoke is VOID, full output UNADOPTED | `python -m research.runner historical-noise --smoke --seeds 1 2 3 --tag UNIQUE` |
 | memory | `refraction_memory_numpy.py` | the same protocol on the numpy engine, 5 brains | ~10 min |
@@ -76,4 +77,5 @@ while retaining its extra initial stimulus-only activation. It records timeouts 
 raw seeds and refuses a convergence fit when any observation is censored. Its former
 coefficient-based complexity labels have been removed: the fitted slope does not
 establish an asymptotic class. Its assembly size is floor(sqrt(n)), so k/n varies.
-The grid and shared-runner migration remain pending.
+New runs use the configurable shared-runner entry above; old artifacts retain
+their original provenance limitations.

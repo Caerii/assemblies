@@ -2442,3 +2442,22 @@ the convergence sample count. Source-linked registration precedes the smoke.
 Pre-run configurable scaling/projection/aggregate checks: 82 passed in 3.40s,
 including six scaling replay fixtures and explicit grid/schedule/seed-order spies.
 Ruff passes. No tagged scaling smoke has run at this checkpoint.
+
+
+The final adapter/CLI checks passed 23 tests in 1.99s. Committed 9403684 before
+executing historical-scaling-smoke-20260910. Record and source archive validate.
+Direct execution exactly matches metrics, raw_data, parameters and success, with
+only timestamps/duration excluded. Two cells(n60,k7),(n80,k8), seeds[1,2,3]; all
+six observations are timeouts at eight training rounds. Status remains VOID.
+Artifact: research/results/runs/memory.historical-scaling/historical-scaling-smoke-20260910/.
+
+
+The complete configured contract workflow passed 1548 tests, 1 skipped, 6 warnings
+in 179.33s after the accumulated convergence and runner migrations. This includes
+source links, register rendering, both ratchets, retained-trajectory checks and the
+selected package contracts; it is not the entire package suite. Local log:
+.cache/historical-scaling-contract-gate.log. No backend implementation changed.
+
+Dedicated fused/CUDA parity suite passed 122 tests, 11 warnings in 58.38s on
+RTX3080, with the fused extension loaded. Local log: .cache/historical-scaling-gpu-gate.log.
+Ruff and git diff --check also pass.

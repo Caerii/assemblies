@@ -1,0 +1,243 @@
+{
+  "observations": {
+    "result": {
+      "duration_seconds": 0.05613179999636486,
+      "error_message": null,
+      "experiment_name": "scaling_laws",
+      "metrics": {
+        "scaling_fit": {
+          "degenerate": "censored_observations",
+          "equation": null,
+          "intercept": null,
+          "p_value": null,
+          "r_squared": null,
+          "slope": null
+        },
+        "scaling_results": [
+          {
+            "convergence_fraction": {
+              "ci95_hi": 0.0,
+              "ci95_lo": 0.0,
+              "max": 0.0,
+              "mean": 0.0,
+              "min": 0.0,
+              "n": 3,
+              "sem": 0.0,
+              "std": 0.0
+            },
+            "k": 7,
+            "k_over_n": 0.11666666666666667,
+            "log10_n": 1.7781512503836436,
+            "n": 60,
+            "null_overlap": 0.11666666666666667,
+            "persistence": {
+              "ci95_hi": 0.5714285714285714,
+              "ci95_lo": 0.5714285714285714,
+              "max": 0.5714285714285714,
+              "mean": 0.5714285714285714,
+              "min": 0.5714285714285714,
+              "n": 3,
+              "sem": 0.0,
+              "std": 0.0
+            },
+            "test_vs_null": {
+              "d": null,
+              "degenerate": "zero_variance",
+              "p": null,
+              "significant": false,
+              "t": null
+            },
+            "training_rounds": {
+              "ci95_hi": 8.0,
+              "ci95_lo": 8.0,
+              "max": 8.0,
+              "mean": 8.0,
+              "min": 8.0,
+              "n": 3,
+              "sem": 0.0,
+              "std": 0.0
+            }
+          },
+          {
+            "convergence_fraction": {
+              "ci95_hi": 0.0,
+              "ci95_lo": 0.0,
+              "max": 0.0,
+              "mean": 0.0,
+              "min": 0.0,
+              "n": 3,
+              "sem": 0.0,
+              "std": 0.0
+            },
+            "k": 8,
+            "k_over_n": 0.1,
+            "log10_n": 1.9030899869919435,
+            "n": 80,
+            "null_overlap": 0.1,
+            "persistence": {
+              "ci95_hi": 0.8876105304062276,
+              "ci95_lo": 0.5290561362604391,
+              "max": 0.75,
+              "mean": 0.7083333333333334,
+              "min": 0.625,
+              "n": 3,
+              "sem": 0.04166666666666667,
+              "std": 0.07216878364870323
+            },
+            "test_vs_null": {
+              "d": 8.429313930168536,
+              "p": 0.00465855510202641,
+              "significant": true,
+              "t": 14.6
+            },
+            "training_rounds": {
+              "ci95_hi": 8.0,
+              "ci95_lo": 8.0,
+              "max": 8.0,
+              "mean": 8.0,
+              "min": 8.0,
+              "n": 3,
+              "sem": 0.0,
+              "std": 0.0
+            }
+          }
+        ]
+      },
+      "parameters": {
+        "area_engine": "numpy_explicit",
+        "assembly_size_rule": "floor_sqrt_population",
+        "base_beta": 0.1,
+        "base_p": 0.2,
+        "base_wmax": 20.0,
+        "convergence_threshold": 0.98,
+        "convergence_window": 3,
+        "evaluation_learning": true,
+        "initial_stimulus_rounds": 1,
+        "max_train_rounds": 8,
+        "n_seeds": 3,
+        "n_values": [
+          60,
+          80
+        ],
+        "primary_engine": "numpy_sparse",
+        "seed_ids": [
+          1,
+          2,
+          3
+        ],
+        "test_rounds": 3
+      },
+      "raw_data": {
+        "cells": [
+          {
+            "k": 7,
+            "n": 60,
+            "values": {
+              "converged": [
+                false,
+                false,
+                false
+              ],
+              "convergence_time": [
+                null,
+                null,
+                null
+              ],
+              "persistence": [
+                0.5714285714285714,
+                0.5714285714285714,
+                0.5714285714285714
+              ],
+              "training_rounds": [
+                8,
+                8,
+                8
+              ]
+            }
+          },
+          {
+            "k": 8,
+            "n": 80,
+            "values": {
+              "converged": [
+                false,
+                false,
+                false
+              ],
+              "convergence_time": [
+                null,
+                null,
+                null
+              ],
+              "persistence": [
+                0.625,
+                0.75,
+                0.75
+              ],
+              "training_rounds": [
+                8,
+                8,
+                8
+              ]
+            }
+          }
+        ],
+        "seeds": [
+          1,
+          2,
+          3
+        ]
+      },
+      "success": true,
+      "timestamp": "2026-09-10T21:01:37.722141"
+    },
+    "scope": "learning-on persistence and descriptive convergence fit; no asymptotic class",
+    "verdict": "VOID"
+  },
+  "run": {
+    "engine": "numpy_explicit",
+    "environment": {
+      "policy": "repository-environment-v1",
+      "variables_sha256": {}
+    },
+    "git_commit": "94036848928e824e682dcc2f3603baf369af32ea",
+    "input_artifacts": {},
+    "mode": "smoke",
+    "parameters": {
+      "beta": 0.1,
+      "convergence_threshold": 0.98,
+      "convergence_window": 3,
+      "initial_stimulus_rounds": 1,
+      "max_train_rounds": 8,
+      "n_values": [
+        60,
+        80
+      ],
+      "p": 0.2,
+      "test_rounds": 3,
+      "w_max": 20.0
+    },
+    "protocol": "memory.historical-scaling",
+    "protocol_version": "1",
+    "registration": "research/notes/memory/PREREG_historical_scaling_migration.md",
+    "registration_sha256": "21276b43a6c2f953899e26e9fc836d28ca61e03aa55960b9e825ba604157c59d",
+    "schema_version": 3,
+    "scientific_status": "VOID",
+    "script": "research/experiments/historical_scaling.py",
+    "script_sha256": "8acae980ebdbdd2ea8016816264b398661f9b44ade4b04e84c9da0a6182ea7c3",
+    "seeds": [
+      1,
+      2,
+      3
+    ],
+    "source_archive": {
+      "file": "source.zip",
+      "sha256": "0e00e9ae0568cdb75f6f047e27df44512c92b1e869cf4c83668214af33fcfc95"
+    },
+    "source_inventory": "source-inputs-v3",
+    "source_sha256": "50c84464154dced3e5892633d8473462223365a715b8b6cb00de4d66fd21d011",
+    "started_utc": "2026-09-11T01:01:32.786979+00:00",
+    "tag": "historical-scaling-smoke-20260910"
+  },
+  "status": "complete"
+}

@@ -33,3 +33,15 @@ excluding only timestamps/duration. Validate the record and source archive.
 Smoke remains VOID and full output UNADOPTED. No coefficient establishes a
 complexity class, no older provenance gaps are filled by inference, and the obsolete
 aggregate grid is not silently translated into this different protocol.
+
+
+## Migration result (2026-09-10)
+
+Registration and adapter were committed at 9403684 before the
+[recorded smoke](../../results/runs/memory.historical-scaling/historical-scaling-smoke-20260910/results.json).
+Cells(n60,k7) and(n80,k8), seeds1/2/3, exactly match direct execution's metrics,
+raw_data, parameters and success under canonical JSON comparison; only timestamps
+and duration are excluded. Source archive and run record validate. All six brains
+time out at eight recurrent training rounds, with false convergence flags and null
+event times; no ordinary scaling fit is reported. Scientific status remains VOID.
+This does not reproduce source-less older studies or validate an asymptotic law.

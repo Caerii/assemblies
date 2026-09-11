@@ -1,0 +1,45 @@
+{
+  "engine": "numpy_explicit",
+  "environment": {
+    "policy": "repository-environment-v1",
+    "variables_sha256": {}
+  },
+  "git_commit": "94036848928e824e682dcc2f3603baf369af32ea",
+  "input_artifacts": {},
+  "mode": "smoke",
+  "parameters": {
+    "beta": 0.1,
+    "convergence_threshold": 0.98,
+    "convergence_window": 3,
+    "initial_stimulus_rounds": 1,
+    "max_train_rounds": 8,
+    "n_values": [
+      60,
+      80
+    ],
+    "p": 0.2,
+    "test_rounds": 3,
+    "w_max": 20.0
+  },
+  "protocol": "memory.historical-scaling",
+  "protocol_version": "1",
+  "registration": "research/notes/memory/PREREG_historical_scaling_migration.md",
+  "registration_sha256": "21276b43a6c2f953899e26e9fc836d28ca61e03aa55960b9e825ba604157c59d",
+  "schema_version": 3,
+  "scientific_status": "VOID",
+  "script": "research/experiments/historical_scaling.py",
+  "script_sha256": "8acae980ebdbdd2ea8016816264b398661f9b44ade4b04e84c9da0a6182ea7c3",
+  "seeds": [
+    1,
+    2,
+    3
+  ],
+  "source_archive": {
+    "file": "source.zip",
+    "sha256": "0e00e9ae0568cdb75f6f047e27df44512c92b1e869cf4c83668214af33fcfc95"
+  },
+  "source_inventory": "source-inputs-v3",
+  "source_sha256": "50c84464154dced3e5892633d8473462223365a715b8b6cb00de4d66fd21d011",
+  "started_utc": "2026-09-11T01:01:32.786979+00:00",
+  "tag": "historical-scaling-smoke-20260910"
+}

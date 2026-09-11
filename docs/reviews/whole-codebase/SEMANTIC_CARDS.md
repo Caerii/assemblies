@@ -986,3 +986,14 @@ Remove these labels. A shared fit is explicitly descriptive linear-in-log10(n),
 with no fit for censored observations and undefined inferential statistics for a
 constant response. Do not silently drop seeds. Legacy scaling's outer grid/raw-data/
 CLI migration is separate from this phase correction.
+
+
+### Scaling outer protocol migration (2026-09-10)
+
+The corrected scaling study now consumes explicit ordered seeds, population grid,
+initial stimulus count, training limit, evaluation count and stopping rule. It
+constructs and validates configs before computation, retains raw cells, records
+k=floor(sqrt(n)), and forwards the old CLI to a tagged shared-runner adapter.
+Default initialization remains one separate stimulus-only round. This closes the
+new-run grid/configuration/provenance migration noted above; it does not repair
+old artifacts or the obsolete aggregate grid. Full outputs remain UNADOPTED.
