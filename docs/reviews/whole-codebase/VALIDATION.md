@@ -4675,3 +4675,7 @@ Added frozen `OrderedRecallPlan` to the operation-contract layer and routed `ord
 ## Shared traced reciprocal contract (2026-09-11)
 
 `reciprocal_project_trace` now consumes `ReciprocalProjectionPlan`, sharing topology, source-activity, clamping, and recurrence semantics with executable reciprocal projection. Invalid topology fails before any clamp mutation. Trace regressions pass **18 tests**.
+
+## Shared traced merge contract (2026-09-11)
+
+`merge_trace` now consumes `MergePlan`, including parent/target recurrence, back-projection, and explicit partial-stimulus modes. Topology and active-source preflight occur before clamping or mutation, and traced merges share the executable schedule. Merge trace tests pass **15 tests**.

@@ -6,7 +6,7 @@ from collections.abc import Sequence
 
 from neural_assemblies.assembly_calculus.assembly import Assembly, chance_overlap, overlap
 from neural_assemblies.assembly_calculus.contracts import (
-    CompletionPlan, OrderedRecallPlan, ProjectionPlan,
+    CompletionPlan, MergePlan, OrderedRecallPlan, ProjectionPlan,
     ReciprocalProjectionPlan,
 )
 from neural_assemblies.assembly_calculus.ops import _snap
@@ -100,45 +100,31 @@ def merge_trace(
     stim_a: str | None = None,
     stim_b: str | None = None,
     rounds: int = 10,
+    parent_self: bool = True,
+    target_self: bool = True,
+    back_project: bool = True,
+    unstimulated_source_mode: str | None = None,
 ) -> AssemblyTrace:
     """Merge two source assemblies into a target and trace each merge round."""
-    if rounds <= 0:
-        raise ValueError("rounds must be positive")
-
-    use_fix = stim_a is None and stim_b is None
-    source_a_was_fixed = brain.areas[source_a].fixed_assembly
-    source_b_was_fixed = brain.areas[source_b].fixed_assembly
-    if use_fix and not source_a_was_fixed:
-        brain.areas[source_a].fix_assembly()
-    if use_fix and not source_b_was_fixed:
-        brain.areas[source_b].fix_assembly()
-
-    stim_dict = {}
-    if stim_a:
-        stim_dict[stim_a] = [source_a]
-    if stim_b:
-        stim_dict[stim_b] = [source_b]
+    plan = MergePlan(
+        source_a, source_b, target, stim_a, stim_b, rounds,
+        parent_self, target_self, back_project, unstimulated_source_mode,
+    )
+    plan.preflight(brain)
+    fixed_sources = plan.fixed_sources
+    was_fixed = {name: brain.areas[name].fixed_assembly for name in fixed_sources}
+    for name, fixed in was_fixed.items():
+        if not fixed:
+            brain.areas[name].fix_assembly()
 
     steps: list[TraceStep] = []
     previous: Assembly | None = None
     try:
-        for round_index in range(1, rounds + 1):
-            if round_index == 1:
-                brain.project(
-                    stim_dict,
-                    {source_a: [source_a, target], source_b: [source_b, target]},
-                )
-                drive = f"{source_a} + {source_b}"
-            else:
-                brain.project(
-                    stim_dict,
-                    {
-                        source_a: [source_a, target],
-                        source_b: [source_b, target],
-                        target: [target, source_a, source_b],
-                    },
-                )
-                drive = f"{source_a} + {source_b} + {target} feedback"
+        for round_index, step in enumerate(plan.steps, start=1):
+            brain.project(step.stimuli_dict(), step.fibers_dict())
+            drive = (f"{source_a} + {source_b}"
+                     if round_index == 1
+                     else f"{source_a} + {source_b} + {target} feedback")
             previous = _append_step(
                 steps,
                 brain=brain,
@@ -150,10 +136,9 @@ def merge_trace(
                 previous=previous,
             )
     finally:
-        if use_fix and not source_a_was_fixed:
-            brain.areas[source_a].unfix_assembly()
-        if use_fix and not source_b_was_fixed:
-            brain.areas[source_b].unfix_assembly()
+        for name, fixed in was_fixed.items():
+            if not fixed:
+                brain.areas[name].unfix_assembly()
 
     return AssemblyTrace(operation="merge", target=target, steps=tuple(steps))
 

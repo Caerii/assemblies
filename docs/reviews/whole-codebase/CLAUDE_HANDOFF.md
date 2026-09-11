@@ -2591,3 +2591,5 @@ Temporary sequence beta boosts are now exception-safe: recurrent projection fail
 `project_trace` now uses `ProjectionPlan` for its schedule and topology preflight, eliminating drift between traced and executable projection. Focused trace tests pass (18 tests).
 
 `reciprocal_project_trace` now uses `ReciprocalProjectionPlan` for schedule and preflight, unifying traced and executable reciprocal projection. Focused reciprocal-trace tests pass (18 tests).
+
+`merge_trace` now uses `MergePlan` and exposes the same recurrence, back-projection, and partial-stimulus controls as executable merge. Traced and executable merge semantics are unified; focused merge-trace tests pass (15 tests).
