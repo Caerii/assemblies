@@ -20,6 +20,7 @@ BRAIN_ENGINE_NAMES = frozenset({
     "cuda_implicit",
     "cupy_sparse",
 })
+ALIGNER_ENGINE_NAMES = frozenset({"hashed_aligner", "scheduled_aligner"})
 
 
 class _SemanticEnum(str, Enum):
@@ -115,6 +116,7 @@ class InferenceSchedule(_SemanticEnum):
 class ExecutionKind(_SemanticEnum):
     BRAIN = "brain"
     ORGAN = "organ"
+    ALIGNMENT = "alignment"
 
 
 class AlignmentStore(_SemanticEnum):
@@ -482,7 +484,7 @@ class ExecutionSemantics:
     """A strict, discriminated collection of model profiles used by one run."""
 
     kind: ExecutionKind
-    profiles: Mapping[str, ModelSemantics | OrganSemantics]
+    profiles: Mapping[str, ModelSemantics | OrganSemantics | AlignerSemantics]
 
     def __post_init__(self):
         object.__setattr__(self, "kind", ExecutionKind.normalize(self.kind))
@@ -493,11 +495,18 @@ class ExecutionSemantics:
             if (not isinstance(name, str) or not name
                     or any(ch not in "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_.-" for ch in name)):
                 raise ValueError("semantic profile names must be nonempty simple names")
-            profile = (ModelSemantics.normalize(value) if self.kind is ExecutionKind.BRAIN
-                       else OrganSemantics.normalize(value))
+            if self.kind is ExecutionKind.BRAIN:
+                profile = ModelSemantics.normalize(value)
+            elif self.kind is ExecutionKind.ORGAN:
+                profile = OrganSemantics.normalize(value)
+            else:
+                profile = AlignerSemantics.normalize(value)
             normalized[name] = profile
-        if self.kind is ExecutionKind.BRAIN and set(normalized) != {"default"}:
-            raise ValueError("Brain execution semantics require exactly the default profile")
+        if (self.kind in (ExecutionKind.BRAIN, ExecutionKind.ALIGNMENT)
+                and set(normalized) != {"default"}):
+            raise ValueError(
+                f"{self.kind.value} execution semantics require exactly the default profile"
+            )
         object.__setattr__(
             self, "profiles", MappingProxyType(dict(sorted(normalized.items())))
         )

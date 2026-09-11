@@ -166,6 +166,13 @@ arms to state their different transition relations without pretending they are
 one backend default. Unknown fields, incomplete nested objects, inconsistent
 tie rules and invalid organ/state combinations reject.
 
+An alignment run has exactly one `AlignerSemantics` profile. It separates the
+nonlearning, gain-controlled stimulus anchors from the plastic LEX-to-FEAT cross
+fiber and binds their normalization, clipping, storage, tie and schedule choices.
+Schema 8 adds this third discriminator while retaining schema-7 Brain and organ
+records. The Python constructor boundary is executable; a corresponding Lean and
+Rust wire/refinement definition remains an open proof obligation.
+
 Constructed controls pair each organ with a valid profile that differs in one
 mechanism. Supplying that profile to the other configuration raises before any
 device allocation. These tests establish that the boundary detects mismatch;

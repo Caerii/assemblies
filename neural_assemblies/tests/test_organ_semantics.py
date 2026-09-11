@@ -35,6 +35,10 @@ def test_aligner_profile_separates_anchor_and_cross_fiber_semantics():
     assert describe_hashed_aligner(store="csr").cross_store is (
         AlignmentStore.DENSE_COUNTS
     )
+    execution = ExecutionSemantics("alignment", {"default": semantics})
+    assert ExecutionSemantics.normalize(execution.to_dict()) == execution
+    with pytest.raises(ValueError, match="exactly the default"):
+        ExecutionSemantics("alignment", {"a": semantics, "b": semantics})
 
 
 @pytest.mark.parametrize("constructor", ["hashed", "scheduled"])

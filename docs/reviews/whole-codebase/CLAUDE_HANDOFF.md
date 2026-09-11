@@ -2050,3 +2050,18 @@ the existing sequence/memory `OrganSemantics`, while alignment needs its own
 discriminator. Add that as a schema evolution, migrate `word_capacity.py` to the
 shared runner, and reproduce a committed cell before treating provenance as
 closed.
+
+## Alignment enters the evidence envelope as schema 8 (2026-09-11)
+
+The runner and validator now understand `ExecutionKind.ALIGNMENT`, requiring one
+canonical aligner profile and one of the two explicit engine identities
+`hashed_aligner` or `scheduled_aligner`. The scheduled engine's supported subset
+is checked before tag reservation. Alignment studies require twenty seeds.
+
+Schema evolution is narrow: Brain and sequence/memory organ runs continue to emit
+schema 7, while only alignment emits schema 8. Historical schemas remain readable;
+archive, attachment, environment and profile checks now cover schema 8. The
+focused runner/semantics gate is 115 passed and the evidence/specification/export/
+register gate is 30 passed. The remaining acceptance step is migrating
+`word_capacity.py` to this entry point and reproducing a committed registered
+cell, rather than treating schema support alone as provenance closure.

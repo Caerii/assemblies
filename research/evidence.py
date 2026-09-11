@@ -18,7 +18,8 @@ import subprocess
 
 from neural_assemblies.core.environment import ENVIRONMENT_POLICY, ENVIRONMENT_PREFIXES
 from neural_assemblies.core.semantics import (
-    BRAIN_ENGINE_NAMES, ExecutionKind, ExecutionSemantics, ORGAN_ENGINE_KINDS,
+    ALIGNER_ENGINE_NAMES, BRAIN_ENGINE_NAMES, ExecutionKind, ExecutionSemantics,
+    ORGAN_ENGINE_KINDS,
 )
 
 from research.json_documents import decode_document, encode_document, load_document
@@ -95,13 +96,13 @@ def validate_artifact(path: Path, *, root: Path = ROOT) -> list[str]:
     missing = required - record.keys()
     if record.get('schema_version') == 6 and 'model_semantics' not in record:
         missing.add('model_semantics')
-    if record.get('schema_version') == 7 and 'execution_semantics' not in record:
+    if record.get('schema_version') in (7, 8) and 'execution_semantics' not in record:
         missing.add('execution_semantics')
     if missing:
         return [f'missing run fields: {sorted(missing)}']
-    if type(record['schema_version']) is not int or record['schema_version'] not in (1, 2, 3, 4, 5, 6, 7):
+    if type(record['schema_version']) is not int or record['schema_version'] not in (1, 2, 3, 4, 5, 6, 7, 8):
         errors.append('unsupported run schema version')
-    if record['schema_version'] in (2, 3, 4, 5, 6, 7) or 'environment' in record:
+    if record['schema_version'] in (2, 3, 4, 5, 6, 7, 8) or 'environment' in record:
         environment = record.get('environment')
         if (not isinstance(environment, dict)
                 or set(environment) != {'policy', 'variables_sha256'}
@@ -135,14 +136,17 @@ def validate_artifact(path: Path, *, root: Path = ROOT) -> list[str]:
                 errors.append(f'invalid model_semantics: {exc}')
         elif semantics is not None:
             errors.append('non-Brain engine cannot claim Brain model_semantics')
-    if record['schema_version'] == 7:
+    if record['schema_version'] in (7, 8):
         semantics = record.get('execution_semantics')
         try:
             normalized = ExecutionSemantics.normalize(semantics)
             if encode_document(normalized.to_dict()) != encode_document(semantics):
                 errors.append('execution_semantics is not canonical')
-            expected_kind = (ExecutionKind.BRAIN if record['engine'] in BRAIN_ENGINE_NAMES
-                             else ExecutionKind.ORGAN)
+            expected_kind = (
+                ExecutionKind.BRAIN if record['engine'] in BRAIN_ENGINE_NAMES else
+                ExecutionKind.ALIGNMENT if record['engine'] in ALIGNER_ENGINE_NAMES else
+                ExecutionKind.ORGAN
+            )
             if normalized.kind is not expected_kind:
                 errors.append('execution_semantics kind disagrees with engine')
             if normalized.kind is ExecutionKind.ORGAN:
@@ -152,6 +156,9 @@ def validate_artifact(path: Path, *, root: Path = ROOT) -> list[str]:
                 elif any(profile.organ is not expected_organ
                          for profile in normalized.profiles.values()):
                     errors.append('organ profile kind disagrees with engine')
+            elif (normalized.kind is ExecutionKind.ALIGNMENT
+                  and record['engine'] not in ALIGNER_ENGINE_NAMES):
+                errors.append('execution_semantics names an unknown alignment engine')
         except (TypeError, ValueError) as exc:
             errors.append(f'invalid execution_semantics: {exc}')
     if path.parent.name != record['tag'] or path.parent.parent.name != record['protocol']:
@@ -173,21 +180,24 @@ def validate_artifact(path: Path, *, root: Path = ROOT) -> list[str]:
                 errors.append(f'dangling input artifact edge: {name}')
             if not re.fullmatch('[a-f0-9]{64}', str(digest)):
                 errors.append(f'invalid input artifact digest: {name}')
-    if record['schema_version'] in (3, 4, 5, 6, 7) or 'source_archive' in record:
+    if record['schema_version'] in (3, 4, 5, 6, 7, 8) or 'source_archive' in record:
         errors.extend(validate_source_archive(path.parent, record))
     seeds = record['seeds']
     if not isinstance(seeds, list) or any(type(s) is not int for s in seeds):
         errors.append('seeds must be a list of integer identities')
     elif len(seeds) < 3 or len(set(seeds)) != len(seeds):
         errors.append('run needs at least three unique seeds')
-    elif record['mode'] == 'study' and record['engine'].startswith('hashed') and len(seeds) < 20:
+    elif (record['mode'] == 'study'
+          and (record['engine'].startswith('hashed')
+               or record['engine'] in ALIGNER_ENGINE_NAMES)
+          and len(seeds) < 20):
         errors.append('hashed studies need at least twenty unique seeds')
     expected_status = {'smoke': 'VOID', 'study': 'UNJUDGED'}.get(record['mode'])
     if expected_status is None or record['scientific_status'] != expected_status:
         errors.append('run mode and scientific status are inconsistent')
     if payload.get('status') != 'complete' or not isinstance(payload.get('observations'), dict):
         errors.append('artifact is not a completed observation record')
-    if record['schema_version'] in (5, 6, 7):
+    if record['schema_version'] in (5, 6, 7, 8):
         errors.extend(_validate_attachments(path, payload.get('attachments')))
     return errors
 

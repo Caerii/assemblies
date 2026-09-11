@@ -192,8 +192,8 @@ version 2 records remain historical records with that coverage limitation.
 
 ## Recoverable source
 
-The [runner](runner.py) writes schema 7 records with a sibling `source.zip` before
-calling measurement. The archive preserves exact checkout bytes, including mixed
+The [runner](runner.py) writes schema 7 Brain/organ records and schema 8 alignment
+records with a sibling `source.zip` before calling measurement. The archive preserves exact checkout bytes, including mixed
 line endings and Git-discovered nonignored untracked source. Its `source/` members
 use the same inventory and ordering as `source_sha256`; `script` and `registration`
 preserve the separately hashed entry point and preregistration. ZIP timestamps are
@@ -203,12 +203,12 @@ if capture fails, and measurement does not start.
 [Archive validation](source_archive.py) recomputes the inventory digest and both
 individual digests from archived bytes, rejects duplicate or unsafe member names,
 and never extracts or executes code. The runner also validates the archive before
-publishing completion; the evidence validator checks it for every schema 3 through 7 record.
+publishing completion; the evidence validator checks it for every schema 3 through 8 record.
 Schema 1 and 2 records remain readable without an archive. Their historical byte
 recovery gaps are not repaired by this change.
 
 This captures repository source, not a hermetic execution environment or all data.
-Schemas 4 through 7 additionally preserve every declared repository input artifact under
+Schemas 4 through 8 additionally preserve every declared repository input artifact under
 `inputs/`, bound to its separately recorded SHA-256. Input aliases resolve to one
 repository-relative name; duplicates fail before reservation. Missing, extra or
 changed archived inputs invalidate the archive even if its ZIP digest is updated.

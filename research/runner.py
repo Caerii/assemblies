@@ -20,8 +20,9 @@ from zipfile import ZIP_DEFLATED, ZipFile, ZipInfo
 
 from neural_assemblies.core.environment import environment_record
 from neural_assemblies.core.semantics import (
-    BRAIN_ENGINE_NAMES, ExecutionKind, ExecutionSemantics, ModelSemantics,
-    NormalizationMode, ORGAN_ENGINE_KINDS, OrganSemantics, describe_brain_model,
+    ALIGNER_ENGINE_NAMES, AlignerSemantics, AlignmentStore, BRAIN_ENGINE_NAMES, ExecutionKind,
+    ExecutionSemantics, ModelSemantics, NormalizationMode, ORGAN_ENGINE_KINDS,
+    OrganSemantics, PlasticityRule, describe_brain_model,
 )
 from research.json_documents import encode_document, write_new_document as _write_new
 from research.source_archive import validate_source_archive
@@ -47,6 +48,7 @@ _NAME = re.compile(r'[A-Za-z0-9][A-Za-z0-9_.-]*\Z')
 _ATTACHMENT_NAME = re.compile(r'[A-Za-z0-9][A-Za-z0-9_.-]*\.json\.gz\Z')
 BRAIN_ENGINES = BRAIN_ENGINE_NAMES
 ORGAN_ENGINES = ORGAN_ENGINE_KINDS
+ALIGNER_ENGINES = ALIGNER_ENGINE_NAMES
 
 
 @dataclass(frozen=True)
@@ -134,7 +136,8 @@ def run_experiment(*, script: str | Path, protocol: str, protocol_version: str,
                    input_artifacts: tuple[str, ...] = (),
                    expected_input_digests: Mapping[str, str] | None = None,
                    model_semantics: ModelSemantics | Mapping | None = None,
-                   organ_semantics: OrganSemantics | Mapping | None = None) -> Path:
+                   organ_semantics: OrganSemantics | Mapping | None = None,
+                   aligner_semantics: AlignerSemantics | Mapping | None = None) -> Path:
     """Execute one resolved protocol; return its immutable results file.
 
     `measure(record)` receives a JSON snapshot of the resolved inputs. It must
@@ -156,8 +159,8 @@ def run_experiment(*, script: str | Path, protocol: str, protocol_version: str,
     if not isinstance(engine, str) or not _NAME.fullmatch(engine) or engine == 'auto':
         raise ValueError('record the resolved engine; auto is not provenance')
     if engine in BRAIN_ENGINES:
-        if organ_semantics is not None:
-            raise ValueError('Brain engines cannot claim organ_semantics')
+        if organ_semantics is not None or aligner_semantics is not None:
+            raise ValueError('Brain engines cannot claim organ or aligner semantics')
         if model_semantics is None:
             raise ValueError(
                 f'{engine} runs require a complete model_semantics document'
@@ -181,12 +184,12 @@ def run_experiment(*, script: str | Path, protocol: str, protocol_version: str,
         execution_document = ExecutionSemantics(
             ExecutionKind.BRAIN, {'default': requested_model},
         ).to_dict()
-    else:
-        if engine not in ORGAN_ENGINES:
-            raise ValueError(f'unknown execution engine: {engine}')
-        if model_semantics is not None or organ_semantics is None:
+        schema_version = 7
+    elif engine in ORGAN_ENGINES:
+        if (model_semantics is not None or aligner_semantics is not None
+                or organ_semantics is None):
             raise ValueError(
-                f'{engine} requires organ_semantics and cannot claim Brain model_semantics'
+                f'{engine} requires organ_semantics exclusively'
             )
         if (isinstance(organ_semantics, OrganSemantics)
                 or (isinstance(organ_semantics, Mapping)
@@ -208,12 +211,35 @@ def run_experiment(*, script: str | Path, protocol: str, protocol_version: str,
             raise ValueError(
                 f'{engine} cannot implement organ_semantics profiles: {wrong}'
             )
+        schema_version = 7
+    elif engine in ALIGNER_ENGINES:
+        if (model_semantics is not None or organ_semantics is not None
+                or aligner_semantics is None):
+            raise ValueError(f'{engine} requires aligner_semantics exclusively')
+        requested_aligner = AlignerSemantics.normalize(aligner_semantics)
+        if engine == "scheduled_aligner" and (
+            requested_aligner.cross_store is not AlignmentStore.PRESENT_ONLY
+            or requested_aligner.cross_weight_ceiling is not None
+            or requested_aligner.cross_plasticity
+            is not PlasticityRule.MULTIPLICATIVE_UNBOUNDED
+            or requested_aligner.anchor_plasticity is not PlasticityRule.NONE
+        ):
+            raise ValueError(
+                "scheduled_aligner does not implement requested aligner_semantics"
+            )
+        execution_document = ExecutionSemantics(
+            ExecutionKind.ALIGNMENT, {"default": requested_aligner},
+        ).to_dict()
+        schema_version = 8
+    else:
+        raise ValueError(f'unknown execution engine: {engine}')
     if type(smoke) is not bool or type(minimum_study_seeds) is not int or minimum_study_seeds < 3:
         raise ValueError('smoke must be boolean and minimum_study_seeds an integer of at least three')
     seeds = list(seeds)
     if any(type(seed) is not int for seed in seeds) or len(set(seeds)) != len(seeds):
         raise ValueError('seeds must be unique integer identities')
-    minimum = 3 if smoke else max(3, minimum_study_seeds, 20 if engine.startswith('hashed') else 3)
+    hashed_study = engine.startswith('hashed') or engine in ALIGNER_ENGINES
+    minimum = 3 if smoke else max(3, minimum_study_seeds, 20 if hashed_study else 3)
     if len(seeds) < minimum:
         raise ValueError(f'{engine} {"smoke" if smoke else "study"} requires at least {minimum} unique seeds')
     script_path = _repo_file(script)
@@ -228,7 +254,7 @@ def run_experiment(*, script: str | Path, protocol: str, protocol_version: str,
     inputs = {name: hashlib.sha256(data).hexdigest() for name, data in input_bytes.items()}
     if expected_input_digests is not None and inputs != dict(expected_input_digests):
         raise ValueError('input artifacts differ from the configuration snapshot')
-    record = dict(schema_version=7, environment=environment_record(), source_inventory=SOURCE_INVENTORY, protocol=protocol, protocol_version=protocol_version,
+    record = dict(schema_version=schema_version, environment=environment_record(), source_inventory=SOURCE_INVENTORY, protocol=protocol, protocol_version=protocol_version,
                   script=script_path.relative_to(ROOT).as_posix(),
                   script_sha256=hashlib.sha256(script_path.read_bytes()).hexdigest(),
                   registration=registration_path.relative_to(ROOT).as_posix(),

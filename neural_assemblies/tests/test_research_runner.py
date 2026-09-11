@@ -5,13 +5,18 @@ from pathlib import Path
 import pytest
 
 from research import runner
-from neural_assemblies import describe_brain_model, describe_hashed_arc_fsm
+from neural_assemblies import (
+    describe_brain_model,
+    describe_hashed_aligner,
+    describe_hashed_arc_fsm,
+)
 
 
 FIXTURE_MODEL = describe_brain_model(
     "numpy_exact", norm_init=False,
 ).to_dict()
 FIXTURE_ORGAN = describe_hashed_arc_fsm().to_dict()
+FIXTURE_ALIGNER = describe_hashed_aligner().to_dict()
 
 
 @pytest.fixture
@@ -33,9 +38,12 @@ def run(tmp_path, monkeypatch):
                 if values["engine"] in runner.BRAIN_ENGINES
                 else None
             )
-        if (values["engine"] not in runner.BRAIN_ENGINES
+        if (values["engine"] in runner.ORGAN_ENGINES
                 and "organ_semantics" not in kwargs):
             values["organ_semantics"] = FIXTURE_ORGAN
+        if (values["engine"] in runner.ALIGNER_ENGINES
+                and "aligner_semantics" not in kwargs):
+            values["aligner_semantics"] = FIXTURE_ALIGNER
         return runner.run_experiment(**values)
     return execute
 
@@ -55,7 +63,9 @@ def test_reused_tag_refuses_before_compute_and_preserves_bytes(run):
                                    dict(engine=None), dict(smoke='false'),
                                    dict(model_semantics=None),
                                    dict(engine='hashed_arc_fsm', organ_semantics=None),
-                                   dict(engine='hashed_arc_fsm', seeds=list(range(19)))])
+                                   dict(engine='hashed_arc_fsm', seeds=list(range(19))),
+                                   dict(engine='hashed_aligner', aligner_semantics=None),
+                                   dict(engine='scheduled_aligner', seeds=list(range(19)))])
 def test_invalid_run_stops_before_compute(run, kwargs):
     calls = []
     with pytest.raises(ValueError):
@@ -78,6 +88,25 @@ def test_wrong_organ_kind_stops_before_reservation(run, tmp_path):
             organ_semantics=describe_assembly_memory(),
         )
     assert not (tmp_path / "audit.fixture" / "fixture").exists()
+
+
+def test_scheduled_aligner_rejects_dense_profile_before_reservation(run, tmp_path):
+    dense = describe_hashed_aligner(store="dense", scaling=False)
+    with pytest.raises(ValueError, match="does not implement"):
+        run(engine="scheduled_aligner", aligner_semantics=dense)
+    assert not (tmp_path / "audit.fixture" / "fixture").exists()
+
+
+def test_alignment_run_uses_schema8_and_canonical_profile(run):
+    from research.evidence import validate_artifact
+
+    path = run(engine="hashed_aligner", smoke=True)
+    record = json.loads(path.read_text())["run"]
+    assert record["schema_version"] == 8
+    assert record["execution_semantics"] == {
+        "kind": "alignment", "profiles": {"default": FIXTURE_ALIGNER},
+    }
+    assert validate_artifact(path) == []
 
 
 def test_smoke_record_is_void_and_includes_resolved_inputs(run):

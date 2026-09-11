@@ -126,6 +126,9 @@ horizon/gain and prediction rule.
 Passing a recorded profile back to the constructor makes it an admission check.
 Schema-7 evidence wraps one or more named profiles in `execution_semantics`, so
 paired arms cannot silently share a label while implementing different models.
+The aligner has two distinct fiber families and therefore uses
+`AlignerSemantics`; schema 8 adds an `alignment` execution kind without pretending
+those anchor and cross-fiber laws are one organ substrate.
 
 A unit's numbers are used only after it passes two gates: a drive replay
 against the numpy engine to a relative 5e-6 with refraction included, and

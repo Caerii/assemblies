@@ -75,6 +75,9 @@ evidence. Then follow the reading order below.
   `OrganSemantics` profiles. Pass the recorded profile back to the organ
   constructor; a stimulus, tie, scaling, state-code, or schedule mismatch then
   fails before CUDA allocation.
+  Hashed and scheduled word alignment use schema 8's `alignment` kind and an
+  `AlignerSemantics` profile because anchors and the learned cross fiber have
+  different plasticity and normalization laws.
 - **Smoke runs check the API, not the science.** A run with fewer seeds or
   a smaller grid than registered produces void numbers; tag it so.
 - **Adopted results go into `neural_assemblies/theory.py`**, rendered to

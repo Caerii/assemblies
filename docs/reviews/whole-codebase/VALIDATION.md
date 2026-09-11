@@ -3654,3 +3654,21 @@ float32 overflow warning; their same-schedule profiles are equal and their
 numerical parity remains green. This profile is enforced at construction but is
 not yet a runner `ExecutionSemantics` variant. Integrating it requires a new
 schema discriminator rather than mislabeling alignment as a sequence organ.
+
+## Schema 8 admits alignment without weakening older evidence (2026-09-11)
+
+`ExecutionSemantics` now has three closed kinds: Brain, organ and alignment.
+Alignment requires exactly one canonical `AlignerSemantics` profile. The runner
+accepts only `hashed_aligner` or `scheduled_aligner`, rejects mixed profile types,
+and checks the scheduled engine's present-only, unbounded, nonlearning-anchor
+subset before reserving a tag. Alignment studies require twenty seeds; smoke
+runs retain the three-seed API minimum.
+
+Only alignment records use schema 8. Existing Brain and organ runs remain schema
+7, and schemas 1 through 7 retain their existing read behavior. Archive,
+attachment, environment, canonical-profile and seed validation now extend through
+schema 8. The runner/semantic gate reports 115 passed; the evidence,
+specification, lazy-export and register gate reports 30 passed. A temporary
+schema-8 runner artifact validates cleanly. `word_capacity.py` still needs a
+shared-runner adapter and committed-cell reproduction before its provenance is
+closed.
