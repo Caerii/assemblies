@@ -4779,3 +4779,7 @@ Sequence training now has a frozen `SequenceMemorizePlan` that owns ordered inpu
 ## Sequence plan-level true negatives (2026-09-11)
 
 Added direct tests for `SequenceMemorizePlan`: malformed stimulus tuples and unknown target topology are rejected before execution. This verifies the immutable contract independently of the wrapper and keeps the code-to-spec boundary executable. Contract and sequence-input tests pass **165 tests**.
+
+## Public contract exports (2026-09-11)
+
+`OrderedRecallPlan`, `SequenceMemorizePlan`, and their contract objects are now exported from the public assembly-calculus package surface. A newcomer can inspect and compose the same immutable schedules used by the operations without importing internal modules. Operation-contract and public-boundary tests pass **268 tests**; Ruff and import smoke checks are clean.

@@ -2643,3 +2643,5 @@ Registered ordered recall as a first-class executable operation contract. The fr
 Added `SequenceMemorizePlan` and `SEQUENCE_MEMORIZE_CONTRACT`. The sequence training API now consumes one immutable validated schedule, sharing the same contract architecture as recall and the core operators. Contract and sequence-input tests pass (161 tests); Ruff is clean.
 
 Added direct plan-level tests for sequence memorization. Malformed stimulus tuples and unknown target topology now have explicit executable rejection coverage independent of the public wrapper. Contract and sequence-input tests pass (165 tests).
+
+Exported the ordered-recall and sequence-memorization plans/contracts from the public assembly-calculus package. The inspectable schedules are now part of the supported composition surface. Operation-contract and public-boundary tests pass (268 tests); Ruff and import smoke checks are clean.
