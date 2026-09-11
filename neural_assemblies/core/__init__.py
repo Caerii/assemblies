@@ -16,6 +16,10 @@ from .engine import (
 from .projection_fidelity import ProjectionFidelity
 from .semantics import (
     ArithmeticMode,
+    AlignerSemantics,
+    AlignmentInferenceSchedule,
+    AlignmentStore,
+    AlignmentTrainingSchedule,
     CandidateDomain,
     ConnectomeMode,
     ExecutionKind,
@@ -34,6 +38,7 @@ from .semantics import (
     describe_assembly_memory,
     describe_brain_model,
     describe_hashed_arc_fsm,
+    describe_hashed_aligner,
     describe_hashed_transducer,
 )
 from .backend import set_backend, get_xp, get_backend_name, to_cpu, to_xp
@@ -43,6 +48,8 @@ __all__ = [
     'ComputeEngine', 'EngineUnavailableError', 'ProjectionResult',
     'create_engine', 'list_engines',
     'ProjectionFidelity', 'SampledRecurrencePolicy', 'ModelSemantics',
+    'AlignerSemantics', 'AlignmentStore', 'AlignmentTrainingSchedule',
+    'AlignmentInferenceSchedule',
     'ExecutionSemantics', 'ExecutionKind',
     'OrganSemantics', 'OrganKind', 'StateCode', 'TrainingSchedule',
     'InferenceSchedule',
@@ -50,5 +57,6 @@ __all__ = [
     'TieBreakRule', 'ArithmeticMode', 'NormalizationMode', 'PlasticityRule',
     'describe_brain_model', 'describe_assembly_memory',
     'describe_hashed_arc_fsm', 'describe_hashed_transducer',
+    'describe_hashed_aligner',
     'set_backend', 'get_xp', 'get_backend_name', 'to_cpu', 'to_xp',
 ]

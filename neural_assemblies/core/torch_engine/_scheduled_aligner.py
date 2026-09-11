@@ -75,11 +75,30 @@ def _hash_jitter(salt, n, jitter, device, slab=16):
 
 
 class ScheduledAligner:
+    """Schedule-batched alignment with the same checked model relation.
+
+    Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-hashed-aligner
+    """
+
     def __init__(self, brain_seeds, *, n, k, feat_n, feat_k, n_words,
                  n_features, word_names=None, feature_names=None,
                  stim_size=None, p=0.05, beta=0.1, norm_init=True,
                  scaling=True, rounds_word=2, stim_gain=None, tie_jitter=1e-6,
-                 max_potentiations=4096, device="cuda"):
+                 max_potentiations=4096, device="cuda",
+                 aligner_semantics=None):
+        from ..semantics import AlignerSemantics, describe_hashed_aligner
+        actual_semantics = describe_hashed_aligner(
+            p=p, beta=beta, w_max=None, norm_init=norm_init,
+            scaling=scaling, rounds_word=rounds_word,
+            tie_jitter=tie_jitter, stim_beta=0.0,
+            stim_gain=stim_gain, store="present",
+        )
+        if aligner_semantics is not None:
+            required = AlignerSemantics.normalize(aligner_semantics)
+            mismatch = required.mismatch(actual_semantics)
+            if mismatch:
+                raise ValueError(f"aligner_semantics mismatch: {mismatch}")
+        self.aligner_semantics = actual_semantics
         self.mod = _fused_cuda.load()
         self.seeds = [int(s) for s in brain_seeds]
         self.B = len(self.seeds)

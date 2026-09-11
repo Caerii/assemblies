@@ -679,6 +679,10 @@ def test_parameter_cli_runs_with_archived_overrides(source_repo, monkeypatch):
         def __init__(self, **kwargs):
             pass
         def run(self, **kwargs):
+            model = kwargs.pop('model_semantics')
+            assert model == describe_brain_model(
+                'numpy_explicit', norm_init=False,
+            ).to_dict()
             assert kwargs == {'size': 7, 'rounds': 5, 'seed_ids': [9, 2, 7]}
             return ExperimentResult('fixture', success=True, parameters=kwargs)
     spec = _historical.HistoricalStudy(

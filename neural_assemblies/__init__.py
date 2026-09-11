@@ -27,6 +27,8 @@ _LAZY_EXPORTS = {
         "Brain", "Area", "Stimulus", "Connectome",
         "ComputeEngine", "ProjectionResult", "create_engine", "list_engines",
         "SampledRecurrencePolicy",
+        "AlignerSemantics", "AlignmentStore", "AlignmentTrainingSchedule",
+        "AlignmentInferenceSchedule",
         "ModelSemantics", "ConnectomeMode", "CandidateDomain",
         "StimulusDriveLaw", "TieBreakRule", "ArithmeticMode",
         "NormalizationMode", "PlasticityRule",
@@ -34,6 +36,7 @@ _LAZY_EXPORTS = {
         "InferenceSchedule", "describe_brain_model",
         "describe_assembly_memory", "describe_hashed_arc_fsm",
         "describe_hashed_transducer",
+        "describe_hashed_aligner",
     )
 }
 _LAZY_EXPORTS["cupy_available"] = ".core.backend"
@@ -123,13 +126,16 @@ if TYPE_CHECKING:  # pragma: no cover
     from .constants import DEFAULT_BETA, DEFAULT_P
     from .core import (
         Area, Brain, ComputeEngine, Connectome, ProjectionResult, Stimulus,
-        ArithmeticMode, CandidateDomain, ConnectomeMode, ModelSemantics,
+        AlignerSemantics, AlignmentInferenceSchedule, AlignmentStore,
+        AlignmentTrainingSchedule, ArithmeticMode, CandidateDomain,
+        ConnectomeMode, ModelSemantics,
         ExecutionKind, ExecutionSemantics, InferenceSchedule,
         NormalizationMode, OrganKind, OrganSemantics,
         PlasticityRule, SampledRecurrencePolicy, StateCode,
         StimulusDriveLaw, TieBreakRule, TrainingSchedule, create_engine,
         describe_assembly_memory, describe_brain_model,
-        describe_hashed_arc_fsm, describe_hashed_transducer, list_engines,
+        describe_hashed_aligner, describe_hashed_arc_fsm,
+        describe_hashed_transducer, list_engines,
     )
     from .core.backend import cupy_available
     from .utils import (
@@ -174,13 +180,16 @@ __all__ = [
     # Core classes
     'Brain', 'Area', 'Stimulus', 'Connectome', 'HomeostasisConfig',
     'SampledRecurrencePolicy',
+    'AlignerSemantics', 'AlignmentStore', 'AlignmentTrainingSchedule',
+    'AlignmentInferenceSchedule',
     'ModelSemantics', 'ConnectomeMode', 'CandidateDomain',
     'StimulusDriveLaw', 'TieBreakRule', 'ArithmeticMode',
     'NormalizationMode', 'PlasticityRule',
     'ExecutionSemantics', 'ExecutionKind',
     'OrganSemantics', 'OrganKind', 'StateCode', 'TrainingSchedule',
     'InferenceSchedule', 'describe_brain_model', 'describe_assembly_memory',
-    'describe_hashed_arc_fsm', 'describe_hashed_transducer',
+    'describe_hashed_aligner', 'describe_hashed_arc_fsm',
+    'describe_hashed_transducer',
 
     # Compute engine API
     'ComputeEngine', 'ProjectionResult', 'create_engine', 'list_engines',

@@ -221,6 +221,49 @@ Code: `_hashed_transducer.py:HashedTransducer`, `_arc_core.py`.
   a second readout on identical stored arcs separates missing information from
   extraction failure. No new result is adopted by this card.
 
+<a id="contract-hashed-aligner"></a>
+
+## A: hashed cross-situational aligner
+
+Code: `_hashed_aligner.py:HashedAligner`,
+`_scheduled_aligner.py:ScheduledAligner`, `_hashed.py:StimulusFiber`,
+`PresentFiber`, `AreaFiber`.
+
+- **State:** fixed hashed LEX and FEAT areas; one phon anchor per word, one
+  perceptual anchor per feature, one plastic LEX-to-FEAT fiber, cached anchor
+  winners, cross-fiber potentiation counts and optional pinned-winner
+  observations. Seeds and symbolic names jointly identify every graph.
+- **Two fiber families:** anchors use Binomial afferent counts, optional initial
+  inverse-indegree normalization, an explicit drive gain and normally no
+  plasticity. The cross fiber uses multiplicative Hebbian counts, optional
+  initial normalization and column scaling, with either a present-only store or
+  dense counts. These cannot truthfully be represented by one substrate profile.
+- **Write:** for every sentence in shuffled order, train every word against every
+  scene bundle. LEX is reset to its cached phon-anchor assembly. FEAT starts at
+  its cached bundle-anchor assembly, then performs `rounds_word` simultaneous
+  stimulus-plus-LEX rounds. Each round reads the previous LEX winners, selects
+  FEAT under deterministic hash jitter, and writes previous-LEX by new-FEAT
+  coactivity. The destination is perceptually anchored but not teacher-forced.
+- **Readout:** bundle references are frozen stimulus-only FEAT assemblies.
+  Word reconstruction freezes learning, anchors LEX from the word, then projects
+  LEX through the cross fiber alone. Capacity uses the argmax overlap with the
+  entire bundle inventory after filtering words below the exposure minimum.
+- **Numerical domain:** default anchors have gain `1/p`, zero stimulus beta and
+  deterministic tie jitter. The present-only store is valid only without a
+  finite clip. Column scaling with a finite clip is refused because those
+  operations do not commute. The pricing table must cover potentiation count,
+  not episode count.
+- **Claim/diff A1:** drive parity with sampled NumPy does not imply winner parity
+  because their stimulus laws and tie rules differ. Hashed and scheduled paths
+  should agree in the same arithmetic and schedule; capacity evidence still
+  depends on the registered corpus, exposure filter, inventory readout and
+  thresholded curve.
+- **Control:** change one of anchor gain, rounds per pair, stimulus plasticity,
+  cross-store representation, normalization, column scaling or tie jitter and
+  require constructor rejection against the recorded alignment profile before
+  CUDA loading. A mechanism null must also move the alignment statistic; backend
+  agreement alone is insufficient.
+
 ## Consequences for the architecture
 
 The shared units are immutable model semantics, executable schedules, explicit

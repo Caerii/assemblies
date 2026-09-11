@@ -56,14 +56,30 @@ def pair_seeds(brain_seeds, src, dst):
 
 
 class HashedAligner:
-    """B brains, one learner each, one launch per round."""
+    """B brains, one learner each, one launch per round.
+
+    Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-hashed-aligner
+    """
 
     def __init__(self, brain_seeds, words, features, *, n, k, feat_n, feat_k,
                  stim_size=None, p=0.05, beta=0.1, w_max=None,
                  norm_init=True, scaling=True, rounds_word=5,
                  max_potentiations=4096, device="cuda", track_pinned=False,
                  tie_jitter=1e-6, stim_beta=0.0, stim_gain=None,
-                 store="present"):
+                 store="present", aligner_semantics=None):
+        from ..semantics import AlignerSemantics, describe_hashed_aligner
+        actual_semantics = describe_hashed_aligner(
+            p=p, beta=beta, w_max=w_max, norm_init=norm_init,
+            scaling=scaling, rounds_word=rounds_word,
+            tie_jitter=tie_jitter, stim_beta=stim_beta,
+            stim_gain=stim_gain, store=store,
+        )
+        if aligner_semantics is not None:
+            required = AlignerSemantics.normalize(aligner_semantics)
+            mismatch = required.mismatch(actual_semantics)
+            if mismatch:
+                raise ValueError(f"aligner_semantics mismatch: {mismatch}")
+        self.aligner_semantics = actual_semantics
         self.seeds = [int(s) for s in brain_seeds]
         self.B = len(self.seeds)
         self.n, self.k, self.feat_n, self.feat_k = n, k, feat_n, feat_k

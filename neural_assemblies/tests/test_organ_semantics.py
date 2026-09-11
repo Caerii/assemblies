@@ -5,6 +5,8 @@ from dataclasses import replace
 import pytest
 
 from neural_assemblies import (
+    AlignerSemantics,
+    AlignmentStore,
     NormalizationMode,
     OrganSemantics,
     StateCode,
@@ -13,8 +15,59 @@ from neural_assemblies import (
     ExecutionSemantics,
     describe_assembly_memory,
     describe_hashed_arc_fsm,
+    describe_hashed_aligner,
     describe_hashed_transducer,
 )
+
+
+def test_aligner_profile_separates_anchor_and_cross_fiber_semantics():
+    semantics = describe_hashed_aligner(p=.2, rounds_word=3)
+
+    assert semantics.anchor_gain == 5.0
+    assert semantics.anchor_plasticity.value == "none"
+    assert semantics.anchor_normalization is NormalizationMode.INVERSE_INDEGREE
+    assert semantics.cross_normalization is (
+        NormalizationMode.INVERSE_INDEGREE_WITH_COLUMN_SCALING
+    )
+    assert semantics.cross_store is AlignmentStore.PRESENT_ONLY
+    assert semantics.rounds_per_pair == 3
+    assert AlignerSemantics.normalize(semantics.to_dict()) == semantics
+    assert describe_hashed_aligner(store="csr").cross_store is (
+        AlignmentStore.DENSE_COUNTS
+    )
+
+
+@pytest.mark.parametrize("constructor", ["hashed", "scheduled"])
+def test_aligner_mismatch_rejects_before_cuda_loading(constructor):
+    required = describe_hashed_aligner(p=.2, rounds_word=3)
+    if constructor == "hashed":
+        from neural_assemblies.core.torch_engine._hashed_aligner import HashedAligner
+
+        construct = lambda: HashedAligner(  # noqa: E731
+            [1], ["word"], ["feature"], n=20, k=2, feat_n=20, feat_k=2,
+            p=.2, rounds_word=2, device="unusable-device",
+            aligner_semantics=required,
+        )
+    else:
+        from neural_assemblies.core.torch_engine._scheduled_aligner import ScheduledAligner
+
+        construct = lambda: ScheduledAligner(  # noqa: E731
+            [1], n=20, k=2, feat_n=20, feat_k=2, n_words=1,
+            n_features=1, p=.2, rounds_word=2, device="unusable-device",
+            aligner_semantics=required,
+        )
+    with pytest.raises(ValueError, match="aligner_semantics mismatch"):
+        construct()
+
+
+@pytest.mark.parametrize("kwargs", [
+    {"store": "typo"}, {"store": "present", "w_max": 20.},
+    {"scaling": True, "w_max": 20., "store": "dense"},
+    {"p": 0.}, {"rounds_word": 0}, {"tie_jitter": float("nan")},
+])
+def test_invalid_aligner_relation_rejects_during_description(kwargs):
+    with pytest.raises(ValueError):
+        describe_hashed_aligner(**kwargs)
 
 
 def test_memory_profiles_distinguish_dense_and_scaling_fibers():

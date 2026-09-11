@@ -80,6 +80,7 @@ def test_scheduled_equals_batched_on_one_corpus(mod):
                           word_names=[f"phon_{w}" for w in words],
                           feature_names=[f"feat_{f}" for f in features],
                           p=P, beta=BETA, rounds_word=2)
+    assert al.aligner_semantics == ref.aligner_semantics
     al.prepare(_features_tensor(inventory, features, len(seeds)))
     al.train(W, Bd)
     tab = al.overlap_table()                                   # [B, V, I]

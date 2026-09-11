@@ -2028,3 +2028,25 @@ now names one effective `numpy_explicit` engine instead of a sparse router plus
 explicit auxiliary. The registration links the artifact. Remaining semantic work
 includes true mixed-engine profile graphs, aligner identity, unmigrated runners,
 numerical refinement and the repository-wide legacy disposition.
+
+## Hashed aligner semantics (2026-09-11)
+
+The aligner now has its own immutable `AlignerSemantics` rather than being forced
+into the one-substrate sequence-organ record. The code-derived card identifies
+the two fiber families: nonlearning, gain-controlled stimulus anchors and the
+plastic, optionally column-scaled LEX-to-FEAT fiber. The profile also binds tie
+jitter, float32 arithmetic, per-family normalization and clipping, rounds per
+pair, and present-only versus dense-count storage.
+
+Both hashed and scheduled constructors check the profile before loading CUDA.
+Constructed negatives fail on an unusable device. CUDA parity initially found
+that `store="csr"` was an undocumented alias created by the old catch-all dense
+branch; it is now an explicit alias and other unknown strings fail early. The
+pure gate is 37 passed, and the real CUDA aligner suites are 8 passed with their
+same-schedule profiles equal. One pre-existing float32 overflow warning remains.
+
+Runner integration is deliberately still open: schema 7 can represent Brain or
+the existing sequence/memory `OrganSemantics`, while alignment needs its own
+discriminator. Add that as a schema evolution, migrate `word_capacity.py` to the
+shared runner, and reproduce a committed cell before treating provenance as
+closed.

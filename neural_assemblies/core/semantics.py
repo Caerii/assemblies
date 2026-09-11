@@ -9,7 +9,7 @@ from enum import Enum
 import math
 import numbers
 from types import MappingProxyType
-from typing import Mapping
+from typing import ClassVar, Mapping
 
 
 BRAIN_ENGINE_NAMES = frozenset({
@@ -75,6 +75,7 @@ class NormalizationMode(_SemanticEnum):
 
 
 class PlasticityRule(_SemanticEnum):
+    NONE = "none"
     MULTIPLICATIVE_CLIPPED = "multiplicative-clipped"
     MULTIPLICATIVE_UNBOUNDED = "multiplicative-unbounded"
 
@@ -116,8 +117,72 @@ class ExecutionKind(_SemanticEnum):
     ORGAN = "organ"
 
 
+class AlignmentStore(_SemanticEnum):
+    PRESENT_ONLY = "present-only"
+    DENSE_COUNTS = "dense-counts"
+
+
+class AlignmentTrainingSchedule(_SemanticEnum):
+    ANCHORED_CROSS_SITUATIONAL = "anchored-cross-situational"
+
+
+class AlignmentInferenceSchedule(_SemanticEnum):
+    FROZEN_ANCHOR_AND_CROSS_READOUT = "frozen-anchor-and-cross-readout"
+
+
+def _wire_value(value):
+    if isinstance(value, Enum):
+        return value.value
+    if hasattr(value, "to_dict"):
+        return value.to_dict()
+    return value
+
+
+class _SemanticRecord:
+    """Shared strict wire and comparison law for immutable semantic records."""
+
+    _document_name: ClassVar[str]
+
+    @classmethod
+    def normalize(cls, value):
+        if isinstance(value, cls):
+            return value
+        if not isinstance(value, Mapping):
+            raise TypeError(
+                f"{cls._document_name} must be {cls.__name__} or a mapping"
+            )
+        expected = {field.name for field in fields(cls)}
+        supplied = set(value)
+        missing, extra = expected - supplied, supplied - expected
+        if missing or extra:
+            details = []
+            if missing:
+                details.append(f"missing {sorted(missing)}")
+            if extra:
+                details.append(f"unknown {sorted(extra, key=repr)}")
+            raise ValueError(
+                f"invalid {cls._document_name} mapping: " + "; ".join(details)
+            )
+        return cls(**dict(value))
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            field.name: _wire_value(getattr(self, field.name))
+            for field in fields(self)
+        }
+
+    def mismatch(self, actual) -> dict[str, tuple[object, object]]:
+        actual = type(self).normalize(actual)
+        expected_wire, actual_wire = self.to_dict(), actual.to_dict()
+        return {
+            name: (expected_wire[name], actual_wire[name])
+            for name in expected_wire
+            if expected_wire[name] != actual_wire[name]
+        }
+
+
 @dataclass(frozen=True)
-class ModelSemantics:
+class ModelSemantics(_SemanticRecord):
     """Specification: neural_assemblies/ir/VERIFICATION.md#contract-model-semantics
 
     Backend-independent identity of choices that can change a result.
@@ -134,6 +199,7 @@ class ModelSemantics:
     normalization: NormalizationMode
     plasticity: PlasticityRule = PlasticityRule.MULTIPLICATIVE_CLIPPED
     weight_ceiling: float | None = 20.0
+    _document_name: ClassVar[str] = "model_semantics"
 
     def __post_init__(self):
         enum_types = {
@@ -166,48 +232,8 @@ class ModelSemantics:
         ):
             raise ValueError("unbounded plasticity requires weight_ceiling=None")
 
-    @classmethod
-    def normalize(cls, value: object) -> "ModelSemantics":
-        if isinstance(value, cls):
-            return value
-        if not isinstance(value, Mapping):
-            raise TypeError("model_semantics must be ModelSemantics or a mapping")
-        expected = {field.name for field in fields(cls)}
-        supplied = set(value)
-        missing = expected - supplied
-        extra = supplied - expected
-        if missing or extra:
-            details = []
-            if missing:
-                details.append(f"missing {sorted(missing)}")
-            if extra:
-                details.append(f"unknown {sorted(extra, key=repr)}")
-            raise ValueError("invalid model_semantics mapping: " + "; ".join(details))
-        return cls(**dict(value))
-
-    def to_dict(self) -> dict[str, object]:
-        return {
-            field.name: (
-                value.value if isinstance(value, Enum) else value
-            )
-            for field in fields(self)
-            for value in (getattr(self, field.name),)
-        }
-
-    def mismatch(self, actual: "ModelSemantics") -> dict[str, tuple[object, object]]:
-        actual = self.normalize(actual)
-        return {
-            field.name: (
-                self.to_dict()[field.name],
-                actual.to_dict()[field.name],
-            )
-            for field in fields(self)
-            if getattr(self, field.name) != getattr(actual, field.name)
-        }
-
-
 @dataclass(frozen=True)
-class OrganSemantics:
+class OrganSemantics(_SemanticRecord):
     """Composable substrate and schedule identity for a hashed organ.
 
     Specification: neural_assemblies/ir/VERIFICATION.md#contract-organ-semantics
@@ -229,6 +255,7 @@ class OrganSemantics:
     prediction_gain: float = 0.0
     feature_register: bool = False
     convergence_gate: bool = False
+    _document_name: ClassVar[str] = "organ_semantics"
 
     def __post_init__(self):
         enum_types = {
@@ -283,50 +310,72 @@ class OrganSemantics:
             if self.convergence_gate:
                 raise ValueError("sequence transducer does not implement convergence gating")
 
-    @classmethod
-    def normalize(cls, value: object) -> "OrganSemantics":
-        if isinstance(value, cls):
-            return value
-        if not isinstance(value, Mapping):
-            raise TypeError("organ_semantics must be OrganSemantics or a mapping")
-        expected = {field.name for field in fields(cls)}
-        supplied = set(value)
-        missing = expected - supplied
-        extra = supplied - expected
-        if missing or extra:
-            details = []
-            if missing:
-                details.append(f"missing {sorted(missing)}")
-            if extra:
-                details.append(f"unknown {sorted(extra, key=repr)}")
-            raise ValueError("invalid organ_semantics mapping: " + "; ".join(details))
-        return cls(**dict(value))
+@dataclass(frozen=True)
+class AlignerSemantics(_SemanticRecord):
+    """Identity of the two-fiber-family cross-situational learner.
 
-    def to_dict(self) -> dict[str, object]:
-        return {
-            "organ": self.organ.value,
-            "substrate": self.substrate.to_dict(),
-            "state_code": self.state_code.value,
-            "training_schedule": self.training_schedule.value,
-            "inference_schedule": self.inference_schedule.value,
-            "tie_jitter": self.tie_jitter,
-            "arc_refraction_charge": self.arc_refraction_charge,
-            "state_refraction_charge": self.state_refraction_charge,
-            "horizon": self.horizon,
-            "successor_gain": self.successor_gain,
-            "prediction_gain": self.prediction_gain,
-            "feature_register": self.feature_register,
-            "convergence_gate": self.convergence_gate,
-        }
+    Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-hashed-aligner
+    """
 
-    def mismatch(self, actual: "OrganSemantics") -> dict[str, tuple[object, object]]:
-        actual = self.normalize(actual)
-        expected_wire, actual_wire = self.to_dict(), actual.to_dict()
-        return {
-            name: (expected_wire[name], actual_wire[name])
-            for name in expected_wire
-            if expected_wire[name] != actual_wire[name]
+    connectome: ConnectomeMode
+    stimulus_drive: StimulusDriveLaw
+    tie_break: TieBreakRule
+    arithmetic: ArithmeticMode
+    anchor_normalization: NormalizationMode
+    cross_normalization: NormalizationMode
+    anchor_plasticity: PlasticityRule
+    cross_plasticity: PlasticityRule
+    anchor_weight_ceiling: float | None
+    cross_weight_ceiling: float | None
+    anchor_gain: float
+    rounds_per_pair: int
+    cross_store: AlignmentStore
+    training_schedule: AlignmentTrainingSchedule = (
+        AlignmentTrainingSchedule.ANCHORED_CROSS_SITUATIONAL
+    )
+    inference_schedule: AlignmentInferenceSchedule = (
+        AlignmentInferenceSchedule.FROZEN_ANCHOR_AND_CROSS_READOUT
+    )
+    _document_name: ClassVar[str] = "aligner_semantics"
+
+    def __post_init__(self):
+        enum_types = {
+            "connectome": ConnectomeMode,
+            "stimulus_drive": StimulusDriveLaw,
+            "tie_break": TieBreakRule,
+            "arithmetic": ArithmeticMode,
+            "anchor_normalization": NormalizationMode,
+            "cross_normalization": NormalizationMode,
+            "anchor_plasticity": PlasticityRule,
+            "cross_plasticity": PlasticityRule,
+            "cross_store": AlignmentStore,
+            "training_schedule": AlignmentTrainingSchedule,
+            "inference_schedule": AlignmentInferenceSchedule,
         }
+        for name, enum_type in enum_types.items():
+            object.__setattr__(self, name, enum_type.normalize(getattr(self, name)))
+        for name in ("anchor_weight_ceiling", "cross_weight_ceiling"):
+            value = getattr(self, name)
+            if value is not None:
+                if (isinstance(value, bool) or not isinstance(value, numbers.Real)
+                        or not math.isfinite(value) or value <= 0):
+                    raise ValueError(f"{name} must be a positive finite number or None")
+                object.__setattr__(self, name, float(value))
+        if (isinstance(self.anchor_gain, bool)
+                or not isinstance(self.anchor_gain, numbers.Real)
+                or not math.isfinite(self.anchor_gain) or self.anchor_gain < 0):
+            raise ValueError("anchor_gain must be a finite nonnegative number")
+        object.__setattr__(self, "anchor_gain", float(self.anchor_gain))
+        if type(self.rounds_per_pair) is not int or self.rounds_per_pair <= 0:
+            raise ValueError("rounds_per_pair must be a positive integer")
+        for prefix in ("anchor", "cross"):
+            rule = getattr(self, f"{prefix}_plasticity")
+            ceiling = getattr(self, f"{prefix}_weight_ceiling")
+            if rule is PlasticityRule.MULTIPLICATIVE_CLIPPED and ceiling is None:
+                raise ValueError(f"clipped {prefix} plasticity requires a ceiling")
+            if rule is PlasticityRule.MULTIPLICATIVE_UNBOUNDED and ceiling is not None:
+                raise ValueError(f"unbounded {prefix} plasticity requires no ceiling")
+
 
 
 def _hashed_substrate(*, zero_or_size: bool, tie_jitter: float,
@@ -363,6 +412,68 @@ def _hashed_substrate(*, zero_or_size: bool, tie_jitter: float,
         plasticity=(PlasticityRule.MULTIPLICATIVE_CLIPPED
                     if w_max is not None else PlasticityRule.MULTIPLICATIVE_UNBOUNDED),
         weight_ceiling=w_max,
+    )
+
+
+def describe_hashed_aligner(
+    *, p: float = 0.05, beta: float = 0.1, w_max: float | None = None,
+    norm_init: bool = True, scaling: bool = True, rounds_word: int = 2,
+    tie_jitter: float = 1e-6, stim_beta: float = 0.0,
+    stim_gain: float | None = None, store: str = "present",
+) -> AlignerSemantics:
+    """Describe the executed hashed cross-situational alignment relation."""
+    for name, value in (("p", p), ("beta", beta), ("stim_beta", stim_beta),
+                        ("tie_jitter", tie_jitter)):
+        if (isinstance(value, bool) or not isinstance(value, numbers.Real)
+                or not math.isfinite(value) or value < 0):
+            raise ValueError(f"{name} must be a finite nonnegative number")
+    if p <= 0 or p > 1:
+        raise ValueError("p must be in (0, 1]")
+    if type(norm_init) is not bool or type(scaling) is not bool:
+        raise ValueError("normalization switches must be boolean")
+    if type(rounds_word) is not int or rounds_word <= 0:
+        raise ValueError("rounds_word must be a positive integer")
+    try:
+        cross_store = AlignmentStore.normalize(
+            "present-only" if store == "present" else
+            "dense-counts" if store in ("dense", "csr") else store
+        )
+    except ValueError as exc:
+        raise ValueError("store must be present, dense, or csr") from exc
+    if cross_store is AlignmentStore.PRESENT_ONLY and w_max is not None:
+        raise ValueError("present-only alignment requires w_max=None")
+    if scaling and w_max is not None:
+        raise ValueError("column scaling with a finite clip is not exact")
+    if stim_gain is None:
+        stim_gain = 1.0 / float(p)
+    anchor_rule = (
+        PlasticityRule.NONE if stim_beta == 0 else
+        PlasticityRule.MULTIPLICATIVE_UNBOUNDED if w_max is None else
+        PlasticityRule.MULTIPLICATIVE_CLIPPED
+    )
+    cross_rule = (PlasticityRule.MULTIPLICATIVE_UNBOUNDED if w_max is None
+                  else PlasticityRule.MULTIPLICATIVE_CLIPPED)
+    initial = (NormalizationMode.INVERSE_INDEGREE if norm_init
+               else NormalizationMode.NONE)
+    cross_normalization = (
+        NormalizationMode.INVERSE_INDEGREE_WITH_COLUMN_SCALING if scaling
+        else initial
+    )
+    return AlignerSemantics(
+        connectome=ConnectomeMode.FIXED_HASH_REGENERATED,
+        stimulus_drive=StimulusDriveLaw.FIXED_BERNOULLI_AFFERENT_COUNT,
+        tie_break=(TieBreakRule.DETERMINISTIC_HASH_JITTER if tie_jitter
+                   else TieBreakRule.LOWEST_NEURON_ID),
+        arithmetic=ArithmeticMode.FLOAT32,
+        anchor_normalization=initial,
+        cross_normalization=cross_normalization,
+        anchor_plasticity=anchor_rule,
+        cross_plasticity=cross_rule,
+        anchor_weight_ceiling=w_max,
+        cross_weight_ceiling=w_max,
+        anchor_gain=stim_gain,
+        rounds_per_pair=rounds_word,
+        cross_store=cross_store,
     )
 
 

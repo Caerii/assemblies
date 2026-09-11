@@ -3629,3 +3629,28 @@ uses the same registered cell and seeds1/2/3 as the schema-6 artifact. Metrics,
 raw data, success/error, scope, verdict and all non-routing producer parameters
 are exactly equal; only the redundant router/owner metadata becomes
 `engine=numpy_explicit`. The artifact remains VOID.
+
+## Hashed alignment has an executable two-family contract (2026-09-11)
+
+The code-derived aligner card separates stimulus anchors from the plastic
+LEX-to-FEAT cross fiber. `AlignerSemantics` records the fixed hashed graph,
+Binomial stimulus law, float32 arithmetic, deterministic tie behavior, separate
+anchor and cross normalization/plasticity/ceilings, resolved anchor gain,
+rounds per pair, and present-only versus dense-count storage. This avoids forcing
+two different fiber laws into the single-substrate shape used by the memory and
+sequence organs.
+
+Both `HashedAligner` and `ScheduledAligner` derive and compare this profile before
+CUDA loading or allocation. Pure controls reject a one-round schedule mismatch
+on an unusable device, as well as invalid probability, store, clip/scaling and
+tie configurations. The first CUDA parity run exposed the undocumented `csr`
+spelling that previously reached the dense path through a catch-all `else`.
+The contract now treats `csr` as an explicit dense-count alias and rejects every
+other unknown spelling.
+
+The pure semantics, source-link and lazy-export gate reports 37 passed. The real
+CUDA hashed-drive and scheduled-alignment suites report 8 passed with one existing
+float32 overflow warning; their same-schedule profiles are equal and their
+numerical parity remains green. This profile is enforced at construction but is
+not yet a runner `ExecutionSemantics` variant. Integrating it requires a new
+schema discriminator rather than mislabeling alignment as a sequence organ.
