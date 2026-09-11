@@ -24,6 +24,7 @@ evidence of interference rather than of learning.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+import warnings
 from typing import List, Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -65,8 +66,13 @@ def capture_stability_snapshot(parser: "EmergentParser") -> StabilitySnapshot:
         holdout = decompose_holdout_classification(
             parser, DEFAULT_LEXICON_HOLDOUTS,
         )["accuracy_bootstrapped"]
-    except Exception:
-        pass
+    except (KeyError, RuntimeError, TypeError, ValueError) as error:
+        warnings.warn(
+            "stability snapshot could not compute holdout classification; "
+            f"holdout_bootstrap is unavailable ({error!r})",
+            RuntimeWarning,
+            stacklevel=2,
+        )
 
     return StabilitySnapshot(
         word_order_svo=bool(wo.get("correct")),

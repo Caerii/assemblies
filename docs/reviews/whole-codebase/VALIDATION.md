@@ -4440,3 +4440,11 @@ A focused test now constructs a parser whose bridge training raises and asserts
 that `_ensure_minimal_prediction_bridges` emits a `RuntimeWarning` containing
 the original failure. This locks in the no-silent-fallback contract; the test
 and Ruff pass.
+
+## Stability snapshot failure visibility (2026-09-11)
+
+`capture_stability_snapshot` previously swallowed every exception from holdout
+classification and returned `0.0`, making an unavailable diagnostic look like a
+measured score. It now catches only expected data/model errors and emits a
+`RuntimeWarning` that labels the holdout value unavailable. Ruff and bytecode
+compilation pass.
