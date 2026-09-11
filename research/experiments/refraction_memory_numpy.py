@@ -12,7 +12,8 @@ as winners, T frozen recurrent rounds under `probe()`, the refraction bias
 zeroed for the MASKED readout and restored after, ranked by overlap against
 every stored assembly. Distinctness by exact duplicates. Bars N1-N3.
 
-    python research/experiments/refraction_memory_numpy.py [--brains 5] [--arm ref|ctl|both]
+    python -m research.runner refraction-memory-numpy --tag UNIQUE
+      [--seeds 42 43 44 45 46] [--arm ref|ctl|both]
 """
 from __future__ import annotations
 
