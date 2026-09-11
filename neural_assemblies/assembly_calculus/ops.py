@@ -484,6 +484,17 @@ def bind(brain, source_area, target_area, source_assembly=None, *,
         # drive the source from its stimulus and accept the drift this
         # function's docstring warns about.
         project(brain, source_stimulus, source_area, rounds=project_rounds)
+    if not replayed and source_stimulus is None:
+        # A missing snapshot and stimulus is only valid when the caller has
+        # explicitly established live source activity.  Proceeding with an
+        # empty/stale source makes bind look successful while training a
+        # target from no evidence at all.
+        live_winners = getattr(brain.areas[source_area], "winners", None)
+        if live_winners is None or len(live_winners) == 0:
+            raise ValueError(
+                "bind requires source_assembly, source_stimulus, or a "
+                f"nonempty live assembly in source area {source_area!r}"
+            )
     if fix_source:
         brain.areas[source_area].fix_assembly()
     try:

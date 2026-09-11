@@ -4603,3 +4603,7 @@ The semantic-envelope regression remains green across model profiles, organ
 profiles, materialization semantics, and the attention purity boundary: **65
 tests passed, 1 expected xfail**, with sampled recurrence warnings retained as
 provenance signals.
+
+## Explicit binding source (2026-09-11)
+
+`assembly_calculus.bind` now rejects an empty implicit source. Callers must provide a current snapshot, a stimulus, or an already-established nonempty live source assembly; otherwise the old path could train a target from no evidence and still return a plausible snapshot. The new negative control and the existing role-binding regression pass **4 tests**.

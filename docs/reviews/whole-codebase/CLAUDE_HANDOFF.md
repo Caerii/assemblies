@@ -2555,3 +2555,5 @@ Added formal/AssemblyIR/Attention.lean with proofs that selected support and bou
 Attention API failures now distinguish malformed snapshot types (TypeError) from empty valid domains (ValueError). Focused attention suite: 11 passed.
 
 Semantic-envelope and attention purity regression: 65 passed, 1 expected xfail. Model, organ, and materialization profile checks remain green; sampled recurrence warnings remain intentional.
+
+Binding now has an executable input contract: `bind` raises when neither a usable source snapshot/stimulus nor nonempty live source activity exists. This closes a silent no-op path that could return a target assembly trained from no source evidence. Focused input and role-binding regressions pass (4 tests).
