@@ -1577,3 +1577,19 @@ names the reason. The underlying statistical helpers retain their computational
 NaN convention for existing analysis callers; other producers must explicitly
 resolve that representation before strict storage. No undefined statistic is
 converted into zero, a significant result, or a fabricated numeric value.
+
+
+<a id="contract-legacy-execution-status"></a>
+### Legacy execution status
+
+ExperimentResult.success is a native boolean describing execution, never a
+scientific verdict. Construction, loading and ordinary assignment reject strings, numbers, null
+and NumPy boolean objects rather than interpreting truthiness. The same check runs
+before serialization because legacy results remain mutable. A post-construction
+invalid status cannot create an output directory or file. False execution outcomes
+and their messages remain representable. This does not validate arbitrary nested
+metric schemas or convert legacy completion into scientific adoption.
+
+Persisted legacy result documents must explicitly contain success; loading a missing
+status may not inherit the constructor default True. Non-object documents also
+raise at this boundary. Historical missing statuses are not inferred or rewritten.

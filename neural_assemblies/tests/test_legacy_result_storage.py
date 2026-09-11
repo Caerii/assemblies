@@ -80,3 +80,45 @@ def test_noise_study_saves_explicit_degenerate_statistics(tmp_path, monkeypatch)
             assert test['degenerate'] == 'zero_variance' and test['significant'] is False
             assert test['t'] is test['p'] is test['d'] is None
     assert saved.raw_data['cells'][0]['values'] == [1., 1., 1.]
+
+
+@pytest.mark.parametrize('status', ['False', 'True', 0, 1, None, np.bool_(False)])
+def test_execution_status_cannot_be_a_truthy_nonboolean(status):
+    with pytest.raises(ValueError, match='boolean execution status'):
+        base.ExperimentResult('fixture', success=status)
+
+
+def test_invalid_loaded_execution_status_is_not_coerced(tmp_path):
+    path = tmp_path / 'result.json'
+    path.write_text('{"experiment_name":"fixture","success":"False"}')
+    with pytest.raises(ValueError, match='boolean execution status'):
+        base.ExperimentResult.load(path)
+
+
+def test_mutated_execution_status_fails_before_output_creation(tmp_path):
+    result = base.ExperimentResult('fixture')
+    with pytest.raises(ValueError, match='boolean execution status'):
+        result.success = 'False'
+    assert result.success is True
+    # Serialization also validates state supplied through reflection/deserialization.
+    result.__dict__['success'] = 'False'
+    path = tmp_path / 'absent' / 'result.json'
+    with pytest.raises(ValueError, match='boolean execution status'):
+        result.save(path)
+    assert not path.parent.exists()
+
+
+def test_failed_execution_remains_a_boolean_failure_after_roundtrip(tmp_path):
+    result = base.ExperimentResult('fixture', error_message='constructed failure')
+    result.success = False
+    path = tmp_path / 'result.json'
+    result.save(path)
+    assert base.ExperimentResult.load(path).success is False
+
+
+@pytest.mark.parametrize('document', [{"experiment_name": "fixture"}, [], None])
+def test_missing_execution_status_cannot_default_to_success(tmp_path, document):
+    path = tmp_path / 'result.json'
+    path.write_text(json.dumps(document))
+    with pytest.raises(ValueError, match='explicitly contain'):
+        base.ExperimentResult.load(path)

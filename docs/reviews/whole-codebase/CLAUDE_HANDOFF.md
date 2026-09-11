@@ -1254,3 +1254,16 @@ undefined-statistic representation. Historical files remain unchanged.
 
 The final fused/CUDA gate passed 122 tests in 35.25s. No implementation changed
 after the gates. Full-package closure and legacy provenance migration remain open.
+
+
+## Explicit execution status (2026-09-10)
+
+Legacy result success is now a boolean at construction, assignment and storage.
+Loading requires an explicit status, so neither "False" nor an absent flag can be
+interpreted as successful execution. Failed outcomes remain representable; execution
+success still does not certify scientific adoption. See
+[validation](VALIDATION.md#explicit-legacy-execution-status-2026-09-10).
+No backend or numerical experiment code changed.
+
+The final combined suite passed 120 tests in 23.33s. The 27 specification/register/
+ratchet checks also passed; exact ordering is retained in validation.

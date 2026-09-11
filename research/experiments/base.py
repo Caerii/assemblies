@@ -20,9 +20,17 @@ from scipy import stats
 from research.json_documents import load_document, write_new_document
 
 
+def _validate_execution_success(value):
+    if type(value) is not bool:
+        raise ValueError('success must be a boolean execution status, not a string or numeric verdict')
+
+
 @dataclass
 class ExperimentResult:
-    """Container for experiment results with metadata."""
+    """Specification: neural_assemblies/ir/VERIFICATION.md#contract-legacy-execution-status
+
+    Execution result; success does not mean that scientific adoption bars passed.
+    """
     
     experiment_name: str
     timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
@@ -33,8 +41,14 @@ class ExperimentResult:
     error_message: Optional[str] = None
     duration_seconds: float = 0.0
     
+    def __setattr__(self, name, value):
+        if name == 'success':
+            _validate_execution_success(value)
+        super().__setattr__(name, value)
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for JSON serialization."""
+        _validate_execution_success(self.success)
         return asdict(self)
     
     def save(self, path: Path) -> None:
@@ -48,7 +62,10 @@ class ExperimentResult:
     @classmethod
     def load(cls, path: Path) -> 'ExperimentResult':
         """Specification: neural_assemblies/ir/VERIFICATION.md#contract-evidence-json"""
-        return cls(**load_document(path))
+        data = load_document(path)
+        if not isinstance(data, dict) or 'success' not in data:
+            raise ValueError('result document must explicitly contain its success status')
+        return cls(**data)
 
 
 class ExperimentBase(ABC):

@@ -2157,3 +2157,26 @@ audit or proof of historical scientific reproducibility.
 Dedicated fused/CUDA gate: 122 passed, 11 warnings in 35.25s, exit 0
 (.cache/shared-result-storage-gpu-gate.log), with fused build loaded on RTX 3080.
 No implementation changed after these gates.
+
+
+## Explicit legacy execution status (2026-09-10)
+
+ExperimentResult accepted string/numeric success values, including the truthy
+string "False". It also inherited success=True when loading a document with no
+status. The execution flag is now a native boolean at construction and ordinary
+assignment; serialization revalidates state, and loading requires an explicit
+success field in an object document. No truthiness conversion or missing-status
+inference is performed. Real False outcomes and valid status changes round-trip.
+The source-linked contract states that execution success is not scientific adoption.
+
+Tests cover strings, integers, null, NumPy booleans, invalid persisted flags,
+assignment without state change on rejection, reflective mutation caught before
+output creation, missing/non-object documents, and successful False round-trips.
+No arbitrary nested metric schema or historical status reconstruction is claimed.
+The initial combined suite passed 117 tests in 20.83s; immediate-assignment guards
+then passed 55 focused tests in 2.26s. Specification links, register rendering and
+both ratchets passed 27 tests in 55.83s before the final missing-status guard.
+
+Final combined legacy-storage/runner/historical-replay suite: 120 passed in 23.33s,
+including the missing-status guard. Ruff and git diff --check pass. No GPU rerun
+was required for this record-validation change; no backend code changed.
