@@ -897,6 +897,8 @@ def sequence_memorize(brain, stimuli, target, rounds_per_step=10,
                       beta_boost=None) -> Sequence:
     """Memorize an ordered sequence of stimuli in a target area.
 
+    Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-sequence-memory
+
     For each repetition, each stimulus is projected into the target area
     with recurrent stabilization.  Hebbian plasticity naturally links
     consecutive assemblies: when stimulus s_{i+1} arrives, the recurrent
@@ -1069,6 +1071,8 @@ def ordered_recall(brain, area, cue, max_steps=20,
                    known_assemblies=None, convergence_threshold=0.9,
                    rounds_per_step=1, *, novelty_threshold=0.3) -> Sequence:
     """Recall a memorized sequence from a cue using LRI.
+
+    Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-sequence-memory
 
     Activates the cue in the area, then repeatedly self-projects.
     Long-Range Inhibition (LRI) suppresses the current assembly so the

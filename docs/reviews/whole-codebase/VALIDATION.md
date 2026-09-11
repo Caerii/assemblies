@@ -4795,3 +4795,7 @@ Added `contract-sequence-memory` to the semantic-card specification and retarget
 ## Local specification edges for core plans (2026-09-11)
 
 Projection, reciprocal projection, association, merge, and completion plan declarations now each link directly to their semantic card in the class docstring. Every maintained core schedule is therefore discoverable from its definition, independent of registry traversal. Specification-link tests pass **11 tests**; Ruff is clean.
+
+## Sequence source-to-spec ratchet (2026-09-11)
+
+The specification-link test now requires `sequence_memorize`, `ordered_recall`, `SequenceMemorizePlan`, and `OrderedRecallPlan` to remain linked. Their public function docstrings now carry the dedicated sequence-card edge, closing a gap where registry metadata existed but source navigation did not. Specification-link tests pass **11 tests**.

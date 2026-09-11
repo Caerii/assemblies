@@ -2651,3 +2651,5 @@ Added a dedicated sequence-memory semantic card and linked both `SequenceMemoriz
 Linked both sequence plan declarations directly to `contract-sequence-memory` in their docstrings. This makes the code-to-spec edge local and discoverable for tooling and future IR extraction. Specification-link tests pass (11 tests); Ruff is clean.
 
 Added direct `Specification:` links to the five remaining core plan declarations: projection, reciprocal projection, association, merge, and completion. All maintained schedules now expose their semantic card at the source definition. Specification-link tests pass (11 tests); Ruff is clean.
+
+Strengthened the specification-link ratchet to require both sequence operations and both sequence plan declarations. Added direct semantic-card links to `sequence_memorize` and `ordered_recall` docstrings, closing the source-navigation gap. Specification-link tests pass (11 tests).
