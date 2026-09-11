@@ -62,11 +62,11 @@ import numpy as np
 
 from .assembly import Assembly, overlap
 from .contracts import (
-    ASSOCIATION_CONTRACT, BINDING_CONTRACT, CONSOLIDATION_CONTRACT, COMPLETION_CONTRACT, CONVERGENCE_CONTRACT, MERGE_CONTRACT,
+    ASSOCIATION_CONTRACT, BINDING_CONTRACT, BINDING_READ_CONTRACT, CONSOLIDATION_CONTRACT, COMPLETION_CONTRACT, CONVERGENCE_CONTRACT, MERGE_CONTRACT,
     ORDERED_RECALL_CONTRACT,
     SEPARATION_CONTRACT,
     PROJECTION_CONTRACT, RECIPROCAL_PROJECTION_CONTRACT, AssociationPlan,
-    CompletionPlan, ConsolidationPlan, ConvergencePlan, MergePlan, ProjectionPlan, ReciprocalProjectionPlan,
+    BindingReadPlan, CompletionPlan, ConsolidationPlan, ConvergencePlan, MergePlan, ProjectionPlan, ReciprocalProjectionPlan,
     OrderedRecallPlan, SequenceMemorizePlan, SeparationPlan, BindingPlan,
     SEQUENCE_MEMORIZE_CONTRACT,
     implements,
@@ -556,9 +556,12 @@ def bind(brain, source_area, target_area, source_assembly=None, *,
             brain.areas[source_area].unfix_assembly()
 
 
+@implements(BINDING_READ_CONTRACT)
 def read_binding(brain, source_area, target_area, source_assembly=None, *,
                  tail_rounds=BIND_TAIL_ROUNDS) -> Assembly:
     """Re-drive a binding for READOUT, with plasticity and recruitment off.
+
+    Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-binding-read
 
     Identical dynamics to :func:`bind` by construction -- it calls it -- wrapped
     in ``brain.read_only()`` so the measurement cannot create the structure it
@@ -571,9 +574,11 @@ def read_binding(brain, source_area, target_area, source_assembly=None, *,
     a snapshot against ``area.winners`` (compact engine indices) reads exactly
     chance and has silently voided three results in this project.
     """
+    plan = BindingReadPlan(source_area, target_area, tail_rounds)
+    plan.preflight(brain)
     with brain.read_only():
         return bind(brain, source_area, target_area, source_assembly,
-                    tail_rounds=tail_rounds)
+                    tail_rounds=plan.tail_rounds)
 
 
 @implements(RECIPROCAL_PROJECTION_CONTRACT)

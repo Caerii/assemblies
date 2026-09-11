@@ -4922,3 +4922,7 @@ Strengthened generic consolidation admission: every replay step is now checked b
 ## Post-contract full maintained audit (2026-09-11)
 
 After the consolidation and binding contract changes, the full non-slow package suite completed with **3698 passed, 139 skipped, 6 xfailed, 7 failed** in 622.55 seconds. No new failures were introduced by the contract work. The two CUDA temporal captures fail when launched outside the Visual Studio developer shell (`cl.exe` unavailable) but passed when rerun through `scripts\\cuda-dev.cmd`; the five ERP calibration/metric failures are unchanged and remain scientific failures requiring explicit-engine remeasurement. No assertions were weakened.
+
+## Single-source binding read contract (2026-09-11)
+
+Added BindingReadPlan and BINDING_READ_CONTRACT for ops.read_binding. The read-only counterpart to ops.bind now validates source/target topology and tail schedule before entering Brain.read_only, and its mutation/readout semantics are linked from the source docstring and semantic card. Registry, export, binding-deficit, and lazy-import tests pass (175 tests); Ruff is clean.

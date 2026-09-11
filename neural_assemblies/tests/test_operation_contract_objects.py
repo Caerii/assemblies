@@ -14,7 +14,7 @@ from neural_assemblies.assembly_calculus.contracts import (
     ASSOCIATION_CONTRACT, COMPLETION_CONTRACT, MERGE_CONTRACT,
     ORDERED_RECALL_CONTRACT,
     OPERATION_CONTRACTS, PROJECTION_CONTRACT, RECIPROCAL_PROJECTION_CONTRACT,
-    AssociationPlan, CompletionPlan, ConsolidationPlan, MergePlan, OrderedRecallPlan,
+    AssociationPlan, BindingReadPlan, CompletionPlan, ConsolidationPlan, MergePlan, OrderedRecallPlan,
     PreparedCompletion, SEQUENCE_MEMORIZE_CONTRACT, SEPARATION_CONTRACT,
     SequenceMemorizePlan, SeparationPlan,
     ProjectionPlan, ReciprocalProjectionPlan,
@@ -57,6 +57,13 @@ def test_ordered_recall_plan_requires_lri():
     )
     with pytest.raises(ValueError, match="refractory_period > 0"):
         OrderedRecallPlan("A", "cue").preflight(brain)
+
+
+def test_binding_read_plan_rejects_self_area_and_invalid_tail():
+    with pytest.raises(ValueError, match="distinct"):
+        BindingReadPlan("A", "A")
+    with pytest.raises(ValueError, match="nonnegative integer"):
+        BindingReadPlan("A", "B", tail_rounds=-1)
 
 
 @pytest.mark.parametrize("stimuli", [(), ("",), ("s", 1)])

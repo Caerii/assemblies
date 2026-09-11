@@ -423,6 +423,29 @@ class BindingPlan:
 
 
 @dataclass(frozen=True)
+class BindingReadPlan:
+    """Immutable read-only traversal schedule for one stored binding."""
+
+    source_area: str
+    target_area: str
+    tail_rounds: int = 1
+
+    def __post_init__(self) -> None:
+        _require_name("source_area", self.source_area)
+        _require_name("target_area", self.target_area)
+        if self.source_area == self.target_area:
+            raise ValueError("binding read requires distinct source and target areas")
+        if isinstance(self.tail_rounds, bool) or not isinstance(self.tail_rounds, Integral) or self.tail_rounds < 0:
+            raise ValueError("binding read tail_rounds must be a nonnegative integer")
+        object.__setattr__(self, "tail_rounds", int(self.tail_rounds))
+
+    def preflight(self, brain) -> None:
+        for label, area in (("source", self.source_area), ("target", self.target_area)):
+            if area not in brain.areas:
+                raise KeyError(f"binding read {label} area is unknown: {area!r}")
+
+
+@dataclass(frozen=True)
 class SourceBindingPlan:
     """Immutable schedule for multi-source teacher-driven binding."""
 
@@ -1127,6 +1150,27 @@ BINDING_CONTRACT = OperationContract(
 )
 
 
+BINDING_READ_CONTRACT = OperationContract(
+    operation_id="binding-read-v1",
+    specification="docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-binding-read",
+    plan_type=BindingReadPlan,
+    inputs=("brain", "source_area", "target_area", "source_assembly", "tail_rounds"),
+    reads=("source snapshot", "source-to-target weights", "target winners"),
+    mutates=("nothing persistent; activity is restored by read_only",),
+    regime=("distinct source and target areas", "plasticity and recruitment disabled", "optional recurrent tail"),
+    observed_outcome=("target neuron-ID snapshot",),
+    failure_conditions=("unknown areas", "invalid tail schedule", "stale source snapshot"),
+    constructed_controls=(
+        "neural_assemblies/tests/test_operation_contract_objects.py::"
+        "test_completion_observation_modes_have_distinct_mutation_contracts",
+    ),
+    true_negative_controls=(
+        "neural_assemblies/tests/test_operation_contract_objects.py::"
+        "test_reciprocal_plan_rejects_a_self_projection",
+    ),
+)
+
+
 SOURCE_BINDING_CONTRACT = OperationContract(
     operation_id="source-binding-v1",
     specification="docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-source-binding",
@@ -1220,6 +1264,7 @@ OPERATION_CONTRACTS = MappingProxyType({
     "separate": SEPARATION_CONTRACT,
     "attention": ATTENTION_CONTRACT,
     "bind": BINDING_CONTRACT,
+    "read_binding": BINDING_READ_CONTRACT,
     "source_binding": SOURCE_BINDING_CONTRACT,
     "binding_recall": BINDING_RECALL_CONTRACT,
     "consolidate_pair": CONSOLIDATION_CONTRACT,

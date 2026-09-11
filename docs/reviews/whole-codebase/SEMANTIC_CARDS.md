@@ -1567,3 +1567,9 @@ empty direction schedule fail before replay.
 ## Generic consolidation protocol
 
 `consolidate` executes a nonempty ordered tuple of `PathwayReplay`, `MergeReplay`, or `MultiProjectReplay` steps for a positive number of passes without resetting area connections. It optionally clears activity and optionally performs the destructive area/index preparation used only for episodic-reset protocols. The plan returns strengthened pathway edges; malformed or empty schedules are rejected before replay.
+
+<a id="contract-binding-read"></a>
+
+## Single-source binding readout
+
+`ops.read_binding` is the read-only counterpart to `ops.bind`. It validates a distinct source/target pair, replays the same feed-forward plus recurrent-tail schedule, and executes it under `Brain.read_only()` so plasticity, recruitment, RNG state, and persistent activity are restored. It returns a stable target Assembly snapshot; a readout cannot create the binding it measures.
