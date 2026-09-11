@@ -4586,3 +4586,11 @@ attention contract suite passes **10 tests** with Ruff clean.
 The compatibility boundary also requires every key to share the query's area;
 cross-area integer coincidences are rejected rather than treated as semantic
 matches. The same 10-test contract suite covers this negative path.
+
+## Attention IR proof boundary (2026-09-11)
+
+`formal/AssemblyIR/Attention.lean` now proves the structural bounds for the
+snapshot attention schedule: selected key support is at most `topK`, value
+support is at most `outputSize`, and zero-sized limits cannot inhabit the
+schedule. `lake build AssemblyIR.Attention AssemblyIR` completes successfully
+across **10 jobs** with no `sorryAx`.

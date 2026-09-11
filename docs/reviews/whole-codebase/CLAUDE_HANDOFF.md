@@ -2549,3 +2549,5 @@ Implemented the first typed attention operator as a pure snapshot readout: overl
 Attention now rejects empty query, key, and value supports before scoring; the focused contract suite passes 10 tests.
 
 Attention compatibility now requires query and keys to share one area/index domain; cross-area integer coincidences are rejected. The focused suite remains 10 passed.
+
+Added formal/AssemblyIR/Attention.lean with proofs that selected support and bounded value support respect topK/outputSize, and that zero-sized limits are impossible. Lean build completes 10 jobs without sorryAx.

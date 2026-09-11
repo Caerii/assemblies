@@ -4,3 +4,4 @@ import AssemblyIR.Learning
 import AssemblyIR.Projection
 import AssemblyIR.Selection
 import AssemblyIR.Wire
+import AssemblyIR.Attention
