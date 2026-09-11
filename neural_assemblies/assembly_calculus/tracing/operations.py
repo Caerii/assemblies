@@ -24,6 +24,8 @@ def project_trace(
 ) -> AssemblyTrace:
     """Project a stimulus and record the target assembly after each round.
 
+    Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-projection
+
     ``recurrent`` is explicit because the historical trace default stabilizes
     with target recurrence while :func:`ops.project` defaults to a
     stimulus-only schedule.
@@ -64,7 +66,10 @@ def reciprocal_project_trace(
     *,
     fix_source: bool = True,
 ) -> AssemblyTrace:
-    """Project an existing source-area assembly into a target and trace it."""
+    """Project an existing source-area assembly into a target and trace it.
+
+    Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-reciprocal-projection
+    """
     plan = ReciprocalProjectionPlan(source, target, rounds, fix_source)
     plan.preflight(brain)
     source = plan.source
@@ -114,7 +119,10 @@ def merge_trace(
     back_project: bool = True,
     unstimulated_source_mode: str | None = None,
 ) -> AssemblyTrace:
-    """Merge two source assemblies into a target and trace each merge round."""
+    """Merge two source assemblies into a target and trace each merge round.
+
+    Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-merge
+    """
     plan = MergePlan(
         source_a, source_b, target, stim_a, stim_b, rounds,
         parent_self, target_self, back_project, unstimulated_source_mode,
@@ -162,7 +170,10 @@ def associate_trace(
     stim_b: str | None = None,
     rounds: int = 10,
 ) -> AssemblyTrace:
-    """Associate two sources through a target and trace all three phases."""
+    """Associate two sources through a target and trace all three phases.
+
+    Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-association
+    """
     plan = AssociationPlan(source_a, source_b, target, stim_a, stim_b, rounds)
     plan.preflight(brain)
     source_a, source_b, target = plan.source_a, plan.source_b, plan.target
@@ -277,7 +288,10 @@ def ordered_recall_trace(
     rounds_per_step: int = 1,
     novelty_threshold: float = 0.3,
 ) -> AssemblyTrace:
-    """Recall a sequence with LRI and record each accepted recalled assembly."""
+    """Recall a sequence with LRI and record each accepted recalled assembly.
+
+    Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-transition-machine
+    """
     plan = OrderedRecallPlan(
         area, cue, max_steps, convergence_threshold,
         rounds_per_step, novelty_threshold,

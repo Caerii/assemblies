@@ -2597,3 +2597,5 @@ Temporary sequence beta boosts are now exception-safe: recurrent projection fail
 `associate_trace` now uses `AssociationPlan` for schedule, clamping, and preflight, eliminating duplicated phase logic. Trace labels follow the actual plan steps; focused trace and operation-contract tests pass (163 tests).
 
 Corrected the traced projection contract: recurrence is now an explicit `project_trace` parameter, preserving its historical default while allowing exact stimulus-only parity with `project`. Focused projection-trace tests pass (19 tests).
+
+Added explicit specification edges to every maintained traced calculus entry point. Projection, reciprocal projection, association, merge, and sequence recall traces now participate directly in the code-to-contract graph; specification-link and trace tests pass (24 tests).
