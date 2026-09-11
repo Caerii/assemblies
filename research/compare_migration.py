@@ -260,7 +260,11 @@ def main():
         if args.treatment_reference is not None else None)
     result["reference_seeds"] = args.reference_seeds
     result["comparator_source"] = {"inventory": SOURCE_INVENTORY, **_source_identity()}
-    result["comparator_sha256"] = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
+    comparator_blob = subprocess.check_output(
+        ["git", "show", f"{result['comparator_source']['git_commit']}:research/compare_migration.py"],
+        cwd=ROOT,
+    )
+    result["comparator_sha256"] = hashlib.sha256(comparator_blob).hexdigest()
     result["candidate_sha256"] = hashlib.sha256(args.candidate.read_bytes()).hexdigest()
     result["reference_sha256"] = hashlib.sha256(args.reference.read_bytes()).hexdigest()
     if args.treatment_reference is not None:
