@@ -3493,6 +3493,32 @@ passed and 3 optional skips. Under the Visual Studio/CUDA bootstrap, all 27 Torc
 parity tests pass with no sampler warning noise; the separate default-warning
 test still proves that an ordinary caller receives one audit-linked warning.
 
-This is an early runtime guard for the audited NumPy failure mode. It does not
-make acknowledged sampled sequence numbers valid, nor does it yet unify graph,
-stimulus, tie and arithmetic semantics in one complete model document.
+This guard addresses the audited NumPy failure mode. It does not make
+acknowledged sampled sequence numbers valid; the following model identity adds
+the broader graph, stimulus, tie, and arithmetic boundary.
+
+## Primary engine semantics become executable identity (2026-09-11)
+
+`ModelSemantics` now binds connectome realization, candidate domain, stimulus
+drive, default tie rule, arithmetic, normalization, bounded versus unbounded
+multiplicative plasticity, and the numeric weight ceiling in one immutable
+object with closed categorical fields. All three CPU
+engines and `torch_sparse` describe their implemented default path. A complete
+wire mapping round-trips; missing and unknown fields reject. Passing the expected
+object through `Brain(model_semantics=...)` compares every field and raises
+before any area or stimulus is registered.
+
+Constructed negatives change only the tie rule and enable the legacy
+stream-addressed environment switch; both are rejected against the recorded
+profile. The CPU semantics/policy/public/import/specification/backend gate reports
+171 passed and 3 optional skips. The broader constructor, checkpoint, backend,
+exact-engine, and operation-contract gate reports 234 passed and 3 optional
+skips; its 12 warnings are unclassified legacy sampled-recurrence callers. The
+CUDA gate reports 29 passed, including
+profiles for Torch's ordinary order-statistic candidate path and its all-neuron
+sampled-drive mode. Package lint is clean.
+
+The profile is deliberately the primary engine's default k-WTA semantics.
+Area-local policies, operation schedules, observation rules and result definitions
+remain separate contracts, and no backend refinement claim follows from matching
+labels. Those boundaries remain the next unification work.

@@ -103,6 +103,13 @@ class ComputeEngine(ABC):
     supports_fiber_learning_masks = False
     supports_sampled_recurrence_policy = False
 
+    @abstractmethod
+    def describe_model_semantics(self):
+        """Specification: neural_assemblies/ir/VERIFICATION.md#contract-model-semantics
+
+        Return the immutable semantics implemented by the default path.
+        """
+
     @contextmanager
     def suppress_fiber_learning(self, fibers):
         """Specification: neural_assemblies/ir/VERIFICATION.md#contract-fiber-learning

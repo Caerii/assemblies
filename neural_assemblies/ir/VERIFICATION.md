@@ -879,6 +879,43 @@ or describe the separate Torch and hashed substrates. Engine identity, stimulus
 law, tie handling and arithmetic remain distinct model-semantics obligations.
 
 
+<a id="contract-model-semantics"></a>
+
+## Complete primary-path model semantics
+
+`ModelSemantics` is the immutable identity of eight choices that can change a
+result while leaving an engine name unchanged: connectome realization, candidate
+domain, stimulus-drive law, default tie break, arithmetic precision,
+normalization, plasticity rule, and its numeric weight ceiling. Categorical
+fields are closed enums. Construction
+from a mapping requires the complete field set and rejects unknown fields; wire
+serialization emits only canonical enum values.
+
+Every `ComputeEngine` implements `describe_model_semantics()`. Brain records that
+value after engine construction and before area or stimulus registration. If
+`Brain(model_semantics=...)` supplies an expected object or wire mapping, all
+fields must equal the engine description or construction raises with every
+mismatched field. This makes a saved semantic profile an executable admission
+gate. In particular, the legacy `ASSEMBLIES_STREAM_INIT=1` switch changes
+`numpy_sparse` from content-addressed to stream-addressed and therefore fails a
+content-addressed expectation instead of silently changing graph identity.
+
+The three CPU profiles distinguish lazy order-statistic candidates from
+all-neuron selection, dense storage from hash regeneration, conditioned lazy
+stimulus drive from a fixed Bernoulli afferent count, partition-dependent ties
+from lowest-neuron-ID ties, float precision, and inverse-indegree normalization.
+Torch additionally names its backend top-k tie order, and its dense-drive option
+is a distinct all-neuron domain whose unmaterialized drives remain sampled.
+`numpy_exact` rejects arithmetic types outside float32 and float64 rather than
+misreporting their precision.
+
+This object describes the primary engine's default k-WTA path. Area-local winner
+policies, operation schedules, observation mode, inhibition/refraction settings,
+and result definitions remain explicit protocol or operation contracts. A model
+profile does not establish numerical refinement between backends; that requires
+the drive, winner, update, and error-bound gates named elsewhere in this file.
+
+
 <a id="contract-homeostasis-config"></a>
 
 ## Shared homeostasis configuration

@@ -66,6 +66,28 @@ semantics; it raises before the engine advances its RNG or changes the connectom
 Materializing the area, or selecting `numpy_exact`, removes this specific guard.
 See the [sampled-recurrence contract](../neural_assemblies/ir/VERIFICATION.md#contract-sampled-recurrence).
 
+Every Brain exposes a complete immutable description of its primary engine's
+default model path:
+
+```python
+from neural_assemblies import Brain
+
+reference = Brain(engine="numpy_exact", norm_init=False)
+required = reference.model_semantics.to_dict()
+replica = Brain(
+    engine="numpy_exact",
+    norm_init=False,
+    model_semantics=required,
+)
+```
+
+`model_semantics=` is an executable expectation. Missing or unknown fields and
+any mismatch with the selected engine reject before areas or stimuli are
+registered. It records connectome realization, candidate domain, stimulus drive,
+the default tie rule, arithmetic precision, normalization, and plasticity. The
+engine remains explicit; this object does not silently choose a backend. See the
+[model-semantics contract](../neural_assemblies/ir/VERIFICATION.md#contract-model-semantics).
+
 Registration requires unique, nonempty names across both areas and stimuli.
 Registering an existing name raises `ValueError`; it does not reset or resize a
 population. Area dimensions require integer `0 < k <= n <= 2**32`; stimulus sizes
@@ -93,9 +115,10 @@ only after the executing engine accepts it. See the
 [input-noise contract](../neural_assemblies/ir/VERIFICATION.md#contract-input-noise).
 
 Competition policies validate their parameters when constructed. Winner counts
-are nonnegative integers; real parameters must be finite. The supported tie rule
-is `value_then_index`, and E%-WTA windows are `epsilon` or `sigma`. Invalid strings
-raise instead of selecting a fallback. See the
+are nonnegative integers; real parameters must be finite. Policy objects support
+the `value_then_index` tie rule, while each engine's default top-k tie behavior is
+named separately by `Brain.model_semantics.default_tie_break`. E%-WTA windows are
+`epsilon` or `sigma`. Invalid strings raise instead of selecting a fallback. See the
 [policy-value contract](../neural_assemblies/ir/VERIFICATION.md#contract-policy-values).
 
 Main objects:

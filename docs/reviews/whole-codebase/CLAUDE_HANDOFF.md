@@ -1918,3 +1918,29 @@ coverage is 293 passed, and constructor/clone/checkpoint/backend coverage is 88 
 3 optional skips. Default `warn` still names `PREREG_sampler_audit.md` and tells
 the caller how to acknowledge a deliberate comparison. This addresses warning
 noise without weakening the accidental-use guard.
+
+## The first complete primary-path model profile is executable (2026-09-11)
+
+`ModelSemantics` now names eight result-changing choices together: connectome
+realization, candidate domain, stimulus drive, default tie rule, arithmetic,
+normalization, clipped versus unbounded multiplicative plasticity, and the exact
+weight ceiling. It is a frozen object with strict wire parsing and closed
+categorical fields. Every primary CPU engine and
+`torch_sparse` describes its actual default path; `Brain(model_semantics=...)`
+rejects any requested/actual difference before topology registration.
+
+This catches two concrete old confusions. The `ASSEMBLIES_STREAM_INIT=1`
+compatibility switch changes graph identity and now fails a content-addressed
+expectation. The default top-k tie behavior is distinct from the configurable
+winner-policy `value_then_index` rule: exact/dense CPU use lowest neuron ID,
+sampled NumPy exposes partition order, and Torch exposes backend top-k order.
+Torch dense drive also has its own candidate-domain value because scoring all
+neurons does not make their unmaterialized drives fixed.
+
+The focused CPU gate is 171 passed and 3 optional skips; a broader
+constructor/checkpoint/backend/operation gate is 234 passed and 3 optional skips;
+CUDA Torch parity/profile is 29 passed; Ruff is clean. This resolves the requested object for connectome,
+stimulus, tie and arithmetic semantics at the primary engine boundary. It does
+not yet fold area-local mechanisms, operation schedules, readout definitions, or
+the separate hashed-organ classes into one run protocol, and it does not prove
+numeric refinement between engines.

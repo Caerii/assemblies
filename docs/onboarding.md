@@ -64,6 +64,11 @@ evidence. Then follow the reading order below.
   should construct it with `sampled_recurrence_policy="forbid"`; a deliberate
   sampler comparison must say `"acknowledged"`. The default warning is an
   interactive compatibility aid, not a protocol declaration.
+- **Pin model semantics, not only the engine name.** Capture
+  `brain.model_semantics.to_dict()` in a protocol and pass it back through
+  `Brain(model_semantics=...)` on reproduction. This rejects graph-addressing,
+  candidate-domain, stimulus, tie, precision, normalization, or weight-rule
+  drift before topology is registered.
 - **Smoke runs check the API, not the science.** A run with fewer seeds or
   a smaller grid than registered produces void numbers; tag it so.
 - **Adopted results go into `neural_assemblies/theory.py`**, rendered to

@@ -39,7 +39,7 @@ from .engine import ComputeEngine, create_engine
 from .registration import validate_round_count, validate_input_noise, validate_plasticity_rate, validate_area_registration, validate_stimulus_registration
 from ._homeostasis import HomeostasisConfig, check_area_homeostasis, validate_lri_parameters
 from .index_spaces import CompactIdx, to_neuron_ids, validated_indices
-from .semantics import SampledRecurrencePolicy
+from .semantics import ModelSemantics, SampledRecurrencePolicy
 
 from .area import Area
 from .stimulus import Stimulus
@@ -106,6 +106,7 @@ class Brain:
         recurrent_projection: bool = False,
         norm_init: bool = True,
         sampled_recurrence_policy: str = "warn",
+        model_semantics=None,
     ):
         """
         Initialize a neural assembly brain simulation.
@@ -150,9 +151,18 @@ class Brain:
                    an incompletely materialized sampled NumPy area: ``warn``
                    once (default), ``acknowledged`` for deliberate comparison,
                    or ``forbid`` before the engine draws randomness or mutates.
+            model_semantics (ModelSemantics | mapping | None): Optional required
+                   semantics. Brain compares the complete normalized object to
+                   the selected engine and rejects any mismatch before area or
+                   stimulus registration. The engine remains an explicit choice.
         """
         sampled_policy = SampledRecurrencePolicy.normalize(
             sampled_recurrence_policy
+        )
+        requested_semantics = (
+            None
+            if model_semantics is None
+            else ModelSemantics.normalize(model_semantics)
         )
         homeostasis = HomeostasisConfig(norm_init, synaptic_scaling, synaptic_scaling_deferred)
         synaptic_scaling = homeostasis.synaptic_scaling
@@ -208,6 +218,17 @@ class Brain:
             self._engine = engine
         else:
             raise TypeError(f"engine must be a string name or ComputeEngine instance, got {type(engine)}")
+
+        actual_semantics = self._engine.describe_model_semantics()
+        if requested_semantics is not None:
+            mismatch = requested_semantics.mismatch(actual_semantics)
+            if mismatch:
+                details = ", ".join(
+                    f"{name}: requested {requested!r}, engine implements {actual!r}"
+                    for name, (requested, actual) in mismatch.items()
+                )
+                raise ValueError(f"model_semantics mismatch: {details}")
+        self._model_semantics = actual_semantics
 
         if self._engine.supports_sampled_recurrence_policy:
             if isinstance(engine, ComputeEngine):
@@ -269,6 +290,15 @@ class Brain:
             self,
             "_sampled_recurrence_policy",
             SampledRecurrencePolicy.WARN,
+        )
+
+    @property
+    def model_semantics(self) -> ModelSemantics:
+        """Immutable, executable description of the primary engine path."""
+        return getattr(
+            self,
+            "_model_semantics",
+            self._engine.describe_model_semantics(),
         )
 
     def set_fiber_plasticity(self, src: str, dst: str, enabled: bool) -> None:

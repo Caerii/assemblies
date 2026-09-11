@@ -77,6 +77,7 @@ Known engine names:
 |--------|----------|------|
 | `numpy_sparse` | `neural_assemblies/core/numpy_engine/` | Default CPU path; recurrence is sampled until the target is materialized and is guarded by `SampledRecurrencePolicy`. |
 | `numpy_explicit` | `neural_assemblies/core/numpy_engine/` | Dense explicit simulation for smaller areas. |
+| `numpy_exact` | `neural_assemblies/core/numpy_engine/` | Fixed content-addressed graph with exact all-neuron drive and sparse learned deviations. |
 | `cuda_implicit` | `neural_assemblies/core/cuda_engine.py` | CuPy-based implicit GPU path. |
 | `cupy_sparse` | `neural_assemblies/core/cupy_engine.py` | Optional CuPy sparse path. |
 | `torch_sparse` | `neural_assemblies/core/torch_engine/` | Optional PyTorch CUDA sparse path. |
@@ -89,6 +90,14 @@ Known engine names:
 - otherwise choose `numpy_sparse`
 
 That heuristic is a convenience, not a benchmark result.
+
+Hardware names do not define a scientific model. `Brain.model_semantics` records
+the primary path's connectome realization, candidate domain, stimulus drive,
+default tie rule, arithmetic, normalization, and plasticity as one immutable
+object. Passing the object back through `Brain(model_semantics=...)` turns it into
+an admission check: a backend or environment change that implements a different
+profile raises before model topology exists. Area-local competition rules and
+operation schedules remain protocol objects and are not hidden in this profile.
 
 ### The hashed substrate
 

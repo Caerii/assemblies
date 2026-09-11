@@ -27,6 +27,9 @@ _LAZY_EXPORTS = {
         "Brain", "Area", "Stimulus", "Connectome",
         "ComputeEngine", "ProjectionResult", "create_engine", "list_engines",
         "SampledRecurrencePolicy",
+        "ModelSemantics", "ConnectomeMode", "CandidateDomain",
+        "StimulusDriveLaw", "TieBreakRule", "ArithmeticMode",
+        "NormalizationMode", "PlasticityRule",
     )
 }
 _LAZY_EXPORTS["cupy_available"] = ".core.backend"
@@ -116,7 +119,9 @@ if TYPE_CHECKING:  # pragma: no cover
     from .constants import DEFAULT_BETA, DEFAULT_P
     from .core import (
         Area, Brain, ComputeEngine, Connectome, ProjectionResult, Stimulus,
-        SampledRecurrencePolicy, create_engine, list_engines,
+        ArithmeticMode, CandidateDomain, ConnectomeMode, ModelSemantics,
+        NormalizationMode, PlasticityRule, SampledRecurrencePolicy,
+        StimulusDriveLaw, TieBreakRule, create_engine, list_engines,
     )
     from .core.backend import cupy_available
     from .utils import (
@@ -161,6 +166,9 @@ __all__ = [
     # Core classes
     'Brain', 'Area', 'Stimulus', 'Connectome', 'HomeostasisConfig',
     'SampledRecurrencePolicy',
+    'ModelSemantics', 'ConnectomeMode', 'CandidateDomain',
+    'StimulusDriveLaw', 'TieBreakRule', 'ArithmeticMode',
+    'NormalizationMode', 'PlasticityRule',
 
     # Compute engine API
     'ComputeEngine', 'ProjectionResult', 'create_engine', 'list_engines',

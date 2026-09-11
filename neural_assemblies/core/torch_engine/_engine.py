@@ -39,6 +39,16 @@ from ..connectome import Connectome
 from ..engine import ComputeEngine, ProjectionResult
 from ..index_spaces import reserve_initial_neuron_ids
 from ..registration import validate_input_noise, validate_stimulus_registration, validate_area_registration
+from ..semantics import (
+    ArithmeticMode,
+    CandidateDomain,
+    ConnectomeMode,
+    ModelSemantics,
+    NormalizationMode,
+    PlasticityRule,
+    StimulusDriveLaw,
+    TieBreakRule,
+)
 
 try:
     from ...compute.sparse_simulation import SparseSimulationEngine
@@ -85,6 +95,31 @@ class TorchSparseEngine(ComputeEngine):
 
     supports_input_noise = True
     supports_refraction = True
+
+    def describe_model_semantics(self) -> ModelSemantics:
+        """Specification: neural_assemblies/ir/VERIFICATION.md#contract-model-semantics"""
+        return ModelSemantics(
+            connectome=ConnectomeMode.LAZY_CONTENT_ADDRESSED,
+            candidate_domain=(
+                CandidateDomain.ALL_NEURONS_WITH_SAMPLED_DRIVE
+                if self.dense_drive
+                else CandidateDomain.MATERIALIZED_PLUS_ORDER_STATISTICS
+            ),
+            stimulus_drive=StimulusDriveLaw.LAZY_CONDITIONED_AFFERENT_COUNT,
+            default_tie_break=TieBreakRule.BACKEND_TOPK_ORDER,
+            arithmetic=ArithmeticMode.FLOAT32,
+            normalization=(
+                NormalizationMode.INVERSE_INDEGREE
+                if self.norm_init
+                else NormalizationMode.NONE
+            ),
+            plasticity=(
+                PlasticityRule.MULTIPLICATIVE_UNBOUNDED
+                if self.w_max is None
+                else PlasticityRule.MULTIPLICATIVE_CLIPPED
+            ),
+            weight_ceiling=self.w_max,
+        )
 
     def __init__(self, p: float, seed: int = 0, w_max: float = 20.0,
                  deterministic: bool = False, gpu_sampling: bool = True,

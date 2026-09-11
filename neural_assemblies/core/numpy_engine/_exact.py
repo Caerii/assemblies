@@ -52,6 +52,16 @@ from ..engine import ComputeEngine, ProjectionResult
 from ..registration import validate_input_noise, validate_stimulus_registration, validate_area_registration
 from ..activity import ActivityState
 from .._pricing import inverse_indegree
+from ..semantics import (
+    ArithmeticMode,
+    CandidateDomain,
+    ConnectomeMode,
+    ModelSemantics,
+    NormalizationMode,
+    PlasticityRule,
+    StimulusDriveLaw,
+    TieBreakRule,
+)
 from ._seeding import (fnv1a_pair_seed, hash_area_cells, hash_area_indegree,
                        hash_area_rows, hash_stim_counts)
 from ._state import StimulusState
@@ -450,6 +460,8 @@ class NumpyExactEngine(ComputeEngine):
         from .._homeostasis import HomeostasisConfig
         self.norm_init = HomeostasisConfig(norm_init=norm_init).norm_init
         self.dtype = np.dtype(dtype) if dtype is not None else self.DEFAULT_DTYPE
+        if self.dtype not in (np.dtype(np.float32), np.dtype(np.float64)):
+            raise ValueError("NumpyExactEngine dtype must be float32 or float64")
         self.inhibitory_prob = float(inhibitory_prob)
         self.inhibitory_weight = float(inhibitory_weight)
         self._plasticity_enabled_global = True
@@ -473,6 +485,31 @@ class NumpyExactEngine(ComputeEngine):
         # Counts projections so `add_connectivity` can refuse to change the
         # substrate under weights that are already written.
         self._projections = 0
+
+    def describe_model_semantics(self) -> ModelSemantics:
+        """Specification: neural_assemblies/ir/VERIFICATION.md#contract-model-semantics"""
+        return ModelSemantics(
+            connectome=ConnectomeMode.FIXED_HASH_REGENERATED,
+            candidate_domain=CandidateDomain.ALL_NEURONS,
+            stimulus_drive=StimulusDriveLaw.FIXED_BERNOULLI_AFFERENT_COUNT,
+            default_tie_break=TieBreakRule.LOWEST_NEURON_ID,
+            arithmetic=(
+                ArithmeticMode.FLOAT32
+                if self.dtype == np.dtype(np.float32)
+                else ArithmeticMode.FLOAT64
+            ),
+            normalization=(
+                NormalizationMode.INVERSE_INDEGREE
+                if self.norm_init
+                else NormalizationMode.NONE
+            ),
+            plasticity=(
+                PlasticityRule.MULTIPLICATIVE_UNBOUNDED
+                if self.w_max is None
+                else PlasticityRule.MULTIPLICATIVE_CLIPPED
+            ),
+            weight_ceiling=self.w_max,
+        )
 
     # -- wiring -------------------------------------------------------------
 

@@ -32,7 +32,17 @@ from ..engine import ComputeEngine, ProjectionResult
 from ..registration import validate_input_noise, validate_stimulus_registration, validate_area_registration
 from ..connectome import Connectome
 from ..projection_fidelity import ProjectionFidelity
-from ..semantics import SampledRecurrencePolicy
+from ..semantics import (
+    ArithmeticMode,
+    CandidateDomain,
+    ConnectomeMode,
+    ModelSemantics,
+    NormalizationMode,
+    PlasticityRule,
+    SampledRecurrencePolicy,
+    StimulusDriveLaw,
+    TieBreakRule,
+)
 
 try:
     from ...compute.sparse_simulation import SparseSimulationEngine
@@ -511,6 +521,31 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
                 "sampled recurrence policy cannot change after area registration"
             )
         self._sampled_recurrence_policy = SampledRecurrencePolicy.normalize(policy)
+
+    def describe_model_semantics(self) -> ModelSemantics:
+        """Specification: neural_assemblies/ir/VERIFICATION.md#contract-model-semantics"""
+        return ModelSemantics(
+            connectome=(
+                ConnectomeMode.LAZY_CONTENT_ADDRESSED
+                if self._content_init
+                else ConnectomeMode.LAZY_STREAM_ADDRESSED
+            ),
+            candidate_domain=CandidateDomain.MATERIALIZED_PLUS_ORDER_STATISTICS,
+            stimulus_drive=StimulusDriveLaw.LAZY_CONDITIONED_AFFERENT_COUNT,
+            default_tie_break=TieBreakRule.PARTITION_ORDER,
+            arithmetic=ArithmeticMode.FLOAT32,
+            normalization=(
+                NormalizationMode.INVERSE_INDEGREE
+                if self.norm_init
+                else NormalizationMode.NONE
+            ),
+            plasticity=(
+                PlasticityRule.MULTIPLICATIVE_UNBOUNDED
+                if self.w_max is None
+                else PlasticityRule.MULTIPLICATIVE_CLIPPED
+            ),
+            weight_ceiling=self.w_max,
+        )
 
     def _weight_bounds(self, scale: float = 1.0):
         """Clip bounds for Hebbian updates, as (low, high).

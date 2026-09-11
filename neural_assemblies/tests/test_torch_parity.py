@@ -13,6 +13,10 @@ import copy
 import pytest
 
 from neural_assemblies.core.brain import Brain
+from neural_assemblies.core.engine import create_engine
+from neural_assemblies.core.semantics import (
+    ArithmeticMode, CandidateDomain, ConnectomeMode, TieBreakRule,
+)
 from neural_assemblies.assembly_calculus import (
     chance_overlap,
     project,
@@ -64,6 +68,27 @@ def _make_brain(engine, **kwargs):
     )
     defaults.update(kwargs)
     return Brain(engine=engine, **defaults)
+
+
+def test_torch_profile_exposes_sampled_drive_and_backend_ties():
+    semantics = _make_brain("torch_sparse").model_semantics
+    assert semantics.connectome is ConnectomeMode.LAZY_CONTENT_ADDRESSED
+    assert semantics.candidate_domain is (
+        CandidateDomain.MATERIALIZED_PLUS_ORDER_STATISTICS
+    )
+    assert semantics.default_tie_break is TieBreakRule.BACKEND_TOPK_ORDER
+    assert semantics.arithmetic is ArithmeticMode.FLOAT32
+
+
+def test_torch_dense_drive_is_a_distinct_candidate_domain():
+    engine = create_engine(
+        "torch_sparse", p=P, seed=SEED, w_max=20.0,
+        dense_drive=True, norm_init=True,
+    )
+    semantics = _make_brain(engine).model_semantics
+    assert semantics.candidate_domain is (
+        CandidateDomain.ALL_NEURONS_WITH_SAMPLED_DRIVE
+    )
 
 
 # ---------------------------------------------------------------------------
