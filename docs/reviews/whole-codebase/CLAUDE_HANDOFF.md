@@ -2460,6 +2460,11 @@ legacy private engine access across specialized MNIST surgery is complete.
 The unsupervised role ring clearer also now resolves the role area's owner
 before resetting backend state. Seven role tests pass.
 
+The mixed-owner composition gate was rerun after the allocator and dispatch
+changes: 39 cross-engine projection, mixed-drive, and clone tests pass. The
+specialized MNIST connectome surgery paths still need an explicit disposition;
+they were not silently reclassified as public owner APIs.
+
 The owner negative test found a second issue: explicit areas could receive the
 same beta/connectivity write twice because the explicit mirror was also the
 resolved owner. Identity-guarded mirroring now enforces one write per owner;

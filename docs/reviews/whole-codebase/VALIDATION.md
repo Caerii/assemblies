@@ -4233,3 +4233,12 @@ backend population state, closing the same mixed-engine assumption in the
 unsupervised training path.
 
 Validation: 7 unsupervised-role tests passed; ruff and whitespace checks pass.
+
+Mixed-owner composition was re-audited after the owner and ID changes. Explicit
+source to sparse target projection, sparse source to explicit target drive
+merging, and mixed-brain cloning all retain their registered behavior. The
+remaining private engine references in specialized MNIST utilities are direct
+connectome surgery by design and remain a separate disposition task.
+
+Validation: 39 cross-engine projection, mixed-drive, and clone tests passed;
+the four existing backend warnings are unchanged.
