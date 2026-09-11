@@ -78,7 +78,9 @@ def fuzzy_readout(assembly: Assembly, lexicon: Lexicon,
 
     for word, ref_assembly in lexicon.items():
         ov = overlap(assembly, ref_assembly)
-        if ov > best_overlap:
+        if (ov > best_overlap
+                or (ov == best_overlap
+                    and (best_word is None or word < best_word))):
             best_overlap = ov
             best_word = word
 
@@ -104,7 +106,7 @@ def readout_all(assembly: Assembly,
     for word, ref_assembly in lexicon.items():
         ov = overlap(assembly, ref_assembly)
         results.append((word, ov))
-    results.sort(key=lambda x: x[1], reverse=True)
+    results.sort(key=lambda x: (-x[1], x[0]))
     return results
 
 

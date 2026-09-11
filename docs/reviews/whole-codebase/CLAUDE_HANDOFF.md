@@ -2419,6 +2419,10 @@ The lexicon validator also now rejects non-string stimulus values before
 membership checks, so malformed mappings cannot fail through a secondary
 formatter/type error. The focused gate is 18 passed.
 
+Equal-overlap readout ties now use a documented lexical policy, so decoder
+labels and ranked output no longer depend on mapping insertion order. The
+focused gate is 19 passed.
+
 `build_lexicon` had a transaction and ownership gap: it could mutate earlier
 words before discovering an invalid mapping, and it reset through the primary
 engine even when the target area was explicit. It now preflights all inputs and

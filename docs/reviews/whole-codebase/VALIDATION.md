@@ -4158,3 +4158,7 @@ that has no qualifying label.
 
 Validation: 15 readout and specification-link tests pass. Ruff and whitespace
 checks pass.
+
+Readout ties are now deterministic as well: equal-overlap labels are ordered
+lexicographically in both decoder APIs, independent of dictionary insertion
+order. The focused readout/specification gate is 19 passed.

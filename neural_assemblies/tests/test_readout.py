@@ -84,6 +84,16 @@ class TestFuzzyReadout(unittest.TestCase):
         # Top result should be "dog"
         self.assertEqual(results[0][0], "dog")
 
+    def test_readout_ties_are_independent_of_dictionary_order(self):
+        left = Assembly("A", np.array([1, 2], dtype=np.uint32))
+        right = Assembly("A", np.array([1, 2], dtype=np.uint32))
+        query = Assembly("A", np.array([1, 2], dtype=np.uint32))
+        self.assertEqual(fuzzy_readout(query, {"z": right, "a": left}), "a")
+        self.assertEqual(
+            [word for word, _ in readout_all(query, {"z": right, "a": left})],
+            ["a", "z"],
+        )
+
     def test_build_lexicon_distinct(self):
         """Each word should get a distinct assembly in the lexicon."""
         _, _, lexicon, _ = self._build_simple_lexicon()

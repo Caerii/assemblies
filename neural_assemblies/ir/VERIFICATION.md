@@ -2258,6 +2258,11 @@ including for an empty lexicon. `None` remains the valid outcome for an empty
 lexicon or a best overlap below the criterion; it is a decoder uncertainty, not
 a claim that the neural operation failed.
 
+When multiple labels have exactly equal overlap, both `fuzzy_readout` and
+`readout_all` break ties lexicographically by label. Decoder output therefore
+does not depend on dictionary insertion order; tie policy is part of the
+measurement semantics rather than an accidental container property.
+
 
 <a id="contract-batched-next-token"></a>
 ### Batched next-token inference
