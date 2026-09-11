@@ -3122,3 +3122,29 @@ methodology ratchet scans every package test and rejects any future non-strict
 xfail; its constructed negative proves the scanner detects the forbidden form.
 The ratchet plus all four cases report 5 passed and 4 strict expected failures
 in 36.05 seconds. No non-strict pytest xfail remains in package tests.
+
+## Current-head complete non-slow package audit (2026-09-11)
+
+At `c1f311b`, the complete package selection `neural_assemblies/tests -m
+"not slow"` ran serially after `scripts/cuda-dev.cmd` prepared the Visual Studio
+and CUDA environment. It reports 3,244 passed, 65 skipped, 143 deselected,
+7 expected failures, 0 failures, 0 errors, 0 unexpected passes, 318 warnings
+and 10 passing subtests in 1,654.18 seconds. The machine-readable receipt is
+`package-audit-c1f311b.json`; it records the command, environment, JUnit counts,
+every expected-failure node, the 20 slowest cases, and SHA-256 hashes of the
+ignored raw log and JUnit file.
+
+The receipt exposed one remaining `unittest.expectedFailure` on the mod-3 FSM.
+That decorator does not make an unexpected success fail pytest and was outside
+the first AST ratchet, so the earlier statement covered only pytest markers.
+The mod-3 gap now uses `pytest.mark.xfail(strict=True)` with its measured A1
+reason. The scanner also rejects qualified and directly imported unittest
+expected-failure decorators; its constructed negative covers all four unsafe
+forms. The focused FSM and ratchet gate reports 6 passed and 1 strict expected
+failure in 23.26 seconds; Ruff and diff checks pass.
+
+This audit establishes the current non-slow software baseline on this machine.
+It does not run the slow selection, adopt a scientific result, or prove that
+Python, Rust, Lean and CUDA share semantics. The 318 warnings also show that many
+API tests intentionally exercise sampled recurrence; those numbers remain void
+as sequence evidence even though their software assertions pass.

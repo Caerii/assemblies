@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import unittest
 
+import pytest
+
 from neural_assemblies.programs.mod3_fsm import mod3_transition_table, run_mod3_fsm_demo
 
 
@@ -12,7 +14,13 @@ class TestMod3Fsm(unittest.TestCase):
         table = mod3_transition_table()
         self.assertEqual(len(table), 33)
 
-    @unittest.expectedFailure
+    @pytest.mark.xfail(
+        strict=True,
+        reason=(
+            "A1: the FSM decides 5/10 seeds (4/10 with a correct trajectory); "
+            "single transitions pass but state drifts along a sequence"
+        ),
+    )
     def test_demo_accepts_divisible_by_three(self):
         """KNOWN FAILING, and it used to pass for the wrong reason.
 
@@ -24,8 +32,8 @@ class TestMod3Fsm(unittest.TestCase):
         trajectory tracks ground truth through all five digit steps and misses
         only the final `end` transition.
 
-        Left as an expected failure rather than weakened, so it converts back
-        into a passing test the moment drift is fixed. See
+        Kept as a strict expected failure rather than weakened, so any changed
+        outcome stops CI for review. See
         `research/notes/sequence/the_arc_is_a_conjunction_and_the_state_drifts.md` and
         the retraction block in
         `research/literature/parity/golden/nemo2025_fsm_mod3.json`.

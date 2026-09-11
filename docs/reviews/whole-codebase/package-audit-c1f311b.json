@@ -1,0 +1,160 @@
+{
+  "commit": "c1f311b",
+  "scope": "Full non-slow package audit, serial execution with prepared Visual Studio/CUDA toolchain; not the slow suite or scientific adoption",
+  "command": ".venv/Scripts/python.exe -X utf8 -u -m pytest neural_assemblies/tests -q -m \"not slow\" -o addopts= --maxfail=0 --junitxml=.cache/full-audit-c1f311b.xml --basetemp=.cache/full-audit-c1f311b",
+  "environment": {
+    "cuda_setup": "scripts/cuda-dev.cmd",
+    "torch_extensions_dir": ".cache/torch-extensions-vs2022",
+    "uv_no_sync": true
+  },
+  "exit_code": 0,
+  "summary": {
+    "passed": 3244,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 65,
+    "deselected": 143,
+    "xfailed": 7,
+    "xpassed": 0,
+    "warnings": 318,
+    "subtests_passed": 10,
+    "seconds": 1654.18
+  },
+  "junit": {
+    "tests": 3326,
+    "failures": 0,
+    "errors": 0,
+    "skipped_including_xfail": 72,
+    "seconds": 1653.934
+  },
+  "failures": [],
+  "unexpected_passes": [],
+  "expected_failures": [
+    {
+      "nodeid": "neural_assemblies/tests/test_emergent_parser.py::TestGeneralization::test_combined_cue_generalization_remains_open",
+      "seconds": 0.044,
+      "reason": "Combined cue remains an open readout failure: the untrained phon input overwhelms useful grounding for bird/finds. If this passes, review the mechanism and remove the marker instead of silently accepting XPASS."
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_erp_metric_range.py::TestRawQuantityIsSaturated::test_raw_p600_uses_a_reasonable_fraction_of_its_range",
+      "seconds": 4.334,
+      "reason": "KNOWN DEFECT, pinned deliberately: raw p600 uses ~0.7% of its range ([0.9879, 0.9953]) in every condition, grammatical included. P600 is 1 - normalized_energy, so the role area receives ~1% of its normalizing scale throughout. Not fixed by making the parse read-only -- both arms sit at ~0.99. See research/notes/language/erp_metric_is_clipped.md"
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_literature_golden.py::TestNemo2025FsmMod3Golden::test_mod3_digit_sum_fsm",
+      "seconds": 1.577,
+      "reason": "A1: the FSM decides 5/10 seeds (4/10 with a correct trajectory). Single transitions are perfect 330/330; the state assembly drifts along a sequence. Strict, so this fires and forces the golden to be re-recorded once drift is fixed."
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_materialization_semantics.py::TestInvariantUnderProbes::test_frozen_probe_holds_the_invariant",
+      "seconds": 0.01,
+      "reason": "KNOWN DEFECT, pinned deliberately: frozen() stops plasticity but NOT recruitment, so a probe under it grows the area and desyncs the self fiber. Use read_only() for reads. If this XPASSes, frozen() changed and every probe written against it must be re-read."
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_mod3_fsm.py::TestMod3Fsm::test_demo_accepts_divisible_by_three",
+      "seconds": 1.51,
+      "reason": ""
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_parse_errors_live.py::TestKnownGap::test_the_circuit_declares_a_route_from_a_noun_into_PP",
+      "seconds": 0.001,
+      "reason": "KNOWN GAP, pinned deliberately. The PP guard stops a noun after a preposition being FLAGGED, but the circuit declares no `core -> PP` fiber, so the noun cannot bind into PP either. Suppressing a false alarm is not the same as routing the word, and only the first is done. Fixing it means adding core->PP fibers and PP-aware targeting, which changes every prepositional parse."
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_parse_idempotence.py::TestParseIsNotIdempotent::test_repeated_parses_agree",
+      "seconds": 3.482,
+      "reason": "KNOWN DEFECT, pinned deliberately: parsing recruits, so repeated parses of the SAME sentence return different ERP values (first-word P600 0.434 -> 0.988 -> 0.9868 -> 0.9865). Every ERP number therefore depends on read order. Fix is measured but unadopted -- see research/notes/language/erp_probe_isolation.md"
+    }
+  ],
+  "slowest_cases": [
+    {
+      "nodeid": "neural_assemblies/tests/test_training_perf.py::TestTrainingPerf::test_dual_metric_learnability_gate",
+      "seconds": 145.287
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_emergent_parser.py::TestCurriculumLearning::test_stage2_expands_vocab",
+      "seconds": 70.859
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_bootstrap.py::TestHoldoutBootstrap::test_sentences_depth_holdout_bootstrap_floor",
+      "seconds": 64.635
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_erp_metric_range.py::TestExcessIsClippedAtItsOwnNull::test_grammatical_excess_is_crushed_against_the_floor",
+      "seconds": 62.694
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_conversation_curriculum.py::TestConversationTraining::test_unknown_word_registered_on_interact",
+      "seconds": 40.866
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_conversation_curriculum.py::TestConversationTraining::test_dialogue_stage_runs_dialogue_phase",
+      "seconds": 30.926
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_emergent_parser.py::TestScaledVocabulary::test_scaled_vocabulary_builds",
+      "seconds": 30.654
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_conversation_curriculum.py::TestConversationTraining::test_session_bootstrap_conversation_smoke",
+      "seconds": 30.21
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_conversation_curriculum.py::TestConversationTraining::test_train_for_conversation_registers_prediction",
+      "seconds": 28.778
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_next_token_scaling.py::TestNextTokenScalingDeterminism::test_same_seed_same_predictions",
+      "seconds": 27.791
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_batched_next_token.py::test_score_corpus_matches_reset_sequential",
+      "seconds": 27.508
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_emergent_parser.py::TestEvaluationFramework::test_evaluation_on_curriculum_parser",
+      "seconds": 20.237
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_batched_next_token.py::test_batched_matches_sequential_top1",
+      "seconds": 20.076
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_sequence_recall_sweep.py::TestBestParameterDemo::test_reliable_five_item_recall",
+      "seconds": 19.424
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_literature_parity.py::TestColtMultiAssembly::test_recall_meets_theorem_3_bound",
+      "seconds": 18.225
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_synthesis.py::test_synthesis_audit_smoke",
+      "seconds": 15.031
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_active_evidence_graph.py::test_tracked_runner_evidence_has_no_dangling_edges",
+      "seconds": 13.741
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_emergent_parser.py::TestNextTokenPrediction::test_predict_returns_ranked_list",
+      "seconds": 13.545
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_next_token_scaling.py::TestNextTokenScaling::test_accuracy_vs_context_length",
+      "seconds": 13.411
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_emergent_parser.py::TestDeterminism::test_same_seed_same_classifications",
+      "seconds": 13.237
+    }
+  ],
+  "artifacts": {
+    ".cache/full-audit-c1f311b.xml": {
+      "sha256": "c9e0f1622f93f08af1fed48d86a24340f576f0118aa0660ee63fe46cebdf66d3"
+    },
+    ".cache/full-audit-c1f311b.log": {
+      "sha256": "2a9dec3c7ef3d05575692b8ab2400c97a01b1d37fb90ea3b358b5234bfc2ea5c"
+    }
+  },
+  "claim_boundary": "A clean package audit establishes the checked non-slow software baseline on this machine. It does not run tests marked slow, adopt a scientific result, or prove backend semantic equivalence."
+}

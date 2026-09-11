@@ -1660,3 +1660,21 @@ inhibition, the emergent-parser multi-mood path, and two shared-syntax word-orde
 cases. An AST methodology ratchet rejects any future non-strict pytest xfail and
 has its own constructed negative. The combined gate is5 passed,4 strict xfailed
 in36.05s; there are no non-strict expected failures left in package tests.
+
+## Current-head package gate and expected-failure closure (2026-09-11)
+
+The complete non-slow package gate at `c1f311b`, under the repository CUDA
+developer-shell setup, is green: 3,244 passed, 65 skipped, 143 deselected,
+7 expected failures, no failures/errors/XPASS, 318 warnings and 10 passing
+subtests in 1,654.18 seconds. `package-audit-c1f311b.json` is the committed
+receipt with exact expected-failure and duration inventory plus raw-artifact
+hashes. This is a software baseline, not slow-suite coverage, backend simulation
+proof, or a scientific adoption.
+
+One of the seven expected failures used `unittest.expectedFailure`, outside the
+pytest-only strictness ratchet. The mod-3 FSM now uses a strict pytest marker with
+the A1 drift diagnosis. The AST gate also rejects both unittest decorator forms,
+with a constructed negative. Focused verification is 6 passed and 1 strict
+expected failure in 23.26 seconds; Ruff and diff checks pass. This corrects the
+previous broader wording: there were no non-strict *pytest* xfails, but one
+non-strict unittest expected failure remained until this checkpoint.

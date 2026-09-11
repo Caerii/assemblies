@@ -228,10 +228,18 @@ def _fmt(grew):
 
 
 def _unsafe_xfails(source: str) -> list[int]:
-    """Return pytest xfails that do not explicitly make XPASS fail CI."""
+    """Return expected-failure forms that do not make XPASS fail CI."""
     tree = ast.parse(source)
-    lines = []
+    lines = set()
     for node in ast.walk(tree):
+        if (
+            isinstance(node, ast.Attribute)
+            and node.attr == "expectedFailure"
+            and isinstance(node.value, ast.Name)
+            and node.value.id == "unittest"
+        ) or (isinstance(node, ast.Name) and node.id == "expectedFailure"):
+            lines.add(node.lineno)
+            continue
         if not isinstance(node, ast.Call):
             continue
         func = node.func
@@ -253,8 +261,8 @@ def _unsafe_xfails(source: str) -> list[int]:
             isinstance(strict, ast.Constant)
             and strict.value is True
         ):
-            lines.append(node.lineno)
-    return lines
+            lines.add(node.lineno)
+    return sorted(lines)
 
 
 def test_no_new_hand_rolled_seed_statistics():
@@ -278,12 +286,18 @@ def test_no_new_unpinned_engine_constructions():
 def test_non_strict_xfail_scanner_has_a_true_negative():
     source = """
 import pytest
+import unittest
+from unittest import expectedFailure
 @pytest.mark.xfail(strict=False, reason='unstable')
 def test_claim(): ...
 @pytest.mark.xfail(reason='defaults are also non-strict')
 def test_other_claim(): ...
+@unittest.expectedFailure
+def test_unittest_claim(): ...
+@expectedFailure
+def test_imported_unittest_claim(): ...
 """
-    assert _unsafe_xfails(source) == [3, 5]
+    assert _unsafe_xfails(source) == [5, 7, 9, 11]
 
 
 def test_no_non_strict_expected_failures():
