@@ -4803,3 +4803,7 @@ The specification-link test now requires `sequence_memorize`, `ordered_recall`, 
 ## Separation operation contract (2026-09-11)
 
 `separate` now consumes a frozen `SeparationPlan` and carries `SEPARATION_CONTRACT` in the public operation registry. The plan owns distinct-stimulus, topology, and rounds admission while the operation preserves its documented destructive recurrent-reset measurement. Two plan-level true negatives cover identical stimuli and unknown topology; contract tests pass **158 tests**.
+
+## Contract export manifest consistency (2026-09-11)
+
+The assembly-calculus `__all__` manifest now includes every operation plan and contract, including separation and both sequence contracts, without duplicate declarations in the operation section. Wildcard import validation resolves all **104** exported names; Ruff is clean.

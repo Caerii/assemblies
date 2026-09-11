@@ -2655,3 +2655,5 @@ Added direct `Specification:` links to the five remaining core plan declarations
 Strengthened the specification-link ratchet to require both sequence operations and both sequence plan declarations. Added direct semantic-card links to `sequence_memorize` and `ordered_recall` docstrings, closing the source-navigation gap. Specification-link tests pass (11 tests).
 
 Made `separate` a first-class contract operation. `SeparationPlan` now owns its schedule admission, and the public operation is registered/exported with explicit destructive-measurement semantics and true negatives. Operation-contract tests pass (158 tests); Ruff is clean.
+
+Aligned the public `__all__` manifest with the complete operation-contract registry. All plans and contract constants are now exported once, including separation and sequence operations. Wildcard import validation resolves all 104 names; Ruff is clean.
