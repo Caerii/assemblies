@@ -56,6 +56,7 @@ from neural_assemblies.core.brain import Brain
 from neural_assemblies.assembly_calculus.assembly import Assembly
 from neural_assemblies.core.registration import validate_area_registration, validate_round_count
 from research.experiment_config import resolve_seed_ids, resolve_real_grid
+from research.experiments._explicit import explicit_brain, model_semantics_kwargs
 
 N_SEEDS = 10
 
@@ -86,13 +87,13 @@ class PhaseConfig:
 
 
 def run_phase_trial(
-    cfg: PhaseConfig, seed: int,
+    cfg: PhaseConfig, seed: int, *, model_semantics=None,
 ) -> float:
     """
     Train stim+self, then test autonomous persistence.
     Returns persistence (overlap between trained and final assembly).
     """
-    b = Brain(p=cfg.p, seed=seed, w_max=cfg.w_max, engine="numpy_sparse")
+    b = explicit_brain(Brain, cfg, seed, model_semantics)
     b.add_area("A", cfg.n, cfg.k, cfg.beta, explicit=True)
     b.add_stimulus("s", cfg.k)
 
@@ -159,6 +160,7 @@ class PhaseDiagramExperiment(ExperimentBase):
         betas=(.01, .02, .05, .10, .20), p_values=(.01, .02, .05, .10, .20),
         p_effect_k=100, p_effect_beta=.10, train_rounds=30, test_rounds=20,
         initial_stimulus_rounds=1, persistence_threshold=.95,
+        model_semantics=None,
     ) -> ExperimentResult:
         seeds = resolve_seed_ids(n_seeds, seed_ids, base_seed=self.seed, default_count=N_SEEDS)
         n_seeds = len(seeds)
@@ -191,6 +193,7 @@ class PhaseDiagramExperiment(ExperimentBase):
 
         metrics: Dict[str, Any] = {}
         raw_data = {"seeds": seeds, "cells": []}
+        semantic_kwargs = model_semantics_kwargs(model_semantics)
 
         # ================================================================
         # H1/H2: Sparsity x Beta Phase Grid
@@ -204,7 +207,7 @@ class PhaseDiagramExperiment(ExperimentBase):
             null = chance_overlap(k_val, n)
             persist_vals = []
             for s in seeds:
-                persist_vals.append(run_phase_trial(cfg, seed=s))
+                persist_vals.append(run_phase_trial(cfg, seed=s, **semantic_kwargs))
 
             row = {
                 "sparsity": sparsity, "actual_sparsity": k_val/n,
@@ -249,7 +252,7 @@ class PhaseDiagramExperiment(ExperimentBase):
 
             persist_vals = []
             for s in seeds:
-                persist_vals.append(run_phase_trial(cfg, seed=s))
+                persist_vals.append(run_phase_trial(cfg, seed=s, **semantic_kwargs))
 
             row = {
                 "p": p_val,
@@ -281,7 +284,7 @@ class PhaseDiagramExperiment(ExperimentBase):
                 "sparsities": sparsities, "resolved_assembly_sizes": sizes, "betas": betas,
                 "p_values": p_values, "p_effect_k": p_effect_k, "p_effect_beta": p_effect_beta,
                 "seed_ids": seeds,
-                "primary_engine": "numpy_sparse", "area_engine": "numpy_explicit",
+                "engine": "numpy_explicit",
                 "evaluation_learning": True,
             },
             metrics=metrics,

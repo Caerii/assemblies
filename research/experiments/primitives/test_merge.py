@@ -37,6 +37,7 @@ from research.experiments.base import (
 from neural_assemblies.core.brain import Brain
 from neural_assemblies.core.registration import validate_area_registration, validate_round_count
 from research.experiment_config import resolve_seed_ids, resolve_real_grid
+from research.experiments._explicit import explicit_brain, model_semantics_kwargs
 
 N_SEEDS = 10
 
@@ -67,8 +68,8 @@ class MergeConfig:
 
 
 # Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#historical-merge-trials
-def _establish_sources(cfg, seed):
-    b = Brain(p=cfg.p, seed=seed, w_max=cfg.w_max, engine="numpy_sparse")
+def _establish_sources(cfg, seed, model_semantics=None):
+    b = explicit_brain(Brain, cfg, seed, model_semantics)
 
     b.add_area("A", cfg.n, cfg.k, cfg.beta, explicit=True)
     b.add_area("B", cfg.n, cfg.k, cfg.beta, explicit=True)
@@ -88,14 +89,14 @@ def _establish_sources(cfg, seed):
 
 
 def run_merge_trial(
-    cfg: MergeConfig, seed: int,
+    cfg: MergeConfig, seed: int, *, model_semantics=None,
 ) -> Dict[str, float]:
     """
     Establish A and B, project each to C separately, then merge.
     Returns overlaps between C_AB, C_A, C_B.
     """
     rng = np.random.default_rng(seed + 88888)
-    b = _establish_sources(cfg, seed)
+    b = _establish_sources(cfg, seed, model_semantics)
 
     # Phase 2: A-only -> C
     for _ in range(cfg.merge_rounds):
@@ -140,10 +141,10 @@ def _merge_overlaps(c_ab, c_a, c_b):
 
 
 def run_recovery_trial(
-    cfg: MergeConfig, seed: int,
+    cfg: MergeConfig, seed: int, *, model_semantics=None,
 ) -> Dict[str, float]:
     """Sequential A-only then B-only readout after joint training; both learn."""
-    b = _establish_sources(cfg, seed)
+    b = _establish_sources(cfg, seed, model_semantics)
 
     # Merge training (co-stimulation)
     for _ in range(cfg.merge_rounds):
@@ -183,7 +184,7 @@ class MergeExperiment(ExperimentBase):
     # Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#historical-merge-harness
     def run(self, n=1000, k=100, p=.05, beta=.1, w_max=20., n_seeds=None, *,
             seed_ids=None, establish_rounds=30, merge_rounds=30, test_rounds=20,
-            round_values=None, h4_sizes=None):
+            round_values=None, h4_sizes=None, model_semantics=None):
         seeds = resolve_seed_ids(n_seeds, seed_ids, base_seed=self.seed, default_count=N_SEEDS)
         cfg = MergeConfig(n,k,p,beta,w_max,establish_rounds,merge_rounds,test_rounds)
         rounds = [validate_round_count(value) for value in
@@ -196,9 +197,10 @@ class MergeExperiment(ExperimentBase):
         size_configs = [replace(cfg, n=value, k=int(np.sqrt(value))) for value in sizes]
         self._start_timer()
         cells = []
+        semantic_kwargs = model_semantics_kwargs(model_semantics)
 
         def measure(arm, config, trial):
-            rows = [trial(config, seed) for seed in seeds]
+            rows = [trial(config, seed, **semantic_kwargs) for seed in seeds]
             # Rename historical arithmetic, without promoting it to a composition test.
             names = {"merge_quality": "mean_parent_overlap", "composition_score": "max_parent_overlap"}
             values = {names.get(key,key): [row[key] for row in rows] for key in rows[0]}
@@ -224,7 +226,7 @@ class MergeExperiment(ExperimentBase):
                         "base_beta": cfg.beta, "base_wmax": cfg.w_max,
                         "establish_rounds": cfg.establish_rounds, "merge_rounds": cfg.merge_rounds,
                         "test_rounds": cfg.test_rounds, "round_values": rounds, "h4_sizes": sizes,
-                        "engine": "numpy_sparse", "area_engine": "numpy_explicit",
+                        "engine": "numpy_explicit",
                         "reporting_version": "parent-overlaps-v1",
                         "size_assembly_rule": "floor(sqrt(n))",
                         "readout": "learning-on; separate composition and recovery training histories"},

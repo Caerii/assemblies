@@ -39,7 +39,9 @@ def test_scaling_retains_initial_activation_and_all_trial_dynamics(monkeypatch, 
     assert brain.trace == expected["trace"]
     assert brain.trace[0]["args"] == [{"s": ["A"]}, {}]
     assert weights == expected["weights"]
-    assert (brain._engine.name, owner.name) == (expected["engine"], expected["owner"])
+    assert (expected["engine"], expected["owner"]) == ("numpy_sparse", "numpy_explicit")
+    assert brain._engine.name == owner.name == "numpy_explicit"
+    assert owner is brain._engine
     assert result["training_rounds"] == expected["result"]["convergence_time"]
     assert result["persistence"] == expected["result"]["persistence"]
     history = [row["winners"]["A"] for row in brain.trace[1:1+result["training_rounds"]]]

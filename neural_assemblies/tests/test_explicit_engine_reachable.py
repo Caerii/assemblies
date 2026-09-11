@@ -62,6 +62,33 @@ class TestReachableThroughTheAPI:
         b.add_area("A", N, K, BETA)
         assert b._engine_for(b.areas["A"]).name == "numpy_explicit"
 
+    def test_explicit_flag_reuses_primary_dense_engine(self):
+        b = _brain()
+        b.add_area("A", N, K, BETA, explicit=True)
+
+        assert b._engine_for(b.areas["A"]) is b._engine
+        assert b._explicit_engine is None
+
+    def test_direct_dense_route_matches_legacy_sparse_router(self):
+        def run(primary):
+            b = Brain(p=P, seed=19, engine=primary, norm_init=False)
+            b.add_stimulus("S", K)
+            b.add_area("A", N, K, BETA, explicit=True)
+            for _ in range(5):
+                b.project({"S": ["A"]}, {"A": ["A"]})
+            return b
+
+        legacy = run("numpy_sparse")
+        direct = run("numpy_explicit")
+        assert np.array_equal(legacy.areas["A"].winners,
+                              direct.areas["A"].winners)
+        assert np.array_equal(
+            legacy.connectomes_by_stimulus["S"]["A"].weights,
+            direct.connectomes_by_stimulus["S"]["A"].weights,
+        )
+        assert np.array_equal(legacy.connectomes["A"]["A"].weights,
+                              direct.connectomes["A"]["A"].weights)
+
 
 class TestUnsupportedIsRefusedNotIgnored:
 

@@ -1,0 +1,63 @@
+{
+  "engine": "numpy_explicit",
+  "environment": {
+    "policy": "repository-environment-v1",
+    "variables_sha256": {}
+  },
+  "execution_semantics": {
+    "kind": "brain",
+    "profiles": {
+      "default": {
+        "arithmetic": "float32",
+        "candidate_domain": "all-neurons",
+        "connectome": "fixed-dense-content-addressed",
+        "default_tie_break": "lowest-neuron-id",
+        "normalization": "none",
+        "plasticity": "multiplicative-clipped",
+        "stimulus_drive": "fixed-bernoulli-afferent-count",
+        "weight_ceiling": 20.0
+      }
+    }
+  },
+  "git_commit": "f031952b1a83b187c5eb8884921e339a6bca3417",
+  "input_artifacts": {},
+  "mode": "smoke",
+  "parameters": {
+    "assoc_rounds": 3,
+    "beta": 0.1,
+    "establish_rounds": 3,
+    "h1e_sizes": [
+      60
+    ],
+    "k": 6,
+    "n": 60,
+    "p": 0.2,
+    "round_values": [
+      1,
+      3
+    ],
+    "test_rounds": 3,
+    "w_max": 20.0
+  },
+  "protocol": "memory.historical-association",
+  "protocol_version": "1",
+  "registration": "research/notes/memory/PREREG_historical_association_migration.md",
+  "registration_sha256": "90bb4c693d7dbf0adcded97934f97c13b79b5faff5240d7de84ba54471e1a84a",
+  "schema_version": 7,
+  "scientific_status": "VOID",
+  "script": "research/experiments/historical_association.py",
+  "script_sha256": "db8817c8ee99d260ca6d94ecd6b33b481ad6c6a03593f566f6bc6d3ef99707ec",
+  "seeds": [
+    1,
+    2,
+    3
+  ],
+  "source_archive": {
+    "file": "source.zip",
+    "sha256": "40bcf4cd6e0d8c8ca6c409a5c1bbdb15b77584473a5894886da6153159070df9"
+  },
+  "source_inventory": "source-inputs-v3",
+  "source_sha256": "cae1fd08e9dfcfa348a481ee8fbdf2f67c9eefae65e96fcf88eaac8a90e2cdf9",
+  "started_utc": "2026-09-11T11:07:54.521540+00:00",
+  "tag": "direct-explicit-schema7-seeds123-20260911"
+}

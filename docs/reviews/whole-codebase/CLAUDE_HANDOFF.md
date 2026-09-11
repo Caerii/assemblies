@@ -2005,3 +2005,26 @@ profile against the explicit measurement rejects before topology. The focused
 gate is 33 passed and Ruff is clean. Historical producer factories still need
 the same construction-time requirement; their payload-level router/area-engine
 record is informative but later than the desired admission boundary.
+
+## Historical Brain admission boundary (2026-09-11)
+
+The historical producer boundary is now closed. Association, merge, projection,
+noise, phase and scaling trials directly construct `numpy_explicit` Brains with
+normalization disabled and consume the schema-7 default model profile in the
+actual measured constructor. The shared adapter parses the execution envelope
+and passes the profile through; a wrong profile fails before topology.
+
+This exposed a real latent mismatch: selecting the direct explicit engine while
+leaving the old sparse router's default `norm_init=True` caused an immediate
+constructor error. Setting `norm_init=False` makes the effective historical
+semantics explicit. The 258-test replay gate preserves every golden winner trace,
+weight hash, schedule and result and proves the owner is the primary engine.
+
+The new VOID association artifact at
+`research/results/runs/memory.historical-association/direct-explicit-schema7-seeds123-20260911/`
+exactly matches the schema-6 seeds1/2/3 artifact in metrics, raw data,
+success/error, scope, verdict and non-routing parameters. Its producer metadata
+now names one effective `numpy_explicit` engine instead of a sparse router plus
+explicit auxiliary. The registration links the artifact. Remaining semantic work
+includes true mixed-engine profile graphs, aligner identity, unmigrated runners,
+numerical refinement and the repository-wide legacy disposition.

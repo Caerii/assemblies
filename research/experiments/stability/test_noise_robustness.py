@@ -45,6 +45,7 @@ from numbers import Integral, Real
 import math
 from typing import Dict, Any
 from research.experiment_config import resolve_seed_ids
+from research.experiments._explicit import explicit_brain, model_semantics_kwargs
 from research.experiments.base import (
     reported_null_test as _chance_test, effect_text as _effect_text,
     ExperimentBase,
@@ -94,8 +95,8 @@ def inject_noise(
 # -- Core trial runners --------------------------------------------------------
 
 
-def _new_trial_brain(cfg, seed, areas, stimuli):
-    b = Brain(p=cfg.p, seed=seed, w_max=cfg.w_max, engine="numpy_sparse")
+def _new_trial_brain(cfg, seed, areas, stimuli, model_semantics=None):
+    b = explicit_brain(Brain, cfg, seed, model_semantics)
     for area in areas:
         b.add_area(area, cfg.n, cfg.k, cfg.beta, explicit=True)
     for stimulus in stimuli:
@@ -116,9 +117,11 @@ def _corrupt(b, cfg, area, trained, fraction, seed):
     b.areas[area].winners = inject_noise(trained, cfg.n, fraction, np.random.default_rng(seed + 77777))
 
 
-def _single_area_trial(cfg, noise_frac, seed, *, stimulus_driven):
+def _single_area_trial(
+    cfg, noise_frac, seed, *, stimulus_driven, model_semantics=None,
+):
     """Historical learning-on-recovery schedule; not the frozen recovery API."""
-    b = _new_trial_brain(cfg, seed, ('A',), ('s',))
+    b = _new_trial_brain(cfg, seed, ('A',), ('s',), model_semantics)
     trained = _establish(b, cfg, 'A', 's')
     _corrupt(b, cfg, 'A', trained, noise_frac, seed)
     inputs = {'s': ['A']} if stimulus_driven else {}
@@ -127,22 +130,36 @@ def _single_area_trial(cfg, noise_frac, seed, *, stimulus_driven):
     return measure_overlap(trained, Assembly.from_area(b, 'A').neuron_ids)
 
 
-def run_stimulus_recovery_trial(cfg: NoiseConfig, noise_frac: float, seed: int) -> float:
+def run_stimulus_recovery_trial(
+    cfg: NoiseConfig, noise_frac: float, seed: int, *, model_semantics=None,
+) -> float:
     """Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-historical-noise-study"""
-    return _single_area_trial(cfg, noise_frac, seed, stimulus_driven=True)
+    return _single_area_trial(
+        cfg, noise_frac, seed, stimulus_driven=True,
+        model_semantics=model_semantics,
+    )
 
 
-def run_autonomous_recovery_trial(cfg: NoiseConfig, noise_frac: float, seed: int) -> float:
+def run_autonomous_recovery_trial(
+    cfg: NoiseConfig, noise_frac: float, seed: int, *, model_semantics=None,
+) -> float:
     """Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-historical-noise-study"""
-    return _single_area_trial(cfg, noise_frac, seed, stimulus_driven=False)
+    return _single_area_trial(
+        cfg, noise_frac, seed, stimulus_driven=False,
+        model_semantics=model_semantics,
+    )
 
 
-def run_association_recovery_trial(cfg: NoiseConfig, noise_frac: float, seed: int) -> Dict[str, float]:
+def run_association_recovery_trial(
+    cfg: NoiseConfig, noise_frac: float, seed: int, *, model_semantics=None,
+) -> Dict[str, float]:
     """Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-historical-noise-study
 
     Retains the historical PRE-association references and learning during recovery.
     """
-    b = _new_trial_brain(cfg, seed, ('A', 'B'), ('sa', 'sb'))
+    b = _new_trial_brain(
+        cfg, seed, ('A', 'B'), ('sa', 'sb'), model_semantics,
+    )
     trained_a = _establish(b, cfg, 'A', 'sa')
     trained_b = _establish(b, cfg, 'B', 'sb')
     for _ in range(cfg.establish_rounds):
@@ -179,6 +196,7 @@ class NoiseRobustnessExperiment(ExperimentBase):
         *, seed_ids=None, establish_rounds=30, recovery_rounds=20,
         noise_fracs=(0., .1, .2, .3, .4, .5, .6, .8, 1.),
         h4_sizes=(200, 500, 1000, 2000), h4_noise_fracs=(.3, .5, .7, 1.),
+        model_semantics=None,
     ) -> ExperimentResult:
         """Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-historical-noise-study"""
         seeds = resolve_seed_ids(n_seeds, seed_ids, base_seed=self.seed, default_count=N_SEEDS)
@@ -212,6 +230,7 @@ class NoiseRobustnessExperiment(ExperimentBase):
 
         metrics: Dict[str, Any] = {}
         raw_data = {"seeds": seeds, "cells": []}
+        semantic_kwargs = model_semantics_kwargs(model_semantics)
 
         # ================================================================
         # H1: Stimulus-Driven Recovery
@@ -222,7 +241,9 @@ class NoiseRobustnessExperiment(ExperimentBase):
         for nf in noise_fracs:
             vals = []
             for s in seeds:
-                vals.append(run_stimulus_recovery_trial(cfg, nf, seed=s))
+                vals.append(run_stimulus_recovery_trial(
+                    cfg, nf, seed=s, **semantic_kwargs,
+                ))
 
             row = {
                 "noise_frac": nf,
@@ -249,7 +270,9 @@ class NoiseRobustnessExperiment(ExperimentBase):
         for nf in noise_fracs:
             vals = []
             for s in seeds:
-                vals.append(run_autonomous_recovery_trial(cfg, nf, seed=s))
+                vals.append(run_autonomous_recovery_trial(
+                    cfg, nf, seed=s, **semantic_kwargs,
+                ))
 
             row = {
                 "noise_frac": nf,
@@ -277,7 +300,9 @@ class NoiseRobustnessExperiment(ExperimentBase):
             b_vals = []
             a_vals = []
             for s in seeds:
-                trial = run_association_recovery_trial(cfg, nf, seed=s)
+                trial = run_association_recovery_trial(
+                    cfg, nf, seed=s, **semantic_kwargs,
+                )
                 b_vals.append(trial["b_recovery"])
                 a_vals.append(trial["a_intact"])
 
@@ -318,7 +343,9 @@ class NoiseRobustnessExperiment(ExperimentBase):
                 vals = []
                 for s in seeds:
                     vals.append(
-                        run_autonomous_recovery_trial(cfg_h4, nf, seed=s)
+                        run_autonomous_recovery_trial(
+                            cfg_h4, nf, seed=s, **semantic_kwargs,
+                        )
                     )
 
                 entry = {
@@ -355,7 +382,7 @@ class NoiseRobustnessExperiment(ExperimentBase):
                 "noise_fracs": noise_fracs,
                 "n_seeds": int(n_seeds), "seed_ids": seeds,
                 "h4_sizes": list(h4_sizes), "h4_noise_fracs": list(h4_noise_fracs),
-                "primary_engine": "numpy_sparse", "area_engine": "numpy_explicit",
+                "engine": "numpy_explicit",
                 "recovery_learning": True, "association_reference": "pre_association",
             },
             metrics=metrics,

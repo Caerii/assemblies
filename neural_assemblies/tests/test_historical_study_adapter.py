@@ -4,6 +4,8 @@ import json
 from pathlib import Path
 
 import pytest
+from neural_assemblies import describe_brain_model
+from neural_assemblies.core.semantics import ExecutionKind, ExecutionSemantics
 from research.experiments._historical import HistoricalStudy
 from research.experiments.base import ExperimentResult
 
@@ -14,7 +16,13 @@ def specification(factory):
 
 
 def record(**changes):
+    model = describe_brain_model(
+        "numpy_explicit", p=.05, seed=0, w_max=20., norm_init=False,
+    )
     return {"protocol": "memory.fixture", "protocol_version": "1", "engine": "numpy_explicit",
+            "execution_semantics": ExecutionSemantics(
+                ExecutionKind.BRAIN, {"default": model},
+            ).to_dict(),
             "mode": "smoke", "tag": "fixture", "seeds": [9,2,7], "parameters": {"size": 3}, **changes}
 
 
@@ -41,7 +49,8 @@ def test_common_adapter_preserves_inputs_scope_and_execution_failure(mode, verdi
     output = specification(Producer).measure(record(mode=mode))
     assert calls[0]["seed"] == 0 and calls[0]["verbose"] is False
     assert calls[0]["results_dir"].parts[-2:] == ("memory.fixture", "fixture")
-    assert calls[1] == {"seed_ids": [9,2,7], "size": 3}
+    assert calls[1]["seed_ids"] == [9,2,7] and calls[1]["size"] == 3
+    assert calls[1]["model_semantics"] == record()["execution_semantics"]["profiles"]["default"]
     assert output["scope"] == "fixture scope" and output["verdict"] == verdict
     assert output["result"]["success"] is False
 

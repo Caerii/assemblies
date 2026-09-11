@@ -49,7 +49,9 @@ def test_trial_dynamics_preserved_while_dead_weight_measurement_is_corrected(mon
                 weights[f"{kind}/{source}/{target}"] = hashlib.sha256(np.ascontiguousarray(connection.weights).tobytes()).hexdigest()
     assert brain.trace == expected["trace"]
     assert weights == expected["weights"]
-    assert (brain._engine.name, owner.name) == (expected["engine"], expected["owner"])
+    assert (expected["engine"], expected["owner"]) == ("numpy_sparse", "numpy_explicit")
+    assert brain._engine.name == owner.name == "numpy_explicit"
+    assert owner is brain._engine
     if name == "weights":
         assert expected["result"]["weight_ratio"] == 1.0  # The historical dead probe.
         matrix, selected = brain.pre_evaluation_weights, brain.pre_evaluation_winners

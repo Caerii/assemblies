@@ -238,3 +238,12 @@ The [protocol-consumption replay](../../results/runs/sequence.a1-horizon/horizon
 reproduces the same 40 rows after A1's model and schedule were moved from implicit
 global reads to a validated recorded protocol. This version explicitly records
 checkpoints and device. The historical sampled-baseline Gate3 remains FAIL.
+
+## Schema-7 organ identity smoke (2026-09-11)
+
+The [schema-7 smoke](../../results/runs/sequence.a1-horizon/organ-schema7-smoke-20260911/results.json)
+records and consumes the assigned FSM's complete organ profile before CUDA state
+allocation: hashed substrate identity, assigned state code, training and frozen
+inference schedules, Binomial stimulus drive, lowest-ID ties, refraction charge,
+horizon and successor gain. Both smoke cells remain `VOID`; this artifact tests
+the execution/provenance boundary and does not extend the GATE-3 claim.

@@ -457,7 +457,8 @@ class Brain:
         # that handles full n×n weight matrices and plasticity correctly.
         if explicit:
             explicit_eng = self._engine_for(area)  # lazily creates it
-            self._register_explicit_area(explicit_eng, area)
+            if explicit_eng is not self._engine:
+                self._register_explicit_area(explicit_eng, area)
         # Share engine's connectome objects so b.connectomes[x][y] is the
         # actual object the engine reads/writes during projection.
         self._sync_engine_connectomes()
@@ -519,6 +520,11 @@ class Brain:
         Sparse areas use the main engine.
         """
         if area.explicit:
+            # The primary dense engine already owns this contract. A second
+            # identical engine hides the real arithmetic owner and duplicates
+            # every area and stimulus registration.
+            if self._engine.name == "numpy_explicit":
+                return self._engine
             if self._explicit_engine is None:
                 self._explicit_engine = create_engine(
                     "numpy_explicit", p=self.p, seed=self._seed, w_max=self.w_max,

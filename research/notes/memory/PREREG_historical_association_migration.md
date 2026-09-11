@@ -41,3 +41,15 @@ and weight ceiling 20.0. With the same seeds1/2/3 and parameters as the prior
 smoke, metrics, raw_data, parameters, execution status, scope and verdict are
 exactly equal; only timestamps, duration, source/provenance and the new semantic
 record differ. The result remains VOID.
+
+## Direct-engine schema-7 replay (2026-09-11)
+
+The [schema-7 replay](../../results/runs/memory.historical-association/direct-explicit-schema7-seeds123-20260911/results.json)
+removes the redundant sparse Brain router and constructs the fixed dense
+`numpy_explicit` engine directly with normalization disabled. The actual Brain
+consumes the run record's `default` model profile before topology exists. With
+the same smoke parameters and seeds1/2/3 as the schema-6 replay, metrics,
+raw_data, execution status, scope and verdict are exactly equal. Producer
+parameters differ only by replacing the historical router/owner pair
+(`numpy_sparse`, `numpy_explicit`) with the single effective engine
+`numpy_explicit`. This is still a VOID software migration check.

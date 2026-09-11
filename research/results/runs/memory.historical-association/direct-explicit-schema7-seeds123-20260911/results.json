@@ -1,0 +1,335 @@
+{
+  "attachments": {},
+  "observations": {
+    "result": {
+      "duration_seconds": 0.1265144000062719,
+      "error_message": null,
+      "experiment_name": "association",
+      "metrics": {
+        "basic_association": {
+          "recovery": {
+            "ci95_hi": 0.3501473738749701,
+            "ci95_lo": -0.12792515165274787,
+            "max": 0.16666666666666666,
+            "mean": 0.1111111111111111,
+            "min": 0.0,
+            "n": 3,
+            "sem": 0.05555555555555556,
+            "std": 0.09622504486493763
+          },
+          "test_vs_null": {
+            "d": 0.11547005383792502,
+            "p": 0.8599719915971992,
+            "significant": false,
+            "t": 0.1999999999999998
+          }
+        },
+        "directionality": {
+          "bidirectional": {
+            "recovery": {
+              "ci95_hi": 0.3501473738749701,
+              "ci95_lo": -0.12792515165274787,
+              "max": 0.16666666666666666,
+              "mean": 0.1111111111111111,
+              "min": 0.0,
+              "n": 3,
+              "sem": 0.05555555555555556,
+              "std": 0.09622504486493763
+            },
+            "test_vs_null": {
+              "d": 0.11547005383792502,
+              "p": 0.8599719915971992,
+              "significant": false,
+              "t": 0.1999999999999998
+            }
+          },
+          "paired_difference": {
+            "ci95_hi": 0.18348070720830342,
+            "ci95_lo": -0.2945918183194145,
+            "max": 0.0,
+            "mean": -0.05555555555555555,
+            "min": -0.16666666666666666,
+            "n": 3,
+            "sem": 0.05555555555555556,
+            "std": 0.09622504486493763
+          },
+          "paired_test": {
+            "d": -0.5773502691896257,
+            "p": 0.42264973081037416,
+            "significant": false,
+            "t": -1.0
+          },
+          "unidirectional": {
+            "recovery": {
+              "ci95_hi": 0.16666666666666666,
+              "ci95_lo": 0.16666666666666666,
+              "max": 0.16666666666666666,
+              "mean": 0.16666666666666666,
+              "min": 0.16666666666666666,
+              "n": 3,
+              "sem": 0.0,
+              "std": 0.0
+            },
+            "test_vs_null": {
+              "d": null,
+              "degenerate": "zero_variance",
+              "p": null,
+              "significant": false,
+              "t": null
+            }
+          }
+        },
+        "identity_preservation": {
+          "stimulus_recovery_A": {
+            "stats": {
+              "ci95_hi": 0.9612584849860814,
+              "ci95_lo": 0.48318595945836307,
+              "max": 0.8333333333333334,
+              "mean": 0.7222222222222222,
+              "min": 0.6666666666666666,
+              "n": 3,
+              "sem": 0.05555555555555559,
+              "std": 0.09622504486493767
+            },
+            "test_vs_null": {
+              "d": 6.466323014923805,
+              "p": 0.007877860221563436,
+              "significant": true,
+              "t": 11.199999999999996
+            }
+          },
+          "stimulus_recovery_B": {
+            "stats": {
+              "ci95_hi": 0.8333333333333334,
+              "ci95_lo": 0.8333333333333334,
+              "max": 0.8333333333333334,
+              "mean": 0.8333333333333334,
+              "min": 0.8333333333333334,
+              "n": 3,
+              "sem": 0.0,
+              "std": 0.0
+            },
+            "test_vs_null": {
+              "d": null,
+              "degenerate": "zero_variance",
+              "p": null,
+              "significant": false,
+              "t": null
+            }
+          }
+        },
+        "recovery_vs_size": [
+          {
+            "k": 7,
+            "n": 60,
+            "recovery": {
+              "ci95_hi": 0.39536441570235537,
+              "ci95_lo": -0.014412034749974406,
+              "max": 0.2857142857142857,
+              "mean": 0.19047619047619047,
+              "min": 0.14285714285714285,
+              "n": 3,
+              "sem": 0.04761904761904762,
+              "std": 0.08247860988423225
+            },
+            "test_vs_null": {
+              "d": 0.8948929172439198,
+              "p": 0.26127632821229313,
+              "significant": false,
+              "t": 1.5499999999999998
+            }
+          }
+        ],
+        "recovery_vs_training": [
+          {
+            "assoc_rounds": 1,
+            "recovery": {
+              "ci95_hi": 0.3501473738749701,
+              "ci95_lo": -0.12792515165274787,
+              "max": 0.16666666666666666,
+              "mean": 0.1111111111111111,
+              "min": 0.0,
+              "n": 3,
+              "sem": 0.05555555555555556,
+              "std": 0.09622504486493763
+            },
+            "test_vs_null": {
+              "d": 0.11547005383792502,
+              "p": 0.8599719915971992,
+              "significant": false,
+              "t": 0.1999999999999998
+            }
+          },
+          {
+            "assoc_rounds": 3,
+            "recovery": {
+              "ci95_hi": 0.3501473738749701,
+              "ci95_lo": -0.12792515165274787,
+              "max": 0.16666666666666666,
+              "mean": 0.1111111111111111,
+              "min": 0.0,
+              "n": 3,
+              "sem": 0.05555555555555556,
+              "std": 0.09622504486493763
+            },
+            "test_vs_null": {
+              "d": 0.11547005383792502,
+              "p": 0.8599719915971992,
+              "significant": false,
+              "t": 0.1999999999999998
+            }
+          }
+        ]
+      },
+      "parameters": {
+        "assoc_rounds": 3,
+        "base_beta": 0.1,
+        "base_k": 6,
+        "base_n": 60,
+        "base_p": 0.2,
+        "base_wmax": 20.0,
+        "engine": "numpy_explicit",
+        "establish_rounds": 3,
+        "h1e_sizes": [
+          60
+        ],
+        "n_seeds": 3,
+        "readout": "learning-on A-driven regeneration; pre-association references",
+        "round_values": [
+          1,
+          3
+        ],
+        "seed_ids": [
+          1,
+          2,
+          3
+        ],
+        "size_assembly_rule": "floor(sqrt(n))",
+        "statistics_version": "paired-difference-v1",
+        "test_rounds": 3
+      },
+      "raw_data": {
+        "seed_ids": [
+          1,
+          2,
+          3
+        ],
+        "values": {
+          "basic": [
+            0.16666666666666666,
+            0.16666666666666666,
+            0.0
+          ],
+          "bidirectional": [
+            0.16666666666666666,
+            0.16666666666666666,
+            0.0
+          ],
+          "identity/A": [
+            0.8333333333333334,
+            0.6666666666666666,
+            0.6666666666666666
+          ],
+          "identity/B": [
+            0.8333333333333334,
+            0.8333333333333334,
+            0.8333333333333334
+          ],
+          "paired_difference": [
+            0.0,
+            0.0,
+            -0.16666666666666666
+          ],
+          "size/60/7": [
+            0.2857142857142857,
+            0.14285714285714285,
+            0.14285714285714285
+          ],
+          "training/1": [
+            0.0,
+            0.16666666666666666,
+            0.16666666666666666
+          ],
+          "training/3": [
+            0.16666666666666666,
+            0.16666666666666666,
+            0.0
+          ],
+          "unidirectional": [
+            0.16666666666666666,
+            0.16666666666666666,
+            0.16666666666666666
+          ]
+        }
+      },
+      "success": true,
+      "timestamp": "2026-09-11T07:07:58.430292"
+    },
+    "scope": "learning-on driven regeneration and identity; not frozen completion",
+    "verdict": "VOID"
+  },
+  "run": {
+    "engine": "numpy_explicit",
+    "environment": {
+      "policy": "repository-environment-v1",
+      "variables_sha256": {}
+    },
+    "execution_semantics": {
+      "kind": "brain",
+      "profiles": {
+        "default": {
+          "arithmetic": "float32",
+          "candidate_domain": "all-neurons",
+          "connectome": "fixed-dense-content-addressed",
+          "default_tie_break": "lowest-neuron-id",
+          "normalization": "none",
+          "plasticity": "multiplicative-clipped",
+          "stimulus_drive": "fixed-bernoulli-afferent-count",
+          "weight_ceiling": 20.0
+        }
+      }
+    },
+    "git_commit": "f031952b1a83b187c5eb8884921e339a6bca3417",
+    "input_artifacts": {},
+    "mode": "smoke",
+    "parameters": {
+      "assoc_rounds": 3,
+      "beta": 0.1,
+      "establish_rounds": 3,
+      "h1e_sizes": [
+        60
+      ],
+      "k": 6,
+      "n": 60,
+      "p": 0.2,
+      "round_values": [
+        1,
+        3
+      ],
+      "test_rounds": 3,
+      "w_max": 20.0
+    },
+    "protocol": "memory.historical-association",
+    "protocol_version": "1",
+    "registration": "research/notes/memory/PREREG_historical_association_migration.md",
+    "registration_sha256": "90bb4c693d7dbf0adcded97934f97c13b79b5faff5240d7de84ba54471e1a84a",
+    "schema_version": 7,
+    "scientific_status": "VOID",
+    "script": "research/experiments/historical_association.py",
+    "script_sha256": "db8817c8ee99d260ca6d94ecd6b33b481ad6c6a03593f566f6bc6d3ef99707ec",
+    "seeds": [
+      1,
+      2,
+      3
+    ],
+    "source_archive": {
+      "file": "source.zip",
+      "sha256": "40bcf4cd6e0d8c8ca6c409a5c1bbdb15b77584473a5894886da6153159070df9"
+    },
+    "source_inventory": "source-inputs-v3",
+    "source_sha256": "cae1fd08e9dfcfa348a481ee8fbdf2f67c9eefae65e96fcf88eaac8a90e2cdf9",
+    "started_utc": "2026-09-11T11:07:54.521540+00:00",
+    "tag": "direct-explicit-schema7-seeds123-20260911"
+  },
+  "status": "complete"
+}

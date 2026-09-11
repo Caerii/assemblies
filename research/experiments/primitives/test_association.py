@@ -38,6 +38,7 @@ from research.experiments.base import (
 from neural_assemblies.core.brain import Brain
 from neural_assemblies.core.registration import validate_area_registration, validate_round_count
 from research.experiment_config import resolve_seed_ids, resolve_real_grid
+from research.experiments._explicit import explicit_brain, model_semantics_kwargs
 
 N_SEEDS = 10
 
@@ -75,10 +76,10 @@ class AssocConfig:
 
 
 # Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#historical-association-trials
-def _establish_and_associate(cfg, seed, bidirectional):
+def _establish_and_associate(cfg, seed, bidirectional, model_semantics=None):
     if type(bidirectional) is not bool:
         raise ValueError("bidirectional must be boolean")
-    b = Brain(p=cfg.p, seed=seed, w_max=cfg.w_max, engine="numpy_sparse")
+    b = explicit_brain(Brain, cfg, seed, model_semantics)
 
     b.add_area("A", cfg.n, cfg.k, cfg.beta, explicit=True)
     b.add_area("B", cfg.n, cfg.k, cfg.beta, explicit=True)
@@ -103,7 +104,7 @@ def _establish_and_associate(cfg, seed, bidirectional):
 
 def run_association_trial(
     cfg: AssocConfig, seed: int, bidirectional: bool = True,
-    rng: np.random.Generator = None,
+    rng: np.random.Generator = None, *, model_semantics=None,
 ) -> Dict[str, Any]:
     """
     Train association between A and B, then test recovery of B from A.
@@ -111,7 +112,9 @@ def run_association_trial(
     Learning-on driven regeneration; the replaced B state is not read.
     Returns overlap with pre-association B after A→B projection).
     """
-    b, trained_a, trained_b = _establish_and_associate(cfg, seed, bidirectional)
+    b, trained_a, trained_b = _establish_and_associate(
+        cfg, seed, bidirectional, model_semantics,
+    )
 
     # Corrupt B: replace all winners with random neurons
     if rng is None:
@@ -129,10 +132,12 @@ def run_association_trial(
 
 
 def run_identity_trial(
-    cfg: AssocConfig, seed: int,
+    cfg: AssocConfig, seed: int, *, model_semantics=None,
 ) -> Dict[str, float]:
     """Learning-on stimulus+self overlap with pre-association A and B."""
-    b, trained_a, trained_b = _establish_and_associate(cfg, seed, True)
+    b, trained_a, trained_b = _establish_and_associate(
+        cfg, seed, True, model_semantics,
+    )
 
     # Re-activate A via stim+self
     for _ in range(cfg.test_rounds):
@@ -164,7 +169,7 @@ class AssociationExperiment(ExperimentBase):
     # Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#historical-association-harness
     def run(self, n=1000, k=100, p=.05, beta=.1, w_max=20., n_seeds=None, *,
             seed_ids=None, establish_rounds=30, assoc_rounds=30, test_rounds=20,
-            round_values=None, h1e_sizes=None):
+            round_values=None, h1e_sizes=None, model_semantics=None):
         seeds = resolve_seed_ids(n_seeds, seed_ids, base_seed=self.seed, default_count=N_SEEDS)
         cfg = AssocConfig(n, k, p, beta, w_max, establish_rounds, assoc_rounds, test_rounds)
         rounds = [association_round_count(value) for value in
@@ -178,9 +183,11 @@ class AssociationExperiment(ExperimentBase):
         self._start_timer()
         rng = np.random.default_rng(self.seed)
         raw = {}
+        semantic_kwargs = model_semantics_kwargs(model_semantics)
 
         def association(label, config, bidirectional=True):
-            values = [run_association_trial(config, seed, bidirectional, rng=rng)["recovery"]
+            values = [run_association_trial(config, seed, bidirectional, rng=rng,
+                                            **semantic_kwargs)["recovery"]
                       for seed in seeds]
             raw[label] = values
             return {"recovery": summarize(values),
@@ -192,8 +199,12 @@ class AssociationExperiment(ExperimentBase):
             for item in training_configs]
         bidirectional, unidirectional = [], []
         for seed in seeds:
-            bidirectional.append(run_association_trial(cfg, seed, True, rng=rng)["recovery"])
-            unidirectional.append(run_association_trial(cfg, seed, False, rng=rng)["recovery"])
+            bidirectional.append(run_association_trial(
+                cfg, seed, True, rng=rng, **semantic_kwargs,
+            )["recovery"])
+            unidirectional.append(run_association_trial(
+                cfg, seed, False, rng=rng, **semantic_kwargs,
+            )["recovery"])
         comparison = summarize_paired(bidirectional, unidirectional, seed_ids=seeds)
         differences = comparison["values"]
         raw.update(bidirectional=bidirectional, unidirectional=unidirectional, paired_difference=differences)
@@ -204,7 +215,7 @@ class AssociationExperiment(ExperimentBase):
             "paired_difference": comparison["summary"],
             "paired_test": comparison["test"],
         }
-        identities = [run_identity_trial(cfg, seed) for seed in seeds]
+        identities = [run_identity_trial(cfg, seed, **semantic_kwargs) for seed in seeds]
         metrics["identity_preservation"] = {}
         for area in ("A", "B"):
             values = [row[f"recovery_{area.lower()}"] for row in identities]
@@ -220,7 +231,7 @@ class AssociationExperiment(ExperimentBase):
                         "base_beta": cfg.beta, "base_wmax": cfg.w_max,
                         "establish_rounds": cfg.establish_rounds, "assoc_rounds": cfg.assoc_rounds,
                         "test_rounds": cfg.test_rounds, "round_values": rounds, "h1e_sizes": sizes,
-                        "engine": "numpy_sparse", "area_engine": "numpy_explicit",
+                        "engine": "numpy_explicit",
                         "readout": "learning-on A-driven regeneration; pre-association references",
                         "size_assembly_rule": "floor(sqrt(n))", "statistics_version": "paired-difference-v1"},
             metrics=metrics, raw_data={"seed_ids": seeds, "values": raw},

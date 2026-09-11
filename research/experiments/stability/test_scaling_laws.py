@@ -58,6 +58,7 @@ from neural_assemblies.assembly_calculus.assembly import Assembly
 from research.experiments._convergence import run_convergence_phase, convergence_scaling_fit, validate_convergence_rule
 from research.experiment_config import resolve_seed_ids
 from neural_assemblies.core.registration import validate_round_count, validate_area_registration
+from research.experiments._explicit import explicit_brain, model_semantics_kwargs
 
 N_SEEDS = 10
 
@@ -87,13 +88,13 @@ class ScalingConfig:
 
 
 def run_scaling_trial(
-    cfg: ScalingConfig, seed: int,
+    cfg: ScalingConfig, seed: int, *, model_semantics=None,
 ) -> Dict[str, Any]:
     """
     Train stim+self with convergence detection, then test autonomous persistence.
     Returns convergence time and persistence.
     """
-    b = Brain(p=cfg.p, seed=seed, w_max=cfg.w_max, engine="numpy_sparse")
+    b = explicit_brain(Brain, cfg, seed, model_semantics)
     b.add_area("A", cfg.n, cfg.k, cfg.beta, explicit=True)
     b.add_stimulus("s", cfg.k)
 
@@ -134,6 +135,7 @@ class ScalingLawsExperiment(ExperimentBase):
         *, seed_ids=None, n_values=(100, 200, 500, 1000, 2000, 5000),
         max_train_rounds=100, test_rounds=20, initial_stimulus_rounds=1,
         convergence_window=3, convergence_threshold=.98,
+        model_semantics=None,
     ) -> ExperimentResult:
         seeds = resolve_seed_ids(n_seeds, seed_ids, base_seed=self.seed, default_count=N_SEEDS)
         n_seeds = len(seeds)
@@ -158,6 +160,7 @@ class ScalingLawsExperiment(ExperimentBase):
 
         metrics: Dict[str, Any] = {}
         raw_data = {"seeds": seeds, "cells": []}
+        semantic_kwargs = model_semantics_kwargs(model_semantics)
 
         # ================================================================
         # H1/H2: Convergence + Persistence vs Network Size (k=sqrt(n))
@@ -176,7 +179,7 @@ class ScalingLawsExperiment(ExperimentBase):
             persist_vals = []
 
             for s in seeds:
-                trial = run_scaling_trial(cfg, seed=s)
+                trial = run_scaling_trial(cfg, seed=s, **semantic_kwargs)
                 conv_times.append(trial["convergence_time"])
                 training_counts.append(trial["training_rounds"])
                 converged_flags.append(trial["converged"])
@@ -229,7 +232,7 @@ class ScalingLawsExperiment(ExperimentBase):
                 "base_wmax": w_max,
                 **schedule, "seed_ids": seeds, "assembly_size_rule": "floor_sqrt_population",
                 "evaluation_learning": True,
-                "primary_engine": "numpy_sparse", "area_engine": "numpy_explicit",
+                "engine": "numpy_explicit",
             },
             metrics=metrics,
             raw_data=raw_data,

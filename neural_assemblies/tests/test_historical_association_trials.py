@@ -5,6 +5,7 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+from neural_assemblies import describe_brain_model
 from research.experiments.primitives import test_association as study
 
 CASES = [json.loads(line) for line in (Path(__file__).parent / "data/historical_association_trials.jsonl").read_text().splitlines()]
@@ -48,7 +49,9 @@ def test_pre_refactor_dynamics_and_values_are_preserved(monkeypatch, expected):
     assert brain.trace == expected['trace']
     assert weights == expected['weights']
     assert result == expected['result']
-    assert (brain._engine.name, owner.name) == (expected['engine'], expected['owner'])
+    assert (expected['engine'], expected['owner']) == ('numpy_sparse', 'numpy_explicit')
+    assert brain._engine.name == owner.name == 'numpy_explicit'
+    assert owner is brain._engine
 
 
 @pytest.mark.parametrize('bidirectional', [False, True])
@@ -72,6 +75,21 @@ def test_invalid_directionality_fails_before_construction(monkeypatch, mode):
     monkeypatch.setattr(study, 'Brain', lambda **kwargs: pytest.fail('invalid direction constructed a brain'))
     with pytest.raises(ValueError, match='bidirectional'):
         study.run_association_trial(study.AssocConfig(60,6,.2,.1,20.), 1, mode)
+
+
+def test_recorded_model_mismatch_fails_before_topology(monkeypatch):
+    wrong = describe_brain_model(
+        "numpy_sparse", p=.2, seed=0, w_max=20., norm_init=False,
+    )
+    monkeypatch.setattr(
+        study.Brain, "add_area",
+        lambda *args, **kwargs: pytest.fail("semantic mismatch reached topology"),
+    )
+    with pytest.raises(ValueError, match="model_semantics mismatch"):
+        study.run_association_trial(
+            study.AssocConfig(60, 6, .2, .1, 20.), 1,
+            model_semantics=wrong,
+        )
 
 
 def test_configured_harness_consumes_explicit_inputs_and_retains_paired_values(monkeypatch, tmp_path):

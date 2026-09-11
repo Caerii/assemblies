@@ -62,6 +62,11 @@ from dataclasses import dataclass
 from typing import Dict, Any
 
 from research.experiment_config import resolve_seed_ids
+from research.experiments._explicit import (
+    explicit_brain,
+    explicit_brain_from_values,
+    model_semantics_kwargs,
+)
 from research.experiments.base import (
     reported_null_test, effect_text,
     ExperimentBase,
@@ -103,12 +108,12 @@ class ProjConfig:
 
 
 def run_convergence_trial(
-    cfg: ProjConfig, seed: int,
+    cfg: ProjConfig, seed: int, *, model_semantics=None,
 ) -> Dict[str, Any]:
     """
     Train stim+self with convergence detection, then test autonomous persistence.
     """
-    b = Brain(p=cfg.p, seed=seed, w_max=cfg.w_max, engine="numpy_sparse")
+    b = explicit_brain(Brain, cfg, seed, model_semantics)
     b.add_area("A", cfg.n, cfg.k, cfg.beta, explicit=True)
     b.add_stimulus("s", cfg.k)
 
@@ -121,12 +126,12 @@ def run_convergence_trial(
 
 
 def run_training_mode_trial(
-    cfg: ProjConfig, seed: int, mode: str,
+    cfg: ProjConfig, seed: int, mode: str, *, model_semantics=None,
 ) -> float:
     """Train in stim_self or stim_only mode, then test autonomous persistence."""
     if mode not in ("stim_self", "stim_only"):
         raise ValueError("training mode must be stim_self or stim_only")
-    b = Brain(p=cfg.p, seed=seed, w_max=cfg.w_max, engine="numpy_sparse")
+    b = explicit_brain(Brain, cfg, seed, model_semantics)
     b.add_area("A", cfg.n, cfg.k, cfg.beta, explicit=True)
     b.add_stimulus("s", cfg.k)
 
@@ -145,13 +150,13 @@ def run_training_mode_trial(
 
 
 def run_crossarea_trial(
-    cfg: ProjConfig, seed: int,
+    cfg: ProjConfig, seed: int, *, model_semantics=None,
 ) -> float:
     """A-driven regeneration while learning; B corruption is not a recovery cue.
 
     Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#historical-projection-measurement
     """
-    b = Brain(p=cfg.p, seed=seed, w_max=cfg.w_max, engine="numpy_sparse")
+    b = explicit_brain(Brain, cfg, seed, model_semantics)
     b.add_area("A", cfg.n, cfg.k, cfg.beta, explicit=True)
     b.add_area("B", cfg.n, cfg.k, cfg.beta, explicit=True)
     b.add_stimulus("s", cfg.k)
@@ -203,10 +208,12 @@ def recurrent_weight_ratio(weights, winners) -> float:
 
 def run_weight_dynamics_trial(
     n: int, k: int, p: float, beta: float, w_max: float,
-    train_rounds: int, test_rounds: int, seed: int,
+    train_rounds: int, test_rounds: int, seed: int, *, model_semantics=None,
 ) -> Dict[str, float]:
     """Measure weight ratio and persistence after T training rounds."""
-    b = Brain(p=p, seed=seed, w_max=w_max, engine="numpy_sparse")
+    b = explicit_brain_from_values(
+        Brain, p=p, seed=seed, w_max=w_max, model_semantics=model_semantics,
+    )
     b.add_area("A", n, k, beta, explicit=True)
     b.add_stimulus("s", k)
 
@@ -254,6 +261,7 @@ class ProjectionExperiment(ExperimentBase):
         convergence_window=3, convergence_threshold=.98,
         h1_sizes=(100, 200, 500, 1000, 2000, 5000),
         h3_sizes=(500, 1000, 2000), round_values=(1, 5, 10, 20, 30, 50),
+        model_semantics=None,
     ) -> ExperimentResult:
         seeds = resolve_seed_ids(n_seeds, seed_ids, base_seed=self.seed, default_count=N_SEEDS)
         n_seeds = len(seeds)
@@ -281,6 +289,7 @@ class ProjectionExperiment(ExperimentBase):
 
         metrics: Dict[str, Any] = {}
         raw_data = {"seeds": seeds, "cells": []}
+        semantic_kwargs = model_semantics_kwargs(model_semantics)
 
         # ================================================================
         # H1: Convergence + persistence vs network size (k=sqrt(n))
@@ -300,7 +309,7 @@ class ProjectionExperiment(ExperimentBase):
             persist_vals = []
 
             for s in seeds:
-                trial = run_convergence_trial(cfg, seed=s)
+                trial = run_convergence_trial(cfg, seed=s, **semantic_kwargs)
                 conv_times.append(trial["convergence_time"])
                 training_counts.append(trial["training_rounds"])
                 converged_flags.append(trial["converged"])
@@ -344,8 +353,12 @@ class ProjectionExperiment(ExperimentBase):
         stim_only_vals = []
 
         for s in seeds:
-            stim_self_vals.append(run_training_mode_trial(cfg_h2, s, "stim_self"))
-            stim_only_vals.append(run_training_mode_trial(cfg_h2, s, "stim_only"))
+            stim_self_vals.append(run_training_mode_trial(
+                cfg_h2, s, "stim_self", **semantic_kwargs,
+            ))
+            stim_only_vals.append(run_training_mode_trial(
+                cfg_h2, s, "stim_only", **semantic_kwargs,
+            ))
 
         comparison = summarize_paired(stim_self_vals, stim_only_vals, seed_ids=seeds)
         raw_data["cells"].append(dict(arm="h2", n=n, k=k,
@@ -380,7 +393,7 @@ class ProjectionExperiment(ExperimentBase):
 
             recoveries = []
             for s in seeds:
-                recoveries.append(run_crossarea_trial(cfg_h3, s))
+                recoveries.append(run_crossarea_trial(cfg_h3, s, **semantic_kwargs))
 
             row = {
                 "n": n_val, "k": k_val,
@@ -407,7 +420,8 @@ class ProjectionExperiment(ExperimentBase):
 
             for s in seeds:
                 trial = run_weight_dynamics_trial(
-                    n, k, p, beta, w_max, t_rounds, test_rounds, s
+                    n, k, p, beta, w_max, t_rounds, test_rounds, s,
+                    **semantic_kwargs,
                 )
                 wr_vals.append(trial["weight_ratio"])
                 p_vals.append(trial["persistence"])
@@ -440,7 +454,7 @@ class ProjectionExperiment(ExperimentBase):
                 "base_beta": beta, "base_wmax": w_max,
                 **schedule, "h1_sizes": list(h1_sizes), "h3_sizes": list(h3_sizes),
                 "round_values": list(round_values), "seed_ids": seeds,
-                "primary_engine": "numpy_sparse", "area_engine": "numpy_explicit",
+                "engine": "numpy_explicit",
                 "evaluation_learning": True, "weight_ratio_definition": "selected-pairs-over-all-pairs-v2",
             },
             metrics=metrics,

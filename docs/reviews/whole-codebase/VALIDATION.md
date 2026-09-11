@@ -3604,3 +3604,28 @@ refinement proof for CUDA, and mixed Brain-router/per-area execution still needs
 a profile graph. The unification's next early-error boundary is to derive actual
 constructed configurations from the record for every remaining migrated path,
 then extend the same contract to the aligner and unmigrated sequence scripts.
+
+## Historical fixed-connectome construction is direct and record-driven (2026-09-11)
+
+The six migrated historical producers now share one explicit Brain construction
+boundary. It selects `numpy_explicit`, disables normalization, and passes the
+schema-7 `default` model profile into every measured Brain. The adapter rejects a
+non-Brain execution envelope before producer construction, and each Brain rejects
+profile drift before area or stimulus registration.
+
+This simplification caught a hidden configuration mismatch immediately. The old
+`numpy_sparse` router used its default `norm_init=True`, but delegated every
+measured area to an auxiliary explicit engine that did not normalize. Directly
+selecting the effective engine while retaining the router default raised during
+construction. The protocol now states `norm_init=False`, matching the historical
+effective owner and the recorded semantic profile.
+
+The historical replay gate reports 258 passed. It compares every recorded winner
+sequence, connection-weight hash, schedule and result while also proving each
+area owner is the primary explicit engine object. A constructed sparse-profile
+negative fails before topology. The real schema-7 association replay at
+`research/results/runs/memory.historical-association/direct-explicit-schema7-seeds123-20260911/`
+uses the same registered cell and seeds1/2/3 as the schema-6 artifact. Metrics,
+raw data, success/error, scope, verdict and all non-routing producer parameters
+are exactly equal; only the redundant router/owner metadata becomes
+`engine=numpy_explicit`. The artifact remains VOID.

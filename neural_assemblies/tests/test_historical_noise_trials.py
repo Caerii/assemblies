@@ -35,7 +35,9 @@ def test_historical_trial_retains_schedule_winners_weights_and_owners(monkeypatc
     assert result == expected['result']
     assert brain.trace == expected['trace']
     assert weights == expected['weights']
-    assert (brain._engine.name, owner.name) == (expected['engine'], expected['owner'])
+    assert (expected['engine'], expected['owner']) == ('numpy_sparse', 'numpy_explicit')
+    assert brain._engine.name == owner.name == 'numpy_explicit'
+    assert owner is brain._engine
 
 
 def test_study_retains_each_seed_and_every_cell(monkeypatch, tmp_path):
@@ -54,8 +56,7 @@ def test_study_retains_each_seed_and_every_cell(monkeypatch, tmp_path):
     for cell in raw['cells']:
         expected = {'b_recovery': [.2, .3, .4], 'a_intact': [1., 1., 1.]} if cell['arm'] == 'h3' else [.2, .3, .4]
         assert cell['values'] == expected
-    assert result.parameters['primary_engine'] == 'numpy_sparse'
-    assert result.parameters['area_engine'] == 'numpy_explicit'
+    assert result.parameters['engine'] == 'numpy_explicit'
     assert result.parameters['recovery_learning'] is True
     assert result.parameters['association_reference'] == 'pre_association'
 

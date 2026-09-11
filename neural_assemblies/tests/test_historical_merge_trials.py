@@ -43,7 +43,9 @@ def test_distinct_trial_schedules_and_weights_are_preserved(monkeypatch,expected
     assert brain.trace==expected['trace']
     assert weights==expected['weights']
     assert result==expected['result']
-    assert (brain._engine.name,owner.name)==(expected['engine'],expected['owner'])
+    assert (expected['engine'],expected['owner'])==('numpy_sparse','numpy_explicit')
+    assert brain._engine.name==owner.name=='numpy_explicit'
+    assert owner is brain._engine
 
 
 def test_perfect_maximum_can_retain_only_one_disjoint_parent():

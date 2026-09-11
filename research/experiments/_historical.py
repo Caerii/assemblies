@@ -7,6 +7,7 @@ from typing import Callable
 from research.json_documents import decode_document
 from research.runner import ROOT, experiment_parser, run_experiment
 from neural_assemblies import describe_brain_model
+from neural_assemblies.core.semantics import ExecutionKind, ExecutionSemantics
 
 
 @dataclass(frozen=True)
@@ -28,9 +29,14 @@ class HistoricalStudy:
                 raise ValueError(f"{self.protocol} requires {key}={expected!r}")
         if record.get("mode") not in ("smoke", "study"):
             raise ValueError("historical study mode must be smoke or study")
+        execution = ExecutionSemantics.normalize(record.get("execution_semantics"))
+        if execution.kind is not ExecutionKind.BRAIN:
+            raise ValueError("historical studies require Brain execution semantics")
+        required_model = execution.profiles["default"].to_dict()
         producer = self.factory(seed=0, verbose=False,
                                 results_dir=ROOT / "research/results/runs" / self.protocol / record["tag"])
-        result = producer.run(seed_ids=record["seeds"], **record["parameters"])
+        result = producer.run(seed_ids=record["seeds"], model_semantics=required_model,
+                              **record["parameters"])
         return {"verdict": "VOID" if record["mode"] == "smoke" else "UNADOPTED",
                 "scope": self.scope, "result": result.to_dict()}
 
