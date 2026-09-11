@@ -58,6 +58,13 @@ def test_trial_dynamics_preserved_while_dead_weight_measurement_is_corrected(mon
         assert result["weight_ratio"] == pytest.approx(numerator / denominator)
         assert result["weight_ratio"] != 1.0
         assert result["persistence"] == expected["result"]["persistence"]
+    elif name == "convergence":
+        assert result["training_rounds"] == expected["result"]["convergence_time"]
+        assert result["persistence"] == expected["result"]["persistence"]
+        history = [row["winners"]["A"] for row in brain.trace[:result["training_rounds"]]]
+        stable = len(history) >= 4 and all(study.measure_overlap(history[-i-1], history[-i-2]) > .98 for i in range(3))
+        assert result["converged"] is stable
+        assert result["convergence_time"] == (result["training_rounds"] if stable else None)
     else:
         assert result == expected["result"]
 
@@ -112,7 +119,7 @@ def test_configured_study_consumes_grid_schedule_seeds_and_retains_raw(monkeypat
 
     def convergence(cfg, seed):
         calls.append(("h1", cfg, seed))
-        return {"convergence_time": seed + cfg.n, "persistence": seed / 10}
+        return {"convergence_time": seed + cfg.n, "training_rounds": seed + cfg.n, "converged": True, "persistence": seed / 10}
 
     def mode(cfg, seed, mode):
         calls.append((mode, cfg, seed))
@@ -176,7 +183,7 @@ def test_legacy_cli_requires_tag_and_records_quick_configuration(monkeypatch, ca
 
 def test_constant_response_and_undefined_null_are_serializable(monkeypatch, tmp_path):
     from research.json_documents import encode_document
-    monkeypatch.setattr(study, "run_convergence_trial", lambda cfg, seed: {"convergence_time": 4, "persistence": 1.})
+    monkeypatch.setattr(study, "run_convergence_trial", lambda cfg, seed: {"convergence_time": 4, "training_rounds": 4, "converged": True, "persistence": 1.})
     monkeypatch.setattr(study, "run_training_mode_trial", lambda *args: 1.)
     monkeypatch.setattr(study, "run_crossarea_trial", lambda *args: 1.)
     monkeypatch.setattr(study, "run_weight_dynamics_trial", lambda *args: {"weight_ratio": 2., "persistence": 1.})
@@ -186,3 +193,63 @@ def test_constant_response_and_undefined_null_are_serializable(monkeypatch, tmp_
     assert result.metrics["scaling_fit"]["r_squared"] is None
     assert result.metrics["convergence_vs_size"][0]["test_vs_null"]["p"] is None
     encode_document(result.to_dict())
+
+
+@pytest.mark.parametrize("final_winners,converged", [([0, 1], True), ([2, 3], False)])
+def test_final_round_convergence_is_distinct_from_timeout(monkeypatch, final_winners, converged):
+    from types import SimpleNamespace
+
+    class ScriptedBrain:
+        def __init__(self, **kwargs):
+            self.areas = {"A": SimpleNamespace(winners=np.array([], dtype=int))}
+            self.rounds = 0
+
+        def add_area(self, *args, **kwargs):
+            pass
+
+        def add_stimulus(self, *args, **kwargs):
+            pass
+
+        def project(self, stimulus, fibers):
+            self.rounds += 1
+            self.areas["A"].winners = np.array([0, 1] if self.rounds < 4 else final_winners)
+
+    monkeypatch.setattr(study, "Brain", ScriptedBrain)
+    result = study.run_convergence_trial(study.ProjConfig(4, 2, .2, .1, 20., max_train_rounds=4, test_rounds=1), 1)
+    assert result["training_rounds"] == 4
+    assert result["converged"] is converged
+    assert result["convergence_time"] == (4 if converged else None)
+
+
+@pytest.mark.parametrize("kwargs", [
+    {"convergence_window": 0}, {"convergence_window": True},
+    {"convergence_threshold": float("nan")}, {"convergence_threshold": 1.1},
+    {"convergence_threshold": True},
+])
+def test_invalid_stopping_rule_fails_before_timer(kwargs):
+    experiment = object.__new__(study.ProjectionExperiment)
+    experiment.seed = 42
+    with pytest.raises(ValueError):
+        experiment.run(**kwargs)
+
+
+def test_censored_seed_is_retained_and_blocks_scaling_fit(monkeypatch, tmp_path):
+    from research.experiments.historical_projection import parameters
+
+    def convergence(cfg, seed):
+        return {"training_rounds": 8, "converged": seed != 2,
+                "convergence_time": 8 if seed != 2 else None, "persistence": seed / 10}
+
+    monkeypatch.setattr(study, "run_convergence_trial", convergence)
+    monkeypatch.setattr(study, "run_training_mode_trial", lambda cfg, seed, mode: seed / 10)
+    monkeypatch.setattr(study, "run_crossarea_trial", lambda cfg, seed: seed / 10)
+    monkeypatch.setattr(study, "run_weight_dynamics_trial", lambda *args: {"weight_ratio": 2., "persistence": .5})
+    monkeypatch.setattr(study.stats, "linregress", lambda *args: pytest.fail("fit treated timeout as convergence"))
+    result = study.ProjectionExperiment(results_dir=tmp_path, verbose=False).run(seed_ids=[1, 2, 3], **parameters(True))
+    for cell in result.raw_data["cells"][:2]:
+        assert cell["values"]["convergence_time"] == [8, None, 8]
+        assert cell["values"]["converged"] == [True, False, True]
+        assert cell["values"]["training_rounds"] == [8, 8, 8]
+    assert result.metrics["scaling_fit"]["degenerate"] == "censored_observations"
+    assert result.metrics["scaling_fit"]["slope"] is None
+    assert result.metrics["convergence_vs_size"][0]["training_rounds"]["n"] == 3

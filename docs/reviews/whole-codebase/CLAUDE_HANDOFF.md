@@ -1323,3 +1323,12 @@ no baseline relaxation or existing t-test implementation change. Scientific stat
 remains VOID and old provenance gaps remain open. Details in VALIDATION.md.
 
 The dedicated fused/CUDA parity suite also passed 122 tests (84.41s).
+
+
+## Projection stopping records (2026-09-10)
+
+Version 3 distinguishes timeout from last-round convergence and keeps each seed's
+status/time. Censored seeds block the ordinary scaling fit. Rule window/threshold
+are recorded configuration; default trajectories and final weights are preserved.
+The similar legacy scaling helper has a different initial activation schedule and
+still requires its own migration. See VALIDATION.md#projection-convergence-stopping-2026-09-10.

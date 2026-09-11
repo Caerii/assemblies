@@ -47,3 +47,27 @@ parameters exactly matched metrics, raw_data, parameters and success under the
 canonical JSON comparison; only timestamps/duration were excluded. The run record
 and source archive validate. Verdict remains VOID, with no full-grid scientific
 adoption or claim of reconstructing older artifacts.
+
+
+## Version 3 amendment: stopping status (before execution)
+
+Version 2 above remains the record for its archived smoke. Version 3 preserves
+its projection/evaluation schedules but adds explicit convergence_window=3 and
+convergence_threshold=.98 to the resolved parameters. The window counts comparisons,
+not snapshots; the strict comparison is unchanged. Training iterations are recorded
+separately from convergence_time, which is null on timeout. Each brain retains a
+converged boolean. Reaching the criterion on the final round is still convergence.
+
+The H1 summary reports capped training work and the observed convergence fraction.
+A scaling fit is unavailable if any included brain times out: failed brains may
+not be dropped or relabeled as convergence at the cap. This conservatively refuses
+an uncensored fit; it does not estimate a censored convergence-time distribution.
+
+Acceptance: preserve all 15 source-177dbbc trial trajectories and final weight
+hashes; interpret the old H1 scalar as elapsed training, not an observed event.
+Construct final-round success and failure with identical elapsed rounds and verify
+opposite statuses. Verify a mixed censored cell retains all seeds and blocks fitting.
+After committing this amendment, execute a version-3 smoke with the same seeds/grid,
+compare it exactly to direct version-3 output, and validate source/archive/VOID.
+No change to adopted scientific claims or reconstruction of version-2 stopping
+statuses from its scalar-only record is permitted.

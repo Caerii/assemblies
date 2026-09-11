@@ -52,6 +52,8 @@ References:
 """
 
 import sys
+import math
+from numbers import Real
 from pathlib import Path
 
 project_root = Path(__file__).parent.parent.parent.parent
@@ -90,6 +92,18 @@ class ProjConfig:
     train_rounds: int = 30
     test_rounds: int = 20
     max_train_rounds: int = 100
+    convergence_window: int = 3
+    convergence_threshold: float = .98
+
+    def __post_init__(self):
+        """Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#projection-convergence-stopping"""
+        validate_round_count(self.max_train_rounds)
+        validate_round_count(self.convergence_window)
+        if (isinstance(self.convergence_threshold, bool) or
+                not isinstance(self.convergence_threshold, Real) or
+                not math.isfinite(self.convergence_threshold) or
+                not 0 <= self.convergence_threshold <= 1):
+            raise ValueError("convergence threshold must be finite and in [0, 1]")
 
 
 # -- Core trial runners -------------------------------------------------------
@@ -106,20 +120,22 @@ def run_convergence_trial(
     b.add_stimulus("s", cfg.k)
 
     winner_history = []
-    converged_at = cfg.max_train_rounds
+    converged = False
+    training_rounds = 0
 
     for r in range(cfg.max_train_rounds):
         b.project({"s": ["A"]}, {"A": ["A"]})
         winners = np.array(b.areas["A"].winners, dtype=np.uint32)
         winner_history.append(winners.copy())
+        training_rounds = r + 1
 
-        if len(winner_history) >= 4:
+        if len(winner_history) >= cfg.convergence_window + 1:
             overlaps = [
                 measure_overlap(winner_history[-i - 1], winner_history[-i - 2])
-                for i in range(3)
+                for i in range(cfg.convergence_window)
             ]
-            if all(o > 0.98 for o in overlaps):
-                converged_at = r + 1
+            if all(o > cfg.convergence_threshold for o in overlaps):
+                converged = True
                 break
 
     trained = np.array(b.areas["A"].winners, dtype=np.uint32)
@@ -130,7 +146,8 @@ def run_convergence_trial(
 
     persistence = measure_overlap(trained, np.array(b.areas["A"].winners, dtype=np.uint32))
 
-    return {"convergence_time": converged_at, "persistence": persistence}
+    return {"training_rounds": training_rounds, "converged": converged,
+            "convergence_time": training_rounds if converged else None, "persistence": persistence}
 
 
 def run_training_mode_trial(
@@ -264,6 +281,7 @@ class ProjectionExperiment(ExperimentBase):
         w_max: float = 20.0,
         n_seeds: int | None = None,
         *, seed_ids=None, train_rounds=30, test_rounds=20, max_train_rounds=100,
+        convergence_window=3, convergence_threshold=.98,
         h1_sizes=(100, 200, 500, 1000, 2000, 5000),
         h3_sizes=(500, 1000, 2000), round_values=(1, 5, 10, 20, 30, 50),
     ) -> ExperimentResult:
@@ -280,7 +298,9 @@ class ProjectionExperiment(ExperimentBase):
                 validate_round_count(value)
         if len(h1_sizes) < 2 or any(value < 2 for value in (*h1_sizes, *h3_sizes)):
             raise ValueError('scaling needs two H1 sizes; population sizes must be at least two')
-        schedule = dict(train_rounds=train_rounds, test_rounds=test_rounds, max_train_rounds=max_train_rounds)
+        schedule = dict(train_rounds=train_rounds, test_rounds=test_rounds, max_train_rounds=max_train_rounds,
+                        convergence_window=convergence_window, convergence_threshold=convergence_threshold)
+        ProjConfig(n, k, p, beta, w_max, **schedule)  # Validate stopping rule before timer/compute.
         self._start_timer()
 
         self.log("=" * 60)
@@ -305,26 +325,32 @@ class ProjectionExperiment(ExperimentBase):
             null = chance_overlap(k_val, n_val)
 
             conv_times = []
+            training_counts = []
+            converged_flags = []
             persist_vals = []
 
             for s in seeds:
                 trial = run_convergence_trial(cfg, seed=s)
-                conv_times.append(float(trial["convergence_time"]))
+                conv_times.append(trial["convergence_time"])
+                training_counts.append(trial["training_rounds"])
+                converged_flags.append(trial["converged"])
                 persist_vals.append(trial["persistence"])
 
             row = {
                 "n": n_val, "k": k_val, "k_over_n": k_val / n_val,
-                "convergence_time": summarize(conv_times),
+                "training_rounds": summarize(training_counts),
+                "convergence_fraction": summarize([float(flag) for flag in converged_flags]),
                 "persistence": summarize(persist_vals),
                 "test_vs_null": reported_null_test(persist_vals, null),
             }
             h1_results.append(row)
             raw_data["cells"].append(dict(arm="h1", n=n_val, k=k_val,
-                                           values=dict(convergence_time=conv_times, persistence=persist_vals)))
+                                           values=dict(convergence_time=conv_times, training_rounds=training_counts,
+                                                       converged=converged_flags, persistence=persist_vals)))
 
             self.log(
                 f"  n={n_val:4d}, k={k_val:2d}: "
-                f"T={row['convergence_time']['mean']:.1f}  "
+                f"training rounds={row['training_rounds']['mean']:.1f}  "
                 f"persist={row['persistence']['mean']:.3f}  "
                 f"d={effect_text(row['test_vs_null'])}"
             )
@@ -333,8 +359,13 @@ class ProjectionExperiment(ExperimentBase):
 
         # Scaling fit
         log_n = np.array([np.log10(r["n"]) for r in h1_results])
-        mean_t = np.array([r["convergence_time"]["mean"] for r in h1_results])
-        if np.ptp(mean_t) == 0:
+        mean_t = np.array([r["training_rounds"]["mean"] for r in h1_results])
+        if not all(flag for cell in raw_data["cells"] for flag in cell["values"]["converged"]):
+            metrics["scaling_fit"] = {
+                "slope": None, "intercept": None, "r_squared": None, "p_value": None,
+                "degenerate": "censored_observations", "equation": None,
+            }
+        elif np.ptp(mean_t) == 0:
             metrics["scaling_fit"] = {
                 "slope": 0., "intercept": float(mean_t[0]), "r_squared": None,
                 "p_value": None, "degenerate": "constant_response",

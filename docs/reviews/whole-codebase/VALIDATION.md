@@ -2355,3 +2355,25 @@ failed check passed in the targeted rerun. No whole-package success is claimed.
 Dedicated fused/CUDA parity suite: 122 passed, 11 warnings in 84.41s on RTX3080;
 fused extension loaded. Local logs: .cache/historical-projection-contract-gate.log
 and .cache/historical-projection-gpu-gate.log. No backend code changed.
+
+
+## Projection convergence stopping (2026-09-10)
+
+Version 3 separates elapsed training_rounds, converged and nullable convergence_time.
+The .98 strict threshold and three-comparison window are explicit configuration;
+default projection schedules remain unchanged. A success at the final allowed round
+is distinct from timeout. Every seed's status/time is retained. H1 reports capped
+training work and convergence indicators separately; any censored seed prevents an
+ordinary convergence-time scaling fit rather than being dropped or labeled an event.
+
+Constructed controls use identical four-round budgets with stable versus changing
+last snapshots. A mixed censored cell blocks linregress and retains all three seeds.
+The 15 historical replay cases still preserve schedules, activity and weight hashes;
+old convergence_time is compared only as elapsed work, with status independently
+checked against the recorded trajectory. Existing version-2 artifacts are unchanged.
+
+Scaling's legacy helper has similar stopping logic but an extra stimulus-only
+activation. It is deliberately not replaced with the projection schedule. Its
+reporting migration remains open. No backend or learning update rule changed.
+Version-3 registration amendment precedes the new smoke; no v3 smoke run yet at
+this pre-run checkpoint.

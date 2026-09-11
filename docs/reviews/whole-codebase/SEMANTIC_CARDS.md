@@ -937,3 +937,26 @@ the smoke. Its six cells match the direct path exactly; smoke is VOID, full outp
 UNADOPTED. This closes the outer configuration/raw-retention/provenance migration
 listed above for new runs, not the timeout ambiguity, frozen-readout distinction,
 old paired-test interpretation, or obsolete aggregate grid translation.
+
+
+<a id="projection-convergence-stopping"></a>
+### Projection convergence stopping (2026-09-10)
+
+Projection H1 and legacy scaling both test three consecutive strict overlaps >.98,
+but scaling has an extra initial stimulus-only activation. Neither protocol may be
+replaced with the other. This change covers projection only and leaves every
+projection call and evaluation phase intact under the default rule.
+
+Version-3 contract: training_rounds is elapsed training work, converged records
+whether the stopping rule was met, and convergence_time is null on timeout.
+Convergence on the final allowed round is true; a timeout at the same round is
+false. The window counts consecutive comparisons, requiring window+1 snapshots.
+The threshold comparison remains strict; threshold/window are explicit recorded
+configuration. Reject invalid rule values before constructing a brain.
+
+Retain each seed's stopping status and nullable convergence time. Report capped
+training rounds and the observed convergence indicator separately. Do not fit a
+convergence-time scaling regression when any seed is censored; do not drop failed
+seeds or substitute the time limit as an observed convergence event. Constant
+uncensored responses retain the prior explicit undefined-fit representation.
+This is a stopping observation during learning, not proof of asymptotic stability.
