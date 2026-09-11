@@ -2539,3 +2539,5 @@ The follow-up consolidated regression is green: 50 tests passed across engine av
 Operation contracts now distinguish ordinary schedule evidence from executable true-negative controls. All five first-class operations name a failing configuration test, and the contract validator plus semantic-card suite passes 169 tests.
 
 ERP pre-k-WTA energy now rejects partial neuron-ID to compact-index mappings as undefined with structured sizes; a focused regression covers the former silent-drop path.
+
+Next-token scaling now materializes LEX before training; the full module passes 7 tests with 1 intentional xfail. The prior failure was caused by a lazy sampled substrate, not a readout algorithm change.

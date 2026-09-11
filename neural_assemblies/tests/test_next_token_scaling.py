@@ -112,6 +112,11 @@ def _setup_scaled_model():
         b.add_stimulus(f"stim_{w}", K)
         stim_map[w] = f"stim_{w}"
 
+    # This suite measures sequence/readout behavior. A lazily sampled
+    # connectome changes as neurons are first touched and is therefore not a
+    # fixed substrate for that claim.
+    b.materialize_area("LEX")
+
     lexicon = build_next_token_model(
         b, "LEX", ALL_WORDS, stim_map, rounds=ROUNDS,
     )

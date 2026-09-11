@@ -4553,3 +4553,10 @@ The pre-k-WTA ERP adapter no longer averages a partially mapped assembly after
 silently dropping neuron IDs. It returns an undefined measurement carrying the
 entry, mapped, and vector sizes. The focused regression passes **1 test** and
 Ruff is clean.
+
+## Fixed-substrate next-token scaling (2026-09-11)
+
+The next-token scaling fixture now materializes its `LEX` area before training.
+Its ranking claim therefore uses a fixed connectome rather than a lazy sampled
+substrate whose representation changes as the vocabulary is touched. The full
+scaling module passes **7 tests with 1 intentional xfail**.
