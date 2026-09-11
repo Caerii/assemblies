@@ -58,6 +58,19 @@ def test_ordered_recall_plan_requires_lri():
         OrderedRecallPlan("A", "cue").preflight(brain)
 
 
+@pytest.mark.parametrize("stimuli", [(), ("",), ("s", 1)])
+def test_sequence_memorize_plan_rejects_malformed_stimulus_tuple(stimuli):
+    with pytest.raises(ValueError, match="stimuli"):
+        SequenceMemorizePlan(stimuli, "A")
+
+
+def test_sequence_memorize_plan_preflight_rejects_unknown_topology():
+    brain = SimpleNamespace(areas={}, stimuli={"s": object()})
+    plan = SequenceMemorizePlan(("s",), "A")
+    with pytest.raises(KeyError, match="target area"):
+        plan.preflight(brain)
+
+
 @pytest.mark.parametrize("rounds", [0, -1, True, 1.5])
 def test_projection_plan_rejects_invalid_round_count(rounds):
     with pytest.raises(ValueError, match="positive integer"):

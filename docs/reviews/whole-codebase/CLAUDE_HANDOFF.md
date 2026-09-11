@@ -2641,3 +2641,5 @@ Migrated organ-substrate, scaling-merger-forensics, and substrate-ceiling studie
 Registered ordered recall as a first-class executable operation contract. The frozen `OrderedRecallPlan` now governs the public operation through `ORDERED_RECALL_CONTRACT`, including LRI regime and a true-negative preflight test. Operation-contract tests pass (150 tests); Ruff is clean.
 
 Added `SequenceMemorizePlan` and `SEQUENCE_MEMORIZE_CONTRACT`. The sequence training API now consumes one immutable validated schedule, sharing the same contract architecture as recall and the core operators. Contract and sequence-input tests pass (161 tests); Ruff is clean.
+
+Added direct plan-level tests for sequence memorization. Malformed stimulus tuples and unknown target topology now have explicit executable rejection coverage independent of the public wrapper. Contract and sequence-input tests pass (165 tests).

@@ -4775,3 +4775,7 @@ Sequence recall is now a first-class `ORDERED_RECALL_CONTRACT` attached to `orde
 ## Sequence memorization contract registration (2026-09-11)
 
 Sequence training now has a frozen `SequenceMemorizePlan` that owns ordered input, topology, repetition, phase-ratio, and beta validation. `sequence_memorize` constructs and preflights that plan, and `SEQUENCE_MEMORIZE_CONTRACT` registers the operation alongside projection, merge, completion, and ordered recall. Contract and sequence-input tests pass **161 tests**; Ruff is clean.
+
+## Sequence plan-level true negatives (2026-09-11)
+
+Added direct tests for `SequenceMemorizePlan`: malformed stimulus tuples and unknown target topology are rejected before execution. This verifies the immutable contract independently of the wrapper and keeps the code-to-spec boundary executable. Contract and sequence-input tests pass **165 tests**.
