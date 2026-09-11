@@ -9,7 +9,6 @@ else -- and the census is repeated. Ties move; excess mass does not.
 """
 from __future__ import annotations
 
-import json
 import os
 import sys
 
@@ -114,13 +113,14 @@ def main():
           f"unchanged")
     if not (t1 or t2):
         print("  NEITHER -- mixed population; see per-organ rows")
-    path = os.path.join(_HERE, "seq_s5_bar_tie_results.json")
-    with open(path, "w") as fh:
-        json.dump({"seeds": SEEDS, "noise": NOISE,
-                   "cells": {f"{g}/{s}": r[(g, s, "tie")]
-                             for g in GROUP_NAMES for s in SEEDS},
-                   "mean_jaccard": mean_j, "count_ratio": ratio,
-                   "T1": t1, "T2": t2}, fh, indent=2)
+    from _results import write_result
+    path = write_result(
+        "sequence", "seq_s5_bar_tie_results.json",
+        {"seeds": SEEDS, "noise": NOISE,
+         "cells": {f"{g}/{s}": r[(g, s, "tie")]
+                   for g in GROUP_NAMES for s in SEEDS},
+         "mean_jaccard": mean_j, "count_ratio": ratio, "T1": t1, "T2": t2},
+    )
     print(f"\nwrote {path}")
 
 

@@ -4759,3 +4759,7 @@ The A1 step-accuracy, drift-localization, and A2 word-order diagnostics now use 
 ## Sequence stability writer migration (2026-09-11)
 
 The recurrent-ratchet and refraction-stability studies now use the shared exclusive result writer. Their multi-cell payloads and bar calculations are unchanged; storage is now canonical and finite-JSON validated. Three latent Ruff issues in the touched scripts were removed during the migration.
+
+## S5 diagnostic writer migration (2026-09-11)
+
+The S5 bar-tie, cliff-anatomy, and memory-channel diagnostics now use the shared exclusive result writer. Payloads and bar calculations are unchanged; direct overwrite-prone writes are removed. Three latent Ruff issues in cliff anatomy were also fixed during validation.

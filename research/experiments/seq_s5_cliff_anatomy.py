@@ -15,7 +15,6 @@ The competing accounts, separable by one zero-parameter prediction:
 """
 from __future__ import annotations
 
-import json
 import os
 import random
 import sys
@@ -25,7 +24,7 @@ import numpy as np
 from neural_assemblies.assembly_calculus.ops import _snap
 from neural_assemblies.diagnostics import assembly_overlap
 from neural_assemblies.programs.word_problems import (
-    GROUPS, true_trajectory, word_problem_fsm,
+    true_trajectory, word_problem_fsm,
 )
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
@@ -144,8 +143,8 @@ def worker(group_name, seed, _arm="trained"):
 def main():
     seeds = SEEDS[:int(sys.argv[1])] if len(sys.argv) > 1 else SEEDS
     print("=== anatomy of the cliff: defect set or drift? ===")
-    print(f"    same builds/seeds/words as the registered S5 study; "
-          f"readouts only\n")
+    print("    same builds/seeds/words as the registered S5 study; "
+          "readouts only\n")
 
     cells = [(g, s, "trained") for g in GROUP_NAMES for s in seeds]
     r = run_tiered(cells, worker_fn=worker)
@@ -182,9 +181,8 @@ def main():
         print(f"  {'PASS' if ok else 'FAIL'}  {name}")
     out["verdicts"] = {"C1": c1, "C2": c2, "C3": c3, "C4": c4}
 
-    path = os.path.join(_HERE, "seq_s5_cliff_anatomy_results.json")
-    with open(path, "w") as fh:
-        json.dump(out, fh, indent=2)
+    from _results import write_result
+    path = write_result("sequence", "seq_s5_cliff_anatomy_results.json", out)
     print(f"\nwrote {path}")
 
 

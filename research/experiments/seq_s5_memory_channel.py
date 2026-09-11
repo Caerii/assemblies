@@ -24,7 +24,6 @@ uses NEURON IDS via `_snap`. See [[two-index-spaces-compact-vs-neuron-id]].
 """
 from __future__ import annotations
 
-import json
 import os
 import sys
 import random
@@ -152,9 +151,8 @@ def main():
     print(f"  deviation enters at the ARC:  "
           f"{sum(v['arc_differs_from_census'] for v in live)}/{len(live)}")
 
-    path = os.path.join(_HERE, "seq_s5_memory_channel_results.json")
-    with open(path, "w") as fh:
-        json.dump(out, fh, indent=2)
+    from _results import write_result
+    path = write_result("sequence", "seq_s5_memory_channel_results.json", out)
     print(f"\nwrote {path}")
 
 
