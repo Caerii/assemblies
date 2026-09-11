@@ -401,6 +401,25 @@ def test_public_operation_carries_the_registered_contract(
         assert surface
 
 
+def test_registry_and_public_callable_cannot_drift():
+    """Every registry key must name a callable carrying that exact contract."""
+    import neural_assemblies.assembly_calculus.ops as operations
+    from neural_assemblies.assembly_calculus.attention import attend
+
+    names = {
+        "projection": "project",
+        "reciprocal_projection": "reciprocal_project",
+        "association": "associate",
+        "pattern_completion": "pattern_complete",
+    }
+    for name, contract in OPERATION_CONTRACTS.items():
+        operation = attend if name == "attention" else getattr(
+            operations, names.get(name, name),
+        )
+        assert callable(operation), name
+        assert getattr(operation, "operation_contract", None) is contract
+
+
 def test_constructed_control_node_resolves():
     for contract in OPERATION_CONTRACTS.values():
         for node in contract.constructed_controls:
