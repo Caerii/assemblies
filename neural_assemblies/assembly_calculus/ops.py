@@ -996,7 +996,7 @@ def sequence_memorize(brain, stimuli, target, rounds_per_step=10,
 
 def ordered_recall(brain, area, cue, max_steps=20,
                    known_assemblies=None, convergence_threshold=0.9,
-                   rounds_per_step=1) -> Sequence:
+                   rounds_per_step=1, *, novelty_threshold=0.3) -> Sequence:
     """Recall a memorized sequence from a cue using LRI.
 
     Activates the cue in the area, then repeatedly self-projects.
@@ -1033,6 +1033,8 @@ def ordered_recall(brain, area, cue, max_steps=20,
             any previously recalled assembly, it is considered a cycle
             and recall stops.
         rounds_per_step: Self-projection rounds per recall step (default 1).
+        novelty_threshold: Minimum overlap with a known assembly required to
+            continue when ``known_assemblies`` is provided (default 0.3).
 
     Returns:
         Sequence of Assembly snapshots in recall order.
@@ -1040,6 +1042,20 @@ def ordered_recall(brain, area, cue, max_steps=20,
     Raises:
         ValueError: If the area has ``refractory_period == 0``.
     """
+    if area not in brain.areas:
+        raise KeyError(f"ordered_recall area is unknown: {area!r}")
+    if cue not in brain.stimuli:
+        raise KeyError(f"ordered_recall cue stimulus is unknown: {cue!r}")
+    for label, value in (("max_steps", max_steps),
+                         ("rounds_per_step", rounds_per_step)):
+        if isinstance(value, bool) or not isinstance(value, Integral) or value < 1:
+            raise ValueError(f"{label} must be a positive integer")
+    for label, value in (("convergence_threshold", convergence_threshold),
+                         ("novelty_threshold", novelty_threshold)):
+        if (isinstance(value, bool) or not isinstance(value, Real)
+                or not np.isfinite(float(value)) or not 0.0 <= float(value) <= 1.0):
+            raise ValueError(f"{label} must be a finite real number in [0, 1]")
+
     area_obj = brain.areas[area]
     if area_obj.refractory_period == 0:
         raise ValueError(
@@ -1081,7 +1097,7 @@ def ordered_recall(brain, area, cue, max_steps=20,
             max_known_overlap = max(
                 overlap(current, k) for k in known_assemblies
             )
-            if max_known_overlap < 0.3:
+            if max_known_overlap < novelty_threshold:
                 break
 
         recalled.append(current)

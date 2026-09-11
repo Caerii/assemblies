@@ -4631,3 +4631,7 @@ The legacy `assembly_calculus.binding.bind` now rejects unknown area names and n
 ## Nonvacuous input-drive domains (2026-09-11)
 
 `input_drive` now rejects empty source or target collections rather than returning `{}` as if no competition had been observed. Unknown areas and unsupported metrics remain distinct admission errors. Binding diagnostic tests pass **20 tests** with Ruff clean.
+
+## Explicit ordered-recall protocol (2026-09-11)
+
+`ordered_recall` now preflights its area, cue, step budgets, cycle threshold, and novelty threshold before clearing refractory state. The previous hardcoded `0.3` novelty cutoff is now a named, validated parameter, so sequence termination is reproducible and configurable. Ordered-recall and sequence regressions pass **25 tests**.
