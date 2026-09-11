@@ -4311,3 +4311,10 @@ identity mappings while retaining the materialized count.
 
 Validation: 7 population/bridge tests passed, including the inconsistent-mode
 negative control.
+
+The index-space ratchet was then rerun after centralization. Its frozen `.w`
+baseline still counted four retired reset implementations and overstated the
+incremental parser by four reads. The baseline now reflects the live code, so
+future `.w` growth remains detectable.
+
+Validation: 8 index-space ratchet/type tests passed.

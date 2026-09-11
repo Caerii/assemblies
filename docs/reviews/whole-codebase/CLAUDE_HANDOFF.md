@@ -2514,3 +2514,7 @@ population-owner tests pass, including invalid-switch controls.
 It also rejects clearing identity mappings while retaining the materialized
 count, an inconsistent state that no protocol uses. Seven population/bridge
 tests pass.
+
+The index-space `.w` ratchet was updated after the migration: four retired
+reset implementations were removed from its baseline and incremental.py was
+lowered from five reads to one. Eight ratchet/type tests pass.
