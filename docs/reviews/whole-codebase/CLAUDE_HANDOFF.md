@@ -2623,3 +2623,5 @@ Migrated the A1 arc-transfer, drift, and limit-cycle studies to the shared `writ
 Hardened the shared result adapter against path fragments. `results_path` and `write_result` now accept only simple path components, so traversal or absolute destinations cannot escape the canonical results tree. Six writer and path tests pass; Ruff and diff checks are clean.
 
 Migrated the S5 arc clip and drift diagnostics to `write_result`, removing direct overwrite-prone JSON writes while preserving their post-hoc payloads. Ruff now passes for both touched GPU scripts and the shared adapter.
+
+Migrated the tagged `seq_tm_high_order` and `seq_s5_soft_census_hashed` studies to the shared result writer. Tagged filenames remain configurable, but writes now use exclusive canonical JSON. Both scripts compile and pass Ruff.

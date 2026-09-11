@@ -15,7 +15,6 @@ from __future__ import annotations
 
 import argparse
 import inspect
-import json
 import os
 import random
 import sys
@@ -36,7 +35,7 @@ from neural_assemblies.programs.word_problems import (                    # noqa
     GROUPS, true_trajectory, word_problem_fsm)
 from seq_s5_word_problem import (                                         # noqa: E402
     BETA, GROUP_NAMES, K, ORGAN_P, PRESENTATIONS, REFRACTED, SEEDS, sizes)
-from _results import results_path  # noqa: E402
+from _results import write_result  # noqa: E402
 
 LONGEST = 500
 LAUNCH_BYTES = 5 << 30
@@ -281,9 +280,9 @@ def main():
     print(f"  {'PASS' if v2 else 'FAIL'}  W2 first_dev == first true-path visit to "
           f"a bad pair, every organ (vacuous where none)")
     if not args.smoke:
-        path = results_path("sequence", f"seq_s5_soft_census_results_hashed{args.tag}.json")
-        with open(path, "w") as fh:
-            json.dump(out, fh, indent=1)
+        path = write_result(
+            "sequence", f"seq_s5_soft_census_results_hashed{args.tag}.json", out,
+        )
         print(f"\nwrote {path}")
 
 

@@ -4739,3 +4739,7 @@ The shared result adapter now validates both line and filename components before
 ## Post-hoc clip diagnostics use shared writes (2026-09-11)
 
 The S5 arc-clip and arc-drift diagnostics now write through the canonical result adapter. Their GPU analysis payloads are unchanged, but direct overwrite-prone `json.dump(open(..., 'w'))` calls are gone. The touched scripts also pass the repository Ruff gate after removing pre-existing import violations.
+
+## Tagged sequence writers (2026-09-11)
+
+The tagged high-order transition study and hashed S5 soft-census study now use `write_result`. Their tag remains part of the filename, while canonical JSON validation and exclusive creation are enforced centrally. This removes two active sequence overwrite paths without changing their measured payloads. Both scripts compile and pass Ruff.

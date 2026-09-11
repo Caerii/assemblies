@@ -20,7 +20,6 @@ the control on every set.
 from __future__ import annotations
 
 import argparse
-import json
 import os
 import random
 import sys
@@ -36,7 +35,7 @@ import torch                                                              # noqa
 
 from neural_assemblies.core.torch_engine._hashed_transducer import HashedTransducer  # noqa: E402
 from neural_assemblies.diagnostics import ensemble_from_values                 # noqa: E402
-from _results import results_path                                         # noqa: E402
+from _results import write_result                                         # noqa: E402
 
 N, N_ARC, K, P, ORGAN_P, BETA = 4000, 4000, 100, 0.05, 0.2, 0.10
 PRESENTATIONS, ROUNDS, GROUND_ROUNDS = 40, 3, 5
@@ -144,10 +143,11 @@ def main():
     r1 = next(x for x in rows if x["set"] == "I" and x["mode"] == "copy" and x["gain"] == 4.0)
     print(f"  TM-6 set I first perfect presentation, g=4: {sorted(x for x in r1['first_perfect'] if x)}")
     if not args.smoke:
-        path = results_path("sequence", f"seq_tm_high_order_results{args.tag}.json")
-        with open(path, "w") as fh:
-            json.dump({"seeds": seeds, "n": N, "k": K, "presentations": pres, "rows": rows,
-                       "tm4": tm4, "tm5": tm5}, fh, indent=1)
+        path = write_result(
+            "sequence", f"seq_tm_high_order_results{args.tag}.json",
+            {"seeds": seeds, "n": N, "k": K, "presentations": pres, "rows": rows,
+             "tm4": tm4, "tm5": tm5},
+        )
         print(f"  wrote {path}")
 
 
