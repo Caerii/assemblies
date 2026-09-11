@@ -1145,11 +1145,11 @@ def ordered_recall(brain, area, cue, max_steps=20,
 
         # Check for novel (unrecognised) assembly: the chain has run off the
         # end of what was memorised and the area is now settling on noise.
-        # 0.3 is a hardcoded "clearly not one of ours" floor -- far above
-        # chance overlap k/n (~0.005 at k=100, n=20000) but far below the
-        # ~0.8+ a genuine recall step produces, so the gap is wide and the
-        # exact value is not delicate.  Unlike convergence_threshold it is
-        # deliberately not exposed; no caller has needed to tune it.
+        # novelty_threshold is a deliberately separate "clearly not one of
+        # ours" floor: far above chance overlap k/n but below the ~0.8+
+        # genuine recall steps produce. Keeping it explicit makes this
+        # termination rule reproducible and lets a registered protocol tune
+        # it without editing the operator.
         if known_assemblies is not None and len(known_assemblies) > 0:
             max_known_overlap = max(
                 overlap(current, k) for k in known_assemblies
