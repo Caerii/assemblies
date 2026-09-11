@@ -17,7 +17,8 @@ hashed-backend parity, or an emergent assembly-calculus operation.
 
 ## Protocol
 
-Use the materialized NumPy engine through explicit areas. For brain seeds 201..220,
+Use the materialized NumPy engine through `Brain(engine="numpy_explicit")` and
+ordinary areas. For brain seeds 201..220,
 construct source areas A and B and three target areas, all with n=80, k=10,
 p=0.2, default beta=0.005, `norm_init=False`, and `w_max=20`. Give A and B the
 same fixed neuron-ID winners 0..9. Before traffic, copy A's complete materialized
@@ -50,7 +51,7 @@ must record its observed values rather than substitute these formulas.
 
 Run through the shared immutable runner as protocol
 `mechanism.per-fiber-plasticity`, version 1, with resolved engine
-`numpy_explicit-materialized`, a mandatory unique tag, source archive, exact
+`numpy_explicit`, a mandatory unique tag, source archive, exact
 parameters and all twenty seed identities. A three-seed smoke is VOID and cannot
 satisfy the hypothesis.
 
@@ -93,3 +94,11 @@ failed bar is retained and the claim remains provenance-gapped. Backend agreemen
 requires separate registered conformance studies; this result alone cannot extend
 to sampled NumPy, hashed CUDA or other production substrates.
 
+## Amendment 1 (before implementation or data)
+
+The initial wording said "through explicit areas" and named the engine
+`numpy_explicit-materialized`. The public materialized route is actually ordinary
+areas owned by `Brain(engine="numpy_explicit")`; `explicit=True` means an auxiliary
+engine inside another primary backend. The protocol now names the public route and
+the engine's canonical identifier `numpy_explicit`. No parameter, bar or seed
+changed.
