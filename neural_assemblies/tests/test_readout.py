@@ -111,6 +111,12 @@ class TestFuzzyReadout(unittest.TestCase):
             build_lexicon(b, "LEX", ["cat", "dog"], {"cat": "stim_cat"}, rounds=1)
         self.assertEqual(len(b.areas["LEX"].winners), 0)
 
+    def test_build_lexicon_rejects_malformed_stimulus_values(self):
+        b = _make_brain()
+        b.add_area("LEX", N, K, BETA)
+        with self.assertRaisesRegex(ValueError, "nonempty strings"):
+            build_lexicon(b, "LEX", ["cat"], {"cat": 3}, rounds=1)
+
     def test_build_lexicon_uses_explicit_area_owner(self):
         b = Brain(p=0.05, save_winners=True, seed=SEED, engine="numpy_sparse")
         b.add_stimulus("stim_cat", K)

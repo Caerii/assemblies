@@ -3244,6 +3244,10 @@ suite use it. The focused backend, CUDA-kernel and lazy-import gate reports
 24 passed and 10 correctly skipped in 12.98 seconds. Ruff, compilation and diff
 checks pass.
 
+Lexicon preflight also rejects non-string stimulus values before constructing
+an error message, keeping malformed mappings on one deterministic failure path.
+The focused readout/specification gate is now 18 passed.
+
 ## Lexicon construction preflights and routes by owner (2026-09-11)
 
 `build_lexicon` now validates the target, rounds, unique words, exact stimulus

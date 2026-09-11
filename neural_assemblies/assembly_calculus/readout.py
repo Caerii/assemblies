@@ -144,6 +144,12 @@ def build_lexicon(brain, area: str, words: List[str],
         raise ValueError("lexicon words must be unique")
     if set(stimuli_map) != set(words):
         raise ValueError("stimuli_map keys must exactly match the lexicon words")
+    invalid_stimuli = [
+        stim for stim in stimuli_map.values()
+        if not isinstance(stim, str) or not stim
+    ]
+    if invalid_stimuli:
+        raise ValueError("lexicon stimuli must be nonempty strings")
     missing = [stim for stim in stimuli_map.values() if stim not in brain.stimuli]
     if missing:
         raise ValueError(f"unknown lexicon stimuli: {sorted(set(missing))}")
