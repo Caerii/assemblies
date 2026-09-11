@@ -179,7 +179,8 @@ def run_experiment(*, script: str | Path, protocol: str, protocol_version: str,
         raise
 
 
-EXPERIMENTS = {'historical-phase': 'research.experiments.historical_phase',
+EXPERIMENTS = {'historical-association': 'research.experiments.historical_association',
+               'historical-phase': 'research.experiments.historical_phase',
                'historical-scaling': 'research.experiments.historical_scaling',
                'historical-projection': 'research.experiments.historical_projection',
                'historical-noise': 'research.experiments.historical_noise',

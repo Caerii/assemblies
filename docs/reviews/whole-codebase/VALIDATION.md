@@ -2682,3 +2682,25 @@ and tagged execution remain outstanding. This does not reproduce source-less old
 association artifacts or establish general scientific association/completion.
 
 Final trial/specification/two-ratchet check: 34 passed in 54.95s. Ruff and git diff --check pass. No GPU or whole-package validation is claimed for this CPU trial refactor.
+
+
+## Configurable association harness (2026-09-10)
+
+Replaced repeated historical reporting loops with explicit trial grids and a shared
+cell summary. Defaults, trial order and corruption RNG consumption remain; all nine
+captured trial dynamics still match. Configurations validate before timing/trials,
+explicit seed IDs are not offset, and all per-seed observations and paired differences
+are retained. Association round zero is a supported disabled-association control;
+establishment and evaluation must be positive. Engine ownership, schedules, grids,
+size rule and statistics version are recorded. The adapter uses the shared runner
+and parameter-file path; the original CLI now requires a tag.
+
+Paired statistics now apply the canonical null-test reporter to paired differences.
+Constant nonzero differences no longer fabricate p=1: they retain their observed
+mean/interval and explicit undefined test statistics. This is a reporting correction,
+not evidence of equivalence or a new scientific mechanism. The old source-less
+artifacts remain untouched. The registered smoke must compare current metrics,
+raw_data, parameters and success against direct execution before adoption of the
+migration; scientific status remains VOID/UNADOPTED.
+
+Pre-run validation: 89 tests passed in 90.77s, including trial replay, shared adapter, legacy aggregate, both ratchets and specification links. Ruff and diff checks pass. The producer is 164 lines shorter; the separate adapter adds 28 lines.

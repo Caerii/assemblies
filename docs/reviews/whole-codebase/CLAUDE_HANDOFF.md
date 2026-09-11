@@ -1452,3 +1452,12 @@ engine is pinned. Removed two obsolete automatic-engine allowances. The file is
 VALIDATION.md#historical-association-trial-semantics-2026-09-10.
 
 Final validation: 34 trial/specification/ratchet checks pass; Ruff and diff checks pass. No new GPU or scientific adoption claim.
+
+
+## Configurable association harness (2026-09-10)
+
+Association now uses the common tagged adapter and archived parameter files. Grids,
+schedules and seed IDs are explicit; raw observations and paired differences persist.
+Zero association rounds is an explicit control. Replaced misleading constant-difference
+p=1 with undefined test fields and the actual paired-difference interval. Trial replay
+fixtures stay exact. See VALIDATION.md#configurable-association-harness-2026-09-10.

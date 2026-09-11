@@ -13,17 +13,18 @@ The historical outer harness reports basic overlap, association-duration and
 network-size grids, directionality comparisons and identity overlap. Its chance
 reference k/n and paired test are descriptive; nonsignificance does not establish
 equivalence, and none of these summaries alone certifies an association mechanism.
-Seed/provenance/raw-data and runner migration remain outstanding in this harness.
+Explicit seeds, raw observations and tagged runner provenance accompany all grids.
 """
 
 import sys
 from pathlib import Path
+from numbers import Integral
 
 project_root = Path(__file__).parent.parent.parent.parent
 sys.path.insert(0, str(project_root))
 
 import numpy as np
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Dict, Any
 from research.experiments.base import (
     ExperimentBase,
@@ -31,13 +32,20 @@ from research.experiments.base import (
     measure_overlap,
     chance_overlap,
     summarize,
-    ttest_vs_null,
-    paired_ttest,
+    reported_null_test,
 )
 
 from neural_assemblies.core.brain import Brain
+from neural_assemblies.core.registration import validate_area_registration, validate_round_count
+from research.experiment_config import resolve_seed_ids, resolve_real_grid
 
 N_SEEDS = 10
+
+
+def association_round_count(value):
+    if isinstance(value, bool) or not isinstance(value, Integral) or value < 0:
+        raise ValueError("association rounds must be a nonnegative integer")
+    return int(value)
 
 
 @dataclass
@@ -51,6 +59,16 @@ class AssocConfig:
     establish_rounds: int = 30
     assoc_rounds: int = 30
     test_rounds: int = 20
+
+
+    def __post_init__(self):
+        self.n, self.k = validate_area_registration("A", self.n, self.k)
+        self.establish_rounds = validate_round_count(self.establish_rounds)
+        self.assoc_rounds = association_round_count(self.assoc_rounds)
+        self.test_rounds = validate_round_count(self.test_rounds)
+        self.p = resolve_real_grid([self.p], name="connection probability", maximum=1.)[0]
+        self.beta = resolve_real_grid([self.beta], name="plasticity")[0]
+        self.w_max = resolve_real_grid([self.w_max], name="weight clip")[0]
 
 
 # ── Core trial runner ──────────────────────────────────────────────
@@ -143,256 +161,74 @@ class AssociationExperiment(ExperimentBase):
             verbose=verbose,
         )
 
-    # Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#legacy-experiment-configuration
-    def run(
-        self,
-        n: int = 1000,
-        k: int = 100,
-        p: float = 0.05,
-        beta: float = 0.10,
-        w_max: float = 20.0,
-        n_seeds: int = N_SEEDS,
-    ) -> ExperimentResult:
+    # Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#historical-association-harness
+    def run(self, n=1000, k=100, p=.05, beta=.1, w_max=20., n_seeds=None, *,
+            seed_ids=None, establish_rounds=30, assoc_rounds=30, test_rounds=20,
+            round_values=None, h1e_sizes=None):
+        seeds = resolve_seed_ids(n_seeds, seed_ids, base_seed=self.seed, default_count=N_SEEDS)
+        cfg = AssocConfig(n, k, p, beta, w_max, establish_rounds, assoc_rounds, test_rounds)
+        rounds = [association_round_count(value) for value in
+                  ([1, 5, 10, 20, 30, 50] if round_values is None else round_values)]
+        sizes = [validate_area_registration("A", value, 1)[0] for value in
+                 ([200, 500, 1000, 2000] if h1e_sizes is None else h1e_sizes)]
+        if not rounds or len(set(rounds)) != len(rounds) or not sizes or len(set(sizes)) != len(sizes):
+            raise ValueError("association grids must be nonempty and unique")
+        training_configs = [replace(cfg, assoc_rounds=value) for value in rounds]
+        size_configs = [replace(cfg, n=value, k=int(np.sqrt(value))) for value in sizes]
         self._start_timer()
-        seeds = list(range(n_seeds))
         rng = np.random.default_rng(self.seed)
+        raw = {}
 
-        cfg = AssocConfig(n=n, k=k, p=p, beta=beta, w_max=w_max)
-        null = chance_overlap(k, n)
+        def association(label, config, bidirectional=True):
+            values = [run_association_trial(config, seed, bidirectional, rng=rng)["recovery"]
+                      for seed in seeds]
+            raw[label] = values
+            return {"recovery": summarize(values),
+                    "test_vs_null": reported_null_test(values, chance_overlap(config.k, config.n))}
 
-        self.log("=" * 60)
-        self.log("Association Experiment (Co-Stimulation Protocol)")
-        self.log(f"  n={n}, k={k}, p={p}, beta={beta}, w_max={w_max}")
-        self.log(f"  establish_rounds={cfg.establish_rounds}")
-        self.log(f"  assoc_rounds={cfg.assoc_rounds}")
-        self.log(f"  test_rounds={cfg.test_rounds}")
-        self.log(f"  null overlap (k/n) = {null:.3f}")
-        self.log(f"  n_seeds={n_seeds}")
-        self.log("=" * 60)
-
-        metrics: Dict[str, Any] = {}
-
-        # ================================================================
-        # H1: Basic association (bidirectional, 30 rounds)
-        # ================================================================
-        self.log("\n" + "=" * 60)
-        self.log("H1: Basic Association (bidirectional co-stimulation)")
-        self.log("=" * 60)
-
-        h1_recoveries = []
-        for s in seeds:
-            trial = run_association_trial(cfg, seed=self.seed + s, bidirectional=True, rng=rng)
-            h1_recoveries.append(trial["recovery"])
-
-        metrics["basic_association"] = {
-            "recovery": summarize(h1_recoveries),
-            "test_vs_null": ttest_vs_null(h1_recoveries, null),
-        }
-
-        self.log(
-            f"  Recovery: {metrics['basic_association']['recovery']['mean']:.3f}"
-            f"+/-{metrics['basic_association']['recovery']['sem']:.3f}  "
-            f"d={metrics['basic_association']['test_vs_null']['d']:.1f}"
-        )
-
-        # ================================================================
-        # H2: Recovery vs training rounds
-        # ================================================================
-        self.log("\n" + "=" * 60)
-        self.log("H2: Recovery vs Association Training Rounds")
-        self.log("=" * 60)
-
-        round_values = [1, 5, 10, 20, 30, 50]
-        h2_results = []
-
-        for n_rounds in round_values:
-            cfg_h2 = AssocConfig(n=n, k=k, p=p, beta=beta, w_max=w_max,
-                                 assoc_rounds=n_rounds)
-            recoveries = []
-            for s in seeds:
-                trial = run_association_trial(cfg_h2, seed=self.seed + s,
-                                             bidirectional=True, rng=rng)
-                recoveries.append(trial["recovery"])
-
-            row = {
-                "assoc_rounds": n_rounds,
-                "recovery": summarize(recoveries),
-                "test_vs_null": ttest_vs_null(recoveries, null),
-            }
-            h2_results.append(row)
-
-            self.log(
-                f"  rounds={n_rounds:2d}: "
-                f"{row['recovery']['mean']:.3f}+/-{row['recovery']['sem']:.3f}  "
-                f"d={row['test_vs_null']['d']:.1f}"
-            )
-
-        metrics["recovery_vs_training"] = h2_results
-
-        # ================================================================
-        # H3: Bidirectional vs unidirectional
-        # ================================================================
-        self.log("\n" + "=" * 60)
-        self.log("H3: Bidirectional vs Unidirectional Association")
-        self.log("=" * 60)
-
-        bidir_recoveries = []
-        unidir_recoveries = []
-
-        for s in seeds:
-            trial_bi = run_association_trial(cfg, seed=self.seed + s,
-                                            bidirectional=True, rng=rng)
-            bidir_recoveries.append(trial_bi["recovery"])
-
-            trial_uni = run_association_trial(cfg, seed=self.seed + s,
-                                             bidirectional=False, rng=rng)
-            unidir_recoveries.append(trial_uni["recovery"])
-
+        metrics = {"basic_association": association("basic", cfg)}
+        metrics["recovery_vs_training"] = [
+            {"assoc_rounds": item.assoc_rounds, **association(f"training/{item.assoc_rounds}", item)}
+            for item in training_configs]
+        bidirectional, unidirectional = [], []
+        for seed in seeds:
+            bidirectional.append(run_association_trial(cfg, seed, True, rng=rng)["recovery"])
+            unidirectional.append(run_association_trial(cfg, seed, False, rng=rng)["recovery"])
+        differences = [left - right for left, right in zip(bidirectional, unidirectional)]
+        raw.update(bidirectional=bidirectional, unidirectional=unidirectional, paired_difference=differences)
+        null = chance_overlap(cfg.k, cfg.n)
         metrics["directionality"] = {
-            "bidirectional": {
-                "recovery": summarize(bidir_recoveries),
-                "test_vs_null": ttest_vs_null(bidir_recoveries, null),
-            },
-            "unidirectional": {
-                "recovery": summarize(unidir_recoveries),
-                "test_vs_null": ttest_vs_null(unidir_recoveries, null),
-            },
-            "paired_test": paired_ttest(bidir_recoveries, unidir_recoveries),
+            "bidirectional": {"recovery": summarize(bidirectional), "test_vs_null": reported_null_test(bidirectional, null)},
+            "unidirectional": {"recovery": summarize(unidirectional), "test_vs_null": reported_null_test(unidirectional, null)},
+            "paired_difference": summarize(differences),
+            "paired_test": reported_null_test(differences, 0.),
         }
-
-        self.log(
-            f"  Bidirectional:  {summarize(bidir_recoveries)['mean']:.3f}"
-            f"+/-{summarize(bidir_recoveries)['sem']:.3f}"
-        )
-        self.log(
-            f"  Unidirectional: {summarize(unidir_recoveries)['mean']:.3f}"
-            f"+/-{summarize(unidir_recoveries)['sem']:.3f}"
-        )
-        paired = metrics["directionality"]["paired_test"]
-        self.log(f"  Paired t-test: t={paired['t']:.2f}, p={paired['p']:.3f}, d={paired['d']:.1f}")
-
-        # ================================================================
-        # H4: Identity preservation
-        # ================================================================
-        self.log("\n" + "=" * 60)
-        self.log("H4: Identity Preservation After Association")
-        self.log("=" * 60)
-
-        identity_a_vals = []
-        identity_b_vals = []
-
-        for s in seeds:
-            trial = run_identity_trial(cfg, seed=self.seed + s)
-            identity_a_vals.append(trial["recovery_a"])
-            identity_b_vals.append(trial["recovery_b"])
-
-        metrics["identity_preservation"] = {
-            "stimulus_recovery_A": {
-                "stats": summarize(identity_a_vals),
-                "test_vs_null": ttest_vs_null(identity_a_vals, null),
-            },
-            "stimulus_recovery_B": {
-                "stats": summarize(identity_b_vals),
-                "test_vs_null": ttest_vs_null(identity_b_vals, null),
-            },
-        }
-
-        self.log(f"  Stim→A recovery: {summarize(identity_a_vals)['mean']:.3f}")
-        self.log(f"  Stim→B recovery: {summarize(identity_b_vals)['mean']:.3f}")
-
-        # ================================================================
-        # H1 Extended: Recovery vs network size (k=sqrt(n))
-        # ================================================================
-        self.log("\n" + "=" * 60)
-        self.log("H1 Extended: Recovery vs Network Size (k=sqrt(n))")
-        self.log("=" * 60)
-
-        h1e_sizes = [200, 500, 1000, 2000]
-        h1e_results = []
-
-        for n_val in h1e_sizes:
-            k_val = int(np.sqrt(n_val))
-            cfg_h1e = AssocConfig(n=n_val, k=k_val, p=p, beta=beta, w_max=w_max)
-            null_h1e = chance_overlap(k_val, n_val)
-
-            recoveries = []
-            for s in seeds:
-                trial = run_association_trial(cfg_h1e, seed=self.seed + s,
-                                             bidirectional=True, rng=rng)
-                recoveries.append(trial["recovery"])
-
-            row = {
-                "n": n_val,
-                "k": k_val,
-                "recovery": summarize(recoveries),
-                "test_vs_null": ttest_vs_null(recoveries, null_h1e),
-            }
-            h1e_results.append(row)
-
-            self.log(
-                f"  n={n_val:4d}, k={k_val:2d}: "
-                f"{row['recovery']['mean']:.3f}+/-{row['recovery']['sem']:.3f}  "
-                f"d={row['test_vs_null']['d']:.1f}"
-            )
-
-        metrics["recovery_vs_size"] = h1e_results
-
-        duration = self._stop_timer()
-        self.log(f"\nDuration: {duration:.1f}s")
-
+        identities = [run_identity_trial(cfg, seed) for seed in seeds]
+        metrics["identity_preservation"] = {}
+        for area in ("A", "B"):
+            values = [row[f"recovery_{area.lower()}"] for row in identities]
+            raw[f"identity/{area}"] = values
+            metrics["identity_preservation"][f"stimulus_recovery_{area}"] = {
+                "stats": summarize(values), "test_vs_null": reported_null_test(values, null)}
+        metrics["recovery_vs_size"] = [
+            {"n": item.n, "k": item.k, **association(f"size/{item.n}/{item.k}", item)} for item in size_configs]
         return ExperimentResult(
             experiment_name=self.name,
-            parameters={
-                "n_seeds": n_seeds,
-                "base_n": n, "base_k": k, "base_p": p,
-                "base_beta": beta, "base_wmax": w_max,
-                "establish_rounds": cfg.establish_rounds,
-                "test_rounds": cfg.test_rounds,
-            },
-            metrics=metrics,
-            raw_data={},
-            duration_seconds=duration,
-        )
+            parameters={"n_seeds": len(seeds), "seed_ids": seeds,
+                        "base_n": cfg.n, "base_k": cfg.k, "base_p": cfg.p,
+                        "base_beta": cfg.beta, "base_wmax": cfg.w_max,
+                        "establish_rounds": cfg.establish_rounds, "assoc_rounds": cfg.assoc_rounds,
+                        "test_rounds": cfg.test_rounds, "round_values": rounds, "h1e_sizes": sizes,
+                        "engine": "numpy_sparse", "area_engine": "numpy_explicit",
+                        "readout": "learning-on A-driven regeneration; pre-association references",
+                        "size_assembly_rule": "floor(sqrt(n))", "statistics_version": "paired-difference-v1"},
+            metrics=metrics, raw_data={"seed_ids": seeds, "values": raw},
+            duration_seconds=self._stop_timer())
 
 
-def main():
-    import argparse
-
-    parser = argparse.ArgumentParser(description="Association Experiment")
-    parser.add_argument("--quick", action="store_true", help="Quick run (fewer seeds)")
-
-    args = parser.parse_args()
-
-    exp = AssociationExperiment(verbose=True)
-
-    if args.quick:
-        result = exp.run(n_seeds=5)
-        exp.save_result(result, "_quick")
-    else:
-        result = exp.run()
-        exp.save_result(result)
-
-    # ── Summary ──
-    print("\n" + "=" * 70)
-    print("ASSOCIATION EXPERIMENT SUMMARY")
-    print("=" * 70)
-
-    m = result.metrics
-    print(f"\nH1: Basic association recovery: {m['basic_association']['recovery']['mean']:.3f}")
-    print("\nH2: Recovery vs training rounds:")
-    for r in m["recovery_vs_training"]:
-        print(f"  {r['assoc_rounds']:2d} rounds: {r['recovery']['mean']:.3f}")
-    print("\nH3: Bidirectional vs unidirectional:")
-    print(f"  Bidir:  {m['directionality']['bidirectional']['recovery']['mean']:.3f}")
-    print(f"  Unidir: {m['directionality']['unidirectional']['recovery']['mean']:.3f}")
-    print("\nH4: Identity preservation:")
-    print(f"  Stim→A: {m['identity_preservation']['stimulus_recovery_A']['stats']['mean']:.3f}")
-    print(f"  Stim→B: {m['identity_preservation']['stimulus_recovery_B']['stats']['mean']:.3f}")
-    print("\nH1 Extended: Recovery vs size:")
-    for r in m["recovery_vs_size"]:
-        print(f"  n={r['n']:4d}: {r['recovery']['mean']:.3f}")
-
-    print(f"\nTotal time: {result.duration_seconds:.1f}s")
+def main(argv=None):
+    from research.experiments.historical_association import main as run
+    return run(argv)
 
 
 if __name__ == "__main__":

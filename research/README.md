@@ -234,7 +234,7 @@ of an unmigrated experiment or turn its completion into scientific adoption.
 
 ## Historical experiment parameter files
 
-The historical noise, projection, scaling and phase adapters share `--parameters`.
+The historical association, noise, projection, scaling and phase adapters share `--parameters`.
 Use a repository-relative UTF-8 JSON object containing only the protocol settings
 you want to replace. Unspecified settings come from the selected smoke/full defaults;
 arrays replace entire grids. For example, to change phase evaluation to one round:

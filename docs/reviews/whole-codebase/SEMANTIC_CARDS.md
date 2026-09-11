@@ -1127,3 +1127,24 @@ Require exact projection calls, winner sequences, final weight hashes and return
 values after refactoring. Construct disjoint B replacements and verify equal
 post-projection states; inspect evaluation weight updates to disprove frozen-readout
 interpretation. These are software semantic controls, not scientific noise evidence.
+
+
+<a id="historical-association-harness"></a>
+### Historical association harness (2026-09-10)
+
+Resolve ordered unique brain seeds and all grids before timing or trial computation.
+Explicit seed identities are not offset; implicit IDs retain base_seed+i. Expose
+establishment, association and evaluation rounds. Require positive establishment
+and evaluation counts; allow zero association rounds as a disabled-association
+control. Preserve the original default grids and trial invocation order, including
+the corruption RNG stream (even though positive-round regeneration ignores B).
+Size cells use k=floor(sqrt(n)); every derived configuration is validated first.
+
+Retain every per-seed scalar and paired bidirectional-minus-unidirectional difference
+in ordered raw_data with seed IDs. Summarize through the shared Student-t ensemble.
+A paired test is a one-sample test of these differences against zero. Constant
+differences yield undefined t/p/d and an explicit degeneracy reason, never a fake
+p=1 or significance claim. Preserve marginal summaries; no multiplicity correction,
+equivalence claim or scientific adoption is implied. Record statistical version,
+all resolved grids/schedules and actual engine ownership. The shared adapter owns
+exclusive tagged execution, archived inputs and VOID/UNADOPTED status.
