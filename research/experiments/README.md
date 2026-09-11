@@ -14,6 +14,7 @@ them.
 | Line | Script | What it measures | Typical run |
 |------|--------|------------------|-------------|
 | memory | `seq_capacity_scaling.py` | capacity M* of a recurrent area, Hebbian or refracted, with gating and readout options | `python -m research.runner capacity-scaling --tag UNIQUE --registration research/notes/memory/PREREG_refraction_memory.md --nk 4000:60 --arms B`; see registration for the full load grid |
+| memory | `historical_merge.py` | sequential parent overlaps and learning-on driven recovery; smoke VOID | `python -m research.runner historical-merge --smoke --seeds 1 2 3 --tag UNIQUE` |
 | memory | `historical_association.py` | learning-on driven regeneration and identity; explicit paired differences | `python -m research.runner historical-association --smoke --seeds 1 2 3 --tag UNIQUE` |
 | memory | `historical_phase.py` | learning-on persistence grid and descriptive sampled crossings | `python -m research.runner historical-phase --smoke --seeds 1 2 3 --tag UNIQUE` |
 | memory | `historical_scaling.py` | learning-on persistence and censored convergence times; no asymptotic classification | `python -m research.runner historical-scaling --smoke --seeds 1 2 3 --tag UNIQUE` |

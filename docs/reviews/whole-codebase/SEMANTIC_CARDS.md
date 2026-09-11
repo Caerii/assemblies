@@ -1199,3 +1199,28 @@ legacy outputs as historical observables, correct their interpretation, and spec
 any replacement metric/version before measurement. Outer grids, seeds, exclusive
 storage and raw data remain unmigrated. This card is code analysis, not adoption
 of old merge hypotheses or an empirical experiment result.
+
+
+<a id="historical-merge-harness"></a>
+### Historical merge harness (2026-09-10)
+
+Expose establishment, merge and readout schedules, ordered grids and explicit seed
+IDs. Resolve and validate every configuration before timing or trials; explicit seeds
+are not offset. Default duration/size grids and trial invocation order stay unchanged.
+merge_rounds governs each isolated-parent C training phase and the joint phase in
+the composition trial. Thus its duration sweep does not isolate joint training time.
+Positive merge rounds ensure trained reference snapshots exist; beta=0 is available
+as a learning-disabled control. Recovery readout rounds are separately configurable.
+
+Version parent-overlaps-v1 reports the old arithmetic as mean_parent_overlap and
+max_parent_overlap, preserving individual overlaps for every cell and every seed.
+Do not retain misleading composition_score/merge_quality aliases in the new report.
+The trial helper's legacy keys remain for captured historical replay. Neither renamed
+scalar becomes a scientific success condition. Chance tests remain limited to the
+old mean-overlap and recovery observables; do not add implicit hypotheses for every
+reported column. Undefined tests use the shared explicit null reporter.
+
+Store ordered raw vectors, seed IDs, full schedules/grids, engine ownership and the
+size rule k=floor(sqrt(n)). The common adapter owns tag, source/input archive and
+VOID/UNADOPTED interpretation. Descriptive historical summaries do not adopt a
+merge theorem, erase sequential training history or imply a frozen readout.

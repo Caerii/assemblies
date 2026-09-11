@@ -10,10 +10,10 @@ its maximum. Neither certifies that both parents are represented. Keep the
 individual overlaps visible, particularly when one parent dominates.
 
 The separate recovery trial skips the isolated-parent C training. After joint
-training, it reads from A for 20 rounds and then B for 20 rounds, while learning
-continues. This is not isolated frozen partial-cue completion. The historical
-outer harness and its scientific hypotheses still require migration; these
-observables alone do not establish an adopted merge result.
+training, it reads from A and then B (20 rounds each by default), while learning
+continues. This is not isolated frozen partial-cue completion. The tagged harness retains
+explicit settings and all raw overlaps. These observables alone do not establish
+an adopted merge result.
 """
 
 import sys
@@ -23,18 +23,20 @@ project_root = Path(__file__).parent.parent.parent.parent
 sys.path.insert(0, str(project_root))
 
 import numpy as np
-from dataclasses import dataclass
-from typing import Dict, Any
+from dataclasses import dataclass, replace
+from typing import Dict
 from research.experiments.base import (
     ExperimentBase,
     ExperimentResult,
     measure_overlap,
     chance_overlap,
     summarize,
-    ttest_vs_null,
+    reported_null_test,
 )
 
 from neural_assemblies.core.brain import Brain
+from neural_assemblies.core.registration import validate_area_registration, validate_round_count
+from research.experiment_config import resolve_seed_ids, resolve_real_grid
 
 N_SEEDS = 10
 
@@ -49,6 +51,16 @@ class MergeConfig:
     w_max: float
     establish_rounds: int = 30
     merge_rounds: int = 30
+    test_rounds: int = 20
+
+    def __post_init__(self):
+        self.n, self.k = validate_area_registration("A", self.n, self.k)
+        self.establish_rounds = validate_round_count(self.establish_rounds)
+        self.merge_rounds = validate_round_count(self.merge_rounds)
+        self.test_rounds = validate_round_count(self.test_rounds)
+        self.p = resolve_real_grid([self.p], name="connection probability", maximum=1.)[0]
+        self.beta = resolve_real_grid([self.beta], name="plasticity")[0]
+        self.w_max = resolve_real_grid([self.w_max], name="weight clip")[0]
 
 
 # -- Core trial runners -------------------------------------------------------
@@ -141,13 +153,13 @@ def run_recovery_trial(
     # Test: A-only recovery
     rng = np.random.default_rng(seed + 77777)
     b.areas["C"].winners = rng.choice(cfg.n, cfg.k, replace=False).tolist()
-    for _ in range(20):
+    for _ in range(cfg.test_rounds):
         b.project({"sa": ["A"]}, {"A": ["C"]})
     recovery_a = measure_overlap(c_merged, np.array(b.areas["C"].winners, dtype=np.uint32))
 
     # Test: B-only recovery
     b.areas["C"].winners = rng.choice(cfg.n, cfg.k, replace=False).tolist()
-    for _ in range(20):
+    for _ in range(cfg.test_rounds):
         b.project({"sb": ["B"]}, {"B": ["C"]})
     recovery_b = measure_overlap(c_merged, np.array(b.areas["C"].winners, dtype=np.uint32))
 
@@ -168,189 +180,61 @@ class MergeExperiment(ExperimentBase):
             verbose=verbose,
         )
 
-    # Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#legacy-experiment-configuration
-    def run(
-        self,
-        n: int = 1000,
-        k: int = 100,
-        p: float = 0.05,
-        beta: float = 0.10,
-        w_max: float = 20.0,
-        n_seeds: int = N_SEEDS,
-    ) -> ExperimentResult:
+    # Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#historical-merge-harness
+    def run(self, n=1000, k=100, p=.05, beta=.1, w_max=20., n_seeds=None, *,
+            seed_ids=None, establish_rounds=30, merge_rounds=30, test_rounds=20,
+            round_values=None, h4_sizes=None):
+        seeds = resolve_seed_ids(n_seeds, seed_ids, base_seed=self.seed, default_count=N_SEEDS)
+        cfg = MergeConfig(n,k,p,beta,w_max,establish_rounds,merge_rounds,test_rounds)
+        rounds = [validate_round_count(value) for value in
+                  ([1,5,10,20,30,50] if round_values is None else round_values)]
+        sizes = [validate_area_registration("A", value, 1)[0] for value in
+                 ([200,500,1000,2000] if h4_sizes is None else h4_sizes)]
+        if not rounds or len(set(rounds)) != len(rounds) or not sizes or len(set(sizes)) != len(sizes):
+            raise ValueError("merge grids must be nonempty and unique")
+        duration_configs = [replace(cfg, merge_rounds=value) for value in rounds]
+        size_configs = [replace(cfg, n=value, k=int(np.sqrt(value))) for value in sizes]
         self._start_timer()
-        seeds = list(range(n_seeds))
+        cells = []
 
-        cfg = MergeConfig(n=n, k=k, p=p, beta=beta, w_max=w_max)
-        null = chance_overlap(k, n)
+        def measure(arm, config, trial):
+            rows = [trial(config, seed) for seed in seeds]
+            # Rename historical arithmetic, without promoting it to a composition test.
+            names = {"merge_quality": "mean_parent_overlap", "composition_score": "max_parent_overlap"}
+            values = {names.get(key,key): [row[key] for row in rows] for key in rows[0]}
+            cells.append({"arm": arm, "n": config.n, "k": config.k,
+                          "merge_rounds": config.merge_rounds, "values": values})
+            summaries = {key: summarize(column) for key,column in values.items()}
+            return {"summaries": summaries,
+                    "tests_vs_chance": {key: reported_null_test(column, chance_overlap(config.k,config.n))
+                                        for key,column in values.items()
+                                        if key == "mean_parent_overlap" or key.startswith("recovery_from_")}}
 
-        self.log("=" * 60)
-        self.log("Merge Composition Experiment")
-        self.log(f"  n={n}, k={k}, p={p}, beta={beta}, w_max={w_max}")
-        self.log(f"  establish_rounds={cfg.establish_rounds}")
-        self.log(f"  merge_rounds={cfg.merge_rounds}")
-        self.log(f"  null overlap (k/n) = {null:.3f}")
-        self.log(f"  n_seeds={n_seeds}")
-        self.log("=" * 60)
-
-        metrics: Dict[str, Any] = {}
-
-        # ================================================================
-        # H1: Composition quality
-        # ================================================================
-        self.log("\nH1: Merge Composition Quality")
-
-        mq_vals, cs_vals = [], []
-        ab_a_vals, ab_b_vals, a_b_vals = [], [], []
-
-        for s in seeds:
-            trial = run_merge_trial(cfg, seed=self.seed + s)
-            mq_vals.append(trial["merge_quality"])
-            cs_vals.append(trial["composition_score"])
-            ab_a_vals.append(trial["overlap_cab_ca"])
-            ab_b_vals.append(trial["overlap_cab_cb"])
-            a_b_vals.append(trial["overlap_ca_cb"])
-
-        metrics["h1_composition"] = {
-            "merge_quality": summarize(mq_vals),
-            "composition_score": summarize(cs_vals),
-            "overlap_cab_ca": summarize(ab_a_vals),
-            "overlap_cab_cb": summarize(ab_b_vals),
-            "overlap_ca_cb": summarize(a_b_vals),
-            "test_quality_vs_chance": ttest_vs_null(mq_vals, null),
-        }
-
-        self.log(f"  Merge quality: {summarize(mq_vals)['mean']:.3f}+/-{summarize(mq_vals)['sem']:.3f}")
-        self.log(f"  C_AB vs C_A:   {summarize(ab_a_vals)['mean']:.3f}")
-        self.log(f"  C_AB vs C_B:   {summarize(ab_b_vals)['mean']:.3f}")
-        self.log(f"  C_A vs C_B:    {summarize(a_b_vals)['mean']:.3f} (should be ~chance)")
-
-        # ================================================================
-        # H2: Quality vs merge rounds
-        # ================================================================
-        self.log("\nH2: Merge Quality vs Training Rounds")
-
-        round_values = [1, 5, 10, 20, 30, 50]
-        h2_results = []
-
-        for n_rounds in round_values:
-            cfg_h2 = MergeConfig(n=n, k=k, p=p, beta=beta, w_max=w_max,
-                                 merge_rounds=n_rounds)
-            vals = []
-            for s in seeds:
-                trial = run_merge_trial(cfg_h2, seed=self.seed + s)
-                vals.append(trial["merge_quality"])
-
-            row = {
-                "merge_rounds": n_rounds,
-                "merge_quality": summarize(vals),
-                "test_vs_chance": ttest_vs_null(vals, null),
-            }
-            h2_results.append(row)
-
-            self.log(
-                f"  rounds={n_rounds:2d}: "
-                f"{row['merge_quality']['mean']:.3f}+/-{row['merge_quality']['sem']:.3f}  "
-                f"d={row['test_vs_chance']['d']:.1f}"
-            )
-
-        metrics["h2_quality_vs_rounds"] = h2_results
-
-        # ================================================================
-        # H3: Partial recovery
-        # ================================================================
-        self.log("\nH3: Partial Recovery (single parent recovers merge)")
-
-        rec_a_vals = []
-        rec_b_vals = []
-
-        for s in seeds:
-            trial = run_recovery_trial(cfg, seed=self.seed + s)
-            rec_a_vals.append(trial["recovery_from_A"])
-            rec_b_vals.append(trial["recovery_from_B"])
-
-        metrics["h3_recovery"] = {
-            "recovery_from_A": {
-                "stats": summarize(rec_a_vals),
-                "test_vs_chance": ttest_vs_null(rec_a_vals, null),
-            },
-            "recovery_from_B": {
-                "stats": summarize(rec_b_vals),
-                "test_vs_chance": ttest_vs_null(rec_b_vals, null),
-            },
-        }
-
-        self.log(f"  A-only recovery: {summarize(rec_a_vals)['mean']:.3f}")
-        self.log(f"  B-only recovery: {summarize(rec_b_vals)['mean']:.3f}")
-
-        # ================================================================
-        # H4: Quality vs network size (k=sqrt(n))
-        # ================================================================
-        self.log("\nH4: Merge Quality vs Network Size (k=sqrt(n))")
-
-        h4_sizes = [200, 500, 1000, 2000]
-        h4_results = []
-
-        for n_val in h4_sizes:
-            k_val = int(np.sqrt(n_val))
-            cfg_h4 = MergeConfig(n=n_val, k=k_val, p=p, beta=beta, w_max=w_max)
-            null_h4 = chance_overlap(k_val, n_val)
-
-            vals = []
-            for s in seeds:
-                trial = run_merge_trial(cfg_h4, seed=self.seed + s)
-                vals.append(trial["merge_quality"])
-
-            row = {
-                "n": n_val, "k": k_val,
-                "merge_quality": summarize(vals),
-                "test_vs_chance": ttest_vs_null(vals, null_h4),
-            }
-            h4_results.append(row)
-
-            self.log(
-                f"  n={n_val:4d}, k={k_val:2d}: "
-                f"{row['merge_quality']['mean']:.3f}  d={row['test_vs_chance']['d']:.1f}"
-            )
-
-        metrics["h4_quality_vs_size"] = h4_results
-
-        duration = self._stop_timer()
-        self.log(f"\nDuration: {duration:.1f}s")
-
+        metrics = {"parent_overlaps": measure("base",cfg,run_merge_trial)}
+        metrics["overlaps_vs_rounds"] = [
+            {"merge_rounds": item.merge_rounds, **measure("rounds",item,run_merge_trial)}
+            for item in duration_configs]
+        metrics["driven_recovery"] = measure("recovery",cfg,run_recovery_trial)
+        metrics["overlaps_vs_size"] = [
+            {"n": item.n, "k": item.k, **measure("size",item,run_merge_trial)} for item in size_configs]
         return ExperimentResult(
             experiment_name=self.name,
-            parameters={
-                "n_seeds": n_seeds,
-                "base_n": n, "base_k": k, "base_p": p,
-                "base_beta": beta, "base_wmax": w_max,
-                "establish_rounds": cfg.establish_rounds,
-                "merge_rounds": cfg.merge_rounds,
-            },
-            metrics=metrics,
-            raw_data={},
-            duration_seconds=duration,
-        )
+            parameters={"n_seeds": len(seeds), "seed_ids": seeds,
+                        "base_n": cfg.n, "base_k": cfg.k, "base_p": cfg.p,
+                        "base_beta": cfg.beta, "base_wmax": cfg.w_max,
+                        "establish_rounds": cfg.establish_rounds, "merge_rounds": cfg.merge_rounds,
+                        "test_rounds": cfg.test_rounds, "round_values": rounds, "h4_sizes": sizes,
+                        "engine": "numpy_sparse", "area_engine": "numpy_explicit",
+                        "reporting_version": "parent-overlaps-v1",
+                        "size_assembly_rule": "floor(sqrt(n))",
+                        "readout": "learning-on; separate composition and recovery training histories"},
+            metrics=metrics, raw_data={"seed_ids": seeds, "cells": cells},
+            duration_seconds=self._stop_timer())
 
 
-def main():
-    import argparse
-
-    parser = argparse.ArgumentParser(description="Merge Composition Experiment")
-    parser.add_argument("--quick", action="store_true", help="Quick run (fewer seeds)")
-
-    args = parser.parse_args()
-
-    exp = MergeExperiment(verbose=True)
-
-    if args.quick:
-        result = exp.run(n_seeds=5)
-        exp.save_result(result, "_quick")
-    else:
-        result = exp.run()
-        exp.save_result(result)
-
-    print(f"\nTotal time: {result.duration_seconds:.1f}s")
+def main(argv=None):
+    from research.experiments.historical_merge import main as run
+    return run(argv)
 
 
 if __name__ == "__main__":

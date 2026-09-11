@@ -87,3 +87,70 @@ def test_recovery_evaluation_changes_learned_weights(monkeypatch):
     study.run_recovery_trial(study.MergeConfig(60,6,.2,.1,20.,3,3),1)
     weights=brains[0].a_to_c
     assert not np.array_equal(weights[8],weights[28])
+
+
+def test_configured_harness_preserves_both_parent_vectors_and_seed_order(monkeypatch,tmp_path):
+    calls=[]
+    def merge(cfg,seed):
+        calls.append(('merge',cfg,seed))
+        return {'merge_quality':.5, 'composition_score':1., 'overlap_cab_ca':1.,
+                'overlap_cab_cb':0., 'overlap_ca_cb':seed/10}
+    def recovery(cfg,seed):
+        calls.append(('recovery',cfg,seed))
+        return {'recovery_from_A':seed/10,'recovery_from_B':0.}
+    monkeypatch.setattr(study,'run_merge_trial',merge)
+    monkeypatch.setattr(study,'run_recovery_trial',recovery)
+    result=study.MergeExperiment(seed=100,verbose=False,results_dir=tmp_path).run(
+        n=60,k=6,p=.2,seed_ids=[3,1,2],establish_rounds=2,merge_rounds=4,
+        test_rounds=5,round_values=[1,2],h4_sizes=[80])
+    assert [seed for _,_,seed in calls]==[3,1,2]*5
+    assert all(cfg.establish_rounds==2 and cfg.test_rounds==5 for _,cfg,_ in calls)
+    assert {cfg.merge_rounds for _,cfg,_ in calls}=={1,2,4}
+    assert {(cfg.n,cfg.k) for _,cfg,_ in calls}=={(60,6),(80,8)}
+    assert result.raw_data['seed_ids']==[3,1,2]
+    assert len(result.raw_data['cells'])==5
+    values=result.raw_data['cells'][0]['values']
+    assert values['mean_parent_overlap']==[.5]*3
+    assert values['max_parent_overlap']==[1.]*3
+    assert values['overlap_cab_cb']==[0.]*3
+    assert 'composition_score' not in values and 'merge_quality' not in values
+    test=result.metrics['parent_overlaps']['tests_vs_chance']['mean_parent_overlap']
+    assert test['p'] is None and test['degenerate']=='zero_variance'
+    json.dumps(result.to_dict(),allow_nan=False)
+
+
+@pytest.mark.parametrize('kwargs',[
+    {'n_seeds':2},{'seed_ids':[1,1,2]}, {'seed_ids':[1,2,-1]},
+    {'round_values':[]},{'round_values':[1,1]},{'round_values':[0]},
+    {'h4_sizes':[]},{'h4_sizes':[60,60]},{'h4_sizes':[1.5]},
+    {'test_rounds':0},{'merge_rounds':0},{'establish_rounds':False},
+    {'p':float('nan')},{'beta':-1},{'w_max':float('inf')},
+])
+def test_invalid_merge_configuration_stops_before_timer(kwargs):
+    producer=study.MergeExperiment.__new__(study.MergeExperiment)
+    producer.seed=42
+    producer._start_timer=lambda:pytest.fail('invalid configuration reached timer')
+    with pytest.raises(ValueError):
+        producer.run(**kwargs)
+
+
+def test_recovery_round_configuration_reaches_each_readout(monkeypatch):
+    brains=trace_brains(monkeypatch)
+    study.run_recovery_trial(study.MergeConfig(60,6,.2,.1,20.,3,3,test_rounds=2),1)
+    calls=brains[0].trace
+    assert len(calls)==13
+    assert all(row['args']==[{'sa':['A']},{'A':['C']}] for row in calls[9:11])
+    assert all(row['args']==[{'sb':['B']},{'B':['C']}] for row in calls[11:13])
+
+
+def test_legacy_merge_cli_requires_tag_and_forwards_to_shared_adapter(monkeypatch):
+    from research.experiments import historical_merge as adapter
+    calls=[]
+    monkeypatch.setattr(adapter,'run_experiment',lambda **kwargs:calls.append(kwargs))
+    with pytest.raises(SystemExit):
+        study.main(['--quick'])
+    assert calls==[]
+    study.main(['--quick','--tag','fixture','--seeds','9','2','7'])
+    assert calls[0]['parameters']==adapter.parameters(True)
+    assert calls[0]['seeds']==[9,2,7] and calls[0]['smoke'] is True
+    assert calls[0]['engine']=='numpy_explicit'

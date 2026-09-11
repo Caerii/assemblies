@@ -1501,3 +1501,12 @@ engine allowances. Outer harness migration remains open. See
 VALIDATION.md#historical-merge-trial-controls-2026-09-10.
 
 Final merge/aggregate/specification/ratchet validation:45 passed; Ruff and diff checks pass.
+
+
+## Configurable merge harness (2026-09-10)
+
+Merge now uses the shared tagged runner and archived configuration path. Reports
+name mean/max parent overlap directly and retain every parent vector/seed; old
+misleading report keys are absent. Six trial fixtures stay exact.29 focused tests
+pass; smoke acceptance registered before execution. See
+VALIDATION.md#configurable-merge-harness-2026-09-10.

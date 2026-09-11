@@ -2795,3 +2795,22 @@ The outer harness still needs explicit configurations/seeds/raw observations,
 strict tagged execution and versioned reporting before its evidence is adoptable.
 
 Final validation:45 passed in54.27s across merge trials, legacy aggregate, specification links and both ratchets. Ruff and diff checks pass. No new GPU or full-package gate is claimed after this CPU trial refactor.
+
+
+## Configurable merge harness (2026-09-10)
+
+Shared runner migration exposes seeds, schedules and ordered duration/size grids;
+validates before timing/trials; preserves six captured trial histories. Readout
+rounds default to20 but are configurable. Every cell retains individual parent
+overlaps, mean/max overlap and seed IDs. The new report removes misleading
+composition_score/merge_quality keys and names their unchanged arithmetic directly.
+Legacy trial outputs remain for replay. Chance tests remain only on original
+mean-overlap/recovery observables; degenerate values are explicit undefined fields.
+
+The tagged adapter inherits archived parameter-file overrides and VOID/UNADOPTED
+status. Five-cell smoke acceptance is registered before execution. This is reporting
+and protocol composition, not proof that the historical merge performs composition.
+29 focused tests pass, including exact trial replay, configuration dispatch, old CLI
+misuse, raw retention and undefined statistics. Outer default trial order remains.
+
+Pre-run validation:84 passed in52.21s across merge/shared-adapter/aggregate/specification/two-ratchet checks; Ruff and diff checks pass.
