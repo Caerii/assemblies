@@ -3459,3 +3459,19 @@ from beta-zero at the operation boundary. This checkpoint establishes early
 admission, schedule compatibility and explicit measurement effects. It does not
 adopt a new completion result or make min-normalized overlap sufficient evidence
 of reconstruction.
+
+## Full non-slow audit after operation unification (2026-09-11)
+
+The complete serial package audit at `29ab1f8` is green: 3,405 passed, 65
+skipped, 143 deselected, 7 strict expected failures, zero failures, errors or
+unexpected passes, 327 warnings, and 10 passing subtests in 1,253.25 seconds.
+It ran under `scripts/cuda-dev.cmd` with the repository Torch-extension cache.
+The seven expected failures are unchanged in identity and reason from the prior
+baseline.
+
+`package-audit-29ab1f8.json` records the exact command and environment, JUnit
+counts, every expected-failure reason, the twenty slowest nodes, and SHA-256
+hashes of the ignored raw JUnit and console log. This accepts the five-operation
+contract checkpoint as the current non-slow software baseline. It does not cover
+tests marked slow, execute the unavailable CuPy backend, adopt scientific
+evidence, or prove numerical backend refinement.

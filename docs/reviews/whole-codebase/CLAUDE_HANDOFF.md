@@ -1893,3 +1893,11 @@ source-linked contracts. The next unification work is broader than these schedul
 organ contracts, full model semantics, numerical Lean/backend refinement, the
 remaining experiment runner/evidence graph migration, index ownership and the
 cpp/legacy disposition still remain open.
+
+The full non-slow package audit at `29ab1f8` is also green: 3,405 passed, 65
+skipped, 143 deselected, 7 unchanged strict expected failures, no failures/errors
+or unexpected passes, 327 warnings and 10 passing subtests in 1,253.25 seconds.
+`package-audit-29ab1f8.json` carries the exact command, JUnit accounting, xfail
+reasons, slowest cases and hashes of both raw artifacts. This supersedes
+`02cacc9` as the non-slow software baseline; slow tests and unavailable CuPy
+execution remain outside the claim.

@@ -90,10 +90,11 @@ contract suite establishes only the behavior those controls exercise.
 | Observation and persistence | Isolated cloning/readouts; shared environment/source fingerprints; atomic checkpoint publication | The held-out classification regression and readout comparability; remaining parser state composition and old checkpoint compatibility |
 | Research workflow | Two experiment adapters, immutable tagged runs, source/environment identity and explicit evidence status | Remaining experiment migrations and capacity variants beyond the replayed control cell; complete typed evidence graph and mechanism-specific negative controls |
 
-The primary next gates are the broader CPU package audit, semantic repair of its
-failures, broader GPU coverage and historical capacity variants on the review branches. More passing contract
-tests cannot substitute for those gates. No change has been merged to dev/master
-as part of this isolated migration.
+The non-slow package audit is green at the five-operation checkpoint. The primary
+next gates are slow-suite review, broader GPU coverage and historical capacity
+variants on the review branches. More passing contract tests cannot substitute
+for those gates. No change has been merged to dev/master as part of this isolated
+migration.
 
 ## What is actually in this repository
 
