@@ -331,7 +331,7 @@ def input_drive(
     _activate_all(brain, source_assemblies)
     live = [a for a in sources if len(brain.areas[a].winners) > 0]
     if not live:
-        return {}
+        raise ValueError("input_drive requires at least one active source assembly")
 
     # probe() owns plasticity AND recruitment; record_activation is a separate
     # flag saved here. This function IS the P600 measurement (see

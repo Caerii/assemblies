@@ -4647,3 +4647,7 @@ The legacy `assembly_calculus.binding.bind` now rejects unknown area names and n
 ## Exception-safe sequence plasticity (2026-09-11)
 
 `sequence_memorize` now restores a temporary `beta_boost` in a `finally` block. A backend failure during recurrent training can no longer contaminate the Brain’s later plasticity state. The injected-failure regression plus sequence suites pass **26 tests**.
+
+## Active-source input-drive admission (2026-09-11)
+
+`input_drive` now rejects a resolved but inactive source set instead of returning an empty mapping. A missing source, an inactive source, and a measured zero drive are now distinct states. Binding diagnostic tests pass **21 tests**.

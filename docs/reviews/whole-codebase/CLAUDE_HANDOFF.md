@@ -2577,3 +2577,5 @@ The lower-level binding helper now validates resolved area names and requires an
 `learn_assembly_from_pattern` now preflights its source pattern and convergence protocol before touching either area. Shape, finiteness, activation, budget, threshold, and recurrence errors are explicit; focused pattern-learning and E2 tests pass (20 tests).
 
 Temporary sequence beta boosts are now exception-safe: recurrent projection failures restore the original target plasticity before propagating. Focused failure, contract, and sequence tests pass (26 tests).
+
+`input_drive` now requires at least one active source assembly; a resolved but inactive cue raises instead of producing an empty measurement. Focused binding diagnostics pass (21 tests).
