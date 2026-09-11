@@ -92,7 +92,6 @@ def link_context_topology(
 
     with parser.brain.frozen():
         parser._reset_context_winners()
-        parser.brain.reset_area_population_cursor(CONTEXT, preserve_mapping=True)
         for word in longest_prefix:
             if word in parser.stim_map:
                 parser._advance_context_direct(

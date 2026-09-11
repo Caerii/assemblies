@@ -322,9 +322,6 @@ class IncrementalMixin:
             self._reset_context_state()
             return
         self._reset_context_winners(preserve_mapping=True)
-        self.brain.reset_area_population_cursor(
-            CONTEXT, preserve_mapping=True, reset_count=False,
-        )
 
     def _build_circuit(self) -> FiberCircuit:
         """Build a FiberCircuit with all projection channels initially inhibited.
