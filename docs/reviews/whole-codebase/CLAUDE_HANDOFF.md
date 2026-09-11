@@ -2617,3 +2617,5 @@ The public binding operator now has one explicit schedule admission boundary: ar
 `input_drive` now distinguishes a measured zero from a missing engine observation. Every requested target must be present in the recorded score map; omitted targets raise before a result is returned. This closes a false-perfect measurement path while preserving legitimate zero scores. Metric, observation, and orthogonality tests pass (20 tests).
 
 Added a single `write_result` boundary to the legacy experiment adapter and migrated three sequence scripts. They now share exclusive creation and canonical finite JSON encoding instead of hand-written `open(..., "w")` and `json.dump` blocks. The path helper returns `Path` consistently. Writer tests cover overwrite and nonfinite-number rejection; Ruff and compilation are clean.
+
+Migrated the A1 arc-transfer, drift, and limit-cycle studies to the shared `write_result` boundary. Their scientific payloads remain unchanged while result creation is now exclusive and canonical under `research/results/sequence`. All three compile and pass Ruff.

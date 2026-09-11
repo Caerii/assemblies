@@ -22,7 +22,6 @@ Run 60 revolutions so any slow drift has room to show.
 """
 from __future__ import annotations
 
-import json
 import math
 import os
 import random
@@ -84,7 +83,7 @@ def run_constant(seed, digit):
 
 
 def main():
-    print(f"=== constant input: is it a limit cycle, in ASSEMBLY space? ===")
+    print("=== constant input: is it a limit cycle, in ASSEMBLY space? ===")
     print(f"    p={P}, {STEPS} steps, period should be 3/gcd(d,3)\n")
     print(f"  {'seed':>4s} {'digit':>5s} {'expect':>7s} {'measured':>9s} "
           f"{'labels':>7s} {'return overlap':>15s} {'cross-phase':>12s}")
@@ -110,10 +109,8 @@ def main():
         print(f"  max overlap between DIFFERENT phases of a cycle: "
               f"{max(cross_all):.3f}")
 
-    out = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                       "seq_a1_limit_cycle_results.json")
-    with open(out, "w") as fh:
-        json.dump(rows, fh, indent=2)
+    from _results import write_result
+    out = write_result("sequence", "seq_a1_limit_cycle_results.json", rows)
     print(f"\nwrote {out}")
 
 

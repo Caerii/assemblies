@@ -4727,3 +4727,7 @@ The public `ops.bind` path now validates source/target existence, `project_round
 ## Shared legacy result writer (2026-09-11)
 
 The sequence experiment adapter now exposes `write_result`, one small wrapper around the canonical JSON boundary. Three sequence scripts use it, so result creation is exclusive, deterministic, and rejects nonfinite values before filesystem mutation. `results_path` now returns a `Path`, making read/write composition type-consistent. Two writer tests cover overwrite and invalid-number true negatives; Ruff, compilation, and diff checks are clean.
+
+## Sequence result-write migration (2026-09-11)
+
+Three adjacent A1 studies (`arc_transfer`, `drift`, and `limit_cycle`) now use the shared sequence result adapter. Their payloads are unchanged, but outputs are stored under the canonical results tree and are created through the exclusive finite-JSON boundary. This removes three more direct overwrite paths and keeps the sequence evidence family composable.

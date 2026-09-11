@@ -27,7 +27,6 @@ it is a property of the winner selection, not of the architecture.
 """
 from __future__ import annotations
 
-import json
 import os
 import sys
 
@@ -132,11 +131,10 @@ def main():
         print(f"             at m=3 (input {inp[SWAPS.index(3)]:.3f}, "
               f"roughly what step 2 delivers): arc overlap {at3:.3f}")
 
-    out = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                       "seq_a1_arc_transfer_results.json")
-    with open(out, "w") as fh:
-        json.dump({"swaps": list(SWAPS), "input_overlap": inp.tolist(),
-                   "ours": mine.tolist(), "reference": refs.tolist()}, fh, indent=2)
+    from _results import write_result
+    out = write_result("sequence", "seq_a1_arc_transfer_results.json",
+                       {"swaps": list(SWAPS), "input_overlap": inp.tolist(),
+                        "ours": mine.tolist(), "reference": refs.tolist()})
     print(f"\nwrote {out}")
 
 
