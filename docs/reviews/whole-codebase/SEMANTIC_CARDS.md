@@ -303,6 +303,27 @@ Code: `word_capacity_protocol.py:WordCapacityProtocol`,
   observations. These controls distinguish a live parameter from recorded
   decoration.
 
+<a id="contract-word-capacity-ladder"></a>
+
+## A3: word-capacity FEAT ladder
+
+Code: `word_capacity_ladder_run.py`; shared execution and measurement are the A2
+protocol and A aligner above. Registration:
+`PREREG_word_capacity.md#part-1----the-feat-ladder`.
+
+- **Domain:** only registered lexical cells A and C, an ordered subset of the six
+  registered FEAT rungs, and a protocol-declared vocabulary grid. The first rung
+  and `feature_area` must agree. Protocol 3.3 fixes every other A2 field.
+- **Execution:** each `(cell, FEAT rung)` becomes its own immutable A2 selection;
+  the scheduled backend runs one independently generated corpus per seed. New
+  studies require twenty seeds. Historical ten-seed replays must be smoke/VOID.
+- **Observation:** output contains every per-seed curve and the corresponding
+  interpolated V* ensemble and censor count. It does not silently convert the
+  historical F1/F2 interpretation into a newly adopted verdict.
+- **Controls:** cell B, unknown/reordered/duplicate rungs, a mismatched first
+  rung, fixed-constant drift and the old direct `ladder()` entry all fail before
+  CUDA. The A/1000x50 migration cell must reproduce its 70 committed values.
+
 ## Consequences for the architecture
 
 The shared units are immutable model semantics, executable schedules, explicit

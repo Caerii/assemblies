@@ -156,6 +156,7 @@ class WordCapacityProtocol:
         self, *, cells: tuple[str, ...] | None = None,
         vocabulary_sizes: tuple[int, ...] | None = None,
         feature_area: tuple[int, int] | None = None,
+        feature_ladder: tuple[tuple[int, int], ...] | None = None,
     ) -> WordCapacityProtocol:
         """Return a validated protocol selection without mutating the base."""
         return replace(
@@ -164,6 +165,8 @@ class WordCapacityProtocol:
             vocabulary_sizes=(self.vocabulary_sizes if vocabulary_sizes is None
                               else vocabulary_sizes),
             feature_area=self.feature_area if feature_area is None else feature_area,
+            feature_ladder=(self.feature_ladder if feature_ladder is None
+                            else feature_ladder),
         )
 
     def to_parameters(self) -> dict:

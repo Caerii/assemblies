@@ -2121,3 +2121,22 @@ seeds, missing per-seed values and nonfinite accuracies before statistics.
 The final gate is 151 combined CPU contract/evidence/specification tests and 8
 real CUDA aligner conformance tests. Unknown engines and cells outside the
 selected protocol now raise at the public execution boundary.
+
+## FEAT-ladder runner and historical rung replay (2026-09-11)
+
+Part 1 now has `word_capacity_ladder_run.py`, a separate schema-8 protocol rather
+than a flag on Part 2. It accepts cells A/C and ordered registered FEAT rungs,
+emits per-rung curves and ceiling ensembles, and leaves F1/F2 UNADOPTED pending
+review. Study mode defaults to twenty seeds. The old direct `ladder()` call
+raises and points to the runner.
+
+The ten-seed A/1000x50 replay at
+`research/results/runs/aligner.word-capacity-ladder/protocol33-a-1000x50-replay-20260911/`
+matches all 70 historical observations exactly and recomputes 51.895 +/- 11.498
+with no censoring. It validates cleanly and is expressly VOID because it is a
+migration replay below the current twenty-seed substrate rule. The A3 card links
+code, protocol, observation and controls.
+
+The combined CPU gate is 158 passed; Ruff, whitespace and schema-8 artifact
+validation are clean. The previously run aligner CUDA conformance gate remains 8
+passed, and this rung replay itself executed on scheduled CUDA.

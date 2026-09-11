@@ -391,25 +391,11 @@ def capacity_report(results, seeds, threshold=None, *, protocol=REGISTERED_PROTO
 
 # ---------------------------------------------------------------------------
 
-def ladder(cells, seeds, vs, *, protocol=REGISTERED_PROTOCOL):
-    """Amendment 3, Part 1: V* of each cell along the FEAT ladder. F1 and F2
-    are judged on the printed V* ensembles; the curves are saved."""
-    print("\n=== FEAT LADDER (PREREG_word_capacity.md, Amendment 3, Part 1) ===")
-    out = {}
-    for name in cells:
-        cell = protocol.cell(name)
-        n, k = cell.n, cell.k
-        for feat in protocol.feature_ladder:
-            selected = protocol.select(cells=(name,), vocabulary_sizes=tuple(vs),
-                                       feature_area=feat)
-            curve = run_cell_scheduled(
-                name, seeds, vs, feat=feat, protocol=selected,
-            )
-            stars, c = ceilings(curve, seeds, protocol=selected)
-            e = ensemble_from_values(stars, label=f"{name} n/k={n // k} FEAT {feat[0]}x{feat[1]} V*")
-            print(f"  {e}   censored {c}/{len(seeds)}", flush=True)
-            out[f"{name}:{feat[0]}x{feat[1]}"] = {str(V): a for V, a in curve.items()}
-    return out
+def ladder(*_args, **_kwargs):
+    """Reject the former unrecorded FEAT-ladder execution path."""
+    raise RuntimeError(
+        "use `python -m research.experiments.word_capacity_ladder_run --tag UNIQUE`",
+    )
 
 
 def judge(results, seeds, *, protocol=REGISTERED_PROTOCOL):

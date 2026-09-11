@@ -30,6 +30,7 @@ them.
 | sequence | `seq_a3_transducer.py --engine hashed` | the induced-state transducer at width (`--strength` for Amendment 2) | ~45 min |
 | sequence | `seq_a3_oracle_ceiling.py` | the corpus's oracle-state ceiling, computed | seconds |
 | aligner | `word_capacity_run.py` | word capacity of the cross-situational learner, with schema-8 alignment semantics | `python -m research.experiments.word_capacity_run --tag UNIQUE` (registered 20 seeds by default); add `--smoke --seeds 42 1 2` only for a VOID API check |
+| aligner | `word_capacity_ladder_run.py` | FEAT-size ladder for cells A and C; per-rung curves and ceilings, without re-adopting F1/F2 | `python -m research.experiments.word_capacity_ladder_run --tag UNIQUE` (20 seeds by current substrate rule) |
 
 The numpy-era scripts these supersede (`seq_a1_horizon.py`,
 `seq_s5_soft_census.py`, `seq_s5_word_problem.py`, ...) remain runnable and

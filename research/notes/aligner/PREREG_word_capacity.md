@@ -318,3 +318,18 @@ follow-up artifact at
 [`word-capacity-protocol33-cell-a-replay-20260911`](../../results/runs/aligner.word-capacity/word-capacity-protocol33-cell-a-replay-20260911/results.json)
 again matches all 140 original cell-A accuracy values exactly and recomputes the
 same 73.826 ceiling with one censored seed. It too is a VOID migration check.
+
+The Part-1 ladder now has its own maintained entry point:
+
+```bash
+python -m research.experiments.word_capacity_ladder_run --tag UNIQUE
+```
+
+It defaults to cells A/C, the six registered FEAT rungs, the full vocabulary
+grid and twenty seeds under the current hashed-substrate rule. Its output is
+UNADOPTED until F1/F2 are separately reviewed. The migration artifact at
+[`protocol33-a-1000x50-replay-20260911`](../../results/runs/aligner.word-capacity-ladder/protocol33-a-1000x50-replay-20260911/results.json)
+uses the historical ten seeds for only A at FEAT 1000 x 50. All 70 accuracy
+values exactly match `word_capacity_ladder.json`, and the recomputed ceiling is
+51.895 +/- 11.498 with no censoring. It is VOID software evidence. The former
+direct `ladder()` path now raises and names the maintained runner.

@@ -3735,3 +3735,23 @@ methodology tests pass. The real hashed/scheduled CUDA conformance gate is 8
 passed with one pre-existing float32 overflow warning. Unknown engines and cells
 outside the selected protocol have explicit negative tests and fail before a
 backend is imported.
+
+## FEAT-ladder execution is separately governed (2026-09-11)
+
+`word_capacity_ladder_run.py` now owns Part 1 rather than overloading the Part-2
+runner. Its protocol admits only cells A/C and ordered registered FEAT rungs,
+requires `feature_area` to name the first rung, fixes the remaining 3.3 fields,
+and emits per-rung curves, Student-t ceiling ensembles and censor counts. The old
+direct `word_capacity.ladder()` entry raises with the maintained command.
+
+The default study uses twenty seeds and remains UNADOPTED pending an F1/F2
+review. The VOID migration artifact at
+`research/results/runs/aligner.word-capacity-ladder/protocol33-a-1000x50-replay-20260911/`
+uses the historical ten seeds for A/1000x50. All 70 observations match
+`word_capacity_ladder.json` exactly; V* recomputes as 51.895308190858266 +/-
+11.498086467001725 with no censored seed. The artifact validates under schema 8
+and is linked from the registration and A3 semantic card.
+
+The combined word-capacity, ladder, runner, execution-semantics, evidence,
+specification and methodology gate is 158 passed. Ruff and whitespace checks
+are clean.
