@@ -26,6 +26,8 @@ def test_source_binding_plan_is_immutable_and_validates_topology():
         SourceBindingPlan((), "DST")
     with pytest.raises(KeyError, match="unknown"):
         plan.preflight(_brain())
+    with pytest.raises(ValueError, match="distinct"):
+        SourceBindingPlan(("SRC",), "SRC")
 
 
 @pytest.mark.parametrize("rounds", [0, -1, 1.5, True])

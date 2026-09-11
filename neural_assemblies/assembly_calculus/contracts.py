@@ -445,6 +445,8 @@ class SourceBindingPlan:
             raise ValueError("source binding teachers must be nonempty names")
         if len(set(self.teachers)) != len(self.teachers):
             raise ValueError("source binding teachers must be distinct")
+        if self.target_area in self.sources or self.target_area in self.teachers:
+            raise ValueError("source binding target must be distinct from sources and teachers")
         object.__setattr__(self, "rounds", _positive_rounds(self.rounds))
 
     def preflight(self, brain) -> None:
