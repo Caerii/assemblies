@@ -528,6 +528,10 @@ _RESULTS: List[Result] = [
             relation="all-greater", minimum_effect=0.5,
             mechanism="refracted memory versus paired Hebbian control at M=128",
         ),),
+        sensitivity_gap="The paired A7 check covers the central R1 capacity "
+                        "contrast; the masked-vs-net veto, convergence gate, "
+                        "strength plateau, and cross-engine mirror still lack "
+                        "retained paired sensitivity checks.",
         claim="A recurrent k-WTA area refracted at HALF beta and read with the "
               "refraction bias MASKED holds ~25x the Hebbian ceiling: at n/k = 67 "
               "M* ~ 1600-2200 stored assemblies against 64-89 for the control, "
@@ -1172,8 +1176,6 @@ def evidence_reference_errors(root: str) -> List[str]:
         if (result.status == Status.MEASURED
                 and not result.sensitivity_checks and not result.sensitivity_gap):
             errors.append(f"{result.id}: no retained sensitivity check or explicit gap")
-        if result.sensitivity_checks and result.sensitivity_gap:
-            errors.append(f"{result.id}: sensitivity check and gap are mutually exclusive")
         for ref in result.evidence_refs:
             normalized = os.path.normpath(ref.path).replace("\\", "/")
             target = os.path.abspath(os.path.join(root, ref.path))

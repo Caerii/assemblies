@@ -1947,8 +1947,9 @@ raise at this boundary. Historical missing statuses are not inferred or rewritte
 <a id="contract-result-sensitivity"></a>
 ### Registered result sensitivity
 
-A MEASURED Result carries exactly one of retained sensitivity checks or a specific
-sensitivity gap. Each check names a repository-relative JSON artifact already
+A MEASURED Result carries at least one retained sensitivity check or a specific
+sensitivity gap. They may coexist when a composite claim has verified and uncovered
+facets. Each check names a repository-relative JSON artifact already
 present as a typed artifact evidence edge, an explicit unique sample-identity
 vector, treatment and control scalar vectors, a directional relation and a finite
 nonnegative minimum effect. All three vectors are nonempty and equal-length.

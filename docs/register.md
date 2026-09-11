@@ -318,6 +318,8 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 **Mechanism sensitivity.**
 - refracted memory versus paired Hebbian control at M=128: `observations/conditions/refracted/cells/B~14000~160/checkpoints/128/rank1` all-greater `observations/conditions/control/cells/B~14000~160/checkpoints/128/rank1` by at least 0.5, retained in [research/results/runs/memory.capacity-scaling/refraction-paired-sensitivity-20260911/results.json](../research/results/runs/memory.capacity-scaling/refraction-paired-sensitivity-20260911/results.json) and paired by `run/seeds`.
 
+**Sensitivity gap.** The paired A7 check covers the central R1 capacity contrast; the masked-vs-net veto, convergence gate, strength plateau, and cross-engine mirror still lack retained paired sensitivity checks.
+
 **Caveat.** Found by re-measuring PREREG_refraction_capacity.md after the hashed selector's sign defect (1b475fc) -- its Amendment 1 ('spends the substrate') was that defect. The n/k law was counted as holding at n/k = 133 while both cells were censored; resolved, they disagree by 0.68 and the k = 30 one is out of regime -- k p >= 3 ln n is a precondition, not a footnote. Three ratios do not fix an exponent that is falling (2.1 -> 1.8). The multiplier is at 0.5 beta; 0.7 beta converges only given T = 16 and holds ~185 at n/k = 67, but strength is otherwise a plateau whose lower edge (below 0.3 beta) is unmeasured. The gate is two in-regime cells (n/k = 67, 133); n/k = 33 and out of regime are unmeasured, and the gated ceiling's doubling exponent (1.71) may keep falling.
 
 ## REFRACTION-CANCELS-CONVERGENCE

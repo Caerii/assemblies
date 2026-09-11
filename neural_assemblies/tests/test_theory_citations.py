@@ -193,6 +193,15 @@ class TestTheoryCitations(unittest.TestCase):
         self.assertTrue(any("minimum retained effect is 0" in error
                             for error in errors), errors)
 
+    def test_composite_result_retains_checked_and_uncovered_facets(self):
+        result = theory.cite("REFRACTION-ANTI-MERGING")
+        self.assertTrue(result.sensitivity_checks)
+        self.assertIn("masked-vs-net veto", result.sensitivity_gap)
+        self.assertFalse(any(
+            "no retained sensitivity check or explicit gap" in error
+            for error in theory.evidence_reference_errors(REPO)
+        ))
+
 
 if __name__ == "__main__":
     unittest.main()

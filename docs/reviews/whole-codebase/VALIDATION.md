@@ -3802,6 +3802,9 @@ legacy figure artifacts. The control ceiling is 83.41525726478883 and the
 refracted ceiling is 1961.400398770613. At M=128 every paired refracted rank-1
 score exceeds control by at least 0.96875, passing the frozen 0.50 sensitivity
 bar. Replacing treatment with control fails the registered true-negative test.
+The composite register entry also retains explicit gaps for the masked/net veto,
+convergence gate, strength plateau and cross-engine mirror; one live contrast does
+not silently certify every sentence in the entry.
 
 This revealed that the registration's 1977.6 value was unsupported by its
 retained curve. The curve, legacy figure aggregate and exact rerun all yield

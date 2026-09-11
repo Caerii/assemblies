@@ -2185,6 +2185,8 @@ The comparator checks both historical artifacts and reports 2,090 matching
 scalars. At M=128 the minimum per-seed rank-1 difference is 0.96875 against the
 preregistered 0.50 sensitivity bar. The register reads those raw vectors by
 explicit seed identity and its constructed treatment-equals-control case fails.
+The entry keeps named gaps for its other mechanism facets, because check/gap
+coverage is additive for composite results rather than mutually exclusive.
 
 The rerun caught a real documentation error. Retained data and both computations
 give M*=1961.400398770613, while prose said 1977.6. The corrected multiplier is
