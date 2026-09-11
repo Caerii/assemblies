@@ -450,10 +450,7 @@ def calibrate_erp_thresholds(
             separation[f"{name}_auc"] = sep.auc
             separation[f"{name}_span"] = sep.span
 
-    parser._erp_thresholds = thresholds
-    parser._erp_baseline = baseline
-
-    return ErpCalibrationReport(
+    report = ErpCalibrationReport(
         readiness=readiness,
         baseline=baseline,
         thresholds=thresholds,
@@ -462,6 +459,13 @@ def calibrate_erp_thresholds(
         separation=separation,
         tuned=readiness.p600_ready,
     )
+    # Cache the complete observation, not only thresholds.  Reconstructing a
+    # report from thresholds made the second caller silently lose samples,
+    # separation statistics, and by-label counts.
+    parser._erp_thresholds = thresholds
+    parser._erp_baseline = baseline
+    parser._erp_report = report
+    return report
 
 
 def ensure_parser_erp_calibration(
@@ -475,6 +479,9 @@ def ensure_parser_erp_calibration(
         from ..sweep import erp_fast_calibration_enabled
         fast = erp_fast_calibration_enabled()
     if not force and hasattr(parser, "_erp_thresholds"):
+        cached = getattr(parser, "_erp_report", None)
+        if isinstance(cached, ErpCalibrationReport):
+            return cached
         th = parser._erp_thresholds
         if isinstance(th, ErpThresholds) and th.source == "empirical":
             return ErpCalibrationReport(

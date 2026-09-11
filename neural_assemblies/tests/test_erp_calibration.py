@@ -49,6 +49,7 @@ os.environ["TRAIN_PROGRESS"] = "0"
 
 from neural_assemblies.assembly_calculus.emergent.evaluation import (
     calibrate_erp_thresholds,
+    ensure_parser_erp_calibration,
 )
 
 N, K = 3000, 30
@@ -90,6 +91,22 @@ def test_calibration_observes_frames_once(monkeypatch):
 
 
 class TestErpCalibration:
+    def test_cached_calibration_preserves_full_report(self):
+        """A cached calibration must not discard its evidence payload."""
+        from neural_assemblies.assembly_calculus.emergent.evaluation.erp.calibration import (
+            ErpCalibrationReport,
+        )
+
+        cached = ErpCalibrationReport(
+            readiness=SimpleNamespace(),
+            baseline=SimpleNamespace(),
+            thresholds=SimpleNamespace(source="empirical"),
+            samples=["evidence"],
+            separation={"p600_auc": 0.75},
+        )
+        parser = SimpleNamespace(_erp_report=cached, _erp_thresholds=cached.thresholds)
+        assert ensure_parser_erp_calibration(parser) is cached
+
     # These tests all mutate their parser (calibration writes thresholds), so
     # they take independent forks rather than the shared cached object. The
     # underlying curriculum training is still paid once per session.

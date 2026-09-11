@@ -4351,3 +4351,12 @@ preserved as a scientific diagnostic: the sampled SENTENCES calibration for
 seed 42 produced `p600_auc = 0.000`, below the registered above-chance bar.
 No threshold was weakened to hide this inversion; the result requires a
 materialized/fixed-engine replay or an explicit amendment before adoption.
+
+## ERP cache evidence preservation (2026-09-11)
+
+`ensure_parser_erp_calibration` previously rebuilt a cached result from only
+thresholds and baseline, silently discarding samples, per-label counts, and
+separation statistics. It now caches and returns the complete
+`ErpCalibrationReport`; a focused regression test proves the evidence object is
+preserved by identity. The sampled-engine ERP inversion remains an independent
+open scientific failure.
