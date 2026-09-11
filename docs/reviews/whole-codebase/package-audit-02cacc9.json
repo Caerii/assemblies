@@ -1,0 +1,160 @@
+{
+  "commit": "02cacc9",
+  "scope": "Full non-slow package audit after reviewed package lint repair and centralized CuPy capability admission; serial execution with prepared Visual Studio/CUDA toolchain; not the slow suite or scientific adoption",
+  "command": ".venv/Scripts/python.exe -X utf8 -u -m pytest neural_assemblies/tests -q -m \"not slow\" -o addopts= --maxfail=0 --junitxml=.cache/full-audit-02cacc9.xml --basetemp=.cache/full-audit-02cacc9",
+  "environment": {
+    "cuda_setup": "scripts/cuda-dev.cmd",
+    "torch_extensions_dir": ".cache/torch-extensions-vs2022",
+    "uv_no_sync": true
+  },
+  "exit_code": 0,
+  "summary": {
+    "passed": 3256,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 65,
+    "deselected": 143,
+    "xfailed": 7,
+    "xpassed": 0,
+    "warnings": 318,
+    "subtests_passed": 10,
+    "seconds": 2166.44
+  },
+  "junit": {
+    "tests": 3338,
+    "failures": 0,
+    "errors": 0,
+    "skipped_including_xfail": 72,
+    "seconds": 2166.232
+  },
+  "failures": [],
+  "unexpected_passes": [],
+  "expected_failures": [
+    {
+      "nodeid": "neural_assemblies/tests/test_emergent_parser.py::TestGeneralization::test_combined_cue_generalization_remains_open",
+      "seconds": 0.51,
+      "reason": "Combined cue remains an open readout failure: the untrained phon input overwhelms useful grounding for bird/finds. If this passes, review the mechanism and remove the marker instead of silently accepting XPASS."
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_erp_metric_range.py::TestRawQuantityIsSaturated::test_raw_p600_uses_a_reasonable_fraction_of_its_range",
+      "seconds": 7.283,
+      "reason": "KNOWN DEFECT, pinned deliberately: raw p600 uses ~0.7% of its range ([0.9879, 0.9953]) in every condition, grammatical included. P600 is 1 - normalized_energy, so the role area receives ~1% of its normalizing scale throughout. Not fixed by making the parse read-only -- both arms sit at ~0.99. See research/notes/language/erp_metric_is_clipped.md"
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_literature_golden.py::TestNemo2025FsmMod3Golden::test_mod3_digit_sum_fsm",
+      "seconds": 2.134,
+      "reason": "A1: the FSM decides 5/10 seeds (4/10 with a correct trajectory). Single transitions are perfect 330/330; the state assembly drifts along a sequence. Strict, so this fires and forces the golden to be re-recorded once drift is fixed."
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_materialization_semantics.py::TestInvariantUnderProbes::test_frozen_probe_holds_the_invariant",
+      "seconds": 0.016,
+      "reason": "KNOWN DEFECT, pinned deliberately: frozen() stops plasticity but NOT recruitment, so a probe under it grows the area and desyncs the self fiber. Use read_only() for reads. If this XPASSes, frozen() changed and every probe written against it must be re-read."
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_mod3_fsm.py::TestMod3Fsm::test_demo_accepts_divisible_by_three",
+      "seconds": 2.152,
+      "reason": "A1: the FSM decides 5/10 seeds (4/10 with a correct trajectory); single transitions pass but state drifts along a sequence"
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_parse_errors_live.py::TestKnownGap::test_the_circuit_declares_a_route_from_a_noun_into_PP",
+      "seconds": 0.002,
+      "reason": "KNOWN GAP, pinned deliberately. The PP guard stops a noun after a preposition being FLAGGED, but the circuit declares no `core -> PP` fiber, so the noun cannot bind into PP either. Suppressing a false alarm is not the same as routing the word, and only the first is done. Fixing it means adding core->PP fibers and PP-aware targeting, which changes every prepositional parse."
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_parse_idempotence.py::TestParseIsNotIdempotent::test_repeated_parses_agree",
+      "seconds": 4.062,
+      "reason": "KNOWN DEFECT, pinned deliberately: parsing recruits, so repeated parses of the SAME sentence return different ERP values (first-word P600 0.434 -> 0.988 -> 0.9868 -> 0.9865). Every ERP number therefore depends on read order. Fix is measured but unadopted -- see research/notes/language/erp_probe_isolation.md"
+    }
+  ],
+  "slowest_cases": [
+    {
+      "nodeid": "neural_assemblies/tests/test_emergent_parser.py::TestCurriculumLearning::test_stage2_expands_vocab",
+      "seconds": 114.981
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_training_perf.py::TestTrainingPerf::test_dual_metric_learnability_gate",
+      "seconds": 111.721
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_bootstrap.py::TestHoldoutBootstrap::test_sentences_depth_holdout_bootstrap_floor",
+      "seconds": 107.299
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_erp_metric_range.py::TestExcessIsClippedAtItsOwnNull::test_grammatical_excess_is_crushed_against_the_floor",
+      "seconds": 98.645
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_conversation_curriculum.py::TestConversationTraining::test_unknown_word_registered_on_interact",
+      "seconds": 55.302
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_emergent_parser.py::TestScaledVocabulary::test_scaled_vocabulary_builds",
+      "seconds": 53.051
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_conversation_curriculum.py::TestConversationTraining::test_train_for_conversation_registers_prediction",
+      "seconds": 46.945
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_conversation_curriculum.py::TestConversationTraining::test_dialogue_stage_runs_dialogue_phase",
+      "seconds": 45.736
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_conversation_curriculum.py::TestConversationTraining::test_session_bootstrap_conversation_smoke",
+      "seconds": 45.523
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_batched_next_token.py::test_batched_matches_sequential_top1",
+      "seconds": 31.482
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_emergent_parser.py::TestEvaluationFramework::test_evaluation_on_curriculum_parser",
+      "seconds": 30.279
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_literature_parity.py::TestColtMultiAssembly::test_recall_meets_theorem_3_bound",
+      "seconds": 29.834
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_batched_next_token.py::test_score_corpus_matches_reset_sequential",
+      "seconds": 29.069
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_index_space_ratchet.py::test_no_new_index_space_comparisons",
+      "seconds": 25.59
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_next_token_scaling.py::TestNextTokenScalingDeterminism::test_same_seed_same_predictions",
+      "seconds": 25.482
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_emergent_parser.py::TestDeterminism::test_same_seed_same_classifications",
+      "seconds": 25.408
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_emergent_parser.py::TestNextTokenPrediction::test_predict_returns_ranked_list",
+      "seconds": 22.315
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_emergent_agent.py::TestInstructionFrames::test_imperative_mood_and_implicit_agent",
+      "seconds": 21.236
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_active_evidence_graph.py::test_tracked_runner_evidence_has_no_dangling_edges",
+      "seconds": 18.454
+    },
+    {
+      "nodeid": "neural_assemblies/tests/test_next_token_scaling.py::TestNextTokenScaling::test_accuracy_by_word_class",
+      "seconds": 18.017
+    }
+  ],
+  "artifacts": {
+    ".cache/full-audit-02cacc9.xml": {
+      "sha256": "2025080cc6b3084f17f7bb001f02384c3c91bcbeba08e05f698e85cee0d97b3c"
+    },
+    ".cache/full-audit-02cacc9.log": {
+      "sha256": "435f0d6868db9321d36c76d5e72a5c342243cbc8f153425828689bfde701baae"
+    }
+  },
+  "claim_boundary": "A clean package audit establishes the checked non-slow software baseline on this machine. It does not run tests marked slow, prove skipped optional CuPy behavior, adopt a scientific result, or prove backend semantic equivalence."
+}

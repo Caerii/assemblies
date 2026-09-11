@@ -3242,4 +3242,14 @@ now owns torch-first DLL ordering, CuPy import, a real device-allocation check,
 and cached availability; both automatic backend selection and the CUDA-kernel
 suite use it. The focused backend, CUDA-kernel and lazy-import gate reports
 24 passed and 10 correctly skipped in 12.98 seconds. Ruff, compilation and diff
-checks pass. A second complete run remains required from the repaired commit.
+checks pass.
+
+The second complete non-slow audit at `02cacc9` is green: 3,256 passed,
+65 skipped, 143 deselected, 7 strict expected failures, no failures, errors or
+unexpected passes, 318 warnings, and 10 passing subtests in 2,166.44 seconds.
+`package-audit-02cacc9.json` records the command and environment, JUnit counts,
+every expected-failure reason, the 20 slowest nodes, and hashes of the ignored
+raw JUnit and log artifacts. This accepts the package lint checkpoint as the
+current non-slow software baseline. It does not cover tests marked slow, execute
+the unavailable CuPy backend, adopt scientific evidence, or prove backend
+semantic equivalence.

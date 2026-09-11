@@ -1730,5 +1730,12 @@ Capability admission is now centralized as `core.backend.cupy_available()`.
 It preserves the required torch-first Windows DLL order, imports CuPy, performs
 a device allocation, and caches the result. Automatic backend selection and the
 kernel tests share that decision. The focused gate is 24 passed, 10 correctly
-skipped; Ruff, compilation and diff checks pass. The repaired exact commit still
-needs the complete non-slow gate before a clean audit receipt can be recorded.
+skipped; Ruff, compilation and diff checks pass.
+
+The complete rerun at `02cacc9` is green: 3,256 passed, 65 skipped,
+143 deselected, 7 strict expected failures, zero failures/errors/XPASS,
+318 warnings and 10 passing subtests in 2,166.44 seconds. The committed
+`package-audit-02cacc9.json` receipt records the exact invocation, environment,
+expected-failure reasons, slowest nodes and hashes of both raw artifacts. This
+is the current non-slow package baseline; slow tests, unavailable CuPy execution,
+scientific adoption and cross-backend semantic proof remain outside the claim.
