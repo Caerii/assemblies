@@ -57,6 +57,12 @@ def test_attention_rejects_key_value_mismatch_and_mixed_value_areas():
             {"a": _assembly("Q", [1]), "b": _assembly("Q", [2])},
             {"a": _assembly("V1", [2]), "b": _assembly("V2", [3])},
         )
+
+
+def test_attention_distinguishes_malformed_snapshot_types():
+    query = _assembly("Q", [1])
+    with pytest.raises(TypeError, match="Assembly snapshots"):
+        attend(query, {"a": object()}, {"a": _assembly("V", [2])})
     with pytest.raises(ValueError, match="share one area"):
         attend(
             query,

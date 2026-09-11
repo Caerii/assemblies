@@ -76,8 +76,10 @@ def attend(
         raise ValueError("attention requires at least one key")
     if set(keys) != set(values):
         raise ValueError("keys and values must have exactly the same labels")
-    if any(not isinstance(assembly, Assembly) or not assembly
+    if any(not isinstance(assembly, Assembly)
            for assembly in (*keys.values(), *values.values())):
+        raise TypeError("attention keys and values must be Assembly snapshots")
+    if any(not assembly for assembly in (*keys.values(), *values.values())):
         raise ValueError("attention keys and values must be nonempty assemblies")
     top_k = _positive_int("top_k", top_k)
     if top_k > len(keys):

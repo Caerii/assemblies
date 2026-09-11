@@ -4587,6 +4587,10 @@ The compatibility boundary also requires every key to share the query's area;
 cross-area integer coincidences are rejected rather than treated as semantic
 matches. The same 10-test contract suite covers this negative path.
 
+Malformed attention snapshot types now raise `TypeError`, while empty valid
+assemblies raise `ValueError`; the API no longer conflates caller misuse with
+an invalid scientific domain. The focused attention suite passes **11 tests**.
+
 ## Attention IR proof boundary (2026-09-11)
 
 `formal/AssemblyIR/Attention.lean` now proves the structural bounds for the
