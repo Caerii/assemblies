@@ -4412,3 +4412,9 @@ regressions (3 tests) and Ruff pass.
 `neural_assemblies.parity.runner.write_manifest` now opens evidence manifests
 exclusively and raises `FileExistsError` on reuse. A regression test verifies
 both the serialized protocol identity and the no-overwrite guarantee.
+
+## README and parity compatibility checks (2026-09-11)
+
+Parity manifest compatibility passed with 9 tests and 4 expected skips. The
+README example smoke suite passed 4 tests with 1 documented skip. The parity
+checks retain the expected sampled-engine warnings; no warning was suppressed.
