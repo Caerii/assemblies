@@ -1744,7 +1744,8 @@ class Brain:
         # every current engine reads its own beta store.
         self.areas[to_area].beta_by_area[from_area] = new_beta
         self._engine.set_beta(to_area, from_area, new_beta)
-        if self._explicit_engine is not None and self.areas[to_area].explicit:
+        if (self._explicit_engine is not None and self.areas[to_area].explicit
+                and self._explicit_engine is not self._engine_for(self.areas[to_area])):
             self._explicit_engine.set_beta(to_area, from_area, new_beta)
 
     def add_connectivity(self, source: str, target: str, p: float) -> None:
@@ -1771,7 +1772,8 @@ class Brain:
         # paper's PHON -> LEX1 -- because the explicit engine refuses per-fiber
         # p and does not own that fiber anyway. The main engine does.
         if (self._explicit_engine is not None
-                and target in self.areas and self.areas[target].explicit):
+                and target in self.areas and self.areas[target].explicit
+                and self._explicit_engine is not self._engine_for(self.areas[target])):
             self._explicit_engine.add_connectivity(source, target, p)
 
     def update_plasticities(
@@ -1816,8 +1818,11 @@ class Brain:
         for stim_name, area_name, new_beta in stim_updates:
                 area = self.areas[area_name]
                 area.beta_by_stimulus[stim_name] = new_beta
-                self._engine.set_beta(area_name, stim_name, new_beta)
-                if self._explicit_engine is not None and area.explicit:
+                # Stimulus fibers belong to the target area's owner.  The
+                # primary engine is not authoritative for an explicit target.
+                self._engine_for(area).set_beta(area_name, stim_name, new_beta)
+                if (self._explicit_engine is not None and area.explicit
+                        and self._explicit_engine is not self._engine_for(area)):
                     self._explicit_engine.set_beta(area_name, stim_name, new_beta)
 
     def set_competition_policy(self, area_name: str, policy) -> None:

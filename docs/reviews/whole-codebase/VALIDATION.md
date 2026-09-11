@@ -4209,3 +4209,12 @@ explicit or alternate backend later.
 
 Validation: 19 targeted linker, incremental and owner-routing tests passed;
 ruff and whitespace checks pass.
+
+The owner test then exposed duplicate writes when the explicit dense engine is
+itself the area's resolved owner: mirror synchronization called `set_beta` or
+`add_connectivity` twice on the same object. Dispatch now checks object identity
+before mirroring, preserving one mutation per authoritative owner.
+
+Validation: 15 owner and per-fiber-plasticity tests passed, including the
+explicit-owner duplicate-write negative control. Ruff and whitespace checks
+pass.
