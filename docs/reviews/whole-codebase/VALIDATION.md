@@ -4873,3 +4873,16 @@ next to be expanded with a dedicated stale-snapshot negative.
 Added a dedicated true negative for an empty replay-direction schedule after the
 initial registry check exposed an incorrectly named control. The operation,
 contract, and specification suite now passes **170 tests**; Ruff is clean.
+
+## Full maintained non-slow audit (2026-09-11)
+
+A parallel package run completed with **3693 passed, 139 skipped, 6 xfailed,
+7 failed**. Two failures were fused-CUDA temporal captures; the initial
+environment lacked `setuptools.command`, then lacked `cl.exe`/Ninja in PATH.
+Running through `cmd /c "call scripts\\cuda-dev.cmd && ..."` rebuilt the extension
+and both temporal capture tests passed (**2 passed**, 189 seconds).
+
+The remaining five failures are ERP calibration/metric assertions and reproduce
+serially. They report category-violation p600 below grammatical (raw and clipped
+AUC 0.0), contradicting the test's declared direction. They are retained as
+scientific failures pending metric/protocol diagnosis; no threshold was relaxed.
