@@ -4201,3 +4201,11 @@ state. Planning and Turing-machine demos also use the public reset facade.
 Validation: the focused owner-routing/parser/consolidation gate passed 171
 tests (19 skips, one expected xfail). Existing sampled-recurrence warnings are
 expected and remain evidence that those sequence tests need a fixed engine.
+
+The same owner rule now covers context bridge setup: incremental reset and
+compiled linker pre-growth resolve the CONTEXT owner before touching backend
+population state. This keeps the code correct if CONTEXT is moved to an
+explicit or alternate backend later.
+
+Validation: 19 targeted linker, incremental and owner-routing tests passed;
+ruff and whitespace checks pass.

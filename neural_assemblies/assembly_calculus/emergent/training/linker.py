@@ -91,7 +91,7 @@ def link_context_topology(
         return
 
     with parser.brain.frozen():
-        engine = parser.brain._engine
+        engine = parser.brain._engine_for(parser.brain.areas[CONTEXT])
         parser._reset_context_winners()
         parser.brain.areas[CONTEXT].w = 0
         if hasattr(engine, "_areas") and CONTEXT in engine._areas:

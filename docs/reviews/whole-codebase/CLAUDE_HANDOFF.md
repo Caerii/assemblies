@@ -2451,3 +2451,8 @@ The planning and Turing-machine demos were migrated to the same reset facade.
 The focused mixed gate remains green: 171 passed, 19 skipped, one expected
 xfail. Sampled-recurrence warnings are still intentional and keep those
 sequence numbers void until fixed-connectome reruns.
+
+A follow-up audit removed two remaining CONTEXT primary-engine assumptions from
+incremental reset and the compiled linker. Both resolve the area's owner first;
+19 targeted tests pass. This is an ownership cleanup, not a claim that the
+legacy private engine access across specialized MNIST surgery is complete.

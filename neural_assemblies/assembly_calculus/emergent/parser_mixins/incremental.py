@@ -216,7 +216,7 @@ class IncrementalMixin:
                             rounds=self.inference_rounds)
                 self.brain.project({}, {core_area: [CONTEXT]})
 
-        engine = self.brain._engine
+        engine = self.brain._engine_for(self.brain.areas[CONTEXT])
         if hasattr(engine, "_areas") and CONTEXT in engine._areas:
             # Size the ring by what the representation REQUIRES -- one
             # k-assembly per prefix position -- not merely by what pre-growth
