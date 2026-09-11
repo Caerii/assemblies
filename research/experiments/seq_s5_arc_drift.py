@@ -6,15 +6,18 @@ refraction, so that the arc at test is not the arc that was potentiated?
 Z60, 4 brains, presentations 15 and 30: overlap of the frozen test-time arc
 with the arc at each training presentation of the same pair, plus the
 STATE drive of the block's weakest member and of the best outsider."""
-import inspect, json, os, sys
+import inspect
+import os
+import sys
 _ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 sys.path.insert(0, _ROOT); sys.path.insert(0, os.path.join(_ROOT, 'research', 'experiments'))
-import numpy as np, torch
+import numpy as np
+import torch
 from neural_assemblies.core.brain import Brain
 from neural_assemblies.core.torch_engine._hashed_fsm import HashedArcFSM
 from neural_assemblies.programs.word_problems import GROUPS, word_problem_fsm
 from seq_s5_word_problem import BETA, K, ORGAN_P, REFRACTED, sizes
-from _results import results_path
+from _results import write_result
 OUT = {}
 
 group = GROUPS['Z60']()
@@ -59,4 +62,4 @@ for P in (15, 30):
           f'pairs with outsider >= weakest: {(best >= weak).mean()*100:.2f}%', flush=True)
     OUT[str(P)] = dict(overlap_by_presentation=[float(v) for v in ov_by_age], weak_min=float(weak.min()), weak_mean=float(weak.mean()), best_max=float(best.max()), best_mean=float(best.mean()), collide=float((best >= weak).mean()))
     del fsm; torch.cuda.empty_cache()
-json.dump(OUT, open(results_path('sequence', 'seq_s5_arc_drift.json'), 'w'), indent=1)
+write_result('sequence', 'seq_s5_arc_drift.json', OUT)

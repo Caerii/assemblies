@@ -4735,3 +4735,7 @@ Three adjacent A1 studies (`arc_transfer`, `drift`, and `limit_cycle`) now use t
 ## Result path confinement (2026-09-11)
 
 The shared result adapter now validates both line and filename components before directory creation. Traversal, absolute paths, separators, and empty names fail before filesystem mutation, keeping evidence writes confined to the canonical results tree. Six writer/path tests pass; Ruff and diff checks are clean.
+
+## Post-hoc clip diagnostics use shared writes (2026-09-11)
+
+The S5 arc-clip and arc-drift diagnostics now write through the canonical result adapter. Their GPU analysis payloads are unchanged, but direct overwrite-prone `json.dump(open(..., 'w'))` calls are gone. The touched scripts also pass the repository Ruff gate after removing pre-existing import violations.
