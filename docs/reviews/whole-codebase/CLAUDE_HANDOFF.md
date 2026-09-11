@@ -2330,3 +2330,16 @@ green (246 passed, 26 existing sampled-recurrence warnings, 170.59 seconds), and
 the final focused boundary/specification gate is 195 passed. Constructed
 incapable paths fail before construction or state mutation, while the capable
 `fuzzy` alias canonicalizes to `compiled` and restores correctly.
+
+I then closed the generic bypass behind these named fixes. Exact construction and
+area registration deliberately ignored unknown kwargs, and Torch consumed known
+keys without rejecting the remainder. Misspelled model options therefore created
+normal engines. Both permissive surfaces now require an empty option remainder
+before model registration or CUDA device setup; recognized disabled defaults are
+still accepted where the shared facade needs them.
+
+Constructed negatives cover misspelled normalization, slot count and dense drive.
+A positive Torch admission case carries every supported option to its device
+boundary. The wider CPU gate is 243 passed with 11 expected sampled-recurrence
+warnings, and 38 Torch scaling/parity tests pass in the CUDA developer shell.
+This rule is now an Assembly IR contract linked from both implementations.

@@ -4011,3 +4011,23 @@ Validation: the full compiled-training behavioral suite and its admission gates
 pass 246 tests in 170.59 seconds, with 26 existing sampled-recurrence warnings.
 The final focused model-boundary, engine-ladder, lazy-import and specification
 gate passes 195 tests. Ruff and whitespace checks pass.
+
+## Permissive constructors reject unconsumed options (2026-09-11)
+
+Exact engine construction and area registration previously ignored arbitrary
+unknown kwargs by design. Torch read a subset of kwargs but never checked the
+remainder. A typo such as `norm_innit=True`, `slot_counts=2` or
+`dense_driv=True` therefore produced a valid-looking object with the requested
+mechanism absent.
+
+The exact engine's shared option check now rejects unknown keys as well as
+enabled unsupported mechanisms. Torch removes each recognized configuration
+family and rejects a nonempty remainder before CUDA device creation. A positive
+control supplies normalization, scoped scaling, dense drive and read-only mode
+and reaches the device boundary, preventing the guard from collapsing the valid
+surface. The source points to the Assembly IR remainder contract.
+
+Validation: 243 exact, literature, slot, boundary, lazy-import and specification
+tests pass with 11 expected sampled-recurrence warnings. The changed Torch path
+passes 38 scaling and parity tests in the Visual Studio/CUDA shell. Ruff and
+whitespace checks pass.

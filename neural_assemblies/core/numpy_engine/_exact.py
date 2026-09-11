@@ -85,7 +85,7 @@ def _fixed_target_learns() -> bool:
 
 def _reject_unsupported(where: str, supported_defaults: Mapping[str, object],
                         given: Mapping[str, object]) -> None:
-    """Raise if a caller asked for a mechanism this engine does not implement.
+    """Specification: neural_assemblies/ir/VERIFICATION.md#contract-option-remainder
 
     `Brain` forwards a common kwarg set to every engine, so an engine that
     implements a subset has two options: swallow the rest in `**kwargs`, or
@@ -94,10 +94,15 @@ def _reject_unsupported(where: str, supported_defaults: Mapping[str, object],
     "X seems to have little effect". See [[silent-no-op-dead-fibers]].
 
     Passing the DEFAULT is not a request, so it is accepted silently; passing
-    anything else raises. Unknown kwargs are accepted and ignored, because the
-    ABC may grow parameters this engine has no opinion on -- those still show
-    up as an explicit signature mismatch rather than as wrong numbers.
+    anything else raises. Unknown kwargs also raise: accepting a misspelling or
+    a newly added model option would issue a configuration receipt for a
+    mechanism that never executes.
     """
+    unknown = sorted(set(given) - set(supported_defaults))
+    if unknown:
+        raise TypeError(
+            f"{where} got unsupported constructor options: {', '.join(unknown)}"
+        )
     asked = [f"{key}={given[key]!r}"
              for key, default in supported_defaults.items()
              if key in given and given[key] != default]

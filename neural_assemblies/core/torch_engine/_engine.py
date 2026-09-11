@@ -126,6 +126,7 @@ class TorchSparseEngine(ComputeEngine):
     def __init__(self, p: float, seed: int = 0, w_max: float = 20.0,
                  deterministic: bool = False, gpu_sampling: bool = True,
                  **kwargs):
+        # Specification: neural_assemblies/ir/VERIFICATION.md#contract-option-remainder
         if "projection_fidelity" in kwargs:
             from ..projection_fidelity import validate_projection_fidelity_capability
             validate_projection_fidelity_capability(
@@ -150,8 +151,10 @@ class TorchSparseEngine(ComputeEngine):
         # read-time per-postsynaptic 1/d_j scale, ported from NumpySparseEngine.
         # Previously this kwarg was silently swallowed by **kwargs and ignored,
         # so a Brain(norm_init=True, engine="torch_sparse") got NO normalization.
-        homeostasis = HomeostasisConfig(**{name: kwargs.get(name, False)
-                                           for name in HomeostasisConfig.__dataclass_fields__})
+        homeostasis = HomeostasisConfig(**{
+            name: kwargs.pop(name, False)
+            for name in HomeostasisConfig.__dataclass_fields__
+        })
         self.norm_init = homeostasis.norm_init
         # Dense-drive mode (see docs/gpu_scale_design.md, Lever A): score ALL n
         # candidate neurons each round instead of sampling ~k order statistics.
@@ -160,12 +163,12 @@ class TorchSparseEngine(ComputeEngine):
         # model the sparse sampler approximates), then a single topk over n.
         # More arithmetic than the sparse path -- deliberately, so it is
         # GPU-parallel and, with a fixed [n] drive, batchable (Lever B).
-        self.dense_drive = bool(kwargs.get("dense_drive", False))
+        self.dense_drive = bool(kwargs.pop("dense_drive", False))
         # Read-only inference: suppress candidate sampling so a projection never
         # materializes new neurons (select only among already-materialized ones).
         # Inference should not mutate the brain; this also makes prediction
         # deterministic and gives a fixed connectome to batch over (BatchedLM).
-        self.readonly = bool(kwargs.get("readonly", False))
+        self.readonly = bool(kwargs.pop("readonly", False))
         # Per-fiber connection density (`add_connectivity`). Empty until set;
         # every consumer must route through `_p_for` so homogeneous brains
         # keep the scalar fast paths (mirrors NumpySparseEngine._fiber_p).
@@ -177,11 +180,16 @@ class TorchSparseEngine(ComputeEngine):
         # **kwargs -- the same silent no-op that once ate norm_init (above),
         # which would have run a homeostasis study with homeostasis off.
         self.synaptic_scaling = homeostasis.synaptic_scaling
-        if kwargs.get("synaptic_scaling_deferred", False):
+        if homeostasis.synaptic_scaling_deferred:
             raise NotImplementedError(
                 "synaptic_scaling_deferred is not implemented on "
                 "torch_sparse: per-update scaling only. Use engine="
                 "'numpy_sparse' for the deferred/flush mode.")
+        if kwargs:
+            names = ", ".join(sorted(kwargs))
+            raise TypeError(
+                f"TorchSparseEngine got unsupported constructor options: {names}"
+            )
         # READ-ONLY PROBE SUPPORT. `brain.read_only()` (and `probe()`, which
         # every evaluation harness runs inside) gates recruitment by setting
         # this flag -- but it discovers engines with `hasattr(engine,

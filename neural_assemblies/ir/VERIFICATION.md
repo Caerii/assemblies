@@ -954,6 +954,25 @@ Controls require dense and exact Brains, the lower-level factory and a direct
 exact-engine setter to reject compiled selection. The capable path normalizes
 `fuzzy` to `compiled`, and an unknown runtime value leaves the prior mode intact.
 
+<a id="contract-option-remainder"></a>
+
+## Constructor-option remainder
+
+A public engine constructor that accepts `**kwargs` must partition them into
+named, validated mechanisms and an empty remainder before it creates model or
+device state. Every unconsumed key raises `TypeError` with its name. A recognized
+unsupported mechanism may accept only its canonical disabled value; any enabled
+value raises. This permits a shared facade to send explicit defaults without
+turning misspellings or newly introduced options into silent no-ops.
+
+The exact engine applies the same rule at construction and area registration.
+The Torch engine consumes projection topology, feedforward inhibition,
+homeostasis, dense-drive and read-only configuration, then rejects all remaining
+keys before CUDA device setup. Controls misspell normalization, slot count and
+dense drive and require rejection before engine or area state exists. A positive
+Torch control supplies every recognized option and reaches device setup, proving
+that the remainder check has not forbidden the supported configuration surface.
+
 
 <a id="contract-backend-capability"></a>
 
