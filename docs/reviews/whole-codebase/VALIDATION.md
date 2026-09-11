@@ -4711,3 +4711,7 @@ All maintained traced calculus entry points now carry explicit `Specification:` 
 ## Scaffold primitive admission (2026-09-11)
 
 `_train_scaffold_step`, the primitive used by `ScaffoldNetwork.train`, now validates stimulus, both areas, round count, Phase-B ratio, and beta boost itself. Single-item training can no longer bypass the bulk wrapper’s contract. Scaffold and sequence tests pass **25 tests**.
+
+## Shared scaffold admission helper (2026-09-11)
+
+The scaffolded sequence wrapper and its single-step training primitive now share `_coerce_stimuli` and `_validate_scaffold_schedule`. The composed path validates ordered inputs and schedule before auxiliary topology creation; the primitive applies the same checks when called directly. This removes duplicated contract logic while preserving the no-partial-mutation boundary. Scaffold and sequence tests pass **25 tests**; Ruff and diff checks are clean.

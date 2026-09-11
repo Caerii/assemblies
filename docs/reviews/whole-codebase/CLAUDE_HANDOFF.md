@@ -2609,3 +2609,5 @@ The scaffolded sequence wrapper now shares the sequence boundary discipline: it 
 Scaffold Phase-B beta boosts are now exception-safe for both recurrent loops. Injected projection failures restore the original main and auxiliary beta settings; focused scaffold and sequence tests pass (24 tests).
 
 Moved scaffold admission checks into `_train_scaffold_step`, covering the direct `ScaffoldNetwork.train` path as well as bulk memorization. Unknown inputs and malformed schedules fail before projection; focused scaffold and sequence tests pass (25 tests).
+
+The scaffolded sequence wrapper and direct training primitive now share one stimulus coercion helper and one schedule admission helper. This reduces semantic drift and keeps invalid composed calls from creating auxiliary topology. Scaffold and sequence tests pass (25 tests); Ruff and diff checks are clean.

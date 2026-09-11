@@ -48,6 +48,50 @@ __all__ = [
 ]
 
 
+def _coerce_stimuli(stimuli, *, operation: str) -> list[str]:
+    if isinstance(stimuli, (str, bytes)):
+        raise TypeError("stimuli must be an ordered collection of stimulus names")
+    try:
+        values = list(stimuli)
+    except TypeError as exc:
+        raise TypeError(
+            "stimuli must be an ordered collection of stimulus names"
+        ) from exc
+    if not values:
+        raise ValueError(f"{operation} requires a nonempty sequence")
+    return values
+
+
+def _validate_scaffold_schedule(
+    brain, stimuli: list[str], main_area: str, scaffold_area: str,
+    *, rounds_per_step: int, repetitions: int | None,
+    phase_b_ratio: float, beta_boost: float | None,
+    require_scaffold: bool = True,
+) -> None:
+    if main_area not in brain.areas:
+        raise KeyError(f"scaffold main area is unknown: {main_area!r}")
+    if require_scaffold and scaffold_area not in brain.areas:
+        raise KeyError(f"scaffold auxiliary area is unknown: {scaffold_area!r}")
+    unknown = [stimulus for stimulus in stimuli if stimulus not in brain.stimuli]
+    if unknown:
+        raise KeyError(f"scaffold stimulus name(s) are unknown: {unknown!r}")
+    for label, value in (("rounds_per_step", rounds_per_step),
+                         ("repetitions", repetitions)):
+        if value is not None and (
+            isinstance(value, bool) or not isinstance(value, Integral) or value < 1
+        ):
+            raise ValueError(f"{label} must be a positive integer")
+    if (isinstance(phase_b_ratio, bool) or not isinstance(phase_b_ratio, Real)
+            or not math.isfinite(float(phase_b_ratio))
+            or not 0.0 <= float(phase_b_ratio) <= 1.0):
+        raise ValueError("phase_b_ratio must be a finite real number in [0, 1]")
+    if beta_boost is not None and (
+        isinstance(beta_boost, bool) or not isinstance(beta_boost, Real)
+        or not math.isfinite(float(beta_boost)) or float(beta_boost) < 0.0
+    ):
+        raise ValueError("beta_boost must be a finite nonnegative real number")
+
+
 def compare_scaffold_vs_simple(
     brain=None,
     stimuli: SequenceLike[str] | None = None,
@@ -111,22 +155,11 @@ def _train_scaffold_step(
     for the same reason as in ``sequence_memorize``: it deepens the
     item-to-item bridges laid down while the previous assembly is still warm.
     """
-    if stim not in brain.stimuli:
-        raise KeyError(f"scaffold stimulus is unknown: {stim!r}")
-    for label, area in (("main_area", main_area), ("scaffold_area", scaffold_area)):
-        if area not in brain.areas:
-            raise KeyError(f"scaffold {label} is unknown: {area!r}")
-    if isinstance(rounds_per_step, bool) or not isinstance(rounds_per_step, Integral) or rounds_per_step < 1:
-        raise ValueError("rounds_per_step must be a positive integer")
-    if (isinstance(phase_b_ratio, bool) or not isinstance(phase_b_ratio, Real)
-            or not math.isfinite(float(phase_b_ratio))
-            or not 0.0 <= float(phase_b_ratio) <= 1.0):
-        raise ValueError("phase_b_ratio must be a finite real number in [0, 1]")
-    if beta_boost is not None and (
-        isinstance(beta_boost, bool) or not isinstance(beta_boost, Real)
-        or not math.isfinite(float(beta_boost)) or float(beta_boost) < 0.0
-    ):
-        raise ValueError("beta_boost must be a finite nonnegative real number")
+    _validate_scaffold_schedule(
+        brain, [stim], main_area, scaffold_area,
+        rounds_per_step=rounds_per_step, repetitions=None,
+        phase_b_ratio=phase_b_ratio, beta_boost=beta_boost,
+    )
     recur_rounds = max(1, int(rounds_per_step * phase_b_ratio))
     stim_rounds = max(1, rounds_per_step - recur_rounds)
     main = brain.areas[main_area]
@@ -216,33 +249,15 @@ def sequence_memorize_scaffold(
     beta_boost: float | None = 0.5,
 ) -> Sequence:
     """Memorize in *main_area* with auxiliary *scaffold_area* coupling."""
-    if isinstance(stimuli, (str, bytes)):
-        raise TypeError("stimuli must be an ordered collection of stimulus names")
-    try:
-        stimuli = list(stimuli)
-    except TypeError as exc:
-        raise TypeError(
-            "stimuli must be an ordered collection of stimulus names"
-        ) from exc
-    if not stimuli:
-        raise ValueError("sequence_memorize_scaffold requires a nonempty sequence")
-    if main_area not in brain.areas:
-        raise KeyError(f"sequence_memorize_scaffold main area is unknown: {main_area!r}")
-    if any(stimulus not in brain.stimuli for stimulus in stimuli):
-        unknown = [stimulus for stimulus in stimuli if stimulus not in brain.stimuli]
-        raise KeyError(f"sequence_memorize_scaffold stimulus name(s) are unknown: {unknown!r}")
-    for label, value in (("rounds_per_step", rounds_per_step), ("repetitions", repetitions)):
-        if isinstance(value, bool) or not isinstance(value, Integral) or value < 1:
-            raise ValueError(f"{label} must be a positive integer")
-    if (isinstance(phase_b_ratio, bool) or not isinstance(phase_b_ratio, Real)
-            or not math.isfinite(float(phase_b_ratio))
-            or not 0.0 <= float(phase_b_ratio) <= 1.0):
-        raise ValueError("phase_b_ratio must be a finite real number in [0, 1]")
-    if beta_boost is not None and (
-        isinstance(beta_boost, bool) or not isinstance(beta_boost, Real)
-        or not math.isfinite(float(beta_boost)) or float(beta_boost) < 0.0
-    ):
-        raise ValueError("beta_boost must be a finite nonnegative real number")
+    stimuli = _coerce_stimuli(
+        stimuli, operation="sequence_memorize_scaffold",
+    )
+    _validate_scaffold_schedule(
+        brain, stimuli, main_area, scaffold_area,
+        rounds_per_step=rounds_per_step, repetitions=repetitions,
+        phase_b_ratio=phase_b_ratio, beta_boost=beta_boost,
+        require_scaffold=False,
+    )
     if scaffold_area not in brain.areas:
         m = brain.areas[main_area]
         brain.add_area(scaffold_area, m.n, m.k, m.beta)
