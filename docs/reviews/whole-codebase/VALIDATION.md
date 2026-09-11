@@ -3244,6 +3244,17 @@ suite use it. The focused backend, CUDA-kernel and lazy-import gate reports
 24 passed and 10 correctly skipped in 12.98 seconds. Ruff, compilation and diff
 checks pass.
 
+## Lexicon construction preflights and routes by owner (2026-09-11)
+
+`build_lexicon` now validates the target, rounds, unique words, exact stimulus
+mapping and stimulus existence before projecting anything. This prevents a
+missing later entry from leaving a partially trained brain. Recurrent reset is
+also dispatched through `brain._engine_for(area)`, so explicit areas use their
+actual dense owner instead of the sparse primary engine.
+
+Validation: 17 readout and specification-link tests pass. Ruff and whitespace
+checks pass.
+
 The second complete non-slow audit at `02cacc9` is green: 3,256 passed,
 65 skipped, 143 deselected, 7 strict expected failures, no failures, errors or
 unexpected passes, 318 warnings, and 10 passing subtests in 2,166.44 seconds.

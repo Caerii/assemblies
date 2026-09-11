@@ -2414,3 +2414,8 @@ The decoder boundary had the same shape: `fuzzy_readout` accepted invalid
 thresholds and could silently turn them into an always-match or never-match
 criterion. It now rejects nonfinite and out-of-range thresholds before lookup;
 15 readout and specification-link tests pass.
+
+`build_lexicon` had a transaction and ownership gap: it could mutate earlier
+words before discovering an invalid mapping, and it reset through the primary
+engine even when the target area was explicit. It now preflights all inputs and
+resets through the target area's owner. The focused gate is 17 passed.

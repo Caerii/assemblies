@@ -33,7 +33,8 @@ Reference:
 
 import math
 from numbers import Real
-from typing import Dict, List, Optional, Tuple
+from numbers import Integral
+from typing import Dict, List, Mapping, Optional, Tuple
 
 from .assembly import Assembly, overlap
 from .ops import project
@@ -112,6 +113,8 @@ def build_lexicon(brain, area: str, words: List[str],
                   rounds: int = 10) -> Lexicon:
     """Build a lexicon by projecting each word's stimulus into an area.
 
+    Specification: neural_assemblies/ir/VERIFICATION.md#contract-lexicon-build
+
     For each word, projects the corresponding stimulus into the target
     area for *rounds* steps (with recurrence) and snapshots the result.
 
@@ -128,6 +131,24 @@ def build_lexicon(brain, area: str, words: List[str],
     Returns:
         Lexicon mapping each word to its Assembly snapshot.
     """
+    if area not in brain.areas:
+        raise ValueError(f"unknown lexicon area {area!r}")
+    if isinstance(rounds, bool) or not isinstance(rounds, Integral) or rounds < 1:
+        raise ValueError("lexicon rounds must be a positive integer")
+    if not isinstance(stimuli_map, Mapping):
+        raise TypeError("stimuli_map must be a mapping from words to stimuli")
+    words = tuple(words)
+    if any(not isinstance(word, str) or not word for word in words):
+        raise ValueError("lexicon words must be nonempty strings")
+    if len(set(words)) != len(words):
+        raise ValueError("lexicon words must be unique")
+    if set(stimuli_map) != set(words):
+        raise ValueError("stimuli_map keys must exactly match the lexicon words")
+    missing = [stim for stim in stimuli_map.values() if stim not in brain.stimuli]
+    if missing:
+        raise ValueError(f"unknown lexicon stimuli: {sorted(set(missing))}")
+
+    owner = brain._engine_for(brain.areas[area])
     lexicon: Lexicon = {}
 
     for word in words:
@@ -136,6 +157,6 @@ def build_lexicon(brain, area: str, words: List[str],
         lexicon[word] = assembly
 
         # Reset recurrent connections so the next word starts fresh
-        brain._engine.reset_area_connections(area)
+        owner.reset_area_connections(area)
 
     return lexicon

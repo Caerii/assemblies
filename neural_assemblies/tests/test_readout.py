@@ -103,6 +103,21 @@ class TestFuzzyReadout(unittest.TestCase):
         result = fuzzy_readout(asm, {}, threshold=0.5)
         self.assertIsNone(result)
 
+    def test_build_lexicon_preflights_all_inputs(self):
+        b = _make_brain()
+        b.add_stimulus("stim_cat", K)
+        b.add_area("LEX", N, K, BETA)
+        with self.assertRaisesRegex(ValueError, "exactly match"):
+            build_lexicon(b, "LEX", ["cat", "dog"], {"cat": "stim_cat"}, rounds=1)
+        self.assertEqual(len(b.areas["LEX"].winners), 0)
+
+    def test_build_lexicon_uses_explicit_area_owner(self):
+        b = Brain(p=0.05, save_winners=True, seed=SEED, engine="numpy_sparse")
+        b.add_stimulus("stim_cat", K)
+        b.add_explicit_area("LEX", 200, 20, BETA)
+        lexicon = build_lexicon(b, "LEX", ["cat"], {"cat": "stim_cat"}, rounds=1)
+        self.assertEqual(lexicon["cat"].area, "LEX")
+
     def test_invalid_threshold_is_rejected(self):
         asm = Assembly("A", np.array([1, 2], dtype=np.uint32))
         for threshold in (-0.01, 1.01, float("nan"), float("inf")):

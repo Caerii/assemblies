@@ -2269,3 +2269,15 @@ CUDA-specific implementation code; a capable engine must expose the frozen
 connectome and vocabulary-drive state required by the batched predictor. This
 contract governs execution availability and does not certify agreement with a
 sequential readout; parity remains a separate measured gate.
+
+
+<a id="contract-lexicon-build"></a>
+### Lexicon construction
+
+`build_lexicon` validates the target area, positive round count, unique word
+labels, and an exact word-to-stimulus mapping before projecting the first word.
+Unknown stimuli therefore cannot leave a partially trained brain. Recurrent
+reset is dispatched through the target area's owning engine, which matters for
+brains mixing sparse and explicit areas. Each projection uses recurrence and
+the reset only separates successive lexicon entries; it does not establish a
+readout accuracy claim.
