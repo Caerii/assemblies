@@ -36,7 +36,7 @@ class StabilitySnapshot:
     """Metrics captured before/after an online learning session."""
     word_order_svo: bool = False
     holdout_bootstrap: float = 0.0
-    prediction_lexicon_size: float = 0.0
+    prediction_lexicon_size: int = 0
     novel_composition: float = 0.0
 
 
@@ -77,9 +77,7 @@ def capture_stability_snapshot(parser: "EmergentParser") -> StabilitySnapshot:
     return StabilitySnapshot(
         word_order_svo=bool(wo.get("correct")),
         holdout_bootstrap=float(holdout),
-        prediction_lexicon_size=float(
-            len(getattr(parser, "prediction_lexicon", {}))
-        ),
+        prediction_lexicon_size=len(getattr(parser, "prediction_lexicon", {})),
         novel_composition=float(novel.get("accuracy", 0.0)),
     )
 

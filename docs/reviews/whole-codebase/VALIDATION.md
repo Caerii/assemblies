@@ -4463,3 +4463,9 @@ suite passes **115 tests** with one expected sampled-recurrence warning. A
 focused Pyright scan still reports older structural typing issues in the
 loosely typed stage-result/decomposition dictionaries; these are tracked as a
 separate type-safety refactor and do not affect the runtime gate.
+
+## Stability snapshot count typing (2026-09-11)
+
+`StabilitySnapshot.prediction_lexicon_size` now has integer count semantics
+instead of a floating-point field. The capture path stores the discrete lexicon
+length directly; Ruff and bytecode compilation pass.
