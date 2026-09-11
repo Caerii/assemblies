@@ -26,6 +26,7 @@ _LAZY_EXPORTS = {
     name: ".core" for name in (
         "Brain", "Area", "Stimulus", "Connectome", "PopulationCounts",
         "PreKwtaObservation",
+        "FeedforwardInhibitionConfig",
         "ComputeEngine", "ProjectionResult", "create_engine", "list_engines",
         "SampledRecurrencePolicy",
         "AlignerSemantics", "AlignmentStore", "AlignmentTrainingSchedule",
@@ -128,6 +129,7 @@ if TYPE_CHECKING:  # pragma: no cover
     from .core import (
         Area, Brain, ComputeEngine, Connectome, PopulationCounts,
         PreKwtaObservation,
+        FeedforwardInhibitionConfig,
         ProjectionResult, Stimulus,
         AlignerSemantics, AlignmentInferenceSchedule, AlignmentStore,
         AlignmentTrainingSchedule, ArithmeticMode, CandidateDomain,
@@ -183,6 +185,7 @@ __all__ = [
     # Core classes
     'Brain', 'Area', 'Stimulus', 'Connectome', 'PopulationCounts',
     'PreKwtaObservation',
+    'FeedforwardInhibitionConfig',
     'HomeostasisConfig',
     'SampledRecurrencePolicy',
     'AlignerSemantics', 'AlignmentStore', 'AlignmentTrainingSchedule',

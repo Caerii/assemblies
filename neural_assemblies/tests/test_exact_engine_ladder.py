@@ -512,6 +512,8 @@ def test_engine_homeostasis_capabilities_have_constructor_paths():
         "norm_init": "supports_norm_init",
         "synaptic_scaling": "supports_synaptic_scaling",
         "synaptic_scaling_deferred": "supports_synaptic_scaling_deferred",
+        "inhibitory_prob": "supports_feedforward_inhibition",
+        "inhibitory_weight": "supports_feedforward_inhibition",
     }
     for engine_name in _ENGINE_MODULES:
         if not ensure_engine(engine_name):

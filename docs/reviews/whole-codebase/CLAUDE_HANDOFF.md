@@ -2295,3 +2295,21 @@ The maintained Torch path is verified: 82 homeostasis, fused and parity tests pa
 in the Visual Studio/CUDA shell. The CPU boundary gate is 227 passed. The only
 parity warning is the pre-existing float32 overflow deliberately
 exercised by the deep-count pricing test.
+
+The next capability audit found a stronger false receipt in feedforward
+inhibition. `numpy_sparse` exposed the parameters and contains signed
+materialized-weight helpers, but its new-neuron candidate scores and recruitment
+edge reconstruction still use an excitatory binomial law. The decisive `p=1`
+counterexample produced `+100.0` sampled drive where `numpy_exact` produced
+`-750.0`. I did not patch one side of that mismatch and call it support: sampled
+admission is closed and its direct constructor no longer accepts the options.
+
+One immutable `FeedforwardInhibitionConfig` now validates probability and signed
+weight, Brain and `create_engine` enforce the engine capability, and supplied
+engines must match the Brain request. Torch's permissive kwargs path explicitly
+rejects the mechanism. The exact backend is the sole admitted implementation;
+its constructed null/treatment test moves recorded area drive from `+1000.0` to
+`-750.0`. The linked Assembly IR contract records the remaining sampled proof
+obligations. The focused CPU gate is 220 passed with one optional-engine skip;
+the maintained Torch CUDA gate is 9 passed. This is an early-error boundary and
+an exact-engine mechanism test, not a claim that sampled inhibition works.

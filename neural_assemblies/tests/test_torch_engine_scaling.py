@@ -134,6 +134,13 @@ def test_deferred_scaling_refuses_loudly():
         _brain(synaptic_scaling=True, synaptic_scaling_deferred=True)
 
 
+def test_direct_torch_engine_rejects_feedforward_inhibition():
+    from neural_assemblies.core.torch_engine import TorchSparseEngine
+
+    with pytest.raises(ValueError, match="does not support feedforward inhibition"):
+        TorchSparseEngine(p=0.05, inhibitory_prob=0.1)
+
+
 def test_fixed_target_projection_learns():
     """Projection into a FIXED area must potentiate the afferents (and
     materialize the fiber), not silently discard the inputs."""

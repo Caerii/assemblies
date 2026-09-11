@@ -126,6 +126,16 @@ class TorchSparseEngine(ComputeEngine):
     def __init__(self, p: float, seed: int = 0, w_max: float = 20.0,
                  deterministic: bool = False, gpu_sampling: bool = True,
                  **kwargs):
+        if "inhibitory_prob" in kwargs or "inhibitory_weight" in kwargs:
+            from ..feedforward_inhibition import (
+                FeedforwardInhibitionConfig,
+                validate_feedforward_inhibition_capability,
+            )
+            inhibition = FeedforwardInhibitionConfig(
+                probability=kwargs.pop("inhibitory_prob", 0.0),
+                weight=kwargs.pop("inhibitory_weight", -0.2),
+            )
+            validate_feedforward_inhibition_capability(type(self), inhibition)
         self.p = p
         self.seed = int(seed)  # Shared construction identity when adopted by Brain.
         self.w_max = w_max

@@ -46,6 +46,10 @@ from ._homeostasis import (
 from .index_spaces import CompactIdx, to_neuron_ids, validated_indices
 from .semantics import ModelSemantics, SampledRecurrencePolicy
 from .activity import PopulationCounts, PreKwtaObservation
+from .feedforward_inhibition import (
+    FeedforwardInhibitionConfig,
+    validate_feedforward_inhibition_capability,
+)
 
 from .area import Area
 from .stimulus import Stimulus
@@ -192,9 +196,19 @@ class Brain:
         )
         synaptic_scaling = homeostasis.synaptic_scaling
         validate_homeostasis_capabilities(owner_type, homeostasis)
+        feedforward_inhibition = FeedforwardInhibitionConfig(
+            inhibitory_prob, inhibitory_weight
+        )
+        validate_feedforward_inhibition_capability(
+            owner_type, feedforward_inhibition
+        )
         if isinstance(engine, ComputeEngine):
             engine.validate_brain_identity(
-                p=p, seed=seed, w_max=w_max, homeostasis=homeostasis
+                p=p,
+                seed=seed,
+                w_max=w_max,
+                homeostasis=homeostasis,
+                feedforward_inhibition=feedforward_inhibition,
             )
         self.p = p
         self.w_max = w_max
@@ -216,11 +230,9 @@ class Brain:
             engine_kwargs = dict(
                 p=p, seed=seed, w_max=w_max, deterministic=deterministic,
             )
-            # Feedforward inhibition is a numpy_sparse feature; only forward it
-            # when engaged, so other engines' constructors are unaffected.
-            if inhibitory_prob > 0.0:
-                engine_kwargs["inhibitory_prob"] = inhibitory_prob
-                engine_kwargs["inhibitory_weight"] = inhibitory_weight
+            # Admission above proves the selected engine implements this pair.
+            if feedforward_inhibition.enabled:
+                engine_kwargs.update(feedforward_inhibition.as_kwargs())
             # Forward the VALUE: True means every target area (legacy);
             # a collection of area names scopes scaling to those targets
             # only (see NumpySparseEngine._normalize_area_columns).
@@ -267,6 +279,7 @@ class Brain:
                     )
             self._engine._configure_sampled_recurrence_policy(sampled_policy)
         self._sampled_recurrence_policy = sampled_policy
+        self.feedforward_inhibition = feedforward_inhibition
 
         if hasattr(self._engine, "set_projection_fidelity"):
             self._engine.set_projection_fidelity(projection_fidelity)

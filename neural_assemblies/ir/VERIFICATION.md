@@ -896,6 +896,42 @@ This boundary runs before engine construction or model-state mutation. It does n
 claim that an importable backend has a usable device or satisfies parity; each
 backend's runtime admission and conformance gates own those stronger claims.
 
+<a id="contract-feedforward-inhibition"></a>
+
+## Feedforward-inhibition configuration and admission
+
+`FeedforwardInhibitionConfig(probability, weight)` is the immutable pair defining
+whether a present area-to-area synapse is inhibitory and what signed weight it
+receives. Stimulus afferents are outside this mechanism. Probability is finite
+and in `[0,1]`; weight is finite and strictly negative. A nondefault weight at
+probability zero rejects because it is inert configuration that cannot affect a
+run. Values canonicalize to floats.
+
+Engines opt into `supports_feedforward_inhibition`. Only `numpy_exact` currently
+implements the complete law; sampled sparse, dense explicit, Torch,
+CUDA-implicit and CuPy do not. Brain validates the pair and capability before
+construction, stores the canonical configuration, and forwards both values
+together only when enabled.
+`create_engine` enforces the same rules, while supporting engine constructors
+validate the pair again for direct callers. Torch removes and rejects these named
+options before its general `**kwargs` processing, preventing the former silent
+no-op path.
+
+The sampled engine contains signed materialized-weight kernels, but its
+unmaterialized candidate ranking still samples a positive binomial and its
+recruitment split reconstructs positive edge counts. At probability one and
+weight -0.75, the exact engine reports negative area-to-area drive while the old
+sampled public path reported positive drive. Correct support requires a signed
+candidate distribution and a reconstruction law that produces the same fixed
+fiber; changing only the sampled score would create a second mismatch. Admission
+therefore rejects the mechanism until both obligations have parity evidence.
+
+Controls reject booleans, nonfinite values, out-of-range probabilities,
+nonnegative weights and the dormant custom-weight case. Constructed spies prove
+unsupported Brain and factory requests never invoke an engine constructor. The
+exact engine exposes the canonical values it executes; the sampled engine has a
+specific rejection control.
+
 
 <a id="contract-backend-capability"></a>
 

@@ -433,6 +433,7 @@ class NumpyExactEngine(ComputeEngine):
     #: -- the repo's dominant defect class, see [[silent-no-op-dead-fibers]].
     #: Each maps to the only value that means "not requested".
     supports_norm_init = True
+    supports_feedforward_inhibition = True
     supports_fiber_learning_masks = True
 
     _UNSUPPORTED_INIT = {
@@ -452,7 +453,7 @@ class NumpyExactEngine(ComputeEngine):
     # `test_engine_norm_init_contract`.
     def __init__(self, p: float, seed: int = 0, w_max: float = 20.0,
                  norm_init: bool = False, inhibitory_prob: float = 0.0,
-                 inhibitory_weight: float = -1.0, dtype=None,
+                 inhibitory_weight: float = -0.2, dtype=None,
                  **kwargs) -> None:
         _reject_unsupported("NumpyExactEngine()", self._UNSUPPORTED_INIT, kwargs)
         self.p = float(p)
@@ -463,8 +464,12 @@ class NumpyExactEngine(ComputeEngine):
         self.dtype = np.dtype(dtype) if dtype is not None else self.DEFAULT_DTYPE
         if self.dtype not in (np.dtype(np.float32), np.dtype(np.float64)):
             raise ValueError("NumpyExactEngine dtype must be float32 or float64")
-        self.inhibitory_prob = float(inhibitory_prob)
-        self.inhibitory_weight = float(inhibitory_weight)
+        from ..feedforward_inhibition import FeedforwardInhibitionConfig
+        inhibition = FeedforwardInhibitionConfig(
+            inhibitory_prob, inhibitory_weight
+        )
+        self.inhibitory_prob = inhibition.probability
+        self.inhibitory_weight = inhibition.weight
         self._plasticity_enabled_global = True
 
         self._areas: Dict[str, ExactAreaState] = {}

@@ -70,7 +70,9 @@ class ComputeEngine(ABC):
     - The engine is responsible for its own memory management.
     """
 
-    def validate_brain_identity(self, *, p, seed, w_max, homeostasis=None) -> None:
+    def validate_brain_identity(
+        self, *, p, seed, w_max, homeostasis=None, feedforward_inhibition=None
+    ) -> None:
         """Specification: neural_assemblies/ir/VERIFICATION.md#contract-engine-identity
 
         Reject conflicting parameters before an existing engine is adopted.
@@ -95,6 +97,14 @@ class ComputeEngine(ABC):
             if HomeostasisConfig.from_engine(self) != homeostasis:
                 raise ValueError("Brain homeostasis conflicts with supplied engine; pass matching settings")
 
+        if feedforward_inhibition is not None:
+            from .feedforward_inhibition import FeedforwardInhibitionConfig
+            if FeedforwardInhibitionConfig.from_engine(self) != feedforward_inhibition:
+                raise ValueError(
+                    "Brain feedforward inhibition conflicts with supplied engine; "
+                    "pass matching settings"
+                )
+
     # -- Area / stimulus registration --
 
     supports_input_noise = False
@@ -105,6 +115,7 @@ class ComputeEngine(ABC):
     supports_norm_init = False
     supports_synaptic_scaling = False
     supports_synaptic_scaling_deferred = False
+    supports_feedforward_inhibition = False
 
     @abstractmethod
     def describe_model_semantics(self):
@@ -609,4 +620,15 @@ def create_engine(engine_name: str, **kwargs) -> ComputeEngine:
         validate_homeostasis_capabilities(
             resolved_type, HomeostasisConfig(**homeostasis_options)
         )
+    inhibition_options = {
+        "probability": kwargs.get("inhibitory_prob", 0.0),
+        "weight": kwargs.get("inhibitory_weight", -0.2),
+    }
+    if "inhibitory_prob" in kwargs or "inhibitory_weight" in kwargs:
+        from .feedforward_inhibition import (
+            FeedforwardInhibitionConfig,
+            validate_feedforward_inhibition_capability,
+        )
+        inhibition = FeedforwardInhibitionConfig(**inhibition_options)
+        validate_feedforward_inhibition_capability(resolved_type, inhibition)
     return resolved_type(**kwargs)

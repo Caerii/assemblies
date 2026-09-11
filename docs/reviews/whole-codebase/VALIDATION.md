@@ -3964,3 +3964,28 @@ The maintained Torch path passes 82 scaling, fused and parity tests under
 overflow warning in the deep-count pricing control. CPU admission, exact-ladder,
 model-boundary, protocol-wire and specification gates pass 227 tests. Ruff and
 whitespace checks pass.
+
+## Feedforward inhibition is admitted only where its signed law is complete (2026-09-11)
+
+`FeedforwardInhibitionConfig(probability, weight)` now owns validation and
+canonical transport of the two inseparable mechanism parameters. Brain and the
+lower-level engine factory share a capability gate before construction. Existing
+engine instances must carry exactly the requested configuration. Torch extracts
+and rejects the former silently ignored kwargs, and sparse direct construction no
+longer advertises them. The stable contract is linked from the implementation and
+states explicitly that stimulus afferents are outside this mechanism.
+
+The audit disproved the sampled engine's old claim of support. With `p=1`, ten
+active source neurons and full inhibition at weight `-0.75`, `numpy_exact`
+records pre-k-WTA area drive `-750.0`; the former sampled path recorded `+100.0`.
+Its materialized signed kernels do not repair the unmaterialized positive
+candidate sampler or positive recruitment reconstruction. Sampled inhibition is
+therefore rejected until one fixed-fiber law covers both stages. The retained
+exact mechanism control compares its null (`+1000.0`) with treatment (`-750.0`),
+so an accepted but inert implementation fails.
+
+Validation: 220 focused configuration, exact-ladder, model-boundary, lazy-export,
+specification and seeding tests pass (one optional-engine skip). The maintained
+Torch CUDA path passes all 9 scaling and rejection tests under
+`scripts/cuda-dev.cmd`. Ruff and whitespace checks pass. This validates exact
+signed drive and admission behavior; it supplies no sampled-backend parity claim.

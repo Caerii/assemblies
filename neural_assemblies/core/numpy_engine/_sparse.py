@@ -345,8 +345,6 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
     def __init__(self, p: float, seed: int = 0, w_max: float = 20.0,
                  deterministic: bool = False,
                  projection_fidelity: str = ProjectionFidelity.EXACT.value,
-                 inhibitory_prob: float = 0.0,
-                 inhibitory_weight: float = -0.2,
                  synaptic_scaling: "bool | frozenset | set | tuple" = False,
                  synaptic_scaling_deferred: bool = False,
                  norm_init: bool = False,
@@ -361,12 +359,10 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
         #: that makes heterogeneous density safe to put on the hot path.
         self._fiber_p: Dict[Tuple[str, str], float] = {}
         self.w_max = w_max
-        # Feedforward inhibition (Hoff et al. 2026, Eq. 7): an area->area
-        # synapse is inhibitory with probability inhibitory_prob (p_i), taking
-        # weight inhibitory_weight (omega_inh < 0); otherwise excitatory (1).
-        # p_i = 0 recovers the original excitatory-only Assembly Calculus.
-        self.inhibitory_prob = inhibitory_prob
-        self.inhibitory_weight = inhibitory_weight
+        # Signed-weight kernels remain dormant until candidate sampling and
+        # newly materialized edge reconstruction implement the same law.
+        self.inhibitory_prob = 0.0
+        self.inhibitory_weight = -0.2
         # Homeostatic synaptic scaling on area->area fibers. See
         # _normalize_area_columns for why the setpoint is the initial expected
         # column sum rather than 1, and why stimulus fibers are excluded.
