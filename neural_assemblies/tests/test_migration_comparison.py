@@ -1,7 +1,12 @@
 import copy
+import json
+from pathlib import Path
+
 import pytest
 
-from research.compare_migration import compare
+from research.compare_migration import compare, validate_receipt
+
+ROOT = Path(__file__).resolve().parents[2]
 
 
 def test_a1_comparison_catches_wrong_exactness_despite_correct_label():
@@ -118,3 +123,15 @@ def test_paired_capacity_comparison_requires_both_references():
     candidate = {"run": {"seeds": [1, 2, 3]}, "observations": {}}
     with pytest.raises(ValueError, match="treatment reference"):
         compare(candidate, {}, "capacity-paired", [1, 2, 3])
+
+
+def test_paired_capacity_receipt_is_recomputed_and_digest_bound(tmp_path):
+    source = (ROOT / "research/results/comparisons/"
+              "refraction-paired-sensitivity-20260911.json")
+    assert validate_receipt(source) == []
+    document = json.loads(source.read_text(encoding="utf-8"))
+    document["candidate_sha256"] = "0" * 64
+    tampered = tmp_path / "comparison.json"
+    tampered.write_text(json.dumps(document), encoding="utf-8")
+    assert any("candidate digest differs" in error
+               for error in validate_receipt(tampered))

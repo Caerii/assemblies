@@ -124,8 +124,8 @@ Each of these has data in hand and a registration to extend.
    corpus, plus gaps 4 to 6 for the carry's decay law, decide whether the
    temporal memory is worth a paper or a paragraph.
 5. **Close the register's sensitivity gaps.** All fifteen MEASURED entries name
-   their engine. Two currently have machine-checked treatment/control vectors;
-   thirteen expose the exact missing null evidence. Migrate each producing
+   their engine. Three currently have machine-checked treatment/control vectors;
+   twelve expose the exact missing null evidence. Migrate each producing
    experiment to an immutable run record and replace its `sensitivity_gap` with
    a retained comparison that a known dead configuration fails.
 

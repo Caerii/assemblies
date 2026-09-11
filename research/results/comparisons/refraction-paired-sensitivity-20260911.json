@@ -1,0 +1,42 @@
+{
+  "candidate": "research/results/runs/memory.capacity-scaling/refraction-paired-sensitivity-20260911/results.json",
+  "candidate_sha256": "47a2dcba79cc5a9c221e3ec4cecd8e959c3e74560a7920fa7523960245e4e568",
+  "comparator_sha256": "1e97a2fa51825326a92b2599649ede0cf73e8ce02eda4f9af69f8c872ca6d9a6",
+  "comparator_source": {
+    "git_commit": "3d86a2b4a233066d6608b4436a40f2dc2d36372c",
+    "inventory": "source-inputs-v3",
+    "source_sha256": "f93437b99543fefab31c2b545de6f16daeaf4d424ddb61566bb643b4cb9b1669"
+  },
+  "comparison_version": 4,
+  "comparisons": 2090,
+  "errors": [],
+  "kind": "capacity-paired",
+  "numerical_match": true,
+  "reference": "research/results/memory/capacity_scaling_results_figure_ctl.json",
+  "reference_seeds": [
+    42,
+    43,
+    44,
+    45,
+    46,
+    47,
+    48,
+    49,
+    50,
+    51,
+    52,
+    53,
+    54,
+    55,
+    56,
+    57,
+    58,
+    59,
+    60,
+    61
+  ],
+  "reference_sha256": "4de0c70164df47ab1309578b4ca75fa634376a11b114bc346bcb379b1b767b66",
+  "scope": "observation comparison only; no scientific adoption or protocol-equivalence verdict",
+  "treatment_reference": "research/results/memory/capacity_scaling_results_figure_ref.json",
+  "treatment_reference_sha256": "9b0c3236eec7379a76f7b66d58491d888a06941fa2a9c2062765a40b9ae0a378"
+}

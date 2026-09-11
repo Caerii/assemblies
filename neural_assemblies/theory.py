@@ -42,7 +42,9 @@ from typing import Dict, List, Sequence
 #: Matches an UPPERCASE-DASHED result citation in double brackets. Lowercase
 #: kebab links are operator memory, not results, and never match.
 CITATION = re.compile(r"\[\[([A-Z][A-Z0-9]*(?:-[A-Z0-9]+)*)\]\]")
-EVIDENCE_ROLES = frozenset({"artifact", "registration", "producer", "analysis", "log"})
+EVIDENCE_ROLES = frozenset({
+    "artifact", "registration", "producer", "analysis", "comparison", "log",
+})
 
 
 class Status:
@@ -76,9 +78,10 @@ class SensitivityCheck:
 
     Specification: neural_assemblies/ir/VERIFICATION.md#contract-result-sensitivity
 
-    Paths use ``/`` between object keys and ``*`` to expand a JSON list. The
-    resulting vectors are compared pairwise, so a missing seed, reordered arm,
-    or dead probe is a register-validation failure rather than prose debt.
+    Paths use RFC 6901 tokens without the optional leading slash and ``*`` to
+    expand a JSON list. The resulting vectors are compared pairwise, so a
+    missing seed, reordered arm, or dead probe is a register-validation failure
+    rather than prose debt.
     """
 
     artifact: str
@@ -517,8 +520,14 @@ _RESULTS: List[Result] = [
         id="REFRACTION-ANTI-MERGING",
         engine="hashed AssemblyMemory; materialized numpy_sparse mirror with summed stimulus parts (not an identical stimulus protocol)",
         status=Status.MEASURED,
-        sensitivity_gap="Treatment and control grids exist, but their legacy "
-                        "files do not yet expose one retained paired null vector.",
+        sensitivity_checks=(SensitivityCheck(
+            artifact="research/results/runs/memory.capacity-scaling/refraction-paired-sensitivity-20260911/results.json",
+            sample_path="run/seeds",
+            treatment_path="observations/conditions/refracted/cells/B~14000~160/checkpoints/128/rank1",
+            control_path="observations/conditions/control/cells/B~14000~160/checkpoints/128/rank1",
+            relation="all-greater", minimum_effect=0.5,
+            mechanism="refracted memory versus paired Hebbian control at M=128",
+        ),),
         claim="A recurrent k-WTA area refracted at HALF beta and read with the "
               "refraction bias MASKED holds ~25x the Hebbian ceiling: at n/k = 67 "
               "M* ~ 1600-2200 stored assemblies against 64-89 for the control, "
@@ -544,8 +553,8 @@ _RESULTS: List[Result] = [
               "(k p = 15 < 3 ln n) the cells fall 20-32% below their n/k pairs "
               "and do not converge at low load. GATED ROUNDS (Amendment 5): "
               "ending an item's rounds at its first repeated winner set under "
-              "T_max = 8 raises the ceiling by a CONSTANT fraction of n/k: +34% at "
-              "n/k = 67 (2645 vs 1978) and +24% at 133 (8666 vs 6995), both "
+              "T_max = 8 raises the ceiling by a CONSTANT fraction of n/k: +35% at "
+              "n/k = 67 (2645 vs 1961) and +24% at 133 (8666 vs 6995), both "
               "resolved; at both cells the ceiling sits where items stop "
               "converging inside T_max (the fraction converging is a U in load, "
               "0.98 at mid load, 0 at the ceiling); the same gate STARVES the "
@@ -561,7 +570,7 @@ _RESULTS: List[Result] = [
                "Q1-Q4, G1-G6, S8-S9).",
         evidence=("seq_capacity_scaling.py, arm B on the organ fiber, 20 brains, "
                   "M grid to 4096, s = 0.5 beta masked vs control: n/k = 33: "
-                  "431 / 383 vs 11.3; n/k = 67: 1978 / 1589 / 2230 vs 83 / 64 / "
+                  "431 / 383 vs 11.3; n/k = 67: 1961 / 1589 / 2230 vs 83 / 64 / "
                   "89; n/k = 133: >= 4096 vs 307 / 263",
                   "distinct 1.000 at every refracted ceiling; control 0.63 at "
                   "M = 128 (n = 4000), pairwise 15x chance",
@@ -576,12 +585,12 @@ _RESULTS: List[Result] = [
                   "grid to 16384, 20 brains: (8000, 60) REF 6995 [6144, 8192) = "
                   "0.395 (n/k)^2, CTL 307; (4000, 30) REF 4749 [4096, 6144), "
                   "CTL 263 (out of regime)",
-                  "(4000, 60) gated T_max 8: REF 2645 [2560, 2816) vs 1978; CTL "
+                  "(4000, 60) gated T_max 8: REF 2645 [2560, 2816) vs 1961; CTL "
                   "gated rank-1 0.32 at M = 8 (no memory formed); (4000, 30) "
                   "gated T_max 16: 362 vs 4749",
                   "(8000, 60) gated T_max 8: 8666 [8192, 10240) vs 6995 (x1.24)",
                   "strength 0.3 / 0.4 / 0.5 / 0.6 beta at (4000, 60): 1986 / "
-                  "1919 / 1978 / 1993, all [1536, 2048)"),
+                  "1919 / 1961 / 1993, all [1536, 2048)"),
         evidence_refs=(
             EvidenceRef("research/notes/memory/PREREG_refraction_memory.md", "registration"),
             EvidenceRef("research/results/runs/memory.capacity-scaling/capacity-record-consumed-20260910/results.json", "artifact",
@@ -589,6 +598,10 @@ _RESULTS: List[Result] = [
             EvidenceRef("research/results/memory/refraction_memory_numpy_results.json", "artifact"),
             EvidenceRef("research/results/memory/capacity_scaling_results_figure_ref.json", "artifact"),
             EvidenceRef("research/results/memory/capacity_scaling_results_figure_ctl.json", "artifact"),
+            EvidenceRef("research/results/runs/memory.capacity-scaling/refraction-paired-sensitivity-20260911/results.json", "artifact",
+                        "paired version-3 reproduction and sensitivity run"),
+            EvidenceRef("research/results/comparisons/refraction-paired-sensitivity-20260911.json", "comparison",
+                        "2090-scalar migration comparison receipt"),
         ),
         provenance_gap="most capacity-grid artifacts predate immutable source/environment records",
         preconditions=("recurrent k-WTA area, weight clip, norm_init, no column "
@@ -1064,11 +1077,14 @@ def unresolved_citations(root: str) -> Dict[str, List[str]]:
 
 
 def _json_values(document, path: str) -> list:
-    """Resolve a slash path with ``*`` list expansion into scalar values."""
+    """Resolve RFC 6901 tokens with ``*`` list expansion into scalar values."""
     nodes = [document]
-    for token in path.split('/'):
-        if not token:
+    for raw_token in path.split('/'):
+        if not raw_token:
             raise ValueError("empty sensitivity path component")
+        if re.search(r"~(?![01])", raw_token):
+            raise ValueError("invalid RFC 6901 escape in sensitivity path")
+        token = raw_token.replace("~1", "/").replace("~0", "~")
         expanded = []
         for node in nodes:
             if token == '*':

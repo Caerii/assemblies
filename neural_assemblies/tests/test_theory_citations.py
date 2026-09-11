@@ -12,6 +12,7 @@ import json
 import os
 import tempfile
 import unittest
+from dataclasses import replace
 
 from neural_assemblies import theory
 
@@ -167,10 +168,30 @@ class TestTheoryCitations(unittest.TestCase):
         finally:
             theory._RESULTS = original
 
+    def test_sensitivity_paths_use_rfc6901_escaped_object_keys(self):
+        document = {"cells": {"B/100/10": {"rank1": [0.7, 0.8, 0.9]}}}
+        self.assertEqual(
+            theory._json_values(document, "cells/B~1100~110/rank1"),
+            [0.7, 0.8, 0.9],
+        )
+        with self.assertRaisesRegex(ValueError, "RFC 6901"):
+            theory._json_values(document, "cells/B~2100/rank1")
+
     def test_real_measured_sensitivity_checks_remain_active(self):
         checked = {result.id for result in theory.RESULTS.values()
                    if result.sensitivity_checks}
-        self.assertEqual(checked, {"RATE-HETEROGENEITY", "SEQ-TEMPORAL-CARRY"})
+        self.assertEqual(checked, {
+            "RATE-HETEROGENEITY", "REFRACTION-ANTI-MERGING",
+            "SEQ-TEMPORAL-CARRY",
+        })
+
+    def test_refraction_sensitivity_fails_its_constructed_true_negative(self):
+        result = theory.cite("REFRACTION-ANTI-MERGING")
+        check = result.sensitivity_checks[0]
+        dead = replace(check, treatment_path=check.control_path)
+        errors = theory._sensitivity_errors(result, dead, REPO)
+        self.assertTrue(any("minimum retained effect is 0" in error
+                            for error in errors), errors)
 
 
 if __name__ == "__main__":

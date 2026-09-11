@@ -1,0 +1,189 @@
+{
+  "engine": "hashed_assembly_memory",
+  "environment": {
+    "policy": "repository-environment-v1",
+    "variables_sha256": {
+      "ASSEMBLIES_VCVARS64": "4f8e42768dc92e11e4f32efb495020ad43e49e2dfca1322a4928d7f4dedfd1a2",
+      "ASSEMBLIES_VSWHERE": "44564d56dfa6c2af8c632137228d0b7d773445fdce24fdec8da14ca0030615f5"
+    }
+  },
+  "execution_semantics": {
+    "kind": "organ",
+    "profiles": {
+      "control.B": {
+        "arc_refraction_charge": 0.0,
+        "convergence_gate": false,
+        "feature_register": false,
+        "horizon": 0,
+        "inference_schedule": "frozen-recurrent-completion",
+        "organ": "assembly-memory",
+        "prediction_gain": 0.0,
+        "state_code": "none",
+        "state_refraction_charge": 0.0,
+        "substrate": {
+          "arithmetic": "float32",
+          "candidate_domain": "all-neurons",
+          "connectome": "fixed-hash-regenerated",
+          "default_tie_break": "lowest-neuron-id",
+          "normalization": "inverse-indegree",
+          "plasticity": "multiplicative-clipped",
+          "stimulus_drive": "zero-or-size-afferent-count",
+          "weight_ceiling": 20.0
+        },
+        "successor_gain": 1.0,
+        "tie_jitter": 0.0,
+        "training_schedule": "stimulus-plus-recurrence"
+      },
+      "refracted.B": {
+        "arc_refraction_charge": 0.05,
+        "convergence_gate": false,
+        "feature_register": false,
+        "horizon": 0,
+        "inference_schedule": "frozen-recurrent-completion",
+        "organ": "assembly-memory",
+        "prediction_gain": 0.0,
+        "state_code": "none",
+        "state_refraction_charge": 0.0,
+        "substrate": {
+          "arithmetic": "float32",
+          "candidate_domain": "all-neurons",
+          "connectome": "fixed-hash-regenerated",
+          "default_tie_break": "lowest-neuron-id",
+          "normalization": "inverse-indegree",
+          "plasticity": "multiplicative-clipped",
+          "stimulus_drive": "zero-or-size-afferent-count",
+          "weight_ceiling": 20.0
+        },
+        "successor_gain": 1.0,
+        "tie_jitter": 0.0,
+        "training_schedule": "stimulus-plus-recurrence"
+      }
+    }
+  },
+  "git_commit": "ddab2d412fb0bdbb4d26507f1e8ac6709150fff1",
+  "input_artifacts": {},
+  "mode": "study",
+  "parameters": {
+    "arm_settings": {
+      "B": {
+        "norm_init": true,
+        "synaptic_scaling": false
+      }
+    },
+    "arms": [
+      "B"
+    ],
+    "conditions": {
+      "control": {
+        "beta": 0.1,
+        "checkpoints": [
+          8,
+          16,
+          32,
+          64,
+          128,
+          192,
+          256,
+          384,
+          512,
+          768,
+          1024,
+          1536,
+          2048,
+          3072,
+          4096
+        ],
+        "converge": false,
+        "p": 0.5,
+        "pair_sample": 200,
+        "readout": "masked",
+        "recall_sample": 32,
+        "refracted": false,
+        "refracted_factor": 0.0,
+        "rounds": 8,
+        "stim_size": null,
+        "w_max": 20.0
+      },
+      "refracted": {
+        "beta": 0.1,
+        "checkpoints": [
+          8,
+          16,
+          32,
+          64,
+          128,
+          192,
+          256,
+          384,
+          512,
+          768,
+          1024,
+          1536,
+          2048,
+          3072,
+          4096
+        ],
+        "converge": false,
+        "p": 0.5,
+        "pair_sample": 200,
+        "readout": "masked",
+        "recall_sample": 32,
+        "refracted": true,
+        "refracted_factor": 0.5,
+        "rounds": 8,
+        "stim_size": null,
+        "w_max": 20.0
+      }
+    },
+    "device": "cuda",
+    "distinct_gate": 3.0,
+    "distinct_low_bar": 0.9,
+    "distinctness": "64-bit set hash; collisions possible",
+    "half_bar": 0.5,
+    "measurement_seed": 1234,
+    "nk": [
+      [
+        4000,
+        60
+      ]
+    ]
+  },
+  "protocol": "memory.capacity-scaling",
+  "protocol_version": "3",
+  "registration": "research/notes/memory/PREREG_refraction_memory.md",
+  "registration_sha256": "fe13b57e4ca5279cd727c3287ba72c9ba6c7d627859ae67c37fab7830d7aa804",
+  "schema_version": 7,
+  "scientific_status": "UNJUDGED",
+  "script": "research/experiments/seq_capacity_scaling.py",
+  "script_sha256": "80a38b49f7293f55ca53800ebb38fc51c119aec63b329404e3d193cadba09373",
+  "seeds": [
+    42,
+    43,
+    44,
+    45,
+    46,
+    47,
+    48,
+    49,
+    50,
+    51,
+    52,
+    53,
+    54,
+    55,
+    56,
+    57,
+    58,
+    59,
+    60,
+    61
+  ],
+  "source_archive": {
+    "file": "source.zip",
+    "sha256": "95e4dd97f0eea6b8c3978064ad4595ae237fb46208c4211c4298a046f7bc5e81"
+  },
+  "source_inventory": "source-inputs-v3",
+  "source_sha256": "00e77ffc3e6dfdd973d663edf7c938121d384b8fdc5bc5b66eb13a6cc6d061f8",
+  "started_utc": "2026-09-11T13:05:05.065041+00:00",
+  "tag": "refraction-paired-sensitivity-20260911"
+}

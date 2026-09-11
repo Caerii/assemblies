@@ -2150,10 +2150,12 @@ finite equal lengths and enforces a frozen minimum effect. This is deliberately 
 checking a self-reported pass Boolean and narrower than claiming the contrast
 proves the scientific interpretation.
 
-Two existing immutable artifacts support honest checks today. The temporal
+Three immutable artifacts support honest checks today. The temporal
 position study keeps twenty g=1 distractor contrasts above its state-blind
 control by the preregistered 0.05 bar. The per-fiber study keeps twenty forward/equal ratio
-differences at least 9.0. All thirteen remaining measured claims expose named
+differences at least 9.0. The paired refraction-capacity run keeps every
+M=128 treatment brain at least 0.50 above its Hebbian control. All twelve
+remaining measured claims expose named
 gaps in the rendered register. Replace those gaps only by migrating a producer
 and retaining a constructed negative that the instrument actually fails.
 
@@ -2168,3 +2170,34 @@ skipped, 143 deselected, 7 expected failures and 10 passing subtests. Its two
 reported failures were the CUDA temporal-observation cases launched without `cl`;
 the documented `scripts/cuda-dev.cmd` rerun passes both (2 passed, 32 deselected).
 Ruff and whitespace checks are clean.
+
+## The headline refraction contrast now has paired evidence (2026-09-11)
+
+I migrated the central R1 contrast into capacity protocol version 3. One runner
+invocation executes complete `control` and `refracted` configurations with the
+same twenty seeds and restarted measurement-sample stream. It refuses condition
+drift outside refraction and gives each condition its own AssemblyMemory semantic
+profile. The code links to the new Assembly IR contract.
+
+The exact CUDA run is
+`research/results/runs/memory.capacity-scaling/refraction-paired-sensitivity-20260911/`.
+The comparator checks both historical artifacts and reports 2,090 matching
+scalars. At M=128 the minimum per-seed rank-1 difference is 0.96875 against the
+preregistered 0.50 sensitivity bar. The register reads those raw vectors by
+explicit seed identity and its constructed treatment-equals-control case fails.
+
+The rerun caught a real documentation error. Retained data and both computations
+give M*=1961.400398770613, while prose said 1977.6. The corrected multiplier is
+23.51x over 83.41525726478883 and the gated 2645 result is about +35%. R1, the
+bracket and the qualitative/scaling claims do not flip. Historical paragraphs
+remain, and Amendment 7 explicitly supersedes their exact value.
+
+Do not place post-run receipts inside modern run directories: schema 5+ inventory
+is sealed by the attachment manifest. The paired comparison receipt therefore
+lives under `research/results/comparisons/` and binds candidate, control,
+treatment and comparator source hashes.
+
+Source-to-spec validation now covers `research/experiments`, not only the package
+and runner. Six preregistration/audit references were reclassified from the word
+`Specification`, and the real temporal observation contract gained its missing
+stable anchor. The combined gate is 167 passed and the run artifact validates.

@@ -3760,7 +3760,7 @@ are clean.
 
 Every MEASURED result must now provide either a `SensitivityCheck` over raw
 treatment/control vectors in an immutable JSON artifact or a specific
-`sensitivity_gap`. Validation resolves slash paths with list expansion, requires
+`sensitivity_gap`. Validation resolves RFC 6901 paths with list expansion, requires
 unique sample identities, equal nonempty finite vectors and checks every paired
 effect against the frozen minimum. It therefore fails when pairing is ambiguous
 or a once-live instrument becomes a dead probe;
@@ -3771,7 +3771,7 @@ against the state-blind g=1 control with the preregistered 0.05 minimum paired
 effect.
 `RATE-HETEROGENEITY` checks all twenty forward-rate ratios against the equal-rate
 null with a 9.0 minimum difference. The retained artifacts pass. The other
-thirteen MEASURED entries now show an explicit sensitivity gap in the generated
+twelve MEASURED entries now show an explicit sensitivity gap in the generated
 register rather than silently borrowing confidence from legacy prose.
 
 A constructed three-seed moving probe passes and an otherwise identical
@@ -3784,3 +3784,36 @@ The full non-slow package run reached 3432 passed, 139 skipped, 143 deselected,
 started outside the Visual Studio developer environment; both pass when rerun
 through `scripts/cuda-dev.cmd` (2 passed, 32 deselected). Ruff and whitespace
 checks are clean.
+
+## Paired refraction capacity evidence (2026-09-11)
+
+Capacity protocol version 3 runs the `control` and `refracted` conditions under
+one record. Complete condition configurations may differ only by positive versus
+zero refraction; both use masked ungated readout. Organ profiles, ordered seeds,
+cell identity and measurement-sample RNG are paired explicitly. CPU controls
+reject a rounds mismatch before invoking the GPU and confirm both conditions
+restart the same sampling stream.
+
+The preregistered CUDA run at
+`research/results/runs/memory.capacity-scaling/refraction-paired-sensitivity-20260911/`
+used twenty seeds at `(n,k)=(4000,60)`. Its separate comparison receipt under
+`research/results/comparisons/` matches 2,090 scalar observations against both
+legacy figure artifacts. The control ceiling is 83.41525726478883 and the
+refracted ceiling is 1961.400398770613. At M=128 every paired refracted rank-1
+score exceeds control by at least 0.96875, passing the frozen 0.50 sensitivity
+bar. Replacing treatment with control fails the registered true-negative test.
+
+This revealed that the registration's 1977.6 value was unsupported by its
+retained curve. The curve, legacy figure aggregate and exact rerun all yield
+1961.4004. Current summaries now use that value: 23.51x control and about +35%
+for the 2645 gated result. No registered verdict or bracket changes.
+
+`SensitivityCheck` paths now use RFC 6901 token escaping, so keyed cells such as
+`B/4000/60` remain addressable without weakening identity keys. The source-to-spec
+validator now scans all experiment Python modules. That expansion exposed six
+registrations/audits mislabeled as specifications and two links to one missing
+anchor; labels and the stable observation-contract anchor are corrected.
+
+Validation: 167 register, graph, specification, migration, capacity, runner and
+methodology tests pass. The schema-7 run validates with an exact file inventory.
+Ruff passes on all changed Python sources.

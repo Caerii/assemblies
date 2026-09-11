@@ -3,7 +3,7 @@
 > **Status (2026-09-09): adopted.**
 > **Finding.** A recurrent k-WTA area refracted at 0.5 beta, read from a
 > half cue with the bias masked, stores about 0.40 (n/k)² assemblies in
-> regime, 25 times the Hebbian control. Strength from 0.3 to 0.6 beta
+> regime, about 24 times the Hebbian control. Strength from 0.3 to 0.6 beta
 > gives one plateau (Amendment 6). Ending each item's write when its
 > winner set repeats raises the ceiling by 24 to 34 percent, and the
 > ceiling sits where items stop converging within the round budget
@@ -19,7 +19,7 @@
 > --registration research/notes/memory/PREREG_refraction_memory.md --nk 4000:60
 > --arms B --refracted --refracted-factor 0.5 --readout masked
 > --ms 8,16,32,64,128,192,256,384,512,768,1024,1536,2048,3072,4096 --tag X`
-> gives the 1978 cell in about 35 s on one GPU; add `--converge` for the
+> gives the 1961 cell in about 35 s on one GPU; add `--converge` for the
 > gated 2645; drop `--refracted` for the control's 83. Results land in
 > `research/results/runs/memory.capacity-scaling/TAG/` with a run record;
 > the default seed list is 42..61 (20 brains). The fused kernels need the CUDA build
@@ -580,7 +580,8 @@ rather than a chosen point. The gate is NOT re-run at another strength
 
 ## Adopted (2026-09-09), Amendment 6
 
-G6 passes: the gate's gain is constant in n/k (two cells, +34% and +24%),
+G6 passes: the gate's gain is constant in n/k (two cells, +35% and +24%;
+the first corrected by Amendment 7),
 and its ceiling is where items stop converging inside T_max at both.
 S8 fails: strength is a switch (0.3-0.6 beta a plateau at ~1950; the
 transition in (0.6, 0.7] at T = 8). Both go into the register entry;
@@ -616,13 +617,13 @@ decided it. Cells are (n, k); 20 brains unless stated.
 
 | Bar | Registered | Verdict | Deciding number |
 |-----|-----------|---------|-----------------|
-| R1 capacity | REF >= 4x CTL at (4000, 60) | PASS | 1978 vs 83, 24x |
+| R1 capacity | REF >= 4x CTL at (4000, 60) | PASS | 1961 vs 83, 23.5x |
 | R2 ratio law at fixed k | M*(n)/n constant | FAIL | superseded by R6/R7: the law is in n/k |
 | R3 orthogonalization | pairwise overlap below chance at M* | FAIL as stated, PASS restated | overlap at chance past fill 1.0; distinct 1.000 |
 | R4 masked readout | net readout at chance | PASS | net M* = 8 |
-| R5 rounds | T = 16 raises the ceiling | FAIL (inverted) | 203 at T = 16 vs 1978 at T = 8 |
+| R5 rounds | T = 16 raises the ceiling | FAIL (inverted) | 203 at T = 16 vs 1961 at T = 8 (A7 correction) |
 | R6 control law in n/k | matched cells within 25% | PASS | 64/83, 89/83, 263/307, 11.3/11.3 |
-| R7 refracted law in n/k | matched cells within 25% | PASS at 33 and 67 | 1589/1978, 2230/1978, 383/431; at 133 the pair disagrees by 0.68 (one cell out of regime) |
+| R7 refracted law in n/k | matched cells within 25% | PASS at 33 and 67 | 1589/1961, 2230/1961, 383/431; at 133 the pair disagrees by 0.68 (one cell out of regime) |
 | N1 numpy engine | REF >= 3x CTL | PASS | >= 512 vs 34 (5 brains) |
 | N2 numpy distinct | distinct 1.000 at M* | PASS | 1.000 |
 | Q1 quadratic | M*/(n/k)^2 in [0.35, 0.50] at both n/k = 133 cells | PASS at (8000, 60), FAIL LOW at (4000, 30) | 0.395; 0.27 (out of regime) |
@@ -635,7 +636,7 @@ decided it. Cells are (n, k); 20 brains unless stated.
 | G4 gated control | reported | -- | no memory forms: rank-1 0.32 at M = 8 |
 | G5 out-of-regime cell, T_max 16 | converges and reaches the pair | FAIL | converges (0.956) and M* falls 13x to 362 |
 | G6 gain constant in n/k | ratio in [1.15, 1.55] at (8000, 60) | PASS | 1.24 (8666 vs 6995) |
-| S8 strength a lever | some strength >= 2275 | FAIL | 1986, 1919, 1978, 1993 at 0.3 to 0.6 beta |
+| S8 strength a lever | some strength >= 2275 | FAIL | 1986, 1919, 1961, 1993 at 0.3 to 0.6 beta (A7 correction) |
 | S9 convergence | reported | -- | all converge; transition in (0.6, 0.7] beta |
 
 
@@ -685,3 +686,23 @@ research/notes/memory/PREREG_refraction_memory.md --nk 4000:60 --arms B
 --compare-refraction --refracted-factor 0.5
 --ms 8,16,32,64,128,192,256,384,512,768,1024,1536,2048,3072,4096 --tag X`.
 The run remains UNJUDGED until A7-M1 and A7-S1 are evaluated and recorded below.
+
+### Amendment 7 result (2026-09-11)
+
+The immutable paired [run](../../results/runs/memory.capacity-scaling/refraction-paired-sensitivity-20260911/results.json)
+and its [comparison receipt](../../results/comparisons/refraction-paired-sensitivity-20260911.json)
+pass both bars. A7-M1 compares 2,090 retained scalar observations against the
+control and refracted figure artifacts with no differences. A7-S1 passes on all
+twenty seeds at M=128: the minimum paired REF-minus-CTL rank-1 difference is
+0.96875 (mean 0.9921875), above the frozen 0.50 bar. Substituting CTL for REF
+fails the validator's constructed A7-S0 control.
+
+The exact replay also resolves a transcription/estimand inconsistency in the
+registration. The retained refracted figure artifact, the version-3 recomputation
+and the exact GPU replay all give M*=1961.400398770613, not 1977.6. The control is
+83.41525726478883, so the multiplier is 23.51x. This does not change R1, its
+[1536,2048) bracket, the ~0.40(n/k)^2 description, the strength plateau or any
+adopted verdict. Current summaries and the register use 1961; earlier dated result
+paragraphs retain 1978 as the historical report corrected here. Against the
+corrected ungated value, the gated 2645 result is about +35%, still inside G6's
+registered interval.
