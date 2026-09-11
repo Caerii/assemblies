@@ -19,10 +19,8 @@ from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from typing import Any
 
-import numpy as np
 
 from neural_assemblies.programs.colt_mnist_ventral_theory import (
-    HYPOTHESES,
     HypothesisId,
     simple_vs_recurrent_summary,
 )

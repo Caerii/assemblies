@@ -34,7 +34,7 @@ import math
 
 import pytest
 
-from neural_assemblies.diagnostics import Separation, separation
+from neural_assemblies.diagnostics import separation
 
 
 class TestInvarianceIsThePoint:

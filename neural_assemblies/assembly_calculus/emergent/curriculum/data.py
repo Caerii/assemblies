@@ -13,7 +13,7 @@ adverbs, and varied verb/noun combinations.
 """
 
 import random as _random
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 from ..core.grounding import GroundingContext, VOCABULARY
 from ..core.sentence import GroundedSentence

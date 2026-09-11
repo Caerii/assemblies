@@ -21,7 +21,7 @@ versa.
 
 from __future__ import annotations
 
-from typing import Dict, List, Optional, Set, TYPE_CHECKING
+from typing import Dict, List, Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from ..parser import EmergentParser

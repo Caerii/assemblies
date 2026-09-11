@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import numpy as np
-import pytest
 
 from neural_assemblies.programs.patch_graph import (
     build_fashion_salient_patch_graph,

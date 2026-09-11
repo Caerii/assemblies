@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import random
 import re
-from typing import Dict, List, Optional, Sequence, Set
+from typing import Dict, List, Sequence, Set
 
 # Canonical early lemmas we expose with child-like surface noise.
 EARLY_FUZZY_LEMMAS: Sequence[str] = (

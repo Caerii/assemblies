@@ -1,7 +1,6 @@
 """Tests for consolidation calculus and emergent pathway schedules."""
 
 import numpy as np
-import pytest
 
 from neural_assemblies.assembly_calculus import (
     PathwayReplay,

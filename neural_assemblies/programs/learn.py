@@ -4,7 +4,7 @@ COLT 2022 classification via assembly learning (Dabagia et al.).
 
 from __future__ import annotations
 
-from typing import Dict, List, Tuple
+from typing import Dict, Tuple
 
 from neural_assemblies.assembly_calculus.ops import learn_assembly, project
 from neural_assemblies.assembly_calculus.assembly import overlap

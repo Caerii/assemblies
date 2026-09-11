@@ -31,7 +31,6 @@ Note also that the detectors run over SURFACE tokens, so they see "will" and
 would register as PRESENT throughout.
 """
 
-from contextlib import contextmanager
 from typing import Dict, List, Optional, Tuple
 
 from neural_assemblies.assembly_calculus.assembly import (

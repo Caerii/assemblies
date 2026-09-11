@@ -5,7 +5,7 @@ that never ran. These tests exist so the guards cannot be quietly removed.
 """
 import pytest
 
-from neural_assemblies.diagnostics import (Ensemble, compare_arms, ensemble,
+from neural_assemblies.diagnostics import (compare_arms, ensemble,
                                            paired_delta)
 
 SEEDS = list(range(42, 52))

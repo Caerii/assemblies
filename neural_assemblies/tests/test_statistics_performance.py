@@ -108,7 +108,7 @@ class TestStatisticsPerformance(unittest.TestCase):
             
             start_time = time.perf_counter()
             for _ in range(1000):  # Repeat for accurate timing
-                quantile = self.stats_engine.calculate_quantile_threshold(n, k)
+                self.stats_engine.calculate_quantile_threshold(n, k)
             end_time = time.perf_counter()
             
             times.append(end_time - start_time)
@@ -139,7 +139,7 @@ class TestStatisticsPerformance(unittest.TestCase):
             
             start_time = time.perf_counter()
             for _ in range(100):  # Repeat for accurate timing
-                ppf = self.stats_engine.calculate_binomial_ppf(0.5, n, p)
+                self.stats_engine.calculate_binomial_ppf(0.5, n, p)
             end_time = time.perf_counter()
             
             times.append(end_time - start_time)
@@ -222,8 +222,8 @@ class TestStatisticsPerformance(unittest.TestCase):
             engine = StatisticalEngine(rng)
             
             # Perform various operations
-            quantile = engine.calculate_quantile_threshold(1000, 100)
-            ppf = engine.calculate_binomial_ppf(0.5, 1000, 0.1)
+            engine.calculate_quantile_threshold(1000, 100)
+            engine.calculate_binomial_ppf(0.5, 1000, 0.1)
             samples = engine.sample_binomial_winners(1000, 0.1, 1000)
             
             return len(samples)
@@ -274,7 +274,7 @@ class TestStatisticsPerformance(unittest.TestCase):
             k = n // 2
             
             start_time = time.perf_counter()
-            quantile = self.stats_engine.calculate_quantile_threshold(n, k)
+            self.stats_engine.calculate_quantile_threshold(n, k)
             end_time = time.perf_counter()
             
             times.append(end_time - start_time)
@@ -325,7 +325,7 @@ class TestStatisticsPerformance(unittest.TestCase):
         start_time = time.perf_counter()
         for _ in range(1000):
             try:
-                quantile = self.stats_engine.calculate_quantile_threshold(1000, 100)
+                self.stats_engine.calculate_quantile_threshold(1000, 100)
             except Exception:
                 pass
         valid_time = time.perf_counter() - start_time
@@ -334,7 +334,7 @@ class TestStatisticsPerformance(unittest.TestCase):
         start_time = time.perf_counter()
         for _ in range(1000):
             try:
-                quantile = self.stats_engine.calculate_quantile_threshold(-1, 100)
+                self.stats_engine.calculate_quantile_threshold(-1, 100)
             except Exception:
                 pass
         invalid_time = time.perf_counter() - start_time
@@ -354,12 +354,12 @@ class TestStatisticsPerformance(unittest.TestCase):
         # Many small operations
         start_time = time.perf_counter()
         for _ in range(100):
-            samples = self.stats_engine.sample_binomial_winners(n, p, 100)
+            self.stats_engine.sample_binomial_winners(n, p, 100)
         small_ops_time = time.perf_counter() - start_time
         
         # One large operation
         start_time = time.perf_counter()
-        samples = self.stats_engine.sample_binomial_winners(n, p, 10000)
+        self.stats_engine.sample_binomial_winners(n, p, 10000)
         large_op_time = time.perf_counter() - start_time
         
         # Large operation should be reasonably efficient (allow some variance)
@@ -375,7 +375,7 @@ class TestStatisticsPerformance(unittest.TestCase):
         
         for p in p_values:
             start_time = time.perf_counter()
-            samples = self.stats_engine.sample_binomial_winners(n, p, 10000)
+            self.stats_engine.sample_binomial_winners(n, p, 10000)
             end_time = time.perf_counter()
             times.append(end_time - start_time)
         
@@ -393,7 +393,7 @@ class TestStatisticsPerformance(unittest.TestCase):
         for _ in range(100):
             rng = np.random.default_rng(seed=42)
             engine = StatisticalEngine(rng)
-            samples = engine.sample_binomial_winners(1000, 0.1, 100)
+            engine.sample_binomial_winners(1000, 0.1, 100)
         reproducible_time = time.perf_counter() - start_time
         
         # Test with different seeds (non-reproducible)
@@ -401,7 +401,7 @@ class TestStatisticsPerformance(unittest.TestCase):
         for i in range(100):
             rng = np.random.default_rng(seed=i)
             engine = StatisticalEngine(rng)
-            samples = engine.sample_binomial_winners(1000, 0.1, 100)
+            engine.sample_binomial_winners(1000, 0.1, 100)
         non_reproducible_time = time.perf_counter() - start_time
         
         # Performance should be similar (allow some variance)

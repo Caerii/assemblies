@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from neural_assemblies.assembly_calculus.ops import (
-    activate_assembly, assembly_is_current, bind, project, _snap,
+    bind,
 )
 
 # Kept in sync with parser_mixins.core._ROLE_BINDING_ROUNDS (imported lazily to

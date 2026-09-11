@@ -60,7 +60,7 @@ class CUDAProjector:
                     self.dll = ctypes.CDLL(str(dll_path))
                     self.dll_path = dll_path
                     return
-                except Exception as e:
+                except Exception:
                     continue
         
         # No DLL found - will use pure Python fallback
@@ -196,7 +196,7 @@ class CUDAProjector:
     def __del__(self):
         try:
             self.cleanup()
-        except:
+        except Exception:
             pass
 
 

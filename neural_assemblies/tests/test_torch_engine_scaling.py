@@ -21,7 +21,6 @@ All CUDA-gated: they skip cleanly on CPU-only environments.
 """
 from __future__ import annotations
 
-import numpy as np
 import pytest
 
 torch = pytest.importorskip("torch")

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Dict, List, Optional, Set, Tuple, TYPE_CHECKING
+from typing import Dict, Set, Tuple, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from ..core.grounding import GroundingContext
@@ -16,7 +16,7 @@ def build_chat_corpus(
     seed: int = 42,
 ) -> list:
     """Generate a large grounded sentence corpus covering the vocabulary."""
-    from ..curriculum.data import GroundedSentence, generate_training_sentences
+    from ..curriculum.data import generate_training_sentences
 
     return generate_training_sentences(vocabulary, n_sentences=n_sentences, seed=seed)
 

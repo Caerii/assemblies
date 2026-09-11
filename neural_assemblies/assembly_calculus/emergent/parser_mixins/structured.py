@@ -20,7 +20,6 @@ from typing import List, Optional
 from ..structured_json import (
     StructuredRecord,
     compare_tool_calls,
-    record_to_tool_call,
     structured_to_words,
     validate_record,
 )

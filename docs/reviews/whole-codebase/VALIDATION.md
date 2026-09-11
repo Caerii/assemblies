@@ -3204,3 +3204,29 @@ AssemblyIR.Projection` accepts the module. Printed dependencies contain
 This proves the pure field lowering, not schema-to-Lean translation or NumPy,
 Rust or CUDA arithmetic. JSON decimal scaling, float32 error/clipping, fiber
 existence and effectful exception semantics remain explicit bridge obligations.
+
+## Package lint contract restored (2026-09-11)
+
+The documented and publish-workflow command `ruff check neural_assemblies/`
+failed with 225 findings even though pytest was green: 164 in runtime modules
+and 61 in tests. The inventory was 170 unused imports, 45 unused bindings,
+8 duplicate definitions and 2 bare exception handlers. Ruff's safe and unsafe
+mechanical edits were reviewed rather than accepted as a verdict: calls used for
+benchmarks or mutation remain; pure expressions left after assignment removal
+were deleted; local fallback imports were reconciled; and the two handlers now
+catch `Exception`.
+
+Two semantic defects were resolved explicitly. `scaffold.py` imported both
+`typing.Sequence` and the assembly `Sequence` under the same name; input
+annotations now use `SequenceLike`, leaving the assembly result unambiguous.
+The next-token test claiming that a determiner predicts nouns computed that
+predicate and discarded it; it now asserts it. The focused IR, prediction,
+sequence, LRI and cross-engine selection reports 40 passed, 1 skipped and 19
+sampled-engine warnings in 32.51 seconds. Python compilation, Ruff and diff
+whitespace checks pass.
+
+The package cleanup touches 107 files with 88 insertions and 218 deletions, a net
+reduction of 130 lines. Most changes narrow import lists or remove dead locals;
+the broad package rerun remains the acceptance gate before this checkpoint is
+treated as stable. The research tree separately has 715 configured Ruff findings
+and is not represented as clean by this package repair.

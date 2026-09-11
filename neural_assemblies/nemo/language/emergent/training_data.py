@@ -20,7 +20,6 @@ def create_simple_training_data() -> List[GroundedSentence]:
     
     # Basic SVO sentences
     nouns = ['dog', 'cat', 'bird', 'ball', 'book', 'boy', 'girl', 'food', 'table', 'car']
-    verbs = ['runs', 'sees', 'eats', 'plays', 'sleeps', 'jumps', 'walks', 'reads', 'chases', 'finds']
     
     for noun in nouns:
         for verb in ['runs', 'sleeps', 'jumps', 'walks', 'plays']:
@@ -227,8 +226,6 @@ def create_training_data() -> List[GroundedSentence]:
     inanimate_nouns = ['ball', 'book', 'food', 'table', 'car']  # Cannot do actions
     all_nouns = animate_nouns + inanimate_nouns
     
-    action_verbs = ['runs', 'sleeps', 'jumps', 'walks', 'plays', 'eats', 'chases', 'finds']
-    perception_verbs = ['sees', 'reads']  # These can have animate subjects
     
     adjectives = ['big', 'small', 'red', 'blue', 'fast', 'slow', 'good', 'bad', 'happy', 'sad']
     prepositions = ['on', 'in', 'under', 'near', 'behind']

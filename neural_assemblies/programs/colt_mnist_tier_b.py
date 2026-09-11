@@ -13,7 +13,6 @@ from dataclasses import dataclass, field
 
 import numpy as np
 
-from neural_assemblies.assembly_calculus.consolidation import PathwayReplay, replay_pathway
 from neural_assemblies.assembly_calculus.ops import pattern_complete
 from neural_assemblies.programs.colt_mnist_advanced_util import wire_class_from_prototypes
 from neural_assemblies.programs.colt_mnist_hierarchical_brain import (
@@ -58,7 +57,6 @@ def measure_pattern_completion(
 
     brain = bundle.brain
     high_outputs = bundle.high_outputs
-    k = bundle.k
     recoveries = []
     rng = np.random.default_rng(seed)
     has_recurrence = float(np.sum(brain.connectomes[HIGH][HIGH].weights)) > 0.0

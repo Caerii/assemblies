@@ -11,7 +11,7 @@ import numpy as np
 
 from neural_assemblies.assembly_calculus.assembly import Assembly, overlap
 from neural_assemblies.assembly_calculus.ops import _snap
-from neural_assemblies.programs.colt_mnist_absence import apply_absence_mask, apply_bundle_absence
+from neural_assemblies.programs.colt_mnist_absence import apply_bundle_absence
 from neural_assemblies.programs.colt_mnist_brain_util import clear_area_winners, set_kcap_winners
 from neural_assemblies.programs.colt_mnist_hierarchical_brain import HIGH, LOW, NUM_DIGITS
 

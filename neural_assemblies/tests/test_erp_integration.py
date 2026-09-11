@@ -5,7 +5,7 @@ import os
 os.environ.setdefault("EMERGENT_FAST_TRAINING", "1")
 os.environ["TRAIN_PROGRESS"] = "0"
 
-from neural_assemblies.assembly_calculus.emergent import EmergentParser, build_vocabulary_preset
+from neural_assemblies.assembly_calculus.emergent import EmergentParser
 from neural_assemblies.assembly_calculus.emergent.acquisition.wobbly import (
     mine_wobbly_episodes,
     replay_wobbly_episodes,

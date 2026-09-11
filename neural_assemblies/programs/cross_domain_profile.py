@@ -12,7 +12,7 @@ from typing import Any, Callable
 
 import numpy as np
 
-from neural_assemblies.assembly_calculus.assembly import Assembly, overlap
+from neural_assemblies.assembly_calculus.assembly import overlap
 from neural_assemblies.assembly_calculus.ops import _snap
 from neural_assemblies.programs.colt_mnist_advanced_util import read_class_connectome_scores
 from neural_assemblies.programs.colt_mnist_brain_util import set_kcap_winners
@@ -21,14 +21,11 @@ from neural_assemblies.programs.colt_mnist_lri_readout import connectome_lri_pre
 from neural_assemblies.programs.colt_mnist_tier_a import predict_multi_prototype
 from neural_assemblies.programs.colt_mnist_tier_util import CONFUSED_DIGITS, CONFUSED_PAIRS, connectome_predict
 from neural_assemblies.programs.cross_domain_assemblies import (
-    LANG,
     SEMANTIC,
     TrainedCrossDomainHub,
     _anchor_readout,
     _contrastive_matrix,
     _fuse_visual_prediction,
-    _primary_word_pattern,
-    _readout_digit,
     _train_cross_domain_hub,
 )
 

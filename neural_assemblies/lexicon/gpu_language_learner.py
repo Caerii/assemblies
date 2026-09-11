@@ -522,7 +522,7 @@ class GPULanguageLearner:
             # Project to all POS areas
             pos_activations = {}
             for pos in ['NOUN', 'VERB', 'ADJ', 'DET', 'PREP', 'ADV', 'PRON']:
-                winners = self.brain.project('LEX', pos, learn=False)
+                self.brain.project('LEX', pos, learn=False)
                 # Measure activation strength
                 W = self.brain.connections[('LEX', pos)]
                 word_indices = self.brain.word_to_neurons[word]
@@ -598,7 +598,6 @@ class GPULanguageLearner:
         # Determine initial state based on start words
         last_word = sentence[-1].lower()
         last_pos = self.get_pos(last_word)
-        has_subject = any(self.get_pos(w) in ['NOUN', 'PRON'] for w in sentence)
         has_verb = any(self.get_pos(w) == 'VERB' for w in sentence)
         
         if last_pos == 'DET':

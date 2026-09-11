@@ -4,7 +4,6 @@ Infer FSM structure from observed state/symbol traces (sequences paper protocol)
 
 from __future__ import annotations
 
-from collections import defaultdict
 from typing import Dict, List, Sequence, Tuple
 
 from neural_assemblies.assembly_calculus.fsm import FSMNetwork

@@ -15,7 +15,6 @@ one brain carrying a fiber that is genuinely dead beside one that is genuinely
 live, and the census must separate them.
 """
 
-import numpy as np
 import pytest
 
 from neural_assemblies.core.brain import Brain

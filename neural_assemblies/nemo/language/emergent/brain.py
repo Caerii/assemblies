@@ -172,9 +172,6 @@ class EmergentNemoBrain:
         if self._is_inhibited(area):
             return None
         
-        n, k = self.p.n, self.p.k
-        area_idx = area.value
-        
         # Use CUDA backend if available (8x faster)
         if self.use_cuda_backend and area in self.cuda_projectors:
             return self._project_cuda(area, inp, learn)

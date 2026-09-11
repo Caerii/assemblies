@@ -17,12 +17,11 @@ Reference:
 
 import time
 
-import numpy as np
 import pytest
 
 from neural_assemblies.core.brain import Brain
 from neural_assemblies.assembly_calculus import (
-    Assembly, overlap, chance_overlap, project,
+    overlap, chance_overlap, project,
     reciprocal_project, FiberCircuit,
 )
 from neural_assemblies.assembly_calculus.ops import _snap

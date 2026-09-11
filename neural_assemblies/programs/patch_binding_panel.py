@@ -11,7 +11,6 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
-import numpy as np
 
 from neural_assemblies.programs.colt_mnist_synthesis import audit_bundle
 from neural_assemblies.programs.patch_graph import (

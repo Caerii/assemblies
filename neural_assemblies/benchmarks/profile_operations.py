@@ -10,7 +10,6 @@ import io
 import pstats
 import time
 import sys
-import os
 import copy
 import numpy as np
 
@@ -19,7 +18,6 @@ from neural_assemblies.assembly_calculus import (
     project, reciprocal_project, associate, merge,
     pattern_complete, separate,
 )
-from neural_assemblies.assembly_calculus.ops import _snap
 
 
 # ---------------------------------------------------------------------------

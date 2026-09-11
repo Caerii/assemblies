@@ -2,7 +2,6 @@
 
 import os
 
-import pytest
 
 os.environ.setdefault("EMERGENT_FAST_TRAINING", "1")
 os.environ["TRAIN_PROGRESS"] = "0"

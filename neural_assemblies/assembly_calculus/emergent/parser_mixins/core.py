@@ -48,25 +48,17 @@ now: each stage is a module with an entry point, and what it must be true of
 when it returns can be stated there.
 """
 
-from collections import defaultdict
 from contextlib import contextmanager
-from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Dict, List, Optional
 
 from neural_assemblies.core.brain import Brain
 from neural_assemblies.assembly_calculus.assembly import (
-    Assembly, overlap as assembly_overlap,
+    Assembly,
 )
-from neural_assemblies.assembly_calculus.ops import (
-    activate_assembly, project, merge, sequence_memorize, _snap,
-)
-from neural_assemblies.assembly_calculus.readout import readout_all, Lexicon
+from neural_assemblies.assembly_calculus.readout import Lexicon
 
 from ..core.areas import (
-    ALL_AREAS, CORE_AREAS, CORE_TO_CATEGORY, GROUNDING_TO_CORE, THEMATIC_AREAS, VERB_CORE, DET_CORE, ROLE_AGENT, ROLE_PATIENT, ROLE_ACTION,
-    MUTUAL_INHIBITION_GROUPS,
-    VP, SEQ,
-    FUNC_AUX, FUNC_DET, FUNC_COMP, FUNC_MARKER,
+    ALL_AREAS, GROUNDING_TO_CORE, THEMATIC_AREAS, MUTUAL_INHIBITION_GROUPS,
 )
 from ..core.grounding import GroundingContext, VOCABULARY
 from ..curriculum.data import GroundedSentence, create_training_sentences
@@ -74,12 +66,7 @@ from ..curriculum.data import GroundedSentence, create_training_sentences
 from ._shared import (
     MERGE_ROUNDS,
     DistributionalStats,
-    _int_defaultdict,
-    _LEXICAL_SMOOTHING,
     _MODALITY_FIELDS,
-    _ROLE_BINDING_ROUNDS,
-    _ROLE_LABEL,
-    _STRUCTURAL_PRIOR,
 )
 from .classify import CategoryClassificationMixin
 from .gating import GatingMixin

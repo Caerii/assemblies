@@ -12,10 +12,10 @@ import unittest
 import numpy as np
 
 from neural_assemblies.core.brain import Brain
-from neural_assemblies.assembly_calculus.assembly import Assembly, overlap, chance_overlap
+from neural_assemblies.assembly_calculus.assembly import Assembly, overlap
 from neural_assemblies.assembly_calculus.sequence import Sequence
 from neural_assemblies.assembly_calculus.ops import (
-    project, sequence_memorize, ordered_recall, _snap,
+    project, sequence_memorize, ordered_recall,
 )
 from neural_assemblies.assembly_calculus.scaffold import ScaffoldNetwork
 

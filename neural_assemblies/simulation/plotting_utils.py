@@ -117,7 +117,7 @@ def plot_association(show=True, save="", use_text_font=True):
 
     od = OrderedDict(sorted(results.items()))
     plt.plot(od.keys(), od.values(), linewidth=0.7)
-    ax = plt.axes()
+    plt.axes()
     plt.yticks([0.1, 0.2, 0.3, 0.4, 0.5], ["10%", "20%", "30%", "40%", "50%"])
     plt.xlabel(r'$t$')
     if show:
@@ -144,7 +144,7 @@ def plot_pattern_com(show=True, save="", use_text_font=True):
 
     od = OrderedDict(sorted(results.items()))
     plt.plot(od.keys(), od.values(), linewidth=0.7)
-    ax = plt.axes()
+    plt.axes()
     plt.yticks([0, 0.25, 0.5, 0.75, 1], ["0%", "25%", "50%", "75%", "100%"])
     plt.xlabel(r'$t$')
     if show:
@@ -171,7 +171,7 @@ def plot_overlap(show=True, save="", use_text_font=True):
 
     od = OrderedDict(sorted(results.items()))
     plt.plot(od.keys(), od.values(), linewidth=0.7)
-    ax = plt.axes()
+    plt.axes()
     plt.xticks([0, 0.2, 0.4, 0.6, 0.8], ["", "20%", "40%", "60%", "80%"])
     plt.xlabel('overlap (assemblies)')
     plt.yticks([0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3], ["", "5%", "10%", "15%", "20%", "25%", "30%"])

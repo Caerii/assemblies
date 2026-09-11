@@ -177,9 +177,6 @@ def execute_tool_plan(
     registry=None,
 ) -> ToolPlanResult:
     """Run each step sequentially on the blocks executor."""
-    from .tools import ToolRegistry
-
-    reg = registry or ToolRegistry()
     results: List[str] = []
     executed = 0
 

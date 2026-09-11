@@ -55,7 +55,7 @@ import numpy as np
 from neural_assemblies.assembly_calculus.assembly import Assembly
 from neural_assemblies.core.index_spaces import NeuronIds
 from neural_assemblies.assembly_calculus.binding import (
-    bind, bind_strength, input_drive, materialize_fiber, recall,
+    bind, bind_strength, materialize_fiber,
 )
 from neural_assemblies.assembly_calculus.ops import (
     activate_assembly, project, _snap,

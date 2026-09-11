@@ -40,7 +40,6 @@ os.environ.setdefault("EMERGENT_FAST_TRAINING", "1")
 os.environ.setdefault("TRAIN_PROGRESS", "0")
 
 from neural_assemblies.assembly_calculus.emergent import EmergentParser
-from neural_assemblies.assembly_calculus.emergent.core.areas import FUNC_MARKER
 from neural_assemblies.assembly_calculus.emergent.core.sentence import (
     ground_plans,
 )

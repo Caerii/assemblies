@@ -12,7 +12,7 @@ from ..core.areas import (
     ADJ_CORE, ADJP, NOUN_CORE, NP, PP, PREP_CORE, VERB_CORE, VP,
 )
 from ..curriculum.data import GroundedSentence
-from ._shared import MERGE_ROUNDS, _ROLE_BINDING_ROUNDS
+from ._shared import MERGE_ROUNDS
 
 
 #: Phrase area -> the core area that feeds it, mirroring the fibers

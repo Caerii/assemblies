@@ -34,9 +34,9 @@ from typing import List, Dict, Optional, Sequence, Tuple, Any, Union
 from neural_assemblies.core._pricing import effective_binomial
 
 try:
-    from ..core.backend import get_xp, to_cpu, to_xp, xp_by_name, xp_name
+    from ..core.backend import xp_by_name, xp_name
 except ImportError:
-    from core.backend import get_xp, to_cpu, to_xp, xp_by_name, xp_name
+    from core.backend import xp_by_name, xp_name
 
 
 @lru_cache(maxsize=256)

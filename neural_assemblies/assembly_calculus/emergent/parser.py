@@ -22,7 +22,6 @@ from .evaluation import (
     evaluate_corpus_parity,
     exact_training_mode,
     run_dual_metric_gate,
-    score_next_token_probes,
 )
 from .parser_mixins import (
     BlocksMixin,

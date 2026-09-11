@@ -6,7 +6,7 @@ import random
 from dataclasses import dataclass
 from typing import List
 
-from ..core.grounding import GroundingContext, VOCABULARY
+from ..core.grounding import VOCABULARY
 from .data import GroundedSentence, _ctx
 
 

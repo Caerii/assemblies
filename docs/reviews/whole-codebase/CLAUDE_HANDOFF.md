@@ -1706,3 +1706,17 @@ learning remains at 3; three malformed cases reject. `lake build` with warnings
 as errors and `leanchecker AssemblyIR.Projection` pass, with no `sorryAx`.
 This is an internal pure lowering proof. The schema-to-Lean identity and concrete
 NumPy/Rust/CUDA arithmetic simulations remain open.
+
+## Package lint repair (2026-09-11)
+
+The release/documented `ruff check neural_assemblies/` gate had 225 findings
+(164 runtime, 61 tests). Reviewed cleanup makes it pass and removes 130 net lines
+across 107 files. Calls with possible effects remain; dead pure expressions do
+not. Two non-cosmetic fixes are the `typing.Sequence` versus assembly `Sequence`
+name collision in the scaffold API and a noun-after-determiner test that formerly
+discarded its own predicate. It now asserts the stated behavior.
+
+Compilation, Ruff, diff checks and a focused cross-engine/sequence/prediction/IR
+gate pass (40 passed, 1 skipped). A complete non-slow rerun is still required
+before treating this broad cleanup as stable. Research remains a separate lint
+debt of 715 findings; no claim of whole-tree lint cleanliness is made.

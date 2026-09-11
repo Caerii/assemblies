@@ -80,12 +80,6 @@ class GroundingInference:
         """
         ctx = GroundingContext()
         
-        # Get typical word order
-        word_order = self.learner.get_word_order()
-        
-        # Analyze position in sentence
-        relative_position = position / max(len(sentence_words), 1)
-        
         # Look at surrounding words
         prev_word = sentence_words[position - 1] if position > 0 else None
         next_word = sentence_words[position + 1] if position < len(sentence_words) - 1 else None

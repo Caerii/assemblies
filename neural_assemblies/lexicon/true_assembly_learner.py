@@ -294,10 +294,6 @@ class TrueLanguageLearner:
                     W = self.brain.W[('LEX', 'LEX')]
                     W[curr_indices.unsqueeze(1), prev_indices.unsqueeze(0)] += self.brain.beta
                     
-                    # Also in SEQ area
-                    W_seq = self.brain.W[('LEX', 'SEQ')]
-                    # The SEQ area should learn position patterns
-            
             prev_word = word
         
         if learn:

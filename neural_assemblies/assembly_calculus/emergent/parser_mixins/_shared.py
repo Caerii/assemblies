@@ -11,9 +11,9 @@ constant nobody has ever tested.
 
 from collections import defaultdict
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Dict, Tuple
 from ..core.areas import (
-    ROLE_AGENT, ROLE_PATIENT, ROLE_ACTION, ROLE_GOAL, ROLE_LABEL_TO_AREA,
+    ROLE_AGENT, ROLE_PATIENT, ROLE_ACTION, ROLE_GOAL,
 )
 
 #: Projection rounds for MERGE into a multi-assembly area.

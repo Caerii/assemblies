@@ -22,7 +22,6 @@ from neural_assemblies.programs.colt_mnist_absence import (
 )
 from neural_assemblies.programs.colt_mnist_forward_completion import (
     encode_and_predict,
-    forward_high_from_low,
     has_generative_head,
     measure_digit_forward_completion_battery,
     readout_prototypes,
@@ -31,7 +30,7 @@ from neural_assemblies.programs.colt_mnist_attractor import (
     consolidate_low_from_high,
     measure_recovery_on_bundle,
 )
-from neural_assemblies.programs.colt_mnist_brain_util import clear_area_winners, set_kcap_winners
+from neural_assemblies.programs.colt_mnist_brain_util import set_kcap_winners
 from neural_assemblies.programs.colt_mnist_hierarchical_brain import CLASS, HIGH, LOW, NUM_DIGITS
 from neural_assemblies.programs.colt_mnist_tier_util import connectome_predict, load_recurrent_bundle
 

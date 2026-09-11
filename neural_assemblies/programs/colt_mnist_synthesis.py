@@ -96,7 +96,7 @@ def audit_bundle(
 ) -> ACScorecard:
     """Full AC scorecard on one VentralBundle."""
     from neural_assemblies.programs.colt_mnist_advanced_util import wire_class_from_prototypes
-    from neural_assemblies.programs.colt_mnist_absence import apply_absence_mask, digit3_absence_battery
+    from neural_assemblies.programs.colt_mnist_absence import digit3_absence_battery
     from neural_assemblies.programs.patch_registry import patch_absence_protocols, resolve_patch_graph
     from neural_assemblies.programs.colt_mnist_attractor import consolidate_low_from_high
 

@@ -12,9 +12,9 @@ import numpy as np
 from neural_assemblies.core.brain import Brain
 from neural_assemblies.assembly_calculus.assembly import Assembly, overlap
 from neural_assemblies.assembly_calculus.readout import (
-    fuzzy_readout, readout_all, build_lexicon, Lexicon,
+    fuzzy_readout, readout_all, build_lexicon,
 )
-from neural_assemblies.assembly_calculus.ops import project, _snap
+from neural_assemblies.assembly_calculus.ops import project
 
 
 N = 10000

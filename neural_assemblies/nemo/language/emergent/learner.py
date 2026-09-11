@@ -281,7 +281,6 @@ class EmergentLanguageLearner:
                                                                verb_assembly)
                                                                    
             elif role == 'patient':
-                current_object = word
                 
                 # When we see the object, add it to VP
                 if current_verb and learn:

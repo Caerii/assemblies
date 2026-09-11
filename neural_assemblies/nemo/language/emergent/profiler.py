@@ -220,7 +220,7 @@ class NEMOProfiler:
         try:
             mempool = cp.get_default_memory_pool()
             self.results.gpu_memory_peak_mb = mempool.total_bytes() / 1024 / 1024
-        except:
+        except Exception:
             pass
     
     @contextmanager
@@ -509,7 +509,7 @@ def benchmark_topk_methods(n: int = 10000, k: int = 100,
     cp.cuda.Stream.null.synchronize()
     start = time.perf_counter()
     for _ in range(iterations):
-        idx = cp.argpartition(data_cp, -k)[-k:]
+        cp.argpartition(data_cp, -k)[-k:]
     cp.cuda.Stream.null.synchronize()
     results['cupy.argpartition'] = (time.perf_counter() - start) * 1000 / iterations
     
@@ -517,7 +517,7 @@ def benchmark_topk_methods(n: int = 10000, k: int = 100,
     cp.cuda.Stream.null.synchronize()
     start = time.perf_counter()
     for _ in range(iterations):
-        idx = cp.argsort(data_cp)[-k:]
+        cp.argsort(data_cp)[-k:]
     cp.cuda.Stream.null.synchronize()
     results['cupy.argsort'] = (time.perf_counter() - start) * 1000 / iterations
     

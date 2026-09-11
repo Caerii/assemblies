@@ -8,7 +8,7 @@ reads precomputed data instead of re-walking raw sentences.
 from __future__ import annotations
 
 from collections import defaultdict
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import TYPE_CHECKING, Dict, List, Optional, Set, Tuple
 
 from .areas import (

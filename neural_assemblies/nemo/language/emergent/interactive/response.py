@@ -131,9 +131,6 @@ class ResponseGenerator:
         
         Question words have QUERY in their grounding.
         """
-        # Get the word's grounding counts
-        grounding = self.learner.word_grounding.get(word, {})
-        
         # Check if it has visual QUERY grounding (what) or social QUERY (who)
         # Question words typically have unique grounding patterns
         # For now, use the fallback list since QUERY isn't stored as grounding type

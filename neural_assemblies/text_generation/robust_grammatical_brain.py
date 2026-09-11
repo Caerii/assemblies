@@ -509,7 +509,6 @@ class RobustGrammaticalBrain(brain.Brain):
         
         # CORE areas (explicit) - one for each grammatical category
         # Each CORE area has slots for different grammatical features
-        num_cores = 6  # NOUN, VERB, ADJ, DET, PREP, ADV
         for core_name in CORE_AREAS:
             self.add_explicit_area(core_name, CORE_k, CORE_k, CORE_beta,
                                    custom_inner_p=0.9, custom_out_p=0.5, custom_in_p=0.5)

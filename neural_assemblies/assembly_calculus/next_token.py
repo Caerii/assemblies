@@ -56,7 +56,7 @@ Reference:
 from typing import Dict, List, Tuple
 
 from .readout import readout_all, build_lexicon, Lexicon
-from .ops import project, sequence_memorize, _snap
+from .ops import sequence_memorize, _snap
 
 
 def build_next_token_model(brain, area: str, vocab: List[str],

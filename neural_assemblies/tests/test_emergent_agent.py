@@ -16,7 +16,6 @@ from neural_assemblies.assembly_calculus.emergent import (
 )
 from neural_assemblies.assembly_calculus.emergent.evaluation import EvaluationSuite
 from neural_assemblies.assembly_calculus.emergent.structured_io import ToolCall
-from neural_assemblies.assembly_calculus.emergent.tools import DEFAULT_TOOL_SPECS
 
 N = 5000
 K = 80

@@ -25,7 +25,6 @@ import time
 import pytest
 
 from neural_assemblies.core.brain import Brain
-from neural_assemblies.assembly_calculus import overlap, chance_overlap, build_lexicon
 from neural_assemblies.assembly_calculus.next_token import (
     build_next_token_model, train_on_corpus,
     predict_next_token, score_corpus,

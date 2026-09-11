@@ -105,7 +105,7 @@ def _ventral_brain_and_outputs(**kwargs):
         high_outputs = np.zeros((NUM_DIGITS, n_examples, n_high))
         for digit in range(NUM_DIGITS):
             for j in range(n_examples):
-                hv = _forward_high(brain, examples[digit, j], high_bias)
+                _forward_high(brain, examples[digit, j], high_bias)
                 for _ in range(2):
                     brain.project({}, {HIGH: [HIGH]})
                 vec = np.zeros(n_high, dtype=np.float32)

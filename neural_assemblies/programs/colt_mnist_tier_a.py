@@ -17,12 +17,11 @@ from dataclasses import dataclass, field
 
 import numpy as np
 
-from neural_assemblies.assembly_calculus.assembly import Assembly, overlap
+from neural_assemblies.assembly_calculus.assembly import Assembly
 from neural_assemblies.assembly_calculus.ops import _snap, merge
 from neural_assemblies.assembly_calculus.readout import fuzzy_readout, readout_all
 from neural_assemblies.programs.colt_mnist_advanced_util import (
     prototypes_to_lexicon,
-    read_class_connectome_scores,
     wire_class_from_prototypes,
 )
 from neural_assemblies.programs.colt_mnist_brain_util import (
@@ -38,22 +37,18 @@ from neural_assemblies.programs.colt_mnist_data import (
 from neural_assemblies.programs.colt_mnist_hierarchical_brain import (
     CLASS,
     HIGH,
-    LOW,
     NUM_DIGITS,
     ColtMnistHierarchicalBrainResult,
 )
 from neural_assemblies.programs.colt_mnist_protocol import preprocess_mnist_examples
 from neural_assemblies.programs.colt_mnist_visual_advanced_brain import (
-    _extend_hierarchical_training,
     _init_two_layer_weights,
     _min_pairwise_prototype_overlap,
-    _sync_two_layer,
 )
 
 TOP = "LOW_TOP"
 BOT = "LOW_BOT"
 MID = "MID"
-LOW = "LOW"
 
 
 from neural_assemblies.programs.patch_graph import halves_fields_from_pattern
@@ -258,8 +253,6 @@ def run_merge_halves_mnist(
 ) -> TierAResult:
     """Train TOP/BOT ``merge`` -> MID -> HIGH part stream (Tier A)."""
     from neural_assemblies.core.brain import Brain
-    from neural_assemblies.programs.colt_mnist_data import find_mnist_dir, load_mnist_arrays
-    from neural_assemblies.programs.colt_mnist_protocol import preprocess_mnist_examples
     from neural_assemblies.programs.colt_mnist_spatial_connectome import init_spatial_half_connectome
     from neural_assemblies.programs.colt_mnist_tier_util import connectome_predict
 

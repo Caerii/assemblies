@@ -38,19 +38,16 @@ what keeps earlier structure refreshed as beta falls.
 """
 
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Set
+from typing import List, Optional, Set
 
 from ..core.grounding import GroundingContext
-from ..core.scene import SceneEvent
 from ..core.sentence import SentencePlan
 from .data import GroundedSentence
 from .generation import SentenceGenerator
 from ..core.areas import GROUNDING_TO_CORE, DET_CORE
 from ..training.perf import (
     PRESET_VOCAB_SKIP_THRESHOLD,
-    STAGE_WORD_ORDER_REPS,
     effective_stage_phases,
-    stage_distributional_reps,
     stage_training_rounds,
 )
 

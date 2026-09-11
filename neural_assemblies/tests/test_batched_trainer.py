@@ -49,7 +49,6 @@ def test_minibatch_matches_online_bit_identical():
     # In the stable stim-anchored regime, mini-batch training must be
     # bit-identical to online (the potentiated bridges run between fixed
     # assemblies, independent of the connectome's state).
-    import torch
     from neural_assemblies.assembly_calculus.batched_trainer import (
         BatchedSeqTrainer,
     )

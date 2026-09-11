@@ -11,7 +11,6 @@ from __future__ import annotations
 
 import numpy as np
 
-from ..backend import xp_name
 from ._csr_weights import scipy_sparse
 from ._virtual_weights import VirtualWeights
 

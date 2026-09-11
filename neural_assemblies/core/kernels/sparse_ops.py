@@ -9,7 +9,6 @@ Requires: cupy
 """
 
 import cupy as cp
-import numpy as np
 
 # ---------------------------------------------------------------------------
 # K1: Scatter penalty — vectorized LRI application

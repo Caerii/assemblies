@@ -24,15 +24,12 @@ References:
 
 import time
 
-import numpy as np
 import pytest
 
 from neural_assemblies.core.brain import Brain
 from neural_assemblies.assembly_calculus import (
-    Assembly, overlap, chance_overlap, project, reciprocal_project,
-    build_lexicon, fuzzy_readout, readout_all,
+    overlap, chance_overlap, project, readout_all,
     sequence_memorize, ordered_recall,
-    FiberCircuit, Lexicon,
 )
 from neural_assemblies.assembly_calculus.ops import _snap
 

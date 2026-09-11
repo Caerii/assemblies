@@ -7,7 +7,6 @@ sequences can advance instead of oscillating between consecutive assemblies.
 """
 
 import unittest
-import numpy as np
 
 from neural_assemblies.core.brain import Brain
 from neural_assemblies.assembly_calculus.ops import _snap
@@ -185,8 +184,6 @@ class TestLRI(unittest.TestCase):
 
         # Train normally, then enable moderate LRI
         _train_assembly(b, "s", "A")
-        asm_no_lri = _snap(b, "A")
-
         b.set_lri("A", refractory_period=2, inhibition_strength=10.0)
 
         # Project stimulus again WITH LRI active — stimulus input should

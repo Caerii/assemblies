@@ -121,8 +121,6 @@ def run_hippocampal_experiment(config: ExperimentConfig, verbose: bool = False):
             # Project to CA3 (episodic encoding)
             brain._project(CA3, subj_asm, learn=True)
             brain._project(CA3, verb_asm, learn=True)
-            ca3_pattern = brain.current[CA3].copy()
-            
             # CRITICAL: Recurrent projection in CA3 (strengthens episode)
             for _ in range(3):
                 brain._project(CA3, brain.current[CA3], learn=True)

@@ -41,7 +41,6 @@ from neural_assemblies.programs.colt_mnist_advanced_util import (
     wire_semantic_from_view_projections,
 )
 from neural_assemblies.programs.colt_mnist_brain_util import (
-    class_slot_neurons,
     clear_area_winners,
     reinforce_class_slot,
     renorm_connectome_columns,
@@ -56,7 +55,6 @@ from neural_assemblies.programs.colt_mnist_tier_a import (
 from neural_assemblies.programs.colt_mnist_tier_util import (
     CONFUSED_DIGITS,
     CONFUSED_PAIRS,
-    connectome_predict,
     load_ventral_bundle,
 )
 

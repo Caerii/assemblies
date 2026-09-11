@@ -21,9 +21,7 @@ Pure functions on assembly winner arrays. No parser or Brain state.
 
 from __future__ import annotations
 
-from typing import Union
 
-import numpy as np
 
 from ..assembly import overlap
 from ...core.index_spaces import NeuronIds

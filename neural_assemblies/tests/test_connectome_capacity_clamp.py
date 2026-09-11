@@ -17,7 +17,6 @@ same rule for the 2-D case.
 """
 
 import numpy as np
-import pytest
 
 from neural_assemblies.core.brain import Brain
 

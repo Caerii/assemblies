@@ -10,7 +10,7 @@ from ..core.grounding import GroundingContext
 from ..core.sentence import GroundedSentence
 
 if TYPE_CHECKING:
-    from ..curriculum import CurriculumTrainer, StageResult
+    from ..curriculum import CurriculumTrainer
     from ..parser import EmergentParser
     from .orchestrator import StageReflection
 
@@ -183,7 +183,6 @@ def build_remedial_sentences(
     dets = buckets["DET"] or ["the", "a"]
     nouns = buckets["NOUN"] or ["dog", "cat"]
     verbs = buckets["VERB"] or ["runs", "sees"]
-    adjs = buckets["ADJ"] or ["big"]
     prons = buckets["PRON"] or ["she"]
     preps = buckets["PREP"] or ["on"]
 

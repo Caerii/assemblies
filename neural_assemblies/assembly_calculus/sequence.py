@@ -35,7 +35,7 @@ from typing import List
 
 import numpy as np
 
-from .assembly import Assembly, overlap
+from .assembly import overlap
 
 
 @dataclass(frozen=True)

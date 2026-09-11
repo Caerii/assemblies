@@ -15,7 +15,6 @@ from neural_assemblies.assembly_calculus.emergent.evaluation.sweep import (
     DEFAULT_N,
     ParserCache,
     get_parser_cache,
-    reset_parser_cache,
 )
 
 N, K = DEFAULT_N, DEFAULT_K

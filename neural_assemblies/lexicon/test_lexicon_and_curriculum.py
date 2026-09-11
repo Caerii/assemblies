@@ -221,7 +221,7 @@ def main():
     lexicon = test_lexicon()
     
     # Test grounded corpus
-    corpus = test_grounded_corpus()
+    test_grounded_corpus()
     
     # Test free sentence addition
     test_free_sentence_addition()

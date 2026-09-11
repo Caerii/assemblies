@@ -103,7 +103,7 @@ class TestCrossEngineProjection:
 
     def test_readout_sparse_to_lex_word_retrieval(self, engine):
         from neural_assemblies.language import EnglishParserBrain, LEXEME_DICT
-        from neural_assemblies.language.language_areas import LEX, SUBJ, VERB
+        from neural_assemblies.language.language_areas import LEX, SUBJ
 
         brain = EnglishParserBrain(
             p=0.1, LEX_k=20, non_LEX_n=5000, verbose=False, engine=engine,

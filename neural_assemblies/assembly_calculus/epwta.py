@@ -30,11 +30,10 @@ trivially satisfied by groups of one or two neurons.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Sequence
+from typing import List, Optional, Sequence
 
 import numpy as np
 
-from ..compute.winner_policies import EPercentPolicy
 
 __all__ = [
     "FormationResult", "assembly_density", "form_assembly", "recover_assembly",

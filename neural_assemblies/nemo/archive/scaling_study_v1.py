@@ -349,9 +349,6 @@ def run_scaling_study():
     print("ANALYSIS")
     print("=" * 70)
     
-    # Calculate scaling law
-    areas = [r['num_areas'] for r in area_results]
-    projs = [r['projections_per_sentence'] for r in area_results]
     ms_per_proj = [r['ms_per_projection'] for r in area_results]
     
     avg_ms_per_proj = np.mean(ms_per_proj)

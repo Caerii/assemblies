@@ -36,7 +36,6 @@ from neural_assemblies.programs.colt_mnist_spatial_connectome import (
 )
 from neural_assemblies.programs.colt_mnist_tier_util import connectome_predict
 from neural_assemblies.programs.colt_mnist_visual_advanced_brain import (
-    _min_pairwise_prototype_overlap,
     _sync_two_layer,
 )
 from neural_assemblies.assembly_calculus.ops import _snap

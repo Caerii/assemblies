@@ -1,10 +1,9 @@
 """GPU / torch E%-WTA policy tests."""
 
-import numpy as np
 import pytest
 
 from neural_assemblies.core.brain import Brain
-from neural_assemblies.compute import EPercentPolicy, TopKPolicy
+from neural_assemblies.compute import EPercentPolicy
 
 
 def _has_torch_cuda():

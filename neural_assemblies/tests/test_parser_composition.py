@@ -20,7 +20,6 @@ import time
 import pytest
 
 from neural_assemblies.core.brain import Brain
-from neural_assemblies.assembly_calculus import overlap, chance_overlap
 from neural_assemblies.assembly_calculus.parser import NemoParser
 from neural_assemblies.assembly_calculus.ops import _snap
 

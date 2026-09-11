@@ -101,7 +101,7 @@ def benchmark_kernel_operations():
     result_cp = result[0].astype(cp.float32)
     for i in range(iterations):
         with timer("cupy_argsort", results):
-            winners = cp.argsort(result_cp)[-k:]
+            cp.argsort(result_cp)[-k:]
     
     # Benchmark Hebbian kernel
     prev_active = cp.random.randint(0, n, k, dtype=cp.uint32)

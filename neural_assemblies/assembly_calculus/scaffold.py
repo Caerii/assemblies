@@ -27,7 +27,7 @@ Reference:
 
 from __future__ import annotations
 
-from typing import List, Sequence
+from typing import List, Sequence as SequenceLike
 
 from neural_assemblies.reference.nemo_numpy import (
     ScaffoldRecallResult,
@@ -48,7 +48,7 @@ __all__ = [
 
 def compare_scaffold_vs_simple(
     brain=None,
-    stimuli: Sequence[str] | None = None,
+    stimuli: SequenceLike[str] | None = None,
     *,
     n_presentations: int = 10,
     n: int = 1000,
@@ -168,7 +168,7 @@ class ScaffoldNetwork:
 
     def memorize(
         self,
-        stimuli: Sequence[str],
+        stimuli: SequenceLike[str],
         *,
         rounds_per_step: int = 10,
         repetitions: int = 1,
@@ -186,7 +186,7 @@ class ScaffoldNetwork:
 
 def sequence_memorize_scaffold(
     brain,
-    stimuli: Sequence[str],
+    stimuli: SequenceLike[str],
     main_area: str,
     scaffold_area: str,
     *,

@@ -15,7 +15,6 @@ that is the point of this file; the rest are guards on the bookkeeping.
 """
 
 import numpy as np
-import pytest
 
 from neural_assemblies.core.brain import Brain
 

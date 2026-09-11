@@ -279,7 +279,6 @@ class SparseBatchedSeqTrainer:
 
     def predict(self, prefixes):
         """Top-1 next word for each prefix (batched, memory-capped)."""
-        torch = self._torch
         out = []
         for j in range(0, len(prefixes), self.max_batch_rows):
             chunk = prefixes[j:j + self.max_batch_rows]

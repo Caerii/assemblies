@@ -6,12 +6,11 @@ Image activation utilities extracted from brain.py's activate_with_image.
 
 import sys
 import numpy as np
-from typing import Tuple
 
 try:
-    from ..core.backend import get_xp, to_xp, to_cpu
+    from ..core.backend import get_xp, to_xp
 except ImportError:
-    from core.backend import get_xp, to_xp, to_cpu
+    from core.backend import get_xp, to_xp
 
 
 def _torch_tensor_type():

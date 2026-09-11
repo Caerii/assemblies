@@ -6,7 +6,7 @@ only their address is.
 
 
 from typing import Dict, List, Optional, Set
-from neural_assemblies.assembly_calculus.ops import project, _snap
+from neural_assemblies.assembly_calculus.ops import _snap
 
 from ..core.areas import (
     CORE_AREAS,
@@ -14,7 +14,7 @@ from ..core.areas import (
     GROUNDING_TO_CORE,
     DET_CORE,
 )
-from ..core.grounding import GroundingContext, VOCABULARY
+from ..core.grounding import GroundingContext
 from ..curriculum.data import GroundedSentence
 from ._shared import _MODALITY_FIELDS
 
@@ -137,7 +137,6 @@ class LexiconTrainingMixin:
             skip_known: Skip words already present in ``core_lexicons``.
             words: When set, only train words in this subset (e.g. corpus vocab).
         """
-        from ..core.areas import CORE_AREAS, CORE_TO_CATEGORY
         from ..training.batch import BatchProjector
         from ..training.compiled import compiled_topology, lexicon_topology_spec
         from ..training.compiler import compile_lexicon_plan

@@ -23,7 +23,6 @@ so a future content-addressed init cannot regress them.
 """
 
 import numpy as np
-import pytest
 
 from neural_assemblies.core.brain import Brain
 

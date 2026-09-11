@@ -17,20 +17,18 @@ References:
     Mitropolsky & Papadimitriou (2025). "Simulated Language Acquisition."
 """
 
-import copy
 import time
 
 import pytest
 
 from neural_assemblies.assembly_calculus.emergent import EmergentParser
 from neural_assemblies.assembly_calculus.emergent.core.areas import (
-    ALL_AREAS, CORE_AREAS, CORE_TO_CATEGORY, GROUNDING_TO_CORE,
-    NOUN_CORE, VERB_CORE, ADJ_CORE, ADV_CORE,
+    ALL_AREAS, CORE_AREAS, NOUN_CORE, VERB_CORE, ADJ_CORE, ADV_CORE,
     PREP_CORE, DET_CORE, PRON_CORE,
     ROLE_AGENT, ROLE_PATIENT, VP,
 )
 from neural_assemblies.assembly_calculus.emergent.core.grounding import VOCABULARY
-from neural_assemblies.assembly_calculus import overlap, chance_overlap
+from neural_assemblies.assembly_calculus import overlap
 
 
 N = 10000
@@ -913,7 +911,7 @@ class TestHebbianBridgeParams:
     def test_sequence_memorize_phase_b_ratio(self):
         """Custom phase_b_ratio produces stronger bridges."""
         from neural_assemblies.core.brain import Brain
-        from neural_assemblies.assembly_calculus.ops import sequence_memorize, ordered_recall
+        from neural_assemblies.assembly_calculus.ops import sequence_memorize
 
         brain = Brain(p=0.01, save_winners=True, seed=SEED)
         brain.add_area("MEM", 10000, K, 0.1)
@@ -1236,8 +1234,7 @@ class TestNextTokenPrediction:
         """'the' → top predictions should include nouns."""
         preds = prediction_parser.predict_next(["the"])
         top5 = [w for w, _ in preds[:5]]
-        has_noun = any(w in NOUNS for w in top5)
-        # Relaxed: at least check we get plausible words
+        assert any(w in NOUNS for w in top5)
         assert len(top5) > 0, "No predictions returned"
 
     def test_predict_after_transitive_prefix(self, prediction_parser):

@@ -367,15 +367,6 @@ class StructureDetector:
         
         Returns patterns as sequences of position categories.
         """
-        patterns = defaultdict(int)
-        
-        # Reconstruct patterns from position statistics
-        for word, positions in self.learner.position_counts.items():
-            for pos, count in positions.items():
-                # This word appears at this position
-                pass
-        
-        # For now, just return the learned word order
         order = self.learner.get_word_order()
         return [(order, self.learner.sentences_seen)]
 

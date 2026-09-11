@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Set, Tuple, TYPE_CHECKING
+from typing import Dict, List, Optional, Set, TYPE_CHECKING
 
 from .adaptive import AdaptiveHint, RemediationResult
 from .stage_gates import StageGateResult, evaluate_stage_gate, inter_stage_sleep

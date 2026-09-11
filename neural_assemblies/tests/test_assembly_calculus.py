@@ -18,7 +18,6 @@ import pytest
 from neural_assemblies.core.brain import Brain
 from neural_assemblies.assembly_calculus import (
     Assembly,
-    overlap,
     chance_overlap,
     project,
     reciprocal_project,
@@ -433,7 +432,6 @@ class TestSeparate:
 
         asm_a, asm_b, measured = separate(b, "stimA", "stimB", "A", rounds=ROUNDS)
 
-        chance = chance_overlap(K, N)
         # Overlap should be low — within a few multiples of chance
         assert measured < 0.5, (
             f"Overlap {measured:.3f} too high for independent stimuli"

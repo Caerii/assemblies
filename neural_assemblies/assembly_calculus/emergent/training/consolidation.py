@@ -25,8 +25,6 @@ from neural_assemblies.assembly_calculus.consolidation import (
 from neural_assemblies.assembly_calculus.emergent.core.areas import (
     GROUNDING_TO_CORE,
     NUMBER,
-    ROLE_AGENT,
-    ROLE_PATIENT,
     VERB_CORE,
     VP,
 )

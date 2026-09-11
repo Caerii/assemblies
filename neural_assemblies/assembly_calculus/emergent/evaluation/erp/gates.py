@@ -12,8 +12,8 @@ P600 requires consolidated role/VP pathways; N400 requires prediction bridges.
 from __future__ import annotations
 
 import statistics
-from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Set, Tuple, TYPE_CHECKING
+from dataclasses import dataclass
+from typing import List, Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from ..parser import EmergentParser

@@ -27,7 +27,6 @@ Assembly Calculus Validation:
 """
 
 import unittest
-import numpy as np
 
 from ..core.brain import Brain
 

@@ -29,7 +29,6 @@ from neural_assemblies.programs.colt_mnist_advanced_util import (
 )
 from neural_assemblies.programs.colt_mnist_brain_util import (
     clear_area_winners,
-    reinforce_class_slot,
     renorm_connectome_columns,
     set_kcap_winners,
 )
@@ -252,7 +251,6 @@ def measure_recovery_on_bundle(
 ) -> np.ndarray:
     """Per-digit mean pattern_complete recovery (fraction of k)."""
     brain = bundle.brain
-    k = bundle.k
     per_digit = np.zeros(NUM_DIGITS)
     has_rec = float(np.sum(brain.connectomes[HIGH][HIGH].weights)) > 0.0
     for digit in range(NUM_DIGITS):
@@ -559,7 +557,6 @@ def run_attractor_mnist(
     from neural_assemblies.programs.colt_mnist_absence import digit3_absence_battery, apply_absence_mask
     from neural_assemblies.programs.colt_mnist_forward_completion import (
         forward_high_from_low,
-        prototype_predict,
     )
 
     d3_hits = d3_total = 0

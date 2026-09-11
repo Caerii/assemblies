@@ -343,7 +343,6 @@ def run_colt_mnist_visual_advanced(
 
         from neural_assemblies.core.brain import Brain
 
-        mnist_dir = _find_mnist_dir()
         train_imgs, train_labels, _, _ = _load_mnist_arrays(n_examples)
         examples = preprocess_mnist_examples(
             train_imgs, train_labels, n_examples=n_examples, cap_size=k,

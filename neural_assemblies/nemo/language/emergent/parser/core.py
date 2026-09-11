@@ -135,7 +135,6 @@ class SentenceParser:
         result.word_categories = word_categories
         
         # === Step 2: Extract by category ===
-        nouns = [w for w in words if word_categories[w] in ['NOUN', 'PRONOUN']]
         verbs = [w for w in words if word_categories[w] == 'VERB']
         adjectives = [w for w in words if word_categories[w] == 'ADJECTIVE']
         adverbs = [w for w in words if word_categories[w] == 'ADVERB']

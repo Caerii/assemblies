@@ -21,7 +21,6 @@ import numpy as np
 import pytest
 
 from neural_assemblies.core.brain import Brain
-from neural_assemblies.core.numpy_engine import _seeding
 
 torch = pytest.importorskip("torch")
 from neural_assemblies.core.torch_engine import _fused_cuda  # noqa: E402
