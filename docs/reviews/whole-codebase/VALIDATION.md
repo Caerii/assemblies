@@ -3336,3 +3336,28 @@ observation. The broader operation/spec gate reports 127 passed and 4 skipped;
 public/onboarding coverage reports 117 passed and 1 skipped. Ruff, compilation and
 diff checks pass. Reciprocal projection, association, merge and completion remain
 function schedules until migrated under their own controls.
+
+## Reciprocal projection becomes an inspectable plan (2026-09-11)
+
+`ReciprocalProjectionPlan` now owns the complete two-area round schedule. It
+rejects blank or identical area names, nonpositive or nonintegral rounds, implicit
+truthy clamp choices, missing areas and an empty source before any backend call or
+clamp mutation. The attached `RECIPROCAL_PROJECTION_CONTRACT` records the state it
+reads and mutates, its regime and failures, the target snapshot it returns and the
+existing disabled-learning round-trip control. Contract construction itself now
+rejects a mutable plan type and mutable, blank or duplicate scientific surfaces.
+
+The migration control reconstructs the former implementation on `numpy_sparse`,
+`numpy_exact` and `numpy_explicit`. Both paths agree on stable and compact winners
+for both areas, recruitment, owned RNG state, restored clamp state and the next
+read-only return observation. The contract-object suite reports 45 passed. The
+operation, semantic-card, autonomous-recurrence, round-trip and cross-repository
+selection reports 62 passed and 4 optional-reference skips. Under the repository
+Visual Studio/CUDA bootstrap, the Torch parity suite reports 27 passed. Package
+Ruff passes for the changed source and test files.
+
+These checks establish early admission, schedule identity for valid historical
+calls and the linked control's sensitivity. They do not certify autonomous
+bidirectional recall from the returned target snapshot, nor do they establish a
+general equivalence of fixed-target plasticity across engines. Association, merge
+and completion remain unmigrated operation schedules.

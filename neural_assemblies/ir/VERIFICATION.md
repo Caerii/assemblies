@@ -238,7 +238,8 @@ Empty surfaces reject during contract construction. The public implementation
 carries the exact object as `operation_contract`, and the read-only
 `OPERATION_CONTRACTS` registry provides discovery without importing research prose.
 
-Projection is the first migrated operation. `ProjectionPlan` validates nonempty
+Projection and reciprocal projection are the first migrated operations.
+`ProjectionPlan` validates nonempty
 names, a positive integral round count and an explicit Boolean recurrence choice,
 then freezes the full ordered `ProjectionStep` sequence. Execution validates the
 stimulus and target before the first call and sends exactly those inspected steps
@@ -246,13 +247,23 @@ to `Brain.project`. Round one is stimulus-only; each later step has the stimulus
 and includes target recurrence exactly when requested. No global Brain recurrence
 switch participates in this plan.
 
-The migration comparison reconstructs the former direct-first-round plus
+`ReciprocalProjectionPlan` separately requires two distinct registered areas, a
+positive integral round count, an explicit source-clamp choice and an active
+source assembly. It freezes the initial forward step and every subsequent
+forward, target-recurrent and return-edge step. The public operation preflights
+the entire plan before borrowing the source clamp, so bad topology or source
+state cannot alter a clamp or call a backend. Clamp restoration remains scoped
+around valid execution and preserves both facade and engine state.
+
+The migration comparisons reconstruct the former direct-first-round plus
 `Brain.project_rounds` tail on all three NumPy engines. It compares stable-ID and
 compact winners, recruitment, owned RNG state, and a subsequent read-only
-observation. The recurrent-learning control remains the behavioral negative named
-by the contract. Reciprocal projection, association, merge and completion still
-need their own immutable plan types and contract objects; the projection object is
-not evidence for their schedules or scientific outcomes.
+observation. The reciprocal comparison reconstructs the former forward/return
+schedule and checks both areas by the same criteria. The recurrent-learning and
+learning-disabled round-trip controls remain the behavioral negatives named by
+the two contracts. Association, merge and completion still need their own immutable
+plan types and contract objects; neither migrated object is evidence for their
+schedules or scientific outcomes.
 
 
 ## Repetition shares the ordinary transition boundary

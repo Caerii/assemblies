@@ -94,8 +94,8 @@ from .metrics import (
 )
 from .sequence import Sequence
 from .contracts import (
-    OPERATION_CONTRACTS, PROJECTION_CONTRACT, OperationContract,
-    ProjectionPlan, ProjectionStep,
+    OPERATION_CONTRACTS, PROJECTION_CONTRACT, RECIPROCAL_PROJECTION_CONTRACT,
+    OperationContract, ProjectionPlan, ProjectionStep, ReciprocalProjectionPlan,
 )
 from .ops import (
     project,
@@ -169,7 +169,8 @@ __all__ = [
     # Data
     "Assembly", "AssemblyTrace", "PatternCompletionDiagnostic",
     "OperationContract", "ProjectionPlan", "ProjectionStep",
-    "OPERATION_CONTRACTS", "PROJECTION_CONTRACT",
+    "ReciprocalProjectionPlan", "OPERATION_CONTRACTS", "PROJECTION_CONTRACT",
+    "RECIPROCAL_PROJECTION_CONTRACT",
     "ProjectionSweepConfig", "RecallSweepConfig", "ResponseDiagnostic",
     "ResponseTrace", "TraceStep", "Sequence", "Lexicon",
     "overlap", "chance_overlap", "overlap_from_binary", "snapshot_area",

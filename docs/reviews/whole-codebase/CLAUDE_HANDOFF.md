@@ -1798,3 +1798,22 @@ and compares stable/compact winners, recruitment, owned RNG and a subsequent
 read-only observation. Operation/spec tests are 127 passed, 4 skipped; public and
 onboarding tests are 117 passed, 1 skipped. CI now includes the contract-object
 suite. Reciprocal projection, association, merge and completion are next.
+
+## Reciprocal projection is now an inspectable operation value (2026-09-11)
+
+`ReciprocalProjectionPlan` freezes the one forward step and every following
+forward, target-recurrent and return-edge step. Construction rejects invalid
+names, self-projection, invalid rounds and implicit truthy clamp choices. Public
+execution rejects absent areas and an empty source before borrowing a clamp or
+calling the backend. The operation carries its exact contract and links the
+disabled-learning round-trip control.
+
+The migration gate reconstructs the former body on all three NumPy engines. It
+compares both areas' stable and compact winners, recruitment, owned RNG, clamp
+restoration and a subsequent read-only return observation. The contract-object
+suite is 45 passed; related operation and round-trip coverage is 62 passed with 4
+optional-reference skips; the CUDA-initialized Torch parity suite is 27 passed.
+Contract construction now also refuses mutable plans and mutable, blank or
+duplicate scientific surfaces. Association, merge and completion remain next;
+this checkpoint is schedule equivalence and early rejection, not a new scientific
+result or proof of autonomous bidirectional recall.

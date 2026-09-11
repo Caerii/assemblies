@@ -245,6 +245,24 @@ thirteen passed after repair. Other discrepancies above remain open.
 No new operation-protocol classes were introduced by this follow-up. The earlier
 uncommitted prototype remains outside the package in the worktree's ignored cache.
 
+## Reciprocal plan resolution (2026-09-11)
+
+The later `ReciprocalProjectionPlan` makes card R's schedule an immutable value.
+It rejects blank or identical area names, nonpositive or nonintegral rounds,
+implicit truthy clamp values, missing areas and an empty source before the first
+backend call. The public function performs this preflight before borrowing a
+clamp. Its valid schedule remains one forward step followed by the declared
+forward, target-recurrent and return edges, with the caller's facade and engine
+clamp state restored on success or exception.
+
+The migration test reconstructs the former body on sampled, fixed-connectome and
+explicit NumPy engines and compares both areas' stable and compact winners,
+recruitment, owned RNG state and the next read-only return observation. The
+contract links the existing disabled-learning round-trip control. This establishes
+schedule identity and mechanism sensitivity for that control; it does not turn a
+target snapshot into evidence of autonomous bidirectional recall or settle the
+fixed-target plasticity policy across backends.
+
 <a id="contract-read-only"></a>
 
 ## Read-only observation: executable obligations

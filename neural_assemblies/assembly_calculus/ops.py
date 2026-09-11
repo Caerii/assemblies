@@ -61,7 +61,10 @@ from contextlib import contextmanager
 import numpy as np
 
 from .assembly import Assembly, overlap
-from .contracts import PROJECTION_CONTRACT, ProjectionPlan, implements
+from .contracts import (
+    PROJECTION_CONTRACT, RECIPROCAL_PROJECTION_CONTRACT, ProjectionPlan,
+    ReciprocalProjectionPlan, implements,
+)
 from ..core.index_spaces import NeuronIds, to_neuron_ids, validated_indices
 
 
@@ -513,6 +516,7 @@ def read_binding(brain, source_area, target_area, source_assembly=None, *,
                     tail_rounds=tail_rounds)
 
 
+@implements(RECIPROCAL_PROJECTION_CONTRACT)
 def reciprocal_project(brain, source, target, rounds=10, *,
                        fix_source=True) -> Assembly:
     """Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-reciprocal-projection
@@ -528,13 +532,10 @@ def reciprocal_project(brain, source, target, rounds=10, *,
     on the backend's fixed-target plasticity policy; the edge's presence does
     not certify source recovery. Measure that separately with free winners.
     """
-    with _fixed_sources(brain, *((source,) if fix_source else ())):
-        brain.project({}, {source: [target]})
-        for _ in range(max(0, rounds - 1)):
-            # Not `project_rounds`: that helper stabilises a SINGLE named
-            # target, and this step has two destinations -- the target and,
-            # via the return edge, the source.
-            brain.project({}, {source: [target], target: [target, source]})
+    plan = ReciprocalProjectionPlan(source, target, rounds, fix_source)
+    plan.preflight(brain)
+    with _fixed_sources(brain, *((source,) if plan.fix_source else ())):
+        plan.execute_steps(brain)
         return _snap(brain, target)
 
 
