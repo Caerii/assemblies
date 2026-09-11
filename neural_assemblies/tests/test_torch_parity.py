@@ -56,7 +56,12 @@ ENGINES = ["numpy_sparse", "torch_sparse"]
 
 
 def _make_brain(engine, **kwargs):
-    defaults = dict(p=P, save_winners=True, seed=SEED)
+    defaults = dict(
+        p=P,
+        save_winners=True,
+        seed=SEED,
+        sampled_recurrence_policy="acknowledged",
+    )
     defaults.update(kwargs)
     return Brain(engine=engine, **defaults)
 

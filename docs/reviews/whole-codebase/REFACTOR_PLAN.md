@@ -83,7 +83,7 @@ contract suite establishes only the behavior those controls exercise.
 
 | Boundary | Implemented and checked | Remaining acceptance work |
 |---|---|---|
-| Runtime configuration | Immutable homeostasis and competition policies; explicit area/stimulus identity; shared numeric and slot validation; executing-owner LRI, refraction, policy and noise controls | Complete model definition including graph/stimulus/tie/arithmetic semantics; remaining topology/plasticity controls; general registration transactionality |
+| Runtime configuration | Immutable homeostasis and competition policies; explicit sampled-recurrence admission; explicit area/stimulus identity; shared numeric and slot validation; executing-owner LRI, refraction, policy and noise controls | Complete model definition including graph/stimulus/tie/arithmetic semantics; remaining topology/plasticity controls; general registration transactionality |
 | Execution IR | Sequential `ExplicitRound` validates and executes a restricted dense CPU profile; public Brain execution follows the same owner | Broader operation schedules and organs; backend adapters with explicit state relations; complete cross-compiler integration |
 | Configuration transport | Protocol, homeostasis and competition schemas share Python/Rust acceptance corpora; runner fixtures reconstruct recorded configuration | Production experiment adoption; full model document; toolchain/executable identities and legacy document migration |
 | Proofs | Lean composition/domain/frame rules and masked-update invariants; source links name implemented contracts | Concrete backend step simulation and readout compatibility; no abstract theorem certifies a numerical backend by itself |

@@ -60,6 +60,10 @@ evidence. Then follow the reading order below.
 - **Name the engine.** The numpy engine draws connectomes lazily unless an
   area is materialized; the hashed substrate is exact. A number's engine
   is part of the number.
+- **Make sampled recurrence executable intent.** Sequence studies on `Brain`
+  should construct it with `sampled_recurrence_policy="forbid"`; a deliberate
+  sampler comparison must say `"acknowledged"`. The default warning is an
+  interactive compatibility aid, not a protocol declaration.
 - **Smoke runs check the API, not the science.** A run with fewer seeds or
   a smaller grid than registered produces void numbers; tag it so.
 - **Adopted results go into `neural_assemblies/theory.py`**, rendered to

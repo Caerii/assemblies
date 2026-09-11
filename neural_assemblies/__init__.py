@@ -26,6 +26,7 @@ _LAZY_EXPORTS = {
     name: ".core" for name in (
         "Brain", "Area", "Stimulus", "Connectome",
         "ComputeEngine", "ProjectionResult", "create_engine", "list_engines",
+        "SampledRecurrencePolicy",
     )
 }
 _LAZY_EXPORTS["cupy_available"] = ".core.backend"
@@ -115,7 +116,7 @@ if TYPE_CHECKING:  # pragma: no cover
     from .constants import DEFAULT_BETA, DEFAULT_P
     from .core import (
         Area, Brain, ComputeEngine, Connectome, ProjectionResult, Stimulus,
-        create_engine, list_engines,
+        SampledRecurrencePolicy, create_engine, list_engines,
     )
     from .core.backend import cupy_available
     from .utils import (
@@ -159,6 +160,7 @@ __author__ = "Superintelligent Group"
 __all__ = [
     # Core classes
     'Brain', 'Area', 'Stimulus', 'Connectome', 'HomeostasisConfig',
+    'SampledRecurrencePolicy',
 
     # Compute engine API
     'ComputeEngine', 'ProjectionResult', 'create_engine', 'list_engines',

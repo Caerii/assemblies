@@ -14,12 +14,13 @@ from .engine import (
     list_engines,
 )
 from .projection_fidelity import ProjectionFidelity
+from .semantics import SampledRecurrencePolicy
 from .backend import set_backend, get_xp, get_backend_name, to_cpu, to_xp
 
 __all__ = [
     'Brain', 'Area', 'Stimulus', 'Connectome',
     'ComputeEngine', 'EngineUnavailableError', 'ProjectionResult',
     'create_engine', 'list_engines',
-    'ProjectionFidelity',
+    'ProjectionFidelity', 'SampledRecurrencePolicy',
     'set_backend', 'get_xp', 'get_backend_name', 'to_cpu', 'to_xp',
 ]

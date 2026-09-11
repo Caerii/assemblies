@@ -394,7 +394,10 @@ def test_completion_plan_is_immutable_and_canonicalizes_numbers():
 
 
 def _trained_completion_brain(engine_name="numpy_explicit"):
-    brain = Brain(engine=engine_name, p=.2, seed=47, norm_init=False)
+    brain = Brain(
+        engine=engine_name, p=.2, seed=47, norm_init=False,
+        sampled_recurrence_policy="acknowledged",
+    )
     brain.add_area("A", 60, 6, beta=.1)
     brain.add_stimulus("s", 6)
     project(brain, "s", "A", rounds=3, recurrent=True)
@@ -508,7 +511,10 @@ def test_contract_requires_an_immutable_plan_type():
 ])
 def test_plan_execution_reproduces_the_former_projection_path(engine_name):
     """Migration means equal state, not merely an equal final return type."""
-    brain = Brain(engine=engine_name, p=.2, seed=31, norm_init=False)
+    brain = Brain(
+        engine=engine_name, p=.2, seed=31, norm_init=False,
+        sampled_recurrence_policy="acknowledged",
+    )
     brain.add_area("T", 60, 6, beta=.1)
     brain.add_stimulus("s", 6)
     previous = copy.deepcopy(brain)
@@ -544,7 +550,10 @@ def test_plan_execution_reproduces_the_former_projection_path(engine_name):
 ])
 def test_plan_execution_reproduces_the_former_reciprocal_path(engine_name):
     """The plan preserves the valid pre-migration schedule and state."""
-    brain = Brain(engine=engine_name, p=.2, seed=37, norm_init=False)
+    brain = Brain(
+        engine=engine_name, p=.2, seed=37, norm_init=False,
+        sampled_recurrence_policy="acknowledged",
+    )
     brain.add_area("A", 60, 6, beta=.1)
     brain.add_area("B", 60, 6, beta=.1)
     brain.add_stimulus("s", 6)
@@ -594,7 +603,10 @@ def test_plan_execution_reproduces_the_former_reciprocal_path(engine_name):
 def test_plan_execution_reproduces_the_former_association_path(
     engine_name, driven,
 ):
-    brain = Brain(engine=engine_name, p=.2, seed=41, norm_init=False)
+    brain = Brain(
+        engine=engine_name, p=.2, seed=41, norm_init=False,
+        sampled_recurrence_policy="acknowledged",
+    )
     for area in ("A", "B", "T"):
         brain.add_area(area, 60, 6, beta=.1)
     brain.add_stimulus("sa", 6)
@@ -669,7 +681,10 @@ def test_plan_execution_reproduces_the_former_association_path(
     "fixed-both", "driven-both", "require-fixed", "fix-current", "evolving",
 ])
 def test_plan_execution_reproduces_the_former_merge_path(engine_name, mode):
-    brain = Brain(engine=engine_name, p=.2, seed=43, norm_init=False)
+    brain = Brain(
+        engine=engine_name, p=.2, seed=43, norm_init=False,
+        sampled_recurrence_policy="acknowledged",
+    )
     for area in ("A", "B", "T"):
         brain.add_area(area, 60, 6, beta=.1)
     brain.add_stimulus("sa", 6)

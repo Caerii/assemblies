@@ -75,7 +75,7 @@ Known engine names:
 
 | Engine | Location | Role |
 |--------|----------|------|
-| `numpy_sparse` | `neural_assemblies/core/numpy_engine/` | Default CPU path for normal package use. |
+| `numpy_sparse` | `neural_assemblies/core/numpy_engine/` | Default CPU path; recurrence is sampled until the target is materialized and is guarded by `SampledRecurrencePolicy`. |
 | `numpy_explicit` | `neural_assemblies/core/numpy_engine/` | Dense explicit simulation for smaller areas. |
 | `cuda_implicit` | `neural_assemblies/core/cuda_engine.py` | CuPy-based implicit GPU path. |
 | `cupy_sparse` | `neural_assemblies/core/cupy_engine.py` | Optional CuPy sparse path. |

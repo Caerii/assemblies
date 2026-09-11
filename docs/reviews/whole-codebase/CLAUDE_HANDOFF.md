@@ -1901,3 +1901,20 @@ or unexpected passes, 327 warnings and 10 passing subtests in 1,253.25 seconds.
 reasons, slowest cases and hashes of both raw artifacts. This supersedes
 `02cacc9` as the non-slow software baseline; slow tests and unavailable CuPy
 execution remain outside the claim.
+
+## Sampled recurrence can now fail before RNG consumption (2026-09-11)
+
+The lazy NumPy engine now carries `SampledRecurrencePolicy`: `warn` preserves the
+one-shot audit warning, `acknowledged` makes deliberate comparison explicit and
+silent, and `forbid` rejects before the projection derives its child RNG or
+mutates connectome state. The rejection test compares RNG, winners, recruitment
+and recurrent weights. Materialized, fixed and read-only targets remain admitted
+because they do not sample candidates.
+
+The Brain and a supplied sampled engine must agree on the normalized enum.
+Parity and operation migration fixtures say `acknowledged`; CUDA Torch parity is
+27 passed with no sampled warning output. Focused policy/public/operation/specification
+coverage is 293 passed, and constructor/clone/checkpoint/backend coverage is 88 passed with
+3 optional skips. Default `warn` still names `PREREG_sampler_audit.md` and tells
+the caller how to acknowledge a deliberate comparison. This addresses warning
+noise without weakening the accidental-use guard.

@@ -39,6 +39,7 @@ from .engine import ComputeEngine, create_engine
 from .registration import validate_round_count, validate_input_noise, validate_plasticity_rate, validate_area_registration, validate_stimulus_registration
 from ._homeostasis import HomeostasisConfig, check_area_homeostasis, validate_lri_parameters
 from .index_spaces import CompactIdx, to_neuron_ids, validated_indices
+from .semantics import SampledRecurrencePolicy
 
 from .area import Area
 from .stimulus import Stimulus
@@ -87,7 +88,25 @@ class Brain:
       Language Organ." 2023.
     """
 
-    def __init__(self, p: float = DEFAULT_P, save_size: bool = True, save_winners: bool = False, seed: int = 0, w_max: float = DEFAULT_W_MAX, engine="auto", deterministic: bool = False, n_hint: int = 0, projection_fidelity: str = "exact", inhibitory_prob: float = 0.0, inhibitory_weight: float = -0.2, synaptic_scaling: "bool | frozenset | set | tuple" = False, synaptic_scaling_deferred: bool = False, recurrent_projection: bool = False, norm_init: bool = True):
+    def __init__(
+        self,
+        p: float = DEFAULT_P,
+        save_size: bool = True,
+        save_winners: bool = False,
+        seed: int = 0,
+        w_max: float = DEFAULT_W_MAX,
+        engine="auto",
+        deterministic: bool = False,
+        n_hint: int = 0,
+        projection_fidelity: str = "exact",
+        inhibitory_prob: float = 0.0,
+        inhibitory_weight: float = -0.2,
+        synaptic_scaling: "bool | frozenset | set | tuple" = False,
+        synaptic_scaling_deferred: bool = False,
+        recurrent_projection: bool = False,
+        norm_init: bool = True,
+        sampled_recurrence_policy: str = "warn",
+    ):
         """
         Initialize a neural assembly brain simulation.
 
@@ -127,7 +146,14 @@ class Brain:
                    synaptic_scaling are enabled. Explicit targets keep it.
                    Ordinary project calls use their supplied edge maps directly.
                    ops.project selects recurrence with its own argument.
+            sampled_recurrence_policy (str): What to do when recurrence targets
+                   an incompletely materialized sampled NumPy area: ``warn``
+                   once (default), ``acknowledged`` for deliberate comparison,
+                   or ``forbid`` before the engine draws randomness or mutates.
         """
+        sampled_policy = SampledRecurrencePolicy.normalize(
+            sampled_recurrence_policy
+        )
         homeostasis = HomeostasisConfig(norm_init, synaptic_scaling, synaptic_scaling_deferred)
         synaptic_scaling = homeostasis.synaptic_scaling
         if isinstance(engine, ComputeEngine):
@@ -183,6 +209,21 @@ class Brain:
         else:
             raise TypeError(f"engine must be a string name or ComputeEngine instance, got {type(engine)}")
 
+        if self._engine.supports_sampled_recurrence_policy:
+            if isinstance(engine, ComputeEngine):
+                actual_policy = getattr(
+                    self._engine,
+                    "sampled_recurrence_policy",
+                    SampledRecurrencePolicy.WARN,
+                )
+                if actual_policy is not sampled_policy:
+                    raise ValueError(
+                        "Brain sampled_recurrence_policy conflicts with supplied "
+                        "engine; pass matching policies"
+                    )
+            self._engine._configure_sampled_recurrence_policy(sampled_policy)
+        self._sampled_recurrence_policy = sampled_policy
+
         if hasattr(self._engine, "set_projection_fidelity"):
             self._engine.set_projection_fidelity(projection_fidelity)
 
@@ -220,6 +261,15 @@ class Brain:
 
         # Used by activate_with_image()
         self.image_activation_engine = ImageActivationEngine()
+
+    @property
+    def sampled_recurrence_policy(self) -> SampledRecurrencePolicy:
+        """Immutable admission policy selected when this Brain was constructed."""
+        return getattr(
+            self,
+            "_sampled_recurrence_policy",
+            SampledRecurrencePolicy.WARN,
+        )
 
     def set_fiber_plasticity(self, src: str, dst: str, enabled: bool) -> None:
         """Enable or disable Hebbian updates on one directed fiber (E6)."""

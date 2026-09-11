@@ -3475,3 +3475,24 @@ hashes of the ignored raw JUnit and console log. This accepts the five-operation
 contract checkpoint as the current non-slow software baseline. It does not cover
 tests marked slow, execute the unavailable CuPy backend, adopt scientific
 evidence, or prove numerical backend refinement.
+
+## Sampled recurrence becomes an admission policy (2026-09-11)
+
+`SampledRecurrencePolicy` gives lazy NumPy recurrence three explicit outcomes:
+`warn`, `acknowledged`, and `forbid`. Invalid values reject during construction,
+and a preconstructed sampled engine must agree with the Brain request. The
+engine checks the policy before deriving the per-projection RNG. The forbid
+control confirms unchanged RNG, winners, recruitment and recurrent weights after
+rejection. Fully materialized, fixed-target and read-only projections remain
+admissible because they do not sample new candidates.
+
+Intentional operation-migration and NumPy/Torch parity builders now select
+`acknowledged`. The focused policy/public/lazy/operation/specification gate
+reports 293 passed without warnings. The clone/checkpoint/backend/exact-engine gate reports 88
+passed and 3 optional skips. Under the Visual Studio/CUDA bootstrap, all 27 Torch
+parity tests pass with no sampler warning noise; the separate default-warning
+test still proves that an ordinary caller receives one audit-linked warning.
+
+This is an early runtime guard for the audited NumPy failure mode. It does not
+make acknowledged sampled sequence numbers valid, nor does it yet unify graph,
+stimulus, tie and arithmetic semantics in one complete model document.

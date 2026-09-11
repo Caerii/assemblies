@@ -101,6 +101,7 @@ class ComputeEngine(ABC):
     supports_slots = False
     supports_refraction = False
     supports_fiber_learning_masks = False
+    supports_sampled_recurrence_policy = False
 
     @contextmanager
     def suppress_fiber_learning(self, fibers):

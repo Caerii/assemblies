@@ -47,6 +47,25 @@ b.add_area("A", n=10_000, k=100, beta=0.05)
 b.project({"stim": ["A"]}, {})
 ```
 
+Recurrence over a partially materialized `numpy_sparse` connectome must carry an
+explicit scientific intent when silence or rejection is required:
+
+```python
+from neural_assemblies import Brain, SampledRecurrencePolicy
+
+brain = Brain(
+    engine="numpy_sparse",
+    sampled_recurrence_policy=SampledRecurrencePolicy.FORBID,
+)
+```
+
+The default `warn` policy names the sampler audit once. Use `acknowledged` only
+for a deliberate comparison whose provenance will still identify the sampled
+engine. Use `forbid` in sequence studies that require materialized or fixed-graph
+semantics; it raises before the engine advances its RNG or changes the connectome.
+Materializing the area, or selecting `numpy_exact`, removes this specific guard.
+See the [sampled-recurrence contract](../neural_assemblies/ir/VERIFICATION.md#contract-sampled-recurrence).
+
 Registration requires unique, nonempty names across both areas and stimuli.
 Registering an existing name raises `ValueError`; it does not reset or resize a
 population. Area dimensions require integer `0 < k <= n <= 2**32`; stimulus sizes

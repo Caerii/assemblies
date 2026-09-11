@@ -32,6 +32,7 @@ from ..engine import ComputeEngine, ProjectionResult
 from ..registration import validate_input_noise, validate_stimulus_registration, validate_area_registration
 from ..connectome import Connectome
 from ..projection_fidelity import ProjectionFidelity
+from ..semantics import SampledRecurrencePolicy
 
 try:
     from ...compute.sparse_simulation import SparseSimulationEngine
@@ -326,6 +327,7 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
     supports_input_noise = True
     supports_refraction = True
     supports_fiber_learning_masks = True
+    supports_sampled_recurrence_policy = True
 
     def __init__(self, p: float, seed: int = 0, w_max: float = 20.0,
                  deterministic: bool = False,
@@ -334,7 +336,11 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
                  inhibitory_weight: float = -0.2,
                  synaptic_scaling: "bool | frozenset | set | tuple" = False,
                  synaptic_scaling_deferred: bool = False,
-                 norm_init: bool = False):
+                 norm_init: bool = False,
+                 sampled_recurrence_policy: str = "warn"):
+        self._sampled_recurrence_policy = SampledRecurrencePolicy.normalize(
+            sampled_recurrence_policy
+        )
         self.p = p
         #: (source, target) -> density, for fibers that override `p`.
         #: EMPTY BY DEFAULT, and every path below is byte-for-byte the
@@ -489,6 +495,22 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
         # Reusable math primitives
         self._sparse_sim = SparseSimulationEngine(self._rng, xp=self._xp)
         self._winner_sel = WinnerSelector(self._rng)
+
+    @property
+    def sampled_recurrence_policy(self):
+        return getattr(
+            self,
+            "_sampled_recurrence_policy",
+            SampledRecurrencePolicy.WARN,
+        )
+
+    def _configure_sampled_recurrence_policy(self, policy) -> None:
+        """Set Brain-owned admission policy before runtime state exists."""
+        if self._areas:
+            raise RuntimeError(
+                "sampled recurrence policy cannot change after area registration"
+            )
+        self._sampled_recurrence_policy = SampledRecurrencePolicy.normalize(policy)
 
     def _weight_bounds(self, scale: float = 1.0):
         """Clip bounds for Hebbian updates, as (low, high).
@@ -1256,6 +1278,46 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
         xp = self._xp
         tgt = self._areas[target]
         self.validate_probe_target(target)
+        if (
+            target in from_areas
+            and not tgt.fixed_assembly
+            and not self._no_recruitment
+            and tgt.winners.size > 0
+            and tgt.w > 0
+            and tgt.w < tgt.n
+        ):
+            policy = getattr(
+                self,
+                "sampled_recurrence_policy",
+                SampledRecurrencePolicy.WARN,
+            )
+            if policy is SampledRecurrencePolicy.FORBID:
+                raise RuntimeError(
+                    f"Recurrent projection into {target!r} is forbidden because its "
+                    "numpy connectome is still sampled. Materialize the area or use "
+                    "a fixed-connectome engine. See "
+                    "research/notes/sequence/PREREG_sampler_audit.md."
+                )
+            if (
+                policy is SampledRecurrencePolicy.WARN
+                and not getattr(self, "_sampled_recurrence_warned", False)
+            ):
+                import warnings
+
+                warnings.warn(
+                    f"Recurrent projection into {target!r} uses the sampled numpy "
+                    "connectome. Sequence-dynamics numbers are void until rerun "
+                    "materialized or on a fixed-connectome engine (numpy_exact or "
+                    "the hashed substrate). See "
+                    "research/notes/sequence/PREREG_sampler_audit.md. Use "
+                    "Brain.materialize_area before training if materialized "
+                    "semantics are intended, or explicitly select "
+                    "sampled_recurrence_policy='acknowledged' for a deliberate "
+                    "sampled-engine comparison.",
+                    RuntimeWarning,
+                    stacklevel=3,
+                )
+                self._sampled_recurrence_warned = True
         rng = np.random.default_rng(self._rng.integers(0, 2**32))
 
         # A learning round may rewrite any block, so no CSR mirror survives it.
@@ -1313,19 +1375,6 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
                 num_first_winners=0,
                 num_ever_fired=tgt.w,
             )
-
-        if (target in from_areas and tgt.w < tgt.n
-                and not getattr(self, '_sampled_recurrence_warned', False)):
-            import warnings
-            warnings.warn(
-                f'Recurrent projection into {target!r} uses the sampled numpy connectome. '
-                'Sequence-dynamics numbers are void until rerun materialized or on a '
-                'fixed-connectome engine (numpy_exact or the hashed substrate). '
-                'See research/notes/sequence/PREREG_sampler_audit.md. '
-                'Use Brain.materialize_area before training if materialized semantics are intended.',
-                RuntimeWarning, stacklevel=3,
-            )
-            self._sampled_recurrence_warned = True
 
         # No inputs -> keep assembly unchanged
         if len(from_stimuli) == 0 and len(from_areas) == 0:

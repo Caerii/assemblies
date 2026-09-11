@@ -851,6 +851,34 @@ study, or successful extension compilation. Those stronger claims require their
 own backend and protocol gates.
 
 
+<a id="contract-sampled-recurrence"></a>
+
+## Sampled-recurrence admission
+
+`SampledRecurrencePolicy` separates three intentions before recurrence would
+sample candidates for an incompletely materialized `numpy_sparse` area: `warn`
+emits one audit-linked warning, `acknowledged` admits a deliberate sampled-engine
+comparison without noise, and `forbid` rejects the projection. Unknown values,
+booleans and `None` reject during Brain or engine construction. Brain stores the
+normalized enum and requires a preconstructed sampled engine to carry the same
+value before adoption. Brain and engine expose read-only properties; their
+internal synchronization path rejects a change after area registration.
+
+The engine performs admission after validating the target but before deriving a
+child RNG or changing projection state. The `forbid` control compares generator
+state, winners, recruitment and recurrent weights before and after rejection.
+Materializing the target to all `n` neurons removes the sampled condition and is
+admitted under every policy. A fixed target and a `read_only` projection also
+offer no sampled candidates and are admitted. Existing `warn` behavior remains
+the default; parity and migration tests that intentionally exercise the sampled
+backend explicitly select `acknowledged`.
+
+This policy identifies the known lazy NumPy sampler hazard. It does not turn an
+acknowledged result into valid sequence evidence, certify materialization parity,
+or describe the separate Torch and hashed substrates. Engine identity, stimulus
+law, tie handling and arithmetic remain distinct model-semantics obligations.
+
+
 <a id="contract-homeostasis-config"></a>
 
 ## Shared homeostasis configuration
