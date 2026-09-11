@@ -917,7 +917,14 @@ def sequence_memorize(brain, stimuli, target, rounds_per_step=10,
         "Computation with Sequences of Assemblies in a Model of the Brain."
         Neural Computation (2025).  arXiv:2306.03812.
     """
-    stimuli = list(stimuli)
+    if isinstance(stimuli, (str, bytes)):
+        raise TypeError("stimuli must be an ordered collection of stimulus names")
+    try:
+        stimuli = list(stimuli)
+    except TypeError as exc:
+        raise TypeError(
+            "stimuli must be an ordered collection of stimulus names"
+        ) from exc
     if not stimuli:
         raise ValueError("sequence_memorize requires a nonempty stimulus sequence")
     if target not in brain.areas:

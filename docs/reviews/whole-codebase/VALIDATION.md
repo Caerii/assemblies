@@ -4695,3 +4695,7 @@ All maintained traced calculus entry points now carry explicit `Specification:` 
 ## Recall reference-domain admission (2026-09-11)
 
 `ordered_recall` and `ordered_recall_trace` now require every `known_assemblies` entry to be an `Assembly` snapshot from the recalled area. Cross-area integer coincidences and malformed novelty references fail before mutation. The shared recall-domain suite passes **16 tests**.
+
+## Sequence input collection admission (2026-09-11)
+
+`sequence_memorize` now rejects scalar strings, bytes, and noniterable values instead of converting a string into a character sequence. Sequence identity is now explicit at the call boundary. The sequence contract suite passes **28 tests**.

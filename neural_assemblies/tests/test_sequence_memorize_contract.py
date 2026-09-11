@@ -21,6 +21,12 @@ def test_sequence_memorize_preflights_all_stimuli_before_mutation():
     assert len(brain.areas["A"].winners) == 0
 
 
+@pytest.mark.parametrize("stimuli", ["s0", b"s0", 7])
+def test_sequence_memorize_rejects_scalar_stimulus_input(stimuli):
+    with pytest.raises(TypeError, match="ordered collection"):
+        sequence_memorize(_brain(), stimuli, "A")
+
+
 @pytest.mark.parametrize("kwargs", [
     {"rounds_per_step": 0}, {"repetitions": 0},
     {"phase_b_ratio": -0.1}, {"phase_b_ratio": 1.1},

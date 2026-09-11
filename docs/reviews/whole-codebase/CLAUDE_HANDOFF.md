@@ -2601,3 +2601,5 @@ Corrected the traced projection contract: recurrence is now an explicit `project
 Added explicit specification edges to every maintained traced calculus entry point. Projection, reciprocal projection, association, merge, and sequence recall traces now participate directly in the code-to-contract graph; specification-link and trace tests pass (24 tests).
 
 Sequence recall now validates the domain of optional `known_assemblies` in both execution and tracing paths. Cross-area snapshots and malformed entries fail before refractory state changes; focused recall-domain tests pass (16 tests).
+
+`sequence_memorize` now requires an explicit ordered collection of stimulus names; scalar strings and noniterables fail before mutation. Focused sequence contract and behavior tests pass (28 tests).
