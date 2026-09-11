@@ -3522,3 +3522,27 @@ The profile is deliberately the primary engine's default k-WTA semantics.
 Area-local policies, operation schedules, observation rules and result definitions
 remain separate contracts, and no backend refinement claim follows from matching
 labels. Those boundaries remain the next unification work.
+
+## Schema 6 carries and checks Brain model semantics (2026-09-11)
+
+The shared runner now requires a complete `ModelSemantics` document for every
+Brain engine. It reconstructs the selected default engine path from the recorded
+normalization and numeric weight ceiling and compares the full profile before
+creating the run directory. Omission, an exact profile paired with
+`numpy_sparse`, malformed fields, noncanonical numeric encoding, and a Brain
+profile attached to a bespoke organ all reject. Schema 1 through 5 remains
+readable; schema 6 also extends source-archive input validation rather than
+falling outside the old `(4, 5)` gate.
+
+The broader runner, historical-adapter, experiment, research-contract,
+methodology, and specification gate reports 158 passed. A real three-seed
+historical-association smoke produced a valid schema-6
+artifact. Against the prior smoke with identical seeds and parameters, metrics,
+raw data, producer parameters, execution status, scope, and VOID verdict are
+exactly equal. The new record names the effective explicit-area semantics; its
+producer already records the sparse Brain router and explicit area owner
+separately. The preregistration links the replay.
+
+Bespoke hashed organs deliberately record `model_semantics: null` because a Brain
+profile would be false. Their graph, stimulus, tie, arithmetic, and schedule
+identity must be implemented by the forthcoming organ contracts.

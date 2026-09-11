@@ -29,7 +29,7 @@ overwrite flag. Use a new tag for a rerun; preserve a failed attempt.
 
 - `run.json` records the script, commit, source digest, registration and its
   digest, protocol version, resolved engine, parameters, seeds, input artifacts,
-  and smoke/study status.
+  model semantics for Brain engines, and smoke/study status.
 - `results.json` embeds that record alongside completed observations.
 - `failure.json` records an exception or interruption. An abrupt process kill
   may leave only `run.json`; absence of completed results means incomplete.
@@ -48,6 +48,13 @@ uv run python -m research.evidence validate research/results/runs/sequence.a1-ho
 This validates the runner record. It does not prove that the experiment's
 mechanism, statistics, or scientific conclusion are sound. Operation contracts,
 negative controls and adoption review remain required.
+
+Schema 6 refuses to reserve a Brain-backed run without a complete canonical
+`ModelSemantics` document. The runner reconstructs the selected engine using the
+recorded normalization and weight ceiling and rejects a semantic mismatch before
+source capture or computation. Bespoke hashed organs currently record `null` in
+this field because their schedules and tie/stimulus rules need organ contracts;
+they may not claim a Brain profile. Historical schemas remain readable.
 
 ## Shared measurement behavior
 

@@ -1,5 +1,6 @@
 """Historical protocol identity and shared-dispatch controls."""
 from dataclasses import replace
+import json
 from pathlib import Path
 
 import pytest
@@ -55,6 +56,26 @@ def test_cli_uses_specified_protocol_source_registration_and_seed_defaults():
     assert sent["protocol"] == "memory.fixture" and sent["protocol_version"] == "1"
     assert sent["seeds"] == [5,6,7] and sent["parameters"] == {"size": 3}
     assert sent["smoke"] is True and sent["measure"] == spec.measure
+
+
+def test_schema6_association_replay_preserves_the_scientific_payload():
+    root = Path(__file__).resolve().parents[2] / "research/results/runs/memory.historical-association"
+    old = json.loads(
+        (root / "historical-association-smoke-20260910/results.json").read_text()
+    )
+    new = json.loads(
+        (root / "historical-association-schema6-smoke-20260911/results.json").read_text()
+    )
+    old_result = old["observations"]["result"]
+    new_result = new["observations"]["result"]
+    for field in ("metrics", "raw_data", "parameters", "success", "error_message"):
+        assert new_result[field] == old_result[field]
+    assert new["observations"]["scope"] == old["observations"]["scope"]
+    assert new["observations"]["verdict"] == old["observations"]["verdict"]
+    assert new["run"]["schema_version"] == 6
+    assert new["run"]["model_semantics"]["connectome"] == (
+        "fixed-dense-content-addressed"
+    )
 
 
 @pytest.mark.parametrize('document', [

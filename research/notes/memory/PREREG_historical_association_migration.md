@@ -31,3 +31,13 @@ parameters and success exactly through direct execution. Archive validation pass
 Nine raw vectors retain the eight measurement groups and derived paired differences;
 they are not nine independent ensembles. This software check remains VOID and
 neither adopts the old hypotheses nor repairs source-less historical artifacts.
+
+## Schema-6 provenance replay (2026-09-11)
+
+The [schema-6 smoke](../../results/runs/memory.historical-association/historical-association-schema6-smoke-20260911/results.json)
+records the effective `numpy_explicit` area's complete model semantics, including
+the float32 arithmetic, fixed dense content-addressed graph, lowest-ID tie rule,
+and weight ceiling 20.0. With the same seeds1/2/3 and parameters as the prior
+smoke, metrics, raw_data, parameters, execution status, scope and verdict are
+exactly equal; only timestamps, duration, source/provenance and the new semantic
+record differ. The result remains VOID.

@@ -24,6 +24,7 @@ from .semantics import (
     SampledRecurrencePolicy,
     StimulusDriveLaw,
     TieBreakRule,
+    describe_brain_model,
 )
 from .backend import set_backend, get_xp, get_backend_name, to_cpu, to_xp
 
@@ -34,5 +35,6 @@ __all__ = [
     'ProjectionFidelity', 'SampledRecurrencePolicy', 'ModelSemantics',
     'ConnectomeMode', 'CandidateDomain', 'StimulusDriveLaw',
     'TieBreakRule', 'ArithmeticMode', 'NormalizationMode', 'PlasticityRule',
+    'describe_brain_model',
     'set_backend', 'get_xp', 'get_backend_name', 'to_cpu', 'to_xp',
 ]

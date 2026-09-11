@@ -7,7 +7,7 @@ from pathlib import Path
 
 import numpy as np
 
-from neural_assemblies import Brain
+from neural_assemblies import Brain, describe_brain_model
 from neural_assemblies.diagnostics import ensemble_from_values
 from research.runner import ExperimentOutput, experiment_parser, run_experiment
 
@@ -197,7 +197,11 @@ def main(argv=None):
         script=Path(__file__), protocol="mechanism.per-fiber-plasticity",
         protocol_version="1", registration=REGISTRATION, engine=args.engine,
         seeds=args.seeds, tag=args.tag, smoke=args.smoke,
-        minimum_study_seeds=20, parameters=parameters(), measure=experiment,
+        minimum_study_seeds=20,
+        model_semantics=describe_brain_model(
+            args.engine, p=DEFAULTS["p"], seed=0,
+            w_max=DEFAULTS["w_max"], norm_init=False,
+        ), parameters=parameters(), measure=experiment,
     ))
 
 

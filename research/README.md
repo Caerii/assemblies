@@ -181,8 +181,9 @@ This fingerprint establishes equality, not reconstruction or secrecy of low-entr
 settings. Reproduction still requires explicit resolved protocol parameters.
 It describes the current process environment, not values previously captured at
 module import, external thread/CUDA settings, installed binary versions, or changes
-reverted before the final check. Resolving every semantic switch into an immutable
-model configuration remains open; this guard does not substitute for that work.
+reverted before the final check. Schema 6 separately records the primary Brain
+model profile; area-local and bespoke-organ semantics remain open. This guard does
+not substitute for those executable contracts.
 
 Version 3 adds Windows `.cmd` build scripts to the source inventory. Earlier
 version 2 records remain historical records with that coverage limitation.
@@ -190,7 +191,7 @@ version 2 records remain historical records with that coverage limitation.
 
 ## Recoverable source
 
-The [runner](runner.py) writes schema 5 records with a sibling `source.zip` before
+The [runner](runner.py) writes schema 6 records with a sibling `source.zip` before
 calling measurement. The archive preserves exact checkout bytes, including mixed
 line endings and Git-discovered nonignored untracked source. Its `source/` members
 use the same inventory and ordering as `source_sha256`; `script` and `registration`
@@ -201,12 +202,12 @@ if capture fails, and measurement does not start.
 [Archive validation](source_archive.py) recomputes the inventory digest and both
 individual digests from archived bytes, rejects duplicate or unsafe member names,
 and never extracts or executes code. The runner also validates the archive before
-publishing completion; the evidence validator checks it for every schema 3, 4 or 5 record.
+publishing completion; the evidence validator checks it for every schema 3 through 6 record.
 Schema 1 and 2 records remain readable without an archive. Their historical byte
 recovery gaps are not repaired by this change.
 
 This captures repository source, not a hermetic execution environment or all data.
-Schemas 4 and 5 additionally preserve every declared repository input artifact under
+Schemas 4 through 6 additionally preserve every declared repository input artifact under
 `inputs/`, bound to its separately recorded SHA-256. Input aliases resolve to one
 repository-relative name; duplicates fail before reservation. Missing, extra or
 changed archived inputs invalidate the archive even if its ZIP digest is updated.
@@ -223,7 +224,7 @@ promise that executing it elsewhere reproduces a study.
 <a id="raw-evidence-attachments"></a>
 ## Raw evidence attachments
 
-Run schema 5 separates compact indexed conclusions from large raw observations.
+Run schema 6 separates compact indexed conclusions from large raw observations.
 An experiment may return `ExperimentOutput(observations, json_attachments)`. The
 runner validates every value as strict finite JSON, encodes it deterministically,
 compresses it with gzip at a fixed timestamp, and writes only safe sibling names

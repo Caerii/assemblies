@@ -44,7 +44,7 @@ def validate_source_archive(directory: Path, record: dict) -> list[str]:
                 if hashlib.sha256(archive.read(field)).hexdigest() != record[field + '_sha256']:
                     errors.append(f'archived {field} digest mismatch')
             archived_inputs = {name[len('inputs/'):] for name in names if name.startswith('inputs/')}
-            if record.get('schema_version') in (4, 5) or archived_inputs:
+            if record.get('schema_version', 0) >= 4 or archived_inputs:
                 inputs = record.get('input_artifacts')
                 if not isinstance(inputs, dict):
                     errors.append('archived inputs need an input_artifacts mapping')

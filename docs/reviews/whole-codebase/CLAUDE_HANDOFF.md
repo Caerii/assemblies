@@ -1944,3 +1944,26 @@ stimulus, tie and arithmetic semantics at the primary engine boundary. It does
 not yet fold area-local mechanisms, operation schedules, readout definitions, or
 the separate hashed-organ classes into one run protocol, and it does not prove
 numeric refinement between engines.
+
+## Model identity now survives into evidence (2026-09-11)
+
+Run schema 6 requires the complete canonical `ModelSemantics` document whenever
+`engine` names a Brain backend. The runner reconstructs that engine's default
+profile using the declared normalization and weight ceiling, compares every
+field, and rejects before tag reservation on omission or drift. The artifact
+validator repeats strict parsing and canonical encoding checks. Its archive gate
+now covers schema 6; the tests caught that the previous explicit `(4, 5)` check
+would have stopped detecting a missing archived input after the version bump.
+
+The real historical-association schema-6 smoke is linked from its registration
+and validates. It reproduces the prior seeds1/2/3 artifact exactly for metrics,
+raw data, producer parameters, success/error state, scope, and VOID verdict. Its
+effective explicit-area profile records fixed dense content-addressed wiring,
+all-neuron candidates, fixed Bernoulli afferent counts, lowest-ID ties, float32,
+no normalization, multiplicative clipping, and ceiling 20.0. The producer's own
+parameters continue to name the `numpy_sparse` Brain router and
+`numpy_explicit` area owner.
+
+The broader runner/adapter/experiment/research-contract/methodology/specification
+gate is 158 passed and Ruff is clean. Hashed organs record `null` instead of borrowing a false Brain profile;
+their organ-level semantic objects remain the next required boundary.

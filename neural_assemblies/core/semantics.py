@@ -11,6 +11,16 @@ import numbers
 from typing import Mapping
 
 
+BRAIN_ENGINE_NAMES = frozenset({
+    "numpy_sparse",
+    "numpy_explicit",
+    "numpy_exact",
+    "torch_sparse",
+    "cuda_implicit",
+    "cupy_sparse",
+})
+
+
 class _SemanticEnum(str, Enum):
     @classmethod
     def normalize(cls, value: object):
@@ -176,3 +186,15 @@ class SampledRecurrencePolicy(str, Enum):
             raise ValueError(
                 "sampled_recurrence_policy must be 'warn', 'acknowledged', or 'forbid'"
             ) from exc
+
+
+def describe_brain_model(engine: str, **brain_kwargs) -> ModelSemantics:
+    """Resolve a Brain engine profile without registering model topology.
+
+    Specification: neural_assemblies/ir/VERIFICATION.md#contract-model-semantics
+    """
+    if not isinstance(engine, str) or engine == "auto":
+        raise ValueError("describe_brain_model requires an explicit engine name")
+    from .brain import Brain
+
+    return Brain(engine=engine, **brain_kwargs).model_semantics

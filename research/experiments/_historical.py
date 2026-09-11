@@ -6,6 +6,7 @@ from typing import Callable
 
 from research.json_documents import decode_document
 from research.runner import ROOT, experiment_parser, run_experiment
+from neural_assemblies import describe_brain_model
 
 
 @dataclass(frozen=True)
@@ -59,4 +60,8 @@ class HistoricalStudy:
                 parser.error(str(exc))
         print(writer(script=self.script, protocol=self.protocol, protocol_version=self.version,
                      registration=self.registration, engine=args.engine, seeds=args.seeds, tag=args.tag,
-                     smoke=args.smoke, parameters=parameters, measure=self.measure, **inputs))
+                     smoke=args.smoke, parameters=parameters, measure=self.measure,
+                     model_semantics=describe_brain_model(
+                         self.engine, p=parameters.get("p", .05), seed=0,
+                         w_max=parameters.get("w_max", 20.), norm_init=False,
+                     ), **inputs))

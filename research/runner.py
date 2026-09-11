@@ -19,6 +19,9 @@ from typing import Any, Callable, Mapping
 from zipfile import ZIP_DEFLATED, ZipFile, ZipInfo
 
 from neural_assemblies.core.environment import environment_record
+from neural_assemblies.core.semantics import (
+    BRAIN_ENGINE_NAMES, ModelSemantics, NormalizationMode, describe_brain_model,
+)
 from research.json_documents import encode_document, write_new_document as _write_new
 from research.source_archive import validate_source_archive
 
@@ -41,6 +44,7 @@ def _is_source_input(path: Path) -> bool:
 
 _NAME = re.compile(r'[A-Za-z0-9][A-Za-z0-9_.-]*\Z')
 _ATTACHMENT_NAME = re.compile(r'[A-Za-z0-9][A-Za-z0-9_.-]*\.json\.gz\Z')
+BRAIN_ENGINES = BRAIN_ENGINE_NAMES
 
 
 @dataclass(frozen=True)
@@ -126,7 +130,8 @@ def run_experiment(*, script: str | Path, protocol: str, protocol_version: str,
                    smoke: bool = False, minimum_study_seeds: int = 3,
                    output_root: Path | None = None,
                    input_artifacts: tuple[str, ...] = (),
-                   expected_input_digests: Mapping[str, str] | None = None) -> Path:
+                   expected_input_digests: Mapping[str, str] | None = None,
+                   model_semantics: ModelSemantics | Mapping | None = None) -> Path:
     """Execute one resolved protocol; return its immutable results file.
 
     `measure(record)` receives a JSON snapshot of the resolved inputs. It must
@@ -136,12 +141,42 @@ def run_experiment(*, script: str | Path, protocol: str, protocol_version: str,
     Optional expected_input_digests binds prior parsing to the complete captured
     input inventory, using canonical repository-relative names (research/README.md
     #historical-experiment-parameter-files). Mismatch fails before reservation.
+    Brain engines require a complete ModelSemantics profile; the runner resolves
+    the selected default path and rejects disagreement before reserving a tag.
     """
     for name, value in [('tag', tag), ('protocol', protocol), ('protocol_version', protocol_version)]:
         if not isinstance(value, str) or not _NAME.fullmatch(value):
             raise ValueError(f'{name} must be a nonempty simple name (letters, digits, dot, dash, underscore)')
     if not isinstance(engine, str) or not _NAME.fullmatch(engine) or engine == 'auto':
         raise ValueError('record the resolved engine; auto is not provenance')
+    if engine in BRAIN_ENGINES:
+        if model_semantics is None:
+            raise ValueError(
+                f'{engine} runs require a complete model_semantics document'
+            )
+        requested_model = ModelSemantics.normalize(model_semantics)
+        actual_model = describe_brain_model(
+            engine,
+            p=.05,
+            seed=0,
+            w_max=requested_model.weight_ceiling,
+            norm_init=(
+                requested_model.normalization
+                is NormalizationMode.INVERSE_INDEGREE
+            ),
+        )
+        mismatch = requested_model.mismatch(actual_model)
+        if mismatch:
+            raise ValueError(
+                f'{engine} does not implement requested model_semantics: {mismatch}'
+            )
+        model_document = requested_model.to_dict()
+    else:
+        if model_semantics is not None:
+            raise ValueError(
+                f'{engine} is not a Brain engine; its semantics need an organ contract'
+            )
+        model_document = None
     if type(smoke) is not bool or type(minimum_study_seeds) is not int or minimum_study_seeds < 3:
         raise ValueError('smoke must be boolean and minimum_study_seeds an integer of at least three')
     seeds = list(seeds)
@@ -162,12 +197,13 @@ def run_experiment(*, script: str | Path, protocol: str, protocol_version: str,
     inputs = {name: hashlib.sha256(data).hexdigest() for name, data in input_bytes.items()}
     if expected_input_digests is not None and inputs != dict(expected_input_digests):
         raise ValueError('input artifacts differ from the configuration snapshot')
-    record = dict(schema_version=5, environment=environment_record(), source_inventory=SOURCE_INVENTORY, protocol=protocol, protocol_version=protocol_version,
+    record = dict(schema_version=6, environment=environment_record(), source_inventory=SOURCE_INVENTORY, protocol=protocol, protocol_version=protocol_version,
                   script=script_path.relative_to(ROOT).as_posix(),
                   script_sha256=hashlib.sha256(script_path.read_bytes()).hexdigest(),
                   registration=registration_path.relative_to(ROOT).as_posix(),
                   registration_sha256=hashlib.sha256(registration_path.read_bytes()).hexdigest(),
-                  engine=engine, seeds=seeds, tag=tag, parameters=dict(parameters), input_artifacts=inputs,
+                  engine=engine, model_semantics=model_document, seeds=seeds,
+                  tag=tag, parameters=dict(parameters), input_artifacts=inputs,
                   mode='smoke' if smoke else 'study', scientific_status='VOID' if smoke else 'UNJUDGED',
                   started_utc=datetime.now(timezone.utc).isoformat(), **_source_identity())
     # Freeze nested caller-owned mappings/lists into a distinct JSON value.

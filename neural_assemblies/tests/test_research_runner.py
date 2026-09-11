@@ -5,6 +5,12 @@ from pathlib import Path
 import pytest
 
 from research import runner
+from neural_assemblies import describe_brain_model
+
+
+FIXTURE_MODEL = describe_brain_model(
+    "numpy_exact", norm_init=False,
+).to_dict()
 
 
 @pytest.fixture
@@ -16,9 +22,16 @@ def run(tmp_path, monkeypatch):
         values = dict(script=Path(__file__), protocol='audit.fixture', protocol_version='1',
                       registration='research/notes/sequence/DESIGN_sequence_port.md',
                       engine='numpy_exact', seeds=[1, 2, 3], tag='fixture',
+                      model_semantics=FIXTURE_MODEL,
                       parameters={'n': 100, 'k': 10}, measure=lambda record: {'values': [.1, .2, .3]},
                       output_root=tmp_path)
         values.update(kwargs)
+        if "model_semantics" not in kwargs:
+            values["model_semantics"] = (
+                describe_brain_model(values["engine"], norm_init=False).to_dict()
+                if values["engine"] in runner.BRAIN_ENGINES
+                else None
+            )
         return runner.run_experiment(**values)
     return execute
 
@@ -36,6 +49,7 @@ def test_reused_tag_refuses_before_compute_and_preserves_bytes(run):
 @pytest.mark.parametrize('kwargs', [dict(seeds=[1, 1, 2]), dict(seeds=[1, 2]),
                                    dict(tag=''), dict(tag='../escape'), dict(engine='auto'),
                                    dict(engine=None), dict(smoke='false'),
+                                   dict(model_semantics=None),
                                    dict(engine='hashed_arc_fsm', seeds=list(range(19)))])
 def test_invalid_run_stops_before_compute(run, kwargs):
     calls = []
@@ -44,12 +58,19 @@ def test_invalid_run_stops_before_compute(run, kwargs):
     assert calls == []
 
 
+def test_wrong_engine_profile_stops_before_reservation(run, tmp_path):
+    with pytest.raises(ValueError, match="does not implement requested"):
+        run(engine="numpy_sparse", model_semantics=FIXTURE_MODEL)
+    assert not (tmp_path / "audit.fixture" / "fixture").exists()
+
+
 def test_smoke_record_is_void_and_includes_resolved_inputs(run):
     path = run(smoke=True, engine='hashed_arc_fsm')
     result = json.loads(path.read_text())
     assert result['run']['scientific_status'] == 'VOID'
     assert result['run']['seeds'] == [1, 2, 3]
     assert result['run']['parameters'] == {'n': 100, 'k': 10}
+    assert result['run']['model_semantics'] is None
     assert result['run']['registration_sha256']
     assert result['status'] == 'complete'
 
@@ -62,13 +83,40 @@ def test_large_raw_json_is_a_digest_bound_compressed_attachment(run):
         {'verdict': 'UNADOPTED', 'raw': {'attachment': 'raw-frames.json.gz'}},
         {'raw-frames.json.gz': raw}))
     payload = json.loads(path.read_text())
-    assert payload['run']['schema_version'] == 5
+    assert payload['run']['schema_version'] == 6
     assert '"frames": [' not in path.read_text()
     assert set(payload['attachments']) == {'raw-frames.json.gz'}
     metadata = payload['attachments']['raw-frames.json.gz']
     assert metadata['bytes'] < metadata['decoded_bytes']
     assert validate_artifact(path) == []
     assert load_json_attachment(path, 'raw-frames.json.gz') == raw
+
+
+def test_brain_run_records_canonical_model_semantics(run):
+    path = run()
+    record = json.loads(path.read_text())['run']
+    assert record['model_semantics'] == FIXTURE_MODEL
+
+
+@pytest.mark.parametrize('damage', ['missing', 'unknown', 'noncanonical'])
+def test_validator_rejects_invalid_model_semantics(run, damage):
+    from research.evidence import validate_artifact
+
+    path = run()
+    payload = json.loads(path.read_text())
+    semantics = payload['run']['model_semantics']
+    if damage == 'missing':
+        semantics = None
+    elif damage == 'unknown':
+        semantics['connectome'] = 'probably-exact'
+    else:
+        semantics['weight_ceiling'] = 20
+    payload['run']['model_semantics'] = semantics
+    path.write_text(json.dumps(payload), encoding='utf-8')
+    (path.parent / 'run.json').write_text(
+        json.dumps(payload['run']), encoding='utf-8'
+    )
+    assert any('model_semantics' in error for error in validate_artifact(path))
 
 
 def test_attachment_encoding_is_deterministic():
@@ -250,7 +298,8 @@ def test_specification_mutation_fails_run_and_preserves_reservation(source_repo)
     with pytest.raises(RuntimeError, match='source changed'):
         runner.run_experiment(script='study.py', protocol='fixture', protocol_version='1',
                               registration='registration.md', engine='numpy_exact',
-                              seeds=[1, 2, 3], tag='mutation', parameters={}, measure=measure)
+                              seeds=[1, 2, 3], tag='mutation', parameters={},
+                              model_semantics=FIXTURE_MODEL, measure=measure)
     directory = source_repo / 'research/results/runs/fixture/mutation'
     assert (directory / 'run.json').exists()
     assert not (directory / 'results.json').exists()
@@ -278,7 +327,7 @@ def test_record_carries_shared_environment_fingerprint_without_raw_values(run, m
     monkeypatch.setenv('NEURAL_ASSEMBLIES_NO_RUST', 'private-test-value')
     path = run()
     record = json.loads(path.read_text())['run']
-    assert record['schema_version'] == 5
+    assert record['schema_version'] == 6
     fingerprint = record['environment']['variables_sha256']
     assert fingerprint['NEURAL_ASSEMBLIES_NO_RUST'] == dict(
         sweep._training_env_signature())['NEURAL_ASSEMBLIES_NO_RUST']
@@ -398,7 +447,8 @@ def test_source_archive_preserves_checkout_bytes_and_untracked_code(source_repo)
     path = runner.run_experiment(
         script='study.py', registration='registration.md', protocol='fixture',
         protocol_version='1', engine='numpy_exact', seeds=[1, 2, 3], tag='capture',
-        parameters={}, measure=lambda record: {'value': 0})
+        parameters={}, model_semantics=FIXTURE_MODEL,
+        measure=lambda record: {'value': 0})
     with ZipFile(path.parent / 'source.zip') as archive:
         assert archive.read('source/study.py') == script
         assert archive.read('script') == script
@@ -417,7 +467,8 @@ def test_active_graph_rejects_valid_result_not_linked_from_registration(source_r
     runner.run_experiment(
         script='study.py', registration='registration.md', protocol='fixture',
         protocol_version='1', engine='numpy_exact', seeds=[1, 2, 3], tag='linked',
-        parameters={}, measure=lambda _record: {'verdict': 'UNADOPTED'})
+        parameters={}, model_semantics=FIXTURE_MODEL,
+        measure=lambda _record: {'verdict': 'UNADOPTED'})
     subprocess.run(['git', 'add', 'registration.md', 'research/results/runs'],
                    cwd=source_repo, check=True)
     errors = validate_active_evidence_graph(source_repo)
@@ -496,6 +547,7 @@ def test_run_inputs_are_recoverable_and_bound_to_record(source_repo, damage):
         script='study.py', registration='registration.md', protocol='fixture',
         protocol_version='1', engine='numpy_exact', seeds=[1, 2, 3], tag='capture',
         parameters={'size': 60}, input_artifacts=('./parameters.json',),
+        model_semantics=FIXTURE_MODEL,
         measure=lambda record: {'value': 0})
     payload = json.loads(path.read_text())
     assert payload['run']['input_artifacts'] == {'parameters.json': hashlib.sha256(data).hexdigest()}
@@ -531,6 +583,7 @@ def test_duplicate_input_aliases_fail_before_measurement(source_repo):
             script='study.py', registration='registration.md', protocol='fixture',
             protocol_version='1', engine='numpy_exact', seeds=[1, 2, 3], tag='duplicate',
             parameters={}, input_artifacts=('parameters.json', './parameters.json'),
+            model_semantics=FIXTURE_MODEL,
             measure=lambda record: pytest.fail('duplicate inputs reached computation'))
     assert not (source_repo / 'research/results/runs').exists()
 
@@ -562,7 +615,8 @@ def test_input_mutation_keeps_original_bytes_and_records_failure(source_repo):
         runner.run_experiment(
             script='study.py', registration='registration.md', protocol='fixture',
             protocol_version='1', engine='numpy_exact', seeds=[1, 2, 3], tag='mutation',
-            parameters={}, input_artifacts=('parameters.json',), measure=measure)
+            parameters={}, input_artifacts=('parameters.json',),
+            model_semantics=FIXTURE_MODEL, measure=measure)
     directory = source_repo / 'research/results/runs/fixture/mutation'
     assert (directory / 'failure.json').exists()
     assert not (directory / 'results.json').exists()
@@ -587,6 +641,7 @@ def test_configuration_snapshot_mismatch_fails_before_reservation(source_repo, c
             protocol_version='1', engine='numpy_exact', seeds=[1, 2, 3], tag='changed',
             parameters={'size': 60}, input_artifacts=('parameters.json',),
             expected_input_digests=expected,
+            model_semantics=FIXTURE_MODEL,
             measure=lambda record: pytest.fail('mismatched snapshot reached measurement'))
     assert not (source_repo / 'research/results/runs').exists()
 

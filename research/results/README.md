@@ -23,7 +23,7 @@ The corrected temporal-position protocol is under
 `runs/sequence.temporal-positions/`; its registration separates within-brain
 sentence-pair summaries from the twenty independent brain-seed replicates.
 
-Runner schema 5 keeps compact conclusions in `results.json` and may store large raw
+Runner schema 6 keeps compact conclusions in `results.json` and may store large raw
 JSON as digest-bound `.json.gz` siblings. Read those through
 `research.evidence.load_json_attachment`, which validates the complete artifact
 before decoding. A sidecar is part of its result, not an optional cache.

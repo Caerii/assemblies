@@ -17,6 +17,7 @@ import re
 import subprocess
 
 from neural_assemblies.core.environment import ENVIRONMENT_POLICY, ENVIRONMENT_PREFIXES
+from neural_assemblies.core.semantics import BRAIN_ENGINE_NAMES, ModelSemantics
 
 from research.json_documents import decode_document, encode_document, load_document
 from research.source_archive import validate_source_archive
@@ -65,7 +66,7 @@ def _validate_attachments(path: Path, references) -> list[str]:
 
 
 def load_json_attachment(path: Path, name: str, *, root: Path = ROOT):
-    """Read one schema-5 attachment only after validating the complete artifact."""
+    """Read one schema-5-or-newer attachment after validating the artifact."""
     errors = validate_artifact(path, root=root)
     if errors:
         raise ValueError('; '.join(errors))
@@ -90,11 +91,13 @@ def validate_artifact(path: Path, *, root: Path = ROOT) -> list[str]:
                 'registration', 'registration_sha256', 'protocol', 'protocol_version',
                 'engine', 'seeds', 'tag', 'parameters', 'mode', 'scientific_status'}
     missing = required - record.keys()
+    if record.get('schema_version') == 6 and 'model_semantics' not in record:
+        missing.add('model_semantics')
     if missing:
         return [f'missing run fields: {sorted(missing)}']
-    if type(record['schema_version']) is not int or record['schema_version'] not in (1, 2, 3, 4, 5):
+    if type(record['schema_version']) is not int or record['schema_version'] not in (1, 2, 3, 4, 5, 6):
         errors.append('unsupported run schema version')
-    if record['schema_version'] in (2, 3, 4, 5) or 'environment' in record:
+    if record['schema_version'] in (2, 3, 4, 5, 6) or 'environment' in record:
         environment = record.get('environment')
         if (not isinstance(environment, dict)
                 or set(environment) != {'policy', 'variables_sha256'}
@@ -115,6 +118,17 @@ def validate_artifact(path: Path, *, root: Path = ROOT) -> list[str]:
         errors.append('parameters must be a mapping')
     if record['engine'] == 'auto':
         errors.append('engine must be resolved, not auto')
+    if record['schema_version'] == 6:
+        semantics = record.get('model_semantics')
+        if record['engine'] in BRAIN_ENGINE_NAMES:
+            try:
+                normalized = ModelSemantics.normalize(semantics).to_dict()
+                if encode_document(normalized) != encode_document(semantics):
+                    errors.append('model_semantics is not canonical')
+            except (TypeError, ValueError) as exc:
+                errors.append(f'invalid model_semantics: {exc}')
+        elif semantics is not None:
+            errors.append('non-Brain engine cannot claim Brain model_semantics')
     if path.parent.name != record['tag'] or path.parent.parent.name != record['protocol']:
         errors.append('artifact directory does not match protocol and tag')
     for field in ('script', 'registration'):
@@ -134,7 +148,7 @@ def validate_artifact(path: Path, *, root: Path = ROOT) -> list[str]:
                 errors.append(f'dangling input artifact edge: {name}')
             if not re.fullmatch('[a-f0-9]{64}', str(digest)):
                 errors.append(f'invalid input artifact digest: {name}')
-    if record['schema_version'] in (3, 4, 5) or 'source_archive' in record:
+    if record['schema_version'] in (3, 4, 5, 6) or 'source_archive' in record:
         errors.extend(validate_source_archive(path.parent, record))
     seeds = record['seeds']
     if not isinstance(seeds, list) or any(type(s) is not int for s in seeds):
@@ -148,7 +162,7 @@ def validate_artifact(path: Path, *, root: Path = ROOT) -> list[str]:
         errors.append('run mode and scientific status are inconsistent')
     if payload.get('status') != 'complete' or not isinstance(payload.get('observations'), dict):
         errors.append('artifact is not a completed observation record')
-    if record['schema_version'] == 5:
+    if record['schema_version'] in (5, 6):
         errors.extend(_validate_attachments(path, payload.get('attachments')))
     return errors
 

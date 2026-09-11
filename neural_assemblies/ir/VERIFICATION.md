@@ -915,6 +915,14 @@ and result definitions remain explicit protocol or operation contracts. A model
 profile does not establish numerical refinement between backends; that requires
 the drive, winner, update, and error-bound gates named elsewhere in this file.
 
+Research run schema 6 carries the same canonical document. For a registered
+Brain engine, `run_experiment` reconstructs the engine's ordinary no-topology
+path using the requested normalization and weight ceiling, compares all fields,
+and rejects omission or disagreement before reserving a tag. A bespoke hashed
+organ records `null` here and may not claim a Brain profile; its missing organ
+semantics remain visible until an organ contract supplies them. Historical run
+schemas remain readable without retroactive semantics.
+
 
 <a id="contract-homeostasis-config"></a>
 
