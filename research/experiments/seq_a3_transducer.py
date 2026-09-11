@@ -383,6 +383,9 @@ def a3_hashed(seeds, *, n_arc, beta, state_blind=False, collect_state=False,
               tie_seed=0, strength=0.1, collect_margin=False, horizon=0,
               collect_arcs=False):
     """MRR per seed (and cross-prefix state overlap per seed when asked)."""
+    if collect_arcs:
+        raise ValueError("TM-9 mechanism collection is invalid: pooled positions include agreement words; "
+                         "see research/notes/sequence/AUDIT_temporal_position_pooling.md")
     import torch
     from neural_assemblies.core.torch_engine._hashed_transducer import HashedTransducer
     words = _gen().vocabulary(VOCAB_SIZE)
@@ -556,7 +559,7 @@ def main_strength(seeds, strength, n_arc=10000):
     m, ov = a3_hashed(seeds, n_arc=n_arc, beta=BETA, strength=strength,
                       collect_state=True, collect_margin=True)
     cell = ensemble_from_values([m[s] for s in seeds], f"a3(s={strength})", keys=seeds)
-    ref = ensemble_from_values(base, f"a3(s=0.1)", keys=seeds)
+    ref = ensemble_from_values(base, "a3(s=0.1)", keys=seeds)
     delta = paired_delta(cell, ref, label=f"a3(s={strength}) - a3(s=0.1)")
     h4 = ensemble_from_values([ov[s] for s in seeds], "state_overlap", keys=seeds)
     marg = ensemble_from_values([ov[("margin", s)] for s in seeds], "arc_margin", keys=seeds)
@@ -700,12 +703,16 @@ def _number_of(word):
 
 
 def _distractor_overlaps(arcs_by_pos):
-    """At each distractor position (odd positions in the chain: 1, 3, 5 with
-    gap 1; 1, 2, 4, 5, ... with gap 2 -- every position whose word is a
-    NOUN), the mean arc overlap (fraction of k) between pairs of test
-    sentences with the same subject number and with different numbers.
-    The subject number is that of the sentence's FIRST word, which the
-    caller records at position 0."""
+    raise ValueError("TM-9 needs position-specific distractor selection; "
+                     "see research/notes/sequence/AUDIT_temporal_position_pooling.md")
+
+
+def _historical_pooled_arc_overlaps(arcs_by_pos):
+    """Historical arithmetic for audit only; pools every noninitial position.
+
+    Specification: research/notes/sequence/AUDIT_temporal_position_pooling.md
+    This is not a distractor-specific mechanism measurement.
+    """
     same, diff = [], []
     # the subject number per sentence: position 0's entries, in order
     subj = [num for num, _ in arcs_by_pos.get(0, [])]

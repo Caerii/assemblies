@@ -1516,3 +1516,15 @@ Merge smoke acceptance passes: five cells, seeds1/2/3, sourceb8984cd, exact dire
 metrics/raw_data/parameters/success and valid archive.84 targeted tests pass; status
 VOID. This finishes the historical merge harness migration, not a scientific
 validation of general composition or the broader library unification.
+
+
+## Temporal mechanism position-pooling audit (2026-09-10)
+
+Important correction: TM-9's supposed distractor overlap pools all noninitial
+positions, including number-marked agreement words. A constructed control produces
+contrast0.5 with zero distractor contrast. Arithmetic matches review commit3334876.
+Suspended the0.11/0.22 mechanism interpretation in register/onboarding/notes, while
+preserving separate prediction results. Old collection now fails before GPU work.
+31 audit/register/specification/ratchet checks pass. Next is a position-specific
+collector and registered rerun, not a readout study assuming the0.11 premise.
+See VALIDATION.md#temporal-mechanism-position-pooling-audit-2026-09-10.

@@ -1,5 +1,10 @@
 # PREREG: the transducer as a temporal memory
 
+> Audit notice (2026-09-10): TM-9 distractor-mechanism verdicts are suspended.
+> The implementation pooled noninitial positions, including agreement words.
+> See [the position-pooling audit](AUDIT_temporal_position_pooling.md).
+> Historical numbers remain below; the MRR observations are separately measured.
+
 Registered 2026-09-09, before implementing or running.
 
 ## Why this design

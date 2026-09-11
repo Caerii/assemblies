@@ -196,13 +196,12 @@ takes the design every local-rule sequence model converged on instead:
 the state is the previous arc and predicted arc neurons win. That one
 works and is adopted as `SEQ-TEMPORAL-CARRY`: +0.149 over the bigram at
 two distractors (72 percent of the oracle gap), +0.106 at three (60
-percent), replicated on twenty fresh seeds; the copy state alone carries
-nothing. The mechanism came out half as registered: the arc at a
-distractor holds number-specific, distractor-invariant cells (0.25 of k
-shared with same-number sentences against 0.03 for the other number at
-g = 1), but those cells are already there at g = 0 (contrast 0.11);
-predicted-win doubles their share and puts them within the readout's
-reach. Inside the presentation window (20 of the clip edge 31.4) the
+percent), replicated on twenty fresh seeds; the native readout with copy state
+alone shows no improvement. The distractor-specific mechanism is unresolved:
+[the position-pooling audit](sequence/AUDIT_temporal_position_pooling.md) found that
+the 0.11/0.22 contrasts included agreement words whose input encodes subject number.
+They do not establish pre-existing distractor features or amplification of those
+features. A position-specific rerun is required. Inside the presentation window (20 of the clip edge 31.4) the
 transducer also continues order-10 sequences exactly on every brain.
 
 **Code.** `HashedTransducer` in `core/torch_engine/_hashed_transducer.py`.

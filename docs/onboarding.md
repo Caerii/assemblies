@@ -69,15 +69,14 @@ evidence. Then follow the reading order below.
 
 Each of these has data in hand and a registration to extend.
 
-1. **Is the readout the bottleneck of the temporal carry?** With the
-   previous arc as state and no prediction rule, the arc at a distractor
-   already shares 0.11 of k with same-number sentences; the readout
-   extracts nothing from it. Predicted-win doubles the share and the
-   readout then extracts most of the oracle gap. Measure the contrast
-   against position at g = 0 and g = 1, and try a second readout on the
-   g = 0 arcs. If a readout recovers prediction at g = 0, the claim
-   changes from "temporal memory" to "conjunction chains carry features at
-   a decaying share, and prediction amplifies." See `SEQ-TEMPORAL-CARRY`.
+1. **Is the readout the bottleneck of the temporal carry?** First establish
+   whether subject-number information survives at actual distractor positions.
+   The old 0.11/0.22 contrasts pooled agreement words with distractors and are
+   void for that claim; see [the audit](../research/notes/sequence/AUDIT_temporal_position_pooling.md).
+   Re-measure by position at g = 0 and g = 1, retain raw sentence/word identities,
+   then fit a second readout with held-out evaluation and controls for leakage.
+   The native readout's prediction gain remains measured; its mechanism is open.
+   See `SEQ-TEMPORAL-CARRY`.
 2. **The clip window.** Every organ result holds between about 20 and 28
    presentations and collapses past 31, because the weight clip lets a
    synapse potentiated once per presentation relocate the arc. A weight

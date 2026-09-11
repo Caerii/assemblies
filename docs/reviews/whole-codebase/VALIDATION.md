@@ -2821,3 +2821,32 @@ metrics/raw_data/parameters/success; archive validation passes. Seeds1/2/3 and a
 parent vectors persist under research/results/runs/memory.historical-merge/
 historical-merge-smoke-20260910. Status remains VOID; no new scientific merge claim,
 GPU rerun or full-package green claim is made by this migration.
+
+
+## Temporal mechanism position-pooling audit (2026-09-10)
+
+While preparing the representation/readout study, traced the TM-9 collector and
+found that it includes every processed noninitial position. The chain generator
+puts directly number-marked VERB/PRON tokens among those positions. The helper
+never filters NOUN distractors despite its old docstring. A four-sentence control
+has identical distractor arcs (contrast0) but number-specific agreement-word arcs;
+the old pool reports contrast0.5. Its arithmetic matches the AST at commit3334876
+exactly, excluding function name/docstring. This is a reproducible instrument
+confound, not a measured corrected contrast in the historical brains.
+
+Suspended TM-9's distractor-invariant representation/amplification interpretation
+in theory.py and regenerated docs/register.md. Corrected onboarding and the notes
+map; added a prominent audit notice without rewriting historical observations in
+the registration. Native MRR and order observations are separately collected and
+are not invalidated by this selection bug. The previous claim that g=0 has a0.11
+distractor contrast is not established. No claim of its absence is established either.
+
+Old _distractor_overlaps and collect_arcs calls now fail explicitly, the latter
+before GPU construction. Historical arithmetic remains named for audit only. The
+replacement needs raw sentence/token/position/arc identities, explicit distractor
+selection, alignment validation and held-out readout fitting. It is not implemented
+or measured yet. See research/notes/sequence/AUDIT_temporal_position_pooling.md.
+
+Validation:12 audit/register checks and19 specification/two-ratchet checks pass;
+Ruff and diff checks pass. No GPU run was necessary for this constructed confound,
+and no historical GPU artifact was rewritten. The new audit tests enter CPU CI.
