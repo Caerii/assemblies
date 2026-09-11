@@ -16,6 +16,12 @@ accepting the synthetic perfect-score fallback. A new attractor coin study remai
 open under a new protocol ID; the historical records are preserved as refusal
 fixtures.
 
+The three held-out parser failures are now split at their semantic boundary.
+Grounding-only classification must recover NOUN/VERB/ADJ and passes; default
+combined-cue classification remains a strict expected failure because the untrained
+phon cue obscures bird/finds. This preserves the open integration problem while
+stopping it from being misreported as absence of grounding representation.
+
 ## Provenance to recover
 
 - **RATE-HETEROGENEITY:** resolved on the review branch by the preregistered

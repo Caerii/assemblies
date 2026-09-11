@@ -3034,3 +3034,17 @@ The repaired selection reports 28 passed,15 skipped and one expected failure in
 104.47 seconds. The earlier broad run also found three sampled emergent-parser
 generalization failures; those remain a separate semantic investigation rather
 than being absorbed into this coin/dataset repair.
+
+## Held-out representation/readout split (2026-09-11)
+
+The three parser failures were one conflated claim. In the existing seed-42 fixture,
+grounding-only queries recover bird=NOUN, finds=VERB and small=ADJ, while the default
+combined query returns ADV, ADV and ADJ because an untrained phonological input
+obscures the grounding signal. The generalization tests now name and assert the
+grounding-only mechanism. A separate strict expected failure keeps the combined-cue
+integration gap visible and turns an unexpected pass into a review failure.
+
+The focused class reports 5 passed and 1 expected failure in18.30 seconds. This is
+the previously recorded single-fixture diagnosis made executable; it is not a new
+ensemble result, a calibrated readout comparison or evidence that the sampled
+substrate generalizes outside this fixture.
