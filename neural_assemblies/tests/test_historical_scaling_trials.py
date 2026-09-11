@@ -97,3 +97,52 @@ def test_scaling_summary_keeps_timeouts_and_raw_seed_identities(monkeypatch, tmp
         assert cell["values"]["converged"] == [False]*3
         assert cell["values"]["convergence_time"] == [None]*3
     encode_document(result.to_dict())
+
+
+def test_configuration_preserves_explicit_seed_order_and_consumes_every_schedule(monkeypatch, tmp_path):
+    calls = []
+    def trial(cfg, seed):
+        calls.append((cfg, seed))
+        return dict(training_rounds=cfg.max_train_rounds, converged=False,
+                    convergence_time=None, persistence=seed / 10)
+    monkeypatch.setattr(study, "run_scaling_trial", trial)
+    result = study.ScalingLawsExperiment(seed=999, results_dir=tmp_path, verbose=False).run(
+        seed_ids=[9, 2, 7], n_values=[80, 60], max_train_rounds=8, test_rounds=4,
+        initial_stimulus_rounds=2, convergence_window=2, convergence_threshold=.9)
+    assert [seed for _, seed in calls] == [9, 2, 7]*2
+    assert [cfg.n for cfg, _ in calls] == [80]*3+[60]*3
+    for cfg, _ in calls:
+        assert (cfg.max_train_rounds, cfg.test_rounds, cfg.initial_stimulus_rounds,
+                cfg.convergence_window, cfg.convergence_threshold) == (8, 4, 2, 2, .9)
+    assert result.raw_data["seeds"] == [9, 2, 7]
+    assert result.raw_data["cells"][0]["values"]["persistence"] == [.9, .2, .7]
+    assert result.parameters["seed_ids"] == [9, 2, 7]
+    assert result.parameters["initial_stimulus_rounds"] == 2
+
+
+@pytest.mark.parametrize("kwargs", [
+    {"n_seeds": 2}, {"seed_ids": [1, 1, 2]}, {"n_values": []},
+    {"n_values": [60]}, {"n_values": [60, 60]}, {"n_values": [60, True]},
+    {"test_rounds": 0}, {"initial_stimulus_rounds": 0}, {"convergence_window": 0},
+    {"convergence_threshold": float("nan")},
+])
+def test_invalid_scaling_config_fails_before_timer(kwargs):
+    experiment = object.__new__(study.ScalingLawsExperiment)
+    experiment.seed = 42
+    with pytest.raises(ValueError):
+        experiment.run(**kwargs)
+
+
+def test_old_cli_requires_tag_and_records_smoke_parameters(monkeypatch, capsys):
+    from research.experiments import historical_scaling as adapter
+    calls = []
+    monkeypatch.setattr(adapter, "run_experiment", lambda **kwargs: calls.append(kwargs) or "saved")
+    with pytest.raises(SystemExit) as error:
+        study.main([])
+    assert error.value.code == 2
+    assert "--tag" in capsys.readouterr().err
+    study.main(["--quick", "--seeds", "9", "2", "7", "--tag", "fixture"])
+    assert calls[0]["smoke"] is True
+    assert calls[0]["engine"] == "numpy_explicit"
+    assert calls[0]["seeds"] == [9, 2, 7]
+    assert calls[0]["parameters"] == adapter.parameters(True)

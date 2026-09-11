@@ -165,7 +165,8 @@ def run_experiment(*, script: str | Path, protocol: str, protocol_version: str,
         raise
 
 
-EXPERIMENTS = {'historical-projection': 'research.experiments.historical_projection',
+EXPERIMENTS = {'historical-scaling': 'research.experiments.historical_scaling',
+               'historical-projection': 'research.experiments.historical_projection',
                'historical-noise': 'research.experiments.historical_noise',
                'context-noise': 'research.experiments.context_noise',
                'a1-learning-null': 'research.experiments.seq_a1_learning_null',

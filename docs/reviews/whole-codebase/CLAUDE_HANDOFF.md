@@ -1349,3 +1349,11 @@ replays preserve trajectories/weights; projection's complete v3 smoke also match
 Scaling retains censored seed records and no longer infers complexity classes from
 fit coefficients. The phase uses canonical snapshots and a constant-history streak.
 Remaining scaling grid/runner migration is separate. See VALIDATION.md#shared-convergence-phase-and-scaling-correction-2026-09-10.
+
+
+## Scaling runner preparation (2026-09-10)
+
+The corrected scaling study now exposes its grid, seed identities, initialization,
+evaluation and stopping schedule through a tagged adapter. Old CLI requires --tag;
+--quick is VOID and full output UNADOPTED. Registration precedes smoke execution.
+See VALIDATION.md#configurable-scaling-runner-migration-2026-09-10.

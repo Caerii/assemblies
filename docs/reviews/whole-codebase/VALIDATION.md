@@ -2427,3 +2427,18 @@ After lowering the allowances, 67 projection/scaling/replay/two-ratchet checks
 passed in 72.22s. The specification checks passed in the previous run. No full
 package or GPU rerun was required or claimed for this research-phase refactor.
 Also corrected the scaling description: k=floor(sqrt(n)) does not hold k/n fixed.
+
+
+## Configurable scaling runner migration (2026-09-10)
+
+Scaling now consumes explicit grid, ordered seeds, initialization/evaluation counts,
+training limit and stopping rule. Shared seed resolution refuses fewer than three
+identities before the timer. Every resolved ScalingConfig is constructed before
+computation; invalid grid/rule inputs fail early. Defaults preserve c1ba555.
+The CLI forwards to historical-scaling in the shared runner, requires --tag, and
+labels quick/smoke VOID and full UNADOPTED. Initialization remains separate from
+the convergence sample count. Source-linked registration precedes the smoke.
+
+Pre-run configurable scaling/projection/aggregate checks: 82 passed in 3.40s,
+including six scaling replay fixtures and explicit grid/schedule/seed-order spies.
+Ruff passes. No tagged scaling smoke has run at this checkpoint.

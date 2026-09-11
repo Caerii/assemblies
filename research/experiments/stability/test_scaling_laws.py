@@ -55,7 +55,9 @@ from research.experiments.base import (
 
 from neural_assemblies.core.brain import Brain
 from neural_assemblies.assembly_calculus.assembly import Assembly
-from research.experiments._convergence import run_convergence_phase, convergence_scaling_fit
+from research.experiments._convergence import run_convergence_phase, convergence_scaling_fit, validate_convergence_rule
+from research.experiment_config import resolve_seed_ids
+from neural_assemblies.core.registration import validate_round_count, validate_area_registration
 
 N_SEEDS = 10
 
@@ -70,6 +72,15 @@ class ScalingConfig:
     w_max: float
     max_train_rounds: int = 100
     test_rounds: int = 20
+    initial_stimulus_rounds: int = 1
+    convergence_window: int = 3
+    convergence_threshold: float = .98
+
+    def __post_init__(self):
+        validate_area_registration("A", self.n, self.k)
+        validate_round_count(self.test_rounds)
+        validate_round_count(self.initial_stimulus_rounds)
+        validate_convergence_rule(self.max_train_rounds, self.convergence_window, self.convergence_threshold)
 
 
 # -- Core trial runner ---------------------------------------------------------
@@ -87,10 +98,12 @@ def run_scaling_trial(
     b.add_stimulus("s", cfg.k)
 
     # Phase 1: initial stimulus activation
-    b.project({"s": ["A"]}, {})
+    for _ in range(cfg.initial_stimulus_rounds):
+        b.project({"s": ["A"]}, {})
 
     # This phase deliberately excludes the initial activation above.
-    observed = run_convergence_phase(b, stimulus="s", area="A", max_rounds=cfg.max_train_rounds)
+    observed = run_convergence_phase(b, stimulus="s", area="A", max_rounds=cfg.max_train_rounds,
+                                     window=cfg.convergence_window, threshold=cfg.convergence_threshold)
     for _ in range(cfg.test_rounds):
         b.project({}, {"A": ["A"]})
     persistence = measure_overlap(observed.assembly.neuron_ids, Assembly.from_area(b, "A").neuron_ids)
@@ -117,12 +130,24 @@ class ScalingLawsExperiment(ExperimentBase):
         p: float = 0.05,
         beta: float = 0.10,
         w_max: float = 20.0,
-        n_seeds: int = N_SEEDS,
+        n_seeds: int | None = None,
+        *, seed_ids=None, n_values=(100, 200, 500, 1000, 2000, 5000),
+        max_train_rounds=100, test_rounds=20, initial_stimulus_rounds=1,
+        convergence_window=3, convergence_threshold=.98,
     ) -> ExperimentResult:
+        seeds = resolve_seed_ids(n_seeds, seed_ids, base_seed=self.seed, default_count=N_SEEDS)
+        n_seeds = len(seeds)
+        n_values = [validate_round_count(value) for value in n_values]
+        if len(n_values) < 2 or len(set(n_values)) != len(n_values) or min(n_values) < 2:
+            raise ValueError("scaling requires at least two unique population sizes of at least two")
+        schedule = dict(max_train_rounds=validate_round_count(max_train_rounds),
+                        test_rounds=validate_round_count(test_rounds),
+                        initial_stimulus_rounds=validate_round_count(initial_stimulus_rounds),
+                        convergence_window=validate_round_count(convergence_window),
+                        convergence_threshold=convergence_threshold)
+        configs = [ScalingConfig(n=value, k=int(np.sqrt(value)), p=p, beta=beta, w_max=w_max,
+                                 **schedule) for value in n_values]
         self._start_timer()
-        seeds = list(range(n_seeds))
-
-        n_values = [100, 200, 500, 1000, 2000, 5000]
 
         self.log("=" * 60)
         self.log("Scaling Laws Experiment")
@@ -132,7 +157,7 @@ class ScalingLawsExperiment(ExperimentBase):
         self.log("=" * 60)
 
         metrics: Dict[str, Any] = {}
-        raw_data = {"seeds": [self.seed + s for s in seeds], "cells": []}
+        raw_data = {"seeds": seeds, "cells": []}
 
         # ================================================================
         # H1/H2: Convergence + Persistence vs Network Size (k=sqrt(n))
@@ -141,10 +166,9 @@ class ScalingLawsExperiment(ExperimentBase):
 
         scaling_results = []
 
-        for n_val in n_values:
-            k_val = int(np.sqrt(n_val))
+        for cfg in configs:
+            n_val, k_val = cfg.n, cfg.k
             null = chance_overlap(k_val, n_val)
-            cfg = ScalingConfig(n=n_val, k=k_val, p=p, beta=beta, w_max=w_max)
 
             conv_times = []
             training_counts = []
@@ -152,7 +176,7 @@ class ScalingLawsExperiment(ExperimentBase):
             persist_vals = []
 
             for s in seeds:
-                trial = run_scaling_trial(cfg, seed=self.seed + s)
+                trial = run_scaling_trial(cfg, seed=s)
                 conv_times.append(trial["convergence_time"])
                 training_counts.append(trial["training_rounds"])
                 converged_flags.append(trial["converged"])
@@ -203,9 +227,8 @@ class ScalingLawsExperiment(ExperimentBase):
                 "base_p": p,
                 "base_beta": beta,
                 "base_wmax": w_max,
-                "max_train_rounds": 100,
-                "test_rounds": 20, "convergence_window": 3, "convergence_threshold": .98,
-                "initial_stimulus_rounds": 1, "evaluation_learning": True,
+                **schedule, "seed_ids": seeds, "assembly_size_rule": "floor_sqrt_population",
+                "evaluation_learning": True,
                 "primary_engine": "numpy_sparse", "area_engine": "numpy_explicit",
             },
             metrics=metrics,
@@ -214,24 +237,9 @@ class ScalingLawsExperiment(ExperimentBase):
         )
 
 
-def main():
-    import argparse
-
-    parser = argparse.ArgumentParser(description="Scaling Laws Experiment")
-    parser.add_argument("--quick", action="store_true", help="Quick run (fewer seeds)")
-
-    args = parser.parse_args()
-
-    exp = ScalingLawsExperiment(verbose=True)
-
-    if args.quick:
-        result = exp.run(n_seeds=5)
-        exp.save_result(result, "_quick")
-    else:
-        result = exp.run()
-        exp.save_result(result)
-
-    print(f"\nTotal time: {result.duration_seconds:.1f}s")
+def main(argv=None):
+    from research.experiments.historical_scaling import main as run
+    return run(argv)
 
 
 if __name__ == "__main__":
