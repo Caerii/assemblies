@@ -15,12 +15,13 @@ from neural_assemblies.assembly_calculus.contracts import (
     ORDERED_RECALL_CONTRACT,
     OPERATION_CONTRACTS, PROJECTION_CONTRACT, RECIPROCAL_PROJECTION_CONTRACT,
     AssociationPlan, CompletionPlan, MergePlan, OrderedRecallPlan,
-    PreparedCompletion, SEQUENCE_MEMORIZE_CONTRACT, SequenceMemorizePlan,
+    PreparedCompletion, SEQUENCE_MEMORIZE_CONTRACT, SEPARATION_CONTRACT,
+    SequenceMemorizePlan, SeparationPlan,
     ProjectionPlan, ReciprocalProjectionPlan,
 )
 from neural_assemblies.assembly_calculus.ops import (
     associate, merge, ordered_recall, pattern_complete, project,
-    sequence_memorize,
+    separate, sequence_memorize,
     reciprocal_project,
 )
 from neural_assemblies.assembly_calculus.tracing import snapshot_area
@@ -69,6 +70,17 @@ def test_sequence_memorize_plan_preflight_rejects_unknown_topology():
     plan = SequenceMemorizePlan(("s",), "A")
     with pytest.raises(KeyError, match="target area"):
         plan.preflight(brain)
+
+
+def test_separation_plan_rejects_identical_stimuli():
+    with pytest.raises(ValueError, match="distinct stimuli"):
+        SeparationPlan("s", "s", "A")
+
+
+def test_separation_plan_preflight_rejects_unknown_topology():
+    brain = SimpleNamespace(areas={}, stimuli={"a": object(), "b": object()})
+    with pytest.raises(KeyError, match="target area"):
+        SeparationPlan("a", "b", "A").preflight(brain)
 
 
 @pytest.mark.parametrize("rounds", [0, -1, True, 1.5])
@@ -364,6 +376,10 @@ def test_merge_preflight_rejects_a_source_state_that_contradicts_its_mode(
     (
         "sequence_memorize", sequence_memorize,
         SEQUENCE_MEMORIZE_CONTRACT, SequenceMemorizePlan,
+    ),
+    (
+        "separate", separate,
+        SEPARATION_CONTRACT, SeparationPlan,
     ),
 ])
 def test_public_operation_carries_the_registered_contract(

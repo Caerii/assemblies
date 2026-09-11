@@ -64,9 +64,10 @@ from .assembly import Assembly, overlap
 from .contracts import (
     ASSOCIATION_CONTRACT, COMPLETION_CONTRACT, MERGE_CONTRACT,
     ORDERED_RECALL_CONTRACT,
+    SEPARATION_CONTRACT,
     PROJECTION_CONTRACT, RECIPROCAL_PROJECTION_CONTRACT, AssociationPlan,
     CompletionPlan, MergePlan, ProjectionPlan, ReciprocalProjectionPlan,
-    OrderedRecallPlan, SequenceMemorizePlan,
+    OrderedRecallPlan, SequenceMemorizePlan, SeparationPlan,
     SEQUENCE_MEMORIZE_CONTRACT,
     implements,
 )
@@ -723,6 +724,7 @@ def pattern_complete(
     return recovered, recovery
 
 
+@implements(SEPARATION_CONTRACT)
 def separate(brain, stim_a, stim_b, target, rounds=10):
     """Project two different stimuli into the same area and measure overlap.
 
@@ -756,19 +758,12 @@ def separate(brain, stim_a, stim_b, target, rounds=10):
         comes back has no recurrent trace of stimulus A, so do not call it on
         a brain you intend to keep using.
     """
-    # Validate the complete schedule before the first projection. Otherwise a
-    # bad second stimulus trains A and then raises while training B, leaving a
-    # partially mutated brain with no result tuple to identify it.
-    if stim_a not in brain.stimuli:
-        raise KeyError(f"separate stimulus is unknown: {stim_a!r}")
-    if stim_b not in brain.stimuli:
-        raise KeyError(f"separate stimulus is unknown: {stim_b!r}")
-    if stim_a == stim_b:
-        raise ValueError("separate requires distinct stimuli")
-    if target not in brain.areas:
-        raise KeyError(f"separate target area is unknown: {target!r}")
-    if isinstance(rounds, bool) or not isinstance(rounds, Integral) or rounds < 1:
-        raise ValueError("separate rounds must be a positive integer")
+    # Validate the complete schedule before the first projection.
+    plan = SeparationPlan(stim_a, stim_b, target, rounds)
+    plan.preflight(brain)
+    stim_a, stim_b, target, rounds = (
+        plan.stim_a, plan.stim_b, plan.target, plan.rounds,
+    )
 
     # Project stimulus A
     assembly_a = project(brain, stim_a, target, rounds=rounds)

@@ -2653,3 +2653,5 @@ Linked both sequence plan declarations directly to `contract-sequence-memory` in
 Added direct `Specification:` links to the five remaining core plan declarations: projection, reciprocal projection, association, merge, and completion. All maintained schedules now expose their semantic card at the source definition. Specification-link tests pass (11 tests); Ruff is clean.
 
 Strengthened the specification-link ratchet to require both sequence operations and both sequence plan declarations. Added direct semantic-card links to `sequence_memorize` and `ordered_recall` docstrings, closing the source-navigation gap. Specification-link tests pass (11 tests).
+
+Made `separate` a first-class contract operation. `SeparationPlan` now owns its schedule admission, and the public operation is registered/exported with explicit destructive-measurement semantics and true negatives. Operation-contract tests pass (158 tests); Ruff is clean.

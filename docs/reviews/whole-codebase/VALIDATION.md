@@ -4799,3 +4799,7 @@ Projection, reciprocal projection, association, merge, and completion plan decla
 ## Sequence source-to-spec ratchet (2026-09-11)
 
 The specification-link test now requires `sequence_memorize`, `ordered_recall`, `SequenceMemorizePlan`, and `OrderedRecallPlan` to remain linked. Their public function docstrings now carry the dedicated sequence-card edge, closing a gap where registry metadata existed but source navigation did not. Specification-link tests pass **11 tests**.
+
+## Separation operation contract (2026-09-11)
+
+`separate` now consumes a frozen `SeparationPlan` and carries `SEPARATION_CONTRACT` in the public operation registry. The plan owns distinct-stimulus, topology, and rounds admission while the operation preserves its documented destructive recurrent-reset measurement. Two plan-level true negatives cover identical stimuli and unknown topology; contract tests pass **158 tests**.

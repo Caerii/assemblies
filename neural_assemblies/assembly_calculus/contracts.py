@@ -364,6 +364,35 @@ class MergePlan:
             brain.project(step.stimuli_dict(), step.fibers_dict())
 
 
+@dataclass(frozen=True)
+class SeparationPlan:
+    """Validated two-stimulus separation measurement schedule.
+
+    Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-separation
+    """
+
+    stim_a: str
+    stim_b: str
+    target: str
+    rounds: int = 10
+
+    def __post_init__(self) -> None:
+        for label, value in (("stim_a", self.stim_a),
+                             ("stim_b", self.stim_b),
+                             ("target", self.target)):
+            _require_name(label, value)
+        if self.stim_a == self.stim_b:
+            raise ValueError("separate requires distinct stimuli")
+        object.__setattr__(self, "rounds", _positive_rounds(self.rounds))
+
+    def preflight(self, brain) -> None:
+        for stimulus in (self.stim_a, self.stim_b):
+            if stimulus not in brain.stimuli:
+                raise KeyError(f"separate stimulus is unknown: {stimulus!r}")
+        if self.target not in brain.areas:
+            raise KeyError(f"separate target area is unknown: {self.target!r}")
+
+
 _COMPLETION_OBSERVATION_MODES = frozenset({"plastic", "frozen", "read-only"})
 
 
@@ -811,6 +840,27 @@ SEQUENCE_MEMORIZE_CONTRACT = OperationContract(
 )
 
 
+SEPARATION_CONTRACT = OperationContract(
+    operation_id="separation-v1",
+    specification="docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-separation",
+    plan_type=SeparationPlan,
+    inputs=("brain", "stim_a", "stim_b", "target", "rounds"),
+    reads=("stimulus fibers", "target recurrent weights", "target winners"),
+    mutates=("target winners", "target recurrent weights"),
+    regime=("two distinct registered stimuli", "stimulus-driven target", "destructive recurrent-reset measurement"),
+    observed_outcome=("two neuron-ID assembly snapshots", "normalized pairwise overlap"),
+    failure_conditions=("identical stimuli", "unknown topology", "invalid rounds", "backend projection rejection"),
+    constructed_controls=(
+        "neural_assemblies/tests/test_operation_contract_objects.py::"
+        "test_separation_plan_rejects_identical_stimuli",
+    ),
+    true_negative_controls=(
+        "neural_assemblies/tests/test_operation_contract_objects.py::"
+        "test_separation_plan_preflight_rejects_unknown_topology",
+    ),
+)
+
+
 OPERATION_CONTRACTS = MappingProxyType({
     "projection": PROJECTION_CONTRACT,
     "reciprocal_projection": RECIPROCAL_PROJECTION_CONTRACT,
@@ -819,6 +869,7 @@ OPERATION_CONTRACTS = MappingProxyType({
     "pattern_completion": COMPLETION_CONTRACT,
     "ordered_recall": ORDERED_RECALL_CONTRACT,
     "sequence_memorize": SEQUENCE_MEMORIZE_CONTRACT,
+    "separate": SEPARATION_CONTRACT,
 })
 
 

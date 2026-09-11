@@ -95,11 +95,11 @@ from .metrics import (
 from .sequence import Sequence
 from .contracts import (
     ASSOCIATION_CONTRACT, COMPLETION_CONTRACT, MERGE_CONTRACT,
-    ORDERED_RECALL_CONTRACT, SEQUENCE_MEMORIZE_CONTRACT,
+    ORDERED_RECALL_CONTRACT, SEQUENCE_MEMORIZE_CONTRACT, SEPARATION_CONTRACT,
     OPERATION_CONTRACTS, PROJECTION_CONTRACT, RECIPROCAL_PROJECTION_CONTRACT,
     AssociationPlan, CompletionPlan, MergePlan, OperationContract,
     PreparedCompletion, ProjectionPlan, ProjectionStep, ReciprocalProjectionPlan,
-    OrderedRecallPlan, SequenceMemorizePlan,
+    OrderedRecallPlan, SequenceMemorizePlan, SeparationPlan,
 )
 from .ops import (
     project,
@@ -194,7 +194,7 @@ __all__ = [
     "source_response_traces", "projection_sweep", "lri_recall_sweep",
     "sequence_memorize", "ordered_recall", "activate_assembly",
     "ProjectionPlan", "ReciprocalProjectionPlan", "AssociationPlan", "MergePlan",
-    "CompletionPlan", "OrderedRecallPlan", "SequenceMemorizePlan",
+    "CompletionPlan", "OrderedRecallPlan", "SequenceMemorizePlan", "SeparationPlan",
     "OperationContract", "OPERATION_CONTRACTS",
     # Consolidation & context
     "PathwayReplay", "MergeReplay", "MultiProjectReplay",
