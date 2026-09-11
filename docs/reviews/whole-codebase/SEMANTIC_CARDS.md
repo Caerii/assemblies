@@ -1043,3 +1043,16 @@ labels cannot disguise duplicate model cells. Record requested and actual sparsi
 resolved assembly sizes, full schedules and explicit seed identities. Defaults
 preserve the corrected historical grid; n<100 is valid when H3 k and all grid sizes
 are explicitly made compatible. Raw observations remain learning-on persistence.
+
+
+<a id="experiment-numeric-resolution"></a>
+### Experiment numeric resolution (2026-09-10)
+
+Real-valued experiment grids resolve to binary64 before trials. Ordinary rounding
+is part of that numeric model; overflow, nonfinite values and nonzero-to-zero
+underflow must raise configuration errors. Preserve representable subnormals and
+explicit zero. Check uniqueness after conversion, so collapsed grid values cannot
+masquerade as separate conditions. A resolved config and its recorded parameters
+must contain the same normalized scalar values; validation that discards the
+converted value is insufficient. This concerns input representation, not numerical
+error guarantees for the backend's subsequent arithmetic.

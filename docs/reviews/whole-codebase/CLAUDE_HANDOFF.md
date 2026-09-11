@@ -1396,3 +1396,12 @@ UNADOPTED. See VALIDATION.md#configurable-phase-grid-migration-2026-09-10.
 The phase smoke now has a validated archive and exact direct/runner equivalence
 for six cells, with both sampled crossings explicitly absent. Scientific status
 remains VOID. The old aggregate grid is still not silently translated.
+
+
+## Numeric configuration conversion (2026-09-10)
+
+Fixed a nonzero rational silently resolving to zero in the new grid resolver.
+Overflow and underflow now raise configuration errors; valid subnormals survive.
+Phase configs and result parameters retain the actual normalized scalar values.
+156 historical-study checks pass and the archived phase smoke remains exact.
+See VALIDATION.md#numeric-grid-conversion-and-recorded-values-2026-09-10.

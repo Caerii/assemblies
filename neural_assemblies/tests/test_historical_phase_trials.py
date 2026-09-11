@@ -121,3 +121,45 @@ def test_phase_cli_requires_tag_and_records_smoke(monkeypatch, capsys):
     assert calls[0]["smoke"] is True
     assert calls[0]["seeds"] == [9,2,7]
     assert calls[0]["parameters"] == adapter.parameters(True)
+
+
+@pytest.mark.parametrize("sign", [-1, 1])
+def test_nonzero_grid_values_cannot_silently_become_zero(sign):
+    from fractions import Fraction
+    from research.experiment_config import resolve_real_grid
+    with pytest.raises(ValueError, match="nonzero value to zero"):
+        resolve_real_grid([Fraction(sign, 10**400)], name="plasticity")
+
+
+def test_grid_overflow_is_a_configuration_error():
+    from research.experiment_config import resolve_real_grid
+    with pytest.raises(ValueError, match="finite float"):
+        resolve_real_grid([10**400], name="plasticity")
+
+
+def test_grid_preserves_zero_subnormal_and_resolved_uniqueness():
+    from research.experiment_config import resolve_real_grid
+    import math
+    from fractions import Fraction
+    subnormal = math.nextafter(0., 1.)
+    assert resolve_real_grid([0., subnormal, Fraction(1, 3)], name="plasticity") == [0., subnormal, 1/3]
+    with pytest.raises(ValueError, match="unique"):
+        resolve_real_grid([2**53, 2**53+1], name="grid")
+
+
+def test_phase_parameters_record_the_values_actually_consumed(monkeypatch, tmp_path):
+    from fractions import Fraction
+    from research.json_documents import encode_document
+    calls = []
+    def trial(cfg, seed):
+        calls.append(cfg)
+        assert type(cfg.p) is float and type(cfg.beta) is float and type(cfg.w_max) is float
+        return .5
+    monkeypatch.setattr(study, "run_phase_trial", trial)
+    result = study.PhaseDiagramExperiment(results_dir=tmp_path, verbose=False).run(
+        n=60, seed_ids=[1,2,3], sparsities=[.1], betas=[Fraction(1,3)],
+        p_values=[.2], p=Fraction(1,5), p_effect_k=6, p_effect_beta=Fraction(1,4), w_max=20)
+    assert result.parameters["base_p"] == calls[0].p == .2
+    assert result.parameters["p_effect_beta"] == calls[-1].beta == .25
+    assert type(result.parameters["base_wmax"]) is float
+    encode_document(result.to_dict())

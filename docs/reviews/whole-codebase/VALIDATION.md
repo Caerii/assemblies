@@ -2548,3 +2548,25 @@ No backend code changed and no older artifacts were rewritten.
 Source-link, two-ratchet and aggregate controls passed 34 tests in 47.85s.
 Ruff and diff checks pass. No new GPU or whole-package run is claimed for the
 phase adapter; the six original numerical replay fixtures remain exact.
+
+
+## Numeric grid conversion and recorded values (2026-09-10)
+
+Live probe before edits: Fraction(1,10**400) resolved to [0.0]; 10**400 raised an
+unclassified OverflowError. Grid resolution now rejects nonzero-to-zero conversion
+of either sign and reports overflow as ValueError. Ordinary binary64 rounding is
+explicitly allowed, representable subnormals are retained, and uniqueness is checked
+after conversion. This guards input conversion only, not every backend arithmetic
+operation. PhaseConfig now stores normalized values rather than discarding the
+resolver output; outer result parameters normalize the same p/clip/H3-beta values.
+
+Controls include signed underflow, overflow, explicit zero, smallest positive
+binary64 subnormal, rational rounding, post-conversion collisions, and a producer
+spy verifying recorded scalars equal consumed config values. All four historical
+study suites passed 156 tests in 4.62s, including numerical trajectory replays.
+Direct phase execution still matches its archived metrics/raw_data/parameters/
+success exactly. Ruff passes. No engine code or archived artifact changed.
+
+Specification links and both ratchets passed 19 tests in 42.38s. Diff checks
+pass. No new whole-package or GPU run is claimed for these input-validation
+changes; historical default measurements remain unchanged.

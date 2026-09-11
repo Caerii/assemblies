@@ -73,12 +73,13 @@ class PhaseConfig:
     initial_stimulus_rounds: int = 1
 
     def __post_init__(self):
-        validate_area_registration("A", self.n, self.k)
-        for count in (self.train_rounds, self.test_rounds, self.initial_stimulus_rounds):
-            validate_round_count(count)
-        resolve_real_grid([self.p], name="connection probability", maximum=1.)
-        resolve_real_grid([self.beta], name="plasticity")
-        resolve_real_grid([self.w_max], name="weight clip")
+        self.n, self.k = validate_area_registration("A", self.n, self.k)
+        self.train_rounds = validate_round_count(self.train_rounds)
+        self.test_rounds = validate_round_count(self.test_rounds)
+        self.initial_stimulus_rounds = validate_round_count(self.initial_stimulus_rounds)
+        self.p = resolve_real_grid([self.p], name="connection probability", maximum=1.)[0]
+        self.beta = resolve_real_grid([self.beta], name="plasticity")[0]
+        self.w_max = resolve_real_grid([self.w_max], name="weight clip")[0]
 
 
 # -- Core trial runner ---------------------------------------------------------
@@ -162,6 +163,9 @@ class PhaseDiagramExperiment(ExperimentBase):
         seeds = resolve_seed_ids(n_seeds, seed_ids, base_seed=self.seed, default_count=N_SEEDS)
         n_seeds = len(seeds)
         n, p_effect_k = validate_area_registration("H3", n, p_effect_k)
+        p = resolve_real_grid([p], name="connection probability", maximum=1.)[0]
+        p_effect_beta = resolve_real_grid([p_effect_beta], name="H3 plasticity")[0]
+        w_max = resolve_real_grid([w_max], name="weight clip")[0]
         sparsities = resolve_real_grid(sparsities, name="sparsities", maximum=1.)
         betas = resolve_real_grid(betas, name="betas")
         p_values = resolve_real_grid(p_values, name="connection probabilities", maximum=1.)

@@ -18,12 +18,21 @@ def resolve_seed_ids(n_seeds=None, seed_ids=None, *, base_seed=42, default_count
 
 
 def resolve_real_grid(values, *, name, minimum=0., maximum=None):
-    """Resolve a finite, ordered, unique numeric grid before constructing trials."""
+    """Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#experiment-numeric-resolution
+
+    Resolve an ordered binary64 grid without hiding overflow or nonzero-to-zero loss.
+    """
     resolved = []
     for value in values:
         if isinstance(value, bool) or not isinstance(value, Real):
             raise ValueError(f"{name} requires real numeric values")
-        value = float(value)
+        original = value
+        try:
+            value = float(value)
+        except (OverflowError, ValueError) as error:
+            raise ValueError(f"{name} cannot represent a value as a finite float") from error
+        if original != 0 and value == 0:
+            raise ValueError(f"{name} cannot round a nonzero value to zero")
         if not math.isfinite(value) or value < minimum or (maximum is not None and value > maximum):
             raise ValueError(f"{name} contains a value outside its finite domain")
         resolved.append(value)
