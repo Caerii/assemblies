@@ -4671,3 +4671,7 @@ Added frozen `OrderedRecallPlan` to the operation-contract layer and routed `ord
 ## Shared traced projection contract (2026-09-11)
 
 `project_trace` now consumes the frozen `ProjectionPlan` schedule and validates both topology names before the first projection. Traced projection and executable projection share the same stimulus/recurrence schedule; the trace contract suite passes **18 tests**.
+
+## Shared traced reciprocal contract (2026-09-11)
+
+`reciprocal_project_trace` now consumes `ReciprocalProjectionPlan`, sharing topology, source-activity, clamping, and recurrence semantics with executable reciprocal projection. Invalid topology fails before any clamp mutation. Trace regressions pass **18 tests**.

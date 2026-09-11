@@ -2589,3 +2589,5 @@ Temporary sequence beta boosts are now exception-safe: recurrent projection fail
 `ordered_recall_trace` now shares `OrderedRecallPlan` with the executable recall path, including its novelty threshold and topology preflight. Traced and untraced sequence semantics are unified; focused trace and sequence tests pass (36 tests).
 
 `project_trace` now uses `ProjectionPlan` for its schedule and topology preflight, eliminating drift between traced and executable projection. Focused trace tests pass (18 tests).
+
+`reciprocal_project_trace` now uses `ReciprocalProjectionPlan` for schedule and preflight, unifying traced and executable reciprocal projection. Focused reciprocal-trace tests pass (18 tests).

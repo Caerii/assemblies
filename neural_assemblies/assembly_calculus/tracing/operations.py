@@ -7,6 +7,7 @@ from collections.abc import Sequence
 from neural_assemblies.assembly_calculus.assembly import Assembly, chance_overlap, overlap
 from neural_assemblies.assembly_calculus.contracts import (
     CompletionPlan, OrderedRecallPlan, ProjectionPlan,
+    ReciprocalProjectionPlan,
 )
 from neural_assemblies.assembly_calculus.ops import _snap
 
@@ -55,8 +56,12 @@ def reciprocal_project_trace(
     fix_source: bool = True,
 ) -> AssemblyTrace:
     """Project an existing source-area assembly into a target and trace it."""
-    if rounds <= 0:
-        raise ValueError("rounds must be positive")
+    plan = ReciprocalProjectionPlan(source, target, rounds, fix_source)
+    plan.preflight(brain)
+    source = plan.source
+    target = plan.target
+    rounds = plan.rounds
+    fix_source = plan.fix_source
 
     source_was_fixed = brain.areas[source].fixed_assembly
     if fix_source and not source_was_fixed:
@@ -65,13 +70,10 @@ def reciprocal_project_trace(
     steps: list[TraceStep] = []
     previous: Assembly | None = None
     try:
-        for round_index in range(1, rounds + 1):
-            if round_index == 1:
-                brain.project({}, {source: [target]})
-                drive = f"{source}"
-            else:
-                brain.project({}, {source: [target], target: [target]})
-                drive = f"{source} + {target} recurrence"
+        for round_index, step in enumerate(plan.steps, start=1):
+            brain.project(step.stimuli_dict(), step.fibers_dict())
+            drive = (f"{source}" if round_index == 1
+                     else f"{source} + {target} recurrence")
             previous = _append_step(
                 steps,
                 brain=brain,
