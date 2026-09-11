@@ -36,7 +36,7 @@ from collections import defaultdict
 
 from .backend import get_xp, to_cpu, detect_best_engine
 from .engine import ComputeEngine, create_engine
-from .registration import validate_round_count, validate_input_noise, validate_area_registration, validate_stimulus_registration
+from .registration import validate_round_count, validate_input_noise, validate_plasticity_rate, validate_area_registration, validate_stimulus_registration
 from ._homeostasis import HomeostasisConfig, check_area_homeostasis, validate_lri_parameters
 from .index_spaces import CompactIdx, to_neuron_ids, validated_indices
 
@@ -1448,14 +1448,23 @@ class Brain:
             area.beta_by_stimulus[stimulus.name] = area.beta
             
     def update_plasticity(self, from_area: str, to_area: str, new_beta: float):
-        """
-        Updates the synaptic plasticity parameter between two areas.
+        """Update one area's directed incoming-fiber plasticity rate.
+
+        Specification: neural_assemblies/ir/VERIFICATION.md#contract-plasticity-rate
 
         Args:
             from_area (str): Name of the area that the synapses come from.
             to_area (str): Name of the area that the synapses project to.
             new_beta (float): The new synaptic plasticity parameter.
         """
+        if from_area not in self.areas:
+            raise KeyError(f"unknown plasticity source area {from_area!r}")
+        if to_area not in self.areas:
+            raise KeyError(f"unknown plasticity target area {to_area!r}")
+        new_beta = validate_plasticity_rate(new_beta)
+        # Validation above is deliberately complete before either authority is
+        # touched. The descriptor supports the legacy dense computation path;
+        # every current engine reads its own beta store.
         self.areas[to_area].beta_by_area[from_area] = new_beta
         self._engine.set_beta(to_area, from_area, new_beta)
         if self._explicit_engine is not None and self.areas[to_area].explicit:
@@ -1490,8 +1499,8 @@ class Brain:
 
     def update_plasticities(
         self,
-        area_update_map: Dict[str, List[Tuple[str, float]]] = {},
-        stim_update_map: Dict[str, List[Tuple[str, float]]] = {},
+        area_update_map: Dict[str, List[Tuple[str, float]]] | None = None,
+        stim_update_map: Dict[str, List[Tuple[str, float]]] | None = None,
     ):
         """
         Updates the synaptic plasticity parameter between multiple areas and stimuli.
@@ -1505,12 +1514,30 @@ class Brain:
                 A dictionary where the keys are the names of areas.
                 The values are lists of tuples, where each tuple contains the name of a stimulus and the new synaptic plasticity parameter.
         """
+        area_update_map = area_update_map or {}
+        stim_update_map = stim_update_map or {}
+        # Resolve the whole request before applying its first update. A bad late
+        # entry must not leave an apparently successful partial schedule.
+        area_updates = []
         for to_area, update_rules in area_update_map.items():
             for from_area, new_beta in update_rules:
-                self.update_plasticity(from_area, to_area, new_beta)
+                if from_area not in self.areas:
+                    raise KeyError(f"unknown plasticity source area {from_area!r}")
+                if to_area not in self.areas:
+                    raise KeyError(f"unknown plasticity target area {to_area!r}")
+                area_updates.append((from_area, to_area, validate_plasticity_rate(new_beta)))
+        stim_updates = []
         for area_name, update_rules in stim_update_map.items():
-            area = self.areas[area_name]
+            if area_name not in self.areas:
+                raise KeyError(f"unknown plasticity target area {area_name!r}")
             for stim_name, new_beta in update_rules:
+                if stim_name not in self.stimuli:
+                    raise KeyError(f"unknown plasticity source stimulus {stim_name!r}")
+                stim_updates.append((stim_name, area_name, validate_plasticity_rate(new_beta)))
+        for from_area, to_area, new_beta in area_updates:
+            self.update_plasticity(from_area, to_area, new_beta)
+        for stim_name, area_name, new_beta in stim_updates:
+                area = self.areas[area_name]
                 area.beta_by_stimulus[stim_name] = new_beta
                 self._engine.set_beta(area_name, stim_name, new_beta)
                 if self._explicit_engine is not None and area.explicit:

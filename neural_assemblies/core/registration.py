@@ -58,6 +58,24 @@ def validate_input_noise(std) -> float:
     return value
 
 
+def validate_plasticity_rate(beta) -> float:
+    """Specification: neural_assemblies/ir/VERIFICATION.md#contract-plasticity-rate
+
+    Plasticity is a nonnegative multiplicative gain. Canonicalize it before a
+    public descriptor or backend store is mutated, so an invalid override cannot
+    leave the two authorities disagreeing.
+    """
+    if isinstance(beta, bool) or not isinstance(beta, Real):
+        raise ValueError("plasticity beta must be a finite nonnegative real number")
+    try:
+        value = float(beta)
+    except OverflowError as exc:
+        raise ValueError("plasticity beta must fit a finite float") from exc
+    if not math.isfinite(value) or value < 0:
+        raise ValueError("plasticity beta must be a finite nonnegative real number")
+    return value
+
+
 def validate_round_count(rounds) -> int:
     """Specification: neural_assemblies/ir/VERIFICATION.md#contract-observation-rounds"""
     if isinstance(rounds, bool) or not isinstance(rounds, Integral) or rounds < 1:

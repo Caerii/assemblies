@@ -99,3 +99,41 @@ def test_writing_the_bookkeeping_dict_alone_still_does_nothing():
         "writing beta_by_area alone changed the sparse dynamics -- if that is "
         "now a real route, the docstring on Area.update_beta_by_area is wrong"
     )
+
+
+@pytest.mark.parametrize("beta", [True, -0.01, float("nan"), float("inf"), -float("inf")])
+def test_invalid_rate_fails_before_either_beta_store_changes(beta):
+    b = _brain()
+    public_before = dict(b.areas["A"].beta_by_area)
+    engine_before = dict(b._engine._areas["A"].beta_by_source)
+
+    with pytest.raises(ValueError, match="finite nonnegative"):
+        b.update_plasticity("A", "A", beta)
+
+    assert b.areas["A"].beta_by_area == public_before
+    assert b._engine._areas["A"].beta_by_source == engine_before
+
+
+@pytest.mark.parametrize("source,target", [("missing", "A"), ("A", "missing")])
+def test_unknown_fiber_fails_before_either_beta_store_changes(source, target):
+    b = _brain()
+    public_before = dict(b.areas["A"].beta_by_area)
+    engine_before = dict(b._engine._areas["A"].beta_by_source)
+
+    with pytest.raises(KeyError, match="unknown plasticity"):
+        b.update_plasticity(source, target, 0.2)
+
+    assert b.areas["A"].beta_by_area == public_before
+    assert b._engine._areas["A"].beta_by_source == engine_before
+
+
+def test_bulk_update_is_atomic_when_a_late_entry_is_invalid():
+    b = _brain()
+    public_before = dict(b.areas["A"].beta_by_area)
+    engine_before = dict(b._engine._areas["A"].beta_by_source)
+
+    with pytest.raises(ValueError, match="finite nonnegative"):
+        b.update_plasticities({"A": [("A", 0.2), ("A", float("nan"))]})
+
+    assert b.areas["A"].beta_by_area == public_before
+    assert b._engine._areas["A"].beta_by_source == engine_before

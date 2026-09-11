@@ -20,6 +20,7 @@ them.
 | memory | `historical_scaling.py` | learning-on persistence and censored convergence times; no asymptotic classification | `python -m research.runner historical-scaling --smoke --seeds 1 2 3 --tag UNIQUE` |
 | memory | `historical_projection.py` | corrected historical learning-on projection study; smoke VOID, full UNADOPTED | `python -m research.runner historical-projection --smoke --seeds 1 2 3 --tag UNIQUE` |
 | memory | `historical_noise.py` | preserved learning-on-recovery protocol; smoke is VOID, full output UNADOPTED | `python -m research.runner historical-noise --smoke --seeds 1 2 3 --tag UNIQUE` |
+| memory | `per_fiber_plasticity.py` | causal unclipped check that the public beta route controls the named materialized fiber; equal-rate null and label swap | `python -m research.runner per-fiber-plasticity --tag UNIQUE` |
 | memory | `refraction_memory_numpy.py` | the same protocol on the numpy engine, 5 brains | ~10 min |
 | sequence | `seq_a1_horizon_hashed.py` | the mod-3 machine's horizon at width, paired to the numpy seeds | `python -m research.runner a1-horizon --tag UNIQUE` (20 seeds by default) |
 | sequence | `seq_a1_learning_null.py` | preregistered paired sensitivity control, beta/strength disabled | `python -m research.runner a1-learning-null --tag UNIQUE` |

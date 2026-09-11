@@ -239,6 +239,7 @@ EXPERIMENTS = {'historical-merge': 'research.experiments.historical_merge',
                'a1-learning-null': 'research.experiments.seq_a1_learning_null',
                'a1-horizon': 'research.experiments.seq_a1_horizon_hashed',
                'temporal-positions': 'research.experiments.seq_temporal_positions',
+               'per-fiber-plasticity': 'research.experiments.per_fiber_plasticity',
                'capacity-scaling': 'research.experiments.seq_capacity_scaling'}
 
 

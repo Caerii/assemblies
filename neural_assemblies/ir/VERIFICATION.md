@@ -509,6 +509,23 @@ operation is not yet an executable IR instruction or a Lean-proved lowering.
 The [formal frame contract](#contract-learning-frame) specifies protected learned
 values and permitted updates; concrete backend refinement remains unproved.
 
+<a id="contract-plasticity-rate"></a>
+
+### Plasticity-rate update boundary
+
+The public per-fiber rate route accepts an existing area source, an existing area
+target and a finite nonnegative real beta. It canonicalizes beta to a Python float
+and validates the complete request before changing either the public area record or
+the executing engine's store. Boolean, negative, NaN and infinite rates fail, as do
+unknown endpoints. Bulk area/stimulus updates preflight every entry before applying
+the first one, so a bad late entry cannot leave a partial schedule.
+
+This contract establishes configuration routing and failure atomicity. It does not
+establish that a configured rate changes a particular observable, that backends use
+identical arithmetic, or that clipping leaves a rate comparison interpretable. The
+registered per-fiber plasticity experiment tests the first question on a copied,
+materialized fiber with an equal-rate null and an unclipped bar.
+
 A Brain fiber mask disables learning on one directed area or stimulus fiber;
 it does not remove that fiber's drive. Dense projection now implements this
 control at the learning loops through `fiber_learning_allowed`. Brain scopes
