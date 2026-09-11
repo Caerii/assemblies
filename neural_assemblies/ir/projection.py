@@ -8,6 +8,13 @@ import math
 
 import numpy as np
 
+from .protocol import validate_schema_document
+
+
+def validate_explicit_round_document(document):
+    """Validate the complete, backend-independent wire representation."""
+    return validate_schema_document(document, "explicit-round.schema.json")
+
 
 @dataclass(frozen=True)
 class ExplicitRound:
@@ -42,16 +49,19 @@ class ExplicitRound:
         object.__setattr__(self, "external_drive", drive)
 
     def to_document(self):
-        return {"profile": "explicit-area-round-v1", "target": self.target,
-                "from_areas": list(self.from_areas), "plasticity": self.plasticity,
-                "external_drive": list(self.external_drive)}
+        document = {"profile": "explicit-area-round-v1", "target": self.target,
+                    "from_areas": list(self.from_areas), "plasticity": self.plasticity,
+                    "external_drive": list(self.external_drive)}
+        errors = validate_explicit_round_document(document)
+        if errors:
+            raise ValueError(f"invalid explicit round: {errors}")
+        return document
 
     @classmethod
     def from_document(cls, document):
-        expected = {"profile", "target", "from_areas", "plasticity", "external_drive"}
-        if (type(document) is not dict or set(document) != expected
-                or document["profile"] != "explicit-area-round-v1"):
-            raise ValueError("expected a complete explicit-area-round-v1 instruction")
+        errors = validate_explicit_round_document(document)
+        if errors:
+            raise ValueError(f"invalid explicit round: {errors}")
         return cls(**{key: value for key, value in document.items() if key != "profile"})
 
     def validate(self, engine):

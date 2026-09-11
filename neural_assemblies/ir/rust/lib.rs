@@ -8,6 +8,7 @@ use std::sync::LazyLock;
 
 pub mod competition;
 pub mod homeostasis;
+pub mod projection;
 
 pub const IR_VERSION: &str = "1";
 fn schema_validator(source: &str) -> jsonschema::Validator {

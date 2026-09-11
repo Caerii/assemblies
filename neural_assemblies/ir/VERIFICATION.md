@@ -4,8 +4,9 @@
 
 ## Status and ownership
 
-The current v1 JSON schemas describe brain/projection payloads and parity
-reports. Python and Rust now validate protocol documents against the same packaged schema.
+The current v1 JSON schemas describe legacy brain/projection payloads, parity
+reports and the restricted executable round. Python and Rust validate protocol
+and explicit-round documents against the same packaged schemas and case corpora.
 The legacy brain and projection schemas do not have equivalent executable
 consumers. The separate `explicit-area-round-v1` profile below now lowers one
 restricted instruction into the dense CPU engine; it is not a complete cross compiler.
@@ -317,10 +318,12 @@ remain distinct from exclusive scientific evidence artifacts and IR wire data.
 ## First executable projection profile
 
 `projection.ExplicitRound` owns the normalized `explicit-area-round-v1`
-instruction. Its strict document decoder requires every field, rejects extra
-fields and other profiles, and copies source and drive sequences into immutable
-tuples. This is separate from the permissive historical v1 projection payload;
-that payload cannot silently become an executable program.
+instruction. `explicit-round.schema.json` is its authoritative wire shape. The
+strict decoder requires every field, rejects extra fields and other profiles,
+and copies source and drive sequences into immutable tuples. Python and Rust run
+the same positive and negative case corpus. This is separate from the permissive
+historical v1 projection payload; that payload cannot silently become an
+executable program.
 
 | Component | Meaning in this profile |
 | --- | --- |
@@ -360,7 +363,7 @@ This is the first execution lowering, not a formal translation certificate.
 formalize the numerical profile and its state/readout relation, then prove the
 local `Simulates` obligation and identity of the normalized input consumed by
 the proof. No generated Lean schedule or proof of Python/NumPy arithmetic is
-claimed here. Rust currently consumes the protocol wire schema only.
+claimed here. Rust validates the explicit-round transport but does not execute it.
 
 
 <a id="contract-explicit-inputs"></a>

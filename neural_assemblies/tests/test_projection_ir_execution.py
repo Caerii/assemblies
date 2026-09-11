@@ -1,11 +1,33 @@
 """Hand-computed outcomes and constructed failures for executable projection IR."""
 import copy
+import json
 
 import numpy as np
 import pytest
 
 from neural_assemblies.core.numpy_engine import NumpyExplicitEngine
-from neural_assemblies.ir.projection import ExplicitRound
+from neural_assemblies.ir import ExplicitRound, validate_explicit_round_document
+from neural_assemblies.ir.protocol import schema_path
+
+
+EXPLICIT_ROUND_CASES = json.loads(
+    schema_path("explicit-round.cases.json").read_text(encoding="utf-8")
+)
+
+
+@pytest.mark.parametrize("case", EXPLICIT_ROUND_CASES, ids=lambda case: case["name"])
+def test_shared_explicit_round_wire(case):
+    if "raw_json" in case:
+        with pytest.raises(ValueError):
+            ExplicitRound.from_document(json.loads(case["raw_json"]))
+        return
+    document = case["document"]
+    assert (not validate_explicit_round_document(document)) == case["valid"]
+    if case["valid"]:
+        assert ExplicitRound.from_document(document).to_document() == document
+    else:
+        with pytest.raises(ValueError):
+            ExplicitRound.from_document(document)
 
 
 @pytest.fixture

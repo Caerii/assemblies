@@ -1,0 +1,62 @@
+[
+  {
+    "name": "area-source",
+    "valid": true,
+    "document": {"profile": "explicit-area-round-v1", "target": "T", "from_areas": ["S"], "plasticity": true, "external_drive": []}
+  },
+  {
+    "name": "drive-only",
+    "valid": true,
+    "document": {"profile": "explicit-area-round-v1", "target": "T", "from_areas": [], "plasticity": false, "external_drive": [0, -1.5, 2]}
+  },
+  {
+    "name": "large-finite-drive-is-wire-valid",
+    "valid": true,
+    "document": {"profile": "explicit-area-round-v1", "target": "T", "from_areas": [], "plasticity": false, "external_drive": [1e100]}
+  },
+  {
+    "name": "wrong-profile",
+    "valid": false,
+    "document": {"profile": "explicit-area-round-v2", "target": "T", "from_areas": ["S"], "plasticity": true, "external_drive": []}
+  },
+  {
+    "name": "missing-field",
+    "valid": false,
+    "document": {"profile": "explicit-area-round-v1", "target": "T", "from_areas": ["S"], "plasticity": true}
+  },
+  {
+    "name": "unknown-field",
+    "valid": false,
+    "document": {"profile": "explicit-area-round-v1", "target": "T", "from_areas": ["S"], "plasticity": true, "external_drive": [], "engine": "numpy"}
+  },
+  {
+    "name": "duplicate-source",
+    "valid": false,
+    "document": {"profile": "explicit-area-round-v1", "target": "T", "from_areas": ["S", "S"], "plasticity": true, "external_drive": []}
+  },
+  {
+    "name": "blank-name",
+    "valid": false,
+    "document": {"profile": "explicit-area-round-v1", "target": "", "from_areas": ["S"], "plasticity": true, "external_drive": []}
+  },
+  {
+    "name": "implicit-learning",
+    "valid": false,
+    "document": {"profile": "explicit-area-round-v1", "target": "T", "from_areas": ["S"], "plasticity": 1, "external_drive": []}
+  },
+  {
+    "name": "boolean-drive",
+    "valid": false,
+    "document": {"profile": "explicit-area-round-v1", "target": "T", "from_areas": [], "plasticity": false, "external_drive": [true]}
+  },
+  {
+    "name": "no-input",
+    "valid": false,
+    "document": {"profile": "explicit-area-round-v1", "target": "T", "from_areas": [], "plasticity": false, "external_drive": []}
+  },
+  {
+    "name": "nonfinite-json",
+    "valid": false,
+    "raw_json": "{\"profile\":\"explicit-area-round-v1\",\"target\":\"T\",\"from_areas\":[],\"plasticity\":false,\"external_drive\":[NaN]}"
+  }
+]

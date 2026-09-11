@@ -1678,3 +1678,16 @@ with a constructed negative. Focused verification is 6 passed and 1 strict
 expected failure in 23.26 seconds; Ruff and diff checks pass. This corrects the
 previous broader wording: there were no non-strict *pytest* xfails, but one
 non-strict unittest expected failure remained until this checkpoint.
+
+## Shared executable-round transport (2026-09-11)
+
+`explicit-area-round-v1` now has its own strict packaged schema and 12-case
+acceptance corpus. `ExplicitRound.from_document` uses that schema; Python and
+Rust consume the same cases, and the public Python IR package exports the
+instruction and validator. This does not reinterpret the permissive legacy
+`projection.schema.json`. Backend/state checks remain a separate preflight.
+
+The Python execution, Brain lowering, wire and specification gate is 123 passed.
+The assembly-ir crate is 4 passed, with rustfmt and Clippy clean under denied
+warnings. An isolated wheel contains the schema and corpus. Rust transport still
+has no numerical executor, and no Lean-to-NumPy simulation proof is claimed.

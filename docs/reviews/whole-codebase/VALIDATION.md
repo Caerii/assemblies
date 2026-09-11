@@ -3148,3 +3148,29 @@ It does not run the slow selection, adopt a scientific result, or prove that
 Python, Rust, Lean and CUDA share semantics. The 318 warnings also show that many
 API tests intentionally exercise sampled recurrence; those numbers remain void
 as sequence evidence even though their software assertions pass.
+
+## Shared explicit-round wire contract (2026-09-11)
+
+The executable `explicit-area-round-v1` profile previously had a strict Python
+decoder but no schema or cross-language case corpus; the similarly named
+`projection.schema.json` is an intentionally non-executable legacy payload. A
+new `explicit-round.schema.json` now owns the complete wire shape: required and
+unknown fields, profile identity, nonempty names, unique sources, explicit
+plasticity, finite JSON-number transport, and the requirement for at least one
+source or drive value. Backend-dependent dimensions, float32 representability,
+registered fibers and mutable state remain in `ExplicitRound.validate`.
+
+`ExplicitRound.from_document` now uses the packaged schema instead of a second
+handwritten field set, and the class plus validator are public from
+`neural_assemblies.ir`. Rust adds a lossless validation wrapper over the same
+schema. Both languages consume 12 shared positive/negative cases, including
+drive-only input, duplicate sources, implicit learning, no input and nonfinite
+JSON. Python's execution/Brain/wire/specification gate reports 123 passed in
+4.97 seconds. Rust reports 4 tests passed; rustfmt and Clippy with warnings denied
+pass. An isolated wheel build includes both new JSON files. The installed
+environment's `build` package is incomplete, so the successful package check used
+an ephemeral `uvx --from build pyproject-build`; repository dependencies did not
+change.
+
+This closes transport drift for one restricted instruction. Rust does not yet
+execute it, and Lean does not yet prove its lowering or NumPy's arithmetic.

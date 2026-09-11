@@ -15,6 +15,7 @@ neural_assemblies/ir/
   rust/lib.rs              validated, lossless Rust protocol wrapper
   rust/homeostasis.rs      validated homeostasis configuration transport
   rust/competition.rs      validated competition policy transport
+  rust/projection.rs       validated explicit-round transport
   v1/
     protocol.schema.json   canonical protocol contract for both languages
     protocol.cases.json    shared acceptance and round-trip corpus
@@ -22,8 +23,10 @@ neural_assemblies/ir/
     competition.cases.json shared Python/Rust acceptance corpus
     homeostasis.schema.json strict runtime configuration contract
     homeostasis.cases.json shared configuration acceptance corpus
+    explicit-round.schema.json executable round wire contract
+    explicit-round.cases.json shared Python/Rust acceptance corpus
     brain.schema.json      brain payload description
-    projection.schema.json projection payload description
+    projection.schema.json legacy projection payload description
 ```
 
 Python validates the packaged schema with `jsonschema`. Rust embeds that same
@@ -60,10 +63,13 @@ Midspiral/Dafny and LemmaScript integration, negative controls, and remaining
 translation obligations. Check the kernel with `lake build` from `formal/`.
 
 
-For the first executable profile, use a standalone `NumpyExplicitEngine` and
+For the first executable profile, import `ExplicitRound` from
+`neural_assemblies.ir`, then use a standalone `NumpyExplicitEngine` and
 `ExplicitRound(target="T", from_areas=("S",), plasticity=False).execute(engine)`.
 All named areas and their initial state must already exist. Decode persisted
-instructions with `ExplicitRound.from_document`; unknown features are errors.
+instructions with `ExplicitRound.from_document`; Python and Rust validate the
+same `explicit-round.schema.json` and case corpus before construction. Rust
+transport validation is not a Rust execution backend. Unknown features are errors.
 See the [profile contract](VERIFICATION.md#contract-explicit-round) for numerical
 semantics, constructed controls, and the remaining Lean/backend bridge.
 
