@@ -293,7 +293,7 @@ class IncrementalMixin:
                 area.neuron_id_pool_ptr = 0
         if self.brain.is_fixed(CONTEXT):
             self.brain.unfix_assembly(CONTEXT)
-        engine = self.brain._engine
+        engine = self.brain._engine_for(self.brain.areas[CONTEXT])
         if hasattr(engine, "_areas") and CONTEXT in engine._areas:
             st = engine._areas[CONTEXT]
             if not preserve_mapping:
@@ -828,13 +828,13 @@ class IncrementalMixin:
 
     def _restore_outer_state(self, state: dict) -> None:
         """Restore winner assemblies saved by ``_save_outer_state``."""
-        engine = self.brain._engine
         for area_name, winners in state.items():
             if area_name not in self.brain.areas:
                 continue
             if winners:
                 import numpy as np
                 arr = np.asarray(winners, dtype=np.uint32)
+                engine = self.brain._engine_for(self.brain.areas[area_name])
                 engine.set_winners(area_name, arr)
                 self.brain.areas[area_name].winners = arr
             else:

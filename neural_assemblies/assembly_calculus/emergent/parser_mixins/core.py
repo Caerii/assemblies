@@ -372,13 +372,13 @@ class CoreParserMixin(
         if gain == 1.0:
             yield
             return
-        eng = self.brain._engine
+        eng = self.brain._engine_for(self.brain.areas[target])
         base = eng.get_beta(target, source)
-        eng.set_beta(target, source, base * gain)
+        self.brain.update_plasticity(source, target, base * gain)
         try:
             yield
         finally:
-            eng.set_beta(target, source, base)
+            self.brain.update_plasticity(source, target, base)
 
     @property
     def role_bind_gain(self) -> float:
@@ -407,15 +407,15 @@ class CoreParserMixin(
         gain = float(gain)
         if gain == self._role_bind_gain:
             return
-        eng = self.brain._engine
         for core in sorted(set(GROUNDING_TO_CORE.values())):
             for role in THEMATIC_AREAS:
                 key = (role, core)
+                eng = self.brain._engine_for(self.brain.areas[role])
                 base = self._role_fiber_base_beta.get(key)
                 if base is None:
                     base = eng.get_beta(role, core)
                     self._role_fiber_base_beta[key] = base
-                eng.set_beta(role, core, base * gain)
+                self.brain.update_plasticity(core, role, base * gain)
         self._role_bind_gain = gain
 
     def set_base_beta(self, beta: float) -> None:
@@ -448,11 +448,10 @@ class CoreParserMixin(
                 brain.update_plasticity(src, area_name, beta)
         # Re-apply overlays on the new base: the stage changed the price
         # level, not the policy.
-        eng = brain._engine
         for core in sorted(set(GROUNDING_TO_CORE.values())):
             for role in THEMATIC_AREAS:
                 self._role_fiber_base_beta[(role, core)] = beta
-                eng.set_beta(role, core, beta * self._role_bind_gain)
+                brain.update_plasticity(core, role, beta * self._role_bind_gain)
 
     # ==================================================================
     # Setup

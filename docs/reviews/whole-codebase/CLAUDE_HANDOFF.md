@@ -2473,6 +2473,10 @@ The indirect alias pass found four compiled-topology controls still binding the
 primary engine before mutating area state. They now resolve each area's owner;
 the compiled bridge plus specification-link gate passes 11 tests.
 
+The deeper parser pass found transient fiber gains, role overlays, CONTEXT reset,
+and outer-state restore still writing via the primary engine. Those paths now
+use the target owner; 59 parser/plasticity and compiled-training tests pass.
+
 The owner negative test found a second issue: explicit areas could receive the
 same beta/connectivity write twice because the explicit mirror was also the
 resolved owner. Identity-guarded mirroring now enforces one write per owner;

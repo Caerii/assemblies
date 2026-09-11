@@ -4254,3 +4254,11 @@ An indirect alias audit then found four compiled-topology controls that bound
 ring-mode, and CONTEXT-active checks now resolve the owner for each named area.
 
 Validation: 11 compiled-bridge and specification-link tests passed.
+
+The parser alias pass also removed primary-engine writes from transient fiber
+gains, role-binding overlays, CONTEXT reset, and outer-state restoration. Each
+operation now resolves the target area's owner, so mixed-engine parser state
+cannot drift while applying a temporary policy.
+
+Validation: 59 parser/plasticity and compiled-training tests passed; existing
+sampled-recurrence warnings are unchanged.
