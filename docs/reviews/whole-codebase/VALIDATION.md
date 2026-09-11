@@ -4859,3 +4859,17 @@ clean.
 This removes duplicated schedule validation and gives both convergence paths one
 inspectable configuration object. Learning and pattern-contract tests pass **20**;
 Ruff is clean.
+
+## Consolidation pair contract (2026-09-11)
+
+`consolidate_pair` now uses frozen `ConsolidationPlan` and is registered as
+`CONSOLIDATION_CONTRACT`. The plan validates area ownership, replay directions,
+and mutation schedule before sleep replay. A source-linked semantic card and
+public exports make the composite operation inspectable. Focused validation is
+next to be expanded with a dedicated stale-snapshot negative.
+
+## Consolidation contract validation (2026-09-11)
+
+Added a dedicated true negative for an empty replay-direction schedule after the
+initial registry check exposed an incorrectly named control. The operation,
+contract, and specification suite now passes **170 tests**; Ruff is clean.

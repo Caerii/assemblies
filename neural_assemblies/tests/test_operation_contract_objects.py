@@ -14,7 +14,7 @@ from neural_assemblies.assembly_calculus.contracts import (
     ASSOCIATION_CONTRACT, COMPLETION_CONTRACT, MERGE_CONTRACT,
     ORDERED_RECALL_CONTRACT,
     OPERATION_CONTRACTS, PROJECTION_CONTRACT, RECIPROCAL_PROJECTION_CONTRACT,
-    AssociationPlan, CompletionPlan, MergePlan, OrderedRecallPlan,
+    AssociationPlan, CompletionPlan, ConsolidationPlan, MergePlan, OrderedRecallPlan,
     PreparedCompletion, SEQUENCE_MEMORIZE_CONTRACT, SEPARATION_CONTRACT,
     SequenceMemorizePlan, SeparationPlan,
     ProjectionPlan, ReciprocalProjectionPlan,
@@ -913,3 +913,11 @@ def test_completion_observation_scope_restores_policy_after_failure(monkeypatch,
     assert brain.disable_plasticity is False
     if mode == "read-only":
         np.testing.assert_array_equal(brain.areas["A"].winners, entry)
+
+
+def test_consolidation_plan_rejects_empty_direction_before_mutation():
+    from neural_assemblies.assembly_calculus.assembly import Assembly
+
+    with pytest.raises(ValueError, match="at least one replay direction"):
+        ConsolidationPlan("A", Assembly("A", [1]), "B", Assembly("B", [2]),
+                          a_to_b=False, b_to_a=False)

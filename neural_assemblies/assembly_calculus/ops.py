@@ -62,11 +62,11 @@ import numpy as np
 
 from .assembly import Assembly, overlap
 from .contracts import (
-    ASSOCIATION_CONTRACT, BINDING_CONTRACT, COMPLETION_CONTRACT, MERGE_CONTRACT,
+    ASSOCIATION_CONTRACT, BINDING_CONTRACT, CONSOLIDATION_CONTRACT, COMPLETION_CONTRACT, MERGE_CONTRACT,
     ORDERED_RECALL_CONTRACT,
     SEPARATION_CONTRACT,
     PROJECTION_CONTRACT, RECIPROCAL_PROJECTION_CONTRACT, AssociationPlan,
-    CompletionPlan, ConvergencePlan, MergePlan, ProjectionPlan, ReciprocalProjectionPlan,
+    CompletionPlan, ConsolidationPlan, ConvergencePlan, MergePlan, ProjectionPlan, ReciprocalProjectionPlan,
     OrderedRecallPlan, SequenceMemorizePlan, SeparationPlan, BindingPlan,
     SEQUENCE_MEMORIZE_CONTRACT,
     implements,
@@ -598,6 +598,7 @@ def reciprocal_project(brain, source, target, rounds=10, *,
         return _snap(brain, target)
 
 
+@implements(CONSOLIDATION_CONTRACT)
 def consolidate_pair(
     brain,
     area_a: str,
@@ -611,16 +612,21 @@ def consolidate_pair(
 ) -> tuple[Assembly, Assembly]:
     """Sleep-replay pairing: stabilize bidirectional assemblies (E4).
 
+    Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-consolidation
+
     Alternates ``reciprocal_project`` in both directions so forward
     discriminative paths are not the only trained association.
     """
-    if a_to_b:
-        activate_assembly(brain, assembly_a)
-        reciprocal_project(brain, area_a, area_b, rounds=rounds)
-    if b_to_a:
-        activate_assembly(brain, assembly_b)
-        reciprocal_project(brain, area_b, area_a, rounds=rounds)
-    return _snap(brain, area_a), _snap(brain, area_b)
+    plan = ConsolidationPlan(area_a, assembly_a, area_b, assembly_b,
+                             rounds, a_to_b, b_to_a)
+    plan.preflight(brain)
+    if plan.a_to_b:
+        activate_assembly(brain, plan.assembly_a)
+        reciprocal_project(brain, plan.area_a, plan.area_b, rounds=plan.rounds)
+    if plan.b_to_a:
+        activate_assembly(brain, plan.assembly_b)
+        reciprocal_project(brain, plan.area_b, plan.area_a, rounds=plan.rounds)
+    return _snap(brain, plan.area_a), _snap(brain, plan.area_b)
 
 
 # ---------------------------------------------------------------------------

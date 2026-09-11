@@ -450,6 +450,39 @@ class ConvergencePlan:
         object.__setattr__(self, "threshold", float(self.threshold))
 
 
+@dataclass(frozen=True)
+class ConsolidationPlan:
+    """Immutable bidirectional sleep-replay schedule for two assemblies."""
+
+    area_a: str
+    assembly_a: Assembly
+    area_b: str
+    assembly_b: Assembly
+    rounds: int = 5
+    a_to_b: bool = True
+    b_to_a: bool = True
+
+    def __post_init__(self) -> None:
+        _require_name("area_a", self.area_a)
+        _require_name("area_b", self.area_b)
+        if self.area_a == self.area_b:
+            raise ValueError("consolidation requires distinct areas")
+        if not isinstance(self.assembly_a, Assembly) or self.assembly_a.area != self.area_a:
+            raise ValueError("assembly_a must belong to area_a")
+        if not isinstance(self.assembly_b, Assembly) or self.assembly_b.area != self.area_b:
+            raise ValueError("assembly_b must belong to area_b")
+        object.__setattr__(self, "rounds", _positive_rounds(self.rounds))
+        _explicit_bool("a_to_b", self.a_to_b)
+        _explicit_bool("b_to_a", self.b_to_a)
+        if not self.a_to_b and not self.b_to_a:
+            raise ValueError("consolidation requires at least one replay direction")
+
+    def preflight(self, brain) -> None:
+        for area in (self.area_a, self.area_b):
+            if area not in brain.areas:
+                raise KeyError(f"consolidation area is unknown: {area!r}")
+
+
 _COMPLETION_OBSERVATION_MODES = frozenset({"plastic", "frozen", "read-only"})
 
 
@@ -994,6 +1027,25 @@ BINDING_CONTRACT = OperationContract(
 )
 
 
+CONSOLIDATION_CONTRACT = OperationContract(
+    operation_id="consolidation-pair-v1",
+    specification="docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-consolidation",
+    plan_type=ConsolidationPlan,
+    inputs=("brain", "area_a", "assembly_a", "area_b", "assembly_b", "rounds", "a_to_b", "b_to_a"),
+    reads=("stored assembly snapshots", "forward and return fibers", "plasticity state"),
+    mutates=("participating weights", "area winners", "engine history"),
+    regime=("distinct areas with current assembly snapshots", "one or both explicit replay directions"),
+    observed_outcome=("post-replay snapshots for both areas",),
+    failure_conditions=("unknown areas", "snapshot/area mismatch", "invalid rounds or direction flags", "no replay direction"),
+    constructed_controls=(
+        "neural_assemblies/tests/test_engine_e2_overlap.py::test_init_reciprocal_connectome_and_consolidate_pair",
+    ),
+    true_negative_controls=(
+        "neural_assemblies/tests/test_operation_contract_objects.py::test_consolidation_plan_rejects_empty_direction_before_mutation",
+    ),
+)
+
+
 OPERATION_CONTRACTS = MappingProxyType({
     "projection": PROJECTION_CONTRACT,
     "reciprocal_projection": RECIPROCAL_PROJECTION_CONTRACT,
@@ -1005,6 +1057,7 @@ OPERATION_CONTRACTS = MappingProxyType({
     "separate": SEPARATION_CONTRACT,
     "attention": ATTENTION_CONTRACT,
     "bind": BINDING_CONTRACT,
+    "consolidate_pair": CONSOLIDATION_CONTRACT,
 })
 
 

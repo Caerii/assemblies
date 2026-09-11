@@ -94,10 +94,10 @@ from .metrics import (
 )
 from .sequence import Sequence
 from .contracts import (
-    ASSOCIATION_CONTRACT, ATTENTION_CONTRACT, BINDING_CONTRACT, COMPLETION_CONTRACT, MERGE_CONTRACT,
+    ASSOCIATION_CONTRACT, ATTENTION_CONTRACT, BINDING_CONTRACT, CONSOLIDATION_CONTRACT, COMPLETION_CONTRACT, MERGE_CONTRACT,
     ORDERED_RECALL_CONTRACT, SEQUENCE_MEMORIZE_CONTRACT, SEPARATION_CONTRACT,
     OPERATION_CONTRACTS, PROJECTION_CONTRACT, RECIPROCAL_PROJECTION_CONTRACT,
-    AssociationPlan, AttentionPlan, BindingPlan, CompletionPlan, ConvergencePlan, MergePlan, OperationContract,
+    AssociationPlan, AttentionPlan, BindingPlan, ConsolidationPlan, CompletionPlan, ConvergencePlan, MergePlan, OperationContract,
     PreparedCompletion, ProjectionPlan, ProjectionStep, ReciprocalProjectionPlan,
     OrderedRecallPlan, SequenceMemorizePlan, SeparationPlan,
 )
@@ -174,11 +174,11 @@ __all__ = [
     # Data
     "Assembly", "AssemblyTrace", "PatternCompletionDiagnostic",
     "OperationContract", "ProjectionPlan", "ProjectionStep",
-    "AttentionPlan", "BindingPlan", "ConvergencePlan",
+    "AttentionPlan", "BindingPlan", "ConsolidationPlan", "ConvergencePlan",
     "AssociationPlan", "CompletionPlan", "PreparedCompletion", "MergePlan",
     "ReciprocalProjectionPlan", "OrderedRecallPlan", "SequenceMemorizePlan",
     "SeparationPlan",
-    "OPERATION_CONTRACTS", "ATTENTION_CONTRACT", "BINDING_CONTRACT", "PROJECTION_CONTRACT",
+    "OPERATION_CONTRACTS", "ATTENTION_CONTRACT", "BINDING_CONTRACT", "CONSOLIDATION_CONTRACT", "PROJECTION_CONTRACT",
     "RECIPROCAL_PROJECTION_CONTRACT", "ASSOCIATION_CONTRACT", "MERGE_CONTRACT",
     "COMPLETION_CONTRACT", "ORDERED_RECALL_CONTRACT",
     "SEQUENCE_MEMORIZE_CONTRACT", "SEPARATION_CONTRACT",

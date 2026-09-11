@@ -1537,3 +1537,15 @@ pattern-driven variant includes recurrence. Both helpers return the final
 snapshot, epochs used, and the last observed persistence; exhausting the budget
 is not reported as convergence. The plan is validated before the first epoch,
 so malformed schedules cannot partially mutate a brain.
+
+<a id="contract-consolidation"></a>
+
+## Pair consolidation (sleep replay)
+
+`consolidate_pair` replays two current assembly snapshots across their
+bidirectional fibers. The immutable plan names the areas, verifies that each
+snapshot belongs to its area, chooses one or both directions, and fixes the
+round budget before mutation. Each enabled direction activates its stored
+source and invokes the reciprocal projection schedule; outputs are post-replay
+snapshots. Unknown areas, stale area/snapshot pairing, invalid flags, and an
+empty direction schedule fail before replay.
