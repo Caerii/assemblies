@@ -4433,3 +4433,10 @@ import failures. It emits a `RuntimeWarning` containing the exception while
 retaining the documented best-effort calibration behavior. Ruff and whitespace
 checks pass; the existing sampled-engine ERP inversion remains independently
 tracked.
+
+## ERP bootstrap warning regression (2026-09-11)
+
+A focused test now constructs a parser whose bridge training raises and asserts
+that `_ensure_minimal_prediction_bridges` emits a `RuntimeWarning` containing
+the original failure. This locks in the no-silent-fallback contract; the test
+and Ruff pass.

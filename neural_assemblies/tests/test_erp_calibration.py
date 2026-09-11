@@ -44,6 +44,8 @@ runs there and asserts only the wobbly counts, which is why it is unaffected.
 import os
 from types import SimpleNamespace
 
+import pytest
+
 os.environ.setdefault("EMERGENT_FAST_TRAINING", "1")
 os.environ["TRAIN_PROGRESS"] = "0"
 
@@ -128,6 +130,26 @@ class TestErpCalibration:
         )
         report = ensure_parser_erp_calibration(parser)
         assert report.engine_name == "numpy_exact"
+
+    def test_failed_prediction_bootstrap_is_visible(self, monkeypatch):
+        from neural_assemblies.assembly_calculus.emergent.evaluation.erp import calibration
+        from neural_assemblies.assembly_calculus.emergent.evaluation.erp.gates import ErpReadiness
+
+        monkeypatch.setattr(
+            calibration, "assess_erp_readiness",
+            lambda _parser: ErpReadiness(n400_ready=False, p600_ready=False),
+        )
+        from neural_assemblies.assembly_calculus.emergent.evaluation import sweep
+        monkeypatch.setattr(sweep, "sweep_mode_enabled", lambda: False)
+
+        class BrokenParser:
+            stim_map = {"phon_x": object()}
+
+            def train_next_token(self, *_args, **_kwargs):
+                raise RuntimeError("synthetic bridge failure")
+
+        with pytest.warns(RuntimeWarning, match="synthetic bridge failure"):
+            calibration._ensure_minimal_prediction_bridges(BrokenParser())
 
     # These tests all mutate their parser (calibration writes thresholds), so
     # they take independent forks rather than the shared cached object. The
