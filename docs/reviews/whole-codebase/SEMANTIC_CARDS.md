@@ -1167,3 +1167,35 @@ the helper. Projection's old paired_ttest fallback reports p=1 for all constant
 differences. Version 4 corrects that reporting and adds the paired-difference summary;
 all numerical trials and unrelated summaries remain unchanged. The legacy generic
 paired_ttest still has other callers; do not silently claim those were migrated.
+
+
+<a id="historical-merge-trials"></a>
+### Historical merge trials (code inspection, 2026-09-10)
+
+Source9844e4b: research/experiments/primitives/test_merge.py. Both trials create
+explicit A/B/C and establish A then B using separate stimulus+self schedules.
+The composition trial trains A->C alone, then B->C alone, then both into C, on
+one brain with continuing learning. C winner replacement between phases neither
+clears the learned fibers nor enters subsequent drive (C has no outgoing fiber).
+The description that resetting C prevents carryover is therefore false: learned
+A->C weights persist into the joint phase, as do B->C weights and source learning.
+
+Readouts compare C_AB against earlier C_A/C_B snapshots. merge_quality is their
+average; composition_score is their maximum. With disjoint parents, a candidate
+identical to one parent scores1 on the maximum and.5 on the average while retaining
+none of the other parent. Neither scalar certifies representation of both parents.
+The separate parent overlaps are already returned and must remain visible.
+
+The recovery trial has a different training history: it skips the separate A-only
+and B-only C training and goes straight to joint training. It then performs20
+A-only evaluation rounds followed by20 B-only rounds, still learning and replacing
+C winners before each. These are sequential driven readouts, not isolated frozen
+partial-cue completion. Do not merge these schedules under a helper that changes
+initial conditions or claims the two trial functions test the same prepared state.
+
+Before refactoring: capture both trial histories and final weights across three
+seeds; construct disjoint-parent and replacement-invariance controls. Preserve
+legacy outputs as historical observables, correct their interpretation, and specify
+any replacement metric/version before measurement. Outer grids, seeds, exclusive
+storage and raw data remain unmigrated. This card is code analysis, not adoption
+of old merge hypotheses or an empirical experiment result.

@@ -2741,3 +2741,31 @@ differences are nonconstant; constructed tests cover the formerly fake constant-
 p=1. Association's archived smoke remains exact. Evidence lives at
 research/results/runs/memory.historical-projection/historical-projection-v4-smoke-20260910.
 No GPU, full-package or scientific adoption claim is made.
+
+
+## Integrated migration checkpoint (2026-09-10)
+
+At clean source9844e4b, ran every test module named by the configured
+.github/workflows/research-contracts.yml CPU job (71 modules), using the isolated
+Windows worktree's Python. Result: 1668 passed,1 skipped,6 warnings in188.77s.
+This is local execution of the configured gate, not a hosted Linux CI result or
+a full-package run. The skip was confirmed with the documentation example suite:
+4 passed,1 skipped in7.84s; CuPy is not installed. Six sampled-engine warnings
+remain unsuppressed; the tested controls do not adopt sampled sequence results.
+
+Then ran the seven dedicated GPU modules: test_fused_cuda,
+test_hashed_substrate_parity,test_hashed_fsm_parity,test_hashed_transducer_parity,
+test_hashed_aligner_parity,test_torch_parity,test_mixed_drive_indices.
+Result:122 passed, no skips,11 warnings in43.30s on NVIDIA GeForce RTX3080.
+Used scripts/cuda-dev.cmd with UV_NO_SYNC=1 and the existing
+.cache/torch-extensions-vs2022 build directory: VS2022 17.14.18,
+MSVC14.44.35207 and CUDA_HOME13.1. No dependencies or engine files changed.
+Warnings include deliberate deep-count arithmetic overflow and sampled-engine
+warnings. This tests the suites' scoped parity and controls, not universal backend
+trajectory equivalence or a new scientific robustness result.
+
+Current contract integration is green within that scope. The previously documented
+full-package failures, optional CuPy path, formal backend proof gaps and unmigrated
+research protocols remain open. Next semantic target is the historical merge harness:
+winner replacement does not erase learned fibers, and max parent overlap cannot
+certify both-parent representation.

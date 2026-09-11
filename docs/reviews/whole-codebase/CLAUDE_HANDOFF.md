@@ -1479,3 +1479,13 @@ association must remain exact. Other legacy paired_ttest callers remain open.
 Version 4 projection smoke passes the specified version 3 comparison and independent
 paired-report recomputation. Association replay is exact. Archive source2fb207d;
 48 final contract/register/ratchet gates pass. Other legacy paired callers remain open.
+
+
+## Integrated migration checkpoint (2026-09-10)
+
+Clean source9844e4b: all71 configured CPU contract modules passed locally:
+1668 passed,1 skipped,6 warnings in188.77s. Skip is the unavailable optional CuPy
+example. Dedicated fused/CUDA parity:122 passed,no skips,11 warnings in43.30s on
+RTX3080 with the existing VS2022 build environment. No engine/dependency changes.
+This does not supersede open full-package failures or prove general backend parity.
+See VALIDATION.md#integrated-migration-checkpoint-2026-09-10.
