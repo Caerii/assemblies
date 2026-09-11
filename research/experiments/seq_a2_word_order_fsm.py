@@ -57,8 +57,6 @@ compact indices produced a *published* wrong claim in #92
 """
 from __future__ import annotations
 
-import json
-import os
 import random
 import sys
 from collections import Counter
@@ -230,14 +228,14 @@ def main():
     for bar, ok in verdicts.items():
         print(f"  {bar:<9s} {'PASS' if ok else 'FAIL'}")
 
-    out = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                       "seq_a2_word_order_results.json")
-    with open(out, "w") as fh:
-        json.dump({"arms": arms, "verdicts": verdicts,
-                   "params": {"ambient_p": AMBIENT_P, "organ_p": ORGAN_P,
-                              "n_arc": N_ARC, "n_state": N_STATE, "k": K,
-                              "beta": BETA, "presentations": PRESENTATIONS}},
-                  fh, indent=2)
+    from _results import write_result
+    out = write_result(
+        "sequence", "seq_a2_word_order_results.json",
+        {"arms": arms, "verdicts": verdicts,
+         "params": {"ambient_p": AMBIENT_P, "organ_p": ORGAN_P,
+                    "n_arc": N_ARC, "n_state": N_STATE, "k": K,
+                    "beta": BETA, "presentations": PRESENTATIONS}},
+    )
     print(f"\nwrote {out}")
 
 

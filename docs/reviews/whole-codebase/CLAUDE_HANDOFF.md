@@ -2629,3 +2629,5 @@ Migrated the tagged `seq_tm_high_order` and `seq_s5_soft_census_hashed` studies 
 Migrated the S5 word-problem and state-refraction result helpers to the shared exclusive writer. Their payloads remain unchanged and their scripts compile and pass Ruff.
 
 Migrated S5 soft census and A3 transducer result helpers to the shared exclusive writer, preserving payloads and existing read behavior. Removed an unused census variable found during validation. Both scripts compile and pass Ruff.
+
+Migrated A1 step accuracy, A1 drift localization, and A2 word-order diagnostics to the shared exclusive result writer. Payloads remain unchanged. Ruff exposed and the migration removed seven pre-existing formatting/import issues.

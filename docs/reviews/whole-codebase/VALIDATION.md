@@ -4751,3 +4751,7 @@ The S5 word-problem and state-refraction studies now route their result helpers 
 ## Sequence result migration continued (2026-09-11)
 
 The untagged S5 soft-census and tagged A3 transducer result helpers now use `write_result`. Their payloads and read paths are preserved, while result creation is exclusive and canonical. The migration also removed an unused census state variable exposed by the Ruff gate. Both scripts compile and pass Ruff.
+
+## A1 diagnostic writer migration (2026-09-11)
+
+The A1 step-accuracy, drift-localization, and A2 word-order diagnostics now use the shared result writer. Their payload schemas and printed measurements remain unchanged; output creation is exclusive and canonical. The touched scripts also had seven latent Ruff issues removed while migrating.

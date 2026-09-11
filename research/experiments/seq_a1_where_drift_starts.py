@@ -31,7 +31,6 @@ what "no drift" looks like on this task.
 """
 from __future__ import annotations
 
-import json
 import os
 import sys
 
@@ -119,8 +118,8 @@ def main():
         r = ours(seed)
         mine.append(r)
         print(f"  seed {seed:2d} {'traj OK' if r['trajectory_correct'] else '  .    '}")
-        print(f"      arc   " + " ".join(f"{v:.2f}" for v in r["arc_overlap"]))
-        print(f"      state " + " ".join(f"{v:.2f}" for v in r["state_overlap"]),
+        print("      arc   " + " ".join(f"{v:.2f}" for v in r["arc_overlap"]))
+        print("      state " + " ".join(f"{v:.2f}" for v in r["state_overlap"]),
               flush=True)
 
     print("\n=== reference control (same task, same regime) ===")
@@ -134,11 +133,11 @@ def main():
 
     arc = np.array([r["arc_overlap"] for r in mine])
     state = np.array([r["state_overlap"] for r in mine])
-    print(f"\n  mean per step (ours)      arc   "
+    print("\n  mean per step (ours)      arc   "
           + " ".join(f"{v:.2f}" for v in arc.mean(axis=0)))
-    print(f"                            state "
+    print("                            state "
           + " ".join(f"{v:.2f}" for v in state.mean(axis=0)))
-    print(f"  mean per step (reference) state "
+    print("  mean per step (reference) state "
           + " ".join(f"{v:.2f}" for v in
                      np.array([r["state_overlap"] for r in refs]).mean(axis=0)))
     print(f"\n  trajectory correct: ours {sum(r['trajectory_correct'] for r in mine)}"
@@ -156,10 +155,9 @@ def main():
     print("  arc earlier -> arc sensitivity dominates; "
           "state earlier -> recovery is lossy")
 
-    out = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                       "seq_a1_where_drift_starts_results.json")
-    with open(out, "w") as fh:
-        json.dump({"ours": mine, "reference": refs}, fh, indent=2)
+    from _results import write_result
+    out = write_result("sequence", "seq_a1_where_drift_starts_results.json",
+                       {"ours": mine, "reference": refs})
     print(f"\nwrote {out}")
 
 

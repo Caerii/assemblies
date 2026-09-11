@@ -25,7 +25,6 @@ the verdict and a failure concentrated there would look identical in aggregate.
 """
 from __future__ import annotations
 
-import json
 import os
 import sys
 
@@ -78,17 +77,18 @@ def main():
         landing = {}
         for r in wrong:
             landing[r["got"]] = landing.get(r["got"], 0) + 1
-        print(f"\n  wrong steps land on: "
+        print("\n  wrong steps land on: "
               + ", ".join(f"{k}={v}" for k, v in sorted(landing.items(),
                                                         key=lambda kv: -kv[1])))
 
-    out = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                       "seq_a1_step_accuracy_results.json")
-    with open(out, "w") as fh:
-        json.dump({"per_seed": per_seed, "mean": acc, "sd": sd,
-                   "digit_accuracy": float(np.mean([r["correct"] for r in digits])),
-                   "end_accuracy": float(np.mean([r["correct"] for r in ends])),
-                   "rows": all_rows}, fh, indent=2)
+    from _results import write_result
+    out = write_result(
+        "sequence", "seq_a1_step_accuracy_results.json",
+        {"per_seed": per_seed, "mean": acc, "sd": sd,
+         "digit_accuracy": float(np.mean([r["correct"] for r in digits])),
+         "end_accuracy": float(np.mean([r["correct"] for r in ends])),
+         "rows": all_rows},
+    )
     print(f"\nwrote {out}")
 
 
