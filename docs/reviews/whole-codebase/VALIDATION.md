@@ -4296,3 +4296,6 @@ This removes a needless private dependency while leaving global scaling policy
 paths explicit.
 
 Validation: 2 parser engine-identity compatibility tests passed.
+The population migration was tightened to remove duplicate facade calls in the
+context bridge and linker. Four targeted bridge/preallocation tests remain
+green after deduplication.

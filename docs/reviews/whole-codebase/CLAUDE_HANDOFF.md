@@ -2504,3 +2504,6 @@ The uniqueness guard then caught a real sparse ring allocator collision. Ring
 slots were assigning sequential IDs into a mapping whose earlier IDs came from
 a randomized pool. They now consume the pool too; the compiled-bridge
 sampling regression is green.
+The population migration was tightened to remove duplicate facade calls in the
+context bridge and linker. Four targeted bridge/preallocation tests remain
+green after deduplication.
