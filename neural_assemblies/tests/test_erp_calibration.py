@@ -110,6 +110,25 @@ class TestErpCalibration:
         assert result is cached
         assert result.engine_name == "numpy_sparse"
 
+    def test_legacy_threshold_cache_reports_engine(self, monkeypatch):
+        """Backward-compatible threshold caches retain substrate provenance."""
+        from neural_assemblies.assembly_calculus.emergent.evaluation.erp import calibration
+        from neural_assemblies.assembly_calculus.emergent.evaluation.erp.gates import (
+            ErpReadiness,
+            ErpThresholds,
+        )
+
+        monkeypatch.setattr(
+            calibration, "assess_erp_readiness",
+            lambda _parser: ErpReadiness(n400_ready=True, p600_ready=True),
+        )
+        parser = SimpleNamespace(
+            _erp_thresholds=ErpThresholds(source="empirical"),
+            engine_name="numpy_exact",
+        )
+        report = ensure_parser_erp_calibration(parser)
+        assert report.engine_name == "numpy_exact"
+
     # These tests all mutate their parser (calibration writes thresholds), so
     # they take independent forks rather than the shared cached object. The
     # underlying curriculum training is still paid once per session.

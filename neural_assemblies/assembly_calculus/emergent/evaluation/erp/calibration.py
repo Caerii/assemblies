@@ -495,6 +495,7 @@ def ensure_parser_erp_calibration(
                 readiness=assess_erp_readiness(parser),
                 baseline=getattr(parser, "_erp_baseline", ErpBaseline()),
                 thresholds=th,
+                engine_name=str(getattr(parser, "engine_name", "unknown")),
                 tuned=True,
             )
     return calibrate_erp_thresholds(parser, fast=fast)

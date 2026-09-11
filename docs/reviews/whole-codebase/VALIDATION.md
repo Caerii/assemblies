@@ -4391,3 +4391,10 @@ passes, and Pyright reports no diagnostics for the calibration module.
 summary. Calibration populates it from the parser's active Brain engine, so a
 sampled result cannot be detached from the substrate that produced it. The
 cache regression asserts that this provenance survives cache hits.
+
+## Legacy ERP cache provenance (2026-09-11)
+
+The backward-compatible path that reconstructs a report from an older
+threshold-only cache now also records the parser's active engine. Two focused
+regressions cover complete-report and legacy-cache paths; both pass with Ruff
+clean.
