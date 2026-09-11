@@ -16,17 +16,18 @@
     "rounds": 8,
     "engine": "numpy_sparse"
   },
-  "metrics": {
+  "paper_claims_note": "Historical toy output only. A replacement requires a synaptic-asymmetry readout and a constructed wipe negative control under a new protocol ID.",
+  "config_ref": "parity/configs/direct2026.yaml",
+  "RETRACTED": "RETRACTED 2026-09-11: forward, reverse, and intervention overlap survived wiping the learned CAUSE->BIND fiber, so the record measured substrate overlap rather than directional binding.",
+  "historical_metrics": {
     "forward_overlap": 0.5875,
     "reverse_overlap": 0.6,
     "do_effect_forward_overlap": 0.925,
     "forward_reverse_ratio": 0.9792
   },
-  "thresholds": {
+  "historical_thresholds": {
     "forward_overlap_min": 0.1,
     "reverse_overlap_min": 0.0,
     "do_effect_forward_min_fraction_of_forward": 0.45
-  },
-  "paper_claims_note": "Full Alzheimer DAG recovery requires tabular SCM pipeline; this golden pins toy DIRECT binding asymmetry + do-calculus readout.",
-  "config_ref": "parity/configs/direct2026.yaml"
+  }
 }

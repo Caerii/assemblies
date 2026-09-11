@@ -279,8 +279,8 @@ Config claims use category **`config`** in the supplement matrix (`*-C01` rows).
 
 | ID | Category | Claim / result | Module | Test / protocol | Status | Gap |
 |----|----------|----------------|--------|-----------------|--------|-----|
-| DIR26-M01 | mechanism | Directional binding asymmetry | `programs/direct.py` | `test_direct_binding_asymmetry` | pinned | — |
-| DIR26-M02 | mechanism | `do(effect)` intervention | `direct.py` | `test_direct_do_calculus_intervention` | pinned | — |
+| DIR26-M01 | mechanism | Directional binding asymmetry | `programs/direct.py` | `test_direct_binding_rejects_the_retired_instrument` | retracted | overlap survives wiping learned fiber |
+| DIR26-M02 | mechanism | `do(effect)` intervention | `direct.py` | same refusal contract | retracted | requires synaptic-asymmetry readout and wipe control |
 | DIR26-E01 | empirical | Full Pearl do-calculus battery | — | — | missing | `parity/direct2026_pearl.yaml` |
 | DIR26-E02 | empirical | Synaptic asymmetry training fidelity | — | — | missing | — |
 | DIR26-E03 | empirical | Paper causal graph examples | — | — | missing | Golden per graph |

@@ -27,14 +27,12 @@ from neural_assemblies.programs import (
     learn_separable_classes,
     CoinFlipModel,
     direct_bind,
-    measure_directional_asymmetry,
     MinimalTMDemo,
     train_markov_from_sequences,
     BlocksWorldPlanner,
     make_toy_problem,
     make_three_block_problem,
     apply_strips_plan,
-    validate_direct_do_calculus,
 )
 
 
@@ -175,39 +173,22 @@ class TestLiteratureParity:
         cap = max(5, int(round(e_frac * N)))
         assert 5 <= len(asm) <= cap
 
-    @pytest.mark.xfail(reason="DIRECT directional binding is vacuous: forward/reverse/do metrics are provably insensitive to the learned CAUSE->BIND connectome (wipe-test + cue-swap + feedforward probes); pre-norm_init values measured degree-hub substrate overlap, not binding. Not re-baselined -- that would pin the artifact.", strict=False)
-    def test_direct_binding_asymmetry(self):
-        b = _brain()
-        b.add_stimulus("cause_s", K)
-        b.add_stimulus("effect_s", K)
-        b.add_area("CAUSE", N, K, BETA)
-        b.add_area("EFFECT", N, K, BETA)
-        b.add_area("BIND", N, K, BETA)
-        direct_bind(
-            b, "CAUSE", "EFFECT", "BIND",
-            cause_stim="cause_s", effect_stim="effect_s", rounds=8,
-        )
-        fwd, rev = measure_directional_asymmetry(b, "CAUSE", "EFFECT", "BIND")
-        assert fwd > 0.1
-        assert rev > 0.0
+    def test_direct_binding_rejects_the_retired_instrument(self):
+        from neural_assemblies.exceptions import RetractedProtocol
 
-    @pytest.mark.xfail(reason="DIRECT directional binding is vacuous: forward/reverse/do metrics are provably insensitive to the learned CAUSE->BIND connectome (wipe-test + cue-swap + feedforward probes); pre-norm_init values measured degree-hub substrate overlap, not binding. Not re-baselined -- that would pin the artifact.", strict=False)
-    def test_direct_do_calculus_intervention(self):
-        """Kopadi & Kalles 2026: do(effect) preserves cause→bind readout."""
         b = _brain()
         b.add_stimulus("cause_s", K)
         b.add_stimulus("effect_s", K)
         b.add_area("CAUSE", N, K, BETA)
         b.add_area("EFFECT", N, K, BETA)
         b.add_area("BIND", N, K, BETA)
-        direct_bind(
-            b, "CAUSE", "EFFECT", "BIND",
-            cause_stim="cause_s", effect_stim="effect_s", rounds=8,
-        )
-        fwd, rev, do_fwd = validate_direct_do_calculus(
-            b, "CAUSE", "EFFECT", "BIND",
-        )
-        assert do_fwd >= fwd * 0.45
+        before = {name: tuple(area.winners) for name, area in b.areas.items()}
+        with pytest.raises(RetractedProtocol, match="wipe negative control"):
+            direct_bind(
+                b, "CAUSE", "EFFECT", "BIND",
+                cause_stim="cause_s", effect_stim="effect_s", rounds=8,
+            )
+        assert {name: tuple(area.winners) for name, area in b.areas.items()} == before
 
     def test_coin_ambient_noise_epwta_wiring(self):
         """Noise configuration does not make an implicit selector valid."""

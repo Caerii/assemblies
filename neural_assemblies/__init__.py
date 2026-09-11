@@ -29,6 +29,7 @@ _LAZY_EXPORTS = {
     )
 }
 _LAZY_EXPORTS["HomeostasisConfig"] = ".core._homeostasis"
+_LAZY_EXPORTS["RetractedProtocol"] = ".exceptions"
 _LAZY_EXPORTS.update({
     name: ".compute" for name in (
         "StatisticalEngine", "NeuralComputationEngine",
@@ -94,6 +95,7 @@ def __dir__():
 from typing import TYPE_CHECKING  # noqa: E402
 
 if TYPE_CHECKING:  # pragma: no cover
+    from .exceptions import RetractedProtocol
     from .core._homeostasis import HomeostasisConfig
     from .assembly_calculus import (
         Assembly, AssemblyTrace, FiberCircuit, PatternCompletionDiagnostic,
@@ -162,6 +164,9 @@ __all__ = [
 
     # Constants
     'DEFAULT_P', 'DEFAULT_BETA',
+
+    # Scientific protocol status
+    'RetractedProtocol',
 
     # Utilities
     'normalize_features', 'select_top_k_indices', 'heapq_select_top_k', 'binomial_ppf',

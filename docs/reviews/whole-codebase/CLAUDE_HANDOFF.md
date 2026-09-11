@@ -1617,3 +1617,23 @@ Thirteen entries retain a gap; seven have no artifact-role file. The renderer ex
 those facts and onboarding requires them. Missing/escaping paths and unacknowledged
 absence fail tests;10 register tests pass. This makes the next migration queue
 machine-readable without pretending legacy scripts or logs are immutable evidence.
+
+## Single-pass ERP calibration and DIRECT retraction (2026-09-11)
+
+The five ambiguous XPASS cases from the complete package audit are gone. ERP
+calibration observes one sample set and relabels it after tuning; its former full
+mode silently reparsed every frame and therefore compared a later mutable model
+state with the fast mode. A unit gate fixes collection count at one, and the VP
+liveness checks are ordinary passing contracts. Repeated parsing and raw-P600
+saturation remain two distinct strict expected failures.
+
+DIRECT's old overlap instrument is now retracted at every executable boundary:
+the four public operations, recorder, golden and parity runner. Its readout was
+insensitive to wiping the learned fiber. Historical values remain named as such;
+a successor requires a new protocol ID, synaptic-asymmetry readout and wipe
+negative control. The reconstructed failure-cluster run is 97 passed, 9 skipped,
+2 xfailed and zero xpassed in 317.61 seconds. This closes the known audit inventory,
+not the whole-library unification or a current complete-package run.
+
+The cross-cutting methodology, specification, register, evidence-graph and parity
+gate reports 73 passed and 11 skipped in 59.32 seconds.

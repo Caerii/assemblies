@@ -337,7 +337,15 @@ def calibrate_erp_thresholds(
     probe_depth: str = "calibration",
     fast: bool = False,
 ) -> ErpCalibrationReport:
-    """Full calibration: baseline → samples → tuned thresholds."""
+    """Calibrate from one observation pass, then relabel those observations.
+
+    ``fast`` remains as a compatibility argument, but no longer changes the
+    measurement protocol. The former ``fast=False`` path parsed every frame a
+    second time after tuning. Parsing can recruit neurons, so the two modes
+    measured different model states and could reverse the reported AUC. A
+    threshold changes only classification; it cannot change an already
+    observed N400/P600 quantity.
+    """
     if ensure_prediction:
         _ensure_minimal_prediction_bridges(parser)
 
@@ -388,25 +396,15 @@ def calibrate_erp_thresholds(
         raw_samples, baseline=baseline, fallback=fb,
     )
 
-    if fast:
-        tuned_samples = _relabel_samples(
-            raw_samples,
-            readiness=readiness,
-            baseline=baseline,
-            thresholds=thresholds,
-        )
-    else:
-        tuned_samples = collect_frame_samples(
-            parser,
-            frames,
-            critical_position=None,
-            readiness=readiness,
-            baseline=baseline,
-            thresholds=thresholds,
-            holdout_words=holdout,
-            probe_depth=probe_depth,
-            warm_start=warm,
-        )
+    # Threshold tuning changes labels, not the neural quantities already
+    # observed. A second collection pass would advance a mutable parser and
+    # turn calibration mode into an undocumented training schedule.
+    tuned_samples = _relabel_samples(
+        raw_samples,
+        readiness=readiness,
+        baseline=baseline,
+        thresholds=thresholds,
+    )
 
     by_label = {
         lbl: _label_stats(tuned_samples, lbl)

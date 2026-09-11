@@ -187,7 +187,8 @@ Neural Assemblies**
 - Link: <https://arxiv.org/abs/2604.26919>
 - Contributes: directional causal binding; synaptic asymmetry readout;
   Pearl do-calculus validation
-- **Repo status:** `partial` — `programs/direct.py` (directional binding prototype)
+- **Repo status:** `retracted` - the former overlap readout was
+  insensitive to wiping its learned fiber; `programs/direct.py` refuses it
 
 ---
 
@@ -208,7 +209,7 @@ Neural Assemblies**
 | Dendritic gating | 2025 | not_started | — |
 | E%-WTA | 2026 | partial | `EPercentPolicy`, `torch_engine`, `test_epwta_gpu.py`, size-cap parity |
 | Speech AC | 2026 | not_started | — |
-| Causal DIRECT | 2026 | partial | `programs/direct.py` |
+| Causal DIRECT | 2026 | retracted | `programs/direct.py` refusal boundary |
 
 ---
 

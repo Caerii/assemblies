@@ -132,14 +132,14 @@ unless a paper-specific protocol says otherwise.
 
 
 
-## DIRECT 2026 — causal binding
+## DIRECT 2026 - causal binding
 
 
-
-- ``direct_bind`` then ``measure_directional_asymmetry``; forward overlap > 0.1.
-
-- **do-calculus**: ``validate_direct_do_calculus`` — ``do(effect)`` preserves cause→bind (≥ 45% of forward).
-
+- **Retracted.** The overlap readout survives wiping the learned
+  ``CAUSE -> BIND`` fiber, so it does not measure directional binding.
+- Every former public entry point and the parity runner now raises
+  ``RetractedProtocol``. A replacement needs a synaptic-asymmetry readout and
+  a constructed wipe negative control under a new protocol ID.
 
 
 ## Cross-engine projection (explicit ↔ sparse)

@@ -42,8 +42,7 @@ runs there and asserts only the wobbly counts, which is why it is unaffected.
 """
 
 import os
-
-import pytest
+from types import SimpleNamespace
 
 os.environ.setdefault("EMERGENT_FAST_TRAINING", "1")
 os.environ["TRAIN_PROGRESS"] = "0"
@@ -57,6 +56,37 @@ N, K = 3000, 30
 #: Null for a rank statistic. Violations must out-score grammatical more often
 #: than not; see the module docstring for why nothing tighter is asserted.
 CHANCE = 0.5
+
+
+def test_calibration_observes_frames_once(monkeypatch):
+    """Tuning must not become a hidden second training schedule."""
+    from neural_assemblies.assembly_calculus.emergent.evaluation.erp import calibration
+    from neural_assemblies.assembly_calculus.emergent.evaluation.erp.gates import (
+        ErpBaseline,
+        ErpReadiness,
+    )
+
+    calls = []
+    monkeypatch.setattr(
+        calibration,
+        "assess_erp_readiness",
+        lambda _parser: ErpReadiness(n400_ready=True, p600_ready=True),
+    )
+    monkeypatch.setattr(
+        calibration,
+        "calibrate_erp_baseline",
+        lambda *args, **kwargs: ErpBaseline(),
+    )
+
+    def collect_once(*args, **kwargs):
+        calls.append((args, kwargs))
+        return []
+
+    monkeypatch.setattr(calibration, "collect_frame_samples", collect_once)
+    calibration.calibrate_erp_thresholds(
+        SimpleNamespace(), ensure_prediction=False, fast=False,
+    )
+    assert len(calls) == 1
 
 
 class TestErpCalibration:
@@ -108,7 +138,7 @@ class TestErpCalibration:
         )
         assert gram_wobbly <= catv_wobbly
 
-    def test_fast_calibration_preserves_separation(self, forked_parser):
+    def test_calibration_mode_does_not_change_observations(self, forked_parser):
         # Two SEPARATE forks on purpose: calibrating one must not contaminate
         # the other, since the whole point is comparing full against fast on
         # identically-trained parsers.
@@ -123,30 +153,5 @@ class TestErpCalibration:
         assert fast.thresholds.p600_excess_margin == full.thresholds.p600_excess_margin
         assert fast.thresholds.n400_excess_margin == full.thresholds.n400_excess_margin
 
-        # `fast`'s AUC is NOT asserted here -- see the xfail below. It is not a
-        # power problem; the fast arm genuinely inverts on some parsers.
-
-    @pytest.mark.xfail(strict=False, reason=(
-        "MEASURED DEFECT, not a flaky threshold: `fast=True` calibration does "
-        "not preserve the P600 ordering. On one parser, full p600_auc = 0.889 "
-        "while fast = 0.444 -- BELOW CHANCE, i.e. inverted, with fast "
-        "grammatical [0.9938, 0.9954, 0.9939] scoring ABOVE violation "
-        "[0.9924, 0.9943, 0.9944]. Across other trainings fast measured 0.889, "
-        "0.889, 0.722, so it is unstable rather than uniformly broken -- which "
-        "is why strict=False. Tracked with #80/#104."))
-    def test_fast_calibration_preserves_the_ordering(self, forked_parser):
-        """The claim the enclosing test's NAME makes, isolated and honest.
-
-        WHY THIS WAS INVISIBLE. The original assertion was
-        `fast.separation["p600_cohens_d"] > 0.3`, and it PASSED on the very
-        parser measured above -- Cohen's d is computed on the clipped
-        `p600_excess`, where the grammatical arm is crushed onto a 0.0 floor, so
-        it can report a healthy positive separation while the RAW ordering is
-        reversed. The statistic did not merely lose precision; it disagreed with
-        the data in sign. See research/notes/language/erp_metric_is_clipped.md.
-        """
-        parser = forked_parser("SENTENCES", seed=42)
-        fast = calibrate_erp_thresholds(parser, fast=True)
-        assert fast.separation["p600_auc"] > CHANCE, (
-            f"fast calibration inverted the contrast: p600_auc "
-            f"{fast.separation['p600_auc']:.3f}")
+        assert fast.samples == full.samples
+        assert fast.separation == full.separation

@@ -150,33 +150,11 @@ class TestNemo2025CurriculumGolden:
 
 
 class TestDirect2026PearlGolden:
-    @pytest.mark.xfail(reason="DIRECT directional binding is vacuous: forward/reverse/do metrics are provably insensitive to the learned CAUSE->BIND connectome (wipe-test + cue-swap + feedforward probes); pre-norm_init values measured degree-hub substrate overlap, not binding. Not re-baselined -- that would pin the artifact.", strict=False)
-    def test_directional_binding_matches_golden(self):
+    def test_directional_binding_golden_is_retracted(self):
         g = _load("direct2026_pearl.json")
-        p = g["parameters"]
-        from neural_assemblies.programs.direct import (
-            direct_bind,
-            measure_directional_asymmetry,
-            validate_direct_do_calculus,
-        )
-
-        brain = Brain(p=p["p"], save_winners=True, seed=p["seed"], engine="numpy_sparse")
-        brain.add_stimulus("cause_s", p["k"])
-        brain.add_stimulus("effect_s", p["k"])
-        brain.add_area("CAUSE", p["n"], p["k"], p["beta"])
-        brain.add_area("EFFECT", p["n"], p["k"], p["beta"])
-        brain.add_area("BIND", p["n"], p["k"], p["beta"])
-        direct_bind(
-            brain, "CAUSE", "EFFECT", "BIND",
-            cause_stim="cause_s", effect_stim="effect_s", rounds=p["rounds"],
-        )
-        fwd, rev = measure_directional_asymmetry(brain, "CAUSE", "EFFECT", "BIND")
-        _, _, do_fwd = validate_direct_do_calculus(brain, "CAUSE", "EFFECT", "BIND")
-        gm = g["metrics"]
-        assert fwd >= g["thresholds"]["forward_overlap_min"]
-        assert abs(fwd - gm["forward_overlap"]) < 0.05
-        assert abs(rev - gm["reverse_overlap"]) < 0.05
-        assert do_fwd >= fwd * g["thresholds"]["do_effect_forward_min_fraction_of_forward"]
+        assert "RETRACTED" in g
+        assert "metrics" not in g and "thresholds" not in g
+        assert "historical_metrics" in g and "historical_thresholds" in g
 
 
 class TestHoff2026SizeDistGolden:

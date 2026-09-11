@@ -54,5 +54,5 @@ pearl_battery:
   figures: [9, 10, 11]
 
 golden_artifacts:
-  pearl: research/literature/parity/golden/direct2026_pearl.json  # missing
+  pearl: research/literature/parity/golden/direct2026_pearl.json  # retracted
   graphs: research/literature/parity/golden/direct2026_graphs/  # missing

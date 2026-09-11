@@ -3,6 +3,15 @@
 #100 / #32. Two findings, and the second is much larger than the one I set out
 to test.
 
+## 2026-09-11 protocol correction
+
+Calibration now collects each frame once and relabels that immutable sample
+set after tuning. The old `fast=False` branch collected the frames again; since
+parsing recruits, it measured a later model state and made `fast` versus `full`
+an undocumented training-schedule comparison. The compatibility flag remains
+but cannot change observations. This removes that calibration-mode confound.
+The separate repeated-parse defect remains a strict expected failure.
+
 ## What was asked
 
 Every ERP number here is read through a probe running under `brain.frozen()`,

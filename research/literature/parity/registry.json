@@ -102,7 +102,7 @@
       "golden": "golden/direct2026_pearl.json",
       "backend": "brain",
       "repro_command": "python -m pytest neural_assemblies/tests/test_literature_golden.py::TestDirect2026PearlGolden -v",
-      "description": "DIRECT binding asymmetry + do-calculus smoke"
+      "description": "RETRACTED: fiber-insensitive DIRECT overlap smoke"
     },
     {
       "protocol_id": "hoff2026_size_dist",

@@ -50,7 +50,6 @@ REGISTRY = os.path.join(PARITY, "registry.json")
 SPECIAL_PINS = {
     "pnas2020_scaling": {"project_persistence", "separate_overlap",
                          "chance_overlap"},          # +-0.05, per regime
-    "direct2026_pearl": {"forward_overlap", "reverse_overlap"},       # +-0.05
     "colt2022_mnist_brain": {"mean_accuracy"},       # metrics_match_tolerance
     "hoff2026_size_dist": set(),                     # band from paper, no pin
     "colt2022_mnist": set(),                         # thresholds only

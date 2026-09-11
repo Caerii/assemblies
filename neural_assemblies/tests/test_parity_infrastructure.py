@@ -43,8 +43,9 @@ def test_list_protocols_matches_registry():
 
 @pytest.mark.parametrize("protocol_id", [
     "coin2024_demo", "coin2024_compete", "coin2024_softmax", "coin2024_markov_arc",
+    "direct2026_pearl",
 ])
-def test_retracted_coin_golden_stops_before_executor(monkeypatch, protocol_id):
+def test_retracted_golden_stops_before_executor(monkeypatch, protocol_id):
     from neural_assemblies.parity.executors import RetractedProtocol
 
     def forbidden():
@@ -65,18 +66,7 @@ def test_cli_reports_retraction_as_a_distinct_status(capsys):
 
 @pytest.mark.parametrize(
     "protocol_id",
-    [
-        pytest.param(
-            pid,
-            marks=pytest.mark.xfail(
-                reason="DIRECT directional binding is vacuous: forward/reverse/do metrics are provably insensitive to the learned CAUSE->BIND connectome (wipe-test + cue-swap + feedforward probes); pre-norm_init values measured degree-hub substrate overlap, not binding. Not re-baselined -- that would pin the artifact.",
-                strict=False,
-            ),
-        )
-        if pid == "direct2026_pearl"
-        else pid
-        for pid in sorted(EXECUTORS.keys())
-    ],
+    sorted(EXECUTORS.keys()),
 )
 def test_inprocess_verify(protocol_id: str):
     # A RETRACTED golden is skipped, not failed. Nothing is wrong with the

@@ -1,6 +1,7 @@
 """Literature parity: protocols, config registries, and reproduction runner."""
 
 from .config import brain_defaults, load_paper_config, load_regime
+from neural_assemblies.exceptions import RetractedProtocol
 from .papers import coin2024, colt2022, direct2026, hoff2026, nemo2025, pnas2020
 from .paths import config_dir, golden_dir, parity_root, repo_root
 from .protocol import Backend, Protocol, ProtocolResult
@@ -11,6 +12,7 @@ __all__ = [
     "Backend",
     "Protocol",
     "ProtocolResult",
+    "RetractedProtocol",
     "brain_defaults",
     "claim_index",
     "coin2024",

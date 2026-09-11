@@ -1,25 +1,10 @@
-"""The P600's violation arm probes an area that does not exist. PARTLY MOVED.
+"""Both arms of the P600 comparison must be live before a score is readable.
 
-UPDATE (#128), and it is NOT a resolution -- I claimed one and the full suite
-refuted it within the hour.
-
-``train_phrases`` picks its subject and verb by ``role == "agent"`` /
-``"action"``, and every curriculum sentence carried ``roles=[None]``, so phrase
-training HAD NEVER RUN: VP existed only as bootstrap pre-growth plus whatever
-calibration recruited. Routing scene-derived roles through the pipeline wakes
-it -- 72 VP merges during training, self-fiber extent 2061 -- and the probe
-then reads 0.001172 where it read exactly 0.000000 before.
-
-BUT ONLY IN ISOLATION. Run after the sibling ERP tests, the same probe reads
-0.000000 again with 1920 self-fiber columns and 30 winners present. Fiber
-exists, winners exist, drive is zero -- the ORIGINAL diagnosis's exact
-signature. So waking phrase training was NECESSARY and is NOT SUFFICIENT: the
-liveness of this arm depends on what ran before it, which is
-[[erp-suite-cross-test-leakage]] and means the self-block/recruitment defect
-below is still open (#32, #104).
-
-The marker is therefore non-strict: the outcome genuinely varies with test
-order, and a strict xfail would flip-flop rather than report anything.
+Historically the VP arm had winners but no recurrent fiber and returned zero
+energy, which looked like a valid maximal P600 value. Routing scene-derived
+roles into phrase training and forking pristine parser snapshots now makes the
+arm live in isolation and after the sibling ERP tests. These are hard gates so
+the dead-probe state cannot return as a non-strict expected failure.
 
 #104 / #32. Measured on a PRISTINE fork, before any parse:
 
@@ -97,18 +82,6 @@ class TestTheProbedAreasAreReal:
         assert (eng.fiber_extent(ROLE_PATIENT, ROLE_PATIENT) or 0) > 0
         assert _self_recurrent_energy(b, ROLE_PATIENT) > 0.0
 
-    @pytest.mark.xfail(strict=False, reason=(
-        "ORDER-DEPENDENT, which is itself the finding. Waking `train_phrases` "
-        "(it had never run -- every curriculum sentence carried roles=[None]) "
-        "gives VP 72 merges and self-fiber extent 2061, and the probe reads "
-        "0.001172 IN ISOLATION against 0.000000 before. Run after the sibling "
-        "ERP tests it reads 0.000000 again, with 1920 columns and 30 winners "
-        "-- fiber exists, winners exist, drive zero, the original signature. "
-        "So phrase training was NECESSARY and is NOT SUFFICIENT, and the "
-        "self-block/recruitment defect (#32, #104) is still open. Non-strict "
-        "because the outcome varies with test order; a strict marker would "
-        "flip-flop instead of reporting. ROLE_PATIENT is the live control at "
-        "0.010442 and passes in both orders."))
     def test_the_violation_arm_is_alive_too(self, parsed):
         b = parsed
         eng = b._engine_for(b.areas[VP])

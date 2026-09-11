@@ -204,10 +204,8 @@ def main():
         read = READS.get(name, set())
         if not read:
             continue                       # test skipped or never ran
-        # "skipped" covers xfail as well as skip -- an xfailing test stops at
-        # its first bad assertion exactly like a failing one, so its read-set is
-        # equally truncated. direct2026_pearl is xfail-marked and would
-        # otherwise report 4/4 unread for that reason alone.
+        # "skipped" covers unavailable and retracted records. They have no
+        # active metric block to audit and cannot be treated as parity passes.
         if OUTCOME.get(name) in ("failed", "skipped"):
             truncated.append(f"{proto['protocol_id']} ({OUTCOME[name]})")
             continue                       # read-set truncated

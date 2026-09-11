@@ -7,17 +7,10 @@ import math
 from typing import Any, Callable, Dict
 
 from neural_assemblies.reference.nemo_numpy import compare_scaffold_vs_simple
+from neural_assemblies.exceptions import RetractedProtocol
 
 from .paths import golden_dir, parity_root
 
-
-
-class RetractedProtocol(RuntimeError):
-    """A parity protocol whose golden is no longer evidence.
-
-    Distinct from a failure: nothing is wrong with the code, the RECORD is
-    withdrawn. Callers should skip rather than report a discrepancy.
-    """
 
 
 def _retracted_coin(protocol_id: str) -> dict:
@@ -106,32 +99,11 @@ def execute_colt2022_mnist_notebook() -> dict:
 
 
 def execute_direct2026_pearl() -> dict:
-    from neural_assemblies.core.brain import Brain
-    from neural_assemblies.programs.direct import (
-        direct_bind,
-        measure_directional_asymmetry,
-        validate_direct_do_calculus,
+    raise RetractedProtocol(
+        "direct2026_pearl is retracted: its overlap readout is insensitive to "
+        "the learned CAUSE->BIND fiber. Define a synaptic-asymmetry readout "
+        "with a wipe negative control before recording a replacement protocol."
     )
-
-    g = _load_golden("direct2026_pearl.json")
-    p = g["parameters"]
-    brain = Brain(p=p["p"], save_winners=True, seed=p["seed"], engine="numpy_sparse")
-    brain.add_stimulus("cause_s", p["k"])
-    brain.add_stimulus("effect_s", p["k"])
-    brain.add_area("CAUSE", p["n"], p["k"], p["beta"])
-    brain.add_area("EFFECT", p["n"], p["k"], p["beta"])
-    brain.add_area("BIND", p["n"], p["k"], p["beta"])
-    direct_bind(
-        brain, "CAUSE", "EFFECT", "BIND",
-        cause_stim="cause_s", effect_stim="effect_s", rounds=p["rounds"],
-    )
-    fwd, rev = measure_directional_asymmetry(brain, "CAUSE", "EFFECT", "BIND")
-    _, _, do_fwd = validate_direct_do_calculus(brain, "CAUSE", "EFFECT", "BIND")
-    return {
-        "forward_overlap": round(fwd, 4),
-        "reverse_overlap": round(rev, 4),
-        "do_effect_forward_overlap": round(do_fwd, 4),
-    }
 
 
 def execute_hoff2026_size_dist() -> dict:

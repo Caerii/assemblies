@@ -3048,3 +3048,34 @@ The focused class reports 5 passed and 1 expected failure in18.30 seconds. This 
 the previously recorded single-fixture diagnosis made executable; it is not a new
 ensemble result, a calibrated readout comparison or evidence that the sampled
 substrate generalizes outside this fixture.
+
+## Single-pass ERP calibration and DIRECT retraction (2026-09-11)
+
+The complete-package audit's five non-strict XPASS cases were ambiguous test
+outcomes, not five repaired mechanisms. Four came from ERP calibration and probe
+liveness. `calibrate_erp_thresholds(fast=False)` collected all frames a second
+time after tuning, while `fast=True` relabelled the first samples. Because parsing
+recruits neurons, those modes observed different model states. Calibration now
+collects once and purely relabels the observations; the compatibility flag cannot
+change the protocol. A unit contract counts exactly one collection call. The VP
+liveness gate now passes both alone and after sibling ERP tests. Raw-P600
+saturation remains a separate strict expected failure.
+
+The fifth XPASS was the DIRECT toy protocol. Existing wipe, cue-swap and
+feed-forward controls showed that its forward, reverse and intervention overlaps
+were insensitive to the learned `CAUSE -> BIND` fiber. All four public DIRECT
+entry points now raise `RetractedProtocol` before inspecting a brain. Its recorder,
+golden and parity runner also refuse; historical metrics and thresholds remain in
+the golden under explicitly historical keys. The reproduction matrix and parity
+docs now label the mechanism records retracted. A replacement needs a new protocol
+ID, a synaptic-asymmetry readout and a constructed wipe negative control.
+
+The reconstructed historical-failure selection reports 97 passed, 9 skipped,
+2 strict expected failures and zero XPASS in 317.61 seconds. The expected failures
+are the still-open repeated-parse and raw-P600 saturation defects. Ruff, the
+golden-coverage audit and diff checks pass. This is a focused audit, not a new
+complete-package result.
+
+The combined methodology, index-space, research-contract, specification-link,
+theory-register, active-evidence and parity-infrastructure gate reports 73 passed
+and 11 skipped in 59.32 seconds.
