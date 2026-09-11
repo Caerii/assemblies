@@ -40,6 +40,7 @@ pathway. TAU below is that traversal constant.
 
 from __future__ import annotations
 
+from numbers import Integral
 from typing import Dict, Iterable, Mapping, Optional
 
 from .assembly import Assembly, overlap
@@ -150,9 +151,15 @@ def bind(
     Returns:
         True if the pairing was applied.
     """
-    sources = [a for a in sources if a in brain.areas]
-    teachers = [a for a in teachers if a in brain.areas]
-    if not sources or target_area not in brain.areas:
+    sources = list(sources)
+    teachers = list(teachers)
+    unknown = [a for a in (*sources, *teachers, target_area)
+               if a not in brain.areas]
+    if unknown:
+        raise KeyError(f"bind area name(s) are unknown: {unknown!r}")
+    if isinstance(rounds, bool) or not isinstance(rounds, Integral) or rounds < 1:
+        raise ValueError("bind rounds must be a positive integer")
+    if not sources:
         return False
 
     _activate_all(brain, source_assemblies)

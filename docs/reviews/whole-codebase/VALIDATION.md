@@ -4615,3 +4615,7 @@ provenance signals.
 ## Explicit input-drive metric (2026-09-11)
 
 `input_drive` now rejects unknown metric names instead of silently taking the `winners` branch. Only `pre_kwta` and `winners` are valid, preserving the distinction between global pre-selection energy and post-selection winner drive. The binding diagnostic suite passes **19 tests**, with Ruff clean.
+
+## Low-level binding schedule admission (2026-09-11)
+
+The legacy `assembly_calculus.binding.bind` now rejects unknown area names and nonpositive/nonintegral `rounds` instead of filtering names or allowing an ambiguous schedule to reach execution. Fourteen binding/operator regressions pass; Ruff remains clean.

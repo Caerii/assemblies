@@ -2561,3 +2561,5 @@ Binding now has an executable input contract: `bind` raises when neither a usabl
 Binding diagnostics now preserve area-name semantics: `recall` and `input_drive` raise on unknown source/target names instead of silently dropping them. Focused area-contract, drive, and pre-k-WTA tests pass (18 tests).
 
 `input_drive` now admits only its two declared measurements (`pre_kwta` and `winners`); an unknown metric raises instead of silently changing the scientific quantity. Focused binding diagnostics pass (19 tests).
+
+The lower-level binding helper now validates resolved area names and requires an explicit positive integer round count. Misspelled areas and ambiguous schedules fail before execution; focused binding regressions pass (14 tests).
