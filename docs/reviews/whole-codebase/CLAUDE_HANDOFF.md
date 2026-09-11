@@ -2649,3 +2649,5 @@ Exported the ordered-recall and sequence-memorization plans/contracts from the p
 Added a dedicated sequence-memory semantic card and linked both `SequenceMemorizePlan` and `OrderedRecallPlan` contracts to it. The code-to-spec graph now describes their concrete schedules and controls instead of pointing at the broader transition-machine card. Specification-link and operation-contract tests pass (166 tests).
 
 Linked both sequence plan declarations directly to `contract-sequence-memory` in their docstrings. This makes the code-to-spec edge local and discoverable for tooling and future IR extraction. Specification-link tests pass (11 tests); Ruff is clean.
+
+Added direct `Specification:` links to the five remaining core plan declarations: projection, reciprocal projection, association, merge, and completion. All maintained schedules now expose their semantic card at the source definition. Specification-link tests pass (11 tests); Ruff is clean.

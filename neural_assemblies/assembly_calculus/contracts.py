@@ -48,7 +48,10 @@ class ProjectionStep:
 
 @dataclass(frozen=True)
 class ProjectionPlan:
-    """Validated schedule for the named stimulus-to-area operation."""
+    """Validated schedule for the named stimulus-to-area operation.
+
+    Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-projection
+    """
 
     stimulus: str
     target: str
@@ -83,7 +86,10 @@ class ProjectionPlan:
 
 @dataclass(frozen=True)
 class ReciprocalProjectionPlan:
-    """Validated two-area copy and return-edge schedule."""
+    """Validated two-area copy and return-edge schedule.
+
+    Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-reciprocal-projection
+    """
 
     source: str
     target: str
@@ -125,7 +131,10 @@ class ReciprocalProjectionPlan:
 
 @dataclass(frozen=True)
 class AssociationPlan:
-    """Validated sequential-pathway and joint-coactivation schedule."""
+    """Validated sequential-pathway and joint-coactivation schedule.
+
+    Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-association
+    """
 
     source_a: str
     source_b: str
@@ -232,7 +241,10 @@ _UNSTIMULATED_SOURCE_MODES = frozenset({"require-fixed", "fix-current", "evolvin
 
 @dataclass(frozen=True)
 class MergePlan:
-    """Validated simultaneous two-parent merge schedule."""
+    """Validated simultaneous two-parent merge schedule.
+
+    Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-merge
+    """
 
     source_a: str
     source_b: str
@@ -378,7 +390,10 @@ class PreparedCompletion:
 
 @dataclass(frozen=True)
 class CompletionPlan:
-    """Validated partial-cue construction and recurrent recovery schedule."""
+    """Validated partial-cue construction and recurrent recovery schedule.
+
+    Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-completion
+    """
 
     area: str
     fraction: float = 0.5

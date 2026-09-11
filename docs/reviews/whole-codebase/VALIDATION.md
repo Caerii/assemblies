@@ -4791,3 +4791,7 @@ Added `contract-sequence-memory` to the semantic-card specification and retarget
 ## Local sequence plan specification links (2026-09-11)
 
 `OrderedRecallPlan` and `SequenceMemorizePlan` docstrings now link directly to the dedicated sequence semantic card. The contract is discoverable from the declaration itself, enabling static code-to-spec tooling without traversing registry metadata. Specification-link tests pass **11 tests**; Ruff is clean.
+
+## Local specification edges for core plans (2026-09-11)
+
+Projection, reciprocal projection, association, merge, and completion plan declarations now each link directly to their semantic card in the class docstring. Every maintained core schedule is therefore discoverable from its definition, independent of registry traversal. Specification-link tests pass **11 tests**; Ruff is clean.
