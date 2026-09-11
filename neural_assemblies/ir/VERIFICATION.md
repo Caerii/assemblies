@@ -139,6 +139,39 @@ Passing a parity corpus belongs to a test report. Neither alone adopts a
 scientific result, proves a capacity law, or justifies a faster implementation.
 Benchmark time and memory separately after preservation gates pass.
 
+<a id="contract-organ-semantics"></a>
+
+## Hashed organ semantic identity
+
+`OrganSemantics` composes one `ModelSemantics` substrate with the state code,
+training schedule and inference schedule of an assembly memory, assigned-state
+FSM or sequence transducer. It also records exact tie jitter, effective ARC and
+STATE refraction charges, convergence gating, successor horizon and gain,
+prediction gain and feature-register presence. These choices alter the transition relation and therefore cannot be
+inferred from a hardware label such as `hashed_arc_fsm`.
+
+The hashed substrate profile distinguishes fixed Bernoulli afferent counts from
+zero-or-size drive, lowest-neuron-ID ties from deterministic hash jitter, and
+inverse-indegree initialization from subsequent column scaling. The public pure
+`describe_*` functions derive profiles without allocating a GPU. Each organ
+constructor derives the same profile before device allocation and, when given an
+expected `organ_semantics`, rejects every mismatch before constructing state.
+Thus a run record can be passed back into the implementation as an executable
+admission requirement.
+
+`ExecutionSemantics` is the strict discriminated envelope used by evidence. A
+Brain run has exactly one `default` model profile. An organ run has one or more
+named organ profiles, allowing a paired null study or the capacity study's B/G
+arms to state their different transition relations without pretending they are
+one backend default. Unknown fields, incomplete nested objects, inconsistent
+tie rules and invalid organ/state combinations reject.
+
+Constructed controls pair each organ with a valid profile that differs in one
+mechanism. Supplying that profile to the other configuration raises before any
+device allocation. These tests establish that the boundary detects mismatch;
+they do not prove the CUDA implementation refines the profile. CUDA parity,
+mechanism-disabling nulls and observation contracts remain separate obligations.
+
 ## Source links and proof workflow
 
 Definitions use `Specification: repository/path.md#stable-anchor` in docstrings.

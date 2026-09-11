@@ -5,12 +5,13 @@ from pathlib import Path
 import pytest
 
 from research import runner
-from neural_assemblies import describe_brain_model
+from neural_assemblies import describe_brain_model, describe_hashed_arc_fsm
 
 
 FIXTURE_MODEL = describe_brain_model(
     "numpy_exact", norm_init=False,
 ).to_dict()
+FIXTURE_ORGAN = describe_hashed_arc_fsm().to_dict()
 
 
 @pytest.fixture
@@ -32,6 +33,9 @@ def run(tmp_path, monkeypatch):
                 if values["engine"] in runner.BRAIN_ENGINES
                 else None
             )
+        if (values["engine"] not in runner.BRAIN_ENGINES
+                and "organ_semantics" not in kwargs):
+            values["organ_semantics"] = FIXTURE_ORGAN
         return runner.run_experiment(**values)
     return execute
 
@@ -50,6 +54,7 @@ def test_reused_tag_refuses_before_compute_and_preserves_bytes(run):
                                    dict(tag=''), dict(tag='../escape'), dict(engine='auto'),
                                    dict(engine=None), dict(smoke='false'),
                                    dict(model_semantics=None),
+                                   dict(engine='hashed_arc_fsm', organ_semantics=None),
                                    dict(engine='hashed_arc_fsm', seeds=list(range(19)))])
 def test_invalid_run_stops_before_compute(run, kwargs):
     calls = []
@@ -64,13 +69,26 @@ def test_wrong_engine_profile_stops_before_reservation(run, tmp_path):
     assert not (tmp_path / "audit.fixture" / "fixture").exists()
 
 
+def test_wrong_organ_kind_stops_before_reservation(run, tmp_path):
+    from neural_assemblies import describe_assembly_memory
+
+    with pytest.raises(ValueError, match="cannot implement organ_semantics"):
+        run(
+            engine="hashed_arc_fsm",
+            organ_semantics=describe_assembly_memory(),
+        )
+    assert not (tmp_path / "audit.fixture" / "fixture").exists()
+
+
 def test_smoke_record_is_void_and_includes_resolved_inputs(run):
     path = run(smoke=True, engine='hashed_arc_fsm')
     result = json.loads(path.read_text())
     assert result['run']['scientific_status'] == 'VOID'
     assert result['run']['seeds'] == [1, 2, 3]
     assert result['run']['parameters'] == {'n': 100, 'k': 10}
-    assert result['run']['model_semantics'] is None
+    assert result['run']['execution_semantics'] == {
+        'kind': 'organ', 'profiles': {'default': FIXTURE_ORGAN},
+    }
     assert result['run']['registration_sha256']
     assert result['status'] == 'complete'
 
@@ -83,7 +101,7 @@ def test_large_raw_json_is_a_digest_bound_compressed_attachment(run):
         {'verdict': 'UNADOPTED', 'raw': {'attachment': 'raw-frames.json.gz'}},
         {'raw-frames.json.gz': raw}))
     payload = json.loads(path.read_text())
-    assert payload['run']['schema_version'] == 6
+    assert payload['run']['schema_version'] == 7
     assert '"frames": [' not in path.read_text()
     assert set(payload['attachments']) == {'raw-frames.json.gz'}
     metadata = payload['attachments']['raw-frames.json.gz']
@@ -95,28 +113,30 @@ def test_large_raw_json_is_a_digest_bound_compressed_attachment(run):
 def test_brain_run_records_canonical_model_semantics(run):
     path = run()
     record = json.loads(path.read_text())['run']
-    assert record['model_semantics'] == FIXTURE_MODEL
+    assert record['execution_semantics'] == {
+        'kind': 'brain', 'profiles': {'default': FIXTURE_MODEL},
+    }
 
 
 @pytest.mark.parametrize('damage', ['missing', 'unknown', 'noncanonical'])
-def test_validator_rejects_invalid_model_semantics(run, damage):
+def test_validator_rejects_invalid_execution_semantics(run, damage):
     from research.evidence import validate_artifact
 
     path = run()
     payload = json.loads(path.read_text())
-    semantics = payload['run']['model_semantics']
+    semantics = payload['run']['execution_semantics']['profiles']['default']
     if damage == 'missing':
         semantics = None
     elif damage == 'unknown':
         semantics['connectome'] = 'probably-exact'
     else:
         semantics['weight_ceiling'] = 20
-    payload['run']['model_semantics'] = semantics
+    payload['run']['execution_semantics']['profiles']['default'] = semantics
     path.write_text(json.dumps(payload), encoding='utf-8')
     (path.parent / 'run.json').write_text(
         json.dumps(payload['run']), encoding='utf-8'
     )
-    assert any('model_semantics' in error for error in validate_artifact(path))
+    assert any('execution_semantics' in error for error in validate_artifact(path))
 
 
 def test_attachment_encoding_is_deterministic():
@@ -327,7 +347,7 @@ def test_record_carries_shared_environment_fingerprint_without_raw_values(run, m
     monkeypatch.setenv('NEURAL_ASSEMBLIES_NO_RUST', 'private-test-value')
     path = run()
     record = json.loads(path.read_text())['run']
-    assert record['schema_version'] == 6
+    assert record['schema_version'] == 7
     fingerprint = record['environment']['variables_sha256']
     assert fingerprint['NEURAL_ASSEMBLIES_NO_RUST'] == dict(
         sweep._training_env_signature())['NEURAL_ASSEMBLIES_NO_RUST']

@@ -38,6 +38,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(
 
 from neural_assemblies.core.numpy_engine import _seeding                # noqa: E402
 from neural_assemblies.diagnostics import ensemble_from_values          # noqa: E402
+from neural_assemblies import describe_assembly_memory                  # noqa: E402
 from research.experiments._substrate import ceiling_from_curve          # noqa: E402
 from research.runner import experiment_parser, run_experiment           # noqa: E402
 
@@ -106,7 +107,8 @@ def _fill(mem):
     return mem.fill.cpu().numpy()
 
 
-def run_cell(n, k, protocol, seeds, rng, *, arm_settings, device):
+def run_cell(n, k, protocol, seeds, rng, *, arm_settings, device,
+             organ_semantics=None):
     """Train up to `m_max` assemblies, checkpointing at every M in MS.
 
     The protocol is `AssemblyMemory`: INHIBITED between assemblies, each
@@ -122,7 +124,8 @@ def run_cell(n, k, protocol, seeds, rng, *, arm_settings, device):
     mem = AssemblyMemory(sd, n, k, protocol.p, beta=protocol.beta,
                          w_max=protocol.w_max, rounds=protocol.rounds,
                          strength=(protocol.refracted_factor if protocol.refracted else 0.0),
-                         gate=protocol.converge, max_items=m_max, device=device, **arm_settings)
+                         gate=protocol.converge, max_items=m_max, device=device,
+                         organ_semantics=organ_semantics, **arm_settings)
     stored, used = [], []
     out = {}
     for a in range(m_max):
@@ -285,7 +288,10 @@ def experiment(record):
             # and restarted per cell as in the historical protocol.
             cells = run_cell(n, k, protocol, seeds,
                              np.random.default_rng(parameters["measurement_seed"]),
-                             arm_settings=settings[arm], device=device)
+                             arm_settings=settings[arm], device=device,
+                             organ_semantics=(
+                                 record["execution_semantics"]["profiles"][arm]
+                             ))
             curve = [(m, gated(cell, seeds, distinct_gate=parameters["distinct_gate"],
                                distinct_low_bar=parameters["distinct_low_bar"])[0])
                      for m, cell in sorted(cells.items())]
@@ -356,6 +362,15 @@ def main(argv=None):
         script=__file__, protocol="memory.capacity-scaling", protocol_version="2",
         registration=args.registration, engine=args.engine, seeds=args.seeds, tag=args.tag,
         smoke=args.smoke, measure=experiment,
+        organ_semantics={
+            arm: describe_assembly_memory(
+                w_max=config.w_max, beta=config.beta,
+                strength=(config.refracted_factor if config.refracted else 0.0),
+                gate=config.converge,
+                **ARMS[arm],
+            )
+            for arm in arms
+        },
         parameters={"configuration": asdict(config), "nk": nk, "arms": arms,
                     "arm_settings": {arm: ARMS[arm] for arm in arms},
                     "measurement_seed": 1234, "half_bar": HALF_BAR,

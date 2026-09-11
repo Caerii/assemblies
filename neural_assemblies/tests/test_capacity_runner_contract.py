@@ -24,7 +24,8 @@ def test_invalid_configuration_fails_before_gpu_import(kwargs):
 
 def test_same_n_different_k_retains_both_cells_and_seed_identity(monkeypatch):
     calls = []
-    def fake_cell(n, k, protocol, seeds, rng, *, arm_settings, device):
+    def fake_cell(n, k, protocol, seeds, rng, *, arm_settings, device,
+                  organ_semantics):
         calls.append((n, k, arm_settings, device, tuple(seeds)))
         return {4: {"rank1": [0.9] * 3, "pairwise_x": [1.0] * 3,
                     "distinct": [1.0] * 3, "fill": [0.1] * 3}}
@@ -34,10 +35,14 @@ def test_same_n_different_k_retains_both_cells_and_seed_identity(monkeypatch):
         "parameters": {"configuration": asdict(capacity.CapacityProtocol(checkpoints=(4,))),
                        "arms": ["B"], "nk": [[100, 10], [100, 20]],
                        "measurement_seed": 1234, "half_bar": 0.5,
-                       "arm_settings": {"B": {"norm_init": False, "synaptic_scaling": True}},
+                       "arm_settings": {"B": {"norm_init": True, "synaptic_scaling": False}},
                        "device": "cuda:0", "distinct_gate": 3., "distinct_low_bar": .9},
+        "execution_semantics": {"profiles": {"B":
+            capacity.describe_assembly_memory(
+                norm_init=True, synaptic_scaling=False, strength=0.0,
+            ).to_dict()}},
     })
-    assert calls == [(100, k, {"norm_init": False, "synaptic_scaling": True},
+    assert calls == [(100, k, {"norm_init": True, "synaptic_scaling": False},
                       "cuda:0", (7, 13, 19)) for k in (10, 20)]
     assert [(c["n"], c["k"]) for c in result["cells"]] == [(100, 10), (100, 20)]
     assert result["verdict"] == "VOID"

@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 
 from neural_assemblies.diagnostics import ensemble_from_values, paired_delta
+from neural_assemblies import describe_hashed_arc_fsm
 from research.experiments.seq_a1_horizon_hashed import HorizonProtocol, run_width
 from research.runner import ROOT, experiment_parser, run_experiment
 
@@ -52,7 +53,13 @@ def experiment(record):
     cells = []
     for cell in parameters["schedule"]:
         p = cell["p"]
-        rows = {arm: run_width(seeds, p, protocols[arm]) for arm in cell["order"]}
+        rows = {
+            arm: run_width(
+                seeds, p, protocols[arm],
+                record["execution_semantics"]["profiles"][arm],
+            )
+            for arm in cell["order"]
+        }
         scored = score_pair(rows, seeds, parameters["bars"])
         cells.append({"p": p, "order": cell["order"], "rows": rows, **scored})
         print(f"p={p}: {scored['checks']}", flush=True)
@@ -77,6 +84,13 @@ def main(argv=None):
         registration="research/notes/sequence/PREREG_a1_learning_null.md",
         engine=args.engine, seeds=args.seeds, tag=args.tag, smoke=args.smoke,
         minimum_study_seeds=20, input_artifacts=(REFERENCE,),
+        organ_semantics={
+            arm: describe_hashed_arc_fsm(
+                w_max=protocol.w_max, norm_init=protocol.norm_init,
+                refracted_strength=protocol.strength,
+            )
+            for arm, protocol in {"trained": trained, "null": null}.items()
+        },
         parameters={"protocols": {"trained": asdict(trained), "null": asdict(null)},
                     "bars": BARS, "schedule": [
                         {"p": p, "order": ["trained", "null"] if i % 2 == 0 else ["null", "trained"]}

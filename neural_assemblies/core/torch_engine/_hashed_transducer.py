@@ -118,7 +118,25 @@ class HashedTransducer:
                  tie_jitter: float = 1e-6, device: str = "cuda",
                  zero_or_size: bool = True, horizon: int = 0,
                  successor_gain: float = 1.0, state_mode: str = "induced",
-                 predict_gain: float = 0.0, features=None, feature_of=None):
+                 predict_gain: float = 0.0, features=None, feature_of=None,
+                 organ_semantics=None):
+        from ..semantics import OrganSemantics, describe_hashed_transducer
+
+        actual_semantics = describe_hashed_transducer(
+            w_max=w_max, norm_init=norm_init,
+            refracted_strength=refracted_strength,
+            state_refracted_strength=state_refracted_strength,
+            tie_jitter=tie_jitter, zero_or_size=zero_or_size,
+            horizon=horizon, successor_gain=successor_gain,
+            state_mode=state_mode,
+            predict_gain=predict_gain, feature_register=bool(features),
+        )
+        if organ_semantics is not None:
+            required = OrganSemantics.normalize(organ_semantics)
+            mismatch = required.mismatch(actual_semantics)
+            if mismatch:
+                raise ValueError(f"organ_semantics mismatch: {mismatch}")
+        self.organ_semantics = actual_semantics
         #: stimuli follow the ENGINE's zero-or-size model by default (see
         #: StimulusFiber); False gives Binomial counts, the aligner's choice
         self.zero_or_size = bool(zero_or_size)

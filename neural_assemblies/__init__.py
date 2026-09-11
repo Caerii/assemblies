@@ -30,7 +30,10 @@ _LAZY_EXPORTS = {
         "ModelSemantics", "ConnectomeMode", "CandidateDomain",
         "StimulusDriveLaw", "TieBreakRule", "ArithmeticMode",
         "NormalizationMode", "PlasticityRule",
-        "describe_brain_model",
+        "ExecutionSemantics", "ExecutionKind", "OrganSemantics", "OrganKind", "StateCode", "TrainingSchedule",
+        "InferenceSchedule", "describe_brain_model",
+        "describe_assembly_memory", "describe_hashed_arc_fsm",
+        "describe_hashed_transducer",
     )
 }
 _LAZY_EXPORTS["cupy_available"] = ".core.backend"
@@ -121,9 +124,12 @@ if TYPE_CHECKING:  # pragma: no cover
     from .core import (
         Area, Brain, ComputeEngine, Connectome, ProjectionResult, Stimulus,
         ArithmeticMode, CandidateDomain, ConnectomeMode, ModelSemantics,
-        NormalizationMode, PlasticityRule, SampledRecurrencePolicy,
-        StimulusDriveLaw, TieBreakRule, create_engine, describe_brain_model,
-        list_engines,
+        ExecutionKind, ExecutionSemantics, InferenceSchedule,
+        NormalizationMode, OrganKind, OrganSemantics,
+        PlasticityRule, SampledRecurrencePolicy, StateCode,
+        StimulusDriveLaw, TieBreakRule, TrainingSchedule, create_engine,
+        describe_assembly_memory, describe_brain_model,
+        describe_hashed_arc_fsm, describe_hashed_transducer, list_engines,
     )
     from .core.backend import cupy_available
     from .utils import (
@@ -171,7 +177,10 @@ __all__ = [
     'ModelSemantics', 'ConnectomeMode', 'CandidateDomain',
     'StimulusDriveLaw', 'TieBreakRule', 'ArithmeticMode',
     'NormalizationMode', 'PlasticityRule',
-    'describe_brain_model',
+    'ExecutionSemantics', 'ExecutionKind',
+    'OrganSemantics', 'OrganKind', 'StateCode', 'TrainingSchedule',
+    'InferenceSchedule', 'describe_brain_model', 'describe_assembly_memory',
+    'describe_hashed_arc_fsm', 'describe_hashed_transducer',
 
     # Compute engine API
     'ComputeEngine', 'ProjectionResult', 'create_engine', 'list_engines',

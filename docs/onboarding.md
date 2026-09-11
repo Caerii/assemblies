@@ -69,8 +69,12 @@ evidence. Then follow the reading order below.
   `Brain(model_semantics=...)` on reproduction. This rejects graph-addressing,
   candidate-domain, stimulus, tie, precision, normalization, or weight-rule
   drift before topology is registered.
-  Schema-6 runner calls require this document for every Brain engine and reject
-  a profile belonging to another backend before reserving the run tag.
+  Schema-7 runner calls place this under the `default` Brain profile in
+  `execution_semantics` and reject a profile belonging to another backend before
+  reserving the run tag. Hashed organs use the same envelope with strict named
+  `OrganSemantics` profiles. Pass the recorded profile back to the organ
+  constructor; a stimulus, tie, scaling, state-code, or schedule mismatch then
+  fails before CUDA allocation.
 - **Smoke runs check the API, not the science.** A run with fewer seeds or
   a smaller grid than registered produces void numbers; tag it so.
 - **Adopted results go into `neural_assemblies/theory.py`**, rendered to

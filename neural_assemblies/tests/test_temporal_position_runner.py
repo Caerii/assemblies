@@ -89,7 +89,7 @@ def test_experiment_indexes_raw_frames_in_one_attachment(monkeypatch):
     seeds = [11, 17, 23]
     corpus = [["does", "dog", "dog", "sees", "cat", "cat", "it", "bird", "bird", "doesnt"]]
 
-    def run_arm(group, _parameters, arm):
+    def run_arm(group, _parameters, arm, _organ_semantics):
         rows = reports(group, arm)
         for row in rows:
             row.update(test_corpus=corpus, frames=[{"identity": row["seed"]}],
@@ -97,8 +97,19 @@ def test_experiment_indexes_raw_frames_in_one_attachment(monkeypatch):
         return rows
 
     monkeypatch.setattr(study, "run_arm", run_arm)
-    output = study.experiment({"mode": "smoke", "seeds": seeds,
-                               "parameters": deepcopy(study.SMOKE)})
+    parameters = deepcopy(study.SMOKE)
+    output = study.experiment({
+        "mode": "smoke", "seeds": seeds, "parameters": parameters,
+        "execution_semantics": {"profiles": {
+            name: study.describe_hashed_transducer(
+                w_max=parameters["w_max"], norm_init=parameters["norm_init"],
+                refracted_strength=parameters["refracted_strength"],
+                state_mode=parameters["state_mode"],
+                predict_gain=arm["predict_gain"],
+            ).to_dict()
+            for name, arm in study.ARMS.items()
+        }},
+    })
     assert output.observations["raw_observations"] == {
         "attachment": "raw-frames.json.gz", "format": "temporal-position-frames-v1",
         "brain_count": 3, "arm_count": 3, "frame_count": 9,

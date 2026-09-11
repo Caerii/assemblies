@@ -118,6 +118,15 @@ winners from different drives.
 | `ScheduledAligner` | `_scheduled_aligner.py` | The cross-situational word learner, whole schedule in one launch. |
 | kernels | `_fused_cuda.py` | Presence hashing, drive, selection, write-back, and the persistent present-only kernel. |
 
+These organs expose an immutable `organ_semantics` derived before CUDA
+allocation. It composes the hashed substrate with state-code and schedule
+semantics, including the stimulus law, tie jitter, normalization/scaling,
+refraction, convergence gating, teacher forcing, frozen inference, successor
+horizon/gain and prediction rule.
+Passing a recorded profile back to the constructor makes it an admission check.
+Schema-7 evidence wraps one or more named profiles in `execution_semantics`, so
+paired arms cannot silently share a label while implementing different models.
+
 A unit's numbers are used only after it passes two gates: a drive replay
 against the numpy engine to a relative 5e-6 with refraction included, and
 identity across width, meaning a brain in a launch equals the same brain

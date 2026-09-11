@@ -65,7 +65,20 @@ class AssemblyMemory:
 
     def __init__(self, seeds, n, k, p, *, beta=0.1, w_max=20.0, norm_init=True,
                  synaptic_scaling=False, rounds=8, strength=0.5, gate=False,
-                 max_items=4096, device="cuda"):
+                 max_items=4096, device="cuda", organ_semantics=None):
+        from ..semantics import OrganSemantics, describe_assembly_memory
+
+        actual_semantics = describe_assembly_memory(
+            w_max=w_max, norm_init=norm_init,
+            synaptic_scaling=synaptic_scaling, strength=strength, beta=beta,
+            gate=gate,
+        )
+        if organ_semantics is not None:
+            required = OrganSemantics.normalize(organ_semantics)
+            mismatch = required.mismatch(actual_semantics)
+            if mismatch:
+                raise ValueError(f"organ_semantics mismatch: {mismatch}")
+        self.organ_semantics = actual_semantics
         self.seeds = [int(s) for s in seeds]
         self.B, self.n, self.k, self.p = len(self.seeds), int(n), int(k), float(p)
         self.beta, self.w_max = float(beta), w_max

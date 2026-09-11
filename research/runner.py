@@ -20,7 +20,8 @@ from zipfile import ZIP_DEFLATED, ZipFile, ZipInfo
 
 from neural_assemblies.core.environment import environment_record
 from neural_assemblies.core.semantics import (
-    BRAIN_ENGINE_NAMES, ModelSemantics, NormalizationMode, describe_brain_model,
+    BRAIN_ENGINE_NAMES, ExecutionKind, ExecutionSemantics, ModelSemantics,
+    NormalizationMode, ORGAN_ENGINE_KINDS, OrganSemantics, describe_brain_model,
 )
 from research.json_documents import encode_document, write_new_document as _write_new
 from research.source_archive import validate_source_archive
@@ -45,6 +46,7 @@ def _is_source_input(path: Path) -> bool:
 _NAME = re.compile(r'[A-Za-z0-9][A-Za-z0-9_.-]*\Z')
 _ATTACHMENT_NAME = re.compile(r'[A-Za-z0-9][A-Za-z0-9_.-]*\.json\.gz\Z')
 BRAIN_ENGINES = BRAIN_ENGINE_NAMES
+ORGAN_ENGINES = ORGAN_ENGINE_KINDS
 
 
 @dataclass(frozen=True)
@@ -131,7 +133,8 @@ def run_experiment(*, script: str | Path, protocol: str, protocol_version: str,
                    output_root: Path | None = None,
                    input_artifacts: tuple[str, ...] = (),
                    expected_input_digests: Mapping[str, str] | None = None,
-                   model_semantics: ModelSemantics | Mapping | None = None) -> Path:
+                   model_semantics: ModelSemantics | Mapping | None = None,
+                   organ_semantics: OrganSemantics | Mapping | None = None) -> Path:
     """Execute one resolved protocol; return its immutable results file.
 
     `measure(record)` receives a JSON snapshot of the resolved inputs. It must
@@ -141,8 +144,11 @@ def run_experiment(*, script: str | Path, protocol: str, protocol_version: str,
     Optional expected_input_digests binds prior parsing to the complete captured
     input inventory, using canonical repository-relative names (research/README.md
     #historical-experiment-parameter-files). Mismatch fails before reservation.
-    Brain engines require a complete ModelSemantics profile; the runner resolves
-    the selected default path and rejects disagreement before reserving a tag.
+    Brain engines require a complete ModelSemantics profile; hashed organs
+    require one or more OrganSemantics profiles. The runner writes the strict
+    discriminated ExecutionSemantics envelope and rejects disagreement before
+    reserving a tag. Organ implementations consume their recorded profile again
+    before allocating device state.
     """
     for name, value in [('tag', tag), ('protocol', protocol), ('protocol_version', protocol_version)]:
         if not isinstance(value, str) or not _NAME.fullmatch(value):
@@ -150,6 +156,8 @@ def run_experiment(*, script: str | Path, protocol: str, protocol_version: str,
     if not isinstance(engine, str) or not _NAME.fullmatch(engine) or engine == 'auto':
         raise ValueError('record the resolved engine; auto is not provenance')
     if engine in BRAIN_ENGINES:
+        if organ_semantics is not None:
+            raise ValueError('Brain engines cannot claim organ_semantics')
         if model_semantics is None:
             raise ValueError(
                 f'{engine} runs require a complete model_semantics document'
@@ -170,13 +178,36 @@ def run_experiment(*, script: str | Path, protocol: str, protocol_version: str,
             raise ValueError(
                 f'{engine} does not implement requested model_semantics: {mismatch}'
             )
-        model_document = requested_model.to_dict()
+        execution_document = ExecutionSemantics(
+            ExecutionKind.BRAIN, {'default': requested_model},
+        ).to_dict()
     else:
-        if model_semantics is not None:
+        if engine not in ORGAN_ENGINES:
+            raise ValueError(f'unknown execution engine: {engine}')
+        if model_semantics is not None or organ_semantics is None:
             raise ValueError(
-                f'{engine} is not a Brain engine; its semantics need an organ contract'
+                f'{engine} requires organ_semantics and cannot claim Brain model_semantics'
             )
-        model_document = None
+        if (isinstance(organ_semantics, OrganSemantics)
+                or (isinstance(organ_semantics, Mapping)
+                    and 'organ' in organ_semantics)):
+            profiles = {'default': OrganSemantics.normalize(organ_semantics)}
+        elif isinstance(organ_semantics, Mapping):
+            profiles = dict(organ_semantics)
+        else:
+            raise TypeError('organ_semantics must be an OrganSemantics or profile mapping')
+        execution_document = ExecutionSemantics(
+            ExecutionKind.ORGAN, profiles,
+        ).to_dict()
+        wrong = {
+            name: profile['organ']
+            for name, profile in execution_document['profiles'].items()
+            if profile['organ'] != ORGAN_ENGINES[engine].value
+        }
+        if wrong:
+            raise ValueError(
+                f'{engine} cannot implement organ_semantics profiles: {wrong}'
+            )
     if type(smoke) is not bool or type(minimum_study_seeds) is not int or minimum_study_seeds < 3:
         raise ValueError('smoke must be boolean and minimum_study_seeds an integer of at least three')
     seeds = list(seeds)
@@ -197,12 +228,12 @@ def run_experiment(*, script: str | Path, protocol: str, protocol_version: str,
     inputs = {name: hashlib.sha256(data).hexdigest() for name, data in input_bytes.items()}
     if expected_input_digests is not None and inputs != dict(expected_input_digests):
         raise ValueError('input artifacts differ from the configuration snapshot')
-    record = dict(schema_version=6, environment=environment_record(), source_inventory=SOURCE_INVENTORY, protocol=protocol, protocol_version=protocol_version,
+    record = dict(schema_version=7, environment=environment_record(), source_inventory=SOURCE_INVENTORY, protocol=protocol, protocol_version=protocol_version,
                   script=script_path.relative_to(ROOT).as_posix(),
                   script_sha256=hashlib.sha256(script_path.read_bytes()).hexdigest(),
                   registration=registration_path.relative_to(ROOT).as_posix(),
                   registration_sha256=hashlib.sha256(registration_path.read_bytes()).hexdigest(),
-                  engine=engine, model_semantics=model_document, seeds=seeds,
+                  engine=engine, execution_semantics=execution_document, seeds=seeds,
                   tag=tag, parameters=dict(parameters), input_artifacts=inputs,
                   mode='smoke' if smoke else 'study', scientific_status='VOID' if smoke else 'UNJUDGED',
                   started_utc=datetime.now(timezone.utc).isoformat(), **_source_identity())

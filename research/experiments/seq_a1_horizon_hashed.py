@@ -32,6 +32,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from neural_assemblies.core.brain import Brain                            # noqa: E402
+from neural_assemblies import describe_hashed_arc_fsm                    # noqa: E402
 from neural_assemblies.programs.mod3_fsm import (                         # noqa: E402
     ALL_STATES, ALL_SYMBOLS, mod3_transition_table)
 from seq_a1_fsm_parity import BETA, K, N_ARC, N_STATE, PRESENTATIONS      # noqa: E402
@@ -98,7 +99,7 @@ def digit_strings(seeds, length):
     return out
 
 
-def run_width(seeds, p, protocol):
+def run_width(seeds, p, protocol, organ_semantics=None):
     import torch
     from neural_assemblies.core.torch_engine._hashed_fsm import HashedArcFSM
     length = protocol.length
@@ -106,7 +107,7 @@ def run_width(seeds, p, protocol):
                        n_arc=protocol.n_arc, n_state=protocol.n_state, k=protocol.k, p=p, beta=protocol.beta,
                        refracted_strength=protocol.strength, w_max=protocol.w_max, norm_init=protocol.norm_init,
                        max_potentiations=protocol.presentations * 4 + 8, prefix="_mod3",
-                       device=protocol.device)
+                       device=protocol.device, organ_semantics=organ_semantics)
     t0 = time.perf_counter()
     fsm.train(protocol.presentations)
     fsm.check()
@@ -169,7 +170,10 @@ def experiment(record):
     print(f"=== GATE-3: the horizon at width ({len(seeds)} brains, {length} digits) ===")
     rows, out = [], {"brains": seeds, "length": length, "rows": []}
     for p in protocol.p_values:
-        got = run_width(seeds, p, protocol)
+        got = run_width(
+            seeds, p, protocol,
+            record["execution_semantics"]["profiles"]["default"],
+        )
         rows += got
         never = sum(r["first_error"] is None for r in got)
         fes = sorted(r["first_error"] for r in got if r["first_error"] is not None)
@@ -197,17 +201,21 @@ def main(argv=None):
     ap = experiment_parser(__doc__, engines=('hashed_arc_fsm',),
                            default_seeds=tuple(range(1, 21)))
     args = ap.parse_args(argv)
+    w_max = inspect.signature(Brain).parameters['w_max'].default
     path = run_experiment(
         script=__file__, protocol='sequence.a1-horizon', protocol_version='2',
         registration='research/notes/sequence/DESIGN_sequence_port.md',
         engine=args.engine, seeds=args.seeds, tag=args.tag, smoke=args.smoke,
         minimum_study_seeds=20,
+        organ_semantics=describe_hashed_arc_fsm(
+            w_max=w_max, norm_init=False, refracted_strength=STRENGTH,
+        ),
         input_artifacts=('research/results/sequence/seq_a1_horizon_results.json',),
         parameters=dict(length=50 if args.smoke else LENGTH, p_values=P_VALUES,
                         n_arc=N_ARC, n_state=N_STATE, k=K, beta=BETA,
                         presentations=PRESENTATIONS, strength=STRENGTH,
                         norm_init=False, checkpoints=CHECKPOINTS, device="cuda",
-                        w_max=inspect.signature(Brain).parameters['w_max'].default,
+                        w_max=w_max,
                         comparison='historical sampled numpy; not valid sequence evidence'),
         measure=experiment,
     )

@@ -43,7 +43,21 @@ class HashedArcFSM:
                  refracted_strength: float = 0.1, w_max: float = 20.0,
                  norm_init: bool = False, max_potentiations: int = 4096,
                  prefix: str = "_nemo_fsm", tie_jitter: float = 0.0,
-                 zero_or_size: bool = False, device: str = "cuda"):
+                 zero_or_size: bool = False, device: str = "cuda",
+                 organ_semantics=None):
+        from ..semantics import OrganSemantics, describe_hashed_arc_fsm
+
+        actual_semantics = describe_hashed_arc_fsm(
+            w_max=w_max, norm_init=norm_init,
+            refracted_strength=refracted_strength, tie_jitter=tie_jitter,
+            zero_or_size=zero_or_size,
+        )
+        if organ_semantics is not None:
+            required = OrganSemantics.normalize(organ_semantics)
+            mismatch = required.mismatch(actual_semantics)
+            if mismatch:
+                raise ValueError(f"organ_semantics mismatch: {mismatch}")
+        self.organ_semantics = actual_semantics
         self.seeds = [int(s) for s in brain_seeds]
         self.B = len(self.seeds)
         self.states, self.symbols = list(states), list(symbols)

@@ -8,6 +8,7 @@ from dataclasses import asdict
 from pathlib import Path
 
 from neural_assemblies.diagnostics import ensemble_from_values, paired_delta
+from neural_assemblies import describe_hashed_transducer
 from research.experiments.study4.ntp_agree import CHAIN_CLASSES, generate_chain
 from research.experiments.temporal_observations import capture_chain_arcs
 from research.runner import ExperimentOutput, experiment_parser, run_experiment
@@ -122,7 +123,7 @@ def _training_schedule(corpora, word_index):
     return W, T, St
 
 
-def run_arm(seeds, parameters, arm_name):
+def run_arm(seeds, parameters, arm_name, organ_semantics):
     import torch
     from neural_assemblies.core.torch_engine._hashed_transducer import HashedTransducer
 
@@ -143,8 +144,10 @@ def run_arm(seeds, parameters, arm_name):
             beta=parameters["beta"], organ_p=parameters["organ_p"],
             w_max=parameters["w_max"], norm_init=parameters["norm_init"],
             max_potentiations=parameters["max_potentiations"],
-            refracted_strength=parameters["refracted_strength"], state_mode="copy",
-            predict_gain=arm["predict_gain"], device="cuda")
+            refracted_strength=parameters["refracted_strength"],
+            state_mode=parameters["state_mode"],
+            predict_gain=arm["predict_gain"], device="cuda",
+            organ_semantics=organ_semantics)
         transducer.ground(rounds=parameters["ground_rounds"])
         W, T, St = _training_schedule(train, transducer.word_index)
         transducer.train_schedules(W, T, St, rounds=parameters["train_rounds"])
@@ -177,7 +180,10 @@ def experiment(record):
     for offset in range(0, len(seeds), size):
         group = seeds[offset:offset + size]
         for name in ARMS:
-            arms[name].extend(run_arm(group, parameters, name))
+            arms[name].extend(run_arm(
+                group, parameters, name,
+                record["execution_semantics"]["profiles"][name],
+            ))
     scored = score_arms(arms, seeds, parameters)
     passed = scored["instrument_valid"] and all(scored["checks"].values())
     corpora = {}
@@ -205,16 +211,26 @@ def experiment(record):
 
 
 def main(argv=None):
-    parser = experiment_parser(__doc__, engines=("hashed_arc_fsm",),
+    parser = experiment_parser(__doc__, engines=("hashed_transducer",),
                                default_seeds=tuple(range(82, 102)))
     args = parser.parse_args(argv)
     if not args.smoke and args.seeds != list(range(82, 102)):
         parser.error("this registration requires seed identities 82 through 101 in order")
+    parameters = SMOKE if args.smoke else REGISTERED
     path = run_experiment(
         script=Path(__file__), protocol="sequence.temporal-positions", protocol_version="1",
         registration="research/notes/sequence/PREREG_temporal_positions.md",
         engine=args.engine, seeds=args.seeds, tag=args.tag, smoke=args.smoke,
-        minimum_study_seeds=20, parameters=SMOKE if args.smoke else REGISTERED,
+        minimum_study_seeds=20, parameters=parameters,
+        organ_semantics={
+            name: describe_hashed_transducer(
+                w_max=parameters["w_max"], norm_init=parameters["norm_init"],
+                refracted_strength=parameters["refracted_strength"],
+                state_mode=parameters["state_mode"],
+                predict_gain=arm["predict_gain"],
+            )
+            for name, arm in ARMS.items()
+        },
         measure=experiment)
     print(path)
 

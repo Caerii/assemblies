@@ -1967,3 +1967,33 @@ parameters continue to name the `numpy_sparse` Brain router and
 The broader runner/adapter/experiment/research-contract/methodology/specification
 gate is 158 passed and Ruff is clean. Hashed organs record `null` instead of borrowing a false Brain profile;
 their organ-level semantic objects remain the next required boundary.
+
+## Hashed-organ provenance checkpoint (2026-09-11)
+
+Run schema 7 now records strict `execution_semantics` for both Brain and hashed
+organ paths. `OrganSemantics` captures the reusable substrate plus state code,
+training/inference schedule, exact tie jitter, effective refraction charges,
+horizon, prediction gain and feature-register presence. Named profiles preserve
+paired-arm differences. The memory, assigned FSM and transducer constructors
+derive and compare the profile before allocating device state.
+
+The migration exposed and fixed one semantic naming bug: temporal positions was
+running `HashedTransducer` while recording `hashed_arc_fsm`; it now records
+`hashed_transducer`. The four migrated hashed runners pass their recorded profile
+back into the actual organ constructor. Schema 1-6 artifacts remain readable;
+the committed schema-6 historical replay stays unchanged.
+
+Evidence: 183 CPU contract/migration/evidence/specification tests pass; 33 CUDA
+hashed substrate/FSM/transducer/semantic tests pass. The real fused-CUDA smoke at
+`research/results/runs/sequence.a1-horizon/organ-schema7-smoke-20260911/`
+validates cleanly, records the FSM's Binomial stimulus law and lowest-ID tie
+rule, and is correctly `VOID`. Remaining work is the mixed-engine profile graph,
+actual-record-driven construction throughout all migrated experiments, aligner
+semantics, broader experiment migration and numerical refinement obligations.
+
+Before the final two focused guard tests were added, the full CUDA-enabled
+non-slow package suite also passed: 3,456 passed, 65 skipped, 143 deselected, 7
+expected xfails and 10 subtests in 21m55s. Its 303
+warnings expose a follow-up DX problem: many legacy tests deliberately use sampled
+recurrence without setting the acknowledgement policy, so the intended safety
+warning becomes noisy in the broad lane.

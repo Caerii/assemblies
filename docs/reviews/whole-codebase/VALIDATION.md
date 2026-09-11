@@ -3546,3 +3546,44 @@ separately. The preregistration links the replay.
 Bespoke hashed organs deliberately record `model_semantics: null` because a Brain
 profile would be false. Their graph, stimulus, tie, arithmetic, and schedule
 identity must be implemented by the forthcoming organ contracts.
+
+## Schema 7 makes hashed-organ semantics executable (2026-09-11)
+
+`OrganSemantics` now composes the common substrate with each organ's state code,
+write schedule and frozen inference schedule. It distinguishes the memory's
+zero-or-size stimulus law and B/G normalization behavior, the assigned FSM's
+Binomial drive and lowest-ID tie rule, and the transducer's zero-or-size drive,
+deterministic tie jitter, copied/induced state, horizon and prediction gain.
+Every organ derives this object before device allocation and rejects a supplied
+profile on any mismatch. Constructed controls prove that a one-mechanism-wrong
+profile reaches neither GPU allocation nor mutation.
+
+Run schema 7 replaces the nullable organ hole with a strict discriminated
+`execution_semantics` envelope. Brain runs contain exactly one `default` model
+profile. Organ runs contain one or more named organ profiles, which preserves
+the trained/null and B/G arm distinctions. Unknown engines, wrong organ kinds,
+incomplete fields and noncanonical documents reject before tag reservation.
+This caught a real provenance error: the temporal-position transducer called
+itself `hashed_arc_fsm`; its engine identity is now `hashed_transducer`.
+
+The final CPU contract/migration/evidence/specification gate is 183 passed. The
+CUDA hashed substrate, FSM, transducer and semantic gate is 33 passed. A real
+three-brain schema-7 A1 smoke ran both registered probability cells through the
+fused CUDA organ, consumed its recorded profile at construction, validated with
+no evidence errors, and remained explicitly `VOID`. Its artifact is
+`research/results/runs/sequence.a1-horizon/organ-schema7-smoke-20260911/`.
+
+Before the final two focused guard tests were added, the complete CUDA-enabled
+non-slow package gate was 3,456 passed, 65 skipped,
+143 deselected, 7 expected xfails and 10 subtests passed in 21m55s. It emitted
+303 warnings, dominated by sampled-recurrence notices from legacy tests that do
+not yet state an acknowledgement policy. The green gate establishes
+compatibility; the warning volume is a separate signal-to-noise defect to fix by
+making deliberate sampled tests explicit, while retaining warnings for accidental
+use.
+
+This boundary records and rejects semantic drift; it is not yet a numerical
+refinement proof for CUDA, and mixed Brain-router/per-area execution still needs
+a profile graph. The unification's next early-error boundary is to derive actual
+constructed configurations from the record for every remaining migrated path,
+then extend the same contract to the aligner and unmigrated sequence scripts.
