@@ -117,10 +117,10 @@ class IncrementalMixin:
         self, area_names, *, enabled: bool,
     ) -> None:
         """Skip connectome matrix growth during compiled training."""
-        engine = self.brain._engine
-        if not hasattr(engine, "_areas"):
-            return
         for area_name in area_names:
+            engine = self.brain._engine_for(self.brain.areas[area_name])
+            if not hasattr(engine, "_areas"):
+                continue
             if area_name in engine._areas:
                 engine._areas[area_name]._freeze_connectome_growth = enabled
 
@@ -128,10 +128,10 @@ class IncrementalMixin:
         self, area_names, *, enabled: bool,
     ) -> None:
         """Fixed-topology projection: top-k on pregrown columns only."""
-        engine = self.brain._engine
-        if not hasattr(engine, "_areas"):
-            return
         for area_name in area_names:
+            engine = self.brain._engine_for(self.brain.areas[area_name])
+            if not hasattr(engine, "_areas"):
+                continue
             if area_name in engine._areas:
                 engine._areas[area_name]._plasticity_only_mode = enabled
 
@@ -139,7 +139,7 @@ class IncrementalMixin:
         """Reuse pregrown connectome columns during training (skip expand)."""
         if capacity_cols <= 0:
             return
-        engine = self.brain._engine
+        engine = self.brain._engine_for(self.brain.areas[area_name])
         if not hasattr(engine, "_areas") or area_name not in engine._areas:
             return
         st = engine._areas[area_name]
@@ -147,7 +147,7 @@ class IncrementalMixin:
         st._ring_capacity_cols = capacity_cols
 
     def _disable_area_ring_mode(self, area_name: str) -> None:
-        engine = self.brain._engine
+        engine = self.brain._engine_for(self.brain.areas[area_name])
         if not hasattr(engine, "_areas") or area_name not in engine._areas:
             return
         st = engine._areas[area_name]
@@ -171,7 +171,7 @@ class IncrementalMixin:
 
     def _context_compiled_active(self) -> bool:
         """True when CONTEXT ring reuse is enabled for bridge training."""
-        engine = self.brain._engine
+        engine = self.brain._engine_for(self.brain.areas[CONTEXT])
         if not hasattr(engine, "_areas") or CONTEXT not in engine._areas:
             return False
         return bool(getattr(engine._areas[CONTEXT], "_ring_mode", False))

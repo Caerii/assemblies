@@ -4248,3 +4248,9 @@ primary-engine mutations (`reset_area_connections`, beta/connectivity writes,
 and fixed-state controls). New bypasses fail in the specification-link gate.
 
 Validation: all 10 specification-link and ownership-ratchet tests passed.
+
+An indirect alias audit then found four compiled-topology controls that bound
+`engine = brain._engine` before mutating private area state. Freeze, topology,
+ring-mode, and CONTEXT-active checks now resolve the owner for each named area.
+
+Validation: 11 compiled-bridge and specification-link tests passed.

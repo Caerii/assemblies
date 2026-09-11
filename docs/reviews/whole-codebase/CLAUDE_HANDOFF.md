@@ -2469,6 +2469,10 @@ The ownership rule is now mechanically guarded: a specification-link test
 scans calculus and program code for direct primary-engine reset, beta,
 connectivity, and fixed-state mutations. Ten specification-link tests pass.
 
+The indirect alias pass found four compiled-topology controls still binding the
+primary engine before mutating area state. They now resolve each area's owner;
+the compiled bridge plus specification-link gate passes 11 tests.
+
 The owner negative test found a second issue: explicit areas could receive the
 same beta/connectivity write twice because the explicit mirror was also the
 resolved owner. Identity-guarded mirroring now enforces one write per owner;
