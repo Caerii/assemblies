@@ -4418,3 +4418,10 @@ both the serialized protocol identity and the no-overwrite guarantee.
 Parity manifest compatibility passed with 9 tests and 4 expected skips. The
 README example smoke suite passed 4 tests with 1 documented skip. The parity
 checks retain the expected sampled-engine warnings; no warning was suppressed.
+
+## Evidence runner gate in synchronized environment (2026-09-11)
+
+The initial evidence-runner gate used the stale unsynchronized venv and failed
+at import time because `jsonschema` was absent. After `uv sync`, the declared
+`.venv` contains jsonschema 4.26.0 and the same gate passes: **98 passed** in
+45.43s. This distinguishes an environment drift failure from a runner defect.
