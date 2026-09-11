@@ -4843,3 +4843,11 @@ registered `ATTENTION_CONTRACT`. The contract records its pure readout semantics
 shared-area regime, bounded output, and constructed label-mismatch negative.
 The plan and contract are public exports, and the focused attention, contract,
 and specification suite passes **181 tests**; Ruff is clean.
+
+## Binding operation contract (2026-09-11)
+
+Role binding had a substantial executable schedule and tests but no registry
+contract. Added frozen `BindingPlan`, `BINDING_CONTRACT`, public exports, a
+source-linked semantic card, and a pre-mutation missing-source true negative.
+The binding/input/contract/specification suite passes **175 tests**; Ruff is
+clean.

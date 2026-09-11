@@ -393,6 +393,33 @@ class SeparationPlan:
             raise KeyError(f"separate target area is unknown: {self.target!r}")
 
 
+@dataclass(frozen=True)
+class BindingPlan:
+    """Immutable schedule for storing one source assembly in a shared area."""
+
+    source_area: str
+    target_area: str
+    project_rounds: int = 10
+    tail_rounds: int = 1
+    fix_source: bool = True
+
+    def __post_init__(self) -> None:
+        _require_name("source_area", self.source_area)
+        _require_name("target_area", self.target_area)
+        if isinstance(self.project_rounds, bool) or not isinstance(self.project_rounds, Integral) or self.project_rounds < 1:
+            raise ValueError("bind project_rounds must be a positive integer")
+        if isinstance(self.tail_rounds, bool) or not isinstance(self.tail_rounds, Integral) or self.tail_rounds < 0:
+            raise ValueError("bind tail_rounds must be a nonnegative integer")
+        _explicit_bool("fix_source", self.fix_source)
+        object.__setattr__(self, "project_rounds", int(self.project_rounds))
+        object.__setattr__(self, "tail_rounds", int(self.tail_rounds))
+
+    def preflight(self, brain) -> None:
+        for label, area in (("source_area", self.source_area), ("target_area", self.target_area)):
+            if area not in brain.areas:
+                raise KeyError(f"bind {label} is unknown: {area!r}")
+
+
 _COMPLETION_OBSERVATION_MODES = frozenset({"plastic", "frozen", "read-only"})
 
 
@@ -918,6 +945,25 @@ ATTENTION_CONTRACT = OperationContract(
 )
 
 
+BINDING_CONTRACT = OperationContract(
+    operation_id="binding-v1",
+    specification="docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-binding",
+    plan_type=BindingPlan,
+    inputs=("brain", "source_area", "target_area", "source_assembly", "source_stimulus", "project_rounds", "tail_rounds", "fix_source"),
+    reads=("source assembly or live source winners", "source-to-target fiber", "target recurrent fiber"),
+    mutates=("target winners", "binding weights", "temporary source clamp", "engine history"),
+    regime=("distinct registered source and shared target areas", "one explicit source of activity", "feed-forward round then optional recurrent tail"),
+    observed_outcome=("bound target neuron-ID snapshot",),
+    failure_conditions=("unknown areas", "missing source activity", "invalid schedule", "stale injected snapshot"),
+    constructed_controls=(
+        "neural_assemblies/tests/test_bind_input_contract.py::test_bind_rejects_empty_implicit_source",
+    ),
+    true_negative_controls=(
+        "neural_assemblies/tests/test_bind_input_contract.py::test_bind_rejects_ambiguous_schedule_before_source_resolution",
+    ),
+)
+
+
 OPERATION_CONTRACTS = MappingProxyType({
     "projection": PROJECTION_CONTRACT,
     "reciprocal_projection": RECIPROCAL_PROJECTION_CONTRACT,
@@ -928,6 +974,7 @@ OPERATION_CONTRACTS = MappingProxyType({
     "sequence_memorize": SEQUENCE_MEMORIZE_CONTRACT,
     "separate": SEPARATION_CONTRACT,
     "attention": ATTENTION_CONTRACT,
+    "bind": BINDING_CONTRACT,
 })
 
 

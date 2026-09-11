@@ -1507,3 +1507,21 @@ Store ordered raw vectors, seed IDs, full schedules/grids, engine ownership and 
 size rule k=floor(sqrt(n)). The common adapter owns tag, source/input archive and
 VOID/UNADOPTED interpretation. Descriptive historical summaries do not adopt a
 merge theorem, erase sequential training history or imply a frozen readout.
+
+<a id="contract-binding"></a>
+
+## D: role binding (shared target schedule)
+
+`ops.bind` stores a source assembly in a shared target area. Its resolved
+schedule is one feed-forward source-to-target projection followed by an optional
+short target-recurrent tail; a source snapshot is replayed when current, with a
+stimulus or already-live source as explicit fallbacks. The source may be clamped
+for the schedule and its prior clamp state is restored. The target snapshot is a
+neuron-ID observation; the operation mutates target winners, participating
+weights, and engine history.
+
+The operation rejects unknown topology, invalid round counts or clamp flags, and
+missing source activity before projection. `read_binding` reuses the same
+schedule inside `brain.read_only()` and therefore cannot create the binding it
+measures. Binding strength and pathway drive are separate readouts and must not
+be conflated.

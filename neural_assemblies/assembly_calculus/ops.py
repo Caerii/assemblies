@@ -62,12 +62,12 @@ import numpy as np
 
 from .assembly import Assembly, overlap
 from .contracts import (
-    ASSOCIATION_CONTRACT, COMPLETION_CONTRACT, MERGE_CONTRACT,
+    ASSOCIATION_CONTRACT, BINDING_CONTRACT, COMPLETION_CONTRACT, MERGE_CONTRACT,
     ORDERED_RECALL_CONTRACT,
     SEPARATION_CONTRACT,
     PROJECTION_CONTRACT, RECIPROCAL_PROJECTION_CONTRACT, AssociationPlan,
     CompletionPlan, MergePlan, ProjectionPlan, ReciprocalProjectionPlan,
-    OrderedRecallPlan, SequenceMemorizePlan, SeparationPlan,
+    OrderedRecallPlan, SequenceMemorizePlan, SeparationPlan, BindingPlan,
     SEQUENCE_MEMORIZE_CONTRACT,
     implements,
 )
@@ -439,10 +439,13 @@ def project(brain, stimulus, target, rounds=10, recurrent=False) -> Assembly:
 BIND_TAIL_ROUNDS = 1
 
 
+@implements(BINDING_CONTRACT)
 def bind(brain, source_area, target_area, source_assembly=None, *,
          source_stimulus=None, project_rounds=10,
          tail_rounds=BIND_TAIL_ROUNDS, fix_source=True) -> Assembly:
     """Bind the content of *source_area* into a SHARED *target_area*.
+
+    Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-binding
 
     THE ONE IMPLEMENTATION OF THIS PROTOCOL. It existed as three hand-rolled
     copies -- ``assembly_calculus.parser.train_roles``,
@@ -507,8 +510,10 @@ def bind(brain, source_area, target_area, source_assembly=None, *,
         raise ValueError("bind tail_rounds must be a nonnegative integer")
     if type(fix_source) is not bool:
         raise ValueError("bind fix_source must be an explicit boolean")
-    project_rounds = int(project_rounds)
-    tail_rounds = int(tail_rounds)
+    plan = BindingPlan(source_area, target_area, project_rounds, tail_rounds, fix_source)
+    plan.preflight(brain)
+    project_rounds = plan.project_rounds
+    tail_rounds = plan.tail_rounds
     # STALE SNAPSHOTS ARE EXPECTED, not exceptional, so the guard belongs here
     # rather than in each caller. `consolidation.prepare_area_for_replay`
     # deliberately resets an area's compact_to_neuron_id and re-issues neuron
