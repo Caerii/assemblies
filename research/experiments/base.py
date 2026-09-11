@@ -13,6 +13,7 @@ from dataclasses import dataclass, field, asdict
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
+from numbers import Integral
 
 import numpy as np
 from scipy import stats
@@ -23,6 +24,31 @@ from research.json_documents import load_document, write_new_document
 def _validate_execution_success(value):
     if type(value) is not bool:
         raise ValueError('success must be a boolean execution status, not a string or numeric verdict')
+
+
+def resolve_seed_ids(n_seeds=None, seed_ids=None, *, base_seed=42, default_count=10):
+    """Resolve ordered independent brain identities without re-offsetting explicit seeds."""
+    if n_seeds is None:
+        n_seeds = len(seed_ids) if seed_ids is not None else default_count
+    if isinstance(n_seeds, bool) or not isinstance(n_seeds, Integral) or n_seeds < 3:
+        raise ValueError('historical study summaries require at least three integer seed identities')
+    seeds = list(seed_ids) if seed_ids is not None else [base_seed + i for i in range(n_seeds)]
+    if (len(seeds) != n_seeds or any(isinstance(s, bool) or not isinstance(s, Integral) or s < 0 for s in seeds)
+            or len(set(seeds)) != len(seeds)):
+        raise ValueError('seed identities must be unique nonnegative integers matching n_seeds')
+    return [int(s) for s in seeds]
+
+
+def reported_null_test(values, null):
+    """Keep undefined test statistics explicit and serializable, never significant."""
+    result = ttest_vs_null(values, null)
+    if result.get('degenerate'):
+        return {**result, 't': None, 'p': None, 'd': None}
+    return result
+
+
+def effect_text(test):
+    return f"undefined ({test['degenerate']})" if test['d'] is None else f"{test['d']:.1f}"
 
 
 @dataclass

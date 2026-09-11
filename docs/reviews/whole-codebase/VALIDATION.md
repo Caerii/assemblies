@@ -2309,3 +2309,24 @@ its H4 constant values remain invalid as weight evidence. No backend code change
 After lowering the stale allowance, the final projection/replay/measurement and
 methodology-ratchet run passed 31 tests in 12.74s. Specification/index-space and
 aggregate tests had passed in the broader run above. Ruff and diff checks pass.
+
+
+## Configurable projection migration (2026-09-10)
+
+Projection now consumes explicit H1/H3 size grids, H4 training grid, train/test/max
+rounds and ordered seed identities. Defaults preserve the corrected 37772eb trial
+protocol. Every H1-H4 per-seed value is retained. Parameters record owner engines,
+learning-on evaluation and the version-2 weight definition. The legacy CLI forwards
+to historical-projection in the exclusive shared runner; tags are mandatory,
+--quick is VOID smoke, full is UNADOPTED. Registration precedes tagged smoke.
+
+Seed resolution and serializable undefined null statistics now share ExperimentBase
+module utilities with historical noise. Initial tests exposed five uninitialized
+test fixtures reading seed metadata before validation; fixtures now provide their
+seed while still omitting timer/engine state. The underlying helper validates seed
+count before constructing identities. The next combined run passed 75 tests in
+3.49s. One duplicate import introduced during editing was removed after Ruff.
+
+No tagged projection smoke has executed at this pre-run checkpoint. Convergence
+scalar timeout ambiguity and the legacy paired-test treatment of zero variance
+remain explicitly outside adoption claims; this is a software migration.

@@ -45,12 +45,12 @@ from numbers import Integral, Real
 import math
 from typing import Dict, Any
 from research.experiments.base import (
+    resolve_seed_ids, reported_null_test as _chance_test, effect_text as _effect_text,
     ExperimentBase,
     ExperimentResult,
     measure_overlap,
     chance_overlap,
     summarize,
-    ttest_vs_null,
 )
 
 from neural_assemblies.core.brain import Brain
@@ -153,18 +153,6 @@ def run_association_recovery_trial(cfg: NoiseConfig, noise_frac: float, seed: in
             'a_intact': measure_overlap(trained_a, Assembly.from_area(b, 'A').neuron_ids)}
 
 
-def _chance_test(values, null):
-    """Keep undefined test statistics explicit and serializable, never significant."""
-    result = ttest_vs_null(values, null)
-    if result.get('degenerate'):
-        return {**result, 't': None, 'p': None, 'd': None}
-    return result
-
-
-def _effect_text(test):
-    return f"undefined ({test['degenerate']})" if test['d'] is None else f"{test['d']:.1f}"
-
-
 # -- Main experiment -----------------------------------------------------------
 
 
@@ -192,15 +180,8 @@ class NoiseRobustnessExperiment(ExperimentBase):
         h4_sizes=(200, 500, 1000, 2000), h4_noise_fracs=(.3, .5, .7, 1.),
     ) -> ExperimentResult:
         """Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-historical-noise-study"""
-        if n_seeds is None:
-            n_seeds = len(seed_ids) if seed_ids is not None else N_SEEDS
-        if isinstance(n_seeds, bool) or not isinstance(n_seeds, Integral) or n_seeds < 3:
-            raise ValueError('historical study summaries require at least three integer seed identities')
-        seeds = list(seed_ids) if seed_ids is not None else [self.seed + i for i in range(n_seeds)]
-        if (len(seeds) != n_seeds or any(isinstance(s, bool) or not isinstance(s, Integral) or s < 0 for s in seeds)
-                or len(set(seeds)) != len(seeds)):
-            raise ValueError('seed identities must be unique nonnegative integers matching n_seeds')
-        seeds = [int(s) for s in seeds]
+        seeds = resolve_seed_ids(n_seeds, seed_ids, base_seed=self.seed, default_count=N_SEEDS)
+        n_seeds = len(seeds)
         n, k = validate_area_registration('A', n, k)
         establish_rounds = validate_round_count(establish_rounds)
         recovery_rounds = validate_round_count(recovery_rounds)

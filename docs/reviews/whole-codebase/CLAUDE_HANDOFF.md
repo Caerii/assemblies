@@ -1305,3 +1305,11 @@ selection already biases beta-zero ratios. Fifteen source-177dbbc replay cases
 preserve trajectories and weights. H3 is documented/tested as A-driven regeneration,
 not cue recovery; all evaluation phases still learn. Full projection protocol
 migration remains open. See VALIDATION.md#historical-projection-measurement-repair-2026-09-10.
+
+
+## Projection runner preparation (2026-09-10)
+
+The corrected projection protocol is now configurable and retains per-seed cells;
+its old CLI forwards to a tagged shared-runner adapter. Source-linked version-2
+migration registration precedes the smoke. Seed resolution and undefined-null
+records are shared with historical noise. See VALIDATION.md#configurable-projection-migration-2026-09-10.

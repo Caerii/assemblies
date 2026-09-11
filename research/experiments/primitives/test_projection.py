@@ -63,16 +63,17 @@ from typing import Dict, Any
 from scipy import stats
 
 from research.experiments.base import (
+    resolve_seed_ids, reported_null_test, effect_text,
     ExperimentBase,
     ExperimentResult,
     measure_overlap,
     chance_overlap,
     summarize,
-    ttest_vs_null,
     paired_ttest,
 )
 
 from neural_assemblies.core.brain import Brain
+from neural_assemblies.core.registration import validate_area_registration, validate_round_count
 
 N_SEEDS = 10
 
@@ -260,10 +261,26 @@ class ProjectionExperiment(ExperimentBase):
         p: float = 0.05,
         beta: float = 0.10,
         w_max: float = 20.0,
-        n_seeds: int = N_SEEDS,
+        n_seeds: int | None = None,
+        *, seed_ids=None, train_rounds=30, test_rounds=20, max_train_rounds=100,
+        h1_sizes=(100, 200, 500, 1000, 2000, 5000),
+        h3_sizes=(500, 1000, 2000), round_values=(1, 5, 10, 20, 30, 50),
     ) -> ExperimentResult:
+        seeds = resolve_seed_ids(n_seeds, seed_ids, base_seed=self.seed, default_count=N_SEEDS)
+        n_seeds = len(seeds)
+        n, k = validate_area_registration('A', n, k)
+        train_rounds, test_rounds, max_train_rounds = map(validate_round_count,
+                                                        (train_rounds, test_rounds, max_train_rounds))
+        h1_sizes, h3_sizes, round_values = map(tuple, (h1_sizes, h3_sizes, round_values))
+        for grid in (h1_sizes, h3_sizes, round_values):
+            if not grid or len(set(grid)) != len(grid):
+                raise ValueError('study grids must be nonempty and unique')
+            for value in grid:
+                validate_round_count(value)
+        if len(h1_sizes) < 2 or any(value < 2 for value in (*h1_sizes, *h3_sizes)):
+            raise ValueError('scaling needs two H1 sizes; population sizes must be at least two')
+        schedule = dict(train_rounds=train_rounds, test_rounds=test_rounds, max_train_rounds=max_train_rounds)
         self._start_timer()
-        seeds = list(range(n_seeds))
 
         self.log("=" * 60)
         self.log("Projection Experiment")
@@ -272,25 +289,25 @@ class ProjectionExperiment(ExperimentBase):
         self.log("=" * 60)
 
         metrics: Dict[str, Any] = {}
+        raw_data = {"seeds": seeds, "cells": []}
 
         # ================================================================
         # H1: Convergence + persistence vs network size (k=sqrt(n))
         # ================================================================
         self.log("\nH1: Convergence + Persistence vs Network Size (k=sqrt(n))")
 
-        h1_sizes = [100, 200, 500, 1000, 2000, 5000]
         h1_results = []
 
         for n_val in h1_sizes:
             k_val = int(np.sqrt(n_val))
-            cfg = ProjConfig(n=n_val, k=k_val, p=p, beta=beta, w_max=w_max)
+            cfg = ProjConfig(n=n_val, k=k_val, p=p, beta=beta, w_max=w_max, **schedule)
             null = chance_overlap(k_val, n_val)
 
             conv_times = []
             persist_vals = []
 
             for s in seeds:
-                trial = run_convergence_trial(cfg, seed=self.seed + s)
+                trial = run_convergence_trial(cfg, seed=s)
                 conv_times.append(float(trial["convergence_time"]))
                 persist_vals.append(trial["persistence"])
 
@@ -298,15 +315,17 @@ class ProjectionExperiment(ExperimentBase):
                 "n": n_val, "k": k_val, "k_over_n": k_val / n_val,
                 "convergence_time": summarize(conv_times),
                 "persistence": summarize(persist_vals),
-                "test_vs_null": ttest_vs_null(persist_vals, null),
+                "test_vs_null": reported_null_test(persist_vals, null),
             }
             h1_results.append(row)
+            raw_data["cells"].append(dict(arm="h1", n=n_val, k=k_val,
+                                           values=dict(convergence_time=conv_times, persistence=persist_vals)))
 
             self.log(
                 f"  n={n_val:4d}, k={k_val:2d}: "
                 f"T={row['convergence_time']['mean']:.1f}  "
                 f"persist={row['persistence']['mean']:.3f}  "
-                f"d={row['test_vs_null']['d']:.1f}"
+                f"d={effect_text(row['test_vs_null'])}"
             )
 
         metrics["convergence_vs_size"] = h1_results
@@ -314,41 +333,46 @@ class ProjectionExperiment(ExperimentBase):
         # Scaling fit
         log_n = np.array([np.log10(r["n"]) for r in h1_results])
         mean_t = np.array([r["convergence_time"]["mean"] for r in h1_results])
-        slope, intercept, r_value, p_value, std_err = stats.linregress(log_n, mean_t)
-
-        metrics["scaling_fit"] = {
-            "slope": float(slope),
-            "intercept": float(intercept),
-            "r_squared": float(r_value ** 2),
-            "p_value": float(p_value),
-            "equation": f"T = {slope:.2f} * log10(n) + {intercept:.2f}",
-        }
-
-        self.log(f"  Scaling fit: {metrics['scaling_fit']['equation']}  R2={r_value**2:.3f}")
+        if np.ptp(mean_t) == 0:
+            metrics["scaling_fit"] = {
+                "slope": 0., "intercept": float(mean_t[0]), "r_squared": None,
+                "p_value": None, "degenerate": "constant_response",
+                "equation": f"T = {float(mean_t[0]):.2f}",
+            }
+        else:
+            slope, intercept, r_value, p_value, std_err = stats.linregress(log_n, mean_t)
+            metrics["scaling_fit"] = {
+                "slope": float(slope), "intercept": float(intercept),
+                "r_squared": float(r_value ** 2), "p_value": float(p_value),
+                "equation": f"T = {slope:.2f} * log10(n) + {intercept:.2f}",
+            }
+        self.log(f"  Scaling fit: {metrics['scaling_fit']['equation']}")
 
         # ================================================================
         # H2: Stim+self vs stim-only
         # ================================================================
-        self.log("\nH2: Stim+Self vs Stim-Only (n=1000, k=100)")
+        self.log(f"\nH2: Stim+Self vs Stim-Only (n={n}, k={k})")
 
-        cfg_h2 = ProjConfig(n=n, k=k, p=p, beta=beta, w_max=w_max)
+        cfg_h2 = ProjConfig(n=n, k=k, p=p, beta=beta, w_max=w_max, **schedule)
         null_h2 = chance_overlap(k, n)
 
         stim_self_vals = []
         stim_only_vals = []
 
         for s in seeds:
-            stim_self_vals.append(run_training_mode_trial(cfg_h2, self.seed + s, "stim_self"))
-            stim_only_vals.append(run_training_mode_trial(cfg_h2, self.seed + s, "stim_only"))
+            stim_self_vals.append(run_training_mode_trial(cfg_h2, s, "stim_self"))
+            stim_only_vals.append(run_training_mode_trial(cfg_h2, s, "stim_only"))
 
+        raw_data["cells"].append(dict(arm="h2", n=n, k=k,
+                                       values=dict(stim_self=stim_self_vals, stim_only=stim_only_vals)))
         metrics["training_mode_comparison"] = {
             "stim_self": {
                 "persistence": summarize(stim_self_vals),
-                "test_vs_null": ttest_vs_null(stim_self_vals, null_h2),
+                "test_vs_null": reported_null_test(stim_self_vals, null_h2),
             },
             "stim_only": {
                 "persistence": summarize(stim_only_vals),
-                "test_vs_null": ttest_vs_null(stim_only_vals, null_h2),
+                "test_vs_null": reported_null_test(stim_only_vals, null_h2),
             },
             "paired_test": paired_ttest(stim_self_vals, stim_only_vals),
         }
@@ -361,35 +385,34 @@ class ProjectionExperiment(ExperimentBase):
         # ================================================================
         self.log("\nH3: Cross-Area Fidelity (k=sqrt(n))")
 
-        h3_sizes = [500, 1000, 2000]
         h3_results = []
 
         for n_val in h3_sizes:
             k_val = int(np.sqrt(n_val))
-            cfg_h3 = ProjConfig(n=n_val, k=k_val, p=p, beta=beta, w_max=w_max)
+            cfg_h3 = ProjConfig(n=n_val, k=k_val, p=p, beta=beta, w_max=w_max, **schedule)
             null_h3 = chance_overlap(k_val, n_val)
 
             recoveries = []
             for s in seeds:
-                recoveries.append(run_crossarea_trial(cfg_h3, self.seed + s))
+                recoveries.append(run_crossarea_trial(cfg_h3, s))
 
             row = {
                 "n": n_val, "k": k_val,
                 "recovery": summarize(recoveries),
-                "test_vs_null": ttest_vs_null(recoveries, null_h3),
+                "test_vs_null": reported_null_test(recoveries, null_h3),
             }
             h3_results.append(row)
+            raw_data["cells"].append(dict(arm="h3", n=n_val, k=k_val, values=recoveries))
 
-            self.log(f"  n={n_val:4d}: {row['recovery']['mean']:.3f}  d={row['test_vs_null']['d']:.1f}")
+            self.log(f"  n={n_val:4d}: {row['recovery']['mean']:.3f}  d={effect_text(row['test_vs_null'])}")
 
         metrics["crossarea_fidelity"] = h3_results
 
         # ================================================================
         # H4: Weight dynamics vs training rounds
         # ================================================================
-        self.log("\nH4: Weight Dynamics vs Training Rounds (n=1000, k=100)")
+        self.log(f"\nH4: Weight Dynamics vs Training Rounds (n={n}, k={k})")
 
-        round_values = [1, 5, 10, 20, 30, 50]
         h4_results = []
 
         for t_rounds in round_values:
@@ -398,7 +421,7 @@ class ProjectionExperiment(ExperimentBase):
 
             for s in seeds:
                 trial = run_weight_dynamics_trial(
-                    n, k, p, beta, w_max, t_rounds, 20, self.seed + s
+                    n, k, p, beta, w_max, t_rounds, test_rounds, s
                 )
                 wr_vals.append(trial["weight_ratio"])
                 p_vals.append(trial["persistence"])
@@ -410,6 +433,8 @@ class ProjectionExperiment(ExperimentBase):
                 "weight_ratio_interpretation": "descriptive; no registered learning null",
             }
             h4_results.append(row)
+            raw_data["cells"].append(dict(arm="h4", n=n, k=k, train_rounds=t_rounds,
+                                           values=dict(weight_ratio=wr_vals, persistence=p_vals)))
 
             self.log(
                 f"  rounds={t_rounds:2d}: W_ratio={row['weight_ratio']['mean']:.3f}  "
@@ -427,32 +452,20 @@ class ProjectionExperiment(ExperimentBase):
                 "n_seeds": n_seeds,
                 "base_n": n, "base_k": k, "base_p": p,
                 "base_beta": beta, "base_wmax": w_max,
-                "train_rounds": 30, "test_rounds": 20,
+                **schedule, "h1_sizes": list(h1_sizes), "h3_sizes": list(h3_sizes),
+                "round_values": list(round_values), "seed_ids": seeds,
+                "primary_engine": "numpy_sparse", "area_engine": "numpy_explicit",
+                "evaluation_learning": True, "weight_ratio_definition": "selected-pairs-over-all-pairs-v2",
             },
             metrics=metrics,
-            raw_data={},
+            raw_data=raw_data,
             duration_seconds=duration,
         )
 
 
-def main():
-    import argparse
-
-    parser = argparse.ArgumentParser(description="Projection Experiment")
-    parser.add_argument("--quick", action="store_true", help="Quick run (fewer seeds)")
-
-    args = parser.parse_args()
-
-    exp = ProjectionExperiment(verbose=True)
-
-    if args.quick:
-        result = exp.run(n_seeds=5)
-        exp.save_result(result, "_quick")
-    else:
-        result = exp.run()
-        exp.save_result(result)
-
-    print(f"\nTotal time: {result.duration_seconds:.1f}s")
+def main(argv=None):
+    from research.experiments.historical_projection import main as run
+    return run(argv)
 
 
 if __name__ == "__main__":

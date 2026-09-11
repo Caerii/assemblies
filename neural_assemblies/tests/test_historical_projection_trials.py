@@ -105,3 +105,84 @@ def test_crossarea_observation_does_not_depend_on_corrupted_b_cue(monkeypatch):
         monkeypatch.setattr(np.random, "default_rng", rng)
         outcomes.append(study.run_crossarea_trial(cfg, 1))
     assert outcomes[0] == outcomes[1]
+
+
+def test_configured_study_consumes_grid_schedule_seeds_and_retains_raw(monkeypatch, tmp_path):
+    calls = []
+
+    def convergence(cfg, seed):
+        calls.append(("h1", cfg, seed))
+        return {"convergence_time": seed + cfg.n, "persistence": seed / 10}
+
+    def mode(cfg, seed, mode):
+        calls.append((mode, cfg, seed))
+        return seed / 10
+
+    def cross(cfg, seed):
+        calls.append(("h3", cfg, seed))
+        return seed / 10
+
+    def weights(n, k, p, beta, w_max, train_rounds, test_rounds, seed):
+        calls.append(("h4", study.ProjConfig(n, k, p, beta, w_max, train_rounds, test_rounds), seed))
+        return {"weight_ratio": seed / 10, "persistence": seed / 10}
+
+    monkeypatch.setattr(study, "run_convergence_trial", convergence)
+    monkeypatch.setattr(study, "run_training_mode_trial", mode)
+    monkeypatch.setattr(study, "run_crossarea_trial", cross)
+    monkeypatch.setattr(study, "run_weight_dynamics_trial", weights)
+    result = study.ProjectionExperiment(seed=999, results_dir=tmp_path, verbose=False).run(
+        n=60, k=6, seed_ids=[9, 2, 7], h1_sizes=[60, 80], h3_sizes=[60],
+        train_rounds=3, test_rounds=4, max_train_rounds=8, round_values=[2, 5])
+    assert len(calls) == 21
+    assert [seed for _, _, seed in calls] == [9, 2, 7] * 2 + [9, 9, 2, 2, 7, 7] + [9, 2, 7] * 3
+    for name, cfg, seed in calls:
+        assert cfg.test_rounds == 4
+        if name != "h4":
+            assert cfg.train_rounds == 3 and cfg.max_train_rounds == 8
+    assert [cfg.train_rounds for name, cfg, _ in calls if name == "h4"] == [2]*3 + [5]*3
+    assert result.raw_data["seeds"] == [9, 2, 7]
+    assert len(result.raw_data["cells"]) == 6
+    assert result.raw_data["cells"][0]["values"]["persistence"] == [.9, .2, .7]
+    assert result.parameters["seed_ids"] == [9, 2, 7]
+    assert result.parameters["h1_sizes"] == [60, 80]
+    assert result.parameters["evaluation_learning"] is True
+
+
+@pytest.mark.parametrize("kwargs", [
+    {"seed_ids": [1, 1, 2]}, {"n_seeds": 2}, {"h1_sizes": [60]},
+    {"h3_sizes": []}, {"round_values": [2, 2]}, {"test_rounds": 0},
+])
+def test_invalid_study_configuration_fails_before_timer(kwargs):
+    experiment = object.__new__(study.ProjectionExperiment)
+    experiment.seed = 42
+    with pytest.raises(ValueError):
+        experiment.run(**kwargs)
+
+
+def test_legacy_cli_requires_tag_and_records_quick_configuration(monkeypatch, capsys):
+    from research.experiments import historical_projection as adapter
+    calls = []
+    monkeypatch.setattr(adapter, "run_experiment", lambda **kwargs: calls.append(kwargs) or "saved")
+    with pytest.raises(SystemExit) as error:
+        study.main([])
+    assert error.value.code == 2
+    assert "--tag" in capsys.readouterr().err
+    study.main(["--quick", "--seeds", "9", "2", "7", "--tag", "fixture"])
+    assert calls[0]["smoke"] is True
+    assert calls[0]["engine"] == "numpy_explicit"
+    assert calls[0]["seeds"] == [9, 2, 7]
+    assert calls[0]["parameters"] == adapter.parameters(True)
+
+
+def test_constant_response_and_undefined_null_are_serializable(monkeypatch, tmp_path):
+    from research.json_documents import encode_document
+    monkeypatch.setattr(study, "run_convergence_trial", lambda cfg, seed: {"convergence_time": 4, "persistence": 1.})
+    monkeypatch.setattr(study, "run_training_mode_trial", lambda *args: 1.)
+    monkeypatch.setattr(study, "run_crossarea_trial", lambda *args: 1.)
+    monkeypatch.setattr(study, "run_weight_dynamics_trial", lambda *args: {"weight_ratio": 2., "persistence": 1.})
+    from research.experiments.historical_projection import parameters
+    result = study.ProjectionExperiment(results_dir=tmp_path, verbose=False).run(seed_ids=[1, 2, 3], **parameters(True))
+    assert result.metrics["scaling_fit"]["degenerate"] == "constant_response"
+    assert result.metrics["scaling_fit"]["r_squared"] is None
+    assert result.metrics["convergence_vs_size"][0]["test_vs_null"]["p"] is None
+    encode_document(result.to_dict())

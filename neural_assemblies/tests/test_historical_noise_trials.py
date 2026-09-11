@@ -63,6 +63,7 @@ def test_study_retains_each_seed_and_every_cell(monkeypatch, tmp_path):
 @pytest.mark.parametrize('count', [0, 1, 2, True, 3.5])
 def test_too_few_seeds_fail_before_timer_or_compute(count):
     experiment = object.__new__(study.NoiseRobustnessExperiment)
+    experiment.seed = 42
     with pytest.raises(ValueError, match='at least three'):
         experiment.run(n_seeds=count)
 
