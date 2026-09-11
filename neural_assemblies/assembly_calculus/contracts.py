@@ -753,6 +753,27 @@ class OperationContract:
             raise ValueError(f"operation contract has invalid surfaces: {invalid}")
 
 
+CONVERGENCE_CONTRACT = OperationContract(
+    operation_id="convergence-learning-v1",
+    specification="docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-convergence",
+    plan_type=ConvergencePlan,
+    inputs=("brain", "source", "target", "max_epochs", "project_rounds", "stability_window", "threshold", "recurrent"),
+    reads=("source stimulus or pattern", "target winners", "afferent and recurrent weights"),
+    mutates=("target winners", "enabled weights", "engine history"),
+    regime=("validated finite source pattern or registered stimulus", "consecutive snapshot overlap threshold"),
+    observed_outcome=("final assembly snapshot", "epochs used", "persistence"),
+    failure_conditions=("unknown areas or stimulus", "invalid source pattern", "invalid schedule", "empty source activation"),
+    constructed_controls=(
+        "neural_assemblies/tests/test_learning_schedule_contract.py::"
+        "test_learning_rejects_invalid_convergence",
+    ),
+    true_negative_controls=(
+        "neural_assemblies/tests/test_learning_schedule_contract.py::"
+        "test_learning_rejects_invalid_convergence",
+    ),
+)
+
+
 PROJECTION_CONTRACT = OperationContract(
     operation_id="projection-v1",
     specification=(
@@ -1058,6 +1079,8 @@ OPERATION_CONTRACTS = MappingProxyType({
     "attention": ATTENTION_CONTRACT,
     "bind": BINDING_CONTRACT,
     "consolidate_pair": CONSOLIDATION_CONTRACT,
+    "learn_assembly": CONVERGENCE_CONTRACT,
+    "learn_assembly_from_pattern": CONVERGENCE_CONTRACT,
 })
 
 

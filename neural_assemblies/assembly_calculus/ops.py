@@ -62,7 +62,7 @@ import numpy as np
 
 from .assembly import Assembly, overlap
 from .contracts import (
-    ASSOCIATION_CONTRACT, BINDING_CONTRACT, CONSOLIDATION_CONTRACT, COMPLETION_CONTRACT, MERGE_CONTRACT,
+    ASSOCIATION_CONTRACT, BINDING_CONTRACT, CONSOLIDATION_CONTRACT, COMPLETION_CONTRACT, CONVERGENCE_CONTRACT, MERGE_CONTRACT,
     ORDERED_RECALL_CONTRACT,
     SEPARATION_CONTRACT,
     PROJECTION_CONTRACT, RECIPROCAL_PROJECTION_CONTRACT, AssociationPlan,
@@ -257,6 +257,7 @@ def assembly_is_current(brain, assembly) -> bool:
     return all(int(n) in neuron_to_compact for n in assembly.winners)
 
 
+@implements(CONVERGENCE_CONTRACT)
 def learn_assembly_from_pattern(
     brain,
     src_area: str,
@@ -784,6 +785,7 @@ def separate(brain, stim_a, stim_b, target, rounds=10):
     return assembly_a, assembly_b, overlap(assembly_a, assembly_b)
 
 
+@implements(CONVERGENCE_CONTRACT)
 def learn_assembly(
     brain,
     stimulus,

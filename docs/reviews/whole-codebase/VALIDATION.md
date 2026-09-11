@@ -4890,3 +4890,7 @@ scientific failures pending metric/protocol diagnosis; no threshold was relaxed.
 ## ERP engine identity (2026-09-11)
 
 `ErpProtocol` now carries an optional declared `engine_name`. When a study declares one, incremental probes, frame collection, and threshold calibration reject a parser using another engine before producing observations. The identity is serialized with the protocol and included in its description; legacy exploratory calls remain compatible when it is omitted. Focused protocol/context tests pass (27 passed); Ruff is clean. The five existing ERP metric failures remain open and were not weakened.
+
+## Convergence contract registration (2026-09-11)
+
+The two public convergent learners, learn_assembly and learn_assembly_from_pattern, now share and expose CONVERGENCE_CONTRACT through the operation registry. Both entry points are attached to the same frozen ConvergencePlan and semantic card, so contract introspection cannot silently omit a maintained learning operation. Schedule true-negative, operation-contract, and specification-link tests pass (181 passed); Ruff is clean.
