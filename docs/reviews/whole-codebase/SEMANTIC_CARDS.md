@@ -835,3 +835,25 @@ seed/source provenance or certify the old scientific artifacts.
 
 The outer historical study now refuses fewer than three seeds before computation.
 This does not replace the pending shared-runner and scientific-protocol migration.
+
+
+<a id="legacy-aggregate-summary-2026-09-10"></a>
+### Legacy aggregate summary (2026-09-10)
+
+Source: research/experiments/run_all_experiments.py, generate_summary and
+print_summary. Reads ExperimentResult metrics; does not inspect registration,
+seeds, protocol or engine. Writes an in-memory summary and prints it. Before this
+change, missing metrics became zero, noise/scaling/capacity passed unconditionally,
+phase_diagram disappeared, empty inputs passed, and execution failure was ignored.
+These are quick runs, hence scientific status must be VOID regardless of metrics.
+
+Contract: preserve every supplied experiment and its actual metrics/parameters,
+keep explicit execution success separate from scientific status, and reject an
+empty summary. Do not manufacture thresholds or missing measurements. A failed
+execution must remain visible. Summary storage uses the exclusive strict JSON
+writer. Tests construct empty, failed and perfect-looking results first.
+
+This does not validate the aggregate execution schedule: its obsolete noise
+arguments now raise instead of silently selecting defaults, and other producer
+configurations still need migration. A request for unimplemented --full now fails
+before computation instead of silently substituting a quick suite.

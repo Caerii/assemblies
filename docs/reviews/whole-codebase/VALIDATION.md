@@ -2198,3 +2198,39 @@ by inference. No shared-runner smoke has executed at this pre-run checkpoint.
 Pre-run checks: 51 historical replay/grid/CLI/ratchet tests passed in 48.70s;
 Ruff and git diff --check passed. The earlier legacy result/replay check passed
 58 tests in 2.65s.
+
+
+### Historical noise migration evidence and aggregate reporting
+
+The source-27ee39c tagged smoke is committed under
+research/results/runs/memory.historical-noise/historical-noise-smoke-20260910/.
+Its 12 cells and seeds [1,2,3] match direct execution's metrics, raw_data,
+parameters and execution success exactly under canonical JSON comparison;
+timestamps/duration excluded as registered. The artifact validator passes,
+including the source archive. These numbers remain VOID. No full scientific
+study or reproduction of the source-less 20260206 artifact is claimed.
+
+The migration contract workflow completed: 1465 passed, 1 skipped, 6 warnings
+in 171.90s. Dedicated fused/CUDA parity gates subsequently passed 122 tests,
+11 warnings in 58.99s on the RTX 3080 with the fused extension loaded.
+Logs: .cache/historical-noise-adapter-contract-gate.log and
+.cache/historical-noise-adapter-gpu-gate.log (local, not archived evidence).
+
+Code-derived aggregate-summary card exposed unconditional scientific PASS,
+missing phase-diagram results, default-zero measurements and ignored execution
+failures. Summary now preserves all supplied metrics/parameters, detaches them
+from mutable results, records execution success separately, and marks every
+quick result VOID. Empty input raises. Strict exclusive storage replaces the
+aggregate's overwrite/default=str writer. Unsupported --full now raises before
+execution instead of falling back to quick. Added summary tests to contract CI.
+
+Verification: 44 combined summary/historical tests passed in 3.09s; 23 summary,
+specification and two-ratchet tests passed in 74.63s. The later --full guard's
+final five summary tests passed in 2.09s. Ruff and git diff --check pass.
+The 1465-test workflow predates the aggregate reporting edits; it is not a claim
+of whole-package validation. No backend code changed in this checkpoint.
+
+Remaining: aggregate run_quick_suite still passes obsolete configurations to
+several experiments. The noise producer now refuses those arguments rather
+than silently ignoring them. The aggregate execution path has not been migrated
+or rerun; its scientific inventory is not a supported full validation suite.

@@ -1,7 +1,8 @@
 """
-Master Runner for All Scientific Validation Experiments
+Legacy aggregate launcher (not a registered validation protocol)
 
-Runs the complete suite of Assembly Calculus validation experiments:
+Historical experiment inventory; quick outputs are scientifically VOID.
+Several call configurations still require migration to research.runner:
 
 1. PRIMITIVES
    - Projection convergence
@@ -21,16 +22,17 @@ Runs the complete suite of Assembly Calculus validation experiments:
 
 Usage:
     uv run python research/experiments/run_all_experiments.py --quick
-    uv run python research/experiments/run_all_experiments.py --full
+    # --full is unsupported and fails before computation.
 """
 
 import sys
 from pathlib import Path
 from datetime import datetime
-import json
 
 project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
+
+from research.json_documents import write_new_document
 
 # Import all experiments
 from research.experiments.primitives.test_projection import ProjectionExperiment
@@ -46,7 +48,7 @@ from research.experiments.biological_validation.test_biological_parameters impor
 def run_quick_suite():
     """Run quick version of all experiments (~5-10 minutes)."""
     print("="*70)
-    print("COMPLETE SCIENTIFIC VALIDATION SUITE - QUICK")
+    print("LEGACY EXPERIMENT SUITE - QUICK - SCIENTIFIC STATUS VOID")
     print("="*70)
     print(f"Started: {datetime.now().isoformat()}")
     print()
@@ -175,7 +177,7 @@ def run_quick_suite():
     # FINAL SUMMARY
     # =========================================================================
     print("\n" + "="*70)
-    print("COMPLETE VALIDATION SUMMARY")
+    print("QUICK EXECUTION SUMMARY - SCIENTIFIC STATUS VOID")
     print("="*70)
     print()
     
@@ -184,8 +186,7 @@ def run_quick_suite():
     
     # Save master summary
     summary_path = Path(__file__).parent.parent / "results" / f"master_summary_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
-    with open(summary_path, 'w') as f:
-        json.dump(summary, f, indent=2, default=str)
+    write_new_document(summary_path, summary)
     print(f"\nMaster summary saved to: {summary_path}")
     
     print(f"\nFinished: {datetime.now().isoformat()}")
@@ -194,129 +195,54 @@ def run_quick_suite():
 
 
 def generate_summary(results: dict) -> dict:
-    """Generate summary from all experiment results."""
-    summary = {
+    """Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#legacy-aggregate-summary-2026-09-10
+
+    Quick-run measurements are VOID for scientific adoption, even if execution succeeds.
+    """
+    if not results:
+        raise ValueError("cannot summarize an empty experiment suite")
+    experiments = {}
+    for name, result in results.items():
+        record = result.to_dict()
+        experiments[name] = {
+            "execution_success": record["success"],
+            "error_message": record["error_message"],
+            "scientific_status": "VOID",
+            "metrics": record["metrics"],
+            "parameters": record["parameters"],
+        }
+    return {
         "timestamp": datetime.now().isoformat(),
-        "experiments": {},
-        "overall_status": "PASS",
+        "mode": "smoke",
+        "scientific_status": "VOID",
+        "execution_success": all(item["execution_success"] for item in experiments.values()),
+        "experiments": experiments,
     }
-    
-    # Primitives
-    if "projection" in results:
-        proj_rate = results["projection"].metrics.get("overall_convergence_rate", 0)
-        summary["experiments"]["projection"] = {
-            "status": "PASS" if proj_rate > 0.9 else "FAIL",
-            "convergence_rate": proj_rate,
-            "mean_steps": results["projection"].metrics.get("mean_convergence_steps", 0),
-        }
-    
-    if "association" in results:
-        assoc_rate = results["association"].metrics.get("overall_success_rate", 0)
-        summary["experiments"]["association"] = {
-            "status": "PASS" if assoc_rate > 0.9 else "FAIL",
-            "success_rate": assoc_rate,
-        }
-    
-    if "merge" in results:
-        merge_rate = results["merge"].metrics.get("overall_success_rate", 0)
-        summary["experiments"]["merge"] = {
-            "status": "PASS" if merge_rate > 0.9 else "FAIL",
-            "success_rate": merge_rate,
-            "merge_quality": results["merge"].metrics.get("mean_merge_quality", 0),
-        }
-    
-    # Stability
-    if "scaling_laws" in results:
-        scaling = results["scaling_laws"].metrics.get("scaling_analysis", {})
-        summary["experiments"]["scaling_laws"] = {
-            "status": "PASS",
-            "scaling_type": scaling.get("scaling_type", "Unknown"),
-            "r_squared": scaling.get("r_squared", 0),
-        }
-    
-    if "noise_robustness" in results:
-        noise = results["noise_robustness"].metrics.get("critical_analysis", {})
-        summary["experiments"]["noise_robustness"] = {
-            "status": "PASS",
-            "max_recoverable_noise": noise.get("max_recoverable", 0),
-        }
-    
-    # Information Theory
-    if "coding_capacity" in results:
-        summary["experiments"]["coding_capacity"] = {
-            "status": "PASS",
-            "best_efficiency": results["coding_capacity"].metrics.get("best_efficiency", 0),
-        }
-    
-    # Biological
-    if "biological" in results:
-        bio = results["biological"].metrics
-        summary["experiments"]["biological"] = {
-            "status": "PASS" if bio.get("biological_validity_rate", 0) > 0.8 else "WARN",
-            "validity_rate": bio.get("biological_validity_rate", 0),
-        }
-    
-    # Check overall status
-    for exp_name, exp_summary in summary["experiments"].items():
-        if exp_summary.get("status") == "FAIL":
-            summary["overall_status"] = "FAIL"
-            break
-    
-    return summary
 
 
 def print_summary(summary: dict):
-    """Print formatted summary."""
-    print(f"{'Experiment':<25} {'Status':<10} {'Key Metric':<25} {'Value':<15}")
-    print("-"*75)
-    
-    for exp_name, exp_data in summary["experiments"].items():
-        status = exp_data.get("status", "?")
-        
-        # Get the most important metric for each experiment
-        if exp_name == "projection":
-            metric_name = "Convergence Rate"
-            metric_val = f"{exp_data.get('convergence_rate', 0):.1%}"
-        elif exp_name == "association":
-            metric_name = "Success Rate"
-            metric_val = f"{exp_data.get('success_rate', 0):.1%}"
-        elif exp_name == "merge":
-            metric_name = "Merge Quality"
-            metric_val = f"{exp_data.get('merge_quality', 0):.3f}"
-        elif exp_name == "scaling_laws":
-            metric_name = "Scaling Type"
-            metric_val = exp_data.get("scaling_type", "?")[:15]
-        elif exp_name == "noise_robustness":
-            metric_name = "Max Recoverable"
-            metric_val = f"{exp_data.get('max_recoverable_noise', 0):.1%}"
-        elif exp_name == "coding_capacity":
-            metric_name = "Bits/Neuron"
-            metric_val = f"{exp_data.get('best_efficiency', 0):.3f}"
-        elif exp_name == "biological":
-            metric_name = "Bio Validity"
-            metric_val = f"{exp_data.get('validity_rate', 0):.1%}"
-        else:
-            metric_name = "N/A"
-            metric_val = "N/A"
-        
-        print(f"{exp_name:<25} {status:<10} {metric_name:<25} {metric_val:<15}")
-    
-    print()
-    print(f"OVERALL STATUS: {summary['overall_status']}")
+    """Print execution status without inferring a scientific verdict from metrics."""
+    for name, item in summary["experiments"].items():
+        execution = "completed" if item["execution_success"] else "failed"
+        print(f"{name}: execution {execution}; scientific status {item['scientific_status']}")
+        if item["error_message"]:
+            print(f"  {item['error_message']}")
+        print(f"  metrics: {item['metrics']}")
+    print(f"Scientific status: {summary['scientific_status']} (quick suite)")
+
+
+def main(argv=None):
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Run legacy quick experiments (scientific status VOID)")
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument("--quick", action="store_true", help="Run quick tests")
+    mode.add_argument("--full", action="store_true", help="Unsupported; refuses to substitute a quick run")
+    args = parser.parse_args(argv)
+    if args.full:
+        parser.error("full suite is not implemented; choose a registered protocol with python -m research.runner")
+    return run_quick_suite()
 
 
 if __name__ == "__main__":
-    import argparse
-    
-    parser = argparse.ArgumentParser(description="Run all scientific validation experiments")
-    parser.add_argument("--quick", action="store_true", help="Run quick tests")
-    parser.add_argument("--full", action="store_true", help="Run full comprehensive tests")
-    
-    args = parser.parse_args()
-    
-    if args.full:
-        print("Full suite not yet implemented - running quick suite")
-        run_quick_suite()
-    else:
-        run_quick_suite()
-
+    main()

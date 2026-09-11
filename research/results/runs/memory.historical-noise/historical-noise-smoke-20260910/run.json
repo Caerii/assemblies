@@ -1,0 +1,53 @@
+{
+  "engine": "numpy_explicit",
+  "environment": {
+    "policy": "repository-environment-v1",
+    "variables_sha256": {}
+  },
+  "git_commit": "27ee39c1699c3305cb5bd92bb715ae3c12a7c96d",
+  "input_artifacts": {},
+  "mode": "smoke",
+  "parameters": {
+    "beta": 0.1,
+    "establish_rounds": 3,
+    "h4_noise_fracs": [
+      0.0,
+      0.5,
+      1.0
+    ],
+    "h4_sizes": [
+      60
+    ],
+    "k": 6,
+    "n": 60,
+    "noise_fracs": [
+      0.0,
+      0.5,
+      1.0
+    ],
+    "p": 0.2,
+    "recovery_rounds": 3,
+    "w_max": 20.0
+  },
+  "protocol": "memory.historical-noise",
+  "protocol_version": "1",
+  "registration": "research/notes/memory/PREREG_historical_noise_migration.md",
+  "registration_sha256": "2d86999d4d13670c165b67a53d0e396b37f54d14231c6da841e362d7769a4ba5",
+  "schema_version": 3,
+  "scientific_status": "VOID",
+  "script": "research/experiments/historical_noise.py",
+  "script_sha256": "f2464dbd6c547175f474e02f542300502c79f83ede7671f72e588c196c96743d",
+  "seeds": [
+    1,
+    2,
+    3
+  ],
+  "source_archive": {
+    "file": "source.zip",
+    "sha256": "8afcf98ebc68f5a0665124bc271aee14b2b5e3ce580aedae53c82042ea910749"
+  },
+  "source_inventory": "source-inputs-v3",
+  "source_sha256": "05bdac348243b3f35e4f0c71dcc5495ca20363d0eef9e01e888631983cf7484e",
+  "started_utc": "2026-09-11T00:08:54.835456+00:00",
+  "tag": "historical-noise-smoke-20260910"
+}

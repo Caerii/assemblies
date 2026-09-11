@@ -24,3 +24,14 @@ The original CLI must also require --tag; --quick is a VOID smoke alias.
 
 This registration precedes the shared-runner smoke. It neither certifies historical
 scientific claims nor supplies the separate frozen-recovery protocol's null sweep.
+
+
+## Migration check (2026-09-10)
+
+Source 27ee39c preceded the [shared-runner smoke](../../results/runs/memory.historical-noise/historical-noise-smoke-20260910/results.json).
+Seeds 1, 2, 3 produced 12 cells. Direct execution with the identical resolved
+parameters and seed identities exactly matched saved metrics, raw_data, parameters
+and execution success under canonical JSON comparison. Only timestamps and duration
+were excluded. The run record and captured source archive validated. Status remains
+VOID; no full scientific grid or historical artifact reproduction is claimed.
+The permanent 27 pre-refactor trajectory fixtures also pass.

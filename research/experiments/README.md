@@ -14,6 +14,7 @@ them.
 | Line | Script | What it measures | Typical run |
 |------|--------|------------------|-------------|
 | memory | `seq_capacity_scaling.py` | capacity M* of a recurrent area, Hebbian or refracted, with gating and readout options | `python -m research.runner capacity-scaling --tag UNIQUE --registration research/notes/memory/PREREG_refraction_memory.md --nk 4000:60 --arms B`; see registration for the full load grid |
+| memory | `historical_noise.py` | preserved learning-on-recovery protocol; smoke is VOID, full output UNADOPTED | `python -m research.runner historical-noise --smoke --seeds 1 2 3 --tag UNIQUE` |
 | memory | `refraction_memory_numpy.py` | the same protocol on the numpy engine, 5 brains | ~10 min |
 | sequence | `seq_a1_horizon_hashed.py` | the mod-3 machine's horizon at width, paired to the numpy seeds | `python -m research.runner a1-horizon --tag UNIQUE` (20 seeds by default) |
 | sequence | `seq_a1_learning_null.py` | preregistered paired sensitivity control, beta/strength disabled | `python -m research.runner a1-learning-null --tag UNIQUE` |

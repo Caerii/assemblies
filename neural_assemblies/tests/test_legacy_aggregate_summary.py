@@ -1,0 +1,55 @@
+"""Negative controls for the legacy quick-suite reporting contract."""
+import pytest
+
+from research.experiments.base import ExperimentResult
+from research.experiments.run_all_experiments import generate_summary, print_summary
+
+
+def test_empty_suite_cannot_report_success():
+    with pytest.raises(ValueError, match="empty"):
+        generate_summary({})
+
+
+def test_perfect_metrics_cannot_promote_smoke_to_scientific_pass(capsys):
+    result = ExperimentResult("noise", metrics={"recovery": 1.0})
+    summary = generate_summary({"noise_robustness": result})
+    assert summary["scientific_status"] == "VOID"
+    assert summary["execution_success"] is True
+    assert summary["experiments"]["noise_robustness"]["metrics"] == {"recovery": 1.0}
+    assert "max_recoverable_noise" not in summary["experiments"]["noise_robustness"]
+    print_summary(summary)
+    printed = capsys.readouterr().out
+    assert "VOID" in printed
+    assert "PASS" not in printed
+
+
+def test_failed_and_unrecognized_experiments_remain_visible(capsys):
+    failed = ExperimentResult("phase", success=False, error_message="no observations")
+    unknown = ExperimentResult("new", parameters={"seed": 7}, metrics={})
+    summary = generate_summary({"phase_diagram": failed, "new_protocol": unknown})
+    assert summary["execution_success"] is False
+    assert set(summary["experiments"]) == {"phase_diagram", "new_protocol"}
+    assert summary["experiments"]["new_protocol"]["parameters"] == {"seed": 7}
+    assert summary["experiments"]["new_protocol"]["metrics"] == {}
+    print_summary(summary)
+    assert "no observations" in capsys.readouterr().out
+
+
+def test_summary_is_detached_from_mutable_result():
+    result = ExperimentResult("noise", metrics={"values": [0.5]})
+    summary = generate_summary({"noise": result})
+    result.metrics["values"].append(1.0)
+    assert summary["experiments"]["noise"]["metrics"] == {"values": [0.5]}
+
+
+def test_full_request_never_falls_back_to_quick(monkeypatch, capsys):
+    from research.experiments import run_all_experiments as suite
+
+    def forbidden():
+        pytest.fail("unsupported full mode launched quick experiments")
+
+    monkeypatch.setattr(suite, "run_quick_suite", forbidden)
+    with pytest.raises(SystemExit) as error:
+        suite.main(["--full"])
+    assert error.value.code == 2
+    assert "full suite is not implemented" in capsys.readouterr().err

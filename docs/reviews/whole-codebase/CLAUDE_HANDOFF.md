@@ -1276,3 +1276,11 @@ The old CLI now forwards to research.runner's historical-noise adapter and requi
 consumed explicitly. Historical study verdicts are UNADOPTED, not scientific PASS.
 The source-linked migration registration and validation precede the smoke run;
 see VALIDATION.md#historical-noise-shared-runner-migration-2026-09-10.
+
+
+The historical-noise migration now has archived VOID smoke evidence with exact
+direct/adapter agreement, 1465 contract checks and 122 fused/CUDA parity checks
+passing. Aggregate summaries no longer infer scientific PASS from execution or
+missing metrics; unimplemented --full fails before work. Five summary controls
+pass and are wired into CI. Aggregate call configurations remain unmigrated.
+See VALIDATION.md#historical-noise-migration-evidence-and-aggregate-reporting.
