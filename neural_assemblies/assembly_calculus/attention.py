@@ -18,6 +18,7 @@ from typing import Mapping
 import numpy as np
 
 from .assembly import Assembly, overlap
+from .contracts import ATTENTION_CONTRACT, AttentionPlan, implements
 
 
 def _positive_int(label: str, value: object) -> int:
@@ -46,6 +47,7 @@ class AttentionResult:
     value: Assembly
 
 
+@implements(ATTENTION_CONTRACT)
 def attend(
     query: Assembly,
     keys: Mapping[str, Assembly],
@@ -106,8 +108,16 @@ def attend(
     key_areas = {assembly.area for assembly in keys.values()}
     if key_areas != {query.area}:
         raise ValueError("attention query and keys must share one area")
+    plan = AttentionPlan(
+        query=query,
+        keys=tuple(keys.items()),
+        values=tuple(values.items()),
+        top_k=top_k,
+        output_size=output_size,
+        temperature=temperature,
+    )
 
-    scored = [(label, overlap(query, key)) for label, key in keys.items()]
+    scored = [(label, overlap(plan.query, key)) for label, key in plan.keys]
     scored.sort(key=lambda item: (-item[1], item[0]))
     logits = np.asarray([score / temperature for _, score in scored], dtype=float)
     logits -= float(np.max(logits))
@@ -120,8 +130,9 @@ def attend(
     selected = candidates[:top_k]
 
     support: dict[int, float] = {}
+    value_by_label = dict(plan.values)
     for candidate in selected:
-        for neuron_id in values[candidate.label].neuron_ids:
+        for neuron_id in value_by_label[candidate.label].neuron_ids:
             neuron = int(neuron_id)
             support[neuron] = support.get(neuron, 0.0) + candidate.weight
     ranked_neurons = sorted(support, key=lambda neuron: (-support[neuron], neuron))

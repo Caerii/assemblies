@@ -4835,3 +4835,11 @@ historical direct `json.dump` sites under `research/experiments`. New sites or
 increases fail the maintained test gate with an actionable migration message;
 existing sites remain explicit debt until migrated or dispositioned. The ratchet
 passes and Ruff is clean.
+
+## Attention operation contract (2026-09-11)
+
+The sparse attention operator now has an immutable `AttentionPlan` and a
+registered `ATTENTION_CONTRACT`. The contract records its pure readout semantics,
+shared-area regime, bounded output, and constructed label-mismatch negative.
+The plan and contract are public exports, and the focused attention, contract,
+and specification suite passes **181 tests**; Ruff is clean.
