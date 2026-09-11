@@ -1,60 +1,19 @@
-"""
-Association Primitive: Cross-Area Binding and Pattern Completion
+"""Historical association: driven regeneration and learning-on identity readout.
 
-Tests whether co-stimulation association enables one area to recover
-another area's trained assembly after corruption. This is the core
-binding mechanism of Assembly Calculus — the neural basis of
-associative memory.
+Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#historical-association-trials
 
-Protocol:
-1. Establish assemblies in areas A and B via stim+self training (30 rounds).
-2. Associate via co-stimulation: both stimuli fire simultaneously while
-   cross-area projections learn (N rounds).
-   - Bidirectional: project({"sa": ["A"], "sb": ["B"]}, {"A": ["B"], "B": ["A"]})
-   - Unidirectional: project({"sa": ["A"], "sb": ["B"]}, {"A": ["B"]})
-3. Test recovery: Corrupt B (replace winners with random neurons),
-   activate A via its stimulus, project A→B for 20 rounds, measure
-   B overlap with original trained B.
-4. Test identity: After association, re-activate stimulus A with stim+self,
-   measure overlap with original trained A.
+Establish A and B separately with stimulus+self, snapshot them, then associate
+through co-stimulation and directed cross-area fibers. Evaluation continues
+learning. A-driven regeneration of B does not read the replaced B winners and
+therefore does not measure partial-cue completion. Identity evaluation re-trains
+each area with its stimulus and recurrent fiber, comparing against the original
+pre-association snapshot.
 
-Co-stimulation is biologically realistic: association occurs when two
-signals co-occur in the environment (e.g., hearing "dog" while seeing
-a dog — both cortical representations are simultaneously active).
-
-Hypotheses:
-
-H1: Basic association — Co-stimulation A↔B for 30 rounds enables
-    near-perfect recovery of B from A after corruption.
-    Null: recovery equals chance k/n.
-
-H2: Recovery vs training rounds — Recovery increases monotonically
-    with number of association rounds, saturating around 30.
-    Null: recovery is independent of training duration.
-
-H3: Bidirectional vs unidirectional — Unidirectional (A→B only) and
-    bidirectional (A↔B) should produce equivalent A→B recovery,
-    since B→A connections are irrelevant for A→B recall.
-    Null: recovery is independent of directionality.
-
-H4: Identity preservation — After association training, re-activating
-    each stimulus recovers its original assembly with perfect fidelity.
-    Null: association degrades source assemblies.
-
-H1 Extended: Recovery vs network size — Larger networks (k=sqrt(n))
-    support better recovery because sparser representations have better
-    signal-to-noise in cross-area connections.
-    Null: recovery is independent of n.
-
-Statistical methodology:
-- N_SEEDS=10 independent random seeds per condition.
-- One-sample t-test against null k/n.
-- Paired t-test for H3.
-- Cohen's d effect sizes. Mean +/- SEM.
-
-References:
-- Papadimitriou et al., PNAS 117(25):14464-14472, 2020
-- Dabagia et al., "Coin-Flipping in the Brain", 2024 (weight saturation)
+The historical outer harness reports basic overlap, association-duration and
+network-size grids, directionality comparisons and identity overlap. Its chance
+reference k/n and paired test are descriptive; nonsignificance does not establish
+equivalence, and none of these summaries alone certifies an association mechanism.
+Seed/provenance/raw-data and runner migration remain outstanding in this harness.
 """
 
 import sys
@@ -65,7 +24,7 @@ sys.path.insert(0, str(project_root))
 
 import numpy as np
 from dataclasses import dataclass
-from typing import Dict, List, Any
+from typing import Dict, Any
 from research.experiments.base import (
     ExperimentBase,
     ExperimentResult,
@@ -97,16 +56,11 @@ class AssocConfig:
 # ── Core trial runner ──────────────────────────────────────────────
 
 
-def run_association_trial(
-    cfg: AssocConfig, seed: int, bidirectional: bool = True,
-    rng: np.random.Generator = None,
-) -> Dict[str, float]:
-    """
-    Train association between A and B, then test recovery of B from A.
-
-    Returns recovery overlap (corrupted B recovered via A→B projection).
-    """
-    b = Brain(p=cfg.p, seed=seed, w_max=cfg.w_max)
+# Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#historical-association-trials
+def _establish_and_associate(cfg, seed, bidirectional):
+    if type(bidirectional) is not bool:
+        raise ValueError("bidirectional must be boolean")
+    b = Brain(p=cfg.p, seed=seed, w_max=cfg.w_max, engine="numpy_sparse")
 
     b.add_area("A", cfg.n, cfg.k, cfg.beta, explicit=True)
     b.add_area("B", cfg.n, cfg.k, cfg.beta, explicit=True)
@@ -123,13 +77,23 @@ def run_association_trial(
         b.project({"sb": ["B"]}, {"B": ["B"]})
     trained_b = np.array(b.areas["B"].winners, dtype=np.uint32)
 
-    # Associate via co-stimulation
-    if bidirectional:
-        for _ in range(cfg.assoc_rounds):
-            b.project({"sa": ["A"], "sb": ["B"]}, {"A": ["B"], "B": ["A"]})
-    else:
-        for _ in range(cfg.assoc_rounds):
-            b.project({"sa": ["A"], "sb": ["B"]}, {"A": ["B"]})
+    fibers = {"A": ["B"], **({"B": ["A"]} if bidirectional else {})}
+    for _ in range(cfg.assoc_rounds):
+        b.project({"sa": ["A"], "sb": ["B"]}, fibers)
+    return b, trained_a, trained_b
+
+
+def run_association_trial(
+    cfg: AssocConfig, seed: int, bidirectional: bool = True,
+    rng: np.random.Generator = None,
+) -> Dict[str, Any]:
+    """
+    Train association between A and B, then test recovery of B from A.
+
+    Learning-on driven regeneration; the replaced B state is not read.
+    Returns overlap with pre-association B after A→B projection).
+    """
+    b, trained_a, trained_b = _establish_and_associate(cfg, seed, bidirectional)
 
     # Corrupt B: replace all winners with random neurons
     if rng is None:
@@ -149,26 +113,8 @@ def run_association_trial(
 def run_identity_trial(
     cfg: AssocConfig, seed: int,
 ) -> Dict[str, float]:
-    """After association, test whether original assemblies are preserved."""
-    b = Brain(p=cfg.p, seed=seed, w_max=cfg.w_max)
-
-    b.add_area("A", cfg.n, cfg.k, cfg.beta, explicit=True)
-    b.add_area("B", cfg.n, cfg.k, cfg.beta, explicit=True)
-    b.add_stimulus("sa", cfg.k)
-    b.add_stimulus("sb", cfg.k)
-
-    # Establish
-    for _ in range(cfg.establish_rounds):
-        b.project({"sa": ["A"]}, {"A": ["A"]})
-    trained_a = np.array(b.areas["A"].winners, dtype=np.uint32)
-
-    for _ in range(cfg.establish_rounds):
-        b.project({"sb": ["B"]}, {"B": ["B"]})
-    trained_b = np.array(b.areas["B"].winners, dtype=np.uint32)
-
-    # Associate (bidirectional)
-    for _ in range(cfg.assoc_rounds):
-        b.project({"sa": ["A"], "sb": ["B"]}, {"A": ["B"], "B": ["A"]})
+    """Learning-on stimulus+self overlap with pre-association A and B."""
+    b, trained_a, trained_b = _establish_and_associate(cfg, seed, True)
 
     # Re-activate A via stim+self
     for _ in range(cfg.test_rounds):
@@ -433,16 +379,16 @@ def main():
 
     m = result.metrics
     print(f"\nH1: Basic association recovery: {m['basic_association']['recovery']['mean']:.3f}")
-    print(f"\nH2: Recovery vs training rounds:")
+    print("\nH2: Recovery vs training rounds:")
     for r in m["recovery_vs_training"]:
         print(f"  {r['assoc_rounds']:2d} rounds: {r['recovery']['mean']:.3f}")
-    print(f"\nH3: Bidirectional vs unidirectional:")
+    print("\nH3: Bidirectional vs unidirectional:")
     print(f"  Bidir:  {m['directionality']['bidirectional']['recovery']['mean']:.3f}")
     print(f"  Unidir: {m['directionality']['unidirectional']['recovery']['mean']:.3f}")
-    print(f"\nH4: Identity preservation:")
+    print("\nH4: Identity preservation:")
     print(f"  Stim→A: {m['identity_preservation']['stimulus_recovery_A']['stats']['mean']:.3f}")
     print(f"  Stim→B: {m['identity_preservation']['stimulus_recovery_B']['stats']['mean']:.3f}")
-    print(f"\nH1 Extended: Recovery vs size:")
+    print("\nH1 Extended: Recovery vs size:")
     for r in m["recovery_vs_size"]:
         print(f"  n={r['n']:4d}: {r['recovery']['mean']:.3f}")
 

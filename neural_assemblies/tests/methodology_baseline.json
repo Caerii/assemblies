@@ -177,7 +177,6 @@
     "research/experiments/overnight_characterization.py": 3,
     "research/experiments/primitives/diagnose_erp_dynamics.py": 1,
     "research/experiments/primitives/test_area_self_organization.py": 1,
-    "research/experiments/primitives/test_association.py": 2,
     "research/experiments/primitives/test_association_chain.py": 1,
     "research/experiments/primitives/test_bidirectional_association.py": 2,
     "research/experiments/primitives/test_binding_p600.py": 1,

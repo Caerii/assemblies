@@ -2655,3 +2655,30 @@ PhaseDiagramExperiment.run using recorded parameters exactly matches metrics,
 raw_data, parameters and success. Exact input bytes and the full source archive
 validate. The registration links this VOID software check; the original smoke is
 untouched. No scientific adoption, GPU rerun or whole-package green claim is made.
+
+
+## Historical association trial semantics (2026-09-10)
+
+Read both trial implementations before refactoring and wrote the source-linked
+card historical-association-trials. The corrupted B state is never an evaluation
+source; positive-round A-driven regeneration ignores it. Evaluation still learns,
+and reference assemblies precede association. The previous module description
+conflated this with completion and overstated what directionality statistics show.
+Corrected those descriptions, consolidated establishment/association scheduling,
+and pinned the observed numpy_sparse primary engine with numpy_explicit owners.
+The production file is 54 lines shorter after deduplication and prose correction.
+
+Captured nine trials at source5672fda before edits: three seeds each for bidirectional,
+unidirectional and identity paths, schedules3/3/3,n60,k6,p.2,beta.1. All projection
+calls, winner histories, final weight hashes and returned values match after the
+refactor. Disjoint replacement cues produce identical post-projection histories;
+evaluation changes cross-area weights. Four invalid directionality values fail
+before brain construction. These 15 tests pass and enter CPU contract CI.
+
+The initial ratchet run caught the now-stale allowance for two automatic engine
+selections (1 failed,18 passed); removed that allowance rather than relaxing a gate.
+Outer harness migration, explicit seeds/grids/raw values, correct null statistics
+and tagged execution remain outstanding. This does not reproduce source-less old
+association artifacts or establish general scientific association/completion.
+
+Final trial/specification/two-ratchet check: 34 passed in 54.95s. Ruff and git diff --check pass. No GPU or whole-package validation is claimed for this CPU trial refactor.

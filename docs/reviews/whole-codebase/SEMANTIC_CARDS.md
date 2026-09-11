@@ -1092,3 +1092,38 @@ changed file between CLI resolution and capture; it does not promise detection o
 all concurrent mutate-and-restore races. Historical outputs remain VOID in smoke
 and UNADOPTED in study mode. An override does not inherit scientific registration
 of a different grid, nor silently replace the migration's registered default cell.
+
+
+<a id="historical-association-trials"></a>
+### Historical association trials (2026-09-10)
+
+Code source before refactor: research/experiments/primitives/test_association.py
+at 5672fda. Both trial functions create explicit A/B, add sa/sb, establish A then
+B separately using stimulus+self for establish_rounds, and snapshot both before
+association. Co-stimulation projects sa->A and sb->B with A->B, plus B->A only in
+the bidirectional condition. No recurrent fibers participate during association.
+Every project call retains the backend's normal Hebbian learning and clipping.
+
+The association readout replaces B winners, then repeats sa->A and A->B for
+test_rounds, comparing the final B to the pre-association B snapshot. No B fiber
+is active in evaluation, so after the first projection the result is independent
+of the replacement B cue. This measures driven regeneration while learning,
+including any association drift, not autonomous partial-cue completion or frozen
+recall. The supplied corruption RNG is consumed but cannot influence this readout
+when test_rounds is positive. Preserve that API behavior in this refactor.
+
+The identity trial always associates bidirectionally, then evaluates A using
+sa->A plus A->A, followed by B using sb->B plus B->B. These phases also learn;
+original references remain the pre-association snapshots. A nonsignificant paired
+difference cannot establish bidirectional/unidirectional equivalence. The outer
+historical harness retains unresolved seed, raw-data and statistical-reporting
+migration work; this card does not adopt its hypotheses or old result files.
+
+Consolidate identical establishment/association scheduling in one helper and pin
+the observed primary engine numpy_sparse (explicit areas owned by numpy_explicit).
+Before changing it, capture nine source traces: three brain seeds for bidirectional,
+unidirectional and identity trials at n60,k6,p.2,beta.1,w_max20 and schedules3/3/3.
+Require exact projection calls, winner sequences, final weight hashes and returned
+values after refactoring. Construct disjoint B replacements and verify equal
+post-projection states; inspect evaluation weight updates to disprove frozen-readout
+interpretation. These are software semantic controls, not scientific noise evidence.

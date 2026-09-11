@@ -1440,3 +1440,15 @@ The configured phase smoke now passes direct/CLI equivalence and archive checks:
 six cells, seeds1/2/3, only test_rounds overridden to 1. Exact configuration bytes
 are retained; evidence source is a1cbecd and status VOID. The additional 200
 historical/storage/specification/ratchet checks pass. Defaults are unchanged.
+
+
+## Historical association trial semantics (2026-09-10)
+
+Added a code-derived card and negative interpretation controls before consolidating
+the duplicated setup. B corruption is unread by evaluation, which continues learning;
+references precede association. Nine captured trials remain exact and the observed
+engine is pinned. Removed two obsolete automatic-engine allowances. The file is
+54 lines shorter. Outer experiment migration is next; see
+VALIDATION.md#historical-association-trial-semantics-2026-09-10.
+
+Final validation: 34 trial/specification/ratchet checks pass; Ruff and diff checks pass. No new GPU or scientific adoption claim.
