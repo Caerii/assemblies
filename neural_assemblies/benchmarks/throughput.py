@@ -43,13 +43,23 @@ def _git_commit() -> str | None:
 
 
 def benchmark(*, engine: str, sizes: list[int], k: int, rounds: int,
-              seeds: list[int], materialize: bool = True) -> dict:
+              seeds: list[int], materialize: bool = True,
+              warmup: bool = True) -> dict:
     if not seeds or len(seeds) < 3 or len(set(seeds)) != len(seeds):
         raise ValueError("throughput benchmark requires at least three unique seeds")
     if any(type(n) is not int or n <= 0 for n in sizes):
         raise ValueError("sizes must be positive integers")
     if type(k) is not int or k <= 0 or type(rounds) is not int or rounds <= 0:
         raise ValueError("k and rounds must be positive integers")
+    if type(warmup) is not bool:
+        raise ValueError("warmup must be a boolean")
+    if warmup:
+        warm = Brain(p=0.05, seed=0, engine=engine, save_winners=True)
+        warm.add_stimulus("stimulus", k)
+        warm.add_area("target", max(k, 40), k, beta=0.1)
+        if materialize:
+            warm.materialize_area("target", storage="dense")
+        project(warm, "stimulus", "target", rounds=1, recurrent=True)
     cells = []
     resolved_model = None
     for n in sizes:
@@ -81,6 +91,7 @@ def benchmark(*, engine: str, sizes: list[int], k: int, rounds: int,
         "status": "diagnostic",
         "engine": engine,
         "storage": "materialized" if materialize else "sampled",
+        "warmup": warmup,
         "model_semantics": resolved_model,
         "seeds": seeds,
         "cells": cells,
@@ -99,11 +110,13 @@ def main(argv=None) -> int:
     parser.add_argument("--seeds", nargs="+", type=int, default=[42, 43, 44])
     parser.add_argument("--sampled", action="store_true",
                         help="opt into lazy sampled storage; avoid for recurrent science")
+    parser.add_argument("--no-warmup", action="store_true",
+                        help="include first-use initialization in the timing")
     parser.add_argument("--output", type=Path, help="new JSON path; existing files are rejected")
     args = parser.parse_args(argv)
     result = benchmark(engine=args.engine, sizes=args.sizes, k=args.k,
                        rounds=args.rounds, seeds=args.seeds,
-                       materialize=not args.sampled)
+                       materialize=not args.sampled, warmup=not args.no_warmup)
     encoded = json.dumps(result, indent=2, allow_nan=False) + "\n"
     if args.output is None:
         print(encoded, end="")
