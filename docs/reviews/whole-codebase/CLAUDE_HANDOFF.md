@@ -2541,3 +2541,5 @@ Operation contracts now distinguish ordinary schedule evidence from executable t
 ERP pre-k-WTA energy now rejects partial neuron-ID to compact-index mappings as undefined with structured sizes; a focused regression covers the former silent-drop path.
 
 Next-token scaling now materializes LEX before training; the full module passes 7 tests with 1 intentional xfail. The prior failure was caused by a lazy sampled substrate, not a readout algorithm change.
+
+The synchronized CUDA non-slow audit collected 3,723 tests and reached 1,908 passed, 91 skipped, 4 expected xfails, and 6 failures before the cap. Five are the known sampled-engine ERP inversion; the next-token failure was repaired by materializing LEX in its scaling fixture.

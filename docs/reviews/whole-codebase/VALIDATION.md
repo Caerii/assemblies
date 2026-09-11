@@ -4560,3 +4560,12 @@ The next-token scaling fixture now materializes its `LEX` area before training.
 Its ranking claim therefore uses a fixed connectome rather than a lazy sampled
 substrate whose representation changes as the vocabulary is touched. The full
 scaling module passes **7 tests with 1 intentional xfail**.
+
+## GPU-backed maintained-suite audit (2026-09-11)
+
+With the synchronized CUDA environment (`torch 2.12.1+cu130`), the non-slow
+package run collected 3,723 tests and reached **1,908 passed, 91 skipped, 4
+expected xfails, and 6 failures** before the configured failure cap. Five
+failures reproduce the registered sampled-engine ERP inversion/saturation; the
+sixth was the lazy-connectome next-token ranking defect fixed above. The ERP
+failures remain visible pending a fixed-connectome replay or amendment.
