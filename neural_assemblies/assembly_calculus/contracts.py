@@ -423,6 +423,38 @@ class BindingPlan:
 
 
 @dataclass(frozen=True)
+class SourceBindingPlan:
+    """Immutable schedule for multi-source teacher-driven binding."""
+
+    sources: tuple[str, ...]
+    target_area: str
+    teachers: tuple[str, ...] = ()
+    rounds: int = 2
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.sources, tuple) or not self.sources:
+            raise ValueError("source binding requires at least one source area")
+        if any(not isinstance(name, str) or not name for name in self.sources):
+            raise ValueError("source binding sources must be nonempty names")
+        if len(set(self.sources)) != len(self.sources):
+            raise ValueError("source binding sources must be distinct")
+        _require_name("target_area", self.target_area)
+        if not isinstance(self.teachers, tuple):
+            raise ValueError("source binding teachers must be a tuple")
+        if any(not isinstance(name, str) or not name for name in self.teachers):
+            raise ValueError("source binding teachers must be nonempty names")
+        if len(set(self.teachers)) != len(self.teachers):
+            raise ValueError("source binding teachers must be distinct")
+        object.__setattr__(self, "rounds", _positive_rounds(self.rounds))
+
+    def preflight(self, brain) -> None:
+        unknown = [name for name in (*self.sources, *self.teachers, self.target_area)
+                   if name not in brain.areas]
+        if unknown:
+            raise KeyError(f"source binding area name(s) are unknown: {unknown!r}")
+
+
+@dataclass(frozen=True)
 class ConvergencePlan:
     """Immutable stopping schedule shared by convergent learning helpers."""
 
@@ -1048,6 +1080,27 @@ BINDING_CONTRACT = OperationContract(
 )
 
 
+SOURCE_BINDING_CONTRACT = OperationContract(
+    operation_id="source-binding-v1",
+    specification="docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-source-binding",
+    plan_type=SourceBindingPlan,
+    inputs=("brain", "sources", "target_area", "teachers", "source_assemblies", "rounds"),
+    reads=("source and teacher winners", "target fibers", "plasticity state"),
+    mutates=("target winners", "source-to-target weights", "engine history"),
+    regime=("one or more active source areas", "optional teacher co-drive", "free target competition"),
+    observed_outcome=("boolean indicating whether a pairing was applied",),
+    failure_conditions=("unknown areas", "duplicate source or teacher names", "invalid rounds", "no live source activity"),
+    constructed_controls=(
+        "neural_assemblies/tests/test_binding_operator_contract.py::"
+        "test_bind_rejects_unknown_area_names",
+    ),
+    true_negative_controls=(
+        "neural_assemblies/tests/test_binding_operator_contract.py::"
+        "test_bind_rejects_ambiguous_round_schedule",
+    ),
+)
+
+
 CONSOLIDATION_CONTRACT = OperationContract(
     operation_id="consolidation-pair-v1",
     specification="docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-consolidation",
@@ -1078,6 +1131,7 @@ OPERATION_CONTRACTS = MappingProxyType({
     "separate": SEPARATION_CONTRACT,
     "attention": ATTENTION_CONTRACT,
     "bind": BINDING_CONTRACT,
+    "source_binding": SOURCE_BINDING_CONTRACT,
     "consolidate_pair": CONSOLIDATION_CONTRACT,
     "learn_assembly": CONVERGENCE_CONTRACT,
     "learn_assembly_from_pattern": CONVERGENCE_CONTRACT,

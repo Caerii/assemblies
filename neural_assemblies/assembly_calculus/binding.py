@@ -40,11 +40,11 @@ pathway. TAU below is that traversal constant.
 
 from __future__ import annotations
 
-from numbers import Integral
 from typing import Dict, Iterable, Mapping, Optional
 
 from .assembly import Assembly, overlap
 from .ops import activate_assembly, _snap
+from .contracts import SOURCE_BINDING_CONTRACT, SourceBindingPlan, implements
 
 # Per-step traversal of a trained pathway (Mitropolsky & Papadimitriou 2025,
 # Fig. 3a). Not the ~10 steps needed to form a new assembly.
@@ -108,6 +108,7 @@ def materialize_fiber(
     return True
 
 
+@implements(SOURCE_BINDING_CONTRACT)
 def bind(
     brain,
     *,
@@ -118,6 +119,8 @@ def bind(
     rounds: int = TAU,
 ) -> bool:
     """Hebbian-associate a cue with whatever the teacher drives in the target.
+
+    Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-source-binding
 
     Cue and teacher fire into ``target_area`` TOGETHER, with the target left
     free to settle. The teacher determines which assembly wins; plasticity
@@ -153,14 +156,11 @@ def bind(
     Returns:
         True if the pairing was applied.
     """
-    sources = list(sources)
-    teachers = list(teachers)
-    unknown = [a for a in (*sources, *teachers, target_area)
-               if a not in brain.areas]
-    if unknown:
-        raise KeyError(f"bind area name(s) are unknown: {unknown!r}")
-    if isinstance(rounds, bool) or not isinstance(rounds, Integral) or rounds < 1:
-        raise ValueError("bind rounds must be a positive integer")
+    sources = tuple(sources)
+    teachers = tuple(teachers)
+    plan = SourceBindingPlan(sources, target_area, teachers, rounds)
+    plan.preflight(brain)
+    rounds = plan.rounds
     if not sources:
         return False
 

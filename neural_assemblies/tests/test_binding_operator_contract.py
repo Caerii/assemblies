@@ -3,6 +3,7 @@
 import pytest
 
 from neural_assemblies.assembly_calculus.binding import bind
+from neural_assemblies.assembly_calculus.contracts import SourceBindingPlan
 from neural_assemblies.core.brain import Brain
 
 
@@ -16,6 +17,15 @@ def _brain():
 def test_bind_rejects_unknown_area_names():
     with pytest.raises(KeyError, match="area name"):
         bind(_brain(), sources=["TYPO"], target_area="DST")
+
+
+def test_source_binding_plan_is_immutable_and_validates_topology():
+    plan = SourceBindingPlan(("SRC",), "DST", ("TEACHER",), rounds=2)
+    assert plan.rounds == 2
+    with pytest.raises(ValueError, match="at least one source"):
+        SourceBindingPlan((), "DST")
+    with pytest.raises(KeyError, match="unknown"):
+        plan.preflight(_brain())
 
 
 @pytest.mark.parametrize("rounds", [0, -1, 1.5, True])

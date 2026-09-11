@@ -405,6 +405,7 @@ def test_registry_and_public_callable_cannot_drift():
     """Every registry key must name a callable carrying that exact contract."""
     import neural_assemblies.assembly_calculus.ops as operations
     from neural_assemblies.assembly_calculus.attention import attend
+    from neural_assemblies.assembly_calculus.binding import bind as source_bind
 
     names = {
         "projection": "project",
@@ -413,9 +414,10 @@ def test_registry_and_public_callable_cannot_drift():
         "pattern_completion": "pattern_complete",
     }
     for name, contract in OPERATION_CONTRACTS.items():
-        operation = attend if name == "attention" else getattr(
+        operation = (attend if name == "attention" else
+                     source_bind if name == "source_binding" else getattr(
             operations, names.get(name, name),
-        )
+        ))
         assert callable(operation), name
         assert getattr(operation, "operation_contract", None) is contract
         assert contract.specification in (operation.__doc__ or ""), (

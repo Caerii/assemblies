@@ -1549,3 +1549,9 @@ round budget before mutation. Each enabled direction activates its stored
 source and invokes the reciprocal projection schedule; outputs are post-replay
 snapshots. Unknown areas, stale area/snapshot pairing, invalid flags, and an
 empty direction schedule fail before replay.
+
+<a id="contract-source-binding"></a>
+
+## Multi-source teacher binding
+
+`assembly_calculus.binding.bind` is a distinct parser-facing operation from the package-level `ops.bind`. It co-fires one or more active source areas and optional teacher areas into a free target for a validated positive round schedule. Sources are pinned during the pairing; the target remains free so the teacher can determine its winners. It returns whether an active pairing was applied, rather than an Assembly snapshot. Unknown or duplicate topology, invalid rounds, and absent source activity are rejected before projection.

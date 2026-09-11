@@ -4900,3 +4900,7 @@ Added a direct calibration true negative: a declared numpy_exact protocol on a n
 Added a registry/decorator consistency ratchet. It resolves every operation key, including aliases and the separate attention module, and asserts the callable carries the exact registered contract object. Operation contract tests pass (160 passed); Ruff is clean.
 
 Strengthened the operation contract ratchet to require each registered callable docstring to contain its exact specification path and anchor. This caught missing source links on separate and attend; both were repaired. The complete registry contract suite passes (160 tests), Ruff is clean, and the maintained evidence check passes.
+
+## Distinct multi-source binding contract (2026-09-11)
+
+The audit found two intentionally different functions named bind: package-level ops.bind (single source snapshot schedule) and assembly_calculus.binding.bind (multi-source teacher-driven parser schedule). Added SourceBindingPlan and SOURCE_BINDING_CONTRACT for the latter, attached its semantic card and decorator, and exposed it in the registry/public API. Registry/decorator/source-link tests plus binding controls pass (166 tests); Ruff is clean.
