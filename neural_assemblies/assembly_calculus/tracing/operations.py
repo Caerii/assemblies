@@ -19,9 +19,16 @@ def snapshot_area(brain, area: str) -> Assembly:
     return _snap(brain, area)
 
 
-def project_trace(brain, stimulus: str, target: str, rounds: int = 10) -> AssemblyTrace:
-    """Project a stimulus and record the target assembly after each round."""
-    plan = ProjectionPlan(stimulus, target, rounds, recurrent=True)
+def project_trace(
+    brain, stimulus: str, target: str, rounds: int = 10, *, recurrent: bool = True,
+) -> AssemblyTrace:
+    """Project a stimulus and record the target assembly after each round.
+
+    ``recurrent`` is explicit because the historical trace default stabilizes
+    with target recurrence while :func:`ops.project` defaults to a
+    stimulus-only schedule.
+    """
+    plan = ProjectionPlan(stimulus, target, rounds, recurrent=recurrent)
     if plan.stimulus not in brain.stimuli:
         raise IndexError(f"Not in brain.stimuli: {plan.stimulus}")
     if plan.target not in brain.areas:
@@ -32,7 +39,9 @@ def project_trace(brain, stimulus: str, target: str, rounds: int = 10) -> Assemb
 
     for round_index, step in enumerate(plan.steps, start=1):
         brain.project(step.stimuli_dict(), step.fibers_dict())
-        drive = "stimulus" if round_index == 1 else "stimulus + recurrence"
+        drive = "stimulus"
+        if round_index > 1 and recurrent:
+            drive = "stimulus + recurrence"
         previous = _append_step(
             steps,
             brain=brain,

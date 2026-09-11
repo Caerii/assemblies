@@ -20,6 +20,12 @@ def test_project_trace_rejects_unknown_stimulus_before_mutation():
     assert len(brain.areas["A"].winners) == 0
 
 
+def test_project_trace_exposes_recurrence_choice():
+    brain = _brain()
+    trace = project_trace(brain, "s", "A", rounds=2, recurrent=False)
+    assert all("recurrence" not in step.drive for step in trace)
+
+
 @pytest.mark.parametrize("rounds", [0, -1, True, 1.5])
 def test_project_trace_rejects_invalid_rounds(rounds):
     with pytest.raises(ValueError, match="positive integer"):

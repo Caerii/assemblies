@@ -4683,3 +4683,7 @@ Added frozen `OrderedRecallPlan` to the operation-contract layer and routed `ord
 ## Shared traced association contract (2026-09-11)
 
 `associate_trace` now consumes `AssociationPlan` for its three-phase schedule, source clamping, and topology preflight. Trace labels are derived from the plan steps, so traced association and executable association cannot diverge silently. Trace and operation-contract regressions pass **163 tests**.
+
+## Explicit traced projection recurrence (2026-09-11)
+
+`project_trace` now exposes `recurrent` explicitly instead of silently forcing the trace-only default. The historical trace behavior remains `True`, while callers can request a stimulus-only schedule that matches `project(..., recurrent=False)`. The projection-trace suite passes **19 tests**.
