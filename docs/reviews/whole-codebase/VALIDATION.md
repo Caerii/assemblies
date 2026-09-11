@@ -4523,3 +4523,10 @@ The simulation utility contract suite passes **10 tests** with Ruff clean.
 vectors, and `k <= n` before normalization. The former `max(k, 1)` fallback could
 turn invalid inputs into plausible ratios. The E2 overlap suite passes **11
  tests** with Ruff clean.
+
+## Sequence homogeneity contract (2026-09-11)
+
+`Sequence` now validates a non-empty area name, requires every item to be an
+`Assembly`, and rejects snapshots from another area. This makes the stated
+single-area sequence invariant executable. The sequence suite passes **18 tests**
+and Ruff is clean.

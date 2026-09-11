@@ -97,6 +97,16 @@ class TestSequenceDataclass(unittest.TestCase):
         seq = Sequence("A", asms)  # pass list
         self.assertIsInstance(seq.assemblies, tuple)
 
+    def test_mixed_area_sequence_is_rejected(self):
+        a = self._make_assemblies(1)[0]
+        b = Assembly("B", np.arange(K, dtype=np.uint32))
+        with self.assertRaisesRegex(ValueError, "sequence area"):
+            Sequence("A", [a, b])
+
+    def test_non_assembly_sequence_item_is_rejected(self):
+        with self.assertRaisesRegex(TypeError, "must be an Assembly"):
+            Sequence("A", [object()])
+
 
 # ---------------------------------------------------------------------------
 # sequence_memorize tests

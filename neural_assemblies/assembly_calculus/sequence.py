@@ -35,7 +35,7 @@ from typing import List
 
 import numpy as np
 
-from .assembly import overlap
+from .assembly import Assembly, overlap
 
 
 @dataclass(frozen=True)
@@ -52,6 +52,16 @@ class Sequence:
     def __post_init__(self):
         if isinstance(self.assemblies, list):
             object.__setattr__(self, 'assemblies', tuple(self.assemblies))
+        if not isinstance(self.area, str) or not self.area:
+            raise ValueError("sequence area must be a non-empty string")
+        for index, assembly in enumerate(self.assemblies):
+            if not isinstance(assembly, Assembly):
+                raise TypeError(f"sequence item {index} must be an Assembly")
+            if assembly.area != self.area:
+                raise ValueError(
+                    f"sequence item {index} belongs to {assembly.area!r}, "
+                    f"not sequence area {self.area!r}"
+                )
 
     def __len__(self) -> int:
         return len(self.assemblies)
