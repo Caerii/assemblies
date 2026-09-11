@@ -106,6 +106,15 @@ class TestAssembly:
     def test_chance_overlap_formula(self):
         assert chance_overlap(100, 1000) == pytest.approx(0.1)
 
+    @pytest.mark.parametrize("k, n", [(0, 0), (-1, 10), (11, 10)])
+    def test_chance_overlap_rejects_invalid_population_domain(self, k, n):
+        with pytest.raises(ValueError, match="0 <= k <= n"):
+            chance_overlap(k, n)
+
+    def test_chance_overlap_rejects_boolean_parameters(self):
+        with pytest.raises(ValueError, match="integers"):
+            chance_overlap(True, 10)
+
 
 # ---------------------------------------------------------------------------
 # Projection tests

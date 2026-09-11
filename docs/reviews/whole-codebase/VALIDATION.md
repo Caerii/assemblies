@@ -4497,3 +4497,10 @@ The ERP protocol/session suite passes 19 tests and Ruff is clean.
 module loading. This gives callers one deterministic validation error instead of
 an incidental registry/import failure. Engine availability tests now cover seven
 cases and pass with Ruff clean.
+
+## Chance-overlap domain contract (2026-09-11)
+
+The calculus `chance_overlap(k, n)` helper now validates the hypergeometric
+regime (`n > 0`, `0 <= k <= n`, integer parameters) before division. Five
+focused tests cover valid, boundary, and boolean-invalid inputs; Ruff and
+whitespace checks pass.
