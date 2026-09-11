@@ -44,6 +44,13 @@ def test_rust_ir_source_links_its_wire_contract():
                and edge["to"].endswith("#contract-protocol-wire") for edge in edges)
 
 
+def test_capacity_comparison_links_its_ir_contract():
+    edges, errors = specification_links(ROOT)
+    assert not errors, errors
+    assert {"from": "research/experiments/seq_capacity_scaling.py:<module>",
+            "to": "neural_assemblies/ir/VERIFICATION.md#contract-capacity-comparison"} in edges
+
+
 @pytest.mark.parametrize("module, anchor", [
     ("Domain", "contract-checked-domain"), ("Learning", "contract-learning-frame"),
 ])

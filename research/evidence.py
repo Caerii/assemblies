@@ -294,8 +294,10 @@ def specification_links(root: Path = ROOT) -> tuple[list[dict], list[str]]:
     root = root.resolve()
     edges, errors = [], []
     package = root / 'neural_assemblies'
+    research_sources = (root / 'research' / 'experiments').rglob('*.py')
     infrastructure = [root / 'research' / 'runner.py']
     sources = sorted([*package.rglob('*.py'), *package.rglob('*.rs'),
+                      *research_sources,
                       *(path for path in infrastructure if path.is_file()),
                       *(root / 'formal' / 'AssemblyIR').rglob('*.lean')])
     for source in sources:

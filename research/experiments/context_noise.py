@@ -26,7 +26,7 @@ def parameters(smoke=False):
 
 
 def summarize(rows, seeds):
-    """Specification: research/notes/memory/PREREG_context_noise.md"""
+    """Registration: research/notes/memory/PREREG_context_noise.md"""
     if [row['seed'] for row in rows] != seeds:
         raise ValueError('rows must preserve the registered unique brain identities')
     summaries = {}
@@ -40,7 +40,7 @@ def summarize(rows, seeds):
 
 
 def judge(cells, bars):
-    """Specification: research/notes/memory/PREREG_context_noise.md"""
+    """Registration: research/notes/memory/PREREG_context_noise.md"""
     indexed = {cell['id']: cell['summary'] for cell in cells}
     if len(indexed) != len(cells):
         raise ValueError('duplicate cell identities')

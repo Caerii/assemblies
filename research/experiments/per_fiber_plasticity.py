@@ -54,7 +54,7 @@ def _geometric_mean(values: np.ndarray) -> float:
 
 def run_seed(seed: int, config: dict, *, engine: str,
              model_semantics: dict) -> tuple[dict, dict]:
-    """Specification: research/notes/memory/PREREG_per_fiber_plasticity.md"""
+    """Registration: research/notes/memory/PREREG_per_fiber_plasticity.md"""
     brain = Brain(
         p=config["p"], seed=seed, engine=engine,
         norm_init=False, w_max=config["w_max"],

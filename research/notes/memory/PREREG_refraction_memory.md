@@ -656,3 +656,32 @@ The subsequent [record-consumption replay](../../results/runs/memory.capacity-sc
 also matched all 885 comparisons after arm settings, device and distinctness bars
 were changed from implicit globals to required execution inputs from the run
 record. The registered defaults and scientific interpretation are unchanged.
+
+## Amendment 7 (2026-09-11, before running): paired sensitivity provenance
+
+This is a migration and instrument-sensitivity check for the already adopted R1
+contrast, not a new scientific claim. Protocol version 3 executes both conditions
+inside one run record with the same ordered seeds and restarted measurement-sample
+stream. Each condition has its own complete configuration and organ-semantics
+profile. They may differ only by refraction: CTL has strength zero; REF has
+strength 0.5 beta. Both use arm B, masked ungated readout, `(n,k)=(4000,60)`,
+T=8, p=0.5, beta=0.1 and seeds 42..61. The M grid is
+8,16,32,64,128,192,256,384,512,768,1024,1536,2048,3072,4096.
+
+    A7-M1  REPRODUCTION. Every retained per-seed metric at common legacy
+           checkpoints is exactly equal to the corresponding figure artifact;
+           ceiling fields agree under the version-3 implementation. Any changed
+           observation is a failed migration and cannot update the register.
+    A7-S1  SENSITIVITY. At M=128, every paired brain has
+           rank1(REF)-rank1(CTL) >= 0.50. Any seed below 0.50 fails the
+           sensitivity check. This bar is frozen before the paired rerun and is
+           intentionally below the historical minimum; it tests a live contrast,
+           not the 4x aggregate-capacity adoption bar.
+    A7-S0  TRUE NEGATIVE. Replacing REF's vector with CTL's vector must fail
+           A7-S1. This is a validator control, not another GPU condition.
+
+Reproduce with `python -m research.runner capacity-scaling --registration
+research/notes/memory/PREREG_refraction_memory.md --nk 4000:60 --arms B
+--compare-refraction --refracted-factor 0.5
+--ms 8,16,32,64,128,192,256,384,512,768,1024,1536,2048,3072,4096 --tag X`.
+The run remains UNJUDGED until A7-M1 and A7-S1 are evaluated and recorded below.

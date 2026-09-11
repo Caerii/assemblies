@@ -23,6 +23,12 @@ M* = 41 / 104 at n=2000; the SCALING with n is the deliverable.
 `--smoke` checks the API only. Its numbers are VOID. Protocol version 2
 records full (arm,n,k,seed) coordinates through the shared runner. Historical
 flat JSON and its automatic slope verdict are not produced by this version.
+
+Protocol version 3 can execute the Hebbian control and refracted treatment in
+one run with `--compare-refraction`. Their complete configurations and organ
+semantics are separate, while seeds and measurement sampling remain paired.
+
+Specification: neural_assemblies/ir/VERIFICATION.md#contract-capacity-comparison
 """
 from __future__ import annotations
 
@@ -257,16 +263,80 @@ def gated(cell, seeds, *, distinct_gate, distinct_low_bar):
     return (r.mean if ok else 0.0), r, x, d
 
 
+def _resolved_conditions(record):
+    """Decode version-2 single or version-3 paired protocol configurations."""
+    parameters = record["parameters"]
+    if "conditions" not in parameters:
+        values = dict(parameters["configuration"])
+        values["checkpoints"] = tuple(values["checkpoints"])
+        return {"default": CapacityProtocol(**values)}, False
+    if ("configuration" in parameters or not isinstance(parameters["conditions"], dict)
+            or set(parameters["conditions"]) != {"control", "refracted"}):
+        raise ValueError("paired conditions must be exactly control and refracted")
+    conditions = {}
+    for name, raw in parameters["conditions"].items():
+        if (not isinstance(name, str) or not name
+                or not isinstance(raw, dict)):
+            raise ValueError("condition names and configurations must be explicit")
+        try:
+            values = dict(raw)
+            values["checkpoints"] = tuple(values["checkpoints"])
+            conditions[name] = CapacityProtocol(**values)
+        except (KeyError, TypeError) as exc:
+            raise ValueError(f"invalid {name} condition configuration") from exc
+    control, treatment = conditions["control"], conditions["refracted"]
+    if (control.refracted or control.refracted_factor != 0.0
+            or treatment.refracted is not True or treatment.refracted_factor <= 0
+            or control.readout != "masked" or treatment.readout != "masked"
+            or control.converge or treatment.converge):
+        raise ValueError("paired conditions require an ungated masked refraction contrast")
+    ignored = {"refracted", "refracted_factor"}
+    if ({key: value for key, value in asdict(control).items() if key not in ignored}
+            != {key: value for key, value in asdict(treatment).items()
+                if key not in ignored}):
+        raise ValueError("paired conditions may differ only in refraction")
+    return conditions, True
+
+
+def _capacity_cell(n, k, protocol, seeds, rng, *, arm, settings, device,
+                   organ_semantics, distinct_gate, distinct_low_bar, half_bar):
+    cells = run_cell(n, k, protocol, seeds, rng, arm_settings=settings,
+                     device=device, organ_semantics=organ_semantics)
+    curve = [(m, gated(cell, seeds, distinct_gate=distinct_gate,
+                       distinct_low_bar=distinct_low_bar)[0])
+             for m, cell in sorted(cells.items())]
+    ceiling = ceiling_from_curve(curve, threshold=half_bar)
+    fill = _fill_at(cells, ceiling.m_star)
+    return {
+        "arm": arm, "n": n, "k": k, "seeds": seeds,
+        "checkpoints": cells,
+        "ensembles": {m: {name: asdict(ensemble_from_values(values, keys=seeds,
+                                                              label=name))
+                          for name, values in cell.items()}
+                      for m, cell in cells.items()},
+        "ceiling": {"m_star": ceiling.m_star, "supported": bool(ceiling.supported),
+                    "grid_lo": ceiling.lo, "grid_hi": ceiling.hi,
+                    "grid_censored": bool(ceiling.censored),
+                    "interior_points": ceiling.n_interior,
+                    "fill_at_ceiling": fill,
+                    "fill_censored": fill is not None and fill >= 0.95,
+                    "alpha": ceiling.m_star * k / n if ceiling.m_star else None},
+    }
+
+
 def experiment(record):
     """Evaluate explicitly identified cells; completion leaves adoption UNJUDGED."""
     parameters = record["parameters"]
     # Specification: neural_assemblies/ir/VERIFICATION.md#contract-capacity-execution
-    for name in ("distinct_gate", "distinct_low_bar"):
+    for name in ("distinct_gate", "distinct_low_bar", "half_bar"):
         value = parameters[name]
         if type(value) not in (int, float) or not math.isfinite(value) or value < 0:
             raise ValueError(f"{name} must be a finite nonnegative number")
-    if parameters["distinct_low_bar"] > 1:
-        raise ValueError("distinct_low_bar must be at most one")
+    if not 0 < parameters["half_bar"] <= 1 or parameters["distinct_low_bar"] > 1:
+        raise ValueError("half_bar must be in (0,1] and distinct_low_bar at most one")
+    measurement_seed = parameters["measurement_seed"]
+    if type(measurement_seed) is not int or not 0 <= measurement_seed < 2**64:
+        raise ValueError("measurement_seed must be an unsigned 64-bit integer")
     settings = parameters["arm_settings"]
     if set(settings) != set(parameters["arms"]):
         raise ValueError("arm_settings must describe exactly the requested arms")
@@ -277,43 +347,33 @@ def experiment(record):
     device = parameters["device"]
     if not isinstance(device, str) or not device:
         raise ValueError("device must be an explicit nonempty name")
-    values = dict(parameters["configuration"])
-    values["checkpoints"] = tuple(values["checkpoints"])
-    protocol = CapacityProtocol(**values)
+    conditions, paired = _resolved_conditions(record)
     seeds = record["seeds"]
-    results = []
-    for arm in parameters["arms"]:
-        for n, k in parameters["nk"]:
-            # The measurement sample stream is separate from brain identities,
-            # and restarted per cell as in the historical protocol.
-            cells = run_cell(n, k, protocol, seeds,
-                             np.random.default_rng(parameters["measurement_seed"]),
-                             arm_settings=settings[arm], device=device,
-                             organ_semantics=(
-                                 record["execution_semantics"]["profiles"][arm]
-                             ))
-            curve = [(m, gated(cell, seeds, distinct_gate=parameters["distinct_gate"],
-                               distinct_low_bar=parameters["distinct_low_bar"])[0])
-                     for m, cell in sorted(cells.items())]
-            ceiling = ceiling_from_curve(curve, threshold=parameters["half_bar"])
-            fill = _fill_at(cells, ceiling.m_star)
-            results.append({
-                "arm": arm, "n": n, "k": k, "seeds": seeds,
-                "checkpoints": cells,
-                "ensembles": {m: {name: asdict(ensemble_from_values(values, keys=seeds, label=name))
-                                  for name, values in cell.items()}
-                              for m, cell in cells.items()},
-                "ceiling": {"m_star": ceiling.m_star, "supported": bool(ceiling.supported),
-                            "grid_lo": ceiling.lo, "grid_hi": ceiling.hi,
-                            "grid_censored": bool(ceiling.censored),
-                            "interior_points": ceiling.n_interior,
-                            "fill_at_ceiling": fill,
-                            "fill_censored": fill is not None and fill >= 0.95,
-                            "alpha": ceiling.m_star * k / n if ceiling.m_star else None},
-            })
-            print(f"{arm} n={n} k={k}: {ceiling}")
-    return {"cells": results, "verdict": "VOID" if record["mode"] == "smoke" else "UNJUDGED",
-            "fit_status": "not evaluated; fit requires a separately specified estimand and uncertainty protocol"}
+    results = {}
+    for condition, protocol in conditions.items():
+        condition_cells = {}
+        for arm in parameters["arms"]:
+            for n, k in parameters["nk"]:
+                profile = arm if not paired else f"{condition}.{arm}"
+                # Restart measurement sampling for every cell and condition, so
+                # treatment/control consume identical pair samples.
+                cell = _capacity_cell(
+                    n, k, protocol, seeds,
+                    np.random.default_rng(measurement_seed),
+                    arm=arm, settings=settings[arm], device=device,
+                    organ_semantics=record["execution_semantics"]["profiles"][profile],
+                    distinct_gate=parameters["distinct_gate"],
+                    distinct_low_bar=parameters["distinct_low_bar"],
+                    half_bar=parameters["half_bar"],
+                )
+                condition_cells[f"{arm}/{n}/{k}"] = cell
+                print(f"{condition} {arm} n={n} k={k}: {cell['ceiling']['m_star']}")
+        results[condition] = {"cells": condition_cells}
+    common = {"verdict": "VOID" if record["mode"] == "smoke" else "UNJUDGED",
+              "fit_status": "not evaluated; fit requires a separately specified estimand and uncertainty protocol"}
+    if paired:
+        return {"conditions": results, **common}
+    return {"cells": list(results["default"]["cells"].values()), **common}
 
 
 def main(argv=None):
@@ -335,6 +395,8 @@ def main(argv=None):
     ap.add_argument("--refracted-factor", type=float, default=1.0)
     ap.add_argument("--readout", choices=("net", "masked"), default="net")
     ap.add_argument("--converge", action="store_true")
+    ap.add_argument("--compare-refraction", action="store_true",
+                    help="paired Hebbian control and refracted masked-readout conditions")
     ap.add_argument("--device", default=DEV)
     ap.add_argument("--distinct-gate", type=float, default=DISTINCT_GATE)
     ap.add_argument("--distinct-low-bar", type=float, default=0.9)
@@ -352,26 +414,43 @@ def main(argv=None):
         if not arms or len(set(arms)) != len(arms) or any(a not in ARMS for a in arms):
             raise ValueError("arms must be a unique subset of B,G")
         checkpoints = tuple(int(v) for v in args.ms.split(",")) if args.ms else ((4, 8) if args.smoke else MS)
+        if args.compare_refraction and (args.refracted or args.converge
+                                        or args.readout != "net"):
+            raise ValueError("--compare-refraction owns refraction, gate, and masked readout")
         config = CapacityProtocol(checkpoints=checkpoints, p=args.p, beta=args.beta,
                                   rounds=args.rounds, stim_size=args.stim_size,
                                   refracted=args.refracted, readout=args.readout,
                                   converge=args.converge, refracted_factor=args.refracted_factor)
     except ValueError as exc:
         ap.error(str(exc))
+    conditions = ({
+        "control": asdict(CapacityProtocol(
+            checkpoints=checkpoints, p=args.p, beta=args.beta, rounds=args.rounds,
+            stim_size=args.stim_size, refracted=False, readout="masked",
+            converge=False, refracted_factor=0.0)),
+        "refracted": asdict(CapacityProtocol(
+            checkpoints=checkpoints, p=args.p, beta=args.beta, rounds=args.rounds,
+            stim_size=args.stim_size, refracted=True, readout="masked",
+            converge=False, refracted_factor=args.refracted_factor)),
+    } if args.compare_refraction else None)
+    profiles = {}
+    for condition, values in ((conditions or {"default": asdict(config)}).items()):
+        for arm in arms:
+            profiles[arm if conditions is None else f"{condition}.{arm}"] = (
+                describe_assembly_memory(
+                    w_max=values["w_max"], beta=values["beta"],
+                    strength=(values["refracted_factor"] if values["refracted"] else 0.0),
+                    gate=values["converge"], **ARMS[arm],
+                )
+            )
     path = run_experiment(
-        script=__file__, protocol="memory.capacity-scaling", protocol_version="2",
+        script=__file__, protocol="memory.capacity-scaling",
+        protocol_version="3" if conditions else "2",
         registration=args.registration, engine=args.engine, seeds=args.seeds, tag=args.tag,
         smoke=args.smoke, measure=experiment,
-        organ_semantics={
-            arm: describe_assembly_memory(
-                w_max=config.w_max, beta=config.beta,
-                strength=(config.refracted_factor if config.refracted else 0.0),
-                gate=config.converge,
-                **ARMS[arm],
-            )
-            for arm in arms
-        },
-        parameters={"configuration": asdict(config), "nk": nk, "arms": arms,
+        organ_semantics=profiles,
+        parameters={**({"conditions": conditions} if conditions else
+                       {"configuration": asdict(config)}), "nk": nk, "arms": arms,
                     "arm_settings": {arm: ARMS[arm] for arm in arms},
                     "measurement_seed": 1234, "half_bar": HALF_BAR,
                     "distinct_gate": args.distinct_gate, "distinct_low_bar": args.distinct_low_bar,

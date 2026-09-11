@@ -710,7 +710,7 @@ def _distractor_overlaps(arcs_by_pos):
 def _historical_pooled_arc_overlaps(arcs_by_pos):
     """Historical arithmetic for audit only; pools every noninitial position.
 
-    Specification: research/notes/sequence/AUDIT_temporal_position_pooling.md
+    Audit: research/notes/sequence/AUDIT_temporal_position_pooling.md
     This is not a distractor-specific mechanism measurement.
     """
     same, diff = [], []

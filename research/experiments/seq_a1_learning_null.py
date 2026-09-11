@@ -14,7 +14,7 @@ BARS = {"trained_accuracy_low": .99, "null_accuracy_high": .9,
 
 
 def score_pair(rows, seeds, bars):
-    """Specification: research/notes/sequence/PREREG_a1_learning_null.md"""
+    """Registration: research/notes/sequence/PREREG_a1_learning_null.md"""
     summaries = {}
     for metric in ("accuracy", "exact_fraction"):
         ensembles = {}

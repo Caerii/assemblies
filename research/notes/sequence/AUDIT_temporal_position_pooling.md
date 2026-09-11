@@ -38,6 +38,7 @@ The prior statement that g=0 already carries a0.11 distractor contrast does not.
 No new scientific outcome is adopted from the constructed software counterexample.
 
 
+<a id="replacement-observation-contract"></a>
 ## Replacement observation contract
 
 research/experiments/temporal_observations.py defines the CPU analysis boundary.

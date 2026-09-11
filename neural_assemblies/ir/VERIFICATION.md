@@ -1527,6 +1527,29 @@ adoption remain separate obligations. Existing version2 records already contain
 these fields; their historical values are preserved.
 
 
+<a id="contract-capacity-comparison"></a>
+## Paired refraction-capacity comparison
+
+Protocol version 3 represents the Hebbian control and refracted treatment as two
+complete named CapacityProtocol values in one immutable run. The conditions are
+exactly `control` and `refracted`. Both use masked, ungated readout and must agree
+on every field except activation and strength of refraction; the control strength
+is zero and treatment strength is positive. Each condition receives its matching
+OrganSemantics profile. Missing, additional or cross-condition drift rejects before
+GPU construction.
+
+Both conditions use the same ordered unique brain seeds. The independent pair-
+sampling generator restarts from the same recorded measurement seed for every
+condition and cell, so treatment/control measurements refer to the same sampled
+item pairs. Results are keyed by condition and `(arm,n,k)` rather than position.
+The version-2 single-condition document and output remain supported unchanged.
+
+This contract establishes paired execution identity. It does not adopt a capacity
+bar, infer that refraction is the only possible cause, or turn a post hoc contrast
+into a preregistered scientific result. The registration owns the comparison bar;
+the result register separately verifies retained sample-aligned movement.
+
+
 <a id="contract-horizon-execution"></a>
 ## A1 horizon execution inputs
 

@@ -1,6 +1,6 @@
 """Registered position-specific test of subject-number representation in temporal arcs.
 
-Specification: research/notes/sequence/PREREG_temporal_positions.md
+Registration: research/notes/sequence/PREREG_temporal_positions.md
 """
 from __future__ import annotations
 
