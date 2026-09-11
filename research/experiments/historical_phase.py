@@ -1,7 +1,8 @@
 """Descriptive learning-on persistence grid with recorded inputs."""
 from pathlib import Path
 from research.experiments.stability.test_phase_diagram import PhaseDiagramExperiment
-from research.runner import ROOT, experiment_parser, run_experiment
+from research.runner import run_experiment
+from research.experiments._historical import HistoricalStudy
 
 REGISTRATION = "research/notes/memory/PREREG_historical_phase_migration.md"
 
@@ -16,25 +17,13 @@ def parameters(smoke=False):
                 initial_stimulus_rounds=1, persistence_threshold=.95)
 
 
-def experiment(record):
-    """Specification: research/notes/memory/PREREG_historical_phase_migration.md"""
-    if record["engine"] != "numpy_explicit":
-        raise ValueError("historical phase requires the numpy_explicit area owner")
-    study = PhaseDiagramExperiment(seed=0, verbose=False,
-                                  results_dir=ROOT / "research/results/runs" / record["protocol"] / record["tag"])
-    result = study.run(seed_ids=record["seeds"], **record["parameters"])
-    return {"verdict": "VOID" if record["mode"] == "smoke" else "UNADOPTED",
-            "scope": "learning-on persistence and sampled crossings; not a physical phase boundary",
-            "result": result.to_dict()}
+STUDY = HistoricalStudy("memory.historical-phase", "1", REGISTRATION, Path(__file__),
+                        PhaseDiagramExperiment, parameters, 'learning-on persistence and sampled crossings; not a physical phase boundary')
+experiment = STUDY.measure
 
 
 def main(argv=None):
-    parser = experiment_parser(__doc__, engines=("numpy_explicit",), default_seeds=tuple(range(42, 52)))
-    parser.add_argument("--quick", action="store_true", dest="smoke", help="alias for VOID smoke")
-    args = parser.parse_args(argv)
-    print(run_experiment(script=Path(__file__), protocol="memory.historical-phase", protocol_version="1",
-                         registration=REGISTRATION, engine=args.engine, seeds=args.seeds, tag=args.tag,
-                         smoke=args.smoke, parameters=parameters(args.smoke), measure=experiment))
+    return STUDY.main(argv, writer=run_experiment)
 
 
 if __name__ == "__main__":

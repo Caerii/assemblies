@@ -1,7 +1,8 @@
 """Preserved learning-on-recovery protocol through the shared runner."""
 from pathlib import Path
 from research.experiments.stability.test_noise_robustness import NoiseRobustnessExperiment
-from research.runner import ROOT, experiment_parser, run_experiment
+from research.runner import run_experiment
+from research.experiments._historical import HistoricalStudy
 
 REGISTRATION = 'research/notes/memory/PREREG_historical_noise_migration.md'
 
@@ -15,25 +16,13 @@ def parameters(smoke=False):
                 h4_noise_fracs=[0., .5, 1.] if smoke else [.3, .5, .7, 1.])
 
 
-def experiment(record):
-    """Specification: research/notes/memory/PREREG_historical_noise_migration.md"""
-    if record['engine'] != 'numpy_explicit':
-        raise ValueError('historical protocol requires the numpy_explicit area owner')
-    study = NoiseRobustnessExperiment(seed=0, verbose=False,
-                                     results_dir=ROOT / 'research/results/runs' / record['protocol'] / record['tag'])
-    result = study.run(seed_ids=record['seeds'], **record['parameters'])
-    return {'verdict': 'VOID' if record['mode'] == 'smoke' else 'UNADOPTED',
-            'scope': 'historical learning-on-recovery protocol; not frozen recovery',
-            'result': result.to_dict()}
+STUDY = HistoricalStudy("memory.historical-noise", "1", REGISTRATION, Path(__file__),
+                        NoiseRobustnessExperiment, parameters, 'historical learning-on-recovery protocol; not frozen recovery')
+experiment = STUDY.measure
 
 
 def main(argv=None):
-    parser = experiment_parser(__doc__, engines=('numpy_explicit',), default_seeds=tuple(range(42, 52)))
-    parser.add_argument('--quick', action='store_true', dest='smoke', help='legacy alias for --smoke; scientific status VOID')
-    args = parser.parse_args(argv)
-    print(run_experiment(script=Path(__file__), protocol='memory.historical-noise', protocol_version='1',
-                         registration=REGISTRATION, engine=args.engine, seeds=args.seeds, tag=args.tag,
-                         smoke=args.smoke, parameters=parameters(args.smoke), measure=experiment))
+    return STUDY.main(argv, writer=run_experiment)
 
 
 if __name__ == '__main__':

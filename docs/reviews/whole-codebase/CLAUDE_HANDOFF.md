@@ -1405,3 +1405,12 @@ Overflow and underflow now raise configuration errors; valid subnormals survive.
 Phase configs and result parameters retain the actual normalized scalar values.
 156 historical-study checks pass and the archived phase smoke remains exact.
 See VALIDATION.md#numeric-grid-conversion-and-recorded-values-2026-09-10.
+
+
+## Historical adapter composition (2026-09-10)
+
+Four adapters now declare immutable HistoricalStudy objects and share execution/
+CLI logic. Record identity/version/engine/mode are checked before construction.
+All four archived smokes retain their exact observations, verdict and scope;
+156 existing and seven new focused controls pass. Protocol parameter factories and
+source/registration identities stay separate. See VALIDATION.md#historical-adapter-composition-2026-09-10.

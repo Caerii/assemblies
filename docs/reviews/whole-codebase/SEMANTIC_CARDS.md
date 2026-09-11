@@ -1056,3 +1056,22 @@ masquerade as separate conditions. A resolved config and its recorded parameters
 must contain the same normalized scalar values; validation that discards the
 converted value is insufficient. This concerns input representation, not numerical
 error guarantees for the backend's subsequent arithmetic.
+
+
+<a id="historical-study-adapter"></a>
+### Historical study adapter (2026-09-10)
+
+Four adapters duplicate the same parser, required tag, smoke alias, default seed
+identities, owner-engine check, producer construction and result-status wrapper.
+Only protocol identity/version, registration, source script, parameter factory,
+producer and interpretation differ. Represent those differences as one immutable
+HistoricalStudy specification; keep numerical protocol factories separate.
+
+The common adapter validates protocol, version, engine and mode before constructing
+a producer. A record for one study must not label another study's output, and an
+unknown mode must not silently become a study. The shared runner still owns tag,
+seed, exclusive-storage and source-archive validation. Preserve script provenance,
+all resolved parameters and seeds, VOID/UNADOPTED output and scope text exactly.
+CLI tests retain an injectable runner boundary; registrations remain study-specific.
+This is execution composition, not a merger of scientific protocols or backend
+semantics. Replaying all four archived smokes must preserve their observations.

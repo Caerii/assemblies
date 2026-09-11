@@ -2570,3 +2570,30 @@ success exactly. Ruff passes. No engine code or archived artifact changed.
 Specification links and both ratchets passed 19 tests in 42.38s. Diff checks
 pass. No new whole-package or GPU run is claimed for these input-validation
 changes; historical default measurements remain unchanged.
+
+
+## Historical adapter composition (2026-09-10)
+
+Noise, projection, scaling and phase adapters now declare immutable HistoricalStudy
+specifications. One implementation owns parser/default seeds/quick alias, source and
+registration forwarding, producer construction and VOID/UNADOPTED wrapping. Each
+study retains its parameter factory, protocol/version, producer and exact scope.
+Protocol/version/engine/mode mismatches fail before producer construction. Unknown
+modes no longer silently select a study verdict. Existing module entrypoints remain.
+
+All four historical suites passed 156 tests in 4.63s, including old CLI controls.
+Seven shared-adapter controls passed in 1.85s: mismatched records cannot construct
+producers; explicit seeds/configuration, source/registration/version, default seeds,
+scope and failed execution flags are retained. New controls are in contract CI.
+Replaying each archived smoke through its new adapter exactly preserves metrics,
+raw_data, parameters, success, verdict and scope (timestamps/duration excluded).
+No older artifact was changed or newly adopted.
+
+Production adapter code totals 156 lines including the shared module, versus 160
+previously. More importantly, four parser/wrapper implementations now have one
+owner; study-specific scientific schedules have not been merged. Ruff passes.
+No backend code changed.
+
+Final shared-adapter/specification/two-ratchet checks passed 26 tests in 49.59s.
+Diff checks pass. No new whole-package or GPU run is claimed for this adapter
+consolidation; all four archived numerical replays remain exact.
