@@ -3702,3 +3702,8 @@ positive. This keeps the guard strict without forcing semantically meaningless
 formatting.
 Four stale allowances for explicit multiline constructors were removed, leaving
 63 files and 92 actually unpinned calls in the grandfathered baseline.
+
+The migration run also found a smaller DX ambiguity: `validate_artifact` was
+named for an artifact but accepted only its `results.json` leaf. It now accepts
+either that file or the containing run directory, and attachment loading uses
+the same canonical path resolution. A runner test exercises both spellings.

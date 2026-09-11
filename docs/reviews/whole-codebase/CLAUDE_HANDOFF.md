@@ -2091,3 +2091,7 @@ counts engine keywords from the parsed call, with positive and negative scanner
 controls, so formatting cannot manufacture or hide this error class.
 Four false allowances were removed; the remaining baseline is 63 files and 92
 actually unpinned constructors.
+
+`research.evidence.validate_artifact` now accepts either `results.json` or its
+run directory. This matches its artifact-level name and the CLI's PATH wording;
+attachment reads canonicalize through the same boundary.

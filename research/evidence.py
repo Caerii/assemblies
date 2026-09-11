@@ -2,7 +2,8 @@
 
 Run `python -m research.evidence audit` to list candidate orphan results and
 unresolved references. The audit is an inventory, not a validity verdict.
-Run `python -m research.evidence validate PATH` for a runner results file.
+Run `python -m research.evidence validate PATH` for a runner results file or
+its containing run directory.
 """
 from __future__ import annotations
 
@@ -68,8 +69,14 @@ def _validate_attachments(path: Path, references) -> list[str]:
     return errors
 
 
+def _results_path(path: Path) -> Path:
+    """Resolve either public artifact spelling to its canonical results file."""
+    return path / 'results.json' if path.is_dir() else path
+
+
 def load_json_attachment(path: Path, name: str, *, root: Path = ROOT):
     """Read one schema-5-or-newer attachment after validating the artifact."""
+    path = _results_path(path)
     errors = validate_artifact(path, root=root)
     if errors:
         raise ValueError('; '.join(errors))
@@ -80,7 +87,8 @@ def load_json_attachment(path: Path, name: str, *, root: Path = ROOT):
 
 
 def validate_artifact(path: Path, *, root: Path = ROOT) -> list[str]:
-    """Validate run identity and file edges without mistaking completion for adoption."""
+    """Validate a results file or run directory without implying adoption."""
+    path = _results_path(path)
     errors = []
     try:
         payload = load_document(path)

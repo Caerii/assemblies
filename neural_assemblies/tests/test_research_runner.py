@@ -107,6 +107,7 @@ def test_alignment_run_uses_schema8_and_canonical_profile(run):
         "kind": "alignment", "profiles": {"default": FIXTURE_ALIGNER},
     }
     assert validate_artifact(path) == []
+    assert validate_artifact(path.parent) == []
 
 
 def test_smoke_record_is_void_and_includes_resolved_inputs(run):
