@@ -90,3 +90,34 @@ def test_active_count_is_the_other_meaning(trained):
     _b, area = trained
     assert area.active_count == len(area.winners) == area.k
     assert area.active_count != area.get_num_ever_fired()
+
+
+def test_population_counts_keep_all_three_meanings(trained):
+    b, area = trained
+    counts = b.population_counts("A")
+    assert counts.active == area.k
+    assert counts.ever_fired == area.get_num_ever_fired()
+    assert counts.materialized == b._engine.materialized_count("A")
+
+    b.inhibit_areas(["A"])
+    cleared = b.population_counts("A")
+    assert cleared.active == 0
+    assert cleared.ever_fired == counts.ever_fired
+    assert cleared.materialized == counts.materialized
+
+
+def test_dense_population_has_no_materialized_extent():
+    b = Brain(p=0.1, seed=3, engine="numpy_explicit")
+    b.add_stimulus("S", 10)
+    b.add_area("A", 100, 10, 0.05)
+    b.project({"S": ["A"]}, {})
+
+    counts = b.population_counts("A")
+    assert counts.active == 10
+    assert counts.ever_fired == 10
+    assert counts.materialized is None
+
+
+def test_population_counts_reject_unknown_area():
+    with pytest.raises(KeyError, match="unknown area 'missing'"):
+        Brain(engine="numpy_sparse").population_counts("missing")

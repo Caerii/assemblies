@@ -24,7 +24,7 @@ Based on:
 # lookup is a plain global and costs nothing.
 _LAZY_EXPORTS = {
     name: ".core" for name in (
-        "Brain", "Area", "Stimulus", "Connectome",
+        "Brain", "Area", "Stimulus", "Connectome", "PopulationCounts",
         "ComputeEngine", "ProjectionResult", "create_engine", "list_engines",
         "SampledRecurrencePolicy",
         "AlignerSemantics", "AlignmentStore", "AlignmentTrainingSchedule",
@@ -125,7 +125,8 @@ if TYPE_CHECKING:  # pragma: no cover
     )
     from .constants import DEFAULT_BETA, DEFAULT_P
     from .core import (
-        Area, Brain, ComputeEngine, Connectome, ProjectionResult, Stimulus,
+        Area, Brain, ComputeEngine, Connectome, PopulationCounts,
+        ProjectionResult, Stimulus,
         AlignerSemantics, AlignmentInferenceSchedule, AlignmentStore,
         AlignmentTrainingSchedule, ArithmeticMode, CandidateDomain,
         ConnectomeMode, ModelSemantics,
@@ -178,7 +179,8 @@ __author__ = "Superintelligent Group"
 
 __all__ = [
     # Core classes
-    'Brain', 'Area', 'Stimulus', 'Connectome', 'HomeostasisConfig',
+    'Brain', 'Area', 'Stimulus', 'Connectome', 'PopulationCounts',
+    'HomeostasisConfig',
     'SampledRecurrencePolicy',
     'AlignerSemantics', 'AlignmentStore', 'AlignmentTrainingSchedule',
     'AlignmentInferenceSchedule',

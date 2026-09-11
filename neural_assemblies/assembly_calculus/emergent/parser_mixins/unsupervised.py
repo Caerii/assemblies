@@ -119,11 +119,16 @@ class UnsupervisedMixin:
                 self.brain.areas[core_area].unfix_assembly()
                 self._clear_role_activity(role_area)
 
-        engine = self.brain._engine
         caps: Dict[str, int] = {}
         for role_area in _ROLE_TRAINING_AREAS:
-            if hasattr(engine, "_areas") and role_area in engine._areas:
-                caps[role_area] = max(int(engine._areas[role_area].w), self.k)
+            if role_area in self.brain.areas:
+                count = self.brain.population_counts(role_area).materialized
+                if count is None:
+                    raise RuntimeError(
+                        "compiled role topology requires a materialized extent "
+                        f"for {role_area!r}"
+                    )
+                caps[role_area] = max(count, self.k)
         self._role_ring_capacity_cols = caps
         self._role_paths_bootstrapped = True
 

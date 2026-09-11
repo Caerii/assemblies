@@ -432,6 +432,7 @@ class NumpyExactEngine(ComputeEngine):
     #: asking for one is an ERROR and not a mechanism that silently never runs
     #: -- the repo's dominant defect class, see [[silent-no-op-dead-fibers]].
     #: Each maps to the only value that means "not requested".
+    supports_norm_init = True
     supports_fiber_learning_masks = True
 
     _UNSUPPORTED_INIT = {

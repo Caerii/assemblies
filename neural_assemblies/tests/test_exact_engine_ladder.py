@@ -473,17 +473,58 @@ def test_engine_norm_init_contract():
         if not ensure_engine(engine_name):
             continue          # optional backend (cupy/torch) not installed
         params = inspect.signature(_ENGINE_REGISTRY[engine_name]).parameters
-        if "norm_init" not in params:
+        declared = _ENGINE_REGISTRY[engine_name].supports_norm_init
+        accepts_options = any(
+            param.kind is inspect.Parameter.VAR_KEYWORD
+            for param in params.values()
+        )
+        if declared:
+            assert "norm_init" in params or accepts_options, (
+                f"{engine_name} declares normalization support but cannot "
+                "receive norm_init at construction"
+            )
+        if not declared:
+            assert "norm_init" not in params, (
+                f"{engine_name} accepts norm_init but has not declared its semantics"
+            )
             continue
         checked.append(engine_name)
-        assert params["norm_init"].default is False, (
-            f"{engine_name} defaults norm_init to "
-            f"{params['norm_init'].default!r}; Brain omits the kwarg to mean "
-            f"False, so this engine ignores Brain(norm_init=False)")
+        if "norm_init" in params:
+            assert params["norm_init"].default is False, (
+                f"{engine_name} defaults norm_init to "
+                f"{params['norm_init'].default!r}; Brain omits the kwarg to mean "
+                f"False, so this engine ignores Brain(norm_init=False)"
+            )
 
     assert "numpy_sparse" in checked and "numpy_exact" in checked, (
         f"contract checked only {checked} -- if an engine stopped taking "
         f"norm_init, this test has quietly lost its subject")
+
+
+def test_brain_resolves_normalization_from_engine_capability():
+    sparse = Brain(p=P, seed=SEED, engine="numpy_sparse")
+    dense = Brain(p=P, seed=SEED, engine="numpy_explicit")
+
+    assert sparse.norm_init is sparse._engine.norm_init is True
+    assert dense.norm_init is False
+    assert dense.model_semantics.normalization.value == "none"
+
+
+def test_brain_rejects_unsupported_normalization_before_engine_construction(monkeypatch):
+    from neural_assemblies.core.numpy_engine import NumpyExplicitEngine
+
+    called = False
+    original = NumpyExplicitEngine.__init__
+
+    def recording_init(self, *args, **kwargs):
+        nonlocal called
+        called = True
+        return original(self, *args, **kwargs)
+
+    monkeypatch.setattr(NumpyExplicitEngine, "__init__", recording_init)
+    with pytest.raises(ValueError, match="does not support norm_init"):
+        Brain(p=P, seed=SEED, engine="numpy_explicit", norm_init=True)
+    assert called is False
 
 
 def test_brain_norm_init_reaches_every_engine():

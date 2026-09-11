@@ -3871,3 +3871,29 @@ PREDICTION. The full trained-parser state suite remains green. `EmergentParser`
 now exposes `sampled_recurrence_policy`, forwards it into Brain construction,
 and rejects unknown values; the deliberate sampled fixture is warning-free under
 `-W error`. Two fast controls and eight slow behavioral controls pass.
+
+## Population counts and normalization admission are explicit (2026-09-11)
+
+`PopulationCounts` is now the public value for three noninterchangeable area
+sizes: active winners, cumulative ever-fired neurons and the optional lazy
+materialization extent. `Brain.population_counts(area)` obtains the latter two
+from the area's actual executing engine, reports `None` for a dense population
+and rejects unknown areas. Compiled topology now requires the named materialized
+field; stimulus preallocation uses cumulative recruitment. Seven observational
+`.w` reads are removed, while four remaining writes are documented compiled-ring
+rewinds. The ratchet baselines fall accordingly.
+
+The dense control exposed an engine-admission defect before any scientific run:
+`Brain(engine="numpy_explicit")` inherited the sparse default `norm_init=True`
+and forwarded an unsupported constructor option. Named engines now declare
+`supports_norm_init`; `engine_type` resolves that capability without constructing
+state. Omitted normalization stays enabled for opted-in sparse/exact engines and
+resolves disabled for the dense engine. Explicitly requesting it on dense raises
+before its constructor runs. A registry-wide control checks that every declared
+capability has a constructor path and that an explicit parameter cannot exist
+without declared semantics.
+
+Validation: 187 count, ratchet, specification, engine-ladder and model-boundary
+tests pass. Three compiled-topology migration tests pass; their two deliberate
+sampled-engine fixtures emit the required audit warning. Ruff and whitespace
+checks pass on the changed sources.

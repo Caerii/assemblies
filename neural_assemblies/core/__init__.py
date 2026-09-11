@@ -9,6 +9,7 @@ from .brain import Brain
 from .area import Area
 from .stimulus import Stimulus
 from .connectome import Connectome
+from .activity import PopulationCounts
 from .engine import (
     ComputeEngine, EngineUnavailableError, ProjectionResult, create_engine,
     list_engines,
@@ -44,7 +45,7 @@ from .semantics import (
 from .backend import set_backend, get_xp, get_backend_name, to_cpu, to_xp
 
 __all__ = [
-    'Brain', 'Area', 'Stimulus', 'Connectome',
+    'Brain', 'Area', 'Stimulus', 'Connectome', 'PopulationCounts',
     'ComputeEngine', 'EngineUnavailableError', 'ProjectionResult',
     'create_engine', 'list_engines',
     'ProjectionFidelity', 'SampledRecurrencePolicy', 'ModelSemantics',

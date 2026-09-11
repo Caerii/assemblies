@@ -93,6 +93,7 @@ class TorchSparseEngine(ComputeEngine):
                        back to CPU path when deterministic=True.
     """
 
+    supports_norm_init = True
     supports_input_noise = True
     supports_refraction = True
 

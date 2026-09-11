@@ -102,6 +102,7 @@ class ComputeEngine(ABC):
     supports_refraction = False
     supports_fiber_learning_masks = False
     supports_sampled_recurrence_policy = False
+    supports_norm_init = False
 
     @abstractmethod
     def describe_model_semantics(self):
@@ -543,16 +544,10 @@ def list_engines() -> List[str]:
     return list(_ENGINE_REGISTRY.keys())
 
 
-def create_engine(engine_name: str, **kwargs) -> ComputeEngine:
-    """Instantiate a registered engine by name.
+def engine_type(engine_name: str) -> type[ComputeEngine]:
+    """Resolve a registered engine class without constructing model state.
 
     Specification: neural_assemblies/ir/VERIFICATION.md#contract-engine-admission
-
-    Extra *kwargs* are forwarded to the engine constructor.
-
-    Example::
-
-        engine = create_engine("numpy_sparse", p=0.05, seed=42, w_max=20.0)
     """
     # Import ONLY the requested engine's module. `_ensure_engines_loaded` pulls
     # in every backend, and `cuda_engine` imports torch at module scope -- so
@@ -584,4 +579,18 @@ def create_engine(engine_name: str, **kwargs) -> ComputeEngine:
         raise ValueError(
             f"Unknown engine {engine_name!r}. Available: {available}"
         )
-    return _ENGINE_REGISTRY[engine_name](**kwargs)
+    return _ENGINE_REGISTRY[engine_name]
+
+
+def create_engine(engine_name: str, **kwargs) -> ComputeEngine:
+    """Instantiate a registered engine by name.
+
+    Specification: neural_assemblies/ir/VERIFICATION.md#contract-engine-admission
+
+    Extra *kwargs* are forwarded to the engine constructor.
+
+    Example::
+
+        engine = create_engine("numpy_sparse", p=0.05, seed=42, w_max=20.0)
+    """
+    return engine_type(engine_name)(**kwargs)

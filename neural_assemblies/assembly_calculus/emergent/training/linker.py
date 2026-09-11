@@ -41,6 +41,16 @@ def _missing_lexicon_words(
     return [w for w in lex_targets if w not in lex]
 
 
+def _required_materialized_count(parser: "CoreParserMixin", area: str) -> int:
+    """Return a compiled ring extent; dense engines have no such extent."""
+    count = parser.brain.population_counts(area).materialized
+    if count is None:
+        raise RuntimeError(
+            f"compiled topology requires a materialized extent for {area!r}"
+        )
+    return count
+
+
 def topology_needs_link(
     parser: "CoreParserMixin",
     corpus_index: "CorpusIndex",
@@ -99,11 +109,10 @@ def link_context_topology(
             )
             parser.brain.project({}, {PREDICTION: [PREDICTION]})
 
-    if hasattr(engine, "_areas") and CONTEXT in engine._areas:
-        parser._context_ring_capacity_cols = max(
-            int(getattr(parser, "_context_ring_capacity_cols", 0)),
-            int(engine._areas[CONTEXT].w),
-        )
+    parser._context_ring_capacity_cols = max(
+        int(getattr(parser, "_context_ring_capacity_cols", 0)),
+        _required_materialized_count(parser, CONTEXT),
+    )
     parser._reset_context_for_bridge(preserve_topology=True)
 
 
@@ -129,12 +138,10 @@ def link_prediction_lexicon(
             project(parser.brain, phon, PREDICTION, rounds=1)
             parser._clear_prediction_activity()
 
-    engine = parser.brain._engine
-    if hasattr(engine, "_areas") and PREDICTION in engine._areas:
-        parser._prediction_ring_capacity_cols = max(
-            int(getattr(parser, "_prediction_ring_capacity_cols", 0)),
-            int(engine._areas[PREDICTION].w),
-        )
+    parser._prediction_ring_capacity_cols = max(
+        int(getattr(parser, "_prediction_ring_capacity_cols", 0)),
+        _required_materialized_count(parser, PREDICTION),
+    )
 
     pred_spec = prediction_topology_spec(parser)
     with compiled_topology(parser, pred_spec):
@@ -145,11 +152,10 @@ def link_prediction_lexicon(
             parser._clear_prediction_activity()
             project(parser.brain, phon, PREDICTION, rounds=parser.rounds)
             parser.prediction_lexicon[word] = _snap(parser.brain, PREDICTION)
-            if hasattr(engine, "_areas") and PREDICTION in engine._areas:
-                parser._prediction_ring_capacity_cols = max(
-                    int(getattr(parser, "_prediction_ring_capacity_cols", 0)),
-                    int(engine._areas[PREDICTION].w),
-                )
+            parser._prediction_ring_capacity_cols = max(
+                int(getattr(parser, "_prediction_ring_capacity_cols", 0)),
+                _required_materialized_count(parser, PREDICTION),
+            )
 
 
 def link_bridge_topology(
@@ -325,12 +331,9 @@ def link_lexicon_topology(
                         op.word, ctx, op.core_area, rounds=parser.inference_rounds,
                     )
 
-        engine = parser.brain._engine
         caps = dict(getattr(parser, "_core_ring_capacity_cols", {}))
         for core_area in ops_to_pregrow:
-            w = parser.k
-            if hasattr(engine, "_areas") and core_area in engine._areas:
-                w = max(w, int(engine._areas[core_area].w))
+            w = max(parser.k, _required_materialized_count(parser, core_area))
             caps[core_area] = max(int(caps.get(core_area, 0)), w)
         parser._core_ring_capacity_cols = caps
 

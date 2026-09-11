@@ -322,8 +322,6 @@ def link_preallocate_stim_targets(
     for area_name in area_names:
         if area_name not in parser.brain.areas:
             continue
-        w = parser.brain.areas[area_name].w
-        if hasattr(engine, "_areas") and area_name in engine._areas:
-            w = max(w, int(engine._areas[area_name].w))
+        w = parser.brain.population_counts(area_name).ever_fired
         if w > 0:
             engine.preallocate_stim_targets(area_name, w)

@@ -2234,3 +2234,23 @@ now read `Area.active_count`. A constructed state reverses `.w` and activity and
 would choose the wrong core on the old implementation. The trained-parser suite
 still passes. `EmergentParser` now transports `sampled_recurrence_policy` to its
 Brain, making deliberate acknowledgement configurable instead of impossible.
+
+The next count-space slice is complete. `PopulationCounts(active, ever_fired,
+materialized)` is a public immutable value returned by
+`Brain.population_counts(area)`. Linker ring capacities now ask for materialized
+extent and reject dense owners; preallocation asks for cumulative recruitment.
+This removes seven `.w` observations and leaves only documented ring-pointer
+writes in the touched compiler paths. Sparse controls separate all three values,
+then inhibit activity to show that lifetime and extent do not change. Dense
+returns `materialized=None`; unknown areas raise.
+
+That dense control found a separate public-construction bug:
+`Brain(engine="numpy_explicit")` could not be instantiated with defaults because
+Brain forwarded sparse normalization into a constructor whose semantics declare
+none. Engines now opt into `supports_norm_init`; admission resolves the named
+engine class before construction, preserves the normalized default on supported
+engines, disables it by default on dense and rejects an explicit dense request
+before `__init__` runs. The registry contract checks the declaration against
+explicit parameters or a deliberate option receiver. The combined semantic gate
+is 187 passed; the topology migration gate is 3 passed with the two intended
+sampled-recurrence audit warnings.

@@ -334,6 +334,7 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
     Parameters mirror ``Brain.__init__``.
     """
 
+    supports_norm_init = True
     supports_input_noise = True
     supports_refraction = True
     supports_fiber_learning_masks = True

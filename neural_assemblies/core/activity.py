@@ -8,6 +8,18 @@ from copy import deepcopy
 from dataclasses import dataclass
 
 
+@dataclass(frozen=True)
+class PopulationCounts:
+    """Three noninterchangeable sizes for one area.
+
+    Specification: neural_assemblies/ir/VERIFICATION.md#contract-population-counts
+    """
+
+    active: int
+    ever_fired: int
+    materialized: int | None
+
+
 @dataclass
 class ActivitySnapshot:
     owner: object

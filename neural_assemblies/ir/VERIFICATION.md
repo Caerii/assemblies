@@ -859,6 +859,15 @@ auxiliary dense engines with both finite and absent clips.
 
 ## Named-engine admission and failure identity
 
+`engine_type(name)` resolves the registered class without constructing model
+state, so `Brain` can validate declared capabilities before forwarding options.
+`ComputeEngine.supports_norm_init` is false unless an engine explicitly opts in.
+An omitted `Brain.norm_init` resolves to true on an opted-in named engine, which
+preserves the established sparse and exact defaults, and false on the dense
+explicit engine. An explicit true request on an unsupported engine raises before
+its constructor runs. Registry controls require the capability to agree with the
+constructor signature, so a new backend cannot silently accept or lose the option.
+
 Engine names in the built-in module map are known even when their optional
 implementation cannot load. `ensure_engine` attempts only the module named by that
 map and records its `ImportError`; it returns false for both unavailable and unknown
@@ -1410,6 +1419,23 @@ The constructed control gives an inactive core positive ambiguous `w`, gives the
 next active core zero `w`, and gives empty syntactic areas positive `w`. The active
 core must seed both syntactic areas and the inactive core must never project. This
 fails the former `.w > 0` implementation in both source-selection phases.
+
+<a id="contract-population-counts"></a>
+
+## Area population counts
+
+`Brain.population_counts(area)` is the public product of three distinct
+quantities: current active winners, cumulative neurons that have ever fired, and
+the optional lazily materialized extent. Active count comes from the public area
+snapshot; cumulative and materialized counts come from the area's executing
+engine. A dense engine returns `None` for materialized because every neuron exists
+and no lazy extent applies. Unknown areas raise rather than returning zeros.
+
+Callers must select a named field. Compiled ring capacity requires a non-`None`
+materialized extent and rejects a dense owner; stimulus preallocation uses
+cumulative recruitment. Clearing activity changes only `active`. Controls verify
+all three after sparse training and inhibition, the dense `None` case, and an
+unknown area. The `.w` alias is not part of this interface.
 
 
 <a id="contract-initial-recruitment"></a>

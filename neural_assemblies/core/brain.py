@@ -35,11 +35,12 @@ from typing import Dict, List, Tuple
 from collections import defaultdict
 
 from .backend import get_xp, to_cpu, detect_best_engine
-from .engine import ComputeEngine, create_engine
+from .engine import ComputeEngine, create_engine, engine_type
 from .registration import validate_round_count, validate_input_noise, validate_plasticity_rate, validate_area_registration, validate_stimulus_registration
 from ._homeostasis import HomeostasisConfig, check_area_homeostasis, validate_lri_parameters
 from .index_spaces import CompactIdx, to_neuron_ids, validated_indices
 from .semantics import ModelSemantics, SampledRecurrencePolicy
+from .activity import PopulationCounts
 
 from .area import Area
 from .stimulus import Stimulus
@@ -104,7 +105,7 @@ class Brain:
         synaptic_scaling: "bool | frozenset | set | tuple" = False,
         synaptic_scaling_deferred: bool = False,
         recurrent_projection: bool = False,
-        norm_init: bool = True,
+        norm_init: bool | None = None,
         sampled_recurrence_policy: str = "warn",
         model_semantics=None,
     ):
@@ -137,7 +138,9 @@ class Brain:
             projection_fidelity (str): Legacy selection mode: "exact" or
                    "compiled" / "fuzzy". "exact" does not select a fixed
                    connectome; see core.projection_fidelity for backend behavior.
-            norm_init (bool): Request per-fiber initialization normalization.
+            norm_init (bool | None): Request per-fiber initialization
+                   normalization. ``None`` selects the Brain default: enabled
+                   when the chosen engine supports it and disabled otherwise.
                    Implementations differ between sampled and fixed-connectome
                    engines. Pin it in protocols; no scientific equivalence or
                    recurrence-safety claim follows from enabling it.
@@ -164,11 +167,34 @@ class Brain:
             if model_semantics is None
             else ModelSemantics.normalize(model_semantics)
         )
-        homeostasis = HomeostasisConfig(norm_init, synaptic_scaling, synaptic_scaling_deferred)
+        if isinstance(engine, str) and engine == "auto":
+            engine = detect_best_engine(n_hint)
+        if not isinstance(engine, (str, ComputeEngine)):
+            raise TypeError(
+                "engine must be a string name or ComputeEngine instance, "
+                f"got {type(engine)}"
+            )
+        owner_type = engine_type(engine) if isinstance(engine, str) else type(engine)
+        supports_norm_init = bool(owner_type.supports_norm_init)
+        if norm_init is None:
+            norm_init = (
+                supports_norm_init
+                if isinstance(engine, str)
+                else HomeostasisConfig.from_engine(engine).norm_init
+            )
+        if norm_init and not supports_norm_init:
+            raise ValueError(
+                f"{owner_type.__name__} does not support norm_init; "
+                "choose an engine whose declared normalization capability is enabled"
+            )
+        homeostasis = HomeostasisConfig(
+            norm_init, synaptic_scaling, synaptic_scaling_deferred
+        )
         synaptic_scaling = homeostasis.synaptic_scaling
         if isinstance(engine, ComputeEngine):
-            engine.validate_brain_identity(p=p, seed=seed, w_max=w_max,
-                                           homeostasis=homeostasis)
+            engine.validate_brain_identity(
+                p=p, seed=seed, w_max=w_max, homeostasis=homeostasis
+            )
         self.p = p
         self.w_max = w_max
         self.save_size = save_size
@@ -185,8 +211,6 @@ class Brain:
         self.plasticity_mask: dict[tuple[str, str], bool] = {}
 
         # Compute engine — required, defaults to auto-detected best backend
-        if engine == "auto":
-            engine = detect_best_engine(n_hint)
         if isinstance(engine, str):
             engine_kwargs = dict(
                 p=p, seed=seed, w_max=w_max, deterministic=deterministic,
@@ -214,10 +238,8 @@ class Brain:
             if norm_init:
                 engine_kwargs["norm_init"] = True
             self._engine: ComputeEngine = create_engine(engine, **engine_kwargs)
-        elif isinstance(engine, ComputeEngine):
-            self._engine = engine
         else:
-            raise TypeError(f"engine must be a string name or ComputeEngine instance, got {type(engine)}")
+            self._engine = engine
 
         actual_semantics = self._engine.describe_model_semantics()
         if requested_semantics is not None:
@@ -539,6 +561,23 @@ class Brain:
                         self._register_explicit_area(self._explicit_engine, existing_area)
             return self._explicit_engine
         return self._engine
+
+    def population_counts(self, area_name: str) -> PopulationCounts:
+        """Return active, lifetime and materialized sizes without `.w`.
+
+        Specification: neural_assemblies/ir/VERIFICATION.md#contract-population-counts
+        """
+        try:
+            area = self.areas[area_name]
+        except KeyError:
+            raise KeyError(f"unknown area {area_name!r}") from None
+        owner = self._engine_for(area)
+        materialized = owner.materialized_count(area_name)
+        return PopulationCounts(
+            active=area.active_count,
+            ever_fired=int(owner.get_num_ever_fired(area_name)),
+            materialized=(None if materialized is None else int(materialized)),
+        )
 
     def _preserve_mixed_connectomes(self) -> None:
         """Install dense cross-connectomes for explicit↔sparse mixed edges."""
