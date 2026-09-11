@@ -4699,3 +4699,7 @@ All maintained traced calculus entry points now carry explicit `Specification:` 
 ## Sequence input collection admission (2026-09-11)
 
 `sequence_memorize` now rejects scalar strings, bytes, and noniterable values instead of converting a string into a character sequence. Sequence identity is now explicit at the call boundary. The sequence contract suite passes **28 tests**.
+
+## Scaffold sequence admission (2026-09-11)
+
+`sequence_memorize_scaffold` now validates the complete ordered input and schedule before adding an auxiliary area. Scalar stimuli, unknown names, empty sequences, and invalid ratios/budgets/boosts fail without changing topology. Scaffold and sequence tests pass **23 tests**.

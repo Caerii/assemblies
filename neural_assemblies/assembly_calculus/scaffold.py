@@ -27,6 +27,8 @@ Reference:
 
 from __future__ import annotations
 
+import math
+from numbers import Integral, Real
 from typing import List, Sequence as SequenceLike
 
 from neural_assemblies.reference.nemo_numpy import (
@@ -196,6 +198,33 @@ def sequence_memorize_scaffold(
     beta_boost: float | None = 0.5,
 ) -> Sequence:
     """Memorize in *main_area* with auxiliary *scaffold_area* coupling."""
+    if isinstance(stimuli, (str, bytes)):
+        raise TypeError("stimuli must be an ordered collection of stimulus names")
+    try:
+        stimuli = list(stimuli)
+    except TypeError as exc:
+        raise TypeError(
+            "stimuli must be an ordered collection of stimulus names"
+        ) from exc
+    if not stimuli:
+        raise ValueError("sequence_memorize_scaffold requires a nonempty sequence")
+    if main_area not in brain.areas:
+        raise KeyError(f"sequence_memorize_scaffold main area is unknown: {main_area!r}")
+    if any(stimulus not in brain.stimuli for stimulus in stimuli):
+        unknown = [stimulus for stimulus in stimuli if stimulus not in brain.stimuli]
+        raise KeyError(f"sequence_memorize_scaffold stimulus name(s) are unknown: {unknown!r}")
+    for label, value in (("rounds_per_step", rounds_per_step), ("repetitions", repetitions)):
+        if isinstance(value, bool) or not isinstance(value, Integral) or value < 1:
+            raise ValueError(f"{label} must be a positive integer")
+    if (isinstance(phase_b_ratio, bool) or not isinstance(phase_b_ratio, Real)
+            or not math.isfinite(float(phase_b_ratio))
+            or not 0.0 <= float(phase_b_ratio) <= 1.0):
+        raise ValueError("phase_b_ratio must be a finite real number in [0, 1]")
+    if beta_boost is not None and (
+        isinstance(beta_boost, bool) or not isinstance(beta_boost, Real)
+        or not math.isfinite(float(beta_boost)) or float(beta_boost) < 0.0
+    ):
+        raise ValueError("beta_boost must be a finite nonnegative real number")
     if scaffold_area not in brain.areas:
         m = brain.areas[main_area]
         brain.add_area(scaffold_area, m.n, m.k, m.beta)
