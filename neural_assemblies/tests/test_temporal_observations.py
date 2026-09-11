@@ -26,7 +26,8 @@ def fake_transducer(mutation=None):
             self.pending = False
             self.calls = []
             for name in ('lex', 'arc', 'state', 'out'):
-                setattr(self, name, SimpleNamespace(bias=torch.zeros(2, 64)))
+                setattr(self, name, SimpleNamespace(bias=torch.zeros(2, 64),
+                                                     inhibit_rows=lambda _rows: None))
             for name in ('lex_arc', 'state_arc', 'arc_state', 'arc_out'):
                 count = torch.zeros(2, 4, 4, dtype=torch.int8)
                 setattr(self, name, SimpleNamespace(counts=lambda count=count: count, check=lambda: None))
@@ -72,6 +73,15 @@ def test_capture_preserves_ragged_corpora_boundaries_and_advances_carry():
         for frame in report['frames']:
             assert frame['neurons'] == [3 * frame['position'] + j for j in range(3)]
     assert not clock.pending
+
+
+def test_capture_state_blind_is_explicit_and_type_checked():
+    from research.experiments.temporal_observations import capture_chain_arcs
+    clock = fake_transducer()
+    capture_chain_arcs(clock, [SENTENCES, SENTENCES], gap=1, rounds=2, state_blind=True)
+    with pytest.raises(TypeError, match='state_blind'):
+        capture_chain_arcs(fake_transducer(), [SENTENCES, SENTENCES], gap=1,
+                           rounds=2, state_blind=1)
 
 
 @pytest.mark.parametrize('mutation', ['counts', 'bias', 'stimulus'])

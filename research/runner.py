@@ -188,6 +188,7 @@ EXPERIMENTS = {'historical-merge': 'research.experiments.historical_merge',
                'context-noise': 'research.experiments.context_noise',
                'a1-learning-null': 'research.experiments.seq_a1_learning_null',
                'a1-horizon': 'research.experiments.seq_a1_horizon_hashed',
+               'temporal-positions': 'research.experiments.seq_temporal_positions',
                'capacity-scaling': 'research.experiments.seq_capacity_scaling'}
 
 

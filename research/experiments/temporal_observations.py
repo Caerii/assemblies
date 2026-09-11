@@ -49,7 +49,7 @@ def _learned_state_digest(transducer):
     return digest.hexdigest()
 
 
-def capture_chain_arcs(transducer, corpora, *, gap, rounds):
+def capture_chain_arcs(transducer, corpora, *, gap, rounds, state_blind=False):
     """Capture complete, position-labelled arcs under frozen transducer readout.
 
     Specification: research/notes/sequence/AUDIT_temporal_position_pooling.md#replacement-observation-contract
@@ -62,6 +62,8 @@ def capture_chain_arcs(transducer, corpora, *, gap, rounds):
     import torch
 
     rounds = validate_round_count(rounds)
+    if type(state_blind) is not bool:
+        raise TypeError('state_blind must be a bool')
     n, k = validate_area_registration('ARC', transducer.n_arc, transducer.k)
     seeds = list(transducer.seeds)
     if (len(corpora) != transducer.B or len(seeds) != transducer.B or not seeds
@@ -87,6 +89,10 @@ def capture_chain_arcs(transducer, corpora, *, gap, rounds):
             if bool(boundary.any()):
                 transducer.reset(boundary)
             words = [transducer.word_index[item['token']] if item is not None else -1 for item in active]
+            live = torch.tensor([item is not None for item in active], dtype=torch.bool,
+                                device=transducer.device)
+            if state_blind:
+                transducer.state.inhibit_rows(live)
             transducer.tick(words, rounds=rounds, freeze=True)
             # Snapshot before emit so carry advancement cannot rewrite this frame.
             winners = transducer.arc.winners.detach().cpu().tolist()

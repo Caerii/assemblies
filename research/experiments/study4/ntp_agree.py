@@ -73,9 +73,12 @@ def vocabulary(size: int = 50) -> List[str]:
     return words[:size]
 
 
-def generate_chain(n: int, seed: int) -> List[List[str]]:
+def generate_chain(n: int, seed: int, *, gap: int | None = None) -> List[List[str]]:
     """AUX_n NOUN_m VERB_n NOUN_m' PRON_n NOUN_m'' TAG_n: four agreement sites
     behind distractors in seven positions."""
+    gap = GAP if gap is None else int(gap)
+    if gap < 1:
+        raise ValueError("chain gap must be positive")
     rng = random.Random(seed)
     C = CHAIN_CLASSES
     out = []
@@ -85,7 +88,7 @@ def generate_chain(n: int, seed: int) -> List[List[str]]:
         for j, cls in enumerate(CHAIN_ORDER):
             s.append(rng.choice(C[f"{cls}_{subj}"]))
             if j < len(CHAIN_ORDER) - 1:
-                for _g in range(GAP):
+                for _g in range(gap):
                     s.append(rng.choice(C[f"NOUN_{rng.choice(('sg', 'pl'))}"]))
         out.append(s)
     return out
