@@ -47,6 +47,8 @@ def _torch_first():
 def cupy_available():
     """Return whether CuPy can allocate on a GPU in this process.
 
+    Specification: neural_assemblies/ir/VERIFICATION.md#contract-backend-capability
+
     Importing CuPy is itself order-sensitive on Windows, so capability gates
     must use this probe rather than duplicating a bare import.
     """

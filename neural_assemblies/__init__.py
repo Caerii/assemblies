@@ -28,6 +28,7 @@ _LAZY_EXPORTS = {
         "ComputeEngine", "ProjectionResult", "create_engine", "list_engines",
     )
 }
+_LAZY_EXPORTS["cupy_available"] = ".core.backend"
 _LAZY_EXPORTS["HomeostasisConfig"] = ".core._homeostasis"
 _LAZY_EXPORTS["RetractedProtocol"] = ".exceptions"
 _LAZY_EXPORTS.update({
@@ -116,6 +117,7 @@ if TYPE_CHECKING:  # pragma: no cover
         Area, Brain, ComputeEngine, Connectome, ProjectionResult, Stimulus,
         create_engine, list_engines,
     )
+    from .core.backend import cupy_available
     from .utils import (
         binomial_ppf, heapq_select_top_k, normalize_features,
         select_top_k_indices,
@@ -144,7 +146,11 @@ if TYPE_CHECKING:  # pragma: no cover
 # question with no CUDA initialisation at all.
 from importlib.util import find_spec as _find_spec
 
-GPU_AVAILABLE = _find_spec("cupy") is not None
+CUPY_INSTALLED = _find_spec("cupy") is not None
+# Compatibility alias. This has historically meant package discoverability,
+# not a successful import, device allocation, or usable GPU. New runtime gates
+# must call cupy_available().
+GPU_AVAILABLE = CUPY_INSTALLED
 
 # Version kept in sync with pyproject.toml for the installed package
 __version__ = "0.0.1a1"  # kept in sync with pyproject.toml
@@ -181,6 +187,6 @@ __all__ = [
     'snapshot_area', 'source_response_traces',
     'FiberCircuit',
 
-    # GPU availability flag
-    'GPU_AVAILABLE',
+    # Optional backend installation and runtime capability
+    'CUPY_INSTALLED', 'GPU_AVAILABLE', 'cupy_available',
 ]

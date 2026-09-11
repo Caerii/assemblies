@@ -3273,3 +3273,21 @@ live `cuda_implicit` request now identifies missing `cupy` and preserves its
 `ModuleNotFoundError` cause. The engine-admission, spec-link, lazy-import and exact
 engine gate reports 68 passed in 13.91 seconds. Package Ruff, compilation and diff
 checks pass.
+
+## Backend capability predicates (2026-09-11)
+
+The root `GPU_AVAILABLE` boolean was named more strongly than its behavior: it
+only used `find_spec("cupy")`, deliberately avoiding a dangerous eager CUDA import.
+It could therefore mean an installed package whose DLLs, device or allocation were
+unusable. Runtime admission now has an unambiguous public vocabulary.
+
+`CUPY_INSTALLED` names import-free package discovery. `GPU_AVAILABLE` remains its
+exact compatibility alias, with the weaker semantics stated beside its definition.
+The lazily exported `cupy_available()` owns the actual torch-first import and device
+allocation probe. The linked backend-capability contract explicitly excludes parity,
+memory sufficiency and extension compilation from both predicates.
+
+Fresh-process controls show that root import exposes both booleans without loading
+CuPy, then the runtime predicate returns false on this machine without leaving CuPy
+loaded. The lazy-import, backend, engine-admission and spec-link gate reports
+35 passed; Ruff, compilation and diff checks pass.

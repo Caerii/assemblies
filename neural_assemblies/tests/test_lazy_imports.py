@@ -115,7 +115,7 @@ def test_type_checking_block_matches_the_runtime_map():
 
 def test_lazy_exports_covers_all():
     """Every `__all__` entry is either lazy or a real module-level value."""
-    eager = {"GPU_AVAILABLE"}
+    eager = {"CUPY_INSTALLED", "GPU_AVAILABLE"}
     unaccounted = (set(neural_assemblies.__all__)
                    - set(neural_assemblies._LAZY_EXPORTS) - eager)
     assert not unaccounted, (
@@ -147,18 +147,20 @@ def test_importing_a_submodule_does_not_pull_in_the_rest():
     assert "language" not in out and "programs" not in out, out
 
 
-def test_gpu_flag_is_still_set_without_importing_cupy():
+def test_cupy_installation_flag_is_set_without_importing_cupy():
     """Load-bearing, and easy to lose in a rewrite of this file.
 
-    `GPU_AVAILABLE` is computed with `find_spec`, NOT `import cupy`, because on
+    `CUPY_INSTALLED` is computed with `find_spec`, NOT `import cupy`, because on
     Windows whichever of CuPy/torch loads first wins DLL resolution for the
     process -- and importing CuPy at package-import time made later torch CUDA
     calls die with a bare access violation. See the comment in __init__.py.
     """
     out = _in_fresh_process(
         "import sys, neural_assemblies as na;"
-        "print(isinstance(na.GPU_AVAILABLE, bool), 'cupy' in sys.modules)"
+        "print(isinstance(na.CUPY_INSTALLED, bool),"
+        " na.GPU_AVAILABLE is na.CUPY_INSTALLED, 'cupy' in sys.modules)"
     )
-    ok, cupy_loaded = out.split()
-    assert ok == "True", "GPU_AVAILABLE is not a bool"
+    ok, compatibility_alias, cupy_loaded = out.split()
+    assert ok == "True", "CUPY_INSTALLED is not a bool"
+    assert compatibility_alias == "True", "legacy GPU_AVAILABLE alias drifted"
     assert cupy_loaded == "False", "package import loaded CuPy -- this breaks torch"

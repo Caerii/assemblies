@@ -1754,3 +1754,16 @@ negative cases cover missing dependency, missing registration and invalid name.
 The focused engine/spec/lazy-import gate is 68 passed; Ruff, compilation and diff
 checks pass. A live `cuda_implicit` request on this machine now reports missing
 `cupy` with `ModuleNotFoundError` preserved as the cause.
+
+## Installed is distinct from usable (2026-09-11)
+
+The root `GPU_AVAILABLE` flag only performed import-free CuPy discovery, so its
+name overstated the evidence. `CUPY_INSTALLED` now names that predicate and the old
+flag remains its exact compatibility alias. The lazy `cupy_available()` predicate
+does the torch-first import and device allocation required for runtime admission.
+Its code cites `VERIFICATION.md#contract-backend-capability`, which excludes parity,
+memory sufficiency and extension compilation.
+
+A fresh process confirms that root import loads no CuPy and that runtime availability
+is false on this machine. The focused lazy-import/backend/admission/spec gate is
+35 passed; Ruff, compilation and diff checks pass.

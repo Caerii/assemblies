@@ -727,6 +727,23 @@ claim that an importable backend has a usable device or satisfies parity; each
 backend's runtime admission and conformance gates own those stronger claims.
 
 
+<a id="contract-backend-capability"></a>
+
+## Optional backend installation and runtime capability
+
+`CUPY_INSTALLED` is the import-free package-discovery predicate used during root
+package import. The historical `GPU_AVAILABLE` name remains an exact compatibility
+alias for that weak predicate; it does not certify an import, device, allocation or
+engine. `cupy_available()` is the cached runtime predicate: it loads torch first on
+Windows, imports CuPy, and allocates a device array. Runtime test and engine-selection
+gates use this predicate. Importing `neural_assemblies` alone must load neither
+CuPy nor package submodules.
+
+Runtime capability still does not prove numerical parity, memory sufficiency for a
+study, or successful extension compilation. Those stronger claims require their
+own backend and protocol gates.
+
+
 <a id="contract-homeostasis-config"></a>
 
 ## Shared homeostasis configuration
