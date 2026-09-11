@@ -1862,3 +1862,34 @@ parity is 27 passed. The public workflow documents the compatibility change.
 This preserves old arithmetic while making the protocol claim executable. It does
 not rerun any registered study. Completion remains the last operation-card
 migration before the shared plan layer covers the original five operations.
+
+## Completion closes the original operation-plan set (2026-09-11)
+
+`CompletionPlan` and `PreparedCompletion` now own the exact cue sampler, stable-ID
+reference, compact-index cue and recurrent schedule. Seed and observation policy
+are mandatory. `plastic` preserves the former path, `frozen` retains activity but
+not weight changes, and `read-only` restores activity, recruitment, weights and
+owned RNG. A prepared cue rejects cross-brain and stale-entry use before mutation.
+The tracing API executes the same object instead of maintaining a second cue-size,
+validation and sampling implementation.
+
+All static callers name their policy. Research and compatibility paths use
+`plastic` to preserve committed semantics; the onboarding investigation uses
+`read-only`. The first broader boundary run caught that example because the
+initial AST audit covered only package and research roots. The ratchet now includes
+`examples/`, demonstrating that the new contract fails early on the old ambiguous
+path.
+
+The plastic migration is state-equivalent on all three NumPy engines. Focused
+operation/trace/public coverage is 271 passed; the broader affected CPU selection
+is 258 passed, 9 skipped and one expected failure. Package Ruff, compilation and
+diff checks pass. The Visual Studio/CUDA Torch parity suite is 27 passed. No study
+was rerun and no historical score was reinterpreted. Completion's linked negative
+is the fixed-connectome teaching test that drops below .3 at beta zero and exceeds
+.8 with recurrent learning; it remains instructional rather than adopted science.
+
+The five original calculus operations now have discoverable immutable plans and
+source-linked contracts. The next unification work is broader than these schedules:
+organ contracts, full model semantics, numerical Lean/backend refinement, the
+remaining experiment runner/evidence graph migration, index ownership and the
+cpp/legacy disposition still remain open.

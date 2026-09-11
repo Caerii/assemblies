@@ -4,9 +4,16 @@ Specification: neural_assemblies/ir/VERIFICATION.md#contract-operation-objects
 """
 
 from dataclasses import dataclass, is_dataclass
-from numbers import Integral
+from contextlib import nullcontext
+import math
+from numbers import Integral, Real
+import random
 from types import MappingProxyType
 from typing import Callable
+
+import numpy as np
+
+from .assembly import Assembly
 
 
 def _require_name(label: str, value: object) -> None:
@@ -345,6 +352,100 @@ class MergePlan:
             brain.project(step.stimuli_dict(), step.fibers_dict())
 
 
+_COMPLETION_OBSERVATION_MODES = frozenset({"plastic", "frozen", "read-only"})
+
+
+@dataclass(frozen=True)
+class PreparedCompletion:
+    """A reference assembly and its exact sampled compact-index cue."""
+
+    plan: "CompletionPlan"
+    reference: Assembly
+    entry_compact: tuple[int, ...]
+    compact_cue: tuple[int, ...]
+    brain_identity: int
+
+    def inject_cue(self, brain) -> None:
+        if id(brain) != self.brain_identity:
+            raise ValueError("prepared completion belongs to a different brain")
+        current = tuple(int(value) for value in brain.areas[self.plan.area].winners)
+        if current != self.entry_compact:
+            raise ValueError("completion source changed after cue preparation")
+        brain.areas[self.plan.area].winners = np.asarray(
+            self.compact_cue, dtype=np.uint32,
+        )
+
+
+@dataclass(frozen=True)
+class CompletionPlan:
+    """Validated partial-cue construction and recurrent recovery schedule."""
+
+    area: str
+    fraction: float = 0.5
+    rounds: int = 5
+    seed: int | None = None
+    observation_mode: str | None = None
+
+    def __post_init__(self) -> None:
+        _require_name("area", self.area)
+        if (
+            isinstance(self.fraction, bool)
+            or not isinstance(self.fraction, Real)
+            or not math.isfinite(float(self.fraction))
+            or not 0 < self.fraction <= 1
+        ):
+            raise ValueError("fraction must be finite and in (0, 1]")
+        object.__setattr__(self, "fraction", float(self.fraction))
+        object.__setattr__(self, "rounds", _positive_rounds(self.rounds))
+        if (
+            self.seed is None
+            or isinstance(self.seed, bool)
+            or not isinstance(self.seed, Integral)
+        ):
+            raise ValueError("seed must be an explicit integer")
+        object.__setattr__(self, "seed", int(self.seed))
+        if self.observation_mode not in _COMPLETION_OBSERVATION_MODES:
+            raise ValueError(
+                "observation_mode must be 'plastic', 'frozen', or 'read-only'"
+            )
+
+    @property
+    def steps(self) -> tuple[ProjectionStep, ...]:
+        step = ProjectionStep(stimuli=(), fibers=((self.area, (self.area,)),))
+        return (step,) * self.rounds
+
+    def observation_scope(self, brain):
+        """Return the one state policy named by this protocol."""
+        if self.observation_mode == "plastic":
+            return nullcontext(brain)
+        if self.observation_mode == "frozen":
+            return brain.frozen()
+        return brain.read_only()
+
+    def prepare(self, brain) -> PreparedCompletion:
+        if self.area not in brain.areas:
+            raise IndexError(f"Not in brain.areas: {self.area}")
+        reference = Assembly.from_area(brain, self.area)
+        compact = tuple(int(value) for value in brain.areas[self.area].winners)
+        if not compact:
+            raise ValueError(f"area {self.area!r} has no assembly to complete")
+        if len(compact) != len(reference):
+            raise ValueError("completion reference and compact cue source disagree")
+        cue_size = int(len(reference) * self.fraction)
+        if cue_size < 1:
+            raise ValueError(
+                "fraction retains no neurons at the current assembly size"
+            )
+        cue = tuple(random.Random(self.seed).sample(compact, cue_size))
+        return PreparedCompletion(
+            plan=self,
+            reference=reference,
+            entry_compact=compact,
+            compact_cue=cue,
+            brain_identity=id(brain),
+        )
+
+
 @dataclass(frozen=True)
 class OperationContract:
     """Reviewable scientific surface attached to an executable operation."""
@@ -502,11 +603,43 @@ MERGE_CONTRACT = OperationContract(
 )
 
 
+COMPLETION_CONTRACT = OperationContract(
+    operation_id="pattern-completion-v1",
+    specification="docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-completion",
+    plan_type=CompletionPlan,
+    inputs=("brain", "area", "fraction", "rounds", "seed", "observation_mode"),
+    reads=("entry assembly", "compact winners", "recurrent weights"),
+    mutates=(
+        "area winners",
+        "recurrent weights in plastic mode",
+        "recruitment outside read-only mode",
+        "engine history outside read-only mode",
+    ),
+    regime=("registered active area", "nonempty retained cue"),
+    observed_outcome=(
+        "final recovered neuron-ID snapshot",
+        "min-normalized overlap with immutable entry reference",
+    ),
+    failure_conditions=(
+        "invalid cue protocol",
+        "missing seed or observation mode",
+        "unknown or empty area",
+        "cue rounds to zero neurons",
+        "backend projection rejection",
+    ),
+    constructed_controls=(
+        "neural_assemblies/tests/test_public_model_boundaries.py::"
+        "test_teaching_example_has_a_working_learning_disabled_control",
+    ),
+)
+
+
 OPERATION_CONTRACTS = MappingProxyType({
     "projection": PROJECTION_CONTRACT,
     "reciprocal_projection": RECIPROCAL_PROJECTION_CONTRACT,
     "association": ASSOCIATION_CONTRACT,
     "merge": MERGE_CONTRACT,
+    "pattern_completion": COMPLETION_CONTRACT,
 })
 
 

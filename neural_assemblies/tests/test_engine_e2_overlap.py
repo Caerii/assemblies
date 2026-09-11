@@ -103,7 +103,10 @@ def test_sparse_pattern_complete_meets_e1_threshold():
     brain.add_stimulus("S", 100)
     brain.add_area("A", 5000, 80, 0.1)
     project(brain, "S", "A", rounds=10)
-    _, rec = pattern_complete(brain, "A", fraction=0.5, rounds=5, seed=42)
+    _, rec = pattern_complete(
+        brain, "A", fraction=0.5, rounds=5, seed=42,
+        observation_mode="plastic",
+    )
     assert rec >= 0.50
 
 

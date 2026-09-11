@@ -68,6 +68,7 @@ def measure_pattern_completion(
                 brain.project({}, {HIGH: [HIGH]})
         _, rec = pattern_complete(
             brain, HIGH, fraction=fraction, rounds=rounds, seed=seed + digit,
+            observation_mode="plastic",
         )
         recoveries.append(float(rec))
     return float(np.mean(recoveries))
@@ -115,6 +116,7 @@ def run_pattern_completion_mnist(
                 recovered, _ = pattern_complete(
                     rec_bundle.brain, HIGH, fraction=completion_fraction, rounds=5,
                     seed=kwargs.get("seed", 42) + digit * 100 + j,
+                    observation_mode="plastic",
                 )
                 hv = np.zeros_like(hv)
                 hv[recovered.winners] = 1.0

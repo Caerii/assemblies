@@ -307,7 +307,9 @@ class TestPatternCompleteParity:
         project(b, "stim", "A", rounds=ROUNDS)
 
         recovered, recovery = pattern_complete(
-            b, "A", fraction=0.5, rounds=5, seed=42)
+            b, "A", fraction=0.5, rounds=5, seed=42,
+            observation_mode="plastic",
+        )
         assert recovery > 0.6, (
             f"{engine}: pattern recovery {recovery:.3f} < 0.6")
 

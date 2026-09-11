@@ -2,12 +2,10 @@
 
 from __future__ import annotations
 
-import random
 from collections.abc import Sequence
 
-import numpy as np
-
 from neural_assemblies.assembly_calculus.assembly import Assembly, chance_overlap, overlap
+from neural_assemblies.assembly_calculus.contracts import CompletionPlan
 from neural_assemblies.assembly_calculus.ops import _snap
 
 from .models import AssemblyTrace, PatternCompletionDiagnostic, TraceStep
@@ -267,57 +265,48 @@ def pattern_complete_trace(
     fraction: float = 0.5,
     rounds: int = 5,
     seed: int | None = None,
+    observation_mode: str | None = None,
 ) -> PatternCompletionDiagnostic:
-    """Trace recurrent recovery from a partial activation cue."""
-    if not 0.0 < fraction <= 1.0:
-        raise ValueError("fraction must be between 0 and 1")
-    if rounds <= 0:
-        raise ValueError("rounds must be positive")
-
-    reference = _snap(brain, area)
-    if len(reference) == 0:
-        raise ValueError(f"area {area!r} has no assembly to complete")
-
-    compact_winners = list(brain.areas[area].winners)
-    rng = random.Random(seed)
-    subsample_size = max(1, int(len(reference) * fraction))
-    subsample = rng.sample(compact_winners, subsample_size)
-    brain.areas[area].winners = np.array(subsample, dtype=np.uint32)
+    """Trace the same validated completion protocol as :func:`pattern_complete`."""
+    plan = CompletionPlan(area, fraction, rounds, seed, observation_mode)
+    prepared = plan.prepare(brain)
 
     steps: list[TraceStep] = []
     previous: Assembly | None = None
-    previous = _append_step(
-        steps,
-        brain=brain,
-        operation="pattern_complete",
-        target=area,
-        round_index=0,
-        drive=f"partial cue keeps {fraction:.2f}",
-        sources=(area,),
-        previous=previous,
-    )
-    partial = previous
-
-    for round_index in range(1, rounds + 1):
-        brain.project({}, {area: [area]})
+    with plan.observation_scope(brain):
+        prepared.inject_cue(brain)
         previous = _append_step(
             steps,
             brain=brain,
             operation="pattern_complete",
             target=area,
-            round_index=round_index,
-            drive=f"{area} recurrence",
+            round_index=0,
+            drive=f"partial cue keeps {plan.fraction:.2f}",
             sources=(area,),
             previous=previous,
         )
+        partial = previous
+
+        for round_index, step in enumerate(plan.steps, start=1):
+            brain.project(step.stimuli_dict(), step.fibers_dict())
+            previous = _append_step(
+                steps,
+                brain=brain,
+                operation="pattern_complete",
+                target=area,
+                round_index=round_index,
+                drive=f"{area} recurrence",
+                sources=(area,),
+                previous=previous,
+            )
 
     n = brain.areas[area].n
     return PatternCompletionDiagnostic(
-        reference=reference,
+        reference=prepared.reference,
         partial=partial,
         trace=AssemblyTrace(operation="pattern_complete", target=area, steps=tuple(steps)),
-        kept_fraction=fraction,
-        chance_baseline=chance_overlap(len(reference), n),
+        kept_fraction=plan.fraction,
+        chance_baseline=chance_overlap(len(prepared.reference), n),
     )
 
 

@@ -158,7 +158,10 @@ def metrics_pattern_complete() -> dict:
     b.add_stimulus("stim", K)
     b.add_area("A", N, K, BETA)
     project(b, "stim", "A", rounds=ROUNDS)
-    _, recovery = pattern_complete(b, "A", fraction=0.5, rounds=5, seed=SEED)
+    _, recovery = pattern_complete(
+        b, "A", fraction=0.5, rounds=5, seed=SEED,
+        observation_mode="plastic",
+    )
     return {"pattern_complete_50pct_overlap": recovery}
 
 

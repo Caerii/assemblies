@@ -92,7 +92,8 @@ class TestLexiconComputation(unittest.TestCase):
         """Half-corrupted assembly should still decode to correct word."""
         project(self.brain, self.stim_map["cat"], self.area, rounds=10)
         recovered, recovery = pattern_complete(
-            self.brain, self.area, fraction=0.5, rounds=5, seed=0
+            self.brain, self.area, fraction=0.5, rounds=5, seed=0,
+            observation_mode="plastic",
         )
         decoded = fuzzy_readout(recovered, self.lexicon, threshold=0.3)
         self.assertEqual(decoded, "cat",
@@ -209,7 +210,8 @@ class TestFSMParityChecker(unittest.TestCase):
 
         # Corrupt and recover the state area
         recovered, recovery = pattern_complete(
-            self.brain, self.fsm.state_area, fraction=0.5, rounds=5, seed=0
+            self.brain, self.fsm.state_area, fraction=0.5, rounds=5, seed=0,
+            observation_mode="plastic",
         )
 
         # The recovered assembly should match the 'odd' state

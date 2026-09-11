@@ -238,7 +238,8 @@ Empty surfaces reject during contract construction. The public implementation
 carries the exact object as `operation_contract`, and the read-only
 `OPERATION_CONTRACTS` registry provides discovery without importing research prose.
 
-Projection, reciprocal projection, association and merge are migrated operations.
+Projection, reciprocal projection, association, merge and pattern completion are
+migrated operations.
 `ProjectionPlan` validates nonempty
 names, a positive integral round count and an explicit Boolean recurrence choice,
 then freezes the full ordered `ProjectionStep` sequence. Execution validates the
@@ -289,8 +290,24 @@ All thirteen statically visible partial-stimulus research calls now name their
 mode. Twelve already execute inside a pinning scope and declare `require-fixed`;
 the live composed parent in `universality_composition` declares `evolving`.
 Migration comparisons cover all four historical source patterns on all three
-NumPy engines. Completion still needs its immutable execution/observation plan;
-migrated schedule identity is not evidence for any operation's scientific outcome.
+NumPy engines.
+
+`CompletionPlan` additionally owns the cue sampler and observation effect. It
+requires a seed and one of three policies: live plastic execution, frozen-weight
+execution, or a read-only Brain transaction. `PreparedCompletion` stores the
+stable-ID reference separately from the exact compact-index cue, preventing those
+two index spaces from becoming an implicit array convention. It rejects a
+different brain or changed entry winners before injection. Traced and untraced
+completion execute the same prepared cue and immutable recurrent steps. Static
+callers must name both seed and policy. Legacy research callers explicitly select
+`plastic` so the migration itself does not alter recorded protocols; the teaching
+investigation names `read-only` because it is a measurement.
+
+Migration comparisons reproduce the former plastic path on all three NumPy
+engines. Policy controls distinguish weight mutation, retained activity and full
+read-only restoration, including exception cleanup. Completion still reports a
+min-normalized overlap against its entry snapshot; plan validity and schedule
+identity are not evidence that recurrence reconstructed information.
 
 
 ## Repetition shares the ordinary transition boundary

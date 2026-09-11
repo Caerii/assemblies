@@ -32,11 +32,11 @@ Two properties hold for all of them and are worth stating once:
   is a budget, not a convergence criterion.  Callers that need a guarantee use
   :func:`learn_assembly` / :func:`learn_assembly_from_pattern`, which loop
   until consecutive snapshots overlap above a threshold.
-* **Operations mutate the brain.**  Plasticity is applied on every call, so
-  the same operation run twice on the same brain does not give the same
-  result -- the second run starts from a connectome the first run reshaped.
-  The returned :class:`Assembly` is an immutable snapshot precisely because
-  the live ``area.winners`` will be overwritten by the next operation.
+* **Mutation is part of the operation contract.**  Projection, reciprocal
+  projection, association and merge apply the brain's live plasticity policy.
+  Pattern completion requires an explicit ``plastic``, ``frozen`` or
+  ``read-only`` observation policy. The returned :class:`Assembly` is an
+  immutable snapshot precisely because live winners may move or be restored.
 
 All functions:
 
@@ -55,16 +55,16 @@ which carries the full reference and a local PDF path where one is checked in.
 citation cannot quietly become a dead string.
 """
 
-import random
 from contextlib import contextmanager
 
 import numpy as np
 
 from .assembly import Assembly, overlap
 from .contracts import (
-    ASSOCIATION_CONTRACT, MERGE_CONTRACT, PROJECTION_CONTRACT,
-    RECIPROCAL_PROJECTION_CONTRACT, AssociationPlan, MergePlan, ProjectionPlan,
-    ReciprocalProjectionPlan, implements,
+    ASSOCIATION_CONTRACT, COMPLETION_CONTRACT, MERGE_CONTRACT,
+    PROJECTION_CONTRACT, RECIPROCAL_PROJECTION_CONTRACT, AssociationPlan,
+    CompletionPlan, MergePlan, ProjectionPlan, ReciprocalProjectionPlan,
+    implements,
 )
 from ..core.index_spaces import NeuronIds, to_neuron_ids, validated_indices
 
@@ -635,7 +635,10 @@ def merge(brain, source_a, source_b, target,
     return _snap(brain, target)
 
 
-def pattern_complete(brain, area, fraction=0.5, rounds=5, seed=None):
+@implements(COMPLETION_CONTRACT)
+def pattern_complete(
+    brain, area, fraction=0.5, rounds=5, seed=None, *, observation_mode=None,
+):
     """Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-completion
 
     Return ``(recovered_assembly, overlap_with_entry_assembly)`` after a partial cue.
@@ -645,29 +648,20 @@ def pattern_complete(brain, area, fraction=0.5, rounds=5, seed=None):
     then perform ``rounds`` recurrent projections. The cue is not clamped.
     Its initial overlap is therefore not a floor on the final score.
 
-    Plasticity follows brain settings: repeated calls can train the measured
-    assembly. Use ``brain.read_only()`` for a nondestructive probe of an already
-    initialized population. Neither this schedule nor its score establishes
-    learned recovery without a stated regime and matched negative control.
+    ``seed`` and ``observation_mode`` are mandatory protocol inputs. ``plastic``
+    retains historical live learning, ``frozen`` disables learning while retaining
+    activity and recruitment, and ``read-only`` restores all supported observation
+    state. Neither this schedule nor its score establishes learned recovery without
+    a stated regime and matched negative control.
     """
-    reference = _snap(brain, area)
-    k = len(reference)
-
-    # Subsample from COMPACT indices (area.winners), not mapped real IDs
-    # (reference.winners).  The engine uses compact indexing internally.
-    compact_winners = list(brain.areas[area].winners)
-    rng = random.Random(seed)
-    subsample_size = int(k * fraction)
-    subsample = rng.sample(compact_winners, subsample_size)
-    brain.areas[area].winners = np.array(subsample, dtype=np.uint32)
-    # Winner sync to engine is handled by _project_impl
-
-    # Recurrent completion
-    for _ in range(rounds):
-        brain.project({}, {area: [area]})
-
-    recovered = _snap(brain, area)
-    recovery = overlap(recovered, reference)
+    plan = CompletionPlan(area, fraction, rounds, seed, observation_mode)
+    prepared = plan.prepare(brain)
+    with plan.observation_scope(brain):
+        prepared.inject_cue(brain)
+        for step in plan.steps:
+            brain.project(step.stimuli_dict(), step.fibers_dict())
+        recovered = _snap(brain, area)
+        recovery = overlap(recovered, prepared.reference)
     return recovered, recovery
 
 

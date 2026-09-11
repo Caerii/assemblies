@@ -3425,3 +3425,37 @@ result was recomputed or reinterpreted.
 The back-projection switch has a constructed schedule negative, while the existing
 three-seed weight-level control remains the scientific two-way-connectivity test.
 Completion remains the final legacy operation migration.
+
+## Pattern completion names cue and observation semantics (2026-09-11)
+
+`CompletionPlan` now validates the fraction, rounds, seed, area and observation
+policy before mutation. `PreparedCompletion` records the immutable stable-ID
+reference, the exact compact-index entry state and sampled cue, and the originating
+brain identity. Applying it to a different brain or changed entry state raises
+before cue injection. Traced and untraced completion share this preparation and
+the same immutable recurrent steps.
+
+Every static caller under `neural_assemblies/`, `research/` and `examples/` must
+name `seed` and `observation_mode`. The first broad public-boundary run caught the
+teaching example outside the original two-root audit; it failed immediately on
+the missing policy. The example now declares `read-only`, and the widened AST
+ratchet covers that tree. Historical program, test and literature callers declare
+`plastic`, preserving their previous numerical schedule instead of silently
+changing evidence.
+
+Migration checks reconstruct the former plastic implementation on
+`numpy_sparse`, `numpy_exact` and `numpy_explicit`, comparing returned stable IDs,
+compact winners, recruitment, RNG where owned and the next read-only observation.
+Separate controls distinguish plastic, frozen and read-only effects and verify
+exception cleanup. The operation/trace/public selection reports 271 passed. The
+larger calculus, conformance, computation, cross-repository, trace and literature
+selection reports 258 passed, 9 optional skips and one registered expected failure.
+The additional specification/public/probe/literature selection first reported the
+missing example policy, then its focused rerun passed. Package Ruff, compilation
+and diff checks pass. The CUDA-initialized Torch parity suite reports 27 passed.
+
+The linked fixed-connectome teaching control still separates learned recurrence
+from beta-zero at the operation boundary. This checkpoint establishes early
+admission, schedule compatibility and explicit measurement effects. It does not
+adopt a new completion result or make min-normalized overlap sufficient evidence
+of reconstruction.

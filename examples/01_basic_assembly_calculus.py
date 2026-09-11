@@ -14,8 +14,10 @@ def recovery(seed: int, beta: float) -> float:
     brain.add_stimulus('cue', 30)
     brain.add_area('memory', n=1000, k=30, beta=beta)
     project(brain, 'cue', 'memory', rounds=12, recurrent=True)
-    with brain.read_only():
-        _, score = pattern_complete(brain, 'memory', fraction=.5, rounds=5, seed=seed)
+    _, score = pattern_complete(
+        brain, 'memory', fraction=.5, rounds=5, seed=seed,
+        observation_mode='read-only',
+    )
     return score
 
 def main():

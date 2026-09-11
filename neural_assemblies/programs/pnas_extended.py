@@ -139,6 +139,7 @@ def run_pnas_pattern_complete(
     project(brain, "stim", "A", rounds=rounds, recurrent=recurrent)
     _, pc_ov = pattern_complete(
         brain, "A", fraction=cue_fraction, rounds=5, seed=seed,
+        observation_mode="plastic",
     )
     params = {
         "seed": seed, "n": n, "k": k, "p": p, "beta": beta,

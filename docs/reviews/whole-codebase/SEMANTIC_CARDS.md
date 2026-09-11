@@ -306,8 +306,37 @@ Migration tests reproduce both-fixed, both-driven, partial-fixed and
 partial-evolving schedules on all three NumPy engines, comparing all area states,
 recruitment and RNG. A constructed schedule control removes return edges when
 `back_project=False`; the existing weight-level control remains responsible for
-the scientific two-way-connectivity claim. Completion is the remaining legacy
-operation card.
+the scientific two-way-connectivity claim.
+
+## Completion plan resolution (2026-09-11)
+
+`CompletionPlan` resolves C2 by making both stochastic cue identity and observation
+mutation explicit. A caller must supply an integer seed and choose `plastic`,
+`frozen`, or `read-only`. The first preserves historical learning, the second
+suppresses weight changes while retaining activity and recruitment, and the third
+restores activity, recruitment, weights and owned RNG state through the Brain
+transaction. Invalid fractions, nonpositive rounds, missing policy, unknown or
+empty areas and fractions that retain zero neurons all reject before cue injection.
+
+`PreparedCompletion` holds two deliberately different spaces: the immutable
+reference contains stable neuron IDs while `compact_cue` contains engine indices.
+It is bound to the exact brain and entry winner state, so cross-brain or stale
+injection rejects before mutation.
+The sampled cue and recurrent `ProjectionStep` sequence are shared by traced and
+untraced execution. An AST ratchet requires every statically visible caller to
+name the seed and policy. Existing compatibility and research callers say `plastic`
+to preserve their prior arithmetic, while the teaching investigation says
+`read-only`; changing a registered protocol to a measurement mode requires an
+amendment and rerun.
+
+The migration test reconstructs the removed implementation on all three NumPy
+engines and compares recovered stable IDs, live compact winners, recruitment,
+owned RNG and the next read-only observation. Separate controls exercise all three
+mutation policies and exception restoration. These tests establish admission and
+schedule identity. They do not establish attractor recovery: the score remains
+min-normalized and the free cue is not clamped. The linked fixed-connectome
+teaching control proves the score falls when recurrent learning is disabled; it
+is an instructional mechanism check rather than a preregistered result.
 
 <a id="contract-read-only"></a>
 

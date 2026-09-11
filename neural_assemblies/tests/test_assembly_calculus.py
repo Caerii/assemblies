@@ -374,7 +374,10 @@ class TestPatternCompletion:
 
         project(b, "stim", "A", rounds=ROUNDS)
 
-        recovered, recovery = pattern_complete(b, "A", fraction=0.5, rounds=5, seed=42)
+        recovered, recovery = pattern_complete(
+            b, "A", fraction=0.5, rounds=5, seed=42,
+            observation_mode="plastic",
+        )
         assert recovery > 0.6, f"Recovery {recovery:.3f} too low for fraction=0.5"
 
     def test_pattern_completion_degrades_with_less_cue(self):
@@ -391,11 +394,17 @@ class TestPatternCompletion:
 
         # Test with more cue
         b_hi = copy.deepcopy(b)
-        _, recovery_hi = pattern_complete(b_hi, "A", fraction=0.8, rounds=5, seed=42)
+        _, recovery_hi = pattern_complete(
+            b_hi, "A", fraction=0.8, rounds=5, seed=42,
+            observation_mode="plastic",
+        )
 
         # Test with less cue
         b_lo = copy.deepcopy(b)
-        _, recovery_lo = pattern_complete(b_lo, "A", fraction=0.3, rounds=5, seed=42)
+        _, recovery_lo = pattern_complete(
+            b_lo, "A", fraction=0.3, rounds=5, seed=42,
+            observation_mode="plastic",
+        )
 
         assert recovery_hi >= recovery_lo, (
             f"Expected more cue to give at least as good recovery: "
@@ -408,7 +417,10 @@ class TestPatternCompletion:
         b.add_area("A", N, K, BETA)
 
         project(b, "stim", "A", rounds=ROUNDS)
-        recovered, recovery = pattern_complete(b, "A", fraction=0.5, rounds=5, seed=42)
+        recovered, recovery = pattern_complete(
+            b, "A", fraction=0.5, rounds=5, seed=42,
+            observation_mode="plastic",
+        )
 
         assert isinstance(recovered, Assembly)
         assert isinstance(recovery, float)

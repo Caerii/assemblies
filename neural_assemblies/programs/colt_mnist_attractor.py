@@ -264,6 +264,7 @@ def measure_recovery_on_bundle(
             _, ov = pattern_complete(
                 brain, HIGH, fraction=fraction, rounds=rounds,
                 seed=seed + digit * 100 + j,
+                observation_mode="plastic",
             )
             recs.append(float(ov))
         per_digit[digit] = float(np.mean(recs))

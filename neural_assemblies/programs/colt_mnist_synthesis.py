@@ -138,7 +138,8 @@ def audit_bundle(
                     for _ in range(3):
                         brain.project({}, {HIGH: [HIGH]})
                 _, rec = pattern_complete(
-                    brain, HIGH, fraction=0.5, rounds=5, seed=seed + digit * 100 + j,
+                    brain, HIGH, fraction=0.5, rounds=5,
+                    seed=seed + digit * 100 + j, observation_mode="plastic",
                 )
                 digit_recs.append(float(rec))
             pc_vals.append(float(np.mean(digit_recs)))

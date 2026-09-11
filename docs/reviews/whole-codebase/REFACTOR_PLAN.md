@@ -50,12 +50,12 @@ identity is the issue, not an undocumented change.
   Compact-to-neuron conversion and public activation reject invalid indices.
   Public injected winners and supervision validate index spaces before mutation.
   Complete owned-index migration and full model-semantics configuration remain open.
-- Projection, reciprocal projection, association and merge now have first-class
+- Projection, reciprocal projection, association, merge and completion now have first-class
   immutable plans and
   discoverable operation contracts naming inputs, reads, mutations, regimes,
   observations, failure conditions and constructed controls. Their public
-  functions execute the inspected step sequences. Completion still requires an
-  equivalent execution and observation-plan migration.
+  functions execute the inspected step sequences. Completion also requires an
+  explicit seed and observation policy, shared by its traced and untraced paths.
 - The CPU teaching example trains with recurrence on a fixed connectome, probes
   without learning, and includes a learning-disabled control across paired seeds.
 - Real-data MNIST goldens refuse synthetic substitution. Missing expected golden
@@ -70,7 +70,7 @@ identity is the issue, not an undocumented change.
 See [the executable research workflow](../../research_workflow.md) for current
 commands and compatibility changes. These are instrument repairs, not new
 scientific results. The full migration below remains open: most experiments still
-have legacy entry points, operations lack complete constructed-control contracts,
+have legacy entry points, organ contracts and end-to-end result controls remain incomplete,
 parser state ownership is still fragmented, and cpp/legacy disposition is not
 finished. No files were deleted merely because static imports did not reach them.
 

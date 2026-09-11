@@ -182,6 +182,7 @@ def honest_pair_gated_predict(
         recovered, recovery = pattern_complete(
             recurrent_brain, HIGH, fraction=completion_fraction,
             rounds=completion_rounds, seed=seed,
+            observation_mode="plastic",
         )
         meta["completion_applied"] = True
         meta["recovery"] = float(recovery) / bundle.k

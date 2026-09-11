@@ -181,7 +181,10 @@ def test_pattern_complete_trace_reports_recovery() -> None:
     brain.add_area("COLOR", N, K, BETA)
     project(brain, "red", "COLOR", rounds=8)
 
-    diagnostic = pattern_complete_trace(brain, "COLOR", fraction=0.5, rounds=4, seed=1)
+    diagnostic = pattern_complete_trace(
+        brain, "COLOR", fraction=0.5, rounds=4, seed=1,
+        observation_mode="plastic",
+    )
 
     assert isinstance(diagnostic, PatternCompletionDiagnostic)
     assert diagnostic.reference.area == "COLOR"
@@ -265,4 +268,6 @@ def test_trace_rounds_must_be_positive() -> None:
         ordered_recall_trace(brain, "COLOR", "red", max_steps=0)
 
     with pytest.raises(ValueError, match="fraction"):
-        pattern_complete_trace(brain, "COLOR", fraction=0)
+        pattern_complete_trace(
+            brain, "COLOR", fraction=0, seed=1, observation_mode="plastic",
+        )

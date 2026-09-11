@@ -140,6 +140,7 @@ def _occlusion_curve(
                     _, _ = pattern_complete(
                         rec_brain, HIGH, fraction=1.0 - frac,
                         rounds=completion_rounds, seed=seed + digit * 100 + j,
+                        observation_mode="plastic",
                     )
                     winners = np.asarray(rec_brain.areas[HIGH].winners, dtype=int)
                     hv = np.zeros_like(hv)

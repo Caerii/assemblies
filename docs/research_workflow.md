@@ -138,3 +138,24 @@ should borrow a clamp around the current winners, and `evolving` when the curren
 unstimulated parent is deliberately allowed to move. The first and third modes
 verify the current facade state before projection. Omitting this choice now raises
 before mutation; the old call shape did not say which transition system it meant.
+
+## Explicit pattern-completion observation
+
+Pattern completion must name its sampler and mutation policy:
+
+```python
+recovered, score = pattern_complete(
+    brain, "MEMORY", fraction=0.5, rounds=5, seed=42,
+    observation_mode="read-only",
+)
+```
+
+Use `plastic` only when completion rounds are part of training, `frozen` when
+weights must stay fixed but activity and recruitment may advance, and `read-only`
+for a state-restoring observation. Existing research and compatibility callers
+explicitly say `plastic` to preserve their historical protocol, while the teaching
+investigation uses `read-only`. Changing one to another policy
+changes the experiment and requires an amendment and new evidence. The returned
+overlap is min-normalized and can score a retained subset perfectly; a recovery
+claim therefore also needs a fixed-denominator metric and a mechanism-disabled
+control.

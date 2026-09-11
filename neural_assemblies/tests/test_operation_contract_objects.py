@@ -4,18 +4,20 @@ import ast
 import copy
 from dataclasses import FrozenInstanceError, replace
 from pathlib import Path
+import random
 from types import SimpleNamespace
 
 import numpy as np
 import pytest
 
 from neural_assemblies.assembly_calculus.contracts import (
-    ASSOCIATION_CONTRACT, MERGE_CONTRACT, OPERATION_CONTRACTS,
-    PROJECTION_CONTRACT, RECIPROCAL_PROJECTION_CONTRACT, AssociationPlan,
-    MergePlan, ProjectionPlan, ReciprocalProjectionPlan,
+    ASSOCIATION_CONTRACT, COMPLETION_CONTRACT, MERGE_CONTRACT,
+    OPERATION_CONTRACTS, PROJECTION_CONTRACT, RECIPROCAL_PROJECTION_CONTRACT,
+    AssociationPlan, CompletionPlan, MergePlan, PreparedCompletion,
+    ProjectionPlan, ReciprocalProjectionPlan,
 )
 from neural_assemblies.assembly_calculus.ops import (
-    associate, merge, project, reciprocal_project,
+    associate, merge, pattern_complete, project, reciprocal_project,
 )
 from neural_assemblies.assembly_calculus.tracing import snapshot_area
 from neural_assemblies.core.brain import Brain
@@ -232,7 +234,7 @@ def test_partial_merge_requires_an_explicit_unstimulated_source_mode():
 
 def test_static_partial_merge_calls_name_the_unstimulated_source_mode():
     failures = []
-    for root in (Path("neural_assemblies"), Path("research")):
+    for root in (Path("neural_assemblies"), Path("research"), Path("examples")):
         for path in root.rglob("*.py"):
             tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
             for node in ast.walk(tree):
@@ -325,6 +327,10 @@ def test_merge_preflight_rejects_a_source_state_that_contradicts_its_mode(
     ),
     ("association", associate, ASSOCIATION_CONTRACT, AssociationPlan),
     ("merge", merge, MERGE_CONTRACT, MergePlan),
+    (
+        "pattern_completion", pattern_complete,
+        COMPLETION_CONTRACT, CompletionPlan,
+    ),
 ])
 def test_public_operation_carries_the_registered_contract(
     name, operation, contract, plan_type,
@@ -350,6 +356,131 @@ def test_constructed_control_node_resolves():
             path, function = node.split("::")
             source = Path(path).read_text(encoding="utf-8")
             assert f"def {function}(" in source
+
+
+@pytest.mark.parametrize("fraction", [0, -0.1, 1.1, True, float("inf"), float("nan"), "0.5"])
+def test_completion_plan_rejects_invalid_fraction(fraction):
+    with pytest.raises(ValueError, match="fraction"):
+        CompletionPlan("A", fraction, seed=1, observation_mode="plastic")
+
+
+@pytest.mark.parametrize("rounds", [0, -1, True, 1.5])
+def test_completion_plan_rejects_invalid_rounds(rounds):
+    with pytest.raises(ValueError, match="positive integer"):
+        CompletionPlan("A", rounds=rounds, seed=1, observation_mode="plastic")
+
+
+@pytest.mark.parametrize("seed", [None, True, 1.5, "1"])
+def test_completion_plan_requires_an_explicit_integer_seed(seed):
+    with pytest.raises(ValueError, match="explicit integer"):
+        CompletionPlan("A", seed=seed, observation_mode="plastic")
+
+
+@pytest.mark.parametrize("mode", [None, "", "probe", 1])
+def test_completion_plan_requires_an_explicit_observation_mode(mode):
+    with pytest.raises(ValueError, match="observation_mode"):
+        CompletionPlan("A", seed=1, observation_mode=mode)
+
+
+def test_completion_plan_is_immutable_and_canonicalizes_numbers():
+    plan = CompletionPlan(
+        "A", np.float32(0.5), np.int64(2), np.int64(3), "plastic",
+    )
+    assert type(plan.fraction) is float
+    assert type(plan.rounds) is int
+    assert type(plan.seed) is int
+    with pytest.raises(FrozenInstanceError):
+        plan.seed = 4
+
+
+def _trained_completion_brain(engine_name="numpy_explicit"):
+    brain = Brain(engine=engine_name, p=.2, seed=47, norm_init=False)
+    brain.add_area("A", 60, 6, beta=.1)
+    brain.add_stimulus("s", 6)
+    project(brain, "s", "A", rounds=3, recurrent=True)
+    return brain
+
+
+def test_completion_prepare_names_both_index_spaces_and_exact_cue():
+    brain = _trained_completion_brain()
+    compact = tuple(int(value) for value in brain.areas["A"].winners)
+    plan = CompletionPlan("A", .5, 2, 11, "plastic")
+    prepared = plan.prepare(brain)
+
+    assert isinstance(prepared, PreparedCompletion)
+    assert prepared.plan is plan
+    assert prepared.reference.area == "A"
+    assert prepared.entry_compact == compact
+    assert prepared.compact_cue == tuple(random.Random(11).sample(compact, 3))
+    assert prepared.reference.neuron_ids.flags.writeable is False
+    with pytest.raises(FrozenInstanceError):
+        prepared.compact_cue = ()
+
+
+@pytest.mark.parametrize("failure", ["different-brain", "changed-source"])
+def test_prepared_completion_rejects_stale_state_before_injection(failure):
+    brain = _trained_completion_brain()
+    prepared = CompletionPlan("A", .5, 2, 11, "plastic").prepare(brain)
+    target = copy.deepcopy(brain) if failure == "different-brain" else brain
+    if failure == "changed-source":
+        target.areas["A"].winners = target.areas["A"].winners[::-1].copy()
+    before = target.areas["A"].winners.copy()
+    with pytest.raises(ValueError, match="different brain|source changed"):
+        prepared.inject_cue(target)
+    np.testing.assert_array_equal(target.areas["A"].winners, before)
+
+
+def test_completion_schedule_is_exactly_declared():
+    plan = CompletionPlan("A", .5, 3, 1, "plastic")
+    assert [
+        (step.stimuli_dict(), step.fibers_dict()) for step in plan.steps
+    ] == [({}, {"A": ["A"]})] * 3
+
+
+@pytest.mark.parametrize("failure", ["unknown", "empty", "zero-cue"])
+def test_completion_prepare_rejects_before_mutation(failure):
+    brain = Brain(engine="numpy_explicit", p=.2, seed=3, norm_init=False)
+    brain.add_area("A", 20, 2, beta=.1)
+    before = copy.deepcopy(brain)
+    plan = CompletionPlan(
+        "missing" if failure == "unknown" else "A",
+        .1 if failure == "zero-cue" else .5,
+        1,
+        1,
+        "plastic",
+    )
+    if failure == "zero-cue":
+        brain.areas["A"].winners = np.asarray([0, 1], dtype=np.uint32)
+        before = copy.deepcopy(brain)
+    with pytest.raises((IndexError, ValueError)):
+        plan.prepare(brain)
+    np.testing.assert_array_equal(
+        brain.areas["A"].winners, before.areas["A"].winners,
+    )
+    assert brain._engine._rng.bit_generator.state == before._engine._rng.bit_generator.state
+
+
+def test_static_completion_calls_name_seed_and_observation_policy():
+    failures = []
+    for root in (Path("neural_assemblies"), Path("research")):
+        for path in root.rglob("*.py"):
+            tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+            for node in ast.walk(tree):
+                if not isinstance(node, ast.Call):
+                    continue
+                function = node.func
+                name = (
+                    function.id if isinstance(function, ast.Name)
+                    else function.attr if isinstance(function, ast.Attribute)
+                    else ""
+                )
+                if name not in {"pattern_complete", "pattern_complete_trace"}:
+                    continue
+                keywords = {kw.arg for kw in node.keywords if kw.arg}
+                missing = {"seed", "observation_mode"} - keywords
+                if missing:
+                    failures.append(f"{path}:{node.lineno}: {sorted(missing)}")
+    assert failures == []
 
 
 @pytest.mark.parametrize("surface", [
@@ -600,3 +731,109 @@ def test_plan_execution_reproduces_the_former_merge_path(engine_name, mode):
             previous._engine._rng.bit_generator.state
         )
     assert brain.areas["A"].fixed_assembly is (mode == "require-fixed")
+
+
+@pytest.mark.parametrize("engine_name", [
+    "numpy_sparse", "numpy_exact", "numpy_explicit",
+])
+def test_plan_execution_reproduces_the_former_completion_path(engine_name):
+    """Plastic mode preserves the exact pre-contract protocol and state."""
+    brain = _trained_completion_brain(engine_name)
+    previous = copy.deepcopy(brain)
+
+    actual, actual_score = pattern_complete(
+        brain, "A", fraction=.5, rounds=3, seed=13,
+        observation_mode="plastic",
+    )
+
+    reference = snapshot_area(previous, "A")
+    compact = list(previous.areas["A"].winners)
+    cue = random.Random(13).sample(compact, int(len(reference) * .5))
+    previous.areas["A"].winners = np.asarray(cue, dtype=np.uint32)
+    for _ in range(3):
+        previous.project({}, {"A": ["A"]})
+    expected = snapshot_area(previous, "A")
+
+    np.testing.assert_array_equal(actual.neuron_ids, expected.neuron_ids)
+    assert actual_score == expected.overlap(reference)
+    np.testing.assert_array_equal(
+        brain._engine.get_winners("A"), previous._engine.get_winners("A"),
+    )
+    assert brain._engine.get_num_ever_fired("A") == (
+        previous._engine.get_num_ever_fired("A")
+    )
+    if hasattr(brain._engine, "_rng"):
+        assert brain._engine._rng.bit_generator.state == (
+            previous._engine._rng.bit_generator.state
+        )
+
+    future = []
+    for candidate in (brain, previous):
+        with candidate.read_only():
+            candidate.project({}, {"A": ["A"]})
+            future.append(snapshot_area(candidate, "A"))
+    np.testing.assert_array_equal(future[0].neuron_ids, future[1].neuron_ids)
+
+
+def test_completion_observation_modes_have_distinct_mutation_contracts():
+    trained = _trained_completion_brain()
+
+    plastic = copy.deepcopy(trained)
+    plastic_before = plastic.connectomes["A"]["A"].weights.copy()
+    pattern_complete(
+        plastic, "A", fraction=.5, rounds=2, seed=7,
+        observation_mode="plastic",
+    )
+    assert not np.array_equal(
+        plastic.connectomes["A"]["A"].weights, plastic_before,
+    )
+
+    frozen = copy.deepcopy(trained)
+    frozen_before = frozen.connectomes["A"]["A"].weights.copy()
+    frozen.project = lambda *_args, **_kwargs: None
+    frozen_result, _ = pattern_complete(
+        frozen, "A", fraction=.5, rounds=2, seed=7,
+        observation_mode="frozen",
+    )
+    np.testing.assert_array_equal(frozen.connectomes["A"]["A"].weights, frozen_before)
+    assert frozen.disable_plasticity is False
+    assert len(frozen_result) == 3
+    assert len(frozen.areas["A"].winners) == 3
+
+    read_only = copy.deepcopy(trained)
+    read_only_entry = read_only.areas["A"].winners.copy()
+    read_only_count = read_only._engine.get_num_ever_fired("A")
+    read_only_rng = copy.deepcopy(read_only._engine._rng.bit_generator.state)
+    read_only_weights = read_only.connectomes["A"]["A"].weights.copy()
+    recovered, _ = pattern_complete(
+        read_only, "A", fraction=.5, rounds=2, seed=7,
+        observation_mode="read-only",
+    )
+    assert len(recovered) == read_only.areas["A"].k
+    np.testing.assert_array_equal(read_only.areas["A"].winners, read_only_entry)
+    np.testing.assert_array_equal(
+        read_only.connectomes["A"]["A"].weights, read_only_weights,
+    )
+    assert read_only._engine.get_num_ever_fired("A") == read_only_count
+    assert read_only._engine._rng.bit_generator.state == read_only_rng
+
+
+@pytest.mark.parametrize("mode", ["frozen", "read-only"])
+def test_completion_observation_scope_restores_policy_after_failure(monkeypatch, mode):
+    brain = _trained_completion_brain()
+    entry = brain.areas["A"].winners.copy()
+    original = brain.project
+
+    def fail_after_projection(*args, **kwargs):
+        original(*args, **kwargs)
+        raise RuntimeError("injected projection failure")
+
+    monkeypatch.setattr(brain, "project", fail_after_projection)
+    with pytest.raises(RuntimeError, match="injected projection failure"):
+        pattern_complete(
+            brain, "A", fraction=.5, rounds=2, seed=5,
+            observation_mode=mode,
+        )
+    assert brain.disable_plasticity is False
+    if mode == "read-only":
+        np.testing.assert_array_equal(brain.areas["A"].winners, entry)

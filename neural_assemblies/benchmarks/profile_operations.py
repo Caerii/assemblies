@@ -124,7 +124,10 @@ def bench_operations(cfg, label):
     b.add_area("A", n, k, beta)
     project(b, "stim", "A", rounds=ROUNDS)
     with Timer() as t:
-        pattern_complete(b, "A", fraction=0.5, rounds=5, seed=42)
+        pattern_complete(
+            b, "A", fraction=0.5, rounds=5, seed=42,
+            observation_mode="plastic",
+        )
     results["pattern_complete"] = t.elapsed
     print(f"  pattern_complete {fmt_ms(t.elapsed)}")
 

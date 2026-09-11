@@ -100,6 +100,7 @@ def _classify_after_completion(
             pattern_complete(
                 brain, HIGH, fraction=fraction, rounds=rounds,
                 seed=seed + digit * 100 + j,
+                observation_mode="plastic",
             )
             hv2 = np.zeros_like(hv)
             hv2[np.asarray(_snap(brain, HIGH).winners, dtype=int)] = 1.0

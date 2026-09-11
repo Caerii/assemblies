@@ -271,7 +271,10 @@ def _extended_metrics(params: dict) -> dict:
     b4.add_stimulus("stim", k)
     b4.add_area("A", n, k, beta)
     project(b4, "stim", "A", rounds=rounds)
-    _, pc_ov = pattern_complete(b4, "A", fraction=0.5, rounds=5, seed=seed)
+    _, pc_ov = pattern_complete(
+        b4, "A", fraction=0.5, rounds=5, seed=seed,
+        observation_mode="plastic",
+    )
 
     ch = chance_overlap(k, n)
     return {
