@@ -4578,3 +4578,7 @@ deterministic top-k key selection, and a bounded weighted value assembly. The
 attention, specification-link, and documentation smoke gates pass **22 tests
 with 1 expected skip**; the learned Brain-backed path remains explicitly
 unimplemented.
+
+Empty query, key, and value supports are now rejected before scoring, so the
+attention readout cannot manufacture a result from an empty domain. The
+attention contract suite passes **10 tests** with Ruff clean.

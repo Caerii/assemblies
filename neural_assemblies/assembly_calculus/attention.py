@@ -68,12 +68,17 @@ def attend(
     """
     if not isinstance(query, Assembly):
         raise TypeError("query must be an Assembly snapshot")
+    if not query:
+        raise ValueError("attention query must contain at least one neuron")
     if not isinstance(keys, Mapping) or not isinstance(values, Mapping):
         raise TypeError("keys and values must be mappings of labels to Assembly")
     if not keys:
         raise ValueError("attention requires at least one key")
     if set(keys) != set(values):
         raise ValueError("keys and values must have exactly the same labels")
+    if any(not isinstance(assembly, Assembly) or not assembly
+           for assembly in (*keys.values(), *values.values())):
+        raise ValueError("attention keys and values must be nonempty assemblies")
     top_k = _positive_int("top_k", top_k)
     if top_k > len(keys):
         raise ValueError("top_k cannot exceed the number of keys")
@@ -90,6 +95,8 @@ def attend(
             raise ValueError("attention labels must be nonempty strings")
         if not isinstance(assembly, Assembly):
             raise TypeError("attention keys and values must be Assembly snapshots")
+        if not assembly:
+            raise ValueError("attention keys and values must be nonempty assemblies")
     value_areas = {assembly.area for assembly in values.values()}
     if len(value_areas) != 1:
         raise ValueError("all attention values must belong to one area")

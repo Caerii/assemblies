@@ -57,3 +57,16 @@ def test_attention_rejects_key_value_mismatch_and_mixed_value_areas():
             {"a": _assembly("K", [1]), "b": _assembly("K", [2])},
             {"a": _assembly("V1", [2]), "b": _assembly("V2", [3])},
         )
+
+
+@pytest.mark.parametrize("query,keys,values", [
+    (_assembly("Q", []), {"a": _assembly("K", [1])},
+     {"a": _assembly("V", [2])}),
+    (_assembly("Q", [1]), {"a": _assembly("K", [])},
+     {"a": _assembly("V", [2])}),
+    (_assembly("Q", [1]), {"a": _assembly("K", [1])},
+     {"a": _assembly("V", [])}),
+])
+def test_attention_rejects_empty_support(query, keys, values):
+    with pytest.raises(ValueError, match="(query|nonempty)"):
+        attend(query, keys, values)
