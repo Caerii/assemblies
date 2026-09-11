@@ -23,6 +23,7 @@ from neural_assemblies.programs.colt_mnist_advanced_util import (
     wire_class_from_prototypes,
 )
 from neural_assemblies.programs.colt_mnist_brain_util import (
+    area_has_active_winners,
     clear_area_winners,
     reinforce_class_slot,
     renorm_connectome_columns,
@@ -76,8 +77,8 @@ def _merge_two_active(
     merge_rounds: int,
 ) -> None:
     """``merge`` when both areas active; single-source project otherwise."""
-    a_active = brain.areas[area_a].w > 0
-    b_active = brain.areas[area_b].w > 0
+    a_active = area_has_active_winners(brain, area_a)
+    b_active = area_has_active_winners(brain, area_b)
     if a_active and b_active:
         merge(brain, area_a, area_b, target, rounds=merge_rounds)
     elif a_active:

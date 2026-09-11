@@ -7,6 +7,14 @@ import numpy as np
 from neural_assemblies.core.backend import get_xp
 
 
+def area_has_active_winners(brain, area: str) -> bool:
+    """Whether an area currently supplies drive to a composition step.
+
+    Specification: neural_assemblies/ir/VERIFICATION.md#contract-active-source-routing
+    """
+    return brain.areas[area].active_count > 0
+
+
 def renorm_connectome_columns(brain, src: str, dst: str) -> None:
     conn = brain.connectomes[src][dst]
     w = conn.weights

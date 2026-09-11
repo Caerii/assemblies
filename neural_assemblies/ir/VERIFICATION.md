@@ -1405,8 +1405,9 @@ It does not provide general cache invalidation after training or in-place mutati
 of stored grounding, and it does not introduce cue variants into the word-only key.
 
 <a id="contract-state-path-active-sources"></a>
+<a id="contract-active-source-routing"></a>
 
-## Bounded-state bootstrap source activity
+## Active-source routing
 
 State-to-prediction bootstrap may project only areas with current winners. Source
 eligibility therefore reads `Area.active_count`; cumulative recruitment or a
@@ -1419,6 +1420,13 @@ The constructed control gives an inactive core positive ambiguous `w`, gives the
 next active core zero `w`, and gives empty syntactic areas positive `w`. The active
 core must seed both syntactic areas and the inactive core must never project. This
 fails the former `.w > 0` implementation in both source-selection phases.
+
+The same rule governs composition programs: a source participates in merge only
+when it has current winners. `area_has_active_winners` is the shared predicate
+used by the two-part and grid-patch MNIST merge paths. Its counterexample gives a
+silent area positive historical population and an active area zero historical
+population; only current activity may determine the branch. The `.w` source
+predicates are absent under the repository ratchet.
 
 <a id="contract-population-counts"></a>
 

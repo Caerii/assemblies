@@ -25,6 +25,7 @@ from neural_assemblies.programs.colt_mnist_advanced_util import (
     wire_class_from_prototypes,
 )
 from neural_assemblies.programs.colt_mnist_brain_util import (
+    area_has_active_winners,
     clear_area_winners,
     reinforce_class_slot,
     renorm_connectome_columns,
@@ -193,8 +194,8 @@ def _merge_halves_step(
     clear_area_winners(brain, HIGH)
     set_kcap_winners(brain, TOP, top)
     set_kcap_winners(brain, BOT, bot)
-    top_active = brain.areas[TOP].w > 0
-    bot_active = brain.areas[BOT].w > 0
+    top_active = area_has_active_winners(brain, TOP)
+    bot_active = area_has_active_winners(brain, BOT)
     if top_active and bot_active:
         merge(brain, TOP, BOT, MID, rounds=merge_rounds)
     elif top_active:

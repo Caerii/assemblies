@@ -2268,3 +2268,10 @@ passed, and the broader ERP and wobbly compatibility gate is 64 passed. This fix
 the scale implementation; it does not resurrect the historically void P600 claims
 or solve the documented starved-pool problem. Those remain scientific instrument
 constraints enforced by `Measured.undefined` and ERP readiness gates.
+
+The MNIST composition paths now share the same activity meaning as state
+prediction. Four `.w > 0` branches in two-part and grid-patch merge were source
+eligibility checks, so they now route through `area_has_active_winners` and its
+Assembly IR contract. The counterexample reverses historical population and
+current activity. The full slow program gate passes 38 tests with 2
+data-dependent skips; no accuracy result is inferred from this refactor.

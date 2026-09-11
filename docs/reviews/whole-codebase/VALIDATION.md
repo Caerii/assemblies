@@ -3918,3 +3918,17 @@ Validation: 12 direct observation controls pass; 46 binding, live-probe, ratchet
 lazy-export and specification tests pass; 64 broader ERP protocol, readiness,
 quantity, harness and wobbly-parser tests pass. The latter retain eight expected
 sampled-recurrence audit warnings. Ruff and whitespace checks pass.
+
+## Composition routes current activity (2026-09-11)
+
+The two-part and grid-patch MNIST merge programs used `.w > 0` as their source
+activity predicate. That can admit a silent historically recruited population or
+reject directly injected winners. Both now call one source-linked
+`area_has_active_winners` predicate over `Area.active_count`. A constructed state
+reverses `.w` and active count and proves only current winners determine routing;
+the `.w` ratchet removes all four former reads.
+
+The full patch-merge and ventral Tier-A smoke suite, plus specification and count
+ratchets, passes 38 tests with 2 data-dependent skips in 879.89 seconds. Ruff and
+whitespace checks pass. This is a routing correction only; it makes no new MNIST
+accuracy claim.

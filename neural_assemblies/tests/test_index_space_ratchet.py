@@ -234,8 +234,6 @@ W_BASELINE = {
     "research/experiments/primitives/diagnose_erp_dynamics.py": 3,
     "research/experiments/recruitment/smoke.py": 3,
     "neural_assemblies/assembly_calculus/consolidation.py": 2,
-    "neural_assemblies/programs/colt_mnist_tier_a.py": 2,
-    "neural_assemblies/programs/patch_merge.py": 2,
     "research/experiments/distinctiveness/test_competition_mechanisms.py": 2,
     "research/experiments/recurrent_assembly_decay.py": 2,
     "legacy/root_modules/parser.py": 1,
