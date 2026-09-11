@@ -119,6 +119,7 @@ hard defects, count ratio). No seed-level interval is claimed or judged.
 
 from __future__ import annotations
 
+import ast
 import json
 import os
 import re
@@ -226,6 +227,36 @@ def _fmt(grew):
                      for p, (was, now) in sorted(grew.items()))
 
 
+def _unsafe_xfails(source: str) -> list[int]:
+    """Return pytest xfails that do not explicitly make XPASS fail CI."""
+    tree = ast.parse(source)
+    lines = []
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Call):
+            continue
+        func = node.func
+        if not (
+            isinstance(func, ast.Attribute)
+            and func.attr == "xfail"
+            and isinstance(func.value, ast.Attribute)
+            and func.value.attr == "mark"
+            and isinstance(func.value.value, ast.Name)
+            and func.value.value.id == "pytest"
+        ):
+            continue
+        strict = next((
+            kw.value
+            for kw in node.keywords
+            if kw.arg == "strict"
+        ), None)
+        if not (
+            isinstance(strict, ast.Constant)
+            and strict.value is True
+        ):
+            lines.append(node.lineno)
+    return lines
+
+
 def test_no_new_hand_rolled_seed_statistics():
     base, _ = _load_baseline()
     found, _ = _scan()
@@ -242,6 +273,33 @@ def test_no_new_unpinned_engine_constructions():
     assert not grew, (
         "new or increased `Brain()` without an explicit engine:\n" + _fmt(grew)
         + _ENGINE_ADVICE)
+
+
+def test_non_strict_xfail_scanner_has_a_true_negative():
+    source = """
+import pytest
+@pytest.mark.xfail(strict=False, reason='unstable')
+def test_claim(): ...
+@pytest.mark.xfail(reason='defaults are also non-strict')
+def test_other_claim(): ...
+"""
+    assert _unsafe_xfails(source) == [3, 5]
+
+
+def test_no_non_strict_expected_failures():
+    """An unexpected pass is a changed result and must stop for review."""
+    found = {}
+    for full in python_sources(REPO):
+        rel = os.path.relpath(full, REPO).replace(os.sep, "/")
+        if not rel.startswith("neural_assemblies/tests/"):
+            continue
+        lines = _unsafe_xfails(open(full, encoding="utf-8").read())
+        if lines:
+            found[rel] = lines
+    assert not found, (
+        "non-strict expected failures let changed scientific outcomes pass CI; "
+        f"use strict=True or replace the unstable instrument: {found}"
+    )
 
 
 def test_baselines_are_not_stale():

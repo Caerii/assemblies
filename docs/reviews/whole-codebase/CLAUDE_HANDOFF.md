@@ -1654,3 +1654,9 @@ consecutive assemblies, while sequence order lives in directed weights. That pro
 is removed; the module now names recall as its behavioral gate. Repetition and
 three-item recall controls pass (2 tests,7.16s) with the expected sampled-engine
 warning, so they remain API checks rather than scientific evidence.
+
+All four remaining non-strict scientific xfails are now strict: dormant mutual
+inhibition, the emergent-parser multi-mood path, and two shared-syntax word-order
+cases. An AST methodology ratchet rejects any future non-strict pytest xfail and
+has its own constructed negative. The combined gate is5 passed,4 strict xfailed
+in36.05s; there are no non-strict expected failures left in package tests.

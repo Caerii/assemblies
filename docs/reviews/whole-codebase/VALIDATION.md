@@ -3111,3 +3111,14 @@ states that recall is the behavioral gate. The repetition and three-item recall
 controls pass (2 tests in 7.16 seconds); their sampled-engine warnings mean they
 remain API tests rather than scientific sequence evidence. Removing the obsolete
 proxy also exposed three small lint defects, now fixed.
+
+## Strict scientific expected-failure ratchet (2026-09-11)
+
+The last four `pytest.mark.xfail(strict=False)` markers covered dormant mutual
+inhibition and three multi-mood word-order failures. Each fails under its pinned
+seed in the combined run. They are now strict: a changed outcome fails CI and
+requires review rather than appearing as a harmless XPASS. An AST-based
+methodology ratchet scans every package test and rejects any future non-strict
+xfail; its constructed negative proves the scanner detects the forbidden form.
+The ratchet plus all four cases report 5 passed and 4 strict expected failures
+in 36.05 seconds. No non-strict pytest xfail remains in package tests.

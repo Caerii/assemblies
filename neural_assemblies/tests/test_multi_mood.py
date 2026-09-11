@@ -88,7 +88,7 @@ class TestMoodSelection:
 
 
 @pytest.mark.xfail(
-    strict=False,
+    strict=True,
     reason="two moods with different orders on one brain: the later-trained "
            "mood wins both. SUBJ separates only to ~0.34-0.40 across moods "
            "because ROLE->SYN dominates the k-WTA. Needs the reference's "

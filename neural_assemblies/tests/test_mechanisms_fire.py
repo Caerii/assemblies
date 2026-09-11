@@ -127,10 +127,10 @@ class TestMutualInhibitionIsReachedInProduction:
     entirely by the Python `inhibited` set in `_assign_roles_neural`. Wiring the
     groups up made the mechanism available, not operational.
 
-    xfail rather than deleted: making this pass is a design change (the parser
+    Strict xfail rather than deleted: making this pass is a design change (the parser
     must project into competing role areas in one call), tracked as task #24.
-    Leaving it here means the gap cannot be forgotten, and the day a caller
-    starts co-targeting, this flips to xpass and says so.
+    Leaving it here means the gap cannot be forgotten; the day a caller starts
+    co-targeting, the unexpected pass fails CI and requires review.
     """
 
     @pytest.mark.slow
@@ -138,7 +138,7 @@ class TestMutualInhibitionIsReachedInProduction:
         reason="EmergentParser never co-targets a mutual-inhibition group, so "
                "the paper's inter-area inhibition never runs; role exclusivity "
                "is symbolic (the Python `inhibited` set). Task #24.",
-        strict=False,
+        strict=True,
     )
     def test_parser_actually_co_targets_a_group(self):
         import os

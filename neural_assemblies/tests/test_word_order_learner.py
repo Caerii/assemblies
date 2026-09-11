@@ -61,10 +61,10 @@ class TestMultiMood:
             assert got == want, f"mood{idx}: wanted {want}, got {got}"
 
     @pytest.mark.xfail(
-        strict=False,
+        strict=True,
         reason="SVO+VSO sits ON the decision boundary -- it flips between pass "
-               "and fail across runs (seen both xfail and xpass on the same "
-               "code), which is why this is strict=False. It passed "
+               "and fail across historical runs. An unexpected pass now fails "
+               "CI so the apparent repair must be reviewed. It passed "
                "consistently only BEFORE the w_max clamp on the dense "
                "explicit->sparse bridge, i.e. while riding unbounded weights "
                "that overflow float past ~120 sentences, so that earlier "
@@ -82,7 +82,7 @@ class TestMultiMood:
             assert got == want, f"mood{idx}: wanted {want}, got {got}"
 
     @pytest.mark.xfail(
-        strict=False,
+        strict=True,
         reason="moods sharing an OPENING constituent (SVO/SOV both start with "
                "S) must diverge at the second word, which is cued by the "
                "syntactic area -- and that stays mood-blind: SYNTAX_subject "
