@@ -4425,3 +4425,11 @@ The initial evidence-runner gate used the stale unsynchronized venv and failed
 at import time because `jsonschema` was absent. After `uv sync`, the declared
 `.venv` contains jsonschema 4.26.0 and the same gate passes: **98 passed** in
 45.43s. This distinguishes an environment drift failure from a runner defect.
+
+## ERP bootstrap failure visibility (2026-09-11)
+
+The minimal prediction bridge bootstrap no longer swallows runtime, value, or
+import failures. It emits a `RuntimeWarning` containing the exception while
+retaining the documented best-effort calibration behavior. Ruff and whitespace
+checks pass; the existing sampled-engine ERP inversion remains independently
+tracked.

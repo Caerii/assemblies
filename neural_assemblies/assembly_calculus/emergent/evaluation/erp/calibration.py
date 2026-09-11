@@ -7,6 +7,7 @@ Tunes excess margins from composed-ERP-style frame probes in
 from __future__ import annotations
 
 import statistics
+import warnings
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, TYPE_CHECKING
 
@@ -291,8 +292,13 @@ def _ensure_minimal_prediction_bridges(parser: "EmergentParser") -> None:
         sents = create_training_sentences()[:30]
         if hasattr(parser, "train_next_token") and sents:
             parser.train_next_token(sents, rebuild_lexicon=True)
-    except (RuntimeError, ValueError, ImportError):
-        pass
+    except (RuntimeError, ValueError, ImportError) as error:
+        warnings.warn(
+            "ERP prediction bootstrap could not train its minimal bridges; "
+            f"calibration continues without that intervention ({error!r})",
+            RuntimeWarning,
+            stacklevel=2,
+        )
 
 
 def _relabel_samples(
