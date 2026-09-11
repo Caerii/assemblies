@@ -197,6 +197,7 @@ class AssociationExperiment(ExperimentBase):
             verbose=verbose,
         )
 
+    # Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#legacy-experiment-configuration
     def run(
         self,
         n: int = 1000,
@@ -205,7 +206,6 @@ class AssociationExperiment(ExperimentBase):
         beta: float = 0.10,
         w_max: float = 20.0,
         n_seeds: int = N_SEEDS,
-        **kwargs,
     ) -> ExperimentResult:
         self._start_timer()
         seeds = list(range(n_seeds))

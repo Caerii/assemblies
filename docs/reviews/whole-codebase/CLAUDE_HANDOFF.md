@@ -1284,3 +1284,14 @@ passing. Aggregate summaries no longer infer scientific PASS from execution or
 missing metrics; unimplemented --full fails before work. Five summary controls
 pass and are wired into CI. Aggregate call configurations remain unmigrated.
 See VALIDATION.md#historical-noise-migration-evidence-and-aggregate-reporting.
+
+
+## Legacy argument boundaries (2026-09-10)
+
+The aggregate's six incompatible call configurations now fail together before any
+experiment constructor. All eight producers reject unknown run arguments; seven
+unused keyword captures were removed with module AST parity apart from those
+signatures. The eight declared calls/order are preserved as one inventory. This
+exposes previously ignored grids; it does not constitute their protocol migration.
+The separate primitives/run_all.py has the same obsolete caller issue, now stopped
+at the producer boundary. See VALIDATION.md#legacy-experiment-configuration-preflight-2026-09-10.

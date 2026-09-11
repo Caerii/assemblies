@@ -167,6 +167,7 @@ class CodingCapacityExperiment(ExperimentBase):
         
         return assemblies, successes
     
+    # Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#legacy-experiment-configuration
     def run(
         self,
         n_neurons_range: List[int] = None,
@@ -174,7 +175,6 @@ class CodingCapacityExperiment(ExperimentBase):
         n_assemblies_to_test: List[int] = None,
         p_connect: float = 0.1,
         beta: float = 0.1,
-        **kwargs
     ) -> ExperimentResult:
         """
         Measure coding capacity across configurations.

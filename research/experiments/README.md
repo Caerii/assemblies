@@ -37,3 +37,18 @@ their results sit in the same results folders.
 
 Subfolders (`capacity/`, `stability/`, `vocab/`, ...) hold the older
 studies; each keeps its own results.
+
+
+## Legacy aggregate configuration errors
+
+`run_all_experiments.py --quick` currently refuses its historical configuration
+inventory before constructing any experiment: six entries request parameters that
+the producers do not implement. Those arguments previously selected default grids
+silently. Use an individually registered shared-runner protocol above; changing the
+old argument names is not sufficient to reproduce the intended grid. The seven
+remaining legacy producers now reject unknown keywords directly as well.
+
+`primitives/run_all.py` also contains obsolete grid arguments; both its quick and
+full paths now fail at the producer boundary. Its full protocol migration remains
+open. Individual explicit producer arguments remain supported, but execution alone
+does not establish provenance or scientific adoption.

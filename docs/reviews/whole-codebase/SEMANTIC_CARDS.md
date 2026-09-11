@@ -857,3 +857,29 @@ This does not validate the aggregate execution schedule: its obsolete noise
 arguments now raise instead of silently selecting defaults, and other producer
 configurations still need migration. A request for unimplemented --full now fails
 before computation instead of silently substituting a quick suite.
+
+
+<a id="legacy-experiment-configuration"></a>
+### Legacy experiment configuration (2026-09-10)
+
+The aggregate quick launcher names eight producers. Its projection, association,
+merge, phase-diagram and scaling calls supply grids/trial counts absent from their
+run signatures. These five producers never read **kwargs and therefore executed
+default internal grids instead. Noise has the same caller mismatch but now raises.
+Coding-capacity and biological calls match their current explicit parameters;
+their unused **kwargs still accepted typos. Signature compatibility alone does not
+validate the scientific meaning or adequacy of those two protocols.
+
+Contract: unknown arguments fail at the producer boundary, before its body runs.
+The aggregate validates all configurations before constructing any experiment,
+running trials or saving output. Collect mismatches with experiment names and
+unsupported parameter names. Preserve the original declared calls as data; do not
+translate grid names into scalar parameters or silently discard them. An invalid
+suite is a configuration error, never a partially completed scientific result.
+
+Implementation: run_all_experiments.py QUICK_EXPERIMENTS and validate_suite;
+explicit run signatures in all eight listed producers. This removes only unused
+keyword capture, not trial algorithms, defaults, random draws or schedules. The
+inventory remains intentionally inadmissible until the six calls are migrated
+under source-linked protocol records and replay checks. Successful preflight
+alone grants no scientific PASS, provenance or seed-count guarantee.

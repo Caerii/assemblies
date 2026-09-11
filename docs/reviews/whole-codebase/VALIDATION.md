@@ -2234,3 +2234,38 @@ Remaining: aggregate run_quick_suite still passes obsolete configurations to
 several experiments. The noise producer now refuses those arguments rather
 than silently ignoring them. The aggregate execution path has not been migrated
 or rerun; its scientific inventory is not a supported full validation suite.
+
+
+## Legacy experiment configuration preflight (2026-09-10)
+
+Code inspection found six incompatible calls in the aggregate launcher. Five
+producers swallowed unknown keywords and ran fixed internal/default grids; noise
+already refused those arguments. The other two calls match their signatures, but
+their producers also silently accepted arbitrary unused keywords. Removed unused
+**kwargs from all seven remaining producers and linked the boundary to the card.
+
+The aggregate now stores its eight calls in one inventory and validates all of
+them before constructing an experiment. It reports all unsupported arguments,
+missing required arguments and duplicate experiment names; empty suites fail.
+Unknown producer arguments fail before the run body. No experiment grid was
+translated, silently dropped or newly adopted.
+
+AST comparisons against 9a3537c verified that all seven producer modules remain
+identical except the removed keyword capture; algorithms, defaults and schedules
+are unchanged. A separate comparison verified all eight aggregate names, classes,
+call ordering and declared parameter values exactly match their former calls.
+
+The first test run had 54 passes and one test-only failure: Python includes
+"keyword-only" in its missing-argument error. The assertion was corrected without
+changing validation behavior. The boundary tests use uninitialized producer
+instances, and aggregate tests forbid every constructor, so unintended execution
+would fail independently of the expected exception.
+
+Call-site review also found obsolete quick/full grids in primitives/run_all.py.
+Those now fail at the strict producer boundary; they are not migrated protocols.
+Individual producer CLIs use recognized arguments. No GPU/backend implementation
+changed, and this boundary refactor does not require a new scientific study.
+
+Final combined boundary/summary/historical-replay/specification/two-ratchet checks:
+74 passed in 85.12s. Ruff on the aggregate and its tests, plus git diff --check,
+passed. No full-package or new GPU-gate claim is made for this checkpoint.

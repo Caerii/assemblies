@@ -179,13 +179,13 @@ class BiologicalParameterExperiment(ExperimentBase):
             "activity_variance": np.var(activity_history),
         }
     
+    # Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#legacy-experiment-configuration
     def run(
         self,
         test_cortical: bool = True,
         test_hippocampal: bool = True,
         test_cerebellar: bool = True,
         n_steps: int = 100,
-        **kwargs
     ) -> ExperimentResult:
         """
         Run biological parameter validation.

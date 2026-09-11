@@ -26,6 +26,7 @@ Usage:
 """
 
 import sys
+import inspect
 from pathlib import Path
 from datetime import datetime
 
@@ -45,152 +46,89 @@ from research.experiments.information_theory.test_coding_capacity import CodingC
 from research.experiments.biological_validation.test_biological_parameters import BiologicalParameterExperiment
 
 
+QUICK_EXPERIMENTS = (
+    ('projection', ProjectionExperiment,
+     {'n_neurons_range': [1000, 10000],
+      'k_active_range': [10, 50],
+      'p_connect_range': [0.05, 0.1],
+      'beta_range': [0.1],
+      'n_trials': 3}),
+    ('association', AssociationExperiment,
+     {'n_neurons_range': [1000, 5000],
+      'k_active_range': [50],
+      'p_connect_range': [0.1],
+      'beta_range': [0.1],
+      'n_trials': 3}),
+    ('merge', MergeExperiment,
+     {'n_neurons_range': [1000, 5000],
+      'k_active_range': [50],
+      'p_connect_range': [0.1],
+      'beta_range': [0.1],
+      'n_trials': 3}),
+    ('phase_diagram', PhaseDiagramExperiment,
+     {'n_neurons_range': [1000, 5000],
+      'sparsity_range': [0.01, 0.05, 0.1],
+      'p_connect_range': [0.1],
+      'beta_range': [0.1],
+      'n_trials': 3}),
+    ('scaling_laws', ScalingLawsExperiment,
+     {'n_neurons_range': [500, 1000, 5000, 10000, 50000],
+      'fixed_sparsity': 0.05,
+      'n_trials': 5}),
+    ('noise_robustness', NoiseRobustnessExperiment,
+     {'n_neurons': 5000,
+      'k_active': 50,
+      'noise_levels': [0.0, 0.2, 0.4, 0.6, 0.8, 1.0],
+      'n_trials': 5}),
+    ('coding_capacity', CodingCapacityExperiment,
+     {'n_neurons_range': [1000, 5000],
+      'k_active_range': [20, 50],
+      'n_assemblies_to_test': [5, 10, 20]}),
+    ('biological', BiologicalParameterExperiment,
+     {'test_cortical': True,
+      'test_hippocampal': True,
+      'test_cerebellar': False,
+      'n_steps': 50}),
+)
+
+
+def validate_suite(configurations):
+    """Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#legacy-experiment-configuration"""
+    if not configurations:
+        raise ValueError("experiment suite must not be empty")
+    errors = []
+    seen = set()
+    for name, factory, parameters in configurations:
+        if name in seen:
+            errors.append(f"{name}: duplicate experiment name")
+        seen.add(name)
+        signature = inspect.signature(factory.run)
+        unsupported = sorted(set(parameters) - set(signature.parameters))
+        if unsupported:
+            errors.append(f"{name}: unsupported parameters {', '.join(unsupported)}")
+        else:
+            try:
+                signature.bind(None, **parameters)
+            except TypeError as error:
+                errors.append(f"{name}: {error}")
+    if errors:
+        raise ValueError("Invalid experiment suite; no experiments started:\n" + "\n".join(errors))
+
+
 def run_quick_suite():
-    """Run quick version of all experiments (~5-10 minutes)."""
-    print("="*70)
+    """Validate every declared call before any experiment is constructed or run."""
+    validate_suite(QUICK_EXPERIMENTS)
     print("LEGACY EXPERIMENT SUITE - QUICK - SCIENTIFIC STATUS VOID")
-    print("="*70)
-    print(f"Started: {datetime.now().isoformat()}")
-    print()
-    
     all_results = {}
-    
-    # =========================================================================
-    # 1. PRIMITIVES
-    # =========================================================================
-    print("\n" + "="*70)
-    print("SECTION 1: PRIMITIVE VALIDATION")
-    print("="*70)
-    
-    # Projection
-    print("\n--- 1.1 Projection Convergence ---")
-    exp = ProjectionExperiment(verbose=True)
-    all_results["projection"] = exp.run(
-        n_neurons_range=[1000, 10000],
-        k_active_range=[10, 50],
-        p_connect_range=[0.05, 0.1],
-        beta_range=[0.1],
-        n_trials=3,
-    )
-    exp.save_result(all_results["projection"], "_quick")
-    
-    # Association
-    print("\n--- 1.2 Association Binding ---")
-    exp = AssociationExperiment(verbose=True)
-    all_results["association"] = exp.run(
-        n_neurons_range=[1000, 5000],
-        k_active_range=[50],
-        p_connect_range=[0.1],
-        beta_range=[0.1],
-        n_trials=3,
-    )
-    exp.save_result(all_results["association"], "_quick")
-    
-    # Merge
-    print("\n--- 1.3 Merge Composition ---")
-    exp = MergeExperiment(verbose=True)
-    all_results["merge"] = exp.run(
-        n_neurons_range=[1000, 5000],
-        k_active_range=[50],
-        p_connect_range=[0.1],
-        beta_range=[0.1],
-        n_trials=3,
-    )
-    exp.save_result(all_results["merge"], "_quick")
-    
-    # =========================================================================
-    # 2. STABILITY
-    # =========================================================================
-    print("\n" + "="*70)
-    print("SECTION 2: STABILITY ANALYSIS")
-    print("="*70)
-    
-    # Phase Diagram
-    print("\n--- 2.1 Phase Diagram ---")
-    exp = PhaseDiagramExperiment(verbose=True)
-    all_results["phase_diagram"] = exp.run(
-        n_neurons_range=[1000, 5000],
-        sparsity_range=[0.01, 0.05, 0.1],
-        p_connect_range=[0.1],
-        beta_range=[0.1],
-        n_trials=3,
-    )
-    exp.save_result(all_results["phase_diagram"], "_quick")
-    
-    # Scaling Laws
-    print("\n--- 2.2 Scaling Laws ---")
-    exp = ScalingLawsExperiment(verbose=True)
-    all_results["scaling_laws"] = exp.run(
-        n_neurons_range=[500, 1000, 5000, 10000, 50000],
-        fixed_sparsity=0.05,
-        n_trials=5,
-    )
-    exp.save_result(all_results["scaling_laws"], "_quick")
-    
-    # Noise Robustness
-    print("\n--- 2.3 Noise Robustness ---")
-    exp = NoiseRobustnessExperiment(verbose=True)
-    all_results["noise_robustness"] = exp.run(
-        n_neurons=5000,
-        k_active=50,
-        noise_levels=[0.0, 0.2, 0.4, 0.6, 0.8, 1.0],
-        n_trials=5,
-    )
-    exp.save_result(all_results["noise_robustness"], "_quick")
-    
-    # =========================================================================
-    # 3. INFORMATION THEORY
-    # =========================================================================
-    print("\n" + "="*70)
-    print("SECTION 3: INFORMATION THEORY")
-    print("="*70)
-    
-    # Coding Capacity
-    print("\n--- 3.1 Coding Capacity ---")
-    exp = CodingCapacityExperiment(verbose=True)
-    all_results["coding_capacity"] = exp.run(
-        n_neurons_range=[1000, 5000],
-        k_active_range=[20, 50],
-        n_assemblies_to_test=[5, 10, 20],
-    )
-    exp.save_result(all_results["coding_capacity"], "_quick")
-    
-    # =========================================================================
-    # 4. BIOLOGICAL VALIDATION
-    # =========================================================================
-    print("\n" + "="*70)
-    print("SECTION 4: BIOLOGICAL VALIDATION")
-    print("="*70)
-    
-    # Biological Parameters
-    print("\n--- 4.1 Biological Parameter Validation ---")
-    exp = BiologicalParameterExperiment(verbose=True)
-    all_results["biological"] = exp.run(
-        test_cortical=True,
-        test_hippocampal=True,
-        test_cerebellar=False,
-        n_steps=50,
-    )
-    exp.save_result(all_results["biological"], "_quick")
-    
-    # =========================================================================
-    # FINAL SUMMARY
-    # =========================================================================
-    print("\n" + "="*70)
-    print("QUICK EXECUTION SUMMARY - SCIENTIFIC STATUS VOID")
-    print("="*70)
-    print()
-    
+    for name, factory, parameters in QUICK_EXPERIMENTS:
+        experiment = factory(verbose=True)
+        all_results[name] = experiment.run(**parameters)
+        experiment.save_result(all_results[name], "_quick")
     summary = generate_summary(all_results)
     print_summary(summary)
-    
-    # Save master summary
     summary_path = Path(__file__).parent.parent / "results" / f"master_summary_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
     write_new_document(summary_path, summary)
-    print(f"\nMaster summary saved to: {summary_path}")
-    
-    print(f"\nFinished: {datetime.now().isoformat()}")
-    
+    print(f"Master summary saved to: {summary_path}")
     return all_results, summary
 
 
