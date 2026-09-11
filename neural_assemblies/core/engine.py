@@ -176,6 +176,7 @@ class ComputeEngine(ABC):
     supports_deterministic_allocation = False
     supports_gpu_sampling = False
     supports_dense_drive = False
+    supports_stim_preallocation = False
 
     @abstractmethod
     def describe_model_semantics(self):
@@ -486,7 +487,18 @@ class ComputeEngine(ABC):
         return "exact"
 
     def preallocate_stim_targets(self, target: str, min_columns: int) -> None:
+        """Specification: neural_assemblies/ir/VERIFICATION.md#contract-stim-preallocation
+
+        Extend stimulus-to-target vectors to ``min_columns``. Engines without
+        lazy mutable stimulus storage reject this operation rather than
+        acknowledging a no-op. Linkers check ``supports_stim_preallocation``
+        before calling it.
+        """
         """Extend stim→*target* 1-D weight vectors to *min_columns* (no-op default)."""
+
+        raise NotImplementedError(
+            f"{type(self).__name__} does not support stimulus preallocation"
+        )
 
     # -- Materialization --
 

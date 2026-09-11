@@ -317,7 +317,7 @@ def link_preallocate_stim_targets(
 ) -> None:
     """Pre-grow stim→area 1-D vectors to current ever-fired depth."""
     engine = parser.brain._engine
-    if not hasattr(engine, "preallocate_stim_targets"):
+    if not getattr(engine, "supports_stim_preallocation", False):
         return
     for area_name in area_names:
         if area_name not in parser.brain.areas:

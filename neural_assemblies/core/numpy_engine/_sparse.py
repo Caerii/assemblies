@@ -347,6 +347,7 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
     supports_sampled_recurrence_policy = True
     supports_compiled_projection = True
     supports_deterministic_allocation = True
+    supports_stim_preallocation = True
 
     def __init__(self, p: float, seed: int = 0, w_max: float = 20.0,
                  deterministic: bool = False,

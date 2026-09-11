@@ -2383,3 +2383,10 @@ scientific protocol, and it leaves intentional no-op clearing/preallocation
 hooks for a separate capability audit. The next likely boundary is replacing
 the base preallocation hook plus `hasattr` checks with an explicit capability,
 so unsupported preparation cannot be mistaken for completed work.
+
+That preallocation boundary is now closed. `ComputeEngine` advertises
+`supports_stim_preallocation=False` and rejects direct calls; sparse NumPy opts
+in and preserves the existing vector while extending capacity; the emergent
+linker checks the capability instead of method presence. Dense paths no longer
+receive a false success. The focused tests include both the dense negative and
+the sparse live-vector positive.

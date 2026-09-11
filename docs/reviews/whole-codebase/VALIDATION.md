@@ -4085,3 +4085,16 @@ Validation: 22 focused normalization, CSR-storage and specification-link tests
 pass. Ruff and whitespace checks pass. The test caught and fixed a latent sparse
 normalization bug: the implementation assumed dense-array `sum` and division,
 which would either fail on CSR storage or densify it.
+
+## Stimulus preallocation is an explicit capability (2026-09-11)
+
+The linker used `hasattr` against a base method whose default body did nothing.
+That made an optional sparse-storage preparation look universally available.
+The base operation now rejects direct calls, sparse NumPy advertises the
+capability it implements, and the linker consults that capability before
+invoking the optimization. Dense engines therefore retain their semantics
+without pretending to have extended storage.
+
+Validation: the focused admission tests cover a dense negative and a sparse
+positive vector extension; specification-link and whitespace checks are run
+with the slice gate.

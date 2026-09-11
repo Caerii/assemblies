@@ -2218,3 +2218,16 @@ and Torch implementations normalize their stored weights and invalidate cached
 drive state. The contract is exercised by negative exact/dense calls and a positive
 sparse mutation test. This contract says nothing about whether a particular
 normalization schedule is scientifically appropriate for a registered experiment.
+
+
+<a id="contract-stim-preallocation"></a>
+### Stimulus-vector preallocation
+
+`preallocate_stim_targets(target, min_columns)` is an optional storage
+preparation operation for lazy stimulus fibers. A capable engine must extend
+the vectors while preserving existing values and semantics. Engines with dense
+or non-mutable stimulus storage reject direct calls with `NotImplementedError`;
+composition code consults the explicit `supports_stim_preallocation`
+capability and omits this optimization when it is not applicable. The
+operation changes capacity only; it does not train weights, change winners, or
+establish a scientific result.
