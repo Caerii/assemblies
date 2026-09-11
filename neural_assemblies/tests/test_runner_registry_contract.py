@@ -1,5 +1,6 @@
 """The public experiment registry cannot reintroduce bespoke run entry points."""
 
+import ast
 import importlib.util
 
 from research.runner import EXPERIMENTS
@@ -12,6 +13,24 @@ def _module_source(name: str) -> str:
         return source.read()
 
 
+def _uses_runner_writer(source: str) -> bool:
+    tree = ast.parse(source)
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Call):
+            continue
+        names = []
+        if isinstance(node.func, ast.Name):
+            names.append(node.func.id)
+        elif isinstance(node.func, ast.Attribute):
+            names.append(node.func.attr)
+        if "run_experiment" in names:
+            return True
+        if any(keyword.arg == "writer" and isinstance(keyword.value, ast.Name)
+               and keyword.value.id == "run_experiment" for keyword in node.keywords):
+            return True
+    return False
+
+
 def test_registered_experiments_use_the_shared_runner_contract():
     """Registry entries must expose immutable provenance through one path.
 
@@ -22,7 +41,7 @@ def test_registered_experiments_use_the_shared_runner_contract():
     """
     for command, module in EXPERIMENTS.items():
         source = _module_source(module)
-        assert "run_experiment" in source, f"{command} bypasses run_experiment"
+        assert _uses_runner_writer(source), f"{command} bypasses run_experiment"
         assert "experiment_parser" in source or "_historical" in source, (
             f"{command} bypasses the shared experiment parser"
         )
