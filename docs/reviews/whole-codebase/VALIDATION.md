@@ -4262,3 +4262,11 @@ cannot drift while applying a temporary policy.
 
 Validation: 59 parser/plasticity and compiled-training tests passed; existing
 sampled-recurrence warnings are unchanged.
+
+Morphological readout had two remaining target-area ownership assumptions: its
+afferent-mass evaluator and mass-based candidate decoder read `_area_conns`
+from the primary engine. Both now resolve the feature/candidate area's owner;
+global synaptic-scaling flushes remain deliberately primary-engine policy.
+
+Validation: 3 focused morphological feature/syntax tests passed; ruff and
+whitespace checks pass.

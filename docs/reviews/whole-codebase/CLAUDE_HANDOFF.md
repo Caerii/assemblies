@@ -2477,6 +2477,10 @@ The deeper parser pass found transient fiber gains, role overlays, CONTEXT reset
 and outer-state restore still writing via the primary engine. Those paths now
 use the target owner; 59 parser/plasticity and compiled-training tests pass.
 
+The evaluation pass fixed two more target-owner assumptions in morphological
+afferent-mass readout and candidate decoding. Three focused morphology tests
+pass; global scaling flushes remain intentionally primary-engine policy.
+
 The owner negative test found a second issue: explicit areas could receive the
 same beta/connectivity write twice because the explicit mirror was also the
 resolved owner. Identity-guarded mirroring now enforces one write per owner;

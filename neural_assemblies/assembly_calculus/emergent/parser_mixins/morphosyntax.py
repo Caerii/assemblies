@@ -855,9 +855,12 @@ class MorphosyntaxMixin:
         # failure: raw mass read CLASS total mass and flipped bias with
         # n). What remains is word-specific evidence -- what this word's
         # episodes wrote above what any random row-set would read.
-        eng = brain._engine
+        # Candidate feature fibers belong to each candidate area's owner.
+        # Resolve the owner per candidate instead of assuming the primary
+        # engine contains the authoritative dense connectome.
         for label, area in cand_areas.items():
             cols = compact_images.get(label) or []
+            eng = brain._engine_for(brain.areas[area])
             conn = eng._area_conns.get(core_area, {}).get(area)
             w = getattr(conn, "weights", None) if conn is not None else None
             if not cols or w is None or getattr(w, "ndim", 0) != 2:
