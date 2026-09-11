@@ -103,9 +103,12 @@ class TestErpCalibration:
             thresholds=SimpleNamespace(source="empirical"),
             samples=["evidence"],
             separation={"p600_auc": 0.75},
+            engine_name="numpy_sparse",
         )
         parser = SimpleNamespace(_erp_report=cached, _erp_thresholds=cached.thresholds)
-        assert ensure_parser_erp_calibration(parser) is cached
+        result = ensure_parser_erp_calibration(parser)
+        assert result is cached
+        assert result.engine_name == "numpy_sparse"
 
     # These tests all mutate their parser (calibration writes thresholds), so
     # they take independent forks rather than the shared cached object. The

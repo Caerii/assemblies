@@ -117,6 +117,7 @@ class ErpCalibrationReport:
     by_label: Dict[str, Dict[str, float]] = field(default_factory=dict)
     separation: Dict[str, float] = field(default_factory=dict)
     tuned: bool = False
+    engine_name: str = "unknown"
 
     def p600_quantities(self) -> ErpQuantities:
         """All three "p600" quantities together, so none is picked by accident.
@@ -150,6 +151,7 @@ class ErpCalibrationReport:
     def summary(self) -> str:
         lines = [
             "ERP calibration report",
+            f"  engine: {self.engine_name}",
             f"  readiness: n400={self.readiness.n400_ready} "
             f"p600={self.readiness.p600_ready} "
             f"(lex={self.readiness.prediction_lexicon_size}, "
@@ -462,6 +464,7 @@ def calibrate_erp_thresholds(
         by_label=by_label,
         separation=separation,
         tuned=readiness.p600_ready,
+        engine_name=str(getattr(parser, "engine_name", "unknown")),
     )
     # Cache the complete observation, not only thresholds.  Reconstructing a
     # report from thresholds made the second caller silently lose samples,

@@ -4384,3 +4384,10 @@ Static analysis exposed a swallowed relative-import defect in
 nonexistent `evaluation.curriculum` package. It now correctly imports the
 sibling `emergent.curriculum.data` module. The targeted cache regression still
 passes, and Pyright reports no diagnostics for the calibration module.
+
+## ERP report engine provenance (2026-09-11)
+
+`ErpCalibrationReport` now carries `engine_name` and includes it in its human
+summary. Calibration populates it from the parser's active Brain engine, so a
+sampled result cannot be detached from the substrate that produced it. The
+cache regression asserts that this provenance survives cache hits.
