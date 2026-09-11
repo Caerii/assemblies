@@ -387,6 +387,21 @@ def bind_strength(
     materialized, and 1.0 across *different* targets means they have collapsed
     onto one assembly.
     """
+    sources = list(sources)
+    if not sources:
+        raise ValueError("bind_strength requires at least one source area")
+    if not isinstance(target_assembly, Assembly):
+        raise TypeError("target_assembly must be an Assembly snapshot")
+    if target_assembly.area != target_area:
+        raise ValueError(
+            f"target_assembly belongs to {target_assembly.area!r}, "
+            f"not target_area {target_area!r}"
+        )
+    _activate_all(brain, source_assemblies)
+    if not any(len(brain.areas[name].winners) > 0 for name in sources):
+        # A numeric zero is reserved for a measured but unsuccessful recall;
+        # an inactive cue is an invalid measurement domain.
+        raise ValueError("bind_strength requires at least one active source assembly")
     got = recall(
         brain,
         sources=sources,
@@ -394,5 +409,5 @@ def bind_strength(
         source_assemblies=source_assemblies,
     )
     if got is None:
-        return 0.0
+        raise RuntimeError("recall produced no target assembly after active cue")
     return float(overlap(got, target_assembly))

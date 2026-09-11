@@ -4655,3 +4655,7 @@ The legacy `assembly_calculus.binding.bind` now rejects unknown area names and n
 ## Fiber topology admission (2026-09-11)
 
 `materialize_fiber` now raises for unknown source or target areas while retaining `False` for a valid but inactive source. Topology mistakes and absent activity are no longer collapsed into one status. Focused fiber and binding regressions pass **12 tests**.
+
+## Nonvacuous binding-strength measurement (2026-09-11)
+
+`bind_strength` now rejects empty/inactive cue domains and target snapshots from the wrong area. A numeric `0.0` is reserved for an observed unsuccessful recall rather than missing measurement inputs. Binding-strength and role-binding regressions pass **9 tests**.

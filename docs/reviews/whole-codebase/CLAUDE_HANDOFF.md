@@ -2581,3 +2581,5 @@ Temporary sequence beta boosts are now exception-safe: recurrent projection fail
 `input_drive` now requires at least one active source assembly; a resolved but inactive cue raises instead of producing an empty measurement. Focused binding diagnostics pass (21 tests).
 
 `materialize_fiber` now distinguishes unknown topology (`KeyError`) from a valid inactive source (`False`). Focused fiber, binding, and sequence regressions pass (12 tests).
+
+`bind_strength` now separates invalid measurement domains from a measured zero: it requires an active source and a target snapshot belonging to the declared target area. Focused binding-strength and role-binding tests pass (9 tests).
