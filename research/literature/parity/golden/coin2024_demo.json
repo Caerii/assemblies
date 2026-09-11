@@ -10,9 +10,14 @@
     "fair_seed_base": 100,
     "biased_seed_base": 200,
     "input_noise_std": 0.02,
-    "markov_traces": "5\u00d7(q0,flip,q0)+5\u00d7(q0,flip,q1)"
+    "markov_traces": "5×(q0,flip,q0)+5×(q0,flip,q1)"
   },
-  "metrics": {
+  "tolerance": {
+    "fair_p1": 0.08
+  },
+  "notes": "Live demo has no exported numeric API; golden from package simulation at paper-described Markov protocol.",
+  "RETRACTED": "RETRACTED 2026-09-11: recorded through legacy dead-recurrence coin construction; fair counts can pass without neural settling.",
+  "historical_metrics": {
     "fair_p1": 0.7917,
     "fair_n0": 5,
     "fair_n1": 19,
@@ -22,14 +27,10 @@
     "markov_learned_p_q0": 0.5,
     "markov_learned_p_q1": 0.5
   },
-  "tolerance": {
-    "fair_p1": 0.08
-  },
-  "expected": {
+  "historical_expected": {
     "fair_both_outcomes": true,
     "biased_majority_zero": true,
     "markov_learned_p_q0": 0.5,
     "markov_learned_p_q1": 0.5
-  },
-  "notes": "Live demo has no exported numeric API; golden from package simulation at paper-described Markov protocol."
+  }
 }

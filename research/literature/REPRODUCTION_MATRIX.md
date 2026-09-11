@@ -221,13 +221,13 @@ Config claims use category **`config`** in the supplement matrix (`*-C01` rows).
 
 | ID | Category | Claim / result | Module | Test / protocol | Status | Gap |
 |----|----------|----------------|--------|-----------------|--------|-----|
-| COIN24-M01 | mechanism | PFA from transition frequency traces | `pfa.py`, `markov_coin.py` | `test_markov_transition_frequencies_from_traces` | pinned | — |
-| COIN24-M02 | mechanism | Stochastic PFA branch selection | `pfa.py` | `test_pfa_stochastic_both_targets` | pinned | — |
-| COIN24-M03 | mechanism | Ambient noise + E%-WTA on coin area | `markov_coin.py` | `test_coin_ambient_noise_epwta_wiring` | pinned | — |
-| COIN24-E01 | empirical | Fair / biased coin empirical outcomes | `RandomChoiceArea` | `test_coin_empirical_fair_and_biased` | pinned | — |
-| COIN24-E02 | empirical | Markov chain flip protocol | `markov_coin.py` | `test_coin_flip_markov_protocol` | partial | Longer chains |
-| COIN24-E03 | empirical | Match [dabagia.org demo](http://dabagia.org/nemo/coinflipping/) statistics | — | — | missing | Scrape golden + `parity/coin2024_demo.json` |
-| COIN24-E04 | empirical | Softmax coin-flip trajectories | — | — | missing | Demo URL parity |
+| COIN24-M01 | mechanism | Trace counts become a symbolic branch schedule | `pfa.py`, `markov_coin.py` | `test_markov_transition_frequencies_from_traces` | partial | No calibrated neural probability follows |
+| COIN24-M02 | mechanism | Explicit seed-mixture branch selection | `pfa.py` | `test_pfa_choice_contract.py` | partial | Register a mechanism-sensitive attractor protocol |
+| COIN24-M03 | mechanism | Ambient noise + E%-WTA on coin area | `markov_coin.py` | `test_coin_ambient_noise_epwta_wiring` | retracted | Legacy golden used the dead construction |
+| COIN24-E01 | empirical | Fair / biased coin empirical outcomes | `RandomChoiceArea` | `coin2024_demo` | retracted | New preregistered attractor study required |
+| COIN24-E02 | empirical | Markov chain flip protocol | `arc_markov.py` | `coin2024_markov_arc` | retracted | Old wrapper omitted the explicit arc protocol |
+| COIN24-E03 | empirical | Match [dabagia.org demo](http://dabagia.org/nemo/coinflipping/) statistics | ? | `coin2024_demo` | retracted | Demo lacks an exported numerical reference |
+| COIN24-E04 | empirical | Softmax coin-flip trajectories | ? | `coin2024_softmax` | retracted | SoftmaxContextCoin was an invalid instrument |
 
 ### Mitropolsky & Papadimitriou (2025) — Language acquisition · `mitropolsky2025simulated`
 

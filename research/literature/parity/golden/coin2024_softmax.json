@@ -12,12 +12,13 @@
     "biased_seed_base": 200,
     "bias_train": 0.85
   },
-  "metrics": {
+  "RETRACTED": "RETRACTED 2026-09-11: SoftmaxContextCoin was an invalid readout and is retired; use ContextAttractorChoice with a registered protocol.",
+  "historical_metrics": {
     "fair_n0": 16,
     "fair_n1": 8,
     "biased_majority_zero": true
   },
-  "expected": {
+  "historical_expected": {
     "fair_both_outcomes": true,
     "biased_majority_zero": true
   }

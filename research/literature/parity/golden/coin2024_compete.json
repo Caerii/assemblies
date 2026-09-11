@@ -12,13 +12,14 @@
     "biased_seed_base": 200,
     "input_noise_std": 0.02
   },
-  "metrics": {
+  "RETRACTED": "RETRACTED 2026-09-11: recorded through legacy dead-recurrence coin construction; compete labels do not validate the attractor mechanism.",
+  "historical_metrics": {
     "fair_n0": 13,
     "fair_n1": 11,
     "biased_majority_zero": true,
     "markov_learned_p_q0": 0.5
   },
-  "expected": {
+  "historical_expected": {
     "fair_both_outcomes": true,
     "biased_majority_zero": true,
     "markov_learned_p_q0": 0.5

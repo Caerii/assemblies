@@ -53,11 +53,13 @@ def main(argv: list[str] | None = None) -> int:
         return 0 if result.passed else 1
 
     if args.command == "verify":
+        from neural_assemblies.parity.executors import RetractedProtocol
         from neural_assemblies.programs.colt_mnist_data import DatasetUnavailable
         try:
             result = verify_protocol(args.protocol_id)
-        except DatasetUnavailable as exc:
-            print(json.dumps({'protocol_id': args.protocol_id, 'status': 'unavailable',
+        except (DatasetUnavailable, RetractedProtocol) as exc:
+            status = 'retracted' if isinstance(exc, RetractedProtocol) else 'unavailable'
+            print(json.dumps({'protocol_id': args.protocol_id, 'status': status,
                               'passed': False, 'message': str(exc)}))
             return 2
         print(json.dumps(result.to_manifest(), indent=2))

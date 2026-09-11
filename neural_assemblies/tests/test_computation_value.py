@@ -9,22 +9,21 @@ readout, and composable state machines.
 Demonstrates:
     1. Lexicon readout: assemblies encode/decode a vocabulary with noise rejection
     2. FSM computation: parity checker with neural state encoding
-    3. PFA generation: neural coin flip produces genuinely stochastic output
+    3. PFA composition: deterministic transitions share the FSM substrate
     4. End-to-end pipeline: stimulus -> assembly -> readout -> FSM -> state
     5. Merge/composition: conjunctive representations from multiple sources
 """
 
 import unittest
-from collections import Counter
 
 import numpy as np
 
 from neural_assemblies.core.brain import Brain
 from neural_assemblies.assembly_calculus import (
-    project, reciprocal_project, merge, pattern_complete, overlap,
+    project, merge, pattern_complete, overlap,
     chance_overlap, Assembly,
-    fuzzy_readout, readout_all, build_lexicon,
-    FSMNetwork, PFANetwork, RandomChoiceArea,
+    fuzzy_readout, build_lexicon,
+    FSMNetwork, PFANetwork,
 )
 
 
@@ -221,87 +220,35 @@ class TestFSMParityChecker(unittest.TestCase):
 
 
 # ======================================================================
-# 3. PFA: Neural coin flip produces stochastic output
+# 3. PFA: deterministic composition without an undeclared probability claim
 # ======================================================================
 
 class TestPFAGeneration(unittest.TestCase):
-    """Proves that neural attractor competition produces genuinely
-    stochastic output: two trained attractors compete after mixed
-    initialization, and the outcome varies with the random seed.
+    """PFANetwork adds a selector only when the transition graph branches.
 
-    PFA:
-        q0 --a--> q1  (prob 0.5)
-        q0 --a--> q2  (prob 0.5)
-        q1 --b--> q0  (prob 1.0)
-        q2 --b--> q0  (prob 1.0)
+    Explicit uncalibrated selectors have their own causal tests in
+    `test_pfa_choice_contract.py`. This integration suite keeps the part whose
+    computational interpretation does not depend on a probability claim.
     """
-
-    def test_pfa_generates_both_paths(self):
-        """Over many runs, both q1 and q2 should be reached from q0."""
-        b = _brain()
-        pfa = PFANetwork(
-            b,
-            states=["q0", "q1", "q2"],
-            symbols=["a", "b"],
-            transitions=[
-                ("q0", "a", "q1", 0.5),
-                ("q0", "a", "q2", 0.5),
-                ("q1", "b", "q0", 1.0),
-                ("q2", "b", "q0", 1.0),
-            ],
-            initial_state="q0",
-            n=N, k=K, beta=BETA, rounds=10,
-        )
-
-        results = Counter()
-        for i in range(40):
-            pfa.reset()
-            state = pfa.step("a", seed=i * 11)
-            results[state] += 1
-
-        self.assertGreater(results.get("q1", 0), 0,
-                           f"q1 never reached: {dict(results)}")
-        self.assertGreater(results.get("q2", 0), 0,
-                           f"q2 never reached: {dict(results)}")
 
     def test_pfa_deterministic_path_always_works(self):
         """Deterministic transitions (prob=1.0) should always succeed."""
         b = _brain()
         pfa = PFANetwork(
             b,
-            states=["q0", "q1", "q2"],
+            states=["q0", "q1"],
             symbols=["a", "b"],
             transitions=[
-                ("q0", "a", "q1", 0.5),
-                ("q0", "a", "q2", 0.5),
+                ("q0", "a", "q1", 1.0),
                 ("q1", "b", "q0", 1.0),
-                ("q2", "b", "q0", 1.0),
             ],
             initial_state="q0",
             n=N, k=K, beta=BETA, rounds=10,
         )
-        # Regardless of which state 'a' takes us to,
-        # 'b' should always return to q0
         pfa.step("a", seed=42)
         state = pfa.step("b", seed=42)
         self.assertEqual(state, "q0",
                          f"Deterministic 'b' should return to q0, got {state}")
-
-    def test_coin_flip_is_genuinely_random(self):
-        """The RandomChoiceArea should produce different outcomes for
-        different seeds, proving neural stochasticity."""
-        b = _brain()
-        coin = RandomChoiceArea(b, n=N, k=K, beta=BETA)
-
-        outcomes = set()
-        for seed in range(20):
-            result = coin.flip(bias=0.5, rounds=10, seed=seed)
-            outcomes.add(result)
-            if len(outcomes) == 2:
-                break
-
-        self.assertEqual(len(outcomes), 2,
-                         f"Coin flip always returned same value: {outcomes}")
 
 
 # ======================================================================

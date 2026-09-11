@@ -20,8 +20,8 @@
       "config": "coin2024.yaml",
       "golden": "golden/coin2024_softmax.json",
       "backend": "brain",
-      "repro_command": "python -m pytest neural_assemblies/tests/test_literature_golden.py::TestCoin2024SoftmaxGolden -v",
-      "description": "Context→outcome softmax-style coin with noise"
+      "repro_command": "python -m pytest neural_assemblies/tests/test_literature_golden.py::TestRetractedCoinGoldens -v",
+      "description": "RETRACTED legacy coin record; refusal fixture, not executable evidence"
     },
     {
       "protocol_id": "colt2022_mnist_brain",
@@ -40,8 +40,8 @@
       "config": "coin2024.yaml",
       "golden": "golden/coin2024_demo.json",
       "backend": "brain",
-      "repro_command": "python -m pytest neural_assemblies/tests/test_literature_golden.py::TestCoin2024DemoGolden -v",
-      "description": "Fair/biased coin + Markov frequency demo"
+      "repro_command": "python -m pytest neural_assemblies/tests/test_literature_golden.py::TestRetractedCoinGoldens -v",
+      "description": "RETRACTED legacy coin record; refusal fixture, not executable evidence"
     },
     {
       "protocol_id": "coin2024_compete",
@@ -50,8 +50,8 @@
       "config": "coin2024.yaml",
       "golden": "golden/coin2024_compete.json",
       "backend": "brain",
-      "repro_command": "python -m pytest neural_assemblies/tests/test_literature_golden.py::TestCoin2024CompeteGolden -v",
-      "description": "RandomChoiceArea compete mode (nemo reference flip)"
+      "repro_command": "python -m pytest neural_assemblies/tests/test_literature_golden.py::TestRetractedCoinGoldens -v",
+      "description": "RETRACTED legacy coin record; refusal fixture, not executable evidence"
     },
     {
       "protocol_id": "nemo2025_scaffold",
@@ -141,8 +141,8 @@
       "config": "coin2024.yaml",
       "golden": "golden/coin2024_markov_arc.json",
       "backend": "brain",
-      "repro_command": "python -m pytest neural_assemblies/tests/test_literature_golden.py::TestCoin2024MarkovArcGolden -v",
-      "description": "MarkovChainModel refracted-arc alternating states"
+      "repro_command": "python -m pytest neural_assemblies/tests/test_literature_golden.py::TestRetractedCoinGoldens -v",
+      "description": "RETRACTED legacy coin record; refusal fixture, not executable evidence"
     },
     {
       "protocol_id": "nemo2025_fsm_mod3_numpy",

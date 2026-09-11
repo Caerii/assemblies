@@ -11,7 +11,6 @@ import pytest
 from neural_assemblies.assembly_calculus.ops import project
 from neural_assemblies.core.brain import Brain
 from neural_assemblies.programs.learn import classify, learn_separable_classes
-from neural_assemblies.programs.markov_coin import CoinFlipModel, train_markov_from_sequences
 
 _REPO = Path(__file__).resolve().parents[2]
 _GOLDEN_DIR = _REPO / "research" / "literature" / "parity" / "golden"
@@ -21,6 +20,25 @@ def _load(name: str) -> dict:
     path = _GOLDEN_DIR / name
     with open(path, encoding="utf-8") as f:
         return json.load(f)
+
+
+def _require_golden_dataset(result, golden) -> None:
+    expected = golden.get("metrics", {}).get("data_source")
+    if expected is not None and result.data_source != expected:
+        pytest.skip(
+            f"golden requires {expected}; producer resolved {result.data_source}. "
+            "Synthetic fallback is an API smoke fixture, not golden evidence."
+        )
+
+
+def _verify_or_skip_missing_dataset(protocol_id):
+    from neural_assemblies.parity.runner import verify_protocol
+    from neural_assemblies.programs.colt_mnist_data import DatasetUnavailable
+
+    try:
+        return verify_protocol(protocol_id)
+    except DatasetUnavailable as exc:
+        pytest.skip(str(exc))
 
 
 class TestColt2022Golden:
@@ -45,52 +63,18 @@ class TestColt2022Golden:
         assert min_ov <= g["thresholds"]["min_pairwise_overlap_max"]
 
 
-class TestCoin2024DemoGolden:
-    def test_fair_and_markov_freq_match_golden(self):
-        g = _load("coin2024_demo.json")
-        p = g["parameters"]
-        traces = [("q0", "flip", "q0")] * 5 + [("q0", "flip", "q1")] * 5
-        brain = Brain(p=0.05, save_winners=True, seed=p["seed"], engine="numpy_sparse")
-        model = CoinFlipModel(
-            brain, traces=traces, initial_state="q0",
-            n=5000, k=50, beta=0.08, rounds=8,
-            input_noise_std=p["input_noise_std"],
-        )
-        fair0, fair1 = model.empirical_flip_counts(
-            p["n_flips_fair"], bias=0.5, seed_base=p["fair_seed_base"],
-        )
-        assert fair0 > 0 and fair1 > 0
-        assert g["expected"]["fair_both_outcomes"]
-        bias0, bias1 = model.empirical_flip_counts(
-            p["n_flips_biased"], bias=0.85, seed_base=p["biased_seed_base"],
-        )
-        assert bias0 > bias1
-        assert g["expected"]["biased_majority_zero"]
-        transitions = train_markov_from_sequences(traces)
-        p_q0 = next(t[3] for t in transitions if t[0] == "q0" and t[2] == "q0")
-        assert abs(p_q0 - g["expected"]["markov_learned_p_q0"]) < 0.01
-
-
-class TestCoin2024CompeteGolden:
-    def test_compete_mode_fair_and_biased(self):
-        g = _load("coin2024_compete.json")
-        p = g["parameters"]
-        traces = [("q0", "flip", "q0")] * 5 + [("q0", "flip", "q1")] * 5
-        brain = Brain(p=0.05, save_winners=True, seed=p["seed"], engine="numpy_sparse")
-        model = CoinFlipModel(
-            brain, traces=traces, initial_state="q0",
-            n=5000, k=50, beta=0.08, rounds=8,
-            input_noise_std=p["input_noise_std"],
-            flip_mode="compete",
-        )
-        fair0, fair1 = model.empirical_flip_counts(
-            p["n_flips_fair"], bias=0.5, seed_base=p["fair_seed_base"],
-        )
-        assert fair0 > 0 and fair1 > 0
-        bias0, bias1 = model.empirical_flip_counts(
-            p["n_flips_biased"], bias=0.85, seed_base=p["biased_seed_base"],
-        )
-        assert bias0 > bias1
+class TestRetractedCoinGoldens:
+    @pytest.mark.parametrize("name", [
+        "coin2024_demo.json",
+        "coin2024_compete.json",
+        "coin2024_softmax.json",
+        "coin2024_markov_arc.json",
+    ])
+    def test_invalid_instruments_cannot_be_consumed_as_goldens(self, name):
+        g = _load(name)
+        assert "RETRACTED" in g
+        assert "metrics" not in g and "expected" not in g
+        assert "historical_metrics" in g and "historical_expected" in g
 
 
 class TestNemo2025ScaffoldGolden:
@@ -120,6 +104,7 @@ class TestColt2022MnistNotebookGolden:
         from neural_assemblies.programs.colt_mnist_numpy import run_colt_mnist_numpy
 
         result = run_colt_mnist_numpy(**g["parameters"])
+        _require_golden_dataset(result, g)
         tol = g["thresholds"]["metrics_match_tolerance"]
         assert result.mean_accuracy >= g["thresholds"]["mean_accuracy_min"]
         assert abs(result.mean_accuracy - g["metrics"]["mean_accuracy"]) < tol
@@ -246,44 +231,16 @@ class TestNemo2025FsmMod3Golden:
         assert result.negative_rejected
 
 
-class TestCoin2024SoftmaxGolden:
-    def test_context_softmax_coin(self):
-        g = _load("coin2024_softmax.json")
-        from neural_assemblies.assembly_calculus.pfa import SoftmaxContextCoin
-
-        p = g["parameters"]
-        brain = Brain(p=0.05, save_winners=True, seed=p["seed"], engine="numpy_sparse")
-        coin = SoftmaxContextCoin(brain, noise_std=p["noise_std"])
-        fair0, fair1 = coin.empirical_flip_counts(
-            p["n_flips_fair"], bias=0.5, seed_base=p["fair_seed_base"],
-        )
-        assert fair0 > 0 and fair1 > 0
-        coin.learn_from_frequencies(p["bias_train"], 1.0 - p["bias_train"])
-        bias0, bias1 = coin.empirical_flip_counts(
-            p["n_flips_biased"], bias=p["bias_train"], seed_base=p["biased_seed_base"],
-        )
-        assert bias0 > bias1
-        assert g["expected"]["fair_both_outcomes"]
-        assert g["expected"]["biased_majority_zero"]
-
-
 class TestColt2022MnistBrainGolden:
     def test_brain_mnist_smoke(self):
         g = _load("colt2022_mnist_brain.json")
         from neural_assemblies.programs.colt_mnist_brain import run_colt_mnist_brain
 
         result = run_colt_mnist_brain(**g["parameters"])
+        _require_golden_dataset(result, g)
         tol = g["thresholds"]["metrics_match_tolerance"]
         assert result.mean_accuracy >= g["thresholds"]["mean_accuracy_min"]
         assert abs(result.mean_accuracy - g["metrics"]["mean_accuracy"]) < tol
-
-
-class TestCoin2024MarkovArcGolden:
-    def test_markov_chain_both_states(self):
-        from neural_assemblies.parity.runner import verify_protocol
-
-        result = verify_protocol("coin2024_markov_arc")
-        assert result.passed, result.diffs
 
 
 class TestNemo2025FsmMod3NumpyGolden:
@@ -302,6 +259,7 @@ class TestColt2022MnistHierarchicalGolden:
         from neural_assemblies.programs.colt_mnist_hierarchical import run_colt_mnist_hierarchical
 
         result = run_colt_mnist_hierarchical(**g["parameters"])
+        _require_golden_dataset(result, g)
         tol = g["thresholds"]["metrics_match_tolerance"]
         assert result.mean_accuracy >= g["thresholds"]["mean_accuracy_min"]
         assert abs(result.mean_accuracy - g["metrics"]["mean_accuracy"]) < tol
@@ -310,18 +268,14 @@ class TestColt2022MnistHierarchicalGolden:
 class TestColt2022MnistNotebookFullGolden:
     @pytest.mark.slow
     def test_notebook_scale_mnist(self):
-        from neural_assemblies.parity.runner import verify_protocol
-
-        result = verify_protocol("colt2022_mnist_notebook_full")
+        result = _verify_or_skip_missing_dataset("colt2022_mnist_notebook_full")
         assert result.passed, result.diffs
 
 
 class TestColt2022MnistNotebookPaperGolden:
     @pytest.mark.slow
     def test_paper_scale_mnist_n5000(self):
-        from neural_assemblies.parity.runner import verify_protocol
-
-        result = verify_protocol("colt2022_mnist_notebook_paper")
+        result = _verify_or_skip_missing_dataset("colt2022_mnist_notebook_paper")
         assert result.passed, result.diffs
 
 

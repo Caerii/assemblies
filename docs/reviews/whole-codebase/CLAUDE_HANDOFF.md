@@ -8,6 +8,14 @@ were inherited; they were not reimplemented or replaced.
 Please pin that commit for the fused/hashed parity gates. This semantic-card
 follow-up is a separate review checkpoint; nothing has merged to dev or master.
 
+The current `astra/ir-contracts` continuation mechanically retracts the four
+legacy `coin2024_*` goldens instead of rebaselining them. Verification stops before
+their executors, the CLI names the retraction, and consumable metric keys are now
+historical-only. Missing MNIST CSVs also skip before golden comparison rather than
+accepting the synthetic perfect-score fallback. A new attractor coin study remains
+open under a new protocol ID; the historical records are preserved as refusal
+fixtures.
+
 ## Provenance to recover
 
 - **RATE-HETEROGENEITY:** resolved on the review branch by the preregistered

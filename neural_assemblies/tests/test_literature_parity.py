@@ -132,11 +132,13 @@ class TestLiteratureParity:
         assert traj[-1] == "q_halt"
 
     def test_coin_flip_markov_protocol(self):
+        """Trace frequencies cannot silently become neural probabilities."""
         traces = [("q0", "flip", "q0")] * 5 + [("q0", "flip", "q1")] * 5
         b = _brain()
-        model = CoinFlipModel(b, traces, "q0", n=N, k=K, rounds=6)
-        branch = model.sample_branch(bias=0.5, seed=SEED)
-        assert branch in (0, 1)
+        before = set(b.areas)
+        with pytest.raises(ValueError, match="SeedMixtureChoice"):
+            CoinFlipModel(b, traces, "q0", n=N, k=K, rounds=6)
+        assert set(b.areas) == before
 
     def test_markov_transition_frequencies_from_traces(self):
         """Dabagia 2024: empirical trace frequencies become transition probs."""
@@ -208,42 +210,32 @@ class TestLiteratureParity:
         assert do_fwd >= fwd * 0.45
 
     def test_coin_ambient_noise_epwta_wiring(self):
-        """Dabagia 2024 ambient noise: E%-WTA policy on coin area when noise enabled."""
+        """Noise configuration does not make an implicit selector valid."""
         traces = [("q0", "flip", "q0")] * 3 + [("q0", "flip", "q1")] * 3
         b = _brain()
-        model = CoinFlipModel(
-            b, traces, "q0", n=N, k=K, rounds=6, input_noise_std=0.02,
-        )
-        assert b.areas[model.coin.area_name].input_noise_std == 0.02
-        assert b.areas[model.coin.area_name].winner_policy is not None
-        assert model.sample_branch(bias=0.5, seed=SEED) in (0, 1)
+        with pytest.raises(ValueError, match="SeedMixtureChoice"):
+            CoinFlipModel(b, traces, "q0", n=N, k=K, rounds=6,
+                          input_noise_std=0.02)
+        assert not b.areas
 
     def test_coin_empirical_fair_and_biased(self):
-        """Dabagia 2024: neural coin-flip bias tracks initialization proportion."""
+        """The retracted bias claim cannot run through an implicit choice."""
         traces = [("q0", "flip", "q0")] * 5 + [("q0", "flip", "q1")] * 5
         b = _brain()
-        model = CoinFlipModel(b, traces, "q0", n=N, k=K, rounds=6)
-        fair0, fair1 = model.empirical_flip_counts(24, bias=0.5, seed_base=100)
-        assert fair0 > 0 and fair1 > 0
-        bias0, bias1 = model.empirical_flip_counts(20, bias=0.85, seed_base=200)
-        assert bias0 > bias1
+        with pytest.raises(ValueError, match="not calibrated"):
+            CoinFlipModel(b, traces, "q0", n=N, k=K, rounds=6)
+        assert not b.areas
 
     def test_pfa_stochastic_both_targets(self):
-        """Dabagia 2024/Sequences: 50/50 PFA transitions reach both targets."""
-        from collections import Counter
+        """A branching PFA must declare its uncalibrated selector."""
         from neural_assemblies.assembly_calculus.pfa import PFANetwork
 
         b = _brain()
         transitions = [("q0", "flip", "q0", 0.5), ("q0", "flip", "q1", 0.5)]
-        pfa = PFANetwork(
-            b, ["q0", "q1"], ["flip"], transitions, "q0",
-            n=N, k=K, beta=0.05, rounds=6,
-        )
-        results = Counter()
-        for i in range(30):
-            pfa.reset()
-            results[pfa.step("flip", seed=SEED + i * 11)] += 1
-        assert results["q0"] > 0 and results["q1"] > 0
+        with pytest.raises(ValueError, match="SeedMixtureChoice"):
+            PFANetwork(b, ["q0", "q1"], ["flip"], transitions, "q0",
+                       n=N, k=K, beta=0.05, rounds=6)
+        assert not b.areas
 
     def test_sequence_memorize_ordered_recall(self):
         """Dabagia 2025: LRI enables multi-step ordered recall after memorization."""

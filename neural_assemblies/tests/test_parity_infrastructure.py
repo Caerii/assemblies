@@ -41,6 +41,28 @@ def test_list_protocols_matches_registry():
     assert len(list_protocols()) == len(load_registry()["protocols"])
 
 
+@pytest.mark.parametrize("protocol_id", [
+    "coin2024_demo", "coin2024_compete", "coin2024_softmax", "coin2024_markov_arc",
+])
+def test_retracted_coin_golden_stops_before_executor(monkeypatch, protocol_id):
+    from neural_assemblies.parity.executors import RetractedProtocol
+
+    def forbidden():
+        raise AssertionError("retracted protocol reached its executor")
+
+    monkeypatch.setitem(EXECUTORS, protocol_id, forbidden)
+    with pytest.raises(RetractedProtocol, match="RETRACTED"):
+        verify_protocol(protocol_id)
+
+
+def test_cli_reports_retraction_as_a_distinct_status(capsys):
+    import json
+    from neural_assemblies.parity.cli import main
+
+    assert main(["verify", "coin2024_demo"]) == 2
+    assert json.loads(capsys.readouterr().out)["status"] == "retracted"
+
+
 @pytest.mark.parametrize(
     "protocol_id",
     [

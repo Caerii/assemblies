@@ -3007,3 +3007,30 @@ infinite beta before either beta store changes. Bulk schedules preflight all ent
 before applying the first.25 focused mechanism/specification tests pass and each
 constructed measurement corruption fails its named check. This establishes the
 materialized NumPy rate-routing mechanism, not learning quality or backend parity.
+
+## Retracted coin records and dataset-gated goldens (2026-09-11)
+
+A broad non-slow CPU run exposed fifteen stale coin/PFA tests and parity executors
+that still invoked paths the API deliberately rejects: implicit seed-mixture
+probabilities, the dead legacy recurrence, the retired softmax readout and the old
+Markov wrapper. The four `coin2024_*` goldens now carry a machine-readable
+`RETRACTED` reason; their `metrics` and `expected` keys are historical-only, and
+the parity runner refuses them before calling an executor. Direct executors also
+refuse, and the CLI reports `status=retracted` with exit code 2. A new validated
+attractor study requires a new registration and protocol ID.
+
+This removed 159 net lines while replacing the old success assertions with
+constructed refusal checks. The dedicated `SeedMixtureChoice` suite remains the
+working-path contract. The reproduction matrix, registry, soundness plan and coin
+analysis now agree about the status.
+
+The same selected run found five MNIST golden failures when real CSV files were
+absent: three producers returned a synthetic fallback with perfect accuracy, and
+two strict paths raised `DatasetUnavailable`. All five tests now skip with the
+resolved and required dataset names before comparing a number. Synthetic data
+remains usable as an API fixture but cannot satisfy a real-data golden.
+
+The repaired selection reports 28 passed,15 skipped and one expected failure in
+104.47 seconds. The earlier broad run also found three sampled emergent-parser
+generalization failures; those remain a separate semantic investigation rather
+than being absorbed into this coin/dataset repair.

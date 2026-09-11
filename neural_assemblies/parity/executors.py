@@ -19,6 +19,15 @@ class RetractedProtocol(RuntimeError):
     withdrawn. Callers should skip rather than report a discrepancy.
     """
 
+
+def _retracted_coin(protocol_id: str) -> dict:
+    raise RetractedProtocol(
+        f"{protocol_id} is a retracted legacy record: its reported output did "
+        "not validate the neural mechanism. Use the explicit SeedMixtureChoice "
+        "or ContextAttractorChoice contracts and register a new protocol ID; "
+        "do not overwrite or rebaseline this historical golden."
+    )
+
 def _load_golden(name: str) -> dict:
     path = golden_dir() / name
     if not path.is_file():
@@ -34,70 +43,11 @@ def _metrics_close(actual: Any, expected: Any, tol: float) -> bool:
 
 
 def execute_coin2024_demo() -> dict:
-    from neural_assemblies.core.brain import Brain
-    from neural_assemblies.programs.markov_coin import (
-        CoinFlipModel,
-        train_markov_from_sequences,
-    )
-
-    g = _load_golden("coin2024_demo.json")
-    p = g["parameters"]
-    traces = [("q0", "flip", "q0")] * 5 + [("q0", "flip", "q1")] * 5
-    brain = Brain(p=0.05, save_winners=True, seed=p["seed"], engine="numpy_sparse")
-    model = CoinFlipModel(
-        brain, traces=traces, initial_state="q0",
-        n=5000, k=50, beta=0.08, rounds=8,
-        input_noise_std=p["input_noise_std"],
-    )
-    fair0, fair1 = model.empirical_flip_counts(
-        p["n_flips_fair"], bias=0.5, seed_base=p["fair_seed_base"],
-    )
-    bias0, bias1 = model.empirical_flip_counts(
-        p["n_flips_biased"], bias=0.85, seed_base=p["biased_seed_base"],
-    )
-    transitions = train_markov_from_sequences(traces)
-    p_q0 = next(t[3] for t in transitions if t[0] == "q0" and t[2] == "q0")
-    return {
-        "fair_n0": fair0,
-        "fair_n1": fair1,
-        "fair_both_outcomes": fair0 > 0 and fair1 > 0,
-        "biased_majority_zero": bias0 > bias1,
-        "markov_learned_p_q0": round(p_q0, 4),
-    }
+    return _retracted_coin("coin2024_demo")
 
 
 def execute_coin2024_compete() -> dict:
-    from neural_assemblies.core.brain import Brain
-    from neural_assemblies.programs.markov_coin import (
-        CoinFlipModel,
-        train_markov_from_sequences,
-    )
-
-    g = _load_golden("coin2024_compete.json")
-    p = g["parameters"]
-    traces = [("q0", "flip", "q0")] * 5 + [("q0", "flip", "q1")] * 5
-    brain = Brain(p=0.05, save_winners=True, seed=p["seed"], engine="numpy_sparse")
-    model = CoinFlipModel(
-        brain, traces=traces, initial_state="q0",
-        n=5000, k=50, beta=0.08, rounds=8,
-        input_noise_std=p["input_noise_std"],
-        flip_mode="compete",
-    )
-    fair0, fair1 = model.empirical_flip_counts(
-        p["n_flips_fair"], bias=0.5, seed_base=p["fair_seed_base"],
-    )
-    bias0, bias1 = model.empirical_flip_counts(
-        p["n_flips_biased"], bias=0.85, seed_base=p["biased_seed_base"],
-    )
-    transitions = train_markov_from_sequences(traces)
-    p_q0 = next(t[3] for t in transitions if t[0] == "q0" and t[2] == "q0")
-    return {
-        "fair_n0": fair0,
-        "fair_n1": fair1,
-        "fair_both_outcomes": fair0 > 0 and fair1 > 0,
-        "biased_majority_zero": bias0 > bias1,
-        "markov_learned_p_q0": round(p_q0, 4),
-    }
+    return _retracted_coin("coin2024_compete")
 
 
 def execute_nemo2025_scaffold() -> dict:
@@ -227,26 +177,7 @@ def execute_nemo2025_fsm_mod3() -> dict:
 
 
 def execute_coin2024_softmax() -> dict:
-    from neural_assemblies.assembly_calculus.pfa import SoftmaxContextCoin
-    from neural_assemblies.core.brain import Brain
-
-    g = _load_golden("coin2024_softmax.json")
-    p = g["parameters"]
-    brain = Brain(p=0.05, save_winners=True, seed=p["seed"], engine="numpy_sparse")
-    coin = SoftmaxContextCoin(brain, noise_std=p["noise_std"])
-    fair0, fair1 = coin.empirical_flip_counts(
-        p["n_flips_fair"], bias=0.5, seed_base=p["fair_seed_base"],
-    )
-    coin.learn_from_frequencies(p["bias_train"], 1.0 - p["bias_train"])
-    bias0, bias1 = coin.empirical_flip_counts(
-        p["n_flips_biased"], bias=p["bias_train"], seed_base=p["biased_seed_base"],
-    )
-    return {
-        "fair_n0": fair0,
-        "fair_n1": fair1,
-        "fair_both_outcomes": fair0 > 0 and fair1 > 0,
-        "biased_majority_zero": bias0 > bias1,
-    }
+    return _retracted_coin("coin2024_softmax")
 
 
 def execute_colt2022_mnist_brain() -> dict:
@@ -261,24 +192,7 @@ def execute_colt2022_mnist_brain() -> dict:
 
 
 def execute_coin2024_markov_arc() -> dict:
-    from neural_assemblies.core.brain import Brain
-    from neural_assemblies.programs.markov_coin import MarkovChainModel, _balanced_coin_traces
-
-    g = _load_golden("coin2024_markov_arc.json")
-    p = g["parameters"]
-    traces = _balanced_coin_traces()
-    brain = Brain(p=0.05, save_winners=True, seed=p["seed"], engine="numpy_sparse")
-    model = MarkovChainModel(
-        brain, traces, "q0",
-        n=p["n"], k=p["k"], beta=p["beta"],
-    )
-    traj = model.run(p["n_steps"], seed_base=p["seed_base"])
-    unique = set(traj)
-    return {
-        "saw_both_states": "q0" in unique and "q1" in unique,
-        "trajectory_length": len(traj),
-        "unique_states": len(unique),
-    }
+    return _retracted_coin("coin2024_markov_arc")
 
 
 def execute_nemo2025_fsm_mod3_numpy() -> dict:

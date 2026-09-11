@@ -11,15 +11,16 @@
     "k": 80,
     "beta": 0.1
   },
-  "metrics": {
+  "notes": "Alternating current/next inhibition via NemoMarkovPFA; 50/50 q0 branches from training traces.",
+  "RETRACTED": "RETRACTED 2026-09-11: recorded through the obsolete MarkovChainModel interface and does not identify the explicit arc protocol or seed-mixture semantics.",
+  "historical_metrics": {
     "saw_both_states": true,
     "trajectory_length": 60,
     "unique_states": 2
   },
-  "expected": {
+  "historical_expected": {
     "saw_both_states": true,
     "trajectory_length": 60,
     "unique_states_min": 2
-  },
-  "notes": "Alternating current/next inhibition via NemoMarkovPFA; 50/50 q0 branches from training traces."
+  }
 }

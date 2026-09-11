@@ -284,10 +284,13 @@ that preceded it.
   which reinstates the `O(n²)` ceiling at a lower `n` than RAM allows. Torch's
   sparse CSR path is 0.16× — much slower. GPU is a speed/ceiling trade here,
   not an upgrade.
-- The `coin2024_*` goldens still record the **legacy** construction, and their
-  flip counts are *decorative by design* — a decision made when the counts
-  could not move. They can now. Re-recording them against `attractor` is the
-  remaining half of #70.
+- The `coin2024_*` goldens record the **legacy** construction, and their flip
+  counts are *decorative by design* ? a decision made when the counts could
+  not move. On 2026-09-11 they were marked `RETRACTED`, their consumable
+  `metrics`/`expected` keys were renamed as historical fields, and verification
+  was changed to stop before execution. A new registered protocol ID is still
+  required for an attractor-based reproduction; the historical files will not
+  be overwritten or rebaselined.
 
 ## Postscript: the same bug had a second copy
 

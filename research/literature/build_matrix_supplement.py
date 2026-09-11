@@ -91,11 +91,11 @@ SUPPLEMENT = [
     ("ORG23-E05", "mitropolsky2023architecture", "empirical", "SVO via sequence_memorize at calculus layer", "partial", "neural_assemblies/tests/test_nemo_patterns_core.py -k svo", None, "organ2023.yaml", None, "P2"),
     # --- Coin ---
     ("COIN24-C01", "dabagia2024coinflipping", "config", "CoinFlipModel code defaults", "partial", None, "coin2024.defaults", "coin2024.yaml", None, "P0"),
-    ("COIN24-C02", "dabagia2024coinflipping", "config", "Ambient noise std + E%-WTA wiring", "pinned", "neural_assemblies/tests/test_literature_parity.py::test_coin_ambient_noise_epwta_wiring", "coin2024.ambient", "coin2024.yaml", None, "P0"),
-    ("COIN24-C03", "dabagia2024coinflipping", "config", "dabagia.org demo URL params scraped", "pinned", "neural_assemblies/tests/test_literature_golden.py::TestCoin2024DemoGolden", "coin2024_demo", "coin2024.yaml", "Package sim; demo has no API", "P1"),
+    ("COIN24-C02", "dabagia2024coinflipping", "config", "Ambient noise std + E%-WTA wiring", "retracted", "neural_assemblies/tests/test_literature_parity.py::TestLiteratureParity::test_coin_ambient_noise_epwta_wiring", "coin2024.ambient", "coin2024.yaml", "Legacy coin construction", "P0"),
+    ("COIN24-C03", "dabagia2024coinflipping", "config", "dabagia.org demo URL params scraped", "retracted", "neural_assemblies/tests/test_literature_golden.py::TestRetractedCoinGoldens", "coin2024_demo", "coin2024.yaml", "Package simulation used an invalid instrument; demo has no numeric API", "P1"),
     ("COIN24-C04", "dabagia2024coinflipping", "config", "Markov order / multi-state chains", "partial", None, "coin2024.markov_order", "coin2024.yaml", "Higher-order PFA", "P2"),
     ("COIN24-M04", "dabagia2024coinflipping", "mechanism", "Flip via proportional k-split (not softmax)", "partial", "neural_assemblies/assembly_calculus/pfa.py", None, "coin2024.yaml", "Reconcile E04 claim", "P1"),
-    ("COIN24-E05", "dabagia2024coinflipping", "empirical", "PFA 30-step stochastic routing", "pinned", "neural_assemblies/tests/test_literature_parity.py::test_pfa_stochastic_both_targets", "coin2024.pfa_route", "coin2024.yaml", None, "P0"),
+    ("COIN24-E05", "dabagia2024coinflipping", "empirical", "PFA 30-step stochastic routing", "retracted", "neural_assemblies/tests/test_literature_parity.py::TestLiteratureParity::test_pfa_stochastic_both_targets", "coin2024.pfa_route", "coin2024.yaml", "Implicit selector was not a calibrated probability", "P0"),
     # --- NEMO 2025 extended ---
     ("NEMO25-C01", "mitropolsky2025simulated", "config", "Vocabulary size + grounding modalities", "partial", None, "nemo2025.vocab", "nemo2025.yaml", "45 words pinned", "P0"),
     ("NEMO25-C02", "mitropolsky2025simulated", "config", "train() phase order vs curriculum", "partial", None, "nemo2025.train_phases", "nemo2025.yaml", "Document divergence", "P1"),

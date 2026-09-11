@@ -8,7 +8,7 @@ import time
 from pathlib import Path
 from typing import Any
 
-from .executors import EXECUTORS, verify_against_golden
+from .executors import EXECUTORS, RetractedProtocol, verify_against_golden
 from .protocol import Protocol, ProtocolResult
 from .registry import get_protocol, get_protocol_by_claim, resolve_golden_path
 from .paths import repo_root
@@ -52,6 +52,8 @@ def verify_protocol(protocol_id: str) -> ProtocolResult:
         return result
 
     golden = load_golden(proto)
+    if "RETRACTED" in golden:
+        raise RetractedProtocol(str(golden["RETRACTED"]))
     if golden.get('metrics', {}).get('data_source') == 'mnist_csv':
         from neural_assemblies.programs.colt_mnist_data import require_mnist_dir
         require_mnist_dir()  # refuse before invoking a potentially expensive executor

@@ -289,9 +289,10 @@ never indexed any weights and so could not crash. Generalizable: in a system
 this quiet about failure, a single-defect fix should be assumed insufficient
 until measured.
 
-Still open on `#70`: re-record the `coin2024_*` goldens against `attractor`
-(they currently pin `legacy`, and their flip counts are decorative by a
-decision made when the counts could not move).
+The legacy `coin2024_*` files were mechanically retracted on 2026-09-11: their
+consumable keys are historical-only and both the parity runner and CLI stop before
+execution. Still open on `#70`: preregister and record a new attractor protocol
+under a new ID. The legacy records will not be overwritten or rebaselined.
 
 **The diagnostic itself was broken** (`#71`). `fiber_census` reads
 `conn.weights`; `CSRConn` has no such attribute, so every torch fiber reads
