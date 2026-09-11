@@ -303,6 +303,16 @@ def ordered_recall_trace(
     convergence_threshold = plan.convergence_threshold
     rounds_per_step = plan.rounds_per_step
     novelty_threshold = plan.novelty_threshold
+    if known_assemblies is not None:
+        known_assemblies = tuple(known_assemblies)
+        if any(not isinstance(item, Assembly) for item in known_assemblies):
+            raise TypeError("known_assemblies must contain Assembly snapshots")
+        wrong_area = [item.area for item in known_assemblies if item.area != area]
+        if wrong_area:
+            raise ValueError(
+                f"known_assemblies must belong to recall area {area!r}; "
+                f"found {wrong_area!r}"
+            )
 
     brain.clear_refractory(area)
     brain.project({cue: [area]}, {})

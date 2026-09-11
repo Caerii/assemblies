@@ -4691,3 +4691,7 @@ Added frozen `OrderedRecallPlan` to the operation-contract layer and routed `ord
 ## Trace specification edges (2026-09-11)
 
 All maintained traced calculus entry points now carry explicit `Specification:` links: projection, reciprocal projection, association, merge, and transition-machine recall. The specification-link and trace gates pass **24 tests**; Ruff is clean.
+
+## Recall reference-domain admission (2026-09-11)
+
+`ordered_recall` and `ordered_recall_trace` now require every `known_assemblies` entry to be an `Assembly` snapshot from the recalled area. Cross-area integer coincidences and malformed novelty references fail before mutation. The shared recall-domain suite passes **16 tests**.

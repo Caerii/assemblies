@@ -2599,3 +2599,5 @@ Temporary sequence beta boosts are now exception-safe: recurrent projection fail
 Corrected the traced projection contract: recurrence is now an explicit `project_trace` parameter, preserving its historical default while allowing exact stimulus-only parity with `project`. Focused projection-trace tests pass (19 tests).
 
 Added explicit specification edges to every maintained traced calculus entry point. Projection, reciprocal projection, association, merge, and sequence recall traces now participate directly in the code-to-contract graph; specification-link and trace tests pass (24 tests).
+
+Sequence recall now validates the domain of optional `known_assemblies` in both execution and tracing paths. Cross-area snapshots and malformed entries fail before refractory state changes; focused recall-domain tests pass (16 tests).
