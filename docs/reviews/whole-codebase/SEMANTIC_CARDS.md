@@ -1555,3 +1555,9 @@ empty direction schedule fail before replay.
 ## Multi-source teacher binding
 
 `assembly_calculus.binding.bind` is a distinct parser-facing operation from the package-level `ops.bind`. It co-fires one or more active source areas and optional teacher areas into a free target for a validated positive round schedule. Sources are pinned during the pairing; the target remains free so the teacher can determine its winners. It returns whether an active pairing was applied, rather than an Assembly snapshot. Unknown or duplicate topology, invalid rounds, and absent source activity are rejected before projection.
+
+<a id="contract-binding-recall"></a>
+
+## Multi-source binding recall
+
+`assembly_calculus.binding.recall` is the readout paired with the multi-source teacher binding operation. It activates the named source snapshots, optionally clears the target, and re-drives the target inside `Brain.read_only()` with plasticity and recruitment disabled. It returns a target snapshot when a source is active and `None` for an inactive source. Unknown topology and malformed source lists fail before entering the readout scope.

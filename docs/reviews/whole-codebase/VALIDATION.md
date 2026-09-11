@@ -4904,3 +4904,7 @@ Strengthened the operation contract ratchet to require each registered callable 
 ## Distinct multi-source binding contract (2026-09-11)
 
 The audit found two intentionally different functions named bind: package-level ops.bind (single source snapshot schedule) and assembly_calculus.binding.bind (multi-source teacher-driven parser schedule). Added SourceBindingPlan and SOURCE_BINDING_CONTRACT for the latter, attached its semantic card and decorator, and exposed it in the registry/public API. Registry/decorator/source-link tests plus binding controls pass (166 tests); Ruff is clean.
+
+## Multi-source binding recall contract (2026-09-11)
+
+Added BindingRecallPlan and BINDING_RECALL_CONTRACT for the parser-facing recall helper, which is distinct from package-level read_binding and from ops.bind. The recall source and target topology is now preflighted before entering the read-only scope, and the semantic card/docstring/registry/public export are linked. Focused binding and operation-contract tests pass (168 tests); Ruff is clean.

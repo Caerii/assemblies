@@ -44,7 +44,13 @@ from typing import Dict, Iterable, Mapping, Optional
 
 from .assembly import Assembly, overlap
 from .ops import activate_assembly, _snap
-from .contracts import SOURCE_BINDING_CONTRACT, SourceBindingPlan, implements
+from .contracts import (
+    BINDING_RECALL_CONTRACT,
+    SOURCE_BINDING_CONTRACT,
+    BindingRecallPlan,
+    SourceBindingPlan,
+    implements,
+)
 
 # Per-step traversal of a trained pathway (Mitropolsky & Papadimitriou 2025,
 # Fig. 3a). Not the ~10 steps needed to form a new assembly.
@@ -200,6 +206,7 @@ def bind(
     return True
 
 
+@implements(BINDING_RECALL_CONTRACT)
 def recall(
     brain,
     *,
@@ -209,6 +216,8 @@ def recall(
     clear_target: bool = True,
 ) -> Optional[Assembly]:
     """Fire the cue and return what ``target_area`` produces.
+
+    Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-binding-recall
 
     A read, so it runs under `Brain.probe()`. "Plasticity is off, so recall
     does not reshape what it reads" was HALF TRUE: `frozen()` stops weights
@@ -226,12 +235,10 @@ def recall(
     Set it False only when the retained state is deliberately part of what is
     being read.
     """
-    sources = list(sources)
-    unknown = [a for a in sources if a not in brain.areas]
-    if unknown:
-        raise KeyError(f"recall source area(s) are unknown: {unknown!r}")
-    if target_area not in brain.areas:
-        raise KeyError(f"recall target area is unknown: {target_area!r}")
+    plan = BindingRecallPlan(tuple(sources), target_area, clear_target)
+    plan.preflight(brain)
+    sources = list(plan.sources)
+    clear_target = plan.clear_target
     if not sources:
         return None
 

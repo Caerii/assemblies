@@ -455,6 +455,32 @@ class SourceBindingPlan:
 
 
 @dataclass(frozen=True)
+class BindingRecallPlan:
+    """Immutable readout schedule for a multi-source binding."""
+
+    sources: tuple[str, ...]
+    target_area: str
+    clear_target: bool = True
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.sources, tuple) or not self.sources:
+            raise ValueError("binding recall requires at least one source area")
+        if any(not isinstance(name, str) or not name for name in self.sources):
+            raise ValueError("binding recall sources must be nonempty names")
+        if len(set(self.sources)) != len(self.sources):
+            raise ValueError("binding recall sources must be distinct")
+        _require_name("target_area", self.target_area)
+        _explicit_bool("clear_target", self.clear_target)
+
+    def preflight(self, brain) -> None:
+        unknown_sources = [name for name in self.sources if name not in brain.areas]
+        if unknown_sources:
+            raise KeyError(f"binding recall source area(s) are unknown: {unknown_sources!r}")
+        if self.target_area not in brain.areas:
+            raise KeyError(f"binding recall target area is unknown: {self.target_area!r}")
+
+
+@dataclass(frozen=True)
 class ConvergencePlan:
     """Immutable stopping schedule shared by convergent learning helpers."""
 
@@ -1101,6 +1127,27 @@ SOURCE_BINDING_CONTRACT = OperationContract(
 )
 
 
+BINDING_RECALL_CONTRACT = OperationContract(
+    operation_id="binding-recall-v1",
+    specification="docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-binding-recall",
+    plan_type=BindingRecallPlan,
+    inputs=("brain", "sources", "target_area", "source_assemblies", "clear_target"),
+    reads=("source winners", "source-to-target weights", "target winners"),
+    mutates=("temporary activity only under read-only scope",),
+    regime=("at least one active source", "plasticity and recruitment disabled", "optional target clearing"),
+    observed_outcome=("target Assembly snapshot or no result",),
+    failure_conditions=("unknown areas", "duplicate source names", "invalid clear_target flag", "no active source"),
+    constructed_controls=(
+        "neural_assemblies/tests/test_binding_area_contract.py::"
+        "test_recall_rejects_unknown_area_instead_of_returning_none",
+    ),
+    true_negative_controls=(
+        "neural_assemblies/tests/test_binding_area_contract.py::"
+        "test_recall_rejects_unknown_area_instead_of_returning_none",
+    ),
+)
+
+
 CONSOLIDATION_CONTRACT = OperationContract(
     operation_id="consolidation-pair-v1",
     specification="docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-consolidation",
@@ -1132,6 +1179,7 @@ OPERATION_CONTRACTS = MappingProxyType({
     "attention": ATTENTION_CONTRACT,
     "bind": BINDING_CONTRACT,
     "source_binding": SOURCE_BINDING_CONTRACT,
+    "binding_recall": BINDING_RECALL_CONTRACT,
     "consolidate_pair": CONSOLIDATION_CONTRACT,
     "learn_assembly": CONVERGENCE_CONTRACT,
     "learn_assembly_from_pattern": CONVERGENCE_CONTRACT,
