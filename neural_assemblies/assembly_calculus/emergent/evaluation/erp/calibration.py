@@ -281,7 +281,11 @@ def _ensure_minimal_prediction_bridges(parser: "EmergentParser") -> None:
     if sweep_mode_enabled() and readiness.prediction_lexicon_size > 0:
         return
     try:
-        from ..curriculum.data import create_training_sentences
+        # ``erp`` is nested below ``evaluation``; three dots are required to
+        # reach the sibling ``emergent.curriculum`` package.  The former
+        # two-dot import always raised ImportError and was silently swallowed,
+        # disabling the bridge bootstrap whenever readiness was low.
+        from ...curriculum.data import create_training_sentences
         sents = create_training_sentences()[:30]
         if hasattr(parser, "train_next_token") and sents:
             parser.train_next_token(sents, rebuild_lexicon=True)

@@ -4376,3 +4376,11 @@ The focused maintained gate passed 16 tests covering source/specification links,
 runner registry, throughput provenance, and index-space typing. `lake build` in
 `formal/` also completed successfully (9 jobs); Lean reported no `sorryAx`
 introduction in the AssemblyIR modules.
+
+## ERP bootstrap import repair (2026-09-11)
+
+Static analysis exposed a swallowed relative-import defect in
+`evaluation/erp/calibration.py`: `from ..curriculum.data` resolved to the
+nonexistent `evaluation.curriculum` package. It now correctly imports the
+sibling `emergent.curriculum.data` module. The targeted cache regression still
+passes, and Pyright reports no diagnostics for the calibration module.
