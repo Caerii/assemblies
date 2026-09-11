@@ -3079,3 +3079,14 @@ complete-package result.
 The combined methodology, index-space, research-contract, specification-link,
 theory-register, active-evidence and parity-infrastructure gate reports 73 passed
 and 11 skipped in 59.32 seconds.
+
+## Deterministic live-reference parity (2026-09-11)
+
+The optional `dmitropolsky/assemblies` parity subprocess seeded the reference
+Brain but not NumPy's legacy global RNG, which SciPy's truncated-normal draw uses.
+The subprocess now seeds both sources. Two executions at the same seed match
+exactly. At rounds=20 the seeded values over seeds 42..46 are 0.0000, 0.7625,
+0.3250, 0.8125 and 0.0000: still bimodal, now reproducibly so. The near-chance
+claim is therefore a strict expected failure rather than a non-strict marker.
+Using `upstream/master` at 81e4297 as the live reference, the reproducibility
+test passes and the scientific bar fails as expected in 16.98 seconds.

@@ -20,7 +20,6 @@ from neural_assemblies.assembly_calculus import (
     overlap,
     pattern_complete,
     project,
-    reciprocal_project,
     separate,
 )
 from neural_assemblies.core.brain import Brain
@@ -88,7 +87,7 @@ def _our_metrics(params: dict) -> dict:
 
 
 def _reference_metrics(params: dict, ref_root: Path) -> dict:
-    """Run reference brain in a fresh subprocess (truncnorm uses global scipy RNG)."""
+    """Run the reference brain with both of its RNG sources fixed."""
     import subprocess
     import sys
 
@@ -96,6 +95,7 @@ def _reference_metrics(params: dict, ref_root: Path) -> dict:
 import json
 import importlib.util
 from pathlib import Path
+import numpy as np
 
 ref_root = Path({str(ref_root.resolve())!r})
 spec = importlib.util.spec_from_file_location("ref_brain", ref_root / "brain.py")
@@ -108,6 +108,10 @@ k = {params["k"]}
 p_conn = {params["p_conn"]}
 beta = {params["beta"]}
 rounds = {params["rounds"]}
+
+# Brain(seed=...) seeds the reference's Generator, but scipy.stats.truncnorm
+# draws through NumPy's legacy global RNG. Both are part of this protocol.
+np.random.seed(seed)
 
 def frac_overlap(a, b):
     if not a or not b:
@@ -386,34 +390,32 @@ class TestCrossRepoLiveReference:
         )
 
     @pytest.mark.xfail(
-        strict=False,
+        strict=True,
         reason=(
             "THE REFERENCE IS BIMODAL AT THESE PARAMETERS, which is neither "
-            "of the two explanations previously recorded. Measured over seeds "
-            "42-46 with the test's own params: 0.0000, 0.5125, 0.0000, 0.3500, "
-            "0.4875 -- mean 0.27 +/- 0.32. It either separates perfectly or "
+            "of the two explanations previously recorded. With both RNGs "
+            "seeded, seeds 42-46 at the test's own params read 0.0000, 0.7625, "
+            "0.3250, 0.8125, 0.0000 -- mean 0.3800 +/- 0.4909. It either "
+            "separates perfectly or "
             "barely at all; there is no 'near chance' value to compare a "
             "golden against. "
             "NOT a stale golden (the previous reason, which asserted a 10x "
             "drift 'NOT explained by host nondeterminism'), and NOT "
             "[[pythonhashseed-nondeterminism]] -- pinning PYTHONHASHSEED does "
             "not stabilise it, verified. The reference draws through "
-            "scipy.stats.truncnorm on the GLOBAL numpy RNG, which the "
-            "subprocess never seeds, so Brain(p, seed=...) does not make it "
-            "reproducible; on top of that the outcome is strongly "
-            "seed-dependent. Fixing this means seeding the reference's global "
-            "RNG inside the subprocess and re-characterising, not regenerating "
-            "a golden."
+            "scipy.stats.truncnorm on the GLOBAL numpy RNG. That RNG is now "
+            "seeded at the subprocess boundary, so the failure is reproducible; "
+            "the remaining problem is the strongly seed-dependent bimodal "
+            "mechanism, not host nondeterminism."
         ),
     )
     def test_reference_separate_near_chance(self, params, ref_path, golden):
-        """Judged over seeds, on the CONFIDENCE BOUND -- see the xfail reason.
+        """Judged over seeds, on the confidence bound -- see the xfail reason.
 
-        Kept as a measurement rather than deleted: when the reference's global
-        RNG is seeded this should become a real, stable comparison, and the
-        assertion below is the one that will then be meaningful. Written to
-        FAIL LOUDLY with the distribution in the message, so the next person
-        sees the bimodality rather than a bare number.
+        Both reference RNGs are now seeded, so this strict expected failure is
+        stable across processes. Written to fail with the distribution in the
+        message, so the next person sees the bimodality rather than a bare
+        number.
         """
         from neural_assemblies.diagnostics import ensemble
 
@@ -428,3 +430,8 @@ class TestCrossRepoLiveReference:
             f"{e} -- reference separation is not clearly below 3x chance "
             f"({chance * 3:.4f}). Read the interval, not the mean: single "
             f"draws straddle this bar and the distribution is bimodal.")
+
+    def test_reference_subprocess_is_reproducible(self, params, ref_path):
+        first = _reference_metrics(params, ref_path)
+        second = _reference_metrics(params, ref_path)
+        assert first == second
