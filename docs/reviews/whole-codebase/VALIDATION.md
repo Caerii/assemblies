@@ -4894,3 +4894,5 @@ scientific failures pending metric/protocol diagnosis; no threshold was relaxed.
 ## Convergence contract registration (2026-09-11)
 
 The two public convergent learners, learn_assembly and learn_assembly_from_pattern, now share and expose CONVERGENCE_CONTRACT through the operation registry. Both entry points are attached to the same frozen ConvergencePlan and semantic card, so contract introspection cannot silently omit a maintained learning operation. Schedule true-negative, operation-contract, and specification-link tests pass (181 passed); Ruff is clean.
+
+Added a direct calibration true negative: a declared numpy_exact protocol on a numpy_sparse parser raises before any sampling call. The focused ERP protocol suite now passes 21 tests.

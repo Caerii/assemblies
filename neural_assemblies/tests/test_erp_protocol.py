@@ -18,6 +18,7 @@ from neural_assemblies.assembly_calculus.emergent.evaluation.erp.protocol import
     ErpProtocol,
 )
 from neural_assemblies.assembly_calculus.emergent.evaluation.erp.runner import _check_engine_identity
+from neural_assemblies.assembly_calculus.emergent.evaluation.erp.calibration import calibrate_erp_thresholds
 
 
 class TestTheShippedDefault:
@@ -86,6 +87,14 @@ class TestAnArmIsAValue:
         _check_engine_identity(SimpleNamespace(engine_name="numpy_exact"), p)
         with pytest.raises(ValueError, match="engine"):
             _check_engine_identity(SimpleNamespace(engine_name="numpy_sparse"), p)
+
+    def test_calibration_rejects_a_mismatched_engine_before_sampling(self):
+        with pytest.raises(ValueError, match="requires engine"):
+            calibrate_erp_thresholds(
+                SimpleNamespace(engine_name="numpy_sparse"),
+                ensure_prediction=False,
+                protocol=ErpProtocol(engine_name="numpy_exact"),
+            )
 
 
 class TestTheOneEnvironmentAdapter:
