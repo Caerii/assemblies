@@ -50,6 +50,7 @@ from .feedforward_inhibition import (
     FeedforwardInhibitionConfig,
     validate_feedforward_inhibition_capability,
 )
+from .projection_fidelity import validate_projection_fidelity_capability
 
 from .area import Area
 from .stimulus import Stimulus
@@ -184,6 +185,9 @@ class Brain:
                 f"got {type(engine)}"
             )
         owner_type = engine_type(engine) if isinstance(engine, str) else type(engine)
+        projection_fidelity = validate_projection_fidelity_capability(
+            owner_type, projection_fidelity
+        )
         supports_norm_init = bool(owner_type.supports_norm_init)
         if norm_init is None:
             norm_init = (
@@ -209,6 +213,7 @@ class Brain:
                 w_max=w_max,
                 homeostasis=homeostasis,
                 feedforward_inhibition=feedforward_inhibition,
+                projection_fidelity=projection_fidelity,
             )
         self.p = p
         self.w_max = w_max
@@ -281,8 +286,7 @@ class Brain:
         self._sampled_recurrence_policy = sampled_policy
         self.feedforward_inhibition = feedforward_inhibition
 
-        if hasattr(self._engine, "set_projection_fidelity"):
-            self._engine.set_projection_fidelity(projection_fidelity)
+        self._engine.set_projection_fidelity(projection_fidelity)
 
         # Secondary engine for explicit areas (lazily created)
         self._explicit_engine: ComputeEngine = None
@@ -392,6 +396,7 @@ class Brain:
 
     @projection_fidelity.setter
     def projection_fidelity(self, value: str) -> None:
+        value = validate_projection_fidelity_capability(type(self._engine), value)
         self._engine.set_projection_fidelity(value)
 
     @property

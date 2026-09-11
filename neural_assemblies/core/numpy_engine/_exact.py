@@ -455,6 +455,11 @@ class NumpyExactEngine(ComputeEngine):
                  norm_init: bool = False, inhibitory_prob: float = 0.0,
                  inhibitory_weight: float = -0.2, dtype=None,
                  **kwargs) -> None:
+        if "projection_fidelity" in kwargs:
+            from ..projection_fidelity import validate_projection_fidelity_capability
+            validate_projection_fidelity_capability(
+                type(self), kwargs.pop("projection_fidelity")
+            )
         _reject_unsupported("NumpyExactEngine()", self._UNSUPPORTED_INIT, kwargs)
         self.p = float(p)
         self.seed = int(seed)

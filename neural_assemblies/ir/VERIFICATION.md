@@ -932,6 +932,28 @@ unsupported Brain and factory requests never invoke an engine constructor. The
 exact engine exposes the canonical values it executes; the sampled engine has a
 specific rejection control.
 
+<a id="contract-projection-fidelity"></a>
+
+## Projection-fidelity admission
+
+`ProjectionFidelity.EXACT` and `ProjectionFidelity.COMPILED` select winner
+candidate topology; they do not identify the connectome model or certify
+scientific fidelity. Aliases normalize to one enum before engine construction.
+Exact is the universal default. Compiled selection is admitted only when an
+engine declares `supports_compiled_projection`; currently that is the sampled
+NumPy engine, whose compiled mode restricts top-k to existing columns under its
+documented freeze and materialization preconditions.
+
+Brain construction, Brain's runtime setter and `create_engine` all validate the
+same capability. The base engine setter rejects compiled selection, so a direct
+call on an incapable backend cannot become a no-op. When Brain adopts an existing
+engine, its normalized request must match the engine's current selection mode;
+adoption never silently rewrites this model choice.
+
+Controls require dense and exact Brains, the lower-level factory and a direct
+exact-engine setter to reject compiled selection. The capable path normalizes
+`fuzzy` to `compiled`, and an unknown runtime value leaves the prior mode intact.
+
 
 <a id="contract-backend-capability"></a>
 

@@ -2313,3 +2313,20 @@ its constructed null/treatment test moves recorded area drive from `+1000.0` to
 obligations. The focused CPU gate is 220 passed with one optional-engine skip;
 the maintained Torch CUDA gate is 9 passed. This is an early-error boundary and
 an exact-engine mechanism test, not a claim that sampled inhibition works.
+
+Projection fidelity had the same defect shape. The base setter explicitly said
+incapable engines ignored compiled requests, so dense/exact Brain construction
+and direct calls could claim `compiled` while executing exact selection. Factory
+and permissive-constructor routes could bypass the facade too. Engines now opt
+into `supports_compiled_projection`; only sampled NumPy does. A single normalizer
+and capability gate covers Brain construction and mutation, the factory, direct
+exact/Torch constructors, and supplied-engine identity. The base setter rejects
+compiled selection rather than swallowing it.
+
+The new IR contract keeps this selector narrow: it controls candidate topology
+under the sampled engine's freeze/materialization preconditions and says nothing
+about fixed-connectome fidelity. The complete compiled-training suite remains
+green (246 passed, 26 existing sampled-recurrence warnings, 170.59 seconds), and
+the final focused boundary/specification gate is 195 passed. Constructed
+incapable paths fail before construction or state mutation, while the capable
+`fuzzy` alias canonicalizes to `compiled` and restores correctly.

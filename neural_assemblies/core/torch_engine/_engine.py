@@ -126,6 +126,11 @@ class TorchSparseEngine(ComputeEngine):
     def __init__(self, p: float, seed: int = 0, w_max: float = 20.0,
                  deterministic: bool = False, gpu_sampling: bool = True,
                  **kwargs):
+        if "projection_fidelity" in kwargs:
+            from ..projection_fidelity import validate_projection_fidelity_capability
+            validate_projection_fidelity_capability(
+                type(self), kwargs.pop("projection_fidelity")
+            )
         if "inhibitory_prob" in kwargs or "inhibitory_weight" in kwargs:
             from ..feedforward_inhibition import (
                 FeedforwardInhibitionConfig,

@@ -71,7 +71,8 @@ class ComputeEngine(ABC):
     """
 
     def validate_brain_identity(
-        self, *, p, seed, w_max, homeostasis=None, feedforward_inhibition=None
+        self, *, p, seed, w_max, homeostasis=None, feedforward_inhibition=None,
+        projection_fidelity=None,
     ) -> None:
         """Specification: neural_assemblies/ir/VERIFICATION.md#contract-engine-identity
 
@@ -105,6 +106,15 @@ class ComputeEngine(ABC):
                     "pass matching settings"
                 )
 
+        if projection_fidelity is not None:
+            from .projection_fidelity import ProjectionFidelity
+            actual = ProjectionFidelity.normalize(self.get_projection_fidelity())
+            if actual is not projection_fidelity:
+                raise ValueError(
+                    "Brain projection fidelity conflicts with supplied engine; "
+                    "pass a matching selection mode"
+                )
+
     # -- Area / stimulus registration --
 
     supports_input_noise = False
@@ -116,6 +126,7 @@ class ComputeEngine(ABC):
     supports_synaptic_scaling = False
     supports_synaptic_scaling_deferred = False
     supports_feedforward_inhibition = False
+    supports_compiled_projection = False
 
     @abstractmethod
     def describe_model_semantics(self):
@@ -410,8 +421,11 @@ class ComputeEngine(ABC):
     def set_projection_fidelity(self, fidelity: str) -> None:
         """Set global projection fidelity (``exact`` or ``compiled``).
 
-        Engines that do not implement compiled topology ignore this call.
+        The default implementation accepts exact selection and rejects a
+        compiled request. Backends opt in only after implementing it.
         """
+        from .projection_fidelity import validate_projection_fidelity_capability
+        validate_projection_fidelity_capability(type(self), fidelity)
 
     def get_projection_fidelity(self) -> str:
         """Return global projection fidelity (default ``exact``)."""
@@ -631,4 +645,9 @@ def create_engine(engine_name: str, **kwargs) -> ComputeEngine:
         )
         inhibition = FeedforwardInhibitionConfig(**inhibition_options)
         validate_feedforward_inhibition_capability(resolved_type, inhibition)
+    if "projection_fidelity" in kwargs:
+        from .projection_fidelity import validate_projection_fidelity_capability
+        validate_projection_fidelity_capability(
+            resolved_type, kwargs["projection_fidelity"]
+        )
     return resolved_type(**kwargs)

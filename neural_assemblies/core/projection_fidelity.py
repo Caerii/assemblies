@@ -38,3 +38,16 @@ class ProjectionFidelity(str, Enum):
             f"Unknown projection fidelity {value!r}; "
             f"use {cls.EXACT.value!r} or {cls.COMPILED.value!r}",
         )
+
+
+def validate_projection_fidelity_capability(engine_type, fidelity) -> ProjectionFidelity:
+    """Specification: neural_assemblies/ir/VERIFICATION.md#contract-projection-fidelity"""
+    resolved = ProjectionFidelity.normalize(fidelity)
+    if resolved is ProjectionFidelity.COMPILED and not getattr(
+        engine_type, "supports_compiled_projection", False
+    ):
+        raise ValueError(
+            f"{engine_type.__name__} does not support compiled projection; "
+            "use exact selection or choose a capable engine"
+        )
+    return resolved

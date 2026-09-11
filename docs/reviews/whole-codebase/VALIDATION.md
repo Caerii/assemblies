@@ -3989,3 +3989,25 @@ specification and seeding tests pass (one optional-engine skip). The maintained
 Torch CUDA path passes all 9 scaling and rejection tests under
 `scripts/cuda-dev.cmd`. Ruff and whitespace checks pass. This validates exact
 signed drive and admission behavior; it supplies no sampled-backend parity claim.
+
+## Compiled projection cannot silently degrade to exact selection (2026-09-11)
+
+The base engine's projection-fidelity setter previously ignored every value.
+Consequently `Brain(projection_fidelity="compiled")` on dense or exact engines,
+and direct setters on those engines, continued with exact selection while the
+call site appeared to request compiled topology. `create_engine` and permissive
+exact/Torch constructor kwargs provided additional bypasses.
+
+`supports_compiled_projection` now names the capability, with only the sampled
+NumPy engine opted in. One validator normalizes aliases and gates Brain
+construction, runtime mutation, the engine factory and permissive direct
+constructors. The base setter accepts the universal exact mode and rejects
+compiled mode. An adopted engine must already match the Brain request, so
+adoption does not silently mutate a model choice. The implementation links to a
+stable Assembly IR contract that separates selection topology from connectome
+semantics and from scientific fidelity.
+
+Validation: the full compiled-training behavioral suite and its admission gates
+pass 246 tests in 170.59 seconds, with 26 existing sampled-recurrence warnings.
+The final focused model-boundary, engine-ladder, lazy-import and specification
+gate passes 195 tests. Ruff and whitespace checks pass.

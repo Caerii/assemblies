@@ -341,6 +341,7 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
     supports_refraction = True
     supports_fiber_learning_masks = True
     supports_sampled_recurrence_policy = True
+    supports_compiled_projection = True
 
     def __init__(self, p: float, seed: int = 0, w_max: float = 20.0,
                  deterministic: bool = False,
