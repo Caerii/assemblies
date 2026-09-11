@@ -79,6 +79,23 @@ def test_lean_module_links_its_contract(module, anchor):
             "to": f"neural_assemblies/ir/VERIFICATION.md#{anchor}"} in edges
 
 
+def test_every_lean_leaf_module_is_source_linked():
+    """Prevent proof files from becoming an untracked parallel specification.
+
+    ``AssemblyIR.lean`` is only the package import barrel; every leaf module
+    must name the executable contract it is intended to discharge.  This is
+    deliberately structural: a valid theorem in an unlinked file is still a
+    review and maintenance blind spot.
+    """
+    edges, errors = specification_links(ROOT)
+    assert not errors, errors
+    linked = {edge["from"] for edge in edges}
+    leaves = sorted((ROOT / "formal" / "AssemblyIR").glob("*.lean"))
+    expected = {f"formal/AssemblyIR/{path.name}:<module>" for path in leaves}
+    missing = sorted(expected - linked)
+    assert not missing, "unlinked Lean specification modules:\n" + "\n".join(missing)
+
+
 def test_dangling_lean_contract_is_rejected(tmp_path):
     formal = tmp_path / "formal" / "AssemblyIR"
     formal.mkdir(parents=True)

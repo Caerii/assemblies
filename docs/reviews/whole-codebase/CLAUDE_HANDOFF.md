@@ -2518,3 +2518,7 @@ tests pass.
 The index-space `.w` ratchet was updated after the migration: four retired
 reset implementations were removed from its baseline and incremental.py was
 lowered from five reads to one. Eight ratchet/type tests pass.
+
+Formal audit follow-up
+
+Lean lake build passes on the pinned toolchain. The source-link test now covers every formal/AssemblyIR leaf module, so new proof files cannot become disconnected from the executable IR contract. The Python specification-link gate passes 11 tests.

@@ -4318,3 +4318,9 @@ incremental parser by four reads. The baseline now reflects the live code, so
 future `.w` growth remains detectable.
 
 Validation: 8 index-space ratchet/type tests passed.
+
+## Formal source-link coverage
+
+The pinned Lean package was rebuilt with `formal\lake build`; all six AssemblyIR leaf modules compile and the printed theorem dependencies contain no `sorryAx`.
+The source-link ratchet now requires every leaf module under `formal/AssemblyIR` to carry a `Specification:` edge, rather than checking only a hand-maintained pair of module names.
+The focused specification-link gate passes 11 tests. This catches a disconnected proof file at review time; it does not claim that the Lean rules refine a Python, Rust or CUDA backend.
