@@ -2625,3 +2625,5 @@ Hardened the shared result adapter against path fragments. `results_path` and `w
 Migrated the S5 arc clip and drift diagnostics to `write_result`, removing direct overwrite-prone JSON writes while preserving their post-hoc payloads. Ruff now passes for both touched GPU scripts and the shared adapter.
 
 Migrated the tagged `seq_tm_high_order` and `seq_s5_soft_census_hashed` studies to the shared result writer. Tagged filenames remain configurable, but writes now use exclusive canonical JSON. Both scripts compile and pass Ruff.
+
+Migrated the S5 word-problem and state-refraction result helpers to the shared exclusive writer. Their payloads remain unchanged and their scripts compile and pass Ruff.

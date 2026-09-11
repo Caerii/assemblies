@@ -4743,3 +4743,7 @@ The S5 arc-clip and arc-drift diagnostics now write through the canonical result
 ## Tagged sequence writers (2026-09-11)
 
 The tagged high-order transition study and hashed S5 soft-census study now use `write_result`. Their tag remains part of the filename, while canonical JSON validation and exclusive creation are enforced centrally. This removes two active sequence overwrite paths without changing their measured payloads. Both scripts compile and pass Ruff.
+
+## Sequence study writer migration (2026-09-11)
+
+The S5 word-problem and state-refraction studies now route their result helpers through the canonical `write_result` boundary. Their GPU study payloads are unchanged, while output location and overwrite behavior are now consistent with the rest of the sequence line. Both scripts compile and pass Ruff.

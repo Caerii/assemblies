@@ -17,7 +17,6 @@ holds both.
 """
 from __future__ import annotations
 
-import json
 import os
 import random
 import sys
@@ -187,9 +186,8 @@ def main():
 
 
 def _write(out):
-    path = os.path.join(_HERE, "seq_state_refraction_results.json")
-    with open(path, "w") as fh:
-        json.dump(out, fh, indent=2)
+    from _results import write_result
+    path = write_result("sequence", "seq_state_refraction_results.json", out)
     print(f"\nwrote {path}")
 
 
