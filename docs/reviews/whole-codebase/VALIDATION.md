@@ -4607,3 +4607,7 @@ provenance signals.
 ## Explicit binding source (2026-09-11)
 
 `assembly_calculus.bind` now rejects an empty implicit source. Callers must provide a current snapshot, a stimulus, or an already-established nonempty live source assembly; otherwise the old path could train a target from no evidence and still return a plausible snapshot. The new negative control and the existing role-binding regression pass **4 tests**.
+
+## Binding area-name admission (2026-09-11)
+
+`recall` and `input_drive` now reject unknown source and target area names with `KeyError` instead of filtering them out and returning `None` or `{}`. This makes misspelled diagnostics fail at the boundary. Area-contract, drive, and pre-k-WTA regressions pass **18 tests**.

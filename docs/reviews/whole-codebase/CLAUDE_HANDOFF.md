@@ -2557,3 +2557,5 @@ Attention API failures now distinguish malformed snapshot types (TypeError) from
 Semantic-envelope and attention purity regression: 65 passed, 1 expected xfail. Model, organ, and materialization profile checks remain green; sampled recurrence warnings remain intentional.
 
 Binding now has an executable input contract: `bind` raises when neither a usable source snapshot/stimulus nor nonempty live source activity exists. This closes a silent no-op path that could return a target assembly trained from no source evidence. Focused input and role-binding regressions pass (4 tests).
+
+Binding diagnostics now preserve area-name semantics: `recall` and `input_drive` raise on unknown source/target names instead of silently dropping them. Focused area-contract, drive, and pre-k-WTA tests pass (18 tests).

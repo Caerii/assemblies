@@ -217,8 +217,13 @@ def recall(
     Set it False only when the retained state is deliberately part of what is
     being read.
     """
-    sources = [a for a in sources if a in brain.areas]
-    if not sources or target_area not in brain.areas:
+    sources = list(sources)
+    unknown = [a for a in sources if a not in brain.areas]
+    if unknown:
+        raise KeyError(f"recall source area(s) are unknown: {unknown!r}")
+    if target_area not in brain.areas:
+        raise KeyError(f"recall target area is unknown: {target_area!r}")
+    if not sources:
         return None
 
     _activate_all(brain, source_assemblies)
@@ -301,8 +306,14 @@ def input_drive(
     and any registered mutual inhibition resolves between them exactly as it
     would during normal operation.
     """
-    sources = [a for a in sources if a in brain.areas]
-    targets = [a for a in target_areas if a in brain.areas]
+    sources = list(sources)
+    targets = list(target_areas)
+    unknown_sources = [a for a in sources if a not in brain.areas]
+    unknown_targets = [a for a in targets if a not in brain.areas]
+    if unknown_sources:
+        raise KeyError(f"input_drive source area(s) are unknown: {unknown_sources!r}")
+    if unknown_targets:
+        raise KeyError(f"input_drive target area(s) are unknown: {unknown_targets!r}")
     if not sources or not targets:
         return {}
 
