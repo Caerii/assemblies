@@ -10,8 +10,11 @@ follow-up is a separate review checkpoint; nothing has merged to dev or master.
 
 ## Provenance to recover
 
-- **RATE-HETEROGENEITY:** evidence is an inline numerical assertion without an
-  identifiable script, run, engine or registration.
+- **RATE-HETEROGENEITY:** resolved on the review branch by the preregistered
+  `mechanism.per-fiber-plasticity` study. Its materialized NumPy artifact records
+  source, producer, seeds and complete raw blocks; the unclipped copied-fiber ratio
+  is 14.35x, with a label swap and equal-rate null. The old saturated inline number
+  remains unreproduced and has been retired as evidence.
 - **AC-CAP:** the capacity note lacks recovered run/engine provenance. Its other
   cited note discusses several explicit/materialized/sampled comparisons; that
   does not identify the run behind 1.15 n/k.

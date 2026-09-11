@@ -55,7 +55,7 @@ sections of the notes use variants.
 | Successor state | closed, negative | a state teacher-forced toward its next h words carries nothing across two distractors (+0.000 and +0.003 over a bigram) | [PREREG_successor_state.md](sequence/PREREG_successor_state.md) |
 | Temporal memory | adopted | with the previous arc as state and predicted neurons winning, the transducer carries agreement across two and three distractors (+0.149 and +0.106 over a bigram) and predicts order-10 sequences exactly inside the clip window | [PREREG_temporal_memory.md](sequence/PREREG_temporal_memory.md) |
 | Feature register | closed, not adopted | a category-gated slot carries 55% of the oracle gap (+0.118), needs the state beside it, and loses to the local-rule temporal memory (+0.148) on the same seeds | [PREREG_feature_register.md](sequence/PREREG_feature_register.md) |
-| Per-fiber plasticity | registered, pending | causal materialized test of the public beta route with copied fibers, a label swap, an equal-rate null and an unclipped bar | [PREREG_per_fiber_plasticity.md](memory/PREREG_per_fiber_plasticity.md) |
+| Per-fiber plasticity | measured | copied materialized fibers at beta .06 and .005 diverge 14.35x without clipping; the label swap reproduces it and the equal-rate null stays 1.0 | [PREREG_per_fiber_plasticity.md](memory/PREREG_per_fiber_plasticity.md) |
 
 ## Refracted memory
 

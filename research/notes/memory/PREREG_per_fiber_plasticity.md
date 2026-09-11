@@ -102,3 +102,26 @@ areas owned by `Brain(engine="numpy_explicit")`; `explicit=True` means an auxili
 engine inside another primary backend. The protocol now names the public route and
 the engine's canonical identifier `numpy_explicit`. No parameter, bar or seed
 changed.
+
+## Results (2026-09-10)
+
+The exact twenty-seed study passed all seven predeclared checks. The immutable
+[run artifact](../../results/runs/mechanism.per-fiber-plasticity/per-fiber-plasticity-20260910/results.json)
+records source commit `70d386a`, the canonical `numpy_explicit` engine, parameters,
+seeds 201..220, summaries and complete raw selected blocks in a digest-bound gzip
+attachment.
+
+The fast rate produced geometric mean weight 18.4201012 and the slow rate
+1.2832253, a ratio of 14.3545340 [14.3545340, 14.3545340]. Swapping which source
+received the fast rate produced the same ratio and exactly the same target winner
+history in every seed. The equal-rate null was exactly 1.0. The largest selected
+weight was 18.4201012, strictly below `w_max=20`, and both rate-specific weights
+matched their predeclared multiplicative formulas within tolerance. The raw-block
+recomputation reproduced every stored per-seed mean, present-edge count, maximum
+and history comparison.
+
+This resolves the old entry's producer, engine, seed and clipping gaps for the
+materialized NumPy mechanism. The original beta 0.5 versus 0.01 saturated number
+remains unreproduced and is retired as evidence. The controlled result shows that
+the public route selects a fiber-specific multiplicative rate; it does not show a
+learning-quality advantage or establish equivalent semantics on another backend.

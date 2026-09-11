@@ -656,22 +656,28 @@ _RESULTS: List[Result] = [
 
     Result(
         id="RATE-HETEROGENEITY",
-        engine="UNRECORDED: evidence contains numbers but no identifiable run or engine",
+        engine="numpy_explicit (materialized copied-fiber protocol)",
         status=Status.MEASURED,
-        claim="Learning rate is settable PER FIBER and genuinely bites: two "
-              "fibers into the same area, driven by the same projections, "
-              "diverge by more than an order of magnitude in weight.",
+        claim="Learning rate is settable PER FIBER: copied fibers with identical "
+              "pre/post activity at beta 0.06 and 0.005 diverge 14.35-fold after "
+              "50 updates without reaching the weight clip.",
         source="This repository.",
-        evidence=("beta=0.5 vs beta=0.01 into one target over 10 rounds: max "
-                  "weight 20.000 (at the w_max clamp) vs 1.094",),
-        provenance_gap="no identified producer, result artifact, seed inventory, or engine",
-        implemented_by=("neural_assemblies.core.brain.Brain.update_plasticity",),
-        caveat="The numerical evidence has no identified run or engine; provenance "
-               "must be recovered before adopting it as a reproduced measurement. "
-               "Density is NOT yet settable per fiber on the production engine "
-               "-- see [[SEQ-ORGAN-EMBEDS]]. And a fast fiber saturates against "
-               "w_max, so 'fast' has a ceiling that 'slow' does not: an A/B "
-               "across rates is confounded unless w_max is checked.",
+        evidence=("20 seeds: fast geometric mean 18.4201012, slow 1.2832253, "
+                  "ratio 14.3545340; swapped labels reproduce the ratio, equal-beta "
+                  "null is 1.0, and maximum weight 18.4201012 is below w_max=20",),
+        evidence_refs=(
+            EvidenceRef("research/notes/memory/PREREG_per_fiber_plasticity.md", "registration"),
+            EvidenceRef("research/experiments/per_fiber_plasticity.py", "producer"),
+            EvidenceRef("research/results/runs/mechanism.per-fiber-plasticity/per-fiber-plasticity-20260910/results.json", "artifact"),
+        ),
+        implemented_by=("neural_assemblies.core.brain.Brain.update_plasticity",
+                        "research.experiments.per_fiber_plasticity"),
+        caveat="This isolates the multiplicative rate on copied materialized NumPy "
+               "fibers; it does not measure assembly quality or biological "
+               "heterogeneity, and it does not establish sampled or hashed backend "
+               "equivalence. Near-zero intervals reflect the controlled arithmetic, "
+               "not population certainty. The old saturated beta=0.5 number remains "
+               "unreproduced and is not evidence for this entry.",
     ),
 
     # ------------------------------------------------------------- extensions

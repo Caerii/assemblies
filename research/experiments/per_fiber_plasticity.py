@@ -46,7 +46,10 @@ def _digest(array: np.ndarray) -> str:
 def _geometric_mean(values: np.ndarray) -> float:
     if values.size == 0 or not np.isfinite(values).all() or np.any(values <= 0):
         raise ValueError("geometric mean requires finite positive present-edge weights")
-    return float(np.exp(np.mean(np.log(values.astype(np.float64)))))
+    logs = np.log(values.astype(np.float64))
+    # This is an edge-set statistic inside one brain, not an ensemble over
+    # seeds. Seed-level uncertainty is added separately by `_summary`.
+    return float(np.exp(logs.sum() / logs.size))
 
 
 def run_seed(seed: int, config: dict) -> tuple[dict, dict]:

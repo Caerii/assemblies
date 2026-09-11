@@ -2985,3 +2985,25 @@ reject missing, escaping and unsupported evidence references, require every meas
 entry to have a typed edge or explicit gap, and fail stale rendering.10 register
 tests pass; Ruff and diff checks pass. This is file-graph validity, not retroactive
 validation of legacy numerical methods; each stated gap remains work.
+
+## Per-fiber plasticity provenance and validation (2026-09-10)
+
+The `RATE-HETEROGENEITY` inline assertion had no producer, engine, seeds or artifact
+and reached the weight clip. A replacement protocol was committed at `ff3b004`, then
+amended before implementation at `7b963a3` only to name the canonical public
+materialized route. Its implementation and frozen bars were committed at `70d386a`
+before the registered study ran.
+
+The schema-5 `numpy_explicit` artifact contains twenty seeds, source archive,
+summaries and a digest-bound raw-fiber attachment. Independent recomputation of all
+raw selected blocks reproduces every per-seed geometric mean, present-edge count,
+maximum and history comparison. All seven bars pass: beta .06 gives 18.4201012,
+beta .005 gives 1.2832253, their ratio is 14.3545340 in both label directions, the
+equal-rate null is 1.0, target histories match, formulas match within tolerance and
+the maximum remains below the clip at 20.
+
+The public update route now rejects unknown endpoints and boolean, negative, NaN or
+infinite beta before either beta store changes. Bulk schedules preflight all entries
+before applying the first.25 focused mechanism/specification tests pass and each
+constructed measurement corruption fails its named check. This establishes the
+materialized NumPy rate-routing mechanism, not learning quality or backend parity.

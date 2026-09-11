@@ -19,7 +19,7 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 | [`REFRACTION-ANTI-MERGING`](#refraction-anti-merging) | MEASURED | hashed AssemblyMemory; materialized numpy_sparse mirror with summed stimulus parts (not an identical stimulus protocol) | A recurrent k-WTA area refracted at HALF beta and read with the refraction bias MASKED holds ~25x the Hebbian ceiling: at n/k = 67 M* ~ 1600-2200 stored assemblies against 64-89 for the control, x34-38 at n/k = 33, >= x13-16 at n/k = 133 (censored). |
 | [`REFRACTION-CANCELS-CONVERGENCE`](#refraction-cancels-convergence) | MEASURED | hashed substrate (HashedArea with AreaFiber/StimulusFiber) | [RE-MEASURED 2026-09-04 with the selector fixed (1b475fc): the churn above ~0.75 beta stands; the intermediate-strength rows were a selector artefact -- at 0.5 beta the recurrent assembly converges, relocates once when the clip binds (~round 40-60, the registered P2 prediction) and holds; at 0.7 beta most brains no longer converge. |
 | [`AC-CAP`](#ac-cap) | MEASURED | incompletely recorded: graded-similarity evidence compares explicit, materialized and sampled numpy_sparse; capacity-note run provenance remains unresolved | Assembly capacity is EXTENSIVE: about M_max ~ 1.15 n/k distinct assemblies per area. |
-| [`RATE-HETEROGENEITY`](#rate-heterogeneity) | MEASURED | UNRECORDED: evidence contains numbers but no identifiable run or engine | Learning rate is settable PER FIBER and genuinely bites: two fibers into the same area, driven by the same projections, diverge by more than an order of magnitude in weight. |
+| [`RATE-HETEROGENEITY`](#rate-heterogeneity) | MEASURED | numpy_explicit (materialized copied-fiber protocol) | Learning rate is settable PER FIBER: copied fibers with identical pre/post activity at beta 0.06 and 0.005 diverge 14.35-fold after 50 updates without reaching the weight clip. |
 | [`DUAL-RATE`](#dual-rate) | EXTENSION | Not an empirical entry | Running fast and slow pathways at once is FUNCTIONALLY useful: a high-beta fiber binds in one shot (episodic) while a low-beta fiber accumulates statistics (semantic), and a system with both does something neither does alone. |
 | [`SEQ-ORGAN-EMBEDS`](#seq-organ-embeds) | MEASURED | numpy_sparse (original organ-density experiment; sampled-arc provenance limitation) | A sequence organ runs at its own regime INSIDE a brain whose ambient density is far lower, given per-fiber p. |
 | [`SEQ-STATE-CODE-EMERGENT`](#seq-state-code-emergent) | EXTENSION | Not an empirical entry | The state alphabet can be INDUCED from data rather than assigned. |
@@ -355,18 +355,21 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 
 **Status.** MEASURED. **Source.** This repository.
 
-**Engine / substrate.** UNRECORDED: evidence contains numbers but no identifiable run or engine
+**Engine / substrate.** numpy_explicit (materialized copied-fiber protocol)
 
-**Claim.** Learning rate is settable PER FIBER and genuinely bites: two fibers into the same area, driven by the same projections, diverge by more than an order of magnitude in weight.
+**Claim.** Learning rate is settable PER FIBER: copied fibers with identical pre/post activity at beta 0.06 and 0.005 diverge 14.35-fold after 50 updates without reaching the weight clip.
 
 **Evidence.**
-- beta=0.5 vs beta=0.01 into one target over 10 rounds: max weight 20.000 (at the w_max clamp) vs 1.094
+- 20 seeds: fast geometric mean 18.4201012, slow 1.2832253, ratio 14.3545340; swapped labels reproduce the ratio, equal-beta null is 1.0, and maximum weight 18.4201012 is below w_max=20
 
-**Provenance gap.** no identified producer, result artifact, seed inventory, or engine
+**Evidence files.**
+- [research/notes/memory/PREREG_per_fiber_plasticity.md](../research/notes/memory/PREREG_per_fiber_plasticity.md) (registration)
+- [research/experiments/per_fiber_plasticity.py](../research/experiments/per_fiber_plasticity.py) (producer)
+- [research/results/runs/mechanism.per-fiber-plasticity/per-fiber-plasticity-20260910/results.json](../research/results/runs/mechanism.per-fiber-plasticity/per-fiber-plasticity-20260910/results.json) (artifact)
 
-**Used by.** `neural_assemblies.core.brain.Brain.update_plasticity`
+**Used by.** `neural_assemblies.core.brain.Brain.update_plasticity`; `research.experiments.per_fiber_plasticity`
 
-**Caveat.** The numerical evidence has no identified run or engine; provenance must be recovered before adopting it as a reproduced measurement. Density is NOT yet settable per fiber on the production engine -- see [[SEQ-ORGAN-EMBEDS]]. And a fast fiber saturates against w_max, so 'fast' has a ceiling that 'slow' does not: an A/B across rates is confounded unless w_max is checked.
+**Caveat.** This isolates the multiplicative rate on copied materialized NumPy fibers; it does not measure assembly quality or biological heterogeneity, and it does not establish sampled or hashed backend equivalence. Near-zero intervals reflect the controlled arithmetic, not population certainty. The old saturated beta=0.5 number remains unreproduced and is not evidence for this entry.
 
 ## DUAL-RATE
 

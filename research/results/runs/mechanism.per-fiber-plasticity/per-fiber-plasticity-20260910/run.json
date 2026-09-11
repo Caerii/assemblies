@@ -1,0 +1,84 @@
+{
+  "engine": "numpy_explicit",
+  "environment": {
+    "policy": "repository-environment-v1",
+    "variables_sha256": {}
+  },
+  "git_commit": "70d386af422e469bafe9afca709ca85b21f7855e",
+  "input_artifacts": {},
+  "mode": "study",
+  "parameters": {
+    "default_beta": 0.005,
+    "equal_tolerance": 1e-06,
+    "expected_relative_tolerance": 2e-05,
+    "fast_beta": 0.06,
+    "k": 10,
+    "n": 80,
+    "p": 0.2,
+    "rates": {
+      "equal": {
+        "A": 0.005,
+        "B": 0.005
+      },
+      "forward": {
+        "A": 0.06,
+        "B": 0.005
+      },
+      "swapped": {
+        "A": 0.005,
+        "B": 0.06
+      }
+    },
+    "ratio_low": 10.0,
+    "rounds": 50,
+    "slow_beta": 0.005,
+    "sources": [
+      "A",
+      "B"
+    ],
+    "targets": [
+      "forward",
+      "swapped",
+      "equal"
+    ],
+    "w_max": 20.0
+  },
+  "protocol": "mechanism.per-fiber-plasticity",
+  "protocol_version": "1",
+  "registration": "research/notes/memory/PREREG_per_fiber_plasticity.md",
+  "registration_sha256": "c043f3b4b3c790094cb2f797782c8f569269368af495487be36ce27c4ca00720",
+  "schema_version": 5,
+  "scientific_status": "UNJUDGED",
+  "script": "research/experiments/per_fiber_plasticity.py",
+  "script_sha256": "9e6106f32cd8ff96f344ece3c93585a1fed6a648bb5525519f2da847d2bac4bc",
+  "seeds": [
+    201,
+    202,
+    203,
+    204,
+    205,
+    206,
+    207,
+    208,
+    209,
+    210,
+    211,
+    212,
+    213,
+    214,
+    215,
+    216,
+    217,
+    218,
+    219,
+    220
+  ],
+  "source_archive": {
+    "file": "source.zip",
+    "sha256": "4b010221b55d54573d3dbbf8b47e4450eb4a742498cf3b6fecdebd8146547257"
+  },
+  "source_inventory": "source-inputs-v3",
+  "source_sha256": "29d51b2f2a11b1bea20e842fd077c0aa382f0c00d495bad74c98e21b1d3e59ab",
+  "started_utc": "2026-09-11T03:39:56.315794+00:00",
+  "tag": "per-fiber-plasticity-20260910"
+}
