@@ -695,12 +695,42 @@ COMPLETION_CONTRACT = OperationContract(
 )
 
 
+ORDERED_RECALL_CONTRACT = OperationContract(
+    operation_id="ordered-recall-v1",
+    specification=(
+        "docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-transition-machine"
+    ),
+    plan_type=OrderedRecallPlan,
+    inputs=(
+        "brain", "area", "cue", "max_steps", "known_assemblies",
+        "convergence_threshold", "rounds_per_step", "novelty_threshold",
+    ),
+    reads=("cue stimulus", "area winners", "recurrent weights", "refractory state"),
+    mutates=("area winners", "refractory state", "engine history"),
+    regime=("registered area and cue", "positive refractory period", "ordered learned transitions"),
+    observed_outcome=("ordered neuron-ID assembly snapshots", "explicit termination at cycle, novelty, or budget"),
+    failure_conditions=(
+        "invalid schedule", "unknown area or cue", "refractory period disabled",
+        "malformed reference assemblies", "backend projection rejection",
+    ),
+    constructed_controls=(
+        "neural_assemblies/tests/test_operation_contract_objects.py::"
+        "test_ordered_recall_plan_requires_lri",
+    ),
+    true_negative_controls=(
+        "neural_assemblies/tests/test_operation_contract_objects.py::"
+        "test_ordered_recall_plan_requires_lri",
+    ),
+)
+
+
 OPERATION_CONTRACTS = MappingProxyType({
     "projection": PROJECTION_CONTRACT,
     "reciprocal_projection": RECIPROCAL_PROJECTION_CONTRACT,
     "association": ASSOCIATION_CONTRACT,
     "merge": MERGE_CONTRACT,
     "pattern_completion": COMPLETION_CONTRACT,
+    "ordered_recall": ORDERED_RECALL_CONTRACT,
 })
 
 

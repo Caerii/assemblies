@@ -63,6 +63,7 @@ import numpy as np
 from .assembly import Assembly, overlap
 from .contracts import (
     ASSOCIATION_CONTRACT, COMPLETION_CONTRACT, MERGE_CONTRACT,
+    ORDERED_RECALL_CONTRACT,
     PROJECTION_CONTRACT, RECIPROCAL_PROJECTION_CONTRACT, AssociationPlan,
     CompletionPlan, MergePlan, ProjectionPlan, ReciprocalProjectionPlan,
     OrderedRecallPlan,
@@ -1075,6 +1076,7 @@ def sequence_memorize(brain, stimuli, target, rounds_per_step=10,
     return Sequence(area=target, assemblies=assemblies)
 
 
+@implements(ORDERED_RECALL_CONTRACT)
 def ordered_recall(brain, area, cue, max_steps=20,
                    known_assemblies=None, convergence_threshold=0.9,
                    rounds_per_step=1, *, novelty_threshold=0.3) -> Sequence:

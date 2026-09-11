@@ -2637,3 +2637,5 @@ Migrated recurrent-ratchet and refraction-stability sequence studies to the shar
 Migrated S5 bar-tie, cliff-anatomy, and memory-channel diagnostics to the shared exclusive result writer. Scientific payloads and bar logic remain unchanged. Removed three latent Ruff issues found in cliff anatomy.
 
 Migrated organ-substrate, scaling-merger-forensics, and substrate-ceiling studies to the shared exclusive result writer. Their scientific payloads and bar calculations remain unchanged. All three scripts compile and pass Ruff.
+
+Registered ordered recall as a first-class executable operation contract. The frozen `OrderedRecallPlan` now governs the public operation through `ORDERED_RECALL_CONTRACT`, including LRI regime and a true-negative preflight test. Operation-contract tests pass (150 tests); Ruff is clean.

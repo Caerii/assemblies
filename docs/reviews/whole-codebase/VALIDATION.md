@@ -4767,3 +4767,7 @@ The S5 bar-tie, cliff-anatomy, and memory-channel diagnostics now use the shared
 ## Substrate and scaling writer migration (2026-09-11)
 
 The organ-substrate, scaling-merger-forensics, and substrate-ceiling studies now use the canonical exclusive result writer. Their multi-arm payloads and bar logic are unchanged, while direct overwrite-prone JSON writes are removed. All three scripts compile and pass Ruff.
+
+## Ordered recall contract registration (2026-09-11)
+
+Sequence recall is now a first-class `ORDERED_RECALL_CONTRACT` attached to `ordered_recall` and included in `OPERATION_CONTRACTS`. It reuses the frozen `OrderedRecallPlan`, names LRI and termination semantics, and links an executable no-LRI true negative. The operation-contract suite passes **150 tests**; Ruff is clean.

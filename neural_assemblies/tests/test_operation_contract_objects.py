@@ -12,12 +12,15 @@ import pytest
 
 from neural_assemblies.assembly_calculus.contracts import (
     ASSOCIATION_CONTRACT, COMPLETION_CONTRACT, MERGE_CONTRACT,
+    ORDERED_RECALL_CONTRACT,
     OPERATION_CONTRACTS, PROJECTION_CONTRACT, RECIPROCAL_PROJECTION_CONTRACT,
-    AssociationPlan, CompletionPlan, MergePlan, PreparedCompletion,
+    AssociationPlan, CompletionPlan, MergePlan, OrderedRecallPlan,
+    PreparedCompletion,
     ProjectionPlan, ReciprocalProjectionPlan,
 )
 from neural_assemblies.assembly_calculus.ops import (
-    associate, merge, pattern_complete, project, reciprocal_project,
+    associate, merge, ordered_recall, pattern_complete, project,
+    reciprocal_project,
 )
 from neural_assemblies.assembly_calculus.tracing import snapshot_area
 from neural_assemblies.core.brain import Brain
@@ -43,6 +46,15 @@ class RecordingReciprocalBrain:
 
     def project(self, stimuli, fibers):
         self.calls.append((stimuli, fibers))
+
+
+def test_ordered_recall_plan_requires_lri():
+    brain = SimpleNamespace(
+        areas={"A": SimpleNamespace(refractory_period=0)},
+        stimuli={"cue": object()},
+    )
+    with pytest.raises(ValueError, match="refractory_period > 0"):
+        OrderedRecallPlan("A", "cue").preflight(brain)
 
 
 @pytest.mark.parametrize("rounds", [0, -1, True, 1.5])
@@ -330,6 +342,10 @@ def test_merge_preflight_rejects_a_source_state_that_contradicts_its_mode(
     (
         "pattern_completion", pattern_complete,
         COMPLETION_CONTRACT, CompletionPlan,
+    ),
+    (
+        "ordered_recall", ordered_recall,
+        ORDERED_RECALL_CONTRACT, OrderedRecallPlan,
     ),
 ])
 def test_public_operation_carries_the_registered_contract(
