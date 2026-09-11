@@ -4070,3 +4070,18 @@ Validation: 215 focused admission, identity, constructor, lazy-import and
 specification tests pass. The CUDA developer shell passes 41 Torch scaling,
 parity and batched-next-token tests, with two existing PyTorch sparse warnings.
 Ruff and whitespace checks pass.
+
+## Weight normalization is an admitted mutation (2026-09-11)
+
+The shared engine fallback for `normalize_weights` was a silent no-op. Exact and
+dense NumPy engines have no mutable weight storage for this operation, so they
+now reject it explicitly. Sparse NumPy keeps the operation live without
+densifying its CSR pattern; the new column-normalization primitive mutates the
+stored data in place. The operation contract is linked from the engine method
+and records that scientific suitability of a normalization schedule remains a
+protocol question.
+
+Validation: 22 focused normalization, CSR-storage and specification-link tests
+pass. Ruff and whitespace checks pass. The test caught and fixed a latent sparse
+normalization bug: the implementation assumed dense-array `sum` and division,
+which would either fail on CSR storage or densify it.

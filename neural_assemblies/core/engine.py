@@ -405,12 +405,17 @@ class ComputeEngine(ABC):
         """
 
     def normalize_weights(self, target: str, source: str = None) -> None:
-        """Column-normalize weights into *target* so each neuron sums to 1.0.
+        """Specification: neural_assemblies/ir/VERIFICATION.md#contract-weight-normalization
 
-        If *source* is given, only that connection is normalized.
-        Otherwise all connections into *target* are normalized.
-        Default is a no-op.
+        Column-normalize weights into *target* so each neuron sums to 1.0.
+        If *source* is given, only that connection is normalized. Otherwise all
+        connections into *target* are normalized. Engines without mutable weight
+        storage must reject the operation; a silent no-op cannot certify a
+        normalization intervention.
         """
+        raise NotImplementedError(
+            f"{type(self).__name__} does not implement weight normalization"
+        )
 
     def reset_area_connections(self, area: str) -> None:
         """Reset all area->area connections involving *area* to initial state.

@@ -2204,3 +2204,17 @@ paths also fail validation. A sensitivity gap keeps a legacy claim visible but d
 not satisfy the evidence. A retained contrast establishes instrument movement under
 the named control; scientific interpretation still depends on the registration,
 protocol, regime and result caveats.
+
+
+<a id="contract-weight-normalization"></a>
+### Weight-normalization mutation
+
+`normalize_weights(target, source)` is a live weight mutation, not an acknowledgement
+that normalization would be desirable. An engine may expose it only when it owns
+mutable connection storage and can normalize every selected source-to-target
+connection. Engines with fixed or regenerated connectomes must reject the operation
+with `NotImplementedError`; they must not return a successful no-op. Sparse NumPy
+and Torch implementations normalize their stored weights and invalidate cached
+drive state. The contract is exercised by negative exact/dense calls and a positive
+sparse mutation test. This contract says nothing about whether a particular
+normalization schedule is scientifically appropriate for a registered experiment.

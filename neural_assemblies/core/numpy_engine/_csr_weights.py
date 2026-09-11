@@ -150,6 +150,13 @@ class CSRWeights:
             out = out[:col_end]
         return out.astype(np.float32, copy=False)
 
+    def sum(self, axis=None, keepdims=False):
+        """Array-compatible reduction used by maintenance operations."""
+        out = np.asarray(self._m.sum(axis=axis))
+        if keepdims and axis is None and out.ndim == 0:
+            out = out.reshape((1, 1))
+        return out
+
     def column_nnz(self):
         """Per-column nonzero counts, for ``_deg_counts``.
 
@@ -158,6 +165,17 @@ class CSRWeights:
         """
         return np.bincount(self._m.indices,
                            minlength=self._m.shape[1]).astype(np.int64)
+
+    def normalize_columns(self, eps=1e-8):
+        """Normalize stored columns in place without densifying the block.
+
+        The fixed sparsity pattern is part of this storage type's invariant;
+        callers must not implement normalization as ``self / sums`` because
+        NumPy would first materialize the full matrix.
+        """
+        sums = np.asarray(self._m.sum(axis=0)).ravel()
+        scales = 1.0 / np.maximum(sums, eps)
+        self._m.data *= scales[self._m.indices].astype(np.float32, copy=False)
 
     def submatrix(self, rows, cols):
         """Dense ``self[np.ix_(rows, cols)]``. Small: winners x winners."""

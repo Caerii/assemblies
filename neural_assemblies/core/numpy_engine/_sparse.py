@@ -2738,6 +2738,9 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
 
         def _norm_conn(conn):
             w = conn.weights
+            if isinstance(w, CSRWeights):
+                w.normalize_columns(eps)
+                return
             if w.ndim == 2 and w.size > 0:
                 col_sums = w.sum(axis=0, keepdims=True)
                 col_sums = xp.maximum(col_sums, eps)

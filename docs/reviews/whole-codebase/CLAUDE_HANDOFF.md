@@ -2370,3 +2370,16 @@ CPU gate is 215 passed, and the CUDA shell passes 41 scaling/parity/batched-toke
 tests with only the two existing PyTorch sparse warnings. `readonly` remains
 inference state governed by `Brain.read_only()` rather than a construction model
 option.
+
+The next false receipt was the base `ComputeEngine.normalize_weights` body: exact
+and dense NumPy inherited a successful no-op. It now raises `NotImplementedError`
+with a source-linked IR contract when an engine cannot mutate persistent weights.
+Sparse NumPy gained a CSR-native `normalize_columns` operation so normalization
+does not accidentally densify the fixed pattern. The focused gate is 22 passed;
+the test exposed and closed the latent `CSRWeights.sum`/dense-division mismatch.
+
+This slice is deliberately narrow. It does not claim normalization is a good
+scientific protocol, and it leaves intentional no-op clearing/preallocation
+hooks for a separate capability audit. The next likely boundary is replacing
+the base preallocation hook plus `hasattr` checks with an explicit capability,
+so unsupported preparation cannot be mistaken for completed work.
