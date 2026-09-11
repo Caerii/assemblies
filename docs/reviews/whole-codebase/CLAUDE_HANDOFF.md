@@ -2605,3 +2605,5 @@ Sequence recall now validates the domain of optional `known_assemblies` in both 
 `sequence_memorize` now requires an explicit ordered collection of stimulus names; scalar strings and noniterables fail before mutation. Focused sequence contract and behavior tests pass (28 tests).
 
 The scaffolded sequence wrapper now shares the sequence boundary discipline: it preflights inputs and schedule before creating auxiliary topology, preventing partial mutation on invalid stimuli. Focused scaffold and sequence tests pass (23 tests).
+
+Scaffold Phase-B beta boosts are now exception-safe for both recurrent loops. Injected projection failures restore the original main and auxiliary beta settings; focused scaffold and sequence tests pass (24 tests).

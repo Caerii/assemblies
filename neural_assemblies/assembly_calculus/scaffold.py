@@ -121,15 +121,17 @@ def _train_scaffold_step(
         main_beta, aux_beta = main.beta, aux.beta
         brain.update_plasticity(main_area, main_area, beta_boost)
         brain.update_plasticity(scaffold_area, scaffold_area, beta_boost)
-    for _ in range(recur_rounds):
-        brain.project({stim: [main_area]}, {})
-        brain.project({}, {scaffold_area: [main_area]})
-        brain.project({}, {main_area: [scaffold_area]})
-        brain.project({}, {main_area: [main_area]})
-        brain.project({}, {scaffold_area: [scaffold_area]})
-    if beta_boost is not None:
-        brain.update_plasticity(main_area, main_area, main_beta)
-        brain.update_plasticity(scaffold_area, scaffold_area, aux_beta)
+    try:
+        for _ in range(recur_rounds):
+            brain.project({stim: [main_area]}, {})
+            brain.project({}, {scaffold_area: [main_area]})
+            brain.project({}, {main_area: [scaffold_area]})
+            brain.project({}, {main_area: [main_area]})
+            brain.project({}, {scaffold_area: [scaffold_area]})
+    finally:
+        if beta_boost is not None:
+            brain.update_plasticity(main_area, main_area, main_beta)
+            brain.update_plasticity(scaffold_area, scaffold_area, aux_beta)
 
 
 class ScaffoldNetwork:

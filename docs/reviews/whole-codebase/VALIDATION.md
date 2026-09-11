@@ -4703,3 +4703,7 @@ All maintained traced calculus entry points now carry explicit `Specification:` 
 ## Scaffold sequence admission (2026-09-11)
 
 `sequence_memorize_scaffold` now validates the complete ordered input and schedule before adding an auxiliary area. Scalar stimuli, unknown names, empty sequences, and invalid ratios/budgets/boosts fail without changing topology. Scaffold and sequence tests pass **23 tests**.
+
+## Exception-safe scaffold plasticity (2026-09-11)
+
+`_train_scaffold_step` now restores both main and auxiliary recurrent beta values in a `finally` block. A failure during the five-step coupled Phase B cannot contaminate later scaffold experiments. Scaffold beta, scaffold input, and sequence tests pass **24 tests**.
