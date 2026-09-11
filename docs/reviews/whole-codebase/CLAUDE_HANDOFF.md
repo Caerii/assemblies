@@ -2461,3 +2461,8 @@ The owner negative test found a second issue: explicit areas could receive the
 same beta/connectivity write twice because the explicit mirror was also the
 resolved owner. Identity-guarded mirroring now enforces one write per owner;
 15 owner/per-fiber tests pass.
+
+The uniqueness guard then caught a real sparse ring allocator collision. Ring
+slots were assigning sequential IDs into a mapping whose earlier IDs came from
+a randomized pool. They now consume the pool too; the compiled-bridge
+sampling regression is green.

@@ -1913,9 +1913,21 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
                     if slot_idx < ring_capacity:
                         new_winner_indices[i] = slot_idx
                         while len(tgt.compact_to_neuron_id) <= slot_idx:
-                            tgt.compact_to_neuron_id.append(
-                                len(tgt.compact_to_neuron_id),
-                            )
+                            # Ring slots still need stable, globally unique
+                            # neuron IDs.  Using ``len(mapping)`` here can
+                            # collide with the randomized pool IDs already
+                            # assigned to earlier slots, producing duplicate
+                            # Assembly IDs and invalid snapshots.
+                            if tgt.neuron_id_pool is not None:
+                                pid = tgt.neuron_id_pool_ptr
+                                if pid >= len(tgt.neuron_id_pool):
+                                    raise RuntimeError(
+                                        f"Neuron id pool exhausted for area {tgt.name}")
+                                actual_id = int(tgt.neuron_id_pool[pid])
+                                tgt.neuron_id_pool_ptr += 1
+                            else:
+                                actual_id = len(tgt.compact_to_neuron_id)
+                            tgt.compact_to_neuron_id.append(actual_id)
                         ring_slot += 1
                         continue
                 # Un-normalize: connectome expansion splits an INTEGER synapse

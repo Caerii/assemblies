@@ -4218,3 +4218,12 @@ before mirroring, preserving one mutation per authoritative owner.
 Validation: 15 owner and per-fiber-plasticity tests passed, including the
 explicit-owner duplicate-write negative control. Ruff and whitespace checks
 pass.
+
+The stricter Assembly uniqueness boundary exposed a ring-growth defect in the
+sparse engine: newly created ring slots used sequential IDs that could collide
+with randomized IDs already assigned from the area's pool. Ring allocation now
+uses that same pool, preserving unique stable IDs across compiled context
+training.
+
+Validation: the compiled-bridge sampling regression passes, along with ruff and
+whitespace checks. The test emits only the existing sampled-recurrence warning.
