@@ -160,6 +160,25 @@ Code: `ops.py:merge`.
 - **Control:** disable back_project for parent-recovery claims; remove one parent
   for conjunction claims. A single beta-zero null does not answer both.
 
+<a id="contract-separation"></a>
+
+## D: separation measurement
+
+Code: `ops.py:separate`, `contracts.py:SeparationPlan`.
+
+- **Reads:** two registered stimulus fibers and one target area with its current
+  recurrent state.
+- **Schedule:** project stimulus A to the target, reset only the target's
+  recurrent connections, then project stimulus B with the same round budget.
+- **Mutates:** target winners and recurrent weights; the reset is deliberately
+  destructive and must not be interpreted as a biological learning rule.
+- **Readout:** immutable neuron-ID snapshots for A and B plus normalized overlap.
+- **D1:** this isolates order-dependent attractor carryover; it does not measure
+  capacity, long-term retention, or robustness to noise.
+- **Control:** identical stimuli, unknown topology, and invalid rounds fail
+  before the first projection; a matched beta-zero arm is required for any
+  learning claim.
+
 <a id="contract-completion"></a>
 
 ## C: completion

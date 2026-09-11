@@ -4807,3 +4807,7 @@ The specification-link test now requires `sequence_memorize`, `ordered_recall`, 
 ## Contract export manifest consistency (2026-09-11)
 
 The assembly-calculus `__all__` manifest now includes every operation plan and contract, including separation and both sequence contracts, without duplicate declarations in the operation section. Wildcard import validation resolves all **104** exported names; Ruff is clean.
+
+## Separation semantic card completion (2026-09-11)
+
+Added the missing `contract-separation` semantic card required by `SeparationPlan` and `SEPARATION_CONTRACT`. It records the destructive recurrent-reset schedule, output meaning, scope limits, and true-negative/null controls. Specification-link and operation-contract tests pass **169 tests**.
