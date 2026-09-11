@@ -2269,3 +2269,43 @@ changed, and this boundary refactor does not require a new scientific study.
 Final combined boundary/summary/historical-replay/specification/two-ratchet checks:
 74 passed in 85.12s. Ruff on the aggregate and its tests, plus git diff --check,
 passed. No full-package or new GPU-gate claim is made for this checkpoint.
+
+
+## Historical projection measurement repair (2026-09-10)
+
+Code-derived card covers H1-H4 and distinguishes learning-on persistence,
+A-driven B regeneration, and pre-evaluation recurrent-weight inspection. H4's
+area.connectomes branch was unreachable, yielding constant weight_ratio=1.0.
+Three source-177dbbc probes confirmed this before edits. The corrected observable
+reads the shared brain.connectomes[A][A].weights and averages all selected pairs
+and all matrix entries, including absent edges. Invalid/zero-mean inputs raise;
+there is no constant fallback. Removed the unjustified t-test against ratio 1.
+
+Development checks at n60,k6,p.2,3 training/3 evaluation rounds, seeds1/2/3:
+beta0 ratios [.8645533,2.0920502,1.5736767]; beta.1 ratios
+[1.7282993,2.3113765,2.4782795]. These illustrate why selected-neuron weights do
+not have universal beta-zero mean ratio 1; they are not preregistered science.
+Changing B corruption to either disjoint six-neuron set leaves the H3 observation
+unchanged, consistent with its exclusively A-driven readout. It is not completion.
+
+Before edits, captured fifteen development fixtures from 177dbbc under
+neural_assemblies/tests/data/historical_projection_trials.jsonl. Replay preserves
+all projections, winner trajectories, final weight hashes and primary/area owners.
+Only H4's formerly dead ratio changes; it matches an independent scalar sum over
+weights captured before evaluation. Other returned trial measurements match.
+Unknown training modes now fail before constructing a brain. All four constructors
+explicitly pin numpy_sparse; actual area owner remains numpy_explicit.
+
+Initial replay/measurement checks: 27 passed in 2.12s. Ruff found one unused
+preexisting List import, removed. The broader check had 61 passes and one stale
+ratchet allowance: four unpinned constructors were now zero. Removed that resolved
+allowance rather than relaxing the ratchet. Added projection replay to contract CI.
+
+Full projection runner migration remains open: hardcoded grids/schedules, discarded
+per-seed observations, convergence timeout ambiguity, and absent run provenance.
+No historical scientific artifact was repaired or retroactively reinterpreted;
+its H4 constant values remain invalid as weight evidence. No backend code changed.
+
+After lowering the stale allowance, the final projection/replay/measurement and
+methodology-ratchet run passed 31 tests in 12.74s. Specification/index-space and
+aggregate tests had passed in the broader run above. Ruff and diff checks pass.

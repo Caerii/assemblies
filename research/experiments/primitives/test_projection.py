@@ -15,7 +15,8 @@ Protocol:
 
 The stim+self protocol trains both the stimulus->A pathway and the A->A
 self-connectome. The autonomous persistence test measures whether the
-self-connectome alone can maintain the assembly as a fixed-point attractor.
+self-connectome can retain activity while learning continues. This does not
+establish a frozen fixed-point attractor.
 
 Hypotheses:
 
@@ -30,12 +31,13 @@ H2: Stim+self vs stim-only training -- Stim+self (which trains the
     Null: persistence is independent of training mode.
 
 H3: Cross-area fidelity -- Train A via stim+self, then project A->B.
-    The projected assembly in B should faithfully represent A.
+    This is A-driven regeneration of B while learning, not autonomous completion.
     Null: recovery equals chance k/n.
 
 H4: Weight dynamics vs training rounds -- How do self-connectome
     weights and persistence evolve with training duration?
-    Null: weight ratio equals 1.0 (no Hebbian effect).
+    Descriptive ratio only: selection of active neurons invalidates 1.0 as
+    a universal beta-zero null. The former constant-1 probe was defective.
 
 Statistical methodology:
 - N_SEEDS=10 independent random seeds per condition.
@@ -57,7 +59,7 @@ sys.path.insert(0, str(project_root))
 
 import numpy as np
 from dataclasses import dataclass
-from typing import Dict, List, Any
+from typing import Dict, Any
 from scipy import stats
 
 from research.experiments.base import (
@@ -97,7 +99,7 @@ def run_convergence_trial(
     """
     Train stim+self with convergence detection, then test autonomous persistence.
     """
-    b = Brain(p=cfg.p, seed=seed, w_max=cfg.w_max)
+    b = Brain(p=cfg.p, seed=seed, w_max=cfg.w_max, engine="numpy_sparse")
     b.add_area("A", cfg.n, cfg.k, cfg.beta, explicit=True)
     b.add_stimulus("s", cfg.k)
 
@@ -133,7 +135,9 @@ def run_training_mode_trial(
     cfg: ProjConfig, seed: int, mode: str,
 ) -> float:
     """Train in stim_self or stim_only mode, then test autonomous persistence."""
-    b = Brain(p=cfg.p, seed=seed, w_max=cfg.w_max)
+    if mode not in ("stim_self", "stim_only"):
+        raise ValueError("training mode must be stim_self or stim_only")
+    b = Brain(p=cfg.p, seed=seed, w_max=cfg.w_max, engine="numpy_sparse")
     b.add_area("A", cfg.n, cfg.k, cfg.beta, explicit=True)
     b.add_stimulus("s", cfg.k)
 
@@ -154,8 +158,11 @@ def run_training_mode_trial(
 def run_crossarea_trial(
     cfg: ProjConfig, seed: int,
 ) -> float:
-    """Train A, project A->B, corrupt B, recover, measure fidelity."""
-    b = Brain(p=cfg.p, seed=seed, w_max=cfg.w_max)
+    """A-driven regeneration while learning; B corruption is not a recovery cue.
+
+    Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#historical-projection-measurement
+    """
+    b = Brain(p=cfg.p, seed=seed, w_max=cfg.w_max, engine="numpy_sparse")
     b.add_area("A", cfg.n, cfg.k, cfg.beta, explicit=True)
     b.add_area("B", cfg.n, cfg.k, cfg.beta, explicit=True)
     b.add_stimulus("s", cfg.k)
@@ -180,12 +187,37 @@ def run_crossarea_trial(
     return measure_overlap(trained_b, np.array(b.areas["B"].winners, dtype=np.uint32))
 
 
+def recurrent_weight_ratio(weights, winners) -> float:
+    """Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#historical-projection-measurement
+
+    Includes absent edges (zeros); this descriptive selection ratio is not a
+    beta-zero null or an estimate of learning alone.
+    """
+    matrix = np.asarray(weights)
+    indices = np.asarray(winners)
+    if matrix.ndim != 2 or matrix.shape[0] != matrix.shape[1] or not matrix.size:
+        raise ValueError("recurrent weights must be a nonempty square matrix")
+    if not np.issubdtype(matrix.dtype, np.number) or np.iscomplexobj(matrix):
+        raise ValueError("recurrent weights must be real numeric values")
+    if not np.isfinite(matrix).all() or (matrix < 0).any():
+        raise ValueError("recurrent weights must be finite and nonnegative")
+    if (indices.ndim != 1 or not indices.size or
+            not np.issubdtype(indices.dtype, np.integer) or
+            len(np.unique(indices)) != len(indices) or
+            (indices < 0).any() or (indices >= len(matrix)).any()):
+        raise ValueError("winners must be unique in-range integer indices")
+    mean_all = float(np.mean(matrix, dtype=np.float64))
+    if mean_all == 0:
+        raise ValueError("weight ratio is undefined for a zero-mean connectome")
+    return float(np.mean(matrix[np.ix_(indices, indices)], dtype=np.float64) / mean_all)
+
+
 def run_weight_dynamics_trial(
     n: int, k: int, p: float, beta: float, w_max: float,
     train_rounds: int, test_rounds: int, seed: int,
 ) -> Dict[str, float]:
     """Measure weight ratio and persistence after T training rounds."""
-    b = Brain(p=p, seed=seed, w_max=w_max)
+    b = Brain(p=p, seed=seed, w_max=w_max, engine="numpy_sparse")
     b.add_area("A", n, k, beta, explicit=True)
     b.add_stimulus("s", k)
 
@@ -194,23 +226,8 @@ def run_weight_dynamics_trial(
 
     trained = np.array(b.areas["A"].winners, dtype=np.uint32)
 
-    # Weight ratio: mean intra-assembly weight / mean all weights
-    area = b.areas["A"]
-    if hasattr(area, 'connectomes') and "A" in area.connectomes:
-        conn = area.connectomes["A"]
-        winners_set = set(trained.tolist())
-        intra_weights = []
-        all_weights = []
-        for i in range(min(n, conn.shape[0])):
-            for j in range(min(n, conn.shape[1])):
-                w = conn[i, j]
-                all_weights.append(w)
-                if i in winners_set and j in winners_set:
-                    intra_weights.append(w)
-        weight_ratio = (np.mean(intra_weights) / np.mean(all_weights)
-                        if all_weights and intra_weights else 1.0)
-    else:
-        weight_ratio = 1.0
+    # Measure before autonomous evaluation mutates weights again.
+    weight_ratio = recurrent_weight_ratio(b.connectomes["A"]["A"].weights, trained)
 
     # Autonomous persistence
     for _ in range(test_rounds):
@@ -390,7 +407,7 @@ class ProjectionExperiment(ExperimentBase):
                 "train_rounds": t_rounds,
                 "weight_ratio": summarize(wr_vals),
                 "persistence": summarize(p_vals),
-                "test_ratio_vs_1": ttest_vs_null(wr_vals, 1.0),
+                "weight_ratio_interpretation": "descriptive; no registered learning null",
             }
             h4_results.append(row)
 

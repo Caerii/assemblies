@@ -883,3 +883,40 @@ keyword capture, not trial algorithms, defaults, random draws or schedules. The
 inventory remains intentionally inadmissible until the six calls are migrated
 under source-linked protocol records and replay checks. Successful preflight
 alone grants no scientific PASS, provenance or seed-count guarantee.
+
+
+<a id="historical-projection-measurement"></a>
+### Historical projection measurement (2026-09-10)
+
+Source: research/experiments/primitives/test_projection.py, all four trial helpers
+and ProjectionExperiment.run. Default primary backend resolves numpy_sparse;
+explicit=True areas are owned by numpy_explicit. Every evaluation phase continues
+Hebbian learning. None is a frozen readout or proof of a fixed-point attractor.
+
+H1 trains stimulus+self until three successive overlaps exceed .98, or 100 rounds.
+Its convergence_time conflates timeout with convergence on the last round. It then
+runs 20 self-only rounds with learning and measures overlap with the trained set.
+H2 compares 30 stimulus+self rounds against 30 stimulus-only rounds, then uses the
+same learning-on autonomous persistence schedule. Historically every unknown mode
+string silently selected stimulus-only. H3 establishes A, then repeatedly updates A
+from stimulus and B from A. Randomizing B before repeating this schedule does not
+supply a partial cue: no B-source fiber is projected. Its result is A-driven B
+regeneration while learning, not B autonomous completion or representational fidelity.
+
+H4 trains stimulus+self for T rounds and intends to inspect pre-evaluation recurrent
+weights, then measures learning-on persistence. The old implementation checks
+area.connectomes, which does not exist, and always returns weight_ratio=1.0. Three
+source-177dbbc probes reproduced that dead branch. Read the actual shared dense
+brain.connectomes[A][A].weights instead. The ratio includes zeros in both means:
+mean W over selected source/target pairs divided by mean W over the entire matrix.
+Use the pre-evaluation winners and reject missing/invalid/zero-mean measurement
+inputs, never substitute 1. This ratio is selection-biased: beta=0 does NOT imply
+an expected ratio of 1. The previous test against 1 is not a justified learning null.
+
+The outer study hardcodes H1/H3 size grids, H4 round grid and default schedules,
+uses base_seed+offset, summarizes away raw observations, and lacks run provenance.
+These must be migrated separately; the obsolete aggregate grid is not its protocol.
+This correction changes H4's dead observable but preserves all trial projections,
+winner trajectories and final weights. Fifteen pre-change development fixtures
+cover three seeds and five schedules; old ratio=1 values are retained as evidence
+of the defect, not accepted as the corrected measurement's expected answer.

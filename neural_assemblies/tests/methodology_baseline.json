@@ -189,7 +189,6 @@
     "research/experiments/primitives/test_merge.py": 2,
     "research/experiments/primitives/test_merge_association.py": 3,
     "research/experiments/primitives/test_prediction_n400.py": 1,
-    "research/experiments/primitives/test_projection.py": 4,
     "research/experiments/primitives/test_role_self_organization.py": 1,
     "research/experiments/projection_idempotence.py": 1,
     "research/experiments/recurrent_assembly_decay.py": 1,

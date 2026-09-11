@@ -52,3 +52,11 @@ remaining legacy producers now reject unknown keywords directly as well.
 full paths now fail at the producer boundary. Its full protocol migration remains
 open. Individual explicit producer arguments remain supported, but execution alone
 does not establish provenance or scientific adoption.
+
+
+The historical projection study's H4 weight-ratio probe was corrected after
+177dbbc: earlier constant-1 outputs came from a missing-attribute fallback and are
+not weight measurements. Its H3 readout is A-driven regeneration while learning,
+not autonomous completion of a corrupted B cue. See the source-linked
+[measurement card](../../docs/reviews/whole-codebase/SEMANTIC_CARDS.md#historical-projection-measurement)
+before interpreting this study; shared-runner migration remains pending.

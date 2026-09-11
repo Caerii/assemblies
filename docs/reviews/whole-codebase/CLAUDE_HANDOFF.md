@@ -1295,3 +1295,13 @@ signatures. The eight declared calls/order are preserved as one inventory. This
 exposes previously ignored grids; it does not constitute their protocol migration.
 The separate primitives/run_all.py has the same obsolete caller issue, now stopped
 at the producer boundary. See VALIDATION.md#legacy-experiment-configuration-preflight-2026-09-10.
+
+
+## Projection dead weight probe (2026-09-10)
+
+H4 always returned 1 because area.connectomes does not exist. It now measures the
+actual pre-evaluation recurrent matrix; the test against 1 was removed because
+selection already biases beta-zero ratios. Fifteen source-177dbbc replay cases
+preserve trajectories and weights. H3 is documented/tested as A-driven regeneration,
+not cue recovery; all evaluation phases still learn. Full projection protocol
+migration remains open. See VALIDATION.md#historical-projection-measurement-repair-2026-09-10.
