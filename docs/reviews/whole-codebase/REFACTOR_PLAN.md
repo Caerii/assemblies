@@ -50,11 +50,11 @@ identity is the issue, not an undocumented change.
   Compact-to-neuron conversion and public activation reject invalid indices.
   Public injected winners and supervision validate index spaces before mutation.
   Complete owned-index migration and full model-semantics configuration remain open.
-- Projection and reciprocal projection now have first-class immutable plans and
+- Projection, reciprocal projection and association now have first-class immutable plans and
   discoverable operation contracts naming inputs, reads, mutations, regimes,
   observations, failure conditions and constructed controls. Their public
-  functions execute the inspected step sequences. Association, merge and
-  completion still require equivalent plan migrations.
+  functions execute the inspected step sequences. Merge and completion still
+  require equivalent plan migrations.
 - The CPU teaching example trains with recurrence on a fixed connectome, probes
   without learning, and includes a learning-disabled control across paired seeds.
 - Real-data MNIST goldens refuse synthetic substitution. Missing expected golden

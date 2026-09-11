@@ -263,6 +263,29 @@ schedule identity and mechanism sensitivity for that control; it does not turn a
 target snapshot into evidence of autonomous bidirectional recall or settle the
 fixed-target plasticity policy across backends.
 
+## Association plan resolution (2026-09-11)
+
+`AssociationPlan` resolves A2 by admitting either two active fixed sources or two
+distinct named source stimuli. A one-sided or aliased stimulus pair now fails during construction
+instead of silently leaving both sources evolving. Three distinct area names,
+positive pathway rounds and nonnegative joint rounds are validated before
+topology; absent areas, absent stimuli and empty fixed sources then reject before
+the first clamp or backend mutation. Zero joint rounds remains the explicit
+no-coactivation control.
+
+The immutable steps retain the original working schedule: each source trains its
+pathway sequentially, target recurrence begins on the second step of each pathway,
+and the joint phase includes target recurrence from its first step. Stimulus-driven
+sources retain their self-edges; fixed sources do not need them. The obsolete
+imperative `_associate_body` is removed.
+
+Migration tests reconstruct that helper for both source protocols on all three
+NumPy engines and compare all areas' stable and compact winners, recruitment,
+owned RNG, clamp restoration and the next read-only observation. The linked
+coactivation sweep distinguishes zero, registered and excessive joint training.
+This preserves A1: the operation returns a candidate target snapshot; an
+association claim still requires the separately cued before/after measurement.
+
 <a id="contract-read-only"></a>
 
 ## Read-only observation: executable obligations

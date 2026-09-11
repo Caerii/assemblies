@@ -3361,3 +3361,35 @@ calls and the linked control's sensitivity. They do not certify autonomous
 bidirectional recall from the returned target snapshot, nor do they establish a
 general equivalence of fixed-target plasticity across engines. Association, merge
 and completion remain unmigrated operation schedules.
+
+## Association becomes an inspectable plan (2026-09-11)
+
+`AssociationPlan` replaces the imperative `_associate_body` with one frozen value
+covering both sequential pathway phases and the joint phase. It admits either two
+active fixed sources or two registered source stimuli. One-sided stimulus input,
+aliased areas, invalid pathway or coactivation counts, missing topology and empty
+fixed sources all reject before a clamp or backend call. Zero coactivation rounds
+remains valid as the constructed null.
+
+Migration comparisons reconstruct the removed helper for both source protocols on
+all three NumPy engines. They agree on all three areas' stable and compact winners,
+recruitment, owned RNG, clamp restoration and a subsequent read-only target
+observation. The contract-object suite reports 74 passed. The association-focused
+semantic, calculus, parity and conformance selection reports 17 passed; the larger
+related operation selection reports 62 passed and 4 optional-reference skips.
+The CUDA-initialized Torch parity suite reports 27 passed.
+
+The downstream slow ventral suite then exposed a separate fake-perfect path:
+`test_empirical_gap_hierarchical_vs_recurrent` compared two
+`synthetic_fallback` results, both at 1.0 accuracy, as if they were an empirical
+MNIST architecture gap. That comparison had no defined evidence value. It and the
+full evidence ladder now call the repository's real-MNIST gate before any model
+construction. With the CSV files absent, both skip in 0.52 seconds and state that
+synthetic data is an API fixture rather than golden evidence. The localization run
+had 7 passes before the old assertion failed after 494.48 seconds; it was stopped
+after identifying that defect and is not represented as a complete slow-suite run.
+
+This checkpoint establishes schedule identity and rejects the formerly ambiguous
+mixed-source mode. The returned target remains a candidate representation; the
+linked coactivation sweep supplies the measured operation control. Merge and
+completion remain unmigrated.

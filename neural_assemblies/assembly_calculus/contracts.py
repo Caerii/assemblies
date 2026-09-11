@@ -117,6 +117,110 @@ class ReciprocalProjectionPlan:
 
 
 @dataclass(frozen=True)
+class AssociationPlan:
+    """Validated sequential-pathway and joint-coactivation schedule."""
+
+    source_a: str
+    source_b: str
+    target: str
+    stim_a: str | None = None
+    stim_b: str | None = None
+    rounds: int = 10
+    cofire_rounds: int | None = None
+
+    def __post_init__(self) -> None:
+        names = (
+            ("source_a", self.source_a),
+            ("source_b", self.source_b),
+            ("target", self.target),
+        )
+        for label, value in names:
+            _require_name(label, value)
+        if len({value for _, value in names}) != len(names):
+            raise ValueError("association requires three distinct areas")
+        if (self.stim_a is None) != (self.stim_b is None):
+            raise ValueError("association stimuli must be both present or both absent")
+        for label, value in (("stim_a", self.stim_a), ("stim_b", self.stim_b)):
+            if value is not None:
+                _require_name(label, value)
+        if self.stim_a is not None and self.stim_a == self.stim_b:
+            raise ValueError("association requires distinct source stimuli")
+        rounds = _positive_rounds(self.rounds)
+        cofire = rounds if self.cofire_rounds is None else self.cofire_rounds
+        if (
+            isinstance(cofire, bool)
+            or not isinstance(cofire, Integral)
+            or cofire < 0
+        ):
+            raise ValueError("cofire_rounds must be a nonnegative integer or None")
+        object.__setattr__(self, "rounds", rounds)
+        object.__setattr__(self, "cofire_rounds", int(cofire))
+
+    @property
+    def fix_sources(self) -> bool:
+        return self.stim_a is None
+
+    def _single_source_steps(
+        self, source: str, stimulus: str | None,
+    ) -> tuple[ProjectionStep, ...]:
+        stimuli = ((stimulus, (source,)),) if stimulus is not None else ()
+        source_targets = (self.target,) if self.fix_sources else (source, self.target)
+        steps = []
+        for index in range(self.rounds):
+            fibers = ((source, source_targets),)
+            if index:
+                fibers += ((self.target, (self.target,)),)
+            steps.append(ProjectionStep(stimuli=stimuli, fibers=fibers))
+        return tuple(steps)
+
+    @property
+    def steps(self) -> tuple[ProjectionStep, ...]:
+        joint_stimuli = () if self.fix_sources else (
+            (self.stim_a, (self.source_a,)),
+            (self.stim_b, (self.source_b,)),
+        )
+        source_a_targets = (
+            (self.target,) if self.fix_sources else (self.source_a, self.target)
+        )
+        source_b_targets = (
+            (self.target,) if self.fix_sources else (self.source_b, self.target)
+        )
+        joint = ProjectionStep(
+            stimuli=joint_stimuli,
+            fibers=(
+                (self.source_a, source_a_targets),
+                (self.source_b, source_b_targets),
+                (self.target, (self.target,)),
+            ),
+        )
+        return (
+            self._single_source_steps(self.source_a, self.stim_a)
+            + self._single_source_steps(self.source_b, self.stim_b)
+            + (joint,) * self.cofire_rounds
+        )
+
+    def preflight(self, brain) -> None:
+        for name in (self.source_a, self.source_b, self.target):
+            if name not in brain.areas:
+                raise IndexError(f"Not in brain.areas: {name}")
+        for stimulus in (self.stim_a, self.stim_b):
+            if stimulus is not None and stimulus not in brain.stimuli:
+                raise IndexError(f"Not in brain.stimuli: {stimulus}")
+        if self.fix_sources:
+            empty = [
+                name for name in (self.source_a, self.source_b)
+                if len(brain.areas[name].winners) == 0
+            ]
+            if empty:
+                raise ValueError(f"association requires active fixed sources: {empty}")
+
+    def execute_steps(self, brain) -> None:
+        self.preflight(brain)
+        for step in self.steps:
+            brain.project(step.stimuli_dict(), step.fibers_dict())
+
+
+@dataclass(frozen=True)
 class OperationContract:
     """Reviewable scientific surface attached to an executable operation."""
 
@@ -210,9 +314,39 @@ RECIPROCAL_PROJECTION_CONTRACT = OperationContract(
 )
 
 
+ASSOCIATION_CONTRACT = OperationContract(
+    operation_id="association-v1",
+    specification="docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-association",
+    plan_type=AssociationPlan,
+    inputs=(
+        "brain", "source_a", "source_b", "target", "stim_a", "stim_b",
+        "rounds", "cofire_rounds",
+    ),
+    reads=("source winners", "optional source stimuli", "pathway weights"),
+    mutates=("target winners", "participating weights", "engine history", "clamps"),
+    regime=(
+        "three distinct registered areas",
+        "two distinct registered stimuli or two active fixed sources",
+    ),
+    observed_outcome=("final jointly-driven target neuron-ID snapshot",),
+    failure_conditions=(
+        "invalid phase schedule",
+        "partial stimulus specification",
+        "unknown topology",
+        "empty fixed source",
+        "backend projection rejection",
+    ),
+    constructed_controls=(
+        "neural_assemblies/tests/test_ac_conformance.py::"
+        "test_association_grows_with_coactivation",
+    ),
+)
+
+
 OPERATION_CONTRACTS = MappingProxyType({
     "projection": PROJECTION_CONTRACT,
     "reciprocal_projection": RECIPROCAL_PROJECTION_CONTRACT,
+    "association": ASSOCIATION_CONTRACT,
 })
 
 

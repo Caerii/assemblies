@@ -4,6 +4,9 @@ from __future__ import annotations
 
 import pytest
 
+from neural_assemblies.programs.colt_mnist_data import (
+    DatasetUnavailable, require_mnist_dir,
+)
 from neural_assemblies.programs.colt_mnist_tier_util import clear_ventral_bundle_cache
 from neural_assemblies.programs.colt_mnist_evidence import run_evidence_suite
 from neural_assemblies.programs.colt_mnist_hierarchical import run_colt_mnist_hierarchical
@@ -36,6 +39,13 @@ pytestmark = pytest.mark.slow
 
 
 N = 10  # fast smoke budget; full ladder uses n=50 in colt_mnist_evidence CLI
+
+
+def _require_real_mnist_evidence() -> None:
+    try:
+        require_mnist_dir()
+    except DatasetUnavailable as exc:
+        pytest.skip(str(exc))
 
 
 @pytest.fixture(scope="module", autouse=True)
@@ -105,6 +115,7 @@ def test_cross_domain_vision_language_hub(smoke_kw):
 
 def test_empirical_gap_hierarchical_vs_recurrent():
     """Structural gap is clearest at n=50 (see colt_mnist_ventral_theory)."""
+    _require_real_mnist_evidence()
     kw = dict(seed=42, n_examples=50)
     simple = run_colt_mnist_hierarchical(**kw)
     ventral = run_ventral_stream_mnist(**kw)
@@ -209,6 +220,7 @@ def test_theory_registry_covers_experiments():
 
 @pytest.mark.slow
 def test_evidence_suite_full_ladder():
+    _require_real_mnist_evidence()
     report = run_evidence_suite(seed=42, n_examples=50)
     assert len(report.rows) >= 10
     assert report.hypothesis_checks["H1_recurrent_beats_simple_hierarchical"]

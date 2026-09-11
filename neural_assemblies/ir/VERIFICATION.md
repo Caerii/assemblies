@@ -238,7 +238,7 @@ Empty surfaces reject during contract construction. The public implementation
 carries the exact object as `operation_contract`, and the read-only
 `OPERATION_CONTRACTS` registry provides discovery without importing research prose.
 
-Projection and reciprocal projection are the first migrated operations.
+Projection, reciprocal projection and association are the first migrated operations.
 `ProjectionPlan` validates nonempty
 names, a positive integral round count and an explicit Boolean recurrence choice,
 then freezes the full ordered `ProjectionStep` sequence. Execution validates the
@@ -261,9 +261,23 @@ compact winners, recruitment, owned RNG state, and a subsequent read-only
 observation. The reciprocal comparison reconstructs the former forward/return
 schedule and checks both areas by the same criteria. The recurrent-learning and
 learning-disabled round-trip controls remain the behavioral negatives named by
-the two contracts. Association, merge and completion still need their own immutable
-plan types and contract objects; neither migrated object is evidence for their
-schedules or scientific outcomes.
+the first two contracts.
+
+`AssociationPlan` admits exactly two source protocols: two active assemblies
+borrowed as fixed sources, or two distinct named stimuli that keep both sources
+evolving. A partial stimulus pair rejects rather than silently changing both
+source dynamics. Its three area names must be distinct. Pathway rounds are
+positive; joint coactivation rounds are independently nonnegative, preserving
+zero as the constructed no-coactivation control. The plan freezes both sequential
+pathway phases and the joint phase, including exactly where target and source
+recurrence begins.
+
+Association migration comparisons cover both source protocols on all three NumPy
+engines. They reconstruct the removed imperative helper and compare all three
+areas' stable and compact winners, recruitment, owned RNG, clamp restoration and
+the next read-only observation. Merge and completion still need their own immutable
+plan types and contract objects; migrated schedule identity is not evidence for
+their scientific outcomes.
 
 
 ## Repetition shares the ordinary transition boundary

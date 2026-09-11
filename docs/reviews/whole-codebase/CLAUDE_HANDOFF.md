@@ -1817,3 +1817,26 @@ Contract construction now also refuses mutable plans and mutable, blank or
 duplicate scientific surfaces. Association, merge and completion remain next;
 this checkpoint is schedule equivalence and early rejection, not a new scientific
 result or proof of autonomous bidirectional recall.
+
+## Association is now an inspectable operation value (2026-09-11)
+
+`AssociationPlan` freezes both sequential source phases and the joint phase. It
+admits exactly the two coherent historical modes: two active fixed sources, or two
+registered stimuli with evolving sources. Partial stimulus pairs, aliased areas,
+bad phase counts, missing topology and empty fixed sources reject before clamp or
+backend mutation. The removed `_associate_body` had about 75 lines of imperative
+schedule code; the schedule now has one composable representation.
+
+Both modes reproduce the removed helper on all three NumPy engines, including all
+areas' stable/compact winners, recruitment, owned RNG, clamp restoration and the
+next read-only observation. Contract objects are 74 passed; association-focused
+conformance is 17 passed; the broader related operation selection is 62 passed
+with 4 optional-reference skips; CUDA-initialized Torch parity is 27 passed.
+
+The slow ventral consumer audit caught a separate methodological failure: an
+empirical architecture-gap test used synthetic fallback for both sides, obtained
+two perfect 1.0 scores and asserted a real-data gap. It and the full evidence
+ladder now require the real MNIST CSVs before computation; absent data yields two
+explicit skips in 0.52 seconds. The localization run reached 7 passes and that
+failure in 494.48 seconds, then stopped. Merge and completion remain the operation
+contract migrations; this change does not adopt a new association result.

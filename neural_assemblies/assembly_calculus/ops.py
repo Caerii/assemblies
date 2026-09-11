@@ -62,8 +62,8 @@ import numpy as np
 
 from .assembly import Assembly, overlap
 from .contracts import (
-    PROJECTION_CONTRACT, RECIPROCAL_PROJECTION_CONTRACT, ProjectionPlan,
-    ReciprocalProjectionPlan, implements,
+    ASSOCIATION_CONTRACT, PROJECTION_CONTRACT, RECIPROCAL_PROJECTION_CONTRACT,
+    AssociationPlan, ProjectionPlan, ReciprocalProjectionPlan, implements,
 )
 from ..core.index_spaces import NeuronIds, to_neuron_ids, validated_indices
 
@@ -568,6 +568,7 @@ def consolidate_pair(
 # Composite operations
 # ---------------------------------------------------------------------------
 
+@implements(ASSOCIATION_CONTRACT)
 def associate(brain, source_a, source_b, target,
               stim_a=None, stim_b=None, rounds=10, *,
               cofire_rounds=None) -> Assembly:
@@ -580,95 +581,23 @@ def associate(brain, source_a, source_b, target,
     no-coactivation control. Excessive joint training can collapse the two
     pathways into one representation, so the schedule is part of the claim.
 
-    ``stim_a`` and ``stim_b`` drive their respective sources when provided.
-    If both are absent, source clamps are scoped and restored. Providing only
-    one stimulus leaves both sources unclamped; do not assume the other is held.
+    ``stim_a`` and ``stim_b`` drive their respective sources when both are
+    provided. If both are absent, source clamps are scoped and restored. A
+    partial stimulus pair is rejected before mutation because it names neither
+    of those two protocols.
 
     Return the final joint neuron-ID Assembly. No before/after singly-cued
     comparison is performed; this function alone does not measure association.
     """
-    use_fix = (stim_a is None and stim_b is None)
-    with _fixed_sources(brain, *((source_a, source_b) if use_fix else ())):
-        _associate_body(
-            brain, source_a, source_b, target, stim_a, stim_b, rounds, use_fix,
-            cofire_rounds,
-        )
+    plan = AssociationPlan(
+        source_a, source_b, target, stim_a, stim_b, rounds, cofire_rounds,
+    )
+    plan.preflight(brain)
+    fixed = (source_a, source_b) if plan.fix_sources else ()
+    with _fixed_sources(brain, *fixed):
+        plan.execute_steps(brain)
 
     return _snap(brain, target)
-
-
-def _associate_body(brain, source_a, source_b, target,
-                    stim_a, stim_b, rounds, use_fix, cofire_rounds=None):
-    """Projection phases for :func:`associate`; see it for the contract.
-
-    NO ``project_rounds`` FAST PATH HERE, and that is the fix for association
-    rather than an optimisation given up. Its fast path filters
-    ``dst_areas_by_src_area`` with ``a != target`` unless
-    ``Brain(recurrent_projection=True)``, so the ``target: [target]`` entry
-    every phase below passes it was SILENTLY DROPPED -- the argument was
-    accepted and discarded. An assembly is defined by its strengthened internal
-    weights ([COIN24] §2), so removing target recurrence removes the thing being
-    built, and the co-fired winners of phase 3 never consolidate.
-
-    MEASURED at n=1e4, k=100, p=0.05, beta=0.1, rounds=10, over 5 seeds, as
-    post-association overlap between the assembly cued by source_a alone and the
-    one cued by source_b alone (the claim as PNAS20 states it, against a chance
-    of 0.0100):
-
-        fixed sources, via project_rounds     0.0100  ->  1.0x chance
-        fixed sources, explicit projections   0.1840  -> 18.4x chance
-        stimulus-driven sources (unchanged)   0.2160  -> 21.6x chance
-
-    So ``associate`` did nothing at all whenever it was called WITHOUT stimuli,
-    which is the default and what the conformance test uses. The stimulus path
-    worked only because it had already been written as explicit projections and
-    therefore kept its recurrence -- the two branches were not two spellings of
-    one protocol, one of them was broken.
-
-    The previous note here claimed the branches differed only by "the
-    source_a -> source_a fiber" and that "winners are unaffected". Both were
-    wrong: the winners differed completely, and the recurrence was the reason.
-
-    The remaining asymmetry IS principled and is kept: a fixed source needs no
-    self-recurrence because its winners cannot move, while a stimulus-driven
-    source needs it to hold its assembly across rounds.
-    """
-    def _phase(stim_dict, src_dsts, rounds_):
-        """One phase: feed-forward round, then rounds_-1 with target recurrence."""
-        for i in range(max(1, rounds_)):
-            dsts = dict(src_dsts)
-            if i > 0:
-                dsts[target] = [target]
-            brain.project(stim_dict, dsts)
-
-    # Phase 1: Establish source_a → target pathway
-    stim_dict_a = {stim_a: [source_a]} if stim_a else {}
-    a_dsts = ({source_a: [target]} if use_fix
-              else {source_a: [source_a, target]})
-    _phase(stim_dict_a, a_dsts, rounds)
-
-    # Phase 2: Establish source_b → target pathway
-    stim_dict_b = {stim_b: [source_b]} if stim_b else {}
-    b_dsts = ({source_b: [target]} if use_fix
-              else {source_b: [source_b, target]})
-    _phase(stim_dict_b, b_dsts, rounds)
-
-    # Phase 3: Both sources drive target simultaneously (this is the step
-    # that creates the shared winners; see the docstring).
-    stim_dict_both = {}
-    if stim_a:
-        stim_dict_both[stim_a] = [source_a]
-    if stim_b:
-        stim_dict_both[stim_b] = [source_b]
-    both_dsts = ({source_a: [target], source_b: [target]} if use_fix
-                 else {source_a: [source_a, target],
-                       source_b: [source_b, target]})
-    # Target recurrence from the FIRST round here: phases 1 and 2 have already
-    # established the target assembly, so there is no feed-forward-only round
-    # to carve out -- this phase is consolidating a blend of the two.
-    cofire = rounds if cofire_rounds is None else max(0, cofire_rounds)
-    for _ in range(cofire):
-        brain.project(stim_dict_both, {**both_dsts, target: [target]})
 
 
 def merge(brain, source_a, source_b, target,
