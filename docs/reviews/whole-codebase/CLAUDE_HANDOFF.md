@@ -2522,3 +2522,14 @@ lowered from five reads to one. Eight ratchet/type tests pass.
 Formal audit follow-up
 
 Lean lake build passes on the pinned toolchain. The source-link test now covers every formal/AssemblyIR leaf module, so new proof files cannot become disconnected from the executable IR contract. The Python specification-link gate passes 11 tests.
+
+## 2026-09-11 continuation
+
+The broad non-slow package run reached 999 passed before interruption and
+reported four failures. Three context bridge reset cases were a real facade
+synchronization bug and are fixed in `cbcea1b`: when preserving topology,
+`Brain.reset_area_population_cursor` now mirrors the owner state's materialized
+population into `Area.w`. The ERP SENTENCES seed-42 case remains a registered
+scientific inversion on the sampled engine (`p600_auc=0.000`); no assertion was
+weakened. A fixed-connectome replay or explicit amendment is required before
+that result can be treated as evidence.
