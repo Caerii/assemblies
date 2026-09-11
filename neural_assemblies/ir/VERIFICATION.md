@@ -861,12 +861,26 @@ auxiliary dense engines with both finite and absent clips.
 
 `engine_type(name)` resolves the registered class without constructing model
 state, so `Brain` can validate declared capabilities before forwarding options.
-`ComputeEngine.supports_norm_init` is false unless an engine explicitly opts in.
-An omitted `Brain.norm_init` resolves to true on an opted-in named engine, which
-preserves the established sparse and exact defaults, and false on the dense
-explicit engine. An explicit true request on an unsupported engine raises before
-its constructor runs. Registry controls require the capability to agree with the
-constructor signature, so a new backend cannot silently accept or lose the option.
+Homeostasis has three independent, false-unless-opted-in capabilities:
+`supports_norm_init`, `supports_synaptic_scaling`, and
+`supports_synaptic_scaling_deferred`. An omitted `Brain.norm_init` resolves to
+true on an opted-in named engine, which preserves the established sparse and exact
+defaults, and false on the dense explicit engine. Any enabled unsupported option
+raises before its constructor runs. Registry controls require every declared
+capability to have an explicit parameter or deliberate option receiver, so a new
+backend cannot silently accept or lose one.
+
+Brain and `create_engine` call the same `validate_homeostasis_capabilities`
+boundary. Direct factory use therefore cannot bypass semantic admission. The
+legacy CUDA-implicit adapter also rejects every residual constructor option rather
+than accepting a `**kwargs` value it will discard.
+
+The CUDA-implicit and deprecated CuPy adapters override all three inherited
+capabilities to false because their constructors do not forward the sparse
+parent's homeostasis options. This prevents Brain from reporting mechanisms that
+those adapters silently omit. Torch opts into normalization and scaling but
+leaves deferred scaling false; its existing constructor rejection remains a
+backend defense behind Brain's admission check.
 
 Engine names in the built-in module map are known even when their optional
 implementation cannot load. `ensure_engine` attempts only the module named by that

@@ -37,7 +37,12 @@ from collections import defaultdict
 from .backend import get_xp, to_cpu, detect_best_engine
 from .engine import ComputeEngine, create_engine, engine_type
 from .registration import validate_round_count, validate_input_noise, validate_plasticity_rate, validate_area_registration, validate_stimulus_registration
-from ._homeostasis import HomeostasisConfig, check_area_homeostasis, validate_lri_parameters
+from ._homeostasis import (
+    HomeostasisConfig,
+    check_area_homeostasis,
+    validate_homeostasis_capabilities,
+    validate_lri_parameters,
+)
 from .index_spaces import CompactIdx, to_neuron_ids, validated_indices
 from .semantics import ModelSemantics, SampledRecurrencePolicy
 from .activity import PopulationCounts, PreKwtaObservation
@@ -182,15 +187,11 @@ class Brain:
                 if isinstance(engine, str)
                 else HomeostasisConfig.from_engine(engine).norm_init
             )
-        if norm_init and not supports_norm_init:
-            raise ValueError(
-                f"{owner_type.__name__} does not support norm_init; "
-                "choose an engine whose declared normalization capability is enabled"
-            )
         homeostasis = HomeostasisConfig(
             norm_init, synaptic_scaling, synaptic_scaling_deferred
         )
         synaptic_scaling = homeostasis.synaptic_scaling
+        validate_homeostasis_capabilities(owner_type, homeostasis)
         if isinstance(engine, ComputeEngine):
             engine.validate_brain_identity(
                 p=p, seed=seed, w_max=w_max, homeostasis=homeostasis

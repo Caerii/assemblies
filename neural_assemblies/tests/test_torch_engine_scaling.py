@@ -128,7 +128,9 @@ def test_scaling_setpoint_uses_fiber_p():
 
 
 def test_deferred_scaling_refuses_loudly():
-    with pytest.raises(NotImplementedError, match="deferred"):
+    with pytest.raises(
+        ValueError, match="does not support synaptic_scaling_deferred"
+    ):
         _brain(synaptic_scaling=True, synaptic_scaling_deferred=True)
 
 

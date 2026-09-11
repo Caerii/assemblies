@@ -103,6 +103,8 @@ class ComputeEngine(ABC):
     supports_fiber_learning_masks = False
     supports_sampled_recurrence_policy = False
     supports_norm_init = False
+    supports_synaptic_scaling = False
+    supports_synaptic_scaling_deferred = False
 
     @abstractmethod
     def describe_model_semantics(self):
@@ -593,4 +595,18 @@ def create_engine(engine_name: str, **kwargs) -> ComputeEngine:
 
         engine = create_engine("numpy_sparse", p=0.05, seed=42, w_max=20.0)
     """
-    return engine_type(engine_name)(**kwargs)
+    resolved_type = engine_type(engine_name)
+    from ._homeostasis import (
+        HomeostasisConfig,
+        validate_homeostasis_capabilities,
+    )
+    homeostasis_options = {
+        name: kwargs[name]
+        for name in HomeostasisConfig.__dataclass_fields__
+        if name in kwargs
+    }
+    if homeostasis_options:
+        validate_homeostasis_capabilities(
+            resolved_type, HomeostasisConfig(**homeostasis_options)
+        )
+    return resolved_type(**kwargs)

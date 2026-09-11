@@ -335,6 +335,8 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
     """
 
     supports_norm_init = True
+    supports_synaptic_scaling = True
+    supports_synaptic_scaling_deferred = True
     supports_input_noise = True
     supports_refraction = True
     supports_fiber_learning_masks = True

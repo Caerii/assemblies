@@ -3939,3 +3939,28 @@ language parser rewrote `w = 0` after clearing winners. The validated setter
 already performs that synchronization. Removing the duplicates leaves one state
 transition per operation and lowers three more ratchet baselines. Area, routing,
 specification and ratchet controls pass 23 tests; Ruff and whitespace checks pass.
+
+## Homeostasis admission is capability-complete (2026-09-11)
+
+Engine admission now treats normalization, synaptic scaling and deferred scaling
+as three separately declared capabilities. Brain and `create_engine` use one
+`validate_homeostasis_capabilities` function over canonical `HomeostasisConfig`,
+then reject any enabled unsupported option before engine construction. Registry
+controls require a declared option to have an explicit parameter or deliberate
+option receiver. Dense and exact engines reject scaling; Torch declares
+normalization and immediate scaling but rejects deferred scaling at admission.
+
+The audit found that `cuda_implicit` and deprecated `cupy_sparse` inherited the
+sparse engine's capability attributes while their constructors dropped the
+corresponding options. Both now override all homeostasis capabilities to false,
+matching their executed behavior and preventing false configuration receipts.
+They cannot be runtime-tested in this Windows environment because the project
+does not install CuPy here; the documented CUDA shell reports
+`EngineUnavailableError: No module named 'cupy'`. This is recorded as an
+availability boundary, not parity evidence.
+
+The maintained Torch path passes 82 scaling, fused and parity tests under
+`scripts/cuda-dev.cmd`; the parity run has one existing expected float32
+overflow warning in the deep-count pricing control. CPU admission, exact-ladder,
+model-boundary, protocol-wire and specification gates pass 227 tests. Ruff and
+whitespace checks pass.

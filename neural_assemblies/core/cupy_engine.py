@@ -47,6 +47,12 @@ if _HAS_CUPY:
         winner selection, plasticity, Bernoulli initialization) run on GPU.
         """
 
+        # This deprecated adapter does not implement the parent engine's
+        # homeostasis configuration. Do not inherit a false capability claim.
+        supports_norm_init = False
+        supports_synaptic_scaling = False
+        supports_synaptic_scaling_deferred = False
+
         def __init__(self, p: float, seed: int = 0, w_max: float = 20.0,
                      deterministic: bool = False):
             import warnings

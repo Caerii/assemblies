@@ -88,6 +88,7 @@ __all__ = [
     "refraction_increment",
     "scaling_applies",
     "HomeostasisConfig",
+    "validate_homeostasis_capabilities",
     "validate_lri_parameters",
     "scaling_setpoint",
     "column_scale",
@@ -221,6 +222,32 @@ class HomeostasisConfig:
         if errors:
             raise ValueError(f"invalid homeostasis document: {errors}")
         return cls(**{name: document[name] for name in cls.__dataclass_fields__})
+
+
+def validate_homeostasis_capabilities(engine_type, config: HomeostasisConfig) -> None:
+    """Reject enabled mechanisms absent from an engine's declared semantics.
+
+    Specification: neural_assemblies/ir/VERIFICATION.md#contract-engine-admission
+    """
+    requested_capabilities = (
+        ("norm_init", config.norm_init, "supports_norm_init"),
+        (
+            "synaptic_scaling",
+            bool(config.synaptic_scaling),
+            "supports_synaptic_scaling",
+        ),
+        (
+            "synaptic_scaling_deferred",
+            config.synaptic_scaling_deferred,
+            "supports_synaptic_scaling_deferred",
+        ),
+    )
+    for option, requested, capability in requested_capabilities:
+        if requested and not getattr(engine_type, capability, False):
+            raise ValueError(
+                f"{engine_type.__name__} does not support {option}; "
+                f"choose an engine whose declared {capability} is enabled"
+            )
 
 
 def scaling_applies(synaptic_scaling: ScalingSpec, target: str) -> bool:

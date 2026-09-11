@@ -216,8 +216,20 @@ class CudaImplicitEngine(NumpySparseEngine):
         deterministic: If True, use legacy exact-fit expansion.
     """
 
+    # This adapter does not forward the parent engine's homeostasis options.
+    # Override inherited capabilities so Brain rejects them before construction
+    # instead of reporting a mechanism that never executes.
+    supports_norm_init = False
+    supports_synaptic_scaling = False
+    supports_synaptic_scaling_deferred = False
+
     def __init__(self, p: float, seed: int = 0, w_max: float = 20.0,
                  deterministic: bool = False, **kwargs):
+        if kwargs:
+            names = ", ".join(sorted(kwargs))
+            raise TypeError(
+                f"CudaImplicitEngine does not implement constructor options: {names}"
+            )
         # Activate CuPy backend before parent creates arrays
         from .backend import set_backend
         set_backend("cupy")

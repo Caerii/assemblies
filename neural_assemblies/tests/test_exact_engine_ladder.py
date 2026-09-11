@@ -501,6 +501,41 @@ def test_engine_norm_init_contract():
         f"norm_init, this test has quietly lost its subject")
 
 
+def test_engine_homeostasis_capabilities_have_constructor_paths():
+    """Declared homeostasis options must reach, rather than vanish in, init."""
+    import inspect
+
+    from neural_assemblies.core.engine import _ENGINE_MODULES, ensure_engine
+    from neural_assemblies.core.engine import _ENGINE_REGISTRY
+
+    options = {
+        "norm_init": "supports_norm_init",
+        "synaptic_scaling": "supports_synaptic_scaling",
+        "synaptic_scaling_deferred": "supports_synaptic_scaling_deferred",
+    }
+    for engine_name in _ENGINE_MODULES:
+        if not ensure_engine(engine_name):
+            continue
+        engine_cls = _ENGINE_REGISTRY[engine_name]
+        params = inspect.signature(engine_cls).parameters
+        accepts_options = any(
+            param.kind is inspect.Parameter.VAR_KEYWORD
+            for param in params.values()
+        )
+        for option, capability in options.items():
+            declared = bool(getattr(engine_cls, capability, False))
+            if declared:
+                assert option in params or accepts_options, (
+                    f"{engine_name} declares {capability} but cannot receive "
+                    f"{option} at construction"
+                )
+            elif option in params:
+                pytest.fail(
+                    f"{engine_name} accepts {option} but has not declared "
+                    f"{capability}"
+                )
+
+
 def test_brain_resolves_normalization_from_engine_capability():
     sparse = Brain(p=P, seed=SEED, engine="numpy_sparse")
     dense = Brain(p=P, seed=SEED, engine="numpy_explicit")
@@ -510,21 +545,54 @@ def test_brain_resolves_normalization_from_engine_capability():
     assert dense.model_semantics.normalization.value == "none"
 
 
-def test_brain_rejects_unsupported_normalization_before_engine_construction(monkeypatch):
-    from neural_assemblies.core.numpy_engine import NumpyExplicitEngine
+@pytest.mark.parametrize(
+    "engine_name,settings,unsupported",
+    [
+        ("numpy_explicit", {"norm_init": True}, "norm_init"),
+        ("numpy_explicit", {"synaptic_scaling": True}, "synaptic_scaling"),
+        ("numpy_exact", {"synaptic_scaling": {"A"}}, "synaptic_scaling"),
+        (
+            "numpy_exact",
+            {"synaptic_scaling": True, "synaptic_scaling_deferred": True},
+            "synaptic_scaling",
+        ),
+    ],
+)
+def test_brain_rejects_unsupported_homeostasis_before_engine_construction(
+    monkeypatch, engine_name, settings, unsupported
+):
+    import neural_assemblies.core.brain as brain_module
 
     called = False
-    original = NumpyExplicitEngine.__init__
+    original = brain_module.create_engine
 
-    def recording_init(self, *args, **kwargs):
+    def recording_create_engine(*args, **kwargs):
         nonlocal called
         called = True
-        return original(self, *args, **kwargs)
+        return original(*args, **kwargs)
 
-    monkeypatch.setattr(NumpyExplicitEngine, "__init__", recording_init)
-    with pytest.raises(ValueError, match="does not support norm_init"):
-        Brain(p=P, seed=SEED, engine="numpy_explicit", norm_init=True)
+    monkeypatch.setattr(brain_module, "create_engine", recording_create_engine)
+    with pytest.raises(ValueError, match=f"does not support {unsupported}"):
+        Brain(p=P, seed=SEED, engine=engine_name, **settings)
     assert called is False
+
+
+@pytest.mark.parametrize(
+    "settings,unsupported",
+    [
+        ({"norm_init": True}, "norm_init"),
+        ({"synaptic_scaling": True}, "synaptic_scaling"),
+    ],
+)
+def test_engine_factory_enforces_the_same_homeostasis_admission(
+    settings, unsupported
+):
+    from neural_assemblies.core.engine import create_engine
+
+    with pytest.raises(ValueError, match=f"does not support {unsupported}"):
+        create_engine(
+            "numpy_explicit", p=P, seed=SEED, w_max=20.0, **settings
+        )
 
 
 def test_brain_norm_init_reaches_every_engine():

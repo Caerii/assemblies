@@ -2280,3 +2280,18 @@ I also removed three redundant descriptor mutations after `Area.winners`
 assignment in the two MNIST HIGH injection paths and the legacy language parser.
 The setter is the single transition now; the `.w` ratchet entries disappear.
 The focused setter/routing/specification gate is 23 passed.
+
+Homeostasis admission now covers all three configuration fields separately:
+normalization, scaling and deferred scaling. Brain and `create_engine` share the
+same validator, so the lower-level public factory cannot bypass the gate.
+Unsupported enabled options fail before constructor entry, and the registry
+checks declared capabilities against constructor paths. This caught a real false receipt: `cuda_implicit` and
+deprecated `cupy_sparse` inherited the sparse capability flags while dropping
+those options. They now opt out explicitly. They remain untestable here because
+CuPy is absent on Windows; the CUDA-shell probe raises the named
+`EngineUnavailableError`, so do not infer parity for either adapter.
+
+The maintained Torch path is verified: 82 homeostasis, fused and parity tests pass
+in the Visual Studio/CUDA shell. The CPU boundary gate is 227 passed. The only
+parity warning is the pre-existing float32 overflow deliberately
+exercised by the deep-count pricing test.
