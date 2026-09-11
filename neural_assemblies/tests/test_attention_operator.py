@@ -12,7 +12,7 @@ def _assembly(area, ids):
 
 def test_attention_selects_compatible_key_and_aggregates_its_value():
     query = _assembly("Q", [1, 2, 3])
-    keys = {"a": _assembly("K", [1, 2, 3]), "b": _assembly("K", [8, 9, 10])}
+    keys = {"a": _assembly("Q", [1, 2, 3]), "b": _assembly("Q", [8, 9, 10])}
     values = {"a": _assembly("V", [20, 21]), "b": _assembly("V", [30, 31])}
 
     result = attend(query, keys, values, output_size=2)
@@ -25,7 +25,7 @@ def test_attention_selects_compatible_key_and_aggregates_its_value():
 
 def test_attention_multi_key_output_is_deterministic_and_bounded():
     query = _assembly("Q", [1, 2])
-    keys = {"a": _assembly("K", [1, 2]), "b": _assembly("K", [1, 2])}
+    keys = {"a": _assembly("Q", [1, 2]), "b": _assembly("Q", [1, 2])}
     values = {"a": _assembly("V", [7, 8]), "b": _assembly("V", [8, 9])}
 
     result = attend(query, keys, values, top_k=2, output_size=2)
@@ -40,7 +40,7 @@ def test_attention_multi_key_output_is_deterministic_and_bounded():
 ])
 def test_attention_rejects_invalid_schedule(kwargs):
     query = _assembly("Q", [1])
-    keys = {"a": _assembly("K", [1])}
+    keys = {"a": _assembly("Q", [1])}
     values = {"a": _assembly("V", [2])}
     with pytest.raises(ValueError):
         attend(query, keys, values, **kwargs)
@@ -49,22 +49,28 @@ def test_attention_rejects_invalid_schedule(kwargs):
 def test_attention_rejects_key_value_mismatch_and_mixed_value_areas():
     query = _assembly("Q", [1])
     with pytest.raises(ValueError, match="same labels"):
-        attend(query, {"a": _assembly("K", [1])},
+        attend(query, {"a": _assembly("Q", [1])},
                {"b": _assembly("V", [2])})
     with pytest.raises(ValueError, match="one area"):
         attend(
             query,
-            {"a": _assembly("K", [1]), "b": _assembly("K", [2])},
+            {"a": _assembly("Q", [1]), "b": _assembly("Q", [2])},
             {"a": _assembly("V1", [2]), "b": _assembly("V2", [3])},
+        )
+    with pytest.raises(ValueError, match="share one area"):
+        attend(
+            query,
+            {"a": _assembly("K", [1])},
+            {"a": _assembly("V", [2])},
         )
 
 
 @pytest.mark.parametrize("query,keys,values", [
     (_assembly("Q", []), {"a": _assembly("K", [1])},
      {"a": _assembly("V", [2])}),
-    (_assembly("Q", [1]), {"a": _assembly("K", [])},
+    (_assembly("Q", [1]), {"a": _assembly("Q", [])},
      {"a": _assembly("V", [2])}),
-    (_assembly("Q", [1]), {"a": _assembly("K", [1])},
+    (_assembly("Q", [1]), {"a": _assembly("Q", [1])},
      {"a": _assembly("V", [])}),
 ])
 def test_attention_rejects_empty_support(query, keys, values):

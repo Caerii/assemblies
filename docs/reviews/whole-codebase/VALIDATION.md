@@ -4582,3 +4582,7 @@ unimplemented.
 Empty query, key, and value supports are now rejected before scoring, so the
 attention readout cannot manufacture a result from an empty domain. The
 attention contract suite passes **10 tests** with Ruff clean.
+
+The compatibility boundary also requires every key to share the query's area;
+cross-area integer coincidences are rejected rather than treated as semantic
+matches. The same 10-test contract suite covers this negative path.

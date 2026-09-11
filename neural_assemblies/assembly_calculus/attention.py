@@ -101,6 +101,9 @@ def attend(
     if len(value_areas) != 1:
         raise ValueError("all attention values must belong to one area")
     value_area = next(iter(value_areas))
+    key_areas = {assembly.area for assembly in keys.values()}
+    if key_areas != {query.area}:
+        raise ValueError("attention query and keys must share one area")
 
     scored = [(label, overlap(query, key)) for label, key in keys.items()]
     scored.sort(key=lambda item: (-item[1], item[0]))
