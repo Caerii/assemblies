@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+import warnings
 from typing import Dict, List, Optional, Set, TYPE_CHECKING
 
 from .adaptive import AdaptiveHint, RemediationResult
@@ -139,8 +140,13 @@ def reflect_after_stage(
                             detail=str(mode or ""),
                         ),
                     )
-        except Exception:
-            pass
+        except (KeyError, RuntimeError, TypeError, ValueError) as error:
+            warnings.warn(
+                "stage reflection could not compute holdout decomposition; "
+                f"holdout_bootstrap is unavailable ({error!r})",
+                RuntimeWarning,
+                stacklevel=2,
+            )
 
     elif stage in ("DIALOGUE", "CONVERSATION"):
         obs.append("bridge + dialogue pathways for interactive chat")

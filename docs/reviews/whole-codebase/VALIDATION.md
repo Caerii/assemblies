@@ -4448,3 +4448,10 @@ classification and returned `0.0`, making an unavailable diagnostic look like a
 measured score. It now catches only expected data/model errors and emits a
 `RuntimeWarning` that labels the holdout value unavailable. Ruff and bytecode
 compilation pass.
+
+## Acquisition reflection failure visibility (2026-09-11)
+
+The stage reflection orchestrator no longer swallows all holdout-decomposition
+exceptions. It catches only expected data/model errors and emits a warning that
+labels the holdout bootstrap metric unavailable, matching the stability snapshot
+contract. Ruff and bytecode compilation pass.
