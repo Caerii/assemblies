@@ -4121,3 +4121,15 @@ and `NeuronIds` checking remains the stronger guard for two raw arrays.
 
 Validation: 34 overlap, index-space, assembly-calculus and specification-link
 tests pass. Ruff and whitespace checks pass.
+
+## Overlap validates winner shape and uniqueness (2026-09-11)
+
+The index-space boundary also accepted duplicate or floating-point raw winners;
+the set-based metric collapsed duplicates and returned a plausible score.
+`Assembly` construction and raw-array overlap now require one-dimensional,
+integer, unique indices. This preserves the existing overlap definition while
+rejecting malformed observations before measurement.
+
+Validation: 65 overlap, index-space, assembly-calculus, noise and
+specification-link tests pass, with the expected sampled-recurrence warnings.
+Ruff and whitespace checks pass.

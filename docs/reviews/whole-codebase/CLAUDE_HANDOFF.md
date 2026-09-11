@@ -2404,3 +2404,8 @@ scored. The runtime guard now rejects those ambiguous calls, with tests for the
 negative and valid Assembly-to-Assembly/raw-pair controls. The stronger
 compact-versus-neuron-ID distinction remains a static type-checker boundary;
 runtime-erased `NewType` arrays need a later branded-array migration.
+
+I also closed the adjacent malformed-observation path. Duplicate or floating
+winner arrays were accepted by `overlap` and collapsed by its set arithmetic;
+`Assembly` construction and raw overlap operands now require unique integer
+vectors. The focused gate is 65 passed, including noise and index-space tests.

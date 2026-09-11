@@ -72,7 +72,9 @@ class Assembly:
         # reassignment but ndarray contents are still mutable, so we
         # copy on construction.
         object.__setattr__(
-            self, "winners", validated_indices(self.winners, label='assembly neuron IDs').copy()
+            self, "winners", validated_indices(
+                self.winners, label='assembly neuron IDs', unique=True
+            ).copy()
         )
         self.winners.flags.writeable = False
 
@@ -164,8 +166,12 @@ def overlap(a, b) -> float:
             "overlap requires two Assembly snapshots or two same-space arrays; "
             "name the raw array's index space explicitly"
         )
-    winners_a = a.winners if assembly_a else np.asarray(a)
-    winners_b = b.winners if assembly_b else np.asarray(b)
+    winners_a = (a.winners if assembly_a else validated_indices(
+        a, label='overlap winner indices', unique=True
+    ))
+    winners_b = (b.winners if assembly_b else validated_indices(
+        b, label='overlap winner indices', unique=True
+    ))
 
     if len(winners_a) == 0 or len(winners_b) == 0:
         return 0.0

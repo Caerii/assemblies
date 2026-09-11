@@ -2244,6 +2244,10 @@ arrays; those `NewType` markers are erased at runtime and cannot certify a
 mixed pair by themselves. Cross-area `Assembly` overlap remains allowed when
 the caller intentionally compares stable neuron IDs.
 
+Both `Assembly` snapshots and raw winner arrays must contain one-dimensional,
+integer, unique indices. Duplicate entries would otherwise be collapsed by the
+set-based metric and could turn malformed activity into a plausible overlap.
+
 
 <a id="contract-batched-next-token"></a>
 ### Batched next-token inference
