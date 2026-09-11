@@ -29,7 +29,7 @@ def _quantiles(values: list[float]) -> dict[str, float]:
 
 
 def benchmark(*, engine: str, sizes: list[int], k: int, rounds: int,
-              seeds: list[int]) -> dict:
+              seeds: list[int], materialize: bool = True) -> dict:
     if not seeds or len(seeds) < 3 or len(set(seeds)) != len(seeds):
         raise ValueError("throughput benchmark requires at least three unique seeds")
     if any(type(n) is not int or n <= 0 for n in sizes):
@@ -49,6 +49,8 @@ def benchmark(*, engine: str, sizes: list[int], k: int, rounds: int,
                 raise RuntimeError("benchmark cells resolved different model semantics")
             brain.add_stimulus("stimulus", k)
             brain.add_area("target", n, k, beta=0.1)
+            if materialize:
+                brain.materialize_area("target", storage="dense")
             started = time.perf_counter()
             project(brain, "stimulus", "target", rounds=rounds, recurrent=True)
             elapsed = time.perf_counter() - started
@@ -64,6 +66,7 @@ def benchmark(*, engine: str, sizes: list[int], k: int, rounds: int,
         "benchmark": "projection-throughput-v1",
         "status": "diagnostic",
         "engine": engine,
+        "storage": "materialized" if materialize else "sampled",
         "model_semantics": resolved_model,
         "seeds": seeds,
         "cells": cells,
@@ -79,10 +82,13 @@ def main(argv=None) -> int:
     parser.add_argument("--k", type=int, default=100)
     parser.add_argument("--rounds", type=int, default=10)
     parser.add_argument("--seeds", nargs="+", type=int, default=[42, 43, 44])
+    parser.add_argument("--sampled", action="store_true",
+                        help="opt into lazy sampled storage; avoid for recurrent science")
     parser.add_argument("--output", type=Path, help="new JSON path; existing files are rejected")
     args = parser.parse_args(argv)
     result = benchmark(engine=args.engine, sizes=args.sizes, k=args.k,
-                       rounds=args.rounds, seeds=args.seeds)
+                       rounds=args.rounds, seeds=args.seeds,
+                       materialize=not args.sampled)
     encoded = json.dumps(result, indent=2, allow_nan=False) + "\n"
     if args.output is None:
         print(encoded, end="")
