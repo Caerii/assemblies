@@ -273,7 +273,7 @@ class CoreParserMixin(
         #: any other path that trains into a feature area must too.
         self._feature_image_cache: Dict[tuple, object] = {}
         self.brain = Brain(**brain_kwargs)
-        self.engine_name = getattr(self.brain._engine, "name", resolved_engine)
+        self.engine_name = self.brain.engine_name or resolved_engine
 
         self._bridge_topology_linked: bool = False
         self._role_topology_linked: bool = False

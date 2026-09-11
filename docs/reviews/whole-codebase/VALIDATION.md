@@ -4279,3 +4279,10 @@ backend.
 
 Validation: 3 stimulus-preallocation admission tests passed; ruff and
 whitespace checks pass.
+
+Parser construction also stopped reaching through the private primary engine
+just to publish its engine name; it now uses Brain's public identity property.
+This removes a needless private dependency while leaving global scaling policy
+paths explicit.
+
+Validation: 2 parser engine-identity compatibility tests passed.

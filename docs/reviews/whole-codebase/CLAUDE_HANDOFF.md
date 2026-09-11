@@ -2485,6 +2485,9 @@ The linker audit found preallocation was also checking the primary engine once
 for all targets. It now resolves each area's owner and capability; three
 preallocation admission tests pass.
 
+Parser construction now reads the engine name through Brain's public identity
+property rather than a private engine field. Two compatibility tests pass.
+
 The owner negative test found a second issue: explicit areas could receive the
 same beta/connectivity write twice because the explicit mirror was also the
 resolved owner. Identity-guarded mirroring now enforces one write per owner;
