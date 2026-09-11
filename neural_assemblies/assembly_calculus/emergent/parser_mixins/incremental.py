@@ -286,20 +286,12 @@ class IncrementalMixin:
         """Clear CONTEXT activity; ID remapping is forbidden during observation."""
         self._check_context_reset(preserve_mapping=preserve_mapping)
         self.brain.inhibit_areas([CONTEXT])
-        if not preserve_mapping:
-            area = self.brain.areas[CONTEXT]
-            area.compact_to_neuron_id = []
-            if area.neuron_id_pool is not None:
-                area.neuron_id_pool_ptr = 0
         if self.brain.is_fixed(CONTEXT):
             self.brain.unfix_assembly(CONTEXT)
-        engine = self.brain._engine_for(self.brain.areas[CONTEXT])
-        if hasattr(engine, "_areas") and CONTEXT in engine._areas:
-            st = engine._areas[CONTEXT]
-            if not preserve_mapping:
-                st.compact_to_neuron_id = []
-                if getattr(st, "neuron_id_pool", None) is not None:
-                    st.neuron_id_pool_ptr = 0
+        self.brain.reset_area_population_cursor(
+            CONTEXT, preserve_mapping=preserve_mapping,
+            reset_count=not preserve_mapping,
+        )
 
     def _check_context_reset(self, *, preserve_mapping: bool) -> None:
         engine = self.brain._engine_for(self.brain.areas[CONTEXT])
@@ -315,9 +307,6 @@ class IncrementalMixin:
         The shared winner/ID reset rejects it before mutation in read_only.
         """
         self._reset_context_winners(preserve_mapping=False)
-        self.brain.areas[CONTEXT].w = 0
-        owner = self.brain._engine_for(self.brain.areas[CONTEXT])
-        owner._areas[CONTEXT].w = 0
 
     def _reset_context_for_bridge(self, *, preserve_topology: bool = False) -> None:
         """Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-context-bridge-reset
@@ -333,8 +322,9 @@ class IncrementalMixin:
             self._reset_context_state()
             return
         self._reset_context_winners(preserve_mapping=True)
-        owner = self.brain._engine_for(self.brain.areas[CONTEXT])
-        self.brain.areas[CONTEXT].w = owner._areas[CONTEXT].w
+        self.brain.reset_area_population_cursor(
+            CONTEXT, preserve_mapping=True, reset_count=False,
+        )
 
     def _build_circuit(self) -> FiberCircuit:
         """Build a FiberCircuit with all projection channels initially inhibited.

@@ -2485,6 +2485,13 @@ The linker audit found preallocation was also checking the primary engine once
 for all targets. It now resolves each area's owner and capability; three
 preallocation admission tests pass.
 
+Population cursor resets are now centralized in
+`Brain.reset_area_population_cursor`, covering consolidation, context bridge,
+compiled linker, and role-ring paths. The API explicitly separates preserving
+identity mappings from preserving materialized counts; the training performance
+regression caught and fixed a count-reset mistake. The combined gate is 59
+passed.
+
 Parser construction now reads the engine name through Brain's public identity
 property rather than a private engine field. Two compatibility tests pass.
 

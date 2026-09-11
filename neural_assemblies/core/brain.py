@@ -1321,6 +1321,41 @@ class Brain:
             raise KeyError(f"unknown area {area_name!r}") from None
         self._engine_for(area).reset_area_connections(area_name)
 
+    def reset_area_population_cursor(
+        self, area_name: str, *, preserve_mapping: bool = False,
+        reset_count: bool = True,
+    ) -> None:
+        """Reset backend population cursor state through the area's owner.
+
+        Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-context-bridge-reset
+
+        ``preserve_mapping=True`` retains stable neuron identities. Set
+        ``reset_count=False`` when clearing activity while retaining the
+        current materialized population (for example, a bridge observation).
+        The default also clears the compact-to-neuron mapping and pool cursor,
+        which deliberately invalidates old Assembly snapshots.
+        """
+        try:
+            area = self.areas[area_name]
+        except KeyError:
+            raise KeyError(f"unknown area {area_name!r}") from None
+        owner = self._engine_for(area)
+        if reset_count:
+            area.w = 0
+        if not preserve_mapping:
+            area.compact_to_neuron_id = []
+            if area.neuron_id_pool is not None:
+                area.neuron_id_pool_ptr = 0
+        state = getattr(owner, "_areas", {}).get(area_name)
+        if state is None:
+            return
+        if reset_count:
+            state.w = 0
+        if not preserve_mapping:
+            state.compact_to_neuron_id = []
+            if getattr(state, "neuron_id_pool", None) is not None:
+                state.neuron_id_pool_ptr = 0
+
     def is_fixed(self, area_name: str) -> bool:
         """Return the executing owner's fixed-assembly state."""
         try:

@@ -74,11 +74,7 @@ class UnsupervisedMixin:
         if self.brain.is_fixed(role_area):
             self.brain.unfix_assembly(role_area)
         if getattr(self, "_compiled_training_enabled", True):
-            area = self.brain.areas[role_area]
-            area.w = 0
-            engine = self.brain._engine_for(self.brain.areas[role_area])
-            if hasattr(engine, "_areas") and role_area in engine._areas:
-                engine._areas[role_area].w = 0
+            self.brain.reset_area_population_cursor(role_area, preserve_mapping=True)
 
     def _pregrow_role_pathways(self, corpus_index: "CorpusIndex") -> None:
         """Pre-expand core→role connectomes before Hebbian role training."""

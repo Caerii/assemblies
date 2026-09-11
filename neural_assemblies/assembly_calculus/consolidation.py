@@ -213,19 +213,8 @@ def prepare_area_for_replay(brain, area_name: str) -> None:
     do not carry pre-consolidation lexicons across.
     """
     brain.inhibit_areas([area_name])
-    area = brain.areas[area_name]
-    area.w = 0
     brain.unfix_assembly(area_name)
-    area.compact_to_neuron_id = []
-    if area.neuron_id_pool is not None:
-        area.neuron_id_pool_ptr = 0
-    engine = brain._engine_for(area)
-    if hasattr(engine, "_areas") and area_name in engine._areas:
-        st = engine._areas[area_name]
-        st.w = 0
-        st.compact_to_neuron_id = []
-        if getattr(st, "neuron_id_pool", None) is not None:
-            st.neuron_id_pool_ptr = 0
+    brain.reset_area_population_cursor(area_name, preserve_mapping=False)
 
 
 def drop_stale_assemblies(parser) -> int:

@@ -4280,6 +4280,16 @@ backend.
 Validation: 3 stimulus-preallocation admission tests passed; ruff and
 whitespace checks pass.
 
+Population cursor ownership is now centralized in
+`Brain.reset_area_population_cursor`. Consolidation, context bridge setup,
+compiled linking, and role-ring clearing share one implementation for `w`, ID
+mapping, and pool-pointer state. The API distinguishes identity preservation
+from count preservation; a performance regression caught and corrected an
+initial implementation that reset the materialized count during bridge reads.
+
+Validation: 59 training, reset-owner, and preallocation tests passed; ruff and
+whitespace checks pass.
+
 Parser construction also stopped reaching through the private primary engine
 just to publish its engine name; it now uses Brain's public identity property.
 This removes a needless private dependency while leaving global scaling policy
