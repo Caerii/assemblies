@@ -2319,3 +2319,15 @@ execution owner and keep the public `Area` descriptor synchronized with that
 owner. Per-area code must use these façade methods rather than calling a
 primary engine directly; this is required when one Brain mixes sparse and
 explicit areas.
+
+
+<a id="contract-assembly-attention"></a>
+### Typed assembly attention (design target)
+
+The package does not yet implement `Attend`. Its future IR node must represent
+query, key, value, target, compatibility projection, sparse selection,
+optional recurrent refinement, and causality as distinct fields. Multihead
+composition is an explicit product of independent heads followed by a merge.
+The implementation gate requires no-compatibility, value-shuffle, and
+future-token-leakage controls; backend agreement alone is not evidence of an
+attention claim.

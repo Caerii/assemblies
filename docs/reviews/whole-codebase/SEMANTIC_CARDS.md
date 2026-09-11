@@ -12,6 +12,10 @@ Each discrepancy has an ID. A future contract must resolve the discrepancy with
 a regression test or corrected claim; renaming the function is not resolution.
 The uncommitted protocol-class prototype was set aside until these cards existed.
 
+The attention card below is a **design target**, not an implemented operation
+or an adopted result. It exists to keep the proposed transformer analogue
+distinct from the current projection and sequence APIs.
+
 Register crosswalk: the five legacy operation functions do not each have an
 adopted Result entry certifying their whole postcondition. Their mathematical
 prose and parity goldens therefore cannot substitute for such a contract.
@@ -19,6 +23,41 @@ The memory card relates to REFRACTION-ANTI-MERGING and
 REFRACTION-CANCELS-CONVERGENCE; the FSM card to SEQ-EXACT-RECOVERY and
 SEQ-REGIME-CLIFF; the transducer card to SEQ-TEMPORAL-CARRY. Those entries'
 preconditions and provenance caveats remain part of any claim made from a run.
+
+<a id="contract-assembly-attention"></a>
+
+## D: typed assembly attention (design target)
+
+There is no `Attend` implementation in the package yet. The intended operator
+must make the following state and choices explicit before code is accepted:
+
+- **Inputs:** a query assembly, a key population or key assemblies, a value
+  population or value assemblies, a target area, head count, rounds, and a
+  causality policy.
+- **Compatibility:** a named query-to-key projection or learned fiber. Its
+  drive, normalization, arithmetic, and tie rule are model semantics, not
+  performance flags.
+- **Selection:** sparse k-WTA over the compatible candidates. The selected
+  key/value support and its index space must be observable; compact indices
+  cannot be passed as neuron IDs.
+- **Value transfer:** a separate selected-key-to-value projection followed by
+  a target merge. Query-key compatibility and value readout are separate
+  measurements and require separate null controls.
+- **Refinement:** optional recurrent target rounds. A refinement round must
+  not silently change the query or key set unless the schedule says so.
+- **Causality:** a causal decoder may read encoder state and prior decoder
+  state only. Bidirectional encoder state is allowed during encoding; future
+  target tokens are forbidden during next-token inference.
+- **Composition:** multihead attention is a product of independent typed
+  heads followed by an explicit merge. Heads may not share mutable state by
+  accident.
+
+The first implementation contract should include a matched no-compatibility
+control, a value-shuffle control, and a future-token leakage control. Agreement
+between backends alone is insufficient: each control must make the claimed
+readout move or fail loudly. The operator should reuse `ProjectionStep`,
+`MergePlan`, `Measured`, and the execution-semantics envelope rather than
+introducing a parallel protocol vocabulary.
 
 <a id="contract-projection"></a>
 
