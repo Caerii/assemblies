@@ -22,10 +22,11 @@ from neural_assemblies.core.brain import Brain
 
 def _quantiles(values: list[float]) -> dict[str, float]:
     ordered = sorted(values)
+    p90 = statistics.quantiles(ordered, n=10, method="inclusive")[8]
     return {
         "min": ordered[0],
         "median": statistics.median(ordered),
-        "p90": ordered[min(len(ordered) - 1, int(len(ordered) * 0.9))],
+        "p90": p90,
         "max": ordered[-1],
     }
 
