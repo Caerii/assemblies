@@ -239,7 +239,13 @@ From a checkout:
 ```bash
 uv sync
 uv run pytest neural_assemblies/tests -q
+uv run python -m research.evidence check
 ```
+
+`research.evidence check` is the maintained-surface gate: it validates recorded
+run provenance and registration edges, comparison receipts, and every source
+docstring link to its semantic specification. Use `research.evidence audit` for
+the larger legacy/reference inventory; that report is deliberately advisory.
 
 Optional GPU dependencies:
 
