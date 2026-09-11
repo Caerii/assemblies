@@ -291,6 +291,30 @@ Run the complete example over three paired seeds, with intervals:
 uv run python examples/01_basic_assembly_calculus.py
 ```
 
+## Operations at a glance
+
+These functions compose schedules over the same mutable `Brain`. Each call
+has an explicit contract in the package; read the contract before treating an
+output as a measurement. Snapshots contain stable neuron IDs, while engine
+areas use compact indices internally.
+
+| Operation | Inputs | Effect and result |
+|-----------|--------|------------------|
+| `project(brain, stimulus, target, rounds, recurrent=...)` | one stimulus and target area | Forms or updates the target assembly; recurrence and plasticity are explicit schedule choices. |
+| `reciprocal_project(brain, source, target, rounds)` | active source assembly and two areas | Copies activity forward, then returns target drive to the source under a scoped clamp. |
+| `associate(brain, source_a, source_b, target, ...)` | two source assemblies and a fresh target | Learns a conjunction through separate pathways and optional joint coactivation. |
+| `merge(brain, source_a, source_b, target, ...)` | two source assemblies and target | Learns a merged representation; inspect its contract for source protocol and readout. |
+| `pattern_complete(brain, area, fraction, rounds, seed)` | stored assembly area and partial-cue fraction | Replaces part of the winners and observes recurrent recovery in a controlled scope. |
+| `separate(brain, stimulus_a, stimulus_b, target, rounds)` | two stimuli and target area | Forms two assemblies and reports their overlap against the configured chance baseline. |
+| `sequence_memorize` / `ordered_recall` | ordered stimuli and a sequence configuration | Trains and reads a sequence schedule; engine provenance is part of every result. |
+| `fuzzy_readout` / `readout_all` | assembly snapshot and lexicon | Decodes overlap with deterministic tie handling; a label is not a probability. |
+
+The full signatures, plans, and failure conditions are in
+[docs/api.md](docs/api.md) and the discoverable
+`neural_assemblies.assembly_calculus.OPERATION_CONTRACTS` registry. Operations
+mutate by default; use `brain.read_only()` for a seeded, state-restoring
+observation.
+
 ## Where to read next
 
 - [docs/onboarding.md](docs/onboarding.md): how to work here, for a new
