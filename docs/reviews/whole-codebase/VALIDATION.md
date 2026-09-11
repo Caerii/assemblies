@@ -4663,3 +4663,7 @@ The legacy `assembly_calculus.binding.bind` now rejects unknown area names and n
 ## Inspectable ordered-recall plan (2026-09-11)
 
 Added frozen `OrderedRecallPlan` to the operation-contract layer and routed `ordered_recall` through it. The sequence protocol’s validated parameters and topology preflight are now reusable data rather than execution-local checks. The ordered-recall, sequence, and operation-contract suites pass **173 tests**; Ruff is clean.
+
+## Shared traced recall contract (2026-09-11)
+
+`ordered_recall_trace` now constructs and preflights the same frozen `OrderedRecallPlan` as `ordered_recall`, including the configurable novelty threshold. Traced and untraced sequence recall can no longer drift on validation or termination semantics. Trace and sequence tests pass **36 tests**; Ruff is clean.

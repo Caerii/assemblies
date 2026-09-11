@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 
 from neural_assemblies.assembly_calculus.assembly import Assembly, chance_overlap, overlap
-from neural_assemblies.assembly_calculus.contracts import CompletionPlan
+from neural_assemblies.assembly_calculus.contracts import CompletionPlan, OrderedRecallPlan
 from neural_assemblies.assembly_calculus.ops import _snap
 
 from .models import AssemblyTrace, PatternCompletionDiagnostic, TraceStep
@@ -320,19 +320,20 @@ def ordered_recall_trace(
     known_assemblies: Sequence[Assembly] | None = None,
     convergence_threshold: float = 0.9,
     rounds_per_step: int = 1,
+    novelty_threshold: float = 0.3,
 ) -> AssemblyTrace:
     """Recall a sequence with LRI and record each accepted recalled assembly."""
-    if max_steps <= 0:
-        raise ValueError("max_steps must be positive")
-    if rounds_per_step <= 0:
-        raise ValueError("rounds_per_step must be positive")
-
-    area_obj = brain.areas[area]
-    if area_obj.refractory_period == 0:
-        raise ValueError(
-            f"ordered_recall_trace requires refractory_period > 0 for area {area!r}. "
-            "Add the area with refractory_period=N to enable LRI."
-        )
+    plan = OrderedRecallPlan(
+        area, cue, max_steps, convergence_threshold,
+        rounds_per_step, novelty_threshold,
+    )
+    plan.preflight(brain)
+    area = plan.area
+    cue = plan.cue
+    max_steps = plan.max_steps
+    convergence_threshold = plan.convergence_threshold
+    rounds_per_step = plan.rounds_per_step
+    novelty_threshold = plan.novelty_threshold
 
     brain.clear_refractory(area)
     brain.project({cue: [area]}, {})
@@ -362,7 +363,7 @@ def ordered_recall_trace(
 
         if known_assemblies is not None and len(known_assemblies) > 0:
             max_known_overlap = max(overlap(current, known) for known in known_assemblies)
-            if max_known_overlap < 0.3:
+            if max_known_overlap < novelty_threshold:
                 break
 
         previous = _append_step(
