@@ -59,6 +59,8 @@ def attend(
 ) -> AttentionResult:
     """Attend from a query assembly to keyed value assemblies.
 
+    Specification: neural_assemblies/ir/VERIFICATION.md#contract-assembly-attention
+
     ``keys`` and ``values`` share labels. Compatibility is
     ``overlap(query, key)``; weights are a stable softmax of compatibility
     divided by ``temperature``. The selected values are aggregated by weighted

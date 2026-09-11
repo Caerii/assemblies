@@ -418,6 +418,9 @@ def test_registry_and_public_callable_cannot_drift():
         )
         assert callable(operation), name
         assert getattr(operation, "operation_contract", None) is contract
+        assert contract.specification in (operation.__doc__ or ""), (
+            f"{name} must link its registered specification at the source"
+        )
 
 
 def test_constructed_control_node_resolves():

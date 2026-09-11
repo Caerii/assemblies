@@ -734,6 +734,8 @@ def pattern_complete(
 def separate(brain, stim_a, stim_b, target, rounds=10):
     """Project two different stimuli into the same area and measure overlap.
 
+    Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-separation
+
     Each stimulus is projected with its own recurrent stabilization.
     Between projections, the area→area recurrent connections are reset
     to prevent the first stimulus's attractor from dominating the second.

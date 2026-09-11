@@ -4898,3 +4898,5 @@ The two public convergent learners, learn_assembly and learn_assembly_from_patte
 Added a direct calibration true negative: a declared numpy_exact protocol on a numpy_sparse parser raises before any sampling call. The focused ERP protocol suite now passes 21 tests.
 
 Added a registry/decorator consistency ratchet. It resolves every operation key, including aliases and the separate attention module, and asserts the callable carries the exact registered contract object. Operation contract tests pass (160 passed); Ruff is clean.
+
+Strengthened the operation contract ratchet to require each registered callable docstring to contain its exact specification path and anchor. This caught missing source links on separate and attend; both were repaired. The complete registry contract suite passes (160 tests), Ruff is clean, and the maintained evidence check passes.
