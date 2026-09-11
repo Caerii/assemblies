@@ -3813,6 +3813,12 @@ Every seed moved from 1.0 at M=192 to 0.0 at M=512, and the constructed
 treatment-equals-control check fails. The shape reproduces; `M*=310.1` remains
 fill-censored at 0.955.
 
+Sensitivity thresholds are now required to be strictly positive, and one
+parameterized test substitutes control for treatment in every registered check.
+This turns the constructed true negative into a schema-wide invariant instead
+of a growing list of result-specific tests; a zero-threshold dead probe is
+rejected before its artifact is read.
+
 This revealed that the registration's 1977.6 value was unsupported by its
 retained curve. The curve, legacy figure aggregate and exact rerun all yield
 1961.4004. Current summaries now use that value: 23.51x control and about +35%

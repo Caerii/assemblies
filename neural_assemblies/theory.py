@@ -1131,7 +1131,7 @@ def _sensitivity_errors(result: Result, check: SensitivityCheck, root: str) -> l
         return [f"{prefix} has unsupported relation {check.relation!r}"]
     if (type(check.minimum_effect) not in (int, float)
             or not math.isfinite(check.minimum_effect)
-            or check.minimum_effect < 0):
+            or check.minimum_effect <= 0):
         return [f"{prefix} has invalid minimum effect"]
     normalized = os.path.normpath(check.artifact).replace("\\", "/")
     target = os.path.abspath(os.path.join(root, check.artifact))

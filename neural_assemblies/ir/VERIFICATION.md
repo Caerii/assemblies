@@ -1952,7 +1952,7 @@ sensitivity gap. They may coexist when a composite claim has verified and uncove
 facets. Each check names a repository-relative JSON artifact already
 present as a typed artifact evidence edge, an explicit unique sample-identity
 vector, treatment and control scalar vectors, a directional relation and a finite
-nonnegative minimum effect. All three vectors are nonempty and equal-length.
+strictly positive minimum effect. All three vectors are nonempty and equal-length.
 Values are paired only in the explicit sample order; duplicate identities,
 container-valued observations and nonfinite numbers reject the register.
 Paths use RFC 6901 escaping for object-key tokens and `*` only as an explicit

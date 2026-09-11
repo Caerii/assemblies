@@ -185,13 +185,13 @@ class TestTheoryCitations(unittest.TestCase):
             "SEQ-TEMPORAL-CARRY",
         })
 
-    def test_refraction_sensitivity_fails_its_constructed_true_negative(self):
-        result = theory.cite("REFRACTION-ANTI-MERGING")
-        check = result.sensitivity_checks[0]
-        dead = replace(check, treatment_path=check.control_path)
-        errors = theory._sensitivity_errors(result, dead, REPO)
-        self.assertTrue(any("minimum retained effect is 0" in error
-                            for error in errors), errors)
+    def test_all_retained_sensitivities_fail_their_constructed_true_negative(self):
+        for result in theory.RESULTS.values():
+            for check in result.sensitivity_checks:
+                dead = replace(check, treatment_path=check.control_path)
+                errors = theory._sensitivity_errors(result, dead, REPO)
+                self.assertTrue(any("minimum retained effect is 0" in error
+                                    for error in errors), (result.id, errors))
 
     def test_composite_result_retains_checked_and_uncovered_facets(self):
         result = theory.cite("REFRACTION-ANTI-MERGING")
@@ -202,13 +202,21 @@ class TestTheoryCitations(unittest.TestCase):
             for error in theory.evidence_reference_errors(REPO)
         ))
 
-    def test_capacity_cliff_sensitivity_fails_its_constructed_true_negative(self):
-        result = theory.cite("CAP-CLIFF")
-        check = result.sensitivity_checks[0]
-        dead = replace(check, treatment_path=check.control_path)
-        errors = theory._sensitivity_errors(result, dead, REPO)
-        self.assertTrue(any("minimum retained effect is 0" in error
-                            for error in errors), errors)
+    def test_sensitivity_rejects_zero_minimum_effect(self):
+        check = theory.SensitivityCheck(
+            artifact="unused.json", sample_path="seeds",
+            treatment_path="treatment", control_path="control",
+            relation="all-greater", minimum_effect=0, mechanism="fixture",
+        )
+        result = theory.Result(
+            id="ZERO-EFFECT", status=theory.Status.MEASURED,
+            claim="fixture", source="fixture", engine="fixture",
+            evidence_refs=(theory.EvidenceRef("unused.json", "artifact"),),
+        )
+        self.assertEqual(
+            theory._sensitivity_errors(result, check, REPO),
+            ["ZERO-EFFECT: sensitivity fixture has invalid minimum effect"],
+        )
 
 
 if __name__ == "__main__":

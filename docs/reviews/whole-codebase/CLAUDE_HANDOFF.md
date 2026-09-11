@@ -2194,6 +2194,11 @@ reproduction at `(8000,60)` passes all aggregate and sensitivity bars: the
 and M=512. The run preserves the fill-censoring caveat instead of promoting
 the interpolated M*=310.1 to an uncensored capacity estimate.
 
+The true-negative rule is now universal: minimum effects must be strictly
+positive, and one parameterized test replaces treatment with control for every
+registered sensitivity check. This catches a zero-threshold dead probe at the
+schema boundary while reducing result-specific test duplication.
+
 The rerun caught a real documentation error. Retained data and both computations
 give M*=1961.400398770613, while prose said 1977.6. The corrected multiplier is
 23.51x over 83.41525726478883 and the gated 2645 result is about +35%. R1, the
