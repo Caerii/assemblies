@@ -123,6 +123,13 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 **Evidence.**
 - research/experiments/seq_a1_exactness_sweep.py: state kp 14 -> 4/100 exact steps and 4/10 trajectories; kp 21 -> 80/100 and 10/10; kp 28 -> 100/100 and 10/10, with the transition at the predicted p = 18.6/70 = 0.266
 
+**Evidence files.**
+- [research/results/sequence/seq_a1_exactness_sweep_results.json](../research/results/sequence/seq_a1_exactness_sweep_results.json) (artifact) — sampled numpy arc; sequence verdict void under sampler audit
+- [research/results/sequence/seq_a1_exactness_sweep_results_materialized.json](../research/results/sequence/seq_a1_exactness_sweep_results_materialized.json) (artifact)
+- [research/experiments/seq_a1_exactness_sweep.py](../research/experiments/seq_a1_exactness_sweep.py) (producer)
+
+**Provenance gap.** legacy result files have no immutable runner/source record
+
 **Used by.** `neural_assemblies.diagnostics.regime_audit`
 
 **Caveat.** The original sweep used the sampled numpy arc; its sequence-dynamics numbers are void under PREREG_sampler_audit.md until reproduced on a materialized or hashed substrate. Mean overlap read 0.812 at the failing point while exactness was 4/100 -- the mean hides this mechanism entirely.
@@ -142,6 +149,15 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 - research/experiments/seq_a1_limit_cycle.py: constant input gives an orbit closing bit-identically, 30/30
 - research/experiments/seq_s5_soft_census.py: at 60-120 states, ~0.25-0.6% of transitions are SOFT (correct label, one intruder neuron); first lattice exit equals first soft-pair visit, 40/40 seeds, zero parameters (SAMPLED arc)
 - seq_s5_soft_census_hashed.py (explicit substrate, 40 organs): soft pairs persist at 0.067% (4/6000, one intruder each, non-abelian/product groups only), the zero-parameter law 4/4 -- and none of the four deviations derailed in 500 steps, where the sampled arc derailed 12/40 words
+
+**Evidence files.**
+- [research/results/sequence/seq_a1_horizon_results_hashed_int8_timing.json](../research/results/sequence/seq_a1_horizon_results_hashed_int8_timing.json) (artifact)
+- [research/results/sequence/seq_a1_horizon_materialized_check.json](../research/results/sequence/seq_a1_horizon_materialized_check.json) (artifact)
+- [research/results/sequence/seq_s5_soft_census_results.json](../research/results/sequence/seq_s5_soft_census_results.json) (artifact) — sampled numpy arc
+- [research/results/sequence/seq_s5_soft_census_results_hashed.json](../research/results/sequence/seq_s5_soft_census_results_hashed.json) (artifact)
+- [research/notes/sequence/PREREG_s5_cliff_anatomy.md](../research/notes/sequence/PREREG_s5_cliff_anatomy.md) (registration)
+
+**Provenance gap.** some legacy subclaims have no source archive or raw runner artifact
 
 **Findings and caveats.**
 1. Expansion and quantization are a PAIR: amplification alone is chaos, benign only because a quantizing area follows it; composition steps without a re-quantizing stage drift.
@@ -172,6 +188,16 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 - gap 3, seeds 42-61 (_amend2_gap3): +0.106 +/- 0.011, lower bound 0.095 against the 0.070 bar
 - seq_tm_high_order.py --presentations 20: sets I-III exact on the induced and copy arms; at 40 presentations set III falls to 1 of 20 on every arm (results in research/results/sequence/)
 
+**Evidence files.**
+- [research/results/runs/sequence.temporal-positions/temporal-positions-study-20260910/results.json](../research/results/runs/sequence.temporal-positions/temporal-positions-study-20260910/results.json) (artifact)
+- [research/results/sequence/seq_a3_transducer_results_temporal_chain_gap2.json](../research/results/sequence/seq_a3_transducer_results_temporal_chain_gap2.json) (artifact)
+- [research/results/sequence/seq_a3_transducer_results_temporal_chain_gap2_amend2_fresh.json](../research/results/sequence/seq_a3_transducer_results_temporal_chain_gap2_amend2_fresh.json) (artifact)
+- [research/results/sequence/seq_a3_transducer_results_temporal_chain_gap3_amend2_gap3.json](../research/results/sequence/seq_a3_transducer_results_temporal_chain_gap3_amend2_gap3.json) (artifact)
+- [research/results/sequence/seq_tm_high_order_results_p20.json](../research/results/sequence/seq_tm_high_order_results_p20.json) (artifact)
+- [research/notes/sequence/PREREG_temporal_positions.md](../research/notes/sequence/PREREG_temporal_positions.md) (registration)
+
+**Provenance gap.** pre-schema-4 prediction/order artifacts lack complete source and environment capture
+
 **Used by.** `neural_assemblies/core/torch_engine/_hashed_transducer.py`
 
 **Caveat.** A prediction result on a synthetic corpus, not a language model: no baseline beyond bigram and oracle, no scaling curve in n, and the carry's decay with the gap has two points (72%, 60%). The historical TM-9 pooled-position values remain void; the separately preregistered position-specific run replaces their mechanism interpretation. Its g=0 curve reaches only the first distractor, while g=1 remains represented after the second; no alternative readout was tested. The predicted-win rule is a gain on a lateral fiber applied at selection, not a plasticity rule. The successor-state construction (state teacher-forced toward the next h words) carries nothing on the same corpus (PREREG_successor_state.md).
@@ -190,6 +216,12 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 **Evidence.**
 - research/experiments/seq_arc_refraction_reference.py: ablating refraction takes across-symbol overlap 0.000 -> 0.989 and the task 3/3 -> 0/3
 
+**Evidence files.**
+- [research/results/logs/seq_arc_refraction_reference.log](../research/results/logs/seq_arc_refraction_reference.log) (log)
+- [research/experiments/seq_arc_refraction_reference.py](../research/experiments/seq_arc_refraction_reference.py) (producer)
+
+**Provenance gap.** legacy log has no structured run, seeds, or source archive
+
 **Caveat.** Task #92 measured one direction, read 0.90-0.99, and concluded a conjunctive arc has no operating point. It has one.
 
 ## REFRACTION-PROPORTIONAL
@@ -202,6 +234,12 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 
 **Evidence.**
 - research/experiments/seq_arc_refraction_reference.py: the constant winning at 15 presentations fails at 30, while the proportional rule passes both untouched
+
+**Evidence files.**
+- [research/results/logs/seq_arc_refraction_reference.log](../research/results/logs/seq_arc_refraction_reference.log) (log)
+- [research/experiments/seq_arc_refraction_reference.py](../research/experiments/seq_arc_refraction_reference.py) (producer)
+
+**Provenance gap.** legacy log has no structured run, seeds, or source archive
 
 **Used by.** `neural_assemblies/core/_homeostasis.py`
 
@@ -220,6 +258,13 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 - research/experiments/seq_a2_refraction_load.py, SAMPLED arc: a 3-conjunction arc goes 1/10 at load 0.04 to 10/10 at 0.21; a 9-conjunction arc holds 10/10 from 0.32 to 1.26 and collapses to 1/10 at 1.80
 - the same script with the arc MATERIALIZED (NEMO_MATERIALIZE=1, 10 seeds): 3-conjunction arc 10/10 at every load 0.04-0.60; 9-conjunction arc 10/10 to 1.26, 0/10 at 1.80
 - arc assembly stability across training: 0.286 from presentation 5 to 15 under-loaded, 0.957 from 10 to 15 loaded
+
+**Evidence files.**
+- [research/results/sequence/seq_a2_refraction_load_results.json](../research/results/sequence/seq_a2_refraction_load_results.json) (artifact) — sampled arc; lower-edge inference retracted
+- [research/results/sequence/seq_a2_refraction_load_results_materialized.json](../research/results/sequence/seq_a2_refraction_load_results_materialized.json) (artifact)
+- [research/experiments/seq_a2_refraction_load.py](../research/experiments/seq_a2_refraction_load.py) (producer)
+
+**Provenance gap.** legacy artifacts lack runner records and source archives
 
 **Caveat.** The 'silent failure under load' this entry once described -- assemblies that never stop moving while every diagnostic reads healthy -- was measured on the sampled engine and does not occur materialized; treat it as a property of lazily drawn areas, not of refraction. The ceiling is [[AC-CAP]]'s and is not independent of it. One task, 10 seeds.
 
@@ -246,6 +291,15 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 - (8000, 60) gated T_max 8: 8666 [8192, 10240) vs 6995 (x1.24)
 - strength 0.3 / 0.4 / 0.5 / 0.6 beta at (4000, 60): 1986 / 1919 / 1978 / 1993, all [1536, 2048)
 
+**Evidence files.**
+- [research/notes/memory/PREREG_refraction_memory.md](../research/notes/memory/PREREG_refraction_memory.md) (registration)
+- [research/results/runs/memory.capacity-scaling/capacity-record-consumed-20260910/results.json](../research/results/runs/memory.capacity-scaling/capacity-record-consumed-20260910/results.json) (artifact) — registered protocol-consumption replay, not the whole historical grid
+- [research/results/memory/refraction_memory_numpy_results.json](../research/results/memory/refraction_memory_numpy_results.json) (artifact)
+- [research/results/memory/capacity_scaling_results_figure_ref.json](../research/results/memory/capacity_scaling_results_figure_ref.json) (artifact)
+- [research/results/memory/capacity_scaling_results_figure_ctl.json](../research/results/memory/capacity_scaling_results_figure_ctl.json) (artifact)
+
+**Provenance gap.** most capacity-grid artifacts predate immutable source/environment records
+
 **Caveat.** Found by re-measuring PREREG_refraction_capacity.md after the hashed selector's sign defect (1b475fc) -- its Amendment 1 ('spends the substrate') was that defect. The n/k law was counted as holding at n/k = 133 while both cells were censored; resolved, they disagree by 0.68 and the k = 30 one is out of regime -- k p >= 3 ln n is a precondition, not a footnote. Three ratios do not fix an exponent that is falling (2.1 -> 1.8). The multiplier is at 0.5 beta; 0.7 beta converges only given T = 16 and holds ~185 at n/k = 67, but strength is otherwise a plateau whose lower edge (below 0.3 beta) is unmeasured. The gate is two in-regime cells (n/k = 67, 133); n/k = 33 and out of regime are unmeasured, and the gated ceiling's doubling exponent (1.71) may keep falling.
 
 ## REFRACTION-CANCELS-CONVERGENCE
@@ -266,6 +320,13 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 - capacity protocol at s = 0.5 beta, re-measured with the selector fixed: see [[REFRACTION-ANTI-MERGING]] (the earlier 'M* 19.6 vs 23.5' reading was the defect)
 - bias-on partial-cue recall 0.250 vs bias-masked 0.984 at M=8, same training: the intrinsic bias vetoes recall from a partial cue, as the identity predicts
 
+**Evidence files.**
+- [research/experiments/seq_refraction_wander.py](../research/experiments/seq_refraction_wander.py) (producer)
+- [research/notes/memory/PREREG_refraction_capacity.md](../research/notes/memory/PREREG_refraction_capacity.md) (registration)
+- [research/notes/memory/AUDIT_refraction_scaling.md](../research/notes/memory/AUDIT_refraction_scaling.md) (analysis)
+
+**Provenance gap.** wander and bias-readout numbers have no identified immutable result artifact
+
 **Used by.** `neural_assemblies/core/_homeostasis.py`; `neural_assemblies/core/torch_engine/_hashed.py`
 
 **Caveat.** The critical ratio is bracketed in (0.7, 0.8) at one operating point; a transient-handicap estimate gives ~2/3. Whether REFRACTION-NEEDS-LOAD's under-loaded non-convergence is this mechanism (the arc's state input is itself changing) is suggested, not established. TWO FURTHER LIMITS (AUDIT_refraction_scaling.md): refraction + synaptic scaling on the same area is INCOMPATIBLE -- a feedforward arc that holds under either alone loses its assemblies within ~10 presentations under both (late stability 0.12 vs 1.00), because scaling moves the raw drive the bias is charged against; and with no clip the identity dies of float32 cancellation at ~100-150 wins. Never scale a refracted area.
@@ -282,6 +343,12 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 - research/notes/categories/capacity_is_not_the_constraint_separation_is.md
 - research/notes/substrate/graded_similarity_and_sampler_load.md
 
+**Evidence files.**
+- [research/notes/categories/capacity_is_not_the_constraint_separation_is.md](../research/notes/categories/capacity_is_not_the_constraint_separation_is.md) (analysis)
+- [research/notes/substrate/graded_similarity_and_sampler_load.md](../research/notes/substrate/graded_similarity_and_sampler_load.md) (analysis)
+
+**Provenance gap.** capacity-note run has no identifiable immutable artifact
+
 **Caveat.** The capacity-note run's engine provenance remains unresolved; this entry does not certify the numerical capacity claim. This is why k and p are not interchangeable routes to a regime: raising k to reach kp spends capacity and forces n up with it.
 
 ## RATE-HETEROGENEITY
@@ -294,6 +361,8 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 
 **Evidence.**
 - beta=0.5 vs beta=0.01 into one target over 10 rounds: max weight 20.000 (at the w_max clamp) vs 1.094
+
+**Provenance gap.** no identified producer, result artifact, seed inventory, or engine
 
 **Used by.** `neural_assemblies.core.brain.Brain.update_plasticity`
 
@@ -326,6 +395,13 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 **Evidence.**
 - research/experiments/seq_a1_local_regime.py: ambient p=0.05 with organ fibers at p=0.4 gives 10/10 correct trajectories, matching the uniform p=0.4 result, while the same organ left at the ambient density gives 0/10
 
+**Evidence files.**
+- [research/results/sequence/seq_a1_local_regime_results.json](../research/results/sequence/seq_a1_local_regime_results.json) (artifact) — sampled arc; sequence verdict void
+- [research/results/sequence/seq_a1_local_regime_results_materialized.json](../research/results/sequence/seq_a1_local_regime_results_materialized.json) (artifact)
+- [research/experiments/seq_a1_local_regime.py](../research/experiments/seq_a1_local_regime.py) (producer)
+
+**Provenance gap.** legacy artifacts lack runner records and source archives
+
 **Caveat.** The original organ-density experiment used the sampled numpy arc; its sequence-dynamics numbers are void under PREREG_sampler_audit.md until reproduced materialized or hashed. The heterogeneous path found a defect that the regime audit could NOT see: the stimulus weight clamp was scaled by the global p while the weights were drawn at the fiber's p, so a dense fiber in a sparse brain saturated at a sparse ceiling. The organ read 1/10 while every area reported comfortably in-regime. Any NEW per-fiber quantity is a candidate for the same class. The pooled candidate draw also remains moment-matched -- exact in the first two moments, an approximation beyond them.
 
 ## SEQ-STATE-CODE-EMERGENT
@@ -350,6 +426,11 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 
 **Evidence.**
 - research/experiments/gpu_radix_select_prototype.py
+
+**Evidence files.**
+- [research/experiments/gpu_radix_select_prototype.py](../research/experiments/gpu_radix_select_prototype.py) (producer)
+
+**Provenance gap.** prototype measurement has no retained raw result artifact
 
 **Used by.** `neural_assemblies.core.numpy_engine._kwta_prune`
 
@@ -406,6 +487,11 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 **Evidence.**
 - research/experiments/seq_capacity_scaling.py
 
+**Evidence files.**
+- [research/results/runs/memory.capacity-scaling/capacity-record-consumed-20260910/results.json](../research/results/runs/memory.capacity-scaling/capacity-record-consumed-20260910/results.json) (artifact)
+- [research/notes/memory/PREREG_capacity_nk_law.md](../research/notes/memory/PREREG_capacity_nk_law.md) (registration)
+- [research/experiments/seq_capacity_scaling.py](../research/experiments/seq_capacity_scaling.py) (producer)
+
 **Caveat.** This result survived a WRONG RETRACTION: an intermediate CSR deviation store applied the potentiation table per count FRAGMENT, and (tab[c0]-1)+(tab[c1]-1) != tab[c0+c1]-1, inflating ceilings ~25% (88.3/92.1/83.2); those numbers were briefly recorded here as the verified ones. Multi-episode ENGINE parity exposed it (rel 2e-3) and the exact path lands back on the first run's values. The EXPONENT remains unestablished: b = 2.19 +/- 0.05, above 2, NO mechanism -- reported, never quoted. A synapse bound M ~ n^2 p / (k ln(n/k)) is REFUTED by CS1: it is not a function of n/k alone -- and so is plain second-order CROSSTALK, refuted by registered test: the crosstalk ratio cancels p and beta, but M* ~ p^-0.6 and ~ beta^-1.3 at fixed n/k. No mechanism is adopted. Operational rule from the wrong retraction: when two implementations disagree, a test they BOTH pass verifies neither -- arbitrate with engine parity on the DRIVE.
 
 ## CAP-ANCHOR-RATIO
@@ -425,6 +511,13 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 - A1-A3: beta 0.20 / p 0.7 / p 0.3 excursions with uncompensated M* 8.0 / 17.6 / 28.8 land at 29.4 / 25.0 / 25.3 once the anchor is set from the measured exponents -- a 3.6x spread collapses to 1.18x, all within 25% of 23.5
 - F3: past the cliff, erosion is retroactive and diffuse (early items fail worst), not one-shot capture
 
+**Evidence files.**
+- [research/notes/memory/PREREG_anchor_ratio.md](../research/notes/memory/PREREG_anchor_ratio.md) (registration)
+- [research/notes/memory/PREREG_formation_interference.md](../research/notes/memory/PREREG_formation_interference.md) (registration)
+- [research/experiments/seq_capacity_scaling.py](../research/experiments/seq_capacity_scaling.py) (producer)
+
+**Provenance gap.** registered legacy outcomes are not yet packaged as immutable runner artifacts
+
 **Caveat.** A1 sits on the numeric band's edge (29.4 vs < 29.4) and passes on the registered prose criterion; all three compensated cells overshoot upward, so the anchor exponent is probably slightly high. The (n/k)^2 dependence of CAP-RATIO is the pull's chance-overlap term and is NOT derived here.
 
 ## CAP-CLIFF
@@ -441,5 +534,9 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 
 **Evidence.**
 - research/experiments/seq_capacity_scaling.py
+
+**Evidence files.**
+- [research/results/runs/memory.capacity-scaling/capacity-record-consumed-20260910/results.json](../research/results/runs/memory.capacity-scaling/capacity-record-consumed-20260910/results.json) (artifact)
+- [research/experiments/seq_capacity_scaling.py](../research/experiments/seq_capacity_scaling.py) (producer)
 
 **Caveat.** There is no soft capacity margin to trade against: a design must know where the ceiling is and stay under it. Sharing itself is healthy -- at M=256 the load Mk/n is 1.9, nearly two assemblies per neuron, with overlap still 1.37x chance -- so the cliff is not caused by sharing. The transition occupies roughly one 1.5x step in M (256 -> 384).

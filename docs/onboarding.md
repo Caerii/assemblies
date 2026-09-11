@@ -64,6 +64,10 @@ evidence. Then follow the reading order below.
   a smaller grid than registered produces void numbers; tag it so.
 - **Adopted results go into `neural_assemblies/theory.py`**, rendered to
   `docs/register.md`; a test fails if the rendering is stale.
+- **Measured register entries use typed evidence references.** Every local file
+  names its role (artifact, registration, producer, analysis, or log) and must
+  resolve. Missing immutable evidence is an explicit `provenance_gap`, never an
+  implied file hidden inside prose.
 
 ## Open problems worth a collaborator's week
 

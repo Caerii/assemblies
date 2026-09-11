@@ -1591,3 +1591,12 @@ registration link is added.85 runner/graph checks pass. The legacy audit still h
 367 candidate result orphans,28 preregs without resolved result links and741
 unresolved textual references; these are inventory categories requiring disposition,
 not a claim that every item is invalid. New runner evidence cannot add to that debt.
+
+## Typed register evidence (2026-09-10)
+
+All15 MEASURED entries now expose43 typed, resolving evidence files and explicit
+provenance gaps. Roles distinguish artifact/registration/producer/analysis/log.
+Thirteen entries retain a gap; seven have no artifact-role file. The renderer exposes
+those facts and onboarding requires them. Missing/escaping paths and unacknowledged
+absence fail tests;10 register tests pass. This makes the next migration queue
+machine-readable without pretending legacy scripts or logs are immutable evidence.

@@ -2968,3 +2968,20 @@ A constructed case proves that a structurally valid result without its registrat
 edge fails, and that adding the exact edge clears it.85 active-graph/runner tests
 pass; the focused negative plus live graph pass in20.27s. Ruff and diff checks pass.
 Legacy disposition remains explicit open work; it cannot expand through this path.
+
+## Typed register evidence (2026-09-10)
+
+All15 MEASURED register entries now carry typed repository evidence edges with one
+of five roles: artifact, registration, producer, analysis or log.43 paths resolve
+inside the repository. Entries whose available files do not constitute an immutable
+runner artifact state `provenance_gap` explicitly;13 of15 do, and seven have no
+artifact-role file at all. RATE-HETEROGENEITY now says mechanically that it lacks
+an identified producer, artifact, seeds and engine. This preserves claims while
+making their evidentiary strength queryable instead of inferring it from prose.
+
+The public register renders linked evidence files, their roles and per-file limits,
+followed by the provenance gap. The onboarding rule names this requirement. Tests
+reject missing, escaping and unsupported evidence references, require every measured
+entry to have a typed edge or explicit gap, and fail stale rendering.10 register
+tests pass; Ruff and diff checks pass. This is file-graph validity, not retroactive
+validation of legacy numerical methods; each stated gap remains work.

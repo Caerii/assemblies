@@ -71,6 +71,28 @@ class TestTheoryCitations(unittest.TestCase):
             if result.status == theory.Status.MEASURED:
                 self.assertTrue(result.engine.strip(), f"{result.id} has no engine provenance")
 
+    def test_typed_evidence_references_resolve(self):
+        errors = theory.evidence_reference_errors(REPO)
+        self.assertEqual(errors, [], "\n".join(errors))
+
+    def test_typed_evidence_rejects_dangling_and_unsafe_paths(self):
+        original = theory._RESULTS
+        try:
+            theory._RESULTS = [theory.Result(
+                id="BROKEN-EVIDENCE", status=theory.Status.MEASURED,
+                claim="fixture", source="fixture", evidence=("fixture",), engine="fixture",
+                evidence_refs=(theory.EvidenceRef("../outside.json", "artifact"),))]
+            errors = theory.evidence_reference_errors(REPO)
+            self.assertTrue(any("unsafe evidence path" in error for error in errors))
+            theory._RESULTS = [theory.Result(
+                id="BROKEN-EVIDENCE", status=theory.Status.MEASURED,
+                claim="fixture", source="fixture", evidence=("fixture",), engine="fixture",
+                evidence_refs=(theory.EvidenceRef("research/results/missing.json", "artifact"),))]
+            errors = theory.evidence_reference_errors(REPO)
+            self.assertTrue(any("dangling evidence path" in error for error in errors))
+        finally:
+            theory._RESULTS = original
+
 
 if __name__ == "__main__":
     unittest.main()

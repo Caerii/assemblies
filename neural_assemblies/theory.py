@@ -40,6 +40,7 @@ from typing import Dict, List, Sequence
 #: Matches an UPPERCASE-DASHED result citation in double brackets. Lowercase
 #: kebab links are operator memory, not results, and never match.
 CITATION = re.compile(r"\[\[([A-Z][A-Z0-9]*(?:-[A-Z0-9]+)*)\]\]")
+EVIDENCE_ROLES = frozenset({"artifact", "registration", "producer", "analysis", "log"})
 
 
 class Status:
@@ -59,6 +60,15 @@ class Status:
 
 
 @dataclass(frozen=True)
+class EvidenceRef:
+    """One resolvable repository file and its role in supporting a result."""
+
+    path: str
+    role: str
+    limitation: str = ""
+
+
+@dataclass(frozen=True)
 class Result:
     """One citable claim, with the conditions under which it holds."""
 
@@ -68,6 +78,8 @@ class Result:
     source: str
     preconditions: Sequence[str] = field(default_factory=tuple)
     evidence: Sequence[str] = field(default_factory=tuple)
+    evidence_refs: Sequence[EvidenceRef] = field(default_factory=tuple)
+    provenance_gap: str = ""
     implemented_by: Sequence[str] = field(default_factory=tuple)
     caveat: str = ""
     engine: str = ""  # measurement substrate; empty for non-empirical entries
@@ -81,6 +93,10 @@ class Result:
             bits.append("    requires: " + "; ".join(self.preconditions))
         if self.evidence:
             bits.append("    evidence: " + "; ".join(self.evidence))
+        if self.evidence_refs:
+            bits.append("    evidence files: " + "; ".join(ref.path for ref in self.evidence_refs))
+        if self.provenance_gap:
+            bits.append("    PROVENANCE GAP: " + self.provenance_gap)
         if self.implemented_by:
             bits.append("    used by: " + "; ".join(self.implemented_by))
         if self.caveat:
@@ -194,6 +210,13 @@ _RESULTS: List[Result] = [
                   "14 -> 4/100 exact steps and 4/10 trajectories; kp 21 -> "
                   "80/100 and 10/10; kp 28 -> 100/100 and 10/10, with the "
                   "transition at the predicted p = 18.6/70 = 0.266",),
+        evidence_refs=(
+            EvidenceRef("research/results/sequence/seq_a1_exactness_sweep_results.json", "artifact",
+                        "sampled numpy arc; sequence verdict void under sampler audit"),
+            EvidenceRef("research/results/sequence/seq_a1_exactness_sweep_results_materialized.json", "artifact"),
+            EvidenceRef("research/experiments/seq_a1_exactness_sweep.py", "producer"),
+        ),
+        provenance_gap="legacy result files have no immutable runner/source record",
         implemented_by=("neural_assemblies.diagnostics.regime_audit",),
         caveat="The original sweep used the sampled numpy arc; its sequence-dynamics "
                "numbers are void under PREREG_sampler_audit.md until reproduced "
@@ -231,6 +254,15 @@ _RESULTS: List[Result] = [
                   "each, non-abelian/product groups only), the zero-parameter "
                   "law 4/4 -- and none of the four deviations derailed in 500 "
                   "steps, where the sampled arc derailed 12/40 words"),
+        evidence_refs=(
+            EvidenceRef("research/results/sequence/seq_a1_horizon_results_hashed_int8_timing.json", "artifact"),
+            EvidenceRef("research/results/sequence/seq_a1_horizon_materialized_check.json", "artifact"),
+            EvidenceRef("research/results/sequence/seq_s5_soft_census_results.json", "artifact",
+                        "sampled numpy arc"),
+            EvidenceRef("research/results/sequence/seq_s5_soft_census_results_hashed.json", "artifact"),
+            EvidenceRef("research/notes/sequence/PREREG_s5_cliff_anatomy.md", "registration"),
+        ),
+        provenance_gap="some legacy subclaims have no source archive or raw runner artifact",
         caveat="(1) Expansion and quantization are a PAIR: amplification alone "
                "is chaos, benign only because a quantizing area follows it; "
                "composition steps without a re-quantizing stage drift. "
@@ -332,6 +364,15 @@ _RESULTS: List[Result] = [
                   "seq_tm_high_order.py --presentations 20: sets I-III exact on "
                   "the induced and copy arms; at 40 presentations set III falls "
                   "to 1 of 20 on every arm (results in research/results/sequence/)"),
+        evidence_refs=(
+            EvidenceRef("research/results/runs/sequence.temporal-positions/temporal-positions-study-20260910/results.json", "artifact"),
+            EvidenceRef("research/results/sequence/seq_a3_transducer_results_temporal_chain_gap2.json", "artifact"),
+            EvidenceRef("research/results/sequence/seq_a3_transducer_results_temporal_chain_gap2_amend2_fresh.json", "artifact"),
+            EvidenceRef("research/results/sequence/seq_a3_transducer_results_temporal_chain_gap3_amend2_gap3.json", "artifact"),
+            EvidenceRef("research/results/sequence/seq_tm_high_order_results_p20.json", "artifact"),
+            EvidenceRef("research/notes/sequence/PREREG_temporal_positions.md", "registration"),
+        ),
+        provenance_gap="pre-schema-4 prediction/order artifacts lack complete source and environment capture",
         implemented_by=("neural_assemblies/core/torch_engine/_hashed_transducer.py",),
         caveat="A prediction result on a synthetic corpus, not a language model: "
                "no baseline beyond bigram and oracle, no scaling curve in n, "
@@ -356,6 +397,11 @@ _RESULTS: List[Result] = [
         evidence=("research/experiments/seq_arc_refraction_reference.py: "
                   "ablating refraction takes across-symbol overlap 0.000 -> "
                   "0.989 and the task 3/3 -> 0/3",),
+        evidence_refs=(
+            EvidenceRef("research/results/logs/seq_arc_refraction_reference.log", "log"),
+            EvidenceRef("research/experiments/seq_arc_refraction_reference.py", "producer"),
+        ),
+        provenance_gap="legacy log has no structured run, seeds, or source archive",
         preconditions=("BOTH overlap directions measured -- one alone cannot "
                        "distinguish a conjunction from collapse onto the other "
                        "conjunct",),
@@ -374,6 +420,11 @@ _RESULTS: List[Result] = [
         evidence=("research/experiments/seq_arc_refraction_reference.py: the "
                   "constant winning at 15 presentations fails at 30, while the "
                   "proportional rule passes both untouched",),
+        evidence_refs=(
+            EvidenceRef("research/results/logs/seq_arc_refraction_reference.log", "log"),
+            EvidenceRef("research/experiments/seq_arc_refraction_reference.py", "producer"),
+        ),
+        provenance_gap="legacy log has no structured run, seeds, or source archive",
         implemented_by=("neural_assemblies/core/_homeostasis.py",),
     ),
     Result(
@@ -398,6 +449,13 @@ _RESULTS: List[Result] = [
                   "9-conjunction arc 10/10 to 1.26, 0/10 at 1.80",
                   "arc assembly stability across training: 0.286 from "
                   "presentation 5 to 15 under-loaded, 0.957 from 10 to 15 loaded"),
+        evidence_refs=(
+            EvidenceRef("research/results/sequence/seq_a2_refraction_load_results.json", "artifact",
+                        "sampled arc; lower-edge inference retracted"),
+            EvidenceRef("research/results/sequence/seq_a2_refraction_load_results_materialized.json", "artifact"),
+            EvidenceRef("research/experiments/seq_a2_refraction_load.py", "producer"),
+        ),
+        provenance_gap="legacy artifacts lack runner records and source archives",
         preconditions=("refraction active -- this is a statement about what "
                        "refraction needs, not about k-WTA generally",),
         caveat="The 'silent failure under load' this entry once described -- "
@@ -474,6 +532,15 @@ _RESULTS: List[Result] = [
                   "(8000, 60) gated T_max 8: 8666 [8192, 10240) vs 6995 (x1.24)",
                   "strength 0.3 / 0.4 / 0.5 / 0.6 beta at (4000, 60): 1986 / "
                   "1919 / 1978 / 1993, all [1536, 2048)"),
+        evidence_refs=(
+            EvidenceRef("research/notes/memory/PREREG_refraction_memory.md", "registration"),
+            EvidenceRef("research/results/runs/memory.capacity-scaling/capacity-record-consumed-20260910/results.json", "artifact",
+                        "registered protocol-consumption replay, not the whole historical grid"),
+            EvidenceRef("research/results/memory/refraction_memory_numpy_results.json", "artifact"),
+            EvidenceRef("research/results/memory/capacity_scaling_results_figure_ref.json", "artifact"),
+            EvidenceRef("research/results/memory/capacity_scaling_results_figure_ctl.json", "artifact"),
+        ),
+        provenance_gap="most capacity-grid artifacts predate immutable source/environment records",
         preconditions=("recurrent k-WTA area, weight clip, norm_init, no column "
                        "scaling (arm B); refraction strength 0.5 beta; T = 8 "
                        "rounds per item from an inhibited area; readout = "
@@ -541,6 +608,12 @@ _RESULTS: List[Result] = [
                   "bias-on partial-cue recall 0.250 vs bias-masked 0.984 at "
                   "M=8, same training: the intrinsic bias vetoes recall from "
                   "a partial cue, as the identity predicts"),
+        evidence_refs=(
+            EvidenceRef("research/experiments/seq_refraction_wander.py", "producer"),
+            EvidenceRef("research/notes/memory/PREREG_refraction_capacity.md", "registration"),
+            EvidenceRef("research/notes/memory/AUDIT_refraction_scaling.md", "analysis"),
+        ),
+        provenance_gap="wander and bias-readout numbers have no identified immutable result artifact",
         preconditions=("recurrent area; strength quoted relative to beta; "
                        "T=8 rounds per item in the capacity protocol",
                        "the reference uses RefractedArea only as a FEEDFORWARD "
@@ -570,6 +643,11 @@ _RESULTS: List[Result] = [
         source="This repository (critical-load measurement).",
         evidence=("research/notes/categories/capacity_is_not_the_constraint_separation_is.md",
                   "research/notes/substrate/graded_similarity_and_sampler_load.md"),
+        evidence_refs=(
+            EvidenceRef("research/notes/categories/capacity_is_not_the_constraint_separation_is.md", "analysis"),
+            EvidenceRef("research/notes/substrate/graded_similarity_and_sampler_load.md", "analysis"),
+        ),
+        provenance_gap="capacity-note run has no identifiable immutable artifact",
         caveat="The capacity-note run's engine provenance remains unresolved; "
                "this entry does not certify the numerical capacity claim. "
                "This is why k and p are not interchangeable routes to a regime: "
@@ -586,6 +664,7 @@ _RESULTS: List[Result] = [
         source="This repository.",
         evidence=("beta=0.5 vs beta=0.01 into one target over 10 rounds: max "
                   "weight 20.000 (at the w_max clamp) vs 1.094",),
+        provenance_gap="no identified producer, result artifact, seed inventory, or engine",
         implemented_by=("neural_assemblies.core.brain.Brain.update_plasticity",),
         caveat="The numerical evidence has no identified run or engine; provenance "
                "must be recovered before adopting it as a reproduced measurement. "
@@ -630,6 +709,13 @@ _RESULTS: List[Result] = [
                   "with organ fibers at p=0.4 gives 10/10 correct trajectories, "
                   "matching the uniform p=0.4 result, while the same organ left "
                   "at the ambient density gives 0/10",),
+        evidence_refs=(
+            EvidenceRef("research/results/sequence/seq_a1_local_regime_results.json", "artifact",
+                        "sampled arc; sequence verdict void"),
+            EvidenceRef("research/results/sequence/seq_a1_local_regime_results_materialized.json", "artifact"),
+            EvidenceRef("research/experiments/seq_a1_local_regime.py", "producer"),
+        ),
+        provenance_gap="legacy artifacts lack runner records and source archives",
         caveat="The original organ-density experiment used the sampled numpy arc; "
                "its sequence-dynamics numbers are void under PREREG_sampler_audit.md "
                "until reproduced materialized or hashed. "
@@ -674,6 +760,8 @@ _RESULTS: List[Result] = [
                        "potentiation spreads the values",
                        "k-WTA selecting at a bar that several columns reach"),
         evidence=("research/experiments/gpu_radix_select_prototype.py",),
+        evidence_refs=(EvidenceRef("research/experiments/gpu_radix_select_prototype.py", "producer"),),
+        provenance_gap="prototype measurement has no retained raw result artifact",
         implemented_by=("neural_assemblies.core.numpy_engine._kwta_prune",),
         caveat="`_kwta_prune` records the operational rule this implies: making "
                "the selector's tie-break CANONICAL is a science-affecting "
@@ -763,6 +851,11 @@ _RESULTS: List[Result] = [
                        "the ratio law holds within an operating point, not "
                        "across them"),
         evidence=("research/experiments/seq_capacity_scaling.py",),
+        evidence_refs=(
+            EvidenceRef("research/results/runs/memory.capacity-scaling/capacity-record-consumed-20260910/results.json", "artifact"),
+            EvidenceRef("research/notes/memory/PREREG_capacity_nk_law.md", "registration"),
+            EvidenceRef("research/experiments/seq_capacity_scaling.py", "producer"),
+        ),
         caveat="This result survived a WRONG RETRACTION: an intermediate "
                "CSR deviation store applied the potentiation table per count "
                "FRAGMENT, and (tab[c0]-1)+(tab[c1]-1) != tab[c0+c1]-1, "
@@ -799,6 +892,12 @@ _RESULTS: List[Result] = [
                   "a 3.6x spread collapses to 1.18x, all within 25% of 23.5",
                   "F3: past the cliff, erosion is retroactive and diffuse "
                   "(early items fail worst), not one-shot capture"),
+        evidence_refs=(
+            EvidenceRef("research/notes/memory/PREREG_anchor_ratio.md", "registration"),
+            EvidenceRef("research/notes/memory/PREREG_formation_interference.md", "registration"),
+            EvidenceRef("research/experiments/seq_capacity_scaling.py", "producer"),
+        ),
+        provenance_gap="registered legacy outcomes are not yet packaged as immutable runner artifacts",
         preconditions=("n=4000, k=100, T=8, w_max=20, arm B, 16 brains; "
                        "one operating-point neighbourhood",
                        "exponents s^1.52 p^-0.6 beta^-1.3 are two- and "
@@ -826,6 +925,10 @@ _RESULTS: List[Result] = [
         preconditions=("half-cue rank-1 readout against ALL M stored items",
                        "distinctness gate applied, so a collapsed set scores 0"),
         evidence=("research/experiments/seq_capacity_scaling.py",),
+        evidence_refs=(
+            EvidenceRef("research/results/runs/memory.capacity-scaling/capacity-record-consumed-20260910/results.json", "artifact"),
+            EvidenceRef("research/experiments/seq_capacity_scaling.py", "producer"),
+        ),
         caveat="There is no soft capacity margin to trade against: a design "
                "must know where the ceiling is and stay under it. Sharing "
                "itself is healthy -- at M=256 the load Mk/n is 1.9, nearly "
@@ -882,6 +985,29 @@ def unresolved_citations(root: str) -> Dict[str, List[str]]:
     return missing
 
 
+def evidence_reference_errors(root: str) -> List[str]:
+    """Validate the register's typed local evidence edges without judging results."""
+    root = os.path.abspath(root)
+    errors = []
+    for result in _RESULTS:
+        if result.status == Status.MEASURED and not (result.evidence_refs or result.provenance_gap):
+            errors.append(f"{result.id}: measured result has no typed evidence or provenance gap")
+        if (result.status == Status.MEASURED
+                and not any(ref.role == "artifact" for ref in result.evidence_refs)
+                and not result.provenance_gap):
+            errors.append(f"{result.id}: no result artifact and no provenance gap")
+        for ref in result.evidence_refs:
+            normalized = os.path.normpath(ref.path).replace("\\", "/")
+            target = os.path.abspath(os.path.join(root, ref.path))
+            if (not ref.path or normalized != ref.path or os.path.commonpath((root, target)) != root):
+                errors.append(f"{result.id}: unsafe evidence path {ref.path!r}")
+            elif not os.path.isfile(target):
+                errors.append(f"{result.id}: dangling evidence path {ref.path}")
+            if ref.role not in EVIDENCE_ROLES:
+                errors.append(f"{result.id}: unsupported evidence role {ref.role!r}")
+    return errors
+
+
 def format_index(results: Sequence[Result] = ()) -> str:
     """Render the register, extensions last so they are what you read last."""
     order = {Status.PROVED: 0, Status.MEASURED: 1, Status.EXTENSION: 2}
@@ -936,6 +1062,15 @@ def render_markdown() -> str:
         if r.evidence:
             out.append("**Evidence.**")
             out.extend(f"- {x}" for x in r.evidence)
+            out.append("")
+        if r.evidence_refs:
+            out.append("**Evidence files.**")
+            for ref in r.evidence_refs:
+                suffix = f" — {ref.limitation}" if ref.limitation else ""
+                out.append(f"- [{ref.path}](../{ref.path}) ({ref.role}){suffix}")
+            out.append("")
+        if r.provenance_gap:
+            out.append(f"**Provenance gap.** {r.provenance_gap}")
             out.append("")
         if r.implemented_by:
             out.append("**Used by.** " + "; ".join(f"`{x}`" for x in r.implemented_by))
