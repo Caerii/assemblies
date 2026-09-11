@@ -4546,3 +4546,10 @@ Each first-class calculus operation now declares a separate executable
 non-empty, and the control-resolution test confirms every referenced test
 function exists. The operation contract and semantic-card suites pass **169
 tests** with Ruff clean.
+
+## ERP index-space completeness (2026-09-11)
+
+The pre-k-WTA ERP adapter no longer averages a partially mapped assembly after
+silently dropping neuron IDs. It returns an undefined measurement carrying the
+entry, mapped, and vector sizes. The focused regression passes **1 test** and
+Ruff is clean.

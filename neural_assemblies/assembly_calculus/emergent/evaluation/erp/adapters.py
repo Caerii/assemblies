@@ -883,6 +883,16 @@ def _predicted_energy(brain, entry) -> Measured:
             for i in entry_ids
             if int(i) in n2c and n2c[int(i)] < len(vec)
         ]
+    if len(idx) != len(entry_ids):
+        return Measured.undefined(
+            "only part of the stored assembly mapped into PREDICTION's "
+            "compact drive vector (index-space mismatch or unmaterialized "
+            "neurons), so its predicted energy is undefined",
+            legacy=0.0,
+            entry_size=int(len(entry_ids)),
+            mapped_size=int(len(idx)),
+            vector_size=int(len(vec)),
+        )
     if not idx:
         # THE INDEX-SPACE DEFECT, surfacing as a confident maximum N400: the
         # entry's NEURON IDS did not map into the compact drive vector, so

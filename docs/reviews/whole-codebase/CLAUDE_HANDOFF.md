@@ -2537,3 +2537,5 @@ that result can be treated as evidence.
 The follow-up consolidated regression is green: 50 tests passed across engine availability, ERP cache/bootstrap contracts, simulation and E2 overlap domains, sequence invariants, and parity manifest immutability. Nine sampled-engine warnings remain deliberate audit signals in sequence tests.
 
 Operation contracts now distinguish ordinary schedule evidence from executable true-negative controls. All five first-class operations name a failing configuration test, and the contract validator plus semantic-card suite passes 169 tests.
+
+ERP pre-k-WTA energy now rejects partial neuron-ID to compact-index mappings as undefined with structured sizes; a focused regression covers the former silent-drop path.
