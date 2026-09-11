@@ -40,9 +40,9 @@ class MinimalTMDemo:
         brain.add_stimulus(self._sym_blank, k)
 
         project(brain, self._sym_one, self.tape_area, rounds=rounds)
-        brain._engine.reset_area_connections(self.tape_area)
+        brain.reset_area_connections(self.tape_area)
         project(brain, self._sym_blank, self.tape_area, rounds=rounds)
-        brain._engine.reset_area_connections(self.tape_area)
+        brain.reset_area_connections(self.tape_area)
         project(brain, self._sym_one, self.head_area, rounds=rounds)
 
         states = ["q0", "q1", "q_halt"]

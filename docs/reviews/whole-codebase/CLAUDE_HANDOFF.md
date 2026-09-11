@@ -2442,3 +2442,12 @@ parity, and specification links.
 words before discovering an invalid mapping, and it reset through the primary
 engine even when the target area was explicit. It now preflights all inputs and
 resets through the target area's owner. The focused gate is 17 passed.
+
+The next owner audit slice is complete. `_apply_result` now persists neuron IDs
+from the target area's owner, the emergent base-beta schedule calls
+`Brain.update_plasticity` so explicit mirrors cannot drift, and incremental
+context population resets resolve the owner before touching backend state.
+The planning and Turing-machine demos were migrated to the same reset facade.
+The focused mixed gate remains green: 171 passed, 19 skipped, one expected
+xfail. Sampled-recurrence warnings are still intentional and keep those
+sequence numbers void until fixed-connectome reruns.

@@ -441,8 +441,11 @@ class CoreParserMixin(
         for area_name in brain.areas:
             area = brain.areas[area_name]
             for src in area.beta_by_area:
-                area.beta_by_area[src] = beta
-                brain._engine.set_beta(area_name, src, beta)
+                # Brain owns the descriptor/backend synchronization.  Calling
+                # the engine directly leaves explicit mirrors stale and makes
+                # mixed-engine brains depend on which backend happens to be
+                # primary.
+                brain.update_plasticity(src, area_name, beta)
         # Re-apply overlays on the new base: the stage changed the price
         # level, not the policy.
         eng = brain._engine

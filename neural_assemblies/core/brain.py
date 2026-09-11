@@ -1270,7 +1270,11 @@ class Brain:
         had_inputs = bool(stim_in[area_name] or area_in[area_name] or had_external_drive)
 
         if self.save_winners and had_inputs:
-            mapping = self._engine.get_neuron_id_mapping(area_name)
+            # The result was produced by the target's executing owner.  Read
+            # its compact->neuron mapping from that same owner; consulting the
+            # primary engine can silently save the wrong identity when a Brain
+            # mixes sparse and explicit areas.
+            mapping = self._engine_for(area).get_neuron_id_mapping(area_name)
             if mapping:
                 saved = np.array([mapping[idx] if idx < len(mapping) else np.uint32(idx)
                                   for idx in result.winners], dtype=np.uint32)

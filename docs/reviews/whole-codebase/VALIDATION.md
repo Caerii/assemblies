@@ -4188,3 +4188,16 @@ masked-readout state fails explicitly.
 Validation: 171 owner-routing, consolidation, emergent-parser, hash-parity and
 specification tests passed; 19 expected tests were skipped and one remained
 an expected xfail. Ruff and whitespace checks passed.
+
+## Remaining owner-boundary cleanup (2026-09-11)
+
+The audit found three more primary-engine reach-throughs. Result persistence
+now reads compact-to-neuron mappings from the target area's executing owner;
+the emergent curriculum's base-beta schedule delegates through
+`Brain.update_plasticity`, keeping descriptors and explicit mirrors coherent;
+and incremental context resets use the resolved owner for backend population
+state. Planning and Turing-machine demos also use the public reset facade.
+
+Validation: the focused owner-routing/parser/consolidation gate passed 171
+tests (19 skips, one expected xfail). Existing sampled-recurrence warnings are
+expected and remain evidence that those sequence tests need a fixed engine.

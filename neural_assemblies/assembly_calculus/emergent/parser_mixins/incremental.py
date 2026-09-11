@@ -316,7 +316,8 @@ class IncrementalMixin:
         """
         self._reset_context_winners(preserve_mapping=False)
         self.brain.areas[CONTEXT].w = 0
-        self.brain._engine._areas[CONTEXT].w = 0
+        owner = self.brain._engine_for(self.brain.areas[CONTEXT])
+        owner._areas[CONTEXT].w = 0
 
     def _reset_context_for_bridge(self, *, preserve_topology: bool = False) -> None:
         """Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-context-bridge-reset
@@ -332,7 +333,8 @@ class IncrementalMixin:
             self._reset_context_state()
             return
         self._reset_context_winners(preserve_mapping=True)
-        self.brain.areas[CONTEXT].w = self.brain._engine._areas[CONTEXT].w
+        owner = self.brain._engine_for(self.brain.areas[CONTEXT])
+        self.brain.areas[CONTEXT].w = owner._areas[CONTEXT].w
 
     def _build_circuit(self) -> FiberCircuit:
         """Build a FiberCircuit with all projection channels initially inhibited.

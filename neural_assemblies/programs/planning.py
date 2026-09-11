@@ -156,7 +156,7 @@ class BlocksWorldAC:
             self.circuit.add_stim(stim, self.holding_area)
             self.circuit.add(area, self.holding_area)
             project(brain, stim, area, rounds=rounds)
-            brain._engine.reset_area_connections(area)
+            brain.reset_area_connections(area)
 
         if blocks:
             project(brain, self._block_stim[blocks[0]], self.table_area, rounds=rounds)
