@@ -1036,12 +1036,15 @@ def sequence_memorize(brain, stimuli, target, rounds_per_step=10,
                 # callers never do, and changing it would alter results.
                 original_beta = brain.areas[target].beta
                 brain.update_plasticity(target, target, beta_boost)
-
-            for _ in range(recur_rounds):
-                brain.project({stim_name: [target]}, {target: [target]})
-
-            if beta_boost is not None:
-                brain.update_plasticity(target, target, original_beta)
+            try:
+                for _ in range(recur_rounds):
+                    brain.project({stim_name: [target]}, {target: [target]})
+            finally:
+                if beta_boost is not None:
+                    # The boost is a scoped protocol setting. Restore it even
+                    # when a backend raises, otherwise a failed experiment
+                    # contaminates every later run on this Brain.
+                    brain.update_plasticity(target, target, original_beta)
 
             assemblies.append(_snap(brain, target))
 

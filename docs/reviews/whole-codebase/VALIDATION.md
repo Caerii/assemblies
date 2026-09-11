@@ -4643,3 +4643,7 @@ The legacy `assembly_calculus.binding.bind` now rejects unknown area names and n
 ## Explicit-pattern learning admission (2026-09-11)
 
 `learn_assembly_from_pattern` now validates source/target areas, exact pattern shape, finite numeric contents, nonempty activation, convergence budgets, `tau`, and the explicit recurrence flag before mutation. Invalid pattern inputs can no longer partially reset or train the destination. Focused pattern-learning and E2 tests pass **20 tests**.
+
+## Exception-safe sequence plasticity (2026-09-11)
+
+`sequence_memorize` now restores a temporary `beta_boost` in a `finally` block. A backend failure during recurrent training can no longer contaminate the Brain’s later plasticity state. The injected-failure regression plus sequence suites pass **26 tests**.
